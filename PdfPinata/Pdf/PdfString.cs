@@ -69,14 +69,17 @@ public enum PdfStringEncoding
     /// <summary>
     /// Not yet used by PdfPinata.
     /// </summary>
-    MacRomanEncoding = PdfStringFlags.MacExpertEncoding,
+    /// <remarks>
+    /// 4. It was 5, MacExpert's value, from PDFsharp 1.5 until PdfPinata 0.1; an assembly
+    /// compiled against those has 5 baked in, and now asks for MacExpert - which PdfPinata
+    /// treats exactly as it treats MacRoman, so nothing it writes changes.
+    /// </remarks>
+    MacRomanEncoding = PdfStringFlags.MacRomanEncoding,
 
     /// <summary>
     /// Not yet used by PdfPinata.
     /// </summary>
-    #pragma warning disable CA1069 // Public API: callers have 5 compiled in for MacRomanEncoding as well, so neither value can move.
     MacExpertEncoding = PdfStringFlags.MacExpertEncoding,
-    #pragma warning restore CA1069
 
     /// <summary>
     /// The characters of the string are Unicode characters.
@@ -154,6 +157,9 @@ public sealed class PdfString : PdfItem
                 break;
 
             case PdfStringEncoding.MacRomanEncoding:
+                break;
+
+            case PdfStringEncoding.MacExpertEncoding:
                 break;
 
             case PdfStringEncoding.Unicode:
