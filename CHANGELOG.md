@@ -312,7 +312,7 @@ This file starts at the entry below. Changes before that point are recorded only
   package swap and a replacement of `PdfSharpCore` with `PdfPinata` and `MigraDocCore` with
   `PinataLayout` in `using` directives; the inner `MigraDoc.` segment of the layout namespaces is
   unchanged. Type and member names are unchanged. All nine packages now version in lockstep from
-  one release tag, starting at 1.0.
+  one release tag, starting at 0.1.0.
 - **BREAKING: the open mode is enforced where it is named.** `PdfReader.Open` has always taken a
   `PdfDocumentOpenMode`, and twelve operations have always guarded on `PdfDocument.CanModify` before
   changing the document. `CanModify` returned `true` unconditionally, with the real check commented

@@ -40,11 +40,13 @@
     referenced from Directory.Build.targets, where IsPackable is known.
 
     MinVerMinimumMajorMinor is the floor before the first tag exists. PdfPinata and PinataLayout are
-    new package IDs, but the code is not new, so the first version is 1.0 rather than MinVer's 0.0.
+    new package IDs and start below 1.0, at 0.1, while the API settles under its new name: until the
+    first tag exists, a pre-release is 0.1.0-alpha.0.N rather than MinVer's 0.0.0-alpha.0.N. A tag always
+    wins over this floor - it only decides the version of an untagged commit.
   -->
   <PropertyGroup>
     <MinVerTagPrefix>v</MinVerTagPrefix>
-    <MinVerMinimumMajorMinor>1.0</MinVerMinimumMajorMinor>
+    <MinVerMinimumMajorMinor>0.1</MinVerMinimumMajorMinor>
   </PropertyGroup>
 
   <!--

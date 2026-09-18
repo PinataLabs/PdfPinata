@@ -6,10 +6,11 @@ tag-template: 'v$RESOLVED_VERSION'
 # increment wins, and the trailing `type: version-resolver` entry with no `when`
 # is the fallback for anything uncategorised.
 #
-# The packages start at 1.0, so a breaking change is a major bump.
+# While the packages are below 1.0, a breaking change is a minor bump. Change this
+# to major when 1.0 is released.
 categories:
   - title: 'Breaking Changes'
-    semver-increment: 'major'
+    semver-increment: 'minor'
     when:
       labels:
         - 'breaking'
