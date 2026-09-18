@@ -11,9 +11,9 @@ namespace PdfPinata.Drawing.Layout;
 /// takes some of these away, and the formatter never learns what shape took them - which is what
 /// lets a circle be added later without the layout loop knowing a circle exists.
 /// <para>
-/// A plain <c>readonly struct</c> rather than a record struct: every package here targets
-/// <c>netstandard2.1</c> for Unity, which has no <c>IsExternalInit</c>, so <c>init</c> and
-/// positional records fail to compile on that leg however new the language version is.
+/// A plain <c>readonly struct</c> rather than a record struct, written when the
+/// <c>netstandard2.1</c> leg had no <c>IsExternalInit</c> and so could not compile <c>init</c> or
+/// positional records. PolySharp now generates it there, so either would compile today.
 /// </para>
 /// </remarks>
 public readonly struct XInterval : IEquatable<XInterval>

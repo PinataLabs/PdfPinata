@@ -475,9 +475,13 @@ dropping it. Two consequences:
   compile shared source as C# 8. This unlocks *syntax* only. Anything needing a BCL type
   netstandard2.1 lacks (`IsExternalInit` for records and `init`, `RequiredMemberAttribute`,
   `InlineArray`) still fails as a missing-predefined-type error, and has to be polyfilled.
-- `PdfPinata/!internal/` and `PinataLayout.DocumentObjectModel/CompileFixes/` hold those
-  polyfills behind `#if !NET5_0_OR_GREATER`. They look like dead code on a modern-target glance and
-  are not. Both copies exist because each is `internal` with no `InternalsVisibleTo`.
+- **Types** come from PolySharp, referenced in `Directory.Build.props` for the netstandard legs
+  alone (the generator's netstandard2.0 included) with `PolySharpIncludeRuntimeSupportedAttributes`
+  on, for `DynamicallyAccessedMembers`. It generates `internal` source for what each compilation
+  lacks, so every assembly gets its own copy and the net8.0/net10.0 legs get nothing. **Members**
+  — a throw helper, a span overload — PolySharp never supplies; those are C# 14 static extension
+  members in `Polyfills/`, compiled into the netstandard2.1 leg only. Write shared source the
+  modern way and add to one of the two, rather than fencing a line with `#if` or a pragma.
 
 ## Tests
 

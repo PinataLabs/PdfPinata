@@ -250,9 +250,7 @@ internal class Serializer
         }
         else
         {
-          #pragma warning disable CA1845 // netstandard2.1 has no string.Concat over spans, and this assembly still builds for it.
-          wrt = "// " + comment.Substring(0, idxChop);
-          #pragma warning restore CA1845
+          wrt = string.Concat("// ", comment.AsSpan(0, idxChop));
           comment = comment.Substring(idxChop + 1);
         }
       }

@@ -841,9 +841,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                 return (int)defaultValue;
             }
             Debug.Assert(obj is PdfName);
-            #pragma warning disable CA1846 // netstandard2.1 has no Enum.Parse overload taking a span, and the source is compiled for it too.
-            return (int)Enum.Parse(defaultValue.GetType(), obj.ToString().Substring(1), false);
-            #pragma warning restore CA1846
+            return (int)Enum.Parse(defaultValue.GetType(), obj.ToString().AsSpan(1), false);
         }
 
         internal int GetEnumFromName(string key, object defaultValue)
