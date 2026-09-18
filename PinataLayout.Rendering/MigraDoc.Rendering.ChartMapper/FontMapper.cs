@@ -39,7 +39,7 @@ internal class FontMapper
   {
   }
 
-  void MapObject(Font font, DocumentObjectModel.Font domFont)
+  static void MapObject(Font font, DocumentObjectModel.Font domFont)
   {
     font.Bold = domFont.Bold;
     if (domFont.Color.IsEmpty)
@@ -64,14 +64,12 @@ internal class FontMapper
     DocumentObjectModel.Style domStyle = domDocument.Styles[domStyleName];
     if (domStyle != null)
     {
-      FontMapper mapper = new FontMapper();
-      mapper.MapObject(font, domStyle.Font);
+      MapObject(font, domStyle.Font);
     }
   }
 
   internal static void Map(Font font, DocumentObjectModel.Font domFont)
   {
-    FontMapper mapper = new FontMapper();
-    mapper.MapObject(font, domFont);
+    MapObject(font, domFont);
   }
 }

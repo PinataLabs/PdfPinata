@@ -44,7 +44,7 @@ public class XValuesMapper
   {
   }
 
-  void MapObject(XValues xValues, DocumentObjectModel.Shapes.Charts.XValues domXValues)
+  static void MapObject(XValues xValues, DocumentObjectModel.Shapes.Charts.XValues domXValues)
   {
     foreach (DocumentObjectModel.Shapes.Charts.XSeries domXSeries in domXValues)
     {
@@ -62,7 +62,6 @@ public class XValuesMapper
 
   internal static void Map(XValues xValues, DocumentObjectModel.Shapes.Charts.XValues domXValues)
   {
-    XValuesMapper mapper = new XValuesMapper();
-    mapper.MapObject(xValues, domXValues);
+    MapObject(xValues, domXValues);
   }
 }

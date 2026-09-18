@@ -101,7 +101,7 @@ internal class LinePlotAreaRenderer : ColumnLikePlotAreaRenderer
   /// <summary>
   /// Draws all markers given in rendererInfo at the positions specified by points.
   /// </summary>
-  private void DrawMarker(XGraphics graphics, XPoint[] points, SeriesRendererInfo rendererInfo)
+  private static void DrawMarker(XGraphics graphics, XPoint[] points, SeriesRendererInfo rendererInfo)
   {
     foreach (XPoint pos in points)
       MarkerRenderer.Draw(graphics, pos, rendererInfo.markerRendererInfo);

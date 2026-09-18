@@ -296,15 +296,12 @@ public class DocumentRenderer
     /// <remarks>This function is still in an experimental state.</remarks>
     public void RenderObject(XGraphics graphics, XUnit xPosition, XUnit yPosition, XUnit width, DocumentObject documentObject)
     {
-        if (graphics == null)
-            throw new ArgumentNullException("graphics");
-
-        if (documentObject == null)
-            throw new ArgumentNullException("documentObject");
+        ArgumentNullException.ThrowIfNull(graphics);
+        ArgumentNullException.ThrowIfNull(documentObject);
 
         if (!(documentObject is Shape) && !(documentObject is Table) &&
             !(documentObject is Paragraph))
-            throw new ArgumentException(AppResources.ObjectNotRenderable, "documentObject");
+            throw new ArgumentException(AppResources.ObjectNotRenderable, nameof(documentObject));
 
         Renderer renderer = Renderer.Create(graphics, this, documentObject, null);
         renderer.Format(new Rectangle(xPosition, yPosition, width, double.MaxValue), null);
@@ -394,7 +391,7 @@ public class DocumentRenderer
         }
     }
 
-    internal void AddOutline(int level, string title, PdfPage destinationPage)
+    internal static void AddOutline(int level, string title, PdfPage destinationPage)
     {
         AddOutline(level, title, destinationPage, double.NaN);
     }
@@ -410,7 +407,7 @@ public class DocumentRenderer
     /// measured in. NaN points the entry at the page without saying where on it, which leaves
     /// the reader wherever the page is already scrolled to.
     /// </param>
-    internal void AddOutline(int level, string title, PdfPage destinationPage, double destinationTop)
+    internal static void AddOutline(int level, string title, PdfPage destinationPage, double destinationTop)
     {
         if (level < 1 || destinationPage == null)
             return;

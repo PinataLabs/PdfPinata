@@ -28,6 +28,7 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
+using System;
 using System.Collections;
 
 using PinataLayout.DocumentObjectModel;
@@ -93,7 +94,7 @@ internal class FormattedHeaderFooter : IAreaProvider
       return result;
     }
 
-    return new RenderInfo[0];
+    return Array.Empty<RenderInfo>();
   }
 
   internal Rectangle ContentRect

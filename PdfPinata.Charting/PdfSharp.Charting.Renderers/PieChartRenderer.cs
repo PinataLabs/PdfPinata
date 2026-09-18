@@ -56,14 +56,14 @@ internal class PieChartRenderer : ChartRenderer
 
     InitSeries(cri);
 
-    LegendRenderer lr = new PieLegendRenderer(this.rendererParms);
+    PieLegendRenderer lr = new PieLegendRenderer(this.rendererParms);
     cri.legendRendererInfo = (LegendRendererInfo)lr.Init();
 
     PlotArea plotArea = cri.chart.PlotArea;
     PlotAreaRenderer renderer = GetPlotAreaRenderer();
     cri.plotAreaRendererInfo = (PlotAreaRendererInfo)renderer.Init();
 
-    DataLabelRenderer dlr = new PieDataLabelRenderer(this.rendererParms);
+    PieDataLabelRenderer dlr = new PieDataLabelRenderer(this.rendererParms);
     dlr.Init();
 
     return cri;
@@ -76,7 +76,7 @@ internal class PieChartRenderer : ChartRenderer
   {
     ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
 
-    LegendRenderer lr = new PieLegendRenderer(this.rendererParms);
+    PieLegendRenderer lr = new PieLegendRenderer(this.rendererParms);
     lr.Format();
 
     // Calculate rects and positions.
@@ -88,7 +88,7 @@ internal class PieChartRenderer : ChartRenderer
     cri.plotAreaRendererInfo.Width = edge;
     cri.plotAreaRendererInfo.Height = edge;
 
-    DataLabelRenderer dlr = new PieDataLabelRenderer(this.rendererParms);
+    PieDataLabelRenderer dlr = new PieDataLabelRenderer(this.rendererParms);
     dlr.Format();
 
     // Calculated remaining plot area, now it's safe to format.
@@ -103,7 +103,7 @@ internal class PieChartRenderer : ChartRenderer
   /// </summary>
   internal override void Draw()
   {
-    LegendRenderer lr = new PieLegendRenderer(this.rendererParms);
+    PieLegendRenderer lr = new PieLegendRenderer(this.rendererParms);
     lr.Draw();
 
     WallRenderer wr = new WallRenderer(this.rendererParms);
@@ -115,7 +115,7 @@ internal class PieChartRenderer : ChartRenderer
     PlotAreaRenderer renderer = GetPlotAreaRenderer();
     renderer.Draw();
 
-    DataLabelRenderer dlr = new PieDataLabelRenderer(this.rendererParms);
+    PieDataLabelRenderer dlr = new PieDataLabelRenderer(this.rendererParms);
     dlr.Draw();
   }
 
@@ -139,7 +139,7 @@ internal class PieChartRenderer : ChartRenderer
   /// <summary>
   /// Initializes all necessary data to draw a series for a pie chart.
   /// </summary>
-  protected void InitSeries(ChartRendererInfo rendererInfo)
+  protected static void InitSeries(ChartRendererInfo rendererInfo)
   {
     SeriesCollection seriesColl = rendererInfo.chart.SeriesCollection;
     rendererInfo.seriesRendererInfos = new SeriesRendererInfo[seriesColl.Count];

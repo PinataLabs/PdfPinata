@@ -414,7 +414,7 @@ internal abstract class XAxisRenderer : AxisRenderer
   /// Calculates the X axis describing values like minimum/maximum scale, major/minor tick and
   /// major/minor tick mark width.
   /// </summary>
-  private void CalculateXAxisValues(Chart chart, AxisRendererInfo rendererInfo)
+  private static void CalculateXAxisValues(Chart chart, AxisRendererInfo rendererInfo)
   {
     // The chart is passed in rather than reached through rendererInfo.axis.parent, because this
     // runs for a chart that has no axis to be reached through.

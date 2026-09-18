@@ -58,17 +58,17 @@ internal class BarChartRenderer : ChartRenderer
     LegendRenderer lr = GetLegendRenderer();
     cri.legendRendererInfo = (LegendRendererInfo)lr.Init();
 
-    AxisRenderer xar = new VerticalXAxisRenderer(this.rendererParms);
+    VerticalXAxisRenderer xar = new VerticalXAxisRenderer(this.rendererParms);
     cri.xAxisRendererInfo = (AxisRendererInfo)xar.Init();
 
-    AxisRenderer yar = GetYAxisRenderer();
+    YAxisRenderer yar = GetYAxisRenderer();
     cri.yAxisRendererInfo = (AxisRendererInfo)yar.Init();
 
     PlotArea plotArea = cri.chart.PlotArea;
     PlotAreaRenderer renderer = GetPlotAreaRenderer();
     cri.plotAreaRendererInfo = (PlotAreaRendererInfo)renderer.Init();
 
-    DataLabelRenderer dlr = new BarDataLabelRenderer(this.rendererParms);
+    BarDataLabelRenderer dlr = new BarDataLabelRenderer(this.rendererParms);
     dlr.Init();
 
     return cri;
@@ -85,10 +85,10 @@ internal class BarChartRenderer : ChartRenderer
     lr.Format();
 
     // axes
-    AxisRenderer xar = new VerticalXAxisRenderer(this.rendererParms);
+    VerticalXAxisRenderer xar = new VerticalXAxisRenderer(this.rendererParms);
     xar.Format();
 
-    AxisRenderer yar = GetYAxisRenderer();
+    YAxisRenderer yar = GetYAxisRenderer();
     yar.Format();
 
     // Calculate rects and positions.
@@ -108,7 +108,7 @@ internal class BarChartRenderer : ChartRenderer
     PlotAreaRenderer renderer = GetPlotAreaRenderer();
     renderer.Format();
 
-    DataLabelRenderer dlr = new BarDataLabelRenderer(this.rendererParms);
+    BarDataLabelRenderer dlr = new BarDataLabelRenderer(this.rendererParms);
     dlr.Format();
   }
 
@@ -125,7 +125,7 @@ internal class BarChartRenderer : ChartRenderer
     WallRenderer wr = new WallRenderer(this.rendererParms);
     wr.Draw();
 
-    GridlinesRenderer glr = new BarGridlinesRenderer(this.rendererParms);
+    BarGridlinesRenderer glr = new BarGridlinesRenderer(this.rendererParms);
     glr.Draw();
 
     PlotAreaBorderRenderer pabr = new PlotAreaBorderRenderer(this.rendererParms);
@@ -134,18 +134,18 @@ internal class BarChartRenderer : ChartRenderer
     PlotAreaRenderer renderer = GetPlotAreaRenderer();
     renderer.Draw();
 
-    DataLabelRenderer dlr = new BarDataLabelRenderer(this.rendererParms);
+    BarDataLabelRenderer dlr = new BarDataLabelRenderer(this.rendererParms);
     dlr.Draw();
 
     if (cri.xAxisRendererInfo.axis != null)
     {
-      AxisRenderer xar = new VerticalXAxisRenderer(this.rendererParms);
+      VerticalXAxisRenderer xar = new VerticalXAxisRenderer(this.rendererParms);
       xar.Draw();
     }
 
     if (cri.yAxisRendererInfo.axis != null)
     {
-      AxisRenderer yar = GetYAxisRenderer();
+      YAxisRenderer yar = GetYAxisRenderer();
       yar.Draw();
     }
   }

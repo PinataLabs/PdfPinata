@@ -137,7 +137,7 @@ internal class ParagraphRenderer : Renderer
     {
         InitRendering();
         if ((int)paragraph.Format.OutlineLevel >= 1 && gfx.PdfPage != null) // Don't call GetOutlineTitle() in vain
-            documentRenderer.AddOutline((int)paragraph.Format.OutlineLevel, GetOutlineTitle(),
+            DocumentRenderer.AddOutline((int)paragraph.Format.OutlineLevel, GetOutlineTitle(),
                 gfx.PdfPage, OutlineDestinationTop());
 
         // Shading and borders are decoration, and they are drawn before the paragraph's own scope
@@ -396,7 +396,7 @@ internal class ParagraphRenderer : Renderer
         return notFitting ? FormatResult.NewLine : FormatResult.Continue;
     }
 
-    bool IsLineBreak(DocumentObject docObj)
+    static bool IsLineBreak(DocumentObject docObj)
     {
         if (docObj is Character)
         {
@@ -406,7 +406,7 @@ internal class ParagraphRenderer : Renderer
         return false;
     }
 
-    bool IsBlank(DocumentObject docObj)
+    static bool IsBlank(DocumentObject docObj)
     {
         if (docObj is Text)
         {
@@ -416,7 +416,7 @@ internal class ParagraphRenderer : Renderer
         return false;
     }
 
-    bool IsTab(DocumentObject docObj)
+    static bool IsTab(DocumentObject docObj)
     {
         if (docObj is Character)
         {
@@ -426,7 +426,7 @@ internal class ParagraphRenderer : Renderer
         return false;
     }
 
-    bool IsSoftHyphen(DocumentObject docObj)
+    static bool IsSoftHyphen(DocumentObject docObj)
     {
         Text text = docObj as Text;
         if (text != null)
@@ -556,6 +556,11 @@ internal class ParagraphRenderer : Renderer
     }
 
     /// <summary>
+    /// The characters a decimal aligned tab stop lines a number up on.
+    /// </summary>
+    static readonly char[] DecimalSeparators = { ',', '.' };
+
+    /// <summary>
     /// Probes the paragraph elements after a right aligned tab stop and returns the vertical text position to start at.
     /// </summary>
     /// <param name="tabStopPosition">Position of the tab to probe.</param>
@@ -587,7 +592,7 @@ internal class ParagraphRenderer : Renderer
         {
             Text text = (Text)currentLeaf.Current;
             string word = text.Content;
-            int lastIndex = text.Content.LastIndexOfAny(new char[] { ',', '.' });
+            int lastIndex = text.Content.LastIndexOfAny(DecimalSeparators);
             if (lastIndex > 0)
                 word = word.Substring(0, lastIndex);
 
@@ -1242,7 +1247,7 @@ internal class ParagraphRenderer : Renderer
     /// <summary>
     /// Whether a leaf is part of a word rather than something between words.
     /// </summary>
-    bool IsWordFragment(DocumentObject docObj) => IsPlainText(docObj) || IsSoftHyphen(docObj);
+    static bool IsWordFragment(DocumentObject docObj) => IsPlainText(docObj) || IsSoftHyphen(docObj);
 
     BrokenWord BrokenWordOf(DocumentObject leaf) =>
         brokenWords != null && leaf != null && brokenWords.TryGetValue(leaf, out BrokenWord word)
@@ -2322,7 +2327,7 @@ internal class ParagraphRenderer : Renderer
         return renderer.RenderInfo;
     }
 
-    bool IsPlainText(DocumentObject docObj)
+    static bool IsPlainText(DocumentObject docObj)
     {
         if (docObj is Text)
             return !IsSoftHyphen(docObj) && !IsBlank(docObj);
@@ -2330,7 +2335,7 @@ internal class ParagraphRenderer : Renderer
         return false;
     }
 
-    bool IsSymbol(DocumentObject docObj)
+    static bool IsSymbol(DocumentObject docObj)
     {
         if (docObj is Character)
         {
@@ -2339,7 +2344,7 @@ internal class ParagraphRenderer : Renderer
         return false;
     }
 
-    bool IsSpaceCharacter(DocumentObject docObj)
+    static bool IsSpaceCharacter(DocumentObject docObj)
     {
         if (docObj is Character)
         {
@@ -2355,7 +2360,7 @@ internal class ParagraphRenderer : Renderer
         return false;
     }
 
-    bool IsWordLikeElement(DocumentObject docObj)
+    static bool IsWordLikeElement(DocumentObject docObj)
     {
         if (IsPlainText(docObj))
             return true;
@@ -2482,7 +2487,7 @@ internal class ParagraphRenderer : Renderer
         return FormatResult.Continue;
     }
 
-    Area GetShadingArea()
+    Rectangle GetShadingArea()
     {
         Area contentArea = renderInfo.LayoutInfo.ContentArea;
         ParagraphFormat format = paragraph.Format;
@@ -2518,7 +2523,7 @@ internal class ParagraphRenderer : Renderer
             return;
 
         ShadingRenderer shadingRenderer = new ShadingRenderer(gfx, paragraph.Format.Shading);
-        Area area = GetShadingArea();
+        Rectangle area = GetShadingArea();
 
         shadingRenderer.Render(area.X, area.Y, area.Width, area.Height);
     }
@@ -2529,7 +2534,7 @@ internal class ParagraphRenderer : Renderer
         if (paragraph.Format.IsNull("Borders"))
             return;
 
-        Area shadingArea = GetShadingArea();
+        Rectangle shadingArea = GetShadingArea();
         XUnit left = shadingArea.X;
         XUnit top = shadingArea.Y;
         XUnit bottom = shadingArea.Y + shadingArea.Height;

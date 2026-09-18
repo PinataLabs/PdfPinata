@@ -48,7 +48,7 @@ internal abstract class AxisRenderer : Renderer
   /// Initializes the axis title of the rendererInfo. All missing font attributes will be taken
   /// from the specified defaultFont.
   /// </summary>
-  protected void InitAxisTitle(AxisRendererInfo rendererInfo, XFont defaultFont)
+  protected static void InitAxisTitle(AxisRendererInfo rendererInfo, XFont defaultFont)
   {
     if (rendererInfo.axis.title != null)
     {
@@ -97,7 +97,7 @@ internal abstract class AxisRenderer : Renderer
   /// <summary>
   /// Initializes the line format of the rendererInfo.
   /// </summary>
-  protected void InitAxisLineFormat(AxisRendererInfo rendererInfo)
+  protected static void InitAxisLineFormat(AxisRendererInfo rendererInfo)
   {
     if (rendererInfo.axis.minorTickMarkInitialized)
       rendererInfo.MinorTickMark = rendererInfo.axis.MinorTickMark;
@@ -124,7 +124,7 @@ internal abstract class AxisRenderer : Renderer
   /// <summary>
   /// Initializes the gridlines of the rendererInfo.
   /// </summary>
-  protected void InitGridlines(AxisRendererInfo rendererInfo)
+  protected static void InitGridlines(AxisRendererInfo rendererInfo)
   {
     if (rendererInfo.axis.minorGridlines != null)
     {

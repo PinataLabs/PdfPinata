@@ -59,7 +59,7 @@ internal abstract class PlotAreaRenderer : Renderer
   /// Initializes the plot area's line format common to all derived plot area renderers.
   /// If line format is given all uninitialized values will be set.
   /// </summary>
-  protected void InitLineFormat(PlotAreaRendererInfo rendererInfo)
+  protected static void InitLineFormat(PlotAreaRendererInfo rendererInfo)
   {
     if (rendererInfo.plotArea.lineFormat != null)
       rendererInfo.LineFormat = Converter.ToXPen(rendererInfo.plotArea.lineFormat, XColors.Black, DefaultLineWidth);
@@ -69,7 +69,7 @@ internal abstract class PlotAreaRenderer : Renderer
   /// Initializes the plot area's fill format common to all derived plot area renderers.
   /// If fill format is given all uninitialized values will be set.
   /// </summary>
-  protected void InitFillFormat(PlotAreaRendererInfo rendererInfo)
+  protected static void InitFillFormat(PlotAreaRendererInfo rendererInfo)
   {
     if (rendererInfo.plotArea.fillFormat != null)
       rendererInfo.FillFormat = Converter.ToXBrush(rendererInfo.plotArea.fillFormat, XColors.White);

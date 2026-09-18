@@ -165,7 +165,7 @@ internal class ParagraphIterator
   /// </summary>
   /// <param name="obj">The object to select the node object for.</param>
   /// <returns>The object a paragraph iterator shall point to.</returns>
-  private DocumentObject GetNodeObject(DocumentObject obj)
+  private static DocumentObject GetNodeObject(DocumentObject obj)
   {
     if (obj is FormattedText)
       return ((FormattedText)obj).Elements;

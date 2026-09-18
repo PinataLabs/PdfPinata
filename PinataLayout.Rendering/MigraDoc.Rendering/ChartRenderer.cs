@@ -237,7 +237,7 @@ internal class ChartRenderer : ShapeRenderer
   }
 
 
-  XUnit AlignVertically(VerticalAlignment vAlign, XUnit top, XUnit bottom, XUnit height)
+  static XUnit AlignVertically(VerticalAlignment vAlign, XUnit top, XUnit bottom, XUnit height)
   {
     switch (vAlign)
     {
