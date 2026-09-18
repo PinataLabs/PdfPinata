@@ -46,7 +46,7 @@ public sealed class TextMeasurement
     /// </summary>
     public TextMeasurement(XGraphics graphics, Font font)
     {
-        this.font = font ?? throw new ArgumentNullException("font");
+        this.font = font ?? throw new ArgumentNullException(nameof(font));
         this.graphics = graphics;
     }
 
@@ -55,11 +55,10 @@ public sealed class TextMeasurement
     /// </summary>
     public XSize MeasureString(string text, UnitType unitType)
     {
-        if (text == null)
-            throw new ArgumentNullException("text");
+        ArgumentNullException.ThrowIfNull(text);
 
-        if (!Enum.IsDefined(typeof(UnitType), unitType))
-            throw new ArgumentException();
+        if (!Enum.IsDefined(unitType))
+            throw new ArgumentException($"'{unitType}' is not a defined value of {nameof(UnitType)}.", nameof(unitType));
 
         var size = graphics.MeasureString(text, XFont);
         switch (unitType)
@@ -110,8 +109,7 @@ public sealed class TextMeasurement
         get => font;
         set
         {
-            if (value == null)
-                throw new ArgumentNullException("value");
+            ArgumentNullException.ThrowIfNull(value);
             if (font != value)
             {
                 font = value;

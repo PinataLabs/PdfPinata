@@ -54,8 +54,7 @@ internal class Serializer
   /// <param name="initialIndent">Initial indent to start with.</param>
   internal Serializer(TextWriter textWriter, int indent, int initialIndent)
   {
-    if (textWriter == null)
-      throw new ArgumentNullException("textWriter");
+    ArgumentNullException.ThrowIfNull(textWriter);
 
     this.textWriter = textWriter;
     this.indent = indent;
@@ -174,7 +173,7 @@ internal class Serializer
     // nothing beyond it to search.
     int wrapAt = Math.Min(Math.Max(lineBreakBeyond - writeIndent, 0), str.Length);
 
-    int splitIndexBlank = str.Substring(0, wrapAt).LastIndexOf(" ");
+    int splitIndexBlank = str.Substring(0, wrapAt).LastIndexOf(' ');
     int splitIndexCRLF = str.Substring(0, wrapAt).LastIndexOf("\x0D\x0A");
     int splitIndex = Math.Max(splitIndexBlank, splitIndexCRLF);
     if (splitIndex == -1)
@@ -185,7 +184,7 @@ internal class Serializer
       // wrapped at all. A line break is not looked for out here on purpose: one past the limit
       // already ends the line when it is written, so breaking at it would only hand the line
       // break itself to the next write and end the line twice.
-      splitIndex = str.IndexOf(" ", wrapAt);
+      splitIndex = str.IndexOf(' ', wrapAt);
     return splitIndex > 0 ? str.Substring(0, splitIndex) : str;
   }
 
@@ -251,7 +250,9 @@ internal class Serializer
         }
         else
         {
+          #pragma warning disable CA1845 // netstandard2.1 has no string.Concat over spans, and this assembly still builds for it.
           wrt = "// " + comment.Substring(0, idxChop);
+          #pragma warning restore CA1845
           comment = comment.Substring(idxChop + 1);
         }
       }
@@ -343,7 +344,7 @@ internal class Serializer
   /// Mighty function to figure out if a blank is required as separator.
   /// // Does not work without context...
   /// </summary>
-  bool IsBlankRequired(char left, char right)
+  static bool IsBlankRequired(char left, char right)
   {
     if (left == ' ' || right == ' ')
       return false;

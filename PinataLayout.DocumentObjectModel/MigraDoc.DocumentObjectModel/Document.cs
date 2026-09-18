@@ -209,7 +209,9 @@ public sealed partial class Document : DocumentObject, IVisitable
   /// <summary>
   /// Gets the default page setup.
   /// </summary>
+  #pragma warning disable CA1822 // Public instance property: making it static would change the public API.
   public PageSetup DefaultPageSetup => PageSetup.DefaultPageSetup;
+  #pragma warning restore CA1822
 
   /// <summary>
   /// Gets or sets the location of the Footnote.

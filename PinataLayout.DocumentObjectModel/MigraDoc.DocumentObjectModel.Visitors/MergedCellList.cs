@@ -128,7 +128,7 @@ public class MergedCellList : List<Cell>
 
     int cellIdx = this.BinarySearch(cell, new CellComparer());
     if (!(cellIdx >= 0 && cellIdx < this.Count))
-      throw new ArgumentException("cell is not a relevant cell", "cell");
+      throw new ArgumentException("cell is not a relevant cell", nameof(cell));
 
     if (cell.mergeRight > 0)
     {
@@ -207,7 +207,7 @@ public class MergedCellList : List<Cell>
   /// The copy matters: the caller hands the result to a throwaway Borders collection, which takes
   /// ownership of whatever it is given, and the neighbour's own border must not be carried off.
   /// </summary>
-  private Border GetBorderFromBorders(Borders borders, BorderType type)
+  private static Border GetBorderFromBorders(Borders borders, BorderType type)
   {
     Border returnBorder = borders.GetValue(type.ToString(), GV.ReadOnly) as Border;
     if (returnBorder != null)
@@ -224,7 +224,7 @@ public class MergedCellList : List<Cell>
   /// <summary>
   /// Returns the width of the border at the specified position.
   /// </summary>
-  private Unit GetEffectiveBorderWidth(Borders borders, BorderType type)
+  private static Unit GetEffectiveBorderWidth(Borders borders, BorderType type)
   {
     if (borders == null)
       return 0;
@@ -306,7 +306,7 @@ public class MergedCellList : List<Cell>
   /// <summary>
   /// Returns whether cell2 is a neighbor of cell1 at the specified position.
   /// </summary>
-  private bool IsNeighbor(Cell cell1, Cell cell2, NeighborPosition position)
+  private static bool IsNeighbor(Cell cell1, Cell cell2, NeighborPosition position)
   {
     bool isNeighbor = false;
     switch (position)

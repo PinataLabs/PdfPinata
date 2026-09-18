@@ -83,8 +83,7 @@ public sealed partial class Font : DocumentObject
     /// </summary>
     public void ApplyFont(Font font)
     {
-        if (font == null)
-            throw new ArgumentNullException("font");
+        ArgumentNullException.ThrowIfNull(font);
 
         if (!string.IsNullOrEmpty(font.name))
             Name = font.Name;

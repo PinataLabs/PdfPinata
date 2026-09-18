@@ -272,10 +272,9 @@ public struct Color : INullableValue
     /// <param name="color">integer, hex or color name.</param>
     public static Color Parse(string color)
     {
-        if (color == null)
-            throw new ArgumentNullException("color");
+        ArgumentNullException.ThrowIfNull(color);
         if (color == "")
-            throw new ArgumentException("color");
+            throw new ArgumentException("A colour must not be empty.", nameof(color));
 
         try
         {
@@ -283,8 +282,7 @@ public struct Color : INullableValue
             // Must use Enum.Parse because Enum.IsDefined is case sensitive
             try
             {
-                object obj = Enum.Parse(typeof(ColorName), color, true);
-                clr = (uint)obj;
+                clr = (uint)Enum.Parse<ColorName>(color, true);
                 return new Color(clr);
             }
             catch
@@ -433,14 +431,14 @@ public struct Color : INullableValue
 
     static Dictionary<uint, string> BuildStdColors()
     {
-        string[] names = Enum.GetNames(typeof(ColorName));
-        Array values = Enum.GetValues(typeof(ColorName));
+        string[] names = Enum.GetNames<ColorName>();
+        ColorName[] values = Enum.GetValues<ColorName>();
         var colors = new Dictionary<uint, string>(names.Length);
         for (int index = 0; index < names.Length; index++)
         {
             // Some colors are double named, and the first name of a pair wins:
             // Aqua == Cyan, Fuchsia == Magenta.
-            uint value = (uint)values.GetValue(index);
+            uint value = (uint)values[index];
             if (!colors.ContainsKey(value))
                 colors.Add(value, names[index]);
         }

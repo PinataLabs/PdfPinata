@@ -50,12 +50,11 @@ internal static class EnumGuard
   /// </summary>
   internal static T Checked<T>(T value) where T : struct, Enum
   {
-    // Enum.IsDefined(Type, object) rather than the generic Enum.IsDefined<T>(T), which is .NET 5+
-    // and this assembly still targets netstandard2.1. ArgumentException rather than the more
-    // correct ArgumentOutOfRangeException, because NEnum threw ArgumentException and no caller
-    // should be able to tell that NEnum is gone.
-    if (!Enum.IsDefined(typeof(T), value))
-      throw new ArgumentException("value");
+    // ArgumentException rather than the more correct ArgumentOutOfRangeException, because NEnum
+    // threw ArgumentException and no caller should be able to tell that NEnum is gone. It names
+    // value, which is also what the property setter calling this names its argument.
+    if (!Enum.IsDefined(value))
+      throw new ArgumentException($"'{value}' is not a defined value of {typeof(T).Name}.", nameof(value));
     return value;
   }
 }

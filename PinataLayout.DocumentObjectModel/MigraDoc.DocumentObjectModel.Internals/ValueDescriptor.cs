@@ -141,8 +141,8 @@ public sealed class ValueDescriptor
   /// </summary>
   public object GetValue(DocumentObject dom, GV flags)
   {
-    if (!Enum.IsDefined(typeof(GV), flags))
-      throw new ArgumentException("flags");
+    if (!Enum.IsDefined(flags))
+      throw new ArgumentException($"'{flags}' is not a defined value of {nameof(GV)}.", nameof(flags));
 
     switch (Kind)
     {

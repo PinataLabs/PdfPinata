@@ -553,7 +553,7 @@ internal class DdlScanner
         if (MoveToNextParagraphContentLine(rootLevel))
         {
           // Paragraph continues in next line. Add a blank to separate words.
-          if (!this.token.EndsWith(" "))
+          if (!this.token.EndsWith(' '))
             this.token += ' ';
           continue;
         }
@@ -967,9 +967,9 @@ internal class DdlScanner
   internal static bool IsIdentifierChar(char ch, bool firstChar) //IsId..Char
   {
     if (firstChar)
-      return Char.IsLetter(ch) | ch == '_';
+      return Char.IsLetter(ch) || ch == '_';
     else
-      return Char.IsLetterOrDigit(ch) | ch == '_';
+      return Char.IsLetterOrDigit(ch) || ch == '_';
   }
 
   /// <summary>

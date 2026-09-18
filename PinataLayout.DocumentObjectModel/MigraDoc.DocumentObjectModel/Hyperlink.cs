@@ -495,8 +495,16 @@ public partial class Hyperlink : DocumentObject, IVisitable
         string str = "[Name = \"" + Name.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"";
         if (type != null)
             str += " Type = " + Type;
-        str += "]";
-        serializer.Write(str);
+        if (IsNull("Font"))
+            serializer.Write(str + "]");
+        else
+        {
+            // The same attribute block a paragraph writes its font in, inside the brackets:
+            // the reader takes "Font { ... }" there just as it takes "Name = ...".
+            serializer.Write(str + " ");
+            font.Serialize(serializer);
+            serializer.Write("]");
+        }
         serializer.Write("{");
         if (elements != null)
             elements.Serialize(serializer);

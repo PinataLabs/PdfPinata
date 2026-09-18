@@ -84,7 +84,7 @@ public sealed class DdlEncoder
           if (index < length - 1 && str[index + 1] == '/')
             strb.Append("\\/");
           else
-            strb.Append("/");
+            strb.Append('/');
           break;
 
         default:
@@ -105,7 +105,7 @@ public sealed class DdlEncoder
       return "\"\"";
 
     StringBuilder strb = new StringBuilder(length + (int)(length >> 2));
-    strb.Append("\"");
+    strb.Append('"');
     for (int index = 0; index < length; ++index)
     {
       char ch = str[index];
@@ -124,7 +124,7 @@ public sealed class DdlEncoder
           break;
       }
     }
-    strb.Append("\"");
+    strb.Append('"');
 
     return strb.ToString();
   }

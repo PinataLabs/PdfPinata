@@ -42,10 +42,8 @@ public static class FieldEvaluator
     /// </exception>
     public static string Evaluate(DocumentObject field, FieldEvaluationContext context)
     {
-        if (field == null)
-            throw new ArgumentNullException(nameof(field));
-        if (context == null)
-            throw new ArgumentNullException(nameof(context));
+        ArgumentNullException.ThrowIfNull(field);
+        ArgumentNullException.ThrowIfNull(context);
 
         if (field is NumericFieldBase numericField)
         {
@@ -111,7 +109,7 @@ public static class FieldEvaluator
                 + "paragraph before asking what it reads as.",
                 nameof(field));
 
-        foreach (string name in Enum.GetNames(typeof(InfoFieldType)))
+        foreach (string name in Enum.GetNames<InfoFieldType>())
         {
             if (string.Compare(field.Name, name, StringComparison.OrdinalIgnoreCase) == 0)
                 return document.Info.GetValue(name)?.ToString() ?? "";
