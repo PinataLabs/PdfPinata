@@ -7,6 +7,10 @@ and `net10.0` a call such as `ArgumentNullException.ThrowIfNull(value)` binds to
 method and on `netstandard2.1` to the one here. Shared source can then be written once, the modern
 way, rather than behind `#if`.
 
+Only members belong here. Missing *types* — attributes such as `CallerArgumentExpressionAttribute`
+and `DynamicallyAccessedMembersAttribute`, and `IsExternalInit` — come from PolySharp, which
+`Directory.Build.props` references for the netstandard legs and which never supplies a method.
+
 Each is `internal`, so every assembly gets its own copy and none of them is visible to a consumer.
 Add a member here when a fix needs one; keep its behaviour — the exception type and the parameter
 name — the same as the runtime's, so the three legs cannot disagree about what they throw.

@@ -10,10 +10,9 @@
       Raising this unlocks syntax, not runtime support. Features needing BCL types that
       netstandard2.1 lacks (IsExternalInit for records and init accessors, RequiredMemberAttribute
       for required members, InlineArray/CollectionBuilder for some collection expression targets)
-      still fail, as a missing-predefined-type error. Polyfill them internally behind
-      #if !NET5_0_OR_GREATER, as PdfPinata/!internal/ and
-      PinataLayout.DocumentObjectModel/CompileFixes/ already do. See "Target frameworks" in the
-      README for why netstandard2.1 is a target at all.
+      still fail, as a missing-predefined-type error. PolySharp, referenced below for the
+      netstandard legs, generates the types; Polyfills/ holds the members. See "Target frameworks"
+      in the README for why netstandard2.1 is a target at all.
     -->
     <LangVersion>latest</LangVersion>
 
@@ -41,6 +40,24 @@
   -->
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
     <Compile Include="$(MSBuildThisFileDirectory)Polyfills/*.cs" Link="Polyfills/%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <!--
+    PolySharp generates, as internal source, the attributes and types the compiler and the trimming
+    annotations need that netstandard lacks - IsExternalInit, CallerArgumentExpressionAttribute,
+    DynamicallyAccessedMembersAttribute and the rest - and only those the compilation does not
+    already have, so on net8.0 and net10.0 it would generate nothing and is not referenced there.
+    It is a source generator with no runtime part, so no package takes a dependency on it.
+    DynamicallyAccessedMembers is one of what PolySharp calls runtime-supported attributes, which
+    it leaves out unless asked. Polyfills/ above holds the members PolySharp does not provide: it
+    polyfills types, never methods.
+  -->
+  <PropertyGroup>
+    <PolySharpIncludeRuntimeSupportedAttributes>true</PolySharpIncludeRuntimeSupportedAttributes>
+  </PropertyGroup>
+
+  <ItemGroup Condition="$(TargetFramework.StartsWith('netstandard'))">
+    <PackageReference Include="PolySharp" Version="1.16.0" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />
   </ItemGroup>
 
   <!--

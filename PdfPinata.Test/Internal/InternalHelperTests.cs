@@ -14,8 +14,8 @@ namespace PdfPinata.Test.Internal;
 ///   the stream reader that fills a buffer properly. None of them is reachable by name from
 ///   outside the library, so they are reached by
 ///   reflection, the way <c>AreaProbe</c> and <c>ParagraphIteratorProbe</c> already reach what
-///   they need - this repository carries no <c>InternalsVisibleTo</c> and the polyfills under
-///   <c>!internal/</c> are duplicated per assembly precisely because it does not.
+///   they need - this repository carries no <c>InternalsVisibleTo</c>, which is also why every
+///   assembly gets its own copy of the netstandard2.1 polyfills.
 ///   <para>
 ///   They are worth reaching. <c>DoubleUtil</c> is what decides whether a matrix is invertible and
 ///   whether two points are the same point, and a comparison that is wrong at the edges is wrong
