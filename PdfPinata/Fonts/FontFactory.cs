@@ -307,7 +307,7 @@ internal static class FontFactory
         Array.Sort(keys, StringComparer.OrdinalIgnoreCase);
         foreach (string key in keys)
             state.AppendFormat("  {0}: {1}\n", key, FontResolverInfosByName[key].DebuggerDisplay);
-        state.Append("\n");
+        state.Append('\n');
 
         // FontSource by key.
         state.Append("Font source by key and name\n");

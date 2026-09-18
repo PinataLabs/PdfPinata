@@ -54,7 +54,9 @@ internal static class DiagnosticsHelper
                 break;
 
             default:
+                #pragma warning disable CA2208 // What is out of range is the Diagnostics.NotImplementedBehaviour setting, not a parameter, so there is none to name.
                 throw new ArgumentOutOfRangeException();
+                #pragma warning restore CA2208
         }
     }
 
