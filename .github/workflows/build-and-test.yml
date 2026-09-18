@@ -28,6 +28,10 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    # A pull request from a fork is not given the repository's secrets, so SONAR_TOKEN is empty
+    # there and every SonarCloud step below skips itself. The build and tests still run.
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
       # MinVer reads the version from the most recent tag, so it needs the history and the tags.
       # A shallow clone has neither, and every build would be versioned as if nothing had been
@@ -42,6 +46,23 @@ jobs:
           dotnet-version: |
             8.0.x
             10.0.x
+      # The SonarScanner for .NET runs on Java, 17 or later.
+      - name: Set up JDK 17
+        if: env.SONAR_TOKEN != ''
+        uses: actions/setup-java@v5.7.0
+        with:
+          java-version: 17
+          distribution: 'zulu'
+      - name: Cache SonarCloud packages
+        if: env.SONAR_TOKEN != ''
+        uses: actions/cache@v6
+        with:
+          path: ~/sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+      - name: Install SonarCloud scanner
+        if: env.SONAR_TOKEN != ''
+        run: dotnet tool install --global dotnet-sonarscanner
       # A Release build: it compiles every leg and, through GeneratePackageOnBuild, packs every
       # package, so a project that no longer packs fails here rather than at release time. The
       # tests below build and run the Debug configuration, where Debug.Assert is live.
@@ -62,8 +83,29 @@ jobs:
       # so the visual comparison tests still need Ghostscript installed here.
       - name: Install Ghostscript
         run: sudo apt-get install -y ghostscript
+      # SonarCloud analyses what is compiled between "begin" and "end", so exactly one build sits
+      # between them: the Debug build the tests run against. The Release build above stays outside,
+      # or every project would be analysed twice. The coverage the tests write is the same
+      # coverlet OpenCover output Codecov reads below, one file per test project and framework.
+      #
+      # SonarCloud's Automatic Analysis must be off for this project, or it refuses a CI analysis.
+      - name: Begin SonarCloud analysis
+        if: env.SONAR_TOKEN != ''
+        run: >
+          dotnet sonarscanner begin
+          /k:"PinataLabs_PdfPinata"
+          /o:"pinatalabs"
+          /d:sonar.token="$SONAR_TOKEN"
+          /d:sonar.host.url="https://sonarcloud.io"
+          /d:sonar.cs.opencover.reportsPaths="**/coverage*.opencover.xml"
+          /d:sonar.coverage.exclusions="ConformanceCorpus/**,PinataLayout.AotSmokeTest/**"
+      - name: Build for tests
+        run: dotnet build PdfPinata.slnx --configuration Debug --no-restore
       - name: Test
-        run: dotnet test --no-restore --verbosity normal /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
+        run: dotnet test PdfPinata.slnx --no-build --verbosity normal /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
+      - name: End SonarCloud analysis
+        if: env.SONAR_TOKEN != ''
+        run: dotnet sonarscanner end /d:sonar.token="$SONAR_TOKEN"
       # The DOM's value model is generated rather than reflected for, and EnableTrimAnalyzer proves
       # no statically visible reflection is left. It cannot prove there is none at all, nor that the
       # result runs. Publishing native and running it does. The app returns non-zero if any check
