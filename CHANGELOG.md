@@ -10,6 +10,8 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-09-18
+
 ### Added
 
 - **Characters above the basic multilingual plane are drawn.** The font reader now reads the `cmap`
