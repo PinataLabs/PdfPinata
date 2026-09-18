@@ -25,12 +25,12 @@ public class RotatedPageTests
     ///   The corner of the media box that the viewer shows at the top left of a page turned by
     ///   the given number of degrees. Drawing at the origin has to end up there.
     /// </summary>
-    public static IEnumerable<object[]> TopLeftCorners => new[]
+    public static TheoryData<int, double, double> TopLeftCorners => new TheoryData<int, double, double>
     {
-        new object[] { 0, 0, MediaBoxHeight },                    // stored top left
-        new object[] { 90, 0, 0 },                                // stored bottom left
-        new object[] { 180, MediaBoxWidth, 0 },                   // stored bottom right
-        new object[] { 270, MediaBoxWidth, MediaBoxHeight },      // stored top right
+        { 0, 0, MediaBoxHeight },                    // stored top left
+        { 90, 0, 0 },                                // stored bottom left
+        { 180, MediaBoxWidth, 0 },                   // stored bottom right
+        { 270, MediaBoxWidth, MediaBoxHeight },      // stored top right
     };
 
     [Theory]

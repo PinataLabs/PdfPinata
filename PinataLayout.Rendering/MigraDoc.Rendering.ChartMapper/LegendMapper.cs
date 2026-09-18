@@ -38,7 +38,7 @@ internal class LegendMapper
   {
   }
 
-  void MapObject(Chart chart, DocumentObjectModel.Shapes.Charts.Chart domChart)
+  static void MapObject(Chart chart, DocumentObjectModel.Shapes.Charts.Chart domChart)
   {
     DocumentObjectModel.Shapes.Charts.Legend domLegend = null;
     DocumentObjectModel.Shapes.Charts.TextArea textArea = null;
@@ -116,7 +116,6 @@ internal class LegendMapper
 
   internal static void Map(Chart chart, DocumentObjectModel.Shapes.Charts.Chart domChart)
   {
-    LegendMapper mapper = new LegendMapper();
-    mapper.MapObject(chart, domChart);
+    MapObject(chart, domChart);
   }
 }

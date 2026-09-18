@@ -39,8 +39,7 @@ public static partial class BidiAlgorithm
     public static BidiResult Resolve(
         IReadOnlyList<int> codePoints, BidiParagraphDirection direction = BidiParagraphDirection.Automatic)
     {
-        if (codePoints == null)
-            throw new ArgumentNullException(nameof(codePoints));
+        ArgumentNullException.ThrowIfNull(codePoints);
 
         return new Paragraph(codePoints, direction).Resolve();
     }
@@ -52,8 +51,7 @@ public static partial class BidiAlgorithm
     public static BidiResult Resolve(
         string text, BidiParagraphDirection direction = BidiParagraphDirection.Automatic)
     {
-        if (text == null)
-            throw new ArgumentNullException(nameof(text));
+        ArgumentNullException.ThrowIfNull(text);
 
         var codePoints = new List<int>(text.Length);
         var unitsPer = new List<int>(text.Length);

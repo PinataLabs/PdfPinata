@@ -147,7 +147,7 @@ public class ShownPositionTests
         var start = stream.LastIndexOf('<', end);
         start.Should().BeGreaterThan(0, "the run is written as a hex string");
 
-        var edited = stream.Insert(end, "\n" + stream.Substring(start, end - start));
+        var edited = stream.Insert(end, string.Concat("\n", stream.AsSpan(start, end - start)));
         content.Stream.Value = System.Text.Encoding.ASCII.GetBytes(edited);
         content.Elements.SetInteger("/Length", content.Stream.Length);
         content.Elements.Remove("/Filter");

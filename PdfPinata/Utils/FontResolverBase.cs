@@ -166,7 +166,7 @@ public abstract class FontResolverBase
         {
             fontDir = "/Library/Fonts/";
             if (!System.IO.Directory.Exists(fontDir))
-                return new string[0];
+                return System.Array.Empty<string>();
 
             return FontFileTypes.In(fontDir).ToArray();
         }

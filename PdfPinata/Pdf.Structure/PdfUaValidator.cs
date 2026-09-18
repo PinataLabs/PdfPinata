@@ -40,8 +40,7 @@ public static class PdfUaValidator
     /// </summary>
     public static void Validate(PdfDocument document)
     {
-        if (document == null)
-            throw new ArgumentNullException(nameof(document));
+        ArgumentNullException.ThrowIfNull(document);
 
         RequireStructureTree(document);
         RequireTitle(document);

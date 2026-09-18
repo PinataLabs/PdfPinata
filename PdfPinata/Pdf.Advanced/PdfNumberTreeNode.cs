@@ -117,8 +117,7 @@ public sealed class PdfNumberTreeNode : PdfDictionary
     /// </summary>
     public void SetValue(int key, PdfItem value)
     {
-        if (value == null)
-            throw new ArgumentNullException(nameof(value));
+        ArgumentNullException.ThrowIfNull(value);
 
         Entries[key] = Referenced(value);
         Write();
@@ -140,7 +139,7 @@ public sealed class PdfNumberTreeNode : PdfDictionary
     /// An indirect object is held in the tree as the reference to it, which is what the tree
     /// is written with.
     /// </summary>
-    PdfItem Referenced(PdfItem value)
+    static PdfItem Referenced(PdfItem value)
     {
         PdfObject obj = value as PdfObject;
         if (obj != null && obj.Reference != null)

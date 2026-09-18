@@ -466,7 +466,7 @@ internal abstract class YAxisRenderer : AxisRenderer
   /// <summary>
   /// Calculates optimal minimum/maximum scale and minor/major tick based on yMin and yMax.
   /// </summary>
-  protected void FineTuneYAxis(AxisRendererInfo rendererInfo, double yMin, double yMax)
+  protected static void FineTuneYAxis(AxisRendererInfo rendererInfo, double yMin, double yMax)
   {
     #pragma warning disable S1244 // Exact on purpose: compared with a sentinel the value is set to, never with the result of arithmetic.
     if (yMin == double.MaxValue && yMax == double.MinValue)

@@ -195,8 +195,7 @@ public class Code3of9Standard : ThickThinBarCode
     /// <param name="text">The code to be checked.</param>
     protected override void CheckCode(string text)
     {
-        if (text == null)
-            throw new ArgumentNullException(nameof(text));
+        ArgumentNullException.ThrowIfNull(text);
 
         if (text.Length == 0)
             throw new ArgumentException(BcgSR.Invalid3Of9Code(text));

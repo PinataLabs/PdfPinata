@@ -154,7 +154,7 @@ public sealed class PdfFormXObject : PdfXObject, IContentStream
         {
             // A page with nothing on it. The form is empty rather than absent, so that the page
             // still draws something well formed.
-            Stream = new PdfStream(new byte[0], this);
+            Stream = new PdfStream(Array.Empty<byte>(), this);
             Elements.SetInteger("/Length", 0);
             return;
         }

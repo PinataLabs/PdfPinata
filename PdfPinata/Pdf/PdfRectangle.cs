@@ -178,6 +178,7 @@ public sealed class PdfRectangle : PdfItem
     /// <summary>
     /// Tests whether two structures have equal coordinates.
     /// </summary>
+    #pragma warning disable S3875 // Public API: a rectangle is an immutable value compared by its coordinates, and removing the operator would turn callers' comparisons into reference equality.
     public static bool operator ==(PdfRectangle left, PdfRectangle right)
     {
         // ReSharper disable CompareOfFloatsByEqualityOperator
@@ -193,6 +194,7 @@ public sealed class PdfRectangle : PdfItem
         return (object)right == null;
         // ReSharper restore CompareOfFloatsByEqualityOperator
     }
+    #pragma warning restore S3875
 
     /// <summary>
     /// Tests whether two structures differ in one or more coordinates.

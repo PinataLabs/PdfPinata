@@ -117,7 +117,7 @@ public class Legend : ChartObject
     get => this.docking;
     set
     {
-      if (!Enum.IsDefined(typeof(DockingType), value))
+      if (!Enum.IsDefined(value))
         throw new InvalidEnumArgumentException("value", (int)value, typeof(DockingType));
 
       this.docking = value;

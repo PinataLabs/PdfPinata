@@ -79,8 +79,7 @@ public sealed class PdfShading : PdfDictionary
     internal void SetupFromBrush(XRadialGradientBrush brush, XGraphicsPdfRenderer renderer,
         PdfShadingChannel channel = PdfShadingChannel.Color)
     {
-        if (brush == null)
-            throw new ArgumentNullException(nameof(brush));
+        ArgumentNullException.ThrowIfNull(brush);
 
         PdfColorMode colorMode = _document.Options.ColorMode;
         XColor color1 = ColorSpaceHelper.EnsureColorMode(colorMode, brush._color1);
@@ -118,8 +117,7 @@ public sealed class PdfShading : PdfDictionary
     internal void SetupFromBrush(XLinearGradientBrush brush, XGraphicsPdfRenderer renderer,
         PdfShadingChannel channel = PdfShadingChannel.Color)
     {
-        if (brush == null)
-            throw new ArgumentNullException(nameof(brush));
+        ArgumentNullException.ThrowIfNull(brush);
 
         PdfColorMode colorMode = _document.Options.ColorMode;
         XColor color1 = ColorSpaceHelper.EnsureColorMode(colorMode, brush._color1);

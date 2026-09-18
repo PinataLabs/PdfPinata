@@ -182,10 +182,10 @@ internal static class PdfCrossReferenceStreamWriter
     /// <summary>
     /// Lays the entries out as the fixed-width big-endian rows the stream is made of.
     /// </summary>
-    static byte[] Encode(IList<PdfCrossReferenceStream.CrossReferenceStreamEntry> entries)
+    static byte[] Encode(PdfCrossReferenceStream.CrossReferenceStreamEntry[] entries)
     {
         var rowLength = FieldWidths[0] + FieldWidths[1] + FieldWidths[2];
-        var bytes = new byte[entries.Count * rowLength];
+        var bytes = new byte[entries.Length * rowLength];
 
         var at = 0;
         foreach (var entry in entries)

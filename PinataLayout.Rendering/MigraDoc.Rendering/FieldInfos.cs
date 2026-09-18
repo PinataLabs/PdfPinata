@@ -69,8 +69,7 @@ internal class FieldInfos
     if (pyhsicalPageNr <= 0)
       return;
 
-    if (bookmarks.ContainsKey(name))
-      bookmarks.Remove(name);
+    bookmarks.Remove(name);
 
     // A document is laid out from the top of the page down and a PDF page is measured from the
     // bottom up, so the one has to be turned into the other before it can be a destination.
@@ -84,18 +83,15 @@ internal class FieldInfos
   /// </summary>
   internal double GetBookmarkTop(string bookmarkName)
   {
-    if (bookmarks.ContainsKey(bookmarkName))
-      return bookmarks[bookmarkName].top;
+    if (bookmarks.TryGetValue(bookmarkName, out BookmarkInfo bi))
+      return bi.top;
     return double.NaN;
   }
 
   internal int GetShownPageNumber(string bookmarkName)
   {
-    if (bookmarks.ContainsKey(bookmarkName))
-    {
-      BookmarkInfo bi = bookmarks[bookmarkName];
+    if (bookmarks.TryGetValue(bookmarkName, out BookmarkInfo bi))
       return bi.shownPageNumber;
-    }
     return -1;
   }
 
@@ -123,11 +119,8 @@ internal class FieldInfos
 
   internal int GetPhysicalPageNumber(string bookmarkName)
   {
-    if (bookmarks.ContainsKey(bookmarkName))
-    {
-      BookmarkInfo bi = bookmarks[bookmarkName];
+    if (bookmarks.TryGetValue(bookmarkName, out BookmarkInfo bi))
       return bi.displayPageNumber;
-    }
     return -1;
   }
 

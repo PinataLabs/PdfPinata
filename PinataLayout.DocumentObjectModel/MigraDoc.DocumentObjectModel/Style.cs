@@ -61,10 +61,9 @@ public sealed partial class Style : DocumentObject, IVisitable
     : this()
   {
     // baseStyleName can be null or empty
-    if (name == null)
-      throw new ArgumentNullException("name");
+    ArgumentNullException.ThrowIfNull(name);
     if (name == "")
-      throw new ArgumentException("name");
+      throw new ArgumentException("A name must not be empty.", nameof(name));
 
     this.name = name;
     baseStyle = baseStyleName;
@@ -86,12 +85,11 @@ public sealed partial class Style : DocumentObject, IVisitable
   /// </summary>
   public override object GetValue(string name, GV flags) //newStL
   {
-    if (name == null)
-      throw new ArgumentNullException("name");
+    ArgumentNullException.ThrowIfNull(name);
     if (name == "")
-      throw new ArgumentException("name");
+      throw new ArgumentException("A name must not be empty.", nameof(name));
 
-    if (name.ToLower().StartsWith("font"))
+    if (name.StartsWith("font", StringComparison.OrdinalIgnoreCase))
     {
       return ParagraphFormat.GetValue(name);
     }
@@ -406,7 +404,7 @@ public sealed partial class Style : DocumentObject, IVisitable
   /// <summary>
   /// Sets all properties to Null that have the same value as the base style.
   /// </summary>
-  private void Optimize()
+  private static void Optimize()
   {
     // just here as a reminder to do it...
   }

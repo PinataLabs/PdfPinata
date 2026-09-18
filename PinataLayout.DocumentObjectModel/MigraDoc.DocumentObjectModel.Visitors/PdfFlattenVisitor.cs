@@ -194,6 +194,7 @@ public class PdfFlattenVisitor : VisitorBase
     FlattenFont(hyperlink.font, GetParentFont(hyperlink));
   }
 
+  #pragma warning disable CA1822 // Protected on an unsealed public visitor: making it static would change the public API.
   /// <summary>Returns the font the given object inherits from whatever holds it.</summary>
   protected Font GetParentFont(DocumentObject obj)
   {
@@ -211,4 +212,5 @@ public class PdfFlattenVisitor : VisitorBase
     }
     return parentFont;
   }
+  #pragma warning restore CA1822
 }

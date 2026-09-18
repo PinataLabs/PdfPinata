@@ -430,6 +430,9 @@ public partial class Table : DocumentObject, IVisitable
         if (summary != null)
             serializer.WriteSimpleAttribute("Summary", Summary);
 
+        if (keepTogether != null)
+            serializer.WriteSimpleAttribute("KeepTogether", KeepTogether);
+
         if (!IsNull("Format"))
             format.Serialize(serializer, "Format", null);
 

@@ -204,7 +204,7 @@ internal sealed class PdfType0Font : PdfFont
 
             for (int idx = 0; idx < count; idx++)
                 w.AppendFormat("{0}[{1}]", glyphIndices[idx], glyphWidths[idx]);
-            w.Append("]");
+            w.Append(']');
             _descendantFont.Elements.SetValue(PdfCIDFont.Keys.W, new PdfLiteral(w.ToString()));
 
         }

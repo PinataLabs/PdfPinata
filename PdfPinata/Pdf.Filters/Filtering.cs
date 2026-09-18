@@ -42,10 +42,9 @@ public static class Filtering
     /// </summary>
     public static Filter GetFilter(string filterName)
     {
-        if (filterName == null)
-            throw new ArgumentNullException(nameof(filterName));
+        ArgumentNullException.ThrowIfNull(filterName);
 
-        if (filterName.StartsWith("/"))
+        if (filterName.StartsWith('/'))
             filterName = filterName.Substring(1);
 
         // Some tools use abbreviations

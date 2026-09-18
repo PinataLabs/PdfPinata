@@ -1245,7 +1245,7 @@ internal class GlyphSubstitutionTable : OpenTypeFontTable
         Read();
     }
 
-    public void Read()
+    public static void Read()
     {
         // Nothing is read from GSUB. The table is located and its directory entry kept, which is
         // what subsetting needs to copy it across; the substitution rules inside it are not

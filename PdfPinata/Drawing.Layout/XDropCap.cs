@@ -42,8 +42,7 @@ public sealed class XDropCap
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="lines"/> is less than one.</exception>
     public XDropCap(XFont font, int lines)
     {
-        if (font == null)
-            throw new ArgumentNullException(nameof(font));
+        ArgumentNullException.ThrowIfNull(font);
         if (lines < 1)
             throw new ArgumentOutOfRangeException(nameof(lines), lines, "A drop cap is at least one line deep.");
 

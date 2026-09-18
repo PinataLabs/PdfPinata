@@ -184,7 +184,7 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
         }
     }
 
-    internal void HandleOrphanedReferences()
+    internal static void HandleOrphanedReferences()
     {
     }
 

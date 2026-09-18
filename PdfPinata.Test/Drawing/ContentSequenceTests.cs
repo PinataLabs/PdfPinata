@@ -42,7 +42,9 @@ public class ContentSequenceTests
     {
         // The case that found it: Select over an operator's operands.
         Three().Cast<CInteger>().Sum(item => item.Value).Should().Be(6);
+        #pragma warning disable CA1829 // The test is that LINQ's Count() works over a sequence; the property would bypass it.
         Three().Count().Should().Be(3);
+        #pragma warning restore CA1829
         Three().First().Should().BeOfType<CInteger>();
     }
 

@@ -268,7 +268,7 @@ internal sealed class ToUnicodeCMap
             // A trailing group of fewer than four digits is malformed; read what is there rather
             // than dropping a mapping over it.
             var take = Math.Min(4, hex.Length - at);
-            if (!int.TryParse(hex.Substring(at, take), NumberStyles.HexNumber,
+            if (!int.TryParse(hex.AsSpan(at, take), NumberStyles.HexNumber,
                     CultureInfo.InvariantCulture, out var unit))
                 break;
 

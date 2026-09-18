@@ -21,11 +21,11 @@ public class SplitTests
     ///   The destination of the link on the first page. It names the second page in all of them,
     ///   the difference being where in the annotation the destination sits.
     /// </summary>
-    public static IEnumerable<object[]> Destinations => new[]
+    public static TheoryData<string> Destinations => new TheoryData<string>
     {
-        new object[] { "/Dest[4 0 R/Fit]" },                 // A destination on the annotation.
-        new object[] { "/A<</S/GoTo/D[4 0 R/Fit]>>" },       // A go-to action.
-        new object[] { "/P 3 0 R/Dest[4 0 R/Fit]" },         // Both, and a page back reference.
+        { "/Dest[4 0 R/Fit]" },                 // A destination on the annotation.
+        { "/A<</S/GoTo/D[4 0 R/Fit]>>" },       // A go-to action.
+        { "/P 3 0 R/Dest[4 0 R/Fit]" },         // Both, and a page back reference.
     };
 
     [Theory]

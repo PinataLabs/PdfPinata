@@ -23,7 +23,7 @@ internal static class PdfContentStreams
         if (item == null)
         {
             // A page that draws nothing draws nothing anywhere.
-            content = new byte[0];
+            content = Array.Empty<byte>();
             return true;
         }
 

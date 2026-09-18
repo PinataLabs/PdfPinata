@@ -16,7 +16,7 @@ namespace PdfPinata.Test.Drawing;
 ///   caller who wants only that should use it. These need geometry.
 /// </summary>
 [Collection(RasterizingCollection.Name)]
-public class GlyphOutlineRenderingTests : IDisposable
+public sealed class GlyphOutlineRenderingTests : IDisposable
 {
     const string OutDir = "Out/GlyphOutlines";
     const double EmSize = 96;

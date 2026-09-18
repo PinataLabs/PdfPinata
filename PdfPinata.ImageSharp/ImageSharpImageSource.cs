@@ -109,7 +109,7 @@ public class ImageSharpImageSource<TPixel> : ImageSource where TPixel : unmanage
         return image;
     }
 
-    private class ImageSharpImageSourceImpl<TPixel2> : IImageSource where TPixel2 : unmanaged, IPixel<TPixel2>
+    private class ImageSharpImageSourceImpl<TPixel2> : IImageSource, IDisposable where TPixel2 : unmanaged, IPixel<TPixel2>
     {
         private Image<TPixel2> Image { get; }
         private readonly int _quality;

@@ -20,7 +20,7 @@ namespace PdfPinata.Test.Drawing;
 ///   invisible to every structural assertion.
 /// </remarks>
 [Collection(RasterizingCollection.Name)]
-public class PageBleedRenderingTests : IDisposable
+public sealed class PageBleedRenderingTests : IDisposable
 {
     const string OutDir = "Out/PageBleed";
 

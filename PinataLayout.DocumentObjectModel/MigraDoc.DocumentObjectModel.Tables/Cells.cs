@@ -104,7 +104,7 @@ public partial class Cells : DocumentObjectCollection
     get
     {
       if (index < 0 || (this.Table != null && index >= this.Table.Columns.Count))
-        throw new ArgumentOutOfRangeException("index");
+        throw new ArgumentOutOfRangeException(nameof(index));
 
       Resize(index);
       return base[index] as Cell;

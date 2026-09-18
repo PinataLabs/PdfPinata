@@ -111,8 +111,7 @@ public sealed class Pkcs7Signer : IPdfSigner
     /// <inheritdoc/>
     public byte[] Sign(Stream content)
     {
-        if (content == null)
-            throw new ArgumentNullException(nameof(content));
+        ArgumentNullException.ThrowIfNull(content);
 
         var signed = new SignedCms(new ContentInfo(ReadAll(content)), detached: true);
 

@@ -38,7 +38,7 @@ internal class DataLabelMapper
   {
   }
 
-  void MapObject(DataLabel dataLabel, DocumentObjectModel.Shapes.Charts.DataLabel domDataLabel)
+  static void MapObject(DataLabel dataLabel, DocumentObjectModel.Shapes.Charts.DataLabel domDataLabel)
   {
     if (!domDataLabel.IsNull("Style"))
       FontMapper.Map(dataLabel.Font, domDataLabel.Document, domDataLabel.Style);
@@ -53,7 +53,6 @@ internal class DataLabelMapper
 
   internal static void Map(DataLabel dataLabel, DocumentObjectModel.Shapes.Charts.DataLabel domDataLabel)
   {
-    DataLabelMapper mapper = new DataLabelMapper();
-    mapper.MapObject(dataLabel, domDataLabel);
+    MapObject(dataLabel, domDataLabel);
   }
 }

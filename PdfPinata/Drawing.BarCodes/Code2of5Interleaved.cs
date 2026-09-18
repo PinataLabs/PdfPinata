@@ -182,8 +182,7 @@ public class Code2of5Interleaved : ThickThinBarCode
     /// </remarks>
     protected override void CheckCode(string text)
     {
-        if (text == null)
-            throw new ArgumentNullException(nameof(text));
+        ArgumentNullException.ThrowIfNull(text);
 
         // Two digits are carried per five bars, so the count has to be even. Zero of them is even
         // and is what the parameterless constructor sets, so it is left to the renderer to refuse

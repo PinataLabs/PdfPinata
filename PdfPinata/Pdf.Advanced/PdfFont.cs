@@ -169,8 +169,8 @@ public class PdfFont : PdfDictionary
         for (int idx = 0; idx < 6; idx++)
             s.Append((char)('A' + bytes[idx] % 26));
         s.Append('+');
-        if (name.StartsWith("/"))
-            s.Append(name.Substring(1));
+        if (name.StartsWith('/'))
+            s.Append(name, 1, name.Length - 1);
         else
             s.Append(name);
         return s.ToString();

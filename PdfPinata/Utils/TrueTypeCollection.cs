@@ -48,8 +48,7 @@ public static class TrueTypeCollection
     /// </summary>
     public static bool IsCollection(byte[] data)
     {
-        if (data == null)
-            throw new ArgumentNullException(nameof(data));
+        ArgumentNullException.ThrowIfNull(data);
 
         return data.Length >= OffsetTableLength && U32(data, 0) == TagTtcf;
     }

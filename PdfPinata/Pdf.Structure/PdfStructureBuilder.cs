@@ -125,8 +125,7 @@ public sealed class PdfStructureBuilder
     /// </remarks>
     public void RegisterPage(PdfPage page)
     {
-        if (page == null)
-            throw new ArgumentNullException(nameof(page));
+        ArgumentNullException.ThrowIfNull(page);
 
         MarksOf(page);
     }

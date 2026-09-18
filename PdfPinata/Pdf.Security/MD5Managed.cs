@@ -129,8 +129,7 @@ class MD5Managed
     {
         public static byte[] GetHash(byte[] input)
         {
-            if (null == input)
-                throw new ArgumentNullException(nameof(input));
+            ArgumentNullException.ThrowIfNull(input);
 
             // Intitial values defined in RFC 1321.
             ABCDStruct abcd = new ABCDStruct();
@@ -305,8 +304,7 @@ class MD5Managed
         // Convert input array into array of UInts.
         static uint[] Converter(byte[] input, int ibStart)
         {
-            if (null == input)
-                throw new ArgumentNullException(nameof(input));
+            ArgumentNullException.ThrowIfNull(input);
 
             uint[] result = new uint[16];
             for (int idx = 0; idx < 16; idx++)

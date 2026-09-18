@@ -74,7 +74,7 @@ public sealed class PdfRadioButtonField : PdfButtonField
         {
             PdfArray options = Elements.GetArray(Keys.Opt);
             if (options == null)
-                return new string[0];
+                return Array.Empty<string>();
 
             int count = options.Elements.Count;
             string[] text = new string[count];
@@ -85,8 +85,7 @@ public sealed class PdfRadioButtonField : PdfButtonField
         }
         set
         {
-            if (value == null)
-                throw new ArgumentNullException(nameof(value));
+            ArgumentNullException.ThrowIfNull(value);
 
             PdfArray options = new PdfArray(Owner);
             foreach (string option in value)

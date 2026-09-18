@@ -512,7 +512,8 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
                     break;
 
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentOutOfRangeException(nameof(destination), destinationType,
+                        "The destination type is not one this library knows.");
             }
         }
         else if (type != null)
@@ -539,7 +540,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
         type = default;
         return name.Length > 0 && !char.IsDigit(name[0]) && name[0] != '-' && name[0] != '+'
                && Enum.TryParse(name, true, out type)
-               && Enum.IsDefined(typeof(PdfPageDestinationType), type);
+               && Enum.IsDefined(type);
     }
 
     /// <summary>
@@ -751,7 +752,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
     /// <summary>
     /// Format double.
     /// </summary>
-    string Fd(double value)
+    static string Fd(double value)
     {
         return Double.IsNaN(value) ? "null" : value.ToString("#.##", CultureInfo.InvariantCulture);
     }

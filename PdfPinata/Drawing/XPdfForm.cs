@@ -391,8 +391,7 @@ public class XPdfForm : XForm
     /// </summary>
     public static string ExtractPageNumber(string path, out int pageNumber)
     {
-        if (path == null)
-            throw new ArgumentNullException(nameof(path));
+        ArgumentNullException.ThrowIfNull(path);
 
         pageNumber = 0;
         int length = path.Length;
@@ -409,7 +408,7 @@ public class XPdfForm : XForm
                 if (length > 0 && path[length] == '#')
                 {
                     // Must have at least one dot left of colon to distinguish from e.g. '#123'
-                    if (path.IndexOf('.') != -1)
+                    if (path.Contains('.'))
                     {
                         pageNumber = int.Parse(path.Substring(length + 1));
                         path = path.Substring(0, length);

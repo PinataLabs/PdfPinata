@@ -53,8 +53,7 @@ public partial class XValue : ChartObject
   public XValue(string value)
     : this()
   {
-    if (value == null)
-      throw new ArgumentNullException("value");
+    ArgumentNullException.ThrowIfNull(value);
 
     this.Value = value;
   }

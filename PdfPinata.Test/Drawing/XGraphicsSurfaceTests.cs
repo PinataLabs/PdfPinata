@@ -63,7 +63,7 @@ public class XGraphicsSurfaceTests
     }
 
     static int CountOf(string shape, string @operator) =>
-        Regex.Matches(shape, @"(^|\s)" + @operator + "$", RegexOptions.Multiline).Count;
+        Regex.Count(shape, @"(^|\s)" + @operator + "$", RegexOptions.Multiline);
 
     /// <summary>
     ///   The graphics state operators a page writes, in order: every literal <c>q</c> and <c>Q</c>
@@ -237,7 +237,8 @@ public class XGraphicsSurfaceTests
 
         noPen.Should().Throw<ArgumentNullException>();
         noPoints.Should().Throw<ArgumentNullException>();
-        onePoint.Should().Throw<ArgumentException>();
+        onePoint.Should().Throw<ArgumentException>()
+            .Which.ParamName.Should().Be("points", "the parameter name and the message were once the wrong way round");
         noNumbers.Should().Throw<ArgumentNullException>();
     }
 
@@ -367,7 +368,8 @@ public class XGraphicsSurfaceTests
 
         var neither = () => gfx.DrawRectangle((XPen)null, (XBrush)null, 0, 0, 10, 10);
 
-        neither.Should().Throw<ArgumentNullException>();
+        neither.Should().Throw<ArgumentNullException>()
+            .Which.ParamName.Should().Be("pen", "a parameter name names one parameter, the pen coming first");
     }
 
     [Fact]
@@ -475,9 +477,9 @@ public class XGraphicsSurfaceTests
 
         noPen.Should().Throw<ArgumentNullException>();
         noBrush.Should().Throw<ArgumentNullException>();
-        neither.Should().Throw<ArgumentNullException>();
+        neither.Should().Throw<ArgumentNullException>().Which.ParamName.Should().Be("pen");
         noPoints.Should().Throw<ArgumentNullException>();
-        onePoint.Should().Throw<ArgumentException>();
+        onePoint.Should().Throw<ArgumentException>().Which.ParamName.Should().Be("points");
     }
 
     // ----- pies ----------------------------------------------------------------------------------

@@ -55,7 +55,7 @@ public class TrimmedPageRenderingTests
     [Fact]
     public void TheTextIsHeldOffTheSheetEdgeByTheBleedAsWellAsByTheMargin()
     {
-        var first = BaselinesOnTheSheet(trimmed: true).First();
+        var first = BaselinesOnTheSheet(trimmed: true)[0];
 
         // A 2.5cm top margin is MigraDoc's default, and the sheet's own margins are on top of it.
         // Asserted as a range because the first baseline sits a line's ascent below the margin,

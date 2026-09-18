@@ -20,10 +20,7 @@ public class XTextSegmentFormatter
 	/// </summary>
 	public XTextSegmentFormatter(XGraphics gfx)
 	{
-		if (gfx == null)
-		{
-			throw new ArgumentNullException(nameof(gfx));
-		}
+		ArgumentNullException.ThrowIfNull(gfx);
 
 		_gfx = gfx;
 	}
@@ -152,7 +149,7 @@ public class XTextSegmentFormatter
 
 		ProcessTextSegments(textSegments, layoutRectangle, format, (block, dx, dy) => blocks.Add(block), true);
 
-		var height = blocks.Any()
+		var height = blocks.Count > 0
 			? blocks.Max(b => b.Location.Y)
 			: 0;
 		var maxLineHeight = 0.0;
@@ -166,7 +163,7 @@ public class XTextSegmentFormatter
 			maxLineHeight = Math.Max(maxLineHeight, blocks[i].Environment.LineSpace);
 		}
 
-		var calculatedWith = blocks.Any()
+		var calculatedWith = blocks.Count > 0
 			? blocks.Max(b => b.Location.X + b.Width)
 			: width;
 
@@ -187,12 +184,12 @@ public class XTextSegmentFormatter
 
 		if (textSegments.Any(ts => ts.Font == default))
 		{
-			throw new ArgumentNullException("font");
+			throw new ArgumentNullException(nameof(textSegments), "Every text segment needs a font.");
 		}
 
 		if (textSegments.Any(ts => ts.Brush == default))
 		{
-			throw new ArgumentNullException("brush");
+			throw new ArgumentNullException(nameof(textSegments), "Every text segment needs a brush.");
 		}
 
 		if (format.Alignment != XStringAlignment.Near || format.LineAlignment != XLineAlignment.Near)
@@ -274,7 +271,7 @@ public class XTextSegmentFormatter
 			}
 
 			// Check whether the current block belongs to the last block
-			if (blocks.Any() && !textSegment.Text.StartsWith(" "))
+			if (blocks.Count > 0 && !textSegment.Text.StartsWith(' '))
 			{
 				blocks.Last().NextBlockBelongsToMe = true;
 			}
@@ -502,9 +499,9 @@ public class XTextSegmentFormatter
 		}
 	}
 
-	private double RemovedLeadingSpace(Block block, double width)
+	private static double RemovedLeadingSpace(Block block, double width)
 	{
-		while (block.Text.StartsWith(" "))
+		while (block.Text.StartsWith(' '))
 		{
 			block.Text = block.Text.Substring(1);
 			block.Width -= block.Environment.SpaceWidth;
@@ -517,7 +514,7 @@ public class XTextSegmentFormatter
 	/// <summary>
 	/// Align center, right, or justify.
 	/// </summary>
-	private void AlignLine(IList<Block> blockUnit, int firstIndex, int lastIndex, double layoutWidth)
+	private void AlignLine(List<Block> blockUnit, int firstIndex, int lastIndex, double layoutWidth)
 	{
 		var firstBlock = blockUnit[firstIndex];
 		var blockAlignment = firstBlock.Alignment;
@@ -619,7 +616,7 @@ public class XTextSegmentFormatter
 	{
 		if (segment.Font == null)
 		{
-			throw new ArgumentNullException("Font");
+			throw new ArgumentNullException(nameof(segment), "The text segment has no font.");
 		}
 
 		segment.LineSpace = segment.Font.GetHeight();

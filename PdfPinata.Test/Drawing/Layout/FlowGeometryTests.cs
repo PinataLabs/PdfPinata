@@ -236,7 +236,7 @@ public class FlowGeometryTests
     {
         var set = IntervalSet.Of(0, 100);
 
-        set.Subtract(new XInterval[0]).Should().BeSameAs(set);
+        set.Subtract(Array.Empty<XInterval>()).Should().BeSameAs(set);
     }
 
     [Fact]

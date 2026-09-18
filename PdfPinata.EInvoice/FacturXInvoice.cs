@@ -71,8 +71,7 @@ public sealed class FacturXInvoice
     /// </param>
     public FacturXInvoice(byte[] xml)
     {
-        if (xml == null)
-            throw new ArgumentNullException(nameof(xml));
+        ArgumentNullException.ThrowIfNull(xml);
         if (xml.Length == 0)
             throw new ArgumentException(
                 "An e-invoice is the XML. A document attaching an empty file claims to be a Factur-X "
@@ -168,8 +167,7 @@ public sealed class FacturXInvoice
     /// </remarks>
     public PdfFileSpecification AttachTo(PdfDocument document)
     {
-        if (document == null)
-            throw new ArgumentNullException(nameof(document));
+        ArgumentNullException.ThrowIfNull(document);
 
         Required(FileName, nameof(FileName));
         Required(NamespaceUri, nameof(NamespaceUri));
@@ -233,8 +231,7 @@ public sealed class FacturXInvoice
     /// </remarks>
     public static PdfFileSpecification FindIn(PdfDocument document)
     {
-        if (document == null)
-            throw new ArgumentNullException(nameof(document));
+        ArgumentNullException.ThrowIfNull(document);
 
         foreach (var attachment in document.Attachments)
         {

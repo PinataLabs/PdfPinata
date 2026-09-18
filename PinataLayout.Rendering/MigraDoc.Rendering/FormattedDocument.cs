@@ -287,8 +287,8 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
             }
         }
         HeaderFooterPosition hfp = new HeaderFooterPosition(fieldInfos.section, pagePos);
-        if (formattedHeaders.ContainsKey(hfp))
-            return formattedHeaders[hfp];
+        if (formattedHeaders.TryGetValue(hfp, out FormattedHeaderFooter header))
+            return header;
         return null;
     }
 
@@ -318,12 +318,12 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
             }
         }
         HeaderFooterPosition hfp = new HeaderFooterPosition(fieldInfos.section, pagePos);
-        if (formattedFooters.ContainsKey(hfp))
-            return formattedFooters[hfp];
+        if (formattedFooters.TryGetValue(hfp, out FormattedHeaderFooter footer))
+            return footer;
         return null;
     }
 
-    private Rectangle GetHeaderArea(Section section, int page)
+    private static Rectangle GetHeaderArea(Section section, int page)
     {
         PageSetup pageSetup = section.PageSetup;
         XUnit xPos;
@@ -359,7 +359,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
         return GetFooterArea(section, page);
     }
 
-    private Rectangle GetFooterArea(Section section, int page)
+    private static Rectangle GetFooterArea(Section section, int page)
     {
         PageSetup pageSetup = section.PageSetup;
         XUnit xPos;
@@ -422,7 +422,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
     public PageInfo GetPageInfo(int page)
     {
         if (page < 1 || page > pageCount)
-            throw new ArgumentOutOfRangeException("page");
+            throw new ArgumentOutOfRangeException(nameof(page));
 
         return pageInfos[page];
     }
@@ -628,7 +628,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
         return pageOrientation;
     }
 
-    XSize CalcPageSize(PageSetup pageSetup)
+    static XSize CalcPageSize(PageSetup pageSetup)
     {
         return new XSize(pageSetup.PageWidth.Point, pageSetup.PageHeight.Point);
     }

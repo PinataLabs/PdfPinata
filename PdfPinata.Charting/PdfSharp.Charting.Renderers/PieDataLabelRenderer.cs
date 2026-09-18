@@ -84,7 +84,7 @@ internal class PieDataLabelRenderer : DataLabelRenderer
           // second time and signed twice. It read back exactly as it was set and printed nonsense.
           double share = Math.Abs(sector.Value) / sumValues;
           string format = sri.dataLabelRendererInfo.Format;
-          dleri.Text = format != null && format.Contains("%")
+          dleri.Text = format != null && format.Contains('%')
             ? share.ToString(format)
             : (share * 100).ToString(format) + "%";
         }

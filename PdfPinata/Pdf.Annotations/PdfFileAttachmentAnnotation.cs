@@ -54,7 +54,7 @@ public class PdfFileAttachmentAnnotation : PdfAnnotation
             // Removing the key rather than writing a name for a value the enumeration does not
             // have. A cast from an out-of-range integer would otherwise put something like /42
             // into the file, and a reader handed a name it does not know draws nothing at all.
-            if (Enum.IsDefined(typeof(IconType), value))
+            if (Enum.IsDefined(value))
                 Elements.SetName(Keys.Name, value.ToString());
             else
                 Elements.Remove(Keys.Name);

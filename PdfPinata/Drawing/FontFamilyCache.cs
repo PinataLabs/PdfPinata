@@ -111,7 +111,7 @@ internal sealed class FontFamilyCache
         Array.Sort(keys, StringComparer.OrdinalIgnoreCase);
         foreach (string key in keys)
             state.AppendFormat("  {0}: {1}\n", key, Singleton._familiesByName[key].DebuggerDisplay);
-        state.Append("\n");
+        state.Append('\n');
         return state.ToString();
     }
 

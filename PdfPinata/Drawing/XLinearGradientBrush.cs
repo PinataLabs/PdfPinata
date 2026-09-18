@@ -56,7 +56,7 @@ public sealed class XLinearGradientBrush : XBaseGradientBrush
     /// </summary>
     public XLinearGradientBrush(XRect rect, XColor color1, XColor color2, XLinearGradientMode linearGradientMode) : base(color1, color2)
     {
-        if (!Enum.IsDefined(typeof(XLinearGradientMode), linearGradientMode))
+        if (!Enum.IsDefined(linearGradientMode))
             throw new InvalidEnumArgumentException(nameof(linearGradientMode), (int)linearGradientMode, typeof(XLinearGradientMode));
 
         if (rect.Width == 0 || rect.Height == 0)

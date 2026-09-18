@@ -61,7 +61,7 @@ internal class FillFormatRenderer
     return !fillFormat.IsNull("Color");
   }
 
-  private XBrush GetBrush()
+  private XSolidBrush GetBrush()
   {
     if (fillFormat == null || !IsVisible())
       return null;

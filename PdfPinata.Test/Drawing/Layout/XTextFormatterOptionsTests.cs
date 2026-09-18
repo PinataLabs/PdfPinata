@@ -236,7 +236,7 @@ public class XTextFormatterOptionsTests
 
         // The word it is put on is trimmed until the two together fit, so the marked line is no
         // wider than the one it replaced would have been.
-        var lastLine = TextOperators.ShownStrings(page).Last();
+        var lastLine = TextOperators.ShownStrings(page)[^1];
 
         var document = new PdfDocument();
         using var gfx = XGraphics.FromPdfPage(document.AddPage());
@@ -414,5 +414,18 @@ public class XTextFormatterOptionsTests
         // An indent is off the left edge, so right-aligned text does not move with it - but the
         // two must not come out in the same place either, or the alignment was lost.
         right[0].X.Should().NotBe(left[0].X);
+    }
+
+    [Fact]
+    public void ANullFontIsRefusedInTheNameOfTheSettersValue()
+    {
+        var document = new PdfDocument();
+        using var gfx = XGraphics.FromPdfPage(document.AddPage());
+        var formatter = new XTextFormatter(gfx);
+
+        var act = () => formatter.Font = null;
+
+        // A setter's argument is called value; this once named the property instead.
+        act.Should().Throw<ArgumentNullException>().Which.ParamName.Should().Be("value");
     }
 }

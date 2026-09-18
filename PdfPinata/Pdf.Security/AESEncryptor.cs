@@ -82,7 +82,6 @@ internal class AESEncryptor : RC4Encryptor
 
     private void CreateEncryptionKeyR5(byte[] encryptedValue, byte[] password, byte[] salt, byte[] uservalue)
     {
-        var sha = SHA256.Create();
         var aes256Cbc = Aes.Create();
         aes256Cbc.KeySize = 256;
         aes256Cbc.Mode = CipherMode.CBC;
@@ -93,7 +92,7 @@ internal class AESEncryptor : RC4Encryptor
         Array.Copy(salt, 0, buf, password.Length, salt.Length);
         if (uservalue != null)
             Array.Copy(uservalue, 0, buf, password.Length + salt.Length, 48);
-        var shaKey = sha.ComputeHash(buf);
+        var shaKey = SHA256.HashData(buf);
         using (var decryptor = aes256Cbc.CreateDecryptor(shaKey, new byte[16]))
         {
             using (var ms = new MemoryStream(encryptedValue))
@@ -232,8 +231,7 @@ internal class AESEncryptor : RC4Encryptor
 
     private static bool PasswordMatchR5(byte[] key, byte[] comparand)
     {
-        var sha = SHA256.Create();
-        var hash = sha.ComputeHash(key);
+        var hash = SHA256.HashData(key);
         for (var i = 0; i < 32; i++)
         {
             if (hash[i] != comparand[i])

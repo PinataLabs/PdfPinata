@@ -67,11 +67,10 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     XGraphics(PdfPage page, XGraphicsPdfPageOptions options, XGraphicsUnit pageUnit, XPageDirection pageDirection)
     {
-        if (page == null)
-            throw new ArgumentNullException("page");
+        ArgumentNullException.ThrowIfNull(page);
 
         if (page.Owner == null)
-            throw new ArgumentException("You cannot draw on a page that is not owned by a PdfDocument object.", "page");
+            throw new ArgumentException("You cannot draw on a page that is not owned by a PdfDocument object.", nameof(page));
 
         if (page.RenderContent != null)
             throw new InvalidOperationException("An XGraphics object already exists for this page and must be disposed before a new one can be created.");
@@ -206,8 +205,7 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     XGraphics(XForm form)
     {
-        if (form == null)
-            throw new ArgumentNullException("form");
+        ArgumentNullException.ThrowIfNull(form);
 
         _form = form;
         form.AssociateGraphics(this);
@@ -326,8 +324,7 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public static XGraphics FromImage(XImage image, XGraphicsUnit unit)
     {
-        if (image == null)
-            throw new ArgumentNullException("image");
+        ArgumentNullException.ThrowIfNull(image);
 
         XBitmapImage bmImage = image as XBitmapImage;
         if (bmImage != null)
@@ -491,8 +488,7 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public void DrawLine(XPen pen, double x1, double y1, double x2, double y2)
     {
-        if (pen == null)
-            throw new ArgumentNullException("pen");
+        ArgumentNullException.ThrowIfNull(pen);
 
         if (_renderer != null)
             _renderer.DrawLines(pen, new XPoint[] { new(x1, y1), new(x2, y2) });
@@ -504,12 +500,10 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public void DrawLines(XPen pen, XPoint[] points)
     {
-        if (pen == null)
-            throw new ArgumentNullException("pen");
-        if (points == null)
-            throw new ArgumentNullException("points");
+        ArgumentNullException.ThrowIfNull(pen);
+        ArgumentNullException.ThrowIfNull(points);
         if (points.Length < 2)
-            throw new ArgumentException("points", PSSR.PointArrayAtLeast(2));
+            throw new ArgumentException(PSSR.PointArrayAtLeast(2), nameof(points));
 
         if (_renderer != null)
             _renderer.DrawLines(pen, points);
@@ -520,10 +514,8 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public void DrawLines(XPen pen, double x, double y, params double[] value)
     {
-        if (pen == null)
-            throw new ArgumentNullException("pen");
-        if (value == null)
-            throw new ArgumentNullException("value");
+        ArgumentNullException.ThrowIfNull(pen);
+        ArgumentNullException.ThrowIfNull(value);
 
         int length = value.Length;
         XPoint[] points = new XPoint[length / 2 + 1];
@@ -552,8 +544,7 @@ public sealed class XGraphics : IDisposable
     public void DrawBezier(XPen pen, double x1, double y1, double x2, double y2,
         double x3, double y3, double x4, double y4)
     {
-        if (pen == null)
-            throw new ArgumentNullException("pen");
+        ArgumentNullException.ThrowIfNull(pen);
 
         if (_renderer != null)
             _renderer.DrawBeziers(pen,
@@ -567,15 +558,14 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public void DrawBeziers(XPen pen, XPoint[] points)
     {
-        if (pen == null)
-            throw new ArgumentNullException("pen");
+        ArgumentNullException.ThrowIfNull(pen);
 
         int count = points.Length;
         if (count == 0)
             return;
 
         if ((count - 1) % 3 != 0)
-            throw new ArgumentException("Invalid number of points for bezier curves. Number must fulfil 4+3n.", "points");
+            throw new ArgumentException("Invalid number of points for bezier curves. Number must fulfil 4+3n.", nameof(points));
 
         if (_renderer != null)
             _renderer.DrawBeziers(pen, points);
@@ -607,14 +597,12 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public void DrawCurve(XPen pen, XPoint[] points, double tension)
     {
-        if (pen == null)
-            throw new ArgumentNullException("pen");
-        if (points == null)
-            throw new ArgumentNullException("points");
+        ArgumentNullException.ThrowIfNull(pen);
+        ArgumentNullException.ThrowIfNull(points);
 
         int count = points.Length;
         if (count < 2)
-            throw new ArgumentException("DrawCurve requires two or more points.", "points");
+            throw new ArgumentException("DrawCurve requires two or more points.", nameof(points));
 
         if (_renderer != null)
             _renderer.DrawCurve(pen, points, tension);
@@ -635,8 +623,7 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public void DrawArc(XPen pen, double x, double y, double width, double height, double startAngle, double sweepAngle)
     {
-        if (pen == null)
-            throw new ArgumentNullException("pen");
+        ArgumentNullException.ThrowIfNull(pen);
 
         if (Math.Abs(sweepAngle) >= 360)
         {
@@ -666,8 +653,7 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public void DrawRectangle(XPen pen, double x, double y, double width, double height)
     {
-        if (pen == null)
-            throw new ArgumentNullException("pen");
+        ArgumentNullException.ThrowIfNull(pen);
 
         if (_drawGraphics)
         {
@@ -693,8 +679,7 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public void DrawRectangle(XBrush brush, double x, double y, double width, double height)
     {
-        if (brush == null)
-            throw new ArgumentNullException("brush");
+        ArgumentNullException.ThrowIfNull(brush);
 
         if (_renderer != null)
             _renderer.DrawRectangle(null, brush, x, y, width, height);
@@ -717,7 +702,7 @@ public sealed class XGraphics : IDisposable
     public void DrawRectangle(XPen pen, XBrush brush, double x, double y, double width, double height)
     {
         if (pen == null && brush == null)
-            throw new ArgumentNullException("pen and brush", PSSR.NeedPenOrBrush);
+            throw new ArgumentNullException(nameof(pen), PSSR.NeedPenOrBrush);
 
         if (_renderer != null)
             _renderer.DrawRectangle(pen, brush, x, y, width, height);
@@ -732,10 +717,8 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public void DrawRectangles(XPen pen, XRect[] rectangles)
     {
-        if (pen == null)
-            throw new ArgumentNullException("pen");
-        if (rectangles == null)
-            throw new ArgumentNullException("rectangles");
+        ArgumentNullException.ThrowIfNull(pen);
+        ArgumentNullException.ThrowIfNull(rectangles);
 
         DrawRectangles(pen, null, rectangles);
     }
@@ -747,10 +730,8 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public void DrawRectangles(XBrush brush, XRect[] rectangles)
     {
-        if (brush == null)
-            throw new ArgumentNullException("brush");
-        if (rectangles == null)
-            throw new ArgumentNullException("rectangles");
+        ArgumentNullException.ThrowIfNull(brush);
+        ArgumentNullException.ThrowIfNull(rectangles);
 
         DrawRectangles(null, brush, rectangles);
     }
@@ -763,9 +744,8 @@ public sealed class XGraphics : IDisposable
     public void DrawRectangles(XPen pen, XBrush brush, XRect[] rectangles)
     {
         if (pen == null && brush == null)
-            throw new ArgumentNullException("pen and brush", PSSR.NeedPenOrBrush);
-        if (rectangles == null)
-            throw new ArgumentNullException("rectangles");
+            throw new ArgumentNullException(nameof(pen), PSSR.NeedPenOrBrush);
+        ArgumentNullException.ThrowIfNull(rectangles);
 
         int count = rectangles.Length;
 
@@ -796,8 +776,7 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public void DrawRoundedRectangle(XPen pen, double x, double y, double width, double height, double ellipseWidth, double ellipseHeight)
     {
-        if (pen == null)
-            throw new ArgumentNullException("pen");
+        ArgumentNullException.ThrowIfNull(pen);
 
         DrawRoundedRectangle(pen, null, x, y, width, height, ellipseWidth, ellipseHeight);
     }
@@ -817,8 +796,7 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public void DrawRoundedRectangle(XBrush brush, double x, double y, double width, double height, double ellipseWidth, double ellipseHeight)
     {
-        if (brush == null)
-            throw new ArgumentNullException("brush");
+        ArgumentNullException.ThrowIfNull(brush);
 
         DrawRoundedRectangle(null, brush, x, y, width, height, ellipseWidth, ellipseHeight);
     }
@@ -840,7 +818,7 @@ public sealed class XGraphics : IDisposable
         double ellipseWidth, double ellipseHeight)
     {
         if (pen == null && brush == null)
-            throw new ArgumentNullException("pen and brush", PSSR.NeedPenOrBrush);
+            throw new ArgumentNullException(nameof(pen), PSSR.NeedPenOrBrush);
 
         if (_renderer != null)
             _renderer.DrawRoundedRectangle(pen, brush, x, y, width, height, ellipseWidth, ellipseHeight);
@@ -863,8 +841,7 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public void DrawEllipse(XPen pen, double x, double y, double width, double height)
     {
-        if (pen == null)
-            throw new ArgumentNullException("pen");
+        ArgumentNullException.ThrowIfNull(pen);
 
         // No DrawArc defined?
         if (_drawGraphics)
@@ -891,8 +868,7 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public void DrawEllipse(XBrush brush, double x, double y, double width, double height)
     {
-        if (brush == null)
-            throw new ArgumentNullException("brush");
+        ArgumentNullException.ThrowIfNull(brush);
 
         if (_drawGraphics)
         {
@@ -919,7 +895,7 @@ public sealed class XGraphics : IDisposable
     public void DrawEllipse(XPen pen, XBrush brush, double x, double y, double width, double height)
     {
         if (pen == null && brush == null)
-            throw new ArgumentNullException("pen and brush", PSSR.NeedPenOrBrush);
+            throw new ArgumentNullException(nameof(pen), PSSR.NeedPenOrBrush);
 
         if (_renderer != null)
             _renderer.DrawEllipse(pen, brush, x, y, width, height);
@@ -930,12 +906,10 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public void DrawPolygon(XPen pen, XPoint[] points)
     {
-        if (pen == null)
-            throw new ArgumentNullException("pen");
-        if (points == null)
-            throw new ArgumentNullException("points");
+        ArgumentNullException.ThrowIfNull(pen);
+        ArgumentNullException.ThrowIfNull(points);
         if (points.Length < 2)
-            throw new ArgumentException("points", PSSR.PointArrayAtLeast(2));
+            throw new ArgumentException(PSSR.PointArrayAtLeast(2), nameof(points));
 
         if (_renderer != null)
             _renderer.DrawPolygon(pen, null, points, XFillMode.Alternate);  // XFillMode is ignored
@@ -948,12 +922,10 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public void DrawPolygon(XBrush brush, XPoint[] points, XFillMode fillmode)
     {
-        if (brush == null)
-            throw new ArgumentNullException("brush");
-        if (points == null)
-            throw new ArgumentNullException("points");
+        ArgumentNullException.ThrowIfNull(brush);
+        ArgumentNullException.ThrowIfNull(points);
         if (points.Length < 2)
-            throw new ArgumentException("points", PSSR.PointArrayAtLeast(2));
+            throw new ArgumentException(PSSR.PointArrayAtLeast(2), nameof(points));
 
         if (_renderer != null)
             _renderer.DrawPolygon(null, brush, points, fillmode);
@@ -967,11 +939,10 @@ public sealed class XGraphics : IDisposable
     public void DrawPolygon(XPen pen, XBrush brush, XPoint[] points, XFillMode fillmode)
     {
         if (pen == null && brush == null)
-            throw new ArgumentNullException("pen and brush", PSSR.NeedPenOrBrush);
-        if (points == null)
-            throw new ArgumentNullException("points");
+            throw new ArgumentNullException(nameof(pen), PSSR.NeedPenOrBrush);
+        ArgumentNullException.ThrowIfNull(points);
         if (points.Length < 2)
-            throw new ArgumentException("points", PSSR.PointArrayAtLeast(2));
+            throw new ArgumentException(PSSR.PointArrayAtLeast(2), nameof(points));
 
         if (_renderer != null)
             _renderer.DrawPolygon(pen, brush, points, fillmode);
@@ -996,7 +967,7 @@ public sealed class XGraphics : IDisposable
     public void DrawPie(XPen pen, double x, double y, double width, double height, double startAngle, double sweepAngle)
     {
         if (pen == null)
-            throw new ArgumentNullException("pen", PSSR.NeedPenOrBrush);
+            throw new ArgumentNullException(nameof(pen), PSSR.NeedPenOrBrush);
 
         if (_renderer != null)
             _renderer.DrawPie(pen, null, x, y, width, height, startAngle, sweepAngle);
@@ -1018,7 +989,7 @@ public sealed class XGraphics : IDisposable
     public void DrawPie(XBrush brush, double x, double y, double width, double height, double startAngle, double sweepAngle)
     {
         if (brush == null)
-            throw new ArgumentNullException("brush", PSSR.NeedPenOrBrush);
+            throw new ArgumentNullException(nameof(brush), PSSR.NeedPenOrBrush);
 
         if (_renderer != null)
             _renderer.DrawPie(null, brush, x, y, width, height, startAngle, sweepAngle);
@@ -1040,7 +1011,7 @@ public sealed class XGraphics : IDisposable
     public void DrawPie(XPen pen, XBrush brush, double x, double y, double width, double height, double startAngle, double sweepAngle)
     {
         if (pen == null && brush == null)
-            throw new ArgumentNullException("pen", PSSR.NeedPenOrBrush);
+            throw new ArgumentNullException(nameof(pen), PSSR.NeedPenOrBrush);
 
         if (_renderer != null)
             _renderer.DrawPie(pen, brush, x, y, width, height, startAngle, sweepAngle);
@@ -1119,14 +1090,14 @@ public sealed class XGraphics : IDisposable
         if (pen == null && brush == null)
         {
             // ReSharper disable once NotResolvedInText
-            throw new ArgumentNullException("pen and brush", PSSR.NeedPenOrBrush);
+            throw new ArgumentNullException(nameof(pen), PSSR.NeedPenOrBrush);
         }
 
         int count = points.Length;
         if (count == 0)
             return;
         if (count < 2)
-            throw new ArgumentException("Not enough points.", "points");
+            throw new ArgumentException("Not enough points.", nameof(points));
 
         if (_renderer != null)
             _renderer.DrawClosedCurve(pen, brush, points, tension, fillmode);
@@ -1141,10 +1112,8 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public void DrawPath(XPen pen, XGraphicsPath path)
     {
-        if (pen == null)
-            throw new ArgumentNullException("pen");
-        if (path == null)
-            throw new ArgumentNullException("path");
+        ArgumentNullException.ThrowIfNull(pen);
+        ArgumentNullException.ThrowIfNull(path);
 
         if (_renderer != null)
             _renderer.DrawPath(pen, null, path);
@@ -1157,10 +1126,8 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public void DrawPath(XBrush brush, XGraphicsPath path)
     {
-        if (brush == null)
-            throw new ArgumentNullException("brush");
-        if (path == null)
-            throw new ArgumentNullException("path");
+        ArgumentNullException.ThrowIfNull(brush);
+        ArgumentNullException.ThrowIfNull(path);
 
         if (_renderer != null)
             _renderer.DrawPath(null, brush, path);
@@ -1176,10 +1143,9 @@ public sealed class XGraphics : IDisposable
         if (pen == null && brush == null)
         {
             // ReSharper disable once NotResolvedInText
-            throw new ArgumentNullException("pen and brush", PSSR.NeedPenOrBrush);
+            throw new ArgumentNullException(nameof(pen), PSSR.NeedPenOrBrush);
         }
-        if (path == null)
-            throw new ArgumentNullException("path");
+        ArgumentNullException.ThrowIfNull(path);
 
         if (_renderer != null)
             _renderer.DrawPath(pen, brush, path);
@@ -1241,8 +1207,7 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public void DrawString(string text, XFont font, XBrush brush, XRect layoutRectangle, XStringFormat format)
     {
-        if (brush == null)
-            throw new ArgumentNullException("brush");
+        ArgumentNullException.ThrowIfNull(brush);
 
         DrawString(text, font, null, brush, layoutRectangle, format);
     }
@@ -1319,12 +1284,10 @@ public sealed class XGraphics : IDisposable
     /// </remarks>
     public void DrawString(string text, XFont font, XPen pen, XBrush brush, XRect layoutRectangle, XStringFormat format)
     {
-        if (text == null)
-            throw new ArgumentNullException("text");
-        if (font == null)
-            throw new ArgumentNullException("font");
+        ArgumentNullException.ThrowIfNull(text);
+        ArgumentNullException.ThrowIfNull(font);
         if (pen == null && brush == null)
-            throw new ArgumentNullException("pen and brush", PSSR.NeedPenOrBrush);
+            throw new ArgumentNullException(nameof(pen), PSSR.NeedPenOrBrush);
 
         // A BaseLine line alignment anchors the text to the top edge of the layout rectangle and
         // reads nothing else from it, so a height is surplus rather than contradictory. This used
@@ -1346,18 +1309,17 @@ public sealed class XGraphics : IDisposable
     /// <summary>
     /// Measures the specified string when drawn with the specified font.
     /// </summary>
+    #pragma warning disable CA1822 // Public API: making it static would break every caller that measures through an XGraphics.
     public XSize MeasureString(string text, XFont font, XStringFormat stringFormat)
     {
-        if (text == null)
-            throw new ArgumentNullException("text");
-        if (font == null)
-            throw new ArgumentNullException("font");
-        if (stringFormat == null)
-            throw new ArgumentNullException("stringFormat");
+        ArgumentNullException.ThrowIfNull(text);
+        ArgumentNullException.ThrowIfNull(font);
+        ArgumentNullException.ThrowIfNull(stringFormat);
 
         XSize size = FontHelper.MeasureString(text, font, stringFormat);
         return size;
     }
+    #pragma warning restore CA1822
 
     /// <summary>
     /// Measures the specified string when drawn with the specified font.
@@ -1382,8 +1344,7 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public void DrawImage(XImage image, double x, double y)
     {
-        if (image == null)
-            throw new ArgumentNullException("image");
+        ArgumentNullException.ThrowIfNull(image);
 
         CheckXPdfFormConsistence(image);
 
@@ -1409,8 +1370,7 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public void DrawImage(XImage image, double x, double y, double width, double height)
     {
-        if (image == null)
-            throw new ArgumentNullException("image");
+        ArgumentNullException.ThrowIfNull(image);
 
         CheckXPdfFormConsistence(image);
 
@@ -1427,8 +1387,7 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public void DrawImage(XImage image, XRect destRect, XRect srcRect, XGraphicsUnit srcUnit)
     {
-        if (image == null)
-            throw new ArgumentNullException("image");
+        ArgumentNullException.ThrowIfNull(image);
 
         CheckXPdfFormConsistence(image);
 
@@ -1439,10 +1398,6 @@ public sealed class XGraphics : IDisposable
     //TODO?
     //public void DrawImage(XImage image, Rectangle destRect, double srcX, double srcY, double srcWidth, double srcHeight, GraphicsUnit srcUnit);
     //public void DrawImage(XImage image, Rectangle destRect, double srcX, double srcY, double srcWidth, double srcHeight, GraphicsUnit srcUnit);
-
-    void DrawMissingImageRect(XRect rect)
-    {
-    }
 
     /// <summary>
     /// Checks whether drawing is allowed and disposes the XGraphics object, if necessary.
@@ -1588,8 +1543,7 @@ public sealed class XGraphics : IDisposable
     /// </param>
     public IDisposable BeginMarkedContent(PdfStructure.PdfStructureElement element)
     {
-        if (element == null)
-            throw new ArgumentNullException(nameof(element));
+        ArgumentNullException.ThrowIfNull(element);
 
         var renderer = PdfRenderer("Marked content can only be written to a PDF page.");
         var page = renderer._page
@@ -1786,8 +1740,7 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public void Restore(XGraphicsState state)
     {
-        if (state == null)
-            throw new ArgumentNullException("state");
+        ArgumentNullException.ThrowIfNull(state);
         _gsStack.Restore(state.InternalState);
         _transform = state.InternalState.Transform;
 
@@ -1822,7 +1775,7 @@ public sealed class XGraphics : IDisposable
     {
         // TODO: unit
         if (unit != XGraphicsUnit.Point)
-            throw new ArgumentException("The current implementation supports XGraphicsUnit.Point only.", "unit");
+            throw new ArgumentException("The current implementation supports XGraphicsUnit.Point only.", nameof(unit));
 
         XGraphicsContainer xContainer = null;
         xContainer = new XGraphicsContainer();
@@ -1852,8 +1805,7 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public void EndContainer(XGraphicsContainer container)
     {
-        if (container == null)
-            throw new ArgumentNullException("container");
+        ArgumentNullException.ThrowIfNull(container);
 
         _gsStack.Restore(container.InternalState);
         _transform = container.InternalState.Transform;
@@ -2115,8 +2067,7 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public void IntersectClip(XGraphicsPath path)
     {
-        if (path == null)
-            throw new ArgumentNullException("path");
+        ArgumentNullException.ThrowIfNull(path);
 
         if (_renderer != null)
             _renderer.SetClip(path, XCombineMode.Intersect);
@@ -2143,8 +2094,7 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public void WriteComment(string comment)
     {
-        if (comment == null)
-            throw new ArgumentNullException("comment");
+        ArgumentNullException.ThrowIfNull(comment);
 
         if (_drawGraphics)
         {

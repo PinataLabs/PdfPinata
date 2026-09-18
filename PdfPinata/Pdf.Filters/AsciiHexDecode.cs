@@ -43,8 +43,7 @@ public class AsciiHexDecode : Filter
     /// </summary>
     public override byte[] Encode(byte[] data)
     {
-        if (data == null)
-            throw new ArgumentNullException(nameof(data));
+        ArgumentNullException.ThrowIfNull(data);
 
         int count = data.Length;
         byte[] bytes = new byte[2 * count];
@@ -62,8 +61,7 @@ public class AsciiHexDecode : Filter
     /// </summary>
     public override byte[] Decode(byte[] data, FilterParms parms)
     {
-        if (data == null)
-            throw new ArgumentNullException(nameof(data));
+        ArgumentNullException.ThrowIfNull(data);
 
         data = RemoveWhiteSpace(data);
         int count = data.Length;

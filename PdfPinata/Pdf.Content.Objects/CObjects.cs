@@ -320,7 +320,7 @@ public class CSequence : CObject, IList<CObject> // , ICollection<CObject>, IEnu
     /// </summary>
     public byte[] ToContent()
     {
-        Stream stream = new MemoryStream();
+        MemoryStream stream = new MemoryStream();
         ContentWriter writer = new ContentWriter(stream);
         WriteObject(writer);
         writer.Close(false);
@@ -586,7 +586,7 @@ public class CString : CObject
         switch (CStringType)
         {
             case CStringType.String:
-                s.Append("(");
+                s.Append('(');
                 int length = _value.Length;
                 for (int ich = 0; ich < length; ich++)
                 {
@@ -652,7 +652,9 @@ public class CString : CObject
                 break;
 
             default:
+                #pragma warning disable S3877 // An undefined CStringType has no textual form, as the unfinished Unicode cases above already say by throwing.
                 throw new ArgumentOutOfRangeException();
+                #pragma warning restore S3877
         }
 
         return s.ToString();

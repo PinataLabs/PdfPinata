@@ -125,10 +125,8 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// </summary>
     public void DrawLines(XPen pen, XPoint[] points)
     {
-        if (pen == null)
-            throw new ArgumentNullException(nameof(pen));
-        if (points == null)
-            throw new ArgumentNullException(nameof(points));
+        ArgumentNullException.ThrowIfNull(pen);
+        ArgumentNullException.ThrowIfNull(points);
 
         int count = points.Length;
         if (count == 0)
@@ -154,10 +152,8 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
 
     public void DrawBeziers(XPen pen, XPoint[] points)
     {
-        if (pen == null)
-            throw new ArgumentNullException(nameof(pen));
-        if (points == null)
-            throw new ArgumentNullException(nameof(points));
+        ArgumentNullException.ThrowIfNull(pen);
+        ArgumentNullException.ThrowIfNull(points);
 
         int count = points.Length;
         if (count == 0)
@@ -183,10 +179,8 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
 
     public void DrawCurve(XPen pen, XPoint[] points, double tension)
     {
-        if (pen == null)
-            throw new ArgumentNullException(nameof(pen));
-        if (points == null)
-            throw new ArgumentNullException(nameof(points));
+        ArgumentNullException.ThrowIfNull(pen);
+        ArgumentNullException.ThrowIfNull(points);
 
         int count = points.Length;
         if (count == 0)
@@ -220,8 +214,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
 
     public void DrawArc(XPen pen, double x, double y, double width, double height, double startAngle, double sweepAngle)
     {
-        if (pen == null)
-            throw new ArgumentNullException(nameof(pen));
+        ArgumentNullException.ThrowIfNull(pen);
 
         Realize(pen);
 
@@ -234,7 +227,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     public void DrawRectangle(XPen pen, XBrush brush, double x, double y, double width, double height)
     {
         if (pen == null && brush == null)
-            throw new ArgumentNullException("pen and brush");
+            throw new ArgumentNullException(nameof(pen));
 
         const string format = Config.SignificantFigures3;
 
@@ -310,7 +303,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
 
         int count = points.Length;
         if (points.Length < 2)
-            throw new ArgumentException("points", PSSR.PointArrayAtLeast(2));
+            throw new ArgumentException(PSSR.PointArrayAtLeast(2), nameof(points));
 
         const string format = Config.SignificantFigures4;
         AppendFormatPoint("{0:" + format + "} {1:" + format + "} m\n", points[0].X, points[0].Y);
@@ -1101,7 +1094,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// Gets the quadrant (0 through 3) of the specified angle. If the angle lies on an edge
     /// (0, 90, 180, etc.) the result depends on the details how the angle is used.
     /// </summary>
-    int Quadrant(double φ, bool start, bool clockwise)
+    static int Quadrant(double φ, bool start, bool clockwise)
     {
         Debug.Assert(φ >= 0);
         if (φ > 360)
@@ -2037,7 +2030,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// a string of one segment - which is nearly all of them - produces exactly the operator it
     /// produced before there were segments at all.
     /// </remarks>
-    string ShowTextOperators(string text, ShapedText shaped, XFont font, XStringFormat format)
+    static string ShowTextOperators(string text, ShapedText shaped, XFont font, XStringFormat format)
     {
         var segments = shaped.Segments;
         if (segments.Count == 1)
@@ -2195,7 +2188,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// altogether because the graphics state has been lied to.
     /// </para>
     /// </remarks>
-    string SegmentOperators(string text, ShapedRun run, XFont font, XStringFormat format)
+    static string SegmentOperators(string text, ShapedRun run, XFont font, XStringFormat format)
     {
         int ligature = FirstLigature(text, run, 0);
 
@@ -2233,7 +2226,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// rather than one per run — the price of saying anything at all about a glyph in the middle.
     /// </para>
     /// </remarks>
-    string LigatureOperators(string text, ShapedRun run, XFont font, XStringFormat format, int first)
+    static string LigatureOperators(string text, ShapedRun run, XFont font, XStringFormat format, int first)
     {
         var shaped = run.Glyphs;
         var parts = new StringBuilder();
@@ -2368,7 +2361,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// Glyphs <paramref name="from"/> up to <paramref name="to"/> of a run, with the room a word
     /// spacing asks for and the displacements the shaper asked for.
     /// </summary>
-    string PlacedOperators(string text, ShapedRun run, XFont font, XStringFormat format,
+    static string PlacedOperators(string text, ShapedRun run, XFont font, XStringFormat format,
         int from, int to)
     {
         string glyphs = TextShaping.GlyphIds(run);

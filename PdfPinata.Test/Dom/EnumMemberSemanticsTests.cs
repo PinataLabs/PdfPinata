@@ -97,7 +97,7 @@ public class EnumMemberSemanticsTests
     {
         var format = AFormat();
 
-        foreach (ParagraphAlignment alignment in Enum.GetValues(typeof(ParagraphAlignment)))
+        foreach (ParagraphAlignment alignment in Enum.GetValues<ParagraphAlignment>())
         {
             format.Alignment = alignment;
             format.Alignment.Should().Be(alignment);

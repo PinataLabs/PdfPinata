@@ -57,7 +57,9 @@ enum ColorName : uint
   CornflowerBlue = 0xFF6495ED,
   Cornsilk = 0xFFFFF8DC,
   Crimson = 0xFFDC143C,
+  #pragma warning disable CA1069 // Cyan is the X11 alias of Aqua: both names are public, and one colour has both.
   Cyan = 0xFF00FFFF,
+  #pragma warning restore CA1069
   DarkBlue = 0xFF00008B,
   DarkCyan = 0xFF008B8B,
   DarkGoldenrod = 0xFFB8860B,
@@ -116,7 +118,9 @@ enum ColorName : uint
   Lime = 0xFF00FF00,
   LimeGreen = 0xFF32CD32,
   Linen = 0xFFFAF0E6,
+  #pragma warning disable CA1069 // Magenta is the X11 alias of Fuchsia: both names are public, and one colour has both.
   Magenta = 0xFFFF00FF,
+  #pragma warning restore CA1069
   Maroon = 0xFF800000,
   MediumAquamarine = 0xFF66CDAA,
   MediumBlue = 0xFF0000CD,

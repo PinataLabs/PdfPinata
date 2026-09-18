@@ -194,8 +194,7 @@ internal sealed class OpenTypeFontface
         if (!CanWrite)
             throw new InvalidOperationException("Font image cannot be modified.");
 
-        if (fontTable == null)
-            throw new ArgumentNullException(nameof(fontTable));
+        ArgumentNullException.ThrowIfNull(fontTable);
 
         if (fontTable._fontData == null)
         {
@@ -507,9 +506,9 @@ internal sealed class OpenTypeFontface
 
     public int Seek(string tag)
     {
-        if (TableDictionary.ContainsKey(tag))
+        if (TableDictionary.TryGetValue(tag, out TableDirectoryEntry entry))
         {
-            _pos = TableDictionary[tag].Offset;
+            _pos = entry.Offset;
             return _pos;
         }
         return -1;

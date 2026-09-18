@@ -272,7 +272,6 @@ public class CodeDataMatrix : MatrixCode
     /// <param name="text">The code to be checked.</param>
     protected override void CheckCode(string text)
     {
-        if (text == null)
-            throw new ArgumentNullException(nameof(text));
+        ArgumentNullException.ThrowIfNull(text);
     }
 }

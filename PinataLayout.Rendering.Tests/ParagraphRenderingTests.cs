@@ -294,7 +294,7 @@ public class ParagraphRenderingTests
         var paragraph = document.AddSection().AddParagraph("a short line");
         paragraph.Format.Alignment = alignment;
 
-        return TextBaselines.PositionsOf(Rendered.FirstPageOf(document)).First().X;
+        return TextBaselines.PositionsOf(Rendered.FirstPageOf(document))[0].X;
     }
 
     /// <summary>Where each line of the page starts, from the top downwards.</summary>

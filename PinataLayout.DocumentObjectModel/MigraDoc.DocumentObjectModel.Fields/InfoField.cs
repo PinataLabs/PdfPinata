@@ -85,7 +85,7 @@ public partial class InfoField : DocumentObject
   /// <summary>
   /// Determines whether the name is a valid InfoFieldType.
   /// </summary>
-  private bool IsValidName(string name)
+  private static bool IsValidName(string name)
   {
     foreach (string validName in validNames)
     {
@@ -94,7 +94,7 @@ public partial class InfoField : DocumentObject
     }
     return false;
   }
-  private static string[] validNames = Enum.GetNames(typeof(InfoFieldType));
+  private static string[] validNames = Enum.GetNames<InfoFieldType>();
 
   /// <summary>
   /// Determines whether this instance is null (not set).

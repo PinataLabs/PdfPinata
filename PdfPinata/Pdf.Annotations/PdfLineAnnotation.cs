@@ -213,7 +213,7 @@ public sealed class PdfLineAnnotation : PdfAnnotation
             name = name.Substring(1);
 
         return Enum.IsDefined(typeof(PdfLineEnding), name)
-            ? (PdfLineEnding)Enum.Parse(typeof(PdfLineEnding), name, false)
+            ? Enum.Parse<PdfLineEnding>(name, false)
             : PdfLineEnding.None;
     }
 

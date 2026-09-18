@@ -379,7 +379,7 @@ internal abstract class PdfPageWalk
     /// The scope names in a stream resolve against: its own resources where it has them, and
     /// those it was drawn from where it has not.
     /// </summary>
-    PdfDictionary ScopeOf(PdfDictionary owner, PdfDictionary scope)
+    static PdfDictionary ScopeOf(PdfDictionary owner, PdfDictionary scope)
     {
         return owner.Elements.GetDictionary(PdfPage.Keys.Resources) ?? scope;
     }
@@ -389,7 +389,7 @@ internal abstract class PdfPageWalk
     /// a colour space may resolve to an array or a bare name instead. A dangling reference or a PDF
     /// null resolves to null, exactly as the specification says leaving the entry out would.
     /// </summary>
-    PdfItem ResolveRaw(string category, string name, PdfDictionary scope)
+    static PdfItem ResolveRaw(string category, string name, PdfDictionary scope)
     {
         PdfDictionary entries = scope.Elements.GetDictionary(category);
         if (entries == null)

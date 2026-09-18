@@ -120,7 +120,7 @@ public class FontFallbackTests
     [Fact]
     public void AListWithNoNameInItIsRefused()
     {
-        Action naming = () => new FontFallbackList("Noto Sans Arabic", "  ");
+        Action naming = () => _ = new FontFallbackList("Noto Sans Arabic", "  ");
 
         naming.Should().Throw<ArgumentException>();
     }

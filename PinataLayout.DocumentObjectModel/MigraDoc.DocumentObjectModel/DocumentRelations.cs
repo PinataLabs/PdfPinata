@@ -47,11 +47,9 @@ public class DocumentRelations
   /// <param name="type">The parent type to search for.</param>
   public static bool HasParentOfType(DocumentObject documentObject, Type type)
   {
-    if (documentObject == null)
-      throw new ArgumentNullException("documentObject");
+    ArgumentNullException.ThrowIfNull(documentObject);
 
-    if (type == null)
-      throw new ArgumentNullException("type");
+    ArgumentNullException.ThrowIfNull(type);
 
     return GetParentOfType(documentObject, type) != null;
   }
@@ -62,8 +60,7 @@ public class DocumentRelations
   /// <param name="documentObject">The document object the parent is searched for.</param>
   public static DocumentObject GetParent(DocumentObject documentObject)
   {
-    if (documentObject == null)
-      throw new ArgumentNullException("documentObject");
+    ArgumentNullException.ThrowIfNull(documentObject);
 
     return documentObject.Parent;
   }
@@ -76,11 +73,9 @@ public class DocumentRelations
   /// <param name="type">The parent type to search for.</param>
   public static DocumentObject GetParentOfType(DocumentObject documentObject, Type type)
   {
-    if (documentObject == null)
-      throw new ArgumentNullException("documentObject");
+    ArgumentNullException.ThrowIfNull(documentObject);
 
-    if (type == null)
-      throw new ArgumentNullException("type");
+    ArgumentNullException.ThrowIfNull(type);
 
     if (documentObject.parent != null)
     {

@@ -366,4 +366,53 @@ public class DdlElementSerializationTests
 
         Write(document).Should().NotContain("// \n");
     }
+
+    // ----- Members MDG007 found missing from Serialize ---------------------------------------------
+
+    [Fact]
+    public void ATableKeepsItsRowsTogetherAcrossARoundTrip()
+    {
+        var document = new Document();
+        var table = document.AddSection().AddTable();
+        table.AddColumn();
+        table.AddRow();
+        table.KeepTogether = true;
+
+        Write(document).Should().Contain("KeepTogether = true");
+        RoundTrip(document).LastSection.Elements.OfType<Table>().Single()
+            .KeepTogether.Should().BeTrue();
+    }
+
+    [Fact]
+    public void AHeaderKeepsItsStyleAcrossARoundTrip()
+    {
+        var document = new Document();
+        document.Styles.AddStyle("Running", StyleNames.Normal);
+        var section = document.AddSection();
+        section.Headers.Primary.AddParagraph("A header");
+        section.Headers.Primary.Style = "Running";
+
+        RoundTrip(document).LastSection.Headers.Primary.Style.Should().Be("Running");
+    }
+
+    [Fact]
+    public void AHyperlinkKeepsItsFontAcrossARoundTrip()
+    {
+        var document = DocumentWithAParagraph(out var paragraph);
+        var hyperlink = paragraph.AddHyperlink("target");
+        hyperlink.AddText("click");
+        hyperlink.Font.Bold = true;
+        hyperlink.Font.Size = 14;
+        paragraph.AddText(" after");
+
+        var paragraphRead = FirstParagraphOf(RoundTrip(document));
+        var reread = paragraphRead.Elements.OfType<Hyperlink>().Single();
+
+        reread.Font.Bold.Should().BeTrue();
+        reread.Font.Size.Point.Should().Be(14);
+        reread.Name.Should().Be("target");
+        reread.Elements.OfType<Text>().Single().Content.Should().Be("click");
+        string.Concat(paragraphRead.Elements.OfType<Text>().Select(t => t.Content))
+            .Should().Be(" after", "the font block ends inside the brackets, not in the text");
+    }
 }

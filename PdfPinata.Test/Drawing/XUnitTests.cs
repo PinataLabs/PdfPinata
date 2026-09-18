@@ -146,7 +146,7 @@ public class XUnitTests
     {
         var act = () => new XUnit(1, (XGraphicsUnit)99);
 
-        act.Should().Throw<ArgumentException>();
+        act.Should().Throw<ArgumentException>().Which.ParamName.Should().Be("type");
     }
 
     [Theory]

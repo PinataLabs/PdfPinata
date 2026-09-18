@@ -127,7 +127,7 @@ public class SymbolAndDecimalTabTests
         referenceParagraph.AddText("after");
         var expected = TextBaselines.PositionsOf(Rendered.FirstPageOf(reference));
 
-        runs.Last().X.Should().BeApproximately(expected.Last().X, 0.01);
+        runs[^1].X.Should().BeApproximately(expected[^1].X, 0.01);
     }
 
     // ----- the decimal-aligned tab ------------------------------------------------------------

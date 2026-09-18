@@ -51,7 +51,7 @@ internal class TopDownFormatter
     /// <param name="prevBottomMargin">The bottom margin of the previous element.</param>
     /// <param name="nextTopMargin">The top margin of the next element.</param>
     /// <returns></returns>
-    private XUnit MarginMax(XUnit prevBottomMargin, XUnit nextTopMargin)
+    private static XUnit MarginMax(XUnit prevBottomMargin, XUnit nextTopMargin)
     {
         if (prevBottomMargin >= 0 && nextTopMargin >= 0)
             return Math.Max(prevBottomMargin, nextTopMargin);
@@ -333,7 +333,7 @@ internal class TopDownFormatter
     /// the text goes where it can.
     /// </para>
     /// </remarks>
-    Area AreaBesideShape(Area area, LayoutInfo layoutInfo)
+    static ObstructedArea AreaBesideShape(Area area, LayoutInfo layoutInfo)
     {
         if (layoutInfo.Floating != Floating.Left && layoutInfo.Floating != Floating.Right &&
             layoutInfo.Floating != Floating.BothSides)

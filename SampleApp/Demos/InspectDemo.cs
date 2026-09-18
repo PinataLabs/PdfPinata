@@ -131,7 +131,7 @@ internal sealed class InspectDemo : PdfDemo
             {
                 string operands = string.Join(" ", op.Operands.Select(Describe));
                 gfx.DrawString(op.OpCode.Name, mono, XBrushes.Firebrick, new XPoint(x, y));
-                gfx.DrawString(operands.Length > 44 ? operands.Substring(0, 41) + "..." : operands,
+                gfx.DrawString(operands.Length > 44 ? string.Concat(operands.AsSpan(0, 41), "...") : operands,
                     mono, XBrushes.DimGray, new XPoint(x + 26, y));
 
                 y += 11;

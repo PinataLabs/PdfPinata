@@ -41,8 +41,7 @@ public sealed class LocalTimestampAuthority : ITimestampProvider
     /// <inheritdoc/>
     public byte[] GetTimestamp(byte[] messageImprint, HashAlgorithmName hashAlgorithm)
     {
-        if (messageImprint == null)
-            throw new ArgumentNullException(nameof(messageImprint));
+        ArgumentNullException.ThrowIfNull(messageImprint);
 
         var tstInfo = BuildTstInfo(messageImprint, hashAlgorithm);
 

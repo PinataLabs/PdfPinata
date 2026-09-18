@@ -41,8 +41,8 @@ internal class OpenTypeFontTable : ICloneable
     public OpenTypeFontTable(OpenTypeFontface fontData, string tag)
     {
         _fontData = fontData;
-        if (fontData != null && fontData.TableDictionary.ContainsKey(tag))
-            DirectoryEntry = fontData.TableDictionary[tag];
+        if (fontData != null && fontData.TableDictionary.TryGetValue(tag, out TableDirectoryEntry entry))
+            DirectoryEntry = entry;
         else
             DirectoryEntry = new TableDirectoryEntry(tag);
         DirectoryEntry.FontTable = this;

@@ -182,7 +182,7 @@ internal class TableRenderer : Renderer
     element.Elements["/A"] = attributes;
   }
 
-  private void EqualizeRoundedCornerBorders(Cell cell) {
+  private static void EqualizeRoundedCornerBorders(Cell cell) {
     // If any of a corner relevant border is set, we want to copy its values to the second corner relevant border, 
     // to ensure the innerWidth of the cell is the same, regardless of which border is used.
     // If set, we use the vertical borders as source for the values, otherwise we use the horizontal borders.
