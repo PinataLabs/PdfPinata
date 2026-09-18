@@ -194,8 +194,8 @@ it was written. Fixing them was cheaper than describing them.
 ./verapdf-check.ps1 -Image verapdf/cli:latest   # try a different validator release
 ```
 
-Windows, Linux and macOS alike: it is PowerShell, which CI already uses for `ci-build.ps1`, and the
-validator is a container. The only requirement is Docker.
+Windows, Linux and macOS alike: it is PowerShell, which the GitHub runners carry on every platform,
+and the validator is a container. The only requirement is Docker.
 
 Reports land in `artifacts/verapdf-reports`, one XML per document, and CI uploads them as a build
 artifact so a failure can be read without reproducing it.

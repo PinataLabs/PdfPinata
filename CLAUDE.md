@@ -10,13 +10,12 @@ dotnet test                              # whole suite, both test target framewo
 dotnet test -f net10.0                   # one framework; the test project targets net8.0;net10.0
 dotnet test --filter "FullyQualifiedName~CLexerTests"                  # one class
 dotnet test --filter "FullyQualifiedName~CLexerTests.ScanNextToken"    # one test
-./ci-build.ps1                           # what CI builds: clean + Release build
 ./verapdf-check.ps1                      # conformance corpus + veraPDF; needs Docker. Gates.
 ./verapdf-check.ps1 -NoGate              # the same, but always succeeds — for reading a failure
 ```
 
-CI (`.github/workflows/build-and-test.yml`) runs on Linux only, builds with `ci-build.ps1`, installs
-Ghostscript, then runs `dotnet test` with coverlet/opencover coverage.
+CI (`.github/workflows/build-and-test.yml`) runs on Linux only, builds `PdfPinata.slnx` in Release,
+installs Ghostscript, then runs `dotnet test` with coverlet/opencover coverage.
 
 **Versions come from git tags, not from the project files.** MinVer (referenced for packable
 projects in `Directory.Build.targets`) versions all nine packages in lockstep from the latest
