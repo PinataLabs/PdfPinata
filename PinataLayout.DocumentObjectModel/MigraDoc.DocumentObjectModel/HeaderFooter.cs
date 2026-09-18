@@ -284,6 +284,8 @@ public partial class HeaderFooter : DocumentObject, IVisitable
         serializer.WriteLine("\\" + prefix + (IsHeader ? "header" : "footer"));
 
         int pos = serializer.BeginAttributes();
+        if ((style ?? "") != String.Empty)
+            serializer.WriteSimpleAttribute("Style", Style);
         if (!IsNull("Format"))
             format.Serialize(serializer, "Format", null);
         serializer.EndAttributes(pos);
