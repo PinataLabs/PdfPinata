@@ -41,131 +41,131 @@ namespace PinataLayout.Rendering;
 /// </summary>
 internal class FormattedTextArea : IAreaProvider
 {
-  internal FormattedTextArea(DocumentRenderer documentRenderer, TextArea textArea, FieldInfos fieldInfos)
-  {
-    this.textArea = textArea;
-    this.fieldInfos = fieldInfos;
-    this.documentRenderer = documentRenderer;
-  }
-
-  internal void Format(XGraphics gfx)
-  {
-    this.gfx = gfx;
-    isFirstArea = true;
-    formatter = new TopDownFormatter(this, documentRenderer, textArea.Elements);
-    formatter.FormatOnAreas(gfx, false);
-  }
-
-  internal XUnit InnerWidth
-  {
-    set => innerWidth = value;
-    get
+    internal FormattedTextArea(DocumentRenderer documentRenderer, TextArea textArea, FieldInfos fieldInfos)
     {
-      if (double.IsNaN(innerWidth))
-      {
-        if (!textArea.IsNull("Width"))
-          innerWidth = textArea.Width.Point;
-        else
-          innerWidth = CalcInherentWidth();
-      }
-      return innerWidth;
-    }
-  }
-  XUnit innerWidth = double.NaN;
-
-  internal XUnit InnerHeight
-  {
-    get
-    {
-      if (textArea.IsNull("Height"))
-        return ContentHeight + textArea.TopPadding + textArea.BottomPadding;
-      return textArea.Height.Point;
-    }
-  }
-
-
-  XUnit CalcInherentWidth()
-  {
-    XUnit inherentWidth = 0;
-    foreach (DocumentObject obj in textArea.Elements)
-    {
-      Renderer renderer = Renderer.Create(gfx, documentRenderer, obj, fieldInfos);
-      if (renderer != null)
-      {
-        renderer.Format(new Rectangle(0, 0, double.MaxValue, double.MaxValue), null);
-        inherentWidth = Math.Max(renderer.RenderInfo.LayoutInfo.MinWidth, inherentWidth);
-      }
-    }
-    inherentWidth += textArea.LeftPadding;
-    inherentWidth += textArea.RightPadding;
-    return inherentWidth;
-  }
-
-
-  Area IAreaProvider.GetNextArea()
-  {
-    if (isFirstArea)
-      return CalcContentRect();
-
-    return null;
-  }
-
-  Area IAreaProvider.ProbeNextArea()
-  {
-    return null;
-  }
-
-  FieldInfos IAreaProvider.AreaFieldInfos => fieldInfos;
-
-  void IAreaProvider.StoreRenderInfos(ArrayList renderInfos)
-  {
-    this.renderInfos = renderInfos;
-  }
-
-  bool IAreaProvider.IsAreaBreakBefore(LayoutInfo layoutInfo)
-  {
-    return false;
-  }
-
-
-  internal RenderInfo[] GetRenderInfos()
-  {
-    if (renderInfos != null)
-    {
-      // Not ToArray(Type): it builds the array type at run time, which carries
-      // RequiresDynamicCode and an AOT compiler cannot always have code for.
-      var result = new RenderInfo[renderInfos.Count];
-      renderInfos.CopyTo(result);
-      return result;
+        this.textArea = textArea;
+        this.fieldInfos = fieldInfos;
+        this.documentRenderer = documentRenderer;
     }
 
-    return null;
-  }
+    internal void Format(XGraphics gfx)
+    {
+        this.gfx = gfx;
+        isFirstArea = true;
+        formatter = new TopDownFormatter(this, documentRenderer, textArea.Elements);
+        formatter.FormatOnAreas(gfx, false);
+    }
 
-  internal XUnit ContentHeight => RenderInfo.GetTotalHeight(GetRenderInfos());
+    internal XUnit InnerWidth
+    {
+        set => innerWidth = value;
+        get
+        {
+            if (double.IsNaN(innerWidth))
+            {
+                if (!textArea.IsNull("Width"))
+                    innerWidth = textArea.Width.Point;
+                else
+                    innerWidth = CalcInherentWidth();
+            }
+            return innerWidth;
+        }
+    }
+    XUnit innerWidth = double.NaN;
 
-  Rectangle CalcContentRect()
-  {
-    XUnit width = InnerWidth - textArea.LeftPadding - textArea.RightPadding;
-    XUnit height = double.MaxValue;
-    return new Rectangle(0, 0, width, height);
-  }
+    internal XUnit InnerHeight
+    {
+        get
+        {
+            if (textArea.IsNull("Height"))
+                return ContentHeight + textArea.TopPadding + textArea.BottomPadding;
+            return textArea.Height.Point;
+        }
+    }
 
-  bool IAreaProvider.PositionVertically(LayoutInfo layoutInfo)
-  {
-    return false;
-  }
 
-  bool IAreaProvider.PositionHorizontally(LayoutInfo layoutInfo)
-  {
-    return false;
-  }
+    XUnit CalcInherentWidth()
+    {
+        XUnit inherentWidth = 0;
+        foreach (DocumentObject obj in textArea.Elements)
+        {
+            Renderer renderer = Renderer.Create(gfx, documentRenderer, obj, fieldInfos);
+            if (renderer != null)
+            {
+                renderer.Format(new Rectangle(0, 0, double.MaxValue, double.MaxValue), null);
+                inherentWidth = Math.Max(renderer.RenderInfo.LayoutInfo.MinWidth, inherentWidth);
+            }
+        }
+        inherentWidth += textArea.LeftPadding;
+        inherentWidth += textArea.RightPadding;
+        return inherentWidth;
+    }
 
-  internal TextArea textArea;
-  private FieldInfos fieldInfos;
-  private TopDownFormatter formatter;
-  private ArrayList renderInfos;
-  private XGraphics gfx;
-  private bool isFirstArea;
-  DocumentRenderer documentRenderer;
+
+    Area IAreaProvider.GetNextArea()
+    {
+        if (isFirstArea)
+            return CalcContentRect();
+
+        return null;
+    }
+
+    Area IAreaProvider.ProbeNextArea()
+    {
+        return null;
+    }
+
+    FieldInfos IAreaProvider.AreaFieldInfos => fieldInfos;
+
+    void IAreaProvider.StoreRenderInfos(ArrayList renderInfos)
+    {
+        this.renderInfos = renderInfos;
+    }
+
+    bool IAreaProvider.IsAreaBreakBefore(LayoutInfo layoutInfo)
+    {
+        return false;
+    }
+
+
+    internal RenderInfo[] GetRenderInfos()
+    {
+        if (renderInfos != null)
+        {
+            // Not ToArray(Type): it builds the array type at run time, which carries
+            // RequiresDynamicCode and an AOT compiler cannot always have code for.
+            var result = new RenderInfo[renderInfos.Count];
+            renderInfos.CopyTo(result);
+            return result;
+        }
+
+        return null;
+    }
+
+    internal XUnit ContentHeight => RenderInfo.GetTotalHeight(GetRenderInfos());
+
+    Rectangle CalcContentRect()
+    {
+        XUnit width = InnerWidth - textArea.LeftPadding - textArea.RightPadding;
+        XUnit height = double.MaxValue;
+        return new Rectangle(0, 0, width, height);
+    }
+
+    bool IAreaProvider.PositionVertically(LayoutInfo layoutInfo)
+    {
+        return false;
+    }
+
+    bool IAreaProvider.PositionHorizontally(LayoutInfo layoutInfo)
+    {
+        return false;
+    }
+
+    internal TextArea textArea;
+    private FieldInfos fieldInfos;
+    private TopDownFormatter formatter;
+    private ArrayList renderInfos;
+    private XGraphics gfx;
+    private bool isFirstArea;
+    DocumentRenderer documentRenderer;
 }

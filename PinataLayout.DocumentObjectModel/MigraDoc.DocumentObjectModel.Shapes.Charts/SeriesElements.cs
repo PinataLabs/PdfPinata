@@ -39,71 +39,71 @@ namespace PinataLayout.DocumentObjectModel.Shapes.Charts;
 /// </summary>
 public partial class SeriesElements : DocumentObjectCollection
 {
-  /// <summary>
-  /// Initializes a new instance of the SeriesElements class.
-  /// </summary>
-  internal SeriesElements()
-  {
-  }
-
-  /// <summary>
-  /// Initializes a new instance of the SeriesElements class with the specified parent.
-  /// </summary>
-  internal SeriesElements(DocumentObject parent) : base(parent) { }
-
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new SeriesElements Clone()
-  {
-    return (SeriesElements)DeepCopy();
-  }
-
-  /// <summary>
-  /// Adds a blank to the series.
-  /// </summary>
-  public void AddBlank()
-  {
-    base.Add((DocumentObject)null);
-  }
-
-  /// <summary>
-  /// Adds a new point with a real value to the series.
-  /// </summary>
-  public Point Add(double value)
-  {
-    Point point = new Point(value);
-    Add(point);
-    return point;
-  }
-
-  /// <summary>
-  /// Adds an array of new points with real values to the series.
-  /// </summary>
-  public void Add(params double[] values)
-  {
-    foreach (double val in values)
-      this.Add(val);
-  }
-  #endregion
-
-  #region Internal
-  /// <summary>
-  /// Converts SeriesElements into DDL.
-  /// </summary>
-  internal override void Serialize(Serializer serializer)
-  {
-    int count = Count;
-    for (int index = 0; index < count; ++index)
+    /// <summary>
+    /// Initializes a new instance of the SeriesElements class.
+    /// </summary>
+    internal SeriesElements()
     {
-      Point point = this[index] as Point;
-      if (point == null)
-        serializer.Write("null, ");
-      else
-        point.Serialize(serializer);
     }
-  }
 
-  #endregion
+    /// <summary>
+    /// Initializes a new instance of the SeriesElements class with the specified parent.
+    /// </summary>
+    internal SeriesElements(DocumentObject parent) : base(parent) { }
+
+    #region Methods
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new SeriesElements Clone()
+    {
+        return (SeriesElements)DeepCopy();
+    }
+
+    /// <summary>
+    /// Adds a blank to the series.
+    /// </summary>
+    public void AddBlank()
+    {
+        base.Add((DocumentObject)null);
+    }
+
+    /// <summary>
+    /// Adds a new point with a real value to the series.
+    /// </summary>
+    public Point Add(double value)
+    {
+        Point point = new Point(value);
+        Add(point);
+        return point;
+    }
+
+    /// <summary>
+    /// Adds an array of new points with real values to the series.
+    /// </summary>
+    public void Add(params double[] values)
+    {
+        foreach (double val in values)
+            this.Add(val);
+    }
+    #endregion
+
+    #region Internal
+    /// <summary>
+    /// Converts SeriesElements into DDL.
+    /// </summary>
+    internal override void Serialize(Serializer serializer)
+    {
+        int count = Count;
+        for (int index = 0; index < count; ++index)
+        {
+            Point point = this[index] as Point;
+            if (point == null)
+                serializer.Write("null, ");
+            else
+                point.Serialize(serializer);
+        }
+    }
+
+    #endregion
 }

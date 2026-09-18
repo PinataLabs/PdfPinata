@@ -39,65 +39,65 @@ namespace PinataLayout.DocumentObjectModel.Fields;
 /// </summary>
 public partial class PageRefField : NumericFieldBase
 {
-  /// <summary>
-  /// Initializes a new instance of the PageRefField class.
-  /// </summary>    
-  internal PageRefField()
-  {
-  }
+    /// <summary>
+    /// Initializes a new instance of the PageRefField class.
+    /// </summary>    
+    internal PageRefField()
+    {
+    }
 
-  /// <summary>
-  /// Initializes a new instance of the PageRefField class with the necessary bookmark name.
-  /// </summary>
-  public PageRefField(string name)
-    : this()
-  {
-    this.Name = name;
-  }
+    /// <summary>
+    /// Initializes a new instance of the PageRefField class with the necessary bookmark name.
+    /// </summary>
+    public PageRefField(string name)
+      : this()
+    {
+        this.Name = name;
+    }
 
-  /// <summary>
-  /// Initializes a new instance of the PageRefField class with the specified parent.
-  /// </summary>
-  internal PageRefField(DocumentObject parent) : base(parent) { }
+    /// <summary>
+    /// Initializes a new instance of the PageRefField class with the specified parent.
+    /// </summary>
+    internal PageRefField(DocumentObject parent) : base(parent) { }
 
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new PageRefField Clone()
-  {
-    return (PageRefField)DeepCopy();
-  }
-  #endregion
+    #region Methods
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new PageRefField Clone()
+    {
+        return (PageRefField)DeepCopy();
+    }
+    #endregion
 
-  #region Properties
-  /// <summary>
-  /// Gets or sets the bookmark name whose page is to be shown.
-  /// </summary>
-  public string Name
-  {
-    get => this.name ?? "";
-    set => this.name = value;
-  }
-  [DV]
-  internal string name;
-  #endregion
+    #region Properties
+    /// <summary>
+    /// Gets or sets the bookmark name whose page is to be shown.
+    /// </summary>
+    public string Name
+    {
+        get => this.name ?? "";
+        set => this.name = value;
+    }
+    [DV]
+    internal string name;
+    #endregion
 
-  #region Internal
-  /// <summary>
-  /// Converts PageRefField into DDL.
-  /// </summary>
-  internal override void Serialize(Serializer serializer)
-  {
-    string str = "\\field(PageRef)";
-    str += "[Name = \"" + this.Name + "\"";
+    #region Internal
+    /// <summary>
+    /// Converts PageRefField into DDL.
+    /// </summary>
+    internal override void Serialize(Serializer serializer)
+    {
+        string str = "\\field(PageRef)";
+        str += "[Name = \"" + this.Name + "\"";
 
-    if ((this.format ?? "") != "")
-      str += " Format = \"" + this.Format + "\"";
-    str += "]";
+        if ((this.format ?? "") != "")
+            str += " Format = \"" + this.Format + "\"";
+        str += "]";
 
-    serializer.Write(str);
-  }
+        serializer.Write(str);
+    }
 
-  #endregion
+    #endregion
 }

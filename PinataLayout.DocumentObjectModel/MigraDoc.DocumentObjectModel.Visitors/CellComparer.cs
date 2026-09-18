@@ -42,20 +42,20 @@ namespace PinataLayout.DocumentObjectModel.Visitors;
 /// </summary>
 public class CellComparer : IComparer<Cell>
 {
-  /// <summary>Compares two cells by position, top to bottom and then left to right.</summary>
-  /// <exception cref="ArgumentNullException">Either cell is null.</exception>
-  public int Compare(Cell lhs, Cell rhs)
-  {
-    if (ReferenceEquals(lhs, null))
-      throw new ArgumentNullException(nameof(lhs));
+    /// <summary>Compares two cells by position, top to bottom and then left to right.</summary>
+    /// <exception cref="ArgumentNullException">Either cell is null.</exception>
+    public int Compare(Cell lhs, Cell rhs)
+    {
+        if (ReferenceEquals(lhs, null))
+            throw new ArgumentNullException(nameof(lhs));
 
-    if (ReferenceEquals(rhs, null))
-      throw new ArgumentNullException(nameof(rhs));
+        if (ReferenceEquals(rhs, null))
+            throw new ArgumentNullException(nameof(rhs));
 
-    int rowCmpr = lhs.Row.Index - rhs.Row.Index;
-    if (rowCmpr != 0)
-      return rowCmpr;
+        int rowCmpr = lhs.Row.Index - rhs.Row.Index;
+        if (rowCmpr != 0)
+            return rowCmpr;
 
-    return lhs.Column.Index - rhs.Column.Index;
-  }
+        return lhs.Column.Index - rhs.Column.Index;
+    }
 }

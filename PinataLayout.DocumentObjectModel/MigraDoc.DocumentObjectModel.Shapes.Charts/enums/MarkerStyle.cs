@@ -37,24 +37,24 @@ namespace PinataLayout.DocumentObjectModel.Shapes.Charts;
 /// </summary>
 public enum MarkerStyle
 {
-  /// <summary>No marker is drawn.</summary>
-  None,
-  /// <summary>A filled circle.</summary>
-  Circle,
-  /// <summary>A short horizontal dash.</summary>
-  Dash,
-  /// <summary>A diamond.</summary>
-  Diamond,
-  /// <summary>A small dot.</summary>
-  Dot,
-  /// <summary>A plus sign.</summary>
-  Plus,
-  /// <summary>A square.</summary>
-  Square,
-  /// <summary>A five-pointed star.</summary>
-  Star,
-  /// <summary>A triangle.</summary>
-  Triangle,
-  /// <summary>A cross.</summary>
-  X
+    /// <summary>No marker is drawn.</summary>
+    None,
+    /// <summary>A filled circle.</summary>
+    Circle,
+    /// <summary>A short horizontal dash.</summary>
+    Dash,
+    /// <summary>A diamond.</summary>
+    Diamond,
+    /// <summary>A small dot.</summary>
+    Dot,
+    /// <summary>A plus sign.</summary>
+    Plus,
+    /// <summary>A square.</summary>
+    Square,
+    /// <summary>A five-pointed star.</summary>
+    Star,
+    /// <summary>A triangle.</summary>
+    Triangle,
+    /// <summary>A cross.</summary>
+    X
 }

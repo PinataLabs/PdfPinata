@@ -36,11 +36,11 @@ namespace PinataLayout.Rendering;
 /// </summary>
 internal class PageBreakRenderInfo : RenderInfo
 {
-  internal override FormatInfo FormatInfo => pageBreakFormatInfo;
+    internal override FormatInfo FormatInfo => pageBreakFormatInfo;
 
-  internal PageBreakFormatInfo pageBreakFormatInfo;
+    internal PageBreakFormatInfo pageBreakFormatInfo;
 
-  public override DocumentObject DocumentObject => pageBreak;
+    public override DocumentObject DocumentObject => pageBreak;
 
-  internal PageBreak pageBreak;
+    internal PageBreak pageBreak;
 }

@@ -37,23 +37,23 @@ namespace PinataLayout.DocumentObjectModel.Fields;
 /// </summary>
 public enum InfoFieldType
 {
-  /// <summary>
-  /// Specifies the title for the document.
-  /// </summary>
-  Title,
-    
-  /// <summary>
-  /// Specifies the author for the document.
-  /// </summary>
-  Author,
-    
-  /// <summary>
-  /// Specifies the keywords for the document.
-  /// </summary>
-  Keywords,
-    
-  /// <summary>
-  /// Specifies the subject for the document.
-  /// </summary>
-  Subject
+    /// <summary>
+    /// Specifies the title for the document.
+    /// </summary>
+    Title,
+
+    /// <summary>
+    /// Specifies the author for the document.
+    /// </summary>
+    Author,
+
+    /// <summary>
+    /// Specifies the keywords for the document.
+    /// </summary>
+    Keywords,
+
+    /// <summary>
+    /// Specifies the subject for the document.
+    /// </summary>
+    Subject
 }

@@ -36,53 +36,53 @@ namespace PdfPinata.Charting.Renderers;
 /// </summary>
 internal class AreaPlotAreaRenderer : ColumnLikePlotAreaRenderer
 {
-  /// <summary>
-  /// Initializes a new instance of the AreaPlotAreaRenderer class
-  /// with the specified renderer parameters.
-  /// </summary>
-  internal AreaPlotAreaRenderer(RendererParameters parms)
-    : base(parms)
-  {
-  }
-
-  /// <summary>
-  /// Draws the content of the area plot area.
-  /// </summary>
-  internal override void Draw()
-  {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    XRect plotAreaRect = cri.plotAreaRendererInfo.Rect;
-    if (HasNoRoom(plotAreaRect))
-      return;
-
-    XGraphics gfx = this.rendererParms.Graphics;
-    XGraphicsState state = gfx.Save();
-    //gfx.SetClip(plotAreaRect, XCombineMode.Intersect);
-    gfx.IntersectClip(plotAreaRect);
-
-    XMatrix matrix = cri.plotAreaRendererInfo.matrix;
-    double xMajorTick = cri.xAxisRendererInfo.MajorTick;
-    foreach (SeriesRendererInfo sri in cri.seriesRendererInfos)
+    /// <summary>
+    /// Initializes a new instance of the AreaPlotAreaRenderer class
+    /// with the specified renderer parameters.
+    /// </summary>
+    internal AreaPlotAreaRenderer(RendererParameters parms)
+      : base(parms)
     {
-      int count = sri.pointRendererInfos.Length;
-      XPoint[] points = new XPoint[count + 2];
-      points[0] = new XPoint(xMajorTick / 2, 0);
-      for (int idx = 0; idx < count; idx++)
-      {
-        // Read through the renderer info rather than off the series, which would dereference a
-        // blank. A blank reads as NaN and so joins the values that are already drawn at zero: an
-        // area is a closed shape and has to have a point for every category to close over.
-        double pointValue = sri.pointRendererInfos[idx].Value;
-        if (double.IsNaN(pointValue))
-          pointValue = 0;
-        points[idx + 1] = new XPoint(idx + xMajorTick / 2, pointValue);
-      }
-      points[count + 1] = new XPoint(count - 1 + xMajorTick / 2, 0);
-      matrix.TransformPoints(points);
-      gfx.DrawPolygon(sri.LineFormat, sri.FillFormat, points, XFillMode.Winding);
     }
 
-    //gfx.ResetClip();
-    gfx.Restore(state);
-  }
+    /// <summary>
+    /// Draws the content of the area plot area.
+    /// </summary>
+    internal override void Draw()
+    {
+        ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+        XRect plotAreaRect = cri.plotAreaRendererInfo.Rect;
+        if (HasNoRoom(plotAreaRect))
+            return;
+
+        XGraphics gfx = this.rendererParms.Graphics;
+        XGraphicsState state = gfx.Save();
+        //gfx.SetClip(plotAreaRect, XCombineMode.Intersect);
+        gfx.IntersectClip(plotAreaRect);
+
+        XMatrix matrix = cri.plotAreaRendererInfo.matrix;
+        double xMajorTick = cri.xAxisRendererInfo.MajorTick;
+        foreach (SeriesRendererInfo sri in cri.seriesRendererInfos)
+        {
+            int count = sri.pointRendererInfos.Length;
+            XPoint[] points = new XPoint[count + 2];
+            points[0] = new XPoint(xMajorTick / 2, 0);
+            for (int idx = 0; idx < count; idx++)
+            {
+                // Read through the renderer info rather than off the series, which would dereference a
+                // blank. A blank reads as NaN and so joins the values that are already drawn at zero: an
+                // area is a closed shape and has to have a point for every category to close over.
+                double pointValue = sri.pointRendererInfos[idx].Value;
+                if (double.IsNaN(pointValue))
+                    pointValue = 0;
+                points[idx + 1] = new XPoint(idx + xMajorTick / 2, pointValue);
+            }
+            points[count + 1] = new XPoint(count - 1 + xMajorTick / 2, 0);
+            matrix.TransformPoints(points);
+            gfx.DrawPolygon(sri.LineFormat, sri.FillFormat, points, XFillMode.Winding);
+        }
+
+        //gfx.ResetClip();
+        gfx.Restore(state);
+    }
 }

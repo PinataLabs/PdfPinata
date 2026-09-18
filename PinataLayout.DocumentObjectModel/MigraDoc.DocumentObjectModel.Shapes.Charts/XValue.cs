@@ -40,49 +40,49 @@ namespace PinataLayout.DocumentObjectModel.Shapes.Charts;
 /// </summary>
 public partial class XValue : ChartObject
 {
-  /// <summary>
-  /// Initializes a new instance of the XValue class.
-  /// </summary>
-  internal XValue()
-  {
-  }
+    /// <summary>
+    /// Initializes a new instance of the XValue class.
+    /// </summary>
+    internal XValue()
+    {
+    }
 
-  /// <summary>
-  /// Initializes a new instance of the XValue class with the specified value.
-  /// </summary>
-  public XValue(string value)
-    : this()
-  {
-    if (value == null)
-      throw new ArgumentNullException("value");
+    /// <summary>
+    /// Initializes a new instance of the XValue class with the specified value.
+    /// </summary>
+    public XValue(string value)
+      : this()
+    {
+        if (value == null)
+            throw new ArgumentNullException("value");
 
-    this.Value = value;
-  }
+        this.Value = value;
+    }
 
-  /// <summary>
-  /// The actual value of the XValue.
-  /// </summary>
-  [DV] // No Get- and Set -Property.
-  protected string Value;
+    /// <summary>
+    /// The actual value of the XValue.
+    /// </summary>
+    [DV] // No Get- and Set -Property.
+    protected string Value;
 
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new XValue Clone()
-  {
-    return (XValue)DeepCopy();
-  }
-  #endregion
+    #region Methods
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new XValue Clone()
+    {
+        return (XValue)DeepCopy();
+    }
+    #endregion
 
-  #region Internal
-  /// <summary>
-  /// Converts XValue into DDL.
-  /// </summary>
-  internal override void Serialize(Serializer serializer)
-  {
-    serializer.Write("\"" + this.Value + "\", ");
-  }
+    #region Internal
+    /// <summary>
+    /// Converts XValue into DDL.
+    /// </summary>
+    internal override void Serialize(Serializer serializer)
+    {
+        serializer.Write("\"" + this.Value + "\", ");
+    }
 
-  #endregion
+    #endregion
 }

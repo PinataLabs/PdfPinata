@@ -35,15 +35,15 @@ namespace PinataLayout.Rendering;
 /// </summary>
 internal class TextFrameRenderInfo : ShapeRenderInfo
 {
-  internal override FormatInfo FormatInfo
-  {
-    get
+    internal override FormatInfo FormatInfo
     {
-      if (formatInfo == null)
-        formatInfo = new TextFrameFormatInfo();
+        get
+        {
+            if (formatInfo == null)
+                formatInfo = new TextFrameFormatInfo();
 
-      return formatInfo;
+            return formatInfo;
+        }
     }
-  }
-  private TextFrameFormatInfo formatInfo;
+    private TextFrameFormatInfo formatInfo;
 }

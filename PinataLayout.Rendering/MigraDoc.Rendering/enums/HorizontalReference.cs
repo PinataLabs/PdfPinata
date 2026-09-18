@@ -35,7 +35,7 @@ namespace PinataLayout.Rendering;
 /// </summary>
 internal enum HorizontalReference
 {
-  AreaBoundary = 0, //Default
-  PageMargin,
-  Page
+    AreaBoundary = 0, //Default
+    PageMargin,
+    Page
 }

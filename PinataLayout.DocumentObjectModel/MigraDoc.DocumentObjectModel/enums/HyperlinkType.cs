@@ -37,28 +37,28 @@ namespace PinataLayout.DocumentObjectModel;
 /// </summary>
 public enum HyperlinkType
 {
-  /// <summary>
-  /// Targets a position in the document. Same as 'Bookmark'.
-  /// </summary>
-  Local = 0,
+    /// <summary>
+    /// Targets a position in the document. Same as 'Bookmark'.
+    /// </summary>
+    Local = 0,
 
-  /// <summary>
-  /// Targets a position in the document. Same as 'Local'.
-  /// </summary>
-  Bookmark = Local,
+    /// <summary>
+    /// Targets a position in the document. Same as 'Local'.
+    /// </summary>
+    Bookmark = Local,
 
-  /// <summary>
-  /// Targets a resource on the Internet or network. Same as 'Url'.
-  /// </summary>
-  Web,
+    /// <summary>
+    /// Targets a resource on the Internet or network. Same as 'Url'.
+    /// </summary>
+    Web,
 
-  /// <summary>
-  /// Targets a resource on the Internet or network. Same as 'Web'.
-  /// </summary>
-  Url = Web,
+    /// <summary>
+    /// Targets a resource on the Internet or network. Same as 'Web'.
+    /// </summary>
+    Url = Web,
 
-  /// <summary>
-  /// Targets a physical file.
-  /// </summary>
-  File
+    /// <summary>
+    /// Targets a physical file.
+    /// </summary>
+    File
 }

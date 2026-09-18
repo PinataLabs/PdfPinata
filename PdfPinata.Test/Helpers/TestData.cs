@@ -1,4 +1,4 @@
-﻿namespace PdfPinata.Test.Helpers;
+namespace PdfPinata.Test.Helpers;
 
 public static class TestData
 {

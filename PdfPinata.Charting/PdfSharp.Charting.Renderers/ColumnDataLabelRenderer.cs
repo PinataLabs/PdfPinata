@@ -37,125 +37,125 @@ namespace PdfPinata.Charting.Renderers;
 /// </summary>
 internal class ColumnDataLabelRenderer : DataLabelRenderer
 {
-  /// <summary>
-  /// Initializes a new instance of the ColumnDataLabelRenderer class with the
-  /// specified renderer parameters.
-  /// </summary>
-  internal ColumnDataLabelRenderer(RendererParameters parms) : base(parms)
-  {
-  }
-    
-  /// <summary>
-  /// Calculates the space used by the data labels.
-  /// </summary>
-  internal override void Format()
-  {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    foreach (SeriesRendererInfo sri in cri.seriesRendererInfos)
+    /// <summary>
+    /// Initializes a new instance of the ColumnDataLabelRenderer class with the
+    /// specified renderer parameters.
+    /// </summary>
+    internal ColumnDataLabelRenderer(RendererParameters parms) : base(parms)
     {
-      if (sri.dataLabelRendererInfo == null)
-        continue;
+    }
 
-      XGraphics gfx = this.rendererParms.Graphics;
-
-      sri.dataLabelRendererInfo.Entries = new DataLabelEntryRendererInfo[sri.pointRendererInfos.Length];
-      int index = 0;
-      foreach (ColumnRendererInfo column in sri.pointRendererInfos)
-      {
-        DataLabelEntryRendererInfo dleri = new DataLabelEntryRendererInfo();
-        if (sri.dataLabelRendererInfo.Type == DataLabelType.Percent)
-          throw new InvalidOperationException(PSCSR.PercentNotSupportedByColumnDataLabel);
-
-        // A blank has no value to write, so it is left with no text at all and Draw passes over
-        // it. Writing what NaN formats to would put the word NaN on the plot area.
-        if (sri.dataLabelRendererInfo.Type == DataLabelType.Value && !double.IsNaN(column.Value))
+    /// <summary>
+    /// Calculates the space used by the data labels.
+    /// </summary>
+    internal override void Format()
+    {
+        ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+        foreach (SeriesRendererInfo sri in cri.seriesRendererInfos)
         {
-          dleri.Text = column.Value.ToString(sri.dataLabelRendererInfo.Format);
+            if (sri.dataLabelRendererInfo == null)
+                continue;
 
-          if (dleri.Text.Length > 0)
-            dleri.Size = gfx.MeasureString(dleri.Text, sri.dataLabelRendererInfo.Font);
+            XGraphics gfx = this.rendererParms.Graphics;
+
+            sri.dataLabelRendererInfo.Entries = new DataLabelEntryRendererInfo[sri.pointRendererInfos.Length];
+            int index = 0;
+            foreach (ColumnRendererInfo column in sri.pointRendererInfos)
+            {
+                DataLabelEntryRendererInfo dleri = new DataLabelEntryRendererInfo();
+                if (sri.dataLabelRendererInfo.Type == DataLabelType.Percent)
+                    throw new InvalidOperationException(PSCSR.PercentNotSupportedByColumnDataLabel);
+
+                // A blank has no value to write, so it is left with no text at all and Draw passes over
+                // it. Writing what NaN formats to would put the word NaN on the plot area.
+                if (sri.dataLabelRendererInfo.Type == DataLabelType.Value && !double.IsNaN(column.Value))
+                {
+                    dleri.Text = column.Value.ToString(sri.dataLabelRendererInfo.Format);
+
+                    if (dleri.Text.Length > 0)
+                        dleri.Size = gfx.MeasureString(dleri.Text, sri.dataLabelRendererInfo.Font);
+                }
+
+                sri.dataLabelRendererInfo.Entries[index++] = dleri;
+            }
         }
 
-        sri.dataLabelRendererInfo.Entries[index++] = dleri;
-      }
+        CalcPositions();
     }
 
-    CalcPositions();
-  }
-
-  /// <summary>
-  /// Draws the data labels of the column chart.
-  /// </summary>
-  internal override void Draw()
-  {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-
-    foreach (SeriesRendererInfo sri in cri.seriesRendererInfos)
+    /// <summary>
+    /// Draws the data labels of the column chart.
+    /// </summary>
+    internal override void Draw()
     {
-      if (sri.dataLabelRendererInfo == null)
-        continue;
+        ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
 
-      XGraphics gfx = this.rendererParms.Graphics;
-      XFont font = sri.dataLabelRendererInfo.Font;
-      XBrush fontColor = sri.dataLabelRendererInfo.FontColor;
-      XStringFormat format = XStringFormats.Center;
-      format.LineAlignment = XLineAlignment.Center;
-      foreach (DataLabelEntryRendererInfo dataLabel in sri.dataLabelRendererInfo.Entries)
-      {
-        if (dataLabel.Text != null)
-          gfx.DrawString(dataLabel.Text, font, fontColor, dataLabel.Rect, format);
-      }
-    }
-  }
-
-  /// <summary>
-  /// Calculates the data label positions specific for column charts.
-  /// </summary>
-  internal override void CalcPositions()
-  {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    XGraphics gfx = this.rendererParms.Graphics;
-
-    foreach (SeriesRendererInfo sri in cri.seriesRendererInfos)
-    {
-      if (sri.dataLabelRendererInfo == null)
-        continue;
-
-      int columnIndex = 0;
-      foreach (ColumnRendererInfo column in sri.pointRendererInfos)
-      {
-        DataLabelEntryRendererInfo dleri = sri.dataLabelRendererInfo.Entries[columnIndex++];
-
-        dleri.X = column.Rect.X + column.Rect.Width / 2 - dleri.Width / 2; // Always the same...
-        switch (sri.dataLabelRendererInfo.Position)
+        foreach (SeriesRendererInfo sri in cri.seriesRendererInfos)
         {
-          case DataLabelPosition.InsideEnd:
-            // Inner border of the column.
-            dleri.Y = column.Rect.Y;
-            if (column.Value < 0)
-              dleri.Y = column.Rect.Y + column.Rect.Height - dleri.Height;
-            break;
+            if (sri.dataLabelRendererInfo == null)
+                continue;
 
-          case DataLabelPosition.Center:
-            // Centered inside the column.
-            dleri.Y = column.Rect.Y + column.Rect.Height / 2 - dleri.Height / 2;
-            break;
-
-          case DataLabelPosition.InsideBase:
-            // Aligned at the base of the column.
-            dleri.Y = column.Rect.Y + column.Rect.Height - dleri.Height;
-            if (column.Value < 0)
-              dleri.Y = column.Rect.Y;
-            break;
-
-          case DataLabelPosition.OutsideEnd:
-            // Outer border of the column.
-            dleri.Y = column.Rect.Y - dleri.Height;
-            if (column.Value < 0)
-              dleri.Y = column.Rect.Y  + column.Rect.Height;
-            break;
+            XGraphics gfx = this.rendererParms.Graphics;
+            XFont font = sri.dataLabelRendererInfo.Font;
+            XBrush fontColor = sri.dataLabelRendererInfo.FontColor;
+            XStringFormat format = XStringFormats.Center;
+            format.LineAlignment = XLineAlignment.Center;
+            foreach (DataLabelEntryRendererInfo dataLabel in sri.dataLabelRendererInfo.Entries)
+            {
+                if (dataLabel.Text != null)
+                    gfx.DrawString(dataLabel.Text, font, fontColor, dataLabel.Rect, format);
+            }
         }
-      }
     }
-  }
+
+    /// <summary>
+    /// Calculates the data label positions specific for column charts.
+    /// </summary>
+    internal override void CalcPositions()
+    {
+        ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+        XGraphics gfx = this.rendererParms.Graphics;
+
+        foreach (SeriesRendererInfo sri in cri.seriesRendererInfos)
+        {
+            if (sri.dataLabelRendererInfo == null)
+                continue;
+
+            int columnIndex = 0;
+            foreach (ColumnRendererInfo column in sri.pointRendererInfos)
+            {
+                DataLabelEntryRendererInfo dleri = sri.dataLabelRendererInfo.Entries[columnIndex++];
+
+                dleri.X = column.Rect.X + column.Rect.Width / 2 - dleri.Width / 2; // Always the same...
+                switch (sri.dataLabelRendererInfo.Position)
+                {
+                    case DataLabelPosition.InsideEnd:
+                        // Inner border of the column.
+                        dleri.Y = column.Rect.Y;
+                        if (column.Value < 0)
+                            dleri.Y = column.Rect.Y + column.Rect.Height - dleri.Height;
+                        break;
+
+                    case DataLabelPosition.Center:
+                        // Centered inside the column.
+                        dleri.Y = column.Rect.Y + column.Rect.Height / 2 - dleri.Height / 2;
+                        break;
+
+                    case DataLabelPosition.InsideBase:
+                        // Aligned at the base of the column.
+                        dleri.Y = column.Rect.Y + column.Rect.Height - dleri.Height;
+                        if (column.Value < 0)
+                            dleri.Y = column.Rect.Y;
+                        break;
+
+                    case DataLabelPosition.OutsideEnd:
+                        // Outer border of the column.
+                        dleri.Y = column.Rect.Y - dleri.Height;
+                        if (column.Value < 0)
+                            dleri.Y = column.Rect.Y + column.Rect.Height;
+                        break;
+                }
+            }
+        }
+    }
 }

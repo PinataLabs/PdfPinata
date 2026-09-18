@@ -34,17 +34,17 @@ namespace PdfPinata.Charting.Renderers;
 /// </summary>
 internal class HorizontalStackedYAxisRenderer : HorizontalYAxisRenderer
 {
-  /// <summary>
-  /// Initializes a new instance of the HorizontalStackedYAxisRenderer class with the
-  /// specified renderer parameters.
-  /// </summary>
-  internal HorizontalStackedYAxisRenderer(RendererParameters parms) : base(parms)
-  {
-  }
+    /// <summary>
+    /// Initializes a new instance of the HorizontalStackedYAxisRenderer class with the
+    /// specified renderer parameters.
+    /// </summary>
+    internal HorizontalStackedYAxisRenderer(RendererParameters parms) : base(parms)
+    {
+    }
 
-  /// <summary>
-  /// Determines the sum of the smallest and the largest stacked bar
-  /// from all series of the chart.
-  /// </summary>
-  protected override void CalcYAxis(out double yMin, out double yMax) => CalcStackedYAxis(out yMin, out yMax);
+    /// <summary>
+    /// Determines the sum of the smallest and the largest stacked bar
+    /// from all series of the chart.
+    /// </summary>
+    protected override void CalcYAxis(out double yMin, out double yMax) => CalcStackedYAxis(out yMin, out yMax);
 }

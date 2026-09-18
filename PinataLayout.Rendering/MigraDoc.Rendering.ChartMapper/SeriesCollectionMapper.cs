@@ -38,71 +38,71 @@ namespace PinataLayout.Rendering.ChartMapper;
 /// </summary>
 public class SeriesCollectionMapper
 {
-  /// <summary>
-  /// Initializes a new instance of the <see cref="SeriesCollectionMapper"/> class.
-  /// </summary>
-  public SeriesCollectionMapper()
-  {
-  }
-    
-  void MapObject(SeriesCollection seriesCollection, DocumentObjectModel.Shapes.Charts.SeriesCollection domSeriesCollection)
-  {
-    foreach (DocumentObjectModel.Shapes.Charts.Series domSeries in domSeriesCollection)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SeriesCollectionMapper"/> class.
+    /// </summary>
+    public SeriesCollectionMapper()
     {
-      Series series = seriesCollection.AddSeries();
-      series.Name = domSeries.Name;
-
-      if (domSeries.IsNull("ChartType"))
-      {
-        DocumentObjectModel.Shapes.Charts.Chart chart = (DocumentObjectModel.Shapes.Charts.Chart)DocumentObjectModel.DocumentRelations.GetParentOfType(domSeries, typeof(DocumentObjectModel.Shapes.Charts.Chart));
-        series.ChartType = (ChartType)chart.Type;
-      }
-      else
-        series.ChartType = (ChartType)domSeries.ChartType;
-
-      if (!domSeries.IsNull("DataLabel"))
-        DataLabelMapper.Map(series.DataLabel, domSeries.DataLabel);
-      if (!domSeries.IsNull("LineFormat"))
-        LineFormatMapper.Map(series.LineFormat, domSeries.LineFormat);
-      if (!domSeries.IsNull("FillFormat"))
-        FillFormatMapper.Map(series.FillFormat, domSeries.FillFormat);
-
-      series.HasDataLabel = domSeries.HasDataLabel;
-      if (domSeries.MarkerBackgroundColor.IsEmpty)
-        series.MarkerBackgroundColor = XColor.Empty;
-      else
-      {
-        series.MarkerBackgroundColor = 
-          ColorHelper.ToXColor(domSeries.MarkerBackgroundColor, domSeries.Document.UseCmykColor);
-      }
-      if (domSeries.MarkerForegroundColor.IsEmpty)
-        series.MarkerForegroundColor = XColor.Empty;
-      else
-      {
-        series.MarkerForegroundColor = 
-          ColorHelper.ToXColor(domSeries.MarkerForegroundColor, domSeries.Document.UseCmykColor);
-      }
-      series.MarkerSize = domSeries.MarkerSize.Point;
-      if (!domSeries.IsNull("MarkerStyle"))
-        series.MarkerStyle = (MarkerStyle)domSeries.MarkerStyle;
-
-      foreach (DocumentObjectModel.Shapes.Charts.Point domPoint in domSeries.Elements)
-      {
-        if (domPoint != null)
-        {
-          Point point = series.Add(domPoint.Value);
-          FillFormatMapper.Map(point.FillFormat, domPoint.FillFormat);
-          LineFormatMapper.Map(point.LineFormat, domPoint.LineFormat);
-        }
-        else
-          series.Add(double.NaN);
-      }
     }
-  }
 
-  internal static void Map(SeriesCollection seriesCollection, DocumentObjectModel.Shapes.Charts.SeriesCollection domSeriesCollection)
-  {
-    SeriesCollectionMapper mapper = new SeriesCollectionMapper();
-    mapper.MapObject(seriesCollection, domSeriesCollection);
-  }
+    void MapObject(SeriesCollection seriesCollection, DocumentObjectModel.Shapes.Charts.SeriesCollection domSeriesCollection)
+    {
+        foreach (DocumentObjectModel.Shapes.Charts.Series domSeries in domSeriesCollection)
+        {
+            Series series = seriesCollection.AddSeries();
+            series.Name = domSeries.Name;
+
+            if (domSeries.IsNull("ChartType"))
+            {
+                DocumentObjectModel.Shapes.Charts.Chart chart = (DocumentObjectModel.Shapes.Charts.Chart)DocumentObjectModel.DocumentRelations.GetParentOfType(domSeries, typeof(DocumentObjectModel.Shapes.Charts.Chart));
+                series.ChartType = (ChartType)chart.Type;
+            }
+            else
+                series.ChartType = (ChartType)domSeries.ChartType;
+
+            if (!domSeries.IsNull("DataLabel"))
+                DataLabelMapper.Map(series.DataLabel, domSeries.DataLabel);
+            if (!domSeries.IsNull("LineFormat"))
+                LineFormatMapper.Map(series.LineFormat, domSeries.LineFormat);
+            if (!domSeries.IsNull("FillFormat"))
+                FillFormatMapper.Map(series.FillFormat, domSeries.FillFormat);
+
+            series.HasDataLabel = domSeries.HasDataLabel;
+            if (domSeries.MarkerBackgroundColor.IsEmpty)
+                series.MarkerBackgroundColor = XColor.Empty;
+            else
+            {
+                series.MarkerBackgroundColor =
+                  ColorHelper.ToXColor(domSeries.MarkerBackgroundColor, domSeries.Document.UseCmykColor);
+            }
+            if (domSeries.MarkerForegroundColor.IsEmpty)
+                series.MarkerForegroundColor = XColor.Empty;
+            else
+            {
+                series.MarkerForegroundColor =
+                  ColorHelper.ToXColor(domSeries.MarkerForegroundColor, domSeries.Document.UseCmykColor);
+            }
+            series.MarkerSize = domSeries.MarkerSize.Point;
+            if (!domSeries.IsNull("MarkerStyle"))
+                series.MarkerStyle = (MarkerStyle)domSeries.MarkerStyle;
+
+            foreach (DocumentObjectModel.Shapes.Charts.Point domPoint in domSeries.Elements)
+            {
+                if (domPoint != null)
+                {
+                    Point point = series.Add(domPoint.Value);
+                    FillFormatMapper.Map(point.FillFormat, domPoint.FillFormat);
+                    LineFormatMapper.Map(point.LineFormat, domPoint.LineFormat);
+                }
+                else
+                    series.Add(double.NaN);
+            }
+        }
+    }
+
+    internal static void Map(SeriesCollection seriesCollection, DocumentObjectModel.Shapes.Charts.SeriesCollection domSeriesCollection)
+    {
+        SeriesCollectionMapper mapper = new SeriesCollectionMapper();
+        mapper.MapObject(seriesCollection, domSeriesCollection);
+    }
 }

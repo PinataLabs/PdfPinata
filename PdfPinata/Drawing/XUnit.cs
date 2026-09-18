@@ -392,7 +392,7 @@ public struct XUnit : IFormattable
 
         int count = value.Length;
         int valLen = 0;
-        for (; valLen < count; )
+        for (; valLen < count;)
         {
             char ch = value[valLen];
             if (ch == '.' || ch == '-' || ch == '+' || char.IsNumber(ch))
@@ -576,7 +576,7 @@ public struct XUnit : IFormattable
     /// <value>The debugger display.</value>
     // ReSharper disable UnusedMember.Local
     string DebuggerDisplay
-        // ReSharper restore UnusedMember.Local
+    // ReSharper restore UnusedMember.Local
     {
         get
         {

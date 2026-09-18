@@ -109,7 +109,7 @@ public struct XRect : IFormattable
     /// </summary>
     // ReSharper disable InconsistentNaming
     public static XRect FromLTRB(double left, double top, double right, double bottom)
-        // ReSharper restore InconsistentNaming
+    // ReSharper restore InconsistentNaming
     {
         return new XRect(left, top, right - left, bottom - top);
     }
@@ -694,7 +694,7 @@ public struct XRect : IFormattable
     /// <value>The debugger display.</value>
     // ReSharper disable UnusedMember.Local
     string DebuggerDisplay
-        // ReSharper restore UnusedMember.Local
+    // ReSharper restore UnusedMember.Local
     {
         get
         {

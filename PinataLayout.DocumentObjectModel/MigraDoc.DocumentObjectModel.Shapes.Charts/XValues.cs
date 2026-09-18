@@ -39,56 +39,56 @@ namespace PinataLayout.DocumentObjectModel.Shapes.Charts;
 /// </summary>
 public partial class XValues : DocumentObjectCollection
 {
-  /// <summary>
-  /// Initializes a new instance of the XValues class.
-  /// </summary>
-  public XValues()
-  {
-  }
-
-  /// <summary>
-  /// Initializes a new instance of the XValues class with the specified parent.
-  /// </summary>
-  internal XValues(DocumentObject parent) : base(parent) { }
-
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new XValues Clone()
-  {
-    return (XValues)DeepCopy();
-  }
-
-  /// <summary>
-  /// Gets an XSeries by its index.
-  /// </summary>
-  public new XSeries this[int index] => base[index] as XSeries;
-
-  /// <summary>
-  /// Adds a new XSeries to the collection.
-  /// </summary>
-  public XSeries AddXSeries()
-  {
-    XSeries xSeries = new XSeries();
-    Add(xSeries);
-    return xSeries;
-  }
-  #endregion
-
-  #region Internal
-  /// <summary>
-  /// Converts XValues into DDL.
-  /// </summary>
-  internal override void Serialize(Serializer serializer)
-  {
-    int count = Count;
-    for (int index = 0; index < count; ++index)
+    /// <summary>
+    /// Initializes a new instance of the XValues class.
+    /// </summary>
+    public XValues()
     {
-      XSeries xSeries = this[index] as XSeries;
-      xSeries.Serialize(serializer);
     }
-  }
 
-  #endregion
+    /// <summary>
+    /// Initializes a new instance of the XValues class with the specified parent.
+    /// </summary>
+    internal XValues(DocumentObject parent) : base(parent) { }
+
+    #region Methods
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new XValues Clone()
+    {
+        return (XValues)DeepCopy();
+    }
+
+    /// <summary>
+    /// Gets an XSeries by its index.
+    /// </summary>
+    public new XSeries this[int index] => base[index] as XSeries;
+
+    /// <summary>
+    /// Adds a new XSeries to the collection.
+    /// </summary>
+    public XSeries AddXSeries()
+    {
+        XSeries xSeries = new XSeries();
+        Add(xSeries);
+        return xSeries;
+    }
+    #endregion
+
+    #region Internal
+    /// <summary>
+    /// Converts XValues into DDL.
+    /// </summary>
+    internal override void Serialize(Serializer serializer)
+    {
+        int count = Count;
+        for (int index = 0; index < count; ++index)
+        {
+            XSeries xSeries = this[index] as XSeries;
+            xSeries.Serialize(serializer);
+        }
+    }
+
+    #endregion
 }

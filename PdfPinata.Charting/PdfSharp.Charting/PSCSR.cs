@@ -34,10 +34,10 @@ namespace PdfPinata.Charting;
 /// </summary>
 internal class PSCSR
 {
-  internal static string InvalidChartTypeForCombination(ChartType chartType)
-  {
-    return string.Format("ChartType '{0}' not valid for combination of charts.", chartType.ToString());
-  }
+    internal static string InvalidChartTypeForCombination(ChartType chartType)
+    {
+        return string.Format("ChartType '{0}' not valid for combination of charts.", chartType.ToString());
+    }
 
-  internal static string PercentNotSupportedByColumnDataLabel => "Column data label cannot be set to 'Percent'";
+    internal static string PercentNotSupportedByColumnDataLabel => "Column data label cannot be set to 'Percent'";
 }

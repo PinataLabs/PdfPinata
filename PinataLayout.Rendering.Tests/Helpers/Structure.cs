@@ -164,8 +164,8 @@ internal sealed class StructureNode
     {
         yield return this;
         foreach (var child in Children)
-        foreach (var node in child.Descendants())
-            yield return node;
+            foreach (var node in child.Descendants())
+                yield return node;
     }
 
     /// <summary>Every element of the subtree with the given structure type.</summary>

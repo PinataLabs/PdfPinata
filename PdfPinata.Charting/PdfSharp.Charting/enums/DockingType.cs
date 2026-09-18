@@ -34,20 +34,20 @@ namespace PdfPinata.Charting;
 /// </summary>
 public enum DockingType
 {
-  /// <summary>
-  /// Above the chart.
-  /// </summary>
-  Top,
-  /// <summary>
-  /// Below the chart.
-  /// </summary>
-  Bottom,
-  /// <summary>
-  /// Left from the chart.
-  /// </summary>
-  Left,
-  /// <summary>
-  /// Right from the chart.
-  /// </summary>
-  Right
+    /// <summary>
+    /// Above the chart.
+    /// </summary>
+    Top,
+    /// <summary>
+    /// Below the chart.
+    /// </summary>
+    Bottom,
+    /// <summary>
+    /// Left from the chart.
+    /// </summary>
+    Left,
+    /// <summary>
+    /// Right from the chart.
+    /// </summary>
+    Right
 }

@@ -34,18 +34,18 @@ namespace PdfPinata.Charting;
 /// </summary>
 public enum HorizontalAlignment
 {
-  /// <summary>
-  /// Axis title will be left aligned.
-  /// </summary>
-  Left,
+    /// <summary>
+    /// Axis title will be left aligned.
+    /// </summary>
+    Left,
 
-  /// <summary>
-  /// Axis title will be right aligned.
-  /// </summary>
-  Right,
-    
-  /// <summary>
-  /// Axis title will be centered.
-  /// </summary>
-  Center
+    /// <summary>
+    /// Axis title will be right aligned.
+    /// </summary>
+    Right,
+
+    /// <summary>
+    /// Axis title will be centered.
+    /// </summary>
+    Center
 }

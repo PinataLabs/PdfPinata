@@ -37,32 +37,32 @@ namespace PinataLayout.DocumentObjectModel;
 /// </summary>
 public enum Underline
 {
-  /// <summary>Not drawn at all.</summary>
-  None,
-  /// <summary>A single continuous rule.</summary>
-  Single,
-  /// <summary>A single rule under each word, with the spaces between them left clear.</summary>
-  Words,
-  /// <summary>A dotted rule.</summary>
-  Dotted,
-  /// <summary>A dashed rule.</summary>
-  Dash,
-  /// <summary>A rule of alternating dots and dashes.</summary>
-  DotDash,
-  /// <summary>A rule of two dots followed by a dash, repeating.</summary>
-  DotDotDash,
+    /// <summary>Not drawn at all.</summary>
+    None,
+    /// <summary>A single continuous rule.</summary>
+    Single,
+    /// <summary>A single rule under each word, with the spaces between them left clear.</summary>
+    Words,
+    /// <summary>A dotted rule.</summary>
+    Dotted,
+    /// <summary>A dashed rule.</summary>
+    Dash,
+    /// <summary>A rule of alternating dots and dashes.</summary>
+    DotDash,
+    /// <summary>A rule of two dots followed by a dash, repeating.</summary>
+    DotDotDash,
 
-  /* --- unsupported ---
-    Double          = 3,
-    Thick           = 6,
-    Wavy            = 11,
-    WavyHeavy       = 27,
-    DottedHeavy     = 20,
-    DashHeavy       = 23,
-    DotDashHeavy    = 25,
-    DotDotDashHeavy = 26,
-    DashLong        = 39,
-    DashLongHeavy   = 55,
-    WavyDouble      = 43
-  */
+    /* --- unsupported ---
+      Double          = 3,
+      Thick           = 6,
+      Wavy            = 11,
+      WavyHeavy       = 27,
+      DottedHeavy     = 20,
+      DashHeavy       = 23,
+      DotDashHeavy    = 25,
+      DotDotDashHeavy = 26,
+      DashLong        = 39,
+      DashLongHeavy   = 55,
+      WavyDouble      = 43
+    */
 }

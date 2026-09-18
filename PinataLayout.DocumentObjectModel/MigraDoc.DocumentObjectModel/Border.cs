@@ -41,155 +41,155 @@ namespace PinataLayout.DocumentObjectModel;
 /// </summary>
 public partial class Border : DocumentObject
 {
-  /// <summary>
-  /// Initializes a new instance of the Border class.
-  /// </summary>
-  public Border()
-  {
-  }
+    /// <summary>
+    /// Initializes a new instance of the Border class.
+    /// </summary>
+    public Border()
+    {
+    }
 
-  /// <summary>
-  /// Initializes a new instance of the Border class with the specified parent.
-  /// </summary>
-  internal Border(DocumentObject parent) : base(parent) { }
+    /// <summary>
+    /// Initializes a new instance of the Border class with the specified parent.
+    /// </summary>
+    internal Border(DocumentObject parent) : base(parent) { }
 
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new Border Clone()
-  {
-    return (Border)DeepCopy();
-  }
+    #region Methods
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new Border Clone()
+    {
+        return (Border)DeepCopy();
+    }
 
-  /// <summary>
-  /// Clears the Border object. Additionally 'Border = null'
-  /// is written to the DDL stream when serialized.
-  /// </summary>
-  public void Clear()
-  {
-    fClear = true;
-  }
-  #endregion
+    /// <summary>
+    /// Clears the Border object. Additionally 'Border = null'
+    /// is written to the DDL stream when serialized.
+    /// </summary>
+    public void Clear()
+    {
+        fClear = true;
+    }
+    #endregion
 
-  #region Properties
-  /// <summary>
-  /// Gets or sets a value indicating whether the border visible is.
-  /// </summary>
-  public bool Visible
-  {
-    get => visible ?? false;
-    set => visible = value;
-  }
-  [DV]
-  internal bool? visible;
+    #region Properties
+    /// <summary>
+    /// Gets or sets a value indicating whether the border visible is.
+    /// </summary>
+    public bool Visible
+    {
+        get => visible ?? false;
+        set => visible = value;
+    }
+    [DV]
+    internal bool? visible;
 
-  /// <summary>
-  /// Gets or sets the line style of the border.
-  /// </summary>
-  public BorderStyle Style
-  {
-    get => style ?? default;
-    set => style = EnumGuard.Checked(value);
-  }
-  [DV]
-  internal BorderStyle? style;
+    /// <summary>
+    /// Gets or sets the line style of the border.
+    /// </summary>
+    public BorderStyle Style
+    {
+        get => style ?? default;
+        set => style = EnumGuard.Checked(value);
+    }
+    [DV]
+    internal BorderStyle? style;
 
-  /// <summary>
-  /// Gets or sets the line width of the border.
-  /// </summary>
-  public Unit Width
-  {
-    get => width;
-    set => width = value;
-  }
-  [DV]
-  internal Unit width = Unit.NullValue;
+    /// <summary>
+    /// Gets or sets the line width of the border.
+    /// </summary>
+    public Unit Width
+    {
+        get => width;
+        set => width = value;
+    }
+    [DV]
+    internal Unit width = Unit.NullValue;
 
-  /// <summary>
-  /// Gets or sets the color of the border.
-  /// </summary>
-  public Color Color
-  {
-    get => color;
-    set => color = value;
-  }
-  [DV]
-  internal Color color = Color.Empty;
+    /// <summary>
+    /// Gets or sets the color of the border.
+    /// </summary>
+    public Color Color
+    {
+        get => color;
+        set => color = value;
+    }
+    [DV]
+    internal Color color = Color.Empty;
 
-  /// <summary>
-  /// Gets the name of this border ("top", "bottom"....).
-  /// </summary>
-  public string Name => ((Borders)parent).GetMyName(this);
+    /// <summary>
+    /// Gets the name of this border ("top", "bottom"....).
+    /// </summary>
+    public string Name => ((Borders)parent).GetMyName(this);
 
-  /// <summary>
-  /// Gets the information if the border is marked as cleared. Additionally 'xxx = null'
-  /// is written to the DDL stream when serialized.
-  /// </summary>
-  public bool BorderCleared => fClear;
+    /// <summary>
+    /// Gets the information if the border is marked as cleared. Additionally 'xxx = null'
+    /// is written to the DDL stream when serialized.
+    /// </summary>
+    public bool BorderCleared => fClear;
 
-  internal bool fClear = false;
-  #endregion
+    internal bool fClear = false;
+    #endregion
 
-  #region Null handling
-  /// <summary>
-  /// Determines whether this instance is null (not set).
-  /// </summary>
-  /// <remarks>
-  /// A cleared border is not null. Being cleared is what the border has to say - it writes
-  /// 'Border = null' into the DDL so as to override what it would otherwise inherit - and every
-  /// caller that decides whether to serialize a border asks this question first. fClear carries no
-  /// [DV] attribute, so the value descriptors Meta.IsNull consults cannot see it, and a border that
-  /// had only been cleared used to report itself null and be skipped.
-  /// </remarks>
-  public override bool IsNull()
-  {
-    return !fClear && base.IsNull();
-  }
+    #region Null handling
+    /// <summary>
+    /// Determines whether this instance is null (not set).
+    /// </summary>
+    /// <remarks>
+    /// A cleared border is not null. Being cleared is what the border has to say - it writes
+    /// 'Border = null' into the DDL so as to override what it would otherwise inherit - and every
+    /// caller that decides whether to serialize a border asks this question first. fClear carries no
+    /// [DV] attribute, so the value descriptors Meta.IsNull consults cannot see it, and a border that
+    /// had only been cleared used to report itself null and be skipped.
+    /// </remarks>
+    public override bool IsNull()
+    {
+        return !fClear && base.IsNull();
+    }
 
-  /// <summary>
-  /// Resets this instance, i.e. IsNull() will return true afterwards.
-  /// </summary>
-  public override void SetNull()
-  {
-    base.SetNull();
-    fClear = false;
-  }
-  #endregion
+    /// <summary>
+    /// Resets this instance, i.e. IsNull() will return true afterwards.
+    /// </summary>
+    public override void SetNull()
+    {
+        base.SetNull();
+        fClear = false;
+    }
+    #endregion
 
-  #region Internal
-  /// <summary>
-  /// Converts Border into DDL.
-  /// </summary>
-  internal override void Serialize(Serializer serializer)
-  {
-    throw new Exception("A Border cannot be serialized alone.");
-  }
+    #region Internal
+    /// <summary>
+    /// Converts Border into DDL.
+    /// </summary>
+    internal override void Serialize(Serializer serializer)
+    {
+        throw new Exception("A Border cannot be serialized alone.");
+    }
 
-  /// <summary>
-  /// Converts Border into DDL.
-  /// </summary>
-  internal void Serialize(Serializer serializer, string name, Border refBorder)
-  {
-    if (fClear)
-      serializer.WriteLine(name + " = null");
+    /// <summary>
+    /// Converts Border into DDL.
+    /// </summary>
+    internal void Serialize(Serializer serializer, string name, Border refBorder)
+    {
+        if (fClear)
+            serializer.WriteLine(name + " = null");
 
-    int pos = serializer.BeginContent(name);
+        int pos = serializer.BeginContent(name);
 
-    if (visible != null && (refBorder == null || (Visible != refBorder.Visible)))
-      serializer.WriteSimpleAttribute("Visible", Visible);
+        if (visible != null && (refBorder == null || (Visible != refBorder.Visible)))
+            serializer.WriteSimpleAttribute("Visible", Visible);
 
-    if (style != null && (refBorder == null || (Style != refBorder.Style)))
-      serializer.WriteSimpleAttribute("Style", Style);
+        if (style != null && (refBorder == null || (Style != refBorder.Style)))
+            serializer.WriteSimpleAttribute("Style", Style);
 
-    if (!width.IsNull && (refBorder == null || (Width != refBorder.Width)))
-      serializer.WriteSimpleAttribute("Width", Width);
+        if (!width.IsNull && (refBorder == null || (Width != refBorder.Width)))
+            serializer.WriteSimpleAttribute("Width", Width);
 
-    if (!color.IsNull && (refBorder == null || (Color != refBorder.Color)))
-      serializer.WriteSimpleAttribute("Color", Color);
+        if (!color.IsNull && (refBorder == null || (Color != refBorder.Color)))
+            serializer.WriteSimpleAttribute("Color", Color);
 
-    serializer.EndContent(pos);
-  }
+        serializer.EndContent(pos);
+    }
 
-  #endregion
+    #endregion
 }

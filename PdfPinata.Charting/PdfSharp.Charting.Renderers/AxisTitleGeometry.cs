@@ -15,20 +15,20 @@ namespace PdfPinata.Charting.Renderers;
 /// </remarks>
 internal readonly struct RotatedCaptionLayout
 {
-  internal RotatedCaptionLayout(XPoint anchor, double rotationDegrees)
-  {
-    Anchor = anchor;
-    RotationDegrees = rotationDegrees;
-  }
+    internal RotatedCaptionLayout(XPoint anchor, double rotationDegrees)
+    {
+        Anchor = anchor;
+        RotationDegrees = rotationDegrees;
+    }
 
-  /// <summary>The point the caption is centred on, in the strip's own coordinates.</summary>
-  internal XPoint Anchor { get; }
+    /// <summary>The point the caption is centred on, in the strip's own coordinates.</summary>
+    internal XPoint Anchor { get; }
 
-  /// <summary>
-  /// The rotation the caption is turned by - the same value and the same sign
-  /// <c>XGraphics.RotateTransform</c> is then called with.
-  /// </summary>
-  internal double RotationDegrees { get; }
+    /// <summary>
+    /// The rotation the caption is turned by - the same value and the same sign
+    /// <c>XGraphics.RotateTransform</c> is then called with.
+    /// </summary>
+    internal double RotationDegrees { get; }
 }
 
 /// <summary>
@@ -41,48 +41,48 @@ internal readonly struct RotatedCaptionLayout
 /// </remarks>
 internal static class AxisTitleGeometry
 {
-  /// <summary>
-  /// The centre a rotated caption is placed on and the angle it is turned by, for the given strip,
-  /// caption size, orientation and alignment.
-  /// </summary>
-  internal static RotatedCaptionLayout RotatedCaption(
-    XRect strip, XSize captionSize, double orientationDegrees,
-    HorizontalAlignment alignment, VerticalAlignment verticalAlignment)
-  {
-    double x;
-    switch (alignment)
+    /// <summary>
+    /// The centre a rotated caption is placed on and the angle it is turned by, for the given strip,
+    /// caption size, orientation and alignment.
+    /// </summary>
+    internal static RotatedCaptionLayout RotatedCaption(
+      XRect strip, XSize captionSize, double orientationDegrees,
+      HorizontalAlignment alignment, VerticalAlignment verticalAlignment)
     {
-      case HorizontalAlignment.Center:
-        x = strip.X + strip.Width / 2;
-        break;
+        double x;
+        switch (alignment)
+        {
+            case HorizontalAlignment.Center:
+                x = strip.X + strip.Width / 2;
+                break;
 
-      case HorizontalAlignment.Right:
-        x = strip.X + strip.Width - captionSize.Width / 2;
-        break;
+            case HorizontalAlignment.Right:
+                x = strip.X + strip.Width - captionSize.Width / 2;
+                break;
 
-      case HorizontalAlignment.Left:
-      default:
-        x = strip.X + captionSize.Width / 2;
-        break;
+            case HorizontalAlignment.Left:
+            default:
+                x = strip.X + captionSize.Width / 2;
+                break;
+        }
+
+        double y;
+        switch (verticalAlignment)
+        {
+            case VerticalAlignment.Center:
+                y = strip.Y + strip.Height / 2;
+                break;
+
+            case VerticalAlignment.Bottom:
+                y = strip.Y + strip.Height - captionSize.Height / 2;
+                break;
+
+            case VerticalAlignment.Top:
+            default:
+                y = strip.Y + captionSize.Height / 2;
+                break;
+        }
+
+        return new RotatedCaptionLayout(new XPoint(x, y), -orientationDegrees);
     }
-
-    double y;
-    switch (verticalAlignment)
-    {
-      case VerticalAlignment.Center:
-        y = strip.Y + strip.Height / 2;
-        break;
-
-      case VerticalAlignment.Bottom:
-        y = strip.Y + strip.Height - captionSize.Height / 2;
-        break;
-
-      case VerticalAlignment.Top:
-      default:
-        y = strip.Y + captionSize.Height / 2;
-        break;
-    }
-
-    return new RotatedCaptionLayout(new XPoint(x, y), -orientationDegrees);
-  }
 }

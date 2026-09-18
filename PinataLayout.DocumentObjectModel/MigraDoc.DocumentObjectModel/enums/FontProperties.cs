@@ -41,21 +41,21 @@ namespace PinataLayout.DocumentObjectModel;
 [Flags]
 enum FontProperties
 {
-  None = 0x0000,
-  Name = 0x0001,
-  Size = 0x0002,
-  Bold = 0x0004,
-  Italic = 0x0008,
-  Underline = 0x0010,
-  Color = 0x0020,
-  Border = 0x0040,
-  Superscript = 0x0080,
-  Subscript = 0x0100,
+    None = 0x0000,
+    Name = 0x0001,
+    Size = 0x0002,
+    Bold = 0x0004,
+    Italic = 0x0008,
+    Underline = 0x0010,
+    Color = 0x0020,
+    Border = 0x0040,
+    Superscript = 0x0080,
+    Subscript = 0x0100,
 
-  /// <summary>
-  /// Absent until it was noticed that CheckWhatIsNotNull could not report a struck-through font,
-  /// so Font.Serialize took the "only one property is set" shortcut and wrote \bold for a font that
-  /// was bold and struck through, silently dropping the strikethrough.
-  /// </summary>
-  Strikethrough = 0x0200,
+    /// <summary>
+    /// Absent until it was noticed that CheckWhatIsNotNull could not report a struck-through font,
+    /// so Font.Serialize took the "only one property is set" shortcut and wrote \bold for a font that
+    /// was bold and struck through, silently dropping the strikethrough.
+    /// </summary>
+    Strikethrough = 0x0200,
 }

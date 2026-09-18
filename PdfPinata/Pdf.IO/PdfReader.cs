@@ -411,7 +411,7 @@ public static class PdfReader
                 encrypt.Reference = xrefEncrypt;
                 xrefEncrypt.Value = encrypt;
                 PdfStandardSecurityHandler securityHandler = document.SecurityHandler;
-                TryAgain:
+            TryAgain:
                 PasswordValidity validity = securityHandler.ValidatePassword(password);
                 if (validity == PasswordValidity.Invalid)
                 {

@@ -55,7 +55,8 @@ internal static class MigraDocCorpus
             var section = document.AddSection();
             for (var idx = 0; idx < 6; idx++)
                 section.AddParagraph(Prose);
-        });
+        }
+        );
 
         yield return ("justified with indents", document =>
         {
@@ -68,14 +69,16 @@ internal static class MigraDocCorpus
                 paragraph.Format.LeftIndent = "0.5cm";
                 paragraph.Format.RightIndent = "0.5cm";
             }
-        });
+        }
+        );
 
         yield return ("paragraph across a page break", document =>
         {
             var section = document.AddSection();
             for (var idx = 0; idx < 40; idx++)
                 section.AddParagraph(Prose);
-        });
+        }
+        );
 
         yield return ("table across a page break", document =>
         {
@@ -96,7 +99,8 @@ internal static class MigraDocCorpus
                 row.Cells[0].AddParagraph("Row " + idx);
                 row.Cells[1].AddParagraph(Prose.Substring(0, 40));
             }
-        });
+        }
+        );
 
         yield return ("text frame beside prose", document =>
         {
@@ -112,7 +116,8 @@ internal static class MigraDocCorpus
 
             for (var idx = 0; idx < 8; idx++)
                 section.AddParagraph(Prose);
-        });
+        }
+        );
 
         yield return ("frame the text ignores", document =>
         {
@@ -126,7 +131,8 @@ internal static class MigraDocCorpus
 
             for (var idx = 0; idx < 8; idx++)
                 section.AddParagraph(Prose);
-        });
+        }
+        );
 
         yield return ("image between paragraphs", document =>
         {
@@ -140,7 +146,8 @@ internal static class MigraDocCorpus
 
             for (var idx = 0; idx < 6; idx++)
                 section.AddParagraph(Prose);
-        });
+        }
+        );
 
         yield return ("headers, footers and page fields", document =>
         {
@@ -154,7 +161,8 @@ internal static class MigraDocCorpus
 
             for (var idx = 0; idx < 30; idx++)
                 section.AddParagraph(Prose);
-        });
+        }
+        );
 
         yield return ("lists", document =>
         {
@@ -164,7 +172,8 @@ internal static class MigraDocCorpus
                 var item = section.AddParagraph("Item " + idx + ": " + Prose);
                 item.Format.ListInfo = new ListInfo { ListType = ListType.BulletList1 };
             }
-        });
+        }
+        );
 
         yield return ("two sections", document =>
         {
@@ -176,7 +185,8 @@ internal static class MigraDocCorpus
             second.PageSetup.Orientation = Orientation.Landscape;
             for (var idx = 0; idx < 5; idx++)
                 second.AddParagraph(Prose);
-        });
+        }
+        );
     }
 
     /// <summary>

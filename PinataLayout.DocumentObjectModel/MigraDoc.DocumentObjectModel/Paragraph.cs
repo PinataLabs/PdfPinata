@@ -313,7 +313,7 @@ public partial class Paragraph : DocumentObject, IVisitable
     public Image AddImage(IImageSource imageSource)
     {
         return Elements.AddImage(imageSource);
-    }      
+    }
 
     /// <summary>
     /// Adds a new Bookmark

@@ -40,159 +40,159 @@ namespace PinataLayout.DocumentObjectModel;
 /// </summary>
 public partial class HeadersFooters : DocumentObject, IVisitable
 {
-  /// <summary>
-  /// Initializes a new instance of the HeadersFooters class.
-  /// </summary>
-  public HeadersFooters()
-  {
-  }
-
-  /// <summary>
-  /// Initializes a new instance of the HeadersFooters class with the specified parent.
-  /// </summary>
-  public HeadersFooters(DocumentObject parent) : base(parent) { }
-
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new HeadersFooters Clone()
-  {
-    return (HeadersFooters)DeepCopy();
-  }
-
-  #endregion
-
-  #region Properties
-  /// <summary>
-  /// Returns true if this collection contains headers, false otherwise.
-  /// </summary>
-  public bool IsHeader
-  {
-    get
+    /// <summary>
+    /// Initializes a new instance of the HeadersFooters class.
+    /// </summary>
+    public HeadersFooters()
     {
-      Section sec = (Section)parent;
-      return sec.headers == this;
     }
-  }
 
-  /// <summary>
-  /// Returns true if this collection contains footers, false otherwise.
-  /// </summary>
-  public bool IsFooter => !IsHeader;
+    /// <summary>
+    /// Initializes a new instance of the HeadersFooters class with the specified parent.
+    /// </summary>
+    public HeadersFooters(DocumentObject parent) : base(parent) { }
 
-  /// <summary>
-  /// Determines whether a particular header or footer exists.
-  /// </summary>
-  public bool HasHeaderFooter(HeaderFooterIndex index)
-  {
-    return !IsNull(index.ToString());
-  }
-
-  /// <summary>
-  /// Gets or sets the even page HeaderFooter of the HeadersFooters object.
-  /// </summary>
-  public HeaderFooter EvenPage
-  {
-    get
+    #region Methods
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new HeadersFooters Clone()
     {
-      if (evenPage == null)
-        evenPage = new HeaderFooter(this);
-
-      return evenPage;
+        return (HeadersFooters)DeepCopy();
     }
-    set
+
+    #endregion
+
+    #region Properties
+    /// <summary>
+    /// Returns true if this collection contains headers, false otherwise.
+    /// </summary>
+    public bool IsHeader
     {
-      SetParent(value);
-      evenPage = value;
+        get
+        {
+            Section sec = (Section)parent;
+            return sec.headers == this;
+        }
     }
-  }
-  [DV]
-  internal HeaderFooter evenPage;
 
-  /// <summary>
-  /// Gets or sets the first page HeaderFooter of the HeadersFooters object.
-  /// </summary>
-  public HeaderFooter FirstPage
-  {
-    get
+    /// <summary>
+    /// Returns true if this collection contains footers, false otherwise.
+    /// </summary>
+    public bool IsFooter => !IsHeader;
+
+    /// <summary>
+    /// Determines whether a particular header or footer exists.
+    /// </summary>
+    public bool HasHeaderFooter(HeaderFooterIndex index)
     {
-      if (firstPage == null)
-        firstPage = new HeaderFooter(this);
-
-      return firstPage;
+        return !IsNull(index.ToString());
     }
-    set
+
+    /// <summary>
+    /// Gets or sets the even page HeaderFooter of the HeadersFooters object.
+    /// </summary>
+    public HeaderFooter EvenPage
     {
-      SetParent(value);
-      firstPage = value;
-    }
-  }
-  [DV]
-  internal HeaderFooter firstPage;
+        get
+        {
+            if (evenPage == null)
+                evenPage = new HeaderFooter(this);
 
-  /// <summary>
-  /// Gets or sets the primary HeaderFooter of the HeadersFooters object.
-  /// </summary>
-  public HeaderFooter Primary
-  {
-    get
+            return evenPage;
+        }
+        set
+        {
+            SetParent(value);
+            evenPage = value;
+        }
+    }
+    [DV]
+    internal HeaderFooter evenPage;
+
+    /// <summary>
+    /// Gets or sets the first page HeaderFooter of the HeadersFooters object.
+    /// </summary>
+    public HeaderFooter FirstPage
     {
-      if (primary == null)
-        primary = new HeaderFooter(this);
+        get
+        {
+            if (firstPage == null)
+                firstPage = new HeaderFooter(this);
 
-      return primary;
+            return firstPage;
+        }
+        set
+        {
+            SetParent(value);
+            firstPage = value;
+        }
     }
-    set
+    [DV]
+    internal HeaderFooter firstPage;
+
+    /// <summary>
+    /// Gets or sets the primary HeaderFooter of the HeadersFooters object.
+    /// </summary>
+    public HeaderFooter Primary
     {
-      SetParent(value);
-      primary = value;
+        get
+        {
+            if (primary == null)
+                primary = new HeaderFooter(this);
+
+            return primary;
+        }
+        set
+        {
+            SetParent(value);
+            primary = value;
+        }
     }
-  }
-  [DV]
-  internal HeaderFooter primary;
-  #endregion
+    [DV]
+    internal HeaderFooter primary;
+    #endregion
 
-  #region Internal
-  /// <summary>
-  /// Converts HeadersFooters into DDL.
-  /// </summary>
-  internal override void Serialize(Serializer serializer)
-  {
-    bool hasPrimary = HasHeaderFooter(HeaderFooterIndex.Primary);
-    bool hasEvenPage = HasHeaderFooter(HeaderFooterIndex.EvenPage);
-    bool hasFirstPage = HasHeaderFooter(HeaderFooterIndex.FirstPage);
-
-    // \primary...
-    if (hasPrimary)
-      Primary.Serialize(serializer, "primary");
-
-    // \even... 
-    if (hasEvenPage)
-      EvenPage.Serialize(serializer, "evenpage");
-
-    // \firstpage...
-    if (hasFirstPage)
-      FirstPage.Serialize(serializer, "firstpage");
-  }
-
-  /// <summary>
-  /// Allows the visitor object to visit the document object and it's child objects.
-  /// </summary>
-  void IVisitable.AcceptVisitor(DocumentObjectVisitor visitor, bool visitChildren)
-  {
-    visitor.VisitHeadersFooters(this);
-
-    if (visitChildren)
+    #region Internal
+    /// <summary>
+    /// Converts HeadersFooters into DDL.
+    /// </summary>
+    internal override void Serialize(Serializer serializer)
     {
-      if (HasHeaderFooter(HeaderFooterIndex.Primary))
-        ((IVisitable)primary).AcceptVisitor(visitor, visitChildren);
-      if (HasHeaderFooter(HeaderFooterIndex.EvenPage))
-        ((IVisitable)evenPage).AcceptVisitor(visitor, visitChildren);
-      if (HasHeaderFooter(HeaderFooterIndex.FirstPage))
-        ((IVisitable)firstPage).AcceptVisitor(visitor, visitChildren);
-    }
-  }
+        bool hasPrimary = HasHeaderFooter(HeaderFooterIndex.Primary);
+        bool hasEvenPage = HasHeaderFooter(HeaderFooterIndex.EvenPage);
+        bool hasFirstPage = HasHeaderFooter(HeaderFooterIndex.FirstPage);
 
-  #endregion
+        // \primary...
+        if (hasPrimary)
+            Primary.Serialize(serializer, "primary");
+
+        // \even... 
+        if (hasEvenPage)
+            EvenPage.Serialize(serializer, "evenpage");
+
+        // \firstpage...
+        if (hasFirstPage)
+            FirstPage.Serialize(serializer, "firstpage");
+    }
+
+    /// <summary>
+    /// Allows the visitor object to visit the document object and it's child objects.
+    /// </summary>
+    void IVisitable.AcceptVisitor(DocumentObjectVisitor visitor, bool visitChildren)
+    {
+        visitor.VisitHeadersFooters(this);
+
+        if (visitChildren)
+        {
+            if (HasHeaderFooter(HeaderFooterIndex.Primary))
+                ((IVisitable)primary).AcceptVisitor(visitor, visitChildren);
+            if (HasHeaderFooter(HeaderFooterIndex.EvenPage))
+                ((IVisitable)evenPage).AcceptVisitor(visitor, visitChildren);
+            if (HasHeaderFooter(HeaderFooterIndex.FirstPage))
+                ((IVisitable)firstPage).AcceptVisitor(visitor, visitChildren);
+        }
+    }
+
+    #endregion
 }

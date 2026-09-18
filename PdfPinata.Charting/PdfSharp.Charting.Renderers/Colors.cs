@@ -36,19 +36,19 @@ namespace PdfPinata.Charting.Renderers;
 /// </summary>
 internal sealed class ColumnColors
 {
-  /// <summary>
-  /// Gets the color for column/bar charts from the specified index.
-  /// </summary>
-  public static XColor Item(int index)
-  {
-    return XColor.FromArgb((int)seriesColors[index]);
-  }
+    /// <summary>
+    /// Gets the color for column/bar charts from the specified index.
+    /// </summary>
+    public static XColor Item(int index)
+    {
+        return XColor.FromArgb((int)seriesColors[index]);
+    }
 
-  /// <summary>
-  /// Colors for column/bar charts taken from Excel.
-  /// </summary>
-  static uint[] seriesColors = new uint[]
-  {
+    /// <summary>
+    /// Colors for column/bar charts taken from Excel.
+    /// </summary>
+    static uint[] seriesColors = new uint[]
+    {
     0xFF9999FF, 0xFF993366, 0xFFFFFFCC, 0xFFCCFFFF, 0xFF660066, 0xFFFF8080,
     0xFF0066CC, 0xFFCCCCFF, 0xFF000080, 0xFFFF00FF, 0xFFFFFF00, 0xFF00FFFF,
     0xFF800080, 0xFF800000, 0xFF008080, 0xFF0000FF, 0xFF00CCFF, 0xFFCCFFFF,
@@ -59,7 +59,7 @@ internal sealed class ColumnColors
     0xFFFF0000, 0xFF00FF00, 0xFF0000FF, 0xFFFFFF00, 0xFFFF00FF, 0xFF00FFFF,
     0xFF800000, 0xFF008000, 0xFF000080, 0xFF808000, 0xFF800080, 0xFF008080,
     0xFFC0C0C0, 0xFF808080
-  };
+    };
 }
 
 /// <summary>
@@ -67,19 +67,19 @@ internal sealed class ColumnColors
 /// </summary>
 internal sealed class LineColors
 {
-  /// <summary>
-  /// Gets the color for line charts from the specified index.
-  /// </summary>
-  public static XColor Item(int index)
-  {
-    return XColor.FromArgb((int)lineColors[index]);
-  }
+    /// <summary>
+    /// Gets the color for line charts from the specified index.
+    /// </summary>
+    public static XColor Item(int index)
+    {
+        return XColor.FromArgb((int)lineColors[index]);
+    }
 
-  /// <summary>
-  /// Colors for line charts taken from Excel.
-  /// </summary>
-  static uint[] lineColors = new uint[]
-  {
+    /// <summary>
+    /// Colors for line charts taken from Excel.
+    /// </summary>
+    static uint[] lineColors = new uint[]
+    {
     0xFF000080, 0xFFFF00FF, 0xFFFFFF00, 0xFF00FFFF, 0xFF800080, 0xFF800000,
     0xFF008080, 0xFF0000FF, 0xFF00CCFF, 0xFFCCFFFF, 0xFFCCFFCC, 0xFFFFFF99,
     0xFF99CCFF, 0xFFFF99CC, 0xFFCC99FF, 0xFFFFCC99, 0xFF3366FF, 0xFF33CCCC,
@@ -90,7 +90,7 @@ internal sealed class LineColors
     0xFF808000, 0xFF800080, 0xFF008080, 0xFFC0C0C0, 0xFF808080, 0xFF9999FF,
     0xFF993366, 0xFFFFFFCC, 0xFFCCFFFF, 0xFF660066, 0xFFFF8080, 0xFF0066CC,
     0xFFCCCCFF
-  };
+    };
 }
 
 /// <summary>
@@ -98,19 +98,19 @@ internal sealed class LineColors
 /// </summary>
 internal sealed class PieColors
 {
-  /// <summary>
-  /// Gets the color for pie charts from the specified index.
-  /// </summary>
-  public static XColor Item(int index)
-  {
-    return XColor.FromArgb((int)sectorColors[index]);
-  }
+    /// <summary>
+    /// Gets the color for pie charts from the specified index.
+    /// </summary>
+    public static XColor Item(int index)
+    {
+        return XColor.FromArgb((int)sectorColors[index]);
+    }
 
-  /// <summary>
-  /// Colors for pie charts taken from Excel.
-  /// </summary>
-  static uint[] sectorColors = new uint[]
-  {
+    /// <summary>
+    /// Colors for pie charts taken from Excel.
+    /// </summary>
+    static uint[] sectorColors = new uint[]
+    {
     0xFF9999FF, 0xFF993366, 0xFFFFFFCC, 0xFFCCFFFF, 0xFF660066, 0xFFFF8080,
     0xFF0066CC, 0xFFCCCCFF, 0xFF000080, 0xFFFF00FF, 0xFFFFFF00, 0xFF00FFFF,
     0xFF800080, 0xFF800000, 0xFF008080, 0xFF0000FF, 0xFF00CCFF, 0xFFCCFFFF,
@@ -121,5 +121,5 @@ internal sealed class PieColors
     0xFFFF0000, 0xFF00FF00, 0xFF0000FF, 0xFFFFFF00, 0xFFFF00FF, 0xFF00FFFF,
     0xFF800000, 0xFF008000, 0xFF000080, 0xFF808000, 0xFF800080, 0xFF008080,
     0xFFC0C0C0, 0xFF808080
-  };
+    };
 }

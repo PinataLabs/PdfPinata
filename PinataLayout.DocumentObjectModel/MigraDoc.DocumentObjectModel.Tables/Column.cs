@@ -42,261 +42,261 @@ namespace PinataLayout.DocumentObjectModel.Tables;
     "collection on read rather than stored - there is nothing for Serialize to write")]
 public partial class Column : DocumentObject
 {
-  /// <summary>
-  /// Initializes a new instance of the Column class.
-  /// </summary>
-  public Column()
-  {
-  }
-
-  /// <summary>
-  /// Initializes a new instance of the Column class with the specified parent.
-  /// </summary>
-  internal Column(DocumentObject parent) : base(parent) { }
-
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new Column Clone()
-  {
-    return (Column)DeepCopy();
-  }
-
-  #endregion
-
-  #region Properties
-  /// <summary>
-  /// Gets the table the Column belongs to.
-  /// </summary>
-  public Table Table
-  {
-    get
+    /// <summary>
+    /// Initializes a new instance of the Column class.
+    /// </summary>
+    public Column()
     {
-      if (this.table == null)
-      {
-        Columns clms = this.Parent as Columns;
-        if (clms != null)
-          this.table = clms.Parent as Table;
-      }
-      return this.table;
     }
-  }
-  Table table;
 
-  /// <summary>
-  /// Gets the index of the column. First column has index 0.
-  /// </summary>
-  public int Index
-  {
-    get
+    /// <summary>
+    /// Initializes a new instance of the Column class with the specified parent.
+    /// </summary>
+    internal Column(DocumentObject parent) : base(parent) { }
+
+    #region Methods
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new Column Clone()
     {
-      if (!index.HasValue)
-      {
-        Columns clms = (Columns)Parent;
-        // One for all and all for one.
-        for (int i = 0; i < clms.Count; ++i)
+        return (Column)DeepCopy();
+    }
+
+    #endregion
+
+    #region Properties
+    /// <summary>
+    /// Gets the table the Column belongs to.
+    /// </summary>
+    public Table Table
+    {
+        get
         {
-          clms[i].index = i;
+            if (this.table == null)
+            {
+                Columns clms = this.Parent as Columns;
+                if (clms != null)
+                    this.table = clms.Parent as Table;
+            }
+            return this.table;
         }
-      }
-      return index ?? 0;
     }
-  }
-  [DV]
-  internal int? index;
+    Table table;
 
-  /// <summary>
-  /// Gets a cell by its row index. The first cell has index 0.
-  /// </summary>
-  public Cell this[int index] =>
-    //Check.ArgumentOutOfRange(index >= 0 && index < table.Rows.Count, "index");
-    Table.Rows[index][this.index ?? 0];
-
-  /// <summary>
-  /// Sets or gets the default style name for all cells of the column.
-  /// </summary>
-  public string Style
-  {
-    get => this.style ?? "";
-    set => this.style = value;
-  }
-  [DV]
-  internal string style;
-
-  /// <summary>
-  /// Gets the default ParagraphFormat for all cells of the column.
-  /// </summary>
-  public ParagraphFormat Format
-  {
-    get
+    /// <summary>
+    /// Gets the index of the column. First column has index 0.
+    /// </summary>
+    public int Index
     {
-      if (this.format == null)
-        this.format = new ParagraphFormat(this);
-
-      return this.format;
+        get
+        {
+            if (!index.HasValue)
+            {
+                Columns clms = (Columns)Parent;
+                // One for all and all for one.
+                for (int i = 0; i < clms.Count; ++i)
+                {
+                    clms[i].index = i;
+                }
+            }
+            return index ?? 0;
+        }
     }
-    set
+    [DV]
+    internal int? index;
+
+    /// <summary>
+    /// Gets a cell by its row index. The first cell has index 0.
+    /// </summary>
+    public Cell this[int index] =>
+      //Check.ArgumentOutOfRange(index >= 0 && index < table.Rows.Count, "index");
+      Table.Rows[index][this.index ?? 0];
+
+    /// <summary>
+    /// Sets or gets the default style name for all cells of the column.
+    /// </summary>
+    public string Style
     {
-      SetParent(value);
-      this.format = value;
+        get => this.style ?? "";
+        set => this.style = value;
     }
-  }
-  [DV]
-  internal ParagraphFormat format;
+    [DV]
+    internal string style;
 
-  /// <summary>
-  /// Gets or sets the width of a column.
-  /// </summary>
-  public Unit Width
-  {
-    get => this.width;
-    set => this.width = value;
-  }
-  [DV]
-  internal Unit width = Unit.NullValue;
-
-  /// <summary>
-  /// Gets or sets the default left padding for all cells of the column.
-  /// </summary>
-  public Unit LeftPadding
-  {
-    get => this.leftPadding;
-    set => this.leftPadding = value;
-  }
-  [DV]
-  internal Unit leftPadding = Unit.NullValue;
-
-  /// <summary>
-  /// Gets or sets the default right padding for all cells of the column.
-  /// </summary>
-  public Unit RightPadding
-  {
-    get => this.rightPadding;
-    set => this.rightPadding = value;
-  }
-  [DV]
-  internal Unit rightPadding = Unit.NullValue;
-
-  /// <summary>
-  /// Gets the default Borders object for all cells of the column.
-  /// </summary>
-  public Borders Borders
-  {
-    get
+    /// <summary>
+    /// Gets the default ParagraphFormat for all cells of the column.
+    /// </summary>
+    public ParagraphFormat Format
     {
-      if (this.borders == null)
-        this.borders = new Borders(this);
+        get
+        {
+            if (this.format == null)
+                this.format = new ParagraphFormat(this);
 
-      return this.borders;
+            return this.format;
+        }
+        set
+        {
+            SetParent(value);
+            this.format = value;
+        }
     }
-    set
+    [DV]
+    internal ParagraphFormat format;
+
+    /// <summary>
+    /// Gets or sets the width of a column.
+    /// </summary>
+    public Unit Width
     {
-      SetParent(value);
-      this.borders = value;
+        get => this.width;
+        set => this.width = value;
     }
-  }
-  [DV]
-  internal Borders borders;
+    [DV]
+    internal Unit width = Unit.NullValue;
 
-  /// <summary>
-  /// Gets or sets the number of columns that should be kept together with
-  /// current column in case of a page break.
-  /// </summary>
-  public int KeepWith
-  {
-    get => this.keepWith ?? 0;
-    set => this.keepWith = value;
-  }
-  [DV]
-  internal int? keepWith;
-
-  /// <summary>
-  /// Gets or sets a value which define whether the column is a header.
-  /// </summary>
-  public bool HeadingFormat
-  {
-    get => this.headingFormat ?? false;
-    set => this.headingFormat = value;
-  }
-  [DV]
-  internal bool? headingFormat;
-
-  /// <summary>
-  /// Gets the default Shading object for all cells of the column.
-  /// </summary>
-  public Shading Shading
-  {
-    get
+    /// <summary>
+    /// Gets or sets the default left padding for all cells of the column.
+    /// </summary>
+    public Unit LeftPadding
     {
-      if (this.shading == null)
-        this.shading = new Shading(this);
-
-      return this.shading;
+        get => this.leftPadding;
+        set => this.leftPadding = value;
     }
-    set
+    [DV]
+    internal Unit leftPadding = Unit.NullValue;
+
+    /// <summary>
+    /// Gets or sets the default right padding for all cells of the column.
+    /// </summary>
+    public Unit RightPadding
     {
-      SetParent(value);
-      this.shading = value;
+        get => this.rightPadding;
+        set => this.rightPadding = value;
     }
-  }
-  [DV]
-  internal Shading shading;
+    [DV]
+    internal Unit rightPadding = Unit.NullValue;
 
-  /// <summary>
-  /// Gets or sets a comment associated with this object.
-  /// </summary>
-  public string Comment
-  {
-    get => this.comment ?? "";
-    set => this.comment = value;
-  }
-  [DV]
-  internal string comment;
-  #endregion
+    /// <summary>
+    /// Gets the default Borders object for all cells of the column.
+    /// </summary>
+    public Borders Borders
+    {
+        get
+        {
+            if (this.borders == null)
+                this.borders = new Borders(this);
 
-  #region Internal
-  /// <summary>
-  /// Converts Column into DDL.
-  /// </summary>
-  internal override void Serialize(Serializer serializer)
-  {
-    serializer.WriteComment((this.comment ?? ""));
-    serializer.WriteLine("\\column");
+            return this.borders;
+        }
+        set
+        {
+            SetParent(value);
+            this.borders = value;
+        }
+    }
+    [DV]
+    internal Borders borders;
 
-    int pos = serializer.BeginAttributes();
+    /// <summary>
+    /// Gets or sets the number of columns that should be kept together with
+    /// current column in case of a page break.
+    /// </summary>
+    public int KeepWith
+    {
+        get => this.keepWith ?? 0;
+        set => this.keepWith = value;
+    }
+    [DV]
+    internal int? keepWith;
 
-    if ((this.style ?? "") != String.Empty)
-      serializer.WriteSimpleAttribute("Style", this.Style);
+    /// <summary>
+    /// Gets or sets a value which define whether the column is a header.
+    /// </summary>
+    public bool HeadingFormat
+    {
+        get => this.headingFormat ?? false;
+        set => this.headingFormat = value;
+    }
+    [DV]
+    internal bool? headingFormat;
 
-    if (!this.IsNull("Format"))
-      this.format.Serialize(serializer, "Format", null);
+    /// <summary>
+    /// Gets the default Shading object for all cells of the column.
+    /// </summary>
+    public Shading Shading
+    {
+        get
+        {
+            if (this.shading == null)
+                this.shading = new Shading(this);
 
-    if (this.headingFormat != null)
-      serializer.WriteSimpleAttribute("HeadingFormat", HeadingFormat);
+            return this.shading;
+        }
+        set
+        {
+            SetParent(value);
+            this.shading = value;
+        }
+    }
+    [DV]
+    internal Shading shading;
 
-    if (!this.leftPadding.IsNull)
-      serializer.WriteSimpleAttribute("LeftPadding", LeftPadding);
+    /// <summary>
+    /// Gets or sets a comment associated with this object.
+    /// </summary>
+    public string Comment
+    {
+        get => this.comment ?? "";
+        set => this.comment = value;
+    }
+    [DV]
+    internal string comment;
+    #endregion
 
-    if (!this.rightPadding.IsNull)
-      serializer.WriteSimpleAttribute("RightPadding", RightPadding);
+    #region Internal
+    /// <summary>
+    /// Converts Column into DDL.
+    /// </summary>
+    internal override void Serialize(Serializer serializer)
+    {
+        serializer.WriteComment((this.comment ?? ""));
+        serializer.WriteLine("\\column");
 
-    if (!this.width.IsNull)
-      serializer.WriteSimpleAttribute("Width", this.Width);
+        int pos = serializer.BeginAttributes();
 
-    if (this.keepWith.HasValue)
-      serializer.WriteSimpleAttribute("KeepWith", this.KeepWith);
+        if ((this.style ?? "") != String.Empty)
+            serializer.WriteSimpleAttribute("Style", this.Style);
 
-    if (!this.IsNull("Borders"))
-      this.borders.Serialize(serializer, null);
+        if (!this.IsNull("Format"))
+            this.format.Serialize(serializer, "Format", null);
 
-    if (!this.IsNull("Shading"))
-      this.shading.Serialize(serializer);
+        if (this.headingFormat != null)
+            serializer.WriteSimpleAttribute("HeadingFormat", HeadingFormat);
 
-    serializer.EndAttributes(pos);
+        if (!this.leftPadding.IsNull)
+            serializer.WriteSimpleAttribute("LeftPadding", LeftPadding);
 
-    // columns has no content
-  }
+        if (!this.rightPadding.IsNull)
+            serializer.WriteSimpleAttribute("RightPadding", RightPadding);
 
-  #endregion
+        if (!this.width.IsNull)
+            serializer.WriteSimpleAttribute("Width", this.Width);
+
+        if (this.keepWith.HasValue)
+            serializer.WriteSimpleAttribute("KeepWith", this.KeepWith);
+
+        if (!this.IsNull("Borders"))
+            this.borders.Serialize(serializer, null);
+
+        if (!this.IsNull("Shading"))
+            this.shading.Serialize(serializer);
+
+        serializer.EndAttributes(pos);
+
+        // columns has no content
+    }
+
+    #endregion
 }

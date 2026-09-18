@@ -37,34 +37,34 @@ namespace PinataLayout.DocumentObjectModel;
 /// </summary>
 public enum UnitType
 {
-  /// <summary>
-  /// Measure is in points. A point represents 1/72 of an inch. 
-  /// </summary>
-  Point = 0,  // Default for new Unit() is Point
+    /// <summary>
+    /// Measure is in points. A point represents 1/72 of an inch. 
+    /// </summary>
+    Point = 0,  // Default for new Unit() is Point
 
-  /// <summary>
-  /// Measure is in centimeter. 
-  /// </summary>
-  Centimeter = 1,
+    /// <summary>
+    /// Measure is in centimeter. 
+    /// </summary>
+    Centimeter = 1,
 
-  //[Obsolete("Use Centimeter")]
-  //CM = 1,
+    //[Obsolete("Use Centimeter")]
+    //CM = 1,
 
-  /// <summary>
-  /// Measure is in inch. 
-  /// </summary>
-  Inch = 2,
+    /// <summary>
+    /// Measure is in inch. 
+    /// </summary>
+    Inch = 2,
 
-  /// <summary>
-  /// Measure is in millimeter. 
-  /// </summary>
-  Millimeter = 3,
+    /// <summary>
+    /// Measure is in millimeter. 
+    /// </summary>
+    Millimeter = 3,
 
-  //[Obsolete("Use Millimeter")]
-  //MM = 3,
+    //[Obsolete("Use Millimeter")]
+    //MM = 3,
 
-  /// <summary>
-  /// Measure is in picas. A pica represents 12 points, i.e. 6 pica are one inch.
-  /// </summary>
-  Pica = 4,
+    /// <summary>
+    /// Measure is in picas. A pica represents 12 points, i.e. 6 pica are one inch.
+    /// </summary>
+    Pica = 4,
 }

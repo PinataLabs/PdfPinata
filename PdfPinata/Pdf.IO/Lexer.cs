@@ -93,7 +93,7 @@ public class Lexer
     // /// <param name="testReference">Indicates whether to test the next token if it is a reference.</param>
     public Symbol ScanNextToken()
     {
-        Again:
+    Again:
         _token = new StringBuilder();
 
         char ch = MoveToNonWhiteSpace();
@@ -457,83 +457,83 @@ public class Lexer
                     break;
 
                 case '\\':
-                {
-                    ch = ScanNextChar(false);
-                    switch (ch)
                     {
-                        case 'n':
-                            ch = Chars.LF;
-                            break;
+                        ch = ScanNextChar(false);
+                        switch (ch)
+                        {
+                            case 'n':
+                                ch = Chars.LF;
+                                break;
 
-                        case 'r':
-                            ch = Chars.CR;
-                            break;
+                            case 'r':
+                                ch = Chars.CR;
+                                break;
 
-                        case 't':
-                            ch = Chars.HT;
-                            break;
+                            case 't':
+                                ch = Chars.HT;
+                                break;
 
-                        case 'b':
-                            ch = Chars.BS;
-                            break;
+                            case 'b':
+                                ch = Chars.BS;
+                                break;
 
-                        case 'f':
-                            ch = Chars.FF;
-                            break;
+                            case 'f':
+                                ch = Chars.FF;
+                                break;
 
-                        case '(':
-                            ch = Chars.ParenLeft;
-                            break;
+                            case '(':
+                                ch = Chars.ParenLeft;
+                                break;
 
-                        case ')':
-                            ch = Chars.ParenRight;
-                            break;
+                            case ')':
+                                ch = Chars.ParenRight;
+                                break;
 
-                        case '\\':
-                            ch = Chars.BackSlash;
-                            break;
+                            case '\\':
+                                ch = Chars.BackSlash;
+                                break;
 
-                        // AutoCAD PDFs my contain such strings: (\ ) 
-                        case ' ':
-                            ch = ' ';
-                            break;
+                            // AutoCAD PDFs my contain such strings: (\ ) 
+                            case ' ':
+                                ch = ' ';
+                                break;
 
-                        case Chars.CR:
-                        case Chars.LF:
-                            ch = ScanNextChar(false);
-                            continue;
+                            case Chars.CR:
+                            case Chars.LF:
+                                ch = ScanNextChar(false);
+                                continue;
 
-                        default:
-                            if (char.IsDigit(ch))  // First octal character.
-                            {
-                                // Octal character code.
-                                if (ch >= '8')
-                                    break; // Since the first possible octal character is not valid,
-                                // the backslash is ignored. 
-
-                                int n = ch - '0';
-                                if (char.IsDigit(_nextChar))  // Second octal character.
+                            default:
+                                if (char.IsDigit(ch))  // First octal character.
                                 {
-                                    ch = ScanNextChar(false);
+                                    // Octal character code.
                                     if (ch >= '8')
-                                        ParserDiagnostics.HandleUnexpectedCharacter(ch);
+                                        break; // Since the first possible octal character is not valid,
+                                               // the backslash is ignored. 
 
-                                    n = n * 8 + ch - '0';
-                                    if (char.IsDigit(_nextChar))  // Third octal character.
+                                    int n = ch - '0';
+                                    if (char.IsDigit(_nextChar))  // Second octal character.
                                     {
                                         ch = ScanNextChar(false);
                                         if (ch >= '8')
                                             ParserDiagnostics.HandleUnexpectedCharacter(ch);
 
                                         n = n * 8 + ch - '0';
+                                        if (char.IsDigit(_nextChar))  // Third octal character.
+                                        {
+                                            ch = ScanNextChar(false);
+                                            if (ch >= '8')
+                                                ParserDiagnostics.HandleUnexpectedCharacter(ch);
+
+                                            n = n * 8 + ch - '0';
+                                        }
                                     }
+                                    ch = (char)n;
                                 }
-                                ch = (char)n;
-                            }
-                            break;
+                                break;
+                        }
+                        break;
                     }
-                    break;
-                }
                 default:
                     break;
             }
@@ -544,7 +544,7 @@ public class Lexer
 
         // Phase 2: deal with UTF-16BE if necessary.
         // UTF-16BE Unicode strings start with U+FEFF ("��"). There can be empty strings with UTF-16BE prefix.
-        Phase2:
+    Phase2:
         if (_token.Length >= 2 && _token[0] == '\xFE' && _token[1] == '\xFF')
         {
             // Combine two ANSI characters to get one Unicode character.
@@ -743,7 +743,7 @@ public class Lexer
         Position = positon;
         return true;
 
-        False:
+    False:
         Position = positon;
         return false;
     }

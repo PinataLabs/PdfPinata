@@ -38,36 +38,36 @@ namespace PinataLayout.Rendering;
 [Flags]
 public enum PageRenderOptions
 {
-  /// <summary>
-  /// renders nothing (creates an empty page)
-  /// </summary>
-  None = 0,
-  /// <summary>
-  /// renders Headers
-  /// </summary>
-  RenderHeader = 1,
-  /// <summary>
-  /// renders Footers
-  /// </summary>
-  RenderFooter = 2,
-  /// <summary>
-  /// renders Content
-  /// </summary>
-  RenderContent = 4,
-  /// <summary>
-  /// renders PDF Background pages
-  /// </summary>
-  RenderPdfBackground = 8,
-  /// <summary>
-  /// renders PDF content pages
-  /// </summary>
-  RenderPdfContent = 16,
-  /// <summary>
-  /// renders all
-  /// </summary>
-  All = RenderHeader | RenderFooter | RenderContent | RenderPdfBackground | RenderPdfContent,
-  /// <summary>
-  /// creates not even an empty page
-  /// </summary>
-  RemovePage = 32
+    /// <summary>
+    /// renders nothing (creates an empty page)
+    /// </summary>
+    None = 0,
+    /// <summary>
+    /// renders Headers
+    /// </summary>
+    RenderHeader = 1,
+    /// <summary>
+    /// renders Footers
+    /// </summary>
+    RenderFooter = 2,
+    /// <summary>
+    /// renders Content
+    /// </summary>
+    RenderContent = 4,
+    /// <summary>
+    /// renders PDF Background pages
+    /// </summary>
+    RenderPdfBackground = 8,
+    /// <summary>
+    /// renders PDF content pages
+    /// </summary>
+    RenderPdfContent = 16,
+    /// <summary>
+    /// renders all
+    /// </summary>
+    All = RenderHeader | RenderFooter | RenderContent | RenderPdfBackground | RenderPdfContent,
+    /// <summary>
+    /// creates not even an empty page
+    /// </summary>
+    RemovePage = 32
 }

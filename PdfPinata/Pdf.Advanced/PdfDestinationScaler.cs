@@ -254,9 +254,9 @@ static class PdfDestinationScaler
                     MoveVerticalLine(destination, matrix);
                     break;
 
-                // /Fit and /FitB say "show the whole page" and carry no coordinates, so there is
-                // nothing in them to move. Anything else is not a destination form this knows,
-                // and leaving it alone is better than guessing at what its numbers mean.
+                    // /Fit and /FitB say "show the whole page" and carry no coordinates, so there is
+                    // nothing in them to move. Anything else is not a destination form this knows,
+                    // and leaving it alone is better than guessing at what its numbers mean.
             }
         }
 

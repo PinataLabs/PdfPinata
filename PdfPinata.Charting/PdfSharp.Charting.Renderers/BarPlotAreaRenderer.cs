@@ -36,126 +36,126 @@ namespace PdfPinata.Charting.Renderers;
 /// </summary>
 internal abstract class BarPlotAreaRenderer : PlotAreaRenderer
 {
-  /// <summary>
-  /// Initializes a new instance of the BarPlotAreaRenderer class with the
-  /// specified renderer parameters.
-  /// </summary>
-  internal BarPlotAreaRenderer(RendererParameters parms) : base(parms)
-  {
-  }
-
-  /// <summary>
-  /// Layouts and calculates the space for each bar.
-  /// </summary>
-  internal override void Format()
-  {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-
-    double xMin = cri.xAxisRendererInfo.MinimumScale;
-    double xMax = cri.xAxisRendererInfo.MaximumScale;
-    double yMin = cri.yAxisRendererInfo.MinimumScale;
-    double yMax = cri.yAxisRendererInfo.MaximumScale;
-    double xMajorTick = cri.xAxisRendererInfo.MajorTick;
-
-    XRect plotAreaBox = cri.plotAreaRendererInfo.Rect;
-
-    // Nothing to plot means a category scale of zero, and dividing by it puts NaN on the page.
-    // See ColumnLikePlotAreaRenderer.Format, which says the same of the same thing.
-    if (xMax <= xMin || yMax <= yMin)
+    /// <summary>
+    /// Initializes a new instance of the BarPlotAreaRenderer class with the
+    /// specified renderer parameters.
+    /// </summary>
+    internal BarPlotAreaRenderer(RendererParameters parms) : base(parms)
     {
-      cri.plotAreaRendererInfo.matrix = new XMatrix();
-      return;
     }
 
-    cri.plotAreaRendererInfo.matrix = new XMatrix();  //XMatrix.Identity;
-    cri.plotAreaRendererInfo.matrix.TranslatePrepend(-yMin, xMin);
-    cri.plotAreaRendererInfo.matrix.Scale(plotAreaBox.Width / (yMax - yMin), plotAreaBox.Height / (xMax - xMin), XMatrixOrder.Append);
-    cri.plotAreaRendererInfo.matrix.Translate(plotAreaBox.X, plotAreaBox.Y, XMatrixOrder.Append);
-
-    CalcBars();
-  }
-
-  /// <summary>
-  /// Draws the content of the bar plot area.
-  /// </summary>
-  internal override void Draw()
-  {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-
-    XRect plotAreaBox = cri.plotAreaRendererInfo.Rect;
-    if (HasNoRoom(plotAreaBox))
-      return;
-
-    XGraphics gfx = this.rendererParms.Graphics;
-
-    double xMin = cri.xAxisRendererInfo.MinimumScale;
-    double xMax = cri.xAxisRendererInfo.MaximumScale;
-    double yMin = cri.yAxisRendererInfo.MinimumScale;
-    double yMax = cri.yAxisRendererInfo.MaximumScale;
-    double xMajorTick = cri.xAxisRendererInfo.MajorTick;
-
-    LineFormatRenderer lineFormatRenderer;
-
-    // Under some circumstances it is possible that no zero base line will be drawn,
-    // e. g. because of unfavourable minimum/maximum scale and/or major tick, so force to draw
-    // a zero base line if necessary.
-    if (cri.yAxisRendererInfo.MajorGridlinesLineFormat != null ||
-        cri.yAxisRendererInfo.MinorGridlinesLineFormat != null)
+    /// <summary>
+    /// Layouts and calculates the space for each bar.
+    /// </summary>
+    internal override void Format()
     {
-      if (yMin < 0 && yMax > 0)
-      {
-        XPoint[] points = new XPoint[2];
-        points[0].X = 0;
-        points[0].Y = xMin;
-        points[1].X = 0;
-        points[1].Y = xMax;
-        cri.plotAreaRendererInfo.matrix.TransformPoints(points);
+        ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
 
-        if (cri.yAxisRendererInfo.MinorGridlinesLineFormat != null)
-          lineFormatRenderer = new LineFormatRenderer(gfx, cri.yAxisRendererInfo.MinorGridlinesLineFormat);
-        else
-          lineFormatRenderer = new LineFormatRenderer(gfx, cri.yAxisRendererInfo.MajorGridlinesLineFormat);
+        double xMin = cri.xAxisRendererInfo.MinimumScale;
+        double xMax = cri.xAxisRendererInfo.MaximumScale;
+        double yMin = cri.yAxisRendererInfo.MinimumScale;
+        double yMax = cri.yAxisRendererInfo.MaximumScale;
+        double xMajorTick = cri.xAxisRendererInfo.MajorTick;
 
-        lineFormatRenderer.DrawLine(points[0], points[1]);
-      }
-    }
+        XRect plotAreaBox = cri.plotAreaRendererInfo.Rect;
 
-    // Draw bars
-    XGraphicsState state = gfx.Save();
-    foreach (SeriesRendererInfo sri in cri.seriesRendererInfos)
-    {
-      foreach (ColumnRendererInfo column in sri.pointRendererInfos)
-      {
-        // Do not draw bar if value is outside yMin/yMax range. Clipping does not make sense.
-        if (IsDataInside(yMin, yMax, column.Value))
-          gfx.DrawRectangle(column.FillFormat, column.Rect);
-      }
-    }
-
-    // Draw borders around bar.
-    // A border can overlap neighbor bars, so it is important to draw borders at the end.
-    foreach (SeriesRendererInfo sri in cri.seriesRendererInfos)
-    {
-      foreach (ColumnRendererInfo column in sri.pointRendererInfos)
-      {
-        // Do not draw bar if value is outside yMin/yMax range. Clipping does not make sense.
-        if (IsDataInside(yMin, yMax, column.Value))
+        // Nothing to plot means a category scale of zero, and dividing by it puts NaN on the page.
+        // See ColumnLikePlotAreaRenderer.Format, which says the same of the same thing.
+        if (xMax <= xMin || yMax <= yMin)
         {
-          lineFormatRenderer = new LineFormatRenderer(gfx, column.LineFormat);
-          lineFormatRenderer.DrawRectangle(column.Rect);
+            cri.plotAreaRendererInfo.matrix = new XMatrix();
+            return;
         }
-      }
+
+        cri.plotAreaRendererInfo.matrix = new XMatrix();  //XMatrix.Identity;
+        cri.plotAreaRendererInfo.matrix.TranslatePrepend(-yMin, xMin);
+        cri.plotAreaRendererInfo.matrix.Scale(plotAreaBox.Width / (yMax - yMin), plotAreaBox.Height / (xMax - xMin), XMatrixOrder.Append);
+        cri.plotAreaRendererInfo.matrix.Translate(plotAreaBox.X, plotAreaBox.Y, XMatrixOrder.Append);
+
+        CalcBars();
     }
-    gfx.Restore(state);
-  }
 
-  /// <summary>
-  /// Calculates the position, width and height of each bar of all series.
-  /// </summary>
-  protected abstract void CalcBars();
+    /// <summary>
+    /// Draws the content of the bar plot area.
+    /// </summary>
+    internal override void Draw()
+    {
+        ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
 
-  /// <summary>
-  /// If yValue is within the range from yMin to yMax returns true, otherwise false.
-  /// </summary>
-  protected abstract bool IsDataInside(double yMin, double yMax, double yValue);
+        XRect plotAreaBox = cri.plotAreaRendererInfo.Rect;
+        if (HasNoRoom(plotAreaBox))
+            return;
+
+        XGraphics gfx = this.rendererParms.Graphics;
+
+        double xMin = cri.xAxisRendererInfo.MinimumScale;
+        double xMax = cri.xAxisRendererInfo.MaximumScale;
+        double yMin = cri.yAxisRendererInfo.MinimumScale;
+        double yMax = cri.yAxisRendererInfo.MaximumScale;
+        double xMajorTick = cri.xAxisRendererInfo.MajorTick;
+
+        LineFormatRenderer lineFormatRenderer;
+
+        // Under some circumstances it is possible that no zero base line will be drawn,
+        // e. g. because of unfavourable minimum/maximum scale and/or major tick, so force to draw
+        // a zero base line if necessary.
+        if (cri.yAxisRendererInfo.MajorGridlinesLineFormat != null ||
+            cri.yAxisRendererInfo.MinorGridlinesLineFormat != null)
+        {
+            if (yMin < 0 && yMax > 0)
+            {
+                XPoint[] points = new XPoint[2];
+                points[0].X = 0;
+                points[0].Y = xMin;
+                points[1].X = 0;
+                points[1].Y = xMax;
+                cri.plotAreaRendererInfo.matrix.TransformPoints(points);
+
+                if (cri.yAxisRendererInfo.MinorGridlinesLineFormat != null)
+                    lineFormatRenderer = new LineFormatRenderer(gfx, cri.yAxisRendererInfo.MinorGridlinesLineFormat);
+                else
+                    lineFormatRenderer = new LineFormatRenderer(gfx, cri.yAxisRendererInfo.MajorGridlinesLineFormat);
+
+                lineFormatRenderer.DrawLine(points[0], points[1]);
+            }
+        }
+
+        // Draw bars
+        XGraphicsState state = gfx.Save();
+        foreach (SeriesRendererInfo sri in cri.seriesRendererInfos)
+        {
+            foreach (ColumnRendererInfo column in sri.pointRendererInfos)
+            {
+                // Do not draw bar if value is outside yMin/yMax range. Clipping does not make sense.
+                if (IsDataInside(yMin, yMax, column.Value))
+                    gfx.DrawRectangle(column.FillFormat, column.Rect);
+            }
+        }
+
+        // Draw borders around bar.
+        // A border can overlap neighbor bars, so it is important to draw borders at the end.
+        foreach (SeriesRendererInfo sri in cri.seriesRendererInfos)
+        {
+            foreach (ColumnRendererInfo column in sri.pointRendererInfos)
+            {
+                // Do not draw bar if value is outside yMin/yMax range. Clipping does not make sense.
+                if (IsDataInside(yMin, yMax, column.Value))
+                {
+                    lineFormatRenderer = new LineFormatRenderer(gfx, column.LineFormat);
+                    lineFormatRenderer.DrawRectangle(column.Rect);
+                }
+            }
+        }
+        gfx.Restore(state);
+    }
+
+    /// <summary>
+    /// Calculates the position, width and height of each bar of all series.
+    /// </summary>
+    protected abstract void CalcBars();
+
+    /// <summary>
+    /// If yValue is within the range from yMin to yMax returns true, otherwise false.
+    /// </summary>
+    protected abstract bool IsDataInside(double yMin, double yMax, double yValue);
 }

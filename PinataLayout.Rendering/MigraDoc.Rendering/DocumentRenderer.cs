@@ -1,4 +1,4 @@
-﻿#region MigraDoc - Creating Documents on the Fly
+#region MigraDoc - Creating Documents on the Fly
 //
 // Authors:
 //   Klaus Potzesny (mailto:Klaus.Potzesny@PdfPinata.com)

@@ -1,4 +1,4 @@
-﻿namespace PdfPinata.Pdf;
+namespace PdfPinata.Pdf;
 
 /// <summary>
 /// Defines how annotations should be copied.

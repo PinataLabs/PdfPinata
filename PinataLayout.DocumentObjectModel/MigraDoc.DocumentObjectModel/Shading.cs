@@ -39,112 +39,112 @@ namespace PinataLayout.DocumentObjectModel;
 /// </summary>
 public sealed partial class Shading : DocumentObject
 {
-  /// <summary>
-  /// Initializes a new instance of the Shading class.
-  /// </summary>
-  public Shading()
-  {
-  }
+    /// <summary>
+    /// Initializes a new instance of the Shading class.
+    /// </summary>
+    public Shading()
+    {
+    }
 
-  /// <summary>
-  /// Initializes a new instance of the Shading class with the specified parent.
-  /// </summary>
-  internal Shading(DocumentObject parent) : base(parent) { }
+    /// <summary>
+    /// Initializes a new instance of the Shading class with the specified parent.
+    /// </summary>
+    internal Shading(DocumentObject parent) : base(parent) { }
 
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new Shading Clone()
-  {
-    return (Shading)DeepCopy();
-  }
+    #region Methods
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new Shading Clone()
+    {
+        return (Shading)DeepCopy();
+    }
 
-  /// <summary>
-  /// Clears the Shading object. Additionally 'Shading = null'
-  /// is written to the DDL stream when serialized.
-  /// </summary>
-  public void Clear()
-  {
-    isCleared = true;
-  }
-  #endregion
+    /// <summary>
+    /// Clears the Shading object. Additionally 'Shading = null'
+    /// is written to the DDL stream when serialized.
+    /// </summary>
+    public void Clear()
+    {
+        isCleared = true;
+    }
+    #endregion
 
-  #region Properties
-  /// <summary>
-  /// Gets or sets a value indicating whether the shading is visible.
-  /// </summary>
-  public bool Visible
-  {
-    get => visible ?? false;
-    set => visible = value;
-  }
-  [DV]
-  internal bool? visible;
+    #region Properties
+    /// <summary>
+    /// Gets or sets a value indicating whether the shading is visible.
+    /// </summary>
+    public bool Visible
+    {
+        get => visible ?? false;
+        set => visible = value;
+    }
+    [DV]
+    internal bool? visible;
 
-  /// <summary>
-  /// Gets or sets the shading color.
-  /// </summary>
-  public Color Color
-  {
-    get => color;
-    set => color = value;
-  }
-  [DV]
-  internal Color color = Color.Empty;
+    /// <summary>
+    /// Gets or sets the shading color.
+    /// </summary>
+    public Color Color
+    {
+        get => color;
+        set => color = value;
+    }
+    [DV]
+    internal Color color = Color.Empty;
 
-  /// <summary>
-  /// Gets the information if the shading is marked as cleared. Additionally 'Shading = null'
-  /// is written to the DDL stream when serialized.
-  /// </summary>
-  public bool IsCleared => isCleared;
+    /// <summary>
+    /// Gets the information if the shading is marked as cleared. Additionally 'Shading = null'
+    /// is written to the DDL stream when serialized.
+    /// </summary>
+    public bool IsCleared => isCleared;
 
-  internal bool isCleared = false;
-  #endregion
+    internal bool isCleared = false;
+    #endregion
 
-  #region Null handling
-  /// <summary>
-  /// Determines whether this instance is null (not set).
-  /// </summary>
-  /// <remarks>
-  /// A cleared shading is not null, for the same reason a cleared Border is not - see
-  /// Border.IsNull. isCleared carries no [DV] attribute, so the value descriptors Meta.IsNull
-  /// consults cannot see it.
-  /// </remarks>
-  public override bool IsNull()
-  {
-    return !isCleared && base.IsNull();
-  }
+    #region Null handling
+    /// <summary>
+    /// Determines whether this instance is null (not set).
+    /// </summary>
+    /// <remarks>
+    /// A cleared shading is not null, for the same reason a cleared Border is not - see
+    /// Border.IsNull. isCleared carries no [DV] attribute, so the value descriptors Meta.IsNull
+    /// consults cannot see it.
+    /// </remarks>
+    public override bool IsNull()
+    {
+        return !isCleared && base.IsNull();
+    }
 
-  /// <summary>
-  /// Resets this instance, i.e. IsNull() will return true afterwards.
-  /// </summary>
-  public override void SetNull()
-  {
-    base.SetNull();
-    isCleared = false;
-  }
-  #endregion
+    /// <summary>
+    /// Resets this instance, i.e. IsNull() will return true afterwards.
+    /// </summary>
+    public override void SetNull()
+    {
+        base.SetNull();
+        isCleared = false;
+    }
+    #endregion
 
-  #region Internal
-  /// <summary>
-  /// Converts Shading into DDL.
-  /// </summary>
-  internal override void Serialize(Serializer serializer)
-  {
-    if (isCleared)
-      serializer.WriteLine("Shading = null");
+    #region Internal
+    /// <summary>
+    /// Converts Shading into DDL.
+    /// </summary>
+    internal override void Serialize(Serializer serializer)
+    {
+        if (isCleared)
+            serializer.WriteLine("Shading = null");
 
-    int pos = serializer.BeginContent("Shading");
+        int pos = serializer.BeginContent("Shading");
 
-    if (visible != null)
-      serializer.WriteSimpleAttribute("Visible", Visible);
+        if (visible != null)
+            serializer.WriteSimpleAttribute("Visible", Visible);
 
-    if (!color.IsNull)
-      serializer.WriteSimpleAttribute("Color", Color);
+        if (!color.IsNull)
+            serializer.WriteSimpleAttribute("Color", Color);
 
-    serializer.EndContent(pos);
-  }
+        serializer.EndContent(pos);
+    }
 
-  #endregion
+    #endregion
 }

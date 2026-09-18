@@ -1,4 +1,4 @@
-﻿using PdfPinata.Drawing;
+using PdfPinata.Drawing;
 using PdfPinata.Drawing.Layout;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;

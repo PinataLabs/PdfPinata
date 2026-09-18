@@ -41,70 +41,70 @@ namespace PinataLayout.DocumentObjectModel.Fields;
 /// </summary>
 public partial class BookmarkField : DocumentObject
 {
-  /// <summary>
-  /// Initializes a new instance of the BookmarkField class.
-  /// </summary>
-  internal BookmarkField()
-  {
-  }
+    /// <summary>
+    /// Initializes a new instance of the BookmarkField class.
+    /// </summary>
+    internal BookmarkField()
+    {
+    }
 
-  /// <summary>
-  /// Initializes a new instance of the BookmarkField class with the specified parent.
-  /// </summary>
-  internal BookmarkField(DocumentObject parent) : base(parent) { }
+    /// <summary>
+    /// Initializes a new instance of the BookmarkField class with the specified parent.
+    /// </summary>
+    internal BookmarkField(DocumentObject parent) : base(parent) { }
 
-  /// <summary>
-  /// Initializes a new instance of the BookmarkField class with the necessary bookmark name.
-  /// </summary>
-  public BookmarkField(string name)
-    : this()
-  {
-    this.Name = name;
-  }
+    /// <summary>
+    /// Initializes a new instance of the BookmarkField class with the necessary bookmark name.
+    /// </summary>
+    public BookmarkField(string name)
+      : this()
+    {
+        this.Name = name;
+    }
 
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new BookmarkField Clone()
-  {
-    return (BookmarkField)DeepCopy();
-  }
-  #endregion
+    #region Methods
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new BookmarkField Clone()
+    {
+        return (BookmarkField)DeepCopy();
+    }
+    #endregion
 
-  #region Properties
-  /// <summary>
-  /// Gets or sets the name of the bookmark.
-  /// Used to reference the bookmark from a Hyperlink or PageRef.
-  /// </summary>
-  public string Name
-  {
-    get => this.name ?? "";
-    set => this.name = value;
-  }
-  [DV]
-  internal string name;
-  #endregion
+    #region Properties
+    /// <summary>
+    /// Gets or sets the name of the bookmark.
+    /// Used to reference the bookmark from a Hyperlink or PageRef.
+    /// </summary>
+    public string Name
+    {
+        get => this.name ?? "";
+        set => this.name = value;
+    }
+    [DV]
+    internal string name;
+    #endregion
 
-  #region Internal
-  /// <summary>
-  /// Converts BookmarkField into DDL.
-  /// </summary>
-  internal override void Serialize(Serializer serializer)
-  {
-    if ((this.name ?? "") == string.Empty)
-      throw new InvalidOperationException(DomSR.MissingObligatoryProperty("Name", "BookmarkField"));
+    #region Internal
+    /// <summary>
+    /// Converts BookmarkField into DDL.
+    /// </summary>
+    internal override void Serialize(Serializer serializer)
+    {
+        if ((this.name ?? "") == string.Empty)
+            throw new InvalidOperationException(DomSR.MissingObligatoryProperty("Name", "BookmarkField"));
 
-    serializer.Write("\\field(Bookmark)[Name = \"" + this.Name.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"]");
-  }
+        serializer.Write("\\field(Bookmark)[Name = \"" + this.Name.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"]");
+    }
 
-  /// <summary>
-  /// Determines whether this instance is null (not set).
-  /// </summary>
-  public override bool IsNull()
-  {
-    return false;
-  }
+    /// <summary>
+    /// Determines whether this instance is null (not set).
+    /// </summary>
+    public override bool IsNull()
+    {
+        return false;
+    }
 
-  #endregion
+    #endregion
 }

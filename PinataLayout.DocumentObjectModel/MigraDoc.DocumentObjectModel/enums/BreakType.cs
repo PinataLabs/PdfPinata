@@ -37,18 +37,18 @@ namespace PinataLayout.DocumentObjectModel;
 /// </summary>
 public enum BreakType
 {
-  /// <summary>
-  /// Breaks at the next page.
-  /// </summary>
-  BreakNextPage,
+    /// <summary>
+    /// Breaks at the next page.
+    /// </summary>
+    BreakNextPage,
 
-  /// <summary>
-  /// Breaks at the next even page.
-  /// </summary>
-  BreakEvenPage,
+    /// <summary>
+    /// Breaks at the next even page.
+    /// </summary>
+    BreakEvenPage,
 
-  /// <summary>
-  /// Breaks at the next odd page.
-  /// </summary>
-  BreakOddPage
+    /// <summary>
+    /// Breaks at the next odd page.
+    /// </summary>
+    BreakOddPage
 }

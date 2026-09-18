@@ -37,52 +37,52 @@ namespace PinataLayout.DocumentObjectModel;
 /// </summary>
 public enum BorderStyle
 {
-  /// <summary>
-  /// No border.
-  /// </summary>
-  None,
-  /// <summary>
-  /// A single solid line.
-  /// </summary>
-  Single,
-  /// <summary>
-  /// A dotted line.
-  /// </summary>
-  Dot,
-  /// <summary>
-  /// A dashed line (small gaps).
-  /// </summary>
-  DashSmallGap,
-  /// <summary>
-  /// A dashed line (large gaps).
-  /// </summary>
-  DashLargeGap,
-  /// <summary>
-  /// Alternating dashes and dots.
-  /// </summary>
-  DashDot,
-  /// <summary>
-  /// A dash followed by two dots.
-  /// </summary>
-  DashDotDot,
-  /* --- unsupported ---
-    Double                = 7,
-    Triple                = 8,
-    ThinThickSmallGap     = 9,
-    ThickThinSmallGap     = 10,
-    ThinThickThinSmallGap = 11,
-    ThinThickMedGap       = 12,
-    ThickThinMedGap       = 13,
-    ThinThickThinMedGap   = 14,
-    ThinThickLargeGap     = 15,
-    ThickThinLargeGap     = 16,
-    ThinThickThinLargeGap = 17,
-    SingleWavy            = 18,
-    DoubleWavy            = 19,
-    DashDotStroked        = 20,
-    Emboss3D              = 21,
-    Engrave3D             = 22,
-    LineStyleOutset       = 23, //!!!newEG 02-07-22
-    LineStyleInset        = 24  //!!!newEG 02-07-22
-  */
+    /// <summary>
+    /// No border.
+    /// </summary>
+    None,
+    /// <summary>
+    /// A single solid line.
+    /// </summary>
+    Single,
+    /// <summary>
+    /// A dotted line.
+    /// </summary>
+    Dot,
+    /// <summary>
+    /// A dashed line (small gaps).
+    /// </summary>
+    DashSmallGap,
+    /// <summary>
+    /// A dashed line (large gaps).
+    /// </summary>
+    DashLargeGap,
+    /// <summary>
+    /// Alternating dashes and dots.
+    /// </summary>
+    DashDot,
+    /// <summary>
+    /// A dash followed by two dots.
+    /// </summary>
+    DashDotDot,
+    /* --- unsupported ---
+      Double                = 7,
+      Triple                = 8,
+      ThinThickSmallGap     = 9,
+      ThickThinSmallGap     = 10,
+      ThinThickThinSmallGap = 11,
+      ThinThickMedGap       = 12,
+      ThickThinMedGap       = 13,
+      ThinThickThinMedGap   = 14,
+      ThinThickLargeGap     = 15,
+      ThickThinLargeGap     = 16,
+      ThinThickThinLargeGap = 17,
+      SingleWavy            = 18,
+      DoubleWavy            = 19,
+      DashDotStroked        = 20,
+      Emboss3D              = 21,
+      Engrave3D             = 22,
+      LineStyleOutset       = 23, //!!!newEG 02-07-22
+      LineStyleInset        = 24  //!!!newEG 02-07-22
+    */
 }

@@ -36,83 +36,83 @@ namespace PdfPinata.Charting.Renderers;
 /// </summary>
 class LineFormatRenderer
 {
-  /// <summary>
-  /// Initializes a new instance of the LineFormatRenderer class with the specified graphics, line format
-  /// and default width.
-  /// </summary>
-  public LineFormatRenderer(XGraphics gfx, LineFormat lineFormat, double defaultWidth)
-  {
-    this.gfx = gfx;
-    bool visible = false;
-    double width = 0;
-
-    if (lineFormat != null)
+    /// <summary>
+    /// Initializes a new instance of the LineFormatRenderer class with the specified graphics, line format
+    /// and default width.
+    /// </summary>
+    public LineFormatRenderer(XGraphics gfx, LineFormat lineFormat, double defaultWidth)
     {
-      width = lineFormat.width;
-      if (width == 0 && !lineFormat.Color.IsEmpty)
-        width = defaultWidth;
-      visible = lineFormat.Visible || width > 0 || !lineFormat.Color.IsEmpty;
+        this.gfx = gfx;
+        bool visible = false;
+        double width = 0;
+
+        if (lineFormat != null)
+        {
+            width = lineFormat.width;
+            if (width == 0 && !lineFormat.Color.IsEmpty)
+                width = defaultWidth;
+            visible = lineFormat.Visible || width > 0 || !lineFormat.Color.IsEmpty;
+        }
+
+        if (visible)
+        {
+            this.pen = new XPen(lineFormat.Color, width);
+            this.pen.DashStyle = lineFormat.DashStyle;
+        }
     }
 
-    if (visible)
+    /// <summary>
+    /// Initializes a new instance of the LineFormatRenderer class with the specified graphics and
+    /// line format.
+    /// </summary>
+    public LineFormatRenderer(XGraphics gfx, LineFormat lineFormat) :
+      this(gfx, lineFormat, 0)
     {
-      this.pen = new XPen(lineFormat.Color, width);
-      this.pen.DashStyle = lineFormat.DashStyle;
     }
-  }
 
-  /// <summary>
-  /// Initializes a new instance of the LineFormatRenderer class with the specified graphics and
-  /// line format.
-  /// </summary>
-  public LineFormatRenderer(XGraphics gfx, LineFormat lineFormat) :
-    this(gfx, lineFormat, 0)
-  {
-  }
+    /// <summary>
+    /// Initializes a new instance of the LineFormatRenderer class with the specified graphics and pen.
+    /// </summary>
+    public LineFormatRenderer(XGraphics gfx, XPen pen)
+    {
+        this.gfx = gfx;
+        this.pen = pen;
+    }
 
-  /// <summary>
-  /// Initializes a new instance of the LineFormatRenderer class with the specified graphics and pen.
-  /// </summary>
-  public LineFormatRenderer(XGraphics gfx, XPen pen)
-  {
-    this.gfx = gfx;
-    this.pen = pen;
-  }
+    /// <summary>
+    /// Draws a line from point pt0 to point pt1.
+    /// </summary>
+    public void DrawLine(XPoint pt0, XPoint pt1)
+    {
+        if (this.pen != null)
+            this.gfx.DrawLine(this.pen, pt0, pt1);
+    }
 
-  /// <summary>
-  /// Draws a line from point pt0 to point pt1.
-  /// </summary>
-  public void DrawLine(XPoint pt0, XPoint pt1)
-  {
-    if (this.pen != null)
-      this.gfx.DrawLine(this.pen, pt0, pt1);
-  }
+    /// <summary>
+    /// Draws a line specified by rect.
+    /// </summary>
+    public void DrawRectangle(XRect rect)
+    {
+        if (this.pen != null)
+            this.gfx.DrawRectangle(this.pen, rect);
+    }
 
-  /// <summary>
-  /// Draws a line specified by rect.
-  /// </summary>
-  public void DrawRectangle(XRect rect)
-  {
-    if (this.pen != null)
-      this.gfx.DrawRectangle(this.pen, rect);
-  }
+    /// <summary>
+    /// Draws a line specified by path.
+    /// </summary>
+    public void DrawPath(XGraphicsPath path)
+    {
+        if (this.pen != null)
+            this.gfx.DrawPath(this.pen, path);
+    }
 
-  /// <summary>
-  /// Draws a line specified by path.
-  /// </summary>
-  public void DrawPath(XGraphicsPath path)
-  {
-    if (this.pen != null)
-      this.gfx.DrawPath(this.pen, path);
-  }
+    /// <summary>
+    /// Surface to draw the line.
+    /// </summary>
+    XGraphics gfx;
 
-  /// <summary>
-  /// Surface to draw the line.
-  /// </summary>
-  XGraphics gfx;
-
-  /// <summary>
-  /// Pen used to draw the line.
-  /// </summary>
-  XPen pen;
+    /// <summary>
+    /// Pen used to draw the line.
+    /// </summary>
+    XPen pen;
 }

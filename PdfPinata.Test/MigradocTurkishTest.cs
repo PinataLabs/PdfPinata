@@ -1,4 +1,4 @@
-﻿using PinataLayout.Rendering;
+using PinataLayout.Rendering;
 using System.Globalization;
 using System.Threading;
 using Xunit;

@@ -39,282 +39,282 @@ namespace PinataLayout.DocumentObjectModel.Shapes.Charts;
 /// </summary>
 public partial class Axis : ChartObject
 {
-  /// <summary>
-  /// Initializes a new instance of the Axis class.
-  /// </summary>
-  public Axis()
-  {
-  }
-
-  /// <summary>
-  /// Initializes a new instance of the Axis class with the specified parent.
-  /// </summary>
-  internal Axis(DocumentObject parent) : base(parent) { }
-
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new Axis Clone()
-  {
-    return (Axis)DeepCopy();
-  }
-
-  #endregion
-
-  #region Properties
-  /// <summary>
-  /// Gets the title of the axis.
-  /// </summary>
-  public AxisTitle Title
-  {
-    get
+    /// <summary>
+    /// Initializes a new instance of the Axis class.
+    /// </summary>
+    public Axis()
     {
-      if (this.title == null)
-        this.title = new AxisTitle(this);
-
-      return this.title;
     }
-    set
+
+    /// <summary>
+    /// Initializes a new instance of the Axis class with the specified parent.
+    /// </summary>
+    internal Axis(DocumentObject parent) : base(parent) { }
+
+    #region Methods
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new Axis Clone()
     {
-      SetParent(value);
-      this.title = value;
+        return (Axis)DeepCopy();
     }
-  }
-  [DV]
-  internal AxisTitle title;
 
-  /// <summary>
-  /// Gets or sets the minimum value of the axis.
-  /// </summary>
-  public double MinimumScale
-  {
-    get => this.minimumScale ?? 0;
-    set => this.minimumScale = value;
-  }
-  [DV]
-  internal double? minimumScale;
+    #endregion
 
-  /// <summary>
-  /// Gets or sets the maximum value of the axis.
-  /// </summary>
-  public double MaximumScale
-  {
-    get => this.maximumScale ?? 0;
-    set => this.maximumScale = value;
-  }
-  [DV]
-  internal double? maximumScale;
-
-  /// <summary>
-  /// Gets or sets the interval of the primary tick.
-  /// </summary>
-  public double MajorTick
-  {
-    get => this.majorTick ?? 0;
-    set => this.majorTick = value;
-  }
-  [DV]
-  internal double? majorTick;
-
-  /// <summary>
-  /// Gets or sets the interval of the secondary tick.
-  /// </summary>
-  public double MinorTick
-  {
-    get => this.minorTick ?? 0;
-    set => this.minorTick = value;
-  }
-  [DV]
-  internal double? minorTick;
-
-  /// <summary>
-  /// Gets or sets the type of the primary tick mark.
-  /// </summary>
-  public TickMarkType MajorTickMark
-  {
-    get => this.majorTickMark ?? default;
-    set => this.majorTickMark = EnumGuard.Checked(value);
-  }
-  [DV]
-  internal TickMarkType? majorTickMark;
-
-  /// <summary>
-  /// Gets or sets the type of the secondary tick mark.
-  /// </summary>
-  public TickMarkType MinorTickMark
-  {
-    get => this.minorTickMark ?? default;
-    set => this.minorTickMark = EnumGuard.Checked(value);
-  }
-  [DV]
-  internal TickMarkType? minorTickMark;
-
-  /// <summary>
-  /// Gets the label of the primary tick.
-  /// </summary>
-  public TickLabels TickLabels
-  {
-    get
+    #region Properties
+    /// <summary>
+    /// Gets the title of the axis.
+    /// </summary>
+    public AxisTitle Title
     {
-      if (this.tickLabels == null)
-        this.tickLabels = new TickLabels(this);
+        get
+        {
+            if (this.title == null)
+                this.title = new AxisTitle(this);
 
-      return this.tickLabels;
+            return this.title;
+        }
+        set
+        {
+            SetParent(value);
+            this.title = value;
+        }
     }
-    set
+    [DV]
+    internal AxisTitle title;
+
+    /// <summary>
+    /// Gets or sets the minimum value of the axis.
+    /// </summary>
+    public double MinimumScale
     {
-      SetParent(value);
-      this.tickLabels = value;
+        get => this.minimumScale ?? 0;
+        set => this.minimumScale = value;
     }
-  }
-  [DV]
-  internal TickLabels tickLabels;
+    [DV]
+    internal double? minimumScale;
 
-  /// <summary>
-  /// Gets the format of the axis line.
-  /// </summary>
-  public LineFormat LineFormat
-  {
-    get
+    /// <summary>
+    /// Gets or sets the maximum value of the axis.
+    /// </summary>
+    public double MaximumScale
     {
-      if (this.lineFormat == null)
-        this.lineFormat = new LineFormat(this);
-
-      return this.lineFormat;
+        get => this.maximumScale ?? 0;
+        set => this.maximumScale = value;
     }
-    set
+    [DV]
+    internal double? maximumScale;
+
+    /// <summary>
+    /// Gets or sets the interval of the primary tick.
+    /// </summary>
+    public double MajorTick
     {
-      SetParent(value);
-      this.lineFormat = value;
+        get => this.majorTick ?? 0;
+        set => this.majorTick = value;
     }
-  }
-  [DV]
-  internal LineFormat lineFormat;
+    [DV]
+    internal double? majorTick;
 
-  /// <summary>
-  /// Gets the primary gridline object.
-  /// </summary>
-  public Gridlines MajorGridlines
-  {
-    get
+    /// <summary>
+    /// Gets or sets the interval of the secondary tick.
+    /// </summary>
+    public double MinorTick
     {
-      if (this.majorGridlines == null)
-        this.majorGridlines = new Gridlines(this);
-
-      return this.majorGridlines;
+        get => this.minorTick ?? 0;
+        set => this.minorTick = value;
     }
-    set
+    [DV]
+    internal double? minorTick;
+
+    /// <summary>
+    /// Gets or sets the type of the primary tick mark.
+    /// </summary>
+    public TickMarkType MajorTickMark
     {
-      SetParent(value);
-      this.majorGridlines = value;
+        get => this.majorTickMark ?? default;
+        set => this.majorTickMark = EnumGuard.Checked(value);
     }
-  }
-  [DV]
-  internal Gridlines majorGridlines;
+    [DV]
+    internal TickMarkType? majorTickMark;
 
-  /// <summary>
-  /// Gets the secondary gridline object.
-  /// </summary>
-  public Gridlines MinorGridlines
-  {
-    get
+    /// <summary>
+    /// Gets or sets the type of the secondary tick mark.
+    /// </summary>
+    public TickMarkType MinorTickMark
     {
-      if (this.minorGridlines == null)
-        this.minorGridlines = new Gridlines(this);
-
-      return this.minorGridlines;
+        get => this.minorTickMark ?? default;
+        set => this.minorTickMark = EnumGuard.Checked(value);
     }
-    set
+    [DV]
+    internal TickMarkType? minorTickMark;
+
+    /// <summary>
+    /// Gets the label of the primary tick.
+    /// </summary>
+    public TickLabels TickLabels
     {
-      SetParent(value);
-      this.minorGridlines = value;
+        get
+        {
+            if (this.tickLabels == null)
+                this.tickLabels = new TickLabels(this);
+
+            return this.tickLabels;
+        }
+        set
+        {
+            SetParent(value);
+            this.tickLabels = value;
+        }
     }
-  }
-  [DV]
-  internal Gridlines minorGridlines;
+    [DV]
+    internal TickLabels tickLabels;
 
-  /// <summary>
-  /// Gets or sets, whether the axis has a primary gridline object.
-  /// </summary>
-  public bool HasMajorGridlines
-  {
-    get => this.hasMajorGridlines ?? false;
-    set => this.hasMajorGridlines = value;
-  }
-  [DV]
-  internal bool? hasMajorGridlines;
+    /// <summary>
+    /// Gets the format of the axis line.
+    /// </summary>
+    public LineFormat LineFormat
+    {
+        get
+        {
+            if (this.lineFormat == null)
+                this.lineFormat = new LineFormat(this);
 
-  /// <summary>
-  /// Gets or sets, whether the axis has a secondary gridline object.
-  /// </summary>
-  public bool HasMinorGridlines
-  {
-    get => this.hasMinorGridlines ?? false;
-    set => this.hasMinorGridlines = value;
-  }
-  [DV]
-  internal bool? hasMinorGridlines;
-  #endregion
+            return this.lineFormat;
+        }
+        set
+        {
+            SetParent(value);
+            this.lineFormat = value;
+        }
+    }
+    [DV]
+    internal LineFormat lineFormat;
 
-  /// <summary>
-  /// Determines whether the specified gridlines object is a MajorGridlines or an MinorGridlines.
-  /// </summary>
-  internal string CheckGridlines(Gridlines gridlines)
-  {
-    if ((this.majorGridlines != null) && (gridlines == this.majorGridlines))
-      return "MajorGridlines";
-    if ((this.minorGridlines != null) && (gridlines == this.minorGridlines))
-      return "MinorGridlines";
+    /// <summary>
+    /// Gets the primary gridline object.
+    /// </summary>
+    public Gridlines MajorGridlines
+    {
+        get
+        {
+            if (this.majorGridlines == null)
+                this.majorGridlines = new Gridlines(this);
 
-    return "";
-  }
+            return this.majorGridlines;
+        }
+        set
+        {
+            SetParent(value);
+            this.majorGridlines = value;
+        }
+    }
+    [DV]
+    internal Gridlines majorGridlines;
 
-  #region Internal
-  /// <summary>
-  /// Converts Axis into DDL.
-  /// </summary>
-  internal override void Serialize(Serializer serializer)
-  {
-    Chart chartObject = this.parent as Chart;
+    /// <summary>
+    /// Gets the secondary gridline object.
+    /// </summary>
+    public Gridlines MinorGridlines
+    {
+        get
+        {
+            if (this.minorGridlines == null)
+                this.minorGridlines = new Gridlines(this);
 
-    serializer.WriteLine("\\" + chartObject.CheckAxis(this));
-    int pos = serializer.BeginAttributes();
+            return this.minorGridlines;
+        }
+        set
+        {
+            SetParent(value);
+            this.minorGridlines = value;
+        }
+    }
+    [DV]
+    internal Gridlines minorGridlines;
 
-    if (this.minimumScale != null)
-      serializer.WriteSimpleAttribute("MinimumScale", this.MinimumScale);
-    if (this.maximumScale != null)
-      serializer.WriteSimpleAttribute("MaximumScale", this.MaximumScale);
-    if (this.majorTick != null)
-      serializer.WriteSimpleAttribute("MajorTick", this.MajorTick);
-    if (this.minorTick != null)
-      serializer.WriteSimpleAttribute("MinorTick", this.MinorTick);
-    if (this.hasMajorGridlines != null)
-      serializer.WriteSimpleAttribute("HasMajorGridLines", this.HasMajorGridlines);
-    if (this.hasMinorGridlines != null)
-      serializer.WriteSimpleAttribute("HasMinorGridLines", this.HasMinorGridlines);
-    if (this.majorTickMark != null)
-      serializer.WriteSimpleAttribute("MajorTickMark", this.MajorTickMark);
-    if (this.minorTickMark != null)
-      serializer.WriteSimpleAttribute("MinorTickMark", this.MinorTickMark);
+    /// <summary>
+    /// Gets or sets, whether the axis has a primary gridline object.
+    /// </summary>
+    public bool HasMajorGridlines
+    {
+        get => this.hasMajorGridlines ?? false;
+        set => this.hasMajorGridlines = value;
+    }
+    [DV]
+    internal bool? hasMajorGridlines;
 
-    if (!this.IsNull("Title"))
-      this.title.Serialize(serializer);
+    /// <summary>
+    /// Gets or sets, whether the axis has a secondary gridline object.
+    /// </summary>
+    public bool HasMinorGridlines
+    {
+        get => this.hasMinorGridlines ?? false;
+        set => this.hasMinorGridlines = value;
+    }
+    [DV]
+    internal bool? hasMinorGridlines;
+    #endregion
 
-    if (!this.IsNull("LineFormat"))
-      this.lineFormat.Serialize(serializer);
+    /// <summary>
+    /// Determines whether the specified gridlines object is a MajorGridlines or an MinorGridlines.
+    /// </summary>
+    internal string CheckGridlines(Gridlines gridlines)
+    {
+        if ((this.majorGridlines != null) && (gridlines == this.majorGridlines))
+            return "MajorGridlines";
+        if ((this.minorGridlines != null) && (gridlines == this.minorGridlines))
+            return "MinorGridlines";
 
-    if (!this.IsNull("MajorGridlines"))
-      this.majorGridlines.Serialize(serializer);
+        return "";
+    }
 
-    if (!this.IsNull("MinorGridlines"))
-      this.minorGridlines.Serialize(serializer);
+    #region Internal
+    /// <summary>
+    /// Converts Axis into DDL.
+    /// </summary>
+    internal override void Serialize(Serializer serializer)
+    {
+        Chart chartObject = this.parent as Chart;
 
-    if (!this.IsNull("TickLabels"))
-      this.tickLabels.Serialize(serializer);
+        serializer.WriteLine("\\" + chartObject.CheckAxis(this));
+        int pos = serializer.BeginAttributes();
 
-    serializer.EndAttributes(pos);
-  }
+        if (this.minimumScale != null)
+            serializer.WriteSimpleAttribute("MinimumScale", this.MinimumScale);
+        if (this.maximumScale != null)
+            serializer.WriteSimpleAttribute("MaximumScale", this.MaximumScale);
+        if (this.majorTick != null)
+            serializer.WriteSimpleAttribute("MajorTick", this.MajorTick);
+        if (this.minorTick != null)
+            serializer.WriteSimpleAttribute("MinorTick", this.MinorTick);
+        if (this.hasMajorGridlines != null)
+            serializer.WriteSimpleAttribute("HasMajorGridLines", this.HasMajorGridlines);
+        if (this.hasMinorGridlines != null)
+            serializer.WriteSimpleAttribute("HasMinorGridLines", this.HasMinorGridlines);
+        if (this.majorTickMark != null)
+            serializer.WriteSimpleAttribute("MajorTickMark", this.MajorTickMark);
+        if (this.minorTickMark != null)
+            serializer.WriteSimpleAttribute("MinorTickMark", this.MinorTickMark);
 
-  #endregion
+        if (!this.IsNull("Title"))
+            this.title.Serialize(serializer);
+
+        if (!this.IsNull("LineFormat"))
+            this.lineFormat.Serialize(serializer);
+
+        if (!this.IsNull("MajorGridlines"))
+            this.majorGridlines.Serialize(serializer);
+
+        if (!this.IsNull("MinorGridlines"))
+            this.minorGridlines.Serialize(serializer);
+
+        if (!this.IsNull("TickLabels"))
+            this.tickLabels.Serialize(serializer);
+
+        serializer.EndAttributes(pos);
+    }
+
+    #endregion
 }

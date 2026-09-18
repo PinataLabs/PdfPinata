@@ -37,13 +37,13 @@ namespace PinataLayout.DocumentObjectModel;
 /// </summary>
 public enum FootnoteLocation
 {
-  /// <summary>
-  /// Footnote will be rendered on the bottom of the page.
-  /// </summary>
-  BottomOfPage,
+    /// <summary>
+    /// Footnote will be rendered on the bottom of the page.
+    /// </summary>
+    BottomOfPage,
 
-  /// <summary>
-  /// Footnote will be rendered immediately after the text.
-  /// </summary>
-  BeneathText
+    /// <summary>
+    /// Footnote will be rendered immediately after the text.
+    /// </summary>
+    BeneathText
 }

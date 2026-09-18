@@ -40,122 +40,122 @@ namespace PinataLayout.DocumentObjectModel.Shapes.Charts;
 /// </summary>
 public partial class Legend : ChartObject, IVisitable
 {
-  /// <summary>
-  /// Initializes a new instance of the Legend class.
-  /// </summary>
-  public Legend()
-  {
-  }
-
-  /// <summary>
-  /// Initializes a new instance of the Legend class with the specified parent.
-  /// </summary>
-  internal Legend(DocumentObject parent) : base(parent) { }
-
-  #region Serialization
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new Legend Clone()
-  {
-    return (Legend)DeepCopy();
-  }
-
-  #endregion
-
-  #region Properties
-  /// <summary>
-  /// Gets or sets the style name of the legend's text.
-  /// </summary>
-  public string Style
-  {
-    get => this.style ?? "";
-    set => this.style = value;
-  }
-  [DV]
-  internal string style;
-
-  /// <summary>
-  /// Gets the paragraph format of the legend's text.
-  /// </summary>
-  public ParagraphFormat Format
-  {
-    get
+    /// <summary>
+    /// Initializes a new instance of the Legend class.
+    /// </summary>
+    public Legend()
     {
-      if (this.format == null)
-        this.format = new ParagraphFormat(this);
-
-      return this.format;
     }
-    set
+
+    /// <summary>
+    /// Initializes a new instance of the Legend class with the specified parent.
+    /// </summary>
+    internal Legend(DocumentObject parent) : base(parent) { }
+
+    #region Serialization
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new Legend Clone()
     {
-      SetParent(value);
-      this.format = value;
+        return (Legend)DeepCopy();
     }
-  }
-  [DV]
-  internal ParagraphFormat format;
 
-  /// <summary>
-  /// Gets the line format of the legend's border.
-  /// </summary>
-  public LineFormat LineFormat
-  {
-    get
+    #endregion
+
+    #region Properties
+    /// <summary>
+    /// Gets or sets the style name of the legend's text.
+    /// </summary>
+    public string Style
     {
-      if (this.lineFormat == null)
-        this.lineFormat = new LineFormat(this);
-
-      return this.lineFormat;
+        get => this.style ?? "";
+        set => this.style = value;
     }
-    set
+    [DV]
+    internal string style;
+
+    /// <summary>
+    /// Gets the paragraph format of the legend's text.
+    /// </summary>
+    public ParagraphFormat Format
     {
-      SetParent(value);
-      this.lineFormat = value;
+        get
+        {
+            if (this.format == null)
+                this.format = new ParagraphFormat(this);
+
+            return this.format;
+        }
+        set
+        {
+            SetParent(value);
+            this.format = value;
+        }
     }
-  }
-  [DV]
-  internal LineFormat lineFormat;
-  #endregion
+    [DV]
+    internal ParagraphFormat format;
 
-  #region Internal
-  /// <summary>
-  /// Converts Legend into DDL.
-  /// </summary>
-  internal override void Serialize(Serializer serializer)
-  {
-    serializer.WriteLine("\\legend");
-    int pos = serializer.BeginAttributes();
+    /// <summary>
+    /// Gets the line format of the legend's border.
+    /// </summary>
+    public LineFormat LineFormat
+    {
+        get
+        {
+            if (this.lineFormat == null)
+                this.lineFormat = new LineFormat(this);
 
-    if (this.style != null)
-      serializer.WriteSimpleAttribute("Style", this.Style);
+            return this.lineFormat;
+        }
+        set
+        {
+            SetParent(value);
+            this.lineFormat = value;
+        }
+    }
+    [DV]
+    internal LineFormat lineFormat;
+    #endregion
 
-    if (!this.IsNull("Format"))
-      this.format.Serialize(serializer, "Format", null);
+    #region Internal
+    /// <summary>
+    /// Converts Legend into DDL.
+    /// </summary>
+    internal override void Serialize(Serializer serializer)
+    {
+        serializer.WriteLine("\\legend");
+        int pos = serializer.BeginAttributes();
 
-    if (!this.IsNull("LineFormat"))
-      this.lineFormat.Serialize(serializer);
+        if (this.style != null)
+            serializer.WriteSimpleAttribute("Style", this.Style);
 
-    serializer.EndAttributes(pos);
-  }
+        if (!this.IsNull("Format"))
+            this.format.Serialize(serializer, "Format", null);
 
-  /// <summary>
-  /// Determines whether this instance is null (not set).
-  /// </summary>
-  public override bool IsNull()
-  {
-    // legend objects are never null, i.e. the presence of this object is meaningful.
-    return false;
-  }
+        if (!this.IsNull("LineFormat"))
+            this.lineFormat.Serialize(serializer);
 
-  #endregion
+        serializer.EndAttributes(pos);
+    }
 
-  #region IVisitable Members
+    /// <summary>
+    /// Determines whether this instance is null (not set).
+    /// </summary>
+    public override bool IsNull()
+    {
+        // legend objects are never null, i.e. the presence of this object is meaningful.
+        return false;
+    }
 
-  void IVisitable.AcceptVisitor(DocumentObjectVisitor visitor, bool visitChildren)
-  {
-    visitor.VisitLegend(this);
-  }
+    #endregion
 
-  #endregion
+    #region IVisitable Members
+
+    void IVisitable.AcceptVisitor(DocumentObjectVisitor visitor, bool visitChildren)
+    {
+        visitor.VisitLegend(this);
+    }
+
+    #endregion
 }

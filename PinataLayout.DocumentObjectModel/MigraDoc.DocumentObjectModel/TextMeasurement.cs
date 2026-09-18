@@ -125,7 +125,8 @@ public sealed class TextMeasurement
     /// </summary>
     private XFont XFont
     {
-        get { 
+        get
+        {
             if (xFont == null)
             {
                 var style = XFontStyle.Regular;

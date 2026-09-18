@@ -45,17 +45,17 @@ namespace PinataLayout.DocumentObjectModel.Internals;
 /// </remarks>
 internal static class EnumGuard
 {
-  /// <summary>
-  /// Returns value if it is a defined member of TEnum, and throws ArgumentException if it is not.
-  /// </summary>
-  internal static T Checked<T>(T value) where T : struct, Enum
-  {
-    // Enum.IsDefined(Type, object) rather than the generic Enum.IsDefined<T>(T), which is .NET 5+
-    // and this assembly still targets netstandard2.1. ArgumentException rather than the more
-    // correct ArgumentOutOfRangeException, because NEnum threw ArgumentException and no caller
-    // should be able to tell that NEnum is gone.
-    if (!Enum.IsDefined(typeof(T), value))
-      throw new ArgumentException("value");
-    return value;
-  }
+    /// <summary>
+    /// Returns value if it is a defined member of TEnum, and throws ArgumentException if it is not.
+    /// </summary>
+    internal static T Checked<T>(T value) where T : struct, Enum
+    {
+        // Enum.IsDefined(Type, object) rather than the generic Enum.IsDefined<T>(T), which is .NET 5+
+        // and this assembly still targets netstandard2.1. ArgumentException rather than the more
+        // correct ArgumentOutOfRangeException, because NEnum threw ArgumentException and no caller
+        // should be able to tell that NEnum is gone.
+        if (!Enum.IsDefined(typeof(T), value))
+            throw new ArgumentException("value");
+        return value;
+    }
 }

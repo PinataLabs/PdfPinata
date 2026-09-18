@@ -1,4 +1,4 @@
-﻿using AwesomeAssertions;
+using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Content;
@@ -40,7 +40,7 @@ public class PdfSecurity
         ms.Position = 0;
 
         var loadDocument = Pdf.IO.PdfReader.Open(ms, PdfDocumentOpenMode.Modify,
-            delegate(PdfPasswordProviderArgs args) { args.Password = password; });
+            delegate (PdfPasswordProviderArgs args) { args.Password = password; });
 
         loadDocument.PageCount.Should().Be(1);
         loadDocument.Outlines[0].Title.Should().Be("The only page");
@@ -120,7 +120,7 @@ public class PdfSecurity
     [Theory]
     // https://www.ilovepdf.com/protect-pdf, 128 bit, /V 2 /R 3
     [InlineData(@"protected-ilovepdf.pdf", "test123")]
-        
+
     // https://www.adobe.com/de/acrobat/online/password-protect-pdf.html, 128 bit, /V 4 /R 4
     [InlineData(@"protected-adobe.pdf", "test123")]
 

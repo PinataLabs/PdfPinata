@@ -36,47 +36,47 @@ namespace PdfPinata.Charting;
 /// </summary>
 public class FillFormat : DocumentObject
 {
-  /// <summary>
-  /// Initializes a new instance of the FillFormat class.
-  /// </summary>
-  public FillFormat()
-  {
-  }
+    /// <summary>
+    /// Initializes a new instance of the FillFormat class.
+    /// </summary>
+    public FillFormat()
+    {
+    }
 
-  /// <summary>
-  /// Initializes a new instance of the FillFormat class with the specified parent.
-  /// </summary>
-  internal FillFormat(DocumentObject parent) : base(parent) {}
+    /// <summary>
+    /// Initializes a new instance of the FillFormat class with the specified parent.
+    /// </summary>
+    internal FillFormat(DocumentObject parent) : base(parent) { }
 
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new FillFormat Clone()
-  {
-    return (FillFormat)DeepCopy();
-  }
-  #endregion
+    #region Methods
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new FillFormat Clone()
+    {
+        return (FillFormat)DeepCopy();
+    }
+    #endregion
 
-  #region Properties
-  /// <summary>
-  /// Gets or sets the color of the filling.
-  /// </summary>
-  public XColor Color
-  {
-    get => this.color;
-    set => this.color = value;
-  }
-  internal XColor color = XColor.Empty;
+    #region Properties
+    /// <summary>
+    /// Gets or sets the color of the filling.
+    /// </summary>
+    public XColor Color
+    {
+        get => this.color;
+        set => this.color = value;
+    }
+    internal XColor color = XColor.Empty;
 
-  /// <summary>
-  /// Gets or sets a value indicating whether the background color should be visible.
-  /// </summary>
-  public bool Visible
-  {
-    get => this.visible;
-    set => this.visible = value;
-  }
-  internal bool visible;
-  #endregion
+    /// <summary>
+    /// Gets or sets a value indicating whether the background color should be visible.
+    /// </summary>
+    public bool Visible
+    {
+        get => this.visible;
+        set => this.visible = value;
+    }
+    internal bool visible;
+    #endregion
 }

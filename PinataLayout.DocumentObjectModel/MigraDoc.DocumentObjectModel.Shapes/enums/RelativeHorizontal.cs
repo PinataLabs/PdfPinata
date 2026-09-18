@@ -37,20 +37,20 @@ namespace PinataLayout.DocumentObjectModel.Shapes;
 /// </summary>
 public enum RelativeHorizontal
 {
-  /// <summary>
-  /// Alignment relative to the right side of the previous element.
-  /// </summary>
-  Character,
-  /// <summary>
-  /// Alignment relative to the right side of the previous element.
-  /// </summary>
-  Column,
-  /// <summary>
-  /// Alignment relative to page margin.
-  /// </summary>
-  Margin,
-  /// <summary>
-  /// Alignment relative to page edge.
-  /// </summary>
-  Page
+    /// <summary>
+    /// Alignment relative to the right side of the previous element.
+    /// </summary>
+    Character,
+    /// <summary>
+    /// Alignment relative to the right side of the previous element.
+    /// </summary>
+    Column,
+    /// <summary>
+    /// Alignment relative to page margin.
+    /// </summary>
+    Margin,
+    /// <summary>
+    /// Alignment relative to page edge.
+    /// </summary>
+    Page
 }

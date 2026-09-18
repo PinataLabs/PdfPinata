@@ -39,108 +39,108 @@ namespace PinataLayout.DocumentObjectModel.Shapes;
 /// </summary>
 public partial class WrapFormat : DocumentObject
 {
-  /// <summary>
-  /// Initializes a new instance of the WrapFormat class.
-  /// </summary>
-  public WrapFormat()
-  {
-  }
+    /// <summary>
+    /// Initializes a new instance of the WrapFormat class.
+    /// </summary>
+    public WrapFormat()
+    {
+    }
 
-  /// <summary>
-  /// Initializes a new instance of the WrapFormat class with the specified parent.
-  /// </summary>
-  internal WrapFormat(DocumentObject parent) : base(parent) { }
+    /// <summary>
+    /// Initializes a new instance of the WrapFormat class with the specified parent.
+    /// </summary>
+    internal WrapFormat(DocumentObject parent) : base(parent) { }
 
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new WrapFormat Clone()
-  {
-    return (WrapFormat)DeepCopy();
-  }
-  #endregion
+    #region Methods
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new WrapFormat Clone()
+    {
+        return (WrapFormat)DeepCopy();
+    }
+    #endregion
 
-  #region Properties
-  /// <summary>
-  /// Gets or sets the wrapping style.
-  /// </summary>
-  public WrapStyle Style
-  {
-    get => this.style ?? default;
-    set => this.style = EnumGuard.Checked(value);
-  }
-  [DV]
-  internal WrapStyle? style;
+    #region Properties
+    /// <summary>
+    /// Gets or sets the wrapping style.
+    /// </summary>
+    public WrapStyle Style
+    {
+        get => this.style ?? default;
+        set => this.style = EnumGuard.Checked(value);
+    }
+    [DV]
+    internal WrapStyle? style;
 
-  /// <summary>
-  /// Gets or sets the distance between the top side of the shape with the adjacent text.
-  /// </summary>
-  public Unit DistanceTop
-  {
-    get => this.distanceTop;
-    set => this.distanceTop = value;
-  }
-  /// <summary>Backing field for <see cref="DistanceTop"/>.</summary>
-  [DV]
-  protected Unit distanceTop = Unit.NullValue;
+    /// <summary>
+    /// Gets or sets the distance between the top side of the shape with the adjacent text.
+    /// </summary>
+    public Unit DistanceTop
+    {
+        get => this.distanceTop;
+        set => this.distanceTop = value;
+    }
+    /// <summary>Backing field for <see cref="DistanceTop"/>.</summary>
+    [DV]
+    protected Unit distanceTop = Unit.NullValue;
 
-  /// <summary>
-  /// Gets or sets the distance between the bottom side of the shape with the adjacent text.
-  /// </summary>
-  public Unit DistanceBottom
-  {
-    get => this.distanceBottom;
-    set => this.distanceBottom = value;
-  }
-  /// <summary>Backing field for <see cref="DistanceBottom"/>.</summary>
-  [DV]
-  protected Unit distanceBottom = Unit.NullValue;
+    /// <summary>
+    /// Gets or sets the distance between the bottom side of the shape with the adjacent text.
+    /// </summary>
+    public Unit DistanceBottom
+    {
+        get => this.distanceBottom;
+        set => this.distanceBottom = value;
+    }
+    /// <summary>Backing field for <see cref="DistanceBottom"/>.</summary>
+    [DV]
+    protected Unit distanceBottom = Unit.NullValue;
 
-  /// <summary>
-  /// Gets or sets the distance between the left side of the shape with the adjacent text.
-  /// </summary>
-  public Unit DistanceLeft
-  {
-    get => this.distanceLeft;
-    set => this.distanceLeft = value;
-  }
-  /// <summary>Backing field for <see cref="DistanceLeft"/>.</summary>
-  [DV]
-  protected Unit distanceLeft = Unit.NullValue;
+    /// <summary>
+    /// Gets or sets the distance between the left side of the shape with the adjacent text.
+    /// </summary>
+    public Unit DistanceLeft
+    {
+        get => this.distanceLeft;
+        set => this.distanceLeft = value;
+    }
+    /// <summary>Backing field for <see cref="DistanceLeft"/>.</summary>
+    [DV]
+    protected Unit distanceLeft = Unit.NullValue;
 
-  /// <summary>
-  /// Gets or sets the distance between the right side of the shape with the adjacent text.
-  /// </summary>
-  public Unit DistanceRight
-  {
-    get => this.distanceRight;
-    set => this.distanceRight = value;
-  }
-  /// <summary>Backing field for <see cref="DistanceRight"/>.</summary>
-  [DV]
-  protected Unit distanceRight = Unit.NullValue;
-  #endregion
+    /// <summary>
+    /// Gets or sets the distance between the right side of the shape with the adjacent text.
+    /// </summary>
+    public Unit DistanceRight
+    {
+        get => this.distanceRight;
+        set => this.distanceRight = value;
+    }
+    /// <summary>Backing field for <see cref="DistanceRight"/>.</summary>
+    [DV]
+    protected Unit distanceRight = Unit.NullValue;
+    #endregion
 
-  #region Internal
-  /// <summary>
-  /// Converts WrapFormat into DDL.
-  /// </summary>
-  internal override void Serialize(Serializer serializer)
-  {
-    int pos = serializer.BeginContent("WrapFormat");
-    if (this.style != null)
-      serializer.WriteSimpleAttribute("Style", this.Style);
-    if (!this.distanceTop.IsNull)
-      serializer.WriteSimpleAttribute("DistanceTop", this.DistanceTop);
-    if (!this.distanceLeft.IsNull)
-      serializer.WriteSimpleAttribute("DistanceLeft", this.DistanceLeft);
-    if (!this.distanceRight.IsNull)
-      serializer.WriteSimpleAttribute("DistanceRight", this.DistanceRight);
-    if (!this.distanceBottom.IsNull)
-      serializer.WriteSimpleAttribute("DistanceBottom", this.DistanceBottom);
-    serializer.EndContent();
-  }
+    #region Internal
+    /// <summary>
+    /// Converts WrapFormat into DDL.
+    /// </summary>
+    internal override void Serialize(Serializer serializer)
+    {
+        int pos = serializer.BeginContent("WrapFormat");
+        if (this.style != null)
+            serializer.WriteSimpleAttribute("Style", this.Style);
+        if (!this.distanceTop.IsNull)
+            serializer.WriteSimpleAttribute("DistanceTop", this.DistanceTop);
+        if (!this.distanceLeft.IsNull)
+            serializer.WriteSimpleAttribute("DistanceLeft", this.DistanceLeft);
+        if (!this.distanceRight.IsNull)
+            serializer.WriteSimpleAttribute("DistanceRight", this.DistanceRight);
+        if (!this.distanceBottom.IsNull)
+            serializer.WriteSimpleAttribute("DistanceBottom", this.DistanceBottom);
+        serializer.EndContent();
+    }
 
-  #endregion
+    #endregion
 }

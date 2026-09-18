@@ -41,81 +41,81 @@ namespace PinataLayout.DocumentObjectModel.Fields;
 /// </summary>
 public partial class InfoField : DocumentObject
 {
-  /// <summary>
-  /// Initializes a new instance of the InfoField class.
-  /// </summary>
-  internal InfoField()
-  {
-  }
-
-  /// <summary>
-  /// Initializes a new instance of the InfoField class with the specified parent.
-  /// </summary>
-  internal InfoField(DocumentObject parent) : base(parent) { }
-
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new InfoField Clone()
-  {
-    return (InfoField)DeepCopy();
-  }
-  #endregion
-
-  #region Properties
-  /// <summary>
-  /// Gets or sets the name of the information to be shown in the field.
-  /// </summary>
-  public string Name
-  {
-    get => this.name ?? "";
-    set
+    /// <summary>
+    /// Initializes a new instance of the InfoField class.
+    /// </summary>
+    internal InfoField()
     {
-      if (IsValidName(value))
-        this.name = value;
-      else
-        throw new ArgumentException(DomSR.InvalidInfoFieldName(value));
     }
-  }
-  [DV]
-  internal string name;
-  #endregion
 
-  /// <summary>
-  /// Determines whether the name is a valid InfoFieldType.
-  /// </summary>
-  private bool IsValidName(string name)
-  {
-    foreach (string validName in validNames)
+    /// <summary>
+    /// Initializes a new instance of the InfoField class with the specified parent.
+    /// </summary>
+    internal InfoField(DocumentObject parent) : base(parent) { }
+
+    #region Methods
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new InfoField Clone()
     {
-      if (String.Compare(validName, name, true) == 0)
-        return true;
+        return (InfoField)DeepCopy();
     }
-    return false;
-  }
-  private static string[] validNames = Enum.GetNames(typeof(InfoFieldType));
+    #endregion
 
-  /// <summary>
-  /// Determines whether this instance is null (not set).
-  /// </summary>
-  public override bool IsNull()
-  {
-    return false;
-  }
-  #region Internal
-  /// <summary>
-  /// Converts InfoField into DDL.
-  /// </summary>
-  internal override void Serialize(Serializer serializer)
-  {
-    string str = "\\field(Info)";
-    if (this.Name == "")
-      throw new InvalidOperationException(DomSR.MissingObligatoryProperty("Name", "InfoField"));
-    str += "[Name = \"" + this.Name + "\"]";
+    #region Properties
+    /// <summary>
+    /// Gets or sets the name of the information to be shown in the field.
+    /// </summary>
+    public string Name
+    {
+        get => this.name ?? "";
+        set
+        {
+            if (IsValidName(value))
+                this.name = value;
+            else
+                throw new ArgumentException(DomSR.InvalidInfoFieldName(value));
+        }
+    }
+    [DV]
+    internal string name;
+    #endregion
 
-    serializer.Write(str);
-  }
+    /// <summary>
+    /// Determines whether the name is a valid InfoFieldType.
+    /// </summary>
+    private bool IsValidName(string name)
+    {
+        foreach (string validName in validNames)
+        {
+            if (String.Compare(validName, name, true) == 0)
+                return true;
+        }
+        return false;
+    }
+    private static string[] validNames = Enum.GetNames(typeof(InfoFieldType));
 
-  #endregion
+    /// <summary>
+    /// Determines whether this instance is null (not set).
+    /// </summary>
+    public override bool IsNull()
+    {
+        return false;
+    }
+    #region Internal
+    /// <summary>
+    /// Converts InfoField into DDL.
+    /// </summary>
+    internal override void Serialize(Serializer serializer)
+    {
+        string str = "\\field(Info)";
+        if (this.Name == "")
+            throw new InvalidOperationException(DomSR.MissingObligatoryProperty("Name", "InfoField"));
+        str += "[Name = \"" + this.Name + "\"]";
+
+        serializer.Write(str);
+    }
+
+    #endregion
 }

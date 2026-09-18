@@ -41,152 +41,152 @@ namespace PinataLayout.Rendering;
 /// </summary>
 internal class FormattedCell : IAreaProvider
 {
-  internal FormattedCell(Cell cell, DocumentRenderer documentRenderer, Borders cellBorders, FieldInfos fieldInfos, XUnit xOffset, XUnit yOffset)
-  {
-    this.cell = cell;
-    this.fieldInfos = fieldInfos;
-    this.yOffset = yOffset;
-    this.xOffset = xOffset;
-    bordersRenderer = new BordersRenderer(cellBorders, null);
-    this.documentRenderer = documentRenderer;
-  }
-
-  bool isFirstArea = true;
-  Area IAreaProvider.GetNextArea()
-  {
-    if (isFirstArea)
+    internal FormattedCell(Cell cell, DocumentRenderer documentRenderer, Borders cellBorders, FieldInfos fieldInfos, XUnit xOffset, XUnit yOffset)
     {
-      Rectangle rect = CalcContentRect();
-      isFirstArea = false;
-      return rect;
-    }
-    return null;
-  }
-
-  Area IAreaProvider.ProbeNextArea()
-  {
-    return null;
-  }
-
-  internal void Format(XGraphics gfx)
-  {
-    this.gfx = gfx;
-    formatter = new TopDownFormatter(this, documentRenderer, cell.Elements);
-    formatter.FormatOnAreas(gfx, false);
-    contentHeight = CalcContentHeight(documentRenderer);
-  }
-
-  private Rectangle CalcContentRect()
-  {
-    Column column = cell.Column;
-    XUnit width = InnerWidth;
-    width -= column.LeftPadding.Point;
-    Column rightColumn = cell.Table.Columns[column.Index + cell.MergeRight];
-    width -= rightColumn.RightPadding.Point;
-
-    XUnit height = double.MaxValue;
-    return new Rectangle(xOffset, yOffset, width, height);
-  }
-
-  internal XUnit ContentHeight => contentHeight;
-
-  internal XUnit InnerHeight
-  {
-    get
-    {
-      Row row = cell.Row;
-      XUnit verticalPadding = row.TopPadding.Point;
-      verticalPadding += row.BottomPadding.Point;
-
-      switch (row.HeightRule)
-      {
-        case RowHeightRule.Exactly:
-          return row.Height.Point;
-
-        case RowHeightRule.Auto:
-          return verticalPadding + contentHeight;
-
-        case RowHeightRule.AtLeast:
-        default:
-          return Math.Max(row.Height, verticalPadding + contentHeight);
-      }
-    }
-  }
-
-  internal XUnit InnerWidth
-  {
-    get
-    {
-      XUnit width = 0;
-      int cellColumnIdx = cell.Column.Index;
-      for (int toRight = 0; toRight <= cell.MergeRight; ++toRight)
-      {
-        int columnIdx = cellColumnIdx + toRight;
-        width += cell.Table.Columns[columnIdx].Width;
-      }
-      width -= bordersRenderer.GetWidth(BorderType.Right);
-
-      return width;
-    }
-  }
-
-  FieldInfos IAreaProvider.AreaFieldInfos => fieldInfos;
-
-  void IAreaProvider.StoreRenderInfos(ArrayList renderInfos)
-  {
-    this.renderInfos = renderInfos;
-  }
-
-  bool IAreaProvider.IsAreaBreakBefore(LayoutInfo layoutInfo)
-  {
-    return false;
-  }
-
-  bool IAreaProvider.PositionVertically(LayoutInfo layoutInfo)
-  {
-    return false;
-  }
-
-  bool IAreaProvider.PositionHorizontally(LayoutInfo layoutInfo)
-  {
-    return false;
-  }
-
-  private XUnit CalcContentHeight(DocumentRenderer documentRenderer)
-  {
-    XUnit height = RenderInfo.GetTotalHeight(GetRenderInfos());
-    if (height == 0)
-    {
-      height = ParagraphRenderer.GetLineHeight(cell.Format, gfx, documentRenderer);
-      height += cell.Format.SpaceBefore;
-      height += cell.Format.SpaceAfter;
-    }
-    return height;
-  }
-
-  XUnit contentHeight = 0;
-
-  internal RenderInfo[] GetRenderInfos()
-  {
-    if (renderInfos != null)
-    {
-      // Not ToArray(Type): it builds the array type at run time, which carries
-      // RequiresDynamicCode and an AOT compiler cannot always have code for.
-      var result = new RenderInfo[renderInfos.Count];
-      renderInfos.CopyTo(result);
-      return result;
+        this.cell = cell;
+        this.fieldInfos = fieldInfos;
+        this.yOffset = yOffset;
+        this.xOffset = xOffset;
+        bordersRenderer = new BordersRenderer(cellBorders, null);
+        this.documentRenderer = documentRenderer;
     }
 
-    return null;
-  }
+    bool isFirstArea = true;
+    Area IAreaProvider.GetNextArea()
+    {
+        if (isFirstArea)
+        {
+            Rectangle rect = CalcContentRect();
+            isFirstArea = false;
+            return rect;
+        }
+        return null;
+    }
 
-  private FieldInfos fieldInfos;
-  private ArrayList renderInfos;
-  private XUnit xOffset;
-  private XUnit yOffset;
-  private Cell cell;
-  private TopDownFormatter formatter;
-  BordersRenderer bordersRenderer;
-  XGraphics gfx;
-  DocumentRenderer documentRenderer;
+    Area IAreaProvider.ProbeNextArea()
+    {
+        return null;
+    }
+
+    internal void Format(XGraphics gfx)
+    {
+        this.gfx = gfx;
+        formatter = new TopDownFormatter(this, documentRenderer, cell.Elements);
+        formatter.FormatOnAreas(gfx, false);
+        contentHeight = CalcContentHeight(documentRenderer);
+    }
+
+    private Rectangle CalcContentRect()
+    {
+        Column column = cell.Column;
+        XUnit width = InnerWidth;
+        width -= column.LeftPadding.Point;
+        Column rightColumn = cell.Table.Columns[column.Index + cell.MergeRight];
+        width -= rightColumn.RightPadding.Point;
+
+        XUnit height = double.MaxValue;
+        return new Rectangle(xOffset, yOffset, width, height);
+    }
+
+    internal XUnit ContentHeight => contentHeight;
+
+    internal XUnit InnerHeight
+    {
+        get
+        {
+            Row row = cell.Row;
+            XUnit verticalPadding = row.TopPadding.Point;
+            verticalPadding += row.BottomPadding.Point;
+
+            switch (row.HeightRule)
+            {
+                case RowHeightRule.Exactly:
+                    return row.Height.Point;
+
+                case RowHeightRule.Auto:
+                    return verticalPadding + contentHeight;
+
+                case RowHeightRule.AtLeast:
+                default:
+                    return Math.Max(row.Height, verticalPadding + contentHeight);
+            }
+        }
+    }
+
+    internal XUnit InnerWidth
+    {
+        get
+        {
+            XUnit width = 0;
+            int cellColumnIdx = cell.Column.Index;
+            for (int toRight = 0; toRight <= cell.MergeRight; ++toRight)
+            {
+                int columnIdx = cellColumnIdx + toRight;
+                width += cell.Table.Columns[columnIdx].Width;
+            }
+            width -= bordersRenderer.GetWidth(BorderType.Right);
+
+            return width;
+        }
+    }
+
+    FieldInfos IAreaProvider.AreaFieldInfos => fieldInfos;
+
+    void IAreaProvider.StoreRenderInfos(ArrayList renderInfos)
+    {
+        this.renderInfos = renderInfos;
+    }
+
+    bool IAreaProvider.IsAreaBreakBefore(LayoutInfo layoutInfo)
+    {
+        return false;
+    }
+
+    bool IAreaProvider.PositionVertically(LayoutInfo layoutInfo)
+    {
+        return false;
+    }
+
+    bool IAreaProvider.PositionHorizontally(LayoutInfo layoutInfo)
+    {
+        return false;
+    }
+
+    private XUnit CalcContentHeight(DocumentRenderer documentRenderer)
+    {
+        XUnit height = RenderInfo.GetTotalHeight(GetRenderInfos());
+        if (height == 0)
+        {
+            height = ParagraphRenderer.GetLineHeight(cell.Format, gfx, documentRenderer);
+            height += cell.Format.SpaceBefore;
+            height += cell.Format.SpaceAfter;
+        }
+        return height;
+    }
+
+    XUnit contentHeight = 0;
+
+    internal RenderInfo[] GetRenderInfos()
+    {
+        if (renderInfos != null)
+        {
+            // Not ToArray(Type): it builds the array type at run time, which carries
+            // RequiresDynamicCode and an AOT compiler cannot always have code for.
+            var result = new RenderInfo[renderInfos.Count];
+            renderInfos.CopyTo(result);
+            return result;
+        }
+
+        return null;
+    }
+
+    private FieldInfos fieldInfos;
+    private ArrayList renderInfos;
+    private XUnit xOffset;
+    private XUnit yOffset;
+    private Cell cell;
+    private TopDownFormatter formatter;
+    BordersRenderer bordersRenderer;
+    XGraphics gfx;
+    DocumentRenderer documentRenderer;
 }

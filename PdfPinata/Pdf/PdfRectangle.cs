@@ -1,4 +1,4 @@
-﻿#region PDFsharp - A .NET library for processing PDF
+#region PDFsharp - A .NET library for processing PDF
 //
 // Authors:
 //   Stefan Lange
@@ -311,7 +311,7 @@ public sealed class PdfRectangle : PdfItem
     /// </summary>
     // ReSharper disable UnusedMember.Local
     string DebuggerDisplay
-        // ReSharper restore UnusedMember.Local
+    // ReSharper restore UnusedMember.Local
     {
         get
         {

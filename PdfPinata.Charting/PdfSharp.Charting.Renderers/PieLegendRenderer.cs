@@ -37,59 +37,59 @@ namespace PdfPinata.Charting.Renderers;
 /// </summary>
 internal class PieLegendRenderer : LegendRenderer
 {
-  /// <summary>
-  /// Initializes a new instance of the PieLegendRenderer class with the specified renderer
-  /// parameters.
-  /// </summary>
-  internal PieLegendRenderer(RendererParameters parms)
-    : base(parms)
-  { }
+    /// <summary>
+    /// Initializes a new instance of the PieLegendRenderer class with the specified renderer
+    /// parameters.
+    /// </summary>
+    internal PieLegendRenderer(RendererParameters parms)
+      : base(parms)
+    { }
 
-  /// <summary>
-  /// Initializes the legend's renderer info. Each data point will be represented through
-  /// a legend entry renderer info.
-  /// </summary>
-  internal override RendererInfo Init()
-  {
-    LegendRendererInfo lri = null;
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    if (cri.chart.legend != null)
+    /// <summary>
+    /// Initializes the legend's renderer info. Each data point will be represented through
+    /// a legend entry renderer info.
+    /// </summary>
+    internal override RendererInfo Init()
     {
-      lri = new LegendRendererInfo();
-      lri.legend = cri.chart.legend;
-
-      lri.Font = Converter.ToXFont(lri.legend.font, cri.DefaultFont);
-      lri.FontColor = new XSolidBrush(XColors.Black);
-
-      if (lri.legend.lineFormat != null)
-        lri.BorderPen = Converter.ToXPen(lri.legend.lineFormat, XColors.Black, DefaultLineWidth, XDashStyle.Solid);
-
-      XSeries xseries = null;
-      if (cri.chart.xValues != null)
-        xseries = cri.chart.xValues[0];
-
-      int index = 0;
-      SeriesRendererInfo sri = cri.seriesRendererInfos[0];
-      lri.Entries = new LegendEntryRendererInfo[sri.pointRendererInfos.Length];
-      foreach (PointRendererInfo pri in sri.pointRendererInfos)
-      {
-        LegendEntryRendererInfo leri = new LegendEntryRendererInfo();
-        leri.seriesRendererInfo = sri;
-        leri.legendRendererInfo = lri;
-        leri.EntryText = string.Empty;
-        if (xseries != null)
+        LegendRendererInfo lri = null;
+        ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+        if (cri.chart.legend != null)
         {
-          if (xseries.Count > index)
-            leri.EntryText = xseries[index].Value;
-        }
-        else
-          leri.EntryText = (index + 1).ToString(CultureInfo.InvariantCulture); // create default/dummy entry
-        leri.MarkerPen = pri.LineFormat;
-        leri.MarkerBrush = pri.FillFormat;
+            lri = new LegendRendererInfo();
+            lri.legend = cri.chart.legend;
 
-        lri.Entries[index++] = leri;
-      }
+            lri.Font = Converter.ToXFont(lri.legend.font, cri.DefaultFont);
+            lri.FontColor = new XSolidBrush(XColors.Black);
+
+            if (lri.legend.lineFormat != null)
+                lri.BorderPen = Converter.ToXPen(lri.legend.lineFormat, XColors.Black, DefaultLineWidth, XDashStyle.Solid);
+
+            XSeries xseries = null;
+            if (cri.chart.xValues != null)
+                xseries = cri.chart.xValues[0];
+
+            int index = 0;
+            SeriesRendererInfo sri = cri.seriesRendererInfos[0];
+            lri.Entries = new LegendEntryRendererInfo[sri.pointRendererInfos.Length];
+            foreach (PointRendererInfo pri in sri.pointRendererInfos)
+            {
+                LegendEntryRendererInfo leri = new LegendEntryRendererInfo();
+                leri.seriesRendererInfo = sri;
+                leri.legendRendererInfo = lri;
+                leri.EntryText = string.Empty;
+                if (xseries != null)
+                {
+                    if (xseries.Count > index)
+                        leri.EntryText = xseries[index].Value;
+                }
+                else
+                    leri.EntryText = (index + 1).ToString(CultureInfo.InvariantCulture); // create default/dummy entry
+                leri.MarkerPen = pri.LineFormat;
+                leri.MarkerBrush = pri.FillFormat;
+
+                lri.Entries[index++] = leri;
+            }
+        }
+        return lri;
     }
-    return lri;
-  }
 }

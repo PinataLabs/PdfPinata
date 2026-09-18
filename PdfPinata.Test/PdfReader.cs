@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Reflection;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;

@@ -37,16 +37,16 @@ namespace PinataLayout.DocumentObjectModel;
 /// </summary>
 public enum ListType
 {
-  /// <summary>A bulleted list at the first level of indentation.</summary>
-  BulletList1,
-  /// <summary>A bulleted list at the second level of indentation.</summary>
-  BulletList2,
-  /// <summary>A bulleted list at the third level of indentation.</summary>
-  BulletList3,
-  /// <summary>A numbered list at the first level of indentation.</summary>
-  NumberList1,
-  /// <summary>A numbered list at the second level of indentation.</summary>
-  NumberList2,
-  /// <summary>A numbered list at the third level of indentation.</summary>
-  NumberList3
+    /// <summary>A bulleted list at the first level of indentation.</summary>
+    BulletList1,
+    /// <summary>A bulleted list at the second level of indentation.</summary>
+    BulletList2,
+    /// <summary>A bulleted list at the third level of indentation.</summary>
+    BulletList3,
+    /// <summary>A numbered list at the first level of indentation.</summary>
+    NumberList1,
+    /// <summary>A numbered list at the second level of indentation.</summary>
+    NumberList2,
+    /// <summary>A numbered list at the third level of indentation.</summary>
+    NumberList3
 }

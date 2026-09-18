@@ -39,15 +39,15 @@ namespace PinataLayout.Rendering;
 /// </summary>
 internal struct VerticalLineInfo
 {
-  internal VerticalLineInfo(XUnit height, XUnit descent, XUnit inherentlineSpace)
-  {
-    this.height = height;
-    this.descent = descent;
-    this.inherentlineSpace = inherentlineSpace;
-  }
-  internal XUnit height;
-  internal XUnit descent;
-  internal XUnit inherentlineSpace;
+    internal VerticalLineInfo(XUnit height, XUnit descent, XUnit inherentlineSpace)
+    {
+        this.height = height;
+        this.descent = descent;
+        this.inherentlineSpace = inherentlineSpace;
+    }
+    internal XUnit height;
+    internal XUnit descent;
+    internal XUnit inherentlineSpace;
 }
 
 /// <summary>
@@ -55,37 +55,37 @@ internal struct VerticalLineInfo
 /// </summary>
 internal struct LineInfo
 {
-  internal ParagraphIterator startIter;
-  internal ParagraphIterator endIter;
-  internal XUnit wordsWidth;
-  internal XUnit lineWidth;
-  internal int blankCount;
-  internal VerticalLineInfo vertical;
-  internal ArrayList tabOffsets;
-  internal bool reMeasureLine;
-  internal DocumentObject lastTab;
+    internal ParagraphIterator startIter;
+    internal ParagraphIterator endIter;
+    internal XUnit wordsWidth;
+    internal XUnit lineWidth;
+    internal int blankCount;
+    internal VerticalLineInfo vertical;
+    internal ArrayList tabOffsets;
+    internal bool reMeasureLine;
+    internal DocumentObject lastTab;
 
-  /// <summary>
-  /// The measure this line was broken to, where the area it was broken against had something
-  /// standing in it. Null otherwise, and null is the ordinary case.
-  /// </summary>
-  /// <remarks>
-  /// <para>
-  /// The rendering phase asks the paragraph's content area for this again, one line at a time.
-  /// That works only while the content area answers the same question the formatting area did,
-  /// and beside a floating shape it does not: the content area is accumulated by <c>Unite</c>,
-  /// which takes bounding boxes, so a paragraph straddling the foot of the shape ends up with a
-  /// content area spanning the full measure. Its overlapping lines were then broken narrow and
-  /// drawn wide - short lines starting at the margin, drawn across the shape.
-  /// </para>
-  /// <para>
-  /// So the line carries the answer forward, but <b>only for an obstructed area</b>. Everywhere
-  /// else the content area is the better source because it is the later one: a table formats its
-  /// cells in one place and renders them in another, and a rect kept from formatting would put
-  /// the cell's text back where the cell used to be.
-  /// </para>
-  /// </remarks>
-  internal Rectangle fittingRect;
+    /// <summary>
+    /// The measure this line was broken to, where the area it was broken against had something
+    /// standing in it. Null otherwise, and null is the ordinary case.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The rendering phase asks the paragraph's content area for this again, one line at a time.
+    /// That works only while the content area answers the same question the formatting area did,
+    /// and beside a floating shape it does not: the content area is accumulated by <c>Unite</c>,
+    /// which takes bounding boxes, so a paragraph straddling the foot of the shape ends up with a
+    /// content area spanning the full measure. Its overlapping lines were then broken narrow and
+    /// drawn wide - short lines starting at the margin, drawn across the shape.
+    /// </para>
+    /// <para>
+    /// So the line carries the answer forward, but <b>only for an obstructed area</b>. Everywhere
+    /// else the content area is the better source because it is the later one: a table formats its
+    /// cells in one place and renders them in another, and a rect kept from formatting would put
+    /// the cell's text back where the cell used to be.
+    /// </para>
+    /// </remarks>
+    internal Rectangle fittingRect;
 }
 
 /// <summary>
@@ -93,99 +93,99 @@ internal struct LineInfo
 /// </summary>
 internal class ParagraphFormatInfo : FormatInfo
 {
-  ArrayList lineInfos = new ArrayList();
+    ArrayList lineInfos = new ArrayList();
 
-  internal LineInfo GetLineInfo(int lineIdx)
-  {
-    return (LineInfo)lineInfos[lineIdx];
-  }
-
-  internal LineInfo GetLastLineInfo()
-  {
-    return (LineInfo)lineInfos[LineCount - 1];
-  }
-
-  internal LineInfo GetFirstLineInfo()
-  {
-    return (LineInfo)lineInfos[0];
-  }
-
-  internal void AddLineInfo(LineInfo lineInfo)
-  {
-    lineInfos.Add(lineInfo);
-  }
-
-  internal int LineCount => lineInfos.Count;
-
-  /// <summary>
-  /// 
-  /// </summary>
-  /// <param name="mergeInfo"></param>
-  /// <returns></returns>
-  internal void Append(FormatInfo mergeInfo)
-  {
-    ParagraphFormatInfo formatInfo = (ParagraphFormatInfo)mergeInfo;
-    lineInfos.AddRange(formatInfo.lineInfos);
-  }
-
-  /// <summary>
-  /// Indicates whether the paragraph is ending.
-  /// </summary>
-  /// <returns>True if the paragraph is ending.</returns>
-  internal override bool IsEnding => isEnding;
-
-  internal bool isEnding;
-
-  /// <summary>
-  /// Indicates whether the paragraph is starting.
-  /// </summary>
-  /// <returns>True if the paragraph is starting.</returns>
-  internal override bool IsStarting => isStarting;
-
-  internal bool isStarting;
-
-  internal override bool IsComplete => isStarting && isEnding;
-
-  internal override bool IsEmpty => lineInfos.Count == 0;
-
-  internal override bool StartingIsComplete
-  {
-    get
+    internal LineInfo GetLineInfo(int lineIdx)
     {
-      if (widowControl)
-        return (IsComplete || (isStarting && lineInfos.Count >= 2));
-      else
-        return isStarting;
+        return (LineInfo)lineInfos[lineIdx];
     }
-  }
 
-  internal bool widowControl;
-
-  internal override bool EndingIsComplete
-  {
-    get
+    internal LineInfo GetLastLineInfo()
     {
-      if (widowControl)
-        return (IsComplete || (isEnding && lineInfos.Count >= 2));
-      else
-        return isEnding;
+        return (LineInfo)lineInfos[LineCount - 1];
     }
-  }
 
-  internal void RemoveEnding()
-  {
-    if (!IsEmpty)
+    internal LineInfo GetFirstLineInfo()
     {
-      if (widowControl && isEnding && LineCount >= 2)
-        lineInfos.RemoveAt(LineCount - 2);
-      if (LineCount > 0)
-        lineInfos.RemoveAt(LineCount - 1);
-
-      isEnding = false;
+        return (LineInfo)lineInfos[0];
     }
-  }
 
-  internal string listSymbol;
-  internal XFont listFont;
-  internal Hashtable imageRenderInfos;
+    internal void AddLineInfo(LineInfo lineInfo)
+    {
+        lineInfos.Add(lineInfo);
+    }
+
+    internal int LineCount => lineInfos.Count;
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="mergeInfo"></param>
+    /// <returns></returns>
+    internal void Append(FormatInfo mergeInfo)
+    {
+        ParagraphFormatInfo formatInfo = (ParagraphFormatInfo)mergeInfo;
+        lineInfos.AddRange(formatInfo.lineInfos);
+    }
+
+    /// <summary>
+    /// Indicates whether the paragraph is ending.
+    /// </summary>
+    /// <returns>True if the paragraph is ending.</returns>
+    internal override bool IsEnding => isEnding;
+
+    internal bool isEnding;
+
+    /// <summary>
+    /// Indicates whether the paragraph is starting.
+    /// </summary>
+    /// <returns>True if the paragraph is starting.</returns>
+    internal override bool IsStarting => isStarting;
+
+    internal bool isStarting;
+
+    internal override bool IsComplete => isStarting && isEnding;
+
+    internal override bool IsEmpty => lineInfos.Count == 0;
+
+    internal override bool StartingIsComplete
+    {
+        get
+        {
+            if (widowControl)
+                return (IsComplete || (isStarting && lineInfos.Count >= 2));
+            else
+                return isStarting;
+        }
+    }
+
+    internal bool widowControl;
+
+    internal override bool EndingIsComplete
+    {
+        get
+        {
+            if (widowControl)
+                return (IsComplete || (isEnding && lineInfos.Count >= 2));
+            else
+                return isEnding;
+        }
+    }
+
+    internal void RemoveEnding()
+    {
+        if (!IsEmpty)
+        {
+            if (widowControl && isEnding && LineCount >= 2)
+                lineInfos.RemoveAt(LineCount - 2);
+            if (LineCount > 0)
+                lineInfos.RemoveAt(LineCount - 1);
+
+            isEnding = false;
+        }
+    }
+
+    internal string listSymbol;
+    internal XFont listFont;
+    internal Hashtable imageRenderInfos;
 }

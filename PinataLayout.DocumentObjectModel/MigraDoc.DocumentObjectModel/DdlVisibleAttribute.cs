@@ -40,43 +40,43 @@ namespace PinataLayout.DocumentObjectModel;
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
 internal class DdlVisibleAttribute : Attribute
 {
-  /// <summary>
-  /// Initializes a new instance of the DdlVisibleAttribute class.
-  /// </summary>
-  public DdlVisibleAttribute()
-  {
-    visible = true;
-  }
+    /// <summary>
+    /// Initializes a new instance of the DdlVisibleAttribute class.
+    /// </summary>
+    public DdlVisibleAttribute()
+    {
+        visible = true;
+    }
 
-  /// <summary>
-  /// Initializes a new instance of the DdlVisibleAttribute class with the specified visibility.
-  /// </summary>
-  public DdlVisibleAttribute(bool _visible)
-  {
-    visible = _visible;
-  }
+    /// <summary>
+    /// Initializes a new instance of the DdlVisibleAttribute class with the specified visibility.
+    /// </summary>
+    public DdlVisibleAttribute(bool _visible)
+    {
+        visible = _visible;
+    }
 
-  /// <summary>
-  /// Gets or sets the visibility.
-  /// </summary>
-  public bool Visible
-  {
-    get => visible;
-    set => visible = value;
-  }
-  bool visible;
+    /// <summary>
+    /// Gets or sets the visibility.
+    /// </summary>
+    public bool Visible
+    {
+        get => visible;
+        set => visible = value;
+    }
+    bool visible;
 
-  public bool CanAddValue
-  {
-    get => canAddValue;
-    set => canAddValue = value;
-  }
-  bool canAddValue;
+    public bool CanAddValue
+    {
+        get => canAddValue;
+        set => canAddValue = value;
+    }
+    bool canAddValue;
 
-  public bool CanRemoveValue
-  {
-    get => canRemoveValue;
-    set => canRemoveValue = value;
-  }
-  bool canRemoveValue;
+    public bool CanRemoveValue
+    {
+        get => canRemoveValue;
+        set => canRemoveValue = value;
+    }
+    bool canRemoveValue;
 }

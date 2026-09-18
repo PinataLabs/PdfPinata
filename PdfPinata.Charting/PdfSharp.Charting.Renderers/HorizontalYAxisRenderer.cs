@@ -34,11 +34,11 @@ namespace PdfPinata.Charting.Renderers;
 /// </summary>
 internal class HorizontalYAxisRenderer : YAxisRenderer
 {
-  /// <summary>
-  /// Initializes a new instance of the HorizontalYAxisRenderer class with the
-  /// specified renderer parameters.
-  /// </summary>
-  internal HorizontalYAxisRenderer(RendererParameters parms) : base(parms, AxisOrientation.Horizontal)
-  {
-  }
+    /// <summary>
+    /// Initializes a new instance of the HorizontalYAxisRenderer class with the
+    /// specified renderer parameters.
+    /// </summary>
+    internal HorizontalYAxisRenderer(RendererParameters parms) : base(parms, AxisOrientation.Horizontal)
+    {
+    }
 }

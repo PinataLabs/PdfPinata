@@ -202,17 +202,17 @@ public sealed class PdfResources : PdfDictionary
     PdfResourceMap _colorSpaces;
 
     // TODO: make own class
-    internal PdfResourceMap Patterns => _patterns ??= (PdfResourceMap) Elements.GetValue(Keys.Pattern, VCF.Create);
+    internal PdfResourceMap Patterns => _patterns ??= (PdfResourceMap)Elements.GetValue(Keys.Pattern, VCF.Create);
 
     PdfResourceMap _patterns;
 
     // TODO: make own class
-    internal PdfResourceMap Shadings => _shadings ??= (PdfResourceMap) Elements.GetValue(Keys.Shading, VCF.Create);
+    internal PdfResourceMap Shadings => _shadings ??= (PdfResourceMap)Elements.GetValue(Keys.Shading, VCF.Create);
 
     PdfResourceMap _shadings;
 
     // TODO: make own class
-    internal PdfResourceMap Properties => _properties ??= (PdfResourceMap) Elements.GetValue(Keys.Properties, VCF.Create);
+    internal PdfResourceMap Properties => _properties ??= (PdfResourceMap)Elements.GetValue(Keys.Properties, VCF.Create);
 
     PdfResourceMap _properties;
 

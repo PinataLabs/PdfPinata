@@ -34,11 +34,11 @@ namespace PdfPinata.Charting.Renderers;
 /// </summary>
 internal abstract class GridlinesRenderer : Renderer
 {
-  /// <summary>
-  /// Initializes a new instance of the GridlinesRenderer class with the specified renderer parameters.
-  /// </summary>
-  internal GridlinesRenderer(RendererParameters parms)
-    : base(parms)
-  {
-  }
+    /// <summary>
+    /// Initializes a new instance of the GridlinesRenderer class with the specified renderer parameters.
+    /// </summary>
+    internal GridlinesRenderer(RendererParameters parms)
+      : base(parms)
+    {
+    }
 }

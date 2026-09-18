@@ -91,7 +91,8 @@ internal static class FormatterOutput
             f.Columns = 3;
             f.ColumnGap = 12;
             f.Alignment = XParagraphAlignment.Justify;
-        });
+        }
+        );
         yield return ("ellipsis", f => f.Ellipsis = XTextFormatter.DefaultEllipsis);
         yield return ("no line break", f => f.LineBreak = false);
         yield return ("vertical overflow", f => f.AllowVerticalOverflow = true);
@@ -103,7 +104,8 @@ internal static class FormatterOutput
             f.Columns = 2;
             f.Indent = 14;
             f.Alignment = XParagraphAlignment.Justify;
-        });
+        }
+        );
     }
 
     /// <summary>

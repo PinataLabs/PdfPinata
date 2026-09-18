@@ -34,44 +34,44 @@ namespace PdfPinata.Charting;
 /// </summary>
 public enum MarkerStyle
 {
-  /// <summary>
-  /// 
-  /// </summary>
-  None,
-  /// <summary>
-  /// 
-  /// </summary>
-  Circle,
-  /// <summary>
-  /// 
-  /// </summary>
-  Dash,
-  /// <summary>
-  /// 
-  /// </summary>
-  Diamond,
-  /// <summary>
-  /// 
-  /// </summary>
-  Dot,
-  /// <summary>
-  /// 
-  /// </summary>
-  Plus,
-  /// <summary>
-  /// 
-  /// </summary>
-  Square,
-  /// <summary>
-  /// 
-  /// </summary>
-  Star,
-  /// <summary>
-  /// 
-  /// </summary>
-  Triangle,
-  /// <summary>
-  /// 
-  /// </summary>
-  X
+    /// <summary>
+    /// 
+    /// </summary>
+    None,
+    /// <summary>
+    /// 
+    /// </summary>
+    Circle,
+    /// <summary>
+    /// 
+    /// </summary>
+    Dash,
+    /// <summary>
+    /// 
+    /// </summary>
+    Diamond,
+    /// <summary>
+    /// 
+    /// </summary>
+    Dot,
+    /// <summary>
+    /// 
+    /// </summary>
+    Plus,
+    /// <summary>
+    /// 
+    /// </summary>
+    Square,
+    /// <summary>
+    /// 
+    /// </summary>
+    Star,
+    /// <summary>
+    /// 
+    /// </summary>
+    Triangle,
+    /// <summary>
+    /// 
+    /// </summary>
+    X
 }

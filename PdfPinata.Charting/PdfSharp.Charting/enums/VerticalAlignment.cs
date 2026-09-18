@@ -34,18 +34,18 @@ namespace PdfPinata.Charting;
 /// </summary>
 public enum VerticalAlignment
 {
-  /// <summary>
-  /// Axis title will be top aligned.
-  /// </summary>
-  Top,
-    
-  /// <summary>
-  /// Axis title will be centered.
-  /// </summary>
-  Center,
-    
-  /// <summary>
-  /// Axis title will be bottom aligned.
-  /// </summary>
-  Bottom
+    /// <summary>
+    /// Axis title will be top aligned.
+    /// </summary>
+    Top,
+
+    /// <summary>
+    /// Axis title will be centered.
+    /// </summary>
+    Center,
+
+    /// <summary>
+    /// Axis title will be bottom aligned.
+    /// </summary>
+    Bottom
 }

@@ -37,18 +37,18 @@ namespace PinataLayout.DocumentObjectModel;
 /// </summary>
 public enum FootnoteNumberingRule
 {
-  /// <summary>
-  /// Numbering of the footnote restarts on each page.
-  /// </summary>
-  RestartPage,
+    /// <summary>
+    /// Numbering of the footnote restarts on each page.
+    /// </summary>
+    RestartPage,
 
-  /// <summary>
-  /// Numbering does not restart, each new footnote number will be incremented by 1.
-  /// </summary>
-  RestartContinuous,
+    /// <summary>
+    /// Numbering does not restart, each new footnote number will be incremented by 1.
+    /// </summary>
+    RestartContinuous,
 
-  /// <summary>
-  /// Numbering of the footnote restarts on each section.
-  /// </summary>
-  RestartSection
+    /// <summary>
+    /// Numbering of the footnote restarts on each section.
+    /// </summary>
+    RestartSection
 }

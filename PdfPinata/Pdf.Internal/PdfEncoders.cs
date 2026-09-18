@@ -304,7 +304,7 @@ internal static class PdfEncoders
         }
         else
         {
-            Hex:
+        Hex:
             if (hex)
             {
                 pdf.Append(prefix ? "<FEFF" : "<");
@@ -509,13 +509,13 @@ internal static class PdfEncoders
                     color.C, color.M, color.Y, color.K);
 
             default:
-            {
-                if (withAlpha)
-                    return String.Format(CultureInfo.InvariantCulture, "{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "}", color.R / 255.0, color.G / 255.0, color.B / 255.0, color.A);
-                else
-                    return String.Format(CultureInfo.InvariantCulture, "{0:" + format + "} {1:" + format + "} {2:" + format + "}", color.R / 255.0, color.G / 255.0, color.B / 255.0);
+                {
+                    if (withAlpha)
+                        return String.Format(CultureInfo.InvariantCulture, "{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "}", color.R / 255.0, color.G / 255.0, color.B / 255.0, color.A);
+                    else
+                        return String.Format(CultureInfo.InvariantCulture, "{0:" + format + "} {1:" + format + "} {2:" + format + "}", color.R / 255.0, color.G / 255.0, color.B / 255.0);
 
-            }
+                }
         }
     }
 

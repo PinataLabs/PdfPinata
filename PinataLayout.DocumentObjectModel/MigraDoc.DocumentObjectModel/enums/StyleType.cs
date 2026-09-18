@@ -37,13 +37,13 @@ namespace PinataLayout.DocumentObjectModel;
 /// </summary>
 public enum StyleType
 {
-  /// <summary>
-  /// Style is a paragraph style.
-  /// </summary>
-  Paragraph,
+    /// <summary>
+    /// Style is a paragraph style.
+    /// </summary>
+    Paragraph,
 
-  /// <summary>
-  /// Style is a character style. Contains font part only.
-  /// </summary>
-  Character
+    /// <summary>
+    /// Style is a character style. Contains font part only.
+    /// </summary>
+    Character
 }

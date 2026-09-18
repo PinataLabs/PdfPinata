@@ -39,26 +39,26 @@ namespace PinataLayout.DocumentObjectModel.Shapes.Charts;
 /// </summary>
 public partial class ChartObject : DocumentObject
 {
-  /// <summary>
-  /// Initializes a new instance of the ChartObject class.
-  /// </summary>
-  public ChartObject()
-  {
-  }
+    /// <summary>
+    /// Initializes a new instance of the ChartObject class.
+    /// </summary>
+    public ChartObject()
+    {
+    }
 
-  /// <summary>
-  /// Initializes a new instance of the ChartObject class with the specified parent.
-  /// </summary>
-  internal ChartObject(DocumentObject parent) : base(parent) { }
+    /// <summary>
+    /// Initializes a new instance of the ChartObject class with the specified parent.
+    /// </summary>
+    internal ChartObject(DocumentObject parent) : base(parent) { }
 
-  #region Internal
-  /// <summary>
-  /// Converts ChartObject into DDL.
-  /// </summary>
-  internal override void Serialize(Serializer _serializer)
-  {
-    // Nothing to do
-  }
+    #region Internal
+    /// <summary>
+    /// Converts ChartObject into DDL.
+    /// </summary>
+    internal override void Serialize(Serializer _serializer)
+    {
+        // Nothing to do
+    }
 
-  #endregion
+    #endregion
 }

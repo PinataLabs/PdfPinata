@@ -38,36 +38,36 @@ namespace PinataLayout.Rendering;
 /// </summary>
 internal class FillFormatRenderer
 {
-  public FillFormatRenderer(FillFormat fillFormat, XGraphics gfx)
-  {
-    this.gfx = gfx;
-    this.fillFormat = fillFormat;
-  }
+    public FillFormatRenderer(FillFormat fillFormat, XGraphics gfx)
+    {
+        this.gfx = gfx;
+        this.fillFormat = fillFormat;
+    }
 
-  internal void Render(XUnit x, XUnit y, XUnit width, XUnit height)
-  {
-    XBrush brush = GetBrush();
+    internal void Render(XUnit x, XUnit y, XUnit width, XUnit height)
+    {
+        XBrush brush = GetBrush();
 
-    if (brush == null)
-      return;
+        if (brush == null)
+            return;
 
-    gfx.DrawRectangle(brush, x.Point, y.Point, width.Point, height.Point);
-  }
+        gfx.DrawRectangle(brush, x.Point, y.Point, width.Point, height.Point);
+    }
 
-  private bool IsVisible()
-  {
-    if (!fillFormat.IsNull("Visible"))
-      return fillFormat.Visible;
-    return !fillFormat.IsNull("Color");
-  }
+    private bool IsVisible()
+    {
+        if (!fillFormat.IsNull("Visible"))
+            return fillFormat.Visible;
+        return !fillFormat.IsNull("Color");
+    }
 
-  private XBrush GetBrush()
-  {
-    if (fillFormat == null || !IsVisible())
-      return null;
+    private XBrush GetBrush()
+    {
+        if (fillFormat == null || !IsVisible())
+            return null;
 
-    return new XSolidBrush(ColorHelper.ToXColor(fillFormat.Color, fillFormat.Document.UseCmykColor));
-  }
-  private XGraphics gfx;
-  private FillFormat fillFormat;
+        return new XSolidBrush(ColorHelper.ToXColor(fillFormat.Color, fillFormat.Document.UseCmykColor));
+    }
+    private XGraphics gfx;
+    private FillFormat fillFormat;
 }

@@ -34,8 +34,8 @@ namespace PdfPinata.Charting;
 /// </summary>
 public enum LineStyle
 {
-  /// <summary>
-  /// 
-  /// </summary>
-  Single
+    /// <summary>
+    /// 
+    /// </summary>
+    Single
 }

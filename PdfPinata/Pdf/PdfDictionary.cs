@@ -1,4 +1,4 @@
-﻿#region PDFsharp - A .NET library for processing PDF
+#region PDFsharp - A .NET library for processing PDF
 //
 // Authors:
 //   Stefan Lange
@@ -48,7 +48,7 @@ namespace PdfPinata.Pdf;
 /// </summary>
 // ReSharper disable InconsistentNaming
 public enum VCF
-    // ReSharper restore InconsistentNaming
+// ReSharper restore InconsistentNaming
 {
     /// <summary>
     /// Don't create the value.
@@ -978,7 +978,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// <summary>
         /// Returns the type of the object to be created as value of the specified key.
         /// </summary>
-        [return:DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)]
+        [return: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)]
         Type GetValueType(string key)  // TODO: move to PdfObject
         {
             Type type = null;
@@ -996,7 +996,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             return type;
         }
 
-        PdfArray CreateArray([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)]Type type, PdfArray oldArray)
+        PdfArray CreateArray([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] Type type, PdfArray oldArray)
         {
             // Rewritten WinRT style.
             PdfArray array = null;
@@ -1440,7 +1440,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// </summary>
         // ReSharper disable UnusedMember.Local
         internal string DebuggerDisplay
-            // ReSharper restore UnusedMember.Local
+        // ReSharper restore UnusedMember.Local
         {
             get
             {
@@ -1748,8 +1748,8 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
     /// Gets the DebuggerDisplayAttribute text.
     /// </summary>
     // ReSharper disable UnusedMember.Local
-    string DebuggerDisplay => String.Format(CultureInfo.InvariantCulture, "dictionary({0},[{1}])={2}", 
-        ObjectID.DebuggerDisplay, 
+    string DebuggerDisplay => String.Format(CultureInfo.InvariantCulture, "dictionary({0},[{1}])={2}",
+        ObjectID.DebuggerDisplay,
         Elements.Count,
         _elements.DebuggerDisplay); // ReSharper restore UnusedMember.Local
 }

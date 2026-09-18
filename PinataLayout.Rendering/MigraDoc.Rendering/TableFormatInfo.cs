@@ -40,30 +40,30 @@ namespace PinataLayout.Rendering;
 /// </summary>
 internal class TableFormatInfo : FormatInfo
 {
-  internal override bool EndingIsComplete => isEnding;
+    internal override bool EndingIsComplete => isEnding;
 
 
-  internal override bool StartingIsComplete => !IsEmpty && startRow > lastHeaderRow;
+    internal override bool StartingIsComplete => !IsEmpty && startRow > lastHeaderRow;
 
-  internal override bool IsComplete => false;
+    internal override bool IsComplete => false;
 
-  internal override bool IsEmpty => startRow < 0;
+    internal override bool IsEmpty => startRow < 0;
 
-  internal override bool IsEnding => isEnding;
+    internal override bool IsEnding => isEnding;
 
-  internal bool isEnding;
+    internal bool isEnding;
 
-  internal override bool IsStarting => startRow == lastHeaderRow + 1;
+    internal override bool IsStarting => startRow == lastHeaderRow + 1;
 
-  internal int startColumn = -1;
-  internal int endColumn = -1;
+    internal int startColumn = -1;
+    internal int endColumn = -1;
 
-  internal int startRow = -1;
-  internal int endRow = -1;
+    internal int startRow = -1;
+    internal int endRow = -1;
 
-  internal int lastHeaderRow = -1;
-  internal SortedList<Cell, FormattedCell> formattedCells;
-  internal MergedCellList mergedCells;
-  internal SortedList<int, XUnit> bottomBorderMap;
-  internal SortedList<int, int> connectedRowsMap;
+    internal int lastHeaderRow = -1;
+    internal SortedList<Cell, FormattedCell> formattedCells;
+    internal MergedCellList mergedCells;
+    internal SortedList<int, XUnit> bottomBorderMap;
+    internal SortedList<int, int> connectedRowsMap;
 }

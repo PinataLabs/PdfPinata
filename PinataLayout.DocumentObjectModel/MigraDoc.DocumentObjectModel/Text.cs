@@ -39,62 +39,62 @@ namespace PinataLayout.DocumentObjectModel;
 /// </summary>
 public partial class Text : DocumentObject
 {
-  /// <summary>
-  /// Initializes a new instance of the Text class.
-  /// </summary>
-  public Text()
-  {
-  }
+    /// <summary>
+    /// Initializes a new instance of the Text class.
+    /// </summary>
+    public Text()
+    {
+    }
 
-  /// <summary>
-  /// Initializes a new instance of the Text class with the specified parent.
-  /// </summary>
-  internal Text(DocumentObject parent) : base(parent) { }
+    /// <summary>
+    /// Initializes a new instance of the Text class with the specified parent.
+    /// </summary>
+    internal Text(DocumentObject parent) : base(parent) { }
 
-  /// <summary>
-  /// Initializes a new instance of the Text class with a string as paragraph content.
-  /// </summary>
-  public Text(string content)
-    : this()
-  {
-    //is this constructor needed? or just the default constructor?
-    Content = content;
-  }
+    /// <summary>
+    /// Initializes a new instance of the Text class with a string as paragraph content.
+    /// </summary>
+    public Text(string content)
+      : this()
+    {
+        //is this constructor needed? or just the default constructor?
+        Content = content;
+    }
 
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new Text Clone()
-  {
-    return (Text)DeepCopy();
-  }
-  #endregion
+    #region Methods
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new Text Clone()
+    {
+        return (Text)DeepCopy();
+    }
+    #endregion
 
-  #region Properties
-  /// <summary>
-  /// Gets or sets the text content.
-  /// </summary>
-  public string Content
-  {
-    get => content ?? "";
-    set => content = value;
-  }
-  [DV]
-  internal string content;
-  #endregion
+    #region Properties
+    /// <summary>
+    /// Gets or sets the text content.
+    /// </summary>
+    public string Content
+    {
+        get => content ?? "";
+        set => content = value;
+    }
+    [DV]
+    internal string content;
+    #endregion
 
-  #region Internal
-  /// <summary>
-  /// Converts Text into DDL.
-  /// </summary>
-  internal override void Serialize(Serializer serializer)
-  {
-    string text = DdlEncoder.StringToText((content ?? ""));
-    // To make DDL more readable write soft hypens as keywords.
-    text = text.Replace(new string((char)173, 1), "\\-");
-    serializer.Write(text);
-  }
+    #region Internal
+    /// <summary>
+    /// Converts Text into DDL.
+    /// </summary>
+    internal override void Serialize(Serializer serializer)
+    {
+        string text = DdlEncoder.StringToText((content ?? ""));
+        // To make DDL more readable write soft hypens as keywords.
+        text = text.Replace(new string((char)173, 1), "\\-");
+        serializer.Write(text);
+    }
 
-  #endregion
+    #endregion
 }

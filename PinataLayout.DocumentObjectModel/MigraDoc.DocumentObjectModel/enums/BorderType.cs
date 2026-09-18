@@ -37,20 +37,20 @@ namespace PinataLayout.DocumentObjectModel;
 /// </summary>
 public enum BorderType
 {
-  /// <summary>The top border.</summary>
-  Top,
-  /// <summary>The left border.</summary>
-  Left,
-  /// <summary>The bottom border.</summary>
-  Bottom,
-  /// <summary>The right border.</summary>
-  Right,
-  /// <summary>The horizontal borders between cells. Not used by MigraDoc.</summary>
-  Horizontal,  // not used in MigraDoc 1.2
-  /// <summary>The vertical borders between cells. Not used by MigraDoc.</summary>
-  Vertical,    // not used in MigraDoc 1.2
-  /// <summary>The diagonal running from the top left corner to the bottom right.</summary>
-  DiagonalDown,
-  /// <summary>The diagonal running from the bottom left corner to the top right.</summary>
-  DiagonalUp
+    /// <summary>The top border.</summary>
+    Top,
+    /// <summary>The left border.</summary>
+    Left,
+    /// <summary>The bottom border.</summary>
+    Bottom,
+    /// <summary>The right border.</summary>
+    Right,
+    /// <summary>The horizontal borders between cells. Not used by MigraDoc.</summary>
+    Horizontal,  // not used in MigraDoc 1.2
+    /// <summary>The vertical borders between cells. Not used by MigraDoc.</summary>
+    Vertical,    // not used in MigraDoc 1.2
+    /// <summary>The diagonal running from the top left corner to the bottom right.</summary>
+    DiagonalDown,
+    /// <summary>The diagonal running from the bottom left corner to the top right.</summary>
+    DiagonalUp
 }

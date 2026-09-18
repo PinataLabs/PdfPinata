@@ -37,12 +37,12 @@ namespace PinataLayout.DocumentObjectModel;
 /// </summary>
 public enum Orientation
 {
-  /// <summary>
-  /// Page height is bigger than page width.
-  /// </summary>
-  Portrait,
-  /// <summary>
-  /// Page width is bigger than page height.
-  /// </summary>
-  Landscape
+    /// <summary>
+    /// Page height is bigger than page width.
+    /// </summary>
+    Portrait,
+    /// <summary>
+    /// Page width is bigger than page height.
+    /// </summary>
+    Landscape
 }

@@ -108,7 +108,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
             // at System.Globalization.RegionInfo..ctor
             Size = PageSize.A4;
         }
-            
+
 #pragma warning disable 168
         // Force creation of MediaBox object by invoking property
         PdfRectangle rect = MediaBox;

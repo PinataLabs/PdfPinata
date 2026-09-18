@@ -39,93 +39,93 @@ namespace PinataLayout.DocumentObjectModel.Shapes.Charts;
 /// </summary>
 public partial class TickLabels : ChartObject
 {
-  /// <summary>
-  /// Initializes a new instance of the TickLabels class.
-  /// </summary>
-  public TickLabels()
-  {
-  }
-
-  /// <summary>
-  /// Initializes a new instance of the TickLabels class with the specified parent.
-  /// </summary>
-  internal TickLabels(DocumentObject parent) : base(parent) { }
-
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new TickLabels Clone()
-  {
-    return (TickLabels)DeepCopy();
-  }
-
-  #endregion
-
-  #region Properties
-  /// <summary>
-  /// Gets or sets the style name of the label.
-  /// </summary>
-  public string Style
-  {
-    get => this.style ?? "";
-    set => this.style = value;
-  }
-  [DV]
-  internal string style;
-
-  /// <summary>
-  /// Gets or sets the label's number format.
-  /// </summary>
-  public string Format
-  {
-    get => this.format ?? "";
-    set => this.format = value;
-  }
-  [DV]
-  internal string format;
-
-  /// <summary>
-  /// Gets the font of the label.
-  /// </summary>
-  public Font Font
-  {
-    get
+    /// <summary>
+    /// Initializes a new instance of the TickLabels class.
+    /// </summary>
+    public TickLabels()
     {
-      if (this.font == null)
-        this.font = new Font(this);
-
-      return this.font;
     }
-    set
+
+    /// <summary>
+    /// Initializes a new instance of the TickLabels class with the specified parent.
+    /// </summary>
+    internal TickLabels(DocumentObject parent) : base(parent) { }
+
+    #region Methods
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new TickLabels Clone()
     {
-      SetParent(value);
-      this.font = value;
+        return (TickLabels)DeepCopy();
     }
-  }
-  [DV]
-  internal Font font;
-  #endregion
 
-  #region Internal
-  /// <summary>
-  /// Converts TickLabels into DDL.
-  /// </summary>
-  internal override void Serialize(Serializer serializer)
-  {
-    int pos = serializer.BeginContent("TickLabels");
+    #endregion
 
-    if (this.style != null)
-      serializer.WriteSimpleAttribute("Style", this.Style);
+    #region Properties
+    /// <summary>
+    /// Gets or sets the style name of the label.
+    /// </summary>
+    public string Style
+    {
+        get => this.style ?? "";
+        set => this.style = value;
+    }
+    [DV]
+    internal string style;
 
-    if (this.font != null)
-      this.font.Serialize(serializer);
+    /// <summary>
+    /// Gets or sets the label's number format.
+    /// </summary>
+    public string Format
+    {
+        get => this.format ?? "";
+        set => this.format = value;
+    }
+    [DV]
+    internal string format;
 
-    if (this.format != null)
-      serializer.WriteSimpleAttribute("Format", this.Format);
+    /// <summary>
+    /// Gets the font of the label.
+    /// </summary>
+    public Font Font
+    {
+        get
+        {
+            if (this.font == null)
+                this.font = new Font(this);
 
-    serializer.EndContent();
-  }
+            return this.font;
+        }
+        set
+        {
+            SetParent(value);
+            this.font = value;
+        }
+    }
+    [DV]
+    internal Font font;
+    #endregion
 
-  #endregion
+    #region Internal
+    /// <summary>
+    /// Converts TickLabels into DDL.
+    /// </summary>
+    internal override void Serialize(Serializer serializer)
+    {
+        int pos = serializer.BeginContent("TickLabels");
+
+        if (this.style != null)
+            serializer.WriteSimpleAttribute("Style", this.Style);
+
+        if (this.font != null)
+            this.font.Serialize(serializer);
+
+        if (this.format != null)
+            serializer.WriteSimpleAttribute("Format", this.Format);
+
+        serializer.EndContent();
+    }
+
+    #endregion
 }

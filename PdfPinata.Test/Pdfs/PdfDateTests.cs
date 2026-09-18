@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using Xunit;

@@ -40,89 +40,89 @@ namespace PinataLayout.Rendering;
 /// </summary>
 internal class FormattedHeaderFooter : IAreaProvider
 {
-  internal FormattedHeaderFooter(HeaderFooter headerFooter, DocumentRenderer documentRenderer, FieldInfos fieldInfos)
-  {
-    this.headerFooter = headerFooter;
-    this.fieldInfos = fieldInfos;
-    this.documentRenderer = documentRenderer;
-  }
-
-  internal void Format(XGraphics gfx)
-  {
-    this.gfx = gfx;
-    isFirstArea = true;
-    formatter = new TopDownFormatter(this, documentRenderer, headerFooter.Elements);
-    formatter.FormatOnAreas(gfx, false);
-    contentHeight = RenderInfo.GetTotalHeight(GetRenderInfos());
-  }
-
-  Area IAreaProvider.GetNextArea()
-  {
-    if (isFirstArea)
-      return new Rectangle(ContentRect.X, ContentRect.Y, ContentRect.Width, double.MaxValue);
-
-    return null;
-  }
-
-  Area IAreaProvider.ProbeNextArea()
-  {
-    return null;
-  }
-
-  FieldInfos IAreaProvider.AreaFieldInfos => fieldInfos;
-
-  void IAreaProvider.StoreRenderInfos(ArrayList renderInfos)
-  {
-    this.renderInfos = renderInfos;
-  }
-
-  bool IAreaProvider.IsAreaBreakBefore(LayoutInfo layoutInfo)
-  {
-    return false;
-  }
-
-
-  internal RenderInfo[] GetRenderInfos()
-  {
-    if (renderInfos != null)
+    internal FormattedHeaderFooter(HeaderFooter headerFooter, DocumentRenderer documentRenderer, FieldInfos fieldInfos)
     {
-      // Not ToArray(Type): it builds the array type at run time, which carries
-      // RequiresDynamicCode and an AOT compiler cannot always have code for.
-      var result = new RenderInfo[renderInfos.Count];
-      renderInfos.CopyTo(result);
-      return result;
+        this.headerFooter = headerFooter;
+        this.fieldInfos = fieldInfos;
+        this.documentRenderer = documentRenderer;
     }
 
-    return new RenderInfo[0];
-  }
+    internal void Format(XGraphics gfx)
+    {
+        this.gfx = gfx;
+        isFirstArea = true;
+        formatter = new TopDownFormatter(this, documentRenderer, headerFooter.Elements);
+        formatter.FormatOnAreas(gfx, false);
+        contentHeight = RenderInfo.GetTotalHeight(GetRenderInfos());
+    }
 
-  internal Rectangle ContentRect
-  {
-    get => contentRect;
-    set => contentRect = value;
-  }
-  private Rectangle contentRect;
+    Area IAreaProvider.GetNextArea()
+    {
+        if (isFirstArea)
+            return new Rectangle(ContentRect.X, ContentRect.Y, ContentRect.Width, double.MaxValue);
 
-  XUnit ContentHeight => contentHeight;
+        return null;
+    }
 
-  bool IAreaProvider.PositionVertically(LayoutInfo layoutInfo)
-  {
-    IAreaProvider formattedDoc = (IAreaProvider)documentRenderer.FormattedDocument;
-    return formattedDoc.PositionVertically(layoutInfo);
-  }
+    Area IAreaProvider.ProbeNextArea()
+    {
+        return null;
+    }
 
-  bool IAreaProvider.PositionHorizontally(LayoutInfo layoutInfo)
-  {
-    IAreaProvider formattedDoc = (IAreaProvider)documentRenderer.FormattedDocument;
-    return formattedDoc.PositionHorizontally(layoutInfo); ;
-  }
+    FieldInfos IAreaProvider.AreaFieldInfos => fieldInfos;
 
-  private HeaderFooter headerFooter;
-  private FieldInfos fieldInfos;
-  private TopDownFormatter formatter;
-  private ArrayList renderInfos;
-  private XGraphics gfx;
-  private bool isFirstArea;
-  private XUnit contentHeight;
-  private DocumentRenderer documentRenderer;
+    void IAreaProvider.StoreRenderInfos(ArrayList renderInfos)
+    {
+        this.renderInfos = renderInfos;
+    }
+
+    bool IAreaProvider.IsAreaBreakBefore(LayoutInfo layoutInfo)
+    {
+        return false;
+    }
+
+
+    internal RenderInfo[] GetRenderInfos()
+    {
+        if (renderInfos != null)
+        {
+            // Not ToArray(Type): it builds the array type at run time, which carries
+            // RequiresDynamicCode and an AOT compiler cannot always have code for.
+            var result = new RenderInfo[renderInfos.Count];
+            renderInfos.CopyTo(result);
+            return result;
+        }
+
+        return new RenderInfo[0];
+    }
+
+    internal Rectangle ContentRect
+    {
+        get => contentRect;
+        set => contentRect = value;
+    }
+    private Rectangle contentRect;
+
+    XUnit ContentHeight => contentHeight;
+
+    bool IAreaProvider.PositionVertically(LayoutInfo layoutInfo)
+    {
+        IAreaProvider formattedDoc = (IAreaProvider)documentRenderer.FormattedDocument;
+        return formattedDoc.PositionVertically(layoutInfo);
+    }
+
+    bool IAreaProvider.PositionHorizontally(LayoutInfo layoutInfo)
+    {
+        IAreaProvider formattedDoc = (IAreaProvider)documentRenderer.FormattedDocument;
+        return formattedDoc.PositionHorizontally(layoutInfo); ;
+    }
+
+    private HeaderFooter headerFooter;
+    private FieldInfos fieldInfos;
+    private TopDownFormatter formatter;
+    private ArrayList renderInfos;
+    private XGraphics gfx;
+    private bool isFirstArea;
+    private XUnit contentHeight;
+    private DocumentRenderer documentRenderer;
 }

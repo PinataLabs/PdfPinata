@@ -36,26 +36,26 @@ namespace PdfPinata.Charting.Renderers;
 /// </summary>
 internal class WallRenderer : Renderer
 {
-  /// <summary>
-  /// Initializes a new instance of the WallRenderer class with the specified renderer parameters.
-  /// </summary>
-  internal WallRenderer(RendererParameters parms)
-    : base(parms)
-  { }
+    /// <summary>
+    /// Initializes a new instance of the WallRenderer class with the specified renderer parameters.
+    /// </summary>
+    internal WallRenderer(RendererParameters parms)
+      : base(parms)
+    { }
 
-  /// <summary>
-  /// Draws the wall.
-  /// </summary>
-  internal override void Draw()
-  {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    if (cri.plotAreaRendererInfo.FillFormat != null)
+    /// <summary>
+    /// Draws the wall.
+    /// </summary>
+    internal override void Draw()
     {
-      XRect plotAreaBox = cri.plotAreaRendererInfo.Rect;
-      if (HasNoRoom(plotAreaBox))
-        return;
+        ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+        if (cri.plotAreaRendererInfo.FillFormat != null)
+        {
+            XRect plotAreaBox = cri.plotAreaRendererInfo.Rect;
+            if (HasNoRoom(plotAreaBox))
+                return;
 
-      this.rendererParms.Graphics.DrawRectangle(cri.plotAreaRendererInfo.FillFormat, plotAreaBox);
+            this.rendererParms.Graphics.DrawRectangle(cri.plotAreaRendererInfo.FillFormat, plotAreaBox);
+        }
     }
-  }
 }

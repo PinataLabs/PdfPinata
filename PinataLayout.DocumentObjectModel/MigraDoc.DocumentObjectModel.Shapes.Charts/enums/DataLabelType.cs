@@ -37,18 +37,18 @@ namespace PinataLayout.DocumentObjectModel.Shapes.Charts;
 /// </summary>
 public enum DataLabelType
 {
-  /// <summary>
-  /// No DataLabel.
-  /// </summary>
-  None,
+    /// <summary>
+    /// No DataLabel.
+    /// </summary>
+    None,
 
-  /// <summary>
-  /// Percentage of the data. For pie charts only.
-  /// </summary>
-  Percent,
+    /// <summary>
+    /// Percentage of the data. For pie charts only.
+    /// </summary>
+    Percent,
 
-  /// <summary>
-  /// Value of the data.
-  /// </summary>
-  Value
+    /// <summary>
+    /// Value of the data.
+    /// </summary>
+    Value
 }

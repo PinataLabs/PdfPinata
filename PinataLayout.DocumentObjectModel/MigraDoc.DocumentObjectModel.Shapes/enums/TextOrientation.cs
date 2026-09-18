@@ -37,28 +37,28 @@ namespace PinataLayout.DocumentObjectModel.Shapes;
 /// </summary>
 public enum TextOrientation
 {
-  /// <summary>
-  /// Horizontal orientation.
-  /// </summary>
-  Horizontal,
-  /// <summary>
-  /// Horizontal orientation.
-  /// </summary>
-  HorizontalRotatedFarEast,
-  /// <summary>
-  /// Vertical orientation (upward).
-  /// </summary>
-  Upward,
-  /// <summary>
-  /// Vertical orientation (downward).
-  /// </summary>
-  Vertical,
-  /// <summary>
-  /// Vertical orientation (downward).
-  /// </summary>
-  VerticalFarEast,
-  /// <summary>
-  /// Vertical orientation (downward).
-  /// </summary>
-  Downward
+    /// <summary>
+    /// Horizontal orientation.
+    /// </summary>
+    Horizontal,
+    /// <summary>
+    /// Horizontal orientation.
+    /// </summary>
+    HorizontalRotatedFarEast,
+    /// <summary>
+    /// Vertical orientation (upward).
+    /// </summary>
+    Upward,
+    /// <summary>
+    /// Vertical orientation (downward).
+    /// </summary>
+    Vertical,
+    /// <summary>
+    /// Vertical orientation (downward).
+    /// </summary>
+    VerticalFarEast,
+    /// <summary>
+    /// Vertical orientation (downward).
+    /// </summary>
+    Downward
 }

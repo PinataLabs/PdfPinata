@@ -37,8 +37,8 @@ namespace PinataLayout.DocumentObjectModel.Shapes;
 /// </summary>
 public enum LineStyle
 {
-  /// <summary>
-  /// A solid line.
-  /// </summary>
-  Single
+    /// <summary>
+    /// A solid line.
+    /// </summary>
+    Single
 }

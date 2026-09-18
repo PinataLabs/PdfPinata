@@ -36,19 +36,19 @@ namespace PinataLayout.Rendering;
 /// </summary>
 internal class ParagraphRenderInfo : RenderInfo
 {
-  internal override FormatInfo FormatInfo => formatInfo;
+    internal override FormatInfo FormatInfo => formatInfo;
 
-  ParagraphFormatInfo formatInfo = new ParagraphFormatInfo();
+    ParagraphFormatInfo formatInfo = new ParagraphFormatInfo();
 
-  public override DocumentObject DocumentObject => paragraph;
+    public override DocumentObject DocumentObject => paragraph;
 
-  internal Paragraph paragraph;
+    internal Paragraph paragraph;
 
-  internal override void RemoveEnding()
-  {
-    ParagraphFormatInfo pfInfo = (ParagraphFormatInfo)FormatInfo;
-    pfInfo.RemoveEnding();
-    Area contentArea = LayoutInfo.ContentArea;
-    contentArea.Height -= LayoutInfo.TrailingHeight;
-  }
+    internal override void RemoveEnding()
+    {
+        ParagraphFormatInfo pfInfo = (ParagraphFormatInfo)FormatInfo;
+        pfInfo.RemoveEnding();
+        Area contentArea = LayoutInfo.ContentArea;
+        contentArea.Height -= LayoutInfo.TrailingHeight;
+    }
 }

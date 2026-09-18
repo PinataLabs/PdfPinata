@@ -136,10 +136,10 @@ public class DdlWriter : IDisposable
         using (var writer = new StringWriter(strBuilder))
         {
             using (var wrt = new DdlWriter(writer)
-                   {
-                       Indent = indent,
-                       InitialIndent = initialIndent
-                   })
+            {
+                Indent = indent,
+                InitialIndent = initialIndent
+            })
                 wrt.WriteDocument(docObject);
         }
         return strBuilder.ToString();
@@ -171,10 +171,10 @@ public class DdlWriter : IDisposable
         using (var writer = new StringWriter(sb))
         {
             using (var wrt = new DdlWriter(writer)
-                   {
-                       Indent = indent,
-                       InitialIndent = initialIndent
-                   })
+            {
+                Indent = indent,
+                InitialIndent = initialIndent
+            })
             {
                 wrt.WriteDocument(docObjectContainer);
             }
@@ -204,10 +204,10 @@ public class DdlWriter : IDisposable
     public static void WriteToFile(DocumentObject docObject, string filename, int indent, int initialIndent)
     {
         using (var wrt = new DdlWriter(filename)
-               {
-                   Indent = indent,
-                   InitialIndent = initialIndent
-               })
+        {
+            Indent = indent,
+            InitialIndent = initialIndent
+        })
         {
             wrt.WriteDocument(docObject);
         }
@@ -237,10 +237,10 @@ public class DdlWriter : IDisposable
     public static void WriteToFile(DocumentObjectCollection docObjectContainer, string filename, int indent, int initialIndent)
     {
         using (var wrt = new DdlWriter(filename)
-               {
-                   Indent = indent,
-                   InitialIndent = initialIndent
-               })
+        {
+            Indent = indent,
+            InitialIndent = initialIndent
+        })
         {
             wrt.WriteDocument(docObjectContainer);
         }

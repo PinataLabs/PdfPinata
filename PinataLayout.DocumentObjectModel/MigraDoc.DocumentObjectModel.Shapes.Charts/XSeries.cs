@@ -39,67 +39,67 @@ namespace PinataLayout.DocumentObjectModel.Shapes.Charts;
 /// </summary>
 public partial class XSeries : ChartObject
 {
-  /// <summary>
-  /// Initializes a new instance of the XSeries class.
-  /// </summary>
-  public XSeries()
-  {
-    xSeriesElements = new XSeriesElements();
-  }
+    /// <summary>
+    /// Initializes a new instance of the XSeries class.
+    /// </summary>
+    public XSeries()
+    {
+        xSeriesElements = new XSeriesElements();
+    }
 
-  /// <summary>
-  /// The actual value container of the XSeries.
-  /// </summary>
-  [DV]
-  protected XSeriesElements xSeriesElements;
+    /// <summary>
+    /// The actual value container of the XSeries.
+    /// </summary>
+    [DV]
+    protected XSeriesElements xSeriesElements;
 
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new XSeries Clone()
-  {
-    return (XSeries)DeepCopy();
-  }
+    #region Methods
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new XSeries Clone()
+    {
+        return (XSeries)DeepCopy();
+    }
 
-  /// <summary>
-  /// Adds a blank to the XSeries.
-  /// </summary>
-  public void AddBlank()
-  {
-    this.xSeriesElements.AddBlank();
-  }
+    /// <summary>
+    /// Adds a blank to the XSeries.
+    /// </summary>
+    public void AddBlank()
+    {
+        this.xSeriesElements.AddBlank();
+    }
 
-  /// <summary>
-  /// Adds a value to the XSeries.
-  /// </summary>
-  public XValue Add(string value)
-  {
-    return this.xSeriesElements.Add(value);
-  }
+    /// <summary>
+    /// Adds a value to the XSeries.
+    /// </summary>
+    public XValue Add(string value)
+    {
+        return this.xSeriesElements.Add(value);
+    }
 
-  /// <summary>
-  /// Adds an array of values to the XSeries.
-  /// </summary>
-  public void Add(params string[] values)
-  {
-    this.xSeriesElements.Add(values);
-  }
-  #endregion
+    /// <summary>
+    /// Adds an array of values to the XSeries.
+    /// </summary>
+    public void Add(params string[] values)
+    {
+        this.xSeriesElements.Add(values);
+    }
+    #endregion
 
-  #region Internal
-  /// <summary>
-  /// Converts XSeries into DDL.
-  /// </summary>
-  internal override void Serialize(Serializer serializer)
-  {
-    serializer.WriteLine("\\xvalues");
+    #region Internal
+    /// <summary>
+    /// Converts XSeries into DDL.
+    /// </summary>
+    internal override void Serialize(Serializer serializer)
+    {
+        serializer.WriteLine("\\xvalues");
 
-    serializer.BeginContent();
-    this.xSeriesElements.Serialize(serializer);
-    serializer.WriteLine("");
-    serializer.EndContent();
-  }
+        serializer.BeginContent();
+        this.xSeriesElements.Serialize(serializer);
+        serializer.WriteLine("");
+        serializer.EndContent();
+    }
 
-  #endregion
+    #endregion
 }

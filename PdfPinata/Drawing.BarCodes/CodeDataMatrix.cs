@@ -43,56 +43,56 @@ public class CodeDataMatrix : MatrixCode
     /// </summary>
     public CodeDataMatrix()
         : this("", "", 26, 26, 0, XSize.Empty)
-    {}
+    { }
 
     /// <summary>
     /// Initializes a new instance of CodeDataMatrix.
     /// </summary>
     public CodeDataMatrix(string code, int length)
         : this(code, "", length, length, 0, XSize.Empty)
-    {}
+    { }
 
     /// <summary>
     /// Initializes a new instance of CodeDataMatrix.
     /// </summary>
     public CodeDataMatrix(string code, int length, XSize size)
         : this(code, "", length, length, 0, size)
-    {}
+    { }
 
     /// <summary>
     /// Initializes a new instance of CodeDataMatrix.
     /// </summary>
     public CodeDataMatrix(string code, DataMatrixEncoding dmEncoding, int length, XSize size)
         : this(code, CreateEncoding(dmEncoding, code.Length), length, length, 0, size)
-    {}
+    { }
 
     /// <summary>
     /// Initializes a new instance of CodeDataMatrix.
     /// </summary>
     public CodeDataMatrix(string code, int rows, int columns)
         : this(code, "", rows, columns, 0, XSize.Empty)
-    {}
+    { }
 
     /// <summary>
     /// Initializes a new instance of CodeDataMatrix.
     /// </summary>
     public CodeDataMatrix(string code, int rows, int columns, XSize size)
         : this(code, "", rows, columns, 0, size)
-    {}
+    { }
 
     /// <summary>
     /// Initializes a new instance of CodeDataMatrix.
     /// </summary>
     public CodeDataMatrix(string code, DataMatrixEncoding dmEncoding, int rows, int columns, XSize size)
         : this(code, CreateEncoding(dmEncoding, code.Length), rows, columns, 0, size)
-    {}
+    { }
 
     /// <summary>
     /// Initializes a new instance of CodeDataMatrix.
     /// </summary>
     public CodeDataMatrix(string code, int rows, int columns, int quietZone)
         : this(code, "", rows, columns, quietZone, XSize.Empty)
-    {}
+    { }
 
     /// <summary>
     /// Initializes a new instance of CodeDataMatrix.

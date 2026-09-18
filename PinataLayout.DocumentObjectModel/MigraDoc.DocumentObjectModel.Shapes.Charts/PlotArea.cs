@@ -39,145 +39,145 @@ namespace PinataLayout.DocumentObjectModel.Shapes.Charts;
 /// </summary>
 public partial class PlotArea : ChartObject
 {
-  /// <summary>
-  /// Initializes a new instance of the PlotArea class.
-  /// </summary>
-  internal PlotArea()
-  {
-  }
-
-  /// <summary>
-  /// Initializes a new instance of the PlotArea class with the specified parent.
-  /// </summary>
-  internal PlotArea(DocumentObject parent) : base(parent) { }
-
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new PlotArea Clone()
-  {
-    return (PlotArea)DeepCopy();
-  }
-
-  #endregion
-
-  #region Properties
-  /// <summary>
-  /// Gets the line format of the plot area's border.
-  /// </summary>
-  public LineFormat LineFormat
-  {
-    get
+    /// <summary>
+    /// Initializes a new instance of the PlotArea class.
+    /// </summary>
+    internal PlotArea()
     {
-      if (this.lineFormat == null)
-        this.lineFormat = new LineFormat(this);
-
-      return this.lineFormat;
     }
-    set
+
+    /// <summary>
+    /// Initializes a new instance of the PlotArea class with the specified parent.
+    /// </summary>
+    internal PlotArea(DocumentObject parent) : base(parent) { }
+
+    #region Methods
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new PlotArea Clone()
     {
-      SetParent(value);
-      this.lineFormat = value;
+        return (PlotArea)DeepCopy();
     }
-  }
-  [DV]
-  internal LineFormat lineFormat;
 
-  /// <summary>
-  /// Gets the background filling of the plot area.
-  /// </summary>
-  public FillFormat FillFormat
-  {
-    get
+    #endregion
+
+    #region Properties
+    /// <summary>
+    /// Gets the line format of the plot area's border.
+    /// </summary>
+    public LineFormat LineFormat
     {
-      if (this.fillFormat == null)
-        this.fillFormat = new FillFormat(this);
+        get
+        {
+            if (this.lineFormat == null)
+                this.lineFormat = new LineFormat(this);
 
-      return this.fillFormat;
+            return this.lineFormat;
+        }
+        set
+        {
+            SetParent(value);
+            this.lineFormat = value;
+        }
     }
-    set
+    [DV]
+    internal LineFormat lineFormat;
+
+    /// <summary>
+    /// Gets the background filling of the plot area.
+    /// </summary>
+    public FillFormat FillFormat
     {
-      SetParent(value);
-      this.fillFormat = value;
+        get
+        {
+            if (this.fillFormat == null)
+                this.fillFormat = new FillFormat(this);
+
+            return this.fillFormat;
+        }
+        set
+        {
+            SetParent(value);
+            this.fillFormat = value;
+        }
     }
-  }
-  [DV]
-  internal FillFormat fillFormat;
+    [DV]
+    internal FillFormat fillFormat;
 
-  /// <summary>
-  /// Gets or sets the left padding of the area.
-  /// </summary>
-  public Unit LeftPadding
-  {
-    get => this.leftPadding;
-    set => this.leftPadding = value;
-  }
-  [DV]
-  internal Unit leftPadding = Unit.NullValue;
+    /// <summary>
+    /// Gets or sets the left padding of the area.
+    /// </summary>
+    public Unit LeftPadding
+    {
+        get => this.leftPadding;
+        set => this.leftPadding = value;
+    }
+    [DV]
+    internal Unit leftPadding = Unit.NullValue;
 
-  /// <summary>
-  /// Gets or sets the right padding of the area.
-  /// </summary>
-  public Unit RightPadding
-  {
-    get => this.rightPadding;
-    set => this.rightPadding = value;
-  }
-  [DV]
-  internal Unit rightPadding = Unit.NullValue;
+    /// <summary>
+    /// Gets or sets the right padding of the area.
+    /// </summary>
+    public Unit RightPadding
+    {
+        get => this.rightPadding;
+        set => this.rightPadding = value;
+    }
+    [DV]
+    internal Unit rightPadding = Unit.NullValue;
 
-  /// <summary>
-  /// Gets or sets the top padding of the area.
-  /// </summary>
-  public Unit TopPadding
-  {
-    get => this.topPadding;
-    set => this.topPadding = value;
-  }
-  [DV]
-  internal Unit topPadding = Unit.NullValue;
+    /// <summary>
+    /// Gets or sets the top padding of the area.
+    /// </summary>
+    public Unit TopPadding
+    {
+        get => this.topPadding;
+        set => this.topPadding = value;
+    }
+    [DV]
+    internal Unit topPadding = Unit.NullValue;
 
-  /// <summary>
-  /// Gets or sets the bottom padding of the area.
-  /// </summary>
-  public Unit BottomPadding
-  {
-    get => this.bottomPadding;
-    set => this.bottomPadding = value;
-  }
-  [DV]
-  internal Unit bottomPadding = Unit.NullValue;
-  #endregion
+    /// <summary>
+    /// Gets or sets the bottom padding of the area.
+    /// </summary>
+    public Unit BottomPadding
+    {
+        get => this.bottomPadding;
+        set => this.bottomPadding = value;
+    }
+    [DV]
+    internal Unit bottomPadding = Unit.NullValue;
+    #endregion
 
-  #region Internal
-  /// <summary>
-  /// Converts PlotArea into DDL.
-  /// </summary>
-  internal override void Serialize(Serializer serializer)
-  {
-    serializer.WriteLine("\\plotarea");
-    int pos = serializer.BeginAttributes();
+    #region Internal
+    /// <summary>
+    /// Converts PlotArea into DDL.
+    /// </summary>
+    internal override void Serialize(Serializer serializer)
+    {
+        serializer.WriteLine("\\plotarea");
+        int pos = serializer.BeginAttributes();
 
-    if (!this.topPadding.IsNull)
-      serializer.WriteSimpleAttribute("TopPadding", this.TopPadding);
-    if (!this.leftPadding.IsNull)
-      serializer.WriteSimpleAttribute("LeftPadding", this.LeftPadding);
-    if (!this.rightPadding.IsNull)
-      serializer.WriteSimpleAttribute("RightPadding", this.RightPadding);
-    if (!this.bottomPadding.IsNull)
-      serializer.WriteSimpleAttribute("BottomPadding", this.BottomPadding);
+        if (!this.topPadding.IsNull)
+            serializer.WriteSimpleAttribute("TopPadding", this.TopPadding);
+        if (!this.leftPadding.IsNull)
+            serializer.WriteSimpleAttribute("LeftPadding", this.LeftPadding);
+        if (!this.rightPadding.IsNull)
+            serializer.WriteSimpleAttribute("RightPadding", this.RightPadding);
+        if (!this.bottomPadding.IsNull)
+            serializer.WriteSimpleAttribute("BottomPadding", this.BottomPadding);
 
-    if (!this.IsNull("LineFormat"))
-      this.lineFormat.Serialize(serializer);
-    if (!this.IsNull("FillFormat"))
-      this.fillFormat.Serialize(serializer);
+        if (!this.IsNull("LineFormat"))
+            this.lineFormat.Serialize(serializer);
+        if (!this.IsNull("FillFormat"))
+            this.fillFormat.Serialize(serializer);
 
-    serializer.EndAttributes(pos);
+        serializer.EndAttributes(pos);
 
-    serializer.BeginContent();
-    serializer.EndContent();
-  }
+        serializer.BeginContent();
+        serializer.EndContent();
+    }
 
-  #endregion
+    #endregion
 }

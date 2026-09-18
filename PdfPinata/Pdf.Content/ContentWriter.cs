@@ -163,18 +163,18 @@ internal class ContentWriter
             case CharCat.Delimiter:
                 break;
 
-            //case CharCat.Character:
-            //  if (this.layout == PdfWriterLayout.Verbose)
-            //  {
-            //    //if (cat == CharCat.Character || ch == '/')
-            //    this.stream.WriteByte((byte)' ');
-            //  }
-            //  else
-            //  {
-            //    if (cat == CharCat.Character)
-            //      this.stream.WriteByte((byte)' ');
-            //  }
-            //  break;
+                //case CharCat.Character:
+                //  if (this.layout == PdfWriterLayout.Verbose)
+                //  {
+                //    //if (cat == CharCat.Character || ch == '/')
+                //    this.stream.WriteByte((byte)' ');
+                //  }
+                //  else
+                //  {
+                //    if (cat == CharCat.Character)
+                //      this.stream.WriteByte((byte)' ');
+                //  }
+                //  break;
         }
     }
 

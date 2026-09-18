@@ -1,4 +1,4 @@
-﻿#region PDFsharp - A .NET library for processing PDF
+#region PDFsharp - A .NET library for processing PDF
 // Authors:
 //   Stefan Lange
 //
@@ -657,37 +657,37 @@ internal sealed class Parser
                     break;
 
                 case Symbol.R:
-                {
-                    Debug.Assert(_stack.GetItem(-1) is PdfInteger && _stack.GetItem(-2) is PdfInteger);
-                    PdfObjectID objectID = new PdfObjectID(_stack.GetInteger(-2), _stack.GetInteger(-1));
-
-                    PdfReference iref = _document._irefTable[objectID];
-                    if (iref == null)
                     {
-                        // If a document has more than one PdfXRefTable it is possible that the first trailer has
-                        // indirect references to objects whos iref entry is not yet read in.
-                        if (_document._irefTable.IsUnderConstruction)
+                        Debug.Assert(_stack.GetItem(-1) is PdfInteger && _stack.GetItem(-2) is PdfInteger);
+                        PdfObjectID objectID = new PdfObjectID(_stack.GetInteger(-2), _stack.GetInteger(-1));
+
+                        PdfReference iref = _document._irefTable[objectID];
+                        if (iref == null)
                         {
-                            // XRefTable not complete when trailer is read. Create temporary irefs that are
-                            // removed later in PdfTrailer.FixXRefs.
-                            iref = new PdfReference(objectID, 0);
-                            _stack.Reduce(iref, 2);
-                            break;
+                            // If a document has more than one PdfXRefTable it is possible that the first trailer has
+                            // indirect references to objects whos iref entry is not yet read in.
+                            if (_document._irefTable.IsUnderConstruction)
+                            {
+                                // XRefTable not complete when trailer is read. Create temporary irefs that are
+                                // removed later in PdfTrailer.FixXRefs.
+                                iref = new PdfReference(objectID, 0);
+                                _stack.Reduce(iref, 2);
+                                break;
+                            }
+
+                            // PDF Reference section 3.2.9:
+                            // An indirect reference to an undefined object is not an error;
+                            // it is simply treated as a reference to the null object.
+                            _stack.Reduce(PdfNull.Value, 2);
+                            // Let's see what null objects are good for...
+                            //Debug.Assert(false, "Null object detected!");
+                            //stack.Reduce(PdfNull.Value, 2);
                         }
+                        else
+                            _stack.Reduce(iref, 2);
 
-                        // PDF Reference section 3.2.9:
-                        // An indirect reference to an undefined object is not an error;
-                        // it is simply treated as a reference to the null object.
-                        _stack.Reduce(PdfNull.Value, 2);
-                        // Let's see what null objects are good for...
-                        //Debug.Assert(false, "Null object detected!");
-                        //stack.Reduce(PdfNull.Value, 2);
+                        break;
                     }
-                    else
-                        _stack.Reduce(iref, 2);
-
-                    break;
-                }
 
                 case Symbol.BeginArray:
                     PdfArray array = new PdfArray(_document);

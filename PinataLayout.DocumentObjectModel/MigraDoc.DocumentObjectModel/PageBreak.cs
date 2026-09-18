@@ -39,36 +39,36 @@ namespace PinataLayout.DocumentObjectModel;
 /// </summary>
 public partial class PageBreak : DocumentObject
 {
-  /// <summary>
-  /// Initializes a new instance of the PageBreak class.
-  /// </summary>
-  public PageBreak()
-  {
-  }
+    /// <summary>
+    /// Initializes a new instance of the PageBreak class.
+    /// </summary>
+    public PageBreak()
+    {
+    }
 
-  /// <summary>
-  /// Initializes a new instance of the PageBreak class with the specified parent.
-  /// </summary>
-  internal PageBreak(DocumentObject parent) : base(parent) { }
+    /// <summary>
+    /// Initializes a new instance of the PageBreak class with the specified parent.
+    /// </summary>
+    internal PageBreak(DocumentObject parent) : base(parent) { }
 
-  //#region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new PageBreak Clone()
-  {
-    return (PageBreak)DeepCopy();
-  }
-  //#endregion
+    //#region Methods
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new PageBreak Clone()
+    {
+        return (PageBreak)DeepCopy();
+    }
+    //#endregion
 
-  //#region Internal
-  /// <summary>
-  /// Converts PageBreak into DDL.
-  /// </summary>
-  internal override void Serialize(Serializer serializer)
-  {
-    serializer.WriteLine("\\pagebreak");
-  }
+    //#region Internal
+    /// <summary>
+    /// Converts PageBreak into DDL.
+    /// </summary>
+    internal override void Serialize(Serializer serializer)
+    {
+        serializer.WriteLine("\\pagebreak");
+    }
 
-  //#endregion
+    //#endregion
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using PdfPinata.Drawing;
 using PdfPinata.Fonts.OpenType;
@@ -254,7 +254,7 @@ static class TextShaping
         // zero width by definition, so whatever glyph the face happens to map it to is not a glyph
         // to put on the page, and .notdef least of all.
         int drawn = 0;
-        for (int idx = 0; idx < text.Length; )
+        for (int idx = 0; idx < text.Length;)
         {
             if (UnicodeProperties.IsJoiningControl(text[idx]))
             {
@@ -271,7 +271,7 @@ static class TextShaping
 
         bool rightToLeft = direction == XTextDirection.RightToLeft;
         var glyphs = new ShapedGlyph[drawn];
-        for (int idx = 0, position = 0; idx < text.Length; )
+        for (int idx = 0, position = 0; idx < text.Length;)
         {
             char ch = text[idx];
             if (UnicodeProperties.IsJoiningControl(ch))

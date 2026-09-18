@@ -1,4 +1,4 @@
-﻿#region MigraDoc - Creating Documents on the Fly
+#region MigraDoc - Creating Documents on the Fly
 //
 // Authors:
 //   Stefan Lange (mailto:Stefan.Lange@PdfPinata.com)
@@ -37,48 +37,48 @@ namespace PinataLayout.DocumentObjectModel.IO;
 /// </summary>
 enum TokenType
 {
-  /// <summary>
-  /// White space or comment.
-  /// </summary>
-  None,
+    /// <summary>
+    /// White space or comment.
+    /// </summary>
+    None,
 
-  /// <summary>
-  /// Same as identifiers in C#, but not case sensitive.
-  /// </summary>
-  Identifier,
+    /// <summary>
+    /// Same as identifiers in C#, but not case sensitive.
+    /// </summary>
+    Identifier,
 
-  /// <summary>
-  /// Both «true» and «\bold» are keywords, case sensitive.
-  /// </summary>
-  KeyWord,
+    /// <summary>
+    /// Both «true» and «\bold» are keywords, case sensitive.
+    /// </summary>
+    KeyWord,
 
-  /// <summary>
-  /// Sample: «42»
-  /// </summary>
-  IntegerLiteral,
+    /// <summary>
+    /// Sample: «42»
+    /// </summary>
+    IntegerLiteral,
 
-  /// <summary>
-  /// Samples: «42.0», «42.», «.42»,...
-  /// </summary>
-  RealLiteral,
+    /// <summary>
+    /// Samples: «42.0», «42.», «.42»,...
+    /// </summary>
+    RealLiteral,
 
-  /// <summary>
-  /// Not used.
-  /// </summary>
-  CharacterLiteral,
+    /// <summary>
+    /// Not used.
+    /// </summary>
+    CharacterLiteral,
 
-  /// <summary>
-  /// Both «"text"» and «@"text with ""quotes"""».
-  /// </summary>
-  StringLiteral,
+    /// <summary>
+    /// Both «"text"» and «@"text with ""quotes"""».
+    /// </summary>
+    StringLiteral,
 
-  /// <summary>
-  /// Samples: «.», «{», «+=»,...
-  /// </summary>
-  OperatorOrPunctuator,
+    /// <summary>
+    /// Samples: «.», «{», «+=»,...
+    /// </summary>
+    OperatorOrPunctuator,
 
-  /// <summary>
-  /// Plain text. Possible after ReadText.
-  /// </summary>
-  Text,
+    /// <summary>
+    /// Plain text. Possible after ReadText.
+    /// </summary>
+    Text,
 }

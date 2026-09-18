@@ -37,16 +37,16 @@ namespace PinataLayout.DocumentObjectModel.Shapes;
 /// </summary>
 public enum BarcodeType
 {
-  /// <summary>
-  /// Barcode "Interleaved 2 of 5"
-  /// </summary>
-  Barcode25i,
-  /// <summary>
-  /// Barcode "3 of 9"
-  /// </summary>
-  Barcode39,
-  /// <summary>
-  /// Barcode "Code 128"
-  /// </summary>
-  Barcode128
+    /// <summary>
+    /// Barcode "Interleaved 2 of 5"
+    /// </summary>
+    Barcode25i,
+    /// <summary>
+    /// Barcode "3 of 9"
+    /// </summary>
+    Barcode39,
+    /// <summary>
+    /// Barcode "Code 128"
+    /// </summary>
+    Barcode128
 }

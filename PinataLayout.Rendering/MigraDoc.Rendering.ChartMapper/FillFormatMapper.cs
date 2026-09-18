@@ -35,24 +35,24 @@ namespace PinataLayout.Rendering.ChartMapper;
 
 internal class FillFormatMapper
 {
-  private FillFormatMapper()
-  {
-  }
-
-  void MapObject(FillFormat fillFormat, DocumentObjectModel.Shapes.FillFormat domFillFormat)
-  {
-    if (domFillFormat.Color.IsEmpty)
-      fillFormat.Color = XColor.Empty;
-    else
+    private FillFormatMapper()
     {
-      fillFormat.Color = ColorHelper.ToXColor(domFillFormat.Color, domFillFormat.Document.UseCmykColor);
     }
-    fillFormat.Visible = domFillFormat.Visible;
-  }
 
-  internal static void Map(FillFormat fillFormat, DocumentObjectModel.Shapes.FillFormat domFillFormat)
-  {
-    FillFormatMapper mapper = new FillFormatMapper();
-    mapper.MapObject(fillFormat, domFillFormat);
-  }
+    void MapObject(FillFormat fillFormat, DocumentObjectModel.Shapes.FillFormat domFillFormat)
+    {
+        if (domFillFormat.Color.IsEmpty)
+            fillFormat.Color = XColor.Empty;
+        else
+        {
+            fillFormat.Color = ColorHelper.ToXColor(domFillFormat.Color, domFillFormat.Document.UseCmykColor);
+        }
+        fillFormat.Visible = domFillFormat.Visible;
+    }
+
+    internal static void Map(FillFormat fillFormat, DocumentObjectModel.Shapes.FillFormat domFillFormat)
+    {
+        FillFormatMapper mapper = new FillFormatMapper();
+        mapper.MapObject(fillFormat, domFillFormat);
+    }
 }

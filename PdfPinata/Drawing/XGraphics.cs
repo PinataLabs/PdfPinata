@@ -1,4 +1,4 @@
-﻿#region PDFsharp - A .NET library for processing PDF
+#region PDFsharp - A .NET library for processing PDF
 //
 // Authors:
 //   Stefan Lange
@@ -55,8 +55,8 @@ enum InternalGraphicsMode
     DrawingPdfContent,
     DrawingBitmap,
 }
-    
-    
+
+
 /// <summary>
 /// Represents a drawing surface for a fixed size page.
 /// </summary>

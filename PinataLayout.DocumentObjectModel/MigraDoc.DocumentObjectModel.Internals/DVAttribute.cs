@@ -40,16 +40,16 @@ namespace PinataLayout.DocumentObjectModel.Internals;
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
 internal class DVAttribute : Attribute
 {
-  /// <summary>
-  /// Initializes a new instance of the DVAttribute class.
-  /// </summary>
-  public DVAttribute()
-  {
-    RefOnly = false;
-  }
+    /// <summary>
+    /// Initializes a new instance of the DVAttribute class.
+    /// </summary>
+    public DVAttribute()
+    {
+        RefOnly = false;
+    }
 
-  /// <summary>
-  /// Determines whether the field is RefOnly and should be excluded from recursive operations.
-  /// </summary>
-  public bool RefOnly;
+    /// <summary>
+    /// Determines whether the field is RefOnly and should be excluded from recursive operations.
+    /// </summary>
+    public bool RefOnly;
 }

@@ -109,9 +109,9 @@ internal static class DataMatrixModules
                     continue;
 
                 for (var down = 0; down < scale; down++)
-                for (var across = 0; across < scale; across++)
-                    luminance[((row + quietZone) * scale + down) * width
-                              + (column + quietZone) * scale + across] = 0;
+                    for (var across = 0; across < scale; across++)
+                        luminance[((row + quietZone) * scale + down) * width
+                                  + (column + quietZone) * scale + across] = 0;
             }
         }
 

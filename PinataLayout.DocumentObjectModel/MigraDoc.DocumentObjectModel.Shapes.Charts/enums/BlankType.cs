@@ -37,18 +37,18 @@ namespace PinataLayout.DocumentObjectModel.Shapes.Charts;
 /// </summary>
 public enum BlankType
 {
-  /// <summary>
-  /// Null value is not plotted.
-  /// </summary>
-  NotPlotted,
+    /// <summary>
+    /// Null value is not plotted.
+    /// </summary>
+    NotPlotted,
 
-  /// <summary>
-  /// Null value will be interpolated.
-  /// </summary>
-  Interpolated,
+    /// <summary>
+    /// Null value will be interpolated.
+    /// </summary>
+    Interpolated,
 
-  /// <summary>
-  /// Null value will be handled as zero.
-  /// </summary>
-  Zero
+    /// <summary>
+    /// Null value will be handled as zero.
+    /// </summary>
+    Zero
 }

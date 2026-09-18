@@ -42,34 +42,34 @@ namespace PinataLayout.DocumentObjectModel.Internals;
 /// </remarks>
 public enum ValueKind
 {
-  /// <summary>
-  /// A member that carries its own null: Nullable&lt;T&gt; or a string. Being null is what "not
-  /// set" means, so there is no wrapper struct to mutate through INullableValue and write back.
-  /// </summary>
-  Leaf,
+    /// <summary>
+    /// A member that carries its own null: Nullable&lt;T&gt; or a string. Being null is what "not
+    /// set" means, so there is no wrapper struct to mutate through INullableValue and write back.
+    /// </summary>
+    Leaf,
 
-  /// <summary>
-  /// A struct that implements INullableValue and so tracks its own null: Unit, Color, LeftPosition
-  /// and TopPosition. Reading, nulling and testing all go through the interface.
-  /// </summary>
-  NullableValue,
+    /// <summary>
+    /// A struct that implements INullableValue and so tracks its own null: Unit, Color, LeftPosition
+    /// and TopPosition. Reading, nulling and testing all go through the interface.
+    /// </summary>
+    NullableValue,
 
-  /// <summary>
-  /// A value type with no null of its own - a plain bool or enum. FormattedText's delegating
-  /// properties are the only members of this kind. They can be read and written but not unset, so
-  /// SetNull does nothing and IsNull is always false.
-  /// </summary>
-  PlainValue,
+    /// <summary>
+    /// A value type with no null of its own - a plain bool or enum. FormattedText's delegating
+    /// properties are the only members of this kind. They can be read and written but not unset, so
+    /// SetNull does nothing and IsNull is always false.
+    /// </summary>
+    PlainValue,
 
-  /// <summary>
-  /// A nested DocumentObject. Created on demand when read under <see cref="GV.ReadWrite"/>, if the
-  /// member is a field.
-  /// </summary>
-  DocumentObject,
+    /// <summary>
+    /// A nested DocumentObject. Created on demand when read under <see cref="GV.ReadWrite"/>, if the
+    /// member is a field.
+    /// </summary>
+    DocumentObject,
 
-  /// <summary>
-  /// A DocumentObjectCollection. Behaves as <see cref="DocumentObject"/> does; kept distinct
-  /// because the DDL parser and the serializer care about the difference.
-  /// </summary>
-  Collection,
+    /// <summary>
+    /// A DocumentObjectCollection. Behaves as <see cref="DocumentObject"/> does; kept distinct
+    /// because the DDL parser and the serializer care about the difference.
+    /// </summary>
+    Collection,
 }

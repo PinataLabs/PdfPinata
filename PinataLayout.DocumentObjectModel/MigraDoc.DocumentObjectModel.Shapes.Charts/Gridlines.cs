@@ -39,67 +39,67 @@ namespace PinataLayout.DocumentObjectModel.Shapes.Charts;
 /// </summary>
 public partial class Gridlines : ChartObject
 {
-  /// <summary>
-  /// Initializes a new instance of the Gridlines class.
-  /// </summary>
-  public Gridlines()
-  {
-  }
-
-  /// <summary>
-  /// Initializes a new instance of the Gridlines class with the specified parent.
-  /// </summary>
-  internal Gridlines(DocumentObject parent) : base(parent) { }
-
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new Gridlines Clone()
-  {
-    return (Gridlines)DeepCopy();
-  }
-
-  #endregion
-
-  #region Properties
-  /// <summary>
-  /// Gets the line format of the grid.
-  /// </summary>
-  public LineFormat LineFormat
-  {
-    get
+    /// <summary>
+    /// Initializes a new instance of the Gridlines class.
+    /// </summary>
+    public Gridlines()
     {
-      if (this.lineFormat == null)
-        this.lineFormat = new LineFormat(this);
-
-      return this.lineFormat;
     }
-    set
+
+    /// <summary>
+    /// Initializes a new instance of the Gridlines class with the specified parent.
+    /// </summary>
+    internal Gridlines(DocumentObject parent) : base(parent) { }
+
+    #region Methods
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new Gridlines Clone()
     {
-      SetParent(value);
-      this.lineFormat = value;
+        return (Gridlines)DeepCopy();
     }
-  }
-  [DV]
-  internal LineFormat lineFormat;
-  #endregion
 
-  #region Internal
-  /// <summary>
-  /// Converts Gridlines into DDL.
-  /// </summary>
-  internal override void Serialize(Serializer serializer)
-  {
-    Axis axisObject = this.parent as Axis;
+    #endregion
 
-    int pos = serializer.BeginContent(axisObject.CheckGridlines(this));
+    #region Properties
+    /// <summary>
+    /// Gets the line format of the grid.
+    /// </summary>
+    public LineFormat LineFormat
+    {
+        get
+        {
+            if (this.lineFormat == null)
+                this.lineFormat = new LineFormat(this);
 
-    if (!this.IsNull("LineFormat"))
-      this.lineFormat.Serialize(serializer);
+            return this.lineFormat;
+        }
+        set
+        {
+            SetParent(value);
+            this.lineFormat = value;
+        }
+    }
+    [DV]
+    internal LineFormat lineFormat;
+    #endregion
 
-    serializer.EndContent();
-  }
+    #region Internal
+    /// <summary>
+    /// Converts Gridlines into DDL.
+    /// </summary>
+    internal override void Serialize(Serializer serializer)
+    {
+        Axis axisObject = this.parent as Axis;
 
-  #endregion
+        int pos = serializer.BeginContent(axisObject.CheckGridlines(this));
+
+        if (!this.IsNull("LineFormat"))
+            this.lineFormat.Serialize(serializer);
+
+        serializer.EndContent();
+    }
+
+    #endregion
 }

@@ -37,181 +37,181 @@ namespace PdfPinata.Charting.Renderers;
 /// </summary>
 internal class PieDataLabelRenderer : DataLabelRenderer
 {
-  /// <summary>
-  /// Initializes a new instance of the PieDataLabelRenderer class with the
-  /// specified renderer parameters.
-  /// </summary>
-  internal PieDataLabelRenderer(RendererParameters parms) : base(parms)
-  {
-  }
-    
-  /// <summary>
-  /// Calculates the space used by the data labels.
-  /// </summary>
-  internal override void Format()
-  {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    if (cri.seriesRendererInfos.Length == 0)
-      return;
-
-    SeriesRendererInfo sri = cri.seriesRendererInfos[0];
-    if (sri.dataLabelRendererInfo == null)
-      return;
-
-    double sumValues = sri.SumOfPoints;
-    XGraphics gfx = this.rendererParms.Graphics;
-
-    sri.dataLabelRendererInfo.Entries = new DataLabelEntryRendererInfo[sri.pointRendererInfos.Length];
-    int index = 0;
-    foreach (SectorRendererInfo sector in sri.pointRendererInfos)
+    /// <summary>
+    /// Initializes a new instance of the PieDataLabelRenderer class with the
+    /// specified renderer parameters.
+    /// </summary>
+    internal PieDataLabelRenderer(RendererParameters parms) : base(parms)
     {
-      DataLabelEntryRendererInfo dleri = new DataLabelEntryRendererInfo();
-
-      // A blank draws no wedge, so it is left with no text either and Draw passes over it.
-      // Writing what NaN formats to would label a wedge that is not there.
-      if (sri.dataLabelRendererInfo.Type != DataLabelType.None && !double.IsNaN(sector.Value))
-      {
-        if (sri.dataLabelRendererInfo.Type == DataLabelType.Percent)
-        {
-          // Two ways of asking for a percentage, and the caller's format says which. A format
-          // carrying '%' is a .NET percent format, which scales by a hundred and writes the sign
-          // itself, so it is handed the fraction and its result is used as it stands. Anything else
-          // is a plain numeric format, is handed the number out of a hundred, and has the sign
-          // appended - which is what this always did.
-          //
-          // Appending unconditionally made the natural format the broken one: "0%" over a share of
-          // 0.1875 produced "1875%%" rather than "19%", because 18.75 was scaled by a hundred a
-          // second time and signed twice. It read back exactly as it was set and printed nonsense.
-          double share = Math.Abs(sector.Value) / sumValues;
-          string format = sri.dataLabelRendererInfo.Format;
-          dleri.Text = format != null && format.Contains("%")
-            ? share.ToString(format)
-            : (share * 100).ToString(format) + "%";
-        }
-        else if (sri.dataLabelRendererInfo.Type == DataLabelType.Value)
-          dleri.Text = sector.Value.ToString(sri.dataLabelRendererInfo.Format);
-
-        if (dleri.Text.Length > 0)
-          dleri.Size = gfx.MeasureString(dleri.Text, sri.dataLabelRendererInfo.Font);
-      }
-
-      sri.dataLabelRendererInfo.Entries[index++] = dleri;
     }
-  }
 
-  /// <summary>
-  /// Draws the data labels of the pie chart.
-  /// </summary>
-  internal override void Draw()
-  {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    if (cri.seriesRendererInfos.Length == 0)
-      return;
-
-    SeriesRendererInfo sri = cri.seriesRendererInfos[0];
-    if (sri.dataLabelRendererInfo == null)
-      return;
-
-    if (sri != null)
+    /// <summary>
+    /// Calculates the space used by the data labels.
+    /// </summary>
+    internal override void Format()
     {
-      XGraphics gfx = this.rendererParms.Graphics;
-      XFont font = sri.dataLabelRendererInfo.Font;
-      XBrush fontColor = sri.dataLabelRendererInfo.FontColor;
-      XStringFormat format = XStringFormats.Center;
-      format.LineAlignment = XLineAlignment.Center;
-      foreach (DataLabelEntryRendererInfo dataLabel in sri.dataLabelRendererInfo.Entries)
-      {
-        if (dataLabel.Text != null)
-          gfx.DrawString(dataLabel.Text, font, fontColor, dataLabel.Rect, format);
-      }
-    }
-  }
+        ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+        if (cri.seriesRendererInfos.Length == 0)
+            return;
 
-  /// <summary>
-  /// Calculates the data label positions specific for pie charts.
-  /// </summary>
-  internal override void CalcPositions()
-  {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    XGraphics gfx = this.rendererParms.Graphics;
+        SeriesRendererInfo sri = cri.seriesRendererInfos[0];
+        if (sri.dataLabelRendererInfo == null)
+            return;
 
-    if (cri.seriesRendererInfos.Length > 0)
-    {
-      SeriesRendererInfo sri = cri.seriesRendererInfos[0];
-      if (sri != null && sri.dataLabelRendererInfo != null)
-      {
-        int sectorIndex = 0;
+        double sumValues = sri.SumOfPoints;
+        XGraphics gfx = this.rendererParms.Graphics;
+
+        sri.dataLabelRendererInfo.Entries = new DataLabelEntryRendererInfo[sri.pointRendererInfos.Length];
+        int index = 0;
         foreach (SectorRendererInfo sector in sri.pointRendererInfos)
         {
-          // Determine output rectangle
-          double midAngle = sector.StartAngle + sector.SweepAngle / 2;
-          double radMidAngle = midAngle / 180 * Math.PI;
-          XPoint origin = new XPoint(sector.Rect.X + sector.Rect.Width / 2,
-            sector.Rect.Y + sector.Rect.Height / 2);
-          double radius = sector.Rect.Width / 2;
-          double halfradius = radius / 2;
+            DataLabelEntryRendererInfo dleri = new DataLabelEntryRendererInfo();
 
-          DataLabelEntryRendererInfo dleri = sri.dataLabelRendererInfo.Entries[sectorIndex++];
+            // A blank draws no wedge, so it is left with no text either and Draw passes over it.
+            // Writing what NaN formats to would label a wedge that is not there.
+            if (sri.dataLabelRendererInfo.Type != DataLabelType.None && !double.IsNaN(sector.Value))
+            {
+                if (sri.dataLabelRendererInfo.Type == DataLabelType.Percent)
+                {
+                    // Two ways of asking for a percentage, and the caller's format says which. A format
+                    // carrying '%' is a .NET percent format, which scales by a hundred and writes the sign
+                    // itself, so it is handed the fraction and its result is used as it stands. Anything else
+                    // is a plain numeric format, is handed the number out of a hundred, and has the sign
+                    // appended - which is what this always did.
+                    //
+                    // Appending unconditionally made the natural format the broken one: "0%" over a share of
+                    // 0.1875 produced "1875%%" rather than "19%", because 18.75 was scaled by a hundred a
+                    // second time and signed twice. It read back exactly as it was set and printed nonsense.
+                    double share = Math.Abs(sector.Value) / sumValues;
+                    string format = sri.dataLabelRendererInfo.Format;
+                    dleri.Text = format != null && format.Contains("%")
+                      ? share.ToString(format)
+                      : (share * 100).ToString(format) + "%";
+                }
+                else if (sri.dataLabelRendererInfo.Type == DataLabelType.Value)
+                    dleri.Text = sector.Value.ToString(sri.dataLabelRendererInfo.Format);
 
-          // The two "end" positions put a corner of the label exactly on the arc, which draws the
-          // text hard against the edge of the wedge - and, on the outside, hard against whatever is
-          // beyond it. Both are moved off the arc along their own radius by a third of the label's
-          // own height, so the gap is in proportion to the text rather than to the chart, and a
-          // large pie and a small one look alike.
-          double inset = dleri.Height / 3;
+                if (dleri.Text.Length > 0)
+                    dleri.Size = gfx.MeasureString(dleri.Text, sri.dataLabelRendererInfo.Font);
+            }
 
-          switch (sri.dataLabelRendererInfo.Position)
-          {
-            case DataLabelPosition.OutsideEnd:
-              // Just beyond the outer border of the circle.
-              double beyond = radius + inset;
-              dleri.X = origin.X + (beyond * Math.Cos(radMidAngle));
-              dleri.Y = origin.Y + (beyond * Math.Sin(radMidAngle));
-              if (dleri.X < origin.X)
-                dleri.X -= dleri.Width;
-              if (dleri.Y < origin.Y)
-                dleri.Y -= dleri.Height;
-              break;
-
-            case DataLabelPosition.InsideEnd:
-              // Just within the outer border of the circle. Never past the middle, however tall
-              // the label: a pie small enough for that is one whose labels have nowhere to go.
-              double within = Math.Max(radius - inset, halfradius);
-              dleri.X = origin.X + (within * Math.Cos(radMidAngle));
-              dleri.Y = origin.Y + (within * Math.Sin(radMidAngle));
-              if (dleri.X > origin.X)
-                dleri.X -= dleri.Width;
-              if (dleri.Y > origin.Y)
-                dleri.Y -= dleri.Height;
-              break;
-
-            case DataLabelPosition.Center:
-              // Centered
-              dleri.X = origin.X + (halfradius * Math.Cos(radMidAngle));
-              dleri.Y = origin.Y + (halfradius * Math.Sin(radMidAngle));
-              dleri.X -= dleri.Width / 2;
-              dleri.Y -= dleri.Height / 2;
-              break;
-
-            case DataLabelPosition.InsideBase:
-              // Aligned at the base of the sector, which for a pie is the centre of the circle.
-              // The label is laid out away from that point along its own sector, so that the
-              // corner of it nearest the centre is the one that sits there.
-              //
-              // The two tests are on the direction the sector runs in. They used to be on the
-              // label's own position, which had just been set to the centre and so could not be
-              // to the left of it or above it - meaning neither adjustment ever ran, and every
-              // label of every sector was drawn at one point on top of the others.
-              dleri.X = origin.X;
-              dleri.Y = origin.Y;
-              if (Math.Cos(radMidAngle) < 0)
-                dleri.X -= dleri.Width;
-              if (Math.Sin(radMidAngle) < 0)
-                dleri.Y -= dleri.Height;
-              break;
-          }
+            sri.dataLabelRendererInfo.Entries[index++] = dleri;
         }
-      }
     }
-  }
+
+    /// <summary>
+    /// Draws the data labels of the pie chart.
+    /// </summary>
+    internal override void Draw()
+    {
+        ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+        if (cri.seriesRendererInfos.Length == 0)
+            return;
+
+        SeriesRendererInfo sri = cri.seriesRendererInfos[0];
+        if (sri.dataLabelRendererInfo == null)
+            return;
+
+        if (sri != null)
+        {
+            XGraphics gfx = this.rendererParms.Graphics;
+            XFont font = sri.dataLabelRendererInfo.Font;
+            XBrush fontColor = sri.dataLabelRendererInfo.FontColor;
+            XStringFormat format = XStringFormats.Center;
+            format.LineAlignment = XLineAlignment.Center;
+            foreach (DataLabelEntryRendererInfo dataLabel in sri.dataLabelRendererInfo.Entries)
+            {
+                if (dataLabel.Text != null)
+                    gfx.DrawString(dataLabel.Text, font, fontColor, dataLabel.Rect, format);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Calculates the data label positions specific for pie charts.
+    /// </summary>
+    internal override void CalcPositions()
+    {
+        ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+        XGraphics gfx = this.rendererParms.Graphics;
+
+        if (cri.seriesRendererInfos.Length > 0)
+        {
+            SeriesRendererInfo sri = cri.seriesRendererInfos[0];
+            if (sri != null && sri.dataLabelRendererInfo != null)
+            {
+                int sectorIndex = 0;
+                foreach (SectorRendererInfo sector in sri.pointRendererInfos)
+                {
+                    // Determine output rectangle
+                    double midAngle = sector.StartAngle + sector.SweepAngle / 2;
+                    double radMidAngle = midAngle / 180 * Math.PI;
+                    XPoint origin = new XPoint(sector.Rect.X + sector.Rect.Width / 2,
+                      sector.Rect.Y + sector.Rect.Height / 2);
+                    double radius = sector.Rect.Width / 2;
+                    double halfradius = radius / 2;
+
+                    DataLabelEntryRendererInfo dleri = sri.dataLabelRendererInfo.Entries[sectorIndex++];
+
+                    // The two "end" positions put a corner of the label exactly on the arc, which draws the
+                    // text hard against the edge of the wedge - and, on the outside, hard against whatever is
+                    // beyond it. Both are moved off the arc along their own radius by a third of the label's
+                    // own height, so the gap is in proportion to the text rather than to the chart, and a
+                    // large pie and a small one look alike.
+                    double inset = dleri.Height / 3;
+
+                    switch (sri.dataLabelRendererInfo.Position)
+                    {
+                        case DataLabelPosition.OutsideEnd:
+                            // Just beyond the outer border of the circle.
+                            double beyond = radius + inset;
+                            dleri.X = origin.X + (beyond * Math.Cos(radMidAngle));
+                            dleri.Y = origin.Y + (beyond * Math.Sin(radMidAngle));
+                            if (dleri.X < origin.X)
+                                dleri.X -= dleri.Width;
+                            if (dleri.Y < origin.Y)
+                                dleri.Y -= dleri.Height;
+                            break;
+
+                        case DataLabelPosition.InsideEnd:
+                            // Just within the outer border of the circle. Never past the middle, however tall
+                            // the label: a pie small enough for that is one whose labels have nowhere to go.
+                            double within = Math.Max(radius - inset, halfradius);
+                            dleri.X = origin.X + (within * Math.Cos(radMidAngle));
+                            dleri.Y = origin.Y + (within * Math.Sin(radMidAngle));
+                            if (dleri.X > origin.X)
+                                dleri.X -= dleri.Width;
+                            if (dleri.Y > origin.Y)
+                                dleri.Y -= dleri.Height;
+                            break;
+
+                        case DataLabelPosition.Center:
+                            // Centered
+                            dleri.X = origin.X + (halfradius * Math.Cos(radMidAngle));
+                            dleri.Y = origin.Y + (halfradius * Math.Sin(radMidAngle));
+                            dleri.X -= dleri.Width / 2;
+                            dleri.Y -= dleri.Height / 2;
+                            break;
+
+                        case DataLabelPosition.InsideBase:
+                            // Aligned at the base of the sector, which for a pie is the centre of the circle.
+                            // The label is laid out away from that point along its own sector, so that the
+                            // corner of it nearest the centre is the one that sits there.
+                            //
+                            // The two tests are on the direction the sector runs in. They used to be on the
+                            // label's own position, which had just been set to the centre and so could not be
+                            // to the left of it or above it - meaning neither adjustment ever ran, and every
+                            // label of every sector was drawn at one point on top of the others.
+                            dleri.X = origin.X;
+                            dleri.Y = origin.Y;
+                            if (Math.Cos(radMidAngle) < 0)
+                                dleri.X -= dleri.Width;
+                            if (Math.Sin(radMidAngle) < 0)
+                                dleri.Y -= dleri.Height;
+                            break;
+                    }
+                }
+            }
+        }
+    }
 }

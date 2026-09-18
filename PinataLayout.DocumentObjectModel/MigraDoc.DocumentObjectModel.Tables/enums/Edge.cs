@@ -40,26 +40,26 @@ namespace PinataLayout.DocumentObjectModel.Tables;
 [Flags]
 public enum Edge
 {
-  /// <summary>The top border.</summary>
-  Top = 0x0001,
-  /// <summary>The left border.</summary>
-  Left = 0x0002,
-  /// <summary>The bottom border.</summary>
-  Bottom = 0x0004,
-  /// <summary>The right border.</summary>
-  Right = 0x0008,
-  /// <summary>The horizontal borders between the cells of the range.</summary>
-  Horizontal = 0x0010,
-  /// <summary>The vertical borders between the cells of the range.</summary>
-  Vertical = 0x0020,
-  /// <summary>The diagonal running from the top left corner to the bottom right.</summary>
-  DiagonalDown = 0x0040,
-  /// <summary>The diagonal running from the bottom left corner to the top right.</summary>
-  DiagonalUp = 0x0080,
-  /// <summary>All four outer borders.</summary>
-  Box = Top | Left | Bottom | Right,
-  /// <summary>Both sets of borders between the cells of the range.</summary>
-  Interior = Horizontal | Vertical,
-  /// <summary>Both diagonals.</summary>
-  Cross = DiagonalDown | DiagonalUp,
+    /// <summary>The top border.</summary>
+    Top = 0x0001,
+    /// <summary>The left border.</summary>
+    Left = 0x0002,
+    /// <summary>The bottom border.</summary>
+    Bottom = 0x0004,
+    /// <summary>The right border.</summary>
+    Right = 0x0008,
+    /// <summary>The horizontal borders between the cells of the range.</summary>
+    Horizontal = 0x0010,
+    /// <summary>The vertical borders between the cells of the range.</summary>
+    Vertical = 0x0020,
+    /// <summary>The diagonal running from the top left corner to the bottom right.</summary>
+    DiagonalDown = 0x0040,
+    /// <summary>The diagonal running from the bottom left corner to the top right.</summary>
+    DiagonalUp = 0x0080,
+    /// <summary>All four outer borders.</summary>
+    Box = Top | Left | Bottom | Right,
+    /// <summary>Both sets of borders between the cells of the range.</summary>
+    Interior = Horizontal | Vertical,
+    /// <summary>Both diagonals.</summary>
+    Cross = DiagonalDown | DiagonalUp,
 }

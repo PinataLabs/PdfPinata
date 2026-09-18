@@ -37,23 +37,23 @@ namespace PinataLayout.DocumentObjectModel.Shapes.Charts;
 /// </summary>
 public enum DataLabelPosition
 {
-  /// <summary>
-  /// DataLabel will be centered inside the bar or pie.
-  /// </summary>
-  Center,
+    /// <summary>
+    /// DataLabel will be centered inside the bar or pie.
+    /// </summary>
+    Center,
 
-  /// <summary>
-  /// Inside the bar or pie at the origin.
-  /// </summary>
-  InsideBase,
+    /// <summary>
+    /// Inside the bar or pie at the origin.
+    /// </summary>
+    InsideBase,
 
-  /// <summary>
-  /// Inside the bar or pie at the edge.
-  /// </summary>
-  InsideEnd,
+    /// <summary>
+    /// Inside the bar or pie at the edge.
+    /// </summary>
+    InsideEnd,
 
-  /// <summary>
-  /// Outside the bar or pie.
-  /// </summary>
-  OutsideEnd
+    /// <summary>
+    /// Outside the bar or pie.
+    /// </summary>
+    OutsideEnd
 }

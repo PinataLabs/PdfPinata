@@ -35,14 +35,14 @@ namespace PinataLayout.Rendering;
 /// </summary>
 internal class ChartRenderInfo : ShapeRenderInfo
 {
-  internal override FormatInfo FormatInfo
-  {
-    get
+    internal override FormatInfo FormatInfo
     {
-      if (formatInfo == null)
-        formatInfo = new ChartFormatInfo();
-      return formatInfo;
+        get
+        {
+            if (formatInfo == null)
+                formatInfo = new ChartFormatInfo();
+            return formatInfo;
+        }
     }
-  }
-  ChartFormatInfo formatInfo;
+    ChartFormatInfo formatInfo;
 }

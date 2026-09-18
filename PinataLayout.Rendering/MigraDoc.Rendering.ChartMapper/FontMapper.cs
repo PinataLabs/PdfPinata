@@ -35,43 +35,43 @@ namespace PinataLayout.Rendering.ChartMapper;
 
 internal class FontMapper
 {
-  private FontMapper()
-  {
-  }
-
-  void MapObject(Font font, DocumentObjectModel.Font domFont)
-  {
-    font.Bold = domFont.Bold;
-    if (domFont.Color.IsEmpty)
-      font.Color = XColor.Empty;
-    else
+    private FontMapper()
     {
-      font.Color = ColorHelper.ToXColor(domFont.Color, domFont.Document.UseCmykColor);
     }
-    font.Italic = domFont.Italic;
-    if (!domFont.IsNull("Name"))
-      font.Name = domFont.Name;
-    if (!domFont.IsNull("Size"))
-      font.Size = domFont.Size.Point;
-    font.Subscript = domFont.Subscript;
-    font.Superscript = domFont.Superscript;
-    font.Strikethrough = (Strikethrough)domFont.Strikethrough;
-    font.Underline = (Underline)domFont.Underline;
-  }
 
-  internal static void Map(Font font, DocumentObjectModel.Document domDocument, string domStyleName)
-  {
-    DocumentObjectModel.Style domStyle = domDocument.Styles[domStyleName];
-    if (domStyle != null)
+    void MapObject(Font font, DocumentObjectModel.Font domFont)
     {
-      FontMapper mapper = new FontMapper();
-      mapper.MapObject(font, domStyle.Font);
+        font.Bold = domFont.Bold;
+        if (domFont.Color.IsEmpty)
+            font.Color = XColor.Empty;
+        else
+        {
+            font.Color = ColorHelper.ToXColor(domFont.Color, domFont.Document.UseCmykColor);
+        }
+        font.Italic = domFont.Italic;
+        if (!domFont.IsNull("Name"))
+            font.Name = domFont.Name;
+        if (!domFont.IsNull("Size"))
+            font.Size = domFont.Size.Point;
+        font.Subscript = domFont.Subscript;
+        font.Superscript = domFont.Superscript;
+        font.Strikethrough = (Strikethrough)domFont.Strikethrough;
+        font.Underline = (Underline)domFont.Underline;
     }
-  }
 
-  internal static void Map(Font font, DocumentObjectModel.Font domFont)
-  {
-    FontMapper mapper = new FontMapper();
-    mapper.MapObject(font, domFont);
-  }
+    internal static void Map(Font font, DocumentObjectModel.Document domDocument, string domStyleName)
+    {
+        DocumentObjectModel.Style domStyle = domDocument.Styles[domStyleName];
+        if (domStyle != null)
+        {
+            FontMapper mapper = new FontMapper();
+            mapper.MapObject(font, domStyle.Font);
+        }
+    }
+
+    internal static void Map(Font font, DocumentObjectModel.Font domFont)
+    {
+        FontMapper mapper = new FontMapper();
+        mapper.MapObject(font, domFont);
+    }
 }

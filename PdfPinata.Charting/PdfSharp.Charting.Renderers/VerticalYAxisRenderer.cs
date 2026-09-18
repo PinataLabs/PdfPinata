@@ -34,11 +34,11 @@ namespace PdfPinata.Charting.Renderers;
 /// </summary>
 internal class VerticalYAxisRenderer : YAxisRenderer
 {
-  /// <summary>
-  /// Initializes a new instance of the VerticalYAxisRenderer class with the
-  /// specified renderer parameters.
-  /// </summary>
-  internal VerticalYAxisRenderer(RendererParameters parms) : base(parms, AxisOrientation.Vertical)
-  {
-  }
+    /// <summary>
+    /// Initializes a new instance of the VerticalYAxisRenderer class with the
+    /// specified renderer parameters.
+    /// </summary>
+    internal VerticalYAxisRenderer(RendererParameters parms) : base(parms, AxisOrientation.Vertical)
+    {
+    }
 }

@@ -252,7 +252,7 @@ public class AsciiFilterTests
     {
         // Null, tab, line feed, form feed, carriage return and space are all white space to a
         // content stream, and the filter drops the lot before reading digits.
-        var withSpace = Encoding.ASCII.GetBytes("41 42\t43\r\n44\f45") .Concat(new byte[] { 0 }).ToArray();
+        var withSpace = Encoding.ASCII.GetBytes("41 42\t43\r\n44\f45").Concat(new byte[] { 0 }).ToArray();
 
         Filtering.ASCIIHexDecode.Decode(withSpace, (FilterParms)null)
             .Should().Equal(Encoding.ASCII.GetBytes("ABCDE"));

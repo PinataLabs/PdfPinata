@@ -307,7 +307,7 @@ public struct XPoint : IFormattable
     /// </summary>
     // ReSharper disable UnusedMember.Local
     string DebuggerDisplay
-        // ReSharper restore UnusedMember.Local
+    // ReSharper restore UnusedMember.Local
     {
         get
         {

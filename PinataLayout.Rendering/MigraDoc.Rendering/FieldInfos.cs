@@ -40,108 +40,108 @@ namespace PinataLayout.Rendering;
 /// </summary>
 internal class FieldInfos
 {
-  internal FieldInfos(Dictionary<string, BookmarkInfo> bookmarks)
-  {
-    this.bookmarks = bookmarks;
-  }
-
-  internal struct BookmarkInfo
-  {
-    internal BookmarkInfo(int physicalPageNumber, int displayPageNumber, double top)
+    internal FieldInfos(Dictionary<string, BookmarkInfo> bookmarks)
     {
-      this.displayPageNumber = physicalPageNumber;
-      shownPageNumber = displayPageNumber;
-      this.top = top;
+        this.bookmarks = bookmarks;
     }
 
-    internal int displayPageNumber;
-    internal int shownPageNumber;
+    internal struct BookmarkInfo
+    {
+        internal BookmarkInfo(int physicalPageNumber, int displayPageNumber, double top)
+        {
+            this.displayPageNumber = physicalPageNumber;
+            shownPageNumber = displayPageNumber;
+            this.top = top;
+        }
+
+        internal int displayPageNumber;
+        internal int shownPageNumber;
+
+        /// <summary>
+        /// How far up the page the bookmark sits, in the coordinates a PDF page is measured in.
+        /// NaN when the page height was not known and the position could not be worked out.
+        /// </summary>
+        internal double top;
+    }
+
+    internal void AddBookmark(string name, XUnit verticalPosition)
+    {
+        if (pyhsicalPageNr <= 0)
+            return;
+
+        if (bookmarks.ContainsKey(name))
+            bookmarks.Remove(name);
+
+        // A document is laid out from the top of the page down and a PDF page is measured from the
+        // bottom up, so the one has to be turned into the other before it can be a destination.
+        double top = pageHeight.Point > 0 ? pageHeight.Point - verticalPosition.Point : double.NaN;
+        bookmarks.Add(name, new BookmarkInfo(pyhsicalPageNr, displayPageNr, top));
+    }
 
     /// <summary>
-    /// How far up the page the bookmark sits, in the coordinates a PDF page is measured in.
-    /// NaN when the page height was not known and the position could not be worked out.
+    /// How far up its page the named bookmark sits, in the coordinates a PDF page is measured in,
+    /// or NaN when there is no such bookmark or its position is not known.
     /// </summary>
-    internal double top;
-  }
-
-  internal void AddBookmark(string name, XUnit verticalPosition)
-  {
-    if (pyhsicalPageNr <= 0)
-      return;
-
-    if (bookmarks.ContainsKey(name))
-      bookmarks.Remove(name);
-
-    // A document is laid out from the top of the page down and a PDF page is measured from the
-    // bottom up, so the one has to be turned into the other before it can be a destination.
-    double top = pageHeight.Point > 0 ? pageHeight.Point - verticalPosition.Point : double.NaN;
-    bookmarks.Add(name, new BookmarkInfo(pyhsicalPageNr, displayPageNr, top));
-  }
-
-  /// <summary>
-  /// How far up its page the named bookmark sits, in the coordinates a PDF page is measured in,
-  /// or NaN when there is no such bookmark or its position is not known.
-  /// </summary>
-  internal double GetBookmarkTop(string bookmarkName)
-  {
-    if (bookmarks.ContainsKey(bookmarkName))
-      return bookmarks[bookmarkName].top;
-    return double.NaN;
-  }
-
-  internal int GetShownPageNumber(string bookmarkName)
-  {
-    if (bookmarks.ContainsKey(bookmarkName))
+    internal double GetBookmarkTop(string bookmarkName)
     {
-      BookmarkInfo bi = bookmarks[bookmarkName];
-      return bi.shownPageNumber;
+        if (bookmarks.ContainsKey(bookmarkName))
+            return bookmarks[bookmarkName].top;
+        return double.NaN;
     }
-    return -1;
-  }
 
-  /// <summary>
-  /// The same facts, in the shape <see cref="FieldEvaluator"/> asks for them. The translation lives
-  /// here, beside what is being translated: a count of zero is this class's way of saying the count
-  /// is not known yet, and the evaluator would rather be told that in nulls than have to know it.
-  /// </summary>
-  internal FieldEvaluationContext ToEvaluationContext()
-  {
-    return new FieldEvaluationContext
+    internal int GetShownPageNumber(string bookmarkName)
     {
-      DisplayPageNumber = displayPageNr,
-      SectionNumber = section,
-      NumberOfPages = numPages > 0 ? numPages : (int?)null,
-      PagesInSection = sectionPages > 0 ? sectionPages : (int?)null,
-      PrintDate = date,
-      ResolveBookmarkPage = name =>
-      {
-        int shownPageNumber = GetShownPageNumber(name);
-        return shownPageNumber > 0 ? shownPageNumber : (int?)null;
-      }
-    };
-  }
-
-  internal int GetPhysicalPageNumber(string bookmarkName)
-  {
-    if (bookmarks.ContainsKey(bookmarkName))
-    {
-      BookmarkInfo bi = bookmarks[bookmarkName];
-      return bi.displayPageNumber;
+        if (bookmarks.ContainsKey(bookmarkName))
+        {
+            BookmarkInfo bi = bookmarks[bookmarkName];
+            return bi.shownPageNumber;
+        }
+        return -1;
     }
-    return -1;
-  }
 
-  Dictionary<string, BookmarkInfo> bookmarks;
-  internal int displayPageNr;
-  internal int pyhsicalPageNr;
+    /// <summary>
+    /// The same facts, in the shape <see cref="FieldEvaluator"/> asks for them. The translation lives
+    /// here, beside what is being translated: a count of zero is this class's way of saying the count
+    /// is not known yet, and the evaluator would rather be told that in nulls than have to know it.
+    /// </summary>
+    internal FieldEvaluationContext ToEvaluationContext()
+    {
+        return new FieldEvaluationContext
+        {
+            DisplayPageNumber = displayPageNr,
+            SectionNumber = section,
+            NumberOfPages = numPages > 0 ? numPages : (int?)null,
+            PagesInSection = sectionPages > 0 ? sectionPages : (int?)null,
+            PrintDate = date,
+            ResolveBookmarkPage = name =>
+            {
+                int shownPageNumber = GetShownPageNumber(name);
+                return shownPageNumber > 0 ? shownPageNumber : (int?)null;
+            }
+        };
+    }
 
-  /// <summary>
-  /// The height of the page these infos belong to, which is what turns a distance down the page
-  /// into a distance up it. Zero when it has not been set, and then no bookmark carries a position.
-  /// </summary>
-  internal XUnit pageHeight;
-  internal int section;
-  internal int sectionPages;
-  internal int numPages;
-  internal DateTime date;
+    internal int GetPhysicalPageNumber(string bookmarkName)
+    {
+        if (bookmarks.ContainsKey(bookmarkName))
+        {
+            BookmarkInfo bi = bookmarks[bookmarkName];
+            return bi.displayPageNumber;
+        }
+        return -1;
+    }
+
+    Dictionary<string, BookmarkInfo> bookmarks;
+    internal int displayPageNr;
+    internal int pyhsicalPageNr;
+
+    /// <summary>
+    /// The height of the page these infos belong to, which is what turns a distance down the page
+    /// into a distance up it. Zero when it has not been set, and then no bookmark carries a position.
+    /// </summary>
+    internal XUnit pageHeight;
+    internal int section;
+    internal int sectionPages;
+    internal int numPages;
+    internal DateTime date;
 }

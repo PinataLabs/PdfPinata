@@ -95,7 +95,12 @@ public class XMatrixTests
     {
         var matrix = new XMatrix
         {
-            M11 = 1, M12 = 2, M21 = 3, M22 = 4, OffsetX = 5, OffsetY = 6,
+            M11 = 1,
+            M12 = 2,
+            M21 = 3,
+            M22 = 4,
+            OffsetX = 5,
+            OffsetY = 6,
         };
 
         matrix.GetElements().Should().Equal(new double[] { 1, 2, 3, 4, 5, 6 });

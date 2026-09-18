@@ -37,11 +37,11 @@ namespace PinataLayout.Rendering;
 /// </summary>
 internal class ChartFormatInfo : ShapeFormatInfo
 {
-  internal ChartFrame chartFrame;
-  internal FormattedTextArea formattedHeader;
-  internal FormattedTextArea formattedLeft;
-  internal FormattedTextArea formattedTop;
-  internal FormattedTextArea formattedBottom;
-  internal FormattedTextArea formattedRight;
-  internal FormattedTextArea formattedFooter;
+    internal ChartFrame chartFrame;
+    internal FormattedTextArea formattedHeader;
+    internal FormattedTextArea formattedLeft;
+    internal FormattedTextArea formattedTop;
+    internal FormattedTextArea formattedBottom;
+    internal FormattedTextArea formattedRight;
+    internal FormattedTextArea formattedFooter;
 }

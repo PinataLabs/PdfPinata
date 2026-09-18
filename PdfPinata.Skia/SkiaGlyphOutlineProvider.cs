@@ -116,19 +116,19 @@ public sealed class SkiaGlyphOutlineProvider : IGlyphOutlineProvider
 
                 case SKPathVerb.Quad:
                 case SKPathVerb.Conic:
-                {
-                    // A conic is a rational quadratic. Font outlines are not drawn with them, so
-                    // treating one as its unweighted quadratic is a fallback that never fires
-                    // rather than an approximation anyone relies on.
-                    XPoint control = At(points[1], pen);
-                    XPoint end = At(points[2], pen);
-                    segments.Add(XGlyphSegment.CurveTo(
-                        Lerp(current, control, 2.0 / 3.0),
-                        Lerp(end, control, 2.0 / 3.0),
-                        end));
-                    current = end;
-                    break;
-                }
+                    {
+                        // A conic is a rational quadratic. Font outlines are not drawn with them, so
+                        // treating one as its unweighted quadratic is a fallback that never fires
+                        // rather than an approximation anyone relies on.
+                        XPoint control = At(points[1], pen);
+                        XPoint end = At(points[2], pen);
+                        segments.Add(XGlyphSegment.CurveTo(
+                            Lerp(current, control, 2.0 / 3.0),
+                            Lerp(end, control, 2.0 / 3.0),
+                            end));
+                        current = end;
+                        break;
+                    }
 
                 case SKPathVerb.Cubic:
                     current = At(points[3], pen);

@@ -37,24 +37,24 @@ namespace PinataLayout.DocumentObjectModel;
 /// </summary>
 public enum OutlineLevel
 {
-  /// <summary>Ordinary text, at no outline level.</summary>
-  BodyText,
-  /// <summary>The first outline level.</summary>
-  Level1,
-  /// <summary>The second outline level.</summary>
-  Level2,
-  /// <summary>The third outline level.</summary>
-  Level3,
-  /// <summary>The fourth outline level.</summary>
-  Level4,
-  /// <summary>The fifth outline level.</summary>
-  Level5,
-  /// <summary>The sixth outline level.</summary>
-  Level6,
-  /// <summary>The seventh outline level.</summary>
-  Level7,
-  /// <summary>The eighth outline level.</summary>
-  Level8,
-  /// <summary>The ninth outline level.</summary>
-  Level9,
+    /// <summary>Ordinary text, at no outline level.</summary>
+    BodyText,
+    /// <summary>The first outline level.</summary>
+    Level1,
+    /// <summary>The second outline level.</summary>
+    Level2,
+    /// <summary>The third outline level.</summary>
+    Level3,
+    /// <summary>The fourth outline level.</summary>
+    Level4,
+    /// <summary>The fifth outline level.</summary>
+    Level5,
+    /// <summary>The sixth outline level.</summary>
+    Level6,
+    /// <summary>The seventh outline level.</summary>
+    Level7,
+    /// <summary>The eighth outline level.</summary>
+    Level8,
+    /// <summary>The ninth outline level.</summary>
+    Level9,
 }

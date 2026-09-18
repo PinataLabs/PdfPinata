@@ -37,128 +37,128 @@ namespace PdfPinata.Charting.Renderers;
 /// </summary>
 internal class AxisTitleRenderer : Renderer
 {
-  /// <summary>
-  /// Initializes a new instance of the AxisTitleRenderer class with the
-  /// specified renderer parameters.
-  /// </summary>
-  internal AxisTitleRenderer(RendererParameters parms) : base(parms)
-  {
-  }
-
-  /// <summary>
-  /// Calculates the space used for the axis title.
-  /// </summary>
-  internal override void Format()
-  {
-    XGraphics gfx = this.rendererParms.Graphics;
-
-    AxisTitleRendererInfo atri = ((AxisRendererInfo)this.rendererParms.RendererInfo).axisTitleRendererInfo;
-    if (atri.AxisTitleText != "")
+    /// <summary>
+    /// Initializes a new instance of the AxisTitleRenderer class with the
+    /// specified renderer parameters.
+    /// </summary>
+    internal AxisTitleRenderer(RendererParameters parms) : base(parms)
     {
-      XSize size = gfx.MeasureString(atri.AxisTitleText, atri.AxisTitleFont);
-      if (atri.AxisTitleOrientation != 0)
-      {
-        XPoint[] points = new XPoint[2];
-        points[0].X = 0;
-        points[0].Y = 0;
-        points[1].X = size.Width;
-        points[1].Y = size.Height;
-
-        XMatrix matrix = new XMatrix();  //XMatrix.Identity;
-        matrix.RotatePrepend(-atri.AxisTitleOrientation);
-        matrix.TransformPoints(points);
-
-        size.Width  = Math.Abs(points[1].X - points[0].X);
-        size.Height = Math.Abs(points[1].Y - points[0].Y);
-      }
-
-      atri.X = 0;
-      atri.Y = 0;
-      atri.Height = size.Height;
-      atri.Width = size.Width;
-
-      // Kept as well as being written to the rectangle, because the rectangle does not stay the
-      // title's own size: an axis about to draw its title replaces it with the strip the title
-      // is to be placed within, and Draw then needs both - the strip to align inside, and the
-      // size of the thing being aligned.
-      atri.AxisTitleSize = size;
     }
-  }
 
-  /// <summary>
-  /// Draws the axis title.
-  /// </summary>
-  internal override void Draw()
-  {
-    AxisRendererInfo ari = (AxisRendererInfo)this.rendererParms.RendererInfo;
-    AxisTitleRendererInfo atri = ari.axisTitleRendererInfo;
-    if (atri.AxisTitleText != "")
+    /// <summary>
+    /// Calculates the space used for the axis title.
+    /// </summary>
+    internal override void Format()
     {
-      XGraphics gfx = this.rendererParms.Graphics;
-      if (atri.AxisTitleOrientation != 0)
-      {
-        // The box the caption occupies, centred on the origin: the surface is moved and turned
-        // under it, and the caption is centred within it, so this decides the caption's size and
-        // the transform decides where it lands.
-        //
-        // The caption's own size rather than the rectangle's, which is the strip the axis set
-        // aside to place it in. Halving the strip instead is what used to make Right and Bottom
-        // land where Center does - the strip is what the offsets below are measured against, so
-        // using it on both sides of the subtraction cancelled it out.
-        XSize caption = atri.AxisTitleSize;
-        XRect layout = new XRect(-(caption.Width / 2), -(caption.Height / 2),
-          caption.Width, caption.Height);
+        XGraphics gfx = this.rendererParms.Graphics;
 
-        RotatedCaptionLayout position = AxisTitleGeometry.RotatedCaption(
-          atri.Rect, caption, atri.AxisTitleOrientation, atri.AxisTitleAlignment, atri.AxisTitleVerticalAlignment);
-
-        XStringFormat xsf = new XStringFormat();
-        xsf.Alignment = XStringAlignment.Center;
-        xsf.LineAlignment = XLineAlignment.Center;
-
-        XGraphicsState state = gfx.Save();
-        gfx.TranslateTransform(position.Anchor.X, position.Anchor.Y);
-        gfx.RotateTransform(position.RotationDegrees);
-        gfx.DrawString(atri.AxisTitleText, atri.AxisTitleFont, atri.AxisTitleBrush, layout, xsf);
-        gfx.Restore(state);
-      }
-      else
-      {
-        XStringFormat format = new XStringFormat();
-        switch (atri.AxisTitleAlignment)
+        AxisTitleRendererInfo atri = ((AxisRendererInfo)this.rendererParms.RendererInfo).axisTitleRendererInfo;
+        if (atri.AxisTitleText != "")
         {
-          case HorizontalAlignment.Center:
-            format.Alignment = XStringAlignment.Center;
-            break;
+            XSize size = gfx.MeasureString(atri.AxisTitleText, atri.AxisTitleFont);
+            if (atri.AxisTitleOrientation != 0)
+            {
+                XPoint[] points = new XPoint[2];
+                points[0].X = 0;
+                points[0].Y = 0;
+                points[1].X = size.Width;
+                points[1].Y = size.Height;
 
-          case HorizontalAlignment.Right:
-            format.Alignment = XStringAlignment.Far;
-            break;
+                XMatrix matrix = new XMatrix();  //XMatrix.Identity;
+                matrix.RotatePrepend(-atri.AxisTitleOrientation);
+                matrix.TransformPoints(points);
 
-          case HorizontalAlignment.Left:
-          default:
-            format.Alignment = XStringAlignment.Near;
-            break;
+                size.Width = Math.Abs(points[1].X - points[0].X);
+                size.Height = Math.Abs(points[1].Y - points[0].Y);
+            }
+
+            atri.X = 0;
+            atri.Y = 0;
+            atri.Height = size.Height;
+            atri.Width = size.Width;
+
+            // Kept as well as being written to the rectangle, because the rectangle does not stay the
+            // title's own size: an axis about to draw its title replaces it with the strip the title
+            // is to be placed within, and Draw then needs both - the strip to align inside, and the
+            // size of the thing being aligned.
+            atri.AxisTitleSize = size;
         }
-
-        switch (atri.AxisTitleVerticalAlignment)
-        {
-          case VerticalAlignment.Center:
-            format.LineAlignment = XLineAlignment.Center;
-            break;
-
-          case VerticalAlignment.Bottom:
-            format.LineAlignment = XLineAlignment.Far;
-            break;
-
-          case VerticalAlignment.Top:
-          default:
-            format.LineAlignment = XLineAlignment.Near;
-            break;
-        }
-
-        gfx.DrawString(atri.AxisTitleText, atri.AxisTitleFont, atri.AxisTitleBrush, atri.Rect, format);
-      }
     }
-  }
+
+    /// <summary>
+    /// Draws the axis title.
+    /// </summary>
+    internal override void Draw()
+    {
+        AxisRendererInfo ari = (AxisRendererInfo)this.rendererParms.RendererInfo;
+        AxisTitleRendererInfo atri = ari.axisTitleRendererInfo;
+        if (atri.AxisTitleText != "")
+        {
+            XGraphics gfx = this.rendererParms.Graphics;
+            if (atri.AxisTitleOrientation != 0)
+            {
+                // The box the caption occupies, centred on the origin: the surface is moved and turned
+                // under it, and the caption is centred within it, so this decides the caption's size and
+                // the transform decides where it lands.
+                //
+                // The caption's own size rather than the rectangle's, which is the strip the axis set
+                // aside to place it in. Halving the strip instead is what used to make Right and Bottom
+                // land where Center does - the strip is what the offsets below are measured against, so
+                // using it on both sides of the subtraction cancelled it out.
+                XSize caption = atri.AxisTitleSize;
+                XRect layout = new XRect(-(caption.Width / 2), -(caption.Height / 2),
+                  caption.Width, caption.Height);
+
+                RotatedCaptionLayout position = AxisTitleGeometry.RotatedCaption(
+                  atri.Rect, caption, atri.AxisTitleOrientation, atri.AxisTitleAlignment, atri.AxisTitleVerticalAlignment);
+
+                XStringFormat xsf = new XStringFormat();
+                xsf.Alignment = XStringAlignment.Center;
+                xsf.LineAlignment = XLineAlignment.Center;
+
+                XGraphicsState state = gfx.Save();
+                gfx.TranslateTransform(position.Anchor.X, position.Anchor.Y);
+                gfx.RotateTransform(position.RotationDegrees);
+                gfx.DrawString(atri.AxisTitleText, atri.AxisTitleFont, atri.AxisTitleBrush, layout, xsf);
+                gfx.Restore(state);
+            }
+            else
+            {
+                XStringFormat format = new XStringFormat();
+                switch (atri.AxisTitleAlignment)
+                {
+                    case HorizontalAlignment.Center:
+                        format.Alignment = XStringAlignment.Center;
+                        break;
+
+                    case HorizontalAlignment.Right:
+                        format.Alignment = XStringAlignment.Far;
+                        break;
+
+                    case HorizontalAlignment.Left:
+                    default:
+                        format.Alignment = XStringAlignment.Near;
+                        break;
+                }
+
+                switch (atri.AxisTitleVerticalAlignment)
+                {
+                    case VerticalAlignment.Center:
+                        format.LineAlignment = XLineAlignment.Center;
+                        break;
+
+                    case VerticalAlignment.Bottom:
+                        format.LineAlignment = XLineAlignment.Far;
+                        break;
+
+                    case VerticalAlignment.Top:
+                    default:
+                        format.LineAlignment = XLineAlignment.Near;
+                        break;
+                }
+
+                gfx.DrawString(atri.AxisTitleText, atri.AxisTitleFont, atri.AxisTitleBrush, atri.Rect, format);
+            }
+        }
+    }
 }

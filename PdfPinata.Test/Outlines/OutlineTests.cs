@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
@@ -35,7 +35,7 @@ public class OutlineTests
         }
 
         document.Outlines.Count.Should().Be(1);
-            
+
         using var ms = new MemoryStream();
         document.Save(ms);
         ms.ToArray().Length.Should().BeGreaterThan(1);

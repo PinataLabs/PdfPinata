@@ -39,43 +39,43 @@ namespace PinataLayout.DocumentObjectModel.Fields;
 /// </summary>
 public partial class PageField : NumericFieldBase
 {
-  /// <summary>
-  /// Initializes a new instance of the PageField class.
-  /// </summary>
-  public PageField()
-  {
-  }
+    /// <summary>
+    /// Initializes a new instance of the PageField class.
+    /// </summary>
+    public PageField()
+    {
+    }
 
-  /// <summary>
-  /// Initializes a new instance of the PageField class with the specified parent.
-  /// </summary>
-  internal PageField(DocumentObject parent) : base(parent) { }
+    /// <summary>
+    /// Initializes a new instance of the PageField class with the specified parent.
+    /// </summary>
+    internal PageField(DocumentObject parent) : base(parent) { }
 
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new PageField Clone()
-  {
-    return (PageField)DeepCopy();
-  }
-  #endregion
+    #region Methods
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new PageField Clone()
+    {
+        return (PageField)DeepCopy();
+    }
+    #endregion
 
-  #region Internal
-  /// <summary>
-  /// Converts PageField into DDL.
-  /// </summary>
-  internal override void Serialize(Serializer serializer)
-  {
-    string str = "\\field(Page)";
+    #region Internal
+    /// <summary>
+    /// Converts PageField into DDL.
+    /// </summary>
+    internal override void Serialize(Serializer serializer)
+    {
+        string str = "\\field(Page)";
 
-    if ((this.format ?? "") != "")
-      str += "[Format = \"" + this.Format + "\"]";
-    else
-      str += "[]"; //Has to be appended to avoid confusion with '[' in immediatly following text.
+        if ((this.format ?? "") != "")
+            str += "[Format = \"" + this.Format + "\"]";
+        else
+            str += "[]"; //Has to be appended to avoid confusion with '[' in immediatly following text.
 
-    serializer.Write(str);
-  }
+        serializer.Write(str);
+    }
 
-  #endregion
+    #endregion
 }

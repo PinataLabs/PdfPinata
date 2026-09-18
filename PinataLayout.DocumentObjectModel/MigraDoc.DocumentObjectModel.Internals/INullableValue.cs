@@ -39,8 +39,8 @@ namespace PinataLayout.DocumentObjectModel.Internals;
 /// </summary>
 internal interface INullableValue
 {
-  object GetValue();
-  void SetValue(object value);
-  void SetNull();
-  bool IsNull { get;}
+    object GetValue();
+    void SetValue(object value);
+    void SetNull();
+    bool IsNull { get; }
 }

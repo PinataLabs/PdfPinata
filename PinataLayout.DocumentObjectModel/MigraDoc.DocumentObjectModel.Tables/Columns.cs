@@ -41,123 +41,123 @@ namespace PinataLayout.DocumentObjectModel.Tables;
 /// </summary>
 public partial class Columns : DocumentObjectCollection, IVisitable
 {
-  /// <summary>
-  /// Initializes a new instance of the Columns class.
-  /// </summary>
-  public Columns()
-  {
-  }
-
-  /// <summary>
-  /// Initializes a new instance of the Columns class containing columns of the specified widths.
-  /// </summary>
-  public Columns(params Unit[] widths)
-  {
-    foreach (Unit width in widths)
+    /// <summary>
+    /// Initializes a new instance of the Columns class.
+    /// </summary>
+    public Columns()
     {
-      Column clm = new Column();
-      clm.Width = width;
-      this.Add(clm);
     }
-  }
 
-  /// <summary>
-  /// Initializes a new instance of the Columns class with the specified parent.
-  /// </summary>
-  internal Columns(DocumentObject parent) : base(parent) { }
-
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new Columns Clone()
-  {
-    return (Columns)base.DeepCopy();
-  }
-
-  /// <summary>
-  /// Adds a new column to the columns collection. Allowed only before any row was added.
-  /// </summary>
-  public Column AddColumn()
-  {
-    if (Table.Rows.Count > 0)
-      throw new InvalidOperationException("Cannot add column because rows collection is not empty.");
-
-    Column column = new Column();
-    Add(column);
-    return column;
-  }
-  #endregion
-
-  #region Properties
-  /// <summary>
-  /// Gets the table the columns collection belongs to.
-  /// </summary>
-  public Table Table => this.parent as Table;
-
-  /// <summary>
-  /// Gets a column by its index.
-  /// </summary>
-  public new Column this[int index] => base[index] as Column;
-
-  /// <summary>
-  /// Gets or sets the default width of all columns.
-  /// </summary>
-  public Unit Width
-  {
-    get => this.width;
-    set => this.width = value;
-  }
-  [DV]
-  internal Unit width = Unit.NullValue;
-
-  /// <summary>
-  /// Gets or sets a comment associated with this object.
-  /// </summary>
-  public string Comment
-  {
-    get => this.comment ?? "";
-    set => this.comment = value;
-  }
-  [DV]
-  internal string comment;
-  #endregion
-
-  #region Internal
-  /// <summary>
-  /// Converts Columns into DDL.
-  /// </summary>
-  internal override void Serialize(Serializer serializer)
-  {
-    serializer.WriteComment((this.comment ?? ""));
-    serializer.WriteLine("\\columns");
-
-    int pos = serializer.BeginAttributes();
-
-    if (!this.width.IsNull)
-      serializer.WriteSimpleAttribute("Width", this.Width);
-
-    serializer.EndAttributes(pos);
-
-    serializer.BeginContent();
-    int clms = Count;
-    if (clms > 0)
+    /// <summary>
+    /// Initializes a new instance of the Columns class containing columns of the specified widths.
+    /// </summary>
+    public Columns(params Unit[] widths)
     {
-      for (int clm = 0; clm < clms; clm++)
-        this[clm].Serialize(serializer);
+        foreach (Unit width in widths)
+        {
+            Column clm = new Column();
+            clm.Width = width;
+            this.Add(clm);
+        }
     }
-    else
-      serializer.WriteComment("Invalid - no columns defined. Table will not render.");
-    serializer.EndContent();
-  }
 
-  /// <summary>
-  /// Allows the visitor object to visit the document object and it's child objects.
-  /// </summary>
-  void IVisitable.AcceptVisitor(DocumentObjectVisitor visitor, bool visitChildren)
-  {
-    visitor.VisitColumns(this);
-  }
+    /// <summary>
+    /// Initializes a new instance of the Columns class with the specified parent.
+    /// </summary>
+    internal Columns(DocumentObject parent) : base(parent) { }
 
-  #endregion
+    #region Methods
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new Columns Clone()
+    {
+        return (Columns)base.DeepCopy();
+    }
+
+    /// <summary>
+    /// Adds a new column to the columns collection. Allowed only before any row was added.
+    /// </summary>
+    public Column AddColumn()
+    {
+        if (Table.Rows.Count > 0)
+            throw new InvalidOperationException("Cannot add column because rows collection is not empty.");
+
+        Column column = new Column();
+        Add(column);
+        return column;
+    }
+    #endregion
+
+    #region Properties
+    /// <summary>
+    /// Gets the table the columns collection belongs to.
+    /// </summary>
+    public Table Table => this.parent as Table;
+
+    /// <summary>
+    /// Gets a column by its index.
+    /// </summary>
+    public new Column this[int index] => base[index] as Column;
+
+    /// <summary>
+    /// Gets or sets the default width of all columns.
+    /// </summary>
+    public Unit Width
+    {
+        get => this.width;
+        set => this.width = value;
+    }
+    [DV]
+    internal Unit width = Unit.NullValue;
+
+    /// <summary>
+    /// Gets or sets a comment associated with this object.
+    /// </summary>
+    public string Comment
+    {
+        get => this.comment ?? "";
+        set => this.comment = value;
+    }
+    [DV]
+    internal string comment;
+    #endregion
+
+    #region Internal
+    /// <summary>
+    /// Converts Columns into DDL.
+    /// </summary>
+    internal override void Serialize(Serializer serializer)
+    {
+        serializer.WriteComment((this.comment ?? ""));
+        serializer.WriteLine("\\columns");
+
+        int pos = serializer.BeginAttributes();
+
+        if (!this.width.IsNull)
+            serializer.WriteSimpleAttribute("Width", this.Width);
+
+        serializer.EndAttributes(pos);
+
+        serializer.BeginContent();
+        int clms = Count;
+        if (clms > 0)
+        {
+            for (int clm = 0; clm < clms; clm++)
+                this[clm].Serialize(serializer);
+        }
+        else
+            serializer.WriteComment("Invalid - no columns defined. Table will not render.");
+        serializer.EndContent();
+    }
+
+    /// <summary>
+    /// Allows the visitor object to visit the document object and it's child objects.
+    /// </summary>
+    void IVisitable.AcceptVisitor(DocumentObjectVisitor visitor, bool visitChildren)
+    {
+        visitor.VisitColumns(this);
+    }
+
+    #endregion
 }

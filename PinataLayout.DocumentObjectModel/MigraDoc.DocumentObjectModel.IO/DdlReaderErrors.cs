@@ -39,39 +39,39 @@ namespace PinataLayout.DocumentObjectModel.IO;
 /// </summary>
 public class DdlReaderErrors : IEnumerable
 {
-  /// <summary>
-  /// Adds the specified DdlReaderError at the end of the error list.
-  /// </summary>
-  public void AddError(DdlReaderError error)
-  {
-    this.errors.Add(error);
-  }
-
-  /// <summary>
-  /// Gets the DdlReaderError at the specified position.
-  /// </summary>
-  public DdlReaderError this[int index] => (DdlReaderError)this.errors[index];
-
-  /// <summary>
-  /// Gets the number of messages that are errors.
-  /// </summary>
-  public int ErrorCount
-  {
-    get
+    /// <summary>
+    /// Adds the specified DdlReaderError at the end of the error list.
+    /// </summary>
+    public void AddError(DdlReaderError error)
     {
-      int count = 0;
-      for (int idx = 0; idx < this.errors.Count; idx++)
-        if (((DdlReaderError)this.errors[idx]).ErrorLevel == DdlErrorLevel.Error)
-          count++;
-      return count;
+        this.errors.Add(error);
     }
-  }
 
-  private ArrayList errors = new ArrayList();
+    /// <summary>
+    /// Gets the DdlReaderError at the specified position.
+    /// </summary>
+    public DdlReaderError this[int index] => (DdlReaderError)this.errors[index];
 
-  /// <summary>Returns an enumerator over the errors, in the order they were reported.</summary>
-  public IEnumerator GetEnumerator()
-  {
-    return this.errors.GetEnumerator();
-  }
+    /// <summary>
+    /// Gets the number of messages that are errors.
+    /// </summary>
+    public int ErrorCount
+    {
+        get
+        {
+            int count = 0;
+            for (int idx = 0; idx < this.errors.Count; idx++)
+                if (((DdlReaderError)this.errors[idx]).ErrorLevel == DdlErrorLevel.Error)
+                    count++;
+            return count;
+        }
+    }
+
+    private ArrayList errors = new ArrayList();
+
+    /// <summary>Returns an enumerator over the errors, in the order they were reported.</summary>
+    public IEnumerator GetEnumerator()
+    {
+        return this.errors.GetEnumerator();
+    }
 }

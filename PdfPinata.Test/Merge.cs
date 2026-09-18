@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using PdfPinata.Drawing;
@@ -14,16 +14,16 @@ namespace PdfPinata.Test;
 public class Merge
 {
     private readonly ITestOutputHelper _output;
-        
+
     public Merge(ITestOutputHelper output)
     {
         _output = output;
     }
-        
+
     [Fact]
     public void CanMerge2Documents()
     {
-        var pdf1Path =  PathHelper.GetInstance().GetAssetPath("FamilyTree.pdf");
+        var pdf1Path = PathHelper.GetInstance().GetAssetPath("FamilyTree.pdf");
         var pdf2Path = PathHelper.GetInstance().GetAssetPath("test.pdf");
 
         var outputDocument = MergeDocuments(new[] { pdf1Path, pdf2Path });
@@ -46,7 +46,7 @@ public class Merge
 
         var pdfPathsForMerge = Enumerable.Range(1, 50).SelectMany(_ => new[] { pdf1Path, pdf2Path });
         var outputDocument = MergeDocuments(pdfPathsForMerge);
-            
+
         var mergedFilePath = CreateOutFilePath("images-merged.pdf");
         outputDocument.Save(mergedFilePath);
 
@@ -67,7 +67,7 @@ public class Merge
         {
             using var fs = File.OpenRead(pdfPath);
             var inputDocument = Pdf.IO.PdfReader.Open(fs, PdfDocumentOpenMode.Import);
-                
+
             var count = inputDocument.PageCount;
             for (var idx = 0; idx < count; idx++)
             {
@@ -98,11 +98,11 @@ public class Merge
         var pageNewRenderer = document.AddPage();
         var renderer = XGraphics.FromPdfPage(pageNewRenderer);
         var textFormatter = new XTextFormatter(renderer);
-            
+
         var layout = new XRect(12, 12, 400, 50);
         textFormatter.DrawString(imageFilename, new XFont("Arial", 12), XBrushes.Black, layout);
         renderer.DrawImage(XImage.FromFile(PathHelper.GetInstance().GetAssetPath(imageFilename)), new XPoint(12, 100));
-            
+
         return document;
     }
 }

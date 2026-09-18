@@ -39,65 +39,65 @@ namespace PinataLayout.DocumentObjectModel.Shapes;
 /// </summary>
 public partial class FillFormat : DocumentObject
 {
-  /// <summary>
-  /// Initializes a new instance of the FillFormat class.
-  /// </summary>
-  public FillFormat()
-  {
-  }
+    /// <summary>
+    /// Initializes a new instance of the FillFormat class.
+    /// </summary>
+    public FillFormat()
+    {
+    }
 
-  /// <summary>
-  /// Initializes a new instance of the FillFormat class with the specified parent.
-  /// </summary>
-  internal FillFormat(DocumentObject parent) : base(parent) { }
+    /// <summary>
+    /// Initializes a new instance of the FillFormat class with the specified parent.
+    /// </summary>
+    internal FillFormat(DocumentObject parent) : base(parent) { }
 
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new FillFormat Clone()
-  {
-    return (FillFormat)DeepCopy();
-  }
-  #endregion
+    #region Methods
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new FillFormat Clone()
+    {
+        return (FillFormat)DeepCopy();
+    }
+    #endregion
 
-  #region Properties
-  /// <summary>
-  /// Gets or sets the color of the filling.
-  /// </summary>
-  public Color Color
-  {
-    get => color;
-    set => color = value;
-  }
-  [DV]
-  internal Color color = Color.Empty;
+    #region Properties
+    /// <summary>
+    /// Gets or sets the color of the filling.
+    /// </summary>
+    public Color Color
+    {
+        get => color;
+        set => color = value;
+    }
+    [DV]
+    internal Color color = Color.Empty;
 
-  /// <summary>
-  /// Gets or sets a value indicating whether the background color should be visible.
-  /// </summary>
-  public bool Visible
-  {
-    get => visible ?? false;
-    set => visible = value;
-  }
-  [DV]
-  internal bool? visible;
-  #endregion
+    /// <summary>
+    /// Gets or sets a value indicating whether the background color should be visible.
+    /// </summary>
+    public bool Visible
+    {
+        get => visible ?? false;
+        set => visible = value;
+    }
+    [DV]
+    internal bool? visible;
+    #endregion
 
-  #region Internal
-  /// <summary>
-  /// Converts FillFormat into DDL.
-  /// </summary>
-  internal override void Serialize(Serializer serializer)
-  {
-    int pos = serializer.BeginContent("FillFormat");
-    if (visible != null)
-      serializer.WriteSimpleAttribute("Visible", Visible);
-    if (!color.IsNull)
-      serializer.WriteSimpleAttribute("Color", Color);
-    serializer.EndContent();
-  }
+    #region Internal
+    /// <summary>
+    /// Converts FillFormat into DDL.
+    /// </summary>
+    internal override void Serialize(Serializer serializer)
+    {
+        int pos = serializer.BeginContent("FillFormat");
+        if (visible != null)
+            serializer.WriteSimpleAttribute("Visible", Visible);
+        if (!color.IsNull)
+            serializer.WriteSimpleAttribute("Color", Color);
+        serializer.EndContent();
+    }
 
-  #endregion
+    #endregion
 }

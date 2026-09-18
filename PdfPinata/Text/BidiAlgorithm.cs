@@ -281,108 +281,108 @@ public static partial class BidiAlgorithm
                     case BidiClass.LRE:
                     case BidiClass.RLO:
                     case BidiClass.LRO:
-                    {
-                        _levels[idx] = stack.Peek().Level;
+                        {
+                            _levels[idx] = stack.Peek().Level;
 
-                        bool rightToLeft = type == BidiClass.RLE || type == BidiClass.RLO;
-                        int next = NextLevel(stack.Peek().Level, rightToLeft);
-                        var over = type == BidiClass.RLO ? BidiClass.R
-                            : type == BidiClass.LRO ? BidiClass.L
-                            : BidiClass.ON;
+                            bool rightToLeft = type == BidiClass.RLE || type == BidiClass.RLO;
+                            int next = NextLevel(stack.Peek().Level, rightToLeft);
+                            var over = type == BidiClass.RLO ? BidiClass.R
+                                : type == BidiClass.LRO ? BidiClass.L
+                                : BidiClass.ON;
 
-                        if (next <= MaxDepth && overflowIsolate == 0 && overflowEmbedding == 0)
-                            stack.Push(new Status((byte)next, over, false));
-                        else if (overflowIsolate == 0)
-                            overflowEmbedding++;
+                            if (next <= MaxDepth && overflowIsolate == 0 && overflowEmbedding == 0)
+                                stack.Push(new Status((byte)next, over, false));
+                            else if (overflowIsolate == 0)
+                                overflowEmbedding++;
 
-                        break;
-                    }
+                            break;
+                        }
 
                     // X5a, X5b, X5c: the isolates. An FSI is whichever of the two the text inside
                     // it turns out to be, which is P2 and P3 applied to that stretch alone.
                     case BidiClass.RLI:
                     case BidiClass.LRI:
                     case BidiClass.FSI:
-                    {
-                        bool rightToLeft = type == BidiClass.RLI
-                            || (type == BidiClass.FSI
-                                && ParagraphLevelOf(idx + 1, Math.Min(_matchingPdi[idx], _length)) == 1);
-
-                        _levels[idx] = stack.Peek().Level;
-                        Override(idx, stack.Peek().Override);
-
-                        int next = NextLevel(stack.Peek().Level, rightToLeft);
-                        if (next <= MaxDepth && overflowIsolate == 0 && overflowEmbedding == 0)
                         {
-                            validIsolate++;
-                            stack.Push(new Status((byte)next, BidiClass.ON, true));
-                        }
-                        else
-                        {
-                            overflowIsolate++;
-                        }
+                            bool rightToLeft = type == BidiClass.RLI
+                                || (type == BidiClass.FSI
+                                    && ParagraphLevelOf(idx + 1, Math.Min(_matchingPdi[idx], _length)) == 1);
 
-                        break;
-                    }
+                            _levels[idx] = stack.Peek().Level;
+                            Override(idx, stack.Peek().Override);
+
+                            int next = NextLevel(stack.Peek().Level, rightToLeft);
+                            if (next <= MaxDepth && overflowIsolate == 0 && overflowEmbedding == 0)
+                            {
+                                validIsolate++;
+                                stack.Push(new Status((byte)next, BidiClass.ON, true));
+                            }
+                            else
+                            {
+                                overflowIsolate++;
+                            }
+
+                            break;
+                        }
 
                     // X6a: a PDI closes the nearest valid isolate, and any embeddings opened
                     // inside it go with it.
                     case BidiClass.PDI:
-                    {
-                        if (overflowIsolate > 0)
                         {
-                            overflowIsolate--;
-                        }
-                        else if (validIsolate > 0)
-                        {
-                            overflowEmbedding = 0;
-                            while (!stack.Peek().Isolate)
+                            if (overflowIsolate > 0)
+                            {
+                                overflowIsolate--;
+                            }
+                            else if (validIsolate > 0)
+                            {
+                                overflowEmbedding = 0;
+                                while (!stack.Peek().Isolate)
+                                    stack.Pop();
+
                                 stack.Pop();
+                                validIsolate--;
+                            }
 
-                            stack.Pop();
-                            validIsolate--;
+                            _levels[idx] = stack.Peek().Level;
+                            Override(idx, stack.Peek().Override);
+                            break;
                         }
-
-                        _levels[idx] = stack.Peek().Level;
-                        Override(idx, stack.Peek().Override);
-                        break;
-                    }
 
                     // X7: a PDF closes the nearest embedding, but never reaches past an isolate.
                     case BidiClass.PDF:
-                    {
-                        _levels[idx] = stack.Peek().Level;
+                        {
+                            _levels[idx] = stack.Peek().Level;
 
-                        if (overflowIsolate > 0)
-                        {
-                            // Nothing: the isolate it is inside never opened.
-                        }
-                        else if (overflowEmbedding > 0)
-                        {
-                            overflowEmbedding--;
-                        }
-                        else if (!stack.Peek().Isolate && stack.Count >= 2)
-                        {
-                            stack.Pop();
-                        }
+                            if (overflowIsolate > 0)
+                            {
+                                // Nothing: the isolate it is inside never opened.
+                            }
+                            else if (overflowEmbedding > 0)
+                            {
+                                overflowEmbedding--;
+                            }
+                            else if (!stack.Peek().Isolate && stack.Count >= 2)
+                            {
+                                stack.Pop();
+                            }
 
-                        break;
-                    }
+                            break;
+                        }
 
                     // X8: a paragraph separator belongs to the paragraph, not to anything open
                     // inside it.
                     case BidiClass.B:
-                    {
-                        _levels[idx] = _paragraphLevel;
-                        break;
-                    }
+                        {
+                            _levels[idx] = _paragraphLevel;
+                            break;
+                        }
 
                     default:
-                    {
-                        _levels[idx] = stack.Peek().Level;
-                        Override(idx, stack.Peek().Override);
-                        break;
-                    }
+                        {
+                            _levels[idx] = stack.Peek().Level;
+                            Override(idx, stack.Peek().Override);
+                            break;
+                        }
                 }
             }
         }

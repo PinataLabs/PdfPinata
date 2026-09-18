@@ -35,9 +35,9 @@ namespace PinataLayout.Rendering;
 /// </summary>
 internal enum ElementAlignment
 {
-  Near = 0, //Default
-  Center,
-  Far,
-  Inside,
-  Outside
+    Near = 0, //Default
+    Center,
+    Far,
+    Inside,
+    Outside
 }

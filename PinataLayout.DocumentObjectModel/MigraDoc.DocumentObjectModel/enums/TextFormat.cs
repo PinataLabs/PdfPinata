@@ -41,28 +41,28 @@ namespace PinataLayout.DocumentObjectModel;
 [Flags]
 public enum TextFormat
 {
-  /// <summary>
-  /// Specifies bold text (heavy font weight).
-  /// </summary>
-  Bold = 0x000001,
-  /// <summary>
-  /// Specifies normal font weight.
-  /// </summary>
-  NotBold = 0x000003,
-  /// <summary>
-  /// Specifies italic text.
-  /// </summary>
-  Italic = 0x000004,
-  /// <summary>
-  /// Specifies upright text.
-  /// </summary>
-  NotItalic = 0x00000C,
-  /// <summary>
-  /// Specifies underlined text.
-  /// </summary>
-  Underline = 0x000010,
-  /// <summary>
-  /// Specifies text without underline.
-  /// </summary>
-  NoUnderline = 0x000030
+    /// <summary>
+    /// Specifies bold text (heavy font weight).
+    /// </summary>
+    Bold = 0x000001,
+    /// <summary>
+    /// Specifies normal font weight.
+    /// </summary>
+    NotBold = 0x000003,
+    /// <summary>
+    /// Specifies italic text.
+    /// </summary>
+    Italic = 0x000004,
+    /// <summary>
+    /// Specifies upright text.
+    /// </summary>
+    NotItalic = 0x00000C,
+    /// <summary>
+    /// Specifies underlined text.
+    /// </summary>
+    Underline = 0x000010,
+    /// <summary>
+    /// Specifies text without underline.
+    /// </summary>
+    NoUnderline = 0x000030
 }

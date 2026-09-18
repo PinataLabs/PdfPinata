@@ -39,66 +39,66 @@ namespace PinataLayout.DocumentObjectModel.Shapes.Charts;
 /// </summary>
 public partial class XSeriesElements : DocumentObjectCollection
 {
-  /// <summary>
-  /// Initializes a new instance of the XSeriesElements class.
-  /// </summary>
-  public XSeriesElements()
-  {
-  }
-
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new XSeriesElements Clone()
-  {
-    return (XSeriesElements)base.DeepCopy();
-  }
-
-  /// <summary>
-  /// Adds a blank to the XSeries.
-  /// </summary>
-  public void AddBlank()
-  {
-    base.Add((DocumentObject)null);
-  }
-
-  /// <summary>
-  /// Adds a value to the XSeries.
-  /// </summary>
-  public XValue Add(string value)
-  {
-    XValue xValue = new XValue(value);
-    Add(xValue);
-    return xValue;
-  }
-
-  /// <summary>
-  /// Adds an array of values to the XSeries.
-  /// </summary>
-  public void Add(params string[] values)
-  {
-    foreach (string val in values)
-      this.Add(val);
-  }
-  #endregion
-
-  #region Internal
-  /// <summary>
-  /// Converts XSeriesElements into DDL.
-  /// </summary>
-  internal override void Serialize(Serializer serializer)
-  {
-    int count = Count;
-    for (int index = 0; index < count; index++)
+    /// <summary>
+    /// Initializes a new instance of the XSeriesElements class.
+    /// </summary>
+    public XSeriesElements()
     {
-      XValue xValue = this[index] as XValue;
-      if (xValue == null)
-        serializer.Write("null, ");
-      else
-        xValue.Serialize(serializer);
     }
-  }
 
-  #endregion
+    #region Methods
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new XSeriesElements Clone()
+    {
+        return (XSeriesElements)base.DeepCopy();
+    }
+
+    /// <summary>
+    /// Adds a blank to the XSeries.
+    /// </summary>
+    public void AddBlank()
+    {
+        base.Add((DocumentObject)null);
+    }
+
+    /// <summary>
+    /// Adds a value to the XSeries.
+    /// </summary>
+    public XValue Add(string value)
+    {
+        XValue xValue = new XValue(value);
+        Add(xValue);
+        return xValue;
+    }
+
+    /// <summary>
+    /// Adds an array of values to the XSeries.
+    /// </summary>
+    public void Add(params string[] values)
+    {
+        foreach (string val in values)
+            this.Add(val);
+    }
+    #endregion
+
+    #region Internal
+    /// <summary>
+    /// Converts XSeriesElements into DDL.
+    /// </summary>
+    internal override void Serialize(Serializer serializer)
+    {
+        int count = Count;
+        for (int index = 0; index < count; index++)
+        {
+            XValue xValue = this[index] as XValue;
+            if (xValue == null)
+                serializer.Write("null, ");
+            else
+                xValue.Serialize(serializer);
+        }
+    }
+
+    #endregion
 }

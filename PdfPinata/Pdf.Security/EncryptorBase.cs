@@ -1,4 +1,4 @@
-﻿using PdfPinata.Pdf.Internal;
+using PdfPinata.Pdf.Internal;
 using System;
 
 namespace PdfPinata.Pdf.Security;

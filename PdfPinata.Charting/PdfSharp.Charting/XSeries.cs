@@ -36,86 +36,86 @@ namespace PdfPinata.Charting;
 /// </summary>
 public class XSeries : ChartObject
 {
-  /// <summary>
-  /// Initializes a new instance of the XSeries class.
-  /// </summary>
-  public XSeries()
-  {
-    xSeriesElements = new XSeriesElements();
-  }
-
-  /// <summary>
-  /// Gets the xvalue at the specified index.
-  /// </summary>
-  public XValue this[int index] => (XValue)this.xSeriesElements[index];
-
-  /// <summary>
-  /// The actual value container of the XSeries.
-  /// </summary>
-  protected XSeriesElements xSeriesElements;
-
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new XSeries Clone()
-  {
-    return (XSeries)DeepCopy();
-  }
-
-  /// <summary>
-  /// Implements the deep copy of the object.
-  /// </summary>
-  protected override object DeepCopy()
-  {
-    XSeries xSeries = (XSeries)base.DeepCopy();
-    if (xSeries.xSeriesElements != null)
+    /// <summary>
+    /// Initializes a new instance of the XSeries class.
+    /// </summary>
+    public XSeries()
     {
-      xSeries.xSeriesElements = xSeries.xSeriesElements.Clone();
-      xSeries.xSeriesElements.parent = xSeries;
+        xSeriesElements = new XSeriesElements();
     }
-    return xSeries;
-  }
 
-  /// <summary>
-  /// Adds a blank to the XSeries.
-  /// </summary>
-  public void AddBlank()
-  {
-    this.xSeriesElements.AddBlank();
-  }
+    /// <summary>
+    /// Gets the xvalue at the specified index.
+    /// </summary>
+    public XValue this[int index] => (XValue)this.xSeriesElements[index];
 
-  /// <summary>
-  /// Adds a value to the XSeries.
-  /// </summary>
-  public XValue Add(string value)
-  {
-    return this.xSeriesElements.Add(value);
-  }
+    /// <summary>
+    /// The actual value container of the XSeries.
+    /// </summary>
+    protected XSeriesElements xSeriesElements;
 
-  /// <summary>
-  /// Adds an array of values to the XSeries.
-  /// </summary>
-  public void Add(params string[] values)
-  {
-    this.xSeriesElements.Add(values);
-  }
+    #region Methods
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new XSeries Clone()
+    {
+        return (XSeries)DeepCopy();
+    }
 
-  /// <summary>
-  /// Gets the enumerator.
-  /// </summary>
-  /// <returns></returns>
-  public IEnumerator GetEnumerator()
-  {
-    return this.xSeriesElements.GetEnumerator();
-  }
-  #endregion
+    /// <summary>
+    /// Implements the deep copy of the object.
+    /// </summary>
+    protected override object DeepCopy()
+    {
+        XSeries xSeries = (XSeries)base.DeepCopy();
+        if (xSeries.xSeriesElements != null)
+        {
+            xSeries.xSeriesElements = xSeries.xSeriesElements.Clone();
+            xSeries.xSeriesElements.parent = xSeries;
+        }
+        return xSeries;
+    }
 
-  #region Properties
-  /// <summary>
-  /// Gets the number of xvalues actually contained in the xseries.
-  /// </summary>
-  public int Count => this.xSeriesElements.Count;
+    /// <summary>
+    /// Adds a blank to the XSeries.
+    /// </summary>
+    public void AddBlank()
+    {
+        this.xSeriesElements.AddBlank();
+    }
 
-  #endregion
+    /// <summary>
+    /// Adds a value to the XSeries.
+    /// </summary>
+    public XValue Add(string value)
+    {
+        return this.xSeriesElements.Add(value);
+    }
+
+    /// <summary>
+    /// Adds an array of values to the XSeries.
+    /// </summary>
+    public void Add(params string[] values)
+    {
+        this.xSeriesElements.Add(values);
+    }
+
+    /// <summary>
+    /// Gets the enumerator.
+    /// </summary>
+    /// <returns></returns>
+    public IEnumerator GetEnumerator()
+    {
+        return this.xSeriesElements.GetEnumerator();
+    }
+    #endregion
+
+    #region Properties
+    /// <summary>
+    /// Gets the number of xvalues actually contained in the xseries.
+    /// </summary>
+    public int Count => this.xSeriesElements.Count;
+
+    #endregion
 }

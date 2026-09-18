@@ -39,95 +39,95 @@ namespace PinataLayout.DocumentObjectModel;
 /// </summary>
 public partial class TabStop : DocumentObject
 {
-  /// <summary>
-  /// Initializes a new instance of the TabStop class.
-  /// </summary>
-  public TabStop()
-  {
-  }
-
-  /// <summary>
-  /// Initializes a new instance of the TabStop class with the specified parent.
-  /// </summary>
-  internal TabStop(DocumentObject parent) : base(parent) { }
-
-  /// <summary>
-  /// Initializes a new instance of the TabStop class with the specified position.
-  /// </summary>
-  public TabStop(Unit position)
-    : this()
-  {
-    this.position = position;
-  }
-
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new TabStop Clone()
-  {
-    return (TabStop)DeepCopy();
-  }
-  #endregion
-
-  #region Properties
-  /// <summary>
-  /// Gets the tab stop position.
-  /// </summary>
-  public Unit Position => position;
-
-  [DV]
-  internal Unit position = Unit.NullValue;  // always defined
-  // useful enhancement: 'Position = Center' and 'Position = Right'
-
-  /// <summary>
-  /// Gets or sets the alignment of the tabstop.
-  /// </summary>
-  public TabAlignment Alignment
-  {
-    get => alignment ?? default;
-    set => alignment = EnumGuard.Checked(value);
-  }
-  [DV]
-  internal TabAlignment? alignment;
-
-  /// <summary>
-  /// Gets or sets the character which is used as a leader for the tabstop.
-  /// </summary>
-  public TabLeader Leader
-  {
-    get => leader ?? default;
-    set => leader = EnumGuard.Checked(value);
-  }
-  [DV]
-  internal TabLeader? leader;
-
-  /// <summary>
-  /// Generates a '+=' in DDL if it is true, otherwise '-='.
-  /// </summary>
-  internal bool AddTab = true;
-  #endregion
-
-  #region Internal
-  /// <summary>
-  /// Converts TabStop into DDL.
-  /// </summary>
-  internal override void Serialize(Serializer serializer)
-  {
-    if (AddTab)
+    /// <summary>
+    /// Initializes a new instance of the TabStop class.
+    /// </summary>
+    public TabStop()
     {
-      serializer.WriteLine("TabStops +=");
-      serializer.BeginContent();
-      serializer.WriteSimpleAttribute("Position", Position);
-      if (alignment != null)
-        serializer.WriteSimpleAttribute("Alignment", Alignment);
-      if (leader != null)
-        serializer.WriteSimpleAttribute("Leader", Leader);
-      serializer.EndContent();
     }
-    else
-      serializer.WriteLine("TabStops -= \"" + Position.ToString() + "\"");
-  }
 
-  #endregion
+    /// <summary>
+    /// Initializes a new instance of the TabStop class with the specified parent.
+    /// </summary>
+    internal TabStop(DocumentObject parent) : base(parent) { }
+
+    /// <summary>
+    /// Initializes a new instance of the TabStop class with the specified position.
+    /// </summary>
+    public TabStop(Unit position)
+      : this()
+    {
+        this.position = position;
+    }
+
+    #region Methods
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new TabStop Clone()
+    {
+        return (TabStop)DeepCopy();
+    }
+    #endregion
+
+    #region Properties
+    /// <summary>
+    /// Gets the tab stop position.
+    /// </summary>
+    public Unit Position => position;
+
+    [DV]
+    internal Unit position = Unit.NullValue;  // always defined
+                                              // useful enhancement: 'Position = Center' and 'Position = Right'
+
+    /// <summary>
+    /// Gets or sets the alignment of the tabstop.
+    /// </summary>
+    public TabAlignment Alignment
+    {
+        get => alignment ?? default;
+        set => alignment = EnumGuard.Checked(value);
+    }
+    [DV]
+    internal TabAlignment? alignment;
+
+    /// <summary>
+    /// Gets or sets the character which is used as a leader for the tabstop.
+    /// </summary>
+    public TabLeader Leader
+    {
+        get => leader ?? default;
+        set => leader = EnumGuard.Checked(value);
+    }
+    [DV]
+    internal TabLeader? leader;
+
+    /// <summary>
+    /// Generates a '+=' in DDL if it is true, otherwise '-='.
+    /// </summary>
+    internal bool AddTab = true;
+    #endregion
+
+    #region Internal
+    /// <summary>
+    /// Converts TabStop into DDL.
+    /// </summary>
+    internal override void Serialize(Serializer serializer)
+    {
+        if (AddTab)
+        {
+            serializer.WriteLine("TabStops +=");
+            serializer.BeginContent();
+            serializer.WriteSimpleAttribute("Position", Position);
+            if (alignment != null)
+                serializer.WriteSimpleAttribute("Alignment", Alignment);
+            if (leader != null)
+                serializer.WriteSimpleAttribute("Leader", Leader);
+            serializer.EndContent();
+        }
+        else
+            serializer.WriteLine("TabStops -= \"" + Position.ToString() + "\"");
+    }
+
+    #endregion
 }

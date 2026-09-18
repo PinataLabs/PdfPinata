@@ -39,63 +39,63 @@ namespace PinataLayout.DocumentObjectModel.Fields;
 /// </summary>
 public partial class DateField : DocumentObject
 {
-  /// <summary>
-  /// Initializes a new instance of the DateField class.
-  /// </summary>
-  public DateField()
-  {
-  }
+    /// <summary>
+    /// Initializes a new instance of the DateField class.
+    /// </summary>
+    public DateField()
+    {
+    }
 
-  /// <summary>
-  /// Initializes a new instance of the DateField class with the specified parent.
-  /// </summary>
-  internal DateField(DocumentObject parent) : base(parent) { }
+    /// <summary>
+    /// Initializes a new instance of the DateField class with the specified parent.
+    /// </summary>
+    internal DateField(DocumentObject parent) : base(parent) { }
 
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new DateField Clone()
-  {
-    return (DateField)DeepCopy();
-  }
-  #endregion
+    #region Methods
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new DateField Clone()
+    {
+        return (DateField)DeepCopy();
+    }
+    #endregion
 
-  #region Properties
-  /// <summary>
-  /// Gets or sets the format of the date.
-  /// </summary>
-  public string Format
-  {
-    get => this.format ?? "";
-    set => this.format = value;
-  }
-  [DV]
-  internal string format;
-  #endregion
+    #region Properties
+    /// <summary>
+    /// Gets or sets the format of the date.
+    /// </summary>
+    public string Format
+    {
+        get => this.format ?? "";
+        set => this.format = value;
+    }
+    [DV]
+    internal string format;
+    #endregion
 
-  #region Internal
-  /// <summary>
-  /// Converts DateField into DDL.
-  /// </summary>
-  internal override void Serialize(Serializer serializer)
-  {
-    string str = "\\field(Date)";
-    if ((this.format ?? "") != string.Empty)
-      str += "[Format = \"" + this.Format + "\"]";
-    else
-      str += "[]"; //Has to be appended to avoid confusion with '[' in immediatly following text.
+    #region Internal
+    /// <summary>
+    /// Converts DateField into DDL.
+    /// </summary>
+    internal override void Serialize(Serializer serializer)
+    {
+        string str = "\\field(Date)";
+        if ((this.format ?? "") != string.Empty)
+            str += "[Format = \"" + this.Format + "\"]";
+        else
+            str += "[]"; //Has to be appended to avoid confusion with '[' in immediatly following text.
 
-    serializer.Write(str);
-  }
+        serializer.Write(str);
+    }
 
-  /// <summary>
-  /// Determines whether this instance is null (not set).
-  /// </summary>
-  public override bool IsNull()
-  {
-    return false;
-  }
+    /// <summary>
+    /// Determines whether this instance is null (not set).
+    /// </summary>
+    public override bool IsNull()
+    {
+        return false;
+    }
 
-  #endregion
+    #endregion
 }

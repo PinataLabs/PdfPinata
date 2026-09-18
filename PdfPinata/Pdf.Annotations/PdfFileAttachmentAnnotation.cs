@@ -1,4 +1,4 @@
-﻿using PdfPinata.Pdf.Advanced;
+using PdfPinata.Pdf.Advanced;
 using System;
 
 namespace PdfPinata.Pdf.Annotations;

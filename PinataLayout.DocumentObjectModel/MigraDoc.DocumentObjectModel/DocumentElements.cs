@@ -188,7 +188,7 @@ public partial class DocumentElements : DocumentObjectCollection, IVisitable
     {
         MigraDocImage img = new MigraDocImage()
         {
-            Source = image,                
+            Source = image,
         };
         Add(img);
         return img;

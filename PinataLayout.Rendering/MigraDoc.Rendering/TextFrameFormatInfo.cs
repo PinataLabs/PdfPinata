@@ -35,5 +35,5 @@ namespace PinataLayout.Rendering;
 /// </summary>
 internal class TextFrameFormatInfo : ShapeFormatInfo
 {
-  internal FormattedTextFrame formattedTextFrame;
+    internal FormattedTextFrame formattedTextFrame;
 }

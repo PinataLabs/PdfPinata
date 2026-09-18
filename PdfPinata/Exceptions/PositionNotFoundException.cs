@@ -1,4 +1,4 @@
-﻿using PdfPinata.Pdf;
+using PdfPinata.Pdf;
 
 namespace PdfPinata.Exceptions;
 

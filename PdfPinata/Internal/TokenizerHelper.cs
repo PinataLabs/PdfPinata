@@ -1,4 +1,4 @@
-﻿#region PDFsharp - A .NET library for processing PDF
+#region PDFsharp - A .NET library for processing PDF
 //
 // Authors:
 //   Microsoft
@@ -177,7 +177,7 @@ class TokenizerHelper
             throw new InvalidOperationException("Missing end quote"); //SR.Get(SRID.TokenizerHelperMissingEndQuote, new object[0]));
 
         // Move at the start of the nextToken.
-        ScanToNextToken(separator); 
+        ScanToNextToken(separator);
 
         // Update the _currentToken values.
         _currentTokenIndex = newTokenIndex;

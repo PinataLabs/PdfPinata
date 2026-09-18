@@ -36,25 +36,25 @@ namespace PdfPinata.Charting.Renderers;
 /// </summary>
 internal class PlotAreaBorderRenderer : Renderer
 {
-  /// <summary>
-  /// Initializes a new instance of the PlotAreaBorderRenderer class with the specified
-  /// renderer parameters.
-  /// </summary>
-  internal PlotAreaBorderRenderer(RendererParameters parms)
-    : base(parms)
-  { }
+    /// <summary>
+    /// Initializes a new instance of the PlotAreaBorderRenderer class with the specified
+    /// renderer parameters.
+    /// </summary>
+    internal PlotAreaBorderRenderer(RendererParameters parms)
+      : base(parms)
+    { }
 
-  /// <summary>
-  /// Draws the border around the plot area.
-  /// </summary>
-  internal override void Draw()
-  {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    if (cri.plotAreaRendererInfo.LineFormat != null && cri.plotAreaRendererInfo.LineFormat.Width > 0)
+    /// <summary>
+    /// Draws the border around the plot area.
+    /// </summary>
+    internal override void Draw()
     {
-      XGraphics gfx = this.rendererParms.Graphics;
-      LineFormatRenderer lineFormatRenderer = new LineFormatRenderer(gfx, cri.plotAreaRendererInfo.LineFormat);
-      lineFormatRenderer.DrawRectangle(cri.plotAreaRendererInfo.Rect);
+        ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+        if (cri.plotAreaRendererInfo.LineFormat != null && cri.plotAreaRendererInfo.LineFormat.Width > 0)
+        {
+            XGraphics gfx = this.rendererParms.Graphics;
+            LineFormatRenderer lineFormatRenderer = new LineFormatRenderer(gfx, cri.plotAreaRendererInfo.LineFormat);
+            lineFormatRenderer.DrawRectangle(cri.plotAreaRendererInfo.Rect);
+        }
     }
-  }
 }

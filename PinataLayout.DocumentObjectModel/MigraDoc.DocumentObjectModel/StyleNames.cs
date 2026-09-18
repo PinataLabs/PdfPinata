@@ -37,36 +37,36 @@ namespace PinataLayout.DocumentObjectModel;
 /// </summary>
 public class StyleNames
 {
-  /// <summary>The style every character style ultimately derives from.</summary>
-  public const string DefaultParagraphFont = "DefaultParagraphFont";
-  /// <summary>The style every paragraph style ultimately derives from, and the document default.</summary>
-  public const string Normal = "Normal";
-  /// <summary>The style of a first-level heading.</summary>
-  public const string Heading1 = "Heading1";
-  /// <summary>The style of a second-level heading.</summary>
-  public const string Heading2 = "Heading2";
-  /// <summary>The style of a third-level heading.</summary>
-  public const string Heading3 = "Heading3";
-  /// <summary>The style of a fourth-level heading.</summary>
-  public const string Heading4 = "Heading4";
-  /// <summary>The style of a fifth-level heading.</summary>
-  public const string Heading5 = "Heading5";
-  /// <summary>The style of a sixth-level heading.</summary>
-  public const string Heading6 = "Heading6";
-  /// <summary>The style of a seventh-level heading.</summary>
-  public const string Heading7 = "Heading7";
-  /// <summary>The style of an eighth-level heading.</summary>
-  public const string Heading8 = "Heading8";
-  /// <summary>The style of a ninth-level heading.</summary>
-  public const string Heading9 = "Heading9";
-  /// <summary>The style of footnote text.</summary>
-  public const string Footnote = "Footnote";
-  /// <summary>The style of a page header.</summary>
-  public const string Header = "Header";
-  /// <summary>The style of a page footer.</summary>
-  public const string Footer = "Footer";
-  /// <summary>The style of hyperlink text.</summary>
-  public const string Hyperlink = "Hyperlink";
-  /// <summary>The name reported for a style that does not exist.</summary>
-  public const string InvalidStyleName = "InvalidStyleName";
+    /// <summary>The style every character style ultimately derives from.</summary>
+    public const string DefaultParagraphFont = "DefaultParagraphFont";
+    /// <summary>The style every paragraph style ultimately derives from, and the document default.</summary>
+    public const string Normal = "Normal";
+    /// <summary>The style of a first-level heading.</summary>
+    public const string Heading1 = "Heading1";
+    /// <summary>The style of a second-level heading.</summary>
+    public const string Heading2 = "Heading2";
+    /// <summary>The style of a third-level heading.</summary>
+    public const string Heading3 = "Heading3";
+    /// <summary>The style of a fourth-level heading.</summary>
+    public const string Heading4 = "Heading4";
+    /// <summary>The style of a fifth-level heading.</summary>
+    public const string Heading5 = "Heading5";
+    /// <summary>The style of a sixth-level heading.</summary>
+    public const string Heading6 = "Heading6";
+    /// <summary>The style of a seventh-level heading.</summary>
+    public const string Heading7 = "Heading7";
+    /// <summary>The style of an eighth-level heading.</summary>
+    public const string Heading8 = "Heading8";
+    /// <summary>The style of a ninth-level heading.</summary>
+    public const string Heading9 = "Heading9";
+    /// <summary>The style of footnote text.</summary>
+    public const string Footnote = "Footnote";
+    /// <summary>The style of a page header.</summary>
+    public const string Header = "Header";
+    /// <summary>The style of a page footer.</summary>
+    public const string Footer = "Footer";
+    /// <summary>The style of hyperlink text.</summary>
+    public const string Hyperlink = "Hyperlink";
+    /// <summary>The name reported for a style that does not exist.</summary>
+    public const string InvalidStyleName = "InvalidStyleName";
 }

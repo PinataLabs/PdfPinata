@@ -66,7 +66,7 @@ public class CLexer
     /// </summary>
     public CSymbol ScanNextToken()
     {
-        Again:
+    Again:
         ClearToken();
         char ch = MoveToNonWhiteSpace();
         switch (ch)
@@ -168,10 +168,10 @@ public class CLexer
         {
             // Look for '~>' because 'EI' may be part of the encoded image.
             // currChar != Chars.EOF: Addresses issue #354 - malformed PDF that ends without closing an inline image
-            while (_currChar != Chars.EOF && ( _currChar != '~' || _nextChar != '>'))
+            while (_currChar != Chars.EOF && (_currChar != '~' || _nextChar != '>'))
                 ScanNextChar();
         }
-            
+
         // Look for 'EI'.
         // currChar != Chars.EOF: Addresses issue #354 - malformed PDF that ends without closing an inline image
         while (_currChar != Chars.EOF && (_currChar != 'E' || _nextChar != 'I'))
@@ -487,7 +487,7 @@ public class CLexer
             ch = bigEndian ? (char)(first * 256 + second) : (char)(second * 256 + first);
             while (true)
             {
-                SkipChar:
+            SkipChar:
                 // An unterminated string never sees its closing ')', so give up at the end
                 // of the content rather than scanning for ever.
                 if (_currChar == Chars.EOF)
@@ -509,68 +509,68 @@ public class CLexer
                         break;
 
                     case '\\':
-                    {
-                        // TODO: not sure that this is correct...
-                        ch = ScanNextChar(false);
-                        switch (ch)
                         {
-                            case 'n':
-                                ch = Chars.LF;
-                                break;
+                            // TODO: not sure that this is correct...
+                            ch = ScanNextChar(false);
+                            switch (ch)
+                            {
+                                case 'n':
+                                    ch = Chars.LF;
+                                    break;
 
-                            case 'r':
-                                ch = Chars.CR;
-                                break;
+                                case 'r':
+                                    ch = Chars.CR;
+                                    break;
 
-                            case 't':
-                                ch = Chars.HT;
-                                break;
+                                case 't':
+                                    ch = Chars.HT;
+                                    break;
 
-                            case 'b':
-                                ch = Chars.BS;
-                                break;
+                                case 'b':
+                                    ch = Chars.BS;
+                                    break;
 
-                            case 'f':
-                                ch = Chars.FF;
-                                break;
+                                case 'f':
+                                    ch = Chars.FF;
+                                    break;
 
-                            case '(':
-                                ch = Chars.ParenLeft;
-                                break;
+                                case '(':
+                                    ch = Chars.ParenLeft;
+                                    break;
 
-                            case ')':
-                                ch = Chars.ParenRight;
-                                break;
+                                case ')':
+                                    ch = Chars.ParenRight;
+                                    break;
 
-                            case '\\':
-                                ch = Chars.BackSlash;
-                                break;
+                                case '\\':
+                                    ch = Chars.BackSlash;
+                                    break;
 
-                            // A backslash right before either spelling of an end of line
-                            // continues the string onto the next one; neither the backslash nor
-                            // the line ending becomes part of it.
-                            case Chars.CR:
-                            case Chars.LF:
-                                ch = ScanNextChar(false);
-                                goto SkipChar;
+                                // A backslash right before either spelling of an end of line
+                                // continues the string onto the next one; neither the backslash nor
+                                // the line ending becomes part of it.
+                                case Chars.CR:
+                                case Chars.LF:
+                                    ch = ScanNextChar(false);
+                                    goto SkipChar;
 
-                            default:
-                                if (IsOctalDigit(ch))
-                                {
-                                    // Octal character code
-                                    int n = ch - '0';
-                                    if (IsOctalDigit(_nextChar))
+                                default:
+                                    if (IsOctalDigit(ch))
                                     {
-                                        n = n * 8 + ScanNextChar(false) - '0';
+                                        // Octal character code
+                                        int n = ch - '0';
                                         if (IsOctalDigit(_nextChar))
+                                        {
                                             n = n * 8 + ScanNextChar(false) - '0';
+                                            if (IsOctalDigit(_nextChar))
+                                                n = n * 8 + ScanNextChar(false) - '0';
+                                        }
+                                        ch = (char)n;
                                     }
-                                    ch = (char)n;
-                                }
-                                break;
+                                    break;
+                            }
+                            break;
                         }
-                        break;
-                    }
 
                     //case '#':
                     //    ContentReaderDiagnostics.HandleUnexpectedCharacter('#');
@@ -602,7 +602,7 @@ public class CLexer
             // 8-bit characters
             while (true)
             {
-                SkipChar:
+            SkipChar:
                 // An unterminated string never sees its closing ')', so give up at the end
                 // of the content rather than appending Chars.EOF for ever.
                 if (ch == Chars.EOF)
@@ -624,67 +624,67 @@ public class CLexer
                         break;
 
                     case '\\':
-                    {
-                        ch = ScanNextChar(false);
-                        switch (ch)
                         {
-                            case 'n':
-                                ch = Chars.LF;
-                                break;
+                            ch = ScanNextChar(false);
+                            switch (ch)
+                            {
+                                case 'n':
+                                    ch = Chars.LF;
+                                    break;
 
-                            case 'r':
-                                ch = Chars.CR;
-                                break;
+                                case 'r':
+                                    ch = Chars.CR;
+                                    break;
 
-                            case 't':
-                                ch = Chars.HT;
-                                break;
+                                case 't':
+                                    ch = Chars.HT;
+                                    break;
 
-                            case 'b':
-                                ch = Chars.BS;
-                                break;
+                                case 'b':
+                                    ch = Chars.BS;
+                                    break;
 
-                            case 'f':
-                                ch = Chars.FF;
-                                break;
+                                case 'f':
+                                    ch = Chars.FF;
+                                    break;
 
-                            case '(':
-                                ch = Chars.ParenLeft;
-                                break;
+                                case '(':
+                                    ch = Chars.ParenLeft;
+                                    break;
 
-                            case ')':
-                                ch = Chars.ParenRight;
-                                break;
+                                case ')':
+                                    ch = Chars.ParenRight;
+                                    break;
 
-                            case '\\':
-                                ch = Chars.BackSlash;
-                                break;
+                                case '\\':
+                                    ch = Chars.BackSlash;
+                                    break;
 
-                            // A backslash right before either spelling of an end of line
-                            // continues the string onto the next one; neither the backslash nor
-                            // the line ending becomes part of it.
-                            case Chars.CR:
-                            case Chars.LF:
-                                ch = ScanNextChar(false);
-                                goto SkipChar;
+                                // A backslash right before either spelling of an end of line
+                                // continues the string onto the next one; neither the backslash nor
+                                // the line ending becomes part of it.
+                                case Chars.CR:
+                                case Chars.LF:
+                                    ch = ScanNextChar(false);
+                                    goto SkipChar;
 
-                            default:
-                                if (IsOctalDigit(ch))
-                                {
-                                    // Octal character code.
-                                    int n = ch - '0';
-                                    if (IsOctalDigit(_nextChar))
+                                default:
+                                    if (IsOctalDigit(ch))
                                     {
-                                        n = n * 8 + ScanNextChar(false) - '0';
+                                        // Octal character code.
+                                        int n = ch - '0';
                                         if (IsOctalDigit(_nextChar))
+                                        {
                                             n = n * 8 + ScanNextChar(false) - '0';
+                                            if (IsOctalDigit(_nextChar))
+                                                n = n * 8 + ScanNextChar(false) - '0';
+                                        }
+                                        ch = (char)n;
                                     }
-                                    ch = (char)n;
-                                }
-                                break;
+                                    break;
+                            }
+                            break;
                         }
-                        break;
-                    }
 
                     //case '#':
                     //    ContentReaderDiagnostics.HandleUnexpectedCharacter('#');

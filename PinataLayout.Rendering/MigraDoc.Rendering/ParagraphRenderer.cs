@@ -1,4 +1,4 @@
-﻿#region MigraDoc - Creating Documents on the Fly
+#region MigraDoc - Creating Documents on the Fly
 //
 // Authors:
 //   Klaus Potzesny (mailto:Klaus.Potzesny@PdfPinata.com)
@@ -1435,8 +1435,8 @@ internal class ParagraphRenderer : Renderer
             case "Footnote":
                 RenderFootnote((Footnote)docObj);
                 break;
-            //        default:
-            //          throw new NotImplementedException(typeName + " is coming soon...");
+                //        default:
+                //          throw new NotImplementedException(typeName + " is coming soon...");
         }
     }
 

@@ -35,11 +35,11 @@ namespace PinataLayout.Rendering;
 /// </summary>
 internal enum Floating
 {
-  TopBottom = 0, //Default
-  None, //The element is ignored
+    TopBottom = 0, //Default
+    None, //The element is ignored
 
-  //Served for future extensions:
-  Left,
-  Right,
-  BothSides,
+    //Served for future extensions:
+    Left,
+    Right,
+    BothSides,
 }

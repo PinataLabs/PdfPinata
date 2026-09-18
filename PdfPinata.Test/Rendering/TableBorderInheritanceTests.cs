@@ -148,8 +148,8 @@ public class TableBorderInheritanceTests
     static IEnumerable<Cell> AllCells(Table table)
     {
         for (var row = 0; row < table.Rows.Count; row++)
-        for (var column = 0; column < table.Columns.Count; column++)
-            yield return table[row, column];
+            for (var column = 0; column < table.Columns.Count; column++)
+                yield return table[row, column];
     }
 
     /// <summary>The distinct positions the page rules a vertical line at.</summary>

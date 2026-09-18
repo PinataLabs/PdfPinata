@@ -35,17 +35,17 @@ namespace PinataLayout.Rendering;
 
 static class ColorHelper
 {
-  /// <summary>
-  /// Converts Color to XColor.
-  /// </summary>
-  public static XColor ToXColor(Color color, bool cmyk)
-  {
-    if (color.IsEmpty)
-      return XColor.Empty;
+    /// <summary>
+    /// Converts Color to XColor.
+    /// </summary>
+    public static XColor ToXColor(Color color, bool cmyk)
+    {
+        if (color.IsEmpty)
+            return XColor.Empty;
 
-    if (cmyk)
-      return XColor.FromCmyk(color.Alpha / 100.0, color.C / 100.0, color.M / 100.0, color.Y / 100.0, color.K / 100.0);
-    else
-      return XColor.FromArgb((int)color.Argb);
-  }
+        if (cmyk)
+            return XColor.FromCmyk(color.Alpha / 100.0, color.C / 100.0, color.M / 100.0, color.Y / 100.0, color.K / 100.0);
+        else
+            return XColor.FromArgb((int)color.Argb);
+    }
 }

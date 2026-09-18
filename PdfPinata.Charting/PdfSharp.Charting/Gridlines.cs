@@ -34,56 +34,56 @@ namespace PdfPinata.Charting;
 /// </summary>
 public class Gridlines : ChartObject
 {
-  /// <summary>
-  /// Initializes a new instance of the Gridlines class.
-  /// </summary>
-  public Gridlines()
-  {
-  }
-
-  /// <summary>
-  /// Initializes a new instance of the Gridlines class with the specified parent.
-  /// </summary>
-  internal Gridlines(DocumentObject parent) : base(parent) {}
-
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new Gridlines Clone()
-  {
-    return (Gridlines)DeepCopy();
-  }
-
-  /// <summary>
-  /// Implements the deep copy of the object.
-  /// </summary>
-  protected override object DeepCopy()
-  {
-    Gridlines gridlines = (Gridlines)base.DeepCopy();
-    if (gridlines.lineFormat != null)
+    /// <summary>
+    /// Initializes a new instance of the Gridlines class.
+    /// </summary>
+    public Gridlines()
     {
-      gridlines.lineFormat = gridlines.lineFormat.Clone();
-      gridlines.lineFormat.parent = gridlines;
     }
-    return gridlines;
-  }
-  #endregion
 
-  #region Properties
-  /// <summary>
-  /// Gets the line format of the grid.
-  /// </summary>
-  public LineFormat LineFormat
-  {
-    get
+    /// <summary>
+    /// Initializes a new instance of the Gridlines class with the specified parent.
+    /// </summary>
+    internal Gridlines(DocumentObject parent) : base(parent) { }
+
+    #region Methods
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new Gridlines Clone()
     {
-      if (this.lineFormat == null)
-        this.lineFormat = new LineFormat(this);
-
-      return this.lineFormat;
+        return (Gridlines)DeepCopy();
     }
-  }
-  internal LineFormat lineFormat;
-  #endregion
+
+    /// <summary>
+    /// Implements the deep copy of the object.
+    /// </summary>
+    protected override object DeepCopy()
+    {
+        Gridlines gridlines = (Gridlines)base.DeepCopy();
+        if (gridlines.lineFormat != null)
+        {
+            gridlines.lineFormat = gridlines.lineFormat.Clone();
+            gridlines.lineFormat.parent = gridlines;
+        }
+        return gridlines;
+    }
+    #endregion
+
+    #region Properties
+    /// <summary>
+    /// Gets the line format of the grid.
+    /// </summary>
+    public LineFormat LineFormat
+    {
+        get
+        {
+            if (this.lineFormat == null)
+                this.lineFormat = new LineFormat(this);
+
+            return this.lineFormat;
+        }
+    }
+    internal LineFormat lineFormat;
+    #endregion
 }

@@ -1,4 +1,4 @@
-﻿#region PDFsharp - A .NET library for processing PDF
+#region PDFsharp - A .NET library for processing PDF
 //
 // Authors:
 //   Stefan Lange
@@ -325,7 +325,7 @@ public struct XMatrix : IFormattable
     [Obsolete("Use ScaleAppend or ScalePrepend explicitly, because in GDI+ and WPF the defaults are contrary.", true)]
     // ReSharper disable InconsistentNaming
     public void Scale(double scaleXY)
-        // ReSharper restore InconsistentNaming
+    // ReSharper restore InconsistentNaming
     {
         throw new InvalidOperationException("Temporarily out of order.");
         //Scale(scaleXY, scaleXY, XMatrixOrder.Prepend);
@@ -336,7 +336,7 @@ public struct XMatrix : IFormattable
     /// </summary>
     // ReSharper disable InconsistentNaming
     public void ScaleAppend(double scaleXY)
-        // ReSharper restore InconsistentNaming
+    // ReSharper restore InconsistentNaming
     {
         Scale(scaleXY, scaleXY, XMatrixOrder.Append);
     }
@@ -346,7 +346,7 @@ public struct XMatrix : IFormattable
     /// </summary>
     // ReSharper disable InconsistentNaming
     public void ScalePrepend(double scaleXY)
-        // ReSharper restore InconsistentNaming
+    // ReSharper restore InconsistentNaming
     {
         Scale(scaleXY, scaleXY, XMatrixOrder.Prepend);
     }
@@ -356,7 +356,7 @@ public struct XMatrix : IFormattable
     /// </summary>
     // ReSharper disable InconsistentNaming
     public void Scale(double scaleXY, XMatrixOrder order)
-        // ReSharper restore InconsistentNaming
+    // ReSharper restore InconsistentNaming
     {
         Scale(scaleXY, scaleXY, order);
     }
@@ -763,11 +763,11 @@ public struct XMatrix : IFormattable
                 return;
 
             default:
-            {
-                double detInvers = 1.0 / determinant;
-                SetMatrix(_m22 * detInvers, -_m12 * detInvers, -_m21 * detInvers, _m11 * detInvers, (_m21 * _offsetY - _offsetX * _m22) * detInvers, (_offsetX * _m12 - _m11 * _offsetY) * detInvers, XMatrixTypes.Unknown);
-                break;
-            }
+                {
+                    double detInvers = 1.0 / determinant;
+                    SetMatrix(_m22 * detInvers, -_m12 * detInvers, -_m21 * detInvers, _m11 * detInvers, (_m21 * _offsetY - _offsetX * _m22) * detInvers, (_offsetX * _m12 - _m11 * _offsetY) * detInvers, XMatrixTypes.Unknown);
+                    break;
+                }
         }
     }
 
@@ -1344,7 +1344,7 @@ public struct XMatrix : IFormattable
     /// <value>The debugger display.</value>
     // ReSharper disable UnusedMember.Local
     string DebuggerDisplay
-        // ReSharper restore UnusedMember.Local
+    // ReSharper restore UnusedMember.Local
     {
         get
         {

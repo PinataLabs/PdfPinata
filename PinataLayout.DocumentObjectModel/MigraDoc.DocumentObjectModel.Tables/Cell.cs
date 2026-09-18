@@ -303,7 +303,8 @@ public partial class Cell : DocumentObject, IVisitable
     /// <summary>
     /// Specifies if the Cell should be rendered as a rounded corner.
     /// </summary>
-    public RoundedCorner RoundedCorner {
+    public RoundedCorner RoundedCorner
+    {
         get => roundedCorner ?? default;
         set => roundedCorner = EnumGuard.Checked(value);
     }

@@ -39,118 +39,118 @@ namespace PinataLayout.DocumentObjectModel.Shapes.Charts;
 /// </summary>
 public partial class DataLabel : DocumentObject
 {
-  /// <summary>
-  /// Initializes a new instance of the DataLabel class.
-  /// </summary>
-  public DataLabel()
-  {
-  }
-
-  /// <summary>
-  /// Initializes a new instance of the DataLabel class with the specified parent.
-  /// </summary>
-  internal DataLabel(DocumentObject parent) : base(parent) { }
-
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new DataLabel Clone()
-  {
-    return (DataLabel)DeepCopy();
-  }
-
-  #endregion
-
-  #region Properties
-  /// <summary>
-  /// Gets or sets a numeric format string for the DataLabel.
-  /// </summary>
-  public string Format
-  {
-    get => this.format ?? "";
-    set => this.format = value;
-  }
-  [DV]
-  internal string format;
-
-  /// <summary>
-  /// Gets the Font for the DataLabel.
-  /// </summary>
-  public Font Font
-  {
-    get
+    /// <summary>
+    /// Initializes a new instance of the DataLabel class.
+    /// </summary>
+    public DataLabel()
     {
-      if (this.font == null)
-        this.font = new Font(this);
-
-      return this.font;
     }
-    set
+
+    /// <summary>
+    /// Initializes a new instance of the DataLabel class with the specified parent.
+    /// </summary>
+    internal DataLabel(DocumentObject parent) : base(parent) { }
+
+    #region Methods
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new DataLabel Clone()
     {
-      SetParent(value);
-      this.font = value;
+        return (DataLabel)DeepCopy();
     }
-  }
-  [DV]
-  internal Font font;
 
-  /// <summary>
-  /// Gets or sets the Style for the DataLabel.
-  /// Only the Font-associated part of the Style's ParagraphFormat is used.
-  /// </summary>
-  public string Style
-  {
-    get => this.style ?? "";
-    set => this.style = value;
-  }
-  [DV]
-  internal string style;
+    #endregion
 
-  /// <summary>
-  /// Gets or sets the position of the DataLabel.
-  /// </summary>
-  public DataLabelPosition Position
-  {
-    get => this.position ?? default;
-    set => this.position = EnumGuard.Checked(value);
-  }
-  [DV]
-  internal DataLabelPosition? position;
+    #region Properties
+    /// <summary>
+    /// Gets or sets a numeric format string for the DataLabel.
+    /// </summary>
+    public string Format
+    {
+        get => this.format ?? "";
+        set => this.format = value;
+    }
+    [DV]
+    internal string format;
 
-  /// <summary>
-  /// Gets or sets the type of the DataLabel.
-  /// </summary>
-  public DataLabelType Type
-  {
-    get => this.type ?? default;
-    set => this.type = EnumGuard.Checked(value);
-  }
-  [DV]
-  internal DataLabelType? type;
-  #endregion
+    /// <summary>
+    /// Gets the Font for the DataLabel.
+    /// </summary>
+    public Font Font
+    {
+        get
+        {
+            if (this.font == null)
+                this.font = new Font(this);
 
-  #region Internal
-  /// <summary>
-  /// Converts DataLabel into DDL.
-  /// </summary>
-  internal override void Serialize(Serializer serializer)
-  {
-    int pos = serializer.BeginContent("DataLabel");
+            return this.font;
+        }
+        set
+        {
+            SetParent(value);
+            this.font = value;
+        }
+    }
+    [DV]
+    internal Font font;
 
-    if (this.Style != string.Empty)
-      serializer.WriteSimpleAttribute("Style", this.Style);
-    if (this.Format != string.Empty)
-      serializer.WriteSimpleAttribute("Format", this.Format);
-    if (this.position != null)
-      serializer.WriteSimpleAttribute("Position", this.Position);
-    if (this.type != null)
-      serializer.WriteSimpleAttribute("Type", this.Type);
-    if (!this.IsNull("Font"))
-      this.font.Serialize(serializer);
+    /// <summary>
+    /// Gets or sets the Style for the DataLabel.
+    /// Only the Font-associated part of the Style's ParagraphFormat is used.
+    /// </summary>
+    public string Style
+    {
+        get => this.style ?? "";
+        set => this.style = value;
+    }
+    [DV]
+    internal string style;
 
-    serializer.EndContent(pos);
-  }
+    /// <summary>
+    /// Gets or sets the position of the DataLabel.
+    /// </summary>
+    public DataLabelPosition Position
+    {
+        get => this.position ?? default;
+        set => this.position = EnumGuard.Checked(value);
+    }
+    [DV]
+    internal DataLabelPosition? position;
 
-  #endregion
+    /// <summary>
+    /// Gets or sets the type of the DataLabel.
+    /// </summary>
+    public DataLabelType Type
+    {
+        get => this.type ?? default;
+        set => this.type = EnumGuard.Checked(value);
+    }
+    [DV]
+    internal DataLabelType? type;
+    #endregion
+
+    #region Internal
+    /// <summary>
+    /// Converts DataLabel into DDL.
+    /// </summary>
+    internal override void Serialize(Serializer serializer)
+    {
+        int pos = serializer.BeginContent("DataLabel");
+
+        if (this.Style != string.Empty)
+            serializer.WriteSimpleAttribute("Style", this.Style);
+        if (this.Format != string.Empty)
+            serializer.WriteSimpleAttribute("Format", this.Format);
+        if (this.position != null)
+            serializer.WriteSimpleAttribute("Position", this.Position);
+        if (this.type != null)
+            serializer.WriteSimpleAttribute("Type", this.Type);
+        if (!this.IsNull("Font"))
+            this.font.Serialize(serializer);
+
+        serializer.EndContent(pos);
+    }
+
+    #endregion
 }

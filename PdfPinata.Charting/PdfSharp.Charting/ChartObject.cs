@@ -34,15 +34,15 @@ namespace PdfPinata.Charting;
 /// </summary>
 public class ChartObject : DocumentObject
 {
-  /// <summary>
-  /// Initializes a new instance of the ChartObject class.
-  /// </summary>
-  public ChartObject()
-  {
-  }
+    /// <summary>
+    /// Initializes a new instance of the ChartObject class.
+    /// </summary>
+    public ChartObject()
+    {
+    }
 
-  /// <summary>
-  /// Initializes a new instance of the ChartObject class with the specified parent.
-  /// </summary>
-  internal ChartObject(DocumentObject parent) : base(parent) {}
+    /// <summary>
+    /// Initializes a new instance of the ChartObject class with the specified parent.
+    /// </summary>
+    internal ChartObject(DocumentObject parent) : base(parent) { }
 }

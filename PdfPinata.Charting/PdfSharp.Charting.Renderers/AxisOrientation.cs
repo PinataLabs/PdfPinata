@@ -7,9 +7,9 @@ namespace PdfPinata.Charting.Renderers;
 /// </summary>
 internal enum AxisOrientation
 {
-  /// <summary>The axis runs left to right, as a column chart's category axis does.</summary>
-  Horizontal,
+    /// <summary>The axis runs left to right, as a column chart's category axis does.</summary>
+    Horizontal,
 
-  /// <summary>The axis runs bottom to top, as a bar chart's category axis does.</summary>
-  Vertical
+    /// <summary>The axis runs bottom to top, as a bar chart's category axis does.</summary>
+    Vertical
 }

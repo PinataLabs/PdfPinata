@@ -39,104 +39,104 @@ namespace PinataLayout.DocumentObjectModel.Shapes;
 /// </summary>
 public partial class LineFormat : DocumentObject
 {
-  /// <summary>
-  /// Initializes a new instance of the LineFormat class.
-  /// </summary>
-  public LineFormat()
-  {
-  }
+    /// <summary>
+    /// Initializes a new instance of the LineFormat class.
+    /// </summary>
+    public LineFormat()
+    {
+    }
 
-  /// <summary>
-  /// Initializes a new instance of the Lineformat class with the specified parent.
-  /// </summary>
-  internal LineFormat(DocumentObject parent) : base(parent) { }
+    /// <summary>
+    /// Initializes a new instance of the Lineformat class with the specified parent.
+    /// </summary>
+    internal LineFormat(DocumentObject parent) : base(parent) { }
 
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new LineFormat Clone()
-  {
-    return (LineFormat)DeepCopy();
-  }
-  #endregion
+    #region Methods
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new LineFormat Clone()
+    {
+        return (LineFormat)DeepCopy();
+    }
+    #endregion
 
-  #region Properties
-  /// <summary>
-  /// Gets or sets a value indicating whether the line should be visible.
-  /// </summary>
-  public bool Visible
-  {
-    get => this.visible ?? false;
-    set => this.visible = value;
-  }
-  [DV]
-  internal bool? visible;
+    #region Properties
+    /// <summary>
+    /// Gets or sets a value indicating whether the line should be visible.
+    /// </summary>
+    public bool Visible
+    {
+        get => this.visible ?? false;
+        set => this.visible = value;
+    }
+    [DV]
+    internal bool? visible;
 
-  /// <summary>
-  /// Gets or sets the width of the line in Unit.
-  /// </summary>
-  public Unit Width
-  {
-    get => this.width;
-    set => this.width = value;
-  }
-  [DV]
-  internal Unit width = Unit.NullValue;
+    /// <summary>
+    /// Gets or sets the width of the line in Unit.
+    /// </summary>
+    public Unit Width
+    {
+        get => this.width;
+        set => this.width = value;
+    }
+    [DV]
+    internal Unit width = Unit.NullValue;
 
-  /// <summary>
-  /// Gets or sets the color of the line.
-  /// </summary>
-  public Color Color
-  {
-    get => this.color;
-    set => this.color = value;
-  }
-  [DV]
-  internal Color color = Color.Empty;
+    /// <summary>
+    /// Gets or sets the color of the line.
+    /// </summary>
+    public Color Color
+    {
+        get => this.color;
+        set => this.color = value;
+    }
+    [DV]
+    internal Color color = Color.Empty;
 
-  /// <summary>
-  /// Gets or sets the dash style of the line.
-  /// </summary>
-  public DashStyle DashStyle
-  {
-    get => this.dashStyle ?? default;
-    set => this.dashStyle = EnumGuard.Checked(value);
-  }
-  [DV]
-  internal DashStyle? dashStyle;
+    /// <summary>
+    /// Gets or sets the dash style of the line.
+    /// </summary>
+    public DashStyle DashStyle
+    {
+        get => this.dashStyle ?? default;
+        set => this.dashStyle = EnumGuard.Checked(value);
+    }
+    [DV]
+    internal DashStyle? dashStyle;
 
-  /// <summary>
-  /// Gets or sets the style of the line.
-  /// </summary>
-  public LineStyle Style
-  {
-    get => this.style ?? default;
-    set => this.style = EnumGuard.Checked(value);
-  }
-  [DV]
-  internal LineStyle? style;
-  #endregion
+    /// <summary>
+    /// Gets or sets the style of the line.
+    /// </summary>
+    public LineStyle Style
+    {
+        get => this.style ?? default;
+        set => this.style = EnumGuard.Checked(value);
+    }
+    [DV]
+    internal LineStyle? style;
+    #endregion
 
-  #region Internal
-  /// <summary>
-  /// Converts LineFormat into DDL.
-  /// </summary>
-  internal override void Serialize(Serializer serializer)
-  {
-    int pos = serializer.BeginContent("LineFormat");
-    if (this.visible != null)
-      serializer.WriteSimpleAttribute("Visible", this.Visible);
-    if (this.style != null)
-      serializer.WriteSimpleAttribute("Style", this.Style);
-    if (this.dashStyle != null)
-      serializer.WriteSimpleAttribute("DashStyle", this.DashStyle);
-    if (!this.width.IsNull)
-      serializer.WriteSimpleAttribute("Width", this.Width);
-    if (!this.color.IsNull)
-      serializer.WriteSimpleAttribute("Color", this.Color);
-    serializer.EndContent();
-  }
+    #region Internal
+    /// <summary>
+    /// Converts LineFormat into DDL.
+    /// </summary>
+    internal override void Serialize(Serializer serializer)
+    {
+        int pos = serializer.BeginContent("LineFormat");
+        if (this.visible != null)
+            serializer.WriteSimpleAttribute("Visible", this.Visible);
+        if (this.style != null)
+            serializer.WriteSimpleAttribute("Style", this.Style);
+        if (this.dashStyle != null)
+            serializer.WriteSimpleAttribute("DashStyle", this.DashStyle);
+        if (!this.width.IsNull)
+            serializer.WriteSimpleAttribute("Width", this.Width);
+        if (!this.color.IsNull)
+            serializer.WriteSimpleAttribute("Color", this.Color);
+        serializer.EndContent();
+    }
 
-  #endregion
+    #endregion
 }

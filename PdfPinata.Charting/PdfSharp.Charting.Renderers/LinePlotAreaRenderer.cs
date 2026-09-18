@@ -1,4 +1,4 @@
-﻿#region PDFsharp Charting - A .NET charting library based on PDFsharp
+#region PDFsharp Charting - A .NET charting library based on PDFsharp
 //
 // Authors:
 //   Niklas Schneider (mailto:Niklas.Schneider@PdfPinata.com)
@@ -36,74 +36,74 @@ namespace PdfPinata.Charting.Renderers;
 /// </summary>
 internal class LinePlotAreaRenderer : ColumnLikePlotAreaRenderer
 {
-  /// <summary>
-  /// Initializes a new instance of the LinePlotAreaRenderer class with the
-  /// specified renderer parameters.
-  /// </summary>
-  internal LinePlotAreaRenderer(RendererParameters parms) : base(parms)
-  {
-  }
-
-  /// <summary>
-  /// Draws the content of the line plot area.
-  /// </summary>
-  internal override void Draw()
-  {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-
-    XRect plotAreaRect = cri.plotAreaRendererInfo.Rect;
-    if (HasNoRoom(plotAreaRect))
-      return;
-
-    XGraphics gfx = this.rendererParms.Graphics;
-    XGraphicsState state = gfx.Save();
-    //gfx.SetClip(plotAreaRect, XCombineMode.Intersect);
-    gfx.IntersectClip(plotAreaRect);
-
-    //TODO null-Values müssen berücksichtigt werden.
-    //     Verbindungspunkte können fehlen, je nachdem wie null-Values behandelt werden sollen.
-    //     (NotPlotted, Interpolate etc.)
-
-    // Draw lines and markers for each data series.
-    XMatrix matrix = cri.plotAreaRendererInfo.matrix;
-
-    double xMajorTick = cri.xAxisRendererInfo.MajorTick;
-    foreach (SeriesRendererInfo sri in cri.seriesRendererInfos)
+    /// <summary>
+    /// Initializes a new instance of the LinePlotAreaRenderer class with the
+    /// specified renderer parameters.
+    /// </summary>
+    internal LinePlotAreaRenderer(RendererParameters parms) : base(parms)
     {
-      int count = sri.series.Elements.Count;
-
-      // A line needs two points to be a line, and DrawLines says so by throwing. A series with
-      // fewer has nothing to draw rather than something to complain about.
-      if (count < 2)
-        continue;
-
-      XPoint[] points = new XPoint[count];
-      for (int idx = 0; idx < count; idx++)
-      {
-        // Off the series rather than through pointRendererInfos, which the line chart renderer
-        // does not fill in. A blank is a null element, and joins the values that are already
-        // drawn at zero - which is what the TODO above is about, and is not settled here.
-        Point element = sri.series.Elements[idx];
-        double v = element == null ? double.NaN : element.Value;
-        if (double.IsNaN(v))
-          v = 0;
-        points[idx] = new XPoint(idx + xMajorTick / 2, v);
-      }
-      matrix.TransformPoints(points);
-      gfx.DrawLines(sri.LineFormat, points);
-      DrawMarker(gfx, points, sri);
     }
 
-    //gfx.ResetClip();
-    gfx.Restore(state);
-  }
+    /// <summary>
+    /// Draws the content of the line plot area.
+    /// </summary>
+    internal override void Draw()
+    {
+        ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
 
-  /// <summary>
-  /// Draws all markers given in rendererInfo at the positions specified by points.
-  /// </summary>
-  private void DrawMarker(XGraphics graphics, XPoint[] points, SeriesRendererInfo rendererInfo)
-  {
-    foreach (XPoint pos in points)
-      MarkerRenderer.Draw(graphics, pos, rendererInfo.markerRendererInfo);
-  }
+        XRect plotAreaRect = cri.plotAreaRendererInfo.Rect;
+        if (HasNoRoom(plotAreaRect))
+            return;
+
+        XGraphics gfx = this.rendererParms.Graphics;
+        XGraphicsState state = gfx.Save();
+        //gfx.SetClip(plotAreaRect, XCombineMode.Intersect);
+        gfx.IntersectClip(plotAreaRect);
+
+        //TODO null-Values müssen berücksichtigt werden.
+        //     Verbindungspunkte können fehlen, je nachdem wie null-Values behandelt werden sollen.
+        //     (NotPlotted, Interpolate etc.)
+
+        // Draw lines and markers for each data series.
+        XMatrix matrix = cri.plotAreaRendererInfo.matrix;
+
+        double xMajorTick = cri.xAxisRendererInfo.MajorTick;
+        foreach (SeriesRendererInfo sri in cri.seriesRendererInfos)
+        {
+            int count = sri.series.Elements.Count;
+
+            // A line needs two points to be a line, and DrawLines says so by throwing. A series with
+            // fewer has nothing to draw rather than something to complain about.
+            if (count < 2)
+                continue;
+
+            XPoint[] points = new XPoint[count];
+            for (int idx = 0; idx < count; idx++)
+            {
+                // Off the series rather than through pointRendererInfos, which the line chart renderer
+                // does not fill in. A blank is a null element, and joins the values that are already
+                // drawn at zero - which is what the TODO above is about, and is not settled here.
+                Point element = sri.series.Elements[idx];
+                double v = element == null ? double.NaN : element.Value;
+                if (double.IsNaN(v))
+                    v = 0;
+                points[idx] = new XPoint(idx + xMajorTick / 2, v);
+            }
+            matrix.TransformPoints(points);
+            gfx.DrawLines(sri.LineFormat, points);
+            DrawMarker(gfx, points, sri);
+        }
+
+        //gfx.ResetClip();
+        gfx.Restore(state);
+    }
+
+    /// <summary>
+    /// Draws all markers given in rendererInfo at the positions specified by points.
+    /// </summary>
+    private void DrawMarker(XGraphics graphics, XPoint[] points, SeriesRendererInfo rendererInfo)
+    {
+        foreach (XPoint pos in points)
+            MarkerRenderer.Draw(graphics, pos, rendererInfo.markerRendererInfo);
+    }
 }

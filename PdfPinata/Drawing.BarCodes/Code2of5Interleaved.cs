@@ -41,28 +41,28 @@ public class Code2of5Interleaved : ThickThinBarCode
     /// </summary>
     public Code2of5Interleaved()
         : base("", XSize.Empty, CodeDirection.LeftToRight)
-    {}
+    { }
 
     /// <summary>
     /// Initializes a new instance of Interleaved2of5.
     /// </summary>
     public Code2of5Interleaved(string code)
         : base(code, XSize.Empty, CodeDirection.LeftToRight)
-    {}
+    { }
 
     /// <summary>
     /// Initializes a new instance of Interleaved2of5.
     /// </summary>
     public Code2of5Interleaved(string code, XSize size)
         : base(code, size, CodeDirection.LeftToRight)
-    {}
+    { }
 
     /// <summary>
     /// Initializes a new instance of Interleaved2of5.
     /// </summary>
     public Code2of5Interleaved(string code, XSize size, CodeDirection direction)
         : base(code, size, direction)
-    {}
+    { }
 
     /// <summary>
     /// Returns an array of size 5 that represents the thick (true) and thin (false) lines or spaces
@@ -73,7 +73,7 @@ public class Code2of5Interleaved : ThickThinBarCode
     {
         return Lines[digit];
     }
-    static bool[][] Lines = 
+    static bool[][] Lines =
     {
         new bool[] {false, false, true, true, false},
         new bool[] {true, false, false, false, true},

@@ -1,4 +1,4 @@
-﻿#region MigraDoc - Creating Documents on the Fly
+#region MigraDoc - Creating Documents on the Fly
 //
 // Authors:
 //   Stefan Lange (mailto:Stefan.Lange@PdfPinata.com)
@@ -37,140 +37,140 @@ namespace PinataLayout.DocumentObjectModel.IO;
 /// </summary>
 enum Symbol
 {
-  // TokenType.None
-  None,
-  Eof,
-  Eol,                    // End of line
-  // TokenType.Keyword
-  True,
-  False,
-  Null,
+    // TokenType.None
+    None,
+    Eof,
+    Eol,                    // End of line
+                            // TokenType.Keyword
+    True,
+    False,
+    Null,
 
-  // TokenType.Identifier
-  Identifier,
-  Comment,
+    // TokenType.Identifier
+    Identifier,
+    Comment,
 
-  // TokenType.IntegerLiteral
-  IntegerLiteral,
-  HexIntegerLiteral,
-  OctIntegerLiteral,
+    // TokenType.IntegerLiteral
+    IntegerLiteral,
+    HexIntegerLiteral,
+    OctIntegerLiteral,
 
-  // TokenType.StringLiteral
-  StringLiteral,
+    // TokenType.StringLiteral
+    StringLiteral,
 
-  // TokenType.RealLiteral
-  RealLiteral,
+    // TokenType.RealLiteral
+    RealLiteral,
 
-  // TokenType.OperatorOrPunctuator
-  Slash,             // /
-  BackSlash,         // \
-  ParenLeft,         // (
-  ParenRight,        // )
-  BraceLeft,         // {
-  BraceRight,        // }
-  BracketLeft,       // [
-  BracketRight,      // ]
-  EmptyLine,         //CR LF CR LF
-  Colon,             // :
-  Semicolon,         // ;
-  Assign,            // =
-  Plus,              // +
-  Minus,             // -
-  Dot,               // .
-  Comma,             // ,
-  Percent,           // %
-  Dollar,            // $
-  Hash,              // #
-  Currency,          // ¤
-  //Questionmark,    // ?
-  Quotationmark,     // "
-  At,                // @
-  //Bar,             // |
-  PlusAssign,        // +=
-  MinusAssign,       // -=
-  CR,                // 0x0D
-  LF,                // 0x0A
+    // TokenType.OperatorOrPunctuator
+    Slash,             // /
+    BackSlash,         // \
+    ParenLeft,         // (
+    ParenRight,        // )
+    BraceLeft,         // {
+    BraceRight,        // }
+    BracketLeft,       // [
+    BracketRight,      // ]
+    EmptyLine,         //CR LF CR LF
+    Colon,             // :
+    Semicolon,         // ;
+    Assign,            // =
+    Plus,              // +
+    Minus,             // -
+    Dot,               // .
+    Comma,             // ,
+    Percent,           // %
+    Dollar,            // $
+    Hash,              // #
+    Currency,          // ¤
+                       //Questionmark,    // ?
+    Quotationmark,     // "
+    At,                // @
+                       //Bar,             // |
+    PlusAssign,        // +=
+    MinusAssign,       // -=
+    CR,                // 0x0D
+    LF,                // 0x0A
 
-  // TokenType.Keyword
-  Styles,
-  Document,
-  Section,
-  TableTemplates,
-  TableTemplate,
-  Paragraph,
-  HeaderOrFooter,   // Only used as context in ParseDocumentElements
-  Header,
-  PrimaryHeader,
-  FirstPageHeader,
-  EvenPageHeader,
-  Footer,
-  PrimaryFooter,
-  FirstPageFooter,
-  EvenPageFooter,
-  Table,
-  Columns,
-  Column,
-  Rows,
-  Row,
-  Cell,
-  Image,
-  TextFrame,
-  Chart,
-  Footnote,
-  PageBreak,
-  Barcode,
+    // TokenType.Keyword
+    Styles,
+    Document,
+    Section,
+    TableTemplates,
+    TableTemplate,
+    Paragraph,
+    HeaderOrFooter,   // Only used as context in ParseDocumentElements
+    Header,
+    PrimaryHeader,
+    FirstPageHeader,
+    EvenPageHeader,
+    Footer,
+    PrimaryFooter,
+    FirstPageFooter,
+    EvenPageFooter,
+    Table,
+    Columns,
+    Column,
+    Rows,
+    Row,
+    Cell,
+    Image,
+    TextFrame,
+    Chart,
+    Footnote,
+    PageBreak,
+    Barcode,
 
-  // Diagramms
-  HeaderArea,
-  FooterArea,
-  TopArea,
-  BottomArea,
-  LeftArea,
-  RightArea,
-  PlotArea,
-  Legend,
-  XAxis,
-  YAxis,
-  ZAxis,
-  Series,
-  XValues,
-  Point,
+    // Diagramms
+    HeaderArea,
+    FooterArea,
+    TopArea,
+    BottomArea,
+    LeftArea,
+    RightArea,
+    PlotArea,
+    Legend,
+    XAxis,
+    YAxis,
+    ZAxis,
+    Series,
+    XValues,
+    Point,
 
-  // paragraph formats
-  Bold,
-  Italic,
-  Underline,
-  FontSize,
-  FontColor,
-  Font,
+    // paragraph formats
+    Bold,
+    Italic,
+    Underline,
+    FontSize,
+    FontColor,
+    Font,
 
-  // Hyperlink used by ParagraphParser
-  Hyperlink,
+    // Hyperlink used by ParagraphParser
+    Hyperlink,
 
-  // Token used by ParagraphParser
-  Text,  // Plain text in a paragraph.
-  Blank,
-  Tab,
-  NonBreakeableBlank,
-  SoftHyphen,
-  LineBreak,
-  Space,
-  NoSpace,
+    // Token used by ParagraphParser
+    Text,  // Plain text in a paragraph.
+    Blank,
+    Tab,
+    NonBreakeableBlank,
+    SoftHyphen,
+    LineBreak,
+    Space,
+    NoSpace,
 
-  // Field used by ParagraphParser
-  Field,
+    // Field used by ParagraphParser
+    Field,
 
-  // Field types used by ParagraphParser
-  DateField,
-  PageField,
-  NumPagesField,
-  InfoField,
-  SectionField,
-  SectionPagesField,
-  BookmarkField,
-  PageRefField,
+    // Field types used by ParagraphParser
+    DateField,
+    PageField,
+    NumPagesField,
+    InfoField,
+    SectionField,
+    SectionPagesField,
+    BookmarkField,
+    PageRefField,
 
-  Character, //???
-  Symbol,
-  Chr
+    Character, //???
+    Symbol,
+    Chr
 }

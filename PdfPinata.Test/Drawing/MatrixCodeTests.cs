@@ -95,16 +95,35 @@ public class MatrixCodeTests
     // Every symbol size the standard defines, filled to capacity. The rectangular ones, the
     // ones built of several data regions, and the ones whose codewords are split into more
     // than one interleaved block are all in here.
-    [InlineData(10, 10, 3)] [InlineData(12, 12, 5)] [InlineData(8, 18, 5)]
-    [InlineData(14, 14, 8)] [InlineData(8, 32, 10)] [InlineData(16, 16, 12)]
-    [InlineData(12, 26, 16)] [InlineData(18, 18, 18)] [InlineData(20, 20, 22)]
-    [InlineData(12, 36, 22)] [InlineData(22, 22, 30)] [InlineData(16, 36, 32)]
-    [InlineData(24, 24, 36)] [InlineData(26, 26, 44)] [InlineData(16, 48, 49)]
-    [InlineData(32, 32, 62)] [InlineData(36, 36, 86)] [InlineData(40, 40, 114)]
-    [InlineData(44, 44, 144)] [InlineData(48, 48, 174)] [InlineData(52, 52, 204)]
-    [InlineData(64, 64, 280)] [InlineData(72, 72, 368)] [InlineData(80, 80, 456)]
-    [InlineData(88, 88, 576)] [InlineData(96, 96, 696)] [InlineData(104, 104, 816)]
-    [InlineData(120, 120, 1050)] [InlineData(132, 132, 1304)]
+    [InlineData(10, 10, 3)]
+    [InlineData(12, 12, 5)]
+    [InlineData(8, 18, 5)]
+    [InlineData(14, 14, 8)]
+    [InlineData(8, 32, 10)]
+    [InlineData(16, 16, 12)]
+    [InlineData(12, 26, 16)]
+    [InlineData(18, 18, 18)]
+    [InlineData(20, 20, 22)]
+    [InlineData(12, 36, 22)]
+    [InlineData(22, 22, 30)]
+    [InlineData(16, 36, 32)]
+    [InlineData(24, 24, 36)]
+    [InlineData(26, 26, 44)]
+    [InlineData(16, 48, 49)]
+    [InlineData(32, 32, 62)]
+    [InlineData(36, 36, 86)]
+    [InlineData(40, 40, 114)]
+    [InlineData(44, 44, 144)]
+    [InlineData(48, 48, 174)]
+    [InlineData(52, 52, 204)]
+    [InlineData(64, 64, 280)]
+    [InlineData(72, 72, 368)]
+    [InlineData(80, 80, 456)]
+    [InlineData(88, 88, 576)]
+    [InlineData(96, 96, 696)]
+    [InlineData(104, 104, 816)]
+    [InlineData(120, 120, 1050)]
+    [InlineData(132, 132, 1304)]
     public void EverySymbolSizeCarriesItsFullCapacity(int rows, int columns, int capacity)
     {
         // Digits pack two to a codeword, so this is exactly full.
@@ -149,14 +168,14 @@ public class MatrixCodeTests
         var modules = DataMatrixModules.Of("FINDER", 32, 32);
 
         foreach (var top in new[] { 0, 16 })
-        foreach (var left in new[] { 0, 16 })
-        {
-            for (var down = 0; down < 16; down++)
-                modules[top + down, left].Should().BeTrue("the left edge of the region at {0},{1}", top, left);
+            foreach (var left in new[] { 0, 16 })
+            {
+                for (var down = 0; down < 16; down++)
+                    modules[top + down, left].Should().BeTrue("the left edge of the region at {0},{1}", top, left);
 
-            for (var across = 0; across < 16; across++)
-                modules[top + 15, left + across].Should().BeTrue("the bottom edge of the region at {0},{1}", top, left);
-        }
+                for (var across = 0; across < 16; across++)
+                    modules[top + 15, left + across].Should().BeTrue("the bottom edge of the region at {0},{1}", top, left);
+            }
     }
 
     [Fact]

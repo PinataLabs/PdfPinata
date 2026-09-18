@@ -34,261 +34,261 @@ namespace PdfPinata.Charting;
 /// </summary>
 public class Chart : DocumentObject
 {
-  /// <summary>
-  /// Initializes a new instance of the Chart class.
-  /// </summary>
-  public Chart()
-  {
-  }
-
-  /// <summary>
-  /// Initializes a new instance of the Chart class with the specified parent.
-  /// </summary>
-  internal Chart(DocumentObject parent) : base(parent) {}
-
-  /// <summary>
-  /// Initializes a new instance of the Chart class with the specified chart type.
-  /// </summary>
-  public Chart(ChartType type) : this()
-  {
-    this.Type = type;
-  }
-
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new Chart Clone()
-  {
-    return (Chart)DeepCopy();
-  }
-
-  /// <summary>
-  /// Implements the deep copy of the object.
-  /// </summary>
-  protected override object DeepCopy()
-  {
-    Chart chart = (Chart)base.DeepCopy();
-    if (chart.xAxis != null)
+    /// <summary>
+    /// Initializes a new instance of the Chart class.
+    /// </summary>
+    public Chart()
     {
-      chart.xAxis = chart.xAxis.Clone();
-      chart.xAxis.parent = chart;
     }
-    if (chart.yAxis != null)
+
+    /// <summary>
+    /// Initializes a new instance of the Chart class with the specified parent.
+    /// </summary>
+    internal Chart(DocumentObject parent) : base(parent) { }
+
+    /// <summary>
+    /// Initializes a new instance of the Chart class with the specified chart type.
+    /// </summary>
+    public Chart(ChartType type) : this()
     {
-      chart.yAxis = chart.yAxis.Clone();
-      chart.yAxis.parent = chart;
+        this.Type = type;
     }
-    if (chart.zAxis != null)
+
+    #region Methods
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new Chart Clone()
     {
-      chart.zAxis = chart.zAxis.Clone();
-      chart.zAxis.parent = chart;
+        return (Chart)DeepCopy();
     }
-    if (chart.seriesCollection != null)
+
+    /// <summary>
+    /// Implements the deep copy of the object.
+    /// </summary>
+    protected override object DeepCopy()
     {
-      chart.seriesCollection = chart.seriesCollection.Clone();
-      chart.seriesCollection.parent = chart;
+        Chart chart = (Chart)base.DeepCopy();
+        if (chart.xAxis != null)
+        {
+            chart.xAxis = chart.xAxis.Clone();
+            chart.xAxis.parent = chart;
+        }
+        if (chart.yAxis != null)
+        {
+            chart.yAxis = chart.yAxis.Clone();
+            chart.yAxis.parent = chart;
+        }
+        if (chart.zAxis != null)
+        {
+            chart.zAxis = chart.zAxis.Clone();
+            chart.zAxis.parent = chart;
+        }
+        if (chart.seriesCollection != null)
+        {
+            chart.seriesCollection = chart.seriesCollection.Clone();
+            chart.seriesCollection.parent = chart;
+        }
+        if (chart.xValues != null)
+        {
+            chart.xValues = chart.xValues.Clone();
+            chart.xValues.parent = chart;
+        }
+        if (chart.plotArea != null)
+        {
+            chart.plotArea = chart.plotArea.Clone();
+            chart.plotArea.parent = chart;
+        }
+        if (chart.dataLabel != null)
+        {
+            chart.dataLabel = chart.dataLabel.Clone();
+            chart.dataLabel.parent = chart;
+        }
+        return chart;
     }
-    if (chart.xValues != null)
+
+    /// <summary>
+    /// Determines the type of the given axis.
+    /// </summary>
+    internal string CheckAxis(Axis axis)
     {
-      chart.xValues = chart.xValues.Clone();
-      chart.xValues.parent = chart;
+        if ((this.xAxis != null) && (axis == this.xAxis))
+            return "xaxis";
+        if ((this.yAxis != null) && (axis == this.yAxis))
+            return "yaxis";
+        if ((this.zAxis != null) && (axis == this.zAxis))
+            return "zaxis";
+
+        return "";
     }
-    if (chart.plotArea != null)
+    #endregion
+
+    #region Properties
+    /// <summary>
+    /// Gets or sets the base type of the chart.
+    /// ChartType of the series can be overwritten.
+    /// </summary>
+    public ChartType Type
     {
-      chart.plotArea = chart.plotArea.Clone();
-      chart.plotArea.parent = chart;
+        get => this.type;
+        set => this.type = value;
     }
-    if (chart.dataLabel != null)
+    internal ChartType type;
+
+    /// <summary>
+    /// Gets or sets the font for the chart. This will be the default font for all objects which are
+    /// part of the chart.
+    /// </summary>
+    public Font Font
     {
-      chart.dataLabel = chart.dataLabel.Clone();
-      chart.dataLabel.parent = chart;
+        get
+        {
+            if (this.font == null)
+                this.font = new Font(this);
+
+            return this.font;
+        }
     }
-    return chart;
-  }
+    internal Font font;
 
-  /// <summary>
-  /// Determines the type of the given axis.
-  /// </summary>
-  internal string CheckAxis (Axis axis)
-  {
-    if ((this.xAxis != null) && (axis == this.xAxis))
-      return "xaxis";
-    if ((this.yAxis != null) && (axis == this.yAxis))
-      return "yaxis";
-    if ((this.zAxis != null) && (axis == this.zAxis))
-      return "zaxis";
-
-    return "";
-  }
-  #endregion
-
-  #region Properties
-  /// <summary>
-  /// Gets or sets the base type of the chart.
-  /// ChartType of the series can be overwritten.
-  /// </summary>
-  public ChartType Type
-  {
-    get => this.type;
-    set => this.type = value;
-  }
-  internal ChartType type;
-
-  /// <summary>
-  /// Gets or sets the font for the chart. This will be the default font for all objects which are
-  /// part of the chart.
-  /// </summary>
-  public Font Font
-  {
-    get 
+    /// <summary>
+    /// Gets the legend of the chart.
+    /// </summary>
+    public Legend Legend
     {
-      if (this.font == null)
-        this.font = new Font(this);
+        get
+        {
+            if (this.legend == null)
+                this.legend = new Legend(this);
 
-      return this.font;
+            return this.legend;
+        }
     }
-  }
-  internal Font font;
+    internal Legend legend;
 
-  /// <summary>
-  /// Gets the legend of the chart.
-  /// </summary>
-  public Legend Legend
-  {
-    get
+    /// <summary>
+    /// Gets the X-Axis of the Chart.
+    /// </summary>
+    public Axis XAxis
     {
-      if (this.legend == null)
-        this.legend = new Legend(this);
+        get
+        {
+            if (this.xAxis == null)
+                this.xAxis = new Axis(this);
 
-      return this.legend;
+            return this.xAxis;
+        }
     }
-  }
-  internal Legend legend;
+    internal Axis xAxis;
 
-  /// <summary>
-  /// Gets the X-Axis of the Chart.
-  /// </summary>
-  public Axis XAxis
-  {
-    get
+    /// <summary>
+    /// Gets the Y-Axis of the Chart.
+    /// </summary>
+    public Axis YAxis
     {
-      if (this.xAxis == null)
-        this.xAxis = new Axis(this);
+        get
+        {
+            if (this.yAxis == null)
+                this.yAxis = new Axis(this);
 
-      return this.xAxis;
+            return this.yAxis;
+        }
     }
-  }
-  internal Axis xAxis;
+    internal Axis yAxis;
 
-  /// <summary>
-  /// Gets the Y-Axis of the Chart.
-  /// </summary>
-  public Axis YAxis
-  {
-    get
+    /// <summary>
+    /// Gets the Z-Axis of the Chart.
+    /// </summary>
+    public Axis ZAxis
     {
-      if (this.yAxis == null)
-        this.yAxis = new Axis(this);
+        get
+        {
+            if (this.zAxis == null)
+                this.zAxis = new Axis(this);
 
-      return this.yAxis;
+            return this.zAxis;
+        }
     }
-  }
-  internal Axis yAxis;
+    internal Axis zAxis;
 
-  /// <summary>
-  /// Gets the Z-Axis of the Chart.
-  /// </summary>
-  public Axis ZAxis
-  {
-    get
+    /// <summary>
+    /// Gets the collection of the data series.
+    /// </summary>
+    public SeriesCollection SeriesCollection
     {
-      if (this.zAxis == null)
-        this.zAxis = new Axis(this);
+        get
+        {
+            if (this.seriesCollection == null)
+                this.seriesCollection = new SeriesCollection(this);
 
-      return this.zAxis;
+            return this.seriesCollection;
+        }
     }
-  }
-  internal Axis zAxis;
+    internal SeriesCollection seriesCollection;
 
-  /// <summary>
-  /// Gets the collection of the data series.
-  /// </summary>
-  public SeriesCollection SeriesCollection
-  {
-    get
+    /// <summary>
+    /// Gets the collection of the values written on the X-Axis.
+    /// </summary>
+    public XValues XValues
     {
-      if (this.seriesCollection == null)
-        this.seriesCollection = new SeriesCollection(this);
+        get
+        {
+            if (this.xValues == null)
+                this.xValues = new XValues(this);
 
-      return this.seriesCollection;
+            return this.xValues;
+        }
     }
-  }
-  internal SeriesCollection seriesCollection;
+    internal XValues xValues;
 
-  /// <summary>
-  /// Gets the collection of the values written on the X-Axis.
-  /// </summary>
-  public XValues XValues
-  {
-    get
+    /// <summary>
+    /// Gets the plot (drawing) area of the chart.
+    /// </summary>
+    public PlotArea PlotArea
     {
-      if (this.xValues == null)
-        this.xValues = new XValues(this);
+        get
+        {
+            if (this.plotArea == null)
+                this.plotArea = new PlotArea(this);
 
-      return this.xValues;
+            return this.plotArea;
+        }
     }
-  }
-  internal XValues xValues;
+    internal PlotArea plotArea;
 
-  /// <summary>
-  /// Gets the plot (drawing) area of the chart.
-  /// </summary>
-  public PlotArea PlotArea
-  {
-    get
+    /// <summary>
+    /// Gets or sets a value defining how blanks in the data series should be shown.
+    /// </summary>
+    public BlankType DisplayBlanksAs
     {
-      if (this.plotArea == null)
-        this.plotArea = new PlotArea(this);
-
-      return this.plotArea;
+        get => this.displayBlanksAs;
+        set => this.displayBlanksAs = value;
     }
-  }
-  internal PlotArea plotArea;
+    internal BlankType displayBlanksAs;
 
-  /// <summary>
-  /// Gets or sets a value defining how blanks in the data series should be shown.
-  /// </summary>
-  public BlankType DisplayBlanksAs
-  {
-    get => this.displayBlanksAs;
-    set => this.displayBlanksAs = value;
-  }
-  internal BlankType displayBlanksAs;
-
-  /// <summary>
-  /// Gets the DataLabel of the chart.
-  /// </summary>
-  public DataLabel DataLabel
-  {
-    get 
+    /// <summary>
+    /// Gets the DataLabel of the chart.
+    /// </summary>
+    public DataLabel DataLabel
     {
-      if (this.dataLabel == null)
-        this.dataLabel = new DataLabel(this);
+        get
+        {
+            if (this.dataLabel == null)
+                this.dataLabel = new DataLabel(this);
 
-      return this.dataLabel;
+            return this.dataLabel;
+        }
     }
-  }
-  internal DataLabel dataLabel;
+    internal DataLabel dataLabel;
 
-  /// <summary>
-  /// Gets or sets whether the chart has a DataLabel.
-  /// </summary>
-  public bool HasDataLabel
-  {
-    get => this.hasDataLabel;
-    set => this.hasDataLabel = value;
-  }
-  internal bool hasDataLabel;
-  #endregion
+    /// <summary>
+    /// Gets or sets whether the chart has a DataLabel.
+    /// </summary>
+    public bool HasDataLabel
+    {
+        get => this.hasDataLabel;
+        set => this.hasDataLabel = value;
+    }
+    internal bool hasDataLabel;
+    #endregion
 }

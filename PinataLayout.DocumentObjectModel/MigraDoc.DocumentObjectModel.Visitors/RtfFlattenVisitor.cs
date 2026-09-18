@@ -37,37 +37,37 @@ namespace PinataLayout.DocumentObjectModel.Visitors;
 /// </summary>
 public class RtfFlattenVisitor : VisitorBase
 {
-  /// <summary>Initializes a new instance of the <see cref="RtfFlattenVisitor"/> class.</summary>
-  public RtfFlattenVisitor()
-  {
-  }
-
-  internal override void VisitFormattedText(FormattedText formattedText)
-  {
-    Document document = formattedText.Document;
-    ParagraphFormat format = null;
-
-    Style style = document.styles[(formattedText.style ?? "")];
-    if (style != null)
-      format = style.paragraphFormat;
-    else if ((formattedText.style ?? "") != "")
-      format = document.styles["InvalidStyleName"].paragraphFormat;
-
-    if (format != null)
+    /// <summary>Initializes a new instance of the <see cref="RtfFlattenVisitor"/> class.</summary>
+    public RtfFlattenVisitor()
     {
-      if (formattedText.font == null)
-        formattedText.Font = format.font.Clone();
-      else if (format.font != null)
-        FlattenFont(formattedText.font, format.font);
     }
-  }
 
-  internal override void VisitHyperlink(Hyperlink hyperlink)
-  {
-    Font styleFont = hyperlink.Document.Styles["Hyperlink"].Font;
-    if (hyperlink.font == null)
-      hyperlink.Font = styleFont.Clone();
-    else
-      FlattenFont(hyperlink.font, styleFont);
-  }
+    internal override void VisitFormattedText(FormattedText formattedText)
+    {
+        Document document = formattedText.Document;
+        ParagraphFormat format = null;
+
+        Style style = document.styles[(formattedText.style ?? "")];
+        if (style != null)
+            format = style.paragraphFormat;
+        else if ((formattedText.style ?? "") != "")
+            format = document.styles["InvalidStyleName"].paragraphFormat;
+
+        if (format != null)
+        {
+            if (formattedText.font == null)
+                formattedText.Font = format.font.Clone();
+            else if (format.font != null)
+                FlattenFont(formattedText.font, format.font);
+        }
+    }
+
+    internal override void VisitHyperlink(Hyperlink hyperlink)
+    {
+        Font styleFont = hyperlink.Document.Styles["Hyperlink"].Font;
+        if (hyperlink.font == null)
+            hyperlink.Font = styleFont.Clone();
+        else
+            FlattenFont(hyperlink.font, styleFont);
+    }
 }

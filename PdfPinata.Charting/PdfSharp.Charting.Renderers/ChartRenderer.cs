@@ -36,64 +36,64 @@ namespace PdfPinata.Charting.Renderers;
 /// </summary>
 internal abstract class ChartRenderer : Renderer
 {
-  /// <summary>
-  /// Initializes a new instance of the ChartRenderer class with the specified renderer parameters.
-  /// </summary>
-  internal ChartRenderer(RendererParameters parms) : base(parms)
-  {
-  }
-
-  /// <summary>
-  /// Calculates the space used by the legend and returns the remaining space available for the
-  /// other parts of the chart.
-  /// </summary>
-  protected XRect LayoutLegend()
-  {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    XRect remainingRect = this.rendererParms.Box;
-    if (cri.legendRendererInfo != null)
+    /// <summary>
+    /// Initializes a new instance of the ChartRenderer class with the specified renderer parameters.
+    /// </summary>
+    internal ChartRenderer(RendererParameters parms) : base(parms)
     {
-      switch (cri.legendRendererInfo.legend.Docking)
-      {
-        case DockingType.Left:
-          cri.legendRendererInfo.X = remainingRect.Left;
-          cri.legendRendererInfo.Y = remainingRect.Height / 2 - cri.legendRendererInfo.Height / 2;
-          double width = cri.legendRendererInfo.Width + ChartRenderer.LegendSpacing;
-          remainingRect.X += width;
-          remainingRect.Width -= width;
-          break;
-
-        case DockingType.Right:
-          cri.legendRendererInfo.X = remainingRect.Right - cri.legendRendererInfo.Width;
-          cri.legendRendererInfo.Y = remainingRect.Height / 2 - cri.legendRendererInfo.Height / 2;
-          remainingRect.Width -= cri.legendRendererInfo.Width + ChartRenderer.LegendSpacing;
-          break;
-          
-        case DockingType.Top:
-          cri.legendRendererInfo.X = remainingRect.Width / 2 - cri.legendRendererInfo.Width / 2;
-          cri.legendRendererInfo.Y = remainingRect.Top;
-          double height = cri.legendRendererInfo.Height + ChartRenderer.LegendSpacing;
-          remainingRect.Y += height;
-          remainingRect.Height -= height;
-          break;
-          
-        case DockingType.Bottom:
-          cri.legendRendererInfo.X = remainingRect.Width / 2 - cri.legendRendererInfo.Width / 2;
-          cri.legendRendererInfo.Y = remainingRect.Bottom - cri.legendRendererInfo.Height;
-          remainingRect.Height -= cri.legendRendererInfo.Height + ChartRenderer.LegendSpacing;
-          break;
-      }
     }
-    return remainingRect;
-  }
 
-  /// <summary>
-  /// Used to separate the legend from the plot area.
-  /// </summary>
-  private const double LegendSpacing = 0;
+    /// <summary>
+    /// Calculates the space used by the legend and returns the remaining space available for the
+    /// other parts of the chart.
+    /// </summary>
+    protected XRect LayoutLegend()
+    {
+        ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+        XRect remainingRect = this.rendererParms.Box;
+        if (cri.legendRendererInfo != null)
+        {
+            switch (cri.legendRendererInfo.legend.Docking)
+            {
+                case DockingType.Left:
+                    cri.legendRendererInfo.X = remainingRect.Left;
+                    cri.legendRendererInfo.Y = remainingRect.Height / 2 - cri.legendRendererInfo.Height / 2;
+                    double width = cri.legendRendererInfo.Width + ChartRenderer.LegendSpacing;
+                    remainingRect.X += width;
+                    remainingRect.Width -= width;
+                    break;
 
-  /// <summary>
-  /// Represents the default width for all series lines, like borders in column/bar charts.
-  /// </summary>
-  protected static readonly double DefaultSeriesLineWidth = 0.15;
+                case DockingType.Right:
+                    cri.legendRendererInfo.X = remainingRect.Right - cri.legendRendererInfo.Width;
+                    cri.legendRendererInfo.Y = remainingRect.Height / 2 - cri.legendRendererInfo.Height / 2;
+                    remainingRect.Width -= cri.legendRendererInfo.Width + ChartRenderer.LegendSpacing;
+                    break;
+
+                case DockingType.Top:
+                    cri.legendRendererInfo.X = remainingRect.Width / 2 - cri.legendRendererInfo.Width / 2;
+                    cri.legendRendererInfo.Y = remainingRect.Top;
+                    double height = cri.legendRendererInfo.Height + ChartRenderer.LegendSpacing;
+                    remainingRect.Y += height;
+                    remainingRect.Height -= height;
+                    break;
+
+                case DockingType.Bottom:
+                    cri.legendRendererInfo.X = remainingRect.Width / 2 - cri.legendRendererInfo.Width / 2;
+                    cri.legendRendererInfo.Y = remainingRect.Bottom - cri.legendRendererInfo.Height;
+                    remainingRect.Height -= cri.legendRendererInfo.Height + ChartRenderer.LegendSpacing;
+                    break;
+            }
+        }
+        return remainingRect;
+    }
+
+    /// <summary>
+    /// Used to separate the legend from the plot area.
+    /// </summary>
+    private const double LegendSpacing = 0;
+
+    /// <summary>
+    /// Represents the default width for all series lines, like borders in column/bar charts.
+    /// </summary>
+    protected static readonly double DefaultSeriesLineWidth = 0.15;
 }

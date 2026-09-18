@@ -1,4 +1,4 @@
-﻿namespace PdfPinata.Pdf.IO.enums;
+namespace PdfPinata.Pdf.IO.enums;
 
 /// <summary>How strictly a document is read, deciding whether a recoverable fault stops the read or is worked around.</summary>
 public enum PdfReadAccuracy

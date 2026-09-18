@@ -1,4 +1,4 @@
-﻿#region PDFsharp - A .NET library for processing PDF
+#region PDFsharp - A .NET library for processing PDF
 //
 // Authors:
 //   Stefan Lange (mailto:Stefan.Lange@pdfsharp.com)
@@ -472,7 +472,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     /// </summary>
     // ReSharper disable InconsistentNaming
     void EncryptRC4(byte[] data)
-        // ReSharper restore InconsistentNaming
+    // ReSharper restore InconsistentNaming
     {
         EncryptRC4(data, 0, data.Length, data);
     }

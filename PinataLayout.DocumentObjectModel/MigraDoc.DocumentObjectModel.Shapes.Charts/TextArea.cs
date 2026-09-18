@@ -42,326 +42,326 @@ namespace PinataLayout.DocumentObjectModel.Shapes.Charts;
 /// </summary>
 public partial class TextArea : ChartObject, IVisitable
 {
-  /// <summary>
-  /// Initializes a new instance of the TextArea class.
-  /// </summary>
-  internal TextArea()
-  {
-  }
-
-  /// <summary>
-  /// Initializes a new instance of the TextArea class with the specified parent.
-  /// </summary>
-  internal TextArea(DocumentObject parent) : base(parent) { }
-
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new TextArea Clone()
-  {
-    return (TextArea)DeepCopy();
-  }
-
-  /// <summary>
-  /// Adds a new paragraph to the text area.
-  /// </summary>
-  public Paragraph AddParagraph()
-  {
-    return this.Elements.AddParagraph();
-  }
-
-  /// <summary>
-  /// Adds a new paragraph with the specified text to the text area.
-  /// </summary>
-  public Paragraph AddParagraph(string paragraphText)
-  {
-    return this.Elements.AddParagraph(paragraphText);
-  }
-
-  /// <summary>
-  /// Adds a new table to the text area.
-  /// </summary>
-  public Table AddTable()
-  {
-    return this.Elements.AddTable();
-  }
-
-  /// <summary>
-  /// Adds a new Image to the text area.
-  /// </summary>
-  public Image AddImage(IImageSource imageSource)
-  {
-    return this.Elements.AddImage(imageSource);
-  }
-
-  /// <summary>
-  /// Adds a new legend to the text area.
-  /// </summary>
-  public Legend AddLegend()
-  {
-    return this.Elements.AddLegend();
-  }
-
-  /// <summary>
-  /// Adds a new paragraph to the text area.
-  /// </summary>
-  public void Add(Paragraph paragraph)
-  {
-    this.Elements.Add(paragraph);
-  }
-
-  /// <summary>
-  /// Adds a new table to the text area.
-  /// </summary>
-  public void Add(Table table)
-  {
-    this.Elements.Add(table);
-  }
-
-  /// <summary>
-  /// Adds a new image to the text area.
-  /// </summary>
-  public void Add(Image image)
-  {
-    this.Elements.Add(image);
-  }
-
-  /// <summary>
-  /// Adds a new legend to the text area.
-  /// </summary>
-  public void Add(Legend legend)
-  {
-    this.Elements.Add(legend);
-  }
-  #endregion
-
-  #region Properties
-  /// <summary>
-  /// Gets or sets the height of the area.
-  /// </summary>
-  public Unit Height
-  {
-    get => this.height;
-    set => this.height = value;
-  }
-  [DV]
-  internal Unit height = Unit.NullValue;
-
-  /// <summary>
-  /// Gets or sets the width of the area.
-  /// </summary>
-  public Unit Width
-  {
-    get => this.width;
-    set => this.width = value;
-  }
-  [DV]
-  internal Unit width = Unit.NullValue;
-
-  /// <summary>
-  /// Gets or sets the default style name of the area.
-  /// </summary>
-  public string Style
-  {
-    get => this.style ?? "";
-    set => this.style = value;
-  }
-  [DV]
-  internal string style;
-
-  /// <summary>
-  /// Gets or sets the default paragraph format of the area.
-  /// </summary>
-  public ParagraphFormat Format
-  {
-    get
+    /// <summary>
+    /// Initializes a new instance of the TextArea class.
+    /// </summary>
+    internal TextArea()
     {
-      if (this.format == null)
-        this.format = new ParagraphFormat(this);
-
-      return this.format;
     }
-    set
+
+    /// <summary>
+    /// Initializes a new instance of the TextArea class with the specified parent.
+    /// </summary>
+    internal TextArea(DocumentObject parent) : base(parent) { }
+
+    #region Methods
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new TextArea Clone()
     {
-      SetParent(value);
-      this.format = value;
+        return (TextArea)DeepCopy();
     }
-  }
-  [DV]
-  internal ParagraphFormat format;
 
-  /// <summary>
-  /// Gets the line format of the area's border.
-  /// </summary>
-  public LineFormat LineFormat
-  {
-    get
+    /// <summary>
+    /// Adds a new paragraph to the text area.
+    /// </summary>
+    public Paragraph AddParagraph()
     {
-      if (this.lineFormat == null)
-        this.lineFormat = new LineFormat(this);
-
-      return this.lineFormat;
+        return this.Elements.AddParagraph();
     }
-    set
+
+    /// <summary>
+    /// Adds a new paragraph with the specified text to the text area.
+    /// </summary>
+    public Paragraph AddParagraph(string paragraphText)
     {
-      SetParent(value);
-      this.lineFormat = value;
+        return this.Elements.AddParagraph(paragraphText);
     }
-  }
-  [DV]
-  internal LineFormat lineFormat;
 
-  /// <summary>
-  /// Gets the background filling of the area.
-  /// </summary>
-  public FillFormat FillFormat
-  {
-    get
+    /// <summary>
+    /// Adds a new table to the text area.
+    /// </summary>
+    public Table AddTable()
     {
-      if (this.fillFormat == null)
-        this.fillFormat = new FillFormat(this);
-
-      return this.fillFormat;
+        return this.Elements.AddTable();
     }
-    set
+
+    /// <summary>
+    /// Adds a new Image to the text area.
+    /// </summary>
+    public Image AddImage(IImageSource imageSource)
     {
-      SetParent(value);
-      this.fillFormat = value;
+        return this.Elements.AddImage(imageSource);
     }
-  }
-  [DV]
-  internal FillFormat fillFormat;
 
-  /// <summary>
-  /// Gets or sets the left padding of the area.
-  /// </summary>
-  public Unit LeftPadding
-  {
-    get => this.leftPadding;
-    set => this.leftPadding = value;
-  }
-  [DV]
-  internal Unit leftPadding = Unit.NullValue;
-
-  /// <summary>
-  /// Gets or sets the right padding of the area.
-  /// </summary>
-  public Unit RightPadding
-  {
-    get => this.rightPadding;
-    set => this.rightPadding = value;
-  }
-  [DV]
-  internal Unit rightPadding = Unit.NullValue;
-
-  /// <summary>
-  /// Gets or sets the top padding of the area.
-  /// </summary>
-  public Unit TopPadding
-  {
-    get => this.topPadding;
-    set => this.topPadding = value;
-  }
-  [DV]
-  internal Unit topPadding = Unit.NullValue;
-
-  /// <summary>
-  /// Gets or sets the bottom padding of the area.
-  /// </summary>
-  public Unit BottomPadding
-  {
-    get => this.bottomPadding;
-    set => this.bottomPadding = value;
-  }
-  [DV]
-  internal Unit bottomPadding = Unit.NullValue;
-
-  /// <summary>
-  /// Gets or sets the Vertical alignment of the area.
-  /// </summary>
-  public VerticalAlignment VerticalAlignment
-  {
-    get => this.verticalAlignment ?? default;
-    set => this.verticalAlignment = EnumGuard.Checked(value);
-  }
-  [DV]
-  internal VerticalAlignment? verticalAlignment;
-
-  /// <summary>
-  /// Gets the document objects that creates the text area.
-  /// </summary>
-  public DocumentElements Elements
-  {
-    get
+    /// <summary>
+    /// Adds a new legend to the text area.
+    /// </summary>
+    public Legend AddLegend()
     {
-      if (this.elements == null)
-        this.elements = new DocumentElements(this);
-
-      return this.elements;
+        return this.Elements.AddLegend();
     }
-    set
+
+    /// <summary>
+    /// Adds a new paragraph to the text area.
+    /// </summary>
+    public void Add(Paragraph paragraph)
     {
-      SetParent(value);
-      this.elements = value;
+        this.Elements.Add(paragraph);
     }
-  }
-  [DV]
-  internal DocumentElements elements;
-  #endregion
 
-  #region Internal
-  /// <summary>
-  /// Converts TextArea into DDL.
-  /// </summary>
-  internal override void Serialize(Serializer serializer)
-  {
-    Chart chartObject = this.parent as Chart;
+    /// <summary>
+    /// Adds a new table to the text area.
+    /// </summary>
+    public void Add(Table table)
+    {
+        this.Elements.Add(table);
+    }
 
-    serializer.WriteLine("\\" + chartObject.CheckTextArea(this));
-    int pos = serializer.BeginAttributes();
+    /// <summary>
+    /// Adds a new image to the text area.
+    /// </summary>
+    public void Add(Image image)
+    {
+        this.Elements.Add(image);
+    }
 
-    if (this.style != null)
-      serializer.WriteSimpleAttribute("Style", this.Style);
-    if (!this.IsNull("Format"))
-      this.format.Serialize(serializer, "Format", null);
+    /// <summary>
+    /// Adds a new legend to the text area.
+    /// </summary>
+    public void Add(Legend legend)
+    {
+        this.Elements.Add(legend);
+    }
+    #endregion
 
-    if (!this.topPadding.IsNull)
-      serializer.WriteSimpleAttribute("TopPadding", this.TopPadding);
-    if (!this.leftPadding.IsNull)
-      serializer.WriteSimpleAttribute("LeftPadding", this.LeftPadding);
-    if (!this.rightPadding.IsNull)
-      serializer.WriteSimpleAttribute("RightPadding", this.RightPadding);
-    if (!this.bottomPadding.IsNull)
-      serializer.WriteSimpleAttribute("BottomPadding", this.BottomPadding);
+    #region Properties
+    /// <summary>
+    /// Gets or sets the height of the area.
+    /// </summary>
+    public Unit Height
+    {
+        get => this.height;
+        set => this.height = value;
+    }
+    [DV]
+    internal Unit height = Unit.NullValue;
 
-    if (!this.width.IsNull)
-      serializer.WriteSimpleAttribute("Width", this.Width);
-    if (!this.height.IsNull)
-      serializer.WriteSimpleAttribute("Height", this.Height);
+    /// <summary>
+    /// Gets or sets the width of the area.
+    /// </summary>
+    public Unit Width
+    {
+        get => this.width;
+        set => this.width = value;
+    }
+    [DV]
+    internal Unit width = Unit.NullValue;
 
-    if (this.verticalAlignment != null)
-      serializer.WriteSimpleAttribute("VerticalAlignment", this.VerticalAlignment);
+    /// <summary>
+    /// Gets or sets the default style name of the area.
+    /// </summary>
+    public string Style
+    {
+        get => this.style ?? "";
+        set => this.style = value;
+    }
+    [DV]
+    internal string style;
 
-    if (!this.IsNull("LineFormat"))
-      this.lineFormat.Serialize(serializer);
-    if (!this.IsNull("FillFormat"))
-      this.fillFormat.Serialize(serializer);
+    /// <summary>
+    /// Gets or sets the default paragraph format of the area.
+    /// </summary>
+    public ParagraphFormat Format
+    {
+        get
+        {
+            if (this.format == null)
+                this.format = new ParagraphFormat(this);
 
-    serializer.EndAttributes(pos);
+            return this.format;
+        }
+        set
+        {
+            SetParent(value);
+            this.format = value;
+        }
+    }
+    [DV]
+    internal ParagraphFormat format;
 
-    serializer.BeginContent();
-    if (this.elements != null)
-      this.elements.Serialize(serializer);
-    serializer.EndContent();
-  }
+    /// <summary>
+    /// Gets the line format of the area's border.
+    /// </summary>
+    public LineFormat LineFormat
+    {
+        get
+        {
+            if (this.lineFormat == null)
+                this.lineFormat = new LineFormat(this);
 
-  #endregion
+            return this.lineFormat;
+        }
+        set
+        {
+            SetParent(value);
+            this.lineFormat = value;
+        }
+    }
+    [DV]
+    internal LineFormat lineFormat;
 
-  void IVisitable.AcceptVisitor(DocumentObjectVisitor visitor, bool visitChildren)
-  {
-    visitor.VisitTextArea(this);
-    if (this.elements != null && visitChildren)
-      ((IVisitable)this.elements).AcceptVisitor(visitor, visitChildren);
-  }
+    /// <summary>
+    /// Gets the background filling of the area.
+    /// </summary>
+    public FillFormat FillFormat
+    {
+        get
+        {
+            if (this.fillFormat == null)
+                this.fillFormat = new FillFormat(this);
+
+            return this.fillFormat;
+        }
+        set
+        {
+            SetParent(value);
+            this.fillFormat = value;
+        }
+    }
+    [DV]
+    internal FillFormat fillFormat;
+
+    /// <summary>
+    /// Gets or sets the left padding of the area.
+    /// </summary>
+    public Unit LeftPadding
+    {
+        get => this.leftPadding;
+        set => this.leftPadding = value;
+    }
+    [DV]
+    internal Unit leftPadding = Unit.NullValue;
+
+    /// <summary>
+    /// Gets or sets the right padding of the area.
+    /// </summary>
+    public Unit RightPadding
+    {
+        get => this.rightPadding;
+        set => this.rightPadding = value;
+    }
+    [DV]
+    internal Unit rightPadding = Unit.NullValue;
+
+    /// <summary>
+    /// Gets or sets the top padding of the area.
+    /// </summary>
+    public Unit TopPadding
+    {
+        get => this.topPadding;
+        set => this.topPadding = value;
+    }
+    [DV]
+    internal Unit topPadding = Unit.NullValue;
+
+    /// <summary>
+    /// Gets or sets the bottom padding of the area.
+    /// </summary>
+    public Unit BottomPadding
+    {
+        get => this.bottomPadding;
+        set => this.bottomPadding = value;
+    }
+    [DV]
+    internal Unit bottomPadding = Unit.NullValue;
+
+    /// <summary>
+    /// Gets or sets the Vertical alignment of the area.
+    /// </summary>
+    public VerticalAlignment VerticalAlignment
+    {
+        get => this.verticalAlignment ?? default;
+        set => this.verticalAlignment = EnumGuard.Checked(value);
+    }
+    [DV]
+    internal VerticalAlignment? verticalAlignment;
+
+    /// <summary>
+    /// Gets the document objects that creates the text area.
+    /// </summary>
+    public DocumentElements Elements
+    {
+        get
+        {
+            if (this.elements == null)
+                this.elements = new DocumentElements(this);
+
+            return this.elements;
+        }
+        set
+        {
+            SetParent(value);
+            this.elements = value;
+        }
+    }
+    [DV]
+    internal DocumentElements elements;
+    #endregion
+
+    #region Internal
+    /// <summary>
+    /// Converts TextArea into DDL.
+    /// </summary>
+    internal override void Serialize(Serializer serializer)
+    {
+        Chart chartObject = this.parent as Chart;
+
+        serializer.WriteLine("\\" + chartObject.CheckTextArea(this));
+        int pos = serializer.BeginAttributes();
+
+        if (this.style != null)
+            serializer.WriteSimpleAttribute("Style", this.Style);
+        if (!this.IsNull("Format"))
+            this.format.Serialize(serializer, "Format", null);
+
+        if (!this.topPadding.IsNull)
+            serializer.WriteSimpleAttribute("TopPadding", this.TopPadding);
+        if (!this.leftPadding.IsNull)
+            serializer.WriteSimpleAttribute("LeftPadding", this.LeftPadding);
+        if (!this.rightPadding.IsNull)
+            serializer.WriteSimpleAttribute("RightPadding", this.RightPadding);
+        if (!this.bottomPadding.IsNull)
+            serializer.WriteSimpleAttribute("BottomPadding", this.BottomPadding);
+
+        if (!this.width.IsNull)
+            serializer.WriteSimpleAttribute("Width", this.Width);
+        if (!this.height.IsNull)
+            serializer.WriteSimpleAttribute("Height", this.Height);
+
+        if (this.verticalAlignment != null)
+            serializer.WriteSimpleAttribute("VerticalAlignment", this.VerticalAlignment);
+
+        if (!this.IsNull("LineFormat"))
+            this.lineFormat.Serialize(serializer);
+        if (!this.IsNull("FillFormat"))
+            this.fillFormat.Serialize(serializer);
+
+        serializer.EndAttributes(pos);
+
+        serializer.BeginContent();
+        if (this.elements != null)
+            this.elements.Serialize(serializer);
+        serializer.EndContent();
+    }
+
+    #endregion
+
+    void IVisitable.AcceptVisitor(DocumentObjectVisitor visitor, bool visitChildren)
+    {
+        visitor.VisitTextArea(this);
+        if (this.elements != null && visitChildren)
+            ((IVisitable)this.elements).AcceptVisitor(visitor, visitChildren);
+    }
 }

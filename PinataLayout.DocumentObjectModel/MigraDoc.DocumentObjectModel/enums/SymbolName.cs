@@ -37,48 +37,48 @@ namespace PinataLayout.DocumentObjectModel;
 /// </summary>
 public enum SymbolName : uint
 {
-  // \space(...)
-  /// <summary>A normal space.</summary>
-  Blank = 0xF1000001,
-  /// <summary>A space one en wide, half an em.</summary>
-  En = 0xF1000002,
-  /// <summary>A space one em wide.</summary>
-  Em = 0xF1000003,
-  /// <summary>A space a quarter of an em wide.</summary>
-  EmQuarter = 0xF1000004,
-  /// <summary>A space a quarter of an em wide. Same as <see cref="EmQuarter"/>.</summary>
-  Em4 = EmQuarter,
+    // \space(...)
+    /// <summary>A normal space.</summary>
+    Blank = 0xF1000001,
+    /// <summary>A space one en wide, half an em.</summary>
+    En = 0xF1000002,
+    /// <summary>A space one em wide.</summary>
+    Em = 0xF1000003,
+    /// <summary>A space a quarter of an em wide.</summary>
+    EmQuarter = 0xF1000004,
+    /// <summary>A space a quarter of an em wide. Same as <see cref="EmQuarter"/>.</summary>
+    Em4 = EmQuarter,
 
-  // used to serialize as \tab, \linebreak
-  /// <summary>A tab stop. Serialized as <c>\tab</c>.</summary>
-  Tab = 0xF2000001,
-  /// <summary>A break within a paragraph. Serialized as <c>\linebreak</c>.</summary>
-  LineBreak = 0xF4000001,
+    // used to serialize as \tab, \linebreak
+    /// <summary>A tab stop. Serialized as <c>\tab</c>.</summary>
+    Tab = 0xF2000001,
+    /// <summary>A break within a paragraph. Serialized as <c>\linebreak</c>.</summary>
+    LineBreak = 0xF4000001,
 
-  // for internal use only 
-  /// <summary>A paragraph break. For internal use only.</summary>
-  ParaBreak = 0xF4000007,
-  //MarginBreak       = 0xF4000002,
+    // for internal use only 
+    /// <summary>A paragraph break. For internal use only.</summary>
+    ParaBreak = 0xF4000007,
+    //MarginBreak       = 0xF4000002,
 
-  // \symbol(...)
-  /// <summary>The euro sign, U+20AC.</summary>
-  Euro = 0xF8000001,
-  /// <summary>The copyright sign, U+00A9.</summary>
-  Copyright = 0xF8000002,
-  /// <summary>The trade mark sign, U+2122.</summary>
-  Trademark = 0xF8000003,
-  /// <summary>The registered sign, U+00AE.</summary>
-  RegisteredTrademark = 0xF8000004,
-  /// <summary>A bullet, U+2022.</summary>
-  Bullet = 0xF8000005,
-  /// <summary>The not sign, U+00AC.</summary>
-  Not = 0xF8000006,
-  /// <summary>An em dash, U+2014.</summary>
-  EmDash = 0xF8000007,
-  /// <summary>An en dash, U+2013.</summary>
-  EnDash = 0xF8000008,
-  /// <summary>A space a line may not be broken at, U+00A0.</summary>
-  NonBreakableBlank = 0xF8000009,
-  /// <summary>A space a line may not be broken at. Same as <see cref="NonBreakableBlank"/>.</summary>
-  HardBlank = NonBreakableBlank,
+    // \symbol(...)
+    /// <summary>The euro sign, U+20AC.</summary>
+    Euro = 0xF8000001,
+    /// <summary>The copyright sign, U+00A9.</summary>
+    Copyright = 0xF8000002,
+    /// <summary>The trade mark sign, U+2122.</summary>
+    Trademark = 0xF8000003,
+    /// <summary>The registered sign, U+00AE.</summary>
+    RegisteredTrademark = 0xF8000004,
+    /// <summary>A bullet, U+2022.</summary>
+    Bullet = 0xF8000005,
+    /// <summary>The not sign, U+00AC.</summary>
+    Not = 0xF8000006,
+    /// <summary>An em dash, U+2014.</summary>
+    EmDash = 0xF8000007,
+    /// <summary>An en dash, U+2013.</summary>
+    EnDash = 0xF8000008,
+    /// <summary>A space a line may not be broken at, U+00A0.</summary>
+    NonBreakableBlank = 0xF8000009,
+    /// <summary>A space a line may not be broken at. Same as <see cref="NonBreakableBlank"/>.</summary>
+    HardBlank = NonBreakableBlank,
 }

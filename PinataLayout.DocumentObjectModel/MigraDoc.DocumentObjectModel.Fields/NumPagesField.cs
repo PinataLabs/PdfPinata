@@ -39,43 +39,43 @@ namespace PinataLayout.DocumentObjectModel.Fields;
 /// </summary>
 public partial class NumPagesField : NumericFieldBase
 {
-  /// <summary>
-  /// Initializes a new instance of the NumPagesField class.
-  /// </summary>
-  public NumPagesField()
-  {
-  }
+    /// <summary>
+    /// Initializes a new instance of the NumPagesField class.
+    /// </summary>
+    public NumPagesField()
+    {
+    }
 
-  /// <summary>
-  /// Initializes a new instance of the NumPagesField class with the specified parent.
-  /// </summary>
-  internal NumPagesField(DocumentObject parent) : base(parent) { }
+    /// <summary>
+    /// Initializes a new instance of the NumPagesField class with the specified parent.
+    /// </summary>
+    internal NumPagesField(DocumentObject parent) : base(parent) { }
 
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new NumPagesField Clone()
-  {
-    return (NumPagesField)DeepCopy();
-  }
-  #endregion
+    #region Methods
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new NumPagesField Clone()
+    {
+        return (NumPagesField)DeepCopy();
+    }
+    #endregion
 
-  #region Internal
-  /// <summary>
-  /// Converts NumPagesField into DDL.
-  /// </summary>
-  internal override void Serialize(Serializer serializer)
-  {
-    string str = "\\field(NumPages)";
+    #region Internal
+    /// <summary>
+    /// Converts NumPagesField into DDL.
+    /// </summary>
+    internal override void Serialize(Serializer serializer)
+    {
+        string str = "\\field(NumPages)";
 
-    if ((this.format ?? "") != "")
-      str += "[Format = \"" + this.Format + "\"]";
-    else
-      str += "[]"; // Has to be appended to avoid confusion with '[' in directly following text.
+        if ((this.format ?? "") != "")
+            str += "[Format = \"" + this.Format + "\"]";
+        else
+            str += "[]"; // Has to be appended to avoid confusion with '[' in directly following text.
 
-    serializer.Write(str);
-  }
+        serializer.Write(str);
+    }
 
-  #endregion
+    #endregion
 }

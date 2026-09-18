@@ -36,51 +36,51 @@ namespace PdfPinata.Charting.Renderers;
 /// </summary>
 internal abstract class Renderer
 {
-  /// <summary>
-  /// Initializes a new instance of the Renderer class with the specified renderer parameters.
-  /// </summary>
-  internal Renderer(RendererParameters rendererParms)
-  {
-    this.rendererParms = rendererParms;
-  }
+    /// <summary>
+    /// Initializes a new instance of the Renderer class with the specified renderer parameters.
+    /// </summary>
+    internal Renderer(RendererParameters rendererParms)
+    {
+        this.rendererParms = rendererParms;
+    }
 
-  /// <summary>
-  /// Derived renderer should return an initialized and renderer specific rendererInfo,
-  /// e. g. XAxisRenderer returns an new instance of AxisRendererInfo class.
-  /// </summary>
-  internal virtual RendererInfo Init()
-  {
-    return null;
-  }
+    /// <summary>
+    /// Derived renderer should return an initialized and renderer specific rendererInfo,
+    /// e. g. XAxisRenderer returns an new instance of AxisRendererInfo class.
+    /// </summary>
+    internal virtual RendererInfo Init()
+    {
+        return null;
+    }
 
-  /// <summary>
-  /// Layouts and calculates the space used by the renderer's drawing item.
-  /// </summary>
-  internal virtual void Format()
-  {
-    // nothing to do
-  }
+    /// <summary>
+    /// Layouts and calculates the space used by the renderer's drawing item.
+    /// </summary>
+    internal virtual void Format()
+    {
+        // nothing to do
+    }
 
-  /// <summary>
-  /// Draws the item.
-  /// </summary>
-  internal abstract void Draw();
+    /// <summary>
+    /// Draws the item.
+    /// </summary>
+    internal abstract void Draw();
 
-  /// <summary>
-  /// Whether an area has no room to draw anything in.
-  /// </summary>
-  /// <remarks>
-  /// Asked of the plot area, by every renderer that draws inside it, before it draws. The test
-  /// used to be XRect.IsEmpty, which means the rectangle is the empty one - a width below zero -
-  /// rather than that it has no room. It was reached by a frame too small for its own axes, whose
-  /// layout subtracted more than it had and produced exactly that; and since an extent below zero
-  /// is now taken as no extent, so that XRect is not handed a negative one, nothing produces the
-  /// empty rectangle any more and the test has to be the one that was meant.
-  /// </remarks>
-  protected static bool HasNoRoom(XRect area) => area.Width <= 0 || area.Height <= 0;
+    /// <summary>
+    /// Whether an area has no room to draw anything in.
+    /// </summary>
+    /// <remarks>
+    /// Asked of the plot area, by every renderer that draws inside it, before it draws. The test
+    /// used to be XRect.IsEmpty, which means the rectangle is the empty one - a width below zero -
+    /// rather than that it has no room. It was reached by a frame too small for its own axes, whose
+    /// layout subtracted more than it had and produced exactly that; and since an extent below zero
+    /// is now taken as no extent, so that XRect is not handed a negative one, nothing produces the
+    /// empty rectangle any more and the test has to be the one that was meant.
+    /// </remarks>
+    protected static bool HasNoRoom(XRect area) => area.Width <= 0 || area.Height <= 0;
 
-  /// <summary>
-  /// Holds all necessary rendering information.
-  /// </summary>
-  protected RendererParameters rendererParms;
+    /// <summary>
+    /// Holds all necessary rendering information.
+    /// </summary>
+    protected RendererParameters rendererParms;
 }

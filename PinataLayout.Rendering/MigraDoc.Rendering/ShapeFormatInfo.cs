@@ -35,23 +35,23 @@ namespace PinataLayout.Rendering;
 /// </summary>
 internal class ShapeFormatInfo : FormatInfo
 {
-  internal override bool IsStarting => fits;
+    internal override bool IsStarting => fits;
 
-  internal override bool IsEnding => fits;
+    internal override bool IsEnding => fits;
 
-  internal override bool IsComplete => fits;
+    internal override bool IsComplete => fits;
 
-  /// <summary>
-  /// Indicates that the starting of the element is completed
-  /// </summary>
-  internal override bool StartingIsComplete => fits;
+    /// <summary>
+    /// Indicates that the starting of the element is completed
+    /// </summary>
+    internal override bool StartingIsComplete => fits;
 
-  /// <summary>
-  /// Indicates that the ending of the element is completed
-  /// </summary>
-  internal override bool EndingIsComplete => fits;
+    /// <summary>
+    /// Indicates that the ending of the element is completed
+    /// </summary>
+    internal override bool EndingIsComplete => fits;
 
-  internal override bool IsEmpty => !fits;
+    internal override bool IsEmpty => !fits;
 
-  internal bool fits;
+    internal bool fits;
 }

@@ -32,8 +32,8 @@ namespace PinataLayout.Rendering;
 
 internal enum VerticalReference
 {
-  PreviousElement = 0, //Default
-  AreaBoundary,
-  PageMargin,
-  Page
+    PreviousElement = 0, //Default
+    AreaBoundary,
+    PageMargin,
+    Page
 }

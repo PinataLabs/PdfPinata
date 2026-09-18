@@ -40,97 +40,97 @@ namespace PinataLayout.DocumentObjectModel.Tables;
 /// </summary>
 public partial class Cells : DocumentObjectCollection
 {
-  /// <summary>
-  /// Initializes a new instance of the Cells class.
-  /// </summary>
-  public Cells()
-  {
-  }
-
-  /// <summary>
-  /// Initializes a new instance of the Cells class with the specified parent.
-  /// </summary>
-  internal Cells(DocumentObject parent) : base(parent) { }
-
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new Cells Clone()
-  {
-    return (Cells)base.DeepCopy();
-  }
-  #endregion
-
-  #region Properties
-  /// <summary>
-  /// Gets the table the cells collection belongs to.
-  /// </summary>
-  public Table Table
-  {
-    get
+    /// <summary>
+    /// Initializes a new instance of the Cells class.
+    /// </summary>
+    public Cells()
     {
-      if (this.table == null)
-      {
-        Row rw = this.Parent as Row;
-        if (rw != null)
-          this.table = rw.Table;
-      }
-      return this.table;
     }
-  }
-  Table table;
 
-  /// <summary>
-  /// Gets the row the cells collection belongs to.
-  /// </summary>
-  public Row Row
-  {
-    get
+    /// <summary>
+    /// Initializes a new instance of the Cells class with the specified parent.
+    /// </summary>
+    internal Cells(DocumentObject parent) : base(parent) { }
+
+    #region Methods
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new Cells Clone()
     {
-      if (this.row == null)
-        this.row = this.Parent as Row;
-
-      return this.row;
+        return (Cells)base.DeepCopy();
     }
-  }
-  Row row;
+    #endregion
 
-  /// <summary>
-  /// Gets a cell by its index. The first cell has the index 0.
-  /// </summary>
-  public new Cell this[int index]
-  {
-    get
+    #region Properties
+    /// <summary>
+    /// Gets the table the cells collection belongs to.
+    /// </summary>
+    public Table Table
     {
-      if (index < 0 || (this.Table != null && index >= this.Table.Columns.Count))
-        throw new ArgumentOutOfRangeException("index");
-
-      Resize(index);
-      return base[index] as Cell;
+        get
+        {
+            if (this.table == null)
+            {
+                Row rw = this.Parent as Row;
+                if (rw != null)
+                    this.table = rw.Table;
+            }
+            return this.table;
+        }
     }
-  }
-  #endregion
+    Table table;
 
-  /// <summary>
-  /// Resizes this cells' list if necessary.
-  /// </summary>
-  private void Resize(int index)
-  {
-    for (int currentIndex = this.Count; currentIndex <= index; currentIndex++)
-      Add(new Cell());
-  }
+    /// <summary>
+    /// Gets the row the cells collection belongs to.
+    /// </summary>
+    public Row Row
+    {
+        get
+        {
+            if (this.row == null)
+                this.row = this.Parent as Row;
 
-  #region Internal
-  /// <summary>
-  /// Converts Cells into DDL.
-  /// </summary>
-  internal override void Serialize(Serializer serializer)
-  {
-    int cells = Count;
-    for (int cell = 0; cell < cells; cell++)
-      this[cell].Serialize(serializer);
-  }
+            return this.row;
+        }
+    }
+    Row row;
 
-  #endregion
+    /// <summary>
+    /// Gets a cell by its index. The first cell has the index 0.
+    /// </summary>
+    public new Cell this[int index]
+    {
+        get
+        {
+            if (index < 0 || (this.Table != null && index >= this.Table.Columns.Count))
+                throw new ArgumentOutOfRangeException("index");
+
+            Resize(index);
+            return base[index] as Cell;
+        }
+    }
+    #endregion
+
+    /// <summary>
+    /// Resizes this cells' list if necessary.
+    /// </summary>
+    private void Resize(int index)
+    {
+        for (int currentIndex = this.Count; currentIndex <= index; currentIndex++)
+            Add(new Cell());
+    }
+
+    #region Internal
+    /// <summary>
+    /// Converts Cells into DDL.
+    /// </summary>
+    internal override void Serialize(Serializer serializer)
+    {
+        int cells = Count;
+        for (int cell = 0; cell < cells; cell++)
+            this[cell].Serialize(serializer);
+    }
+
+    #endregion
 }

@@ -189,7 +189,7 @@ public sealed partial class Font : DocumentObject
         get => superscript ?? false;
         set
         {
-          ThrowIfReadOnly();
+            ThrowIfReadOnly();
             superscript = value;
             subscript = null;
         }
@@ -205,7 +205,7 @@ public sealed partial class Font : DocumentObject
         get => subscript ?? false;
         set
         {
-          ThrowIfReadOnly();
+            ThrowIfReadOnly();
             subscript = value;
             superscript = null;
         }

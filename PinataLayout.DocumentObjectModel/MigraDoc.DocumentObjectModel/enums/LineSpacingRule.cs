@@ -37,16 +37,16 @@ namespace PinataLayout.DocumentObjectModel;
 /// </summary>
 public enum LineSpacingRule
 {
-  /// <summary>Single line spacing, the height the font asks for.</summary>
-  Single,
-  /// <summary>One and a half times single spacing.</summary>
-  OnePtFive,
-  /// <summary>Twice single spacing.</summary>
-  Double,
-  /// <summary>At least the given spacing, growing for a line that needs more.</summary>
-  AtLeast,
-  /// <summary>Exactly the given spacing, whatever the line needs.</summary>
-  Exactly,
-  /// <summary>The given multiple of single spacing.</summary>
-  Multiple
+    /// <summary>Single line spacing, the height the font asks for.</summary>
+    Single,
+    /// <summary>One and a half times single spacing.</summary>
+    OnePtFive,
+    /// <summary>Twice single spacing.</summary>
+    Double,
+    /// <summary>At least the given spacing, growing for a line that needs more.</summary>
+    AtLeast,
+    /// <summary>Exactly the given spacing, whatever the line needs.</summary>
+    Exactly,
+    /// <summary>The given multiple of single spacing.</summary>
+    Multiple
 }

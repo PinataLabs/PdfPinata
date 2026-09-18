@@ -39,56 +39,56 @@ namespace PinataLayout.DocumentObjectModel;
 /// </summary>
 public class DocumentRelations
 {
-  /// <summary>
-  /// Determines whether the specified documentObject has a
-  /// parent of the given type somewhere within the document hierarchy.
-  /// </summary>
-  /// <param name="documentObject">The document object to check.</param>
-  /// <param name="type">The parent type to search for.</param>
-  public static bool HasParentOfType(DocumentObject documentObject, Type type)
-  {
-    if (documentObject == null)
-      throw new ArgumentNullException("documentObject");
-
-    if (type == null)
-      throw new ArgumentNullException("type");
-
-    return GetParentOfType(documentObject, type) != null;
-  }
-
-  /// <summary>
-  /// Gets the direct parent of the given document object.
-  /// </summary>
-  /// <param name="documentObject">The document object the parent is searched for.</param>
-  public static DocumentObject GetParent(DocumentObject documentObject)
-  {
-    if (documentObject == null)
-      throw new ArgumentNullException("documentObject");
-
-    return documentObject.Parent;
-  }
-
-  /// <summary>
-  /// Gets a parent of the document object with the given type somewhere within the document hierarchy.
-  /// Returns null if none exists.
-  /// </summary>
-  /// <param name="documentObject">The document object the parent is searched for.</param>
-  /// <param name="type">The parent type to search for.</param>
-  public static DocumentObject GetParentOfType(DocumentObject documentObject, Type type)
-  {
-    if (documentObject == null)
-      throw new ArgumentNullException("documentObject");
-
-    if (type == null)
-      throw new ArgumentNullException("type");
-
-    if (documentObject.parent != null)
+    /// <summary>
+    /// Determines whether the specified documentObject has a
+    /// parent of the given type somewhere within the document hierarchy.
+    /// </summary>
+    /// <param name="documentObject">The document object to check.</param>
+    /// <param name="type">The parent type to search for.</param>
+    public static bool HasParentOfType(DocumentObject documentObject, Type type)
     {
-      if (documentObject.parent.GetType() == type)
-        return documentObject.parent;
-      else
-        return GetParentOfType(documentObject.parent, type);
+        if (documentObject == null)
+            throw new ArgumentNullException("documentObject");
+
+        if (type == null)
+            throw new ArgumentNullException("type");
+
+        return GetParentOfType(documentObject, type) != null;
     }
-    return null;
-  }
+
+    /// <summary>
+    /// Gets the direct parent of the given document object.
+    /// </summary>
+    /// <param name="documentObject">The document object the parent is searched for.</param>
+    public static DocumentObject GetParent(DocumentObject documentObject)
+    {
+        if (documentObject == null)
+            throw new ArgumentNullException("documentObject");
+
+        return documentObject.Parent;
+    }
+
+    /// <summary>
+    /// Gets a parent of the document object with the given type somewhere within the document hierarchy.
+    /// Returns null if none exists.
+    /// </summary>
+    /// <param name="documentObject">The document object the parent is searched for.</param>
+    /// <param name="type">The parent type to search for.</param>
+    public static DocumentObject GetParentOfType(DocumentObject documentObject, Type type)
+    {
+        if (documentObject == null)
+            throw new ArgumentNullException("documentObject");
+
+        if (type == null)
+            throw new ArgumentNullException("type");
+
+        if (documentObject.parent != null)
+        {
+            if (documentObject.parent.GetType() == type)
+                return documentObject.parent;
+            else
+                return GetParentOfType(documentObject.parent, type);
+        }
+        return null;
+    }
 }

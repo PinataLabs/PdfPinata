@@ -38,11 +38,11 @@ namespace PinataLayout.Rendering;
 /// </summary>
 internal class TableRenderInfo : RenderInfo
 {
-  internal override FormatInfo FormatInfo => formatInfo;
+    internal override FormatInfo FormatInfo => formatInfo;
 
-  private TableFormatInfo formatInfo = new();
+    private TableFormatInfo formatInfo = new();
 
-  public override DocumentObject DocumentObject => table;
+    public override DocumentObject DocumentObject => table;
 
-  internal Table table;
+    internal Table table;
 }

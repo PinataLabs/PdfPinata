@@ -34,42 +34,42 @@ namespace PdfPinata.Charting;
 /// </summary>
 public class SeriesCollection : DocumentObjectCollection
 {
-  /// <summary>
-  /// Initializes a new instance of the SeriesCollection class.
-  /// </summary>
-  internal SeriesCollection()
-  {
-  }
+    /// <summary>
+    /// Initializes a new instance of the SeriesCollection class.
+    /// </summary>
+    internal SeriesCollection()
+    {
+    }
 
-  /// <summary>
-  /// Initializes a new instance of the SeriesCollection class with the specified parent.
-  /// </summary>
-  internal SeriesCollection(DocumentObject parent) : base(parent) {}
+    /// <summary>
+    /// Initializes a new instance of the SeriesCollection class with the specified parent.
+    /// </summary>
+    internal SeriesCollection(DocumentObject parent) : base(parent) { }
 
-  /// <summary>
-  /// Gets a series by it's index.
-  /// </summary>
-  public new Series this[int index] => base[index] as Series;
+    /// <summary>
+    /// Gets a series by it's index.
+    /// </summary>
+    public new Series this[int index] => base[index] as Series;
 
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new SeriesCollection Clone()
-  {
-    return (SeriesCollection)DeepCopy();
-  }
+    #region Methods
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new SeriesCollection Clone()
+    {
+        return (SeriesCollection)DeepCopy();
+    }
 
-  /// <summary>
-  /// Adds a new series to the collection.
-  /// </summary>
-  public Series AddSeries()
-  {
-    Series series = new Series();
-    // Initialize chart type for each new series.
-    series.chartType = ((Chart)this.parent).type;
-    Add(series);
-    return series;
-  }
-  #endregion
+    /// <summary>
+    /// Adds a new series to the collection.
+    /// </summary>
+    public Series AddSeries()
+    {
+        Series series = new Series();
+        // Initialize chart type for each new series.
+        series.chartType = ((Chart)this.parent).type;
+        Add(series);
+        return series;
+    }
+    #endregion
 }

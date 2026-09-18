@@ -1,6 +1,6 @@
-﻿namespace PdfPinata.Drawing.Layout.enums;
+namespace PdfPinata.Drawing.Layout.enums;
 
 internal enum BlockType
 {
-	Text, Space, Hyphen, LineBreak,
+    Text, Space, Hyphen, LineBreak,
 }

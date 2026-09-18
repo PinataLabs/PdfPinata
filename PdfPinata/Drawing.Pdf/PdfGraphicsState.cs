@@ -186,41 +186,41 @@ internal sealed class PdfGraphicsState : ICloneable
                     break;
 
                 case XDashStyle.Custom:
-                {
-                    // This branch is the one place a number reaches the content stream without
-                    // going through an Append method, because the array is assembled as text a
-                    // piece at a time. The check the Append methods make therefore has to be made
-                    // here as well, or a dash length that is not a number would be written out.
-                    StringBuilder pdf = new StringBuilder("[", 256);
-                    int len = pen._dashPattern == null ? 0 : pen._dashPattern.Length;
-                    for (int idx = 0; idx < len; idx++)
                     {
-                        if (idx > 0)
+                        // This branch is the one place a number reaches the content stream without
+                        // going through an Append method, because the array is assembled as text a
+                        // piece at a time. The check the Append methods make therefore has to be made
+                        // here as well, or a dash length that is not a number would be written out.
+                        StringBuilder pdf = new StringBuilder("[", 256);
+                        int len = pen._dashPattern == null ? 0 : pen._dashPattern.Length;
+                        for (int idx = 0; idx < len; idx++)
+                        {
+                            if (idx > 0)
+                                pdf.Append(' ');
+                            XGraphicsPdfRenderer.EnsureWritable(
+                                pen._dashPattern[idx] * pen._width, "a dash pattern");
+                            pdf.Append(PdfEncoders.ToString(pen._dashPattern[idx] * pen._width));
+                        }
+                        // Make an even number of values look like in GDI+
+                        if (len > 0 && len % 2 == 1)
+                        {
                             pdf.Append(' ');
+                            XGraphicsPdfRenderer.EnsureWritable(0.2 * pen._width, "a dash pattern");
+                            pdf.Append(PdfEncoders.ToString(0.2 * pen._width));
+                        }
                         XGraphicsPdfRenderer.EnsureWritable(
-                            pen._dashPattern[idx] * pen._width, "a dash pattern");
-                        pdf.Append(PdfEncoders.ToString(pen._dashPattern[idx] * pen._width));
-                    }
-                    // Make an even number of values look like in GDI+
-                    if (len > 0 && len % 2 == 1)
-                    {
-                        pdf.Append(' ');
-                        XGraphicsPdfRenderer.EnsureWritable(0.2 * pen._width, "a dash pattern");
-                        pdf.Append(PdfEncoders.ToString(0.2 * pen._width));
-                    }
-                    XGraphicsPdfRenderer.EnsureWritable(
-                        pen._dashOffset * pen._width, "a dash pattern");
-                    pdf.AppendFormat(CultureInfo.InvariantCulture, "]{0:" + format + "} d\n", pen._dashOffset * pen._width);
-                    string pattern = pdf.ToString();
+                            pen._dashOffset * pen._width, "a dash pattern");
+                        pdf.AppendFormat(CultureInfo.InvariantCulture, "]{0:" + format + "} d\n", pen._dashOffset * pen._width);
+                        string pattern = pdf.ToString();
 
-                    // BUG: drice2@ageone.de reported a realizing problem
-                    // HACK: I remove the if clause
-                    //if (_realizedDashPattern != pattern)
-                    {
-                        _realizedDashPattern = pattern;
-                        _renderer.Append(pattern);
+                        // BUG: drice2@ageone.de reported a realizing problem
+                        // HACK: I remove the if clause
+                        //if (_realizedDashPattern != pattern)
+                        {
+                            _realizedDashPattern = pattern;
+                            _renderer.Append(pattern);
+                        }
                     }
-                }
                     break;
             }
             _realizedDashStyle = dashStyle;

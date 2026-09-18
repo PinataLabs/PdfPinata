@@ -577,7 +577,7 @@ public struct XColor
     /// </summary>
     // ReSharper disable InconsistentNaming
     public double GS
-        // ReSharper restore InconsistentNaming
+    // ReSharper restore InconsistentNaming
     {
         get => _gs;
         set

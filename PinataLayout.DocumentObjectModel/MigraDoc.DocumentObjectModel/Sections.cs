@@ -40,66 +40,66 @@ namespace PinataLayout.DocumentObjectModel;
 /// </summary>
 public partial class Sections : DocumentObjectCollection, IVisitable
 {
-  /// <summary>
-  /// Initializes a new instance of the Sections class.
-  /// </summary>
-  public Sections()
-  {
-  }
-
-  /// <summary>
-  /// Initializes a new instance of the Sections class with the specified parent.
-  /// </summary>
-  internal Sections(DocumentObject parent) : base(parent) { }
-
-  /// <summary>
-  /// Gets a section by its index. First section has index 0.
-  /// </summary>
-  public new Section this[int index] => base[index] as Section;
-
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new Sections Clone()
-  {
-    return (Sections)DeepCopy();
-  }
-
-  /// <summary>
-  /// Adds a new section.
-  /// </summary>
-  public Section AddSection()
-  {
-    Section section = new Section();
-    Add(section);
-    return section;
-  }
-  #endregion
-
-  #region Internal
-  /// <summary>
-  /// Converts Sections into DDL.
-  /// </summary>
-  internal override void Serialize(Serializer serializer)
-  {
-    int count = Count;
-    for (int index = 0; index < count; ++index)
+    /// <summary>
+    /// Initializes a new instance of the Sections class.
+    /// </summary>
+    public Sections()
     {
-      Section section = this[index];
-      section.Serialize(serializer);
     }
-  }
 
-  /// <summary>
-  /// Allows the visitor object to visit the document object and it's child objects.
-  /// </summary>
-  void IVisitable.AcceptVisitor(DocumentObjectVisitor visitor, bool visitChildren)
-  {
-    visitor.VisitSections(this);
-    foreach (Section section in this)
-      ((IVisitable)section).AcceptVisitor(visitor, visitChildren);
-  }
+    /// <summary>
+    /// Initializes a new instance of the Sections class with the specified parent.
+    /// </summary>
+    internal Sections(DocumentObject parent) : base(parent) { }
 
-  #endregion
+    /// <summary>
+    /// Gets a section by its index. First section has index 0.
+    /// </summary>
+    public new Section this[int index] => base[index] as Section;
+
+    #region Methods
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new Sections Clone()
+    {
+        return (Sections)DeepCopy();
+    }
+
+    /// <summary>
+    /// Adds a new section.
+    /// </summary>
+    public Section AddSection()
+    {
+        Section section = new Section();
+        Add(section);
+        return section;
+    }
+    #endregion
+
+    #region Internal
+    /// <summary>
+    /// Converts Sections into DDL.
+    /// </summary>
+    internal override void Serialize(Serializer serializer)
+    {
+        int count = Count;
+        for (int index = 0; index < count; ++index)
+        {
+            Section section = this[index];
+            section.Serialize(serializer);
+        }
+    }
+
+    /// <summary>
+    /// Allows the visitor object to visit the document object and it's child objects.
+    /// </summary>
+    void IVisitable.AcceptVisitor(DocumentObjectVisitor visitor, bool visitChildren)
+    {
+        visitor.VisitSections(this);
+        foreach (Section section in this)
+            ((IVisitable)section).AcceptVisitor(visitor, visitChildren);
+    }
+
+    #endregion
 }

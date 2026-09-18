@@ -59,7 +59,7 @@ public class ImageSharpImageSource<TPixel> : ImageSource where TPixel : unmanage
         {
             throw ImageSharpVersion.Incompatible(ex);
         }
-        return new ImageSharpImageSourceImpl<TPixel>(path, image, (int) quality, isPng);
+        return new ImageSharpImageSourceImpl<TPixel>(path, image, (int)quality, isPng);
     }
 
     /// <summary>Decodes an image from a stream opened on demand.</summary>

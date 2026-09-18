@@ -1,4 +1,4 @@
-﻿#region PDFsharp - A .NET library for processing PDF
+#region PDFsharp - A .NET library for processing PDF
 // Authors:
 //   Stefan Lange
 //
@@ -255,7 +255,7 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
         var objects = new Dictionary<PdfItem, object>();
         _overflow = new Dictionary<PdfItem, object>();
         TransitiveClosureImplementation(objects, pdfObject);
-        TryAgain:
+    TryAgain:
         if (_overflow.Count > 0)
         {
             var array = new PdfObject[_overflow.Count];

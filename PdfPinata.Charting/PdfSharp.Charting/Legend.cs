@@ -37,92 +37,92 @@ namespace PdfPinata.Charting;
 /// </summary>
 public class Legend : ChartObject
 {
-  /// <summary>
-  /// Initializes a new instance of the Legend class.
-  /// </summary>
-  public Legend()
-  {
-  }
-
-  /// <summary>
-  /// Initializes a new instance of the Legend class with the specified parent.
-  /// </summary>
-  internal Legend(DocumentObject parent) : base(parent) {}
-
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new Legend Clone()
-  {
-    return (Legend)DeepCopy();
-  }
-
-  /// <summary>
-  /// Implements the deep copy of the object.
-  /// </summary>
-  protected override object DeepCopy()
-  {
-    Legend legend = (Legend)base.DeepCopy();
-    if (legend.lineFormat != null)
+    /// <summary>
+    /// Initializes a new instance of the Legend class.
+    /// </summary>
+    public Legend()
     {
-      legend.lineFormat = legend.lineFormat.Clone();
-      legend.lineFormat.parent = legend;
     }
-    if (legend.font != null)
+
+    /// <summary>
+    /// Initializes a new instance of the Legend class with the specified parent.
+    /// </summary>
+    internal Legend(DocumentObject parent) : base(parent) { }
+
+    #region Methods
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new Legend Clone()
     {
-      legend.font = legend.font.Clone();
-      legend.font.parent = legend;
+        return (Legend)DeepCopy();
     }
-    return legend;
-  }
-  #endregion
 
-  #region Properties
-  /// <summary>
-  /// Gets the line format of the legend's border.
-  /// </summary>
-  public LineFormat LineFormat
-  {
-    get
+    /// <summary>
+    /// Implements the deep copy of the object.
+    /// </summary>
+    protected override object DeepCopy()
     {
-      if (this.lineFormat == null)
-        this.lineFormat = new LineFormat(this);
-
-      return this.lineFormat;
+        Legend legend = (Legend)base.DeepCopy();
+        if (legend.lineFormat != null)
+        {
+            legend.lineFormat = legend.lineFormat.Clone();
+            legend.lineFormat.parent = legend;
+        }
+        if (legend.font != null)
+        {
+            legend.font = legend.font.Clone();
+            legend.font.parent = legend;
+        }
+        return legend;
     }
-  }
-  internal LineFormat lineFormat;
+    #endregion
 
-  /// <summary>
-  /// Gets the font of the legend.
-  /// </summary>
-  public Font Font
-  {
-    get
+    #region Properties
+    /// <summary>
+    /// Gets the line format of the legend's border.
+    /// </summary>
+    public LineFormat LineFormat
     {
-      if (this.font == null)
-        this.font = new Font(this);
+        get
+        {
+            if (this.lineFormat == null)
+                this.lineFormat = new LineFormat(this);
 
-      return this.font;
+            return this.lineFormat;
+        }
     }
-  }
-  internal Font font;
+    internal LineFormat lineFormat;
 
-  /// <summary>
-  /// Gets or sets the docking type.
-  /// </summary>
-  public DockingType Docking
-  {
-    get => this.docking;
-    set
+    /// <summary>
+    /// Gets the font of the legend.
+    /// </summary>
+    public Font Font
     {
-      if (!Enum.IsDefined(typeof(DockingType), value))
-        throw new InvalidEnumArgumentException("value", (int)value, typeof(DockingType));
+        get
+        {
+            if (this.font == null)
+                this.font = new Font(this);
 
-      this.docking = value;
+            return this.font;
+        }
     }
-  }
-  internal DockingType docking;
-  #endregion
+    internal Font font;
+
+    /// <summary>
+    /// Gets or sets the docking type.
+    /// </summary>
+    public DockingType Docking
+    {
+        get => this.docking;
+        set
+        {
+            if (!Enum.IsDefined(typeof(DockingType), value))
+                throw new InvalidEnumArgumentException("value", (int)value, typeof(DockingType));
+
+            this.docking = value;
+        }
+    }
+    internal DockingType docking;
+    #endregion
 }

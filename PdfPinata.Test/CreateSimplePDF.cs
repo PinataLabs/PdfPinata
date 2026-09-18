@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;

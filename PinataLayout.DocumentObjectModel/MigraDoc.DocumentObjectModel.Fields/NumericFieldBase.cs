@@ -42,9 +42,9 @@ namespace PinataLayout.DocumentObjectModel.Fields;
 /// </summary>
 public abstract partial class NumericFieldBase : DocumentObject
 {
-  /// <summary>The numbering formats a numeric field accepts, empty meaning ordinary digits.</summary>
-  protected static string[] validFormatStrings =
-  {
+    /// <summary>The numbering formats a numeric field accepts, empty meaning ordinary digits.</summary>
+    protected static string[] validFormatStrings =
+    {
     "",
     "ROMAN",
     "roman",
@@ -52,66 +52,66 @@ public abstract partial class NumericFieldBase : DocumentObject
     "alphabetic"
   };
 
-  /// <summary>
-  /// Initializes a new instance of the NumericFieldBase class.
-  /// </summary>
-  internal NumericFieldBase()
-  {
-  }
-
-  /// <summary>
-  /// Initializes a new instance of the NumericFieldBase class with the specified parent.
-  /// </summary>
-  internal NumericFieldBase(DocumentObject parent) : base(parent) { }
-
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new NumericFieldBase Clone()
-  {
-    return (NumericFieldBase)DeepCopy();
-  }
-
-  #endregion
-
-  #region Properties
-  /// <summary>
-  /// Gets or sets the format of the number.
-  /// </summary>
-  public string Format
-  {
-    get => this.format ?? "";
-    set
+    /// <summary>
+    /// Initializes a new instance of the NumericFieldBase class.
+    /// </summary>
+    internal NumericFieldBase()
     {
-      if (IsValidFormat(value))
-        this.format = value;
-      else
-        throw new ArgumentException(DomSR.InvalidFieldFormat(value));
     }
-  }
-  [DV]
-  internal string format;
-  #endregion
 
-  /// <summary>
-  /// Determines whether the format is valid for numeric fields.
-  /// </summary>
-  protected bool IsValidFormat(string format)
-  {
-    foreach (string name in validFormatStrings)
+    /// <summary>
+    /// Initializes a new instance of the NumericFieldBase class with the specified parent.
+    /// </summary>
+    internal NumericFieldBase(DocumentObject parent) : base(parent) { }
+
+    #region Methods
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new NumericFieldBase Clone()
     {
-      if (name == this.Format)
-        return true;
+        return (NumericFieldBase)DeepCopy();
     }
-    return false;
-  }
 
-  /// <summary>
-  /// Determines whether this instance is null (not set).
-  /// </summary>
-  public override bool IsNull()
-  {
-    return false;
-  }
+    #endregion
+
+    #region Properties
+    /// <summary>
+    /// Gets or sets the format of the number.
+    /// </summary>
+    public string Format
+    {
+        get => this.format ?? "";
+        set
+        {
+            if (IsValidFormat(value))
+                this.format = value;
+            else
+                throw new ArgumentException(DomSR.InvalidFieldFormat(value));
+        }
+    }
+    [DV]
+    internal string format;
+    #endregion
+
+    /// <summary>
+    /// Determines whether the format is valid for numeric fields.
+    /// </summary>
+    protected bool IsValidFormat(string format)
+    {
+        foreach (string name in validFormatStrings)
+        {
+            if (name == this.Format)
+                return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Determines whether this instance is null (not set).
+    /// </summary>
+    public override bool IsNull()
+    {
+        return false;
+    }
 }

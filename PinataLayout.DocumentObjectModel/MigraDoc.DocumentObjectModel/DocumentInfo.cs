@@ -40,112 +40,112 @@ namespace PinataLayout.DocumentObjectModel;
 /// </summary>
 public partial class DocumentInfo : DocumentObject
 {
-  /// <summary>
-  /// Initializes a new instance of the DocumentInfo class.
-  /// </summary>
-  public DocumentInfo()
-  {
-  }
+    /// <summary>
+    /// Initializes a new instance of the DocumentInfo class.
+    /// </summary>
+    public DocumentInfo()
+    {
+    }
 
-  /// <summary>
-  /// Initializes a new instance of the DocumentInfo class with the specified parent.
-  /// </summary>
-  internal DocumentInfo(DocumentObject parent) : base(parent) { }
+    /// <summary>
+    /// Initializes a new instance of the DocumentInfo class with the specified parent.
+    /// </summary>
+    internal DocumentInfo(DocumentObject parent) : base(parent) { }
 
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new DocumentInfo Clone()
-  {
-    return (DocumentInfo)DeepCopy();
-  }
-  #endregion
+    #region Methods
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new DocumentInfo Clone()
+    {
+        return (DocumentInfo)DeepCopy();
+    }
+    #endregion
 
-  #region Properties
-  /// <summary>
-  /// Gets or sets the document title.
-  /// </summary>
-  public string Title
-  {
-    get => title ?? "";
-    set => title = value;
-  }
-  [DV]
-  internal string title;
+    #region Properties
+    /// <summary>
+    /// Gets or sets the document title.
+    /// </summary>
+    public string Title
+    {
+        get => title ?? "";
+        set => title = value;
+    }
+    [DV]
+    internal string title;
 
-  /// <summary>
-  /// Gets or sets the document author.
-  /// </summary>
-  public string Author
-  {
-    get => author ?? "";
-    set => author = value;
-  }
-  [DV]
-  internal string author;
+    /// <summary>
+    /// Gets or sets the document author.
+    /// </summary>
+    public string Author
+    {
+        get => author ?? "";
+        set => author = value;
+    }
+    [DV]
+    internal string author;
 
-  /// <summary>
-  /// Gets or sets keywords related to the document.
-  /// </summary>
-  public string Keywords
-  {
-    get => keywords ?? "";
-    set => keywords = value;
-  }
-  [DV]
-  internal string keywords;
+    /// <summary>
+    /// Gets or sets keywords related to the document.
+    /// </summary>
+    public string Keywords
+    {
+        get => keywords ?? "";
+        set => keywords = value;
+    }
+    [DV]
+    internal string keywords;
 
-  /// <summary>
-  /// Gets or sets the subject of the document.
-  /// </summary>
-  public string Subject
-  {
-    get => subject ?? "";
-    set => subject = value;
-  }
-  [DV]
-  internal string subject;
+    /// <summary>
+    /// Gets or sets the subject of the document.
+    /// </summary>
+    public string Subject
+    {
+        get => subject ?? "";
+        set => subject = value;
+    }
+    [DV]
+    internal string subject;
 
-  /// <summary>
-  /// Gets or sets a comment associated with this object.
-  /// </summary>
-  public string Comment
-  {
-    get => comment ?? "";
-    set => comment = value;
-  }
-  [DV]
-  internal string comment;
-  #endregion
+    /// <summary>
+    /// Gets or sets a comment associated with this object.
+    /// </summary>
+    public string Comment
+    {
+        get => comment ?? "";
+        set => comment = value;
+    }
+    [DV]
+    internal string comment;
+    #endregion
 
-  #region Internal
-  /// <summary>
-  /// Converts DocumentInfo into DDL.
-  /// </summary>
-  internal override void Serialize(Serializer serializer)
-  {
-    serializer.WriteComment((comment ?? ""));
-    int pos = serializer.BeginContent("Info");
+    #region Internal
+    /// <summary>
+    /// Converts DocumentInfo into DDL.
+    /// </summary>
+    internal override void Serialize(Serializer serializer)
+    {
+        serializer.WriteComment((comment ?? ""));
+        int pos = serializer.BeginContent("Info");
 
-    // Whether a value was set decides whether it is written, as everywhere else in the DOM. These
-    // four used to ask whether the string was empty instead, which wrote an assigned "" the same
-    // way it wrote one that had never been assigned - not at all - and lost the difference over a
-    // round trip.
-    if (title != null)
-      serializer.WriteSimpleAttribute("Title", Title);
+        // Whether a value was set decides whether it is written, as everywhere else in the DOM. These
+        // four used to ask whether the string was empty instead, which wrote an assigned "" the same
+        // way it wrote one that had never been assigned - not at all - and lost the difference over a
+        // round trip.
+        if (title != null)
+            serializer.WriteSimpleAttribute("Title", Title);
 
-    if (subject != null)
-      serializer.WriteSimpleAttribute("Subject", Subject);
+        if (subject != null)
+            serializer.WriteSimpleAttribute("Subject", Subject);
 
-    if (author != null)
-      serializer.WriteSimpleAttribute("Author", Author);
+        if (author != null)
+            serializer.WriteSimpleAttribute("Author", Author);
 
-    if (keywords != null)
-      serializer.WriteSimpleAttribute("Keywords", Keywords);
+        if (keywords != null)
+            serializer.WriteSimpleAttribute("Keywords", Keywords);
 
-    serializer.EndContent(pos);
-  }
+        serializer.EndContent(pos);
+    }
 
-  #endregion
+    #endregion
 }

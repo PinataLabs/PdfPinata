@@ -133,12 +133,12 @@ public class XTextFormatter
     /// When true, ignore the height of text areas when rendering multiline strings
     /// </summary>
     public bool AllowVerticalOverflow { get; set; } = false;
-        
+
     /// <summary>
     /// Gets or sets the horizontal alignment of the text.
     /// </summary>
     public XParagraphAlignment Alignment { get; set; } = XParagraphAlignment.Left;
-        
+
     /// <summary>
     /// Gets or sets the vertical alignment of the text.
     /// </summary>
@@ -333,8 +333,8 @@ public class XTextFormatter
     {
         return column * (columnWidth + ColumnGap);
     }
-        
-        
+
+
     /// <summary>
     /// Draws the text.
     /// </summary>
@@ -351,7 +351,8 @@ public class XTextFormatter
     {
         DrawString(text, font, brush, layoutRectangle, new TextFormatAlignment()
         {
-            Horizontal = Alignment, Vertical = VerticalAlignment
+            Horizontal = Alignment,
+            Vertical = VerticalAlignment
         }, lineHeight);
     }
 

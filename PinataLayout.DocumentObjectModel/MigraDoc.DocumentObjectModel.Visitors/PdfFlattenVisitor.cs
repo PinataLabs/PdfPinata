@@ -39,176 +39,176 @@ namespace PinataLayout.DocumentObjectModel.Visitors;
 /// </summary>
 public class PdfFlattenVisitor : VisitorBase
 {
-  /// <summary>
-  /// Initializes a new instance of the PdfFlattenVisitor class.
-  /// </summary>
-  public PdfFlattenVisitor()
-  {
-    //this.docObject = documentObject;
-  }
-
-  internal override void VisitDocumentElements(DocumentElements elements)
-  {
-    SortedList splitParaList = new SortedList();
-
-    for (int idx = 0; idx < elements.Count; ++idx)
+    /// <summary>
+    /// Initializes a new instance of the PdfFlattenVisitor class.
+    /// </summary>
+    public PdfFlattenVisitor()
     {
-      Paragraph paragraph = elements[idx] as Paragraph;
-      if (paragraph != null)
-      {
-        Paragraph[] paragraphs = paragraph.SplitOnParaBreak();
-        if (paragraphs != null)
-          splitParaList.Add(idx, paragraphs);
-      }
+        //this.docObject = documentObject;
     }
 
-    int insertedObjects = 0;
-    for (int idx = 0; idx < splitParaList.Count; ++idx)
+    internal override void VisitDocumentElements(DocumentElements elements)
     {
-      int insertPosition = (int)splitParaList.GetKey(idx);
-      Paragraph[] paragraphs = (Paragraph[])splitParaList.GetByIndex(idx);
-      foreach (Paragraph paragraph in paragraphs)
-      {
-        elements.InsertObject(insertPosition + insertedObjects, paragraph);
-        ++insertedObjects;
-      }
-      elements.RemoveObjectAt(insertPosition + insertedObjects);
-      --insertedObjects;
-    }
-  }
+        SortedList splitParaList = new SortedList();
 
-  internal override void VisitDocumentObjectCollection(DocumentObjectCollection elements)
-  {
-    ArrayList textIndices = new ArrayList();
-    if (elements is ParagraphElements)
-    {
-      for (int idx = 0; idx < elements.Count; ++idx)
-      {
-        if (elements[idx] is Text)
-          textIndices.Add(idx);
-      }
-    }
-
-    // Not ToArray(Type): it builds the array type at run time, which carries RequiresDynamicCode
-    // and an AOT compiler cannot always have code for. Unboxed one at a time rather than by
-    // CopyTo, so the conversion out of the ArrayList's object[] is written down rather than left
-    // to Array.Copy's unboxing rules.
-    int[] indices = new int[textIndices.Count];
-    for (int idx = 0; idx < indices.Length; ++idx)
-      indices[idx] = (int)textIndices[idx];
-    if (indices != null)
-    {
-      int insertedObjects = 0;
-      foreach (int idx in indices)
-      {
-        Text text = (Text)elements[idx + insertedObjects];
-        string currentString = "";
-        foreach (char ch in text.Content)
+        for (int idx = 0; idx < elements.Count; ++idx)
         {
-          switch (ch)
-          {
-            case ' ':
-            case '\r':
-            case '\n':
-            case '\t':
-              if (currentString != "")
-              {
-                elements.InsertObject(idx + insertedObjects, new Text(currentString));
-                ++insertedObjects;
-                currentString = "";
-              }
-              elements.InsertObject(idx + insertedObjects, new Text(" "));
-              ++insertedObjects;
-              break;
-
-            case Chars.ZeroWidthSpace:
-            case '-': //minus
-              elements.InsertObject(idx + insertedObjects, new Text(currentString + ch));
-              ++insertedObjects;
-              currentString = "";
-              break;
-
-            case Chars.SoftHyphen: //soft hyphen
-              if (currentString != "")
-              {
-                elements.InsertObject(idx + insertedObjects, new Text(currentString));
-                ++insertedObjects;
-                currentString = "";
-              }
-              elements.InsertObject(idx + insertedObjects, new Text(new string(Chars.SoftHyphen, 1)));
-              ++insertedObjects;
-              currentString = "";
-              break;
-
-            default:
-              currentString += ch;
-              break;
-          }
+            Paragraph paragraph = elements[idx] as Paragraph;
+            if (paragraph != null)
+            {
+                Paragraph[] paragraphs = paragraph.SplitOnParaBreak();
+                if (paragraphs != null)
+                    splitParaList.Add(idx, paragraphs);
+            }
         }
-        if (currentString != "")
+
+        int insertedObjects = 0;
+        for (int idx = 0; idx < splitParaList.Count; ++idx)
         {
-          elements.InsertObject(idx + insertedObjects, new Text(currentString));
-          ++insertedObjects;
+            int insertPosition = (int)splitParaList.GetKey(idx);
+            Paragraph[] paragraphs = (Paragraph[])splitParaList.GetByIndex(idx);
+            foreach (Paragraph paragraph in paragraphs)
+            {
+                elements.InsertObject(insertPosition + insertedObjects, paragraph);
+                ++insertedObjects;
+            }
+            elements.RemoveObjectAt(insertPosition + insertedObjects);
+            --insertedObjects;
         }
-        elements.RemoveObjectAt(idx + insertedObjects);
-        --insertedObjects;
-      }
     }
-  }
 
-  internal override void VisitFormattedText(FormattedText formattedText)
-  {
-    Document document = formattedText.Document;
-    ParagraphFormat format = null;
-
-    Style style = document.styles[(formattedText.style ?? "")];
-    if (style != null)
-      format = style.paragraphFormat;
-    else if ((formattedText.style ?? "") != "")
-      format = document.styles["InvalidStyleName"].paragraphFormat;
-
-    if (format != null)
+    internal override void VisitDocumentObjectCollection(DocumentObjectCollection elements)
     {
-      if (formattedText.font == null)
-        formattedText.Font = format.font.Clone();
-      else if (format.font != null)
-        FlattenFont(formattedText.font, format.font);
+        ArrayList textIndices = new ArrayList();
+        if (elements is ParagraphElements)
+        {
+            for (int idx = 0; idx < elements.Count; ++idx)
+            {
+                if (elements[idx] is Text)
+                    textIndices.Add(idx);
+            }
+        }
+
+        // Not ToArray(Type): it builds the array type at run time, which carries RequiresDynamicCode
+        // and an AOT compiler cannot always have code for. Unboxed one at a time rather than by
+        // CopyTo, so the conversion out of the ArrayList's object[] is written down rather than left
+        // to Array.Copy's unboxing rules.
+        int[] indices = new int[textIndices.Count];
+        for (int idx = 0; idx < indices.Length; ++idx)
+            indices[idx] = (int)textIndices[idx];
+        if (indices != null)
+        {
+            int insertedObjects = 0;
+            foreach (int idx in indices)
+            {
+                Text text = (Text)elements[idx + insertedObjects];
+                string currentString = "";
+                foreach (char ch in text.Content)
+                {
+                    switch (ch)
+                    {
+                        case ' ':
+                        case '\r':
+                        case '\n':
+                        case '\t':
+                            if (currentString != "")
+                            {
+                                elements.InsertObject(idx + insertedObjects, new Text(currentString));
+                                ++insertedObjects;
+                                currentString = "";
+                            }
+                            elements.InsertObject(idx + insertedObjects, new Text(" "));
+                            ++insertedObjects;
+                            break;
+
+                        case Chars.ZeroWidthSpace:
+                        case '-': //minus
+                            elements.InsertObject(idx + insertedObjects, new Text(currentString + ch));
+                            ++insertedObjects;
+                            currentString = "";
+                            break;
+
+                        case Chars.SoftHyphen: //soft hyphen
+                            if (currentString != "")
+                            {
+                                elements.InsertObject(idx + insertedObjects, new Text(currentString));
+                                ++insertedObjects;
+                                currentString = "";
+                            }
+                            elements.InsertObject(idx + insertedObjects, new Text(new string(Chars.SoftHyphen, 1)));
+                            ++insertedObjects;
+                            currentString = "";
+                            break;
+
+                        default:
+                            currentString += ch;
+                            break;
+                    }
+                }
+                if (currentString != "")
+                {
+                    elements.InsertObject(idx + insertedObjects, new Text(currentString));
+                    ++insertedObjects;
+                }
+                elements.RemoveObjectAt(idx + insertedObjects);
+                --insertedObjects;
+            }
+        }
     }
 
-    Font parentFont = GetParentFont(formattedText);
-
-    if (formattedText.font == null)
-      formattedText.Font = parentFont.Clone();
-    else if (parentFont != null)
-      FlattenFont(formattedText.font, parentFont);
-  }
-
-  internal override void VisitHyperlink(Hyperlink hyperlink)
-  {
-    Font styleFont = hyperlink.Document.Styles["Hyperlink"].Font;
-    if (hyperlink.font == null)
-      hyperlink.Font = styleFont.Clone();
-    else
-      FlattenFont(hyperlink.font, styleFont);
-
-    FlattenFont(hyperlink.font, GetParentFont(hyperlink));
-  }
-
-  /// <summary>Returns the font the given object inherits from whatever holds it.</summary>
-  protected Font GetParentFont(DocumentObject obj)
-  {
-    DocumentObject parentElements = DocumentRelations.GetParent(obj);
-    DocumentObject parentObject = DocumentRelations.GetParent(parentElements);
-    Font parentFont = null;
-    if (parentObject is Paragraph)
+    internal override void VisitFormattedText(FormattedText formattedText)
     {
-      ParagraphFormat format = ((Paragraph)parentObject).Format;
-      parentFont = format.font;
+        Document document = formattedText.Document;
+        ParagraphFormat format = null;
+
+        Style style = document.styles[(formattedText.style ?? "")];
+        if (style != null)
+            format = style.paragraphFormat;
+        else if ((formattedText.style ?? "") != "")
+            format = document.styles["InvalidStyleName"].paragraphFormat;
+
+        if (format != null)
+        {
+            if (formattedText.font == null)
+                formattedText.Font = format.font.Clone();
+            else if (format.font != null)
+                FlattenFont(formattedText.font, format.font);
+        }
+
+        Font parentFont = GetParentFont(formattedText);
+
+        if (formattedText.font == null)
+            formattedText.Font = parentFont.Clone();
+        else if (parentFont != null)
+            FlattenFont(formattedText.font, parentFont);
     }
-    else //Hyperlink or FormattedText
+
+    internal override void VisitHyperlink(Hyperlink hyperlink)
     {
-      parentFont = parentObject.GetValue("Font") as Font;
+        Font styleFont = hyperlink.Document.Styles["Hyperlink"].Font;
+        if (hyperlink.font == null)
+            hyperlink.Font = styleFont.Clone();
+        else
+            FlattenFont(hyperlink.font, styleFont);
+
+        FlattenFont(hyperlink.font, GetParentFont(hyperlink));
     }
-    return parentFont;
-  }
+
+    /// <summary>Returns the font the given object inherits from whatever holds it.</summary>
+    protected Font GetParentFont(DocumentObject obj)
+    {
+        DocumentObject parentElements = DocumentRelations.GetParent(obj);
+        DocumentObject parentObject = DocumentRelations.GetParent(parentElements);
+        Font parentFont = null;
+        if (parentObject is Paragraph)
+        {
+            ParagraphFormat format = ((Paragraph)parentObject).Format;
+            parentFont = format.font;
+        }
+        else //Hyperlink or FormattedText
+        {
+            parentFont = parentObject.GetValue("Font") as Font;
+        }
+        return parentFont;
+    }
 }

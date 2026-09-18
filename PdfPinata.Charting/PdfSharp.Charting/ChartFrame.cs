@@ -38,195 +38,195 @@ namespace PdfPinata.Charting;
 /// </summary>
 public class ChartFrame
 {
-  /// <summary>
-  /// Initializes a new instance of the ChartFrame class.
-  /// </summary>
-  public ChartFrame()
-  {
-  }
-
-  /// <summary>
-  /// Initializes a new instance of the ChartFrame class with the specified rectangle.
-  /// </summary>
-  public ChartFrame(XRect rect)
-  {
-    this.location = rect.Location;
-    this.size = rect.Size;
-  }
-
-  /// <summary>
-  /// Gets or sets the location of the ChartFrame.
-  /// </summary>
-  public XPoint Location
-  {
-    get => this.location;
-    set => this.location = value;
-  }
-  XPoint location;
-
-  /// <summary>
-  /// Gets or sets the size of the ChartFrame.
-  /// </summary>
-  public XSize Size
-  {
-    get => this.size;
-    set => this.size = value;
-  }
-  XSize size;
-
-  /// <summary>
-  /// Adds a chart to the ChartFrame.
-  /// </summary>
-  public void Add(Chart chart)
-  {
-    if (this.chartList == null)
-      this.chartList = new ArrayList();
-    this.chartList.Add(chart);
-  }
-
-  /// <summary>
-  /// Draws all charts inside the ChartFrame.
-  /// </summary>
-  public void Draw(XGraphics gfx)
-  {
-    // Draw frame of ChartFrame. First shadow frame.
-    int dx = 5;
-    int dy = 5;
-    gfx.DrawRoundedRectangle(XBrushes.Gainsboro,
-      this.location.X + dx, this.location.Y + dy,
-      this.size.Width, this.size.Height, 20, 20);
-
-    XRect chartRect = new XRect(this.location.X, this.location.Y, this.size.Width, this.size.Height);
-    XLinearGradientBrush brush = new XLinearGradientBrush(chartRect, XColor.FromArgb(0xFFD0DEEF), XColors.White,
-      XLinearGradientMode.Vertical);
-    XPen penBorder = new XPen(XColors.SteelBlue, 2.5);
-    gfx.DrawRoundedRectangle(penBorder, brush,
-      this.location.X, this.location.Y, this.size.Width, this.size.Height,
-      15, 15);
-
-    XGraphicsState state = gfx.Save();
-    gfx.TranslateTransform(this.location.X, this.location.Y);
-
-    // Calculate rectangle for all charts. Y-Position will be moved for each chart.
-    int charts = this.chartList.Count;
-    uint dxChart = 20;
-    uint dyChart = 20;
-    uint dyBetweenCharts = 30;
-    XRect rect = new XRect(dxChart, dyChart,
-      this.size.Width - 2 * dxChart,
-      (this.size.Height - (charts - 1) * dyBetweenCharts - 2 * dyChart) / charts);
-
-    // draw each chart in list
-    foreach (Chart chart in this.chartList)
+    /// <summary>
+    /// Initializes a new instance of the ChartFrame class.
+    /// </summary>
+    public ChartFrame()
     {
-      RendererParameters parms = new RendererParameters(gfx, rect);
-      parms.DrawingItem = chart;
-
-      ChartRenderer renderer = GetChartRenderer(chart, parms);
-      renderer.Init();
-      renderer.Format();
-      renderer.Draw();
-
-      rect.Y += rect.Height + dyBetweenCharts;
-    }
-    gfx.Restore(state);
-
-//      // Calculate rectangle for all charts. Y-Position will be moved for each chart.
-//      int charts = this.chartList.Count;
-//      uint dxChart = 0;
-//      uint dyChart = 0;
-//      uint dyBetweenCharts = 0;
-//      XRect rect = new XRect(dxChart, dyChart,
-//        this.size.Width - 2 * dxChart,
-//        (this.size.Height - (charts - 1) * dyBetweenCharts - 2 * dyChart) / charts);
-//
-//      // draw each chart in list
-//      foreach (Chart chart in this.chartList)
-//      {
-//        RendererParameters parms = new RendererParameters(gfx, rect);
-//        parms.DrawingItem = chart;
-//
-//        ChartRenderer renderer = GetChartRenderer(chart, parms);
-//        renderer.Init();
-//        renderer.Format();
-//        renderer.Draw();
-//
-//        rect.Y += rect.Height + dyBetweenCharts;
-//      }
-  }
-
-  /// <summary>
-  /// Draws first chart only.
-  /// </summary>
-  public void DrawChart(XGraphics gfx)
-  {
-    XGraphicsState state = gfx.Save();
-    gfx.TranslateTransform(this.location.X, this.location.Y);
-
-    if (this.chartList.Count > 0)
-    {
-      XRect chartRect = new XRect(0, 0, this.size.Width, this.size.Height);
-      Chart chart = (Chart)this.chartList[0];
-      RendererParameters parms = new RendererParameters(gfx, chartRect);
-      parms.DrawingItem = chart;
-
-      ChartRenderer renderer = GetChartRenderer(chart, parms);
-      renderer.Init();
-      renderer.Format();
-      renderer.Draw();
-    }
-    gfx.Restore(state);
-  }
-
-  /// <summary>
-  /// Returns the chart renderer appropriate for the chart.
-  /// </summary>
-  private ChartRenderer GetChartRenderer(Chart chart, RendererParameters parms)
-  {
-    ChartType chartType = chart.Type;
-    bool useCombinationRenderer = false;
-
-    // The property rather than the field: SeriesCollection creates the collection the first time
-    // it is asked for, so a chart nothing was ever added to has none at all, and reading the field
-    // threw here before any renderer had run. The same lazy shape as Chart.XAxis.
-    foreach (Series series in chart.SeriesCollection)
-    {
-      if (series.chartType != chartType)
-      {
-        useCombinationRenderer = true;
-        break;
-      }
     }
 
-    if (useCombinationRenderer)
-      return new CombinationChartRenderer(parms);
-
-    switch (chartType)
+    /// <summary>
+    /// Initializes a new instance of the ChartFrame class with the specified rectangle.
+    /// </summary>
+    public ChartFrame(XRect rect)
     {
-      case ChartType.Line:
-        return new LineChartRenderer(parms);
-
-      case ChartType.Column2D:
-      case ChartType.ColumnStacked2D:
-        return new ColumnChartRenderer(parms);
-
-      case ChartType.Bar2D:
-      case ChartType.BarStacked2D:
-        return new BarChartRenderer(parms);
-
-      case ChartType.Area2D:
-        return new AreaChartRenderer(parms);
-
-      case ChartType.Pie2D:
-      case ChartType.PieExploded2D:
-        return new PieChartRenderer(parms);
+        this.location = rect.Location;
+        this.size = rect.Size;
     }
 
-    return null;
-  }
+    /// <summary>
+    /// Gets or sets the location of the ChartFrame.
+    /// </summary>
+    public XPoint Location
+    {
+        get => this.location;
+        set => this.location = value;
+    }
+    XPoint location;
 
-  /// <summary>
-  /// Holds the charts which will be drawn inside the ChartFrame.
-  /// </summary>
-  ArrayList chartList;
+    /// <summary>
+    /// Gets or sets the size of the ChartFrame.
+    /// </summary>
+    public XSize Size
+    {
+        get => this.size;
+        set => this.size = value;
+    }
+    XSize size;
+
+    /// <summary>
+    /// Adds a chart to the ChartFrame.
+    /// </summary>
+    public void Add(Chart chart)
+    {
+        if (this.chartList == null)
+            this.chartList = new ArrayList();
+        this.chartList.Add(chart);
+    }
+
+    /// <summary>
+    /// Draws all charts inside the ChartFrame.
+    /// </summary>
+    public void Draw(XGraphics gfx)
+    {
+        // Draw frame of ChartFrame. First shadow frame.
+        int dx = 5;
+        int dy = 5;
+        gfx.DrawRoundedRectangle(XBrushes.Gainsboro,
+          this.location.X + dx, this.location.Y + dy,
+          this.size.Width, this.size.Height, 20, 20);
+
+        XRect chartRect = new XRect(this.location.X, this.location.Y, this.size.Width, this.size.Height);
+        XLinearGradientBrush brush = new XLinearGradientBrush(chartRect, XColor.FromArgb(0xFFD0DEEF), XColors.White,
+          XLinearGradientMode.Vertical);
+        XPen penBorder = new XPen(XColors.SteelBlue, 2.5);
+        gfx.DrawRoundedRectangle(penBorder, brush,
+          this.location.X, this.location.Y, this.size.Width, this.size.Height,
+          15, 15);
+
+        XGraphicsState state = gfx.Save();
+        gfx.TranslateTransform(this.location.X, this.location.Y);
+
+        // Calculate rectangle for all charts. Y-Position will be moved for each chart.
+        int charts = this.chartList.Count;
+        uint dxChart = 20;
+        uint dyChart = 20;
+        uint dyBetweenCharts = 30;
+        XRect rect = new XRect(dxChart, dyChart,
+          this.size.Width - 2 * dxChart,
+          (this.size.Height - (charts - 1) * dyBetweenCharts - 2 * dyChart) / charts);
+
+        // draw each chart in list
+        foreach (Chart chart in this.chartList)
+        {
+            RendererParameters parms = new RendererParameters(gfx, rect);
+            parms.DrawingItem = chart;
+
+            ChartRenderer renderer = GetChartRenderer(chart, parms);
+            renderer.Init();
+            renderer.Format();
+            renderer.Draw();
+
+            rect.Y += rect.Height + dyBetweenCharts;
+        }
+        gfx.Restore(state);
+
+        //      // Calculate rectangle for all charts. Y-Position will be moved for each chart.
+        //      int charts = this.chartList.Count;
+        //      uint dxChart = 0;
+        //      uint dyChart = 0;
+        //      uint dyBetweenCharts = 0;
+        //      XRect rect = new XRect(dxChart, dyChart,
+        //        this.size.Width - 2 * dxChart,
+        //        (this.size.Height - (charts - 1) * dyBetweenCharts - 2 * dyChart) / charts);
+        //
+        //      // draw each chart in list
+        //      foreach (Chart chart in this.chartList)
+        //      {
+        //        RendererParameters parms = new RendererParameters(gfx, rect);
+        //        parms.DrawingItem = chart;
+        //
+        //        ChartRenderer renderer = GetChartRenderer(chart, parms);
+        //        renderer.Init();
+        //        renderer.Format();
+        //        renderer.Draw();
+        //
+        //        rect.Y += rect.Height + dyBetweenCharts;
+        //      }
+    }
+
+    /// <summary>
+    /// Draws first chart only.
+    /// </summary>
+    public void DrawChart(XGraphics gfx)
+    {
+        XGraphicsState state = gfx.Save();
+        gfx.TranslateTransform(this.location.X, this.location.Y);
+
+        if (this.chartList.Count > 0)
+        {
+            XRect chartRect = new XRect(0, 0, this.size.Width, this.size.Height);
+            Chart chart = (Chart)this.chartList[0];
+            RendererParameters parms = new RendererParameters(gfx, chartRect);
+            parms.DrawingItem = chart;
+
+            ChartRenderer renderer = GetChartRenderer(chart, parms);
+            renderer.Init();
+            renderer.Format();
+            renderer.Draw();
+        }
+        gfx.Restore(state);
+    }
+
+    /// <summary>
+    /// Returns the chart renderer appropriate for the chart.
+    /// </summary>
+    private ChartRenderer GetChartRenderer(Chart chart, RendererParameters parms)
+    {
+        ChartType chartType = chart.Type;
+        bool useCombinationRenderer = false;
+
+        // The property rather than the field: SeriesCollection creates the collection the first time
+        // it is asked for, so a chart nothing was ever added to has none at all, and reading the field
+        // threw here before any renderer had run. The same lazy shape as Chart.XAxis.
+        foreach (Series series in chart.SeriesCollection)
+        {
+            if (series.chartType != chartType)
+            {
+                useCombinationRenderer = true;
+                break;
+            }
+        }
+
+        if (useCombinationRenderer)
+            return new CombinationChartRenderer(parms);
+
+        switch (chartType)
+        {
+            case ChartType.Line:
+                return new LineChartRenderer(parms);
+
+            case ChartType.Column2D:
+            case ChartType.ColumnStacked2D:
+                return new ColumnChartRenderer(parms);
+
+            case ChartType.Bar2D:
+            case ChartType.BarStacked2D:
+                return new BarChartRenderer(parms);
+
+            case ChartType.Area2D:
+                return new AreaChartRenderer(parms);
+
+            case ChartType.Pie2D:
+            case ChartType.PieExploded2D:
+                return new PieChartRenderer(parms);
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Holds the charts which will be drawn inside the ChartFrame.
+    /// </summary>
+    ArrayList chartList;
 }

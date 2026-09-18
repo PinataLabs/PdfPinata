@@ -40,95 +40,95 @@ namespace PinataLayout.DocumentObjectModel.Shapes;
 /// </summary>
 public partial class PictureFormat : DocumentObject
 {
-  /// <summary>
-  /// Initializes a new instance of the PictureFormat class.
-  /// </summary>
-  public PictureFormat()
-  {
-  }
+    /// <summary>
+    /// Initializes a new instance of the PictureFormat class.
+    /// </summary>
+    public PictureFormat()
+    {
+    }
 
-  /// <summary>
-  /// Initializes a new instance of the PictureFormat class with the specified parent.
-  /// </summary>
-  internal PictureFormat(DocumentObject parent) : base(parent) { }
+    /// <summary>
+    /// Initializes a new instance of the PictureFormat class with the specified parent.
+    /// </summary>
+    internal PictureFormat(DocumentObject parent) : base(parent) { }
 
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new PictureFormat Clone()
-  {
-    return (PictureFormat)DeepCopy();
-  }
-  #endregion
+    #region Methods
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new PictureFormat Clone()
+    {
+        return (PictureFormat)DeepCopy();
+    }
+    #endregion
 
-  #region Properties
-  /// <summary>
-  /// Gets or sets the part cropped from the left of the image.
-  /// </summary>
-  public Unit CropLeft
-  {
-    get => this.cropLeft;
-    set => this.cropLeft = value;
-  }
-  /// <summary>Backing field for <see cref="CropLeft"/>.</summary>
-  [DV]
-  protected Unit cropLeft = Unit.NullValue;
+    #region Properties
+    /// <summary>
+    /// Gets or sets the part cropped from the left of the image.
+    /// </summary>
+    public Unit CropLeft
+    {
+        get => this.cropLeft;
+        set => this.cropLeft = value;
+    }
+    /// <summary>Backing field for <see cref="CropLeft"/>.</summary>
+    [DV]
+    protected Unit cropLeft = Unit.NullValue;
 
-  /// <summary>
-  /// Gets or sets the part cropped from the right of the image.
-  /// </summary>
-  public Unit CropRight
-  {
-    get => this.cropRight;
-    set => this.cropRight = value;
-  }
-  /// <summary>Backing field for <see cref="CropRight"/>.</summary>
-  [DV]
-  protected Unit cropRight = Unit.NullValue;
+    /// <summary>
+    /// Gets or sets the part cropped from the right of the image.
+    /// </summary>
+    public Unit CropRight
+    {
+        get => this.cropRight;
+        set => this.cropRight = value;
+    }
+    /// <summary>Backing field for <see cref="CropRight"/>.</summary>
+    [DV]
+    protected Unit cropRight = Unit.NullValue;
 
-  /// <summary>
-  /// Gets or sets the part cropped from the top of the image.
-  /// </summary>
-  public Unit CropTop
-  {
-    get => this.cropTop;
-    set => this.cropTop = value;
-  }
-  /// <summary>Backing field for <see cref="CropTop"/>.</summary>
-  [DV]
-  protected Unit cropTop = Unit.NullValue;
+    /// <summary>
+    /// Gets or sets the part cropped from the top of the image.
+    /// </summary>
+    public Unit CropTop
+    {
+        get => this.cropTop;
+        set => this.cropTop = value;
+    }
+    /// <summary>Backing field for <see cref="CropTop"/>.</summary>
+    [DV]
+    protected Unit cropTop = Unit.NullValue;
 
-  /// <summary>
-  /// Gets or sets the part cropped from the bottom of the image.
-  /// </summary>
-  public Unit CropBottom
-  {
-    get => this.cropBottom;
-    set => this.cropBottom = value;
-  }
-  /// <summary>Backing field for <see cref="CropBottom"/>.</summary>
-  [DV]
-  protected Unit cropBottom = Unit.NullValue;
-  #endregion
+    /// <summary>
+    /// Gets or sets the part cropped from the bottom of the image.
+    /// </summary>
+    public Unit CropBottom
+    {
+        get => this.cropBottom;
+        set => this.cropBottom = value;
+    }
+    /// <summary>Backing field for <see cref="CropBottom"/>.</summary>
+    [DV]
+    protected Unit cropBottom = Unit.NullValue;
+    #endregion
 
-  #region Internal
-  /// <summary>
-  /// Converts PictureFormat into DDL
-  /// </summary>
-  internal override void Serialize(Serializer serializer)
-  {
-    serializer.BeginContent("PictureFormat");
-    if (!this.cropLeft.IsNull)
-      serializer.WriteSimpleAttribute("CropLeft", this.CropLeft);
-    if (!this.cropRight.IsNull)
-      serializer.WriteSimpleAttribute("CropRight", this.CropRight);
-    if (!this.cropTop.IsNull)
-      serializer.WriteSimpleAttribute("CropTop", this.CropTop);
-    if (!this.cropBottom.IsNull)
-      serializer.WriteSimpleAttribute("CropBottom", this.CropBottom);
-    serializer.EndContent();
-  }
+    #region Internal
+    /// <summary>
+    /// Converts PictureFormat into DDL
+    /// </summary>
+    internal override void Serialize(Serializer serializer)
+    {
+        serializer.BeginContent("PictureFormat");
+        if (!this.cropLeft.IsNull)
+            serializer.WriteSimpleAttribute("CropLeft", this.CropLeft);
+        if (!this.cropRight.IsNull)
+            serializer.WriteSimpleAttribute("CropRight", this.CropRight);
+        if (!this.cropTop.IsNull)
+            serializer.WriteSimpleAttribute("CropTop", this.CropTop);
+        if (!this.cropBottom.IsNull)
+            serializer.WriteSimpleAttribute("CropBottom", this.CropBottom);
+        serializer.EndContent();
+    }
 
-  #endregion
+    #endregion
 }

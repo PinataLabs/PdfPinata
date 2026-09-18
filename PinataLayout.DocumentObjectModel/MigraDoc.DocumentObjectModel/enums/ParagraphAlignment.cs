@@ -37,12 +37,12 @@ namespace PinataLayout.DocumentObjectModel;
 /// </summary>
 public enum ParagraphAlignment
 {
-  /// <summary>Text is aligned to the left margin, leaving the right edge ragged.</summary>
-  Left,
-  /// <summary>Text is centred between the margins.</summary>
-  Center,
-  /// <summary>Text is aligned to the right margin, leaving the left edge ragged.</summary>
-  Right,
-  /// <summary>Text is spread to meet both margins, except on the last line of the paragraph.</summary>
-  Justify,
+    /// <summary>Text is aligned to the left margin, leaving the right edge ragged.</summary>
+    Left,
+    /// <summary>Text is centred between the margins.</summary>
+    Center,
+    /// <summary>Text is aligned to the right margin, leaving the left edge ragged.</summary>
+    Right,
+    /// <summary>Text is spread to meet both margins, except on the last line of the paragraph.</summary>
+    Justify,
 }

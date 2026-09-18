@@ -1,4 +1,4 @@
-﻿using PdfPinata.Pdf.IO;
+using PdfPinata.Pdf.IO;
 using System;
 
 namespace PdfPinata.Pdf.Filters;

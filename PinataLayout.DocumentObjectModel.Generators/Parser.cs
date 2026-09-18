@@ -318,7 +318,7 @@ internal static class Parser
 
             // Base first, so the order is deterministic. Reflection's own order never was.
             var chain = new List<string>();
-            for (string? t = type.Fqn; t is not null; )
+            for (string? t = type.Fqn; t is not null;)
             {
                 chain.Insert(0, t);
                 t = declarations.TryGetValue(t, out ParsedType? found) ? found.BaseFqn : null;

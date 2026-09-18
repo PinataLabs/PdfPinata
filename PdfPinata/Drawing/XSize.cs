@@ -261,7 +261,7 @@ public struct XSize : IFormattable
     /// <value>The debugger display.</value>
     // ReSharper disable UnusedMember.Local
     string DebuggerDisplay
-        // ReSharper restore UnusedMember.Local
+    // ReSharper restore UnusedMember.Local
     {
         get
         {

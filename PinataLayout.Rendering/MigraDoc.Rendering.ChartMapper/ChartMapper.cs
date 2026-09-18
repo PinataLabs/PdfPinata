@@ -38,56 +38,56 @@ namespace PinataLayout.Rendering.ChartMapper;
 /// </summary>
 public class ChartMapper
 {
-  /// <summary>
-  /// Initializes a new instance of the chart mapper object.
-  /// </summary>
-  public ChartMapper()
-  {
-  }
+    /// <summary>
+    /// Initializes a new instance of the chart mapper object.
+    /// </summary>
+    public ChartMapper()
+    {
+    }
 
-  private ChartFrame MapObject(DocumentObjectModel.Shapes.Charts.Chart domChart)
-  {
-    ChartFrame chartFrame = new ChartFrame();
-    chartFrame.Size = new XSize(domChart.Width.Point, domChart.Height.Point);
-    chartFrame.Location = new XPoint(domChart.Left.Position.Point, domChart.Top.Position.Point);
+    private ChartFrame MapObject(DocumentObjectModel.Shapes.Charts.Chart domChart)
+    {
+        ChartFrame chartFrame = new ChartFrame();
+        chartFrame.Size = new XSize(domChart.Width.Point, domChart.Height.Point);
+        chartFrame.Location = new XPoint(domChart.Left.Position.Point, domChart.Top.Position.Point);
 
-    Chart chart = new Chart((ChartType)domChart.Type);
+        Chart chart = new Chart((ChartType)domChart.Type);
 
-    if (!domChart.IsNull("XAxis"))
-      AxisMapper.Map(chart.XAxis, domChart.XAxis);
-    if (!domChart.IsNull("YAxis"))
-      AxisMapper.Map(chart.YAxis, domChart.YAxis);
+        if (!domChart.IsNull("XAxis"))
+            AxisMapper.Map(chart.XAxis, domChart.XAxis);
+        if (!domChart.IsNull("YAxis"))
+            AxisMapper.Map(chart.YAxis, domChart.YAxis);
 
-    PlotAreaMapper.Map(chart.PlotArea, domChart.PlotArea);
+        PlotAreaMapper.Map(chart.PlotArea, domChart.PlotArea);
 
-    SeriesCollectionMapper.Map(chart.SeriesCollection, domChart.SeriesCollection);
+        SeriesCollectionMapper.Map(chart.SeriesCollection, domChart.SeriesCollection);
 
-    LegendMapper.Map(chart, domChart);
+        LegendMapper.Map(chart, domChart);
 
-    chart.DisplayBlanksAs = (BlankType)domChart.DisplayBlanksAs;
-    chart.HasDataLabel = domChart.HasDataLabel;
-    if (!domChart.IsNull("DataLabel"))
-      DataLabelMapper.Map(chart.DataLabel, domChart.DataLabel);
+        chart.DisplayBlanksAs = (BlankType)domChart.DisplayBlanksAs;
+        chart.HasDataLabel = domChart.HasDataLabel;
+        if (!domChart.IsNull("DataLabel"))
+            DataLabelMapper.Map(chart.DataLabel, domChart.DataLabel);
 
-    if (!domChart.IsNull("Style"))
-      FontMapper.Map(chart.Font, domChart.Document, domChart.Style);
-    if (!domChart.IsNull("Format.Font"))
-      FontMapper.Map(chart.Font, domChart.Format.Font);
-    if (!domChart.IsNull("XValues"))
-      XValuesMapper.Map(chart.XValues, domChart.XValues);
+        if (!domChart.IsNull("Style"))
+            FontMapper.Map(chart.Font, domChart.Document, domChart.Style);
+        if (!domChart.IsNull("Format.Font"))
+            FontMapper.Map(chart.Font, domChart.Format.Font);
+        if (!domChart.IsNull("XValues"))
+            XValuesMapper.Map(chart.XValues, domChart.XValues);
 
-    chartFrame.Add(chart);
-    return chartFrame;
-  }
+        chartFrame.Add(chart);
+        return chartFrame;
+    }
 
-  /// <summary>
-  /// Maps the specified DOM chart.
-  /// </summary>
-  /// <param name="domChart">The DOM chart.</param>
-  /// <returns></returns>
-  public static ChartFrame Map(DocumentObjectModel.Shapes.Charts.Chart domChart)
-  {
-    ChartMapper mapper = new ChartMapper();
-    return mapper.MapObject(domChart);
-  }
+    /// <summary>
+    /// Maps the specified DOM chart.
+    /// </summary>
+    /// <param name="domChart">The DOM chart.</param>
+    /// <returns></returns>
+    public static ChartFrame Map(DocumentObjectModel.Shapes.Charts.Chart domChart)
+    {
+        ChartMapper mapper = new ChartMapper();
+        return mapper.MapObject(domChart);
+    }
 }

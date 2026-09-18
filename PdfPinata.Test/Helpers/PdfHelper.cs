@@ -94,7 +94,7 @@ public class PdfHelper
             ImageCollection = images,
         };
     }
-        
+
     /// <summary>
     /// What to draw a document at: <see cref="Dpi"/>, or as much less as it takes to keep its
     /// whole document inside <see cref="MaxPixelsPerDocument"/>.
@@ -153,14 +153,14 @@ public class PdfHelper
         var outPaths = new List<string>();
         for (var pageNum = 0; pageNum < images.Count; pageNum++)
         {
-            var outPath = GetOutFilePath(outDir, $"{filePrefix}_{pageNum+1}.png");
+            var outPath = GetOutFilePath(outDir, $"{filePrefix}_{pageNum + 1}.png");
             images[pageNum].Write(outPath);
             outPaths.Add(outPath);
         }
 
         return outPaths;
     }
-        
+
     public static string WriteImage(IMagickImage image, string outDir, string fileNameWithoutExtension)
     {
         var outPath = GetOutFilePath(outDir, $"{fileNameWithoutExtension}.png");
@@ -205,7 +205,7 @@ public class PdfHelper
             DiffValue = diffVal
         };
     }
-        
+
     private static string GetOutFilePath(string outDir, string name)
     {
         var dir = Path.Combine(_rootPath, outDir);
