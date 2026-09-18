@@ -35,7 +35,7 @@ public static class Program
 
         // Neither PdfPinata nor PinataLayout ships a font or imaging backend.
         PdfPinata.Fonts.GlobalFontSettings.FontResolver = new PdfPinata.Utils.SkiaFontResolver();
-        DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes.ImageSource.ImageSourceImpl = new SkiaImageSource();
+        DocumentObjectModel.Shapes.ImageSource.ImageSourceImpl = new SkiaImageSource();
 
         Document document = BuildDocument();
 

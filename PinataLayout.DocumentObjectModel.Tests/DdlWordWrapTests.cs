@@ -3,9 +3,9 @@ using System.IO;
 using System.Linq;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel.IO;
-using PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes;
+using PinataLayout.DocumentObjectModel.Shapes;
 using Xunit;
-using static PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes.ImageSource;
+using static PinataLayout.DocumentObjectModel.Shapes.ImageSource;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 

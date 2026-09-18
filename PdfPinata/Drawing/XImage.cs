@@ -32,9 +32,9 @@ using System.Diagnostics;
 using System.IO;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Pdf.Advanced;
-using PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes;
+using PinataLayout.DocumentObjectModel.Shapes;
 using PdfPinata.Pdf.IO.enums;
-using static PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes.ImageSource;
+using static PinataLayout.DocumentObjectModel.Shapes.ImageSource;
 
 namespace PdfPinata.Drawing;
 
@@ -106,7 +106,7 @@ public class XImage : IDisposable
 
     /// <summary>
     /// Creates an image from the specified file.
-    /// For non-pdf files, this requires that an instance of an implementation of <see cref="T:PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes.ImageSource"/> be set on the `ImageSource.ImageSourceImpl` property.
+    /// For non-pdf files, this requires that an instance of an implementation of <see cref="T:PinataLayout.DocumentObjectModel.Shapes.ImageSource"/> be set on the `ImageSource.ImageSourceImpl` property.
     /// If this property is null, an <see cref="T:System.InvalidOperationException"/> is thrown. Install PdfPinata.Skia and set <c>ImageSource.ImageSourceImpl = new SkiaImageSource();</c> (or use PdfPinata.ImageSharp) before loading images.
     /// </summary>
     /// <param name="path">The path to a BMP, PNG, GIF, JPEG, TIFF, or PDF file.</param>
@@ -117,7 +117,7 @@ public class XImage : IDisposable
 
     /// <summary>
     /// Creates an image from the specified file.
-    /// For non-pdf files, this requires that an instance of an implementation of <see cref="T:PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes.ImageSource"/> be set on the `ImageSource.ImageSourceImpl` property.
+    /// For non-pdf files, this requires that an instance of an implementation of <see cref="T:PinataLayout.DocumentObjectModel.Shapes.ImageSource"/> be set on the `ImageSource.ImageSourceImpl` property.
     /// If this property is null, an <see cref="T:System.InvalidOperationException"/> is thrown. Install PdfPinata.Skia and set <c>ImageSource.ImageSourceImpl = new SkiaImageSource();</c> (or use PdfPinata.ImageSharp) before loading images.
     /// </summary>
     /// <param name="path">The path to a BMP, PNG, GIF, JPEG, TIFF, or PDF file.</param>
@@ -131,7 +131,7 @@ public class XImage : IDisposable
 
     /// <summary>
     /// Creates an image from the specified stream.<br/>
-    /// For non-pdf files, this requires that an instance of an implementation of <see cref="T:PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes.ImageSource"/> be set on the `ImageSource.ImageSourceImpl` property.
+    /// For non-pdf files, this requires that an instance of an implementation of <see cref="T:PinataLayout.DocumentObjectModel.Shapes.ImageSource"/> be set on the `ImageSource.ImageSourceImpl` property.
     /// If this property is null, an <see cref="T:System.InvalidOperationException"/> is thrown. Install PdfPinata.Skia and set <c>ImageSource.ImageSourceImpl = new SkiaImageSource();</c> (or use PdfPinata.ImageSharp) before loading images.
     /// Silverlight supports PNG and JPEF only.
     /// </summary>

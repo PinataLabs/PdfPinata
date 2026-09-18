@@ -38,7 +38,7 @@ The core `PdfPinata` package has no imaging or font-rendering dependency of its 
 Register the backend before creating fonts or loading images:
 
 ```csharp
-using PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes;
+using PinataLayout.DocumentObjectModel.Shapes;
 using PdfPinata.Fonts;
 using PdfPinata.Utils;
 

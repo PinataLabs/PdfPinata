@@ -1,5 +1,5 @@
 using System.Runtime.CompilerServices;
-using PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes;
+using PinataLayout.DocumentObjectModel.Shapes;
 using PdfPinata.Fonts;
 using PdfPinata.Skia;
 using PdfPinata.Test.Helpers;

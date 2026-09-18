@@ -37,7 +37,7 @@ using PinataLayout.DocumentObjectModel.Tables;
 using PinataLayout.DocumentObjectModel.Shapes.Charts;
 using PinataLayout.DocumentObjectModel.Shapes;
 using MigraDocImage = PinataLayout.DocumentObjectModel.Shapes.Image;
-using static PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes.ImageSource;
+using static PinataLayout.DocumentObjectModel.Shapes.ImageSource;
 
 namespace PinataLayout.DocumentObjectModel;
 

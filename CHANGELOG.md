@@ -10,6 +10,17 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ## [Unreleased]
 
+### Changed
+
+- **BREAKING: the doubled `MigraDoc.DocumentObjectModel` segment is gone from two namespaces.**
+  `PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes` is now
+  `PinataLayout.DocumentObjectModel.Shapes`, which is where every other shape already was. The
+  types that move are `ImageSource` and `PixelBuffer`. Both ship in the **PdfPinata** assembly, so
+  this touches every consumer who registers an image backend. The internal
+  `...MigraDoc.DocumentObjectModel.Resources` namespace moves the same way. To migrate, change
+  `using PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes;` to
+  `using PinataLayout.DocumentObjectModel.Shapes;`. Type and member names are unchanged.
+
 ## [0.1.0] - 2026-09-18
 
 ### Added

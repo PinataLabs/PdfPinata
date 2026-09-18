@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
-using PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes;
 using PinataLayout.DocumentObjectModel.Shapes;
 using PinataLayout.DocumentObjectModel.Shapes.Charts;
 using PinataLayout.DocumentObjectModel.Tables;

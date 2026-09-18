@@ -32,7 +32,7 @@
 
 using System;
 using System.Collections.Generic;
-using PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Resources;
+using PinataLayout.DocumentObjectModel.Resources;
 
 namespace PinataLayout.DocumentObjectModel.Internals;
 

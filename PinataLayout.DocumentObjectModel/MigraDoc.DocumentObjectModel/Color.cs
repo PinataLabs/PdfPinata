@@ -36,7 +36,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using PinataLayout.DocumentObjectModel.Internals;
-using PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Resources;
+using PinataLayout.DocumentObjectModel.Resources;
 
 namespace PinataLayout.DocumentObjectModel;
 

@@ -118,7 +118,7 @@ is called out as a breaking change in `CHANGELOG.md` alongside the interface cha
 before/after diff of the interface member and a paragraph on why the BMP shape was never a real
 interchange format. `PixelBuffer` itself (`PdfPinata/Drawing/PixelBuffer.cs`) is a
 `readonly struct` living in the same MigraDoc-namespaced-but-PdfPinata-assembly location as
-`ImageSource` — `PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes` — for the same
+`ImageSource` — `PinataLayout.DocumentObjectModel.Shapes` — for the same
 reason `ImageSource` is there, and its constructor validates one thing: that the buffer is exactly
 `width * height * 4` bytes, throwing `ArgumentException` if not, so a backend's arithmetic mistake is
 named at the seam it was made rather than surfacing as an index out of range partway through writing

@@ -78,13 +78,13 @@ public class GlyphOutlineTests
     public void RegisteringAProviderLeavesTheOtherSeamsAlone()
     {
         var resolver = GlobalFontSettings.FontResolver;
-        var imageSource = PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes
+        var imageSource = PinataLayout.DocumentObjectModel.Shapes
             .ImageSource.ImageSourceImpl;
 
         GlobalFontSettings.GlyphOutlineProvider = new SkiaGlyphOutlineProvider();
 
         GlobalFontSettings.FontResolver.Should().BeSameAs(resolver);
-        PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes.ImageSource.ImageSourceImpl
+        PinataLayout.DocumentObjectModel.Shapes.ImageSource.ImageSourceImpl
             .Should().BeSameAs(imageSource);
     }
 

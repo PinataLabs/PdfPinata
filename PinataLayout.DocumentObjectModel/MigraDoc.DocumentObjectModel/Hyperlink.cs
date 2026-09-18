@@ -35,8 +35,8 @@ using PinataLayout.DocumentObjectModel.Internals;
 using PinataLayout.DocumentObjectModel.Visitors;
 using PinataLayout.DocumentObjectModel.Fields;
 using PinataLayout.DocumentObjectModel.Shapes;
-using PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Resources;
-using static PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes.ImageSource;
+using PinataLayout.DocumentObjectModel.Resources;
+using static PinataLayout.DocumentObjectModel.Shapes.ImageSource;
 
 namespace PinataLayout.DocumentObjectModel;
 

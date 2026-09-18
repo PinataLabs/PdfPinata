@@ -40,8 +40,7 @@ using PinataLayout.DocumentObjectModel.Tables;
 using PinataLayout.DocumentObjectModel.Shapes;
 using PinataLayout.DocumentObjectModel.Shapes.Charts;
 using PinataLayout.DocumentObjectModel.Fields;
-using PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Resources;
-using PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes;
+using PinataLayout.DocumentObjectModel.Resources;
 
 namespace PinataLayout.DocumentObjectModel.IO;
 

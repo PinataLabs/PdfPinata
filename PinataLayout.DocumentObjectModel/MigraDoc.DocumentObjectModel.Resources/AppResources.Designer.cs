@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Resources {
+namespace PinataLayout.DocumentObjectModel.Resources {
     using System;
     using System.Reflection;
     
@@ -40,7 +40,7 @@ namespace PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Resource
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Resources.AppResources", typeof(AppResources).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("PinataLayout.DocumentObjectModel.Resources.AppResources", typeof(AppResources).GetTypeInfo().Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

@@ -30,7 +30,7 @@
 
 using System;
 using PdfPinata.Drawing;
-using static PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes.ImageSource;
+using static PinataLayout.DocumentObjectModel.Shapes.ImageSource;
 
 namespace PinataLayout.Rendering;
 

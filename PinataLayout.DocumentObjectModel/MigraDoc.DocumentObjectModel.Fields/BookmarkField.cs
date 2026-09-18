@@ -32,7 +32,7 @@
 
 using System;
 using PinataLayout.DocumentObjectModel.Internals;
-using PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Resources;
+using PinataLayout.DocumentObjectModel.Resources;
 
 namespace PinataLayout.DocumentObjectModel.Fields;
 

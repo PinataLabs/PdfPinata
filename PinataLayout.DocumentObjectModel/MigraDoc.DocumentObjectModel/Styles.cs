@@ -34,7 +34,7 @@ using System;
 using System.Collections;
 using PinataLayout.DocumentObjectModel.Internals;
 using PinataLayout.DocumentObjectModel.Visitors;
-using PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Resources;
+using PinataLayout.DocumentObjectModel.Resources;
 using PdfPinata.Fonts;
 
 namespace PinataLayout.DocumentObjectModel;

@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using AwesomeAssertions;
-using PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes;
+using PinataLayout.DocumentObjectModel.Shapes;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Skia;

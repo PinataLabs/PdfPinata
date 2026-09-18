@@ -9,7 +9,7 @@ namespace PdfPinata.Fonts;
 /// <remarks>
 /// <para>
 /// This is the fourth seam of the backend split, beside <see cref="GlobalFontSettings.FontResolver"/>,
-/// <see cref="PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes.ImageSource.ImageSourceImpl"/>
+/// <see cref="PinataLayout.DocumentObjectModel.Shapes.ImageSource.ImageSourceImpl"/>
 /// and <see cref="GlobalFontSettings.GlyphOutlineProvider"/>, and it exists for the same reason:
 /// running the OpenType <c>GSUB</c> and <c>GPOS</c> tables is a shaping engine's worth of work per
 /// script, and the core package carries no font dependency to do it with.

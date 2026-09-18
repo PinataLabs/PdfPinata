@@ -3,7 +3,7 @@ using System.Linq;
 using System.Reflection;
 using PinataLayout.DocumentObjectModel.Internals;
 
-namespace PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Resources;
+namespace PinataLayout.DocumentObjectModel.Resources;
 
 internal static class DomSR
 {

@@ -34,7 +34,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using PinataLayout.DocumentObjectModel.Internals;
-using static PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes.ImageSource;
+using static PinataLayout.DocumentObjectModel.Shapes.ImageSource;
 
 namespace PinataLayout.DocumentObjectModel.Shapes;
 

@@ -313,9 +313,8 @@ single property and assigning over it drops whatever the caller put there.
 `docs/specs/pdf-a-conformance.md` has the rest.
 
 `ImageSource` is a trap for the eye: the file is `PdfPinata/Drawing/ImageSource.cs` and it ships
-in the **PdfPinata** assembly, but its namespace is
-`PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes`. Registering it needs that
-`using`, from code that otherwise has nothing to do with MigraDoc.
+in the **PdfPinata** assembly, but its namespace is `PinataLayout.DocumentObjectModel.Shapes`.
+Registering it needs that `using`, from code that otherwise has nothing to do with MigraDoc.
 
 ## PDF object model and IO
 

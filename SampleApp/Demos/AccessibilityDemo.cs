@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using PinataLayout.DocumentObjectModel;
-using PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes;
 using PinataLayout.DocumentObjectModel.Shapes;
 using PinataLayout.DocumentObjectModel.Tables;
 using PinataLayout.Rendering;

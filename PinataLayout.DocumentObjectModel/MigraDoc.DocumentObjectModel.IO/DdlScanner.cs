@@ -33,7 +33,7 @@
 using System;
 using System.Diagnostics;
 using System.Globalization;
-using PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Resources;
+using PinataLayout.DocumentObjectModel.Resources;
 
 
 /*
