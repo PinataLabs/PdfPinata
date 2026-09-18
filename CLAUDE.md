@@ -15,7 +15,8 @@ dotnet test --filter "FullyQualifiedName~CLexerTests.ScanNextToken"    # one tes
 ```
 
 CI (`.github/workflows/build-and-test.yml`) runs on Linux only, builds `PdfPinata.slnx` in Release,
-installs Ghostscript, then runs `dotnet test` with coverlet/opencover coverage.
+installs Ghostscript, then runs `dotnet test` with coverlet/opencover coverage, which goes to Codecov
+and, with the Debug build it ran against, to SonarCloud (`PinataLabs_PdfPinata`).
 
 **Versions come from git tags, not from the project files.** MinVer (referenced for packable
 projects in `Directory.Build.targets`) versions all nine packages in lockstep from the latest
