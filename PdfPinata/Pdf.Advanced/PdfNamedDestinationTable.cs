@@ -139,8 +139,7 @@ public sealed class PdfNamedDestinationTable
     {
         if (string.IsNullOrEmpty(name))
             throw new ArgumentException("A destination must be named something.", nameof(name));
-        if (page == null)
-            throw new ArgumentNullException(nameof(page));
+        ArgumentNullException.ThrowIfNull(page);
 
         // A page of another document has an object number in that document's table, and writing a
         // reference to it here would point at whatever this document happens to hold under that

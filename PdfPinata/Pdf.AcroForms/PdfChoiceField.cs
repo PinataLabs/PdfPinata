@@ -93,8 +93,7 @@ public abstract class PdfChoiceField : PdfAcroField
         }
         set
         {
-            if (value == null)
-                throw new ArgumentNullException(nameof(value));
+            ArgumentNullException.ThrowIfNull(value);
 
             PdfArray options = new PdfArray(Owner);
             foreach (string option in value)

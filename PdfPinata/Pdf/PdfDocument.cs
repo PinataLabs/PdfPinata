@@ -382,8 +382,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </remarks>
     public void SaveIncremental(Stream stream)
     {
-        if (stream == null)
-            throw new ArgumentNullException(nameof(stream));
+        ArgumentNullException.ThrowIfNull(stream);
 
         if (_originalBytes == null)
             throw new InvalidOperationException(
@@ -826,8 +825,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </remarks>
     public void AddMetadataContributor(Action<Metadata.XmpMetadata> contributor)
     {
-        if (contributor == null)
-            throw new ArgumentNullException(nameof(contributor));
+        ArgumentNullException.ThrowIfNull(contributor);
 
         (_metadataContributors ??= new List<Action<Metadata.XmpMetadata>>()).Add(contributor);
     }

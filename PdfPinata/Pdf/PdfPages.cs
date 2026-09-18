@@ -144,8 +144,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     public PdfPage Insert(int index, PdfPage page, AnnotationCopyingType annotationCopying = AnnotationCopyingType.ShallowCopy)
     {
         EnsureCanModify("inserting a page");
-        if (page == null)
-            throw new ArgumentNullException(nameof(page));
+        ArgumentNullException.ThrowIfNull(page);
 
         // Is the page already owned by this document?
         if (page.Owner == Owner)
@@ -230,8 +229,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     /// </summary>
     public int IndexOf(PdfPage page)
     {
-        if (page == null)
-            throw new ArgumentNullException(nameof(page));
+        ArgumentNullException.ThrowIfNull(page);
 
         int count = Count;
         for (int idx = 0; idx < count; idx++)
@@ -258,8 +256,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     public PdfPage Place(int index, PdfPage page)
     {
         EnsureCanModify("placing a page");
-        if (page == null)
-            throw new ArgumentNullException(nameof(page));
+        ArgumentNullException.ThrowIfNull(page);
         if (index < 0 || index > Count)
             throw new ArgumentOutOfRangeException(nameof(index), "Argument 'index' out of range.");
         if (page.Owner != null && page.Owner != Owner)
@@ -287,8 +284,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     public PdfPage Import(int index, PdfPage page, AnnotationCopyingType annotationCopying = AnnotationCopyingType.ShallowCopy)
     {
         EnsureCanModify("importing a page");
-        if (page == null)
-            throw new ArgumentNullException(nameof(page));
+        ArgumentNullException.ThrowIfNull(page);
         if (index < 0 || index > Count)
             throw new ArgumentOutOfRangeException(nameof(index), "Argument 'index' out of range.");
         if (page.Owner == null || page.Owner == Owner)
@@ -382,8 +378,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     public void InsertRange(int index, PdfDocument document, int startIndex, int pageCount, AnnotationCopyingType annotationCopying = AnnotationCopyingType.ShallowCopy)
     {
         EnsureCanModify("inserting a range of pages");
-        if (document == null)
-            throw new ArgumentNullException(nameof(document));
+        ArgumentNullException.ThrowIfNull(document);
 
         if (index < 0 || index > Count)
             throw new ArgumentOutOfRangeException(nameof(index), "Argument 'index' out of range.");
@@ -428,8 +423,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     /// <param name="annotationCopying">Annotation copying action, by default annotations are copied shallowly.</param>
     public void InsertRange(int index, PdfDocument document, AnnotationCopyingType annotationCopying = AnnotationCopyingType.ShallowCopy)
     {
-        if (document == null)
-            throw new ArgumentNullException(nameof(document));
+        ArgumentNullException.ThrowIfNull(document);
 
         InsertRange(index, document, 0, document.PageCount, annotationCopying);
     }
@@ -443,8 +437,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     /// <param name="annotationCopying">Annotation copying action, by default annotations are copied shallowly.</param>
     public void InsertRange(int index, PdfDocument document, int startIndex, AnnotationCopyingType annotationCopying = AnnotationCopyingType.ShallowCopy)
     {
-        if (document == null)
-            throw new ArgumentNullException(nameof(document));
+        ArgumentNullException.ThrowIfNull(document);
 
         InsertRange(index, document, startIndex, document.PageCount - startIndex, annotationCopying);
     }

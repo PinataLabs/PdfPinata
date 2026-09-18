@@ -217,8 +217,7 @@ public abstract class PdfAcroField : PdfDictionary
     /// </remarks>
     public PdfWidgetAnnotation AddWidget(PdfPage page, PdfRectangle rectangle)
     {
-        if (page == null)
-            throw new ArgumentNullException(nameof(page));
+        ArgumentNullException.ThrowIfNull(page);
 
         if (Reference == null)
         {
@@ -545,8 +544,7 @@ public abstract class PdfAcroField : PdfDictionary
         /// </remarks>
         public void Add(PdfAcroField field)
         {
-            if (field == null)
-                throw new ArgumentNullException(nameof(field));
+            ArgumentNullException.ThrowIfNull(field);
 
             if (field.Owner != null && field.Owner != Owner)
                 throw new InvalidOperationException("The field belongs to another document.");

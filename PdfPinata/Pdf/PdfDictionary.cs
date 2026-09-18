@@ -216,8 +216,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
     /// </summary>
     internal virtual void WriteDictionaryElement(PdfWriter writer, PdfName key)
     {
-        if (key == null)
-            throw new ArgumentNullException(nameof(key));
+        ArgumentNullException.ThrowIfNull(key);
         PdfItem item = Elements[key];
         if (item is PdfObject && ((PdfObject)item).IsIndirect)
         {
@@ -635,8 +634,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// </summary>
         public void SetName(string key, string value)
         {
-            if (value == null)
-                throw new ArgumentNullException(nameof(value));
+            ArgumentNullException.ThrowIfNull(value);
 
             if (value.Length == 0 || value[0] != '/')
                 value = "/" + value;
@@ -1166,8 +1164,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// </summary>
         public void SetReference(string key, PdfReference iref)
         {
-            if (iref == null)
-                throw new ArgumentNullException(nameof(iref));
+            ArgumentNullException.ThrowIfNull(iref);
             this[key] = iref;
         }
 
@@ -1206,8 +1203,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             }
             set
             {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value));
+                ArgumentNullException.ThrowIfNull(value);
 
                 PdfObject obj = value as PdfObject;
                 if (obj != null && obj.IsIndirect)
@@ -1226,8 +1222,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             get { return this[key.Value]; }
             set
             {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value));
+                ArgumentNullException.ThrowIfNull(value);
 
                 // An indirect object is stored as its reference and so is never a direct value:
                 // it has to be replaced before asking whether what is left can be one. Asking
@@ -1479,8 +1474,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
     {
         internal PdfStream(PdfDictionary ownerDictionary)
         {
-            if (ownerDictionary == null)
-                throw new ArgumentNullException(nameof(ownerDictionary));
+            ArgumentNullException.ThrowIfNull(ownerDictionary);
             _ownerDictionary = ownerDictionary;
         }
 
@@ -1544,8 +1538,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             get => _value;
             set
             {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value));
+                ArgumentNullException.ThrowIfNull(value);
                 _value = value;
                 _ownerDictionary.Elements.SetInteger(Keys.Length, value.Length);
             }

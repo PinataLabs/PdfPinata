@@ -118,8 +118,7 @@ internal sealed class PdfFormXObjectTable : PdfResourceTable
     /// </summary>
     public PdfImportedObjectTable GetImportedObjectTable(PdfDocument document)
     {
-        if (document == null)
-            throw new ArgumentNullException(nameof(document));
+        ArgumentNullException.ThrowIfNull(document);
 
         // Is the external PDF file from which is imported already known for the current document?
         Selector selector = new Selector(document);

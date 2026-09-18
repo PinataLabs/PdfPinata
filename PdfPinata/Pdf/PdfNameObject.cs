@@ -57,8 +57,7 @@ public sealed class PdfNameObject : PdfObject
     public PdfNameObject(PdfDocument document, string value)
         : base(document)
     {
-        if (value == null)
-            throw new ArgumentNullException(nameof(value));
+        ArgumentNullException.ThrowIfNull(value);
         if (value.Length == 0 || value[0] != '/')
             throw new ArgumentException(PSSR.NameMustStartWithSlash);
 

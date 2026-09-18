@@ -90,14 +90,12 @@ public sealed class PdfAttachments : IEnumerable<PdfFileSpecification>
         PdfAFRelationship relationship = PdfAFRelationship.Unspecified,
         string description = null, string mimeType = null)
     {
-        if (fileName == null)
-            throw new ArgumentNullException(nameof(fileName));
+        ArgumentNullException.ThrowIfNull(fileName);
         if (fileName.Length == 0)
             throw new ArgumentException(
                 "An attachment has to be named: the name is what a reader shows and what the file is "
                 + "found by.", nameof(fileName));
-        if (bytes == null)
-            throw new ArgumentNullException(nameof(bytes));
+        ArgumentNullException.ThrowIfNull(bytes);
 
         if (IsTaken(fileName))
             throw new InvalidOperationException(
@@ -156,8 +154,7 @@ public sealed class PdfAttachments : IEnumerable<PdfFileSpecification>
     /// </remarks>
     public bool Associate(PdfFileSpecification specification)
     {
-        if (specification == null)
-            throw new ArgumentNullException(nameof(specification));
+        ArgumentNullException.ThrowIfNull(specification);
 
         if (!specification.IsIndirect)
             _document._irefTable.Add(specification);
@@ -180,8 +177,7 @@ public sealed class PdfAttachments : IEnumerable<PdfFileSpecification>
     /// </summary>
     public bool Remove(PdfFileSpecification specification)
     {
-        if (specification == null)
-            throw new ArgumentNullException(nameof(specification));
+        ArgumentNullException.ThrowIfNull(specification);
 
         var removed = false;
 

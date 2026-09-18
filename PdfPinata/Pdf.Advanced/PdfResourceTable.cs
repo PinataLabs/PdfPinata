@@ -41,8 +41,7 @@ public class PdfResourceTable
     /// </summary>
     public PdfResourceTable(PdfDocument owner)
     {
-        if (owner == null)
-            throw new ArgumentNullException(nameof(owner));
+        ArgumentNullException.ThrowIfNull(owner);
         _owner = owner;
     }
 

@@ -119,8 +119,7 @@ public abstract class PdfTextMarkupAnnotation : PdfAnnotation
     /// </summary>
     public void AddQuad(PdfRectangle rect)
     {
-        if (rect == null)
-            throw new ArgumentNullException(nameof(rect));
+        ArgumentNullException.ThrowIfNull(rect);
 
         PdfArray array = Elements.GetArray(Keys.QuadPoints);
         if (array == null)

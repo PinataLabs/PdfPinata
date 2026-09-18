@@ -54,8 +54,7 @@ public sealed class PdfShadingPattern : PdfDictionaryWithContentStream
     internal void SetupFromBrush(XBaseGradientBrush brush, XMatrix matrix, XGraphicsPdfRenderer renderer,
         PdfShadingChannel channel = PdfShadingChannel.Color)
     {
-        if (brush == null)
-            throw new ArgumentNullException(nameof(brush));
+        ArgumentNullException.ThrowIfNull(brush);
 
         PdfShading shading = new PdfShading(_document);
         shading.SetupFromBrush(brush, renderer, channel);
@@ -69,8 +68,7 @@ public sealed class PdfShadingPattern : PdfDictionaryWithContentStream
     /// </summary>
     internal void SetupFromBrush(XLinearGradientBrush brush, XMatrix matrix, XGraphicsPdfRenderer renderer)
     {
-        if (brush == null)
-            throw new ArgumentNullException(nameof(brush));
+        ArgumentNullException.ThrowIfNull(brush);
 
         PdfShading shading = new PdfShading(_document);
         shading.SetupFromBrush(brush, renderer);

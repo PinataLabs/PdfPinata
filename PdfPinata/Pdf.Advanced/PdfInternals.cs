@@ -128,8 +128,7 @@ public class PdfInternals // TODO: PdfDocumentInternals... PdfPageInternals etc.
     /// </summary>
     public static PdfReference GetReference(PdfObject obj)
     {
-        if (obj == null)
-            throw new ArgumentNullException(nameof(obj));
+        ArgumentNullException.ThrowIfNull(obj);
         return obj.Reference;
     }
 
@@ -138,8 +137,7 @@ public class PdfInternals // TODO: PdfDocumentInternals... PdfPageInternals etc.
     /// </summary>
     public static PdfObjectID GetObjectID(PdfObject obj)
     {
-        if (obj == null)
-            throw new ArgumentNullException(nameof(obj));
+        ArgumentNullException.ThrowIfNull(obj);
         return obj.ObjectID;
     }
 
@@ -148,8 +146,7 @@ public class PdfInternals // TODO: PdfDocumentInternals... PdfPageInternals etc.
     /// </summary>
     public static int GetObjectNumber(PdfObject obj)
     {
-        if (obj == null)
-            throw new ArgumentNullException(nameof(obj));
+        ArgumentNullException.ThrowIfNull(obj);
         return obj.ObjectNumber;
     }
 
@@ -158,8 +155,7 @@ public class PdfInternals // TODO: PdfDocumentInternals... PdfPageInternals etc.
     /// </summary>
     public static int GenerationNumber(PdfObject obj)
     {
-        if (obj == null)
-            throw new ArgumentNullException(nameof(obj));
+        ArgumentNullException.ThrowIfNull(obj);
         return obj.GenerationNumber;
     }
 
@@ -233,8 +229,7 @@ public class PdfInternals // TODO: PdfDocumentInternals... PdfPageInternals etc.
     /// </summary>
     public void AddObject(PdfObject obj)
     {
-        if (obj == null)
-            throw new ArgumentNullException(nameof(obj));
+        ArgumentNullException.ThrowIfNull(obj);
         if (obj.Owner == null)
             obj.Document = _document;
         else if (obj.Owner != _document)
@@ -247,8 +242,7 @@ public class PdfInternals // TODO: PdfDocumentInternals... PdfPageInternals etc.
     /// </summary>
     public void RemoveObject(PdfObject obj)
     {
-        if (obj == null)
-            throw new ArgumentNullException(nameof(obj));
+        ArgumentNullException.ThrowIfNull(obj);
         if (obj.Reference == null)
             throw new InvalidOperationException("Only indirect objects can be removed.");
         if (obj.Owner != _document)

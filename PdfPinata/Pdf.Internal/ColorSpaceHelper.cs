@@ -56,8 +56,7 @@ static class ColorSpaceHelper
     /// </summary>
     public static XColor EnsureColorMode(PdfDocument document, XColor color)
     {
-        if (document == null)
-            throw new ArgumentNullException(nameof(document));
+        ArgumentNullException.ThrowIfNull(document);
 
         return EnsureColorMode(document.Options.ColorMode, color);
     }

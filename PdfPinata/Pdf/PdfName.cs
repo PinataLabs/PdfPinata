@@ -54,8 +54,7 @@ public sealed class PdfName : PdfItem
     /// </summary>
     public PdfName(string value)
     {
-        if (value == null)
-            throw new ArgumentNullException(nameof(value));
+        ArgumentNullException.ThrowIfNull(value);
         if (value.Length == 0 || value[0] != '/')
             throw new ArgumentException(PSSR.NameMustStartWithSlash);
 

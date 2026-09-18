@@ -117,8 +117,7 @@ public sealed class PdfNumberTreeNode : PdfDictionary
     /// </summary>
     public void SetValue(int key, PdfItem value)
     {
-        if (value == null)
-            throw new ArgumentNullException(nameof(value));
+        ArgumentNullException.ThrowIfNull(value);
 
         Entries[key] = Referenced(value);
         Write();

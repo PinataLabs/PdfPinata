@@ -52,12 +52,9 @@ public static class PdfSigner
     public static void Sign(PdfDocument document, Stream output, IPdfSigner signer,
         PdfSignatureOptions options = null)
     {
-        if (document == null)
-            throw new ArgumentNullException(nameof(document));
-        if (output == null)
-            throw new ArgumentNullException(nameof(output));
-        if (signer == null)
-            throw new ArgumentNullException(nameof(signer));
+        ArgumentNullException.ThrowIfNull(document);
+        ArgumentNullException.ThrowIfNull(output);
+        ArgumentNullException.ThrowIfNull(signer);
 
         if (!document.CanSaveIncremental)
             throw new InvalidOperationException(
@@ -146,8 +143,7 @@ public static class PdfSigner
     public static void Sign(Stream input, Stream output, IPdfSigner signer,
         PdfSignatureOptions options = null)
     {
-        if (input == null)
-            throw new ArgumentNullException(nameof(input));
+        ArgumentNullException.ThrowIfNull(input);
 
         var document = PdfReader.Open(input, PdfDocumentOpenMode.Append);
         Sign(document, output, signer, options);

@@ -28,8 +28,7 @@ internal sealed class PdfImageConsolidator
     /// <param name="pages">The pages whose resource dictionaries are to be merged.</param>
     internal static void Consolidate(IEnumerable<PdfPage> pages)
     {
-        if (pages == null)
-            throw new ArgumentNullException(nameof(pages));
+        ArgumentNullException.ThrowIfNull(pages);
 
         List<ImageInfo> images = ImageInfo.FindAll(pages);
 

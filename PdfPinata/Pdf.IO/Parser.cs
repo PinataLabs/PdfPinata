@@ -1016,8 +1016,7 @@ internal sealed class Parser
     /// </summary>
     public static PdfObject ReadObject(PdfDocument owner, PdfObjectID objectID)
     {
-        if (owner == null)
-            throw new ArgumentNullException(nameof(owner));
+        ArgumentNullException.ThrowIfNull(owner);
 
         Parser parser = new Parser(owner);
         return parser.ReadObject(null, objectID, false, false);

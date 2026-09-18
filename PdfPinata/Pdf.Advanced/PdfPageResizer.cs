@@ -55,8 +55,7 @@ static class PdfPageResizer
     /// </summary>
     internal static void Resize(PdfPage page, XSize visibleTarget, PageSize size, PageResizeOptions options)
     {
-        if (page == null)
-            throw new ArgumentNullException(nameof(page));
+        ArgumentNullException.ThrowIfNull(page);
 
         PdfDocument document = page.Owner
                                ?? throw new InvalidOperationException(
@@ -81,8 +80,7 @@ static class PdfPageResizer
     internal static void ResizeAll(PdfDocument document, XSize visibleTarget, PageSize size,
         PageResizeOptions options)
     {
-        if (document == null)
-            throw new ArgumentNullException(nameof(document));
+        ArgumentNullException.ThrowIfNull(document);
 
         options = (options ?? PageResizeOptions.Default).Clone();
 

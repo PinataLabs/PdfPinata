@@ -373,8 +373,7 @@ public abstract class PdfAnnotation : PdfDictionary
     /// </summary>
     PdfFormXObject FinishedForm(XForm form)
     {
-        if (form == null)
-            throw new ArgumentNullException(nameof(form));
+        ArgumentNullException.ThrowIfNull(form);
 
         if (form.Owner != Owner)
         {
