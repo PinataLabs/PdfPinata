@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using PinataLayout.DocumentObjectModel;
 using PdfPinata.Drawing;
@@ -92,7 +93,7 @@ internal class FormattedFootnote : IAreaProvider
     internal RenderInfo[] GetRenderInfos()
     {
         if (_renderInfos == null)
-            return new RenderInfo[0];
+            return Array.Empty<RenderInfo>();
 
         // Not ToArray(Type): it builds the array type at run time, which carries
         // RequiresDynamicCode and an AOT compiler cannot always have code for.

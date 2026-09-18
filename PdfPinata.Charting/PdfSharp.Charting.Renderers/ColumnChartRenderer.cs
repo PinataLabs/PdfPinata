@@ -55,20 +55,20 @@ internal class ColumnChartRenderer : ColumnLikeChartRenderer
 
     InitSeriesRendererInfo();
 
-    LegendRenderer lr = new ColumnLikeLegendRenderer(this.rendererParms);
+    ColumnLikeLegendRenderer lr = new ColumnLikeLegendRenderer(this.rendererParms);
     cri.legendRendererInfo = (LegendRendererInfo)lr.Init();
 
-    AxisRenderer xar = new HorizontalXAxisRenderer(this.rendererParms);
+    HorizontalXAxisRenderer xar = new HorizontalXAxisRenderer(this.rendererParms);
     cri.xAxisRendererInfo = (AxisRendererInfo)xar.Init();
 
-    AxisRenderer yar = GetYAxisRenderer();
+    YAxisRenderer yar = GetYAxisRenderer();
     cri.yAxisRendererInfo = (AxisRendererInfo)yar.Init();
 
     PlotArea plotArea = cri.chart.PlotArea;
     PlotAreaRenderer renderer = GetPlotAreaRenderer();
     cri.plotAreaRendererInfo = (PlotAreaRendererInfo)renderer.Init();
 
-    DataLabelRenderer dlr = new ColumnDataLabelRenderer(this.rendererParms);
+    ColumnDataLabelRenderer dlr = new ColumnDataLabelRenderer(this.rendererParms);
     dlr.Init();
 
     return cri;
@@ -81,14 +81,14 @@ internal class ColumnChartRenderer : ColumnLikeChartRenderer
   {
     ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
 
-    LegendRenderer lr = new ColumnLikeLegendRenderer(this.rendererParms);
+    ColumnLikeLegendRenderer lr = new ColumnLikeLegendRenderer(this.rendererParms);
     lr.Format();
 
     // axes
-    AxisRenderer xar = new HorizontalXAxisRenderer(this.rendererParms);
+    HorizontalXAxisRenderer xar = new HorizontalXAxisRenderer(this.rendererParms);
     xar.Format();
 
-    AxisRenderer yar = GetYAxisRenderer();
+    YAxisRenderer yar = GetYAxisRenderer();
     yar.Format();
 
     // Calculate rects and positions.
@@ -98,7 +98,7 @@ internal class ColumnChartRenderer : ColumnLikeChartRenderer
     PlotAreaRenderer renderer = GetPlotAreaRenderer();
     renderer.Format();
 
-    DataLabelRenderer dlr = new ColumnDataLabelRenderer(this.rendererParms);
+    ColumnDataLabelRenderer dlr = new ColumnDataLabelRenderer(this.rendererParms);
     dlr.Format();
   }
 
@@ -109,13 +109,13 @@ internal class ColumnChartRenderer : ColumnLikeChartRenderer
   {
     ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
       
-    LegendRenderer lr = new ColumnLikeLegendRenderer(this.rendererParms);
+    ColumnLikeLegendRenderer lr = new ColumnLikeLegendRenderer(this.rendererParms);
     lr.Draw();
 
     WallRenderer wr = new WallRenderer(this.rendererParms);
     wr.Draw();
 
-    GridlinesRenderer glr = new ColumnLikeGridlinesRenderer(this.rendererParms);
+    ColumnLikeGridlinesRenderer glr = new ColumnLikeGridlinesRenderer(this.rendererParms);
     glr.Draw();
 
     PlotAreaBorderRenderer pabr = new PlotAreaBorderRenderer(this.rendererParms);
@@ -124,18 +124,18 @@ internal class ColumnChartRenderer : ColumnLikeChartRenderer
     PlotAreaRenderer renderer = GetPlotAreaRenderer();
     renderer.Draw();
 
-    DataLabelRenderer dlr = new ColumnDataLabelRenderer(this.rendererParms);
+    ColumnDataLabelRenderer dlr = new ColumnDataLabelRenderer(this.rendererParms);
     dlr.Draw();
 
     if (cri.xAxisRendererInfo.axis != null)
     {
-      AxisRenderer xar = new HorizontalXAxisRenderer(this.rendererParms);
+      HorizontalXAxisRenderer xar = new HorizontalXAxisRenderer(this.rendererParms);
       xar.Draw();
     }
 
     if (cri.yAxisRendererInfo.axis != null)
     {
-      AxisRenderer yar = GetYAxisRenderer();
+      YAxisRenderer yar = GetYAxisRenderer();
       yar.Draw();
     }
   }

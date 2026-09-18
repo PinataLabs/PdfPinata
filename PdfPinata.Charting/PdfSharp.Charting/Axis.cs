@@ -150,7 +150,7 @@ public class Axis : ChartObject
     get => this.majorTickMark;
     set
     {
-      if (!Enum.IsDefined(typeof(TickMarkType), value))
+      if (!Enum.IsDefined(value))
         throw new InvalidEnumArgumentException("value", (int)value, typeof(TickMarkType));
       this.majorTickMark = value;
       this.majorTickMarkInitialized = true;
@@ -167,7 +167,7 @@ public class Axis : ChartObject
     get => this.minorTickMark;
     set
     {
-      if (!Enum.IsDefined(typeof(TickMarkType), value))
+      if (!Enum.IsDefined(value))
         throw new InvalidEnumArgumentException("value", (int)value, typeof(TickMarkType));
       this.minorTickMark = value;
       this.minorTickMarkInitialized = true;

@@ -200,7 +200,7 @@ public class PdfDocumentRenderer
     public void Save(string path)
     {
         if (path == null)
-            throw new ArgumentNullException("path");
+            throw new ArgumentNullException(nameof(path));
 
         else if (path == "")
             throw new ArgumentException("PDF file Path must not be empty");
@@ -226,16 +226,14 @@ public class PdfDocumentRenderer
     /// <param name="endPage">The last page to print</param>
     public void RenderPages(int startPage, int endPage)
     {
-        if (startPage < 1)
-            throw new ArgumentOutOfRangeException("startPage");
+        ArgumentOutOfRangeException.ThrowIfLessThan(startPage, 1);
 
         // Formatting is what produces the page count, so a renderer nobody prepared is prepared
         // here rather than failing on a null formatted document.
         if (documentRenderer?.FormattedDocument == null)
             PrepareRenderPages();
 
-        if (endPage > documentRenderer.FormattedDocument.PageCount)
-            throw new ArgumentOutOfRangeException("endPage");
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(endPage, documentRenderer.FormattedDocument.PageCount);
 
         if (pdfDocument == null)
             pdfDocument = CreatePdfDocument();

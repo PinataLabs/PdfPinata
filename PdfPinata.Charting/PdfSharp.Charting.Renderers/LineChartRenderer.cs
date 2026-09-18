@@ -55,13 +55,13 @@ internal class LineChartRenderer : ColumnLikeChartRenderer
 
     InitSeriesRendererInfo();
 
-    LegendRenderer lr = new ColumnLikeLegendRenderer(this.rendererParms);
+    ColumnLikeLegendRenderer lr = new ColumnLikeLegendRenderer(this.rendererParms);
     cri.legendRendererInfo = (LegendRendererInfo)lr.Init();
 
-    AxisRenderer xar = new HorizontalXAxisRenderer(this.rendererParms);
+    HorizontalXAxisRenderer xar = new HorizontalXAxisRenderer(this.rendererParms);
     cri.xAxisRendererInfo = (AxisRendererInfo)xar.Init();
 
-    AxisRenderer yar = new VerticalYAxisRenderer(this.rendererParms);
+    VerticalYAxisRenderer yar = new VerticalYAxisRenderer(this.rendererParms);
     cri.yAxisRendererInfo = (AxisRendererInfo)yar.Init();
 
     PlotArea plotArea = cri.chart.PlotArea;
@@ -78,14 +78,14 @@ internal class LineChartRenderer : ColumnLikeChartRenderer
   {
     ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
 
-    LegendRenderer lr = new ColumnLikeLegendRenderer(this.rendererParms);
+    ColumnLikeLegendRenderer lr = new ColumnLikeLegendRenderer(this.rendererParms);
     lr.Format();
 
     // axes
-    AxisRenderer xar = new HorizontalXAxisRenderer(this.rendererParms);
+    HorizontalXAxisRenderer xar = new HorizontalXAxisRenderer(this.rendererParms);
     xar.Format();
 
-    AxisRenderer yar = new VerticalYAxisRenderer(this.rendererParms);
+    VerticalYAxisRenderer yar = new VerticalYAxisRenderer(this.rendererParms);
     yar.Format();
 
     // Calculate rects and positions.
@@ -103,7 +103,7 @@ internal class LineChartRenderer : ColumnLikeChartRenderer
   {
     ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
 
-    LegendRenderer lr = new ColumnLikeLegendRenderer(this.rendererParms);
+    ColumnLikeLegendRenderer lr = new ColumnLikeLegendRenderer(this.rendererParms);
     lr.Draw();
 
     // Draw wall.
@@ -111,7 +111,7 @@ internal class LineChartRenderer : ColumnLikeChartRenderer
     wr.Draw();
 
     // Draw gridlines.
-    GridlinesRenderer glr = new ColumnLikeGridlinesRenderer(this.rendererParms);
+    ColumnLikeGridlinesRenderer glr = new ColumnLikeGridlinesRenderer(this.rendererParms);
     glr.Draw();
 
     PlotAreaBorderRenderer pabr = new PlotAreaBorderRenderer(this.rendererParms);
@@ -124,13 +124,13 @@ internal class LineChartRenderer : ColumnLikeChartRenderer
     // Draw x- and y-axis.
     if (cri.xAxisRendererInfo.axis != null)
     {
-      AxisRenderer xar = new HorizontalXAxisRenderer(this.rendererParms);
+      HorizontalXAxisRenderer xar = new HorizontalXAxisRenderer(this.rendererParms);
       xar.Draw();
     }
 
     if (cri.yAxisRendererInfo.axis != null)
     {
-      AxisRenderer yar = new VerticalYAxisRenderer(this.rendererParms);
+      VerticalYAxisRenderer yar = new VerticalYAxisRenderer(this.rendererParms);
       yar.Draw();
     }
   }
@@ -186,7 +186,7 @@ internal class LineChartRenderer : ColumnLikeChartRenderer
         mri.MarkerSize = 7;
 
       if (!sri.series.markerStyleInitialized)
-        mri.MarkerStyle = (MarkerStyle)(seriesIndex % (Enum.GetNames(typeof(MarkerStyle)).Length - 1) + 1);
+        mri.MarkerStyle = (MarkerStyle)(seriesIndex % (Enum.GetNames<MarkerStyle>().Length - 1) + 1);
       else
         mri.MarkerStyle = sri.series.markerStyle;
 

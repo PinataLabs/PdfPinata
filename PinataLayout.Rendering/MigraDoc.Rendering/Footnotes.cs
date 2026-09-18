@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using PinataLayout.DocumentObjectModel;
 using PdfPinata.Drawing;
@@ -70,5 +71,5 @@ internal static class Footnotes
         }
     }
 
-    static readonly IReadOnlyList<Footnote> Empty = new Footnote[0];
+    static readonly IReadOnlyList<Footnote> Empty = Array.Empty<Footnote>();
 }

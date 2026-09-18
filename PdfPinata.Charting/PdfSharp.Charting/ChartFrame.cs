@@ -181,7 +181,7 @@ public class ChartFrame
   /// <summary>
   /// Returns the chart renderer appropriate for the chart.
   /// </summary>
-  private ChartRenderer GetChartRenderer(Chart chart, RendererParameters parms)
+  private static ChartRenderer GetChartRenderer(Chart chart, RendererParameters parms)
   {
     ChartType chartType = chart.Type;
     bool useCombinationRenderer = false;

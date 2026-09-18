@@ -45,7 +45,7 @@ public class ChartMapper
   {
   }
 
-  private ChartFrame MapObject(DocumentObjectModel.Shapes.Charts.Chart domChart)
+  private static ChartFrame MapObject(DocumentObjectModel.Shapes.Charts.Chart domChart)
   {
     ChartFrame chartFrame = new ChartFrame();
     chartFrame.Size = new XSize(domChart.Width.Point, domChart.Height.Point);
@@ -87,7 +87,6 @@ public class ChartMapper
   /// <returns></returns>
   public static ChartFrame Map(DocumentObjectModel.Shapes.Charts.Chart domChart)
   {
-    ChartMapper mapper = new ChartMapper();
-    return mapper.MapObject(domChart);
+    return MapObject(domChart);
   }
 }

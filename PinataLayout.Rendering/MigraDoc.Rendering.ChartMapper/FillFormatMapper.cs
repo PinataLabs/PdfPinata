@@ -39,7 +39,7 @@ internal class FillFormatMapper
   {
   }
 
-  void MapObject(FillFormat fillFormat, DocumentObjectModel.Shapes.FillFormat domFillFormat)
+  static void MapObject(FillFormat fillFormat, DocumentObjectModel.Shapes.FillFormat domFillFormat)
   {
     if (domFillFormat.Color.IsEmpty)
       fillFormat.Color = XColor.Empty;
@@ -52,7 +52,6 @@ internal class FillFormatMapper
 
   internal static void Map(FillFormat fillFormat, DocumentObjectModel.Shapes.FillFormat domFillFormat)
   {
-    FillFormatMapper mapper = new FillFormatMapper();
-    mapper.MapObject(fillFormat, domFillFormat);
+    MapObject(fillFormat, domFillFormat);
   }
 }

@@ -55,17 +55,17 @@ internal class AreaChartRenderer : ColumnLikeChartRenderer
 
     InitSeriesRendererInfo();
 
-    LegendRenderer lr = new ColumnLikeLegendRenderer(this.rendererParms);
+    ColumnLikeLegendRenderer lr = new ColumnLikeLegendRenderer(this.rendererParms);
     cri.legendRendererInfo = (LegendRendererInfo)lr.Init();
 
-    AxisRenderer xar = new HorizontalXAxisRenderer(this.rendererParms);
+    HorizontalXAxisRenderer xar = new HorizontalXAxisRenderer(this.rendererParms);
     cri.xAxisRendererInfo = (AxisRendererInfo)xar.Init();
 
-    AxisRenderer yar = new VerticalYAxisRenderer(this.rendererParms);
+    VerticalYAxisRenderer yar = new VerticalYAxisRenderer(this.rendererParms);
     cri.yAxisRendererInfo = (AxisRendererInfo)yar.Init();
 
     PlotArea plotArea = cri.chart.PlotArea;
-    PlotAreaRenderer renderer = new AreaPlotAreaRenderer(this.rendererParms);
+    AreaPlotAreaRenderer renderer = new AreaPlotAreaRenderer(this.rendererParms);
     cri.plotAreaRendererInfo = (PlotAreaRendererInfo)renderer.Init();
 
     return cri;
@@ -78,21 +78,21 @@ internal class AreaChartRenderer : ColumnLikeChartRenderer
   {
     ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
 
-    LegendRenderer lr = new ColumnLikeLegendRenderer(this.rendererParms);
+    ColumnLikeLegendRenderer lr = new ColumnLikeLegendRenderer(this.rendererParms);
     lr.Format();
 
     // axes
-    AxisRenderer xar = new HorizontalXAxisRenderer(this.rendererParms);
+    HorizontalXAxisRenderer xar = new HorizontalXAxisRenderer(this.rendererParms);
     xar.Format();
 
-    AxisRenderer yar = new VerticalYAxisRenderer(this.rendererParms);
+    VerticalYAxisRenderer yar = new VerticalYAxisRenderer(this.rendererParms);
     yar.Format();
 
     // Calculate rects and positions.
     CalcLayout();
 
     // Calculated remaining plot area, now it's safe to format.
-    PlotAreaRenderer renderer = new AreaPlotAreaRenderer(this.rendererParms);
+    AreaPlotAreaRenderer renderer = new AreaPlotAreaRenderer(this.rendererParms);
     renderer.Format();
   }
 
@@ -103,7 +103,7 @@ internal class AreaChartRenderer : ColumnLikeChartRenderer
   {
     ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
 
-    LegendRenderer lr = new ColumnLikeLegendRenderer(this.rendererParms);
+    ColumnLikeLegendRenderer lr = new ColumnLikeLegendRenderer(this.rendererParms);
     lr.Draw();
 
     // Draw wall.
@@ -111,25 +111,25 @@ internal class AreaChartRenderer : ColumnLikeChartRenderer
     wr.Draw();
 
     // Draw gridlines.
-    GridlinesRenderer glr = new ColumnLikeGridlinesRenderer(this.rendererParms);
+    ColumnLikeGridlinesRenderer glr = new ColumnLikeGridlinesRenderer(this.rendererParms);
     glr.Draw();
 
     PlotAreaBorderRenderer pabr = new PlotAreaBorderRenderer(this.rendererParms);
     pabr.Draw();
 
-    PlotAreaRenderer renderer = new AreaPlotAreaRenderer(this.rendererParms);
+    AreaPlotAreaRenderer renderer = new AreaPlotAreaRenderer(this.rendererParms);
     renderer.Draw();
 
     // Draw axes.
     if (cri.xAxisRendererInfo.axis != null)
     {
-      AxisRenderer xar = new HorizontalXAxisRenderer(this.rendererParms);
+      HorizontalXAxisRenderer xar = new HorizontalXAxisRenderer(this.rendererParms);
       xar.Draw();
     }
 
     if (cri.yAxisRendererInfo.axis != null)
     {
-      AxisRenderer yar = new VerticalYAxisRenderer(this.rendererParms);
+      VerticalYAxisRenderer yar = new VerticalYAxisRenderer(this.rendererParms);
       yar.Draw();
     }
   }

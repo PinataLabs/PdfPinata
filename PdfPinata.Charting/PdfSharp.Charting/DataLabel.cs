@@ -107,7 +107,7 @@ public class DataLabel : DocumentObject
     get => (DataLabelPosition)this.position;
     set
     {
-      if (!Enum.IsDefined(typeof(DataLabelPosition), value))
+      if (!Enum.IsDefined(value))
         throw new InvalidEnumArgumentException("value", (int)value, typeof(DataLabelPosition));
 
       this.position = value;
@@ -125,7 +125,7 @@ public class DataLabel : DocumentObject
     get => (DataLabelType)this.type;
     set
     {
-      if (!Enum.IsDefined(typeof(DataLabelType), value))
+      if (!Enum.IsDefined(value))
         throw new InvalidEnumArgumentException("value", (int)value, typeof(DataLabelType));
 
       this.type = value;

@@ -182,7 +182,7 @@ public class Series : ChartObject
     get => this.markerStyle;
     set
     {
-      if (!Enum.IsDefined(typeof(MarkerStyle), value))
+      if (!Enum.IsDefined(value))
         throw new InvalidEnumArgumentException("value", (int)value, typeof(MarkerStyle));
 
       this.markerStyle = value;
@@ -221,7 +221,7 @@ public class Series : ChartObject
     get => this.chartType;
     set
     {
-      if (!Enum.IsDefined(typeof(ChartType), value))
+      if (!Enum.IsDefined(value))
         throw new InvalidEnumArgumentException("value", (int)value, typeof(ChartType));
 
       this.chartType = value;
