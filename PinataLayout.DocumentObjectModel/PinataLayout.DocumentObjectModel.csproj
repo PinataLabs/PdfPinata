@@ -15,7 +15,6 @@
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/PinataLabs/PdfPinata</PackageProjectUrl>
     <RepositoryUrl>https://github.com/PinataLabs/PdfPinata</RepositoryUrl>
-    <PackageReleaseNotes>PinataLayout.DocumentObjectModel was ported from MigraDoc version 1.32</PackageReleaseNotes>
     <summary>PinataLayout.DocumentObjectModel for .NET Core</summary>
     <IsTrimmable>true</IsTrimmable>
     <EnableTrimAnalyzer>true</EnableTrimAnalyzer>

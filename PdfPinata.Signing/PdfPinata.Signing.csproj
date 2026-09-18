@@ -26,7 +26,6 @@
     <PackageTags>pdf;signature;pades;pkcs7;cms</PackageTags>
     <IsTrimmable>true</IsTrimmable>
     <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
-    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>

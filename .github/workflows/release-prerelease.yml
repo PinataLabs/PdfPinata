@@ -1,0 +1,125 @@
+name: Pre-release
+
+# Publishes the current commit as a pre-release of all nine packages. No tag is
+# created and no GitHub Release is made: MinVer versions a commit that is not
+# exactly a release tag as the next patch plus a pre-release suffix, e.g.
+# 1.1.1-beta.0.4 four commits after v1.1.0, so every run is a new version.
+on:
+  workflow_dispatch:
+    inputs:
+      prerelease-label:
+        description: 'Pre-release label (alpha, beta, rc)'
+        required: true
+        default: 'alpha'
+        type: choice
+        options:
+          - alpha
+          - beta
+          - rc
+      dry-run:
+        description: 'Dry run (build, pack - skip NuGet publish)'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  prerelease:
+    runs-on: ubuntu-latest
+
+    env:
+      MinVerDefaultPreReleaseIdentifiers: ${{ inputs.prerelease-label }}
+      # Keep in step with PACKAGES in release.yml.
+      PACKAGES: >-
+        PdfPinata
+        PdfPinata.Skia
+        PdfPinata.ImageSharp
+        PdfPinata.HarfBuzz
+        PdfPinata.Signing
+        PdfPinata.EInvoice
+        PdfPinata.Charting
+        PinataLayout.DocumentObjectModel
+        PinataLayout.Rendering
+      # Read as an MSBuild property, so every pack below embeds its SPDX manifest - a
+      # pre-release package carries the same bill of materials a stable one does. There
+      # is no GitHub Release here, so no CycloneDX documents are generated; those are
+      # release assets and this workflow only pushes to NuGet.
+      GenerateSBOM: true
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      - name: Show inputs
+        run: |
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Pre-release label: ${{ inputs.prerelease-label }}"
+
+      - name: Restore dependencies
+        run: dotnet restore PdfPinata.slnx
+
+      - name: Build
+        run: dotnet build PdfPinata.slnx --configuration Release --no-restore
+
+      - name: Pack
+        run: |
+          for project in $PACKAGES; do
+            echo "::group::Pack $project"
+            dotnet pack "$project/$project.csproj" --configuration Release --no-build --output ./artifacts
+            echo "::endgroup::"
+          done
+
+      - name: Show package versions
+        run: ls -la ./artifacts/
+
+      # A pre-release workflow that published a stable version would take a version
+      # number the real release then cannot have - NuGet never reuses one. That
+      # happens when this runs on a commit that is exactly a release tag.
+      - name: Refuse a stable version
+        run: |
+          for package in ./artifacts/*.nupkg; do
+            case "$(basename "$package")" in
+              *-*) ;;
+              *)
+                echo "::error::$(basename "$package") is not a pre-release version - this commit is a release tag"
+                exit 1
+                ;;
+            esac
+          done
+
+      - name: Upload packages
+        uses: actions/upload-artifact@v7
+        with:
+          name: prerelease-packages
+          path: ./artifacts/*
+
+      - name: NuGet login
+        if: ${{ inputs.dry-run == false }}
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        id: nuget-login
+        with:
+          user: jafin
+
+      - name: Push to NuGet
+        if: ${{ inputs.dry-run == false }}
+        run: dotnet nuget push ./artifacts/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ steps.nuget-login.outputs.NUGET_API_KEY }} --skip-duplicate
+
+      - name: Push symbols to NuGet
+        if: ${{ inputs.dry-run == false }}
+        run: dotnet nuget push ./artifacts/*.snupkg --source https://api.nuget.org/v3/index.json --api-key ${{ steps.nuget-login.outputs.NUGET_API_KEY }} --skip-duplicate
+
+      - name: Dry run - skipped NuGet publish
+        if: ${{ inputs.dry-run == true }}
+        run: echo "Dry run enabled - packages were built but not published to NuGet."

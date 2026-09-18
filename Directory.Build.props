@@ -33,4 +33,46 @@
     <WarningsAsErrors>$(WarningsAsErrors);CS8073</WarningsAsErrors>
   </PropertyGroup>
 
+  <!--
+    Every package versions in lockstep from one git tag: MinVer reads v1.1.0 and every package it
+    packs is 1.1.0. On a commit that is not exactly a tag it computes the next patch as a
+    pre-release (1.1.1-alpha.0.3), which is what release-prerelease.yml publishes. MinVer itself is
+    referenced from Directory.Build.targets, where IsPackable is known.
+
+    MinVerMinimumMajorMinor is the floor before the first tag exists. PdfPinata and PinataLayout are
+    new package IDs, but the code is not new, so the first version is 1.0 rather than MinVer's 0.0.
+  -->
+  <PropertyGroup>
+    <MinVerTagPrefix>v</MinVerTagPrefix>
+    <MinVerMinimumMajorMinor>1.0</MinVerMinimumMajorMinor>
+  </PropertyGroup>
+
+  <!--
+    Symbol packages and Source Link. The SDK carries Source Link for GitHub itself from .NET 8 on,
+    so nothing needs referencing: these say what goes into the package. The .snupkg is pushed
+    beside the .nupkg by the release workflows.
+  -->
+  <PropertyGroup>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <!-- A deterministic build on CI: the same binary regardless of the machine or path building it. -->
+  <PropertyGroup Condition="'$(GITHUB_ACTIONS)' != ''">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+  <!--
+    MinVer computes the version inside a target, so a release-notes link that names it has to be
+    built after that target runs. As an ordinary property it would interpolate an empty version and
+    link to "releases/tag/". Only packable projects reference MinVer, hence the condition.
+  -->
+  <Target Name="SetPackageReleaseNotesFromVersion" DependsOnTargets="MinVer" BeforeTargets="GenerateNuspec" Condition="'$(IsPackable)' != 'false'">
+    <PropertyGroup Condition="'$(MinVerVersion)' != ''">
+      <PackageReleaseNotes>See https://github.com/PinataLabs/PdfPinata/releases/tag/$(MinVerTagPrefix)$(MinVerVersion)</PackageReleaseNotes>
+    </PropertyGroup>
+  </Target>
+
 </Project>

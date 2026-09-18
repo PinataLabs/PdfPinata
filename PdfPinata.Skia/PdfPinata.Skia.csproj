@@ -17,7 +17,6 @@ Provides SkiaImageSource and SkiaFontResolver. SkiaSharp is a native library: co
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/PinataLabs/PdfPinata</PackageProjectUrl>
     <RepositoryUrl>https://github.com/PinataLabs/PdfPinata</RepositoryUrl>
-    <PackageReleaseNotes>SkiaSharp backend for PdfPinata</PackageReleaseNotes>
     <summary>SkiaSharp backend for PdfPinata</summary>
   </PropertyGroup>
 

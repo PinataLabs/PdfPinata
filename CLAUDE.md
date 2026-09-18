@@ -15,8 +15,18 @@ dotnet test --filter "FullyQualifiedName~CLexerTests.ScanNextToken"    # one tes
 ./verapdf-check.ps1 -NoGate              # the same, but always succeeds — for reading a failure
 ```
 
-CI (`.github/workflows/build.yml`) runs on Linux only, builds with `ci-build.ps1`, installs
+CI (`.github/workflows/build-and-test.yml`) runs on Linux only, builds with `ci-build.ps1`, installs
 Ghostscript, then runs `dotnet test` with coverlet/opencover coverage.
+
+**Versions come from git tags, not from the project files.** MinVer (referenced for packable
+projects in `Directory.Build.targets`) versions all nine packages in lockstep from the latest
+`v1.2.3` tag, so no csproj carries a `<Version>`; an untagged commit is a pre-release. Releasing is
+the *Publish Release* workflow (`release-publish.yml`): it takes the version Release Drafter has
+drafted from merged PRs' labels, rolls `CHANGELOG.md`'s `[Unreleased]` section, tags, and calls
+`release.yml` to pack and push to NuGet. The labels come from a Conventional Commits prefix on the
+**PR title** (`feat:`, `fix:`, `feat!:` …) — commit subjects keep the plain-prose convention below.
+A new packable project has to be added to `PACKAGES` in both `release.yml` and
+`release-prerelease.yml`.
 
 **veraPDF runs the same script CI does, and it gates.** `ConformanceCorpus` writes one PDF per claim
 the library can make into `artifacts/conformance-corpus`; each document *makes* a claim, because
