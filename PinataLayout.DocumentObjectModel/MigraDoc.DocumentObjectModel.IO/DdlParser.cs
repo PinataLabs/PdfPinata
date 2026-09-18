@@ -315,8 +315,7 @@ internal class DdlParser
     /// </summary>
     private void ParseHeaderFooter(Section section)
     {
-        if (section == null)
-            throw new ArgumentNullException("section");
+        ArgumentNullException.ThrowIfNull(section);
 
         HeaderFooter headerFooter = null;
         try
@@ -538,13 +537,13 @@ internal class DdlParser
     /// Removes the last blank from the text. Used before a tab, a linebreak or a space will be
     /// added to the text.
     /// </summary>
-    private void RemoveTrailingBlank(ParagraphElements elements)
+    private static void RemoveTrailingBlank(ParagraphElements elements)
     {
         DocumentObject dom = elements.LastObject;
         if (dom is Text)
         {
             Text text = (Text)dom;
-            if (text.Content.EndsWith(" "))
+            if (text.Content.EndsWith(' '))
                 text.Content = text.Content.Remove(text.Content.Length - 1, 1);
         }
     }
@@ -793,7 +792,7 @@ internal class DdlParser
                 if (Enum.IsDefined(typeof(SymbolName), Token))
                 {
                     AssertCondition(IsSymbolType(Token), DomMsgID.InvalidSymbolType, Token);
-                    symtype = (SymbolName)Enum.Parse(typeof(SymbolName), Token, true);
+                    symtype = Enum.Parse<SymbolName>(Token, true);
                 }
             }
             catch (Exception ex) when (!Unrecoverable.Is(ex))
@@ -999,7 +998,7 @@ internal class DdlParser
                 if (!IsSpaceType(type))
                     ThrowParserException(DomMsgID.InvalidEnum, type);
 
-                space.SymbolName = (SymbolName)Enum.Parse(typeof(SymbolName), type, true);
+                space.SymbolName = Enum.Parse<SymbolName>(type, true);
 
                 ReadCode(); // read ',' or ')'
                 if (Symbol == Symbol.Comma)
@@ -1336,7 +1335,7 @@ internal class DdlParser
             {
                 ReadCode();
                 AssertSymbol(Symbol.Identifier, DomMsgID.IdentifierExpected, Token);
-                BarcodeType barcodeType = (BarcodeType)Enum.Parse(typeof(BarcodeType), Token, true);
+                BarcodeType barcodeType = Enum.Parse<BarcodeType>(Token, true);
                 barcode.SetValue("type", barcodeType);
                 ReadCode();
             }
@@ -1381,7 +1380,7 @@ internal class DdlParser
 
             try
             {
-                chartType = (ChartType)Enum.Parse(typeof(ChartType), chartTypeName, true);
+                chartType = Enum.Parse<ChartType>(chartTypeName, true);
             }
             catch (Exception ex) when (!Unrecoverable.Is(ex))
             {
@@ -1992,10 +1991,8 @@ internal class DdlParser
     /// </summary>
     private void ParseAssign(DocumentObject dom, ValueDescriptor vd)
     {
-        if (dom == null)
-            throw new ArgumentNullException("dom");
-        if (vd == null)
-            throw new ArgumentNullException("vd");
+        ArgumentNullException.ThrowIfNull(dom);
+        ArgumentNullException.ThrowIfNull(vd);
 
         if (Symbol == Symbol.Assign)
             ReadCode();
@@ -2408,7 +2405,7 @@ internal class DdlParser
     /// <summary>
     /// Determines the name/text of the given symbol.
     /// </summary>
-    private string GetSymbolText(Symbol docSym)
+    private static string GetSymbolText(Symbol docSym)
     {
         return KeyWords.NameFromSymbol(docSym);
     }
@@ -2416,16 +2413,15 @@ internal class DdlParser
     /// <summary>
     /// Returns whether the specified type is a valid SpaceType.
     /// </summary>
-    private bool IsSpaceType(string type)
+    private static bool IsSpaceType(string type)
     {
-        if (type == null)
-            throw new ArgumentNullException("type");
+        ArgumentNullException.ThrowIfNull(type);
         if (type == "")
-            throw new ArgumentException("type");
+            throw new ArgumentException("A symbol name must not be empty.", nameof(type));
 
         if (Enum.IsDefined(typeof(SymbolName), type))
         {
-            SymbolName symbolName = (SymbolName)Enum.Parse(typeof(SymbolName), type); // symbols are case sensitive
+            SymbolName symbolName = Enum.Parse<SymbolName>(type); // symbols are case sensitive
             switch (symbolName)
             {
                 case SymbolName.Blank:
@@ -2443,16 +2439,15 @@ internal class DdlParser
     /// <summary>
     /// Returns whether the specified type is a valid enum for \symbol.
     /// </summary>
-    private bool IsSymbolType(string type)
+    private static bool IsSymbolType(string type)
     {
-        if (type == null)
-            throw new ArgumentNullException("type");
+        ArgumentNullException.ThrowIfNull(type);
         if (type == "")
-            throw new ArgumentException("type");
+            throw new ArgumentException("A symbol name must not be empty.", nameof(type));
 
         if (Enum.IsDefined(typeof(SymbolName), type))
         {
-            SymbolName symbolName = (SymbolName)Enum.Parse(typeof(SymbolName), type); // symbols are case sensitive
+            SymbolName symbolName = Enum.Parse<SymbolName>(type); // symbols are case sensitive
             switch (symbolName)
             {
                 case SymbolName.Euro:
@@ -2573,7 +2568,7 @@ internal class DdlParser
     /// Throws a DdlParserException with that error message and the Exception as the inner exception.
     /// </summary>
     [DoesNotReturn]
-    private void ThrowParserException(Exception innerException, DomMsgID errorCode, params object[] parms)
+    private static void ThrowParserException(Exception innerException, DomMsgID errorCode, params object[] parms)
     {
         string message = DomSR.FormatMessage(errorCode, parms);
         throw new DdlParserException(message, innerException);

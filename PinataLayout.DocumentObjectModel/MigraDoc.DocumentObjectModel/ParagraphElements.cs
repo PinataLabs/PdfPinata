@@ -76,8 +76,7 @@ public partial class ParagraphElements : DocumentObjectCollection
     /// <returns>Returns a new Text object.</returns>
     public Text AddText(string text)
     {
-        if (text == null)
-            throw new ArgumentNullException("text");
+        ArgumentNullException.ThrowIfNull(text);
         Text txt = null;
         string[] lines = text.Split('\n');
         int lineCount = lines.Length;

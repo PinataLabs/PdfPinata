@@ -137,6 +137,7 @@ public abstract class VisitorBase : DocumentObjectVisitor
       FlattenListInfo(format.ListInfo, refFormat.listInfo);
   }
 
+  #pragma warning disable CA1822 // Protected on an unsealed public visitor: making it static would change the public API.
   /// <summary>Fills in every list value left unset from <paramref name="refListInfo"/>.</summary>
   protected void FlattenListInfo(ListInfo listInfo, ListInfo refListInfo) =>
     FlattenSimpleValues(listInfo, refListInfo);
@@ -148,7 +149,9 @@ public abstract class VisitorBase : DocumentObjectVisitor
   /// <summary>Fills in every shading value left unset from <paramref name="refShading"/>.</summary>
   protected void FlattenShading(Shading shading, Shading refShading) =>
     FlattenSimpleValues(shading, refShading);
+  #pragma warning restore CA1822
 
+  #pragma warning disable CA1822 // Protected on an unsealed public visitor: making it static would change the public API.
   /// <summary>
   /// Returns a border with every value left unset filled in from the <see cref="Borders"/> collection
   /// holding it, creating the border first if there is none.
@@ -202,6 +205,7 @@ public abstract class VisitorBase : DocumentObjectVisitor
     shading.parent = owner;
     return shading;
   }
+  #pragma warning restore CA1822
 
   /// <summary>Fills in every border value left unset from <paramref name="refBorders"/>.</summary>
   protected void FlattenBorders(Borders borders, Borders refBorders)
@@ -230,6 +234,7 @@ public abstract class VisitorBase : DocumentObjectVisitor
     }
   }
 
+  #pragma warning disable CA1822 // Protected on an unsealed public visitor: making it static would change the public API.
   /// <summary>Fills in every value of a single border left unset from <paramref name="refBorder"/>.</summary>
   protected void FlattenBorder(Border border, Border refBorder) =>
     FlattenSimpleValues(border, refBorder);
@@ -345,6 +350,7 @@ public abstract class VisitorBase : DocumentObjectVisitor
         lineFormat.width = refLineFormat.width;
     }
   }
+  #pragma warning restore CA1822
 
   /// <summary>Flattens a chart axis. Empty: an axis takes its formatting from the chart it is drawn in.</summary>
   protected void FlattenAxis(Axis axis)
@@ -375,6 +381,7 @@ public abstract class VisitorBase : DocumentObjectVisitor
     //      axis.title;
   }
 
+  #pragma warning disable CA1822 // Protected on an unsealed public visitor: making it static would change the public API.
   /// <summary>Flattens a plot area. Empty: a plot area has nothing to inherit.</summary>
   protected void FlattenPlotArea(PlotArea plotArea)
   {
@@ -384,6 +391,7 @@ public abstract class VisitorBase : DocumentObjectVisitor
   protected void FlattenDataLabel(DataLabel dataLabel)
   {
   }
+  #pragma warning restore CA1822
 
 
   #region Chart
@@ -895,7 +903,7 @@ public abstract class VisitorBase : DocumentObjectVisitor
   }
 
 
-  private DocumentObject GetDocumentElementHolder(DocumentObject docObj)
+  private static DocumentObject GetDocumentElementHolder(DocumentObject docObj)
   {
     DocumentElements docEls = (DocumentElements)docObj.parent;
     return docEls.parent;

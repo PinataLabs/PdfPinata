@@ -49,7 +49,7 @@ public class ImageHelper
   {
     try
     {
-      List<string> subfolders = new List<string>(imagePath.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries));
+      List<string> subfolders = new List<string>(imagePath.Split(';', StringSplitOptions.RemoveEmptyEntries));
       subfolders.Add("");
 
       foreach (string subfolder in subfolders)
@@ -74,7 +74,7 @@ public class ImageHelper
   /// </summary>
   public static bool InSubfolder(string root, string filename, string imagePath, string referenceFilename)
   {
-    List<string> subfolders = new List<string>(imagePath.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries));
+    List<string> subfolders = new List<string>(imagePath.Split(';', StringSplitOptions.RemoveEmptyEntries));
     subfolders.Add("");
 
     foreach (string subfolder in subfolders)
@@ -98,8 +98,7 @@ public class ImageHelper
   public static string ExtractPageNumber(string path, out int pageNumber)
   {
     // Note: duplicated from class XPdfForm
-    if (path == null)
-      throw new ArgumentNullException("path");
+    ArgumentNullException.ThrowIfNull(path);
 
     pageNumber = 0;
     int length = path.Length;
@@ -115,7 +114,7 @@ public class ImageHelper
         if (length > 0 && path[length] == '#')
         {
           // must have at least one dot left of colon to distinguish from e.g. '#123'
-          if (path.IndexOf('.') != -1)
+          if (path.Contains('.'))
           {
             pageNumber = Int32.Parse(path.Substring(length + 1));
             path = path.Substring(0, length);

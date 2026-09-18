@@ -104,8 +104,7 @@ public partial class Styles : DocumentObjectCollection, IVisitable
     /// <returns>Index or -1 if not exists.</returns>
     public int GetIndex(string styleName)
     {
-        if (styleName == null)
-            throw new ArgumentNullException("styleName");
+        ArgumentNullException.ThrowIfNull(styleName);
 
         int count = Count;
         for (int index = 0; index < count; ++index)
@@ -146,8 +145,7 @@ public partial class Styles : DocumentObjectCollection, IVisitable
     /// </summary>
     public override void Add(DocumentObject value)
     {
-        if (value == null)
-            throw new ArgumentNullException("value");
+        ArgumentNullException.ThrowIfNull(value);
 
         Style style = value as Style;
         if (style == null)
@@ -424,7 +422,7 @@ public partial class Styles : DocumentObjectCollection, IVisitable
     /// <summary>
     /// Ensures that base styles are visited first.
     /// </summary>
-    void VisitStyle(Hashtable visitedStyles, Style style, DocumentObjectVisitor visitor, bool visitChildren)
+    static void VisitStyle(Hashtable visitedStyles, Style style, DocumentObjectVisitor visitor, bool visitChildren)
     {
         if (!visitedStyles.Contains(style))
         {

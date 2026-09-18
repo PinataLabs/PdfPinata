@@ -59,9 +59,9 @@ public struct Unit : IFormattable, INullableValue
     /// </summary>
     public Unit(double value, UnitType type)
     {
-        if (!Enum.IsDefined(typeof(UnitType), type))
+        if (!Enum.IsDefined(type))
             //throw new InvalidEnumArgumentException("type", (int)type, type.GetType());
-            throw new ArgumentException("type");
+            throw new ArgumentException($"'{type}' is not a defined value of {nameof(UnitType)}.", nameof(type));
         this.value = (float)value;
         this.type = type;
         initialized = true;
@@ -85,8 +85,7 @@ public struct Unit : IFormattable, INullableValue
     /// </summary>
     void INullableValue.SetValue(object value)
     {
-        if (value == null)
-            throw new ArgumentNullException("value");
+        ArgumentNullException.ThrowIfNull(value);
 
         if (value is Unit)
             this = (Unit)value;
@@ -495,12 +494,14 @@ public struct Unit : IFormattable, INullableValue
     /// </exception>
     public static implicit operator Unit(string value)
     {
+        #pragma warning disable S3877 // Deliberate: a null string has no Unit, and the documented exception says why the caller wrote one.
         if (value == null)
             throw new ArgumentNullException(nameof(value),
                 "A null string cannot be converted to a Unit. If this came from writing "
                 + "'unit == null', that comparison is always meaningless: Unit is a value type, and "
                 + "the implicit string conversion is the only reason it compiles at all. Test "
                 + "unit.IsEmpty instead.");
+        #pragma warning restore S3877
 
         Unit unit = Zero;
         value = value.Trim();
@@ -664,7 +665,7 @@ public struct Unit : IFormattable, INullableValue
         if (this.type == type)
             return;
 
-        if (!Enum.IsDefined(typeof(UnitType), type))
+        if (!Enum.IsDefined(type))
             throw new ArgumentException(DomSR.InvalidUnitType(type.ToString()));
 
         switch (type)

@@ -102,8 +102,7 @@ public partial class TabStops : DocumentObjectCollection
   /// </summary>
   public TabStop AddTabStop(TabStop tabStop)
   {
-    if (tabStop == null)
-      throw new ArgumentNullException("tabStop");
+    ArgumentNullException.ThrowIfNull(tabStop);
 
     if (TabStopExists(tabStop.Position))
     {
