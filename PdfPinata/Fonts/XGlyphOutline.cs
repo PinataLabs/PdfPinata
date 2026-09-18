@@ -95,8 +95,7 @@ public sealed class XGlyphOutline
     /// </summary>
     public XGlyphOutline(IEnumerable<XGlyphSegment> segments)
     {
-        if (segments == null)
-            throw new ArgumentNullException(nameof(segments));
+        ArgumentNullException.ThrowIfNull(segments);
 
         Segments = new List<XGlyphSegment>(segments);
     }

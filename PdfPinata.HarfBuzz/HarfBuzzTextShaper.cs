@@ -51,14 +51,12 @@ public sealed class HarfBuzzTextShaper : ITextShaper, IDisposable
     public ShapedRun Shape(ReadOnlySpan<char> text, ShapingFont font, XTextDirection direction,
         string script, string language)
     {
-        if (font == null)
-            throw new ArgumentNullException(nameof(font));
+        ArgumentNullException.ThrowIfNull(font);
 
         // The early answer, not the guarantee. A thread can pass this and then be overtaken by a
         // Dispose on another; what makes that safe is that ShapedFace refuses to shape once it has
         // been freed, under the same lock it shapes with.
-        if (_disposed)
-            throw new ObjectDisposedException(nameof(HarfBuzzTextShaper));
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         if (text.Length == 0)
             return ShapedRun.Empty(font.UnitsPerEm, direction);
@@ -196,8 +194,10 @@ public sealed class HarfBuzzTextShaper : ITextShaper, IDisposable
                 // the call began - and is seen here - or waits until the call is over. The shaper's
                 // own flag cannot give this guarantee: it is read before the face is resolved, and
                 // everything after that read is a window.
+                #pragma warning disable CA1513 // ThrowIf would name this private face, and the object the caller holds and disposed is the shaper.
                 if (_freed)
                     throw new ObjectDisposedException(nameof(HarfBuzzTextShaper));
+                #pragma warning restore CA1513
 
                 using var buffer = new Buffer();
                 buffer.AddUtf16(text);

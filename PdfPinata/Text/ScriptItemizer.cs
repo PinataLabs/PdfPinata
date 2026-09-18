@@ -40,8 +40,7 @@ internal static class ScriptItemizer
     /// </summary>
     public static IReadOnlyList<ScriptRun> Itemize(string text)
     {
-        if (text == null)
-            throw new ArgumentNullException(nameof(text));
+        ArgumentNullException.ThrowIfNull(text);
 
         return Itemize(text, 0, text.Length);
     }
@@ -62,8 +61,7 @@ internal static class ScriptItemizer
     /// <param name="length">How many characters of <paramref name="text"/> it covers.</param>
     public static IReadOnlyList<ScriptRun> Itemize(string text, int start, int length)
     {
-        if (text == null)
-            throw new ArgumentNullException(nameof(text));
+        ArgumentNullException.ThrowIfNull(text);
         if (start < 0 || start > text.Length)
             throw new ArgumentOutOfRangeException(nameof(start));
         if (length < 0 || length > text.Length - start)

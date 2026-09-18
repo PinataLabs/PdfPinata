@@ -130,7 +130,7 @@ internal class OpenTypeFontfaceCache
         Array.Sort(keys, StringComparer.OrdinalIgnoreCase);
         foreach (string key in keys)
             state.AppendFormat("  {0}: {1}\n", key, Singleton._fontfaceCache[key].DebuggerDisplay);
-        state.Append("\n");
+        state.Append('\n');
         return state.ToString();
     }
 

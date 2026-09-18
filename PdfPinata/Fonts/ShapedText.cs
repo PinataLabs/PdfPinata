@@ -57,8 +57,7 @@ sealed class ShapedText
     /// </summary>
     internal static ShapedText Of(ShapedRun run, XFont font, int length)
     {
-        if (run == null)
-            throw new ArgumentNullException(nameof(run));
+        ArgumentNullException.ThrowIfNull(run);
 
         return new ShapedText(new[] { new ShapedSegment(run, font, 0, length) });
     }
@@ -136,8 +135,7 @@ readonly struct ShapedSegment
     /// </remarks>
     internal string TextIn(string text)
     {
-        if (text == null)
-            throw new ArgumentNullException(nameof(text));
+        ArgumentNullException.ThrowIfNull(text);
 
         return Start == 0 && Length == text.Length ? text : text.Substring(Start, Length);
     }

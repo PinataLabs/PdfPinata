@@ -72,8 +72,7 @@ public static class GlobalFontSettings
         set
         {
             // Cannot remove font resolver.
-            if (value == null)
-                throw new ArgumentNullException();
+            ArgumentNullException.ThrowIfNull(value);
 
             try
             {

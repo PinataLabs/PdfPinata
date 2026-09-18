@@ -31,8 +31,7 @@ public sealed class FontFallbackList : IFontFallback
     /// </summary>
     public FontFallbackList(params string[] familyNames)
     {
-        if (familyNames == null)
-            throw new ArgumentNullException(nameof(familyNames));
+        ArgumentNullException.ThrowIfNull(familyNames);
 
         _families = (string[])familyNames.Clone();
 

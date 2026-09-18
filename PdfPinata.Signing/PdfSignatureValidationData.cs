@@ -27,12 +27,9 @@ public static class PdfSignatureValidationData
     /// </summary>
     public static void Add(PdfDocument document, Stream output, IRevocationDataProvider provider)
     {
-        if (document == null)
-            throw new ArgumentNullException(nameof(document));
-        if (output == null)
-            throw new ArgumentNullException(nameof(output));
-        if (provider == null)
-            throw new ArgumentNullException(nameof(provider));
+        ArgumentNullException.ThrowIfNull(document);
+        ArgumentNullException.ThrowIfNull(output);
+        ArgumentNullException.ThrowIfNull(provider);
 
         var certificates = new List<byte[]>();
         var ocspResponses = new List<byte[]>();

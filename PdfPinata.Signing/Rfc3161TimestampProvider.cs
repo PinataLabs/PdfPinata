@@ -48,8 +48,7 @@ public sealed class Rfc3161TimestampProvider : ITimestampProvider, IDisposable
     /// <inheritdoc/>
     public byte[] GetTimestamp(byte[] messageImprint, HashAlgorithmName hashAlgorithm)
     {
-        if (messageImprint == null)
-            throw new ArgumentNullException(nameof(messageImprint));
+        ArgumentNullException.ThrowIfNull(messageImprint);
 
         var request = Rfc3161TimestampRequest.CreateFromHash(messageImprint, hashAlgorithm);
 

@@ -82,7 +82,7 @@ public sealed class ImageSharpGlyphOutlineProvider : IGlyphOutlineProvider
     static double BaselineOf(Font font, string text)
     {
         FontMetrics metrics = font.FontMetrics;
-        IMetricsHeader header = metrics.HorizontalMetrics;
+        HorizontalMetrics header = metrics.HorizontalMetrics;
 
         double halfLeading = (header.LineHeight - metrics.UnitsPerEm) / 2.0;
         double aboveTheAscender = OvershootOf(metrics, text);

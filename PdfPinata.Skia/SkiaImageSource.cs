@@ -20,8 +20,7 @@ public class SkiaImageSource
     /// </summary>
     public static IImageSource FromSkiaBitmap(SKBitmap bitmap, bool transparent, int? quality = 75)
     {
-        if (bitmap == null)
-            throw new ArgumentNullException(nameof(bitmap));
+        ArgumentNullException.ThrowIfNull(bitmap);
 
         string name = "*" + Guid.NewGuid().ToString("B");
         return new SkiaImageSourceImpl(name, bitmap, (int)quality, transparent);
@@ -53,7 +52,7 @@ public class SkiaImageSource
     }
 
 
-    private static IImageSource Decode(string name, SKData data, int? quality)
+    private static SkiaImageSourceImpl Decode(string name, SKData data, int? quality)
     {
         if (data == null)
             throw new InvalidOperationException("Unable to read image data for '" + name + "'.");

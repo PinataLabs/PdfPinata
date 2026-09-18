@@ -69,8 +69,7 @@ public sealed class OcspRevocationDataProvider : IRevocationDataProvider, IDispo
     /// <inheritdoc/>
     public RevocationData GetRevocationData(X509Certificate2 certificate, X509Certificate2Collection chain)
     {
-        if (certificate == null)
-            throw new ArgumentNullException(nameof(certificate));
+        ArgumentNullException.ThrowIfNull(certificate);
 
         var responderUri = OcspResponderOf(certificate);
         if (responderUri == null)

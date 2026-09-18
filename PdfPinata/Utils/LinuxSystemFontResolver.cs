@@ -26,22 +26,32 @@ public static class LinuxSystemFontResolver
     const string libfontconfig = "libfontconfig.so.1";
 
 
+    #pragma warning disable SYSLIB1054 // netstandard2.1 has no LibraryImport, and one declaration serves all three target frameworks.
     [DllImport(libfontconfig)] private static extern IntPtr FcInitLoadConfigAndFonts();
+    #pragma warning restore SYSLIB1054
 
     static readonly Lazy<IntPtr> fcConfig = new(FcInitLoadConfigAndFonts);
 
 
+    #pragma warning disable CA1401 // Public API: these bindings shipped public, and hiding them would break any caller that uses them.
+    #pragma warning disable SYSLIB1054 // netstandard2.1 has no LibraryImport, and one declaration serves all three target frameworks.
     /// <summary>Creates an empty fontconfig pattern. Binds to <c>FcPatternCreate</c>.</summary>
     [DllImport(libfontconfig)] public static extern FcPatternHandle FcPatternCreate();
+    #pragma warning disable CA2101 // fontconfig takes a UTF-8 char*, which no UTF-16 marshaling can give, and LPStr is UTF-8 on every platform it runs on.
     /// <summary>Reads a string property out of a pattern. Binds to <c>FcPatternGetString</c>.</summary>
     [DllImport(libfontconfig)] public static extern int FcPatternGetString(IntPtr p, [MarshalAs(UnmanagedType.LPStr)] string obj, int n, ref IntPtr s);
+    #pragma warning restore CA2101
     /// <summary>Releases a pattern. Binds to <c>FcPatternDestroy</c>.</summary>
     [DllImport(libfontconfig)] public static extern void FcPatternDestroy(IntPtr pattern);
+    #pragma warning restore SYSLIB1054
+    #pragma warning restore CA1401
 
     /// <summary>A handle to a fontconfig pattern, released when disposed.</summary>
     public class FcPatternHandle : SafeHandle
     {
+        #pragma warning disable CA1419 // A public constructor would widen the public API, and DllImport's marshaller reaches this private one by reflection.
         FcPatternHandle() : base(IntPtr.Zero, true) { }
+        #pragma warning restore CA1419
 
         /// <summary>Gets whether this handle holds nothing to release.</summary>
         public override bool IsInvalid => handle == IntPtr.Zero;
@@ -55,17 +65,25 @@ public static class LinuxSystemFontResolver
     }
 
 
+    #pragma warning disable CA1401 // Public API: these bindings shipped public, and hiding them would break any caller that uses them.
+    #pragma warning disable SYSLIB1054 // netstandard2.1 has no LibraryImport, and one declaration serves all three target frameworks.
     /// <summary>Creates an empty fontconfig object set. Binds to <c>FcObjectSetCreate</c>.</summary>
     [DllImport(libfontconfig)] public static extern FcObjectSetHandle FcObjectSetCreate();
+    #pragma warning disable CA2101 // fontconfig takes a UTF-8 char*, which no UTF-16 marshaling can give, and LPStr is UTF-8 on every platform it runs on.
     /// <summary>Adds a property name to an object set. Binds to <c>FcObjectSetAdd</c>.</summary>
     [DllImport(libfontconfig)] public static extern int FcObjectSetAdd(FcObjectSetHandle os, [MarshalAs(UnmanagedType.LPStr)] string obj);
+    #pragma warning restore CA2101
     /// <summary>Releases an object set. Binds to <c>FcObjectSetDestroy</c>.</summary>
     [DllImport(libfontconfig)] public static extern void FcObjectSetDestroy(IntPtr os);
+    #pragma warning restore SYSLIB1054
+    #pragma warning restore CA1401
 
     /// <summary>A handle to a fontconfig object set, released when disposed.</summary>
     public class FcObjectSetHandle : SafeHandle
     {
+        #pragma warning disable CA1419 // A public constructor would widen the public API, and DllImport's marshaller reaches this private one by reflection.
         FcObjectSetHandle() : base(IntPtr.Zero, true) { }
+        #pragma warning restore CA1419
 
         /// <summary>Gets whether this handle holds nothing to release.</summary>
         public override bool IsInvalid => handle == IntPtr.Zero;
@@ -82,17 +100,21 @@ public static class LinuxSystemFontResolver
         {
             var os = FcObjectSetCreate();
             foreach (var obj in objs)
-                FcObjectSetAdd(os, obj);
-            FcObjectSetAdd(os, "");
+                _ = FcObjectSetAdd(os, obj);
+            _ = FcObjectSetAdd(os, "");
             return os;
         }
     }
 
 
+    #pragma warning disable CA1401 // Public API: these bindings shipped public, and hiding them would break any caller that uses them.
+    #pragma warning disable SYSLIB1054 // netstandard2.1 has no LibraryImport, and one declaration serves all three target frameworks.
     /// <summary>Lists the fonts matching a pattern. Binds to <c>FcFontList</c>.</summary>
     [DllImport(libfontconfig)] public static extern FcFontSetHandle FcFontList(IntPtr config, FcPatternHandle pattern, FcObjectSetHandle os);
     /// <summary>Releases a font set. Binds to <c>FcFontSetDestroy</c>.</summary>
     [DllImport(libfontconfig)] public static extern void FcFontSetDestroy(IntPtr fs);
+    #pragma warning restore SYSLIB1054
+    #pragma warning restore CA1401
 
     /// <summary>The layout of fontconfig's <c>FcFontSet</c>, as marshalled back from a font set handle.</summary>
     public struct FcFontSet
@@ -108,7 +130,9 @@ public static class LinuxSystemFontResolver
     /// <summary>A handle to a fontconfig font set, released when disposed.</summary>
     public class FcFontSetHandle : SafeHandle
     {
+        #pragma warning disable CA1419 // A public constructor would widen the public API, and DllImport's marshaller reaches this private one by reflection.
         FcFontSetHandle() : base(IntPtr.Zero, true) { }
+        #pragma warning restore CA1419
 
         /// <summary>Gets whether this handle holds nothing to release.</summary>
         public override bool IsInvalid => handle == IntPtr.Zero;
@@ -193,7 +217,7 @@ public static class LinuxSystemFontResolver
     }
 
 
-    static IEnumerable<string> ResolveFallback()
+    static string[] ResolveFallback()
     {
         var fontList = new List<string>();
 
@@ -218,12 +242,14 @@ public static class LinuxSystemFontResolver
         return fontList.ToArray();
     }
 
-    static IEnumerable<string> SearchPaths()
+    static List<string> SearchPaths()
     {
         var dirs = new List<string>();
         try
         {
+            #pragma warning disable SYSLIB1045 // netstandard2.1 has no GeneratedRegex, and this runs only when fontconfig cannot be loaded.
             Regex confRegex = new Regex("<dir>(?<dir>.*)</dir>", RegexOptions.Compiled);
+            #pragma warning restore SYSLIB1045
             using (var reader = new StreamReader(File.OpenRead("/etc/fonts/fonts.conf")))
             {
                 string line;
@@ -234,9 +260,11 @@ public static class LinuxSystemFontResolver
                         continue;
 
                     string path = match.Groups["dir"].Value.Trim();
-                    if (path.StartsWith("~"))
+                    if (path.StartsWith('~'))
                     {
+                        #pragma warning disable CA1845 // netstandard2.1 has no span overload of string.Concat, and this line is shared by all three target frameworks.
                         path = Environment.GetEnvironmentVariable("HOME") + path.Substring(1);
+                        #pragma warning restore CA1845
                     }
 
                     dirs.Add(path);

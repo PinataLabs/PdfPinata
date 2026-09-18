@@ -38,8 +38,7 @@ public static class PdfSignatureVerifier
     /// </summary>
     public static IReadOnlyList<PdfSignatureVerification> Verify(byte[] document)
     {
-        if (document == null)
-            throw new ArgumentNullException(nameof(document));
+        ArgumentNullException.ThrowIfNull(document);
 
         using var stream = new MemoryStream(document, false);
         var opened = PdfReader.Open(stream, PdfDocumentOpenMode.ReadOnly);
@@ -56,8 +55,7 @@ public static class PdfSignatureVerifier
     /// </summary>
     public static IReadOnlyList<PdfSignatureVerification> Verify(Stream document)
     {
-        if (document == null)
-            throw new ArgumentNullException(nameof(document));
+        ArgumentNullException.ThrowIfNull(document);
 
         using var buffer = new MemoryStream();
         document.CopyTo(buffer);
