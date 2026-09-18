@@ -1,3 +1,4 @@
+using System.Linq;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel.IO;
 using PinataLayout.DocumentObjectModel.Shapes.Charts;
@@ -314,5 +315,68 @@ public class DdlSerializationTests
         again.LastSection.Elements.Count.Should().Be(3);
         again.LastSection.Headers.Primary.Elements.Count.Should().Be(1);
         again.LastSection.Footers.Primary.Elements.Count.Should().Be(1);
+    }
+
+    // ----- Section.Serialize -----------------------------------------------------------------------------
+
+    // A lone plain paragraph is written without its \paragraph keyword, and the parser takes bare
+    // text only straight after a section's opening brace - so after a header or footer the section
+    // has to write the keyword out, or it closes early and the body is read as trailing garbage.
+
+    static string TextOf(DocumentObject element) =>
+        string.Concat(((Paragraph)element).Elements.OfType<Text>().Select(t => t.Content));
+
+    [Fact]
+    public void ALonePlainParagraphAfterAPrimaryHeaderSurvives()
+    {
+        var document = new Document();
+        var section = document.AddSection();
+        section.Headers.Primary.AddParagraph("H");
+        section.AddParagraph("Body");
+
+        var again = RoundTrip(document).LastSection;
+
+        TextOf(again.Headers.Primary.Elements[0]!).Should().Be("H");
+        again.Elements.Count.Should().Be(1);
+        TextOf(again.Elements[0]!).Should().Be("Body");
+    }
+
+    [Fact]
+    public void ALonePlainParagraphAfterAPrimaryFooterSurvives()
+    {
+        var document = new Document();
+        var section = document.AddSection();
+        section.Footers.Primary.AddParagraph("F");
+        section.AddParagraph("Body");
+
+        var again = RoundTrip(document).LastSection;
+
+        TextOf(again.Footers.Primary.Elements[0]!).Should().Be("F");
+        again.Elements.Count.Should().Be(1);
+        TextOf(again.Elements[0]!).Should().Be("Body");
+    }
+
+    [Fact]
+    public void ALonePlainParagraphAfterAnEvenPageHeaderSurvives()
+    {
+        var document = new Document();
+        var section = document.AddSection();
+        section.Headers.EvenPage.AddParagraph("E");
+        section.AddParagraph("Body");
+
+        var again = RoundTrip(document).LastSection;
+
+        TextOf(again.Headers.EvenPage.Elements[0]!).Should().Be("E");
+        again.Elements.Count.Should().Be(1);
+        TextOf(again.Elements[0]!).Should().Be("Body");
+    }
+
+    [Fact]
+    public void ALonePlainParagraphInASectionWithNoHeaderIsStillWrittenAsBareText()
+    {
+        var document = new Document();
+        document.AddSection().AddParagraph("Body");
+
+        DdlWriter.WriteToString(document).Should().NotContain("\\paragraph");
     }
 }

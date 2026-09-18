@@ -209,10 +209,17 @@ public partial class DocumentElements : DocumentObjectCollection, IVisitable
     /// <summary>
     /// Converts DocumentElements into DDL.
     /// </summary>
-    internal override void Serialize(Serializer serializer)
+    internal override void Serialize(Serializer serializer) => Serialize(serializer, omitParagraphKeyword: true);
+
+    /// <summary>
+    /// Converts DocumentElements into DDL. A lone plain paragraph is written as bare text only when
+    /// <paramref name="omitParagraphKeyword"/> allows it: the parser accepts bare text only straight
+    /// after its container's opening brace, and a section writes its headers and footers first.
+    /// </summary>
+    internal void Serialize(Serializer serializer, bool omitParagraphKeyword)
     {
         int count = Count;
-        if (count == 1 && this[0] is Paragraph)
+        if (omitParagraphKeyword && count == 1 && this[0] is Paragraph)
         {
             // Omit keyword if paragraph has no attributes set.
             Paragraph paragraph = (Paragraph)this[0];

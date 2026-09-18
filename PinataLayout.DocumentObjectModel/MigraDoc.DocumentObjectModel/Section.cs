@@ -337,12 +337,14 @@ public partial class Section : DocumentObject, IVisitable
         serializer.EndAttributes(pos);
 
         serializer.BeginContent();
+        bool wroteHeadersOrFooters = !IsNull("headers") || !IsNull("footers");
         if (!IsNull("headers"))
             headers.Serialize(serializer);
         if (!IsNull("footers"))
             footers.Serialize(serializer);
+        // Bare paragraph text is read only straight after the section's opening brace.
         if (!IsNull("elements"))
-            elements.Serialize(serializer);
+            elements.Serialize(serializer, omitParagraphKeyword: !wroteHeadersOrFooters);
 
         serializer.EndContent();
     }
