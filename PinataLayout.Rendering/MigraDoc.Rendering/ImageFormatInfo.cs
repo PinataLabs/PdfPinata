@@ -1,4 +1,4 @@
-#region MigraDoc - Creating Documents on the Fly
+#region Copyright
 //
 // Authors:
 //   Klaus Potzesny (mailto:Klaus.Potzesny@PdfPinata.com)
@@ -30,7 +30,7 @@
 
 using System;
 using PdfPinata.Drawing;
-using static PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes.ImageSource;
+using static PinataLayout.DocumentObjectModel.Shapes.ImageSource;
 
 namespace PinataLayout.Rendering;
 

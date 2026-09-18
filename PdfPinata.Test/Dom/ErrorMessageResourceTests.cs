@@ -130,7 +130,7 @@ public class ErrorMessageResourceTests
     ///   <c>InternalsVisibleTo</c>, so they are reached by name the way AppResources above is.
     /// </summary>
     static readonly Type DomSRType = typeof(Document).Assembly.GetType(
-        "PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Resources.DomSR", true);
+        "PinataLayout.DocumentObjectModel.Resources.DomSR", true);
 
     static readonly Type MsgIdType = typeof(Document).Assembly.GetType(
         "PinataLayout.DocumentObjectModel.DomMsgID", true);
@@ -142,7 +142,7 @@ public class ErrorMessageResourceTests
     static IReadOnlyList<KeyValuePair<string, string>> Messages()
     {
         var resources = typeof(Document).Assembly.GetType(
-            "PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Resources.AppResources", true);
+            "PinataLayout.DocumentObjectModel.Resources.AppResources", true);
 
         return resources
             .GetProperties(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public)

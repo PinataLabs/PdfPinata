@@ -8,7 +8,7 @@ namespace PdfPinata.Fonts;
 /// </summary>
 /// <remarks>
 /// This is the third seam of the backend split, beside <see cref="GlobalFontSettings.FontResolver"/>
-/// and <see cref="PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes.ImageSource.ImageSourceImpl"/>,
+/// and <see cref="PinataLayout.DocumentObjectModel.Shapes.ImageSource.ImageSourceImpl"/>,
 /// and it exists for the same reason: reading the contours out of a font means a <c>glyf</c>
 /// decoder for TrueType and a Type 2 charstring interpreter for PostScript outlines, and the core
 /// package carries no font dependency to do either with. Both shipped backends already reference a

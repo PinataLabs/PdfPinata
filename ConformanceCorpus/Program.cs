@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-using PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes;
+using PinataLayout.DocumentObjectModel.Shapes;
 using PdfPinata.Fonts;
 using PdfPinata.Skia;
 using PdfPinata.Utils;

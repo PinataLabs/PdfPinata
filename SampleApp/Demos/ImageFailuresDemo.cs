@@ -2,12 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using PinataLayout.DocumentObjectModel;
-using PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes;
 using PinataLayout.DocumentObjectModel.Shapes;
 using PinataLayout.Rendering;
 using PdfPinata.Pdf;
 using SampleApp.Infrastructure;
-using static PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes.ImageSource;
+using static PinataLayout.DocumentObjectModel.Shapes.ImageSource;
 
 namespace SampleApp.Demos;
 

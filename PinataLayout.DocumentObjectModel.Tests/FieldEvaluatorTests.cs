@@ -182,7 +182,7 @@ public class FieldEvaluatorTests
     }
 
     /// <summary>
-    ///   One case per type in MigraDoc.DocumentObjectModel.Fields, because the predicate this
+    ///   One case per type in PinataLayout.DocumentObjectModel.Fields, because the predicate this
     ///   replaces tested for <c>DocumentInfo</c> - the document's own info object, which is never a
     ///   paragraph's leaf - and so never recognised the <see cref="InfoField"/> that is. A heading
     ///   built with one lost that text from its outline entry, and nothing said so.

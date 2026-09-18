@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using PinataLayout.DocumentObjectModel;
-using PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes;
 using PinataLayout.DocumentObjectModel.Shapes;
 using PinataLayout.DocumentObjectModel.Tables;
 using PinataLayout.Rendering;

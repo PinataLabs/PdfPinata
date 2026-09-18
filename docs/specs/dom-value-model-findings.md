@@ -219,8 +219,8 @@ always have generated code for.
 
 | file | line |
 |---|---|
-| `MigraDoc.DocumentObjectModel/Paragraph.cs` | 608 |
-| `MigraDoc.DocumentObjectModel.Visitors/PdfFlattenVisitor.cs` | 92 |
+| `PinataLayout.DocumentObjectModel/Paragraph.cs` | 608 |
+| `PinataLayout.DocumentObjectModel.Visitors/PdfFlattenVisitor.cs` | 92 |
 | `MigraDoc.Rendering/FormattedCell.cs` | 172 |
 | `MigraDoc.Rendering/FormattedDocument.cs` | 254 |
 | `MigraDoc.Rendering/FormattedHeaderFooter.cs` | 88 |

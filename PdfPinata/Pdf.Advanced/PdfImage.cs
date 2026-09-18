@@ -31,7 +31,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes;
+using PinataLayout.DocumentObjectModel.Shapes;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf.Filters;
 

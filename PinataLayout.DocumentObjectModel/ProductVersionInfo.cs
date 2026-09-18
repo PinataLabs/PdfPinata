@@ -1,4 +1,4 @@
-﻿#region MigraDoc - Creating Documents on the Fly
+﻿#region Copyright
 //
 // Copyright (c) 2001-2009 empira Software GmbH, Cologne (Germany)
 //

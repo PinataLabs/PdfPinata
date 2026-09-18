@@ -531,7 +531,7 @@ These are from `CLAUDE.md` and they constrain the batches below more than the co
 
 | # | target | where | retires | status |
 |---|---|---|---|---|
-| 0.1 | `Font.ApplyFont(Font, Font)` | `PinataLayout.DocumentObjectModel/MigraDoc.DocumentObjectModel/Font.cs:85` | 3,136 | **deleted** |
+| 0.1 | `Font.ApplyFont(Font, Font)` | `PinataLayout.DocumentObjectModel/PinataLayout.DocumentObjectModel/Font.cs:85` | 3,136 | **deleted** |
 
 The highest CRAP score in the tree, and **nothing calls it**. The overload is `internal`, and the
 one call to `ApplyFont` anywhere in the repository is `ParagraphElements.cs:219`, which calls the

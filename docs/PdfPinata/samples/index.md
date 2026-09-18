@@ -27,15 +27,14 @@ read unset, and none of the sample code below shows them being set:
 ```cs
 using PdfPinata.Fonts;
 using PdfPinata.Utils;
-using PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes;
+using PinataLayout.DocumentObjectModel.Shapes;
 
 GlobalFontSettings.FontResolver = new SkiaFontResolver();     // PdfPinata.Skia
 ImageSource.ImageSourceImpl = new SkiaImageSource();          // and the same for images
 ```
 
 `ImageSource` is a trap for the eye: it ships in the **PdfPinata** assembly but its namespace is
-`PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes`, so registering it needs that
-`using` from code that otherwise has nothing to do with MigraDoc. `PdfPinata.ImageSharp` supplies
+`PinataLayout.DocumentObjectModel.Shapes`, so registering it needs that `using` from code that otherwise has nothing to do with MigraDoc. `PdfPinata.ImageSharp` supplies
 `ImageSharpFontResolver` and `ImageSharpImageSource` in place of the Skia pair.
 
 The font resolver must be set **before any font is created** — the setter throws once one has been.

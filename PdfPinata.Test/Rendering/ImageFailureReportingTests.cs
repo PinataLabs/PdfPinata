@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
-using PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes;
+using PinataLayout.DocumentObjectModel.Shapes;
 using PinataLayout.Rendering;
 using PdfPinata.Test.Helpers;
 using Xunit;
-using static PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes.ImageSource;
+using static PinataLayout.DocumentObjectModel.Shapes.ImageSource;
 
 namespace PdfPinata.Test.Rendering;
 

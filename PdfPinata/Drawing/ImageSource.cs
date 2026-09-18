@@ -4,7 +4,7 @@ using System.IO;
 using PdfPinata.Fonts;
 
 
-namespace PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes;
+namespace PinataLayout.DocumentObjectModel.Shapes;
 
 /// <summary>
 /// The seam through which images are decoded. The core package carries no imaging dependency of
@@ -14,8 +14,8 @@ namespace PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes;
 /// </summary>
 /// <remarks>
 /// This type ships in the <b>PdfPinata</b> assembly but lives in a MigraDoc namespace, so
-/// registering it needs a <c>using PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel
-/// .Shapes;</c> from code that otherwise has nothing to do with MigraDoc.
+/// registering it needs a <c>using PinataLayout.DocumentObjectModel.Shapes;</c> from
+/// code that otherwise has nothing to do with MigraDoc.
 /// </remarks>
 public abstract class ImageSource
 {

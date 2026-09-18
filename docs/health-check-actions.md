@@ -177,8 +177,7 @@ the four `RenderInfo.DocumentObject` overrides, `FormattedDocument.Equals`/`GetH
 ### 3.1 Decide on the `ImageSource` namespace mismatch
 
 `PdfPinata/Drawing/ImageSource.cs` ships in the **PdfPinata** assembly but declares the
-namespace `PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes`. Registering an
-image backend therefore needs a MigraDoc `using` from code with no other MigraDoc involvement.
+namespace `PinataLayout.DocumentObjectModel.Shapes`. Registering an image backend therefore needs a MigraDoc `using` from code with no other MigraDoc involvement.
 `CLAUDE.md` already flags it as a trap for the eye.
 
 - [ ] Decide: keep it (and leave the CLAUDE.md note as the mitigation), or move the type to a

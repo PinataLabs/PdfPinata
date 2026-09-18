@@ -1,6 +1,6 @@
 using System;
 
-namespace PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes;
+namespace PinataLayout.DocumentObjectModel.Shapes;
 
 /// <summary>
 /// The decoded pixels of one image, handed across the <see cref="ImageSource.IImageSource"/> seam.

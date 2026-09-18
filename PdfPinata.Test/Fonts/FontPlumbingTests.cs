@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.Loader;
 using AwesomeAssertions;
-using PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes;
+using PinataLayout.DocumentObjectModel.Shapes;
 using PdfPinata.Drawing;
 using PdfPinata.Fonts;
 using Xunit;
@@ -402,7 +402,7 @@ public class FontPlumbingTests
         var isSet = OnAColdCopyOfTheLibrary(assembly =>
         {
             var imageSourceType = assembly.GetType(
-                "PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes.ImageSource",
+                "PinataLayout.DocumentObjectModel.Shapes.ImageSource",
                 throwOnError: true);
             return imageSourceType.GetProperty("IsImageSourceImplSet").GetValue(null);
         });
