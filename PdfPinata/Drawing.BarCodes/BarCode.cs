@@ -117,7 +117,9 @@ public abstract class BarCode : CodeBase
     public virtual double WideNarrowRatio
     {
         get => 0;
+        #pragma warning disable S3237 // Public API: the base class has no ratio to store, and a derived class that has one overrides this setter.
         set { }
+        #pragma warning restore S3237
     }
 
     /// <summary>

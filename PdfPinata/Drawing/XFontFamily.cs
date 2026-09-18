@@ -145,11 +145,13 @@ public sealed class XFontFamily
     /// <summary>
     /// Indicates whether the specified FontStyle enumeration is available.
     /// </summary>
+    #pragma warning disable CA1822 // Public API: making it static would break every caller that asks a family about its styles.
     public bool IsStyleAvailable(XFontStyle style)
     {
         XGdiFontStyle xStyle = ((XGdiFontStyle)style) & XGdiFontStyle.BoldItalic;
         return false;
     }
+    #pragma warning restore CA1822
 
     /// <summary>
     /// The implementation sigleton of font family;

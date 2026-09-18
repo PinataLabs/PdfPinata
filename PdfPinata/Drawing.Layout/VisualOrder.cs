@@ -59,10 +59,8 @@ public static class VisualOrder
     /// </remarks>
     public static int[] Of(BidiResult resolved, IReadOnlyList<(int Start, int Length)> spans)
     {
-        if (resolved == null)
-            throw new ArgumentNullException(nameof(resolved));
-        if (spans == null)
-            throw new ArgumentNullException(nameof(spans));
+        ArgumentNullException.ThrowIfNull(resolved);
+        ArgumentNullException.ThrowIfNull(spans);
 
         // Where each character ended up, which is the inverse of the order the algorithm answers.
         var placed = new int[resolved.Levels.Count];

@@ -253,7 +253,7 @@ public sealed class XPen
         get
         {
             if (_dashPattern == null)
-                _dashPattern = new double[0];
+                _dashPattern = Array.Empty<double>();
             return _dashPattern;
         }
         set

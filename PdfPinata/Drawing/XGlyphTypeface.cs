@@ -162,7 +162,7 @@ internal sealed class XGlyphTypeface
     void Initialize()
     {
         _familyName = _fontface.name.Name;
-        if (string.IsNullOrEmpty(_faceName) || _faceName.StartsWith("?"))
+        if (string.IsNullOrEmpty(_faceName) || _faceName.StartsWith('?'))
             _faceName = _familyName;
         _styleName = _fontface.name.Style;
         _displayName = _fontface.name.FullFontName;
@@ -246,10 +246,10 @@ internal sealed class XGlyphTypeface
         string name = DisplayName;
         int ich = name.IndexOf("bold", StringComparison.OrdinalIgnoreCase);
         if (ich > 0)
-            name = name.Substring(0, ich) + name.Substring(ich + 4, name.Length - ich - 4);
+            name = name.Remove(ich, 4);
         ich = name.IndexOf("italic", StringComparison.OrdinalIgnoreCase);
         if (ich > 0)
-            name = name.Substring(0, ich) + name.Substring(ich + 6, name.Length - ich - 6);
+            name = name.Remove(ich, 6);
         //name = name.Replace(" ", "");
         name = name.Trim();
         name += GetFaceNameSuffix();
@@ -271,7 +271,7 @@ internal sealed class XGlyphTypeface
                 case XStyleSimulations.ItalicSimulation: simulationSuffix = "|b-/i+"; break;
                 case XStyleSimulations.BoldItalicSimulation: simulationSuffix = "|b+/i+"; break;
                 case XStyleSimulations.None: break;
-                default: throw new ArgumentOutOfRangeException();
+                default: throw new ArgumentOutOfRangeException(nameof(fontResolvingOptions));
             }
         }
         string key = KeyPrefix + familyName.ToLowerInvariant()

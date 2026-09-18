@@ -67,8 +67,8 @@ public struct XUnit : IFormattable
     /// </summary>
     public XUnit(double value, XGraphicsUnit type)
     {
-        if (!Enum.IsDefined(typeof(XGraphicsUnit), type))
-            throw new ArgumentException("type");
+        if (!Enum.IsDefined(type))
+            throw new ArgumentException("The unit type is not a member of XGraphicsUnit.", nameof(type));
         _value = value;
         _type = type;
     }
@@ -409,7 +409,9 @@ public struct XUnit : IFormattable
         {
             unit._value = 1;
             string message = String.Format("String '{0}' is not a valid value for structure 'XUnit'.", value);
+            #pragma warning disable S3877 // Public API: this conversion is the parser, and a string that names no unit has nothing to convert to.
             throw new ArgumentException(message, ex);
+            #pragma warning restore S3877
         }
 
         string typeStr = value.Substring(valLen).Trim().ToLower();

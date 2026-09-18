@@ -66,7 +66,7 @@ public class CodeOmr : BarCode
         //XPoint pt = center - size / 2;
         XPoint pt = position - CalcDistance(AnchorType.TopLeft, Anchor, Size);
         uint value;
-        uint.TryParse(Text, out value);
+        _ = uint.TryParse(Text, out value);
         // HACK: Project Wallenwein: set LK
         value |= 1;
         _synchronizeCode = true;

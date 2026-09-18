@@ -79,8 +79,7 @@ public static class LineSpans
         start = 0;
         width = 0;
 
-        if (blocked == null)
-            throw new ArgumentNullException(nameof(blocked));
+        ArgumentNullException.ThrowIfNull(blocked);
 
         // A line may have no width - that is an ordinary answer of "no room", and there is a test
         // for it - but it cannot end to the left of where it began. Left unchecked the scan walks
