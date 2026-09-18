@@ -36,14 +36,4 @@ namespace PdfPinata.Drawing;
 public abstract class XBitmapSource : XImage
 {
     // TODO: Move code from XImage to this class.
-
-    /// <summary>
-    /// Gets the width of the image in pixels.
-    /// </summary>
-    public override int PixelWidth => PixelWidth;
-
-    /// <summary>
-    /// Gets the height of the image in pixels.
-    /// </summary>
-    public override int PixelHeight => PixelHeight;
 }
