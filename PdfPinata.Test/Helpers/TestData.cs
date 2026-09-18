@@ -2,7 +2,7 @@
 
 public static class TestData
 {
-    public static string LoremIpsumText =
+    public const string LoremIpsumText =
         @"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non sapien leo. Aliquam elementum volutpat lacus, sit amet aliquet est volutpat at. Nam eleifend vehicula bibendum. Sed lacinia velit ex, id auctor tellus varius a. Vivamus cursus ut nulla quis pretium. Nunc accumsan felis nec tortor fermentum iaculis. Vivamus non lacus ullamcorper, porta justo ut, dictum nibh. Cras scelerisque in risus vitae hendrerit. Duis venenatis felis in lacinia vestibulum. Proin mauris ex, efficitur nec tincidunt in, imperdiet eget risus. Nulla porttitor mollis pellentesque. Fusce pretium ut odio et imperdiet.
 
 Vivamus euismod velit id massa mollis, quis congue metus faucibus. Donec ante enim, vehicula a cursus ut, porta vel dui. Proin porta faucibus dolor non consequat. Mauris aliquam, leo a interdum pretium, tellus nisi semper libero, at suscipit dui mi bibendum turpis. Phasellus tempor mauris a eleifend placerat. Fusce in velit ut lectus sagittis varius. Etiam vulputate, libero sit amet posuere posuere, orci nunc ultricies velit, non porttitor dui ante feugiat purus. Ut semper congue lacinia. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Sed facilisis ante at sapien dignissim, ut volutpat elit dictum. Morbi nulla ante, laoreet non vulputate et, facilisis ut lectus. Mauris mollis mi nec venenatis congue. Fusce efficitur vitae massa non vehicula. Fusce euismod molestie posuere. Nunc facilisis ipsum nec justo scelerisque, nec cursus diam gravida.

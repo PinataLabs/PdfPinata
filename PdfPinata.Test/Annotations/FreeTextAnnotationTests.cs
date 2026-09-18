@@ -22,7 +22,7 @@ namespace PdfPinata.Test.Annotations;
 ///   <c>/Line</c>, drawn from <c>/AP</c> and nothing else, which is what the rasterizing ones are.
 /// </remarks>
 [Collection(RasterizingCollection.Name)]
-public class FreeTextAnnotationTests : IDisposable
+public sealed class FreeTextAnnotationTests : IDisposable
 {
     const string OutDir = "Out/FreeTextAnnotations";
 

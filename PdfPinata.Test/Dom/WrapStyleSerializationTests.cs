@@ -25,7 +25,7 @@ public class WrapStyleSerializationTests
         get
         {
             var data = new TheoryData<WrapStyle>();
-            foreach (WrapStyle style in Enum.GetValues(typeof(WrapStyle)))
+            foreach (WrapStyle style in Enum.GetValues<WrapStyle>())
                 data.Add(style);
             return data;
         }
@@ -98,7 +98,7 @@ public class WrapStyleSerializationTests
     [Fact]
     public void TheNewStylesAreDistinctFromEachOtherAndFromTheOldOnes()
     {
-        var values = Enum.GetValues(typeof(WrapStyle)).Cast<WrapStyle>().ToList();
+        var values = Enum.GetValues<WrapStyle>().ToList();
 
         values.Should().OnlyHaveUniqueItems();
         values.Should().Contain(new[]

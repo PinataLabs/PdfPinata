@@ -22,7 +22,7 @@ namespace PdfPinata.Test.Annotations;
 ///   test that matters is one that counts pixels rather than keys.
 /// </remarks>
 [Collection(RasterizingCollection.Name)]
-public class SquareAnnotationTests : IDisposable
+public sealed class SquareAnnotationTests : IDisposable
 {
     const string OutDir = "Out/SquareAnnotations";
 

@@ -16,7 +16,7 @@ namespace PdfPinata.Test.Drawing;
 ///   band this library used to paint.
 /// </summary>
 [Collection(RasterizingCollection.Name)]
-public class GradientTransparencyRenderingTests : IDisposable
+public sealed class GradientTransparencyRenderingTests : IDisposable
 {
     const string OutDir = "Out/GradientTransparency";
 

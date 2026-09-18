@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using Xunit;
 
 namespace PinataLayout.DocumentObjectModel.Tests;
 
@@ -11,16 +11,16 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 /// </summary>
 internal static class FontMemberCases
 {
-    public static IEnumerable<object[]> All()
+    public static TheoryData<string, Action<Font>, Func<Font, object>> All() => new()
     {
-        yield return new object[] { "Name", (Action<Font>)(f => f.Name = "Verdana"), (Func<Font, object>)(f => f.Name) };
-        yield return new object[] { "Size", (Action<Font>)(f => f.Size = 20), (Func<Font, object>)(f => f.Size.Point) };
-        yield return new object[] { "Bold", (Action<Font>)(f => f.Bold = true), (Func<Font, object>)(f => f.Bold) };
-        yield return new object[] { "Italic", (Action<Font>)(f => f.Italic = true), (Func<Font, object>)(f => f.Italic) };
-        yield return new object[] { "Underline", (Action<Font>)(f => f.Underline = Underline.Single), (Func<Font, object>)(f => f.Underline) };
-        yield return new object[] { "Color", (Action<Font>)(f => f.Color = Colors.Purple), (Func<Font, object>)(f => f.Color) };
-        yield return new object[] { "Superscript", (Action<Font>)(f => f.Superscript = true), (Func<Font, object>)(f => f.Superscript) };
-        yield return new object[] { "Subscript", (Action<Font>)(f => f.Subscript = true), (Func<Font, object>)(f => f.Subscript) };
-        yield return new object[] { "Strikethrough", (Action<Font>)(f => f.Strikethrough = Strikethrough.Single), (Func<Font, object>)(f => f.Strikethrough) };
-    }
+        { "Name", f => f.Name = "Verdana", f => f.Name },
+        { "Size", f => f.Size = 20, f => f.Size.Point },
+        { "Bold", f => f.Bold = true, f => f.Bold },
+        { "Italic", f => f.Italic = true, f => f.Italic },
+        { "Underline", f => f.Underline = Underline.Single, f => f.Underline },
+        { "Color", f => f.Color = Colors.Purple, f => f.Color },
+        { "Superscript", f => f.Superscript = true, f => f.Superscript },
+        { "Subscript", f => f.Subscript = true, f => f.Subscript },
+        { "Strikethrough", f => f.Strikethrough = Strikethrough.Single, f => f.Strikethrough },
+    };
 }

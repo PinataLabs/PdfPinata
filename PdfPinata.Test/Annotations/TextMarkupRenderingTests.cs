@@ -19,7 +19,7 @@ namespace PdfPinata.Test.Annotations;
 ///   no quadrilaterals rasterizes to no coloured pixels at all, which is what these count.
 /// </summary>
 [Collection(RasterizingCollection.Name)]
-public class TextMarkupRenderingTests : IDisposable
+public sealed class TextMarkupRenderingTests : IDisposable
 {
     private const string OutDir = "Out/TextMarkupAnnotations";
 

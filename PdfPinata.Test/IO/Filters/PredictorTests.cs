@@ -66,7 +66,7 @@ public class PredictorTests
                     2 => above,
                     3 => (left + above) / 2,
                     4 => Paeth(left, above, aboveLeft),
-                    _ => throw new ArgumentOutOfRangeException(nameof(filterType)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(filterTypeOfRow), filterType, "PNG defines filter types 0 to 4."),
                 };
                 output[pos++] = (byte)(row[idx] - predicted);
             }

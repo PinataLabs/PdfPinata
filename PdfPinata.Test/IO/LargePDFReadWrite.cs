@@ -17,6 +17,7 @@ public class LargePDFReadWrite : IoBaseTest
         this.output = output;
     }
 
+    #pragma warning disable xUnit1004 // Writing 70,000 pages to reach 2 GB takes minutes; it is run by hand, never by the suite.
     [Fact(Skip = "Too slow for Unit test runner")]
     public void CanCreatePdfOver2gb()
     {
@@ -41,8 +42,9 @@ public class LargePDFReadWrite : IoBaseTest
         ValidateFileIsPdf(outName);
         CanReadPdf(outName);
     }
+    #pragma warning restore xUnit1004
 
-    private void AddAPage(PdfDocument document, XFont font)
+    private static void AddAPage(PdfDocument document, XFont font)
     {
         const int x = 40;
         const int y = 50;

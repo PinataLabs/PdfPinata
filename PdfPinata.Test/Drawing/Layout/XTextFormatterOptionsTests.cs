@@ -236,7 +236,7 @@ public class XTextFormatterOptionsTests
 
         // The word it is put on is trimmed until the two together fit, so the marked line is no
         // wider than the one it replaced would have been.
-        var lastLine = TextOperators.ShownStrings(page).Last();
+        var lastLine = TextOperators.ShownStrings(page)[^1];
 
         var document = new PdfDocument();
         using var gfx = XGraphics.FromPdfPage(document.AddPage());

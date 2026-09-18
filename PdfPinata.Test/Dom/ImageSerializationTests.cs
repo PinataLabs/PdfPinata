@@ -92,7 +92,7 @@ public class ImageSerializationTests
         var document = ADocumentWithAnImage(out _);
 
         var written = Write(document);
-        if (AnImagePath().Contains("\\"))
+        if (AnImagePath().Contains('\\'))
             written.Should().Contain("\\\\", "each separator is doubled on the way out");
 
         RoundTrip(document).Source.Name.Should().Be(AnImagePath());

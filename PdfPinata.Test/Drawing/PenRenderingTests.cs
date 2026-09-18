@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -52,7 +53,7 @@ public class PenRenderingTests
     {
         var states = page.Elements.GetDictionary("/Resources")?.Elements.GetDictionary("/ExtGState");
         if (states == null)
-            return new double[0];
+            return Array.Empty<double>();
 
         return ContentOf(page).Split('\n')
             .Where(line => line.EndsWith(" gs"))
@@ -67,7 +68,7 @@ public class PenRenderingTests
     {
         return ContentOf(page).Split('\n')
             .Where(line => line.EndsWith(" M"))
-            .Select(line => double.Parse(line.Substring(0, line.Length - 2),
+            .Select(line => double.Parse(line.AsSpan(0, line.Length - 2),
                 System.Globalization.CultureInfo.InvariantCulture))
             .ToList();
     }

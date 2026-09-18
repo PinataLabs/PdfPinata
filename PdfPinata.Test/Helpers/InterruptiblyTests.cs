@@ -56,9 +56,9 @@ public class InterruptiblyTests
     [Fact]
     public async Task WorkRunsSomewhereOtherThanTheTest()
     {
-        int testThread = Thread.CurrentThread.ManagedThreadId;
+        int testThread = Environment.CurrentManagedThreadId;
 
-        int workThread = await Interruptibly.Run(() => Thread.CurrentThread.ManagedThreadId);
+        int workThread = await Interruptibly.Run(() => Environment.CurrentManagedThreadId);
 
         // xUnit honours a Timeout only against what is not on the test's own thread.
         workThread.Should().NotBe(testThread);

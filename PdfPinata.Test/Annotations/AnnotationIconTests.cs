@@ -152,8 +152,7 @@ public class AnnotationIconTests
 
         // NoIcon is the absence of one - its setter removes the entry rather than writing a name -
         // so it is not a round trip and is covered on its own above.
-        IEnumerable<T> icons = Enum.GetValues(typeof(T))
-            .Cast<T>()
+        IEnumerable<T> icons = Enum.GetValues<T>()
             .Where(icon => icon.ToString() != "NoIcon");
 
         foreach (T icon in icons)

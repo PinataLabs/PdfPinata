@@ -134,17 +134,17 @@ public class PageFitTests
     ///   100 of vertical, so every alignment lands on a round number and the nine cases can be
     ///   read at a glance.
     /// </summary>
-    public static IEnumerable<object[]> Alignments => new[]
+    public static TheoryData<PageAlignment, double, double> Alignments => new TheoryData<PageAlignment, double, double>
     {
-        new object[] { PageAlignment.BottomLeft, 0d, 0d },
-        new object[] { PageAlignment.BottomCenter, 100d, 0d },
-        new object[] { PageAlignment.BottomRight, 200d, 0d },
-        new object[] { PageAlignment.MiddleLeft, 0d, 50d },
-        new object[] { PageAlignment.MiddleCenter, 100d, 50d },
-        new object[] { PageAlignment.MiddleRight, 200d, 50d },
-        new object[] { PageAlignment.TopLeft, 0d, 100d },
-        new object[] { PageAlignment.TopCenter, 100d, 100d },
-        new object[] { PageAlignment.TopRight, 200d, 100d },
+        { PageAlignment.BottomLeft, 0d, 0d },
+        { PageAlignment.BottomCenter, 100d, 0d },
+        { PageAlignment.BottomRight, 200d, 0d },
+        { PageAlignment.MiddleLeft, 0d, 50d },
+        { PageAlignment.MiddleCenter, 100d, 50d },
+        { PageAlignment.MiddleRight, 200d, 50d },
+        { PageAlignment.TopLeft, 0d, 100d },
+        { PageAlignment.TopCenter, 100d, 100d },
+        { PageAlignment.TopRight, 200d, 100d },
     };
 
     [Theory]

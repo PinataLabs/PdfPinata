@@ -50,7 +50,7 @@ public class GenericAnnotationTests
     [InlineData("   ")]
     public void AnAnnotationWithNoSubtypeIsRefused(string subtype)
     {
-        Action act = () => new PdfGenericAnnotation(subtype);
+        Action act = () => _ = new PdfGenericAnnotation(subtype);
 
         // A dictionary with no /Subtype is not an annotation any reader can do anything with,
         // and the failure would otherwise turn up in the file rather than at the call.

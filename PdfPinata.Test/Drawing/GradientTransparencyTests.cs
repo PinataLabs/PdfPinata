@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Linq;
 using AwesomeAssertions;
@@ -224,7 +225,7 @@ public class GradientTransparencyTests
     {
         var states = page.Elements.GetDictionary("/Resources").Elements.GetDictionary("/ExtGState");
         if (states == null)
-            return new PdfDictionary[0];
+            return Array.Empty<PdfDictionary>();
 
         return states.Elements.KeyNames
             .Select(key => states.Elements.GetDictionary(key.Value).Elements.GetDictionary("/SMask"))

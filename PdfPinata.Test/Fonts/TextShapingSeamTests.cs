@@ -523,6 +523,6 @@ public class TextShapingSeamTests
         var act = () => new ShapingFont("Family", "Face", key,
             isBold: false, isItalic: false, emSize: 12, unitsPerEm: 1000, bytes: Array.Empty<byte>());
 
-        act.Should().Throw<ArgumentException>().WithParameterName("key");
+        act.Should().Throw<ArgumentException>().WithParameterName(nameof(key));
     }
 }

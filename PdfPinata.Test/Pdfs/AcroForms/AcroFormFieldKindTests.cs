@@ -335,7 +335,7 @@ public class AcroFormFieldKindTests
         }).AcroForm.Fields["county"];
         field.SelectedIndices = new[] { 0, 1 };
 
-        field.SelectedIndices = new int[0];
+        field.SelectedIndices = Array.Empty<int>();
 
         field.SelectedIndices.Should().BeEmpty();
         field.Elements.ContainsKey("/V").Should().BeFalse();

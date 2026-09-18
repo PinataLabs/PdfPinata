@@ -136,7 +136,7 @@ public class TaggedPdfTests
 
         var content = ContentOf(bytes);
 
-        content.IndexOf("q", StringComparison.Ordinal)
+        content.IndexOf('q')
             .Should().BeLessThan(content.IndexOf("BDC", StringComparison.Ordinal),
                 "the page's own q has to open before the marked-content sequence does");
     }

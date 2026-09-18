@@ -56,8 +56,8 @@ public class SimpleTypeImmutabilityTests
     /// </summary>
     static readonly Type[] Excluded = { typeof(PdfReference) };
 
-    public static IEnumerable<object[]> SimpleTypesUnderTheRule() =>
-        AllSimpleTypes().Where(t => !Excluded.Contains(t)).Select(t => new object[] { t });
+    public static TheoryData<Type> SimpleTypesUnderTheRule() =>
+        new TheoryData<Type>(AllSimpleTypes().Where(t => !Excluded.Contains(t)));
 
     [Theory]
     [MemberData(nameof(SimpleTypesUnderTheRule))]
