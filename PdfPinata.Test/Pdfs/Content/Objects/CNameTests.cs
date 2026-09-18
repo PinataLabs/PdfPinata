@@ -22,7 +22,7 @@ public class CNameTests
     [Fact]
     public void SetNameNullThrowsException()
     {
-        Action act = () => new CName
+        Action act = () => _ = new CName
         {
             Name = null
         };
@@ -34,7 +34,7 @@ public class CNameTests
     [InlineData("")]
     public void SetNameWithoutPrefixThrowsException(string name)
     {
-        Action act = () => new CName
+        Action act = () => _ = new CName
         {
             Name = name
         };

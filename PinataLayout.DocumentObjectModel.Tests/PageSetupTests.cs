@@ -24,7 +24,7 @@ public class PageSetupTests
         get
         {
             var data = new TheoryData<PageFormat>();
-            foreach (PageFormat format in Enum.GetValues(typeof(PageFormat)))
+            foreach (PageFormat format in Enum.GetValues<PageFormat>())
                 data.Add(format);
             return data;
         }
@@ -119,7 +119,7 @@ public class PageSetupTests
     [Fact]
     public void TheOnlyFormatsThatShareASizeAreTheOnesThatShareAName()
     {
-        var byName = Enum.GetValues(typeof(PageFormat)).Cast<PageFormat>().ToDictionary(
+        var byName = Enum.GetValues<PageFormat>().ToDictionary(
             format => format,
             format =>
             {

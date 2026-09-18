@@ -24,7 +24,7 @@ namespace PdfPinata.Test.Annotations;
 ///   wide enough for whatever sits at the ends.
 /// </remarks>
 [Collection(RasterizingCollection.Name)]
-public class LineAnnotationTests : IDisposable
+public sealed class LineAnnotationTests : IDisposable
 {
     const string OutDir = "Out/LineAnnotations";
 

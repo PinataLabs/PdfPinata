@@ -523,7 +523,7 @@ public class XmpMetadataTests
     {
         // There is no escaping this one: the prefix becomes part of an element name and of a
         // namespace declaration, and neither is a place a character can be written as an entity.
-        Action declaring = () => new XmpExtensionSchema(
+        Action declaring = () => _ = new XmpExtensionSchema(
             "Sample schema", "http://example.invalid/sample/1.0/", "not a name",
             new[] { new XmpSchemaProperty("Note", "A note", XmpPropertyCategory.Internal, "value") });
 
@@ -540,7 +540,7 @@ public class XmpMetadataTests
     {
         // Each of these is a valid NCName on its own, but XML Namespaces reserves 'xml' and 'xmlns',
         // and 'rdf' is already bound to the namespace rdf:Description and rdf:about are written in.
-        Action declaring = () => new XmpExtensionSchema(
+        Action declaring = () => _ = new XmpExtensionSchema(
             "Sample schema", "http://example.invalid/sample/1.0/", prefix,
             new[] { new XmpSchemaProperty("Note", "A note", XmpPropertyCategory.Internal, "value") });
 
@@ -553,7 +553,7 @@ public class XmpMetadataTests
     {
         // The name becomes part of an element name too, the same as the prefix — see
         // APrefixThatIsNotAnXmlNameIsRefusedNamingTheValue — and is checked the same way.
-        Action declaring = () => new XmpSchemaProperty(
+        Action declaring = () => _ = new XmpSchemaProperty(
             "not a name", "A note", XmpPropertyCategory.Internal, "value");
 
         declaring.Should().Throw<InvalidOperationException>()
@@ -584,7 +584,7 @@ public class XmpMetadataTests
     [Fact]
     public void ASchemaWithNoPropertiesIsRefused()
     {
-        Action declaring = () => new XmpExtensionSchema(
+        Action declaring = () => _ = new XmpExtensionSchema(
             "Empty schema", "http://example.invalid/empty/1.0/", "empty",
             Array.Empty<XmpSchemaProperty>());
 

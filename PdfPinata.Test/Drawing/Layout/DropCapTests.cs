@@ -630,7 +630,7 @@ public class DropCapTests
     // ----- reading the vertical placement off a rendered page --------------------------------------
 
     /// <summary>The prose, with its first letter swapped for the one the cap is to be set in.</summary>
-    static string ProseBeginningWith(string initial) => initial + Prose.Substring(1);
+    static string ProseBeginningWith(string initial) => string.Concat(initial, Prose.AsSpan(1));
 
     /// <summary>
     ///   The four heights a cap's vertical placement is judged by, in points up from the foot of

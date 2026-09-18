@@ -91,7 +91,7 @@ internal sealed class StandardSecurity
                 "the offsets in the document would no longer hold.");
 
         int at = _pdf.IndexOf(original, InfoDictionaryIndex, StringComparison.Ordinal);
-        string rewritten = _pdf.Substring(0, at) + replacement + _pdf.Substring(at + original.Length);
+        string rewritten = string.Concat(_pdf.AsSpan(0, at), replacement, _pdf.AsSpan(at + original.Length));
         return Encoding.Latin1.GetBytes(rewritten);
     }
 
@@ -112,12 +112,11 @@ internal sealed class StandardSecurity
         input.AddRange(BitConverter.GetBytes(permissions));
         input.AddRange(id);
 
-        using var md5 = MD5.Create();
-        byte[] hash = md5.ComputeHash(input.ToArray());
+        byte[] hash = MD5.HashData(input.ToArray());
         if (revision >= 3)
         {
             for (var i = 0; i < 50; i++)
-                hash = md5.ComputeHash(Take(hash, keyLength));
+                hash = MD5.HashData(Take(hash, keyLength));
         }
         return Take(hash, keyLength);
     }
@@ -130,8 +129,7 @@ internal sealed class StandardSecurity
             (byte)objectNumber, (byte)(objectNumber >> 8), (byte)(objectNumber >> 16),
             (byte)generation, (byte)(generation >> 8)
         };
-        using var md5 = MD5.Create();
-        return Take(md5.ComputeHash(input.ToArray()), Math.Min(fileKey.Length + 5, 16));
+        return Take(MD5.HashData(input.ToArray()), Math.Min(fileKey.Length + 5, 16));
     }
 
     // Algorithms 4 and 5: the /U entry for an empty user password.
@@ -142,9 +140,8 @@ internal sealed class StandardSecurity
 
         var input = new List<byte>(Padding);
         input.AddRange(id);
-        using var md5 = MD5.Create();
 
-        byte[] result = Rc4(fileKey, md5.ComputeHash(input.ToArray()));
+        byte[] result = Rc4(fileKey, MD5.HashData(input.ToArray()));
         for (var i = 1; i <= 19; i++)
         {
             var key = new byte[fileKey.Length];

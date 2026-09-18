@@ -63,7 +63,7 @@ public class XGraphicsSurfaceTests
     }
 
     static int CountOf(string shape, string @operator) =>
-        Regex.Matches(shape, @"(^|\s)" + @operator + "$", RegexOptions.Multiline).Count;
+        Regex.Count(shape, @"(^|\s)" + @operator + "$", RegexOptions.Multiline);
 
     /// <summary>
     ///   The graphics state operators a page writes, in order: every literal <c>q</c> and <c>Q</c>

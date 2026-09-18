@@ -225,7 +225,7 @@ public class PdfHelper
 /// <c>Test host process crashed</c> and <c>Test Run Aborted</c> with <b>no failing test</b> and a
 /// passing count quietly short of the total, which reads like flakiness and is not.
 /// </remarks>
-public class RasterizeOutput : IDisposable
+public sealed class RasterizeOutput : IDisposable
 {
     public List<string> OutputPaths;
     public MagickImageCollection ImageCollection;

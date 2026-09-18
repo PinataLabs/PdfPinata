@@ -112,7 +112,7 @@ public class SoftHyphenInJustifiedListTests
         // The last run of a line starts one word - or one hyphen - short of the edge, so the
         // bound is the widest word the text has rather than nothing at all.
         foreach (var line in lines.Take(lines.Count - 1))
-            line.Last().Should().BeGreaterThan(right - 40);
+            line[^1].Should().BeGreaterThan(right - 40);
     }
 
     [Fact(Timeout = 60000)]
@@ -122,8 +122,8 @@ public class SoftHyphenInJustifiedListTests
 
         // The bullet sits at the list's number position, ahead of the text's left indent.
         var numberPosition = LeftEdge + Unit.FromMillimeter(5).Point;
-        lines[0].First().Should().BeApproximately(numberPosition, 0.1);
-        lines[1].First().Should().BeApproximately(LeftEdge + Unit.FromMillimeter(10).Point, 0.1);
+        lines[0][0].Should().BeApproximately(numberPosition, 0.1);
+        lines[1][0].Should().BeApproximately(LeftEdge + Unit.FromMillimeter(10).Point, 0.1);
     }
 
     [Fact(Timeout = 60000)]

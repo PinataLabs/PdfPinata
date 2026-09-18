@@ -22,7 +22,7 @@ public class XKnownColorTests
 {
     /// <summary>Every value of the enum, which is the list the other three are checked against.</summary>
     static readonly XKnownColor[] AllKnownColors =
-        Enum.GetValues(typeof(XKnownColor)).Cast<XKnownColor>().ToArray();
+        Enum.GetValues<XKnownColor>().ToArray();
 
     static IEnumerable<PropertyInfo> PropertiesOf(Type type) =>
         type.GetProperties(BindingFlags.Public | BindingFlags.Static);

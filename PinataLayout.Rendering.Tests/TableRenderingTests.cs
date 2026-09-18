@@ -48,7 +48,7 @@ public class TableRenderingTests
         // border apart from the row's own edges - once at the top and once at the foot, which
         // cancels out and leaves the span one whole border width over.
         var rules = HorizontalRules(page);
-        (rules.First() - rules.Last()).Should().BeApproximately(height + DefaultBorderWidth, 0.01);
+        (rules[0] - rules[^1]).Should().BeApproximately(height + DefaultBorderWidth, 0.01);
     }
 
     [Fact]

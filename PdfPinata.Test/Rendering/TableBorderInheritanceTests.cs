@@ -106,8 +106,8 @@ public class TableBorderInheritanceTests
 
         foreach (var rule in rules)
         {
-            rule.Min(line => System.Math.Min(line.X1, line.X2)).Should().BeLessThan(edges.First());
-            rule.Max(line => System.Math.Max(line.X1, line.X2)).Should().BeGreaterThan(edges.Last());
+            rule.Min(line => System.Math.Min(line.X1, line.X2)).Should().BeLessThan(edges[0]);
+            rule.Max(line => System.Math.Max(line.X1, line.X2)).Should().BeGreaterThan(edges[^1]);
         }
     }
 

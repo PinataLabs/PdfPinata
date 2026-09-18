@@ -151,9 +151,9 @@ public class ItemizedTextTests
         // the only way a shaper can read it and it exists to be read - and nothing is drawn for it,
         // because it is zero width and the glyph this face maps it to is not one to put on a page.
         // Before, it was neither: the run stopped dead at it and started again after it.
-        var joined = Glyphs(Salam.Substring(0, 2) + Joiner + Salam.Substring(2), font);
+        var joined = Glyphs(string.Concat(Salam.AsSpan(0, 2), Joiner, Salam.AsSpan(2)), font);
 
-        Runs(Salam.Substring(0, 2) + Joiner + Salam.Substring(2), font).Should().HaveCount(1);
+        Runs(string.Concat(Salam.AsSpan(0, 2), Joiner, Salam.AsSpan(2)), font).Should().HaveCount(1);
         joined.Should().Equal(Glyphs(Salam, font),
             "with no shaper registered the joiner cannot change which glyphs are chosen, so the "
             + "only thing it could do is add one");

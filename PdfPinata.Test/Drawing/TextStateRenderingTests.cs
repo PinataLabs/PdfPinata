@@ -38,7 +38,7 @@ public class TextStateRenderingTests
     /// <summary>
     ///   Every inked pixel of the page, as (x, y) in pixels from the top left.
     /// </summary>
-    List<(int X, int Y)> InkOf(string text, XFont font, XStringFormat format, double size = FontSize)
+    static List<(int X, int Y)> InkOf(string text, XFont font, XStringFormat format, double size = FontSize)
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -63,7 +63,7 @@ public class TextStateRenderingTests
     ///   the trailing spacing after the last glyph moves the pen without marking the page, so this
     ///   is one gap short of what MeasureString answers, by design.
     /// </summary>
-    double InkedWidthOf(string text, XFont font, XStringFormat format)
+    static double InkedWidthOf(string text, XFont font, XStringFormat format)
     {
         var inked = InkOf(text, font, format);
         return (inked.Max(p => p.X) - inked.Min(p => p.X)) / PixelsPerPoint;
@@ -73,7 +73,7 @@ public class TextStateRenderingTests
     ///   How far up the page the highest ink sits, in points from the bottom of the page. Larger
     ///   is higher, whatever the image's own y direction happens to be.
     /// </summary>
-    double InkedTopOf(string text, XFont font, XStringFormat format)
+    static double InkedTopOf(string text, XFont font, XStringFormat format)
     {
         // Image y runs down from the top, so the smallest y is the highest ink.
         return PageHeight - InkOf(text, font, format).Min(p => p.Y) / PixelsPerPoint;
@@ -83,7 +83,7 @@ public class TextStateRenderingTests
     ///   How far the ink leans, in points: how much further right the top of the glyphs sits than
     ///   the bottom. Positive leans right, as an italic does.
     /// </summary>
-    double LeanOf(string text, XFont font, XStringFormat format)
+    static double LeanOf(string text, XFont font, XStringFormat format)
     {
         // A tall glyph at a large size, so that top and bottom are far enough apart to measure.
         var inked = InkOf(text, font, format, 48);

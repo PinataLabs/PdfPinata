@@ -23,7 +23,7 @@ namespace PdfPinata.Test.Annotations;
 ///   repeating it would only pin the same code twice.
 /// </remarks>
 [Collection(RasterizingCollection.Name)]
-public class CircleAnnotationTests : IDisposable
+public sealed class CircleAnnotationTests : IDisposable
 {
     const string OutDir = "Out/CircleAnnotations";
 
@@ -82,7 +82,7 @@ public class CircleAnnotationTests : IDisposable
         // The constructors are protected on a public class, so a subtype can come from outside
         // this assembly. A dictionary with no /Subtype is ignored by readers, and the mistake
         // would otherwise surface far away as "the annotation does nothing".
-        Action act = () => new Nameless(subtype);
+        Action act = () => _ = new Nameless(subtype);
 
         act.Should().Throw<ArgumentException>();
     }

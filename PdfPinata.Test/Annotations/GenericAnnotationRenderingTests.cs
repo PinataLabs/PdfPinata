@@ -30,7 +30,7 @@ namespace PdfPinata.Test.Annotations;
 ///   </para>
 /// </remarks>
 [Collection(RasterizingCollection.Name)]
-public class GenericAnnotationRenderingTests : IDisposable
+public sealed class GenericAnnotationRenderingTests : IDisposable
 {
     const string OutDir = "Out/GenericAnnotations";
 

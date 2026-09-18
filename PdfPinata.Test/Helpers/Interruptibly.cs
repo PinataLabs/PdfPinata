@@ -44,8 +44,7 @@ public static class Interruptibly
     /// </summary>
     public static Task<T> Run<T>(Func<T> work)
     {
-        if (work == null)
-            throw new ArgumentNullException(nameof(work));
+        ArgumentNullException.ThrowIfNull(work);
 
         // Asynchronously, so that whatever awaits this does not carry on inline on the thread
         // below - which is the one thread here that may still be inside a scan that never ends.
@@ -83,8 +82,7 @@ public static class Interruptibly
     /// </summary>
     public static Task Run(Action work)
     {
-        if (work == null)
-            throw new ArgumentNullException(nameof(work));
+        ArgumentNullException.ThrowIfNull(work);
 
         return Run<object>(() =>
         {

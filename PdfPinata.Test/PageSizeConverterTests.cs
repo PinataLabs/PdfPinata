@@ -85,8 +85,7 @@ public class PageSizeConverterTests
     [Fact]
     public void EveryNamedSizeConvertsToPoints()
     {
-        PageSize[] named = Enum.GetValues(typeof(PageSize))
-            .Cast<PageSize>()
+        PageSize[] named = Enum.GetValues<PageSize>()
             .Where(size => size != PageSize.Undefined)
             .ToArray();
 

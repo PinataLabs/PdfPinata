@@ -106,8 +106,7 @@ public abstract class PdfDemo
 
     public DemoResult Run(DemoContext context)
     {
-        if (context is null)
-            throw new ArgumentNullException(nameof(context));
+        ArgumentNullException.ThrowIfNull(context);
 
         string path = context.PrepareOutputPath(Name);
 

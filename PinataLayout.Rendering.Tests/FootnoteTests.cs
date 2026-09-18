@@ -322,7 +322,7 @@ public class FootnoteTests
         var document = ThreeNotesOnAPage(FootnoteNumberStyle.Arabic);
 
         document.FootnoteStartingNumber.Should().Be(0, "this is the property's own default");
-        MarksOn(Rendered.FirstPageOf(document), "0", "1").First().Should().Be("1");
+        MarksOn(Rendered.FirstPageOf(document), "0", "1")[0].Should().Be("1");
     }
 
     // ----- the mark in the running text -----
@@ -436,7 +436,7 @@ public class FootnoteTests
         // into runs.
         var rule = Separator(page);
         if (rule is null)
-            return new double[0];
+            return Array.Empty<double>();
 
         glyphs.Should().NotBeEmpty();
         Glyphs.On(page).Should().ContainInOrder(glyphs);

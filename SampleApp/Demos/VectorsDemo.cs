@@ -352,11 +352,13 @@ internal sealed class VectorsDemo : PdfDemo
         Panel(gfx3, Cell(0, 0), "Width", (gfx, r) =>
         {
             double y = r.Y + 6;
+            #pragma warning disable CA1861 // The demo prints only its example region, so the values stay beside what they draw.
             foreach (double width in new[] { 0.25, 0.75, 2.0, 5.0 })
             {
                 gfx.DrawLine(new XPen(XColors.MidnightBlue, width), r.X, y, r.Right, y);
                 y += r.Height / 4;
             }
+            #pragma warning restore CA1861
         });
 
         Panel(gfx3, Cell(1, 0), "LineCap - Flat, Round, Square", (gfx, r) =>
@@ -397,6 +399,7 @@ internal sealed class VectorsDemo : PdfDemo
             // deliberately narrow, because a wide one mitres to barely more than the pen's width
             // and no limit worth setting would ever cut it.
             double y = r.Y + 6;
+            #pragma warning disable CA1861 // The demo prints only its example region, so the values stay beside what they draw.
             foreach (double limit in new[] { 10.0, 2.0 })
             {
                 gfx.DrawLines(new XPen(XColors.MidnightBlue, 6)
@@ -414,6 +417,7 @@ internal sealed class VectorsDemo : PdfDemo
                     new XPoint(r.X, y + 38));
                 y += r.Height / 2;
             }
+            #pragma warning restore CA1861
         });
 
         Panel(gfx3, Cell(1, 1), "DashStyle", (gfx, r) =>
@@ -436,6 +440,7 @@ internal sealed class VectorsDemo : PdfDemo
             // The pattern is in multiples of the pen's width, on then off, and setting it puts the
             // style on Custom. The offset slides the whole pattern along the line.
             double y = r.Y + 6;
+            #pragma warning disable CA1861 // The demo prints only its example region, so the values stay beside what they draw.
             foreach (double offset in new[] { 0.0, 2.0, 4.0 })
             {
                 gfx.DrawLine(new XPen(XColors.MidnightBlue, 2)
@@ -445,6 +450,7 @@ internal sealed class VectorsDemo : PdfDemo
                 }, r.X, y, r.Right, y);
                 y += r.Height / 3;
             }
+            #pragma warning restore CA1861
         });
 
         Panel(gfx3, Cell(0, 2), "XSolidBrush with alpha", (gfx, r) =>
