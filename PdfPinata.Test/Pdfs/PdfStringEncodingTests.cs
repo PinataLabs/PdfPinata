@@ -42,7 +42,8 @@ public class PdfStringEncodingTests
     public void ANameEveryEncodingHasIsAcceptedByTheConstructor()
     {
         // The constructor switches over the names one by one; a name with no case of its own
-        // falls to the default and throws. MacExpert had none while it shared MacRoman's value.
+        // falls to the default and throws. MacExpert needed no case while it shared MacRoman's
+        // value, and giving MacRoman its own would have left it to throw without one.
         var refused = Enum.GetValues<PdfStringEncoding>()
             .Where(encoding => encoding is not (PdfStringEncoding.RawEncoding or PdfStringEncoding.WinAnsiEncoding))
             .Where(encoding => Record.Exception(() => new PdfString("text", encoding)) != null);
