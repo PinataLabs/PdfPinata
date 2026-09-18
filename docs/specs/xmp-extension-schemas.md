@@ -171,7 +171,7 @@ its structure — have to be checked.
 
 **`netstandard2.1` applies.** The core package targets it for Unity, so nothing here may need a BCL
 type that target lacks. `XmlConvert.VerifyNCName` is available on all three legs and is already used
-by `PdfSharpCore.EInvoice`, which shares the same three targets.
+by `PdfPinata.EInvoice`, which shares the same three targets.
 
 ## Testing Decisions
 
@@ -182,14 +182,14 @@ interface and will need changing the next time the implementation does. Parse th
 questions.
 
 **Modules under test.** `XmpMetadata` through `Build()`, which needs no document at all and is the
-cheapest surface available. `PdfSharpCore.EInvoice` through a saved and reopened document, which is
+cheapest surface available. `PdfPinata.EInvoice` through a saved and reopened document, which is
 how `EInvoiceTests` already works. `ArchiveDemo` through the existing demo smoke test, which asserts
 it neither throws nor changes its page count.
 
-**Prior art to follow rather than reinvent.** `PdfSharpCore.Test/Pdfs/EInvoiceTests.cs` already has
+**Prior art to follow rather than reinvent.** `PdfPinata.Test/Pdfs/EInvoiceTests.cs` already has
 everything this needs: `XNamespace` constants for `pdfaSchema` and `pdfaProperty`, a `Packet` helper
 that cuts the packet out of a saved document and hands back an `XDocument`, and a `Latin1` helper for
-the cases where string containment is the honest assertion. `PdfSharpCore.Test/IO/XmpMetadataTests.cs`
+the cases where string containment is the honest assertion. `PdfPinata.Test/IO/XmpMetadataTests.cs`
 has the lighter `Save(Action<PdfDocument>)` arrangement for packet-level questions. New tests belong
 in `XmpMetadataTests`, beside the two that exercise the raw hatch.
 
@@ -208,7 +208,7 @@ hatch — they describe the hatch, which is staying, and deleting them would rem
 of it.
 
 **veraPDF still gates and still has the last word.** `./verapdf-check.ps1` must stay green, and
-`pdfa-3b-facturx` must keep being built through `PdfSharpCore.EInvoice` rather than by hand, because
+`pdfa-3b-facturx` must keep being built through `PdfPinata.EInvoice` rather than by hand, because
 the declaration is the one thing only a validator can check. What changes is that it stops being the
 *only* thing that can check it. A passing unit test is not a conformance verdict and the tests should
 not be written as though it were.

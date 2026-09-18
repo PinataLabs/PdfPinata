@@ -17,7 +17,7 @@ Two constraints shape everything below.
 
 **The core package carries no font or imaging dependency.** That is the property the whole backend
 split exists to protect, and `netstandard2.1` is still a target for Unity. Anything that needs to
-rasterize or interpret a font belongs behind a seam, not in `PdfSharpCore`.
+rasterize or interpret a font belongs behind a seam, not in `PdfPinata`.
 
 **Opaque output must not change.** The library has produced gradients for years; a change that
 rewrites every gradient's content stream would be a change nobody can review by reading a diff.
@@ -199,7 +199,7 @@ a document.
 ## Migration Plan
 
 Additive throughout. `IGlyphOutlineProvider` and its registration property are new public API on
-`PdfSharpCore`; both backends gain a class. No existing signature changes.
+`PdfPinata`; both backends gain a class. No existing signature changes.
 
 The one behavioural break is the table heading throw. A document that hits it is a document whose
 heading never repeated, so the migration is: mark the row above it too, or unmark the row. The

@@ -16,7 +16,7 @@ Gap **G5** of the competitive gap analysis.
 | 9 | Chain building, trust stores, revocation checking | not done, **deliberately** |
 | 10 | Enforcing what a `/DocMDP` level permits | done, [signature-lifetime.md](signature-lifetime.md) |
 
-Covered by `PdfSharpCore.Test/IO/SigningTests.cs`.
+Covered by `PdfPinata.Test/IO/SigningTests.cs`.
 
 ---
 
@@ -61,7 +61,7 @@ G6 came first.
 
 ## The dependency, and why it is not BouncyCastle
 
-The analysis proposed `BouncyCastle.Cryptography`. `PdfSharpCore.Signing` uses
+The analysis proposed `BouncyCastle.Cryptography`. `PdfPinata.Signing` uses
 `System.Security.Cryptography.Pkcs` instead, for a reason that outweighs the rest: **`SignedCms`
 signs through the platform's own key storage**. A certificate whose private key lives on a smart card
 or in an HSM — which is what an enterprise signing setup actually looks like — signs without this

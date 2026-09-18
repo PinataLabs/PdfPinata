@@ -181,7 +181,7 @@ This file starts at the entry below. Changes before that point are recorded only
 
 - 57 page formats that MigraDoc's `PageFormat` did not name. It knew twelve — A0–A6, B5, Letter,
   Legal, Ledger and P11x17 — and everything else had to be set as a `PageWidth` and a `PageHeight`.
-  It now names every size `PdfSharpCore.PageSize` does: `A7`–`A10`, `TwoA0` and `FourA0`, the rest
+  It now names every size `PdfPinata.PageSize` does: `A7`–`A10`, `TwoA0` and `FourA0`, the rest
   of the B series, the `C0`–`C10` envelopes, `RA0`–`RA5`, `SRA0`–`SRA4`, `JISB5`, and the North
   American and traditional sheets from `Tabloid` and `Executive` through to `QuadDemy`.
 
@@ -299,7 +299,7 @@ This file starts at the entry below. Changes before that point are recorded only
   meantime stays a rendering decision, and `ParagraphRenderer` still makes it.
 
   `NumberFormatter`, which writes the roman numerals and letter sequences a numeric field's `Format`
-  asks for, moves to `MigraDocCore.DocumentObjectModel` with it and is public for the first time.
+  asks for, moves to `PinataLayout.DocumentObjectModel` with it and is public for the first time.
 
 ### Changed
 
@@ -365,9 +365,9 @@ This file starts at the entry below. Changes before that point are recorded only
   suggest otherwise were called from one place with one set of values, and the grayscale branch
   under them could never run.
 
-  Both backends produce the same bytes for the same image, as they did before. `PdfSharpCore.Skia`
+  Both backends produce the same bytes for the same image, as they did before. `PdfPinata.Skia`
   no longer writes a `BITMAPFILEHEADER` and `BITMAPINFOHEADER` by hand for a format SkiaSharp
-  refuses to encode, and `PdfSharpCore.ImageSharp` no longer drives `BmpEncoder`'s general
+  refuses to encode, and `PdfPinata.ImageSharp` no longer drives `BmpEncoder`'s general
   conversion — it performs the R/B reorder itself through ImageSharp's own bulk pixel conversion,
   where before it was borrowing one from an encoder as a side effect of BMP's on-disk byte order.
 
@@ -613,7 +613,7 @@ This file starts at the entry below. Changes before that point are recorded only
   content is opaque throughout, and an imported page that came in without a group, are written
   without one. A page that came in **with** a group keeps the one it had, as before.
 
-  Documents that PdfSharpCore produced before this change are unaffected on the way in; they keep
+  Documents that PdfPinata produced before this change are unaffected on the way in; they keep
   the group they were written with. The one visible difference is on the way out: opaque pages get
   smaller and no longer claim a colour space they do not use.
 
@@ -648,7 +648,7 @@ This file starts at the entry below. Changes before that point are recorded only
   that is not `Modify` or `Append` the same way, so that caller keeps the behaviour
   `InformationOnly` always had. A new member goes after `Append`; `3` stays vacant.
 
-- **BREAKING:** `PdfSharpCore.Text.ScriptItemizer` and `PdfSharpCore.Text.ScriptRun` are internal.
+- **BREAKING:** `PdfPinata.Text.ScriptItemizer` and `PdfPinata.Text.ScriptRun` are internal.
   Script itemisation asked of a whole paragraph gives a plausible answer that disagrees with the
   bidirectional algorithm about where a run ends: UAX #24 sweeps a space into whichever script it is
   beside, and *beside* is not a property the paragraph can settle — asked of the whole of
@@ -672,7 +672,7 @@ This file starts at the entry below. Changes before that point are recorded only
   that is a separate path in `Pdf.Filters/Filtering.cs`.
 - `PdfImage.ReadIndexedMemoryBitmap`, which had no callers. It could not have worked if called: it
   never filled its `MemoryStream`, so its `streamLength > 0` guard skipped the whole method body.
-- The unused image importer subsystem in `PdfSharpCore/Drawing.Internal/` — `ImageImporter`,
+- The unused image importer subsystem in `PdfPinata/Drawing.Internal/` — `ImageImporter`,
   `ImageImporterBmp`, `ImageImporterJpeg`, `ImageImporterRoot`, `IImageImporter`, and the
   `StreamReaderHelper`, `ImportedImage`, `ImageInformation`, `ImagePrivateData` and `ImageData`
   types it defined. Nothing constructed it; `ImageImporter.GetImageImporter` had no callers and

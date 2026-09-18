@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using PdfSharpCore.Drawing;
-using PdfSharpCore.Pdf;
-using PdfSharpCore.Pdf.AcroForms;
-using PdfSharpCore.Pdf.Annotations;
+using PdfPinata.Drawing;
+using PdfPinata.Pdf;
+using PdfPinata.Pdf.AcroForms;
+using PdfPinata.Pdf.Annotations;
 using SampleApp.Infrastructure;
 
 namespace SampleApp.Demos;
@@ -358,13 +358,13 @@ internal sealed class FormsDemo : PdfDemo
         PdfPushButtonField help = new PdfPushButtonField(document)
         {
             Name = "help",
-            ToolTip = "Opens the PdfSharpCore repository",
+            ToolTip = "Opens the PdfPinata repository",
         };
         form.Fields.Add(help);
         PdfWidgetAnnotation face = Place(help, buttonBox);
 
         face.Elements["/A"] = new PdfLiteral(
-            "<</S/URI/URI(https://github.com/ststeiger/PdfSharpCore)>>");
+            "<</S/URI/URI(https://github.com/PinataLabs/PdfPinata)>>");
 
         PdfDictionary caption = new PdfDictionary(document);
         caption.Elements.SetString("/CA", "Read the manual");
@@ -401,7 +401,7 @@ internal sealed class FormsDemo : PdfDemo
             "PdfComboBoxField, PdfListBoxField or PdfPushButtonField, made with new, named, given",
             "flags, added to the form and put on the page. None of it is assembled by hand.",
             "",
-            "It used to be. Every constructor under PdfSharpCore.Pdf.AcroForms was internal,",
+            "It used to be. Every constructor under PdfPinata.Pdf.AcroForms was internal,",
             "PdfAcroFieldCollection had no Add, PdfWidgetAnnotation was internal and there was no",
             "way to make a form at all - so the only route was to write the dictionaries of",
             "ISO 32000-1 section 12.7 yourself and hang them off the catalogue's /AcroForm.",
@@ -425,7 +425,7 @@ internal sealed class FormsDemo : PdfDemo
             ("Offer choices", "PdfChoiceField.Options"),
             ("Read and fill a form somebody wrote", "AcroForm.Fields[name].Value"),
             ("Make every field read-only", "PdfDocument.MakeAcroFormsReadOnly()"),
-            ("Sign a document", "PdfSharpCore.Signing - see the Signing demo"),
+            ("Sign a document", "PdfPinata.Signing - see the Signing demo"),
             ("Flatten a form into page content", "not offered"),
         };
 

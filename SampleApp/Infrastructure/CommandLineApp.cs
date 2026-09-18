@@ -64,7 +64,7 @@ public static class CommandLineApp
         // No action on the root: with subcommands and no action, a bare invocation prints help and
         // returns non-zero, which is the right answer to being run with no arguments.
         RootCommand root = new RootCommand(
-            "PdfSharpCore demonstrations - runnable examples and the PDFs they produce.");
+            "PdfPinata demonstrations - runnable examples and the PDFs they produce.");
         root.Subcommands.Add(run);
         root.Subcommands.Add(list);
         return root;

@@ -23,7 +23,7 @@ under the same name and the same role — `ScanNextToken`, `ScanComment`, `ScanN
 `IsWhiteSpace`, `IsDelimiter`, `IsHexChar` and the symbol enum itself. Measured by method extent that
 is roughly 535 of 920 lines and 619 of 966. Only thirteen members are unique to the document lexer
 and six to the content lexer. `Pdf.Content/Chars.cs` is a 79-line stripped copy of the 188-line
-`Pdf.IO/Chars.cs`, and says so in its own doc comment: *"Same as PdfSharpCore.Pdf.IO.Chars. Not yet
+`Pdf.IO/Chars.cs`, and says so in its own doc comment: *"Same as PdfPinata.Pdf.IO.Chars. Not yet
 clear if necessary."*
 
 Of 33 commits touching either file, **29 touched only one of them**. The result is a consistent
@@ -91,8 +91,8 @@ One deep module, two thin grammars. A guard added to the scanner is a guard both
 ## Implementation Decisions
 
 **Two lexers, not three.** `DdlScanner` runs the same one-character-lookahead algorithm with its own
-`Chars` and its own keyword table, but it lives in `MigraDocCore.DocumentObjectModel`, which has no
-dependency on `PdfSharpCore` and should not acquire one for this. Folding it in is a bigger question
+`Chars` and its own keyword table, but it lives in `PinataLayout.DocumentObjectModel`, which has no
+dependency on `PdfPinata` and should not acquire one for this. Folding it in is a bigger question
 about assembly structure and is deliberately excluded.
 
 **The scanner is `internal`.** Neither lexer is public API in the sense that matters here, and the
@@ -138,9 +138,9 @@ one, and the point of the extraction is that they no longer have to.
 **Modules under test.** The shared scanner directly, once it exists. Both lexers through their
 existing tests. `CParser` for anything about the dead symbol branches.
 
-**Prior art to follow rather than reinvent.** `PdfSharpCore.Test/Pdfs/Content/CLexerTests.cs` and the
+**Prior art to follow rather than reinvent.** `PdfPinata.Test/Pdfs/Content/CLexerTests.cs` and the
 `Lexer*Tests` family — `LexerHexStringTests`, `LexerNameEncodingTests`, `LexerUnicodeStringTests` —
-are the model: bytes in, symbol and token out. `PdfSharpCore.Test/IO/RawPdf.cs` builds byte-exact
+are the model: bytes in, symbol and token out. `PdfPinata.Test/IO/RawPdf.cs` builds byte-exact
 documents by hand for the cases that genuinely need a document around them.
 
 **Every closed guard gets the content-lexer twin of an existing document-lexer test.** Seven of
@@ -161,7 +161,7 @@ the corpus depend on reading and re-writing documents correctly.
 ## Out of Scope
 
 - **`DdlScanner`.** Same algorithm, third implementation, different assembly with no dependency on
-  `PdfSharpCore`. Folding it in is an assembly-structure question, not a lexer one.
+  `PdfPinata`. Folding it in is an assembly-structure question, not a lexer one.
 - **The two `Symbols.cs` keyword lists in `DdlScanner`** — 80 `enumToName` entries and 56
   `nameToEnum` entries hand-kept in agreement, currently differing by 24. Real, and part of the
   question above.

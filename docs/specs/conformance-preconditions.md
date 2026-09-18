@@ -146,14 +146,14 @@ the exception, its timing and its message. Both matter: the whole point is that 
 the mistake.
 
 **Modules under test.** `PdfConformanceWriter` through a document saved or claimed;
-`PdfSharpCore.EInvoice` through `AttachTo`; the font writer through a saved document reopened and
+`PdfPinata.EInvoice` through `AttachTo`; the font writer through a saved document reopened and
 read.
 
-**Prior art to follow rather than reinvent.** `PdfSharpCore.Test/IO/XmpMetadataTests.cs` has
-`Conforming(…)` and `Save(Action<PdfDocument>)`. `PdfSharpCore.Test/Pdfs/EInvoiceTests.cs` has
+**Prior art to follow rather than reinvent.** `PdfPinata.Test/IO/XmpMetadataTests.cs` has
+`Conforming(…)` and `Save(Action<PdfDocument>)`. `PdfPinata.Test/Pdfs/EInvoiceTests.cs` has
 `Prepared()`, `Packet(…)` returning an `XDocument`, and `Latin1(…)`. These two helpers should
 converge on one, which is itself a small deliverable of this work.
-`PdfSharpCore.Test/Pdfs/CidFontConformanceTests.cs` and `StreamLengthTests` pin the writer-level
+`PdfPinata.Test/Pdfs/CidFontConformanceTests.cs` and `StreamLengthTests` pin the writer-level
 rules that veraPDF found and must keep passing.
 
 **The behaviours worth pinning.** Each of the six preconditions refused at the claim where it can be,
@@ -169,7 +169,7 @@ exist today and the coupling it protects is real.
 
 **veraPDF gates and has the last word.** `./verapdf-check.ps1` runs the same script CI does and all
 six corpus documents conform. A failure is a regression. `pdfa-3b-facturx` must keep being built
-through `PdfSharpCore.EInvoice`.
+through `PdfPinata.EInvoice`.
 
 ## Out of Scope
 

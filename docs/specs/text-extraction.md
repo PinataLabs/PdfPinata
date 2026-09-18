@@ -13,7 +13,7 @@ Gap **G7** of the competitive gap analysis.
 | 6 | Layout analysis — columns, blocks, reading order | not done, **deliberately** |
 | 7 | `bfrange` in both forms, and multi-unit destinations | done |
 
-Covered by `PdfSharpCore.Test/IO/TextExtractionTests.cs` and `TaggedTextExtractionTests.cs`.
+Covered by `PdfPinata.Test/IO/TextExtractionTests.cs` and `TaggedTextExtractionTests.cs`.
 
 ---
 
@@ -89,7 +89,7 @@ text, which is the argument this note was making in favour of a behaviour it did
 
 **`CSequence` may not be iterated with `foreach`.** It implements `IEnumerable<CObject>` and its
 generic enumerator throws `NotImplementedException`, so a `foreach` over one compiles and fails at
-run time. Index it. The pre-existing `PdfSharpCore.Test/Helpers/TextOperators.cs` had already worked
+run time. Index it. The pre-existing `PdfPinata.Test/Helpers/TextOperators.cs` had already worked
 around this; the workaround is now explained where the next person will hit it.
 
 ## What is deliberately left out

@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using MigraDocCore.DocumentObjectModel;
-using MigraDocCore.DocumentObjectModel.IO;
-using MigraDocCore.DocumentObjectModel.Tables;
-using MigraDocCore.Rendering;
-using PdfSharpCore.Pdf;
+using PinataLayout.DocumentObjectModel;
+using PinataLayout.DocumentObjectModel.IO;
+using PinataLayout.DocumentObjectModel.Tables;
+using PinataLayout.Rendering;
+using PdfPinata.Pdf;
 using SampleApp.Infrastructure;
 
 namespace SampleApp.Demos;
@@ -39,7 +39,7 @@ internal sealed class DdlDemo : PdfDemo
 
         Document original = new Document();
         original.Info.Title = "Ddl";
-        original.Info.Author = "PdfSharpCore SampleApp";
+        original.Info.Author = "PdfPinata SampleApp";
 
         Style normal = original.Styles[StyleNames.Normal];
         normal.Font.Name = "Liberation Serif";

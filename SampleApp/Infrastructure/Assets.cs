@@ -11,7 +11,7 @@ namespace SampleApp.Infrastructure;
 /// </summary>
 /// <remarks>
 ///   Embedded rather than copied beside the binary. A referenced project's content items do not
-///   reach the referencing project's output directory, and PdfSharpCore.Test references this
+///   reach the referencing project's output directory, and PdfPinata.Test references this
 ///   project to run the demos in its smoke test - so a file on disk would be found when the app
 ///   runs and missing when the test does. Embedding also survives publishing and has no opinion
 ///   about the working directory.

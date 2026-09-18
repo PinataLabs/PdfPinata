@@ -1,6 +1,6 @@
 # Spec — merging the axis renderer pairs (T8)
 
-`PdfSharpCore.Charting` had three renderer pairs that were near-copies of one another: horizontal
+`PdfPinata.Charting` had three renderer pairs that were near-copies of one another: horizontal
 and vertical category axis (`HorizontalXAxisRenderer` / `VerticalXAxisRenderer`), horizontal and
 vertical value axis (`HorizontalYAxisRenderer` / `VerticalYAxisRenderer`), and their two stacked
 variants. `docs/specs/charting-renderer-findings.md` C3/C4 already found the category axis pair

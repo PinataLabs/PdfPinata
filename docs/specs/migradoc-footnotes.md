@@ -1,7 +1,7 @@
 # Spec — MigraDoc footnotes
 
-`MigraDocCore.DocumentObjectModel` has carried a complete footnote model since the fork began.
-`MigraDocCore.Rendering` did not contain a line that drew one. Until recently a footnote was
+`PinataLayout.DocumentObjectModel` has carried a complete footnote model since the fork began.
+`PinataLayout.Rendering` did not contain a line that drew one. Until recently a footnote was
 dropped in silence: `ParagraphRenderer.FormatElement` fell through its `default` and the note simply
 did not appear, with nothing thrown and nothing logged. Then it threw a descriptive
 `NotSupportedException` (`demonstration-app-coverage.md`, item 14), which made the gap audible
@@ -47,7 +47,7 @@ The DOM half is done and needs no change:
 - `StyleNames.Footnote`, a predefined paragraph style based on `Normal`.
 - `DocumentObjectVisitor.VisitFootnote`.
 
-So the work is entirely in `MigraDocCore.Rendering`, and every public API a caller needs is already
+So the work is entirely in `PinataLayout.Rendering`, and every public API a caller needs is already
 shipped. That is worth stating plainly: **implementing this adds no DOM surface**, which makes it a
 much smaller decision than its size suggests.
 
@@ -291,9 +291,9 @@ meaning - the header is formatted once per position and reused across every page
 
 ## Item 9 — tests
 
-`MigraDocCore.Rendering.Tests` is the home — it covers MigraDoc's own layout and deliberately
+`PinataLayout.Rendering.Tests` is the home — it covers MigraDoc's own layout and deliberately
 rasterizes nothing, which is right for this. The content-stream readers it links out of
-`PdfSharpCore.Test/Helpers` are how the assertions get at what was drawn.
+`PdfPinata.Test/Helpers` are how the assertions get at what was drawn.
 
 Twenty-four of them, all passing. What they pin:
 
@@ -394,5 +394,5 @@ a caller needs was already shipped on `Document` and `Footnote`.
 
 `Renderer.cs` throws for `Barcode` in the same way and for the same reason, and that gap is *not*
 covered by this spec. The two are unrelated in everything but symptom: a MigraDoc barcode needs a
-shape renderer mapping the DOM `Barcode` onto `PdfSharpCore.Drawing.BarCodes`, which is a day's work
+shape renderer mapping the DOM `Barcode` onto `PdfPinata.Drawing.BarCodes`, which is a day's work
 with no layout problem in it at all, where footnotes are a layout problem and almost nothing else.

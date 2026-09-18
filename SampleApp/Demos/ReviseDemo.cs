@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
-using PdfSharpCore.Drawing;
-using PdfSharpCore.Drawing.Layout;
-using PdfSharpCore.Pdf;
-using PdfSharpCore.Pdf.IO;
+using PdfPinata.Drawing;
+using PdfPinata.Drawing.Layout;
+using PdfPinata.Pdf;
+using PdfPinata.Pdf.IO;
 using SampleApp.Infrastructure;
 
 namespace SampleApp.Demos;
@@ -53,7 +53,7 @@ internal sealed class ReviseDemo : PdfDemo
 
         using PdfDocument original = new PdfDocument();
         original.Info.Title = "Revise";
-        original.Info.Author = "PdfSharpCore sample app";
+        original.Info.Author = "PdfPinata sample app";
 
         PdfPage first = original.AddPage();
         using (XGraphics gfx = XGraphics.FromPdfPage(first))

@@ -44,7 +44,7 @@ first draft, kept here because both fail silently and both will catch the next p
 The largest gap of the three areas, and the reason `Forms` was the only demo in the app that wrote
 dictionaries by hand.
 
-`PdfSharpCore/Pdf.AcroForms/` ships nine public types. Every one of them could be *read*; none could
+`PdfPinata/Pdf.AcroForms/` ships nine public types. Every one of them could be *read*; none could
 be *constructed*:
 
 | type | constructors |
@@ -194,9 +194,9 @@ remove the appearance rather than throwing.
 itself — has no wrapper, and nor does a push button's `/A` action. Those are the only two entries the
 `Forms` demo still writes by name. **Flattening** a form into page content is still not offered, and
 `PdfSignatureField` is still a field type rather than a signature implementation:
-`PdfSharpCore.Signing` is what signs a document.
+`PdfPinata.Signing` is what signs a document.
 
-`PdfSharpCore.Test/Forms/AcroFormAuthoringTests.cs` has 41 tests. The one that matters saves the form
+`PdfPinata.Test/Forms/AcroFormAuthoringTests.cs` has 41 tests. The one that matters saves the form
 and reads it back through `PdfReader`, because a form that is right in memory and wrong in the file
 looks identical from the calling side.
 
@@ -475,7 +475,7 @@ The attachment's **setter** changed too, in the one way it also differed: it wro
 into the file. It now removes the entry instead, which is what the other two do and what leaves a
 reader on its documented default rather than on a name it cannot know.
 
-Covered by `PdfSharpCore.Test/Annotations/AnnotationIconTests.cs`, 31 tests: every icon of all three
+Covered by `PdfPinata.Test/Annotations/AnnotationIconTests.cs`, 31 tests: every icon of all three
 enumerations round-tripping, the absent and unrecognised cases falling back rather than throwing,
 the digit-named icon that `TryParse` would have accepted, an out-of-range value not being written,
 and every name being written with its solidus.

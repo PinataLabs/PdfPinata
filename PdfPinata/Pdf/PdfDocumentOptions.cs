@@ -1,0 +1,229 @@
+#region PDFsharp - A .NET library for processing PDF
+//
+// Authors:
+//   Stefan Lange
+//
+// Copyright (c) 2005-2016 empira Software GmbH, Cologne Area (Germany)
+//
+// http://www.PdfSharp.com
+// http://sourceforge.net/projects/pdfsharp
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// DEALINGS IN THE SOFTWARE.
+#endregion
+
+// ReSharper disable ConvertToAutoProperty
+
+namespace PdfPinata.Pdf;
+
+/// <summary>
+/// Holds information how to handle the document when it is saved as PDF stream.
+/// </summary>
+public sealed class PdfDocumentOptions
+{
+    internal PdfDocumentOptions(PdfDocument document)
+    {
+        //_deflateContents = true;
+        //_writeProcedureSets = true;
+    }
+
+    /// <summary>
+    /// Gets or sets the color mode.
+    /// </summary>
+    public PdfColorMode ColorMode
+    {
+        get => _colorMode;
+        set => _colorMode = value;
+    }
+    PdfColorMode _colorMode = PdfColorMode.Rgb;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to compress content streams of PDF pages.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The default is <c>true</c>, in every build. It used to be <c>false</c> under <c>#if DEBUG</c>
+    /// so that a page's content could be read straight out of the file while debugging, which meant
+    /// the same calling code wrote a materially larger PDF from a debug build than from a release
+    /// one - a difference that belonged to whoever built the library rather than to whoever called
+    /// it, and that made two files impossible to compare without knowing which configuration each
+    /// came from. Set it to <c>false</c> to get the readable content stream back.
+    /// </para>
+    /// </remarks>
+    public bool CompressContentStreams
+    {
+        get => _compressContentStreams;
+        set => _compressContentStreams = value;
+    }
+    bool _compressContentStreams = true;
+
+    /// <summary>
+    /// Gets or sets a value indicating that all objects are not compressed.
+    /// </summary>
+    public bool NoCompression
+    {
+        get => _noCompression;
+        set => _noCompression = value;
+    }
+    bool _noCompression;
+
+    /// <summary>
+    /// Gets or sets the flate encode mode. Besides the balanced default mode you can set modes for best compression (slower) or best speed (larger files).
+    /// </summary>
+    public PdfFlateEncodeMode FlateEncodeMode
+    {
+        get => _flateEncodeMode;
+        set => _flateEncodeMode = value;
+    }
+    PdfFlateEncodeMode _flateEncodeMode = PdfFlateEncodeMode.Default;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to compress JPEG images with the FlateDecode filter.
+    /// </summary>
+    public PdfUseFlateDecoderForJpegImages UseFlateDecoderForJpegImages
+    {
+        get => _useFlateDecoderForJpegImages;
+        set => _useFlateDecoderForJpegImages = value;
+    }
+    PdfUseFlateDecoderForJpegImages _useFlateDecoderForJpegImages = PdfUseFlateDecoderForJpegImages.Never;
+
+    /// <summary>
+    /// Gets or sets how the objects of the document are indexed when it is saved. The default is
+    /// <see cref="PdfCrossReferenceFormat.Classic"/>, which every reader understands.
+    /// <see cref="PdfCrossReferenceFormat.Stream"/> gathers the objects that may be gathered into
+    /// object streams and compresses them together, which is markedly smaller on a document that is
+    /// mostly objects rather than mostly content, and requires a reader that understands PDF 1.5.
+    /// </summary>
+    public PdfCrossReferenceFormat CrossReferenceFormat
+    {
+        get => _crossReferenceFormat;
+        set => _crossReferenceFormat = value;
+    }
+    PdfCrossReferenceFormat _crossReferenceFormat = PdfCrossReferenceFormat.Classic;
+
+    /// <summary>
+    /// Gets or sets the archival profile the document claims. The default is
+    /// <see cref="PdfAConformance.None"/>, which claims nothing and enforces nothing.
+    /// <para>
+    /// Setting it does more than label the file: the writer refuses to save a document that breaks
+    /// a rule of the profile claimed, naming the rule. A conformance claim found to be false by a
+    /// validator, or by a customer, is worse than no claim at all.
+    /// </para>
+    /// </summary>
+    public PdfAConformance Conformance
+    {
+        get => _conformance;
+        set => _conformance = value;
+    }
+    PdfAConformance _conformance = PdfAConformance.None;
+
+    /// <summary>
+    /// Gets or sets the accessibility profile the document claims. The default is
+    /// <see cref="PdfUAConformance.None"/>.
+    /// <para>
+    /// As with <see cref="Conformance"/>, the claim is enforced rather than stamped on: the writer
+    /// walks the structure tree and the pages before writing anything and throws naming the first
+    /// rule the document breaks. The rules it can settle by looking are listed on
+    /// <see cref="Structure.PdfUaValidator"/>, and they are not all of PDF/UA.
+    /// </para>
+    /// </summary>
+    public PdfUAConformance UAConformance
+    {
+        get => _uaConformance;
+        set => _uaConformance = value;
+    }
+    PdfUAConformance _uaConformance = PdfUAConformance.None;
+
+    /// <summary>
+    /// Gets or sets a value indicating that an XMP metadata packet is written even when no
+    /// conformance is claimed. A claimed conformance implies one regardless.
+    /// </summary>
+    public bool WriteXmpMetadata
+    {
+        get => _writeXmpMetadata;
+        set => _writeXmpMetadata = value;
+    }
+    bool _writeXmpMetadata;
+
+    /// <summary>
+    /// Gets or sets the ICC profile embedded as the document's output intent, which every PDF/A
+    /// profile requires whenever a device-dependent colour space is used — and
+    /// <see cref="PdfColorMode.Rgb"/>, the default, is one.
+    /// <para>
+    /// The profile is embedded rather than referenced: naming a well-known profile is exactly what
+    /// PDF/A exists to stop, since the name means nothing once the machine that understood it is
+    /// gone.
+    /// </para>
+    /// <para>
+    /// <b>Left unset, an RGB document is given <see cref="PdfOutputIntents.SrgbProfile"/></b>, and
+    /// <see cref="OutputIntentIdentifier"/> the sRGB condition to go with it — colours written as
+    /// RGB by a library nobody told otherwise are sRGB, so that is a description rather than a
+    /// guess. A <see cref="PdfColorMode.Cmyk"/> or <see cref="PdfColorMode.Undefined"/> document is
+    /// refused at save time instead, because nothing true could be supplied for either. Whatever is
+    /// set here always wins.
+    /// </para>
+    /// </summary>
+    public byte[] OutputIntentIccProfile
+    {
+        get => _outputIntentIccProfile;
+        set => _outputIntentIccProfile = value;
+    }
+    byte[] _outputIntentIccProfile;
+
+    /// <summary>
+    /// Gets or sets the name of the output condition the profile describes, such as
+    /// "sRGB IEC61966-2.1". Written as <c>/OutputConditionIdentifier</c>.
+    /// </summary>
+    public string OutputIntentIdentifier
+    {
+        get => _outputIntentIdentifier;
+        set => _outputIntentIdentifier = value;
+    }
+    string _outputIntentIdentifier = DefaultOutputIntentIdentifier;
+
+    /// <summary>
+    /// What <see cref="OutputIntentIdentifier"/> says when nobody has said anything: a placeholder
+    /// naming no condition at all.
+    /// </summary>
+    /// <remarks>
+    /// Named rather than repeated, because the writer has to be able to tell "the caller told me
+    /// nothing" from "the caller told me this" — a document given the built-in sRGB profile is
+    /// given the sRGB condition to go with it, and only a caller who named a condition themselves
+    /// keeps theirs.
+    /// </remarks>
+    internal const string DefaultOutputIntentIdentifier = "Custom";
+
+    /// <summary>
+    /// Gets or sets how many objects at most are gathered into one object stream. Only meaningful
+    /// when <see cref="CrossReferenceFormat"/> is <see cref="PdfCrossReferenceFormat.Stream"/>.
+    /// Acrobat uses 200 and so does this; a reader has to decompress a whole object stream to reach
+    /// any one object in it, so a larger number trades reading cost for a smaller file.
+    /// </summary>
+    public int MaxObjectsPerObjectStream
+    {
+        get => _maxObjectsPerObjectStream;
+        set
+        {
+            if (value < 1)
+                throw new System.ArgumentOutOfRangeException(nameof(value),
+                    "An object stream has to hold at least one object.");
+            _maxObjectsPerObjectStream = value;
+        }
+    }
+    int _maxObjectsPerObjectStream = 200;
+}

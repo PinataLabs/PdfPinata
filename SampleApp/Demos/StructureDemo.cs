@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using MigraDocCore.DocumentObjectModel;
-using MigraDocCore.Rendering;
-using PdfSharpCore.Pdf;
+using PinataLayout.DocumentObjectModel;
+using PinataLayout.Rendering;
+using PdfPinata.Pdf;
 using SampleApp.Infrastructure;
 
 namespace SampleApp.Demos;
@@ -248,7 +248,7 @@ internal sealed class StructureDemo : PdfDemo
         links.AddHyperlink("chapter-one").AddFormattedText("This one goes to chapter one",
             TextFormat.Underline);
         links.AddText(", inside the document. ");
-        links.AddHyperlink("https://github.com/ststeiger/PdfSharpCore", HyperlinkType.Web)
+        links.AddHyperlink("https://github.com/PinataLabs/PdfPinata", HyperlinkType.Web)
             .AddFormattedText("This one leaves it", TextFormat.Underline);
         links.AddText(", to a URI. A third form points at a file on disk.");
 

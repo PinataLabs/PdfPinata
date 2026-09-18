@@ -1,6 +1,6 @@
 # Spec — text markup annotations, issue #342
 
-[ststeiger/PdfSharpCore#342](https://github.com/ststeiger/PdfSharpCore/issues/342) asks for text
+[ststeiger/PdfPinata#342](https://github.com/ststeiger/PdfSharpCore/issues/342) asks for text
 highlight annotations. What follows is the design as built, on `feat/text-markup-annotations`.
 
 | item | what | status |
@@ -17,7 +17,7 @@ Two of them, and fixing only the first leaves the reporter where they started.
 
 ### Item 1 — the type does not exist
 
-`PdfSharpCore/Pdf.Annotations/` held `PdfLinkAnnotation`, `PdfTextAnnotation`,
+`PdfPinata/Pdf.Annotations/` held `PdfLinkAnnotation`, `PdfTextAnnotation`,
 `PdfRubberStampAnnotation`, `PdfWidgetAnnotation`, `PdfFileAttachmentAnnotation` and the `internal`
 `PdfGenericAnnotation`. The code in the issue does not compile.
 
@@ -26,7 +26,7 @@ with no public way to set `/Subtype`, so the only route was a subclass written i
 which is what the StackOverflow answer the issue links to amounts to. `PdfFormXObject`'s
 constructors are `internal` too, so an appearance stream could not be built from outside either.
 
-`docs/PdfSharpCore/samples/Annotations.md` had advertised the whole family for years, with the note
+`docs/PdfPinata/samples/Annotations.md` had advertised the whole family for years, with the note
 "If you need one of them, feel encouraged to implement it. It is quite easy."
 
 ### Item 2 — a subtype wrapper alone still draws nothing
@@ -145,7 +145,7 @@ which composites. No existing golden-image test changes — nothing they render 
 
 ## Verification
 
-`PdfSharpCore.Test/Annotations/TextMarkupAnnotationTests.cs`, 21 tests over the dictionary:
+`PdfPinata.Test/Annotations/TextMarkupAnnotationTests.cs`, 21 tests over the dictionary:
 
 - each subtype names itself; a quad is written as the four corners in the order above;
 - `/Rect` is the box around every quad, over one and over several; quads read back as given;
@@ -160,7 +160,7 @@ which composites. No existing golden-image test changes — nothing they render 
 - the whole thing survives a save and a read, with the quads added before the annotation is put on a
   page and with them added after — the array is built without an owning document in the first case.
 
-`PdfSharpCore.Test/Annotations/TextMarkupRenderingTests.cs`, 8 golden-image tests in the rasterizing
+`PdfPinata.Test/Annotations/TextMarkupRenderingTests.cs`, 8 golden-image tests in the rasterizing
 collection, which count coloured pixels rather than compare against a reference image — the question
 being asked is "is anything drawn at all", and the answer before this change was **0**:
 
@@ -190,7 +190,7 @@ library total; the four subtypes are about 30 lines of substance each. Plus 55 l
   existing file, so a `/Highlight` that was read cannot be downcast to work with. Worth doing; it
   touches the import path and is a separate change.
 - **Finding the text to mark up in an existing PDF**, which the StackOverflow question the issue
-  links to is really about. PdfSharpCore has no text-position extraction; the caller supplies the
+  links to is really about. PdfPinata has no text-position extraction; the caller supplies the
   quadrilaterals.
 - `PdfLineAnnotation`, `PdfSquareAnnotation`, `PdfCircleAnnotation`, and the rest of the family the
   sample still invites contributions of.

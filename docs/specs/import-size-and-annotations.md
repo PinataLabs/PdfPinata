@@ -16,7 +16,7 @@ which `fix/insert-range-duplicate-annots` builds on.
 
 ## Item 1 — Unused resources are copied with an imported page
 
-**Done** on `feat/prune-unused-resources`, as `PdfSharpCore/Pdf.Advanced/PdfResourcePruner.cs`.
+**Done** on `feat/prune-unused-resources`, as `PdfPinata/Pdf.Advanced/PdfResourcePruner.cs`.
 What follows is the design as built; the two notes marked *changed* are where it departs from what
 was drafted.
 
@@ -125,7 +125,7 @@ leaves `/XObject` and `/Font` prunable, which is where nearly all the bytes are.
 
 ### Verification
 
-`PdfSharpCore.Test/IO/PruneUnusedResourcesTests.cs`, over documents built by
+`PdfPinata.Test/IO/PruneUnusedResourcesTests.cs`, over documents built by
 `SharedResourceFixtures` on the raw-PDF assembler in `RawPdf.cs`:
 
 - three pages sharing one dictionary that names all three images → each page keeps its own, which
@@ -139,7 +139,7 @@ leaves `/XObject` and `/Font` prunable, which is where nearly all the bytes are.
 - a page asked for its resources before pruning → answers with the pruned ones afterwards;
 - pruning twice → the same as pruning once.
 
-`PdfSharpCore.Test/IO/PruneUnusedResourcesRenderingTests.cs` renders `FamilyTree.pdf`, `test.pdf`
+`PdfPinata.Test/IO/PruneUnusedResourcesRenderingTests.cs` renders `FamilyTree.pdf`, `test.pdf`
 and `Pdf20.pdf` before and after pruning through the golden-image harness and compares page by page.
 Not vacuous: `test.pdf` and `Pdf20.pdf` go from 14,187 to 13,048 bytes with the rendering identical.
 
@@ -200,7 +200,7 @@ with the loop.
 
 ### Verification
 
-`PdfSharpCore.Test/IO/InsertRangeTests.cs`, all of which failed before the change:
+`PdfPinata.Test/IO/InsertRangeTests.cs`, all of which failed before the change:
 
 - a 5-element `/Dest` link no longer throws;
 - a link to a page of the range points at the inserted page rather than at a second copy of it,
@@ -208,7 +208,7 @@ with the loop.
 - a link to a page left out of the range loses its destination, and that page is not copied in;
 - an annotation that is not a link survives, as does every annotation of a page with more than one.
 
-The fixtures moved to `PdfSharpCore.Test/IO/ImportedPageFixtures.cs` so the split tests and these
+The fixtures moved to `PdfPinata.Test/IO/ImportedPageFixtures.cs` so the split tests and these
 share them. Whole suite green on net8.0 and net10.0, 126 passed.
 
 ---
@@ -293,7 +293,7 @@ destination by name, because `/Outlines` is not imported either.
 
 ### Verification
 
-`PdfSharpCore.Test/IO/NamedDestinationTests.cs`, over `NamedDestinationFixtures.cs`: the name tree,
+`PdfPinata.Test/IO/NamedDestinationTests.cs`, over `NamedDestinationFixtures.cs`: the name tree,
 a nested tree with `/Limits` where the destination is in the second leaf, a destination held under
 `/D`, the `/Dests` dictionary, a `/GoTo` action, every annotation of a page carrying three, and that
 where on the page to go survives. Plus the three that say what does *not* change: a `/GoToR` keeps
@@ -314,7 +314,7 @@ file. Whole suite green on net8.0 and net10.0, 260 passed.
 test class that rasterizes made the two run at once, and the one that lost fell back to running
 Ghostscript as a command, which is not there to run on a machine without an installation of its own.
 Every test that rasterizes now sits in one collection that does not run alongside the others —
-`PdfSharpCore.Test/Helpers/RasterizingCollection.cs`, committed separately.
+`PdfPinata.Test/Helpers/RasterizingCollection.cs`, committed separately.
 
 ---
 

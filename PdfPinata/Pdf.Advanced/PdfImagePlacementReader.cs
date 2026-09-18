@@ -1,0 +1,275 @@
+using System;
+using System.Collections.Generic;
+using PdfPinata.Drawing;
+using PdfPinata.Internal;
+using PdfPinata.Pdf.Content;
+using PdfPinata.Pdf.Content.Objects;
+
+namespace PdfPinata.Pdf.Advanced;
+
+/// <summary>
+/// Reads the content of a page to find the images it draws and the transform it draws each of
+/// them under.
+/// <para>
+/// The transform is what says which way up an image is stored, and it is not written beside the
+/// image: it is built up along the way by the content, from the matrices concatenated before
+/// the image is drawn and from those of any forms the drawing happens inside. So it can only be
+/// had by reading the content through, keeping the graphics state as the content does.
+/// </para>
+/// </summary>
+internal sealed class PdfImagePlacementReader
+{
+    /// <summary>
+    /// How deep forms may be drawn within one another before reading stops. Well past anything
+    /// a real document does, and there to stop a malformed one running away.
+    /// </summary>
+    const int MaximumDepth = 32;
+
+    /// <summary>
+    /// The images the page draws, in the order the content draws them.
+    /// </summary>
+    internal static IList<PdfImagePlacement> Read(PdfPage page)
+    {
+        if (page == null)
+            throw new ArgumentNullException(nameof(page));
+
+        PdfImagePlacementReader reader = new PdfImagePlacementReader();
+
+        byte[] content;
+        if (!PdfContentStreams.TryGetPageContent(page, out content))
+            return reader._placements;
+
+        reader.Read(content, page.Elements.GetDictionary(PdfPage.Keys.Resources),
+            XMatrix.Identity, 0);
+
+        return reader._placements;
+    }
+
+    readonly List<PdfImagePlacement> _placements = new();
+
+    /// <summary>The forms being drawn through, so that one drawing itself does not go round forever.</summary>
+    readonly Dictionary<string, object> _open = new();
+
+    void Read(byte[] content, PdfDictionary scope, XMatrix ctm, int depth)
+    {
+        if (depth > MaximumDepth)
+            return;
+
+        CSequence sequence;
+        try
+        {
+            sequence = ContentReader.ReadContent(content);
+        }
+        catch (Exception ex) when (!Unrecoverable.Is(ex))
+        {
+            // Content that cannot be read says nothing about what it draws.
+            return;
+        }
+
+        ReadSequence(sequence, scope, ctm, depth);
+    }
+
+    void ReadSequence(CSequence sequence, PdfDictionary scope, XMatrix ctm, int depth)
+    {
+        // The state a stream saves and restores is its own: a form leaving the stack unbalanced
+        // cannot reach past its own content into the state of the page that drew it.
+        Stack<XMatrix> saved = new Stack<XMatrix>();
+
+        foreach (CObject item in sequence)
+        {
+            COperator op = item as COperator;
+            if (op == null)
+                continue;
+
+            switch (op.OpCode.OpCodeName)
+            {
+                case OpCodeName.q:
+                    saved.Push(ctm);
+                    break;
+
+                case OpCodeName.Q:
+                    // Content restoring a state it never saved is malformed. Keeping the state
+                    // as it stands carries on with the reading rather than throwing it away.
+                    if (saved.Count > 0)
+                        ctm = saved.Pop();
+                    break;
+
+                case OpCodeName.cm:
+                    ctm = Concatenate(op, ctm);
+                    break;
+
+                case OpCodeName.Do:
+                    Draw(NameAt(op, 0), scope, ctm, depth);
+                    break;
+
+                case OpCodeName.BI:
+                    // The lexer finds the end of an inline image by looking for the bytes of EI,
+                    // which the image data itself may hold. A wrong guess carries the reading
+                    // off, and an image reported under a transform picked up from the middle of
+                    // some image data would be reported the wrong way up. So the rest of this
+                    // stream is left unread, and the inline image itself is not reported.
+                    return;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Applies the matrix of a cm operator to the transform in force, which is what the content
+    /// asks for: the matrix maps into the space the transform already describes.
+    /// </summary>
+    static XMatrix Concatenate(COperator op, XMatrix ctm)
+    {
+        if (op.Operands.Count < 6)
+            return ctm;
+
+        double[] m = new double[6];
+        for (int idx = 0; idx < 6; idx++)
+        {
+            if (!TryGetNumber(op.Operands[idx], out m[idx]))
+                return ctm;
+        }
+
+        XMatrix matrix = new XMatrix(m[0], m[1], m[2], m[3], m[4], m[5]);
+        matrix.Multiply(ctm, XMatrixOrder.Append);
+        return matrix;
+    }
+
+    void Draw(string name, PdfDictionary scope, XMatrix ctm, int depth)
+    {
+        if (name == null || scope == null)
+            return;
+
+        PdfDictionary xObjects = scope.Elements.GetDictionary("/XObject");
+        PdfDictionary xObject = xObjects == null ? null : xObjects.Elements.GetDictionary(name);
+        if (xObject == null)
+        {
+            // The content names something the resources do not hold.
+            return;
+        }
+
+        switch (xObject.Elements.GetName(PdfImage.Keys.Subtype))
+        {
+            case "/Image":
+                _placements.Add(new PdfImagePlacement(name, xObject, ctm));
+                break;
+
+            case "/Form":
+                DrawForm(xObject, scope, ctm, depth);
+                break;
+        }
+    }
+
+    void DrawForm(PdfDictionary form, PdfDictionary scope, XMatrix ctm, int depth)
+    {
+        string id = Identify(form);
+        if (id != null)
+        {
+            if (_open.ContainsKey(id))
+                return;
+
+            _open[id] = null;
+        }
+
+        try
+        {
+            byte[] content;
+            if (!PdfContentStreams.TryGetContent(form, out content))
+                return;
+
+            // A form draws in a space of its own, which its matrix maps into the space it is
+            // drawn in. Names in it resolve against its own resources where it has them, and
+            // against those of whatever drew it where it has not.
+            XMatrix inner = MatrixOf(form);
+            inner.Multiply(ctm, XMatrixOrder.Append);
+
+            PdfDictionary formScope = form.Elements.GetDictionary(PdfPage.Keys.Resources) ?? scope;
+
+            Read(content, formScope, inner, depth + 1);
+        }
+        finally
+        {
+            if (id != null)
+                _open.Remove(id);
+        }
+    }
+
+    /// <summary>
+    /// The /Matrix of a form, which is the identity where it has none.
+    /// </summary>
+    static XMatrix MatrixOf(PdfDictionary form)
+    {
+        PdfArray matrix = form.Elements.GetArray("/Matrix");
+        if (matrix == null || matrix.Elements.Count < 6)
+            return XMatrix.Identity;
+
+        double[] m = new double[6];
+        for (int idx = 0; idx < 6; idx++)
+        {
+            if (!TryGetNumber(matrix.Elements[idx], out m[idx]))
+                return XMatrix.Identity;
+        }
+
+        return new XMatrix(m[0], m[1], m[2], m[3], m[4], m[5]);
+    }
+
+    /// <summary>
+    /// What tells one form from another while it is being drawn. A form written out in place
+    /// cannot be shared and so cannot be drawn within itself.
+    /// </summary>
+    static string Identify(PdfDictionary form)
+    {
+        return form.IsIndirect ? form.ObjectID.ToString() : null;
+    }
+
+    static string NameAt(COperator op, int index)
+    {
+        if (index < 0 || index >= op.Operands.Count)
+            return null;
+
+        CName name = op.Operands[index] as CName;
+        return name == null ? null : name.Name;
+    }
+
+    static bool TryGetNumber(CObject operand, out double value)
+    {
+        CReal real = operand as CReal;
+        if (real != null)
+        {
+            value = real.Value;
+            return true;
+        }
+
+        CInteger integer = operand as CInteger;
+        if (integer != null)
+        {
+            value = integer.Value;
+            return true;
+        }
+
+        value = 0;
+        return false;
+    }
+
+    static bool TryGetNumber(PdfItem item, out double value)
+    {
+        if (item is PdfReference)
+            item = ((PdfReference)item).Value;
+
+        PdfReal real = item as PdfReal;
+        if (real != null)
+        {
+            value = real.Value;
+            return true;
+        }
+
+        PdfInteger integer = item as PdfInteger;
+        if (integer != null)
+        {
+            value = integer.Value;
+            return true;
+        }
+
+        value = 0;
+        return false;
+    }
+}

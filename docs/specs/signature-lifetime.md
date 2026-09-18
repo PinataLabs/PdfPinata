@@ -6,7 +6,7 @@ This is the spec for them.
 
 | item | what | status |
 |---|---|---|
-| 1 | `ITimestampProvider` in `PdfSharpCore.Signing`; `Rfc3161TimestampProvider` over HTTP; `LocalTimestampAuthority` for tests | done |
+| 1 | `ITimestampProvider` in `PdfPinata.Signing`; `Rfc3161TimestampProvider` over HTTP; `LocalTimestampAuthority` for tests | done |
 | 2 | PAdES B-T — the token folded into the CMS as an unsigned `signature-time-stamp` attribute; verification reports it | done |
 | 3 | `IRevocationDataProvider`; `OcspRevocationDataProvider` (OCSP only, CRL fetch left empty) | done |
 | 4 | PAdES B-LT — `PdfValidationData.Add` writes `/DSS` and `/VRI` through an incremental save, leaving every signature intact | done |
@@ -14,7 +14,7 @@ This is the spec for them.
 | 6 | A full `Save` of a certified document is refused; the incremental save is the permitted route | done |
 | 7 | B-LTA, chain building, trust, revocation *checking*, a timestamped corpus document | not done, **deliberately** |
 
-Covered by `PdfSharpCore.Test/IO/SignatureTimestampTests.cs`, `SignatureValidationDataTests.cs` and
+Covered by `PdfPinata.Test/IO/SignatureTimestampTests.cs`, `SignatureValidationDataTests.cs` and
 `CertificationEnforcementTests.cs`. Neither network provider is exercised by the suite.
 
 Two things were decided while building it. **Adding validation data is not gated by the certification
@@ -180,7 +180,7 @@ are exactly what a library is for hiding.
 token from a locally issued authority certificate, and the revocation seam so that a test can supply
 responses it minted itself. This is the practical reason the seams are named rather than implicit.
 
-**Modules tested.** `PdfSharpCore.Test` for signing, verification and the permission refusals, which is
+**Modules tested.** `PdfPinata.Test` for signing, verification and the permission refusals, which is
 where the shipped signature tests already live and where the certificate helper already is. The
 permission work also touches the modification guard, whose matrix of modes against operations already
 exists; certification becomes a second dimension of the same matrix rather than a new test file with a

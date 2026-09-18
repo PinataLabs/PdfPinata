@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using PdfSharpCore;
-using PdfSharpCore.Drawing;
-using PdfSharpCore.Drawing.Layout;
-using PdfSharpCore.Drawing.Layout.enums;
-using PdfSharpCore.Pdf;
+using PdfPinata;
+using PdfPinata.Drawing;
+using PdfPinata.Drawing.Layout;
+using PdfPinata.Drawing.Layout.enums;
+using PdfPinata.Pdf;
 using SampleApp.Infrastructure;
 
 namespace SampleApp.Demos;

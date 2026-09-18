@@ -158,13 +158,13 @@ then attributable to the obstacle logic.
 
 **A naming collision to settle before any enum is written.** MigraDoc ships
 `WrapStyle { TopBottom, None, Through, Left, Right, Largest, Both }`. A parallel `TextWrapSide` or
-`TextWrapMode` in the PdfSharpCore namespace would put two near-identical enumerations in one
+`TextWrapMode` in the PdfPinata namespace would put two near-identical enumerations in one
 solution — the `PageSize`/`PageFormat` situation this repository already has and already recorded a
 lesson about: *"The names now agree, which is what made them confusable."* Since the side a line
 takes is a consequence of which intervals are free, this change may need no such enum at all. If it
 does, that needs deciding rather than defaulting.
 
-**Code affected** — all in `PdfSharpCore`; no new dependency, no backend seam:
+**Code affected** — all in `PdfPinata`; no new dependency, no backend seam:
 
 - `Drawing.Layout/XTextFormatter.cs` — `MeasureOfLineAt`, `CreateLayout`, `ApplyEllipsis`,
   `MeasureDropCap`.

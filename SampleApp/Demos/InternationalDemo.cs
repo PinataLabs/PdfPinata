@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.Text;
-using PdfSharpCore.Drawing;
-using PdfSharpCore.Drawing.Layout;
-using PdfSharpCore.Fonts;
-using PdfSharpCore.Pdf;
-using PdfSharpCore.Text;
+using PdfPinata.Drawing;
+using PdfPinata.Drawing.Layout;
+using PdfPinata.Fonts;
+using PdfPinata.Pdf;
+using PdfPinata.Text;
 using SampleApp.Infrastructure;
 
 namespace SampleApp.Demos;
@@ -27,7 +27,7 @@ internal sealed class InternationalDemo : PdfDemo
         "Hebrew and Arabic drawn in the order they are read, with no shaper needed for it",
         "An English word inside a right-to-left sentence, keeping its own order",
         "XStringFormat.TextDirection - saying what the text is instead of leaving it to be guessed",
-        "Arabic letters joined by the face's own GSUB rules, through PdfSharpCore.HarfBuzz",
+        "Arabic letters joined by the face's own GSUB rules, through PdfPinata.HarfBuzz",
         "GlobalFontSettings.FontFallback - Arabic in a document that asked for a Latin face",
         "XTextFormatter.TextDirection, for a paragraph laid out into a rectangle",
     };
@@ -149,7 +149,7 @@ internal sealed class InternationalDemo : PdfDemo
                 shaping ? "A shaper is registered, so these letters join." : "No shaper is registered.",
                 "An Arabic letter takes a different form according to what it sits between - initial,",
                 "medial, final or isolated - and which form is which is a rule inside the font, in its",
-                "GSUB table. Reading that table is what a shaper does. Install PdfSharpCore.HarfBuzz",
+                "GSUB table. Reading that table is what a shaper does. Install PdfPinata.HarfBuzz",
                 "and set GlobalFontSettings.TextShaper and this page draws joined letters; leave it",
                 "unset and the same string comes out as isolated forms, correctly ordered.");
 

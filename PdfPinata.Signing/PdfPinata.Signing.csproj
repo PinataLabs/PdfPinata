@@ -1,0 +1,60 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!--
+      Not netstandard2.1, unlike every other shipped package here. netstandard2.1 exists in this
+      repository for Unity, and Unity's scripting runtime is exactly where a CMS implementation is
+      least likely to work - a signature that silently fails to verify is worse than one that will
+      not compile. Consumers on those runtimes can implement IPdfSigner themselves; the seam is in
+      the core package and needs no cryptography of its own, which is the whole point of it.
+    -->
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <!-- Ship the XML documentation alongside the assembly, so a consumer of the package gets the
+         doc comments as IntelliSense. This project is clean of CS1591, so a public member added
+         without one now warns. Set per project rather than in Directory.Build.props, which is
+         imported before GeneratePackageOnBuild is known, or Directory.Build.targets, which is
+         imported after the SDK has already derived DocumentationFile from it. -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Authors>Stefan Steiger and Contributors</Authors>
+    <Copyright>Copyright (c) 2026 PdfPinata; Copyright (c) 2005-2007 empira Software GmbH, Cologne (Germany)</Copyright>
+    <Description>Digital signing for PdfPinata: CMS/PKCS#7 detached signatures and PAdES B-B, built on the .NET cryptography stack.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <PackageProjectUrl>https://github.com/PinataLabs/PdfPinata</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/PinataLabs/PdfPinata</RepositoryUrl>
+    <PackageTags>pdf;signature;pades;pkcs7;cms</PackageTags>
+    <IsTrimmable>true</IsTrimmable>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <Version>1.0.1</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PdfPinata\PdfPinata.csproj" />
+  </ItemGroup>
+
+  <!--
+    The CMS implementation. Microsoft's rather than BouncyCastle's, which the design note had first
+    proposed, for one reason that outweighs the rest: SignedCms signs through the platform's own key
+    storage, so a certificate whose private key lives on a smart card or in an HSM - which is what
+    an enterprise signing setup actually looks like - signs without this package ever seeing the key.
+    A library that implements the arithmetic itself needs the key bytes, and a key worth protecting
+    cannot give them up. It is also a fraction of the size.
+
+    It ships in the runtime but not in the reference pack, so the reference is needed to compile
+    against it and is version-matched per target to avoid shipping an older copy than the runtime's.
+  -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="8.0.1" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\LICENSE.md" Pack="true" PackagePath="" />
+    <None Include="..\README.md" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+</Project>

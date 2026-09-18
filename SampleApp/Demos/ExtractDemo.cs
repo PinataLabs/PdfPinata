@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using PdfSharpCore.Drawing;
-using PdfSharpCore.Drawing.Layout;
-using PdfSharpCore.Pdf;
-using PdfSharpCore.Pdf.Extraction;
-using PdfSharpCore.Pdf.IO;
+using PdfPinata.Drawing;
+using PdfPinata.Drawing.Layout;
+using PdfPinata.Pdf;
+using PdfPinata.Pdf.Extraction;
+using PdfPinata.Pdf.IO;
 using SampleApp.Infrastructure;
 
 namespace SampleApp.Demos;

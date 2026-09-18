@@ -123,11 +123,11 @@ the tagger's parent stack is testing past the interface.
 **Modules under test.** The MigraDoc renderers through a rendered document, which is how the tagged
 output is already tested.
 
-**Prior art to follow rather than reinvent.** `MigraDocCore.Rendering.Tests` covers MigraDoc's own
+**Prior art to follow rather than reinvent.** `PinataLayout.Rendering.Tests` covers MigraDoc's own
 layout and its tagged output and deliberately rasterizes nothing, so it needs neither Ghostscript nor
 ImageMagick — which makes it the right home. `TheMarksStayInTheOrderTheTextIsRead` is the model for
 asserting on two properties of the tree at once. The four content-stream readers linked from
-`PdfSharpCore.Test/Helpers` are available there.
+`PdfPinata.Test/Helpers` are available there.
 
 **The test worth writing, which does not exist today.** Draw a figure inside a running head — a
 header, which is drawn inside an artifact — and give it alternate text. Assert that the alternate
@@ -172,5 +172,5 @@ mechanical, the output cannot move, and the artifact-scope test is worth having 
 the rename happens. The case against is that the prose already works and renaming a member that four
 callers use correctly is churn.
 
-If it is done, it should ride along with other work in `MigraDocCore.Rendering` rather than be a
+If it is done, it should ride along with other work in `PinataLayout.Rendering` rather than be a
 change of its own. If it is not, the artifact-scope test should still be written.

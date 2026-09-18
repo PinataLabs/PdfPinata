@@ -1,7 +1,7 @@
 # Spec — text feature parity with PDFKit
 
 [PDFKit](https://github.com/foliojs/pdfkit) documents 25 options on its `doc.text()` method. This
-records which of them PdfSharpCore already answers, which it answers only partly, and which are
+records which of them PdfPinata already answers, which it answers only partly, and which are
 missing, together with the work each gap needs. Reference is
 [`lib/mixins/text.js`](https://github.com/foliojs/pdfkit/blob/f308aae92f1491b0e952545fc0fbbef561c40e9e/lib/mixins/text.js#L114)
 and its companion `lib/line_wrapper.js` at the same revision.
@@ -12,7 +12,7 @@ This is the gap analysis and the plan. Sections A to E are built, on
 ## Where parity has to land
 
 PDFKit has one text call. `doc.text(str, x, y, options)` wraps the string, styles it, draws it, and
-attaches the annotation, all from one options bag. PdfSharpCore has three layers and no single one
+attaches the annotation, all from one options bag. PdfPinata has three layers and no single one
 of them is the counterpart:
 
 | layer | what it does | what it cannot do |
@@ -22,7 +22,7 @@ of them is the counterpart:
 | MigraDoc | a document model with paragraphs, styles and flow | not reachable from someone holding an `XGraphics` |
 
 **The parity surface is `XTextFormatter`.** It is the closest analogue — a string, a rectangle, and
-a bag of layout options — and it already lives in the PdfSharpCore assembly, so nothing here forces
+a bag of layout options — and it already lives in the PdfPinata assembly, so nothing here forces
 a MigraDoc dependency on a caller who only wants to draw text on a page.
 
 Two consequences run through the whole checklist:
@@ -384,7 +384,7 @@ After that the sections are independent and can be taken in any order. Rough wei
 | F | **large** | a text shaping engine. Bigger than everything above put together |
 
 Section F is not comparable to the rest. PDFKit gets shaping from
-[fontkit](https://github.com/foliojs/fontkit), a dedicated font library; PdfSharpCore parses ten
+[fontkit](https://github.com/foliojs/fontkit), a dedicated font library; PdfPinata parses ten
 tables for embedding and subsetting and has no shaping layer to extend. Treat F as its own project,
 or as a case for taking a dependency rather than writing one.
 

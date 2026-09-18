@@ -7,7 +7,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <IsPackable>false</IsPackable>
     <!--
-      Deliberately outside PdfSharpCore.slnx. This runs by hand when the Unicode version is
+      Deliberately outside PdfPinata.slnx. This runs by hand when the Unicode version is
       bumped and has no business in the build or in CI; what it produces is checked in.
     -->
   </PropertyGroup>

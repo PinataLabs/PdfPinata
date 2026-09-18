@@ -11,8 +11,8 @@
       netstandard2.1 lacks (IsExternalInit for records and init accessors, RequiredMemberAttribute
       for required members, InlineArray/CollectionBuilder for some collection expression targets)
       still fail, as a missing-predefined-type error. Polyfill them internally behind
-      #if !NET5_0_OR_GREATER, as PdfSharpCore/!internal/ and
-      MigraDocCore.DocumentObjectModel/CompileFixes/ already do. See "Target frameworks" in the
+      #if !NET5_0_OR_GREATER, as PdfPinata/!internal/ and
+      PinataLayout.DocumentObjectModel/CompileFixes/ already do. See "Target frameworks" in the
       README for why netstandard2.1 is a target at all.
     -->
     <LangVersion>latest</LangVersion>

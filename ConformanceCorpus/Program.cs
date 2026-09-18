@@ -1,9 +1,9 @@
 using System;
 using System.IO;
-using MigraDocCore.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes;
-using PdfSharpCore.Fonts;
-using PdfSharpCore.Skia;
-using PdfSharpCore.Utils;
+using PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes;
+using PdfPinata.Fonts;
+using PdfPinata.Skia;
+using PdfPinata.Utils;
 
 namespace ConformanceCorpus;
 

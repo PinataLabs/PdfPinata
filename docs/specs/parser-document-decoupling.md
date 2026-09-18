@@ -1,10 +1,10 @@
 # Spec — narrowing what the parser needs of a document (T13)
 
-`Parser` (`PdfSharpCore/Pdf.IO/Parser.cs`) read and wrote two members of `PdfDocument`:
+`Parser` (`PdfPinata/Pdf.IO/Parser.cs`) read and wrote two members of `PdfDocument`:
 `_irefTable`, a real dependency every indirect object needs to be numbered, and `_trailer`, which
 turned out to be dead weight its one caller already overwrote. This narrowed the second away,
 tidied three places that reached past the first into its backing dictionary, and added
-`ParserProbe` — a reflection wrapper in `PdfSharpCore.Test` that stands a `Parser` up over a plain
+`ParserProbe` — a reflection wrapper in `PdfPinata.Test` that stands a `Parser` up over a plain
 `new PdfDocument()` and a `MemoryStream`, no `PdfReader.Open` required. `TolerantParsingTests` and
 `CrossReferenceStreamDecodingTests` are what that probe is for.
 
@@ -32,7 +32,7 @@ same way — `PdfReference iref = xrefTable[objectID]; if (iref != null)` in pla
 named this as "the two compressed-object methods"; the Problem Statement and Implementation
 Decisions sections both already listed the `ReadXRefStream` site as a third instance of the same
 pattern, and the diff fixes all three. `Parser.cs` now touches exactly one member of `PdfDocument`
-— `grep -n "_document\._trailer" PdfSharpCore/Pdf.IO/Parser.cs` returns nothing.
+— `grep -n "_document\._trailer" PdfPinata/Pdf.IO/Parser.cs` returns nothing.
 
 ## `new PdfDocument()` is not empty
 
@@ -54,7 +54,7 @@ The shape matches what was proposed — a cached `Type` per internal type it rea
 `Lexer`, `ShiftStack`, `PdfCrossReferenceTable`, `PdfCrossReferenceStream`), one
 `BindingFlags Any = Public | NonPublic | Instance | Static`, and one small typed method per member a
 test needs (`ParserProbe.cs:39-58`) — and it follows `FormTableProbe`'s pattern, which actually
-lives in `PdfSharpCore.Test/Pdfs/DocumentPlumbingTests.cs` rather than `IO/`. Two details the plan
+lives in `PdfPinata.Test/Pdfs/DocumentPlumbingTests.cs` rather than `IO/`. Two details the plan
 didn't spell out this precisely:
 
 - **Every member goes through the same reflection path.** The plan's Testing Decisions distinguished
@@ -73,7 +73,7 @@ didn't spell out this precisely:
   `ReferenceTo`, and `IsUnderConstruction` (`:176-190`) inspect and, for the last one, mutate the
   cross-reference table directly, needed for tests that check what a table now holds or that set up
   the "table is still being built" state `ParseObject`'s reference-resolution branch checks
-  (`Parser.cs:669`). None of this widens what `PdfSharpCore` exposes; all of it stays inside the test
+  (`Parser.cs:669`). None of this widens what `PdfPinata` exposes; all of it stays inside the test
   project, reaching through the same reflection surface `Over` and `AddReference` already use.
 
 ## `TolerantParsingTests`: further than the plan's first slice

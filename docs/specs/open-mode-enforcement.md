@@ -191,9 +191,9 @@ matrix and it should be written as one.
 **Modules under test.** `PdfDocument` for the guarded operations, and the four modules that already
 enforce — `XGraphics`, `PdfPages`, `PdfPageResizer`, `PdfSigner` — for the ones they own.
 
-**Prior art to follow rather than reinvent.** `PdfSharpCore.Test/IO/` holds the reader and mode
+**Prior art to follow rather than reinvent.** `PdfPinata.Test/IO/` holds the reader and mode
 tests; `PageResizeTests` already exercises a document opened for modification and is a model for
-arranging one. `PdfSharpCore.Test/Helpers/PdfHelper.cs` builds documents to open. `RawPdf.cs` builds
+arranging one. `PdfPinata.Test/Helpers/PdfHelper.cs` builds documents to open. `RawPdf.cs` builds
 byte-exact files where the document must be malformed or minimal.
 
 **The matrix worth pinning.** For each of the five modes, assert the outcome of: `AddPage`,
@@ -209,7 +209,7 @@ mode. A test that only checks `InvalidOperationException` would pass against the
 this spec exists to replace.
 
 **The demo smoke tests are the integration proof.**
-`PdfSharpCore.Test/Demos/DemoSmokeTests.cs` fails the build when a demo throws or changes its page
+`PdfPinata.Test/Demos/DemoSmokeTests.cs` fails the build when a demo throws or changes its page
 count, and the demos exercise real open-mode usage across `Assemble`, `Extract`, `Revise` and
 `Signing`. If the restored guards are wrong, that is where it shows.
 

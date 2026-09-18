@@ -1,15 +1,15 @@
 using System;
 using System.Threading;
-using MigraDocCore.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes;
-using PdfSharpCore.Fonts;
-using PdfSharpCore.HarfBuzz;
-using PdfSharpCore.Skia;
-using PdfSharpCore.Utils;
+using PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes;
+using PdfPinata.Fonts;
+using PdfPinata.HarfBuzz;
+using PdfPinata.Skia;
+using PdfPinata.Utils;
 
 namespace SampleApp.Infrastructure;
 
 /// <summary>
-///   The five static seams PdfSharpCore leaves for a host to fill: a font resolver, an image
+///   The five static seams PdfPinata leaves for a host to fill: a font resolver, an image
 ///   source, a glyph outline provider, a text shaper and a font fallback. The core package carries
 ///   neither an imaging nor a font dependency of its own.
 /// </summary>

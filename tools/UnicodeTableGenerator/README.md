@@ -1,13 +1,13 @@
 # UnicodeTableGenerator
 
-Writes the character property tables `PdfSharpCore.Text` looks Bidi_Class, Script and paired
+Writes the character property tables `PdfPinata.Text` looks Bidi_Class, Script and paired
 brackets up in.
 
 ```
-dotnet run --project tools/UnicodeTableGenerator -- --version 17.0.0 --out PdfSharpCore/Text
+dotnet run --project tools/UnicodeTableGenerator -- --version 17.0.0 --out PdfPinata/Text
 ```
 
-Options, all optional: `--version` (default `17.0.0`), `--out` (default `PdfSharpCore/Text`),
+Options, all optional: `--version` (default `17.0.0`), `--out` (default `PdfPinata/Text`),
 `--cache` (default a directory under the system temp). Files are downloaded from
 `unicode.org/Public/<version>/` on first use and read from the cache afterwards.
 
@@ -22,7 +22,7 @@ It writes four files, all checked in:
 
 ## Why it is not part of the build
 
-Deliberately outside `PdfSharpCore.slnx`, so `dotnet build` and CI never see it. The alternative —
+Deliberately outside `PdfPinata.slnx`, so `dotnet build` and CI never see it. The alternative —
 generating during the build — would put a network fetch on the critical path of every build on
 every target framework, and make an offline build impossible. What it produces is small (about
 57 KB of source for tables of 1,611 and 984 ranges), so checking it in costs nothing and buys a
@@ -33,7 +33,7 @@ reviewable diff whenever the Unicode version moves.
 Three things move together and a test enforces it:
 
 1. Run the generator with the new `--version`.
-2. Replace `PdfSharpCore.Test/Assets/Unicode/BidiTest.txt.gz` and `BidiCharacterTest.txt.gz` with
+2. Replace `PdfPinata.Test/Assets/Unicode/BidiTest.txt.gz` and `BidiCharacterTest.txt.gz` with
    the same version's, gzipped.
 3. Update the version in `UnicodePropertyTests.TheTablesSayWhichUnicodeTheyCameFrom`.
 

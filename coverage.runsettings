@@ -8,7 +8,7 @@
           <Format>cobertura,opencover</Format>
 
           <!-- Test, benchmark and demonstration assemblies are not the code under measure. -->
-          <Exclude>[*.Tests]*,[*.Test]*,[*.Benchmarks]*,[MigraDocCore.AotSmokeTest]*,[SampleApp]*</Exclude>
+          <Exclude>[*.Tests]*,[*.Test]*,[*.Benchmarks]*,[PinataLayout.AotSmokeTest]*,[SampleApp]*</Exclude>
 
           <ExcludeByAttribute>Obsolete,GeneratedCodeAttribute,CompilerGeneratedAttribute,ExcludeFromCodeCoverageAttribute</ExcludeByAttribute>
 

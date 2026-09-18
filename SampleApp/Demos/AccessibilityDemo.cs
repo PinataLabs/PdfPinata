@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using MigraDocCore.DocumentObjectModel;
-using MigraDocCore.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes;
-using MigraDocCore.DocumentObjectModel.Shapes;
-using MigraDocCore.DocumentObjectModel.Tables;
-using MigraDocCore.Rendering;
-using PdfSharpCore.Pdf;
+using PinataLayout.DocumentObjectModel;
+using PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes;
+using PinataLayout.DocumentObjectModel.Shapes;
+using PinataLayout.DocumentObjectModel.Tables;
+using PinataLayout.Rendering;
+using PdfPinata.Pdf;
 using SampleApp.Infrastructure;
 
 namespace SampleApp.Demos;
@@ -205,7 +205,7 @@ internal sealed class AccessibilityDemo : PdfDemo
             + "document before writing a byte and throws on the first rule it breaks.");
 
         Paragraph link = section.AddParagraph("The rules are listed on PdfUaValidator, and ");
-        link.AddHyperlink("https://github.com/jafin/PdfSharpCore", HyperlinkType.Web)
+        link.AddHyperlink("https://github.com/PinataLabs/PdfPinata", HyperlinkType.Web)
             .AddFormattedText("this link", TextFormat.Underline);
         link.AddText(
             " is itself one of them: a /Link with no description leaves a reader able to say only "
@@ -270,7 +270,7 @@ internal sealed class AccessibilityDemo : PdfDemo
         // A rule rather than a nicety. The title is what a reader announces the document as, and
         // the file name standing in for it is the failure the rule exists to stop.
         document.Info.Title = "Accessible output";
-        document.Info.Author = "PdfSharpCore sample app";
+        document.Info.Author = "PdfPinata sample app";
         document.Info.Subject = "A tagged document claiming PDF/UA-1";
 
         // The claim itself. Everything above had to be true before this line could be written.
@@ -306,7 +306,7 @@ internal sealed class AccessibilityDemo : PdfDemo
                 // Reaching past the renderer, because MigraDoc will not produce one: an image with
                 // no alternative text is drawn as an artifact rather than as an undescribed figure.
                 // This is the check standing behind a document tagged by hand.
-                document.Structure.CreateElement(PdfSharpCore.Pdf.Structure.PdfTag.Figure);
+                document.Structure.CreateElement(PdfPinata.Pdf.Structure.PdfTag.Figure);
             });
     }
 

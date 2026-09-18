@@ -235,7 +235,7 @@ value types that do not implement `INullableValue`:
 ```csharp
 new FormattedText().SetNull();
 // System.InvalidCastException: Unable to cast object of type 'System.Boolean'
-// to type 'MigraDocCore.DocumentObjectModel.Internals.INullableValue'.
+// to type 'PinataLayout.DocumentObjectModel.Internals.INullableValue'.
 ```
 
 Nothing had noticed because reading is fine — `IsNull` tests the cast before using it, and

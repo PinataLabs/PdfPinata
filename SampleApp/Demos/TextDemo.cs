@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using PdfSharpCore.Drawing;
-using PdfSharpCore.Pdf;
+using PdfPinata.Drawing;
+using PdfPinata.Pdf;
 using SampleApp.Infrastructure;
 
 namespace SampleApp.Demos;
@@ -236,12 +236,12 @@ internal sealed class TextDemo : PdfDemo
         // AddWebLink takes a rectangle in the same coordinates the drawing uses. The
         // library draws nothing - the blue and the underline are the caller's job, and
         // without them the link is invisible.
-        const string linkText = "The PdfSharpCore repository";
+        const string linkText = "The PdfPinata repository";
         XFont linkFont = new XFont(Sans, 12, XFontStyle.Underline);
         XSize linkSize = gfx.MeasureString(linkText, linkFont);
         gfx.DrawString(linkText, linkFont, XBrushes.MediumBlue, new XPoint(48, y));
         gfx.AddWebLink(new XRect(48, y - linkSize.Height + 3, linkSize.Width, linkSize.Height),
-            "https://github.com/jafin/PdfSharpCore");
+            "https://github.com/PinataLabs/PdfPinata");
 
         y += 26;
 

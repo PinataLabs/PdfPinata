@@ -32,7 +32,7 @@ guard was never complete: `document.Pages` is `public` (`PdfDocument.cs:992`), e
 method on it is `public`, and none of them checks `CanModify` at all. A caller who writes
 `document.Pages.Add()` instead of `document.AddPage()` was never guarded, forwarder or no
 forwarder. `PdfPages.InsertRange` (`PdfPages.cs:349-416`) has no `PdfDocument` forwarder in the
-first place — `PdfSharpCore.Test/IO/InsertRangeTests.cs` reaches it directly — so it is a ninth
+first place — `PdfPinata.Test/IO/InsertRangeTests.cs` reaches it directly — so it is a ninth
 page-tree mutation path that has never been guarded by anything.
 
 Two helpers live nested inside `PdfDocument` and are reachable only through it. `ImageInfo`
@@ -89,7 +89,7 @@ already carries. Change no public method's name, parameters, or return type.
 5. As a maintainer reading `PdfDocument.AddPage()`, I want its body to be the one line it actually is,
    so that the guard is not read twice in two different files with no way to tell which one is real.
 6. As a maintainer calling `ConsolidateImages()`, I want it to keep working and keep its current
-   public signature, so that `PdfSharpCore.Test/Merge.cs` and `SampleApp/Demos/AssembleDemo.cs` do not
+   public signature, so that `PdfPinata.Test/Merge.cs` and `SampleApp/Demos/AssembleDemo.cs` do not
    change.
 7. As a maintainer reading `ImageInfo`, I want its dependency to be the pages it walks, not the whole
    document, so that its signature says what it actually needs.
@@ -107,7 +107,7 @@ already carries. Change no public method's name, parameters, or return type.
 ## Implementation Decisions
 
 **None of the eight forwarders are deleted.** `AddPage()` alone is called from
-`MigraDocCore.Rendering/PdfDocumentRenderer.cs`, every one of the thirty-odd `SampleApp` demos,
+`PinataLayout.Rendering/PdfDocumentRenderer.cs`, every one of the thirty-odd `SampleApp` demos,
 `ConformanceCorpus/Corpus.cs`, and dozens of tests. It is public API a fork cannot remove without
 cause, and there is no cause here: the method is already exactly as thin as it should be. The fix
 for "PdfDocument forwards without absorbing" is not fewer forwarders, it is forwarders that no
@@ -159,7 +159,7 @@ semantics run, which is not what this spec is about. It is recorded here because
 
 ## Testing Decisions
 
-**`PdfSharpCore.Test/IO/PagePlacementTests.cs` and `PdfSharpCore.Test/Merge.cs` already cover the
+**`PdfPinata.Test/IO/PagePlacementTests.cs` and `PdfPinata.Test/Merge.cs` already cover the
 eight forwarders' observable behaviour through `PdfDocument`**, and none of their assertions change:
 `PlacePage`, `ImportPage`, `DuplicatePage` and `MovePage` are exercised directly
 (`PagePlacementTests.cs:77-249`), and `AddPage` is exercised implicitly by every test in the suite
@@ -173,7 +173,7 @@ method's body is moving.
 file targets `PdfPages` on its own today — `Insert`'s three branches, `Place`'s rejection of a
 foreign or already-placed page, `Import`'s rejection of a page this document already owns, and
 `Duplicate`'s and `MovePage`'s argument checks are all currently reached only by going through
-`PdfDocument` first. A new `PdfSharpCore.Test/Pdfs/PdfPagesTests.cs` should call `document.Pages.X(...)`
+`PdfDocument` first. A new `PdfPinata.Test/Pdfs/PdfPagesTests.cs` should call `document.Pages.X(...)`
 directly for each of the three `Insert` branches and for `InsertRange`, so that the guard's new home
 has its own tests independent of whichever `PdfDocument` method happens to forward into it.
 
@@ -186,7 +186,7 @@ byte-identical images across pages become one shared reference, two images that 
 differ by one byte stay separate, and a document with no images does nothing. `Merge.cs` stays as the
 end-to-end proof that the moved code still produces smaller files.
 
-**`DocumentHandle`'s existing coverage is `PdfSharpCore.Test/Pdfs/DocumentPlumbingTests.cs`'s
+**`DocumentHandle`'s existing coverage is `PdfPinata.Test/Pdfs/DocumentPlumbingTests.cs`'s
 `FormTableProbe`**, which reaches `PdfFormXObjectTable.DetachDocument` and the `Handle` property by
 reflection because both are internal with no public route (`DocumentPlumbingTests.cs:99-132`). Its
 five tests (`:134-206`) reflect on the property named `Handle` and the method named `DetachDocument`

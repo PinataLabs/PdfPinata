@@ -10,7 +10,7 @@ Gap **G6** of the competitive gap analysis.
 | 3 | ~~`PdfReader.Open` retains the source bytes in `Modify` mode~~ — a new `Append` mode | done |
 | 4 | A new xref section with `/Prev`, and a trailer keeping `/ID[0]` | done |
 
-Covered by `PdfSharpCore.Test/IO/IncrementalUpdateTests.cs`.
+Covered by `PdfPinata.Test/IO/IncrementalUpdateTests.cs`.
 
 ## The proposal was wrong about the open mode, and it matters
 
@@ -177,7 +177,7 @@ built from scratch.
 
 ## Tests
 
-`PdfSharpCore.Test`. Open a fixture, change one annotation, save incrementally, and assert: the
+`PdfPinata.Test`. Open a fixture, change one annotation, save incrementally, and assert: the
 original bytes are a prefix of the result; the appended section defines only the changed object; the
 reopened document sees the new value; `/ID[0]` is unchanged and `/ID[1]` is not. Then apply **two**
 successive updates and assert the `/Prev` chain resolves — one update is easy to get right by accident,

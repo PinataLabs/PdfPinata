@@ -1,10 +1,10 @@
 # Spec — What testing the charting renderers found, and what was done about it
 
-`PdfSharpCore.Charting` had no tests. The whole assembly measured 0% of lines, and the ten
+`PdfPinata.Charting` had no tests. The whole assembly measured 0% of lines, and the ten
 highest-CRAP methods in the fork were all in it — `YAxisRenderer.FineTuneYAxis` at 2,162, then the
 axis, plot area and data label renderers behind it.
 
-`PdfSharpCore.Charting.Tests` covers them. Every renderer in the package is `internal` and this
+`PdfPinata.Charting.Tests` covers them. Every renderer in the package is `internal` and this
 repository carries no `InternalsVisibleTo`, so the tests reach them the way a caller does: a `Chart`
 handed to a `ChartFrame`, drawn onto a page, saved, reopened, and read back out of the content
 stream. That has a consequence worth stating plainly — **everything below was reachable through
@@ -52,7 +52,7 @@ chart.SeriesCollection.AddSeries().Add(1.0, 2.0);
 `MaximumScale` kept its default of zero. `ColumnLikePlotAreaRenderer.Format` then built the plot
 area's matrix by dividing by it — `width / 0` is infinity, `0 * infinity` is `NaN`, and `NaN` is
 what `XGraphicsPdfRenderer` wrote. The draw succeeded and the file was written; a reader got a page
-whose content stream will not parse. PdfSharpCore's own content lexer answered it with
+whose content stream will not parse. PdfPinata's own content lexer answered it with
 `KeyNotFoundException: The given key 'NaN' was not present in the dictionary`.
 
 The value axis renderer had never had this problem, and its shape was the fix.
@@ -81,7 +81,7 @@ Pinned by `ChartFrameTests.AChartWithNoXAxisIsStillDrawnAgainstItsData` and
 
 **Why nothing had noticed:** MigraDoc's chart mapper builds both axes unconditionally, so a chart
 reached through a `Document` never took this path. It was only reachable by using
-`PdfSharpCore.Charting` directly, which is what the package is for.
+`PdfPinata.Charting` directly, which is what the package is for.
 
 ---
 
@@ -200,9 +200,9 @@ a width, and `XRect.Width` refuses a negative one:
 
 ```text
 System.ArgumentException: WidthCannotBeNegative
-  at PdfSharpCore.Drawing.XRect.set_Width
-  at PdfSharpCore.Charting.Renderers.AreaRendererInfo.set_Width
-  at PdfSharpCore.Charting.Renderers.ColumnLikeChartRenderer.CalcLayout
+  at PdfPinata.Drawing.XRect.set_Width
+  at PdfPinata.Charting.Renderers.AreaRendererInfo.set_Width
+  at PdfPinata.Charting.Renderers.ColumnLikeChartRenderer.CalcLayout
 ```
 
 What a caller got was an exception three frames down naming a rectangle rather than the chart, at a

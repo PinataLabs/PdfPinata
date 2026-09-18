@@ -152,7 +152,7 @@ eight runs** — which made everything below cheap to measure.
   fifteen times each — 195 rasterizations — in a bare console process. Not one failed.
 - **Not Ghostscript in a process.** In that same bare process: 60 rasterizations in a row on one
   thread, then 60 more with a fresh thread for each, then 100 rounds of *build the document with
-  PdfSharpCore and Skia, then rasterize it*. All clean, flat memory throughout.
+  PdfPinata and Skia, then rasterize it*. All clean, flat memory throughout.
 - **Not the temp directory.** `%TEMP%` held 12,924 files, 209 of them ImageMagick leftovers from the
   crashes. Pointing it at an empty directory gave five crashes in eight runs — no better.
 - **Not anything in this fork.** `be0b0b7`, the commit whose message records four consecutive clean

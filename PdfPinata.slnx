@@ -1,0 +1,23 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="ConformanceCorpus/ConformanceCorpus.csproj" />
+  <Project Path="PinataLayout.AotSmokeTest/PinataLayout.AotSmokeTest.csproj" />
+  <Project Path="PinataLayout.DocumentObjectModel/PinataLayout.DocumentObjectModel.csproj" />
+  <Project Path="PinataLayout.DocumentObjectModel.Tests/PinataLayout.DocumentObjectModel.Tests.csproj" />
+  <Project Path="PinataLayout.DocumentObjectModel.Generators/PinataLayout.DocumentObjectModel.Generators.csproj" />
+  <Project Path="PinataLayout.DocumentObjectModel.Generators.Tests/PinataLayout.DocumentObjectModel.Generators.Tests.csproj" />
+  <Project Path="PinataLayout.Rendering/PinataLayout.Rendering.csproj" />
+  <Project Path="PinataLayout.Rendering.Tests/PinataLayout.Rendering.Tests.csproj" />
+  <Project Path="PdfPinata.Charting/PdfPinata.Charting.csproj" />
+  <Project Path="PdfPinata.Charting.Tests/PdfPinata.Charting.Tests.csproj" />
+  <Project Path="PdfPinata.EInvoice/PdfPinata.EInvoice.csproj" />
+  <Project Path="PdfPinata.HarfBuzz/PdfPinata.HarfBuzz.csproj" />
+  <Project Path="PdfPinata.ImageSharp/PdfPinata.ImageSharp.csproj" />
+  <Project Path="PdfPinata.Signing/PdfPinata.Signing.csproj" />
+  <Project Path="PdfPinata.Skia/PdfPinata.Skia.csproj" />
+  <Project Path="PdfPinata.Test/PdfPinata.Test.csproj" />
+  <Project Path="PdfPinata/PdfPinata.csproj" />
+  <Project Path="SampleApp/SampleApp.csproj" />
+</Solution>

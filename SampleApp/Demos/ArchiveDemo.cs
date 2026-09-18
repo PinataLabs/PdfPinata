@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using PdfSharpCore.Drawing;
-using PdfSharpCore.Drawing.Layout;
-using PdfSharpCore.Pdf;
-using PdfSharpCore.Pdf.IO;
-using PdfSharpCore.Pdf.Metadata;
+using PdfPinata.Drawing;
+using PdfPinata.Drawing.Layout;
+using PdfPinata.Pdf;
+using PdfPinata.Pdf.IO;
+using PdfPinata.Pdf.Metadata;
 using SampleApp.Infrastructure;
 
 namespace SampleApp.Demos;
@@ -55,7 +55,7 @@ internal sealed class ArchiveDemo : PdfDemo
         // A rule, not a nicety: a PDF/A document has to have a title, in the information dictionary
         // and in the XMP packet alike, and the writer refuses without one.
         document.Info.Title = "Archive";
-        document.Info.Author = "PdfSharpCore sample app";
+        document.Info.Author = "PdfPinata sample app";
         document.Info.Subject = "A document claiming PDF/A-3b";
         document.Info.Creator = "SampleApp";
 
@@ -67,7 +67,7 @@ internal sealed class ArchiveDemo : PdfDemo
         // Written verbatim after the descriptions this library builds, which is the seam a hybrid
         // e-invoice goes through: ZUGFeRD and Factur-X are a PDF/A-3 file with an XML attachment
         // and an extension schema saying what the attachment is. The FacturX demo is that, built
-        // through PdfSharpCore.EInvoice rather than by hand.
+        // through PdfPinata.EInvoice rather than by hand.
         document.CustomizeMetadata = metadata =>
         {
             metadata.Keywords = "archival, conformance, sample";
@@ -80,7 +80,7 @@ internal sealed class ArchiveDemo : PdfDemo
             // output; DeclareSchema is what makes that mistake unrepresentable rather than merely
             // fixed once.
             metadata.DeclareSchema(new XmpExtensionSchema(
-                "PdfSharpCore sample app",
+                "PdfPinata sample app",
                 "http://example.invalid/sample/1.0/",
                 "sample",
                 new[]
@@ -189,7 +189,7 @@ internal sealed class ArchiveDemo : PdfDemo
                 + "namespace nobody has heard of - this demo's own, or an invoice format's - is "
                 + "declared in a pdfaExtension:schemas block naming every property before any of "
                 + "them is written. The FacturX demo is that done for real, by "
-                + "PdfSharpCore.EInvoice rather than by hand.",
+                + "PdfPinata.EInvoice rather than by hand.",
                 body, XBrushes.Black, new XRect(50, 162, 495, 62));
 
             gfx.DrawString("Written by a document just like this one", label, XBrushes.Black, 50, 236);
@@ -344,7 +344,7 @@ internal sealed class ArchiveDemo : PdfDemo
         using PdfDocument probe = new PdfDocument();
         probe.AddPage();
         probe.Info.Title = "A probe";
-        probe.Info.Author = "PdfSharpCore sample app";
+        probe.Info.Author = "PdfPinata sample app";
         probe.Options.Conformance = PdfAConformance.PdfA3B;
         probe.Options.OutputIntentIccProfile = profile;
         probe.Options.OutputIntentIdentifier = "sRGB IEC61966-2.1";

@@ -13,7 +13,7 @@ this document is organized around.
 
 ## `Fonts/TextNormalization.cs`, built as sketched
 
-`PdfSharpCore/Fonts/TextNormalization.cs` is a new, internal, static class, sibling to
+`PdfPinata/Fonts/TextNormalization.cs` is a new, internal, static class, sibling to
 `TextShaping.cs` as planned, and its two members are the two the proposal specified almost verbatim:
 
 ```csharp
@@ -112,9 +112,9 @@ newly agrees (`\t`) — rather than only the one the plan called out by name.
 
 ## Testing: matched the plan, with a few places it did better
 
-`PdfSharpCore.Test/Fonts/TextNormalizationTests.cs` is new, as planned, and reaches the internal
+`PdfPinata.Test/Fonts/TextNormalizationTests.cs` is new, as planned, and reaches the internal
 `TextNormalization` type by reflection rather than asking for `InternalsVisibleTo` — the same pattern
-`PdfSharpCore.Test/IO/CharacterScanningTests.cs` already uses for the shared character scanner
+`PdfPinata.Test/IO/CharacterScanningTests.cs` already uses for the shared character scanner
 (`docs/specs/shared-character-scanner.md`), and the test file's own remarks say so. It covers
 `TryNormalize` and `NormalizeLine` directly: the tab-to-space case, every other sub-32 character
 dropped (`\n`, `\r`, `\v`, `\f`, `\0`, escape, and 31 — "the last one below the cut"), everything at

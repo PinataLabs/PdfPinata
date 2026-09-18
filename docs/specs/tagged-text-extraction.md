@@ -14,8 +14,8 @@ what shipped; this one is for what it does not yet do.
 | 6 | A word MigraDoc hyphenates extracts whole | done, **by changing the writer** — see below |
 | 7 | Reading order, per-glyph boxes, alternate text off the tree, the structure tree itself | not done, **deliberately** |
 
-Covered by `PdfSharpCore.Test/IO/TaggedTextExtractionTests.cs` and
-`MigraDocCore.Rendering.Tests/TaggedOutputTests.AWordBrokenAtAHyphenExtractsWhole`.
+Covered by `PdfPinata.Test/IO/TaggedTextExtractionTests.cs` and
+`PinataLayout.Rendering.Tests/TaggedOutputTests.AWordBrokenAtAHyphenExtractsWhole`.
 
 **One thing here departs from the spec as written.** It says nothing about the written file changes.
 Building it found that MigraDoc's soft-hyphen renderer set `/ActualText` on the *structure element*
@@ -179,7 +179,7 @@ reaches for the walker, the operator stack or the marked-content stack is assert
 rather than the behaviour, and will fail the next time the mechanism is rearranged for reasons that
 do not concern it.
 
-**Module tested.** `PdfSharpCore.Test`, alongside the existing extraction tests, which are the prior
+**Module tested.** `PdfPinata.Test`, alongside the existing extraction tests, which are the prior
 art in both shape and location: they build a page with the drawing API, save to a memory stream,
 reopen and assert on the extracted text or on a single run's properties. The new cases follow that
 shape exactly.

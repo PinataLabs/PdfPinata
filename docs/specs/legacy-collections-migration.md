@@ -22,8 +22,8 @@ Three reasons to do it, in descending order of how much they matter:
    `ArrayList` and nowhere else. Removing the type removes the hazard rather than the seven calls.
 
 And one reason to be careful, which shapes the whole sequencing below: **the renderer holds most of
-the sites and has no unit tests of its own.** `MigraDocCore.Rendering.Tests` exists as a project and
-contains no test files. What actually covers the renderer is ~39 tests under `PdfSharpCore.Test`
+the sites and has no unit tests of its own.** `PinataLayout.Rendering.Tests` exists as a project and
+contains no test files. What actually covers the renderer is ~39 tests under `PdfPinata.Test`
 (`Rendering/`, `Outlines/`, `MigradocTurkishTest.cs`), several of which are golden-image comparisons
 that skip entirely when Ghostscript is unavailable.
 
@@ -236,11 +236,11 @@ last deliberately: it is the least covered code and the most likely to need a go
 | 6 | `DocumentRenderer.previousListNumbers` | Trivial, but it is the last one and closes the count |
 
 Not in the list: `Borders.BorderEnumerator` (§1.3, an API decision), and the commented-out
-`Hashtable` that used to sit in `MigraDocCore.Rendering/MigraDoc.Rendering.UnitTest/TestLayout.cs`.
+`Hashtable` that used to sit in `PinataLayout.Rendering/MigraDoc.Rendering.UnitTest/TestLayout.cs`.
 That folder was a test project of upstream MigraDoc's whose `.csproj` did not survive the port,
 which left five files being swallowed by the renderer's own source glob and four accidental public
 types shipping in the package. It has been deleted; what was worth keeping in it was promoted to
-`MigraDocCore.Rendering.Tests`, including `ParagraphIteratorTests`, which is what piece 5 above
+`PinataLayout.Rendering.Tests`, including `ParagraphIteratorTests`, which is what piece 5 above
 should be checked against.
 
 ---
@@ -249,10 +249,10 @@ should be checked against.
 
 **Per piece:**
 
-* The full suite passes on `net8.0` and `net10.0`. That is 420 tests in `PdfSharpCore.Test` today,
+* The full suite passes on `net8.0` and `net10.0`. That is 420 tests in `PdfPinata.Test` today,
   including the golden-image rendering comparisons.
 * `grep -rn "ArrayList\|Hashtable"` over the touched files returns nothing but comments.
-* No new warning in the solution build, which includes `MigraDocCore.AotSmokeTest` since F5.
+* No new warning in the solution build, which includes `PinataLayout.AotSmokeTest` since F5.
 
 **For the whole migration:**
 
@@ -264,7 +264,7 @@ should be checked against.
   behaviour-preserving.
 
 **What this spec deliberately does not promise:** a measured speedup. The boxing argument in §2 is
-sound in principle and unquantified in practice. If the numbers matter, `MigraDocCore.Benchmarks`
+sound in principle and unquantified in practice. If the numbers matter, `PinataLayout.Benchmarks`
 already exists and a before/after on a long document is the honest way to get them — but the
 migration is justified by type safety and by removing the `RequiresDynamicCode` surface even if the
 allocation win turns out to be noise.

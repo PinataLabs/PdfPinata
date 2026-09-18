@@ -5,7 +5,7 @@ Gap **G2** of the competitive gap analysis. **All three stages are built.**
 
 | item | what | stage | status |
 |---|---|---|---|
-| 1 | `PdfSharpCore.Pdf.Structure` — structure tree, role map, parent tree | A | done |
+| 1 | `PdfPinata.Pdf.Structure` — structure tree, role map, parent tree | A | done |
 | 2 | `XGraphics.BeginMarkedContent` / `BeginArtifact`, and `BDC`/`EMC` emission | A | done |
 | 3 | Catalog `/MarkInfo`, `/Lang` | A | done |
 | 3b | `/ViewerPreferences /DisplayDocTitle`, and requiring a title | A | done, on a PDF/UA claim |
@@ -19,8 +19,8 @@ Gap **G2** of the competitive gap analysis. **All three stages are built.**
 | 9 | A note's `/ID` may be chosen | C | done, `Footnote.Identifier` |
 | 10 | No two MCIDs nested one inside the other | C | done |
 
-Covered by `PdfSharpCore.Test/IO/TaggedPdfTests.cs` for Stage A, and
-`MigraDocCore.Rendering.Tests/TaggedOutputTests.cs` and `PdfUaConformanceTests.cs` for B and C.
+Covered by `PdfPinata.Test/IO/TaggedPdfTests.cs` for Stage A, and
+`PinataLayout.Rendering.Tests/TaggedOutputTests.cs` and `PdfUaConformanceTests.cs` for B and C.
 
 ```csharp
 // Stage B: nothing asked for, and the document comes out described.
@@ -65,7 +65,7 @@ nests inside the text object instead of containing it. `BeginGraphicMode` is cal
 **Tagging MigraDoc is on by default, and `PdfPage.Resize` is the cost.** The proposal called the
 default flip "the break worth taking" and did not say what it breaks. `PdfDocumentRenderer.TagContent`
 defaults to `true`, so every document rendered through MigraDoc now carries a structure tree — and
-`PdfSharpCore/Pdf.Advanced/PdfPageResizer.cs` refuses a tagged document outright, because resizing
+`PdfPinata/Pdf.Advanced/PdfPageResizer.cs` refuses a tagged document outright, because resizing
 moves a page's content into a form XObject and leaves every identifier in the tree pointing at content
 that is no longer where the tree says it is. That refusal used to be an edge case for files other
 people made. It is now the common path, and code that rendered a MigraDoc document and then resized
@@ -132,7 +132,7 @@ and it is deliberately not done for a structural scope, whose identifier is alre
 **Tagging moves the operands and not the glyphs.** A `BDC` is always written in graphic mode, so
 tagging ends the text object before each scope and starts a new one after it, and every `Td` in a
 fresh text object is measured from the origin instead of from the line before. The layout pin in
-`PdfSharpCore.Test/Rendering/MigraDocLayoutPinTests.cs` therefore does two things now: it renders the
+`PdfPinata.Test/Rendering/MigraDocLayoutPinTests.cs` therefore does two things now: it renders the
 corpus untagged and demands the historical bytes exactly, and it renders it tagged and demands the
 same glyph runs in the same order on the same pages. Re-capturing the baseline with marks in it would
 have recorded whatever the new code did and called it correct.
@@ -255,7 +255,7 @@ tables that describe themselves.
 
 ## Still to do
 
-- **Reading `/ActualText` back.** `PdfSharpCore.Pdf.Extraction.PdfTextExtractor` ignores marked
+- **Reading `/ActualText` back.** `PdfPinata.Pdf.Extraction.PdfTextExtractor` ignores marked
   content entirely, so this library still extracts its own hyphenated word as two fragments — and now
   its own ligature spans as well, though `/ToUnicode` covers the ligature case for it and nothing
   covers the hyphenated one. Honouring the tree means resolving the page's `/StructParents` through
@@ -414,7 +414,7 @@ the corresponding marks in `BDC`/`EMC` carrying the same number. The `/ParentTre
 index, letting a reader go from a mark back to its meaning. It is a number tree, and
 `Pdf.Advanced/PdfNumberTreeNode.cs` **already exists** — a real head start on the fiddliest part.
 
-New namespace `PdfSharpCore.Pdf.Structure`: `PdfStructureTreeRoot`, `PdfStructElement`,
+New namespace `PdfPinata.Pdf.Structure`: `PdfStructureTreeRoot`, `PdfStructElement`,
 `PdfMarkedContentReference`, `PdfObjectReference` (for annotations, which are structure content but not
 marks), and a `PdfTag` enumeration of the standard structure types.
 
@@ -449,7 +449,7 @@ requires all four, and the last two are the ones everybody forgets.
 
 This is where the value is. Hand-tagging is a feature; **not having to** is the product.
 
-`MigraDocCore.Rendering` knows the semantics already — it is rendering a `Paragraph` with a `Heading1`
+`PinataLayout.Rendering` knows the semantics already — it is rendering a `Paragraph` with a `Heading1`
 style, it just throws that away on the way to the page. The mapping:
 
 The mapping, as built:
@@ -476,7 +476,7 @@ actually makes a table navigable.
 
 Item 5 adds two DOM properties. `Table.Summary` is where the proposal put it; `AlternativeText` went on
 `Shape` rather than on `Image`, so that a chart gets one too. Both are generated properties, so the
-source generator under `MigraDocCore.DocumentObjectModel.Generators` carries the cost.
+source generator under `PinataLayout.DocumentObjectModel.Generators` carries the cost.
 
 **The break, taken:** `PdfDocumentRenderer.TagContent` and `DocumentRenderer.TagContent` default to
 `true`. An untagged document is the thing you ask for. What that costs is set out under "What Stages B
@@ -549,15 +549,15 @@ may ask the question at a moment of their own choosing.
 
 ## Tests
 
-`MigraDocCore.Rendering.Tests` is the right home, as the proposal said: it covers MigraDoc's own
-layout, links the content-stream readers out of `PdfSharpCore.Test/Helpers`, and **deliberately
+`PinataLayout.Rendering.Tests` is the right home, as the proposal said: it covers MigraDoc's own
+layout, links the content-stream readers out of `PdfPinata.Test/Helpers`, and **deliberately
 rasterizes nothing**, so it needs neither Ghostscript nor ImageMagick. Structure assertions are exactly
 that shape — save, reopen, walk `/StructTreeRoot`, assert the tree — and `Helpers/Structure.cs` is what
 turns a walk of `/K` into something a test can say a sentence about.
 
 Two of them are worth pointing at. `ARunningHeadIsFurnitureAndNotSomethingToReadOut` counts the whole
 tree rather than looking for the header in it, because the bug it caught was the header being present
-and correct-looking. `TaggingDrawsTheSameTextInTheSameOrder`, over in `PdfSharpCore.Test`, is the other
+and correct-looking. `TaggingDrawsTheSameTextInTheSameOrder`, over in `PdfPinata.Test`, is the other
 half of the layout pin: see above for why it compares glyph runs and not bytes.
 
 Stage C's outside opinion is now **veraPDF as a container step**, run by `verapdf-check.ps1` in CI and

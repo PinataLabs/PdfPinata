@@ -89,7 +89,7 @@ no golden image would ever have caught it. Two of the four `q`/`Q` pairs on a pa
 itself: the renderer opens page space and then world space before the first thing is drawn, and
 `EndPage` closes both, along with anything a caller saved and never restored.
 
-The existing nesting tests, the golden images, `PdfSharpCore.Charting.Tests`,
-`MigraDocCore.Rendering.Tests` and the veraPDF corpus are the regression net for the deep nesting the
+The existing nesting tests, the golden images, `PdfPinata.Charting.Tests`,
+`PinataLayout.Rendering.Tests` and the veraPDF corpus are the regression net for the deep nesting the
 charting plot-area renderers, MigraDoc's text-frame and border renderers, and the barcode renderers
 drive. All pass unmodified, and all six corpus documents still conform.

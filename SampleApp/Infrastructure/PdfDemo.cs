@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
-using PdfSharpCore.Pdf;
+using PdfPinata.Pdf;
 
 namespace SampleApp.Infrastructure;
 

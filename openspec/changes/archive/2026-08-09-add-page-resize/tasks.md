@@ -1,12 +1,12 @@
 ## 1. Options and geometry
 
-- [x] 1.1 Add `PageFitMode` (`Fit`, `Fill`, `Stretch`, `None`) in `PdfSharpCore/root/enums/`,
+- [x] 1.1 Add `PageFitMode` (`Fit`, `Fill`, `Stretch`, `None`) in `PdfPinata/root/enums/`,
       file-scoped namespace, XML docs on every member.
       Also added `PageAlignment` (nine-way) — no such enum existed to reuse.
-- [x] 1.2 Add `PageResizeOptions` in `PdfSharpCore/root/` — `Fit`, `Alignment`, `Margin`,
+- [x] 1.2 Add `PageResizeOptions` in `PdfPinata/root/` — `Fit`, `Alignment`, `Margin`,
       `AutoRotate`, `ScaleAnnotations`, `ScaleDestinations`. Remember `LangVersion=latest` unlocks
       syntax only: `init` accessors need the `IsExternalInit` polyfill already in
-      `PdfSharpCore/!internal/`, so check it is reachable before using them, or use plain setters.
+      `PdfPinata/!internal/`, so check it is reachable before using them, or use plain setters.
       **Checked: there is no `IsExternalInit` polyfill in `!internal/`** — it holds only
       `Configuration.cs` and the two `DynamicallyAccessedMembers` files. Used plain settable
       properties rather than adding a polyfill for one options bag.
@@ -18,13 +18,13 @@
       a shared singleton would let one caller's `Margin` leak into everybody else's resize.
 - [x] 1.3 Write the fit calculation as a pure static function: source rect + target rect + options
       → `XMatrix`. No PDF types in the signature, so it is testable on its own.
-      `PdfSharpCore/root/PageFit.cs`. **Public, not internal** — the repo has no
+      `PdfPinata/root/PageFit.cs`. **Public, not internal** — the repo has no
       `InternalsVisibleTo` anywhere, so 1.4 could not test it directly otherwise. Defensible on its
       own merits: no PDF types in the signature and useful to anyone placing an `XPdfForm` by hand.
 - [x] 1.4 Unit-test 1.3 directly across all four fit modes, all nine alignments, a margin, and
       auto-rotate on matching and opposing aspects. This is where the arithmetic gets pinned; the
       integration tests should not have to re-derive it.
-      `PdfSharpCore.Test/Drawing/PageFitTests.cs`, 31 tests, asserting on where corners land rather
+      `PdfPinata.Test/Drawing/PageFitTests.cs`, 31 tests, asserting on where corners land rather
       than on matrix components. Includes the `XRect.Top`-is-not-the-top trap as its own test.
 - [x] 1.5 Resolve the source rect: `CropBox ?? MediaBox`, normalised through `/Rotate`, in unrotated
       media-box coordinates. Cover a page with a non-zero media-box origin — `PdfPage.MediaBox`
@@ -147,7 +147,7 @@
       the hazard `PdfResourcePruner` had to route around.
       `PdfPage.HasContent`. "Non-empty" means an empty array and a zero-length stream both count as
       no content, so a page that was drawn on and produced nothing still takes the old path.
-- [x] 6.4 Fix `PdfSharpCore.Test/Drawing/Layout/XTextFormatterTest.cs:43` if the guard catches it.
+- [x] 6.4 Fix `PdfPinata.Test/Drawing/Layout/XTextFormatterTest.cs:43` if the guard catches it.
       It sets `Size` before drawing so it should pass untouched — confirm rather than assume.
       Confirmed by reading it and by the suite: `Size` is set before `XGraphics.FromPdfPage`, so
       the page has no content yet. No change needed, and nothing else in the repo assigns these.
@@ -185,7 +185,7 @@
       page whose `Resources` was read before the resize.
       Plus a page whose `Contents` was read before it, which is the same trap.
 - [x] 8.3 Annotation tests over fixtures in the style of
-      `PdfSharpCore.Test/IO/ImportedPageFixtures.cs`: a link, an ink annotation, a highlight, an
+      `PdfPinata.Test/IO/ImportedPageFixtures.cs`: a link, an ink annotation, a highlight, an
       annotation with an `/AP`, and an unknown subtype.
       `PageResizeAnnotationTests.cs`, 11 tests. Every resize there halves the page exactly, so the
       expected numbers can be read off rather than computed.

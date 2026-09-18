@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
-using PdfSharpCore.Drawing;
-using PdfSharpCore.Drawing.Layout;
-using PdfSharpCore.EInvoice;
-using PdfSharpCore.Pdf;
-using PdfSharpCore.Pdf.Advanced;
-using PdfSharpCore.Pdf.IO;
+using PdfPinata.Drawing;
+using PdfPinata.Drawing.Layout;
+using PdfPinata.EInvoice;
+using PdfPinata.Pdf;
+using PdfPinata.Pdf.Advanced;
+using PdfPinata.Pdf.IO;
 using SampleApp.Infrastructure;
 
 namespace SampleApp.Demos;
@@ -22,7 +22,7 @@ namespace SampleApp.Demos;
 ///   invoice twice over, drawn on the page and attached as XML, tied together by an
 ///   <c>/AFRelationship</c> and described in the metadata by an extension schema. Every one of
 ///   those has a silent failure mode - the file opens perfectly and the system it was sent to
-///   rejects it - which is the argument for <c>PdfSharpCore.EInvoice</c> being a package rather
+///   rejects it - which is the argument for <c>PdfPinata.EInvoice</c> being a package rather
 ///   than a paragraph of documentation.
 /// </remarks>
 internal sealed class FacturXDemo : PdfDemo
@@ -59,7 +59,7 @@ internal sealed class FacturXDemo : PdfDemo
         // A PDF/A document has to have a title, and attaching the invoice below is what makes this
         // a PDF/A document - so this line is load-bearing rather than decorative.
         document.Info.Title = "Invoice 2026-0042";
-        document.Info.Author = "PdfSharpCore sample app";
+        document.Info.Author = "PdfPinata sample app";
         document.Info.Subject = "A Factur-X invoice: the page and the XML are the same invoice";
 
         // Nothing here says anything about colour, and the document still gets the output intent
@@ -77,7 +77,7 @@ internal sealed class FacturXDemo : PdfDemo
             gfx.DrawString("Invoice 2026-0042", heading, XBrushes.Black, 50, 60);
             gfx.DrawString("Issued 14 August 2026 · payable within 30 days", body, XBrushes.Gray, 50, 78);
 
-            gfx.DrawString("PdfSharpCore Ltd", label, XBrushes.Black, 50, 108);
+            gfx.DrawString("PdfPinata Ltd", label, XBrushes.Black, 50, 108);
             gfx.DrawString("Kölnstraße 1, 50667 Köln", body, XBrushes.Black, 50, 122);
             gfx.DrawString("VAT DE123456789", body, XBrushes.Black, 50, 136);
 
@@ -245,7 +245,7 @@ internal sealed class FacturXDemo : PdfDemo
     /// </summary>
     static readonly (string Description, int Quantity, decimal UnitPrice)[] Items =
     {
-        ("PdfSharpCore support, annual", 1, 1200.00m),
+        ("PdfPinata support, annual", 1, 1200.00m),
         ("Migration consultancy, per day", 2, 780.00m),
         ("Font licensing review", 1, 450.00m),
     };
@@ -293,7 +293,7 @@ internal sealed class FacturXDemo : PdfDemo
     ///   the delivery event, and any allowances and charges, under business rules that differ by
     ///   country and are revised on a public timetable. Generating and validating that is somebody
     ///   else's library and a permanent maintenance liability - deliberately outside
-    ///   <c>PdfSharpCore.EInvoice</c>, which takes the bytes and puts them in the document
+    ///   <c>PdfPinata.EInvoice</c>, which takes the bytes and puts them in the document
     ///   correctly. This is enough to show what shape they are and how they answer to the page.
     ///   </para>
     /// </remarks>
@@ -359,7 +359,7 @@ internal sealed class FacturXDemo : PdfDemo
         }
 
         xml.Append("    <ram:ApplicableHeaderTradeAgreement>\n");
-        xml.Append("      <ram:SellerTradeParty><ram:Name>PdfSharpCore Ltd</ram:Name></ram:SellerTradeParty>\n");
+        xml.Append("      <ram:SellerTradeParty><ram:Name>PdfPinata Ltd</ram:Name></ram:SellerTradeParty>\n");
         xml.Append("      <ram:BuyerTradeParty><ram:Name>Beispiel GmbH</ram:Name></ram:BuyerTradeParty>\n");
         xml.Append("    </ram:ApplicableHeaderTradeAgreement>\n");
         // Empty and present: nothing was delivered to a place, and the group still has to be here

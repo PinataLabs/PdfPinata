@@ -3,7 +3,7 @@ Group 3 is the only one that changes behaviour, and is gated on that decision be
 
 ## 1. Pin what is already there
 
-- [x] 1.1 Write `PdfSharpCore.Test/Drawing/PageBleedTests.cs` against the **current** behaviour: the
+- [x] 1.1 Write `PdfPinata.Test/Drawing/PageBleedTests.cs` against the **current** behaviour: the
       origin on the trim corner, a negative coordinate reaching the sheet edge, `Width`/`Height`
       still reporting the trimmed size, and the five boxes with their measured values. Write it
       before changing anything — the point is to find out what the code does, not to confirm what

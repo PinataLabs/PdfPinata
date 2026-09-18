@@ -73,7 +73,7 @@ it. It affects both routes into the engine, it has been there since the fork, an
 test suite could have caught it because nothing rendered a chart.
 
 It is also the one item here whose fix is not this branch's. `main` found it independently while this
-work was in flight, by writing `PdfSharpCore.Charting.Tests`, and fixed it as C1 of
+work was in flight, by writing `PdfPinata.Charting.Tests`, and fixed it as C1 of
 `charting-renderer-findings.md` — a better fix than this branch's, for the reason given under item 18
 below. Two routes to the same defect within a week of each other, neither of which existed a month
 ago, is the argument for both pieces of work rather than against either.
@@ -88,7 +88,7 @@ demonstration of any kind, found by walking the assemblies rather than the docum
 ```text
   assembly / namespace                         demonstrated by
   ─────────────────────────────────────────    ───────────────
-  PdfSharpCore.Charting, 8 chart types         nothing
+  PdfPinata.Charting, 8 chart types         nothing
   MigraDoc Chart + ChartMapper                 nothing
   Drawing.BarCodes, 3 linear + DataMatrix      nothing
   Pdf.Security, RC4 40/128, 8 permissions      nothing
@@ -106,7 +106,7 @@ demonstration of any kind, found by walking the assemblies rather than the docum
   DocumentRenderer.ImageFailed                 nothing
 ```
 
-`docs/PdfSharpCore/samples/` describes six of these in prose with no code behind any of them —
+`docs/PdfPinata/samples/` describes six of these in prose with no code behind any of them —
 `CombineDocuments`, `ConcatenateDocuments`, `SplitDocument`, `Booklet`, `TwoPagesOnOne`,
 `Watermark`. `demonstration-app.md` left those alone on the grounds that they were a separate piece
 of work. Items 2 and 3 are that piece of work.
@@ -134,19 +134,19 @@ test to use.
 
 ## Item 1 — `Charts`
 
-`PdfSharpCore.Charting` is a complete charting engine: eight `ChartType` values — line, clustered and
+`PdfPinata.Charting` is a complete charting engine: eight `ChartType` values — line, clustered and
 stacked columns, clustered and stacked bars, area, pie, exploded pie — plus combination charts, which
 are not a ninth value but a series whose own `ChartType` disagrees with its chart's. Around them sit
 `Axis`, `Gridlines`, `Legend`, `DataLabel`, `TickLabels`, `MarkerStyle` and `FillFormat`, and a
-renderer for each in `PdfSharp.Charting.Renderers`. `MigraDocCore.Rendering` renders a MigraDoc
+renderer for each in `PdfSharp.Charting.Renderers`. `PinataLayout.Rendering` renders a MigraDoc
 `Chart` too:
 `Renderer.Create` dispatches it, and `MigraDoc.Rendering.ChartMapper` maps the DOM's chart onto the
 charting engine's.
 
 `demonstration-app.md` declined a charting demo on the grounds that it "would mean a fourth project
-reference for one page". That was wrong when it was written and is checkable: `MigraDocCore.Rendering
-.csproj` already carries `<ProjectReference Include="..\PdfSharpCore.Charting\…" />` with no
-`PrivateAssets`, and `SampleApp` already references `MigraDocCore.Rendering`. The charting assembly
+reference for one page". That was wrong when it was written and is checkable: `PinataLayout.Rendering
+.csproj` already carries `<ProjectReference Include="..\PdfPinata.Charting\…" />` with no
+`PrivateAssets`, and `SampleApp` already references `PinataLayout.Rendering`. The charting assembly
 is on the app's reference graph today and in its output directory today. An explicit reference is
 worth adding for legibility, but it adds no dependency that is not already there.
 
@@ -447,7 +447,7 @@ largest of the usual sizes that fits.
 
 ## Item 32 — the prose samples
 
-The twenty-three pages under `docs/PdfSharpCore/samples/` came from upstream PDFsharp, and nothing
+The twenty-three pages under `docs/PdfPinata/samples/` came from upstream PDFsharp, and nothing
 builds them, so they say what was true when they were written.
 
 Every page now names the demo that covers it, with the command to run it, and says plainly which of
@@ -510,7 +510,7 @@ the page it then writes. The reader sees the settings, the sizes, and the trade.
 
 `Pdf.Content.ContentReader` and the `CObject` model are public: a caller can read back the operators
 a page was drawn with. The test project has four content-stream readers under `Helpers` — linked
-into `MigraDocCore.Rendering.Tests` rather than copied — so the technique is well understood inside
+into `PinataLayout.Rendering.Tests` rather than copied — so the technique is well understood inside
 the repository and has no example outside it.
 
 The demo draws a page, saves it to a `MemoryStream`, reopens it, and prints its own content stream —
@@ -587,7 +587,7 @@ not a question, embedded like the rest.
 ## Item 14 — L1, MigraDoc drops a `Footnote` silently
 
 `ParagraphElements.AddFootnote` exists in two overloads, `Footnote.cs` is in the DOM,
-`StyleNames.Footnote` is a predefined style — and `MigraDocCore.Rendering` contains the string
+`StyleNames.Footnote` is a predefined style — and `PinataLayout.Rendering` contains the string
 "Footnote" nowhere at all. `ParagraphRenderer.FormatElement` switches on the element's type name and
 ends `default: return FormatResult.Continue;`, so a footnote is skipped without a word.
 
@@ -683,7 +683,7 @@ This is not confined to the drawn route. `ChartMapper.Map` maps the axes only
 same renderers in the same state. Both routes, every axis-bearing chart type, since the fork.
 
 **The fix in the tree is not this branch's.** While this work was in flight, `main` found the same
-defect independently by writing `PdfSharpCore.Charting.Tests`, and fixed it as C1 of
+defect independently by writing `PdfPinata.Charting.Tests`, and fixed it as C1 of
 `charting-renderer-findings.md`. That fix is the better one and is what survived the rebase.
 
 This branch read the property in all four renderers. `main` keeps reading the field and moves the
@@ -869,7 +869,7 @@ does today with the three combined layouts.
   better demonstration and leave the smoke test's contract alone.
 - **No MigraDoc barcode renderer.** Item 15 makes the gap audible and item 33 deliberately leaves it
   out of the footnote spec. It wants a spec of its own, and is much the smaller of the two: a shape
-  renderer mapping the DOM `Barcode` onto `PdfSharpCore.Drawing.BarCodes`, with no layout problem in
+  renderer mapping the DOM `Barcode` onto `PdfPinata.Drawing.BarCodes`, with no layout problem in
   it at all. It is now the only element the DOM can hold and this renderer refuses.
 - **Footnotes are not split across a page break, and are refused outside a section's own
   paragraphs.** Items 6 and 8 of `migradoc-footnotes.md`, both deferred by decision rather than by

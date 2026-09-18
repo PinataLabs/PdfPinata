@@ -1,0 +1,86 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AwesomeAssertions" Version="9.5.0" />
+    <PackageReference Include="coverlet.collector" Version="10.0.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="coverlet.msbuild" Version="10.0.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Ghostscript.NativeAssets" Version="10.7.1" />
+    <PackageReference Include="HarfBuzzSharp.NativeAssets.Linux" Version="14.2.1.2" />
+    <PackageReference Include="HarfBuzzSharp.NativeAssets.macOS" Version="14.2.1.2" />
+    <PackageReference Include="HarfBuzzSharp.NativeAssets.Win32" Version="14.2.1.2" />
+    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="14.15.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.150.1" />
+    <PackageReference Include="SkiaSharp.NativeAssets.macOS" Version="4.150.1" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="4.150.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
+    <PackageReference Include="ZXing.Net" Version="0.16.11" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PdfPinata\PdfPinata.csproj" />
+    <ProjectReference Include="..\PinataLayout.Rendering\PinataLayout.Rendering.csproj" />
+    <ProjectReference Include="..\PdfPinata.Signing\PdfPinata.Signing.csproj" />
+    <ProjectReference Include="..\PdfPinata.EInvoice\PdfPinata.EInvoice.csproj" />
+    <ProjectReference Include="..\PdfPinata.HarfBuzz\PdfPinata.HarfBuzz.csproj" />
+    <ProjectReference Include="..\PdfPinata.Skia\PdfPinata.Skia.csproj" />
+    <ProjectReference Include="..\PdfPinata.ImageSharp\PdfPinata.ImageSharp.csproj" />
+    <!--
+      So that the demonstration app's demos can be run by the smoke tests. The app targets
+      net8.0 alone, which both legs of this project can reference.
+    -->
+    <ProjectReference Include="..\SampleApp\SampleApp.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Assets\**\*.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\**\*.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\frog-and-toad.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\Fonts\*.ttf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\Fonts\*.otf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <!--
+      The pinned layout output. Checked in as a file rather than written into a test as a string
+      literal: it is six hundred lines, and a literal of that size is compared against text the
+      library writes with line feeds while the literal itself carries whatever line endings the
+      checkout gave the file - which is how the gradient pin came to fail on Windows and pass on CI.
+    -->
+    <!--
+      The Unicode Bidirectional Algorithm conformance suites, gzipped: 1.7 MB here against
+      14.8 MB unpacked. Checked in rather than downloaded because a conformance claim that
+      depends on the network is not one the build can make.
+    -->
+    <None Update="Assets\Unicode\*.gz">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\Layout\*.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

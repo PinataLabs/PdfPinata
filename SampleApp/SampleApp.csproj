@@ -5,7 +5,7 @@
     <!--
       One target framework rather than the library's two, because "dotnet run" refuses to pick
       between them and this app exists to be easy to run. net8.0 rather than net10.0
-      because PdfSharpCore.Test references this project and builds a net8.0 leg, which could not
+      because PdfPinata.Test references this project and builds a net8.0 leg, which could not
       reference a net10.0 one. What builds here therefore builds on the lowest framework the library
       supports; the multi-framework matrix stays the test project's job.
     -->
@@ -14,7 +14,7 @@
     <ImplicitUsings>disable</ImplicitUsings>
     <IsPackable>false</IsPackable>
     <!--
-      Trimming is deliberately not configured here. MigraDocCore.AotSmokeTest is the project that
+      Trimming is deliberately not configured here. PinataLayout.AotSmokeTest is the project that
       guards trim and AOT, with the analyzers switched on and a native publish that CI actually
       runs. Spectre.Console, System.CommandLine and the MigraDoc renderer would each raise IL2xxx
       warnings that say nothing about this app, and warnings nobody can act on are how people learn
@@ -23,16 +23,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\PdfSharpCore\PdfSharpCore.csproj" />
-    <ProjectReference Include="..\PdfSharpCore.Skia\PdfSharpCore.Skia.csproj" />
-    <ProjectReference Include="..\MigraDocCore.Rendering\MigraDocCore.Rendering.csproj" />
+    <ProjectReference Include="..\PdfPinata\PdfPinata.csproj" />
+    <ProjectReference Include="..\PdfPinata.Skia\PdfPinata.Skia.csproj" />
+    <ProjectReference Include="..\PinataLayout.Rendering\PinataLayout.Rendering.csproj" />
     <!--
-      Already here transitively - MigraDocCore.Rendering references it, because a MigraDoc chart is
+      Already here transitively - PinataLayout.Rendering references it, because a MigraDoc chart is
       mapped onto this engine to be drawn - so this line adds no dependency the app did not have.
       It is written out because the Charts demo uses the charting API directly as well as through
       MigraDoc, and a reference a reader cannot see in the project file is one they cannot rely on.
     -->
-    <ProjectReference Include="..\PdfSharpCore.Charting\PdfSharpCore.Charting.csproj" />
+    <ProjectReference Include="..\PdfPinata.Charting\PdfPinata.Charting.csproj" />
     <!--
       The shaper, for the International demo. A package of its own rather than part of a backend,
       so taking it does not oblige a choice of imaging backend - see docs/specs/text-shaping-and-bidi.md.
@@ -40,7 +40,7 @@
       GlobalFontSettings.TextShaper itself would be changing a setting shared with every test
       running beside it in the smoke-test host.
     -->
-    <ProjectReference Include="..\PdfSharpCore.HarfBuzz\PdfSharpCore.HarfBuzz.csproj" />
+    <ProjectReference Include="..\PdfPinata.HarfBuzz\PdfPinata.HarfBuzz.csproj" />
     <!--
       The cryptography, for the Signing demo. The core package holds all the PDF machinery of a
       signature - the placeholder, the byte range, the patching - and no cryptography at all, behind
@@ -48,14 +48,14 @@
       also the one shipped package that does not target netstandard2.1, which is why signing is a
       package of its own and not part of the core.
     -->
-    <ProjectReference Include="..\PdfSharpCore.Signing\PdfSharpCore.Signing.csproj" />
+    <ProjectReference Include="..\PdfPinata.Signing\PdfPinata.Signing.csproj" />
     <!--
       The hybrid e-invoice helper, for the FacturX demo. Nothing the core could not do - it writes a
       file specification and a string of RDF/XML - but every part of it is silent when got wrong, so
       it is a package rather than a paragraph of documentation. It carries no dependency of its own,
       which is why this line costs the app nothing but a project reference.
     -->
-    <ProjectReference Include="..\PdfSharpCore.EInvoice\PdfSharpCore.EInvoice.csproj" />
+    <ProjectReference Include="..\PdfPinata.EInvoice\PdfPinata.EInvoice.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -73,7 +73,7 @@
       are the same bytes, every build.
 
       Embedded rather than copied beside the binary because a referenced project's content items do
-      not reach the referencing project's output directory, and PdfSharpCore.Test references this
+      not reach the referencing project's output directory, and PdfPinata.Test references this
       one. Embedding also survives publishing and does not care what the working directory is.
     -->
     <EmbeddedResource Include="Demos\**\*.cs" LogicalName="Sources/%(Filename)%(Extension)" />

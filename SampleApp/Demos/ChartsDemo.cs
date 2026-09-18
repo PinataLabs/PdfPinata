@@ -1,13 +1,13 @@
 using System.Collections.Generic;
 using System.IO;
-using MigraDocCore.DocumentObjectModel;
-using MigraDocCore.DocumentObjectModel.Shapes.Charts;
-using MigraDocCore.Rendering;
-using PdfSharpCore.Drawing;
-using PdfSharpCore.Pdf;
-using PdfSharpCore.Pdf.IO;
+using PinataLayout.DocumentObjectModel;
+using PinataLayout.DocumentObjectModel.Shapes.Charts;
+using PinataLayout.Rendering;
+using PdfPinata.Drawing;
+using PdfPinata.Pdf;
+using PdfPinata.Pdf.IO;
 using SampleApp.Infrastructure;
-using Charting = PdfSharpCore.Charting;
+using Charting = PdfPinata.Charting;
 
 namespace SampleApp.Demos;
 

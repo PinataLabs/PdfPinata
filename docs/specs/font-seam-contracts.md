@@ -41,8 +41,8 @@ comment calls this *"Ugly"*. There is no other way.
 
 **One configuration per assembly.** `FontResolver` refuses to change once a font has been created,
 and xUnit gives no ordering guarantee that would let a fixture get there first — so four test
-assemblies each carry a `[ModuleInitializer]`: `PdfSharpCore.Test`, `MigraDocCore.Rendering.Tests`,
-`PdfSharpCore.Charting.Tests` and `MigraDocCore.DocumentObjectModel.Tests`. The last of these ships a
+assemblies each carry a `[ModuleInitializer]`: `PdfPinata.Test`, `PinataLayout.Rendering.Tests`,
+`PdfPinata.Charting.Tests` and `PinataLayout.DocumentObjectModel.Tests`. The last of these ships a
 whole `IFontResolver` implementation, `NamedFontsOnly`, to supply a single *string* — the default
 font name, which building a `Document` asks for — and throws if asked to resolve a face. No assembly
 can exercise two resolver configurations, so `FontResolverParityTest` reaches the Skia and ImageSharp
@@ -51,11 +51,11 @@ at all, because the smoke-test host has already claimed the seam.
 
 **The knowledge that decides every measurement is copied three times.** `PinnedFontResolver` serves
 Liberation Sans in place of Arial because glyph widths decide where a line wraps and therefore what a
-layout assertion sees. It exists at 148 lines in `PdfSharpCore.Test`, 61 in
-`MigraDocCore.Rendering.Tests` and 62 in `PdfSharpCore.Charting.Tests`, each with its own doc comment
+layout assertion sees. It exists at 148 lines in `PdfPinata.Test`, 61 in
+`PinataLayout.Rendering.Tests` and 62 in `PdfPinata.Charting.Tests`, each with its own doc comment
 explaining why this copy is smaller than the others. The repository already has the mechanism for
 sharing test modules across assemblies and uses it for four content-stream readers, linked by
-`<Compile Include="..\PdfSharpCore.Test\Helpers\...">`. The one piece of knowledge that decides every
+`<Compile Include="..\PdfPinata.Test\Helpers\...">`. The one piece of knowledge that decides every
 measurement in three suites is not among them.
 
 Cache invalidation is inconsistent for the same reason. Setting `FontFallback` calls
@@ -128,7 +128,7 @@ the absence is a defect, or `FontFallback`'s call is defensive. That should be d
 copied in either direction, and it is small enough to land separately from everything else here.
 
 **`PinnedFontResolver` is linked, not packaged.** The precedent is explicit and the reasoning is
-already written down in `PdfSharpCore.Charting.Tests.csproj`: the linked files keep their own
+already written down in `PdfPinata.Charting.Tests.csproj`: the linked files keep their own
 namespace, compiling the source needs no project reference, and this *"couples the content of the two
 projects and not their builds"*. The pinned resolver should be shared the same way. The three copies
 differ, so reconciling them is part of the work rather than a side effect of it — the 148-line version
@@ -137,12 +137,12 @@ is the fullest and the two 61-line versions share 47 identical lines.
 **`NamedFontsOnly` stays.** The DOM test project references the DOM and nothing else — no renderer,
 no backend, no Ghostscript, no font files — and that boundary is load-bearing. It resolves no face and
 throws if asked to, which is the line saying a test needing a real font belongs in
-`MigraDocCore.Rendering.Tests`. Sharing the *pinned* resolver into it would break exactly what makes
+`PinataLayout.Rendering.Tests`. Sharing the *pinned* resolver into it would break exactly what makes
 it useful.
 
 **Three implementations of "family name and style from a font file" are noted and not addressed.**
-The core parses the `name` table in `OpenTypeFontTables`; `PdfSharpCore.Skia` re-parses it in
-`OpenTypeFontMetadata`; `PdfSharpCore.ImageSharp` gets a third answer from SixLabors.
+The core parses the `name` table in `OpenTypeFontTables`; `PdfPinata.Skia` re-parses it in
+`OpenTypeFontMetadata`; `PdfPinata.ImageSharp` gets a third answer from SixLabors.
 `FontResolverParityTest` holds two of the three in agreement by walking the machine's font directory
 and does not reach the third. Real duplication, and a different proposal.
 
@@ -161,7 +161,7 @@ the lifecycle half is harder. Tests for set-once behaviour need either their own
 arrangement that does not disturb the registered resolver — and `PinnedFontResolver.Register`, which
 adds a font rather than swapping the resolver, is the existing pattern for that.
 
-**Prior art to follow rather than reinvent.** `PdfSharpCore.Test/TestBackendSetup.cs` is the
+**Prior art to follow rather than reinvent.** `PdfPinata.Test/TestBackendSetup.cs` is the
 registration model. `PinnedFontResolver.Register` is how a test adds a font of its own without
 swapping the resolver out from under everything else. `HarfBuzzShapingTests` and `FontFallbackTests`
 show the established way to narrow a global seam: an adapter that declines every run but one

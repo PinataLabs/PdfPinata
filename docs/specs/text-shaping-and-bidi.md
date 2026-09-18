@@ -30,7 +30,7 @@ character it happens to start with.
 | 1 | `ITextShaper` — a fourth static seam beside `GlyphOutlineProvider` | **built** |
 | 1a | `ShapingFont`, `ShapedRun`, `ShapedGlyph`, `XTextDirection` | **built** |
 | 1b | Measuring and drawing both ask the seam | **built** |
-| 2 | `HarfBuzzTextShaper`, in a `PdfSharpCore.HarfBuzz` package of its own | **built** |
+| 2 | `HarfBuzzTextShaper`, in a `PdfPinata.HarfBuzz` package of its own | **built** |
 | 3 | UAX #9 bidirectional algorithm, in the core | **built** |
 | 4 | UAX #24 script itemisation | **built** |
 | 5 | Font fallback chain | **built** |
@@ -106,7 +106,7 @@ public readonly struct ShapedGlyph
 }
 ```
 
-in `PdfSharpCore/Fonts/`, registered on `GlobalFontSettings.TextShaper`, and asked through the
+in `PdfPinata/Fonts/`, registered on `GlobalFontSettings.TextShaper`, and asked through the
 internal `TextShaping` — the one place a character becomes a glyph.
 
 **Clusters are not optional.** They are the character↔glyph map, and three separate things need it:
@@ -165,11 +165,11 @@ concurrent tests get the behaviour they would have had with no shaper at all.
 
 ## Item 2 — the HarfBuzz implementation · **built**
 
-**DECISION MADE — a standalone `PdfSharpCore.HarfBuzz` package**, over `HarfBuzzSharp` 14.2.1.2
+**DECISION MADE — a standalone `PdfPinata.HarfBuzz` package**, over `HarfBuzzSharp` 14.2.1.2
 alone rather than `SkiaSharp.HarfBuzz`. The question was whether to accept that shaping requires the
-Skia backend: `PdfSharpCore.ImageSharp` is pinned to `SixLabors.Fonts` 1.0.1 for licence reasons (the
+Skia backend: `PdfPinata.ImageSharp` is pinned to `SixLabors.Fonts` 1.0.1 for licence reasons (the
 2.0 relicensing) and that version's advanced typography support is limited, so putting the shaper in
-`PdfSharpCore.Skia` would have made the two backends unequal in a way they currently are not. A
+`PdfPinata.Skia` would have made the two backends unequal in a way they currently are not. A
 package of its own costs one more thing to ship and duplicates a native dependency Skia users already
 have, and it means shaping does not oblige anybody to pick an imaging backend at all. It targets
 `netstandard2.1;net8.0;net10.0` like everything else, so the Unity leg described in `CLAUDE.md`
@@ -240,9 +240,9 @@ now a catchable one.
 ## Items 3 and 4 — bidi and itemisation, in the core · **built**
 
 The Unicode Bidirectional Algorithm is pure text processing. It touches no font, no image and no
-backend, so it goes in `PdfSharpCore` itself rather than behind the seam — a caller who only wants to
-know which way a string runs should not have to install a shaper to find out. `PdfSharpCore/Text/`,
-namespace `PdfSharpCore.Text`, about 1,100 lines including the itemiser.
+backend, so it goes in `PdfPinata` itself rather than behind the seam — a caller who only wants to
+know which way a string runs should not have to install a shaper to find out. `PdfPinata/Text/`,
+namespace `PdfPinata.Text`, about 1,100 lines including the itemiser.
 
 The reason to be confident about it: **it is exactly testable.** The Unicode Character Database ships
 `BidiTest.txt` and `BidiCharacterTest.txt`, conformance suites with expected levels and reorderings.
@@ -257,7 +257,7 @@ in the order they are drawn, which is exactly what `ITextShaper.Shape` takes.
 ### The Unicode data — three decisions
 
 **The property tables are checked-in generated C# source.** `tools/UnicodeTableGenerator` reads the
-UCD and writes four `.g.cs` files; it is deliberately outside `PdfSharpCore.slnx` so the build and CI
+UCD and writes four `.g.cs` files; it is deliberately outside `PdfPinata.slnx` so the build and CI
 never see it. Generating during the build was the alternative and is worse: it would put a network
 fetch on the critical path of every build on every target framework and make an offline build
 impossible. The tables are small — 1,611 Bidi_Class ranges and 984 Script ranges, about 57 KB of
@@ -266,7 +266,7 @@ keeps the `netstandard2.1`/Unity leg and AOT honest, which an embedded-resource 
 complicated for no gain at this size.
 
 **The conformance suites are checked in gzipped**: 1.7 MB against 14.8 MB unpacked, in
-`PdfSharpCore.Test/Assets/Unicode/`. That is about a quarter again on top of a 6.2 MB repository, and
+`PdfPinata.Test/Assets/Unicode/`. That is about a quarter again on top of a 6.2 MB repository, and
 it is worth it — a conformance claim that depends on the network is not one the build can make. The
 alternatives were a sampled subset, which weakens "conformant" to "spot-checked" when UBA bugs live
 in rare class combinations, or a download that silently skips. Reading and running all 861,948 cases
@@ -411,9 +411,9 @@ Every measurement path has to go through shaped advances rather than summing per
   written~~ **done**
 - ~~`Drawing.Layout/XTextFormatter.cs` — the line breaker~~ **done, and it took no change at all**:
   it measures word by word and draws line by line, both through the two above
-- ~~`MigraDocCore.Rendering/ParagraphRenderer.cs`~~ **measures and shapes correctly**; its word
+- ~~`PinataLayout.Rendering/ParagraphRenderer.cs`~~ **measures and shapes correctly**; its word
   *order* is item 6c
-- ~~`PdfSharpCore.Charting` — axis and data labels~~ **done**: a label is one string through one
+- ~~`PdfPinata.Charting` — axis and data labels~~ **done**: a label is one string through one
   `DrawString`
 
 Kerning and ligatures change advance widths, which changes where lines break, which changes where
@@ -440,7 +440,7 @@ disagreed about strings containing control characters. Routing both through one 
 visible and **deliberately preserved it** — the filtering stayed at the call site, because changing
 it is a behaviour change with nothing to do with shaping and would have moved output the shaper is
 supposed to leave alone. It was written down here rather than fixed in passing, and it is now fixed
-on its own terms. `PdfSharpCore/Fonts/TextNormalization.cs` holds the one rule both sides read — a
+on its own terms. `PdfPinata/Fonts/TextNormalization.cs` holds the one rule both sides read — a
 tab becomes a single space, every other character below 32 is dropped, nothing at or above 32 is
 touched — and `DrawString` applies it to the string before it measures it for alignment, shapes it,
 embeds a glyph for it or encodes it as WinAnsi, so every later read is of the one normalized local.
@@ -731,7 +731,7 @@ property and the reordering are one feature, and either alone is inert.
 
 ## Tests
 
-`PdfSharpCore.Test/Fonts/TextShapingSeamTests.cs` covers the seam, 22 tests: that no shaper is
+`PdfPinata.Test/Fonts/TextShapingSeamTests.cs` covers the seam, 22 tests: that no shaper is
 registered until one is, that one can be taken away again, that a registered shaper decides which
 glyphs are drawn and how wide the text measures, that measuring and drawing agree because they ask
 the same seam, that a ligature draws as fewer glyphs than there were characters, that a shaper which
@@ -743,7 +743,7 @@ Every shaper in it is a stub answering a fixed script — the question is whethe
 seam and believes the answer, not whether HarfBuzz works. See the note under item 1 for why they all
 answer for one sentinel string and decline everything else.
 
-`PdfSharpCore.Test/Fonts/HarfBuzzShapingTests.cs` covers the shaper itself, 17 tests, against two
+`PdfPinata.Test/Fonts/HarfBuzzShapingTests.cs` covers the shaper itself, 17 tests, against two
 faces. **Noto Sans Arabic 2.013 is now in the test assets** — SIL OFL 1.1, the same licence the three
 faces already there carry, so `Assets/Fonts/LICENSE.txt` reproduces one licence for all of them. Its
 em is 1000 where every Liberation face is 2048, which keeps the design-unit arithmetic honest into
@@ -784,7 +784,7 @@ a run and not a null; rubbish where a font should be does not throw; a disposed 
 rather than taking the process; and one shaper serves sixty-four threads at once with the same answer
 each time.
 
-`PdfSharpCore.Test/Fonts/ShapedFontEmbeddingTests.cs` covers what the shaped run has to leave behind
+`PdfPinata.Test/Fonts/ShapedFontEmbeddingTests.cs` covers what the shaped run has to leave behind
 in the written file: that a glyph only the shaper knows about is given a width and embedded, that the
 glyphs it did *not* choose are not carried along, that a glyph standing for several characters says
 all of them in `/ToUnicode`, and — with HarfBuzz — that a composed accent comes out as one glyph
@@ -797,7 +797,7 @@ That last test also found a defect in its own reading rather than in the library
 parses `/ToUnicode` back was scanning the whole stream for `<code><code><code>`, which matches the
 `codespacerange` line above the blocks as readily as an entry inside one — so it reported a control
 character as the meaning of a glyph. It reads inside `beginbfrange`/`beginbfchar` blocks only now.
-Worth recording because `PdfSharpCore.Charting.Tests/Helpers/ShownText.cs` parses the same CMap the
+Worth recording because `PdfPinata.Charting.Tests/Helpers/ShownText.cs` parses the same CMap the
 same loose way and is linked into two test projects; it happens not to be bitten, because nothing
 it draws has a glyph identifier that collides.
 
@@ -806,7 +806,7 @@ document's own `/ToUnicode`, and asserted to spell the word *backwards along the
 what drawing it forwards means. The same test checks that the four glyphs are not the four an
 isolated lookup would give, so it covers both halves, joining and order, in one place.
 
-`PdfSharpCore.Test/Fonts/ItemizedTextTests.cs` covers itemisation from the outside, 10 tests, and
+`PdfPinata.Test/Fonts/ItemizedTextTests.cs` covers itemisation from the outside, 10 tests, and
 **registers no shaper at all**, because reordering is not shaping and a consumer who takes no
 HarfBuzz dependency should still get it. It reads glyph identifiers back and compares them, so it
 uses the Arabic face rather than Liberation Sans — a face with no Arabic in it answers `.notdef` for
@@ -817,7 +817,7 @@ change of direction, that a private-use character is a run of its own, that a st
 measures as its runs add up to, and that each run reaches the shaper with its own script tag and
 direction.
 
-`PdfSharpCore.Test/Fonts/FontFallbackTests.cs` covers fallback, 14 tests, and its first two are a
+`PdfPinata.Test/Fonts/FontFallbackTests.cs` covers fallback, 14 tests, and its first two are a
 pair worth reading together: `WithoutAFallbackACharacterTheFaceLacksIsDrawnAsNothing` pins the
 starting position — four characters, four glyph zero, no complaint from anywhere — and
 `WithAFallbackItIsDrawnByTheFaceThatHasIt` measures the fix against it. Then: only the part the face
@@ -837,7 +837,7 @@ suite's `PinnedFontResolver` answers every family with Liberation Sans on purpos
 document asking for a font that is not shipped lays out the same way everywhere — which means
 nothing in it can make the `XFont` constructor throw.
 
-`PdfSharpCore.Test/Drawing/Layout/BidirectionalLayoutTests.cs` covers how far it gets up the layout
+`PdfPinata.Test/Drawing/Layout/BidirectionalLayoutTests.cs` covers how far it gets up the layout
 engine: a formatter line comes out in visual order across the words in it, and a justified one does
 not. The second of those pins a limitation rather than a feature, deliberately, so that item 6c
 fails a test when somebody fixes it.
@@ -851,7 +851,7 @@ only its own sentinel is harmless to install, but a *recorder* that declines eve
 every string the rest of the suite draws while it is installed, so it has to name the runs it wants
 back exactly rather than matching them loosely.
 
-`PdfSharpCore.Test/Text/` holds the text side: `UnicodePropertyTests` (41, including four on the
+`PdfPinata.Test/Text/` holds the text side: `UnicodePropertyTests` (41, including four on the
 `@missing` defaults and one sweeping all 1,114,112 code points through both lookups),
 `BidiConformanceTests` (the two suites, 861,948 cases, about two seconds), and `ItemizationTests`
 (25, script itemisation and its join with bidi — the part with no conformance suite of its own,

@@ -44,7 +44,7 @@ else is expressed in. Behaviour on day one is identical to iText7's.
 
 ### 2. Only the widest-free-span scan is shared between the engines
 
-Extracted into `PdfSharpCore/Drawing.Layout/` as a pure static helper taking and returning **plain
+Extracted into `PdfPinata/Drawing.Layout/` as a pure static helper taking and returning **plain
 doubles** — no `Rectangle`, `XRect` or `XUnit` in the signature, which sidesteps the type mismatch
 between the two engines entirely. Public, because this repository deliberately carries no
 `InternalsVisibleTo` and MigraDoc must call it.
@@ -97,7 +97,7 @@ steps only. Worth knowing the door is open; not worth opening it here.
 ### 4. No wrap-side enumeration
 
 MigraDoc already ships `WrapStyle { TopBottom, None, Through, Left, Right, Largest, Both }`. A
-parallel `TextWrapSide` or `TextWrapMode` in the PdfSharpCore namespace would put two near-identical
+parallel `TextWrapSide` or `TextWrapMode` in the PdfPinata namespace would put two near-identical
 enumerations in one solution, which is the `PageSize`/`PageFormat` situation this repository has
 already recorded a lesson about: *"The names now agree, which is what made them confusable."*
 

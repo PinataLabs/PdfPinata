@@ -1,4 +1,4 @@
-The ICC profile in this directory is embedded in the PdfSharpCore package and
+The ICC profile in this directory is embedded in the PdfPinata package and
 handed to any PDF/A document whose colours are RGB and which names no profile of
 its own - see PdfOutputIntents. Every archival document has to embed a profile
 saying what its colours mean, and colours written as RGB by a library nobody told

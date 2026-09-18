@@ -13,12 +13,12 @@ Follows `docs/specs/axis-renderer-duplication.md`, which should land first.
 
 ## Problem Statement
 
-Every renderer in `PdfSharpCore.Charting` is `internal`, and this repository carries no
+Every renderer in `PdfPinata.Charting` is `internal`, and this repository carries no
 `InternalsVisibleTo`. So a test reaches a renderer the only way a caller can: a `Chart` handed to a
 `ChartFrame`, drawn onto a page, saved, reopened with `PdfReader`, and read back out of the content
 stream.
 
-`PdfSharpCore.Charting.Tests` has 110 tests and 112 calls into the `Drawn` helper, because there is
+`PdfPinata.Charting.Tests` has 110 tests and 112 calls into the `Drawn` helper, because there is
 no other route in. Every question about axis arithmetic — where does this tick sit, how many labels
 are there, what does this one say — travels through `ChartFrame`'s renderer selection, the whole
 `Save` pipeline, `PdfReader`, and a content-stream tokenizer before it can be asked.
@@ -72,7 +72,7 @@ The round trip stays for what it is for.
     than swapped in.
 11. As a maintainer, I want the tests that genuinely describe drawing to stay on the round trip, so
     that the split is by question rather than by convenience.
-12. As a consumer of `PdfSharpCore.Charting`, I want no public type to change, so that this costs me
+12. As a consumer of `PdfPinata.Charting`, I want no public type to change, so that this costs me
     nothing.
 13. As a consumer, I want charts to render identically, so that this is provably a test-only change.
 
@@ -130,7 +130,7 @@ existing helpers do it well.
 ones `axis-renderer-duplication.md` will have just merged. The plot-area, data-label and axis-title
 renderers after, if the seam proves out.
 
-**Prior art to follow rather than reinvent.** `PdfSharpCore.Charting.Tests/Helpers/Charts.cs` builds
+**Prior art to follow rather than reinvent.** `PdfPinata.Charting.Tests/Helpers/Charts.cs` builds
 the chart fixtures and is reusable unchanged — the arrangement half of every test does not change,
 only the assertion half. `Drawn.cs` stays for the round trip. `PaintedRectangles`, `ShownText` and
 the linked `StrokedLines`, `PageContent` and `TextOperators` stay for the same reason.

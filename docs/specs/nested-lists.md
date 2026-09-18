@@ -14,8 +14,8 @@ tagger, which is where it still is.
 | 6 | Nesting survives a page break; an outer list resumes its count after an inner one | done |
 | 7 | A list object in the DOM, `/Lbl` elements, inferring depth from indentation, outline numbering | not done, **deliberately** |
 
-Covered by `MigraDocCore.DocumentObjectModel.Tests/ListNestingLevelTests.cs` and the nesting tests in
-`MigraDocCore.Rendering.Tests/TaggedOutputTests.cs`. veraPDF still passes the corpus.
+Covered by `PinataLayout.DocumentObjectModel.Tests/ListNestingLevelTests.cs` and the nesting tests in
+`PinataLayout.Rendering.Tests/TaggedOutputTests.cs`. veraPDF still passes the corpus.
 
 The property is called `NestingLevel`, after `ParagraphFormat.OutlineLevel`; the spec left it unnamed.
 Dropping below the outermost level a run has seen closes everything and starts a fresh top-level list.
@@ -156,10 +156,10 @@ shape of the structure tree — a list containing an item containing a list cont
 assertion is about the tree a reader gets, not about how the tagger tracked its run. A test that
 reaches into the tagger's state is testing bookkeeping that exists to be rearranged.
 
-**Modules tested.** `MigraDocCore.DocumentObjectModel.Tests` for the model half: that the property
+**Modules tested.** `PinataLayout.DocumentObjectModel.Tests` for the model half: that the property
 exists, defaults sensibly, round-trips through the markup, survives a clone and flattens through a
 style. That project references the model and nothing else, which is exactly the right scope for a
-property. `MigraDocCore.Rendering.Tests` for the tree half, using the existing helper that renders a
+property. `PinataLayout.Rendering.Tests` for the tree half, using the existing helper that renders a
 document and reads its structure tree back — the same helper the shipped tagging tests use.
 
 **Prior art.** The tagged-output tests for the tree-shaped assertion, including the existing ones that

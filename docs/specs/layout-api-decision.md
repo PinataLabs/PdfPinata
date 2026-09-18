@@ -37,7 +37,7 @@ measure — several of which QuestPDF does not have. The gap is in *composition*
 
 ## The three options
 
-### Option A — a new parallel package, `PdfSharpCore.Layout`
+### Option A — a new parallel package, `PdfPinata.Layout`
 
 A composable element tree over `XGraphics`, sitting beside MigraDoc rather than replacing it.
 
@@ -68,7 +68,7 @@ barcodes, charting, `XTextFormatter` with its obstacles and drop caps, gradients
 
 ### Option B — retrofit constraints into the MigraDoc DOM
 
-**Rejected.** `MigraDocCore.Rendering` assumes a linear flow throughout — the renderers, the paragraph
+**Rejected.** `PinataLayout.Rendering` assumes a linear flow throughout — the renderers, the paragraph
 iterator, the table renderer with its repeating headings, and the charting renderers that sit on top.
 Constraint propagation would move all of them. 12–20 weeks to arrive somewhere worse than Option A,
 while breaking every existing MigraDoc user. The only argument for it is having one API instead of two,

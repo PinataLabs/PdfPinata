@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using MigraDocCore.DocumentObjectModel;
-using MigraDocCore.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes;
-using MigraDocCore.DocumentObjectModel.Shapes;
-using MigraDocCore.Rendering;
-using PdfSharpCore.Pdf;
+using PinataLayout.DocumentObjectModel;
+using PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes;
+using PinataLayout.DocumentObjectModel.Shapes;
+using PinataLayout.Rendering;
+using PdfPinata.Pdf;
 using SampleApp.Infrastructure;
-using static MigraDocCore.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes.ImageSource;
+using static PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes.ImageSource;
 
 namespace SampleApp.Demos;
 
@@ -220,7 +220,7 @@ internal sealed class ImageFailuresDemo : PdfDemo
             + "drawn. The exception is the instance that was thrown - not a message, not a copy - "
             + "so a handler can log it, rethrow it, or match on its type.");
 
-        MigraDocCore.DocumentObjectModel.Tables.Table table = verdict.AddTable();
+        PinataLayout.DocumentObjectModel.Tables.Table table = verdict.AddTable();
         table.Borders.Width = 0.5;
         table.Borders.Color = Colors.Gainsboro;
         table.Rows.LeftIndent = 0;
@@ -231,7 +231,7 @@ internal sealed class ImageFailuresDemo : PdfDemo
         table.AddColumn(Unit.FromCentimeter(4.4));
         table.AddColumn(Unit.FromCentimeter(6.0));
 
-        MigraDocCore.DocumentObjectModel.Tables.Row header = table.AddRow();
+        PinataLayout.DocumentObjectModel.Tables.Row header = table.AddRow();
         header.HeadingFormat = true;
         header.Shading.Color = Colors.WhiteSmoke;
         header.Cells[0].AddParagraph("Image.Name");
@@ -241,7 +241,7 @@ internal sealed class ImageFailuresDemo : PdfDemo
 
         foreach ((string Name, string Failure, string Exception, string Message) failure in failures)
         {
-            MigraDocCore.DocumentObjectModel.Tables.Row row = table.AddRow();
+            PinataLayout.DocumentObjectModel.Tables.Row row = table.AddRow();
             row.Cells[0].AddParagraph(failure.Name);
             row.Cells[1].AddParagraph(failure.Failure);
             row.Cells[2].AddParagraph(failure.Exception);

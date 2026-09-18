@@ -15,7 +15,7 @@ prose to `PdfPage`'s remaining members at the same time it moved code out.
 
 ## What moved
 
-`PdfSharpCore/Pdf/PdfPageSheet.cs` is a new 292-line `internal sealed class`, constructed with a
+`PdfPinata/Pdf/PdfPageSheet.cs` is a new 292-line `internal sealed class`, constructed with a
 back-reference to the page that owns it:
 
 ```csharp
@@ -113,7 +113,7 @@ other page's.
 they are written against `page.TrimMargins`, `page.MarkMargins`, `page.DrawCropMarks()`,
 `page.Width`/`Height` and `page.Owner.Save`, none against the fields that moved, so they are the
 regression net for the extraction for free. Three new facts were added, all in
-`PdfSharpCore.Test/Drawing/PageBleedTests.cs`, bringing the file to 26:
+`PdfPinata.Test/Drawing/PageBleedTests.cs`, bringing the file to 26:
 
 - `AssigningTrimMarginsCopiesTheValuesRatherThanHoldingTheReference` — assigns a shared `TrimMargins`
   to a page, mutates the shared instance afterward, asserts the page's value did not move and that

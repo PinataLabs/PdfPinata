@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using PdfSharpCore.Drawing;
-using PdfSharpCore.Pdf;
-using PdfSharpCore.Pdf.Advanced;
-using PdfSharpCore.Pdf.Annotations;
+using PdfPinata.Drawing;
+using PdfPinata.Pdf;
+using PdfPinata.Pdf.Advanced;
+using PdfPinata.Pdf.Annotations;
 using SampleApp.Infrastructure;
 
 namespace SampleApp.Demos;
@@ -79,7 +79,7 @@ internal sealed class AnnotationsDemo : PdfDemo
 
         // A markup annotation covers quadrilaterals given in default page space, so the run of
         // text to be marked has to be measured and then converted out of drawing coordinates.
-        // The ratio below is how PdfSharpCore itself turns a font into a baseline offset.
+        // The ratio below is how PdfPinata itself turns a font into a baseline offset.
         double AscentOf(XFont font) => font.GetHeight() * font.CellAscent / font.CellSpace;
 
         XRect RunOf(string line, string run, XPoint baseline, XFont font)
@@ -157,7 +157,7 @@ internal sealed class AnnotationsDemo : PdfDemo
         page.Annotations.Add(wrapped);
         wrapped.Color = XColors.Gold;
         wrapped.Opacity = 0.55;
-        wrapped.Title = "PdfSharpCore";
+        wrapped.Title = "PdfPinata";
         wrapped.Contents = "Two quads, one annotation.";
         wrapped.AddQuad(gfx.Transformer.WorldToDefaultPage(
             RunOf(First, "past the end of a line is one annotation with", firstAt, body)));
@@ -188,7 +188,7 @@ internal sealed class AnnotationsDemo : PdfDemo
             PdfTextAnnotation sticky = new PdfTextAnnotation();
             page.Annotations.Add(sticky);
             sticky.Icon = icons[index];
-            sticky.Title = "PdfSharpCore";
+            sticky.Title = "PdfPinata";
             sticky.Subject = icons[index].ToString();
             sticky.Contents = $"The {icons[index]} icon. Every note carries a title, a subject and "
                 + "this text, which is what a reader shows in the popup.";
@@ -242,9 +242,9 @@ internal sealed class AnnotationsDemo : PdfDemo
             linkY += 44;
         }
 
-        Link("The PdfSharpCore repository",
+        Link("The PdfPinata repository",
             "gfx.AddWebLink(rect, url) - a URI action. PDFKit calls this link().",
-            rect => secondGfx.AddWebLink(rect, "https://github.com/ststeiger/PdfSharpCore"));
+            rect => secondGfx.AddWebLink(rect, "https://github.com/PinataLabs/PdfPinata"));
 
         Link("Jump to the parity table on page three",
             "gfx.AddDocumentLink(rect, 3) - a GoTo by one-based page number.",
@@ -285,7 +285,7 @@ internal sealed class AnnotationsDemo : PdfDemo
         PdfFileAttachmentAnnotation attachment = new PdfFileAttachmentAnnotation(document);
         attachment.File = specification;
         attachment.Icon = PdfFileAttachmentAnnotation.IconType.Paperclip;
-        attachment.Title = "PdfSharpCore";
+        attachment.Title = "PdfPinata";
         attachment.Contents = "readme.txt, carried inside this document.";
         attachment.Rectangle = new PdfRectangle(
             secondGfx.Transformer.WorldToDefaultPage(new XRect(56, 350, 18, 18)));
@@ -315,7 +315,7 @@ internal sealed class AnnotationsDemo : PdfDemo
 
             PdfRubberStampAnnotation stamp = new PdfRubberStampAnnotation(document);
             stamp.Icon = stamps[index];
-            stamp.Title = "PdfSharpCore";
+            stamp.Title = "PdfPinata";
             stamp.Contents = stamps[index] + " stamp";
             stamp.Rectangle = new PdfRectangle(
                 secondGfx.Transformer.WorldToDefaultPage(new XRect(x, 450, 104, 34)));
@@ -355,7 +355,7 @@ internal sealed class AnnotationsDemo : PdfDemo
 
         double rowY = 132;
         thirdGfx.DrawString("PDFKit", headingFont, XBrushes.SteelBlue, new XPoint(56, rowY));
-        thirdGfx.DrawString("PdfSharpCore", headingFont, XBrushes.SteelBlue, new XPoint(260, rowY));
+        thirdGfx.DrawString("PdfPinata", headingFont, XBrushes.SteelBlue, new XPoint(260, rowY));
         rowY += 6;
         thirdGfx.DrawLine(XPens.LightGray, 56, rowY, 539, rowY);
         rowY += 18;

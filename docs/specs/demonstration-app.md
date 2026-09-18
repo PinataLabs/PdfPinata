@@ -45,7 +45,7 @@ Meanwhile the capability with no demonstration has been piling up:
   text markup annotations                     nothing
 ```
 
-`docs/PdfSharpCore/samples/` describes 21 samples in prose with no code behind any of them, and
+`docs/PdfPinata/samples/` describes 21 samples in prose with no code behind any of them, and
 `TextLayout.md` documents an `XTextFormatter.DrawString` overload that does not exist. Prose that
 nothing compiles is prose that rots, and it has.
 
@@ -58,7 +58,7 @@ this project builds for. `Spectre.Console` renders the output; it is not `Spectr
 because one argument parser is enough.
 
 The app targets `net8.0` alone rather than the library's set, so that `dotnet run` needs no `-f`.
-Not `net10.0` alone: `PdfSharpCore.Test` references this project to run the demos and builds a
+Not `net10.0` alone: `PdfPinata.Test` references this project to run the demos and builds a
 `net8.0` leg, which could not reference a `net10.0` one.
 
 ```text
@@ -155,7 +155,7 @@ Fonts, images and sources are all `EmbeddedResource`, read through one loader. T
 ```text
   SampleApp/bin/…/            files land here                  ✓
   publish output              files land here                  ✓
-  PdfSharpCore.Test/bin/…/    they do NOT — a referenced        ✗
+  PdfPinata.Test/bin/…/    they do NOT — a referenced        ✗
                               project's content items do not
                               flow to the referencing project
 ```
@@ -290,7 +290,7 @@ that change's delta spec was promoted when it was archived.
 
 ## Item 5 — the smoke test
 
-One theory in `PdfSharpCore.Test`, over the demo registry, running each demo into the test
+One theory in `PdfPinata.Test`, over the demo registry, running each demo into the test
 assembly's output directory and asserting the PDF opens and has the page count the demo declares.
 Adding a demo enrols it; there is no list to keep in step. A second test asserts each demo's source
 region was found and is not empty, so a demo whose markers went missing fails rather than printing
@@ -379,7 +379,7 @@ same terms: one PDF each, enrolled in the smoke test by being added to the regis
 
 | name | shows |
 |---|---|
-| `International` | Hebrew and Arabic reordered with no shaper needed for it, an English word inside a right-to-left sentence, `TextDirection` on `XStringFormat` and `XTextFormatter`, Arabic joined through `PdfSharpCore.HarfBuzz`, U+200C asking it not to, and `FontFallback` drawing Arabic in a document that asked for a Latin face |
+| `International` | Hebrew and Arabic reordered with no shaper needed for it, an English word inside a right-to-left sentence, `TextDirection` on `XStringFormat` and `XTextFormatter`, Arabic joined through `PdfPinata.HarfBuzz`, U+200C asking it not to, and `FontFallback` drawing Arabic in a document that asked for a Latin face |
 | `Accessibility` | `TagContent`, headings becoming `/H1`…`/H6` from `OutlineLevel`, a heading row becoming `/TH` with `/Scope /Column`, `Table.Summary`, `Image.AlternativeText` deciding between a described `/Figure` and an artifact, and the four PDF/UA-1 refusals |
 | `Archive` | `PdfAConformance` across all three parts, the XMP packet read back out of a probe's own bytes, `CustomizeMetadata` and `AdditionalDescriptions`, the output intent, and the five PDF/A refusals |
 | `Signing` | `PdfSigner`, `Pkcs7Signer`, a caller-drawn appearance, `PdfSignatures.InDocument`, and `PdfSignatureVerifier` answering `IsIntact` and `CoversWholeDocument` separately |
@@ -406,7 +406,7 @@ not a test and a silent stale quotation is the failure worth avoiding.
 XML, and a second page reporting what the attachment had to satisfy — the file name, the
 `/AFRelationship`, the media type and the conformance nobody set, all read back out of the document
 rather than described, then `FacturXInvoice.FindIn` and `ReadFrom` answering from a reopened file the
-way a receiving system would. It costs the seventh project reference, `PdfSharpCore.EInvoice`, which
+way a receiving system would. It costs the seventh project reference, `PdfPinata.EInvoice`, which
 carries no dependency of its own.
 
 **It needed an ICC profile, and that is what unblocked it.** A demo claiming PDF/A-3 has to embed an
@@ -448,7 +448,7 @@ Both outputs are the real thing rather than a picture of it. `Signing.pdf` verif
 
 ### Two more project references, and two more seams registered
 
-`PdfSharpCore.HarfBuzz` and `PdfSharpCore.Signing`, both for one demo each. Neither is a dependency
+`PdfPinata.HarfBuzz` and `PdfPinata.Signing`, both for one demo each. Neither is a dependency
 the library forces on anyone — that is the point of both being packages of their own — and writing
 them into the project file is how a reader can see what the two demos actually cost.
 

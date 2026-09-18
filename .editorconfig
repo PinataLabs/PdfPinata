@@ -13,8 +13,8 @@ insert_final_newline = true
 trim_trailing_whitespace = true
 charset = utf-8
 
-# Binary assets. PdfSharpCore.Test/Assets/NotAValid.pdf is a deliberately
-# malformed PDF read byte for byte by PdfSharpCore.Test/IO/PdfReader.cs, so
+# Binary assets. PdfPinata.Test/Assets/NotAValid.pdf is a deliberately
+# malformed PDF read byte for byte by PdfPinata.Test/IO/PdfReader.cs, so
 # nothing should be appended to it.
 [*.pdf]
 insert_final_newline = false

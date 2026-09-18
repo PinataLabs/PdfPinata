@@ -42,7 +42,7 @@ cast to `INullableValue` without checking:
 ```csharp
 new FormattedText().SetNull();
 // System.InvalidCastException: Unable to cast object of type 'System.Boolean'
-// to type 'MigraDocCore.DocumentObjectModel.Internals.INullableValue'.
+// to type 'PinataLayout.DocumentObjectModel.Internals.INullableValue'.
 ```
 
 This was item 3 of [`dom-thread-safety.md`](dom-thread-safety.md), which described the unguarded
@@ -227,7 +227,7 @@ always have generated code for.
 | `MigraDoc.Rendering/FormattedTextArea.cs` | 134 |
 | `MigraDoc.Rendering/FormattedTextFrame.cs` | 86 |
 
-`MigraDocCore.AotSmokeTest` passes today because the array types involved happen to be rooted. That
+`PinataLayout.AotSmokeTest` passes today because the array types involved happen to be rooted. That
 is luck, not design, and it is exactly the class of failure the smoke test exists to catch.
 
 ### Suggested fix
@@ -258,7 +258,7 @@ since the fix needed the value in a local anyway.
 The AOT publish is now **clean of both `IL2xxx` and `IL3050`**, and the native binary still passes
 all 25 checks. All 880 tests pass — the rendering tests exercise every one of these paths.
 
-**Consequence worth noting:** `MigraDocCore.AotSmokeTest` is now in `PdfSharpCore.slnx`. It was kept
+**Consequence worth noting:** `PinataLayout.AotSmokeTest` is now in `PdfPinata.slnx`. It was kept
 out precisely because these seven warnings would have appeared on every developer build; with them
 gone, having the project in the solution is a benefit rather than a cost. It is the only place in
 the repo where the DOM and the renderer are analysed together for AOT safety, so a new warning there
@@ -550,7 +550,7 @@ cover it against the live model, so this is now a speed and precision gap rather
 a snapshot test over `Emitter.Emit` would catch a formatting or escaping regression faster and point
 at it more directly. `Verify` is already used elsewhere in the repo.
 
-**~~The diagnostics are untested.~~ Done.** `MigraDocCore.DocumentObjectModel.Generators.Tests`
+**~~The diagnostics are untested.~~ Done.** `PinataLayout.DocumentObjectModel.Generators.Tests`
 now drives the generator through `CSharpGeneratorDriver` and asserts that each of MDG001–MDG006
 fires, that a valid type produces none, and that the emitted source actually binds rather than
 merely being produced. 12 tests.

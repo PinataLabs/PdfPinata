@@ -21,7 +21,7 @@ The issue is written against `PngImageImporter`, which PDFsharp 6.x wraps in
 `catch (Exception) { return null; }` and whose null return `XImage.FromStream` turns into
 `InvalidOperationException("Unsupported image format.")`.
 
-PdfSharpCore has no importer of its own. `XImage.FromStream` goes through the
+PdfPinata has no importer of its own. `XImage.FromStream` goes through the
 `ImageSource.ImageSourceImpl` seam to a backend, and neither backend swallows anything:
 
 - `SkiaImageSource.Decode` throws `InvalidOperationException` naming the image and the
@@ -34,7 +34,7 @@ So the exact defect reported does not exist here. The anti-pattern it describes 
 
 ## Items 2 and 3 — MigraDoc swallows the reason instead
 
-`MigraDocCore.Rendering.ImageRenderer` catches every exception in two places — measuring the image
+`PinataLayout.Rendering.ImageRenderer` catches every exception in two places — measuring the image
 in `CalculateImageDimensions`, and drawing it in `Render` — and replaces the image with a grey
 placeholder. That behaviour is wanted: one unreadable image should not cost a five hundred page
 report. Two things about it were not.
@@ -75,9 +75,9 @@ making the reason reachable, which is what the issue actually asks for.
 
 ### API surface added
 
-- `MigraDocCore.Rendering.ImageFailedEventArgs` — new, sealed, internal constructor.
-- `MigraDocCore.Rendering.DocumentRenderer.ImageFailed` — new event.
-- `MigraDocCore.Rendering.ImageFailure` — was `internal`, now `public`, because the event arguments
+- `PinataLayout.Rendering.ImageFailedEventArgs` — new, sealed, internal constructor.
+- `PinataLayout.Rendering.DocumentRenderer.ImageFailed` — new event.
+- `PinataLayout.Rendering.ImageFailure` — was `internal`, now `public`, because the event arguments
   carry it. Additive; nothing that compiled before stops compiling.
 
 ## Item 4 — `InvalidType` was always overwritten

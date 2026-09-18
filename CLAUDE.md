@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```powershell
-dotnet build PdfSharpCore.slnx           # SDK is pinned to 10.0.100 by global.json
+dotnet build PdfPinata.slnx           # SDK is pinned to 10.0.100 by global.json
 dotnet test                              # whole suite, both test target frameworks
 dotnet test -f net10.0                   # one framework; the test project targets net8.0;net10.0
 dotnet test --filter "FullyQualifiedName~CLexerTests"                  # one class
@@ -67,31 +67,31 @@ input carry `[Fact(Timeout = …)]`, which xUnit honours only on `async` tests �
 ## Layout and dependency direction
 
 ```
-PdfSharpCore ─────────────┬── PdfSharpCore.Skia        (SkiaSharp; the default backend)
-   (no imaging or font    ├── PdfSharpCore.ImageSharp   (ImageSharp 2.1.x, Fonts 1.0.1)
-    dependency of its own)├── PdfSharpCore.HarfBuzz     (HarfBuzzSharp; shaping, either backend)
-                          ├── PdfSharpCore.Signing      (CMS signing; net8.0;net10.0 only)
-                          └── PdfSharpCore.EInvoice     (Factur-X / ZUGFeRD; no dependency at all)
+PdfPinata ─────────────┬── PdfPinata.Skia        (SkiaSharp; the default backend)
+   (no imaging or font    ├── PdfPinata.ImageSharp   (ImageSharp 2.1.x, Fonts 1.0.1)
+    dependency of its own)├── PdfPinata.HarfBuzz     (HarfBuzzSharp; shaping, either backend)
+                          ├── PdfPinata.Signing      (CMS signing; net8.0;net10.0 only)
+                          └── PdfPinata.EInvoice     (Factur-X / ZUGFeRD; no dependency at all)
    ▲       ▲
-   │       └── MigraDocCore.DocumentObjectModel ── MigraDocCore.Rendering ── PdfSharpCore.Charting
+   │       └── PinataLayout.DocumentObjectModel ── PinataLayout.Rendering ── PdfPinata.Charting
    │              ▲                                                              ▲
-   │              └── MigraDocCore.DocumentObjectModel.Tests  (the DOM alone; no backend)
+   │              └── PinataLayout.DocumentObjectModel.Tests  (the DOM alone; no backend)
    │                                                                             │
-   │                             PdfSharpCore.Charting.Tests  (charting alone; no backend) ─┘
-   └── PdfSharpCore.Test  (the broad one; covers MigraDoc and SampleApp too)
+   │                             PdfPinata.Charting.Tests  (charting alone; no backend) ─┘
+   └── PdfPinata.Test  (the broad one; covers MigraDoc and SampleApp too)
            ▲
            └── SampleApp  (the demonstration CLI; net8.0 alone, so both test legs can reference it)
 ```
 
-Five test projects, and which one a new test belongs in is worth a moment. `PdfSharpCore.Test`
-is the broad one and the default. `MigraDocCore.DocumentObjectModel.Generators.Tests` drives the
-DOM's source generator through `CSharpGeneratorDriver`. `MigraDocCore.Rendering.Tests` covers
+Five test projects, and which one a new test belongs in is worth a moment. `PdfPinata.Test`
+is the broad one and the default. `PinataLayout.DocumentObjectModel.Generators.Tests` drives the
+DOM's source generator through `CSharpGeneratorDriver`. `PinataLayout.Rendering.Tests` covers
 MigraDoc's own layout — paragraphs, tables, fields, the paragraph iterator — and its tagged output,
 and deliberately rasterizes nothing, so it needs neither Ghostscript nor ImageMagick. It links four
-content-stream readers out of `PdfSharpCore.Test/Helpers` rather than keeping copies; edit those in
+content-stream readers out of `PdfPinata.Test/Helpers` rather than keeping copies; edit those in
 place and both projects get the change.
 
-`PdfSharpCore.Charting.Tests` covers the charting renderers — axis scales, category axes, plot
+`PdfPinata.Charting.Tests` covers the charting renderers — axis scales, category axes, plot
 areas, data labels, axis titles — and links three of those same readers. Every renderer in the
 package is `internal` and this repository carries no `InternalsVisibleTo`, so they are reached the
 only way a caller can reach them: a `Chart` handed to a `ChartFrame`, drawn, saved, reopened, and
@@ -112,19 +112,19 @@ horizontal and vertical Y renderers — so a change to one nearly always belongs
 (`XSeries.AddBlank`); read a point's value through `PointRendererInfo.Value`, which answers `NaN`
 for one, rather than through `point.value`, which throws.
 
-`MigraDocCore.DocumentObjectModel.Tests` covers the DOM itself — `Unit`, page sizes, the chart
+`PinataLayout.DocumentObjectModel.Tests` covers the DOM itself — `Unit`, page sizes, the chart
 object model, MDDDL reading and writing, and the flattening visitors. It references the DOM **and
 nothing else**: no renderer, and so no backend, no Ghostscript and no font files. The one
 qualification is `NamedFontsOnly.cs`, a module initializer serving a font *name*, because building
 a `Document` builds its standard styles and the Normal style asks the resolver what the default
 font is called. It resolves no face and throws if asked to, which is the line saying a test needing
-a real font belongs in `MigraDocCore.Rendering.Tests`. Note that `PdfSharpCore.Test/Dom/` also
+a real font belongs in `PinataLayout.Rendering.Tests`. Note that `PdfPinata.Test/Dom/` also
 covers the DOM, from the other side: the value model, colours, styles and the generated property
 machinery. The two do not overlap.
 
 `SampleApp` is the demonstration app: `dotnet run --project SampleApp -- list` says what it covers,
 `… -- run` writes one PDF per demo into `SampleApp/output` and prints the source that drew each. Its
-demos are covered by `PdfSharpCore.Test/Demos/DemoSmokeTests.cs`, so a demo that throws or changes
+demos are covered by `PdfPinata.Test/Demos/DemoSmokeTests.cs`, so a demo that throws or changes
 its page count fails the build.
 
 Three rules there are load-bearing rather than stylistic, all explained in
@@ -138,7 +138,7 @@ output `Save` would destroy overrides `PdfDemo.Save`** — `Save` rewrites a fil
 model, which invalidates every signature and discards every earlier revision, so `Signing` writes
 through `PdfSigner.Sign` and `Revise` through `SaveIncremental`.
 
-`SampleApp` references `PdfSharpCore.HarfBuzz` and `PdfSharpCore.Signing` for one demo each. Neither
+`SampleApp` references `PdfPinata.HarfBuzz` and `PdfPinata.Signing` for one demo each. Neither
 is a dependency the library forces on a consumer, and both are written out in the project file so
 that what those two demos cost is visible.
 
@@ -155,7 +155,7 @@ the first three throw a descriptive `InvalidOperationException` when read unset:
   and nothing else, so it can be set, replaced or cleared at any time. A provider takes its font
   bytes **through** `FontResolver` rather than resolving a family itself, or the two seams will
   disagree about which face a family means.
-- `GlobalFontSettings.TextShaper` — an `ITextShaper`; `PdfSharpCore.HarfBuzz` supplies
+- `GlobalFontSettings.TextShaper` — an `ITextShaper`; `PdfPinata.HarfBuzz` supplies
   `HarfBuzzTextShaper`. **One of the two seams whose unset state is not an error**: reading it
   answers null, and then every path does what this library always did, one character to one `cmap`
   lookup to one glyph. It can be set, replaced or cleared at any time, and a shaper that returns
@@ -173,8 +173,8 @@ break every consumer who has written one, and netstandard2.1 rules out a default
 Unity's runtime would accept. That is why capability keeps arriving as a seam of its own rather
 than as a wider resolver, and it is the answer to "why is this not just on `IFontResolver`".
 
-`PdfSharpCore.HarfBuzz` is a package of its own rather than a class in a backend, because shaping
-must not oblige a consumer to pick an imaging backend — `PdfSharpCore.ImageSharp` is pinned to
+`PdfPinata.HarfBuzz` is a package of its own rather than a class in a backend, because shaping
+must not oblige a consumer to pick an imaging backend — `PdfPinata.ImageSharp` is pinned to
 SixLabors.Fonts 1.0.1 for licence reasons and cannot shape for itself. It takes `HarfBuzzSharp`
 alone, not `SkiaSharp.HarfBuzz`.
 
@@ -221,7 +221,7 @@ document byte-identical.
 
 ## Bidi and script itemisation
 
-`PdfSharpCore/Text/` holds the Unicode Bidirectional Algorithm (UAX #9) and script itemisation
+`PdfPinata/Text/` holds the Unicode Bidirectional Algorithm (UAX #9) and script itemisation
 (UAX #24). Pure text processing, no font and no backend, which is why it is in the core rather than
 behind the shaping seam. `TextItemizer.Itemize` is the entry point worth knowing: it hands back runs
 that are each one direction **and** one script, in the order they are drawn — which is exactly what
@@ -243,7 +243,7 @@ That is the older half of the complaint in `empira/PDFsharp-1.5#144` and it is f
 
 A layout engine that places each word itself has to order them, and two do. `XTextFormatter` hands
 whole lines to `DrawString` for every alignment but one, so only justifying needed changing.
-`MigraDocCore.Rendering/ParagraphRenderer.cs` draws one show-text operator per leaf and needed the
+`PinataLayout.Rendering/ParagraphRenderer.cs` draws one show-text operator per leaf and needed the
 most: **it walks each line twice**, once with `probing` set to learn how wide every leaf is without
 drawing anything, then again for real with each leaf placed where the bidirectional algorithm says.
 
@@ -262,17 +262,17 @@ across the line.
 
 `ParagraphFormat.TextDirection`, `XTextFormatter.TextDirection` and `XStringFormat.TextDirection`
 all take `BidiParagraphDirection` — one type, not three saying the same thing.
-`Drawing/Layout/BidirectionalLayoutTests.cs` and `MigraDocCore.Rendering.Tests/BidirectionalParagraphTests.cs`
+`Drawing/Layout/BidirectionalLayoutTests.cs` and `PinataLayout.Rendering.Tests/BidirectionalParagraphTests.cs`
 pin the two engines.
 
 The character property tables are **generated and checked in** — `tools/UnicodeTableGenerator`,
-deliberately outside `PdfSharpCore.slnx` so the build and CI never see it, run by hand on a Unicode
+deliberately outside `PdfPinata.slnx` so the build and CI never see it, run by hand on a Unicode
 bump. Read its README before touching them; the short version is that `DerivedBidiClass.txt`'s
 `@missing` lines live inside comments, are not all `Left_To_Right`, and are what make unassigned code
 points in the Hebrew and Arabic blocks default to `R` and `AL`.
 
 Everything is pinned to **Unicode 17.0.0**, and three things move together on a bump: the generated
-tables, the gzipped conformance suites in `PdfSharpCore.Test/Assets/Unicode/`, and the version
+tables, the gzipped conformance suites in `PdfPinata.Test/Assets/Unicode/`, and the version
 asserted in `UnicodePropertyTests`. Bumping one without the others tests one Unicode against
 another's expectations.
 
@@ -284,14 +284,14 @@ breaks something, that is what says so, and it reports the failing case in UAX #
 `docs/specs/text-shaping-and-bidi.md` has the rest, including what is still missing: font fallback,
 the measurement paths, and the DOM property.
 
-`PdfSharpCore.Signing` is the one package that does **not** multi-target `netstandard2.1`, and the
+`PdfPinata.Signing` is the one package that does **not** multi-target `netstandard2.1`, and the
 one that carries a dependency the core deliberately refuses: `System.Security.Cryptography.Pkcs`,
 which ships in the runtime but not in the reference pack and so needs a version-matched
 `PackageReference` per leg. The core's own `Pdf.Signatures` namespace holds all the PDF machinery —
 the placeholder, the byte range, the patching — and no cryptography at all, behind the `IPdfSigner`
 seam. `docs/specs/digital-signatures.md` says why that split is where it is.
 
-`PdfSharpCore.EInvoice` is the opposite kind of package: no dependency of its own, all three target
+`PdfPinata.EInvoice` is the opposite kind of package: no dependency of its own, all three target
 frameworks, and one class over machinery the core already had. `FacturXInvoice.AttachTo` names the
 attachment `factur-x.xml`, relates it as `/Data`, claims PDF/A-3 and writes the XMP extension schema
 that declares the four `fx:` properties the packet then uses. **That declaration is what only veraPDF
@@ -302,9 +302,9 @@ unit-tested. The hook it writes through is *chained*, because `PdfDocument.Custo
 single property and assigning over it drops whatever the caller put there.
 `docs/specs/pdf-a-conformance.md` has the rest.
 
-`ImageSource` is a trap for the eye: the file is `PdfSharpCore/Drawing/ImageSource.cs` and it ships
-in the **PdfSharpCore** assembly, but its namespace is
-`MigraDocCore.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes`. Registering it needs that
+`ImageSource` is a trap for the eye: the file is `PdfPinata/Drawing/ImageSource.cs` and it ships
+in the **PdfPinata** assembly, but its namespace is
+`PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes`. Registering it needs that
 `using`, from code that otherwise has nothing to do with MigraDoc.
 
 ## PDF object model and IO
@@ -352,7 +352,7 @@ There are two independent lexers, and a change to one usually belongs in the oth
 `Parser` touches exactly one member of `PdfDocument`, `_irefTable`, and reaches it through
 that table's own four members rather than through its backing `ObjectTable` dictionary. It still
 needs *a* document — a `PdfObject` gets its number by looking itself up in one — but no longer the
-one `PdfReader.Open` builds, so a test reaches it through `PdfSharpCore.Test/IO/ParserProbe.cs`:
+one `PdfReader.Open` builds, so a test reaches it through `PdfPinata.Test/IO/ParserProbe.cs`:
 a plain `new PdfDocument()`, a `MemoryStream` of hand-written bytes, and no `%PDF` header, no
 cross-reference table, no trailer and no `startxref`. **That document is not empty**, though — its
 information dictionary is object 1 before a byte is read, so a test writing its own objects numbers
@@ -428,7 +428,7 @@ would override the built-in one, and ZapfDingbats is how a check box draws its t
 
 `XGraphics` is the drawing surface and holds an `IXGraphicsRenderer`; `XGraphicsPdfRenderer`
 (`Drawing.Pdf/`) is the only implementation and emits content-stream operators. MigraDoc renders
-through the same surface, so a layout fix lands in `MigraDocCore.Rendering` and a drawing fix in
+through the same surface, so a layout fix lands in `PinataLayout.Rendering` and a drawing fix in
 `Drawing.Pdf`.
 
 Fonts are always embedded, with no setting to disable it. TrueType outlines are subsetted;
@@ -465,7 +465,7 @@ dropping it. Two consequences:
   compile shared source as C# 8. This unlocks *syntax* only. Anything needing a BCL type
   netstandard2.1 lacks (`IsExternalInit` for records and `init`, `RequiredMemberAttribute`,
   `InlineArray`) still fails as a missing-predefined-type error, and has to be polyfilled.
-- `PdfSharpCore/!internal/` and `MigraDocCore.DocumentObjectModel/CompileFixes/` hold those
+- `PdfPinata/!internal/` and `PinataLayout.DocumentObjectModel/CompileFixes/` hold those
   polyfills behind `#if !NET5_0_OR_GREATER`. They look like dead code on a modern-target glance and
   are not. Both copies exist because each is `internal` with no `InternalsVisibleTo`.
 

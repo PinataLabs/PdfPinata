@@ -67,11 +67,11 @@ for a side wrap lays out exactly as it does today.
 
 **Code**
 
-- `MigraDocCore.DocumentObjectModel/.../enums/WrapStyle.cs` — new values. Public API on the DOM.
-- `MigraDocCore.Rendering/MigraDoc.Rendering/Area.cs` — a second implementation beside `Rectangle`.
-- `MigraDocCore.Rendering/MigraDoc.Rendering/ShapeRenderer.cs` — `GetFloating` returns the side
+- `PinataLayout.DocumentObjectModel/.../enums/WrapStyle.cs` — new values. Public API on the DOM.
+- `PinataLayout.Rendering/MigraDoc.Rendering/Area.cs` — a second implementation beside `Rectangle`.
+- `PinataLayout.Rendering/MigraDoc.Rendering/ShapeRenderer.cs` — `GetFloating` returns the side
   values.
-- `MigraDocCore.Rendering/MigraDoc.Rendering/TopDownFormatter.cs` — the three places that ask
+- `PinataLayout.Rendering/MigraDoc.Rendering/TopDownFormatter.cs` — the three places that ask
   `!= Floating.None` have to ask something more specific.
 - `SampleApp/Demos/MagazineDemo.cs` — the hand-split flow comes out.
 

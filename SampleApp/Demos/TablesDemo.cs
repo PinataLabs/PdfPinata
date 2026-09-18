@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using MigraDocCore.DocumentObjectModel;
-using MigraDocCore.DocumentObjectModel.Tables;
-using MigraDocCore.Rendering;
-using PdfSharpCore.Pdf;
+using PinataLayout.DocumentObjectModel;
+using PinataLayout.DocumentObjectModel.Tables;
+using PinataLayout.Rendering;
+using PdfPinata.Pdf;
 using SampleApp.Infrastructure;
 
 namespace SampleApp.Demos;

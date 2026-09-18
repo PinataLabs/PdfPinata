@@ -109,7 +109,7 @@ than dropping bytes from it, which is the trade this makes deliberately.
 
 ## Verification
 
-`PdfSharpCore.Test/IO/WrongStreamLengthTests.cs`, 17 tests: lengths short by 1, 5 and everything,
+`PdfPinata.Test/IO/WrongStreamLengthTests.cs`, 17 tests: lengths short by 1, 5 and everything,
 long by 5 and by more than the stream, a compressed stream short by 5, all four ways a stream can
 end without a line feed, a wrong length given indirectly, a length longer than the file, one
 reaching to exactly the end of it, the recovered length being recorded, and a stream that never

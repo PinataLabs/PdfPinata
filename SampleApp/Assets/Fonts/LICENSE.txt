@@ -34,7 +34,7 @@ NotoSansArabic-Regular.ttf
 	glyph, and the International demo is about text the Latin faces cannot
 	draw: letters that change shape according to what they sit between, a
 	line that reads right to left, and a character falling back to the face
-	that has it. Shaped through PdfSharpCore.HarfBuzz - without a shaper the
+	that has it. Shaped through PdfPinata.HarfBuzz - without a shaper the
 	letters appear in their isolated forms, which the demo also shows,
 	because that contrast is the point.
 

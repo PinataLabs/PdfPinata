@@ -1,5 +1,7 @@
 ## MIT License
 
+Copyright (c) 2026 PdfPinata
+
 Copyright (c) 2005-2007 empira Software GmbH, Cologne (Germany)
 
 Modified work Copyright (c) 2016 David Dunscombe

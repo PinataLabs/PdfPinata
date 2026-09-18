@@ -1,6 +1,6 @@
 # Spec — a field's value evaluable without a renderer (T18)
 
-`FieldEvaluator` and `FieldEvaluationContext` landed in `MigraDocCore.DocumentObjectModel`, exactly
+`FieldEvaluator` and `FieldEvaluationContext` landed in `PinataLayout.DocumentObjectModel`, exactly
 where the proposal put them, next to the field types under
 `MigraDoc.DocumentObjectModel.Fields/`. `NumberFormatter` moved with them, git recording it as a
 72%-similar rename rather than a delete-and-recreate. `ParagraphRenderer.GetFieldValue` is a caller
@@ -13,7 +13,7 @@ commit.
 
 ## What shipped
 
-`FieldEvaluator` (`MigraDocCore.DocumentObjectModel/MigraDoc.DocumentObjectModel.Fields/FieldEvaluator.cs`)
+`FieldEvaluator` (`PinataLayout.DocumentObjectModel/MigraDoc.DocumentObjectModel.Fields/FieldEvaluator.cs`)
 is a static class with two members: `IsField(DocumentObject)`, which replaces `IsRenderedField`, and
 `Evaluate(DocumentObject field, FieldEvaluationContext context)`, which replaces the three private
 methods that used to do this work — `GetFieldValue`, `IsRenderedField`, and `GetDocumentInfo` — inside
@@ -29,7 +29,7 @@ string.
 proposal called for: `DisplayPageNumber` and `SectionNumber` as non-nullable `int`, `NumberOfPages`
 and `PagesInSection` as `int?`, `PrintDate` as `DateTime`, and `ResolveBookmarkPage` as a
 `Func<string, int?>` rather than exposing `FieldInfos`'s bookmark dictionary. `FieldInfos` gains
-`ToEvaluationContext()` (`MigraDocCore.Rendering/MigraDoc.Rendering/FieldInfos.cs:102-121`), which
+`ToEvaluationContext()` (`PinataLayout.Rendering/MigraDoc.Rendering/FieldInfos.cs:102-121`), which
 does the translation the proposal described — including turning a count of `0` (this class's way of
 saying "not known yet") into `null`, which is what lets `FieldEvaluationContext` use `int?` honestly
 rather than smuggling a sentinel value across the boundary.
@@ -111,7 +111,7 @@ through, but the fields themselves turned out to want nothing beyond a lookup an
 
 ## `NumberFormatter`: what moved, and what it picked up along the way
 
-`NumberFormatter.cs` moved to `MigraDocCore.DocumentObjectModel/MigraDoc.DocumentObjectModel.Fields/`
+`NumberFormatter.cs` moved to `PinataLayout.DocumentObjectModel/MigraDoc.DocumentObjectModel.Fields/`
 unchanged in its numeral logic, exactly as proposed, and is public for the first time — it always
 needed to be, once `FieldEvaluator` calls it from outside `Rendering`, and `FootnoteNumbering.cs` and
 the list-symbol path in `ParagraphRenderer.cs` (`symbol = NumberFormatter.Format(...)` at line 1914)
@@ -137,7 +137,7 @@ produces a number anywhere near this range.
 
 ## Testing
 
-`FieldEvaluatorTests.cs` (`MigraDocCore.DocumentObjectModel.Tests/`, new, 218 lines) is one function
+`FieldEvaluatorTests.cs` (`PinataLayout.DocumentObjectModel.Tests/`, new, 218 lines) is one function
 call per case against a hand-built `FieldEvaluationContext`, no `XGraphics` and no
 `PdfDocumentRenderer` — the cost reduction the whole change exists for. It covers each field type's
 happy path, the `ROMAN`/`roman`/`ALPHABETIC`/`alphabetic`/plain-digit `Format` variants against a
@@ -189,7 +189,7 @@ wraparound branches, reachable only indirectly before, cannot be trusted to have
 is a pure function of a context, and nothing about when `FieldInfos` fills in its counts changed.
 `BookmarkField`'s write side (`AddBookmark`, `FormatBookmarkField`) is untouched. Bookmark navigation
 — placing a clickable link rectangle at a target, as opposed to reading a page number as text — stays
-in `Rendering`. `PdfSharpCore.Charting`'s numeric axis and data-label formatting was never in scope
+in `Rendering`. `PdfPinata.Charting`'s numeric axis and data-label formatting was never in scope
 and remains a separate formatter for a separate kind of value. `DdlParser`'s field construction from
 `\field(...)` syntax is unchanged; this was always about how a field is asked for its value, not how
 one is built.

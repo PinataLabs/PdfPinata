@@ -14,7 +14,7 @@ defect, which it is — right up to the point where somebody puts a tab in an Ar
 | 6 | `RenderTab` drawing during the probing walk — a second defect, found on the way | done, fixed |
 | 7 | Mirroring tab stops in a right-to-left paragraph; a tab as a bidirectional neutral | not done, **deliberately** |
 
-Covered by the tabbed tests in `MigraDocCore.Rendering.Tests/BidirectionalParagraphTests.cs`;
+Covered by the tabbed tests in `PinataLayout.Rendering.Tests/BidirectionalParagraphTests.cs`;
 `ALineWithATabInItKeepsTheOrderItWasWritten`, which pinned the old refusal, is gone.
 
 Item 6 was not in the spec. Once a tab's segment became reorderable, `RenderTab` — which never looked
@@ -144,7 +144,7 @@ treating it as a neutral to be resolved by the algorithm would let a column move
 positions, then assert what is drawn where. The contract is visual order, so the test asserts visual
 order; it does not assert how many walks the renderer made or what its saved state contained.
 
-**Module tested.** `MigraDocCore.Rendering.Tests`, which covers MigraDoc's own layout, rasterizes
+**Module tested.** `PinataLayout.Rendering.Tests`, which covers MigraDoc's own layout, rasterizes
 nothing, and already holds both halves of the prior art for this.
 
 **Prior art.** The bidirectional paragraph tests, which pin the two engines' reordering and are the

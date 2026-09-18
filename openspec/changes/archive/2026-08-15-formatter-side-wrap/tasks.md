@@ -36,7 +36,7 @@ Landed on its own as PR #96, ahead of the rest of the change.
 
 ## 2. The one piece of arithmetic the two engines share
 
-- [x] 2.1 Extract the tolerance-aware widest-free-span scan into `PdfSharpCore/Drawing.Layout/` as a
+- [x] 2.1 Extract the tolerance-aware widest-free-span scan into `PdfPinata/Drawing.Layout/` as a
       pure static helper taking and returning **plain doubles**. No `Rectangle`, `XRect` or `XUnit`
       in the signature — that is what sidesteps the type mismatch between the engines. Public,
       because this repository deliberately carries no `InternalsVisibleTo` and MigraDoc must call it.

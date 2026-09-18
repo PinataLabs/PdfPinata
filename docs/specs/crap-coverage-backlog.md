@@ -1,6 +1,6 @@
 # Spec — the CRAP backlog, and the order to work it
 
-`charting-renderer-findings.md` closed the last measurement of this kind: `PdfSharpCore.Charting`
+`charting-renderer-findings.md` closed the last measurement of this kind: `PdfPinata.Charting`
 held the ten highest-CRAP methods in the fork, and covering them turned up seven defects. This one
 picks up where that left off, across the whole tree rather than one assembly. Like that spec it is
 tied to no upstream issue, and it was written before the work, so the status column tracks progress.
@@ -8,7 +8,7 @@ tied to no upstream issue, and it was written before the work, so the status col
 Measured on `dev/migradoc-render-coverage` at `d0d36e5`, over the six shipped assemblies:
 
 ```powershell
-dotnet test PdfSharpCore.slnx -f net10.0 --settings coverage.runsettings `
+dotnet test PdfPinata.slnx -f net10.0 --settings coverage.runsettings `
   --collect:"XPlat Code Coverage" --results-directory ./TestResults
 ```
 
@@ -42,7 +42,7 @@ no test-host crash** — 152 more than the last row above.
 
 **The percentages from this run are not comparable to the table above, and are deliberately not
 added to it.** The run had to be made in Release: the Roslyn analysis server holds
-`MigraDocCore.DocumentObjectModel.Generators/bin/Debug/netstandard2.0/…Generators.dll` open, so the
+`PinataLayout.DocumentObjectModel.Generators/bin/Debug/netstandard2.0/…Generators.dll` open, so the
 Debug build cannot complete on a machine running it. Release reports 70.4% of lines and 54.6% of
 branches over eight assemblies, against the 78.3%/73.9% over six above — a different configuration
 over a different denominator, so the difference says nothing about whether coverage moved. Anyone
@@ -71,7 +71,7 @@ reports `AnsiEncoding.IsAnsi1252Char` at 57% when it is at 100%. The four method
 
 ## Batch 15 — one method, two copies, again
 
-`MigraDocCore.DocumentObjectModel.Tests`. The highest-value shape in this list, and the third time
+`PinataLayout.DocumentObjectModel.Tests`. The highest-value shape in this list, and the third time
 it has come up.
 
 | # | target | CC | cov | retires | status |
@@ -104,7 +104,7 @@ Cover: a signed number, an unsigned number, a unit with a suffix, each `ShapePos
 wrong case, surrounding whitespace, a name that is not a member, `""` and null.
 
 **They agree, and they were wrong together** — see F21, which is the same shape as F12. 58 tests in
-`MigraDocCore.DocumentObjectModel.Tests/LeftAndTopPositionParityTests`, of which 24 hold both
+`PinataLayout.DocumentObjectModel.Tests/LeftAndTopPositionParityTests`, of which 24 hold both
 implementations to one table.
 
 Two things learned rather than assumed, and pinned as such:
@@ -173,7 +173,7 @@ by agreeing rather than by disagreeing.
 
 ## Batch 16 — the generator's cache key
 
-`MigraDocCore.DocumentObjectModel.Generators.Tests`. Highest-scoring method in the tree that has
+`PinataLayout.DocumentObjectModel.Generators.Tests`. Highest-scoring method in the tree that has
 never run.
 
 | # | target | CC | cov | retires | status |
@@ -241,7 +241,7 @@ position rather than trivia.
 
 ## Batch 17 — text encoders and the DDL scanner's readers
 
-`MigraDocCore.DocumentObjectModel.Tests` for the DDL items, `PdfSharpCore.Test` for the encoder.
+`PinataLayout.DocumentObjectModel.Tests` for the DDL items, `PdfPinata.Test` for the encoder.
 
 | # | target | CC | cov | retires | status |
 |---|---|---|---|---|---|
@@ -256,7 +256,7 @@ is why they are together rather than one per rank. The round trip is the asserti
 encode, read back through `DdlReader`, and check the string survives. Escapes, braces, backslashes
 and a string that needs no escaping at all are where the branches are.
 
-45 tests in `MigraDocCore.DocumentObjectModel.Tests/DdlEncoderTests`, taking both encoders to 100%
+45 tests in `PinataLayout.DocumentObjectModel.Tests/DdlEncoderTests`, taking both encoders to 100%
 and both below the threshold. **Two findings, F22 and F23**, and only the first is fixed.
 
 The two methods escape different things, which is deliberate and is now pinned as such: paragraph
@@ -375,7 +375,7 @@ uncovered branch, and `text-extraction.md` is the spec to read first.
 18.7 wants the assertion `Chart.DeepCopy` got in batch 5.2: mutate the original after copying and
 check the copy did not move. A deep copy that returns non-null proves nothing.
 
-18.9 is in `MigraDocCore.Rendering.Tests` and needs a real font, so it cannot go in the DOM suite —
+18.9 is in `PinataLayout.Rendering.Tests` and needs a real font, so it cannot go in the DOM suite —
 `NamedFontsOnly.cs` serves a name and throws if asked for a face.
 
 **Three of the first six turned out to be unreachable**, which is batch 12's lesson again and is why
@@ -414,7 +414,7 @@ and a null check, so a page held as a direct dictionary rather than an indirect 
 skipped — it answers null where the public indexer answers the page.
 
 18.3's invariants were **moved into tests rather than dropped**, which is the point of removing a
-check that never ran. `PdfSharpCore.Test/Pdfs/CrossReferenceConsistencyTests` asserts them from
+check that never ran. `PdfPinata.Test/Pdfs/CrossReferenceConsistencyTests` asserts them from
 outside, against the bytes the writer produced: every object numbered once, no object numbered zero,
 and the count the xref declares matching the objects the file defines. The renumbering path the old
 checks bracketed is covered directly — importing pages from a second document, where both number
@@ -466,8 +466,8 @@ and then replaces the content stream outright.
 
 ### 18.7 to 18.10 — the last four, and one lesson about which reader to use
 
-7 tests in `MigraDocCore.DocumentObjectModel.Tests/TableCloneAndLineFormatTests` and 15 in
-`MigraDocCore.Rendering.Tests/TextMeasurementAndRenderObjectTests`.
+7 tests in `PinataLayout.DocumentObjectModel.Tests/TableCloneAndLineFormatTests` and 15 in
+`PinataLayout.Rendering.Tests/TextMeasurementAndRenderObjectTests`.
 
 `Table.DeepCopy` is `protected override` and reached through the public `Clone`. It clones five
 children by hand — columns, rows, format, borders and shading — so the assertion that matters is
@@ -481,7 +481,7 @@ attributes rather than a row of defaults. Note in passing that `LineStyle` has e
 `Single`, so the `Style` attribute can only ever say one thing.
 
 `TextMeasurement.MeasureString` and `DocumentRenderer.RenderObject` are both public, both need a real
-font, and so both go in `MigraDocCore.Rendering.Tests` rather than the DOM suite. Each unit
+font, and so both go in `PinataLayout.Rendering.Tests` rather than the DOM suite. Each unit
 conversion is asserted against the measurement in points rather than against a number typed in, so
 the tests say what the unit means and stay true whatever the font measures.
 
@@ -516,13 +516,13 @@ These are from `CLAUDE.md` and they constrain the batches below more than the co
   through public API or by reflection, the way `AreaProbe`, `ParagraphIteratorProbe` and
   `MappedChartProbe` already do. Prefer public API; reach for reflection only when there is no
   route, and say so in the test's own comment.
-- **`MigraDocCore.DocumentObjectModel.Tests` references the DOM and nothing else** — no renderer,
+- **`PinataLayout.DocumentObjectModel.Tests` references the DOM and nothing else** — no renderer,
   no backend, no Ghostscript, no font files. `NamedFontsOnly.cs` serves a font *name* and throws if
-  asked for a face. A target needing a real font belongs in `MigraDocCore.Rendering.Tests` instead.
-- **`MigraDocCore.Rendering.Tests` rasterizes nothing**, and neither does
-  `PdfSharpCore.Charting.Tests`. Keep it that way; assert against the content stream through the
-  linked readers under `PdfSharpCore.Test/Helpers`.
-- **`PdfSharpCore.Test` is the broad one and the default** for anything in the core package.
+  asked for a face. A target needing a real font belongs in `PinataLayout.Rendering.Tests` instead.
+- **`PinataLayout.Rendering.Tests` rasterizes nothing**, and neither does
+  `PdfPinata.Charting.Tests`. Keep it that way; assert against the content stream through the
+  linked readers under `PdfPinata.Test/Helpers`.
+- **`PdfPinata.Test` is the broad one and the default** for anything in the core package.
 - Assertions use **AwesomeAssertions** — same API as FluentAssertions, different `using`.
 - **Judge a run by its exit code, not by the word `Passed`.** A total below what
   `dotnet test --list-tests` finds did not pass, it stopped.
@@ -531,7 +531,7 @@ These are from `CLAUDE.md` and they constrain the batches below more than the co
 
 | # | target | where | retires | status |
 |---|---|---|---|---|
-| 0.1 | `Font.ApplyFont(Font, Font)` | `MigraDocCore.DocumentObjectModel/MigraDoc.DocumentObjectModel/Font.cs:85` | 3,136 | **deleted** |
+| 0.1 | `Font.ApplyFont(Font, Font)` | `PinataLayout.DocumentObjectModel/MigraDoc.DocumentObjectModel/Font.cs:85` | 3,136 | **deleted** |
 
 The highest CRAP score in the tree, and **nothing calls it**. The overload is `internal`, and the
 one call to `ApplyFont` anywhere in the repository is `ParagraphElements.cs:219`, which calls the
@@ -550,7 +550,7 @@ into the ones a font leaves null, and both flatten visitors call it.
 
 ## Batch 1 — three switch statements
 
-~~`MigraDocCore.DocumentObjectModel.Tests`. Best return in the backlog by a wide margin.~~
+~~`PinataLayout.DocumentObjectModel.Tests`. Best return in the backlog by a wide margin.~~
 **Deleted rather than tested — see finding F1.** They were unreachable, not untested.
 
 | # | target | CC | cov | retires | status |
@@ -1055,7 +1055,7 @@ came next. Reading the first line of any Type 3 glyph:
 `Do` is handed two operands, `1` and `/Im1`, and everything that reads a content stream by operand
 position reads the wrong one. `PdfResourcePruner` asks for operand 0, gets the number, finds no
 name to keep, and prunes away every resource the glyph draws with. That is how it was noticed; the
-misreading is not the pruner's and affects every consumer of `PdfSharpCore.Pdf.Content`, and it
+misreading is not the pruner's and affects every consumer of `PdfPinata.Pdf.Content`, and it
 shifts *all* the operators after the first, not only the first.
 
 The fix takes the pair by name rather than opening `IsOperatorChar` to digits, which would let an
@@ -1290,7 +1290,7 @@ Pinned by `AFieldWithOneChildTakesTheStateItIsAskedFor` and
 
 ## Batch 2 — public DOM members with no test at all
 
-~~`MigraDocCore.DocumentObjectModel.Tests`.~~ **Written in `PdfSharpCore.Test/Dom/` instead** — see
+~~`PinataLayout.DocumentObjectModel.Tests`.~~ **Written in `PdfPinata.Test/Dom/` instead** — see
 the note below. Direct calls with plain arguments; no document to build.
 
 | # | target | CC | cov | retires | status |
@@ -1305,8 +1305,8 @@ a style set as its own base, or a pair set as each other's, is the case worth pi
 is range checks over a cell block; assert the cells outside the block are untouched, not only that
 the ones inside changed.
 
-**Where these went.** The batch says `MigraDocCore.DocumentObjectModel.Tests` and they are in
-`PdfSharpCore.Test/Dom/`, because every one of these four classes already has tests there —
+**Where these went.** The batch says `PinataLayout.DocumentObjectModel.Tests` and they are in
+`PdfPinata.Test/Dom/`, because every one of these four classes already has tests there —
 `StyleLookupTests`, `ReadOnlyStyleTests`, `TableRowCellsTests`, `FormattedTextFontRoundTripTests` —
 and `CLAUDE.md` says the two suites do not overlap. Splitting `Style` across both projects to
 follow the batch heading would have cost more than it saved. Four new files:
@@ -1321,7 +1321,7 @@ same thing properly a moment later.
 
 ## Batch 3 — the MDDDL scanner and parser, reading
 
-`MigraDocCore.DocumentObjectModel.Tests`. Reached through `DdlReader` — DDL text in, `Document` out.
+`PinataLayout.DocumentObjectModel.Tests`. Reached through `DdlReader` — DDL text in, `Document` out.
 Thirty methods across these two files sit above the threshold; these six are the ones in the top 50.
 
 | # | target | CC | cov | retires | status |
@@ -1353,7 +1353,7 @@ hangs the host rather than failing it.
 
 ## Batch 4 — the MDDDL serializers, writing
 
-`MigraDocCore.DocumentObjectModel.Tests`. The same corpus written back out through `DdlWriter`.
+`PinataLayout.DocumentObjectModel.Tests`. The same corpus written back out through `DdlWriter`.
 Round-tripping covers these on the way past, which is why they follow batch 3 rather than lead it.
 
 | # | target | CC | cov | retires | status |
@@ -1374,8 +1374,8 @@ are not worth a test written to reach a branch rather than to say something.
 `WriteComment` is the interesting one: a comment carrying a newline, and one long enough to wrap,
 are what the uncovered branches are for.
 
-33 tests in `MigraDocCore.DocumentObjectModel.Tests/DdlElementSerializationTests`, and five more in
-`PdfSharpCore.Test/Dom/ImageSerializationTests` — 4.3 is the one item of the batch that cannot go in
+33 tests in `PinataLayout.DocumentObjectModel.Tests/DdlElementSerializationTests`, and five more in
+`PdfPinata.Test/Dom/ImageSerializationTests` — 4.3 is the one item of the batch that cannot go in
 the backend-free suite, because an image is made by handing `AddImage` an `IImageSource`.
 
 Worth carrying forward: **the DOM treats an object with nothing set as null and skips it when
@@ -1386,7 +1386,7 @@ once something *else* on the barcode is set. Pinned both ways rather than worked
 
 ## Batch 5 — the flattening visitors and the chart DOM
 
-`MigraDocCore.DocumentObjectModel.Tests`.
+`PinataLayout.DocumentObjectModel.Tests`.
 
 | # | target | CC | cov | retires | status |
 |---|---|---|---|---|---|
@@ -1426,14 +1426,14 @@ This is the pattern `CLAUDE.md` warns about for the two lexers and the category-
 change to one nearly always belongs in the other, and the copy usually has one guard the twin lacks.
 
 **They agree, and they were wrong together** — see F12. 24 tests in one file,
-`PdfSharpCore.Test/Dom/ExtractPageNumberParityTests`, asserting both implementations against one
-table of twenty paths. Both go in `PdfSharpCore.Test` rather than one each: it references both
+`PdfPinata.Test/Dom/ExtractPageNumberParityTests`, asserting both implementations against one
+table of twenty paths. Both go in `PdfPinata.Test` rather than one each: it references both
 assemblies, so a single theory can hold the two to the same answer, which is the only arrangement
 that actually makes them agree rather than merely testing them separately.
 
 ## Batch 7 — the AcroForms check box
 
-`PdfSharpCore.Test`. The largest single-method line debt in the report.
+`PdfPinata.Test`. The largest single-method line debt in the report.
 
 | # | target | CC | cov | retires | status |
 |---|---|---|---|---|---|
@@ -1442,10 +1442,10 @@ that actually makes them agree rather than merely testing them separately.
 One setter, 106 uncovered lines. The simple path is already covered; the whole cost is the `HasKids`
 branch that handles two fields sharing a name, which the code's own comment records as two days of
 work. Reach it through public API: open a form PDF with a kids-bearing check box, set the value,
-write it, reopen and read `/V` and `/AS` back. Needs an asset — check `PdfSharpCore.Test/Assets`
+write it, reopen and read `/V` and `/AS` back. Needs an asset — check `PdfPinata.Test/Assets`
 before making one.
 
-No asset needed in the end: `PdfSharpCore.Test/Pdfs/AcroForms/AcroFormBuilder` already builds a
+No asset needed in the end: `PdfPinata.Test/Pdfs/AcroForms/AcroFormBuilder` already builds a
 form from nothing and reads it back, which is how the existing field tests get a
 `PdfCheckBoxField` at all. It gained one method, `WithTypedParent`, for a field that has both a
 type of its own and children of its own. 9 tests in `AcroFormTwinCheckBoxTests`.
@@ -1458,7 +1458,7 @@ both halves.
 
 ## Batch 8 — the typed element accessors
 
-`PdfSharpCore.Test`. Small, in-memory, no file and no round trip. Their siblings on the same classes
+`PdfPinata.Test`. Small, in-memory, no file and no round trip. Their siblings on the same classes
 are covered; these three were simply missed.
 
 | # | target | CC | cov | retires | status |
@@ -1470,20 +1470,20 @@ are covered; these three were simply missed.
 Each reads an item that may be a `PdfReference`, a null, absent, or the wrong type outright. Cover
 all four, and note that the `create` overloads behave differently from the plain ones.
 
-19 tests in `PdfSharpCore.Test/Pdfs/TypedElementAccessorTests`. The `PdfReference` case is the one
+19 tests in `PdfPinata.Test/Pdfs/TypedElementAccessorTests`. The `PdfReference` case is the one
 that mattered — see F14.
 
 Two things noted in passing. `GetMatrix`'s create overload writes `[1 0 0 1 0 0]` as a
 `PdfLiteral`, and the read path throws `NotImplementedException` on a literal — so **a matrix the
 create overload wrote cannot be read back by the method that wrote it**. Pinned as it stands; the
 source's own comment ("cannot be parsed, implement a PdfMatrix...") says the author knew. And this
-test assembly has a test *class* called `PdfInteger` in `PdfSharpCore.Test`, which shadows
-`PdfSharpCore.Pdf.PdfInteger` for everything in a nested namespace — the same trap the
+test assembly has a test *class* called `PdfInteger` in `PdfPinata.Test`, which shadows
+`PdfPinata.Pdf.PdfInteger` for everything in a nested namespace — the same trap the
 `AcroFormBuilder` comment records for `PdfReader`.
 
 ## Batch 9 — document plumbing
 
-`PdfSharpCore.Test`.
+`PdfPinata.Test`.
 
 | # | target | CC | cov | retires | status |
 |---|---|---|---|---|---|
@@ -1517,7 +1517,7 @@ are malformed-object recovery paths that want a corrupt-document fixture apiece.
 
 ## Batch 10 — the resource pruner
 
-`PdfSharpCore.Test`.
+`PdfPinata.Test`.
 
 | # | target | CC | cov | retires | status |
 |---|---|---|---|---|---|
@@ -1527,13 +1527,13 @@ are malformed-object recovery paths that want a corrupt-document fixture apiece.
 A Type 3 font's `/CharProcs` and an annotation's `/AP` stream are the two inputs. Both are cases
 where pruning too much is silent — assert what survived, not only that pruning ran.
 
-7 tests in `PdfSharpCore.Test/IO/PruneCharProcsAndAppearancesTests`, with three fixtures added to
+7 tests in `PdfPinata.Test/IO/PruneCharProcsAndAppearancesTests`, with three fixtures added to
 `SharedResourceFixtures`. Writing the Type 3 one the way a real Type 3 font is written is what
 turned up F15, which is the largest finding of the backlog so far and is not in the pruner at all.
 
 ## Batch 11 — the content lexer and text layout
 
-`PdfSharpCore.Test`.
+`PdfPinata.Test`.
 
 | # | target | CC | cov | retires | status |
 |---|---|---|---|---|---|
@@ -1555,7 +1555,7 @@ end-of-input are where the uncovered branches are.
 
 ## Batch 12 — fonts and encryption
 
-`PdfSharpCore.Test`.
+`PdfPinata.Test`.
 
 | # | target | CC | cov | retires | status |
 |---|---|---|---|---|---|
@@ -1588,7 +1588,7 @@ harness for an unreachable method, a host-dependent assertion, and a font-image 
 
 ## Batch 13 — charting
 
-`PdfSharpCore.Charting.Tests`. The three helpers under `Helpers/` are what make these legible —
+`PdfPinata.Charting.Tests`. The three helpers under `Helpers/` are what make these legible —
 `Drawn`, `PaintedRectangles`, `ShownText`.
 
 | # | target | CC | cov | retires | status |
@@ -1617,7 +1617,7 @@ overload chains to it with zero and no other caller uses the three-argument form
 
 ## Batch 14 — MigraDoc rendering
 
-`MigraDocCore.Rendering.Tests`. Rasterizes nothing; assert against the content stream.
+`PinataLayout.Rendering.Tests`. Rasterizes nothing; assert against the content stream.
 
 | # | target | CC | cov | retires | status |
 |---|---|---|---|---|---|

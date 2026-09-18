@@ -16,7 +16,7 @@ Decisions taken before implementation, recorded here so the reasoning below is r
 * **All six gaps are in scope**, built in dependency order: G5, G4, G2, G3, G6, G1.
 * **`PlatformFontResolver` and `PlatformFontResolverInfo` are deleted**, not obsoleted. `IFontResolver`
   is untouched; `FontResolverBase` face names gain the `file.ttc#1` form.
-* **A CFF `.otf` is checked in** under `PdfSharpCore.Test/Assets/Fonts`, licence alongside.
+* **A CFF `.otf` is checked in** under `PdfPinata.Test/Assets/Fonts`, licence alongside.
 
 | id | gap | depends on | status |
 |---|---|---|---|
@@ -115,7 +115,7 @@ This is a deliberate stopping point, not an oversight — it is the line between
 if (startTag == TTCF)
 {
     _fontTechnology = FontTechnology.TrueTypeCollection;
-    throw new InvalidOperationException("TrueType collection fonts are not yet supported by PdfSharpCore.");
+    throw new InvalidOperationException("TrueType collection fonts are not yet supported by PdfPinata.");
 }
 ```
 
@@ -142,7 +142,7 @@ than a `NotImplementedException` that reads like unfinished work.
 
 ### What to build
 
-A `TrueTypeCollection` helper in `PdfSharpCore/Utils`:
+A `TrueTypeCollection` helper in `PdfPinata/Utils`:
 
 - `int Count(byte[] data)` — read the ttc header (`ttcf`, version, `numFonts`, then `numFonts`
   offsets from byte 12).
@@ -341,7 +341,7 @@ Liberation family, so one has to be added.
 
 ### As built
 
-`SourceCodePro-Regular.otf` was added under `PdfSharpCore.Test/Assets/Fonts` — SIL OFL 1.1, the same
+`SourceCodePro-Regular.otf` was added under `PdfPinata.Test/Assets/Fonts` — SIL OFL 1.1, the same
 licence as the Liberation faces, whose text now covers both. 131 KB, smaller than any of them.
 
 Two assertions ended up doing more than planned, and one less:

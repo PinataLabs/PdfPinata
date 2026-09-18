@@ -4,11 +4,11 @@ waits on it.
 
 ## 1. The table heading that repeats nothing
 
-- [x] 1.1 Write the failing tests first, in `PdfSharpCore.Test/Rendering/`: a table whose second row
+- [x] 1.1 Write the failing tests first, in `PdfPinata.Test/Rendering/`: a table whose second row
       alone carries `HeadingFormat` renders today with no repeating heading. Assert what the fix
       will make true — an `InvalidOperationException` naming row 1 — so the test fails for the
       right reason before anything is changed.
-- [x] 1.2 In `MigraDocCore.Rendering/MigraDoc.Rendering/TableRenderer.cs`, after
+- [x] 1.2 In `PinataLayout.Rendering/MigraDoc.Rendering/TableRenderer.cs`, after
       `CalcLastHeaderRow` computes the run, scan rows beyond it for `HeadingFormat` and throw
       `InvalidOperationException` naming the row index and stating that heading rows must form an
       unbroken run from the first row. Confirm this runs during formatting, before any page is
@@ -71,19 +71,19 @@ waits on it.
 
 ## 4. Glyph outlines and `AddString`
 
-- [x] 4.1 Define `IGlyphOutlineProvider` and `XGlyphOutline` in `PdfSharpCore/Fonts/`, and the
+- [x] 4.1 Define `IGlyphOutlineProvider` and `XGlyphOutline` in `PdfPinata/Fonts/`, and the
       `GlobalFontSettings.GlyphOutlineProvider` registration property. Match the existing seams:
       the getter throws `InvalidOperationException` naming the property and the packages that
       supply an implementation, exactly as `FontResolver` does when unset.
 - [x] 4.2 Test the unregistered case first — `AddString` throws with a message naming the property
       and a package, and adds nothing to the path. This is the behaviour a core-only consumer will
       meet, and it is the one most likely to be got wrong by accident.
-- [x] 4.3 Implement `SkiaGlyphOutlineProvider` in `PdfSharpCore.Skia`: font bytes from the
+- [x] 4.3 Implement `SkiaGlyphOutlineProvider` in `PdfPinata.Skia`: font bytes from the
       registered `IFontResolver` (never resolved independently, or the two seams will disagree
       about which face a family means), `SKTypeface.FromStream`, `GetGlyphs`, `GetGlyphPath`, then
       walk the `SKPath` with its iterator. Convert each quadratic to a cubic exactly — controls at
       `p0 + 2/3(q - p0)` and `p2 + 2/3(q - p2)` — rather than subdividing.
-- [x] 4.4 Implement `ImageSharpGlyphOutlineProvider` in `PdfSharpCore.ImageSharp` against
+- [x] 4.4 Implement `ImageSharpGlyphOutlineProvider` in `PdfPinata.ImageSharp` against
       SixLabors.Fonts' `IGlyphRenderer`, whose callbacks are already move/line/quadratic/cubic/end.
 - [x] 4.5 Implement both `XGraphicsPath.AddString` overloads on top of the seam, feeding
       `CoreGraphicsPath.MoveTo`/`LineTo`/`BezierTo`/`CloseSubpath`. **Call the same alignment

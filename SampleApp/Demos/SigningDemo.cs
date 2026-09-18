@@ -4,11 +4,11 @@ using System.Globalization;
 using System.IO;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using PdfSharpCore.Drawing;
-using PdfSharpCore.Drawing.Layout;
-using PdfSharpCore.Pdf;
-using PdfSharpCore.Pdf.Signatures;
-using PdfSharpCore.Signing;
+using PdfPinata.Drawing;
+using PdfPinata.Drawing.Layout;
+using PdfPinata.Pdf;
+using PdfPinata.Pdf.Signatures;
+using PdfPinata.Signing;
 using SampleApp.Infrastructure;
 
 namespace SampleApp.Demos;
@@ -33,7 +33,7 @@ internal sealed class SigningDemo : PdfDemo
     public override IReadOnlyList<string> Shows => new[]
     {
         "PdfSigner.Sign - the placeholder, the byte range, and the patch that fills the hole",
-        "Pkcs7Signer from PdfSharpCore.Signing, with PAdES and PKCS#7 as separate formats",
+        "Pkcs7Signer from PdfPinata.Signing, with PAdES and PKCS#7 as separate formats",
         "PdfSignatureOptions - a visible appearance drawn by the caller, and a reason and location",
         "That the revision is appended rather than rewritten, because rewriting invalidates",
         "PdfSignatures.InDocument, which reads a signature without believing any of it",
@@ -74,7 +74,7 @@ internal sealed class SigningDemo : PdfDemo
 
         PdfDocument document = new PdfDocument();
         document.Info.Title = "Signing";
-        document.Info.Author = "PdfSharpCore sample app";
+        document.Info.Author = "PdfPinata sample app";
 
         // ----- page one: the document that gets signed ---------------------------------------------
 
@@ -248,7 +248,7 @@ internal sealed class SigningDemo : PdfDemo
             prose.DrawString(
                 "The core package holds all the PDF machinery - the placeholder, the byte range, the "
                 + "patching - and no cryptography at all, behind the IPdfSigner seam. "
-                + "PdfSharpCore.Signing is the package that carries a dependency the core refuses, "
+                + "PdfPinata.Signing is the package that carries a dependency the core refuses, "
                 + "and it is the one shipped package that does not target netstandard2.1. A signer "
                 + "of your own - a smart card, an HSM, a remote signing service - implements "
                 + "IPdfSigner and needs neither.",
@@ -364,10 +364,10 @@ internal sealed class SigningDemo : PdfDemo
         PdfSignatureOptions options = new PdfSignatureOptions
         {
             FieldName = "Signature1",
-            SignerName = "PdfSharpCore sample app",
+            SignerName = "PdfPinata sample app",
             Reason = "To demonstrate what a signed PDF contains",
             Location = "The sample app's output directory",
-            ContactInfo = "https://github.com/jafin/PdfSharpCore",
+            ContactInfo = "https://github.com/PinataLabs/PdfPinata",
         };
 
         if (!drawAppearance)
@@ -401,7 +401,7 @@ internal sealed class SigningDemo : PdfDemo
         using RSA key = RSA.Create(2048);
 
         CertificateRequest request = new CertificateRequest(
-            "CN=PdfSharpCore Sample App, O=Not a real signer",
+            "CN=PdfPinata Sample App, O=Not a real signer",
             key, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
 
         request.CertificateExtensions.Add(new X509KeyUsageExtension(

@@ -1,6 +1,6 @@
 # Spec — ScriptItemizer put back where it is actually called from (T16)
 
-`PdfSharpCore/Text/ScriptItemizer.cs` and `TextItemizer.cs` had the same UAX #24 sweep twice: the
+`PdfPinata/Text/ScriptItemizer.cs` and `TextItemizer.cs` had the same UAX #24 sweep twice: the
 public `ScriptItemizer.Itemize(string)` walked a whole string, and `TextItemizer`'s private
 `ScriptsOf`/`ScriptOf` did the identical walk by hand — decoding surrogate pairs, sweeping Common and
 Inherited characters forward — scoped to one bidirectional run instead. Six lines apart in the file
@@ -60,7 +60,7 @@ The plan's case for demotion turned on a checked claim: nothing outside `ScriptI
 called the public overload, `TextItemizer` never had, and the type had shipped six days earlier in
 commit `c7cacc0` with no `dotnet pack`/`nuget push` step in CI to have published it anywhere. All of
 that was re-verified rather than assumed for T16 too — `grep -rl "ScriptItemizer"` still finds only
-`ScriptItemizer.cs`, `TextItemizer.cs`, and the test file, and `PdfSharpCore.csproj`'s `<Version>` had
+`ScriptItemizer.cs`, `TextItemizer.cs`, and the test file, and `PdfPinata.csproj`'s `<Version>` had
 not moved in the interim.
 
 The plan's own "Further Notes" section named the boundary condition for its reasoning explicitly: *"If
@@ -80,10 +80,10 @@ would move from `public` to `internal`, that no `InternalsVisibleTo` would be ad
 
 ## Testing
 
-`PdfSharpCore.Test/Text/ItemizationTests.cs` went from 17 tests to 25. The eight pre-existing
+`PdfPinata.Test/Text/ItemizationTests.cs` went from 17 tests to 25. The eight pre-existing
 script-only tests (`TextOfOneScriptIsOneRun` through `AnAstralCharacterIsOneCharacterAndNotTwo`) keep
 calling the now-internal `ScriptItemizer.Itemize` — by reflection, the way
-`PdfSharpCore.Test/IO/CharacterScanningTests.cs` already reaches `CharacterScanning`. The class-level
+`PdfPinata.Test/IO/CharacterScanningTests.cs` already reaches `CharacterScanning`. The class-level
 remark at `ItemizationTests.cs:20-28` explains why: several of those inputs (`"Hi" + Arabic`, for
 one) are also mixed-direction, so routing them through `TextItemizer.Itemize` would make the
 assertion pass for a bidi-run boundary rather than a script boundary, and a script-itemisation
@@ -111,12 +111,12 @@ are the proof that deleting `ScriptsOf`/`ScriptOf` in favour of the range overlo
 identical answer. `BidiConformanceTests`, `TextShapingSeamTests`, `HarfBuzzShapingTests`,
 `ItemizedTextTests` and `FontFallbackTests` all sit downstream of `TextItemizer.Itemize` through
 `TextShaping.ShapeText` and none of them know `ScriptItemizer` exists; all pass unmodified, which is
-the evidence the refactor is invisible from outside `PdfSharpCore.Text`.
+the evidence the refactor is invisible from outside `PdfPinata.Text`.
 
 ## What changed outside the two source files
 
-`CHANGELOG.md`'s Removed section gets an entry naming `PdfSharpCore.Text.ScriptItemizer` and
-`PdfSharpCore.Text.ScriptRun` as breaking, explaining the disagreement with the bidirectional
+`CHANGELOG.md`'s Removed section gets an entry naming `PdfPinata.Text.ScriptItemizer` and
+`PdfPinata.Text.ScriptRun` as breaking, explaining the disagreement with the bidirectional
 algorithm on mixed-direction input, and pointing at `TextItemizer.Itemize` as the replacement —
 worded almost exactly as the plan's "Implementation Decisions" section proposed it, down to the
 `"one من"` example. `docs/specs/text-shaping-and-bidi.md` gets a new paragraph in its shaping section
@@ -129,13 +129,13 @@ now reached by reflection.
 - **`Script_Extensions` (`scx`).** Still documented as future work at `ScriptItemizer.cs:28-34`,
   independent of this change.
 - **Making the range overload public.** No caller has asked for script boundaries within an
-  already-known bidi run from outside `PdfSharpCore.Text`. `docs/specs/text-shaping-and-bidi.md`
+  already-known bidi run from outside `PdfPinata.Text`. `docs/specs/text-shaping-and-bidi.md`
   repeats the plan's framing: the internal range overload is already the shape that request would
   need, and adding it is a small, additive change if one shows up.
 - **`InternalsVisibleTo`.** Not added anywhere; confirmed by grepping every `.csproj` in the
   repository, which turns up none. The precedent this repository already has — `LineSpans.cs` and
-  `VisualOrder.cs` being public because `MigraDocCore.Rendering` genuinely needs them across an
-  assembly boundary — does not apply here, since nothing outside `PdfSharpCore` itself ever touched
+  `VisualOrder.cs` being public because `PinataLayout.Rendering` genuinely needs them across an
+  assembly boundary — does not apply here, since nothing outside `PdfPinata` itself ever touched
   `ScriptItemizer`.
 - **`BidiAlgorithm` and the joining-control handling in `TextItemizer.cs`.** Untouched; this change is
   scoped to which type owns the UAX #24 sweep and who may call it directly.

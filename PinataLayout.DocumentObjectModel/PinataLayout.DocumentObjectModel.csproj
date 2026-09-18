@@ -1,0 +1,52 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.1;net8.0;net10.0</TargetFrameworks>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <!-- Ship the XML documentation alongside the assembly, so a consumer of the package gets the
+         doc comments as IntelliSense. This project is clean of CS1591, so a public member added
+         without one now warns. Set per project rather than in Directory.Build.props, which is
+         imported before GeneratePackageOnBuild is known, or Directory.Build.targets, which is
+         imported after the SDK has already derived DocumentationFile from it. -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Authors>Stefan Steiger and Contributors</Authors>
+    <Description>PinataLayout.DocumentObjectModel for .NET Core PinataLayout.DocumentObjectModel was ported from MigraDoc version 1.32</Description>
+    <Copyright>Copyright (c) 2026 PdfPinata; Copyright (c) 2005-2007 empira Software GmbH, Cologne (Germany)</Copyright>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <PackageProjectUrl>https://github.com/PinataLabs/PdfPinata</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/PinataLabs/PdfPinata</RepositoryUrl>
+    <PackageReleaseNotes>PinataLayout.DocumentObjectModel was ported from MigraDoc version 1.32</PackageReleaseNotes>
+    <summary>PinataLayout.DocumentObjectModel for .NET Core</summary>
+    <IsTrimmable>true</IsTrimmable>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>TRACE;DEBUG;</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants>TRACE;RELEASE;</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PdfPinata\PdfPinata.csproj" />
+
+    <!--
+      Build-time only. The generator emits this assembly's value model from its [DV] attributes and
+      is not needed by anyone consuming the package - a DocumentObject cannot be declared outside
+      this assembly anyway, since DocumentObject.Meta is internal abstract. PrivateAssets keeps it
+      out of the nuspec, ReferenceOutputAssembly keeps it off the compile references.
+    -->
+    <ProjectReference Include="..\PinataLayout.DocumentObjectModel.Generators\PinataLayout.DocumentObjectModel.Generators.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false"
+                      PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\LICENSE.md" Pack="true" PackagePath="" />
+    <None Include="..\README.md" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+</Project>

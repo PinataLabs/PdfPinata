@@ -15,11 +15,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MigraDocCore.DocumentObjectModel\MigraDocCore.DocumentObjectModel.csproj" />
-    <ProjectReference Include="..\MigraDocCore.Rendering\MigraDocCore.Rendering.csproj" />
-    <ProjectReference Include="..\PdfSharpCore\PdfSharpCore.csproj" />
-    <ProjectReference Include="..\PdfSharpCore.EInvoice\PdfSharpCore.EInvoice.csproj" />
-    <ProjectReference Include="..\PdfSharpCore.Skia\PdfSharpCore.Skia.csproj" />
+    <ProjectReference Include="..\PinataLayout.DocumentObjectModel\PinataLayout.DocumentObjectModel.csproj" />
+    <ProjectReference Include="..\PinataLayout.Rendering\PinataLayout.Rendering.csproj" />
+    <ProjectReference Include="..\PdfPinata\PdfPinata.csproj" />
+    <ProjectReference Include="..\PdfPinata.EInvoice\PdfPinata.EInvoice.csproj" />
+    <ProjectReference Include="..\PdfPinata.Skia\PdfPinata.Skia.csproj" />
   </ItemGroup>
 
   <!--

@@ -57,15 +57,15 @@ cap is asked for.
 
 **Code**
 
-- `PdfSharpCore/Drawing.Layout/XTextFormatter.cs` — `CreateLayout` asks for the measure per line;
+- `PdfPinata/Drawing.Layout/XTextFormatter.cs` — `CreateLayout` asks for the measure per line;
   new `DropCap` property; the cap drawn in `DrawString`.
-- `PdfSharpCore/Drawing.Layout/` — a small type carrying the cap's font, depth and gutter.
+- `PdfPinata/Drawing.Layout/` — a small type carrying the cap's font, depth and gutter.
 - `SampleApp/Demos/MagazineDemo.cs` — the measuring loop comes out.
 
 **Dependencies**: none. `AddString` is used where a provider is registered and skipped where it is
 not.
 
-**Packages**: additive public API on `PdfSharpCore`. No signature changes; a caller who never sets
+**Packages**: additive public API on `PdfPinata`. No signature changes; a caller who never sets
 `DropCap` sees identical output, which the change tests directly.
 
 **Interaction with `shape-side-wrap`**: both need a per-line measure. This change introduces it in

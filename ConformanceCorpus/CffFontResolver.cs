@@ -1,8 +1,8 @@
 using System;
 using System.IO;
 using System.Reflection;
-using PdfSharpCore.Fonts;
-using PdfSharpCore.Utils;
+using PdfPinata.Fonts;
+using PdfPinata.Utils;
 
 namespace ConformanceCorpus;
 

@@ -65,22 +65,22 @@ None. `page-resize` is the only existing spec and none of its requirements chang
 
 **Code**
 
-- `PdfSharpCore/Pdf.Advanced/PdfShading.cs`, `PdfShadingPattern.cs` — alpha detection and the mask
+- `PdfPinata/Pdf.Advanced/PdfShading.cs`, `PdfShadingPattern.cs` — alpha detection and the mask
   branch. `PdfSoftMask`, `PdfFormXObject`, `PdfTransparencyGroupAttributes` and
   `PdfExtGState.SoftMask` already exist and are unused by this path; the change wires them up rather
   than adding them.
-- `PdfSharpCore/Drawing/XGraphicsPath.cs` — two `AddString` overloads, currently
+- `PdfPinata/Drawing/XGraphicsPath.cs` — two `AddString` overloads, currently
   `HandleNotImplemented`.
-- `PdfSharpCore/Drawing/XGraphics.cs:1295` — the `BaseLine` guard, and the matching guard in
+- `PdfPinata/Drawing/XGraphics.cs:1295` — the `BaseLine` guard, and the matching guard in
   `XGraphicsPath.cs:391`.
-- `PdfSharpCore/Fonts/` — the new `IGlyphOutlineProvider` seam and its registration point.
-- `PdfSharpCore.Skia/`, `PdfSharpCore.ImageSharp/` — one provider implementation each.
-- `MigraDocCore.Rendering/MigraDoc.Rendering/TableRenderer.cs` — `CalcLastHeaderRow`.
+- `PdfPinata/Fonts/` — the new `IGlyphOutlineProvider` seam and its registration point.
+- `PdfPinata.Skia/`, `PdfPinata.ImageSharp/` — one provider implementation each.
+- `PinataLayout.Rendering/MigraDoc.Rendering/TableRenderer.cs` — `CalcLastHeaderRow`.
 
 **Dependencies**: none added. Both backends already reference the library that can produce outlines
 (SkiaSharp's `SKFont.GetGlyphPath`, SixLabors.Fonts' glyph renderer).
 
-**Packages**: additive public API on `PdfSharpCore` (`IGlyphOutlineProvider`, the registration
+**Packages**: additive public API on `PdfPinata` (`IGlyphOutlineProvider`, the registration
 property, working `AddString`). No signature changes, so nothing that compiles today stops
 compiling.
 

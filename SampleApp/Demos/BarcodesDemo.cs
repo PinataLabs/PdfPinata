@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using PdfSharpCore.Drawing;
-using PdfSharpCore.Drawing.BarCodes;
-using PdfSharpCore.Drawing.Layout;
-using PdfSharpCore.Pdf;
+using PdfPinata.Drawing;
+using PdfPinata.Drawing.BarCodes;
+using PdfPinata.Drawing.Layout;
+using PdfPinata.Pdf;
 using SampleApp.Infrastructure;
 
 namespace SampleApp.Demos;
@@ -235,7 +235,7 @@ internal sealed class BarcodesDemo : PdfDemo
         {
             ("PDFSHARPCORE", 16, "16 x 16 modules"),
             ("PDFSHARPCORE-2026-08-16", 22, "22 x 22, the same plus a date"),
-            ("https://github.com/ststeiger/PdfSharpCore", 32, "32 x 32, a whole URL"),
+            ("https://github.com/PinataLabs/PdfPinata", 32, "32 x 32, a whole URL"),
         };
 
         left = 50;

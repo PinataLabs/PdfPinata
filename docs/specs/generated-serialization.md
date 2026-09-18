@@ -21,7 +21,7 @@ to a class and forgotten in `Serialize`.
 
 ## 1. The measurement
 
-Every `Serialize` method in `MigraDocCore.DocumentObjectModel` was classified against a grammar of
+Every `Serialize` method in `PinataLayout.DocumentObjectModel` was classified against a grammar of
 what the value model already knows how to emit:
 
 * `BeginContent` / `EndContent` / `BeginAttributes` / `EndAttributes` / `base.Serialize`
@@ -110,7 +110,7 @@ For each `[DV]`-carrying type, the generator emits into the existing partial cla
 partial class LineFormat
 {
     /// <summary>Writes every [DV] member that is set, in declaration order.</summary>
-    internal void SerializeValues(MigraDocCore.DocumentObjectModel.Serializer serializer)
+    internal void SerializeValues(PinataLayout.DocumentObjectModel.Serializer serializer)
     {
         if (visible is not null)
             serializer.WriteSimpleAttribute("Visible", Visible);
@@ -277,7 +277,7 @@ left alone, there is nothing left for it to declare.
 
 ## 7. MDG007, shipped
 
-Step 1 landed: `MigraDocCore.DocumentObjectModel.Generators/Diagnostics.cs` has
+Step 1 landed: `PinataLayout.DocumentObjectModel.Generators/Diagnostics.cs` has
 `MemberMissingFromSerialize`, and `Parser.cs` scans every method literally named `Serialize` for a
 mention of each of the type's own `[DV]` members — a string literal (`WriteSimpleAttribute("Style",
 …)`) or a plain identifier (`Columns.Serialize(serializer)`, `WriteComment(comment)`), matched
@@ -297,6 +297,6 @@ Everything else the diagnostic found is real: `HeaderFooter.style`, `Hyperlink.f
 written by their type's `Serialize` — set one, save the document, reload it, and the setting is
 gone. These are left as live warnings rather than fixed here: touching `Serialize` is exactly what
 §4's byte-comparison harness exists to make safe, and step 2 landed alongside MDG007 -
-`DdlByteComparisonHarnessTests` and `Golden.cs` in `MigraDocCore.DocumentObjectModel.Tests` pin six
+`DdlByteComparisonHarnessTests` and `Golden.cs` in `PinataLayout.DocumentObjectModel.Tests` pin six
 corpus documents against the DDL a correct `Serialize` produces today. Fixing the three warnings
 above is now safe to attempt; it is still not done here.

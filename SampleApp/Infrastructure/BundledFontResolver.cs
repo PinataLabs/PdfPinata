@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Concurrent;
-using PdfSharpCore.Drawing;
-using PdfSharpCore.Fonts;
+using PdfPinata.Drawing;
+using PdfPinata.Fonts;
 
 namespace SampleApp.Infrastructure;
 

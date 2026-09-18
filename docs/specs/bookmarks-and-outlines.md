@@ -1,6 +1,6 @@
 # Spec — bookmarks and outlines, issue #321
 
-[ststeiger/PdfSharpCore#321](https://github.com/ststeiger/PdfSharpCore/issues/321) reports that a
+[ststeiger/PdfPinata#321](https://github.com/ststeiger/PdfSharpCore/issues/321) reports that a
 bookmark "doesn't show in the rendered PDF, nor is there an apparent means to reference a bookmark
 (i.e., from a table of contents)", and calls it "a showstopper for using this library".
 
@@ -63,11 +63,11 @@ And in row C, the destination of the outline entry read
 
 Both share a cause: nothing carried the vertical position, so both now do.
 
-### PdfSharpCore
+### PdfPinata
 
 `PdfLinkAnnotation.CreateDocumentLink` and `PdfPage.AddDocumentLink` gain an overload taking a
 `destinationTop` in default page coordinates. `NaN` means "no position" and writes exactly what was
-written before, so callers using PdfSharpCore directly are unaffected. The destination is built in
+written before, so callers using PdfPinata directly are unaffected. The destination is built in
 `WriteObject`, which is where the page index is resolved:
 
 ```csharp
@@ -139,12 +139,12 @@ discoverable one. Its summary says what a bookmark is not, since that is the who
 
 ## Item 4 — documentation
 
-`docs/MigraDocCore/samples/OutlinesAndTableOfContents.md`, linked from the samples index. It opens
+`docs/PinataLayout/samples/OutlinesAndTableOfContents.md`, linked from the samples index. It opens
 with the table that would have answered the issue outright — outline entries come from
 `OutlineLevel`, bookmarks are link targets — then covers nesting, a worked table of contents, and a
 "what does not work" section holding the reporter's own line.
 
-It was not entirely undocumented before: `HelloMigraDocCore.md:76` says an outline level other than
+It was not entirely undocumented before: `HelloPinataLayout.md:76` says an outline level other than
 `BodyText` "automatically creates the outline (or bookmarks)". But that is a comment inside a long
 sample, and nobody looking for how to make a table of contents was going to find it.
 
@@ -242,7 +242,7 @@ back as whatever the caller had last assigned.
 
 ## Verification
 
-`PdfSharpCore.Test/Outlines/BookmarkAndOutlineTests.cs`, 9 tests:
+`PdfPinata.Test/Outlines/BookmarkAndOutlineTests.cs`, 9 tests:
 
 - an outline entry points at the heading, and one further down the page points further down —
   before the change the destination carried no position at all, so both fail outright;
@@ -253,13 +253,13 @@ back as whatever the caller had last assigned.
 - a bookmark on a **landscape** page is measured against the shorter side;
 - a hyperlink to a bookmark that does not exist still makes no link and does not throw;
 - a document link with no position still writes exactly the destination it used to, which is what
-  keeps direct PdfSharpCore callers working;
+  keeps direct PdfPinata callers working;
 - a document link given a position carries it.
 
 Whole suite green on net8.0 and net10.0, 337 passed on each, one pre-existing skip
 (`CanCreatePdfOver2gb`). Solution builds with 0 warnings.
 
-`PdfSharpCore.Test/Outlines/OutlineOpenStateTests.cs`, 9 tests, for item 5:
+`PdfPinata.Test/Outlines/OutlineOpenStateTests.cs`, 9 tests, for item 5:
 
 - an open entry counts its children up, and a closed one counts the same number down;
 - `Opened` assigned **after** the entry was added is still written — the case the old bookkeeping

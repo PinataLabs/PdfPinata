@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using MigraDocCore.DocumentObjectModel;
-using MigraDocCore.DocumentObjectModel.Tables;
-using MigraDocCore.Rendering;
-using PdfSharpCore.Drawing;
-using PdfSharpCore.EInvoice;
-using PdfSharpCore.Pdf;
-using PdfSharpCore.Pdf.Advanced;
+using PinataLayout.DocumentObjectModel;
+using PinataLayout.DocumentObjectModel.Tables;
+using PinataLayout.Rendering;
+using PdfPinata.Drawing;
+using PdfPinata.EInvoice;
+using PdfPinata.Pdf;
+using PdfPinata.Pdf.Advanced;
 
 namespace ConformanceCorpus;
 
@@ -67,7 +67,7 @@ static class Corpus
     {
         var document = new PdfDocument();
         document.Info.Title = "Conformance corpus: " + conformance;
-        document.Info.Author = "PdfSharpCore conformance corpus";
+        document.Info.Author = "PdfPinata conformance corpus";
 
         // The output intent is not set, and that is the point of not setting it: an RGB document
         // claiming PDF/A is given PdfOutputIntents.SrgbProfile and the sRGB condition to name it,
@@ -78,7 +78,7 @@ static class Corpus
         using (var gfx = XGraphics.FromPdfPage(page))
         {
             var font = new XFont("Arial", 14);
-            gfx.DrawString("PdfSharpCore conformance corpus", font, XBrushes.Black, 50, 70);
+            gfx.DrawString("PdfPinata conformance corpus", font, XBrushes.Black, 50, 70);
             gfx.DrawString(conformance.ToString(), new XFont("Arial", 24), XBrushes.Black, 50, 110);
 
             gfx.DrawRectangle(XBrushes.LightSteelBlue, 50, 140, 200, 60);
@@ -117,7 +117,7 @@ static class Corpus
     {
         var document = new PdfDocument();
         document.Info.Title = "Conformance corpus: PostScript outlines";
-        document.Info.Author = "PdfSharpCore conformance corpus";
+        document.Info.Author = "PdfPinata conformance corpus";
 
         document.Options.Conformance = PdfAConformance.PdfA2B;
 
@@ -164,7 +164,7 @@ static class Corpus
     {
         var document = new PdfDocument();
         document.Info.Title = "Conformance corpus: invoice with an associated file";
-        document.Info.Author = "PdfSharpCore conformance corpus";
+        document.Info.Author = "PdfPinata conformance corpus";
 
         // Nothing about conformance is set here at all: attaching the invoice claims PDF/A-3, the
         // only profile that may carry one, and the output intent an RGB document needs comes with
@@ -255,7 +255,7 @@ static class Corpus
         renderer.RenderDocument();
 
         renderer.PdfDocument.Info.Title = "Statement of account";
-        renderer.PdfDocument.Info.Author = "PdfSharpCore conformance corpus";
+        renderer.PdfDocument.Info.Author = "PdfPinata conformance corpus";
         claim(renderer.PdfDocument);
 
         return Bytes(renderer.PdfDocument);

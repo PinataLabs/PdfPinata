@@ -62,21 +62,21 @@ An in-place page resize that carries annotations and links with it.
 ## Impact
 
 **Changed behaviour (breaking):** `PdfPage.Size`, `PdfPage.Width`, `PdfPage.Height` setters.
-In-repo cost is one line — `PdfSharpCore.Test/Drawing/Layout/XTextFormatterTest.cs:43` sets `Size`
+In-repo cost is one line — `PdfPinata.Test/Drawing/Layout/XTextFormatterTest.cs:43` sets `Size`
 before drawing and is unaffected; nothing else in the repo assigns them on a page with content.
 MigraDoc sets `pdfPage.Width`/`Height` on blank pages (`PdfDocumentRenderer.cs:216`) and is
 unaffected.
 
 **New source:**
-- `PdfSharpCore/Pdf.Advanced/PdfPageResizer.cs` — the engine.
-- `PdfSharpCore/root/PageResizeOptions.cs`, `PdfSharpCore/root/enums/PageFitMode.cs`.
-- `PdfSharpCore/Pdf.Advanced/PdfDestinationWalker.cs` — the document-wide destination sweep.
+- `PdfPinata/Pdf.Advanced/PdfPageResizer.cs` — the engine.
+- `PdfPinata/root/PageResizeOptions.cs`, `PdfPinata/root/enums/PageFitMode.cs`.
+- `PdfPinata/Pdf.Advanced/PdfDestinationWalker.cs` — the document-wide destination sweep.
 
 **Modified source:**
-- `PdfSharpCore/Pdf/PdfPage.cs` — setter guards, `Resize` facades.
-- `PdfSharpCore/Pdf/PdfDocument.cs` — `ResizePages`, following the `PruneUnusedResources` /
+- `PdfPinata/Pdf/PdfPage.cs` — setter guards, `Resize` facades.
+- `PdfPinata/Pdf/PdfDocument.cs` — `ResizePages`, following the `PruneUnusedResources` /
   `ConsolidateImages` precedent of an explicit opt-in pass.
-- `PdfSharpCore/Pdf.Advanced/PdfFormXObject.cs` — a same-document constructor. Today the
+- `PdfPinata/Pdf.Advanced/PdfFormXObject.cs` — a same-document constructor. Today the
   page-to-form path is hardwired to an external document via `PdfImportedObjectTable`.
 
 **Unaffected:** MigraDoc, both imaging backends, the content lexers, the font path.

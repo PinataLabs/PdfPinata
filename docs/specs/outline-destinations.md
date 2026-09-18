@@ -158,7 +158,7 @@ since it goes where the caller said rather than where the action led.
 
 ## Verification
 
-`PdfSharpCore.Test/Outlines/ImportedOutlineTests.cs`, 25 tests over fixtures shaped like the
+`PdfPinata.Test/Outlines/ImportedOutlineTests.cs`, 25 tests over fixtures shaped like the
 documents in the issue — 19 of them fail on `master`:
 
 - a destination named through a GoTo action, resolved through a name tree with `/Kids` and

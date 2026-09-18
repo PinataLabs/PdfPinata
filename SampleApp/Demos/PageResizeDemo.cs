@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using PdfSharpCore;
-using PdfSharpCore.Drawing;
-using PdfSharpCore.Pdf;
+using PdfPinata;
+using PdfPinata.Drawing;
+using PdfPinata.Pdf;
 using SampleApp.Infrastructure;
 
 namespace SampleApp.Demos;

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using PdfSharpCore.Drawing;
-using PdfSharpCore.Pdf;
+using PdfPinata.Drawing;
+using PdfPinata.Pdf;
 using SampleApp.Infrastructure;
 
 namespace SampleApp.Demos;
@@ -34,10 +34,10 @@ internal sealed class HelloWorldDemo : PdfDemo
         // What a reader shows under "document properties". Producer is not set here: the
         // library writes its own and the property is read only.
         document.Info.Title = "Hello World";
-        document.Info.Author = "PdfSharpCore";
+        document.Info.Author = "PdfPinata";
         document.Info.Subject = "The smallest document worth saving";
         document.Info.Keywords = "pdfsharpcore; demo; metadata";
-        document.Info.Creator = "PdfSharpCore SampleApp";
+        document.Info.Creator = "PdfPinata SampleApp";
 
         // A fixed date rather than DateTime.Now, so that running the demo twice produces
         // two files that differ only in the document identifier.

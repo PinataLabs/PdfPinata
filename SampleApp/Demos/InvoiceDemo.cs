@@ -1,10 +1,10 @@
 using System.Collections.Generic;
-using MigraDocCore.DocumentObjectModel;
-using MigraDocCore.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes;
-using MigraDocCore.DocumentObjectModel.Shapes;
-using MigraDocCore.DocumentObjectModel.Tables;
-using MigraDocCore.Rendering;
-using PdfSharpCore.Pdf;
+using PinataLayout.DocumentObjectModel;
+using PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes;
+using PinataLayout.DocumentObjectModel.Shapes;
+using PinataLayout.DocumentObjectModel.Tables;
+using PinataLayout.Rendering;
+using PdfPinata.Pdf;
 using SampleApp.Infrastructure;
 
 namespace SampleApp.Demos;
@@ -47,7 +47,7 @@ internal sealed class InvoiceDemo : PdfDemo
         // is visible in the same source as the layout that renders it.
         (string Code, string Description, int Quantity, decimal UnitPrice)[] items =
         {
-            ("PS-1001", "PdfSharpCore support, annual", 1, 1200.00m),
+            ("PS-1001", "PdfPinata support, annual", 1, 1200.00m),
             ("PS-1002", "Migration consultancy, per day", 6, 780.00m),
             ("PS-2010", "Font licensing review", 1, 450.00m),
             ("PS-2011", "Embedded subsetting audit", 2, 325.00m),

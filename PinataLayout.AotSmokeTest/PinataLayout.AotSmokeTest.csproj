@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <!--
+      One target framework, not the library's three. This exercises reflection, not TFM differences,
+      and an AOT publish is slow enough that a second leg would cost CI time for no coverage.
+    -->
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+
+    <PublishAot>true</PublishAot>
+    <InvariantGlobalization>true</InvariantGlobalization>
+
+    <!--
+      The trim analyzer proves no *statically visible* reflection is left. It cannot prove the
+      absence of reflection reached through a path it fails to model, and it says nothing about
+      whether the result actually runs. Only publishing native and running it does that.
+
+      These analyzers report on code reached through the projects referenced below, not just on this
+      one, which is what makes them worth having here: they are the only place in the repo where the
+      DOM and the renderer are analysed together for AOT safety. The build is clean of IL2xxx and
+      IL3050, and should stay that way - a new warning here means a real hazard somewhere below.
+    -->
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <EnableAotAnalyzer>true</EnableAotAnalyzer>
+    <EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PinataLayout.DocumentObjectModel\PinataLayout.DocumentObjectModel.csproj" />
+    <ProjectReference Include="..\PinataLayout.Rendering\PinataLayout.Rendering.csproj" />
+    <ProjectReference Include="..\PdfPinata\PdfPinata.csproj" />
+    <ProjectReference Include="..\PdfPinata.Skia\PdfPinata.Skia.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.150.1" />
+    <PackageReference Include="SkiaSharp.NativeAssets.macOS" Version="4.150.1" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="4.150.1" />
+  </ItemGroup>
+
+</Project>

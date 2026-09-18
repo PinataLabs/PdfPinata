@@ -12,7 +12,7 @@ BleedBox = [0 0 437.008 612.008]      ArtBox  = [8.504 8.504 428.504 603.504]
 -8.504 560.512 437.008 60 re f        the band, flush with the media box
 ```
 
-Nothing tests it. `TrimMargins` has **zero** occurrences in `PdfSharpCore.Test`, so every part of
+Nothing tests it. `TrimMargins` has **zero** occurrences in `PdfPinata.Test`, so every part of
 that — the translate, the added page height, the five boxes — is unguarded. The demonstration app
 does not use it either, and `docs/specs/demonstration-app.md` still lists "nothing that bleeds a
 photograph off the edge of a page" among the things the library cannot do, which is wrong.
@@ -64,11 +64,11 @@ None. No existing spec's requirements change; this pins behaviour that has never
 
 **Code**
 
-- `PdfSharpCore/Pdf/PdfPage.cs` — `PrepareForSave` writes the boxes. Changes only if crop marks are
+- `PdfPinata/Pdf/PdfPage.cs` — `PrepareForSave` writes the boxes. Changes only if crop marks are
   taken up, which needs `BleedBox` to sit inside `MediaBox`.
-- `PdfSharpCore/Drawing.Pdf/XGraphicsPdfRenderer.cs` — `BeginPage` reads the trim offset. Expected to
+- `PdfPinata/Drawing.Pdf/XGraphicsPdfRenderer.cs` — `BeginPage` reads the trim offset. Expected to
   be read and tested, not changed.
-- `PdfSharpCore.Test/` — a new test class; nothing exists to extend.
+- `PdfPinata.Test/` — a new test class; nothing exists to extend.
 - `SampleApp/Demos/BleedDemo.cs` — new, plus its registry entry.
 
 **Packages**: additive at most. `PdfPage.TrimMargins` is public API already.

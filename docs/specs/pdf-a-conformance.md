@@ -9,10 +9,10 @@ Gap **G4** of the competitive gap analysis.
 | 2 | Output intent with an embedded ICC profile | done, **and an RGB document is given one** |
 | 3 | `PdfDocumentOptions.Conformance` that **enforces** rather than labels | done, the resource rules in [conformance-completeness.md](conformance-completeness.md) |
 | 4 | PDF/A-3 attachments — `/AFRelationship` and catalog `/AF` | done |
-| 5 | `PdfSharpCore.EInvoice` — a ZUGFeRD / Factur-X helper | done |
+| 5 | `PdfPinata.EInvoice` — a ZUGFeRD / Factur-X helper | done |
 
-Covered by `PdfSharpCore.Test/IO/XmpMetadataTests.cs`, `PdfSharpCore.Test/Pdfs/AttachmentTests.cs`
-and `PdfSharpCore.Test/Pdfs/EInvoiceTests.cs`.
+Covered by `PdfPinata.Test/IO/XmpMetadataTests.cs`, `PdfPinata.Test/Pdfs/AttachmentTests.cs`
+and `PdfPinata.Test/Pdfs/EInvoiceTests.cs`.
 
 ## What is honestly not finished
 
@@ -22,7 +22,7 @@ decision about what the repository ships rather than a piece of code. `assets/ic
 is that asset: 456 bytes from the Compact ICC Profiles collection, released to the public domain
 under CC0, needing no attribution, its own `cprt` tag reading `CC0`. ICC version 2 rather than 4 on
 purpose, because PDF/A-1 predates version 4 and will not take one, so v2 is the version that serves
-every part. The **core package** embeds it and nothing else does — `PdfSharpCore.EInvoice`, the demo
+every part. The **core package** embeds it and nothing else does — `PdfPinata.EInvoice`, the demo
 app and the conformance corpus all reach it through `PdfOutputIntents.SrgbProfile` or simply by not
 setting one.
 
@@ -139,7 +139,7 @@ byte-scanner can find without parsing the PDF:
 <?xpacket end="w"?>
 ```
 
-`PdfSharpCore.Pdf.Metadata.XmpMetadata`, built to be **extended rather than replaced** — PDF/UA-1 adds
+`PdfPinata.Pdf.Metadata.XmpMetadata`, built to be **extended rather than replaced** — PDF/UA-1 adds
 its own identifier, ZUGFeRD adds a whole extension schema, and a caller may want their own namespace.
 
 **The trap is synchronisation.** `Pdf/PdfDocumentInformation.cs` holds `/Title`, `/Author`, `/Subject`,
@@ -287,7 +287,7 @@ already entered — a name tree is a tree, so a node reached twice holds nothing
 the searching one carry it, and both are pinned by a test with a timeout, because a regression there
 stops a test run rather than failing it.
 
-### `PdfSharpCore.EInvoice`
+### `PdfPinata.EInvoice`
 
 A package of its own, and thin, as the proposal said it would be — the whole of it is one class and
 one enum over machinery that was already here:
@@ -365,7 +365,7 @@ Pointing veraPDF at the two demos that claim PDF/A found a real defect, and in t
 failure. The document opened perfectly in every reader; it had been shipping a PDF/A-3b claim that a
 validator rejects, in the demo whose subject is that claims are checked rather than stamped on. It
 now declares the namespace before using it and passes, and says on the page that this is what PDF/A
-requires — the rule is worth a demo of its own, and it is the same rule `PdfSharpCore.EInvoice`
+requires — the rule is worth a demo of its own, and it is the same rule `PdfPinata.EInvoice`
 exists to get right for the invoice namespace.
 
 That is the argument for the package restated as evidence: the one place in this repository where
@@ -389,7 +389,7 @@ as long as nobody validated the output.
 
 ## Tests
 
-`PdfSharpCore.Test`. Golden XMP packets — the format is stable enough that byte comparison is fair, and
+`PdfPinata.Test`. Golden XMP packets — the format is stable enough that byte comparison is fair, and
 it catches accidental namespace churn. A Factur-X round-trip fixture: build, save, reopen, pull the
 attachment back out, assert the relationship.
 
