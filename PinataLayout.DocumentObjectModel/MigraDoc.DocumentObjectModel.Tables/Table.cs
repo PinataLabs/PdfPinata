@@ -1,4 +1,4 @@
-#region MigraDoc - Creating Documents on the Fly
+#region Copyright
 // Authors:
 //   Stefan Lange (mailto:Stefan.Lange@PdfPinata.com)
 //   Klaus Potzesny (mailto:Klaus.Potzesny@PdfPinata.com)
