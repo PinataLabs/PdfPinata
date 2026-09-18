@@ -262,9 +262,7 @@ public static class LinuxSystemFontResolver
                     string path = match.Groups["dir"].Value.Trim();
                     if (path.StartsWith('~'))
                     {
-                        #pragma warning disable CA1845 // netstandard2.1 has no span overload of string.Concat, and this line is shared by all three target frameworks.
-                        path = Environment.GetEnvironmentVariable("HOME") + path.Substring(1);
-                        #pragma warning restore CA1845
+                        path = string.Concat(Environment.GetEnvironmentVariable("HOME"), path.AsSpan(1));
                     }
 
                     dirs.Add(path);
