@@ -3,19 +3,36 @@
 [![NuGet Version](https://img.shields.io/nuget/v/PdfPinata.svg)](https://www.nuget.org/packages/PdfPinata/)
 [![CI](https://github.com/PinataLabs/PdfPinata/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/PinataLabs/PdfPinata/actions/workflows/build-and-test.yml)
 [![codecov](https://codecov.io/gh/PinataLabs/PdfPinata/graph/badge.svg)](https://codecov.io/gh/PinataLabs/PdfPinata)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=PinataLabs_PdfPinata&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=PinataLabs_PdfPinata)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=PinataLabs_PdfPinata\&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=PinataLabs_PdfPinata)
 
-**PdfPinata** is a fork of [PdfSharpCore](https://github.com/ststeiger/PdfSharpCore), which is a partial port of [PdfSharp.Xamarin](https://github.com/roceh/PdfSharp.Xamarin/) for .NET Standard.
-The core `PdfPinata` package carries no imaging or font dependency of its own. Pick a backend package and register it once at startup.
+**PdfPinata is a .NET library for creating, drawing, and manipulating PDF documents.**
 
-## Backends
+It provides a PDF document model and drawing API for working with pages, text, fonts, images, shapes, and existing PDF files. It can be used directly for low-level PDF drawing, or together with **PinataLayout** for higher-level document layouts such as paragraphs, tables, headers, footers, and flowing content.
 
-| Package | Backend | License | Notes |
-| --- | --- | --- | --- |
-| `PdfPinata.Skia` | [SkiaSharp](https://github.com/mono/SkiaSharp) | MIT | Default. Native library — see below. |
-| `PdfPinata.ImageSharp` | [SixLabors.ImageSharp](https://github.com/SixLabors/ImageSharp) / [Fonts](https://github.com/SixLabors/Fonts) | Apache-2.0 | Pinned to the Apache-2.0 licensed 2.1.x / 1.0.x lines — see below. |
+Typical uses include:
 
-Register the backend before creating any font or loading any image:
+* generating invoices, reports, statements, and other PDFs
+* drawing text, images, lines, shapes, and graphics onto pages
+* loading and modifying existing PDF documents
+* embedding and subsetting fonts
+* rendering multilingual and right-to-left text
+* building reusable document layouts with PinataLayout
+* generating PDFs on Windows, Linux, macOS, and Unity
+
+PdfPinata is a fork of [PdfSharpCore](https://github.com/ststeiger/PdfSharpCore), itself based on [PdfSharp.Xamarin](https://github.com/roceh/PdfSharp.Xamarin/). The fork continues that API while separating font and image handling into interchangeable backends and extending text support.
+
+The core `PdfPinata` package has no imaging or font-rendering dependency of its own. Choose a backend package and register it once when your application starts.
+
+## Packages
+
+### Rendering backends
+
+| Package                | Backend                                                                                                       | License    | Notes                                                                           |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------- |
+| `PdfPinata.Skia`       | [SkiaSharp](https://github.com/mono/SkiaSharp)                                                                | MIT        | Recommended backend. Requires native assets for the target platform.            |
+| `PdfPinata.ImageSharp` | [SixLabors.ImageSharp](https://github.com/SixLabors/ImageSharp) / [Fonts](https://github.com/SixLabors/Fonts) | Apache-2.0 | Fully managed. Uses the final Apache-2.0 ImageSharp 2.1.x / Fonts 1.x releases. |
+
+Register the backend before creating fonts or loading images:
 
 ```csharp
 using PinataLayout.DocumentObjectModel.MigraDoc.DocumentObjectModel.Shapes;
@@ -26,19 +43,19 @@ GlobalFontSettings.FontResolver = new SkiaFontResolver();
 ImageSource.ImageSourceImpl = new SkiaImageSource();
 ```
 
-Both throw a descriptive `InvalidOperationException` if you use them without registering a backend first.
+If a font or image API is used before its backend has been registered, PdfPinata throws a descriptive `InvalidOperationException`.
 
 ### Text shaping
 
-| Package | Backend | License | Notes |
-| --- | --- | --- | --- |
-| `PdfPinata.HarfBuzz` | [HarfBuzzSharp](https://github.com/mono/SkiaSharp) | MIT | Optional. Works with either imaging backend. Native library — see below. |
+Complex text shaping is available through the optional `PdfPinata.HarfBuzz` package.
 
-Without it, a string goes to the page one character at a time, each mapped to the glyph the font's
-`cmap` gives for that code point. For Latin that is nearly right — it loses kerning and ligatures.
-For Arabic it is wrong, because the alphabet has initial, medial, final and isolated forms and
-Unicode stores the letter rather than the form, so the letters never join. Registering a shaper runs
-the font's own `GSUB` and `GPOS` tables instead:
+| Package              | Backend                                            | License | Notes                                                                  |
+| -------------------- | -------------------------------------------------- | ------- | ---------------------------------------------------------------------- |
+| `PdfPinata.HarfBuzz` | [HarfBuzzSharp](https://github.com/mono/SkiaSharp) | MIT     | Optional. Works with either rendering backend. Requires native assets. |
+
+Without HarfBuzz, PdfPinata maps Unicode characters directly to glyphs using the font's `cmap`. This is sufficient for basic Latin text, but does not provide features such as kerning, ligatures, or contextual Arabic letter forms.
+
+Registering HarfBuzz enables the font's OpenType `GSUB` and `GPOS` shaping rules:
 
 ```csharp
 using PdfPinata.Fonts;
@@ -47,12 +64,11 @@ using PdfPinata.HarfBuzz;
 GlobalFontSettings.TextShaper = new HarfBuzzTextShaper();
 ```
 
-Unlike the other seams this one is optional and reads as `null` until you set it, so nothing changes
-by leaving it alone. Setting it **will** change where lines wrap, because kerning and ligatures
-change how wide text measures — register it before you pin any layout you care about.
+Text shaping affects measured text width and therefore can change line wrapping. Register it before creating layouts whose output needs to remain stable.
 
-It is a package of its own rather than part of a backend so that shaping does not oblige you to pick
-one, and it needs the same kind of native asset reference SkiaSharp does:
+HarfBuzz is kept separate from the rendering backend so shaping can be used with either SkiaSharp or ImageSharp.
+
+Applications must reference the appropriate native assets:
 
 ```xml
 <PackageReference Include="HarfBuzzSharp.NativeAssets.Win32" Version="14.2.1.2" />
@@ -60,58 +76,80 @@ one, and it needs the same kind of native asset reference SkiaSharp does:
 <PackageReference Include="HarfBuzzSharp.NativeAssets.macOS" Version="14.2.1.2" />
 ```
 
-**Bidirectional reordering does not need the shaper and is on already.** Every `DrawString` and every
-`MeasureString` runs the Unicode Bidirectional Algorithm over the string, cuts it into runs of one
-direction and one script, and draws them in the order they are read — so `"سلام"` comes out as
-`"سلام"` and not as `"م ا ل س"`, with or without `PdfPinata.HarfBuzz`. Without the shaper the
-letters do not *join*, which needs the font's `GSUB`; with it, they do. Text made only of characters
-below `U+02B0` skips the whole thing, so plain Latin costs nothing.
+## International text
 
-**A character the chosen face has no glyph for can be drawn by one that does.** Name the families to
-fall back to, in order of preference, and a run is cut wherever coverage runs out:
+### Bidirectional text
+
+Unicode bidirectional text handling is built into PdfPinata and does **not** require HarfBuzz.
+
+`DrawString` and `MeasureString` apply the Unicode Bidirectional Algorithm, separating text into directional and script runs before measuring or drawing them.
+
+This means right-to-left text is presented in reading order even when text shaping is not installed. HarfBuzz is still required where characters need contextual shaping, such as joined Arabic forms.
+
+Strings containing only characters below `U+02B0` use a fast path and skip bidirectional processing.
+
+### Font fallback
+
+PdfPinata can use another font when the selected font does not contain a required glyph.
+
+Configure fallback families in preference order:
 
 ```csharp
-GlobalFontSettings.FontFallback = new FontFallbackList("Noto Sans Arabic", "Noto Sans Devanagari");
+GlobalFontSettings.FontFallback =
+    new FontFallbackList("Noto Sans Arabic", "Noto Sans Devanagari");
 ```
 
-Optional, like the shaper: with nothing registered, a missing glyph is `.notdef` — an empty box —
-exactly as before, and nothing is asked about coverage at all. The families are named rather than
-discovered because working out unprompted which of a machine's installed faces can draw a character
-means reading the `cmap` of every one of them; implement `IFontFallback` yourself if you want that.
+Fallback is optional. Without it, missing glyphs are rendered using the font's `.notdef` glyph.
 
-**Whole paragraphs are laid out in the order they are read**, by `XTextFormatter` (justified lines
-included) and by MigraDoc. Either can be told which way a paragraph runs instead of leaving it to be
-guessed from the first strong character:
+Font families are configured explicitly rather than automatically scanning every installed font. Applications that require different behaviour can implement `IFontFallback`.
+
+### Right-to-left paragraphs
+
+`XTextFormatter` and PinataLayout can lay out complete right-to-left paragraphs, including justified text.
+
+Direction can either be detected from the first strong character or specified explicitly:
 
 ```csharp
 formatter.TextDirection = BidiParagraphDirection.RightToLeft;
 paragraph.Format.TextDirection = BidiParagraphDirection.RightToLeft;
 ```
 
-One case is left as written: a MigraDoc line containing a **tab**. Where a tab stop belongs when the
-text runs the other way is a design question this does not answer.
-`docs/specs/text-shaping-and-bidi.md` has the rest.
+Bidirectional tab-stop layout in PinataLayout is currently left unchanged because the expected placement of mirrored tab stops is application-dependent.
 
-### Fonts
+See `docs/specs/text-shaping-and-bidi.md` for more detail.
 
-The resolver shipped with each backend discovers `.ttf`, `.otf`, `.ttc` and `.otc` in the platform's
-font directories, and every face of a collection separately. Fonts are always embedded — there is
-no setting for it and never has been, on any platform.
+## Fonts
 
-Two limits are worth knowing before you pick a font:
+The font resolver supplied by each backend discovers:
 
-* **OpenType fonts with PostScript (CFF) outlines embed whole.** TrueType fonts are subsetted down
-  to the glyphs a document actually draws; CFF outlines cannot be, so an `.otf` goes in at its full
-  size. For a CJK face that is megabytes per document.
-* **A weight or slant a family ships no file for is drawn on**, by stroking the glyphs and skewing
-  them. It looks like what a word processor does in the same situation, which is to say noticeably
-  worse than a real bold or italic. Ship the real faces where output quality matters.
+* `.ttf`
+* `.otf`
+* `.ttc`
+* `.otc`
 
-### SkiaSharp native assets
+Each face in a TrueType or OpenType collection is exposed separately.
 
-SkiaSharp is a native library, so an application using `PdfPinata.Skia` must also reference the
-native asset package for each platform it runs on. PdfPinata deliberately does not pull these in,
-so that you can choose the right Linux variant:
+Fonts used by a document are always embedded in the PDF.
+
+### Font subsetting
+
+TrueType fonts are subsetted so the PDF contains only the glyphs actually used by the document.
+
+OpenType fonts containing PostScript/CFF outlines are currently embedded in full. Large CJK CFF fonts can therefore add several megabytes to a PDF.
+
+### Synthetic bold and italic
+
+If a requested family does not contain a real bold or italic face, PdfPinata can simulate it by stroking or skewing the glyphs.
+
+This is useful as a fallback, but a genuine bold or italic font produces better output. Applications where typography matters should ship the required font faces.
+
+## SkiaSharp native assets
+
+SkiaSharp uses native libraries. Applications using `PdfPinata.Skia` must reference the native asset package for each target platform.
+
+PdfPinata intentionally does not choose these packages automatically because Linux applications may require different variants.
+
+For example:
 
 ```xml
 <PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="4.150.1" />
@@ -119,81 +157,81 @@ so that you can choose the right Linux variant:
 <PackageReference Include="SkiaSharp.NativeAssets.macOS" Version="4.150.1" />
 ```
 
-Use `SkiaSharp.NativeAssets.Linux` instead of `...NoDependencies` if `libfontconfig1` is available
-on your Linux image. The `PdfPinata.ImageSharp` backend is fully managed and needs none of this.
+Use `SkiaSharp.NativeAssets.Linux` instead of `SkiaSharp.NativeAssets.Linux.NoDependencies` when `libfontconfig1` is available in the target Linux environment.
 
-### ImageSharp 3.x and later are not supported
+`PdfPinata.ImageSharp` is fully managed and does not require native rendering assets.
 
-`PdfPinata.ImageSharp` requires `SixLabors.ImageSharp` **2.1.x**. SixLabors relicensed from
-Apache-2.0 to the [Six Labors Split License](https://github.com/SixLabors/ImageSharp/blob/main/LICENSE)
-in ImageSharp 3.0 and Fonts 2.0, so this package stays on the last Apache-2.0 versions rather than
-pushing that licence onto everyone who installs PdfPinata.
+## ImageSharp version support
 
-ImageSharp 3.0 is also not binary compatible with 2.1.x — it removed the
-`Image.Load(..., out IImageFormat)` overloads and made every encoder property `init`-only, which
-changes the setter signature. A build compiled against 2.1.x therefore fails at runtime with
-`MissingMethodException` if 3.x is loaded instead ([#348](https://github.com/ststeiger/PdfSharpCore/issues/348)).
+`PdfPinata.ImageSharp` requires `SixLabors.ImageSharp` **2.1.x**.
 
-The dependency is declared as the range `[2.1.13,3.0.0)`, so a mismatch surfaces at restore rather
-than at runtime:
+ImageSharp 3.0 moved from Apache-2.0 to the [Six Labors Split License](https://github.com/SixLabors/ImageSharp/blob/main/LICENSE). PdfPinata therefore remains on the final Apache-2.0 ImageSharp release rather than automatically introducing the newer licence into applications using PdfPinata.
 
-* If ImageSharp 3.x arrives **transitively**, restore fails with `NU1107` (version conflict).
-* If your project references ImageSharp 3.x **directly**, a direct reference wins and you get only a
-  `NU1608` warning. Treat it as an error, because the build will still crash at runtime:
+ImageSharp 3.x is also not binary compatible with ImageSharp 2.1.x. APIs used by the backend changed between the releases, so loading ImageSharp 3.x with a backend compiled against 2.1.x can result in runtime failures.
 
-  ```xml
-  <WarningsAsErrors>$(WarningsAsErrors);NU1608</WarningsAsErrors>
-  ```
+The dependency is therefore declared as:
 
-Should it get through anyway, the backend reports the mismatch as a descriptive
-`InvalidOperationException` naming the loaded version instead of a bare `MissingMethodException`.
+```text
+[2.1.13,3.0.0)
+```
 
-Only ImageSharp carries an upper bound. `SixLabors.Fonts` is referenced at `1.0.1` for the same
-licensing reason, but `ImageSharpFontResolver` uses the small part of its API that 2.x keeps
-unchanged, so resolving Fonts to 2.x is a licence decision for you to make rather than something
-that breaks at runtime.
+This normally exposes the conflict during package restore instead of at runtime.
 
-**If your application needs ImageSharp 3.x or later, use the `PdfPinata.Skia` backend instead** —
-it has no ImageSharp dependency, so both can coexist in one project.
+If ImageSharp 3.x arrives transitively, NuGet reports `NU1107`.
 
+If the application directly references ImageSharp 3.x, NuGet's direct-dependency-wins rule can instead produce `NU1608`. Applications using the ImageSharp backend should treat that warning as an error:
+
+```xml
+<WarningsAsErrors>$(WarningsAsErrors);NU1608</WarningsAsErrors>
+```
+
+If an incompatible version is loaded anyway, PdfPinata reports a descriptive `InvalidOperationException` including the detected ImageSharp version.
+
+`SixLabors.Fonts` is referenced at `1.0.1` for the same licensing reason, but the API used by `ImageSharpFontResolver` remains compatible with Fonts 2.x. Resolving a newer Fonts version is therefore a licensing choice rather than a known runtime incompatibility.
+
+**Applications that require ImageSharp 3.x or later should use `PdfPinata.Skia`.** The Skia backend has no ImageSharp dependency, so ImageSharp 3.x can be used independently in the same application.
 
 ## Target frameworks
 
-Every shipped package targets `netstandard2.1;net8.0;net10.0`.
+All PdfPinata packages target:
 
-`netstandard2.1` is kept for **Unity**. Unity's scripting runtime tops out at the .NET Standard 2.1
-API compatibility level — it cannot consume a `net8.0` or `net10.0` assembly — so dropping the
-netstandard2.1 target would drop Unity as a consumer entirely. Please don't remove it without
-checking that first.
+```text
+netstandard2.1
+net8.0
+net10.0
+```
 
-It is not free. `netstandard2.1` predates the trimming annotations in
-`System.Diagnostics.CodeAnalysis`, so `DynamicallyAccessedMembersAttribute` and
-`DynamicallyAccessedMemberTypes` are polyfilled in-repo, guarded by `#if !NET5_0_OR_GREATER` so they
-compile to nothing on the modern targets:
+`netstandard2.1` is retained primarily for **Unity**, whose scripting runtime supports the .NET Standard 2.1 API surface but cannot consume `net8.0` or `net10.0` assemblies directly.
 
-* `PdfPinata/!internal/`
-* `PinataLayout.DocumentObjectModel/CompileFixes/`
+Supporting `netstandard2.1` requires small compatibility shims for trimming annotations introduced in later .NET versions.
 
-Both copies are `internal` and there is no `InternalsVisibleTo`, which is why each assembly needs its
-own. They look like dead code on a `net10.0`-only glance; they are not. When `netstandard2.1` is
-eventually dropped, both directories can be deleted together.
+They live in:
 
+```text
+PdfPinata/!internal/
+PinataLayout.DocumentObjectModel/CompileFixes/
+```
+
+The types are `internal` and conditionally compiled only for frameworks older than .NET 5.
+
+When `netstandard2.1` support is eventually removed, these compatibility directories can be removed with it.
 
 ## Table of Contents
 
-- [Documentation](docs/index.md)
-- [Backends](#backends)
-- [Target frameworks](#target-frameworks)
-- [Example](#example)
-- [Running the demos](#running-the-demos)
-- [Contributing](#contributing)
-- [License](#license)
-
+* [Documentation](docs/index.md)
+* [Packages](#packages)
+* [International text](#international-text)
+* [Fonts](#fonts)
+* [Target frameworks](#target-frameworks)
+* [Example](#example)
+* [Running the demos](#running-the-demos)
+* [Running the tests](#running-the-tests)
+* [Contributing](#contributing)
+* [License](#license)
 
 ## Example
 
-The following code snippet creates a simple PDF-file with the text 'Hello World!'.
-The code is written for a .NET 8 console app with top level statements.
+This example creates a PDF containing `Hello World!` using the Skia backend:
 
 ```csharp
 using PdfPinata.Drawing;
@@ -220,49 +258,80 @@ document.Save("helloworld.pdf");
 
 ## Running the demos
 
-`SampleApp` builds one PDF per feature area and prints the code that drew it.
+`SampleApp` contains examples covering the main PdfPinata features.
 
 ```powershell
-dotnet run --project SampleApp -- list                       # what each demo shows
-dotnet run --project SampleApp -- run                        # all of them, into SampleApp/output
-dotnet run --project SampleApp -- run --example Fonts Text   # just these two
-dotnet run --project SampleApp -- run --no-code              # PDFs only, no source printed
+dotnet run --project SampleApp -- list
+dotnet run --project SampleApp -- run
+dotnet run --project SampleApp -- run --example Fonts Text
+dotnet run --project SampleApp -- run --no-code
 ```
 
-There are eleven demos, from `HelloWorld` through `Fonts`, `Orientation`, `Images`, `Text`,
-`Layout`, `Tables` and `PageResize` to three real layouts — `Invoice`, `Newspaper` and `Magazine`.
-Each writes `output/<Name>.pdf`, deleting what a previous run left rather than writing over it.
+The demos cover:
 
-The app carries its own fonts — Liberation Sans and Serif, and Source Code Pro for its PostScript
-outlines — so the PDFs are identical wherever they are built, including a machine with no fonts
-installed. `docs/specs/demonstration-app.md` records what it covers and what it deliberately does
-not.
+* Hello World
+* fonts
+* page orientation
+* images
+* text
+* layout
+* tables
+* page resizing
+* invoices
+* newspapers
+* magazines
 
+Each example writes:
+
+```text
+output/<Name>.pdf
+```
+
+The sample application includes its own Liberation Sans, Liberation Serif, and Source Code Pro fonts so generated PDFs remain consistent across platforms, including machines with no suitable fonts installed.
+
+See `docs/specs/demonstration-app.md` for the complete demo specification.
 
 ## Running the tests
 
-`dotnet test` needs no setup. Ghostscript, used to rasterize PDFs for the visual comparison tests,
-comes from the `Ghostscript.NativeAssets` package, so there is nothing to install on Windows.
-On Linux and macOS ImageMagick invokes the system `gs` delegate instead, so install Ghostscript
-through your package manager (`apt-get install ghostscript`, `brew install ghostscript`) if you
-want those tests to run.
+Run the test suite with:
 
-The visual comparison tests in `XTextFormatterTest` compare against reference images rendered on
-Linux. Text rasterizes differently elsewhere because a different set of system fonts is installed,
-so on other platforms they report as skipped with the reason rather than failing. CI runs on Linux
-and remains the authority on rendering; if you change text layout, check its result.
+```powershell
+dotnet test
+```
 
+No additional setup is required on Windows. Ghostscript used by the PDF visual comparison tests is supplied through `Ghostscript.NativeAssets`.
+
+On Linux and macOS, ImageMagick uses the system Ghostscript installation, so install it through the operating system package manager when running visual tests:
+
+```bash
+apt-get install ghostscript
+```
+
+or:
+
+```bash
+brew install ghostscript
+```
+
+Some `XTextFormatterTest` visual tests compare generated output with reference images rendered on Linux.
+
+Font rasterisation varies between operating systems and installed fonts, so these tests are skipped on platforms where the reference output cannot be compared reliably. CI runs them on Linux and is the reference environment for rendering changes.
 
 ## Contributing
 
-We appreciate feedback and contribution to this repo!
-
+Feedback, bug reports, pull requests, and other contributions are welcome.
 
 ## License
 
-This software is released under the MIT License. See the [LICENSE](LICENCE.md) file for more info.
+PdfPinata is released under the MIT License. See [LICENCE.md](LICENCE.md).
 
-PdfPinata relies on the following projects, that are not under the MIT license:
+PdfPinata can optionally use projects distributed under other licences.
 
-* *SixLabors.ImageSharp* and *SixLabors.Fonts*
-  * SixLabors.ImageSharp and SixLabors.Fonts, libraries which PdfPinata relies upon, are licensed under Apache 2.0 when distributed as part of PdfPinata. The SixLabors.ImageSharp license covers all other usage, see https://github.com/SixLabors/ImageSharp/blob/master/LICENSE
+### ImageSharp and SixLabors.Fonts
+
+`PdfPinata.ImageSharp` uses the Apache-2.0 licensed releases of:
+
+* SixLabors.ImageSharp
+* SixLabors.Fonts
+
+Later versions of those projects use the Six Labors Split License. See the [ImageSharp licence](https://github.com/SixLabors/ImageSharp/blob/main/LICENSE) for details.
