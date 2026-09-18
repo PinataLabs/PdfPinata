@@ -34,6 +34,16 @@
   </PropertyGroup>
 
   <!--
+    Polyfills/ holds the members the .NET analyzers ask for that netstandard2.1 lacks - the throw
+    helpers, the generic Enum overloads - as internal static extension members. They are compiled
+    into the netstandard2.1 leg alone, so the net8.0 and net10.0 legs bind the same source to the
+    runtime's own methods. Polyfills/README.md says more.
+  -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+    <Compile Include="$(MSBuildThisFileDirectory)Polyfills/*.cs" Link="Polyfills/%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <!--
     Every package versions in lockstep from one git tag: MinVer reads v1.1.0 and every package it
     packs is 1.1.0. On a commit that is not exactly a tag it computes the next patch as a
     pre-release (1.1.1-alpha.0.3), which is what release-prerelease.yml publishes. MinVer itself is

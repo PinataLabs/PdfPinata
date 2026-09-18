@@ -1,0 +1,84 @@
+// The runtime's throw helpers, for the netstandard2.1 leg only. See README.md beside this file.
+
+#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+
+namespace System.Runtime.CompilerServices
+{
+    /// <summary>Lets a parameter default to the source text of another argument.</summary>
+    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
+    internal sealed class CallerArgumentExpressionAttribute : Attribute
+    {
+        public CallerArgumentExpressionAttribute(string parameterName) => ParameterName = parameterName;
+
+        public string ParameterName { get; }
+    }
+}
+
+namespace System
+{
+    internal static class ArgumentNullExceptionPolyfill
+    {
+        extension(ArgumentNullException)
+        {
+            /// <summary>Throws an <see cref="ArgumentNullException"/> if <paramref name="argument"/> is null.</summary>
+            public static void ThrowIfNull([NotNull] object? argument,
+                [CallerArgumentExpression(nameof(argument))] string? paramName = null)
+            {
+                if (argument is null)
+                    throw new ArgumentNullException(paramName);
+            }
+        }
+    }
+
+    internal static class ArgumentOutOfRangeExceptionPolyfill
+    {
+        extension(ArgumentOutOfRangeException)
+        {
+            /// <summary>Throws if <paramref name="value"/> is negative.</summary>
+            public static void ThrowIfNegative<T>(T value,
+                [CallerArgumentExpression(nameof(value))] string? paramName = null)
+                where T : struct, IComparable<T>
+            {
+                if (value.CompareTo(default) < 0)
+                    throw new ArgumentOutOfRangeException(paramName, value,
+                        $"{paramName} ('{value}') must be a non-negative value.");
+            }
+
+            /// <summary>Throws if <paramref name="value"/> is less than <paramref name="other"/>.</summary>
+            public static void ThrowIfLessThan<T>(T value, T other,
+                [CallerArgumentExpression(nameof(value))] string? paramName = null)
+                where T : IComparable<T>
+            {
+                if (value.CompareTo(other) < 0)
+                    throw new ArgumentOutOfRangeException(paramName, value,
+                        $"{paramName} ('{value}') must be greater than or equal to '{other}'.");
+            }
+
+            /// <summary>Throws if <paramref name="value"/> is greater than <paramref name="other"/>.</summary>
+            public static void ThrowIfGreaterThan<T>(T value, T other,
+                [CallerArgumentExpression(nameof(value))] string? paramName = null)
+                where T : IComparable<T>
+            {
+                if (value.CompareTo(other) > 0)
+                    throw new ArgumentOutOfRangeException(paramName, value,
+                        $"{paramName} ('{value}') must be less than or equal to '{other}'.");
+            }
+        }
+    }
+
+    internal static class ObjectDisposedExceptionPolyfill
+    {
+        extension(ObjectDisposedException)
+        {
+            /// <summary>Throws an <see cref="ObjectDisposedException"/> if <paramref name="condition"/> is true.</summary>
+            public static void ThrowIf([DoesNotReturnIf(true)] bool condition, object instance)
+            {
+                if (condition)
+                    throw new ObjectDisposedException(instance?.GetType().FullName);
+            }
+        }
+    }
+}
