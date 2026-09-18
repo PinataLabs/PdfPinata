@@ -371,7 +371,7 @@ internal sealed class ArchiveDemo : PdfDemo
             while (rest.Length > 96)
             {
                 yield return rest.Substring(0, 96);
-                rest = "    " + rest.Substring(96);
+                rest = string.Concat("    ", rest.AsSpan(96));
             }
 
             yield return rest;

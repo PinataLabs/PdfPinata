@@ -357,9 +357,9 @@ internal sealed class SigningDemo : PdfDemo
             });
     }
 
-    IPdfSigner Signer() => new Pkcs7Signer(Certificate(), PdfSignatureFormat.Pades);
+    Pkcs7Signer Signer() => new Pkcs7Signer(Certificate(), PdfSignatureFormat.Pades);
 
-    PdfSignatureOptions OptionsFor(bool drawAppearance)
+    static PdfSignatureOptions OptionsFor(bool drawAppearance)
     {
         PdfSignatureOptions options = new PdfSignatureOptions
         {

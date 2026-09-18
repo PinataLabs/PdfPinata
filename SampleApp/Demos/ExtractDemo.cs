@@ -310,5 +310,5 @@ internal sealed class ExtractDemo : PdfDemo
         value.ToString("0.0", CultureInfo.InvariantCulture).PadLeft(6);
 
     static string Shortened(string text) =>
-        text.Length <= 44 ? text : text.Substring(0, 41) + "...";
+        text.Length <= 44 ? text : string.Concat(text.AsSpan(0, 41), "...");
 }

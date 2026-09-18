@@ -78,7 +78,7 @@ internal sealed class ImageFailuresDemo : PdfDemo
         ///   reads Transparent to decide the format, and ImageRenderer catches an
         ///   InvalidOperationException from there specifically.
         /// </summary>
-        public static IImageSource OfAnUnsupportedType() => new FailingImage(
+        public static FailingImage OfAnUnsupportedType() => new FailingImage(
             "unsupported.xyz",
             () => 64,
             () => throw new InvalidOperationException("xyz is not an image format anyone knows."),
@@ -88,13 +88,13 @@ internal sealed class ImageFailuresDemo : PdfDemo
         ///   Reports a size of nothing. Nothing throws; the image is simply of zero extent, which
         ///   is caught after the crop and resolution arithmetic has run.
         /// </summary>
-        public static IImageSource OfNoSize() => new FailingImage(
+        public static FailingImage OfNoSize() => new FailingImage(
             "empty.png", () => 0, () => false, () => { });
 
         /// <summary>
         ///   Throws while being measured. XImage.PixelWidth reads straight through to Width.
         /// </summary>
-        public static IImageSource ThatCannotBeMeasured() => new FailingImage(
+        public static FailingImage ThatCannotBeMeasured() => new FailingImage(
             "truncated.png",
             () => throw new InvalidDataException("The file ends in the middle of the header."),
             () => false,
@@ -105,7 +105,7 @@ internal sealed class ImageFailuresDemo : PdfDemo
         ///   failure is not detected until the render pass, by which time the layout has already
         ///   been decided around an image that is never going to arrive.
         /// </summary>
-        public static IImageSource ThatCannotBeWritten() => new FailingImage(
+        public static FailingImage ThatCannotBeWritten() => new FailingImage(
             "unreadable.png",
             () => 64,
             () => false,
