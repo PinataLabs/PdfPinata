@@ -616,7 +616,9 @@ public struct Unit : IFormattable, INullableValue
     /// </summary>
     public static bool operator ==(Unit l, Unit r)
     {
+        #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
         return (l.initialized == r.initialized && l.type == r.type && l.value == r.value);
+        #pragma warning restore S1244
     }
 
     /// <summary>

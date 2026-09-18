@@ -886,7 +886,9 @@ public class CLexer
         get
         {
             // ReSharper disable once CompareOfFloatsByEqualityOperator
+            #pragma warning disable S1244 // Exact on purpose: asserts the same text parses to the same value both ways.
             Debug.Assert(_tokenAsReal == double.Parse(_token.ToString(), CultureInfo.InvariantCulture));
+            #pragma warning restore S1244
             return _tokenAsReal;
         }
     }

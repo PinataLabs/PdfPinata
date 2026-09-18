@@ -87,13 +87,7 @@ public class PdfObjectStream : PdfDictionary
             ////iref.ObjectID = objectID;
             ////iref.Value = xrefStream;
             if (!xrefTable.Contains(iref.ObjectID))
-            {
                 xrefTable.Add(iref);
-            }
-            else
-            {
-                GetType();
-            }
         }
     }
 

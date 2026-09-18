@@ -45,7 +45,9 @@ public enum PdfAcroFieldFlags
     /// mouse clicks or change their appearance in response to mouse motions. This
     /// flag is useful for fields whose values are computed or imported from a database.
     /// </summary>
+    #pragma warning disable S1764 // Bit positions are written as ISO 32000-1 numbers them, counting from 1.
     ReadOnly = 1 << (1 - 1),
+    #pragma warning restore S1764
 
     /// <summary>
     /// If set, the field must have a value at the time it is exported by a submit-form action.

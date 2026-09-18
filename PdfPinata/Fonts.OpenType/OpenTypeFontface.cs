@@ -373,6 +373,13 @@ internal sealed class OpenTypeFontface
                 "'" + _fullFaceName + "' has PostScript (CFF) outlines, which PdfPinata cannot subset. "
                 + "Embed the font whole instead.");
 
+        // Every glyph-outline font has a 'maxp' table, and the new 'loca' is sized by the glyph
+        // count it holds. A face without one would otherwise fail below on a null table.
+        if (maxp == null)
+            throw new InvalidOperationException(
+                "'" + _fullFaceName + "' has no 'maxp' table, so PdfPinata cannot tell how many glyphs it has "
+                + "and cannot subset it.");
+
         // Create new font image
         OpenTypeFontface fontData = new OpenTypeFontface(this);
 
@@ -394,8 +401,7 @@ internal sealed class OpenTypeFontface
         fontData.AddTable(hhea);
         fontData.AddTable(hmtx);
         fontData.AddTable(locaNew);
-        if (maxp != null)
-            fontData.AddTable(maxp);
+        fontData.AddTable(maxp);
         //fontData.AddTable(name);
         if (prep != null)
             fontData.AddTable(prep);

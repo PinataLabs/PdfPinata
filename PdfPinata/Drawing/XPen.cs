@@ -153,7 +153,9 @@ public sealed class XPen
         {
             if (_immutable)
                 throw new ArgumentException(PSSR.CannotChangeImmutableObject("XPen"));
+            #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
             _dirty = _dirty || _width != value;
+            #pragma warning restore S1244
             _width = value;
         }
     }
@@ -201,7 +203,9 @@ public sealed class XPen
         {
             if (_immutable)
                 throw new ArgumentException(PSSR.CannotChangeImmutableObject("XPen"));
+            #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
             _dirty = _dirty || _miterLimit != value;
+            #pragma warning restore S1244
             _miterLimit = value;
         }
     }
@@ -233,7 +237,9 @@ public sealed class XPen
         {
             if (_immutable)
                 throw new ArgumentException(PSSR.CannotChangeImmutableObject("XPen"));
+            #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
             _dirty = _dirty || _dashOffset != value;
+            #pragma warning restore S1244
             _dashOffset = value;
         }
     }

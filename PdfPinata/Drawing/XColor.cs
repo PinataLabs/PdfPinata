@@ -236,11 +236,13 @@ public struct XColor
         if (obj is XColor)
         {
             XColor color = (XColor)obj;
+            #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
             if (_r == color._r && _g == color._g && _b == color._b &&
                 _c == color._c && _m == color._m && _y == color._y && _k == color._k &&
                 _gs == color._gs)
             {
                 return _a == color._a;
+                #pragma warning restore S1244
             }
         }
         return false;
@@ -263,11 +265,13 @@ public struct XColor
     public static bool operator ==(XColor left, XColor right)
     {
         // ReSharper disable CompareOfFloatsByEqualityOperator
+        #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
         if (left._r == right._r && left._g == right._g && left._b == right._b &&
             left._c == right._c && left._m == right._m && left._y == right._y && left._k == right._k &&
             left._gs == right._gs)
         {
             return left._a == right._a;
+            #pragma warning restore S1244
         }
         return false;
         // ReSharper restore CompareOfFloatsByEqualityOperator
@@ -315,12 +319,14 @@ public struct XColor
             value5 = value3;
 
         double value6 = value4 - value5;
+        #pragma warning disable S1244 // Exact on purpose: compared with a maximum or minimum taken from these same values.
         if (value1 == value4)
             value7 = (value2 - value3) / value6;
         else if (value2 == value4)
             value7 = 2f + ((value3 - value1) / value6);
         else if (value3 == value4)
             value7 = 4f + ((value1 - value2) / value6);
+        #pragma warning restore S1244
 
         value7 *= 60;
         if (value7 < 0)
@@ -354,8 +360,10 @@ public struct XColor
         if (value3 < value5)
             value5 = value3;
 
+        #pragma warning disable S1244 // Exact on purpose: compared with a maximum or minimum taken from these same values.
         if (value4 == value5)
             return value7;
+        #pragma warning restore S1244
 
         double value6 = (value4 + value5) / 2;
         if (value6 <= 0.5)

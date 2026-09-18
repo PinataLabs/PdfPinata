@@ -111,9 +111,7 @@ internal sealed class FontDescriptorCache
             {
                 XFont font = new XFont(fontFamilyName, 10, style);
                 descriptor = GetOrCreateDescriptorFor(font);
-                if (Singleton._cache.ContainsKey(fontDescriptorKey))
-                    Singleton.GetType();
-                else
+                if (!Singleton._cache.ContainsKey(fontDescriptorKey))
                     Singleton._cache.Add(fontDescriptorKey, descriptor);
             }
             return descriptor;

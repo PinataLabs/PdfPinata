@@ -155,7 +155,9 @@ public sealed class PdfRectangle : PdfItem
         if (rectangle != null)
         {
             PdfRectangle rect = rectangle;
+            #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
             return rect._x1 == _x1 && rect._y1 == _y1 && rect._x2 == _x2 && rect._y2 == _y2;
+            #pragma warning restore S1244
         }
         return false;
         // ReSharper restore CompareOfFloatsByEqualityOperator
@@ -182,8 +184,10 @@ public sealed class PdfRectangle : PdfItem
         // use: if (Object.ReferenceEquals(left, null))
         if ((object)left != null)
         {
+            #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
             if ((object)right != null)
                 return left._x1 == right._x1 && left._y1 == right._y1 && left._x2 == right._x2 && left._y2 == right._y2;
+                #pragma warning restore S1244
             return false;
         }
         return (object)right == null;

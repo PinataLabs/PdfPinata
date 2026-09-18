@@ -3163,7 +3163,9 @@ internal class ParagraphRenderer : Renderer
         if (pen.Color != currentUnderlinePen.Color)
             return true;
 
+        #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
         return pen.Width != currentUnderlinePen.Width;
+        #pragma warning restore S1244
     }
 
 
@@ -3223,7 +3225,9 @@ internal class ParagraphRenderer : Renderer
         if (pen.Color != currentStrikethroughPen.Color)
             return true;
 
+        #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
         return pen.Width != currentStrikethroughPen.Width;
+        #pragma warning restore S1244
     }
 
     RenderInfo CurrentImageRenderInfo

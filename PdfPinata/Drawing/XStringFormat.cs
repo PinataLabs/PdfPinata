@@ -251,7 +251,9 @@ public class XStringFormat
     /// Returns true if every text state property still holds its default, and the text can
     /// therefore be drawn without writing any text state operator.
     /// </summary>
+    #pragma warning disable S1244 // Exact on purpose: only the exact value takes the special case, and the general path is right for anything near it.
     internal bool IsDefaultTextState =>
         _characterSpacing == 0 && _wordSpacing == 0 && _horizontalScaling == 100 &&
         _textRise == 0 && _obliqueAngle == 0;
+    #pragma warning restore S1244
 }

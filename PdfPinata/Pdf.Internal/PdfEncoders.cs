@@ -213,7 +213,6 @@ internal static class PdfEncoders
             prefix = false;
         }
 
-        bool encrypted;
         if (securityHandler != null)
         {
             bytes = (byte[])bytes.Clone();
@@ -256,17 +255,9 @@ internal static class PdfEncoders
                             //  break;
 
                             default:
-                                // Don't escape characters less than 32 if the string is encrypted, because it is
-                                // unreadable anyway.
-                                encrypted = true;
-                                if (!encrypted)
-                                {
-                                    pdf.Append("\\0");
-                                    pdf.Append((char)(ch % 8 + '0'));
-                                    pdf.Append((char)(ch / 8 + '0'));
-                                }
-                                else
-                                    pdf.Append(ch);
+                                // Any other byte below 32 is written as it is, encrypted or not:
+                                // a literal string may hold any byte but the ones escaped here.
+                                pdf.Append(ch);
                                 break;
                         }
                     }
@@ -304,27 +295,19 @@ internal static class PdfEncoders
         }
         else
         {
-            Hex:
-            if (hex)
+            // Unicode is always written in hex, whatever was asked for.
+            // TODO non hex literals... not sure how to treat linefeeds, '(', '\' etc.
+            pdf.Append(prefix ? "<FEFF" : "<");
+            for (int idx = 0; idx < count; idx += 2)
             {
-                pdf.Append(prefix ? "<FEFF" : "<");
-                for (int idx = 0; idx < count; idx += 2)
-                {
-                    pdf.AppendFormat("{0:X2}{1:X2}", bytes[idx], bytes[idx + 1]);
-                    // The mark is part of the bytes now, so count from the text that follows it
-                    // and the lines break where they always did.
-                    int positionInText = idx - byteOrderMarkLength;
-                    if (positionInText != 0 && (positionInText % 48) == 0)
-                        pdf.Append("\n");
-                }
-                pdf.Append(">");
+                pdf.AppendFormat("{0:X2}{1:X2}", bytes[idx], bytes[idx + 1]);
+                // The mark is part of the bytes now, so count from the text that follows it
+                // and the lines break where they always did.
+                int positionInText = idx - byteOrderMarkLength;
+                if (positionInText != 0 && (positionInText % 48) == 0)
+                    pdf.Append("\n");
             }
-            else
-            {
-                // TODO non hex literals... not sure how to treat linefeeds, '(', '\' etc.
-                hex = true;
-                goto Hex;
-            }
+            pdf.Append(">");
         }
         return RawEncoding.GetBytes(pdf.ToString());
     }

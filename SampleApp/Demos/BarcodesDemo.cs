@@ -89,8 +89,10 @@ internal sealed class BarcodesDemo : PdfDemo
                 WideNarrowRatio = ratio,
             };
             gfx1.DrawBarCode(scaled, XBrushes.Black, codeText, new XPoint(left, 240));
+            #pragma warning disable S1244 // Exact on purpose: compared with the literal the value was taken from.
             gfx1.DrawString($"WideNarrowRatio {ratio:0.0}" + (ratio == 2.6 ? " (default)" : ""),
                 note, XBrushes.DimGray, new XPoint(left, 296));
+            #pragma warning restore S1244
             left += 165;
         }
 

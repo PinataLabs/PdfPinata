@@ -40,7 +40,9 @@ public enum PdfAnnotationFlags
     /// unknown annotation using an appearance stream specified by its appearancedictionary,
     /// if any.
     /// </summary>
+    #pragma warning disable S1764 // Bit positions are written as ISO 32000-1 numbers them, counting from 1.
     Invisible = 1 << (1 - 1),
+    #pragma warning restore S1764
 
     /// <summary>
     /// (PDF 1.2) If set, do not display or print the annotation or allow it to interact

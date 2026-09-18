@@ -32,6 +32,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
 using PinataLayout.DocumentObjectModel.Internals;
@@ -834,7 +835,6 @@ internal class DdlParser
         AssertSymbol(Symbol.ParenLeft);
 
         char ch = (char)0;
-        SymbolName symtype = 0;
         int count = 1;
 
         ReadCode();  // read integer
@@ -862,11 +862,7 @@ internal class DdlParser
 
         AssertSymbol(Symbol.ParenRight);
 
-        Character character;
-        if (symtype != 0)
-            character = elements.AddCharacter(symtype, count);
-        else
-            character = elements.AddCharacter(ch, count);
+        elements.AddCharacter(ch, count);
     }
 
     /// <summary>
@@ -2479,7 +2475,7 @@ internal class DdlParser
     /// <summary>
     /// If cond is evaluated to false, a DdlParserException with the specified error will be thrown.
     /// </summary>
-    private void AssertCondition(bool cond, DomMsgID error, params object[] args)
+    private void AssertCondition([DoesNotReturnIf(false)] bool cond, DomMsgID error, params object[] args)
     {
         if (!cond)
             ThrowParserException(error, args);
@@ -2562,6 +2558,7 @@ internal class DdlParser
     /// Creates an ErrorInfo based on the DomMsgID and the specified parameters.
     /// Throws a DdlParserException with that ErrorInfo.
     /// </summary>
+    [DoesNotReturn]
     private void ThrowParserException(DomMsgID errorCode, params object[] parms)
     {
         string message = DomSR.FormatMessage(errorCode, parms);
@@ -2575,6 +2572,7 @@ internal class DdlParser
     /// Determines the error message based on the DomMsgID and the parameters.
     /// Throws a DdlParserException with that error message and the Exception as the inner exception.
     /// </summary>
+    [DoesNotReturn]
     private void ThrowParserException(Exception innerException, DomMsgID errorCode, params object[] parms)
     {
         string message = DomSR.FormatMessage(errorCode, parms);

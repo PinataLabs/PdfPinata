@@ -229,11 +229,13 @@ public class PdfDocumentRenderer
         if (startPage < 1)
             throw new ArgumentOutOfRangeException("startPage");
 
+        // Formatting is what produces the page count, so a renderer nobody prepared is prepared
+        // here rather than failing on a null formatted document.
+        if (documentRenderer?.FormattedDocument == null)
+            PrepareRenderPages();
+
         if (endPage > documentRenderer.FormattedDocument.PageCount)
             throw new ArgumentOutOfRangeException("endPage");
-
-        if (documentRenderer == null)
-            PrepareDocumentRenderer();
 
         if (pdfDocument == null)
             pdfDocument = CreatePdfDocument();

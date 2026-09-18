@@ -101,9 +101,9 @@ public abstract class PdfObject : PdfItem
             _iref = _document._irefTable[objectID];
         if (_iref == null)
         {
-            // ReSharper disable once ObjectCreationAsStatement because the new object is set to this object
-            // in the constructor of PdfReference.
-            new PdfReference(this);
+            // Called for its side effect: the constructor of PdfReference sets itself as this
+            // object's reference.
+            _ = new PdfReference(this);
             Debug.Assert(_iref != null);
             _iref.ObjectID = objectID;
         }

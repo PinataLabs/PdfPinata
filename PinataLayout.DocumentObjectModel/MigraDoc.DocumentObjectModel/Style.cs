@@ -248,7 +248,7 @@ public sealed partial class Style : DocumentObject, IVisitable
           styleType = baseStyle.Type;
         }
       }
-      return styleType ?? default;
+      return styleType.Value;
     }
   }
   [DV]

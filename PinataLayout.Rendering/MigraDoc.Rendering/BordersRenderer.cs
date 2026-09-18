@@ -60,7 +60,7 @@ internal class BordersRenderer
     Border border = GetBorder(type);
     if (border != null && !border.Color.IsEmpty)
       clr = border.Color;
-    else if (!borders.Color.IsEmpty || !borders.Color.IsEmpty)
+    else if (!borders.Color.IsEmpty)
       clr = borders.Color;
 
     return ColorHelper.ToXColor(clr, borders.Document.UseCmykColor);

@@ -223,9 +223,8 @@ internal class KeyWords
   /// </summary>
   internal static string NameFromSymbol(Symbol symbol)
   {
-    object obj = enumToName[symbol];
-    Debug.Assert(obj != null);
-    string name = obj != null ? (string)obj : null;
+    string name = (string)enumToName[symbol];
+    Debug.Assert(name != null);
     return name;
   }
 

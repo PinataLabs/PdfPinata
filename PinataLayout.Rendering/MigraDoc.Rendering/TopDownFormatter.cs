@@ -33,6 +33,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.Fields;
 using PdfPinata.Drawing;
@@ -413,7 +414,7 @@ internal class TopDownFormatter
     /// </summary>
     /// <param name="prevRenderInfo">The prev render info.</param>
     /// <param name="succedingRenderInfo">The succeding render info.</param>
-    bool PreviousRendererNeedsRemoveEnding(RenderInfo prevRenderInfo, RenderInfo succedingRenderInfo)
+    bool PreviousRendererNeedsRemoveEnding([NotNullWhen(true)] RenderInfo prevRenderInfo, RenderInfo succedingRenderInfo)
     {
         if (prevRenderInfo == null)
             return false;

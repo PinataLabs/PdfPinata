@@ -224,8 +224,10 @@ public struct Color : INullableValue
             Color color = (Color)obj;
             if (isCmyk ^ color.isCmyk)
                 return false;
+            #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
             if (isCmyk)
                 return a == color.a && c == color.c && m == color.m && y == color.y && k == color.k;
+                #pragma warning restore S1244
             else
                 return argb == color.argb;
         }
@@ -247,8 +249,10 @@ public struct Color : INullableValue
     {
         if (color1.isCmyk ^ color2.isCmyk)
             return false;
+        #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
         if (color1.isCmyk)
             return color1.a == color2.a && color1.c == color2.c && color1.m == color2.m && color1.y == color2.y && color1.k == color2.k;
+            #pragma warning restore S1244
         else
             return color1.argb == color2.argb;
     }
@@ -388,8 +392,10 @@ public struct Color : INullableValue
         if (isCmyk)
         {
             string s;
+            #pragma warning disable S1244 // Exact on purpose: only the exact value takes the special case, and the general path is right for anything near it.
             if (Alpha == 100.0)
                 s = String.Format(CultureInfo.InvariantCulture, "CMYK({0:0.##},{1:0.##},{2:0.##},{3:0.##})", C, M, Y, K);
+            #pragma warning restore S1244
             else
                 s = String.Format(CultureInfo.InvariantCulture, "CMYK({0:0.##},{1:0.##},{2:0.##},{3:0.##},{4:0.##})", Alpha, C, M, Y, K);
             return s;

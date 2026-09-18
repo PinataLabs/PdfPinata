@@ -214,23 +214,16 @@ internal class AESEncryptor : RC4Encryptor
 
                     /* Step 5: calculate data block for next round */
                     blockSize = 32 + sum % 3 * 16;
-                    HashAlgorithm hashAlg = null;
-                    switch (blockSize)
+                    // The sum is never negative, so the block size is always one of these three.
+                    using HashAlgorithm hashAlg = blockSize switch
                     {
-                        case 32:
-                            hashAlg = SHA256.Create();
-                            break;
-                        case 48:
-                            hashAlg = SHA384.Create();
-                            break;
-                        case 64:
-                            hashAlg = SHA512.Create();
-                            break;
-                    }
+                        32 => SHA256.Create(),
+                        48 => SHA384.Create(),
+                        _ => SHA512.Create(),
+                    };
                     hashAlg.TransformBlock(data, 0, dataLen * 64, data, 0);
                     hashAlg.TransformFinalBlock(data, 0, 0);
                     Array.Copy(hashAlg.Hash, block, hashAlg.HashSize / 8);
-                    hashAlg.Dispose();
                 }
             }
         }

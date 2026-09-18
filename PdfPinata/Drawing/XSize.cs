@@ -61,7 +61,9 @@ public struct XSize : IFormattable
     public static bool operator ==(XSize size1, XSize size2)
     {
         // ReSharper disable CompareOfFloatsByEqualityOperator
+        #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
         return size1.Width == size2.Width && size1.Height == size2.Height;
+        #pragma warning restore S1244
         // ReSharper restore CompareOfFloatsByEqualityOperator
     }
 
@@ -80,7 +82,9 @@ public struct XSize : IFormattable
     {
         if (size1.IsEmpty)
             return size2.IsEmpty;
+        #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
         return size1.Width.Equals(size2.Width) && size1.Height.Equals(size2.Height);
+        #pragma warning restore S1244
     }
 
     /// <summary>
