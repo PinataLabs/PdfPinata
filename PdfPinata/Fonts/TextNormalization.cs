@@ -79,8 +79,7 @@ static class TextNormalization
     /// </remarks>
     internal static string NormalizeLine(string text)
     {
-        if (text == null)
-            throw new ArgumentNullException(nameof(text));
+        ArgumentNullException.ThrowIfNull(text);
 
         int first = -1;
         for (int idx = 0; idx < text.Length; idx++)

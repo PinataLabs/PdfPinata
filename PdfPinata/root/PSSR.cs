@@ -84,8 +84,7 @@ static class PSSR
 
     public static string Format(string format, params object[] args)
     {
-        if (format == null)
-            throw new ArgumentNullException(nameof(format));
+        ArgumentNullException.ThrowIfNull(format);
 
         string message;
         try

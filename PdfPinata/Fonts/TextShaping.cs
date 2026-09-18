@@ -39,10 +39,8 @@ static class TextShaping
     internal static ShapedText ShapeText(ReadOnlySpan<char> text, XFont font, OpenTypeDescriptor descriptor,
         BidiParagraphDirection direction = BidiParagraphDirection.Automatic, string language = null)
     {
-        if (font == null)
-            throw new ArgumentNullException(nameof(font));
-        if (descriptor == null)
-            throw new ArgumentNullException(nameof(descriptor));
+        ArgumentNullException.ThrowIfNull(font);
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         bool itemize = NeedsItemizing(text);
         bool fallback = FontFallbackResolution.Enabled;
@@ -183,8 +181,7 @@ static class TextShaping
         XTextDirection direction = XTextDirection.LeftToRight,
         string script = null, string language = null)
     {
-        if (font == null)
-            throw new ArgumentNullException(nameof(font));
+        ArgumentNullException.ThrowIfNull(font);
 
         var shaper = GlobalFontSettings.TextShaper;
         if (shaper == null)
@@ -199,8 +196,7 @@ static class TextShaping
 
     static OpenTypeDescriptor DescriptorFor(XFont font)
     {
-        if (font == null)
-            throw new ArgumentNullException(nameof(font));
+        ArgumentNullException.ThrowIfNull(font);
 
         return FontDescriptorCache.GetOrCreateDescriptorFor(font) as OpenTypeDescriptor
             ?? throw new InvalidOperationException("No OpenTypeDescriptor for the font to shape against.");
@@ -240,8 +236,7 @@ static class TextShaping
     internal static ShapedRun Unshaped(ReadOnlySpan<char> text, OpenTypeDescriptor descriptor,
         XTextDirection direction = XTextDirection.LeftToRight)
     {
-        if (descriptor == null)
-            throw new ArgumentNullException(nameof(descriptor));
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         if (text.Length == 0)
             return ShapedRun.Empty(descriptor.UnitsPerEm, direction);

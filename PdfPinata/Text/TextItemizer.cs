@@ -26,8 +26,7 @@ public static class TextItemizer
     public static IReadOnlyList<TextRun> Itemize(
         string text, BidiParagraphDirection direction = BidiParagraphDirection.Automatic)
     {
-        if (text == null)
-            throw new ArgumentNullException(nameof(text));
+        ArgumentNullException.ThrowIfNull(text);
 
         var runs = new List<TextRun>();
         if (text.Length == 0)
