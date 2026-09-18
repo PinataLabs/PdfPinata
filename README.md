@@ -1,10 +1,5 @@
 # PdfPinata
 
-[![NuGet Version](https://img.shields.io/nuget/v/PdfPinata.svg)](https://www.nuget.org/packages/PdfPinata/)
-[![CI](https://github.com/PinataLabs/PdfPinata/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/PinataLabs/PdfPinata/actions/workflows/build-and-test.yml)
-[![codecov](https://codecov.io/gh/PinataLabs/PdfPinata/graph/badge.svg)](https://codecov.io/gh/PinataLabs/PdfPinata)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=PinataLabs_PdfPinata\&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=PinataLabs_PdfPinata)
-
 **PdfPinata is a .NET library for creating, drawing, and manipulating PDF documents.**
 
 It provides a PDF document model and drawing API for working with pages, text, fonts, images, shapes, and existing PDF files. It can be used directly for low-level PDF drawing, or together with **PinataLayout** for higher-level document layouts such as paragraphs, tables, headers, footers, and flowing content.
@@ -22,6 +17,14 @@ Typical uses include:
 PdfPinata is a fork of [PdfSharpCore](https://github.com/ststeiger/PdfSharpCore), itself based on [PdfSharp.Xamarin](https://github.com/roceh/PdfSharp.Xamarin/). The fork continues that API while separating font and image handling into interchangeable backends and extending text support.
 
 The core `PdfPinata` package has no imaging or font-rendering dependency of its own. Choose a backend package and register it once when your application starts.
+
+## Badges
+
+[![NuGet Version](https://img.shields.io/nuget/v/PdfPinata.svg)](https://www.nuget.org/packages/PdfPinata/)
+[![CI](https://github.com/PinataLabs/PdfPinata/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/PinataLabs/PdfPinata/actions/workflows/build-and-test.yml)
+[![codecov](https://codecov.io/gh/PinataLabs/PdfPinata/graph/badge.svg)](https://codecov.io/gh/PinataLabs/PdfPinata)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=PinataLabs_PdfPinata\&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=PinataLabs_PdfPinata)
+
 
 ## Packages
 
