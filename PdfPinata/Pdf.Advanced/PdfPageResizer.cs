@@ -404,6 +404,11 @@ static class PdfPageResizer
     /// Reads the name of the form and the transform in front of it out of a content stream,
     /// where the stream is exactly the "q ... cm /Name Do Q" this writes and nothing else.
     /// </summary>
+    /// <summary>
+    /// The white space a wrapper's tokens are separated by.
+    /// </summary>
+    static readonly char[] WrapperSeparators = { ' ', '\t', '\r', '\n', '\f', '\0' };
+
     static bool TryReadWrapperName(byte[] content, out string name, out XMatrix matrix)
     {
         name = null;
@@ -412,7 +417,7 @@ static class PdfPageResizer
             return false;
 
         string[] tokens = PdfEncoders.RawEncoding.GetString(content, 0, content.Length)
-            .Split(new[] { ' ', '\t', '\r', '\n', '\f', '\0' }, StringSplitOptions.RemoveEmptyEntries);
+            .Split(WrapperSeparators, StringSplitOptions.RemoveEmptyEntries);
 
         // q, six numbers, cm, the name, Do, Q. Anything longer or shorter is somebody else's.
         if (tokens.Length != 11)

@@ -177,7 +177,7 @@ public static class PdfReader
             string header = encoding.GetString(bytes, 0, bytes.Length);
             if (header.Length == 0)
                 return 0;
-            if (header[0] == '%' || header.IndexOf("%PDF", StringComparison.Ordinal) >= 0)
+            if (header[0] == '%' || header.Contains("%PDF", StringComparison.Ordinal))
             {
                 int ich = header.IndexOf("PDF-", StringComparison.Ordinal);
                 if (ich > 0 && ich + 6 < header.Length && header[ich + 5] == '.')

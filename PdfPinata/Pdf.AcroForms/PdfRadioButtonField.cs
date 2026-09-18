@@ -74,7 +74,7 @@ public sealed class PdfRadioButtonField : PdfButtonField
         {
             PdfArray options = Elements.GetArray(Keys.Opt);
             if (options == null)
-                return new string[0];
+                return Array.Empty<string>();
 
             int count = options.Elements.Count;
             string[] text = new string[count];

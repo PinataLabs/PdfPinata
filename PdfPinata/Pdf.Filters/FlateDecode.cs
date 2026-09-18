@@ -51,6 +51,7 @@ public class FlateDecode : Filter
     /// <summary>
     /// Encodes the specified data.
     /// </summary>
+    #pragma warning disable CA1822 // Public API: making it static would break every caller that reaches it through an instance.
     public byte[] Encode(byte[] data, PdfFlateEncodeMode mode)
     {
         MemoryStream ms = new MemoryStream();
@@ -73,6 +74,7 @@ public class FlateDecode : Filter
         zip.Finish();
         return ms.ToArray();
     }
+    #pragma warning restore CA1822
 
     /// <summary>
     /// Decodes the specified data.

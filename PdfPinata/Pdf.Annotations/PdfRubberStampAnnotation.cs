@@ -69,7 +69,7 @@ public sealed class PdfRubberStampAnnotation : PdfAnnotation
         get => IconFromName(Elements.GetName(Keys.Name), PdfRubberStampAnnotationIcon.NoIcon);
         set
         {
-            if (Enum.IsDefined(typeof(PdfRubberStampAnnotationIcon), value) &&
+            if (Enum.IsDefined(value) &&
                 PdfRubberStampAnnotationIcon.NoIcon != value)
             {
                 Elements.SetName(Keys.Name, "/" + value.ToString());

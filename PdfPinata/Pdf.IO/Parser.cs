@@ -464,7 +464,7 @@ internal sealed class Parser
     // HACK: Solve problem more general.
     private int GetStreamLength(PdfDictionary dict)
     {
-        if (!dict.Elements.Any())
+        if (dict.Elements.Count == 0)
             return 0;
 
         if (dict.Elements["/F"] != null)
@@ -1370,7 +1370,7 @@ internal sealed class Parser
     /// <summary>
     /// Reads cross reference stream(s).
     /// </summary>
-    private PdfTrailer ReadXRefStream(PdfCrossReferenceTable xrefTable)
+    private PdfCrossReferenceStream ReadXRefStream(PdfCrossReferenceTable xrefTable)
     {
         // Read cross reference stream.
         //Debug.Assert(_lexer.Symbol == Symbol.Integer);

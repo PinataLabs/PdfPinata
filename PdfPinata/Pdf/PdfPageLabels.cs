@@ -106,7 +106,7 @@ public sealed class PdfPageLabels
     public int[] GetRangeStarts()
     {
         PdfNumberTreeNode tree = Tree(false);
-        return tree == null ? new int[0] : tree.GetKeys();
+        return tree == null ? Array.Empty<int>() : tree.GetKeys();
     }
 
     /// <summary>

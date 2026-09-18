@@ -117,6 +117,7 @@ public sealed class PdfNameObject : PdfObject
     /// <see cref="NullReferenceException"/>. <see cref="PdfName"/>, which this is the indirect
     /// twin of, has always guarded it.
     /// </remarks>
+    #pragma warning disable S3875 // Public API: callers compare a name with a string through this operator, and removing it would break them.
     public static bool operator ==(PdfNameObject name, string str)
     {
         if (ReferenceEquals(name, null))
@@ -126,6 +127,7 @@ public sealed class PdfNameObject : PdfObject
         // look like a null object: only the reference check above answers that question.
         return str != null && name._value == str;
     }
+    #pragma warning restore S3875
 
     /// <summary>
     /// Determines whether a name is not equal to a string. A null name differs from every string

@@ -97,6 +97,7 @@ public sealed class PdfName : PdfItem
     /// <summary>
     /// Determines whether the specified name and string are equal.
     /// </summary>
+    #pragma warning disable S3875 // Public API: callers compare a name with a string through this operator, and removing it would break them.
     public static bool operator ==(PdfName name, string str)
     {
         if (ReferenceEquals(name, null))
@@ -104,6 +105,7 @@ public sealed class PdfName : PdfItem
 
         return name._value == str;
     }
+    #pragma warning restore S3875
 
     /// <summary>
     /// Determines whether the specified name and string are not equal.

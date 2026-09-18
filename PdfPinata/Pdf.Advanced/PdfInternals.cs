@@ -80,7 +80,7 @@ public class PdfInternals // TODO: PdfDocumentInternals... PdfPageInternals etc.
     /// </summary>
     public Guid SecondDocumentGuid => GuidFromString(_document._trailer.GetDocumentID(0));
 
-    Guid GuidFromString(string id)
+    static Guid GuidFromString(string id)
     {
         if (id == null || id.Length != 16)
             return Guid.Empty;
@@ -282,6 +282,7 @@ public class PdfInternals // TODO: PdfDocumentInternals... PdfPageInternals etc.
     /// Writes a PdfItem into the specified stream.
     /// </summary>
     // This function exists to keep PdfWriter and PdfItem.WriteObject internal.
+    #pragma warning disable CA1822 // Public API: making it static would break every caller that reaches it through an instance.
     public void WriteObject(Stream stream, PdfItem item)
     {
         // Never write an encrypted object
@@ -291,6 +292,7 @@ public class PdfInternals // TODO: PdfDocumentInternals... PdfPageInternals etc.
         };
         item.WriteObject(writer);
     }
+    #pragma warning restore CA1822
 
     /// <summary>
     /// The name of the custom value key.

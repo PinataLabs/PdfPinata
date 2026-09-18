@@ -74,7 +74,9 @@ public enum PdfStringEncoding
     /// <summary>
     /// Not yet used by PdfPinata.
     /// </summary>
+    #pragma warning disable CA1069 // Public API: callers have 5 compiled in for MacRomanEncoding as well, so neither value can move.
     MacExpertEncoding = PdfStringFlags.MacExpertEncoding,
+    #pragma warning restore CA1069
 
     /// <summary>
     /// The characters of the string are Unicode characters.
@@ -203,7 +205,7 @@ public sealed class PdfString : PdfItem
     /// <summary>
     /// Gets the string value as the bytes encryption works on.
     /// </summary>
-    internal byte[] EncryptionValue => _value == null ? new byte[0] : GetBytesFromEncoding();
+    internal byte[] EncryptionValue => _value == null ? Array.Empty<byte>() : GetBytesFromEncoding();
 
     /// <summary>
     /// Builds the string those bytes spell, once encryption has run over them.

@@ -79,7 +79,7 @@ internal class ContentWriter
     /// <summary>
     /// Writes the specified value to the PDF stream.
     /// </summary>
-    public void Write(bool value)
+    public static void Write(bool value)
     {
         //WriteSeparator(CharCat.Character);
         //WriteRaw(value ? bool.TrueString : bool.FalseString);
@@ -189,7 +189,7 @@ internal class ContentWriter
             WriteRaw('\n');
     }
 
-    CharCat GetCategory(char ch)
+    static CharCat GetCategory(char ch)
     {
         //if (Lexer.IsDelimiter(ch))
         //  return CharCat.Delimiter;

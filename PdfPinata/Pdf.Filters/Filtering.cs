@@ -44,7 +44,7 @@ public static class Filtering
     {
         ArgumentNullException.ThrowIfNull(filterName);
 
-        if (filterName.StartsWith("/"))
+        if (filterName.StartsWith('/'))
             filterName = filterName.Substring(1);
 
         // Some tools use abbreviations

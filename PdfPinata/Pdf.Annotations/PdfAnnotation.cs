@@ -452,7 +452,7 @@ public abstract class PdfAnnotation : PdfDictionary
         string member = name[0] == '/' ? name.Substring(1) : name;
 
         return Enum.IsDefined(typeof(T), member)
-            ? (T)Enum.Parse(typeof(T), member, false)
+            ? Enum.Parse<T>(member, false)
             : fallback;
     }
 

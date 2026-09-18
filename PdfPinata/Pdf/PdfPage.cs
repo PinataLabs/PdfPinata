@@ -184,7 +184,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         get => _pageSize;
         set
         {
-            if (!Enum.IsDefined(typeof(PageSize), value))
+            if (!Enum.IsDefined(value))
                 throw new InvalidEnumArgumentException(nameof(value), (int)value, typeof(PageSize));
 
             RefuseToResizeByReboxing(nameof(Size));
@@ -298,7 +298,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     public void Resize(PageSize size, PageOrientation orientation = PageOrientation.Portrait,
         PageResizeOptions options = null)
     {
-        if (!Enum.IsDefined(typeof(PageSize), size))
+        if (!Enum.IsDefined(size))
             throw new InvalidEnumArgumentException(nameof(size), (int)size, typeof(PageSize));
 
         PdfPageResizer.Resize(this, SizeInPoints(size, orientation), size, options);
@@ -329,7 +329,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         // Anything other than landscape would otherwise be taken for portrait, so a value that
         // is not an orientation at all would quietly produce a portrait page rather than say
         // that it was not understood.
-        if (!Enum.IsDefined(typeof(PageOrientation), orientation))
+        if (!Enum.IsDefined(orientation))
         {
             throw new InvalidEnumArgumentException(nameof(orientation), (int)orientation,
                 typeof(PageOrientation));

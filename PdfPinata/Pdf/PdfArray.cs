@@ -138,7 +138,7 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
         int count = Elements.Count;
         for (int idx = 0; idx < count; idx++)
             pdf.Append(Elements[idx] + " ");
-        pdf.Append("]");
+        pdf.Append(']');
         return pdf.ToString();
     }
 
@@ -527,7 +527,9 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
         /// <summary>
         /// Returns false.
         /// </summary>
+        #pragma warning disable CA1822 // Public API: making it static would break every caller that reads it through an instance.
         public bool IsFixedSize => false;
+        #pragma warning restore CA1822
 
         #endregion
 
@@ -536,7 +538,9 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
         /// <summary>
         /// Returns false.
         /// </summary>
+        #pragma warning disable CA1822 // Public API: making it static would break every caller that reads it through an instance.
         public bool IsSynchronized => false;
+        #pragma warning restore CA1822
 
         /// <summary>
         /// Gets the number of elements in the array.
@@ -554,7 +558,9 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
         /// <summary>
         /// The current implementation return null.
         /// </summary>
+        #pragma warning disable CA1822 // Public API: making it static would break every caller that reads it through an instance.
         public object SyncRoot => null;
+        #pragma warning restore CA1822
 
         #endregion
 

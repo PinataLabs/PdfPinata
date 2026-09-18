@@ -820,7 +820,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     /// <summary>
     /// Recursively converts the page tree into a flat array.
     /// </summary>
-    PdfDictionary[] GetKids(PdfReference iref, PdfPage.InheritedValues values, PdfDictionary parent)
+    static PdfDictionary[] GetKids(PdfReference iref, PdfPage.InheritedValues values, PdfDictionary parent)
     {
         // TODO: inherit inheritable keys...
         PdfDictionary kid = (PdfDictionary)iref.Value;

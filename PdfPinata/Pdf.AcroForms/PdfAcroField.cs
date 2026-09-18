@@ -102,7 +102,7 @@ public abstract class PdfAcroField : PdfDictionary
         }
         set
         {
-            if (value != null && value.IndexOf('.') != -1)
+            if (value != null && value.Contains('.'))
             {
                 throw new ArgumentException(
                     "A field's partial name cannot contain a period: '" + value + "'. A period "
@@ -662,7 +662,7 @@ public abstract class PdfAcroField : PdfDictionary
         /// If the actual cannot be guessed by PDFsharp the function returns an instance
         /// of PdfGenericField.
         /// </summary>
-        PdfAcroField CreateAcroField(PdfDictionary dict)
+        static PdfAcroField CreateAcroField(PdfDictionary dict)
         {
             string ft = dict.Elements.GetName(Keys.FT);
             PdfAcroFieldFlags flags = (PdfAcroFieldFlags)dict.Elements.GetInteger(Keys.Ff);
