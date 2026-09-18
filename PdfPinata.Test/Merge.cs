@@ -30,6 +30,15 @@ public class Merge
 
         var outFilePath = CreateOutFilePath("merge.pdf");
         outputDocument.Save(outFilePath);
+
+        using var merged = Pdf.IO.PdfReader.Open(outFilePath, PdfDocumentOpenMode.Import);
+        Assert.Equal(PageCountOf(pdf1Path) + PageCountOf(pdf2Path), merged.PageCount);
+    }
+
+    private static int PageCountOf(string pdfPath)
+    {
+        using var document = Pdf.IO.PdfReader.Open(pdfPath, PdfDocumentOpenMode.Import);
+        return document.PageCount;
     }
 
     [Fact]

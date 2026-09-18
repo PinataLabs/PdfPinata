@@ -24,7 +24,9 @@ public class MigradocTurkishTest
         {
             Document doc = new Document();
             PdfDocumentRenderer printer = new PdfDocumentRenderer() { Document = doc };
-            printer.RenderDocument();
+            var exception = Record.Exception(() => printer.RenderDocument());
+
+            Assert.Null(exception);
         }
         finally
         {

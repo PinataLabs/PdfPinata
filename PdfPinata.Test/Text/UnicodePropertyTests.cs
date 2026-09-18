@@ -99,12 +99,18 @@ public class UnicodePropertyTests
     {
         // The tables are a complete partition of the code space, so there is no code point either
         // lookup can fail to answer for - and a binary search that walked off the end would be
-        // found here rather than in the middle of laying out a page.
+        // found here rather than in the middle of laying out a page. What each answers has to be
+        // one of the values its type names, too, or a table has a hole where a class should be.
+        int undefined = 0;
         for (int codePoint = 0; codePoint <= 0x10FFFF; codePoint++)
         {
-            UnicodeProperties.BidiClassOf(codePoint);
-            UnicodeProperties.ScriptOf(codePoint);
+            if (!Enum.IsDefined(UnicodeProperties.BidiClassOf(codePoint)))
+                undefined++;
+            if (!Enum.IsDefined(UnicodeProperties.ScriptOf(codePoint)))
+                undefined++;
         }
+
+        undefined.Should().Be(0);
     }
 
     [Theory]
