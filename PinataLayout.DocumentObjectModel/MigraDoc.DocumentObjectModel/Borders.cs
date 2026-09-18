@@ -391,12 +391,15 @@ public partial class Borders : DocumentObject, IEnumerable
         if (style != null && (refBorders == null || (Style != refBorders.Style)))
             serializer.WriteSimpleAttribute("Style", Style);
 
+        #pragma warning disable S1244 // Exact on purpose: a value is written unless it is exactly the one it inherits.
         if (!width.IsNull && (refBorders == null || (width.Value != refBorders.width.Value)))
             serializer.WriteSimpleAttribute("Width", Width);
+        #pragma warning restore S1244
 
         if (!color.IsNull && (refBorders == null || ((Color.Argb != refBorders.Color.Argb))))
             serializer.WriteSimpleAttribute("Color", Color);
 
+        #pragma warning disable S1244 // Exact on purpose: a value is written unless it is exactly the one it inherits.
         if (!distanceFromTop.IsNull && (refBorders == null || (DistanceFromTop.Point != refBorders.DistanceFromTop.Point)))
             serializer.WriteSimpleAttribute("DistanceFromTop", DistanceFromTop);
 
@@ -408,6 +411,7 @@ public partial class Borders : DocumentObject, IEnumerable
 
         if (!distanceFromRight.IsNull && (refBorders == null || (DistanceFromRight.Point != refBorders.DistanceFromRight.Point)))
             serializer.WriteSimpleAttribute("DistanceFromRight", DistanceFromRight);
+        #pragma warning restore S1244
 
         if (!IsNull("Top"))
             top.Serialize(serializer, "Top", null);

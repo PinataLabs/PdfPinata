@@ -92,7 +92,9 @@ public struct XMatrix : IFormattable
             // ReSharper disable CompareOfFloatsByEqualityOperator
             if (_type == XMatrixTypes.Identity)
                 return true;
+            #pragma warning disable S1244 // Exact on purpose: only the exact value takes the special case, and the general path is right for anything near it.
             if (_m11 == 1.0 && _m12 == 0 && _m21 == 0 && _m22 == 1.0 && _offsetX == 0 && _offsetY == 0)
+            #pragma warning restore S1244
             {
                 _type = XMatrixTypes.Identity;
                 return true;
@@ -922,8 +924,10 @@ public struct XMatrix : IFormattable
         if (matrix1.IsDistinguishedIdentity || matrix2.IsDistinguishedIdentity)
             return (matrix1.IsIdentity == matrix2.IsIdentity);
 
+        #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
         return matrix1.M11 == matrix2.M11 && matrix1.M12 == matrix2.M12 && matrix1.M21 == matrix2.M21 && matrix1.M22 == matrix2.M22 &&
                matrix1.OffsetX == matrix2.OffsetX && matrix1.OffsetY == matrix2.OffsetY;
+        #pragma warning restore S1244
         // ReSharper restore CompareOfFloatsByEqualityOperator
     }
 
@@ -943,9 +947,11 @@ public struct XMatrix : IFormattable
         if (matrix1.IsDistinguishedIdentity || matrix2.IsDistinguishedIdentity)
             return matrix1.IsIdentity == matrix2.IsIdentity;
 
+        #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
         return matrix1.M11.Equals(matrix2.M11) && matrix1.M12.Equals(matrix2.M12) &&
                matrix1.M21.Equals(matrix2.M21) && matrix1.M22.Equals(matrix2.M22) &&
                matrix1.OffsetX.Equals(matrix2.OffsetX) && matrix1.OffsetY.Equals(matrix2.OffsetY);
+        #pragma warning restore S1244
     }
 
     /// <summary>
@@ -1170,8 +1176,10 @@ public struct XMatrix : IFormattable
         }
         else
         {
+            #pragma warning disable S1244 // Exact on purpose: only the exact value takes the special case, and the general path is right for anything near it.
             if (_m11 != 1 || _m22 != 1)
                 _type = XMatrixTypes.Scaling;
+            #pragma warning restore S1244
 
             if (_offsetX != 0 || _offsetY != 0)
                 _type |= XMatrixTypes.Translation;

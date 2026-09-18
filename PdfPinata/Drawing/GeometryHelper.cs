@@ -66,8 +66,10 @@ static class GeometryHelper
 
         if (α == 0 && β < 0)
             α = 360;
+        #pragma warning disable S1244 // Exact on purpose: only the exact value takes the special case, and the general path is right for anything near it.
         else if (α == 360 && β > 0)
             α = 0;
+        #pragma warning restore S1244
 
         // Is it possible that the arc is small starts and ends in same quadrant?
         bool smallAngle = Math.Abs(β) <= 90;
@@ -132,7 +134,9 @@ static class GeometryHelper
             φ = φ - Math.Floor(φ / 360) * 360;
 
         int quadrant = (int)(φ / 90);
+        #pragma warning disable S1244 // Exact on purpose: only the exact value takes the special case, and the general path is right for anything near it.
         if (quadrant * 90 == φ)
+        #pragma warning restore S1244
         {
             if ((start && !clockwise) || (!start && clockwise))
                 quadrant = quadrant == 0 ? 3 : quadrant - 1;
@@ -179,7 +183,9 @@ static class GeometryHelper
         }
 
         double cosα, cosβ, sinα, sinβ;
+        #pragma warning disable S1244 // Exact on purpose: only the exact value takes the special case, and the general path is right for anything near it.
         if (width == height)
+        #pragma warning restore S1244
         {
             // Circular arc needs no correction.
             α = α * Calc.Deg2Rad;

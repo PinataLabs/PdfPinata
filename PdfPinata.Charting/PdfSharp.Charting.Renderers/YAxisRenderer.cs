@@ -468,14 +468,18 @@ internal abstract class YAxisRenderer : AxisRenderer
   /// </summary>
   protected void FineTuneYAxis(AxisRendererInfo rendererInfo, double yMin, double yMax)
   {
+    #pragma warning disable S1244 // Exact on purpose: compared with a sentinel the value is set to, never with the result of arithmetic.
     if (yMin == double.MaxValue && yMax == double.MinValue)
+    #pragma warning restore S1244
     {
       // No series data given.
       yMin = 0.0f;
       yMax = 0.9f;
     }
 
+    #pragma warning disable S1244 // Exact on purpose: the two are equal only when every value is the same one, and then the axis needs widening.
     if (yMin == yMax)
+    #pragma warning restore S1244
     {
       if (yMin == 0)
         yMax = 0.9f;

@@ -480,7 +480,9 @@ public struct XUnit : IFormattable
     public static bool operator ==(XUnit value1, XUnit value2)
     {
         // ReSharper disable CompareOfFloatsByEqualityOperator
+        #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
         return value1._type == value2._type && value1._value == value2._value;
+        #pragma warning restore S1244
         // ReSharper restore CompareOfFloatsByEqualityOperator
     }
 

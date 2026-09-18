@@ -85,7 +85,9 @@ public readonly struct XInterval : IEquatable<XInterval>
     /// <summary>Determines whether the given interval has the same start and end as this one.</summary>
     public bool Equals(XInterval other)
     {
+        #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
         return Start.Equals(other.Start) && End.Equals(other.End);
+        #pragma warning restore S1244
     }
 
     /// <summary>Determines whether the given object is an <see cref="XInterval"/> equal to this one.</summary>

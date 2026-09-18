@@ -433,12 +433,14 @@ public sealed class XGraphics : IDisposable
     public XPageDirection PageDirection
     {
         get => _pageDirection;
+        #pragma warning disable S4275 // The setter only refuses a value; the one it accepts is the one there already.
         set
         {
             // Is there really anybody who needes the concept of XPageDirection.Upwards?
             if (value != XPageDirection.Downwards)
                 throw new NotImplementedException("PageDirection must be XPageDirection.Downwards in current implementation.");
         }
+        #pragma warning restore S4275
     }
     readonly XPageDirection _pageDirection;
 
@@ -448,12 +450,14 @@ public sealed class XGraphics : IDisposable
     public XPoint PageOrigin
     {
         get => _pageOrigin;
+        #pragma warning disable S4275 // The setter only refuses a value; the one it accepts is the one there already.
         set
         {
             // Is there really anybody who needes to set the page origin?
             if (value != new XPoint())
                 throw new NotImplementedException("PageOrigin cannot be modified in current implementation.");
         }
+        #pragma warning restore S4275
     }
     XPoint _pageOrigin;
 

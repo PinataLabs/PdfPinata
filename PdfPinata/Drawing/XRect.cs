@@ -120,7 +120,9 @@ public struct XRect : IFormattable
     public static bool operator ==(XRect rect1, XRect rect2)
     {
         // ReSharper disable CompareOfFloatsByEqualityOperator
+        #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
         return rect1.X == rect2.X && rect1.Y == rect2.Y && rect1.Width == rect2.Width && rect1.Height == rect2.Height;
+        #pragma warning restore S1244
         // ReSharper restore CompareOfFloatsByEqualityOperator
     }
 
@@ -139,7 +141,9 @@ public struct XRect : IFormattable
     {
         if (rect1.IsEmpty)
             return rect2.IsEmpty;
+        #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
         return rect1.X.Equals(rect2.X) && rect1.Y.Equals(rect2.Y) && rect1.Width.Equals(rect2.Width) && rect1.Height.Equals(rect2.Height);
+        #pragma warning restore S1244
     }
 
     /// <summary>
@@ -477,16 +481,20 @@ public struct XRect : IFormattable
         {
             double left = Math.Min(Left, rect.Left);
             double top = Math.Min(Top, rect.Top);
+            #pragma warning disable S1244 // Exact on purpose: compared with a sentinel the value is set to, never with the result of arithmetic.
             if (rect.Width == Double.PositiveInfinity || Width == Double.PositiveInfinity)
                 _width = Double.PositiveInfinity;
+            #pragma warning restore S1244
             else
             {
                 double right = Math.Max(Right, rect.Right);
                 _width = Math.Max(right - left, 0.0);
             }
 
+            #pragma warning disable S1244 // Exact on purpose: compared with a sentinel the value is set to, never with the result of arithmetic.
             if (rect.Height == Double.PositiveInfinity || _height == Double.PositiveInfinity)
                 _height = Double.PositiveInfinity;
+            #pragma warning restore S1244
             else
             {
                 double bottom = Math.Max(Bottom, rect.Bottom);

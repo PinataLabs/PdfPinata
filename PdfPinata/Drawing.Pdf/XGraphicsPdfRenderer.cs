@@ -461,7 +461,9 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
             // MeasureString measured. With no shaper registered this is the same cmap lookup per
             // character it has always been - except that a right-to-left run comes back in the
             // order it is drawn rather than the order it was written.
+            #pragma warning disable S2259 // shaped is set exactly when font.Unicode is true, which is the branch this is in.
             if (shaped.IsAllOneFont(font))
+            #pragma warning restore S2259
             {
                 // The glyphs the run really drew, rather than the ones the characters would have
                 // been looked up as. This is what decides both which glyphs are embedded and what
@@ -501,7 +503,9 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         // their tangents, so the two are one number from here on.
         double skew = SkewOf(italicSimulation, format.ObliqueAngle);
 
+        #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
         if (skew == _gfxState.RealizedTextSkew)
+        #pragma warning restore S1244
         {
             // The text matrix already leans the right amount, so moving to the next position is
             // all that is needed - and Td is shorter than Tm.
@@ -1036,8 +1040,10 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
 
         if (α == 0 && β < 0)
             α = 360;
+        #pragma warning disable S1244 // Exact on purpose: only the exact value takes the special case, and the general path is right for anything near it.
         else if (α == 360 && β > 0)
             α = 0;
+        #pragma warning restore S1244
 
         // Is it possible that the arc is small starts and ends in same quadrant?
         bool smallAngle = Math.Abs(β) <= 90;
@@ -1102,7 +1108,9 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
             φ = φ - Math.Floor(φ / 360) * 360;
 
         int quadrant = (int)(φ / 90);
+        #pragma warning disable S1244 // Exact on purpose: only the exact value takes the special case, and the general path is right for anything near it.
         if (quadrant * 90 == φ)
+        #pragma warning restore S1244
         {
             if ((start && !clockwise) || (!start && clockwise))
                 quadrant = quadrant == 0 ? 3 : quadrant - 1;
@@ -1149,7 +1157,9 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         }
 
         double sinα, sinβ;
+        #pragma warning disable S1244 // Exact on purpose: only the exact value takes the special case, and the general path is right for anything near it.
         if (width == height)
+        #pragma warning restore S1244
         {
             // Circular arc needs no correction.
             α = α * Calc.Deg2Rad;
@@ -2113,7 +2123,9 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
                 mode = wantedMode;
             }
 
+            #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
             if (wantedCharSpace != charSpace)
+            #pragma warning restore S1244
             {
                 parts.AppendFormat(CultureInfo.InvariantCulture,
                     "{0:" + numberFormat + "} Tc\n", wantedCharSpace);
@@ -2136,7 +2148,9 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         if (mode != stateMode)
             parts.AppendFormat(CultureInfo.InvariantCulture, "{0} Tr\n", stateMode);
 
+        #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
         if (charSpace != stateCharSpace)
+        #pragma warning restore S1244
         {
             parts.AppendFormat(CultureInfo.InvariantCulture,
                 "{0:" + numberFormat + "} Tc\n", stateCharSpace);
@@ -2391,10 +2405,14 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         {
             double rise = Rise(shaped[start], run, fontSize, baseline);
             int end = start + 1;
+            #pragma warning disable S1244 // Exact on purpose: groups glyphs whose rise came out of the same arithmetic.
             while (end < to && Rise(shaped[end], run, fontSize, baseline) == rise)
                 end++;
+            #pragma warning restore S1244
 
+            #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
             if (rise != realized)
+            #pragma warning restore S1244
             {
                 parts.AppendFormat(CultureInfo.InvariantCulture,
                     "{0:" + Config.SignificantFigures4 + "} Ts\n", rise);
@@ -2406,9 +2424,11 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
             start = end;
         }
 
+        #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
         if (realized != baseline)
             parts.AppendFormat(CultureInfo.InvariantCulture,
                 "{0:" + Config.SignificantFigures4 + "} Ts", baseline);
+        #pragma warning restore S1244
 
         return parts.ToString().TrimEnd('\n');
     }
@@ -2475,7 +2495,9 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
 
         Show(to);
 
+        #pragma warning disable S2583 // adjusted is set by the local function Move, which the analysis does not follow.
         if (!adjusted)
+        #pragma warning restore S2583
         {
             // Nothing needed moving after all, so the array would only be a longer way of saying
             // the same thing.

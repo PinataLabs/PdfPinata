@@ -119,7 +119,9 @@ internal sealed class PdfGraphicsState : ICloneable
 
         color = ColorSpaceHelper.EnsureColorMode(colorMode, color);
 
+        #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
         if (_realizedLineWith != pen._width)
+        #pragma warning restore S1244
         {
             _renderer.AppendFormatArgs("{0:" + format + "} w\n", pen._width);
             _realizedLineWith = pen._width;
@@ -146,7 +148,9 @@ internal sealed class PdfGraphicsState : ICloneable
             // Written as a real rather than truncated to an integer. A limit is a ratio of the
             // mitre's length to the pen's width, 1.5 is a perfectly ordinary value for it, and
             // rounding that to 1 asks for a bevel on every join that is not perfectly straight.
+            #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
             if (_realizedMiterLimit != pen._miterLimit && pen._miterLimit > 0)
+            #pragma warning restore S1244
             {
                 _renderer.AppendFormatArgs("{0:" + format + "} M\n", pen._miterLimit);
                 _realizedMiterLimit = pen._miterLimit;
@@ -249,7 +253,9 @@ internal sealed class PdfGraphicsState : ICloneable
             }
         }
 
+        #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
         if (_renderer.Owner.Version >= 14 && (_realizedStrokeColor.A != color.A || _realizedStrokeOverPrint != overPrint))
+        #pragma warning restore S1244
         {
             PdfExtGState extGState = _renderer.Owner.ExtGStateTable.GetExtGStateStroke(color.A, overPrint);
             string gs = _renderer.Resources.AddExtGState(extGState);
@@ -443,7 +449,9 @@ internal sealed class PdfGraphicsState : ICloneable
             }
         }
 
+        #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
         if (_renderer.Owner.Version >= 14 && (_realizedFillColor.A != color.A || _realizedNonStrokeOverPrint != overPrint))
+        #pragma warning restore S1244
         {
 
             PdfExtGState extGState = _renderer.Owner.ExtGStateTable.GetExtGStateNonStroke(color.A, overPrint);
@@ -554,7 +562,9 @@ internal sealed class PdfGraphicsState : ICloneable
         if (boldSimulation)
             charSpace += font.Size * Const.BoldEmphasis;
 
+        #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
         if (_realizedCharSpace != charSpace)
+        #pragma warning restore S1244
         {
             _renderer.AppendFormatDouble("{0:" + numberFormat + "} Tc\n", charSpace);
             _realizedCharSpace = charSpace;
@@ -563,14 +573,18 @@ internal sealed class PdfGraphicsState : ICloneable
         // Realize word spacing. Held at zero for the fonts Tw cannot speak for, rather than
         // written and silently ignored; DrawString spaces those out with a TJ array instead.
         double wordSpace = NeedsWordSpacingByHand(font, format) ? 0 : format.WordSpacing;
+        #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
         if (_realizedWordSpace != wordSpace)
+        #pragma warning restore S1244
         {
             _renderer.AppendFormatDouble("{0:" + numberFormat + "} Tw\n", wordSpace);
             _realizedWordSpace = wordSpace;
         }
 
         // Realize horizontal scaling.
+        #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
         if (_realizedHorizontalScaling != format.HorizontalScaling)
+        #pragma warning restore S1244
         {
             _renderer.AppendFormatDouble("{0:" + numberFormat + "} Tz\n", format.HorizontalScaling);
             _realizedHorizontalScaling = format.HorizontalScaling;
@@ -578,7 +592,9 @@ internal sealed class PdfGraphicsState : ICloneable
 
         // Realize text rise. Ts sits in the text rendering matrix rather than the text matrix, so
         // it lifts the glyphs off the baseline without disturbing where Td puts the next one.
+        #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
         if (_realizedTextRise != format.TextRise)
+        #pragma warning restore S1244
         {
             _renderer.AppendFormatDouble("{0:" + numberFormat + "} Ts\n", format.TextRise);
             _realizedTextRise = format.TextRise;
@@ -586,7 +602,9 @@ internal sealed class PdfGraphicsState : ICloneable
 
         _realizedFont = null;
         string fontName = _renderer.GetFontName(font, out _realizedFont);
+        #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
         if (fontName != _realizedFontName || _realizedFontSize != font.Size)
+        #pragma warning restore S1244
         {
             _renderer.AppendFormatFont("{0} {1:" + numberFormat + "} Tf\n", fontName, font.Size);
             _realizedFontName = fontName;

@@ -57,7 +57,9 @@ public struct XVector : IFormattable
     public static bool operator ==(XVector vector1, XVector vector2)
     {
         // ReSharper disable CompareOfFloatsByEqualityOperator
+        #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
         return vector1._x == vector2._x && vector1._y == vector2._y;
+        #pragma warning restore S1244
         // ReSharper restore CompareOfFloatsByEqualityOperator
     }
 
@@ -67,7 +69,9 @@ public struct XVector : IFormattable
     public static bool operator !=(XVector vector1, XVector vector2)
     {
         // ReSharper disable CompareOfFloatsByEqualityOperator
+        #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
         return vector1._x != vector2._x || vector1._y != vector2._y;
+        #pragma warning restore S1244
         // ReSharper restore CompareOfFloatsByEqualityOperator
     }
 
@@ -76,8 +80,10 @@ public struct XVector : IFormattable
     /// </summary>
     public static bool Equals(XVector vector1, XVector vector2)
     {
+        #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
         if (vector1.X.Equals(vector2.X))
             return vector1.Y.Equals(vector2.Y);
+        #pragma warning restore S1244
         return false;
     }
 

@@ -274,8 +274,10 @@ public sealed class PdfLineAnnotation : PdfAnnotation
         // the box has. The appearance already there has to go, or the annotation keeps showing
         // what it was last asked for rather than what it is being asked for now - a width set back
         // to nothing would stay on the page.
+        #pragma warning disable S1244 // Exact on purpose: only the exact value takes the special case, and the general path is right for anything near it.
         if (width <= 0 || (start.X == end.X && start.Y == end.Y)
             || boxWidth < 1 || boxHeight < 1)
+        #pragma warning restore S1244
         {
             Elements.Remove(Keys.AP);
 

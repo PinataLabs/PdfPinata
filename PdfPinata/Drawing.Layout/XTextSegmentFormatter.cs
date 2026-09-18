@@ -235,7 +235,9 @@ public class XTextSegmentFormatter
 
 			// Check all blocks of the current line in order to move all blocks of the next lines down,
 			// when the first block of the current line has not the max cy ascent of the whole line
+			#pragma warning disable S1244 // Exact on purpose: compared with a maximum or minimum taken from these same values.
 			if (!blockUnit.All(b => b.Environment.CyAscent == maxCyAscend))
+			#pragma warning restore S1244
 			{
 				for (var indexSiblings = index + 1; indexSiblings < blockUnits.Count; indexSiblings++)
 				{
@@ -449,7 +451,9 @@ public class XTextSegmentFormatter
 						AlignLine(blockUnit, firstIndex, idx - 1, rectWidth);
 						firstIndex = idx;
 
+						#pragma warning disable S1244 // Exact on purpose: unchanged unless a larger value replaced it.
 						if (currentMaxLineSpace != startLineSpace)
+						#pragma warning restore S1244
 						{
 							y += -startLineSpace + currentMaxLineSpace;
 							currentLineBlocks.ForEach(b => b.Location = new XPoint(b.Location.X, y));

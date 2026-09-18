@@ -47,8 +47,10 @@ internal static class DoubleUtil
     public static bool AreClose(double value1, double value2)
     {
         //if (value1 == value2)
+        #pragma warning disable S1244 // Exact on purpose: the exact case of the tolerant comparison, taken before the tolerance.
         if (value1.Equals(value2))
             return true;
+        #pragma warning restore S1244
         // This computes (|value1-value2| / (|value1| + |value2| + 10.0)) < Epsilon 
         double eps = (Math.Abs(value1) + Math.Abs(value2) + 10.0) * Epsilon;
         double delta = value1 - value2;
@@ -60,8 +62,10 @@ internal static class DoubleUtil
     /// </summary>
     public static bool AreRoughlyEqual(double value1, double value2, int decimalPlace)
     {
+        #pragma warning disable S1244 // Exact on purpose: the exact case of the tolerant comparison, taken before the tolerance.
         if (value1 == value2)
             return true;
+        #pragma warning restore S1244
         return Math.Abs(value1 - value2) < decs[decimalPlace];
     }
     static readonly double[] decs = { 1, 1E-1, 1E-2, 1E-3, 1E-4, 1E-5, 1E-6, 1E-7, 1E-8, 1E-9, 1E-10, 1E-11, 1E-12, 1E-13, 1E-14, 1E-15, 1E-16 };

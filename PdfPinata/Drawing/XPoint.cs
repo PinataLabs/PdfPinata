@@ -59,7 +59,9 @@ public struct XPoint : IFormattable
     public static bool operator ==(XPoint point1, XPoint point2)
     {
         // ReSharper disable CompareOfFloatsByEqualityOperator
+        #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
         return point1._x == point2._x && point1._y == point2._y;
+        #pragma warning restore S1244
         // ReSharper restore CompareOfFloatsByEqualityOperator
     }
 
@@ -76,7 +78,9 @@ public struct XPoint : IFormattable
     /// </summary>
     public static bool Equals(XPoint point1, XPoint point2)
     {
+        #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
         return point1.X.Equals(point2.X) && point1.Y.Equals(point2.Y);
+        #pragma warning restore S1244
     }
 
     /// <summary>

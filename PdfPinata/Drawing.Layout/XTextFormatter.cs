@@ -1055,7 +1055,9 @@ public class XTextFormatter
                 double width = block.Width;
                 // A block that starts a line is placed whether it fits or not, since moving it to
                 // a line of its own would not make it any narrower.
+                #pragma warning disable S1244 // Exact on purpose: x is lineStart until something has been placed on the line.
                 if (!LineBreak || x + width <= measure.Width || x == lineStart)
+                #pragma warning restore S1244
                 {
                     block.Location = new XPoint(ColumnLeft(column, columnWidth) + x, y);
                     block.LineIndent = lineStart;
