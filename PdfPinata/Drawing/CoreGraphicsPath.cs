@@ -94,10 +94,12 @@ internal class CoreGraphicsPath
     /// </summary>
     public void QuadrantArcTo(double x, double y, double width, double height, int quadrant, bool clockwise)
     {
+        #pragma warning disable CA1512 // ThrowIfNegative also refuses -0 and NaN, which this comparison lets through to the drawing code.
         if (width < 0)
             throw new ArgumentOutOfRangeException(nameof(width));
         if (height < 0)
             throw new ArgumentOutOfRangeException(nameof(height));
+        #pragma warning restore CA1512
 
         double w = Const.κ * width;
         double h = Const.κ * height;
@@ -314,8 +316,7 @@ internal class CoreGraphicsPath
     /// </param>
     public void AddPath(CoreGraphicsPath path, bool connect)
     {
-        if (path == null)
-            throw new ArgumentNullException(nameof(path));
+        ArgumentNullException.ThrowIfNull(path);
 
         int count = path._points.Count;
         if (count == 0)

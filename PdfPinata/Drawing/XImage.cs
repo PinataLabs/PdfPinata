@@ -138,8 +138,7 @@ public class XImage : IDisposable
     /// <param name="stream">The stream containing a BMP, PNG, GIF, JPEG, TIFF, or PDF file.</param>
     public static XImage FromStream(Func<Stream> stream)
     {
-        if (stream == null)
-            throw new ArgumentNullException(nameof(stream));
+        ArgumentNullException.ThrowIfNull(stream);
 
         // TODO: Check PDF stream.
         //if (PdfReader.TestPdfFile(path) > 0)
@@ -207,7 +206,7 @@ public class XImage : IDisposable
     public void Dispose()
     {
         Dispose(true);
-        //GC.SuppressFinalize(this);
+        GC.SuppressFinalize(this);
     }
 
     /// <summary>

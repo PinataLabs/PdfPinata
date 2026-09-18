@@ -218,8 +218,7 @@ static class FontHelper
     /// </summary>
     public static ulong CalcChecksum(byte[] buffer)
     {
-        if (buffer == null)
-            throw new ArgumentNullException(nameof(buffer));
+        ArgumentNullException.ThrowIfNull(buffer);
 
         const uint prime = 65521; // largest prime smaller than 65536
         uint s1 = 0;

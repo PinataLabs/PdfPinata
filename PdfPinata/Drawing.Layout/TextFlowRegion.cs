@@ -41,8 +41,7 @@ public sealed class TextFlowRegion
     /// </summary>
     public TextFlowRegion With(IFlowObstacle obstacle)
     {
-        if (obstacle == null)
-            throw new ArgumentNullException(nameof(obstacle));
+        ArgumentNullException.ThrowIfNull(obstacle);
 
         _obstacles.Add(obstacle);
         return this;

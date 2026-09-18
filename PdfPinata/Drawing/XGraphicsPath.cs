@@ -86,8 +86,7 @@ public sealed class XGraphicsPath
     /// </summary>
     public void AddLines(XPoint[] points)
     {
-        if (points == null)
-            throw new ArgumentNullException(nameof(points));
+        ArgumentNullException.ThrowIfNull(points);
 
         int count = points.Length;
         if (count == 0)
@@ -123,8 +122,7 @@ public sealed class XGraphicsPath
     /// </summary>
     public void AddBeziers(XPoint[] points)
     {
-        if (points == null)
-            throw new ArgumentNullException(nameof(points));
+        ArgumentNullException.ThrowIfNull(points);
 
         int count = points.Length;
         if (count < 4)
@@ -337,8 +335,7 @@ public sealed class XGraphicsPath
     /// </summary>
     public void AddClosedCurve(XPoint[] points, double tension)
     {
-        if (points == null)
-            throw new ArgumentNullException(nameof(points));
+        ArgumentNullException.ThrowIfNull(points);
         int count = points.Length;
         if (count == 0)
             return;
@@ -354,8 +351,7 @@ public sealed class XGraphicsPath
     /// </summary>
     public void AddPath(XGraphicsPath path, bool connect)
     {
-        if (path == null)
-            throw new ArgumentNullException(nameof(path));
+        ArgumentNullException.ThrowIfNull(path);
 
         // The appended path's own FillMode is not carried over. A path has one fill rule and it
         // belongs to the path being drawn, so taking the other one's would silently change how the
@@ -406,11 +402,9 @@ public sealed class XGraphicsPath
     public void AddString(string s, XFontFamily family, XFontStyle style, double emSize, XRect layoutRect,
         XStringFormat format)
     {
-        if (s == null)
-            throw new ArgumentNullException(nameof(s));
+        ArgumentNullException.ThrowIfNull(s);
 
-        if (family == null)
-            throw new ArgumentNullException(nameof(family));
+        ArgumentNullException.ThrowIfNull(family);
 
         if (format == null)
             format = XStringFormats.Default;
@@ -489,10 +483,12 @@ public sealed class XGraphicsPath
     /// <summary>
     /// Starts a new figure without closing the current figure.
     /// </summary>
+    #pragma warning disable CA1822 // Public API: making a no-op instance member static would break every caller, and the operation acts on this path once implemented.
     public void StartFigure()
     {
         // TODO: ???
     }
+    #pragma warning restore CA1822
 
     // --------------------------------------------------------------------------------------------
 
@@ -513,6 +509,7 @@ public sealed class XGraphicsPath
     /// <summary>
     /// Converts each curve in this XGraphicsPath into a sequence of connected line segments. 
     /// </summary>
+    #pragma warning disable CA1822 // Public API: making these no-op overloads static would break every caller, and the operation acts on this path once implemented.
     public void Flatten()
     {
         // Just do nothing.
@@ -533,6 +530,7 @@ public sealed class XGraphicsPath
     {
         // Just do nothing.
     }
+    #pragma warning restore CA1822
 
     // --------------------------------------------------------------------------------------------
 
@@ -540,6 +538,7 @@ public sealed class XGraphicsPath
     /// Replaces this path with curves that enclose the area that is filled when this path is drawn 
     /// by the specified pen.
     /// </summary>
+    #pragma warning disable CA1822 // Public API: making these no-op overloads static would break every caller, and the operation acts on this path once implemented.
     public void Widen(XPen pen)
     {
         // Just do nothing.
@@ -562,6 +561,7 @@ public sealed class XGraphicsPath
     {
         // Just do nothing.
     }
+    #pragma warning restore CA1822
 
     /// <summary>
     /// Grants access to internal objects of this class.

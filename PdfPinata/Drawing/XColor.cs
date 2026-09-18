@@ -215,7 +215,7 @@ public struct XColor
         get => _cs;
         set
         {
-            if (!Enum.IsDefined(typeof(XColorSpace), value))
+            if (!Enum.IsDefined(value))
                 throw new InvalidEnumArgumentException(nameof(value), (int)value, typeof(XColorSpace));
             _cs = value;
         }
@@ -603,7 +603,9 @@ public struct XColor
     /// <summary>
     /// Represents the null color.
     /// </summary>
+    #pragma warning disable CA2211 // Public API: making the field readonly or a property would break any caller that assigns it or takes it by reference.
     public static XColor Empty;
+    #pragma warning restore CA2211
 
     ///<summary>
     /// Special property for XmlSerializer only.

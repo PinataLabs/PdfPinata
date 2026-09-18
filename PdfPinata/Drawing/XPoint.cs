@@ -127,8 +127,7 @@ public struct XPoint : IFormattable
     /// </summary>
     public static XPoint[] ParsePoints(string value)
     {
-        if (value == null)
-            throw new ArgumentNullException(nameof(value));
+        ArgumentNullException.ThrowIfNull(value);
         // TODO: Reflect reliabel implementation from Avalon
         // TODOWPF
         string[] values = value.Split(' ');

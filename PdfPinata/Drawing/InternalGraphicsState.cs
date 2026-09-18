@@ -94,9 +94,11 @@ internal class InternalGraphicsState
     /// <summary>
     /// Called after this instanced was pushed on the internal graphics stack.
     /// </summary>
+    #pragma warning disable CA1822 // An instance hook paired with Popped that GraphicsStateStack calls on each state it pushes; static would mean changing that caller too.
     public void Pushed()
     {
     }
+    #pragma warning restore CA1822
 
     /// <summary>
     /// Called after this instanced was popped from the internal graphics stack.

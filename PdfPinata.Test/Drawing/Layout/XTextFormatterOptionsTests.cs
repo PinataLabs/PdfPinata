@@ -415,4 +415,17 @@ public class XTextFormatterOptionsTests
         // two must not come out in the same place either, or the alignment was lost.
         right[0].X.Should().NotBe(left[0].X);
     }
+
+    [Fact]
+    public void ANullFontIsRefusedInTheNameOfTheSettersValue()
+    {
+        var document = new PdfDocument();
+        using var gfx = XGraphics.FromPdfPage(document.AddPage());
+        var formatter = new XTextFormatter(gfx);
+
+        var act = () => formatter.Font = null;
+
+        // A setter's argument is called value; this once named the property instead.
+        act.Should().Throw<ArgumentNullException>().Which.ParamName.Should().Be("value");
+    }
 }

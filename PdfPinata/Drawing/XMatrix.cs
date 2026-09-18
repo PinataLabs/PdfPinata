@@ -661,8 +661,7 @@ public struct XMatrix : IFormattable
     /// </summary>
     public void TransformPoints(XPoint[] points)
     {
-        if (points == null)
-            throw new ArgumentNullException(nameof(points));
+        ArgumentNullException.ThrowIfNull(points);
 
         if (IsIdentity)
             return;

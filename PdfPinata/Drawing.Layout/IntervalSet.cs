@@ -30,7 +30,7 @@ namespace PdfPinata.Drawing.Layout;
 /// </remarks>
 public sealed class IntervalSet : IReadOnlyList<XInterval>
 {
-    static readonly XInterval[] Nothing = new XInterval[0];
+    static readonly XInterval[] Nothing = Array.Empty<XInterval>();
 
     readonly XInterval[] _intervals;
 
@@ -61,8 +61,7 @@ public sealed class IntervalSet : IReadOnlyList<XInterval>
     /// </summary>
     public static IntervalSet Of(IEnumerable<XInterval> intervals)
     {
-        if (intervals == null)
-            throw new ArgumentNullException(nameof(intervals));
+        ArgumentNullException.ThrowIfNull(intervals);
 
         XInterval[] normalised = Normalise(intervals);
         return normalised.Length == 0 ? Empty : new IntervalSet(normalised);
@@ -86,8 +85,7 @@ public sealed class IntervalSet : IReadOnlyList<XInterval>
     /// </remarks>
     public IntervalSet Subtract(IEnumerable<XInterval> excluded)
     {
-        if (excluded == null)
-            throw new ArgumentNullException(nameof(excluded));
+        ArgumentNullException.ThrowIfNull(excluded);
 
         XInterval[] cuts = Normalise(excluded);
         if (cuts.Length == 0 || _intervals.Length == 0)

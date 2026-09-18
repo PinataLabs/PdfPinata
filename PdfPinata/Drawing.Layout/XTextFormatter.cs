@@ -50,8 +50,7 @@ public class XTextFormatter
     /// </summary>
     public XTextFormatter(XGraphics gfx)
     {
-        if (gfx == null)
-            throw new ArgumentNullException(nameof(gfx));
+        ArgumentNullException.ThrowIfNull(gfx);
         _gfx = gfx;
     }
     readonly XGraphics _gfx;
@@ -75,8 +74,7 @@ public class XTextFormatter
         get => _font;
         set
         {
-            if (value == null)
-                throw new ArgumentNullException("Font");
+            ArgumentNullException.ThrowIfNull(value);
             _font = value;
 
             _lineSpace = _font.GetHeight(); // old: _font.GetHeight(_gfx);
@@ -366,12 +364,9 @@ public class XTextFormatter
     public XRect GetLayout(string text, XFont font, XBrush brush, XRect layoutRectangle,
         XUnit? lineHeight = null)
     {
-        if (text == null)
-            throw new ArgumentNullException(nameof(text));
-        if (font == null)
-            throw new ArgumentNullException(nameof(font));
-        if (brush == null)
-            throw new ArgumentNullException(nameof(brush));
+        ArgumentNullException.ThrowIfNull(text);
+        ArgumentNullException.ThrowIfNull(font);
+        ArgumentNullException.ThrowIfNull(brush);
 
         // Before the rotation check, and refused rather than skipped over. Obstacles is an ordinary
         // list, so nothing stops a caller adding the null their own lookup just returned - and an
@@ -433,8 +428,7 @@ public class XTextFormatter
     public void DrawString(string text, XFont font, XBrush brush, XRect layoutRectangle, TextFormatAlignment alignments,
         XUnit? lineHeight = null)
     {
-        if (alignments == null)
-            throw new ArgumentNullException(nameof(alignments));
+        ArgumentNullException.ThrowIfNull(alignments);
 
         if (text.Length == 0)
             return;
