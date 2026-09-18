@@ -103,6 +103,7 @@ public abstract class Filter
     /// <summary>
     /// Removes all white spaces from the data. The function assumes that the bytes are characters.
     /// </summary>
+    #pragma warning disable CA1822 // Public API: a filter derived outside this library calls it as an instance member.
     protected byte[] RemoveWhiteSpace(byte[] data)
     {
         int count = data.Length;
@@ -135,4 +136,5 @@ public abstract class Filter
         }
         return data;
     }
+    #pragma warning restore CA1822
 }

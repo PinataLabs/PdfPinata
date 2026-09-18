@@ -46,12 +46,9 @@ public static class PdfValidationData
     /// <param name="data">The certificates and revocation responses to add.</param>
     public static void Add(PdfDocument document, Stream output, PdfValidationDataEntry data)
     {
-        if (document == null)
-            throw new ArgumentNullException(nameof(document));
-        if (output == null)
-            throw new ArgumentNullException(nameof(output));
-        if (data == null)
-            throw new ArgumentNullException(nameof(data));
+        ArgumentNullException.ThrowIfNull(document);
+        ArgumentNullException.ThrowIfNull(output);
+        ArgumentNullException.ThrowIfNull(data);
 
         if (!document.CanSaveIncremental)
             throw new InvalidOperationException(
@@ -87,8 +84,7 @@ public static class PdfValidationData
     /// </summary>
     public static bool IsPresent(PdfDocument document)
     {
-        if (document == null)
-            throw new ArgumentNullException(nameof(document));
+        ArgumentNullException.ThrowIfNull(document);
 
         return document.Catalog.Elements.GetDictionary("/DSS") != null;
     }

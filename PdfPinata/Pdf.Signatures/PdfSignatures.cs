@@ -20,8 +20,7 @@ public static class PdfSignatures
     /// </summary>
     public static IReadOnlyList<PdfSignatureInfo> InDocument(PdfDocument document)
     {
-        if (document == null)
-            throw new ArgumentNullException(nameof(document));
+        ArgumentNullException.ThrowIfNull(document);
 
         var found = new List<PdfSignatureInfo>();
 

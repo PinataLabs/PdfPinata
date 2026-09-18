@@ -216,8 +216,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
     /// </summary>
     internal virtual void WriteDictionaryElement(PdfWriter writer, PdfName key)
     {
-        if (key == null)
-            throw new ArgumentNullException(nameof(key));
+        ArgumentNullException.ThrowIfNull(key);
         PdfItem item = Elements[key];
         if (item is PdfObject && ((PdfObject)item).IsIndirect)
         {
@@ -635,8 +634,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// </summary>
         public void SetName(string key, string value)
         {
-            if (value == null)
-                throw new ArgumentNullException(nameof(value));
+            ArgumentNullException.ThrowIfNull(value);
 
             if (value.Length == 0 || value[0] != '/')
                 value = "/" + value;
@@ -729,15 +727,20 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         }
 
         /// <summary>
+        /// The white space the numbers of a matrix literal are separated by.
+        /// </summary>
+        static readonly char[] MatrixLiteralSeparators = { ' ', '\t', '\r', '\n' };
+
+        /// <summary>
         /// Reads the six numbers of a matrix written as the literal "[a b c d e f]".
         /// </summary>
         static XMatrix MatrixFromLiteral(PdfLiteral literal)
         {
             string text = (literal.Value ?? "").Trim();
-            if (text.StartsWith("[", StringComparison.Ordinal) && text.EndsWith("]", StringComparison.Ordinal))
+            if (text.StartsWith('[') && text.EndsWith(']'))
                 text = text.Substring(1, text.Length - 2);
 
-            string[] parts = text.Split(new[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] parts = text.Split(MatrixLiteralSeparators, StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length != 6)
                 throw new InvalidCastException("Element is not an array with 6 values.");
 
@@ -826,9 +829,9 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         internal int GetEnumFromName(string key, object defaultValue, bool create)
         {
             if (!(defaultValue is Enum))
-                throw new ArgumentException("defaultValue");
+                throw new ArgumentException("The default value must be an enumeration value.", nameof(defaultValue));
 
-            object obj = ValueOf(key);
+            PdfItem obj = ValueOf(key);
             if (obj == null)
             {
                 if (create)
@@ -837,8 +840,10 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                 // ReSharper disable once PossibleInvalidCastException because Enum objects can always be casted to int.
                 return (int)defaultValue;
             }
-            Debug.Assert(obj is Enum);
+            Debug.Assert(obj is PdfName);
+            #pragma warning disable CA1846 // netstandard2.1 has no Enum.Parse overload taking a span, and the source is compiled for it too.
             return (int)Enum.Parse(defaultValue.GetType(), obj.ToString().Substring(1), false);
+            #pragma warning restore CA1846
         }
 
         internal int GetEnumFromName(string key, object defaultValue)
@@ -849,7 +854,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         internal void SetEnumAsName(string key, object value)
         {
             if (!(value is Enum))
-                throw new ArgumentException("value");
+                throw new ArgumentException("The value must be an enumeration value.", nameof(value));
             _elements[key] = new PdfName("/" + value);
             MarkOwnerAsChanged();
         }
@@ -1078,7 +1083,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// </summary>
         public void SetValue(string key, PdfItem value)
         {
-            Debug.Assert((value is PdfObject && ((PdfObject)value).Reference == null) | !(value is PdfObject),
+            Debug.Assert((value is PdfObject && ((PdfObject)value).Reference == null) || !(value is PdfObject),
                 "You try to set an indirect object directly into a dictionary.");
 
             // HACK?
@@ -1166,8 +1171,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// </summary>
         public void SetReference(string key, PdfReference iref)
         {
-            if (iref == null)
-                throw new ArgumentNullException(nameof(iref));
+            ArgumentNullException.ThrowIfNull(iref);
             this[key] = iref;
         }
 
@@ -1206,8 +1210,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             }
             set
             {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value));
+                ArgumentNullException.ThrowIfNull(value);
 
                 PdfObject obj = value as PdfObject;
                 if (obj != null && obj.IsIndirect)
@@ -1226,8 +1229,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             get { return this[key.Value]; }
             set
             {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value));
+                ArgumentNullException.ThrowIfNull(value);
 
                 // An indirect object is stored as its reference and so is never a direct value:
                 // it has to be replaced before asking whether what is left can be one. Asking
@@ -1404,7 +1406,9 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// <summary>
         /// Return false.
         /// </summary>
+        #pragma warning disable CA1822 // Public API: making it static would break every caller that reads it through an instance.
         public bool IsFixedSize => false;
+        #pragma warning restore CA1822
 
         #endregion
 
@@ -1413,7 +1417,9 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// <summary>
         /// Return false.
         /// </summary>
+        #pragma warning disable CA1822 // Public API: making it static would break every caller that reads it through an instance.
         public bool IsSynchronized => false;
+        #pragma warning restore CA1822
 
         /// <summary>
         /// Gets the number of elements contained in the dictionary.
@@ -1431,7 +1437,9 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// <summary>
         /// The current implementation returns null.
         /// </summary>
+        #pragma warning disable CA1822 // Public API: making it static would break every caller that reads it through an instance.
         public object SyncRoot => null;
+        #pragma warning restore CA1822
 
         #endregion
 
@@ -1455,7 +1463,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                     addSpace = true;
                     sb.Append(key);
                 }
-                sb.Append(")");
+                sb.Append(')');
                 return sb.ToString();
             }
         }
@@ -1479,8 +1487,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
     {
         internal PdfStream(PdfDictionary ownerDictionary)
         {
-            if (ownerDictionary == null)
-                throw new ArgumentNullException(nameof(ownerDictionary));
+            ArgumentNullException.ThrowIfNull(ownerDictionary);
             _ownerDictionary = ownerDictionary;
         }
 
@@ -1544,8 +1551,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             get => _value;
             set
             {
-                if (value == null)
-                    throw new ArgumentNullException(nameof(value));
+                ArgumentNullException.ThrowIfNull(value);
                 _value = value;
                 _ownerDictionary.Elements.SetInteger(Keys.Length, value.Length);
             }
@@ -1579,7 +1585,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                         _value.CopyTo(bytes, 0);
                     }
                 }
-                return bytes ?? new byte[0];
+                return bytes ?? Array.Empty<byte>();
             }
         }
 

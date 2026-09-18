@@ -43,8 +43,7 @@ public class Ascii85Decode : Filter
     /// </summary>
     public override byte[] Encode(byte[] data)
     {
-        if (data == null)
-            throw new ArgumentNullException(nameof(data));
+        ArgumentNullException.ThrowIfNull(data);
 
         var length = data.Length;  // length == 0 is must not be treated as a special case.
         var words = length / 4;
@@ -136,8 +135,7 @@ public class Ascii85Decode : Filter
     /// </summary>
     public override byte[] Decode(byte[] data, FilterParms parms)
     {
-        if (data == null)
-            throw new ArgumentNullException(nameof(data));
+        ArgumentNullException.ThrowIfNull(data);
 
         int idx;
         var length = data.Length;

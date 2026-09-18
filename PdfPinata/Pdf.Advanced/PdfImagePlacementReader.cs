@@ -30,8 +30,7 @@ internal sealed class PdfImagePlacementReader
     /// </summary>
     internal static IList<PdfImagePlacement> Read(PdfPage page)
     {
-        if (page == null)
-            throw new ArgumentNullException(nameof(page));
+        ArgumentNullException.ThrowIfNull(page);
 
         PdfImagePlacementReader reader = new PdfImagePlacementReader();
 

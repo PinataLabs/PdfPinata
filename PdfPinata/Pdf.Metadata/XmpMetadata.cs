@@ -111,8 +111,7 @@ public sealed class XmpMetadata
     /// </remarks>
     public void DeclareSchema(XmpExtensionSchema schema)
     {
-        if (schema == null)
-            throw new ArgumentNullException(nameof(schema));
+        ArgumentNullException.ThrowIfNull(schema);
 
         foreach (var already in _extensionSchemas)
         {
@@ -132,8 +131,7 @@ public sealed class XmpMetadata
     /// </summary>
     public static XmpMetadata FromDocument(PdfDocument document)
     {
-        if (document == null)
-            throw new ArgumentNullException(nameof(document));
+        ArgumentNullException.ThrowIfNull(document);
 
         var info = document.Info;
         return new XmpMetadata

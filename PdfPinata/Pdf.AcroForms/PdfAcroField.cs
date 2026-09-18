@@ -102,7 +102,7 @@ public abstract class PdfAcroField : PdfDictionary
         }
         set
         {
-            if (value != null && value.IndexOf('.') != -1)
+            if (value != null && value.Contains('.'))
             {
                 throw new ArgumentException(
                     "A field's partial name cannot contain a period: '" + value + "'. A period "
@@ -217,8 +217,7 @@ public abstract class PdfAcroField : PdfDictionary
     /// </remarks>
     public PdfWidgetAnnotation AddWidget(PdfPage page, PdfRectangle rectangle)
     {
-        if (page == null)
-            throw new ArgumentNullException(nameof(page));
+        ArgumentNullException.ThrowIfNull(page);
 
         if (Reference == null)
         {
@@ -545,8 +544,7 @@ public abstract class PdfAcroField : PdfDictionary
         /// </remarks>
         public void Add(PdfAcroField field)
         {
-            if (field == null)
-                throw new ArgumentNullException(nameof(field));
+            ArgumentNullException.ThrowIfNull(field);
 
             if (field.Owner != null && field.Owner != Owner)
                 throw new InvalidOperationException("The field belongs to another document.");
@@ -664,7 +662,7 @@ public abstract class PdfAcroField : PdfDictionary
         /// If the actual cannot be guessed by PDFsharp the function returns an instance
         /// of PdfGenericField.
         /// </summary>
-        PdfAcroField CreateAcroField(PdfDictionary dict)
+        static PdfAcroField CreateAcroField(PdfDictionary dict)
         {
             string ft = dict.Elements.GetName(Keys.FT);
             PdfAcroFieldFlags flags = (PdfAcroFieldFlags)dict.Elements.GetInteger(Keys.Ff);

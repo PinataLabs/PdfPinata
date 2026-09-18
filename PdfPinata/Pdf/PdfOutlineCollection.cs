@@ -76,8 +76,7 @@ public class PdfOutlineCollection : PdfObject, IList<PdfOutline>
     /// </summary>
     public void Add(PdfOutline outline)
     {
-        if (outline == null)
-            throw new ArgumentNullException(nameof(outline));
+        ArgumentNullException.ThrowIfNull(outline);
 
         // DestinationPage is optional. PDFsharp does not yet support outlines with action ("/A") instead of destination page ("/DEST")
         if (outline.DestinationPage != null && !ReferenceEquals(Owner, outline.DestinationPage.Owner))
@@ -196,8 +195,7 @@ public class PdfOutlineCollection : PdfObject, IList<PdfOutline>
     /// </summary>
     public void Insert(int index, PdfOutline outline)
     {
-        if (outline == null)
-            throw new ArgumentNullException(nameof(outline));
+        ArgumentNullException.ThrowIfNull(outline);
         if (index < 0 || index >= _outlines.Count)
             throw new ArgumentOutOfRangeException(nameof(index), index, PSSR.OutlineIndexOutOfRange);
 
@@ -253,8 +251,7 @@ public class PdfOutlineCollection : PdfObject, IList<PdfOutline>
 
     void AddToOutlinesTree(PdfOutline outline)
     {
-        if (outline == null)
-            throw new ArgumentNullException(nameof(outline));
+        ArgumentNullException.ThrowIfNull(outline);
 
         // DestinationPage is optional. PDFsharp does not yet support outlines with action ("/A") instead of destination page ("/DEST")
         if (outline.DestinationPage != null && !ReferenceEquals(Owner, outline.DestinationPage.Owner))
@@ -276,8 +273,7 @@ public class PdfOutlineCollection : PdfObject, IList<PdfOutline>
 
     void RemoveFromOutlinesTree(PdfOutline outline)
     {
-        if (outline == null)
-            throw new ArgumentNullException(nameof(outline));
+        ArgumentNullException.ThrowIfNull(outline);
 
         // TODO check the parent problems...
         //outline.Document = Owner;

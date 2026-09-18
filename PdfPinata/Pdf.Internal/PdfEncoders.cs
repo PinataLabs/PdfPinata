@@ -225,7 +225,7 @@ internal static class PdfEncoders
         {
             if (!hex)
             {
-                pdf.Append("(");
+                pdf.Append('(');
                 for (int idx = 0; idx < count; idx++)
                 {
                     char ch = (char)bytes[idx];
@@ -305,9 +305,9 @@ internal static class PdfEncoders
                 // and the lines break where they always did.
                 int positionInText = idx - byteOrderMarkLength;
                 if (positionInText != 0 && (positionInText % 48) == 0)
-                    pdf.Append("\n");
+                    pdf.Append('\n');
             }
-            pdf.Append(">");
+            pdf.Append('>');
         }
         return RawEncoding.GetBytes(pdf.ToString());
     }

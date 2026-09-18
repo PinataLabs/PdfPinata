@@ -74,6 +74,7 @@ internal enum KeyType
 /// <summary>
 /// Summary description for KeyInfo.
 /// </summary>
+[AttributeUsage(AttributeTargets.Field)]
 internal class KeyInfoAttribute : Attribute
 {
     public KeyInfoAttribute()

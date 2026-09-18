@@ -615,7 +615,7 @@ internal class PdfWriter
             WriteRaw('\n');
     }
 
-    CharCat GetCategory(char ch)
+    static CharCat GetCategory(char ch)
     {
         if (Lexer.IsDelimiter(ch))
             return CharCat.Delimiter;

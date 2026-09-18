@@ -382,8 +382,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </remarks>
     public void SaveIncremental(Stream stream)
     {
-        if (stream == null)
-            throw new ArgumentNullException(nameof(stream));
+        ArgumentNullException.ThrowIfNull(stream);
 
         if (_originalBytes == null)
             throw new InvalidOperationException(
@@ -458,7 +457,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// many as the changed numbers fall into runs, because the numbers in between belong to objects
     /// this revision has not touched and whose earlier entries must go on standing.
     /// </remarks>
-    void WriteIncrementalCrossReferenceTable(PdfWriter writer, List<PdfReference> changed)
+    static void WriteIncrementalCrossReferenceTable(PdfWriter writer, List<PdfReference> changed)
     {
         writer.WriteRaw("xref\n");
 
@@ -785,7 +784,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// NYI Indicates whether large objects are written immediately to the output stream to relieve
     /// memory consumption.
     /// </summary>
-    internal bool EarlyWrite
+    internal static bool EarlyWrite
     {
         get { return false; }
     }
@@ -826,8 +825,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </remarks>
     public void AddMetadataContributor(Action<Metadata.XmpMetadata> contributor)
     {
-        if (contributor == null)
-            throw new ArgumentNullException(nameof(contributor));
+        ArgumentNullException.ThrowIfNull(contributor);
 
         (_metadataContributors ??= new List<Action<Metadata.XmpMetadata>>()).Add(contributor);
     }
@@ -992,7 +990,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
         }
     }
 
-    internal Exception DocumentNotImported()
+    internal static Exception DocumentNotImported()
     {
         return new InvalidOperationException("Document not imported.");
     }
@@ -1413,7 +1411,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     public void ResizePages(PageSize size, PageOrientation orientation = PageOrientation.Portrait,
         PageResizeOptions options = null)
     {
-        if (!Enum.IsDefined(typeof(PageSize), size))
+        if (!Enum.IsDefined(size))
             throw new InvalidEnumArgumentException(nameof(size), (int)size, typeof(PageSize));
 
         PdfPageResizer.ResizeAll(this, PdfPage.SizeInPoints(size, orientation), size, options);
@@ -1529,12 +1527,14 @@ public sealed class PdfDocument : PdfObject, IDisposable
             return Id.GetHashCode();
         }
 
+        #pragma warning disable S3875 // A handle is equal to another by the document id it carries, and ThreadLocalStorage and PdfFormXObjectTable compare handles with ==.
         public static bool operator ==(DocumentHandle left, DocumentHandle right)
         {
             if (ReferenceEquals(left, null))
                 return ReferenceEquals(right, null);
             return left.Equals(right);
         }
+        #pragma warning restore S3875
 
         public static bool operator !=(DocumentHandle left, DocumentHandle right)
         {

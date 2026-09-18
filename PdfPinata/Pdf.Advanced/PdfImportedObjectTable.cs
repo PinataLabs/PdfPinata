@@ -43,8 +43,7 @@ internal sealed class PdfImportedObjectTable
     /// </summary>
     public PdfImportedObjectTable(PdfDocument owner, PdfDocument externalDocument)
     {
-        if (externalDocument == null)
-            throw new ArgumentNullException(nameof(externalDocument));
+        ArgumentNullException.ThrowIfNull(externalDocument);
         _owner = owner ?? throw new ArgumentNullException(nameof(owner));
         _externalDocumentHandle = externalDocument.Handle;
         _xObjects = new PdfFormXObject[externalDocument.PageCount];

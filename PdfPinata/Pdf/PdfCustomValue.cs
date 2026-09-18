@@ -27,6 +27,8 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
+using System;
+
 namespace PdfPinata.Pdf;
 
 /// <summary>
@@ -39,7 +41,7 @@ public class PdfCustomValue : PdfDictionary
     /// </summary>
     public PdfCustomValue()
     {
-        CreateStream(new byte[] { });
+        CreateStream(Array.Empty<byte>());
     }
 
     /// <summary>
@@ -53,7 +55,7 @@ public class PdfCustomValue : PdfDictionary
     internal PdfCustomValue(PdfDocument document)
         : base(document)
     {
-        CreateStream(new byte[] { });
+        CreateStream(Array.Empty<byte>());
     }
 
     internal PdfCustomValue(PdfDictionary dict)

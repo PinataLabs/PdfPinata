@@ -137,7 +137,7 @@ public sealed class PdfImagePlacement
     /// </summary>
     public byte[] GetRawStream()
     {
-        return _xObject.Stream == null ? new byte[0] : _xObject.Stream.Value;
+        return _xObject.Stream == null ? Array.Empty<byte>() : _xObject.Stream.Value;
     }
 
     /// <summary>

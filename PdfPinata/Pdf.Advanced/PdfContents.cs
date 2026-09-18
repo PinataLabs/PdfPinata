@@ -105,7 +105,7 @@ public sealed class PdfContents : PdfArray
     /// </summary>
     public PdfContent CreateSingleContent()
     {
-        byte[] bytes = new byte[0];
+        byte[] bytes = Array.Empty<byte>();
         byte[] bytes1;
         byte[] bytes2;
         foreach (PdfItem iref in Elements)
@@ -129,7 +129,7 @@ public sealed class PdfContents : PdfArray
     public PdfContent ReplaceContent(CSequence cseq)
     {
         if (cseq == null)
-            throw new ArgumentException("cseq");
+            throw new ArgumentException("The content sequence must not be null.", nameof(cseq));
 
         return ReplaceContent(cseq.ToContent());
     }

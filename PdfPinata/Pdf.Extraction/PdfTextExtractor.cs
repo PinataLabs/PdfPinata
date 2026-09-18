@@ -38,8 +38,7 @@ public static class PdfTextExtractor
     /// </summary>
     public static IReadOnlyList<PdfTextRun> ExtractRuns(PdfPage page)
     {
-        if (page == null)
-            throw new ArgumentNullException(nameof(page));
+        ArgumentNullException.ThrowIfNull(page);
 
         var walker = new Walker(page);
         walker.Walk(ContentReader.ReadContent(page));

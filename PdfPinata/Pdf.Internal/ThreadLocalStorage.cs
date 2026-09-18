@@ -58,7 +58,7 @@ internal class ThreadLocalStorage // #???
 
     public PdfDocument GetDocument(string path, PdfReadAccuracy accuracy)
     {
-        Debug.Assert(path.StartsWith("*") || Path.IsPathRooted(path), "Path must be full qualified.");
+        Debug.Assert(path.StartsWith('*') || Path.IsPathRooted(path), "Path must be full qualified.");
 
         PdfDocument document = null;
         PdfDocument.DocumentHandle handle;

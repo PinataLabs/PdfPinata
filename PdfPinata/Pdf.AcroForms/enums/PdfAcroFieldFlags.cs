@@ -158,5 +158,7 @@ public enum PdfAcroFieldFlags
     /// (PDF 1.4) If set, the text entered in the field will not be spell-checked.
     /// This flag is meaningful only if the Combo and Edit flags are both set.
     /// </summary>
+    #pragma warning disable CA1069 // Bit 23 means "do not spell-check" for a text field and a choice field alike, so the two names share it on purpose.
     DoNotSpellCheckChoiseField = 1 << (23 - 1),
+    #pragma warning restore CA1069
 }

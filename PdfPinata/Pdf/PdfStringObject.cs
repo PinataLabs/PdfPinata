@@ -27,6 +27,7 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
+using System;
 using System.Diagnostics;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Pdf.Internal;
@@ -130,7 +131,7 @@ public sealed class PdfStringObject : PdfObject
         get
         {
             if (_value == null)
-                return new byte[0];
+                return Array.Empty<byte>();
             return Encoding == PdfStringEncoding.Unicode
                 ? PdfEncoders.RawUnicodeEncoding.GetBytes(_value)
                 : PdfEncoders.RawEncoding.GetBytes(_value);

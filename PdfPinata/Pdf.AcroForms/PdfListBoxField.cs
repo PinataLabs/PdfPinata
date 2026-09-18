@@ -151,7 +151,7 @@ public sealed class PdfListBoxField : PdfChoiceField
                 indices.Length == 1 && IndexInOptArray(texts[0]) != indices[0];
 
             WriteSelectedIndices(
-                AllowsMultipleSelection || tellsApartWhatTheValueCannot ? indices : new int[0]);
+                AllowsMultipleSelection || tellsApartWhatTheValueCannot ? indices : Array.Empty<int>());
         }
     }
 

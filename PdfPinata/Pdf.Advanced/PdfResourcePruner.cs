@@ -37,8 +37,7 @@ internal sealed class PdfResourcePruner : PdfPageWalk
     /// </summary>
     internal static void Prune(PdfPage page)
     {
-        if (page == null)
-            throw new ArgumentNullException(nameof(page));
+        ArgumentNullException.ThrowIfNull(page);
 
         PdfDictionary resources = page.Elements.GetDictionary(PdfPage.Keys.Resources);
         if (resources == null)
