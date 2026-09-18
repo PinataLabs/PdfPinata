@@ -83,7 +83,7 @@ internal class Serializer
     get => indent;
     set => indent = value;
   }
-  protected int indent = 2;
+  protected int indent;
 
   /// <summary>
   /// Gets or sets the initial indentation which precede every line.
