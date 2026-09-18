@@ -72,3 +72,6 @@
 # a mangled asset.
 ###############################################################################
 *.icc   binary
+
+# Shell scripts run on Linux runners and under Git Bash; a CRLF breaks the shebang line.
+*.sh text eol=lf

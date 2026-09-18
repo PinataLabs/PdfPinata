@@ -18,12 +18,10 @@ PdfPinata is a partial port of PdfSharp.Xamarin for .NET Core Additionally Migra
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/PinataLabs/PdfPinata</PackageProjectUrl>
     <RepositoryUrl>https://github.com/PinataLabs/PdfPinata</RepositoryUrl>
-    <PackageReleaseNotes>PdfPinata is a partial port of PdfSharp.Xamarin for .NET Core Additionally MigraDoc has been ported as well (from version 1.32)</PackageReleaseNotes>
     <PackageTags>NuggetV1.0.0 (8ea343d5898342a563b9d4df2d67e27aaea9ac01)</PackageTags>
     <summary>PdfSharp for .NET Core</summary>
     <IsTrimmable>true</IsTrimmable>
     <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
-    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

@@ -17,7 +17,6 @@ Provides ImageSharpImageSource and ImageSharpFontResolver. Pinned to the Apache-
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/PinataLabs/PdfPinata</PackageProjectUrl>
     <RepositoryUrl>https://github.com/PinataLabs/PdfPinata</RepositoryUrl>
-    <PackageReleaseNotes>ImageSharp backend for PdfPinata</PackageReleaseNotes>
     <summary>ImageSharp backend for PdfPinata</summary>
     <IsTrimmable>true</IsTrimmable>
     <EnableTrimAnalyzer>true</EnableTrimAnalyzer>

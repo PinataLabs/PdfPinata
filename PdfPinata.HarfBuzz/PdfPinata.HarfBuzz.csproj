@@ -11,7 +11,6 @@ Provides HarfBuzzTextShaper, an ITextShaper for GlobalFontSettings.TextShaper, s
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/PinataLabs/PdfPinata</PackageProjectUrl>
     <RepositoryUrl>https://github.com/PinataLabs/PdfPinata</RepositoryUrl>
-    <PackageReleaseNotes>HarfBuzz shaping backend for PdfPinata</PackageReleaseNotes>
     <summary>HarfBuzz shaping backend for PdfPinata</summary>
   </PropertyGroup>
 

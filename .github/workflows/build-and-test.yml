@@ -1,4 +1,4 @@
-name: dotnet package
+name: Build and Test
 
 on:
   # A branch with a pull request open is covered by the pull_request trigger below. Building it
@@ -29,7 +29,13 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
+      # MinVer reads the version from the most recent tag, so it needs the history and the tags.
+      # A shallow clone has neither, and every build would be versioned as if nothing had been
+      # released.
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          fetch-tags: true
       - name: Setup dotnet
         uses: actions/setup-dotnet@v6
         with:
@@ -39,6 +45,16 @@ jobs:
       - name: DotNetBuild
         shell: pwsh
         run: ./ci-build.ps1
+      # A package with a published vulnerability anywhere in the dependency graph fails the build,
+      # so it cannot reach a release without somebody deciding that it should.
+      - name: Check vulnerable packages
+        run: |
+          OUTPUT=$(dotnet list PdfPinata.slnx package --vulnerable --include-transitive --format json)
+          echo "$OUTPUT"
+          if echo "$OUTPUT" | jq -e '.projects[] | select(.frameworks)' > /dev/null 2>&1; then
+            echo "::error::Vulnerable packages detected"
+            exit 1
+          fi
       # The Ghostscript.NativeAssets package covers Windows, where ImageMagick loads the
       # Ghostscript DLL in process. On Linux it shells out to the system "gs" delegate instead,
       # so the visual comparison tests still need Ghostscript installed here.

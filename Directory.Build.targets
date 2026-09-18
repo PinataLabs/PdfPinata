@@ -1,0 +1,53 @@
+<Project>
+
+  <!--
+    What a packable project needs to be released, and nothing else does. This is .targets rather than
+    Directory.Build.props because the .props file is imported before the project body and so cannot
+    read IsPackable out of it. Every test project, ConformanceCorpus, SampleApp, the AOT smoke test
+    and the source generator say IsPackable=false; the nine shipped projects say nothing and are
+    packable by default.
+
+    MinVer sets the version from the git tag - see Directory.Build.props for the tag prefix and the
+    floor it counts from before the first tag exists.
+
+    Microsoft.Sbom.Targets writes an SPDX manifest into the .nupkg under _manifest/ at pack time, so
+    every package carries its own bill of materials to whoever installs it from nuget.org. The
+    reference is unconditional within the packable set and only GenerateSBOM is gated: generation is
+    slow, every packable project sets GeneratePackageOnBuild, and so a plain build - which
+    build-and-test.yml runs on every pull request - would otherwise pay for it. MSBuild surfaces
+    environment variables as properties, so the release workflows set GenerateSBOM=true at job level
+    and the condition below yields to it.
+  -->
+  <ItemGroup Condition="'$(IsPackable)' != 'false'">
+    <PackageReference Include="MinVer" Version="8.0.0" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Sbom.Targets" Version="4.1.5" PrivateAssets="All" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(GenerateSBOM)' == ''">
+    <GenerateSBOM>false</GenerateSBOM>
+  </PropertyGroup>
+
+  <!--
+    Corrects the metadata Microsoft.Sbom.Targets would otherwise record.
+
+      * MinVer computes the version inside a target, so at evaluation $(Version) is still unset and
+        the SBOM would name a version that does not exist. By the time GenerateSbomTarget runs
+        (after Pack) $(PackageVersion) is right.
+
+      * The default component path is the project directory, and because every packable project
+        sets GeneratePackageOnBuild, bin/ already holds this package's own .nupkg by the time pack
+        runs - so the package would list itself as a dependency. obj/ keeps the scan on
+        project.assets.json, the resolved dependency graph.
+
+    The namespace is based on the repository rather than the tool's spdx.org default, so a manifest
+    is traceable to where it was produced.
+  -->
+  <Target Name="SetSbomMetadataFromVersion" BeforeTargets="GenerateSbomTarget">
+    <PropertyGroup>
+      <SbomGenerationPackageVersion>$(PackageVersion)</SbomGenerationPackageVersion>
+      <SbomGenerationBuildComponentPath>$(MSBuildProjectDirectory)/obj</SbomGenerationBuildComponentPath>
+      <SbomGenerationNamespaceBaseUri>$(RepositoryUrl)/spdx</SbomGenerationNamespaceBaseUri>
+    </PropertyGroup>
+  </Target>
+
+</Project>

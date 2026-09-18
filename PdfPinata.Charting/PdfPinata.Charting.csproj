@@ -15,7 +15,6 @@
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/PinataLabs/PdfPinata</PackageProjectUrl>
     <RepositoryUrl>https://github.com/PinataLabs/PdfPinata</RepositoryUrl>
-    <PackageReleaseNotes>PdfPinata.Charting was ported from PdfSharp</PackageReleaseNotes>
     <summary>PdfPinata.Charting for .NET Core</summary>
     <IsTrimmable>true</IsTrimmable>
     <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
