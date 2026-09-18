@@ -1,4 +1,4 @@
-﻿#region PDFsharp Charting - A .NET charting library based on PDFsharp
+﻿#region Copyright
 //
 // Authors:
 //   Niklas Schneider (mailto:Niklas.Schneider@PdfPinata.com)
