@@ -3,6 +3,7 @@
 [![NuGet Version](https://img.shields.io/nuget/v/PdfPinata.svg)](https://www.nuget.org/packages/PdfPinata/)
 [![CI](https://github.com/PinataLabs/PdfPinata/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/PinataLabs/PdfPinata/actions/workflows/build-and-test.yml)
 [![codecov](https://codecov.io/gh/PinataLabs/PdfPinata/graph/badge.svg)](https://codecov.io/gh/PinataLabs/PdfPinata)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=PinataLabs_PdfPinata&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=PinataLabs_PdfPinata)
 
 **PdfPinata** is a partial port of [PdfSharp.Xamarin](https://github.com/roceh/PdfSharp.Xamarin/) for .NET Standard.
 Additionally, MigraDoc has been ported as well (from version 1.32).
