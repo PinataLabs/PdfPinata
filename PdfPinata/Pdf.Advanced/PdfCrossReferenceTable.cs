@@ -310,10 +310,7 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
                     if (item is PdfReference iref)
                     {
                         if (!ReferenceEquals(iref.Document, _document))
-                        {
-                            GetType();
                             Debug.WriteLine(String.Format("Bad iref: {0}", iref.ObjectID.ToString()));
-                        }
 
                         Debug.Assert(ReferenceEquals(iref.Document, _document) || iref.Document == null,
                             "External object detected!");

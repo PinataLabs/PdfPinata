@@ -1070,12 +1070,6 @@ internal sealed class Parser
             Debug.Assert(objectStreamStream.Reference.Value != null, "Something went wrong.");
         }
 
-        Debug.Assert(objectStreamStream != null);
-
-
-        //PdfObjectStream objectStreamStream = (PdfObjectStream)iref.Value;
-        if (objectStreamStream == null)
-            throw new Exception("Something went wrong here.");
         objectStreamStream.ReadReferences(_document._irefTable);
     }
 
@@ -1124,12 +1118,6 @@ internal sealed class Parser
             Debug.Assert(objectStreamStream.Reference.Value != null, "Something went wrong.");
         }
 
-        Debug.Assert(objectStreamStream != null);
-
-
-        //PdfObjectStream objectStreamStream = (PdfObjectStream)iref.Value;
-        if (objectStreamStream == null)
-            throw new Exception("Something went wrong here.");
         return objectStreamStream.ReadCompressedObject(index);
     }
 
@@ -1464,8 +1452,6 @@ internal sealed class Parser
         Debug.Assert(w.Elements.Count == 3);
         int[] wsize = { w.Elements.GetInteger(0), w.Elements.GetInteger(1), w.Elements.GetInteger(2) };
         int wsum = StreamHelper.WSize(wsize);
-        if (wsum * subsectionEntryCount != bytes.Length)
-            GetType();
         Debug.Assert(wsum * subsectionEntryCount == bytes.Length, "Check implementation here.");
         int testcount = subsections[0][1];
         int[] currentSubsection = subsections[0];

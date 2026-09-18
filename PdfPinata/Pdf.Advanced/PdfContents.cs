@@ -60,8 +60,9 @@ public sealed class PdfContents : PdfArray
             PdfReference iref = item as PdfReference;
             if (iref != null && iref.Value is PdfDictionary)
             {
-                // The following line is correct!
-                new PdfContent((PdfDictionary)iref.Value);
+                // Called for its side effect: the constructor replaces the dictionary behind the
+                // reference with the PdfContent it builds.
+                _ = new PdfContent((PdfDictionary)iref.Value);
             }
             else
                 throw new InvalidOperationException("Unexpected item in a content stream array.");

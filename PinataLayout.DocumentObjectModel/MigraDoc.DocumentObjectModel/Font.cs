@@ -361,9 +361,6 @@ public sealed partial class Font : DocumentObject
                 (font != null && name != null && Name != String.Empty && Name != font.Name))
                 serializer.WriteSimpleAttribute("Name", Name);
 
-            // Test
-            if (!size.IsNull && Size != 0 && Size.Point == 0)
-                GetType();
             if (!size.IsNull &&
                 (font == null || Size != font.Size))
                 serializer.WriteSimpleAttribute("Size", Size);

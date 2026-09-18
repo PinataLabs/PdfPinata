@@ -263,11 +263,7 @@ public partial class Cell : DocumentObject, IVisitable
         get
         {
             if (borders == null)
-            {
-                if (Document == null) // BUG CMYK
-                    GetType();
                 borders = new Borders(this);
-            }
             return borders;
         }
         set

@@ -508,11 +508,12 @@ public abstract class PdfAcroField : PdfDictionary
     /// </summary>
     public sealed class PdfAcroFieldCollection : PdfArray
     {
-        PdfAcroFieldCollection(PdfArray array)
+        // Made by reflection, by the dictionary that holds the array, so neither is public.
+        internal PdfAcroFieldCollection(PdfArray array)
             : base(array)
         { }
 
-        PdfAcroFieldCollection(PdfDocument document)
+        internal PdfAcroFieldCollection(PdfDocument document)
             : base(document)
         { }
 

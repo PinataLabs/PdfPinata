@@ -599,16 +599,7 @@ internal class PdfWriter
                 break;
 
             case CharCat.Character:
-                if (_layout == PdfWriterLayout.Verbose)
-                {
-                    //if (cat == CharCat.Character || ch == '/')
-                    _stream.WriteByte((byte)' ');
-                }
-                else
-                {
-                    //if (cat == CharCat.Character)
-                    _stream.WriteByte((byte)' ');
-                }
+                _stream.WriteByte((byte)' ');
                 break;
         }
     }

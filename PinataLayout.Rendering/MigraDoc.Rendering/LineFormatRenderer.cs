@@ -52,7 +52,7 @@ internal class LineFormatRenderer
     if (lineFormat != null && !lineFormat.Color.IsEmpty)
       clr = lineFormat.Color;
 
-    return ColorHelper.ToXColor(clr, lineFormat.Document.UseCmykColor);
+    return ColorHelper.ToXColor(clr, lineFormat?.Document?.UseCmykColor ?? false);
   }
 
   internal XUnit GetWidth()

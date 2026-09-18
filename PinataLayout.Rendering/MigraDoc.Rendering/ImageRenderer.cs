@@ -298,12 +298,13 @@ internal class ImageRenderer : ShapeRenderer
                         resultWidth = inherentWidth;
                     }
 
-                    if (scaleHeightSet || scaleHeightSet && scaleWidthSet && scaleHeight < scaleWidth)
+                    // With the ratio locked, a scale height wins over a scale width whenever both are set.
+                    if (scaleHeightSet)
                     {
                         resultHeight = resultHeight * scaleHeight;
                         resultWidth = resultWidth * scaleHeight;
                     }
-                    else if (scaleWidthSet || scaleHeightSet && scaleWidthSet && scaleHeight > scaleWidth)
+                    else if (scaleWidthSet)
                     {
                         resultHeight = resultHeight * scaleWidth;
                         resultWidth = resultWidth * scaleWidth;

@@ -154,11 +154,7 @@ public class Lexer
                 return _symbol = ScanNumber();
         }
         if (char.IsDigit(ch))
-
-            if (PeekReference())
-                return _symbol = ScanNumber();
-            else
-                return _symbol = ScanNumber();
+            return _symbol = ScanNumber();
 
         if (char.IsLetter(ch))
             return _symbol = ScanKeyword();
@@ -699,54 +695,6 @@ public class Lexer
     //{
     //    _token.Length = 0;
     //}
-
-    bool PeekReference()
-    {
-        // A Reference has the form "nnn mmm R". The implementation of the the parser used a
-        // reduce/shift algorithm in the first place. But this case is the only one we need to
-        // look ahead 3 tokens. 
-        var positon = Position;
-
-        // Skip digits.
-        while (char.IsDigit(_currChar))
-            ScanNextChar(true);
-
-        // Space expected.
-        if (_currChar != Chars.SP)
-            goto False;
-
-        // Skip spaces.
-        while (_currChar == Chars.SP)
-            ScanNextChar(true);
-
-        // Digit expected.
-        if (!char.IsDigit(_currChar))
-            goto False;
-
-        // Skip digits.
-        while (char.IsDigit(_currChar))
-            ScanNextChar(true);
-
-        // Space expected.
-        if (_currChar != Chars.SP)
-            goto False;
-
-        // Skip spaces.
-        while (_currChar == Chars.SP)
-            ScanNextChar(true);
-
-        // "R" expected.
-        // We can ignore _nextChar because there is no other valid token that starts with an 'R'.
-        if (_currChar != 'R')
-            goto False;
-
-        Position = positon;
-        return true;
-
-        False:
-        Position = positon;
-        return false;
-    }
 
     /// <summary>
     /// Appends current character to the token and reads next one.
