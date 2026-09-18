@@ -1,4 +1,4 @@
-#region PDFsharp - A .NET library for processing PDF
+#region Copyright
 //
 // Authors:
 //   David Stephensen
