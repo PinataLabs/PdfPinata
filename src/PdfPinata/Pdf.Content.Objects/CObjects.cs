@@ -149,11 +149,11 @@ public class CSequence : CObject, IList<CObject> // , ICollection<CObject>, IEnu
     /// </summary>
     protected override CObject Copy()
     {
-        CObject obj = base.Copy();
-        _items = new List<CObject>(_items);
+        var copy = (CSequence)base.Copy();
+        copy._items = new List<CObject>(_items.Count);
         for (int idx = 0; idx < _items.Count; idx++)
-            _items[idx] = _items[idx].Clone();
-        return obj;
+            copy._items.Add(_items[idx].Clone());
+        return copy;
     }
 
     /// <summary>

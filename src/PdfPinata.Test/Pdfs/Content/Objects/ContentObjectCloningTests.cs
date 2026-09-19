@@ -164,6 +164,45 @@ public class ContentObjectCloningTests
     }
 
     [Fact]
+    public void CloningASequenceLeavesTheOriginalHoldingItsOwnItems()
+    {
+        var first = new CInteger { Value = 1 };
+        var second = new CName("/F1");
+        var original = new CSequence { first, second };
+
+        CSequence clone = original.Clone();
+
+        // The copies go into the clone. They used to go into the original, which was left
+        // holding copies of what it had been given while the clone held the items themselves.
+        original[0].Should().BeSameAs(first);
+        original[1].Should().BeSameAs(second);
+        clone[0].Should().NotBeSameAs(first).And.BeOfType<CInteger>().Which.Value.Should().Be(1);
+        clone[1].Should().NotBeSameAs(second).And.BeOfType<CName>().Which.Name.Should().Be("/F1");
+
+        ((CInteger)clone[0]).Value = 2;
+        ((CName)clone[1]).Name = "/F2";
+        first.Value.Should().Be(1);
+        second.Name.Should().Be("/F1");
+    }
+
+    [Fact]
+    public void CloningAnArrayLeavesTheOriginalHoldingItsOwnItems()
+    {
+        var shown = new CString { Value = "A" };
+        var original = new CArray { shown, new CInteger { Value = -250 } };
+
+        CArray clone = original.Clone();
+
+        original[0].Should().BeSameAs(shown);
+        clone[0].Should().NotBeSameAs(shown);
+
+        ((CString)clone[0]).Value = "B";
+        shown.Value.Should().Be("A");
+        original.ToString().Should().Be("[(A)-250]");
+        clone.ToString().Should().Be("[(B)-250]");
+    }
+
+    [Fact]
     public void AnArrayCloneIsAnArrayAndKeepsItsBrackets()
     {
         var show = (COperator)Read("[(A) -250 (B)] TJ")[0];
