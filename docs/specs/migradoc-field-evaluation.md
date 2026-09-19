@@ -29,7 +29,7 @@ string.
 proposal called for: `DisplayPageNumber` and `SectionNumber` as non-nullable `int`, `NumberOfPages`
 and `PagesInSection` as `int?`, `PrintDate` as `DateTime`, and `ResolveBookmarkPage` as a
 `Func<string, int?>` rather than exposing `FieldInfos`'s bookmark dictionary. `FieldInfos` gains
-`ToEvaluationContext()` (`src/PinataLayout.Rendering/MigraDoc.Rendering/FieldInfos.cs:102-121`), which
+`ToEvaluationContext()` (`src/PinataLayout.Rendering/FieldInfos.cs:102-121`), which
 does the translation the proposal described — including turning a count of `0` (this class's way of
 saying "not known yet") into `null`, which is what lets `FieldEvaluationContext` use `int?` honestly
 rather than smuggling a sentinel value across the boundary.

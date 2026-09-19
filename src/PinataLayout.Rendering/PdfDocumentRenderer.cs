@@ -34,7 +34,7 @@ using System.IO;
 using PinataLayout.DocumentObjectModel;
 using PdfPinata.Pdf;
 using PdfPinata.Drawing;
-using PinataLayout.Rendering.MigraDoc.Rendering.Resources;
+using PinataLayout.Rendering.Resources;
 
 using PdfPinata;
 

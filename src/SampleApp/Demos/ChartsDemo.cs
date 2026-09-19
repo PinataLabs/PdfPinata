@@ -193,7 +193,7 @@ internal sealed class ChartsDemo : PdfDemo
         // ----- page 4: the same engine, reached through MigraDoc -----
 
         // MigraDoc holds a chart of its own in the document object model and maps it onto the
-        // charting engine above at render time - MigraDoc.Rendering.ChartMapper does the copying.
+        // charting engine above at render time - PinataLayout.Rendering.ChartMapper does the copying.
         // The difference is not the picture, it is who decides where the chart goes: here the
         // renderer places it in the flow, where above the caller passed a rectangle.
         Document report = new Document();

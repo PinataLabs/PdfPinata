@@ -32,7 +32,7 @@ using System;
 using System.Diagnostics;
 using PdfPinata.Drawing;
 using PinataLayout.DocumentObjectModel.Shapes;
-using PinataLayout.Rendering.MigraDoc.Rendering.Resources;
+using PinataLayout.Rendering.Resources;
 using PdfPinata.Fonts;
 using PdfPinata.Pdf.Structure;
 
