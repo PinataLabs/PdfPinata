@@ -10,7 +10,7 @@ namespace PdfPinata.Charting.Tests;
 /// <summary>
 ///   Copying a chart, and the line format every renderer draws its strokes through.
 ///   <para>
-///   <c>Chart.DeepCopy</c> clones seven children by hand and reparents each. A child left out is
+///   <c>Chart.DeepCopy</c> clones nine children by hand and reparents each. A child left out is
 ///   shared between the copy and the original, which shows only when one of them is written to -
 ///   so every assertion here mutates the original after copying and looks at the copy.
 ///   </para>
@@ -71,10 +71,51 @@ public class ChartCloneAndLineFormatTests
         copy.XValues.Count.Should().Be(1);
     }
 
+    /// <summary>
+    ///   The legend and the chart's font are children like the other seven, and were the two the
+    ///   copy left out: docking the copy's legend moved the original's too.
+    /// </summary>
+    [Fact]
+    public void ACopiedChartHasALegendAndAFontOfItsOwn()
+    {
+        var chart = AFullyPopulatedChart();
+        chart.Legend.Docking = DockingType.Left;
+        chart.Font.Size = 10;
+
+        var copy = chart.Clone();
+        copy.Legend.Docking = DockingType.Top;
+        copy.Font.Size = 20;
+
+        copy.Legend.Should().NotBeSameAs(chart.Legend);
+        copy.Font.Should().NotBeSameAs(chart.Font);
+        chart.Legend.Docking.Should().Be(DockingType.Left);
+        chart.Font.Size.Point.Should().BeApproximately(10, 1e-4);
+    }
+
+    /// <summary>
+    ///   Every child the copy has is the copy's: none of them still names the original as its
+    ///   parent, which is what a renderer walks up through to find the chart a child belongs to.
+    /// </summary>
+    [Fact]
+    public void EveryChildOfACopiedChartNamesTheCopyAsItsParent()
+    {
+        var chart = AFullyPopulatedChart();
+        _ = chart.Legend;
+        _ = chart.Font;
+
+        var copy = chart.Clone();
+
+        new DocumentObject[]
+        {
+            copy.XAxis, copy.YAxis, copy.ZAxis, copy.SeriesCollection, copy.XValues,
+            copy.PlotArea, copy.DataLabel, copy.Legend, copy.Font,
+        }.Should().OnlyContain(child => child.Parent == copy);
+    }
+
     [Fact]
     public void ACopyOfAnEmptyChartIsStillAChart()
     {
-        // Every one of the seven clones is guarded by a null check, and a chart with nothing on
+        // Every one of the nine clones is guarded by a null check, and a chart with nothing on
         // it takes none of them.
         var copy = Charts.Empty(ChartType.Pie2D).Clone();
 
