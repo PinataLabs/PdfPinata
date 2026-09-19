@@ -1,5 +1,7 @@
 using System;
 using System.Globalization;
+using System.Reflection;
+using System.Runtime.Serialization;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using Xunit;
@@ -402,5 +404,32 @@ public class XRectTests
         IFormattable rect = new XRect(1.23456, 2.34567, 3.45678, 4.56789);
 
         rect.ToString("0.0", CultureInfo.InvariantCulture).Should().Be("1.2,2.3,3.5,4.6");
+    }
+
+    /// <summary>
+    ///   Deserialization writes the fields directly and never runs the constructors that refuse a
+    ///   negative extent, so the struct checks again once it has been read. The fields are set here
+    ///   by reflection, which is what a formatter does.
+    /// </summary>
+    [Fact]
+    public void ADeserializedRectangleWithANegativeExtentIsRefused()
+    {
+        object rect = new XRect(1, 2, 3, 4);
+        typeof(XRect).GetField("_width", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(rect, -1.0);
+
+        Action deserialized = () => ((IDeserializationCallback)rect).OnDeserialization(null);
+
+        deserialized.Should().Throw<SerializationException>();
+    }
+
+    [Fact]
+    public void ADeserializedRectangleThatAConstructorCouldHaveMadeIsAccepted()
+    {
+        foreach (XRect rect in new[] { new XRect(1, 2, 3, 4), new XRect(0, 0, 0, 0), XRect.Empty })
+        {
+            Action deserialized = () => ((IDeserializationCallback)rect).OnDeserialization(null);
+
+            deserialized.Should().NotThrow();
+        }
     }
 }
