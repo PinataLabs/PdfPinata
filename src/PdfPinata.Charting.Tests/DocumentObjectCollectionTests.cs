@@ -17,8 +17,8 @@ namespace PdfPinata.Charting.Tests;
 ///   and through a chart's <see cref="SeriesCollection"/>, the one every chart has.
 ///
 ///   Only the members the class implements are covered. Its non-generic <see cref="IList"/>
-///   members that add, insert, remove or search are declared but not implemented, and a blank -
-///   the null a series holds for a missing value - cannot yet be cloned; neither is pinned here.
+///   members that add, insert, remove or search are declared but not implemented, and are not
+///   pinned here.
 /// </remarks>
 public class DocumentObjectCollectionTests
 {
@@ -245,6 +245,77 @@ public class DocumentObjectCollectionTests
         copy.Should().BeOfType<SeriesElements>();
         copy.Should().NotBeSameAs(elements);
         copy.Cast<Point>().Select(point => point.Value).Should().Equal(1.0, 2.0);
+    }
+
+    /// <summary>
+    ///   A blank is copied as what it is - a null in the same place - rather than dereferenced,
+    ///   so the values after it keep their indices in the copy as they do in the original.
+    /// </summary>
+    [Fact]
+    public void ACloneKeepsABlankWhereItWas()
+    {
+        var elements = new XSeriesElements();
+        var a = elements.Add("A");
+        elements.AddBlank();
+        var c = elements.Add("C");
+
+        var copy = elements.Clone();
+
+        copy.Count.Should().Be(3);
+        copy[1].Should().BeNull();
+        copy[0].Should().BeOfType<XValue>().And.NotBeSameAs(a);
+        copy[2].Should().BeOfType<XValue>().And.NotBeSameAs(c);
+    }
+
+    /// <summary>
+    ///   And for a series' points, whose values can be read back: the ones either side of the
+    ///   blank are copied as they were.
+    /// </summary>
+    [Fact]
+    public void ACloneOfASeriesKeepsABlankBetweenItsValues()
+    {
+        var series = new Series();
+        series.Add(1.0);
+        series.AddBlank();
+        series.Add(3.0);
+
+        var copy = series.Elements.Clone();
+
+        copy.Cast<Point>().Select(point => point?.Value).Should().Equal(1.0, null, 3.0);
+    }
+
+    /// <summary>
+    ///   The same through a chart, which is how a caller meets it: a series holding a blank, and
+    ///   the chart it belongs to copied whole.
+    /// </summary>
+    [Fact]
+    public void AChartWhoseSeriesHoldsABlankCanStillBeCloned()
+    {
+        var chart = Charts.Of(ChartType.Line, 1.0, 2.0);
+        chart.SeriesCollection[0].AddBlank();
+        chart.SeriesCollection[0].Add(4.0);
+
+        var copy = chart.Clone();
+
+        var points = copy.SeriesCollection[0].Elements;
+        points.Count.Should().Be(4);
+        points[2].Should().BeNull();
+        points[3].Value.Should().Be(4.0);
+    }
+
+    /// <summary>
+    ///   A copied element belongs to the copy, as an added one belongs to the collection it was
+    ///   added to - not to nothing, and not to the collection it was copied from.
+    /// </summary>
+    [Fact]
+    public void ACloneIsTheParentOfEveryElementItCopied()
+    {
+        var elements = new XSeriesElements();
+        elements.Add("A", "B");
+
+        var copy = elements.Clone();
+
+        copy.Cast<XValue>().Should().OnlyContain(value => value.Parent == copy);
     }
 
     [Fact]

@@ -82,7 +82,18 @@ public abstract class DocumentObjectCollection : DocumentObject, IList
     int count = Count;
     coll.elements = new ArrayList(count);
     for (int index = 0; index < count; ++index)
-      coll.elements.Add(this[index].Clone());
+    {
+      // A blank is a null, and is copied as one.
+      DocumentObject element = this[index];
+      if (element == null)
+      {
+        coll.elements.Add(null);
+        continue;
+      }
+      DocumentObject copy = (DocumentObject)element.Clone();
+      copy.parent = coll;
+      coll.elements.Add(copy);
+    }
     return coll;
   }
 
