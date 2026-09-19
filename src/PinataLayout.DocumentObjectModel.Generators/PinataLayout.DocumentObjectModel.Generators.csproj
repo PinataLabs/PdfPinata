@@ -16,7 +16,7 @@
   <ItemGroup>
     <!-- Pinned low deliberately. The referenced Roslyn version sets the minimum SDK that can build
          the repo, and nothing here needs more than ForAttributeWithMetadataName, which is 4.3+. -->
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.9.0" PrivateAssets="all" />
   </ItemGroup>
 
 </Project>

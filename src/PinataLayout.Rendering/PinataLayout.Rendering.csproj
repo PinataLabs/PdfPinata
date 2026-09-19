@@ -41,4 +41,8 @@ PinataLayout.Rendering was ported from MigraDoc version 1.32</Description>
     <None Include="..\..\README.md" Pack="true" PackagePath="" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Update="Microsoft.Sbom.Targets" Version="4.1.12" />
+  </ItemGroup>
+
 </Project>

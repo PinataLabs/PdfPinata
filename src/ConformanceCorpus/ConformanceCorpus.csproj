@@ -27,9 +27,9 @@
     runner alike. All three so that neither has to think about it.
   -->
   <ItemGroup>
-    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.150.1" />
-    <PackageReference Include="SkiaSharp.NativeAssets.macOS" Version="4.150.1" />
-    <PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="4.150.1" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.152.1" />
+    <PackageReference Include="SkiaSharp.NativeAssets.macOS" Version="4.152.1" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="4.152.1" />
   </ItemGroup>
 
   <!--

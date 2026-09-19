@@ -61,6 +61,7 @@ PdfPinata is a partial port of PdfSharp.Xamarin for .NET Core Additionally Migra
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="SharpZipLib" Version="1.4.2" />
+    <PackageReference Update="Microsoft.Sbom.Targets" Version="4.1.12" />
   </ItemGroup>
 
   <ItemGroup>
