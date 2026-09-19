@@ -220,7 +220,7 @@ always have generated code for.
 | file | line |
 |---|---|
 | `src/PinataLayout.DocumentObjectModel/Paragraph.cs` | 608 |
-| `PinataLayout.DocumentObjectModel.Visitors/PdfFlattenVisitor.cs` | 92 |
+| `Visitors/PdfFlattenVisitor.cs` | 92 |
 | `src/PinataLayout.Rendering/FormattedCell.cs` | 172 |
 | `src/PinataLayout.Rendering/FormattedDocument.cs` | 254 |
 | `src/PinataLayout.Rendering/FormattedHeaderFooter.cs` | 88 |

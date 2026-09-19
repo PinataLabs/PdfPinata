@@ -38,9 +38,9 @@ Grouped by what the migration costs, not by where the code lives.
 | file | member | holds | becomes |
 |---|---|---|---|
 | `src/PinataLayout.DocumentObjectModel/DocumentObjectCollection.cs:262` | `elements` | `DocumentObject` | `List<DocumentObject>` |
-| `PinataLayout.DocumentObjectModel.IO/DdlReaderErrors.cs:70` | `errors` | `DdlReaderError` | `List<DdlReaderError>` |
+| `IO/DdlReaderErrors.cs:70` | `errors` | `DdlReaderError` | `List<DdlReaderError>` |
 | `src/PinataLayout.DocumentObjectModel/Paragraph.cs:580` | `paragraphs` (local) | `Paragraph` | `List<Paragraph>` |
-| `PinataLayout.DocumentObjectModel.Visitors/PdfFlattenVisitor.cs:82` | `textIndices` (local) | boxed `int` | `List<int>` |
+| `Visitors/PdfFlattenVisitor.cs:82` | `textIndices` (local) | boxed `int` | `List<int>` |
 | `src/PinataLayout.Rendering/FormattedCell.cs:184` and four siblings | `renderInfos` | `RenderInfo` | `List<RenderInfo>` |
 | `src/PinataLayout.Rendering/TopDownFormatter.cs:83,239,255` | `renderInfos` | `RenderInfo` | `List<RenderInfo>` |
 | `src/PinataLayout.Rendering/ParagraphFormatInfo.cs:74` | `lineInfos` | `LineInfo` (**struct**) | `List<LineInfo>` |
@@ -55,7 +55,7 @@ Grouped by what the migration costs, not by where the code lives.
 
 | file | member | key → value | becomes |
 |---|---|---|---|
-| `PinataLayout.DocumentObjectModel.IO/Symbols.cs:232-233` | `enumToName`, `nameToEnum` | `Symbol` ↔ `string` | `Dictionary<Symbol, string>`, `Dictionary<string, Symbol>` |
+| `IO/Symbols.cs:232-233` | `enumToName`, `nameToEnum` | `Symbol` ↔ `string` | `Dictionary<Symbol, string>`, `Dictionary<string, Symbol>` |
 | `src/PinataLayout.DocumentObjectModel/Styles.cs:414` | `visitedStyles` | `Style` → `null` | **`HashSet<Style>`** — it is a set, not a map |
 | `src/PinataLayout.Rendering/DocumentRenderer.cs:347` | `previousListNumbers` | `ListType` → `int` | `Dictionary<ListType, int>` |
 | `src/PinataLayout.Rendering/ParagraphFormatInfo.cs:168` | `imageRenderInfos` | `Image` → `RenderInfo` | `Dictionary<Image, RenderInfo>` |

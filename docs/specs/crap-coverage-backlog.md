@@ -531,7 +531,7 @@ These are from `CLAUDE.md` and they constrain the batches below more than the co
 
 | # | target | where | retires | status |
 |---|---|---|---|---|
-| 0.1 | `Font.ApplyFont(Font, Font)` | `src/PinataLayout.DocumentObjectModel/PinataLayout.DocumentObjectModel/Font.cs:85` | 3,136 | **deleted** |
+| 0.1 | `Font.ApplyFont(Font, Font)` | `src/PinataLayout.DocumentObjectModel/Font.cs:85` | 3,136 | **deleted** |
 
 The highest CRAP score in the tree, and **nothing calls it**. The overload is `internal`, and the
 one call to `ApplyFont` anywhere in the repository is `ParagraphElements.cs:219`, which calls the
@@ -1645,7 +1645,7 @@ does not mistake them for work.
 
 | target | CC | cov |
 |---|---|---|
-| `PageSizeConverter.ToSize(PageSize)` — `root/PageSizeConverter.cs:44` | 123 | 100% |
+| `PageSizeConverter.ToSize(PageSize)` — `src/PdfPinata/PageSizeConverter.cs:44` | 123 | 100% |
 | `AnsiEncoding.IsAnsi1252Char(char)` — `Pdf.Internal/AnsiEncoding.cs:104` | 78 | 100% |
 | `AnsiEncoding.UnicodeToAnsi(char)` — `Pdf.Internal/AnsiEncoding.cs:151` | 78 | 100% |
 | `Filtering.GetFilter(string)` — `Pdf.Filters/Filtering.cs:44` | 78 | 100% |

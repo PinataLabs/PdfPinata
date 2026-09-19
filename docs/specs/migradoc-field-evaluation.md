@@ -2,7 +2,7 @@
 
 `FieldEvaluator` and `FieldEvaluationContext` landed in `PinataLayout.DocumentObjectModel`, exactly
 where the proposal put them, next to the field types under
-`PinataLayout.DocumentObjectModel.Fields/`. `NumberFormatter` moved with them, git recording it as a
+`Fields/`. `NumberFormatter` moved with them, git recording it as a
 72%-similar rename rather than a delete-and-recreate. `ParagraphRenderer.GetFieldValue` is a caller
 now, not an owner, and the `IsRenderedField` bug the proposal flagged — `docObj is DocumentInfo`
 where every call site passes a paragraph leaf, so the `InfoField` that actually appears there was
@@ -13,7 +13,7 @@ commit.
 
 ## What shipped
 
-`FieldEvaluator` (`src/PinataLayout.DocumentObjectModel/PinataLayout.DocumentObjectModel.Fields/FieldEvaluator.cs`)
+`FieldEvaluator` (`src/PinataLayout.DocumentObjectModel/Fields/FieldEvaluator.cs`)
 is a static class with two members: `IsField(DocumentObject)`, which replaces `IsRenderedField`, and
 `Evaluate(DocumentObject field, FieldEvaluationContext context)`, which replaces the three private
 methods that used to do this work — `GetFieldValue`, `IsRenderedField`, and `GetDocumentInfo` — inside
@@ -111,13 +111,13 @@ through, but the fields themselves turned out to want nothing beyond a lookup an
 
 ## `NumberFormatter`: what moved, and what it picked up along the way
 
-`NumberFormatter.cs` moved to `src/PinataLayout.DocumentObjectModel/PinataLayout.DocumentObjectModel.Fields/`
+`NumberFormatter.cs` moved to `src/PinataLayout.DocumentObjectModel/Fields/`
 unchanged in its numeral logic, exactly as proposed, and is public for the first time — it always
 needed to be, once `FieldEvaluator` calls it from outside `Rendering`, and `FootnoteNumbering.cs` and
 the list-symbol path in `ParagraphRenderer.cs` (`symbol = NumberFormatter.Format(...)` at line 1914)
 now call it across the assembly boundary rather than within it. Its two overflow-warning strings
 moved from `MigraDoc.Rendering.Resources/AppResources.resx` to
-`PinataLayout.DocumentObjectModel.Resources/AppResources.resx`, reached through `DomSR.NumberTooLargeForRoman`
+`Resources/AppResources.resx`, reached through `DomSR.NumberTooLargeForRoman`
 / `NumberTooLargeForLetters` rather than the renderer's own `AppResources`, matching the proposal's
 "same hand-written resource class `InvalidFieldFormat` already uses" plan precisely.
 
