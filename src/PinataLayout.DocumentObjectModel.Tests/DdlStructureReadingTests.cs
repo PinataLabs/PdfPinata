@@ -120,7 +120,7 @@ public class DdlStructureReadingTests
         // accepts at the top.
         var act = () => DdlReader.ObjectFromString("\\cell{stray}", new DdlReaderErrors());
 
-        act.Should().Throw<Exception>();
+        act.Should().Throw<Exception>().WithMessage("Unexpected symbol '\\cell'.");
     }
 
     // ----- styles -------------------------------------------------------------------------------

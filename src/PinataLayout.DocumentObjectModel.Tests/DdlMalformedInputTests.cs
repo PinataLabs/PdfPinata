@@ -105,7 +105,7 @@ public class DdlMalformedInputTests
     {
         var (document, errors) = await ReadDespite("\\document{\\section{\\barcode \"12345\"}}");
 
-        errors.Should().ContainSingle().Which.ErrorMessage.Should().StartWith("Missing left parenthesis");
+        errors.Should().ContainSingle().Which.ErrorMessage.Should().Be("Missing left parenthesis after '\\barcode'.");
         document.LastSection.Elements.OfType<Barcode>().Should().BeEmpty(
             "the barcode is not created until its code has been read");
     }
@@ -115,7 +115,7 @@ public class DdlMalformedInputTests
     {
         var (document, errors) = await ReadDespite("\\document{\\section{\\barcode(\"12345\" x)}}");
 
-        errors.Should().ContainSingle().Which.ErrorMessage.Should().StartWith("Missing right parenthesis");
+        errors.Should().ContainSingle().Which.ErrorMessage.Should().Be("Missing right parenthesis after '\\barcode'.");
         document.LastSection.Elements.OfType<Barcode>().Single().Code.Should().Be("12345");
     }
 
@@ -129,6 +129,17 @@ public class DdlMalformedInputTests
 
         errors.Should().ContainSingle().Which.ErrorMessage.Should().Be("'NoSuchType' 'type'.");
         document.Sections[0].Elements.OfType<Barcode>().Single().Code.Should().Be("12345");
+        document.Sections.Count.Should().Be(2);
+        TextOf(document.Sections[1].Elements[0] as Paragraph).Should().Be("second");
+    }
+
+    [Fact(Timeout = Patience)]
+    public async Task ABarcodeWhoseCodeIsNotAStringNamesWhatWasThere()
+    {
+        var (document, errors) = await ReadDespite(
+            "\\document{\\section{\\barcode(12345)}\\section{\\paragraph{second}}}");
+
+        errors.Should().ContainSingle().Which.ErrorMessage.Should().Be("Unexpected symbol '12345'.");
         document.Sections.Count.Should().Be(2);
         TextOf(document.Sections[1].Elements[0] as Paragraph).Should().Be("second");
     }
@@ -194,13 +205,13 @@ public class DdlMalformedInputTests
     }
 
     [Theory(Timeout = Patience)]
-    [InlineData("\\symbol(Tab)", "a tab is a symbol name, but not one \\symbol draws")]
-    [InlineData("\\space(Euro)", "the euro is a symbol, not a kind of space")]
-    [InlineData("\\space(Nope)", "and this is not a name at all")]
-    [InlineData("\\space(em)", "the names are case sensitive here, where an enum attribute's are not")]
-    public async Task ASymbolOrSpaceOfTheWrongKindIsRefused(string paragraphBody, string why)
+    [InlineData("\\symbol(Tab)", "Symbol not valid 'Tab'.", "a tab is a symbol name, but not one \\symbol draws")]
+    [InlineData("\\space(Euro)", "'Euro' '\\space'.", "the euro is a symbol, not a kind of space")]
+    [InlineData("\\space(Nope)", "'Nope' '\\space'.", "and this is not a name at all")]
+    [InlineData("\\space(em)", "'em' '\\space'.", "the names are case sensitive here, where an enum attribute's are not")]
+    public async Task ASymbolOrSpaceOfTheWrongKindIsRefused(string paragraphBody, string complaint, string why)
     {
-        (await ComplaintsAboutParagraph(paragraphBody)).Should().NotBeEmpty(why);
+        (await ComplaintsAboutParagraph(paragraphBody)).First().Should().Be(complaint, why);
     }
 
     // ----- numbers in paragraph content ------------------------------------------------------------------
@@ -299,22 +310,34 @@ public class DdlMalformedInputTests
     }
 
     [Theory(Timeout = Patience)]
-    [InlineData("\\series 1, 2")]
-    [InlineData("\\xvalues \"a\"")]
-    [InlineData("\\series{\\point 4}")]
-    public async Task ASeriesOrPointWithNoOpeningBraceIsReportedAndTheSectionIsStillRead(string chartBody)
+    [InlineData("\\series 1, 2", "Missing left brace after '\\series'.")]
+    [InlineData("\\xvalues \"a\"", "Missing left brace after '\\xvalues'.")]
+    [InlineData("\\series{\\point 4}", "Missing left brace after '\\point'.")]
+    public async Task ASeriesOrPointWithNoOpeningBraceIsReportedAndTheSectionIsStillRead(
+        string chartBody, string complaint)
     {
         var (document, errors) = await ReadDespite(
             "\\document{\\section{\\chart(Line){" + chartBody + "}\\paragraph{after}}}");
 
-        errors.Should().ContainSingle().Which.ErrorMessage.Should().StartWith("Missing left brace");
+        errors.Should().ContainSingle().Which.ErrorMessage.Should().Be(complaint);
         TextOf(document.LastSection.Elements.OfType<Paragraph>().Single()).Should().Be("after");
     }
 
     [Fact(Timeout = Patience)]
     public async Task APointHoldingMoreThanOneNumberIsReported()
     {
-        (await ComplaintsAboutChart("\\series{\\point{4 5}}")).First().Should().StartWith("Missing right brace");
+        (await ComplaintsAboutChart("\\series{\\point{4 5}}")).First()
+            .Should().Be("Missing right brace after '\\point'.");
+    }
+
+    [Fact(Timeout = Patience)]
+    public async Task AChartWithNoOpeningParenthesisIsReportedAndTheSectionIsStillRead()
+    {
+        var (document, errors) = await ReadDespite(
+            "\\document{\\section{\\chart Line{}}\\section{\\paragraph{second}}}");
+
+        errors.Should().ContainSingle().Which.ErrorMessage.Should().Be("Missing left parenthesis after '\\chart'.");
+        TextOf(document.Sections[1].Elements[0] as Paragraph).Should().Be("second");
     }
 
     // ----- attribute statements ---------------------------------------------------------------------------
@@ -380,6 +403,7 @@ public class DdlMalformedInputTests
     [InlineData("NoSuch{Size = 3}", "Invalid value name: 'NoSuch'.")]
     [InlineData("Font{Color = \"Red\"}", "ParseColor(color-name)")]
     [InlineData("Font{Color = 0x1G}", "Invalid assignment to 'color'.")]
+    [InlineData("Alignment = 3", "Identifier expected: '3'.")]
     public async Task AValueOfTheWrongKindIsNamedInTheFirstComplaint(string formatBody, string complaint)
     {
         (await ComplaintsAboutParagraphFormat(formatBody)).First().Should().Contain(complaint);

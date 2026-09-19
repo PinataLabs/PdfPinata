@@ -145,7 +145,7 @@ internal class DdlParser
                 break;
 
             default:
-                ThrowParserException(DomMsgID.UnexpectedSymbol);
+                ThrowParserException(DomMsgID.UnexpectedSymbol, Token);
                 break;
         }
         ReadCode();
@@ -805,9 +805,10 @@ internal class DdlParser
                     symtype = Enum.Parse<SymbolName>(Token, true);
                 }
             }
-            catch (Exception ex) when (!Unrecoverable.Is(ex))
+            catch (Exception ex) when (ex is not DdlParserException && !Unrecoverable.Is(ex))
             {
-                ThrowParserException(ex, DomMsgID.InvalidEnum, Token);
+                // Not the parser's own error: wrapping "Symbol not valid" in this would bury it.
+                ThrowParserException(ex, DomMsgID.InvalidEnum, Token, GetSymbolText(Symbol.Symbol));
             }
         }
         else
@@ -1006,7 +1007,7 @@ internal class DdlParser
             {
                 string type = Token;
                 if (!IsSpaceType(type))
-                    ThrowParserException(DomMsgID.InvalidEnum, type);
+                    ThrowParserException(DomMsgID.InvalidEnum, type, GetSymbolText(Symbol.Space));
 
                 space.SymbolName = Enum.Parse<SymbolName>(type, true);
 
@@ -1720,7 +1721,7 @@ internal class DdlParser
         try
         {
             ReadCode();
-            AssertSymbol(Symbol.BraceLeft, DomMsgID.MissingBraceLeft, GetSymbolText(Symbol.Series));
+            AssertSymbol(Symbol.BraceLeft, DomMsgID.MissingBraceLeft, GetSymbolText(Symbol.XValues));
 
             bool fFoundComma = true;
             bool fContinue = true;
@@ -1761,7 +1762,7 @@ internal class DdlParser
                         break;
                 }
             }
-            AssertSymbol(Symbol.BraceRight, DomMsgID.MissingBraceRight, GetSymbolText(Symbol.Series));
+            AssertSymbol(Symbol.BraceRight, DomMsgID.MissingBraceRight, GetSymbolText(Symbol.XValues));
             ReadCode(); // read beyond '}'
         }
         catch (DdlParserException pe)
@@ -2498,22 +2499,27 @@ internal class DdlParser
 
     /// <summary>
     /// If current symbol is not equal symbol a DdlParserException with the specified message id
-    /// will be thrown.
+    /// will be thrown. The message's one argument is the token found in its place.
     /// </summary>
     private void AssertSymbol(Symbol symbol, DomMsgID err)
     {
         if (Symbol != symbol)
-            ThrowParserException(err, KeyWords.NameFromSymbol(symbol), Token);
+            ThrowParserException(err, Token);
     }
 
     /// <summary>
     /// If current symbol is not equal symbol a DdlParserException with the specified message id
-    /// will be thrown.
+    /// and arguments will be thrown.
     /// </summary>
+    /// <remarks>
+    /// The arguments are the message's own and nothing is put in front of them: every message
+    /// used here says in its own words what was missing - "Missing left parenthesis after
+    /// '{0}'" - and wants the keyword it follows, or the token found, as {0}.
+    /// </remarks>
     private void AssertSymbol(Symbol symbol, DomMsgID err, params object[] parms)
     {
         if (Symbol != symbol)
-            ThrowParserException(err, KeyWords.NameFromSymbol(symbol), parms);
+            ThrowParserException(err, parms);
     }
 
     /// <summary>
