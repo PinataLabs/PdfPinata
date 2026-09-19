@@ -908,7 +908,7 @@ internal class DdlParser
                 break;
 
             case "info":
-                field = elements.AddInfoField((InfoFieldType)0);
+                field = elements.AddInfoField(0);
                 break;
 
             case "sectionpages":
@@ -1890,7 +1890,7 @@ internal class DdlParser
                 val = doc.GetValue(valueName);
                 if (val == null)
                 {
-                    var documentObject = (DocumentObject)doc;
+                    var documentObject = doc;
                     val = documentObject.CreateValue(valueName);
                     doc.SetValue(valueName, val);
                 }
@@ -2316,7 +2316,7 @@ internal class DdlParser
 
         ReadCode();  // read next token
 
-        return new Color((uint)(0xFF000000 | (r << 16) | (g << 8) | b));
+        return new Color((0xFF000000 | (r << 16) | (g << 8) | b));
     }
 
     /// <summary>

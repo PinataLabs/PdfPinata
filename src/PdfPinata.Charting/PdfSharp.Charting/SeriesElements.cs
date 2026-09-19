@@ -65,7 +65,7 @@ public class SeriesElements : DocumentObjectCollection
   /// </summary>
   public void AddBlank()
   {
-    base.Add((DocumentObject)null);
+    base.Add(null);
   }
 
   /// <summary>

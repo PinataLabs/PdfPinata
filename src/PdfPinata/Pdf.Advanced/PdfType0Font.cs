@@ -189,7 +189,7 @@ internal sealed class PdfType0Font : PdfFont
         base.PrepareForSave();
 
         // Use GetGlyphIndices to create the widths array.
-        var descriptor = (OpenTypeDescriptor)FontDescriptor._descriptor;
+        var descriptor = FontDescriptor._descriptor;
         var w = new StringBuilder("[");
         if (_cmapInfo != null)
         {

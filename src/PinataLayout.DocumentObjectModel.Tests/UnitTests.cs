@@ -199,7 +199,7 @@ public class UnitTests
     [Fact]
     public void ANullStringSaysWhatWentWrongRatherThanFailingBlankly()
     {
-        var act = () => { Unit unit = (string)null; };
+        var act = () => { Unit unit = null; };
 
         act.Should().Throw<ArgumentNullException>().WithMessage("*IsEmpty*");
     }

@@ -258,10 +258,10 @@ internal class ImageRenderer : ShapeRenderer
                 double xPixels = xImage.PixelWidth;
                 var usrResolutionSet = !image.IsNull("Resolution");
 
-                var horzRes = usrResolutionSet ? (double)image.Resolution : xImage.HorizontalResolution;
+                var horzRes = usrResolutionSet ? image.Resolution : xImage.HorizontalResolution;
                 var inherentWidth = XUnit.FromInch(xPixels / horzRes);
                 double yPixels = xImage.PixelHeight;
-                var vertRes = usrResolutionSet ? (double)image.Resolution : xImage.VerticalResolution;
+                var vertRes = usrResolutionSet ? image.Resolution : xImage.VerticalResolution;
                 var inherentHeight = XUnit.FromInch(yPixels / vertRes);
 
                 var lockRatio = image.IsNull("LockAspectRatio") ? true : image.LockAspectRatio;

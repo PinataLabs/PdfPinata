@@ -289,7 +289,7 @@ public sealed class PdfString : PdfItem
         }
         var sb = new StringBuilder(length);
         for (var idx = 0; idx < length; idx++)
-            sb.Append((char)bytes[idx]);
+            sb.Append(bytes[idx]);
         return sb.ToString();
     }
     static readonly char[] Encode =

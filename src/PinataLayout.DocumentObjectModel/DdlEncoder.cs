@@ -56,7 +56,7 @@ public sealed class DdlEncoder
       return null;
 
     var length = str.Length;
-    var strb = new StringBuilder(length + (int)(length >> 2));
+    var strb = new StringBuilder(length + (length >> 2));
     for (var index = 0; index < length; ++index)
     {
       // Don't convert characters into DDL.
@@ -104,7 +104,7 @@ public sealed class DdlEncoder
     if (str == null || (length = str.Length) == 0)
       return "\"\"";
 
-    var strb = new StringBuilder(length + (int)(length >> 2));
+    var strb = new StringBuilder(length + (length >> 2));
     strb.Append('"');
     for (var index = 0; index < length; ++index)
     {

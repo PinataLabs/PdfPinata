@@ -19,7 +19,7 @@ public class PdfStringTests
     [Fact]
     public void AStringMadeFromNullIsEmptyAndRaw()
     {
-        var text = new PdfString((string)null);
+        var text = new PdfString(null);
 
         text.Value.Should().BeEmpty();
         text.Length.Should().Be(0);

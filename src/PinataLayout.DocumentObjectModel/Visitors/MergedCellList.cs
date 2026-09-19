@@ -104,7 +104,7 @@ public class MergedCellList : List<Cell>
   /// <summary>
   /// Gets the cell at the specified position.
   /// </summary>
-  public new Cell this[int index] => base[index] as Cell;
+  public new Cell this[int index] => base[index];
 
   /// <summary>
   /// Gets a borders object that should be used for rendering.

@@ -246,7 +246,7 @@ public class Ascii85DecodeTests
     public void EncodingNothingIsNotTheSameAsEncodingNull()
     {
         Action encode = () => Filter.Encode((byte[])null);
-        Action decode = () => Filter.Decode((byte[])null, (FilterParms)null);
+        Action decode = () => Filter.Decode(null, (FilterParms)null);
 
         encode.Should().Throw<ArgumentNullException>();
         decode.Should().Throw<ArgumentNullException>();

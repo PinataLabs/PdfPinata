@@ -86,7 +86,7 @@ public class StrokedTextTests
         using var gfx = XGraphics.FromPdfPage(document.AddPage());
 
         // The same answer DrawRectangle gives to the same question.
-        gfx.Invoking(g => g.DrawString("Hello", PlainFont, (XPen)null, (XBrush)null, 20, 40))
+        gfx.Invoking(g => g.DrawString("Hello", PlainFont, null, null, 20, 40))
             .Should().Throw<ArgumentNullException>();
     }
 
@@ -96,7 +96,7 @@ public class StrokedTextTests
         var document = new PdfDocument();
         using var gfx = XGraphics.FromPdfPage(document.AddPage());
 
-        gfx.Invoking(g => g.DrawString("Hello", PlainFont, (XBrush)null, 20, 40))
+        gfx.Invoking(g => g.DrawString("Hello", PlainFont, null, 20, 40))
             .Should().Throw<ArgumentNullException>();
     }
 

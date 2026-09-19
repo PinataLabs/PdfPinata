@@ -310,7 +310,7 @@ public static class PdfTextExtractor
                 {
                     actualText = properties.Elements.TryGetString("/ActualText", out var declared)
                         ? declared : null;
-                    mcid = properties.Elements.ContainsKey("/MCID") ? properties.Elements.GetInteger("/MCID") : (int?)null;
+                    mcid = properties.Elements.ContainsKey("/MCID") ? properties.Elements.GetInteger("/MCID") : null;
                 }
             }
             else if (index > 0 && content[index - 1] is COperator prior
@@ -433,7 +433,7 @@ public static class PdfTextExtractor
                 var declaring = DeclaringScope();
                 Runs.Add(new PdfTextRun(text.ToString(), origin, advance * scale,
                     _fontSize * scale, _fontName,
-                    string.IsNullOrEmpty(innermost?.Tag) ? (PdfTag?)null : new PdfTag(innermost.Tag),
+                    string.IsNullOrEmpty(innermost?.Tag) ? null : new PdfTag(innermost.Tag),
                     declaring?.ActualText, innermost?.Mcid, declaring, IsInsideArtifact()));
             }
 

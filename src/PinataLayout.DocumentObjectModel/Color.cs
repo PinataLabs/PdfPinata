@@ -62,7 +62,7 @@ public struct Color : INullableValue
     public Color(byte r, byte g, byte b)
     {
         isCmyk = false;
-        argb = 0xFF000000 | ((uint)r << 16) | ((uint)g << 8) | (uint)b;
+        argb = 0xFF000000 | ((uint)r << 16) | ((uint)g << 8) | b;
         a = c = m = y = k = 0f; // Compiler enforces this line of code
         InitCmykFromRgb();
     }
@@ -73,7 +73,7 @@ public struct Color : INullableValue
     public Color(byte a, byte r, byte g, byte b)
     {
         isCmyk = false;
-        argb = ((uint)a << 24) | ((uint)r << 16) | ((uint)g << 8) | (uint)b;
+        argb = ((uint)a << 24) | ((uint)r << 16) | ((uint)g << 8) | b;
         this.a = c = m = y = k = 0f; // Compiler enforces this line of code
         InitCmykFromRgb();
     }
@@ -133,7 +133,7 @@ public struct Color : INullableValue
         var r = (byte)(255 - Math.Min(255f, c * factor + black));
         var g = (byte)(255 - Math.Min(255f, m * factor + black));
         var b = (byte)(255 - Math.Min(255f, y * factor + black));
-        argb = ((uint)a << 24) | ((uint)r << 16) | ((uint)g << 8) | (uint)b;
+        argb = ((uint)a << 24) | ((uint)r << 16) | ((uint)g << 8) | b;
     }
 
     /// <summary>

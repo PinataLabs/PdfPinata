@@ -137,7 +137,7 @@ public class ShownPositionTests
     /// </remarks>
     static void Repeated(PdfPage page)
     {
-        var content = page.Contents.Elements.GetDictionary(0) as PdfDictionary;
+        var content = page.Contents.Elements.GetDictionary(0);
         content.Should().NotBeNull();
 
         var stream = System.Text.Encoding.ASCII.GetString(content.Stream.UnfilteredValue);

@@ -583,7 +583,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
             _ownerPassword = _userPassword;
 
         // Correct permission bits
-        permissions |= (int)(strongEncryption ? (uint)0xfffff0c0 : (uint)0xffffffc0);
+        permissions |= (int)(strongEncryption ? 0xfffff0c0 : 0xffffffc0);
         permissions &= unchecked((int)0xfffffffc);
 
         var pValue = new PdfInteger(permissions);

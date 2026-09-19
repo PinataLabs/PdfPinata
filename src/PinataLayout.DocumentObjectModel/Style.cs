@@ -200,7 +200,7 @@ public sealed partial class Style : DocumentObject, IVisitable
             if (idxBaseStyle > 1)
             {
                 // Is this style in the base style chain of the new base style
-                var style = styles[idxBaseStyle] as Style;
+                var style = styles[idxBaseStyle];
                 while (style != null)
                 {
                     if (style == this)

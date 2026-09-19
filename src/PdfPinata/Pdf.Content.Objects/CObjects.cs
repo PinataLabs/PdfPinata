@@ -263,7 +263,7 @@ public class CSequence : CObject, IList<CObject> // , ICollection<CObject>, IEnu
     /// <value></value>
     public CObject this[int index]
     {
-        get => (CObject)_items[index];
+        get => _items[index];
         set => _items[index] = value;
     }
 

@@ -79,7 +79,7 @@ public partial class TabStops : DocumentObjectCollection
     var count = Count;
     for (var index = 0; index < count; index++)
     {
-      var tabStop = (TabStop)this[index];
+      var tabStop = this[index];
       if (Math.Abs(tabStop.Position.Point - position.Point) < TabStopPrecision)
         return tabStop;
     }
@@ -114,7 +114,7 @@ public partial class TabStops : DocumentObjectCollection
       var count = Count;
       for (var index = 0; index < count; index++)
       {
-        if (tabStop.Position.Point < ((TabStop)this[index]).Position.Point)
+        if (tabStop.Position.Point < (this[index]).Position.Point)
         {
           InsertObject(index, tabStop);
           return tabStop;
@@ -212,7 +212,7 @@ public partial class TabStops : DocumentObjectCollection
     var count = Count;
     for (var index = 0; index < count; index++)
     {
-      var tabstop = (TabStop)this[index];
+      var tabstop = this[index];
       tabstop.Serialize(serializer);
     }
   }

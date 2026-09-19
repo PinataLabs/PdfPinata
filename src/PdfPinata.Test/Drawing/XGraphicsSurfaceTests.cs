@@ -231,7 +231,7 @@ public class XGraphicsSurfaceTests
         using var gfx = OnAPage();
 
         var noPen = () => gfx.DrawLines(null, ThreePoints);
-        var noPoints = () => gfx.DrawLines(XPens.Black, (XPoint[])null);
+        var noPoints = () => gfx.DrawLines(XPens.Black, null);
         var onePoint = () => gfx.DrawLines(XPens.Black, new[] { new XPoint(1, 1) });
         var noNumbers = () => gfx.DrawLines(XPens.Black, 1, 1, null);
 
@@ -366,7 +366,7 @@ public class XGraphicsSurfaceTests
     {
         using var gfx = OnAPage();
 
-        var neither = () => gfx.DrawRectangle((XPen)null, (XBrush)null, 0, 0, 10, 10);
+        var neither = () => gfx.DrawRectangle(null, null, 0, 0, 10, 10);
 
         neither.Should().Throw<ArgumentNullException>()
             .Which.ParamName.Should().Be("pen", "a parameter name names one parameter, the pen coming first");
@@ -446,7 +446,7 @@ public class XGraphicsSurfaceTests
     {
         using var gfx = OnAPage();
 
-        var act = () => gfx.DrawEllipse((XPen)null, (XBrush)null, 0, 0, 10, 10);
+        var act = () => gfx.DrawEllipse(null, null, 0, 0, 10, 10);
 
         act.Should().Throw<ArgumentNullException>();
     }
@@ -469,10 +469,10 @@ public class XGraphicsSurfaceTests
     {
         using var gfx = OnAPage();
 
-        var noPen = () => gfx.DrawPolygon((XPen)null, ThreePoints);
-        var noBrush = () => gfx.DrawPolygon((XBrush)null, ThreePoints, XFillMode.Alternate);
+        var noPen = () => gfx.DrawPolygon(null, ThreePoints);
+        var noBrush = () => gfx.DrawPolygon(null, ThreePoints, XFillMode.Alternate);
         var neither = () => gfx.DrawPolygon(null, null, ThreePoints, XFillMode.Alternate);
-        var noPoints = () => gfx.DrawPolygon(XPens.Black, (XPoint[])null);
+        var noPoints = () => gfx.DrawPolygon(XPens.Black, null);
         var onePoint = () => gfx.DrawPolygon(XPens.Black, new[] { new XPoint(1, 1) });
 
         noPen.Should().Throw<ArgumentNullException>();
@@ -570,8 +570,8 @@ public class XGraphicsSurfaceTests
         var noPen = () => gfx.DrawPath((XPen)null, path);
         var noBrush = () => gfx.DrawPath((XBrush)null, path);
         var neither = () => gfx.DrawPath(null, null, path);
-        var noPathToStroke = () => gfx.DrawPath(XPens.Black, (XGraphicsPath)null);
-        var noPathToFill = () => gfx.DrawPath(XBrushes.Black, (XGraphicsPath)null);
+        var noPathToStroke = () => gfx.DrawPath(XPens.Black, null);
+        var noPathToFill = () => gfx.DrawPath(XBrushes.Black, null);
         var noPathAtAll = () => gfx.DrawPath(XPens.Black, XBrushes.Black, null);
 
         noPen.Should().Throw<ArgumentNullException>();
@@ -866,7 +866,7 @@ public class XGraphicsSurfaceTests
     {
         using var gfx = OnAPage();
 
-        var act = () => gfx.IntersectClip((XGraphicsPath)null);
+        var act = () => gfx.IntersectClip(null);
 
         act.Should().Throw<ArgumentNullException>();
     }

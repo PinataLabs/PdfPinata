@@ -83,7 +83,7 @@ public partial class XValues : DocumentObjectCollection
     var count = Count;
     for (var index = 0; index < count; ++index)
     {
-      var xSeries = this[index] as XSeries;
+      var xSeries = this[index];
       xSeries.Serialize(serializer);
     }
   }

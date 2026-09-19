@@ -106,13 +106,13 @@ internal class FieldInfos
         {
             DisplayPageNumber = displayPageNr,
             SectionNumber = section,
-            NumberOfPages = numPages > 0 ? numPages : (int?)null,
-            PagesInSection = sectionPages > 0 ? sectionPages : (int?)null,
+            NumberOfPages = numPages > 0 ? numPages : null,
+            PagesInSection = sectionPages > 0 ? sectionPages : null,
             PrintDate = date,
             ResolveBookmarkPage = name =>
             {
                 var shownPageNumber = GetShownPageNumber(name);
-                return shownPageNumber > 0 ? shownPageNumber : (int?)null;
+                return shownPageNumber > 0 ? shownPageNumber : null;
             }
         };
     }

@@ -104,7 +104,7 @@ public class DataLabel : DocumentObject
   /// </summary>
   public DataLabelPosition Position
   {
-    get => (DataLabelPosition)this.position;
+    get => this.position;
     set
     {
       if (!Enum.IsDefined(value))
@@ -122,7 +122,7 @@ public class DataLabel : DocumentObject
   /// </summary>
   public DataLabelType Type
   {
-    get => (DataLabelType)this.type;
+    get => this.type;
     set
     {
       if (!Enum.IsDefined(value))

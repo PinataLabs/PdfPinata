@@ -248,7 +248,7 @@ public sealed class PdfNamedDestinationTable
         // Left, top, zoom. Null leaves the reader's own choice alone, and a zoom of zero means
         // the same - the three together are what /XYZ takes.
         array.Elements.Add(PdfNull.Value);
-        array.Elements.Add(double.IsNaN(destination.Top) ? (PdfItem)PdfNull.Value : new PdfReal(destination.Top));
+        array.Elements.Add(double.IsNaN(destination.Top) ? PdfNull.Value : new PdfReal(destination.Top));
         array.Elements.Add(new PdfInteger(0));
         return array;
     }

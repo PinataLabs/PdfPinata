@@ -140,7 +140,7 @@ public class WrapStyleSerializationTests
 
     static PinataLayout.DocumentObjectModel.Shapes.TextFrame FrameIn(Document document)
     {
-        var section = document.Sections[0] as Section;
+        var section = document.Sections[0];
         return section.Elements
             .OfType<PinataLayout.DocumentObjectModel.Shapes.TextFrame>()
             .Single();

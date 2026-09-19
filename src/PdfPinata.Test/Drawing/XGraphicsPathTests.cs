@@ -614,7 +614,7 @@ public class XGraphicsPathTests
         var document = new PdfDocument();
         using var gfx = XGraphics.FromPdfPage(document.AddPage());
 
-        var act = () => gfx.DrawPath((XPen)null, (XBrush)null, path);
+        var act = () => gfx.DrawPath(null, null, path);
 
         act.Should().Throw<ArgumentNullException>();
     }

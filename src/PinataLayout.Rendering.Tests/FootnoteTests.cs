@@ -414,7 +414,7 @@ public class FootnoteTests
     static StrokedLines.Line? Separator(PdfPage page)
     {
         var rules = Rules(page);
-        return rules.Count == 0 ? (StrokedLines.Line?)null : rules[0];
+        return rules.Count == 0 ? null : rules[0];
     }
 
     /// <summary>Roughly how much body text a page holds, counted in distinct baselines above the rule.</summary>

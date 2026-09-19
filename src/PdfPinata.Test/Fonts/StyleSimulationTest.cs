@@ -129,7 +129,7 @@ public class StyleSimulationTest
     {
         return OperatorsOf(style)
             .Where(op => op.OpCode.OpCodeName == OpCodeName.Tr)
-            .Select(op => (int)((CInteger)op.Operands[0]).Value)
+            .Select(op => ((CInteger)op.Operands[0]).Value)
             .ToArray();
     }
 

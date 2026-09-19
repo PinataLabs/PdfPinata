@@ -84,7 +84,7 @@ public partial class Styles : DocumentObjectCollection, IVisitable
             var count = Count;
             for (var index = 0; index < count; ++index)
             {
-                var style = (Style)this[index];
+                var style = this[index];
                 if (String.Compare(style.Name, styleName, true) == 0)
                     return style;
             }
@@ -109,7 +109,7 @@ public partial class Styles : DocumentObjectCollection, IVisitable
         var count = Count;
         for (var index = 0; index < count; ++index)
         {
-            var style = (Style)this[index];
+            var style = this[index];
             if (String.Compare(style.Name, styleName, true) == 0)
                 return index;
         }
@@ -162,7 +162,7 @@ public partial class Styles : DocumentObjectCollection, IVisitable
         var styleIndex = GetIndex(style.BaseStyle);
 
         if (styleIndex != -1)
-            baseStyle = this[styleIndex] as Style;
+            baseStyle = this[styleIndex];
         else if (!isRootStyle)
             throw new ArgumentException(DomSR.UndefinedBaseStyle(style.BaseStyle));
 

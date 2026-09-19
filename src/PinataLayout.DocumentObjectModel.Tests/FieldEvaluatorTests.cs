@@ -24,7 +24,7 @@ public class FieldEvaluatorTests
         NumberOfPages = 3,
         PagesInSection = 2,
         PrintDate = new DateTime(2026, 8, 23, 14, 30, 0),
-        ResolveBookmarkPage = name => name == "Chapter" ? 3 : (int?)null
+        ResolveBookmarkPage = name => name == "Chapter" ? 3 : null
     };
 
     static Paragraph AParagraph() => new Document().AddSection().AddParagraph();

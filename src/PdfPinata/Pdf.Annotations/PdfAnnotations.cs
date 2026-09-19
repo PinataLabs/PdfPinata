@@ -177,7 +177,7 @@ public sealed class PdfAnnotations : PdfArray
     /// </summary>
     public override IEnumerator<PdfItem> GetEnumerator()
     {
-        return (IEnumerator<PdfItem>)new AnnotationsIterator(this);
+        return new AnnotationsIterator(this);
     }
     // THHO4STLA: AnnotationsIterator: Implementation does not work http://forum.PdfPinata.net/viewtopic.php?p=3285#p3285
     // Code using the enumerator like this will crash:

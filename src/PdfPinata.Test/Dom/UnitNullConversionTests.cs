@@ -21,7 +21,7 @@ public class UnitNullConversionTests
     [Fact]
     public void ConvertingANullStringThrowsSomethingThatExplainsItself()
     {
-        var convert = () => { Unit _ = (string)null; };
+        var convert = () => { Unit _ = null; };
 
         convert.Should().Throw<ArgumentNullException>()
             .WithMessage("*unit == null*", "the message names the mistake that usually causes this")

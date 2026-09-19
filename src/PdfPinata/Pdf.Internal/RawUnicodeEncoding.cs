@@ -66,7 +66,7 @@ internal sealed class RawUnicodeEncoding : Encoding
     {
         for (var count = byteCount; count > 0; byteIndex += 2, charIndex++, count -= 2)
         {
-            chars[charIndex] = (char)((int)(bytes[byteIndex] << 8) + (int)bytes[byteIndex + 1]);
+            chars[charIndex] = (char)((bytes[byteIndex] << 8) + bytes[byteIndex + 1]);
         }
         return byteCount;
     }
