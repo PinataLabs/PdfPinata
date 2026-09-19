@@ -125,6 +125,37 @@ public class PdfIntegerTests
         Convert.ToString(new PdfIntegerValue(-5), provider).Should().Be("~5");
     }
 
+    [Theory]
+    [InlineData("{0:D5}", "00042")]
+    [InlineData("{0:X}", "2A")]
+    [InlineData("{0}", "42")]
+    [InlineData("[{0,4}]", "[  42]")]
+    public void ItFormatsAsTheIntegerItWrapsWould(string format, string expected)
+    {
+        // IFormattable used to answer the format string itself, and so nothing at all when there
+        // was no format, as there is not in an interpolated string.
+        string.Format(CultureInfo.InvariantCulture, format, new PdfIntegerValue(42)).Should().Be(expected);
+    }
+
+    [Fact]
+    public void AnInterpolatedIntegerIsItsValue()
+    {
+        var value = new PdfIntegerValue(42);
+
+        $"{value}".Should().Be("42");
+        $"{value:N0}".Should().Be(42.ToString("N0"));
+    }
+
+    [Fact]
+    public void ItFormatsWithTheFormatProviderGiven()
+    {
+        IFormattable value = new PdfIntegerValue(-5);
+        var provider = new NumberFormatInfo { NegativeSign = "~" };
+
+        value.ToString("D3", provider).Should().Be("~005");
+        value.ToString(null, provider).Should().Be("~5");
+    }
+
     [Fact]
     public void ToTypeConvertsAsTheIntegerItWrapsWould()
     {
