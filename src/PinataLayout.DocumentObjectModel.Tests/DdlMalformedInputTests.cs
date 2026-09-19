@@ -119,6 +119,20 @@ public class DdlMalformedInputTests
         document.LastSection.Elements.OfType<Barcode>().Single().Code.Should().Be("12345");
     }
 
+    [Fact(Timeout = Patience)]
+    public async Task ABarcodeOfNoKnownTypeIsReportedAndTheNextSectionIsStillRead()
+    {
+        // Worded as an enum attribute of the wrong value is, "'value' 'attribute'.", because
+        // the type in the parentheses is the barcode's Type attribute written another way.
+        var (document, errors) = await ReadDespite(
+            "\\document{\\section{\\barcode(\"12345\", NoSuchType)}\\section{\\paragraph{second}}}");
+
+        errors.Should().ContainSingle().Which.ErrorMessage.Should().Be("'NoSuchType' 'type'.");
+        document.Sections[0].Elements.OfType<Barcode>().Single().Code.Should().Be("12345");
+        document.Sections.Count.Should().Be(2);
+        TextOf(document.Sections[1].Elements[0] as Paragraph).Should().Be("second");
+    }
+
     // ----- paragraph content -------------------------------------------------------------------------
 
     [Theory(Timeout = Patience)]

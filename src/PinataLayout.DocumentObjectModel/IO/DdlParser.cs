@@ -1334,7 +1334,8 @@ internal class DdlParser
             {
                 ReadCode();
                 AssertSymbol(Symbol.Identifier, DomMsgID.IdentifierExpected, Token);
-                BarcodeType barcodeType = Enum.Parse<BarcodeType>(Token, true);
+                if (!Enum.TryParse(Token, true, out BarcodeType barcodeType))
+                    ThrowParserException(DomMsgID.InvalidEnum, Token, "type");
                 barcode.SetValue("type", barcodeType);
                 ReadCode();
             }
