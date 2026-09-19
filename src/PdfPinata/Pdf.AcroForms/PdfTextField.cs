@@ -60,12 +60,12 @@ public sealed class PdfTextField : PdfAcroField
     /// </summary>
     public string Text
     {
-        get => Elements.GetString(Keys.V);
+        get => Elements.GetString(PdfAcroField.Keys.V);
         set
         {
             Owner?.EnsureCanModify("filling in a form field", PdfChangeKind.FormFieldValues);
 
-            Elements.SetString(Keys.V, value);
+            Elements.SetString(PdfAcroField.Keys.V, value);
             RenderAppearance();
         } //HACK in PdfTextField
     }
@@ -203,7 +203,7 @@ public sealed class PdfTextField : PdfAcroField
             return;
         }
 
-        var kids = Elements.GetArray(Keys.Kids);
+        var kids = Elements.GetArray(PdfAcroField.Keys.Kids);
         if (kids == null)
             return;
 

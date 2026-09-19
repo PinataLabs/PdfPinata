@@ -120,10 +120,15 @@ public class PdfRectangleTests
         var rectangle = new PdfRectangle(new XRect(1, 2, 3, 4));
         PdfRectangle none = null;
 
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
         (rectangle == none).Should().BeFalse();
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
         (none == rectangle).Should().BeFalse();
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
         (none == null).Should().BeTrue();
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
         (rectangle != none).Should().BeTrue();
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
         (none != rectangle).Should().BeTrue();
     }
 

@@ -37,7 +37,7 @@ public sealed class PdfTransparencyGroupAttributes : PdfGroupAttributes
     internal PdfTransparencyGroupAttributes(PdfDocument thisDocument)
         : base(thisDocument)
     {
-        Elements.SetName(Keys.S, "/Transparency");
+        Elements.SetName(PdfGroupAttributes.Keys.S, "/Transparency");
     }
 
     /// <summary>

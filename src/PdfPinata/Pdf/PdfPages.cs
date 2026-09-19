@@ -848,12 +848,15 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         if (kids == null)
         {
             var xref3 = kid.Elements["/Kids"] as PdfReference;
+            // ReSharper disable once PossibleNullReferenceException
             kids = xref3.Value as PdfArray;
         }
 
         // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
+        // ReSharper disable PossibleNullReferenceException
         foreach (PdfReference xref2 in kids)
             list.AddRange(GetKids(xref2, values));
+        // ReSharper restore PossibleNullReferenceException
         var count = list.Count;
         Debug.Assert(count == kid.Elements.GetInteger("/Count"));
         return list.ToArray();

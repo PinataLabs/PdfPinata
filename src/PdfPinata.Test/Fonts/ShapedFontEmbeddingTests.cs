@@ -89,9 +89,11 @@ public class ShapedFontEmbeddingTests
         var resources = Resolve(document.Pages[0].Elements["/Resources"]) as PdfDictionary;
         var fonts = Resolve(resources?.Elements["/Font"]) as PdfDictionary;
 
+        // ReSharper disable PossibleNullReferenceException
         return fonts.Elements.KeyNames
             .Select(key => Resolve(fonts.Elements[key.Value]) as PdfDictionary)
             .Single(font => font != null && font.Elements.GetName("/Subtype") == "/Type0");
+        // ReSharper restore PossibleNullReferenceException
     }
 
     /// <summary>The glyph identifiers the descendant font's /W array gives a width for.</summary>
@@ -99,7 +101,9 @@ public class ShapedFontEmbeddingTests
     {
         var font = CompositeFontOf(document);
         var descendants = Resolve(font.Elements["/DescendantFonts"]) as PdfArray;
+        // ReSharper disable once PossibleNullReferenceException
         var descendant = Resolve(descendants.Elements[0]) as PdfDictionary;
+        // ReSharper disable once PossibleNullReferenceException
         var widths = descendant.Elements["/W"].ToString();
 
         // "[300[1000]301[1000]]" - a glyph identifier, then its width in a bracket of its own.
@@ -118,6 +122,7 @@ public class ShapedFontEmbeddingTests
     {
         var meanings = new Dictionary<int, string>();
         var map = Resolve(CompositeFontOf(document).Elements["/ToUnicode"]) as PdfDictionary;
+        // ReSharper disable once PossibleNullReferenceException
         var cmap = Encoding.UTF8.GetString(map.Stream.UnfilteredValue);
 
         // Only inside the blocks. The codespacerange above them is two codes side by side and

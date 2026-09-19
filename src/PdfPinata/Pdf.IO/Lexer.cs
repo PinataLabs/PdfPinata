@@ -349,6 +349,7 @@ public class Lexer
         var l = Int64.Parse(_token.ToString(), CultureInfo.InvariantCulture);
         if (l >= Int32.MinValue && l <= Int32.MaxValue)
             return Symbol.Integer;
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
         if (l >= Int64.MinValue && l <= Int64.MaxValue)
             return Symbol.Long;
 

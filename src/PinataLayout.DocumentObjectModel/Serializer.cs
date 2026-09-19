@@ -410,6 +410,7 @@ internal class Serializer
     }
     else if (type == typeof(bool))
     {
+      // ReSharper disable once PossibleNullReferenceException
       WriteLine(valueName + " = " + value.ToString().ToLower());
     }
     else if (type == typeof(string))

@@ -614,6 +614,7 @@ public class XGraphicsPathTests
         var document = new PdfDocument();
         using var gfx = XGraphics.FromPdfPage(document.AddPage());
 
+        // ReSharper disable once AccessToDisposedClosure
         var act = () => gfx.DrawPath(null, null, path);
 
         act.Should().Throw<ArgumentNullException>();

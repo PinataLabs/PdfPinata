@@ -39,7 +39,7 @@ internal sealed class PdfResourcePruner : PdfPageWalk
     {
         ArgumentNullException.ThrowIfNull(page);
 
-        var resources = page.Elements.GetDictionary(PdfPage.Keys.Resources);
+        var resources = page.Elements.GetDictionary(PdfPage.InheritablePageKeys.Resources);
         if (resources == null)
             return;
 

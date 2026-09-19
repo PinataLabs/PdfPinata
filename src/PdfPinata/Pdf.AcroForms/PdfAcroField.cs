@@ -623,6 +623,7 @@ public abstract class PdfAcroField : PdfDictionary
                 var dict = ((PdfReference)item).Value as PdfDictionary;
                 Debug.Assert(dict != null);
                 var field = dict as PdfAcroField;
+                // ReSharper disable once ConditionIsAlwaysTrueOrFalse
                 if (field == null && dict != null)
                 {
                     // Do type transformation

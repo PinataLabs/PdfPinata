@@ -278,6 +278,7 @@ public partial class Axis : ChartObject
   {
     var chartObject = parent as Chart;
 
+    // ReSharper disable once PossibleNullReferenceException
     serializer.WriteLine("\\" + chartObject.CheckAxis(this));
     var pos = serializer.BeginAttributes();
 

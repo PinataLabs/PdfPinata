@@ -36,9 +36,11 @@ public class FontPlumbingTests
     {
         var type = instance.GetType();
         const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+        // ReSharper disable PossibleNullReferenceException
         return type.GetProperty(name, flags) is { } property
             ? property.GetValue(instance)
             : type.GetField(name, flags).GetValue(instance);
+        // ReSharper restore PossibleNullReferenceException
     }
 
     [Theory]
@@ -118,9 +120,11 @@ public class FontPlumbingTests
         // The key is what the font cache is indexed by. Face names come from a resolver written by
         // a consumer, so the case they arrive in is not something PDFsharp controls - but a face
         // stroked for bold is a different face from the same file drawn plainly.
+        // ReSharper disable PossibleNullReferenceException
         string KeyOf(FontResolverInfo info) => (string)typeof(FontResolverInfo)
             .GetProperty("Key", BindingFlags.Instance | BindingFlags.NonPublic)
             .GetValue(info);
+        // ReSharper restore PossibleNullReferenceException
 
         KeyOf(new FontResolverInfo("Face.ttf")).Should().Be(KeyOf(new FontResolverInfo("face.TTF")));
         KeyOf(new FontResolverInfo("face.ttf", true, false))
@@ -138,6 +142,7 @@ public class FontPlumbingTests
             BindingFlags.Instance | BindingFlags.NonPublic, null,
             new[] { typeof(string), typeof(bool), typeof(bool), typeof(int) }, null);
 
+        // ReSharper disable once PossibleNullReferenceException
         var act = () => constructor.Invoke(new object[] { "face.ttf", false, false, 1 });
 
         act.Should().Throw<TargetInvocationException>()
@@ -239,9 +244,11 @@ public class FontPlumbingTests
         }
     }
 
+    // ReSharper disable PossibleNullReferenceException
     static object SettingsProperty(Assembly assembly, string name) =>
         assembly.GetType("PdfPinata.Fonts.GlobalFontSettings", throwOnError: true)
             .GetProperty(name).GetValue(null);
+    // ReSharper restore PossibleNullReferenceException
 
     [Fact]
     public void ReadingTheFontResolverBeforeOneIsSetSaysHowToSetOne()
@@ -269,8 +276,10 @@ public class FontPlumbingTests
     {
         var act = () => OnAColdCopyOfTheLibrary(assembly =>
         {
+            // ReSharper disable PossibleNullReferenceException
             assembly.GetType("PdfPinata.Fonts.GlobalFontSettings", throwOnError: true)
                 .GetProperty("FontResolver").SetValue(null, null);
+            // ReSharper restore PossibleNullReferenceException
             return null;
         });
 
@@ -294,7 +303,9 @@ public class FontPlumbingTests
         var act = () => OnAColdCopyOfTheLibrary(assembly =>
         {
             var settings = assembly.GetType("PdfPinata.Fonts.GlobalFontSettings", throwOnError: true);
+            // ReSharper disable once PossibleNullReferenceException
             var property = settings.GetProperty("DefaultFontEncoding");
+            // ReSharper disable once PossibleNullReferenceException
             _ = property.GetValue(null);
             property.SetValue(null, Enum.Parse(
                 // ReSharper disable once AssignNullToNotNullAttribute
@@ -313,10 +324,12 @@ public class FontPlumbingTests
         var act = () => OnAColdCopyOfTheLibrary(assembly =>
         {
             var settings = assembly.GetType("PdfPinata.Fonts.GlobalFontSettings", throwOnError: true);
+            // ReSharper disable once PossibleNullReferenceException
             var property = settings.GetProperty("DefaultFontEncoding");
             var unicode = Enum.Parse(
                 // ReSharper disable once AssignNullToNotNullAttribute
                 assembly.GetType("PdfPinata.Pdf.PdfFontEncoding", throwOnError: true), "Unicode");
+            // ReSharper disable once PossibleNullReferenceException
             property.SetValue(null, unicode);
             property.SetValue(null, unicode);
             return null;
@@ -386,7 +399,9 @@ public class FontPlumbingTests
         var isSet = OnAColdCopyOfTheLibrary(assembly =>
         {
             var settings = assembly.GetType("PdfPinata.Fonts.GlobalFontSettings", throwOnError: true);
+            // ReSharper disable once PossibleNullReferenceException
             _ = settings.GetProperty("DefaultFontEncoding").GetValue(null);
+            // ReSharper disable once PossibleNullReferenceException
             return settings.GetProperty("IsDefaultFontEncodingSet").GetValue(null);
         });
 
@@ -407,6 +422,7 @@ public class FontPlumbingTests
             var imageSourceType = assembly.GetType(
                 "PinataLayout.DocumentObjectModel.Shapes.ImageSource",
                 throwOnError: true);
+            // ReSharper disable once PossibleNullReferenceException
             return imageSourceType.GetProperty("IsImageSourceImplSet").GetValue(null);
         });
 

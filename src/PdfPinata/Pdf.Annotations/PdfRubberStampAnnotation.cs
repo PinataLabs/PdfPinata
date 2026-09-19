@@ -57,7 +57,7 @@ public sealed class PdfRubberStampAnnotation : PdfAnnotation
 
     void Initialize()
     {
-        Elements.SetName(Keys.Subtype, "/Stamp");
+        Elements.SetName(PdfAnnotation.Keys.Subtype, "/Stamp");
         Color = XColors.Yellow;
     }
 

@@ -67,6 +67,7 @@ public class PdfFlattenVisitor : VisitorBase
     {
       var insertPosition = (int)splitParaList.GetKey(idx);
       var paragraphs = (Paragraph[])splitParaList.GetByIndex(idx);
+      // ReSharper disable once PossibleNullReferenceException
       foreach (var paragraph in paragraphs)
       {
         elements.InsertObject(insertPosition + insertedObjects, paragraph);
@@ -95,7 +96,9 @@ public class PdfFlattenVisitor : VisitorBase
     // to Array.Copy's unboxing rules.
     var indices = new int[textIndices.Count];
     for (var idx = 0; idx < indices.Length; ++idx)
+      // ReSharper disable once PossibleNullReferenceException
       indices[idx] = (int)textIndices[idx];
+    // ReSharper disable once ConditionIsAlwaysTrueOrFalse
     if (indices != null)
     {
       var insertedObjects = 0;
@@ -133,7 +136,6 @@ public class PdfFlattenVisitor : VisitorBase
               {
                 elements.InsertObject(idx + insertedObjects, new Text(currentString));
                 ++insertedObjects;
-                currentString = "";
               }
               elements.InsertObject(idx + insertedObjects, new Text(new string(Chars.SoftHyphen, 1)));
               ++insertedObjects;
@@ -200,7 +202,7 @@ public class PdfFlattenVisitor : VisitorBase
   {
     var parentElements = DocumentRelations.GetParent(obj);
     var parentObject = DocumentRelations.GetParent(parentElements);
-    Font parentFont = null;
+    Font parentFont;
     if (parentObject is Paragraph)
     {
       var format = ((Paragraph)parentObject).Format;

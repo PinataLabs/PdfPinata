@@ -206,6 +206,7 @@ public class TextMeasurementAndRenderObjectTests
 
         using var gfx = OnAPage();
         var drawing = () => renderer.RenderObject(
+            // ReSharper disable once AccessToDisposedClosure
             gfx, XUnit.FromPoint(20), XUnit.FromPoint(20), XUnit.FromPoint(300), null);
 
         drawing.Should().Throw<ArgumentNullException>();
@@ -223,6 +224,7 @@ public class TextMeasurementAndRenderObjectTests
 
         using var gfx = OnAPage();
         var drawing = () => renderer.RenderObject(
+            // ReSharper disable once AccessToDisposedClosure
             gfx, XUnit.FromPoint(20), XUnit.FromPoint(20), XUnit.FromPoint(300), section);
 
         drawing.Should().Throw<ArgumentException>();

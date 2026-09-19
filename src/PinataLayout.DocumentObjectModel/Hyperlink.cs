@@ -523,6 +523,7 @@ public partial class Hyperlink : DocumentObject, IVisitable
         visitor.VisitHyperlink(this);
         if (visitChildren && elements != null)
         {
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             ((IVisitable)elements).AcceptVisitor(visitor, visitChildren);
         }
     }

@@ -893,6 +893,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
 
                         // Rewritten WinRT style.
                         var typeInfo = type.GetTypeInfo();
+                        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
                         if (type != null && type != value.GetType())
                         {
                             if (typeof(PdfDictionary).GetTypeInfo().IsAssignableFrom(typeInfo))

@@ -256,6 +256,7 @@ public partial class Footnote : DocumentObject, IVisitable
         visitor.VisitFootnote(this);
 
         if (visitChildren && elements != null)
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             ((IVisitable)elements).AcceptVisitor(visitor, visitChildren);
     }
 

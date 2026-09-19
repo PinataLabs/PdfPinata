@@ -38,7 +38,7 @@ internal sealed class PdfImagePlacementReader
         if (!PdfContentStreams.TryGetPageContent(page, out content))
             return reader._placements;
 
-        reader.Read(content, page.Elements.GetDictionary(PdfPage.Keys.Resources),
+        reader.Read(content, page.Elements.GetDictionary(PdfPage.InheritablePageKeys.Resources),
             XMatrix.Identity, 0);
 
         return reader._placements;
@@ -181,7 +181,7 @@ internal sealed class PdfImagePlacementReader
             var inner = MatrixOf(form);
             inner.Multiply(ctm, XMatrixOrder.Append);
 
-            var formScope = form.Elements.GetDictionary(PdfPage.Keys.Resources) ?? scope;
+            var formScope = form.Elements.GetDictionary(PdfPage.InheritablePageKeys.Resources) ?? scope;
 
             Read(content, formScope, inner, depth + 1);
         }

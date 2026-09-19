@@ -188,6 +188,7 @@ public class GradientTransparencyTests
     /// <summary>The two values of a shading's ramp, with the spacing a round trip adds removed.</summary>
     static string RampEnd(PdfDictionary shading, string key)
     {
+        // ReSharper disable once PossibleNullReferenceException
         return shading.Elements.GetDictionary("/Function").Elements[key].ToString().Replace(" ", "");
     }
 

@@ -267,6 +267,7 @@ public partial class HeaderFooter : DocumentObject, IVisitable
     internal override void Serialize(Serializer serializer)
     {
         var headersfooters = parent as HeadersFooters;
+        // ReSharper disable once PossibleNullReferenceException
         if (headersfooters.Primary == this)
             Serialize(serializer, "primary");
         else if (headersfooters.EvenPage == this)
@@ -304,6 +305,7 @@ public partial class HeaderFooter : DocumentObject, IVisitable
         visitor.VisitHeaderFooter(this);
 
         if (visitChildren && elements != null)
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             ((IVisitable)elements).AcceptVisitor(visitor, visitChildren);
     }
 

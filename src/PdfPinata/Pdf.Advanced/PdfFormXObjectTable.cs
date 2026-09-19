@@ -211,6 +211,7 @@ internal sealed class PdfFormXObjectTable : PdfResourceTable
             var selector = obj as Selector;
             if (selector == null)
                 return false;
+            // ReSharper disable once PossibleNullReferenceException
             return _path == selector._path;
         }
 

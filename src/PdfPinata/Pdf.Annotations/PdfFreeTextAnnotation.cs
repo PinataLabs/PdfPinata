@@ -55,7 +55,7 @@ public sealed class PdfFreeTextAnnotation : PdfAnnotation
 
     void Initialize()
     {
-        Elements.SetName(Keys.Subtype, "/FreeText");
+        Elements.SetName(PdfAnnotation.Keys.Subtype, "/FreeText");
 
         // /DA is required, and is written before anything can have changed so that an annotation
         // nobody configures is still well formed. No /C, so the default background is nothing at
@@ -93,7 +93,7 @@ public sealed class PdfFreeTextAnnotation : PdfAnnotation
         {
             _font = value ?? throw new ArgumentNullException(nameof(value));
             WriteDefaultAppearance();
-            Elements.SetDateTime(Keys.M, GlobalTimeSettings.Now);
+            Elements.SetDateTime(PdfAnnotation.Keys.M, GlobalTimeSettings.Now);
             OnAppearanceInvalidated();
         }
     }
@@ -109,7 +109,7 @@ public sealed class PdfFreeTextAnnotation : PdfAnnotation
         {
             _textColor = value;
             WriteDefaultAppearance();
-            Elements.SetDateTime(Keys.M, GlobalTimeSettings.Now);
+            Elements.SetDateTime(PdfAnnotation.Keys.M, GlobalTimeSettings.Now);
             OnAppearanceInvalidated();
         }
     }
@@ -123,7 +123,7 @@ public sealed class PdfFreeTextAnnotation : PdfAnnotation
     {
         get
         {
-            var border = Elements.GetDictionary(Keys.BS);
+            var border = Elements.GetDictionary(PdfAnnotation.Keys.BS);
             return border == null ? 1 : border.Elements.GetReal("/W");
         }
         set
@@ -137,9 +137,9 @@ public sealed class PdfFreeTextAnnotation : PdfAnnotation
             border.Elements.SetName("/Type", "/Border");
             border.Elements.SetReal("/W", value);
             border.Elements.SetName("/S", "/S");
-            Elements[Keys.BS] = border;
+            Elements[PdfAnnotation.Keys.BS] = border;
 
-            Elements.SetDateTime(Keys.M, GlobalTimeSettings.Now);
+            Elements.SetDateTime(PdfAnnotation.Keys.M, GlobalTimeSettings.Now);
             OnAppearanceInvalidated();
         }
     }
@@ -173,7 +173,7 @@ public sealed class PdfFreeTextAnnotation : PdfAnnotation
                 value == XParagraphAlignment.Right ? 2 : 0;
 
             Elements.SetInteger(Keys.Q, quadding);
-            Elements.SetDateTime(Keys.M, GlobalTimeSettings.Now);
+            Elements.SetDateTime(PdfAnnotation.Keys.M, GlobalTimeSettings.Now);
             OnAppearanceInvalidated();
         }
     }
@@ -218,7 +218,7 @@ public sealed class PdfFreeTextAnnotation : PdfAnnotation
         if (Owner == null)
             return;
 
-        var rect = Elements.GetRectangle(Keys.Rect);
+        var rect = Elements.GetRectangle(PdfAnnotation.Keys.Rect);
         var width = rect.X2 - rect.X1;
         var height = rect.Y2 - rect.Y1;
 
@@ -227,7 +227,7 @@ public sealed class PdfFreeTextAnnotation : PdfAnnotation
 
         // Read from the dictionary rather than through Color, which answers black for an
         // annotation carrying no /C - so a box nobody gave a background to would get a black one.
-        var hasBackground = Elements.GetArray(Keys.C)?.Elements.Count == 3;
+        var hasBackground = Elements.GetArray(PdfAnnotation.Keys.C)?.Elements.Count == 3;
 
         // Nothing to draw: no room to draw it in, or nothing asked for. The appearance already
         // there has to go, or the annotation keeps showing what it was last asked for rather than
@@ -236,11 +236,11 @@ public sealed class PdfFreeTextAnnotation : PdfAnnotation
         // under a point in either direction is one no appearance can be made of.
         if (width < 1 || height < 1 || (text.Length == 0 && border <= 0 && !hasBackground))
         {
-            Elements.Remove(Keys.AP);
+            Elements.Remove(PdfAnnotation.Keys.AP);
 
             // /AS names one of a set of appearances, so leaving it behind would point at a state
             // in an /AP that is no longer there. SetAppearance clears it for the same reason.
-            Elements.Remove(Keys.AS);
+            Elements.Remove(PdfAnnotation.Keys.AS);
             Elements.Remove(Keys.RD);
             return;
         }

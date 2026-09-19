@@ -69,7 +69,7 @@ public sealed class PdfCheckBoxField : PdfButtonField
         {
             if (!HasKids) //R080317
             {
-                var value = Elements.GetString(Keys.V);
+                var value = Elements.GetString(PdfAcroField.Keys.V);
                 return value.Length != 0 && value != "/Off";
             }
             else //R080317
@@ -81,7 +81,7 @@ public sealed class PdfCheckBoxField : PdfButtonField
                 if (child == null)
                     return false;
 
-                var value = child.Elements.GetString(Keys.V);
+                var value = child.Elements.GetString(PdfAcroField.Keys.V);
                 return
                     value.Length != 0 && value != "/Off" &&
                     value != "/Nein"; //R081114 (3Std.!!) auch auf Nein prüfen; //TODO woher kommt der Wert?
@@ -94,7 +94,7 @@ public sealed class PdfCheckBoxField : PdfButtonField
             if (!HasKids)
             {
                 var name = value ? GetNonOffValue() : "/Off";
-                Elements.SetName(Keys.V, name);
+                Elements.SetName(PdfAcroField.Keys.V, name);
                 Elements.SetName(PdfAnnotation.Keys.AS, name);
             }
             else if (Fields.Elements.Items.Length == 1)
@@ -107,9 +107,9 @@ public sealed class PdfCheckBoxField : PdfButtonField
                 var name = value ? OnStateOf(child) : OffStateOf(child);
                 if (child != null && name.Length != 0)
                 {
-                    child.Elements.SetName(Keys.V, name);
+                    child.Elements.SetName(PdfAcroField.Keys.V, name);
                     child.Elements.SetName(PdfAnnotation.Keys.AS, name);
-                    Elements.SetName(Keys.V, name);
+                    Elements.SetName(PdfAcroField.Keys.V, name);
                 }
             }
             else
@@ -146,7 +146,7 @@ public sealed class PdfCheckBoxField : PdfButtonField
                         if (name1.Length != 0)
                         {
                             ((PdfDictionary)(((PdfReference)(Fields.Elements.Items[0])).Value)).Elements.SetName(
-                                Keys.V, name1);
+                                PdfAcroField.Keys.V, name1);
                             ((PdfDictionary)(((PdfReference)(Fields.Elements.Items[0])).Value)).Elements.SetName(
                                 PdfAnnotation.Keys.AS, name1);
                         }
@@ -178,7 +178,7 @@ public sealed class PdfCheckBoxField : PdfButtonField
                         if (name1.Length != 0)
                         {
                             ((PdfDictionary)(((PdfReference)(Fields.Elements.Items[1])).Value)).Elements.SetName(
-                                Keys.V, name1);
+                                PdfAcroField.Keys.V, name1);
                             ((PdfDictionary)(((PdfReference)(Fields.Elements.Items[1])).Value)).Elements.SetName(
                                 PdfAnnotation.Keys.AS, name1);
                         }
@@ -209,7 +209,7 @@ public sealed class PdfCheckBoxField : PdfButtonField
                         if (name1.Length != 0)
                         {
                             ((PdfDictionary)(((PdfReference)(Fields.Elements.Items[1])).Value)).Elements.SetName(
-                                Keys.V, name1);
+                                PdfAcroField.Keys.V, name1);
                             ((PdfDictionary)(((PdfReference)(Fields.Elements.Items[1])).Value)).Elements.SetName(
                                 PdfAnnotation.Keys.AS, name1);
                         }
@@ -238,7 +238,7 @@ public sealed class PdfCheckBoxField : PdfButtonField
                         if (name1.Length != 0)
                         {
                             ((PdfDictionary)(((PdfReference)(Fields.Elements.Items[0])).Value)).Elements.SetName(
-                                Keys.V, name1);
+                                PdfAcroField.Keys.V, name1);
                             ((PdfDictionary)(((PdfReference)(Fields.Elements.Items[0])).Value)).Elements.SetName(
                                 PdfAnnotation.Keys.AS, name1);
                         }

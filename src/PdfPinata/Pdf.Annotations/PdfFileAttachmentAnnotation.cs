@@ -28,7 +28,7 @@ public class PdfFileAttachmentAnnotation : PdfAnnotation
     /// </summary>
     public PdfFileAttachmentAnnotation()
     {
-        Elements.SetName(Keys.Subtype, "/FileAttachment");
+        Elements.SetName(PdfAnnotation.Keys.Subtype, "/FileAttachment");
     }
 
     /// <summary>
@@ -37,7 +37,7 @@ public class PdfFileAttachmentAnnotation : PdfAnnotation
     public PdfFileAttachmentAnnotation(PdfDocument document)
         : base(document)
     {
-        Elements.SetName(Keys.Subtype, "/FileAttachment");
+        Elements.SetName(PdfAnnotation.Keys.Subtype, "/FileAttachment");
         Flags = PdfAnnotationFlags.Locked;
     }
 

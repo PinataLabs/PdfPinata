@@ -274,11 +274,14 @@ public class XTextSegmentFormatter
 			}
 
 			// Check whether the current block belongs to the last block
+			// ReSharper disable PossibleNullReferenceException
 			if (blocks.Count > 0 && !textSegment.Text.StartsWith(' '))
 			{
+			// ReSharper restore PossibleNullReferenceException
 				blocks.Last().NextBlockBelongsToMe = true;
 			}
 
+			// ReSharper disable once PossibleNullReferenceException
 			var length = textSegment.Text.Length;
 			var inNonWhiteSpace = false;
 			var startIndex = 0;
@@ -372,7 +375,7 @@ public class XTextSegmentFormatter
 			var currentMaxCyDescent = 0.0;
 			var currentLineBlocks = new List<Block>();
 			var startLineSpace = blockUnit[0].Environment.LineSpace;
-			var startCyDescent = blockUnit[0].Environment.CyDescent;
+			double startCyDescent;
 
 			for (var idx = 0; idx < count; idx++)
 			{

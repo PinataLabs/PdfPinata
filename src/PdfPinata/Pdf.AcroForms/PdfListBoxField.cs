@@ -131,15 +131,15 @@ public sealed class PdfListBoxField : PdfChoiceField
                 texts[idx] = ValueInOptArray(indices[idx]);
 
             if (indices.Length == 0)
-                Elements.Remove(Keys.V);
+                Elements.Remove(PdfAcroField.Keys.V);
             else if (indices.Length == 1)
-                Elements.SetString(Keys.V, texts[0]);
+                Elements.SetString(PdfAcroField.Keys.V, texts[0]);
             else
             {
                 var values = new PdfArray(Owner);
                 foreach (var text in texts)
                     values.Elements.Add(new PdfString(text));
-                Elements[Keys.V] = values;
+                Elements[PdfAcroField.Keys.V] = values;
             }
 
             // /I is for a list that allows several choices, so a single-choice list carries /V

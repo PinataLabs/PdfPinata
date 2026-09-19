@@ -49,6 +49,7 @@ public class DemoSmokeTests
         DemoRegistry.TryGet(name, out var demo).Should().BeTrue();
 
         var context = new DemoContext(OutputDirectoryFor(name));
+        // ReSharper disable once PossibleNullReferenceException
         var result = demo.Run(context);
 
         result.OutputPath.Should().Be(Path.Combine(context.OutputDirectory, name + ".pdf"));
@@ -77,6 +78,7 @@ public class DemoSmokeTests
         // The one failure the whole source-printing design exists to prevent is a panel of
         // code that is not the code that ran. A demo whose constructor forgot its ": base()"
         // would report another file's name here.
+        // ReSharper disable once PossibleNullReferenceException
         demo.SourceFileName.Should().Be(demo.GetType().Name + ".cs");
 
         // Read prefers the file on disk, which exists on the machine that built it. The
@@ -126,8 +128,10 @@ public class DemoSmokeTests
         // it only looks for the ones some page asks for. An excerpt nobody quotes yet is checked here.
         var open = new HashSet<string>();
         var seen = new HashSet<string>();
+        // ReSharper disable PossibleNullReferenceException
         foreach (var raw in source.Replace("\r\n", "\n").Split('\n'))
         {
+        // ReSharper restore PossibleNullReferenceException
             var line = raw.Trim();
             if (!line.StartsWith(DemoSource.SnippetMarkerPrefix, StringComparison.Ordinal))
                 continue;
@@ -155,6 +159,7 @@ public class DemoSmokeTests
     public void Running_a_demo_leaves_the_font_resolver_the_tests_installed()
     {
         DemoRegistry.TryGet("HelloWorld", out var demo).Should().BeTrue();
+        // ReSharper disable once PossibleNullReferenceException
         demo.Run(new DemoContext(OutputDirectoryFor("ResolverCheck")));
 
         // A demo that registered a backend of its own would swap out the resolver every

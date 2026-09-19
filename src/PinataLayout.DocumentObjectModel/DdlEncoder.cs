@@ -100,7 +100,7 @@ public sealed class DdlEncoder
   /// </summary>
   public static string StringToLiteral(string str)
   {
-    var length = 0;
+    int length;
     if (str == null || (length = str.Length) == 0)
       return "\"\"";
 

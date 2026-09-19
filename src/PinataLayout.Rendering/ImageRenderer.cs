@@ -229,7 +229,7 @@ internal class ImageRenderer : ShapeRenderer
 
         if (formatInfo.Failure == ImageFailure.None)
         {
-            XImage xImage = null;
+            XImage xImage;
             try
             {
                 xImage = XImage.FromImageSource(formatInfo.ImageSource);
@@ -284,14 +284,17 @@ internal class ImageRenderer : ShapeRenderer
                             usrHeightSet = false;
                         }
                     }
+                    // ReSharper disable once ConditionIsAlwaysTrueOrFalse
                     if (usrWidthSet && !usrHeightSet)
                     {
                         resultHeight = inherentHeight / inherentWidth * usrWidth;
                     }
+                    // ReSharper disable once ConditionIsAlwaysTrueOrFalse
                     else if (usrHeightSet && !usrWidthSet)
                     {
                         resultWidth = inherentWidth / inherentHeight * usrHeight;
                     }
+                    // ReSharper disable once ConditionIsAlwaysTrueOrFalse
                     else if (!usrHeightSet && !usrWidthSet)
                     {
                         resultHeight = inherentHeight;

@@ -88,6 +88,7 @@ public class SaveIntoTheSourceStreamTests
         while (document.Pages.Count > 0)
             document.Pages.RemoveAt(0);
 
+        // ReSharper disable once AccessToDisposedClosure
         document.Invoking(d => d.Save(pdf)).Should().Throw<InvalidOperationException>();
 
         pdf.ToArray().Should().Equal(original);

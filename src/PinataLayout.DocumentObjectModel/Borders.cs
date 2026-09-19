@@ -496,6 +496,7 @@ public partial class Borders : DocumentObject, IEnumerable
                 enumerator.Reset();
                 for (var idx = 0; idx < index + 1; idx++)
                     enumerator.MoveNext();
+                // ReSharper disable once PossibleNullReferenceException
                 return ((DictionaryEntry)enumerator.Current).Value as Border;
             }
         }

@@ -76,6 +76,7 @@ public class TableHeadingRowTests
         var render = () =>
         {
             renderer.RenderDocument();
+            // ReSharper disable once AccessToDisposedClosure
             renderer.PdfDocument.Save(stream, false);
         };
 

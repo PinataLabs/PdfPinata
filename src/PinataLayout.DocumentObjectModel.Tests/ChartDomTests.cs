@@ -199,8 +199,10 @@ public class ChartDomTests
         })
         {
             var paragraph = AreaOf(reread, areaName).Elements[0] as Paragraph;
+            // ReSharper disable PossibleNullReferenceException
             string.Concat(paragraph.Elements.OfType<Text>().Select(t => t.Content))
                 .Should().Be(keyword + " content", "{0} kept its own contents", areaName);
+            // ReSharper restore PossibleNullReferenceException
         }
     }
 }

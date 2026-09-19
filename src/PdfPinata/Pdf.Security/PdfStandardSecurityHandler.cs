@@ -582,9 +582,9 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
         var oValue = new PdfString(PdfEncoders.RawEncoding.GetString(_ownerKey, 0, _ownerKey.Length), PdfStringEncoding.RawEncoding);
         var uValue = new PdfString(PdfEncoders.RawEncoding.GetString(_userKey, 0, _userKey.Length), PdfStringEncoding.RawEncoding);
 
-        Elements[Keys.Filter] = new PdfName("/Standard");
-        Elements[Keys.V] = vValue;
-        Elements[Keys.Length] = length;
+        Elements[PdfSecurityHandler.Keys.Filter] = new PdfName("/Standard");
+        Elements[PdfSecurityHandler.Keys.V] = vValue;
+        Elements[PdfSecurityHandler.Keys.Length] = length;
         Elements[Keys.R] = rValue;
         Elements[Keys.O] = oValue;
         Elements[Keys.U] = uValue;

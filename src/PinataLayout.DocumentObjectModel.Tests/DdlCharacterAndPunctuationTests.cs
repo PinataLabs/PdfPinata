@@ -99,8 +99,10 @@ public class DdlCharacterAndPunctuationTests
             "\\document{\\section[PageSetup{PageFormat = A5}]{\\paragraph{\\symbol(Euro)}}}");
 
         document.LastSection.PageSetup.PageFormat.Should().Be(PageFormat.A5);
+        // ReSharper disable PossibleNullReferenceException
         (document.LastSection.Elements[0] as Paragraph)
             .Elements.OfType<Character>().Single().SymbolName.Should().Be(SymbolName.Euro);
+        // ReSharper restore PossibleNullReferenceException
     }
 
     [Fact]
@@ -118,8 +120,10 @@ public class DdlCharacterAndPunctuationTests
         var document = Read(
             "\\document{\\section{\\paragraph[Format{SpaceBefore = \"1.5cm\"}]{t}}}");
 
+        // ReSharper disable PossibleNullReferenceException
         (document.LastSection.Elements[0] as Paragraph)
             .Format.SpaceBefore.Centimeter.Should().BeApproximately(1.5, 1e-4);
+        // ReSharper restore PossibleNullReferenceException
     }
 
     [Fact]
@@ -147,6 +151,7 @@ public class DdlCharacterAndPunctuationTests
             "\\document{\\section{\\paragraph[Format{TabStops += \"3cm\"}]{t}}}")
             .LastSection.Elements[0] as Paragraph;
 
+        // ReSharper disable once PossibleNullReferenceException
         paragraph.Format.TabStops.Count.Should().Be(1);
         paragraph.Format.TabStops[0].Position.Centimeter.Should().BeApproximately(3, 1e-4);
     }
@@ -163,6 +168,7 @@ public class DdlCharacterAndPunctuationTests
         var document = Read(
             "\\document{\\section{\\paragraph[Format{TabStops += \"3cm\" TabStops += \"6cm\""
             + " TabStops -= \"3cm\"}]{t}}}");
+        // ReSharper disable once PossibleNullReferenceException
         var stops = (document.LastSection.Elements[0] as Paragraph).Format.TabStops;
 
         stops.Count.Should().Be(2, "the cancelled one is still recorded, as a cancellation");

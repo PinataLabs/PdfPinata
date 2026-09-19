@@ -59,7 +59,7 @@ public sealed class PdfSquigglyAnnotation : PdfTextMarkupAnnotation
 
     void Initialize()
     {
-        Elements.SetName(Keys.Subtype, "/Squiggly");
+        Elements.SetName(PdfAnnotation.Keys.Subtype, "/Squiggly");
         Color = XColors.Green;
     }
 

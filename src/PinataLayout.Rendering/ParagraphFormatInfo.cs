@@ -97,16 +97,19 @@ internal class ParagraphFormatInfo : FormatInfo
 
   internal LineInfo GetLineInfo(int lineIdx)
   {
+    // ReSharper disable once PossibleNullReferenceException
     return (LineInfo)lineInfos[lineIdx];
   }
 
   internal LineInfo GetLastLineInfo()
   {
+    // ReSharper disable once PossibleNullReferenceException
     return (LineInfo)lineInfos[LineCount - 1];
   }
 
   internal LineInfo GetFirstLineInfo()
   {
+    // ReSharper disable once PossibleNullReferenceException
     return (LineInfo)lineInfos[0];
   }
 

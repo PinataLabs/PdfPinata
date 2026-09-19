@@ -55,6 +55,7 @@ public static class UnicodeProperties
     {
         var codes = UnicodeTables.UnicodeScriptCode;
         var index = (int)script;
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
         return index >= 0 && index < codes.Length ? codes[index] : "zzzz";
     }
 

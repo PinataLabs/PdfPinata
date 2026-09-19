@@ -196,8 +196,8 @@ internal sealed class PdfPageSheet
 
         // Written through the elements rather than through the properties, which would throw the
         // remembered size away as any other resize does.
-        SetBox(PdfPage.Keys.MediaBox, new PdfRectangle(0, 0, width, height));
-        SetBox(PdfPage.Keys.CropBox, new PdfRectangle(0, 0, width, height));
+        SetBox(PdfPage.InheritablePageKeys.MediaBox, new PdfRectangle(0, 0, width, height));
+        SetBox(PdfPage.InheritablePageKeys.CropBox, new PdfRectangle(0, 0, width, height));
         SetBox(PdfPage.Keys.BleedBox, new PdfRectangle(markLeft, markBottom, width - markRight, height - markTop));
 
         var trim = new PdfRectangle(

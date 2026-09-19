@@ -287,7 +287,7 @@ public struct Color : INullableValue, IEquatable<Color>
 
         try
         {
-            uint clr = 0;
+            uint clr;
             // Must use Enum.Parse because Enum.IsDefined is case sensitive
             try
             {

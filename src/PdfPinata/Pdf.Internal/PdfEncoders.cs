@@ -210,7 +210,6 @@ internal static class PdfEncoders
             Array.Copy(bytes, 0, withByteOrderMark, 2, bytes.Length);
             bytes = withByteOrderMark;
             byteOrderMarkLength = 2;
-            prefix = false;
         }
 
         if (securityHandler != null)

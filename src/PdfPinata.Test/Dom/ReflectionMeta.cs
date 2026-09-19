@@ -83,6 +83,7 @@ public static class ReflectionMeta
 
     static Member Describe(string name, Type memberType, object dv)
     {
+        // ReSharper disable once PossibleNullReferenceException
         var refOnly = (bool)dv.GetType().GetField("RefOnly").GetValue(dv);
 
         // Nullable<T> first: it is a struct, so the value-type test below would swallow it.

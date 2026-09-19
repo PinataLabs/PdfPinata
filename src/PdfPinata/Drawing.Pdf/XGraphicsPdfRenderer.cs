@@ -443,7 +443,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
 
         // The whole show-text operation, its operator included: usually a Tj, but a TJ array when
         // the words have to be spaced out by hand. See PdfGraphicsState.NeedsWordSpacingByHand.
-        string text = null;
+        string text;
         if (font.Unicode)
         {
             // Shaped above, before the font was realized. Asked of the shaping seam rather than
@@ -452,9 +452,11 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
             // character it has always been - except that a right-to-left run comes back in the
             // order it is drawn rather than the order it was written.
             #pragma warning disable S2259 // shaped is set exactly when font.Unicode is true, which is the branch this is in.
+            // ReSharper disable PossibleNullReferenceException
             if (shaped.IsAllOneFont(font))
             #pragma warning restore S2259
             {
+            // ReSharper restore PossibleNullReferenceException
                 // The glyphs the run really drew, rather than the ones the characters would have
                 // been looked up as. This is what decides both which glyphs are embedded and what
                 // /ToUnicode says they mean, and a shaper's choices have to reach it or the page

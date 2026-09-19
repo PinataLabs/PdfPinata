@@ -168,8 +168,10 @@ public class InternalHelperTests
     [Fact]
     public void DegreesConvertToRadiansByTheFactorEverythingElseUses()
     {
+        // ReSharper disable PossibleNullReferenceException
         var deg2Rad = (double)TypeNamed("Calc").GetField("Deg2Rad",
             BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic).GetValue(null);
+        // ReSharper restore PossibleNullReferenceException
 
         (180 * deg2Rad).Should().BeApproximately(Math.PI, 1e-12);
     }
@@ -179,8 +181,10 @@ public class InternalHelperTests
     {
         // It used to be declared identically on both Internal.Calc and Const, so which one a
         // caller reached for was a coin toss and nothing would have caught the two drifting.
+        // ReSharper disable PossibleNullReferenceException
         var elsewhere = Library.GetType("PdfPinata.Const")
             .GetField("Deg2Rad", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+        // ReSharper restore PossibleNullReferenceException
 
         elsewhere.Should().BeNull("Internal.Calc is where this factor lives");
     }

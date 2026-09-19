@@ -25,11 +25,13 @@ public class ImageSharpVersionTest
         var version = typeof(Image).Assembly.GetName().Version;
 
         version.Should().NotBeNull();
+        // ReSharper disable PossibleNullReferenceException
         version.Major.Should().Be(2,
             "PdfPinata.ImageSharp calls APIs that only exist in the ImageSharp 2.1.x line. "
             + "Raising the dependency past 3.0 needs ImageSharpImageSource rewritten, not just the "
             + "version bumped - see issue #348. Consumers who need a newer ImageSharp should use "
             + "the PdfPinata.Skia backend instead.");
+        // ReSharper restore PossibleNullReferenceException
     }
 
     [Fact]

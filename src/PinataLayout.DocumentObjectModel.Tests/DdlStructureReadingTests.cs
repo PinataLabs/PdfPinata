@@ -244,6 +244,7 @@ public class DdlStructureReadingTests
 
         section.Elements.Count.Should().Be(1);
         var paragraph = section.Elements[0] as Paragraph;
+        // ReSharper disable once PossibleNullReferenceException
         paragraph.Elements.OfType<Character>().Single().SymbolName.Should().Be(SymbolName.ParaBreak);
         paragraph.Elements.OfType<Text>().Select(text => text.Content).Should().Equal("one", "two");
     }
@@ -536,6 +537,7 @@ public class DdlStructureReadingTests
                 + "\\rows[Height = \"1cm\"]{\\row[Height = \"2cm\"]{\\cell{a}\\cell{b}}\\row{\\cell{c}\\cell{d}}}}")
             .Elements[0] as Table;
 
+        // ReSharper disable once PossibleNullReferenceException
         table.Columns.Width.Centimeter.Should().BeApproximately(3, 1e-4);
         table.Rows.Height.Centimeter.Should().BeApproximately(1, 1e-4);
         table.Rows[0].Height.Centimeter.Should().BeApproximately(2, 1e-4);
@@ -549,6 +551,7 @@ public class DdlStructureReadingTests
                 "\\table{\\columns{\\column[Width = \"2cm\"]{}\\column{}}\\rows{\\row{\\cell{a}\\cell{b}}}}")
             .Elements[0] as Table;
 
+        // ReSharper disable once PossibleNullReferenceException
         table.Columns.Count.Should().Be(2);
         table.Columns[0].Width.Centimeter.Should().BeApproximately(2, 1e-4);
     }
@@ -561,6 +564,7 @@ public class DdlStructureReadingTests
                 + "{\\paragraph{p}\\paragraph{q}}}}}")
             .Elements[0] as Table;
 
+        // ReSharper disable once PossibleNullReferenceException
         table[0, 0].Format.Alignment.Should().Be(ParagraphAlignment.Right);
         table[0, 0].Elements.OfType<Paragraph>().Select(TextOf).Should().Equal("p", "q");
     }
@@ -573,6 +577,7 @@ public class DdlStructureReadingTests
     {
         var table = SectionOf("\\table{\\columns{\\column}\\rows{" + row + "}}").Elements[0] as Table;
 
+        // ReSharper disable once PossibleNullReferenceException
         table.Rows.Count.Should().Be(1);
         table[0, 0].Elements.Count.Should().Be(0);
     }
@@ -585,6 +590,7 @@ public class DdlStructureReadingTests
                 + "\\table{\\columns{\\column}\\rows{\\row{\\cell{in}}}}}}}}")
             .Elements[0] as Table;
 
+        // ReSharper disable once PossibleNullReferenceException
         var inner = table[0, 0].Elements.OfType<Table>().Single();
         TextOf(inner[0, 0].Elements[0] as Paragraph).Should().Be("in");
     }
@@ -596,6 +602,7 @@ public class DdlStructureReadingTests
     {
         var frame = SectionOf("\\textframe{\\paragraph{a}\\paragraph{b}}").Elements[0] as TextFrame;
 
+        // ReSharper disable once PossibleNullReferenceException
         frame.Elements.OfType<Paragraph>().Select(TextOf).Should().Equal("a", "b");
     }
 
@@ -607,8 +614,10 @@ public class DdlStructureReadingTests
         var named = SectionOf("\\textframe[Left = Center Top = \"2cm\"]{f}").Elements[0] as TextFrame;
         var measured = SectionOf("\\textframe[Left = \"1cm\" Top = Bottom]{f}").Elements[0] as TextFrame;
 
+        // ReSharper disable once PossibleNullReferenceException
         named.Left.ShapePosition.Should().Be(ShapePosition.Center);
         named.Top.Position.Centimeter.Should().BeApproximately(2, 1e-4);
+        // ReSharper disable once PossibleNullReferenceException
         measured.Left.Position.Centimeter.Should().BeApproximately(1, 1e-4);
         measured.Top.ShapePosition.Should().Be(ShapePosition.Bottom);
     }
@@ -618,6 +627,7 @@ public class DdlStructureReadingTests
     {
         var barcode = SectionOf("\\barcode(\"12345\", Barcode39)[Width = \"4cm\"]").Elements[0] as Barcode;
 
+        // ReSharper disable once PossibleNullReferenceException
         barcode.Code.Should().Be("12345");
         barcode.Type.Should().Be(BarcodeType.Barcode39);
         barcode.Width.Centimeter.Should().BeApproximately(4, 1e-4);
@@ -630,6 +640,7 @@ public class DdlStructureReadingTests
     {
         var chart = SectionOf("\\chart(Line)[Width = \"8cm\"]{}").Elements[0] as Chart;
 
+        // ReSharper disable once PossibleNullReferenceException
         chart.Width.Centimeter.Should().BeApproximately(8, 1e-4);
     }
 
@@ -721,6 +732,7 @@ public class DdlStructureReadingTests
         var paragraph = SectionOf("\\paragraph[Format.Font.Size = 10 Format.Font.Bold = true]{t}")
             .Elements[0] as Paragraph;
 
+        // ReSharper disable once PossibleNullReferenceException
         paragraph.Format.Font.Size.Point.Should().BeApproximately(10, 1e-4);
         paragraph.Format.Font.Bold.Should().BeTrue();
     }
@@ -728,6 +740,7 @@ public class DdlStructureReadingTests
     [Fact]
     public void ATabStopCanBeAddedWithAttributesOfItsOwn()
     {
+        // ReSharper disable once PossibleNullReferenceException
         var stops = (SectionOf(
                 "\\paragraph[Format{TabStops += {Position = \"2cm\" Alignment = Right}}]{t}")
             .Elements[0] as Paragraph).Format.TabStops;
@@ -742,6 +755,7 @@ public class DdlStructureReadingTests
     [InlineData("2.5", 2.5)]
     public void ATabStopCanBeAddedAsABareNumberOfPoints(string position, double points)
     {
+        // ReSharper disable once PossibleNullReferenceException
         var stops = (SectionOf("\\paragraph[Format{TabStops += " + position + "}]{t}")
             .Elements[0] as Paragraph).Format.TabStops;
 
@@ -757,6 +771,7 @@ public class DdlStructureReadingTests
                 "\\paragraph[Format{Borders = null Shading = null TabStops = null}]{t}")
             .Elements[0] as Paragraph;
 
+        // ReSharper disable once PossibleNullReferenceException
         paragraph.Format.Borders.BordersCleared.Should().BeTrue();
         paragraph.Format.TabStops.TabsCleared.Should().BeTrue();
         DdlWriter.WriteToString(paragraph).Should()
@@ -780,6 +795,7 @@ public class DdlStructureReadingTests
     {
         var paragraph = SectionOf("\\paragraph[Format{Font{Size = " + literal + "}}]{t}").Elements[0] as Paragraph;
 
+        // ReSharper disable once PossibleNullReferenceException
         paragraph.Format.Font.Size.Point.Should().BeApproximately(points, 1e-4);
     }
 
@@ -797,6 +813,7 @@ public class DdlStructureReadingTests
 
         // The number is the whole ARGB value, alpha included, so sixteen million - FF0000 - has an
         // alpha of nought. That is what the writer's hex means as well.
+        // ReSharper disable once PossibleNullReferenceException
         paragraph.Format.Font.Color.Argb.Should().Be(0x00FF0000u);
         DdlWriter.WriteToString(paragraph).Should().Contain("Color = 0xFF0000");
     }

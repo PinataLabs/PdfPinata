@@ -1589,7 +1589,7 @@ internal class ParagraphRenderer : Renderer
 
     void RenderTabLeader(TabOffset tabOffset)
     {
-        var leaderString = " ";
+        string leaderString;
         switch (tabOffset.leader)
         {
             case TabLeader.Dashes:
@@ -1633,6 +1633,7 @@ internal class ParagraphRenderer : Renderer
     {
 
         var offset = tabOffsets.Count > tabIdx ?
+            // ReSharper disable once PossibleNullReferenceException
             (TabOffset)tabOffsets[tabIdx] :
             new TabOffset(0, 0);
         ++tabIdx;
@@ -3165,6 +3166,7 @@ internal class ParagraphRenderer : Renderer
         if (pen != null && currentUnderlinePen == null)
             return true;
 
+        // ReSharper disable once PossibleNullReferenceException
         if (pen.Color != currentUnderlinePen.Color)
             return true;
 
@@ -3228,6 +3230,7 @@ internal class ParagraphRenderer : Renderer
         if (pen != null && currentStrikethroughPen == null)
             return true;
 
+        // ReSharper disable once PossibleNullReferenceException
         if (pen.Color != currentStrikethroughPen.Color)
             return true;
 

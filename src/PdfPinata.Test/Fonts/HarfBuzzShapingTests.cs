@@ -272,6 +272,7 @@ public class HarfBuzzShapingTests
             false, false, 12, 1000, new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 });
 
         using var shaper = new HarfBuzzTextShaper();
+        // ReSharper disable once AccessToDisposedClosure
         var act = () => shaper.Shape("abc".AsSpan(), rubbish, XTextDirection.LeftToRight, "latn", null);
 
         // Either a declined run or a run of .notdef, but never an exception out of the middle of a
@@ -304,6 +305,7 @@ public class HarfBuzzShapingTests
         var results = new ShapedRun[64];
 
         Parallel.For(0, results.Length, idx =>
+            // ReSharper disable once AccessToDisposedClosure
             results[idx] = shaper.Shape("Waverley".AsSpan(), Liberation(),
                 XTextDirection.LeftToRight, "latn", null));
 

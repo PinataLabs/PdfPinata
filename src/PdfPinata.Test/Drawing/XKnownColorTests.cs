@@ -42,6 +42,7 @@ public class XKnownColorTests
         {
             properties.Should().ContainKey(known.ToString());
 
+            // ReSharper disable once PossibleNullReferenceException
             var fromProperty = (XColor)properties[known.ToString()].GetValue(null);
             fromProperty.Should().Be(XColor.FromKnownColor(known),
                 $"XColors.{known} is meant to be the colour of the same name");
@@ -67,6 +68,7 @@ public class XKnownColorTests
             properties.Should().ContainKey(known.ToString());
 
             var pen = (XPen)properties[known.ToString()].GetValue(null);
+            // ReSharper disable once PossibleNullReferenceException
             pen.Color.Should().Be(XColor.FromKnownColor(known), $"XPens.{known} draws in {known}");
             pen.Width.Should().Be(1);
         }
@@ -82,6 +84,7 @@ public class XKnownColorTests
             properties.Should().ContainKey(known.ToString());
 
             var brush = (XSolidBrush)properties[known.ToString()].GetValue(null);
+            // ReSharper disable once PossibleNullReferenceException
             brush.Color.Should().Be(XColor.FromKnownColor(known), $"XBrushes.{known} fills in {known}");
         }
     }

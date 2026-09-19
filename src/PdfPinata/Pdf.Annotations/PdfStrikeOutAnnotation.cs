@@ -58,7 +58,7 @@ public sealed class PdfStrikeOutAnnotation : PdfTextMarkupAnnotation
 
     void Initialize()
     {
-        Elements.SetName(Keys.Subtype, "/StrikeOut");
+        Elements.SetName(PdfAnnotation.Keys.Subtype, "/StrikeOut");
         Color = XColors.Red;
     }
 

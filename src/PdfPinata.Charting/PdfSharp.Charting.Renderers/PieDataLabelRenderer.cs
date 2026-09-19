@@ -113,6 +113,7 @@ internal class PieDataLabelRenderer : DataLabelRenderer
     if (sri.dataLabelRendererInfo == null)
       return;
 
+    // ReSharper disable once ConditionIsAlwaysTrueOrFalse
     if (sri != null)
     {
       var gfx = this.rendererParms.Graphics;

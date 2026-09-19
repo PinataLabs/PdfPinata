@@ -162,6 +162,7 @@ public class XSizeTests
     public void ADeserializedSizeWithANegativeExtentIsRefused()
     {
         object size = new XSize(3, 4);
+        // ReSharper disable once PossibleNullReferenceException
         typeof(XSize).GetField("_height", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(size, -1.0);
 
         var deserialized = () => ((IDeserializationCallback)size).OnDeserialization(null);

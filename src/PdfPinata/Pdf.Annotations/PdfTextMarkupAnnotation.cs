@@ -60,7 +60,7 @@ public abstract class PdfTextMarkupAnnotation : PdfAnnotation
     /// </summary>
     protected PdfTextMarkupAnnotation()
     {
-        Elements.SetDateTime(Keys.CreationDate, GlobalTimeSettings.Now);
+        Elements.SetDateTime(PdfAnnotation.Keys.CreationDate, GlobalTimeSettings.Now);
     }
 
     /// <summary>
@@ -70,7 +70,7 @@ public abstract class PdfTextMarkupAnnotation : PdfAnnotation
     protected PdfTextMarkupAnnotation(PdfDocument document)
         : base(document)
     {
-        Elements.SetDateTime(Keys.CreationDate, GlobalTimeSettings.Now);
+        Elements.SetDateTime(PdfAnnotation.Keys.CreationDate, GlobalTimeSettings.Now);
     }
 
     /// <summary>
@@ -189,7 +189,7 @@ public abstract class PdfTextMarkupAnnotation : PdfAnnotation
             x2 = Math.Max(x2, quad.X2);
             y2 = Math.Max(y2, quad.Y2);
         }
-        Elements.SetRectangle(Keys.Rect, new PdfRectangle(x1, y1, x2, y2));
+        Elements.SetRectangle(PdfAnnotation.Keys.Rect, new PdfRectangle(x1, y1, x2, y2));
     }
 
     internal override void OnAddedToPage()
@@ -233,7 +233,7 @@ public abstract class PdfTextMarkupAnnotation : PdfAnnotation
         if (quads.Count == 0)
             return;
 
-        var box = Elements.GetRectangle(Keys.Rect);
+        var box = Elements.GetRectangle(PdfAnnotation.Keys.Rect);
 
         var content = new StringBuilder();
         content.Append("/GS0 gs\n");
@@ -257,7 +257,7 @@ public abstract class PdfTextMarkupAnnotation : PdfAnnotation
 
             var appearance = new PdfDictionary(Owner);
             appearance.Elements["/N"] = form.Reference;
-            Elements[Keys.AP] = appearance;
+            Elements[PdfAnnotation.Keys.AP] = appearance;
         }
 
         form.Elements["/BBox"] = new PdfArray(Owner,

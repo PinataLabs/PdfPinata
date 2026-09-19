@@ -74,6 +74,7 @@ public class AcroFormAuthoringTests
 
         // /FT and the one flag that tells the three buttons and the two choices apart. Left to the
         // caller, either of them missing turns the field into something else on the way back in.
+        // ReSharper disable once PossibleNullReferenceException
         field.Elements.GetName("/FT").Should().Be(fieldType);
         ((int)field.Flags).Should().Be(flags);
     }

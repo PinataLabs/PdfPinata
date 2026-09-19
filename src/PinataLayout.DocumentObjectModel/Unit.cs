@@ -656,8 +656,7 @@ public struct Unit : IFormattable, INullableValue
     /// </summary>
     public static Unit Parse(string value)
     {
-        var unit = Zero;
-        unit = value;
+        Unit unit = value;
         return unit;
     }
 

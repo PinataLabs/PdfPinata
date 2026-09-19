@@ -64,7 +64,7 @@ public abstract class PdfSquareCircleAnnotation : PdfAnnotation
     {
         // Validated even though the two subclasses here pass constants: the constructors are
         // protected on a public class, so a subtype can come from outside this assembly.
-        Elements.SetName(Keys.Subtype, SubtypeName(subtype));
+        Elements.SetName(PdfAnnotation.Keys.Subtype, SubtypeName(subtype));
 
         // A visible default, so that an annotation given nothing but a rectangle still appears.
         // Nothing else about this class has a sensible zero: a border of no width and no interior
@@ -88,7 +88,7 @@ public abstract class PdfSquareCircleAnnotation : PdfAnnotation
         {
             _interior = value;
             WriteInteriorColor();
-            Elements.SetDateTime(Keys.M, GlobalTimeSettings.Now);
+            Elements.SetDateTime(PdfAnnotation.Keys.M, GlobalTimeSettings.Now);
             OnAppearanceInvalidated();
         }
     }
@@ -118,9 +118,9 @@ public abstract class PdfSquareCircleAnnotation : PdfAnnotation
             border.Elements.SetName("/Type", "/Border");
             border.Elements.SetReal("/W", value);
             border.Elements.SetName("/S", "/S");
-            Elements[Keys.BS] = border;
+            Elements[PdfAnnotation.Keys.BS] = border;
 
-            Elements.SetDateTime(Keys.M, GlobalTimeSettings.Now);
+            Elements.SetDateTime(PdfAnnotation.Keys.M, GlobalTimeSettings.Now);
             OnAppearanceInvalidated();
         }
     }
@@ -166,7 +166,7 @@ public abstract class PdfSquareCircleAnnotation : PdfAnnotation
         if (Owner == null)
             return;
 
-        var rect = Elements.GetRectangle(Keys.Rect);
+        var rect = Elements.GetRectangle(PdfAnnotation.Keys.Rect);
         var width = rect.X2 - rect.X1;
         var height = rect.Y2 - rect.Y1;
 
@@ -188,12 +188,12 @@ public abstract class PdfSquareCircleAnnotation : PdfAnnotation
         if (width < 1 || height < 1 || drawnWidth <= 0 || drawnHeight <= 0
             || (pen == null && brush == null))
         {
-            Elements.Remove(Keys.AP);
+            Elements.Remove(PdfAnnotation.Keys.AP);
             Elements.Remove(Keys.RD);
 
             // /AS names one of a set of appearances, so leaving it behind would point at a state
             // in an /AP that is no longer there. SetAppearance clears it for the same reason.
-            Elements.Remove(Keys.AS);
+            Elements.Remove(PdfAnnotation.Keys.AS);
             return;
         }
 

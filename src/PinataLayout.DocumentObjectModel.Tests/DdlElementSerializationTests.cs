@@ -147,8 +147,10 @@ public class DdlElementSerializationTests
 
         var footnote = FirstParagraphOf(RoundTrip(document)).Elements.OfType<Footnote>().Single();
 
+        // ReSharper disable PossibleNullReferenceException
         string.Concat((footnote.Elements[0] as Paragraph).Elements.OfType<Text>()
             .Select(t => t.Content)).Should().Be("the note itself");
+        // ReSharper restore PossibleNullReferenceException
     }
 
     [Fact]

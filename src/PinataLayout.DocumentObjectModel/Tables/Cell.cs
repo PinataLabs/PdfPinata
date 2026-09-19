@@ -184,6 +184,7 @@ public partial class Cell : DocumentObject, IVisitable
             if (clm == null)
             {
                 var cells = Parent as Cells;
+                // ReSharper disable once PossibleNullReferenceException
                 for (var index = 0; index < cells.Count; ++index)
                 {
                     if (cells[index] == this)
@@ -205,6 +206,7 @@ public partial class Cell : DocumentObject, IVisitable
             if (row == null)
             {
                 var cells = Parent as Cells;
+                // ReSharper disable once PossibleNullReferenceException
                 row = cells.Row;
             }
             return row;
@@ -412,6 +414,7 @@ public partial class Cell : DocumentObject, IVisitable
         visitor.VisitCell(this);
 
         if (visitChildren && elements != null)
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             ((IVisitable)elements).AcceptVisitor(visitor, visitChildren);
     }
 

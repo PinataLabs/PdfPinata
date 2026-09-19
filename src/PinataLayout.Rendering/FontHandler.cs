@@ -48,10 +48,10 @@ internal class FontHandler
     XFont xFont = null;
 
     // #PFC
-    XPdfFontOptions options = null;
-    options = new XPdfFontOptions(encoding);
+    var options = new XPdfFontOptions(encoding);
     var style = GetXStyle(font);
 
+    // ReSharper disable once ConditionIsAlwaysTrueOrFalse
     if (xFont == null)
       xFont = new XFont(font.Name, font.Size, style, options);
     return xFont;

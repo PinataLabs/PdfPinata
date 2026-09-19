@@ -417,6 +417,7 @@ public class XRectTests
     public void ADeserializedRectangleWithANegativeExtentIsRefused()
     {
         object rect = new XRect(1, 2, 3, 4);
+        // ReSharper disable once PossibleNullReferenceException
         typeof(XRect).GetField("_width", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(rect, -1.0);
 
         var deserialized = () => ((IDeserializationCallback)rect).OnDeserialization(null);

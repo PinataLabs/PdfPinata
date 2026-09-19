@@ -298,7 +298,7 @@ public static class PdfTextExtractor
         /// </remarks>
         void BeginTag(CSequence content, int index, COperator op)
         {
-            string tag = null;
+            string tag;
             string actualText = null;
             int? mcid = null;
 

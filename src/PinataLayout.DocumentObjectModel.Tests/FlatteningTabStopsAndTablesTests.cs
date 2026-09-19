@@ -319,6 +319,7 @@ public class FlatteningTabStopsAndTablesTests
 
         new RtfFlattenVisitor().Visit(document);
 
+        // ReSharper disable once PossibleNullReferenceException
         (document.LastSection.Elements[0] as Paragraph)
             .Elements.OfType<Hyperlink>().Single().Font.Underline
             .Should().Be(document.Styles["Hyperlink"].Font.Underline);

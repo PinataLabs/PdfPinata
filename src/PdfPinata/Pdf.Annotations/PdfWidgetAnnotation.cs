@@ -69,7 +69,7 @@ public sealed class PdfWidgetAnnotation : PdfAnnotation
 
     void Initialize()
     {
-        Elements.SetName(Keys.Subtype, "/Widget");
+        Elements.SetName(PdfAnnotation.Keys.Subtype, "/Widget");
     }
 
     /// <summary>

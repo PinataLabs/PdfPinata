@@ -933,7 +933,7 @@ public class XTextFormatter
     /// </para>
     /// </remarks>
     bool MeasureLineWithRoom(bool firstLineOfParagraph, double columnWidth, double rectHeight,
-        ref LineMeasure measure, ref int column, ref double y)
+        out LineMeasure measure, ref int column, ref double y)
     {
         measure = MeasureOfLineAt(y, firstLineOfParagraph, columnWidth, column);
         while (measure.IsBlocked)
@@ -1011,7 +1011,7 @@ public class XTextFormatter
         // Asked before the first block rather than at it: a first band with no room in it is
         // answered by starting the text further down, and there is no text placed yet to move.
         // Where that runs out of layout there is nowhere for any of the text to go.
-        var placeable = MeasureLineWithRoom(true, columnWidth, rectHeight, ref measure, ref column, ref y)
+        var placeable = MeasureLineWithRoom(true, columnWidth, rectHeight, out measure, ref column, ref y)
             ? count
             : 0;
         if (placeable == 0 && count > 0)
@@ -1036,7 +1036,7 @@ public class XTextFormatter
                 // After the column move, not before: a line carried to the top of the next column
                 // is a line somewhere else, and its measure is whatever is free there.
                 if (!MoveToNextColumnIfFull(ref column, ref y, rectHeight)
-                    || !MeasureLineWithRoom(true, columnWidth, rectHeight, ref measure, ref column, ref y))
+                    || !MeasureLineWithRoom(true, columnWidth, rectHeight, out measure, ref column, ref y))
                 {
                     block.Stop = true;
                     break;
@@ -1068,7 +1068,7 @@ public class XTextFormatter
                     firstIndex = idx;
                     y += _lineHeight + LineGap;
                     if (!MoveToNextColumnIfFull(ref column, ref y, rectHeight)
-                        || !MeasureLineWithRoom(false, columnWidth, rectHeight, ref measure, ref column, ref y))
+                        || !MeasureLineWithRoom(false, columnWidth, rectHeight, out measure, ref column, ref y))
                     {
                         block.Stop = true;
                         break;

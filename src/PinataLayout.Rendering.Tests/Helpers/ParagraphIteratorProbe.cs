@@ -96,11 +96,13 @@ internal static class ParagraphIteratorProbe
     {
         return iterator == null
             ? null
+            // ReSharper disable once PossibleNullReferenceException
             : IteratorType.GetMethod(methodName, Internals).Invoke(iterator, null);
     }
 
     static object Read(object iterator, string propertyName)
     {
+        // ReSharper disable once PossibleNullReferenceException
         return IteratorType.GetProperty(propertyName, Internals).GetValue(iterator);
     }
 }

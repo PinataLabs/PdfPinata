@@ -83,8 +83,8 @@ internal class PieExplodedPlotAreaRenderer : PiePlotAreaRenderer
     var innerRect = new XRect();
     var p1 = new XPoint();
 
-    double midAngle = 0, sectorStartAngle = 0, sectorSweepAngle = 0,
-      deltaAngle = 2, startAngle = 270, sweepAngle = 0,
+    double midAngle, sectorStartAngle, sectorSweepAngle,
+      deltaAngle = 2, startAngle = 270, sweepAngle,
       rInnerCircle = pieRect.Width / 15,
       rOuterCircle = pieRect.Width / 2;
 

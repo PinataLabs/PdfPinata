@@ -381,7 +381,7 @@ internal abstract class PdfPageWalk
     /// </summary>
     static PdfDictionary ScopeOf(PdfDictionary owner, PdfDictionary scope)
     {
-        return owner.Elements.GetDictionary(PdfPage.Keys.Resources) ?? scope;
+        return owner.Elements.GetDictionary(PdfPage.InheritablePageKeys.Resources) ?? scope;
     }
 
     /// <summary>

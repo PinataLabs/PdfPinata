@@ -195,7 +195,7 @@ public abstract class PdfChoiceField : PdfAcroField
     /// </remarks>
     protected int[] SelectedIndicesFromValue()
     {
-        var value = Elements[Keys.V];
+        var value = Elements[PdfAcroField.Keys.V];
         if (value is Advanced.PdfReference reference)
             value = reference.Value;
 

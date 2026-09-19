@@ -256,9 +256,9 @@ internal abstract class XAxisRenderer : AxisRenderer
 
     // Draw axis.
     // First draw tick marks, second draw axis.
-    double majorTickMarkStart = 0, majorTickMarkEnd = 0,
-      minorTickMarkStart = 0, minorTickMarkEnd = 0;
-    GetTickMarkPos(xari, ref majorTickMarkStart, ref majorTickMarkEnd, ref minorTickMarkStart, ref minorTickMarkEnd);
+    double majorTickMarkStart, majorTickMarkEnd,
+      minorTickMarkStart, minorTickMarkEnd;
+    GetTickMarkPos(xari, out majorTickMarkStart, out majorTickMarkEnd, out minorTickMarkStart, out minorTickMarkEnd);
 
     // The axis line itself is still stroked from LineFormat, but the tick marks now read the
     // pens the base class already computes for every axis - the fix this merge exists to make.
@@ -462,8 +462,8 @@ internal abstract class XAxisRenderer : AxisRenderer
   /// dimension this orientation's ticks run along.
   /// </summary>
   private void GetTickMarkPos(AxisRendererInfo rendererInfo,
-    ref double majorTickMarkStart, ref double majorTickMarkEnd,
-    ref double minorTickMarkStart, ref double minorTickMarkEnd)
+    out double majorTickMarkStart, out double majorTickMarkEnd,
+    out double minorTickMarkStart, out double minorTickMarkEnd)
   {
     // Outside adds the width to the edge for one orientation and subtracts it for the other -
     // the sign this flips - because the two edges face opposite ways relative to the plot area.

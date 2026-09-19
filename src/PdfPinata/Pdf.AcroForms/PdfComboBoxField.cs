@@ -65,7 +65,7 @@ public sealed class PdfComboBoxField : PdfChoiceField
     {
         get
         {
-            var value = Elements.GetString(Keys.V);
+            var value = Elements.GetString(PdfAcroField.Keys.V);
             return IndexInOptArray(value);
         }
         set
@@ -77,7 +77,7 @@ public sealed class PdfComboBoxField : PdfChoiceField
             if (value != -1)
             {
                 var key = ValueInOptArray(value);
-                Elements.SetString(Keys.V, key);
+                Elements.SetString(PdfAcroField.Keys.V, key);
                 // /I is an array of the indices selected - one of them here, a combo box offering
                 // a single choice.
                 //
@@ -97,7 +97,7 @@ public sealed class PdfComboBoxField : PdfChoiceField
     /// </summary>
     public override PdfItem Value
     {
-        get => Elements[Keys.V];
+        get => Elements[PdfAcroField.Keys.V];
         set
         {
             if (ReadOnly)
@@ -116,7 +116,7 @@ public sealed class PdfComboBoxField : PdfChoiceField
             // look at names, so /I would never be pointed at the option either.
             var text = value as PdfString ?? new PdfString(TextOfName((PdfName)value));
 
-            Elements[Keys.V] = text;
+            Elements[PdfAcroField.Keys.V] = text;
             SyncSelectedIndex();
             if (SelectedIndex != -1)
                 return;

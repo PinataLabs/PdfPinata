@@ -50,6 +50,7 @@ public class XValuesMapper
     {
       var xSeries = xValues.AddXSeries();
       var domXSeriesElements = domXSeries.GetValue("XSeriesElements") as DocumentObjectModel.Shapes.Charts.XSeriesElements;
+      // ReSharper disable once PossibleNullReferenceException
       foreach (DocumentObjectModel.Shapes.Charts.XValue domXValue in domXSeriesElements)
       {
         if (domXValue == null)

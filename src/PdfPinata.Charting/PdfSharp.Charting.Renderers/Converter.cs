@@ -88,7 +88,7 @@ internal class Converter
   /// </summary>
   internal static XPen ToXPen(LineFormat lineFormat, XColor defaultColor, double defaultWidth, XDashStyle defaultDashStyle)
   {
-    XPen pen = null;
+    XPen pen;
     if (lineFormat == null)
     {
       pen = new XPen(defaultColor, defaultWidth);

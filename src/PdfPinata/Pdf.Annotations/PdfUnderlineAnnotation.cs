@@ -58,7 +58,7 @@ public sealed class PdfUnderlineAnnotation : PdfTextMarkupAnnotation
 
     void Initialize()
     {
-        Elements.SetName(Keys.Subtype, "/Underline");
+        Elements.SetName(PdfAnnotation.Keys.Subtype, "/Underline");
         Color = XColors.Black;
     }
 

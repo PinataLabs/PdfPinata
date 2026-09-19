@@ -232,6 +232,7 @@ public partial class TextFrame : Shape, IVisitable
         visitor.VisitTextFrame(this);
 
         if (visitChildren && this.elements != null)
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             ((IVisitable)this.elements).AcceptVisitor(visitor, visitChildren);
     }
 

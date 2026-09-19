@@ -115,13 +115,17 @@ public class ErrorMessageResourceTests
             .Should().Be("Unexpected symbol '\\pagebreak'.");
     }
 
+    // ReSharper disable PossibleNullReferenceException
     static string GetString(object id) => (string)DomSRType
         .GetMethod("GetString", BindingFlags.Static | BindingFlags.NonPublic)
         .Invoke(null, new[] { id });
+    // ReSharper restore PossibleNullReferenceException
 
+    // ReSharper disable PossibleNullReferenceException
     static string FormatMessage(object id, params object[] args) => (string)DomSRType
         .GetMethod("FormatMessage", BindingFlags.Static | BindingFlags.NonPublic)
         .Invoke(null, new[] { id, args });
+    // ReSharper restore PossibleNullReferenceException
 
     static object MsgId(string name) => Enum.Parse(MsgIdType, name);
 
@@ -144,11 +148,13 @@ public class ErrorMessageResourceTests
         var resources = typeof(Document).Assembly.GetType(
             "PinataLayout.DocumentObjectModel.Resources.AppResources", true);
 
+        // ReSharper disable PossibleNullReferenceException
         return resources
             .GetProperties(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public)
             .Where(property => property.PropertyType == typeof(string))
             .Select(property => new KeyValuePair<string, string>(property.Name, Read(property)))
             .ToList();
+        // ReSharper restore PossibleNullReferenceException
     }
 
     static string Read(PropertyInfo property)

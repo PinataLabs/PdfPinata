@@ -315,7 +315,7 @@ internal class DdlParser
     {
         ArgumentNullException.ThrowIfNull(section);
 
-        HeaderFooter headerFooter = null;
+        HeaderFooter headerFooter;
         try
         {
             var hdrFtrSym = Symbol;
@@ -1373,7 +1373,7 @@ internal class DdlParser
         // Usage of header-, bottom-, footer-, left- and rightarea are similar.
 
         ChartType chartType = 0;
-        Chart chart = null;
+        Chart chart;
         try
         {
             ReadCode(); // read '('
@@ -1867,7 +1867,7 @@ internal class DdlParser
         //
         // Parser of rhs depends on the type of the l-value.
 
-        object val = null;
+        object val;
         var valueName = "";
         try
         {
@@ -2263,7 +2263,7 @@ internal class DdlParser
         AssertCondition(Symbol == Symbol.IntegerLiteral || Symbol == Symbol.HexIntegerLiteral,
             DomMsgID.IntegerExpected, this.scanner.Token);
         r = this.scanner.GetTokenValueAsUInt();
-        AssertCondition(r >= 0 && r <= 255, DomMsgID.InvalidRange, "0 - 255");
+        AssertCondition(r <= 255, DomMsgID.InvalidRange, "0 - 255");
 
         ReadCode();  // read ','
         AssertSymbol(Symbol.Comma);
@@ -2272,7 +2272,7 @@ internal class DdlParser
         AssertCondition(Symbol == Symbol.IntegerLiteral || Symbol == Symbol.HexIntegerLiteral,
             DomMsgID.IntegerExpected, this.scanner.Token);
         g = this.scanner.GetTokenValueAsUInt();
-        AssertCondition(g >= 0 && g <= 255, DomMsgID.InvalidRange, "0 - 255");
+        AssertCondition(g <= 255, DomMsgID.InvalidRange, "0 - 255");
 
         ReadCode();  // read ','
         AssertSymbol(Symbol.Comma);
@@ -2281,7 +2281,7 @@ internal class DdlParser
         AssertCondition(Symbol == Symbol.IntegerLiteral || Symbol == Symbol.HexIntegerLiteral,
             DomMsgID.IntegerExpected, this.scanner.Token);
         b = this.scanner.GetTokenValueAsUInt();
-        AssertCondition(b >= 0 && b <= 255, DomMsgID.InvalidRange, "0 - 255");
+        AssertCondition(b <= 255, DomMsgID.InvalidRange, "0 - 255");
 
         ReadCode();  // read ')'
         AssertSymbol(Symbol.ParenRight);

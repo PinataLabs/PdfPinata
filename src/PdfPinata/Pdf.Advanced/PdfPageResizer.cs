@@ -169,8 +169,8 @@ static class PdfPageResizer
     {
         // Not page.CropBox: its getter passes create: true, so merely asking whether there is a
         // crop box would give the page one.
-        var media = RectangleOf(page, PdfPage.Keys.MediaBox);
-        var crop = RectangleOf(page, PdfPage.Keys.CropBox);
+        var media = RectangleOf(page, PdfPage.InheritablePageKeys.MediaBox);
+        var crop = RectangleOf(page, PdfPage.InheritablePageKeys.CropBox);
         var box = crop ?? media;
 
         if (box == null || box.Width <= 0 || box.Height <= 0)
@@ -306,7 +306,7 @@ static class PdfPageResizer
 
         // The name has to lead to a form this made. Read the resources through the element
         // rather than the property so that a page without any does not get given some.
-        var resourcesItem = page.Elements[PdfPage.Keys.Resources];
+        var resourcesItem = page.Elements[PdfPage.InheritablePageKeys.Resources];
         if (resourcesItem is PdfReference resourcesReference)
             resourcesItem = resourcesReference.Value;
         if (resourcesItem is not PdfDictionary resources)
@@ -451,7 +451,7 @@ static class PdfPageResizer
         // very boxes this is meant to leave absent.
         foreach (var key in new[]
                  {
-                     PdfPage.Keys.CropBox, PdfPage.Keys.BleedBox,
+                     PdfPage.InheritablePageKeys.CropBox, PdfPage.Keys.BleedBox,
                      PdfPage.Keys.TrimBox, PdfPage.Keys.ArtBox
                  })
         {

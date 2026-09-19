@@ -503,6 +503,7 @@ public partial class Paragraph : DocumentObject, IVisitable
         visitor.VisitParagraph(this);
 
         if (visitChildren && elements != null)
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             ((IVisitable)elements).AcceptVisitor(visitor, visitChildren);
     }
 

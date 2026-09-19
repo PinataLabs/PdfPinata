@@ -1716,8 +1716,7 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public XGraphicsState Save()
     {
-        XGraphicsState xState = null;
-        xState = new XGraphicsState();
+        var xState = new XGraphicsState();
         var iState = new InternalGraphicsState(this, xState);
         iState.Transform = _transform;
         _gsStack.Push(iState);
@@ -1771,8 +1770,7 @@ public sealed class XGraphics : IDisposable
         if (unit != XGraphicsUnit.Point)
             throw new ArgumentException("The current implementation supports XGraphicsUnit.Point only.", nameof(unit));
 
-        XGraphicsContainer xContainer = null;
-        xContainer = new XGraphicsContainer();
+        var xContainer = new XGraphicsContainer();
 
         var iState = new InternalGraphicsState(this, xContainer);
         iState.Transform = _transform;

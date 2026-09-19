@@ -58,6 +58,7 @@ internal static class AreaProbe
     internal static Area FittingRect(this Area area, double yPosition, double height)
     {
         var method = typeof(Area).GetMethod("GetFittingRect", Internals);
+        // ReSharper disable once PossibleNullReferenceException
         return (Area)method.Invoke(area, new object[] { XUnit.FromPoint(yPosition), XUnit.FromPoint(height) });
     }
 
@@ -65,6 +66,7 @@ internal static class AreaProbe
     internal static Area UnitedWith(this Area area, Area other)
     {
         var method = typeof(Area).GetMethod("Unite", Internals);
+        // ReSharper disable once PossibleNullReferenceException
         return (Area)method.Invoke(area, new object[] { other });
     }
 
@@ -72,6 +74,7 @@ internal static class AreaProbe
     internal static Area Lowered(this Area area, double verticalOffset)
     {
         var method = typeof(Area).GetMethod("Lower", Internals);
+        // ReSharper disable once PossibleNullReferenceException
         return (Area)method.Invoke(area, new object[] { XUnit.FromPoint(verticalOffset) });
     }
 

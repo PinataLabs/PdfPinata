@@ -272,6 +272,7 @@ public class DocumentRenderer
         var count = renderInfos != null ? renderInfos.Length : 0;
         var documentObjects = new DocumentObject[count];
         for (var idx = 0; idx < count; idx++)
+            // ReSharper disable once PossibleNullReferenceException
             documentObjects[idx] = renderInfos[idx].DocumentObject;
         return documentObjects;
     }
@@ -444,6 +445,7 @@ public class DocumentRenderer
         if (listInfo == previousListInfo)
         {
             if (isNumberList)
+                // ReSharper disable once PossibleNullReferenceException
                 return (int)previousListNumbers[listType];
             return listNumber;
         }
@@ -454,6 +456,7 @@ public class DocumentRenderer
         {
             listNumber = 1;
             if (/*!listTypeChanged &&*/ (listInfo.IsNull("ContinuePreviousList") || listInfo.ContinuePreviousList))
+                // ReSharper disable once PossibleNullReferenceException
                 listNumber = (int)previousListNumbers[listType] + 1;
 
             previousListNumbers[listType] = listNumber;

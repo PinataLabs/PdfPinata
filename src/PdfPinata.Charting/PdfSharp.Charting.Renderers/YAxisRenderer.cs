@@ -188,9 +188,9 @@ internal abstract class YAxisRenderer : AxisRenderer
 
     // Draw axis.
     // First draw tick marks, second draw axis.
-    double majorTickMarkStart = 0, majorTickMarkEnd = 0,
-      minorTickMarkStart = 0, minorTickMarkEnd = 0;
-    GetTickMarkPos(yari, ref majorTickMarkStart, ref majorTickMarkEnd, ref minorTickMarkStart, ref minorTickMarkEnd);
+    double majorTickMarkStart, majorTickMarkEnd,
+      minorTickMarkStart, minorTickMarkEnd;
+    GetTickMarkPos(yari, out majorTickMarkStart, out majorTickMarkEnd, out minorTickMarkStart, out minorTickMarkEnd);
 
     var gfx = this.rendererParms.Graphics;
     var lineFormatRenderer = new LineFormatRenderer(gfx, yari.LineFormat);
@@ -387,8 +387,8 @@ internal abstract class YAxisRenderer : AxisRenderer
   /// depending on the tick mark type, on the dimension this orientation's ticks run across.
   /// </summary>
   private void GetTickMarkPos(AxisRendererInfo rendererInfo,
-    ref double majorTickMarkStart, ref double majorTickMarkEnd,
-    ref double minorTickMarkStart, ref double minorTickMarkEnd)
+    out double majorTickMarkStart, out double majorTickMarkEnd,
+    out double minorTickMarkStart, out double minorTickMarkEnd)
   {
     // Outside adds the width to the edge for one orientation and subtracts it for the other -
     // the sign this flips - because the two edges face opposite ways relative to the plot area.

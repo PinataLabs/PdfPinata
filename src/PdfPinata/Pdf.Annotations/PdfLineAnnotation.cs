@@ -48,7 +48,7 @@ public sealed class PdfLineAnnotation : PdfAnnotation
 
     void Initialize()
     {
-        Elements.SetName(Keys.Subtype, "/Line");
+        Elements.SetName(PdfAnnotation.Keys.Subtype, "/Line");
 
         // A visible default, for the same reason PdfSquareCircleAnnotation has one: a line of no
         // width is an annotation that draws nothing, which is the very thing this class exists to
@@ -99,7 +99,7 @@ public sealed class PdfLineAnnotation : PdfAnnotation
     {
         get
         {
-            var border = Elements.GetDictionary(Keys.BS);
+            var border = Elements.GetDictionary(PdfAnnotation.Keys.BS);
             return border == null ? 1 : border.Elements.GetReal("/W");
         }
         set
@@ -113,7 +113,7 @@ public sealed class PdfLineAnnotation : PdfAnnotation
             border.Elements.SetName("/Type", "/Border");
             border.Elements.SetReal("/W", value);
             border.Elements.SetName("/S", "/S");
-            Elements[Keys.BS] = border;
+            Elements[PdfAnnotation.Keys.BS] = border;
 
             Touch();
         }
@@ -230,7 +230,7 @@ public sealed class PdfLineAnnotation : PdfAnnotation
     /// </summary>
     void Touch()
     {
-        Elements.SetDateTime(Keys.M, GlobalTimeSettings.Now);
+        Elements.SetDateTime(PdfAnnotation.Keys.M, GlobalTimeSettings.Now);
         RebuildAppearance();
     }
 
@@ -263,7 +263,7 @@ public sealed class PdfLineAnnotation : PdfAnnotation
         var y1 = Math.Min(start.Y, end.Y) - reach;
         var x2 = Math.Max(start.X, end.X) + reach;
         var y2 = Math.Max(start.Y, end.Y) + reach;
-        Elements.SetRectangle(Keys.Rect, new PdfRectangle(new XPoint(x1, y1), new XPoint(x2, y2)));
+        Elements.SetRectangle(PdfAnnotation.Keys.Rect, new PdfRectangle(new XPoint(x1, y1), new XPoint(x2, y2)));
 
         var boxWidth = x2 - x1;
         var boxHeight = y2 - y1;
@@ -280,11 +280,11 @@ public sealed class PdfLineAnnotation : PdfAnnotation
             || boxWidth < 1 || boxHeight < 1)
         #pragma warning restore S1244
         {
-            Elements.Remove(Keys.AP);
+            Elements.Remove(PdfAnnotation.Keys.AP);
 
             // /AS names one of a set of appearances, so leaving it behind would point at a state
             // in an /AP that is no longer there. SetAppearance clears it for the same reason.
-            Elements.Remove(Keys.AS);
+            Elements.Remove(PdfAnnotation.Keys.AS);
             return;
         }
 

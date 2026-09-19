@@ -101,7 +101,7 @@ public sealed class PdfImage : PdfXObject
     /// </summary>
     void InitializeJpeg()
     {
-        byte[] imageBits = null;
+        byte[] imageBits;
 
         using (var memory = _image.AsJpeg())
         {

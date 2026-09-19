@@ -338,8 +338,8 @@ public sealed partial class Style : DocumentObject, IVisitable
         //!!!newTHHO 26.07.2007 Modified method for built-in styles.
         //!!!newTHHO 26.07.2007 Modified method for user-defined styles.
         var buildInStyles = Styles.BuildInStyles;
-        Style refStyle = null;
-        ParagraphFormat refFormat = null;
+        Style refStyle;
+        ParagraphFormat refFormat;
 
         serializer.WriteComment((comment ?? ""));
         if ((buildIn ?? false))
@@ -360,7 +360,6 @@ public sealed partial class Style : DocumentObject, IVisitable
             {
                 // case: any build-in style except "Normal"
                 refStyle = buildInStyles[buildInStyles.GetIndex(Name)];
-                refFormat = refStyle.ParagraphFormat;
                 if (String.Compare(BaseStyle, refStyle.BaseStyle, StringComparison.OrdinalIgnoreCase) == 0)
                 {
                     // case: build-in style with unmodified base style name

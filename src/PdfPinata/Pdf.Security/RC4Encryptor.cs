@@ -160,6 +160,7 @@ class RC4Encryptor : EncryptorBase, IEncryptor
             md5.TransformFinalBlock(documentId, 0, documentId.Length);
             var mkey = md5.Hash;
             // ReSharper disable once AssignNullToNotNullAttribute
+            // ReSharper disable once PossibleNullReferenceException
             Array.Copy(mkey, computedUserValue, mkey.Length);
             for (var i = 0; i < 20; i++)
             {

@@ -130,6 +130,7 @@ public sealed class Meta
     if (trail != null)
     {
       var doc = dom.GetValue(name) as DocumentObject;
+      // ReSharper disable once PossibleNullReferenceException
       doc.SetValue(trail, val);
     }
     else

@@ -68,7 +68,7 @@ internal class BarStackedPlotAreaRenderer : BarPlotAreaRenderer
     var points = new XPoint[2];
     for (var pointIdx = 0; pointIdx < maxPoints; ++pointIdx)
     {
-      double yMin = 0, yMax = 0, y0 = 0, y1 = 0;
+      double yMin = 0, yMax = 0, y0, y1;
       var x0 = x - columnWidth;
       var x1 = x + columnWidth;
 

@@ -604,6 +604,7 @@ public partial class FormattedText : DocumentObject, IVisitable
         visitor.VisitFormattedText(this);
 
         if (visitChildren && elements != null)
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             ((IVisitable)elements).AcceptVisitor(visitor, visitChildren);
     }
 

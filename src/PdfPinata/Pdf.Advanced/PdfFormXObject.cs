@@ -101,7 +101,7 @@ public sealed class PdfFormXObject : PdfXObject, IContentStream
 
         // The same document, so the resources need no importing. Handing the reference over
         // leaves a dictionary shared with other pages exactly as it was.
-        var resources = page.Elements[PdfPage.Keys.Resources];
+        var resources = page.Elements[PdfPage.InheritablePageKeys.Resources];
         if (resources != null)
             Elements[Keys.Resources] = resources;
 
@@ -139,11 +139,7 @@ public sealed class PdfFormXObject : PdfXObject, IContentStream
                     only = onlyReference.Value;
                 single = only as PdfDictionary;
             }
-            else if (array.Elements.Count == 0)
-            {
-                single = null;
-            }
-            else
+            else if (array.Elements.Count != 0)
             {
                 TakeRunTogetherContentOf(page);
                 return;
@@ -269,8 +265,8 @@ public sealed class PdfFormXObject : PdfXObject, IContentStream
         }
 
         // Take /Rotate into account
-        var rect = importPage.Elements.GetRectangle(PdfPage.Keys.MediaBox);
-        var rotate = importPage.Elements.GetInteger(PdfPage.Keys.Rotate);
+        var rect = importPage.Elements.GetRectangle(PdfPage.InheritablePageKeys.MediaBox);
+        var rotate = importPage.Elements.GetInteger(PdfPage.InheritablePageKeys.Rotate);
         if (rotate == 0)
         {
             // Set bounding box to media box

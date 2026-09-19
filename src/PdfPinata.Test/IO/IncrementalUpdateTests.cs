@@ -309,6 +309,7 @@ public class IncrementalUpdateTests
         using var source = new MemoryStream(OriginalDocument());
         var document = Reader.Open(source, PdfDocumentOpenMode.Append);
 
+        // ReSharper disable once AccessToDisposedClosure
         var saving = () => document.SaveIncremental(source);
 
         saving.Should().Throw<ArgumentException>();

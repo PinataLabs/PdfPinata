@@ -186,6 +186,7 @@ public class CharacterScanningTests
 
         var method = ScannerType.GetMethod("Advance", BindingFlags.Public | BindingFlags.Static);
         object[] args = { '\0', initialNextChar, handleCRLF, readNextByte };
+        // ReSharper disable once PossibleNullReferenceException
         method.Invoke(null, args);
         return ((char)args[0], (char)args[1]);
     }
@@ -193,12 +194,14 @@ public class CharacterScanningTests
     static char InvokeSkipWhiteSpace(char currChar, Func<char> scanNextChar)
     {
         var method = ScannerType.GetMethod("SkipWhiteSpace", BindingFlags.Public | BindingFlags.Static);
+        // ReSharper disable once PossibleNullReferenceException
         return (char)method.Invoke(null, new object[] { currChar, scanNextChar });
     }
 
     static T InvokeStatic<T>(string methodName, params object[] args)
     {
         var method = ScannerType.GetMethod(methodName, BindingFlags.Public | BindingFlags.Static);
+        // ReSharper disable once PossibleNullReferenceException
         return (T)method.Invoke(null, args);
     }
 }

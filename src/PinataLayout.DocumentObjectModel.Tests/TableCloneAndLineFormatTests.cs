@@ -39,6 +39,7 @@ public class TableCloneAndLineFormatTests
     }
 
     static string TextOfCell(Table table, int row, int column) =>
+        // ReSharper disable once PossibleNullReferenceException
         (table[row, column].Elements[0] as Paragraph).Elements[0] is Text text ? text.Content : null;
 
     // ----- Table.DeepCopy ---------------------------------------------------------------------------
@@ -70,6 +71,7 @@ public class TableCloneAndLineFormatTests
         original.Shading.Color = Colors.Red;
         original.Format.Alignment = ParagraphAlignment.Right;
         original.Columns[0].Width = Unit.FromCentimeter(8);
+        // ReSharper disable once PossibleNullReferenceException
         (original[0, 0].Elements[0] as Paragraph).Elements.Clear();
 
         copy.Borders.Width.Point.Should().BeApproximately(2, 0.001);
@@ -152,6 +154,7 @@ public class TableCloneAndLineFormatTests
         frame.LineFormat.Color = Colors.Blue;
 
         var reread = DdlReader.DocumentFromString(DdlWriter.WriteToString(document));
+        // ReSharper disable once PossibleNullReferenceException
         var format = (reread.LastSection.Elements[0] as TextFrame).LineFormat;
 
         format.Visible.Should().BeTrue();

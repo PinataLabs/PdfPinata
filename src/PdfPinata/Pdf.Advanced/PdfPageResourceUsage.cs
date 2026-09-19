@@ -63,7 +63,7 @@ internal sealed class PdfPageResourceUsage : PdfPageWalk
         // with, but it can paint a device colour outright — "0 0 0 1 k" names no resource — and its
         // annotations can carry appearance streams with resources of their own. Skipping it would
         // hand the caller an empty answer that says Understood, which is a page judged on a guess.
-        var resources = page.Elements.GetDictionary(PdfPage.Keys.Resources) ?? new PdfDictionary();
+        var resources = page.Elements.GetDictionary(PdfPage.InheritablePageKeys.Resources) ?? new PdfDictionary();
         var usage = new PdfPageResourceUsage(resources);
         usage.ReadPage(page);
 

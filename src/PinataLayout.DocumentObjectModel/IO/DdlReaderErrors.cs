@@ -61,6 +61,7 @@ public class DdlReaderErrors : IEnumerable
     {
       var count = 0;
       for (var idx = 0; idx < this.errors.Count; idx++)
+        // ReSharper disable once PossibleNullReferenceException
         if (((DdlReaderError)this.errors[idx]).ErrorLevel == DdlErrorLevel.Error)
           count++;
       return count;

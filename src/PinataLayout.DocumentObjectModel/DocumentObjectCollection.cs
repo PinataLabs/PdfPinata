@@ -88,6 +88,7 @@ public abstract class DocumentObjectCollection : DocumentObject, IList, IVisitab
             if (doc != null)
             {
                 doc = doc.Clone() as DocumentObject;
+                // ReSharper disable once PossibleNullReferenceException
                 doc.parent = coll;
             }
 
@@ -152,6 +153,7 @@ public abstract class DocumentObjectCollection : DocumentObject, IList, IVisitab
         for (var idx = index + 1; idx < count; ++idx)
         {
             var obj = (DocumentObject)((IList)this)[idx];
+            // ReSharper disable once PossibleNullReferenceException
             obj.ResetCachedValues();
         }
     }
@@ -202,6 +204,7 @@ public abstract class DocumentObjectCollection : DocumentObject, IList, IVisitab
         for (var idx = index; idx < count; ++idx)
         {
             var obj = (DocumentObject)((IList)this)[idx];
+            // ReSharper disable once PossibleNullReferenceException
             obj.ResetCachedValues();
         }
     }

@@ -72,6 +72,7 @@ public partial class Section : DocumentObject, IVisitable
     public Section PreviousSection()
     {
         var sections = Parent as Sections;
+        // ReSharper disable once PossibleNullReferenceException
         var index = sections.IndexOf(this);
         if (index > 0)
             return sections[index - 1];
@@ -357,11 +358,14 @@ public partial class Section : DocumentObject, IVisitable
         visitor.VisitSection(this);
 
         if (visitChildren && headers != null)
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             ((IVisitable)headers).AcceptVisitor(visitor, visitChildren);
         if (visitChildren && footers != null)
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             ((IVisitable)footers).AcceptVisitor(visitor, visitChildren);
 
         if (visitChildren && elements != null)
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             ((IVisitable)elements).AcceptVisitor(visitor, visitChildren);
     }
 

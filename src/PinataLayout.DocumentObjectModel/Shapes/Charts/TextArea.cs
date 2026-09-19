@@ -318,6 +318,7 @@ public partial class TextArea : ChartObject, IVisitable
   {
     var chartObject = parent as Chart;
 
+    // ReSharper disable once PossibleNullReferenceException
     serializer.WriteLine("\\" + chartObject.CheckTextArea(this));
     var pos = serializer.BeginAttributes();
 
@@ -362,6 +363,7 @@ public partial class TextArea : ChartObject, IVisitable
   {
     visitor.VisitTextArea(this);
     if (elements != null && visitChildren)
+      // ReSharper disable once ConditionIsAlwaysTrueOrFalse
       ((IVisitable)elements).AcceptVisitor(visitor, visitChildren);
   }
 }

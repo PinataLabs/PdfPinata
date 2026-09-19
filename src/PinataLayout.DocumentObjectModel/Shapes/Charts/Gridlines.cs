@@ -93,6 +93,7 @@ public partial class Gridlines : ChartObject
   {
     var axisObject = parent as Axis;
 
+    // ReSharper disable once PossibleNullReferenceException
     serializer.BeginContent(axisObject.CheckGridlines(this));
 
     if (!IsNull("LineFormat"))

@@ -806,6 +806,7 @@ internal class DdlScanner
 
       // ReadHexNumber takes in any identifier character, so a hex literal can be malformed as
       // well as too large.
+      // ReSharper disable once PossibleNullReferenceException
       if (number.Length > 0 && number.All(IsHexDigit))
         throw IntegerOutOfRange();
       throw ParserException(DomMsgID.IntegerExpected, token);

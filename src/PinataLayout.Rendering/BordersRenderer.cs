@@ -91,6 +91,7 @@ internal class BordersRenderer
       if (!border.IsNull("Visible") && !border.Visible)
         return 0;
 
+      // ReSharper disable once ConditionIsAlwaysTrueOrFalse
       if (border != null && !border.IsNull("Width"))
         return border.Width.Point;
 

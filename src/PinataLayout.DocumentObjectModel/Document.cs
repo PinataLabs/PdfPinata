@@ -352,7 +352,9 @@ public sealed partial class Document : DocumentObject, IVisitable
     visitor.VisitDocument(this);
     if (visitChildren)
     {
+      // ReSharper disable once ConditionIsAlwaysTrueOrFalse
       ((IVisitable)Styles).AcceptVisitor(visitor, visitChildren);
+      // ReSharper disable once ConditionIsAlwaysTrueOrFalse
       ((IVisitable)Sections).AcceptVisitor(visitor, visitChildren);
     }
   }

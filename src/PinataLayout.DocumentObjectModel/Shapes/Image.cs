@@ -190,7 +190,7 @@ public partial class Image : Shape
     /// </summary>
     public string GetFilePath(string workingDir)
     {
-        var filePath = "";
+        string filePath;
 
         try
         {

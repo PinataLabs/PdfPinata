@@ -60,9 +60,11 @@ public class PdfSecurity
         document.Save(ms, false);
 
         document.SecuritySettings.DocumentSecurityLevel.Should().Be(PdfDocumentSecurityLevel.None);
+        // ReSharper disable PossibleNullReferenceException
         var md5 = securityHandler.GetType()
             .GetField("_md5Instance", BindingFlags.NonPublic | BindingFlags.Instance)
             .GetValue(securityHandler);
+        // ReSharper restore PossibleNullReferenceException
         md5.Should().BeNull("nothing is encrypted, so no hash algorithm should have been created");
     }
 

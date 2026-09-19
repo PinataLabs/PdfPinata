@@ -462,12 +462,12 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// </summary>
     public PdfRectangle MediaBox
     {
-        get => Elements.GetRectangle(Keys.MediaBox, true);
+        get => Elements.GetRectangle(InheritablePageKeys.MediaBox, true);
         set
         {
             // Whatever the page was asked to be, it is not that any more.
             _sheet.TrimmedSize = null;
-            Elements.SetRectangle(Keys.MediaBox, value);
+            Elements.SetRectangle(InheritablePageKeys.MediaBox, value);
         }
     }
 
@@ -476,8 +476,8 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// </summary>
     public PdfRectangle CropBox
     {
-        get => Elements.GetRectangle(Keys.CropBox, true);
-        set => Elements.SetRectangle(Keys.CropBox, value);
+        get => Elements.GetRectangle(InheritablePageKeys.CropBox, true);
+        set => Elements.SetRectangle(InheritablePageKeys.CropBox, value);
     }
 
     /// <summary>
@@ -841,7 +841,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         get
         {
             if (_resources == null)
-                _resources = (PdfResources)Elements.GetValue(Keys.Resources, VCF.Create); //VCF.CreateIndirect
+                _resources = (PdfResources)Elements.GetValue(InheritablePageKeys.Resources, VCF.Create); //VCF.CreateIndirect
             return _resources;
         }
     }
@@ -853,7 +853,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// </summary>
     internal void ReplaceResources(PdfResources resources)
     {
-        Elements[Keys.Resources] = resources;
+        Elements[InheritablePageKeys.Resources] = resources;
         _resources = null;
     }
 

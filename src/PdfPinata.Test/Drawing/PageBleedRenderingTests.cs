@@ -167,6 +167,7 @@ public sealed class PageBleedRenderingTests : IDisposable
         using var pixels = sheet.GetPixels();
         var colour = pixels.GetPixel(Math.Clamp(x, 0, (int)sheet.Width - 1),
                                      Math.Clamp(y, 0, (int)sheet.Height - 1)).ToColor();
+        // ReSharper disable once PossibleNullReferenceException
         var luminance = 0.299 * colour.R + 0.587 * colour.G + 0.114 * colour.B;
 
         // Named rather than numeric so a failure reads as "white where black was wanted" rather
@@ -196,8 +197,10 @@ public sealed class PageBleedRenderingTests : IDisposable
             for (var x = left; x < right; x++)
             {
                 var colour = pixels.GetPixel(x, y).ToColor();
+                // ReSharper disable PossibleNullReferenceException
                 if (0.299 * colour.R + 0.587 * colour.G + 0.114 * colour.B < 230)
                     return true;
+                // ReSharper restore PossibleNullReferenceException
             }
         }
 

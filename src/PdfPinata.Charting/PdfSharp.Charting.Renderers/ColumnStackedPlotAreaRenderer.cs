@@ -70,7 +70,7 @@ internal class ColumnStackedPlotAreaRenderer : ColumnPlotAreaRenderer
     for (var pointIdx = 0; pointIdx < maxPoints; ++pointIdx)
     {
       // Set x to first clustered column for each series.
-      double yMin = 0, yMax = 0, y0 = 0, y1 = 0;
+      double yMin = 0, yMax = 0, y0, y1;
       var x0 = x - columnWidth;
       var x1 = x + columnWidth;
 

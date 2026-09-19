@@ -24,6 +24,7 @@ public class TextMarkupAnnotationTests
     {
         var annotation = (PdfTextMarkupAnnotation)System.Activator.CreateInstance(type);
 
+        // ReSharper disable once PossibleNullReferenceException
         annotation.Elements.GetName("/Subtype").Should().Be(subtype);
     }
 

@@ -400,6 +400,7 @@ public static class PdfReader
             document._irefTable.IsUnderConstruction = false;
 
             // Is document encrypted?
+            // ReSharper disable once PossibleNullReferenceException
             var xrefEncrypt = document._trailer.Elements[PdfTrailer.Keys.Encrypt] as PdfReference;
             if (xrefEncrypt != null)
             {

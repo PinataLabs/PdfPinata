@@ -200,8 +200,10 @@ internal sealed class PdfGraphicsState : ICloneable
                     {
                         if (idx > 0)
                             pdf.Append(' ');
+                        // ReSharper disable PossibleNullReferenceException
                         XGraphicsPdfRenderer.EnsureWritable(
                             pen._dashPattern[idx] * pen._width, "a dash pattern");
+                        // ReSharper restore PossibleNullReferenceException
                         pdf.Append(PdfEncoders.ToString(pen._dashPattern[idx] * pen._width));
                     }
                     // Make an even number of values look like in GDI+
@@ -438,6 +440,7 @@ internal sealed class PdfGraphicsState : ICloneable
         }
         else
         {
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             Debug.Assert(colorMode == PdfColorMode.Cmyk);
 
             if (_realizedFillColor.IsEmpty || !ColorSpaceHelper.IsEqualCmyk(_realizedFillColor, color))

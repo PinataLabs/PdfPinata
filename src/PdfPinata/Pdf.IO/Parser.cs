@@ -108,21 +108,20 @@ internal sealed class Parser
     public PdfObject ReadObject(PdfObject pdfObject, PdfObjectID objectID, bool includeReferences,
         bool fromObjecStream)
     {
-        var objectNumber = objectID.ObjectNumber;
-        var generationNumber = objectID.GenerationNumber;
         if (!fromObjecStream)
         {
             MoveToObject(objectID);
-            objectNumber = ReadInteger();
-            generationNumber = ReadInteger();
+            // The header's own numbers are read past and not used; see below.
+            ReadInteger();
+            ReadInteger();
         }
         // The object header can disagree with the iref table that led here, and the object ID from
         // the table is the one to believe. PDF4NET 2.6's 'unicode.pdf' sample, for one, gives
         // objects 84 to 87 the same offset in its iref table, so all four read back as the same
         // dictionary with a header saying object 84 — and every reader tested shows it anyway.
         // Always use object ID from iref table (see above).
-        objectNumber = objectID.ObjectNumber;
-        generationNumber = objectID.GenerationNumber;
+        var objectNumber = objectID.ObjectNumber;
+        var generationNumber = objectID.GenerationNumber;
 
         if (!fromObjecStream)
             ReadSymbol(Symbol.Obj);
@@ -1397,7 +1396,7 @@ internal sealed class Parser
 
         // Setup subsections.
         int subsectionCount;
-        int[][] subsections = null;
+        int[][] subsections;
         var subsectionEntryCount = 0;
         if (index == null)
         {

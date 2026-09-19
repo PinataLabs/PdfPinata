@@ -56,7 +56,7 @@ static class PdfTransparencyDetector
         if (group != null && group.Elements.GetName("/S") == "/Transparency")
             return true;
 
-        return ResourcesPaint(xObject.Elements.GetDictionary(PdfPage.Keys.Resources), seen, depth);
+        return ResourcesPaint(xObject.Elements.GetDictionary(PdfPage.InheritablePageKeys.Resources), seen, depth);
     }
 
     /// <summary>
@@ -121,7 +121,7 @@ static class PdfTransparencyDetector
                 if (pattern == null)
                     continue;
 
-                if (ResourcesPaint(pattern.Elements.GetDictionary(PdfPage.Keys.Resources), seen, depth + 1))
+                if (ResourcesPaint(pattern.Elements.GetDictionary(PdfPage.InheritablePageKeys.Resources), seen, depth + 1))
                     return true;
             }
         }
