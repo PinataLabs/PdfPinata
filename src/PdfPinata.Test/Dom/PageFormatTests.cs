@@ -119,7 +119,7 @@ public class PageFormatTests
     [Fact]
     public void EveryNamedFormatHasASize()
     {
-        var named = Enum.GetValues<PageFormat>().ToArray();
+        var named = Enum.GetValues<PageFormat>();
 
         foreach (var format in named)
         {

@@ -41,7 +41,7 @@ internal static class DomSR
             // Formatting an error message must not itself throw, or the real error is lost behind
             // this one. A bad format string or a wrong argument count is reported in place of the
             // message rather than replacing the failure being described.
-            message = "INTERNAL ERROR while formatting error message: " + ex.ToString();
+            message = "INTERNAL ERROR while formatting error message: " + ex;
         }
         return message;
     }
@@ -54,7 +54,7 @@ internal static class DomSR
     internal static string ParentAlreadySet(DocumentObject value, DocumentObject docObject)
     {
         return
-            $"Value of type '{value.GetType().ToString()}' must be cloned before set into '{docObject.GetType().ToString()}'.";
+            $"Value of type '{value.GetType()}' must be cloned before set into '{docObject.GetType()}'.";
     }
 
     internal static string UndefinedBaseStyle(string baseStyle)

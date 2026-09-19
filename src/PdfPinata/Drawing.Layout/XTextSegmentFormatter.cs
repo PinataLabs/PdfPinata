@@ -177,6 +177,8 @@ public class XTextSegmentFormatter
 
 	private void ProcessTextSegments(IEnumerable<TextSegment> textSegments, XRect layoutRectangle, XStringFormat format, Action<Block, double, double> applyBlock, bool applyBlockIfLineBreak)
 	{
+		textSegments = textSegments.ToList();
+
 		if (textSegments.All(ts => string.IsNullOrEmpty(ts.Text)))
 		{
 			return;

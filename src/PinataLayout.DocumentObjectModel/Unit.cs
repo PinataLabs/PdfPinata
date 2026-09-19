@@ -636,6 +636,7 @@ public struct Unit : IFormattable, INullableValue
     /// </summary>
     public override bool Equals(Object obj)
     {
+        // ReSharper disable once RedundantOverriddenMember
         return base.Equals(obj);
     }
 
@@ -644,6 +645,8 @@ public struct Unit : IFormattable, INullableValue
     /// </summary>
     public override int GetHashCode()
     {
+        // ReSharper disable once RedundantOverriddenMember
+        // ReSharper disable once BaseObjectGetHashCodeCallInGetHashCode
         return base.GetHashCode();
     }
 

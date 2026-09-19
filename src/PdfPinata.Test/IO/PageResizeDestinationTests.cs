@@ -62,7 +62,7 @@ public class PageResizeDestinationTests
     }
 
     /// <summary>Hangs a link annotation carrying the destination off the page.</summary>
-    static PdfDictionary LinkOn(PdfPage page, string key, PdfItem destination)
+    static void LinkOn(PdfPage page, string key, PdfItem destination)
     {
         var link = new PdfDictionary(page.Owner);
         link.Elements.SetName("/Type", "/Annot");
@@ -78,8 +78,6 @@ public class PageResizeDestinationTests
             page.Elements["/Annots"] = annotations;
         }
         annotations.Elements.Add(link.Reference);
-
-        return link;
     }
 
     [Fact]

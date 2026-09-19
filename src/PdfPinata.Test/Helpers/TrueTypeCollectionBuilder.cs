@@ -42,7 +42,6 @@ internal static class TrueTypeCollectionBuilder
 
         // Pool the table bytes, sharing anything that appears twice.
         var pooled = new Dictionary<string, int>(StringComparer.Ordinal);
-        var data = new List<byte[]>();
         var placements = new int[fonts.Length][];
 
         for (var i = 0; i < fonts.Length; i++)
@@ -64,7 +63,6 @@ internal static class TrueTypeCollectionBuilder
                     placed = position;
                     position += Align4(length);
                     pooled.Add(key, placed);
-                    data.Add(bytes);
                 }
 
                 placements[i][t] = placed;

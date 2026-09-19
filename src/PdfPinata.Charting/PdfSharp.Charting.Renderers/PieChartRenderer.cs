@@ -152,7 +152,7 @@ internal class PieChartRenderer : ChartRenderer
       sri.LineFormat = Converter.ToXPen(sri.series.lineFormat, XColors.Black, ChartRenderer.DefaultSeriesLineWidth);
       sri.FillFormat = Converter.ToXBrush(sri.series.fillFormat, ColumnColors.Item(idx));
 
-      sri.pointRendererInfos = new SectorRendererInfo[sri.series.Elements.Count];
+      sri.pointRendererInfos = new PointRendererInfo[sri.series.Elements.Count];
       for (var pointIdx = 0; pointIdx < sri.pointRendererInfos.Length; ++pointIdx)
       {
         PointRendererInfo pri = new SectorRendererInfo();

@@ -128,7 +128,7 @@ public partial class Border : DocumentObject
   /// </summary>
   public bool BorderCleared => fClear;
 
-  internal bool fClear = false;
+  internal bool fClear;
   #endregion
 
   #region Null handling

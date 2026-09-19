@@ -514,7 +514,7 @@ public partial class Paragraph : DocumentObject, IVisitable
         get => serializeContentOnly;
         set => serializeContentOnly = value;
     }
-    bool serializeContentOnly = false;
+    bool serializeContentOnly;
 
     /// <summary>
     /// Converts Paragraph into DDL.

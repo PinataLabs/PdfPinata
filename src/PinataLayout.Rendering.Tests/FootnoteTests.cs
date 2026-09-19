@@ -80,6 +80,7 @@ public class FootnoteTests
             section.AddParagraph(Prose);
 
         var page = Rendered.FirstPageOf(document);
+        // ReSharper disable once PossibleInvalidOperationException
         var rule = Separator(page).Value;
 
         // Everything the body draws is above the rule; everything the note draws is below it.
@@ -110,6 +111,7 @@ public class FootnoteTests
         var document = Filled(note: true);
 
         var page = Rendered.FirstPageOf(document);
+        // ReSharper disable once PossibleInvalidOperationException
         var rule = Separator(page).Value;
 
         // Every baseline on the page is either above the rule (body) or below it (note). None sits
@@ -161,6 +163,7 @@ public class FootnoteTests
         section.AddParagraph("A claim").AddFootnote("The support.");
 
         var page = Rendered.FirstPageOf(document);
+        // ReSharper disable once PossibleInvalidOperationException
         var rule = Separator(page).Value;
 
         // A page holding one short paragraph, with the block at its foot: the rule is a long way
@@ -178,6 +181,7 @@ public class FootnoteTests
         section.AddParagraph("A claim").AddFootnote("The support.");
 
         var page = Rendered.FirstPageOf(document);
+        // ReSharper disable once PossibleInvalidOperationException
         var rule = Separator(page).Value;
 
         var bodyBaseline = TextBaselines.Of(page).Max();
@@ -194,6 +198,7 @@ public class FootnoteTests
         document.FootnoteLocation = FootnoteLocation.BeneathText;
 
         var page = Rendered.FirstPageOf(document);
+        // ReSharper disable once PossibleInvalidOperationException
         var rule = Separator(page).Value;
 
         var noteText = Glyphs.For("The support.");

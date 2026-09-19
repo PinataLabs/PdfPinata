@@ -42,7 +42,7 @@ namespace PdfPinata.Drawing;
 /// </summary>
 [DebuggerDisplay("{DebuggerDisplay}")]
 [Serializable, StructLayout(LayoutKind.Sequential)] //, TypeConverter(typeof(MatrixConverter)), ValueSerializer(typeof(MatrixValueSerializer))]
-public struct XMatrix : IFormattable
+public struct XMatrix : IFormattable, IEquatable<XMatrix>
 {
     [Flags]
     internal enum XMatrixTypes

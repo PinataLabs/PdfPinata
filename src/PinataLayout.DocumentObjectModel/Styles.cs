@@ -85,7 +85,7 @@ public partial class Styles : DocumentObjectCollection, IVisitable
             for (var index = 0; index < count; ++index)
             {
                 var style = this[index];
-                if (String.Compare(style.Name, styleName, true) == 0)
+                if (String.Compare(style.Name, styleName, StringComparison.OrdinalIgnoreCase) == 0)
                     return style;
             }
             return null;
@@ -110,7 +110,7 @@ public partial class Styles : DocumentObjectCollection, IVisitable
         for (var index = 0; index < count; ++index)
         {
             var style = this[index];
-            if (String.Compare(style.Name, styleName, true) == 0)
+            if (String.Compare(style.Name, styleName, StringComparison.OrdinalIgnoreCase) == 0)
                 return index;
         }
         return -1;

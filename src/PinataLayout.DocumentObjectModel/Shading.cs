@@ -99,7 +99,7 @@ public sealed partial class Shading : DocumentObject
   /// </summary>
   public bool IsCleared => isCleared;
 
-  internal bool isCleared = false;
+  internal bool isCleared;
   #endregion
 
   #region Null handling

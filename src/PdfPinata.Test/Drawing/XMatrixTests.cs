@@ -520,6 +520,7 @@ public class XMatrixTests
         (matrix != new XMatrix(1, 2, 3, 4, 5, 7)).Should().BeTrue();
         matrix.Equals(new XMatrix(1, 2, 3, 4, 5, 6)).Should().BeTrue();
         matrix.Equals((object)new XMatrix(1, 2, 3, 4, 5, 6)).Should().BeTrue();
+        // ReSharper disable once SuspiciousTypeConversion.Global
         matrix.Equals("not a matrix").Should().BeFalse();
         XMatrix.Equals(matrix, new XMatrix(1, 2, 3, 4, 5, 6)).Should().BeTrue();
         XMatrix.Equals(XMatrix.Identity, XMatrix.Identity).Should().BeTrue();

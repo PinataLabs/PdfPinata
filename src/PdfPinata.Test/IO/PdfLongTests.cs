@@ -72,7 +72,7 @@ public class PdfLongTests
     {
         var wide = new PdfLong(WiderThanAnInt);
 
-        ((Action)(() => Convert.ToInt32(wide))).Should().Throw<OverflowException>();
-        ((Action)(() => Convert.ToUInt32(wide))).Should().Throw<OverflowException>();
+        ((Action)(() => _ = Convert.ToInt32(wide))).Should().Throw<OverflowException>();
+        ((Action)(() => _ = Convert.ToUInt32(wide))).Should().Throw<OverflowException>();
     }
 }

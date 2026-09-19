@@ -84,6 +84,7 @@ public sealed class PdfNameObject : PdfObject
     /// </summary>
     public override int GetHashCode()
     {
+        // ReSharper disable once NonReadonlyMemberInGetHashCode
         return _value?.GetHashCode() ?? 0;
     }
 

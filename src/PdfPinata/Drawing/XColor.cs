@@ -39,7 +39,7 @@ namespace PdfPinata.Drawing;
 /// Represents a RGB, CMYK, or gray scale color.
 /// </summary>
 [DebuggerDisplay("clr=(A={A}, R={R}, G={G}, B={B} C={C}, M={M}, Y={Y}, K={K})")]
-public struct XColor
+public struct XColor : IEquatable<XColor>
 {
     XColor(uint argb)
     {
@@ -247,6 +247,14 @@ public struct XColor
         }
         return false;
         // ReSharper restore CompareOfFloatsByEqualityOperator
+    }
+
+    /// <summary>
+    /// Determines whether the specified XColor structure is equivalent to this XColor structure.
+    /// </summary>
+    public bool Equals(XColor other)
+    {
+        return this == other;
     }
 
     /// <summary>

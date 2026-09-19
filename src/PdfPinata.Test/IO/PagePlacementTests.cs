@@ -334,16 +334,15 @@ public class PagePlacementTests
     public void InsertAnImagePageAfterAGivenPage()
     {
         var document = OpenForModify();
-        var pageIndex = 0;
         var before = document.PageCount;
 
         var page = new PdfPage(document);
         var gfx = XGraphics.FromPdfPage(page);
         gfx.DrawImage(XImage.FromFile(ImagePath), 0, 0, page.Width, page.Height);
-        document.PlacePage(pageIndex + 1, page);
+        document.PlacePage(1, page);
 
         Assert.Equal(before + 1, document.PageCount);
-        Assert.Equal(pageIndex + 1, document.Pages.IndexOf(page));
+        Assert.Equal(1, document.Pages.IndexOf(page));
         Assert.True(Save(document).Length > 0);
     }
 }

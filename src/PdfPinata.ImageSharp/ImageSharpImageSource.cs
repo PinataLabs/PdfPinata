@@ -26,6 +26,7 @@ public class ImageSharpImageSource<TPixel> : ImageSource where TPixel : unmanage
     public static IImageSource FromImageSharpImage(Image<TPixel> image, IImageFormat imgFormat, int? quality = 75)
     {
         var _path = "*" + Guid.NewGuid().ToString("B");
+        // ReSharper disable once PossibleInvalidOperationException
         return new ImageSharpImageSourceImpl<TPixel>(_path, image, (int)quality, imgFormat is PngFormat);
     }
 
@@ -43,6 +44,7 @@ public class ImageSharpImageSource<TPixel> : ImageSource where TPixel : unmanage
         {
             throw ImageSharpVersion.Incompatible(ex);
         }
+        // ReSharper disable once PossibleInvalidOperationException
         return new ImageSharpImageSourceImpl<TPixel>(name, image, (int)quality, isPng);
     }
 
@@ -59,6 +61,7 @@ public class ImageSharpImageSource<TPixel> : ImageSource where TPixel : unmanage
         {
             throw ImageSharpVersion.Incompatible(ex);
         }
+        // ReSharper disable once PossibleInvalidOperationException
         return new ImageSharpImageSourceImpl<TPixel>(path, image, (int) quality, isPng);
     }
 
@@ -77,6 +80,7 @@ public class ImageSharpImageSource<TPixel> : ImageSource where TPixel : unmanage
             {
                 throw ImageSharpVersion.Incompatible(ex);
             }
+            // ReSharper disable once PossibleInvalidOperationException
             return new ImageSharpImageSourceImpl<TPixel>(name, image, (int)quality, isPng);
         }
     }

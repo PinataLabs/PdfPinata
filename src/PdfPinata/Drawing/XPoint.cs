@@ -42,7 +42,7 @@ namespace PdfPinata.Drawing;
 [DebuggerDisplay("{DebuggerDisplay}")]
 [Serializable]
 [StructLayout(LayoutKind.Sequential)]  // TypeConverter(typeof(PointConverter)), ValueSerializer(typeof(PointValueSerializer))]
-public struct XPoint : IFormattable
+public struct XPoint : IFormattable, IEquatable<XPoint>
 {
     /// <summary>
     /// Initializes a new instance of the XPoint class with the specified coordinates.

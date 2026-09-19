@@ -98,7 +98,6 @@ public sealed class XGraphics : IDisposable
         }
         page.RenderContent = content;
         _renderer = new XGraphicsPdfRenderer(page, this, options);
-        _pageSizePoints = new XSize(page.Width, page.Height);
         switch (pageUnit)
         {
             case XGraphicsUnit.Point:
@@ -132,7 +131,6 @@ public sealed class XGraphics : IDisposable
     XGraphics(XSize size, XGraphicsUnit pageUnit, XPageDirection pageDirection)
     {
         _gsStack = new GraphicsStateStack(this);
-        _pageSizePoints = new XSize(size.Width, size.Height);
         switch (pageUnit)
         {
             case XGraphicsUnit.Point:
@@ -168,7 +166,6 @@ public sealed class XGraphics : IDisposable
     {
         _renderer = renderer ?? throw new ArgumentNullException(nameof(renderer));
         _gsStack = new GraphicsStateStack(this);
-        _pageSizePoints = new XSize(size.Width, size.Height);
         switch (pageUnit)
         {
             case XGraphicsUnit.Point:
@@ -469,7 +466,6 @@ public sealed class XGraphics : IDisposable
     //  throw new NotImplementedException("PageSize cannot be modified in current implementation.");
     //}
     XSize _pageSize;
-    XSize _pageSizePoints;
 
     #region Drawing
 

@@ -372,7 +372,7 @@ internal class ImageRenderer : ShapeRenderer
             }
             catch (Exception ex) when (!IsUnrecoverable(ex))
             {
-                Debug.WriteLine(string.Format(AppResources.ImageNotReadable, image.Source.ToString(), ex.Message));
+                Debug.WriteLine(string.Format(AppResources.ImageNotReadable, image.Source, ex.Message));
                 formatInfo.Failure = ImageFailure.NotRead;
                 formatInfo.FailureException = ex;
             }

@@ -193,6 +193,6 @@ public class LzwDecode : Filter
     byte[] _data;
     int _tableIndex, _bitsToGet = 9;
     int _bytePointer;
-    int _nextData = 0;
-    int _nextBits = 0;
+    int _nextData;
+    int _nextBits;
 }

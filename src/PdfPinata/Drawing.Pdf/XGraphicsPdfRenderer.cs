@@ -2721,7 +2721,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// and saying that is worth more than the bare "Stack empty." <see cref="Stack{T}"/> would throw
     /// from a frame naming nothing.
     /// </remarks>
-    PdfGraphicsState RestoreState(InternalGraphicsState state)
+    void RestoreState(InternalGraphicsState state)
     {
         var top = Pop();
         while (top.InternalState != state)
@@ -2731,7 +2731,6 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         }
         Append("Q\n");
         _gfxState = top;
-        return top;
 
         PdfGraphicsState Pop() =>
             _gfxStateStack.Count != 0

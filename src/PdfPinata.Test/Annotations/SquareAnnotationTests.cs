@@ -46,7 +46,7 @@ public sealed class SquareAnnotationTests : IDisposable
     [Fact]
     public void ASquareNamesItsSubtypeAndCarriesADefaultBorder()
     {
-        var square = OnAPage(out _);
+        var square = OnAPage();
 
         square.Elements.GetName("/Subtype").Should().Be("/Square");
         square.BorderWidth.Should().Be(1);
@@ -60,7 +60,7 @@ public sealed class SquareAnnotationTests : IDisposable
     [Fact]
     public void AnUnfilledSquareSaysSoWithAnEmptyArray()
     {
-        var square = OnAPage(out _);
+        var square = OnAPage();
 
         // The specification's way of saying "no interior colour" - and not the same as saying
         // nothing, which would leave a reader to guess.
@@ -71,7 +71,7 @@ public sealed class SquareAnnotationTests : IDisposable
     [Fact]
     public void AFilledSquareWritesItsInteriorColour()
     {
-        var square = OnAPage(out _);
+        var square = OnAPage();
 
         square.Interior = XColors.RoyalBlue;
 
@@ -84,7 +84,7 @@ public sealed class SquareAnnotationTests : IDisposable
     [Fact]
     public void TheBorderIsDrawnInsideTheRectangleAndRecordedInRd()
     {
-        var square = OnAPage(out _);
+        var square = OnAPage();
 
         square.BorderWidth = 6;
 
@@ -99,7 +99,7 @@ public sealed class SquareAnnotationTests : IDisposable
     [Fact]
     public void ChangingTheInteriorOrTheBorderStampsTheModificationDate()
     {
-        var square = OnAPage(out _);
+        var square = OnAPage();
 
         // Rewound rather than read, so that the assertion does not turn on the clock ticking
         // between two statements.
@@ -117,7 +117,7 @@ public sealed class SquareAnnotationTests : IDisposable
     [Fact]
     public void ANegativeBorderIsRefused()
     {
-        var square = OnAPage(out _);
+        var square = OnAPage();
 
         Action act = () => square.BorderWidth = -1;
 
@@ -146,7 +146,7 @@ public sealed class SquareAnnotationTests : IDisposable
     [Fact]
     public void ChangingWhatItIsDrawnFromRebuildsTheAppearance()
     {
-        var square = OnAPage(out _);
+        var square = OnAPage();
 
         var first =
             (PdfDictionary)square.Elements.GetDictionary("/AP").Elements.GetObject("/N");
@@ -223,9 +223,9 @@ public sealed class SquareAnnotationTests : IDisposable
         return images[0];
     }
 
-    static PdfSquareAnnotation OnAPage(out PdfDocument document)
+    static PdfSquareAnnotation OnAPage()
     {
-        document = new PdfDocument();
+        var document = new PdfDocument();
         var square = new PdfSquareAnnotation();
         document.AddPage().Annotations.Add(square);
 

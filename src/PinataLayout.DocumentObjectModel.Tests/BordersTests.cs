@@ -76,6 +76,7 @@ public class BordersTests
         var top = borders.Top;
         var diagonal = borders.DiagonalDown;
 
+        // ReSharper disable once GenericEnumeratorNotDisposed
         var enumerator = (Borders.BorderEnumerator)((System.Collections.IEnumerable)borders).GetEnumerator();
         var seen = new System.Collections.Generic.List<Border>();
         while (enumerator.MoveNext())

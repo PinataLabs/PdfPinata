@@ -85,6 +85,7 @@ public sealed class OcspRevocationDataProvider : IRevocationDataProvider, IDispo
             using var content = new ByteArrayContent(request);
             content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/ocsp-request");
 
+            // ReSharper disable once UsingStatementResourceInitialization
             using var httpRequest = new HttpRequestMessage(HttpMethod.Post, responderUri) { Content = content };
 
             // ResponseHeadersRead so the body is read by ReadBounded, under its own cap, rather than

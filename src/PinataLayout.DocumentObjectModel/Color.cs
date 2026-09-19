@@ -43,7 +43,7 @@ namespace PinataLayout.DocumentObjectModel;
 /// The Color class represents an ARGB color value.
 /// </summary>
 [DebuggerDisplay("(A={A}, R={R}, G={G}, B={B} C={C}, M={M}, Y={Y}, K={K})")]
-public struct Color : INullableValue
+public struct Color : INullableValue, IEquatable<Color>
 {
     /// <summary>
     /// Initializes a new instance of the Color class.
@@ -231,6 +231,14 @@ public struct Color : INullableValue
                 return argb == color.argb;
         }
         return false;
+    }
+
+    /// <summary>
+    /// Compares this color with another color.
+    /// </summary>
+    public bool Equals(Color other)
+    {
+        return this == other;
     }
 
     /// <summary>

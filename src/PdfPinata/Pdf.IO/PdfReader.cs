@@ -77,8 +77,7 @@ public static class PdfReader
         FileStream stream = null;
         try
         {
-            int pageNumber;
-            var realPath = Drawing.XPdfForm.ExtractPageNumber(path, out pageNumber);
+            var realPath = Drawing.XPdfForm.ExtractPageNumber(path, out _);
             if (File.Exists(realPath)) // prevent unwanted exceptions during debugging
             {
                 stream = new FileStream(realPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);

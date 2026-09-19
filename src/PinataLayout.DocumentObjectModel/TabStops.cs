@@ -197,7 +197,7 @@ public partial class TabStops : DocumentObjectCollection
   /// </summary>
   public bool TabsCleared => fClearAll;
 
-  internal bool fClearAll = false;
+  internal bool fClearAll;
   #endregion
 
   #region Internal

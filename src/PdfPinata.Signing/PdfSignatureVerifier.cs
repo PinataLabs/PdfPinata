@@ -144,7 +144,7 @@ public static class PdfSignatureVerifier
     {
         foreach (var attribute in signerInfo.UnsignedAttributes)
         {
-            if (attribute.Oid?.Value != SignatureTimeStampTokenOid || attribute.Values.Count == 0)
+            if (attribute.Oid.Value != SignatureTimeStampTokenOid || attribute.Values.Count == 0)
                 continue;
 
             try

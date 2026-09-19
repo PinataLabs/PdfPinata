@@ -1132,6 +1132,7 @@ internal class ControlValueTable : OpenTypeFontTable
 {
     public const string Tag = TableTagNames.Cvt;
 
+    // ReSharper disable once CollectionNeverQueried.Local
     FWord[] array; // List of n values referenceable by instructions. n is the number of FWORD items that fit in the size of the table.
 
     public ControlValueTable(OpenTypeFontface fontData)
@@ -1167,6 +1168,7 @@ internal class FontProgram : OpenTypeFontTable
 {
     public const string Tag = TableTagNames.Fpgm;
 
+    // ReSharper disable once CollectionNeverQueried.Local
     byte[] bytes; // Instructions. n is the number of BYTE items that fit in the size of the table.
 
     public FontProgram(OpenTypeFontface fontData)
@@ -1203,6 +1205,7 @@ internal class ControlValueProgram : OpenTypeFontTable
 {
     public const string Tag = TableTagNames.Prep;
 
+    // ReSharper disable once CollectionNeverQueried.Local
     byte[] bytes; // Set of instructions executed whenever point size or font or transformation change. n is the number of BYTE items that fit in the size of the table.
 
     public ControlValueProgram(OpenTypeFontface fontData)

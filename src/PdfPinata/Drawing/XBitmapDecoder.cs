@@ -48,6 +48,4 @@ public class XBitmapDecoder
 
 internal sealed class XPngBitmapDecoder : XBitmapDecoder
 {
-    internal XPngBitmapDecoder()
-    { }
 }

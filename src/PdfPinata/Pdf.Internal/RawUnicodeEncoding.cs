@@ -37,9 +37,6 @@ namespace PdfPinata.Pdf.Internal;
 /// </summary>
 internal sealed class RawUnicodeEncoding : Encoding
 {
-    public RawUnicodeEncoding()
-    { }
-
     public override int GetByteCount(char[] chars, int index, int count)
     {
         // Each character represents exactly an ushort value, which is a glyph index.

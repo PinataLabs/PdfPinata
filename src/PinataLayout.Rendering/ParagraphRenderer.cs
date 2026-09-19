@@ -3151,7 +3151,7 @@ internal class ParagraphRenderer : Renderer
         Gfx.DrawLine(pen, underlineStartPos, yPosition, xPosition, yPosition);
     }
 
-    XPen currentUnderlinePen = null;
+    XPen currentUnderlinePen;
     XUnit underlineStartPos;
 
     bool UnderlinePenChanged(XPen pen)
@@ -3213,7 +3213,7 @@ internal class ParagraphRenderer : Renderer
         Gfx.DrawLine(pen, strikethroughStartPos, yPosition, xPosition, yPosition);
     }
 
-    XPen currentStrikethroughPen = null;
+    XPen currentStrikethroughPen;
     XUnit strikethroughStartPos;
 
     bool StrikethroughPenChanged(XPen pen)

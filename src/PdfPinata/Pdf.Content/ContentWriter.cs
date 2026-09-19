@@ -123,7 +123,7 @@ internal class ContentWriter
         set => _indent = value;
     }
     protected int _indent = 2;
-    protected int _writeIndent = 0;
+    protected int _writeIndent;
 
     /// <summary>
     /// Increases indent level.

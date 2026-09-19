@@ -57,10 +57,6 @@ internal class BarClusteredPlotAreaRenderer : BarPlotAreaRenderer
     var yMin = cri.yAxisRendererInfo.MinimumScale;
     var yMax = cri.yAxisRendererInfo.MaximumScale;
 
-    var pointCount = 0;
-    foreach (var sri in cri.seriesRendererInfos)
-      pointCount += sri.series.Elements.Count;
-
     // Space shared by one clustered bar.
     var groupWidth = cri.xAxisRendererInfo.MajorTick;
 

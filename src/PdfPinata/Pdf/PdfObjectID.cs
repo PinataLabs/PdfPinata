@@ -37,7 +37,7 @@ namespace PdfPinata.Pdf;
 /// Represents a PDF object identifier, a pair of object and generation number.
 /// </summary>
 [DebuggerDisplay("{DebuggerDisplay}")]
-public struct PdfObjectID : IComparable
+public struct PdfObjectID : IComparable, IEquatable<PdfObjectID>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="PdfObjectID"/> class.
@@ -94,6 +94,14 @@ public struct PdfObjectID : IComparable
                 return _generationNumber == id._generationNumber;
         }
         return false;
+    }
+
+    /// <summary>
+    /// Indicates whether this instance and another object identifier are equal.
+    /// </summary>
+    public bool Equals(PdfObjectID other)
+    {
+        return _objectNumber == other._objectNumber && _generationNumber == other._generationNumber;
     }
 
     /// <summary>

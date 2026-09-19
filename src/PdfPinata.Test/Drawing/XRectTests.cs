@@ -374,6 +374,7 @@ public class XRectTests
         (rect != new XRect(1, 2, 3, 5)).Should().BeTrue();
         rect.Equals(new XRect(1, 2, 3, 4)).Should().BeTrue();
         rect.Equals((object)new XRect(1, 2, 3, 4)).Should().BeTrue();
+        // ReSharper disable once SuspiciousTypeConversion.Global
         rect.Equals("not a rectangle").Should().BeFalse();
         XRect.Equals(rect, new XRect(1, 2, 3, 4)).Should().BeTrue();
         XRect.Equals(XRect.Empty, XRect.Empty).Should().BeTrue();

@@ -50,7 +50,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
         Even
     }
 
-    private struct HeaderFooterPosition
+    private struct HeaderFooterPosition : IEquatable<HeaderFooterPosition>
     {
         internal HeaderFooterPosition(int sectionNr, PagePosition pagePosition)
         {
@@ -58,14 +58,14 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
             this.pagePosition = pagePosition;
         }
 
+        public bool Equals(HeaderFooterPosition other)
+        {
+            return sectionNr == other.sectionNr && pagePosition == other.pagePosition;
+        }
+
         public override bool Equals(object obj)
         {
-            if (obj is HeaderFooterPosition)
-            {
-                var hfp = (HeaderFooterPosition)obj;
-                return sectionNr == hfp.sectionNr && pagePosition == hfp.pagePosition;
-            }
-            return false;
+            return obj is HeaderFooterPosition hfp && Equals(hfp);
         }
 
         public override int GetHashCode()

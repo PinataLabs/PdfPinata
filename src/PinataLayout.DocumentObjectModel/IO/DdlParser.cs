@@ -179,7 +179,7 @@ internal class DdlParser
     /// <summary>
     /// Parses a style definition block within the keyword «\styles».
     /// </summary>
-    private Style ParseStyleDefinition(Styles styles)
+    private void ParseStyleDefinition(Styles styles)
     {
         //   StyleName [: BaseStyleName]
         //   {
@@ -245,7 +245,6 @@ internal class DdlParser
             ReportParserException(ex);
             AdjustToNextBlock();
         }
-        return style;
     }
 
     /// <summary>
@@ -421,7 +420,7 @@ internal class DdlParser
     /// <summary>
     /// Parses the document elements of a «\paragraph», «\cell» or comparable.
     /// </summary>
-    private DocumentElements ParseDocumentElements(DocumentElements elements)
+    private void ParseDocumentElements(DocumentElements elements)
     {
         //
         // This is clear:
@@ -477,7 +476,6 @@ internal class DdlParser
                     break;
             }
         }
-        return elements;
     }
 
     /// <summary>
@@ -827,11 +825,10 @@ internal class DdlParser
 
         AssertSymbol(Symbol.ParenRight);
 
-        Character character;
         if (symtype != 0)
-            character = elements.AddCharacter(symtype, count);
+            elements.AddCharacter(symtype, count);
         else
-            character = elements.AddCharacter(ch, count);
+            elements.AddCharacter(ch, count);
     }
 
     /// <summary>
@@ -1512,10 +1509,6 @@ internal class DdlParser
                 {
                     case Symbol.BraceRight:
                         fContinue = false;
-                        break;
-
-                    default:
-                        // Alles ignorieren? Warnung ausgeben?
                         break;
                 }
             }
@@ -2549,6 +2542,7 @@ internal class DdlParser
     /// </summary>
     private void ReportParserInfo(DdlErrorLevel level, DomMsgID errorCode, params string[] parms)
     {
+        // ReSharper disable once CoVariantArrayConversion
         var message = DomSR.FormatMessage(errorCode, parms);
         var error = new DdlReaderError(level, message, (int)errorCode,
             this.scanner.DocumentFileName, this.scanner.CurrentLine, this.scanner.CurrentLinePos);
@@ -2579,8 +2573,9 @@ internal class DdlParser
     {
         var message = "";
         if (innerException != null)
-            message = ": " + innerException.ToString();
+            message = ": " + innerException;
 
+        // ReSharper disable once CoVariantArrayConversion
         message += DomSR.FormatMessage(errorCode, parms);
         var error = new DdlReaderError(DdlErrorLevel.Error, message, (int)errorCode,
             this.scanner.DocumentFileName, this.scanner.CurrentLine, this.scanner.CurrentLinePos);
@@ -2674,27 +2669,27 @@ internal class DdlParser
     /// Shortcut for scanner.ReadCode().
     /// Reads the next DDL token. Comments are ignored.
     /// </summary>
-    private Symbol ReadCode()
+    private void ReadCode()
     {
-        return scanner.ReadCode();
+        scanner.ReadCode();
     }
 
     /// <summary>
     /// Shortcut for scanner.ReadText().
     /// Reads either text or \keyword from current position.
     /// </summary>
-    private Symbol ReadText(bool rootLevel)
+    private void ReadText(bool rootLevel)
     {
-        return scanner.ReadText(rootLevel);
+        scanner.ReadText(rootLevel);
     }
 
     /// <summary>
     /// Shortcut for scanner.MoveToCode().
     /// Moves to the next DDL token if Symbol is not set to a valid position.
     /// </summary>
-    private Symbol MoveToCode()
+    private void MoveToCode()
     {
-        return scanner.MoveToCode();
+        scanner.MoveToCode();
     }
 
     /// <summary>

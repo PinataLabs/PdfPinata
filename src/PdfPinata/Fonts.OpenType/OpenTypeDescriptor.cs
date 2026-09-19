@@ -154,7 +154,7 @@ internal sealed class OpenTypeDescriptor : FontDescriptor
                 // platform-specific Windows values. We take the absolute value of the win32descent in case some
                 // fonts get the sign wrong.
                 int winAscent = FontFace.os2.usWinAscent;
-                var winDescent = Math.Abs(FontFace.os2.usWinDescent);
+                var winDescent = FontFace.os2.usWinDescent;
 
                 Ascender = winAscent;
                 Descender = winDescent;
@@ -208,8 +208,7 @@ internal sealed class OpenTypeDescriptor : FontDescriptor
             var s = ansi.GetString(bytes, idx, 1);
             if (s.Length != 0)
             {
-                if (s[0] != ch)
-                    ch = s[0];
+                ch = s[0];
             }
 
             //Debug.Assert(ch == idx);

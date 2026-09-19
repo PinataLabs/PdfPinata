@@ -23,6 +23,7 @@ public class SkiaImageSource
         ArgumentNullException.ThrowIfNull(bitmap);
 
         var name = "*" + Guid.NewGuid().ToString("B");
+        // ReSharper disable once PossibleInvalidOperationException
         return new SkiaImageSourceImpl(name, bitmap, (int)quality, transparent);
     }
 
@@ -85,6 +86,7 @@ public class SkiaImageSource
         // FLATE path, everything else is re-encoded as JPEG.
         var transparent = codec.EncodedFormat == SKEncodedImageFormat.Png;
 
+        // ReSharper disable once PossibleInvalidOperationException
         return new SkiaImageSourceImpl(name, bitmap, (int)quality, transparent);
     }
 

@@ -87,7 +87,7 @@ internal abstract class ShapeRenderer : Renderer
   {
     if (shape.RelativeVertical != RelativeVertical.Line &&
         shape.RelativeVertical != RelativeVertical.Paragraph)
-      return Floating.None;
+        return Floating.None;
 
     switch (shape.WrapFormat.Style)
     {

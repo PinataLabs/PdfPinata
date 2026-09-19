@@ -25,7 +25,7 @@ namespace PdfPinata.Test.Helpers;
 ///   shared with those two projects - so that the one fact deciding every layout assertion in
 ///   three suites has one file to edit. Compiling it needs no project reference, which is why it
 ///   resolves its own path through the executing assembly rather than through
-///   <see cref="PathHelper"/>: a type that, unlike this one, is not linked anywhere.
+///   <c>PathHelper</c>: a type that, unlike this one, is not linked anywhere.
 /// </remarks>
 internal sealed class PinnedFontResolver : IFontResolver
 {
@@ -136,7 +136,7 @@ internal sealed class PinnedFontResolver : IFontResolver
     /// </summary>
     /// <remarks>
     ///   Resolved through the executing assembly's own location rather than through
-    ///   <see cref="PathHelper"/>, because this class is linked into two other test projects that
+    ///   <c>PathHelper</c>, because this class is linked into two other test projects that
     ///   do not reference this one and so cannot see that type. Every project this file is linked
     ///   into copies "Assets/Fonts" from this one's into its own output directory.
     /// </remarks>

@@ -101,8 +101,7 @@ internal static class FontFactory
                     FontResolverInfosByName.Add(resolverInfoKey, fontResolverInfo);
 
                     // Create font source if not yet exists.
-                    XFontSource previousFontSource;
-                    if (FontSourcesByName.TryGetValue(fontResolverInfo.FaceName, out previousFontSource))
+                    if (FontSourcesByName.TryGetValue(fontResolverInfo.FaceName, out _))
                     {
                         // Case: The font source exists, because a previous font resolver info comes
                         // with the same face name, but was different in style simulation flags.
@@ -181,15 +180,14 @@ internal static class FontFactory
 
     internal static void CacheFontResolverInfo(string typefaceKey, FontResolverInfo fontResolverInfo)
     {
-        FontResolverInfo existingfFontResolverInfo;
         // Check whether identical font is already registered.
-        if (FontResolverInfosByName.TryGetValue(typefaceKey, out existingfFontResolverInfo))
+        if (FontResolverInfosByName.TryGetValue(typefaceKey, out _))
         {
             // Should never come here.
             throw new InvalidOperationException(
                 $"A font file with different content already exists with the specified face name '{typefaceKey}'.");
         }
-        if (FontResolverInfosByName.TryGetValue(fontResolverInfo.Key, out existingfFontResolverInfo))
+        if (FontResolverInfosByName.TryGetValue(fontResolverInfo.Key, out _))
         {
             // Should never come here.
             throw new InvalidOperationException(

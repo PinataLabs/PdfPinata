@@ -480,7 +480,7 @@ internal class TableRenderer : Renderer
     XUnit offset;
     if (_startRow > _lastHeaderRow + 1 &&
         _startRow < _table.Rows.Count)
-      offset = _bottomBorderMap[_startRow] - topHeight;
+        offset = _bottomBorderMap[_startRow] - topHeight;
     else
       offset = -CalcMaxTopBorderWidth(0);
 

@@ -135,6 +135,7 @@ public class DdlWriter : IDisposable
         var strBuilder = new StringBuilder();
         using (var writer = new StringWriter(strBuilder))
         {
+            // ReSharper disable once UsingStatementResourceInitialization
             using (var wrt = new DdlWriter(writer)
                    {
                        Indent = indent,
@@ -170,6 +171,7 @@ public class DdlWriter : IDisposable
         var sb = new StringBuilder();
         using (var writer = new StringWriter(sb))
         {
+            // ReSharper disable once UsingStatementResourceInitialization
             using (var wrt = new DdlWriter(writer)
                    {
                        Indent = indent,
@@ -203,6 +205,7 @@ public class DdlWriter : IDisposable
     /// </summary>
     public static void WriteToFile(DocumentObject docObject, string filename, int indent, int initialIndent)
     {
+        // ReSharper disable once UsingStatementResourceInitialization
         using (var wrt = new DdlWriter(filename)
                {
                    Indent = indent,
@@ -236,6 +239,7 @@ public class DdlWriter : IDisposable
     /// </summary>
     public static void WriteToFile(DocumentObjectCollection docObjectContainer, string filename, int indent, int initialIndent)
     {
+        // ReSharper disable once UsingStatementResourceInitialization
         using (var wrt = new DdlWriter(filename)
                {
                    Indent = indent,
@@ -259,8 +263,7 @@ public class DdlWriter : IDisposable
     /// <param name="disposing">True when called from <see cref="Dispose()"/> rather than a finalizer.</param>
     protected virtual void Dispose(bool disposing)
     {
-        if (this.serializer != null)
-            this.serializer = null;
+        this.serializer = null;
 
         if (this.writer != null)
         {

@@ -530,8 +530,6 @@ public class Lexer
                     }
                     break;
                 }
-                default:
-                    break;
             }
 
             _token.Append(ch);

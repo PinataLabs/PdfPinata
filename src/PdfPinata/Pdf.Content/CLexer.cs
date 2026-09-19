@@ -575,10 +575,6 @@ public class CLexer
                     //case '#':
                     //    ContentReaderDiagnostics.HandleUnexpectedCharacter('#');
                     //    break;
-
-                    default:
-                        // Every other char is appended to the token.
-                        break;
                 }
 
                 // As in the 8-bit branch below: the end-of-file marker is not a character of the
@@ -689,10 +685,6 @@ public class CLexer
                     //case '#':
                     //    ContentReaderDiagnostics.HandleUnexpectedCharacter('#');
                     //    break;
-
-                    default:
-                        // Every other char is appended to the token.
-                        break;
                 }
 
                 // The end-of-file marker is not a character of the string. It reaches here when

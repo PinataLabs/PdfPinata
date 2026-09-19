@@ -209,13 +209,14 @@ internal sealed class PdfFormXObjectTable : PdfResourceTable
         public override bool Equals(object obj)
         {
             var selector = obj as Selector;
-            if (obj == null)
+            if (selector == null)
                 return false;
-            return _path == selector._path; ;
+            return _path == selector._path;
         }
 
         public override int GetHashCode()
         {
+            // ReSharper disable once NonReadonlyMemberInGetHashCode
             return _path.GetHashCode();
         }
     }

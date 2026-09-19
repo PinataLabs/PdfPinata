@@ -328,10 +328,12 @@ class MD5Managed
         // Simple struct for the (a,b,c,d) which is used to compute the mesage digest.
         public struct ABCDStruct
         {
+            // ReSharper disable MemberHidesStaticFromOuterClass
             public uint A;
             public uint B;
             public uint C;
             public uint D;
+            // ReSharper restore MemberHidesStaticFromOuterClass
         }
     }
 }

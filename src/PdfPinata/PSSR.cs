@@ -77,7 +77,7 @@ static class PSSR
         }
         catch (Exception ex) when (!Unrecoverable.Is(ex))
         {
-            message = $"UNEXPECTED ERROR while formatting message with ID {id.ToString()}: {ex.ToString()}";
+            message = $"UNEXPECTED ERROR while formatting message with ID {id}: {ex}";
         }
         return message;
     }

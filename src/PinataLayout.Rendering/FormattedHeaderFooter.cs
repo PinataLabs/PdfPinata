@@ -54,7 +54,6 @@ internal class FormattedHeaderFooter : IAreaProvider
         _isFirstArea = true;
         _formatter = new TopDownFormatter(this, _documentRenderer, _headerFooter.Elements);
         _formatter.FormatOnAreas(gfx, false);
-        ContentHeight = RenderInfo.GetTotalHeight(GetRenderInfos());
     }
 
     Area IAreaProvider.GetNextArea()
@@ -101,8 +100,6 @@ internal class FormattedHeaderFooter : IAreaProvider
     }
 
     private Rectangle _contentRect;
-
-    private XUnit ContentHeight { get; set; }
 
     bool IAreaProvider.PositionVertically(LayoutInfo layoutInfo)
     {

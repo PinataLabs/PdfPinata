@@ -274,6 +274,7 @@ public static class GlobalFontSettings
             try
             {
                 Lock.EnterFontFactory();
+                // ReSharper disable once SuspiciousTypeConversion.Global
                 return _fontFallback ?? _fontResolver as IFontFallback;
             }
             finally { Lock.ExitFontFactory(); }
@@ -304,6 +305,7 @@ public static class GlobalFontSettings
             try
             {
                 Lock.EnterFontFactory();
+                // ReSharper disable once SuspiciousTypeConversion.Global
                 return _fontFallback != null || _fontResolver is IFontFallback;
             }
             finally { Lock.ExitFontFactory(); }

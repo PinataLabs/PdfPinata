@@ -23,7 +23,7 @@ internal static class Parser
     /// A [DV] member, or null with a diagnostic if it is one the model cannot describe.
     /// </summary>
     /// <remarks>
-    /// The diagnostic comes back as a <see cref="DiagnosticInfo"/> rather than a
+    /// The diagnostic comes back as a <see cref="Model.DiagnosticInfo"/> rather than a
     /// <see cref="Diagnostic"/> because this return value goes into the pipeline, and a Diagnostic
     /// carries a Location, which carries the SyntaxTree it came from.
     /// </remarks>
@@ -172,7 +172,7 @@ internal static class Parser
         if (methods.Count == 0)
             return null;
 
-        var nodes = methods.SelectMany(m => m.DescendantNodes());
+        var nodes = methods.SelectMany(m => m.DescendantNodes()).ToList();
 
         var literals = nodes
             .OfType<LiteralExpressionSyntax>()

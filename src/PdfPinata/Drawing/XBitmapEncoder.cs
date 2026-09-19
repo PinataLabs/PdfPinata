@@ -69,9 +69,6 @@ public abstract class XBitmapEncoder
 
 internal sealed class XPngBitmapEncoder : XBitmapEncoder
 {
-    internal XPngBitmapEncoder()
-    { }
-
     /// <summary>
     /// Saves the image on the specified stream in PNG format.
     /// </summary>

@@ -111,7 +111,7 @@ internal sealed class PdfToUnicodeMap : PdfDictionary
         {
             wrt.WriteLine($"{block.Count} beginbfrange");
             foreach (var entry in block)
-                wrt.WriteLine(String.Format("<{0:X4}><{0:X4}><{1:X4}>", entry.Key, (int)entry.Value[0]));
+                wrt.WriteLine($"<{entry.Key:X4}><{entry.Key:X4}><{(int)entry.Value[0]:X4}>");
             wrt.WriteLine("endbfrange");
         }
 

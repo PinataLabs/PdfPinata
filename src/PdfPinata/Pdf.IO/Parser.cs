@@ -752,13 +752,14 @@ internal sealed class Parser
         return symbol;
     }
 
-    private Symbol SkipCharsUntil(Symbol stop)
+    private void SkipCharsUntil(Symbol stop)
     {
         Symbol symbol;
         switch (stop)
         {
             case Symbol.EndDictionary:
-                return SkipCharsUntil(">>", stop);
+                SkipCharsUntil(">>", stop);
+                break;
 
             default:
                 do
@@ -766,7 +767,7 @@ internal sealed class Parser
                     symbol = ScanNextToken();
                 } while (symbol != stop && symbol != Symbol.Eof);
 
-                return symbol;
+                break;
         }
     }
 
@@ -832,12 +833,11 @@ internal sealed class Parser
     /// <summary>
     /// Reads the next symbol that must be the specified one.
     /// </summary>
-    private Symbol ReadSymbol(Symbol symbol)
+    private void ReadSymbol(Symbol symbol)
     {
         var current = _lexer.ScanNextToken();
         if (symbol != current && current != Symbol.Eof)
             ParserDiagnostics.HandleUnexpectedToken(_lexer.Token);
-        return current;
     }
 
     /// <summary>

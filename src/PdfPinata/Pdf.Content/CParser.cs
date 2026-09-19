@@ -45,7 +45,6 @@ public sealed class CParser
     /// <summary>Initializes a parser over the combined content streams of a page.</summary>
     public CParser(PdfPage page)
     {
-        _page = page;
         var content = page.Contents.CreateSingleContent();
         var bytes = content.Stream.Value;
         _lexer = new CLexer(bytes);
@@ -236,6 +235,5 @@ public sealed class CParser
     }
 
     readonly CSequence _operands = new();
-    PdfPage _page;
     readonly CLexer _lexer;
 }

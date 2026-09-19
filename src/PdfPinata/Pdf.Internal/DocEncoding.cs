@@ -38,9 +38,6 @@ namespace PdfPinata.Pdf.Internal;
 /// </summary>
 internal sealed class DocEncoding : Encoding
 {
-    public DocEncoding()
-    { }
-
     public override int GetByteCount(char[] chars, int index, int count)
     {
         return PdfEncoders.WinAnsiEncoding.GetByteCount(chars, index, count);
@@ -82,7 +79,7 @@ internal sealed class DocEncoding : Encoding
     /// <summary>
     /// Converts WinAnsi to DocEncode characters. Based upon PDF Reference 1.6.
     /// </summary>
-    static readonly byte[] AnsiToDoc = new byte[256]
+    static readonly byte[] AnsiToDoc = new byte[]
     {
         //         x0    x1    x2    x3    x4    x5    x6    x7    x8    x9    xa    xb    xc    xd    xe    xf
         /* 00 */ 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,

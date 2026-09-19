@@ -118,10 +118,8 @@ public class MergedCellList : List<Cell>
     var borders = cell.GetValue("Borders", GV.ReadOnly) as Borders;
     if (borders != null)
     {
-      var doc = borders.Document;
       borders = borders.Clone();
       borders.parent = cell;
-      doc = borders.Document;
     }
     else
       borders = new Borders(cell.parent);
@@ -196,7 +194,7 @@ public class MergedCellList : List<Cell>
           currCell.Column.Index + currCell.MergeRight >= cell.Column.Index &&
           currCell.Row.Index <= cell.Row.Index &&
           currCell.Row.Index + currCell.MergeDown >= cell.Row.Index)
-        return currCell;
+          return currCell;
     }
     return null;
   }
@@ -262,7 +260,7 @@ public class MergedCellList : List<Cell>
         cell.Row.Index == 0 && position == NeighborPosition.Top ||
         cell.Row.Index + cell.MergeDown == cell.Table.Rows.Count - 1 && position == NeighborPosition.Bottom ||
         cell.Column.Index + cell.MergeRight == cell.Table.Columns.Count - 1 && position == NeighborPosition.Right)
-      return null;
+        return null;
 
     switch (position)
     {

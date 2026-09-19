@@ -41,7 +41,7 @@ namespace PdfPinata.Drawing;
 /// </summary>
 [DebuggerDisplay("{DebuggerDisplay}")]
 [Serializable, StructLayout(LayoutKind.Sequential)] // , ValueSerializer(typeof(RectValueSerializer)), TypeConverter(typeof(RectConverter))]
-public struct XRect : IFormattable, IDeserializationCallback
+public struct XRect : IFormattable, IDeserializationCallback, IEquatable<XRect>
 {
     /// <summary>
     /// Initializes a new instance of the XRect class.

@@ -282,6 +282,7 @@ public class XUnitTests
     [Fact]
     public void SomethingThatIsNotAUnitIsNotEqualToOne()
     {
+        // ReSharper disable once SuspiciousTypeConversion.Global
         XUnit.FromPoint(1).Equals("1pt").Should().BeFalse();
     }
 

@@ -234,7 +234,7 @@ internal class BarChartRenderer : ChartRenderer
       sri.LineFormat = Converter.ToXPen(sri.series.lineFormat, XColors.Black, ChartRenderer.DefaultSeriesLineWidth);
       sri.FillFormat = Converter.ToXBrush(sri.series.fillFormat, ColumnColors.Item(seriesIndex++));
 
-      sri.pointRendererInfos = new ColumnRendererInfo[sri.series.Elements.Count];
+      sri.pointRendererInfos = new PointRendererInfo[sri.series.Elements.Count];
       for (var pointIdx = 0; pointIdx < sri.pointRendererInfos.Length; ++pointIdx)
       {
         PointRendererInfo pri = new ColumnRendererInfo();

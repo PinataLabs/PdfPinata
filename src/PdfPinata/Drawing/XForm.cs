@@ -166,14 +166,6 @@ public class XForm : XImage, IContentStream
     internal XGraphics Gfx;
 
     /// <summary>
-    /// Disposes this instance.
-    /// </summary>
-    protected override void Dispose(bool disposing)
-    {
-        base.Dispose(disposing);
-    }
-
-    /// <summary>
     /// Sets the form in the state FormState.Finished.
     /// </summary>
     internal virtual void Finish()

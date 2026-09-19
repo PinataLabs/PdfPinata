@@ -116,9 +116,6 @@ internal static class GeneratorHarness
         public string AllGenerated => string.Concat(GeneratedSources);
     }
 
-    /// <summary>
-    /// Compiles <paramref name="source"/> together with the preamble and runs the generator over it.
-    /// </summary>
     /// <summary>The path the snippet is parsed under, so a test can assert where a diagnostic points.</summary>
     public const string SnippetPath = "Snippet.cs";
 

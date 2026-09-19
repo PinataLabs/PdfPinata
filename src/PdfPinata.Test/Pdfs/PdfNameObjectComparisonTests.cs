@@ -81,6 +81,7 @@ public class PdfNameObjectComparisonTests
         var name = new PdfNameObject(new PdfDocument(), "/Kent");
         name.Value = null;
 
+        // ReSharper disable once SuspiciousTypeConversion.Global
         name.Equals("/Kent").Should().BeFalse();
         name.Equals(null).Should().BeFalse("a name that is there equals nothing when it holds nothing");
         name.GetHashCode().Should().Be(0);
@@ -102,7 +103,9 @@ public class PdfNameObjectComparisonTests
     {
         var name = new PdfNameObject(new PdfDocument(), "/Kent");
 
+        // ReSharper disable once SuspiciousTypeConversion.Global
         name.Equals("/Kent").Should().BeTrue();
+        // ReSharper disable once SuspiciousTypeConversion.Global
         name.Equals("/Sussex").Should().BeFalse();
         name.GetHashCode().Should().Be("/Kent".GetHashCode(), "the name hashes as the string it is");
     }

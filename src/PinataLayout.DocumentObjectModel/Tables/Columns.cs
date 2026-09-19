@@ -57,6 +57,7 @@ public partial class Columns : DocumentObjectCollection, IVisitable
     {
       var clm = new Column();
       clm.Width = width;
+      // ReSharper disable once VirtualMemberCallInConstructor
       this.Add(clm);
     }
   }

@@ -79,6 +79,7 @@ public class FlowGeometryTests
     [Fact]
     public void TwoRunsOfTheSameExtentAreTheSameRun()
     {
+        // ReSharper disable once EqualExpressionComparison
         (new XInterval(10, 20) == new XInterval(10, 20)).Should().BeTrue();
         (new XInterval(10, 20) != new XInterval(10, 21)).Should().BeTrue();
     }

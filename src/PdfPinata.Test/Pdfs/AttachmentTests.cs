@@ -386,7 +386,7 @@ public class AttachmentTests
     ///   entering each node once.
     /// </summary>
     /// <remarks>
-    ///   Wrapped in <see cref="Task.Run"/> because xUnit honours a timeout only on an async test, and
+    ///   Wrapped in <see cref="Task.Run(Func{Task})"/> because xUnit honours a timeout only on an async test, and
     ///   a timeout is the whole point here: without one a regression stops the run instead of failing
     ///   it, and a stopped run is the failure mode this repository already has to be careful about.
     /// </remarks>

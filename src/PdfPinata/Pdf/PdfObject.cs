@@ -53,6 +53,7 @@ public abstract class PdfObject : PdfItem
         // Calling a virtual member in a constructor is dangerous.
         // In PDFsharp Document is overridden in PdfPage and the code is checked to be save
         // when called for a not completely initialized object.
+        // ReSharper disable once VirtualMemberCallInConstructor
         Document = document;
     }
 

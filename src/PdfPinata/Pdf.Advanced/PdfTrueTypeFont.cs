@@ -70,6 +70,7 @@ internal class PdfTrueTypeFont : PdfFont
         if (!IsSymbolFont)
             Encoding = "/WinAnsiEncoding";
 
+        // ReSharper disable once VirtualMemberCallInConstructor
         Owner._irefTable.Add(FontDescriptor);
         Elements[Keys.FontDescriptor] = FontDescriptor.Reference;
 

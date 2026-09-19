@@ -93,7 +93,7 @@ internal class Serializer
     get => writeIndent;
     set => writeIndent = value;
   }
-  protected int writeIndent = 0;
+  protected int writeIndent;
 
   /// <summary>
   /// Increases indent of DDL code.
@@ -164,7 +164,7 @@ internal class Serializer
     if (str.Length + writeIndent < lineBreakBeyond)
       return str;
 
-    var idxCRLF = str.IndexOf("\x0D\x0A");
+    var idxCRLF = str.IndexOf("\x0D\x0A", StringComparison.Ordinal);
     if (idxCRLF > 0 && idxCRLF + writeIndent <= lineBreakBeyond)
       return str[..(idxCRLF + 1)];
 
@@ -174,7 +174,7 @@ internal class Serializer
     var wrapAt = Math.Min(Math.Max(lineBreakBeyond - writeIndent, 0), str.Length);
 
     var splitIndexBlank = str[..wrapAt].LastIndexOf(' ');
-    var splitIndexCRLF = str[..wrapAt].LastIndexOf("\x0D\x0A");
+    var splitIndexCRLF = str[..wrapAt].LastIndexOf("\x0D\x0A", StringComparison.Ordinal);
     var splitIndex = Math.Max(splitIndexBlank, splitIndexCRLF);
     if (splitIndex == -1)
       // Nothing to break on within the line, so take the first blank past it. Asking instead for
@@ -221,7 +221,7 @@ internal class Serializer
       return;
 
     // if string contains CR/LF, split up recursively
-    var crlf = comment.IndexOf("\x0D\x0A");
+    var crlf = comment.IndexOf("\x0D\x0A", StringComparison.Ordinal);
     if (crlf != -1)
     {
       WriteComment(comment[..crlf]);
@@ -277,7 +277,7 @@ internal class Serializer
   void WriteToStream(string text, bool fLineBreak, bool fAutoIndent)
   {
     // if string contains CR/LF, split up recursively
-    var crlf = text.IndexOf("\x0D\x0A");
+    var crlf = text.IndexOf("\x0D\x0A", StringComparison.Ordinal);
     if (crlf != -1)
     {
       WriteToStream(text[..crlf], true, fAutoIndent);
@@ -310,15 +310,12 @@ internal class Serializer
         fLineBreak = true;
         //this.textWriter.Write("//¶");  // for debugging only
       }
-      else
-        lastChar = text[len - 1];
     }
 
     if (fLineBreak)
     {
       textWriter.WriteLine(String.Empty);  // what a line break is may depend on encoding
       linePos = 0;
-      lastChar = '\x0A';
     }
   }
 
@@ -439,15 +436,15 @@ internal class Serializer
       var sb = new StringBuilder(value.ToString());
       sb.Replace("\\", "\\\\");
       sb.Replace("\"", "\\\"");
-      WriteLine(valueName + " = \"" + sb.ToString() + "\"");
+      WriteLine(valueName + " = \"" + sb + "\"");
     }
     else if (type == typeof(int) || type.GetTypeInfo().BaseType == typeof(Enum) || type == typeof(Color))
     {
-      WriteLine(valueName + " = " + value.ToString());
+      WriteLine(valueName + " = " + value);
     }
     else
     {
-      var message = $"Type '{type.ToString()}' of value '{valueName}' not supported";
+      var message = $"Type '{type}' of value '{valueName}' not supported";
       Debug.Assert(false, message);
     }
   }
@@ -588,11 +585,10 @@ internal class Serializer
   {
     commitTextStack[stackIdx] = true;
   }
-  private int stackIdx = 0;
+  private int stackIdx;
   private bool[] commitTextStack = new bool[32];
 
   int linePos;
   int lineBreakBeyond = 200;
-  char lastChar;
   bool fWriteStamp = false;
 }

@@ -44,6 +44,7 @@ public sealed class SkiaGlyphOutlineProvider : IGlyphOutlineProvider
         using var typeface = SKTypeface.FromStream(stream)
                              ?? throw new InvalidOperationException(
                                  "SkiaSharp could not read the font '" + info.FaceName + "'.");
+        // ReSharper disable once UsingStatementResourceInitialization
         using var font = new SKFont(typeface, (float)emSize)
         {
             // Hinting and rounded advances are for fitting glyphs to a grid of pixels. There is no

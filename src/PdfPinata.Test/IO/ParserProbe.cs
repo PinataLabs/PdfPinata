@@ -20,7 +20,7 @@ namespace PdfPinata.Test.IO;
 ///   What this buys is a test that builds bytes rather than a document. The parser still needs a
 ///   <see cref="PdfDocument"/> to own the objects it makes - every <c>PdfObject</c> is numbered by
 ///   looking itself up in a document's cross-reference table - but it needs nothing else that
-///   <see cref="PdfReader.Open"/> builds: no <c>%PDF</c> header, no real cross-reference table, no
+///   <c>PdfReader.Open</c> builds: no <c>%PDF</c> header, no real cross-reference table, no
 ///   trailer, no <c>startxref</c> found by scanning the end of a file. A plain
 ///   <c>new PdfDocument()</c> and a <see cref="MemoryStream"/> of hand-written bytes are the whole
 ///   of what a test needs to stand one up.

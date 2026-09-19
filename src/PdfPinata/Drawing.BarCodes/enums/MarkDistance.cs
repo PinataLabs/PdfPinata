@@ -27,8 +27,6 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
-namespace PdfPinata.Drawing.BarCodes;
-
 ///// <summary>
 ///// Valid mark distances for OMR Codes.
 ///// </summary>

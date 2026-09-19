@@ -221,7 +221,7 @@ public abstract class PdfAnnotation : PdfDictionary
         set
         {
             // TODO: an array.SetColor(clr) function may be useful here
-            var array = new PdfArray(Owner, new PdfReal[] { new(value.R / 255.0), new(value.G / 255.0), new(value.B / 255.0) });
+            var array = new PdfArray(Owner, new PdfItem[] { new PdfReal(value.R / 255.0), new PdfReal(value.G / 255.0), new PdfReal(value.B / 255.0) });
             Elements[Keys.C] = array;
             Elements.SetDateTime(Keys.M, GlobalTimeSettings.Now);
             OnAppearanceInvalidated();

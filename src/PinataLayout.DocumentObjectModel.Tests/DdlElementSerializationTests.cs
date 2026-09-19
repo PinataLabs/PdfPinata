@@ -316,7 +316,7 @@ public class DdlElementSerializationTests
         // line break in the middle of it, which would end the comment and leave the rest as code.
         var document = new Document();
         document.AddSection().AddParagraph("t");
-        document.Comment = "first line\x0D\x0Asecond line";
+        document.Comment = "first line\r\nsecond line";
 
         var written = Write(document);
 

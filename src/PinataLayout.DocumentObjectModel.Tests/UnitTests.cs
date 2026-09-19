@@ -296,6 +296,7 @@ public class UnitTests
         // Equality is by the number and the measure, not by the length: this is a value type
         // standing in for what the document says, and the document says "1in" or "72pt".
         Unit.FromInch(1).Should().Be(Unit.FromInch(1));
+        // ReSharper disable once EqualExpressionComparison
         (Unit.FromInch(1) == Unit.FromInch(1)).Should().BeTrue();
         (Unit.FromInch(1) != Unit.FromPoint(72)).Should().BeTrue();
     }
@@ -309,6 +310,7 @@ public class UnitTests
     [Fact]
     public void SomethingThatIsNotAUnitIsNotEqualToOne()
     {
+        // ReSharper disable once SuspiciousTypeConversion.Global
         Unit.FromPoint(3).Equals("3").Should().BeFalse();
         Unit.FromPoint(3).Equals(null).Should().BeFalse();
     }

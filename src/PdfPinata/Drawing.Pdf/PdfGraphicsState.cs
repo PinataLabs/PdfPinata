@@ -84,7 +84,6 @@ internal sealed class PdfGraphicsState : ICloneable
     int _realizedLineJoin = -1;
     double _realizedMiterLimit = -1;
     XDashStyle _realizedDashStyle = (XDashStyle)(-1);
-    string _realizedDashPattern;
     XColor _realizedStrokeColor = XColor.Empty;
     bool _realizedStrokeOverPrint;
 
@@ -221,7 +220,6 @@ internal sealed class PdfGraphicsState : ICloneable
                     // HACK: I remove the if clause
                     //if (_realizedDashPattern != pattern)
                     {
-                        _realizedDashPattern = pattern;
                         _renderer.Append(pattern);
                     }
                 }

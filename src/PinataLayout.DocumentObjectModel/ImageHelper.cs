@@ -55,8 +55,7 @@ public class ImageHelper
       foreach (var subfolder in subfolders)
       {
         var fullname = System.IO.Path.Combine(System.IO.Path.Combine(root, subfolder), filename);
-        int pageNumber;
-        var realFile = ExtractPageNumber(fullname, out pageNumber);
+        var realFile = ExtractPageNumber(fullname, out _);
 
         if (System.IO.File.Exists(realFile))
           return fullname;
@@ -80,8 +79,7 @@ public class ImageHelper
     foreach (var subfolder in subfolders)
     {
       var fullname = System.IO.Path.Combine(System.IO.Path.Combine(root, subfolder), filename);
-      int pageNumber;
-      var realFile = ExtractPageNumber(fullname, out pageNumber);
+      var realFile = ExtractPageNumber(fullname, out _);
       if (System.IO.File.Exists(realFile))
       {
         if (fullname == referenceFilename)

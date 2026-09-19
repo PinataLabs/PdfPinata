@@ -57,10 +57,6 @@ internal class ColumnClusteredPlotAreaRenderer : ColumnPlotAreaRenderer
     var yMin = cri.yAxisRendererInfo.MinimumScale;
     var yMax = cri.yAxisRendererInfo.MaximumScale;
 
-    var pointCount = 0;
-    foreach (var sr in cri.seriesRendererInfos)
-      pointCount += sr.series.Elements.Count;
-
     // Space shared by one clustered column.
     var groupWidth = cri.xAxisRendererInfo.MajorTick;
 

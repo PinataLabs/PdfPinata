@@ -111,6 +111,7 @@ public class XSizeTests
         (size != new XSize(3, 5)).Should().BeTrue();
         size.Equals(new XSize(3, 4)).Should().BeTrue();
         size.Equals((object)new XSize(3, 4)).Should().BeTrue();
+        // ReSharper disable once SuspiciousTypeConversion.Global
         size.Equals("not a size").Should().BeFalse();
         size.GetHashCode().Should().Be(new XSize(3, 4).GetHashCode());
     }

@@ -81,7 +81,9 @@ public class PdfRectangleTests
         var rectangle = new PdfRectangle(new XRect(0, 0, 10, 10));
 
         rectangle.Equals(null).Should().BeFalse();
+        // ReSharper disable once SuspiciousTypeConversion.Global
         rectangle.Equals(new XRect(0, 0, 10, 10)).Should().BeFalse();
+        // ReSharper disable once SuspiciousTypeConversion.Global
         rectangle.Equals(new PdfArray()).Should().BeFalse();
     }
 

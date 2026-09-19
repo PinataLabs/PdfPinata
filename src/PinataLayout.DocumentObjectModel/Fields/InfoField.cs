@@ -89,7 +89,7 @@ public partial class InfoField : DocumentObject
   {
     foreach (var validName in validNames)
     {
-      if (String.Compare(validName, name, true) == 0)
+      if (String.Compare(validName, name, StringComparison.OrdinalIgnoreCase) == 0)
         return true;
     }
     return false;

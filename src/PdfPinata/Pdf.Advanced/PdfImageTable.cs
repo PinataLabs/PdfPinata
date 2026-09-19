@@ -108,6 +108,7 @@ internal sealed class PdfImageTable : PdfResourceTable
 
         public override int GetHashCode()
         {
+            // ReSharper disable once NonReadonlyMemberInGetHashCode
             return _path.GetHashCode();
         }
     }

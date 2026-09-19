@@ -112,6 +112,7 @@ public sealed class DdlWriterTests : IDisposable
         var elements = SomeElements();
         using var stream = new MemoryStream();
 
+        // ReSharper disable once UsingStatementResourceInitialization
         using (var writer = new DdlWriter(stream) { Indent = 2, InitialIndent = 0 })
         {
             writer.Indent.Should().Be(2);

@@ -238,7 +238,7 @@ public class CrossReferenceStreamTests
 
         var description = new StringBuilder();
         description.Append(document.PageCount).Append('|').Append(document.Info.Title).Append('|');
-        foreach (var page in document.Pages.Cast<PdfPage>())
+        foreach (var page in document.Pages)
             description.Append(page.Width.Point).Append('x').Append(page.Height.Point).Append(';');
         description.Append('|').Append(document.Outlines.Count);
         return description.ToString();

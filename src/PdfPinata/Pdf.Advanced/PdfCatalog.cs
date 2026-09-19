@@ -163,10 +163,7 @@ public sealed class PdfCatalog : PdfDictionary
         get => (PdfAcroForm)Elements.GetValue(Keys.AcroForm);
         set
         {
-            if (Elements.ContainsKey(Keys.AcroForm))
-                Elements[Keys.AcroForm] = value;
-            else
-                Elements.Add(Keys.AcroForm, value);
+            Elements[Keys.AcroForm] = value;
         }
     }
 

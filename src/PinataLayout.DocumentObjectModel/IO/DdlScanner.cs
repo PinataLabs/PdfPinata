@@ -85,7 +85,6 @@ internal class DdlScanner
 
     this.m_DocumentFileName = documentFileName;
 
-    this.m_nCurDocumentIndex = m_idx;
     this.m_nCurDocumentLine = m_idxLine;
     this.m_nCurDocumentLinePos = m_idxLinePos;
 
@@ -1386,11 +1385,9 @@ internal class DdlScanner
           {
             ScanNextChar();
             var hexNrCount = 0;
-            var hexString = "0x";
             while (IsHexDigit(currChar))
             {
               ++hexNrCount;
-              hexString += currChar;
               ScanNextChar();
             }
             if (hexNrCount <= 2)
@@ -1442,12 +1439,10 @@ internal class DdlScanner
   /// </summary>
   void SaveCurDocumentPos()
   {
-    m_nCurDocumentIndex = m_idx - 1;
     m_nCurDocumentLine = m_idxLine;
     m_nCurDocumentLinePos = m_idxLinePos;
   }
 
-  int m_nCurDocumentIndex;
   int m_nCurDocumentLine;
   int m_nCurDocumentLinePos;
 

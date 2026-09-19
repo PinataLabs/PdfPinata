@@ -339,7 +339,7 @@ public partial class Borders : DocumentObject, IEnumerable
         set => clearAll = value;
     }
     /// <summary>Backing field for <see cref="BordersCleared"/>.</summary>
-    protected bool clearAll = false;
+    protected bool clearAll;
     #endregion
 
     #region Null handling
@@ -486,6 +486,7 @@ public partial class Borders : DocumentObject, IEnumerable
         {
             get
             {
+                // ReSharper disable once GenericEnumeratorNotDisposed
                 IEnumerator enumerator = ht.GetEnumerator();
                 enumerator.Reset();
                 for (var idx = 0; idx < index + 1; idx++)
