@@ -210,12 +210,12 @@ internal class ParagraphIterator
   private ParagraphIterator SeekLastLeaf()
   {
     var obj = Current;
-    if (!(obj is ParagraphElements parEls))
+    if (obj is not ParagraphElements)
       return this;
 
     var indices = (ArrayList)_positionIndices.Clone();
 
-    while (parEls is ParagraphElements)
+    while (obj is ParagraphElements parEls)
     {
       if (parEls.Count == 0)
         return new ParagraphIterator(_rootNode, parEls, indices);
@@ -234,11 +234,11 @@ internal class ParagraphIterator
   ParagraphIterator SeekFirstLeaf()
   {
     var obj = Current;
-    if (obj is not ParagraphElements parEls)
+    if (obj is not ParagraphElements)
       return this;
     var indices = (ArrayList)_positionIndices.Clone();
 
-    while (parEls is ParagraphElements)
+    while (obj is ParagraphElements parEls)
     {
       if (parEls.Count == 0)
         return new ParagraphIterator(_rootNode, parEls, indices);
