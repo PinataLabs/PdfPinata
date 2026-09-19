@@ -1,7 +1,6 @@
 using System;
 using System.Formats.Asn1;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;

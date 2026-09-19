@@ -1,7 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using PinataLayout.Rendering;
 using PdfPinata.Drawing;
@@ -9,7 +6,7 @@ using PdfPinata.Drawing;
 namespace PdfPinata.Test.Helpers;
 
 /// <summary>
-///   Reaches MigraDoc's areas, which are internal to the rendering assembly, so that they can be
+///   Reaches PinataLayout's areas, which are internal to the rendering assembly, so that they can be
 ///   tested directly rather than through a rendered page.
 /// </summary>
 /// <remarks>

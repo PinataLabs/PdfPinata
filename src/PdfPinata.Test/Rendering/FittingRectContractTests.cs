@@ -1,10 +1,7 @@
 using System;
-using System.Linq;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.Rendering;
-using PdfPinata.Drawing;
-using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
 using Xunit;
 

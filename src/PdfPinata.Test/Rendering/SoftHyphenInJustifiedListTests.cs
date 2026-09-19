@@ -29,7 +29,7 @@ public class SoftHyphenInJustifiedListTests
         + "hy­phen­ated cor­rect­ly. The text should be jus­ti­fied "
         + "and the hy­phen­ation should work as ex­pect­ed.";
 
-    // A4 with MigraDoc's default 2.5cm margins.
+    // A4 with PinataLayout's default 2.5cm margins.
     static readonly double LeftEdge = Unit.FromCentimeter(2.5).Point;
     static readonly double RightEdge = Unit.FromMillimeter(210).Point - Unit.FromCentimeter(2.5).Point;
 

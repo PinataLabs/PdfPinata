@@ -28,7 +28,7 @@ namespace PdfPinata.Fonts;
 /// dropped like the rest; a caller that wants it to mean a line break - which
 /// <c>FontHelper.MeasureString</c> does, and <c>XGraphicsPdfRenderer.DrawString</c> deliberately
 /// does not - intercepts it before offering the character here. Multi-line text is
-/// <c>XTextFormatter</c>'s job and MigraDoc's, and both split before a string reaches either of
+/// <c>XTextFormatter</c>'s job and PinataLayout's, and both split before a string reaches either of
 /// these two methods.
 /// </para>
 /// </remarks>
@@ -74,7 +74,7 @@ static class TextNormalization
     /// <remarks>
     /// Answers <paramref name="text"/> itself - the same reference, and no allocation - when
     /// nothing in it needs filtering. That is every string this library already draws through
-    /// <c>XTextFormatter</c>, MigraDoc or the charting renderers, which is what makes this change
+    /// <c>XTextFormatter</c>, PinataLayout or the charting renderers, which is what makes this change
     /// provably a no-op for them.
     /// </remarks>
     internal static string NormalizeLine(string text)

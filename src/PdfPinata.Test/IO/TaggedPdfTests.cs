@@ -27,7 +27,7 @@ namespace PdfPinata.Test.IO;
 ///   <c>/MarkInfo</c> were key-name constants on <see cref="PdfCatalog"/>, and <c>BDC</c>, <c>BMC</c>
 ///   and <c>EMC</c> lived only in the content-stream <em>reader's</em> operator table, never emitted.
 ///
-///   This is Stage A: the plumbing and a hand-driven API. Tagging MigraDoc's own output is Stage B
+///   This is Stage A: the plumbing and a hand-driven API. Tagging PinataLayout's own output is Stage B
 ///   and is not here.
 /// </summary>
 public class TaggedPdfTests
@@ -293,7 +293,7 @@ public class TaggedPdfTests
     ///   The same rule the element overload follows, and it has to be the same rule: a sequence
     ///   carrying an MCID is a content item of exactly one element, so nesting two makes the inner
     ///   glyphs belong to both. This is the overload a caller tagging a page by hand uses, so fixing
-    ///   only the one MigraDoc happens to call would leave the documented manual API doing the very
+    ///   only the one PinataLayout happens to call would leave the documented manual API doing the very
     ///   thing the other was changed to stop doing.
     /// </remarks>
     [Fact]

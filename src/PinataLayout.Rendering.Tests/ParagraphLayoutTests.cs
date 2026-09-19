@@ -1,4 +1,3 @@
-using System.Linq;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.Rendering.Tests.Helpers;
@@ -12,7 +11,7 @@ namespace PinataLayout.Rendering.Tests;
 ///   of them than the page holds.
 /// </summary>
 /// <remarks>
-///   Promoted from MigraDoc 1.32's TestLayout, which set two paragraphs with a space after the
+///   Promoted from PinataLayout 1.32's TestLayout, which set two paragraphs with a space after the
 ///   first and a larger space before the second and saved the result to look at, and then set a
 ///   thousand of them to see them break across pages.
 ///

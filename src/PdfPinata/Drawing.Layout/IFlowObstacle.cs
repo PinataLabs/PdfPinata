@@ -10,7 +10,7 @@ namespace PdfPinata.Drawing.Layout;
 /// One method, and it is the whole of what the layout loop ever asks: <i>for a line sitting here,
 /// which parts of it do you take?</i> An obstacle is never asked what shape it is, where its middle
 /// is, or which side text should go - the side a line takes is a consequence of which runs are left
-/// free, not an instruction, which is how the same idea landed in MigraDoc and in iText7
+/// free, not an instruction, which is how the same idea landed in PinataLayout and in iText7
 /// independently.
 /// </para>
 /// <para>

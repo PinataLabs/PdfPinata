@@ -7,7 +7,6 @@ using System.Text.RegularExpressions;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Drawing.Layout;
-using PdfPinata.Drawing.Layout.enums;
 using PdfPinata.Fonts;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;

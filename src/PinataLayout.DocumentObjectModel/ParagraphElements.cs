@@ -26,14 +26,13 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
 using System;
-using PinataLayout.DocumentObjectModel.Internals;
 using PinataLayout.DocumentObjectModel.Fields;
-using MigraDocImage = PinataLayout.DocumentObjectModel.Shapes.Image;
+using DocImage = PinataLayout.DocumentObjectModel.Shapes.Image;
 using static PinataLayout.DocumentObjectModel.Shapes.ImageSource;
 
 namespace PinataLayout.DocumentObjectModel;
@@ -58,7 +57,7 @@ public partial class ParagraphElements : DocumentObjectCollection
     /// <summary>
     /// Gets a ParagraphElement by its index.
     /// </summary>
-    public new DocumentObject this[int index] => base[index] as DocumentObject;
+    public new DocumentObject this[int index] => base[index];
 
     #region Methods
     /// <summary>
@@ -78,13 +77,13 @@ public partial class ParagraphElements : DocumentObjectCollection
     {
         ArgumentNullException.ThrowIfNull(text);
         Text txt = null;
-        string[] lines = text.Split('\n');
-        int lineCount = lines.Length;
-        for (int line = 0; line < lineCount; line++)
+        var lines = text.Split('\n');
+        var lineCount = lines.Length;
+        for (var line = 0; line < lineCount; line++)
         {
-            string[] tabParts = lines[line].Split('\t');
-            int count = tabParts.Length;
-            for (int idx = 0; idx < count; idx++)
+            var tabParts = lines[line].Split('\t');
+            var count = tabParts.Length;
+            for (var idx = 0; idx < count; idx++)
             {
                 if (tabParts[idx].Length != 0)
                 {
@@ -129,7 +128,7 @@ public partial class ParagraphElements : DocumentObjectCollection
     /// </summary>
     public Character AddCharacter(SymbolName symbolType, int count)
     {
-        Character character = new Character();
+        var character = new Character();
         Add(character);
         character.SymbolName = symbolType;
         character.Count = count;
@@ -181,7 +180,7 @@ public partial class ParagraphElements : DocumentObjectCollection
     /// </summary>
     public FormattedText AddFormattedText()
     {
-        FormattedText formattedText = new FormattedText();
+        var formattedText = new FormattedText();
         Add(formattedText);
         return formattedText;
     }
@@ -191,7 +190,7 @@ public partial class ParagraphElements : DocumentObjectCollection
     /// </summary>
     public FormattedText AddFormattedText(TextFormat textFormat)
     {
-        FormattedText formattedText = AddFormattedText();
+        var formattedText = AddFormattedText();
 
         if ((textFormat & TextFormat.Bold) == TextFormat.Bold)
             formattedText.Bold = true;
@@ -214,7 +213,7 @@ public partial class ParagraphElements : DocumentObjectCollection
     /// </summary>
     public FormattedText AddFormattedText(Font font)
     {
-        FormattedText formattedText = new FormattedText();
+        var formattedText = new FormattedText();
         formattedText.Font.ApplyFont(font);
         Add(formattedText);
         return formattedText;
@@ -225,7 +224,7 @@ public partial class ParagraphElements : DocumentObjectCollection
     /// </summary>
     public FormattedText AddFormattedText(string text)
     {
-        FormattedText formattedText = new FormattedText();
+        var formattedText = new FormattedText();
         formattedText.AddText(text);
         Add(formattedText);
         return formattedText;
@@ -236,7 +235,7 @@ public partial class ParagraphElements : DocumentObjectCollection
     /// </summary>
     public FormattedText AddFormattedText(string text, TextFormat textFormat)
     {
-        FormattedText formattedText = AddFormattedText(textFormat);
+        var formattedText = AddFormattedText(textFormat);
         formattedText.AddText(text);
         return formattedText;
     }
@@ -246,7 +245,7 @@ public partial class ParagraphElements : DocumentObjectCollection
     /// </summary>
     public FormattedText AddFormattedText(string text, Font font)
     {
-        FormattedText formattedText = AddFormattedText(font);
+        var formattedText = AddFormattedText(font);
         formattedText.AddText(text);
         return formattedText;
     }
@@ -256,7 +255,7 @@ public partial class ParagraphElements : DocumentObjectCollection
     /// </summary>
     public FormattedText AddFormattedText(string text, string style)
     {
-        FormattedText formattedText = AddFormattedText(text);
+        var formattedText = AddFormattedText(text);
         formattedText.Style = style;
         return formattedText;
     }
@@ -266,7 +265,7 @@ public partial class ParagraphElements : DocumentObjectCollection
     /// </summary>
     public Hyperlink AddHyperlink(string name)
     {
-        Hyperlink hyperlink = new Hyperlink();
+        var hyperlink = new Hyperlink();
         hyperlink.Name = name;
         Add(hyperlink);
         return hyperlink;
@@ -277,7 +276,7 @@ public partial class ParagraphElements : DocumentObjectCollection
     /// </summary>
     public Hyperlink AddHyperlink(string name, HyperlinkType type)
     {
-        Hyperlink hyperlink = new Hyperlink();
+        var hyperlink = new Hyperlink();
         hyperlink.Name = name;
         hyperlink.Type = type;
         Add(hyperlink);
@@ -289,7 +288,7 @@ public partial class ParagraphElements : DocumentObjectCollection
     /// </summary>
     public BookmarkField AddBookmark(string name)
     {
-        BookmarkField fieldBookmark = new BookmarkField();
+        var fieldBookmark = new BookmarkField();
         fieldBookmark.Name = name;
         Add(fieldBookmark);
         return fieldBookmark;
@@ -300,7 +299,7 @@ public partial class ParagraphElements : DocumentObjectCollection
     /// </summary>
     public PageField AddPageField()
     {
-        PageField fieldPage = new PageField();
+        var fieldPage = new PageField();
         Add(fieldPage);
         return fieldPage;
     }
@@ -310,7 +309,7 @@ public partial class ParagraphElements : DocumentObjectCollection
     /// </summary>
     public PageRefField AddPageRefField(string name)
     {
-        PageRefField fieldPageRef = new PageRefField();
+        var fieldPageRef = new PageRefField();
         fieldPageRef.Name = name;
         Add(fieldPageRef);
         return fieldPageRef;
@@ -321,7 +320,7 @@ public partial class ParagraphElements : DocumentObjectCollection
     /// </summary>
     public NumPagesField AddNumPagesField()
     {
-        NumPagesField fieldNumPages = new NumPagesField();
+        var fieldNumPages = new NumPagesField();
         Add(fieldNumPages);
         return fieldNumPages;
     }
@@ -331,7 +330,7 @@ public partial class ParagraphElements : DocumentObjectCollection
     /// </summary>
     public SectionField AddSectionField()
     {
-        SectionField fieldSection = new SectionField();
+        var fieldSection = new SectionField();
         Add(fieldSection);
         return fieldSection;
     }
@@ -341,7 +340,7 @@ public partial class ParagraphElements : DocumentObjectCollection
     /// </summary>
     public SectionPagesField AddSectionPagesField()
     {
-        SectionPagesField fieldSectionPages = new SectionPagesField();
+        var fieldSectionPages = new SectionPagesField();
         Add(fieldSectionPages);
         return fieldSectionPages;
     }
@@ -349,10 +348,10 @@ public partial class ParagraphElements : DocumentObjectCollection
     /// <summary>
     /// Adds a new DateField.
     /// </summary>
-    /// 
+    ///
     public DateField AddDateField()
     {
-        DateField fieldDate = new DateField();
+        var fieldDate = new DateField();
         Add(fieldDate);
         return fieldDate;
     }
@@ -362,7 +361,7 @@ public partial class ParagraphElements : DocumentObjectCollection
     /// </summary>
     public DateField AddDateField(string format)
     {
-        DateField fieldDate = new DateField();
+        var fieldDate = new DateField();
         fieldDate.Format = format;
         Add(fieldDate);
         return fieldDate;
@@ -373,7 +372,7 @@ public partial class ParagraphElements : DocumentObjectCollection
     /// </summary>
     public InfoField AddInfoField(InfoFieldType iType)
     {
-        InfoField fieldInfo = new InfoField();
+        var fieldInfo = new InfoField();
         fieldInfo.Name = iType.ToString();
         Add(fieldInfo);
         return fieldInfo;
@@ -384,8 +383,8 @@ public partial class ParagraphElements : DocumentObjectCollection
     /// </summary>
     public Footnote AddFootnote(string text)
     {
-        Footnote footnote = new Footnote();
-        Paragraph par = footnote.Elements.AddParagraph();
+        var footnote = new Footnote();
+        var par = footnote.Elements.AddParagraph();
         par.AddText(text);
         Add(footnote);
         return footnote;
@@ -396,7 +395,7 @@ public partial class ParagraphElements : DocumentObjectCollection
     /// </summary>
     public Footnote AddFootnote()
     {
-        Footnote footnote = new Footnote();
+        var footnote = new Footnote();
         Add(footnote);
         return footnote;
     }
@@ -404,9 +403,9 @@ public partial class ParagraphElements : DocumentObjectCollection
     /// <summary>
     /// Adds a new Image.
     /// </summary>
-    public MigraDocImage AddImage(IImageSource source)
+    public DocImage AddImage(IImageSource source)
     {
-        MigraDocImage image = new MigraDocImage()
+        var image = new DocImage()
         {
             Source = source
         };
@@ -415,7 +414,7 @@ public partial class ParagraphElements : DocumentObjectCollection
     }
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public override void Add(DocumentObject docObj)
     {
@@ -429,10 +428,10 @@ public partial class ParagraphElements : DocumentObjectCollection
     /// </summary>
     internal override void Serialize(Serializer serializer)
     {
-        int count = Count;
-        for (int index = 0; index < count; ++index)
+        var count = Count;
+        for (var index = 0; index < count; ++index)
         {
-            DocumentObject element = this[index];
+            var element = this[index];
             element.Serialize(serializer);
         }
     }

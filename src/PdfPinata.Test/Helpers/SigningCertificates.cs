@@ -23,7 +23,7 @@ public static class SigningCertificates
     /// </summary>
     public static X509Certificate2 Default => Generated.Value;
 
-    public static X509Certificate2 Create(string subject) => Create(subject, timestampAuthority: false);
+    private static X509Certificate2 Create(string subject) => Create(subject, timestampAuthority: false);
 
     /// <summary>
     ///   A certificate fit to sign an RFC 3161 timestamp token: it carries the critical

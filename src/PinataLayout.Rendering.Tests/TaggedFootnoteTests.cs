@@ -17,7 +17,7 @@ namespace PinataLayout.Rendering.Tests;
 /// <remarks>
 ///   <para>
 ///     Item 6a of <c>docs/specs/tagged-pdf-accessibility.md</c>, which that spec recorded as moot
-///     because nothing drew a footnote. Something does now; see <c>docs/specs/migradoc-footnotes.md</c>.
+///     because nothing drew a footnote. Something does now; see <c>docs/specs/PinataLayout-footnotes.md</c>.
 ///   </para>
 ///   <para>
 ///     The interesting assertion is <em>where</em> the <c>Note</c> sits. It is drawn at the foot of the
@@ -211,7 +211,7 @@ public class TaggedFootnoteTests
     [Fact]
     public void ADocumentWithFootnotesCanClaimAccessibility()
     {
-        // The rule added here has teeth, so this is the test that says a footnote MigraDoc rendered
+        // The rule added here has teeth, so this is the test that says a footnote PinataLayout rendered
         // satisfies it rather than tripping over it.
         var renderer = new PdfDocumentRenderer(true)
         {

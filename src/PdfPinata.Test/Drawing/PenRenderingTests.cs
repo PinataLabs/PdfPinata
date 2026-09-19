@@ -5,7 +5,6 @@ using System.Text;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
-using PdfPinata.Pdf.Advanced;
 using Xunit;
 
 namespace PdfPinata.Test.Drawing;

@@ -8,7 +8,7 @@ namespace PinataLayout.Rendering.Tests.Helpers;
 ///   What a page actually shows, as the sequence of glyphs it draws.
 /// </summary>
 /// <remarks>
-///   The text on a page cannot be read back as text. MigraDoc embeds its fonts as Identity-H, so a
+///   The text on a page cannot be read back as text. PinataLayout embeds its fonts as Identity-H, so a
 ///   show-text operator carries glyph identifiers rather than characters - two bytes each - and
 ///   turning them back into characters would mean reading the embedded font's own tables.
 ///
@@ -98,7 +98,7 @@ internal static class Glyphs
 
     /// <summary>
     ///   The glyphs that text draws when it is laid out as plain paragraphs, one per line given.
-    ///   Nothing separates the lines in the result: MigraDoc draws one run per word and puts the
+    ///   Nothing separates the lines in the result: PinataLayout draws one run per word and puts the
     ///   spaces between them in the positioning, so no whitespace glyph is ever shown.
     /// </summary>
     internal static IReadOnlyList<int> For(params string[] lines)

@@ -21,27 +21,27 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
 namespace MigraDoc;
 
 /// <summary>
-/// Base namespace of MigraDoc. Classes are implemented in nested namespaces like e. g. MigraDoc.DocumentObjectModel.
+/// Base namespace of PinataLayout. Classes are implemented in nested namespaces like e. g. PinataLayout.DocumentObjectModel.
 /// </summary>
 [System.Runtime.CompilerServices.CompilerGenerated]
 internal class NamespaceDoc { }
 
 /// <summary>
-/// Version info base for all MigraDoc related assemblies.
+/// Version info base for all PinataLayout related assemblies.
 /// </summary>
 public static class ProductVersionInfo
 {
   /// <summary>
   /// The title of the product.
   /// </summary>
-  public const string Title = "MigraDoc";
+  public const string Title = "PinataLayout";
 
   /// <summary>
   /// A characteristic description of the product.
@@ -75,7 +75,7 @@ public static class ProductVersionInfo
   /// <summary>
   /// The name of the product.
   /// </summary>
-  public const string Product = "empira MigraDoc";
+  public const string Product = "PinataLayout";
 
   /// <summary>
   /// The copyright information. Also used as NuGet Copyright.
@@ -85,7 +85,7 @@ public static class ProductVersionInfo
   /// <summary>
   /// The trademark the product.
   /// </summary>
-  public const string Trademark = "empira MigraDoc";
+  public const string Trademark = "PinataLayout";
 
   /// <summary>
   /// Unused - must be empty string.
@@ -113,59 +113,55 @@ public static class ProductVersionInfo
   /// are listed using the Package Manager Console. These are also used when installing a package using the
   /// Install-Package command within the Package Manager Console. Package IDs may not contain any spaces
   /// or characters that are invalid in an URL. In general, they follow the same rules as .NET namespaces do.
-  /// So Foo.Bar is a valid ID, Foo! and Foo Bar are not. 
+  /// So Foo.Bar is a valid ID, Foo! and Foo Bar are not.
   /// </summary>
-  public const string NuGetID = "PDFsharp-MigraDoc";
+  public const string NuGetID = "PdfPinata-PinataLayout";
 
   /// <summary>
   /// Nuspec Doc: The human-friendly title of the package displayed in the Manage NuGet Packages dialog.
-  /// If none is specified, the ID is used instead. 
+  /// If none is specified, the ID is used instead.
   /// </summary>
-  public const string NuGetTitle = "PDFsharp + MigraDoc";
+  public const string NuGetTitle = "PdfPinata + PinataLayout";
 
   /// <summary>
   /// Nuspec Doc: A comma-separated list of authors of the package code.
   /// </summary>
-  public const string NuGetAuthors = "empira Software GmbH";
+  public const string NuGetAuthors = "PdfPinata authors, previously empira Software GmbH";
 
   /// <summary>
   /// Nuspec Doc: A comma-separated list of the package creators. This is often the same list as in authors.
-  /// This is ignored when uploading the package to the NuGet.org Gallery. 
+  /// This is ignored when uploading the package to the NuGet.org Gallery.
   /// </summary>
-  public const string NuGetOwners = "empira Software GmbH";
+  public const string NuGetOwners = "PdfPinata authors, previously empira Software GmbH";
 
   /// <summary>
   /// Nuspec Doc: A long description of the package. This shows up in the right pane of the Add Package Dialog
-  /// as well as in the Package Manager Console when listing packages using the Get-Package command. 
+  /// as well as in the Package Manager Console when listing packages using the Get-Package command.
   /// </summary>
   // This assignment must be written in one line because it will be parsed from a PS1 file.
-  public const string NuGetDescription = "MigraDoc Foundation - the Open Source .NET library that easily creates documents based on an object model with paragraphs, tables, styles, etc. and renders them into PDF or RTF.";
+  public const string NuGetDescription = "PdfPinata - the Open Source .NET library that easily creates documents based on an object model with paragraphs, tables, styles, etc. and renders them into PDF or RTF.";
 
   /// <summary>
   /// Nuspec Doc: A description of the changes made in each release of the package. This field only shows up
   /// when the _Updates_ tab is selected and the package is an update to a previously installed package.
-  /// It is displayed where the Description would normally be displayed. 
-  /// </summary>                  
-  public const string NuGetReleaseNotes = "The first official release of PDFsharp and MigraDoc on NuGet.";
+  /// It is displayed where the Description would normally be displayed.
+  /// </summary>
+  public const string NuGetReleaseNotes = "The first official release of PdfPinata and PinataLayout on NuGet.";
 
   /// <summary>
   /// Nuspec Doc: A short description of the package. If specified, this shows up in the middle pane of the
   /// Add Package Dialog. If not specified, a truncated version of the description is used instead.
-  /// </summary>                  
+  /// </summary>
   public const string NuGetSummary = "Creating Documents on the Fly.";
 
   /// <summary>
   /// Nuspec Doc: The locale ID for the package, such as en-us.
-  /// </summary>                  
+  /// </summary>
   public const string NuGetLanguage = "";
 
   /// <summary>
   /// Nuspec Doc: A URL for the home page of the package.
   /// </summary>
-  /// <remarks>
-  /// http://www.PdfSharp.net/NuGetPackage_PDFsharp-MigraDoc-GDI.ashx
-  /// http://www.PdfSharp.net/NuGetPackage_PDFsharp-MigraDoc-WPF.ashx
-  /// </remarks>
   public const string NuGetProjectUrl = "https://www.nuget.org/packages/PinataLayout.DocumentObjectModel/";
 
   /// <summary>
@@ -176,17 +172,17 @@ public static class ProductVersionInfo
 
   /// <summary>
   /// Nuspec Doc: A link to the license that the package is under.
-  /// </summary>                  
+  /// </summary>
   public const string NuGetLicenseUrl = "https://github.com/PinataLabs/PdfPinata";
 
   /// <summary>
   /// Nuspec Doc: A Boolean value that specifies whether the client needs to ensure that the package license (described by licenseUrl) is accepted before the package is installed.
-  /// </summary>                  
+  /// </summary>
   public const bool NuGetRequireLicenseAcceptance = false;
 
   /// <summary>
   /// Nuspec Doc: A space-delimited list of tags and keywords that describe the package. This information is used to help make sure users can find the package using
   /// searches in the Add Package Reference dialog box or filtering in the Package Manager Console window.
-  /// </summary>                  
-  public const string NuGetTags = "PDFsharp MigraDoc PDF RTF document creation";
+  /// </summary>
+  public const string NuGetTags = "PdfPinata PinataLayout PDF RTF document creation";
 }

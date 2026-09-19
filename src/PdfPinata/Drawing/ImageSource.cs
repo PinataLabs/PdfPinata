@@ -13,9 +13,9 @@ namespace PinataLayout.DocumentObjectModel.Shapes;
 /// PdfPinata.ImageSharp.
 /// </summary>
 /// <remarks>
-/// This type ships in the <b>PdfPinata</b> assembly but lives in a MigraDoc namespace, so
+/// This type ships in the <b>PdfPinata</b> assembly but lives in a PinataLayout namespace, so
 /// registering it needs a <c>using PinataLayout.DocumentObjectModel.Shapes;</c> from
-/// code that otherwise has nothing to do with MigraDoc.
+/// code that otherwise has nothing to do with PinataLayout.
 /// </remarks>
 public abstract class ImageSource
 {

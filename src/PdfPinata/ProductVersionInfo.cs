@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -46,7 +46,7 @@ public static class ProductVersionInfo
 
     /// <summary>
     /// The PDF producer information string.
-    /// TODO: Called Creator in MigraDoc???
+    /// TODO: Called Creator in PinataLayout?
     /// </summary>
     public const string Producer = Title + " " + VersionMajor + "." + VersionMinor + "." + VersionBuild + Technology + " (" + Url + ")";
 
@@ -136,13 +136,13 @@ public static class ProductVersionInfo
     /// are listed using the Package Manager Console. These are also used when installing a package using the
     /// Install-Package command within the Package Manager Console. Package IDs may not contain any spaces
     /// or characters that are invalid in an URL. In general, they follow the same rules as .NET namespaces do.
-    /// So Foo.Bar is a valid ID, Foo! and Foo Bar are not. 
+    /// So Foo.Bar is a valid ID, Foo! and Foo Bar are not.
     /// </summary>
     public const string NuGetID = "PDFsharp";
 
     /// <summary>
     /// Nuspec Doc: The human-friendly title of the package displayed in the Manage NuGet Packages dialog.
-    /// If none is specified, the ID is used instead. 
+    /// If none is specified, the ID is used instead.
     /// </summary>
     public const string NuGetTitle = "PDFsharp";
 
@@ -153,13 +153,13 @@ public static class ProductVersionInfo
 
     /// <summary>
     /// Nuspec Doc: A comma-separated list of the package creators. This is often the same list as in authors.
-    /// This is ignored when uploading the package to the NuGet.org Gallery. 
+    /// This is ignored when uploading the package to the NuGet.org Gallery.
     /// </summary>
     public const string NuGetOwners = "empira Software GmbH";
 
     /// <summary>
     /// Nuspec Doc: A long description of the package. This shows up in the right pane of the Add Package Dialog
-    /// as well as in the Package Manager Console when listing packages using the Get-Package command. 
+    /// as well as in the Package Manager Console when listing packages using the Get-Package command.
     /// </summary>
     // This assignment must be written in one line because it will be parsed from a PS1 file.
     public const string NuGetDescription = "PDFsharp is the Open Source .NET library that easily creates and processes PDF documents on the fly from any .NET language. The same drawing routines can be used to create PDF documents, draw on the screen, or send output to any printer.";
@@ -167,19 +167,19 @@ public static class ProductVersionInfo
     /// <summary>
     /// Nuspec Doc: A description of the changes made in each release of the package. This field only shows up
     /// when the _Updates_ tab is selected and the package is an update to a previously installed package.
-    /// It is displayed where the Description would normally be displayed. 
-    /// </summary>                  
+    /// It is displayed where the Description would normally be displayed.
+    /// </summary>
     public const string NuGetReleaseNotes = "";
 
     /// <summary>
     /// Nuspec Doc: A short description of the package. If specified, this shows up in the middle pane of the
     /// Add Package Dialog. If not specified, a truncated version of the description is used instead.
-    /// </summary>                  
+    /// </summary>
     public const string NuGetSummary = "A .NET library for processing PDF.";
 
     /// <summary>
     /// Nuspec Doc: The locale ID for the package, such as en-us.
-    /// </summary>                  
+    /// </summary>
     public const string NuGetLanguage = "";
 
     /// <summary>
@@ -199,18 +199,18 @@ public static class ProductVersionInfo
 
     /// <summary>
     /// Nuspec Doc: A link to the license that the package is under.
-    /// </summary>                  
+    /// </summary>
     public const string NuGetLicenseUrl = "http://www.PdfPinata.net/PDFsharp_License.ashx";
 
     /// <summary>
     /// Nuspec Doc: A Boolean value that specifies whether the client needs to ensure that the package license (described by licenseUrl) is accepted before the package is installed.
-    /// </summary>                  
+    /// </summary>
     public const bool NuGetRequireLicenseAcceptance = false;
 
     /// <summary>
     /// Nuspec Doc: A space-delimited list of tags and keywords that describe the package. This information is used to help make sure users can find the package using
     /// searches in the Add Package Reference dialog box or filtering in the Package Manager Console window.
-    /// </summary>                  
+    /// </summary>
     public const string NuGetTags = "PDFsharp PDF creation";
 
     /// <summary>

@@ -11,7 +11,7 @@ using static PinataLayout.DocumentObjectModel.Shapes.ImageSource;
 namespace SampleApp.Demos;
 
 /// <summary>
-///   What MigraDoc does with an image it cannot read, and how a caller finds out.
+///   What PinataLayout does with an image it cannot read, and how a caller finds out.
 /// </summary>
 internal sealed class ImageFailuresDemo : PdfDemo
 {
@@ -128,7 +128,7 @@ internal sealed class ImageFailuresDemo : PdfDemo
     {
         // ----- the probe: the same four images, rendered once to collect the events -----
 
-        // A document of its own, because a MigraDoc Document binds to the first renderer it is
+        // A document of its own, because a PinataLayout Document binds to the first renderer it is
         // given and refuses a second - so the report below cannot be rendered once to find out
         // what happens and again to say so. The probe is thrown away; only its findings are kept.
         List<(string Name, string Failure, string Exception, string Message)> failures = new();
@@ -188,7 +188,7 @@ internal sealed class ImageFailuresDemo : PdfDemo
 
         page.AddParagraph(
             "Each of the four below is an IImageSource written to fail, and each fails at a "
-            + "different point of the render. MigraDoc draws a placeholder where the picture would "
+            + "different point of the render. PinataLayout draws a placeholder where the picture would "
             + "have gone and carries on - which is the contract, because one unreadable image "
             + "should not cost a five hundred page report - and raises an event saying what "
             + "happened. The next page is that event, collected.");
@@ -251,7 +251,7 @@ internal sealed class ImageFailuresDemo : PdfDemo
         why.Format.SpaceBefore = Unit.FromPoint(14);
         why.AddFormattedText("Why an event and not a throw. ", TextFormat.Bold);
         why.AddText(
-            "MigraDoc's contract is that a document with a bad image still renders, and callers "
+            "PinataLayout's contract is that a document with a bad image still renders, and callers "
             + "depend on it. Throwing would be the simpler change and the wrong one. The event "
             + "leaves the contract alone while making the reason reachable, which is what issue "
             + "366 asked for - the exception used to go to Debug.WriteLine and nowhere else, which "

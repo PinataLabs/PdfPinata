@@ -3,7 +3,6 @@ using System.IO;
 using PinataLayout.DocumentObjectModel.Shapes;
 using PdfPinata.Fonts;
 using PdfPinata.Skia;
-using PdfPinata.Utils;
 
 namespace ConformanceCorpus;
 

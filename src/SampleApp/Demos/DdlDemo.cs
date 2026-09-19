@@ -11,7 +11,7 @@ using SampleApp.Infrastructure;
 namespace SampleApp.Demos;
 
 /// <summary>
-///   MigraDoc's own serialisation format, written and read back.
+///   PinataLayout's own serialisation format, written and read back.
 /// </summary>
 internal sealed class DdlDemo : PdfDemo
 {
@@ -19,7 +19,7 @@ internal sealed class DdlDemo : PdfDemo
 
     public override string Name => "Ddl";
 
-    public override string Summary => "A document written to MigraDoc DDL, read back, and rendered from the copy.";
+    public override string Summary => "A document written to PinataLayout DDL, read back, and rendered from the copy.";
 
     public override IReadOnlyList<string> Shows => new[]
     {
@@ -63,7 +63,7 @@ internal sealed class DdlDemo : PdfDemo
 
         body.AddParagraph(
             "This page was not rendered from the document that built it. It was built, written out "
-            + "as MigraDoc DDL with DdlWriter, parsed back with DdlReader, and the copy that came "
+            + "as PinataLayout DDL with DdlWriter, parsed back with DdlReader, and the copy that came "
             + "out of the parser is what the renderer was given. Anything the round trip lost "
             + "would be missing from this page.");
 
@@ -112,7 +112,7 @@ internal sealed class DdlDemo : PdfDemo
         // ----- out to text and back again -----
 
         // The whole document as a string. Styles, sections, paragraphs, runs, the table and its
-        // borders - all of it, in MigraDoc's own grammar rather than XML or JSON.
+        // borders - all of it, in PinataLayout's own grammar rather than XML or JSON.
         string ddl = DdlWriter.WriteToString(original);
 
         // And back. A parse failure is reported through DdlReaderErrors rather than thrown, so a
@@ -143,7 +143,7 @@ internal sealed class DdlDemo : PdfDemo
         Paragraph summary = listingSection.AddParagraph(
             $"{lines.Length} lines, {ddl.Length:N0} characters, and "
             + $"{errors.ErrorCount} error(s) reported by the reader. The first eighty lines "
-            + "follow. The format is MigraDoc's own: braces nest, an attribute is name colon "
+            + "follow. The format is PinataLayout's own: braces nest, an attribute is name colon "
             + "value, and a paragraph's text is written between its braces.");
         summary.Format.SpaceAfter = Unit.FromPoint(10);
 

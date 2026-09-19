@@ -24,7 +24,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -92,7 +92,7 @@ internal class TableRenderer : Renderer
   }
 
   /// <summary>
-  /// 
+  ///
   /// </summary>
   void RenderHeaderRows()
   {
@@ -168,7 +168,7 @@ internal class TableRenderer : Renderer
 
     if (header)
     {
-      // /Column and not /Row: a heading row heads the columns beneath it. MigraDoc has no notion of
+      // /Column and not /Row: a heading row heads the columns beneath it. PinataLayout has no notion of
       // a heading column, so /Row never arises here — a table wanting one has to be tagged by hand.
       attributes.Elements.SetName("/Scope", "/Column");
     }
@@ -183,7 +183,7 @@ internal class TableRenderer : Renderer
   }
 
   private static void EqualizeRoundedCornerBorders(Cell cell) {
-    // If any of a corner relevant border is set, we want to copy its values to the second corner relevant border, 
+    // If any of a corner relevant border is set, we want to copy its values to the second corner relevant border,
     // to ensure the innerWidth of the cell is the same, regardless of which border is used.
     // If set, we use the vertical borders as source for the values, otherwise we use the horizontal borders.
     RoundedCorner roundedCorner = cell.RoundedCorner;
@@ -225,7 +225,7 @@ internal class TableRenderer : Renderer
 
   void RenderShading(Cell cell, Rectangle innerRect)
   {
-    ShadingRenderer shadeRenderer = new ShadingRenderer(gfx, cell.Shading);            
+    ShadingRenderer shadeRenderer = new ShadingRenderer(gfx, cell.Shading);
     shadeRenderer.Render(innerRect.X, innerRect.Y, innerRect.Width, innerRect.Height, cell.RoundedCorner);
   }
 

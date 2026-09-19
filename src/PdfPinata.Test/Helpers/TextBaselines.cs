@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using PdfPinata.Pdf;
-using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.Content;
 using PdfPinata.Pdf.Content.Objects;
 
@@ -22,7 +21,7 @@ internal static class TextBaselines
     /// </summary>
     internal static IReadOnlyList<double> Of(PdfPage page)
     {
-        return PositionsOf(page).Select(position => position.Y).ToList();
+        return [.. PositionsOf(page).Select(position => position.Y)];
     }
 
     /// <summary>
@@ -62,6 +61,7 @@ internal static class TextBaselines
                         if (op.OpCode.OpCodeName == OpCodeName.TD)
                             leading = -Number(op.Operands[1]);
                     }
+
                     break;
 
                 case OpCodeName.TL:
@@ -80,6 +80,7 @@ internal static class TextBaselines
                         x = Number(op.Operands[4]);
                         y = Number(op.Operands[5]);
                     }
+
                     break;
 
                 case OpCodeName.Tj:
@@ -104,16 +105,18 @@ internal static class TextBaselines
     /// </summary>
     internal static IReadOnlyList<double> LinesOf(PdfPage page)
     {
-        return Of(page)
-            .Select(baseline => Math.Round(baseline, 3))
-            .Distinct()
-            .OrderByDescending(baseline => baseline)
-            .ToList();
+        return
+        [
+            .. Of(page)
+                .Select(baseline => Math.Round(baseline, 3))
+                .Distinct()
+                .OrderByDescending(baseline => baseline)
+        ];
     }
 
-    static byte[] ContentOf(PdfPage page) => PageContent.Of(page);
+    private static byte[] ContentOf(PdfPage page) => PageContent.Of(page);
 
-    static double Number(CObject operand)
+    private static double Number(CObject operand)
     {
         return operand switch
         {

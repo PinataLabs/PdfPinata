@@ -6,32 +6,32 @@ using PinataLayout.DocumentObjectModel;
 
 namespace PdfPinata.Test;
 
-public class MigradocTurkishTest
+public class PinataLayoutTurkishTest
 {
-    private CultureInfo originalCulture;
-    private CultureInfo originalUICulture;
+    private CultureInfo _originalCulture;
+    private CultureInfo _originalUiCulture;
 
     [Fact]
     public void RenderDocument_TurkishCulture_NoCrashing()
     {
-        originalCulture = Thread.CurrentThread.CurrentCulture;
-        originalUICulture = Thread.CurrentThread.CurrentUICulture;
+        _originalCulture = Thread.CurrentThread.CurrentCulture;
+        _originalUiCulture = Thread.CurrentThread.CurrentUICulture;
         var cultureInfo = CultureInfo.GetCultureInfo("tr-TR");
         Thread.CurrentThread.CurrentCulture = cultureInfo;
         Thread.CurrentThread.CurrentUICulture = cultureInfo;
 
         try
         {
-            Document doc = new Document();
-            PdfDocumentRenderer printer = new PdfDocumentRenderer() { Document = doc };
-            var exception = Record.Exception(() => printer.RenderDocument());
+            var doc = new Document();
+            var printer = new PdfDocumentRenderer() { Document = doc };
+            var exception = Record.Exception(printer.RenderDocument);
 
             Assert.Null(exception);
         }
         finally
         {
-            Thread.CurrentThread.CurrentCulture = originalCulture;
-            Thread.CurrentThread.CurrentUICulture = originalUICulture;
+            Thread.CurrentThread.CurrentCulture = _originalCulture;
+            Thread.CurrentThread.CurrentUICulture = _originalUiCulture;
             CultureInfo.CurrentCulture.ClearCachedData();
             CultureInfo.CurrentUICulture.ClearCachedData();
         }

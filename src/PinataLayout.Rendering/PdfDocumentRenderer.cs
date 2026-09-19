@@ -24,7 +24,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -41,7 +41,7 @@ using PdfPinata;
 namespace PinataLayout.Rendering;
 
 /// <summary>
-/// Provides the functionality to convert a MigraDoc document into PDF.
+/// Provides the functionality to convert a PinataLayout document into PDF.
 /// </summary>
 public class PdfDocumentRenderer
 {
@@ -100,7 +100,7 @@ public class PdfDocumentRenderer
     bool tagContent = true;
 
     /// <summary>
-    /// Set the MigraDoc document to be rendered by this printer.
+    /// Set the PinataLayout document to be rendered by this printer.
     /// </summary>
     public Document Document
     {
@@ -306,7 +306,7 @@ public class PdfDocumentRenderer
     PdfDocument CreatePdfDocument()
     {
         PdfDocument document = new PdfDocument();
-        document.Info.Creator = "MigraDoc " + typeof(PdfDocumentRenderer).GetTypeInfo().Assembly.GetName().Version;
+        document.Info.Creator = "PinataLayout " + typeof(PdfDocumentRenderer).GetTypeInfo().Assembly.GetName().Version;
         if (language != null && language.Length != 0)
             document.Language = language;
         return document;

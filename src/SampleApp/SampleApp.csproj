@@ -16,7 +16,7 @@
     <!--
       Trimming is deliberately not configured here. PinataLayout.AotSmokeTest is the project that
       guards trim and AOT, with the analyzers switched on and a native publish that CI actually
-      runs. Spectre.Console, System.CommandLine and the MigraDoc renderer would each raise IL2xxx
+      runs. Spectre.Console, System.CommandLine and the PinataLayout renderer would each raise IL2xxx
       warnings that say nothing about this app, and warnings nobody can act on are how people learn
       to ignore the analyzer that matters.
     -->
@@ -27,10 +27,10 @@
     <ProjectReference Include="..\PdfPinata.Skia\PdfPinata.Skia.csproj" />
     <ProjectReference Include="..\PinataLayout.Rendering\PinataLayout.Rendering.csproj" />
     <!--
-      Already here transitively - PinataLayout.Rendering references it, because a MigraDoc chart is
+      Already here transitively - PinataLayout.Rendering references it, because a PinataLayout chart is
       mapped onto this engine to be drawn - so this line adds no dependency the app did not have.
       It is written out because the Charts demo uses the charting API directly as well as through
-      MigraDoc, and a reference a reader cannot see in the project file is one they cannot rely on.
+      PinataLayout, and a reference a reader cannot see in the project file is one they cannot rely on.
     -->
     <ProjectReference Include="..\PdfPinata.Charting\PdfPinata.Charting.csproj" />
     <!--

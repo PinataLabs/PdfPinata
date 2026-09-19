@@ -1,14 +1,14 @@
 using System;
 using AwesomeAssertions;
 using Xunit;
-using MigraDocImageHelper = PinataLayout.DocumentObjectModel.ImageHelper;
+using ImageHelper = PinataLayout.DocumentObjectModel.ImageHelper;
 using XPdfForm = PdfPinata.Drawing.XPdfForm;
 
 namespace PdfPinata.Test.Dom;
 
 /// <summary>
 ///   <c>file.pdf#3</c> means page three of that file, and the same sixteen-branch parse of it
-///   exists twice - once in <c>PdfPinata.Drawing.XPdfForm</c> and once in MigraDoc's
+///   exists twice - once in <c>PdfPinata.Drawing.XPdfForm</c> and once in PinataLayout's
 ///   <c>ImageHelper</c>, whose copy carries the comment "duplicated from class XPdfForm". Nothing
 ///   makes them agree.
 ///   <para>
@@ -38,7 +38,7 @@ public class ExtractPageNumberParityTests
 
     static string ByImageHelper(string path)
     {
-        var rest = MigraDocImageHelper.ExtractPageNumber(path, out var pageNumber);
+        var rest = ImageHelper.ExtractPageNumber(path, out var pageNumber);
         return rest + " | " + pageNumber;
     }
 
@@ -47,7 +47,7 @@ public class ExtractPageNumberParityTests
     [InlineData("file.pdf#3", "file.pdf | 3")]
     [InlineData("file.pdf#123", "file.pdf | 123")]
     [InlineData("C:\\docs\\file.pdf#7", "C:\\docs\\file.pdf | 7")]
-    // No fragment at all: the path is the path and the page is nought.
+    // No fragment at all: the path is the path and the page are nought.
     [InlineData("file.pdf", "file.pdf | 0")]
     [InlineData("", " | 0")]
     // A hash with nothing after it is not a page number, and neither is a hash with a
@@ -84,7 +84,7 @@ public class ExtractPageNumberParityTests
     public void NeitherCopyAcceptsANullPath()
     {
         var byForm = () => XPdfForm.ExtractPageNumber(null, out _);
-        var byHelper = () => MigraDocImageHelper.ExtractPageNumber(null, out _);
+        var byHelper = () => ImageHelper.ExtractPageNumber(null, out _);
 
         byForm.Should().Throw<ArgumentNullException>();
         byHelper.Should().Throw<ArgumentNullException>();
@@ -101,7 +101,7 @@ public class ExtractPageNumberParityTests
     public void APathOfNothingButDigitsIsReadRatherThanThrownAt(string path)
     {
         var byForm = () => XPdfForm.ExtractPageNumber(path, out _);
-        var byHelper = () => MigraDocImageHelper.ExtractPageNumber(path, out _);
+        var byHelper = () => ImageHelper.ExtractPageNumber(path, out _);
 
         byForm.Should().NotThrow<ArgumentOutOfRangeException>();
         byHelper.Should().NotThrow<ArgumentOutOfRangeException>();

@@ -27,7 +27,6 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
-using System;
 using PdfPinata.Drawing;
 
 namespace PdfPinata.Pdf.Annotations;

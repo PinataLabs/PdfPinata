@@ -86,16 +86,6 @@ internal static class StrokedLines
         var colour = Black;
         var saved = new Stack<(double Width, string Colour)>();
 
-        // Closing a subpath draws the segment back to where it began.
-        void CloseSubpath()
-        {
-            if (inSubpath && (x != startX || y != startY))
-                path.Add(new Line(x, y, startX, startY, width, colour));
-
-            x = startX;
-            y = startY;
-        }
-
         foreach (var item in ContentReader.ReadContent(ContentOf(page)))
         {
             if (item is not COperator op)
@@ -190,9 +180,19 @@ internal static class StrokedLines
         }
 
         return lines;
+
+        // Closing a subpath draws the segment back to where it began.
+        void CloseSubpath()
+        {
+            if (inSubpath && (x != startX || y != startY))
+                path.Add(new Line(x, y, startX, startY, width, colour));
+
+            x = startX;
+            y = startY;
+        }
     }
 
-    static byte[] ContentOf(PdfPage page)
+    private static byte[] ContentOf(PdfPage page)
     {
         var item = page.Elements["/Contents"];
         if (item is PdfReference reference)
@@ -214,7 +214,7 @@ internal static class StrokedLines
     }
 
     /// <summary>A colour as this reports one: the three components, comma separated.</summary>
-    static string Rgb(double red, double green, double blue)
+    private static string Rgb(double red, double green, double blue)
     {
         // Four places is finer than anything a colour is written to and coarse enough that the
         // arithmetic below does not leave a component reading 0.30000000000000004.
@@ -228,12 +228,12 @@ internal static class StrokedLines
     ///   A CMYK colour as the plain conversion gives it, which is what a reader with no colour
     ///   profile to go by does. It is exact for the primaries a test asks a border to be drawn in.
     /// </summary>
-    static string Cmyk(double cyan, double magenta, double yellow, double black)
+    private static string Cmyk(double cyan, double magenta, double yellow, double black)
     {
         return Rgb((1 - cyan) * (1 - black), (1 - magenta) * (1 - black), (1 - yellow) * (1 - black));
     }
 
-    static double Number(CObject operand)
+    private static double Number(CObject operand)
     {
         return operand switch
         {

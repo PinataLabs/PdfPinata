@@ -1,8 +1,6 @@
 using AwesomeAssertions;
-using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.IO;
 using PinataLayout.DocumentObjectModel.Shapes.Charts;
-using PinataLayout.DocumentObjectModel.Tables;
 using Xunit;
 
 namespace PinataLayout.DocumentObjectModel.Tests;

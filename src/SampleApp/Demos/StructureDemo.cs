@@ -7,7 +7,7 @@ using SampleApp.Infrastructure;
 namespace SampleApp.Demos;
 
 /// <summary>
-///   The structural half of MigraDoc: headings, a contents table, lists, sections and the
+///   The structural half of PinataLayout: headings, a contents table, lists, sections and the
 ///   bookmarks that come with them.
 /// </summary>
 internal sealed class StructureDemo : PdfDemo
@@ -16,7 +16,7 @@ internal sealed class StructureDemo : PdfDemo
 
     public override string Name => "Structure";
 
-    public override string Summary => "MigraDoc's TOC, automatic bookmarks, sections, lists and cross-references.";
+    public override string Summary => "PinataLayout's TOC, automatic bookmarks, sections, lists and cross-references.";
 
     public override IReadOnlyList<string> Shows => new[]
     {
@@ -134,7 +134,7 @@ internal sealed class StructureDemo : PdfDemo
 
         contents.AddParagraph("Contents").Style = StyleNames.Heading1;
 
-        // The classic MigraDoc table of contents. A PageRefField names a bookmark and is resolved
+        // The classic PinataLayout table of contents. A PageRefField names a bookmark and is resolved
         // to that bookmark's page number when the document is laid out - which is why a TOC cannot
         // be written by hand without being wrong the moment anything moves.
         (string Bookmark, string Text)[] entries =

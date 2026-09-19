@@ -6,9 +6,9 @@ using PdfPinata.Pdf;
 
 namespace PdfPinata.Test.Helpers;
 
-public class PdfHelper
+public abstract class PdfHelper
 {
-    private static readonly string _rootPath = PathHelper.GetInstance().RootDir;
+    private static readonly string RootPath = PathHelper.GetInstance().RootDir;
 
     /// <summary>
     /// The resolution pages are rasterized at, unless the document is too big to be drawn at it.
@@ -74,7 +74,7 @@ public class PdfHelper
             }
 
             // Composite onto white, to guarantee a standard background. Remove rather than
-            // Deactivate: Deactivate merely drops the alpha channel and leaves whatever colour was
+            // Deactivate: Deactivate merely drops the alpha channel and leaves whatever color was
             // underneath it, so every pixel of a transparency group that was never painted comes
             // out black. A page carrying an annotation drawn under a blend mode is such a page.
             foreach (var img in images)
@@ -94,7 +94,7 @@ public class PdfHelper
             ImageCollection = images,
         };
     }
-        
+
     /// <summary>
     /// What to draw a document at: <see cref="Dpi"/>, or as much less as it takes to keep its
     /// whole document inside <see cref="MaxPixelsPerDocument"/>.
@@ -160,12 +160,11 @@ public class PdfHelper
 
         return outPaths;
     }
-        
-    public static string WriteImage(IMagickImage image, string outDir, string fileNameWithoutExtension)
+
+    private static void WriteImage(IMagickImage image, string outDir, string fileNameWithoutExtension)
     {
         var outPath = GetOutFilePath(outDir, $"{fileNameWithoutExtension}.png");
         image.Write(outPath);
-        return outPath;
     }
 
     // Note: For diff to function properly, it requires the underlying image to be in the proper format
@@ -205,10 +204,10 @@ public class PdfHelper
             DiffValue = diffVal
         };
     }
-        
+
     private static string GetOutFilePath(string outDir, string name)
     {
-        var dir = Path.Combine(_rootPath, outDir);
+        var dir = Path.Combine(RootPath, outDir);
         Directory.CreateDirectory(dir);
         return Path.Combine(dir, name);
     }

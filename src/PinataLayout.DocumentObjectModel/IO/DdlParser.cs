@@ -26,7 +26,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -45,7 +45,7 @@ using PinataLayout.DocumentObjectModel.Resources;
 namespace PinataLayout.DocumentObjectModel.IO;
 
 /// <summary>
-/// A simple hand-coded parser for MigraDoc DDL.
+/// A simple hand-coded parser for PinataLayout DDL.
 /// </summary>
 internal class DdlParser
 {
@@ -1855,7 +1855,7 @@ internal class DdlParser
     {
         // Syntax is easy
         //   identifier: xxxxx
-        // or 
+        // or
         //   sequence of identifiers: xxx.yyy.zzz
         //
         // followed by: «=», «+=», «-=», or «{»
@@ -2209,7 +2209,7 @@ internal class DdlParser
     }
 
     /// <summary>
-    /// Parses a color. It can be «green», «123456», «0xFFABCDEF», 
+    /// Parses a color. It can be «green», «123456», «0xFFABCDEF»,
     /// «RGB(r, g, b)», «CMYK(c, m, y, k)», «CMYK(a, c, m, y, k)», «GRAY(g)», or «"MyColor"».
     /// </summary>
     private Color ParseColor()
@@ -2670,7 +2670,7 @@ internal class DdlParser
 
     /// <summary>
     /// Shortcut for scanner.MoveToNextParagraphContentLine().
-    /// Moves to the first character of the content of a paragraph beyond an EOL. 
+    /// Moves to the first character of the content of a paragraph beyond an EOL.
     /// Returns true if such a character exists and belongs to the current paragraph.
     /// Returns false if a new line (at root level) or '}' occurs. If a new line caused
     /// the end of the paragraph, the DDL cursor is moved to the next valid content

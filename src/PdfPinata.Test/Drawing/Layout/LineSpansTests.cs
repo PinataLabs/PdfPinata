@@ -12,7 +12,7 @@ namespace PdfPinata.Test.Drawing.Layout;
 /// </summary>
 /// <remarks>
 ///   Tested directly as well as through <c>ObstructedAreaTests</c>, which reaches the same
-///   arithmetic through MigraDoc's area. Two reasons it earns its own tests: it is public API, and
+///   arithmetic through PinataLayout's area. Two reasons it earns its own tests: it is public API, and
 ///   an area cannot produce some of the inputs it has to accept — an obstacle hanging outside the
 ///   line, obstacles given in any order, and a caller passing nothing at all.
 ///   <para>

@@ -30,8 +30,6 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
-using PinataLayout.DocumentObjectModel.Internals;
-
 namespace PinataLayout.DocumentObjectModel.Fields;
 
 /// <summary>

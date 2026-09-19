@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -158,7 +158,7 @@ public class XImage : IDisposable
     /// <param name="path">The path to a BMP, PNG, GIF, JPEG, TIFF, or PDF file.</param>
     public static bool ExistsFile(string path)
     {
-        // Support for "base64:" pseudo protocol is a MigraDoc feature, currently completely implemented in MigraDoc files. TODO: Does support for "base64:" make sense for PDFsharp? Probably not as PDFsharp can handle images from streams.
+        // Support for "base64:" pseudo protocol is a PinataLayout feature, currently completely implemented in MigraDoc files. TODO: Does support for "base64:" make sense for PDFsharp? Probably not as PDFsharp can handle images from streams.
         //if (path.StartsWith("base64:")) // The Image is stored in the string here, so the file exists.
         //    return true;
 
@@ -255,7 +255,7 @@ public class XImage : IDisposable
     public virtual double VerticalResolution => 96;
 
     /// <summary>
-    /// Gets or sets a flag indicating whether image interpolation is to be performed. 
+    /// Gets or sets a flag indicating whether image interpolation is to be performed.
     /// </summary>
     public virtual bool Interpolate
     {

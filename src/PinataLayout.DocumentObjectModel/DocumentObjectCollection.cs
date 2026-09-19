@@ -26,7 +26,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -37,7 +37,7 @@ using PinataLayout.DocumentObjectModel.Visitors;
 namespace PinataLayout.DocumentObjectModel;
 
 /// <summary>
-/// Base class of all collections of the MigraDoc Document Object Model.
+/// Base class of all collections of the PinataLayout Document Object Model.
 /// </summary>
 public abstract class DocumentObjectCollection : DocumentObject, IList, IVisitable
 {
@@ -263,7 +263,7 @@ public abstract class DocumentObjectCollection : DocumentObject, IList, IVisitab
 
   #region IList Members
   /// <summary>
-  /// Gets or sets the element at the specified index. 
+  /// Gets or sets the element at the specified index.
   /// </summary>
   object IList.this[int index]
   {

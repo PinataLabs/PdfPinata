@@ -1,4 +1,3 @@
-using System;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
@@ -10,7 +9,7 @@ namespace PdfPinata.Test.Drawing;
 
 /// <summary>
 ///   Underlining and striking out are settable per draw, on the format, rather than only through
-///   the style of the font; and in the seven shapes MigraDoc has always had rather than the one
+///   the style of the font; and in the seven shapes PinataLayout has always had rather than the one
 ///   the core had.
 ///   <para>
 ///   A solid rule is a filled rectangle, which is how it has always been drawn and what every

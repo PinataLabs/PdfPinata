@@ -8,7 +8,7 @@ using PdfPinata.Pdf.Structure;
 namespace PinataLayout.Rendering;
 
 /// <summary>
-/// Turns what MigraDoc already knows about a document into a PDF structure tree, so that a caller
+/// Turns what PinataLayout already knows about a document into a PDF structure tree, so that a caller
 /// gets an accessible file without tagging anything by hand.
 /// </summary>
 /// <remarks>
@@ -357,7 +357,7 @@ internal sealed class StructureTagger
     /// </summary>
     /// <remarks>
     /// <para>
-    /// MigraDoc has no list object — a list is however many paragraphs in a row happen to carry a
+    /// PinataLayout has no list object — a list is however many paragraphs in a row happen to carry a
     /// <c>ListInfo</c>, and the run is only visible from the order they are rendered in. So the run
     /// is tracked here and broken by <see cref="EndList"/> the moment anything else is tagged at the
     /// same level. That reads a change of list type as a new list, which matches what the page looks
@@ -454,9 +454,9 @@ internal sealed class StructureTagger
     }
 
     /// <summary>
-    /// The list-numbering scheme a <c>ListType</c> announces itself as. MigraDoc does not vary the
+    /// The list-numbering scheme a <c>ListType</c> announces itself as. PinataLayout does not vary the
     /// bullet glyph by level, so every bulleted level reads the same; every numbered level reads as
-    /// plain decimal, which is what MigraDoc actually renders.
+    /// plain decimal, which is what PinataLayout actually renders.
     /// </summary>
     static PdfListNumbering ListNumberingOf(ListType type) => type switch
     {

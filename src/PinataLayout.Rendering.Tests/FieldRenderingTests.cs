@@ -12,7 +12,7 @@ namespace PinataLayout.Rendering.Tests;
 ///   renderer has replaced them with what they stand for, in the format each of them names.
 /// </summary>
 /// <remarks>
-///   Promoted from MigraDoc 1.32's TestParagraphRenderer.Fields, which put one of every field on a
+///   Promoted from PinataLayout 1.32's TestParagraphRenderer.Fields, which put one of every field on a
 ///   page and saved it. A field that renders as nothing at all, or as its own name, looks like a
 ///   blank on that page and like a passing run to anything that only asks whether it threw - so
 ///   each assertion here says what the field is expected to read.

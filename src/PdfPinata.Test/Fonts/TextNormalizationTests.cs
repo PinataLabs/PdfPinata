@@ -69,7 +69,7 @@ public class TextNormalizationTests
     public void NormalizeLine_answersTheSameReferenceWhenThereIsNothingToFilter()
     {
         // The common case, and the whole reason this looks before it copies: every string this
-        // library already draws through XTextFormatter, MigraDoc or the charting renderers comes
+        // library already draws through XTextFormatter, PinataLayout or the charting renderers comes
         // back untouched and unallocated.
         const string text = "Handgloves and quartz";
 

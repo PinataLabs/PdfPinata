@@ -226,7 +226,7 @@ internal sealed class ImagesDemo : PdfDemo
         Heading("When an image will not load", 530);
 
         Caption("XImage.FromStream throws, and the exception says what went wrong - this fork "
-              + "swallows nothing. MigraDoc is the one place that does not throw: a failed image "
+              + "swallows nothing. PinataLayout is the one place that does not throw: a failed image "
               + "becomes a grey box, and DocumentRenderer.ImageFailed is the event that says why. "
               + "Without a handler the reason is dropped. See image-failure-reporting.md.",
             48, 550);

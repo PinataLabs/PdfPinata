@@ -29,7 +29,6 @@
 
 using System;
 using PdfPinata.Fonts;
-using PdfPinata.Internal;
 
 namespace PdfPinata.Drawing;
 

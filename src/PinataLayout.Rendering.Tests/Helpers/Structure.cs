@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -29,7 +28,7 @@ internal static class Structure
             return null;
 
         // The root is not itself an element — it is the holder of the tree — so what comes back is
-        // the single element beneath it, which for anything MigraDoc renders is the /Document.
+        // the single element beneath it, which for anything PinataLayout renders is the /Document.
         var children = ChildrenOf(root);
         return children.Count == 1 ? children[0] : new StructureNode("StructTreeRoot", children);
     }

@@ -17,10 +17,10 @@ using Xunit;
 namespace PdfPinata.Test.Rendering;
 
 /// <summary>
-///   Rendering a MigraDoc document onto a page the caller made and gave a trim margin.
+///   Rendering a PinataLayout document onto a page the caller made and gave a trim margin.
 /// </summary>
 /// <remarks>
-///   MigraDoc's own <c>PdfDocumentRenderer</c> creates every page itself and never sets a trim
+///   PinataLayout's own <c>PdfDocumentRenderer</c> creates every page itself and never sets a trim
 ///   margin, and <c>PageSetup</c> has no bleed to set, so this composition is the route that
 ///   exists: make the page, set the margin, open an <see cref="XGraphics"/> on it and render into
 ///   that. It works, nothing said so, and nothing tested it - which is the whole reason these
@@ -57,7 +57,7 @@ public class TrimmedPageRenderingTests
     {
         var first = BaselinesOnTheSheet(trimmed: true)[0];
 
-        // A 2.5cm top margin is MigraDoc's default, and the sheet's own margins are on top of it.
+        // A 2.5cm top margin is PinataLayout's default, and the sheet's own margins are on top of it.
         // Asserted as a range because the first baseline sits a line's ascent below the margin,
         // not on it.
         first.Should().BeGreaterThan(Inset + PdfPinata.Drawing.XUnit.FromCentimeter(2.5).Point);
@@ -86,7 +86,7 @@ public class TrimmedPageRenderingTests
         var content = Encoding.ASCII.GetString(PageContent.Of(saved));
 
         // The band's corner in the content is the drawing origin less one bleed on each axis,
-        // which is the corner of the bleed. MigraDoc laid out inside it and knew nothing about it.
+        // which is the corner of the bleed. PinataLayout laid out inside it and knew nothing about it.
         content.Should().MatchRegex(@"-8\.504 \d+\.?\d* 60 60 re");
     }
 

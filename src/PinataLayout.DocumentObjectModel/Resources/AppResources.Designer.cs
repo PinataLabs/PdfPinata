@@ -11,8 +11,8 @@
 namespace PinataLayout.DocumentObjectModel.Resources {
     using System;
     using System.Reflection;
-    
-    
+
+
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -24,15 +24,15 @@ namespace PinataLayout.DocumentObjectModel.Resources {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class AppResources {
-        
+
         private static global::System.Resources.ResourceManager resourceMan;
-        
+
         private static global::System.Globalization.CultureInfo resourceCulture;
-        
+
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal AppResources() {
         }
-        
+
         /// <summary>
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
@@ -46,7 +46,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return resourceMan;
             }
         }
-        
+
         /// <summary>
         ///   Overrides the current thread's CurrentUICulture property for all
         ///   resource lookups using this strongly typed resource class.
@@ -60,7 +60,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 resourceCulture = value;
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Base style name must be defined..
         /// </summary>
@@ -69,7 +69,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("BaseStyleRequired", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Bool expected: &apos;{0}&apos;..
         /// </summary>
@@ -78,7 +78,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("BoolExpected", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Only cells can be compared by this Comparer..
         /// </summary>
@@ -87,7 +87,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("CompareJustCells", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Attempt to set empty base style is invalid..
         /// </summary>
@@ -96,7 +96,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("EmptyBaseStyle", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to End of file expected..
         /// </summary>
@@ -105,7 +105,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("EndOfFileExpected", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Invalid escape sequence..
         /// </summary>
@@ -114,7 +114,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("EscapeSequenceNotAllowed", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Identifier expected: &apos;{0}&apos;..
         /// </summary>
@@ -123,7 +123,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("IdentifierExpected", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Image[Path={0}].
         /// </summary>
@@ -132,7 +132,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("ImagePathString", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Image[{0}].
         /// </summary>
@@ -141,7 +141,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("ImageTypeString", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Inserting null into a collection is not allowed..
         /// </summary>
@@ -150,7 +150,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("InsertNullNotAllowed", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Integer expected: &apos;{0}&apos;..
         /// </summary>
@@ -159,7 +159,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("IntegerExpected", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Invalid assignment to &apos;{0}&apos;..
         /// </summary>
@@ -168,7 +168,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("InvalidAssignment", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Invalid color: &apos;{0}&apos;..
         /// </summary>
@@ -177,7 +177,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("InvalidColor", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Color could not be parsed from string &apos;{0}&apos;..
         /// </summary>
@@ -186,7 +186,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("InvalidColorString", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The given document object is not valid in this context..
         /// </summary>
@@ -195,7 +195,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("InvalidDocumentObjectType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; &apos;{1}&apos;..
         /// </summary>
@@ -204,7 +204,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("InvalidEnum", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to ShapePosition must be Left, Center, or Right..
         /// </summary>
@@ -213,7 +213,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("InvalidEnumForLeftPosition", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to ShapePosition must be Top, Center, or Bottom..
         /// </summary>
@@ -222,7 +222,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("InvalidEnumForTopPosition", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; is not a valid numeric field format..
         /// </summary>
@@ -231,7 +231,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("InvalidFieldFormat", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Invalid field type: &apos;{0}&apos;..
         /// </summary>
@@ -240,7 +240,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("InvalidFieldType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The font size &apos;{0}&apos; is out of range..
         /// </summary>
@@ -249,7 +249,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("InvalidFontSize", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Property &apos;Name&apos; of &apos;InfoField&apos; has invalid value &apos;{0}&apos;..
         /// </summary>
@@ -258,7 +258,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("InvalidInfoFieldName", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Invalid range: &apos;{0}&apos;..
         /// </summary>
@@ -267,7 +267,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("InvalidRange", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Symbol not valid &apos;{0}&apos;..
         /// </summary>
@@ -276,7 +276,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("InvalidSymbolType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Variable type &apos;{0}&apos; not supported by &apos;{1}&apos;..
         /// </summary>
@@ -285,7 +285,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("InvalidType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; is an unknown unit type..
         /// </summary>
@@ -294,7 +294,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("InvalidUnitType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to String &apos;{0}&apos; is not a valid value for structure &apos;Unit&apos;..
         /// </summary>
@@ -303,7 +303,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("InvalidUnitValue", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Operation &apos;{1}&apos; not valid for Value &apos;{0}&apos;..
         /// </summary>
@@ -312,7 +312,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("InvalidValueForOperation", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Invalid value name: &apos;{0}&apos;..
         /// </summary>
@@ -321,7 +321,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("InvalidValueName", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to &apos;{1}&apos; - &apos;{0}&apos; expected..
         /// </summary>
@@ -330,7 +330,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("KeyWordExpected", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Missing left brace after &apos;{0}&apos;..
         /// </summary>
@@ -339,7 +339,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("MissingBraceLeft", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Missing right brace after &apos;{0}&apos;..
         /// </summary>
@@ -348,7 +348,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("MissingBraceRight", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Missing left bracket after &apos;{0}&apos;..
         /// </summary>
@@ -357,7 +357,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("MissingBracketLeft", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Missing right bracket after &apos;{0}&apos;..
         /// </summary>
@@ -366,7 +366,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("MissingBracketRight", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Missing comma..
         /// </summary>
@@ -375,7 +375,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("MissingComma", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Obigatory property &apos;{0}&apos; not set in &apos;{1}&apos;..
         /// </summary>
@@ -384,7 +384,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("MissingObligatoryProperty", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Missing left parenthesis after &apos;{0}&apos;..
         /// </summary>
@@ -393,7 +393,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("MissingParenLeft", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Missing right parenthesis after &apos;{0}&apos;..
         /// </summary>
@@ -402,7 +402,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("MissingParenRight", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Newline in string not allowed..
         /// </summary>
@@ -411,7 +411,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("NewlineInString", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Access denied: &apos;{0}&apos; for internal use only..
         /// </summary>
@@ -420,7 +420,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("NoAccess", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Assign &apos;null&apos; to &apos;{0}&apos; not allowed..
         /// </summary>
@@ -429,7 +429,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("NullAssignmentNotSupported", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Null expected: &apos;{0}&apos;..
         /// </summary>
@@ -438,7 +438,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("NullExpected", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Number expected: &apos;{0}&apos;..
         /// </summary>
@@ -474,7 +474,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("OperatorExpected", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Valid range only within &apos;{0}&apos;..
         /// </summary>
@@ -483,7 +483,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("OutOfRange", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Value of type &apos;{0}&apos; must be cloned before set into &apos;{1}&apos;..
         /// </summary>
@@ -492,7 +492,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("ParentAlreadySet", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Real expected: &apos;{0}&apos;..
         /// </summary>
@@ -501,7 +501,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("RealExpected", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to String expected: &apos;{0}&apos;..
         /// </summary>
@@ -510,16 +510,16 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("StringExpected", resourceCulture);
             }
         }
-        
+
         /// <summary>
-        ///   Looks up a localized string similar to The value must be of type MigraDoc.DocumentObjectModel.Style..
+        ///   Looks up a localized string similar to The value must be of type PinataLayout.DocumentObjectModel.Style..
         /// </summary>
         internal static string StyleExpected {
             get {
                 return ResourceManager.GetString("StyleExpected", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Invalid style name &apos;{0}&apos;..
         /// </summary>
@@ -528,7 +528,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("StyleNameExpected", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; expected, found &apos;{1}&apos;..
         /// </summary>
@@ -537,7 +537,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("SymbolExpected", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Symbol &apos;{0}&apos; is not an object..
         /// </summary>
@@ -546,7 +546,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("SymbolIsNotAnObject", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Symbol &apos;{0}&apos; in this context not allowed..
         /// </summary>
@@ -555,7 +555,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("SymbolNotAllowed", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to One of the following symbols {0} is expected..
         /// </summary>
@@ -564,7 +564,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("SymbolsExpected", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Base style name &apos;{0}&apos; is undefined..
         /// </summary>
@@ -573,7 +573,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("UndefinedBaseStyle", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Unexpected end of file..
         /// </summary>
@@ -582,7 +582,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("UnexpectedEndOfFile", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Unexpected symbol &apos;{0}&apos;..
         /// </summary>
@@ -591,7 +591,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("UnexpectedSymbol", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Unknown chart type: &apos;{0}&apos;.
         /// </summary>
@@ -600,7 +600,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("UnknownChartType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Use of undefined base style &apos;{0}&apos;..
         /// </summary>
@@ -609,7 +609,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
                 return ResourceManager.GetString("UseOfUndefinedBaseStyle", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Use of undefined style &apos;{0}&apos;..
         /// </summary>

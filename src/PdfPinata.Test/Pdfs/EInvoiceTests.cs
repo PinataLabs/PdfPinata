@@ -6,7 +6,6 @@ using System.Xml.Linq;
 using AwesomeAssertions;
 using PdfPinata.EInvoice;
 using PdfPinata.Pdf;
-using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
 using Xunit;

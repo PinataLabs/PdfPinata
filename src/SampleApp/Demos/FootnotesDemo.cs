@@ -7,7 +7,7 @@ using SampleApp.Infrastructure;
 namespace SampleApp.Demos;
 
 /// <summary>
-///   MigraDoc's footnotes: the mark, the block at the foot of the page, and the four settings that
+///   PinataLayout's footnotes: the mark, the block at the foot of the page, and the four settings that
 ///   decide how they are numbered and where they go.
 /// </summary>
 internal sealed class FootnotesDemo : PdfDemo
@@ -94,7 +94,7 @@ internal sealed class FootnotesDemo : PdfDemo
             + "than one paragraph");
         Footnote longNote = blockContent.AddFootnote();
         longNote.AddParagraph(
-            "The first paragraph of a note that has two. Everything MigraDoc can put in a section "
+            "The first paragraph of a note that has two. Everything PinataLayout can put in a section "
             + "can go in here.");
         longNote.AddParagraph(
             "The second. Both are laid out into a column the width of the text above, indented by "

@@ -7,7 +7,6 @@ using AwesomeAssertions;
 using PdfPinata.Charting;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
-using PdfPinata.Pdf.Advanced;
 using PdfPinata.Test.Helpers;
 using Xunit;
 
