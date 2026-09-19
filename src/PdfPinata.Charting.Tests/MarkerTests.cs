@@ -87,7 +87,7 @@ public class MarkerTests
     [Fact]
     public void ADiamondHasItsCornersAtTheMiddleOfEachSide()
     {
-        var marker = PaintedPaths.FilledIn(Drawn.Page(LineWith(MarkerStyle.Diamond, 1.0, 3.0)), Background).First();
+        var marker = PaintedPaths.FilledIn(Drawn.Page(LineWith(MarkerStyle.Diamond, 1.0, 3.0)), Background)[0];
 
         marker.Points.Should().Contain(p => Near(p.X, marker.CentreX) && Near(p.Y, marker.Top));
         marker.Points.Should().Contain(p => Near(p.X, marker.CentreX) && Near(p.Y, marker.Bottom));
@@ -102,7 +102,7 @@ public class MarkerTests
     [Fact]
     public void ATrianglePointsUp()
     {
-        var marker = PaintedPaths.FilledIn(Drawn.Page(LineWith(MarkerStyle.Triangle, 1.0, 3.0)), Background).First();
+        var marker = PaintedPaths.FilledIn(Drawn.Page(LineWith(MarkerStyle.Triangle, 1.0, 3.0)), Background)[0];
 
         marker.Points.Count(p => Near(p.Y, marker.Top)).Should().BeGreaterThan(0);
         marker.Points.Where(p => Near(p.Y, marker.Top)).Should().OnlyContain(p => Near(p.X, marker.CentreX));
@@ -253,9 +253,9 @@ public class MarkerTests
         }
 
         var page = Drawn.Page(chart);
-        var first = PaintedPaths.FilledIn(page, PaintedRectangles.ColourOf(colours[0])).First();
-        var second = PaintedPaths.FilledIn(page, PaintedRectangles.ColourOf(colours[1])).First();
-        var third = PaintedPaths.FilledIn(page, PaintedRectangles.ColourOf(colours[2])).First();
+        var first = PaintedPaths.FilledIn(page, PaintedRectangles.ColourOf(colours[0]))[0];
+        var second = PaintedPaths.FilledIn(page, PaintedRectangles.ColourOf(colours[1]))[0];
+        var third = PaintedPaths.FilledIn(page, PaintedRectangles.ColourOf(colours[2]))[0];
 
         first.Curves.Should().BeGreaterThan(0, "the first series is marked with circles");
         second.Curves.Should().Be(0);

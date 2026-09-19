@@ -248,7 +248,7 @@ public static class LinuxSystemFontResolver
         try
         {
             #pragma warning disable SYSLIB1045 // netstandard2.1 has no GeneratedRegex, and this runs only when fontconfig cannot be loaded.
-            Regex confRegex = new Regex("<dir>(?<dir>.*)</dir>", RegexOptions.Compiled);
+            Regex confRegex = new Regex("<dir>(?<dir>.*)</dir>", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
             #pragma warning restore SYSLIB1045
             using (var reader = new StreamReader(File.OpenRead("/etc/fonts/fonts.conf")))
             {

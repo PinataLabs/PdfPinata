@@ -238,7 +238,7 @@ public class PdfRectangleTests
         // ISO 32000-1 7.3.7: an entry whose value is null is the same as no entry at all. It used
         // to be read as the empty rectangle, copied down and written out as /CropBox [0 0 0 0],
         // which crops the page to nothing; held by reference, it could not be read at all.
-        var extraObjects = extraObject == null ? new string[0] : new[] { extraObject };
+        string[] extraObjects = extraObject == null ? [] : [extraObject];
         var document = OpenPageTree("/MediaBox[0 0 300 400]" + pagesEntries, extraObjects);
 
         document.Pages[0].Elements.ContainsKey("/CropBox").Should().BeFalse();

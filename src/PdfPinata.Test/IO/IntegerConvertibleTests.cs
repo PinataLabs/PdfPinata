@@ -15,24 +15,38 @@ namespace PdfPinata.Test.IO;
 /// </summary>
 public class IntegerConvertibleTests
 {
-    public static TheoryData<IConvertible, TypeCode> TypeCodes => new()
+    // Each row names the wrapper rather than holding one, so that the rows are serializable and
+    // Test Explorer lists them one by one.
+    public static TheoryData<string, TypeCode> TypeCodes => new()
     {
-        { new Pdf.PdfInteger(-7), TypeCode.Int32 },
-        { new PdfUInteger(3_000_000_000), TypeCode.UInt32 },
-        { new PdfLong(5_000_000_000), TypeCode.Int64 },
+        { nameof(Pdf.PdfInteger), TypeCode.Int32 },
+        { nameof(PdfUInteger), TypeCode.UInt32 },
+        { nameof(PdfLong), TypeCode.Int64 },
+    };
+
+    static IConvertible Number(string wrapper) => wrapper switch
+    {
+        nameof(Pdf.PdfInteger) => new Pdf.PdfInteger(-7),
+        nameof(PdfUInteger) => new PdfUInteger(3_000_000_000),
+        nameof(PdfLong) => new PdfLong(5_000_000_000),
+        _ => throw new ArgumentOutOfRangeException(nameof(wrapper), wrapper, null),
     };
 
     [Theory]
     [MemberData(nameof(TypeCodes))]
-    public void TheTypeCodeNamesThePrimitiveTheNumberIsHeldIn(IConvertible number, TypeCode expected)
+    public void TheTypeCodeNamesThePrimitiveTheNumberIsHeldIn(string wrapper, TypeCode expected)
     {
+        var number = Number(wrapper);
+
         number.GetTypeCode().Should().Be(expected);
     }
 
     [Theory]
     [MemberData(nameof(TypeCodes))]
-    public void ConvertingByTheTypeCodeGivesBackTheNumberWithoutOverflowing(IConvertible number, TypeCode _)
+    public void ConvertingByTheTypeCodeGivesBackTheNumberWithoutOverflowing(string wrapper, TypeCode _)
     {
+        var number = Number(wrapper);
+
         // What a caller switching on the type code does: ask for the primitive it names. A value
         // wider than 32 bits used to be asked for 32 bits, and threw.
         object value = number.GetTypeCode() switch
@@ -48,8 +62,10 @@ public class IntegerConvertibleTests
 
     [Theory]
     [MemberData(nameof(TypeCodes))]
-    public void ToTypeConvertsAsTheWrappedPrimitiveWould(IConvertible number, TypeCode _)
+    public void ToTypeConvertsAsTheWrappedPrimitiveWould(string wrapper, TypeCode _)
     {
+        var number = Number(wrapper);
+
         number.ToType(typeof(decimal), null).Should().Be(number.ToDecimal(null));
         number.ToType(typeof(double), null).Should().Be(number.ToDouble(null));
         number.ToType(typeof(string), null).Should().Be(number.ToString(null));
@@ -57,8 +73,9 @@ public class IntegerConvertibleTests
 
     [Theory]
     [MemberData(nameof(TypeCodes))]
-    public void ToTypeRefusesATypeTheNumberCannotBecomeRatherThanAnsweringNull(IConvertible number, TypeCode _)
+    public void ToTypeRefusesATypeTheNumberCannotBecomeRatherThanAnsweringNull(string wrapper, TypeCode _)
     {
+        var number = Number(wrapper);
         var convert = () => number.ToType(typeof(Uri), null);
 
         convert.Should().Throw<InvalidCastException>();

@@ -262,7 +262,7 @@ public class DdlCharacterAndPunctuationTests
         var complaints = await Task.Run(() =>
             ComplaintsAbout("\\document{\\section{\\paragraph{\\symbol(Euro" + punctuator + ")}}}"));
 
-        complaints.First().Should().Be("')' expected, found '" + punctuator + "'.");
+        complaints[0].Should().Be("')' expected, found '" + punctuator + "'.");
     }
 
     /// <summary>
