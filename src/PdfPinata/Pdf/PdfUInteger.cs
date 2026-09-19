@@ -190,11 +190,11 @@ public sealed class PdfUInteger : PdfNumber, IConvertible
     }
 
     /// <summary>
-    /// Returns type code for 32-bit integers.
+    /// Returns the type code for 32-bit unsigned integers.
     /// </summary>
     public TypeCode GetTypeCode()
     {
-        return TypeCode.Int32;
+        return TypeCode.UInt32;
     }
 
     /// <summary>
@@ -206,12 +206,11 @@ public sealed class PdfUInteger : PdfNumber, IConvertible
     }
 
     /// <summary>
-    /// Returns null.
+    /// Converts the value to the given type, as the number it wraps would be.
     /// </summary>
     public object ToType(Type conversionType, IFormatProvider provider)
     {
-        // TODO:  Add PdfUInteger.ToType implementation
-        return null;
+        return ((IConvertible)_value).ToType(conversionType, provider);
     }
 
     /// <summary>

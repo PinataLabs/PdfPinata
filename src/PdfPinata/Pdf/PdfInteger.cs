@@ -150,7 +150,7 @@ public sealed class PdfInteger : PdfNumber, IConvertible, IFormattable
     }
 
     /// <summary>
-    /// Returns TypeCode for 32-bit integers.
+    /// Returns the type code for 32-bit integers.
     /// </summary>
     public TypeCode GetTypeCode()
     {
@@ -164,8 +164,7 @@ public sealed class PdfInteger : PdfNumber, IConvertible, IFormattable
 
     object IConvertible.ToType(Type conversionType, IFormatProvider provider)
     {
-        // TODO:  Add PdfInteger.ToType implementation
-        return null;
+        return ((IConvertible)_value).ToType(conversionType, provider);
     }
 
     uint IConvertible.ToUInt32(IFormatProvider provider)

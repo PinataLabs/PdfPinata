@@ -188,11 +188,11 @@ public sealed class PdfLong : PdfNumber, IConvertible
     }
 
     /// <summary>
-    /// Returns type code for 32-bit integers.
+    /// Returns the type code for 64-bit integers.
     /// </summary>
     public TypeCode GetTypeCode()
     {
-        return TypeCode.Int32;
+        return TypeCode.Int64;
     }
 
     /// <summary>
@@ -204,12 +204,11 @@ public sealed class PdfLong : PdfNumber, IConvertible
     }
 
     /// <summary>
-    /// Returns null.
+    /// Converts the value to the given type, as the number it wraps would be.
     /// </summary>
     public object ToType(Type conversionType, IFormatProvider provider)
     {
-        // TODO:  Add PdfLong.ToType implementation
-        return null;
+        return ((IConvertible)_value).ToType(conversionType, provider);
     }
 
     /// <summary>
