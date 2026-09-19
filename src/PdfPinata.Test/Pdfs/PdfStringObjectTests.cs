@@ -156,6 +156,49 @@ public class PdfStringObjectTests
     }
 
     [Fact]
+    public void AUnicodeStringObjectSurvivesBeingSavedASecondTime()
+    {
+        // The parser used to make every string object raw whatever the lexer had recognised, so
+        // the text read back right once and was then written out a byte a character, keeping
+        // only the low byte of each.
+        var (saved, _) = SaveWithIndirectString(new PdfStringObject(Japanese, PdfStringEncoding.Unicode));
+
+        var reread = Pdf.IO.PdfReader.Open(new MemoryStream(saved), PdfDocumentOpenMode.Modify);
+        var number = ReadBack(reread).Reference.ObjectNumber;
+        var savedAgain = Save(reread);
+
+        var rereadAgain = Pdf.IO.PdfReader.Open(new MemoryStream(savedAgain), PdfDocumentOpenMode.Modify);
+        ReadBack(rereadAgain).Value.Should().Be(Japanese);
+        ReadBack(rereadAgain).Encoding.Should().Be(PdfStringEncoding.Unicode);
+        Encoding.Latin1.GetString(savedAgain).Should().Contain(number + " 0 obj\n<FEFF65E5672C8A9E>\nendobj");
+    }
+
+    [Theory]
+    [InlineData("(plain)", "plain", PdfStringEncoding.RawEncoding, false)]
+    [InlineData("<706C61696E>", "plain", PdfStringEncoding.RawEncoding, true)]
+    [InlineData("(þÿ\u0000A\u0000B)", "AB", PdfStringEncoding.Unicode, false)]
+    [InlineData("<FEFF00410042>", "AB", PdfStringEncoding.Unicode, true)]
+    public void AStringObjectIsReadWithTheEncodingAndFormTheLexerFoundInIt(
+        string written, string value, PdfStringEncoding encoding, bool hexLiteral)
+    {
+        // As a direct string is: a byte order mark makes it UTF-16, angle brackets a hex literal.
+        var saved = RawPdf.Build(new List<string>
+        {
+            "<</Type/Catalog/Pages 2 0 R/TestText 4 0 R>>",
+            "<</Type/Pages/Kids[3 0 R]/Count 1>>",
+            "<</Type/Page/Parent 2 0 R/MediaBox[0 0 100 100]>>",
+            written,
+        });
+
+        var document = Pdf.IO.PdfReader.Open(new MemoryStream(saved), PdfDocumentOpenMode.Modify);
+
+        var text = ReadBack(document);
+        text.Value.Should().Be(value);
+        text.Encoding.Should().Be(encoding);
+        text.HexLiteral.Should().Be(hexLiteral);
+    }
+
+    [Fact]
     public void AStringObjectInAFileWrittenByHandIsReadAsOne()
     {
         var saved = RawPdf.Build(new List<string>
@@ -192,8 +235,9 @@ public class PdfStringObjectTests
 
         var reread = Pdf.IO.PdfReader.Open(new MemoryStream(saved), password, PdfDocumentOpenMode.Modify);
 
-        // The parser makes every string object raw; it is the byte order mark, found once the
-        // bytes are decrypted, that says a string is UTF-16BE.
+        // The lexer sees only ciphertext, with no byte order mark to find, so the parser makes the
+        // string object raw; it is the mark, found once the bytes are decrypted, that says a
+        // string is UTF-16BE.
         var decrypted = ReadBack(reread);
         decrypted.Value.Should().Be(value);
         decrypted.Encoding.Should().Be(encoding);

@@ -206,7 +206,10 @@ internal sealed class Parser
             case Symbol.UnicodeString:
             case Symbol.HexString:
             case Symbol.UnicodeHexString:
-                pdfObject = new PdfStringObject(_document, _lexer.Token);
+                // The same flags a direct string is given. The lexer has already combined the
+                // bytes of a UTF-16 string into characters, so taking it as raw would write each
+                // character back out as its low byte alone.
+                pdfObject = new PdfStringObject(_document, _lexer.Token, StringFlagsFor(symbol));
                 pdfObject.SetObjectID(objectNumber, generationNumber);
                 if (!fromObjecStream)
                     ReadEndObject();
@@ -594,6 +597,22 @@ internal sealed class Parser
     }
 
     /// <summary>
+    /// The flags a string read as the symbol given is made with, whether it stands directly in a
+    /// dictionary or an array or as an indirect object of its own. A byte order mark makes it
+    /// UTF-16 and angle brackets a hex literal; anything else is raw, a character to a byte.
+    /// </summary>
+    private static PdfStringFlags StringFlagsFor(Symbol symbol)
+    {
+        return symbol switch
+        {
+            Symbol.UnicodeString => PdfStringFlags.Unicode,
+            Symbol.HexString => PdfStringFlags.HexLiteral,
+            Symbol.UnicodeHexString => PdfStringFlags.Unicode | PdfStringFlags.HexLiteral,
+            _ => PdfStringFlags.RawEncoding,
+        };
+    }
+
+    /// <summary>
     /// Parses whatever comes until the specified stop symbol is reached.
     /// </summary>
     private void ParseObject(Symbol stop)
@@ -635,20 +654,10 @@ internal sealed class Parser
                     break;
 
                 case Symbol.String:
-                    //stack.Shift(new PdfString(lexer.Token, PdfStringFlags.PDFDocEncoding));
-                    _stack.Shift(new PdfString(_lexer.Token, PdfStringFlags.RawEncoding));
-                    break;
-
                 case Symbol.UnicodeString:
-                    _stack.Shift(new PdfString(_lexer.Token, PdfStringFlags.Unicode));
-                    break;
-
                 case Symbol.HexString:
-                    _stack.Shift(new PdfString(_lexer.Token, PdfStringFlags.HexLiteral));
-                    break;
-
                 case Symbol.UnicodeHexString:
-                    _stack.Shift(new PdfString(_lexer.Token, PdfStringFlags.Unicode | PdfStringFlags.HexLiteral));
+                    _stack.Shift(new PdfString(_lexer.Token, StringFlagsFor(symbol)));
                     break;
 
                 case Symbol.Name:
