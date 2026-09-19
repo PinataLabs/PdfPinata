@@ -1,5 +1,9 @@
 # PdfPinata
 
+<p align="center">
+  <img src="assets/logo.jpg" alt="PdfPinata logo" width="200">
+</p>
+
 **PdfPinata is a .NET library for creating, drawing, and manipulating PDF documents.**
 
 It provides a PDF document model and drawing API for working with pages, text, fonts, images, shapes, and existing PDF files. It can be used directly for low-level PDF drawing, or together with **PinataLayout** for higher-level document layouts such as paragraphs, tables, headers, footers, and flowing content.
