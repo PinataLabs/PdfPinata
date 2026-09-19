@@ -41,12 +41,12 @@ Grouped by what the migration costs, not by where the code lives.
 | `PinataLayout.DocumentObjectModel.IO/DdlReaderErrors.cs:70` | `errors` | `DdlReaderError` | `List<DdlReaderError>` |
 | `src/PinataLayout.DocumentObjectModel/Paragraph.cs:580` | `paragraphs` (local) | `Paragraph` | `List<Paragraph>` |
 | `PinataLayout.DocumentObjectModel.Visitors/PdfFlattenVisitor.cs:82` | `textIndices` (local) | boxed `int` | `List<int>` |
-| `MigraDoc.Rendering/FormattedCell.cs:184` and four siblings | `renderInfos` | `RenderInfo` | `List<RenderInfo>` |
-| `MigraDoc.Rendering/TopDownFormatter.cs:83,239,255` | `renderInfos` | `RenderInfo` | `List<RenderInfo>` |
-| `MigraDoc.Rendering/ParagraphFormatInfo.cs:74` | `lineInfos` | `LineInfo` (**struct**) | `List<LineInfo>` |
-| `MigraDoc.Rendering/ParagraphFormatInfo.cs:64` | `LineInfo.tabOffsets` | `TabOffset` (**struct**) | `List<TabOffset>` |
-| `MigraDoc.Rendering/ParagraphRenderer.cs:2617` | `tabOffsets` | `TabOffset` (**struct**) | `List<TabOffset>` |
-| `MigraDoc.Rendering/ParagraphIterator.cs:281` | `positionIndices` | boxed `int` | `List<int>` |
+| `src/PinataLayout.Rendering/FormattedCell.cs:184` and four siblings | `renderInfos` | `RenderInfo` | `List<RenderInfo>` |
+| `src/PinataLayout.Rendering/TopDownFormatter.cs:83,239,255` | `renderInfos` | `RenderInfo` | `List<RenderInfo>` |
+| `src/PinataLayout.Rendering/ParagraphFormatInfo.cs:74` | `lineInfos` | `LineInfo` (**struct**) | `List<LineInfo>` |
+| `src/PinataLayout.Rendering/ParagraphFormatInfo.cs:64` | `LineInfo.tabOffsets` | `TabOffset` (**struct**) | `List<TabOffset>` |
+| `src/PinataLayout.Rendering/ParagraphRenderer.cs:2617` | `tabOffsets` | `TabOffset` (**struct**) | `List<TabOffset>` |
+| `src/PinataLayout.Rendering/ParagraphIterator.cs:281` | `positionIndices` | boxed `int` | `List<int>` |
 | `PdfSharp.Charting/ChartFrame.cs:227` | `chartList` | `Chart` | `List<Chart>` |
 | `PdfSharp.Charting/DocumentObjectCollection.cs:244` | `elements` | `ChartObject` | `List<ChartObject>` |
 | `PdfSharp.Charting.Renderers/CombinationChartRenderer.cs:253-255` | three locals | `Series` | `List<Series>` |
@@ -57,9 +57,9 @@ Grouped by what the migration costs, not by where the code lives.
 |---|---|---|---|
 | `PinataLayout.DocumentObjectModel.IO/Symbols.cs:232-233` | `enumToName`, `nameToEnum` | `Symbol` ↔ `string` | `Dictionary<Symbol, string>`, `Dictionary<string, Symbol>` |
 | `src/PinataLayout.DocumentObjectModel/Styles.cs:414` | `visitedStyles` | `Style` → `null` | **`HashSet<Style>`** — it is a set, not a map |
-| `MigraDoc.Rendering/DocumentRenderer.cs:347` | `previousListNumbers` | `ListType` → `int` | `Dictionary<ListType, int>` |
-| `MigraDoc.Rendering/ParagraphFormatInfo.cs:168` | `imageRenderInfos` | `Image` → `RenderInfo` | `Dictionary<Image, RenderInfo>` |
-| `MigraDoc.Rendering/ParagraphRenderer.cs:2616` | `imageRenderInfos` | `Image` → `RenderInfo` | `Dictionary<Image, RenderInfo>` |
+| `src/PinataLayout.Rendering/DocumentRenderer.cs:347` | `previousListNumbers` | `ListType` → `int` | `Dictionary<ListType, int>` |
+| `src/PinataLayout.Rendering/ParagraphFormatInfo.cs:168` | `imageRenderInfos` | `Image` → `RenderInfo` | `Dictionary<Image, RenderInfo>` |
+| `src/PinataLayout.Rendering/ParagraphRenderer.cs:2616` | `imageRenderInfos` | `Image` → `RenderInfo` | `Dictionary<Image, RenderInfo>` |
 
 ### 1.2 Internal API — a signature change, but nothing outside the assembly
 

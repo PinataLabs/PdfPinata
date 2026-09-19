@@ -221,11 +221,11 @@ always have generated code for.
 |---|---|
 | `src/PinataLayout.DocumentObjectModel/Paragraph.cs` | 608 |
 | `PinataLayout.DocumentObjectModel.Visitors/PdfFlattenVisitor.cs` | 92 |
-| `MigraDoc.Rendering/FormattedCell.cs` | 172 |
-| `MigraDoc.Rendering/FormattedDocument.cs` | 254 |
-| `MigraDoc.Rendering/FormattedHeaderFooter.cs` | 88 |
-| `MigraDoc.Rendering/FormattedTextArea.cs` | 134 |
-| `MigraDoc.Rendering/FormattedTextFrame.cs` | 86 |
+| `src/PinataLayout.Rendering/FormattedCell.cs` | 172 |
+| `src/PinataLayout.Rendering/FormattedDocument.cs` | 254 |
+| `src/PinataLayout.Rendering/FormattedHeaderFooter.cs` | 88 |
+| `src/PinataLayout.Rendering/FormattedTextArea.cs` | 134 |
+| `src/PinataLayout.Rendering/FormattedTextFrame.cs` | 86 |
 
 `PinataLayout.AotSmokeTest` passes today because the array types involved happen to be rooted. That
 is luck, not design, and it is exactly the class of failure the smoke test exists to catch.

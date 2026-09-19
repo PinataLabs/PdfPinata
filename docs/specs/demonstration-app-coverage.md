@@ -140,7 +140,7 @@ are not a ninth value but a series whose own `ChartType` disagrees with its char
 `Axis`, `Gridlines`, `Legend`, `DataLabel`, `TickLabels`, `MarkerStyle` and `FillFormat`, and a
 renderer for each in `PdfSharp.Charting.Renderers`. `PinataLayout.Rendering` renders a MigraDoc
 `Chart` too:
-`Renderer.Create` dispatches it, and `MigraDoc.Rendering.ChartMapper` maps the DOM's chart onto the
+`Renderer.Create` dispatches it, and `PinataLayout.Rendering.ChartMapper` maps the DOM's chart onto the
 charting engine's.
 
 `demonstration-app.md` declined a charting demo on the grounds that it "would mean a fourth project

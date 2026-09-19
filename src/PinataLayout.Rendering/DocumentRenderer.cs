@@ -37,7 +37,7 @@ using PdfPinata.Drawing;
 using PinataLayout.DocumentObjectModel.Visitors;
 using PinataLayout.DocumentObjectModel.Shapes;
 using PinataLayout.DocumentObjectModel.Tables;
-using PinataLayout.Rendering.MigraDoc.Rendering.Resources;
+using PinataLayout.Rendering.Resources;
 
 using PdfPinata;
 

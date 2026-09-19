@@ -39,7 +39,7 @@ using PdfPinata.Drawing.Layout;
 using PdfPinata.Text;
 using PinataLayout.DocumentObjectModel.Fields;
 using PinataLayout.DocumentObjectModel.Shapes;
-using PinataLayout.Rendering.MigraDoc.Rendering.Resources;
+using PinataLayout.Rendering.Resources;
 using PdfPinata.Fonts;
 using PdfPinata.Pdf.Structure;
 
