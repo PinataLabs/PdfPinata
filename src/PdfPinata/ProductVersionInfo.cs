@@ -30,14 +30,14 @@
 namespace PdfPinata;
 
 /// <summary>
-/// Version info base for all PDFsharp related assemblies.
+/// Version info base for all related assemblies.
 /// </summary>
 public static class ProductVersionInfo
 {
     /// <summary>
     /// The title of the product.
     /// </summary>
-    public const string Title = "PDFsharp";
+    public const string Title = "PdfPinata";
 
     /// <summary>
     /// A characteristic description of the product.
@@ -78,12 +78,12 @@ public static class ProductVersionInfo
     /// <summary>
     /// The company that created/owned the product.
     /// </summary>
-    public const string Company = "empira Software GmbH, Cologne Area (Germany)";
+    public const string Company = "PdfPinata";
 
     /// <summary>
     /// The name the product.
     /// </summary>
-    public const string Product = "PDFsharp";
+    public const string Product = "PdfPinata";
 
     /// <summary>
     /// The copyright information.
@@ -93,7 +93,7 @@ public static class ProductVersionInfo
     /// <summary>
     /// The trademark the product.
     /// </summary>
-    public const string Trademark = "PDFsharp";
+    public const string Trademark = "PdfPinata";
 
     /// <summary>
     /// Unused.
@@ -138,31 +138,31 @@ public static class ProductVersionInfo
     /// or characters that are invalid in an URL. In general, they follow the same rules as .NET namespaces do.
     /// So Foo.Bar is a valid ID, Foo! and Foo Bar are not.
     /// </summary>
-    public const string NuGetID = "PDFsharp";
+    public const string NuGetID = "PdfPinata";
 
     /// <summary>
     /// Nuspec Doc: The human-friendly title of the package displayed in the Manage NuGet Packages dialog.
     /// If none is specified, the ID is used instead.
     /// </summary>
-    public const string NuGetTitle = "PDFsharp";
+    public const string NuGetTitle = "PdfPinata";
 
     /// <summary>
     /// Nuspec Doc: A comma-separated list of authors of the package code.
     /// </summary>
-    public const string NuGetAuthors = "empira Software GmbH";
+    public const string NuGetAuthors = "PdfPinata authors";
 
     /// <summary>
     /// Nuspec Doc: A comma-separated list of the package creators. This is often the same list as in authors.
     /// This is ignored when uploading the package to the NuGet.org Gallery.
     /// </summary>
-    public const string NuGetOwners = "empira Software GmbH";
+    public const string NuGetOwners = "PdfPinata authors";
 
     /// <summary>
     /// Nuspec Doc: A long description of the package. This shows up in the right pane of the Add Package Dialog
     /// as well as in the Package Manager Console when listing packages using the Get-Package command.
     /// </summary>
     // This assignment must be written in one line because it will be parsed from a PS1 file.
-    public const string NuGetDescription = "PDFsharp is the Open Source .NET library that easily creates and processes PDF documents on the fly from any .NET language. The same drawing routines can be used to create PDF documents, draw on the screen, or send output to any printer.";
+    public const string NuGetDescription = "PdfPinata is the Open Source .NET library that easily creates and processes PDF documents from any .NET language. The same drawing routines can be used to create PDF documents, draw on the screen, or send output to any printer.";
 
     /// <summary>
     /// Nuspec Doc: A description of the changes made in each release of the package. This field only shows up
@@ -185,17 +185,13 @@ public static class ProductVersionInfo
     /// <summary>
     /// Nuspec Doc: A URL for the home page of the package.
     /// </summary>
-    /// <remarks>
-    /// http://www.PdfPinata.net/NuGetPackage_PDFsharp-GDI.ashx
-    /// http://www.PdfPinata.net/NuGetPackage_PDFsharp-WPF.ashx
-    /// </remarks>
     public const string NuGetProjectUrl = "https://www.nuget.org/packages/PdfPinata/";
 
     /// <summary>
     /// Nuspec Doc: A URL for the image to use as the icon for the package in the Manage NuGet Packages
     /// dialog box. This should be a 32x32-pixel .png file that has a transparent background.
     /// </summary>
-    public const string NuGetIconUrl = "https://raw.githubusercontent.com/PinataLabs/PdfPinata/main/assets/icon-32.png";
+    public const string NuGetIconUrl = "https://raw.githubusercontent.com/PinataLabs/PdfPinata/main/assets/icon-128.png";
 
     /// <summary>
     /// Nuspec Doc: A link to the license that the package is under.
@@ -211,7 +207,7 @@ public static class ProductVersionInfo
     /// Nuspec Doc: A space-delimited list of tags and keywords that describe the package. This information is used to help make sure users can find the package using
     /// searches in the Add Package Reference dialog box or filtering in the Package Manager Console window.
     /// </summary>
-    public const string NuGetTags = "PDFsharp PDF creation";
+    public const string NuGetTags = "PdfPinata PDF creation";
 
     /// <summary>
     /// The technology tag of the product:

@@ -168,7 +168,7 @@ public static class ProductVersionInfo
   /// Nuspec Doc: A URL for the image to use as the icon for the package in the Manage NuGet Packages
   /// dialog box. This should be a 32x32-pixel .png file that has a transparent background.
   /// </summary>
-  public const string NuGetIconUrl = "https://raw.githubusercontent.com/PinataLabs/PdfPinata/main/assets/icon-32.png";
+  public const string NuGetIconUrl = "https://raw.githubusercontent.com/PinataLabs/PdfPinata/main/assets/icon-128.png";
 
   /// <summary>
   /// Nuspec Doc: A link to the license that the package is under.
