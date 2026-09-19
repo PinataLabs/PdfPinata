@@ -69,7 +69,7 @@ internal class LegendEntryRenderer : Renderer
       leri.TextSize = gfx.MeasureString(leri.EntryText, leri.legendRendererInfo.Font);
       if (leri.seriesRendererInfo.series.chartType == ChartType.Line)
       {
-        leri.MarkerSize.Width = leri.seriesRendererInfo.markerRendererInfo.MarkerSize.Value;
+        leri.MarkerSize.Width = leri.seriesRendererInfo.markerRendererInfo.MarkerSize.Point;
         leri.MarkerArea.Width = Math.Max(3 * leri.MarkerSize.Width, leri.MarkerArea.Width);
       }
 

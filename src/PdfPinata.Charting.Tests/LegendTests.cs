@@ -365,6 +365,38 @@ public class LegendTests
     }
 
     /// <summary>
+    ///   A marker size is a length, and the key is measured from it in points whatever unit it was
+    ///   given in - a centimetre is 28.35 points, so its key is three times that rather than
+    ///   three times one.
+    /// </summary>
+    [Fact]
+    public void ALineKeyIsMeasuredFromAMarkerSizeInPointsWhateverItsUnit()
+    {
+        var chart = Charts.Of(ChartType.Line, 1.0, 3.0, 2.0);
+        var series = chart.SeriesCollection[0];
+        series.Name = "North";
+        series.MarkerStyle = MarkerStyle.Square;
+        series.MarkerSize = XUnit.FromCentimeter(1);
+        series.MarkerBackgroundColor = XColors.Blue;
+        chart.Legend.Docking = DockingType.Right;
+
+        var page = Drawn.Page(chart);
+        var text = RunReading(page, "North");
+        var blue = PaintedRectangles.ColourOf(XColors.Blue);
+        var markerSize = XUnit.FromCentimeter(1).Point;
+
+        var key = StrokedLines.Of(page).Single(line => line.Colour == blue && line.Width > 0.5);
+        Length(key).Should().BeApproximately(3 * markerSize, 0.01);
+        Math.Max(key.X1, key.X2).Should().BeApproximately(text.X - MarkerToText, 0.01);
+
+        var marker = PaintedPaths.FilledIn(page, blue).First();
+        marker.Width.Should().BeApproximately(markerSize, 0.01);
+        marker.Left.Should().BeGreaterThanOrEqualTo(Math.Min(key.X1, key.X2),
+            "the marker is drawn inside the room its entry reserved for it");
+        marker.Right.Should().BeLessThanOrEqualTo(text.X - MarkerToText);
+    }
+
+    /// <summary>
     ///   A legend entry for a line series is wider than one for a column, and entries are widened
     ///   to the widest marker: a column series beside a line series is keyed with a swatch as wide
     ///   as the line's key, which is what keeps the two lined up.
