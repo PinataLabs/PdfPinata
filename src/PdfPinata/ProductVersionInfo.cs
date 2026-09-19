@@ -195,12 +195,12 @@ public static class ProductVersionInfo
     /// Nuspec Doc: A URL for the image to use as the icon for the package in the Manage NuGet Packages
     /// dialog box. This should be a 32x32-pixel .png file that has a transparent background.
     /// </summary>
-    public const string NuGetIconUrl = "http://www.PdfSharp.net/resources/PDFsharp-Logo-32x32.png";
+    public const string NuGetIconUrl = "https://raw.githubusercontent.com/PinataLabs/PdfPinata/main/assets/logo.jpg";
 
     /// <summary>
     /// Nuspec Doc: A link to the license that the package is under.
     /// </summary>
-    public const string NuGetLicenseUrl = "http://www.PdfPinata.net/PDFsharp_License.ashx";
+    public const string NuGetLicenseUrl = "https://github.com/PinataLabs/PdfPinata/blob/main/LICENSE.md";
 
     /// <summary>
     /// Nuspec Doc: A Boolean value that specifies whether the client needs to ensure that the package license (described by licenseUrl) is accepted before the package is installed.
