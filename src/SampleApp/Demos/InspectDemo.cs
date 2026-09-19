@@ -76,6 +76,7 @@ internal sealed class InspectDemo : PdfDemo
                 new XPoint(50, 410));
         }
 
+        // docs:begin read-content
         // The page has to be saved and reopened before its content can be read: what is being
         // read is the content stream as it was written, and until the document is saved there is
         // no stream to read. This is the same round trip the test suite's helpers make.
@@ -96,6 +97,7 @@ internal sealed class InspectDemo : PdfDemo
             CSequence content = ContentReader.ReadContent(reopened.Pages[0]);
             operators.AddRange(content.OfType<COperator>());
         }
+        // docs:end read-content
 
         // ----- page 2: the operators themselves -----
 
@@ -113,6 +115,7 @@ internal sealed class InspectDemo : PdfDemo
                 + "stroke, f to fill, B to do both, Tj to show text.",
                 body, XBrushes.Black, new XRect(50, 80, 495, 50));
 
+            // docs:begin operands
             // The operand types are the whole of the CObject model: numbers, strings, names and
             // arrays. Rendering them by type is what makes the model visible rather than the text.
             string Describe(CObject operand) => operand switch
@@ -124,6 +127,7 @@ internal sealed class InspectDemo : PdfDemo
                 CArray array => $"[{array.Count} items]",
                 _ => operand.ToString() ?? "",
             };
+            // docs:end operands
 
             double y = 140;
             double x = 50;
@@ -158,12 +162,14 @@ internal sealed class InspectDemo : PdfDemo
                 + "graphics state, and a page that is unexpectedly large usually says so here.",
                 body, XBrushes.Black, new XRect(50, 80, 495, 45));
 
+            // docs:begin tally
             var counted = operators
                 .GroupBy(op => op.OpCode.Name)
                 .Select(group => new { Name = group.Key, Count = group.Count() })
                 .OrderByDescending(entry => entry.Count)
                 .ThenBy(entry => entry.Name)
                 .ToList();
+            // docs:end tally
 
             (string Code, string Means)[] glossary =
             {

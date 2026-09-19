@@ -46,10 +46,12 @@ internal sealed class UnicodeDemo : PdfDemo
         // The same family and size, differing only in what encoding the font is written with. The
         // options go in the constructor: there is no property to change afterwards, because the
         // encoding decides which kind of PDF font object gets built.
+        // docs:begin encodings
         XFont winAnsi = new XFont("Liberation Sans", 13, XFontStyle.Regular,
             XPdfFontOptions.WinAnsiDefault);
         XFont unicode = new XFont("Liberation Sans", 13, XFontStyle.Regular,
             XPdfFontOptions.UnicodeDefault);
+        // docs:end encodings
 
         (string Text, string What)[] samples =
         {
@@ -81,6 +83,7 @@ internal sealed class UnicodeDemo : PdfDemo
         gfx1.DrawString("UnicodeDefault", label, XBrushes.Black, new XPoint(280, 158));
         gfx1.DrawLine(new XPen(XColors.Gainsboro, 0.5), 50, 165, 545, 165);
 
+        // docs:begin side-by-side
         double y = 190;
         foreach ((string Text, string What) sample in samples)
         {
@@ -89,6 +92,7 @@ internal sealed class UnicodeDemo : PdfDemo
             gfx1.DrawString(sample.What, body, XBrushes.DimGray, new XPoint(50, y + 13));
             y += 36;
         }
+        // docs:end side-by-side
 
         prose1.DrawString(
             "Nothing threw. A character WinAnsi has no place for is not an error - it is dropped or "

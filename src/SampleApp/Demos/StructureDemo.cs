@@ -38,6 +38,7 @@ internal sealed class StructureDemo : PdfDemo
         Document report = new Document();
         report.Info.Title = "Structure";
 
+        // docs:begin predefined-styles
         // Every predefined style is already there and already related: Heading1 is based on Normal,
         // Heading2 on Heading1, and so on, so setting the font on Normal reaches all of them.
         // StyleNames holds the names rather than the styles - they are looked up on the document.
@@ -52,7 +53,9 @@ internal sealed class StructureDemo : PdfDemo
         heading1.Font.Bold = true;
         heading1.ParagraphFormat.SpaceBefore = Unit.FromPoint(18);
         heading1.ParagraphFormat.SpaceAfter = Unit.FromPoint(8);
+        // docs:end predefined-styles
 
+        // docs:begin outline-levels
         // OutlineLevel is the whole of the bookmark story. A paragraph carrying one becomes an
         // entry in the PDF's outline when the document is rendered - DocumentRenderer.AddOutline
         // is called for it - so nothing here ever mentions PdfOutline.
@@ -62,7 +65,9 @@ internal sealed class StructureDemo : PdfDemo
         heading2.Font.Size = 13;
         heading2.ParagraphFormat.SpaceBefore = Unit.FromPoint(12);
         heading2.ParagraphFormat.OutlineLevel = OutlineLevel.Level2;
+        // docs:end outline-levels
 
+        // docs:begin custom-style
         // A style of one's own, based on another. Everything not set here comes from Normal, so a
         // change to Normal's font reaches this too - which is the point of basing rather than
         // copying.
@@ -70,12 +75,15 @@ internal sealed class StructureDemo : PdfDemo
         caption.Font.Size = 8.5;
         caption.Font.Italic = true;
         caption.Font.Color = Colors.DimGray;
+        // docs:end custom-style
 
+        // docs:begin entry-style
         // The contents entries are a style too, carrying the tab stop the leader belongs to.
         Style entry = report.Styles.AddStyle("Entry", StyleNames.Normal);
         entry.ParagraphFormat.SpaceAfter = Unit.FromPoint(2);
         entry.ParagraphFormat.TabStops.AddTabStop(Unit.FromCentimeter(15),
             TabAlignment.Right, TabLeader.Dots);
+        // docs:end entry-style
 
         // ----- section one: a title page with a page setup of its own -----
 
@@ -99,6 +107,7 @@ internal sealed class StructureDemo : PdfDemo
 
         // ----- section two: the contents -----
 
+        // docs:begin first-and-even-headers
         Section contents = report.AddSection();
         contents.PageSetup.TopMargin = Unit.FromCentimeter(2.5);
 
@@ -123,6 +132,7 @@ internal sealed class StructureDemo : PdfDemo
         Paragraph evenHead = contents.Headers.EvenPage.AddParagraph("Even pages get this one");
         evenHead.Format.Font.Size = 8;
         evenHead.Format.Font.Color = Colors.DimGray;
+        // docs:end first-and-even-headers
 
         Paragraph footer = contents.Footers.Primary.AddParagraph();
         footer.Format.Alignment = ParagraphAlignment.Center;
@@ -137,6 +147,7 @@ internal sealed class StructureDemo : PdfDemo
         // The classic PinataLayout table of contents. A PageRefField names a bookmark and is resolved
         // to that bookmark's page number when the document is laid out - which is why a TOC cannot
         // be written by hand without being wrong the moment anything moves.
+        // docs:begin contents
         (string Bookmark, string Text)[] entries =
         {
             ("chapter-one", "1  Sections and headers"),
@@ -152,6 +163,7 @@ internal sealed class StructureDemo : PdfDemo
             line.AddTab();
             line.AddPageRefField(item.Bookmark);
         }
+        // docs:end contents
 
         contents.AddParagraph(
             "The dots are a tab leader, set on the tab stop the entry's style carries. The page "
@@ -177,10 +189,12 @@ internal sealed class StructureDemo : PdfDemo
 
         // A bookmark is invisible and draws nothing. It is a name attached to a point in the flow,
         // and it is what a PageRefField and a hyperlink both resolve against.
+        // docs:begin bookmark
         Paragraph chapter = bodyText.AddParagraph();
         chapter.Style = StyleNames.Heading1;
         chapter.AddBookmark("chapter-one");
         chapter.AddText("1  Sections and headers");
+        // docs:end bookmark
 
         bodyText.AddParagraph(
             "A section is where a page setup lives, so a document with a landscape appendix or "
@@ -194,9 +208,11 @@ internal sealed class StructureDemo : PdfDemo
             + "OddAndEvenPagesHeaderFooter is. Setting the flags is what makes the other two "
             + "reachable - filling them in without setting the flag does nothing at all.");
 
+        // docs:begin page-break
         // A chapter that starts on a fresh page, which is also what gives the contents table
         // three different page numbers to resolve to rather than three copies of one.
         bodyText.AddPageBreak();
+        // docs:end page-break
 
         Paragraph listsHead = bodyText.AddParagraph();
         listsHead.Style = StyleNames.Heading1;
@@ -208,6 +224,7 @@ internal sealed class StructureDemo : PdfDemo
             + "format rather than being a container of its own. Six types, and a flag that says "
             + "whether this paragraph carries on the list above it or starts a new one.");
 
+        // docs:begin list-types
         foreach (ListType type in new[]
         {
             ListType.BulletList1, ListType.BulletList2, ListType.BulletList3,
@@ -231,6 +248,7 @@ internal sealed class StructureDemo : PdfDemo
                 };
             }
         }
+        // docs:end list-types
 
         bodyText.AddPageBreak();
 
@@ -239,11 +257,14 @@ internal sealed class StructureDemo : PdfDemo
         refsHead.AddBookmark("references");
         refsHead.AddText("3  Cross-references and hyperlinks");
 
+        // docs:begin page-ref
         Paragraph crossRef = bodyText.AddParagraph("The lists above begin on page ");
         crossRef.AddPageRefField("lists");
         crossRef.AddText(", and this sentence knows that without anybody counting: a PageRefField "
             + "is resolved against its bookmark when the document is laid out.");
+        // docs:end page-ref
 
+        // docs:begin hyperlinks
         Paragraph links = bodyText.AddParagraph("A hyperlink comes in three shapes. ");
         links.AddHyperlink("chapter-one").AddFormattedText("This one goes to chapter one",
             TextFormat.Underline);
@@ -251,6 +272,7 @@ internal sealed class StructureDemo : PdfDemo
         links.AddHyperlink("https://github.com/PinataLabs/PdfPinata", HyperlinkType.Web)
             .AddFormattedText("This one leaves it", TextFormat.Underline);
         links.AddText(", to a URI. A third form points at a file on disk.");
+        // docs:end hyperlinks
 
         Paragraph outlineNote = bodyText.AddParagraph();
         outlineNote.Style = "Caption";
@@ -260,19 +282,23 @@ internal sealed class StructureDemo : PdfDemo
             + "Heading2 styles is what does it, and the tree's shape follows the levels.");
 
         // Section-level fields, which count within the section rather than the document.
+        // docs:begin section-fields
         Paragraph sectionNote = bodyText.AddParagraph("This is section ");
         sectionNote.AddSectionField();
         sectionNote.AddText(" of the document, and it has ");
         sectionNote.AddSectionPagesField();
         sectionNote.AddText(" page(s) of its own.");
         sectionNote.Style = "Caption";
+        // docs:end section-fields
 
+        // docs:begin render
         PdfDocumentRenderer renderer = new PdfDocumentRenderer(unicode: true) { Document = report };
         renderer.RenderDocument();
 
         // The outline panel is worth opening on arrival, since the whole point of the page above
         // is that it filled itself in.
         renderer.PdfDocument.PageMode = PdfPageMode.UseOutlines;
+        // docs:end render
         #endregion
 
         return renderer.PdfDocument;

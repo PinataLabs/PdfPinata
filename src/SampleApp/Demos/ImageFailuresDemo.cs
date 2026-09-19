@@ -57,6 +57,7 @@ internal sealed class ImageFailuresDemo : PdfDemo
             _write = write;
         }
 
+        // docs:begin image-source-members
         public string Name { get; }
 
         // Every one of these is read at a different point of the render, which is what lets one
@@ -71,6 +72,7 @@ internal sealed class ImageFailuresDemo : PdfDemo
             _write();
             return default;
         }
+        // docs:end image-source-members
 
         /// <summary>
         ///   Throws while XImage is being built, before anything is measured. XImage's constructor
@@ -133,6 +135,7 @@ internal sealed class ImageFailuresDemo : PdfDemo
         // what happens and again to say so. The probe is thrown away; only its findings are kept.
         List<(string Name, string Failure, string Exception, string Message)> failures = new();
 
+        // docs:begin report-failures
         Document probe = new Document();
         Section probePage = probe.AddSection();
         foreach ((string What, Func<IImageSource> Source, string When) each in Cases())
@@ -160,6 +163,7 @@ internal sealed class ImageFailuresDemo : PdfDemo
         };
 
         probeRenderer.RenderDocument();
+        // docs:end report-failures
 
         // ----- the document the demo hands back -----
 

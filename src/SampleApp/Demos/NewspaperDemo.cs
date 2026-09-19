@@ -110,6 +110,7 @@ internal sealed class NewspaperDemo : PdfDemo
             XBrushes.Black, new XPoint(margin, 288));
 
         // ---- The body, in columns ------------------------------------------------------
+        // docs:begin columns
         const int columnCount = 5;
         const double columnGap = 14;
         double columnWidth = (measure - columnGap * (columnCount - 1)) / columnCount;
@@ -118,6 +119,7 @@ internal sealed class NewspaperDemo : PdfDemo
         formatter.Columns = columnCount;
         formatter.ColumnGap = columnGap;
         formatter.Alignment = XParagraphAlignment.Justify;
+        // docs:end columns
 
         // The story is flowed twice: once above the photograph, once below it. There is no
         // wrap-around-object anywhere in the library, so the space beside a picture has to
@@ -126,12 +128,14 @@ internal sealed class NewspaperDemo : PdfDemo
         const double upperHeight = 250;
         double pictureTop = upperTop + upperHeight + 16;
 
+        // docs:begin columns-draw
         // Enough copy to fill five columns twice over. A story that runs out halfway leaves
         // empty columns, which says nothing about how the formatter fills them.
         string story = string.Concat(Copy, Copy, Copy, Copy, Copy, Copy, Copy, Copy);
 
         formatter.DrawString(story, body, XBrushes.Black,
             new XRect(margin, upperTop, measure, upperHeight));
+        // docs:end columns-draw
 
         // ---- Photograph, spanning the middle columns -----------------------------------
         using XImage photograph = XImage.FromStream(
@@ -172,6 +176,7 @@ internal sealed class NewspaperDemo : PdfDemo
         formatter.Alignment = XParagraphAlignment.Left;
 
         // ---- Gutter rules ---------------------------------------------------------------
+        // docs:begin gutter-rules
         // The formatter draws no rules, so the gutter centres are worked out with the same
         // arithmetic it used to place the columns. Getting this wrong is how a rule ends up
         // through the middle of a column rather than between two.
@@ -182,8 +187,10 @@ internal sealed class NewspaperDemo : PdfDemo
             gfx.DrawLine(gutter, x, upperTop, x, upperTop + upperHeight);
             gfx.DrawLine(gutter, x, lowerTop, x, lowerTop + lowerHeight);
         }
+        // docs:end gutter-rules
 
         // ---- A boxed side story, clipped ------------------------------------------------
+        // docs:begin clip-sidebar
         // IntersectClip has no counterpart to undo it - there is no ResetClip - so the only
         // way back is to restore a state saved before it was narrowed.
         XRect sidebar = new XRect(margin, pictureTop, columnWidth, pictureHeight);
@@ -205,6 +212,7 @@ internal sealed class NewspaperDemo : PdfDemo
             new XRect(sidebar.X + 8, sidebar.Y + 26, sidebar.Width - 16, sidebar.Height));
 
         gfx.Restore(state);
+        // docs:end clip-sidebar
 
         // ---- Foot ------------------------------------------------------------------------
         gfx.DrawLine(new XPen(XColors.Black, 0.6), margin, page.Height.Point - margin - 14,

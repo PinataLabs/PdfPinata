@@ -88,12 +88,14 @@ internal sealed class AssembleDemo : PdfDemo
 
             // Measured here rather than after reopening: a document opened in Import mode is not
             // one that can be saved, so its size has to be taken while it is still being written.
+            // docs:begin reopen-for-import
             using MemoryStream buffer = new MemoryStream();
             source.Save(buffer, false);
             bytes = buffer.Length;
 
             buffer.Position = 0;
             return PdfReader.Open(buffer, PdfDocumentOpenMode.Import);
+            // docs:end reopen-for-import
         }
 
         long Bytes(PdfDocument document)
@@ -116,6 +118,7 @@ internal sealed class AssembleDemo : PdfDemo
         // Created first and drawn last, once there are numbers to put on it.
         PdfPage report = document.AddPage();
 
+        // docs:begin merge
         // AddPage(PdfPage) takes a page belonging to another document and copies it in. The
         // annotation setting decides what happens to anything interactive on the way: a shallow
         // copy keeps the annotation and its destination if the destination is coming too, a deep
@@ -125,9 +128,11 @@ internal sealed class AssembleDemo : PdfDemo
 
         foreach (PdfPage page in sourceB.Pages)
             document.AddPage(page, AnnotationCopyingType.ShallowCopy);
+        // docs:end merge
 
         long bytesMerged = Bytes(document);
 
+        // docs:begin consolidate-and-prune
         // Both source documents drew the same photograph, and each loaded it separately, so the
         // merged document carries the image twice over. Nothing about the pages changes; one of
         // the two XObjects simply stops being referenced.
@@ -139,7 +144,9 @@ internal sealed class AssembleDemo : PdfDemo
         // up on pages imported from a producer that names every font in the document on every page.
         document.PruneUnusedResources();
         long bytesPruned = Bytes(document);
+        // docs:end consolidate-and-prune
 
+        // docs:begin duplicate-and-move
         // A duplicate of the first imported page, placed at the end. Within one document, so no
         // import is involved and the copy shares what it can with the original.
         document.DuplicatePage(1, document.PageCount);
@@ -147,11 +154,13 @@ internal sealed class AssembleDemo : PdfDemo
         // And a reorder. The pages that follow this report are their own evidence: B2 has moved
         // from the end of the run to the front of it.
         document.MovePage(5, 1);
+        // docs:end duplicate-and-move
 
         int annotationsOnFirstImported = document.Pages[2].Annotations.Count;
 
         // ----- splitting, which is importing read backwards -----
 
+        // docs:begin split
         // The document being assembled cannot be split from directly: its pages belong to a
         // document that is open to be written, and AddPage refuses to hand them to somebody else.
         // Saving it and reopening in Import mode is the whole of the technique - and is the same
@@ -172,6 +181,7 @@ internal sealed class AssembleDemo : PdfDemo
                 splitCount++;
             }
         }
+        // docs:end split
 
         // ----- the report page, now that everything has a number -----
 

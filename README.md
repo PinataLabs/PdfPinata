@@ -22,9 +22,12 @@ PdfPinata is a fork of [PdfSharpCore](https://github.com/ststeiger/PdfSharpCore)
 
 The core `PdfPinata` package has no imaging or font-rendering dependency of its own. Choose a backend package and register it once when your application starts.
 
+**Documentation:** <https://pinatalabs.github.io/PdfPinata/> has installation steps, a getting-started guide, a page for each feature, and a gallery of every demo with the PDF it makes.
+
 ## Badges
 
 [![NuGet Version](https://img.shields.io/nuget/v/PdfPinata.svg)](https://www.nuget.org/packages/PdfPinata/)
+[![Docs](https://github.com/PinataLabs/PdfPinata/actions/workflows/docs.yml/badge.svg)](https://pinatalabs.github.io/PdfPinata/)
 [![CI](https://github.com/PinataLabs/PdfPinata/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/PinataLabs/PdfPinata/actions/workflows/build-and-test.yml)
 [![codecov](https://codecov.io/gh/PinataLabs/PdfPinata/graph/badge.svg)](https://codecov.io/gh/PinataLabs/PdfPinata)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=PinataLabs_PdfPinata\&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=PinataLabs_PdfPinata)
@@ -44,6 +47,7 @@ Register the backend before creating fonts or loading images:
 ```csharp
 using PinataLayout.DocumentObjectModel.Shapes;
 using PdfPinata.Fonts;
+using PdfPinata.Skia;
 using PdfPinata.Utils;
 
 GlobalFontSettings.FontResolver = new SkiaFontResolver();
@@ -216,7 +220,7 @@ When `netstandard2.1` support is eventually removed, the PolySharp reference and
 
 ## Table of Contents
 
-* [Documentation](docs/index.md)
+* [Documentation](https://pinatalabs.github.io/PdfPinata/)
 * [Packages](#packages)
 * [International text](#international-text)
 * [Fonts](#fonts)
@@ -265,19 +269,7 @@ dotnet run --project src/SampleApp -- run --example Fonts Text
 dotnet run --project src/SampleApp -- run --no-code
 ```
 
-The demos cover:
-
-* Hello World
-* fonts
-* page orientation
-* images
-* text
-* layout
-* tables
-* page resizing
-* invoices
-* newspapers
-* magazines
+`list` names every demo and what it shows. The [demo gallery](https://pinatalabs.github.io/PdfPinata/demos) on the documentation site shows each one's first page, with the PDF it makes, its source, and the guide that explains it.
 
 Each example writes:
 
@@ -317,11 +309,11 @@ Font rasterisation varies between operating systems and installed fonts, so thes
 
 ## Contributing
 
-Feedback, bug reports, pull requests, and other contributions are welcome.
+Feedback, bug reports, pull requests, and other contributions are welcome. [Contributing](https://pinatalabs.github.io/PdfPinata/reference/contributing) on the documentation site says how to build, test, and work on the documentation.
 
 ## License
 
-PdfPinata is released under the MIT License. See [LICENCE.md](LICENCE.md).
+PdfPinata is released under the MIT License. See [LICENSE.md](LICENSE.md).
 
 PdfPinata can optionally use projects distributed under other licences.
 

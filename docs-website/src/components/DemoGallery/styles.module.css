@@ -1,0 +1,77 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: var(--ifm-card-border-radius);
+  overflow: hidden;
+  background: var(--ifm-background-surface-color);
+}
+
+.thumbnail {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  aspect-ratio: 1 / 1.1;
+  overflow: hidden;
+  background: var(--ifm-color-emphasis-200);
+  border-bottom: 1px solid var(--ifm-color-emphasis-300);
+}
+
+.thumbnail img {
+  width: 100%;
+  height: auto;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+.placeholder {
+  align-items: center;
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 0.75rem 1rem 1rem;
+}
+
+.title {
+  margin: 0 0 0.35rem;
+  font-size: 1.1rem;
+}
+
+.summary {
+  flex: 1;
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+}
+
+.password {
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.9rem;
+}
+
+/* Infima spaces consecutive list items vertically, which staggers a wrapped row of links. */
+.links li {
+  margin: 0;
+}

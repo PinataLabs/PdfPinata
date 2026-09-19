@@ -56,6 +56,7 @@ internal sealed class BarcodesDemo : PdfDemo
         XGraphics gfx1 = XGraphics.FromPdfPage(page1);
         gfx1.DrawString("Linear codes", heading, XBrushes.Black, new XPoint(50, 60));
 
+        // docs:begin code39
         // A bar code is an object rather than a call: it carries the text, the size it should
         // occupy and the direction it runs in, and DrawBarCode paints it at a point. That point is
         // the code's Anchor, which is its top left corner until it is told otherwise.
@@ -64,9 +65,11 @@ internal sealed class BarcodesDemo : PdfDemo
             TextLocation = TextLocation.Below,
         };
         gfx1.DrawBarCode(code39, XBrushes.Black, codeText, new XPoint(50, 95));
+        // docs:end code39
         Caption(gfx1, 50, 180, "Code 3 of 9 (Code 39)",
             "0-9, A-Z and - . $ / + % space. Anything else throws, by name.");
 
+        // docs:begin code25
         // Interleaved 2 of 5 packs two digits into every five bars, so it is denser than Code 39
         // and takes digits only - and an even number of them, because of the interleaving.
         Code2of5Interleaved code25 = new Code2of5Interleaved("20260816", new XSize(200, 50))
@@ -74,6 +77,7 @@ internal sealed class BarcodesDemo : PdfDemo
             TextLocation = TextLocation.Below,
         };
         gfx1.DrawBarCode(code25, XBrushes.Black, codeText, new XPoint(320, 95));
+        // docs:end code25
         Caption(gfx1, 320, 180, "Interleaved 2 of 5",
             "Digits, evenly many - two are carried per five bars.");
 
@@ -83,12 +87,14 @@ internal sealed class BarcodesDemo : PdfDemo
         double left = 50;
         foreach (double ratio in new[] { 2.0, 2.6, 3.0 })
         {
+            // docs:begin ratio
             Code3of9Standard scaled = new Code3of9Standard("RATIO", new XSize(140, 42))
             {
                 TextLocation = TextLocation.None,
                 WideNarrowRatio = ratio,
             };
             gfx1.DrawBarCode(scaled, XBrushes.Black, codeText, new XPoint(left, 240));
+            // docs:end ratio
             #pragma warning disable S1244 // Exact on purpose: compared with the literal the value was taken from.
             gfx1.DrawString($"WideNarrowRatio {ratio:0.0}" + (ratio == 2.6 ? " (default)" : ""),
                 note, XBrushes.DimGray, new XPoint(left, 296));
@@ -98,6 +104,7 @@ internal sealed class BarcodesDemo : PdfDemo
 
         Caption(gfx1, 50, 225, "The same five characters in the same box", "");
 
+        // docs:begin text-location
         // Where the human-readable text goes, and whether it takes room from the bars or sits over
         // them. The two "embedded" locations put it inside the code's own box.
         left = 50;
@@ -115,9 +122,11 @@ internal sealed class BarcodesDemo : PdfDemo
             gfx1.DrawString(location.ToString(), note, XBrushes.DimGray, new XPoint(left, 425));
             left += 100;
         }
+        // docs:end text-location
 
         Caption(gfx1, 50, 335, "TextLocation", "");
 
+        // docs:begin omr
         // OMR is not a bar code in the reading sense. Its "text" is parsed as a number and the
         // marks drawn are that number's bits, which a sorting machine counts rather than decodes.
         // The low bit is forced on by the renderer, so 1382 and 1383 draw the same marks.
@@ -132,6 +141,7 @@ internal sealed class BarcodesDemo : PdfDemo
             gfx1.DrawString($"OMR for {value}", note, XBrushes.DimGray, new XPoint(left, 535));
             left += 165;
         }
+        // docs:end omr
 
         Caption(gfx1, 50, 465, "OMR marks",
             "The bits of a number, low bit first, behind one synchronisation mark.");
@@ -164,6 +174,7 @@ internal sealed class BarcodesDemo : PdfDemo
             "The code turns about the point it is drawn at - the red dot - so it can run up a page "
             + "without the caller touching the transform.");
 
+        // docs:begin direction
         // Each of the four is given the same box and the same point. What differs is which way the
         // bars run away from that point, which is why the point is marked on every one.
         // The label goes on the side of the point the code does not occupy, which differs per
@@ -187,6 +198,7 @@ internal sealed class BarcodesDemo : PdfDemo
             gfx2.DrawString(each.Direction.ToString(), note, XBrushes.Firebrick,
                 new XPoint(each.X + 6, each.Y + each.LabelY));
         }
+        // docs:end direction
 
         Caption(gfx2, 50, 450, "AnchorType",
             "Which part of the code lands on the point given. The default is TopLeft.");
@@ -202,12 +214,14 @@ internal sealed class BarcodesDemo : PdfDemo
         {
             XPoint at = new XPoint(140 + index % 3 * 170, 520 + index / 3 * 100);
 
+            // docs:begin anchor
             Code3of9Standard anchored = new Code3of9Standard("ABC", new XSize(80, 30))
             {
                 TextLocation = TextLocation.None,
                 Anchor = anchors[index],
             };
             gfx2.DrawBarCode(anchored, XBrushes.Black, codeText, at);
+            // docs:end anchor
 
             // Drawn after the code so the point is not buried under the bars. The label clears the
             // full height of the code below the point, whichever way the anchor put it.
@@ -230,6 +244,7 @@ internal sealed class BarcodesDemo : PdfDemo
             + "DrawMatrixCode rather than DrawBarCode. BarCode.FromType says so if asked for one.",
             note, XBrushes.DimGray, new XRect(50, 74, 495, 30));
 
+        // docs:begin data-matrix
         // The symbol size is given in modules, and the encoder needs one large enough for the data
         // plus its error correction. ECC200 fixes the legal sizes; one that is not on the list, or
         // one too small for the text, is refused rather than silently truncated.
@@ -249,7 +264,9 @@ internal sealed class BarcodesDemo : PdfDemo
             Caption(gfx3, left, 250, matrix.Note, "");
             left += 165;
         }
+        // docs:end data-matrix
 
+        // docs:begin rectangular
         // A symbol does not have to be square. ECC200 defines rectangular sizes too, which suit a
         // label with width to spare and no height - a cable marker, a shelf edge.
         (int Rows, int Columns, string Note)[] shapes =
@@ -272,7 +289,9 @@ internal sealed class BarcodesDemo : PdfDemo
             Caption(gfx3, left, 440, shape.Note, "");
             left += 165;
         }
+        // docs:end rectangular
 
+        // docs:begin quiet-zone
         // The quiet zone is the blank margin a reader needs to find the symbol's edges. It is
         // counted in modules and drawn inside the size given, so a wider one shrinks the symbol
         // rather than growing the code. The grey box is the size asked for.
@@ -286,6 +305,7 @@ internal sealed class BarcodesDemo : PdfDemo
             Caption(gfx3, left, 620, $"QuietZone = {quiet}", "");
             left += 165;
         }
+        // docs:end quiet-zone
 
         gfx3.DrawString("Encodation: ASCII only", label, XBrushes.Black, new XPoint(50, 660));
         prose.DrawString(

@@ -62,6 +62,7 @@ internal sealed class FormsDemo : PdfDemo
 
         // ---- The form ----------------------------------------------------------------
         //
+        // docs:begin create-form
         // GetOrCreateAcroForm makes the form, makes it indirect and puts it in the catalogue.
         // PdfDocument.AcroForm only reads, and answers null until this has been called.
         PdfAcroForm form = document.GetOrCreateAcroForm();
@@ -81,6 +82,7 @@ internal sealed class FormsDemo : PdfDemo
         // embedded and neither has to be: these are the faces every viewer already has.
         form.AddStandardFont("/Helv", "/Helvetica");
         form.AddStandardFont("/ZaDb", "/ZapfDingbats");
+        // docs:end create-form
 
         gfx.DrawString("Interactive form", titleFont, XBrushes.Black, new XPoint(56, 68));
         gfx.DrawLine(new XPen(XColors.SteelBlue, 1.5), 56, 78, 539, 78);
@@ -110,6 +112,7 @@ internal sealed class FormsDemo : PdfDemo
 
         // ---- Putting a field on the page ---------------------------------------------
         //
+        // docs:begin place
         // A field says what it is and what it holds; a widget says where on a page it is drawn.
         // AddWidget makes one and links the two - always a separate annotation under /Kids, so a
         // field that gains a second widget later does not change shape.
@@ -120,6 +123,7 @@ internal sealed class FormsDemo : PdfDemo
         {
             return field.AddWidget(page, new PdfRectangle(gfx.Transformer.WorldToDefaultPage(box)));
         }
+        // docs:end place
 
         // /MK is what a viewer paints a field's box and border from when it is building the
         // appearance itself, which for the two choice fields below it is. It is appearance
@@ -133,6 +137,7 @@ internal sealed class FormsDemo : PdfDemo
             widget.Elements["/MK"] = appearance;
         }
 
+        // docs:begin style-text
         // A text field draws its own appearance out of these, from the value in /V - so the box a
         // reader shows is the library's drawing rather than something built from /MK, and naming
         // the colours here is what stops a field losing its box the moment it is given a value.
@@ -144,6 +149,7 @@ internal sealed class FormsDemo : PdfDemo
             field.BorderColor = XColor.FromArgb(115, 115, 115);
             field.DefaultAppearance = "/Helv 9 Tf 0 g";
         }
+        // docs:end style-text
 
         // An appearance stream is a form XObject, and XGraphics draws onto one exactly as it
         // draws onto a page - which is what SetAppearance takes. This demo's first draft drew
@@ -159,6 +165,7 @@ internal sealed class FormsDemo : PdfDemo
         }
 
         // ---- Text fields -------------------------------------------------------------
+        // docs:begin text-fields
         XRect fullNameBox = Row("Full name", 20);
         PdfTextField fullName = new PdfTextField(document)
         {
@@ -182,6 +189,7 @@ internal sealed class FormsDemo : PdfDemo
         StyleText(email);
         Place(email, emailBox);
         EndRow(emailBox, "Required, so a reader marks it when the form is submitted empty.");
+        // docs:end text-fields
 
         XRect secretBox = Row("Passphrase", 20);
         PdfTextField secret = new PdfTextField(document)
@@ -231,6 +239,7 @@ internal sealed class FormsDemo : PdfDemo
         //
         // Both states are drawn here rather than left to /NeedAppearances. What a check box
         // shows IS its value, so the two streams are the field rather than a rendering of it.
+        // docs:begin check-box
         XRect tickBox = Row("Subscribe", 16);
         tickBox = new XRect(tickBox.X, tickBox.Y, 16, 16);
 
@@ -258,6 +267,7 @@ internal sealed class FormsDemo : PdfDemo
         // them in step, reading the names out of the appearances the widget was just given.
         subscribe.Checked = true;
         EndRow(tickBox, "/AP /N holds one stream per state; /AS names the one on show.");
+        // docs:end check-box
 
         // ---- A radio group -----------------------------------------------------------
         //
@@ -266,6 +276,7 @@ internal sealed class FormsDemo : PdfDemo
         // against - so the two have to agree exactly.
         XRect deliveryRow = Row("Delivery", 14);
 
+        // docs:begin radio-field
         PdfRadioButtonField delivery = new PdfRadioButtonField(document)
         {
             Name = "delivery",
@@ -276,9 +287,11 @@ internal sealed class FormsDemo : PdfDemo
 
         string[] choices = { "Standard", "Express", "Collect" };
         delivery.Options = choices;
+        // docs:end radio-field
 
         const int Chosen = 0;
 
+        // docs:begin radio-widgets
         for (int index = 0; index < choices.Length; index++)
         {
             XRect dot = new XRect(FieldX + index * 100, deliveryRow.Y, 14, 14);
@@ -307,11 +320,13 @@ internal sealed class FormsDemo : PdfDemo
         // Which one the field holds. SelectedIndex looks the choice up in /Opt and writes /V as
         // the name the chosen widget's "on" state is called by.
         delivery.SelectedIndex = Chosen;
+        // docs:end radio-widgets
         EndRow(deliveryRow,
             "One field, three widgets under /Kids. The field holds the name and the value.");
 
         // ---- Choice fields -----------------------------------------------------------
         XRect countryBox = Row("Country", 20);
+        // docs:begin combo-box
         PdfComboBoxField country = new PdfComboBoxField(document)
         {
             Name = "country",
@@ -326,10 +341,12 @@ internal sealed class FormsDemo : PdfDemo
         country.DefaultAppearance = "/Helv 9 Tf 0 g";
         Decorate(Place(country, countryBox), 0.96);
         country.SelectedIndex = 4;
+        // docs:end combo-box
         EndRow(countryBox,
             "Combo + Edit, so the list can also be typed into. Sort orders it for display.");
 
         XRect interestsBox = Row("Interests", 56);
+        // docs:begin list-box
         PdfListBoxField interests = new PdfListBoxField(document)
         {
             Name = "interests",
@@ -344,6 +361,7 @@ internal sealed class FormsDemo : PdfDemo
         interests.DefaultAppearance = "/Helv 9 Tf 0 g";
         Decorate(Place(interests, interestsBox), 0.96);
         interests.SelectedIndices = new[] { 0, 3 };
+        // docs:end list-box
         EndRow(interestsBox,
             "A list box is a choice field without the Combo flag. /I carries the selected rows.");
 
@@ -355,6 +373,7 @@ internal sealed class FormsDemo : PdfDemo
         XRect buttonBox = Row("Then", 24);
         buttonBox = new XRect(buttonBox.X, buttonBox.Y, 140, 24);
 
+        // docs:begin push-button
         PdfPushButtonField help = new PdfPushButtonField(document)
         {
             Name = "help",
@@ -381,6 +400,7 @@ internal sealed class FormsDemo : PdfDemo
                 new XSolidBrush(XColor.FromArgb(26, 51, 89)),
                 new XRect(0, 0, 140, 24), XStringFormats.Center);
         }));
+        // docs:end push-button
         EndRow(buttonBox,
             "A push button carries an action instead of a value: /A here is a URI action.");
 

@@ -51,6 +51,7 @@ internal sealed class ChartsDemo : PdfDemo
         XFont heading = new XFont("Liberation Sans", 16, XFontStyle.Bold);
         XFont caption = new XFont("Liberation Sans", 8);
 
+        // docs:begin chart-frame
         // A chart carries no size of its own. ChartFrame is what gives it one: set the frame's
         // Location and Size, add the chart, and DrawChart lays it out inside that rectangle.
         // Draw - the other method - decorates the rectangle with a rounded border, a gradient and
@@ -68,7 +69,9 @@ internal sealed class ChartsDemo : PdfDemo
             gfx.DrawString(label, caption, XBrushes.DimGray,
                 new XRect(rect.X, rect.Bottom + 2, rect.Width, 12), XStringFormats.TopCenter);
         }
+        // docs:end chart-frame
 
+        // docs:begin build-chart
         // Every chart on pages 1 and 2 is built the same way, so the shape of the API is visible
         // once rather than four times: a chart of some type, an X series of labels, and a value
         // series per region.
@@ -94,6 +97,7 @@ internal sealed class ChartsDemo : PdfDemo
             chart.YAxis.HasMajorGridlines = true;
             return chart;
         }
+        // docs:end build-chart
 
         // ----- page 1: the column and bar family -----
 
@@ -118,6 +122,7 @@ internal sealed class ChartsDemo : PdfDemo
         XGraphics gfx2 = XGraphics.FromPdfPage(page2);
         gfx2.DrawString("Lines, areas and combinations", heading, XBrushes.Black, new XPoint(50, 60));
 
+        // docs:begin fixed-scale
         Charting.Chart line = Regional(Charting.ChartType.Line, "North", "South", "West");
         foreach (int index in new[] { 0, 1, 2 })
         {
@@ -132,10 +137,12 @@ internal sealed class ChartsDemo : PdfDemo
         line.YAxis.MaximumScale = 80;
         line.YAxis.MajorTick = 20;
         Place(gfx2, line, new XRect(50, 90, 235, 210), "Line - markers and a fixed scale");
+        // docs:end fixed-scale
 
         Place(gfx2, Regional(Charting.ChartType.Area2D, "North", "South"),
             new XRect(310, 90, 235, 210), "Area2D - two series, the later in front");
 
+        // docs:begin combination
         // A series carries its own ChartType, and a chart whose series disagree with it is drawn by
         // CombinationChartRenderer instead. That is the whole of the combination API: set the
         // property on the series that should be different.
@@ -145,6 +152,7 @@ internal sealed class ChartsDemo : PdfDemo
         combination.SeriesCollection[2].MarkerSize = 5;
         Place(gfx2, combination, new XRect(50, 350, 495, 210),
             "Column2D with one series set to Line - a combination chart");
+        // docs:end combination
 
         // ----- page 3: pies, labels and the framed drawing -----
 
@@ -152,6 +160,7 @@ internal sealed class ChartsDemo : PdfDemo
         XGraphics gfx3 = XGraphics.FromPdfPage(page3);
         gfx3.DrawString("Pies, labels and frames", heading, XBrushes.Black, new XPoint(50, 60));
 
+        // docs:begin pie
         // A pie shows one series, so the X series labels the slices rather than an axis.
         Charting.Chart Pie(Charting.ChartType type, Charting.DockingType docking)
         {
@@ -170,12 +179,14 @@ internal sealed class ChartsDemo : PdfDemo
             chart.DataLabel.Format = "0%";
             return chart;
         }
+        // docs:end pie
 
         Place(gfx3, Pie(Charting.ChartType.Pie2D, Charting.DockingType.Right),
             new XRect(50, 90, 235, 200), "Pie2D - legend docked Right");
         Place(gfx3, Pie(Charting.ChartType.PieExploded2D, Charting.DockingType.Left),
             new XRect(310, 90, 235, 200), "PieExploded2D - legend docked Left");
 
+        // docs:begin framed
         // The other draw method. Draw() paints a rounded border, a vertical gradient and a drop
         // shadow of its own before laying the chart out inside them, and it draws every chart the
         // frame holds rather than only the first. Worth knowing which one you called: a chart that
@@ -187,6 +198,7 @@ internal sealed class ChartsDemo : PdfDemo
         };
         framed.Add(Regional(Charting.ChartType.Column2D, "North", "South"));
         framed.Draw(gfx3);
+        // docs:end framed
         gfx3.DrawString("ChartFrame.Draw - the frame is the frame's, not the chart's",
             caption, XBrushes.DimGray, new XRect(50, 584, 495, 12), XStringFormats.TopCenter);
 
@@ -214,6 +226,7 @@ internal sealed class ChartsDemo : PdfDemo
             + "the next page if it does not fit - none of which the drawn route does for you.")
             .Format.SpaceAfter = Unit.FromPoint(10);
 
+        // docs:begin dom-chart
         Chart flowed = section.AddChart(ChartType.Column2D);
         flowed.Width = Unit.FromPoint(440);
         flowed.Height = Unit.FromPoint(220);
@@ -236,6 +249,7 @@ internal sealed class ChartsDemo : PdfDemo
         flowed.BottomArea.AddLegend();
         flowed.YAxis.HasMajorGridlines = true;
         flowed.XAxis.MajorTickMark = TickMarkType.Outside;
+        // docs:end dom-chart
 
         section.AddParagraph(
             "The two routes reach the same renderers. Reach for this one when the chart belongs to "

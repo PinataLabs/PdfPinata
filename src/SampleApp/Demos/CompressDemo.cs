@@ -86,6 +86,7 @@ internal sealed class CompressDemo : PdfDemo
             gfx.DrawImage(photograph, 50, 580, 240, 180);
         }
 
+        // docs:begin measure
         // Saved under one arrangement of the options and measured. Nothing is written to disk.
         long Measure(Action<PdfDocumentOptions> configure)
         {
@@ -97,6 +98,7 @@ internal sealed class CompressDemo : PdfDemo
             probe.Save(buffer, false);
             return buffer.Length;
         }
+        // docs:end measure
 
         // Every row sets CompressContentStreams explicitly rather than leaving it alone. A table of
         // "the defaults" would go quietly wrong the day a default changed, and this one did change:
@@ -104,6 +106,7 @@ internal sealed class CompressDemo : PdfDemo
         // materially larger file from a debug build than from a release one.
         bool defaultCompression = new PdfDocument().Options.CompressContentStreams;
 
+        // docs:begin compress-content
         long compressed = Measure(options => options.CompressContentStreams = true);
         long uncompressed = Measure(options => options.CompressContentStreams = false);
         long noCompression = Measure(options =>
@@ -111,6 +114,8 @@ internal sealed class CompressDemo : PdfDemo
             options.CompressContentStreams = true;
             options.NoCompression = true;
         });
+        // docs:end compress-content
+        // docs:begin flate-mode
         long flateBest = Measure(options =>
         {
             options.CompressContentStreams = true;
@@ -121,6 +126,8 @@ internal sealed class CompressDemo : PdfDemo
             options.CompressContentStreams = true;
             options.FlateEncodeMode = PdfFlateEncodeMode.BestSpeed;
         });
+        // docs:end flate-mode
+        // docs:begin jpeg-flate
         long jpegFlate = Measure(options =>
         {
             options.CompressContentStreams = true;
@@ -131,22 +138,28 @@ internal sealed class CompressDemo : PdfDemo
             options.CompressContentStreams = true;
             options.UseFlateDecoderForJpegImages = PdfUseFlateDecoderForJpegImages.Automatic;
         });
+        // docs:end jpeg-flate
+        // docs:begin cmyk
         long cmyk = Measure(options =>
         {
             options.CompressContentStreams = true;
             options.ColorMode = PdfColorMode.Cmyk;
         });
+        // docs:end cmyk
+        // docs:begin xref-stream
         long xrefStream = Measure(options =>
         {
             options.CompressContentStreams = true;
             options.CrossReferenceFormat = PdfCrossReferenceFormat.Stream;
         });
+        // docs:end xref-stream
 
         // A page of drawing is mostly one large content stream and a handful of objects, which is
         // the shape a cross-reference stream has least to offer. Measured again over a document that
         // is mostly objects - a hundred nearly empty pages - because that is where the setting is
         // worth reaching for, and a table showing only the first number would teach the opposite of
         // what is true.
+        // docs:begin many-objects
         long ManyObjects(PdfCrossReferenceFormat format)
         {
             using PdfDocument probe = new PdfDocument();
@@ -167,6 +180,7 @@ internal sealed class CompressDemo : PdfDemo
 
         long manyClassic = ManyObjects(PdfCrossReferenceFormat.Classic);
         long manyStream = ManyObjects(PdfCrossReferenceFormat.Stream);
+        // docs:end many-objects
 
         // ----- the document the demo hands back -----
 

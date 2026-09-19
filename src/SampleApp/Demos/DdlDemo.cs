@@ -111,6 +111,7 @@ internal sealed class DdlDemo : PdfDemo
 
         // ----- out to text and back again -----
 
+        // docs:begin round-trip
         // The whole document as a string. Styles, sections, paragraphs, runs, the table and its
         // borders - all of it, in PinataLayout's own grammar rather than XML or JSON.
         string ddl = DdlWriter.WriteToString(original);
@@ -124,6 +125,7 @@ internal sealed class DdlDemo : PdfDemo
         // what it could not parse.
         DdlReaderErrors errors = new DdlReaderErrors();
         Document reread = new DdlReader(new StringReader(ddl), errors).ReadDocument();
+        // docs:end round-trip
 
         // ----- the listing, added to the re-read copy -----
 
@@ -223,8 +225,10 @@ internal sealed class DdlDemo : PdfDemo
             + "actually holds, and a report template can be kept as text and filled in at run "
             + "time rather than being written out in C#.");
 
+        // docs:begin render
         PdfDocumentRenderer renderer = new PdfDocumentRenderer(unicode: true) { Document = reread };
         renderer.RenderDocument();
+        // docs:end render
         #endregion
 
         return renderer.PdfDocument;

@@ -54,6 +54,7 @@ internal sealed class FacturXDemo : PdfDemo
         XFont body = new XFont(BundledFontResolver.SansFamily, 9);
         XFont mono = new XFont(BundledFontResolver.MonoFamily, 7);
 
+        // docs:begin prepare
         PdfDocument document = new PdfDocument();
 
         // A PDF/A document has to have a title, and attaching the invoice below is what makes this
@@ -66,6 +67,7 @@ internal sealed class FacturXDemo : PdfDemo
         // PDF/A requires: colours written as RGB by a library nobody told otherwise are sRGB, so an
         // RGB document that names no profile is given PdfOutputIntents.SrgbProfile and the sRGB
         // condition to name it by. The Archive demo sets it explicitly and gets the same bytes.
+        // docs:end prepare
 
         // ----- page one: the invoice a person reads ------------------------------------------------
 
@@ -142,6 +144,7 @@ internal sealed class FacturXDemo : PdfDemo
 
         // ----- the attachment: what makes it a Factur-X invoice ------------------------------------
 
+        // docs:begin attach
         byte[] xml = Encoding.UTF8.GetBytes(CrossIndustryInvoice());
 
         // The whole of the PDF side of ZUGFeRD and Factur-X. It names the attachment factur-x.xml,
@@ -159,6 +162,7 @@ internal sealed class FacturXDemo : PdfDemo
         };
 
         PdfFileSpecification attached = invoice.AttachTo(document);
+        // docs:end attach
 
         // ----- page two: what that did -------------------------------------------------------------
 

@@ -156,6 +156,19 @@ through `PdfSigner.Sign` and `Revise` through `SaveIncremental`.
 is a dependency the library forces on a consumer, and both are written out in the project file so
 that what those two demos cost is visible.
 
+**The demos are also the documentation website's code.** `docs-website/` is a Docusaurus site
+(pnpm, Node 22) published to GitHub Pages by `.github/workflows/docs.yml`; `docs-website/README.md`
+has the commands. It keeps no copies of code: a block written ```` ```csharp demo=Protect snippet=encrypt ````
+is filled at build time with the lines between `// docs:begin encrypt` and `// docs:end encrypt` in
+`ProtectDemo.cs`, and a missing excerpt fails the site's build. So **renaming or deleting a marker
+line breaks a page**, and moving code across one changes what a page shows — grep `docs-website/docs`
+for the excerpt's name first. `DemoSource` drops the marker lines from the source the app prints,
+and `DemoSmokeTests` checks every excerpt is begun once and ended. The workflow also runs the
+SampleApp and Ghostscript to put every demo's PDF and first page in the gallery, so a new demo in
+`DemoRegistry` appears there with no further step; a page claims it with `demos: [Name]` in its
+front matter. The old `docs/PdfPinata` and `docs/PinataLayout` pages now live on the site;
+`docs/specs` stays where it is.
+
 The core package deliberately carries no imaging or font dependency. All five seams are static, and
 the first three throw a descriptive `InvalidOperationException` when read unset:
 

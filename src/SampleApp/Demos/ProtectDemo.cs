@@ -128,6 +128,7 @@ internal sealed class ProtectDemo : PdfDemo
         string report;
         using (MemoryStream buffer = new MemoryStream())
         {
+            // docs:begin encrypt
             PdfDocument sample = new PdfDocument();
             sample.AddPage();
             sample.SecuritySettings.DocumentSecurityLevel = PdfDocumentSecurityLevel.Encrypted128Bit;
@@ -136,7 +137,9 @@ internal sealed class ProtectDemo : PdfDemo
             sample.SecuritySettings.PermitExtractContent = false;
             sample.SecuritySettings.PermitModifyDocument = false;
             sample.Save(buffer, false);
+            // docs:end encrypt
 
+            // docs:begin open-modes
             // The user password opens the file to be read. It does not open it to be changed:
             // PdfDocumentOpenMode.Modify with it is refused, by name, which is the library
             // enforcing the distinction between the two passwords rather than merely recording it.
@@ -157,6 +160,7 @@ internal sealed class ProtectDemo : PdfDemo
 
             buffer.Position = 0;
             using PdfDocument asOwner = PdfReader.Open(buffer, OwnerPassword, PdfDocumentOpenMode.Modify);
+            // docs:end open-modes
 
             // HasOwnerPermissions is how a program finds out which password it was let in with,
             // and therefore whether it is entitled to change anything.
@@ -204,6 +208,7 @@ internal sealed class ProtectDemo : PdfDemo
             sample.SecuritySettings.UserPassword = ReaderPassword;
             sample.Save(buffer, false);
 
+            // docs:begin password-provider
             buffer.Position = 0;
             using PdfDocument reopened = PdfReader.Open(buffer, PdfDocumentOpenMode.Modify,
                 args =>
@@ -211,6 +216,7 @@ internal sealed class ProtectDemo : PdfDemo
                     timesAsked++;
                     args.Password = ReaderPassword;
                 });
+            // docs:end password-provider
 
             gfx2.DrawString(
                 $"The provider was called {timesAsked} time(s), and the document opened with "

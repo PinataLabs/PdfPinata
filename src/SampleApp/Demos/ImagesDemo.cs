@@ -39,11 +39,13 @@ internal sealed class ImagesDemo : PdfDemo
         XFont heading = new XFont("Liberation Sans", 9, XFontStyle.Bold);
         XPen boxPen = new XPen(XColors.Crimson, 0.5) { DashStyle = XDashStyle.Dot };
 
+        // docs:begin load
         // The image is embedded in this assembly rather than read from disk, so it is found
         // wherever the app runs. FromStream takes a factory rather than a stream: the
         // library opens it when it needs it and may do so more than once.
         using XImage photograph = XImage.FromStream(
             () => Assets.Open(Assets.ImagePrefix + "frog-and-toad.jpg"));
+        // docs:end load
 
         // ---- Page one: sizing ---------------------------------------------------------
         PdfPage page = document.AddPage();
@@ -67,6 +69,7 @@ internal sealed class ImagesDemo : PdfDemo
               + $"{photograph.PointWidth:0.#} x {photograph.PointHeight:0.#} points at 96 dpi",
             48, 78);
 
+        // docs:begin sizes
         double naturalWidth = photograph.PointWidth;
         double naturalHeight = photograph.PointHeight;
 
@@ -81,6 +84,7 @@ internal sealed class ImagesDemo : PdfDemo
         y += naturalHeight + 34;
         gfx.DrawImage(photograph, 48, y, naturalWidth / 2, naturalHeight / 2);
         Caption("half", 48, y + naturalHeight / 2 + 12);
+        // docs:end sizes
 
         double quarterX = 48 + naturalWidth / 2 + 24;
         gfx.DrawImage(photograph, quarterX, y, naturalWidth / 4, naturalHeight / 4);
@@ -100,6 +104,7 @@ internal sealed class ImagesDemo : PdfDemo
         Caption("There is no fit or cover helper. The arithmetic below is the whole of it.",
             48, 78);
 
+        // docs:begin fit
         XRect box = new XRect(48, 92, 200, 200);
 
         // Fit, or "contain": the largest scale at which the whole image is inside the box,
@@ -114,6 +119,7 @@ internal sealed class ImagesDemo : PdfDemo
         gfx.DrawImage(photograph, fitted);
         gfx.DrawRectangle(boxPen, box);
         Caption("fit: Math.Min, the whole image, letterboxed", 48, 306);
+        // docs:end fit
 
         // Fill, or "cover": the smallest scale at which the image covers the box, so the
         // overflow has to be cut off. Max of the two ratios, and then the part of the
@@ -139,6 +145,7 @@ internal sealed class ImagesDemo : PdfDemo
         // Every transform is undone by restoring the state that was saved before it. There
         // is no ResetTransform, so a Save that is not Restored leaks into everything drawn
         // afterwards.
+        // docs:begin rotate
         double[] angles = { 0, 15, 30, 45 };
         double x = 110;
         foreach (double angle in angles)
@@ -151,6 +158,7 @@ internal sealed class ImagesDemo : PdfDemo
             Caption($"{angle:0}°", x - 6, 500);
             x += 130;
         }
+        // docs:end rotate
 
         Caption("RotateAtTransform turns the page about a point, then the image is drawn "
               + "square onto it.", 48, 520);
@@ -200,6 +208,7 @@ internal sealed class ImagesDemo : PdfDemo
         // Whether a reader smooths an image scaled up beyond its own resolution. It is a request
         // written into the image dictionary rather than something the library does, so what the
         // two panels below look like depends on the reader - and some ignore it entirely.
+        // docs:begin interpolate
         using XImage blocky = XImage.FromStream(
             () => Assets.Open(Assets.ImagePrefix + "frog-and-toad.jpg"));
         blocky.Interpolate = false;
@@ -207,6 +216,7 @@ internal sealed class ImagesDemo : PdfDemo
         using XImage smooth = XImage.FromStream(
             () => Assets.Open(Assets.ImagePrefix + "frog-and-toad.jpg"));
         smooth.Interpolate = true;
+        // docs:end interpolate
 
         // A small piece of the photograph, blown up far past its own pixels, which is the only
         // arrangement in which the setting is visible at all.

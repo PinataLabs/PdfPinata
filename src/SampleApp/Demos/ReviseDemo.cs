@@ -137,6 +137,7 @@ internal sealed class ReviseDemo : PdfDemo
                 body, XBrushes.Black, new XRect(50, 290, 495, 90));
         }
 
+        // docs:begin append
         MemoryStream revisionOne = new MemoryStream();
         original.Save(revisionOne, false);
         long sizeOfOne = revisionOne.Length;
@@ -150,6 +151,7 @@ internal sealed class ReviseDemo : PdfDemo
         // information dictionary, which is an object like any other: the appended revision carries a
         // second definition of it and the reader takes that one.
         appended.Info.Subject = "Amended by revision two";
+        // docs:end append
 
         PdfPage third = appended.AddPage();
         using (XGraphics gfx = XGraphics.FromPdfPage(third))
@@ -199,6 +201,7 @@ internal sealed class ReviseDemo : PdfDemo
                 body, XBrushes.Black, new XRect(50, y + 34, 495, 76));
         }
 
+        // docs:begin save-incremental
         MemoryStream revisionTwo = new MemoryStream();
         appended.SaveIncremental(revisionTwo);
         byte[] afterTwo = revisionTwo.ToArray();
@@ -207,6 +210,7 @@ internal sealed class ReviseDemo : PdfDemo
 
         revisionTwo.Position = 0;
         PdfDocument document = PdfReader.Open(revisionTwo, PdfDocumentOpenMode.Append);
+        // docs:end save-incremental
 
         PdfPage fourth = document.AddPage();
         using (XGraphics gfx = XGraphics.FromPdfPage(fourth))

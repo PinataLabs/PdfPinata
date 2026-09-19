@@ -29,6 +29,7 @@ internal sealed class HelloWorldDemo : PdfDemo
     protected override PdfDocument Build(DemoContext context)
     {
         #region example
+        // docs:begin new-document
         PdfDocument document = new PdfDocument();
 
         // What a reader shows under "document properties". Producer is not set here: the
@@ -42,7 +43,9 @@ internal sealed class HelloWorldDemo : PdfDemo
         // A fixed date rather than DateTime.Now, so that running the demo twice produces
         // two files that differ only in the document identifier.
         document.Info.CreationDate = new DateTime(2026, 1, 1, 9, 0, 0, DateTimeKind.Utc);
+        // docs:end new-document
 
+        // docs:begin draw-text
         PdfPage page = document.AddPage();
         XGraphics gfx = XGraphics.FromPdfPage(page);
 
@@ -54,6 +57,7 @@ internal sealed class HelloWorldDemo : PdfDemo
         XFont title = new XFont("Liberation Sans", 30, XFontStyle.Bold);
         gfx.DrawString("Hello, World!", title, XBrushes.Black,
             new XRect(0, 0, width, height * 0.4), XStringFormats.Center);
+        // docs:end draw-text
 
         // The same metadata again, on the page, so it can be read without a properties
         // dialog - and so a round trip through a reader can be checked against it.

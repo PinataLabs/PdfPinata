@@ -63,6 +63,7 @@ internal sealed class LayoutDemo : PdfDemo
 
         Heading("The four alignments", 56, 48, 240);
 
+        // docs:begin alignments
         (XParagraphAlignment Alignment, string Label)[] alignments =
         {
             (XParagraphAlignment.Left, "Left - ragged on the right"),
@@ -83,6 +84,7 @@ internal sealed class LayoutDemo : PdfDemo
 
             y += 84;
         }
+        // docs:end alignments
 
         formatter.Alignment = XParagraphAlignment.Left;
 
@@ -91,6 +93,7 @@ internal sealed class LayoutDemo : PdfDemo
         // Vertical overflow is off by default, so a box too short for its text simply
         // loses the rest. Setting Ellipsis marks where the loss happened instead of
         // letting the text stop mid-sentence as though it had finished.
+        // docs:begin ellipsis
         XRect tooShort = new XRect(320, 78, 228, 34);
         gfx.DrawRectangle(boxPen, tooShort);
         formatter.Ellipsis = XTextFormatter.DefaultEllipsis;
@@ -98,15 +101,18 @@ internal sealed class LayoutDemo : PdfDemo
         formatter.Ellipsis = null;
         gfx.DrawString("Ellipsis marks what was cut", note, XBrushes.DimGray,
             new XPoint(320, 126));
+        // docs:end ellipsis
 
         // With LineBreak off nothing wraps: the text runs straight out of the box and off
         // the page. The line breaks written into the string are still obeyed.
+        // docs:begin no-line-break
         XRect noWrap = new XRect(320, 150, 228, 30);
         gfx.DrawRectangle(boxPen, noWrap);
         formatter.LineBreak = false;
         formatter.DrawString("LineBreak = false runs on past the right edge", body,
             XBrushes.Black, noWrap);
         formatter.LineBreak = true;
+        // docs:end no-line-break
 
         // ---- Page two: columns, indents and gaps ---------------------------------------
         page = document.AddPage();
@@ -117,6 +123,7 @@ internal sealed class LayoutDemo : PdfDemo
 
         // The rectangle is divided into Columns of equal width with ColumnGap between
         // them, and the text fills each in turn before moving to the next.
+        // docs:begin columns
         XRect columns = new XRect(48, 78, 500, 180);
         gfx.DrawRectangle(boxPen, columns);
         formatter.Columns = 3;
@@ -128,6 +135,7 @@ internal sealed class LayoutDemo : PdfDemo
             body, XBrushes.Black, columns);
         formatter.Columns = 1;
         formatter.Alignment = XParagraphAlignment.Left;
+        // docs:end columns
 
         gfx.DrawString("Columns = 3, ColumnGap = 16, justified", note, XBrushes.DimGray,
             new XPoint(48, 272));
@@ -143,6 +151,7 @@ internal sealed class LayoutDemo : PdfDemo
 
         // Indent moves the first line of each paragraph, ParagraphGap opens the space
         // between one paragraph and the next, LineGap the space between every line.
+        // docs:begin indents
         XRect indented = new XRect(308, 318, 240, 130);
         gfx.DrawRectangle(boxPen, indented);
         formatter.Indent = 14;
@@ -152,6 +161,7 @@ internal sealed class LayoutDemo : PdfDemo
         formatter.Indent = 0;
         formatter.ParagraphGap = 0;
         formatter.LineGap = 0;
+        // docs:end indents
         gfx.DrawString("Indent 14, ParagraphGap 6, LineGap 1.5", note, XBrushes.DimGray,
             new XPoint(308, 460));
 
@@ -161,6 +171,7 @@ internal sealed class LayoutDemo : PdfDemo
         // and the Tables and Invoice demos use it. Here the marker is drawn separately
         // and the text flows into a rectangle inset by the width of the marker, which is
         // the whole of what a hanging indent is.
+        // docs:begin lists
         string[] items =
         {
             "A marker drawn at the left of the line",
@@ -182,6 +193,7 @@ internal sealed class LayoutDemo : PdfDemo
             // every item is one line.
             y += formatter.GetLayout(items[index], body, XBrushes.Black, itemRect).Height + 4;
         }
+        // docs:end lists
 
         // ---- Page three: measuring, vertical alignment and rotation ---------------------
         page = document.AddPage();
@@ -190,6 +202,7 @@ internal sealed class LayoutDemo : PdfDemo
 
         Heading("Vertical alignment", 56);
 
+        // docs:begin vertical-alignment
         foreach ((XVerticalAlignment alignment, int column) in new[]
                  {
                      (XVerticalAlignment.Top, 0),
@@ -203,6 +216,7 @@ internal sealed class LayoutDemo : PdfDemo
                 XBrushes.Black, rect,
                 new TextFormatAlignment { Horizontal = XParagraphAlignment.Left, Vertical = alignment });
         }
+        // docs:end vertical-alignment
 
         Heading("Measuring before drawing", 212);
 
@@ -213,6 +227,7 @@ internal sealed class LayoutDemo : PdfDemo
         const string toMeasure =
             "Text to determine the size of the box I would like to place the text in";
 
+        // docs:begin measure
         formatter.AllowVerticalOverflow = true;
         XRect measured = formatter.GetLayout(toMeasure, body, XBrushes.Black,
             new XRect(0, 0, 200, 200));
@@ -224,6 +239,7 @@ internal sealed class LayoutDemo : PdfDemo
         // that was measured for it.
         gfx.DrawRectangle(new XSolidBrush(XColor.FromArgb(20, 0, 0, 0)), measured);
         formatter.DrawString(toMeasure, body, XBrushes.Black, measured);
+        // docs:end measure
 
         gfx.DrawString($"GetLayout returned {measured.Width:0.#} x {measured.Height:0.#} points",
             note, XBrushes.DimGray, new XPoint(48, 234 + measured.Height + 14));
@@ -234,6 +250,7 @@ internal sealed class LayoutDemo : PdfDemo
         // within it about the rectangle's top left corner, anticlockwise for a positive
         // angle. So the text of a box turned 90 degrees runs upwards from that corner and
         // out of the rectangle entirely - the corner is the anchor, not the box.
+        // docs:begin rotation
         double[] rotations = { 0.0, 15.0, 45.0, 90.0 };
         for (int index = 0; index < rotations.Length; index++)
         {
@@ -249,6 +266,7 @@ internal sealed class LayoutDemo : PdfDemo
             gfx.DrawString($"{rotations[index]:0}°", note, XBrushes.DimGray,
                 new XPoint(left, 640));
         }
+        // docs:end rotation
 
         gfx.DrawString("The mark shows the corner each block is turned about.", note,
             XBrushes.DimGray, new XPoint(90, 656));

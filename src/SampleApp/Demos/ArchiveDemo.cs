@@ -44,6 +44,7 @@ internal sealed class ArchiveDemo : PdfDemo
         XFont body = new XFont(BundledFontResolver.SansFamily, 9);
         XFont mono = new XFont(BundledFontResolver.MonoFamily, 7);
 
+        // docs:begin claim
         // The output intent every PDF/A document needs. Written out rather than left to the
         // default it now has, because this is the demo of the thing: an RGB document that sets
         // nothing gets exactly these bytes anyway, which is what the FacturX demo shows by
@@ -63,11 +64,13 @@ internal sealed class ArchiveDemo : PdfDemo
         document.Options.Conformance = PdfAConformance.PdfA3B;
         document.Options.OutputIntentIccProfile = profile;
         document.Options.OutputIntentIdentifier = "sRGB IEC61966-2.1";
+        // docs:end claim
 
         // Written verbatim after the descriptions this library builds, which is the seam a hybrid
         // e-invoice goes through: ZUGFeRD and Factur-X are a PDF/A-3 file with an XML attachment
         // and an extension schema saying what the attachment is. The FacturX demo is that, built
         // through PdfPinata.EInvoice rather than by hand.
+        // docs:begin extension-schema
         document.CustomizeMetadata = metadata =>
         {
             metadata.Keywords = "archival, conformance, sample";
@@ -91,6 +94,7 @@ internal sealed class ArchiveDemo : PdfDemo
                         XmpPropertyCategory.Internal, "Archive"),
                 }));
         };
+        // docs:end extension-schema
 
         // ----- page one: what the claim means ------------------------------------------------------
 

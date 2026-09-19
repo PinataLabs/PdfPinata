@@ -22,6 +22,17 @@ public static class DemoSource
     public const string EndMarker = "#endregion";
 
     /// <summary>
+    ///   Begins every line that marks out an excerpt for the documentation website, as
+    ///   <c>// docs:begin name</c> and <c>// docs:end name</c>.
+    /// </summary>
+    /// <remarks>
+    ///   The website quotes those excerpts rather than keeping copies of them, so the code it shows
+    ///   is the code this app compiles and the smoke test runs. The markers mean nothing to a reader
+    ///   of the printed source, so the extraction drops them.
+    /// </remarks>
+    public const string SnippetMarkerPrefix = "// docs:";
+
+    /// <summary>
     ///   The whole file a demo is written in, or null if it can be found neither on disk nor in the
     ///   assembly.
     /// </summary>
@@ -38,8 +49,8 @@ public static class DemoSource
     }
 
     /// <summary>
-    ///   The lines between <c>#region example</c> and its <c>#endregion</c>, dedented, or null if
-    ///   the file has no such region.
+    ///   The lines between <c>#region example</c> and its <c>#endregion</c>, dedented and without the
+    ///   documentation's excerpt markers, or null if the file has no such region.
     /// </summary>
     /// <remarks>
     ///   Markers rather than picking a method body out by matching braces. A scan for two literal
@@ -66,7 +77,11 @@ public static class DemoSource
         if (end < 0)
             return null;
 
-        List<string> body = lines.Skip(begin + 1).Take(end - begin - 1).ToList();
+        List<string> body = lines
+            .Skip(begin + 1)
+            .Take(end - begin - 1)
+            .Where(line => !line.TrimStart().StartsWith(SnippetMarkerPrefix, StringComparison.Ordinal))
+            .ToList();
 
         // Trim blank lines from both ends before measuring the indent, so a stray one does not
         // report an indent of zero and defeat the dedent.

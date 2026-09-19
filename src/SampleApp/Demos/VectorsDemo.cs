@@ -64,6 +64,7 @@ internal sealed class VectorsDemo : PdfDemo
         XGraphics gfx1 = XGraphics.FromPdfPage(page1);
         gfx1.DrawString("Closed shapes", heading, XBrushes.Black, new XPoint(50, 60));
 
+        // docs:begin pen-and-brush
         XPen outline = new XPen(XColors.MidnightBlue, 1.2);
         XSolidBrush fill = new XSolidBrush(XColor.FromArgb(80, 100, 149, 237));
 
@@ -74,6 +75,7 @@ internal sealed class VectorsDemo : PdfDemo
             // The last argument is the size of the ellipse the corner is a quarter of, not a
             // radius - so a corner as round as it can be is the full height, not half of it.
             gfx.DrawRoundedRectangle(outline, fill, r, new XSize(30, 30)));
+        // docs:end pen-and-brush
 
         Panel(gfx1, Cell(2, 0), "DrawRectangles - one call", (gfx, r) =>
         {
@@ -107,6 +109,7 @@ internal sealed class VectorsDemo : PdfDemo
             return points;
         }
 
+        // docs:begin fill-modes
         Panel(gfx1, Cell(0, 1), "DrawPolygon - Alternate", (gfx, r) =>
         {
             // The middle of the star is enclosed twice, so an even number of crossings reaches it
@@ -122,6 +125,7 @@ internal sealed class VectorsDemo : PdfDemo
             gfx.DrawPolygon(new XSolidBrush(XColors.SeaGreen), Star(r), XFillMode.Winding);
             gfx.DrawPolygon(outline, Star(r));
         });
+        // docs:end fill-modes
 
         Panel(gfx1, Cell(2, 1), "DrawPie", (gfx, r) =>
         {
@@ -161,6 +165,7 @@ internal sealed class VectorsDemo : PdfDemo
         Panel(gfx1, Cell(2, 2), "DrawEllipse - no brush", (gfx, r) =>
             gfx.DrawEllipse(new XPen(XColors.DarkOrange, 2), null, r));
 
+        // docs:begin path-with-hole
         Panel(gfx1, Cell(0, 3), "XGraphicsPath - one shape", (gfx, r) =>
         {
             // A path collects segments and is drawn once, which is how a shape with a hole is made:
@@ -170,6 +175,7 @@ internal sealed class VectorsDemo : PdfDemo
             path.AddEllipse(new XRect(r.X + r.Width / 4, r.Y + r.Height / 4, r.Width / 2, r.Height / 2));
             gfx.DrawPath(outline, new XSolidBrush(XColors.SlateBlue), path);
         });
+        // docs:end path-with-hole
 
         Panel(gfx1, Cell(1, 3), "Path - Winding, same figures", (gfx, r) =>
         {
@@ -214,6 +220,7 @@ internal sealed class VectorsDemo : PdfDemo
                 gfx.DrawEllipse(XBrushes.Firebrick, point.X - 1.5, point.Y - 1.5, 3, 3);
         });
 
+        // docs:begin bezier
         Panel(gfx2, Cell(0, 1), "DrawBezier - control points shown", (gfx, r) =>
         {
             XPoint p1 = new XPoint(r.X, r.Bottom);
@@ -233,6 +240,7 @@ internal sealed class VectorsDemo : PdfDemo
             foreach (XPoint point in new[] { p1, p2 })
                 gfx.DrawEllipse(XBrushes.MidnightBlue, point.X - 2, point.Y - 2, 4, 4);
         });
+        // docs:end bezier
 
         Panel(gfx2, Cell(1, 1), "DrawBeziers - chained", (gfx, r) =>
         {
@@ -250,6 +258,7 @@ internal sealed class VectorsDemo : PdfDemo
             });
         });
 
+        // docs:begin arc
         Panel(gfx2, Cell(2, 1), "DrawArc - 0 degrees is 3 o'clock", (gfx, r) =>
         {
             XRect box = new XRect(r.X + 5, r.Y + 5, r.Width - 10, r.Height - 10);
@@ -266,6 +275,7 @@ internal sealed class VectorsDemo : PdfDemo
             gfx.DrawString("180 to -60", note, XBrushes.SeaGreen,
                 new XPoint(box.X, box.Y - 2));
         });
+        // docs:end arc
 
         Panel(gfx2, Cell(0, 2), "AddArc between two points", (gfx, r) =>
         {
@@ -361,6 +371,7 @@ internal sealed class VectorsDemo : PdfDemo
             #pragma warning restore CA1861
         });
 
+        // docs:begin line-caps
         Panel(gfx3, Cell(1, 0), "LineCap - Flat, Round, Square", (gfx, r) =>
         {
             double y = r.Y + 10;
@@ -375,6 +386,7 @@ internal sealed class VectorsDemo : PdfDemo
                 y += r.Height / 3;
             }
         });
+        // docs:end line-caps
 
         Panel(gfx3, Cell(2, 0), "LineJoin - Miter, Round, Bevel", (gfx, r) =>
         {
@@ -443,11 +455,13 @@ internal sealed class VectorsDemo : PdfDemo
             #pragma warning disable CA1861 // The demo prints only its example region, so the values stay beside what they draw.
             foreach (double offset in new[] { 0.0, 2.0, 4.0 })
             {
+                // docs:begin dash-pattern
                 gfx.DrawLine(new XPen(XColors.MidnightBlue, 2)
                 {
                     DashPattern = new[] { 4.0, 2.0, 1.0, 2.0 },
                     DashOffset = offset,
                 }, r.X, y, r.Right, y);
+                // docs:end dash-pattern
                 y += r.Height / 3;
             }
             #pragma warning restore CA1861
@@ -463,6 +477,7 @@ internal sealed class VectorsDemo : PdfDemo
             }
         });
 
+        // docs:begin gradients
         Panel(gfx3, Cell(1, 2), "XLinearGradientBrush", (gfx, r) =>
             gfx.DrawRectangle(new XLinearGradientBrush(r,
                 XColors.MidnightBlue, XColors.Gold, XLinearGradientMode.ForwardDiagonal), r));
@@ -473,6 +488,7 @@ internal sealed class VectorsDemo : PdfDemo
             gfx.DrawRectangle(new XRadialGradientBrush(centre, 0,
                 Math.Min(r.Width, r.Height) / 2, XColors.Gold, XColors.MidnightBlue), r);
         });
+        // docs:end gradients
 
         Panel(gfx3, Cell(0, 3), "A gradient into transparency", (gfx, r) =>
         {
@@ -488,11 +504,14 @@ internal sealed class VectorsDemo : PdfDemo
                 }
             }
 
+            // docs:begin fade-to-transparent
             gfx.DrawRectangle(new XLinearGradientBrush(r,
                 XColor.FromArgb(255, 25, 25, 112), XColor.FromArgb(0, 25, 25, 112),
                 XLinearGradientMode.Horizontal), r);
+            // docs:end fade-to-transparent
         });
 
+        // docs:begin pen-from-brush
         Panel(gfx3, Cell(1, 3), "A pen made from a brush", (gfx, r) =>
         {
             // XPen takes a brush as well as a colour, so a stroke can carry a gradient.
@@ -500,6 +519,7 @@ internal sealed class VectorsDemo : PdfDemo
                 XColors.Firebrick, XColors.MidnightBlue, XLinearGradientMode.Horizontal), 6);
             gfx.DrawLines(gradient, Wave(r, 9));
         });
+        // docs:end pen-from-brush
 
         Panel(gfx3, Cell(2, 3), "Overprint", (gfx, r) =>
         {
@@ -550,6 +570,7 @@ internal sealed class VectorsDemo : PdfDemo
             gfx.Restore(state);
         });
 
+        // docs:begin rotate
         Panel(gfx4, Wide(1, 0), "ScaleTransform and RotateTransform", (gfx, r) =>
         {
             XGraphicsState state = gfx.Save();
@@ -574,6 +595,7 @@ internal sealed class VectorsDemo : PdfDemo
 
             gfx.Restore(state);
         });
+        // docs:end rotate
 
         Panel(gfx4, Wide(0, 1), "MultiplyTransform - a shear", (gfx, r) =>
         {
@@ -620,6 +642,7 @@ internal sealed class VectorsDemo : PdfDemo
             gfx.Restore(plain);
         });
 
+        // docs:begin clip
         Panel(gfx4, new XRect(50, 490, 495, 190), "IntersectClip", (gfx, r) =>
         {
             XGraphicsState state = gfx.Save();
@@ -642,6 +665,7 @@ internal sealed class VectorsDemo : PdfDemo
             // Drawn after the Restore, so it is not clipped: the outline shows where the clip was.
             gfx.DrawEllipse(new XPen(XColors.Firebrick, 0.8), r);
         });
+        // docs:end clip
         #endregion
 
         return document;
