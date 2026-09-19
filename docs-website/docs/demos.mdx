@@ -1,0 +1,26 @@
+---
+title: Demos
+description: Every demo in the SampleApp, with the PDF it makes, its source and the guide that explains it.
+---
+
+import DemoGallery from '@site/src/components/DemoGallery';
+
+The repository includes a demonstration app, `SampleApp`. Each demo builds one PDF and shows one
+feature. Click a preview to open the PDF, **Source** to read the code that made it, and the last link
+to read the guide for that feature.
+
+Every PDF on this page is rebuilt from the current code each time the site is published.
+
+To run the demos yourself, clone the repository and run these commands from its root:
+
+```sh
+dotnet run --project src/SampleApp -- list
+dotnet run --project src/SampleApp -- run
+dotnet run --project src/SampleApp -- run --example Fonts Text
+```
+
+`list` shows every demo and what it covers. `run` writes one PDF per demo into `output/`, and prints
+the source of each one first. Use `--example` to run only some demos, and `--no-code` to hide the
+source.
+
+<DemoGallery />

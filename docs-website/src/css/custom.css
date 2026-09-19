@@ -1,0 +1,29 @@
+/**
+ * Global styles. Docusaurus uses Infima (https://infima.dev) under the hood, so
+ * overriding these CSS variables is enough to re-theme the whole site.
+ *
+ * The primary colour is the magenta of the piñata in the logo.
+ */
+
+:root {
+  --ifm-color-primary: #c2185b;
+  --ifm-color-primary-dark: #af1652;
+  --ifm-color-primary-darker: #a5144d;
+  --ifm-color-primary-darkest: #881140;
+  --ifm-color-primary-light: #d51a64;
+  --ifm-color-primary-lighter: #df1c69;
+  --ifm-color-primary-lightest: #e53a7d;
+  --ifm-code-font-size: 95%;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #f06292;
+  --ifm-color-primary-dark: #ed4581;
+  --ifm-color-primary-darker: #ec3778;
+  --ifm-color-primary-darkest: #d9165e;
+  --ifm-color-primary-light: #f37fa3;
+  --ifm-color-primary-lighter: #f48dac;
+  --ifm-color-primary-lightest: #f8b5c9;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+}
