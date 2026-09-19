@@ -201,9 +201,14 @@ internal class AESEncryptor : RC4Encryptor
                     Array.Copy(data, 0, data, j * dataLen, dataLen);
 
                 /* Step 3: encrypt data using data block as key and iv */
+                // Not encryption for secrecy: ISO 32000-2 Algorithm 2.B uses AES here as a step of
+                // the password hash, and prescribes this IV. A random one would compute a hash no
+                // other reader agrees with, and no revision 6 password would ever match.
                 Array.Copy(block, 16, iv, 0, 16);
                 Array.Copy(block, 0, aesKey, 0, 16);
+                #pragma warning disable S3329 // The IV is prescribed by ISO 32000-2 Algorithm 2.B; see above.
                 using (var aesEnc = aes128.CreateEncryptor(aesKey, iv))
+                #pragma warning restore S3329
                 {
                     aesEnc.TransformBlock(data, 0, dataLen * 64, data, 0);
 

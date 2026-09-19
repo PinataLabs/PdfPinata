@@ -416,7 +416,9 @@ internal sealed class SigningDemo : PdfDemo
         // Round-tripped through PKCS#12 on purpose. A certificate straight out of CreateSelfSigned
         // carries an ephemeral key on Windows, and CMS signing goes looking for that key in a store
         // it was never put in - "Keyset does not exist", from a certificate that plainly has one.
+        #pragma warning disable S2068 // Not a credential: it protects a throwaway self-signed certificate for the length of this method.
         const string password = "pdfsharpcore";
+        #pragma warning restore S2068
         return new X509Certificate2(
             ephemeral.Export(X509ContentType.Pfx, password), password,
             X509KeyStorageFlags.Exportable);

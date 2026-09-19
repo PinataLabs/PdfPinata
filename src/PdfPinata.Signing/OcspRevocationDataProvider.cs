@@ -196,8 +196,14 @@ public sealed class OcspRevocationDataProvider : IRevocationDataProvider, IDispo
     /// </summary>
     static byte[] BuildRequest(X509Certificate2 certificate, X509Certificate2 issuer)
     {
+        // SHA-1 identifies the certificate here; it protects nothing. RFC 6960's CertID names the
+        // issuer by hash, and SHA-1 is the one algorithm every responder is required to accept
+        // (RFC 5019), so a stronger one would get "unknown" back from responders that do not match
+        // on it.
+        #pragma warning disable S4790 // SHA-1 is what OCSP responders are required to understand; see above.
         var issuerNameHash = SHA1.HashData(issuer.SubjectName.RawData);
         var issuerKeyHash = SHA1.HashData(issuer.PublicKey.EncodedKeyValue.RawData);
+        #pragma warning restore S4790
 
         var serialNumberBytes = certificate.GetSerialNumber(); // little-endian
         var serialNumber = new System.Numerics.BigInteger(serialNumberBytes, isUnsigned: true, isBigEndian: false);
