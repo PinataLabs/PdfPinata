@@ -36,7 +36,7 @@ internal class PSCSR
 {
   internal static string InvalidChartTypeForCombination(ChartType chartType)
   {
-    return string.Format("ChartType '{0}' not valid for combination of charts.", chartType.ToString());
+    return $"ChartType '{chartType.ToString()}' not valid for combination of charts.";
   }
 
   internal static string PercentNotSupportedByColumnDataLabel => "Column data label cannot be set to 'Percent'";

@@ -27,7 +27,7 @@ internal sealed class BarcodesDemo : PdfDemo
         "The nine AnchorType values, each against the point it was given",
         "OMR marks, whose 'code' is the bits of a number rather than characters",
         "An ECC200 data matrix through DrawMatrixCode, square and rectangular, with quiet zones",
-        "What each code will and will not accept, and what it says when it will not",
+        "What each code will and will not accept, and what it says when it will not"
     };
 
     public override int PageCount => 3;
@@ -35,13 +35,13 @@ internal sealed class BarcodesDemo : PdfDemo
     protected override PdfDocument Build(DemoContext context)
     {
         #region example
-        PdfDocument document = new PdfDocument();
+        var document = new PdfDocument();
         document.Info.Title = "Barcodes";
 
-        XFont heading = new XFont("Liberation Sans", 16, XFontStyle.Bold);
-        XFont label = new XFont("Liberation Sans", 9, XFontStyle.Bold);
-        XFont note = new XFont("Liberation Sans", 7.5);
-        XFont codeText = new XFont("Liberation Sans", 8);
+        var heading = new XFont("Liberation Sans", 16, XFontStyle.Bold);
+        var label = new XFont("Liberation Sans", 9, XFontStyle.Bold);
+        var note = new XFont("Liberation Sans", 7.5);
+        var codeText = new XFont("Liberation Sans", 8);
 
         void Caption(XGraphics gfx, double x, double y, string title, string detail)
         {
@@ -52,17 +52,17 @@ internal sealed class BarcodesDemo : PdfDemo
 
         // ----- page 1: the linear codes -----
 
-        PdfPage page1 = document.AddPage();
-        XGraphics gfx1 = XGraphics.FromPdfPage(page1);
+        var page1 = document.AddPage();
+        var gfx1 = XGraphics.FromPdfPage(page1);
         gfx1.DrawString("Linear codes", heading, XBrushes.Black, new XPoint(50, 60));
 
         // docs:begin code39
         // A bar code is an object rather than a call: it carries the text, the size it should
         // occupy and the direction it runs in, and DrawBarCode paints it at a point. That point is
         // the code's Anchor, which is its top left corner until it is told otherwise.
-        Code3of9Standard code39 = new Code3of9Standard("PDFSHARP-2026", new XSize(230, 50))
+        var code39 = new Code3of9Standard("PDFSHARP-2026", new XSize(230, 50))
         {
-            TextLocation = TextLocation.Below,
+            TextLocation = TextLocation.Below
         };
         gfx1.DrawBarCode(code39, XBrushes.Black, codeText, new XPoint(50, 95));
         // docs:end code39
@@ -72,9 +72,9 @@ internal sealed class BarcodesDemo : PdfDemo
         // docs:begin code25
         // Interleaved 2 of 5 packs two digits into every five bars, so it is denser than Code 39
         // and takes digits only - and an even number of them, because of the interleaving.
-        Code2of5Interleaved code25 = new Code2of5Interleaved("20260816", new XSize(200, 50))
+        var code25 = new Code2of5Interleaved("20260816", new XSize(200, 50))
         {
-            TextLocation = TextLocation.Below,
+            TextLocation = TextLocation.Below
         };
         gfx1.DrawBarCode(code25, XBrushes.Black, codeText, new XPoint(320, 95));
         // docs:end code25
@@ -85,13 +85,13 @@ internal sealed class BarcodesDemo : PdfDemo
         // wider the ratio the easier a scanner finds it and the more paper it takes. The default
         // here is 2.6, which is neither of the two numbers the standard actually names.
         double left = 50;
-        foreach (double ratio in new[] { 2.0, 2.6, 3.0 })
+        foreach (var ratio in new[] { 2.0, 2.6, 3.0 })
         {
             // docs:begin ratio
-            Code3of9Standard scaled = new Code3of9Standard("RATIO", new XSize(140, 42))
+            var scaled = new Code3of9Standard("RATIO", new XSize(140, 42))
             {
                 TextLocation = TextLocation.None,
-                WideNarrowRatio = ratio,
+                WideNarrowRatio = ratio
             };
             gfx1.DrawBarCode(scaled, XBrushes.Black, codeText, new XPoint(left, 240));
             // docs:end ratio
@@ -108,15 +108,15 @@ internal sealed class BarcodesDemo : PdfDemo
         // Where the human-readable text goes, and whether it takes room from the bars or sits over
         // them. The two "embedded" locations put it inside the code's own box.
         left = 50;
-        foreach (TextLocation location in new[]
+        foreach (var location in new[]
         {
             TextLocation.None, TextLocation.Above, TextLocation.Below,
-            TextLocation.AboveEmbedded, TextLocation.BelowEmbedded,
+            TextLocation.AboveEmbedded, TextLocation.BelowEmbedded
         })
         {
-            Code3of9Standard located = new Code3of9Standard("TEXT", new XSize(85, 55))
+            var located = new Code3of9Standard("TEXT", new XSize(85, 55))
             {
-                TextLocation = location,
+                TextLocation = location
             };
             gfx1.DrawBarCode(located, XBrushes.Black, codeText, new XPoint(left, 350));
             gfx1.DrawString(location.ToString(), note, XBrushes.DimGray, new XPoint(left, 425));
@@ -131,11 +131,11 @@ internal sealed class BarcodesDemo : PdfDemo
         // marks drawn are that number's bits, which a sorting machine counts rather than decodes.
         // The low bit is forced on by the renderer, so 1382 and 1383 draw the same marks.
         left = 50;
-        foreach (int value in new[] { 1, 5, 1382 })
+        foreach (var value in new[] { 1, 5, 1382 })
         {
-            CodeOmr omr = new CodeOmr(value.ToString(), new XSize(150, 40), CodeDirection.LeftToRight)
+            var omr = new CodeOmr(value.ToString(), new XSize(150, 40), CodeDirection.LeftToRight)
             {
-                SynchronizeCode = true,
+                SynchronizeCode = true
             };
             gfx1.DrawBarCode(omr, XBrushes.Black, new XPoint(left, 480));
             gfx1.DrawString($"OMR for {value}", note, XBrushes.DimGray, new XPoint(left, 535));
@@ -153,11 +153,11 @@ internal sealed class BarcodesDemo : PdfDemo
             ("Code 3 of 9", "0-9, A-Z and - . $ / + % * space. Anything else throws ArgumentException."),
             ("Interleaved 2 of 5", "Digits, evenly many. Anything else throws ArgumentException."),
             ("OMR", "A number. Text that will not parse becomes zero, and the low bit is forced on."),
-            ("Data matrix", "Any text, in ASCII encodation, within the symbol size asked for."),
+            ("Data matrix", "Any text, in ASCII encodation, within the symbol size asked for.")
         };
 
         double y = 610;
-        foreach ((string Code, string Accepts) rule in rules)
+        foreach (var rule in rules)
         {
             gfx1.DrawString(rule.Code, note, XBrushes.Black, new XPoint(50, y));
             gfx1.DrawString(rule.Accepts, note, XBrushes.DimGray, new XPoint(160, y));
@@ -166,8 +166,8 @@ internal sealed class BarcodesDemo : PdfDemo
 
         // ----- page 2: where a code lands and which way it runs -----
 
-        PdfPage page2 = document.AddPage();
-        XGraphics gfx2 = XGraphics.FromPdfPage(page2);
+        var page2 = document.AddPage();
+        var gfx2 = XGraphics.FromPdfPage(page2);
         gfx2.DrawString("Placing a code", heading, XBrushes.Black, new XPoint(50, 60));
 
         Caption(gfx2, 50, 90, "CodeDirection",
@@ -184,14 +184,14 @@ internal sealed class BarcodesDemo : PdfDemo
             (CodeDirection.LeftToRight, 90, 150, -8),
             (CodeDirection.RightToLeft, 400, 150, 14),
             (CodeDirection.TopToBottom, 150, 250, -8),
-            (CodeDirection.BottomToTop, 420, 400, 14),
+            (CodeDirection.BottomToTop, 420, 400, 14)
         };
 
-        foreach ((CodeDirection Direction, double X, double Y, double LabelY) each in directions)
+        foreach (var each in directions)
         {
-            Code3of9Standard turned = new Code3of9Standard("TURN", new XSize(110, 34), each.Direction)
+            var turned = new Code3of9Standard("TURN", new XSize(110, 34), each.Direction)
             {
-                TextLocation = TextLocation.None,
+                TextLocation = TextLocation.None
             };
             gfx2.DrawBarCode(turned, XBrushes.Black, codeText, new XPoint(each.X, each.Y));
             gfx2.DrawEllipse(XBrushes.Firebrick, each.X - 2.5, each.Y - 2.5, 5, 5);
@@ -207,18 +207,18 @@ internal sealed class BarcodesDemo : PdfDemo
         {
             AnchorType.TopLeft, AnchorType.TopCenter, AnchorType.TopRight,
             AnchorType.MiddleLeft, AnchorType.MiddleCenter, AnchorType.MiddleRight,
-            AnchorType.BottomLeft, AnchorType.BottomCenter, AnchorType.BottomRight,
+            AnchorType.BottomLeft, AnchorType.BottomCenter, AnchorType.BottomRight
         };
 
-        for (int index = 0; index < anchors.Length; index++)
+        for (var index = 0; index < anchors.Length; index++)
         {
-            XPoint at = new XPoint(140 + index % 3 * 170, 520 + index / 3 * 100);
+            var at = new XPoint(140 + index % 3 * 170, 520 + index / 3 * 100);
 
             // docs:begin anchor
-            Code3of9Standard anchored = new Code3of9Standard("ABC", new XSize(80, 30))
+            var anchored = new Code3of9Standard("ABC", new XSize(80, 30))
             {
                 TextLocation = TextLocation.None,
-                Anchor = anchors[index],
+                Anchor = anchors[index]
             };
             gfx2.DrawBarCode(anchored, XBrushes.Black, codeText, at);
             // docs:end anchor
@@ -232,13 +232,13 @@ internal sealed class BarcodesDemo : PdfDemo
 
         // ----- page 3: the data matrix -----
 
-        PdfPage page3 = document.AddPage();
-        XGraphics gfx3 = XGraphics.FromPdfPage(page3);
+        var page3 = document.AddPage();
+        var gfx3 = XGraphics.FromPdfPage(page3);
         gfx3.DrawString("ECC200 data matrix", heading, XBrushes.Black, new XPoint(50, 60));
 
         // DrawString does not wrap - it draws one line and runs off the page if the line is too
         // long for it. Anything that has to fit a measure goes through XTextFormatter instead.
-        XTextFormatter prose = new XTextFormatter(gfx3);
+        var prose = new XTextFormatter(gfx3);
         prose.DrawString(
             "A data matrix is a MatrixCode rather than a BarCode - a different base class, and "
             + "DrawMatrixCode rather than DrawBarCode. BarCode.FromType says so if asked for one.",
@@ -252,13 +252,13 @@ internal sealed class BarcodesDemo : PdfDemo
         {
             ("PDFSHARPCORE", 16, "16 x 16 modules"),
             ("PDFSHARPCORE-2026-08-16", 22, "22 x 22, the same plus a date"),
-            ("https://github.com/PinataLabs/PdfPinata", 32, "32 x 32, a whole URL"),
+            ("https://github.com/PinataLabs/PdfPinata", 32, "32 x 32, a whole URL")
         };
 
         left = 50;
-        foreach ((string Code, int Size, string Note) matrix in matrices)
+        foreach (var matrix in matrices)
         {
-            CodeDataMatrix square = new CodeDataMatrix(matrix.Code, matrix.Size, matrix.Size,
+            var square = new CodeDataMatrix(matrix.Code, matrix.Size, matrix.Size,
                 new XSize(120, 120));
             gfx3.DrawMatrixCode(square, XBrushes.Black, new XPoint(left, 110));
             Caption(gfx3, left, 250, matrix.Note, "");
@@ -273,17 +273,17 @@ internal sealed class BarcodesDemo : PdfDemo
         {
             (18, 18, "18 x 18, square"),
             (8, 32, "8 x 32, rectangular"),
-            (12, 36, "12 x 36, rectangular"),
+            (12, 36, "12 x 36, rectangular")
         };
 
         left = 50;
-        foreach ((int Rows, int Columns, string Note) shape in shapes)
+        foreach (var shape in shapes)
         {
             // The drawn size is exactly what it is asked for, so a rectangular symbol given a
             // square box comes out with rectangular modules. Matching the box to the symbol's own
             // proportions is the caller's job.
-            double height = 120.0 * shape.Rows / shape.Columns;
-            CodeDataMatrix oblong = new CodeDataMatrix("PDFSHARP", shape.Rows, shape.Columns,
+            var height = 120.0 * shape.Rows / shape.Columns;
+            var oblong = new CodeDataMatrix("PDFSHARP", shape.Rows, shape.Columns,
                 new XSize(120, height));
             gfx3.DrawMatrixCode(oblong, XBrushes.Black, new XPoint(left, 300));
             Caption(gfx3, left, 440, shape.Note, "");
@@ -296,9 +296,9 @@ internal sealed class BarcodesDemo : PdfDemo
         // counted in modules and drawn inside the size given, so a wider one shrinks the symbol
         // rather than growing the code. The grey box is the size asked for.
         left = 50;
-        foreach (int quiet in new[] { 0, 2, 5 })
+        foreach (var quiet in new[] { 0, 2, 5 })
         {
-            CodeDataMatrix bordered = new CodeDataMatrix("QUIET", "", 16, 16, quiet,
+            var bordered = new CodeDataMatrix("QUIET", "", 16, 16, quiet,
                 new XSize(120, 120));
             gfx3.DrawRectangle(new XPen(XColors.Firebrick, 0.5), left, 480, 120, 120);
             gfx3.DrawMatrixCode(bordered, XBrushes.Black, new XPoint(left, 480));

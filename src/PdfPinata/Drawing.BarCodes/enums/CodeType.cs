@@ -54,5 +54,5 @@ public enum CodeType
     /// <summary>
     /// The data matrix code.
     /// </summary>
-    DataMatrix,
+    DataMatrix
 }

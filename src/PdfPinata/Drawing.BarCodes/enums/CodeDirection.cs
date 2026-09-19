@@ -52,5 +52,5 @@ public enum CodeDirection
     /// <summary>
     /// Rotates the code 180° at the anchor position.
     /// </summary>
-    TopToBottom,
+    TopToBottom
 }

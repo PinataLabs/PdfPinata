@@ -50,5 +50,5 @@ public enum GV
   /// <summary>
   /// Returns null if value is Null or does not exist.
   /// </summary>
-  GetNull = 2,
+  GetNull = 2
 }

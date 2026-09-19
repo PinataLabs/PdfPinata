@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -50,7 +50,7 @@ public sealed class XGraphicsPath
     /// </summary>
     public XGraphicsPath Clone()
     {
-        XGraphicsPath path = (XGraphicsPath)MemberwiseClone();
+        var path = (XGraphicsPath)MemberwiseClone();
         _corePath = new CoreGraphicsPath(_corePath);
         return path;
     }
@@ -87,11 +87,11 @@ public sealed class XGraphicsPath
     {
         ArgumentNullException.ThrowIfNull(points);
 
-        int count = points.Length;
+        var count = points.Length;
         if (count == 0)
             return;
         _corePath.MoveOrLineTo(points[0].X, points[0].Y);
-        for (int idx = 1; idx < count; idx++)
+        for (var idx = 1; idx < count; idx++)
             _corePath.LineTo(points[idx].X, points[idx].Y, false);
     }
 
@@ -123,7 +123,7 @@ public sealed class XGraphicsPath
     {
         ArgumentNullException.ThrowIfNull(points);
 
-        int count = points.Length;
+        var count = points.Length;
         if (count < 4)
             throw new ArgumentException("At least four points required for bezier curve.", nameof(points));
 
@@ -132,7 +132,7 @@ public sealed class XGraphicsPath
                 nameof(points));
 
         _corePath.MoveOrLineTo(points[0].X, points[0].Y);
-        for (int idx = 1; idx < count; idx += 3)
+        for (var idx = 1; idx < count; idx += 3)
         {
             _corePath.BezierTo(points[idx].X, points[idx].Y, points[idx + 1].X, points[idx + 1].Y,
                 points[idx + 2].X, points[idx + 2].Y, false);
@@ -154,7 +154,7 @@ public sealed class XGraphicsPath
     /// </summary>
     public void AddCurve(XPoint[] points, double tension)
     {
-        int count = points.Length;
+        var count = points.Length;
         if (count < 2)
             throw new ArgumentException("AddCurve requires two or more points.", nameof(points));
         _corePath.AddCurve(points, tension);
@@ -223,8 +223,8 @@ public sealed class XGraphicsPath
     /// </summary>
     public void AddRectangles(XRect[] rects)
     {
-        int count = rects.Length;
-        for (int idx = 0; idx < count; idx++)
+        var count = rects.Length;
+        for (var idx = 0; idx < count; idx++)
         {
             AddRectangle(rects[idx]);
         }
@@ -237,8 +237,8 @@ public sealed class XGraphicsPath
     /// </summary>
     public void AddRoundedRectangle(double x, double y, double width, double height, double ellipseWidth, double ellipseHeight)
     {
-        double arcWidth = ellipseWidth / 2;
-        double arcHeight = ellipseHeight / 2;
+        var arcWidth = ellipseWidth / 2;
+        var arcHeight = ellipseHeight / 2;
         _corePath.MoveTo(x + width - arcWidth, y);
         _corePath.QuadrantArcTo(x + width - arcWidth, y + arcHeight, arcWidth, arcHeight, 1, true);
 
@@ -270,10 +270,10 @@ public sealed class XGraphicsPath
     /// </summary>
     public void AddEllipse(double x, double y, double width, double height)
     {
-        double w = width / 2;
-        double h = height / 2;
-        double xc = x + w;
-        double yc = y + h;
+        var w = width / 2;
+        var h = height / 2;
+        var xc = x + w;
+        var yc = y + h;
         _corePath.MoveTo(x + w, y);
         _corePath.QuadrantArcTo(xc, yc, w, h, 1, true);
         _corePath.QuadrantArcTo(xc, yc, w, h, 4, true);
@@ -289,12 +289,12 @@ public sealed class XGraphicsPath
     /// </summary>
     public void AddPolygon(XPoint[] points)
     {
-        int count = points.Length;
+        var count = points.Length;
         if (count == 0)
             return;
 
         _corePath.MoveTo(points[0].X, points[0].Y);
-        for (int idx = 0; idx < count - 1; idx++)
+        for (var idx = 0; idx < count - 1; idx++)
             _corePath.LineTo(points[idx].X, points[idx].Y, false);
         _corePath.LineTo(points[count - 1].X, points[count - 1].Y, true);
         _corePath.CloseSubpath();
@@ -335,7 +335,7 @@ public sealed class XGraphicsPath
     public void AddClosedCurve(XPoint[] points, double tension)
     {
         ArgumentNullException.ThrowIfNull(points);
-        int count = points.Length;
+        var count = points.Length;
         if (count == 0)
             return;
         if (count < 2)
@@ -415,21 +415,21 @@ public sealed class XGraphicsPath
         if (s.Length == 0)
             return;
 
-        XFont font = new XFont(family.Name, emSize, style);
+        var font = new XFont(family.Name, emSize, style);
 
         // Measured and placed by the code the renderer draws text with, not by a copy of it.
         // A path is built in the caller's world, which measures y downwards.
-        double width = FontHelper.MeasureString(s, font, format).Width;
-        XPoint origin = TextOrigin.For(layoutRect, width, font, format, true);
+        var width = FontHelper.MeasureString(s, font, format).Width;
+        var origin = TextOrigin.For(layoutRect, width, font, format, true);
 
-        bool isBold = (style & XFontStyle.Bold) != 0;
-        bool isItalic = (style & XFontStyle.Italic) != 0;
+        var isBold = (style & XFontStyle.Bold) != 0;
+        var isItalic = (style & XFontStyle.Italic) != 0;
 
         // Read before anything is added, so that an unregistered provider leaves the path as it
         // found it rather than half filled.
-        IGlyphOutlineProvider provider = GlobalFontSettings.GlyphOutlineProvider;
+        var provider = GlobalFontSettings.GlyphOutlineProvider;
 
-        foreach (XGlyphOutline outline in provider.GetOutlines(s, family.Name, isBold, isItalic, emSize))
+        foreach (var outline in provider.GetOutlines(s, family.Name, isBold, isItalic, emSize))
             AddGlyphOutline(outline, origin);
     }
 
@@ -443,7 +443,7 @@ public sealed class XGraphicsPath
     /// </remarks>
     void AddGlyphOutline(XGlyphOutline outline, XPoint origin)
     {
-        foreach (XGlyphSegment segment in outline.Segments)
+        foreach (var segment in outline.Segments)
         {
             switch (segment.Kind)
             {
@@ -506,7 +506,7 @@ public sealed class XGraphicsPath
     // --------------------------------------------------------------------------------------------
 
     /// <summary>
-    /// Converts each curve in this XGraphicsPath into a sequence of connected line segments. 
+    /// Converts each curve in this XGraphicsPath into a sequence of connected line segments.
     /// </summary>
     #pragma warning disable CA1822 // Public API: making these no-op overloads static would break every caller, and the operation acts on this path once implemented.
     public void Flatten()
@@ -515,7 +515,7 @@ public sealed class XGraphicsPath
     }
 
     /// <summary>
-    /// Converts each curve in this XGraphicsPath into a sequence of connected line segments. 
+    /// Converts each curve in this XGraphicsPath into a sequence of connected line segments.
     /// </summary>
     public void Flatten(XMatrix matrix)
     {
@@ -523,7 +523,7 @@ public sealed class XGraphicsPath
     }
 
     /// <summary>
-    /// Converts each curve in this XGraphicsPath into a sequence of connected line segments. 
+    /// Converts each curve in this XGraphicsPath into a sequence of connected line segments.
     /// </summary>
     public void Flatten(XMatrix matrix, double flatness)
     {
@@ -534,7 +534,7 @@ public sealed class XGraphicsPath
     // --------------------------------------------------------------------------------------------
 
     /// <summary>
-    /// Replaces this path with curves that enclose the area that is filled when this path is drawn 
+    /// Replaces this path with curves that enclose the area that is filled when this path is drawn
     /// by the specified pen.
     /// </summary>
     #pragma warning disable CA1822 // Public API: making these no-op overloads static would break every caller, and the operation acts on this path once implemented.
@@ -544,7 +544,7 @@ public sealed class XGraphicsPath
     }
 
     /// <summary>
-    /// Replaces this path with curves that enclose the area that is filled when this path is drawn 
+    /// Replaces this path with curves that enclose the area that is filled when this path is drawn
     /// by the specified pen.
     /// </summary>
     public void Widen(XPen pen, XMatrix matrix)
@@ -553,7 +553,7 @@ public sealed class XGraphicsPath
     }
 
     /// <summary>
-    /// Replaces this path with curves that enclose the area that is filled when this path is drawn 
+    /// Replaces this path with curves that enclose the area that is filled when this path is drawn
     /// by the specified pen.
     /// </summary>
     public void Widen(XPen pen, XMatrix matrix, double flatness)

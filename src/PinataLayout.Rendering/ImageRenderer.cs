@@ -24,7 +24,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -47,7 +47,7 @@ internal class ImageRenderer : ShapeRenderer
         : base(gfx, image, fieldInfos)
     {
         this.image = image;
-        ImageRenderInfo renderInfo = new ImageRenderInfo();
+        var renderInfo = new ImageRenderInfo();
         renderInfo.shape = shape;
         this.renderInfo = renderInfo;
     }
@@ -60,7 +60,7 @@ internal class ImageRenderer : ShapeRenderer
 
     internal override void Format(Area area, FormatInfo previousFormatInfo)
     {
-        ImageFormatInfo formatInfo = (ImageFormatInfo)renderInfo.FormatInfo;
+        var formatInfo = (ImageFormatInfo)renderInfo.FormatInfo;
         formatInfo.ImageSource = image.Source;
         formatInfo.Failure = ImageFailure.None;
         formatInfo.FailureException = null;
@@ -72,7 +72,7 @@ internal class ImageRenderer : ShapeRenderer
     {
         get
         {
-            ImageFormatInfo formatInfo = (ImageFormatInfo)renderInfo.FormatInfo;
+            var formatInfo = (ImageFormatInfo)renderInfo.FormatInfo;
             return formatInfo.Height + lineFormatRenderer.GetWidth();
         }
     }
@@ -81,19 +81,19 @@ internal class ImageRenderer : ShapeRenderer
     {
         get
         {
-            ImageFormatInfo formatInfo = (ImageFormatInfo)renderInfo.FormatInfo;
+            var formatInfo = (ImageFormatInfo)renderInfo.FormatInfo;
             return formatInfo.Width + lineFormatRenderer.GetWidth();
         }
     }
 
     internal override void Render()
     {
-        using (Tagger.Artifact(gfx))
+        using (Tagger.Artifact(Gfx))
             RenderFilling();
 
-        ImageFormatInfo formatInfo = (ImageFormatInfo)renderInfo.FormatInfo;
-        Area contentArea = renderInfo.LayoutInfo.ContentArea;
-        XRect destRect = new XRect(contentArea.X, contentArea.Y, formatInfo.Width, formatInfo.Height);
+        var formatInfo = (ImageFormatInfo)renderInfo.FormatInfo;
+        var contentArea = renderInfo.LayoutInfo.ContentArea;
+        var destRect = new XRect(contentArea.X, contentArea.Y, formatInfo.Width, formatInfo.Height);
 
         using (BeginStructure())
         {
@@ -101,9 +101,9 @@ internal class ImageRenderer : ShapeRenderer
             {
                 try
                 {
-                    XRect srcRect = new XRect(formatInfo.CropX, formatInfo.CropY, formatInfo.CropWidth, formatInfo.CropHeight);
+                    var srcRect = new XRect(formatInfo.CropX, formatInfo.CropY, formatInfo.CropWidth, formatInfo.CropHeight);
                     using (var xImage = XImage.FromImageSource(formatInfo.ImageSource))
-                        gfx.DrawImage(xImage, destRect, srcRect, XGraphicsUnit.Point); //Pixel.
+                        Gfx.DrawImage(xImage, destRect, srcRect, XGraphicsUnit.Point); //Pixel.
                 }
                 catch (Exception ex) when (!IsUnrecoverable(ex))
                 {
@@ -117,7 +117,7 @@ internal class ImageRenderer : ShapeRenderer
                 RenderFailureImage(destRect);
         }
 
-        using (Tagger.Artifact(gfx))
+        using (Tagger.Artifact(Gfx))
             RenderLine();
     }
 
@@ -142,11 +142,11 @@ internal class ImageRenderer : ShapeRenderer
     IDisposable BeginStructure()
     {
         if (image.IsNull("AlternativeText") || string.IsNullOrEmpty(image.AlternativeText))
-            return Tagger.Artifact(gfx);
+            return Tagger.Artifact(Gfx);
 
         Tagger.EndList();
 
-        var scope = Tagger.Block(gfx, image, PdfTag.Figure, out var element);
+        var scope = Tagger.Block(Gfx, image, PdfTag.Figure, out var element);
         if (element != null)
             element.AlternateText = image.AlternativeText;
 
@@ -168,11 +168,11 @@ internal class ImageRenderer : ShapeRenderer
 
     void RenderFailureImage(XRect destRect)
     {
-        gfx.DrawRectangle(XBrushes.LightGray, destRect);
+        Gfx.DrawRectangle(XBrushes.LightGray, destRect);
         string failureString;
-        ImageFormatInfo formatInfo = (ImageFormatInfo)RenderInfo.FormatInfo;
+        var formatInfo = (ImageFormatInfo)RenderInfo.FormatInfo;
 
-        documentRenderer?.OnImageFailed(image, formatInfo.Failure, formatInfo.FailureException);
+        DocumentRenderer?.OnImageFailed(image, formatInfo.Failure, formatInfo.FailureException);
 
         switch (formatInfo.Failure)
         {
@@ -195,8 +195,8 @@ internal class ImageRenderer : ShapeRenderer
         }
 
         // Create stub font
-        XFont font = FitWithin(failureString, destRect.Width);
-        gfx.DrawString(failureString, font, XBrushes.Red, destRect, XStringFormats.Center);
+        var font = FitWithin(failureString, destRect.Width);
+        Gfx.DrawString(failureString, font, XBrushes.Red, destRect, XStringFormats.Center);
     }
 
     /// <summary>
@@ -211,12 +211,12 @@ internal class ImageRenderer : ShapeRenderer
     /// </remarks>
     XFont FitWithin(string text, double width)
     {
-        string family = GlobalFontSettings.FontResolver.DefaultFontName;
+        var family = GlobalFontSettings.FontResolver.DefaultFontName;
 
-        foreach (double size in new[] { 8.0, 7.0, 6.0, 5.0 })
+        foreach (var size in new[] { 8.0, 7.0, 6.0, 5.0 })
         {
-            XFont candidate = new XFont(family, size);
-            if (gfx.MeasureString(text, candidate).Width <= width)
+            var candidate = new XFont(family, size);
+            if (Gfx.MeasureString(text, candidate).Width <= width)
                 return candidate;
         }
 
@@ -225,7 +225,7 @@ internal class ImageRenderer : ShapeRenderer
 
     private void CalculateImageDimensions()
     {
-        ImageFormatInfo formatInfo = (ImageFormatInfo)renderInfo.FormatInfo;
+        var formatInfo = (ImageFormatInfo)renderInfo.FormatInfo;
 
         if (formatInfo.Failure == ImageFailure.None)
         {
@@ -249,27 +249,27 @@ internal class ImageRenderer : ShapeRenderer
             {
                 XUnit usrWidth = image.Width.Point;
                 XUnit usrHeight = image.Height.Point;
-                bool usrWidthSet = !image.IsNull("Width");
-                bool usrHeightSet = !image.IsNull("Height");
+                var usrWidthSet = !image.IsNull("Width");
+                var usrHeightSet = !image.IsNull("Height");
 
-                XUnit resultWidth = usrWidth;
-                XUnit resultHeight = usrHeight;
+                var resultWidth = usrWidth;
+                var resultHeight = usrHeight;
 
                 double xPixels = xImage.PixelWidth;
-                bool usrResolutionSet = !image.IsNull("Resolution");
+                var usrResolutionSet = !image.IsNull("Resolution");
 
-                double horzRes = usrResolutionSet ? (double)image.Resolution : xImage.HorizontalResolution;
-                XUnit inherentWidth = XUnit.FromInch(xPixels / horzRes);
+                var horzRes = usrResolutionSet ? (double)image.Resolution : xImage.HorizontalResolution;
+                var inherentWidth = XUnit.FromInch(xPixels / horzRes);
                 double yPixels = xImage.PixelHeight;
-                double vertRes = usrResolutionSet ? (double)image.Resolution : xImage.VerticalResolution;
-                XUnit inherentHeight = XUnit.FromInch(yPixels / vertRes);
+                var vertRes = usrResolutionSet ? (double)image.Resolution : xImage.VerticalResolution;
+                var inherentHeight = XUnit.FromInch(yPixels / vertRes);
 
-                bool lockRatio = image.IsNull("LockAspectRatio") ? true : image.LockAspectRatio;
+                var lockRatio = image.IsNull("LockAspectRatio") ? true : image.LockAspectRatio;
 
-                double scaleHeight = image.ScaleHeight;
-                double scaleWidth = image.ScaleWidth;
-                bool scaleHeightSet = !image.IsNull("ScaleHeight");
-                bool scaleWidthSet = !image.IsNull("ScaleWidth");
+                var scaleHeight = image.ScaleHeight;
+                var scaleWidth = image.ScaleWidth;
+                var scaleHeightSet = !image.IsNull("ScaleHeight");
+                var scaleWidthSet = !image.IsNull("ScaleWidth");
 
                 if (lockRatio)
                 {
@@ -328,7 +328,7 @@ internal class ImageRenderer : ShapeRenderer
                 formatInfo.CropHeight = (int)yPixels;
                 if (!image.IsNull("PictureFormat"))
                 {
-                    PictureFormat picFormat = image.PictureFormat;
+                    var picFormat = image.PictureFormat;
                     //Cropping in pixels.
                     XUnit cropLeft = picFormat.CropLeft.Point;
                     XUnit cropRight = picFormat.CropRight.Point;
@@ -340,8 +340,8 @@ internal class ImageRenderer : ShapeRenderer
                     formatInfo.CropHeight -= (int)(vertRes * ((XUnit)(cropTop + cropBottom)).Inch);
 
                     //Scaled cropping of the height and width.
-                    double xScale = resultWidth / inherentWidth;
-                    double yScale = resultHeight / inherentHeight;
+                    var xScale = resultWidth / inherentWidth;
+                    var yScale = resultHeight / inherentHeight;
 
                     cropLeft = xScale * cropLeft;
                     cropRight = xScale * cropRight;
@@ -396,7 +396,7 @@ internal class ImageRenderer : ShapeRenderer
     /// </remarks>
     static bool IsUsableSize(XUnit size)
     {
-        double points = size.Point;
+        var points = size.Point;
         return points > 0 && !double.IsInfinity(points);
     }
 

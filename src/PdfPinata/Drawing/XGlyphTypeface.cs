@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -47,8 +47,8 @@ internal sealed class XGlyphTypeface
     //
     // * Each XGlyphTypeface can belong to one or more XFont objects.
     // * An XGlyphTypeface hold an XFontFamily.
-    // * XGlyphTypeface hold a reference to an OpenTypeFontface. 
-    // * 
+    // * XGlyphTypeface hold a reference to an OpenTypeFontface.
+    // *
     //
 
     const string KeyPrefix = "tk:";  // "typeface key"
@@ -64,7 +64,7 @@ internal sealed class XGlyphTypeface
     /// </param>
     public XGlyphTypeface(string key, XFontSource fontSource, XStyleSimulations styleSimulations)
     {
-        string familyName = fontSource.Fontface.name.Name;
+        var familyName = fontSource.Fontface.name.Name;
         _fontFamily = new XFontFamily(familyName, false);
         _fontface = fontSource.Fontface;
         _isBold = _fontface.os2.IsBold;
@@ -93,7 +93,7 @@ internal sealed class XGlyphTypeface
     public static XGlyphTypeface GetOrCreateFrom(string familyName, FontResolvingOptions fontResolvingOptions)
     {
         // Check cache for requested type face.
-        string typefaceKey = ComputeKey(familyName, fontResolvingOptions);
+        var typefaceKey = ComputeKey(familyName, fontResolvingOptions);
         if (GlyphTypefaceCache.TryGetGlyphTypeface(typefaceKey, out var glyphTypeface))
         {
             // Just return existing one.
@@ -101,7 +101,7 @@ internal sealed class XGlyphTypeface
         }
 
         // Resolve typeface by FontFactory.
-        FontResolverInfo fontResolverInfo = FontFactory.ResolveTypeface(familyName, fontResolvingOptions, typefaceKey);
+        var fontResolverInfo = FontFactory.ResolveTypeface(familyName, fontResolvingOptions, typefaceKey);
         if (fontResolverInfo == null)
         {
             // No fallback - just stop.
@@ -115,7 +115,7 @@ internal sealed class XGlyphTypeface
 
         // We have a valid font resolver info. That means we also have an XFontSource object loaded in the cache.
         ////XFontSource fontSource = FontFactory.GetFontSourceByTypefaceKey(fontResolverInfo.FaceName);
-        XFontSource fontSource = FontFactory.GetFontSourceByFontName(fontResolverInfo.FaceName);
+        var fontSource = FontFactory.GetFontSourceByFontName(fontResolverInfo.FaceName);
         Debug.Assert(fontSource != null);
 
         // Each font source already contains its OpenTypeFontface. The resolver's simulation
@@ -243,8 +243,8 @@ internal sealed class XGlyphTypeface
 
     internal string GetBaseName()
     {
-        string name = DisplayName;
-        int ich = name.IndexOf("bold", StringComparison.OrdinalIgnoreCase);
+        var name = DisplayName;
+        var ich = name.IndexOf("bold", StringComparison.OrdinalIgnoreCase);
         if (ich > 0)
             name = name.Remove(ich, 4);
         ich = name.IndexOf("italic", StringComparison.OrdinalIgnoreCase);
@@ -262,7 +262,7 @@ internal sealed class XGlyphTypeface
     internal static string ComputeKey(string familyName, FontResolvingOptions fontResolvingOptions)
     {
         // Compute a human readable key.
-        string simulationSuffix = "";
+        var simulationSuffix = "";
         if (fontResolvingOptions.OverrideStyleSimulations)
         {
             switch (fontResolvingOptions.StyleSimulations)
@@ -274,10 +274,10 @@ internal sealed class XGlyphTypeface
                 default: throw new ArgumentOutOfRangeException(nameof(fontResolvingOptions));
             }
         }
-        string key = KeyPrefix + familyName.ToLowerInvariant()
-                               + (fontResolvingOptions.IsItalic ? "/i" : "/n") // normal / oblique / italic  
-                               + (fontResolvingOptions.IsBold ? "/700" : "/400") + "/5" // Stretch.Normal
-                               + simulationSuffix;
+        var key = KeyPrefix + familyName.ToLowerInvariant()
+                            + (fontResolvingOptions.IsItalic ? "/i" : "/n") // normal / oblique / italic
+                            + (fontResolvingOptions.IsBold ? "/700" : "/400") + "/5" // Stretch.Normal
+                            + simulationSuffix;
         return key;
     }
 

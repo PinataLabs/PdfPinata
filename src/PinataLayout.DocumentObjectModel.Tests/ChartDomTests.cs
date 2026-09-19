@@ -145,7 +145,7 @@ public class ChartDomTests
         "BottomArea" => chart.BottomArea,
         "LeftArea" => chart.LeftArea,
         "RightArea" => chart.RightArea,
-        _ => throw new System.ArgumentOutOfRangeException(nameof(areaName)),
+        _ => throw new System.ArgumentOutOfRangeException(nameof(areaName))
     };
 
     // ----- CheckTextArea -------------------------------------------------------------------------
@@ -182,7 +182,7 @@ public class ChartDomTests
         {
             ("HeaderArea", "headerarea"), ("FooterArea", "footerarea"),
             ("TopArea", "toparea"), ("BottomArea", "bottomarea"),
-            ("LeftArea", "leftarea"), ("RightArea", "rightarea"),
+            ("LeftArea", "leftarea"), ("RightArea", "rightarea")
         })
             AreaOf(chart, areaName).AddParagraph(keyword + " content");
 
@@ -195,7 +195,7 @@ public class ChartDomTests
         {
             ("HeaderArea", "headerarea"), ("FooterArea", "footerarea"),
             ("TopArea", "toparea"), ("BottomArea", "bottomarea"),
-            ("LeftArea", "leftarea"), ("RightArea", "rightarea"),
+            ("LeftArea", "leftarea"), ("RightArea", "rightarea")
         })
         {
             var paragraph = AreaOf(reread, areaName).Elements[0] as Paragraph;

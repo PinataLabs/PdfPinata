@@ -68,7 +68,7 @@ public partial class XValues : DocumentObjectCollection
   /// </summary>
   public XSeries AddXSeries()
   {
-    XSeries xSeries = new XSeries();
+    var xSeries = new XSeries();
     Add(xSeries);
     return xSeries;
   }
@@ -80,10 +80,10 @@ public partial class XValues : DocumentObjectCollection
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    int count = Count;
-    for (int index = 0; index < count; ++index)
+    var count = Count;
+    for (var index = 0; index < count; ++index)
     {
-      XSeries xSeries = this[index] as XSeries;
+      var xSeries = this[index] as XSeries;
       xSeries.Serialize(serializer);
     }
   }

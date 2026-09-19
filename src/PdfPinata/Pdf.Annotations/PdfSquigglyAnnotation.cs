@@ -69,18 +69,18 @@ public sealed class PdfSquigglyAnnotation : PdfTextMarkupAnnotation
     /// </summary>
     protected override void DrawQuad(StringBuilder content, PdfRectangle quad)
     {
-        double amplitude = TextMarkupGeometry.RuleThickness(quad) * 1.4;
-        double thickness = amplitude / 2;
-        double bottom = quad.Y1 + thickness;
-        double top = bottom + amplitude;
+        var amplitude = TextMarkupGeometry.RuleThickness(quad) * 1.4;
+        var thickness = amplitude / 2;
+        var bottom = quad.Y1 + thickness;
+        var top = bottom + amplitude;
 
         content.Append(PdfEncoders.Format("{0:0.###} w\n", thickness));
         content.Append(PdfEncoders.Format("{0:0.###} {1:0.###} m\n", quad.X1, bottom));
 
         // Half a period per segment, alternating between the trough and the crest. The last one
         // is clipped to the end of the quadrilateral rather than allowed to overhang it.
-        double x = quad.X1;
-        bool up = true;
+        var x = quad.X1;
+        var up = true;
         while (x < quad.X2)
         {
             x = Math.Min(x + amplitude, quad.X2);

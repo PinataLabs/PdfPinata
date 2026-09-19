@@ -229,7 +229,7 @@ public partial class Footnote : DocumentObject, IVisitable
     {
         serializer.WriteLine("\\footnote");
 
-        int pos = serializer.BeginAttributes();
+        var pos = serializer.BeginAttributes();
         if ((reference ?? "") != string.Empty)
             serializer.WriteSimpleAttribute("Reference", Reference);
         if ((style ?? "") != string.Empty)

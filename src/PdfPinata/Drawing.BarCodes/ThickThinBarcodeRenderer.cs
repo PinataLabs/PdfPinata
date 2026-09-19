@@ -15,10 +15,10 @@
 // distribute, sublicense, and/or sell copies of the Software, and to
 // permit persons to whom the Software is furnished to do so, subject to
 // the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be
 // included in all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 // EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -91,10 +91,10 @@ public abstract class ThickThinBarCode : BarCode  // TODO: The name is not optim
     /// <param name="isThick">Determines whether a thick or a thin line is about to be rendered.</param>
     internal void RenderBar(BarCodeRenderInfo info, bool isThick)
     {
-        double barWidth = GetBarWidth(info, isThick);
-        double height = Size.Height;
-        double xPos = info.CurrPos.X;
-        double yPos = info.CurrPos.Y;
+        var barWidth = GetBarWidth(info, isThick);
+        var height = Size.Height;
+        var xPos = info.CurrPos.X;
+        var yPos = info.CurrPos.Y;
 
         switch (TextLocation)
         {
@@ -107,7 +107,7 @@ public abstract class ThickThinBarCode : BarCode  // TODO: The name is not optim
                 break;
         }
 
-        XRect rect = new XRect(xPos, yPos, barWidth, height);
+        var rect = new XRect(xPos, yPos, barWidth, height);
         info.Gfx.DrawRectangle(info.Brush, rect);
         info.CurrPos.X += barWidth;
     }
@@ -142,7 +142,7 @@ public abstract class ThickThinBarCode : BarCode  // TODO: The name is not optim
     {
         if (info.Font == null)
             info.Font = new XFont(GlobalFontSettings.FontResolver.DefaultFontName, Size.Height / 6);
-        XPoint center = info.Position + CalcDistance(Anchor, AnchorType.TopLeft, Size);
+        var center = info.Position + CalcDistance(Anchor, AnchorType.TopLeft, Size);
 
         switch (TextLocation)
         {

@@ -31,7 +31,7 @@ public sealed class CircleAnnotationTests : IDisposable
 
     public void Dispose()
     {
-        foreach (MagickImageCollection collection in _rasterized)
+        foreach (var collection in _rasterized)
             collection.Dispose();
 
         _rasterized.Clear();
@@ -48,8 +48,8 @@ public sealed class CircleAnnotationTests : IDisposable
     [Fact]
     public void ACircleNamesItsSubtype()
     {
-        PdfDocument document = new PdfDocument();
-        PdfCircleAnnotation circle = new PdfCircleAnnotation();
+        var document = new PdfDocument();
+        var circle = new PdfCircleAnnotation();
         document.AddPage().Annotations.Add(circle);
 
         circle.Elements.GetName("/Subtype").Should().Be("/Circle");
@@ -58,8 +58,8 @@ public sealed class CircleAnnotationTests : IDisposable
     [Fact]
     public void ACircleCarriesTheSameInteriorAndBorderAsASquare()
     {
-        PdfDocument document = new PdfDocument();
-        PdfCircleAnnotation circle = new PdfCircleAnnotation();
+        var document = new PdfDocument();
+        var circle = new PdfCircleAnnotation();
         document.AddPage().Annotations.Add(circle);
         circle.Rectangle = new PdfRectangle(Where);
 
@@ -90,8 +90,8 @@ public sealed class CircleAnnotationTests : IDisposable
     [Fact]
     public void AskingForNothingClearsTheAppearanceStateAsWellAsTheAppearance()
     {
-        PdfDocument document = new PdfDocument();
-        PdfCircleAnnotation circle = new PdfCircleAnnotation();
+        var document = new PdfDocument();
+        var circle = new PdfCircleAnnotation();
         document.AddPage().Annotations.Add(circle);
         circle.Rectangle = new PdfRectangle(Where);
 
@@ -123,7 +123,7 @@ public sealed class CircleAnnotationTests : IDisposable
     [GoldenImageFact]
     public void AFilledCircleIsAnEllipseInscribedInTheRectangle()
     {
-        IMagickImage<byte> page = Rasterize("filled", circle =>
+        var page = Rasterize("filled", circle =>
         {
             circle.Interior = XColors.SeaGreen;
             circle.BorderWidth = 0;
@@ -134,15 +134,15 @@ public sealed class CircleAnnotationTests : IDisposable
 
         // And the corners of the rectangle are outside it, which is the whole of the difference
         // between this and PdfSquareAnnotation - a square would have painted all four.
-        foreach ((double x, double y) in new[]
+        foreach ((var x, var y) in new[]
                  {
                      (Where.X + 4, Where.Y + 4),
                      (Where.Right - 4, Where.Y + 4),
                      (Where.X + 4, Where.Bottom - 4),
-                     (Where.Right - 4, Where.Bottom - 4),
+                     (Where.Right - 4, Where.Bottom - 4)
                  })
         {
-            IMagickColor<byte> corner = At(page, x, y);
+            var corner = At(page, x, y);
             IsGreen(corner).Should().BeFalse("the corner at {0},{1} is outside the ellipse", x, y);
         }
     }
@@ -150,7 +150,7 @@ public sealed class CircleAnnotationTests : IDisposable
     [GoldenImageFact]
     public void AnUnfilledCircleIsAnOutlineWithAnEmptyMiddle()
     {
-        IMagickImage<byte> page = Rasterize("outline", circle =>
+        var page = Rasterize("outline", circle =>
         {
             circle.Color = XColors.SeaGreen;
             circle.BorderWidth = 5;
@@ -164,17 +164,17 @@ public sealed class CircleAnnotationTests : IDisposable
     {
         GlobalFontSettings.FontResolver ??= new PinnedFontResolver();
 
-        PdfDocument document = new PdfDocument();
-        PdfPage page = document.AddPage();
-        XGraphics gfx = XGraphics.FromPdfPage(page);
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        var gfx = XGraphics.FromPdfPage(page);
 
-        PdfCircleAnnotation circle = new PdfCircleAnnotation();
+        var circle = new PdfCircleAnnotation();
         page.Annotations.Add(circle);
         circle.Rectangle = new PdfRectangle(gfx.Transformer.WorldToDefaultPage(Where));
 
         arrange(circle);
 
-        MagickImageCollection images = PdfHelper.Rasterize(document).ImageCollection;
+        var images = PdfHelper.Rasterize(document).ImageCollection;
         _rasterized.Add(images);
         PdfHelper.WriteImageCollection(images, OutDir, name);
         return images[0];
@@ -185,9 +185,9 @@ public sealed class CircleAnnotationTests : IDisposable
     /// </summary>
     static IMagickColor<byte> At(IMagickImage<byte> image, double x, double y)
     {
-        double scale = image.Width / PageSizeConverter.ToSize(PageSize.A4).Width;
+        var scale = image.Width / PageSizeConverter.ToSize(PageSize.A4).Width;
 
-        using IPixelCollection<byte> pixels = image.GetPixels();
+        using var pixels = image.GetPixels();
         return pixels.GetPixel((int)(x * scale), (int)(y * scale)).ToColor();
     }
 
@@ -197,10 +197,10 @@ public sealed class CircleAnnotationTests : IDisposable
 
     static int Count(IMagickImage<byte> image, Func<IMagickColor<byte>, bool> match)
     {
-        using IPixelCollection<byte> pixels = image.GetPixels();
+        using var pixels = image.GetPixels();
         return pixels.Count(p =>
         {
-            IMagickColor<byte> c = p.ToColor();
+            var c = p.ToColor();
             return c != null && match(c);
         });
     }

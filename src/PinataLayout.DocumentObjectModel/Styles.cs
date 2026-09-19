@@ -26,7 +26,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -81,10 +81,10 @@ public partial class Styles : DocumentObjectCollection, IVisitable
             // DefaultParagraphFont, on the grounds that it "cannot be modified" - protection by
             // being unreachable, which GetIndex and the integer indexer both saw through anyway.
             // It is genuinely unmodifiable now: every setter on its ParagraphFormat and Font throws.
-            int count = Count;
-            for (int index = 0; index < count; ++index)
+            var count = Count;
+            for (var index = 0; index < count; ++index)
             {
-                Style style = (Style)this[index];
+                var style = (Style)this[index];
                 if (String.Compare(style.Name, styleName, true) == 0)
                     return style;
             }
@@ -93,7 +93,7 @@ public partial class Styles : DocumentObjectCollection, IVisitable
     }
 
     /// <summary>
-    /// Gets a style by index. 
+    /// Gets a style by index.
     /// </summary>
     internal new Style this[int index] => (Style)base[index];
 
@@ -106,10 +106,10 @@ public partial class Styles : DocumentObjectCollection, IVisitable
     {
         ArgumentNullException.ThrowIfNull(styleName);
 
-        int count = Count;
-        for (int index = 0; index < count; ++index)
+        var count = Count;
+        for (var index = 0; index < count; ++index)
         {
-            Style style = (Style)this[index];
+            var style = (Style)this[index];
             if (String.Compare(style.Name, styleName, true) == 0)
                 return index;
         }
@@ -128,9 +128,11 @@ public partial class Styles : DocumentObjectCollection, IVisitable
         if (name == "" || baseStyleName == "")
             throw new ArgumentException(name == "" ? "name" : "baseStyleName");
 
-        Style style = new Style();
-        style.name = name;
-        style.baseStyle = baseStyleName;
+        var style = new Style
+        {
+            name = name,
+            baseStyle = baseStyleName
+        };
         Add(style);
 
         // Not the style just built: Add replaces an existing style of the same name with a clone
@@ -147,17 +149,17 @@ public partial class Styles : DocumentObjectCollection, IVisitable
     {
         ArgumentNullException.ThrowIfNull(value);
 
-        Style style = value as Style;
+        var style = value as Style;
         if (style == null)
             throw new InvalidOperationException(AppResources.StyleExpected);
 
-        bool isRootStyle = style.IsRootStyle;
+        var isRootStyle = style.IsRootStyle;
 
         if (style.BaseStyle == "" && !isRootStyle)
             throw new ArgumentException(DomSR.UndefinedBaseStyle(style.BaseStyle));
 
         Style baseStyle = null;
-        int styleIndex = GetIndex(style.BaseStyle);
+        var styleIndex = GetIndex(style.BaseStyle);
 
         if (styleIndex != -1)
             baseStyle = this[styleIndex] as Style;
@@ -167,7 +169,7 @@ public partial class Styles : DocumentObjectCollection, IVisitable
         if (baseStyle != null)
             style.styleType = baseStyle.Type;
 
-        int index = GetIndex(style.Name);
+        var index = GetIndex(style.Name);
 
         if (index >= 0)
         {
@@ -208,125 +210,193 @@ public partial class Styles : DocumentObjectCollection, IVisitable
         // First standard style
         style = new Style(Style.DefaultParagraphFontName, null)
         {
-            readOnly = true
+            readOnly = true,
+            styleType = StyleType.Character,
+            buildIn = true
         };
-        style.styleType = StyleType.Character;
-        style.buildIn = true;
         Add(style);
 
         // Normal 'Standard' (Paragraph Style)
-        style = new Style(Style.DefaultParagraphName, null);
-        style.styleType = StyleType.Paragraph;
-        style.buildIn = true;
-        style.Font.Name = GlobalFontSettings.FontResolver.DefaultFontName;
-        style.Font.Size = 10;
-        style.Font.Bold = false;
-        style.Font.Italic = false;
-        style.Font.Underline = Underline.None;
-        style.Font.Color = Colors.Black;
-        style.Font.Subscript = false;
-        style.Font.Superscript = false;
-        style.Font.Strikethrough = Strikethrough.None;
-        style.ParagraphFormat.Alignment = ParagraphAlignment.Left;
-        style.ParagraphFormat.FirstLineIndent = 0;
-        style.ParagraphFormat.LeftIndent = 0;
-        style.ParagraphFormat.RightIndent = 0;
-        style.ParagraphFormat.KeepTogether = false;
-        style.ParagraphFormat.KeepWithNext = false;
-        style.ParagraphFormat.SpaceBefore = 0;
-        style.ParagraphFormat.SpaceAfter = 0;
-        style.ParagraphFormat.LineSpacing = 10;
-        style.ParagraphFormat.LineSpacingRule = LineSpacingRule.Single;
-        style.ParagraphFormat.OutlineLevel = OutlineLevel.BodyText;
-        style.ParagraphFormat.PageBreakBefore = false;
-        style.ParagraphFormat.WidowControl = true;
+        style = new Style(Style.DefaultParagraphName, null)
+        {
+            styleType = StyleType.Paragraph,
+            buildIn = true,
+            Font =
+            {
+                Name = GlobalFontSettings.FontResolver.DefaultFontName,
+                Size = 10,
+                Bold = false,
+                Italic = false,
+                Underline = Underline.None,
+                Color = Colors.Black,
+                Subscript = false,
+                Superscript = false,
+                Strikethrough = Strikethrough.None
+            },
+            ParagraphFormat =
+            {
+                Alignment = ParagraphAlignment.Left,
+                FirstLineIndent = 0,
+                LeftIndent = 0,
+                RightIndent = 0,
+                KeepTogether = false,
+                KeepWithNext = false,
+                SpaceBefore = 0,
+                SpaceAfter = 0,
+                LineSpacing = 10,
+                LineSpacingRule = LineSpacingRule.Single,
+                OutlineLevel = OutlineLevel.BodyText,
+                PageBreakBefore = false,
+                WidowControl = true
+            }
+        };
         Add(style);
 
         // Heading1 'Überschrift 1' (Paragraph Style)
-        style = new Style("Heading1", "Normal");
-        style.buildIn = true;
-        style.ParagraphFormat.OutlineLevel = OutlineLevel.Level1;
+        style = new Style("Heading1", "Normal")
+        {
+            buildIn = true,
+            ParagraphFormat =
+            {
+                OutlineLevel = OutlineLevel.Level1
+            }
+        };
         Add(style);
 
         // Heading2 'Überschrift 2' (Paragraph Style)
-        style = new Style("Heading2", "Heading1");
-        style.buildIn = true;
-        style.ParagraphFormat.OutlineLevel = OutlineLevel.Level2;
+        style = new Style("Heading2", "Heading1")
+        {
+            buildIn = true,
+            ParagraphFormat =
+            {
+                OutlineLevel = OutlineLevel.Level2
+            }
+        };
         Add(style);
 
         // Heading3 'Überschrift 3' (Paragraph Style)
-        style = new Style("Heading3", "Heading2");
-        style.buildIn = true;
-        style.ParagraphFormat.OutlineLevel = OutlineLevel.Level3;
+        style = new Style("Heading3", "Heading2")
+        {
+            buildIn = true,
+            ParagraphFormat =
+            {
+                OutlineLevel = OutlineLevel.Level3
+            }
+        };
         Add(style);
 
         // Heading4 'Überschrift 4' (Paragraph Style)
-        style = new Style("Heading4", "Heading3");
-        style.buildIn = true;
-        style.ParagraphFormat.OutlineLevel = OutlineLevel.Level4;
+        style = new Style("Heading4", "Heading3")
+        {
+            buildIn = true,
+            ParagraphFormat =
+            {
+                OutlineLevel = OutlineLevel.Level4
+            }
+        };
         Add(style);
 
         // Heading5 'Überschrift 5' (Paragraph Style)
-        style = new Style("Heading5", "Heading4");
-        style.buildIn = true;
-        style.ParagraphFormat.OutlineLevel = OutlineLevel.Level5;
+        style = new Style("Heading5", "Heading4")
+        {
+            buildIn = true,
+            ParagraphFormat =
+            {
+                OutlineLevel = OutlineLevel.Level5
+            }
+        };
         Add(style);
 
         // Heading6 'Überschrift 6' (Paragraph Style)
-        style = new Style("Heading6", "Heading5");
-        style.buildIn = true;
-        style.ParagraphFormat.OutlineLevel = OutlineLevel.Level6;
+        style = new Style("Heading6", "Heading5")
+        {
+            buildIn = true,
+            ParagraphFormat =
+            {
+                OutlineLevel = OutlineLevel.Level6
+            }
+        };
         Add(style);
 
         // Heading7 'Überschrift 7' (Paragraph Style)
-        style = new Style("Heading7", "Heading6");
-        style.buildIn = true;
-        style.ParagraphFormat.OutlineLevel = OutlineLevel.Level7;
+        style = new Style("Heading7", "Heading6")
+        {
+            buildIn = true,
+            ParagraphFormat =
+            {
+                OutlineLevel = OutlineLevel.Level7
+            }
+        };
         Add(style);
 
         // Heading8 'Überschrift 8' (Paragraph Style)
-        style = new Style("Heading8", "Heading7");
-        style.buildIn = true;
-        style.ParagraphFormat.OutlineLevel = OutlineLevel.Level8;
+        style = new Style("Heading8", "Heading7")
+        {
+            buildIn = true,
+            ParagraphFormat =
+            {
+                OutlineLevel = OutlineLevel.Level8
+            }
+        };
         Add(style);
 
         // Heading9 'Überschrift 9' (Paragraph Style)
-        style = new Style("Heading9", "Heading8");
-        style.buildIn = true;
-        style.ParagraphFormat.OutlineLevel = OutlineLevel.Level9;
+        style = new Style("Heading9", "Heading8")
+        {
+            buildIn = true,
+            ParagraphFormat =
+            {
+                OutlineLevel = OutlineLevel.Level9
+            }
+        };
         Add(style);
 
         // List 'Liste' (Paragraph Style)
-        style = new Style("List", "Normal");
-        style.buildIn = true;
+        style = new Style("List", "Normal")
+        {
+            buildIn = true
+        };
         Add(style);
 
         // Footnote 'Fußnote' (Paragraph Style)
-        style = new Style("Footnote", "Normal");
-        style.buildIn = true;
+        style = new Style("Footnote", "Normal")
+        {
+            buildIn = true
+        };
         Add(style);
 
         // Header 'Kopfzeile' (Paragraph Style)
-        style = new Style("Header", "Normal");
-        style.buildIn = true;
+        style = new Style("Header", "Normal")
+        {
+            buildIn = true
+        };
         Add(style);
 
         // -33: Footer 'Fußzeile' (Paragraph Style)
-        style = new Style("Footer", "Normal");
-        style.buildIn = true;
+        style = new Style("Footer", "Normal")
+        {
+            buildIn = true
+        };
         Add(style);
 
         // Hyperlink 'Hyperlink' (Character Style)
-        style = new Style("Hyperlink", "DefaultParagraphFont");
-        style.buildIn = true;
+        style = new Style("Hyperlink", "DefaultParagraphFont")
+        {
+            buildIn = true
+        };
         Add(style);
 
         // InvalidStyleName 'Ungültiger Formatvorlagenname' (Paragraph Style)
-        style = new Style("InvalidStyleName", "Normal");
-        style.buildIn = true;
-        style.Font.Bold = true;
-        style.Font.Underline = Underline.Dash;
-        style.Font.Color = new Color(0xFF00FF00);
+        style = new Style("InvalidStyleName", "Normal")
+        {
+            buildIn = true,
+            Font =
+            {
+                Bold = true,
+                Underline = Underline.Dash,
+                Color = new Color(0xFF00FF00)
+            }
+        };
         Add(style);
     }
 
@@ -337,27 +407,26 @@ public partial class Styles : DocumentObjectCollection, IVisitable
     internal override void Serialize(Serializer serializer)
     {
         serializer.WriteComment((comment ?? ""));
-        int pos = serializer.BeginContent("\\styles");
+        var pos = serializer.BeginContent("\\styles");
 
         // A style can only be added to Styles if its base style exists. Therefore the
-        // styles collection is consistent at any one time by definition. But because it 
-        // is possible  to change the base style of a style, the sequence of the styles 
+        // styles collection is consistent at any one time by definition. But because it
+        // is possible  to change the base style of a style, the sequence of the styles
         // in the styles collection can be in an order that a style comes before its base
         // style. The styles in an DDL file must be ordered such that each style appears
         // after its base style. We cannot simple reorder the styles collection, because
         // the predefined styles are expected at a fixed position.
         // The solution is to reorder the styles during serialization.
-        int count = Count;
-        bool[] fSerialized = new bool[count];  // already serialized
+        var count = Count;
+        var fSerialized = new bool[count];  // already serialized
         fSerialized[0] = true;                       // consider DefaultParagraphFont as serialized
-        bool[] fSerializePending = new bool[count];  // currently serializing
-        bool newLine = false;  // gets true if at least one style was written
+        var fSerializePending = new bool[count];  // currently serializing
+        var newLine = false;  // gets true if at least one style was written
         //Start from 1 and do not serialize DefaultParagraphFont
-        for (int index = 1; index < count; index++)
+        for (var index = 1; index < count; index++)
         {
             if (!fSerialized[index])
             {
-                Style style = this[index];
                 SerializeStyle(serializer, index, ref fSerialized, ref fSerializePending, ref newLine);
             }
         }
@@ -370,7 +439,7 @@ public partial class Styles : DocumentObjectCollection, IVisitable
     void SerializeStyle(Serializer serializer, int index, ref bool[] fSerialized, ref bool[] fSerializePending,
         ref bool newLine)
     {
-        Style style = this[index];
+        var style = this[index];
 
         // It is not possible to modify the default paragraph font
         if (style.Name == Style.DefaultParagraphFontName)
@@ -380,14 +449,14 @@ public partial class Styles : DocumentObjectCollection, IVisitable
         // correctly. But before we proof that, we check it here.
         if (fSerializePending[index])
         {
-            string message = String.Format("Circular dependency detected according to style '{0}'.", style.Name);
+            var message = $"Circular dependency detected according to style '{style.Name}'.";
             throw new Exception(message);
         }
 
         // Only style 'Normal' has no base style
         if (style.BaseStyle != "")
         {
-            int idxBaseStyle = GetIndex(style.BaseStyle);
+            var idxBaseStyle = GetIndex(style.BaseStyle);
             if (idxBaseStyle != -1)
             {
                 if (!fSerialized[idxBaseStyle])
@@ -398,7 +467,7 @@ public partial class Styles : DocumentObjectCollection, IVisitable
                 }
             }
         }
-        int pos2 = serializer.BeginBlock();
+        var pos2 = serializer.BeginBlock();
         if (newLine)
             serializer.WriteLineNoCommit();
         style.Serialize(serializer);
@@ -414,7 +483,7 @@ public partial class Styles : DocumentObjectCollection, IVisitable
     {
         visitor.VisitStyles(this);
 
-        Hashtable visitedStyles = new Hashtable();
+        var visitedStyles = new Hashtable();
         foreach (Style style in this)
             VisitStyle(visitedStyles, style, visitor, visitChildren);
     }
@@ -426,7 +495,7 @@ public partial class Styles : DocumentObjectCollection, IVisitable
     {
         if (!visitedStyles.Contains(style))
         {
-            Style baseStyle = style.GetBaseStyle();
+            var baseStyle = style.GetBaseStyle();
             if (baseStyle != null && !visitedStyles.Contains(baseStyle)) //baseStyle != ""
                 VisitStyle(visitedStyles, baseStyle, visitor, visitChildren);
             ((IVisitable)style).AcceptVisitor(visitor, visitChildren);

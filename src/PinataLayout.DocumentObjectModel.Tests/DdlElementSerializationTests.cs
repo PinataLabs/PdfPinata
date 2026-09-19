@@ -341,7 +341,7 @@ public class DdlElementSerializationTests
         commentLines.Count.Should().BeGreaterThan(1, "sixty words do not fit on one line");
         commentLines.Should().AllSatisfy(line =>
             line.TrimEnd().Length.Should().BeLessThanOrEqualTo(200, "which is where the writer wraps"));
-        string.Join(" ", commentLines.Select(line => line.Trim().Substring(3).Trim()))
+        string.Join(" ", commentLines.Select(line => line.Trim()[3..].Trim()))
             .Should().Be(document.Comment, "and no word is lost or cut in half");
     }
 

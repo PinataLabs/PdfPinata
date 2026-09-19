@@ -42,8 +42,8 @@ static class TextShaping
         ArgumentNullException.ThrowIfNull(font);
         ArgumentNullException.ThrowIfNull(descriptor);
 
-        bool itemize = NeedsItemizing(text);
-        bool fallback = FontFallbackResolution.Enabled;
+        var itemize = NeedsItemizing(text);
+        var fallback = FontFallbackResolution.Enabled;
 
         if (!itemize && !fallback)
             return ShapedText.Of(Shape(text, font, descriptor, XTextDirection.LeftToRight, null, language),
@@ -51,7 +51,7 @@ static class TextShaping
 
         // Itemisation reads a string and the bidirectional algorithm allocates several arrays the
         // length of it, so one more copy here is not what this path costs.
-        string whole = text.ToString();
+        var whole = text.ToString();
         var segments = new List<ShapedSegment>();
 
         if (itemize)
@@ -85,12 +85,12 @@ static class TextShaping
             return;
         }
 
-        int end = start + length;
-        int first = into.Count;
-        int pieceStart = start;
+        var end = start + length;
+        var first = into.Count;
+        var pieceStart = start;
         XFont piece = null;
 
-        for (int idx = start; idx < end; idx++)
+        for (var idx = start; idx < end; idx++)
         {
             // The trailing half of a surrogate pair is not a character and has no face of its own.
             // Asked separately it would be a lone surrogate, which no cmap covers, and a cut here
@@ -100,8 +100,8 @@ static class TextShaping
             if (idx > start && char.IsLowSurrogate(whole[idx]) && char.IsHighSurrogate(whole[idx - 1]))
                 continue;
 
-            int codePoint = char.IsHighSurrogate(whole[idx]) && idx + 1 < end
-                            && char.IsLowSurrogate(whole[idx + 1])
+            var codePoint = char.IsHighSurrogate(whole[idx]) && idx + 1 < end
+                                                             && char.IsLowSurrogate(whole[idx + 1])
                 ? char.ConvertToUtf32(whole[idx], whole[idx + 1])
                 : whole[idx];
 
@@ -154,7 +154,7 @@ static class TextShaping
     /// </remarks>
     static bool NeedsItemizing(ReadOnlySpan<char> text)
     {
-        for (int idx = 0; idx < text.Length; idx++)
+        for (var idx = 0; idx < text.Length; idx++)
         {
             if (text[idx] >= '\u02B0')
                 return true;
@@ -241,15 +241,15 @@ static class TextShaping
         if (text.Length == 0)
             return ShapedRun.Empty(descriptor.UnitsPerEm, direction);
 
-        bool symbol = descriptor.FontFace.cmap.symbol;
-        int symbolBase = descriptor.FontFace.os2.usFirstCharIndex & 0xFF00;
+        var symbol = descriptor.FontFace.cmap.symbol;
+        var symbolBase = descriptor.FontFace.os2.usFirstCharIndex & 0xFF00;
 
         // A joining control is inside the run because a real shaper has to read it - see
         // BidiResult.Runs - and this is not a real shaper. It draws nothing for one: the control is
         // zero width by definition, so whatever glyph the face happens to map it to is not a glyph
         // to put on the page, and .notdef least of all.
-        int drawn = 0;
-        for (int idx = 0; idx < text.Length; )
+        var drawn = 0;
+        for (var idx = 0; idx < text.Length; )
         {
             if (UnicodeProperties.IsJoiningControl(text[idx]))
             {
@@ -264,18 +264,18 @@ static class TextShaping
         if (drawn == 0)
             return ShapedRun.Empty(descriptor.UnitsPerEm, direction);
 
-        bool rightToLeft = direction == XTextDirection.RightToLeft;
+        var rightToLeft = direction == XTextDirection.RightToLeft;
         var glyphs = new ShapedGlyph[drawn];
         for (int idx = 0, position = 0; idx < text.Length; )
         {
-            char ch = text[idx];
+            var ch = text[idx];
             if (UnicodeProperties.IsJoiningControl(ch))
             {
                 idx++;
                 continue;
             }
 
-            int length = CharacterLengthAt(text, idx);
+            var length = CharacterLengthAt(text, idx);
             int codePoint;
             if (length == 2)
             {
@@ -293,13 +293,13 @@ static class TextShaping
                 codePoint = ch;
             }
 
-            int glyphIndex = descriptor.CharCodeToGlyphIndex(codePoint);
+            var glyphIndex = descriptor.CharCodeToGlyphIndex(codePoint);
 
             // The cluster stays the index of the character it came from; only the position in the
             // list changes, so a right-to-left run's clusters descend exactly as a shaper's do. For
             // a surrogate pair it is the index of the high surrogate, and the next glyph's cluster
             // is two further on, which is how the reader recovers both code units.
-            int at = rightToLeft ? drawn - 1 - position : position;
+            var at = rightToLeft ? drawn - 1 - position : position;
             glyphs[at] = new ShapedGlyph((ushort)glyphIndex, idx, descriptor.GlyphIndexToWidth(glyphIndex));
             position++;
             idx += length;
@@ -338,7 +338,7 @@ static class TextShaping
     {
         var glyphs = run.Glyphs;
         var ids = new char[glyphs.Count];
-        for (int idx = 0; idx < glyphs.Count; idx++)
+        for (var idx = 0; idx < glyphs.Count; idx++)
             ids[idx] = (char)glyphs[idx].GlyphId;
 
         return new string(ids);
@@ -373,14 +373,14 @@ static class TextShaping
     internal static string CharactersOf(ShapedRun run, int index, string text)
     {
         var glyphs = run.Glyphs;
-        int cluster = glyphs[index].Cluster;
+        var cluster = glyphs[index].Cluster;
         if (cluster < 0 || cluster >= text.Length)
             return string.Empty;
 
-        int end = text.Length;
+        var end = text.Length;
         if (run.Direction == XTextDirection.RightToLeft)
         {
-            for (int idx = index - 1; idx >= 0; idx--)
+            for (var idx = index - 1; idx >= 0; idx--)
             {
                 if (glyphs[idx].Cluster > cluster)
                 {
@@ -391,7 +391,7 @@ static class TextShaping
         }
         else
         {
-            for (int idx = index + 1; idx < glyphs.Count; idx++)
+            for (var idx = index + 1; idx < glyphs.Count; idx++)
             {
                 if (glyphs[idx].Cluster > cluster)
                 {

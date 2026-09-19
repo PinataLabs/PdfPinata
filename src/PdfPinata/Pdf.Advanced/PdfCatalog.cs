@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -218,7 +218,7 @@ public sealed class PdfCatalog : PdfDictionary
     internal sealed class Keys : KeysBase
     {
         /// <summary>
-        /// (Required) The type of PDF object that this dictionary describes; 
+        /// (Required) The type of PDF object that this dictionary describes;
         /// must be Catalog for the catalog dictionary.
         /// </summary>
         [KeyInfo(KeyType.Name | KeyType.Required, FixedValue = "Catalog")]
@@ -227,24 +227,24 @@ public sealed class PdfCatalog : PdfDictionary
         /// <summary>
         /// (Optional; PDF 1.4) The version of the PDF specification to which the document
         /// conforms (for example, 1.4) if later than the version specified in the file’s header.
-        /// If the header specifies a later version, or if this entry is absent, the document 
-        /// conforms to the version specified in the header. This entry enables a PDF producer 
+        /// If the header specifies a later version, or if this entry is absent, the document
+        /// conforms to the version specified in the header. This entry enables a PDF producer
         /// application to update the version using an incremental update.
         /// </summary>
         [KeyInfo("1.4", KeyType.Name | KeyType.Optional)]
         public const string Version = "/Version";
 
         /// <summary>
-        /// (Required; must be an indirect reference) The page tree node that is the root of 
+        /// (Required; must be an indirect reference) The page tree node that is the root of
         /// the document’s page tree.
         /// </summary>
         [KeyInfo(KeyType.Dictionary | KeyType.Required | KeyType.MustBeIndirect, typeof(PdfPages))]
         public const string Pages = "/Pages";
 
         /// <summary>
-        /// (Optional; PDF 1.3) A number tree defining the page labeling for the document. 
+        /// (Optional; PDF 1.3) A number tree defining the page labeling for the document.
         /// The keys in this tree are page indices; the corresponding values are page label dictionaries.
-        /// Each page index denotes the first page in a labeling range to which the specified page 
+        /// Each page index denotes the first page in a labeling range to which the specified page
         /// label dictionary applies. The tree must include a value for pageindex 0.
         /// </summary>
         [KeyInfo("1.3", KeyType.NumberTree | KeyType.Optional)]
@@ -257,14 +257,14 @@ public sealed class PdfCatalog : PdfDictionary
         public const string Names = "/Names";
 
         /// <summary>
-        /// (Optional; PDF 1.1; must be an indirect reference) A dictionary of names and 
+        /// (Optional; PDF 1.1; must be an indirect reference) A dictionary of names and
         /// corresponding destinations.
         /// </summary>
         [KeyInfo("1.1", KeyType.Dictionary | KeyType.Optional)]
         public const string Dests = "/Dests";
 
         /// <summary>
-        /// (Optional; PDF 1.2) A viewer preferences dictionary specifying the way the document 
+        /// (Optional; PDF 1.2) A viewer preferences dictionary specifying the way the document
         /// is to be displayed on the screen. If this entry is absent, applications should use
         /// their own current user preference settings.
         /// </summary>
@@ -272,7 +272,7 @@ public sealed class PdfCatalog : PdfDictionary
         public const string ViewerPreferences = "/ViewerPreferences";
 
         /// <summary>
-        /// (Optional) A name object specifying the page layout to be used when the document is 
+        /// (Optional) A name object specifying the page layout to be used when the document is
         /// opened:
         /// SinglePage - Display one page at a time.
         /// OneColumn - Display the pages in one column.
@@ -298,22 +298,22 @@ public sealed class PdfCatalog : PdfDictionary
         public const string PageMode = "/PageMode";
 
         /// <summary>
-        /// (Optional; must be an indirect reference) The outline dictionary that is the root 
+        /// (Optional; must be an indirect reference) The outline dictionary that is the root
         /// of the document’s outline hierarchy.
         /// </summary>
         [KeyInfo(KeyType.Dictionary | KeyType.Optional, typeof(PdfOutline))]
         public const string Outlines = "/Outlines";
 
         /// <summary>
-        /// (Optional; PDF 1.1; must be an indirect reference) An array of thread dictionaries 
+        /// (Optional; PDF 1.1; must be an indirect reference) An array of thread dictionaries
         /// representing the document’s article threads.
         /// </summary>
         [KeyInfo("1.1", KeyType.Array | KeyType.Optional)]
         public const string Threads = "/Threads";
 
         /// <summary>
-        /// (Optional; PDF 1.1) A value specifying a destination to be displayed or an action to be 
-        /// performed when the document is opened. The value is either an array defining a destination 
+        /// (Optional; PDF 1.1) A value specifying a destination to be displayed or an action to be
+        /// performed when the document is opened. The value is either an array defining a destination
         /// or an action dictionary representing an action. If this entry is absent, the document
         /// should be opened to the top of the first page at the default magnification factor.
         /// </summary>
@@ -321,14 +321,14 @@ public sealed class PdfCatalog : PdfDictionary
         public const string OpenAction = "/OpenAction";
 
         /// <summary>
-        /// (Optional; PDF 1.4) An additional-actions dictionary defining the actions to be taken 
+        /// (Optional; PDF 1.4) An additional-actions dictionary defining the actions to be taken
         /// in response to various trigger events affecting the document as a whole.
         /// </summary>
         [KeyInfo("1.4", KeyType.Dictionary | KeyType.Optional)]
         public const string AA = "/AA";
 
         /// <summary>
-        /// (Optional; PDF 1.1) A URI dictionary containing document-level information for URI 
+        /// (Optional; PDF 1.1) A URI dictionary containing document-level information for URI
         /// (uniform resource identifier) actions.
         /// </summary>
         [KeyInfo("1.1", KeyType.Dictionary | KeyType.Optional)]
@@ -341,7 +341,7 @@ public sealed class PdfCatalog : PdfDictionary
         public const string AcroForm = "/AcroForm";
 
         /// <summary>
-        /// (Optional; PDF 1.4; must be an indirect reference) A metadata stream 
+        /// (Optional; PDF 1.4; must be an indirect reference) A metadata stream
         /// containing metadata  for the document.
         /// </summary>
         [KeyInfo("1.4", KeyType.Dictionary | KeyType.Optional | KeyType.MustBeIndirect)]
@@ -361,8 +361,8 @@ public sealed class PdfCatalog : PdfDictionary
         public const string MarkInfo = "/MarkInfo";
 
         /// <summary>
-        /// (Optional; PDF 1.4) A language identifier specifying the natural language for all 
-        /// text in the document except where overridden by language specifications for structure 
+        /// (Optional; PDF 1.4) A language identifier specifying the natural language for all
+        /// text in the document except where overridden by language specifications for structure
         /// elements or marked content. If this entry is absent, the language is considered unknown.
         /// </summary>
         [KeyInfo("1.4", KeyType.String | KeyType.Optional)]
@@ -376,7 +376,7 @@ public sealed class PdfCatalog : PdfDictionary
         public const string SpiderInfo = "/SpiderInfo";
 
         /// <summary>
-        /// (Optional; PDF 1.4) An array of output intent dictionaries describing the color 
+        /// (Optional; PDF 1.4) An array of output intent dictionaries describing the color
         /// characteristics of output devices on which the document might be rendered.
         /// </summary>
         [KeyInfo("1.4", KeyType.Array | KeyType.Optional)]
@@ -389,14 +389,14 @@ public sealed class PdfCatalog : PdfDictionary
         public const string PieceInfo = "/PieceInfo";
 
         /// <summary>
-        /// (Optional; PDF 1.5; required if a document contains optional content) The document’s 
+        /// (Optional; PDF 1.5; required if a document contains optional content) The document’s
         /// optional content properties dictionary.
         /// </summary>
         [KeyInfo("1.5", KeyType.Dictionary | KeyType.Optional)]
         public const string OCProperties = "/OCProperties";
 
         /// <summary>
-        /// (Optional; PDF 1.5) A permissions dictionary that specifies user access permissions 
+        /// (Optional; PDF 1.5) A permissions dictionary that specifies user access permissions
         /// for the document.
         /// </summary>
         [KeyInfo("1.5", KeyType.Dictionary | KeyType.Optional)]

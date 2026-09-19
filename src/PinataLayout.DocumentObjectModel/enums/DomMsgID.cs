@@ -157,7 +157,7 @@ internal enum DomMsgID
   //    Warning_StyleAndBaseStyleAreEqual,
   //    Warning_NestedParagraphInParagraphToken,
   UseOfUndefinedBaseStyle,
-  UseOfUndefinedStyle,
+  UseOfUndefinedStyle
 
   //    NestedFootnote,
   //    ImageInFootnote,

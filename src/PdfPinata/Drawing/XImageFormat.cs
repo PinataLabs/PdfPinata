@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -48,7 +48,7 @@ public sealed class XImageFormat
     /// </summary>
     public override bool Equals(object obj)
     {
-        XImageFormat format = obj as XImageFormat;
+        var format = obj as XImageFormat;
         if (format == null)
             return false;
         return _guid == format._guid;
@@ -63,7 +63,7 @@ public sealed class XImageFormat
     }
 
     /// <summary>
-    /// Gets the Portable Network Graphics (PNG) image format. 
+    /// Gets the Portable Network Graphics (PNG) image format.
     /// </summary>
     public static XImageFormat Png => _png;
 

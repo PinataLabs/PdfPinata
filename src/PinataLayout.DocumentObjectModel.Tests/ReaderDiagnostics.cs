@@ -80,7 +80,7 @@ static class ReaderDiagnostics
         })
         {
             IsBackground = true,
-            Name = "mdddl-reader-that-may-not-return",
+            Name = "mdddl-reader-that-may-not-return"
         };
         thread.Start();
 
@@ -93,7 +93,7 @@ static class ReaderDiagnostics
     /// </summary>
     public static async Task<Exception> FaultReading(string ddl, TimeSpan patience)
     {
-        Task<Exception> reading = ReadingOnItsOwnThread(ddl);
+        var reading = ReadingOnItsOwnThread(ddl);
 
         return await Task.WhenAny(reading, Task.Delay(patience)) == reading
             ? await reading

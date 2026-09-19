@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -53,7 +53,7 @@ internal class PdfTrueTypeFont : PdfFont
         Elements.SetName(Keys.Subtype, "/TrueType");
 
         // TrueType with WinAnsiEncoding only.
-        OpenTypeDescriptor ttDescriptor = (OpenTypeDescriptor)FontDescriptorCache.GetOrCreateDescriptorFor(font);
+        var ttDescriptor = (OpenTypeDescriptor)FontDescriptorCache.GetOrCreateDescriptorFor(font);
         FontDescriptor = new PdfFontDescriptor(document, ttDescriptor);
         _fontOptions = font.PdfOptions;
         Debug.Assert(_fontOptions != null);
@@ -118,9 +118,9 @@ internal class PdfTrueTypeFont : PdfFont
 
         FirstChar = 0;
         LastChar = 255;
-        PdfArray width = Widths;
+        var width = Widths;
         //width.Elements.Clear();
-        for (int idx = 0; idx < 256; idx++)
+        for (var idx = 0; idx < 256; idx++)
             width.Elements.Add(new PdfInteger(FontDescriptor._descriptor.Widths[idx]));
     }
 
@@ -143,7 +143,7 @@ internal class PdfTrueTypeFont : PdfFont
         public new const string Subtype = "/Subtype";
 
         /// <summary>
-        /// (Required in PDF 1.0; optional otherwise) The name by which this font is 
+        /// (Required in PDF 1.0; optional otherwise) The name by which this font is
         /// referenced in the Font subdictionary of the current resource dictionary.
         /// </summary>
         [KeyInfo(KeyType.Name | KeyType.Optional)]
@@ -152,7 +152,7 @@ internal class PdfTrueTypeFont : PdfFont
         /// <summary>
         /// (Required) The PostScript name of the font. For Type 1 fonts, this is usually
         /// the value of the FontName entry in the font program; for more information.
-        /// The Post-Script name of the font can be used to find the font�s definition in 
+        /// The Post-Script name of the font can be used to find the font�s definition in
         /// the consumer application or its environment. It is also the name that is used when
         /// printing to a PostScript output device.
         /// </summary>
@@ -160,7 +160,7 @@ internal class PdfTrueTypeFont : PdfFont
         public new const string BaseFont = "/BaseFont";
 
         /// <summary>
-        /// (Required except for the standard 14 fonts) The first character code defined 
+        /// (Required except for the standard 14 fonts) The first character code defined
         /// in the font�s Widths array.
         /// </summary>
         [KeyInfo(KeyType.Integer)]
@@ -177,10 +177,10 @@ internal class PdfTrueTypeFont : PdfFont
         /// (Required except for the standard 14 fonts; indirect reference preferred)
         /// An array of (LastChar - FirstChar + 1) widths, each element being the glyph width
         /// for the character code that equals FirstChar plus the array index. For character
-        /// codes outside the range FirstChar to LastChar, the value of MissingWidth from the 
-        /// FontDescriptor entry for this font is used. The glyph widths are measured in units 
-        /// in which 1000 units corresponds to 1 unit in text space. These widths must be 
-        /// consistent with the actual widths given in the font program. 
+        /// codes outside the range FirstChar to LastChar, the value of MissingWidth from the
+        /// FontDescriptor entry for this font is used. The glyph widths are measured in units
+        /// in which 1000 units corresponds to 1 unit in text space. These widths must be
+        /// consistent with the actual widths given in the font program.
         /// </summary>
         [KeyInfo(KeyType.Array, typeof(PdfArray))]
         public const string Widths = "/Widths";
@@ -188,7 +188,7 @@ internal class PdfTrueTypeFont : PdfFont
         /// <summary>
         /// (Required except for the standard 14 fonts; must be an indirect reference)
         /// A font descriptor describing the font�s metrics other than its glyph widths.
-        /// Note: For the standard 14 fonts, the entries FirstChar, LastChar, Widths, and 
+        /// Note: For the standard 14 fonts, the entries FirstChar, LastChar, Widths, and
         /// FontDescriptor must either all be present or all be absent. Ordinarily, they are
         /// absent; specifying them enables a standard font to be overridden.
         /// </summary>
@@ -198,7 +198,7 @@ internal class PdfTrueTypeFont : PdfFont
         /// <summary>
         /// (Optional) A specification of the font�s character encoding if different from its
         /// built-in encoding. The value of Encoding is either the name of a predefined
-        /// encoding (MacRomanEncoding, MacExpertEncoding, or WinAnsiEncoding, as described in 
+        /// encoding (MacRomanEncoding, MacExpertEncoding, or WinAnsiEncoding, as described in
         /// Appendix D) or an encoding dictionary that specifies differences from the font�s
         /// built-in encoding or from a specified predefined encoding.
         /// </summary>

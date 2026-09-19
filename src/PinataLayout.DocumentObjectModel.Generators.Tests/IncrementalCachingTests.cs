@@ -51,7 +51,7 @@ public class IncrementalCachingTests
     [Fact]
     public void RecompilingTheSameSourceIsServedFromTheCacheRatherThanRegenerated()
     {
-        GeneratorRunResult result = IncrementalCachingProbe.RunTwice(Ns + Widget);
+        var result = IncrementalCachingProbe.RunTwice(Ns + Widget);
 
         IncrementalCachingProbe.OutputReasons(result).Should().Be("SourceOutput=Cached",
             "the second compilation is parsed separately, so only value equality on the models can "
@@ -63,7 +63,7 @@ public class IncrementalCachingTests
     {
         // The complement of the test above, and the reason it means anything: a pipeline that
         // cached everything unconditionally would pass that one and fail this.
-        GeneratorRunResult result = IncrementalCachingProbe.RunTwice(
+        var result = IncrementalCachingProbe.RunTwice(
             Ns + Widget,
             Ns + Widget.Replace("caption", "heading"));
 
@@ -73,7 +73,7 @@ public class IncrementalCachingTests
     [Fact]
     public void ChangingAMembersTypeIsNotServedFromTheCache()
     {
-        GeneratorRunResult result = IncrementalCachingProbe.RunTwice(
+        var result = IncrementalCachingProbe.RunTwice(
             Ns + Widget,
             Ns + Widget.Replace("internal string caption", "internal Unit caption"));
 
@@ -85,7 +85,7 @@ public class IncrementalCachingTests
     {
         // Declaration order reaches the model deliberately, so that the generated table is
         // reproducible build to build. Moving a member is therefore a real change.
-        GeneratorRunResult result = IncrementalCachingProbe.RunTwice(
+        var result = IncrementalCachingProbe.RunTwice(
             Ns + Widget,
             Ns + """
                 public partial class Widget : DocumentObject
@@ -112,7 +112,7 @@ public class IncrementalCachingTests
     public void RaisingTheSameDiagnosticTwiceIsStillServedFromTheCache()
     {
         // Equal contents: the loop runs to the end and answers true.
-        GeneratorRunResult result = IncrementalCachingProbe.RunTwice(Ns + NotPartial("Broken"));
+        var result = IncrementalCachingProbe.RunTwice(Ns + NotPartial("Broken"));
 
         IncrementalCachingProbe.OutputReasons(result).Should().Be("SourceOutput=Cached",
             "a diagnostic that has not changed is not a reason to regenerate");
@@ -123,7 +123,7 @@ public class IncrementalCachingTests
     {
         // Differing contents: the message argument is the offending type's name, so renaming it
         // changes one string inside the EquatableArray and nothing else about the shape.
-        GeneratorRunResult result = IncrementalCachingProbe.RunTwice(
+        var result = IncrementalCachingProbe.RunTwice(
             Ns + NotPartial("Broken"),
             Ns + NotPartial("AlsoBroken"));
 
@@ -134,7 +134,7 @@ public class IncrementalCachingTests
     public void ASecondDiagnosticIsNotServedFromTheCache()
     {
         // Differing lengths, at the level of the collected pipeline output.
-        GeneratorRunResult result = IncrementalCachingProbe.RunTwice(
+        var result = IncrementalCachingProbe.RunTwice(
             Ns + NotPartial("Broken"),
             Ns + NotPartial("Broken") + "\n" + NotPartial("AlsoBroken"));
 
@@ -147,7 +147,7 @@ public class IncrementalCachingTests
         // Worth pinning rather than assuming. The pipeline collects every DocumentObject, so a new
         // one is a new element in the collected array whether or not it affects any existing table.
         // This is the cost of the Collect() that the 15 member-less DOM types make necessary.
-        GeneratorRunResult result = IncrementalCachingProbe.RunTwice(
+        var result = IncrementalCachingProbe.RunTwice(
             Ns + Widget,
             Ns + Widget + "\npublic partial class Other : DocumentObject { }");
 
@@ -172,7 +172,7 @@ public class IncrementalCachingTests
         // because the cheap fix - an ordinal index within the type instead of a source position -
         // is not available to ForAttributeWithMetadataName, which sees one member at a time and
         // never its siblings. See the backlog spec's batch 16 for the argument.
-        GeneratorRunResult result = IncrementalCachingProbe.RunTwice(
+        var result = IncrementalCachingProbe.RunTwice(
             Ns + Widget,
             Ns + "// a remark that changes nothing\n" + Widget);
 
@@ -185,7 +185,7 @@ public class IncrementalCachingTests
         // The other side of it, and what makes the test above a statement about position rather
         // than about trivia: the same comment added after everything moves no declaration, so the
         // models are equal and the output is reused.
-        GeneratorRunResult result = IncrementalCachingProbe.RunTwice(
+        var result = IncrementalCachingProbe.RunTwice(
             Ns + Widget,
             Ns + Widget + "\n// a remark that changes nothing");
 

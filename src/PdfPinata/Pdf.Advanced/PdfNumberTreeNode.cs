@@ -76,7 +76,7 @@ public sealed class PdfNumberTreeNode : PdfDictionary
     /// </summary>
     public int[] GetKeys()
     {
-        int[] keys = new int[Entries.Count];
+        var keys = new int[Entries.Count];
         Entries.Keys.CopyTo(keys, 0);
         return keys;
     }
@@ -99,7 +99,7 @@ public sealed class PdfNumberTreeNode : PdfDictionary
         if (!Entries.TryGetValue(key, out value))
             return null;
 
-        PdfReference reference = value as PdfReference;
+        var reference = value as PdfReference;
         return reference != null ? reference.Value : value;
     }
 
@@ -141,7 +141,7 @@ public sealed class PdfNumberTreeNode : PdfDictionary
     /// </summary>
     static PdfItem Referenced(PdfItem value)
     {
-        PdfObject obj = value as PdfObject;
+        var obj = value as PdfObject;
         if (obj != null && obj.Reference != null)
             return obj.Reference;
 
@@ -162,19 +162,19 @@ public sealed class PdfNumberTreeNode : PdfDictionary
 
         if (node.IsIndirect)
         {
-            string id = node.ObjectID.ToString();
+            var id = node.ObjectID.ToString();
             if (seen.ContainsKey(id))
                 return;
 
             seen[id] = null;
         }
 
-        PdfArray nums = node.Elements.GetArray(Keys.Nums);
+        var nums = node.Elements.GetArray(Keys.Nums);
         if (nums != null)
         {
             // Key and value one after the other. An odd one at the end has no value and is
             // left where it is.
-            for (int at = 0; at + 1 < nums.Elements.Count; at += 2)
+            for (var at = 0; at + 1 < nums.Elements.Count; at += 2)
             {
                 int key;
                 if (TryGetInteger(nums.Elements[at], out key))
@@ -182,21 +182,21 @@ public sealed class PdfNumberTreeNode : PdfDictionary
             }
         }
 
-        PdfArray kids = node.Elements.GetArray(Keys.Kids);
+        var kids = node.Elements.GetArray(Keys.Kids);
         if (kids != null)
         {
-            for (int at = 0; at < kids.Elements.Count; at++)
+            for (var at = 0; at < kids.Elements.Count; at++)
                 Read(kids.Elements.GetDictionary(at), seen, depth + 1);
         }
     }
 
     static bool TryGetInteger(PdfItem item, out int value)
     {
-        PdfReference reference = item as PdfReference;
+        var reference = item as PdfReference;
         if (reference != null)
             item = reference.Value;
 
-        PdfInteger integer = item as PdfInteger;
+        var integer = item as PdfInteger;
         if (integer != null)
         {
             value = integer.Value;
@@ -204,7 +204,7 @@ public sealed class PdfNumberTreeNode : PdfDictionary
         }
 
         // A key written as a real is not what the standard asks for, but it is unambiguous.
-        PdfReal real = item as PdfReal;
+        var real = item as PdfReal;
         #pragma warning disable S1244 // Exact on purpose: a real is an integer only when it is exactly one.
         if (real != null && real.Value == Math.Floor(real.Value))
         #pragma warning restore S1244
@@ -233,7 +233,7 @@ public sealed class PdfNumberTreeNode : PdfDictionary
         // The root of a tree states no limits, whatever the nodes below it do.
         Elements.Remove(Keys.Limits);
 
-        List<int> keys = new List<int>(_entries.Keys);
+        var keys = new List<int>(_entries.Keys);
 
         // A node below the root has to be referred to indirectly, which takes a document to
         // hold it. Without one the entries stay in the root, which is a tree all the same.
@@ -243,11 +243,11 @@ public sealed class PdfNumberTreeNode : PdfDictionary
             return;
         }
 
-        List<PdfDictionary> level = new List<PdfDictionary>();
-        for (int at = 0; at < keys.Count; at += NodeCapacity)
+        var level = new List<PdfDictionary>();
+        for (var at = 0; at < keys.Count; at += NodeCapacity)
         {
-            int length = Math.Min(NodeCapacity, keys.Count - at);
-            PdfDictionary leaf = new PdfDictionary(Owner);
+            var length = Math.Min(NodeCapacity, keys.Count - at);
+            var leaf = new PdfDictionary(Owner);
             leaf.Elements[Keys.Nums] = Nums(keys, at, length);
             leaf.Elements[Keys.Limits] = Limits(keys[at], keys[at + length - 1]);
             Owner._irefTable.Add(leaf);
@@ -257,11 +257,11 @@ public sealed class PdfNumberTreeNode : PdfDictionary
         // Another level of nodes for as long as one level will not hold them.
         while (level.Count > NodeCapacity)
         {
-            List<PdfDictionary> above = new List<PdfDictionary>();
-            for (int at = 0; at < level.Count; at += NodeCapacity)
+            var above = new List<PdfDictionary>();
+            for (var at = 0; at < level.Count; at += NodeCapacity)
             {
-                int length = Math.Min(NodeCapacity, level.Count - at);
-                PdfDictionary branch = new PdfDictionary(Owner);
+                var length = Math.Min(NodeCapacity, level.Count - at);
+                var branch = new PdfDictionary(Owner);
                 branch.Elements[Keys.Kids] = Kids(level, at, length);
                 branch.Elements[Keys.Limits] = Limits(LeastOf(level[at]), GreatestOf(level[at + length - 1]));
                 Owner._irefTable.Add(branch);
@@ -275,8 +275,8 @@ public sealed class PdfNumberTreeNode : PdfDictionary
 
     PdfArray Nums(List<int> keys, int from, int length)
     {
-        PdfArray nums = new PdfArray(Owner);
-        for (int at = from; at < from + length; at++)
+        var nums = new PdfArray(Owner);
+        for (var at = from; at < from + length; at++)
         {
             nums.Elements.Add(new PdfInteger(keys[at]));
             nums.Elements.Add(_entries[keys[at]]);
@@ -286,8 +286,8 @@ public sealed class PdfNumberTreeNode : PdfDictionary
 
     PdfArray Kids(List<PdfDictionary> nodes, int from, int length)
     {
-        PdfArray kids = new PdfArray(Owner);
-        for (int at = from; at < from + length; at++)
+        var kids = new PdfArray(Owner);
+        for (var at = from; at < from + length; at++)
             kids.Elements.Add(nodes[at].Reference);
 
         return kids;
@@ -295,7 +295,7 @@ public sealed class PdfNumberTreeNode : PdfDictionary
 
     PdfArray Limits(int least, int greatest)
     {
-        PdfArray limits = new PdfArray(Owner);
+        var limits = new PdfArray(Owner);
         limits.Elements.Add(new PdfInteger(least));
         limits.Elements.Add(new PdfInteger(greatest));
         return limits;

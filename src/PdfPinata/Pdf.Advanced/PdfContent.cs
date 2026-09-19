@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -78,10 +78,10 @@ public sealed class PdfContent : PdfDictionary
         {
             if (value)
             {
-                PdfItem filter = Elements[PdfStream.Keys.Filter];
+                var filter = Elements[PdfStream.Keys.Filter];
                 if (filter == null)
                 {
-                    byte[] bytes = Filtering.FlateDecode.Encode(Stream.Value, _document.Options.FlateEncodeMode);
+                    var bytes = Filtering.FlateDecode.Encode(Stream.Value, _document.Options.FlateEncodeMode);
                     Stream.Value = bytes;
                     Elements.SetInteger(PdfStream.Keys.Length, Stream.Length);
                     Elements.SetName(PdfStream.Keys.Filter, "/FlateDecode");
@@ -97,11 +97,11 @@ public sealed class PdfContent : PdfDictionary
     {
         if (Stream != null && Stream.Value != null)
         {
-            PdfItem item = Elements[PdfStream.Keys.Filter];
+            var item = Elements[PdfStream.Keys.Filter];
             if (item != null)
             {
                 var decodeParms = Elements[PdfStream.Keys.DecodeParms];
-                byte[] bytes = Filtering.Decode(Stream.Value, item, decodeParms);
+                var bytes = Filtering.Decode(Stream.Value, item, decodeParms);
                 if (bytes != null)
                 {
                     Stream.Value = bytes;
@@ -120,15 +120,15 @@ public sealed class PdfContent : PdfDictionary
     {
         // If a content stream is touched by PDFsharp it is typically because graphical operations are
         // prepended or appended. Some nasty PDF tools does not preserve the graphical state correctly.
-        // Therefore we try to relieve the problem by surrounding the content stream with push/restore 
+        // Therefore we try to relieve the problem by surrounding the content stream with push/restore
         // graphic state operation.
         if (Stream != null)
         {
-            byte[] value = Stream.Value;
-            int length = value.Length;
+            var value = Stream.Value;
+            var length = value.Length;
             if (length != 0 && ((value[0] != (byte)'q' || value[1] != (byte)'\n')))
             {
-                byte[] newValue = new byte[length + 2 + 3];
+                var newValue = new byte[length + 2 + 3];
                 newValue[0] = (byte)'q';
                 newValue[1] = (byte)'\n';
                 Array.Copy(value, 0, newValue, 2, length);
@@ -156,7 +156,7 @@ public sealed class PdfContent : PdfDictionary
             //if (Owner.Options.CompressContentStreams)
             if (Owner.Options.CompressContentStreams && Elements.GetName("/Filter").Length == 0)
             {
-                byte[] deflated = Filtering.FlateDecode.Encode(Stream.Value, _document.Options.FlateEncodeMode);
+                var deflated = Filtering.FlateDecode.Encode(Stream.Value, _document.Options.FlateEncodeMode);
 
                 // Deflating content this short makes it longer rather than shorter: it costs a
                 // two byte zlib header and a four byte checksum before a single byte of content

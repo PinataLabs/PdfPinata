@@ -101,9 +101,9 @@ internal abstract class PdfPageWalk
 
     void ReadSequence(CSequence sequence, PdfDictionary scope, int depth)
     {
-        foreach (CObject item in sequence)
+        foreach (var item in sequence)
         {
-            COperator op = item as COperator;
+            var op = item as COperator;
             if (op == null)
                 continue;
 
@@ -136,7 +136,7 @@ internal abstract class PdfPageWalk
 
                 case OpCodeName.cs:
                 case OpCodeName.CS:
-                    string colorSpace = NameAt(op, 0);
+                    var colorSpace = NameAt(op, 0);
                     if (colorSpace != null && Array.IndexOf(DeviceColorSpaces, colorSpace) < 0)
                         Use("/ColorSpace", colorSpace, scope, depth);
                     break;
@@ -174,7 +174,7 @@ internal abstract class PdfPageWalk
         if (index < 0 || index >= op.Operands.Count)
             return null;
 
-        CName name = op.Operands[index] as CName;
+        var name = op.Operands[index] as CName;
         return name?.Name;
     }
 
@@ -193,10 +193,10 @@ internal abstract class PdfPageWalk
 
         RecordUse(category, name, scope);
 
-        PdfItem resolved = ResolveRaw(category, name, scope);
+        var resolved = ResolveRaw(category, name, scope);
         RecordResolved(category, name, resolved);
 
-        PdfDictionary resource = resolved as PdfDictionary;
+        var resource = resolved as PdfDictionary;
         if (resource == null)
         {
             // The content names something the resources do not hold, or something that is not a
@@ -253,7 +253,7 @@ internal abstract class PdfPageWalk
     /// </summary>
     void UseSoftMask(PdfDictionary extGState, PdfDictionary scope, int depth)
     {
-        PdfItem item = extGState.Elements["/SMask"];
+        var item = extGState.Elements["/SMask"];
         if (item is PdfReference reference)
             item = reference.Value;
 
@@ -271,8 +271,8 @@ internal abstract class PdfPageWalk
             return;
         }
 
-        PdfDictionary mask = item as PdfDictionary;
-        PdfDictionary group = mask?.Elements.GetDictionary("/G");
+        var mask = item as PdfDictionary;
+        var group = mask?.Elements.GetDictionary("/G");
         if (group == null)
         {
             // A mask whose form cannot be reached may paint with anything.
@@ -289,7 +289,7 @@ internal abstract class PdfPageWalk
     /// </summary>
     void ReadNested(PdfDictionary stream, PdfDictionary owningResources, PdfDictionary scope, int depth)
     {
-        PdfDictionary nested = ScopeOf(owningResources, scope);
+        var nested = ScopeOf(owningResources, scope);
 
         if (!MarkAsRead(stream, nested))
             return;
@@ -306,14 +306,14 @@ internal abstract class PdfPageWalk
 
     void ReadCharProcs(PdfDictionary font, PdfDictionary scope, int depth)
     {
-        PdfDictionary charProcs = font.Elements.GetDictionary("/CharProcs");
+        var charProcs = font.Elements.GetDictionary("/CharProcs");
         if (charProcs == null)
             return;
 
-        PdfDictionary fontScope = ScopeOf(font, scope);
-        foreach (PdfName glyph in charProcs.Elements.KeyNames)
+        var fontScope = ScopeOf(font, scope);
+        foreach (var glyph in charProcs.Elements.KeyNames)
         {
-            PdfDictionary procedure = charProcs.Elements.GetDictionary(glyph.Value);
+            var procedure = charProcs.Elements.GetDictionary(glyph.Value);
             if (procedure == null)
                 continue;
 
@@ -334,22 +334,22 @@ internal abstract class PdfPageWalk
 
     void ReadAppearances(PdfPage page)
     {
-        PdfArray annotations = page.Elements.GetArray(PdfPage.Keys.Annots);
+        var annotations = page.Elements.GetArray(PdfPage.Keys.Annots);
         if (annotations == null)
             return;
 
-        for (int idx = 0; idx < annotations.Elements.Count && _understood; idx++)
+        for (var idx = 0; idx < annotations.Elements.Count && _understood; idx++)
         {
-            PdfDictionary annotation = annotations.Elements.GetDictionary(idx);
-            PdfDictionary appearance = annotation == null
+            var annotation = annotations.Elements.GetDictionary(idx);
+            var appearance = annotation == null
                 ? null
                 : annotation.Elements.GetDictionary("/AP");
             if (appearance == null)
                 continue;
 
-            foreach (PdfName kind in appearance.Elements.KeyNames)
+            foreach (var kind in appearance.Elements.KeyNames)
             {
-                PdfDictionary stream = appearance.Elements.GetDictionary(kind.Value);
+                var stream = appearance.Elements.GetDictionary(kind.Value);
                 if (stream == null)
                     continue;
 
@@ -361,9 +361,9 @@ internal abstract class PdfPageWalk
                 {
                     // An appearance that changes with the state of the annotation is a
                     // dictionary of one stream per state.
-                    foreach (PdfName state in stream.Elements.KeyNames)
+                    foreach (var state in stream.Elements.KeyNames)
                     {
-                        PdfDictionary perState = stream.Elements.GetDictionary(state.Value);
+                        var perState = stream.Elements.GetDictionary(state.Value);
                         if (perState != null && perState.Stream != null)
                             ReadNested(perState, perState, PageResources, 0);
                     }
@@ -391,11 +391,11 @@ internal abstract class PdfPageWalk
     /// </summary>
     static PdfItem ResolveRaw(string category, string name, PdfDictionary scope)
     {
-        PdfDictionary entries = scope.Elements.GetDictionary(category);
+        var entries = scope.Elements.GetDictionary(category);
         if (entries == null)
             return null;
 
-        PdfItem item = entries.Elements[name];
+        var item = entries.Elements[name];
         if (item is PdfReference reference)
             item = reference.Value;
 

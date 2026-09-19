@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -45,7 +45,7 @@ public static class Filtering
         ArgumentNullException.ThrowIfNull(filterName);
 
         if (filterName.StartsWith('/'))
-            filterName = filterName.Substring(1);
+            filterName = filterName[1..];
 
         // Some tools use abbreviations
         switch (filterName)
@@ -149,7 +149,7 @@ public static class Filtering
     /// </summary>
     public static byte[] Encode(byte[] data, string filterName)
     {
-        Filter filter = GetFilter(filterName);
+        var filter = GetFilter(filterName);
         if (filter != null)
             return filter.Encode(data);
         return null;
@@ -160,7 +160,7 @@ public static class Filtering
     /// </summary>
     public static byte[] Encode(string rawString, string filterName)
     {
-        Filter filter = GetFilter(filterName);
+        var filter = GetFilter(filterName);
         if (filter != null)
             return filter.Encode(rawString);
         return null;
@@ -171,7 +171,7 @@ public static class Filtering
     /// </summary>
     public static byte[] Decode(byte[] data, string filterName, FilterParms parms)
     {
-        Filter filter = GetFilter(filterName);
+        var filter = GetFilter(filterName);
         if (filter != null)
             return filter.Decode(data, parms);
         return null;
@@ -182,7 +182,7 @@ public static class Filtering
     /// </summary>
     public static byte[] Decode(byte[] data, string filterName)
     {
-        Filter filter = GetFilter(filterName);
+        var filter = GetFilter(filterName);
         if (filter != null)
             return filter.Decode(data, (PdfDictionary)null);
         return null;
@@ -196,7 +196,7 @@ public static class Filtering
         byte[] result = null;
         if (filterItem is PdfName && (decodeParms == null || decodeParms is PdfDictionary))
         {
-            Filter filter = GetFilter(filterItem.ToString());
+            var filter = GetFilter(filterItem.ToString());
             if (filter != null)
                 result = filter.Decode(data, decodeParms as PdfDictionary);
         }
@@ -222,7 +222,7 @@ public static class Filtering
     /// </summary>
     public static string DecodeToString(byte[] data, string filterName, FilterParms parms)
     {
-        Filter filter = GetFilter(filterName);
+        var filter = GetFilter(filterName);
         if (filter != null)
             return filter.DecodeToString(data, parms);
         return null;
@@ -233,7 +233,7 @@ public static class Filtering
     /// </summary>
     public static string DecodeToString(byte[] data, string filterName)
     {
-        Filter filter = GetFilter(filterName);
+        var filter = GetFilter(filterName);
         if (filter != null)
             return filter.DecodeToString(data, null);
         return null;

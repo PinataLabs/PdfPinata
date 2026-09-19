@@ -24,7 +24,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -118,13 +118,13 @@ internal class ParagraphFormatInfo : FormatInfo
   internal int LineCount => lineInfos.Count;
 
   /// <summary>
-  /// 
+  ///
   /// </summary>
   /// <param name="mergeInfo"></param>
   /// <returns></returns>
   internal void Append(FormatInfo mergeInfo)
   {
-    ParagraphFormatInfo formatInfo = (ParagraphFormatInfo)mergeInfo;
+    var formatInfo = (ParagraphFormatInfo)mergeInfo;
     lineInfos.AddRange(formatInfo.lineInfos);
   }
 

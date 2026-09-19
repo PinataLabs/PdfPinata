@@ -50,7 +50,7 @@ internal class FontHandler
     // #PFC
     XPdfFontOptions options = null;
     options = new XPdfFontOptions(encoding);
-    XFontStyle style = GetXStyle(font);
+    var style = GetXStyle(font);
 
     if (xFont == null)
       xFont = new XFont(font.Name, font.Size, style, options);
@@ -59,7 +59,7 @@ internal class FontHandler
 
   internal static XFontStyle GetXStyle(Font font)
   {
-    XFontStyle style = XFontStyle.Regular;
+    var style = XFontStyle.Regular;
     if (font.Bold)
     {
       if (font.Italic)
@@ -96,7 +96,7 @@ internal class FontHandler
 
   internal static XFont ToSubSuperFont(XFont font)
   {
-    double size = font.Size * GetSubSuperScaling(font);
+    var size = font.Size * GetSubSuperScaling(font);
 
     // #PFC
     return new XFont(font.Name, size, font.Style, font.PdfOptions);

@@ -47,5 +47,5 @@ public enum PdfColorMode
     /// <summary>
     /// All colors are converted to CMYK.
     /// </summary>
-    Cmyk,
+    Cmyk
 }

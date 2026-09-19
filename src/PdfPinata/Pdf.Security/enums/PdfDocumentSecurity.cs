@@ -48,5 +48,5 @@ public enum PdfDocumentSecurityLevel
     /// <summary>
     /// Document is protected with 128-bit security.
     /// </summary>
-    Encrypted128Bit,
+    Encrypted128Bit
 }

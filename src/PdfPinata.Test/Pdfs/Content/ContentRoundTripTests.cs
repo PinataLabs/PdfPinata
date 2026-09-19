@@ -37,7 +37,7 @@ public class ContentRoundTripTests
             OpCodes.OperatorFromName("q"),
             WithOperand(OpCodes.OperatorFromName("Tj"),
                 new CString { CStringType = CStringType.String, Value = "text" }),
-            OpCodes.OperatorFromName("Q"),
+            OpCodes.OperatorFromName("Q")
         };
 
         Written(sequence).Should().Be("q\n(text)Tj\nQ\n");

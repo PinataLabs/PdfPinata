@@ -26,7 +26,7 @@ internal static class DataMatrixEncoder
     /// </summary>
     internal static byte[] Encode(string text, string encoding, int capacity)
     {
-        List<byte> codewords = EncodeAscii(text, encoding);
+        var codewords = EncodeAscii(text, encoding);
 
         if (codewords.Count > capacity)
             throw new InvalidOperationException(BcgSR.DataMatrixTooBig);
@@ -47,17 +47,17 @@ internal static class DataMatrixEncoder
     {
         RejectUnwrittenEncodations(encoding);
 
-        List<byte> codewords = new List<byte>();
-        int at = 0;
+        var codewords = new List<byte>();
+        var at = 0;
         while (at < text.Length)
         {
-            char ch = text[at];
+            var ch = text[at];
 
             // Two digits go into one codeword, which is what makes ASCII the right encodation
             // for the numbers most of these codes carry.
             if (IsDigit(ch) && at + 1 < text.Length && IsDigit(text[at + 1]))
             {
-                int value = (ch - '0') * 10 + (text[at + 1] - '0');
+                var value = (ch - '0') * 10 + (text[at + 1] - '0');
                 codewords.Add((byte)(value + 130));
                 at += 2;
                 continue;
@@ -104,8 +104,8 @@ internal static class DataMatrixEncoder
     /// </summary>
     static byte Randomize253(byte codeword, int position)
     {
-        int pseudoRandom = ((149 * position) % 253) + 1;
-        int value = codeword + pseudoRandom;
+        var pseudoRandom = ((149 * position) % 253) + 1;
+        var value = codeword + pseudoRandom;
         return (byte)(value <= 254 ? value : value - 254);
     }
 
@@ -123,7 +123,7 @@ internal static class DataMatrixEncoder
         if (string.IsNullOrEmpty(encoding))
             return;
 
-        foreach (char scheme in encoding)
+        foreach (var scheme in encoding)
         {
             if (scheme != 'a' && scheme != '\0')
                 throw new NotImplementedException(BcgSR.DataMatrixEncodationNotImplemented(scheme));

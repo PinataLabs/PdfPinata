@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -70,17 +70,17 @@ internal sealed class PdfToUnicodeMap : PdfDictionary
         base.PrepareForSave();
 
         // This code comes literally from PDF Reference
-        string prefix =
+        var prefix =
             "/CIDInit /ProcSet findresource begin\n" +
             "12 dict begin\n" +
             "begincmap\n" +
             "/CIDSystemInfo << /Registry (Adobe)/Ordering (UCS)/Supplement 0>> def\n" +
             "/CMapName /Adobe-Identity-UCS def /CMapType 2 def\n";
-        string suffix = "endcmap CMapName currentdict /CMap defineresource pop end end";
+        var suffix = "endcmap CMapName currentdict /CMap defineresource pop end end";
 
         var meanings = _cmapInfo.GlyphMeanings();
         int lowIndex = 65536, hiIndex = -1;
-        foreach (int index in meanings.Keys)
+        foreach (var index in meanings.Keys)
         {
             lowIndex = Math.Min(lowIndex, index);
             hiIndex = Math.Max(hiIndex, index);
@@ -93,14 +93,14 @@ internal sealed class PdfToUnicodeMap : PdfDictionary
         var single = meanings.Where(entry => entry.Value.Length == 1).ToList();
         var several = meanings.Where(entry => entry.Value.Length > 1).ToList();
 
-        MemoryStream ms = new MemoryStream();
-        StreamWriter wrt = new StreamWriter(ms, Encoding.UTF8);
+        var ms = new MemoryStream();
+        var wrt = new StreamWriter(ms, Encoding.UTF8);
         wrt.Write(prefix);
 
         if (hiIndex >= lowIndex)
         {
             wrt.WriteLine("1 begincodespacerange");
-            wrt.WriteLine(String.Format("<{0:X4}><{1:X4}>", lowIndex, hiIndex));
+            wrt.WriteLine($"<{lowIndex:X4}><{hiIndex:X4}>");
             wrt.WriteLine("endcodespacerange");
         }
 
@@ -109,7 +109,7 @@ internal sealed class PdfToUnicodeMap : PdfDictionary
         // reach; it was simply never applied.
         foreach (var block in Blocks(single))
         {
-            wrt.WriteLine(String.Format("{0} beginbfrange", block.Count));
+            wrt.WriteLine($"{block.Count} beginbfrange");
             foreach (var entry in block)
                 wrt.WriteLine(String.Format("<{0:X4}><{0:X4}><{1:X4}>", entry.Key, (int)entry.Value[0]));
             wrt.WriteLine("endbfrange");
@@ -117,9 +117,9 @@ internal sealed class PdfToUnicodeMap : PdfDictionary
 
         foreach (var block in Blocks(several))
         {
-            wrt.WriteLine(String.Format("{0} beginbfchar", block.Count));
+            wrt.WriteLine($"{block.Count} beginbfchar");
             foreach (var entry in block)
-                wrt.WriteLine(String.Format("<{0:X4}><{1}>", entry.Key, Utf16BigEndian(entry.Value)));
+                wrt.WriteLine($"<{entry.Key:X4}><{Utf16BigEndian(entry.Value)}>");
             wrt.WriteLine("endbfchar");
         }
 
@@ -127,7 +127,7 @@ internal sealed class PdfToUnicodeMap : PdfDictionary
         wrt.Dispose();
 
         // Compress like content streams
-        byte[] bytes = ms.ToArray();
+        var bytes = ms.ToArray();
         ms.Dispose();
         if (Owner.Options.CompressContentStreams)
         {
@@ -156,7 +156,7 @@ internal sealed class PdfToUnicodeMap : PdfDictionary
     static IEnumerable<List<KeyValuePair<int, string>>> Blocks(List<KeyValuePair<int, string>> entries)
     {
         const int most = 100;
-        for (int start = 0; start < entries.Count; start += most)
+        for (var start = 0; start < entries.Count; start += most)
             yield return entries.GetRange(start, Math.Min(most, entries.Count - start));
     }
 
@@ -170,7 +170,7 @@ internal sealed class PdfToUnicodeMap : PdfDictionary
     static string Utf16BigEndian(string characters)
     {
         var hex = new StringBuilder(characters.Length * 4);
-        foreach (char character in characters)
+        foreach (var character in characters)
             hex.AppendFormat("{0:X4}", (int)character);
 
         return hex.ToString();

@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -163,7 +163,7 @@ public class Code3of9Standard : ThickThinBarCode
         // '%'
         new bool[] {false, false, false, true, false, true, false, true, false},
         // '*'
-        new bool[] {false, true, false, false, true, false, true, false, false},
+        new bool[] {false, true, false, false, true, false, true, false, false}
     };
 
 
@@ -185,7 +185,7 @@ public class Code3of9Standard : ThickThinBarCode
          *
          * Total width = (13 + 6 * r + (3 * r + 7) * code.Length) * thin
          */
-        double thinLineAmount = 13 + 6 * WideNarrowRatio + (3 * WideNarrowRatio + 7) * Text.Length;
+        var thinLineAmount = 13 + 6 * WideNarrowRatio + (3 * WideNarrowRatio + 7) * Text.Length;
         info.ThinBarWidth = Size.Width / thinLineAmount;
     }
 
@@ -200,7 +200,7 @@ public class Code3of9Standard : ThickThinBarCode
         if (text.Length == 0)
             throw new ArgumentException(BcgSR.Invalid3Of9Code(text));
 
-        foreach (char ch in text)
+        foreach (var ch in text)
         {
             if ("0123456789ABCDEFGHIJKLMNOP'QRSTUVWXYZ-. $/+%*".IndexOf(ch) < 0)
                 throw new ArgumentException(BcgSR.Invalid3Of9Code(text));
@@ -212,9 +212,9 @@ public class Code3of9Standard : ThickThinBarCode
     /// </summary>
     protected internal override void Render(XGraphics gfx, XBrush brush, XFont font, XPoint position)
     {
-        XGraphicsState state = gfx.Save();
+        var state = gfx.Save();
 
-        BarCodeRenderInfo info = new BarCodeRenderInfo(gfx, brush, font, position);
+        var info = new BarCodeRenderInfo(gfx, brush, font, position);
         InitRendering(info);
         info.CurrPosInString = 0;
         //info.CurrPos = Center - Size / 2;
@@ -245,8 +245,8 @@ public class Code3of9Standard : ThickThinBarCode
 
     private void RenderChar(BarCodeRenderInfo info, char ch)
     {
-        bool[] thickThinLines = ThickThinLines(ch);
-        int idx = 0;
+        var thickThinLines = ThickThinLines(ch);
+        var idx = 0;
         while (idx < 9)
         {
             RenderBar(info, thickThinLines[idx]);

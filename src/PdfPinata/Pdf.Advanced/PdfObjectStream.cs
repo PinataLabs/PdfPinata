@@ -60,11 +60,11 @@ public class PdfObjectStream : PdfDictionary
         if (_document._trailer.Elements[PdfTrailer.Keys.Encrypt] is PdfReference)
             _document.SecurityHandler.EncryptObject(dict);
 
-        int n = Elements.GetInteger(Keys.N);
-        int first = Elements.GetInteger(Keys.First);
+        var n = Elements.GetInteger(Keys.N);
+        var first = Elements.GetInteger(Keys.First);
         Stream.TryUnfilter();
 
-        Parser parser = new Parser(null, new MemoryStream(Stream.Value));
+        var parser = new Parser(null, new MemoryStream(Stream.Value));
         _header = parser.ReadObjectStreamHeader(n, first);
     }
 
@@ -75,15 +75,15 @@ public class PdfObjectStream : PdfDictionary
     {
         ////// Create parser for stream.
         ////Parser parser = new Parser(_document, new MemoryStream(Stream.Value));
-        for (int idx = 0; idx < _header.Length; idx++)
+        for (var idx = 0; idx < _header.Length; idx++)
         {
-            int objectNumber = _header[idx][0];
-            int offset = _header[idx][1];
+            var objectNumber = _header[idx][0];
+            var offset = _header[idx][1];
 
-            PdfObjectID objectID = new PdfObjectID(objectNumber);
+            var objectID = new PdfObjectID(objectNumber);
 
             // HACK: -1 indicates compressed object.
-            PdfReference iref = new PdfReference(objectID, -1);
+            var iref = new PdfReference(objectID, -1);
             ////iref.ObjectID = objectID;
             ////iref.Value = xrefStream;
             if (!xrefTable.Contains(iref.ObjectID))
@@ -96,9 +96,9 @@ public class PdfObjectStream : PdfDictionary
     /// </summary>
     internal PdfReference ReadCompressedObject(int index)
     {
-        Parser parser = new Parser(_document, new MemoryStream(Stream.Value));
-        int objectNumber = _header[index][0];
-        int offset = _header[index][1];
+        var parser = new Parser(_document, new MemoryStream(Stream.Value));
+        var objectNumber = _header[index][0];
+        var offset = _header[index][1];
         return parser.ReadCompressedObject(objectNumber, offset);
     }
 

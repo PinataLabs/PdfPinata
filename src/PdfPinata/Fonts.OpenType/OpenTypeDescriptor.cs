@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -67,9 +67,9 @@ internal sealed class OpenTypeDescriptor : FontDescriptor
         // Try to get real name form name table
         if (idName.Contains("XPS-Font-") && FontFace.name != null && FontFace.name.Name.Length != 0)
         {
-            string tag = String.Empty;
+            var tag = String.Empty;
             if (idName.IndexOf('+') == 6)
-                tag = idName.Substring(0, 6);
+                tag = idName[..6];
             idName = tag + "+" + FontFace.name.Name;
             if (FontFace.name.Style.Length != 0)
                 idName += "," + FontFace.name.Style;
@@ -115,10 +115,10 @@ internal sealed class OpenTypeDescriptor : FontDescriptor
         // Calculate Ascent, Descent, Leading and LineSpacing like in WPF Source Code (see FontDriver.ReadBasicMetrics)
 
         // OS/2 is an optional table, but we can't determine if it is existing in this font.
-        bool os2SeemsToBeEmpty = FontFace.os2.sTypoAscender == 0 && FontFace.os2.sTypoDescender == 0 && FontFace.os2.sTypoLineGap == 0;
+        var os2SeemsToBeEmpty = FontFace.os2.sTypoAscender == 0 && FontFace.os2.sTypoDescender == 0 && FontFace.os2.sTypoLineGap == 0;
         //Debug.Assert(!os2SeemsToBeEmpty); // Are there fonts without OS/2 table?
 
-        bool dontUseWinLineMetrics = (FontFace.os2.fsSelection & 128) != 0;
+        var dontUseWinLineMetrics = (FontFace.os2.fsSelection & 128) != 0;
         if (!os2SeemsToBeEmpty && dontUseWinLineMetrics)
         {
             // Comment from WPF: The font specifies that the sTypoAscender, sTypoDescender, and sTypoLineGap fields are valid and
@@ -139,26 +139,26 @@ internal sealed class OpenTypeDescriptor : FontDescriptor
         {
             // Comment from WPF: get the ascender field
             int ascender = FontFace.hhea.ascender;
-            // Comment from WPF: get the descender field; this is measured in the same direction as ascender and is therefore 
+            // Comment from WPF: get the descender field; this is measured in the same direction as ascender and is therefore
             // normally negative whereas we want a positive value; however some fonts get the sign wrong
             // so instead of just negating we take the absolute value.
             int descender = Math.Abs(FontFace.hhea.descender);
-            // Comment from WPF: get the lineGap field and make sure it's >= 0 
+            // Comment from WPF: get the lineGap field and make sure it's >= 0
             int lineGap = Math.Max((short)0, FontFace.hhea.lineGap);
 
             if (!os2SeemsToBeEmpty)
             {
                 // Comment from WPF: we could use sTypoAscender, sTypoDescender, and sTypoLineGap which are supposed to represent
-                // optimal typographic values not constrained by backwards compatibility; however, many fonts get 
-                // these fields wrong or get them right only for Latin text; therefore we use the more reliable 
+                // optimal typographic values not constrained by backwards compatibility; however, many fonts get
+                // these fields wrong or get them right only for Latin text; therefore we use the more reliable
                 // platform-specific Windows values. We take the absolute value of the win32descent in case some
-                // fonts get the sign wrong. 
+                // fonts get the sign wrong.
                 int winAscent = FontFace.os2.usWinAscent;
-                int winDescent = Math.Abs(FontFace.os2.usWinDescent);
+                var winDescent = Math.Abs(FontFace.os2.usWinDescent);
 
                 Ascender = winAscent;
                 Descender = winDescent;
-                // Comment from WPF: The following calculation for designLineSpacing is per [....]. The default line spacing 
+                // Comment from WPF: The following calculation for designLineSpacing is per [....]. The default line spacing
                 // should be the sum of the Mac ascender, descender, and lineGap unless the resulting value would
                 // be less than the cell height (winAscent + winDescent) in which case we use the cell height.
                 // See also http://www.microsoft.com/typography/otspec/recom.htm.
@@ -177,9 +177,9 @@ internal sealed class OpenTypeDescriptor : FontDescriptor
 
         Debug.Assert(Descender >= 0);
 
-        int cellHeight = Ascender + Descender;
-        int internalLeading = cellHeight - UnitsPerEm; // Not used, only for debugging.
-        int externalLeading = LineSpacing - cellHeight;
+        var cellHeight = Ascender + Descender;
+        var internalLeading = cellHeight - UnitsPerEm; // Not used, only for debugging.
+        var externalLeading = LineSpacing - cellHeight;
         Leading = externalLeading;
 
         // sCapHeight and sxHeight are only valid if Version >= 2
@@ -194,20 +194,20 @@ internal sealed class OpenTypeDescriptor : FontDescriptor
             XHeight = (int)(0.66 * Ascender);
 
         //flags = image.
-        Encoding ansi = PdfEncoders.WinAnsiEncoding; // System.Text.Encoding.Default;
-        Encoding unicode = Encoding.Unicode;
-        byte[] bytes = new byte[256];
+        var ansi = PdfEncoders.WinAnsiEncoding; // System.Text.Encoding.Default;
+        var unicode = Encoding.Unicode;
+        var bytes = new byte[256];
 
-        bool symbol = FontFace.cmap.symbol;
+        var symbol = FontFace.cmap.symbol;
         Widths = new int[256];
-        for (int idx = 0; idx < 256; idx++)
+        for (var idx = 0; idx < 256; idx++)
         {
             bytes[idx] = (byte)idx;
             // PDFlib handles some font flaws here...
             // We wait for bug reports.
 
-            char ch = (char)idx;
-            string s = ansi.GetString(bytes, idx, 1);
+            var ch = (char)idx;
+            var s = ansi.GetString(bytes, idx, 1);
             if (s.Length != 0)
             {
                 if (s[0] != ch)
@@ -234,7 +234,7 @@ internal sealed class OpenTypeDescriptor : FontDescriptor
                 // Remap ch for symbol fonts.
                 ch = (char)(ch | (FontFace.os2.usFirstCharIndex & 0xFF00));  // @@@ refactor
             }
-            int glyphIndex = CharCodeToGlyphIndex(ch);
+            var glyphIndex = CharCodeToGlyphIndex(ch);
             Widths[idx] = GlyphIndexToPdfWidth(glyphIndex);
         }
     }
@@ -265,8 +265,8 @@ internal sealed class OpenTypeDescriptor : FontDescriptor
     /// </summary>
     public int CharCodeToGlyphIndex(char value)
     {
-        CMap4 cmap4 = FontFace.cmap.cmap4;
-        int segCount = cmap4.segCountX2 / 2;
+        var cmap4 = FontFace.cmap.cmap4;
+        var segCount = cmap4.segCountX2 / 2;
         int seg;
         for (seg = 0; seg < segCount; seg++)
         {
@@ -281,7 +281,7 @@ internal sealed class OpenTypeDescriptor : FontDescriptor
         if (cmap4.idRangeOffs[seg] == 0)
             return (value + cmap4.idDelta[seg]) & 0xFFFF;
 
-        int idx = cmap4.idRangeOffs[seg] / 2 + (value - cmap4.startCount[seg]) - (segCount - seg);
+        var idx = cmap4.idRangeOffs[seg] / 2 + (value - cmap4.startCount[seg]) - (segCount - seg);
         Debug.Assert(idx >= 0 && idx < cmap4.glyphCount);
 
         if (cmap4.glyphIdArray[idx] == 0)
@@ -313,7 +313,7 @@ internal sealed class OpenTypeDescriptor : FontDescriptor
         if (codePoint <= 0xFFFF)
             return CharCodeToGlyphIndex((char)codePoint);
 
-        CMap12 cmap12 = FontFace.cmap.cmap12;
+        var cmap12 = FontFace.cmap.cmap12;
         return cmap12 == null ? 0 : cmap12.CharCodeToGlyphIndex(codePoint);
     }
 
@@ -345,8 +345,8 @@ internal sealed class OpenTypeDescriptor : FontDescriptor
 
     public int PdfWidthFromCharCode(char ch)
     {
-        int idx = CharCodeToGlyphIndex(ch);
-        int width = GlyphIndexToPdfWidth(idx);
+        var idx = CharCodeToGlyphIndex(ch);
+        var width = GlyphIndexToPdfWidth(idx);
         return width;
     }
 

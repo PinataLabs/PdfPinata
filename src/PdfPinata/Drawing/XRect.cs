@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -181,9 +181,9 @@ public struct XRect : IFormattable, IDeserializationCallback
     public static XRect Parse(string source)
     {
         XRect empty;
-        CultureInfo cultureInfo = CultureInfo.InvariantCulture;
-        TokenizerHelper helper = new TokenizerHelper(source, cultureInfo);
-        string str = helper.NextTokenRequired();
+        var cultureInfo = CultureInfo.InvariantCulture;
+        var helper = new TokenizerHelper(source, cultureInfo);
+        var str = helper.NextTokenRequired();
         if (str == "Empty")
             empty = Empty;
         else
@@ -220,7 +220,7 @@ public struct XRect : IFormattable, IDeserializationCallback
     {
         if (IsEmpty)
             return "Empty";
-        char numericListSeparator = TokenizerHelper.GetNumericListSeparator(provider);
+        var numericListSeparator = TokenizerHelper.GetNumericListSeparator(provider);
         provider = provider ?? CultureInfo.InvariantCulture;
         // ReSharper disable FormatStringProblem
         return string.Format(provider, "{1:" + format + "}{0}{2:" + format + "}{0}{3:" + format + "}{0}{4:" + format + "}", new object[] { numericListSeparator, _x, _y, _width, _height });
@@ -357,17 +357,17 @@ public struct XRect : IFormattable, IDeserializationCallback
     double _height;
 
     /// <summary>
-    /// Gets the x-axis value of the left side of the rectangle. 
+    /// Gets the x-axis value of the left side of the rectangle.
     /// </summary>
     public double Left => _x;
 
     /// <summary>
-    /// Gets the y-axis value of the top side of the rectangle. 
+    /// Gets the y-axis value of the top side of the rectangle.
     /// </summary>
     public double Top => _y;
 
     /// <summary>
-    /// Gets the x-axis value of the right side of the rectangle. 
+    /// Gets the x-axis value of the right side of the rectangle.
     /// </summary>
     public double Right
     {
@@ -380,7 +380,7 @@ public struct XRect : IFormattable, IDeserializationCallback
     }
 
     /// <summary>
-    /// Gets the y-axis value of the bottom side of the rectangle. 
+    /// Gets the y-axis value of the bottom side of the rectangle.
     /// </summary>
     public double Bottom
     {
@@ -393,22 +393,22 @@ public struct XRect : IFormattable, IDeserializationCallback
     }
 
     /// <summary>
-    /// Gets the position of the top-left corner of the rectangle. 
+    /// Gets the position of the top-left corner of the rectangle.
     /// </summary>
     public XPoint TopLeft => new(Left, Top);
 
     /// <summary>
-    /// Gets the position of the top-right corner of the rectangle. 
+    /// Gets the position of the top-right corner of the rectangle.
     /// </summary>
     public XPoint TopRight => new(Right, Top);
 
     /// <summary>
-    /// Gets the position of the bottom-left corner of the rectangle. 
+    /// Gets the position of the bottom-left corner of the rectangle.
     /// </summary>
     public XPoint BottomLeft => new(Left, Bottom);
 
     /// <summary>
-    /// Gets the position of the bottom-right corner of the rectangle. 
+    /// Gets the position of the bottom-right corner of the rectangle.
     /// </summary>
     public XPoint BottomRight => new(Right, Bottom);
 
@@ -419,7 +419,7 @@ public struct XRect : IFormattable, IDeserializationCallback
     public XPoint Center => new(_x + _width / 2, _y + _height / 2);
 
     /// <summary>
-    /// Indicates whether the rectangle contains the specified point. 
+    /// Indicates whether the rectangle contains the specified point.
     /// </summary>
     public bool Contains(XPoint point)
     {
@@ -427,7 +427,7 @@ public struct XRect : IFormattable, IDeserializationCallback
     }
 
     /// <summary>
-    /// Indicates whether the rectangle contains the specified point. 
+    /// Indicates whether the rectangle contains the specified point.
     /// </summary>
     public bool Contains(double x, double y)
     {
@@ -437,7 +437,7 @@ public struct XRect : IFormattable, IDeserializationCallback
     }
 
     /// <summary>
-    /// Indicates whether the rectangle contains the specified rectangle. 
+    /// Indicates whether the rectangle contains the specified rectangle.
     /// </summary>
     public bool Contains(XRect rect)
     {
@@ -465,8 +465,8 @@ public struct XRect : IFormattable, IDeserializationCallback
             this = Empty;
         else
         {
-            double left = Math.Max(Left, rect.Left);
-            double top = Math.Max(Top, rect.Top);
+            var left = Math.Max(Left, rect.Left);
+            var top = Math.Max(Top, rect.Top);
             _width = Math.Max(Math.Min(Right, rect.Right) - left, 0.0);
             _height = Math.Max(Math.Min(Bottom, rect.Bottom) - top, 0.0);
             _x = left;
@@ -493,15 +493,15 @@ public struct XRect : IFormattable, IDeserializationCallback
             this = rect;
         else if (!rect.IsEmpty)
         {
-            double left = Math.Min(Left, rect.Left);
-            double top = Math.Min(Top, rect.Top);
+            var left = Math.Min(Left, rect.Left);
+            var top = Math.Min(Top, rect.Top);
             #pragma warning disable S1244 // Exact on purpose: compared with a sentinel the value is set to, never with the result of arithmetic.
             if (rect.Width == Double.PositiveInfinity || Width == Double.PositiveInfinity)
                 _width = Double.PositiveInfinity;
             #pragma warning restore S1244
             else
             {
-                double right = Math.Max(Right, rect.Right);
+                var right = Math.Max(Right, rect.Right);
                 _width = Math.Max(right - left, 0.0);
             }
 
@@ -511,7 +511,7 @@ public struct XRect : IFormattable, IDeserializationCallback
             #pragma warning restore S1244
             else
             {
-                double bottom = Math.Max(Bottom, rect.Bottom);
+                var bottom = Math.Max(Bottom, rect.Bottom);
                 _height = Math.Max(bottom - top, 0.0);
             }
             _x = left;
@@ -569,7 +569,7 @@ public struct XRect : IFormattable, IDeserializationCallback
     }
 
     /// <summary>
-    /// Returns a rectangle that is offset from the specified rectangle by using the specified vector. 
+    /// Returns a rectangle that is offset from the specified rectangle by using the specified vector.
     /// </summary>
     public static XRect Offset(XRect rect, XVector offsetVector)
     {
@@ -578,7 +578,7 @@ public struct XRect : IFormattable, IDeserializationCallback
     }
 
     /// <summary>
-    /// Returns a rectangle that is offset from the specified rectangle by using specified horizontal and vertical amounts. 
+    /// Returns a rectangle that is offset from the specified rectangle by using specified horizontal and vertical amounts.
     /// </summary>
     public static XRect Offset(XRect rect, double offsetX, double offsetY)
     {
@@ -695,7 +695,7 @@ public struct XRect : IFormattable, IDeserializationCallback
 
     static XRect CreateEmptyRect()
     {
-        XRect rect = new XRect();
+        var rect = new XRect();
         rect._x = double.PositiveInfinity;
         rect._y = double.PositiveInfinity;
         rect._width = double.NegativeInfinity;

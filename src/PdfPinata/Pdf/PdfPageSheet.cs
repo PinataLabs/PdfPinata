@@ -192,8 +192,8 @@ internal sealed class PdfPageSheet
         double markLeft = _markMargins.Left.Point, markRight = _markMargins.Right.Point;
         double markTop = _markMargins.Top.Point, markBottom = _markMargins.Bottom.Point;
 
-        double width = markLeft + bleedLeft + TrimmedSize.Value.Width + bleedRight + markRight;
-        double height = markTop + bleedTop + TrimmedSize.Value.Height + bleedBottom + markBottom;
+        var width = markLeft + bleedLeft + TrimmedSize.Value.Width + bleedRight + markRight;
+        var height = markTop + bleedTop + TrimmedSize.Value.Height + bleedBottom + markBottom;
 
         // Written through the elements rather than through the properties, which would throw the
         // remembered size away as any other resize does.
@@ -201,7 +201,7 @@ internal sealed class PdfPageSheet
         SetBox(PdfPage.Keys.CropBox, new PdfRectangle(0, 0, width, height));
         SetBox(PdfPage.Keys.BleedBox, new PdfRectangle(markLeft, markBottom, width - markRight, height - markTop));
 
-        PdfRectangle trim = new PdfRectangle(
+        var trim = new PdfRectangle(
             markLeft + bleedLeft, markBottom + bleedBottom,
             width - markRight - bleedRight, height - markTop - bleedTop);
         SetBox(PdfPage.Keys.TrimBox, trim);
@@ -248,16 +248,16 @@ internal sealed class PdfPageSheet
         double markLeft = _markMargins.Left.Point, markRight = _markMargins.Right.Point;
         double markTop = _markMargins.Top.Point, markBottom = _markMargins.Bottom.Point;
 
-        double width = markLeft + bleedLeft + _page.Width.Point + bleedRight + markRight;
-        double height = markTop + bleedTop + _page.Height.Point + bleedBottom + markBottom;
+        var width = markLeft + bleedLeft + _page.Width.Point + bleedRight + markRight;
+        var height = markTop + bleedTop + _page.Height.Point + bleedBottom + markBottom;
 
         // The four lines the guillotine follows, in the sheet's own coordinates.
-        double left = markLeft + bleedLeft;
-        double right = width - markRight - bleedRight;
-        double top = height - markTop - bleedTop;
-        double bottom = markBottom + bleedBottom;
+        var left = markLeft + bleedLeft;
+        var right = width - markRight - bleedRight;
+        var top = height - markTop - bleedTop;
+        var bottom = markBottom + bleedBottom;
 
-        StringBuilder marks = new StringBuilder();
+        var marks = new StringBuilder();
 
         // Black, and thin enough that the mark itself does not tell the trimmer a lie about
         // where the cut is. Both are what every other producer writes.
@@ -278,7 +278,7 @@ internal sealed class PdfPageSheet
 
         marks.Append("Q\n");
 
-        PdfContent content = _page.Contents.AppendContent();
+        var content = _page.Contents.AppendContent();
         content.CreateStream(PdfEncoders.RawEncoding.GetBytes(marks.ToString()));
     }
 

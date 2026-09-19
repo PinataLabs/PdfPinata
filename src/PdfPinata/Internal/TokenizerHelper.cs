@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -41,7 +41,7 @@ class TokenizerHelper
     /// </summary>
     public TokenizerHelper(string str, IFormatProvider formatProvider)
     {
-        char numericListSeparator = GetNumericListSeparator(formatProvider);
+        var numericListSeparator = GetNumericListSeparator(formatProvider);
         Initialize(str, '\'', numericListSeparator);
     }
 
@@ -86,9 +86,7 @@ class TokenizerHelper
 
     public string GetCurrentToken()
     {
-        if (_currentTokenIndex < 0)
-            return null;
-        return _str.Substring(_currentTokenIndex, _currentTokenLength);
+        return _currentTokenIndex < 0 ? null : _str.Substring(_currentTokenIndex, _currentTokenLength);
     }
 
     public void LastTokenRequired()
@@ -123,12 +121,12 @@ class TokenizerHelper
         if (_charIndex >= _strLen)
             return false;
 
-        char currentChar = _str[_charIndex];
+        var currentChar = _str[_charIndex];
 
         // Setup the quoteCount .
-        int quoteCount = 0;
+        var quoteCount = 0;
 
-        // If we are allowing a quoted token and this token begins with a quote, 
+        // If we are allowing a quoted token and this token begins with a quote,
         // set up the quote count and skip the initial quote
         if (allowQuotedToken &&
             currentChar == _quoteChar)
@@ -137,8 +135,8 @@ class TokenizerHelper
             _charIndex++;
         }
 
-        int newTokenIndex = _charIndex;
-        int newTokenLength = 0;
+        var newTokenIndex = _charIndex;
+        var newTokenLength = 0;
 
         // Loop until hit end of string or hit a separator or whitespace.
         while (_charIndex < _strLen)
@@ -177,7 +175,7 @@ class TokenizerHelper
             throw new InvalidOperationException("Missing end quote"); //SR.Get(SRID.TokenizerHelperMissingEndQuote, new object[0]));
 
         // Move at the start of the nextToken.
-        ScanToNextToken(separator); 
+        ScanToNextToken(separator);
 
         // Update the _currentToken values.
         _currentTokenIndex = newTokenIndex;
@@ -194,14 +192,14 @@ class TokenizerHelper
         // Do nothing if already at end of the string.
         if (_charIndex < _strLen)
         {
-            char currentChar = _str[_charIndex];
+            var currentChar = _str[_charIndex];
 
             // Ensure that currentChar is a white space or separator.
             if (currentChar != separator && !char.IsWhiteSpace(currentChar))
                 throw new InvalidOperationException("ExtraDataEncountered"); //SR.Get(SRID.TokenizerHelperExtraDataEncountered, new object[0]));
 
             // Loop until a character that isn't the separator or white space.
-            int argSepCount = 0;
+            var argSepCount = 0;
             while (_charIndex < _strLen)
             {
                 currentChar = _str[_charIndex];
@@ -231,8 +229,8 @@ class TokenizerHelper
 
     public static char GetNumericListSeparator(IFormatProvider provider)
     {
-        char numericSeparator = ',';
-        NumberFormatInfo numberFormat = NumberFormatInfo.GetInstance(provider);
+        var numericSeparator = ',';
+        var numberFormat = NumberFormatInfo.GetInstance(provider);
         if (numberFormat.NumberDecimalSeparator.Length > 0 && numericSeparator == numberFormat.NumberDecimalSeparator[0])
             numericSeparator = ';';
         return numericSeparator;

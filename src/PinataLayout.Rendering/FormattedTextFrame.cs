@@ -24,7 +24,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -57,10 +57,7 @@ internal class FormattedTextFrame : IAreaProvider
 
   Area IAreaProvider.GetNextArea()
   {
-    if (isFirstArea)
-      return CalcContentRect();
-
-    return null;
+    return isFirstArea ? CalcContentRect() : null;
   }
 
   Area IAreaProvider.ProbeNextArea()
@@ -96,8 +93,8 @@ internal class FormattedTextFrame : IAreaProvider
 
   Rectangle CalcContentRect()
   {
-    LineFormatRenderer lfr = new LineFormatRenderer(textframe.LineFormat, gfx);
-    XUnit lineWidth = lfr.GetWidth();
+    var lfr = new LineFormatRenderer(textframe.LineFormat, gfx);
+    var lineWidth = lfr.GetWidth();
     XUnit width;
     XUnit xOffset = lineWidth / 2;
     XUnit yOffset = lineWidth / 2;
@@ -142,7 +139,7 @@ internal class FormattedTextFrame : IAreaProvider
 
   bool IAreaProvider.PositionHorizontally(LayoutInfo layoutInfo)
   {
-    Rectangle rect = CalcContentRect();
+    var rect = CalcContentRect();
     switch (layoutInfo.HorizontalAlignment)
     {
       case ElementAlignment.Near:

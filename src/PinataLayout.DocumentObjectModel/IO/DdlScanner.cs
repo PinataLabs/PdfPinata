@@ -26,7 +26,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -39,7 +39,7 @@ using PinataLayout.DocumentObjectModel.Resources;
 
 /*
   ddl = <document> | <empty>
-  
+
   table-element:
     \table «attributes»opt { «columns-element» «rows-element» }
 
@@ -123,7 +123,7 @@ internal class DdlScanner
       symbol = ScanIdentifier();
       this.tokenType = TokenType.Identifier;
       // Some keywords do not start with a backslash: true, false, and null.
-      Symbol sym = KeyWords.SymbolFromName(token);
+      var sym = KeyWords.SymbolFromName(token);
       if (sym != Symbol.None)
       {
         this.symbol = sym;
@@ -208,12 +208,12 @@ internal class DdlScanner
         return Symbol.Character;
     }
 
-    string token = "\\";
-    int idx = index;
-    int length = this.ddlLength - idx;
+    var token = "\\";
+    var idx = index;
+    var length = this.ddlLength - idx;
     while (length > 0)
     {
-      char ch = m_strDocument[idx++];
+      var ch = m_strDocument[idx++];
       if (DdlScanner.IsLetter(ch))
       {
         token += ch;
@@ -230,8 +230,8 @@ internal class DdlScanner
   /// </summary>
   protected Symbol PeekPunctuator(int index)
   {
-    Symbol sym = Symbol.None;
-    char ch = m_strDocument[index];
+    var sym = Symbol.None;
+    var ch = m_strDocument[index];
     switch (ch)
     {
       case '{':
@@ -356,11 +356,11 @@ internal class DdlScanner
   /// </summary>
   internal Symbol PeekSymbol()
   {
-    int idx = this.m_idx - 1;
-    int length = this.ddlLength - idx;
+    var idx = this.m_idx - 1;
+    var length = this.ddlLength - idx;
 
     // Move to first non whitespace
-    char ch = char.MinValue;
+    var ch = char.MinValue;
     while (length > 0)
     {
       ch = m_strDocument[idx++];
@@ -495,8 +495,8 @@ internal class DdlScanner
   /// </summary>
   Symbol ReadPlainText(bool rootLevel)
   {
-    bool foundSpace = false;
-    bool loop = true;
+    var foundSpace = false;
+    var loop = true;
     while (loop && this.currChar != Chars.Null)
     {
       // Check for escaped character or keyword.
@@ -617,7 +617,7 @@ internal class DdlScanner
   }
 
   /// <summary>
-  /// Moves to the first character of the content of a paragraph beyond an EOL. 
+  /// Moves to the first character of the content of a paragraph beyond an EOL.
   /// Returns true if such a character exists and belongs to the current paragraph.
   /// Returns false if a new line (at root level) or '}' occurs. If a new line caused
   /// the end of the paragraph, the DDL cursor is moved to the next valid content
@@ -626,7 +626,7 @@ internal class DdlScanner
   internal bool MoveToNextParagraphContentLine(bool rootLevel)
   {
     Debug.Assert(this.currChar == Chars.LF);
-    bool loop = true;
+    var loop = true;
     ScanNextChar();
     while (loop)
     {
@@ -737,7 +737,7 @@ internal class DdlScanner
   }
 
   /// <summary>
-  /// Moves to the first character beyond the next EOL. 
+  /// Moves to the first character beyond the next EOL.
   /// </summary>
   internal void MoveBeyondEol()
   {
@@ -753,7 +753,7 @@ internal class DdlScanner
   /// </summary>
   internal Symbol ScanSingleLineComment()
   {
-    char ch = ScanNextChar();
+    var ch = ScanNextChar();
     while (ch != Chars.Null && ch != Chars.LF)
     {
       token += currChar;
@@ -801,7 +801,7 @@ internal class DdlScanner
     }
     else if (symbol == Symbol.HexIntegerLiteral)
     {
-      string number = token.Substring(2);
+      var number = token[2..];
       if (Int32.TryParse(number, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out value))
         return value;
 
@@ -839,7 +839,7 @@ internal class DdlScanner
     }
     else if (symbol == Symbol.HexIntegerLiteral)
     {
-      string number = token.Substring(2);
+      var number = token[2..];
       return UInt32.Parse(number, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
     }
     //TODO NiSc
@@ -941,7 +941,7 @@ internal class DdlScanner
   /// </summary>
   internal void AppendAndScanToEol()
   {
-    char ch = ScanNextChar();
+    var ch = ScanNextChar();
     while (ch != Chars.Null && ch != Chars.CR && ch != Chars.LF)  //BUG Chars.Null == CharLF
     {
       token += currChar;
@@ -1054,7 +1054,7 @@ internal class DdlScanner
   /// </summary>
   protected Symbol ScanIdentifier()
   {
-    char ch = AppendAndScanNextChar();
+    var ch = AppendAndScanNextChar();
     while (IsIdentifierChar(ch, false))
       ch = AppendAndScanNextChar();
 
@@ -1066,7 +1066,7 @@ internal class DdlScanner
   /// </summary>
   protected Symbol ScanNumber(bool mantissa)
   {
-    char ch = currChar;
+    var ch = currChar;
     token += currChar;
 
     ScanNextChar();
@@ -1115,7 +1115,7 @@ internal class DdlScanner
   /// </summary>
   Symbol ScanKeyword()
   {
-    char ch = ScanNextChar();
+    var ch = ScanNextChar();
 
     // \- is a soft hyphen == char(173).
     if (ch == '-')
@@ -1145,7 +1145,7 @@ internal class DdlScanner
   /// </summary>
   protected Symbol ScanPunctuator()
   {
-    Symbol sym = Symbol.None;
+    var sym = Symbol.None;
     switch (currChar)
     {
       case '{':
@@ -1307,8 +1307,8 @@ internal class DdlScanner
   /// </summary>
   protected string ScanVerbatimStringLiteral()
   {
-    string str = "";
-    char ch = ScanNextChar();
+    var str = "";
+    var ch = ScanNextChar();
     while (!IsEof(ch))
     {
       if (ch == Chars.QuoteDbl)
@@ -1333,7 +1333,7 @@ internal class DdlScanner
   protected string ScanStringLiteral()
   {
     Debug.Assert(Char == '\"');
-    string str = "";
+    var str = "";
     ScanNextChar();
     while (currChar != Chars.QuoteDbl && !IsEof(currChar))
     {
@@ -1385,8 +1385,8 @@ internal class DdlScanner
           case 'x':
           {
             ScanNextChar();
-            int hexNrCount = 0;
-            string hexString = "0x";
+            var hexNrCount = 0;
+            var hexString = "0x";
             while (IsHexDigit(currChar))
             {
               ++hexNrCount;

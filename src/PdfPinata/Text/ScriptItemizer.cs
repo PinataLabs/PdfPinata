@@ -71,22 +71,22 @@ internal static class ScriptItemizer
         if (length == 0)
             return runs;
 
-        int end = start + length;
+        var end = start + length;
         var script = UnicodeScript.Common;
-        int from = start;
+        var from = start;
 
-        for (int idx = start; idx < end;)
+        for (var idx = start; idx < end;)
         {
             // The pair is looked for inside the window, so a window ending between the halves of a
             // surrogate pair reads what is left of it as itself rather than reaching past its own
             // end. char.ConvertToUtf32 throws on a lone surrogate, which is not an answer a layout
             // path can use.
-            int width = char.IsHighSurrogate(text[idx]) && idx + 1 < end
-                        && char.IsLowSurrogate(text[idx + 1])
+            var width = char.IsHighSurrogate(text[idx]) && idx + 1 < end
+                                                        && char.IsLowSurrogate(text[idx + 1])
                 ? 2
                 : 1;
 
-            int codePoint = width == 2 ? char.ConvertToUtf32(text[idx], text[idx + 1]) : text[idx];
+            var codePoint = width == 2 ? char.ConvertToUtf32(text[idx], text[idx + 1]) : text[idx];
             var here = UnicodeProperties.ScriptOf(codePoint);
 
             if (here == UnicodeScript.Inherited || here == UnicodeScript.Common)

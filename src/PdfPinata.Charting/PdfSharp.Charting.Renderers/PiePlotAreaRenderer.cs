@@ -57,19 +57,19 @@ internal abstract class PiePlotAreaRenderer : PlotAreaRenderer
   /// </summary>
   internal override void Draw()
   {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    XRect plotAreaRect = cri.plotAreaRendererInfo.Rect;
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var plotAreaRect = cri.plotAreaRendererInfo.Rect;
     if (HasNoRoom(plotAreaRect))
       return;
 
     if (cri.seriesRendererInfos.Length == 0)
       return;
 
-    XGraphics gfx = this.rendererParms.Graphics;
-    XGraphicsState state = gfx.Save();
+    var gfx = this.rendererParms.Graphics;
+    var state = gfx.Save();
 
     // Draw sectors.
-    SeriesRendererInfo sri = cri.seriesRendererInfos[0];
+    var sri = cri.seriesRendererInfos[0];
     foreach (SectorRendererInfo sector in sri.pointRendererInfos)
     {
       if (!double.IsNaN(sector.StartAngle) && !double.IsNaN(sector.SweepAngle))

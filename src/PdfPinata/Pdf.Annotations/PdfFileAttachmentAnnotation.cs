@@ -100,17 +100,17 @@ public class PdfFileAttachmentAnnotation : PdfAnnotation
         public const string FS = "/FS";
 
         /// <summary>
-        /// (Optional) The name of an icon to be used in displaying the annotation. 
-        /// Viewer applications should provide predefined icon appearances for at least 
+        /// (Optional) The name of an icon to be used in displaying the annotation.
+        /// Viewer applications should provide predefined icon appearances for at least
         /// the following standard names:
-        /// 
+        ///
         /// Graph
         /// PushPin
         /// Paperclip
         /// Tag
-        /// 
+        ///
         /// Additional names may be supported as well. Default value: PushPin.
-        /// Note: The annotation dictionary’s AP entry, if present, takes precedence over 
+        /// Note: The annotation dictionary’s AP entry, if present, takes precedence over
         /// the Name entry; see Table 8.15 on page 606 and Section 8.4.4, “Appearance Streams.”
         /// </summary>
         [KeyInfo(KeyType.Name | KeyType.Optional)]

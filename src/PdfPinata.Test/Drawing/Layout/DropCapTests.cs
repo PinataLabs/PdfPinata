@@ -695,7 +695,7 @@ public class DropCapTests
             InkTop = positions[0].Y - InkOf(initial, capFont).Top,
             TextTop = bodyBaselines[0] + CapHeightOf(bodyFont),
             FirstLineBoxTop = bodyBaselines[0] + AscentOf(bodyFont),
-            LastSpannedBaseline = bodyBaselines[depth - 1],
+            LastSpannedBaseline = bodyBaselines[depth - 1]
         };
     }
 

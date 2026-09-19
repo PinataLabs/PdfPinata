@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -68,7 +68,7 @@ public sealed class PdfTransparencyGroupAttributes : PdfGroupAttributes
         /// In addition, it is always permissible to specify CS in the group attributes
         /// dictionary associated with a page object, even if I is false or absent. In the
         /// normal case in which the page is imposed directly on the output medium,
-        /// the page group is effectively isolated regardless of the I value, and the 
+        /// the page group is effectively isolated regardless of the I value, and the
         /// specified CS value is therefore honored. But if the page is in turn used as an
         /// element of some other page and if the group is non-isolated, CS is ignored
         /// and the color space is inherited from the actual backdrop with which the

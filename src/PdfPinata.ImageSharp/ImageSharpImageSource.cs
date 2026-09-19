@@ -88,7 +88,7 @@ public class ImageSharpImageSource<TPixel> : ImageSource where TPixel : unmanage
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static Image<TPixel> LoadFromBinary(byte[] data, out bool isPng)
     {
-        var image = Image.Load<TPixel>(data, out IImageFormat imgFormat);
+        var image = Image.Load<TPixel>(data, out var imgFormat);
         isPng = imgFormat is PngFormat;
         return image;
     }
@@ -96,7 +96,7 @@ public class ImageSharpImageSource<TPixel> : ImageSource where TPixel : unmanage
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static Image<TPixel> LoadFromFile(string path, out bool isPng)
     {
-        var image = Image.Load<TPixel>(path, out IImageFormat imgFormat);
+        var image = Image.Load<TPixel>(path, out var imgFormat);
         isPng = imgFormat is PngFormat;
         return image;
     }
@@ -104,7 +104,7 @@ public class ImageSharpImageSource<TPixel> : ImageSource where TPixel : unmanage
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static Image<TPixel> LoadFromStream(Stream stream, out bool isPng)
     {
-        var image = Image.Load<TPixel>(stream, out IImageFormat imgFormat);
+        var image = Image.Load<TPixel>(stream, out var imgFormat);
         isPng = imgFormat is PngFormat;
         return image;
     }
@@ -180,17 +180,17 @@ public class ImageSharpImageSource<TPixel> : ImageSource where TPixel : unmanage
         [MethodImpl(MethodImplOptions.NoInlining)]
         private PixelBuffer ReadPixels()
         {
-            int width = Image.Width;
-            int height = Image.Height;
-            int stride = width * PixelBuffer.BytesPerPixel;
+            var width = Image.Width;
+            var height = Image.Height;
+            var stride = width * PixelBuffer.BytesPerPixel;
 
-            byte[] pixels = new byte[stride * height];
+            var pixels = new byte[stride * height];
             var operations = PixelOperations<TPixel2>.Instance;
             var configuration = Image.GetConfiguration();
 
             Image.ProcessPixelRows(accessor =>
             {
-                for (int y = 0; y < height; y++)
+                for (var y = 0; y < height; y++)
                     operations.ToBgra32Bytes(
                         configuration, accessor.GetRowSpan(y), pixels.AsSpan(y * stride, stride), width);
             });

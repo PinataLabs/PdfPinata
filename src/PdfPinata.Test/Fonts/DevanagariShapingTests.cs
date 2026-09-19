@@ -175,8 +175,8 @@ public class DevanagariShapingTests
         // A conjunct is narrower than the letters it is made of, so a measurement that had not been
         // shaped would be wider than the page. This is the assertion that says both paths shape.
         var font = Font();
-        double conjunct = DrawnText.MeasuredWidth(Conjunct, font);
-        double separately = DrawnText.MeasuredWidth(Ka, font) + DrawnText.MeasuredWidth(Ssa, font);
+        var conjunct = DrawnText.MeasuredWidth(Conjunct, font);
+        var separately = DrawnText.MeasuredWidth(Ka, font) + DrawnText.MeasuredWidth(Ssa, font);
 
         conjunct.Should().BeLessThan(separately);
     }

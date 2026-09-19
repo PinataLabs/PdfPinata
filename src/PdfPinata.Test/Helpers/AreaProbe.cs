@@ -33,7 +33,7 @@ internal static class AreaProbe
         return (Area)Activator.CreateInstance(RectangleType, Internals, null,
             new object[]
             {
-                XUnit.FromPoint(x), XUnit.FromPoint(y), XUnit.FromPoint(width), XUnit.FromPoint(height),
+                XUnit.FromPoint(x), XUnit.FromPoint(y), XUnit.FromPoint(width), XUnit.FromPoint(height)
             },
             null);
     }

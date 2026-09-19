@@ -63,14 +63,14 @@ internal abstract class YAxisRenderer : AxisRenderer
   /// </summary>
   internal override RendererInfo Init()
   {
-    Chart chart = (Chart)this.rendererParms.DrawingItem;
+    var chart = (Chart)this.rendererParms.DrawingItem;
 
-    AxisRendererInfo yari = new AxisRendererInfo();
+    var yari = new AxisRendererInfo();
     yari.axis = chart.yAxis;
     InitScale(yari);
     if (yari.axis != null)
     {
-      ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+      var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
       InitTickLabels(yari, cri.DefaultFont);
       InitAxisTitle(yari, cri.DefaultFont);
       InitAxisLineFormat(yari);
@@ -84,22 +84,22 @@ internal abstract class YAxisRenderer : AxisRenderer
   /// </summary>
   internal override void Format()
   {
-    AxisRendererInfo yari = ((ChartRendererInfo)this.rendererParms.RendererInfo).yAxisRendererInfo;
+    var yari = ((ChartRendererInfo)this.rendererParms.RendererInfo).yAxisRendererInfo;
     if (yari.axis != null)
     {
-      XGraphics gfx = this.rendererParms.Graphics;
+      var gfx = this.rendererParms.Graphics;
 
-      XSize size = new XSize(0, 0);
+      var size = new XSize(0, 0);
 
       // height of all ticklabels
-      double yMin = yari.MinimumScale;
-      double yMax = yari.MaximumScale;
-      double yMajorTick = yari.MajorTick;
-      double lineHeight = Double.MinValue;
-      XSize labelSize = new XSize(0, 0);
-      for (double y = yMin; y <= yMax; y += yMajorTick)
+      var yMin = yari.MinimumScale;
+      var yMax = yari.MaximumScale;
+      var yMajorTick = yari.MajorTick;
+      var lineHeight = Double.MinValue;
+      var labelSize = new XSize(0, 0);
+      for (var y = yMin; y <= yMax; y += yMajorTick)
       {
-        string str = y.ToString(yari.TickLabelsFormat);
+        var str = y.ToString(yari.TickLabelsFormat);
         labelSize = gfx.MeasureString(str, yari.TickLabelsFont);
         if (isHorizontal)
         {
@@ -122,13 +122,13 @@ internal abstract class YAxisRenderer : AxisRenderer
         size.Width += yari.MajorTickMarkWidth * 1.5;
 
       // Measure axis title
-      XSize titleSize = new XSize(0, 0);
+      var titleSize = new XSize(0, 0);
       if (yari.axisTitleRendererInfo != null)
       {
-        RendererParameters parms = new RendererParameters();
+        var parms = new RendererParameters();
         parms.Graphics = gfx;
         parms.RendererInfo = yari;
-        AxisTitleRenderer atr = new AxisTitleRenderer(parms);
+        var atr = new AxisTitleRenderer(parms);
         atr.Format();
         titleSize.Height = yari.axisTitleRendererInfo.Height;
         titleSize.Width = yari.axisTitleRendererInfo.Width;
@@ -163,14 +163,14 @@ internal abstract class YAxisRenderer : AxisRenderer
   /// </summary>
   internal override void Draw()
   {
-    AxisRendererInfo yari = ((ChartRendererInfo)this.rendererParms.RendererInfo).yAxisRendererInfo;
+    var yari = ((ChartRendererInfo)this.rendererParms.RendererInfo).yAxisRendererInfo;
 
-    double yMin = yari.MinimumScale;
-    double yMax = yari.MaximumScale;
-    double yMajorTick = yari.MajorTick;
-    double yMinorTick = yari.MinorTick;
+    var yMin = yari.MinimumScale;
+    var yMax = yari.MaximumScale;
+    var yMajorTick = yari.MajorTick;
+    var yMinorTick = yari.MinorTick;
 
-    XMatrix matrix = new XMatrix();
+    var matrix = new XMatrix();
     if (isHorizontal)
     {
       matrix.TranslatePrepend(-yMin, -yari.Y);
@@ -191,21 +191,21 @@ internal abstract class YAxisRenderer : AxisRenderer
       minorTickMarkStart = 0, minorTickMarkEnd = 0;
     GetTickMarkPos(yari, ref majorTickMarkStart, ref majorTickMarkEnd, ref minorTickMarkStart, ref minorTickMarkEnd);
 
-    XGraphics gfx = this.rendererParms.Graphics;
-    LineFormatRenderer lineFormatRenderer = new LineFormatRenderer(gfx, yari.LineFormat);
+    var gfx = this.rendererParms.Graphics;
+    var lineFormatRenderer = new LineFormatRenderer(gfx, yari.LineFormat);
 
     // The tick marks now read the pens the base class already computes for every axis - the fix
     // this merge exists to make. Before it, the horizontal orientation stroked its ticks with
     // LineFormat too, which is null until a caller sets one, so a value axis running across the
     // bottom of a bar chart drew no tick marks at all unless a line format had been given it.
-    LineFormatRenderer minorTickMarkLineFormat = new LineFormatRenderer(gfx, yari.MinorTickMarkLineFormat);
-    LineFormatRenderer majorTickMarkLineFormat = new LineFormatRenderer(gfx, yari.MajorTickMarkLineFormat);
-    XPoint[] points = new XPoint[2];
+    var minorTickMarkLineFormat = new LineFormatRenderer(gfx, yari.MinorTickMarkLineFormat);
+    var majorTickMarkLineFormat = new LineFormatRenderer(gfx, yari.MajorTickMarkLineFormat);
+    var points = new XPoint[2];
 
     // Draw minor tick marks.
     if (yari.MinorTickMark != TickMarkType.None)
     {
-      for (double y = yMin + yMinorTick; y < yMax; y += yMinorTick)
+      for (var y = yMin + yMinorTick; y < yMax; y += yMinorTick)
       {
         if (isHorizontal)
         {
@@ -228,15 +228,15 @@ internal abstract class YAxisRenderer : AxisRenderer
 
     if (isHorizontal)
     {
-      XStringFormat xsf = new XStringFormat();
+      var xsf = new XStringFormat();
       xsf.LineAlignment = XLineAlignment.Near;
-      int countTickLabels = (int)((yMax - yMin) / yMajorTick) + 1;
-      for (int i = 0; i < countTickLabels; ++i)
+      var countTickLabels = (int)((yMax - yMin) / yMajorTick) + 1;
+      for (var i = 0; i < countTickLabels; ++i)
       {
-        double y = yMin + yMajorTick * i;
-        string str = y.ToString(yari.TickLabelsFormat);
+        var y = yMin + yMajorTick * i;
+        var str = y.ToString(yari.TickLabelsFormat);
 
-        XSize labelSize = gfx.MeasureString(str, yari.TickLabelsFont);
+        var labelSize = gfx.MeasureString(str, yari.TickLabelsFont);
         if (yari.MajorTickMark != TickMarkType.None)
         {
           labelSize.Height += 1.5f * yari.MajorTickMarkWidth;
@@ -248,7 +248,7 @@ internal abstract class YAxisRenderer : AxisRenderer
           majorTickMarkLineFormat.DrawLine(points[0], points[1]);
         }
 
-        XPoint[] layoutText = new XPoint[1];
+        var layoutText = new XPoint[1];
         layoutText[0].X = y;
         layoutText[0].Y = yari.Y + 1.5 * yari.MajorTickMarkWidth;
         matrix.TransformPoints(layoutText);
@@ -258,18 +258,18 @@ internal abstract class YAxisRenderer : AxisRenderer
     }
     else
     {
-      double lineSpace = yari.TickLabelsFont.GetHeight();
-      int cellSpace = yari.TickLabelsFont.FontFamily.GetLineSpacing(yari.TickLabelsFont.Style);
+      var lineSpace = yari.TickLabelsFont.GetHeight();
+      var cellSpace = yari.TickLabelsFont.FontFamily.GetLineSpacing(yari.TickLabelsFont.Style);
       double xHeight = yari.TickLabelsFont.Metrics.XHeight;
 
-      XSize labelSize = new XSize(0, 0);
+      var labelSize = new XSize(0, 0);
       labelSize.Height = lineSpace * xHeight / cellSpace;
 
-      int countTickLabels = (int)((yMax - yMin) / yMajorTick) + 1;
-      for (int i = 0; i < countTickLabels; ++i)
+      var countTickLabels = (int)((yMax - yMin) / yMajorTick) + 1;
+      for (var i = 0; i < countTickLabels; ++i)
       {
-        double y = yMin + yMajorTick * i;
-        string str = y.ToString(yari.TickLabelsFormat);
+        var y = yMin + yMajorTick * i;
+        var str = y.ToString(yari.TickLabelsFormat);
 
         labelSize.Width = gfx.MeasureString(str, yari.TickLabelsFont).Width;
 
@@ -288,7 +288,7 @@ internal abstract class YAxisRenderer : AxisRenderer
           labelSize.Width += SpaceBetweenLabelAndTickmark;
 
         // Draw label text.
-        XPoint[] layoutText = new XPoint[1];
+        var layoutText = new XPoint[1];
         layoutText[0].X = yari.InnerRect.X + yari.InnerRect.Width - labelSize.Width;
         layoutText[0].Y = y;
         matrix.TransformPoints(layoutText);
@@ -340,14 +340,14 @@ internal abstract class YAxisRenderer : AxisRenderer
     {
       if (yari.axisTitleRendererInfo != null)
       {
-        RendererParameters parms = new RendererParameters();
+        var parms = new RendererParameters();
         parms.Graphics = gfx;
         parms.RendererInfo = yari;
-        XRect rcTitle = yari.Rect;
+        var rcTitle = yari.Rect;
         rcTitle.Height = yari.axisTitleRendererInfo.Height;
         rcTitle.Y += yari.Rect.Height - rcTitle.Height;
         yari.axisTitleRendererInfo.Rect = rcTitle;
-        AxisTitleRenderer atr = new AxisTitleRenderer(parms);
+        var atr = new AxisTitleRenderer(parms);
         atr.Draw();
       }
     }
@@ -355,13 +355,13 @@ internal abstract class YAxisRenderer : AxisRenderer
     {
       if (yari.axisTitleRendererInfo != null && yari.axisTitleRendererInfo.AxisTitleText != "")
       {
-        RendererParameters parms = new RendererParameters();
+        var parms = new RendererParameters();
         parms.Graphics = gfx;
         parms.RendererInfo = yari;
-        double width = yari.axisTitleRendererInfo.Width;
+        var width = yari.axisTitleRendererInfo.Width;
         yari.axisTitleRendererInfo.Rect = yari.InnerRect;
         yari.axisTitleRendererInfo.Width = width;
-        AxisTitleRenderer atr = new AxisTitleRenderer(parms);
+        var atr = new AxisTitleRenderer(parms);
         atr.Draw();
       }
     }
@@ -391,10 +391,10 @@ internal abstract class YAxisRenderer : AxisRenderer
   {
     // Outside adds the width to the edge for one orientation and subtracts it for the other -
     // the sign this flips - because the two edges face opposite ways relative to the plot area.
-    double edge = isHorizontal
+    var edge = isHorizontal
       ? rendererInfo.Rect.Y
       : rendererInfo.Rect.X + rendererInfo.Rect.Width;
-    int direction = isHorizontal ? 1 : -1;
+    var direction = isHorizontal ? 1 : -1;
 
     GetTickMarkEndpoints(rendererInfo.MajorTickMark, edge, rendererInfo.MajorTickMarkWidth, direction,
       out majorTickMarkStart, out majorTickMarkEnd);
@@ -435,21 +435,21 @@ internal abstract class YAxisRenderer : AxisRenderer
     yMin = double.MaxValue;
     yMax = double.MinValue;
 
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
 
-    int maxPoints = 0;
-    foreach (SeriesRendererInfo sri in cri.seriesRendererInfos)
+    var maxPoints = 0;
+    foreach (var sri in cri.seriesRendererInfos)
       maxPoints = Math.Max(maxPoints, sri.series.Elements.Count);
 
-    for (int pointIdx = 0; pointIdx < maxPoints; ++pointIdx)
+    for (var pointIdx = 0; pointIdx < maxPoints; ++pointIdx)
     {
       double valueSumPos = 0, valueSumNeg = 0;
-      foreach (SeriesRendererInfo sri in cri.seriesRendererInfos)
+      foreach (var sri in cri.seriesRendererInfos)
       {
         if (sri.pointRendererInfos.Length <= pointIdx)
           break;
 
-        ColumnRendererInfo column = (ColumnRendererInfo)sri.pointRendererInfos[pointIdx];
+        var column = (ColumnRendererInfo)sri.pointRendererInfos[pointIdx];
         if (!double.IsNaN(column.Value))
         {
           if (column.Value < 0)
@@ -502,10 +502,10 @@ internal abstract class YAxisRenderer : AxisRenderer
         yMin = 0;
     }
 
-    double deltaYRaw = yMax - yMin;
+    var deltaYRaw = yMax - yMin;
 
-    int digits = (int)(Math.Log(deltaYRaw, 10) + 1);
-    double normed = deltaYRaw / Math.Pow(10, digits) * 10;
+    var digits = (int)(Math.Log(deltaYRaw, 10) + 1);
+    var normed = deltaYRaw / Math.Pow(10, digits) * 10;
 
     double normedStepWidth = 1;
     if (normed < 2)
@@ -513,17 +513,17 @@ internal abstract class YAxisRenderer : AxisRenderer
     else if (normed < 5)
       normedStepWidth = 0.5f;
 
-    AxisRendererInfo yari = rendererInfo;
-    double stepWidth = normedStepWidth * Math.Pow(10.0, digits - 1.0);
+    var yari = rendererInfo;
+    var stepWidth = normedStepWidth * Math.Pow(10.0, digits - 1.0);
     if (yari.axis == null || double.IsNaN(yari.axis.majorTick))
       yari.MajorTick = stepWidth;
     else
       yari.MajorTick = yari.axis.majorTick;
 
-    double roundFactor = stepWidth * 0.5;
+    var roundFactor = stepWidth * 0.5;
     if (yari.axis == null || double.IsNaN(yari.axis.minimumScale))
     {
-      double signumMin = (yMin != 0) ? yMin / Math.Abs(yMin) : 0;
+      var signumMin = (yMin != 0) ? yMin / Math.Abs(yMin) : 0;
       yari.MinimumScale = (int)(Math.Abs((yMin - roundFactor) / stepWidth) - (1 * signumMin)) * stepWidth * signumMin;
     }
     else
@@ -531,7 +531,7 @@ internal abstract class YAxisRenderer : AxisRenderer
 
     if (yari.axis == null || double.IsNaN(yari.axis.maximumScale))
     {
-      double signumMax = (yMax != 0) ? yMax / Math.Abs(yMax) : 0;
+      var signumMax = (yMax != 0) ? yMax / Math.Abs(yMax) : 0;
       yari.MaximumScale = (int)(Math.Abs((yMax + roundFactor) / stepWidth) + (1 * signumMax)) * stepWidth * signumMax;
     }
     else

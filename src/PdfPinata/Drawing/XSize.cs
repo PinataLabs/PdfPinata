@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -122,9 +122,9 @@ public struct XSize : IFormattable, IDeserializationCallback
     public static XSize Parse(string source)
     {
         XSize empty;
-        CultureInfo cultureInfo = CultureInfo.InvariantCulture;
-        TokenizerHelper helper = new TokenizerHelper(source, cultureInfo);
-        string str = helper.NextTokenRequired();
+        var cultureInfo = CultureInfo.InvariantCulture;
+        var helper = new TokenizerHelper(source, cultureInfo);
+        var str = helper.NextTokenRequired();
         if (str == "Empty")
             empty = Empty;
         else
@@ -178,7 +178,7 @@ public struct XSize : IFormattable, IDeserializationCallback
         if (IsEmpty)
             return "Empty";
 
-        char numericListSeparator = TokenizerHelper.GetNumericListSeparator(provider);
+        var numericListSeparator = TokenizerHelper.GetNumericListSeparator(provider);
         provider = provider ?? CultureInfo.InvariantCulture;
         // ReSharper disable FormatStringProblem
         return string.Format(provider, "{1:" + format + "}{0}{2:" + format + "}", new object[] { numericListSeparator, _width, _height });
@@ -271,7 +271,7 @@ public struct XSize : IFormattable, IDeserializationCallback
 
     private static XSize CreateEmptySize()
     {
-        XSize size = new XSize();
+        var size = new XSize();
         size._width = double.NegativeInfinity;
         size._height = double.NegativeInfinity;
         return size;

@@ -43,28 +43,28 @@ namespace PinataLayout.Rendering;
 internal abstract class Renderer
 {
   internal readonly static XUnit Tolerance = XUnit.FromPoint(0.001);
-  private XUnit maxElementHeight = -1;
+  private XUnit _maxElementHeight = -1;
 
   /// <summary>
   /// Determines the maximum height a single element may have.
   /// </summary>
   internal XUnit MaxElementHeight
   {
-    get => maxElementHeight;
-    set => maxElementHeight = value;
+    get => _maxElementHeight;
+    set => _maxElementHeight = value;
   }
 
   internal Renderer(XGraphics gfx, DocumentObject documentObject, FieldInfos fieldInfos)
   {
-    this.documentObject = documentObject;
-    this.gfx = gfx;
+    this.DocumentObject = documentObject;
+    this.Gfx = gfx;
     this.fieldInfos = fieldInfos;
   }
 
   internal Renderer(XGraphics gfx, RenderInfo renderInfo, FieldInfos fieldInfos)
   {
-    documentObject = renderInfo.DocumentObject;
-    this.gfx = gfx;
+    DocumentObject = renderInfo.DocumentObject;
+    this.Gfx = gfx;
     this.renderInfo = renderInfo;
     this.fieldInfos = fieldInfos;
   }
@@ -94,16 +94,16 @@ internal abstract class Renderer
     if (renderInfos == null)
       return;
 
-    foreach (RenderInfo renderInfo in renderInfos)
+    foreach (var info in renderInfos)
     {
-      XUnit savedX = renderInfo.LayoutInfo.ContentArea.X;
-      XUnit savedY = renderInfo.LayoutInfo.ContentArea.Y;
-      renderInfo.LayoutInfo.ContentArea.X += xShift;
-      renderInfo.LayoutInfo.ContentArea.Y += yShift;
-      Renderer renderer = Create(gfx, documentRenderer, renderInfo, fieldInfos);
+      var savedX = info.LayoutInfo.ContentArea.X;
+      var savedY = info.LayoutInfo.ContentArea.Y;
+      info.LayoutInfo.ContentArea.X += xShift;
+      info.LayoutInfo.ContentArea.Y += yShift;
+      var renderer = Create(Gfx, DocumentRenderer, info, fieldInfos);
       renderer.Render();
-      renderInfo.LayoutInfo.ContentArea.X = savedX;
-      renderInfo.LayoutInfo.ContentArea.Y = savedY;
+      info.LayoutInfo.ContentArea.X = savedX;
+      info.LayoutInfo.ContentArea.Y = savedY;
     }
   }
 
@@ -170,7 +170,7 @@ internal abstract class Renderer
       throw NoBarcodeRenderer();
 
     if (renderer != null)
-      renderer.documentRenderer = documentRenderer;
+      renderer.DocumentRenderer = documentRenderer;
 
     return renderer;
   }
@@ -185,25 +185,20 @@ internal abstract class Renderer
   /// <returns>The fitting Renderer.</returns>
   internal static Renderer Create(XGraphics gfx, DocumentRenderer documentRenderer, RenderInfo renderInfo, FieldInfos fieldInfos)
   {
-    Renderer renderer = null;
-
-    if (renderInfo.DocumentObject is Paragraph)
-      renderer = new ParagraphRenderer(gfx, renderInfo, fieldInfos);
-    else if (renderInfo.DocumentObject is Table)
-      renderer = new TableRenderer(gfx, renderInfo, fieldInfos);
-    else if (renderInfo.DocumentObject is PageBreak)
-      renderer = new PageBreakRenderer(gfx, renderInfo, fieldInfos);
-    else if (renderInfo.DocumentObject is TextFrame)
-      renderer = new TextFrameRenderer(gfx, renderInfo, fieldInfos);
-    else if (renderInfo.DocumentObject is Chart)
-      renderer = new ChartRenderer(gfx, renderInfo, fieldInfos);
-    else if (renderInfo.DocumentObject is Image)
-      renderer = new ImageRenderer(gfx, renderInfo, fieldInfos);
-    else if (renderInfo.DocumentObject is Barcode)
-      throw NoBarcodeRenderer();
+    Renderer renderer = renderInfo.DocumentObject switch
+    {
+      Paragraph => new ParagraphRenderer(gfx, renderInfo, fieldInfos),
+      Table => new TableRenderer(gfx, renderInfo, fieldInfos),
+      PageBreak => new PageBreakRenderer(gfx, renderInfo, fieldInfos),
+      TextFrame => new TextFrameRenderer(gfx, renderInfo, fieldInfos),
+      Chart => new ChartRenderer(gfx, renderInfo, fieldInfos),
+      Image => new ImageRenderer(gfx, renderInfo, fieldInfos),
+      Barcode => throw NoBarcodeRenderer(),
+      _ => null
+    };
 
     if (renderer != null)
-      renderer.documentRenderer = documentRenderer;
+      renderer.DocumentRenderer = documentRenderer;
 
     return renderer;
   }
@@ -236,15 +231,13 @@ internal abstract class Renderer
   /// it hands back closes nothing and no call site needs to ask whether tagging is on.
   /// </remarks>
   internal StructureTagger Tagger =>
-    documentRenderer?.Tagger ?? (emptyTagger ??= new StructureTagger { Enabled = false });
-
-  StructureTagger emptyTagger;
+    DocumentRenderer?.Tagger ?? (field ??= new StructureTagger { Enabled = false });
 
   #region fields
 
-  protected DocumentObject documentObject;
-  protected DocumentRenderer documentRenderer;
-  protected XGraphics gfx;
+  protected DocumentObject DocumentObject;
+  protected DocumentRenderer DocumentRenderer;
+  protected XGraphics Gfx;
 
   #endregion
 }

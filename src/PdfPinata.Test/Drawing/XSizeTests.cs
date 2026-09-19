@@ -163,7 +163,7 @@ public class XSizeTests
         object size = new XSize(3, 4);
         typeof(XSize).GetField("_height", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(size, -1.0);
 
-        Action deserialized = () => ((IDeserializationCallback)size).OnDeserialization(null);
+        var deserialized = () => ((IDeserializationCallback)size).OnDeserialization(null);
 
         deserialized.Should().Throw<SerializationException>();
     }
@@ -171,9 +171,9 @@ public class XSizeTests
     [Fact]
     public void ADeserializedSizeThatAConstructorCouldHaveMadeIsAccepted()
     {
-        foreach (XSize size in new[] { new XSize(3, 4), new XSize(0, 0), XSize.Empty })
+        foreach (var size in new[] { new XSize(3, 4), new XSize(0, 0), XSize.Empty })
         {
-            Action deserialized = () => ((IDeserializationCallback)size).OnDeserialization(null);
+            var deserialized = () => ((IDeserializationCallback)size).OnDeserialization(null);
 
             deserialized.Should().NotThrow();
         }

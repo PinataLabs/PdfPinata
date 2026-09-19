@@ -48,10 +48,10 @@ internal class WallRenderer : Renderer
   /// </summary>
   internal override void Draw()
   {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
     if (cri.plotAreaRendererInfo.FillFormat != null)
     {
-      XRect plotAreaBox = cri.plotAreaRendererInfo.Rect;
+      var plotAreaBox = cri.plotAreaRendererInfo.Rect;
       if (HasNoRoom(plotAreaBox))
         return;
 

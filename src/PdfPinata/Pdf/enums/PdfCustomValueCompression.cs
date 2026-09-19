@@ -47,5 +47,5 @@ public enum PdfCustomValueCompressionMode
     /// <summary>
     /// Compress custom values using FlateDecode.
     /// </summary>
-    Compressed,
+    Compressed
 }

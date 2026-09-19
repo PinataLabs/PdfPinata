@@ -350,7 +350,7 @@ public class PdfUaConformanceTests
         {
             Document = document,
             TagContent = true,
-            Language = "en-GB",
+            Language = "en-GB"
         };
 
         renderer.RenderDocument();
@@ -396,27 +396,26 @@ public class PdfUaConformanceTests
     /// <summary>The first structure element of the given type reachable from <paramref name="item"/>.</summary>
     static PdfDictionary FindByType(PdfItem item, string type)
     {
-        if (item is PdfReference reference)
-            item = reference.Value;
-
-        if (item is PdfArray array)
+        while (true)
         {
-            foreach (var element in array.Elements)
+            if (item is PdfReference reference) item = reference.Value;
+
+            if (item is PdfArray array)
             {
-                var found = FindByType(element, type);
-                if (found != null)
-                    return found;
+                foreach (var element in array.Elements)
+                {
+                    var found = FindByType(element, type);
+                    if (found != null) return found;
+                }
+
+                return null;
             }
-            return null;
+
+            if (item is not PdfDictionary dictionary) return null;
+
+            if (dictionary.Elements.GetName("/S") == type) return dictionary;
+            item = dictionary.Elements["/K"];
         }
-
-        if (item is not PdfDictionary dictionary)
-            return null;
-
-        if (dictionary.Elements.GetName("/S") == type)
-            return dictionary;
-
-        return FindByType(dictionary.Elements["/K"], type);
     }
 
     /// <summary>
@@ -435,7 +434,7 @@ public class PdfUaConformanceTests
         {
             Document = document,
             TagContent = tagged,
-            Language = language,
+            Language = language
         };
 
         renderer.RenderDocument();

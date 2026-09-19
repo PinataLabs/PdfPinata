@@ -75,7 +75,7 @@ public class ParagraphContentTests
             paragraph.AddInfoField(InfoFieldType.Author),
             paragraph.AddFootnote("note"),
             paragraph.AddFootnote(),
-            paragraph.AddImage(image),
+            paragraph.AddImage(image)
         ];
 
         paragraph.Elements.Cast<object>().Should().Equal(added);
@@ -117,7 +117,7 @@ public class ParagraphContentTests
             formatted.AddInfoField(InfoFieldType.Title),
             formatted.AddFootnote("note"),
             formatted.AddFootnote(),
-            formatted.AddImage(new UndrawnImage()),
+            formatted.AddImage(new UndrawnImage())
         ];
 
         formatted.Elements.Cast<object>().Should().Equal(added);
@@ -156,7 +156,7 @@ public class ParagraphContentTests
             hyperlink.AddInfoField(InfoFieldType.Subject),
             hyperlink.AddFootnote("note"),
             hyperlink.AddFootnote(),
-            hyperlink.AddImage(new UndrawnImage()),
+            hyperlink.AddImage(new UndrawnImage())
         ];
 
         hyperlink.Elements.Cast<object>().Should().Equal(added);
@@ -209,7 +209,7 @@ public class ParagraphContentTests
         new Text("text"),
         new FormattedText(),
         new Shapes.Image(),
-        new Character { SymbolName = SymbolName.Bullet },
+        new Character { SymbolName = SymbolName.Bullet }
     ];
 
     [Fact]
@@ -298,7 +298,7 @@ public class ParagraphContentTests
             Italic = true,
             Underline = Underline.Dash,
             Color = Colors.Firebrick,
-            Superscript = true,
+            Superscript = true
         };
 
         formatted.Font.Name.Should().Be("Courier");

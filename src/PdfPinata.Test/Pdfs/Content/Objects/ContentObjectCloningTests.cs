@@ -20,10 +20,10 @@ public class ContentObjectCloningTests
     {
         var original = new CReal { Value = 1.5 };
 
-        object viaInterface = ((ICloneable)original).Clone();
-        CObject viaObject = ((CObject)original).Clone();
-        CNumber viaNumber = ((CNumber)original).Clone();
-        CReal viaReal = original.Clone();
+        var viaInterface = ((ICloneable)original).Clone();
+        var viaObject = ((CObject)original).Clone();
+        var viaNumber = ((CNumber)original).Clone();
+        var viaReal = original.Clone();
 
         foreach (var clone in new[] { viaInterface, viaObject, viaNumber, viaReal })
         {
@@ -37,7 +37,7 @@ public class ContentObjectCloningTests
     {
         var original = new CInteger { Value = 7 };
 
-        CInteger clone = original.Clone();
+        var clone = original.Clone();
         clone.Value = 8;
 
         clone.Should().NotBeSameAs(original);
@@ -61,7 +61,7 @@ public class ContentObjectCloningTests
     {
         var original = new CReal { Value = 0.25 };
 
-        CReal clone = original.Clone();
+        var clone = original.Clone();
         clone.Value = 0.75;
 
         original.Value.Should().Be(0.25);
@@ -72,7 +72,7 @@ public class ContentObjectCloningTests
     {
         var original = new CComment { Text = "first" };
 
-        CComment clone = original.Clone();
+        var clone = original.Clone();
 
         clone.Should().NotBeSameAs(original);
         clone.Text.Should().Be("first");
@@ -87,7 +87,7 @@ public class ContentObjectCloningTests
     {
         var original = new CString { Value = "<</MCID 3>>", CStringType = CStringType.Dictionary };
 
-        CString clone = original.Clone();
+        var clone = original.Clone();
 
         clone.Should().NotBeSameAs(original);
         clone.Value.Should().Be("<</MCID 3>>");
@@ -104,7 +104,7 @@ public class ContentObjectCloningTests
     {
         var original = new CName("/F1");
 
-        CName clone = original.Clone();
+        var clone = original.Clone();
         clone.Name = "/F2";
 
         clone.Should().NotBeSameAs(original);
@@ -117,7 +117,7 @@ public class ContentObjectCloningTests
     {
         var original = (COperator)Read("1 0 0 1 20 30 cm")[0];
 
-        COperator clone = original.Clone();
+        var clone = original.Clone();
 
         clone.Should().NotBeSameAs(original);
         clone.OpCode.Should().BeSameAs(original.OpCode, "an op code is a shared description, not state");
@@ -131,7 +131,7 @@ public class ContentObjectCloningTests
         var original = (COperator)Read("1 0 0 1 20 30 cm")[0];
         var firstOperand = original.Operands[0];
 
-        COperator clone = original.Clone();
+        var clone = original.Clone();
 
         // The operands used to be shared, so adding one to the clone added it to the original.
         clone.Operands.Should().NotBeSameAs(original.Operands);
@@ -152,7 +152,7 @@ public class ContentObjectCloningTests
     {
         var original = OpCodes.OperatorFromName("q");
 
-        COperator clone = original.Clone();
+        var clone = original.Clone();
         clone.Operands.Add(new CInteger { Value = 1 });
 
         original.Operands.Should().BeEmpty();
@@ -165,7 +165,7 @@ public class ContentObjectCloningTests
         var original = new NamedOperator("sh");
         original.Operands.Add(new CName("/Sh0"));
 
-        COperator clone = original.Clone();
+        var clone = original.Clone();
 
         clone.Should().BeOfType<NamedOperator>().And.NotBeSameAs(original);
         clone.Name.Should().Be("sh");
@@ -180,7 +180,7 @@ public class ContentObjectCloningTests
         var original = Read(content);
         var before = Written(original);
 
-        CSequence clone = original.Clone();
+        var clone = original.Clone();
 
         clone.Should().NotBeSameAs(original);
         clone.Count.Should().Be(4);
@@ -204,7 +204,7 @@ public class ContentObjectCloningTests
         var second = new CName("/F1");
         var original = new CSequence { first, second };
 
-        CSequence clone = original.Clone();
+        var clone = original.Clone();
 
         // The copies go into the clone. They used to go into the original, which was left
         // holding copies of what it had been given while the clone held the items themselves.
@@ -225,7 +225,7 @@ public class ContentObjectCloningTests
         var shown = new CString { Value = "A" };
         var original = new CArray { shown, new CInteger { Value = -250 } };
 
-        CArray clone = original.Clone();
+        var clone = original.Clone();
 
         original[0].Should().BeSameAs(shown);
         clone[0].Should().NotBeSameAs(shown);
@@ -242,7 +242,7 @@ public class ContentObjectCloningTests
         var show = (COperator)Read("[(A) -250 (B)] TJ")[0];
         var original = show.Operands[0].Should().BeOfType<CArray>().Subject;
 
-        CArray clone = original.Clone();
+        var clone = original.Clone();
 
         clone.Should().NotBeSameAs(original);
         clone.ToString().Should().Be("[(A)-250(B)]");

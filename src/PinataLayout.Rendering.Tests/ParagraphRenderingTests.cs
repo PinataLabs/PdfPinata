@@ -157,7 +157,7 @@ public class ParagraphRenderingTests
     enum SeparatedBy
     {
         ABlankElement,
-        ASpaceInTheText,
+        ASpaceInTheText
     }
 
     /// <summary>

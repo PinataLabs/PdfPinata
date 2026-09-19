@@ -25,8 +25,8 @@ static class TextOrigin
     /// </param>
     internal static XPoint For(XRect rect, double textWidth, XFont font, XStringFormat format, bool downwards)
     {
-        double x = rect.X;
-        double y = rect.Y;
+        var x = rect.X;
+        var y = rect.Y;
 
         switch (format.Alignment)
         {
@@ -43,11 +43,11 @@ static class TextOrigin
                 break;
         }
 
-        double lineSpace = font.GetHeight();
-        double cyAscent = lineSpace * font.CellAscent / font.CellSpace;
-        double cyDescent = lineSpace * font.CellDescent / font.CellSpace;
+        var lineSpace = font.GetHeight();
+        var cyAscent = lineSpace * font.CellAscent / font.CellSpace;
+        var cyDescent = lineSpace * font.CellDescent / font.CellSpace;
         // Half the height of a lowercase x, for the one alignment that is measured against it.
-        double cyXHeight = lineSpace * font.Metrics.XHeight / font.CellSpace;
+        var cyXHeight = lineSpace * font.Metrics.XHeight / font.CellSpace;
 
         if (downwards)
         {

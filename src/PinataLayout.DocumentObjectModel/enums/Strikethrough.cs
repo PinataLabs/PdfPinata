@@ -50,7 +50,7 @@ public enum Strikethrough
     /// <summary>A rule of alternating dots and dashes.</summary>
     DotDash,
     /// <summary>A rule of two dots followed by a dash, repeating.</summary>
-    DotDotDash,
+    DotDotDash
 
     /* --- unsupported ---
     Double          = 3,

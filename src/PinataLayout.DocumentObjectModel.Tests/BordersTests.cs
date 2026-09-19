@@ -123,8 +123,14 @@ public class BordersTests
     [Fact]
     public void ACloneIsDeep()
     {
-        var borders = new Borders { Width = 2, Color = Colors.Red };
-        borders.Top.Style = BorderStyle.Dot;
+        var borders = new Borders
+        {
+            Width = 2, Color = Colors.Red,
+            Top =
+            {
+                Style = BorderStyle.Dot
+            }
+        };
 
         var clone = borders.Clone();
 

@@ -72,5 +72,5 @@ public enum PdfTextAnnotationIcon
     /// <summary>
     /// A pre-defined annotation icon.
     /// </summary>
-    Paragraph,
+    Paragraph
 }

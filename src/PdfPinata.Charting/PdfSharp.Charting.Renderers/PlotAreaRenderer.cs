@@ -48,7 +48,7 @@ internal abstract class PlotAreaRenderer : Renderer
   /// </summary>
   internal override RendererInfo Init()
   {
-    PlotAreaRendererInfo pari = new PlotAreaRendererInfo();
+    var pari = new PlotAreaRendererInfo();
     pari.plotArea = ((ChartRendererInfo)this.rendererParms.RendererInfo).chart.plotArea;
     InitLineFormat(pari);
     InitFillFormat(pari);

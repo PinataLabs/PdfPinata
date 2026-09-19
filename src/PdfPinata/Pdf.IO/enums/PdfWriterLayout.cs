@@ -56,5 +56,5 @@ public enum PdfWriterLayout
     /// information about the PDFsharp objects. Furthermore content streams are not deflated. This 
     /// is useful for debugging purposes only and increases the size of the file significantly.
     /// </summary>
-    Verbose,
+    Verbose
 }

@@ -217,7 +217,7 @@ public class XFontDescriptionTests
         var formats = new[]
         {
             XImageFormat.Png, XImageFormat.Gif, XImageFormat.Jpeg,
-            XImageFormat.Tiff, XImageFormat.Icon, XImageFormat.Pdf,
+            XImageFormat.Tiff, XImageFormat.Icon, XImageFormat.Pdf
         };
 
         for (var outer = 0; outer < formats.Length; outer++)

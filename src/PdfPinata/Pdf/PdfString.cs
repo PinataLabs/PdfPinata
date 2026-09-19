@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -84,7 +84,7 @@ public enum PdfStringEncoding
     /// <summary>
     /// The characters of the string are Unicode characters.
     /// </summary>
-    Unicode = PdfStringFlags.Unicode,
+    Unicode = PdfStringFlags.Unicode
 }
 
 /// <summary>
@@ -103,7 +103,7 @@ enum PdfStringFlags
     Unicode = 0x06,
     EncodingMask = 0x0F,
 
-    HexLiteral = 0x80,
+    HexLiteral = 0x80
     // ReSharper restore InconsistentNaming
 }
 
@@ -260,8 +260,8 @@ public sealed class PdfString : PdfItem
     /// </summary>
     public override string ToString()
     {
-        PdfStringEncoding encoding = (PdfStringEncoding)(_flags & PdfStringFlags.EncodingMask);
-        string pdf = (_flags & PdfStringFlags.HexLiteral) == 0 ?
+        var encoding = (PdfStringEncoding)(_flags & PdfStringFlags.EncodingMask);
+        var pdf = (_flags & PdfStringFlags.HexLiteral) == 0 ?
             PdfEncoders.ToStringLiteral(_value, encoding, null) :
             PdfEncoders.ToHexStringLiteral(_value, encoding, null);
         return pdf;
@@ -272,11 +272,11 @@ public sealed class PdfString : PdfItem
     /// </summary>
     public string ToStringFromPdfDocEncoded()
     {
-        int length = _value.Length;
-        char[] bytes = new char[length];
-        for (int idx = 0; idx < length; idx++)
+        var length = _value.Length;
+        var bytes = new char[length];
+        for (var idx = 0; idx < length; idx++)
         {
-            char ch = _value[idx];
+            var ch = _value[idx];
             if (ch <= 255)
             {
                 bytes[idx] = Encode[ch];
@@ -287,8 +287,8 @@ public sealed class PdfString : PdfItem
                 throw new InvalidOperationException("DocEncoded string contains char greater 255.");
             }
         }
-        StringBuilder sb = new StringBuilder(length);
-        for (int idx = 0; idx < length; idx++)
+        var sb = new StringBuilder(length);
+        for (var idx = 0; idx < length; idx++)
             sb.Append((char)bytes[idx]);
         return sb.ToString();
     }
@@ -309,7 +309,7 @@ public sealed class PdfString : PdfItem
         '\xC0', '\xC1', '\xC2', '\xC3', '\xC4', '\xC5', '\xC6', '\xC7', '\xC8', '\xC9', '\xCA', '\xCB', '\xCC', '\xCD', '\xCE', '\xCF',
         '\xD0', '\xD1', '\xD2', '\xD3', '\xD4', '\xD5', '\xD6', '\xD7', '\xD8', '\xD9', '\xDA', '\xDB', '\xDC', '\xDD', '\xDE', '\xDF',
         '\xE0', '\xE1', '\xE2', '\xE3', '\xE4', '\xE5', '\xE6', '\xE7', '\xE8', '\xE9', '\xEA', '\xEB', '\xEC', '\xED', '\xEE', '\xEF',
-        '\xF0', '\xF1', '\xF2', '\xF3', '\xF4', '\xF5', '\xF6', '\xF7', '\xF8', '\xF9', '\xFA', '\xFB', '\xFC', '\xFD', '\xFE', '\xFF',
+        '\xF0', '\xF1', '\xF2', '\xF3', '\xF4', '\xF5', '\xF6', '\xF7', '\xF8', '\xF9', '\xFA', '\xFB', '\xFC', '\xFD', '\xFE', '\xFF'
     };
 
     /// <summary>
@@ -329,7 +329,7 @@ public sealed class PdfString : PdfItem
         if (value == null)
             return PdfStringFlags.RawEncoding;
 
-        for (int idx = 0; idx < value.Length; idx++)
+        for (var idx = 0; idx < value.Length; idx++)
         {
             if (value[idx] > 0x7F)
                 return PdfStringFlags.Unicode;
@@ -342,8 +342,8 @@ public sealed class PdfString : PdfItem
         if (String.IsNullOrEmpty(s))
             return;
 
-        int length = s.Length;
-        for (int idx = 0; idx < length; idx++)
+        var length = s.Length;
+        for (var idx = 0; idx < length; idx++)
         {
             Debug.Assert(s[idx] < 256, "RawString contains invalid character.");
         }

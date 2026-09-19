@@ -47,5 +47,5 @@ public enum PdfFlateEncodeMode
     /// <summary>
     /// Best compression, but takes more time.
     /// </summary>
-    BestCompression,
+    BestCompression
 }

@@ -232,7 +232,7 @@ internal static class TextOperators
         double x = 0, y = 0;
 
         // Whether the pen is where the positioning operators alone say it is.
-        bool exact = true;
+        var exact = true;
 
         foreach (var op in Operators(page))
         {
@@ -314,7 +314,7 @@ internal static class TextOperators
     static IReadOnlyList<CObject> ItemsOf(CSequence sequence)
     {
         var items = new List<CObject>();
-        foreach (CObject item in sequence)
+        foreach (var item in sequence)
             items.Add(item);
         return items;
     }

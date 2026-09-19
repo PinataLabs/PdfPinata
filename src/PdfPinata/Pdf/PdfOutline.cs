@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -158,14 +158,14 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
     /// </remarks>
     int MeasureVisibleDescendants()
     {
-        int count = 0;
+        var count = 0;
         if (_outlines != null)
         {
-            foreach (PdfOutline child in _outlines)
+            foreach (var child in _outlines)
             {
                 // Every child is measured, open or not, because it has to carry its own count
                 // when it is written. Only an open one contributes what is under it to this one.
-                int below = child.MeasureVisibleDescendants();
+                var below = child.MeasureVisibleDescendants();
                 count += 1 + (child.Opened ? below : 0);
             }
         }
@@ -192,7 +192,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
         get => Elements.GetString(Keys.Title);
         set
         {
-            PdfString s = new PdfString(value, PdfStringEncoding.Unicode);
+            var s = new PdfString(value, PdfStringEncoding.Unicode);
             Elements.SetValue(Keys.Title, s);
         }
     }
@@ -340,10 +340,10 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
         if (Elements.TryGetString(Keys.Title, out title))
             Title = title;
 
-        PdfReference parentRef = Elements.GetReference(Keys.Parent);
+        var parentRef = Elements.GetReference(Keys.Parent);
         if (parentRef != null)
         {
-            PdfOutline parent = parentRef.Value as PdfOutline;
+            var parent = parentRef.Value as PdfOutline;
             if (parent != null)
                 Parent = parent;
         }
@@ -353,12 +353,12 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
         // lets a document be opened, edited and saved without every branch in it closing.
         _opened = Elements.GetInteger(Keys.Count) > 0;
 
-        PdfArray colors = Elements.GetArray(Keys.C);
+        var colors = Elements.GetArray(Keys.C);
         if (colors != null && colors.Elements.Count == 3)
         {
-            double r = colors.Elements.GetReal(0);
-            double g = colors.Elements.GetReal(1);
-            double b = colors.Elements.GetReal(2);
+            var r = colors.Elements.GetReal(0);
+            var g = colors.Elements.GetReal(1);
+            var b = colors.Elements.GetReal(2);
             TextColor = XColor.FromArgb((int)(r * 255), (int)(g * 255), (int)(b * 255));
         }
 
@@ -367,12 +367,12 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
         // An outline entry says where it goes either outright, in /Dest, or by performing an
         // action. A document holding both is malformed, and /Dest is what this reads, because
         // it is the entry the specification says the other one replaces.
-        PdfItem dest = Elements.GetValue(Keys.Dest);
-        PdfItem a = Elements.GetValue(Keys.A);
+        var dest = Elements.GetValue(Keys.Dest);
+        var a = Elements.GetValue(Keys.A);
 
         if (dest != null)
         {
-            PdfArray destination = ResolveDestination(dest);
+            var destination = ResolveDestination(dest);
             if (destination != null)
                 SplitDestinationPage(destination);
         }
@@ -398,11 +398,11 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
         // file to launch, a page of another document - is left exactly as it stands: it has no
         // destination page to hand out, and an outline entry that opens a web page is a
         // perfectly ordinary thing for a document to hold.
-        PdfDictionary action = a as PdfDictionary;
+        var action = a as PdfDictionary;
         if (action == null || action.Elements.GetName(PdfAction.Keys.S) != "/GoTo")
             return;
 
-        PdfArray destination = ResolveDestination(action.Elements[PdfGoToAction.Keys.D]);
+        var destination = ResolveDestination(action.Elements[PdfGoToAction.Keys.D]);
         if (destination == null)
             return;
 
@@ -447,21 +447,21 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
 #pragma warning disable 162
 
         // The destination page may not yet transformed to PdfPage.
-        PdfDictionary destPage = DestinationPageOf(destination);
+        var destPage = DestinationPageOf(destination);
         if (destPage == null)
             return;
 
-        PdfPage page = destPage as PdfPage;
+        var page = destPage as PdfPage;
         if (page == null)
             page = new PdfPage(destPage);
 
         DestinationPage = page;
-        PdfName type = destination.Elements.Count > 1 ? destination.Elements[1] as PdfName : null;
+        var type = destination.Elements.Count > 1 ? destination.Elements[1] as PdfName : null;
         // A destination whose type is one this library does not know leaves the page it goes to
         // and nothing more, which is still more than refusing to read the outline at all. What it
         // does say is kept, though: the entry is written back out as it was found rather than as
         // the /XYZ with no position the properties below would otherwise amount to.
-        if (type != null && TryParseDestinationType(type.Value.Substring(1), out PdfPageDestinationType destinationType))
+        if (type != null && TryParseDestinationType(type.Value[1..], out var destinationType))
         {
             PageDestinationType = destinationType;
             switch (PageDestinationType)
@@ -553,10 +553,10 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
         if (destination.Elements.Count == 0)
             return null;
 
-        PdfItem first = destination.Elements[0];
+        var first = destination.Elements[0];
         if (first is PdfInteger number)
         {
-            PdfDocument owner = destination.Owner;
+            var owner = destination.Owner;
             if (owner == null || number.Value < 0 || number.Value >= owner.PageCount)
                 return null;
 
@@ -582,13 +582,13 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
 
     void InitializeChildren()
     {
-        PdfReference firstRef = Elements.GetReference(Keys.First);
-        PdfReference lastRef = Elements.GetReference(Keys.Last);
-        PdfReference current = firstRef;
+        var firstRef = Elements.GetReference(Keys.First);
+        var lastRef = Elements.GetReference(Keys.Last);
+        var current = firstRef;
         while (current != null)
         {
             // Create item and add it to outline items dictionary.
-            PdfOutline item = new PdfOutline((PdfDictionary)current.Value);
+            var item = new PdfOutline((PdfDictionary)current.Value);
             Outlines.Add(item);
 
             current = item.Elements.GetReference(Keys.Next);
@@ -600,7 +600,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
     /// </summary>
     internal override void PrepareForSave()
     {
-        bool hasKids = HasChildren;
+        var hasKids = HasChildren;
 
         // The root is the only entry point - PdfCatalog.PrepareForSave calls it, and it walks
         // down from here - so this is where the tree gets measured, once, before anything below
@@ -617,7 +617,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
                 // Reference: TABLE 8.3  Entries in the outline dictionary / Page 585
                 Debug.Assert(_outlines != null && _outlines.Count > 0 && _outlines[0] != null);
                 Elements[Keys.First] = _outlines[0].Reference;
-                Elements[Keys.Last] = _outlines[_outlines.Count - 1].Reference;
+                Elements[Keys.Last] = _outlines[^1].Reference;
 
                 // Table 152: the outline dictionary's /Count is the number of rows a reader shows
                 // with nothing expanded by hand - every top-level entry, plus what the open ones
@@ -630,8 +630,8 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
                 // Reference: TABLE 8.4  Entries in the outline item dictionary / Page 585
                 Elements[Keys.Parent] = _parent.Reference;
 
-                int count = _parent._outlines.Count;
-                int index = _parent._outlines.IndexOf(this);
+                var count = _parent._outlines.Count;
+                var index = _parent._outlines.IndexOf(this);
                 Debug.Assert(index != -1);
 
                 // Has destination? Where an entry goes that this library cannot describe keeps
@@ -657,7 +657,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
                 if (hasKids)
                 {
                     Elements[Keys.First] = _outlines[0].Reference;
-                    Elements[Keys.Last] = _outlines[_outlines.Count - 1].Reference;
+                    Elements[Keys.Last] = _outlines[^1].Reference;
                 }
 
                 // Table 153: an entry with descendants carries how many would become visible if it
@@ -684,7 +684,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
             // Prepare child elements.
             if (hasKids)
             {
-                foreach (PdfOutline outline in _outlines)
+                foreach (var outline in _outlines)
                     outline.PrepareForSave();
             }
         }
@@ -698,7 +698,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
             // [page /XYZ left top zoom]
             case PdfPageDestinationType.Xyz:
                 dest = new PdfArray(Owner,
-                    DestinationPage.Reference, new PdfLiteral(String.Format("/XYZ {0} {1} {2}", Fd(Left), Fd(Top), Fd(Zoom))));
+                    DestinationPage.Reference, new PdfLiteral($"/XYZ {Fd(Left)} {Fd(Top)} {Fd(Zoom)}"));
                 break;
 
             // [page /Fit]
@@ -710,19 +710,19 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
             // [page /FitH top]
             case PdfPageDestinationType.FitH:
                 dest = new PdfArray(Owner,
-                    DestinationPage.Reference, new PdfLiteral(String.Format("/FitH {0}", Fd(Top))));
+                    DestinationPage.Reference, new PdfLiteral($"/FitH {Fd(Top)}"));
                 break;
 
             // [page /FitV left]
             case PdfPageDestinationType.FitV:
                 dest = new PdfArray(Owner,
-                    DestinationPage.Reference, new PdfLiteral(String.Format("/FitV {0}", Fd(Left))));
+                    DestinationPage.Reference, new PdfLiteral($"/FitV {Fd(Left)}"));
                 break;
 
             // [page /FitR left bottom right top]
             case PdfPageDestinationType.FitR:
                 dest = new PdfArray(Owner,
-                    DestinationPage.Reference, new PdfLiteral(String.Format("/FitR {0} {1} {2} {3}", Fd(Left), Fd(Bottom), Fd(Right), Fd(Top))));
+                    DestinationPage.Reference, new PdfLiteral($"/FitR {Fd(Left)} {Fd(Bottom)} {Fd(Right)} {Fd(Top)}"));
                 break;
 
             // [page /FitB]
@@ -734,13 +734,13 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
             // [page /FitBH top]
             case PdfPageDestinationType.FitBH:
                 dest = new PdfArray(Owner,
-                    DestinationPage.Reference, new PdfLiteral(String.Format("/FitBH {0}", Fd(Top))));
+                    DestinationPage.Reference, new PdfLiteral($"/FitBH {Fd(Top)}"));
                 break;
 
             // [page /FitBV left]
             case PdfPageDestinationType.FitBV:
                 dest = new PdfArray(Owner,
-                    DestinationPage.Reference, new PdfLiteral(String.Format("/FitBV {0}", Fd(Left))));
+                    DestinationPage.Reference, new PdfLiteral($"/FitBV {Fd(Left)}"));
                 break;
 
             default:
@@ -760,7 +760,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
     internal override void WriteObject(PdfWriter writer)
     {
         // TODO: Proof that there is nothing to do here.
-        bool hasKids = HasChildren;
+        var hasKids = HasChildren;
         if (_parent != null || hasKids)
         {
             ////// Everything done in PrepareForSave
@@ -854,16 +854,16 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
         public const string Last = "/Last";
 
         /// <summary>
-        /// (Required if the item has any descendants) If the item is open, the total number of its 
-        /// open descendants at all lower levels of the outline hierarchy. If the item is closed, a 
-        /// negative integer whose absolute value specifies how many descendants would appear if the 
+        /// (Required if the item has any descendants) If the item is open, the total number of its
+        /// open descendants at all lower levels of the outline hierarchy. If the item is closed, a
+        /// negative integer whose absolute value specifies how many descendants would appear if the
         /// item were reopened.
         /// </summary>
         [KeyInfo(KeyType.Integer | KeyType.Required)]
         public const string Count = "/Count";
 
         /// <summary>
-        /// (Optional; not permitted if an A entry is present) The destination to be displayed when this 
+        /// (Optional; not permitted if an A entry is present) The destination to be displayed when this
         /// item is activated.
         /// </summary>
         [KeyInfo(KeyType.ArrayOrNameOrString | KeyType.Optional)]
@@ -877,9 +877,9 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
         public const string A = "/A";
 
         /// <summary>
-        /// (Optional; PDF 1.3; must be an indirect reference) The structure element to which the item 
+        /// (Optional; PDF 1.3; must be an indirect reference) The structure element to which the item
         /// refers.
-        /// Note: The ability to associate an outline item with a structure element (such as the beginning 
+        /// Note: The ability to associate an outline item with a structure element (such as the beginning
         /// of a chapter) is a PDF 1.3 feature. For backward compatibility with earlier PDF versions, such
         /// an item should also specify a destination (Dest) corresponding to an area of a page where the
         /// contents of the designated structure element are displayed.
@@ -888,7 +888,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
         public const string SE = "/SE";
 
         /// <summary>
-        /// (Optional; PDF 1.4) An array of three numbers in the range 0.0 to 1.0, representing the 
+        /// (Optional; PDF 1.4) An array of three numbers in the range 0.0 to 1.0, representing the
         /// components in the DeviceRGB color space of the color to be used for the outline entry’s text.
         /// Default value: [0.0 0.0 0.0].
         /// </summary>

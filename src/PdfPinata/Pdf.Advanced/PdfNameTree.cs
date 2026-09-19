@@ -66,23 +66,23 @@ internal static class PdfNameTree
         if (node == null || depth > MaxDepth || !seen.Add(node))
             yield break;
 
-        PdfArray leaves = node.Elements.GetArray("/Names");
+        var leaves = node.Elements.GetArray("/Names");
         if (leaves != null)
         {
-            int count = leaves.Elements.Count;
-            for (int idx = 0; idx + 1 < count; idx += 2)
+            var count = leaves.Elements.Count;
+            for (var idx = 0; idx + 1 < count; idx += 2)
             {
-                string name = TextOf(leaves.Elements[idx]);
+                var name = TextOf(leaves.Elements[idx]);
                 if (name != null)
                     yield return new KeyValuePair<string, PdfItem>(name, leaves.Elements[idx + 1]);
             }
         }
 
-        PdfArray kids = node.Elements.GetArray("/Kids");
+        var kids = node.Elements.GetArray("/Kids");
         if (kids == null)
             yield break;
 
-        for (int idx = 0; idx < kids.Elements.Count; idx++)
+        for (var idx = 0; idx < kids.Elements.Count; idx++)
         {
             foreach (var entry in Walk(kids.Elements.GetDictionary(idx), depth + 1, seen))
                 yield return entry;
@@ -101,11 +101,11 @@ internal static class PdfNameTree
         if (item is PdfStringObject textObject)
             return textObject.Value;
 
-        PdfName name = item as PdfName;
+        var name = item as PdfName;
         if (name != null)
             return WithoutSlash(name.Value);
 
-        PdfNameObject nameObject = item as PdfNameObject;
+        var nameObject = item as PdfNameObject;
         if (nameObject != null)
             return WithoutSlash(nameObject.Value);
 
@@ -114,6 +114,6 @@ internal static class PdfNameTree
 
     static string WithoutSlash(string name)
     {
-        return name != null && name.Length > 0 && name[0] == '/' ? name.Substring(1) : name;
+        return name != null && name.Length > 0 && name[0] == '/' ? name[1..] : name;
     }
 }

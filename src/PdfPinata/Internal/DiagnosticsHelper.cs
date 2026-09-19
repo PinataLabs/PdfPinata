@@ -39,7 +39,7 @@ internal static class DiagnosticsHelper
 {
     public static void HandleNotImplemented(string message)
     {
-        string text = "Not implemented: " + message;
+        var text = "Not implemented: " + message;
         switch (Diagnostics.NotImplementedBehaviour)
         {
             case NotImplementedBehaviour.DoNothing:

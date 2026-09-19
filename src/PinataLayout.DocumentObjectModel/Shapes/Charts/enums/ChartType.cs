@@ -75,5 +75,5 @@ public enum ChartType
   /// <summary>
   /// An exploded 2d pie chart.
   /// </summary>
-  PieExploded2D,
+  PieExploded2D
 }

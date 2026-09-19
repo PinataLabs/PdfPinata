@@ -82,7 +82,7 @@ public class TextBaselineTests
         var objects = new List<string>
         {
             "<</Type/Catalog/Pages 2 0 R>>",
-            "<</Type/Pages/Kids[3 0 R]/Count 1>>",
+            "<</Type/Pages/Kids[3 0 R]/Count 1>>"
         };
 
         var contents = parts.Length == 1

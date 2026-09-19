@@ -177,7 +177,7 @@ public class TextShapingSeamTests
         using var _ = Installed(new SelectiveShaper(text, font => new[]
         {
             new ShapedGlyph(41, 0, 500),
-            new ShapedGlyph(42, 1, 500),
+            new ShapedGlyph(42, 1, 500)
         }));
 
         var shaped = AllGlyphs(Drawn(text));
@@ -209,7 +209,7 @@ public class TextShapingSeamTests
         using var _ = Installed(new SelectiveShaper(text, f => new[]
         {
             new ShapedGlyph(7, 0, f.UnitsPerEm / 2),
-            new ShapedGlyph(8, 3, f.UnitsPerEm / 2),
+            new ShapedGlyph(8, 3, f.UnitsPerEm / 2)
         }));
 
         AllGlyphs(Drawn(text)).Should().HaveCount(2);
@@ -313,7 +313,7 @@ public class TextShapingSeamTests
             new ShapedGlyph(70, 0, 500),   // the ab ligature
             new ShapedGlyph(3, 2, 250),    // the space
             new ShapedGlyph(70, 3, 500),
-            new ShapedGlyph(71, 4, 500),
+            new ShapedGlyph(71, 4, 500)
         }));
 
         var runs = GlyphRuns(Drawn(text, format));
@@ -340,7 +340,7 @@ public class TextShapingSeamTests
             new ShapedGlyph(10, 0, 500),
             new ShapedGlyph(11, 1, 125),
             new ShapedGlyph(12, 1, 125),
-            new ShapedGlyph(13, 2, 500),
+            new ShapedGlyph(13, 2, 500)
         }));
 
         var runs = GlyphRuns(Drawn(text, format));
@@ -366,7 +366,7 @@ public class TextShapingSeamTests
         using var _ = Installed(new SelectiveShaper(text, f => new[]
         {
             new ShapedGlyph(10, 0, f.UnitsPerEm / 2),
-            new ShapedGlyph(11, 1, f.UnitsPerEm / 2, offsetX: f.UnitsPerEm / 4),
+            new ShapedGlyph(11, 1, f.UnitsPerEm / 2, offsetX: f.UnitsPerEm / 4)
         }));
 
         var content = Content(Drawn(text));
@@ -388,7 +388,7 @@ public class TextShapingSeamTests
         using var _ = Installed(new SelectiveShaper(text, f => new[]
         {
             new ShapedGlyph(10, 0, f.UnitsPerEm / 2),
-            new ShapedGlyph(11, 1, f.UnitsPerEm / 2, offsetY: f.UnitsPerEm / 4),
+            new ShapedGlyph(11, 1, f.UnitsPerEm / 2, offsetY: f.UnitsPerEm / 4)
         }));
 
         var content = Content(Drawn(text));
@@ -413,7 +413,7 @@ public class TextShapingSeamTests
         using var _ = Installed(new SelectiveShaper(text, f => new[]
         {
             new ShapedGlyph(10, 0, f.UnitsPerEm / 2),
-            new ShapedGlyph(11, 1, f.UnitsPerEm / 2, offsetY: f.UnitsPerEm / 4),
+            new ShapedGlyph(11, 1, f.UnitsPerEm / 2, offsetY: f.UnitsPerEm / 4)
         }));
 
         var content = Content(Drawn(text, new XStringFormat { TextRise = 3 }));
@@ -433,7 +433,7 @@ public class TextShapingSeamTests
         using var _ = Installed(new SelectiveShaper(text, f => new[]
         {
             new ShapedGlyph(10, 0, 500),
-            new ShapedGlyph(11, 1, 500),
+            new ShapedGlyph(11, 1, 500)
         }));
 
         var content = Content(Drawn(text));
@@ -452,7 +452,7 @@ public class TextShapingSeamTests
         var run = new ShapedRun(new[]
         {
             new ShapedGlyph(1, 0, 500),
-            new ShapedGlyph(2, 1, 250),
+            new ShapedGlyph(2, 1, 250)
         }, unitsPerEm: 1000);
 
         run.Width.Should().Be(750);

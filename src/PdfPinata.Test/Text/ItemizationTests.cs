@@ -60,7 +60,7 @@ public class ItemizationTests
 
         runs.Select(run => run.Script).Should().Equal(new[]
         {
-            UnicodeScript.Latin, UnicodeScript.Arabic,
+            UnicodeScript.Latin, UnicodeScript.Arabic
         });
         runs[0].Length.Should().Be(2);
         runs[1].Length.Should().Be(4);

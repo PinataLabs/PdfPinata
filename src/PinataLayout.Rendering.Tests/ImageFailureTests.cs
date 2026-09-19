@@ -104,7 +104,7 @@ public class ImageFailureTests
         foreach (var source in new[]
         {
             Failing.OfNoPixels(), Failing.OfAnUnreadableType(),
-            Failing.WhenMeasured(), Failing.WhenDrawn(),
+            Failing.WhenMeasured(), Failing.WhenDrawn()
         })
         {
             var image = section.AddImage(source);

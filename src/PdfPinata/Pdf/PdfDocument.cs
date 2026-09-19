@@ -1,4 +1,5 @@
 #region Copyright
+
 //
 // Authors:
 //   Stefan Lange
@@ -23,8 +24,9 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
+
 #endregion
 
 using System;
@@ -163,6 +165,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
             }
             //PdfDocument.Gob.DetatchDocument(Handle);
         }
+
         _state = DocumentState.Disposed;
     }
 
@@ -175,6 +178,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
         get { return _tag; }
         set { _tag = value; }
     }
+
     object _tag;
 
     /// <summary>
@@ -186,6 +190,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
         get { return _name; }
         set { _name = value; }
     }
+
     string _name = NewName();
 
     /// <summary>
@@ -195,6 +200,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     {
         return "Document " + _nameCount++;
     }
+
     static int _nameCount;
 
     /// <summary>
@@ -261,7 +267,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
             if (SecuritySettings.DocumentSecurityLevel != PdfDocumentSecurityLevel.None)
                 securityHandler = SecuritySettings.SecurityHandler;
 
-            PdfWriter writer = new PdfWriter(_outStream, securityHandler);
+            var writer = new PdfWriter(_outStream, securityHandler);
             try
             {
                 DoSave(writer);
@@ -295,7 +301,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
         EnsureCanModify("saving the document");
 
         // TODO: more diagnostic checks
-        string message = "";
+        var message = "";
         if (!CanSave(ref message))
             throw new PdfSharpException(message);
 
@@ -342,6 +348,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
                 else
                     stream.Position = 0; // Reset the stream position if the stream is kept open.
             }
+
             if (writer != null)
                 writer.Close(closeStream);
         }
@@ -472,12 +479,11 @@ public sealed class PdfDocument : PdfObject, IDisposable
                    && ordered[at + runLength].ObjectNumber == ordered[at].ObjectNumber + runLength)
                 runLength++;
 
-            writer.WriteRaw(String.Format("{0} {1}\n", ordered[at].ObjectNumber, runLength));
+            writer.WriteRaw($"{ordered[at].ObjectNumber} {runLength}\n");
             for (var index = at; index < at + runLength; index++)
             {
                 // Exactly 20 bytes per line, as the classic table demands.
-                writer.WriteRaw(String.Format("{0:0000000000} {1:00000} n \n",
-                    ordered[index].Position, ordered[index].GenerationNumber));
+                writer.WriteRaw($"{ordered[index].Position:0000000000} {ordered[index].GenerationNumber:00000} n \n");
             }
 
             at += runLength;
@@ -576,8 +582,10 @@ public sealed class PdfDocument : PdfObject, IDisposable
             if (_outStream != null)
             {
                 // Give feedback if the wrong constructor was used.
-                throw new InvalidOperationException("Cannot save a PDF document with no pages. Do not use \"public PdfDocument(string filename)\" or \"public PdfDocument(Stream outputStream)\" if you want to open an existing PDF document from a file or stream; use PdfReader.Open() for that purpose.");
+                throw new InvalidOperationException(
+                    "Cannot save a PDF document with no pages. Do not use \"public PdfDocument(string filename)\" or \"public PdfDocument(Stream outputStream)\" if you want to open an existing PDF document from a file or stream; use PdfReader.Open() for that purpose.");
             }
+
             throw new InvalidOperationException("Cannot save a PDF document with no pages.");
         }
 
@@ -587,15 +595,15 @@ public sealed class PdfDocument : PdfObject, IDisposable
             if (_trailer is PdfCrossReferenceStream)
             {
                 // HACK^2: Preserve the SecurityHandler.
-                PdfStandardSecurityHandler securityHandler = _securitySettings.SecurityHandler;
+                var securityHandler = _securitySettings.SecurityHandler;
                 _trailer = new PdfTrailer((PdfCrossReferenceStream)_trailer);
                 _trailer._securityHandler = securityHandler;
             }
 
-            bool encrypt = _securitySettings.DocumentSecurityLevel != PdfDocumentSecurityLevel.None;
+            var encrypt = _securitySettings.DocumentSecurityLevel != PdfDocumentSecurityLevel.None;
             if (encrypt)
             {
-                PdfStandardSecurityHandler securityHandler = _securitySettings.SecurityHandler;
+                var securityHandler = _securitySettings.SecurityHandler;
                 if (securityHandler.Reference == null)
                     _irefTable.Add(securityHandler);
                 else
@@ -625,14 +633,15 @@ public sealed class PdfDocument : PdfObject, IDisposable
             else
             {
                 writer.WriteFileHeader(this);
-                PdfReference[] irefs = _irefTable.AllReferences;
-                int count = irefs.Length;
-                for (int idx = 0; idx < count; idx++)
+                var irefs = _irefTable.AllReferences;
+                var count = irefs.Length;
+                for (var idx = 0; idx < count; idx++)
                 {
-                    PdfReference iref = irefs[idx];
+                    var iref = irefs[idx];
                     iref.Position = writer.Position;
                     iref.Value.WriteObject(writer);
                 }
+
                 var startxref = writer.Position;
                 _irefTable.WriteObject(writer);
                 writer.WriteRaw("trailer\n");
@@ -663,10 +672,10 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </summary>
     internal override void PrepareForSave()
     {
-        PdfDocumentInformation info = Info;
+        var info = Info;
 
         // Add patch level to producer if it is not '0'.
-        string pdfSharpProducer = VersionInfo.Producer;
+        var pdfSharpProducer = VersionInfo.Producer;
         if (!ProductVersionInfo.VersionPatch.Equals("0"))
             pdfSharpProducer = ProductVersionInfo.Producer2;
 
@@ -675,7 +684,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
             info.Creator = pdfSharpProducer;
 
         // Keep original producer if file was imported.
-        string producer = info.Producer;
+        var producer = info.Producer;
         if (producer.Length == 0)
             producer = pdfSharpProducer;
         else
@@ -684,6 +693,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
             if (!producer.StartsWith(VersionInfo.Title))
                 producer = pdfSharpProducer + " (Original: " + producer + ")";
         }
+
         info.Elements.SetString(PdfDocumentInformation.Keys.Producer, producer);
 
         // Stamp a document opened for modification with the time it was written. This used to be
@@ -730,7 +740,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
             return;
 
         // Remove all unreachable objects (e.g. from deleted pages)
-        int removed = _irefTable.Compact();
+        var removed = _irefTable.Compact();
         if (removed != 0)
             Debug.WriteLine("PrepareForSave: Number of deleted unreachable objects: " + removed);
         _irefTable.Renumber();
@@ -749,7 +759,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
 
     internal bool HasVersion(string version)
     {
-        return String.Compare(Catalog.Version, version) >= 0;
+        return String.CompareOrdinal(Catalog.Version, version) >= 0;
     }
 
     /// <summary>
@@ -764,6 +774,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
             return _options;
         }
     }
+
     PdfDocumentOptions _options;
 
     /// <summary>
@@ -778,6 +789,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
             return _settings;
         }
     }
+
     PdfDocumentSettings _settings;
 
     /// <summary>
@@ -844,6 +856,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
         foreach (var contributor in _metadataContributors)
             contributor(metadata);
     }
+
     List<Action<Metadata.XmpMetadata>> _metadataContributors;
 
     /// <summary>
@@ -877,6 +890,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// exactly as it was before — no structure tree, no <c>/MarkInfo</c>, and not one extra byte.
     /// </remarks>
     public Structure.PdfStructureBuilder Structure => _structure ??= new Structure.PdfStructureBuilder(this);
+
     Structure.PdfStructureBuilder _structure;
 
     /// <summary>
@@ -890,6 +904,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// among the archival profiles may carry one at all.
     /// </remarks>
     public Advanced.PdfAttachments Attachments => _attachments ??= new Advanced.PdfAttachments(this);
+
     Advanced.PdfAttachments _attachments;
 
     /// <summary>
@@ -913,6 +928,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
             _version = value;
         }
     }
+
     internal int _version;
 
     /// <summary>
@@ -938,6 +954,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     {
         get { return _fileSize; }
     }
+
     internal long _fileSize; // TODO: make private
 
     /// <summary>
@@ -947,6 +964,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     {
         get { return _fullPath; }
     }
+
     internal string _fullPath = String.Empty; // TODO: make private
 
     /// <summary>
@@ -956,6 +974,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     {
         get { return _guid; }
     }
+
     Guid _guid = Guid.NewGuid();
 
     internal DocumentHandle Handle
@@ -967,6 +986,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
             return _handle;
         }
     }
+
     DocumentHandle _handle;
 
     /// <summary>
@@ -1007,7 +1027,8 @@ public sealed class PdfDocument : PdfObject, IDisposable
             return _info;
         }
     }
-    PdfDocumentInformation _info;  // never changes if once created
+
+    PdfDocumentInformation _info; // never changes if once created
 
     /// <summary>
     /// This function is intended to be undocumented.
@@ -1028,6 +1049,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
             _customValues = null;
         }
     }
+
     PdfCustomValues _customValues;
 
     /// <summary>
@@ -1042,7 +1064,8 @@ public sealed class PdfDocument : PdfObject, IDisposable
             return _pages;
         }
     }
-    PdfPages _pages;  // never changes if once created
+
+    PdfPages _pages; // never changes if once created
 
     /// <summary>
     /// Gets or sets a value specifying the page layout to be used when the document is opened.
@@ -1095,6 +1118,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     {
         get { return _pageLabels ?? (_pageLabels = new PdfPageLabels(this)); }
     }
+
     PdfPageLabels _pageLabels;
 
     /// <summary>
@@ -1125,7 +1149,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     {
         EnsureCanModify("creating an interactive form");
 
-        PdfAcroForm form = Catalog.AcroForm;
+        var form = Catalog.AcroForm;
         if (form == null)
         {
             form = new PdfAcroForm(this);
@@ -1158,6 +1182,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     {
         get { return _securitySettings ?? (_securitySettings = new PdfSecuritySettings(this)); }
     }
+
     internal PdfSecuritySettings _securitySettings;
 
     /// <summary>
@@ -1167,6 +1192,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     {
         get { return _fontTable ?? (_fontTable = new PdfFontTable(this)); }
     }
+
     PdfFontTable _fontTable;
 
     /// <summary>
@@ -1181,15 +1207,17 @@ public sealed class PdfDocument : PdfObject, IDisposable
             return _imageTable;
         }
     }
+
     PdfImageTable _imageTable;
 
     /// <summary>
     /// Gets the document form table that holds all form external objects used in the current document.
     /// </summary>
-    internal PdfFormXObjectTable FormTable  // TODO: Rename to ExternalDocumentTable.
+    internal PdfFormXObjectTable FormTable // TODO: Rename to ExternalDocumentTable.
     {
         get { return _formTable ?? (_formTable = new PdfFormXObjectTable(this)); }
     }
+
     PdfFormXObjectTable _formTable;
 
     /// <summary>
@@ -1199,6 +1227,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     {
         get { return _extGStateTable ?? (_extGStateTable = new PdfExtGStateTable(this)); }
     }
+
     PdfExtGStateTable _extGStateTable;
 
     /// <summary>
@@ -1208,7 +1237,8 @@ public sealed class PdfDocument : PdfObject, IDisposable
     {
         get { return _catalog ?? (_catalog = _trailer.Root); }
     }
-    PdfCatalog _catalog;  // never changes if once created
+
+    PdfCatalog _catalog; // never changes if once created
 
     /// <summary>
     /// Gets the named destinations of this document - places in it that can be linked to by name
@@ -1218,6 +1248,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     {
         get { return _namedDestinations ?? (_namedDestinations = new PdfNamedDestinationTable(this)); }
     }
+
     PdfNamedDestinationTable _namedDestinations;
 
     /// <summary>
@@ -1228,6 +1259,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     {
         get { return _internals ?? (_internals = new PdfInternals(this)); }
     }
+
     PdfInternals _internals;
 
     /// <summary>
@@ -1293,7 +1325,8 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </para>
     /// </summary>
     [MustUseReturnValue]
-    public PdfPage InsertPage(int index, PdfPage page, AnnotationCopyingType annotationCopying = AnnotationCopyingType.ShallowCopy)
+    public PdfPage InsertPage(int index, PdfPage page,
+        AnnotationCopyingType annotationCopying = AnnotationCopyingType.ShallowCopy)
     {
         return Catalog.Pages.Insert(index, page, annotationCopying);
     }
@@ -1328,7 +1361,8 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// <param name="page">A page belonging to another document.</param>
     /// <param name="annotationCopying">Annotation copying action, by default annotations are copied shallowly.</param>
     [MustUseReturnValue]
-    public PdfPage ImportPage(int index, PdfPage page, AnnotationCopyingType annotationCopying = AnnotationCopyingType.ShallowCopy)
+    public PdfPage ImportPage(int index, PdfPage page,
+        AnnotationCopyingType annotationCopying = AnnotationCopyingType.ShallowCopy)
     {
         return Catalog.Pages.Import(index, page, annotationCopying);
     }
@@ -1362,7 +1396,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     }
 
     /// <summary>
-    /// Marks the acroform fields readonly 
+    /// Marks the acroform fields readonly
     /// </summary>
     public void MakeAcroFormsReadOnly()
     {
@@ -1387,7 +1421,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </summary>
     public void PruneUnusedResources()
     {
-        foreach (PdfPage page in Pages)
+        foreach (var page in Pages)
             PdfResourcePruner.Prune(page);
     }
 
@@ -1480,8 +1514,8 @@ public sealed class PdfDocument : PdfObject, IDisposable
     {
         get { return tls ?? (tls = new ThreadLocalStorage()); }
     }
-    [ThreadStatic]
-    static ThreadLocalStorage tls;
+
+    [ThreadStatic] static ThreadLocalStorage tls;
 
     /// <summary>
     /// A comparable, storable stand-in for "this document, weakly", so that the tables which
@@ -1508,15 +1542,16 @@ public sealed class PdfDocument : PdfObject, IDisposable
 
         public PdfDocument Target
         {
-            get { return _weakRef.TryGetTarget(out PdfDocument document) ? document : null; }
+            get { return _weakRef.TryGetTarget(out var document) ? document : null; }
         }
+
         readonly WeakReference<PdfDocument> _weakRef;
 
         readonly Guid Id;
 
         public override bool Equals(object obj)
         {
-            DocumentHandle handle = obj as DocumentHandle;
+            var handle = obj as DocumentHandle;
             if (!ReferenceEquals(handle, null))
                 return Id == handle.Id;
             return false;
@@ -1527,14 +1562,12 @@ public sealed class PdfDocument : PdfObject, IDisposable
             return Id.GetHashCode();
         }
 
-        #pragma warning disable S3875 // A handle is equal to another by the document id it carries, and ThreadLocalStorage and PdfFormXObjectTable compare handles with ==.
+#pragma warning disable S3875 // A handle is equal to another by the document id it carries, and ThreadLocalStorage and PdfFormXObjectTable compare handles with ==.
         public static bool operator ==(DocumentHandle left, DocumentHandle right)
         {
-            if (ReferenceEquals(left, null))
-                return ReferenceEquals(right, null);
-            return left.Equals(right);
+            return left?.Equals(right) ?? ReferenceEquals(right, null);
         }
-        #pragma warning restore S3875
+#pragma warning restore S3875
 
         public static bool operator !=(DocumentHandle left, DocumentHandle right)
         {

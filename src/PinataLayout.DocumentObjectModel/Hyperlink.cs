@@ -492,7 +492,7 @@ public partial class Hyperlink : DocumentObject, IVisitable
         if ((name ?? "") == string.Empty)
             throw new InvalidOperationException(DomSR.MissingObligatoryProperty("Name", "Hyperlink"));
         serializer.Write("\\hyperlink");
-        string str = "[Name = \"" + Name.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"";
+        var str = "[Name = \"" + Name.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"";
         if (type != null)
             str += " Type = " + Type;
         if (IsNull("Font"))

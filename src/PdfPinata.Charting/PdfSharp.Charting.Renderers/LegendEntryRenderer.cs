@@ -50,8 +50,8 @@ internal class LegendEntryRenderer : Renderer
   /// </summary>
   internal override void Format()
   {
-    XGraphics gfx = this.rendererParms.Graphics;
-    LegendEntryRendererInfo leri = (LegendEntryRendererInfo)this.rendererParms.RendererInfo;
+    var gfx = this.rendererParms.Graphics;
+    var leri = (LegendEntryRendererInfo)this.rendererParms.RendererInfo;
 
     // Initialize
     leri.MarkerArea.Width = MaxLegendMarkerWidth;
@@ -85,20 +85,20 @@ internal class LegendEntryRenderer : Renderer
   /// </summary>
   internal override void Draw()
   {
-    XGraphics gfx = this.rendererParms.Graphics;
-    LegendEntryRendererInfo leri = (LegendEntryRendererInfo)this.rendererParms.RendererInfo;
+    var gfx = this.rendererParms.Graphics;
+    var leri = (LegendEntryRendererInfo)this.rendererParms.RendererInfo;
 
     XRect rect;
     if (leri.seriesRendererInfo.series.chartType == ChartType.Line)
     {
       // Draw line.
-      XPoint posLineStart = new XPoint(leri.X, leri.Y + leri.Height / 2);
-      XPoint posLineEnd = new XPoint(leri.X + leri.MarkerArea.Width, leri.Y + leri.Height / 2);
+      var posLineStart = new XPoint(leri.X, leri.Y + leri.Height / 2);
+      var posLineEnd = new XPoint(leri.X + leri.MarkerArea.Width, leri.Y + leri.Height / 2);
       gfx.DrawLine(new XPen(((XSolidBrush)leri.MarkerBrush).Color), posLineStart, posLineEnd);
 
       // Draw marker.
-      double x = leri.X + leri.MarkerArea.Width / 2;
-      XPoint posMarker = new XPoint(x, leri.Y + leri.Height / 2);
+      var x = leri.X + leri.MarkerArea.Width / 2;
+      var posMarker = new XPoint(x, leri.Y + leri.Height / 2);
       MarkerRenderer.Draw(gfx, posMarker, leri.seriesRendererInfo.markerRendererInfo);
     }
     else
@@ -114,7 +114,7 @@ internal class LegendEntryRenderer : Renderer
     {
       rect = leri.Rect;
       rect.X += leri.MarkerArea.Width + LegendEntryRenderer.SpacingBetweenMarkerAndText;
-      XStringFormat format = new XStringFormat();
+      var format = new XStringFormat();
       format.LineAlignment = XLineAlignment.Near;
       gfx.DrawString(leri.EntryText, leri.legendRendererInfo.Font,
         leri.legendRendererInfo.FontColor, rect, format);

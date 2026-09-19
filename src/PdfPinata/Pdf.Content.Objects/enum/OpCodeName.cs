@@ -201,5 +201,5 @@ public enum OpCodeName
     /// <summary><c>'</c> — move to the next line and show a string.</summary>
     QuoteSingle,
     /// <summary><c>"</c> — set the word and character spacing, move to the next line and show a string.</summary>
-    QuoteDbl,
+    QuoteDbl
 }

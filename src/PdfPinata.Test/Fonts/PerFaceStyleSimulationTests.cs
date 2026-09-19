@@ -86,7 +86,7 @@ public class PerFaceStyleSimulationTests
         using var _ = new Installed(new Only(Arabic.Select(letter => (int)letter),
             PinnedFontResolver.ArabicFamilyName));
 
-        string content = DrawnText.ContentOf(DrawnText.Page("A" + Arabic, SimulatedBold()));
+        var content = DrawnText.ContentOf(DrawnText.Page("A" + Arabic, SimulatedBold()));
 
         RenderingModes(content).Should().Equal(new[] { 2, 0, 2 },
             "the simulated primary strokes, the fallback does not, and the state is put back");
@@ -100,7 +100,7 @@ public class PerFaceStyleSimulationTests
         using var _ = new Installed(new Only(Arabic.Select(letter => (int)letter),
             PinnedFontResolver.ArabicFamilyName));
 
-        string content = DrawnText.ContentOf(DrawnText.Page("A" + Arabic, SimulatedBold()));
+        var content = DrawnText.ContentOf(DrawnText.Page("A" + Arabic, SimulatedBold()));
 
         Regex.Matches(content, @"([\d.]+) Tc").Select(match => match.Groups[1].Value)
             .Should().Equal(new[] { "0.4", "0", "0.4" },
@@ -118,7 +118,7 @@ public class PerFaceStyleSimulationTests
         // want them.
         using var _ = new Installed(new Only(new[] { Lock }, PinnedFontResolver.CffFamilyName));
 
-        string content = DrawnText.ContentOf(
+        var content = DrawnText.ContentOf(
             DrawnText.Page("A" + char.ConvertFromUtf32(Lock) + "B", RealBold()));
 
         RenderingModes(content).Should().Equal(new[] { 2, 0, 2, 0, 2 },
@@ -133,7 +133,7 @@ public class PerFaceStyleSimulationTests
         // current, because nothing would have realized a pen for a primary face that needed none.
         using var _ = new Installed(new Only(new[] { Lock }, PinnedFontResolver.CffFamilyName));
 
-        string content = DrawnText.ContentOf(
+        var content = DrawnText.ContentOf(
             DrawnText.Page("A" + char.ConvertFromUtf32(Lock), RealBold()));
 
         content.Should().MatchRegex(@"0\.4 w",
@@ -149,11 +149,11 @@ public class PerFaceStyleSimulationTests
         // face's simulation to every glyph, the mixed string would measure wider than its parts.
         using var _ = new Installed(new Only(new[] { Lock }, PinnedFontResolver.CffFamilyName));
 
-        string emoji = char.ConvertFromUtf32(Lock);
+        var emoji = char.ConvertFromUtf32(Lock);
 
-        double mixed = DrawnText.MeasuredWidth("A" + emoji, RealBold());
-        double latinAlone = DrawnText.MeasuredWidth("A", RealBold());
-        double emojiAlone = DrawnText.MeasuredWidth(emoji, SimulatedBold());
+        var mixed = DrawnText.MeasuredWidth("A" + emoji, RealBold());
+        var latinAlone = DrawnText.MeasuredWidth("A", RealBold());
+        var emojiAlone = DrawnText.MeasuredWidth(emoji, SimulatedBold());
 
         mixed.Should().BeApproximately(latinAlone + emojiAlone, 1e-9,
             "the Latin is measured unsimulated and the emoji simulated, each as it is drawn");
@@ -166,7 +166,7 @@ public class PerFaceStyleSimulationTests
     {
         // Every string that never fell back goes down the other path entirely, and this is the
         // assertion that says the common case did not pay for any of the above.
-        string content = DrawnText.ContentOf(DrawnText.Page("Hello", SimulatedBold()));
+        var content = DrawnText.ContentOf(DrawnText.Page("Hello", SimulatedBold()));
 
         RenderingModes(content).Should().Equal(new[] { 2 },
             "one rendering mode, written once, exactly as before");
@@ -175,7 +175,7 @@ public class PerFaceStyleSimulationTests
     [Fact]
     public void AnUnsimulatedStringIsStillModeZero()
     {
-        string content = DrawnText.ContentOf(DrawnText.Page("Hello", RealBold()));
+        var content = DrawnText.ContentOf(DrawnText.Page("Hello", RealBold()));
 
         RenderingModes(content).Should().BeEmpty(
             "mode 0 is the initial state and is never written out");

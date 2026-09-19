@@ -51,34 +51,34 @@ internal class ColumnLikeGridlinesRenderer : GridlinesRenderer
   /// </summary>
   internal override void Draw()
   {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
 
-    XRect plotAreaRect = cri.plotAreaRendererInfo.Rect;
+    var plotAreaRect = cri.plotAreaRendererInfo.Rect;
     if (HasNoRoom(plotAreaRect))
       return;
 
-    AxisRendererInfo xari = cri.xAxisRendererInfo;
-    AxisRendererInfo yari = cri.yAxisRendererInfo;
+    var xari = cri.xAxisRendererInfo;
+    var yari = cri.yAxisRendererInfo;
 
-    double xMin = xari.MinimumScale;
-    double xMax = xari.MaximumScale;
-    double yMin = yari.MinimumScale;
-    double yMax = yari.MaximumScale;
-    double xMajorTick = xari.MajorTick;
-    double yMajorTick = yari.MajorTick;
-    double xMinorTick = xari.MinorTick;
-    double yMinorTick = yari.MinorTick;
+    var xMin = xari.MinimumScale;
+    var xMax = xari.MaximumScale;
+    var yMin = yari.MinimumScale;
+    var yMax = yari.MaximumScale;
+    var xMajorTick = xari.MajorTick;
+    var yMajorTick = yari.MajorTick;
+    var xMinorTick = xari.MinorTick;
+    var yMinorTick = yari.MinorTick;
 
-    XMatrix matrix = cri.plotAreaRendererInfo.matrix;
+    var matrix = cri.plotAreaRendererInfo.matrix;
 
     LineFormatRenderer lineFormatRenderer;
-    XGraphics gfx = this.rendererParms.Graphics;
+    var gfx = this.rendererParms.Graphics;
 
-    XPoint[] points = new XPoint[2];
+    var points = new XPoint[2];
     if (xari.MinorGridlinesLineFormat != null)
     {
       lineFormatRenderer = new LineFormatRenderer(gfx, xari.MinorGridlinesLineFormat);
-      for (double x = xMin + xMinorTick; x < xMax; x += xMinorTick)
+      for (var x = xMin + xMinorTick; x < xMax; x += xMinorTick)
       {
         points[0].X = x;
         points[0].Y = yMin;
@@ -92,7 +92,7 @@ internal class ColumnLikeGridlinesRenderer : GridlinesRenderer
     if (xari.MajorGridlinesLineFormat != null)
     {
       lineFormatRenderer = new LineFormatRenderer(gfx, xari.MajorGridlinesLineFormat);
-      for (double x = xMin; x <= xMax; x += xMajorTick)
+      for (var x = xMin; x <= xMax; x += xMajorTick)
       {
         points[0].X = x;
         points[0].Y = yMin;
@@ -106,7 +106,7 @@ internal class ColumnLikeGridlinesRenderer : GridlinesRenderer
     if (yari.MinorGridlinesLineFormat != null)
     {
       lineFormatRenderer = new LineFormatRenderer(gfx, yari.MinorGridlinesLineFormat);
-      for (double y = yMin + yMinorTick; y < yMax; y += yMinorTick)
+      for (var y = yMin + yMinorTick; y < yMax; y += yMinorTick)
       {
         points[0].X = xMin;
         points[0].Y = y;
@@ -120,7 +120,7 @@ internal class ColumnLikeGridlinesRenderer : GridlinesRenderer
     if (yari.MajorGridlinesLineFormat != null)
     {
       lineFormatRenderer = new LineFormatRenderer(gfx, yari.MajorGridlinesLineFormat);
-      for (double y = yMin; y <= yMax; y += yMajorTick)
+      for (var y = yMin; y <= yMax; y += yMajorTick)
       {
         points[0].X = xMin;
         points[0].Y = y;

@@ -132,7 +132,7 @@ public class DdlWriter : IDisposable
     /// </summary>
     public static string WriteToString(DocumentObject docObject, int indent, int initialIndent)
     {
-        StringBuilder strBuilder = new StringBuilder();
+        var strBuilder = new StringBuilder();
         using (var writer = new StringWriter(strBuilder))
         {
             using (var wrt = new DdlWriter(writer)

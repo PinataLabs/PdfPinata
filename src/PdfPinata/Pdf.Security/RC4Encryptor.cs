@@ -213,12 +213,12 @@ class RC4Encryptor : EncryptorBase, IEncryptor
     /// </summary>
     protected void PrepareRC4Key(byte[] key, int offset, int length)
     {
-        int idx1 = 0;
-        int idx2 = 0;
-        for (int idx = 0; idx < 256; idx++)
+        var idx1 = 0;
+        var idx2 = 0;
+        for (var idx = 0; idx < 256; idx++)
             state[idx] = (byte)idx;
         byte tmp;
-        for (int idx = 0; idx < 256; idx++)
+        for (var idx = 0; idx < 256; idx++)
         {
             idx2 = (key[idx1 + offset] + state[idx] + idx2) & 255;
             tmp = state[idx];
@@ -260,7 +260,7 @@ class RC4Encryptor : EncryptorBase, IEncryptor
         length += offset;
         int x = 0, y = 0;
         byte b;
-        for (int idx = offset; idx < length; idx++)
+        for (var idx = offset; idx < length; idx++)
         {
             x = (x + 1) & 255;
             y = (state[x] + y) & 255;

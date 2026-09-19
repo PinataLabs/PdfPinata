@@ -58,18 +58,18 @@ internal abstract class ColumnPlotAreaRenderer : ColumnLikePlotAreaRenderer
   /// </summary>
   internal override void Draw()
   {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
 
-    XRect plotAreaBox = cri.plotAreaRendererInfo.Rect;
+    var plotAreaBox = cri.plotAreaRendererInfo.Rect;
     if (HasNoRoom(plotAreaBox))
       return;
 
-    XGraphics gfx = this.rendererParms.Graphics;
+    var gfx = this.rendererParms.Graphics;
 
-    double xMin = cri.xAxisRendererInfo.MinimumScale;
-    double xMax = cri.xAxisRendererInfo.MaximumScale;
-    double yMin = cri.yAxisRendererInfo.MinimumScale;
-    double yMax = cri.yAxisRendererInfo.MaximumScale;
+    var xMin = cri.xAxisRendererInfo.MinimumScale;
+    var xMax = cri.xAxisRendererInfo.MaximumScale;
+    var yMin = cri.yAxisRendererInfo.MinimumScale;
+    var yMax = cri.yAxisRendererInfo.MaximumScale;
 
     LineFormatRenderer lineFormatRenderer;
 
@@ -81,7 +81,7 @@ internal abstract class ColumnPlotAreaRenderer : ColumnLikePlotAreaRenderer
     {
       if (yMin < 0 && yMax > 0)
       {
-        XPoint[] points = new XPoint[2];
+        var points = new XPoint[2];
         points[0].X = xMin;
         points[0].Y = 0;
         points[1].X = xMax;
@@ -98,8 +98,8 @@ internal abstract class ColumnPlotAreaRenderer : ColumnLikePlotAreaRenderer
     }
 
     // Draw columns
-    XGraphicsState state = gfx.Save();
-    foreach (SeriesRendererInfo sri in cri.seriesRendererInfos)
+    var state = gfx.Save();
+    foreach (var sri in cri.seriesRendererInfos)
     {
       foreach (ColumnRendererInfo column in sri.pointRendererInfos)
       {
@@ -111,7 +111,7 @@ internal abstract class ColumnPlotAreaRenderer : ColumnLikePlotAreaRenderer
 
     // Draw borders around column.
     // A border can overlap neighbor columns, so it is important to draw borders at the end.
-    foreach (SeriesRendererInfo sri in cri.seriesRendererInfos)
+    foreach (var sri in cri.seriesRendererInfos)
     {
       foreach (ColumnRendererInfo column in sri.pointRendererInfos)
       {

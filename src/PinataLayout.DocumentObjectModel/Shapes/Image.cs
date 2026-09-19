@@ -164,10 +164,10 @@ public partial class Image : Shape
         // reflection layer, and neither of the two ways an image is actually made fills it in -
         // AddImage takes an IImageSource, and the parser puts \image("path") on Source as well.
         // Writing the field alone turned every image into \image("") and lost the path.
-        string path = !string.IsNullOrEmpty(this.name) ? this.name : (Source?.Name ?? "");
+        var path = !string.IsNullOrEmpty(this.name) ? this.name : (Source?.Name ?? "");
         serializer.WriteLine("\\image(\"" + path.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\")");
 
-        int pos = serializer.BeginAttributes();
+        var pos = serializer.BeginAttributes();
 
         base.Serialize(serializer);
         if (this.scaleWidth != null)
@@ -190,7 +190,7 @@ public partial class Image : Shape
     /// </summary>
     public string GetFilePath(string workingDir)
     {
-        string filePath = "";
+        var filePath = "";
 
         try
         {
@@ -201,7 +201,7 @@ public partial class Image : Shape
 
             if (!Document.IsNull("ImagePath"))
             {
-                string foundfile = ImageHelper.GetImageName(filePath, Source.Name, Document.ImagePath);
+                var foundfile = ImageHelper.GetImageName(filePath, Source.Name, Document.ImagePath);
                 if (foundfile != null)
                     filePath = foundfile;
                 else

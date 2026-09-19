@@ -37,12 +37,13 @@ internal class BcgSR
 {
     internal static string Invalid2Of5Code(string code)
     {
-        return string.Format("'{0}' is not a valid code for an interleave 2 of 5 bar code. It can only represent an even number of digits.", code);
+        return
+            $"'{code}' is not a valid code for an interleave 2 of 5 bar code. It can only represent an even number of digits.";
     }
 
     internal static string Invalid3Of9Code(string code)
     {
-        return string.Format("'{0}' is not a valid code for a 3 of 9 standard bar code.", code);
+        return $"'{code}' is not a valid code for a 3 of 9 standard bar code.";
     }
 
     internal static string BarCodeNotSet => "A text must be set before rendering the bar code.";
@@ -53,7 +54,7 @@ internal class BcgSR
 
     internal static string InvalidMarkName(string name)
     {
-        return string.Format("'{0}' is not a valid mark name for this OMR representation.", name);
+        return $"'{name}' is not a valid mark name for this OMR representation.";
     }
 
     internal static string OmrAlreadyInitialized => "Mark descriptions cannot be set when marks have already been set on OMR.";
@@ -71,16 +72,15 @@ internal class BcgSR
 
     internal static string DataMatrixCharacterTooBig(char ch)
     {
-        return string.Format("U+{0:X4} cannot be written to a DataMatrix code, which carries " +
-                             "bytes rather than characters. Encode the text to bytes first.",
-            (int)ch);
+        return $"U+{(int)ch:X4} cannot be written to a DataMatrix code, which carries " +
+               "bytes rather than characters. Encode the text to bytes first.";
     }
 
     internal static string DataMatrixEncodationNotImplemented(char scheme)
     {
-        return string.Format("The '{0}' encodation of a DataMatrix code is not written. Only " +
-                             "the ASCII encodation is, which carries any data a DataMatrix " +
-                             "can hold, though less densely for a long run of one kind of " +
-                             "character. Leave the encoding unset to use it.", scheme);
+        return $"The '{scheme}' encodation of a DataMatrix code is not written. Only " +
+               "the ASCII encodation is, which carries any data a DataMatrix " +
+               "can hold, though less densely for a long run of one kind of " +
+               "character. Leave the encoding unset to use it.";
     }
 }

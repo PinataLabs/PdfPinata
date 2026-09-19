@@ -66,7 +66,7 @@ public sealed partial class Document : DocumentObject, IVisitable
   /// </summary>
   protected override object DeepCopy()
   {
-    Document document = (Document)base.DeepCopy();
+    var document = (Document)base.DeepCopy();
     document.renderer = null;
     return document;
   }
@@ -139,7 +139,7 @@ public sealed partial class Document : DocumentObject, IVisitable
   /// <summary>
   /// Gets the last section of the document, or null, if the document has no sections.
   /// </summary>
-  public Section LastSection => (sections != null && sections.Count > 0) ?
+  public Section LastSection => sections is { Count: > 0 } ?
     sections.LastObject as Section : null;
 
   /// <summary>
@@ -313,10 +313,10 @@ public sealed partial class Document : DocumentObject, IVisitable
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    serializer.WriteComment((comment ?? ""));
+    serializer.WriteComment(comment ?? "");
     serializer.WriteLine("\\document");
 
-    int pos = serializer.BeginAttributes();
+    var pos = serializer.BeginAttributes();
     if (!IsNull("Info"))
       Info.Serialize(serializer);
     if (!defaultTabStop.IsNull)

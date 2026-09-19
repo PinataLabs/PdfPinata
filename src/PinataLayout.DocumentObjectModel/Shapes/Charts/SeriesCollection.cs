@@ -68,7 +68,7 @@ public partial class SeriesCollection : DocumentObjectCollection
   /// </summary>
   public Series AddSeries()
   {
-    Series series = new Series();
+    var series = new Series();
     Add(series);
     return series;
   }
@@ -80,10 +80,10 @@ public partial class SeriesCollection : DocumentObjectCollection
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    int count = Count;
-    for (int index = 0; index < count; ++index)
+    var count = Count;
+    for (var index = 0; index < count; ++index)
     {
-      Series series = this[index];
+      var series = this[index];
       series.Serialize(serializer);
     }
   }

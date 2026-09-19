@@ -64,7 +64,7 @@ public class MetaCacheTests
                 0 => Meta.GetMeta(new Document()),
                 1 => Meta.GetMeta(new Image()),
                 2 => Meta.GetMeta(new Document().AddSection().AddParagraph("x").Format.Font),
-                _ => Meta.GetMeta(new Document().AddSection().PageSetup),
+                _ => Meta.GetMeta(new Document().AddSection().PageSetup)
             };
             results.Add($"{index % 4}:{meta.ValueDescriptors.Count}");
         });

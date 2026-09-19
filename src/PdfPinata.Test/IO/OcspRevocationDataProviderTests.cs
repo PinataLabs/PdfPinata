@@ -36,7 +36,7 @@ public class OcspRevocationDataProviderTests
         var certificate = CertificateWithAuthorityInfoAccess(new byte[] { 0x01, 0x02, 0x03 });
         var provider = new OcspRevocationDataProvider();
 
-        Func<RevocationData> gathering = () =>
+        var gathering = () =>
             provider.GetRevocationData(certificate, new X509Certificate2Collection());
 
         gathering.Should().NotThrow();

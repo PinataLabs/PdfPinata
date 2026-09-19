@@ -26,7 +26,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -124,8 +124,8 @@ public partial class DocumentInfo : DocumentObject
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    serializer.WriteComment((comment ?? ""));
-    int pos = serializer.BeginContent("Info");
+    serializer.WriteComment(comment ?? "");
+    var pos = serializer.BeginContent("Info");
 
     // Whether a value was set decides whether it is written, as everywhere else in the DOM. These
     // four used to ask whether the string was empty instead, which wrote an assigned "" the same

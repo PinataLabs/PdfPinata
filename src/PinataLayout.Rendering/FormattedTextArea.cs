@@ -24,7 +24,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -89,7 +89,7 @@ internal class FormattedTextArea : IAreaProvider
     XUnit inherentWidth = 0;
     foreach (DocumentObject obj in textArea.Elements)
     {
-      Renderer renderer = Renderer.Create(gfx, documentRenderer, obj, fieldInfos);
+      var renderer = Renderer.Create(gfx, documentRenderer, obj, fieldInfos);
       if (renderer != null)
       {
         renderer.Format(new Rectangle(0, 0, double.MaxValue, double.MaxValue), null);
@@ -104,10 +104,7 @@ internal class FormattedTextArea : IAreaProvider
 
   Area IAreaProvider.GetNextArea()
   {
-    if (isFirstArea)
-      return CalcContentRect();
-
-    return null;
+    return isFirstArea ? CalcContentRect() : null;
   }
 
   Area IAreaProvider.ProbeNextArea()

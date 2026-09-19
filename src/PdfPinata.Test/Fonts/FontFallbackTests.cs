@@ -67,7 +67,7 @@ public class FontFallbackTests
         internal Only(string characters, params string[] families)
         {
             _mine = new HashSet<int>();
-            for (int idx = 0; idx < characters.Length; idx++)
+            for (var idx = 0; idx < characters.Length; idx++)
             {
                 if (char.IsHighSurrogate(characters[idx]) && idx + 1 < characters.Length
                     && char.IsLowSurrogate(characters[idx + 1]))
@@ -218,7 +218,7 @@ public class FontFallbackTests
     public void TextIsMeasuredAgainstTheFaceThatWillDrawIt()
     {
         var arabic = ArabicFont();
-        double own = DrawnText.MeasuredWidth(Arabic, arabic);
+        var own = DrawnText.MeasuredWidth(Arabic, arabic);
 
         using var _ = new Installed(new Only(Arabic, ArabicFamily));
 

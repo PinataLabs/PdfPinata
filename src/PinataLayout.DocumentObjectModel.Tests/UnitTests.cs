@@ -44,7 +44,7 @@ public class UnitTests
         { UnitType.Inch, 1, PointsPerInch },
         { UnitType.Centimeter, CentimetresPerInch, PointsPerInch },
         { UnitType.Millimeter, CentimetresPerInch * 10, PointsPerInch },
-        { UnitType.Pica, 6, PointsPerInch },
+        { UnitType.Pica, 6, PointsPerInch }
     };
 
     [Theory]
@@ -71,7 +71,7 @@ public class UnitTests
             UnitType.Centimeter => Unit.FromCentimeter(value),
             UnitType.Millimeter => Unit.FromMillimeter(value),
             UnitType.Pica => Unit.FromPica(value),
-            _ => throw new ArgumentOutOfRangeException(nameof(type)),
+            _ => throw new ArgumentOutOfRangeException(nameof(type))
         };
 
         named.Type.Should().Be(type);

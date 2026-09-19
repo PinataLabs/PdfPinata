@@ -26,11 +26,11 @@ public class AcroFormAuthoringTests
     [Fact]
     public void ADocumentHasNoFormUntilOneIsAskedFor()
     {
-        PdfDocument document = new PdfDocument();
+        var document = new PdfDocument();
 
         document.AcroForm.Should().BeNull();
 
-        PdfAcroForm form = document.GetOrCreateAcroForm();
+        var form = document.GetOrCreateAcroForm();
 
         form.Should().NotBeNull();
         document.AcroForm.Should().BeSameAs(form);
@@ -39,10 +39,10 @@ public class AcroFormAuthoringTests
     [Fact]
     public void AskingTwiceAnswersTheSameFormRatherThanASecondOne()
     {
-        PdfDocument document = new PdfDocument();
+        var document = new PdfDocument();
 
-        PdfAcroForm first = document.GetOrCreateAcroForm();
-        PdfAcroForm second = document.GetOrCreateAcroForm();
+        var first = document.GetOrCreateAcroForm();
+        var second = document.GetOrCreateAcroForm();
 
         second.Should().BeSameAs(first);
     }
@@ -50,9 +50,9 @@ public class AcroFormAuthoringTests
     [Fact]
     public void TheFormIsIndirectAndIsNamedByTheCatalogue()
     {
-        PdfDocument document = new PdfDocument();
+        var document = new PdfDocument();
 
-        PdfAcroForm form = document.GetOrCreateAcroForm();
+        var form = document.GetOrCreateAcroForm();
 
         form.Reference.Should().NotBeNull();
         document.Internals.Catalog.Elements["/AcroForm"].Should().BeOfType<PdfPinata.Pdf.Advanced.PdfReference>();
@@ -68,9 +68,9 @@ public class AcroFormAuthoringTests
     [InlineData(typeof(PdfSignatureField), "/Sig", 0)]
     public void EveryFieldTypeWritesWhatSaysWhatItIs(Type type, string fieldType, int flags)
     {
-        PdfDocument document = new PdfDocument();
+        var document = new PdfDocument();
 
-        PdfAcroField field = (PdfAcroField)Activator.CreateInstance(type, document);
+        var field = (PdfAcroField)Activator.CreateInstance(type, document);
 
         // /FT and the one flag that tells the three buttons and the two choices apart. Left to the
         // caller, either of them missing turns the field into something else on the way back in.
@@ -81,10 +81,10 @@ public class AcroFormAuthoringTests
     [Fact]
     public void AddingAFieldMakesItIndirectAndPutsAReferenceInFields()
     {
-        PdfDocument document = new PdfDocument();
-        PdfAcroForm form = document.GetOrCreateAcroForm();
+        var document = new PdfDocument();
+        var form = document.GetOrCreateAcroForm();
 
-        PdfTextField field = new PdfTextField(document) { Name = "fullName" };
+        var field = new PdfTextField(document) { Name = "fullName" };
         field.Reference.Should().BeNull();
 
         form.Fields.Add(field);
@@ -97,12 +97,12 @@ public class AcroFormAuthoringTests
     [Fact]
     public void AFieldFromAnotherDocumentIsRefused()
     {
-        PdfDocument document = new PdfDocument();
-        PdfDocument elsewhere = new PdfDocument();
+        var document = new PdfDocument();
+        var elsewhere = new PdfDocument();
 
-        PdfTextField field = new PdfTextField(elsewhere);
+        var field = new PdfTextField(elsewhere);
 
-        Action act = () => document.GetOrCreateAcroForm().Fields.Add(field);
+        var act = () => document.GetOrCreateAcroForm().Fields.Add(field);
 
         act.Should().Throw<InvalidOperationException>();
     }
@@ -110,8 +110,8 @@ public class AcroFormAuthoringTests
     [Fact]
     public void TheNameTheToolTipAndTheFlagsAreWritable()
     {
-        PdfDocument document = new PdfDocument();
-        PdfTextField field = new PdfTextField(document);
+        var document = new PdfDocument();
+        var field = new PdfTextField(document);
 
         field.Name = "fullName";
         field.ToolTip = "Your name as it appears on your passport";
@@ -125,8 +125,8 @@ public class AcroFormAuthoringTests
     [Fact]
     public void APartialNameWithAPeriodInItIsRefused()
     {
-        PdfDocument document = new PdfDocument();
-        PdfTextField field = new PdfTextField(document);
+        var document = new PdfDocument();
+        var field = new PdfTextField(document);
 
         // "name.full" is the obvious thing to write and the one thing it cannot mean: a period
         // joins two partial names, so the field would be looked for under a parent called "name"
@@ -139,22 +139,22 @@ public class AcroFormAuthoringTests
     [Fact]
     public void ADottedPathIsSpeltAsFieldsNestedInsideFields()
     {
-        PdfDocument document = new PdfDocument();
-        PdfPage page = document.AddPage();
-        PdfAcroForm form = document.GetOrCreateAcroForm();
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        var form = document.GetOrCreateAcroForm();
 
         // A non-terminal field: a container for the name and for whatever its children inherit,
         // with no type or value of its own. /Kids is the same collection /Fields is, so the same
         // Add serves for both.
-        PdfTextField group = new PdfTextField(document) { Name = "name" };
+        var group = new PdfTextField(document) { Name = "name" };
         form.Fields.Add(group);
 
-        PdfTextField full = new PdfTextField(document) { Name = "full" };
+        var full = new PdfTextField(document) { Name = "full" };
         group.Fields.Add(full);
         full.AddWidget(page, new PdfRectangle(new XRect(60, 700, 200, 20)));
         full.Text = "Ada Lovelace";
 
-        PdfDocument reopened = SaveAndReopen(document);
+        var reopened = SaveAndReopen(document);
 
         reopened.AcroForm.Fields["name.full"].Should().BeOfType<PdfTextField>();
         ((PdfTextField)reopened.AcroForm.Fields["name.full"]).Text.Should().Be("Ada Lovelace");
@@ -164,8 +164,8 @@ public class AcroFormAuthoringTests
     [Fact]
     public void TheCombFlagIsBitTwentyFive()
     {
-        PdfDocument document = new PdfDocument();
-        PdfTextField field = new PdfTextField(document);
+        var document = new PdfDocument();
+        var field = new PdfTextField(document);
 
         // The one field flag the enumeration was missing, so a caller wanting a postcode drawn in
         // equal cells wrote 1 << 24 by hand and lost the enumeration.
@@ -178,14 +178,14 @@ public class AcroFormAuthoringTests
     [Fact]
     public void AWidgetGoesOnThePageAndPointsBackAtItsField()
     {
-        PdfDocument document = new PdfDocument();
-        PdfPage page = document.AddPage();
-        PdfAcroForm form = document.GetOrCreateAcroForm();
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        var form = document.GetOrCreateAcroForm();
 
-        PdfTextField field = new PdfTextField(document) { Name = "fullName" };
+        var field = new PdfTextField(document) { Name = "fullName" };
         form.Fields.Add(field);
 
-        PdfWidgetAnnotation widget = field.AddWidget(page, new PdfRectangle(new XRect(60, 700, 200, 20)));
+        var widget = field.AddWidget(page, new PdfRectangle(new XRect(60, 700, 200, 20)));
 
         widget.Elements.GetName("/Subtype").Should().Be("/Widget");
         page.Annotations.Count.Should().Be(1);
@@ -199,14 +199,14 @@ public class AcroFormAuthoringTests
     [Fact]
     public void AWidgetIsMarkedAsPrintingBecauseAFormThatVanishesOnPaperIsAlmostNeverMeant()
     {
-        PdfDocument document = new PdfDocument();
-        PdfPage page = document.AddPage();
-        PdfAcroForm form = document.GetOrCreateAcroForm();
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        var form = document.GetOrCreateAcroForm();
 
-        PdfTextField field = new PdfTextField(document) { Name = "fullName" };
+        var field = new PdfTextField(document) { Name = "fullName" };
         form.Fields.Add(field);
 
-        PdfWidgetAnnotation widget = field.AddWidget(page, new PdfRectangle(new XRect(60, 700, 200, 20)));
+        var widget = field.AddWidget(page, new PdfRectangle(new XRect(60, 700, 200, 20)));
 
         widget.Flags.Should().Be(PdfAnnotationFlags.Print);
     }
@@ -214,10 +214,10 @@ public class AcroFormAuthoringTests
     [Fact]
     public void AFieldThatIsNotYetOnAFormCannotBePutOnAPage()
     {
-        PdfDocument document = new PdfDocument();
-        PdfPage page = document.AddPage();
+        var document = new PdfDocument();
+        var page = document.AddPage();
 
-        PdfTextField field = new PdfTextField(document) { Name = "fullName" };
+        var field = new PdfTextField(document) { Name = "fullName" };
 
         // Without a reference there is nothing for the widget's /Parent to name, and the failure
         // would otherwise surface as a form whose field is invisible.
@@ -229,13 +229,13 @@ public class AcroFormAuthoringTests
     [Fact]
     public void AStandardFontIsRegisteredInTheDefaultResources()
     {
-        PdfDocument document = new PdfDocument();
-        PdfAcroForm form = document.GetOrCreateAcroForm();
+        var document = new PdfDocument();
+        var form = document.GetOrCreateAcroForm();
 
         form.AddStandardFont("Helv", "Helvetica");
 
-        PdfDictionary fonts = form.DefaultResources.Elements.GetDictionary("/Font");
-        PdfDictionary helvetica = fonts.Elements.GetDictionary("/Helv");
+        var fonts = form.DefaultResources.Elements.GetDictionary("/Font");
+        var helvetica = fonts.Elements.GetDictionary("/Helv");
 
         helvetica.Elements.GetName("/BaseFont").Should().Be("/Helvetica");
         helvetica.Elements.GetName("/Subtype").Should().Be("/Type1");
@@ -245,12 +245,12 @@ public class AcroFormAuthoringTests
     [Fact]
     public void ASymbolicFontKeepsItsOwnEncodingRatherThanBeingGivenWinAnsi()
     {
-        PdfDocument document = new PdfDocument();
-        PdfAcroForm form = document.GetOrCreateAcroForm();
+        var document = new PdfDocument();
+        var form = document.GetOrCreateAcroForm();
 
         form.AddStandardFont("/ZaDb", "/ZapfDingbats");
 
-        PdfDictionary dingbats = form.DefaultResources.Elements
+        var dingbats = form.DefaultResources.Elements
             .GetDictionary("/Font").Elements.GetDictionary("/ZaDb");
 
         // WinAnsi would override the built-in encoding, and ZapfDingbats is how a check box draws
@@ -261,10 +261,10 @@ public class AcroFormAuthoringTests
     [Fact]
     public void TheDefaultResourcesAreMadeOnceAndSharedRatherThanRebuilt()
     {
-        PdfDocument document = new PdfDocument();
-        PdfAcroForm form = document.GetOrCreateAcroForm();
+        var document = new PdfDocument();
+        var form = document.GetOrCreateAcroForm();
 
-        PdfDictionary first = form.DefaultResources;
+        var first = form.DefaultResources;
 
         form.DefaultResources.Should().BeSameAs(first);
         first.Reference.Should().NotBeNull();
@@ -273,8 +273,8 @@ public class AcroFormAuthoringTests
     [Fact]
     public void AChoiceFieldsOptionsRoundTrip()
     {
-        PdfDocument document = new PdfDocument();
-        PdfComboBoxField field = new PdfComboBoxField(document);
+        var document = new PdfDocument();
+        var field = new PdfComboBoxField(document);
 
         field.Options = new[] { "Australia", "Canada", "Ireland" };
 
@@ -285,21 +285,21 @@ public class AcroFormAuthoringTests
     [Fact]
     public void ACheckBoxTogglesBetweenTheAppearancesItsWidgetWasGiven()
     {
-        PdfDocument document = new PdfDocument();
-        PdfPage page = document.AddPage();
-        PdfAcroForm form = document.GetOrCreateAcroForm();
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        var form = document.GetOrCreateAcroForm();
 
-        PdfCheckBoxField box = new PdfCheckBoxField(document) { Name = "subscribe" };
+        var box = new PdfCheckBoxField(document) { Name = "subscribe" };
         form.Fields.Add(box);
-        PdfWidgetAnnotation widget = box.AddWidget(page, new PdfRectangle(new XRect(60, 700, 16, 16)));
+        var widget = box.AddWidget(page, new PdfRectangle(new XRect(60, 700, 16, 16)));
 
-        XForm ticked = new XForm(document, new XSize(16, 16));
-        using (XGraphics gfx = XGraphics.FromForm(ticked))
+        var ticked = new XForm(document, new XSize(16, 16));
+        using (var gfx = XGraphics.FromForm(ticked))
             gfx.DrawLine(new XPen(XColors.Black, 2), 3, 8, 13, 8);
 
         // The off state of a tick box is an empty content stream, which is the case that used to
         // throw: XForm.Finish disposed a graphics object that had never been made.
-        XForm blank = new XForm(document, new XSize(16, 16));
+        var blank = new XForm(document, new XSize(16, 16));
 
         widget.SetAppearance("/Yes", ticked);
         widget.SetAppearance("/Off", blank);
@@ -314,13 +314,13 @@ public class AcroFormAuthoringTests
     [Fact]
     public void ATextFieldDrawsItsValueIntoTheWidgetRatherThanIntoNothing()
     {
-        PdfDocument document = new PdfDocument();
-        PdfPage page = document.AddPage();
-        PdfAcroForm form = document.GetOrCreateAcroForm();
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        var form = document.GetOrCreateAcroForm();
 
-        PdfTextField field = new PdfTextField(document) { Name = "fullName" };
+        var field = new PdfTextField(document) { Name = "fullName" };
         form.Fields.Add(field);
-        PdfWidgetAnnotation widget = field.AddWidget(page, new PdfRectangle(new XRect(60, 700, 200, 20)));
+        var widget = field.AddWidget(page, new PdfRectangle(new XRect(60, 700, 200, 20)));
 
         field.Text = "Ada Lovelace";
 
@@ -334,13 +334,13 @@ public class AcroFormAuthoringTests
     [Fact]
     public void StylingATextFieldDrawsItRatherThanWaitingForAValue()
     {
-        PdfDocument document = new PdfDocument();
-        PdfPage page = document.AddPage();
-        PdfAcroForm form = document.GetOrCreateAcroForm();
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        var form = document.GetOrCreateAcroForm();
 
-        PdfTextField field = new PdfTextField(document) { Name = "fullName" };
+        var field = new PdfTextField(document) { Name = "fullName" };
         form.Fields.Add(field);
-        PdfWidgetAnnotation widget = field.AddWidget(page, new PdfRectangle(new XRect(60, 700, 200, 20)));
+        var widget = field.AddWidget(page, new PdfRectangle(new XRect(60, 700, 200, 20)));
 
         widget.Elements.ContainsKey("/AP").Should().BeFalse();
 
@@ -355,11 +355,11 @@ public class AcroFormAuthoringTests
     [Fact]
     public void AFieldStyledBeforeItIsPlacedIsStillDrawn()
     {
-        PdfDocument document = new PdfDocument();
-        PdfPage page = document.AddPage();
-        PdfAcroForm form = document.GetOrCreateAcroForm();
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        var form = document.GetOrCreateAcroForm();
 
-        PdfTextField field = new PdfTextField(document) { Name = "fullName" };
+        var field = new PdfTextField(document) { Name = "fullName" };
         form.Fields.Add(field);
 
         // Described first, placed second - which is the order a caller writes as often as the
@@ -367,7 +367,7 @@ public class AcroFormAuthoringTests
         field.BackColor = XColors.WhiteSmoke;
         field.Text = "Ada Lovelace";
 
-        PdfWidgetAnnotation widget = field.AddWidget(page, new PdfRectangle(new XRect(60, 700, 200, 20)));
+        var widget = field.AddWidget(page, new PdfRectangle(new XRect(60, 700, 200, 20)));
 
         widget.Elements.GetDictionary("/AP").Should().NotBeNull();
     }
@@ -375,13 +375,13 @@ public class AcroFormAuthoringTests
     [Fact]
     public void AnUndecoratedTextFieldKeepsNoAppearanceSoThatMkStillDecoratesIt()
     {
-        PdfDocument document = new PdfDocument();
-        PdfPage page = document.AddPage();
-        PdfAcroForm form = document.GetOrCreateAcroForm();
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        var form = document.GetOrCreateAcroForm();
 
-        PdfTextField field = new PdfTextField(document) { Name = "fullName" };
+        var field = new PdfTextField(document) { Name = "fullName" };
         form.Fields.Add(field);
-        PdfWidgetAnnotation widget = field.AddWidget(page, new PdfRectangle(new XRect(60, 700, 200, 20)));
+        var widget = field.AddWidget(page, new PdfRectangle(new XRect(60, 700, 200, 20)));
 
         field.Text = "Ada Lovelace";
         widget.Elements.GetDictionary("/AP").Should().NotBeNull();
@@ -396,8 +396,8 @@ public class AcroFormAuthoringTests
     [Fact]
     public void ARadioGroupsExportValuesRoundTrip()
     {
-        PdfDocument document = new PdfDocument();
-        PdfRadioButtonField delivery = new PdfRadioButtonField(document) { Name = "delivery" };
+        var document = new PdfDocument();
+        var delivery = new PdfRadioButtonField(document) { Name = "delivery" };
 
         delivery.Options = new[] { "Standard", "Express", "Collect" };
         delivery.SelectedIndex = 1;
@@ -410,11 +410,11 @@ public class AcroFormAuthoringTests
     [Fact]
     public void AFieldMayNameItsOwnDefaultAppearance()
     {
-        PdfDocument document = new PdfDocument();
-        PdfAcroForm form = document.GetOrCreateAcroForm();
+        var document = new PdfDocument();
+        var form = document.GetOrCreateAcroForm();
         form.DefaultAppearance = "/Helv 0 Tf 0 g";
 
-        PdfTextField field = new PdfTextField(document) { Name = "fullName" };
+        var field = new PdfTextField(document) { Name = "fullName" };
         form.Fields.Add(field);
         field.DefaultAppearance = "/Helv 9 Tf 0 g";
 
@@ -428,13 +428,13 @@ public class AcroFormAuthoringTests
     [Fact]
     public void TheAppearanceStateSaysWhichOfSeveralAppearancesIsShowing()
     {
-        PdfDocument document = new PdfDocument();
-        PdfPage page = document.AddPage();
-        PdfAcroForm form = document.GetOrCreateAcroForm();
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        var form = document.GetOrCreateAcroForm();
 
-        PdfRadioButtonField delivery = new PdfRadioButtonField(document) { Name = "delivery" };
+        var delivery = new PdfRadioButtonField(document) { Name = "delivery" };
         form.Fields.Add(delivery);
-        PdfWidgetAnnotation button = delivery.AddWidget(page, new PdfRectangle(new XRect(60, 700, 14, 14)));
+        var button = delivery.AddWidget(page, new PdfRectangle(new XRect(60, 700, 14, 14)));
 
         button.AppearanceState.Should().BeNull();
 
@@ -452,32 +452,32 @@ public class AcroFormAuthoringTests
     [Fact]
     public void AFormBuiltThroughTheTypedApiComesBackThroughTheReaderFullyTyped()
     {
-        PdfDocument document = new PdfDocument();
-        PdfPage page = document.AddPage();
-        PdfAcroForm form = document.GetOrCreateAcroForm();
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        var form = document.GetOrCreateAcroForm();
         form.NeedAppearances = true;
         form.DefaultAppearance = "/Helv 9 Tf 0 g";
         form.AddStandardFont("/Helv", "/Helvetica");
 
-        PdfTextField name = new PdfTextField(document) { Name = "fullName", ToolTip = "Your name" };
+        var name = new PdfTextField(document) { Name = "fullName", ToolTip = "Your name" };
         form.Fields.Add(name);
         name.AddWidget(page, new PdfRectangle(new XRect(60, 700, 200, 20)));
         name.Text = "Ada Lovelace";
 
-        PdfComboBoxField country = new PdfComboBoxField(document) { Name = "country" };
+        var country = new PdfComboBoxField(document) { Name = "country" };
         form.Fields.Add(country);
         country.AddWidget(page, new PdfRectangle(new XRect(60, 660, 200, 20)));
         country.Options = new[] { "Ireland", "United Kingdom" };
         country.SelectedIndex = 1;
 
-        PdfRadioButtonField delivery = new PdfRadioButtonField(document) { Name = "delivery" };
+        var delivery = new PdfRadioButtonField(document) { Name = "delivery" };
         form.Fields.Add(delivery);
         delivery.AddWidget(page, new PdfRectangle(new XRect(60, 620, 14, 14)));
         delivery.AddWidget(page, new PdfRectangle(new XRect(90, 620, 14, 14)));
 
-        PdfDocument reopened = SaveAndReopen(document);
+        var reopened = SaveAndReopen(document);
 
-        PdfAcroForm read = reopened.AcroForm;
+        var read = reopened.AcroForm;
         read.Should().NotBeNull();
         read.NeedAppearances.Should().BeTrue();
         read.DefaultAppearance.Should().Be("/Helv 9 Tf 0 g");
@@ -494,12 +494,12 @@ public class AcroFormAuthoringTests
     [Fact]
     public void EveryWidgetIsOnThePageItWasPutOn()
     {
-        PdfDocument document = new PdfDocument();
-        PdfPage first = document.AddPage();
-        PdfPage second = document.AddPage();
-        PdfAcroForm form = document.GetOrCreateAcroForm();
+        var document = new PdfDocument();
+        var first = document.AddPage();
+        var second = document.AddPage();
+        var form = document.GetOrCreateAcroForm();
 
-        PdfTextField field = new PdfTextField(document) { Name = "notes" };
+        var field = new PdfTextField(document) { Name = "notes" };
         form.Fields.Add(field);
         field.AddWidget(first, new PdfRectangle(new XRect(60, 700, 200, 20)));
         field.AddWidget(second, new PdfRectangle(new XRect(60, 700, 200, 20)));
@@ -513,13 +513,13 @@ public class AcroFormAuthoringTests
     [Fact]
     public void AFieldNestedUnderAnotherPointsBackAtIt()
     {
-        PdfDocument document = new PdfDocument();
-        PdfAcroForm form = document.GetOrCreateAcroForm();
+        var document = new PdfDocument();
+        var form = document.GetOrCreateAcroForm();
 
-        PdfTextField group = new PdfTextField(document) { Name = "name" };
+        var group = new PdfTextField(document) { Name = "name" };
         form.Fields.Add(group);
 
-        PdfTextField full = new PdfTextField(document) { Name = "full" };
+        var full = new PdfTextField(document) { Name = "full" };
         group.Fields.Add(full);
 
         // ISO 32000-1 Table 220: /Parent is required of a field that is the child of another.
@@ -531,10 +531,10 @@ public class AcroFormAuthoringTests
     [Fact]
     public void ARootFieldPointsBackAtNothing()
     {
-        PdfDocument document = new PdfDocument();
-        PdfAcroForm form = document.GetOrCreateAcroForm();
+        var document = new PdfDocument();
+        var form = document.GetOrCreateAcroForm();
 
-        PdfTextField field = new PdfTextField(document) { Name = "fullName" };
+        var field = new PdfTextField(document) { Name = "fullName" };
         form.Fields.Add(field);
 
         // The same collection class is a form's /Fields and a field's /Kids, and the entry is
@@ -546,21 +546,21 @@ public class AcroFormAuthoringTests
     [Fact]
     public void TheParentChainSurvivesTheFile()
     {
-        PdfDocument document = new PdfDocument();
-        PdfPage page = document.AddPage();
-        PdfAcroForm form = document.GetOrCreateAcroForm();
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        var form = document.GetOrCreateAcroForm();
 
-        PdfTextField group = new PdfTextField(document) { Name = "name" };
+        var group = new PdfTextField(document) { Name = "name" };
         form.Fields.Add(group);
 
-        PdfTextField full = new PdfTextField(document) { Name = "full" };
+        var full = new PdfTextField(document) { Name = "full" };
         group.Fields.Add(full);
         full.AddWidget(page, new PdfRectangle(new XRect(60, 700, 200, 20)));
 
-        PdfDocument reopened = SaveAndReopen(document);
+        var reopened = SaveAndReopen(document);
 
-        PdfAcroField read = reopened.AcroForm.Fields["name.full"];
-        PdfDictionary parent = (PdfDictionary)read.Elements.GetReference(PdfAcroField.Keys.Parent).Value;
+        var read = reopened.AcroForm.Fields["name.full"];
+        var parent = (PdfDictionary)read.Elements.GetReference(PdfAcroField.Keys.Parent).Value;
 
         parent.Elements.GetString(PdfAcroField.Keys.T).Should().Be("name");
     }
@@ -571,9 +571,9 @@ public class AcroFormAuthoringTests
     [InlineData("push")]
     public void AssigningFlagsDoesNotAssignAwayWhatKindOfFieldItIs(string kind)
     {
-        PdfDocument document = new PdfDocument();
-        PdfPage page = document.AddPage();
-        PdfAcroForm form = document.GetOrCreateAcroForm();
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        var form = document.GetOrCreateAcroForm();
 
         // The bit that says which kind of /Btn or /Ch this is written by the constructor, and the
         // public Flags setter replaces /Ff outright - so a caller asking for one unrelated flag
@@ -582,7 +582,7 @@ public class AcroFormAuthoringTests
         {
             "combo" => new PdfComboBoxField(document),
             "radio" => new PdfRadioButtonField(document),
-            _ => new PdfPushButtonField(document),
+            _ => new PdfPushButtonField(document)
         };
         field.Name = kind;
         form.Fields.Add(field);
@@ -591,7 +591,7 @@ public class AcroFormAuthoringTests
 
         field.Flags.Should().HaveFlag(PdfAcroFieldFlags.Required);
 
-        PdfAcroField read = SaveAndReopen(document).AcroForm.Fields[kind];
+        var read = SaveAndReopen(document).AcroForm.Fields[kind];
 
         switch (kind)
         {
@@ -610,17 +610,17 @@ public class AcroFormAuthoringTests
     [Fact]
     public void AKindOfFieldCannotBeAssignedOntoAnother()
     {
-        PdfDocument document = new PdfDocument();
+        var document = new PdfDocument();
 
         // The other direction: a check box is the /Btn that says neither Pushbutton nor Radio, so
         // a caller writing Radio onto one is describing a field the class is not.
-        PdfCheckBoxField box = new PdfCheckBoxField(document);
+        var box = new PdfCheckBoxField(document);
         box.Flags = PdfAcroFieldFlags.Radio | PdfAcroFieldFlags.Required;
 
         box.Flags.Should().Be(PdfAcroFieldFlags.Required);
 
         // And a list box is the /Ch that does not say Combo.
-        PdfListBoxField list = new PdfListBoxField(document);
+        var list = new PdfListBoxField(document);
         list.Flags = PdfAcroFieldFlags.Combo | PdfAcroFieldFlags.MultiSelect;
 
         list.Flags.Should().Be(PdfAcroFieldFlags.MultiSelect);
@@ -629,11 +629,11 @@ public class AcroFormAuthoringTests
     [Fact]
     public void AFieldOfNoRoomToDrawInIsLeftUndrawnRatherThanRefused()
     {
-        PdfDocument document = new PdfDocument();
-        PdfPage page = document.AddPage();
-        PdfAcroForm form = document.GetOrCreateAcroForm();
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        var form = document.GetOrCreateAcroForm();
 
-        PdfTextField field = new PdfTextField(document) { Name = "sliver" };
+        var field = new PdfTextField(document) { Name = "sliver" };
         form.Fields.Add(field);
 
         // Asked for something, so that it is the size and not the emptiness that stops the
@@ -655,7 +655,7 @@ public class AcroFormAuthoringTests
 
     static PdfDocument SaveAndReopen(PdfDocument document)
     {
-        using MemoryStream stream = new MemoryStream();
+        using var stream = new MemoryStream();
         document.Save(stream, false);
         stream.Position = 0;
 

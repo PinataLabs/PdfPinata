@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -89,7 +89,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     {
         get
         {
-            PdfUserAccessPermission permission = (PdfUserAccessPermission)Elements.GetInteger(Keys.P);
+            var permission = (PdfUserAccessPermission)Elements.GetInteger(Keys.P);
             if ((int)permission == 0)
                 permission = PdfUserAccessPermission.PermitAll;
             return permission;
@@ -102,7 +102,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     /// </summary>
     public void EncryptDocument()
     {
-        foreach (PdfReference iref in _document._irefTable.AllReferences)
+        foreach (var iref in _document._irefTable.AllReferences)
         {
             if (ReferenceEquals(iref.Value, this))
                 continue;
@@ -140,7 +140,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
         {
             if (str.Length != 0)
             {
-                byte[] bytes = str.EncryptionValue;
+                var bytes = str.EncryptionValue;
                 bytes = stringEncryptor.Encrypt(bytes);
                 str.EncryptionValue = bytes;
             }
@@ -166,7 +166,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
         // there the same loop would throw halfway through decrypting a document.
         List<KeyValuePair<string, PdfString>> decrypted = null;
 
-        foreach (KeyValuePair<string, PdfItem> item in dict.Elements)
+        foreach (var item in dict.Elements)
         {
             PdfString value1;
             PdfDictionary value2;
@@ -192,7 +192,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
         }
         if (dict.Stream != null)
         {
-            byte[] bytes = dict.Stream.Value;
+            var bytes = dict.Stream.Value;
             if (bytes.Length != 0)
             {
                 streamEncryptor.CreateHashKey(dict.ObjectID);
@@ -207,10 +207,10 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     /// </summary>
     void EncryptArray(PdfArray array)
     {
-        int count = array.Elements.Count;
-        for (int idx = 0; idx < count; idx++)
+        var count = array.Elements.Count;
+        for (var idx = 0; idx < count; idx++)
         {
-            PdfItem item = array.Elements[idx];
+            var item = array.Elements[idx];
             PdfString value1;
             PdfDictionary value2;
             PdfArray value3;
@@ -239,7 +239,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
         if (value.Length == 0)
             return value;
 
-        byte[] bytes = stringEncryptor.Encrypt(value.EncryptionValue);
+        var bytes = stringEncryptor.Encrypt(value.EncryptionValue);
         return PdfString.FromEncryptionValue(bytes, value.Flags);
     }
 
@@ -265,8 +265,8 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     public PasswordValidity ValidatePassword(string inputPassword)
     {
         // We can handle 40 and 128 bit standard encryption.
-        string filter = Elements.GetName(PdfSecurityHandler.Keys.Filter);
-        int v = Elements.GetInteger(PdfSecurityHandler.Keys.V);
+        var filter = Elements.GetName(PdfSecurityHandler.Keys.Filter);
+        var v = Elements.GetInteger(PdfSecurityHandler.Keys.V);
         if (filter != "/Standard" || !(v >= 1 && v <= 5))
             throw new PdfReaderException(PSSR.UnknownEncryption);
 
@@ -296,12 +296,12 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     /// </summary>
     static byte[] PadPassword(string password)
     {
-        byte[] padded = new byte[32];
+        var padded = new byte[32];
         if (password == null)
             Array.Copy(PasswordPadding, 0, padded, 0, 32);
         else
         {
-            int length = password.Length;
+            var length = password.Length;
             Array.Copy(PdfEncoders.RawEncoding.GetBytes(password), 0, padded, 0, Math.Min(length, 32));
             if (length < 32)
                 Array.Copy(PasswordPadding, 0, padded, length, 32 - length);
@@ -311,7 +311,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     static readonly byte[] PasswordPadding = // 32 bytes password padding defined by Adobe
     {
         0x28, 0xBF, 0x4E, 0x5E, 0x4E, 0x75, 0x8A, 0x41, 0x64, 0x00, 0x4E, 0x56, 0xFF, 0xFA, 0x01, 0x08,
-        0x2E, 0x2E, 0x00, 0xB6, 0xD0, 0x68, 0x3E, 0x80, 0x2F, 0x0C, 0xA9, 0xFE, 0x64, 0x53, 0x69, 0x7A,
+        0x2E, 0x2E, 0x00, 0xB6, 0xD0, 0x68, 0x3E, 0x80, 0x2F, 0x0C, 0xA9, 0xFE, 0x64, 0x53, 0x69, 0x7A
     };
 
     /// <summary>
@@ -328,7 +328,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     /// </summary>
     void InitWithOwnerPassword(byte[] documentID, string ownerPassword, byte[] ownerKey, int permissions, bool strongEncryption)
     {
-        byte[] userPad = ComputeOwnerKey(ownerKey, PadPassword(ownerPassword), strongEncryption);
+        var userPad = ComputeOwnerKey(ownerKey, PadPassword(ownerPassword), strongEncryption);
         InitEncryptionKey(documentID, userPad, ownerKey, permissions, strongEncryption);
         SetupUserKey(documentID);
     }
@@ -338,19 +338,19 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     /// </summary>
     byte[] ComputeOwnerKey(byte[] userPad, byte[] ownerPad, bool strongEncryption)
     {
-        byte[] ownerKey = new byte[32];
-        byte[] digest = _md5.ComputeHash(ownerPad);
+        var ownerKey = new byte[32];
+        var digest = _md5.ComputeHash(ownerPad);
         if (strongEncryption)
         {
-            byte[] mkey = new byte[16];
+            var mkey = new byte[16];
             // Hash the pad 50 times
-            for (int idx = 0; idx < 50; idx++)
+            for (var idx = 0; idx < 50; idx++)
                 digest = _md5.ComputeHash(digest);
             Array.Copy(userPad, 0, ownerKey, 0, 32);
             // Encrypt the key
-            for (int i = 0; i < 20; i++)
+            for (var i = 0; i < 20; i++)
             {
-                for (int j = 0; j < mkey.Length; ++j)
+                for (var j = 0; j < mkey.Length; ++j)
                     mkey[j] = (byte)(digest[j] ^ i);
                 PrepareRC4Key(mkey);
                 EncryptRC4(ownerKey);
@@ -378,7 +378,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
         _md5.TransformBlock(ownerKey, 0, ownerKey.Length, ownerKey, 0);
 
         // Split permission into 4 bytes
-        byte[] permission = new byte[4];
+        var permission = new byte[4];
         permission[0] = (byte)permissions;
         permission[1] = (byte)(permissions >> 8);
         permission[2] = (byte)(permissions >> 16);
@@ -387,12 +387,12 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
         _md5.TransformBlock(permission, 0, 4, permission, 0);
         _md5.TransformBlock(documentID, 0, documentID.Length, documentID, 0);
         _md5.TransformFinalBlock(permission, 0, 0);
-        byte[] digest = _md5.Hash;
+        var digest = _md5.Hash;
         _md5.Initialize();
         // Create the hash 50 times (only for 128 bit)
         if (_encryptionKey.Length == 16)
         {
-            for (int idx = 0; idx < 50; idx++)
+            for (var idx = 0; idx < 50; idx++)
             {
                 digest = _md5.ComputeHash(digest);
                 _md5.Initialize();
@@ -410,15 +410,15 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
         {
             _md5.TransformBlock(PasswordPadding, 0, PasswordPadding.Length, PasswordPadding, 0);
             _md5.TransformFinalBlock(documentID, 0, documentID.Length);
-            byte[] digest = _md5.Hash;
+            var digest = _md5.Hash;
             _md5.Initialize();
             Array.Copy(digest, 0, _userKey, 0, 16);
-            for (int idx = 16; idx < 32; idx++)
+            for (var idx = 16; idx < 32; idx++)
                 _userKey[idx] = 0;
             //Encrypt the key
-            for (int i = 0; i < 20; i++)
+            for (var i = 0; i < 20; i++)
             {
-                for (int j = 0; j < _encryptionKey.Length; j++)
+                for (var j = 0; j < _encryptionKey.Length; j++)
                     digest[j] = (byte)(_encryptionKey[j] ^ i);
                 PrepareRC4Key(digest, 0, _encryptionKey.Length);
                 EncryptRC4(_userKey, 0, 16);
@@ -452,12 +452,12 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     /// </summary>
     void PrepareRC4Key(byte[] key, int offset, int length)
     {
-        int idx1 = 0;
-        int idx2 = 0;
-        for (int idx = 0; idx < 256; idx++)
+        var idx1 = 0;
+        var idx2 = 0;
+        for (var idx = 0; idx < 256; idx++)
             _state[idx] = (byte)idx;
         byte tmp;
-        for (int idx = 0; idx < 256; idx++)
+        for (var idx = 0; idx < 256; idx++)
         {
             idx2 = (key[idx1 + offset] + _state[idx] + idx2) & 255;
             tmp = _state[idx];
@@ -504,7 +504,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
         length += offset;
         int x = 0, y = 0;
         byte b;
-        for (int idx = offset; idx < length; idx++)
+        for (var idx = offset; idx < length; idx++)
         {
             x = (x + 1) & 255;
             y = (_state[x] + y) & 255;
@@ -520,7 +520,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     /// </summary>
     bool EqualsKey(byte[] value, int length)
     {
-        for (int idx = 0; idx < length; idx++)
+        for (var idx = 0; idx < length; idx++)
         {
             if (_userKey[idx] != value[idx])
                 return false;
@@ -533,7 +533,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     /// </summary>
     internal void SetHashKey(PdfObjectID id)
     {
-        byte[] objectId = new byte[5];
+        var objectId = new byte[5];
         _md5.Initialize();
         // Split the object number and generation
         objectId[0] = (byte)id.ObjectNumber;
@@ -556,8 +556,8 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     public void PrepareEncryption()
     {
         Debug.Assert(_document._securitySettings.DocumentSecurityLevel != PdfDocumentSecurityLevel.None);
-        int permissions = (int)Permission;
-        bool strongEncryption = _document._securitySettings.DocumentSecurityLevel == PdfDocumentSecurityLevel.Encrypted128Bit;
+        var permissions = (int)Permission;
+        var strongEncryption = _document._securitySettings.DocumentSecurityLevel == PdfDocumentSecurityLevel.Encrypted128Bit;
 
         PdfInteger vValue;
         PdfInteger length;
@@ -586,22 +586,22 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
         permissions |= (int)(strongEncryption ? (uint)0xfffff0c0 : (uint)0xffffffc0);
         permissions &= unchecked((int)0xfffffffc);
 
-        PdfInteger pValue = new PdfInteger(permissions);
+        var pValue = new PdfInteger(permissions);
 
         Debug.Assert(_ownerPassword.Length > 0, "Empty owner password.");
-        byte[] userPad = PadPassword(_userPassword);
-        byte[] ownerPad = PadPassword(_ownerPassword);
+        var userPad = PadPassword(_userPassword);
+        var ownerPad = PadPassword(_ownerPassword);
 
         _md5.Initialize();
         _ownerKey = ComputeOwnerKey(userPad, ownerPad, strongEncryption);
-        byte[] documentID = PdfEncoders.RawEncoding.GetBytes(_document.Internals.FirstDocumentID);
+        var documentID = PdfEncoders.RawEncoding.GetBytes(_document.Internals.FirstDocumentID);
         InitWithUserPassword(documentID, _userPassword, _ownerKey, permissions, strongEncryption);
 
         // The owner and user entries carry key bytes, not text. They are named raw so that
         // the bytes above ASCII in them are written as they are instead of being taken for
         // characters and spelled out as UTF-16BE, which no reader could undo.
-        PdfString oValue = new PdfString(PdfEncoders.RawEncoding.GetString(_ownerKey, 0, _ownerKey.Length), PdfStringEncoding.RawEncoding);
-        PdfString uValue = new PdfString(PdfEncoders.RawEncoding.GetString(_userKey, 0, _userKey.Length), PdfStringEncoding.RawEncoding);
+        var oValue = new PdfString(PdfEncoders.RawEncoding.GetString(_ownerKey, 0, _ownerKey.Length), PdfStringEncoding.RawEncoding);
+        var uValue = new PdfString(PdfEncoders.RawEncoding.GetString(_userKey, 0, _userKey.Length), PdfStringEncoding.RawEncoding);
 
         Elements[Keys.Filter] = new PdfName("/Standard");
         Elements[Keys.V] = vValue;
@@ -659,7 +659,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     internal override void WriteObject(PdfWriter writer)
     {
         // Don't encrypt myself.
-        PdfStandardSecurityHandler securityHandler = writer.SecurityHandler;
+        var securityHandler = writer.SecurityHandler;
         writer.SecurityHandler = null;
         base.WriteObject(writer);
         writer.SecurityHandler = securityHandler;
@@ -675,9 +675,9 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
         /// (Required) A number specifying which revision of the standard security handler
         /// should be used to interpret this dictionary:
         /// • 2 if the document is encrypted with a V value less than 2 and does not have any of
-        ///   the access permissions set (by means of the P entry, below) that are designated 
+        ///   the access permissions set (by means of the P entry, below) that are designated
         ///   "Revision 3 or greater".
-        /// • 3 if the document is encrypted with a V value of 2 or 3, or has any "Revision 3 or 
+        /// • 3 if the document is encrypted with a V value of 2 or 3, or has any "Revision 3 or
         ///   greater" access permissions set.
         /// • 4 if the document is encrypted with a V value of 4
         /// • 5 (ExtensionLevel 3) if the document is encrypted with a V value of 5
@@ -686,23 +686,23 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
         public const string R = "/R";
 
         /// <summary>
-        ///  (Required) A string used in computing the encryption key. 
+        ///  (Required) A string used in computing the encryption key.
         ///  The value of the string depends on the value of the
         ///  revision number, the R entry described above.
-        ///  • The value of R is 4 or less: A 32-byte string, based on both the owner and user passwords, that is used in 
+        ///  • The value of R is 4 or less: A 32-byte string, based on both the owner and user passwords, that is used in
         ///    computing the encryption key and in determining whether a valid owner password was entered.
-        ///  • The value for R is 5: (ExtensionLevel 3) A 48-byte string,  based on the owner and user passwords, that is used in 
+        ///  • The value for R is 5: (ExtensionLevel 3) A 48-byte string,  based on the owner and user passwords, that is used in
         ///    computing the encryption key and in determining whether a valid owner password was entered.
         /// </summary>
         [KeyInfo(KeyType.String | KeyType.Required)]
         public const string O = "/O";
 
         /// <summary>
-        /// (Required) A string based on the user password. The value 
+        /// (Required) A string based on the user password. The value
         /// of the string depends on the value of the revision number, the R entry described above.
         /// • The value of R is 4 or less: A 32-byte string, based on the user password, that is used in determining
         ///   whether to prompt the user for a password and, if so, whether a valid user or owner password was entered.
-        /// • The value for R is 5: (ExtensionLevel 3) A 48-byte string, based on the user password, that is used in 
+        /// • The value for R is 5: (ExtensionLevel 3) A 48-byte string, based on the user password, that is used in
         ///   determining whether to prompt the user for a password and, if so, whether a valid user password was entered.
         /// </summary>
         [KeyInfo(KeyType.String | KeyType.Required)]

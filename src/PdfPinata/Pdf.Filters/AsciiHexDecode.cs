@@ -45,11 +45,11 @@ public class AsciiHexDecode : Filter
     {
         ArgumentNullException.ThrowIfNull(data);
 
-        int count = data.Length;
-        byte[] bytes = new byte[2 * count];
+        var count = data.Length;
+        var bytes = new byte[2 * count];
         for (int i = 0, j = 0; i < count; i++)
         {
-            byte b = data[i];
+            var b = data[i];
             bytes[j++] = (byte)((b >> 4) + ((b >> 4) < 10 ? (byte)'0' : (byte)('A' - 10)));
             bytes[j++] = (byte)((b & 0xF) + ((b & 0xF) < 10 ? (byte)'0' : (byte)('A' - 10)));
         }
@@ -64,7 +64,7 @@ public class AsciiHexDecode : Filter
         ArgumentNullException.ThrowIfNull(data);
 
         data = RemoveWhiteSpace(data);
-        int count = data.Length;
+        var count = data.Length;
         // Ignore EOD (end of data) character.
         // EOD can be anywhere in the stream, but makes sense only at the end of the stream.
         if (count > 0 && data[count - 1] == '>')
@@ -75,19 +75,19 @@ public class AsciiHexDecode : Filter
             // digits, it shall behave as if a 0 (zero) followed the last digit." Growing the array
             // pads it with the byte 0x00 rather than the character '0', and 0x00 goes through the
             // digit arithmetic below as -48, so the missing digit has to be written in.
-            byte[] padded = new byte[count + 1];
+            var padded = new byte[count + 1];
             Array.Copy(data, 0, padded, 0, count);
             padded[count] = (byte)'0';
             data = padded;
             count++;
         }
         count >>= 1;
-        byte[] bytes = new byte[count];
+        var bytes = new byte[count];
         for (int i = 0, j = 0; i < count; i++)
         {
             // Must support 0-9, A-F, a-f - "Any other characters cause an error."
-            byte hi = data[j++];
-            byte lo = data[j++];
+            var hi = data[j++];
+            var lo = data[j++];
             if (hi >= 'a' && hi <= 'f')
                 hi -= 32;
             if (lo >= 'a' && lo <= 'f')

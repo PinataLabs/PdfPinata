@@ -31,7 +31,7 @@ internal sealed class ArchiveDemo : PdfDemo
         "OutputIntentIccProfile and PdfOutputIntents.SrgbProfile, and what a document gets unset",
         "CustomizeMetadata and XmpMetadata.DeclareSchema, the seam the FacturX demo uses",
         "That a namespace PDF/A has not heard of has to be declared in an extension schema first",
-        "Five refusal messages, caught from documents built to break one rule each",
+        "Five refusal messages, caught from documents built to break one rule each"
     };
 
     public override int PageCount => 4;
@@ -39,19 +39,19 @@ internal sealed class ArchiveDemo : PdfDemo
     protected override PdfDocument Build(DemoContext context)
     {
         #region example
-        XFont heading = new XFont(BundledFontResolver.SansFamily, 16, XFontStyle.Bold);
-        XFont label = new XFont(BundledFontResolver.SansFamily, 9.5, XFontStyle.Bold);
-        XFont body = new XFont(BundledFontResolver.SansFamily, 9);
-        XFont mono = new XFont(BundledFontResolver.MonoFamily, 7);
+        var heading = new XFont(BundledFontResolver.SansFamily, 16, XFontStyle.Bold);
+        var label = new XFont(BundledFontResolver.SansFamily, 9.5, XFontStyle.Bold);
+        var body = new XFont(BundledFontResolver.SansFamily, 9);
+        var mono = new XFont(BundledFontResolver.MonoFamily, 7);
 
         // docs:begin claim
         // The output intent every PDF/A document needs. Written out rather than left to the
         // default it now has, because this is the demo of the thing: an RGB document that sets
         // nothing gets exactly these bytes anyway, which is what the FacturX demo shows by
         // setting nothing.
-        byte[] profile = PdfOutputIntents.SrgbProfile;
+        var profile = PdfOutputIntents.SrgbProfile;
 
-        PdfDocument document = new PdfDocument();
+        var document = new PdfDocument();
 
         // A rule, not a nicety: a PDF/A document has to have a title, in the information dictionary
         // and in the XMP packet alike, and the writer refuses without one.
@@ -91,17 +91,17 @@ internal sealed class ArchiveDemo : PdfDemo
                     // "internal" says the value is derived from the document's own content, which a
                     // note about which demo wrote the file is.
                     new XmpSchemaProperty("demo", "The demo that wrote this document",
-                        XmpPropertyCategory.Internal, "Archive"),
+                        XmpPropertyCategory.Internal, "Archive")
                 }));
         };
         // docs:end extension-schema
 
         // ----- page one: what the claim means ------------------------------------------------------
 
-        PdfPage first = document.AddPage();
-        using (XGraphics gfx = XGraphics.FromPdfPage(first))
+        var first = document.AddPage();
+        using (var gfx = XGraphics.FromPdfPage(first))
         {
-            XTextFormatter prose = new XTextFormatter(gfx);
+            var prose = new XTextFormatter(gfx);
 
             gfx.DrawString("A document that has to last", heading, XBrushes.Black, 50, 60);
 
@@ -125,11 +125,11 @@ internal sealed class ArchiveDemo : PdfDemo
                     + "embedded file unless that file is itself PDF/A."),
                 ("PdfA3B (ISO 19005-3)",
                     "As PDF/A-2b, and the only profile that may carry an attachment of any kind - "
-                    + "which is what hybrid e-invoices such as ZUGFeRD and Factur-X are built on."),
+                    + "which is what hybrid e-invoices such as ZUGFeRD and Factur-X are built on.")
             };
 
             double y = 185;
-            foreach ((string Name, string Says) each in profiles)
+            foreach (var each in profiles)
             {
                 gfx.DrawString(each.Name, label, XBrushes.MidnightBlue, 50, y);
                 prose.DrawString(each.Says, body, XBrushes.Black, new XRect(50, y + 6, 495, 34));
@@ -170,10 +170,10 @@ internal sealed class ArchiveDemo : PdfDemo
 
         // ----- page two: the packet the file carries -----------------------------------------------
 
-        PdfPage second = document.AddPage();
-        using (XGraphics gfx = XGraphics.FromPdfPage(second))
+        var second = document.AddPage();
+        using (var gfx = XGraphics.FromPdfPage(second))
         {
-            XTextFormatter prose = new XTextFormatter(gfx);
+            var prose = new XTextFormatter(gfx);
 
             gfx.DrawString("The metadata packet", heading, XBrushes.Black, 50, 60);
 
@@ -208,7 +208,7 @@ internal sealed class ArchiveDemo : PdfDemo
                 body, XBrushes.Black, new XRect(50, 250, 495, 48));
 
             double y = 312;
-            foreach (string line in PacketOfAProbe(profile))
+            foreach (var line in PacketOfAProbe(profile))
             {
                 if (y > 780)
                     break;
@@ -220,10 +220,10 @@ internal sealed class ArchiveDemo : PdfDemo
 
         // ----- page three: the refusals ------------------------------------------------------------
 
-        PdfPage third = document.AddPage();
-        using (XGraphics gfx = XGraphics.FromPdfPage(third))
+        var third = document.AddPage();
+        using (var gfx = XGraphics.FromPdfPage(third))
         {
-            XTextFormatter prose = new XTextFormatter(gfx);
+            var prose = new XTextFormatter(gfx);
 
             gfx.DrawString("The refusals, in their own words", heading, XBrushes.Black, 50, 60);
 
@@ -235,12 +235,12 @@ internal sealed class ArchiveDemo : PdfDemo
                 body, XBrushes.Black, new XRect(50, 80, 495, 44));
 
             double y = 140;
-            foreach ((string Broken, string Message) refusal in Refusals(profile))
+            foreach (var refusal in Refusals(profile))
             {
                 gfx.DrawString(refusal.Broken, label, XBrushes.Firebrick, 50, y);
 
-                XSize measured = gfx.MeasureString(refusal.Message, mono);
-                double height = Math.Ceiling(measured.Width / 470.0) * 9.5 + 12;
+                var measured = gfx.MeasureString(refusal.Message, mono);
+                var height = Math.Ceiling(measured.Width / 470.0) * 9.5 + 12;
 
                 prose.DrawString(refusal.Message, mono, XBrushes.Black,
                     new XRect(62, y + 8, 470, height));
@@ -251,10 +251,10 @@ internal sealed class ArchiveDemo : PdfDemo
 
         // ----- page four: the output intent --------------------------------------------------------
 
-        PdfPage fourth = document.AddPage();
-        using (XGraphics gfx = XGraphics.FromPdfPage(fourth))
+        var fourth = document.AddPage();
+        using (var gfx = XGraphics.FromPdfPage(fourth))
         {
-            XTextFormatter prose = new XTextFormatter(gfx);
+            var prose = new XTextFormatter(gfx);
 
             gfx.DrawString("The output intent", heading, XBrushes.Black, 50, 60);
 
@@ -306,11 +306,11 @@ internal sealed class ArchiveDemo : PdfDemo
                 ("Tags", "desc, cprt, wtpt, rXYZ, gXYZ, bXYZ, rTRC, gTRC, bTRC"),
                 ("Licence", "CC0 1.0, public domain - the cprt tag says so itself"),
                 ("/OutputConditionIdentifier", document.Options.OutputIntentIdentifier),
-                ("/S", "/GTS_PDFA1, for every part of PDF/A and not only the first"),
+                ("/S", "/GTS_PDFA1, for every part of PDF/A and not only the first")
             };
 
             double y = 432;
-            foreach ((string Field, string Value) fact in facts)
+            foreach (var fact in facts)
             {
                 gfx.DrawString(fact.Field, label, XBrushes.Black, 50, y);
                 gfx.DrawString(fact.Value, body, XBrushes.Black, 230, y);
@@ -345,7 +345,7 @@ internal sealed class ArchiveDemo : PdfDemo
     /// </summary>
     static IEnumerable<string> PacketOfAProbe(byte[] profile)
     {
-        using PdfDocument probe = new PdfDocument();
+        using var probe = new PdfDocument();
         probe.AddPage();
         probe.Info.Title = "A probe";
         probe.Info.Author = "PdfPinata sample app";
@@ -353,19 +353,19 @@ internal sealed class ArchiveDemo : PdfDemo
         probe.Options.OutputIntentIccProfile = profile;
         probe.Options.OutputIntentIdentifier = "sRGB IEC61966-2.1";
 
-        using MemoryStream buffer = new MemoryStream();
+        using var buffer = new MemoryStream();
         probe.Save(buffer, false);
         buffer.Position = 0;
 
-        using PdfDocument reopened = PdfReader.Open(buffer, PdfDocumentOpenMode.Import);
-        PdfDictionary metadata = reopened.Internals.Catalog.Elements.GetDictionary("/Metadata");
-        string packet = Encoding.UTF8.GetString(metadata.Stream.UnfilteredValue);
+        using var reopened = PdfReader.Open(buffer, PdfDocumentOpenMode.Import);
+        var metadata = reopened.Internals.Catalog.Elements.GetDictionary("/Metadata");
+        var packet = Encoding.UTF8.GetString(metadata.Stream.UnfilteredValue);
 
-        foreach (string line in packet.Replace("\r\n", "\n").Split('\n'))
+        foreach (var line in packet.Replace("\r\n", "\n").Split('\n'))
         {
             // Long lines are folded rather than clipped, because the interesting part of a packet is
             // frequently the attribute at the end of one.
-            string rest = line.TrimEnd();
+            var rest = line.TrimEnd();
             if (rest.Length == 0)
             {
                 yield return "";
@@ -374,7 +374,7 @@ internal sealed class ArchiveDemo : PdfDemo
 
             while (rest.Length > 96)
             {
-                yield return rest.Substring(0, 96);
+                yield return rest[..96];
                 rest = string.Concat("    ", rest.AsSpan(96));
             }
 
@@ -418,7 +418,7 @@ internal sealed class ArchiveDemo : PdfDemo
     static (string Broken, string Message) Refusal(string broken, byte[] profile,
         Action<PdfDocument> breakARule)
     {
-        using PdfDocument probe = new PdfDocument();
+        using var probe = new PdfDocument();
         probe.AddPage();
         probe.Info.Title = "A probe";
         probe.Options.Conformance = PdfAConformance.PdfA2B;
@@ -428,7 +428,7 @@ internal sealed class ArchiveDemo : PdfDemo
 
         try
         {
-            using MemoryStream buffer = new MemoryStream();
+            using var buffer = new MemoryStream();
             probe.Save(buffer, false);
         }
         catch (InvalidOperationException refused)

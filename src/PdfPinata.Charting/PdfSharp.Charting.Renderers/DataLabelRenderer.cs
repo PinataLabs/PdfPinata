@@ -50,15 +50,15 @@ internal abstract class DataLabelRenderer : Renderer
   /// </summary>
   internal override RendererInfo Init()
   {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    foreach (SeriesRendererInfo sri in cri.seriesRendererInfos)
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    foreach (var sri in cri.seriesRendererInfos)
     {
       if (cri.chart.hasDataLabel || cri.chart.dataLabel != null ||
           sri.series.hasDataLabel || sri.series.dataLabel != null)
       {
-        DataLabelRendererInfo dlri = new DataLabelRendererInfo();
+        var dlri = new DataLabelRendererInfo();
 
-        DataLabel dl = sri.series.dataLabel;
+        var dl = sri.series.dataLabel;
         if (dl == null)
           dl = cri.chart.dataLabel;
         if (dl == null)

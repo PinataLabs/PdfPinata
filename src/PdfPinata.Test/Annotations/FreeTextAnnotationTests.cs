@@ -30,7 +30,7 @@ public sealed class FreeTextAnnotationTests : IDisposable
 
     public void Dispose()
     {
-        foreach (MagickImageCollection collection in _rasterized)
+        foreach (var collection in _rasterized)
             collection.Dispose();
 
         _rasterized.Clear();
@@ -46,7 +46,7 @@ public sealed class FreeTextAnnotationTests : IDisposable
     [Fact]
     public void AFreeTextNamesItsSubtypeAndCarriesTheDefaultAppearanceItIsRequiredTo()
     {
-        PdfFreeTextAnnotation caption = OnAPage();
+        var caption = OnAPage();
 
         caption.Elements.GetName("/Subtype").Should().Be("/FreeText");
 
@@ -58,12 +58,12 @@ public sealed class FreeTextAnnotationTests : IDisposable
     [Fact]
     public void TheDefaultAppearanceNamesTheSizeAndTheColourTheTextIsDrawnIn()
     {
-        PdfFreeTextAnnotation caption = OnAPage();
+        var caption = OnAPage();
 
         caption.Font = new XFont("Arial", 14);
         caption.TextColor = XColors.Red;
 
-        string da = caption.Elements.GetString("/DA");
+        var da = caption.Elements.GetString("/DA");
         da.Should().Contain("14");
         da.Should().Contain("1 0 0 rg");
     }
@@ -71,10 +71,10 @@ public sealed class FreeTextAnnotationTests : IDisposable
     [Fact]
     public void SettingTheContentsRedrawsBecauseForThisSubtypeTheyAreWhatIsDrawn()
     {
-        PdfFreeTextAnnotation caption = OnAPage();
+        var caption = OnAPage();
         caption.Contents = "One";
 
-        byte[] before = NormalStream(caption);
+        var before = NormalStream(caption);
 
         caption.Contents = "Something altogether different";
 
@@ -84,7 +84,7 @@ public sealed class FreeTextAnnotationTests : IDisposable
     [Fact]
     public void TheAlignmentIsWrittenAsAQuaddingCode()
     {
-        PdfFreeTextAnnotation caption = OnAPage();
+        var caption = OnAPage();
 
         caption.Alignment = XParagraphAlignment.Right;
         caption.Elements.GetInteger("/Q").Should().Be(2);
@@ -97,7 +97,7 @@ public sealed class FreeTextAnnotationTests : IDisposable
     [Fact]
     public void JustifiedTextIsWrittenAsLeftBecauseQuaddingCannotSayJustified()
     {
-        PdfFreeTextAnnotation caption = OnAPage();
+        var caption = OnAPage();
 
         caption.Alignment = XParagraphAlignment.Justify;
 
@@ -110,21 +110,21 @@ public sealed class FreeTextAnnotationTests : IDisposable
     [Fact]
     public void WhatTheTextGivesUpToTheBorderIsRecordedInRd()
     {
-        PdfFreeTextAnnotation caption = OnAPage();
+        var caption = OnAPage();
         caption.Contents = "Hello";
 
         caption.BorderWidth = 4;
 
-        PdfArray differences = caption.Elements.GetArray("/RD");
+        var differences = caption.Elements.GetArray("/RD");
         differences.Elements.Count.Should().Be(4);
-        foreach (int side in new[] { 0, 1, 2, 3 })
+        foreach (var side in new[] { 0, 1, 2, 3 })
             differences.Elements.GetReal(side).Should().Be(8);
     }
 
     [Fact]
     public void ANegativeBorderIsRefused()
     {
-        PdfFreeTextAnnotation caption = OnAPage();
+        var caption = OnAPage();
 
         Action act = () => caption.BorderWidth = -1;
 
@@ -134,10 +134,10 @@ public sealed class FreeTextAnnotationTests : IDisposable
     [Fact]
     public void TheAppearanceIsBuiltWhenTheAnnotationReachesAPage()
     {
-        PdfDocument document = new PdfDocument();
-        PdfPage page = document.AddPage();
+        var document = new PdfDocument();
+        var page = document.AddPage();
 
-        PdfFreeTextAnnotation caption = new PdfFreeTextAnnotation();
+        var caption = new PdfFreeTextAnnotation();
         caption.Contents = "Written before there was anywhere to draw it";
 
         // Everything above was set with no document to build a form in. Adding it to the page is
@@ -153,7 +153,7 @@ public sealed class FreeTextAnnotationTests : IDisposable
     [Fact]
     public void NoTextNoBorderAndNoBackgroundDrawsNothingAndKeepsNoAppearance()
     {
-        PdfFreeTextAnnotation caption = OnAPage();
+        var caption = OnAPage();
         caption.Contents = "Something";
 
         caption.Contents = "";
@@ -168,7 +168,7 @@ public sealed class FreeTextAnnotationTests : IDisposable
     [Fact]
     public void AnnotationWithNoColourEntryHasNoBackgroundRatherThanABlackOne()
     {
-        PdfFreeTextAnnotation caption = OnAPage();
+        var caption = OnAPage();
 
         // PdfAnnotation.Color answers black for an annotation carrying no /C at all, so a box
         // nobody gave a background to would be filled black if the appearance read it through
@@ -180,7 +180,7 @@ public sealed class FreeTextAnnotationTests : IDisposable
     [GoldenImageFact]
     public void TheTextIsPainted()
     {
-        IMagickImage<byte> page = Rasterize("text", caption =>
+        var page = Rasterize("text", caption =>
         {
             caption.Contents = "Free text drawn onto the page";
             caption.TextColor = XColors.Firebrick;
@@ -193,7 +193,7 @@ public sealed class FreeTextAnnotationTests : IDisposable
     [GoldenImageFact]
     public void ABackgroundColourFillsTheBox()
     {
-        IMagickImage<byte> page = Rasterize("background", caption =>
+        var page = Rasterize("background", caption =>
         {
             caption.Contents = "";
             caption.BorderWidth = 0;
@@ -206,7 +206,7 @@ public sealed class FreeTextAnnotationTests : IDisposable
     [GoldenImageFact]
     public void AnEmptyAnnotationRasterizesToNothing()
     {
-        IMagickImage<byte> page = Rasterize("empty", caption =>
+        var page = Rasterize("empty", caption =>
         {
             caption.Contents = "";
             caption.BorderWidth = 0;
@@ -217,17 +217,17 @@ public sealed class FreeTextAnnotationTests : IDisposable
 
     IMagickImage<byte> Rasterize(string name, Action<PdfFreeTextAnnotation> arrange)
     {
-        PdfDocument document = new PdfDocument();
-        PdfPage page = document.AddPage();
-        XGraphics gfx = XGraphics.FromPdfPage(page);
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        var gfx = XGraphics.FromPdfPage(page);
 
-        PdfFreeTextAnnotation caption = new PdfFreeTextAnnotation();
+        var caption = new PdfFreeTextAnnotation();
         page.Annotations.Add(caption);
         caption.Rectangle = new PdfRectangle(gfx.Transformer.WorldToDefaultPage(Where));
 
         arrange(caption);
 
-        MagickImageCollection images = PdfHelper.Rasterize(document).ImageCollection;
+        var images = PdfHelper.Rasterize(document).ImageCollection;
         _rasterized.Add(images);
         PdfHelper.WriteImageCollection(images, OutDir, name);
         return images[0];
@@ -235,8 +235,8 @@ public sealed class FreeTextAnnotationTests : IDisposable
 
     static PdfFreeTextAnnotation OnAPage()
     {
-        PdfDocument document = new PdfDocument();
-        PdfFreeTextAnnotation caption = new PdfFreeTextAnnotation();
+        var document = new PdfDocument();
+        var caption = new PdfFreeTextAnnotation();
         document.AddPage().Annotations.Add(caption);
 
         // Without somewhere to be there is nothing to draw, so nothing derived from the geometry
@@ -247,7 +247,7 @@ public sealed class FreeTextAnnotationTests : IDisposable
 
     static byte[] NormalStream(PdfFreeTextAnnotation caption)
     {
-        PdfDictionary form =
+        var form =
             (PdfDictionary)caption.Elements.GetDictionary("/AP").Elements.GetObject("/N");
         return form.Stream.Value;
     }
@@ -260,10 +260,10 @@ public sealed class FreeTextAnnotationTests : IDisposable
 
     static int Count(IMagickImage<byte> image, Func<IMagickColor<byte>, bool> match)
     {
-        using IPixelCollection<byte> pixels = image.GetPixels();
+        using var pixels = image.GetPixels();
         return pixels.Count(p =>
         {
-            IMagickColor<byte> c = p.ToColor();
+            var c = p.ToColor();
             return c != null && match(c);
         });
     }

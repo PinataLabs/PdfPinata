@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -65,7 +65,7 @@ public sealed class PdfComboBoxField : PdfChoiceField
     {
         get
         {
-            string value = Elements.GetString(Keys.V);
+            var value = Elements.GetString(Keys.V);
             return IndexInOptArray(value);
         }
         set
@@ -76,7 +76,7 @@ public sealed class PdfComboBoxField : PdfChoiceField
             // so the field keeps what it had rather than being emptied.
             if (value != -1)
             {
-                string key = ValueInOptArray(value);
+                var key = ValueInOptArray(value);
                 Elements.SetString(Keys.V, key);
                 // /I is an array of the indices selected - one of them here, a combo box offering
                 // a single choice.
@@ -114,7 +114,7 @@ public sealed class PdfComboBoxField : PdfChoiceField
             // name is not part of the value. Storing the name itself would write /V and the option
             // as names, which no reader is obliged to make sense of, and IndexInOptArray does not
             // look at names, so /I would never be pointed at the option either.
-            PdfString text = value as PdfString ?? new PdfString(TextOfName((PdfName)value));
+            var text = value as PdfString ?? new PdfString(TextOfName((PdfName)value));
 
             Elements[Keys.V] = text;
             SyncSelectedIndex();
@@ -123,7 +123,7 @@ public sealed class PdfComboBoxField : PdfChoiceField
 
             // The value names no option the field offers, so record it as one. /Opt is optional
             // and a field that never had options has no array to append to yet.
-            PdfArray options = Elements.GetArray(PdfChoiceField.Keys.Opt);
+            var options = Elements.GetArray(PdfChoiceField.Keys.Opt);
             if (options == null)
             {
                 options = new PdfArray(Owner);
@@ -141,7 +141,7 @@ public sealed class PdfComboBoxField : PdfChoiceField
     /// </summary>
     void SyncSelectedIndex()
     {
-        int index = SelectedIndex;
+        var index = SelectedIndex;
         if (index != -1)
             SelectedIndex = index;
     }
@@ -151,12 +151,12 @@ public sealed class PdfComboBoxField : PdfChoiceField
     /// </summary>
     static string TextOfName(PdfName name)
     {
-        string value = name.Value ?? "";
-        return value.Length != 0 && value[0] == '/' ? value.Substring(1) : value;
+        var value = name.Value ?? "";
+        return value.Length != 0 && value[0] == '/' ? value[1..] : value;
     }
 
     /// <summary>
-    /// Predefined keys of this dictionary. 
+    /// Predefined keys of this dictionary.
     /// The description comes from PDF 1.4 Reference.
     /// </summary>
     public new class Keys : PdfAcroField.Keys

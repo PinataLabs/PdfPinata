@@ -283,7 +283,7 @@ public class NumberTreeTests
             "<</Type/Page/Parent 2 0 R/MediaBox[0 0 200 200]>>",
             treeObjects[0],
             "<</S/r>>",
-            "<</S/D/St 1>>",
+            "<</S/D/St 1>>"
         };
         objects.AddRange(treeObjects.Skip(1));
 

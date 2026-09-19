@@ -71,7 +71,7 @@ public partial class SeriesElements : DocumentObjectCollection
   /// </summary>
   public Point Add(double value)
   {
-    Point point = new Point(value);
+    var point = new Point(value);
     Add(point);
     return point;
   }
@@ -81,8 +81,8 @@ public partial class SeriesElements : DocumentObjectCollection
   /// </summary>
   public void Add(params double[] values)
   {
-    foreach (double val in values)
-      this.Add(val);
+    foreach (var val in values)
+      Add(val);
   }
   #endregion
 
@@ -92,10 +92,10 @@ public partial class SeriesElements : DocumentObjectCollection
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    int count = Count;
-    for (int index = 0; index < count; ++index)
+    var count = Count;
+    for (var index = 0; index < count; ++index)
     {
-      Point point = this[index] as Point;
+      var point = this[index] as Point;
       if (point == null)
         serializer.Write("null, ");
       else

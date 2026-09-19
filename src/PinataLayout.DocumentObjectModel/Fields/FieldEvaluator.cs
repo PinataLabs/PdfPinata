@@ -27,8 +27,8 @@ public static class FieldEvaluator
     public static bool IsField(DocumentObject documentObject)
     {
         return documentObject is NumericFieldBase
-            || documentObject is DateField
-            || documentObject is InfoField;
+               || documentObject is DateField
+               || documentObject is InfoField;
     }
 
     /// <summary>
@@ -45,24 +45,22 @@ public static class FieldEvaluator
         ArgumentNullException.ThrowIfNull(field);
         ArgumentNullException.ThrowIfNull(context);
 
-        if (field is NumericFieldBase numericField)
+        switch (field)
         {
-            int? number = NumberFor(numericField, context);
-            if (number == null)
-                return null;
-
-            return NumberFormatter.Format(number.Value, numericField.Format);
+            case NumericFieldBase numericField:
+            {
+                var number = NumberFor(numericField, context);
+                return number == null ? null : NumberFormatter.Format(number.Value, numericField.Format);
+            }
+            case DateField dateField:
+                return context.PrintDate.ToString(dateField.Format);
+            case InfoField infoField:
+                return DocumentInformation(infoField);
+            default:
+                throw new ArgumentException(
+                    $"'{field.GetType().Name}' is not a field with a value. Ask IsField before Evaluate.",
+                    nameof(field));
         }
-
-        if (field is DateField dateField)
-            return context.PrintDate.ToString(dateField.Format);
-
-        if (field is InfoField infoField)
-            return DocumentInformation(infoField);
-
-        throw new ArgumentException(
-            $"'{field.GetType().Name}' is not a field with a value. Ask IsField before Evaluate.",
-            nameof(field));
     }
 
     /// <summary>
@@ -74,7 +72,7 @@ public static class FieldEvaluator
     {
         if (field is PageRefField pageRefField)
         {
-            int? page = context.ResolveBookmarkPage?.Invoke(pageRefField.Name);
+            var page = context.ResolveBookmarkPage?.Invoke(pageRefField.Name);
             return page > 0 ? page : null;
         }
 
@@ -102,14 +100,14 @@ public static class FieldEvaluator
     /// </summary>
     static string DocumentInformation(InfoField field)
     {
-        Document document = field.Document;
+        var document = field.Document;
         if (document == null)
             throw new ArgumentException(
                 "An InfoField that belongs to no document has no information to read. Add it to a "
                 + "paragraph before asking what it reads as.",
                 nameof(field));
 
-        foreach (string name in Enum.GetNames<InfoFieldType>())
+        foreach (var name in Enum.GetNames<InfoFieldType>())
         {
             if (string.Compare(field.Name, name, StringComparison.OrdinalIgnoreCase) == 0)
                 return document.Info.GetValue(name)?.ToString() ?? "";

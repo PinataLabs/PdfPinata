@@ -27,7 +27,7 @@ public class FontApplyFontTests
         Underline = Underline.Dash,
         Strikethrough = Strikethrough.Single,
         Color = Colors.Red,
-        Subscript = true,
+        Subscript = true
     };
 
     [Fact]

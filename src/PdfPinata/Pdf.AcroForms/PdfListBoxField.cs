@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -76,7 +76,7 @@ public sealed class PdfListBoxField : PdfChoiceField
     {
         get
         {
-            int[] indices = SelectedIndicesFromValue();
+            var indices = SelectedIndicesFromValue();
             return indices.Length == 0 ? -1 : indices[0];
         }
         set => SelectedIndices = new[] { value };
@@ -109,7 +109,7 @@ public sealed class PdfListBoxField : PdfChoiceField
         {
             Owner?.EnsureCanModify("filling in a form field", PdfChangeKind.FormFieldValues);
 
-            int[] indices = Ordered(value);
+            var indices = Ordered(value);
 
             if (indices.Length > 1 && !AllowsMultipleSelection)
                 throw new InvalidOperationException(
@@ -126,8 +126,8 @@ public sealed class PdfListBoxField : PdfChoiceField
 
             // Mapped before anything is written, so an index the list has no option for leaves the
             // field as it was rather than half changed.
-            string[] texts = new string[indices.Length];
-            for (int idx = 0; idx < indices.Length; idx++)
+            var texts = new string[indices.Length];
+            for (var idx = 0; idx < indices.Length; idx++)
                 texts[idx] = ValueInOptArray(indices[idx]);
 
             if (indices.Length == 0)
@@ -136,8 +136,8 @@ public sealed class PdfListBoxField : PdfChoiceField
                 Elements.SetString(Keys.V, texts[0]);
             else
             {
-                PdfArray values = new PdfArray(Owner);
-                foreach (string text in texts)
+                var values = new PdfArray(Owner);
+                foreach (var text in texts)
                     values.Elements.Add(new PdfString(text));
                 Elements[Keys.V] = values;
             }
@@ -147,7 +147,7 @@ public sealed class PdfListBoxField : PdfChoiceField
             // with it. The exception is the other case the specification requires /I for: two
             // options exporting the same text, where /V names the text and cannot say which of
             // them was meant, so searching /Opt for it finds the first and loses the choice.
-            bool tellsApartWhatTheValueCannot =
+            var tellsApartWhatTheValueCannot =
                 indices.Length == 1 && IndexInOptArray(texts[0]) != indices[0];
 
             WriteSelectedIndices(
@@ -156,7 +156,7 @@ public sealed class PdfListBoxField : PdfChoiceField
     }
 
     /// <summary>
-    /// Predefined keys of this dictionary. 
+    /// Predefined keys of this dictionary.
     /// The description comes from PDF 1.4 Reference.
     /// </summary>
     public new class Keys : PdfAcroField.Keys

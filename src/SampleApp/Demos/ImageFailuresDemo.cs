@@ -28,7 +28,7 @@ internal sealed class ImageFailuresDemo : PdfDemo
         "Each ImageFailure kind provoked deliberately, by failing at a different point",
         "That the document still renders - a placeholder is drawn and the report goes on",
         "Where in the pipeline each failure is detected: measuring the image, or drawing it",
-        "Why this is an event rather than a throw",
+        "Why this is an event rather than a throw"
     };
 
     public override int PageCount => 2;
@@ -79,7 +79,7 @@ internal sealed class ImageFailuresDemo : PdfDemo
         ///   reads Transparent to decide the format, and ImageRenderer catches an
         ///   InvalidOperationException from there specifically.
         /// </summary>
-        public static FailingImage OfAnUnsupportedType() => new FailingImage(
+        public static FailingImage OfAnUnsupportedType() => new(
             "unsupported.xyz",
             () => 64,
             () => throw new InvalidOperationException("xyz is not an image format anyone knows."),
@@ -89,13 +89,13 @@ internal sealed class ImageFailuresDemo : PdfDemo
         ///   Reports a size of nothing. Nothing throws; the image is simply of zero extent, which
         ///   is caught after the crop and resolution arithmetic has run.
         /// </summary>
-        public static FailingImage OfNoSize() => new FailingImage(
+        public static FailingImage OfNoSize() => new(
             "empty.png", () => 0, () => false, () => { });
 
         /// <summary>
         ///   Throws while being measured. XImage.PixelWidth reads straight through to Width.
         /// </summary>
-        public static FailingImage ThatCannotBeMeasured() => new FailingImage(
+        public static FailingImage ThatCannotBeMeasured() => new(
             "truncated.png",
             () => throw new InvalidDataException("The file ends in the middle of the header."),
             () => false,
@@ -106,7 +106,7 @@ internal sealed class ImageFailuresDemo : PdfDemo
         ///   failure is not detected until the render pass, by which time the layout has already
         ///   been decided around an image that is never going to arrive.
         /// </summary>
-        public static FailingImage ThatCannotBeWritten() => new FailingImage(
+        public static FailingImage ThatCannotBeWritten() => new(
             "unreadable.png",
             () => 64,
             () => false,
@@ -123,7 +123,7 @@ internal sealed class ImageFailuresDemo : PdfDemo
         ("A file that ends too soon", FailingImage.ThatCannotBeMeasured,
             "throws while being measured"),
         ("A stream that dies on the way out", FailingImage.ThatCannotBeWritten,
-            "measures fine, throws while being drawn"),
+            "measures fine, throws while being drawn")
     };
 
     protected override PdfDocument Build(DemoContext context)
@@ -136,16 +136,16 @@ internal sealed class ImageFailuresDemo : PdfDemo
         List<(string Name, string Failure, string Exception, string Message)> failures = new();
 
         // docs:begin report-failures
-        Document probe = new Document();
-        Section probePage = probe.AddSection();
-        foreach ((string What, Func<IImageSource> Source, string When) each in Cases())
+        var probe = new Document();
+        var probePage = probe.AddSection();
+        foreach (var each in Cases())
         {
-            Image probeImage = probePage.AddImage(each.Source());
+            var probeImage = probePage.AddImage(each.Source());
             probeImage.Width = Unit.FromCentimeter(4);
             probeImage.Height = Unit.FromCentimeter(2.5);
         }
 
-        PdfDocumentRenderer probeRenderer =
+        var probeRenderer =
             new PdfDocumentRenderer(unicode: true) { Document = probe };
 
         // The event lives on DocumentRenderer, which PdfDocumentRenderer builds lazily - so reading
@@ -167,25 +167,30 @@ internal sealed class ImageFailuresDemo : PdfDemo
 
         // ----- the document the demo hands back -----
 
-        Document report = new Document();
-        report.Info.Title = "ImageFailures";
+        var report = new Document
+        {
+            Info =
+            {
+                Title = "ImageFailures"
+            }
+        };
 
-        Style normal = report.Styles[StyleNames.Normal];
+        var normal = report.Styles[StyleNames.Normal];
         normal.Font.Name = "Liberation Serif";
         normal.Font.Size = 10.5;
 
-        Style heading = report.Styles[StyleNames.Heading1];
+        var heading = report.Styles[StyleNames.Heading1];
         heading.Font.Name = "Liberation Sans";
         heading.Font.Size = 18;
         heading.Font.Bold = true;
         heading.ParagraphFormat.SpaceAfter = Unit.FromPoint(8);
 
-        Style caption = report.Styles.AddStyle("Caption", StyleNames.Normal);
+        var caption = report.Styles.AddStyle("Caption", StyleNames.Normal);
         caption.Font.Size = 8.5;
         caption.Font.Italic = true;
         caption.Font.Color = Colors.DimGray;
 
-        Section page = report.AddSection();
+        var page = report.AddSection();
         page.PageSetup.TopMargin = Unit.FromCentimeter(2.5);
 
         page.AddParagraph("Four images that will not load").Style = StyleNames.Heading1;
@@ -197,23 +202,23 @@ internal sealed class ImageFailuresDemo : PdfDemo
             + "should not cost a five hundred page report - and raises an event saying what "
             + "happened. The next page is that event, collected.");
 
-        foreach ((string What, Func<IImageSource> Source, string When) each in Cases())
+        foreach (var each in Cases())
         {
-            Paragraph label = page.AddParagraph(each.What);
+            var label = page.AddParagraph(each.What);
             label.Format.Font.Bold = true;
             label.Format.SpaceBefore = Unit.FromPoint(10);
             label.Format.SpaceAfter = Unit.FromPoint(2);
 
             page.AddParagraph(each.When).Style = "Caption";
 
-            Image image = page.AddImage(each.Source());
+            var image = page.AddImage(each.Source());
             image.Width = Unit.FromCentimeter(4);
             image.Height = Unit.FromCentimeter(2.5);
         }
 
         // ----- what the handler saw -----
 
-        Section verdict = report.AddSection();
+        var verdict = report.AddSection();
         verdict.PageSetup.TopMargin = Unit.FromCentimeter(2.5);
 
         verdict.AddParagraph("What the handler was told").Style = StyleNames.Heading1;
@@ -223,7 +228,7 @@ internal sealed class ImageFailuresDemo : PdfDemo
             + "drawn. The exception is the instance that was thrown - not a message, not a copy - "
             + "so a handler can log it, rethrow it, or match on its type.");
 
-        PinataLayout.DocumentObjectModel.Tables.Table table = verdict.AddTable();
+        var table = verdict.AddTable();
         table.Borders.Width = 0.5;
         table.Borders.Color = Colors.Gainsboro;
         table.Rows.LeftIndent = 0;
@@ -234,7 +239,7 @@ internal sealed class ImageFailuresDemo : PdfDemo
         table.AddColumn(Unit.FromCentimeter(4.4));
         table.AddColumn(Unit.FromCentimeter(6.0));
 
-        PinataLayout.DocumentObjectModel.Tables.Row header = table.AddRow();
+        var header = table.AddRow();
         header.HeadingFormat = true;
         header.Shading.Color = Colors.WhiteSmoke;
         header.Cells[0].AddParagraph("Image.Name");
@@ -242,16 +247,16 @@ internal sealed class ImageFailuresDemo : PdfDemo
         header.Cells[2].AddParagraph("Exception");
         header.Cells[3].AddParagraph("Message");
 
-        foreach ((string Name, string Failure, string Exception, string Message) failure in failures)
+        foreach (var failure in failures)
         {
-            PinataLayout.DocumentObjectModel.Tables.Row row = table.AddRow();
+            var row = table.AddRow();
             row.Cells[0].AddParagraph(failure.Name);
             row.Cells[1].AddParagraph(failure.Failure);
             row.Cells[2].AddParagraph(failure.Exception);
             row.Cells[3].AddParagraph(failure.Message);
         }
 
-        Paragraph why = verdict.AddParagraph();
+        var why = verdict.AddParagraph();
         why.Format.SpaceBefore = Unit.FromPoint(14);
         why.AddFormattedText("Why an event and not a throw. ", TextFormat.Bold);
         why.AddText(
@@ -261,7 +266,7 @@ internal sealed class ImageFailuresDemo : PdfDemo
             + "366 asked for - the exception used to go to Debug.WriteLine and nowhere else, which "
             + "a release build compiles away entirely.");
 
-        Paragraph kinds = verdict.AddParagraph();
+        var kinds = verdict.AddParagraph();
         kinds.Format.SpaceBefore = Unit.FromPoint(10);
         kinds.AddFormattedText("The fifth kind. ", TextFormat.Bold);
         kinds.AddText(
@@ -271,7 +276,7 @@ internal sealed class ImageFailuresDemo : PdfDemo
             + "renderer to fail to find. It is left in the enum because removing a public value "
             + "would break callers switching on it.");
 
-        Paragraph where = verdict.AddParagraph();
+        var where = verdict.AddParagraph();
         where.Format.SpaceBefore = Unit.FromPoint(10);
         where.AddFormattedText("Measured or drawn. ", TextFormat.Bold);
         where.AddText(
@@ -288,7 +293,7 @@ internal sealed class ImageFailuresDemo : PdfDemo
         // The four images on page one fail all over again here, into a DocumentRenderer nothing is
         // listening to. That is the point: the placeholders on the page and the rows in the table
         // are two views of the same four failures, taken by two different runs, and they agree.
-        PdfDocumentRenderer renderer = new PdfDocumentRenderer(unicode: true) { Document = report };
+        var renderer = new PdfDocumentRenderer(unicode: true) { Document = report };
         renderer.RenderDocument();
         #endregion
 

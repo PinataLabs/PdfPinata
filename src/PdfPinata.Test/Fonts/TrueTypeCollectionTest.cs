@@ -30,7 +30,7 @@ public class TrueTypeCollectionTest
         "LiberationSans-Regular.ttf",
         "LiberationSans-Bold.ttf",
         "LiberationSans-Italic.ttf",
-        "LiberationSans-BoldItalic.ttf",
+        "LiberationSans-BoldItalic.ttf"
     };
 
     private sealed class SkiaProbe : SkiaFontResolver
@@ -49,14 +49,14 @@ public class TrueTypeCollectionTest
     private static Dictionary<string, byte[]> Tables(byte[] font)
     {
         var tables = new Dictionary<string, byte[]>(StringComparer.Ordinal);
-        int count = (font[4] << 8) | font[5];
+        var count = (font[4] << 8) | font[5];
 
-        for (int i = 0; i < count; i++)
+        for (var i = 0; i < count; i++)
         {
-            int record = 12 + i * 16;
-            string tag = Encoding.ASCII.GetString(font, record, 4);
-            int offset = (int)ReadU32(font, record + 8);
-            int length = (int)ReadU32(font, record + 12);
+            var record = 12 + i * 16;
+            var tag = Encoding.ASCII.GetString(font, record, 4);
+            var offset = (int)ReadU32(font, record + 8);
+            var length = (int)ReadU32(font, record + 12);
 
             var bytes = new byte[length];
             Buffer.BlockCopy(font, offset, bytes, 0, length);
@@ -75,7 +75,7 @@ public class TrueTypeCollectionTest
     [Fact]
     public void ACollectionReportsTheNumberOfFacesPackedIntoIt()
     {
-        byte[] collection = BuildCollection();
+        var collection = BuildCollection();
 
         TrueTypeCollection.IsCollection(collection).Should().BeTrue();
         TrueTypeCollection.FaceCount(collection).Should().Be(FaceFiles.Length);
@@ -84,7 +84,7 @@ public class TrueTypeCollectionTest
     [Fact]
     public void ASingleFontIsNotACollectionAndHoldsOneFace()
     {
-        byte[] font = File.ReadAllBytes(AssetPath(FaceFiles[0]));
+        var font = File.ReadAllBytes(AssetPath(FaceFiles[0]));
 
         TrueTypeCollection.IsCollection(font).Should().BeFalse();
         TrueTypeCollection.FaceCount(font).Should().Be(1);
@@ -96,17 +96,17 @@ public class TrueTypeCollectionTest
     [Fact]
     public void EachExtractedFaceIsAStandaloneFontCarryingTheIdentityItWasPackedWith()
     {
-        byte[] collection = BuildCollection();
+        var collection = BuildCollection();
 
-        for (int face = 0; face < FaceFiles.Length; face++)
+        for (var face = 0; face < FaceFiles.Length; face++)
         {
-            byte[] extracted = TrueTypeCollection.ExtractFace(collection, face);
+            var extracted = TrueTypeCollection.ExtractFace(collection, face);
 
             TrueTypeCollection.IsCollection(extracted).Should()
                 .BeFalse("face {0} must come out as a plain font, not a collection", face);
 
-            FontDescription expected = FontDescription.LoadDescription(AssetPath(FaceFiles[face]));
-            FontDescription actual = Describe(extracted);
+            var expected = FontDescription.LoadDescription(AssetPath(FaceFiles[face]));
+            var actual = Describe(extracted);
 
             actual.FontFamilyInvariantCulture.Should().Be(expected.FontFamilyInvariantCulture);
             actual.Style.Should().Be(expected.Style);
@@ -122,9 +122,9 @@ public class TrueTypeCollectionTest
     [Fact]
     public void EveryTableOfAnExtractedFaceHoldsTheBytesItHeldInTheSourceFont()
     {
-        byte[] collection = BuildCollection();
+        var collection = BuildCollection();
 
-        for (int face = 0; face < FaceFiles.Length; face++)
+        for (var face = 0; face < FaceFiles.Length; face++)
         {
             var expected = Tables(File.ReadAllBytes(AssetPath(FaceFiles[face])));
             var actual = Tables(TrueTypeCollection.ExtractFace(collection, face));
@@ -147,10 +147,10 @@ public class TrueTypeCollectionTest
             var skia = new SkiaProbe();
             var imageSharp = new ImageSharpProbe();
 
-            for (int face = 0; face < FaceFiles.Length; face++)
+            for (var face = 0; face < FaceFiles.Length; face++)
             {
-                FontMetadata fromSkia = skia.Read(path, face);
-                FontMetadata fromImageSharp = imageSharp.Read(path, face);
+                var fromSkia = skia.Read(path, face);
+                var fromImageSharp = imageSharp.Read(path, face);
 
                 fromSkia.FamilyName.Should().Be(fromImageSharp.FamilyName, "at face {0}", face);
                 fromSkia.Style.Should().Be(fromImageSharp.Style, "at face {0}", face);
@@ -161,7 +161,7 @@ public class TrueTypeCollectionTest
     [Fact]
     public void ExtractingRejectsAFaceTheCollectionDoesNotHold()
     {
-        byte[] collection = BuildCollection();
+        var collection = BuildCollection();
 
         Action beyondTheEnd = () => TrueTypeCollection.ExtractFace(collection, FaceFiles.Length);
         beyondTheEnd.Should().Throw<ArgumentOutOfRangeException>();
@@ -178,7 +178,7 @@ public class TrueTypeCollectionTest
             var resolver = new SkiaProbe();
             resolver.SetupFontsFiles(new[] { path });
 
-            string fileName = Path.GetFileName(path);
+            var fileName = Path.GetFileName(path);
 
             // Every face of the collection was seen, not just the first.
             var faces = new[]
@@ -186,7 +186,7 @@ public class TrueTypeCollectionTest
                 new { Bold = false, Italic = false, Style = XFontStyle.Regular },
                 new { Bold = true, Italic = false, Style = XFontStyle.Bold },
                 new { Bold = false, Italic = true, Style = XFontStyle.Italic },
-                new { Bold = true, Italic = true, Style = XFontStyle.BoldItalic },
+                new { Bold = true, Italic = true, Style = XFontStyle.BoldItalic }
             };
 
             foreach (var face in faces)
@@ -197,12 +197,12 @@ public class TrueTypeCollectionTest
                 info.FaceName.Should().StartWith(fileName + "#",
                     "a face of a collection is named by the file it came from and its index");
 
-                byte[] bytes = resolver.GetFont(info.FaceName);
+                var bytes = resolver.GetFont(info.FaceName);
 
                 TrueTypeCollection.IsCollection(bytes).Should()
                     .BeFalse("the resolver has to take the collection apart, not hand it on whole");
 
-                FontDescription description = Describe(bytes);
+                var description = Describe(bytes);
                 description.FontFamilyInvariantCulture.Should().Be("Liberation Sans");
                 description.Style.Should().Be(ToSixLabors(face.Style));
             }
@@ -223,7 +223,7 @@ public class TrueTypeCollectionTest
             styles.Should().OnlyContain(m => m.FamilyName == "Liberation Sans");
             styles.Select(m => m.Style).Should().BeEquivalentTo(new[]
             {
-                XFontStyle.Regular, XFontStyle.Bold, XFontStyle.Italic, XFontStyle.BoldItalic,
+                XFontStyle.Regular, XFontStyle.Bold, XFontStyle.Italic, XFontStyle.BoldItalic
             });
         });
     }
@@ -236,7 +236,7 @@ public class TrueTypeCollectionTest
     [Fact]
     public void ReadingMetadataRejectsACollectionPointingOutsideTheFile()
     {
-        byte[] collection = BuildCollection();
+        var collection = BuildCollection();
 
         // The offset of face 0's table directory sits at 12, just past the collection header.
         WriteU32(collection, 12, (uint)collection.Length + 1024);
@@ -265,7 +265,7 @@ public class TrueTypeCollectionTest
 
     private static void WithFontFile(byte[] data, Action<string> body)
     {
-        string path = Path.Combine(Path.GetTempPath(),
+        var path = Path.Combine(Path.GetTempPath(),
             "PdfPinata-" + Guid.NewGuid().ToString("N") + ".ttc");
 
         File.WriteAllBytes(path, data);

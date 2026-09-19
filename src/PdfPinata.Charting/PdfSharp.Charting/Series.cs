@@ -59,7 +59,7 @@ public class Series : ChartObject
   /// </summary>
   protected override object DeepCopy()
   {
-    Series series = (Series)base.DeepCopy();
+    var series = (Series)base.DeepCopy();
     if (series.seriesElements != null)
     {
       series.seriesElements = series.seriesElements.Clone();

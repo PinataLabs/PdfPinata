@@ -26,7 +26,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -58,7 +58,7 @@ public partial class Chart : Shape, IVisitable
   public Chart(ChartType type)
     : this()
   {
-    this.Type = type;
+    Type = type;
   }
 
   #region Methods
@@ -78,8 +78,8 @@ public partial class Chart : Shape, IVisitable
   /// </summary>
   public ChartType Type
   {
-    get => this.type ?? default;
-    set => this.type = EnumGuard.Checked(value);
+    get => type ?? default;
+    set => type = EnumGuard.Checked(value);
   }
   [DV]
   internal ChartType? type;
@@ -89,8 +89,8 @@ public partial class Chart : Shape, IVisitable
   /// </summary>
   public string Style
   {
-    get => this.style ?? "";
-    set => this.style = value;
+    get => style ?? "";
+    set => style = value;
   }
   [DV]
   internal string style;
@@ -102,15 +102,15 @@ public partial class Chart : Shape, IVisitable
   {
     get
     {
-      if (this.format == null)
-        this.format = new ParagraphFormat(this);
+      if (format == null)
+        format = new ParagraphFormat(this);
 
-      return this.format;
+      return format;
     }
     set
     {
       SetParent(value);
-      this.format = value;
+      format = value;
     }
   }
   [DV]
@@ -123,15 +123,15 @@ public partial class Chart : Shape, IVisitable
   {
     get
     {
-      if (this.xAxis == null)
-        this.xAxis = new Axis(this);
+      if (xAxis == null)
+        xAxis = new Axis(this);
 
-      return this.xAxis;
+      return xAxis;
     }
     set
     {
       SetParent(value);
-      this.xAxis = value;
+      xAxis = value;
     }
   }
   [DV]
@@ -144,15 +144,15 @@ public partial class Chart : Shape, IVisitable
   {
     get
     {
-      if (this.yAxis == null)
-        this.yAxis = new Axis(this);
+      if (yAxis == null)
+        yAxis = new Axis(this);
 
-      return this.yAxis;
+      return yAxis;
     }
     set
     {
       SetParent(value);
-      this.yAxis = value;
+      yAxis = value;
     }
   }
   [DV]
@@ -165,15 +165,15 @@ public partial class Chart : Shape, IVisitable
   {
     get
     {
-      if (this.zAxis == null)
-        this.zAxis = new Axis(this);
+      if (zAxis == null)
+        zAxis = new Axis(this);
 
-      return this.zAxis;
+      return zAxis;
     }
     set
     {
       SetParent(value);
-      this.zAxis = value;
+      zAxis = value;
     }
   }
   [DV]
@@ -186,15 +186,15 @@ public partial class Chart : Shape, IVisitable
   {
     get
     {
-      if (this.seriesCollection == null)
-        this.seriesCollection = new SeriesCollection(this);
+      if (seriesCollection == null)
+        seriesCollection = new SeriesCollection(this);
 
-      return this.seriesCollection;
+      return seriesCollection;
     }
     set
     {
       SetParent(value);
-      this.seriesCollection = value;
+      seriesCollection = value;
     }
   }
   [DV]
@@ -207,15 +207,15 @@ public partial class Chart : Shape, IVisitable
   {
     get
     {
-      if (this.xValues == null)
-        this.xValues = new XValues(this);
+      if (xValues == null)
+        xValues = new XValues(this);
 
-      return this.xValues;
+      return xValues;
     }
     set
     {
       SetParent(value);
-      this.xValues = value;
+      xValues = value;
     }
   }
   [DV]
@@ -228,15 +228,15 @@ public partial class Chart : Shape, IVisitable
   {
     get
     {
-      if (this.headerArea == null)
-        this.headerArea = new TextArea(this);
+      if (headerArea == null)
+        headerArea = new TextArea(this);
 
-      return this.headerArea;
+      return headerArea;
     }
     set
     {
       SetParent(value);
-      this.headerArea = value;
+      headerArea = value;
     }
   }
   [DV]
@@ -249,15 +249,15 @@ public partial class Chart : Shape, IVisitable
   {
     get
     {
-      if (this.bottomArea == null)
-        this.bottomArea = new TextArea(this);
+      if (bottomArea == null)
+        bottomArea = new TextArea(this);
 
-      return this.bottomArea;
+      return bottomArea;
     }
     set
     {
       SetParent(value);
-      this.bottomArea = value;
+      bottomArea = value;
     }
   }
   [DV]
@@ -270,15 +270,15 @@ public partial class Chart : Shape, IVisitable
   {
     get
     {
-      if (this.topArea == null)
-        this.topArea = new TextArea(this);
+      if (topArea == null)
+        topArea = new TextArea(this);
 
-      return this.topArea;
+      return topArea;
     }
     set
     {
       SetParent(value);
-      this.topArea = value;
+      topArea = value;
     }
   }
   [DV]
@@ -291,15 +291,15 @@ public partial class Chart : Shape, IVisitable
   {
     get
     {
-      if (this.footerArea == null)
-        this.footerArea = new TextArea(this);
+      if (footerArea == null)
+        footerArea = new TextArea(this);
 
-      return this.footerArea;
+      return footerArea;
     }
     set
     {
       SetParent(value);
-      this.footerArea = value;
+      footerArea = value;
     }
   }
   [DV]
@@ -312,15 +312,15 @@ public partial class Chart : Shape, IVisitable
   {
     get
     {
-      if (this.leftArea == null)
-        this.leftArea = new TextArea(this);
+      if (leftArea == null)
+        leftArea = new TextArea(this);
 
-      return this.leftArea;
+      return leftArea;
     }
     set
     {
       SetParent(value);
-      this.leftArea = value;
+      leftArea = value;
     }
   }
   [DV]
@@ -333,15 +333,15 @@ public partial class Chart : Shape, IVisitable
   {
     get
     {
-      if (this.rightArea == null)
-        this.rightArea = new TextArea(this);
+      if (rightArea == null)
+        rightArea = new TextArea(this);
 
-      return this.rightArea;
+      return rightArea;
     }
     set
     {
       SetParent(value);
-      this.rightArea = value;
+      rightArea = value;
     }
   }
   [DV]
@@ -354,15 +354,15 @@ public partial class Chart : Shape, IVisitable
   {
     get
     {
-      if (this.plotArea == null)
-        this.plotArea = new PlotArea(this);
+      if (plotArea == null)
+        plotArea = new PlotArea(this);
 
-      return this.plotArea;
+      return plotArea;
     }
     set
     {
       SetParent(value);
-      this.plotArea = value;
+      plotArea = value;
     }
   }
   [DV]
@@ -373,8 +373,8 @@ public partial class Chart : Shape, IVisitable
   /// </summary>
   public BlankType DisplayBlanksAs
   {
-    get => this.displayBlanksAs ?? default;
-    set => this.displayBlanksAs = EnumGuard.Checked(value);
+    get => displayBlanksAs ?? default;
+    set => displayBlanksAs = EnumGuard.Checked(value);
   }
   [DV]
   internal BlankType? displayBlanksAs;
@@ -384,8 +384,8 @@ public partial class Chart : Shape, IVisitable
   /// </summary>
   public bool PivotChart
   {
-    get => this.pivotChart ?? false;
-    set => this.pivotChart = value;
+    get => pivotChart ?? false;
+    set => pivotChart = value;
   }
   [DV]
   internal bool? pivotChart;
@@ -397,15 +397,15 @@ public partial class Chart : Shape, IVisitable
   {
     get
     {
-      if (this.dataLabel == null)
-        this.dataLabel = new DataLabel(this);
+      if (dataLabel == null)
+        dataLabel = new DataLabel(this);
 
-      return this.dataLabel;
+      return dataLabel;
     }
     set
     {
       SetParent(value);
-      this.dataLabel = value;
+      dataLabel = value;
     }
   }
   [DV]
@@ -416,8 +416,8 @@ public partial class Chart : Shape, IVisitable
   /// </summary>
   public bool HasDataLabel
   {
-    get => this.hasDataLabel ?? false;
-    set => this.hasDataLabel = value;
+    get => hasDataLabel ?? false;
+    set => hasDataLabel = value;
   }
   [DV]
   internal bool? hasDataLabel;
@@ -428,11 +428,11 @@ public partial class Chart : Shape, IVisitable
   /// </summary>
   internal string CheckAxis(Axis axis)
   {
-    if ((this.xAxis != null) && (axis == this.xAxis))
+    if (xAxis != null && axis == xAxis)
       return "xaxis";
-    if ((this.yAxis != null) && (axis == this.yAxis))
+    if (yAxis != null && axis == yAxis)
       return "yaxis";
-    if ((this.zAxis != null) && (axis == this.zAxis))
+    if (zAxis != null && axis == zAxis)
       return "zaxis";
 
     return "";
@@ -443,17 +443,17 @@ public partial class Chart : Shape, IVisitable
   /// </summary>
   internal string CheckTextArea(TextArea textArea)
   {
-    if ((this.headerArea != null) && (textArea == this.headerArea))
+    if (headerArea != null && textArea == headerArea)
       return "headerarea";
-    if ((this.footerArea != null) && (textArea == this.footerArea))
+    if (footerArea != null && textArea == footerArea)
       return "footerarea";
-    if ((this.leftArea != null) && (textArea == this.leftArea))
+    if (leftArea != null && textArea == leftArea)
       return "leftarea";
-    if ((this.rightArea != null) && (textArea == this.rightArea))
+    if (rightArea != null && textArea == rightArea)
       return "rightarea";
-    if ((this.topArea != null) && (textArea == this.topArea))
+    if (topArea != null && textArea == topArea)
       return "toparea";
-    if ((this.bottomArea != null) && (textArea == this.bottomArea))
+    if (bottomArea != null && textArea == bottomArea)
       return "bottomarea";
 
     return "";
@@ -465,53 +465,53 @@ public partial class Chart : Shape, IVisitable
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    serializer.WriteLine("\\chart(" + this.Type + ")");
-    int pos = serializer.BeginAttributes();
+    serializer.WriteLine("\\chart(" + Type + ")");
+    var pos = serializer.BeginAttributes();
 
     base.Serialize(serializer);
-    if (this.displayBlanksAs != null)
-      serializer.WriteSimpleAttribute("DisplayBlanksAs", this.DisplayBlanksAs);
-    if (this.pivotChart != null)
-      serializer.WriteSimpleAttribute("PivotChart", this.PivotChart);
-    if (this.hasDataLabel != null)
-      serializer.WriteSimpleAttribute("HasDataLabel", this.HasDataLabel);
+    if (displayBlanksAs != null)
+      serializer.WriteSimpleAttribute("DisplayBlanksAs", DisplayBlanksAs);
+    if (pivotChart != null)
+      serializer.WriteSimpleAttribute("PivotChart", PivotChart);
+    if (hasDataLabel != null)
+      serializer.WriteSimpleAttribute("HasDataLabel", HasDataLabel);
 
-    if (this.style != null)
-      serializer.WriteSimpleAttribute("Style", this.Style);
-    if (!this.IsNull("Format"))
-      this.format.Serialize(serializer, "Format", null);
-    if (!this.IsNull("DataLabel"))
-      this.dataLabel.Serialize(serializer);
+    if (style != null)
+      serializer.WriteSimpleAttribute("Style", Style);
+    if (!IsNull("Format"))
+      format.Serialize(serializer, "Format", null);
+    if (!IsNull("DataLabel"))
+      dataLabel.Serialize(serializer);
     serializer.EndAttributes(pos);
 
     serializer.BeginContent();
 
-    if (!this.IsNull("PlotArea"))
-      this.plotArea.Serialize(serializer);
-    if (!this.IsNull("HeaderArea"))
-      this.headerArea.Serialize(serializer);
-    if (!this.IsNull("FooterArea"))
-      this.footerArea.Serialize(serializer);
-    if (!this.IsNull("TopArea"))
-      this.topArea.Serialize(serializer);
-    if (!this.IsNull("BottomArea"))
-      this.bottomArea.Serialize(serializer);
-    if (!this.IsNull("LeftArea"))
-      this.leftArea.Serialize(serializer);
-    if (!this.IsNull("RightArea"))
-      this.rightArea.Serialize(serializer);
+    if (!IsNull("PlotArea"))
+      plotArea.Serialize(serializer);
+    if (!IsNull("HeaderArea"))
+      headerArea.Serialize(serializer);
+    if (!IsNull("FooterArea"))
+      footerArea.Serialize(serializer);
+    if (!IsNull("TopArea"))
+      topArea.Serialize(serializer);
+    if (!IsNull("BottomArea"))
+      bottomArea.Serialize(serializer);
+    if (!IsNull("LeftArea"))
+      leftArea.Serialize(serializer);
+    if (!IsNull("RightArea"))
+      rightArea.Serialize(serializer);
 
-    if (!this.IsNull("XAxis"))
-      this.xAxis.Serialize(serializer);
-    if (!this.IsNull("YAxis"))
-      this.yAxis.Serialize(serializer);
-    if (!this.IsNull("ZAxis"))
-      this.zAxis.Serialize(serializer);
+    if (!IsNull("XAxis"))
+      xAxis.Serialize(serializer);
+    if (!IsNull("YAxis"))
+      yAxis.Serialize(serializer);
+    if (!IsNull("ZAxis"))
+      zAxis.Serialize(serializer);
 
-    if (!this.IsNull("SeriesCollection"))
-      this.seriesCollection.Serialize(serializer);
-    if (!this.IsNull("XValues"))
-      this.xValues.Serialize(serializer);
+    if (!IsNull("SeriesCollection"))
+      seriesCollection.Serialize(serializer);
+    if (!IsNull("XValues"))
+      xValues.Serialize(serializer);
 
     serializer.EndContent();
   }
@@ -524,23 +524,23 @@ public partial class Chart : Shape, IVisitable
     visitor.VisitChart(this);
     if (visitChildren)
     {
-      if (this.bottomArea != null)
-        ((IVisitable)this.bottomArea).AcceptVisitor(visitor, visitChildren);
+      if (bottomArea != null)
+        ((IVisitable)bottomArea).AcceptVisitor(visitor, visitChildren);
 
-      if (this.footerArea != null)
-        ((IVisitable)this.footerArea).AcceptVisitor(visitor, visitChildren);
+      if (footerArea != null)
+        ((IVisitable)footerArea).AcceptVisitor(visitor, visitChildren);
 
-      if (this.headerArea != null)
-        ((IVisitable)this.headerArea).AcceptVisitor(visitor, visitChildren);
+      if (headerArea != null)
+        ((IVisitable)headerArea).AcceptVisitor(visitor, visitChildren);
 
-      if (this.leftArea != null)
-        ((IVisitable)this.leftArea).AcceptVisitor(visitor, visitChildren);
+      if (leftArea != null)
+        ((IVisitable)leftArea).AcceptVisitor(visitor, visitChildren);
 
-      if (this.rightArea != null)
-        ((IVisitable)this.rightArea).AcceptVisitor(visitor, visitChildren);
+      if (rightArea != null)
+        ((IVisitable)rightArea).AcceptVisitor(visitor, visitChildren);
 
-      if (this.topArea != null)
-        ((IVisitable)this.topArea).AcceptVisitor(visitor, visitChildren);
+      if (topArea != null)
+        ((IVisitable)topArea).AcceptVisitor(visitor, visitChildren);
     }
   }
 

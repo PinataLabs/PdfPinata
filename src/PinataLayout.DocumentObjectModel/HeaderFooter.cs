@@ -26,7 +26,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -197,8 +197,8 @@ public partial class HeaderFooter : DocumentObject, IVisitable
         get => style ?? "";
         set
         {
-            // Just save style name. 
-            Style style = Document.Styles[value];
+            // Just save style name.
+            var style = Document.Styles[value];
             if (style != null)
                 this.style = value;
             else
@@ -266,7 +266,7 @@ public partial class HeaderFooter : DocumentObject, IVisitable
     /// </summary>
     internal override void Serialize(Serializer serializer)
     {
-        HeadersFooters headersfooters = parent as HeadersFooters;
+        var headersfooters = parent as HeadersFooters;
         if (headersfooters.Primary == this)
             Serialize(serializer, "primary");
         else if (headersfooters.EvenPage == this)
@@ -280,11 +280,11 @@ public partial class HeaderFooter : DocumentObject, IVisitable
     /// </summary>
     internal void Serialize(Serializer serializer, string prefix)
     {
-        serializer.WriteComment((comment ?? ""));
+        serializer.WriteComment(comment ?? "");
         serializer.WriteLine("\\" + prefix + (IsHeader ? "header" : "footer"));
 
-        int pos = serializer.BeginAttributes();
-        if ((style ?? "") != String.Empty)
+        var pos = serializer.BeginAttributes();
+        if ((style ?? "") != string.Empty)
             serializer.WriteSimpleAttribute("Style", Style);
         if (!IsNull("Format"))
             format.Serialize(serializer, "Format", null);

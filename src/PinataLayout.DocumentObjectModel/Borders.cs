@@ -26,7 +26,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -79,7 +79,7 @@ public partial class Borders : DocumentObject, IEnumerable
     /// </summary>
     IEnumerator IEnumerable.GetEnumerator()
     {
-        Hashtable ht = new Hashtable();
+        var ht = new Hashtable();
         ht.Add("Top", top);
         ht.Add("Left", left);
         ht.Add("Bottom", bottom);
@@ -383,7 +383,7 @@ public partial class Borders : DocumentObject, IEnumerable
         if (clearAll)
             serializer.WriteLine("Borders = null");
 
-        int pos = serializer.BeginContent("Borders");
+        var pos = serializer.BeginContent("Borders");
 
         if (visible != null && (refBorders == null || refBorders.visible == null || (Visible != refBorders.Visible)))
             serializer.WriteSimpleAttribute("Visible", Visible);
@@ -488,7 +488,7 @@ public partial class Borders : DocumentObject, IEnumerable
             {
                 IEnumerator enumerator = ht.GetEnumerator();
                 enumerator.Reset();
-                for (int idx = 0; idx < index + 1; idx++)
+                for (var idx = 0; idx < index + 1; idx++)
                     enumerator.MoveNext();
                 return ((DictionaryEntry)enumerator.Current).Value as Border;
             }

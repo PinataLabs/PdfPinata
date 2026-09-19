@@ -243,7 +243,7 @@ public class ItemizedTextTests
         recorder.Of(latin, Salam).Should().BeEquivalentTo(new[]
         {
             (latin, XTextDirection.LeftToRight, "latn"),
-            (Salam, XTextDirection.RightToLeft, "arab"),
+            (Salam, XTextDirection.RightToLeft, "arab")
         }, "a shaper is told what it is shaping, because a face applies one script's rules at a "
            + "time and cannot work out from the characters alone which way the run reads");
     }

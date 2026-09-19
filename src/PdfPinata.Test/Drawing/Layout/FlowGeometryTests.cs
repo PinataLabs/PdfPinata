@@ -257,7 +257,7 @@ public class FlowGeometryTests
     {
         var left = IntervalSet.Of(0, 100).Subtract(new[] { new XInterval(30, 60) });
 
-        left.TryWidest(Tolerance, out XInterval widest).Should().BeTrue();
+        left.TryWidest(Tolerance, out var widest).Should().BeTrue();
         widest.Should().Be(new XInterval(60, 100));
     }
 
@@ -266,7 +266,7 @@ public class FlowGeometryTests
     {
         var left = IntervalSet.Of(0, 100).Subtract(new[] { new XInterval(40, 60) });
 
-        left.TryWidest(Tolerance, out XInterval widest).Should().BeTrue();
+        left.TryWidest(Tolerance, out var widest).Should().BeTrue();
         widest.Should().Be(new XInterval(0, 40));
     }
 
@@ -305,7 +305,7 @@ public class FlowGeometryTests
     {
         double.NaN,
         double.PositiveInfinity,
-        double.NegativeInfinity,
+        double.NegativeInfinity
     };
 
     [Theory]

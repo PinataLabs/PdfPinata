@@ -421,7 +421,7 @@ public partial class ParagraphFormat : DocumentObject
   /// </summary>
   internal void Serialize(Serializer serializer, string name, ParagraphFormat refFormat)
   {
-    int pos = serializer.BeginContent(name);
+    var pos = serializer.BeginContent(name);
 
     if (!IsNull("Font") && Parent.GetType() != typeof(Style))
       Font.Serialize(serializer);
@@ -431,7 +431,7 @@ public partial class ParagraphFormat : DocumentObject
     // Efw.Application framework the nullable values and all the meta stuff is kept internal to
     // give the user the illusion of simplicity.
 
-    if (alignment != null && (refFormat == null || (alignment != refFormat.alignment)))
+    if (alignment != null && (refFormat == null || alignment != refFormat.alignment))
       serializer.WriteSimpleAttribute("Alignment", Alignment);
 
     if (!leftIndent.IsNull && (refFormat == null || (leftIndent != refFormat.leftIndent)))

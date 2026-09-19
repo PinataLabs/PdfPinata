@@ -60,16 +60,16 @@ public sealed class TextFlowRegion
     /// </remarks>
     public IntervalSet GetAvailableIntervals(FlowBand band)
     {
-        IntervalSet free = IntervalSet.Of(Bounds.X, Bounds.X + Bounds.Width);
+        var free = IntervalSet.Of(Bounds.X, Bounds.X + Bounds.Width);
         if (_obstacles.Count == 0)
             return free;
 
-        foreach (IFlowObstacle obstacle in _obstacles)
+        foreach (var obstacle in _obstacles)
         {
             if (obstacle == null)
                 continue;
 
-            IReadOnlyList<XInterval> taken = obstacle.GetExcludedIntervals(band);
+            var taken = obstacle.GetExcludedIntervals(band);
             if (taken == null || taken.Count == 0)
                 continue;
 
@@ -99,16 +99,16 @@ public sealed class TextFlowRegion
     {
         double? nearest = null;
 
-        foreach (IFlowObstacle obstacle in _obstacles)
+        foreach (var obstacle in _obstacles)
         {
             if (obstacle == null)
                 continue;
 
-            IReadOnlyList<XInterval> taken = obstacle.GetExcludedIntervals(band);
+            var taken = obstacle.GetExcludedIntervals(band);
             if (taken == null || taken.Count == 0)
                 continue;
 
-            double bottom = obstacle.Bottom;
+            var bottom = obstacle.Bottom;
             if (bottom <= band.Top)
                 continue;
 

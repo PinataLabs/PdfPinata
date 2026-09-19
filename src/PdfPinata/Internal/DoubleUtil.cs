@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -51,9 +51,9 @@ internal static class DoubleUtil
         if (value1.Equals(value2))
             return true;
         #pragma warning restore S1244
-        // This computes (|value1-value2| / (|value1| + |value2| + 10.0)) < Epsilon 
-        double eps = (Math.Abs(value1) + Math.Abs(value2) + 10.0) * Epsilon;
-        double delta = value1 - value2;
+        // This computes (|value1-value2| / (|value1| + |value2| + 10.0)) < Epsilon
+        var eps = (Math.Abs(value1) + Math.Abs(value2) + 10.0) * Epsilon;
+        var delta = value1 - value2;
         return (-eps < delta) && (eps > delta);
     }
 
@@ -150,11 +150,11 @@ internal static class DoubleUtil
     /// </summary>
     public static bool IsNaN(double value)
     {
-        NanUnion t = new NanUnion();
+        var t = new NanUnion();
         t.DoubleValue = value;
 
-        ulong exp = t.UintValue & 0xfff0000000000000;
-        ulong man = t.UintValue & 0x000fffffffffffff;
+        var exp = t.UintValue & 0xfff0000000000000;
+        var man = t.UintValue & 0x000fffffffffffff;
 
         return (exp == 0x7ff0000000000000 || exp == 0xfff0000000000000) && (man != 0);
     }

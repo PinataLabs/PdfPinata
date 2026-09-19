@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -62,7 +62,7 @@ public class XForm : XImage, IContentStream
         /// <summary>
         /// The form was drawn at least once and is 'frozen' now.
         /// </summary>
-        Finished,
+        Finished
     }
 
     /// <summary>
@@ -90,7 +90,7 @@ public class XForm : XImage, IContentStream
         _pdfForm = new PdfFormXObject(document, this);
         //_templateSize = size;
         _viewBox = viewBox;
-        PdfRectangle rect = new PdfRectangle(viewBox);
+        var rect = new PdfRectangle(viewBox);
         _pdfForm.Elements.SetRectangle(PdfFormXObject.Keys.BBox, rect);
     }
 
@@ -129,10 +129,10 @@ public class XForm : XImage, IContentStream
 
     /// <summary>
     /// This function should be called when drawing the content of this form is finished.
-    /// The XGraphics object used for drawing the content is disposed by this function and 
+    /// The XGraphics object used for drawing the content is disposed by this function and
     /// cannot be used for any further drawing operations.
     /// PDFsharp automatically calls this function when this form was used the first time
-    /// in a DrawImage function. 
+    /// in a DrawImage function.
     /// </summary>
     public void DrawingFinished()
     {
@@ -204,7 +204,7 @@ public class XForm : XImage, IContentStream
                 _pdfForm.Stream.Value = Filtering.FlateDecode.Encode(_pdfForm.Stream.Value, _document.Options.FlateEncodeMode);
                 _pdfForm.Elements["/Filter"] = new PdfName("/FlateDecode");
             }
-            int length = _pdfForm.Stream.Length;
+            var length = _pdfForm.Stream.Length;
             _pdfForm.Elements.SetInteger("/Length", length);
         }
     }
@@ -340,7 +340,7 @@ public class XForm : XImage, IContentStream
         Debug.Assert(IsTemplate, "This function is for form templates only.");
         pdfFont = _document.FontTable.GetFont(font);
         Debug.Assert(pdfFont != null);
-        string name = Resources.AddFont(pdfFont);
+        var name = Resources.AddFont(pdfFont);
         return name;
     }
 
@@ -373,7 +373,7 @@ public class XForm : XImage, IContentStream
         //pdfFont = new PdfType0Font(Owner, idName, fontData);
         //pdfFont.Document = _document;
         Debug.Assert(pdfFont != null);
-        string name = Resources.AddFont(pdfFont);
+        var name = Resources.AddFont(pdfFont);
         return name;
     }
 
@@ -388,9 +388,9 @@ public class XForm : XImage, IContentStream
     internal string GetImageName(XImage image)
     {
         Debug.Assert(IsTemplate, "This function is for form templates only.");
-        PdfImage pdfImage = _document.ImageTable.GetImage(image);
+        var pdfImage = _document.ImageTable.GetImage(image);
         Debug.Assert(pdfImage != null);
-        string name = Resources.AddImage(pdfImage);
+        var name = Resources.AddImage(pdfImage);
         return name;
     }
 
@@ -419,9 +419,9 @@ public class XForm : XImage, IContentStream
     internal string GetFormName(XForm form)
     {
         Debug.Assert(IsTemplate, "This function is for form templates only.");
-        PdfFormXObject pdfForm = _document.FormTable.GetForm(form);
+        var pdfForm = _document.FormTable.GetForm(form);
         Debug.Assert(pdfForm != null);
-        string name = Resources.AddForm(pdfForm);
+        var name = Resources.AddForm(pdfForm);
         return name;
     }
 

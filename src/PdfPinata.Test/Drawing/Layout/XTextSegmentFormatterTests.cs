@@ -214,7 +214,7 @@ public class XTextSegmentFormatterTests
         var counts = new[]
         {
             XParagraphAlignment.Left, XParagraphAlignment.Right,
-            XParagraphAlignment.Center, XParagraphAlignment.Justify,
+            XParagraphAlignment.Center, XParagraphAlignment.Justify
         }.Select(alignment => LineStartsOf(
             PageShowing(alignment, Segment(TwoLinesOfWords, Plain, XBrushes.Black))).Length);
 

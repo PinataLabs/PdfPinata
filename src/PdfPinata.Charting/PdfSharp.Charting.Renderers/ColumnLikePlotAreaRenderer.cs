@@ -50,14 +50,14 @@ internal abstract class ColumnLikePlotAreaRenderer : PlotAreaRenderer
   /// </summary>
   internal override void Format()
   {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
 
-    double xMin = cri.xAxisRendererInfo.MinimumScale;
-    double xMax = cri.xAxisRendererInfo.MaximumScale;
-    double yMin = cri.yAxisRendererInfo.MinimumScale;
-    double yMax = cri.yAxisRendererInfo.MaximumScale;
+    var xMin = cri.xAxisRendererInfo.MinimumScale;
+    var xMax = cri.xAxisRendererInfo.MaximumScale;
+    var yMin = cri.yAxisRendererInfo.MinimumScale;
+    var yMax = cri.yAxisRendererInfo.MaximumScale;
 
-    XRect plotAreaBox = cri.plotAreaRendererInfo.Rect;
+    var plotAreaBox = cri.plotAreaRendererInfo.Rect;
 
     // A chart with nothing plotted has a category scale of zero, because that scale is the number
     // of points in its longest series. Dividing by it gives an infinity, and every coordinate

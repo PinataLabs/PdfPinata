@@ -185,7 +185,7 @@ public class SoftHyphenInJustifiedListTests
                 {
                     ContinuePreviousList = false,
                     ListType = ListType.BulletList1,
-                    NumberPosition = Unit.FromMillimeter(5),
+                    NumberPosition = Unit.FromMillimeter(5)
                 };
             }
 

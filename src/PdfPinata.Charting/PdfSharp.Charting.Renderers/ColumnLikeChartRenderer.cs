@@ -50,10 +50,10 @@ internal abstract class ColumnLikeChartRenderer : ChartRenderer
   /// </summary>
   internal void CalcLayout()
   {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
 
     // Calculate rects and positions.
-    XRect chartRect = LayoutLegend();
+    var chartRect = LayoutLegend();
     cri.xAxisRendererInfo.X = chartRect.Left + cri.yAxisRendererInfo.Width;
     cri.xAxisRendererInfo.Y = chartRect.Bottom - cri.xAxisRendererInfo.Height;
     cri.xAxisRendererInfo.Width = chartRect.Width - cri.yAxisRendererInfo.Width;

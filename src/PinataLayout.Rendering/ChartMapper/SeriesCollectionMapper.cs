@@ -24,7 +24,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -44,17 +44,17 @@ public class SeriesCollectionMapper
   public SeriesCollectionMapper()
   {
   }
-    
+
   static void MapObject(SeriesCollection seriesCollection, DocumentObjectModel.Shapes.Charts.SeriesCollection domSeriesCollection)
   {
     foreach (DocumentObjectModel.Shapes.Charts.Series domSeries in domSeriesCollection)
     {
-      Series series = seriesCollection.AddSeries();
+      var series = seriesCollection.AddSeries();
       series.Name = domSeries.Name;
 
       if (domSeries.IsNull("ChartType"))
       {
-        DocumentObjectModel.Shapes.Charts.Chart chart = (DocumentObjectModel.Shapes.Charts.Chart)DocumentObjectModel.DocumentRelations.GetParentOfType(domSeries, typeof(DocumentObjectModel.Shapes.Charts.Chart));
+        var chart = (DocumentObjectModel.Shapes.Charts.Chart)DocumentObjectModel.DocumentRelations.GetParentOfType(domSeries, typeof(DocumentObjectModel.Shapes.Charts.Chart));
         series.ChartType = (ChartType)chart.Type;
       }
       else
@@ -72,14 +72,14 @@ public class SeriesCollectionMapper
         series.MarkerBackgroundColor = XColor.Empty;
       else
       {
-        series.MarkerBackgroundColor = 
+        series.MarkerBackgroundColor =
           ColorHelper.ToXColor(domSeries.MarkerBackgroundColor, domSeries.Document.UseCmykColor);
       }
       if (domSeries.MarkerForegroundColor.IsEmpty)
         series.MarkerForegroundColor = XColor.Empty;
       else
       {
-        series.MarkerForegroundColor = 
+        series.MarkerForegroundColor =
           ColorHelper.ToXColor(domSeries.MarkerForegroundColor, domSeries.Document.UseCmykColor);
       }
       series.MarkerSize = domSeries.MarkerSize.Point;
@@ -90,7 +90,7 @@ public class SeriesCollectionMapper
       {
         if (domPoint != null)
         {
-          Point point = series.Add(domPoint.Value);
+          var point = series.Add(domPoint.Value);
           FillFormatMapper.Map(point.FillFormat, domPoint.FillFormat);
           LineFormatMapper.Map(point.LineFormat, domPoint.LineFormat);
         }

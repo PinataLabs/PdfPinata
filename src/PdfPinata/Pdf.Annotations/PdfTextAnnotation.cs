@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -113,11 +113,11 @@ public sealed class PdfTextAnnotation : PdfAnnotation
         /// (Optional) The name of an icon to be used in displaying the annotation. Viewer
         /// applications should provide predefined icon appearances for at least the following
         /// standard names:
-        ///   Comment 
-        ///   Help 
+        ///   Comment
+        ///   Help
         ///   Insert
-        ///   Key 
-        ///   NewParagraph 
+        ///   Key
+        ///   NewParagraph
         ///   Note
         ///   Paragraph
         /// </summary>

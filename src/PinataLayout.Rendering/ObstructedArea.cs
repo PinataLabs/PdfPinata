@@ -39,7 +39,7 @@ internal class ObstructedArea : Area
 
         if (obstacles != null)
         {
-            foreach (Rectangle obstacle in obstacles)
+            foreach (var obstacle in obstacles)
             {
                 if (obstacle != null)
                     _obstacles.Add(new Rectangle(obstacle));
@@ -77,7 +77,7 @@ internal class ObstructedArea : Area
         if (yPosition + height > _bounds.Y + _bounds.Height + Renderer.Tolerance)
             return null;
 
-        List<(double Start, double End)> blocked = BlockedSpansIn(yPosition, height);
+        var blocked = BlockedSpansIn(yPosition, height);
 
         // Nothing standing in this band, so the whole of it is free. Kept ahead of the scan rather
         // than folded into it: the scan judges a run against the tolerance and would answer null
@@ -89,7 +89,7 @@ internal class ObstructedArea : Area
         // Every part of the band is taken. Not an error: the paragraph moves down past whatever is
         // standing here and carries on below it.
         if (!LineSpans.TryWidestFree(_bounds.X, _bounds.X + _bounds.Width, blocked, Renderer.Tolerance,
-                out double widestStart, out double widestWidth))
+                out var widestStart, out var widestWidth))
             return null;
 
         return new Rectangle(widestStart, yPosition, widestWidth, height);
@@ -106,12 +106,12 @@ internal class ObstructedArea : Area
     {
         var blocked = new List<(double Start, double End)>();
         double top = yPosition;
-        double bottom = yPosition + height;
+        var bottom = yPosition + height;
 
-        foreach (Rectangle obstacle in _obstacles)
+        foreach (var obstacle in _obstacles)
         {
             double obstacleTop = obstacle.Y;
-            double obstacleBottom = obstacle.Y + obstacle.Height;
+            var obstacleBottom = obstacle.Y + obstacle.Height;
 
             if (obstacleBottom <= top + Renderer.Tolerance || obstacleTop >= bottom - Renderer.Tolerance)
                 continue;

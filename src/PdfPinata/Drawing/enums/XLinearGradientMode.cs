@@ -52,5 +52,5 @@ public enum XLinearGradientMode  // same values as System.Drawing.LinearGradient
     /// <summary>
     /// Specifies a gradient from upper right to lower left.
     /// </summary>
-    BackwardDiagonal = 3,
+    BackwardDiagonal = 3
 }

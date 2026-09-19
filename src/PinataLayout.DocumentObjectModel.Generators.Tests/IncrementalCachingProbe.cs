@@ -27,8 +27,8 @@ static class IncrementalCachingProbe
     /// </summary>
     public static GeneratorRunResult RunTwice(string source, string? secondSource = null)
     {
-        CSharpCompilation first = GeneratorHarness.CreateCompilation(source);
-        CSharpCompilation second = GeneratorHarness.CreateCompilation(secondSource ?? source);
+        var first = GeneratorHarness.CreateCompilation(source);
+        var second = GeneratorHarness.CreateCompilation(secondSource ?? source);
 
         GeneratorDriver driver = CSharpGeneratorDriver.Create(
             new[] { new DomValueModelGenerator().AsSourceGenerator() },

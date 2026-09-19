@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -49,7 +49,7 @@ public sealed class PdfExtGStateTable : PdfResourceTable
     /// </summary>
     public PdfExtGState GetExtGStateStroke(double alpha, bool overprint)
     {
-        string key = PdfExtGState.MakeKey(alpha, overprint);
+        var key = PdfExtGState.MakeKey(alpha, overprint);
         PdfExtGState extGState;
         if (!_strokeAlphaValues.TryGetValue(key, out extGState))
         {
@@ -71,7 +71,7 @@ public sealed class PdfExtGStateTable : PdfResourceTable
     /// </summary>
     public PdfExtGState GetExtGStateNonStroke(double alpha, bool overprint)
     {
-        string key = PdfExtGState.MakeKey(alpha, overprint);
+        var key = PdfExtGState.MakeKey(alpha, overprint);
         PdfExtGState extGState;
         if (!_nonStrokeStates.TryGetValue(key, out extGState))
         {

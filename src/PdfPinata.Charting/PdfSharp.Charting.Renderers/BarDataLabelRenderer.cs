@@ -50,19 +50,19 @@ internal class BarDataLabelRenderer : DataLabelRenderer
   /// </summary>
   internal override void Format()
   {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    foreach (SeriesRendererInfo sri in cri.seriesRendererInfos)
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    foreach (var sri in cri.seriesRendererInfos)
     {
       if (sri.dataLabelRendererInfo == null)
         continue;
 
-      XGraphics gfx = this.rendererParms.Graphics;
+      var gfx = this.rendererParms.Graphics;
 
       sri.dataLabelRendererInfo.Entries = new DataLabelEntryRendererInfo[sri.pointRendererInfos.Length];
-      int index = 0;
+      var index = 0;
       foreach (ColumnRendererInfo column in sri.pointRendererInfos)
       {
-        DataLabelEntryRendererInfo dleri = new DataLabelEntryRendererInfo();
+        var dleri = new DataLabelEntryRendererInfo();
         if (sri.dataLabelRendererInfo.Type == DataLabelType.Percent)
           throw new InvalidOperationException(PSCSR.PercentNotSupportedByColumnDataLabel);
 
@@ -88,19 +88,19 @@ internal class BarDataLabelRenderer : DataLabelRenderer
   /// </summary>
   internal override void Draw()
   {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
 
-    foreach (SeriesRendererInfo sri in cri.seriesRendererInfos)
+    foreach (var sri in cri.seriesRendererInfos)
     {
       if (sri.dataLabelRendererInfo == null)
         continue;
 
-      XGraphics gfx = this.rendererParms.Graphics;
-      XFont font = sri.dataLabelRendererInfo.Font;
-      XBrush fontColor = sri.dataLabelRendererInfo.FontColor;
-      XStringFormat format = XStringFormats.Center;
+      var gfx = this.rendererParms.Graphics;
+      var font = sri.dataLabelRendererInfo.Font;
+      var fontColor = sri.dataLabelRendererInfo.FontColor;
+      var format = XStringFormats.Center;
       format.LineAlignment = XLineAlignment.Center;
-      foreach (DataLabelEntryRendererInfo dataLabel in sri.dataLabelRendererInfo.Entries)
+      foreach (var dataLabel in sri.dataLabelRendererInfo.Entries)
       {
         if (dataLabel.Text != null)
           gfx.DrawString(dataLabel.Text, font, fontColor, dataLabel.Rect, format);
@@ -113,18 +113,18 @@ internal class BarDataLabelRenderer : DataLabelRenderer
   /// </summary>
   internal override void CalcPositions()
   {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    XGraphics gfx = this.rendererParms.Graphics;
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var gfx = this.rendererParms.Graphics;
 
-    foreach (SeriesRendererInfo sri in cri.seriesRendererInfos)
+    foreach (var sri in cri.seriesRendererInfos)
     {
       if (sri.dataLabelRendererInfo == null)
         continue;
 
-      int columnIndex = 0;
+      var columnIndex = 0;
       foreach (ColumnRendererInfo bar in sri.pointRendererInfos)
       {
-        DataLabelEntryRendererInfo dleri = sri.dataLabelRendererInfo.Entries[columnIndex++];
+        var dleri = sri.dataLabelRendererInfo.Entries[columnIndex++];
 
         dleri.Y = bar.Rect.Y + (bar.Rect.Height - dleri.Height) / 2; // Always the same...
         switch (sri.dataLabelRendererInfo.Position)

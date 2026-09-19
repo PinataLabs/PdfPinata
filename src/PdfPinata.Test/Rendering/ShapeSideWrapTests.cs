@@ -326,7 +326,7 @@ public class ShapeSideWrapTests
         return RenderDocument(style, shapePosition, shapeWidth, shapeHeight, paragraphs, arrange).Pages[0];
     }
 
-    static Laid LaidOut(WrapStyle style, ShapePosition shapePosition = ShapePosition.Left,
+    private static Laid LaidOut(WrapStyle style, ShapePosition shapePosition = ShapePosition.Left,
         string shapeWidth = "4cm", string shapeHeight = "4cm", Action<WrapFormat> arrange = null)
     {
         return new Laid(Render(style, shapePosition, shapeWidth, shapeHeight, 12, arrange));

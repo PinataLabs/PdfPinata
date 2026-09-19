@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -52,12 +52,12 @@ public sealed class PdfContents : PdfArray
     internal PdfContents(PdfArray array)
         : base(array)
     {
-        int count = Elements.Count;
-        for (int idx = 0; idx < count; idx++)
+        var count = Elements.Count;
+        for (var idx = 0; idx < count; idx++)
         {
             // Convert the references from PdfDictionary to PdfContent
-            PdfItem item = Elements[idx];
-            PdfReference iref = item as PdfReference;
+            var item = Elements[idx];
+            var iref = item as PdfReference;
             if (iref != null && iref.Value is PdfDictionary)
             {
                 // Called for its side effect: the constructor replaces the dictionary behind the
@@ -77,7 +77,7 @@ public sealed class PdfContents : PdfArray
         Debug.Assert(Owner != null);
 
         SetModified();
-        PdfContent content = new PdfContent(Owner);
+        var content = new PdfContent(Owner);
         Owner._irefTable.Add(content);
         Debug.Assert(content.Reference != null);
         Elements.Add(content.Reference);
@@ -92,7 +92,7 @@ public sealed class PdfContents : PdfArray
         Debug.Assert(Owner != null);
 
         SetModified();
-        PdfContent content = new PdfContent(Owner);
+        var content = new PdfContent(Owner);
         Owner._irefTable.Add(content);
         Debug.Assert(content.Reference != null);
         Elements.Insert(0, content.Reference);
@@ -105,12 +105,12 @@ public sealed class PdfContents : PdfArray
     /// </summary>
     public PdfContent CreateSingleContent()
     {
-        byte[] bytes = Array.Empty<byte>();
+        var bytes = Array.Empty<byte>();
         byte[] bytes1;
         byte[] bytes2;
-        foreach (PdfItem iref in Elements)
+        foreach (var iref in Elements)
         {
-            PdfDictionary cont = (PdfDictionary)((PdfReference)iref).Value;
+            var cont = (PdfDictionary)((PdfReference)iref).Value;
             bytes1 = bytes;
             bytes2 = cont.Stream.UnfilteredValue;
             bytes = new byte[bytes1.Length + bytes2.Length + 1];
@@ -118,7 +118,7 @@ public sealed class PdfContents : PdfArray
             bytes[bytes1.Length] = (byte)'\n';
             bytes2.CopyTo(bytes, bytes1.Length + 1);
         }
-        PdfContent content = new PdfContent(Owner);
+        var content = new PdfContent(Owner);
         content.Stream = new PdfDictionary.PdfStream(bytes, content);
         return content;
     }
@@ -141,7 +141,7 @@ public sealed class PdfContents : PdfArray
     {
         Debug.Assert(Owner != null);
 
-        PdfContent content = new PdfContent(Owner);
+        var content = new PdfContent(Owner);
 
         content.CreateStream(contentBytes);
 
@@ -157,11 +157,11 @@ public sealed class PdfContents : PdfArray
         if (!_modified)
         {
             _modified = true;
-            int count = Elements.Count;
+            var count = Elements.Count;
 
             if (count == 1)
             {
-                PdfContent content = (PdfContent)((PdfReference)Elements[0]).Value;
+                var content = (PdfContent)((PdfReference)Elements[0]).Value;
                 content.PreserveGraphicsState();
             }
             else if (count > 1)
@@ -169,7 +169,7 @@ public sealed class PdfContents : PdfArray
                 // Surround content streams with q/Q operations
                 byte[] value;
                 int length;
-                PdfContent content = (PdfContent)((PdfReference)Elements[0]).Value;
+                var content = (PdfContent)((PdfReference)Elements[0]).Value;
                 if (content != null && content.Stream != null)
                 {
                     length = content.Stream.Length;

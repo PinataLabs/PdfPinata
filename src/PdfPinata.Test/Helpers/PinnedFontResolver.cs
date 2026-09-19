@@ -83,7 +83,7 @@ internal sealed class PinnedFontResolver : IFontResolver
     /// </summary>
     public static void Register(string familyName, byte[] fontBytes)
     {
-        string faceName = familyName + ".test";
+        var faceName = familyName + ".test";
         Fonts.TryAdd(faceName, fontBytes);
         Registered.TryAdd(familyName, faceName);
     }
@@ -92,7 +92,7 @@ internal sealed class PinnedFontResolver : IFontResolver
 
     public FontResolverInfo ResolveTypeface(string familyName, bool isBold, bool isItalic)
     {
-        if (Registered.TryGetValue(familyName, out string testFaceName))
+        if (Registered.TryGetValue(familyName, out var testFaceName))
             return new FontResolverInfo(testFaceName);
 
         if (string.Equals(familyName, ArabicFamilyName, StringComparison.OrdinalIgnoreCase))
@@ -113,7 +113,7 @@ internal sealed class PinnedFontResolver : IFontResolver
             // A regular face is all that is shipped for this family, so a bold or an italic has
             // to be drawn on. That also gives the style-simulation tests a family to work with:
             // the same file answers every request, so only the simulation differs.
-            XStyleSimulations simulations =
+            var simulations =
                 (isBold ? XStyleSimulations.BoldSimulation : XStyleSimulations.None)
                 | (isItalic ? XStyleSimulations.ItalicSimulation : XStyleSimulations.None);
 
@@ -144,8 +144,7 @@ internal sealed class PinnedFontResolver : IFontResolver
     {
         var directory = Path.GetDirectoryName(typeof(PinnedFontResolver).GetTypeInfo().Assembly.Location);
 
-        if (faceName == CffFaceName || faceName == ArabicFaceName
-            || faceName == DevanagariFaceName)
+        if (faceName is CffFaceName or ArabicFaceName or DevanagariFaceName)
             return Path.Combine(directory, "Assets", "Fonts", faceName);
 
         return Path.Combine(directory, "Assets", "Fonts", "LiberationSans-" + faceName + ".ttf");
@@ -153,12 +152,11 @@ internal sealed class PinnedFontResolver : IFontResolver
 
     private static string FaceNameOf(bool isBold, bool isItalic)
     {
-        if (isBold && isItalic)
-            return "BoldItalic";
-        if (isBold)
-            return "Bold";
-        if (isItalic)
-            return "Italic";
-        return "Regular";
+        return isBold switch
+        {
+            true when isItalic => "BoldItalic",
+            true => "Bold",
+            _ => isItalic ? "Italic" : "Regular"
+        };
     }
 }

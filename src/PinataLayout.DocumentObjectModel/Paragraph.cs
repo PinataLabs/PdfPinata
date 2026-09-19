@@ -26,7 +26,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -203,7 +203,7 @@ public partial class Paragraph : DocumentObject, IVisitable
     }
 
     /// <summary>
-    /// Adds a new Hyperlink of Type "Local", 
+    /// Adds a new Hyperlink of Type "Local",
     /// i.e. the Target is a Bookmark within the Document
     /// </summary>
     public Hyperlink AddHyperlink(string name)
@@ -313,7 +313,7 @@ public partial class Paragraph : DocumentObject, IVisitable
     public Image AddImage(IImageSource imageSource)
     {
         return Elements.AddImage(imageSource);
-    }      
+    }
 
     /// <summary>
     /// Adds a new Bookmark
@@ -526,7 +526,7 @@ public partial class Paragraph : DocumentObject, IVisitable
             serializer.WriteComment((comment ?? ""));
             serializer.WriteLine("\\paragraph");
 
-            int pos = serializer.BeginAttributes();
+            var pos = serializer.BeginAttributes();
 
             if ((style ?? "") != "")
                 serializer.WriteLine("Style = \"" + (style ?? "") + "\"");
@@ -557,17 +557,17 @@ public partial class Paragraph : DocumentObject, IVisitable
         if (elements == null)
             return null;
 
-        int startIdx = 0;
-        ArrayList paragraphs = new ArrayList();
-        for (int idx = 0; idx < Elements.Count; ++idx)
+        var startIdx = 0;
+        var paragraphs = new ArrayList();
+        for (var idx = 0; idx < Elements.Count; ++idx)
         {
-            DocumentObject element = Elements[idx];
+            var element = Elements[idx];
             if (element is Character)
             {
-                Character character = (Character)element;
+                var character = (Character)element;
                 if (character.SymbolName == SymbolName.ParaBreak)
                 {
-                    Paragraph paragraph = new Paragraph();
+                    var paragraph = new Paragraph();
                     paragraph.Format = Format.Clone();
                     paragraph.Style = Style;
                     paragraph.Elements = SubsetElements(startIdx, idx - 1);
@@ -580,7 +580,7 @@ public partial class Paragraph : DocumentObject, IVisitable
             return null;
         else
         {
-            Paragraph paragraph = new Paragraph();
+            var paragraph = new Paragraph();
             paragraph.Format = Format.Clone();
             paragraph.Style = Style;
             paragraph.Elements = SubsetElements(startIdx, elements.Count - 1);
@@ -602,8 +602,8 @@ public partial class Paragraph : DocumentObject, IVisitable
     /// <returns>A ParagraphElements object with cloned elements.</returns>
     private ParagraphElements SubsetElements(int startIdx, int endIdx)
     {
-        ParagraphElements paragraphElements = new ParagraphElements();
-        for (int idx = startIdx; idx <= endIdx; ++idx)
+        var paragraphElements = new ParagraphElements();
+        for (var idx = startIdx; idx <= endIdx; ++idx)
         {
             paragraphElements.Add((DocumentObject)elements[idx].Clone());
         }

@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -199,8 +199,8 @@ public abstract class PdfAnnotation : PdfDictionary
     {
         get
         {
-            PdfItem item = Elements[Keys.C];
-            PdfArray array = item as PdfArray;
+            var item = Elements[Keys.C];
+            var array = item as PdfArray;
             if (array != null)  // TODO: check for iref?
             {
                 if (array.Elements.Count == 3)
@@ -221,7 +221,7 @@ public abstract class PdfAnnotation : PdfDictionary
         set
         {
             // TODO: an array.SetColor(clr) function may be useful here
-            PdfArray array = new PdfArray(Owner, new PdfReal[] { new(value.R / 255.0), new(value.G / 255.0), new(value.B / 255.0) });
+            var array = new PdfArray(Owner, new PdfReal[] { new(value.R / 255.0), new(value.G / 255.0), new(value.B / 255.0) });
             Elements[Keys.C] = array;
             Elements.SetDateTime(Keys.M, GlobalTimeSettings.Now);
             OnAppearanceInvalidated();
@@ -277,7 +277,7 @@ public abstract class PdfAnnotation : PdfDictionary
     /// </remarks>
     public void SetAppearance(XForm form)
     {
-        PdfDictionary appearance = new PdfDictionary(RequireOwner());
+        var appearance = new PdfDictionary(RequireOwner());
         appearance.Elements["/N"] = FinishedForm(form).Reference;
         Elements[Keys.AP] = appearance;
 
@@ -305,18 +305,18 @@ public abstract class PdfAnnotation : PdfDictionary
         if (string.IsNullOrEmpty(state))
             throw new ArgumentException("An appearance state must be named.", nameof(state));
 
-        string name = state[0] == '/' ? state : "/" + state;
-        PdfDocument owner = RequireOwner();
+        var name = state[0] == '/' ? state : "/" + state;
+        var owner = RequireOwner();
 
         // The states already written are kept: /AP /N holds all of them, and /AS picks one.
-        PdfDictionary appearance = Elements.GetDictionary(Keys.AP);
+        var appearance = Elements.GetDictionary(Keys.AP);
         if (appearance == null)
         {
             appearance = new PdfDictionary(owner);
             Elements[Keys.AP] = appearance;
         }
 
-        PdfDictionary states = appearance.Elements.GetDictionary("/N");
+        var states = appearance.Elements.GetDictionary("/N");
         if (states == null || states.Elements.ContainsKey("/BBox"))
         {
             // Either nothing yet, or a single appearance set by the overload above - which is a
@@ -345,7 +345,7 @@ public abstract class PdfAnnotation : PdfDictionary
     {
         get
         {
-            string state = Elements.GetName(Keys.AS);
+            var state = Elements.GetName(Keys.AS);
             return state.Length == 0 ? null : state;
         }
         set
@@ -449,7 +449,7 @@ public abstract class PdfAnnotation : PdfDictionary
         if (string.IsNullOrEmpty(name))
             return fallback;
 
-        string member = name[0] == '/' ? name.Substring(1) : name;
+        var member = name[0] == '/' ? name[1..] : name;
 
         return Enum.IsDefined(typeof(T), member)
             ? Enum.Parse<T>(member, false)
@@ -504,7 +504,7 @@ public abstract class PdfAnnotation : PdfDictionary
 
         /// <summary>
         /// (Optional; PDF 1.1) The date and time when the annotation was most recently
-        /// modified. The preferred format is a date string, but viewer applications should be 
+        /// modified. The preferred format is a date string, but viewer applications should be
         /// prepared to accept and display a string in any format.
         /// </summary>
         [KeyInfo(KeyType.Date | KeyType.Optional)]
@@ -534,7 +534,7 @@ public abstract class PdfAnnotation : PdfDictionary
 
         /// <summary>
         /// (Required if the appearance dictionary AP contains one or more subdictionaries; PDF 1.2)
-        /// The annotation’s appearance state, which selects the applicable appearance stream from 
+        /// The annotation’s appearance state, which selects the applicable appearance stream from
         /// an appearance subdictionary.
         /// </summary>
         [KeyInfo("1.2", KeyType.Dictionary | KeyType.Optional)]
@@ -543,12 +543,12 @@ public abstract class PdfAnnotation : PdfDictionary
         /// <summary>
         /// (Optional) An array specifying the characteristics of the annotation’s border.
         /// The border is specified as a rounded rectangle.
-        /// In PDF 1.0, the array consists of three numbers defining the horizontal corner 
+        /// In PDF 1.0, the array consists of three numbers defining the horizontal corner
         /// radius, vertical corner radius, and border width, all in default user space units.
-        /// If the corner radii are 0, the border has square (not rounded) corners; if the border 
+        /// If the corner radii are 0, the border has square (not rounded) corners; if the border
         /// width is 0, no border is drawn.
-        /// In PDF 1.1, the array may have a fourth element, an optional dash array defining a 
-        /// pattern of dashes and gaps to be used in drawing the border. The dash array is 
+        /// In PDF 1.1, the array may have a fourth element, an optional dash array defining a
+        /// pattern of dashes and gaps to be used in drawing the border. The dash array is
         /// specified in the same format as in the line dash pattern parameter of the graphics state.
         /// For example, a Border value of [0 0 1 [3 2]] specifies a border 1 unit wide, with
         /// square corners, drawn with 3-unit dashes alternating with 2-unit gaps. Note that no

@@ -31,7 +31,7 @@ public static class Assets
     /// <summary>Opens an embedded asset, or throws naming what is actually there.</summary>
     public static Stream Open(string name)
     {
-        Stream? stream = Self.GetManifestResourceStream(name);
+        var stream = Self.GetManifestResourceStream(name);
         if (stream is null)
         {
             throw new FileNotFoundException(
@@ -44,8 +44,8 @@ public static class Assets
 
     public static byte[] Bytes(string name)
     {
-        using Stream stream = Open(name);
-        using MemoryStream buffer = new MemoryStream();
+        using var stream = Open(name);
+        using var buffer = new MemoryStream();
         stream.CopyTo(buffer);
         return buffer.ToArray();
     }
@@ -53,11 +53,11 @@ public static class Assets
     /// <summary>The text of an embedded asset, or null if it is not embedded at all.</summary>
     public static string? TryReadText(string name)
     {
-        using Stream? stream = Self.GetManifestResourceStream(name);
+        using var stream = Self.GetManifestResourceStream(name);
         if (stream is null)
             return null;
 
-        using StreamReader reader = new StreamReader(stream);
+        using var reader = new StreamReader(stream);
         return reader.ReadToEnd();
     }
 

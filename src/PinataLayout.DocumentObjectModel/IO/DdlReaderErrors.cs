@@ -59,8 +59,8 @@ public class DdlReaderErrors : IEnumerable
   {
     get
     {
-      int count = 0;
-      for (int idx = 0; idx < this.errors.Count; idx++)
+      var count = 0;
+      for (var idx = 0; idx < this.errors.Count; idx++)
         if (((DdlReaderError)this.errors[idx]).ErrorLevel == DdlErrorLevel.Error)
           count++;
       return count;

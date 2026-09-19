@@ -12,13 +12,13 @@ namespace System
             /// <summary>The concatenation of <paramref name="str0"/> and <paramref name="str1"/>.</summary>
             public static string Concat(ReadOnlySpan<char> str0, ReadOnlySpan<char> str1)
             {
-                int length = str0.Length + str1.Length;
+                var length = str0.Length + str1.Length;
                 if (length == 0)
                     return string.Empty;
 
                 // The one string returned is the one allocation, as on the runtime: the characters are
                 // gathered in a rented buffer rather than in two intermediate strings.
-                char[] buffer = ArrayPool<char>.Shared.Rent(length);
+                var buffer = ArrayPool<char>.Shared.Rent(length);
                 try
                 {
                     str0.CopyTo(buffer);

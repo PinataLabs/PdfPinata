@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -51,13 +51,13 @@ internal sealed class PdfImageTable : PdfResourceTable
     /// </summary>
     public PdfImage GetImage(XImage image)
     {
-        ImageSelector selector = image._selector;
+        var selector = image._selector;
         if (selector == null)
         {
             selector = new ImageSelector(image);
             image._selector = selector;
         }
-        if (!_images.TryGetValue(selector, out PdfImage pdfImage))
+        if (!_images.TryGetValue(selector, out var pdfImage))
         {
             pdfImage = new PdfImage(Owner, image);
             //pdfImage.Document = _document;
@@ -100,7 +100,7 @@ internal sealed class PdfImageTable : PdfResourceTable
 
         public override bool Equals(object obj)
         {
-            ImageSelector selector = obj as ImageSelector;
+            var selector = obj as ImageSelector;
             if (selector == null)
                 return false;
             return _path == selector._path;

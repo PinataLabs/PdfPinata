@@ -81,5 +81,5 @@ public enum XLineAlignment  // same values as System.Drawing.StringAlignment (ex
     /// Specifies that text is centred on its x-height, as canvas <c>svg-middle</c> does - half the
     /// height of a lowercase x sits above the line.
     /// </summary>
-    SvgMiddle = 6,
+    SvgMiddle = 6
 }

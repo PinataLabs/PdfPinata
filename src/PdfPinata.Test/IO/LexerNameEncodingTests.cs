@@ -117,7 +117,7 @@ public class LexerNameEncodingTests
         var name = new byte[bytes.Length + 2];
         name[0] = (byte)'/';
         bytes.CopyTo(name, 1);
-        name[name.Length - 1] = (byte)' ';
+        name[^1] = (byte)' ';
         return name;
     }
 

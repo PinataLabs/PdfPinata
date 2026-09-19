@@ -27,7 +27,7 @@ internal sealed class StructureDemo : PdfDemo
         "ListInfo - all six list types, and ContinuePreviousList, which is what keeps numbering",
         "Hyperlink in its bookmark, web and local forms",
         "PageBreak, which is what gives the contents three different page numbers to resolve to",
-        "The predefined styles in StyleNames, and how a style inherits from the one it is based on",
+        "The predefined styles in StyleNames, and how a style inherits from the one it is based on"
     };
 
     public override int PageCount => 5;
@@ -35,19 +35,24 @@ internal sealed class StructureDemo : PdfDemo
     protected override PdfDocument Build(DemoContext context)
     {
         #region example
-        Document report = new Document();
-        report.Info.Title = "Structure";
+        var report = new Document
+        {
+            Info =
+            {
+                Title = "Structure"
+            }
+        };
 
         // docs:begin predefined-styles
         // Every predefined style is already there and already related: Heading1 is based on Normal,
         // Heading2 on Heading1, and so on, so setting the font on Normal reaches all of them.
         // StyleNames holds the names rather than the styles - they are looked up on the document.
-        Style normal = report.Styles[StyleNames.Normal];
+        var normal = report.Styles[StyleNames.Normal];
         normal.Font.Name = "Liberation Serif";
         normal.Font.Size = 10.5;
         normal.ParagraphFormat.SpaceAfter = Unit.FromPoint(6);
 
-        Style heading1 = report.Styles[StyleNames.Heading1];
+        var heading1 = report.Styles[StyleNames.Heading1];
         heading1.Font.Name = "Liberation Sans";
         heading1.Font.Size = 18;
         heading1.Font.Bold = true;
@@ -61,7 +66,7 @@ internal sealed class StructureDemo : PdfDemo
         // is called for it - so nothing here ever mentions PdfOutline.
         heading1.ParagraphFormat.OutlineLevel = OutlineLevel.Level1;
 
-        Style heading2 = report.Styles[StyleNames.Heading2];
+        var heading2 = report.Styles[StyleNames.Heading2];
         heading2.Font.Size = 13;
         heading2.ParagraphFormat.SpaceBefore = Unit.FromPoint(12);
         heading2.ParagraphFormat.OutlineLevel = OutlineLevel.Level2;
@@ -71,7 +76,7 @@ internal sealed class StructureDemo : PdfDemo
         // A style of one's own, based on another. Everything not set here comes from Normal, so a
         // change to Normal's font reaches this too - which is the point of basing rather than
         // copying.
-        Style caption = report.Styles.AddStyle("Caption", StyleNames.Normal);
+        var caption = report.Styles.AddStyle("Caption", StyleNames.Normal);
         caption.Font.Size = 8.5;
         caption.Font.Italic = true;
         caption.Font.Color = Colors.DimGray;
@@ -79,7 +84,7 @@ internal sealed class StructureDemo : PdfDemo
 
         // docs:begin entry-style
         // The contents entries are a style too, carrying the tab stop the leader belongs to.
-        Style entry = report.Styles.AddStyle("Entry", StyleNames.Normal);
+        var entry = report.Styles.AddStyle("Entry", StyleNames.Normal);
         entry.ParagraphFormat.SpaceAfter = Unit.FromPoint(2);
         entry.ParagraphFormat.TabStops.AddTabStop(Unit.FromCentimeter(15),
             TabAlignment.Right, TabLeader.Dots);
@@ -87,14 +92,14 @@ internal sealed class StructureDemo : PdfDemo
 
         // ----- section one: a title page with a page setup of its own -----
 
-        Section title = report.AddSection();
+        var title = report.AddSection();
         title.PageSetup.TopMargin = Unit.FromCentimeter(6);
         title.PageSetup.LeftMargin = Unit.FromCentimeter(3);
         title.PageSetup.RightMargin = Unit.FromCentimeter(3);
 
         // A section's headers are its own. Leaving this one's empty is how a title page comes out
         // without the running head the rest of the document has.
-        Paragraph titleLine = title.AddParagraph("A structured document");
+        var titleLine = title.AddParagraph("A structured document");
         titleLine.Format.Font.Name = "Liberation Sans";
         titleLine.Format.Font.Size = 30;
         titleLine.Format.Font.Bold = true;
@@ -108,7 +113,7 @@ internal sealed class StructureDemo : PdfDemo
         // ----- section two: the contents -----
 
         // docs:begin first-and-even-headers
-        Section contents = report.AddSection();
+        var contents = report.AddSection();
         contents.PageSetup.TopMargin = Unit.FromCentimeter(2.5);
 
         // Primary is what every page of the section gets. FirstPage and EvenPage override it where
@@ -116,7 +121,7 @@ internal sealed class StructureDemo : PdfDemo
         contents.PageSetup.DifferentFirstPageHeaderFooter = true;
         contents.PageSetup.OddAndEvenPagesHeaderFooter = true;
 
-        Paragraph runningHead = contents.Headers.Primary.AddParagraph("A structured document");
+        var runningHead = contents.Headers.Primary.AddParagraph("A structured document");
         runningHead.Format.Font.Size = 8;
         runningHead.Format.Font.Color = Colors.DimGray;
         runningHead.Format.Alignment = ParagraphAlignment.Right;
@@ -124,17 +129,17 @@ internal sealed class StructureDemo : PdfDemo
         // Filled because DifferentFirstPageHeaderFooter is set above. Leaving it empty does not
         // fall back to Primary - it means the first page of the section has no header at all,
         // which on a section this short is every page a reader would look at for one.
-        Paragraph firstHead = contents.Headers.FirstPage.AddParagraph("First page of the section gets this one");
+        var firstHead = contents.Headers.FirstPage.AddParagraph("First page of the section gets this one");
         firstHead.Format.Font.Size = 8;
         firstHead.Format.Font.Color = Colors.DimGray;
         firstHead.Format.Alignment = ParagraphAlignment.Right;
 
-        Paragraph evenHead = contents.Headers.EvenPage.AddParagraph("Even pages get this one");
+        var evenHead = contents.Headers.EvenPage.AddParagraph("Even pages get this one");
         evenHead.Format.Font.Size = 8;
         evenHead.Format.Font.Color = Colors.DimGray;
         // docs:end first-and-even-headers
 
-        Paragraph footer = contents.Footers.Primary.AddParagraph();
+        var footer = contents.Footers.Primary.AddParagraph();
         footer.Format.Alignment = ParagraphAlignment.Center;
         footer.Format.Font.Size = 8;
         footer.AddText("Page ");
@@ -152,12 +157,12 @@ internal sealed class StructureDemo : PdfDemo
         {
             ("chapter-one", "1  Sections and headers"),
             ("lists", "2  Lists"),
-            ("references", "3  Cross-references and hyperlinks"),
+            ("references", "3  Cross-references and hyperlinks")
         };
 
-        foreach ((string Bookmark, string Text) item in entries)
+        foreach (var item in entries)
         {
-            Paragraph line = contents.AddParagraph();
+            var line = contents.AddParagraph();
             line.Style = "Entry";
             line.AddHyperlink(item.Bookmark).AddText(item.Text);
             line.AddTab();
@@ -172,16 +177,16 @@ internal sealed class StructureDemo : PdfDemo
 
         // ----- section three: the body -----
 
-        Section bodyText = report.AddSection();
+        var bodyText = report.AddSection();
         bodyText.PageSetup.TopMargin = Unit.FromCentimeter(2.5);
         bodyText.PageSetup.DifferentFirstPageHeaderFooter = false;
 
-        Paragraph bodyHead = bodyText.Headers.Primary.AddParagraph("A structured document");
+        var bodyHead = bodyText.Headers.Primary.AddParagraph("A structured document");
         bodyHead.Format.Font.Size = 8;
         bodyHead.Format.Font.Color = Colors.DimGray;
         bodyHead.Format.Alignment = ParagraphAlignment.Right;
 
-        Paragraph bodyFooter = bodyText.Footers.Primary.AddParagraph();
+        var bodyFooter = bodyText.Footers.Primary.AddParagraph();
         bodyFooter.Format.Alignment = ParagraphAlignment.Center;
         bodyFooter.Format.Font.Size = 8;
         bodyFooter.AddText("Page ");
@@ -190,7 +195,7 @@ internal sealed class StructureDemo : PdfDemo
         // A bookmark is invisible and draws nothing. It is a name attached to a point in the flow,
         // and it is what a PageRefField and a hyperlink both resolve against.
         // docs:begin bookmark
-        Paragraph chapter = bodyText.AddParagraph();
+        var chapter = bodyText.AddParagraph();
         chapter.Style = StyleNames.Heading1;
         chapter.AddBookmark("chapter-one");
         chapter.AddText("1  Sections and headers");
@@ -214,7 +219,7 @@ internal sealed class StructureDemo : PdfDemo
         bodyText.AddPageBreak();
         // docs:end page-break
 
-        Paragraph listsHead = bodyText.AddParagraph();
+        var listsHead = bodyText.AddParagraph();
         listsHead.Style = StyleNames.Heading1;
         listsHead.AddBookmark("lists");
         listsHead.AddText("2  Lists");
@@ -225,15 +230,15 @@ internal sealed class StructureDemo : PdfDemo
             + "whether this paragraph carries on the list above it or starts a new one.");
 
         // docs:begin list-types
-        foreach (ListType type in new[]
+        foreach (var type in new[]
         {
             ListType.BulletList1, ListType.BulletList2, ListType.BulletList3,
-            ListType.NumberList1, ListType.NumberList2, ListType.NumberList3,
+            ListType.NumberList1, ListType.NumberList2, ListType.NumberList3
         })
         {
-            for (int item = 1; item <= 3; item++)
+            for (var item = 1; item <= 3; item++)
             {
-                Paragraph line = bodyText.AddParagraph(
+                var line = bodyText.AddParagraph(
                     item == 1 ? $"{type} - first item" : $"{type} - item {item}");
                 line.Format.SpaceAfter = Unit.FromPoint(1);
                 line.Format.LeftIndent = Unit.FromCentimeter(1);
@@ -244,7 +249,7 @@ internal sealed class StructureDemo : PdfDemo
                     // False on the first item of a run and true after it. Getting this wrong is
                     // what makes a numbered list restart at one halfway down, or carry on from
                     // the list before it.
-                    ContinuePreviousList = item > 1,
+                    ContinuePreviousList = item > 1
                 };
             }
         }
@@ -252,20 +257,20 @@ internal sealed class StructureDemo : PdfDemo
 
         bodyText.AddPageBreak();
 
-        Paragraph refsHead = bodyText.AddParagraph();
+        var refsHead = bodyText.AddParagraph();
         refsHead.Style = StyleNames.Heading1;
         refsHead.AddBookmark("references");
         refsHead.AddText("3  Cross-references and hyperlinks");
 
         // docs:begin page-ref
-        Paragraph crossRef = bodyText.AddParagraph("The lists above begin on page ");
+        var crossRef = bodyText.AddParagraph("The lists above begin on page ");
         crossRef.AddPageRefField("lists");
         crossRef.AddText(", and this sentence knows that without anybody counting: a PageRefField "
             + "is resolved against its bookmark when the document is laid out.");
         // docs:end page-ref
 
         // docs:begin hyperlinks
-        Paragraph links = bodyText.AddParagraph("A hyperlink comes in three shapes. ");
+        var links = bodyText.AddParagraph("A hyperlink comes in three shapes. ");
         links.AddHyperlink("chapter-one").AddFormattedText("This one goes to chapter one",
             TextFormat.Underline);
         links.AddText(", inside the document. ");
@@ -274,7 +279,7 @@ internal sealed class StructureDemo : PdfDemo
         links.AddText(", to a URI. A third form points at a file on disk.");
         // docs:end hyperlinks
 
-        Paragraph outlineNote = bodyText.AddParagraph();
+        var outlineNote = bodyText.AddParagraph();
         outlineNote.Style = "Caption";
         outlineNote.AddText(
             "Every heading on this page is a bookmark in the PDF's outline panel, and nothing in "
@@ -283,7 +288,7 @@ internal sealed class StructureDemo : PdfDemo
 
         // Section-level fields, which count within the section rather than the document.
         // docs:begin section-fields
-        Paragraph sectionNote = bodyText.AddParagraph("This is section ");
+        var sectionNote = bodyText.AddParagraph("This is section ");
         sectionNote.AddSectionField();
         sectionNote.AddText(" of the document, and it has ");
         sectionNote.AddSectionPagesField();
@@ -292,7 +297,7 @@ internal sealed class StructureDemo : PdfDemo
         // docs:end section-fields
 
         // docs:begin render
-        PdfDocumentRenderer renderer = new PdfDocumentRenderer(unicode: true) { Document = report };
+        var renderer = new PdfDocumentRenderer(unicode: true) { Document = report };
         renderer.RenderDocument();
 
         // The outline panel is worth opening on arrival, since the whole point of the page above

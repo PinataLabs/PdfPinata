@@ -50,27 +50,27 @@ internal class PieExplodedPlotAreaRenderer : PiePlotAreaRenderer
   /// </summary>
   protected override void CalcSectors()
   {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
     if (cri.seriesRendererInfos.Length == 0)
       return;
 
-    SeriesRendererInfo sri = cri.seriesRendererInfos[0];
+    var sri = cri.seriesRendererInfos[0];
 
-    double sumValues = sri.SumOfPoints;
+    var sumValues = sri.SumOfPoints;
     if (sumValues == 0)
       return;
 
     double textMeasure = 0;
     if (sri.dataLabelRendererInfo != null && sri.dataLabelRendererInfo.Position == DataLabelPosition.OutsideEnd)
     {
-      foreach (DataLabelEntryRendererInfo dleri in sri.dataLabelRendererInfo.Entries)
+      foreach (var dleri in sri.dataLabelRendererInfo.Entries)
       {
         textMeasure = Math.Max(textMeasure, dleri.Width);
         textMeasure = Math.Max(textMeasure, dleri.Height);
       }
     }
 
-    XRect pieRect = cri.plotAreaRendererInfo.Rect;
+    var pieRect = cri.plotAreaRendererInfo.Rect;
     if (textMeasure != 0)
     {
       pieRect.X += textMeasure;
@@ -79,9 +79,9 @@ internal class PieExplodedPlotAreaRenderer : PiePlotAreaRenderer
       pieRect.Height -= 2 * textMeasure;
     }
 
-    XPoint origin = new XPoint(pieRect.X + pieRect.Width / 2, pieRect.Y + pieRect.Height / 2);
-    XRect innerRect = new XRect();
-    XPoint p1 = new XPoint();
+    var origin = new XPoint(pieRect.X + pieRect.Width / 2, pieRect.Y + pieRect.Height / 2);
+    var innerRect = new XRect();
+    var p1 = new XPoint();
 
     double midAngle = 0, sectorStartAngle = 0, sectorSweepAngle = 0,
       deltaAngle = 2, startAngle = 270, sweepAngle = 0,

@@ -52,7 +52,7 @@ internal abstract class AxisRenderer : Renderer
   {
     if (rendererInfo.axis.title != null)
     {
-      AxisTitleRendererInfo atri = new AxisTitleRendererInfo();
+      var atri = new AxisTitleRendererInfo();
       rendererInfo.axisTitleRendererInfo = atri;
 
       atri.axisTitle = rendererInfo.axis.title;
@@ -60,7 +60,7 @@ internal abstract class AxisRenderer : Renderer
       atri.AxisTitleAlignment = rendererInfo.axis.title.alignment;
       atri.AxisTitleVerticalAlignment = rendererInfo.axis.title.verticalAlignment;
       atri.AxisTitleFont = Converter.ToXFont(rendererInfo.axis.title.font, defaultFont);
-      XColor fontColor = XColors.Black;
+      var fontColor = XColors.Black;
       if (rendererInfo.axis.title.font != null && !rendererInfo.axis.title.font.color.IsEmpty)
         fontColor = rendererInfo.axis.title.font.color;
       atri.AxisTitleBrush = new XSolidBrush(fontColor);
@@ -77,7 +77,7 @@ internal abstract class AxisRenderer : Renderer
     if (rendererInfo.axis.tickLabels != null)
     {
       rendererInfo.TickLabelsFont = Converter.ToXFont(rendererInfo.axis.tickLabels.font, defaultFont);
-      XColor fontColor = XColors.Black;
+      var fontColor = XColors.Black;
       if (rendererInfo.axis.tickLabels.font != null && !rendererInfo.axis.tickLabels.font.color.IsEmpty)
         fontColor = rendererInfo.axis.tickLabels.font.color;
       rendererInfo.TickLabelsBrush = new XSolidBrush(fontColor);

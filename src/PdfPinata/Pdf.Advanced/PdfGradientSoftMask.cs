@@ -47,20 +47,20 @@ static class PdfGradientSoftMask
         if (!NeedsMask(brush))
             return null;
 
-        PdfDocument document = renderer.Owner;
+        var document = renderer.Owner;
 
-        PdfShadingPattern alphaPattern = new PdfShadingPattern(document);
+        var alphaPattern = new PdfShadingPattern(document);
         alphaPattern.SetupFromBrush(brush, patternMatrix, renderer, PdfShadingChannel.Alpha);
 
-        PdfFormXObject form = MaskForm(document, alphaPattern, patternMatrix, renderer);
+        var form = MaskForm(document, alphaPattern, patternMatrix, renderer);
         document._irefTable.Add(form);
 
-        PdfSoftMask mask = new PdfSoftMask(document);
+        var mask = new PdfSoftMask(document);
         mask.Elements.SetName(PdfSoftMask.Keys.S, "/Luminosity");
         mask.Elements.SetReference(PdfSoftMask.Keys.G, form);
         document._irefTable.Add(mask);
 
-        PdfExtGState extGState = new PdfExtGState(document) { SoftMask = mask };
+        var extGState = new PdfExtGState(document) { SoftMask = mask };
         return extGState;
     }
 
@@ -91,21 +91,21 @@ static class PdfGradientSoftMask
     static PdfFormXObject MaskForm(PdfDocument document, PdfShadingPattern alphaPattern,
         XMatrix patternMatrix, XGraphicsPdfRenderer renderer)
     {
-        XSize box = renderer.StoredPageSize;
+        var box = renderer.StoredPageSize;
 
-        PdfFormXObject form = new PdfFormXObject(document);
+        var form = new PdfFormXObject(document);
         form.Elements.SetInteger("/FormType", 1);
         form.Elements.SetRectangle("/BBox", new PdfRectangle(new XPoint(0, 0), new XPoint(box.Width, box.Height)));
 
-        XMatrix undoRealizedTransform = renderer.RealizedTransformOf(patternMatrix);
+        var undoRealizedTransform = renderer.RealizedTransformOf(patternMatrix);
         undoRealizedTransform.Invert();
         form.Elements.SetMatrix("/Matrix", undoRealizedTransform);
 
-        PdfTransparencyGroupAttributes group = new PdfTransparencyGroupAttributes(document);
+        var group = new PdfTransparencyGroupAttributes(document);
         group.Elements.SetName(PdfTransparencyGroupAttributes.Keys.CS, "/DeviceGray");
         form.Elements["/Group"] = group;
 
-        string name = form.Resources.AddPattern(alphaPattern);
+        var name = form.Resources.AddPattern(alphaPattern);
         form.CreateStream(PdfEncoders.RawEncoding.GetBytes(
             PdfEncoders.Format("/Pattern cs\n{0} scn\n0 0 {1:0.###} {2:0.###} re\nf\n", name, box.Width, box.Height)));
 

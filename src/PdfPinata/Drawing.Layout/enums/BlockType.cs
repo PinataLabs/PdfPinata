@@ -2,5 +2,5 @@
 
 internal enum BlockType
 {
-	Text, Space, Hyphen, LineBreak,
+	Text, Space, Hyphen, LineBreak
 }

@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -227,7 +227,7 @@ public struct XColor
     public bool IsEmpty => this == Empty;
 
     /// <summary>
-    /// Determines whether the specified object is a Color structure and is equivalent to this 
+    /// Determines whether the specified object is a Color structure and is equivalent to this
     /// Color structure.
     /// </summary>
     public override bool Equals(object obj)
@@ -235,7 +235,7 @@ public struct XColor
         // ReSharper disable CompareOfFloatsByEqualityOperator
         if (obj is XColor)
         {
-            XColor color = (XColor)obj;
+            var color = (XColor)obj;
             #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
             if (_r == color._r && _g == color._g && _b == color._b &&
                 _c == color._c && _m == color._m && _y == color._y && _k == color._k &&
@@ -300,12 +300,12 @@ public struct XColor
         if ((_r == _g) && (_g == _b))
             return 0;
 
-        double value1 = _r / 255.0;
-        double value2 = _g / 255.0;
-        double value3 = _b / 255.0;
+        var value1 = _r / 255.0;
+        var value2 = _g / 255.0;
+        var value3 = _b / 255.0;
         double value7 = 0;
-        double value4 = value1;
-        double value5 = value1;
+        var value4 = value1;
+        var value5 = value1;
         if (value2 > value4)
             value4 = value2;
 
@@ -318,7 +318,7 @@ public struct XColor
         if (value3 < value5)
             value5 = value3;
 
-        double value6 = value4 - value5;
+        var value6 = value4 - value5;
         #pragma warning disable S1244 // Exact on purpose: compared with a maximum or minimum taken from these same values.
         if (value1 == value4)
             value7 = (value2 - value3) / value6;
@@ -342,12 +342,12 @@ public struct XColor
     public double GetSaturation()
     {
         // ReSharper disable CompareOfFloatsByEqualityOperator
-        double value1 = _r / 255.0;
-        double value2 = _g / 255.0;
-        double value3 = _b / 255.0;
+        var value1 = _r / 255.0;
+        var value2 = _g / 255.0;
+        var value3 = _b / 255.0;
         double value7 = 0;
-        double value4 = value1;
-        double value5 = value1;
+        var value4 = value1;
+        var value5 = value1;
         if (value2 > value4)
             value4 = value2;
 
@@ -365,7 +365,7 @@ public struct XColor
             return value7;
         #pragma warning restore S1244
 
-        double value6 = (value4 + value5) / 2;
+        var value6 = (value4 + value5) / 2;
         if (value6 <= 0.5)
             return (value4 - value5) / (value4 + value5);
         return (value4 - value5) / ((2f - value4) - value5);
@@ -378,11 +378,11 @@ public struct XColor
     /// <returns>The brightness of this color. The brightness ranges from 0 through 1, where 0 represents black and 1 represents white.</returns>
     public double GetBrightness()
     {
-        double value1 = _r / 255.0;
-        double value2 = _g / 255.0;
-        double value3 = _b / 255.0;
-        double value4 = value1;
-        double value5 = value1;
+        var value1 = _r / 255.0;
+        var value2 = _g / 255.0;
+        var value3 = _b / 255.0;
+        var value4 = value1;
+        var value5 = value1;
         if (value2 > value4)
             value4 = value2;
 
@@ -405,15 +405,15 @@ public struct XColor
     {
         // ReSharper disable LocalVariableHidesMember
         _cs = XColorSpace.Rgb;
-        int c = 255 - _r;
-        int m = 255 - _g;
-        int y = 255 - _b;
-        int k = Math.Min(c, Math.Min(m, y));
+        var c = 255 - _r;
+        var m = 255 - _g;
+        var y = 255 - _b;
+        var k = Math.Min(c, Math.Min(m, y));
         if (k == 255)
             _c = _m = _y = 0;
         else
         {
-            float black = 255f - k;
+            var black = 255f - k;
             _c = (c - k) / black;
             _m = (m - k) / black;
             _y = (y - k) / black;
@@ -428,8 +428,8 @@ public struct XColor
     void CmykChanged()
     {
         _cs = XColorSpace.Cmyk;
-        float black = _k * 255;
-        float factor = 255f - black;
+        var black = _k * 255;
+        var factor = 255f - black;
         _r = (byte)(255 - Math.Min(255f, _c * factor + black));
         _g = (byte)(255 - Math.Min(255f, _m * factor + black));
         _b = (byte)(255 - Math.Min(255f, _y * factor + black));
@@ -454,7 +454,7 @@ public struct XColor
     // Properties
 
     /// <summary>
-    /// Gets or sets the alpha value the specifies the transparency. 
+    /// Gets or sets the alpha value the specifies the transparency.
     /// The value is in the range from 1 (opaque) to 0 (completely transparent).
     /// </summary>
     public double A
@@ -617,7 +617,7 @@ public struct XColor
                 "{0};{1};{2};{3};{4};{5};{6};{7};{8}", _r, _g, _b, _c, _m, _y, _k, _gs, _a);
         set
         {
-            string[] values = value.Split(';');
+            var values = value.Split(';');
             _r = byte.Parse(values[0], CultureInfo.InvariantCulture);
             _g = byte.Parse(values[1], CultureInfo.InvariantCulture);
             _b = byte.Parse(values[2], CultureInfo.InvariantCulture);

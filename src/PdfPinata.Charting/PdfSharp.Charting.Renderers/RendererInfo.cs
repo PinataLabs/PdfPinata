@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -265,7 +265,7 @@ internal class SeriesRendererInfo : RendererInfo
     get
     {
       double sum = 0;
-      foreach (PointRendererInfo pri in this.pointRendererInfos)
+      foreach (var pri in this.pointRendererInfos)
       {
         if (!double.IsNaN(pri.Value))
           sum += Math.Abs(pri.Value);
@@ -396,7 +396,7 @@ internal class LegendEntryRendererInfo : AreaRendererInfo
   internal LegendRendererInfo legendRendererInfo;
 
   internal string EntryText;
-    
+
   /// <summary>
   /// Size for the marker only.
   /// </summary>
@@ -408,7 +408,7 @@ internal class LegendEntryRendererInfo : AreaRendererInfo
   /// Width for marker area. Extra spacing for line charts are considered.
   /// </summary>
   internal XSize MarkerArea;
-    
+
   /// <summary>
   /// Size for text area.
   /// </summary>

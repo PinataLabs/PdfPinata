@@ -28,7 +28,7 @@ internal sealed class ImpositionDemo : PdfDemo
         "XPdfForm - a page of another PDF treated as something drawable",
         "A watermark under the content and one over it, and why the order matters",
         "Two pages imposed on one sheet, landscape, with a fold line",
-        "A four-page booklet sheet: pages 4 and 1 on the front, 2 and 3 on the back",
+        "A four-page booklet sheet: pages 4 and 1 on the front, 2 and 3 on the back"
     };
 
     public override int PageCount => 5;
@@ -36,19 +36,19 @@ internal sealed class ImpositionDemo : PdfDemo
     protected override PdfDocument Build(DemoContext context)
     {
         #region example
-        PdfDocument document = new PdfDocument();
+        var document = new PdfDocument();
         document.Info.Title = "Imposition";
 
-        XFont heading = new XFont("Liberation Sans", 16, XFontStyle.Bold);
-        XFont body = new XFont("Liberation Sans", 9);
-        XFont note = new XFont("Liberation Sans", 7.5);
-        XFont huge = new XFont("Liberation Sans", 60, XFontStyle.Bold);
+        var heading = new XFont("Liberation Sans", 16, XFontStyle.Bold);
+        var body = new XFont("Liberation Sans", 9);
+        var note = new XFont("Liberation Sans", 7.5);
+        var huge = new XFont("Liberation Sans", 60, XFontStyle.Bold);
 
         // ----- page 1: a form drawn once and placed many times -----
 
-        PdfPage page1 = document.AddPage();
-        XGraphics gfx1 = XGraphics.FromPdfPage(page1);
-        XTextFormatter prose1 = new XTextFormatter(gfx1);
+        var page1 = document.AddPage();
+        var gfx1 = XGraphics.FromPdfPage(page1);
+        var prose1 = new XTextFormatter(gfx1);
 
         gfx1.DrawString("A form drawn once", heading, XBrushes.Black, new XPoint(50, 60));
 
@@ -63,13 +63,13 @@ internal sealed class ImpositionDemo : PdfDemo
         // docs:begin create-form
         // The form has to belong to a document from the moment it is created: it is stored in that
         // document's resources, and there would be nowhere else to put it.
-        XForm rosette = new XForm(document, new XSize(60, 60));
-        using (XGraphics inside = XGraphics.FromForm(rosette))
+        var rosette = new XForm(document, new XSize(60, 60));
+        using (var inside = XGraphics.FromForm(rosette))
         {
             // Ordinary drawing, in the form's own coordinates - its view box, not the page's.
-            for (int spoke = 0; spoke < 12; spoke++)
+            for (var spoke = 0; spoke < 12; spoke++)
             {
-                XGraphicsState state = inside.Save();
+                var state = inside.Save();
                 inside.TranslateTransform(30, 30);
                 inside.RotateTransform(spoke * 30);
                 inside.DrawEllipse(new XPen(XColors.MidnightBlue, 0.6),
@@ -86,10 +86,10 @@ internal sealed class ImpositionDemo : PdfDemo
         // docs:end create-form
 
         // docs:begin place-form
-        for (int index = 0; index < 20; index++)
+        for (var index = 0; index < 20; index++)
         {
-            double scale = 0.4 + index % 5 * 0.25;
-            XGraphicsState state = gfx1.Save();
+            var scale = 0.4 + index % 5 * 0.25;
+            var state = gfx1.Save();
             gfx1.TranslateTransform(80 + index % 5 * 110, 220 + index / 5 * 110);
             gfx1.RotateTransform(index * 17);
             gfx1.ScaleTransform(scale, scale);
@@ -102,20 +102,20 @@ internal sealed class ImpositionDemo : PdfDemo
         // instead of through a form, into a throwaway document that is never saved to disk.
         long WithoutTheForm()
         {
-            using PdfDocument plain = new PdfDocument();
-            using XGraphics gfx = XGraphics.FromPdfPage(plain.AddPage());
+            using var plain = new PdfDocument();
+            using var gfx = XGraphics.FromPdfPage(plain.AddPage());
 
-            for (int index = 0; index < 20; index++)
+            for (var index = 0; index < 20; index++)
             {
-                double scale = 0.4 + index % 5 * 0.25;
-                XGraphicsState state = gfx.Save();
+                var scale = 0.4 + index % 5 * 0.25;
+                var state = gfx.Save();
                 gfx.TranslateTransform(80 + index % 5 * 110, 220 + index / 5 * 110);
                 gfx.RotateTransform(index * 17);
                 gfx.ScaleTransform(scale, scale);
 
-                for (int spoke = 0; spoke < 12; spoke++)
+                for (var spoke = 0; spoke < 12; spoke++)
                 {
-                    XGraphicsState turn = gfx.Save();
+                    var turn = gfx.Save();
                     gfx.TranslateTransform(0, 0);
                     gfx.RotateTransform(spoke * 30);
                     gfx.DrawEllipse(new XPen(XColors.MidnightBlue, 0.6),
@@ -127,12 +127,12 @@ internal sealed class ImpositionDemo : PdfDemo
                 gfx.Restore(state);
             }
 
-            using MemoryStream buffer = new MemoryStream();
+            using var buffer = new MemoryStream();
             plain.Save(buffer, false);
             return buffer.Length;
         }
 
-        long drawnLongHand = WithoutTheForm();
+        var drawnLongHand = WithoutTheForm();
 
         prose1.DrawString(
             "Twenty placements, one definition. Drawing the same twenty rosettes straight onto a "
@@ -148,19 +148,19 @@ internal sealed class ImpositionDemo : PdfDemo
         // Four numbered pages, built in memory. Everything below draws these pages onto sheets
         // rather than copying them as pages, which is the difference between imposing and merging.
         byte[] sourceBytes;
-        using (MemoryStream buffer = new MemoryStream())
+        using (var buffer = new MemoryStream())
         {
-            PdfDocument source = new PdfDocument();
+            var source = new PdfDocument();
             XColor[] colours =
             {
                 XColor.FromArgb(70, 130, 180), XColor.FromArgb(178, 34, 34),
-                XColor.FromArgb(46, 139, 87), XColor.FromArgb(218, 165, 32),
+                XColor.FromArgb(46, 139, 87), XColor.FromArgb(218, 165, 32)
             };
 
-            for (int index = 0; index < 4; index++)
+            for (var index = 0; index < 4; index++)
             {
-                PdfPage page = source.AddPage();
-                using XGraphics gfx = XGraphics.FromPdfPage(page);
+                var page = source.AddPage();
+                using var gfx = XGraphics.FromPdfPage(page);
                 gfx.DrawRectangle(new XSolidBrush(colours[index]),
                     20, 20, page.Width.Point - 40, page.Height.Point - 40);
                 gfx.DrawString((index + 1).ToString(), huge, XBrushes.White,
@@ -180,7 +180,7 @@ internal sealed class ImpositionDemo : PdfDemo
         // the wrong page turns up on the sheet.
         XPdfForm Page(int number)
         {
-            XPdfForm form = XPdfForm.FromStream(new MemoryStream(sourceBytes));
+            var form = XPdfForm.FromStream(new MemoryStream(sourceBytes));
             form.PageNumber = number;
             return form;
         }
@@ -188,8 +188,8 @@ internal sealed class ImpositionDemo : PdfDemo
 
         // ----- page 2: watermarks, under and over -----
 
-        PdfPage page2 = document.AddPage();
-        XGraphics gfx2 = XGraphics.FromPdfPage(page2);
+        var page2 = document.AddPage();
+        var gfx2 = XGraphics.FromPdfPage(page2);
 
         gfx2.DrawString("Watermarks", heading, XBrushes.Black, new XPoint(50, 60));
         new XTextFormatter(gfx2).DrawString(
@@ -204,7 +204,7 @@ internal sealed class ImpositionDemo : PdfDemo
         // both - black, which reads over either of the source pages' panels.
         void Watermark(XGraphics gfx, XRect where, string text, double alpha)
         {
-            XGraphicsState state = gfx.Save();
+            var state = gfx.Save();
             gfx.TranslateTransform(where.X + where.Width / 2, where.Y + where.Height / 2);
             gfx.RotateTransform(-35);
             gfx.DrawString(text, new XFont("Liberation Sans", 40, XFontStyle.Bold),
@@ -215,18 +215,18 @@ internal sealed class ImpositionDemo : PdfDemo
         // docs:end watermark
 
         // A4 proportions, so the imposed pages are not stretched. 230 wide gives about 325 tall.
-        XRect under = new XRect(50, 165, 230, 230 * 297 / 210.0);
-        XRect over = new XRect(315, 165, 230, 230 * 297 / 210.0);
+        var under = new XRect(50, 165, 230, 230 * 297 / 210.0);
+        var over = new XRect(315, 165, 230, 230 * 297 / 210.0);
 
         // docs:begin under-over
         // Under: the mark first, the page on top of it. The page's own coloured panel is opaque,
         // so it covers the mark completely - which is the thing to see.
         Watermark(gfx2, under, "DRAFT", 1.0);
-        using (XPdfForm first = Page(1))
+        using (var first = Page(1))
             gfx2.DrawImage(first, under);
 
         // Over: the page first, the mark on top. Translucent, or it would bury the content.
-        using (XPdfForm second = Page(2))
+        using (var second = Page(2))
             gfx2.DrawImage(second, over);
         Watermark(gfx2, over, "DRAFT", 0.45);
         // docs:end under-over
@@ -238,12 +238,12 @@ internal sealed class ImpositionDemo : PdfDemo
 
         // ----- page 3: two up -----
 
-        PdfPage page3 = document.AddPage();
+        var page3 = document.AddPage();
         page3.Orientation = PageOrientation.Landscape;
-        XGraphics gfx3 = XGraphics.FromPdfPage(page3);
+        var gfx3 = XGraphics.FromPdfPage(page3);
 
-        double sheetWidth = page3.Width.Point;
-        double sheetHeight = page3.Height.Point;
+        var sheetWidth = page3.Width.Point;
+        var sheetHeight = page3.Height.Point;
 
         gfx3.DrawString("Two up", heading, XBrushes.Black, new XPoint(40, 40));
         gfx3.DrawString(
@@ -251,20 +251,20 @@ internal sealed class ImpositionDemo : PdfDemo
             + "copied as a page: the sheet's content stream refers to two form XObjects.",
             note, XBrushes.DimGray, new XPoint(40, 56));
 
-        double slotWidth = (sheetWidth - 60) / 2;
-        double slotHeight = sheetHeight - 110;
+        var slotWidth = (sheetWidth - 60) / 2;
+        var slotHeight = sheetHeight - 110;
 
         // docs:begin two-up
-        for (int index = 0; index < 2; index++)
+        for (var index = 0; index < 2; index++)
         {
-            using XPdfForm form = Page(index + 1);
+            using var form = Page(index + 1);
 
             // Fit the page into the slot, keeping its proportions and centring what is left over.
-            double scale = Math.Min(slotWidth / form.PointWidth, slotHeight / form.PointHeight);
-            double width = form.PointWidth * scale;
-            double height = form.PointHeight * scale;
-            double x = 20 + index * (slotWidth + 20) + (slotWidth - width) / 2;
-            double y = 75 + (slotHeight - height) / 2;
+            var scale = Math.Min(slotWidth / form.PointWidth, slotHeight / form.PointHeight);
+            var width = form.PointWidth * scale;
+            var height = form.PointHeight * scale;
+            var x = 20 + index * (slotWidth + 20) + (slotWidth - width) / 2;
+            var y = 75 + (slotHeight - height) / 2;
 
             gfx3.DrawImage(form, x, y, width, height);
         }
@@ -287,35 +287,35 @@ internal sealed class ImpositionDemo : PdfDemo
         (int Left, int Right, string Caption)[] sheets =
         {
             (4, 1, "Front of the sheet: page 4 on the left, page 1 on the right"),
-            (2, 3, "Back of the sheet: page 2 on the left, page 3 on the right"),
+            (2, 3, "Back of the sheet: page 2 on the left, page 3 on the right")
         };
         // docs:end booklet-sheets
 
-        foreach ((int Left, int Right, string Caption) sheet in sheets)
+        foreach (var sheet in sheets)
         {
-            PdfPage side = document.AddPage();
+            var side = document.AddPage();
             side.Orientation = PageOrientation.Landscape;
-            using XGraphics gfx = XGraphics.FromPdfPage(side);
+            using var gfx = XGraphics.FromPdfPage(side);
 
-            double width = side.Width.Point;
-            double height = side.Height.Point;
+            var width = side.Width.Point;
+            var height = side.Height.Point;
 
             gfx.DrawString("Booklet", heading, XBrushes.Black, new XPoint(40, 40));
             gfx.DrawString(sheet.Caption, note, XBrushes.DimGray, new XPoint(40, 56));
 
-            double slot = (width - 60) / 2;
-            double tall = height - 110;
+            var slot = (width - 60) / 2;
+            var tall = height - 110;
 
             // docs:begin booklet-place
             foreach ((int Number, int Position) placement in new[]
             {
-                (sheet.Left, 0), (sheet.Right, 1),
+                (sheet.Left, 0), (sheet.Right, 1)
             })
             {
-                using XPdfForm form = Page(placement.Number);
-                double scale = Math.Min(slot / form.PointWidth, tall / form.PointHeight);
-                double w = form.PointWidth * scale;
-                double h = form.PointHeight * scale;
+                using var form = Page(placement.Number);
+                var scale = Math.Min(slot / form.PointWidth, tall / form.PointHeight);
+                var w = form.PointWidth * scale;
+                var h = form.PointHeight * scale;
 
                 gfx.DrawImage(form,
                     20 + placement.Position * (slot + 20) + (slot - w) / 2,

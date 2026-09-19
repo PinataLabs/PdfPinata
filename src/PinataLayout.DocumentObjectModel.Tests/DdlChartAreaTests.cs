@@ -69,7 +69,7 @@ public class DdlChartAreaTests
         "bottomarea" => chart.BottomArea,
         "leftarea" => chart.LeftArea,
         "rightarea" => chart.RightArea,
-        _ => throw new ArgumentOutOfRangeException(nameof(areaKeyword)),
+        _ => throw new ArgumentOutOfRangeException(nameof(areaKeyword))
     };
 
     // ----- an area written as a list of blocks -------------------------------------------------

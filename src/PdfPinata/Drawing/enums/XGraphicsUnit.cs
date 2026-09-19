@@ -57,5 +57,5 @@ public enum XGraphicsUnit  // NOT the same values as System.Drawing.GraphicsUnit
     /// <summary>
     /// Specifies a presentation point (1/96 inch) as the unit of measure.
     /// </summary>
-    Presentation = 4,
+    Presentation = 4
 }

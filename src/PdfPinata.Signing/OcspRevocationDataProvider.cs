@@ -137,7 +137,7 @@ public sealed class OcspRevocationDataProvider : IRevocationDataProvider, IDispo
         if (chain == null)
             return null;
 
-        foreach (X509Certificate2 candidate in chain)
+        foreach (var candidate in chain)
         {
             if (candidate.Thumbprint != certificate.Thumbprint
                 && String.Equals(candidate.Subject, certificate.Issuer, StringComparison.Ordinal))

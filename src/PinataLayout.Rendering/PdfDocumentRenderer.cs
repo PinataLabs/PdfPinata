@@ -58,15 +58,15 @@ public class PdfDocumentRenderer
     /// <param name="unicode">If true Unicode encoding is used for all text. If false, WinAnsi encoding is used.</param>
     public PdfDocumentRenderer(bool unicode)
     {
-        this.unicode = unicode;
+        this._unicode = unicode;
     }
 
     /// <summary>
     /// Gets a value indicating whether the text is rendered as Unicode.
     /// </summary>
-    public bool Unicode => unicode;
+    public bool Unicode => _unicode;
 
-    bool unicode;
+    private readonly bool _unicode;
 
     /// <summary>
     /// Gets or sets the language.
@@ -78,10 +78,11 @@ public class PdfDocumentRenderer
     /// </remarks>
     public string Language
     {
-        get => language;
-        set => language = value;
+        get => _language;
+        set => _language = value;
     }
-    string language = String.Empty;
+
+    private string _language = String.Empty;
 
     /// <summary>
     /// Gets or sets whether the rendered PDF carries a structure tree describing it. The default is
@@ -89,15 +90,16 @@ public class PdfDocumentRenderer
     /// </summary>
     public bool TagContent
     {
-        get => tagContent;
+        get => _tagContent;
         set
         {
-            tagContent = value;
-            if (documentRenderer != null)
-                documentRenderer.TagContent = value;
+            _tagContent = value;
+            if (_documentRenderer != null)
+                _documentRenderer.TagContent = value;
         }
     }
-    bool tagContent = true;
+
+    private bool _tagContent = true;
 
     /// <summary>
     /// Set the PinataLayout document to be rendered by this printer.
@@ -106,12 +108,13 @@ public class PdfDocumentRenderer
     {
         set
         {
-            document = null;
+            _document = null;
             value.BindToRenderer(this);
-            document = value;
+            _document = value;
         }
     }
-    Document document;
+
+    private Document _document;
 
     /// <summary>
     /// Gets or sets a document renderer.
@@ -124,13 +127,14 @@ public class PdfDocumentRenderer
     {
         get
         {
-            if (documentRenderer == null)
+            if (_documentRenderer == null)
                 PrepareDocumentRenderer();
-            return documentRenderer;
+            return _documentRenderer;
         }
-        set => documentRenderer = value;
+        set => _documentRenderer = value;
     }
-    DocumentRenderer documentRenderer;
+
+    private DocumentRenderer _documentRenderer;
 
     void PrepareDocumentRenderer()
     {
@@ -139,25 +143,25 @@ public class PdfDocumentRenderer
 
     void PrepareDocumentRenderer(bool prepareCompletely)
     {
-        if (document == null)
+        if (_document == null)
             throw new InvalidOperationException(string.Format(AppResources.PropertyNotSetBefore, "DocumentRenderer", nameof(PrepareDocumentRenderer)));
 
-        if (documentRenderer == null)
+        if (_documentRenderer == null)
         {
-            documentRenderer = new DocumentRenderer(document);
-            documentRenderer.WorkingDirectory = workingDirectory;
+            _documentRenderer = new DocumentRenderer(_document);
+            _documentRenderer.WorkingDirectory = _workingDirectory;
         }
 
-        documentRenderer.TagContent = tagContent;
+        _documentRenderer.TagContent = _tagContent;
 
         // The document's language belongs on the catalog and in the structure tree both, and it is
         // set here rather than in CreatePdfDocument because a caller supplying their own PdfDocument
         // never goes through that.
-        if (!string.IsNullOrEmpty(language))
-            documentRenderer.Tagger.Language = language;
-        if (prepareCompletely && documentRenderer.formattedDocument == null)
+        if (!string.IsNullOrEmpty(_language))
+            _documentRenderer.Tagger.Language = _language;
+        if (prepareCompletely && _documentRenderer.formattedDocument == null)
         {
-            documentRenderer.PrepareDocument();
+            _documentRenderer.PrepareDocument();
         }
     }
 
@@ -167,7 +171,7 @@ public class PdfDocumentRenderer
     public void RenderDocument()
     {
         PrepareRenderPages();
-        RenderPages(1, documentRenderer.FormattedDocument.PageCount);
+        RenderPages(1, _documentRenderer.FormattedDocument.PageCount);
     }
 
     /// <summary>
@@ -178,11 +182,11 @@ public class PdfDocumentRenderer
         //if (this.documentRenderer == null)
         PrepareDocumentRenderer(true);
 
-        if (pdfDocument == null)
+        if (_pdfDocument == null)
         {
-            pdfDocument = CreatePdfDocument();
-            if (document.UseCmykColor)
-                pdfDocument.Options.ColorMode = PdfColorMode.Cmyk;
+            _pdfDocument = CreatePdfDocument();
+            if (_document.UseCmykColor)
+                _pdfDocument.Options.ColorMode = PdfColorMode.Cmyk;
         }
 
         WriteDocumentInformation();
@@ -192,23 +196,25 @@ public class PdfDocumentRenderer
     /// <summary>
     /// Gets the count of pages.
     /// </summary>
-    public int PageCount => documentRenderer.FormattedDocument.PageCount;
+    public int PageCount => _documentRenderer.FormattedDocument.PageCount;
 
     /// <summary>
     /// Saves the PdfDocument to the specified path. If a file already exists, it will be overwritten.
     /// </summary>
     public void Save(string path)
     {
-        if (path == null)
-            throw new ArgumentNullException(nameof(path));
+        switch (path)
+        {
+            case null:
+                throw new ArgumentNullException(nameof(path));
+            case "":
+                throw new ArgumentException("PDF file Path must not be empty");
+        }
 
-        else if (path == "")
-            throw new ArgumentException("PDF file Path must not be empty");
+        if (_workingDirectory != null)
+            Path.Combine(_workingDirectory, path);
 
-        if (workingDirectory != null)
-            Path.Combine(workingDirectory, path);
-
-        pdfDocument.Save(path);
+        _pdfDocument.Save(path);
     }
 
     /// <summary>
@@ -216,7 +222,7 @@ public class PdfDocumentRenderer
     /// </summary>
     public void Save(Stream stream, bool closeStream)
     {
-        pdfDocument.Save(stream, closeStream);
+        _pdfDocument.Save(stream, closeStream);
     }
 
     /// <summary>
@@ -230,28 +236,25 @@ public class PdfDocumentRenderer
 
         // Formatting is what produces the page count, so a renderer nobody prepared is prepared
         // here rather than failing on a null formatted document.
-        if (documentRenderer?.FormattedDocument == null)
+        if (_documentRenderer?.FormattedDocument == null)
             PrepareRenderPages();
 
-        ArgumentOutOfRangeException.ThrowIfGreaterThan(endPage, documentRenderer.FormattedDocument.PageCount);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(endPage, _documentRenderer.FormattedDocument.PageCount);
 
-        if (pdfDocument == null)
-            pdfDocument = CreatePdfDocument();
+        _pdfDocument ??= CreatePdfDocument();
 
-        documentRenderer.printDate = GlobalTimeSettings.Now;
-        for (int pageNr = startPage; pageNr <= endPage; ++pageNr)
+        _documentRenderer.printDate = GlobalTimeSettings.Now;
+        for (var pageNr = startPage; pageNr <= endPage; ++pageNr)
         {
-            PdfPage pdfPage = pdfDocument.AddPage();
-            PageInfo pageInfo = documentRenderer.FormattedDocument.GetPageInfo(pageNr);
+            var pdfPage = _pdfDocument.AddPage();
+            var pageInfo = _documentRenderer.FormattedDocument.GetPageInfo(pageNr);
             pdfPage.Width = pageInfo.Width;
             pdfPage.Height = pageInfo.Height;
             pdfPage.Orientation = pageInfo.Orientation;
 
-            using (XGraphics gfx = XGraphics.FromPdfPage(pdfPage))
-            {
-                gfx.MUH = unicode ? PdfFontEncoding.Unicode : PdfFontEncoding.WinAnsi;
-                documentRenderer.RenderPage(gfx, pageNr);
-            }
+            using var gfx = XGraphics.FromPdfPage(pdfPage);
+            gfx.MUH = _unicode ? PdfFontEncoding.Unicode : PdfFontEncoding.WinAnsi;
+            _documentRenderer.RenderPage(gfx, pageNr);
         }
     }
 
@@ -260,10 +263,11 @@ public class PdfDocumentRenderer
     /// </summary>
     public string WorkingDirectory
     {
-        get => workingDirectory;
-        set => workingDirectory = value;
+        get => _workingDirectory;
+        set => _workingDirectory = value;
     }
-    string workingDirectory;
+
+    private string _workingDirectory;
 
     /// <summary>
     /// Gets or sets the PDF document to render on.
@@ -271,20 +275,21 @@ public class PdfDocumentRenderer
     /// <remarks>A PDF document in memory is automatically created when printing before this property was set.</remarks>
     public PdfDocument PdfDocument
     {
-        get => pdfDocument;
-        set => pdfDocument = value;
+        get => _pdfDocument;
+        set => _pdfDocument = value;
     }
-    PdfDocument pdfDocument;
+
+    private PdfDocument _pdfDocument;
 
     /// <summary>
     /// Writes document information like author and subject to the PDF document.
     /// </summary>
     public void WriteDocumentInformation()
     {
-        if (!document.IsNull("Info"))
+        if (!_document.IsNull("Info"))
         {
-            DocumentInfo docInfo = document.Info;
-            PdfDocumentInformation pdfInfo = pdfDocument.Info;
+            var docInfo = _document.Info;
+            var pdfInfo = _pdfDocument.Info;
 
             if (!docInfo.IsNull("Author"))
                 pdfInfo.Author = docInfo.Author;
@@ -305,10 +310,10 @@ public class PdfDocumentRenderer
     /// </summary>
     PdfDocument CreatePdfDocument()
     {
-        PdfDocument document = new PdfDocument();
-        document.Info.Creator = "PinataLayout " + typeof(PdfDocumentRenderer).GetTypeInfo().Assembly.GetName().Version;
-        if (language != null && language.Length != 0)
-            document.Language = language;
-        return document;
+        var pdfDocument = new PdfDocument();
+        pdfDocument.Info.Creator = "PinataLayout " + typeof(PdfDocumentRenderer).GetTypeInfo().Assembly.GetName().Version;
+        if (_language != null && _language.Length != 0)
+            pdfDocument.Language = _language;
+        return pdfDocument;
     }
 }

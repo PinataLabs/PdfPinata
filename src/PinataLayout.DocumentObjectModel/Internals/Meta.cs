@@ -61,7 +61,7 @@ public sealed class Meta
     // names are ASCII identifiers, so the two agree, and ordinal is both faster and immune to the
     // culture the caller happens to be running under.
     byName = new Dictionary<string, ValueDescriptor>(descriptors.Length, StringComparer.OrdinalIgnoreCase);
-    foreach (ValueDescriptor descriptor in descriptors)
+    foreach (var descriptor in descriptors)
       byName.Add(descriptor.ValueName, descriptor);
   }
 
@@ -79,20 +79,20 @@ public sealed class Meta
   /// </summary>
   public object GetValue(DocumentObject dom, string name, GV flags)
   {
-    int dot = name.IndexOf('.');
+    var dot = name.IndexOf('.');
     if (dot == 0)
       throw new ArgumentException(string.Format(AppResources.InvalidValueName, name));
     string trail = null;
     if (dot > 0)
     {
-      trail = name.Substring(dot + 1);
-      name = name.Substring(0, dot);
+      trail = name[(dot + 1)..];
+      name = name[..dot];
     }
-    ValueDescriptor vd = this[name];
+    var vd = this[name];
     if (vd == null)
       throw new ArgumentException(string.Format(AppResources.InvalidValueName, name));
 
-    object value = vd.GetValue(dom, flags);
+    var value = vd.GetValue(dom, flags);
     if (value == null && flags == GV.GetNull)
       return null;
 
@@ -100,7 +100,7 @@ public sealed class Meta
     {
       if (value == null || trail == "")
         throw new ArgumentException(string.Format(AppResources.InvalidValueName, name));
-      DocumentObject doc = value as DocumentObject;
+      var doc = value as DocumentObject;
       if (doc == null)
         throw new ArgumentException(string.Format(AppResources.InvalidValueName, name));
       value = doc.GetValue(trail, flags);
@@ -114,22 +114,22 @@ public sealed class Meta
   /// </summary>
   public void SetValue(DocumentObject dom, string name, object val)
   {
-    int dot = name.IndexOf('.');
+    var dot = name.IndexOf('.');
     if (dot == 0)
       throw new ArgumentException(DomSR.InvalidValueName(name));
     string trail = null;
     if (dot > 0)
     {
-      trail = name.Substring(dot + 1);
-      name = name.Substring(0, dot);
+      trail = name[(dot + 1)..];
+      name = name[..dot];
     }
-    ValueDescriptor vd = this[name];
+    var vd = this[name];
     if (vd == null)
       throw new ArgumentException(DomSR.InvalidValueName(name));
 
     if (trail != null)
     {
-      DocumentObject doc = dom.GetValue(name) as DocumentObject;
+      var doc = dom.GetValue(name) as DocumentObject;
       doc.SetValue(trail, val);
     }
     else
@@ -150,7 +150,7 @@ public sealed class Meta
   /// </summary>
   public void SetNull(DocumentObject dom, string name)
   {
-    ValueDescriptor vd = this[name];
+    var vd = this[name];
     if (vd == null)
       throw new ArgumentException(DomSR.InvalidValueName(name));
 
@@ -163,16 +163,16 @@ public sealed class Meta
   /// </summary>
   public bool IsNull(DocumentObject dom, string name)
   {
-    int dot = name.IndexOf('.');
+    var dot = name.IndexOf('.');
     if (dot == 0)
       throw new ArgumentException(DomSR.InvalidValueName(name));
     string trail = null;
     if (dot > 0)
     {
-      trail = name.Substring(dot + 1);
-      name = name.Substring(0, dot);
+      trail = name[(dot + 1)..];
+      name = name[..dot];
     }
-    ValueDescriptor vd = this[name];
+    var vd = this[name];
     if (vd == null)
       throw new ArgumentException(DomSR.InvalidValueName(name));
 
@@ -185,12 +185,10 @@ public sealed class Meta
         throw new ArgumentException(DomSR.InvalidValueName(name));
       return vd.IsNull(dom);
     }
-    DocumentObject docObj = (DocumentObject)vd.GetValue(dom, GV.ReadOnly);
+    var docObj = (DocumentObject)vd.GetValue(dom, GV.ReadOnly);
     if (docObj == null)
       return true;
-    if (trail != null)
-      return docObj.IsNull(trail);
-    return docObj.IsNull();
+    return trail != null ? docObj.IsNull(trail) : docObj.IsNull();
   }
 
   /// <summary>
@@ -198,7 +196,7 @@ public sealed class Meta
   /// </summary>
   public void SetNull(DocumentObject dom)
   {
-    foreach (ValueDescriptor vd in descriptors)
+    foreach (var vd in descriptors)
     {
       if (!vd.IsRefOnly)
         vd.SetNull(dom);
@@ -211,7 +209,7 @@ public sealed class Meta
   /// </summary>
   public bool IsNull(DocumentObject dom)
   {
-    foreach (ValueDescriptor vd in descriptors)
+    foreach (var vd in descriptors)
     {
       if (vd.IsRefOnly)
         continue;
@@ -226,7 +224,7 @@ public sealed class Meta
   /// Lookup is case-insensitive.
   /// </summary>
   public ValueDescriptor this[string name] =>
-    name != null && byName.TryGetValue(name, out ValueDescriptor vd) ? vd : null;
+    name != null && byName.TryGetValue(name, out var vd) ? vd : null;
 
   /// <summary>
   /// Gets the descriptors of this type, in declaration order, base class first.

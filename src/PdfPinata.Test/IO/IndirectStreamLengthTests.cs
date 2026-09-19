@@ -44,7 +44,7 @@ public class IndirectStreamLengthTests
         var document = Pdf.IO.PdfReader.Open(input, PdfDocumentOpenMode.Modify);
 
         var streams = new List<byte[]>();
-        foreach (PdfContent content in document.Pages[0].Contents)
+        foreach (var content in document.Pages[0].Contents)
             streams.Add(content.Stream.Value);
 
         streams.Should().ContainSingle()
@@ -58,7 +58,7 @@ public class IndirectStreamLengthTests
         var inputDocument = Pdf.IO.PdfReader.Open(input, PdfDocumentOpenMode.Import);
 
         var merged = new PdfDocument();
-        foreach (PdfPage page in inputDocument.Pages)
+        foreach (var page in inputDocument.Pages)
             merged.AddPage(page);
 
         using var output = new MemoryStream();

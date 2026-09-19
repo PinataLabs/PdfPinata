@@ -96,7 +96,7 @@ public static class UnicodeProperties
             throw new ArgumentOutOfRangeException(nameof(codePoint),
                 "A Unicode code point is between U+0000 and U+10FFFF.");
 
-        int index = Array.BinarySearch(starts, codePoint);
+        var index = Array.BinarySearch(starts, codePoint);
 
         // Landing between two starts means the run began at the one before.
         return index >= 0 ? index : ~index - 1;

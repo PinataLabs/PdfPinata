@@ -66,5 +66,5 @@ public enum UnitType
   /// <summary>
   /// Measure is in picas. A pica represents 12 points, i.e. 6 pica are one inch.
   /// </summary>
-  Pica = 4,
+  Pica = 4
 }

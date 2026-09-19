@@ -111,7 +111,7 @@ internal class ParagraphRenderer : Renderer
     {
         this.paragraph = paragraph;
 
-        ParagraphRenderInfo parRenderInfo = new ParagraphRenderInfo();
+        var parRenderInfo = new ParagraphRenderInfo();
         parRenderInfo.paragraph = this.paragraph;
         ((ParagraphFormatInfo)parRenderInfo.FormatInfo).widowControl = this.paragraph.Format.WidowControl;
 
@@ -136,14 +136,14 @@ internal class ParagraphRenderer : Renderer
     internal override void Render()
     {
         InitRendering();
-        if ((int)paragraph.Format.OutlineLevel >= 1 && gfx.PdfPage != null) // Don't call GetOutlineTitle() in vain
+        if ((int)paragraph.Format.OutlineLevel >= 1 && Gfx.PdfPage != null) // Don't call GetOutlineTitle() in vain
             DocumentRenderer.AddOutline((int)paragraph.Format.OutlineLevel, GetOutlineTitle(),
-                gfx.PdfPage, OutlineDestinationTop());
+                Gfx.PdfPage, OutlineDestinationTop());
 
         // Shading and borders are decoration, and they are drawn before the paragraph's own scope
         // opens rather than inside it. Nesting an artifact inside the content it decorates is legal
         // and says the wrong thing: the shading is not part of the paragraph, it is behind it.
-        using (Tagger.Artifact(gfx))
+        using (Tagger.Artifact(Gfx))
         {
             RenderShading();
             RenderBorders();
@@ -151,12 +151,12 @@ internal class ParagraphRenderer : Renderer
 
         using (BeginStructure())
         {
-            ParagraphFormatInfo parFormatInfo = (ParagraphFormatInfo)renderInfo.FormatInfo;
+            var parFormatInfo = (ParagraphFormatInfo)renderInfo.FormatInfo;
             FindBrokenWords(parFormatInfo);
 
-            for (int idx = 0; idx < parFormatInfo.LineCount; ++idx)
+            for (var idx = 0; idx < parFormatInfo.LineCount; ++idx)
             {
-                LineInfo lineInfo = parFormatInfo.GetLineInfo(idx);
+                var lineInfo = parFormatInfo.GetLineInfo(idx);
                 isLastLine = (idx == parFormatInfo.LineCount - 1);
 
                 lastTabPosition = 0;
@@ -185,17 +185,17 @@ internal class ParagraphRenderer : Renderer
         if (!IsListItem(out var listType, out var listLevel))
         {
             Tagger.EndList();
-            return Tagger.Block(gfx, paragraph, TagOfParagraph());
+            return Tagger.Block(Gfx, paragraph, TagOfParagraph());
         }
 
-        var item = Tagger.ListItem(gfx, paragraph, listType, listLevel);
+        var item = Tagger.ListItem(Gfx, paragraph, listType, listLevel);
         if (item == null)
             return StructureTagger.Nothing;
 
         labelElement = Tagger.Element(paragraph, PdfTag.Lbl, item, LabelSlot);
 
         var body = Tagger.Element(paragraph, PdfTag.LBody, item, StructureTagger.ListBodySlot);
-        return Tagger.Marks(gfx, body);
+        return Tagger.Marks(Gfx, body);
     }
 
     /// <summary>
@@ -221,7 +221,7 @@ internal class ParagraphRenderer : Renderer
         if (!GetListSymbol(out _, out _))
             return false;
 
-        ParagraphFormat format = paragraph.Format;
+        var format = paragraph.Format;
         if (format.IsNull("ListInfo"))
             return false;
 
@@ -269,7 +269,7 @@ internal class ParagraphRenderer : Renderer
     /// </summary>
     string GetFieldValue(DocumentObject field)
     {
-        string value = FieldEvaluator.Evaluate(field, fieldInfos.ToEvaluationContext());
+        var value = FieldEvaluator.Evaluate(field, fieldInfos.ToEvaluationContext());
         if (value != null)
             return value;
 
@@ -286,14 +286,14 @@ internal class ParagraphRenderer : Renderer
 
     string GetOutlineTitle()
     {
-        ParagraphIterator iter = new ParagraphIterator(paragraph.Elements);
+        var iter = new ParagraphIterator(paragraph.Elements);
         iter = iter.GetFirstLeaf();
 
-        bool ignoreBlank = true;
-        string title = "";
+        var ignoreBlank = true;
+        var title = "";
         while (iter != null)
         {
-            DocumentObject current = iter.Current;
+            var current = iter.Current;
             if (!ignoreBlank && (IsBlank(current) || IsTab(current) || IsLineBreak(current)))
             {
                 title += " ";
@@ -334,7 +334,7 @@ internal class ParagraphRenderer : Renderer
     {
         get
         {
-            LayoutInfo layoutInfo = new LayoutInfo();
+            var layoutInfo = new LayoutInfo();
             layoutInfo.PageBreakBefore = paragraph.Format.PageBreakBefore;
             layoutInfo.MarginTop = paragraph.Format.SpaceBefore.Point;
             layoutInfo.MarginBottom = paragraph.Format.SpaceAfter.Point;
@@ -357,13 +357,13 @@ internal class ParagraphRenderer : Renderer
         // For Tabs in Justified context
         if (paragraph.Format.Alignment == ParagraphAlignment.Justify)
             reMeasureLine = true;
-        TabStop nextTabStop = GetNextTabStop();
+        var nextTabStop = GetNextTabStop();
         savedWordWidth = 0;
         if (nextTabStop == null)
             return FormatResult.NewLine;
 
-        bool notFitting = false;
-        XUnit xPositionBeforeTab = currentXPosition;
+        var notFitting = false;
+        var xPositionBeforeTab = currentXPosition;
         switch (nextTabStop.Alignment)
         {
             case TabAlignment.Left:
@@ -428,7 +428,7 @@ internal class ParagraphRenderer : Renderer
 
     static bool IsSoftHyphen(DocumentObject docObj)
     {
-        Text text = docObj as Text;
+        var text = docObj as Text;
         if (text != null)
             return text.Content == "­";
 
@@ -453,7 +453,7 @@ internal class ParagraphRenderer : Renderer
         SaveBeforeProbing(out iter, out blankCount, out wordsWidth, out xPosition, out lineWidth, out blankWidth);
         //------------------------------------------
 
-        XUnit xPositionAfterTab = xPosition;
+        var xPositionAfterTab = xPosition;
         currentXPosition = formattingArea.X + tabStopPosition.Point;
 
         notFitting = ProbeAfterTab();
@@ -484,7 +484,7 @@ internal class ParagraphRenderer : Renderer
         SaveBeforeProbing(out iter, out blankCount, out wordsWidth, out xPosition, out lineWidth, out blankWidth);
         //------------------------------------------
 
-        XUnit xPositionAfterTab = xPosition;
+        var xPositionAfterTab = xPosition;
 
         notFitting = ProbeAfterTab();
         if (!notFitting && xPosition + currentLineWidth <= formattingArea.X + tabStopPosition)
@@ -498,8 +498,8 @@ internal class ParagraphRenderer : Renderer
 
     Hyperlink GetHyperlink()
     {
-        DocumentObject elements = DocumentRelations.GetParent(currentLeaf.Current);
-        DocumentObject parent = DocumentRelations.GetParent(elements);
+        var elements = DocumentRelations.GetParent(currentLeaf.Current);
+        var parent = DocumentRelations.GetParent(elements);
         while (!(parent is Paragraph))
         {
             if (parent is Hyperlink)
@@ -528,14 +528,14 @@ internal class ParagraphRenderer : Renderer
         SaveBeforeProbing(out iter, out blankCount, out wordsWidth, out xPosition, out lineWidth, out blankWidth);
         //------------------------------------------
 
-        XUnit xPositionAfterTab = xPosition;
+        var xPositionAfterTab = xPosition;
         notFitting = ProbeAfterTab();
 
         if (!notFitting)
         {
             if (xPosition + currentLineWidth / 2.0 <= formattingArea.X + tabStopPosition)
             {
-                Rectangle rect = FittingRectOrBounds(formattingArea, currentYPosition, currentVerticalInfo.height);
+                var rect = FittingRectOrBounds(formattingArea, currentYPosition, currentVerticalInfo.height);
                 if (formattingArea.X + tabStopPosition + currentLineWidth / 2.0 > rect.X + rect.Width - RightIndent)
                 {
                     //the text is too long on the right hand side of the tabstop => align to right indent.
@@ -569,7 +569,7 @@ internal class ParagraphRenderer : Renderer
     XUnit ProbeAfterDecimalAlignedTab(XUnit tabStopPosition, out bool notFitting)
     {
         notFitting = false;
-        ParagraphIterator savedLeaf = currentLeaf;
+        var savedLeaf = currentLeaf;
 
         //Extra for auto tab after list symbol
         if (IsTab(currentLeaf.Current))
@@ -579,8 +579,8 @@ internal class ParagraphRenderer : Renderer
             currentLeaf = savedLeaf;
             return currentXPosition + tabStopPosition;
         }
-        VerticalLineInfo newVerticalInfo = CalcCurrentVerticalInfo();
-        Rectangle fittingRect = formattingArea.GetFittingRect(currentYPosition, newVerticalInfo.height);
+        var newVerticalInfo = CalcCurrentVerticalInfo();
+        var fittingRect = formattingArea.GetFittingRect(currentYPosition, newVerticalInfo.height);
         if (fittingRect == null)
         {
             notFitting = true;
@@ -590,13 +590,13 @@ internal class ParagraphRenderer : Renderer
 
         if (IsPlainText(currentLeaf.Current))
         {
-            Text text = (Text)currentLeaf.Current;
-            string word = text.Content;
-            int lastIndex = text.Content.LastIndexOfAny(DecimalSeparators);
+            var text = (Text)currentLeaf.Current;
+            var word = text.Content;
+            var lastIndex = text.Content.LastIndexOfAny(DecimalSeparators);
             if (lastIndex > 0)
-                word = word.Substring(0, lastIndex);
+                word = word[..lastIndex];
 
-            XUnit wordLength = MeasureString(word);
+            var wordLength = MeasureString(word);
             notFitting = currentXPosition + wordLength >= formattingArea.X + formattingArea.Width + Tolerance;
             if (!notFitting)
                 return formattingArea.X + tabStopPosition - wordLength;
@@ -643,10 +643,10 @@ internal class ParagraphRenderer : Renderer
         if (currentLeaf != null && IsTab(currentLeaf.Current))
             currentLeaf = currentLeaf.GetNextLeaf();
 
-        bool wordAppeared = false;
+        var wordAppeared = false;
         while (currentLeaf != null && !IsLineBreak(currentLeaf.Current) && !IsTab(currentLeaf.Current))
         {
-            FormatResult result = FormatElement(currentLeaf.Current);
+            var result = FormatElement(currentLeaf.Current);
             if (result != FormatResult.Continue)
                 break;
 
@@ -663,8 +663,8 @@ internal class ParagraphRenderer : Renderer
     /// <returns>The searched tab stop.</returns>
     private TabStop GetNextTabStop()
     {
-        ParagraphFormat format = paragraph.Format;
-        TabStops tabStops = format.TabStops;
+        var format = paragraph.Format;
+        var tabStops = format.TabStops;
         XUnit lastPosition = 0;
 
         foreach (TabStop tabStop in tabStops)
@@ -689,7 +689,7 @@ internal class ParagraphRenderer : Renderer
         if (!paragraph.Document.IsNull("DefaultTabstop"))
             defaultTabStop = paragraph.Document.DefaultTabStop.Point;
 
-        XUnit currTabPos = defaultTabStop;
+        var currTabPos = defaultTabStop;
         while (currTabPos + formattingArea.X <= formattingArea.Width - RightIndent)
         {
             if (currTabPos > lastPosition && currTabPos + formattingArea.X > currentXPosition + Tolerance)
@@ -717,15 +717,15 @@ internal class ParagraphRenderer : Renderer
             }
             else //if (phase == Phase.Rendering)
             {
-                Area contentArea = renderInfo.LayoutInfo.ContentArea;
+                var contentArea = renderInfo.LayoutInfo.ContentArea;
                 //next lines for non fitting lines that produce an empty fitting rect:
-                XUnit rectX = contentArea.X;
-                XUnit rectWidth = contentArea.Width;
+                var rectX = contentArea.X;
+                var rectWidth = contentArea.Width;
 
                 // The measure the formatting phase broke this line to, rather than the same
                 // question asked again of an area that has since forgotten the answer.
-                Rectangle fittingRect = currentLineFittingRect
-                                        ?? contentArea.GetFittingRect(currentYPosition, currentVerticalInfo.height);
+                var fittingRect = currentLineFittingRect
+                                  ?? contentArea.GetFittingRect(currentYPosition, currentVerticalInfo.height);
                 if (fittingRect != null)
                 {
                     rectX = fittingRect.X;
@@ -774,25 +774,25 @@ internal class ParagraphRenderer : Renderer
 
         tabIdx = 0;
 
-        bool ready = currentLeaf == null;
+        var ready = currentLeaf == null;
         if (isFirstLine)
         {
             // The bullet is the /Lbl and the text is the /LBody, and they are siblings — so the
             // label's own scope is opened here, inside the body's, and closed again before the words
             // start. A label drawn inside the body would be read as part of the sentence.
-            using (Tagger.Marks(gfx, labelElement))
+            using (Tagger.Marks(Gfx, labelElement))
                 RenderListSymbol();
         }
 
         // Where each leaf goes, when that is not where it was written. Worked out before anything
         // is drawn, because the answer depends on how wide every part of the line is and the parts
         // are only measured by walking them.
-        XUnit[] placed = PlacedInVisualOrder(lineInfo);
+        var placed = PlacedInVisualOrder(lineInfo);
         reordering = placed != null;
 
         try
         {
-            int at = 0;
+            var at = 0;
             while (!ready)
             {
                 if (currentLeaf.Current == lineInfo.endIter.Current)
@@ -884,20 +884,20 @@ internal class ParagraphRenderer : Renderer
         var widths = new List<XUnit>();
         var spans = new List<(int Start, int Length)>();
         var isTab = new List<bool>();
-        string text = Probe(lineInfo, widths, spans, isTab);
+        var text = Probe(lineInfo, widths, spans, isTab);
 
         var placed = new XUnit[widths.Count];
-        XUnit cursor = StartXPosition;
-        for (int idx = 0; idx < widths.Count; idx++)
+        var cursor = StartXPosition;
+        for (var idx = 0; idx < widths.Count; idx++)
         {
             placed[idx] = cursor;
             cursor += widths[idx];
         }
 
-        bool anyReordered = false;
+        var anyReordered = false;
 
-        int segmentStart = 0;
-        for (int idx = 0; idx <= isTab.Count; idx++)
+        var segmentStart = 0;
+        for (var idx = 0; idx <= isTab.Count; idx++)
         {
             if (idx == isTab.Count || isTab[idx])
             {
@@ -928,26 +928,26 @@ internal class ParagraphRenderer : Renderer
     bool ReorderSegment(int start, int end, string text, List<XUnit> widths,
         List<(int Start, int Length)> spans, XUnit[] placed)
     {
-        bool wholeLine = start == 0 && end == spans.Count;
+        var wholeLine = start == 0 && end == spans.Count;
 
-        string segmentText = text;
+        var segmentText = text;
         IReadOnlyList<(int Start, int Length)> segmentSpans = spans;
 
         if (!wholeLine)
         {
-            int textStart = spans[start].Start;
+            var textStart = spans[start].Start;
             var lastSpan = spans[end - 1];
-            int textEnd = lastSpan.Start + lastSpan.Length;
+            var textEnd = lastSpan.Start + lastSpan.Length;
             segmentText = text.Substring(textStart, textEnd - textStart);
 
             var localSpans = new List<(int Start, int Length)>(end - start);
-            for (int idx = start; idx < end; idx++)
+            for (var idx = start; idx < end; idx++)
                 localSpans.Add((spans[idx].Start - textStart, spans[idx].Length));
             segmentSpans = localSpans;
         }
 
         var bidi = BidiAlgorithm.Resolve(segmentText, ParagraphDirection);
-        bool anyRightToLeft = false;
+        var anyRightToLeft = false;
         foreach (var run in bidi.Runs())
             anyRightToLeft |= run.Direction == XTextDirection.RightToLeft;
 
@@ -955,10 +955,10 @@ internal class ParagraphRenderer : Renderer
             return false;
 
         var order = VisualOrder.Of(bidi, segmentSpans);
-        XUnit x = placed[start];
-        foreach (int local in order)
+        var x = placed[start];
+        foreach (var local in order)
         {
-            int leaf = start + local;
+            var leaf = start + local;
             placed[leaf] = x;
             x += widths[leaf];
         }
@@ -988,14 +988,14 @@ internal class ParagraphRenderer : Renderer
         probing = true;
         try
         {
-            bool ready = currentLeaf == null;
+            var ready = currentLeaf == null;
             while (!ready)
             {
                 if (currentLeaf.Current == lineInfo.endIter.Current)
                     ready = true;
 
-                int start = probedText.Length;
-                XUnit before = currentXPosition;
+                var start = probedText.Length;
+                var before = currentXPosition;
 
                 isTab.Add(IsTab(currentLeaf.Current));
                 RenderElement(currentLeaf.Current);
@@ -1027,15 +1027,15 @@ internal class ParagraphRenderer : Renderer
     /// </remarks>
     bool MayNeedReordering(LineInfo lineInfo)
     {
-        bool declared = ParagraphDirection == BidiParagraphDirection.RightToLeft;
-        bool found = declared;
+        var declared = ParagraphDirection == BidiParagraphDirection.RightToLeft;
+        var found = declared;
 
         var leaf = lineInfo.startIter;
         while (leaf != null)
         {
             if (!found && leaf.Current is Text text && text.Content != null)
             {
-                foreach (char ch in text.Content)
+                foreach (var ch in text.Content)
                 {
                     // Nothing below the Hebrew block is written right to left, so a string made
                     // only of characters below it can only be read the way it was written.
@@ -1069,7 +1069,7 @@ internal class ParagraphRenderer : Renderer
     /// </remarks>
     void OpenInlineScopes()
     {
-        Hyperlink hyperlink = GetHyperlink();
+        var hyperlink = GetHyperlink();
         if (!ReferenceEquals(hyperlink, scopedHyperlink))
         {
             // The span first: it is the inner scope, and closing scopes out of order would cross a
@@ -1080,11 +1080,11 @@ internal class ParagraphRenderer : Renderer
             if (hyperlink != null)
             {
                 scopedHyperlink = hyperlink;
-                linkScope = Tagger.Marks(gfx, LinkElementOf(hyperlink));
+                linkScope = Tagger.Marks(Gfx, LinkElementOf(hyperlink));
             }
         }
 
-        BrokenWord word = BrokenWordOf(currentLeaf.Current);
+        var word = BrokenWordOf(currentLeaf.Current);
         if (!ReferenceEquals(word, scopedWord))
         {
             CloseSpanScope();
@@ -1092,7 +1092,7 @@ internal class ParagraphRenderer : Renderer
             if (word != null)
             {
                 scopedWord = word;
-                spanScope = Tagger.Marks(gfx, SpanElementOf(word));
+                spanScope = Tagger.Marks(Gfx, SpanElementOf(word));
             }
         }
     }
@@ -1181,10 +1181,10 @@ internal class ParagraphRenderer : Renderer
     {
         brokenWords = null;
 
-        if (!Tagger.Enabled || gfx.PdfPage == null)
+        if (!Tagger.Enabled || Gfx.PdfPage == null)
             return;
 
-        for (int idx = 0; idx < formatInfo.LineCount; ++idx)
+        for (var idx = 0; idx < formatInfo.LineCount; ++idx)
             RecordBrokenWord(formatInfo.GetLineInfo(idx).endIter);
 
         if (formatInfo.LineCount > 0)
@@ -1205,8 +1205,8 @@ internal class ParagraphRenderer : Renderer
 
         // The same guard FormatSoftHyphen uses. A hyphen with nothing on one side of it did not
         // break a word, so there is no word to put back together.
-        ParagraphIterator previous = hyphen.GetPreviousLeaf();
-        ParagraphIterator next = hyphen.GetNextLeaf();
+        var previous = hyphen.GetPreviousLeaf();
+        var next = hyphen.GetNextLeaf();
         if (previous == null || next == null)
             return;
         if (!IsPlainText(previous.Current) || !IsPlainText(next.Current))
@@ -1230,7 +1230,7 @@ internal class ParagraphRenderer : Renderer
         for (var iter = next; iter != null && IsWordFragment(iter.Current); iter = iter.GetNextLeaf())
             leaves.Add(iter.Current);
 
-        foreach (DocumentObject leaf in leaves)
+        foreach (var leaf in leaves)
         {
             // The hyphens are what is being taken out. A word may carry several and break at one of
             // them; the others draw nothing and must not spell anything either.
@@ -1240,7 +1240,7 @@ internal class ParagraphRenderer : Renderer
 
         var word = new BrokenWord(hyphen.Current, text.ToString());
         brokenWords ??= new Dictionary<DocumentObject, BrokenWord>(ReferenceComparer.Instance);
-        foreach (DocumentObject leaf in leaves)
+        foreach (var leaf in leaves)
             brokenWords[leaf] = word;
     }
 
@@ -1250,7 +1250,7 @@ internal class ParagraphRenderer : Renderer
     static bool IsWordFragment(DocumentObject docObj) => IsPlainText(docObj) || IsSoftHyphen(docObj);
 
     BrokenWord BrokenWordOf(DocumentObject leaf) =>
-        brokenWords != null && leaf != null && brokenWords.TryGetValue(leaf, out BrokenWord word)
+        brokenWords != null && leaf != null && brokenWords.TryGetValue(leaf, out var word)
             ? word
             : null;
 
@@ -1260,7 +1260,7 @@ internal class ParagraphRenderer : Renderer
     /// </summary>
     PdfStructureElement SpanElementOf(BrokenWord word)
     {
-        PdfStructureElement element = Tagger.Element(word.Hyphen, PdfTag.Span, Tagger.Parent);
+        var element = Tagger.Element(word.Hyphen, PdfTag.Span, Tagger.Parent);
         if (element != null)
             element.ActualText = word.Text;
 
@@ -1295,7 +1295,7 @@ internal class ParagraphRenderer : Renderer
         XUnit wordsWidth;
         XUnit blankWidth;
         SaveBeforeProbing(out iter, out blankCount, out wordsWidth, out xPosition, out lineWidth, out blankWidth);
-        bool origLastTabPassed = lastTabPassed;
+        var origLastTabPassed = lastTabPassed;
         //------------------------------------------
         currentLeaf = lineInfo.startIter;
         // The line being measured has to say where it starts as well as where it ends. Formatting
@@ -1317,18 +1317,18 @@ internal class ParagraphRenderer : Renderer
         //
         // This used to read "if (fittingRect == null) GetType();", which is a breakpoint someone
         // left behind rather than a decision. The decision was always the one below: skip.
-        Rectangle fittingRect = formattingArea.GetFittingRect(currentYPosition, currentVerticalInfo.height);
+        var fittingRect = formattingArea.GetFittingRect(currentYPosition, currentVerticalInfo.height);
         if (fittingRect != null)
         {
             currentXPosition = fittingRect.X + LeftIndent;
             FormatListSymbol();
-            bool goOn = true;
+            var goOn = true;
             while (goOn && currentLeaf != null)
             {
                 if (currentLeaf.Current == lineInfo.lastTab)
                     lastTabPassed = true;
 
-                FormatResult result = FormatElement(currentLeaf.Current);
+                var result = FormatElement(currentLeaf.Current);
 
                 // Where this line breaks was settled while the paragraph was formatted; this pass
                 // only measures it again, and must not break it a second time. An element that
@@ -1361,12 +1361,12 @@ internal class ParagraphRenderer : Renderer
             {
                 if (currentBlankCount >= 1 && !(isLastLine && renderInfo.FormatInfo.IsEnding))
                 {
-                    Area contentArea = renderInfo.LayoutInfo.ContentArea;
+                    var contentArea = renderInfo.LayoutInfo.ContentArea;
                     // Justification stretches blanks to fill the line's own measure. Reading the
                     // content area's width here would stretch a line beside a shape to the full
                     // measure, which is ragged rather than obviously broken.
-                    XUnit width = (currentLineFittingRect
-                                   ?? FittingRectOrBounds(contentArea, currentYPosition, currentVerticalInfo.height)).Width;
+                    var width = (currentLineFittingRect
+                                 ?? FittingRectOrBounds(contentArea, currentYPosition, currentVerticalInfo.height)).Width;
                     if (lastTabPosition > 0)
                     {
                         width -= (lastTabPosition -
@@ -1385,7 +1385,7 @@ internal class ParagraphRenderer : Renderer
 
     void RenderElement(DocumentObject docObj)
     {
-        string typeName = docObj.GetType().Name;
+        var typeName = docObj.GetType().Name;
         switch (typeName)
         {
             case "Text":
@@ -1447,9 +1447,9 @@ internal class ParagraphRenderer : Renderer
 
     void RenderImage(Image image)
     {
-        RenderInfo renderInfo = CurrentImageRenderInfo;
-        XUnit top = CurrentBaselinePosition;
-        Area contentArea = renderInfo.LayoutInfo.ContentArea;
+        var renderInfo = CurrentImageRenderInfo;
+        var top = CurrentBaselinePosition;
+        var contentArea = renderInfo.LayoutInfo.ContentArea;
         top -= contentArea.Height;
 
         if (probing)
@@ -1566,7 +1566,7 @@ internal class ParagraphRenderer : Renderer
 
     void RenderTab()
     {
-        TabOffset tabOffset = NextTabOffset();
+        var tabOffset = NextTabOffset();
 
         // Every other leaf checks this and returns before touching the page - a tab's own segment
         // could never need reordering until now, so this was never called during a probing walk.
@@ -1589,7 +1589,7 @@ internal class ParagraphRenderer : Renderer
 
     void RenderTabLeader(TabOffset tabOffset)
     {
-        string leaderString = " ";
+        var leaderString = " ";
         switch (tabOffset.leader)
         {
             case TabLeader.Dashes:
@@ -1612,27 +1612,27 @@ internal class ParagraphRenderer : Renderer
             default:
                 return;
         }
-        XUnit leaderWidth = MeasureString(leaderString);
-        XUnit xPosition = currentXPosition;
-        string drawString = "";
+        var leaderWidth = MeasureString(leaderString);
+        var xPosition = currentXPosition;
+        var drawString = "";
 
         while (xPosition + leaderWidth <= currentXPosition + tabOffset.offset)
         {
             drawString += leaderString;
             xPosition += leaderWidth;
         }
-        Font font = CurrentDomFont;
-        XFont xFont = CurrentFont;
+        var font = CurrentDomFont;
+        var xFont = CurrentFont;
         if (font.Subscript || font.Superscript)
             xFont = FontHandler.ToSubSuperFont(xFont);
 
-        gfx.DrawString(drawString, xFont, CurrentBrush, currentXPosition, CurrentBaselinePosition);
+        Gfx.DrawString(drawString, xFont, CurrentBrush, currentXPosition, CurrentBaselinePosition);
     }
 
     TabOffset NextTabOffset()
     {
 
-        TabOffset offset = tabOffsets.Count > tabIdx ?
+        var offset = tabOffsets.Count > tabIdx ?
             (TabOffset)tabOffsets[tabIdx] :
             new TabOffset(0, 0);
         ++tabIdx;
@@ -1648,7 +1648,7 @@ internal class ParagraphRenderer : Renderer
         if (endLeaf != null && currentLeaf.Current == endLeaf.Current)
             return true;
 
-        ParagraphIterator nextIter = currentLeaf.GetNextLeaf();
+        var nextIter = currentLeaf.GetNextLeaf();
         while (nextIter != null && (IsBlank(nextIter.Current) || nextIter.Current is BookmarkField))
         {
             nextIter = nextIter.GetNextLeaf();
@@ -1659,9 +1659,9 @@ internal class ParagraphRenderer : Renderer
         if (IsTab(nextIter.Current))
             return true;
 
-        ParagraphIterator prevIter = currentLeaf.GetPreviousLeaf();
+        var prevIter = currentLeaf.GetPreviousLeaf();
         // Can be null if currentLeaf is the first leaf
-        DocumentObject obj = prevIter != null ? prevIter.Current : null;
+        var obj = prevIter != null ? prevIter.Current : null;
         while (obj != null && obj is BookmarkField)
         {
             prevIter = prevIter.GetPreviousLeaf();
@@ -1691,7 +1691,7 @@ internal class ParagraphRenderer : Renderer
 
         if (!IgnoreBlank())
         {
-            XUnit wordDistance = CurrentWordDistance;
+            var wordDistance = CurrentWordDistance;
             RenderUnderline(wordDistance, false);
             RenderStrikethrough(wordDistance, false);
             RealizeHyperlink(wordDistance);
@@ -1718,7 +1718,7 @@ internal class ParagraphRenderer : Renderer
 
     void RenderWord(string word)
     {
-        XUnit wordWidth = MeasureString(word);
+        var wordWidth = MeasureString(word);
 
         if (probing)
         {
@@ -1727,12 +1727,12 @@ internal class ParagraphRenderer : Renderer
             return;
         }
 
-        Font font = CurrentDomFont;
-        XFont xFont = CurrentFont;
+        var font = CurrentDomFont;
+        var xFont = CurrentFont;
         if (font.Subscript || font.Superscript)
             xFont = FontHandler.ToSubSuperFont(xFont);
 
-        gfx.DrawString(word, xFont, CurrentBrush, currentXPosition, CurrentBaselinePosition);
+        Gfx.DrawString(word, xFont, CurrentBrush, currentXPosition, CurrentBaselinePosition);
         RenderUnderline(wordWidth, true);
         RenderStrikethrough(wordWidth, true);
         RealizeHyperlink(wordWidth);
@@ -1748,16 +1748,16 @@ internal class ParagraphRenderer : Renderer
     {
         hyperlinkRect.Width = right - hyperlinkRect.X;
         hyperlinkRect.Height = bottom - hyperlinkRect.Y;
-        PdfPage page = gfx.PdfPage;
+        var page = Gfx.PdfPage;
         if (page != null)
         {
-            XRect rect = gfx.Transformer.WorldToDefaultPage(hyperlinkRect);
+            var rect = Gfx.Transformer.WorldToDefaultPage(hyperlinkRect);
             PdfPinata.Pdf.Annotations.PdfLinkAnnotation annotation = null;
 
             switch (hyperlink.Type)
             {
                 case HyperlinkType.Local:
-                    int pageRef = fieldInfos.GetPhysicalPageNumber(hyperlink.Name);
+                    var pageRef = fieldInfos.GetPhysicalPageNumber(hyperlink.Name);
                     if (pageRef > 0)
                         annotation = page.AddDocumentLink(new PdfRectangle(rect), pageRef,
                             fieldInfos.GetBookmarkTop(hyperlink.Name));
@@ -1801,18 +1801,18 @@ internal class ParagraphRenderer : Renderer
         if (string.IsNullOrEmpty(annotation.Elements.GetString("/Contents")))
             annotation.Elements.SetString("/Contents", hyperlink.Name ?? "");
 
-        Tagger.AddAnnotation(gfx, LinkElementOf(hyperlink), annotation);
+        Tagger.AddAnnotation(Gfx, LinkElementOf(hyperlink), annotation);
     }
 
     void RealizeHyperlink(XUnit width)
     {
-        XUnit top = currentYPosition;
-        XUnit left = currentXPosition;
+        var top = currentYPosition;
+        var left = currentXPosition;
         XUnit bottom = top + currentVerticalInfo.height;
         XUnit right = left + width;
-        Hyperlink hyperlink = GetHyperlink();
+        var hyperlink = GetHyperlink();
 
-        bool hyperlinkChanged = currentHyperlink != hyperlink;
+        var hyperlinkChanged = currentHyperlink != hyperlink;
 
         if (hyperlinkChanged)
         {
@@ -1840,11 +1840,11 @@ internal class ParagraphRenderer : Renderer
     {
         get
         {
-            VerticalLineInfo verticalInfo = currentVerticalInfo;
-            XUnit position = currentYPosition;
+            var verticalInfo = currentVerticalInfo;
+            var position = currentYPosition;
 
-            Font font = CurrentDomFont;
-            XFont xFont = CurrentFont;
+            var font = CurrentDomFont;
+            var xFont = CurrentFont;
             if (font.Subscript)
             {
                 position += verticalInfo.inherentlineSpace;
@@ -1884,11 +1884,11 @@ internal class ParagraphRenderer : Renderer
     /// </remarks>
     double OutlineDestinationTop()
     {
-        Area contentArea = renderInfo.LayoutInfo.ContentArea;
+        var contentArea = renderInfo.LayoutInfo.ContentArea;
         if (contentArea == null)
             return double.NaN;
 
-        XRect onPage = gfx.Transformer.WorldToDefaultPage(
+        var onPage = Gfx.Transformer.WorldToDefaultPage(
             new XRect(contentArea.X, contentArea.Y, 0, 0));
         return onPage.Y;
     }
@@ -1897,17 +1897,17 @@ internal class ParagraphRenderer : Renderer
     {
         phase = Phase.Rendering;
 
-        ParagraphFormatInfo parFormatInfo = (ParagraphFormatInfo)renderInfo.FormatInfo;
+        var parFormatInfo = (ParagraphFormatInfo)renderInfo.FormatInfo;
         if (parFormatInfo.LineCount == 0)
             return;
         isFirstLine = parFormatInfo.IsStarting;
 
-        LineInfo lineInfo = parFormatInfo.GetFirstLineInfo();
-        Area contentArea = renderInfo.LayoutInfo.ContentArea;
+        var lineInfo = parFormatInfo.GetFirstLineInfo();
+        var contentArea = renderInfo.LayoutInfo.ContentArea;
         currentYPosition = contentArea.Y + TopBorderOffset;
         // StL: GetFittingRect liefert manchmal null
-        Rectangle rect = lineInfo.fittingRect
-                         ?? contentArea.GetFittingRect(currentYPosition, lineInfo.vertical.height);
+        var rect = lineInfo.fittingRect
+                   ?? contentArea.GetFittingRect(currentYPosition, lineInfo.vertical.height);
         if (rect != null)
             currentXPosition = rect.X;
         currentLineWidth = 0;
@@ -1925,11 +1925,11 @@ internal class ParagraphRenderer : Renderer
 
         tabOffsets = new ArrayList();
 
-        ParagraphFormatInfo prevParaFormatInfo = (ParagraphFormatInfo)previousFormatInfo;
+        var prevParaFormatInfo = (ParagraphFormatInfo)previousFormatInfo;
         if (previousFormatInfo == null || prevParaFormatInfo.LineCount == 0)
         {
             ((ParagraphFormatInfo)renderInfo.FormatInfo).isStarting = true;
-            ParagraphIterator parIt = new ParagraphIterator(paragraph.Elements);
+            var parIt = new ParagraphIterator(paragraph.Elements);
             currentLeaf = parIt.GetFirstLeaf();
             isFirstLine = true;
         }
@@ -1944,7 +1944,7 @@ internal class ParagraphRenderer : Renderer
         currentVerticalInfo = CalcCurrentVerticalInfo();
         currentYPosition = area.Y + TopBorderOffset;
         formattingArea = area;
-        Rectangle rect = formattingArea.GetFittingRect(currentYPosition, currentVerticalInfo.height);
+        var rect = formattingArea.GetFittingRect(currentYPosition, currentVerticalInfo.height);
         if (rect == null)
             return false;
 
@@ -1965,15 +1965,15 @@ internal class ParagraphRenderer : Renderer
     {
         font = null;
         symbol = null;
-        ParagraphFormatInfo formatInfo = (ParagraphFormatInfo)renderInfo.FormatInfo;
+        var formatInfo = (ParagraphFormatInfo)renderInfo.FormatInfo;
         if (phase == Phase.Formatting)
         {
-            ParagraphFormat format = paragraph.Format;
+            var format = paragraph.Format;
             if (!format.IsNull("ListInfo"))
             {
-                ListInfo listInfo = format.ListInfo;
+                var listInfo = format.ListInfo;
                 double size = format.Font.Size;
-                XFontStyle style = FontHandler.GetXStyle(format.Font);
+                var style = FontHandler.GetXStyle(format.Font);
 
                 switch (listInfo.ListType)
                 {
@@ -1993,18 +1993,18 @@ internal class ParagraphRenderer : Renderer
                         break;
 
                     case ListType.NumberList1:
-                        symbol = documentRenderer.NextListNumber(listInfo) + ".";
-                        font = FontHandler.FontToXFont(format.Font, documentRenderer.PrivateFonts, gfx.MUH);
+                        symbol = DocumentRenderer.NextListNumber(listInfo) + ".";
+                        font = FontHandler.FontToXFont(format.Font, DocumentRenderer.PrivateFonts, Gfx.MUH);
                         break;
 
                     case ListType.NumberList2:
-                        symbol = documentRenderer.NextListNumber(listInfo) + ")";
-                        font = FontHandler.FontToXFont(format.Font, documentRenderer.PrivateFonts, gfx.MUH);
+                        symbol = DocumentRenderer.NextListNumber(listInfo) + ")";
+                        font = FontHandler.FontToXFont(format.Font, DocumentRenderer.PrivateFonts, Gfx.MUH);
                         break;
 
                     case ListType.NumberList3:
-                        symbol = NumberFormatter.Format(documentRenderer.NextListNumber(listInfo), "alphabetic") + ")";
-                        font = FontHandler.FontToXFont(format.Font, documentRenderer.PrivateFonts, gfx.MUH);
+                        symbol = NumberFormatter.Format(DocumentRenderer.NextListNumber(listInfo), "alphabetic") + ")";
+                        font = FontHandler.FontToXFont(format.Font, DocumentRenderer.PrivateFonts, Gfx.MUH);
                         break;
                 }
                 formatInfo.listFont = font;
@@ -2028,7 +2028,7 @@ internal class ParagraphRenderer : Renderer
     {
         get
         {
-            ParagraphFormat format = paragraph.Format;
+            var format = paragraph.Format;
             XUnit leftIndent = format.LeftIndent.Point;
             if (isFirstLine)
             {
@@ -2055,7 +2055,7 @@ internal class ParagraphRenderer : Renderer
     /// <param name="previousFormatInfo">The format info that was obtained on formatting the same paragraph on a previous area.</param>
     internal override void Format(Area area, FormatInfo previousFormatInfo)
     {
-        ParagraphFormatInfo formatInfo = ((ParagraphFormatInfo)renderInfo.FormatInfo);
+        var formatInfo = ((ParagraphFormatInfo)renderInfo.FormatInfo);
         if (!InitFormat(area, previousFormatInfo))
         {
             formatInfo.isStarting = false;
@@ -2063,10 +2063,10 @@ internal class ParagraphRenderer : Renderer
         }
         formatInfo.isEnding = true;
 
-        FormatResult lastResult = FormatResult.Continue;
+        var lastResult = FormatResult.Continue;
         while (currentLeaf != null)
         {
-            FormatResult result = FormatElement(currentLeaf.Current);
+            var result = FormatElement(currentLeaf.Current);
             switch (result)
             {
                 case FormatResult.Ignore:
@@ -2107,15 +2107,15 @@ internal class ParagraphRenderer : Renderer
     /// </summary>
     private void FinishLayoutInfo()
     {
-        LayoutInfo layoutInfo = renderInfo.LayoutInfo;
-        ParagraphFormat format = paragraph.Format;
-        ParagraphFormatInfo parInfo = (ParagraphFormatInfo)renderInfo.FormatInfo;
+        var layoutInfo = renderInfo.LayoutInfo;
+        var format = paragraph.Format;
+        var parInfo = (ParagraphFormatInfo)renderInfo.FormatInfo;
         layoutInfo.MinWidth = minWidth;
         layoutInfo.KeepTogether = format.KeepTogether;
 
         if (parInfo.IsComplete)
         {
-            int limitOfLines = 1;
+            var limitOfLines = 1;
             if (parInfo.widowControl)
                 limitOfLines = 3;
 
@@ -2145,13 +2145,13 @@ internal class ParagraphRenderer : Renderer
         }
         if (parInfo.LineCount > 0)
         {
-            XUnit startingHeight = parInfo.GetFirstLineInfo().vertical.height;
+            var startingHeight = parInfo.GetFirstLineInfo().vertical.height;
             if (parInfo.isStarting && paragraph.Format.WidowControl && parInfo.LineCount >= 2)
                 startingHeight += parInfo.GetLineInfo(1).vertical.height;
 
             layoutInfo.StartingHeight = startingHeight;
 
-            XUnit trailingHeight = parInfo.GetLastLineInfo().vertical.height;
+            var trailingHeight = parInfo.GetLastLineInfo().vertical.height;
 
             if (parInfo.IsEnding && paragraph.Format.WidowControl && parInfo.LineCount >= 2)
                 trailingHeight += parInfo.GetLineInfo(parInfo.LineCount - 2).vertical.height;
@@ -2163,7 +2163,7 @@ internal class ParagraphRenderer : Renderer
 
     private XUnit PopSavedBlankWidth()
     {
-        XUnit width = savedBlankWidth;
+        var width = savedBlankWidth;
         savedBlankWidth = 0;
         return width;
     }
@@ -2251,11 +2251,11 @@ internal class ParagraphRenderer : Renderer
 
     void RenderFootnote(Footnote footnote)
     {
-        string mark = MarkOf(footnote);
+        var mark = MarkOf(footnote);
         if (mark.Length == 0)
             return;
 
-        XUnit width = MeasureFootnoteMark(mark);
+        var width = MeasureFootnoteMark(mark);
 
         if (probing)
         {
@@ -2267,22 +2267,22 @@ internal class ParagraphRenderer : Renderer
             return;
         }
 
-        XFont xFont = FontHandler.ToSubSuperFont(CurrentFont);
+        var xFont = FontHandler.ToSubSuperFont(CurrentFont);
 
         // Opened here rather than around the whole of RenderFootnote, so that the probing walk above
         // neither marks anything nor builds an element: the line is walked twice and only the second
         // walk draws. The scope also builds the note's own element, at the point the note is cited
         // rather than at the foot of the page where it is drawn - see StructureTagger.
-        using (Tagger.FootnoteReference(gfx, footnote))
+        using (Tagger.FootnoteReference(Gfx, footnote))
         {
-            gfx.DrawString(mark, xFont, CurrentBrush, currentXPosition, FootnoteMarkBaseline);
+            Gfx.DrawString(mark, xFont, CurrentBrush, currentXPosition, FootnoteMarkBaseline);
         }
 
         RealizeHyperlink(width);
         currentXPosition += width;
     }
 
-    string MarkOf(Footnote footnote) => documentRenderer.Footnotes.MarkFor(footnote);
+    string MarkOf(Footnote footnote) => DocumentRenderer.Footnotes.MarkFor(footnote);
 
     /// <summary>
     /// The mark's width, which is the string measured at the reduced size a superscript is set in.
@@ -2294,8 +2294,8 @@ internal class ParagraphRenderer : Renderer
     /// </remarks>
     XUnit MeasureFootnoteMark(string mark)
     {
-        XFont xFont = CurrentFont;
-        return gfx.MeasureString(mark, xFont, StringFormat).Width
+        var xFont = CurrentFont;
+        return Gfx.MeasureString(mark, xFont, StringFormat).Width
             * FontHandler.GetSubSuperScaling(xFont);
     }
 
@@ -2306,7 +2306,7 @@ internal class ParagraphRenderer : Renderer
     {
         get
         {
-            XFont xFont = CurrentFont;
+            var xFont = CurrentFont;
             return currentYPosition
                 + FontHandler.GetSubSuperScaling(xFont)
                 * (xFont.GetHeight() - FontHandler.GetDescent(xFont));
@@ -2315,13 +2315,13 @@ internal class ParagraphRenderer : Renderer
 
     FormatResult FormatImage(Image image)
     {
-        XUnit width = CurrentImageRenderInfo.LayoutInfo.ContentArea.Width;
+        var width = CurrentImageRenderInfo.LayoutInfo.ContentArea.Width;
         return FormatAsWord(width);
     }
 
     RenderInfo CalcImageRenderInfo(Image image)
     {
-        Renderer renderer = Create(gfx, documentRenderer, image, fieldInfos);
+        var renderer = Create(Gfx, DocumentRenderer, image, fieldInfos);
         renderer.Format(new Rectangle(0, 0, double.MaxValue, double.MaxValue), null);
 
         return renderer.RenderInfo;
@@ -2387,35 +2387,35 @@ internal class ParagraphRenderer : Renderer
     FormatResult FormatPageRefField(PageRefField pageRefField)
     {
         reMeasureLine = true;
-        string fieldValue = GetFieldValue(pageRefField);
+        var fieldValue = GetFieldValue(pageRefField);
         return FormatWord(fieldValue);
     }
 
     FormatResult FormatNumPagesField(NumPagesField numPagesField)
     {
         reMeasureLine = true;
-        string fieldValue = GetFieldValue(numPagesField);
+        var fieldValue = GetFieldValue(numPagesField);
         return FormatWord(fieldValue);
     }
 
     FormatResult FormatPageField(PageField pageField)
     {
         reMeasureLine = true;
-        string fieldValue = GetFieldValue(pageField);
+        var fieldValue = GetFieldValue(pageField);
         return FormatWord(fieldValue);
     }
 
     FormatResult FormatSectionField(SectionField sectionField)
     {
         reMeasureLine = true;
-        string fieldValue = GetFieldValue(sectionField);
+        var fieldValue = GetFieldValue(sectionField);
         return FormatWord(fieldValue);
     }
 
     FormatResult FormatSectionPagesField(SectionPagesField sectionPagesField)
     {
         reMeasureLine = true;
-        string fieldValue = GetFieldValue(sectionPagesField);
+        var fieldValue = GetFieldValue(sectionPagesField);
         return FormatWord(fieldValue);
     }
 
@@ -2424,7 +2424,7 @@ internal class ParagraphRenderer : Renderer
     /// </summary>
     FormatResult FormatWord(string word)
     {
-        XUnit width = MeasureString(word);
+        var width = MeasureString(word);
         return FormatAsWord(width);
     }
 
@@ -2438,9 +2438,9 @@ internal class ParagraphRenderer : Renderer
 
     FormatResult FormatAsWord(XUnit width)
     {
-        VerticalLineInfo newVertInfo = CalcCurrentVerticalInfo();
+        var newVertInfo = CalcCurrentVerticalInfo();
 
-        Rectangle rect = formattingArea.GetFittingRect(currentYPosition, newVertInfo.height + BottomBorderOffset);
+        var rect = formattingArea.GetFittingRect(currentYPosition, newVertInfo.height + BottomBorderOffset);
         if (rect == null)
             return FormatResult.NewArea;
 
@@ -2474,13 +2474,13 @@ internal class ParagraphRenderer : Renderer
     FormatResult FormatDateField(DateField dateField)
     {
         reMeasureLine = true;
-        string estimatedFieldValue = GlobalTimeSettings.Now.ToString(dateField.Format);
+        var estimatedFieldValue = GlobalTimeSettings.Now.ToString(dateField.Format);
         return FormatWord(estimatedFieldValue);
     }
 
     FormatResult FormatInfoField(InfoField infoField)
     {
-        string fieldValue = GetFieldValue(infoField);
+        var fieldValue = GetFieldValue(infoField);
         if (fieldValue != "")
             return FormatWord(fieldValue);
 
@@ -2489,22 +2489,22 @@ internal class ParagraphRenderer : Renderer
 
     Rectangle GetShadingArea()
     {
-        Area contentArea = renderInfo.LayoutInfo.ContentArea;
-        ParagraphFormat format = paragraph.Format;
-        XUnit left = contentArea.X;
+        var contentArea = renderInfo.LayoutInfo.ContentArea;
+        var format = paragraph.Format;
+        var left = contentArea.X;
         left += format.LeftIndent;
         if (format.FirstLineIndent < 0)
             left += format.FirstLineIndent;
 
-        XUnit top = contentArea.Y;
+        var top = contentArea.Y;
         XUnit bottom = contentArea.Y + contentArea.Height;
         XUnit right = contentArea.X + contentArea.Width;
         right -= format.RightIndent;
 
         if (!paragraph.Format.IsNull("Borders"))
         {
-            Borders borders = format.Borders;
-            BordersRenderer bordersRenderer = new BordersRenderer(borders, gfx);
+            var borders = format.Borders;
+            var bordersRenderer = new BordersRenderer(borders, Gfx);
 
             if (renderInfo.FormatInfo.IsStarting)
                 top += bordersRenderer.GetWidth(BorderType.Top);
@@ -2522,8 +2522,8 @@ internal class ParagraphRenderer : Renderer
         if (paragraph.Format.IsNull("Shading"))
             return;
 
-        ShadingRenderer shadingRenderer = new ShadingRenderer(gfx, paragraph.Format.Shading);
-        Rectangle area = GetShadingArea();
+        var shadingRenderer = new ShadingRenderer(Gfx, paragraph.Format.Shading);
+        var area = GetShadingArea();
 
         shadingRenderer.Render(area.X, area.Y, area.Width, area.Height);
     }
@@ -2534,15 +2534,15 @@ internal class ParagraphRenderer : Renderer
         if (paragraph.Format.IsNull("Borders"))
             return;
 
-        Rectangle shadingArea = GetShadingArea();
-        XUnit left = shadingArea.X;
-        XUnit top = shadingArea.Y;
+        var shadingArea = GetShadingArea();
+        var left = shadingArea.X;
+        var top = shadingArea.Y;
         XUnit bottom = shadingArea.Y + shadingArea.Height;
         XUnit right = shadingArea.X + shadingArea.Width;
 
-        Borders borders = paragraph.Format.Borders;
-        BordersRenderer bordersRenderer = new BordersRenderer(borders, gfx);
-        XUnit borderWidth = bordersRenderer.GetWidth(BorderType.Left);
+        var borders = paragraph.Format.Borders;
+        var bordersRenderer = new BordersRenderer(borders, Gfx);
+        var borderWidth = bordersRenderer.GetWidth(BorderType.Left);
         if (borderWidth > 0)
         {
             left -= borderWidth;
@@ -2572,9 +2572,9 @@ internal class ParagraphRenderer : Renderer
 
     XUnit MeasureString(string word)
     {
-        XFont xFont = CurrentFont;
-        XUnit width = gfx.MeasureString(word, xFont, StringFormat).Width;
-        Font font = CurrentDomFont;
+        var xFont = CurrentFont;
+        XUnit width = Gfx.MeasureString(word, xFont, StringFormat).Width;
+        var font = CurrentDomFont;
 
         if (font.Subscript || font.Superscript)
             width *= FontHandler.GetSubSuperScaling(xFont);
@@ -2609,10 +2609,10 @@ internal class ParagraphRenderer : Renderer
         XFont font;
         if (GetListSymbol(out symbol, out font))
         {
-            XBrush brush = FontHandler.FontColorToXBrush(paragraph.Format.Font);
-            gfx.DrawString(symbol, font, brush, currentXPosition, CurrentBaselinePosition);
-            currentXPosition += gfx.MeasureString(symbol, font, StringFormat).Width;
-            TabOffset tabOffset = NextTabOffset();
+            var brush = FontHandler.FontColorToXBrush(paragraph.Format.Font);
+            Gfx.DrawString(symbol, font, brush, currentXPosition, CurrentBaselinePosition);
+            currentXPosition += Gfx.MeasureString(symbol, font, StringFormat).Width;
+            var tabOffset = NextTabOffset();
             currentXPosition += tabOffset.offset;
             lastTabPosition = currentXPosition;
         }
@@ -2625,14 +2625,14 @@ internal class ParagraphRenderer : Renderer
         if (GetListSymbol(out symbol, out font))
         {
             currentVerticalInfo = CalcVerticalInfo(font);
-            currentXPosition += gfx.MeasureString(symbol, font, StringFormat).Width;
+            currentXPosition += Gfx.MeasureString(symbol, font, StringFormat).Width;
             FormatTab();
         }
     }
 
     FormatResult FormatSpace(Character character)
     {
-        XUnit width = GetSpaceWidth(character);
+        var width = GetSpaceWidth(character);
         return FormatAsWord(width);
     }
 
@@ -2678,14 +2678,14 @@ internal class ParagraphRenderer : Renderer
                 break;
 
             default:
-                char c = character.Char;
-                char[] chars = System.Text.Encoding.UTF8.GetChars(new byte[] { (byte)c });
+                var c = character.Char;
+                var chars = System.Text.Encoding.UTF8.GetChars(new byte[] { (byte)c });
                 ch = chars[0];
                 break;
         }
-        string returnString = "";
+        var returnString = "";
         returnString += ch;
-        int count = character.Count;
+        var count = character.Count;
         while (--count > 0)
             returnString += ch;
         return returnString;
@@ -2732,9 +2732,9 @@ internal class ParagraphRenderer : Renderer
             return FormatResult.Ignore;
 
         savedWordWidth = 0;
-        XUnit width = MeasureString(" ");
-        VerticalLineInfo newVertInfo = CalcCurrentVerticalInfo();
-        Rectangle rect = formattingArea.GetFittingRect(currentYPosition, newVertInfo.height + BottomBorderOffset);
+        var width = MeasureString(" ");
+        var newVertInfo = CalcCurrentVerticalInfo();
+        var rect = formattingArea.GetFittingRect(currentYPosition, newVertInfo.height + BottomBorderOffset);
         if (rect == null)
             return FormatResult.NewArea;
 
@@ -2771,8 +2771,8 @@ internal class ParagraphRenderer : Renderer
         if (currentLeaf.Current == startLeaf.Current)
             return FormatResult.Continue;
 
-        ParagraphIterator nextIter = currentLeaf.GetNextLeaf();
-        ParagraphIterator prevIter = currentLeaf.GetPreviousLeaf();
+        var nextIter = currentLeaf.GetNextLeaf();
+        var prevIter = currentLeaf.GetPreviousLeaf();
         if (!IsWordLikeElement(prevIter.Current) || !IsWordLikeElement(nextIter.Current))
             return FormatResult.Continue;
 
@@ -2786,7 +2786,7 @@ internal class ParagraphRenderer : Renderer
         SaveBeforeProbing(out iter, out blankCount, out wordsWidth, out xPosition, out lineWidth, out blankWidth);
         //------------------------------------------
         currentLeaf = nextIter;
-        FormatResult result = FormatElement(nextIter.Current);
+        var result = FormatElement(nextIter.Current);
 
         //--- Restore ------------------------------
         RestoreAfterProbing(iter, blankCount, wordsWidth, xPosition, lineWidth, blankWidth);
@@ -2795,9 +2795,9 @@ internal class ParagraphRenderer : Renderer
             return FormatResult.Continue;
 
         RestoreAfterProbing(iter, blankCount, wordsWidth, xPosition, lineWidth, blankWidth);
-        Rectangle fittingRect = FittingRectOrBounds(formattingArea, currentYPosition, currentVerticalInfo.height);
+        var fittingRect = FittingRectOrBounds(formattingArea, currentYPosition, currentVerticalInfo.height);
 
-        XUnit hyphenWidth = MeasureString("-");
+        var hyphenWidth = MeasureString("-");
         if (xPosition + hyphenWidth <= fittingRect.X + fittingRect.Width + Tolerance
             // If one word fits, but not the hyphen, the formatting must continue with the next leaf
             || prevIter.Current == startLeaf.Current)
@@ -2824,7 +2824,7 @@ internal class ParagraphRenderer : Renderer
     XUnit GetPreviousBlankWidth(ParagraphIterator beforeIter)
     {
         XUnit width = 0;
-        ParagraphIterator savedIter = currentLeaf;
+        var savedIter = currentLeaf;
         currentLeaf = beforeIter.GetPreviousLeaf();
         while (currentLeaf != null)
         {
@@ -2870,7 +2870,7 @@ internal class ParagraphRenderer : Renderer
         lastTab = null;
         lastTabPosition = 0;
         currentYPosition += currentVerticalInfo.height;
-        Rectangle rect = formattingArea.GetFittingRect(currentYPosition, currentVerticalInfo.height + BottomBorderOffset);
+        var rect = formattingArea.GetFittingRect(currentYPosition, currentVerticalInfo.height + BottomBorderOffset);
         if (rect == null)
             return false;
 
@@ -2891,14 +2891,14 @@ internal class ParagraphRenderer : Renderer
     {
         PopSavedBlankWidth();
 
-        XUnit topBorderOffset = TopBorderOffset;
-        Area contentArea = renderInfo.LayoutInfo.ContentArea;
+        var topBorderOffset = TopBorderOffset;
+        var contentArea = renderInfo.LayoutInfo.ContentArea;
         if (topBorderOffset > 0)//May only occure for the first line.
             contentArea = formattingArea.GetFittingRect(formattingArea.Y, topBorderOffset);
 
         // The measure this line was broken to. Kept, because uniting it into the content area below
         // loses it - see LineInfo.fittingRect.
-        Rectangle lineFittingRect = formattingArea.GetFittingRect(currentYPosition, currentVerticalInfo.height);
+        var lineFittingRect = formattingArea.GetFittingRect(currentYPosition, currentVerticalInfo.height);
 
         if (contentArea == null)
         {
@@ -2907,11 +2907,11 @@ internal class ParagraphRenderer : Renderer
         else
             contentArea = contentArea.Unite(lineFittingRect);
 
-        XUnit bottomBorderOffset = BottomBorderOffset;
+        var bottomBorderOffset = BottomBorderOffset;
         if (bottomBorderOffset > 0)
             contentArea = contentArea.Unite(formattingArea.GetFittingRect(currentYPosition + currentVerticalInfo.height, bottomBorderOffset));
 
-        LineInfo lineInfo = new LineInfo();
+        var lineInfo = new LineInfo();
         lineInfo.vertical = currentVerticalInfo;
 
         if (startLeaf != null && startLeaf == currentLeaf)
@@ -2958,7 +2958,7 @@ internal class ParagraphRenderer : Renderer
                 offset += paragraph.Format.Borders.DistanceFromTop;
                 if (!paragraph.Format.IsNull("Borders"))
                 {
-                    BordersRenderer bordersRenderer = new BordersRenderer(paragraph.Format.Borders, gfx);
+                    var bordersRenderer = new BordersRenderer(paragraph.Format.Borders, Gfx);
                     offset += bordersRenderer.GetWidth(BorderType.Top);
                 }
             }
@@ -2992,7 +2992,7 @@ internal class ParagraphRenderer : Renderer
                 if (!paragraph.Format.IsNull("Borders"))
                 {
                     offset += paragraph.Format.Borders.DistanceFromBottom;
-                    BordersRenderer bordersRenderer = new BordersRenderer(paragraph.Format.Borders, gfx);
+                    var bordersRenderer = new BordersRenderer(paragraph.Format.Borders, Gfx);
                     offset += bordersRenderer.GetWidth(BorderType.Bottom);
                 }
             }
@@ -3007,15 +3007,15 @@ internal class ParagraphRenderer : Renderer
 
     VerticalLineInfo CalcVerticalInfo(XFont font)
     {
-        ParagraphFormat paragraphFormat = paragraph.Format;
-        LineSpacingRule spacingRule = paragraphFormat.LineSpacingRule;
+        var paragraphFormat = paragraph.Format;
+        var spacingRule = paragraphFormat.LineSpacingRule;
         XUnit lineHeight = 0;
 
-        XUnit descent = FontHandler.GetDescent(font);
+        var descent = FontHandler.GetDescent(font);
         descent = Math.Max(currentVerticalInfo.descent, descent);
 
         XUnit singleLineSpace = font.GetHeight();
-        RenderInfo imageRenderInfo = CurrentImageRenderInfo;
+        var imageRenderInfo = CurrentImageRenderInfo;
         if (imageRenderInfo != null)
             singleLineSpace = singleLineSpace - FontHandler.GetAscent(font) + imageRenderInfo.LayoutInfo.ContentArea.Height;
 
@@ -3057,7 +3057,7 @@ internal class ParagraphRenderer : Renderer
     /// <summary>
     /// The font used for the current paragraph element.
     /// </summary>
-    private XFont CurrentFont => FontHandler.FontToXFont(CurrentDomFont, documentRenderer.PrivateFonts, gfx.MUH);
+    private XFont CurrentFont => FontHandler.FontToXFont(CurrentDomFont, DocumentRenderer.PrivateFonts, Gfx.MUH);
 
     private Font CurrentDomFont
     {
@@ -3065,7 +3065,7 @@ internal class ParagraphRenderer : Renderer
         {
             if (currentLeaf != null)
             {
-                DocumentObject parent = DocumentRelations.GetParent(currentLeaf.Current);
+                var parent = DocumentRelations.GetParent(currentLeaf.Current);
                 parent = DocumentRelations.GetParent(parent);
                 if (parent is FormattedText)
                     return ((FormattedText)parent).Font;
@@ -3084,7 +3084,7 @@ internal class ParagraphRenderer : Renderer
     /// <param name="renderer">The renderer.</param>
     internal static XUnit GetLineHeight(ParagraphFormat format, XGraphics gfx, DocumentRenderer renderer)
     {
-        XFont font = FontHandler.FontToXFont(format.Font, renderer.PrivateFonts, gfx.MUH);
+        var font = FontHandler.FontToXFont(format.Font, renderer.PrivateFonts, gfx.MUH);
         XUnit singleLineSpace = font.GetHeight();
         switch (format.LineSpacingRule)
         {
@@ -3111,9 +3111,9 @@ internal class ParagraphRenderer : Renderer
 
     void RenderUnderline(XUnit width, bool isWord)
     {
-        XPen pen = GetUnderlinePen(isWord);
+        var pen = GetUnderlinePen(isWord);
 
-        bool penChanged = UnderlinePenChanged(pen);
+        var penChanged = UnderlinePenChanged(pen);
         if (penChanged)
         {
             if (currentUnderlinePen != null)
@@ -3146,9 +3146,9 @@ internal class ParagraphRenderer : Renderer
         //yPosition -= 0.66 * this.currentVerticalInfo.descent;
 
         //New KlPo
-        XUnit yPosition = CurrentBaselinePosition;
+        var yPosition = CurrentBaselinePosition;
         yPosition += 0.33 * currentVerticalInfo.descent;
-        gfx.DrawLine(pen, underlineStartPos, yPosition, xPosition, yPosition);
+        Gfx.DrawLine(pen, underlineStartPos, yPosition, xPosition, yPosition);
     }
 
     XPen currentUnderlinePen = null;
@@ -3176,9 +3176,9 @@ internal class ParagraphRenderer : Renderer
 
     void RenderStrikethrough(XUnit width, bool isWord)
     {
-        XPen pen = GetStrikethroughPen(isWord);
+        var pen = GetStrikethroughPen(isWord);
 
-        bool penChanged = StrikethroughPenChanged(pen);
+        var penChanged = StrikethroughPenChanged(pen);
         if (penChanged)
         {
             if (currentStrikethroughPen != null)
@@ -3206,11 +3206,11 @@ internal class ParagraphRenderer : Renderer
 
     void EndStrikethrough(XPen pen, XUnit xPosition)
     {
-        XUnit yPosition = CurrentBaselinePosition;
+        var yPosition = CurrentBaselinePosition;
         yPosition -= pen.Width / 2;
         yPosition -= currentVerticalInfo.descent;
 
-        gfx.DrawLine(pen, strikethroughStartPos, yPosition, xPosition, yPosition);
+        Gfx.DrawLine(pen, strikethroughStartPos, yPosition, xPosition, yPosition);
     }
 
     XPen currentStrikethroughPen = null;
@@ -3241,7 +3241,7 @@ internal class ParagraphRenderer : Renderer
         {
             if (currentLeaf != null && currentLeaf.Current is Image)
             {
-                Image image = (Image)currentLeaf.Current;
+                var image = (Image)currentLeaf.Current;
                 if (imageRenderInfos != null && imageRenderInfos.ContainsKey(image))
                     return (RenderInfo)imageRenderInfos[image];
 
@@ -3250,7 +3250,7 @@ internal class ParagraphRenderer : Renderer
                     if (imageRenderInfos == null)
                         imageRenderInfos = new Hashtable();
 
-                    RenderInfo renderInfo = CalcImageRenderInfo(image);
+                    var renderInfo = CalcImageRenderInfo(image);
                     imageRenderInfos.Add(image, renderInfo);
                     return renderInfo;
                 }
@@ -3260,15 +3260,15 @@ internal class ParagraphRenderer : Renderer
     }
     XPen GetUnderlinePen(bool isWord)
     {
-        Font font = CurrentDomFont;
-        Underline underlineType = font.Underline;
+        var font = CurrentDomFont;
+        var underlineType = font.Underline;
         if (underlineType == Underline.None)
             return null;
 
         if (underlineType == Underline.Words && !isWord)
             return null;
 
-        XPen pen = new XPen(ColorHelper.ToXColor(font.Color, paragraph.Document.UseCmykColor), font.Size / 16);
+        var pen = new XPen(ColorHelper.ToXColor(font.Color, paragraph.Document.UseCmykColor), font.Size / 16);
         switch (font.Underline)
         {
             case Underline.DotDash:
@@ -3297,15 +3297,15 @@ internal class ParagraphRenderer : Renderer
 
     XPen GetStrikethroughPen(bool isWord)
     {
-        Font font = CurrentDomFont;
-        Strikethrough strikethroughType = font.Strikethrough;
+        var font = CurrentDomFont;
+        var strikethroughType = font.Strikethrough;
         if (strikethroughType == Strikethrough.None)
             return null;
 
         if (strikethroughType == Strikethrough.Words && !isWord)
             return null;
 
-        XPen pen = new XPen(ColorHelper.ToXColor(font.Color, paragraph.Document.UseCmykColor), font.Size / 16);
+        var pen = new XPen(ColorHelper.ToXColor(font.Color, paragraph.Document.UseCmykColor), font.Size / 16);
         switch (font.Strikethrough)
         {
             case Strikethrough.DotDash:

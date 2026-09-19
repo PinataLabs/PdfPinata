@@ -41,22 +41,22 @@ public sealed class ImageSharpGlyphOutlineProvider : IGlyphOutlineProvider
 
         // Through the registered resolver, never around it: a provider that picked its own face
         // would one day disagree with the text that was drawn.
-        IFontResolver resolver = GlobalFontSettings.FontResolver;
-        FontResolverInfo info = resolver.ResolveTypeface(familyName, isBold, isItalic);
+        var resolver = GlobalFontSettings.FontResolver;
+        var info = resolver.ResolveTypeface(familyName, isBold, isItalic);
         if (info == null)
             throw new InvalidOperationException(
                 "The font resolver has no face for the family '" + familyName + "'.");
 
-        byte[] fontBytes = resolver.GetFont(info.FaceName);
+        var fontBytes = resolver.GetFont(info.FaceName);
 
-        FontCollection collection = new FontCollection();
-        using MemoryStream stream = new MemoryStream(fontBytes);
-        FontFamily family = collection.Add(stream);
-        Font font = family.CreateFont((float)emSize, FontStyle.Regular);
+        var collection = new FontCollection();
+        using var stream = new MemoryStream(fontBytes);
+        var family = collection.Add(stream);
+        var font = family.CreateFont((float)emSize, FontStyle.Regular);
 
-        TextOptions options = new TextOptions(font) { Dpi = PointsPerInch, Origin = Vector2.Zero };
+        var options = new TextOptions(font) { Dpi = PointsPerInch, Origin = Vector2.Zero };
 
-        OutlineCollector collector = new OutlineCollector(BaselineOf(font, text));
+        var collector = new OutlineCollector(BaselineOf(font, text));
         TextRenderer.RenderTextTo(collector, text, options);
         return collector.Outlines;
     }
@@ -81,11 +81,11 @@ public sealed class ImageSharpGlyphOutlineProvider : IGlyphOutlineProvider
     /// </remarks>
     static double BaselineOf(Font font, string text)
     {
-        FontMetrics metrics = font.FontMetrics;
-        HorizontalMetrics header = metrics.HorizontalMetrics;
+        var metrics = font.FontMetrics;
+        var header = metrics.HorizontalMetrics;
 
-        double halfLeading = (header.LineHeight - metrics.UnitsPerEm) / 2.0;
-        double aboveTheAscender = OvershootOf(metrics, text);
+        var halfLeading = (header.LineHeight - metrics.UnitsPerEm) / 2.0;
+        var aboveTheAscender = OvershootOf(metrics, text);
 
         return (header.Ascender + aboveTheAscender - halfLeading) * font.Size / metrics.UnitsPerEm;
     }
@@ -97,9 +97,9 @@ public sealed class ImageSharpGlyphOutlineProvider : IGlyphOutlineProvider
     {
         double overshoot = 0;
 
-        for (int idx = 0; idx < text.Length; idx++)
+        for (var idx = 0; idx < text.Length; idx++)
         {
-            CodePoint codePoint = char.IsHighSurrogate(text[idx]) && idx + 1 < text.Length
+            var codePoint = char.IsHighSurrogate(text[idx]) && idx + 1 < text.Length
                 ? new CodePoint(char.ConvertToUtf32(text[idx], text[++idx]))
                 : new CodePoint(text[idx]);
 
@@ -108,10 +108,10 @@ public sealed class ImageSharpGlyphOutlineProvider : IGlyphOutlineProvider
                 continue;
 
             if (!metrics.TryGetGlyphMetrics(codePoint, TextAttributes.None, TextDecorations.None,
-                    LayoutMode.HorizontalTopBottom, ColorFontSupport.None, out IReadOnlyList<GlyphMetrics> glyphs))
+                    LayoutMode.HorizontalTopBottom, ColorFontSupport.None, out var glyphs))
                 continue;
 
-            foreach (GlyphMetrics glyph in glyphs)
+            foreach (var glyph in glyphs)
             {
                 if (glyph.TopSideBearing < 0)
                     overshoot = Math.Max(overshoot, -glyph.TopSideBearing);
@@ -167,8 +167,8 @@ public sealed class ImageSharpGlyphOutlineProvider : IGlyphOutlineProvider
         {
             // Exactly, rather than by subdivision: a quadratic through q from p0 to p2 is the
             // cubic with controls at p0 + 2/3(q - p0) and p2 + 2/3(q - p2).
-            XPoint control = At(secondControlPoint);
-            XPoint end = At(point);
+            var control = At(secondControlPoint);
+            var end = At(point);
             _segments.Add(XGlyphSegment.CurveTo(
                 Lerp(_current, control, 2.0 / 3.0),
                 Lerp(end, control, 2.0 / 3.0),

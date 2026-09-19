@@ -64,7 +64,7 @@ public enum BorderStyle
   /// <summary>
   /// A dash followed by two dots.
   /// </summary>
-  DashDotDot,
+  DashDotDot
   /* --- unsupported ---
     Double                = 7,
     Triple                = 8,

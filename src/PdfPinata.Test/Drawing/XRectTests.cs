@@ -123,7 +123,7 @@ public class XRectTests
         () => { var rect = XRect.Empty; rect.Size = new XSize(1, 1); },
         () => { var rect = XRect.Empty; rect.Offset(1, 1); },
         () => { var rect = XRect.Empty; rect.Offset(new XVector(1, 1)); },
-        () => { var rect = XRect.Empty; rect.Inflate(1, 1); },
+        () => { var rect = XRect.Empty; rect.Inflate(1, 1); }
     };
 
     public static TheoryData<int> EachWayOfChangingARectangle()
@@ -418,7 +418,7 @@ public class XRectTests
         object rect = new XRect(1, 2, 3, 4);
         typeof(XRect).GetField("_width", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(rect, -1.0);
 
-        Action deserialized = () => ((IDeserializationCallback)rect).OnDeserialization(null);
+        var deserialized = () => ((IDeserializationCallback)rect).OnDeserialization(null);
 
         deserialized.Should().Throw<SerializationException>();
     }
@@ -426,9 +426,9 @@ public class XRectTests
     [Fact]
     public void ADeserializedRectangleThatAConstructorCouldHaveMadeIsAccepted()
     {
-        foreach (XRect rect in new[] { new XRect(1, 2, 3, 4), new XRect(0, 0, 0, 0), XRect.Empty })
+        foreach (var rect in new[] { new XRect(1, 2, 3, 4), new XRect(0, 0, 0, 0), XRect.Empty })
         {
-            Action deserialized = () => ((IDeserializationCallback)rect).OnDeserialization(null);
+            var deserialized = () => ((IDeserializationCallback)rect).OnDeserialization(null);
 
             deserialized.Should().NotThrow();
         }

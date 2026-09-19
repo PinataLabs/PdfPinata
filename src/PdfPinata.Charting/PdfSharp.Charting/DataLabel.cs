@@ -63,7 +63,7 @@ public class DataLabel : DocumentObject
   /// </summary>
   protected override object DeepCopy()
   {
-    DataLabel dataLabel = (DataLabel)base.DeepCopy();
+    var dataLabel = (DataLabel)base.DeepCopy();
     if (dataLabel.font != null)
     {
       dataLabel.font = dataLabel.font.Clone();

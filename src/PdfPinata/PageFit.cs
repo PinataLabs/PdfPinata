@@ -95,42 +95,42 @@ public static class PageFit
             throw new ArgumentException("The target rectangle has no area to scale into.", nameof(target));
 
         // Take the margin off the target first: everything below fits into what is left of it.
-        double margin = options.Margin.Point;
+        var margin = options.Margin.Point;
         if (!IsFinite(margin) || margin < 0)
             throw new ArgumentException("The margin is not a length.", nameof(options));
 
-        double boxWidth = target.Width - 2 * margin;
-        double boxHeight = target.Height - 2 * margin;
+        var boxWidth = target.Width - 2 * margin;
+        var boxHeight = target.Height - 2 * margin;
         if (boxWidth <= 0 || boxHeight <= 0)
         {
             throw new ArgumentException(
                 "The margin leaves no room in the target rectangle for the content to go.", nameof(options));
         }
 
-        double boxX = target.X + margin;
-        double boxY = target.Y + margin;
+        var boxX = target.X + margin;
+        var boxY = target.Y + margin;
 
         // A quarter turn is worth making only when the two boxes are of opposite shape. A square
         // is of neither shape, so it never provokes one.
         turned = options.AutoRotate && IsLandscape(source.Width, source.Height) != IsLandscape(boxWidth, boxHeight);
 
         // What the content measures once it has been turned, which is what has to be fitted.
-        double fitWidth = turned ? source.Height : source.Width;
-        double fitHeight = turned ? source.Width : source.Height;
+        var fitWidth = turned ? source.Height : source.Width;
+        var fitHeight = turned ? source.Width : source.Height;
 
-        GetScale(options.Fit, fitWidth, fitHeight, boxWidth, boxHeight, out double scaleX, out double scaleY);
+        GetScale(options.Fit, fitWidth, fitHeight, boxWidth, boxHeight, out var scaleX, out var scaleY);
 
         // Whatever the box has over after the content is in it. Negative where the content
         // overflows, which Fill and None both allow, and then the alignment says what is cropped
         // rather than where the slack goes.
-        double slackX = boxWidth - fitWidth * scaleX;
-        double slackY = boxHeight - fitHeight * scaleY;
+        var slackX = boxWidth - fitWidth * scaleX;
+        var slackY = boxHeight - fitHeight * scaleY;
 
-        double offsetX = slackX * HorizontalFactor(options.Alignment);
-        double offsetY = slackY * VerticalFactor(options.Alignment);
+        var offsetX = slackX * HorizontalFactor(options.Alignment);
+        var offsetY = slackY * VerticalFactor(options.Alignment);
 
-        double placedX = boxX + offsetX;
-        double placedY = boxY + offsetY;
+        var placedX = boxX + offsetX;
+        var placedY = boxY + offsetY;
 
         // A point of the content at (x, y) is to end up at
         //     (placedX + scaleX * (x - source.X), placedY + scaleY * (y - source.Y))
@@ -180,8 +180,8 @@ public static class PageFit
     static void GetScale(PageFitMode fit, double fitWidth, double fitHeight, double boxWidth, double boxHeight,
         out double scaleX, out double scaleY)
     {
-        double byWidth = boxWidth / fitWidth;
-        double byHeight = boxHeight / fitHeight;
+        var byWidth = boxWidth / fitWidth;
+        var byHeight = boxHeight / fitHeight;
 
         switch (fit)
         {

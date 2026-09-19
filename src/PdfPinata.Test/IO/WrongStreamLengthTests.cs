@@ -85,7 +85,7 @@ public class WrongStreamLengthTests
             "<</Type/Pages/Kids[3 0 R]/Count 1>>",
             "<</Type/Page/Parent 2 0 R/MediaBox[0 0 200 200]/Contents 4 0 R>>",
             "<</Length 5 0 R>>stream\n" + Content + "\nendstream",
-            (Content.Length - 5).ToString(),
+            (Content.Length - 5).ToString()
         }), PdfReadAccuracy.Strict);
 
         ContentOf(document).Should().Be(Content);
@@ -172,7 +172,7 @@ public class WrongStreamLengthTests
             "<</Type/Catalog/Pages 2 0 R>>",
             "<</Type/Pages/Kids[3 0 R]/Count 1>>",
             "<</Type/Page/Parent 2 0 R/MediaBox[0 0 200 200]/Contents 4 0 R>>",
-            content,
+            content
         });
     }
 }

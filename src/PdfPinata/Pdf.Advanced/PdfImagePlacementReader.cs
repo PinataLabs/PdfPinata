@@ -32,7 +32,7 @@ internal sealed class PdfImagePlacementReader
     {
         ArgumentNullException.ThrowIfNull(page);
 
-        PdfImagePlacementReader reader = new PdfImagePlacementReader();
+        var reader = new PdfImagePlacementReader();
 
         byte[] content;
         if (!PdfContentStreams.TryGetPageContent(page, out content))
@@ -72,11 +72,11 @@ internal sealed class PdfImagePlacementReader
     {
         // The state a stream saves and restores is its own: a form leaving the stack unbalanced
         // cannot reach past its own content into the state of the page that drew it.
-        Stack<XMatrix> saved = new Stack<XMatrix>();
+        var saved = new Stack<XMatrix>();
 
-        foreach (CObject item in sequence)
+        foreach (var item in sequence)
         {
-            COperator op = item as COperator;
+            var op = item as COperator;
             if (op == null)
                 continue;
 
@@ -121,14 +121,14 @@ internal sealed class PdfImagePlacementReader
         if (op.Operands.Count < 6)
             return ctm;
 
-        double[] m = new double[6];
-        for (int idx = 0; idx < 6; idx++)
+        var m = new double[6];
+        for (var idx = 0; idx < 6; idx++)
         {
             if (!TryGetNumber(op.Operands[idx], out m[idx]))
                 return ctm;
         }
 
-        XMatrix matrix = new XMatrix(m[0], m[1], m[2], m[3], m[4], m[5]);
+        var matrix = new XMatrix(m[0], m[1], m[2], m[3], m[4], m[5]);
         matrix.Multiply(ctm, XMatrixOrder.Append);
         return matrix;
     }
@@ -138,8 +138,8 @@ internal sealed class PdfImagePlacementReader
         if (name == null || scope == null)
             return;
 
-        PdfDictionary xObjects = scope.Elements.GetDictionary("/XObject");
-        PdfDictionary xObject = xObjects == null ? null : xObjects.Elements.GetDictionary(name);
+        var xObjects = scope.Elements.GetDictionary("/XObject");
+        var xObject = xObjects == null ? null : xObjects.Elements.GetDictionary(name);
         if (xObject == null)
         {
             // The content names something the resources do not hold.
@@ -160,7 +160,7 @@ internal sealed class PdfImagePlacementReader
 
     void DrawForm(PdfDictionary form, PdfDictionary scope, XMatrix ctm, int depth)
     {
-        string id = Identify(form);
+        var id = Identify(form);
         if (id != null)
         {
             if (_open.ContainsKey(id))
@@ -178,10 +178,10 @@ internal sealed class PdfImagePlacementReader
             // A form draws in a space of its own, which its matrix maps into the space it is
             // drawn in. Names in it resolve against its own resources where it has them, and
             // against those of whatever drew it where it has not.
-            XMatrix inner = MatrixOf(form);
+            var inner = MatrixOf(form);
             inner.Multiply(ctm, XMatrixOrder.Append);
 
-            PdfDictionary formScope = form.Elements.GetDictionary(PdfPage.Keys.Resources) ?? scope;
+            var formScope = form.Elements.GetDictionary(PdfPage.Keys.Resources) ?? scope;
 
             Read(content, formScope, inner, depth + 1);
         }
@@ -197,12 +197,12 @@ internal sealed class PdfImagePlacementReader
     /// </summary>
     static XMatrix MatrixOf(PdfDictionary form)
     {
-        PdfArray matrix = form.Elements.GetArray("/Matrix");
+        var matrix = form.Elements.GetArray("/Matrix");
         if (matrix == null || matrix.Elements.Count < 6)
             return XMatrix.Identity;
 
-        double[] m = new double[6];
-        for (int idx = 0; idx < 6; idx++)
+        var m = new double[6];
+        for (var idx = 0; idx < 6; idx++)
         {
             if (!TryGetNumber(matrix.Elements[idx], out m[idx]))
                 return XMatrix.Identity;
@@ -225,20 +225,20 @@ internal sealed class PdfImagePlacementReader
         if (index < 0 || index >= op.Operands.Count)
             return null;
 
-        CName name = op.Operands[index] as CName;
+        var name = op.Operands[index] as CName;
         return name == null ? null : name.Name;
     }
 
     static bool TryGetNumber(CObject operand, out double value)
     {
-        CReal real = operand as CReal;
+        var real = operand as CReal;
         if (real != null)
         {
             value = real.Value;
             return true;
         }
 
-        CInteger integer = operand as CInteger;
+        var integer = operand as CInteger;
         if (integer != null)
         {
             value = integer.Value;
@@ -254,14 +254,14 @@ internal sealed class PdfImagePlacementReader
         if (item is PdfReference)
             item = ((PdfReference)item).Value;
 
-        PdfReal real = item as PdfReal;
+        var real = item as PdfReal;
         if (real != null)
         {
             value = real.Value;
             return true;
         }
 
-        PdfInteger integer = item as PdfInteger;
+        var integer = item as PdfInteger;
         if (integer != null)
         {
             value = integer.Value;

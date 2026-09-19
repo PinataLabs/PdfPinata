@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -48,17 +48,17 @@ static class GeometryHelper
     public static List<XPoint> BezierCurveFromArc(double x, double y, double width, double height, double startAngle, double sweepAngle,
         PathStart pathStart, ref XMatrix matrix)
     {
-        List<XPoint> points = new List<XPoint>();
+        var points = new List<XPoint>();
 
         // Normalize the angles.
-        double α = startAngle;
+        var α = startAngle;
         if (α < 0)
             α = α + (1 + Math.Floor((Math.Abs(α) / 360))) * 360;
         else if (α > 360)
             α = α - Math.Floor(α / 360) * 360;
         Debug.Assert(α >= 0 && α <= 360);
 
-        double β = sweepAngle;
+        var β = sweepAngle;
         if (β < -360)
             β = -360;
         else if (β > 360)
@@ -72,22 +72,22 @@ static class GeometryHelper
         #pragma warning restore S1244
 
         // Is it possible that the arc is small starts and ends in same quadrant?
-        bool smallAngle = Math.Abs(β) <= 90;
+        var smallAngle = Math.Abs(β) <= 90;
 
         β = α + β;
         if (β < 0)
             β = β + (1 + Math.Floor((Math.Abs(β) / 360))) * 360;
 
-        bool clockwise = sweepAngle > 0;
-        int startQuadrant = Quadrant(α, true, clockwise);
-        int endQuadrant = Quadrant(β, false, clockwise);
+        var clockwise = sweepAngle > 0;
+        var startQuadrant = Quadrant(α, true, clockwise);
+        var endQuadrant = Quadrant(β, false, clockwise);
 
         if (startQuadrant == endQuadrant && smallAngle)
             AppendPartialArcQuadrant(points, x, y, width, height, α, β, pathStart, matrix);
         else
         {
-            int currentQuadrant = startQuadrant;
-            bool firstLoop = true;
+            var currentQuadrant = startQuadrant;
+            var firstLoop = true;
             do
             {
                 if (currentQuadrant == startQuadrant && firstLoop)
@@ -133,7 +133,7 @@ static class GeometryHelper
         if (φ > 360)
             φ = φ - Math.Floor(φ / 360) * 360;
 
-        int quadrant = (int)(φ / 90);
+        var quadrant = (int)(φ / 90);
         #pragma warning disable S1244 // Exact on purpose: only the exact value takes the special case, and the general path is right for anything near it.
         if (quadrant * 90 == φ)
         #pragma warning restore S1244
@@ -158,12 +158,12 @@ static class GeometryHelper
         Debug.Assert(Math.Abs(α - β) <= 90);
 
         // Scanling factor.
-        double δx = width / 2;
-        double δy = height / 2;
+        var δx = width / 2;
+        var δy = height / 2;
 
         // Center of ellipse.
-        double x0 = x + δx;
-        double y0 = y + δy;
+        var x0 = x + δx;
+        var y0 = y + δy;
 
         // We have the following quarters:
         //     |
@@ -174,7 +174,7 @@ static class GeometryHelper
         // If the angles lie in quarter 2 or 3, their values are subtracted by 180 and the
         // resulting curve is reflected at the center. This algorithm works as expected (simply tried out).
         // There may be a mathematically more elegant solution...
-        bool reflect = false;
+        var reflect = false;
         if (α >= 180 && β >= 180)
         {
             α -= 180;
@@ -204,7 +204,7 @@ static class GeometryHelper
                 β = Math.PI / 2 - Math.Atan(δy * Math.Cos(β) / (δx * sinβ));
         }
 
-        double κ = 4 * (1 - Math.Cos((α - β) / 2)) / (3 * Math.Sin((β - α) / 2));
+        var κ = 4 * (1 - Math.Cos((α - β) / 2)) / (3 * Math.Sin((β - α) / 2));
         sinα = Math.Sin(α);
         cosα = Math.Cos(α);
         sinβ = Math.Sin(β);
@@ -259,25 +259,25 @@ static class GeometryHelper
     public static List<XPoint> BezierCurveFromArc(XPoint point1, XPoint point2, XSize size,
         double rotationAngle, bool isLargeArc, bool clockwise, PathStart pathStart)
     {
-        // See also http://www.charlespetzold.com/blog/blog.xml from January 2, 2008: 
+        // See also http://www.charlespetzold.com/blog/blog.xml from January 2, 2008:
         // http://www.charlespetzold.com/blog/2008/01/Mathematics-of-ArcSegment.html
-        double δx = size.Width;
-        double δy = size.Height;
+        var δx = size.Width;
+        var δy = size.Height;
         Debug.Assert(δx * δy > 0);
-        double factor = δy / δx;
-        bool isCounterclockwise = !clockwise;
+        var factor = δy / δx;
+        var isCounterclockwise = !clockwise;
 
         // Adjust for different radii and rotation angle.
-        XMatrix matrix = new XMatrix();
+        var matrix = new XMatrix();
         matrix.RotateAppend(-rotationAngle);
         matrix.ScaleAppend(δy / δx, 1);
-        XPoint pt1 = matrix.Transform(point1);
-        XPoint pt2 = matrix.Transform(point2);
+        var pt1 = matrix.Transform(point1);
+        var pt2 = matrix.Transform(point2);
 
         // Get info about chord that connects both points.
-        XPoint midPoint = new XPoint((pt1.X + pt2.X) / 2, (pt1.Y + pt2.Y) / 2);
-        XVector vect = pt2 - pt1;
-        double halfChord = vect.Length / 2;
+        var midPoint = new XPoint((pt1.X + pt2.X) / 2, (pt1.Y + pt2.Y) / 2);
+        var vect = pt2 - pt1;
+        var halfChord = vect.Length / 2;
 
         // Get vector from chord to center.
         XVector vectRotated;
@@ -291,16 +291,16 @@ static class GeometryHelper
         vectRotated.Normalize();
 
         // Distance from chord to center.
-        double centerDistance = Math.Sqrt(δy * δy - halfChord * halfChord);
+        var centerDistance = Math.Sqrt(δy * δy - halfChord * halfChord);
         if (double.IsNaN(centerDistance))
             centerDistance = 0;
 
         // Calculate center point.
-        XPoint center = midPoint + centerDistance * vectRotated;
+        var center = midPoint + centerDistance * vectRotated;
 
         // Get angles from center to the two points.
-        double α = Math.Atan2(pt1.Y - center.Y, pt1.X - center.X);
-        double β = Math.Atan2(pt2.Y - center.Y, pt2.X - center.X);
+        var α = Math.Atan2(pt1.Y - center.Y, pt1.X - center.X);
+        var β = Math.Atan2(pt2.Y - center.Y, pt2.X - center.X);
 
         // (another comparison of two Booleans!)
         if (isLargeArc == (Math.Abs(β - α) < Math.PI))
@@ -313,7 +313,7 @@ static class GeometryHelper
 
         // Invert matrix for final point calculation.
         matrix.Invert();
-        double sweepAngle = β - α;
+        var sweepAngle = β - α;
 
         // Let the algorithm of GDI+ DrawArc to Bézier curves do the rest of the job
         return BezierCurveFromArc(center.X - δx * factor, center.Y - δy, 2 * δx * factor, 2 * δy,

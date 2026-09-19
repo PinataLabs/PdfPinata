@@ -63,7 +63,7 @@ public class DocumentObject
   /// </summary>
   protected virtual object DeepCopy()
   {
-    DocumentObject value = (DocumentObject)MemberwiseClone();
+    var value = (DocumentObject)MemberwiseClone();
     value.parent = null;
     return value;
   }

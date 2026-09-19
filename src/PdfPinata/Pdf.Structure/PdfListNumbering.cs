@@ -35,5 +35,5 @@ public enum PdfListNumbering
     UpperAlpha,
 
     /// <summary>Lowercase letters: a, b, c, ...</summary>
-    LowerAlpha,
+    LowerAlpha
 }

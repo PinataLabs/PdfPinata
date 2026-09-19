@@ -25,7 +25,7 @@ public class PagePlacementTests
 
     private static byte[] Save(PdfDocument document)
     {
-        MemoryStream stream = new MemoryStream();
+        var stream = new MemoryStream();
         document.Save(stream, false);
         return stream.ToArray();
     }
@@ -39,10 +39,10 @@ public class PagePlacementTests
     [Fact]
     public void PlacingAnAlreadyPlacedPage_ExplainsTheRemedy()
     {
-        PdfDocument document = OpenForModify();
-        PdfPage page = document.AddPage();
+        var document = OpenForModify();
+        var page = document.AddPage();
 
-        InvalidOperationException ex = Assert.Throws<InvalidOperationException>(
+        var ex = Assert.Throws<InvalidOperationException>(
             () => document.InsertPage(1, page));
 
         Assert.Contains("already at index 1", ex.Message);
@@ -59,14 +59,14 @@ public class PagePlacementTests
     [Fact]
     public void NewPageOwnedByDocument_IsDrawableButNotPlaced()
     {
-        PdfDocument document = OpenForModify();
-        int before = document.PageCount;
+        var document = OpenForModify();
+        var before = document.PageCount;
 
-        PdfPage page = new PdfPage(document);
+        var page = new PdfPage(document);
         Assert.Equal(before, document.PageCount);
         Assert.Equal(-1, document.Pages.IndexOf(page));
 
-        XGraphics gfx = XGraphics.FromPdfPage(page);
+        var gfx = XGraphics.FromPdfPage(page);
         gfx.DrawImage(XImage.FromFile(ImagePath), 0, 0, page.Width, page.Height);
     }
 
@@ -76,14 +76,14 @@ public class PagePlacementTests
     [Fact]
     public void PlacePage_ReturnsTheSameObjectAndPlacesIt()
     {
-        PdfDocument document = OpenForModify();
-        int before = document.PageCount;
+        var document = OpenForModify();
+        var before = document.PageCount;
 
-        PdfPage page = new PdfPage(document);
-        XGraphics gfx = XGraphics.FromPdfPage(page);
+        var page = new PdfPage(document);
+        var gfx = XGraphics.FromPdfPage(page);
         gfx.DrawImage(XImage.FromFile(ImagePath), 0, 0, page.Width, page.Height);
 
-        PdfPage placed = document.PlacePage(0, page);
+        var placed = document.PlacePage(0, page);
 
         Assert.Same(page, placed);
         Assert.Equal(before + 1, document.PageCount);
@@ -94,10 +94,10 @@ public class PagePlacementTests
     [Fact]
     public void PlacePage_RejectsAForeignPage()
     {
-        PdfDocument target = OpenForModify();
-        PdfDocument foreign = OpenForImport();
+        var target = OpenForModify();
+        var foreign = OpenForImport();
 
-        InvalidOperationException ex = Assert.Throws<InvalidOperationException>(
+        var ex = Assert.Throws<InvalidOperationException>(
             () => target.PlacePage(0, foreign.Pages[0]));
 
         Assert.Contains("belongs to another document", ex.Message);
@@ -107,8 +107,8 @@ public class PagePlacementTests
     [Fact]
     public void PlacePage_RejectsAnAlreadyPlacedPage()
     {
-        PdfDocument document = OpenForModify();
-        PdfPage page = document.AddPage();
+        var document = OpenForModify();
+        var page = document.AddPage();
 
         Assert.Throws<InvalidOperationException>(() => document.PlacePage(0, page));
     }
@@ -122,11 +122,11 @@ public class PagePlacementTests
     [Fact]
     public void InsertPage_CreatesThePageAtTheIndexGiven()
     {
-        PdfDocument document = OpenForModify();
-        int before = document.PageCount;
-        PdfPage wasFirst = document.Pages[0];
+        var document = OpenForModify();
+        var before = document.PageCount;
+        var wasFirst = document.Pages[0];
 
-        PdfPage inserted = document.InsertPage(0);
+        var inserted = document.InsertPage(0);
 
         Assert.Equal(before + 1, document.PageCount);
         Assert.Equal(0, document.Pages.IndexOf(inserted));
@@ -141,11 +141,11 @@ public class PagePlacementTests
     [Fact]
     public void InsertPage_PlacesAPageOfThisDocumentWithoutCopyingIt()
     {
-        PdfDocument document = OpenForModify();
-        int before = document.PageCount;
-        PdfPage page = new PdfPage(document);
+        var document = OpenForModify();
+        var before = document.PageCount;
+        var page = new PdfPage(document);
 
-        PdfPage inserted = document.InsertPage(0, page);
+        var inserted = document.InsertPage(0, page);
 
         Assert.Same(page, inserted);
         Assert.Equal(before + 1, document.PageCount);
@@ -160,12 +160,12 @@ public class PagePlacementTests
     [Fact]
     public void InsertPage_ImportsAForeignPageAndReturnsTheCopy()
     {
-        PdfDocument document = OpenForModify();
-        PdfDocument foreign = OpenForImport();
-        int before = document.PageCount;
+        var document = OpenForModify();
+        var foreign = OpenForImport();
+        var before = document.PageCount;
 
-        PdfPage source = foreign.Pages[0];
-        PdfPage inserted = document.InsertPage(0, source);
+        var source = foreign.Pages[0];
+        var inserted = document.InsertPage(0, source);
 
         Assert.NotSame(source, inserted);
         Assert.Equal(before + 1, document.PageCount);
@@ -181,12 +181,12 @@ public class PagePlacementTests
     [Fact]
     public void ImportPage_AlwaysReturnsACopy()
     {
-        PdfDocument target = OpenForModify();
-        PdfDocument foreign = OpenForImport();
-        int before = target.PageCount;
+        var target = OpenForModify();
+        var foreign = OpenForImport();
+        var before = target.PageCount;
 
-        PdfPage source = foreign.Pages[0];
-        PdfPage imported = target.ImportPage(0, source);
+        var source = foreign.Pages[0];
+        var imported = target.ImportPage(0, source);
 
         Assert.NotSame(source, imported);
         Assert.Equal(before + 1, target.PageCount);
@@ -197,9 +197,9 @@ public class PagePlacementTests
     [Fact]
     public void ImportPage_RejectsAPageOfThisDocument()
     {
-        PdfDocument document = OpenForModify();
+        var document = OpenForModify();
 
-        InvalidOperationException ex = Assert.Throws<InvalidOperationException>(
+        var ex = Assert.Throws<InvalidOperationException>(
             () => document.ImportPage(0, document.Pages[0]));
 
         Assert.Contains("already belongs to this document", ex.Message);
@@ -215,19 +215,19 @@ public class PagePlacementTests
     [Fact]
     public void DuplicatePage_AddsASecondPageWithTheSameContent()
     {
-        PdfDocument document = OpenForModify();
-        int before = document.PageCount;
-        double width = document.Pages[0].Width.Point;
-        double height = document.Pages[0].Height.Point;
+        var document = OpenForModify();
+        var before = document.PageCount;
+        var width = document.Pages[0].Width.Point;
+        var height = document.Pages[0].Height.Point;
 
-        PdfPage duplicate = document.DuplicatePage(0, 1);
+        var duplicate = document.DuplicatePage(0, 1);
 
         Assert.NotSame(document.Pages[0], duplicate);
         Assert.Equal(before + 1, document.PageCount);
         Assert.Equal(1, document.Pages.IndexOf(duplicate));
 
-        byte[] saved = Save(document);
-        PdfDocument reloaded = global::PdfPinata.Pdf.IO.PdfReader.Open(
+        var saved = Save(document);
+        var reloaded = global::PdfPinata.Pdf.IO.PdfReader.Open(
             new MemoryStream(saved), PdfDocumentOpenMode.Modify);
 
         Assert.Equal(before + 1, reloaded.PageCount);
@@ -241,12 +241,12 @@ public class PagePlacementTests
     [Fact]
     public void DuplicatePage_SharesContentRatherThanCopyingIt()
     {
-        PdfDocument plain = OpenForModify();
-        int plainSize = Save(plain).Length;
+        var plain = OpenForModify();
+        var plainSize = Save(plain).Length;
 
-        PdfDocument doubled = OpenForModify();
+        var doubled = OpenForModify();
         doubled.DuplicatePage(0, 1);
-        int doubledSize = Save(doubled).Length;
+        var doubledSize = Save(doubled).Length;
 
         // A duplicated page adds a page object, not another copy of the content stream.
         Assert.True(doubledSize < plainSize * 1.05,
@@ -261,16 +261,16 @@ public class PagePlacementTests
     [Fact]
     public void DrawingOnADuplicate_LeavesTheSourceAlone()
     {
-        PdfDocument document = OpenForModify();
-        PdfPage duplicate = document.DuplicatePage(0, 1);
-        PdfPage source = document.Pages[0];
+        var document = OpenForModify();
+        var duplicate = document.DuplicatePage(0, 1);
+        var source = document.Pages[0];
 
         Assert.NotSame(source.Elements["/Resources"], duplicate.Elements["/Resources"]);
         Assert.Same(source.Elements["/Contents"], duplicate.Elements["/Contents"]);
 
-        string resourcesBefore = source.Elements["/Resources"].ToString();
+        var resourcesBefore = source.Elements["/Resources"].ToString();
 
-        XGraphics gfx = XGraphics.FromPdfPage(duplicate);
+        var gfx = XGraphics.FromPdfPage(duplicate);
         gfx.DrawImage(XImage.FromFile(ImagePath), 0, 0, 200, 200);
 
         // The source is untouched: same resources, same single content stream.
@@ -289,7 +289,7 @@ public class PagePlacementTests
     [InlineData(0, 99)]
     public void DuplicatePage_RejectsIndicesOutOfRange(int sourceIndex, int index)
     {
-        PdfDocument document = OpenForModify();
+        var document = OpenForModify();
         Assert.Throws<ArgumentOutOfRangeException>(
             () => document.DuplicatePage(sourceIndex, index));
     }
@@ -302,9 +302,9 @@ public class PagePlacementTests
     [Fact]
     public void MovePage_IsOnTheDocumentAndReorders()
     {
-        PdfDocument document = OpenForModify();
-        PdfPage first = document.Pages[0];
-        PdfPage appended = document.AddPage();
+        var document = OpenForModify();
+        var first = document.Pages[0];
+        var appended = document.AddPage();
 
         document.MovePage(1, 0);
 
@@ -318,7 +318,7 @@ public class PagePlacementTests
     [Fact]
     public void IndexOf_TellsPlacedFromUnplaced()
     {
-        PdfDocument document = OpenForModify();
+        var document = OpenForModify();
 
         Assert.Equal(0, document.Pages.IndexOf(document.Pages[0]));
         Assert.Equal(-1, document.Pages.IndexOf(new PdfPage(document)));
@@ -333,12 +333,12 @@ public class PagePlacementTests
     [Fact]
     public void InsertAnImagePageAfterAGivenPage()
     {
-        PdfDocument document = OpenForModify();
-        int pageIndex = 0;
-        int before = document.PageCount;
+        var document = OpenForModify();
+        var pageIndex = 0;
+        var before = document.PageCount;
 
-        PdfPage page = new PdfPage(document);
-        XGraphics gfx = XGraphics.FromPdfPage(page);
+        var page = new PdfPage(document);
+        var gfx = XGraphics.FromPdfPage(page);
         gfx.DrawImage(XImage.FromFile(ImagePath), 0, 0, page.Width, page.Height);
         document.PlacePage(pageIndex + 1, page);
 

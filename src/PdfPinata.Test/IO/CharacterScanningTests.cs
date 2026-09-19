@@ -87,7 +87,7 @@ public class CharacterScanningTests
     {
         var queue = new string(whiteSpace, 3) + "x";
         var index = 0;
-        Func<char> next = () => index < queue.Length ? queue[index++] : Eof;
+        var next = () => index < queue.Length ? queue[index++] : Eof;
 
         var result = InvokeSkipWhiteSpace(next(), next);
 
@@ -99,7 +99,7 @@ public class CharacterScanningTests
     {
         var queue = "   ";
         var index = 0;
-        Func<char> next = () => index < queue.Length ? queue[index++] : Eof;
+        var next = () => index < queue.Length ? queue[index++] : Eof;
 
         var result = InvokeSkipWhiteSpace(next(), next);
 
@@ -182,7 +182,7 @@ public class CharacterScanningTests
     static (char curr, char next) InvokeAdvance(char initialNextChar, bool handleCRLF, string queue)
     {
         var index = 0;
-        Func<char> readNextByte = () => index < queue.Length ? queue[index++] : Eof;
+        var readNextByte = () => index < queue.Length ? queue[index++] : Eof;
 
         var method = ScannerType.GetMethod("Advance", BindingFlags.Public | BindingFlags.Static);
         object[] args = { '\0', initialNextChar, handleCRLF, readNextByte };

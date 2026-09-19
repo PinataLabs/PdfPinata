@@ -52,7 +52,7 @@ internal class ColumnLikeLegendRenderer : LegendRenderer
   internal override RendererInfo Init()
   {
     LegendRendererInfo lri = null;
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
     if (cri.chart.legend != null)
     {
       lri = new LegendRendererInfo();
@@ -65,10 +65,10 @@ internal class ColumnLikeLegendRenderer : LegendRenderer
         lri.BorderPen = Converter.ToXPen(lri.legend.lineFormat, XColors.Black, DefaultLineWidth, XDashStyle.Solid);
 
       lri.Entries = new LegendEntryRendererInfo[cri.seriesRendererInfos.Length];
-      int index = 0;
-      foreach (SeriesRendererInfo sri in cri.seriesRendererInfos)
+      var index = 0;
+      foreach (var sri in cri.seriesRendererInfos)
       {
-        LegendEntryRendererInfo leri = new LegendEntryRendererInfo();
+        var leri = new LegendEntryRendererInfo();
         leri.seriesRendererInfo = sri;
         leri.legendRendererInfo = lri;
         leri.EntryText = sri.series.name;

@@ -27,12 +27,12 @@ public class XGraphicsSurfaceTests
 {
     static readonly XPoint[] ThreePoints =
     {
-        new(100, 100), new(200, 150), new(300, 100),
+        new(100, 100), new(200, 150), new(300, 100)
     };
 
     static readonly XPoint[] FourBezierPoints =
     {
-        new(100, 100), new(150, 50), new(250, 50), new(300, 100),
+        new(100, 100), new(150, 50), new(250, 50), new(300, 100)
     };
 
     static PdfPage PageShowing(Action<XGraphics> draw)
@@ -284,7 +284,7 @@ public class XGraphicsSurfaceTests
         var many = new[]
         {
             new XPoint(0, 0), new XPoint(100, 100), new XPoint(200, 150), new XPoint(300, 100),
-            new XPoint(400, 400),
+            new XPoint(400, 400)
         };
 
         ShapeOf(gfx => gfx.DrawCurve(XPens.Black, many, 1, 3, 0.5))
@@ -377,7 +377,7 @@ public class XGraphicsSurfaceTests
     {
         var rects = new[]
         {
-            new XRect(100, 100, 50, 50), new XRect(200, 100, 50, 50), new XRect(300, 100, 50, 50),
+            new XRect(100, 100, 50, 50), new XRect(200, 100, 50, 50), new XRect(300, 100, 50, 50)
         };
 
         CountOf(ShapeOf(gfx => gfx.DrawRectangles(XPens.Black, rects)), "re").Should().Be(3);

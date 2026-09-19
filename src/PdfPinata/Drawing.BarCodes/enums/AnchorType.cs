@@ -77,5 +77,5 @@ public enum AnchorType
     /// <summary>
     /// The anchor is located bottom right.
     /// </summary>
-    BottomRight,
+    BottomRight
 }

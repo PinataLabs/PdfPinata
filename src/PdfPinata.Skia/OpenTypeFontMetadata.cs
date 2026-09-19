@@ -61,9 +61,9 @@ internal static class OpenTypeFontMetadata
     /// </summary>
     internal static FontMetadata[] ReadAll(byte[] data, int faceCount)
     {
-        FontMetadata[] metadata = new FontMetadata[faceCount];
+        var metadata = new FontMetadata[faceCount];
 
-        for (int face = 0; face < faceCount; face++)
+        for (var face = 0; face < faceCount; face++)
             metadata[face] = Read(data, face);
 
         return metadata;
@@ -72,15 +72,15 @@ internal static class OpenTypeFontMetadata
 
     internal static FontMetadata Read(byte[] data, int faceIndex)
     {
-        int baseOffset = 0;
+        var baseOffset = 0;
 
         // A TrueType collection starts with a directory of fonts. TrueTypeCollection owns both
         // the signature check and the validation of the declared face count against the room the
         // file has to point at that many, so neither is repeated here.
         if (TrueTypeCollection.IsCollection(data))
         {
-            int faceCount = TrueTypeCollection.FaceCount(data);
-            int face = faceIndex < 0 ? 0 : faceIndex;
+            var faceCount = TrueTypeCollection.FaceCount(data);
+            var face = faceIndex < 0 ? 0 : faceIndex;
 
             if (face >= faceCount)
                 throw new InvalidOperationException(
@@ -99,23 +99,23 @@ internal static class OpenTypeFontMetadata
         if (baseOffset < 0 || baseOffset + OffsetTableLength > data.Length)
             throw new InvalidOperationException("Font collection points at a face outside the file.");
 
-        int numTables = U16(data, baseOffset + 4);
+        var numTables = U16(data, baseOffset + 4);
 
         if (baseOffset + OffsetTableLength + numTables * TableRecordLength > data.Length)
             throw new InvalidOperationException("Font declares more tables than the file holds.");
 
-        int nameOffset = -1;
-        int os2Offset = -1;
-        int headOffset = -1;
+        var nameOffset = -1;
+        var os2Offset = -1;
+        var headOffset = -1;
 
-        for (int i = 0; i < numTables; i++)
+        for (var i = 0; i < numTables; i++)
         {
-            int record = baseOffset + OffsetTableLength + i * TableRecordLength;
+            var record = baseOffset + OffsetTableLength + i * TableRecordLength;
             if (record + TableRecordLength > data.Length)
                 break;
 
-            uint tag = U32(data, record);
-            int offset = (int)U32(data, record + 8);
+            var tag = U32(data, record);
+            var offset = (int)U32(data, record + 8);
 
             if (tag == TagName) nameOffset = offset;
             else if (tag == TagOs2) os2Offset = offset;
@@ -131,34 +131,34 @@ internal static class OpenTypeFontMetadata
 
     private static string ReadFamilyName(byte[] data, int nameOffset)
     {
-        int count = U16(data, nameOffset + 2);
-        int stringBase = nameOffset + U16(data, nameOffset + 4);
+        var count = U16(data, nameOffset + 2);
+        var stringBase = nameOffset + U16(data, nameOffset + 4);
 
         string best = null;
-        int bestScore = int.MinValue;
+        var bestScore = int.MinValue;
 
-        for (int i = 0; i < count; i++)
+        for (var i = 0; i < count; i++)
         {
-            int record = nameOffset + 6 + i * 12;
+            var record = nameOffset + 6 + i * 12;
             if (record + 12 > data.Length)
                 break;
 
             if (U16(data, record + 6) != NameIdFamily)
                 continue;
 
-            int platformId = U16(data, record);
-            int languageId = U16(data, record + 4);
-            int length = U16(data, record + 8);
-            int offset = stringBase + U16(data, record + 10);
+            var platformId = U16(data, record);
+            var languageId = U16(data, record + 4);
+            var length = U16(data, record + 8);
+            var offset = stringBase + U16(data, record + 10);
 
             if (offset < 0 || offset + length > data.Length)
                 continue;
 
-            int score = ScoreName(platformId, languageId);
+            var score = ScoreName(platformId, languageId);
             if (score <= bestScore)
                 continue;
 
-            string value = Decode(data, offset, length, platformId);
+            var value = Decode(data, offset, length, platformId);
             if (string.IsNullOrEmpty(value))
                 continue;
 
@@ -194,7 +194,7 @@ internal static class OpenTypeFontMetadata
     private static string Decode(byte[] data, int offset, int length, int platformId)
     {
         // Windows and Unicode platform strings are UTF-16BE; Macintosh ones are single byte.
-        Encoding encoding = platformId == PlatformMacintosh
+        var encoding = platformId == PlatformMacintosh
             ? Encoding.ASCII
             : Encoding.BigEndianUnicode;
 
@@ -204,20 +204,20 @@ internal static class OpenTypeFontMetadata
 
     private static XFontStyle ReadStyle(byte[] data, int os2Offset, int headOffset)
     {
-        bool bold = false;
-        bool italic = false;
+        var bold = false;
+        var italic = false;
 
         if (os2Offset >= 0 && os2Offset + 64 <= data.Length)
         {
             // fsSelection: bit 0 ITALIC, bit 5 BOLD
-            int fsSelection = U16(data, os2Offset + 62);
+            var fsSelection = U16(data, os2Offset + 62);
             italic = (fsSelection & 0x0001) != 0;
             bold = (fsSelection & 0x0020) != 0;
         }
         else if (headOffset >= 0 && headOffset + 46 <= data.Length)
         {
             // macStyle: bit 0 Bold, bit 1 Italic
-            int macStyle = U16(data, headOffset + 44);
+            var macStyle = U16(data, headOffset + 44);
             bold = (macStyle & 0x0001) != 0;
             italic = (macStyle & 0x0002) != 0;
         }

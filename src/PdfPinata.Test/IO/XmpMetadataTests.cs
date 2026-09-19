@@ -484,7 +484,7 @@ public class XmpMetadataTests
             new[]
             {
                 new XmpSchemaProperty("One", "The first property", XmpPropertyCategory.Internal, "1"),
-                new XmpSchemaProperty("Two", "The second property", XmpPropertyCategory.External, "2"),
+                new XmpSchemaProperty("Two", "The second property", XmpPropertyCategory.External, "2")
             }));
 
         var packet = ParsePacket(metadata.Build());
@@ -599,7 +599,7 @@ public class XmpMetadataTests
             "First schema", "http://example.invalid/first/1.0/", "dup",
             new[] { new XmpSchemaProperty("Note", "A note", XmpPropertyCategory.Internal, "one") }));
 
-        Action declaringAgain = () => metadata.DeclareSchema(new XmpExtensionSchema(
+        var declaringAgain = () => metadata.DeclareSchema(new XmpExtensionSchema(
             "Second schema", "http://example.invalid/second/1.0/", "dup",
             new[] { new XmpSchemaProperty("Note", "A note", XmpPropertyCategory.External, "two") }));
 
@@ -710,7 +710,7 @@ public class XmpMetadataTests
         var metadata = new XmpMetadata
         {
             Title = "Standalone",
-            Conformance = PdfAConformance.PdfA1B,
+            Conformance = PdfAConformance.PdfA1B
         };
 
         var text = Encoding.UTF8.GetString(metadata.Build());

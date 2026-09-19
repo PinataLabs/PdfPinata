@@ -31,14 +31,14 @@ public class PageResizeDestinationTests
     /// <summary>Two A4 pages, both drawn on; links are hung off the first, pointing at the second.</summary>
     static Fixture TwoPages()
     {
-        PdfDocument document = new PdfDocument();
-        PdfPage first = document.AddPage();
-        PdfPage second = document.AddPage();
+        var document = new PdfDocument();
+        var first = document.AddPage();
+        var second = document.AddPage();
 
-        foreach (PdfPage page in new[] { first, second })
+        foreach (var page in new[] { first, second })
         {
             page.Size = PageSize.A4;
-            using XGraphics gfx = XGraphics.FromPdfPage(page);
+            using var gfx = XGraphics.FromPdfPage(page);
             gfx.DrawRectangle(XBrushes.LightGray, new XRect(0, 0, page.Width, page.Height));
         }
 
@@ -47,16 +47,16 @@ public class PageResizeDestinationTests
 
     static void HalveThePage(PdfPage page)
     {
-        PageResizeOptions options = PageResizeOptions.Default;
+        var options = PageResizeOptions.Default;
         options.Fit = PageFitMode.Stretch;
         page.Resize(new XSize(A4Width / 2, A4Height / 2), options);
     }
 
     static PdfArray Destination(PdfPage target, params PdfItem[] rest)
     {
-        PdfArray destination = new PdfArray(target.Owner);
+        var destination = new PdfArray(target.Owner);
         destination.Elements.Add(target.Reference);
-        foreach (PdfItem item in rest)
+        foreach (var item in rest)
             destination.Elements.Add(item);
         return destination;
     }
@@ -64,14 +64,14 @@ public class PageResizeDestinationTests
     /// <summary>Hangs a link annotation carrying the destination off the page.</summary>
     static PdfDictionary LinkOn(PdfPage page, string key, PdfItem destination)
     {
-        PdfDictionary link = new PdfDictionary(page.Owner);
+        var link = new PdfDictionary(page.Owner);
         link.Elements.SetName("/Type", "/Annot");
         link.Elements.SetName("/Subtype", "/Link");
         link.Elements.SetRectangle("/Rect", new PdfRectangle(new XPoint(0, 0), new XPoint(10, 10)));
         link.Elements[key] = destination;
         page.Owner.Internals.AddObject(link);
 
-        PdfArray annotations = page.Elements.GetArray("/Annots");
+        var annotations = page.Elements.GetArray("/Annots");
         if (annotations == null)
         {
             annotations = new PdfArray(page.Owner);
@@ -85,8 +85,8 @@ public class PageResizeDestinationTests
     [Fact]
     public void ALinkFromAnotherPageFollowsTheContentItPointedAt()
     {
-        Fixture fixture = TwoPages();
-        PdfArray destination = Destination(fixture.Target,
+        var fixture = TwoPages();
+        var destination = Destination(fixture.Target,
             new PdfName("/XYZ"), new PdfReal(100), new PdfReal(700), new PdfReal(1));
         LinkOn(fixture.Source, "/Dest", destination);
 
@@ -99,8 +99,8 @@ public class PageResizeDestinationTests
     [Fact]
     public void TheZoomOfAnXyzDestinationIsNotTouchedWhenThePageShrinks()
     {
-        Fixture fixture = TwoPages();
-        PdfArray destination = Destination(fixture.Target,
+        var fixture = TwoPages();
+        var destination = Destination(fixture.Target,
             new PdfName("/XYZ"), new PdfReal(100), new PdfReal(700), new PdfReal(1));
         LinkOn(fixture.Source, "/Dest", destination);
 
@@ -113,12 +113,12 @@ public class PageResizeDestinationTests
     [Fact]
     public void TheZoomIsNotTouchedWhenThePageGrowsEither()
     {
-        Fixture fixture = TwoPages();
-        PdfArray destination = Destination(fixture.Target,
+        var fixture = TwoPages();
+        var destination = Destination(fixture.Target,
             new PdfName("/XYZ"), new PdfReal(100), new PdfReal(700), new PdfReal(1));
         LinkOn(fixture.Source, "/Dest", destination);
 
-        PageResizeOptions options = PageResizeOptions.Default;
+        var options = PageResizeOptions.Default;
         options.Fit = PageFitMode.Stretch;
         fixture.Target.Resize(new XSize(A4Width * 2, A4Height * 2), options);
 
@@ -131,8 +131,8 @@ public class PageResizeDestinationTests
     [Fact]
     public void AZoomOfZeroIsLeftAlone()
     {
-        Fixture fixture = TwoPages();
-        PdfArray destination = Destination(fixture.Target,
+        var fixture = TwoPages();
+        var destination = Destination(fixture.Target,
             new PdfName("/XYZ"), new PdfReal(100), new PdfReal(700), new PdfPinata.Pdf.PdfInteger(0));
         LinkOn(fixture.Source, "/Dest", destination);
 
@@ -144,8 +144,8 @@ public class PageResizeDestinationTests
     [Fact]
     public void ANullCoordinateIsLeftAlone()
     {
-        Fixture fixture = TwoPages();
-        PdfArray destination = Destination(fixture.Target,
+        var fixture = TwoPages();
+        var destination = Destination(fixture.Target,
             new PdfName("/XYZ"), PdfNull.Value, new PdfReal(700), new PdfPinata.Pdf.PdfInteger(0));
         LinkOn(fixture.Source, "/Dest", destination);
 
@@ -158,8 +158,8 @@ public class PageResizeDestinationTests
     [Fact]
     public void AFitDestinationHasNothingToMove()
     {
-        Fixture fixture = TwoPages();
-        PdfArray destination = Destination(fixture.Target, new PdfName("/Fit"));
+        var fixture = TwoPages();
+        var destination = Destination(fixture.Target, new PdfName("/Fit"));
         LinkOn(fixture.Source, "/Dest", destination);
 
         HalveThePage(fixture.Target);
@@ -171,8 +171,8 @@ public class PageResizeDestinationTests
     [Fact]
     public void AFitRectangleMovesAllFourOfItsNumbers()
     {
-        Fixture fixture = TwoPages();
-        PdfArray destination = Destination(fixture.Target, new PdfName("/FitR"),
+        var fixture = TwoPages();
+        var destination = Destination(fixture.Target, new PdfName("/FitR"),
             new PdfReal(100), new PdfReal(200), new PdfReal(300), new PdfReal(400));
         LinkOn(fixture.Source, "/Dest", destination);
 
@@ -181,15 +181,15 @@ public class PageResizeDestinationTests
         new[]
         {
             destination.Elements.GetReal(2), destination.Elements.GetReal(3),
-            destination.Elements.GetReal(4), destination.Elements.GetReal(5),
+            destination.Elements.GetReal(4), destination.Elements.GetReal(5)
         }.Should().Equal(new double[] { 50, 100, 150, 200 });
     }
 
     [Fact]
     public void AFitHorizontalMovesItsLine()
     {
-        Fixture fixture = TwoPages();
-        PdfArray destination = Destination(fixture.Target, new PdfName("/FitH"), new PdfReal(700));
+        var fixture = TwoPages();
+        var destination = Destination(fixture.Target, new PdfName("/FitH"), new PdfReal(700));
         LinkOn(fixture.Source, "/Dest", destination);
 
         HalveThePage(fixture.Target);
@@ -200,11 +200,11 @@ public class PageResizeDestinationTests
     [Fact]
     public void AFitHorizontalBecomesAFitVerticalWhenThePageIsTurned()
     {
-        Fixture fixture = TwoPages();
-        PdfArray destination = Destination(fixture.Target, new PdfName("/FitH"), new PdfReal(700));
+        var fixture = TwoPages();
+        var destination = Destination(fixture.Target, new PdfName("/FitH"), new PdfReal(700));
         LinkOn(fixture.Source, "/Dest", destination);
 
-        PageResizeOptions options = PageResizeOptions.Default;
+        var options = PageResizeOptions.Default;
         options.AutoRotate = true;
         fixture.Target.Resize(PageSize.A4, PageOrientation.Landscape, options);
 
@@ -217,11 +217,11 @@ public class PageResizeDestinationTests
     [Fact]
     public void AGoToActionIsFollowed()
     {
-        Fixture fixture = TwoPages();
-        PdfArray destination = Destination(fixture.Target,
+        var fixture = TwoPages();
+        var destination = Destination(fixture.Target,
             new PdfName("/XYZ"), new PdfReal(100), new PdfReal(700), new PdfPinata.Pdf.PdfInteger(0));
 
-        PdfDictionary action = new PdfDictionary(fixture.Document);
+        var action = new PdfDictionary(fixture.Document);
         action.Elements.SetName("/S", "/GoTo");
         action.Elements["/D"] = destination;
         LinkOn(fixture.Source, "/A", action);
@@ -234,11 +234,11 @@ public class PageResizeDestinationTests
     [Fact]
     public void ARemoteGoToIsLeftAlone()
     {
-        Fixture fixture = TwoPages();
-        PdfArray destination = Destination(fixture.Target,
+        var fixture = TwoPages();
+        var destination = Destination(fixture.Target,
             new PdfName("/XYZ"), new PdfReal(100), new PdfReal(700), new PdfPinata.Pdf.PdfInteger(0));
 
-        PdfDictionary action = new PdfDictionary(fixture.Document);
+        var action = new PdfDictionary(fixture.Document);
         action.Elements.SetName("/S", "/GoToR");
         action.Elements["/D"] = destination;
         LinkOn(fixture.Source, "/A", action);
@@ -252,16 +252,16 @@ public class PageResizeDestinationTests
     [Fact]
     public void AnOutlineEntryIsMoved()
     {
-        Fixture fixture = TwoPages();
-        PdfArray destination = Destination(fixture.Target,
+        var fixture = TwoPages();
+        var destination = Destination(fixture.Target,
             new PdfName("/XYZ"), new PdfReal(100), new PdfReal(700), new PdfPinata.Pdf.PdfInteger(0));
 
-        PdfDictionary bookmark = new PdfDictionary(fixture.Document);
+        var bookmark = new PdfDictionary(fixture.Document);
         bookmark.Elements.SetString("/Title", "Chapter one");
         bookmark.Elements["/Dest"] = destination;
         fixture.Document.Internals.AddObject(bookmark);
 
-        PdfDictionary outlines = new PdfDictionary(fixture.Document);
+        var outlines = new PdfDictionary(fixture.Document);
         outlines.Elements.SetName("/Type", "/Outlines");
         outlines.Elements["/First"] = bookmark.Reference;
         fixture.Document.Internals.AddObject(outlines);
@@ -275,18 +275,18 @@ public class PageResizeDestinationTests
     [Fact]
     public void ADestinationHeldInTheNameTreeIsMoved()
     {
-        Fixture fixture = TwoPages();
-        PdfArray destination = Destination(fixture.Target,
+        var fixture = TwoPages();
+        var destination = Destination(fixture.Target,
             new PdfName("/XYZ"), new PdfReal(100), new PdfReal(700), new PdfPinata.Pdf.PdfInteger(0));
 
-        PdfArray names = new PdfArray(fixture.Document);
+        var names = new PdfArray(fixture.Document);
         names.Elements.Add(new PdfString("chapter.1"));
         names.Elements.Add(destination);
 
-        PdfDictionary dests = new PdfDictionary(fixture.Document);
+        var dests = new PdfDictionary(fixture.Document);
         dests.Elements["/Names"] = names;
 
-        PdfDictionary namesDictionary = new PdfDictionary(fixture.Document);
+        var namesDictionary = new PdfDictionary(fixture.Document);
         namesDictionary.Elements["/Dests"] = dests;
         fixture.Document.Internals.Catalog.Elements["/Names"] = namesDictionary;
 
@@ -301,11 +301,11 @@ public class PageResizeDestinationTests
     [Fact]
     public void ADestinationHeldInTheLegacyDestsDictionaryIsMoved()
     {
-        Fixture fixture = TwoPages();
-        PdfArray destination = Destination(fixture.Target,
+        var fixture = TwoPages();
+        var destination = Destination(fixture.Target,
             new PdfName("/XYZ"), new PdfReal(100), new PdfReal(700), new PdfPinata.Pdf.PdfInteger(0));
 
-        PdfDictionary dests = new PdfDictionary(fixture.Document);
+        var dests = new PdfDictionary(fixture.Document);
         dests.Elements["/chapter1"] = destination;
         fixture.Document.Internals.Catalog.Elements["/Dests"] = dests;
 
@@ -317,8 +317,8 @@ public class PageResizeDestinationTests
     [Fact]
     public void TheOpenActionIsMoved()
     {
-        Fixture fixture = TwoPages();
-        PdfArray destination = Destination(fixture.Target,
+        var fixture = TwoPages();
+        var destination = Destination(fixture.Target,
             new PdfName("/XYZ"), new PdfReal(100), new PdfReal(700), new PdfPinata.Pdf.PdfInteger(0));
         fixture.Document.Internals.Catalog.Elements["/OpenAction"] = destination;
 
@@ -330,8 +330,8 @@ public class PageResizeDestinationTests
     [Fact]
     public void ALinkToAPageThatWasNotResizedIsUntouched()
     {
-        Fixture fixture = TwoPages();
-        PdfArray destination = Destination(fixture.Source,
+        var fixture = TwoPages();
+        var destination = Destination(fixture.Source,
             new PdfName("/XYZ"), new PdfReal(100), new PdfReal(700), new PdfPinata.Pdf.PdfInteger(0));
         LinkOn(fixture.Source, "/Dest", destination);
 
@@ -344,11 +344,11 @@ public class PageResizeDestinationTests
     [Fact]
     public void ADestinationSharedByTwoLinksIsMovedOnceAndNotTwice()
     {
-        Fixture fixture = TwoPages();
+        var fixture = TwoPages();
 
         // One array, held indirectly, that two links both point at. Moving it once per link that
         // finds it would move it twice as far.
-        PdfArray destination = Destination(fixture.Target,
+        var destination = Destination(fixture.Target,
             new PdfName("/XYZ"), new PdfReal(100), new PdfReal(700), new PdfPinata.Pdf.PdfInteger(0));
         fixture.Document.Internals.AddObject(destination);
 
@@ -364,12 +364,12 @@ public class PageResizeDestinationTests
     [Fact]
     public void TurningOffTheSweepLeavesEveryDestinationAlone()
     {
-        Fixture fixture = TwoPages();
-        PdfArray destination = Destination(fixture.Target,
+        var fixture = TwoPages();
+        var destination = Destination(fixture.Target,
             new PdfName("/XYZ"), new PdfReal(100), new PdfReal(700), new PdfPinata.Pdf.PdfInteger(0));
         LinkOn(fixture.Source, "/Dest", destination);
 
-        PageResizeOptions options = PageResizeOptions.Default;
+        var options = PageResizeOptions.Default;
         options.Fit = PageFitMode.Stretch;
         options.ScaleDestinations = false;
         fixture.Target.Resize(new XSize(A4Width / 2, A4Height / 2), options);
@@ -380,15 +380,15 @@ public class PageResizeDestinationTests
     [Fact]
     public void ResizingEveryPageMovesEveryDestinationExactlyOnce()
     {
-        Fixture fixture = TwoPages();
-        PdfArray toFirst = Destination(fixture.Source,
+        var fixture = TwoPages();
+        var toFirst = Destination(fixture.Source,
             new PdfName("/XYZ"), new PdfReal(100), new PdfReal(700), new PdfPinata.Pdf.PdfInteger(0));
-        PdfArray toSecond = Destination(fixture.Target,
+        var toSecond = Destination(fixture.Target,
             new PdfName("/XYZ"), new PdfReal(200), new PdfReal(600), new PdfPinata.Pdf.PdfInteger(0));
         LinkOn(fixture.Source, "/Dest", toFirst);
         LinkOn(fixture.Target, "/Dest", toSecond);
 
-        PageResizeOptions options = PageResizeOptions.Default;
+        var options = PageResizeOptions.Default;
         options.Fit = PageFitMode.Stretch;
         fixture.Document.ResizePages(new XSize(A4Width / 2, A4Height / 2), options);
 
@@ -404,12 +404,12 @@ public class PageResizeDestinationTests
         // A destination coordinate is as entitled to be an indirect object as anything else.
         // Reading one with GetReal throws instead of following the reference, which used to
         // abort the resize after the content had already been wrapped.
-        Fixture fixture = TwoPages();
+        var fixture = TwoPages();
 
-        PdfRealObject indirect = new PdfRealObject(fixture.Document, 700);
+        var indirect = new PdfRealObject(fixture.Document, 700);
         fixture.Document.Internals.AddObject(indirect);
 
-        PdfArray destination = Destination(fixture.Target,
+        var destination = Destination(fixture.Target,
             new PdfName("/XYZ"), new PdfReal(100), indirect.Reference,
             new PdfPinata.Pdf.PdfInteger(0));
         LinkOn(fixture.Source, "/Dest", destination);
@@ -423,12 +423,12 @@ public class PageResizeDestinationTests
     [Fact]
     public void ADestinationWhoseCoordinatesAreNotNumbersIsLeftAlone()
     {
-        Fixture fixture = TwoPages();
-        PdfArray destination = Destination(fixture.Target, new PdfName("/FitR"),
+        var fixture = TwoPages();
+        var destination = Destination(fixture.Target, new PdfName("/FitR"),
             new PdfReal(100), new PdfReal(200), new PdfName("/Nonsense"), new PdfReal(400));
         LinkOn(fixture.Source, "/Dest", destination);
 
-        Action act = () => HalveThePage(fixture.Target);
+        var act = () => HalveThePage(fixture.Target);
 
         act.Should().NotThrow();
         destination.Elements.GetReal(2).Should().Be(100, "none of it moves if not all of it can");

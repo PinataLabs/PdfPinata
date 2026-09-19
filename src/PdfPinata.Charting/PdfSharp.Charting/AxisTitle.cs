@@ -62,7 +62,7 @@ public class AxisTitle : ChartObject
   /// </summary>
   protected override object DeepCopy()
   {
-    AxisTitle axisTitle = (AxisTitle)base.DeepCopy();
+    var axisTitle = (AxisTitle)base.DeepCopy();
     if (axisTitle.font != null)
     {
       axisTitle.font = axisTitle.font.Clone();

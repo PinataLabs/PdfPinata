@@ -43,8 +43,8 @@ public static class ContentReader
     /// <param name="page">The page.</param>
     static public CSequence ReadContent(PdfPage page)
     {
-        CParser parser = new CParser(page);
-        CSequence sequence = parser.ReadContent();
+        var parser = new CParser(page);
+        var sequence = parser.ReadContent();
 
         return sequence;
     }
@@ -55,8 +55,8 @@ public static class ContentReader
     /// <param name="content">The content.</param>
     static public CSequence ReadContent(byte[] content)
     {
-        CParser parser = new CParser(content);
-        CSequence sequence = parser.ReadContent();
+        var parser = new CParser(content);
+        var sequence = parser.ReadContent();
         return sequence;
     }
 
@@ -66,8 +66,8 @@ public static class ContentReader
     /// <param name="content">The content.</param>
     static public CSequence ReadContent(MemoryStream content)
     {
-        CParser parser = new CParser(content);
-        CSequence sequence = parser.ReadContent();
+        var parser = new CParser(content);
+        var sequence = parser.ReadContent();
         return sequence;
     }
 }

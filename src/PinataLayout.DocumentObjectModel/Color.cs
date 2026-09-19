@@ -26,7 +26,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -85,11 +85,11 @@ public struct Color : INullableValue
     public Color(double alpha, double cyan, double magenta, double yellow, double black)
     {
         isCmyk = true;
-        a = (float)(alpha > 100 ? 100 : (alpha < 0 ? 0 : alpha));
-        c = (float)(cyan > 100 ? 100 : (cyan < 0 ? 0 : cyan));
-        m = (float)(magenta > 100 ? 100 : (magenta < 0 ? 0 : magenta));
-        y = (float)(yellow > 100 ? 100 : (yellow < 0 ? 0 : yellow));
-        k = (float)(black > 100 ? 100 : (black < 0 ? 0 : black));
+        a = (float)(alpha > 100 ? 100 : alpha < 0 ? 0 : alpha);
+        c = (float)(cyan > 100 ? 100 : cyan < 0 ? 0 : cyan);
+        m = (float)(magenta > 100 ? 100 : magenta < 0 ? 0 : magenta);
+        y = (float)(yellow > 100 ? 100 : yellow < 0 ? 0 : yellow);
+        k = (float)(black > 100 ? 100 : black < 0 ? 0 : black);
         argb = 0; // Compiler enforces this line of code
         InitRgbFromCmyk();
     }
@@ -106,15 +106,15 @@ public struct Color : INullableValue
     {
         // Similar formula as in PDFsharp
         isCmyk = false;
-        int c = 255 - (int)R;
-        int m = 255 - (int)G;
-        int y = 255 - (int)B;
-        int k = Math.Min(c, Math.Min(m, y));
+        var c = 255 - (int)R;
+        var m = 255 - (int)G;
+        var y = 255 - (int)B;
+        var k = Math.Min(c, Math.Min(m, y));
         if (k == 255)
             this.c = this.m = this.y = 0;
         else
         {
-            float black = 255f - k;
+            var black = 255f - k;
             this.c = 100f * (c - k) / black;
             this.m = 100f * (m - k) / black;
             this.y = 100f * (y - k) / black;
@@ -127,12 +127,12 @@ public struct Color : INullableValue
     {
         // Similar formula as in PDFsharp
         isCmyk = true;
-        float black = k * 2.55f + 0.5f;
-        float factor = (255f - black) / 100f;
-        byte a = (byte)(this.a * 2.55 + 0.5);
-        byte r = (byte)(255 - Math.Min(255f, c * factor + black));
-        byte g = (byte)(255 - Math.Min(255f, m * factor + black));
-        byte b = (byte)(255 - Math.Min(255f, y * factor + black));
+        var black = k * 2.55f + 0.5f;
+        var factor = (255f - black) / 100f;
+        var a = (byte)(this.a * 2.55 + 0.5);
+        var r = (byte)(255 - Math.Min(255f, c * factor + black));
+        var g = (byte)(255 - Math.Min(255f, m * factor + black));
+        var b = (byte)(255 - Math.Min(255f, y * factor + black));
         argb = ((uint)a << 24) | ((uint)r << 16) | ((uint)g << 8) | (uint)b;
     }
 
@@ -159,14 +159,14 @@ public struct Color : INullableValue
     /// </summary>
     void INullableValue.SetValue(object value)
     {
-        if (value is uint)
-            argb = (uint)value;
+        if (value is uint u)
+            argb = u;
         else
             this = Parse(value.ToString());
     }
 
     /// <summary>
-    /// Resets this instance, i.e. IsNull() will return true afterwards.
+    /// Resets this instance, i.e. IsNull() will return true afterward.
     /// </summary>
     void INullableValue.SetNull()
     {
@@ -220,7 +220,7 @@ public struct Color : INullableValue
     {
         if (obj is Color)
         {
-            Color color = (Color)obj;
+            var color = (Color)obj;
             if (isCmyk ^ color.isCmyk)
                 return false;
             #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
@@ -289,12 +289,12 @@ public struct Color : INullableValue
                 //ignore exception cause it's not a ColorName.
             }
 
-            NumberStyles numberStyle = NumberStyles.Integer;
-            string number = color.ToLower();
+            var numberStyle = NumberStyles.Integer;
+            var number = color.ToLower();
             if (number.StartsWith("0x"))
             {
                 numberStyle = NumberStyles.HexNumber;
-                number = color.Substring(2);
+                number = color[2..];
             }
             clr = uint.Parse(number, numberStyle);
             return new Color(clr);
@@ -365,15 +365,15 @@ public struct Color : INullableValue
     /// </summary>
     public Color GetMixedTransparencyColor()
     {
-        int alpha = (int)A;
+        var alpha = (int)A;
         if (alpha == 0xFF)
             return this;
 
-        int red = (int)R;
-        int green = (int)G;
-        int blue = (int)B;
+        var red = (int)R;
+        var green = (int)G;
+        var blue = (int)B;
 
-        double whiteFactor = 1 - alpha / 255.0;
+        var whiteFactor = 1 - alpha / 255.0;
 
         red = (int)(red + (255 - red) * whiteFactor);
         green = (int)(green + (255 - green) * whiteFactor);
@@ -399,7 +399,7 @@ public struct Color : INullableValue
         }
         else
         {
-            if (StdColors.TryGetValue(argb, out string name))
+            if (StdColors.TryGetValue(argb, out var name))
                 return name;
             else
             {
@@ -430,14 +430,14 @@ public struct Color : INullableValue
 
     static Dictionary<uint, string> BuildStdColors()
     {
-        string[] names = Enum.GetNames<ColorName>();
-        ColorName[] values = Enum.GetValues<ColorName>();
+        var names = Enum.GetNames<ColorName>();
+        var values = Enum.GetValues<ColorName>();
         var colors = new Dictionary<uint, string>(names.Length);
-        for (int index = 0; index < names.Length; index++)
+        for (var index = 0; index < names.Length; index++)
         {
             // Some colors are double named, and the first name of a pair wins:
             // Aqua == Cyan, Fuchsia == Magenta.
-            uint value = (uint)values[index];
+            var value = (uint)values[index];
             if (!colors.ContainsKey(value))
                 colors.Add(value, names[index]);
         }

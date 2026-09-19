@@ -25,16 +25,16 @@ public class PostscriptOutlineEmbeddingTest
     [Fact]
     public void AFontWithPostscriptOutlinesIsEmbeddedAsAnOpenTypeProgram()
     {
-        PdfDocument saved = DrawAndReopen(PdfFontEncoding.Unicode);
+        var saved = DrawAndReopen(PdfFontEncoding.Unicode);
 
-        PdfDictionary descriptor = FontDescriptorOf(saved);
+        var descriptor = FontDescriptorOf(saved);
 
         descriptor.Elements.ContainsKey("/FontFile3").Should()
             .BeTrue("PostScript outlines are an OpenType program, not a TrueType one");
         descriptor.Elements.ContainsKey("/FontFile2").Should()
             .BeFalse("'/FontFile2' is defined as a TrueType font program");
 
-        PdfDictionary program = Resolve(descriptor.Elements["/FontFile3"]);
+        var program = Resolve(descriptor.Elements["/FontFile3"]);
         program.Elements.GetName("/Subtype").Should().Be("/OpenType");
 
         // '/Length1' belongs to a TrueType program; '/Subtype' takes its place here.
@@ -49,10 +49,10 @@ public class PostscriptOutlineEmbeddingTest
     [Fact]
     public void TheEmbeddedProgramIsTheFontFileItself()
     {
-        PdfDocument saved = DrawAndReopen(PdfFontEncoding.Unicode);
+        var saved = DrawAndReopen(PdfFontEncoding.Unicode);
 
-        PdfDictionary program = Resolve(FontDescriptorOf(saved).Elements["/FontFile3"]);
-        byte[] expected = File.ReadAllBytes(
+        var program = Resolve(FontDescriptorOf(saved).Elements["/FontFile3"]);
+        var expected = File.ReadAllBytes(
             PathHelper.GetInstance().GetAssetPath("Fonts", "SourceCodePro-Regular.otf"));
 
         program.Stream.UnfilteredValue.Should().Equal(expected);
@@ -61,7 +61,7 @@ public class PostscriptOutlineEmbeddingTest
     [Fact]
     public void TheDescendantOfAPostscriptFontIsACidFontType0()
     {
-        PdfDocument saved = DrawAndReopen(PdfFontEncoding.Unicode);
+        var saved = DrawAndReopen(PdfFontEncoding.Unicode);
 
         DescendantFontsOf(saved).Single()
             .Elements.GetName("/Subtype").Should().Be("/CIDFontType0",
@@ -79,7 +79,7 @@ public class PostscriptOutlineEmbeddingTest
     public void ASimpleFontWithPostscriptOutlinesEmbedsRatherThanThrowing()
     {
         // The path that used to raise NullReferenceException on a missing 'loca' table.
-        PdfDocument saved = DrawAndReopen(PdfFontEncoding.WinAnsi);
+        var saved = DrawAndReopen(PdfFontEncoding.WinAnsi);
 
         FontDescriptorOf(saved).Elements.ContainsKey("/FontFile3").Should().BeTrue();
     }
@@ -99,7 +99,7 @@ public class PostscriptOutlineEmbeddingTest
     [Fact]
     public void AFontEmbeddedWholeIsNotNamedAsASubset()
     {
-        PdfDocument saved = DrawAndReopen(PdfFontEncoding.Unicode);
+        var saved = DrawAndReopen(PdfFontEncoding.Unicode);
 
         var name = FontDescriptorOf(saved).Elements.GetName("/FontName");
 
@@ -116,7 +116,7 @@ public class PostscriptOutlineEmbeddingTest
     [Fact]
     public void ASubsettedFontIsStillNamedAsOne()
     {
-        PdfDocument saved = DrawAndReopen(PdfFontEncoding.Unicode, "Arial");
+        var saved = DrawAndReopen(PdfFontEncoding.Unicode, "Arial");
 
         // Six upper-case letters and a plus, which is the form the standard fixes.
         FontDescriptorOf(saved).Elements.GetName("/FontName")
@@ -126,9 +126,9 @@ public class PostscriptOutlineEmbeddingTest
     [Fact]
     public void ATrueTypeFontIsStillSubsettedIntoAFontFile2()
     {
-        PdfDocument saved = DrawAndReopen(PdfFontEncoding.Unicode, "Arial");
+        var saved = DrawAndReopen(PdfFontEncoding.Unicode, "Arial");
 
-        PdfDictionary descriptor = FontDescriptorOf(saved);
+        var descriptor = FontDescriptorOf(saved);
 
         descriptor.Elements.ContainsKey("/FontFile2").Should().BeTrue();
         descriptor.Elements.ContainsKey("/FontFile3").Should().BeFalse();
@@ -137,9 +137,9 @@ public class PostscriptOutlineEmbeddingTest
             .Elements.GetName("/Subtype").Should().Be("/CIDFontType2");
 
         // The point of subsetting: what goes in is smaller than the font it came from.
-        PdfDictionary program = Resolve(descriptor.Elements["/FontFile2"]);
+        var program = Resolve(descriptor.Elements["/FontFile2"]);
         long embedded = program.Elements.GetInteger("/Length1");
-        long source = new FileInfo(
+        var source = new FileInfo(
             PathHelper.GetInstance().GetAssetPath("Fonts", "LiberationSans-Regular.ttf")).Length;
 
         embedded.Should().BeLessThan(source);
@@ -180,7 +180,7 @@ public class PostscriptOutlineEmbeddingTest
     [GoldenImageFact]
     public void GhostscriptRendersASimpleFontCarryingPostscriptOutlines()
     {
-        PdfDocument saved = DrawAndReopen(PdfFontEncoding.WinAnsi);
+        var saved = DrawAndReopen(PdfFontEncoding.WinAnsi);
 
         // The exact combination under test.
         SimpleFontOf(saved).Elements.GetName("/Subtype").Should().Be("/TrueType");
@@ -207,7 +207,7 @@ public class PostscriptOutlineEmbeddingTest
         var resolver = new Probe();
         resolver.SetupFontsFiles(new[]
         {
-            PathHelper.GetInstance().GetAssetPath("Fonts", "SourceCodePro-Regular.otf"),
+            PathHelper.GetInstance().GetAssetPath("Fonts", "SourceCodePro-Regular.otf")
         });
 
         var info = resolver.ResolveTypeface("Source Code Pro", false, false);

@@ -91,7 +91,7 @@ public partial class FillFormat : DocumentObject
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    int pos = serializer.BeginContent("FillFormat");
+    var pos = serializer.BeginContent("FillFormat");
     if (visible != null)
       serializer.WriteSimpleAttribute("Visible", Visible);
     if (!color.IsNull)

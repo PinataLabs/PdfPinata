@@ -69,8 +69,8 @@ public partial class Legend : ChartObject, IVisitable
   /// </summary>
   public string Style
   {
-    get => this.style ?? "";
-    set => this.style = value;
+    get => style ?? "";
+    set => style = value;
   }
   [DV]
   internal string style;
@@ -82,15 +82,15 @@ public partial class Legend : ChartObject, IVisitable
   {
     get
     {
-      if (this.format == null)
-        this.format = new ParagraphFormat(this);
+      if (format == null)
+        format = new ParagraphFormat(this);
 
-      return this.format;
+      return format;
     }
     set
     {
       SetParent(value);
-      this.format = value;
+      format = value;
     }
   }
   [DV]
@@ -103,15 +103,15 @@ public partial class Legend : ChartObject, IVisitable
   {
     get
     {
-      if (this.lineFormat == null)
-        this.lineFormat = new LineFormat(this);
+      if (lineFormat == null)
+        lineFormat = new LineFormat(this);
 
-      return this.lineFormat;
+      return lineFormat;
     }
     set
     {
       SetParent(value);
-      this.lineFormat = value;
+      lineFormat = value;
     }
   }
   [DV]
@@ -125,16 +125,16 @@ public partial class Legend : ChartObject, IVisitable
   internal override void Serialize(Serializer serializer)
   {
     serializer.WriteLine("\\legend");
-    int pos = serializer.BeginAttributes();
+    var pos = serializer.BeginAttributes();
 
-    if (this.style != null)
-      serializer.WriteSimpleAttribute("Style", this.Style);
+    if (style != null)
+      serializer.WriteSimpleAttribute("Style", Style);
 
-    if (!this.IsNull("Format"))
-      this.format.Serialize(serializer, "Format", null);
+    if (!IsNull("Format"))
+      format.Serialize(serializer, "Format", null);
 
-    if (!this.IsNull("LineFormat"))
-      this.lineFormat.Serialize(serializer);
+    if (!IsNull("LineFormat"))
+      lineFormat.Serialize(serializer);
 
     serializer.EndAttributes(pos);
   }

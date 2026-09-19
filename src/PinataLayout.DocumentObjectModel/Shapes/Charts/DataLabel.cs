@@ -68,8 +68,8 @@ public partial class DataLabel : DocumentObject
   /// </summary>
   public string Format
   {
-    get => this.format ?? "";
-    set => this.format = value;
+    get => format ?? "";
+    set => format = value;
   }
   [DV]
   internal string format;
@@ -81,15 +81,15 @@ public partial class DataLabel : DocumentObject
   {
     get
     {
-      if (this.font == null)
-        this.font = new Font(this);
+      if (font == null)
+        font = new Font(this);
 
-      return this.font;
+      return font;
     }
     set
     {
       SetParent(value);
-      this.font = value;
+      font = value;
     }
   }
   [DV]
@@ -101,8 +101,8 @@ public partial class DataLabel : DocumentObject
   /// </summary>
   public string Style
   {
-    get => this.style ?? "";
-    set => this.style = value;
+    get => style ?? "";
+    set => style = value;
   }
   [DV]
   internal string style;
@@ -112,8 +112,8 @@ public partial class DataLabel : DocumentObject
   /// </summary>
   public DataLabelPosition Position
   {
-    get => this.position ?? default;
-    set => this.position = EnumGuard.Checked(value);
+    get => position ?? default;
+    set => position = EnumGuard.Checked(value);
   }
   [DV]
   internal DataLabelPosition? position;
@@ -123,8 +123,8 @@ public partial class DataLabel : DocumentObject
   /// </summary>
   public DataLabelType Type
   {
-    get => this.type ?? default;
-    set => this.type = EnumGuard.Checked(value);
+    get => type ?? default;
+    set => type = EnumGuard.Checked(value);
   }
   [DV]
   internal DataLabelType? type;
@@ -136,18 +136,18 @@ public partial class DataLabel : DocumentObject
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    int pos = serializer.BeginContent("DataLabel");
+    var pos = serializer.BeginContent("DataLabel");
 
-    if (this.Style != string.Empty)
-      serializer.WriteSimpleAttribute("Style", this.Style);
-    if (this.Format != string.Empty)
-      serializer.WriteSimpleAttribute("Format", this.Format);
-    if (this.position != null)
-      serializer.WriteSimpleAttribute("Position", this.Position);
-    if (this.type != null)
-      serializer.WriteSimpleAttribute("Type", this.Type);
-    if (!this.IsNull("Font"))
-      this.font.Serialize(serializer);
+    if (Style != string.Empty)
+      serializer.WriteSimpleAttribute("Style", Style);
+    if (Format != string.Empty)
+      serializer.WriteSimpleAttribute("Format", Format);
+    if (position != null)
+      serializer.WriteSimpleAttribute("Position", Position);
+    if (type != null)
+      serializer.WriteSimpleAttribute("Type", Type);
+    if (!IsNull("Font"))
+      font.Serialize(serializer);
 
     serializer.EndContent(pos);
   }

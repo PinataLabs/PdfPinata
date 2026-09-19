@@ -65,7 +65,7 @@ public class XValues : DocumentObjectCollection
   /// </summary>
   public XSeries AddXSeries()
   {
-    XSeries xSeries = new XSeries();
+    var xSeries = new XSeries();
     Add(xSeries);
     return xSeries;
   }

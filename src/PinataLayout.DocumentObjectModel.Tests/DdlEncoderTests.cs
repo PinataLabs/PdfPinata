@@ -153,7 +153,7 @@ public class DdlEncoderTests
     [InlineData("///")]
     public void TextBeginningWithAnEscapedCharacterCannotBeReadBack(string text)
     {
-        string ddl = DdlWriter.WriteToString(DocumentSaying(text));
+        var ddl = DdlWriter.WriteToString(DocumentSaying(text));
 
         var reading = () => DdlReader.DocumentFromString(ddl);
 

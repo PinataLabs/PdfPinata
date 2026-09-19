@@ -24,7 +24,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -82,7 +82,7 @@ public static class NumberFormatter
         if (number == 0)
             return "0";
 
-        string res = "";
+        var res = "";
         if (number < 0)
             res += "-";
 
@@ -94,9 +94,9 @@ public static class NumberFormatter
         else
             roman = new string[] { "M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I" };
 
-        int[] numberValues = new int[] { 1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1 };
+        var numberValues = new int[] { 1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1 };
 
-        for (int i = 0; i < numberValues.Length; ++i)
+        for (var i = 0; i < numberValues.Length; ++i)
         {
             while (number >= numberValues[i])
             {
@@ -119,7 +119,7 @@ public static class NumberFormatter
         if (number == 0)
             return "0";
 
-        string str = "";
+        var str = "";
         if (number < 0)
             str += "-";
 
@@ -130,7 +130,7 @@ public static class NumberFormatter
         else
             cr = (char)('A' + (number - 1) % 26);
 
-        for (int n = 0; n <= (int)((number - 1) / 26); ++n)
+        for (var n = 0; n <= (int)((number - 1) / 26); ++n)
             str += cr;
 
         return str;

@@ -24,7 +24,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -45,9 +45,9 @@ internal class ParagraphIterator
   /// <param name="rootNode">The root node for the paragraph iterator.</param>
   internal ParagraphIterator(ParagraphElements rootNode)
   {
-    this.rootNode = rootNode;
-    current = rootNode;
-    positionIndices = new ArrayList();
+    this._rootNode = rootNode;
+    _current = rootNode;
+    _positionIndices = new ArrayList();
   }
 
   /// <summary>
@@ -58,9 +58,9 @@ internal class ParagraphIterator
   /// <param name="indices">The position of the paragraph iterator in terms of element indices.</param>
   private ParagraphIterator(ParagraphElements rootNode, DocumentObject current, ArrayList indices)
   {
-    this.rootNode = rootNode;
-    positionIndices = indices;
-    this.current = current;
+    this._rootNode = rootNode;
+    _positionIndices = indices;
+    this._current = current;
   }
 
   /// <summary>
@@ -70,9 +70,9 @@ internal class ParagraphIterator
   {
     get
     {
-      if (!(current is DocumentElements))
+      if (!(_current is DocumentElements))
       {
-        ParagraphIterator prevIter = GetPreviousLeaf();
+        var prevIter = GetPreviousLeaf();
         return prevIter == null;
       }
       return false;
@@ -86,9 +86,9 @@ internal class ParagraphIterator
   {
     get
     {
-      if (!(current is DocumentElements))
+      if (!(_current is DocumentElements))
       {
-        ParagraphIterator nextIter = GetNextLeaf();
+        var nextIter = GetNextLeaf();
         return nextIter == null;
       }
       return false;
@@ -98,7 +98,7 @@ internal class ParagraphIterator
   /// <summary>
   /// Gets the document object this instance ponits to.
   /// </summary>
-  internal DocumentObject Current => current;
+  internal DocumentObject Current => _current;
 
   /// <summary>
   /// Gets the last leaf of the document object tree.
@@ -106,9 +106,7 @@ internal class ParagraphIterator
   /// <returns>The paragraph iterator pointing to the last leaf in the document object tree.</returns>
   internal ParagraphIterator GetLastLeaf()
   {
-    if (rootNode.Count == 0)
-      return null;
-    return SeekLastLeaf();
+    return _rootNode.Count == 0 ? null : SeekLastLeaf();
   }
 
 
@@ -118,9 +116,7 @@ internal class ParagraphIterator
   /// <returns>The paragraph iterator pointing to the first leaf in the element tree.</returns>
   internal ParagraphIterator GetFirstLeaf()
   {
-    if (rootNode.Count == 0)
-      return null;
-    return SeekFirstLeaf();
+    return _rootNode.Count == 0 ? null : SeekFirstLeaf();
   }
 
   /// <summary>
@@ -131,12 +127,12 @@ internal class ParagraphIterator
   internal ParagraphIterator GetNextLeaf()
   {
     //Move up to appropriate parent element
-    ParagraphIterator parIterator = GetParentIterator();
+    var parIterator = GetParentIterator();
     if (parIterator == null)
       return null;
 
-    int elementIndex = LastIndex;
-    ParagraphElements parEls = (ParagraphElements)parIterator.current;
+    var elementIndex = LastIndex;
+    var parEls = (ParagraphElements)parIterator._current;
     while (elementIndex == parEls.Count - 1)
     {
       elementIndex = parIterator.LastIndex;
@@ -144,18 +140,18 @@ internal class ParagraphIterator
       if (parIterator == null)
         break;
 
-      parEls = (ParagraphElements)parIterator.current;
+      parEls = (ParagraphElements)parIterator._current;
     }
     if (parIterator == null)
       return null;
-    int newIndex = elementIndex + 1;
+    var newIndex = elementIndex + 1;
     if (newIndex >= parEls.Count)
       return null;
 
-    ArrayList indices = (ArrayList)parIterator.positionIndices.Clone();
+    var indices = (ArrayList)parIterator._positionIndices.Clone();
     indices.Add(newIndex);
-    DocumentObject obj = GetNodeObject(parEls[newIndex]);
-    ParagraphIterator iterator = new ParagraphIterator(rootNode, obj, indices);
+    var obj = GetNodeObject(parEls[newIndex]);
+    var iterator = new ParagraphIterator(_rootNode, obj, indices);
     return iterator.SeekFirstLeaf();
   }
 
@@ -167,11 +163,11 @@ internal class ParagraphIterator
   /// <returns>The object a paragraph iterator shall point to.</returns>
   private static DocumentObject GetNodeObject(DocumentObject obj)
   {
-    if (obj is FormattedText)
-      return ((FormattedText)obj).Elements;
-    else if (obj is Hyperlink)
-      return ((Hyperlink)obj).Elements;
-    else return obj;
+    if (obj is FormattedText text)
+      return text.Elements;
+    if (obj is Hyperlink hyperlink)
+      return hyperlink.Elements;
+    return obj;
   }
 
   /// <summary>
@@ -181,12 +177,12 @@ internal class ParagraphIterator
   internal ParagraphIterator GetPreviousLeaf()
   {
     //Move up to appropriate parent element
-    ParagraphIterator parIterator = GetParentIterator();
+    var parIterator = GetParentIterator();
     if (parIterator == null)
       return null;
 
-    int elementIndex = LastIndex;
-    ParagraphElements parEls = (ParagraphElements)parIterator.current;
+    var elementIndex = LastIndex;
+    var parEls = (ParagraphElements)parIterator._current;
     while (elementIndex == 0)
     {
       elementIndex = parIterator.LastIndex;
@@ -194,42 +190,41 @@ internal class ParagraphIterator
       if (parIterator == null)
         break;
 
-      parEls = (ParagraphElements)parIterator.current;
+      parEls = (ParagraphElements)parIterator._current;
     }
     if (parIterator == null)
       return null;
 
-    int newIndex = elementIndex - 1;
+    var newIndex = elementIndex - 1;
     if (newIndex < 0)
       return null;
 
-    ArrayList indices = (ArrayList)parIterator.positionIndices.Clone();
+    var indices = (ArrayList)parIterator._positionIndices.Clone();
     indices.Add(newIndex);
 
-    DocumentObject obj = GetNodeObject(parEls[newIndex]);
-    ParagraphIterator iterator = new ParagraphIterator(rootNode, obj, indices);
+    var obj = GetNodeObject(parEls[newIndex]);
+    var iterator = new ParagraphIterator(_rootNode, obj, indices);
     return iterator.SeekLastLeaf();
   }
 
   private ParagraphIterator SeekLastLeaf()
   {
-    DocumentObject obj = Current;
-    if (!(obj is ParagraphElements))
+    var obj = Current;
+    if (!(obj is ParagraphElements parEls))
       return this;
 
-    ArrayList indices = (ArrayList)positionIndices.Clone();
+    var indices = (ArrayList)_positionIndices.Clone();
 
-    while (obj is ParagraphElements)
+    while (parEls is ParagraphElements)
     {
-      ParagraphElements parEls = (ParagraphElements)obj;
-      if (((ParagraphElements)obj).Count == 0)
-        return new ParagraphIterator(rootNode, obj, indices);
+      if (parEls.Count == 0)
+        return new ParagraphIterator(_rootNode, parEls, indices);
 
-      int idx = ((ParagraphElements)obj).Count - 1;
+      var idx = parEls.Count - 1;
       indices.Add(idx);
       obj = GetNodeObject(parEls[idx]);
     }
-    return new ParagraphIterator(rootNode, obj, indices);
+    return new ParagraphIterator(_rootNode, obj, indices);
   }
 
   /// <summary>
@@ -238,46 +233,44 @@ internal class ParagraphIterator
   /// <returns>The searched leaf.</returns>
   ParagraphIterator SeekFirstLeaf()
   {
-    DocumentObject obj = Current;
-    if (!(obj is ParagraphElements))
+    var obj = Current;
+    if (obj is not ParagraphElements parEls)
       return this;
-    ArrayList indices = (ArrayList)positionIndices.Clone();
+    var indices = (ArrayList)_positionIndices.Clone();
 
-    while (obj is ParagraphElements)
+    while (parEls is ParagraphElements)
     {
-      ParagraphElements parEls = (ParagraphElements)obj;
       if (parEls.Count == 0)
-        return new ParagraphIterator(rootNode, obj, indices);
+        return new ParagraphIterator(_rootNode, parEls, indices);
 
       indices.Add(0);
       obj = GetNodeObject(parEls[0]);
     }
-    return new ParagraphIterator(rootNode, obj, indices);
+    return new ParagraphIterator(_rootNode, obj, indices);
   }
 
   private ParagraphIterator GetParentIterator()
   {
-    if (positionIndices.Count == 0)
+    if (_positionIndices.Count == 0)
       return null;
 
-    ArrayList indices = (ArrayList)positionIndices.Clone();
+    var indices = (ArrayList)_positionIndices.Clone();
     indices.RemoveAt(indices.Count - 1);
-    DocumentObject parent = DocumentRelations.GetParentOfType(current, typeof(ParagraphElements));
-    return new ParagraphIterator(rootNode, parent, indices);
+    var parent = DocumentRelations.GetParentOfType(_current, typeof(ParagraphElements));
+    return new ParagraphIterator(_rootNode, parent, indices);
   }
 
   private int LastIndex
   {
     get
     {
-      if (positionIndices.Count == 0)
+      if (_positionIndices.Count == 0)
         return -1;
-      else
-        return (int)positionIndices[positionIndices.Count - 1];
+      return (int)_positionIndices[^1]!;
     }
   }
 
-  private readonly ParagraphElements rootNode;
-  private readonly ArrayList positionIndices;
-  private readonly DocumentObject current;
+  private readonly ParagraphElements _rootNode;
+  private readonly ArrayList _positionIndices;
+  private readonly DocumentObject _current;
 }

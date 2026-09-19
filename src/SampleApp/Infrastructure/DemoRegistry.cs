@@ -57,7 +57,7 @@ public static class DemoRegistry
         new ChartsDemo(),
         new NewspaperDemo(),
         new MagazineDemo(),
-        new SideWrapDemo(),
+        new SideWrapDemo()
     };
 
     public static IReadOnlyList<string> Names { get; } = All.Select(demo => demo.Name).ToArray();
@@ -65,7 +65,7 @@ public static class DemoRegistry
     /// <summary>Finds a demo by name, ignoring case, so <c>-e fonts</c> finds <c>Fonts</c>.</summary>
     public static bool TryGet(string name, [NotNullWhen(true)] out PdfDemo? demo)
     {
-        foreach (PdfDemo candidate in All)
+        foreach (var candidate in All)
         {
             if (string.Equals(candidate.Name, name, StringComparison.OrdinalIgnoreCase))
             {

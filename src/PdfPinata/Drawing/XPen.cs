@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -261,11 +261,11 @@ public sealed class XPen
             if (_immutable)
                 throw new ArgumentException(PSSR.CannotChangeImmutableObject("XPen"));
 
-            int length = value.Length;
+            var length = value.Length;
             //if (length == 0)
             //  throw new ArgumentException("Dash pattern array must not be empty.");
 
-            for (int idx = 0; idx < length; idx++)
+            for (var idx = 0; idx < length; idx++)
             {
                 if (value[idx] <= 0)
                     throw new ArgumentException("Dash pattern value must greater than zero.");

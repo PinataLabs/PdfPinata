@@ -49,15 +49,15 @@ internal abstract class BarPlotAreaRenderer : PlotAreaRenderer
   /// </summary>
   internal override void Format()
   {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
 
-    double xMin = cri.xAxisRendererInfo.MinimumScale;
-    double xMax = cri.xAxisRendererInfo.MaximumScale;
-    double yMin = cri.yAxisRendererInfo.MinimumScale;
-    double yMax = cri.yAxisRendererInfo.MaximumScale;
-    double xMajorTick = cri.xAxisRendererInfo.MajorTick;
+    var xMin = cri.xAxisRendererInfo.MinimumScale;
+    var xMax = cri.xAxisRendererInfo.MaximumScale;
+    var yMin = cri.yAxisRendererInfo.MinimumScale;
+    var yMax = cri.yAxisRendererInfo.MaximumScale;
+    var xMajorTick = cri.xAxisRendererInfo.MajorTick;
 
-    XRect plotAreaBox = cri.plotAreaRendererInfo.Rect;
+    var plotAreaBox = cri.plotAreaRendererInfo.Rect;
 
     // Nothing to plot means a category scale of zero, and dividing by it puts NaN on the page.
     // See ColumnLikePlotAreaRenderer.Format, which says the same of the same thing.
@@ -80,19 +80,19 @@ internal abstract class BarPlotAreaRenderer : PlotAreaRenderer
   /// </summary>
   internal override void Draw()
   {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
 
-    XRect plotAreaBox = cri.plotAreaRendererInfo.Rect;
+    var plotAreaBox = cri.plotAreaRendererInfo.Rect;
     if (HasNoRoom(plotAreaBox))
       return;
 
-    XGraphics gfx = this.rendererParms.Graphics;
+    var gfx = this.rendererParms.Graphics;
 
-    double xMin = cri.xAxisRendererInfo.MinimumScale;
-    double xMax = cri.xAxisRendererInfo.MaximumScale;
-    double yMin = cri.yAxisRendererInfo.MinimumScale;
-    double yMax = cri.yAxisRendererInfo.MaximumScale;
-    double xMajorTick = cri.xAxisRendererInfo.MajorTick;
+    var xMin = cri.xAxisRendererInfo.MinimumScale;
+    var xMax = cri.xAxisRendererInfo.MaximumScale;
+    var yMin = cri.yAxisRendererInfo.MinimumScale;
+    var yMax = cri.yAxisRendererInfo.MaximumScale;
+    var xMajorTick = cri.xAxisRendererInfo.MajorTick;
 
     LineFormatRenderer lineFormatRenderer;
 
@@ -104,7 +104,7 @@ internal abstract class BarPlotAreaRenderer : PlotAreaRenderer
     {
       if (yMin < 0 && yMax > 0)
       {
-        XPoint[] points = new XPoint[2];
+        var points = new XPoint[2];
         points[0].X = 0;
         points[0].Y = xMin;
         points[1].X = 0;
@@ -121,8 +121,8 @@ internal abstract class BarPlotAreaRenderer : PlotAreaRenderer
     }
 
     // Draw bars
-    XGraphicsState state = gfx.Save();
-    foreach (SeriesRendererInfo sri in cri.seriesRendererInfos)
+    var state = gfx.Save();
+    foreach (var sri in cri.seriesRendererInfos)
     {
       foreach (ColumnRendererInfo column in sri.pointRendererInfos)
       {
@@ -134,7 +134,7 @@ internal abstract class BarPlotAreaRenderer : PlotAreaRenderer
 
     // Draw borders around bar.
     // A border can overlap neighbor bars, so it is important to draw borders at the end.
-    foreach (SeriesRendererInfo sri in cri.seriesRendererInfos)
+    foreach (var sri in cri.seriesRendererInfos)
     {
       foreach (ColumnRendererInfo column in sri.pointRendererInfos)
       {

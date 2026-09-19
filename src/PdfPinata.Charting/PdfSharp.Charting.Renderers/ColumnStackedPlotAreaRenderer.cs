@@ -50,39 +50,39 @@ internal class ColumnStackedPlotAreaRenderer : ColumnPlotAreaRenderer
   /// </summary>
   protected override void CalcColumns()
   {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
     if (cri.seriesRendererInfos.Length == 0)
       return;
 
-    double xMin = cri.xAxisRendererInfo.MinimumScale;
-    double xMajorTick = cri.xAxisRendererInfo.MajorTick;
+    var xMin = cri.xAxisRendererInfo.MinimumScale;
+    var xMajorTick = cri.xAxisRendererInfo.MajorTick;
 
-    int maxPoints = 0;
-    foreach (SeriesRendererInfo sri in cri.seriesRendererInfos)
+    var maxPoints = 0;
+    foreach (var sri in cri.seriesRendererInfos)
       maxPoints = Math.Max(maxPoints, sri.series.Elements.Count);
 
-    double x = xMin + xMajorTick / 2;
+    var x = xMin + xMajorTick / 2;
 
     // Space used by one column.
-    double columnWidth = xMajorTick * 0.75 / 2;
+    var columnWidth = xMajorTick * 0.75 / 2;
 
-    XPoint[] points = new XPoint[2];
-    for (int pointIdx = 0; pointIdx < maxPoints; ++pointIdx)
+    var points = new XPoint[2];
+    for (var pointIdx = 0; pointIdx < maxPoints; ++pointIdx)
     {
       // Set x to first clustered column for each series.
       double yMin = 0, yMax = 0, y0 = 0, y1 = 0;
-      double x0 = x - columnWidth;
-      double x1 = x + columnWidth;
+      var x0 = x - columnWidth;
+      var x1 = x + columnWidth;
 
-      foreach (SeriesRendererInfo sri in cri.seriesRendererInfos)
+      foreach (var sri in cri.seriesRendererInfos)
       {
         if (sri.pointRendererInfos.Length <= pointIdx)
           break;
 
-        ColumnRendererInfo column = (ColumnRendererInfo)sri.pointRendererInfos[pointIdx];
+        var column = (ColumnRendererInfo)sri.pointRendererInfos[pointIdx];
         if (!double.IsNaN(column.Value))
         {
-          double y = column.Value;
+          var y = column.Value;
           if (y < 0)
           {
             y0 = yMin + y;

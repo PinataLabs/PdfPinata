@@ -49,14 +49,14 @@ public class ImageHelper
   {
     try
     {
-      List<string> subfolders = new List<string>(imagePath.Split(';', StringSplitOptions.RemoveEmptyEntries));
+      var subfolders = new List<string>(imagePath.Split(';', StringSplitOptions.RemoveEmptyEntries));
       subfolders.Add("");
 
-      foreach (string subfolder in subfolders)
+      foreach (var subfolder in subfolders)
       {
-        string fullname = System.IO.Path.Combine(System.IO.Path.Combine(root, subfolder), filename);
+        var fullname = System.IO.Path.Combine(System.IO.Path.Combine(root, subfolder), filename);
         int pageNumber;
-        string realFile = ExtractPageNumber(fullname, out pageNumber);
+        var realFile = ExtractPageNumber(fullname, out pageNumber);
 
         if (System.IO.File.Exists(realFile))
           return fullname;
@@ -74,14 +74,14 @@ public class ImageHelper
   /// </summary>
   public static bool InSubfolder(string root, string filename, string imagePath, string referenceFilename)
   {
-    List<string> subfolders = new List<string>(imagePath.Split(';', StringSplitOptions.RemoveEmptyEntries));
+    var subfolders = new List<string>(imagePath.Split(';', StringSplitOptions.RemoveEmptyEntries));
     subfolders.Add("");
 
-    foreach (string subfolder in subfolders)
+    foreach (var subfolder in subfolders)
     {
-      string fullname = System.IO.Path.Combine(System.IO.Path.Combine(root, subfolder), filename);
+      var fullname = System.IO.Path.Combine(System.IO.Path.Combine(root, subfolder), filename);
       int pageNumber;
-      string realFile = ExtractPageNumber(fullname, out pageNumber);
+      var realFile = ExtractPageNumber(fullname, out pageNumber);
       if (System.IO.File.Exists(realFile))
       {
         if (fullname == referenceFilename)
@@ -101,7 +101,7 @@ public class ImageHelper
     ArgumentNullException.ThrowIfNull(path);
 
     pageNumber = 0;
-    int length = path.Length;
+    var length = path.Length;
     if (length != 0)
     {
       length--;
@@ -116,8 +116,8 @@ public class ImageHelper
           // must have at least one dot left of colon to distinguish from e.g. '#123'
           if (path.Contains('.'))
           {
-            pageNumber = Int32.Parse(path.Substring(length + 1));
-            path = path.Substring(0, length);
+            pageNumber = Int32.Parse(path[(length + 1)..]);
+            path = path[..length];
           }
         }
       }

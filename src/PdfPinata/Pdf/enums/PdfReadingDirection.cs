@@ -42,5 +42,5 @@ public enum PdfReadingDirection
     /// <summary>
     /// Right to left (including vertical writing systems, such as Chinese, Japanese, and Korean)
     /// </summary>
-    RightToLeft,
+    RightToLeft
 }

@@ -51,7 +51,7 @@ internal class CombinationChartRenderer : ChartRenderer
   /// </summary>
   internal override RendererInfo Init()
   {
-    CombinationRendererInfo cri = new CombinationRendererInfo();
+    var cri = new CombinationRendererInfo();
     cri.chart = (Chart)this.rendererParms.DrawingItem;
     this.rendererParms.RendererInfo = cri;
 
@@ -61,41 +61,41 @@ internal class CombinationChartRenderer : ChartRenderer
     if (cri.areaSeriesRendererInfos != null)
     {
       cri.seriesRendererInfos = cri.areaSeriesRendererInfos;
-      AreaChartRenderer renderer = new AreaChartRenderer(this.rendererParms);
+      var renderer = new AreaChartRenderer(this.rendererParms);
       renderer.InitSeries();
     }
     if (cri.columnSeriesRendererInfos != null)
     {
       cri.seriesRendererInfos = cri.columnSeriesRendererInfos;
-      ColumnChartRenderer renderer = new ColumnChartRenderer(this.rendererParms);
+      var renderer = new ColumnChartRenderer(this.rendererParms);
       renderer.InitSeries();
     }
     if (cri.lineSeriesRendererInfos != null)
     {
       cri.seriesRendererInfos = cri.lineSeriesRendererInfos;
-      LineChartRenderer renderer = new LineChartRenderer(this.rendererParms);
+      var renderer = new LineChartRenderer(this.rendererParms);
       renderer.InitSeries();
     }
     cri.seriesRendererInfos = cri.commonSeriesRendererInfos;
 
-    ColumnLikeLegendRenderer lr = new ColumnLikeLegendRenderer(this.rendererParms);
+    var lr = new ColumnLikeLegendRenderer(this.rendererParms);
     cri.legendRendererInfo = (LegendRendererInfo)lr.Init();
 
-    HorizontalXAxisRenderer xar = new HorizontalXAxisRenderer(this.rendererParms);
+    var xar = new HorizontalXAxisRenderer(this.rendererParms);
     cri.xAxisRendererInfo = (AxisRendererInfo)xar.Init();
 
-    VerticalYAxisRenderer yar = new VerticalYAxisRenderer(this.rendererParms);
+    var yar = new VerticalYAxisRenderer(this.rendererParms);
     cri.yAxisRendererInfo = (AxisRendererInfo)yar.Init();
 
-    PlotArea plotArea = cri.chart.PlotArea;
-    AreaPlotAreaRenderer apar = new AreaPlotAreaRenderer(this.rendererParms);
+    var plotArea = cri.chart.PlotArea;
+    var apar = new AreaPlotAreaRenderer(this.rendererParms);
     cri.plotAreaRendererInfo = (PlotAreaRendererInfo)apar.Init();
 
     // Draw data labels.
     if (cri.columnSeriesRendererInfos != null)
     {
       cri.seriesRendererInfos = cri.columnSeriesRendererInfos;
-      ColumnDataLabelRenderer dlr = new ColumnDataLabelRenderer(this.rendererParms);
+      var dlr = new ColumnDataLabelRenderer(this.rendererParms);
       dlr.Init();
     }
 
@@ -107,21 +107,21 @@ internal class CombinationChartRenderer : ChartRenderer
   /// </summary>
   internal override void Format()
   {
-    CombinationRendererInfo cri = (CombinationRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (CombinationRendererInfo)this.rendererParms.RendererInfo;
     cri.seriesRendererInfos = cri.commonSeriesRendererInfos;
 
-    ColumnLikeLegendRenderer lr = new ColumnLikeLegendRenderer(this.rendererParms);
+    var lr = new ColumnLikeLegendRenderer(this.rendererParms);
     lr.Format();
 
     // axes
-    HorizontalXAxisRenderer xar = new HorizontalXAxisRenderer(this.rendererParms);
+    var xar = new HorizontalXAxisRenderer(this.rendererParms);
     xar.Format();
 
-    VerticalYAxisRenderer yar = new VerticalYAxisRenderer(this.rendererParms);
+    var yar = new VerticalYAxisRenderer(this.rendererParms);
     yar.Format();
 
     // Calculate rects and positions.
-    XRect chartRect = LayoutLegend();
+    var chartRect = LayoutLegend();
     cri.xAxisRendererInfo.X = chartRect.Left + cri.yAxisRendererInfo.Width;
     cri.xAxisRendererInfo.Y = chartRect.Bottom - cri.xAxisRendererInfo.Height;
     cri.xAxisRendererInfo.Width = chartRect.Width - cri.yAxisRendererInfo.Width;
@@ -159,7 +159,7 @@ internal class CombinationChartRenderer : ChartRenderer
     if (cri.columnSeriesRendererInfos != null)
     {
       cri.seriesRendererInfos = cri.columnSeriesRendererInfos;
-      ColumnDataLabelRenderer dlr = new ColumnDataLabelRenderer(this.rendererParms);
+      var dlr = new ColumnDataLabelRenderer(this.rendererParms);
       dlr.Format();
     }
   }
@@ -169,19 +169,19 @@ internal class CombinationChartRenderer : ChartRenderer
   /// </summary>
   internal override void Draw()
   {
-    CombinationRendererInfo cri = (CombinationRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (CombinationRendererInfo)this.rendererParms.RendererInfo;
     cri.seriesRendererInfos = cri.commonSeriesRendererInfos;
 
-    ColumnLikeLegendRenderer lr = new ColumnLikeLegendRenderer(this.rendererParms);
+    var lr = new ColumnLikeLegendRenderer(this.rendererParms);
     lr.Draw();
 
-    WallRenderer wr = new WallRenderer(this.rendererParms);
+    var wr = new WallRenderer(this.rendererParms);
     wr.Draw();
 
-    ColumnLikeGridlinesRenderer glr = new ColumnLikeGridlinesRenderer(this.rendererParms);
+    var glr = new ColumnLikeGridlinesRenderer(this.rendererParms);
     glr.Draw();
 
-    PlotAreaBorderRenderer pabr = new PlotAreaBorderRenderer(this.rendererParms);
+    var pabr = new PlotAreaBorderRenderer(this.rendererParms);
     pabr.Draw();
 
     PlotAreaRenderer renderer;
@@ -209,7 +209,7 @@ internal class CombinationChartRenderer : ChartRenderer
     if (cri.columnSeriesRendererInfos != null)
     {
       cri.seriesRendererInfos = cri.columnSeriesRendererInfos;
-      ColumnDataLabelRenderer dlr = new ColumnDataLabelRenderer(this.rendererParms);
+      var dlr = new ColumnDataLabelRenderer(this.rendererParms);
       dlr.Draw();
     }
 
@@ -217,12 +217,12 @@ internal class CombinationChartRenderer : ChartRenderer
     cri.seriesRendererInfos = cri.commonSeriesRendererInfos;
     if (cri.xAxisRendererInfo.axis != null)
     {
-      HorizontalXAxisRenderer xar = new HorizontalXAxisRenderer(this.rendererParms);
+      var xar = new HorizontalXAxisRenderer(this.rendererParms);
       xar.Draw();
     }
     if (cri.yAxisRendererInfo.axis != null)
     {
-      VerticalYAxisRenderer yar = new VerticalYAxisRenderer(this.rendererParms);
+      var yar = new VerticalYAxisRenderer(this.rendererParms);
       yar.Draw();
     }
   }
@@ -232,12 +232,12 @@ internal class CombinationChartRenderer : ChartRenderer
   /// </summary>
   private void InitSeriesRendererInfo()
   {
-    CombinationRendererInfo cri = (CombinationRendererInfo)this.rendererParms.RendererInfo;
-    SeriesCollection seriesColl = cri.chart.SeriesCollection;
+    var cri = (CombinationRendererInfo)this.rendererParms.RendererInfo;
+    var seriesColl = cri.chart.SeriesCollection;
     cri.seriesRendererInfos = new SeriesRendererInfo[seriesColl.Count];
-    for (int idx = 0; idx < seriesColl.Count; ++idx)
+    for (var idx = 0; idx < seriesColl.Count; ++idx)
     {
-      SeriesRendererInfo sri = new SeriesRendererInfo();
+      var sri = new SeriesRendererInfo();
       sri.series = seriesColl[idx];
       cri.seriesRendererInfos[idx] = sri;
     }
@@ -248,12 +248,12 @@ internal class CombinationChartRenderer : ChartRenderer
   /// </summary>
   private void DistributeSeries()
   {
-    CombinationRendererInfo cri = (CombinationRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (CombinationRendererInfo)this.rendererParms.RendererInfo;
 
-    ArrayList areaSeries = new ArrayList();
-    ArrayList columnSeries = new ArrayList();
-    ArrayList lineSeries = new ArrayList();
-    foreach (SeriesRendererInfo sri in cri.seriesRendererInfos)
+    var areaSeries = new ArrayList();
+    var columnSeries = new ArrayList();
+    var lineSeries = new ArrayList();
+    foreach (var sri in cri.seriesRendererInfos)
     {
       switch (sri.series.chartType)
       {

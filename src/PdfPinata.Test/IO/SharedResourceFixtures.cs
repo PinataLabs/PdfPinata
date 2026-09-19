@@ -30,7 +30,7 @@ internal static class SharedResourceFixtures
             Image(),
             Draw("/Im0 Do"),
             Draw("/Im1 Do"),
-            Draw("/Im2 Do"),
+            Draw("/Im2 Do")
         });
     }
 
@@ -155,7 +155,7 @@ internal static class SharedResourceFixtures
             Page("/Resources<</XObject<</Im0 5 0 R/Im1 6 0 R>>>>/Contents 4 0 R"),
             RawPdf.Stream("/Filter/JPXDecode", "not a JPEG 2000 codestream"),
             Image(),
-            Image(),
+            Image()
         });
     }
 
@@ -170,7 +170,7 @@ internal static class SharedResourceFixtures
             "<</Type/Catalog/Pages 2 0 R>>",
             "<</Type/Pages/Kids[3 0 R]/Count 1>>",
             Page("/Resources<<" + resources + ">>/Contents 4 0 R"),
-            Draw(content),
+            Draw(content)
         };
         objects.AddRange(rest);
 
@@ -212,7 +212,7 @@ internal static class SharedResourceFixtures
             Image(),
             Image(),
             // No resources of its own, so what it draws it draws with the page's.
-            Form("", "/Im1 Do"),
+            Form("", "/Im1 Do")
         });
     }
 
@@ -236,7 +236,7 @@ internal static class SharedResourceFixtures
             Image(),
             "<</Yes 10 0 R/Off 11 0 R>>",
             Form("", "/Im1 Do"),
-            Form("", "/Im2 Do"),
+            Form("", "/Im2 Do")
         });
     }
 

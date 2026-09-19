@@ -101,7 +101,7 @@ public abstract partial class NumericFieldBase : DocumentObject
   /// </summary>
   protected bool IsValidFormat(string format)
   {
-    foreach (string name in validFormatStrings)
+    foreach (var name in validFormatStrings)
     {
       if (name == this.Format)
         return true;

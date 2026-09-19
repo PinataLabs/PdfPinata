@@ -57,5 +57,5 @@ public enum PdfOutlineStyle  // Reference:  TABLE 8.5 Ouline Item flags / Page 5
     /// <summary>
     /// Outline text is displayed using a bold and italic font.
     /// </summary>
-    BoldItalic = 3,
+    BoldItalic = 3
 }

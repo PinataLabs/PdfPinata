@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -90,11 +90,11 @@ enum PdfFontDescriptorFlags
     /// Determines whether bold glyphs are painted with extra pixels even at very small
     /// text sizes.
     /// </summary>
-    ForceBold = 1 << 18,
+    ForceBold = 1 << 18
 }
 
 /// <summary>
-/// A PDF font descriptor specifies metrics and other attributes of a simple font, 
+/// A PDF font descriptor specifies metrics and other attributes of a simple font,
 /// as distinct from the metrics of individual glyphs.
 /// </summary>
 public sealed class PdfFontDescriptor : PdfDictionary
@@ -114,7 +114,7 @@ public sealed class PdfFontDescriptor : PdfDictionary
             _descriptor.DesignUnitsToPdf(_descriptor.YMin),
             _descriptor.DesignUnitsToPdf(_descriptor.XMax),
             _descriptor.DesignUnitsToPdf(_descriptor.YMax)));
-        // not here, done in PdfFont later... 
+        // not here, done in PdfFont later...
         //Elements.SetName(Keys.FontName, "abc"); //descriptor.FontName);
         Elements.SetReal(Keys.ItalicAngle, _descriptor.ItalicAngle);
         Elements.SetInteger(Keys.StemV, _descriptor.StemV);
@@ -162,7 +162,7 @@ public sealed class PdfFontDescriptor : PdfDictionary
         public const string Type = "/Type";
 
         /// <summary>
-        /// (Required) The PostScript name of the font. This name should be the same as the 
+        /// (Required) The PostScript name of the font. This name should be the same as the
         /// value of BaseFont in the font or CIDFont dictionary that refers to this font descriptor.
         /// </summary>
         [KeyInfo(KeyType.Name | KeyType.Required)]
@@ -170,7 +170,7 @@ public sealed class PdfFontDescriptor : PdfDictionary
 
         /// <summary>
         /// (Optional; PDF 1.5; strongly recommended for Type 3 fonts in Tagged PDF documents)
-        /// A string specifying the preferred font family name. For example, for the font 
+        /// A string specifying the preferred font family name. For example, for the font
         /// Times Bold Italic, the FontFamily is Times.
         /// </summary>
         [KeyInfo(KeyType.String | KeyType.Optional)]
@@ -178,10 +178,10 @@ public sealed class PdfFontDescriptor : PdfDictionary
 
         /// <summary>
         /// (Optional; PDF 1.5; strongly recommended for Type 3 fonts in Tagged PDF documents)
-        /// The font stretch value. It must be one of the following names (ordered from 
-        /// narrowest to widest): UltraCondensed, ExtraCondensed, Condensed, SemiCondensed, 
+        /// The font stretch value. It must be one of the following names (ordered from
+        /// narrowest to widest): UltraCondensed, ExtraCondensed, Condensed, SemiCondensed,
         /// Normal, SemiExpanded, Expanded, ExtraExpanded or UltraExpanded.
-        /// Note: The specific interpretation of these values varies from font to font. 
+        /// Note: The specific interpretation of these values varies from font to font.
         /// For example, Condensed in one font may appear most similar to Normal in another.
         /// </summary>
         [KeyInfo(KeyType.Name | KeyType.Optional)]
@@ -191,9 +191,9 @@ public sealed class PdfFontDescriptor : PdfDictionary
         /// (Optional; PDF 1.5; strongly recommended for Type 3 fonts in Tagged PDF documents)
         /// The weight (thickness) component of the fully-qualified font name or font specifier.
         /// The possible values are 100, 200, 300, 400, 500, 600, 700, 800, or 900, where each
-        /// number indicates a weight that is at least as dark as its predecessor. A value of 
+        /// number indicates a weight that is at least as dark as its predecessor. A value of
         /// 400 indicates a normal weight; 700 indicates bold.
-        /// Note: The specific interpretation of these values varies from font to font. 
+        /// Note: The specific interpretation of these values varies from font to font.
         /// For example, 300 in one font may appear most similar to 500 in another.
         /// </summary>
         [KeyInfo(KeyType.Real | KeyType.Optional)]
@@ -207,8 +207,8 @@ public sealed class PdfFontDescriptor : PdfDictionary
 
         /// <summary>
         /// (Required, except for Type 3 fonts) A rectangle (see Section 3.8.4, “Rectangles”),
-        /// expressed in the glyph coordinate system, specifying the font bounding box. This 
-        /// is the smallest rectangle enclosing the shape that would result if all of the 
+        /// expressed in the glyph coordinate system, specifying the font bounding box. This
+        /// is the smallest rectangle enclosing the shape that would result if all of the
         /// glyphs of the font were placed with their origins coincident and then filled.
         /// </summary>
         [KeyInfo(KeyType.Rectangle | KeyType.Required)]
@@ -216,22 +216,22 @@ public sealed class PdfFontDescriptor : PdfDictionary
 
         /// <summary>
         /// (Required) The angle, expressed in degrees counterclockwise from the vertical, of
-        /// the dominant vertical strokes of the font. (For example, the 9-o’clock position is 90 
-        /// degrees, and the 3-o’clock position is –90 degrees.) The value is negative for fonts 
+        /// the dominant vertical strokes of the font. (For example, the 9-o’clock position is 90
+        /// degrees, and the 3-o’clock position is –90 degrees.) The value is negative for fonts
         /// that slope to the right, as almost all italic fonts do.
         /// </summary>
         [KeyInfo(KeyType.Real | KeyType.Required)]
         public const string ItalicAngle = "/ItalicAngle";
 
         /// <summary>
-        /// (Required, except for Type 3 fonts) The maximum height above the baseline reached 
+        /// (Required, except for Type 3 fonts) The maximum height above the baseline reached
         /// by glyphs in this font, excluding the height of glyphs for accented characters.
         /// </summary>
         [KeyInfo(KeyType.Real | KeyType.Required)]
         public const string Ascent = "/Ascent";
 
         /// <summary>
-        /// (Required, except for Type 3 fonts) The maximum depth below the baseline reached 
+        /// (Required, except for Type 3 fonts) The maximum depth below the baseline reached
         /// by glyphs in this font. The value is a negative number.
         /// </summary>
         [KeyInfo(KeyType.Real | KeyType.Required)]
@@ -253,21 +253,21 @@ public sealed class PdfFontDescriptor : PdfDictionary
 
         /// <summary>
         /// (Optional) The font’s x height: the vertical coordinate of the top of flat nonascending
-        /// lowercase letters (like the letter x), measured from the baseline, in fonts that have 
+        /// lowercase letters (like the letter x), measured from the baseline, in fonts that have
         /// Latin characters. Default value: 0.
         /// </summary>
         [KeyInfo(KeyType.Real | KeyType.Optional)]
         public const string XHeight = "/XHeight";
 
         /// <summary>
-        /// (Required, except for Type 3 fonts) The thickness, measured horizontally, of the dominant 
+        /// (Required, except for Type 3 fonts) The thickness, measured horizontally, of the dominant
         /// vertical stems of glyphs in the font.
         /// </summary>
         [KeyInfo(KeyType.Real | KeyType.Required)]
         public const string StemV = "/StemV";
 
         /// <summary>
-        /// (Optional) The thickness, measured vertically, of the dominant horizontal stems 
+        /// (Optional) The thickness, measured vertically, of the dominant horizontal stems
         /// of glyphs in the font. Default value: 0.
         /// </summary>
         [KeyInfo(KeyType.Real | KeyType.Optional)]
@@ -286,8 +286,8 @@ public sealed class PdfFontDescriptor : PdfDictionary
         public const string MaxWidth = "/MaxWidth";
 
         /// <summary>
-        /// (Optional) The width to use for character codes whose widths are not specified in a 
-        /// font dictionary’s Widths array. This has a predictable effect only if all such codes 
+        /// (Optional) The width to use for character codes whose widths are not specified in a
+        /// font dictionary’s Widths array. This has a predictable effect only if all such codes
         /// map to glyphs whose actual widths are the same as the value of the MissingWidth entry.
         /// Default value: 0.
         /// </summary>

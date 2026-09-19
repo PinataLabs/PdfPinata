@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -68,7 +68,7 @@ public class CLexer
     {
         Again:
         ClearToken();
-        char ch = MoveToNonWhiteSpace();
+        var ch = MoveToNonWhiteSpace();
         switch (ch)
         {
             case '%':
@@ -155,7 +155,7 @@ public class CLexer
         // … Image data …
         // EI
 
-        bool ascii85 = false;
+        var ascii85 = false;
         do
         {
             ScanNextToken();
@@ -171,7 +171,7 @@ public class CLexer
             while (_currChar != Chars.EOF && ( _currChar != '~' || _nextChar != '>'))
                 ScanNextChar();
         }
-            
+
         // Look for 'EI'.
         // currChar != Chars.EOF: Addresses issue #354 - malformed PDF that ends without closing an inline image
         while (_currChar != Chars.EOF && (_currChar != 'E' || _nextChar != 'I'))
@@ -191,7 +191,7 @@ public class CLexer
         ClearToken();
         while (true)
         {
-            char ch = AppendAndScanNextChar();
+            var ch = AppendAndScanNextChar();
             // A name that ends the content stream never sees a delimiter, so give up at the
             // end of the content as well rather than appending Chars.EOF for ever.
             if (IsWhiteSpace(ch) || IsDelimiter(ch) || ch == Chars.EOF)
@@ -200,7 +200,7 @@ public class CLexer
             if (ch == '#')
             {
                 ScanNextChar();
-                char[] hex = new char[2];
+                var hex = new char[2];
                 hex[0] = _currChar;
                 hex[1] = _nextChar;
                 ScanNextChar();
@@ -243,11 +243,11 @@ public class CLexer
 
         // One for the '<<' being opened here. A dictionary nested inside this one adds another, and
         // only the '>>' that takes the count back to nothing ends the token.
-        int depth = 1;
+        var depth = 1;
 
         while (true)
         {
-            char ch = ScanNextChar();
+            var ch = ScanNextChar();
 
             // A truncated dictionary never sees its closing '>>', so give up at the end of the
             // content rather than appending Chars.EOF for ever.
@@ -284,7 +284,7 @@ public class CLexer
                     // A literal string, which ends at the parenthesis that balances this one -
                     // counting the nested pairs it is allowed to hold, and skipping whatever a
                     // backslash escapes so that an escaped parenthesis does not close it.
-                    int parentheses = 1;
+                    var parentheses = 1;
                     while (parentheses > 0)
                     {
                         ch = ScanNextChar();
@@ -337,17 +337,17 @@ public class CLexer
     public CSymbol ScanNumber()
     {
         long value = 0;
-        int decimalDigits = 0;
-        bool period = false;
-        bool negative = false;
+        var decimalDigits = 0;
+        var period = false;
+        var negative = false;
         // Set once the integer part alone would no longer fit in a long - a nineteen-or-more
         // digit token, which unchecked arithmetic would otherwise wrap silently rather than
         // report. Once set, value is no longer trustworthy and the token text is read directly
         // instead, the same way a real with more than ten decimal digits already is below.
-        bool overflow = false;
+        var overflow = false;
 
         ClearToken();
-        char ch = _currChar;
+        var ch = _currChar;
         if (ch == '+' || ch == '-')
         {
             if (ch == '-')
@@ -435,7 +435,7 @@ public class CLexer
     public CSymbol ScanOperator()
     {
         ClearToken();
-        char ch = _currChar;
+        var ch = _currChar;
         // Scan token
         while (IsOperatorChar(ch))
             ch = AppendAndScanNextChar();
@@ -459,31 +459,31 @@ public class CLexer
         Debug.Assert(_currChar == Chars.ParenLeft);
 
         ClearToken();
-        int parenLevel = 0;
+        var parenLevel = 0;
         // Read with folding off throughout: the document lexer's ScanLiteralString does the same,
         // so a raw carriage return inside the string is kept rather than turned into a line feed,
         // and only an escaped one - '\' before either end-of-line spelling - continues the line.
-        char ch = ScanNextChar(false);
+        var ch = ScanNextChar(false);
         // Test UNICODE string. The reference only names the big-endian byte order mark, but
         // Adobe Reader also accepts the little-endian one - the document lexer's ScanLiteralString
         // does too, decoding after the fact rather than character by character, and a byte-swapped
         // string here should read the same text it does there.
-        bool bigEndian = ch == '\xFE' && _nextChar == '\xFF';
-        bool littleEndian = ch == '\xFF' && _nextChar == '\xFE';
+        var bigEndian = ch == '\xFE' && _nextChar == '\xFF';
+        var littleEndian = ch == '\xFF' && _nextChar == '\xFE';
         if (bigEndian || littleEndian)
         {
             // I'm not sure if the code is correct in any case.
             // ? Can a UNICODE character not start with ')' as hibyte
             // ? What about \# escape sequences
             ScanNextChar(false);
-            char first = ScanNextChar(false);
+            var first = ScanNextChar(false);
             if (first == ')')
             {
                 // The empty unicode string...
                 ScanNextChar(false);
                 return _symbol = CSymbol.UnicodeString;
             }
-            char second = ScanNextChar(false);
+            var second = ScanNextChar(false);
             ch = bigEndian ? (char)(first * 256 + second) : (char)(second * 256 + first);
             while (true)
             {
@@ -558,7 +558,7 @@ public class CLexer
                                 if (IsOctalDigit(ch))
                                 {
                                     // Octal character code
-                                    int n = ch - '0';
+                                    var n = ch - '0';
                                     if (IsOctalDigit(_nextChar))
                                     {
                                         n = n * 8 + ScanNextChar(false) - '0';
@@ -672,7 +672,7 @@ public class CLexer
                                 if (IsOctalDigit(ch))
                                 {
                                     // Octal character code.
-                                    int n = ch - '0';
+                                    var n = ch - '0';
                                     if (IsOctalDigit(_nextChar))
                                     {
                                         n = n * 8 + ScanNextChar(false) - '0';
@@ -716,7 +716,7 @@ public class CLexer
         Debug.Assert(_currChar == Chars.Less);
 
         ClearToken();
-        char[] hex = new char[2];
+        var hex = new char[2];
         ScanNextChar();
         while (true)
         {
@@ -758,8 +758,8 @@ public class CLexer
             }
             _token.Append((char)int.Parse(new string(hex), NumberStyles.AllowHexSpecifier));
         }
-        string chars = _token.ToString();
-        int count = chars.Length;
+        var chars = _token.ToString();
+        var count = chars.Length;
         if (count > 2 && chars[0] == (char)0xFE && chars[1] == (char)0xFF)
         {
             // A Unicode hex string missing half of its last character is short of the low byte
@@ -773,7 +773,7 @@ public class CLexer
                 ++count;
             }
             _token.Length = 0;
-            for (int idx = 2; idx < count; idx += 2)
+            for (var idx = 2; idx < count; idx += 2)
                 _token.Append((char)(chars[idx] * 256 + chars[idx + 1]));
             return _symbol = CSymbol.UnicodeHexString;
         }

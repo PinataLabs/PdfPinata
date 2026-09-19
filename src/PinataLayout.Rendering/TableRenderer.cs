@@ -48,22 +48,22 @@ internal class TableRenderer : Renderer
     :
     base(gfx, documentObject, fieldInfos)
   {
-    table = (Table)documentObject;
+    _table = documentObject;
   }
 
   internal TableRenderer(XGraphics gfx, RenderInfo renderInfo, FieldInfos fieldInfos)
     :
     base(gfx, renderInfo, fieldInfos)
   {
-    table = (Table)this.renderInfo.DocumentObject;
+    _table = (Table)this.renderInfo.DocumentObject;
   }
 
   internal override LayoutInfo InitialLayoutInfo
   {
     get
     {
-      LayoutInfo layoutInfo = new LayoutInfo();
-      layoutInfo.KeepTogether = table.KeepTogether;
+      var layoutInfo = new LayoutInfo();
+      layoutInfo.KeepTogether = _table.KeepTogether;
       layoutInfo.KeepWithNext = false;
       layoutInfo.MarginBottom = 0;
       layoutInfo.MarginLeft = 0;
@@ -76,19 +76,19 @@ internal class TableRenderer : Renderer
 
   void InitRendering()
   {
-    TableFormatInfo formatInfo = (TableFormatInfo)renderInfo.FormatInfo;
-    bottomBorderMap = formatInfo.bottomBorderMap;
-    connectedRowsMap = formatInfo.connectedRowsMap;
-    formattedCells = formatInfo.formattedCells;
+    var formatInfo = (TableFormatInfo)renderInfo.FormatInfo;
+    _bottomBorderMap = formatInfo.bottomBorderMap;
+    _connectedRowsMap = formatInfo.connectedRowsMap;
+    _formattedCells = formatInfo.formattedCells;
 
-    currRow = formatInfo.startRow;
-    startRow = formatInfo.startRow;
-    endRow = formatInfo.endRow;
+    _currRow = formatInfo.startRow;
+    _startRow = formatInfo.startRow;
+    _endRow = formatInfo.endRow;
 
-    mergedCells = formatInfo.mergedCells;
-    lastHeaderRow = formatInfo.lastHeaderRow;
-    startX = renderInfo.LayoutInfo.ContentArea.X;
-    startY = renderInfo.LayoutInfo.ContentArea.Y;
+    _mergedCells = formatInfo.mergedCells;
+    _lastHeaderRow = formatInfo.lastHeaderRow;
+    _startX = renderInfo.LayoutInfo.ContentArea.X;
+    _startY = renderInfo.LayoutInfo.ContentArea.Y;
   }
 
   /// <summary>
@@ -96,33 +96,33 @@ internal class TableRenderer : Renderer
   /// </summary>
   void RenderHeaderRows()
   {
-    if (lastHeaderRow < 0)
+    if (_lastHeaderRow < 0)
       return;
 
-    foreach (Cell cell in mergedCells)
+    foreach (var cell in _mergedCells)
     {
-      if (cell.Row.Index <= lastHeaderRow)
+      if (cell.Row.Index <= _lastHeaderRow)
         RenderCell(cell);
     }
   }
 
   void RenderCell(Cell cell)
   {
-    Rectangle innerRect = GetInnerRect(CalcStartingHeight(), cell);
+    var innerRect = GetInnerRect(CalcStartingHeight(), cell);
 
     using (Tagger.Enter(RowElementOf(cell)))
-    using (Tagger.Container(gfx, cell, IsHeaderCell(cell) ? PdfTag.TH : PdfTag.TD, out var element))
+    using (Tagger.Container(Gfx, cell, IsHeaderCell(cell) ? PdfTag.TH : PdfTag.TD, out var element))
     {
       DescribeCell(cell, element);
 
       // Shading and borders are decoration and go out as artifacts; only what is in the cell is
       // content. A reader that announced every rule would be unusable on a bordered table.
-      using (Tagger.Artifact(gfx))
+      using (Tagger.Artifact(Gfx))
         RenderShading(cell, innerRect);
 
       RenderContent(cell, innerRect);
 
-      using (Tagger.Artifact(gfx))
+      using (Tagger.Artifact(Gfx))
         RenderBorders(cell, innerRect);
     }
   }
@@ -134,7 +134,7 @@ internal class TableRenderer : Renderer
   /// The same test the renderer uses to decide which rows to repeat at the top of a continuation
   /// page, so the two cannot disagree: a row repeated as a heading is tagged as one.
   /// </remarks>
-  bool IsHeaderCell(Cell cell) => cell.Row.Index <= lastHeaderRow;
+  bool IsHeaderCell(Cell cell) => cell.Row.Index <= _lastHeaderRow;
 
   /// <summary>
   /// Writes what a reader needs in order to place a cell: which way its heading reaches, and how far
@@ -186,7 +186,7 @@ internal class TableRenderer : Renderer
     // If any of a corner relevant border is set, we want to copy its values to the second corner relevant border,
     // to ensure the innerWidth of the cell is the same, regardless of which border is used.
     // If set, we use the vertical borders as source for the values, otherwise we use the horizontal borders.
-    RoundedCorner roundedCorner = cell.RoundedCorner;
+    var roundedCorner = cell.RoundedCorner;
 
     if (roundedCorner == RoundedCorner.None)
       return;
@@ -208,11 +208,11 @@ internal class TableRenderer : Renderer
       return;
 
     // Get the borders. By using GV.ReadWrite we create the border, if not existing.
-    Border primaryBorder = (Border) cell.Borders.GetValue(primaryBorderType.ToString(), GV.ReadWrite);
-    Border secondaryBorder = (Border) cell.Borders.GetValue(secondaryBorderType.ToString(), GV.ReadWrite);
+    var primaryBorder = (Border) cell.Borders.GetValue(primaryBorderType.ToString(), GV.ReadWrite);
+    var secondaryBorder = (Border) cell.Borders.GetValue(secondaryBorderType.ToString(), GV.ReadWrite);
 
-    Border source = primaryBorder.Visible ? primaryBorder : secondaryBorder.Visible ? secondaryBorder : null;
-    Border target = primaryBorder.Visible ? secondaryBorder : secondaryBorder.Visible ? primaryBorder : null;
+    var source = primaryBorder.Visible ? primaryBorder : secondaryBorder.Visible ? secondaryBorder : null;
+    var target = primaryBorder.Visible ? secondaryBorder : secondaryBorder.Visible ? primaryBorder : null;
 
     if (source == null || target == null)
       return;
@@ -225,23 +225,23 @@ internal class TableRenderer : Renderer
 
   void RenderShading(Cell cell, Rectangle innerRect)
   {
-    ShadingRenderer shadeRenderer = new ShadingRenderer(gfx, cell.Shading);
+    var shadeRenderer = new ShadingRenderer(Gfx, cell.Shading);
     shadeRenderer.Render(innerRect.X, innerRect.Y, innerRect.Width, innerRect.Height, cell.RoundedCorner);
   }
 
   void RenderBorders(Cell cell, Rectangle innerRect)
   {
-    XUnit leftPos = innerRect.X;
+    var leftPos = innerRect.X;
     XUnit rightPos = leftPos + innerRect.Width;
-    XUnit topPos = innerRect.Y;
+    var topPos = innerRect.Y;
     XUnit bottomPos = innerRect.Y + innerRect.Height;
-    Borders mergedBorders = mergedCells.GetEffectiveBorders(cell);
+    var mergedBorders = _mergedCells.GetEffectiveBorders(cell);
 
-    BordersRenderer bordersRenderer = new BordersRenderer(mergedBorders, gfx);
-    XUnit bottomWidth = bordersRenderer.GetWidth(BorderType.Bottom);
-    XUnit leftWidth = bordersRenderer.GetWidth(BorderType.Left);
-    XUnit topWidth = bordersRenderer.GetWidth(BorderType.Top);
-    XUnit rightWidth = bordersRenderer.GetWidth(BorderType.Right);
+    var bordersRenderer = new BordersRenderer(mergedBorders, Gfx);
+    var bottomWidth = bordersRenderer.GetWidth(BorderType.Bottom);
+    var leftWidth = bordersRenderer.GetWidth(BorderType.Left);
+    var topWidth = bordersRenderer.GetWidth(BorderType.Top);
+    var rightWidth = bordersRenderer.GetWidth(BorderType.Right);
 
     if (cell.RoundedCorner == RoundedCorner.TopLeft)
       bordersRenderer.RenderRounded(cell.RoundedCorner, innerRect.X, innerRect.Y, innerRect.Width + rightWidth, innerRect.Height + bottomWidth);
@@ -270,22 +270,21 @@ internal class TableRenderer : Renderer
 
   void RenderDiagonalBorders(Borders mergedBorders, Rectangle innerRect)
   {
-    BordersRenderer bordersRenderer = new BordersRenderer(mergedBorders, gfx);
+    var bordersRenderer = new BordersRenderer(mergedBorders, Gfx);
     bordersRenderer.RenderDiagonally(BorderType.DiagonalDown, innerRect.X, innerRect.Y, innerRect.Width, innerRect.Height);
     bordersRenderer.RenderDiagonally(BorderType.DiagonalUp, innerRect.X, innerRect.Y, innerRect.Width, innerRect.Height);
   }
 
   void RenderContent(Cell cell, Rectangle innerRect)
   {
-    FormattedCell formattedCell = (FormattedCell)formattedCells[cell];
-    RenderInfo[] renderInfos = formattedCell.GetRenderInfos();
+    var formattedCell = _formattedCells[cell];
+    var renderInfos = formattedCell.GetRenderInfos();
 
     if (renderInfos == null)
       return;
 
-    VerticalAlignment verticalAlignment = cell.VerticalAlignment;
-    XUnit contentHeight = formattedCell.ContentHeight;
-    XUnit innerHeight = innerRect.Height;
+    var verticalAlignment = cell.VerticalAlignment;
+    var contentHeight = formattedCell.ContentHeight;
     XUnit targetX = innerRect.X + cell.Column.LeftPadding;
 
     XUnit targetY;
@@ -312,32 +311,32 @@ internal class TableRenderer : Renderer
 
   Rectangle GetInnerRect(XUnit startingHeight, Cell cell)
   {
-    BordersRenderer bordersRenderer = new BordersRenderer(mergedCells.GetEffectiveBorders(cell), gfx);
-    FormattedCell formattedCell = (FormattedCell)formattedCells[cell];
-    XUnit width = formattedCell.InnerWidth;
+    var bordersRenderer = new BordersRenderer(_mergedCells.GetEffectiveBorders(cell), Gfx);
+    var formattedCell = _formattedCells[cell];
+    var width = formattedCell.InnerWidth;
 
-    XUnit y = startY;
-    if (cell.Row.Index > lastHeaderRow)
+    var y = _startY;
+    if (cell.Row.Index > _lastHeaderRow)
       y += startingHeight;
     else
       y += CalcMaxTopBorderWidth(0);
 
-    XUnit upperBorderPos = (XUnit)bottomBorderMap[cell.Row.Index];
+    var upperBorderPos = _bottomBorderMap[cell.Row.Index];
 
     y += upperBorderPos;
-    if (cell.Row.Index > lastHeaderRow)
-      y -= (XUnit)bottomBorderMap[startRow];
+    if (cell.Row.Index > _lastHeaderRow)
+      y -= _bottomBorderMap[_startRow];
 
-    XUnit lowerBorderPos = (XUnit)bottomBorderMap[cell.Row.Index + cell.MergeDown + 1];
+    var lowerBorderPos = _bottomBorderMap[cell.Row.Index + cell.MergeDown + 1];
 
 
     XUnit height = lowerBorderPos - upperBorderPos;
     height -= bordersRenderer.GetWidth(BorderType.Bottom);
 
-    XUnit x = startX;
-    for (int clmIdx = 0; clmIdx < cell.Column.Index; ++clmIdx)
+    var x = _startX;
+    for (var clmIdx = 0; clmIdx < cell.Column.Index; ++clmIdx)
     {
-      x += table.Columns[clmIdx].Width;
+      x += _table.Columns[clmIdx].Width;
     }
     x += LeftBorderOffset;
 
@@ -349,20 +348,18 @@ internal class TableRenderer : Renderer
     InitRendering();
 
     Tagger.EndList();
-    using (Tagger.Container(gfx, table, PdfTag.Table, out var element))
+    using (Tagger.Container(Gfx, _table, PdfTag.Table, out var element))
     {
       DescribeTable(element);
       RenderHeaderRows();
 
-      if (startRow < table.Rows.Count)
+      if (_startRow < _table.Rows.Count)
       {
-        Cell cell = table[startRow, 0];
-
-        int cellIdx = mergedCells.BinarySearch(table[startRow, 0], new CellComparer());
-        while (cellIdx < mergedCells.Count)
+        var cellIdx = _mergedCells.BinarySearch(_table[_startRow, 0], new CellComparer());
+        while (cellIdx < _mergedCells.Count)
         {
-          cell = (Cell)mergedCells[cellIdx];
-          if (cell.Row.Index > endRow)
+          var cell = _mergedCells[cellIdx];
+          if (cell.Row.Index > _endRow)
             break;
 
           RenderCell(cell);
@@ -386,10 +383,10 @@ internal class TableRenderer : Renderer
   /// </param>
   void DescribeTable(PdfStructureElement element)
   {
-    if (element == null || table.IsNull("Summary"))
+    if (element == null || _table.IsNull("Summary"))
       return;
 
-    element.Elements.SetString("/Summary", table.Summary);
+    element.Elements.SetString("/Summary", _table.Summary);
   }
 
   /// <summary>
@@ -405,15 +402,17 @@ internal class TableRenderer : Renderer
   PdfStructureElement RowElementOf(Cell cell) =>
     Tagger.Element(cell.Row, PdfTag.TR, Tagger.Parent);
 
-  void InitFormat(Area area, FormatInfo previousFormatInfo)
+  void InitFormat(FormatInfo previousFormatInfo)
   {
-    TableFormatInfo prevTableFormatInfo = (TableFormatInfo)previousFormatInfo;
-    TableRenderInfo tblRenderInfo = new TableRenderInfo();
-    tblRenderInfo.table = table;
+    var prevTableFormatInfo = (TableFormatInfo)previousFormatInfo;
+    var tblRenderInfo = new TableRenderInfo
+    {
+      table = _table
+    };
 
     // Equalize the two borders, that are used to determine a rounded corner's border.
     // This way the innerWidth of the cell, which is got by the saved _formattedCells, is the same regardless of which corner relevant border is set.
-    foreach (Row row in table.Rows)
+    foreach (Row row in _table.Rows)
     foreach (Cell cell in row.Cells)
       EqualizeRoundedCornerBorders(cell);
 
@@ -421,42 +420,42 @@ internal class TableRenderer : Renderer
 
     if (prevTableFormatInfo != null)
     {
-      mergedCells = prevTableFormatInfo.mergedCells;
-      formattedCells = prevTableFormatInfo.formattedCells;
-      bottomBorderMap = prevTableFormatInfo.bottomBorderMap;
-      lastHeaderRow = prevTableFormatInfo.lastHeaderRow;
-      connectedRowsMap = prevTableFormatInfo.connectedRowsMap;
-      startRow = prevTableFormatInfo.endRow + 1;
+      _mergedCells = prevTableFormatInfo.mergedCells;
+      _formattedCells = prevTableFormatInfo.formattedCells;
+      _bottomBorderMap = prevTableFormatInfo.bottomBorderMap;
+      _lastHeaderRow = prevTableFormatInfo.lastHeaderRow;
+      _connectedRowsMap = prevTableFormatInfo.connectedRowsMap;
+      _startRow = prevTableFormatInfo.endRow + 1;
     }
     else
     {
-      mergedCells = new MergedCellList(table);
+      _mergedCells = new MergedCellList(_table);
       FormatCells();
       CalcLastHeaderRow();
       CreateConnectedRows();
       CreateBottomBorderMap();
-      if (doHorizontalBreak)
+      if (_doHorizontalBreak)
       {
         CalcLastHeaderColumn();
         CreateConnectedColumns();
       }
-      startRow = lastHeaderRow + 1;
+      _startRow = _lastHeaderRow + 1;
     }
-    ((TableFormatInfo)tblRenderInfo.FormatInfo).mergedCells = mergedCells;
-    ((TableFormatInfo)tblRenderInfo.FormatInfo).formattedCells = formattedCells;
-    ((TableFormatInfo)tblRenderInfo.FormatInfo).bottomBorderMap = bottomBorderMap;
-    ((TableFormatInfo)tblRenderInfo.FormatInfo).connectedRowsMap = connectedRowsMap;
-    ((TableFormatInfo)tblRenderInfo.FormatInfo).lastHeaderRow = lastHeaderRow;
+    ((TableFormatInfo)tblRenderInfo.FormatInfo).mergedCells = _mergedCells;
+    ((TableFormatInfo)tblRenderInfo.FormatInfo).formattedCells = _formattedCells;
+    ((TableFormatInfo)tblRenderInfo.FormatInfo).bottomBorderMap = _bottomBorderMap;
+    ((TableFormatInfo)tblRenderInfo.FormatInfo).connectedRowsMap = _connectedRowsMap;
+    ((TableFormatInfo)tblRenderInfo.FormatInfo).lastHeaderRow = _lastHeaderRow;
   }
 
   void FormatCells()
   {
-    formattedCells = new SortedList<Cell, FormattedCell>(new CellComparer());
-    foreach (Cell cell in mergedCells)
+    _formattedCells = new SortedList<Cell, FormattedCell>(new CellComparer());
+    foreach (var cell in _mergedCells)
     {
-      FormattedCell formattedCell = new FormattedCell(cell, documentRenderer, mergedCells.GetEffectiveBorders(cell), fieldInfos, 0, 0);
-      formattedCell.Format(gfx);
-      formattedCells.Add(cell, formattedCell);
+      var formattedCell = new FormattedCell(cell, DocumentRenderer, _mergedCells.GetEffectiveBorders(cell), fieldInfos, 0, 0);
+      formattedCell.Format(Gfx);
+      _formattedCells.Add(cell, formattedCell);
     }
   }
 
@@ -467,38 +466,35 @@ internal class TableRenderer : Renderer
   /// <param name="previousFormatInfo"></param>
   internal override void Format(Area area, FormatInfo previousFormatInfo)
   {
-    DocumentElements elements = DocumentRelations.GetParent(table) as DocumentElements;
-    if (elements != null)
+    if (DocumentRelations.GetParent(_table) is DocumentElements elements)
     {
-      Section section = DocumentRelations.GetParent(elements) as Section;
-      if (section != null)
-        doHorizontalBreak = section.PageSetup.HorizontalPageBreak;
+      if (DocumentRelations.GetParent(elements) is Section section)
+        _doHorizontalBreak = section.PageSetup.HorizontalPageBreak;
     }
 
     renderInfo = new TableRenderInfo();
-    InitFormat(area, previousFormatInfo);
+    InitFormat(previousFormatInfo);
 
     // Don't take any Rows higher then MaxElementHeight
-    XUnit topHeight = CalcStartingHeight();
-    XUnit probeHeight = topHeight;
-    XUnit offset = 0;
-    if (startRow > lastHeaderRow + 1 &&
-        startRow < table.Rows.Count)
-      offset = (XUnit)bottomBorderMap[startRow] - topHeight;
+    var topHeight = CalcStartingHeight();
+    XUnit offset;
+    if (_startRow > _lastHeaderRow + 1 &&
+        _startRow < _table.Rows.Count)
+      offset = _bottomBorderMap[_startRow] - topHeight;
     else
       offset = -CalcMaxTopBorderWidth(0);
 
-    int probeRow = startRow;
+    var probeRow = _startRow;
     XUnit currentHeight = 0;
     XUnit startingHeight = 0;
-    bool isEmpty = false;
+    var isEmpty = false;
 
-    while (probeRow < table.Rows.Count)
+    while (probeRow < _table.Rows.Count)
     {
-      bool firstProbe = probeRow == startRow;
-      probeRow = (int)connectedRowsMap[probeRow];
+      var firstProbe = probeRow == _startRow;
+      probeRow = _connectedRowsMap[probeRow];
       // Don't take any Rows higher then MaxElementHeight
-      probeHeight = (XUnit)bottomBorderMap[probeRow + 1] - offset;
+      XUnit probeHeight = _bottomBorderMap[probeRow + 1] - offset;
       if (firstProbe && probeHeight > MaxElementHeight - Tolerance)
         probeHeight = MaxElementHeight - Tolerance;
 
@@ -516,34 +512,31 @@ internal class TableRenderer : Renderer
       if (probeHeight > area.Height)
         break;
 
-      else
-      {
-        currRow = probeRow;
-        currentHeight = probeHeight;
-        ++probeRow;
-      }
+      _currRow = probeRow;
+      currentHeight = probeHeight;
+      ++probeRow;
     }
     if (!isEmpty)
     {
-      TableFormatInfo formatInfo = (TableFormatInfo)renderInfo.FormatInfo;
-      formatInfo.startRow = startRow;
-      formatInfo.isEnding = currRow >= table.Rows.Count - 1;
-      formatInfo.endRow = currRow;
+      var formatInfo = (TableFormatInfo)renderInfo.FormatInfo;
+      formatInfo.startRow = _startRow;
+      formatInfo.isEnding = _currRow >= _table.Rows.Count - 1;
+      formatInfo.endRow = _currRow;
     }
     FinishLayoutInfo(area, currentHeight, startingHeight);
   }
 
   void FinishLayoutInfo(Area area, XUnit currentHeight, XUnit startingHeight)
   {
-    LayoutInfo layoutInfo = renderInfo.LayoutInfo;
+    var layoutInfo = renderInfo.LayoutInfo;
     layoutInfo.StartingHeight = startingHeight;
     //REM: Trailing height would have to be calculated in case tables had a keep with next property.
     layoutInfo.TrailingHeight = 0;
-    if (currRow >= 0)
+    if (_currRow >= 0)
     {
       layoutInfo.ContentArea = new Rectangle(area.X, area.Y, 0, currentHeight);
-      XUnit width = LeftBorderOffset;
-      foreach (Column clm in table.Columns)
+      var width = LeftBorderOffset;
+      foreach (Column clm in _table.Columns)
       {
         width += clm.Width;
       }
@@ -551,20 +544,20 @@ internal class TableRenderer : Renderer
     }
     layoutInfo.MinWidth = layoutInfo.ContentArea.Width;
 
-    if (!table.Rows.IsNull("LeftIndent"))
-      layoutInfo.Left = table.Rows.LeftIndent.Point;
+    if (!_table.Rows.IsNull("LeftIndent"))
+      layoutInfo.Left = _table.Rows.LeftIndent.Point;
 
-    else if (table.Rows.Alignment == RowAlignment.Left)
+    else if (_table.Rows.Alignment == RowAlignment.Left)
     {
-      if (table.Columns.Count > 0) // Errors in Wiki syntax can lead to tables w/o columns ...
+      if (_table.Columns.Count > 0) // Errors in Wiki syntax can lead to tables w/o columns ...
       {
-        XUnit leftOffset = LeftBorderOffset;
-        leftOffset += table.Columns[0].LeftPadding;
+        var leftOffset = LeftBorderOffset;
+        leftOffset += _table.Columns[0].LeftPadding;
         layoutInfo.Left = -leftOffset;
       }
     }
 
-    switch (table.Rows.Alignment)
+    switch (_table.Rows.Alignment)
     {
       case RowAlignment.Left:
         layoutInfo.HorizontalAlignment = ElementAlignment.Near;
@@ -584,21 +577,20 @@ internal class TableRenderer : Renderer
   {
     get
     {
-      if (leftBorderOffset < 0)
+      if (field < 0)
       {
-        if (table.Rows.Count > 0 && table.Columns.Count > 0)
+        if (_table.Rows.Count > 0 && _table.Columns.Count > 0)
         {
-          Borders borders = mergedCells.GetEffectiveBorders(table[0, 0]);
-          BordersRenderer bordersRenderer = new BordersRenderer(borders, gfx);
-          leftBorderOffset = bordersRenderer.GetWidth(BorderType.Left);
+          var borders = _mergedCells.GetEffectiveBorders(_table[0, 0]);
+          var bordersRenderer = new BordersRenderer(borders, Gfx);
+          field = bordersRenderer.GetWidth(BorderType.Left);
         }
         else
-          leftBorderOffset = 0;
+          field = 0;
       }
-      return leftBorderOffset;
+      return field;
     }
-  }
-  private XUnit leftBorderOffset = -1;
+  } = -1;
 
   /// <summary>
   /// Calcs either the height of the header rows or the height of the uppermost top border.
@@ -607,15 +599,15 @@ internal class TableRenderer : Renderer
   XUnit CalcStartingHeight()
   {
     XUnit height = 0;
-    if (lastHeaderRow >= 0)
+    if (_lastHeaderRow >= 0)
     {
-      height = (XUnit)bottomBorderMap[lastHeaderRow + 1];
+      height = _bottomBorderMap[_lastHeaderRow + 1];
       height += CalcMaxTopBorderWidth(0);
     }
     else
     {
-      if (table.Rows.Count > startRow)
-        height = CalcMaxTopBorderWidth(startRow);
+      if (_table.Rows.Count > _startRow)
+        height = CalcMaxTopBorderWidth(_startRow);
     }
 
     return height;
@@ -624,39 +616,39 @@ internal class TableRenderer : Renderer
 
   void CalcLastHeaderColumn()
   {
-    lastHeaderColumn = -1;
-    foreach (Column clm in table.Columns)
+    _lastHeaderColumn = -1;
+    foreach (Column clm in _table.Columns)
     {
       if (clm.HeadingFormat)
-        lastHeaderColumn = clm.Index;
+        _lastHeaderColumn = clm.Index;
       else break;
     }
-    if (lastHeaderColumn >= 0)
-      lastHeaderRow = CalcLastConnectedColumn(lastHeaderColumn);
+    if (_lastHeaderColumn >= 0)
+      _lastHeaderRow = CalcLastConnectedColumn(_lastHeaderColumn);
 
-    //Ignore heading format if all the table is heading:
-    if (lastHeaderRow == table.Rows.Count - 1)
-      lastHeaderRow = -1;
+    // Ignore heading format if all the table is heading:
+    if (_lastHeaderRow == _table.Rows.Count - 1)
+      _lastHeaderRow = -1;
 
   }
 
   void CalcLastHeaderRow()
   {
-    lastHeaderRow = -1;
-    foreach (Row row in table.Rows)
+    _lastHeaderRow = -1;
+    foreach (Row row in _table.Rows)
     {
       if (row.HeadingFormat)
-        lastHeaderRow = row.Index;
+        _lastHeaderRow = row.Index;
       else break;
     }
-    if (lastHeaderRow >= 0)
-      lastHeaderRow = CalcLastConnectedRow(lastHeaderRow);
+    if (_lastHeaderRow >= 0)
+      _lastHeaderRow = CalcLastConnectedRow(_lastHeaderRow);
 
     CheckHeadingRowsFormAnUnbrokenRun();
 
     //Ignore heading format if all the table is heading:
-    if (lastHeaderRow == table.Rows.Count - 1)
-      lastHeaderRow = -1;
+    if (_lastHeaderRow == _table.Rows.Count - 1)
+      _lastHeaderRow = -1;
 
   }
 
@@ -672,9 +664,9 @@ internal class TableRenderer : Renderer
   /// </remarks>
   void CheckHeadingRowsFormAnUnbrokenRun()
   {
-    for (int index = lastHeaderRow + 1; index < table.Rows.Count; ++index)
+    for (var index = _lastHeaderRow + 1; index < _table.Rows.Count; ++index)
     {
-      if (!table.Rows[index].HeadingFormat)
+      if (!_table.Rows[index].HeadingFormat)
         continue;
 
       throw new InvalidOperationException(
@@ -687,35 +679,35 @@ internal class TableRenderer : Renderer
 
   void CreateConnectedRows()
   {
-    connectedRowsMap = new SortedList<int, int>();
-    foreach (Cell cell in mergedCells)
+    _connectedRowsMap = new SortedList<int, int>();
+    foreach (var cell in _mergedCells)
     {
-      if (!connectedRowsMap.ContainsKey(cell.Row.Index))
+      if (!_connectedRowsMap.ContainsKey(cell.Row.Index))
       {
-        int lastConnectedRow = CalcLastConnectedRow(cell.Row.Index);
-        connectedRowsMap[cell.Row.Index] = lastConnectedRow;
+        var lastConnectedRow = CalcLastConnectedRow(cell.Row.Index);
+        _connectedRowsMap[cell.Row.Index] = lastConnectedRow;
       }
     }
   }
 
   void CreateConnectedColumns()
   {
-    connectedColumnsMap = new SortedList<int, int>();
-    foreach (Cell cell in mergedCells)
+    _connectedColumnsMap = new SortedList<int, int>();
+    foreach (var cell in _mergedCells)
     {
-      if (!connectedColumnsMap.ContainsKey(cell.Column.Index))
+      if (!_connectedColumnsMap.ContainsKey(cell.Column.Index))
       {
-        int lastConnectedColumn = CalcLastConnectedColumn(cell.Column.Index);
-        connectedColumnsMap[cell.Column.Index] = lastConnectedColumn;
+        var lastConnectedColumn = CalcLastConnectedColumn(cell.Column.Index);
+        _connectedColumnsMap[cell.Column.Index] = lastConnectedColumn;
       }
     }
   }
 
   void CreateBottomBorderMap()
   {
-    bottomBorderMap = new SortedList<int, XUnit>();
-    bottomBorderMap.Add(0, XUnit.FromPoint(0));
-    while (!bottomBorderMap.ContainsKey(table.Rows.Count))
+    _bottomBorderMap = new SortedList<int, XUnit>();
+    _bottomBorderMap.Add(0, XUnit.FromPoint(0));
+    while (!_bottomBorderMap.ContainsKey(_table.Rows.Count))
     {
       CreateNextBottomBorderPosition();
     }
@@ -728,21 +720,19 @@ internal class TableRenderer : Renderer
   XUnit CalcMaxTopBorderWidth(int row)
   {
     XUnit maxWidth = 0;
-    if (table.Rows.Count > row)
+    if (_table.Rows.Count > row)
     {
-      int cellIdx = mergedCells.BinarySearch(table[row, 0], new CellComparer());
-      Cell rowCell = mergedCells[cellIdx];
-      while (cellIdx < mergedCells.Count)
+      var cellIdx = _mergedCells.BinarySearch(_table[row, 0], new CellComparer());
+      while (cellIdx < _mergedCells.Count)
       {
-        rowCell = mergedCells[cellIdx];
+        var rowCell = _mergedCells[cellIdx];
         if (rowCell.Row.Index > row)
           break;
 
         if (!rowCell.IsNull("Borders"))
         {
-          BordersRenderer bordersRenderer = new BordersRenderer(rowCell.Borders, gfx);
-          XUnit width = 0;
-          width = bordersRenderer.GetWidth(BorderType.Top);
+          var bordersRenderer = new BordersRenderer(rowCell.Borders, Gfx);
+          var width = bordersRenderer.GetWidth(BorderType.Top);
           if (width > maxWidth)
             maxWidth = width;
         }
@@ -757,11 +747,11 @@ internal class TableRenderer : Renderer
   /// </summary>
   void CreateNextBottomBorderPosition()
   {
-    int lastIdx = bottomBorderMap.Count - 1;
-    int lastBorderRow = (int)bottomBorderMap.Keys[lastIdx];
-    XUnit lastPos = (XUnit)bottomBorderMap.Values[lastIdx];
-    Cell minMergedCell = GetMinMergedCell(lastBorderRow);
-    FormattedCell minMergedFormattedCell = (FormattedCell)formattedCells[minMergedCell];
+    var lastIdx = _bottomBorderMap.Count - 1;
+    var lastBorderRow = _bottomBorderMap.Keys[lastIdx];
+    var lastPos = _bottomBorderMap.Values[lastIdx];
+    var minMergedCell = GetMinMergedCell(lastBorderRow);
+    var minMergedFormattedCell = _formattedCells[minMergedCell];
     XUnit maxBottomBorderPosition = lastPos + minMergedFormattedCell.InnerHeight;
     maxBottomBorderPosition += CalcBottomBorderWidth(minMergedCell);
 
@@ -769,7 +759,7 @@ internal class TableRenderer : Renderer
     var minMergedCellRowIndex = minMergedCell.Row.Index;
     var minMergedCellMergeDown = minMergedCell.MergeDown;
     var mergedIndexPlusDown = minMergedCellRowIndex + minMergedCellMergeDown;
-    foreach (Cell cell in mergedCells)
+    foreach (var cell in _mergedCells)
     {
       var rowIndex = cell.Row.Index;
       if (rowIndex > mergedIndexPlusDown)
@@ -777,15 +767,15 @@ internal class TableRenderer : Renderer
 
       if (rowIndex + cell.MergeDown == mergedIndexPlusDown)
       {
-        FormattedCell formattedCell = (FormattedCell)formattedCells[cell];
-        XUnit topBorderPos = (XUnit)bottomBorderMap[rowIndex];
+        var formattedCell = _formattedCells[cell];
+        var topBorderPos = _bottomBorderMap[rowIndex];
         XUnit bottomBorderPos = topBorderPos + formattedCell.InnerHeight;
         bottomBorderPos += CalcBottomBorderWidth(cell);
         if (bottomBorderPos > maxBottomBorderPosition)
           maxBottomBorderPosition = bottomBorderPos;
       }
     }
-    bottomBorderMap.Add(mergedIndexPlusDown + 1, maxBottomBorderPosition);
+    _bottomBorderMap.Add(mergedIndexPlusDown + 1, maxBottomBorderPosition);
   }
 
   /// <summary>
@@ -795,10 +785,10 @@ internal class TableRenderer : Renderer
   /// <returns>The calculated border width.</returns>
   XUnit CalcBottomBorderWidth(Cell cell)
   {
-    Borders borders = mergedCells.GetEffectiveBorders(cell);
+    var borders = _mergedCells.GetEffectiveBorders(cell);
     if (borders != null)
     {
-      BordersRenderer bordersRenderer = new BordersRenderer(borders, gfx);
+      var bordersRenderer = new BordersRenderer(borders, Gfx);
       return bordersRenderer.GetWidth(BorderType.Bottom);
     }
     return 0;
@@ -811,9 +801,9 @@ internal class TableRenderer : Renderer
   /// <returns>The first cell with minimal vertical merge.</returns>
   Cell GetMinMergedCell(int row)
   {
-    int minMerge = table.Rows.Count;
+    var minMerge = _table.Rows.Count;
     Cell minCell = null;
-    foreach (Cell cell in mergedCells)
+    foreach (var cell in _mergedCells)
     {
       var rowIndex = cell.Row.Index; // Note: Taking index only once speeds up large tables.
       if (rowIndex <= row && rowIndex + cell.MergeDown >= row)
@@ -852,14 +842,14 @@ internal class TableRenderer : Renderer
   /// </remarks>
   int CalcLastConnectedRow(int row)
   {
-    int lastConnectedRow = row;
-    int lastRow = table.Rows.Count - 1;
-    foreach (Cell cell in mergedCells)
+    var lastConnectedRow = row;
+    var lastRow = _table.Rows.Count - 1;
+    foreach (var cell in _mergedCells)
     {
       var index = cell.Row.Index; // Note: Caching index here for speedup for large tables.
       if (index <= lastConnectedRow)
       {
-        int downConnection = Math.Min(Math.Max(cell.Row.KeepWith, cell.MergeDown), lastRow - index);
+        var downConnection = Math.Min(Math.Max(cell.Row.KeepWith, cell.MergeDown), lastRow - index);
         if (lastConnectedRow < index + downConnection)
           lastConnectedRow = index + downConnection;
       }
@@ -878,14 +868,14 @@ internal class TableRenderer : Renderer
   /// </remarks>
   int CalcLastConnectedColumn(int column)
   {
-    int lastConnectedColumn = column;
-    int lastColumn = table.Columns.Count - 1;
-    foreach (Cell cell in mergedCells)
+    var lastConnectedColumn = column;
+    var lastColumn = _table.Columns.Count - 1;
+    foreach (var cell in _mergedCells)
     {
       var index = cell.Column.Index;
       if (index <= lastConnectedColumn)
       {
-        int rightConnection = Math.Min(Math.Max(cell.Column.KeepWith, cell.MergeRight), lastColumn - index);
+        var rightConnection = Math.Min(Math.Max(cell.Column.KeepWith, cell.MergeRight), lastColumn - index);
         if (lastConnectedColumn < index + rightConnection)
           lastConnectedColumn = index + rightConnection;
       }
@@ -894,22 +884,21 @@ internal class TableRenderer : Renderer
   }
 
 
+  private readonly Table _table;
+  private MergedCellList _mergedCells;
+  private SortedList<Cell, FormattedCell> _formattedCells;
+  private SortedList<int, XUnit> _bottomBorderMap;
+  private SortedList<int, int> _connectedRowsMap;
+  private SortedList<int, int> _connectedColumnsMap;
 
-  Table table;
-  MergedCellList mergedCells;
-  SortedList<Cell, FormattedCell> formattedCells;
-  SortedList<int, XUnit> bottomBorderMap;
-  SortedList<int, int> connectedRowsMap;
-  SortedList<int, int> connectedColumnsMap;
+  private int _lastHeaderRow;
+  private int _lastHeaderColumn;
+  private int _startRow;
+  private int _currRow;
+  private int _endRow = -1;
 
-  int lastHeaderRow;
-  int lastHeaderColumn;
-  int startRow;
-  int currRow;
-  int endRow = -1;
-
-  bool doHorizontalBreak = false;
-  XUnit startX;
-  XUnit startY;
+  private bool _doHorizontalBreak;
+  private XUnit _startX;
+  private XUnit _startY;
 
 }

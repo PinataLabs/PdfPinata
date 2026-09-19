@@ -110,7 +110,7 @@ public class EncryptedTextStringTests
         // Documents already in the field carry the byte order mark in front of the ciphertext,
         // and they have to keep opening.
         var document = new StandardSecurity(SaveEncryptedDocument(level));
-        byte[] asWrittenBefore = document.RewriteAsWrittenBeforeTheFix("/Title", Title);
+        var asWrittenBefore = document.RewriteAsWrittenBeforeTheFix("/Title", Title);
 
         new StandardSecurity(asWrittenBefore).RawInfoString("/Title").Should()
             .StartWith("<FEFF", "the point of this test is a document in the old form");

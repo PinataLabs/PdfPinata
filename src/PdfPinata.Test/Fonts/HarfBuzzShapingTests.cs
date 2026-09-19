@@ -66,7 +66,7 @@ public class HarfBuzzShapingTests
     public void APairThatKernsIsNarrowerTogetherThanApart(string pair)
     {
         var together = Shape(pair);
-        var apart = Shape(pair.Substring(0, 1)).Width + Shape(pair.Substring(1)).Width;
+        var apart = Shape(pair[..1]).Width + Shape(pair[1..]).Width;
 
         together.Glyphs.Should().HaveCount(2, "kerning moves glyphs, it does not merge them");
         together.Width.Should().BeLessThan(apart,

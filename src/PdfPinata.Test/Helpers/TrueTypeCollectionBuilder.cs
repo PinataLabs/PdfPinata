@@ -27,14 +27,14 @@ internal static class TrueTypeCollectionBuilder
             throw new ArgumentException("A collection needs at least one font.", nameof(fonts));
 
         var tableCounts = new int[fonts.Length];
-        for (int i = 0; i < fonts.Length; i++)
+        for (var i = 0; i < fonts.Length; i++)
             tableCounts[i] = U16(fonts[i], 4);
 
         // Header, then one directory per face, then the pooled table data.
-        int position = OffsetTableLength + fonts.Length * 4;
+        var position = OffsetTableLength + fonts.Length * 4;
 
         var directoryOffsets = new int[fonts.Length];
-        for (int i = 0; i < fonts.Length; i++)
+        for (var i = 0; i < fonts.Length; i++)
         {
             directoryOffsets[i] = position;
             position += OffsetTableLength + tableCounts[i] * TableRecordLength;
@@ -45,21 +45,21 @@ internal static class TrueTypeCollectionBuilder
         var data = new List<byte[]>();
         var placements = new int[fonts.Length][];
 
-        for (int i = 0; i < fonts.Length; i++)
+        for (var i = 0; i < fonts.Length; i++)
         {
             placements[i] = new int[tableCounts[i]];
 
-            for (int t = 0; t < tableCounts[i]; t++)
+            for (var t = 0; t < tableCounts[i]; t++)
             {
-                int record = OffsetTableLength + t * TableRecordLength;
-                int offset = (int)U32(fonts[i], record + 8);
-                int length = (int)U32(fonts[i], record + 12);
+                var record = OffsetTableLength + t * TableRecordLength;
+                var offset = (int)U32(fonts[i], record + 8);
+                var length = (int)U32(fonts[i], record + 12);
 
                 var bytes = new byte[length];
                 Buffer.BlockCopy(fonts[i], offset, bytes, 0, length);
 
-                string key = Convert.ToBase64String(bytes);
-                if (!pooled.TryGetValue(key, out int placed))
+                var key = Convert.ToBase64String(bytes);
+                if (!pooled.TryGetValue(key, out var placed))
                 {
                     placed = position;
                     position += Align4(length);
@@ -77,21 +77,21 @@ internal static class TrueTypeCollectionBuilder
         W32(collection, 4, 0x00010000);
         W32(collection, 8, (uint)fonts.Length);
 
-        for (int i = 0; i < fonts.Length; i++)
+        for (var i = 0; i < fonts.Length; i++)
             W32(collection, OffsetTableLength + i * 4, (uint)directoryOffsets[i]);
 
         var written = new HashSet<int>();
 
-        for (int i = 0; i < fonts.Length; i++)
+        for (var i = 0; i < fonts.Length; i++)
         {
             // The offset table carries over as-is; only the table offsets need rewriting.
             Buffer.BlockCopy(fonts[i], 0, collection, directoryOffsets[i], OffsetTableLength);
 
-            for (int t = 0; t < tableCounts[i]; t++)
+            for (var t = 0; t < tableCounts[i]; t++)
             {
-                int source = OffsetTableLength + t * TableRecordLength;
-                int target = directoryOffsets[i] + OffsetTableLength + t * TableRecordLength;
-                int length = (int)U32(fonts[i], source + 12);
+                var source = OffsetTableLength + t * TableRecordLength;
+                var target = directoryOffsets[i] + OffsetTableLength + t * TableRecordLength;
+                var length = (int)U32(fonts[i], source + 12);
 
                 Buffer.BlockCopy(fonts[i], source, collection, target, 8);
                 W32(collection, target + 8, (uint)placements[i][t]);

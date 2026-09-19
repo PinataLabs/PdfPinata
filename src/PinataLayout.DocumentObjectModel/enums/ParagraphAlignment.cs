@@ -44,5 +44,5 @@ public enum ParagraphAlignment
   /// <summary>Text is aligned to the right margin, leaving the left edge ragged.</summary>
   Right,
   /// <summary>Text is spread to meet both margins, except on the last line of the paragraph.</summary>
-  Justify,
+  Justify
 }

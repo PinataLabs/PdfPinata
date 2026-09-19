@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -48,11 +48,11 @@ internal sealed class OpenTypeFontface
     // Implementation Notes
     // OpenTypeFontface represents a 'decompiled' font file in memory.
     //
-    // * An OpenTypeFontface can belong to more than one 
+    // * An OpenTypeFontface can belong to more than one
     //   XGlyphTypeface because of StyleSimulations.
     //
     // * Currently there is a one to one relationship to XFontSource.
-    // 
+    //
     // * Consider OpenTypeFontface as an decompiled XFontSource.
     //
     // http://www.microsoft.com/typography/otspec/
@@ -74,8 +74,8 @@ internal sealed class OpenTypeFontface
         _fullFaceName = faceName;
         // Always save a copy of the font bytes, so that a caller reusing its buffer cannot
         // change the font underneath us. The copy has to exist before it can be filled.
-        int length = data.Length;
-        byte[] bytes = new byte[length];
+        var length = data.Length;
+        var bytes = new byte[length];
         Array.Copy(data, bytes, length);
         FontSource = XFontSource.CreateCompiledFont(bytes);
         Read();
@@ -279,10 +279,10 @@ internal sealed class OpenTypeFontface
         // Determine font technology
         // ReSharper disable InconsistentNaming
         const uint OTTO = 0x4f54544f;  // Adobe OpenType CFF data, tag: 'OTTO'
-        const uint TTCF = 0x74746366;  // TrueType Collection tag: 'ttcf'  
+        const uint TTCF = 0x74746366;  // TrueType Collection tag: 'ttcf'
         // ReSharper restore InconsistentNaming
         // Check if data is a TrueType collection font.
-        uint startTag = ReadULong();
+        var startTag = ReadULong();
         if (startTag == TTCF)
         {
             _fontTechnology = FontTechnology.TrueTypeCollection;
@@ -305,9 +305,9 @@ internal sealed class OpenTypeFontface
         else
             _fontTechnology = FontTechnology.TrueTypeOutlines;
 
-        for (int idx = 0; idx < _offsetTable.TableCount; idx++)
+        for (var idx = 0; idx < _offsetTable.TableCount; idx++)
         {
-            TableDirectoryEntry entry = TableDirectoryEntry.ReadFrom(this);
+            var entry = TableDirectoryEntry.ReadFrom(this);
             TableDictionary.Add(entry.Tag, entry);
         }
 
@@ -380,12 +380,12 @@ internal sealed class OpenTypeFontface
                 + "and cannot subset it.");
 
         // Create new font image
-        OpenTypeFontface fontData = new OpenTypeFontface(this);
+        var fontData = new OpenTypeFontface(this);
 
         // Create new loca and glyf table
-        IndexToLocationTable locaNew = new IndexToLocationTable();
+        var locaNew = new IndexToLocationTable();
         locaNew.ShortIndex = loca.ShortIndex;
-        GlyphDataTable glyfNew = new GlyphDataTable();
+        var glyfNew = new GlyphDataTable();
 
         // Add all required tables
         //fontData.AddTable(os2);
@@ -409,14 +409,14 @@ internal sealed class OpenTypeFontface
         glyf.CompleteGlyphClosure(glyphs);
 
         // Create a sorted array of all used glyphs.
-        int glyphCount = glyphs.Count;
-        int[] glyphArray = new int[glyphCount];
+        var glyphCount = glyphs.Count;
+        var glyphArray = new int[glyphCount];
         glyphs.Keys.CopyTo(glyphArray, 0);
         Array.Sort(glyphArray);
 
         // Calculate new size of glyph table.
-        int size = 0;
-        for (int idx = 0; idx < glyphCount; idx++)
+        var size = 0;
+        for (var idx = 0; idx < glyphCount; idx++)
             size += glyf.GetGlyphSize(glyphArray[idx]);
         glyfNew.DirectoryEntry.Length = size;
 
@@ -428,16 +428,16 @@ internal sealed class OpenTypeFontface
         glyfNew.GlyphTable = new byte[glyfNew.DirectoryEntry.PaddedLength];
 
         // Fill new glyf and loca table
-        int glyphOffset = 0;
-        int glyphIndex = 0;
-        for (int idx = 0; idx < numGlyphs; idx++)
+        var glyphOffset = 0;
+        var glyphIndex = 0;
+        for (var idx = 0; idx < numGlyphs; idx++)
         {
             locaNew.LocaTable[idx] = glyphOffset;
             if (glyphIndex < glyphCount && glyphArray[glyphIndex] == idx)
             {
                 glyphIndex++;
-                byte[] bytes = glyf.GetGlyphData(idx);
-                int length = bytes.Length;
+                var bytes = glyf.GetGlyphData(idx);
+                var length = bytes.Length;
                 if (length > 0)
                 {
                     Buffer.BlockCopy(bytes, 0, glyfNew.GlyphTable, glyphOffset, length);
@@ -458,11 +458,11 @@ internal sealed class OpenTypeFontface
     /// </summary>
     void Compile()
     {
-        MemoryStream stream = new MemoryStream();
-        OpenTypeFontWriter writer = new OpenTypeFontWriter(stream);
+        var stream = new MemoryStream();
+        var writer = new OpenTypeFontWriter(stream);
 
-        int tableCount = TableDictionary.Count;
-        int selector = _entrySelectors[tableCount];
+        var tableCount = TableDictionary.Count;
+        var selector = _entrySelectors[tableCount];
 
         _offsetTable.Version = 0x00010000;
         _offsetTable.TableCount = tableCount;
@@ -472,26 +472,26 @@ internal sealed class OpenTypeFontface
         _offsetTable.Write(writer);
 
         // Sort tables by tag name
-        string[] tags = new string[tableCount];
+        var tags = new string[tableCount];
         TableDictionary.Keys.CopyTo(tags, 0);
         Array.Sort(tags, StringComparer.Ordinal);
 
         // Write tables in alphabetical order
-        int tablePosition = 12 + 16 * tableCount;
-        for (int idx = 0; idx < tableCount; idx++)
+        var tablePosition = 12 + 16 * tableCount;
+        for (var idx = 0; idx < tableCount; idx++)
         {
-            TableDirectoryEntry entry = TableDictionary[tags[idx]];
+            var entry = TableDictionary[tags[idx]];
             entry.FontTable.PrepareForCompilation();
             entry.Offset = tablePosition;
             writer.Position = tablePosition;
             entry.FontTable.Write(writer);
-            int endPosition = writer.Position;
+            var endPosition = writer.Position;
             tablePosition = endPosition;
             writer.Position = 12 + 16 * idx;
             entry.Write(writer);
         }
         writer.Stream.Flush();
-        int l = (int)writer.Stream.Length;
+        var l = (int)writer.Stream.Length;
         FontSource = XFontSource.CreateCompiledFont(stream.ToArray());
     }
     // 2^entrySelector[n] <= n
@@ -506,7 +506,7 @@ internal sealed class OpenTypeFontface
 
     public int Seek(string tag)
     {
-        if (TableDictionary.TryGetValue(tag, out TableDirectoryEntry entry))
+        if (TableDictionary.TryGetValue(tag, out var entry))
         {
             _pos = entry.Offset;
             return _pos;
@@ -533,7 +533,7 @@ internal sealed class OpenTypeFontface
     /// </summary>
     public short ReadShort()
     {
-        int pos = _pos;
+        var pos = _pos;
         _pos += 2;
         return (short)((_fontSource.Bytes[pos] << 8) | (_fontSource.Bytes[pos + 1]));
     }
@@ -543,7 +543,7 @@ internal sealed class OpenTypeFontface
     /// </summary>
     public ushort ReadUShort()
     {
-        int pos = _pos;
+        var pos = _pos;
         _pos += 2;
         return (ushort)((_fontSource.Bytes[pos] << 8) | (_fontSource.Bytes[pos + 1]));
     }
@@ -553,7 +553,7 @@ internal sealed class OpenTypeFontface
     /// </summary>
     public int ReadLong()
     {
-        int pos = _pos;
+        var pos = _pos;
         _pos += 4;
         return (_fontSource.Bytes[pos] << 24) | (_fontSource.Bytes[pos + 1] << 16) | (_fontSource.Bytes[pos + 2] << 8) | (_fontSource.Bytes[pos + 3]);
     }
@@ -563,7 +563,7 @@ internal sealed class OpenTypeFontface
     /// </summary>
     public uint ReadULong()
     {
-        int pos = _pos;
+        var pos = _pos;
         _pos += 4;
         return (uint)((_fontSource.Bytes[pos] << 24) | (_fontSource.Bytes[pos + 1] << 16) | (_fontSource.Bytes[pos + 2] << 8) | (_fontSource.Bytes[pos + 3]));
     }
@@ -573,7 +573,7 @@ internal sealed class OpenTypeFontface
     /// </summary>
     public Fixed ReadFixed()
     {
-        int pos = _pos;
+        var pos = _pos;
         _pos += 4;
         return (_fontSource.Bytes[pos] << 24) | (_fontSource.Bytes[pos + 1] << 16) | (_fontSource.Bytes[pos + 2] << 8) | (_fontSource.Bytes[pos + 3]);
     }
@@ -583,7 +583,7 @@ internal sealed class OpenTypeFontface
     /// </summary>
     public short ReadFWord()
     {
-        int pos = _pos;
+        var pos = _pos;
         _pos += 2;
         return (short)((_fontSource.Bytes[pos] << 8) | (_fontSource.Bytes[pos + 1]));
     }
@@ -593,7 +593,7 @@ internal sealed class OpenTypeFontface
     /// </summary>
     public ushort ReadUFWord()
     {
-        int pos = _pos;
+        var pos = _pos;
         _pos += 2;
         return (ushort)((_fontSource.Bytes[pos] << 8) | (_fontSource.Bytes[pos + 1]));
     }
@@ -603,9 +603,9 @@ internal sealed class OpenTypeFontface
     /// </summary>
     public long ReadLongDate()
     {
-        int pos = _pos;
+        var pos = _pos;
         _pos += 8;
-        byte[] bytes = _fontSource.Bytes;
+        var bytes = _fontSource.Bytes;
         return (((long)bytes[pos]) << 56) | (((long)bytes[pos + 1]) << 48) | (((long)bytes[pos + 2]) << 40) | (((long)bytes[pos + 3]) << 32) |
                (((long)bytes[pos + 4]) << 24) | (((long)bytes[pos + 5]) << 16) | (((long)bytes[pos + 6]) << 8) | bytes[pos + 7];
     }
@@ -615,8 +615,8 @@ internal sealed class OpenTypeFontface
     /// </summary>
     public string ReadString(int size)
     {
-        char[] chars = new char[size];
-        for (int idx = 0; idx < size; idx++)
+        var chars = new char[size];
+        for (var idx = 0; idx < size; idx++)
             chars[idx] = (char)_fontSource.Bytes[_pos++];
         return new string(chars);
     }
@@ -626,8 +626,8 @@ internal sealed class OpenTypeFontface
     /// </summary>
     public byte[] ReadBytes(int size)
     {
-        byte[] bytes = new byte[size];
-        for (int idx = 0; idx < size; idx++)
+        var bytes = new byte[size];
+        for (var idx = 0; idx < size; idx++)
             bytes[idx] = _fontSource.Bytes[_pos++];
         return bytes;
     }

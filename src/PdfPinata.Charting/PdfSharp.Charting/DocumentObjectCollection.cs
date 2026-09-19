@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -77,20 +77,20 @@ public abstract class DocumentObjectCollection : DocumentObject, IList
   /// </summary>
   protected override object DeepCopy()
   {
-    DocumentObjectCollection coll = (DocumentObjectCollection)base.DeepCopy();
+    var coll = (DocumentObjectCollection)base.DeepCopy();
 
-    int count = Count;
+    var count = Count;
     coll.elements = new ArrayList(count);
-    for (int index = 0; index < count; ++index)
+    for (var index = 0; index < count; ++index)
     {
       // A blank is a null, and is copied as one.
-      DocumentObject element = this[index];
+      var element = this[index];
       if (element == null)
       {
         coll.elements.Add(null);
         continue;
       }
-      DocumentObject copy = (DocumentObject)element.Clone();
+      var copy = (DocumentObject)element.Clone();
       copy.parent = coll;
       coll.elements.Add(copy);
     }
@@ -175,7 +175,7 @@ public abstract class DocumentObjectCollection : DocumentObject, IList
   {
     get
     {
-      int count = this.elements.Count;
+      var count = this.elements.Count;
       if (count > 0)
         return (DocumentObject)this.elements[count - 1];
       return null;

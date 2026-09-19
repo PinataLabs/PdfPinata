@@ -81,8 +81,8 @@ static class TextNormalization
     {
         ArgumentNullException.ThrowIfNull(text);
 
-        int first = -1;
-        for (int idx = 0; idx < text.Length; idx++)
+        var first = -1;
+        for (var idx = 0; idx < text.Length; idx++)
         {
             if (text[idx] < 32)
             {
@@ -95,16 +95,16 @@ static class TextNormalization
         if (first < 0)
             return text;
 
-        char[] buffer = ArrayPool<char>.Shared.Rent(text.Length);
+        var buffer = ArrayPool<char>.Shared.Rent(text.Length);
         try
         {
             // Everything before the first control character is already normalized by definition.
             text.CopyTo(0, buffer, 0, first);
 
-            int length = first;
-            for (int idx = first; idx < text.Length; idx++)
+            var length = first;
+            for (var idx = first; idx < text.Length; idx++)
             {
-                if (TryNormalize(text[idx], out char normalized))
+                if (TryNormalize(text[idx], out var normalized))
                     buffer[length++] = normalized;
             }
 

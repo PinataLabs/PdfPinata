@@ -53,9 +53,9 @@ public partial class Columns : DocumentObjectCollection, IVisitable
   /// </summary>
   public Columns(params Unit[] widths)
   {
-    foreach (Unit width in widths)
+    foreach (var width in widths)
     {
-      Column clm = new Column();
+      var clm = new Column();
       clm.Width = width;
       this.Add(clm);
     }
@@ -83,7 +83,7 @@ public partial class Columns : DocumentObjectCollection, IVisitable
     if (Table.Rows.Count > 0)
       throw new InvalidOperationException("Cannot add column because rows collection is not empty.");
 
-    Column column = new Column();
+    var column = new Column();
     Add(column);
     return column;
   }
@@ -129,21 +129,21 @@ public partial class Columns : DocumentObjectCollection, IVisitable
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    serializer.WriteComment((this.comment ?? ""));
+    serializer.WriteComment(comment ?? "");
     serializer.WriteLine("\\columns");
 
-    int pos = serializer.BeginAttributes();
+    var pos = serializer.BeginAttributes();
 
-    if (!this.width.IsNull)
-      serializer.WriteSimpleAttribute("Width", this.Width);
+    if (!width.IsNull)
+      serializer.WriteSimpleAttribute("Width", Width);
 
     serializer.EndAttributes(pos);
 
     serializer.BeginContent();
-    int clms = Count;
+    var clms = Count;
     if (clms > 0)
     {
-      for (int clm = 0; clm < clms; clm++)
+      for (var clm = 0; clm < clms; clm++)
         this[clm].Serialize(serializer);
     }
     else

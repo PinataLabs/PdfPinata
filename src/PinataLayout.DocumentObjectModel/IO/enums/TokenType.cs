@@ -80,5 +80,5 @@ enum TokenType
   /// <summary>
   /// Plain text. Possible after ReadText.
   /// </summary>
-  Text,
+  Text
 }

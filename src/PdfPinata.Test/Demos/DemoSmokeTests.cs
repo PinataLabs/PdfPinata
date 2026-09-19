@@ -36,8 +36,8 @@ public class DemoSmokeTests
     {
         get
         {
-            TheoryData<string> data = new TheoryData<string>();
-            foreach (string name in DemoRegistry.Names)
+            var data = new TheoryData<string>();
+            foreach (var name in DemoRegistry.Names)
                 data.Add(name);
             return data;
         }
@@ -47,10 +47,10 @@ public class DemoSmokeTests
     [MemberData(nameof(EveryDemo))]
     public void A_demo_writes_the_pdf_it_says_it_does(string name)
     {
-        DemoRegistry.TryGet(name, out PdfDemo demo).Should().BeTrue();
+        DemoRegistry.TryGet(name, out var demo).Should().BeTrue();
 
-        DemoContext context = new DemoContext(OutputDirectoryFor(name));
-        DemoResult result = demo.Run(context);
+        var context = new DemoContext(OutputDirectoryFor(name));
+        var result = demo.Run(context);
 
         result.OutputPath.Should().Be(Path.Combine(context.OutputDirectory, name + ".pdf"));
         File.Exists(result.OutputPath).Should().BeTrue();
@@ -59,7 +59,7 @@ public class DemoSmokeTests
         // The password is almost always null. The one demo that encrypts its own output declares it
         // rather than being named here, so that this stays a theory over the registry with no demo
         // it knows about by name.
-        using PdfDocument opened = demo.OpenPassword is null
+        using var opened = demo.OpenPassword is null
             ? Pdf.IO.PdfReader.Open(result.OutputPath, PdfDocumentOpenMode.Import)
             : Pdf.IO.PdfReader.Open(result.OutputPath, demo.OpenPassword, PdfDocumentOpenMode.Import);
 
@@ -73,7 +73,7 @@ public class DemoSmokeTests
     [MemberData(nameof(EveryDemo))]
     public void A_demo_can_show_the_source_it_was_written_in(string name)
     {
-        DemoRegistry.TryGet(name, out PdfDemo demo).Should().BeTrue();
+        DemoRegistry.TryGet(name, out var demo).Should().BeTrue();
 
         // The one failure the whole source-printing design exists to prevent is a panel of
         // code that is not the code that ran. A demo whose constructor forgot its ": base()"
@@ -86,7 +86,7 @@ public class DemoSmokeTests
         // absence here.
         Assets.Exists(Assets.SourcePrefix + demo.SourceFileName).Should().BeTrue();
 
-        string example = DemoSource.Example(demo);
+        var example = DemoSource.Example(demo);
         example.Should().NotBeNullOrWhiteSpace();
         example.Should().NotContain(DemoSource.BeginMarker);
         example.Should().NotContain(DemoSource.SnippetMarkerPrefix);
@@ -110,7 +110,7 @@ public class DemoSmokeTests
             }
             """;
 
-        string example = DemoSource.ExampleFrom(source);
+        var example = DemoSource.ExampleFrom(source);
 
         example.Should().Be("int a = 1;" + Environment.NewLine + "int b = 2;");
     }
@@ -119,22 +119,22 @@ public class DemoSmokeTests
     [MemberData(nameof(EveryDemo))]
     public void Every_documentation_excerpt_a_demo_marks_is_closed_once_and_in_order(string name)
     {
-        DemoRegistry.TryGet(name, out PdfDemo demo).Should().BeTrue();
-        string source = DemoSource.Read(demo);
+        DemoRegistry.TryGet(name, out var demo).Should().BeTrue();
+        var source = DemoSource.Read(demo);
 
         // The website quotes these excerpts by name and fails its build on one it cannot find, but
         // it only looks for the ones some page asks for. An excerpt nobody quotes yet is checked here.
-        HashSet<string> open = new HashSet<string>();
-        HashSet<string> seen = new HashSet<string>();
-        foreach (string raw in source.Replace("\r\n", "\n").Split('\n'))
+        var open = new HashSet<string>();
+        var seen = new HashSet<string>();
+        foreach (var raw in source.Replace("\r\n", "\n").Split('\n'))
         {
-            string line = raw.Trim();
+            var line = raw.Trim();
             if (!line.StartsWith(DemoSource.SnippetMarkerPrefix, StringComparison.Ordinal))
                 continue;
 
-            string[] parts = line.Substring(DemoSource.SnippetMarkerPrefix.Length).Split(' ', 2);
+            var parts = line[DemoSource.SnippetMarkerPrefix.Length..].Split(' ', 2);
             parts.Should().HaveCount(2, "a marker is '// docs:begin name' or '// docs:end name': {0}", line);
-            string excerpt = parts[1].Trim();
+            var excerpt = parts[1].Trim();
 
             if (parts[0] == "begin")
             {
@@ -154,7 +154,7 @@ public class DemoSmokeTests
     [Fact]
     public void Running_a_demo_leaves_the_font_resolver_the_tests_installed()
     {
-        DemoRegistry.TryGet("HelloWorld", out PdfDemo demo).Should().BeTrue();
+        DemoRegistry.TryGet("HelloWorld", out var demo).Should().BeTrue();
         demo.Run(new DemoContext(OutputDirectoryFor("ResolverCheck")));
 
         // A demo that registered a backend of its own would swap out the resolver every
@@ -166,7 +166,7 @@ public class DemoSmokeTests
     [Fact]
     public void Every_demo_has_a_name_that_is_usable_as_a_file_name()
     {
-        foreach (PdfDemo demo in DemoRegistry.All)
+        foreach (var demo in DemoRegistry.All)
         {
             demo.Name.Should().NotBeNullOrWhiteSpace();
             demo.Name.IndexOfAny(Path.GetInvalidFileNameChars()).Should().Be(-1);

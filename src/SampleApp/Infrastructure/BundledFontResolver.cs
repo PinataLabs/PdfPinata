@@ -53,8 +53,7 @@ public sealed class BundledFontResolver : IFontResolver
 
     const string ArabicFace = "NotoSansArabic-Regular.ttf";
 
-    static readonly ConcurrentDictionary<string, byte[]> Loaded =
-        new ConcurrentDictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
+    static readonly ConcurrentDictionary<string, byte[]> Loaded = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
     ///   What a document gets when it names a family that is not carried here - including the
@@ -77,14 +76,14 @@ public sealed class BundledFontResolver : IFontResolver
             // One face for the whole family, so a bold or an italic has to be drawn on rather than
             // chosen. The Fonts demo puts these beside Liberation's real four so the difference
             // between a designed weight and a stroked one can be seen rather than described.
-            XStyleSimulations simulations =
+            var simulations =
                 (isBold ? XStyleSimulations.BoldSimulation : XStyleSimulations.None)
                 | (isItalic ? XStyleSimulations.ItalicSimulation : XStyleSimulations.None);
 
             return new FontResolverInfo(MonoFace, simulations);
         }
 
-        string family = Matches(familyName, SerifFamily) ? "LiberationSerif" : "LiberationSans";
+        var family = Matches(familyName, SerifFamily) ? "LiberationSerif" : "LiberationSans";
         return new FontResolverInfo($"{family}-{FaceOf(isBold, isItalic)}.ttf");
     }
 

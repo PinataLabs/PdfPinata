@@ -24,7 +24,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
 #endregion
@@ -77,7 +77,7 @@ public abstract class CObject : ICloneable
     }
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     internal abstract void WriteObject(ContentWriter writer);
 }
@@ -101,7 +101,7 @@ public class CComment : CObject
     /// </summary>
     protected override CObject Copy()
     {
-        CObject obj = base.Copy();
+        var obj = base.Copy();
         return obj;
     }
 
@@ -151,7 +151,7 @@ public class CSequence : CObject, IList<CObject> // , ICollection<CObject>, IEnu
     {
         var copy = (CSequence)base.Copy();
         copy._items = new List<CObject>(_items.Count);
-        for (int idx = 0; idx < _items.Count; idx++)
+        for (var idx = 0; idx < _items.Count; idx++)
             copy._items.Add(_items[idx].Clone());
         return copy;
     }
@@ -173,8 +173,8 @@ public class CSequence : CObject, IList<CObject> // , ICollection<CObject>, IEnu
     /// </remarks>
     public void Add(CSequence sequence)
     {
-        int count = sequence.Count;
-        for (int idx = 0; idx < count; idx++)
+        var count = sequence.Count;
+        for (var idx = 0; idx < count; idx++)
             _items.Add(sequence[idx]);
     }
 
@@ -320,14 +320,14 @@ public class CSequence : CObject, IList<CObject> // , ICollection<CObject>, IEnu
     /// </summary>
     public byte[] ToContent()
     {
-        MemoryStream stream = new MemoryStream();
-        ContentWriter writer = new ContentWriter(stream);
+        var stream = new MemoryStream();
+        var writer = new ContentWriter(stream);
         WriteObject(writer);
         writer.Close(false);
 
         stream.Position = 0;
-        int count = (int)stream.Length;
-        byte[] bytes = new byte[count];
+        var count = (int)stream.Length;
+        var bytes = new byte[count];
         PdfPinata.Internal.StreamHelper.ReadUpTo(stream, bytes, 0, count);
         stream.Dispose();
         return bytes;
@@ -338,9 +338,9 @@ public class CSequence : CObject, IList<CObject> // , ICollection<CObject>, IEnu
     /// </summary>
     public override string ToString()
     {
-        StringBuilder s = new StringBuilder();
+        var s = new StringBuilder();
 
-        for (int idx = 0; idx < _items.Count; idx++)
+        for (var idx = 0; idx < _items.Count; idx++)
             s.Append(_items[idx]);
 
         return s.ToString();
@@ -353,7 +353,7 @@ public class CSequence : CObject, IList<CObject> // , ICollection<CObject>, IEnu
 
     internal override void WriteObject(ContentWriter writer)
     {
-        for (int idx = 0; idx < _items.Count; idx++)
+        for (var idx = 0; idx < _items.Count; idx++)
             _items[idx].WriteObject(writer);
     }
 
@@ -393,7 +393,7 @@ public abstract class CNumber : CObject
     /// </summary>
     protected override CObject Copy()
     {
-        CObject obj = base.Copy();
+        var obj = base.Copy();
         return obj;
     }
 
@@ -422,7 +422,7 @@ public class CInteger : CNumber
     /// </summary>
     protected override CObject Copy()
     {
-        CObject obj = base.Copy();
+        var obj = base.Copy();
         return obj;
     }
 
@@ -470,7 +470,7 @@ public class CReal : CNumber
     /// </summary>
     protected override CObject Copy()
     {
-        CObject obj = base.Copy();
+        var obj = base.Copy();
         return obj;
     }
 
@@ -529,7 +529,7 @@ public enum CStringType
     /// HACK: The string is the content of a dictionary.
     /// Currently there is no parser for dictionaries in Content Streams.
     /// </summary>
-    Dictionary,
+    Dictionary
 }
 
 /// <summary>
@@ -551,7 +551,7 @@ public class CString : CObject
     /// </summary>
     protected override CObject Copy()
     {
-        CObject obj = base.Copy();
+        var obj = base.Copy();
         return obj;
     }
 
@@ -582,15 +582,15 @@ public class CString : CObject
     /// </summary>
     public override string ToString()
     {
-        StringBuilder s = new StringBuilder();
+        var s = new StringBuilder();
         switch (CStringType)
         {
             case CStringType.String:
                 s.Append('(');
-                int length = _value.Length;
-                for (int ich = 0; ich < length; ich++)
+                var length = _value.Length;
+                for (var ich = 0; ich < length; ich++)
                 {
-                    char ch = _value[ich];
+                    var ch = _value[ich];
                     switch (ch)
                     {
                         case Chars.LF:
@@ -704,7 +704,7 @@ public class CName : CObject
     /// </summary>
     protected override CObject Copy()
     {
-        CObject obj = base.Copy();
+        var obj = base.Copy();
         return obj;
     }
 
@@ -761,7 +761,7 @@ public class CArray : CSequence
     /// </summary>
     protected override CObject Copy()
     {
-        CObject obj = base.Copy();
+        var obj = base.Copy();
         return obj;
     }
 
@@ -873,8 +873,8 @@ public class COperator : CObject
 
     internal override void WriteObject(ContentWriter writer)
     {
-        int count = _seqence?.Count ?? 0;
-        for (int idx = 0; idx < count; idx++)
+        var count = _seqence?.Count ?? 0;
+        for (var idx = 0; idx < count; idx++)
         {
             // ReSharper disable once PossibleNullReferenceException because the loop is not entered if _sequence is null
             _seqence[idx].WriteObject(writer);

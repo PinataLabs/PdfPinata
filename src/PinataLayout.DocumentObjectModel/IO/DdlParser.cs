@@ -131,7 +131,7 @@ internal class DdlParser
                 break;
 
             case Symbol.TextFrame:
-                DocumentElements elems = new DocumentElements();
+                var elems = new DocumentElements();
                 ParseTextFrame(elems);
                 obj = elems[0];
                 break;
@@ -188,7 +188,7 @@ internal class DdlParser
         Style style = null;
         try
         {
-            string styleName = scanner.Token;
+            var styleName = scanner.Token;
             string baseStyleName = null;
 
             if (Symbol != Symbol.Identifier && Symbol != Symbol.StringLiteral)
@@ -253,7 +253,7 @@ internal class DdlParser
     /// </summary>
     private bool IsHeaderFooter()
     {
-        Symbol sym = Symbol;
+        var sym = Symbol;
         return (sym == Symbol.Header || sym == Symbol.Footer ||
                 sym == Symbol.PrimaryHeader || sym == Symbol.PrimaryFooter ||
                 sym == Symbol.EvenPageHeader || sym == Symbol.EvenPageFooter ||
@@ -284,7 +284,7 @@ internal class DdlParser
             // Consider the case that the keyword «\paragraph» can be omitted.
             if (IsParagraphContent())
             {
-                Paragraph paragraph = section.Elements.AddParagraph();
+                var paragraph = section.Elements.AddParagraph();
                 ParseParagraphContent(section.Elements, paragraph);
             }
             else
@@ -319,11 +319,11 @@ internal class DdlParser
         HeaderFooter headerFooter = null;
         try
         {
-            Symbol hdrFtrSym = Symbol;
-            bool isHeader = hdrFtrSym == Symbol.Header ||
-                            hdrFtrSym == Symbol.PrimaryHeader ||
-                            hdrFtrSym == Symbol.FirstPageHeader ||
-                            hdrFtrSym == Symbol.EvenPageHeader;
+            var hdrFtrSym = Symbol;
+            var isHeader = hdrFtrSym == Symbol.Header ||
+                           hdrFtrSym == Symbol.PrimaryHeader ||
+                           hdrFtrSym == Symbol.FirstPageHeader ||
+                           hdrFtrSym == Symbol.EvenPageHeader;
 
             // Recall that the styles "Header" resp. "Footer" are used as default if
             // no other style was given. But this belongs to the rendering process,
@@ -336,7 +336,7 @@ internal class DdlParser
             AssertSymbol(Symbol.BraceLeft);
             if (IsParagraphContent())
             {
-                Paragraph paragraph = headerFooter.Elements.AddParagraph();
+                var paragraph = headerFooter.Elements.AddParagraph();
                 ParseParagraphContent(headerFooter.Elements, paragraph);
             }
             else
@@ -347,7 +347,7 @@ internal class DdlParser
             AssertSymbol(Symbol.BraceRight);
             ReadCode(); // parse beyond '{'
 
-            HeadersFooters headersFooters = isHeader ? section.Headers : section.Footers;
+            var headersFooters = isHeader ? section.Headers : section.Footers;
             if (hdrFtrSym == Symbol.Header || hdrFtrSym == Symbol.Footer)
             {
                 headersFooters.Primary = headerFooter.Clone();
@@ -391,7 +391,7 @@ internal class DdlParser
         {
             if (scanner.Char == Chars.BackSlash)
             {
-                Symbol symbol = scanner.PeekKeyword();
+                var symbol = scanner.PeekKeyword();
                 switch (symbol)
                 {
                     case Symbol.Bold:
@@ -488,7 +488,7 @@ internal class DdlParser
         MoveToCode();
         AssertSymbol(Symbol.Paragraph);
 
-        Paragraph paragraph = elements.AddParagraph();
+        var paragraph = elements.AddParagraph();
         try
         {
             ReadCode(); // read '[' or '{'
@@ -516,7 +516,7 @@ internal class DdlParser
     /// </summary>
     private void ParseParagraphContent(DocumentElements elements, Paragraph paragraph)
     {
-        Paragraph para = paragraph;
+        var para = paragraph;
         if (para == null)
             para = elements.AddParagraph();
 
@@ -538,10 +538,10 @@ internal class DdlParser
     /// </summary>
     private static void RemoveTrailingBlank(ParagraphElements elements)
     {
-        DocumentObject dom = elements.LastObject;
+        var dom = elements.LastObject;
         if (dom is Text)
         {
-            Text text = (Text)dom;
+            var text = (Text)dom;
             if (text.Content.EndsWith(' '))
                 text.Content = text.Content.Remove(text.Content.Length - 1, 1);
         }
@@ -555,8 +555,8 @@ internal class DdlParser
     {
         MoveToParagraphContent();
 
-        bool loop = true;
-        bool rootLevel = nestingLevel == 0;
+        var loop = true;
+        var rootLevel = nestingLevel == 0;
         ReadText(rootLevel);
         while (loop)
         {
@@ -722,7 +722,7 @@ internal class DdlParser
         if (Symbol != Symbol.StringLiteral)
             ThrowParserException(DomMsgID.StringExpected, Token);
 
-        string name = Token;
+        var name = Token;
         ReadCode();
         AssertSymbol(Symbol.ParenRight);
 
@@ -760,7 +760,7 @@ internal class DdlParser
 
         AssertSymbol(Symbol.ParenLeft);
         ReadCode();  // read color token
-        Color color = Color.Empty;
+        var color = Color.Empty;
         try
         {
             color = ParseColor();
@@ -790,9 +790,9 @@ internal class DdlParser
         ReadCode();  // read '('
         AssertSymbol(Symbol.ParenLeft);
 
-        char ch = (char)0;
+        var ch = (char)0;
         SymbolName symtype = 0;
-        int count = 1;
+        var count = 1;
 
         ReadCode();  // read name
         if (TokenType == TokenType.Identifier)
@@ -844,13 +844,13 @@ internal class DdlParser
         ReadCode();  // read '('
         AssertSymbol(Symbol.ParenLeft);
 
-        char ch = (char)0;
-        int count = 1;
+        var ch = (char)0;
+        var count = 1;
 
         ReadCode();  // read integer
         if (TokenType == TokenType.IntegerLiteral)
         {
-            int val = this.scanner.GetTokenValueAsInt();
+            var val = this.scanner.GetTokenValueAsInt();
             if (val >= 1 && val < 256)
                 ch = (char)val;
             else
@@ -887,7 +887,7 @@ internal class DdlParser
 
         ReadCode();  // read identifier
         AssertSymbol(Symbol.Identifier);
-        string fieldType = Token.ToLower();
+        var fieldType = Token.ToLower();
 
         ReadCode();  // read ')'
         AssertSymbol(Symbol.ParenRight);
@@ -944,7 +944,7 @@ internal class DdlParser
         AssertSymbol(Symbol.Footnote);
         ReadCode();
 
-        Footnote footnote = elements.AddFootnote();
+        var footnote = elements.AddFootnote();
         if (Symbol == Symbol.BracketLeft)
             ParseAttributes(footnote);
 
@@ -953,7 +953,7 @@ internal class DdlParser
         // The keyword «\paragraph» is typically ommitted.
         if (IsParagraphContent())
         {
-            Paragraph paragraph = footnote.Elements.AddParagraph();
+            var paragraph = footnote.Elements.AddParagraph();
             ParseParagraphContent(footnote.Elements, paragraph);
         }
         else
@@ -972,7 +972,7 @@ internal class DdlParser
         AssertSymbol(Symbol.Hyperlink);
         ReadCode();
 
-        Hyperlink hyperlink = elements.AddHyperlink("");
+        var hyperlink = elements.AddHyperlink("");
         //NYI: Without name and type the hyperlink is senseless, so attributes need to be checked
         if (Symbol == Symbol.BracketLeft)
             ParseAttributes(hyperlink);
@@ -994,7 +994,7 @@ internal class DdlParser
         // \space(em,5)
         AssertSymbol(Symbol.Space);
 
-        Character space = elements.AddSpace(1);
+        var space = elements.AddSpace(1);
 
         // «\space» can stand alone
         if (scanner.PeekSymbol() == Symbol.ParenLeft)
@@ -1005,7 +1005,7 @@ internal class DdlParser
             ReadCode(); // read beyond '('
             if (Symbol == Symbol.Identifier)
             {
-                string type = Token;
+                var type = Token;
                 if (!IsSpaceType(type))
                     ThrowParserException(DomMsgID.InvalidEnum, type, GetSymbolText(Symbol.Space));
 
@@ -1044,7 +1044,7 @@ internal class DdlParser
     /// </summary>
     private void ParseTable(DocumentElements elements, Table table)
     {
-        Table tbl = table;
+        var tbl = table;
         try
         {
             if (tbl == null)
@@ -1093,7 +1093,7 @@ internal class DdlParser
         AssertSymbol(Symbol.BraceLeft);
         ReadCode();
 
-        bool loop = true;
+        var loop = true;
         while (loop)
         {
             switch (Symbol)
@@ -1154,7 +1154,7 @@ internal class DdlParser
         AssertSymbol(Symbol.BraceLeft);
         ReadCode();
 
-        bool loop = true;
+        var loop = true;
         while (loop)
         {
             switch (Symbol)
@@ -1195,9 +1195,9 @@ internal class DdlParser
         {
             ReadCode();
 
-            bool loop = true;
-            int idx = 0;
-            int cells = row.Cells.Count;
+            var loop = true;
+            var idx = 0;
+            var cells = row.Cells.Count;
             while (loop)
             {
                 switch (Symbol)
@@ -1297,7 +1297,7 @@ internal class DdlParser
     {
         Debug.Assert(elements != null);
 
-        TextFrame textFrame = elements.AddTextFrame();
+        var textFrame = elements.AddTextFrame();
         try
         {
             ReadCode();
@@ -1339,7 +1339,7 @@ internal class DdlParser
             ReadCode();
             AssertSymbol(Symbol.StringLiteral, DomMsgID.UnexpectedSymbol);
 
-            Barcode barcode = elements.AddBarcode();
+            var barcode = elements.AddBarcode();
             barcode.SetValue("Code", Token);
             ReadCode();
             if (Symbol == Symbol.Comma)
@@ -1385,7 +1385,7 @@ internal class DdlParser
 
             ReadCode(); // ChartType name
             AssertSymbol(Symbol.Identifier, DomMsgID.IdentifierExpected, Token);
-            string chartTypeName = Token;
+            var chartTypeName = Token;
 
             ReadCode(); // read ')'
             AssertSymbol(Symbol.ParenRight, DomMsgID.MissingParenRight, GetSymbolText(Symbol.Chart));
@@ -1409,7 +1409,7 @@ internal class DdlParser
 
             ReadCode(); // read beyond '{'
 
-            bool fContinue = true;
+            var fContinue = true;
             while (fContinue)
             {
                 switch (Symbol)
@@ -1505,7 +1505,7 @@ internal class DdlParser
             if (Symbol != Symbol.BraceLeft)
                 return;
 
-            bool fContinue = true;
+            var fContinue = true;
             while (fContinue)
             {
                 ReadCode();
@@ -1559,7 +1559,7 @@ internal class DdlParser
             else
             {
                 ReadCode(); // read beyond '{'
-                bool fContinue = true;
+                var fContinue = true;
                 while (fContinue)
                 {
                     switch (Symbol)
@@ -1585,7 +1585,7 @@ internal class DdlParser
                             break;
 
                         case Symbol.Image:
-                            Image image = new Image();
+                            var image = new Image();
                             ParseImage(image, false);
                             area.Elements.Add(image);
                             break;
@@ -1660,8 +1660,8 @@ internal class DdlParser
             AssertSymbol(Symbol.BraceLeft, DomMsgID.MissingBraceLeft, GetSymbolText(Symbol.Series));
             ReadCode(); // read beyond '{'
 
-            bool fContinue = true;
-            bool fFoundComma = true;
+            var fContinue = true;
+            var fFoundComma = true;
             while (fContinue)
             {
                 switch (Symbol)
@@ -1723,8 +1723,8 @@ internal class DdlParser
             ReadCode();
             AssertSymbol(Symbol.BraceLeft, DomMsgID.MissingBraceLeft, GetSymbolText(Symbol.XValues));
 
-            bool fFoundComma = true;
-            bool fContinue = true;
+            var fFoundComma = true;
+            var fContinue = true;
             while (fContinue)
             {
                 ReadCode();
@@ -1876,12 +1876,12 @@ internal class DdlParser
         // Parser of rhs depends on the type of the l-value.
 
         object val = null;
-        string valueName = "";
+        var valueName = "";
         try
         {
             valueName = scanner.Token;
 
-            DocumentObject doc = dom;
+            var doc = dom;
             ReadCode();
 
             // Resolve path, if it exists.
@@ -1890,7 +1890,7 @@ internal class DdlParser
                 val = doc.GetValue(valueName);
                 if (val == null)
                 {
-                    DocumentObject documentObject = (DocumentObject)doc;
+                    var documentObject = (DocumentObject)doc;
                     val = documentObject.CreateValue(valueName);
                     doc.SetValue(valueName, val);
                 }
@@ -1910,7 +1910,7 @@ internal class DdlParser
             {
                 case Symbol.Assign:
                     //DomValueDescriptor is needed from assignment routine.
-                    ValueDescriptor pvd = doc.Meta[valueName];
+                    var pvd = doc.Meta[valueName];
                     AssertCondition(pvd != null, DomMsgID.InvalidValueName, valueName);
                     ParseAssign(doc, pvd);
                     break;
@@ -1923,13 +1923,13 @@ internal class DdlParser
                     if (String.Compare(valueName, "TabStops", true) != 0)
                         ThrowParserException(DomMsgID.InvalidValueForOperation, valueName, scanner.Token);
 
-                    ParagraphFormat paragraphFormat = (ParagraphFormat)doc;
-                    TabStops tabStops = paragraphFormat.TabStops;
+                    var paragraphFormat = (ParagraphFormat)doc;
+                    var tabStops = paragraphFormat.TabStops;
 
                     if (true) // HACK in ParseAttributeStatement
                     {
-                        bool fAddItem = Symbol == Symbol.PlusAssign;
-                        TabStop tabStop = new TabStop();
+                        var fAddItem = Symbol == Symbol.PlusAssign;
+                        var tabStop = new TabStop();
 
                         ReadCode();
 
@@ -2009,7 +2009,7 @@ internal class DdlParser
         if (Symbol == Symbol.Assign)
             ReadCode();
 
-        Type valType = vd.ValueType;
+        var valType = vd.ValueType;
         try
         {
             if (valType == typeof(string))
@@ -2066,7 +2066,7 @@ internal class DdlParser
         AssertCondition(Symbol == Symbol.IntegerLiteral || Symbol == Symbol.HexIntegerLiteral || Symbol == Symbol.StringLiteral,
             DomMsgID.IntegerExpected, Token);
 
-        int n = Int32.Parse(scanner.Token, CultureInfo.InvariantCulture);
+        var n = Int32.Parse(scanner.Token, CultureInfo.InvariantCulture);
         dom.SetValue(vd.ValueName, n);
 
         ReadCode();
@@ -2080,7 +2080,7 @@ internal class DdlParser
         AssertCondition(Symbol == Symbol.RealLiteral || Symbol == Symbol.IntegerLiteral || Symbol == Symbol.StringLiteral,
             DomMsgID.RealExpected, scanner.Token);
 
-        double r = double.Parse(scanner.Token, CultureInfo.InvariantCulture);
+        var r = double.Parse(scanner.Token, CultureInfo.InvariantCulture);
         dom.SetValue(vd.ValueName, r);
 
         ReadCode();
@@ -2120,7 +2120,7 @@ internal class DdlParser
 
         try
         {
-            object val = Enum.Parse(vd.ValueType, Token, true);
+            var val = Enum.Parse(vd.ValueType, Token, true);
             dom.SetValue(vd.ValueName, val);
         }
         catch (Exception ex) when (!Unrecoverable.Is(ex))
@@ -2136,10 +2136,10 @@ internal class DdlParser
     /// </summary>
     private void ParseValueTypeAssignment(DocumentObject dom, ValueDescriptor vd)
     {
-        object val = vd.GetValue(dom, GV.ReadWrite);
+        var val = vd.GetValue(dom, GV.ReadWrite);
         try
         {
-            INullableValue ival = (INullableValue)val;
+            var ival = (INullableValue)val;
             ival.SetValue(Token);
             dom.SetValue(vd.ValueName, val);
             ReadCode();
@@ -2156,15 +2156,15 @@ internal class DdlParser
     private void ParseDocumentObjectAssignment(DocumentObject dom, ValueDescriptor vd)
     {
         // Create value if it does not exist
-        object val = vd.GetValue(dom, GV.ReadWrite);
-        DocumentObject docObj = (DocumentObject)val;
+        var val = vd.GetValue(dom, GV.ReadWrite);
+        var docObj = (DocumentObject)val;
 
         try
         {
             if (Symbol == Symbol.Null)
             {
-                string name = vd.ValueName;
-                Type type = vd.ValueType;
+                var name = vd.ValueName;
+                var type = vd.ValueType;
                 if (typeof(Border) == type)
                     ((Border)val).Clear();
                 else if (typeof(Borders) == type)
@@ -2173,7 +2173,7 @@ internal class DdlParser
                     ((Shading)val).Clear();
                 else if (typeof(TabStops) == type)
                 {
-                    TabStops tabStops = (TabStops)vd.GetValue(dom, GV.ReadWrite);
+                    var tabStops = (TabStops)vd.GetValue(dom, GV.ReadWrite);
                     tabStops.ClearAll();
                 }
                 else
@@ -2216,8 +2216,8 @@ internal class DdlParser
     /// </summary>
     private void ParseColorAssignment(DocumentObject dom, ValueDescriptor vd)
     {
-        object val = vd.GetValue(dom, GV.ReadWrite);
-        Color color = ParseColor();
+        var val = vd.GetValue(dom, GV.ReadWrite);
+        var color = ParseColor();
         dom.SetValue(vd.ValueName, color);
     }
 
@@ -2228,7 +2228,7 @@ internal class DdlParser
     private Color ParseColor()
     {
         MoveToCode();
-        Color color = Color.Empty;
+        var color = Color.Empty;
         if (Symbol == Symbol.Identifier)
         {
             switch (Token)
@@ -2362,7 +2362,7 @@ internal class DdlParser
         AssertCondition(v4 >= 0.0f && v4 <= 100.0, DomMsgID.InvalidRange, "0.0 - 100.0");
 
         ReadCode();  // read ')' or ','
-        bool hasAlpha = false;
+        var hasAlpha = false;
         if (Symbol == Symbol.Comma)
         {
             hasAlpha = true;
@@ -2410,7 +2410,7 @@ internal class DdlParser
 
         ReadCode();  // read next token
 
-        uint g = (uint)((1 - gray / 100.0) * 255 + 0.5);
+        var g = (uint)((1 - gray / 100.0) * 255 + 0.5);
         return new Color(0xff000000 + (g << 16) + (g << 8) + g);
     }
 
@@ -2433,7 +2433,7 @@ internal class DdlParser
 
         if (Enum.IsDefined(typeof(SymbolName), type))
         {
-            SymbolName symbolName = Enum.Parse<SymbolName>(type); // symbols are case sensitive
+            var symbolName = Enum.Parse<SymbolName>(type); // symbols are case sensitive
             switch (symbolName)
             {
                 case SymbolName.Blank:
@@ -2459,7 +2459,7 @@ internal class DdlParser
 
         if (Enum.IsDefined(typeof(SymbolName), type))
         {
-            SymbolName symbolName = Enum.Parse<SymbolName>(type); // symbols are case sensitive
+            var symbolName = Enum.Parse<SymbolName>(type); // symbols are case sensitive
             switch (symbolName)
             {
                 case SymbolName.Euro:
@@ -2552,8 +2552,8 @@ internal class DdlParser
     /// </summary>
     private void ReportParserInfo(DdlErrorLevel level, DomMsgID errorCode, params string[] parms)
     {
-        string message = DomSR.FormatMessage(errorCode, parms);
-        DdlReaderError error = new DdlReaderError(level, message, (int)errorCode,
+        var message = DomSR.FormatMessage(errorCode, parms);
+        var error = new DdlReaderError(level, message, (int)errorCode,
             this.scanner.DocumentFileName, this.scanner.CurrentLine, this.scanner.CurrentLinePos);
 
         this.errors.AddError(error);
@@ -2580,12 +2580,12 @@ internal class DdlParser
     /// </summary>
     private void ReportParserException(Exception innerException, DomMsgID errorCode, params string[] parms)
     {
-        string message = "";
+        var message = "";
         if (innerException != null)
             message = ": " + innerException.ToString();
 
         message += DomSR.FormatMessage(errorCode, parms);
-        DdlReaderError error = new DdlReaderError(DdlErrorLevel.Error, message, (int)errorCode,
+        var error = new DdlReaderError(DdlErrorLevel.Error, message, (int)errorCode,
             this.scanner.DocumentFileName, this.scanner.CurrentLine, this.scanner.CurrentLinePos);
 
         this.errors.AddError(error);
@@ -2598,8 +2598,8 @@ internal class DdlParser
     [DoesNotReturn]
     private void ThrowParserException(DomMsgID errorCode, params object[] parms)
     {
-        string message = DomSR.FormatMessage(errorCode, parms);
-        DdlReaderError error = new DdlReaderError(DdlErrorLevel.Error, message, (int)errorCode,
+        var message = DomSR.FormatMessage(errorCode, parms);
+        var error = new DdlReaderError(DdlErrorLevel.Error, message, (int)errorCode,
             this.scanner.DocumentFileName, this.scanner.CurrentLine, this.scanner.CurrentLinePos);
 
         throw new DdlParserException(error);
@@ -2612,7 +2612,7 @@ internal class DdlParser
     [DoesNotReturn]
     private static void ThrowParserException(Exception innerException, DomMsgID errorCode, params object[] parms)
     {
-        string message = DomSR.FormatMessage(errorCode, parms);
+        var message = DomSR.FormatMessage(errorCode, parms);
         throw new DdlParserException(message, innerException);
     }
 
@@ -2622,10 +2622,10 @@ internal class DdlParser
     /// </summary>
     private void AdjustToNextBlock()
     {
-        bool skipClosingBraceOrBracket = (Symbol == Symbol.BraceLeft || Symbol == Symbol.BracketLeft);
+        var skipClosingBraceOrBracket = (Symbol == Symbol.BraceLeft || Symbol == Symbol.BracketLeft);
         ReadCode();
 
-        bool finish = false;
+        var finish = false;
         while (!finish)
         {
             switch (Symbol)
@@ -2655,7 +2655,7 @@ internal class DdlParser
     /// </summary>
     private void AdjustToNextStatement()
     {
-        bool finish = false;
+        var finish = false;
         while (!finish)
         {
             switch (Symbol)

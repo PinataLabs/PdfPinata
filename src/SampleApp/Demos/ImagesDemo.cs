@@ -25,7 +25,7 @@ internal sealed class ImagesDemo : PdfDemo
         "Rotation about a point, inside Save and Restore",
         "A PNG with an alpha channel, over a chequer and over a colour",
         "XImage.Interpolate - whether an upscaled image is smoothed or blocky",
-        "Palette-with-alpha beside truecolour-with-alpha, which are two different PNGs",
+        "Palette-with-alpha beside truecolour-with-alpha, which are two different PNGs"
     };
 
     public override int PageCount => 3;
@@ -33,23 +33,23 @@ internal sealed class ImagesDemo : PdfDemo
     protected override PdfDocument Build(DemoContext context)
     {
         #region example
-        PdfDocument document = new PdfDocument();
+        var document = new PdfDocument();
 
-        XFont label = new XFont("Liberation Sans", 8);
-        XFont heading = new XFont("Liberation Sans", 9, XFontStyle.Bold);
-        XPen boxPen = new XPen(XColors.Crimson, 0.5) { DashStyle = XDashStyle.Dot };
+        var label = new XFont("Liberation Sans", 8);
+        var heading = new XFont("Liberation Sans", 9, XFontStyle.Bold);
+        var boxPen = new XPen(XColors.Crimson, 0.5) { DashStyle = XDashStyle.Dot };
 
         // docs:begin load
         // The image is embedded in this assembly rather than read from disk, so it is found
         // wherever the app runs. FromStream takes a factory rather than a stream: the
         // library opens it when it needs it and may do so more than once.
-        using XImage photograph = XImage.FromStream(
+        using var photograph = XImage.FromStream(
             () => Assets.Open(Assets.ImagePrefix + "frog-and-toad.jpg"));
         // docs:end load
 
         // ---- Page one: sizing ---------------------------------------------------------
-        PdfPage page = document.AddPage();
-        XGraphics gfx = XGraphics.FromPdfPage(page);
+        var page = document.AddPage();
+        var gfx = XGraphics.FromPdfPage(page);
 
         void Caption(string text, double x, double y) =>
             gfx.DrawString(text, label, XBrushes.DimGray, new XPoint(x, y));
@@ -70,8 +70,8 @@ internal sealed class ImagesDemo : PdfDemo
             48, 78);
 
         // docs:begin sizes
-        double naturalWidth = photograph.PointWidth;
-        double naturalHeight = photograph.PointHeight;
+        var naturalWidth = photograph.PointWidth;
+        var naturalHeight = photograph.PointHeight;
 
         // Natural size gets a row to itself: at 96 dpi this photograph is most of the width
         // of an A4 page, which is the point worth making about drawing one unscaled.
@@ -86,7 +86,7 @@ internal sealed class ImagesDemo : PdfDemo
         Caption("half", 48, y + naturalHeight / 2 + 12);
         // docs:end sizes
 
-        double quarterX = 48 + naturalWidth / 2 + 24;
+        var quarterX = 48 + naturalWidth / 2 + 24;
         gfx.DrawImage(photograph, quarterX, y, naturalWidth / 4, naturalHeight / 4);
         Caption("quarter", quarterX, y + naturalHeight / 4 + 12);
 
@@ -105,12 +105,12 @@ internal sealed class ImagesDemo : PdfDemo
             48, 78);
 
         // docs:begin fit
-        XRect box = new XRect(48, 92, 200, 200);
+        var box = new XRect(48, 92, 200, 200);
 
         // Fit, or "contain": the largest scale at which the whole image is inside the box,
         // so the box shows through on two sides. Min of the two ratios.
-        double fit = Math.Min(box.Width / naturalWidth, box.Height / naturalHeight);
-        XRect fitted = new XRect(
+        var fit = Math.Min(box.Width / naturalWidth, box.Height / naturalHeight);
+        var fitted = new XRect(
             box.X + (box.Width - naturalWidth * fit) / 2,
             box.Y + (box.Height - naturalHeight * fit) / 2,
             naturalWidth * fit,
@@ -124,10 +124,10 @@ internal sealed class ImagesDemo : PdfDemo
         // Fill, or "cover": the smallest scale at which the image covers the box, so the
         // overflow has to be cut off. Max of the two ratios, and then the part of the
         // image to keep is given as a source rectangle in the image's own pixels.
-        XRect coverBox = new XRect(300, 92, 200, 200);
-        double cover = Math.Max(coverBox.Width / naturalWidth, coverBox.Height / naturalHeight);
-        double sourceWidth = coverBox.Width / cover * photograph.PixelWidth / naturalWidth;
-        double sourceHeight = coverBox.Height / cover * photograph.PixelHeight / naturalHeight;
+        var coverBox = new XRect(300, 92, 200, 200);
+        var cover = Math.Max(coverBox.Width / naturalWidth, coverBox.Height / naturalHeight);
+        var sourceWidth = coverBox.Width / cover * photograph.PixelWidth / naturalWidth;
+        var sourceHeight = coverBox.Height / cover * photograph.PixelHeight / naturalHeight;
 
         gfx.DrawImage(photograph, coverBox,
             new XRect(
@@ -148,9 +148,9 @@ internal sealed class ImagesDemo : PdfDemo
         // docs:begin rotate
         double[] angles = { 0, 15, 30, 45 };
         double x = 110;
-        foreach (double angle in angles)
+        foreach (var angle in angles)
         {
-            XGraphicsState state = gfx.Save();
+            var state = gfx.Save();
             gfx.RotateAtTransform(angle, new XPoint(x, 430));
             gfx.DrawImage(photograph, x - 45, 430 - 30, 90, 60);
             gfx.Restore(state);
@@ -172,16 +172,16 @@ internal sealed class ImagesDemo : PdfDemo
         // Two PNGs, and they are not the same kind of file. The badge is a palette image with an
         // alpha channel; the disc is truecolour with one. Both arrive through the same seam and
         // the same call, which is the point - the backend decodes whatever the format is.
-        using XImage badge = XImage.FromStream(
+        using var badge = XImage.FromStream(
             () => Assets.Open(Assets.ImagePrefix + "alpha-badge.png"));
-        using XImage disc = XImage.FromStream(
+        using var disc = XImage.FromStream(
             () => Assets.Open(Assets.ImagePrefix + "soft-disc.png"));
 
         // A chequer, so that transparency reads as transparency rather than as a colour. Over a
         // white page a transparent pixel and a white one look identical.
-        for (int cx = 0; cx < 10; cx++)
+        for (var cx = 0; cx < 10; cx++)
         {
-            for (int cy = 0; cy < 8; cy++)
+            for (var cy = 0; cy < 8; cy++)
             {
                 gfx.DrawRectangle((cx + cy) % 2 == 0 ? XBrushes.WhiteSmoke : XBrushes.Gainsboro,
                     48 + cx * 12, 80 + cy * 12, 12, 12);
@@ -209,11 +209,11 @@ internal sealed class ImagesDemo : PdfDemo
         // written into the image dictionary rather than something the library does, so what the
         // two panels below look like depends on the reader - and some ignore it entirely.
         // docs:begin interpolate
-        using XImage blocky = XImage.FromStream(
+        using var blocky = XImage.FromStream(
             () => Assets.Open(Assets.ImagePrefix + "frog-and-toad.jpg"));
         blocky.Interpolate = false;
 
-        using XImage smooth = XImage.FromStream(
+        using var smooth = XImage.FromStream(
             () => Assets.Open(Assets.ImagePrefix + "frog-and-toad.jpg"));
         smooth.Interpolate = true;
         // docs:end interpolate

@@ -76,7 +76,7 @@ public partial class Row : DocumentObject, IVisitable
     {
       if (this.table == null)
       {
-        Rows rws = this.Parent as Rows;
+        var rws = this.Parent as Rows;
         if (rws != null)
           this.table = rws.Table;
       }
@@ -94,9 +94,9 @@ public partial class Row : DocumentObject, IVisitable
     {
       if (!index.HasValue)
       {
-        Rows rws = (Rows)parent;
+        var rws = (Rows)parent;
         // One for all and all for one.
-        for (int i = 0; i < rws.Count; ++i)
+        for (var i = 0; i < rws.Count; ++i)
         {
           rws[i].index = i;
         }
@@ -306,7 +306,7 @@ public partial class Row : DocumentObject, IVisitable
     serializer.WriteComment((this.comment ?? ""));
     serializer.WriteLine("\\row");
 
-    int pos = serializer.BeginAttributes();
+    var pos = serializer.BeginAttributes();
 
     if ((this.style ?? "") != String.Empty)
       serializer.WriteSimpleAttribute("Style", this.Style);

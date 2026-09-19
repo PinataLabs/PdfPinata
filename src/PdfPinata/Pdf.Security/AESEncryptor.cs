@@ -223,7 +223,7 @@ internal class AESEncryptor : RC4Encryptor
                     {
                         32 => SHA256.Create(),
                         48 => SHA384.Create(),
-                        _ => SHA512.Create(),
+                        _ => SHA512.Create()
                     };
                     hashAlg.TransformBlock(data, 0, dataLen * 64, data, 0);
                     hashAlg.TransformFinalBlock(data, 0, 0);

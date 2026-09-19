@@ -26,7 +26,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -428,7 +428,7 @@ public struct Unit : IFormattable, INullableValue
     /// </summary>
     public static Unit FromCentimeter(double value)
     {
-        Unit unit = Zero;
+        var unit = Zero;
         unit.value = (float)value;
         unit.type = UnitType.Centimeter;
         return unit;
@@ -439,7 +439,7 @@ public struct Unit : IFormattable, INullableValue
     /// </summary>
     public static Unit FromMillimeter(double value)
     {
-        Unit unit = Zero;
+        var unit = Zero;
         unit.value = (float)value;
         unit.type = UnitType.Millimeter;
         return unit;
@@ -450,7 +450,7 @@ public struct Unit : IFormattable, INullableValue
     /// </summary>
     public static Unit FromPoint(double value)
     {
-        Unit unit = Zero;
+        var unit = Zero;
         unit.value = (float)value;
         unit.type = UnitType.Point;
         return unit;
@@ -461,7 +461,7 @@ public struct Unit : IFormattable, INullableValue
     /// </summary>
     public static Unit FromInch(double value)
     {
-        Unit unit = Zero;
+        var unit = Zero;
         unit.value = (float)value;
         unit.type = UnitType.Inch;
         return unit;
@@ -472,7 +472,7 @@ public struct Unit : IFormattable, INullableValue
     /// </summary>
     public static Unit FromPica(double value)
     {
-        Unit unit = Zero;
+        var unit = Zero;
         unit.value = (float)value;
         unit.type = UnitType.Pica;
         return unit;
@@ -503,17 +503,17 @@ public struct Unit : IFormattable, INullableValue
                 + "unit.IsEmpty instead.");
         #pragma warning restore S3877
 
-        Unit unit = Zero;
+        var unit = Zero;
         value = value.Trim();
 
         // For Germans...
         value = value.Replace(',', '.');
 
-        int count = value.Length;
-        int valLen = 0;
+        var count = value.Length;
+        var valLen = 0;
         for (; valLen < count;)
         {
-            char ch = value[valLen];
+            var ch = value[valLen];
             if (ch == '.' || ch == '-' || ch == '+' || Char.IsNumber(ch))
                 valLen++;
             else
@@ -523,14 +523,14 @@ public struct Unit : IFormattable, INullableValue
         unit.value = 1;
         try
         {
-            unit.value = float.Parse(value.Substring(0, valLen).Trim(), System.Globalization.CultureInfo.InvariantCulture);
+            unit.value = float.Parse(value[..valLen].Trim(), System.Globalization.CultureInfo.InvariantCulture);
         }
         catch (FormatException ex)
         {
             throw new ArgumentException(DomSR.InvalidUnitValue(value), ex);
         }
 
-        string typeStr = value.Substring(valLen).Trim().ToLower();
+        var typeStr = value[valLen..].Trim().ToLower();
         unit.type = UnitType.Point;
         switch (typeStr)
         {
@@ -567,7 +567,7 @@ public struct Unit : IFormattable, INullableValue
     /// </summary>
     public static implicit operator Unit(int value)
     {
-        Unit unit = Zero;
+        var unit = Zero;
         unit.value = value;
         unit.type = UnitType.Point;
         return unit;
@@ -578,7 +578,7 @@ public struct Unit : IFormattable, INullableValue
     /// </summary>
     public static implicit operator Unit(float value)
     {
-        Unit unit = Zero;
+        var unit = Zero;
         unit.value = value;
         unit.type = UnitType.Point;
         return unit;
@@ -589,7 +589,7 @@ public struct Unit : IFormattable, INullableValue
     /// </summary>
     public static implicit operator Unit(double value)
     {
-        Unit unit = Zero;
+        var unit = Zero;
         unit.value = (float)value;
         unit.type = UnitType.Point;
         return unit;
@@ -612,7 +612,7 @@ public struct Unit : IFormattable, INullableValue
     }
 
     /// <summary>
-    /// Memberwise comparison. To compare by value, 
+    /// Memberwise comparison. To compare by value,
     /// use code like Math.Abs(a.Point - b.Point) &lt; 1e-5.
     /// </summary>
     public static bool operator ==(Unit l, Unit r)
@@ -623,7 +623,7 @@ public struct Unit : IFormattable, INullableValue
     }
 
     /// <summary>
-    /// Memberwise comparison. To compare by value, 
+    /// Memberwise comparison. To compare by value,
     /// use code like Math.Abs(a.Point - b.Point) &lt; 1e-5.
     /// </summary>
     public static bool operator !=(Unit l, Unit r)
@@ -652,7 +652,7 @@ public struct Unit : IFormattable, INullableValue
     /// </summary>
     public static Unit Parse(string value)
     {
-        Unit unit = Zero;
+        var unit = Zero;
         unit = value;
         return unit;
     }

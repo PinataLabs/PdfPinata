@@ -71,8 +71,8 @@ public partial class Section : DocumentObject, IVisitable
     /// </summary>
     public Section PreviousSection()
     {
-        Sections sections = Parent as Sections;
-        int index = sections.IndexOf(this);
+        var sections = Parent as Sections;
+        var index = sections.IndexOf(this);
         if (index > 0)
             return sections[index - 1];
         return null;
@@ -294,8 +294,8 @@ public partial class Section : DocumentObject, IVisitable
     {
         get
         {
-            int count = elements.Count;
-            for (int idx = count - 1; idx >= 0; idx--)
+            var count = elements.Count;
+            for (var idx = count - 1; idx >= 0; idx--)
             {
                 if (elements[idx] is Paragraph)
                     return (Paragraph)elements[idx];
@@ -311,8 +311,8 @@ public partial class Section : DocumentObject, IVisitable
     {
         get
         {
-            int count = elements.Count;
-            for (int idx = count - 1; idx >= 0; idx--)
+            var count = elements.Count;
+            for (var idx = count - 1; idx >= 0; idx--)
             {
                 if (elements[idx] is Table)
                     return (Table)elements[idx];
@@ -331,13 +331,13 @@ public partial class Section : DocumentObject, IVisitable
         serializer.WriteComment((comment ?? ""));
         serializer.WriteLine("\\section");
 
-        int pos = serializer.BeginAttributes();
+        var pos = serializer.BeginAttributes();
         if (!IsNull("PageSetup"))
             PageSetup.Serialize(serializer);
         serializer.EndAttributes(pos);
 
         serializer.BeginContent();
-        bool wroteHeadersOrFooters = !IsNull("headers") || !IsNull("footers");
+        var wroteHeadersOrFooters = !IsNull("headers") || !IsNull("footers");
         if (!IsNull("headers"))
             headers.Serialize(serializer);
         if (!IsNull("footers"))

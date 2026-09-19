@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -97,7 +97,7 @@ public abstract class PdfAcroField : PdfDictionary
     {
         get
         {
-            string name = Elements.GetString(Keys.T);
+            var name = Elements.GetString(Keys.T);
             return name;
         }
         set
@@ -226,7 +226,7 @@ public abstract class PdfAcroField : PdfDictionary
                 + "before putting it on a page, or the widget has no parent to point at.");
         }
 
-        PdfWidgetAnnotation widget = new PdfWidgetAnnotation(Owner);
+        var widget = new PdfWidgetAnnotation(Owner);
         page.Annotations.Add(widget);
 
         widget.Rectangle = rectangle;
@@ -322,7 +322,7 @@ public abstract class PdfAcroField : PdfDictionary
     {
         get
         {
-            PdfItem item = Elements[Keys.Kids];
+            var item = Elements[Keys.Kids];
             if (item is PdfReference reference)
                 item = reference.Value;
 
@@ -335,14 +335,14 @@ public abstract class PdfAcroField : PdfDictionary
     /// </summary>
     public string[] GetDescendantNames()
     {
-        List<string> names = new List<string>();
+        var names = new List<string>();
         if (HasKids)
         {
-            PdfAcroFieldCollection fields = Fields;
+            var fields = Fields;
             fields.GetDescendantNames(ref names, null);
         }
-        List<string> temp = new List<string>();
-        foreach (string name in names)
+        var temp = new List<string>();
+        foreach (var name in names)
             temp.Add(name);
         return temp.ToArray();
     }
@@ -352,20 +352,20 @@ public abstract class PdfAcroField : PdfDictionary
     /// </summary>
     public string[] GetAppearanceNames()
     {
-        Dictionary<string, object> names = new Dictionary<string, object>();
-        PdfDictionary dict = Elements["/AP"] as PdfDictionary;
+        var names = new Dictionary<string, object>();
+        var dict = Elements["/AP"] as PdfDictionary;
         if (dict != null)
         {
             AppDict(dict, names);
 
             if (HasKids)
             {
-                PdfItem[] kids = Fields.Elements.Items;
-                foreach (PdfItem pdfItem in kids)
+                var kids = Fields.Elements.Items;
+                foreach (var pdfItem in kids)
                 {
                     if (pdfItem is PdfReference)
                     {
-                        PdfDictionary xxx = ((PdfReference)pdfItem).Value as PdfDictionary;
+                        var xxx = ((PdfReference)pdfItem).Value as PdfDictionary;
                         if (xxx != null)
                             AppDict(xxx, names);
                     }
@@ -374,7 +374,7 @@ public abstract class PdfAcroField : PdfDictionary
 
             }
         }
-        string[] array = new string[names.Count];
+        var array = new string[names.Count];
         names.Keys.CopyTo(array, 0);
         return array;
     }
@@ -419,7 +419,7 @@ public abstract class PdfAcroField : PdfDictionary
 
     static void AppDict2(PdfDictionary dict, Dictionary<string, object> names)
     {
-        foreach (string key in dict.Elements.Keys)
+        foreach (var key in dict.Elements.Keys)
         {
             if (!names.ContainsKey(key))
                 names.Add(key, null);
@@ -465,13 +465,13 @@ public abstract class PdfAcroField : PdfDictionary
     /// </remarks>
     internal virtual void GetDescendantNames(ref List<string> names, string partialName)
     {
-        string t = Elements.GetString(Keys.T);
+        var t = Elements.GetString(Keys.T);
         if (t.Length == 0)
             return;
 
-        string path = String.IsNullOrEmpty(partialName) ? t : partialName + "." + t;
+        var path = String.IsNullOrEmpty(partialName) ? t : partialName + "." + t;
 
-        int before = names.Count;
+        var before = names.Count;
         if (HasKids)
             Fields.GetDescendantNames(ref names, path);
 
@@ -573,9 +573,9 @@ public abstract class PdfAcroField : PdfDictionary
         {
             get
             {
-                int count = Elements.Count;
-                string[] names = new string[count];
-                for (int idx = 0; idx < count; idx++)
+                var count = Elements.Count;
+                var names = new string[count];
+                for (var idx = 0; idx < count; idx++)
                     names[idx] = ((PdfDictionary)((PdfReference)Elements[idx]).Value).Elements.GetString(Keys.T);
                 return names;
             }
@@ -588,7 +588,7 @@ public abstract class PdfAcroField : PdfDictionary
         {
             get
             {
-                List<string> names = new List<string>();
+                var names = new List<string>();
                 GetDescendantNames(ref names, null);
                 //List<string> temp = new List<string>();
                 //foreach (PdfName name in names)
@@ -599,10 +599,10 @@ public abstract class PdfAcroField : PdfDictionary
 
         internal void GetDescendantNames(ref List<string> names, string partialName)
         {
-            int count = Elements.Count;
-            for (int idx = 0; idx < count; idx++)
+            var count = Elements.Count;
+            for (var idx = 0; idx < count; idx++)
             {
-                PdfAcroField field = this[idx];
+                var field = this[idx];
                 if (field != null)
                     field.GetDescendantNames(ref names, partialName);
             }
@@ -618,11 +618,11 @@ public abstract class PdfAcroField : PdfDictionary
         {
             get
             {
-                PdfItem item = Elements[index];
+                var item = Elements[index];
                 Debug.Assert(item is PdfReference);
-                PdfDictionary dict = ((PdfReference)item).Value as PdfDictionary;
+                var dict = ((PdfReference)item).Value as PdfDictionary;
                 Debug.Assert(dict != null);
-                PdfAcroField field = dict as PdfAcroField;
+                var field = dict as PdfAcroField;
                 if (field == null && dict != null)
                 {
                     // Do type transformation
@@ -643,14 +643,14 @@ public abstract class PdfAcroField : PdfDictionary
             if (String.IsNullOrEmpty(name))
                 return null;
 
-            int dot = name.IndexOf('.');
-            string prefix = dot == -1 ? name : name.Substring(0, dot);
-            string suffix = dot == -1 ? "" : name.Substring(dot + 1);
+            var dot = name.IndexOf('.');
+            var prefix = dot == -1 ? name : name[..dot];
+            var suffix = dot == -1 ? "" : name[(dot + 1)..];
 
-            int count = Elements.Count;
-            for (int idx = 0; idx < count; idx++)
+            var count = Elements.Count;
+            for (var idx = 0; idx < count; idx++)
             {
-                PdfAcroField field = this[idx];
+                var field = this[idx];
                 if (field.Name == prefix)
                     return field.GetValue(suffix);
             }
@@ -664,8 +664,8 @@ public abstract class PdfAcroField : PdfDictionary
         /// </summary>
         static PdfAcroField CreateAcroField(PdfDictionary dict)
         {
-            string ft = dict.Elements.GetName(Keys.FT);
-            PdfAcroFieldFlags flags = (PdfAcroFieldFlags)dict.Elements.GetInteger(Keys.Ff);
+            var ft = dict.Elements.GetName(Keys.FT);
+            var flags = (PdfAcroFieldFlags)dict.Elements.GetInteger(Keys.Ff);
             switch (ft)
             {
                 case "/Btn":
@@ -696,7 +696,7 @@ public abstract class PdfAcroField : PdfDictionary
     }
 
     /// <summary>
-    /// Predefined keys of this dictionary. 
+    /// Predefined keys of this dictionary.
     /// The description comes from PDF 1.4 Reference.
     /// </summary>
     public class Keys : KeysBase
@@ -751,7 +751,7 @@ public abstract class PdfAcroField : PdfDictionary
         public const string TU = "/TU";
 
         /// <summary>
-        /// (Optional; PDF 1.3) The mapping name to be used when exporting interactive form field 
+        /// (Optional; PDF 1.3) The mapping name to be used when exporting interactive form field
         /// data from the document.
         /// </summary>
         [KeyInfo(KeyType.TextString | KeyType.Optional)]
@@ -824,14 +824,14 @@ public abstract class PdfAcroField : PdfDictionary
         public const string Type = "/Type";
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         [KeyInfo(KeyType.Name | KeyType.Required)]
         public const string Subtype = "/Subtype";
 
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         [KeyInfo(KeyType.Rectangle | KeyType.Required)]
         public const string Rect = "/Rect";

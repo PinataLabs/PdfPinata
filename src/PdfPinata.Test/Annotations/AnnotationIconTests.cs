@@ -39,7 +39,7 @@ public class AnnotationIconTests
     [MemberData(nameof(AttachmentIcons))]
     public void AnAttachmentIconReadsBackAsItWasSet(PdfFileAttachmentAnnotation.IconType icon)
     {
-        PdfFileAttachmentAnnotation attachment = OnAPage(new PdfFileAttachmentAnnotation());
+        var attachment = OnAPage(new PdfFileAttachmentAnnotation());
 
         attachment.Icon = icon;
 
@@ -52,7 +52,7 @@ public class AnnotationIconTests
     [Fact]
     public void AnAttachmentWithNoIconIsAPushPin()
     {
-        PdfFileAttachmentAnnotation attachment = OnAPage(new PdfFileAttachmentAnnotation());
+        var attachment = OnAPage(new PdfFileAttachmentAnnotation());
 
         // The default ISO 32000-1 Table 184 gives the entry. The old guard tested the name
         // against null, which GetName never returns, so this threw rather than defaulting.
@@ -63,7 +63,7 @@ public class AnnotationIconTests
     [Fact]
     public void AnAttachmentNamingAnIconThisEnumerationLacksIsAPushPin()
     {
-        PdfFileAttachmentAnnotation attachment = OnAPage(new PdfFileAttachmentAnnotation());
+        var attachment = OnAPage(new PdfFileAttachmentAnnotation());
         attachment.Elements.SetName("/Name", "/Sellotape");
 
         attachment.Icon.Should().Be(PdfFileAttachmentAnnotation.IconType.PushPin);
@@ -72,7 +72,7 @@ public class AnnotationIconTests
     [Fact]
     public void AnAttachmentIconOutsideTheEnumerationIsNotWritten()
     {
-        PdfFileAttachmentAnnotation attachment = OnAPage(new PdfFileAttachmentAnnotation());
+        var attachment = OnAPage(new PdfFileAttachmentAnnotation());
         attachment.Icon = PdfFileAttachmentAnnotation.IconType.Tag;
 
         attachment.Icon = (PdfFileAttachmentAnnotation.IconType)42;
@@ -87,7 +87,7 @@ public class AnnotationIconTests
     [MemberData(nameof(TextIcons))]
     public void ANoteIconReadsBackAsItWasSet(PdfTextAnnotationIcon icon)
     {
-        PdfTextAnnotation note = OnAPage(new PdfTextAnnotation());
+        var note = OnAPage(new PdfTextAnnotation());
 
         note.Icon = icon;
 
@@ -98,7 +98,7 @@ public class AnnotationIconTests
     [MemberData(nameof(StampIcons))]
     public void AStampIconReadsBackAsItWasSet(PdfRubberStampAnnotationIcon icon)
     {
-        PdfRubberStampAnnotation stamp = OnAPage(new PdfRubberStampAnnotation());
+        var stamp = OnAPage(new PdfRubberStampAnnotation());
 
         stamp.Icon = icon;
 
@@ -108,11 +108,11 @@ public class AnnotationIconTests
     [Fact]
     public void ANoteOrStampNamingAnIconThatIsNotKnownHasNone()
     {
-        PdfTextAnnotation note = OnAPage(new PdfTextAnnotation());
+        var note = OnAPage(new PdfTextAnnotation());
         note.Elements.SetName("/Name", "/Semaphore");
         note.Icon.Should().Be(PdfTextAnnotationIcon.NoIcon);
 
-        PdfRubberStampAnnotation stamp = OnAPage(new PdfRubberStampAnnotation());
+        var stamp = OnAPage(new PdfRubberStampAnnotation());
         stamp.Elements.SetName("/Name", "/Semaphore");
         stamp.Icon.Should().Be(PdfRubberStampAnnotationIcon.NoIcon);
     }
@@ -122,7 +122,7 @@ public class AnnotationIconTests
     {
         // Enum.TryParse would accept "1" and hand back whichever member is 1, so a document
         // naming its icon /1 would come back as a real icon. Enum.IsDefined checks the name.
-        PdfTextAnnotation note = OnAPage(new PdfTextAnnotation());
+        var note = OnAPage(new PdfTextAnnotation());
         note.Elements.SetName("/Name", "/1");
 
         note.Icon.Should().Be(PdfTextAnnotationIcon.NoIcon);
@@ -133,29 +133,29 @@ public class AnnotationIconTests
     {
         // The thing the broken getter tripped over, pinned from the writing side: what goes into
         // the dictionary is a PDF name, and a PDF name starts with a solidus.
-        PdfTextAnnotation note = OnAPage(new PdfTextAnnotation());
+        var note = OnAPage(new PdfTextAnnotation());
         note.Icon = PdfTextAnnotationIcon.Key;
         note.Elements.GetName("/Name").Should().Be("/Key");
 
-        PdfRubberStampAnnotation stamp = OnAPage(new PdfRubberStampAnnotation());
+        var stamp = OnAPage(new PdfRubberStampAnnotation());
         stamp.Icon = PdfRubberStampAnnotationIcon.Draft;
         stamp.Elements.GetName("/Name").Should().Be("/Draft");
 
-        PdfFileAttachmentAnnotation attachment = OnAPage(new PdfFileAttachmentAnnotation());
+        var attachment = OnAPage(new PdfFileAttachmentAnnotation());
         attachment.Icon = PdfFileAttachmentAnnotation.IconType.Paperclip;
         attachment.Elements.GetName("/Name").Should().Be("/Paperclip");
     }
 
     static TheoryData<T> Icons<T>() where T : struct, Enum
     {
-        TheoryData<T> data = new TheoryData<T>();
+        var data = new TheoryData<T>();
 
         // NoIcon is the absence of one - its setter removes the entry rather than writing a name -
         // so it is not a round trip and is covered on its own above.
-        IEnumerable<T> icons = Enum.GetValues<T>()
+        var icons = Enum.GetValues<T>()
             .Where(icon => icon.ToString() != "NoIcon");
 
-        foreach (T icon in icons)
+        foreach (var icon in icons)
             data.Add(icon);
 
         return data;
@@ -163,7 +163,7 @@ public class AnnotationIconTests
 
     static T OnAPage<T>(T annotation) where T : PdfAnnotation
     {
-        PdfDocument document = new PdfDocument();
+        var document = new PdfDocument();
         document.AddPage().Annotations.Add(annotation);
         return annotation;
     }

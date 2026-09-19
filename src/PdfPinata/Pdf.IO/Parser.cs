@@ -90,8 +90,8 @@ internal sealed class Parser
     public PdfObjectID ReadObjectNumber(int position)
     {
         _lexer.Position = position;
-        int objectNumber = ReadInteger();
-        int generationNumber = ReadInteger();
+        var objectNumber = ReadInteger();
+        var generationNumber = ReadInteger();
         return new PdfObjectID(objectNumber, generationNumber);
     }
 
@@ -108,8 +108,8 @@ internal sealed class Parser
     public PdfObject ReadObject(PdfObject pdfObject, PdfObjectID objectID, bool includeReferences,
         bool fromObjecStream)
     {
-        int objectNumber = objectID.ObjectNumber;
-        int generationNumber = objectID.GenerationNumber;
+        var objectNumber = objectID.ObjectNumber;
+        var generationNumber = objectID.GenerationNumber;
         if (!fromObjecStream)
         {
             MoveToObject(objectID);
@@ -127,8 +127,8 @@ internal sealed class Parser
         if (!fromObjecStream)
             ReadSymbol(Symbol.Obj);
 
-        bool checkForStream = false;
-        Symbol symbol = ScanNextToken();
+        var checkForStream = false;
+        var symbol = ScanNextToken();
         switch (symbol)
         {
             case Symbol.BeginArray:
@@ -242,10 +242,10 @@ internal sealed class Parser
         symbol = ScanNextToken();
         if (symbol == Symbol.BeginStream)
         {
-            PdfDictionary dict = (PdfDictionary)pdfObject;
+            var dict = (PdfDictionary)pdfObject;
             Debug.Assert(checkForStream, "Unexpected stream...");
             var startOfStream = _lexer.Position;
-            byte[] bytes = TheStreamTheDictionaryDescribes(dict, startOfStream);
+            var bytes = TheStreamTheDictionaryDescribes(dict, startOfStream);
 
             if (bytes == null)
             {
@@ -288,7 +288,7 @@ internal sealed class Parser
     private void ReadEndObject()
     {
         var endOfObject = _lexer.Position;
-        Symbol symbol = _lexer.ScanNextToken();
+        var symbol = _lexer.ScanNextToken();
         if (symbol != Symbol.EndObj)
             EndObject(symbol, endOfObject);
     }
@@ -358,7 +358,7 @@ internal sealed class Parser
         var state = SaveState();
         try
         {
-            Symbol generationNumber = _lexer.ScanNextToken();
+            var generationNumber = _lexer.ScanNextToken();
             if (generationNumber != Symbol.Integer && generationNumber != Symbol.UInteger)
                 return false;
 
@@ -375,11 +375,11 @@ internal sealed class Parser
     /// </summary>
     private void ReadStream(PdfDictionary dict)
     {
-        Symbol symbol = _lexer.Symbol;
+        var symbol = _lexer.Symbol;
         Debug.Assert(symbol == Symbol.BeginStream);
         Debug.Assert(dict.Stream == null, "Dictionary already has a stream.");
         var startOfStream = _lexer.Position;
-        byte[] bytes = TheStreamTheDictionaryDescribes(dict, startOfStream);
+        var bytes = TheStreamTheDictionaryDescribes(dict, startOfStream);
         if (bytes == null)
         {
             if (!TryReadStreamUpToEndOfStream(dict, startOfStream))
@@ -410,11 +410,11 @@ internal sealed class Parser
     /// </summary>
     private byte[] TheStreamTheDictionaryDescribes(PdfDictionary dict, long startOfStream)
     {
-        int length = GetStreamLength(dict);
+        var length = GetStreamLength(dict);
         if (length < 0 || startOfStream + length > _lexer.PdfLength)
             return null;
 
-        byte[] bytes = _lexer.ReadStream(length);
+        var bytes = _lexer.ReadStream(length);
         // The end-of-line behind the "stream" keyword is not part of the data and is not counted
         // in startOfStream, so a length can clear the check above and still run the file out of
         // bytes. What came back short is not the stream the dictionary described, and taking it
@@ -454,7 +454,7 @@ internal sealed class Parser
     /// </summary>
     private static byte[] WithoutTheEndOfLineBeforeTheKeyword(byte[] bytes)
     {
-        int end = bytes.Length;
+        var end = bytes.Length;
         if (end > 0 && bytes[end - 1] == (byte)Chars.LF)
             end--;
         if (end > 0 && bytes[end - 1] == (byte)Chars.CR)
@@ -541,14 +541,14 @@ internal sealed class Parser
         if (array == null)
             array = new PdfArray(_document);
 
-        int sp = _stack.SP;
+        var sp = _stack.SP;
         ParseObject(Symbol.EndArray);
-        int count = _stack.SP - sp;
-        PdfItem[] items = _stack.ToArray(sp, count);
+        var count = _stack.SP - sp;
+        var items = _stack.ToArray(sp, count);
         _stack.Reduce(count);
-        for (int idx = 0; idx < count; idx++)
+        for (var idx = 0; idx < count; idx++)
         {
-            PdfItem val = items[idx];
+            var val = items[idx];
             if (includeReferences && val is PdfReference)
                 val = ReadReference((PdfReference)val, true);
             array.Elements.Add(val);
@@ -563,20 +563,20 @@ internal sealed class Parser
 
         if (dict == null)
             dict = new PdfDictionary(_document);
-        DictionaryMeta meta = dict.Meta;
+        var meta = dict.Meta;
 
-        int sp = _stack.SP;
+        var sp = _stack.SP;
         ParseObject(Symbol.EndDictionary);
-        int count = _stack.SP - sp;
-        PdfItem[] items = _stack.ToArray(sp, count);
+        var count = _stack.SP - sp;
+        var items = _stack.ToArray(sp, count);
         _stack.Reduce(count);
         // An entry is a name followed by a value, but writers do produce dictionaries that do not
         // hold to that: pdfTeX writes its PTEX.FullBanner as two strings with no key in front of
         // them, and a truncated dictionary leaves a key with no value behind it. Keep the pairs
         // that are there, and drop what cannot be paired up rather than refusing the document.
-        for (int idx = 0; idx + 1 < count;)
+        for (var idx = 0; idx + 1 < count;)
         {
-            PdfItem val = items[idx];
+            var val = items[idx];
             if (!(val is PdfName))
             {
                 // A value with nothing to key it under. Step over it alone, so that the entries
@@ -585,7 +585,7 @@ internal sealed class Parser
                 continue;
             }
 
-            string key = val.ToString();
+            var key = val.ToString();
             val = items[idx + 1];
             if (includeReferences && val is PdfReference)
                 val = ReadReference((PdfReference)val, true);
@@ -608,7 +608,7 @@ internal sealed class Parser
             Symbol.UnicodeString => PdfStringFlags.Unicode,
             Symbol.HexString => PdfStringFlags.HexLiteral,
             Symbol.UnicodeHexString => PdfStringFlags.Unicode | PdfStringFlags.HexLiteral,
-            _ => PdfStringFlags.RawEncoding,
+            _ => PdfStringFlags.RawEncoding
         };
     }
 
@@ -667,9 +667,9 @@ internal sealed class Parser
                 case Symbol.R:
                 {
                     Debug.Assert(_stack.GetItem(-1) is PdfInteger && _stack.GetItem(-2) is PdfInteger);
-                    PdfObjectID objectID = new PdfObjectID(_stack.GetInteger(-2), _stack.GetInteger(-1));
+                    var objectID = new PdfObjectID(_stack.GetInteger(-2), _stack.GetInteger(-1));
 
-                    PdfReference iref = _document._irefTable[objectID];
+                    var iref = _document._irefTable[objectID];
                     if (iref == null)
                     {
                         // If a document has more than one PdfXRefTable it is possible that the first trailer has
@@ -698,13 +698,13 @@ internal sealed class Parser
                 }
 
                 case Symbol.BeginArray:
-                    PdfArray array = new PdfArray(_document);
+                    var array = new PdfArray(_document);
                     ReadArray(array, false);
                     _stack.Shift(array);
                     break;
 
                 case Symbol.BeginDictionary:
-                    PdfDictionary dict = new PdfDictionary(_document);
+                    var dict = new PdfDictionary(_document);
                     ReadDictionary(dict, false);
                     _stack.Shift(dict);
                     break;
@@ -748,7 +748,7 @@ internal sealed class Parser
 
     private Symbol ScanNextToken(out string token)
     {
-        Symbol symbol = _lexer.ScanNextToken();
+        var symbol = _lexer.ScanNextToken();
         token = _lexer.Token;
         return symbol;
     }
@@ -773,8 +773,8 @@ internal sealed class Parser
 
     private Symbol SkipCharsUntil(string text, Symbol stop)
     {
-        int length = text.Length;
-        int idx = 0;
+        var length = text.Length;
+        var idx = 0;
         char ch;
         while ((ch = _lexer.ScanNextChar(true)) != Chars.EOF)
         {
@@ -818,8 +818,8 @@ internal sealed class Parser
     /// </summary>
     private void ReadObjectID(PdfObject obj)
     {
-        int objectNubmer = ReadInteger();
-        int generationNumber = ReadInteger();
+        var objectNubmer = ReadInteger();
+        var generationNumber = ReadInteger();
         ReadSymbol(Symbol.Obj);
         if (obj != null)
             obj.SetObjectID(objectNubmer, generationNumber);
@@ -835,7 +835,7 @@ internal sealed class Parser
     /// </summary>
     private Symbol ReadSymbol(Symbol symbol)
     {
-        Symbol current = _lexer.ScanNextToken();
+        var current = _lexer.ScanNextToken();
         if (symbol != current && current != Symbol.Eof)
             ParserDiagnostics.HandleUnexpectedToken(_lexer.Token);
         return current;
@@ -846,7 +846,7 @@ internal sealed class Parser
     /// </summary>
     private Symbol ReadToken(string token)
     {
-        Symbol current = _lexer.ScanNextToken();
+        var current = _lexer.ScanNextToken();
         if (token != _lexer.Token)
             ParserDiagnostics.HandleUnexpectedToken(_lexer.Token);
         return current;
@@ -858,7 +858,7 @@ internal sealed class Parser
     private string ReadName()
     {
         string name;
-        Symbol symbol = ScanNextToken(out name);
+        var symbol = ScanNextToken(out name);
         if (symbol != Symbol.Name)
             ParserDiagnostics.HandleUnexpectedToken(name);
         return name;
@@ -923,7 +923,7 @@ internal sealed class Parser
     /// </summary>
     private int ReadInteger(bool canBeIndirect)
     {
-        Symbol symbol = _lexer.ScanNextToken();
+        var symbol = _lexer.ScanNextToken();
         if (symbol == Symbol.Integer)
             return _lexer.TokenToInteger;
 
@@ -932,7 +932,7 @@ internal sealed class Parser
             var position = _lexer.Position;
             //        MoveToObject(lexer.Token);
             ReadObjectID(null);
-            int n = ReadInteger();
+            var n = ReadInteger();
             ReadSymbol(Symbol.EndObj);
             _lexer.Position = position;
             return n;
@@ -957,7 +957,7 @@ internal sealed class Parser
     /// </summary>
     private long ReadLong(bool canBeIndirect)
     {
-        Symbol symbol = _lexer.ScanNextToken();
+        var symbol = _lexer.ScanNextToken();
         if (symbol == Symbol.Long)
             return _lexer.TokenToLong;
 
@@ -968,7 +968,7 @@ internal sealed class Parser
         {
             var position = _lexer.Position;
             ReadObjectID(null);
-            int n = ReadInteger();
+            var n = ReadInteger();
             ReadSymbol(Symbol.EndObj);
             _lexer.Position = position;
             return n;
@@ -1026,7 +1026,7 @@ internal sealed class Parser
     {
         ArgumentNullException.ThrowIfNull(owner);
 
-        Parser parser = new Parser(owner);
+        var parser = new Parser(owner);
         return parser.ReadObject(null, objectID, false, false);
     }
 
@@ -1037,7 +1037,7 @@ internal sealed class Parser
     internal void ReadIRefsFromCompressedObject(PdfObjectID objectID)
     {
         Debug.Assert(_document._irefTable.Contains(objectID));
-        PdfReference iref = _document._irefTable[objectID];
+        var iref = _document._irefTable[objectID];
         if (iref == null)
         {
             // We should never come here because the object stream must be a type 1 entry in the xref stream
@@ -1051,8 +1051,8 @@ internal sealed class Parser
             try
             {
                 Debug.Assert(_document._irefTable.Contains(iref.ObjectID));
-                PdfDictionary pdfObject = (PdfDictionary)ReadObject(null, iref.ObjectID, false, false);
-                PdfObjectStream objectStream = new PdfObjectStream(pdfObject);
+                var pdfObject = (PdfDictionary)ReadObject(null, iref.ObjectID, false, false);
+                var objectStream = new PdfObjectStream(pdfObject);
                 Debug.Assert(objectStream.Reference == iref);
                 // objectStream.Reference = iref; Superfluous, see Assert in line before.
                 Debug.Assert(objectStream.Reference.Value != null, "Something went wrong.");
@@ -1066,7 +1066,7 @@ internal sealed class Parser
 
         Debug.Assert(iref.Value != null);
 
-        PdfObjectStream objectStreamStream = iref.Value as PdfObjectStream;
+        var objectStreamStream = iref.Value as PdfObjectStream;
         if (objectStreamStream == null)
         {
             Debug.Assert(((PdfDictionary)iref.Value).Elements.GetName("/Type") == "/ObjStm");
@@ -1087,7 +1087,7 @@ internal sealed class Parser
     internal PdfReference ReadCompressedObject(PdfObjectID objectID, int index)
     {
         Debug.Assert(_document._irefTable.Contains(objectID));
-        PdfReference iref = _document._irefTable[objectID];
+        var iref = _document._irefTable[objectID];
         if (iref == null)
         {
             throw new NotImplementedException("This case is not coded or something else went wrong");
@@ -1099,8 +1099,8 @@ internal sealed class Parser
             try
             {
                 Debug.Assert(_document._irefTable.Contains(iref.ObjectID));
-                PdfDictionary pdfObject = (PdfDictionary)ReadObject(null, iref.ObjectID, false, false);
-                PdfObjectStream objectStream = new PdfObjectStream(pdfObject);
+                var pdfObject = (PdfDictionary)ReadObject(null, iref.ObjectID, false, false);
+                var objectStream = new PdfObjectStream(pdfObject);
                 Debug.Assert(objectStream.Reference == iref);
                 // objectStream.Reference = iref; Superfluous, see Assert in line before.
                 Debug.Assert(objectStream.Reference.Value != null, "Something went wrong.");
@@ -1114,7 +1114,7 @@ internal sealed class Parser
 
         Debug.Assert(iref.Value != null);
 
-        PdfObjectStream objectStreamStream = iref.Value as PdfObjectStream;
+        var objectStreamStream = iref.Value as PdfObjectStream;
         if (objectStreamStream == null)
         {
             Debug.Assert(((PdfDictionary)iref.Value).Elements.GetName("/Type") == "/ObjStm");
@@ -1135,9 +1135,9 @@ internal sealed class Parser
     internal PdfReference ReadCompressedObject(int objectNumber, int offset)
     {
         // Generation is always 0 for compressed objects.
-        PdfObjectID objectID = new PdfObjectID(objectNumber);
+        var objectID = new PdfObjectID(objectNumber);
         _lexer.Position = offset;
-        PdfObject obj = ReadObject(null, objectID, false, true);
+        var obj = ReadObject(null, objectID, false, true);
 
         // Remember where it came from, so that decrypting the document afterwards knows to leave
         // this object's strings alone: the object stream it was in was decrypted as a whole, and
@@ -1159,11 +1159,11 @@ internal sealed class Parser
         // Make it sense to do a more detailed error checking?
 
         // Create n pairs of integers with object number and offset.
-        int[][] header = new int[n][];
-        for (int idx = 0; idx < n; idx++)
+        var header = new int[n][];
+        for (var idx = 0; idx < n; idx++)
         {
-            int number = ReadInteger();
-            int offset = ReadInteger() + first; // Calculate absolute offset.
+            var number = ReadInteger();
+            var offset = ReadInteger() + first; // Calculate absolute offset.
             header[idx] = new int[] { number, offset };
         }
 
@@ -1184,14 +1184,14 @@ internal sealed class Parser
         if (length <= 1030)
         {
             // Reading the final 30 bytes should work for all files. But often it does not.
-            string trail = _lexer.ReadRawString(length - 31, 30); //lexer.Pdf.Substring(length - 30);
+            var trail = _lexer.ReadRawString(length - 31, 30); //lexer.Pdf.Substring(length - 30);
             idx = trail.LastIndexOf("startxref", StringComparison.Ordinal);
             _lexer.Position = length - 31 + idx;
         }
         else
         {
             // For larger files we read 1 kiB - in most cases we find "startxref" in that range.
-            string trail = _lexer.ReadRawString(length - 1031, 1030);
+            var trail = _lexer.ReadRawString(length - 1031, 1030);
             idx = trail.LastIndexOf("startxref", StringComparison.Ordinal);
             _lexer.Position = length - 1031 + idx;
         }
@@ -1220,12 +1220,12 @@ internal sealed class Parser
         PdfTrailer firstTrailer = null;
         while (true)
         {
-            PdfTrailer trailer = ReadXRefTableAndTrailer(_document._irefTable, accuracy);
+            var trailer = ReadXRefTableAndTrailer(_document._irefTable, accuracy);
 
             // 1st trailer seems to be the best.
             if (firstTrailer == null)
                 firstTrailer = trailer;
-            int prev = trailer != null ? trailer.Elements.GetInteger(PdfTrailer.Keys.Prev) : 0;
+            var prev = trailer != null ? trailer.Elements.GetInteger(PdfTrailer.Keys.Prev) : 0;
             if (prev == 0)
                 break;
 
@@ -1244,7 +1244,7 @@ internal sealed class Parser
     {
         Debug.Assert(xrefTable != null);
 
-        Symbol symbol = ScanNextToken();
+        var symbol = ScanNextToken();
 
         if (symbol == Symbol.XRef) // Is it a cross-reference table?
         {
@@ -1254,14 +1254,14 @@ internal sealed class Parser
                 symbol = ScanNextToken();
                 if (symbol == Symbol.Integer)
                 {
-                    int start = _lexer.TokenToInteger;
-                    int length = ReadInteger();
-                    for (int id = start; id < start + length; id++)
+                    var start = _lexer.TokenToInteger;
+                    var length = ReadInteger();
+                    for (var id = start; id < start + length; id++)
                     {
                         var position = ReadLong();
-                        int generation = ReadInteger();
+                        var generation = ReadInteger();
                         ReadSymbol(Symbol.Keyword);
-                        string token = _lexer.Token;
+                        var token = _lexer.Token;
 
                         // Skip start entry
                         if (id == 0)
@@ -1273,7 +1273,7 @@ internal sealed class Parser
 
                         //!!!new 2018-03-14 begin
                         // Check if the object at the address has the correct ID and generation.
-                        int idToUse = id;
+                        var idToUse = id;
                         int idChecked, generationChecked;
                         if (!CheckXRefTableEntry(position, id, generation, out idChecked, out generationChecked))
                         {
@@ -1292,7 +1292,7 @@ internal sealed class Parser
 
                         // Even it is restricted, an object can exists in more than one subsection.
                         // (PDF Reference Implementation Notes 15).
-                        PdfObjectID objectID = new PdfObjectID(idToUse, generation);
+                        var objectID = new PdfObjectID(idToUse, generation);
 
                         // Ignore the latter one.
                         if (xrefTable.Contains(objectID))
@@ -1303,7 +1303,7 @@ internal sealed class Parser
                 else if (symbol == Symbol.Trailer)
                 {
                     ReadSymbol(Symbol.BeginDictionary);
-                    PdfTrailer trailer = new PdfTrailer(_document);
+                    var trailer = new PdfTrailer(_document);
                     ReadDictionary(trailer, false);
                     return trailer;
                 }
@@ -1349,7 +1349,7 @@ internal sealed class Parser
             //// TODO Should we use ScanKeyword here?
             //ReadKSymbol(Symbol.Keyword);
             //string token = _lexer.Token;
-            Symbol symbol = _lexer.ScanNextToken();
+            var symbol = _lexer.ScanNextToken();
             if (symbol != Symbol.Obj)
                 ParserDiagnostics.ThrowParserException("Invalid entry in XRef table, ID=" + id + ", Generation=" +
                                                        generation + ", Position=" + position);
@@ -1383,15 +1383,15 @@ internal sealed class Parser
         // Read cross reference stream.
         //Debug.Assert(_lexer.Symbol == Symbol.Integer);
 
-        int number = _lexer.TokenToInteger;
-        int generation = ReadInteger();
+        var number = _lexer.TokenToInteger;
+        var generation = ReadInteger();
         Debug.Assert(generation == 0);
 
         ReadSymbol(Symbol.Obj);
         ReadSymbol(Symbol.BeginDictionary);
-        PdfObjectID objectID = new PdfObjectID(number, generation);
+        var objectID = new PdfObjectID(number, generation);
 
-        PdfCrossReferenceStream xrefStream = new PdfCrossReferenceStream(_document);
+        var xrefStream = new PdfCrossReferenceStream(_document);
 
         ReadDictionary(xrefStream, false);
         ReadSymbol(Symbol.BeginStream);
@@ -1403,7 +1403,7 @@ internal sealed class Parser
         // Making sure that the iref.Value is set here correctly ensure that the mechanisms in PdfReader will work correctly:
         // 1. It needs to find a PdfCrossReferenceStream in iref.Value in order to resolve compressed objects.
         // 2. If we leave null in iref.Value it would do redundant parsing to resolve the value again.
-        PdfReference iref = xrefTable[objectID];
+        var iref = xrefTable[objectID];
         if (iref != null)
         {
             if (iref.Value == null)
@@ -1422,17 +1422,17 @@ internal sealed class Parser
         Debug.Assert(xrefStream.Stream != null);
         var bytes = xrefStream.Stream.UnfilteredValue;
 
-        int size = xrefStream.Elements.GetInteger(PdfCrossReferenceStream.Keys.Size);
-        PdfArray index = xrefStream.Elements.GetValue(PdfCrossReferenceStream.Keys.Index) as PdfArray;
-        int prev = xrefStream.Elements.GetInteger(PdfCrossReferenceStream.Keys.Prev);
-        PdfArray w = (PdfArray)xrefStream.Elements.GetValue(PdfCrossReferenceStream.Keys.W);
+        var size = xrefStream.Elements.GetInteger(PdfCrossReferenceStream.Keys.Size);
+        var index = xrefStream.Elements.GetValue(PdfCrossReferenceStream.Keys.Index) as PdfArray;
+        var prev = xrefStream.Elements.GetInteger(PdfCrossReferenceStream.Keys.Prev);
+        var w = (PdfArray)xrefStream.Elements.GetValue(PdfCrossReferenceStream.Keys.W);
 
         // E.g.: W[1 2 1] ¤ Index[7 12] ¤ Size 19
 
         // Setup subsections.
         int subsectionCount;
         int[][] subsections = null;
-        int subsectionEntryCount = 0;
+        var subsectionEntryCount = 0;
         if (index == null)
         {
             // Setup with default values.
@@ -1447,7 +1447,7 @@ internal sealed class Parser
             Debug.Assert(index.Elements.Count % 2 == 0);
             subsectionCount = index.Elements.Count / 2;
             subsections = new int[subsectionCount][];
-            for (int idx = 0; idx < subsectionCount; idx++)
+            for (var idx = 0; idx < subsectionCount; idx++)
             {
                 subsections[idx] = new int[]
                     { index.Elements.GetInteger(2 * idx), index.Elements.GetInteger(2 * idx + 1) };
@@ -1458,20 +1458,20 @@ internal sealed class Parser
         // W key.
         Debug.Assert(w.Elements.Count == 3);
         int[] wsize = { w.Elements.GetInteger(0), w.Elements.GetInteger(1), w.Elements.GetInteger(2) };
-        int wsum = StreamHelper.WSize(wsize);
+        var wsum = StreamHelper.WSize(wsize);
         Debug.Assert(wsum * subsectionEntryCount == bytes.Length, "Check implementation here.");
-        int testcount = subsections[0][1];
-        int[] currentSubsection = subsections[0];
+        var testcount = subsections[0][1];
+        var currentSubsection = subsections[0];
 
-        int index2 = -1;
-        for (int ssc = 0; ssc < subsectionCount; ssc++)
+        var index2 = -1;
+        for (var ssc = 0; ssc < subsectionCount; ssc++)
         {
-            int abc = subsections[ssc][1];
-            for (int idx = 0; idx < abc; idx++)
+            var abc = subsections[ssc][1];
+            for (var idx = 0; idx < abc; idx++)
             {
                 index2++;
 
-                PdfCrossReferenceStream.CrossReferenceStreamEntry item =
+                var item =
                     new PdfCrossReferenceStream.CrossReferenceStreamEntry();
 
                 item.Type = StreamHelper.ReadBytes(bytes, index2 * wsum, wsize[0]);
@@ -1490,7 +1490,7 @@ internal sealed class Parser
                         //// Even it is restricted, an object can exists in more than one subsection.
                         //// (PDF Reference Implementation Notes 15).
 
-                        int position = (int)item.Field2;
+                        var position = (int)item.Field2;
                         objectID = ReadObjectNumber(position);
                         Debug.Assert(objectID.GenerationNumber == item.Field3);
 
@@ -1527,16 +1527,16 @@ internal sealed class Parser
     /// </remarks>
     internal static DateTime ParseDateTime(string date, DateTime errorValue) // TODO: TryParseDateTime
     {
-        DateTime datetime = errorValue;
+        var datetime = errorValue;
         try
         {
             if (date.StartsWith("D:"))
             {
                 // D:YYYYMMDDHHmmSSOHH'mm'
                 //   ^2      ^10   ^16 ^20
-                int length = date.Length;
+                var length = date.Length;
                 int year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0, hh = 0, mm = 0;
-                char o = 'Z';
+                var o = 'Z';
                 if (length >= 10)
                 {
                     year = int.Parse(date.Substring(2, 4));
@@ -1563,7 +1563,7 @@ internal sealed class Parser
                 datetime = new DateTime(year, month, day, hour, minute, second);
                 if (o != 'Z')
                 {
-                    TimeSpan ts = new TimeSpan(hh, mm, 0);
+                    var ts = new TimeSpan(hh, mm, 0);
                     if (o == '-')
                         datetime = datetime.Add(ts);
                     else
@@ -1934,7 +1934,7 @@ internal static class StreamHelper
     public static uint ReadBytes(byte[] bytes, int index, int byteCount)
     {
         uint value = 0;
-        for (int idx = 0; idx < byteCount; idx++)
+        for (var idx = 0; idx < byteCount; idx++)
         {
             value *= 256;
             value += bytes[index + idx];

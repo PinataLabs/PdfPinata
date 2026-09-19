@@ -11,7 +11,7 @@ internal enum MemberKind
     NullableValue,
     PlainValue,
     DocumentObject,
-    Collection,
+    Collection
 }
 
 /// <summary>

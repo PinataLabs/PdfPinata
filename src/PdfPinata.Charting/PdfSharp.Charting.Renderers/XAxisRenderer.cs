@@ -72,9 +72,9 @@ internal abstract class XAxisRenderer : AxisRenderer
   /// </summary>
   internal override RendererInfo Init()
   {
-    Chart chart = (Chart)this.rendererParms.DrawingItem;
+    var chart = (Chart)this.rendererParms.DrawingItem;
 
-    AxisRendererInfo xari = new AxisRendererInfo();
+    var xari = new AxisRendererInfo();
     xari.axis = chart.xAxis;
 
     // Outside the test below, as the Y axis renderers calculate their scale outside theirs. The
@@ -86,7 +86,7 @@ internal abstract class XAxisRenderer : AxisRenderer
 
     if (xari.axis != null)
     {
-      ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+      var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
 
       // The two orientations used to call these in different orders. The horizontal one needed
       // its own order, because InitXValues formats the default category labels with
@@ -117,18 +117,18 @@ internal abstract class XAxisRenderer : AxisRenderer
   /// </summary>
   internal override void Format()
   {
-    AxisRendererInfo xari = ((ChartRendererInfo)this.rendererParms.RendererInfo).xAxisRendererInfo;
+    var xari = ((ChartRendererInfo)this.rendererParms.RendererInfo).xAxisRendererInfo;
     if (xari.axis != null)
     {
-      AxisTitleRendererInfo atri = xari.axisTitleRendererInfo;
+      var atri = xari.axisTitleRendererInfo;
 
       // Calculate space used for axis title, through the renderer that draws it rather than by
       // measuring the string here. Measuring it here took no account of the title's orientation,
       // so a caption turned on its side reserved the room it would have taken lying flat.
-      XSize titleSize = new XSize(0, 0);
+      var titleSize = new XSize(0, 0);
       if (atri != null && atri.AxisTitleText != null && atri.AxisTitleText.Length > 0)
       {
-        RendererParameters parms = new RendererParameters();
+        var parms = new RendererParameters();
         parms.Graphics = this.rendererParms.Graphics;
         parms.RendererInfo = xari;
         new AxisTitleRenderer(parms).Format();
@@ -139,18 +139,18 @@ internal abstract class XAxisRenderer : AxisRenderer
       // series - the categories are shared across series, so one is enough - while the vertical
       // axis measures every series it is given; kept as each was found rather than unified,
       // since it is not the tick-mark pens this merge is fixing.
-      XSize size = new XSize(0, 0);
+      var size = new XSize(0, 0);
       if (isHorizontal)
       {
         if (xari.XValues.Count > 0)
         {
-          XSeries xs = xari.XValues[0];
+          var xs = xari.XValues[0];
           foreach (XValue xv in xs)
           {
             if (xv != null)
             {
-              string tickLabel = xv.Value;
-              XSize valueSize = this.rendererParms.Graphics.MeasureString(tickLabel, xari.TickLabelsFont);
+              var tickLabel = xv.Value;
+              var valueSize = this.rendererParms.Graphics.MeasureString(tickLabel, xari.TickLabelsFont);
               size.Height = Math.Max(valueSize.Height, size.Height);
               size.Width += valueSize.Width;
             }
@@ -172,7 +172,7 @@ internal abstract class XAxisRenderer : AxisRenderer
             // the horizontal axis's own measuring already allows for.
             if (xv != null)
             {
-              XSize valueSize = this.rendererParms.Graphics.MeasureString(xv.Value, xari.TickLabelsFont);
+              var valueSize = this.rendererParms.Graphics.MeasureString(xv.Value, xari.TickLabelsFont);
               size.Height += valueSize.Height;
               size.Width = Math.Max(valueSize.Width, size.Width);
             }
@@ -194,21 +194,21 @@ internal abstract class XAxisRenderer : AxisRenderer
   /// </summary>
   internal override void Draw()
   {
-    XGraphics gfx = this.rendererParms.Graphics;
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    AxisRendererInfo xari = cri.xAxisRendererInfo;
+    var gfx = this.rendererParms.Graphics;
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var xari = cri.xAxisRendererInfo;
 
-    double xMax = xari.MaximumScale;
-    double xMajorTick = xari.MajorTick;
-    double xMinorTick = xari.MinorTick;
+    var xMax = xari.MaximumScale;
+    var xMajorTick = xari.MajorTick;
+    var xMinorTick = xari.MinorTick;
 
     // Draw tick labels. Each tick label will be aligned centered.
-    int countTickLabels = (int)xMax;
+    var countTickLabels = (int)xMax;
     XPoint startPos;
 
     if (isHorizontal)
     {
-      double tickLabelStep = xari.Width;
+      var tickLabelStep = xari.Width;
       if (countTickLabels != 0)
         tickLabelStep = xari.Width / countTickLabels;
 
@@ -217,13 +217,13 @@ internal abstract class XAxisRenderer : AxisRenderer
         startPos.Y += xari.MajorTickMarkWidth;
       foreach (XSeries xs in xari.XValues)
       {
-        for (int idx = 0; idx < countTickLabels && idx < xs.Count; ++idx)
+        for (var idx = 0; idx < countTickLabels && idx < xs.Count; ++idx)
         {
-          XValue xv = xs[idx];
+          var xv = xs[idx];
           if (xv != null)
           {
-            string tickLabel = xv.Value;
-            XSize size = gfx.MeasureString(tickLabel, xari.TickLabelsFont);
+            var tickLabel = xv.Value;
+            var size = gfx.MeasureString(tickLabel, xari.TickLabelsFont);
             gfx.DrawString(tickLabel, xari.TickLabelsFont, xari.TickLabelsBrush, startPos.X - size.Width / 2, startPos.Y);
           }
           startPos.X += tickLabelStep;
@@ -232,21 +232,21 @@ internal abstract class XAxisRenderer : AxisRenderer
     }
     else
     {
-      double tickLabelStep = xari.Height / countTickLabels;
+      var tickLabelStep = xari.Height / countTickLabels;
       startPos = new XPoint(xari.X + xari.Width - xari.MajorTickMarkWidth, xari.Y + tickLabelStep / 2);
       foreach (XSeries xs in xari.XValues)
       {
-        for (int idx = countTickLabels - 1; idx >= 0; --idx)
+        for (var idx = countTickLabels - 1; idx >= 0; --idx)
         {
           // Both conditions carried across from the horizontal orientation, which this branch
           // is otherwise a copy of. The count comes from the longest series rather than from the
           // category list, so there need not be a category at every index; and a category added
           // with XSeries.AddBlank is a null. Neither is unusual enough to throw over.
-          XValue xv = idx < xs.Count ? xs[idx] : null;
+          var xv = idx < xs.Count ? xs[idx] : null;
           if (xv != null)
           {
-            string tickLabel = xv.Value;
-            XSize size = gfx.MeasureString(tickLabel, xari.TickLabelsFont);
+            var tickLabel = xv.Value;
+            var size = gfx.MeasureString(tickLabel, xari.TickLabelsFont);
             gfx.DrawString(tickLabel, xari.TickLabelsFont, xari.TickLabelsBrush, startPos.X - size.Width, startPos.Y + size.Height / 2);
           }
           startPos.Y += tickLabelStep;
@@ -264,26 +264,26 @@ internal abstract class XAxisRenderer : AxisRenderer
     // pens the base class already computes for every axis - the fix this merge exists to make.
     // Before it, this orientation stroked its ticks with LineFormat too, which is null until a
     // caller sets one, so a category axis with no line format drew no tick marks at all.
-    LineFormatRenderer lineFormatRenderer = new LineFormatRenderer(gfx, xari.LineFormat);
-    LineFormatRenderer minorTickMarkLineFormat = new LineFormatRenderer(gfx, xari.MinorTickMarkLineFormat);
-    LineFormatRenderer majorTickMarkLineFormat = new LineFormatRenderer(gfx, xari.MajorTickMarkLineFormat);
-    XPoint[] points = new XPoint[2];
+    var lineFormatRenderer = new LineFormatRenderer(gfx, xari.LineFormat);
+    var minorTickMarkLineFormat = new LineFormatRenderer(gfx, xari.MinorTickMarkLineFormat);
+    var majorTickMarkLineFormat = new LineFormatRenderer(gfx, xari.MajorTickMarkLineFormat);
+    var points = new XPoint[2];
 
     // Minor ticks.
     if (xari.MinorTickMark != TickMarkType.None)
     {
-      int countMinorTickMarks = (int)(xMax / xMinorTick);
+      var countMinorTickMarks = (int)(xMax / xMinorTick);
       if (isHorizontal)
       {
         // The same guard the major ticks take just below: a chart with nothing plotted scales to
         // a maximum of zero, and dividing the axis length by zero minor ticks turned every tick
         // position into NaN. Only reachable when a caller sets Axis.MinorTickMark explicitly -
         // it defaults to None, which the block above already skips - but reachable all the same.
-        double minorTickMarkStep = xari.Width;
+        var minorTickMarkStep = xari.Width;
         if (countMinorTickMarks != 0)
           minorTickMarkStep = xari.Width / countMinorTickMarks;
         startPos.X = xari.X;
-        for (int x = 0; x <= countMinorTickMarks; x++)
+        for (var x = 0; x <= countMinorTickMarks; x++)
         {
           points[0].X = startPos.X + minorTickMarkStep * x;
           points[0].Y = minorTickMarkStart;
@@ -294,11 +294,11 @@ internal abstract class XAxisRenderer : AxisRenderer
       }
       else
       {
-        double minorTickMarkStep = xari.Height;
+        var minorTickMarkStep = xari.Height;
         if (countMinorTickMarks != 0)
           minorTickMarkStep = xari.Height / countMinorTickMarks;
         startPos.Y = xari.Y;
-        for (int x = 0; x <= countMinorTickMarks; x++)
+        for (var x = 0; x <= countMinorTickMarks; x++)
         {
           points[0].X = minorTickMarkStart;
           points[0].Y = startPos.Y + minorTickMarkStep * x;
@@ -312,14 +312,14 @@ internal abstract class XAxisRenderer : AxisRenderer
     // Major ticks.
     if (xari.MajorTickMark != TickMarkType.None)
     {
-      int countMajorTickMarks = (int)(xMax / xMajorTick);
+      var countMajorTickMarks = (int)(xMax / xMajorTick);
       if (isHorizontal)
       {
-        double majorTickMarkStep = xari.Width;
+        var majorTickMarkStep = xari.Width;
         if (countMajorTickMarks != 0)
           majorTickMarkStep = xari.Width / countMajorTickMarks;
         startPos.X = xari.X;
-        for (int x = 0; x <= countMajorTickMarks; x++)
+        for (var x = 0; x <= countMajorTickMarks; x++)
         {
           points[0].X = startPos.X + majorTickMarkStep * x;
           points[0].Y = majorTickMarkStart;
@@ -335,11 +335,11 @@ internal abstract class XAxisRenderer : AxisRenderer
         // every tick position into NaN. It was unreachable before this merge, because this
         // orientation's ticks drew with a pen that was null until a caller set one; the tick-mark
         // pens fix made it reachable, and a chart with no series at all now has to survive it.
-        double majorTickMarkStep = xari.Height;
+        var majorTickMarkStep = xari.Height;
         if (countMajorTickMarks != 0)
           majorTickMarkStep = xari.Height / countMajorTickMarks;
         startPos.Y = xari.Y;
-        for (int x = 0; x <= countMajorTickMarks; x++)
+        for (var x = 0; x <= countMajorTickMarks; x++)
         {
           points[0].X = majorTickMarkStart;
           points[0].Y = startPos.Y + majorTickMarkStep * x;
@@ -385,7 +385,7 @@ internal abstract class XAxisRenderer : AxisRenderer
     // of which are settable and both of which the value axis has always honoured. It also meant
     // the caption was centred on half the axis's right edge instead of on the middle of the axis,
     // which is the same thing only when the axis starts at zero.
-    AxisTitleRendererInfo atri = xari.axisTitleRendererInfo;
+    var atri = xari.axisTitleRendererInfo;
     if (atri != null && atri.AxisTitleText != null && atri.AxisTitleText.Length > 0)
     {
       if (isHorizontal)
@@ -403,7 +403,7 @@ internal abstract class XAxisRenderer : AxisRenderer
           atri.AxisTitleSize.Width, xari.Rect.Height);
       }
 
-      RendererParameters parms = new RendererParameters();
+      var parms = new RendererParameters();
       parms.Graphics = gfx;
       parms.RendererInfo = xari;
       new AxisTitleRenderer(parms).Draw();
@@ -418,10 +418,10 @@ internal abstract class XAxisRenderer : AxisRenderer
   {
     // The chart is passed in rather than reached through rendererInfo.axis.parent, because this
     // runs for a chart that has no axis to be reached through.
-    SeriesCollection seriesCollection = chart.SeriesCollection;
+    var seriesCollection = chart.SeriesCollection;
 
     // Calculates the maximum number of data points over all series.
-    int count = 0;
+    var count = 0;
     foreach (Series series in seriesCollection)
       count = Math.Max(count, series.Count);
 
@@ -443,15 +443,15 @@ internal abstract class XAxisRenderer : AxisRenderer
     if (rendererInfo.XValues == null)
     {
       rendererInfo.XValues = new XValues();
-      XSeries xs = rendererInfo.XValues.AddXSeries();
+      var xs = rendererInfo.XValues.AddXSeries();
       if (isHorizontal)
       {
-        for (double i = rendererInfo.MinimumScale + 1; i <= rendererInfo.MaximumScale; ++i)
+        for (var i = rendererInfo.MinimumScale + 1; i <= rendererInfo.MaximumScale; ++i)
           xs.Add(i.ToString(rendererInfo.TickLabelsFormat));
       }
       else
       {
-        for (double i = rendererInfo.MinimumScale + 1; i <= rendererInfo.MaximumScale; ++i)
+        for (var i = rendererInfo.MinimumScale + 1; i <= rendererInfo.MaximumScale; ++i)
           xs.Add(i.ToString(CultureInfo.InvariantCulture));
       }
     }
@@ -467,10 +467,10 @@ internal abstract class XAxisRenderer : AxisRenderer
   {
     // Outside adds the width to the edge for one orientation and subtracts it for the other -
     // the sign this flips - because the two edges face opposite ways relative to the plot area.
-    double edge = isHorizontal
+    var edge = isHorizontal
       ? rendererInfo.Rect.Y
       : rendererInfo.Rect.X + rendererInfo.Rect.Width;
-    int direction = isHorizontal ? 1 : -1;
+    var direction = isHorizontal ? 1 : -1;
 
     GetTickMarkEndpoints(rendererInfo.MajorTickMark, edge, rendererInfo.MajorTickMarkWidth, direction,
       out majorTickMarkStart, out majorTickMarkEnd);

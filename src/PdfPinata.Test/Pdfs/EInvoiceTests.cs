@@ -224,7 +224,7 @@ public class EInvoiceTests
         // three characters is enough for a value and not for an attribute.
         var invoice = new FacturXInvoice(Xml())
         {
-            NamespaceUri = "urn:example:\"quoted\"&odd#",
+            NamespaceUri = "urn:example:\"quoted\"&odd#"
         };
 
         var packet = Packet(Save(invoice));
@@ -258,7 +258,7 @@ public class EInvoiceTests
         var invoice = new FacturXInvoice(Xml())
         {
             Prefix = "zf",
-            NamespaceUri = "urn:ferd:pdfa:CrossIndustryDocument:invoice:1p0#",
+            NamespaceUri = "urn:ferd:pdfa:CrossIndustryDocument:invoice:1p0#"
         };
 
         var packet = Packet(Save(invoice));

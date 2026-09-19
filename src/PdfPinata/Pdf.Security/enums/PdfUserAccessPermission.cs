@@ -85,7 +85,7 @@ internal enum PdfUserAccessPermission
     // When this bit is clear (and bit 3 is set), printing is limited to a lowlevel
     // representation of the appearance, possibly of degraded quality.
     // (See implementation note 24 in Appendix H.)
-    PermitFullQualityPrint = 0x00000800,  //1 << (12 - 1),
+    PermitFullQualityPrint = 0x00000800 //1 << (12 - 1),
 
     //Bit 13–32 (Revision 3 or greater) Reserved; must be 1.
 }

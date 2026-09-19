@@ -202,7 +202,7 @@ public class GradientTransparencyTests
 
         return ContentOf(page).Split('\n')
             .Where(line => line.EndsWith(" gs"))
-            .Select(line => states.Elements.GetDictionary(line.Substring(0, line.Length - 3)))
+            .Select(line => states.Elements.GetDictionary(line[..^3]))
             .Select(state => state.Elements.GetDictionary("/SMask") != null ? "mask"
                 : state.Elements.GetName("/SMask") == "/None" ? "none"
                 : "quiet")

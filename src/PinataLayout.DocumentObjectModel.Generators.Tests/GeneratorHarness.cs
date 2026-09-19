@@ -134,19 +134,19 @@ internal static class GeneratorHarness
             new[]
             {
                 CSharpSyntaxTree.ParseText(Preamble, path: "Preamble.cs"),
-                CSharpSyntaxTree.ParseText(source, path: SnippetPath),
+                CSharpSyntaxTree.ParseText(source, path: SnippetPath)
             },
             References,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
     public static Result Run(string source)
     {
-        CSharpCompilation compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new DomValueModelGenerator());
-        driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out Compilation output, out _);
+        driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var output, out _);
 
-        GeneratorDriverRunResult run = driver.GetRunResult();
+        var run = driver.GetRunResult();
 
         return new Result(
             run.Diagnostics,

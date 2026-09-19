@@ -22,7 +22,7 @@ public class LargePDFReadWrite : IoBaseTest
     public void CanCreatePdfOver2gb()
     {
         const string outName = "CreateLargePdf.pdf";
-        int pageCount = 70000; //2.1gb @ 369sec to create
+        var pageCount = 70000; //2.1gb @ 369sec to create
         ValidateTargetAvailable(outName);
 
         var document = new PdfDocument();

@@ -56,7 +56,7 @@ public class StyleSimulationTest
         var resolver = new Probe();
         resolver.SetupFontsFiles(shipped.Select(Face).ToArray());
 
-        FontResolverInfo info = resolver.ResolveTypeface(Family, isBold, isItalic);
+        var info = resolver.ResolveTypeface(Family, isBold, isItalic);
 
         info.FaceName.Should().Be("LiberationSans-" + expectedFace + ".ttf");
         info.StyleSimulations.Should().Be(expected);
@@ -73,7 +73,7 @@ public class StyleSimulationTest
         var resolver = new Probe();
         resolver.SetupFontsFiles(new[] { Bold });
 
-        FontResolverInfo info = resolver.ResolveTypeface(Family, true, false);
+        var info = resolver.ResolveTypeface(Family, true, false);
 
         info.FaceName.Should().Be("LiberationSans-Bold.ttf");
         info.StyleSimulations.Should().Be(XStyleSimulations.None,
@@ -163,14 +163,14 @@ public class StyleSimulationTest
         document.Save(stream, false);
         stream.Position = 0;
 
-        PdfPage reread = Pdf.IO.PdfReader.Open(stream, PdfDocumentOpenMode.Modify).Pages[0];
+        var reread = Pdf.IO.PdfReader.Open(stream, PdfDocumentOpenMode.Modify).Pages[0];
 
         return ContentReader.ReadContent(ContentOf(reread)).OfType<COperator>().ToArray();
     }
 
     private static byte[] ContentOf(PdfPage page)
     {
-        PdfItem item = page.Elements["/Contents"];
+        var item = page.Elements["/Contents"];
         if (item is PdfReference reference)
             item = reference.Value;
 

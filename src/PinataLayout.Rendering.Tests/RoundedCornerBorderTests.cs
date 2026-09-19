@@ -40,7 +40,7 @@ public class RoundedCornerBorderTests
             BorderType.Left => cell.Borders.Left,
             BorderType.Right => cell.Borders.Right,
             BorderType.Top => cell.Borders.Top,
-            _ => cell.Borders.Bottom,
+            _ => cell.Borders.Bottom
         };
         border.Visible = true;
         border.Width = Unit.FromPoint(Heavy);

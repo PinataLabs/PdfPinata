@@ -73,7 +73,7 @@ public class SeriesElements : DocumentObjectCollection
   /// </summary>
   public Point Add(double value)
   {
-    Point point = new Point(value);
+    var point = new Point(value);
     Add(point);
     return point;
   }
@@ -83,7 +83,7 @@ public class SeriesElements : DocumentObjectCollection
   /// </summary>
   public void Add(params double[] values)
   {
-    foreach (double val in values)
+    foreach (var val in values)
       this.Add(val);
   }
   #endregion

@@ -70,7 +70,7 @@ public partial class Rows : DocumentObjectCollection, IVisitable
     if (Table.Columns.Count == 0)
       throw new InvalidOperationException("Cannot add row, because no columns exists.");
 
-    Row row = new Row();
+    var row = new Row();
     Add(row);
     return row;
   }
@@ -106,7 +106,7 @@ public partial class Rows : DocumentObjectCollection, IVisitable
   /// </remarks>
   void GiveItACellPerColumn(Row row)
   {
-    int columns = Table?.Columns.Count ?? 0;
+    var columns = Table?.Columns.Count ?? 0;
     if (row != null && columns > 0)
       _ = row.Cells[columns - 1];
   }
@@ -197,10 +197,10 @@ public partial class Rows : DocumentObjectCollection, IVisitable
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    serializer.WriteComment((comment ?? ""));
+    serializer.WriteComment(comment ?? "");
     serializer.WriteLine("\\rows");
 
-    int pos = serializer.BeginAttributes();
+    var pos = serializer.BeginAttributes();
 
     if (alignment != null)
       serializer.WriteSimpleAttribute("Alignment", Alignment);
@@ -220,10 +220,10 @@ public partial class Rows : DocumentObjectCollection, IVisitable
     serializer.EndAttributes(pos);
 
     serializer.BeginContent();
-    int rows = Count;
+    var rows = Count;
     if (rows > 0)
     {
-      for (int row = 0; row < rows; row++)
+      for (var row = 0; row < rows; row++)
         this[row].Serialize(serializer);
     }
     else

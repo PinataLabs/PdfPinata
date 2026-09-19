@@ -198,7 +198,7 @@ public class ShapedFontEmbeddingTests
         using var _ = new Installed(new SelectiveShaper(MeaningSentinel, font => new[]
         {
             new ShapedGlyph(300, 0, 1000),
-            new ShapedGlyph(301, 11, 1000),
+            new ShapedGlyph(301, 11, 1000)
         }));
 
         var meanings = Meanings(Written(MeaningSentinel));

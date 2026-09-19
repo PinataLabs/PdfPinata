@@ -39,7 +39,7 @@ internal sealed class OutlineDemo : PdfDemo
         "The bold, italic and coloured entry styles",
         "Branches that arrive expanded, and chapter 2 which arrives collapsed",
         "The destination types: Xyz with a zoom, Fit, FitH and FitR",
-        "A drawn table of contents where every line links to the place its bookmark points at",
+        "A drawn table of contents where every line links to the place its bookmark points at"
     };
 
     public override int PageCount => 5;
@@ -49,7 +49,7 @@ internal sealed class OutlineDemo : PdfDemo
         #region example
         const string Sans = "Liberation Sans";
 
-        PdfDocument document = new PdfDocument();
+        var document = new PdfDocument();
         document.Info.Title = "Outline";
 
         // docs:begin page-mode
@@ -58,13 +58,13 @@ internal sealed class OutlineDemo : PdfDemo
         document.PageMode = PdfPageMode.UseOutlines;
         // docs:end page-mode
 
-        XFont titleFont = new XFont(Sans, 22, XFontStyle.Bold);
-        XFont chapterFont = new XFont(Sans, 16, XFontStyle.Bold);
-        XFont sectionFont = new XFont(Sans, 12, XFontStyle.Bold);
-        XFont subFont = new XFont(Sans, 10, XFontStyle.Bold);
-        XFont body = new XFont(Sans, 9.5);
-        XFont noteFont = new XFont(Sans, 7.5);
-        XFont mono = new XFont("Source Code Pro", 8);
+        var titleFont = new XFont(Sans, 22, XFontStyle.Bold);
+        var chapterFont = new XFont(Sans, 16, XFontStyle.Bold);
+        var sectionFont = new XFont(Sans, 12, XFontStyle.Bold);
+        var subFont = new XFont(Sans, 10, XFontStyle.Bold);
+        var body = new XFont(Sans, 9.5);
+        var noteFont = new XFont(Sans, 7.5);
+        var mono = new XFont("Source Code Pro", 8);
 
         // docs:begin top-of
         // An outline destination is a position in default page space, measured up from the foot
@@ -88,8 +88,8 @@ internal sealed class OutlineDemo : PdfDemo
         {
             on.DrawString(text, font, XBrushes.Black, new XPoint(x, baseline));
 
-            double ascent = font.GetHeight() * font.CellAscent / font.CellSpace;
-            double landing = baseline - ascent - 10;
+            var ascent = font.GetHeight() * font.CellAscent / font.CellSpace;
+            var landing = baseline - ascent - 10;
 
             on.AddNamedDestination(text, new XPoint(x, landing));
 
@@ -99,7 +99,7 @@ internal sealed class OutlineDemo : PdfDemo
 
         void Paragraphs(XGraphics on, double x, double baseline, int count)
         {
-            for (int line = 0; line < count; line++)
+            for (var line = 0; line < count; line++)
             {
                 on.DrawString(
                     "Body text, here only so that the headings are not adjacent and a bookmark "
@@ -109,8 +109,8 @@ internal sealed class OutlineDemo : PdfDemo
         }
 
         // ---- Page one: the title, and what an outline is -----------------------------
-        PdfPage titlePage = document.AddPage();
-        XGraphics titleGfx = XGraphics.FromPdfPage(titlePage);
+        var titlePage = document.AddPage();
+        var titleGfx = XGraphics.FromPdfPage(titlePage);
 
         titleGfx.DrawString("Hierarchical bookmarks", titleFont, XBrushes.Black,
             new XPoint(56, 96));
@@ -137,11 +137,11 @@ internal sealed class OutlineDemo : PdfDemo
             "Style and TextColor are the entry's own - chapter 3 below is bold italic and red.",
             "Opened decides whether a branch arrives expanded, and is written as /Count: the number",
             "of rows the branch would add, negated when it is shut. Chapters 1 and 3 are open",
-            "below and chapter 2 is not, so the panel should show its sections only after a click.",
+            "below and chapter 2 is not, so the panel should show its sections only after a click."
         };
 
         double y = 164;
-        foreach (string line in explanation)
+        foreach (var line in explanation)
         {
             titleGfx.DrawString(line, line.StartsWith("    ") ? mono : body, XBrushes.Black,
                 new XPoint(56, y));
@@ -156,7 +156,7 @@ internal sealed class OutlineDemo : PdfDemo
         y += 16;
         titleGfx.DrawString("Contents", sectionFont, XBrushes.Black, new XPoint(56, y));
         titleGfx.DrawLine(XPens.LightGray, 56, y + 6, 539, y + 6);
-        double contentsY = y + 26;
+        var contentsY = y + 26;
 
         // docs:begin contents-link
         // One line of the contents, linked to the heading it names. The hot area is measured
@@ -167,8 +167,8 @@ internal sealed class OutlineDemo : PdfDemo
         {
             titleGfx.DrawString(text, font, brush, new XPoint(indent, contentsY));
 
-            double ascent = font.GetHeight() * font.CellAscent / font.CellSpace;
-            XSize size = titleGfx.MeasureString(text, font);
+            var ascent = font.GetHeight() * font.CellAscent / font.CellSpace;
+            var size = titleGfx.MeasureString(text, font);
             titleGfx.AddNamedLink(
                 new XRect(indent, contentsY - ascent, size.Width, font.GetHeight()), text);
 
@@ -189,23 +189,22 @@ internal sealed class OutlineDemo : PdfDemo
             ("2. In the middle", false, XColors.Black, PdfOutlineStyle.Regular,
                 new[] { "2.1 Nesting", "2.2 Opened and collapsed" }),
             ("3. Coming back", true, XColors.Firebrick, PdfOutlineStyle.BoldItalic,
-                new[] { "3.1 Styles", "3.2 Colours" }),
+                new[] { "3.1 Styles", "3.2 Colours" })
         };
 
-        foreach ((string Chapter, bool Opened, XColor Colour, PdfOutlineStyle Style,
-            string[] Sections) part in book)
+        foreach (var part in book)
         {
-            PdfPage page = document.AddPage();
-            XGraphics gfx = XGraphics.FromPdfPage(page);
+            var page = document.AddPage();
+            var gfx = XGraphics.FromPdfPage(page);
 
-            double chapterTop = Heading(gfx, part.Chapter, chapterFont, 56, 96);
+            var chapterTop = Heading(gfx, part.Chapter, chapterFont, 56, 96);
             gfx.DrawLine(new XPen(XColors.SteelBlue, 1.5), 56, 106, 539, 106);
             Paragraphs(gfx, 56, 128, 2);
 
             // docs:begin chapter
             // Add(title, page, opened, style, colour) is the widest overload. The colour and the
             // style are the entry's own - they say nothing about the heading on the page.
-            PdfOutline chapter = document.Outlines.Add(part.Chapter, page, part.Opened,
+            var chapter = document.Outlines.Add(part.Chapter, page, part.Opened,
                 part.Style, part.Colour);
             chapter.Top = chapterTop;
             // docs:end chapter
@@ -214,13 +213,13 @@ internal sealed class OutlineDemo : PdfDemo
                 document.PageCount.ToString());
 
             double sectionY = 176;
-            foreach (string title in part.Sections)
+            foreach (var title in part.Sections)
             {
                 // docs:begin section
-                double sectionTop = Heading(gfx, title, sectionFont, 56, sectionY);
+                var sectionTop = Heading(gfx, title, sectionFont, 56, sectionY);
                 Paragraphs(gfx, 56, sectionY + 20, 2);
 
-                PdfOutline section = chapter.Outlines.Add(title, page);
+                var section = chapter.Outlines.Add(title, page);
                 section.Top = sectionTop;
                 // docs:end section
 
@@ -230,13 +229,13 @@ internal sealed class OutlineDemo : PdfDemo
                 // show that the tree keeps going, without three pages of scaffolding.
                 if (part.Chapter.StartsWith("1.") && title.StartsWith("1.1"))
                 {
-                    double subY = sectionY + 56;
-                    foreach (string leaf in new[] { "1.1.1 A subsection", "1.1.2 And another" })
+                    var subY = sectionY + 56;
+                    foreach (var leaf in new[] { "1.1.1 A subsection", "1.1.2 And another" })
                     {
-                        double subTop = Heading(gfx, leaf, subFont, 76, subY);
+                        var subTop = Heading(gfx, leaf, subFont, 76, subY);
                         Paragraphs(gfx, 76, subY + 16, 1);
 
-                        PdfOutline sub = section.Outlines.Add(leaf, page);
+                        var sub = section.Outlines.Add(leaf, page);
                         sub.Top = subTop;
 
                         ContentsLine(leaf, noteFont, XBrushes.Gray, 96, 12, null);
@@ -255,17 +254,17 @@ internal sealed class OutlineDemo : PdfDemo
         }
 
         // ---- Page five: the destination types -----------------------------------------
-        PdfPage appendix = document.AddPage();
-        XGraphics appendixGfx = XGraphics.FromPdfPage(appendix);
+        var appendix = document.AddPage();
+        var appendixGfx = XGraphics.FromPdfPage(appendix);
 
-        double appendixTop = Heading(appendixGfx, "Appendix. Destination types", chapterFont,
+        var appendixTop = Heading(appendixGfx, "Appendix. Destination types", chapterFont,
             56, 96);
         appendixGfx.DrawLine(new XPen(XColors.SteelBlue, 1.5), 56, 106, 539, 106);
         appendixGfx.DrawString(
             "PdfOutline.PageDestinationType decides which of the coordinates below are read.",
             body, XBrushes.DimGray, new XPoint(56, 128));
 
-        PdfOutline appendixEntry = document.Outlines.Add("Appendix. Destination types", appendix,
+        var appendixEntry = document.Outlines.Add("Appendix. Destination types", appendix,
             true, PdfOutlineStyle.Bold);
         appendixEntry.Top = appendixTop;
 
@@ -280,7 +279,7 @@ internal sealed class OutlineDemo : PdfDemo
             ("FitR - a rectangle of the page", "Left, Bottom, Right, Top", PdfPageDestinationType.FitR),
             ("FitB - the ink, not the page", "nothing", PdfPageDestinationType.FitB),
             ("FitBH - the ink's width, at a height", "Top", PdfPageDestinationType.FitBH),
-            ("FitBV - the ink's height, at a left edge", "Left", PdfPageDestinationType.FitBV),
+            ("FitBV - the ink's height, at a left edge", "Left", PdfPageDestinationType.FitBV)
         };
 
         double rowY = 170;
@@ -291,15 +290,15 @@ internal sealed class OutlineDemo : PdfDemo
         appendixGfx.DrawLine(XPens.LightGray, 56, rowY, 539, rowY);
         rowY += 18;
 
-        foreach ((string Label, string Reads, PdfPageDestinationType Type) row in destinations)
+        foreach (var row in destinations)
         {
-            double entryTop = TopOf(appendixGfx, rowY - 12);
+            var entryTop = TopOf(appendixGfx, rowY - 12);
 
             appendixGfx.DrawString(row.Label, body, XBrushes.Black, new XPoint(56, rowY));
             appendixGfx.DrawString(row.Reads, mono, XBrushes.DimGray, new XPoint(320, rowY));
 
             // docs:begin destination-types
-            PdfOutline entry = appendixEntry.Outlines.Add(row.Label, appendix);
+            var entry = appendixEntry.Outlines.Add(row.Label, appendix);
             entry.PageDestinationType = row.Type;
             entry.Top = entryTop;
             entry.Left = 40;

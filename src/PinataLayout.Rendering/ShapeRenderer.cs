@@ -24,7 +24,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -45,7 +45,7 @@ internal abstract class ShapeRenderer : Renderer
     : base(gfx, shape, fieldInfos)
   {
     this.shape = shape;
-    LineFormat lf = (LineFormat)this.shape.GetValue("LineFormat", GV.ReadOnly);
+    var lf = (LineFormat)this.shape.GetValue("LineFormat", GV.ReadOnly);
     lineFormatRenderer = new LineFormatRenderer(lf, gfx);
   }
 
@@ -53,9 +53,9 @@ internal abstract class ShapeRenderer : Renderer
     : base(gfx, renderInfo, fieldInfos)
   {
     shape = (Shape)renderInfo.DocumentObject;
-    LineFormat lf = (LineFormat)shape.GetValue("LineFormat", GV.ReadOnly);
+    var lf = (LineFormat)shape.GetValue("LineFormat", GV.ReadOnly);
     lineFormatRenderer = new LineFormatRenderer(lf, gfx);
-    FillFormat ff = (FillFormat)shape.GetValue("FillFormat", GV.ReadOnly);
+    var ff = (FillFormat)shape.GetValue("FillFormat", GV.ReadOnly);
     fillFormatRenderer = new FillFormatRenderer(ff, gfx);
   }
 
@@ -63,7 +63,7 @@ internal abstract class ShapeRenderer : Renderer
   {
     get
     {
-      LayoutInfo layoutInfo = new LayoutInfo();
+      var layoutInfo = new LayoutInfo();
 
       layoutInfo.MarginTop = shape.WrapFormat.DistanceTop.Point;
       layoutInfo.MarginLeft = shape.WrapFormat.DistanceLeft.Point;
@@ -130,8 +130,8 @@ internal abstract class ShapeRenderer : Renderer
   /// <param name="previousFormatInfo"></param>
   internal override void Format(Area area, FormatInfo previousFormatInfo)
   {
-    Floating floating = GetFloating();
-    bool fits = floating == Floating.None || ShapeHeight <= area.Height;
+    var floating = GetFloating();
+    var fits = floating == Floating.None || ShapeHeight <= area.Height;
     ((ShapeFormatInfo)renderInfo.FormatInfo).fits = fits;
     FinishLayoutInfo(area);
   }
@@ -139,7 +139,7 @@ internal abstract class ShapeRenderer : Renderer
 
   void FinishLayoutInfo(Area area)
   {
-    LayoutInfo layoutInfo = renderInfo.LayoutInfo;
+    var layoutInfo = renderInfo.LayoutInfo;
     Area contentArea = new Rectangle(area.X, area.Y, ShapeWidth, ShapeHeight);
     layoutInfo.ContentArea = contentArea;
     layoutInfo.MarginTop = shape.WrapFormat.DistanceTop.Point;
@@ -205,14 +205,14 @@ internal abstract class ShapeRenderer : Renderer
 
   protected void RenderFilling()
   {
-    Area contentArea = renderInfo.LayoutInfo.ContentArea;
+    var contentArea = renderInfo.LayoutInfo.ContentArea;
     fillFormatRenderer.Render(contentArea.X, contentArea.Y, contentArea.Width, contentArea.Height);
   }
 
   protected void RenderLine()
   {
-    Area contentArea = renderInfo.LayoutInfo.ContentArea;
-    XUnit lineWidth = lineFormatRenderer.GetWidth();
+    var contentArea = renderInfo.LayoutInfo.ContentArea;
+    var lineWidth = lineFormatRenderer.GetWidth();
     XUnit width = contentArea.Width - lineWidth;
     XUnit height = contentArea.Height - lineWidth;
     lineFormatRenderer.Render(contentArea.X, contentArea.Y, width, height);
@@ -227,7 +227,7 @@ internal abstract class ShapeRenderer : Renderer
 
       case ShapePosition.Right:
         return ElementAlignment.Far;
-        
+
       case ShapePosition.Outside:
         return ElementAlignment.Outside;
 

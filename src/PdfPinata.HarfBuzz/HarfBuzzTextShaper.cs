@@ -220,7 +220,7 @@ public sealed class HarfBuzzTextShaper : ITextShaper, IDisposable
                 var positions = buffer.GlyphPositions;
                 var glyphs = new ShapedGlyph[infos.Length];
 
-                for (int idx = 0; idx < infos.Length; idx++)
+                for (var idx = 0; idx < infos.Length; idx++)
                 {
                     var position = positions[idx];
                     glyphs[idx] = new ShapedGlyph(

@@ -200,7 +200,7 @@ internal class KeyWords
   internal static Symbol SymbolFromName(string name)
   {
     Symbol docsym;
-    object obj = nameToEnum[name];
+    var obj = nameToEnum[name];
     if (obj == null)
     {
       // Check for case sensitive keywords. Allow first character upper case only.
@@ -223,7 +223,7 @@ internal class KeyWords
   /// </summary>
   internal static string NameFromSymbol(Symbol symbol)
   {
-    string name = (string)enumToName[symbol];
+    var name = (string)enumToName[symbol];
     Debug.Assert(name != null);
     return name;
   }

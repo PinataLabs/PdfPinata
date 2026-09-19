@@ -50,27 +50,27 @@ internal class PieClosedPlotAreaRenderer : PiePlotAreaRenderer
   /// </summary>
   protected override void CalcSectors()
   {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
     if (cri.seriesRendererInfos.Length == 0)
       return;
 
-    SeriesRendererInfo sri = cri.seriesRendererInfos[0];
+    var sri = cri.seriesRendererInfos[0];
 
-    double sumValues = sri.SumOfPoints;
+    var sumValues = sri.SumOfPoints;
     if (sumValues == 0)
       return;
 
     double textMeasure = 0;
     if (sri.dataLabelRendererInfo != null && sri.dataLabelRendererInfo.Position == DataLabelPosition.OutsideEnd)
     {
-      foreach (DataLabelEntryRendererInfo dleri in sri.dataLabelRendererInfo.Entries)
+      foreach (var dleri in sri.dataLabelRendererInfo.Entries)
       {
         textMeasure = Math.Max(textMeasure, dleri.Width);
         textMeasure = Math.Max(textMeasure, dleri.Height);
       }
     }
 
-    XRect pieRect = cri.plotAreaRendererInfo.Rect;
+    var pieRect = cri.plotAreaRendererInfo.Rect;
     if (textMeasure != 0)
     {
       pieRect.X += textMeasure;

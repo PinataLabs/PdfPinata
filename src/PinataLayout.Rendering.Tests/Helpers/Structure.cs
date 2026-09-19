@@ -78,7 +78,7 @@ internal static class Structure
             ColumnSpan = attributes?.Elements.GetInteger("/ColSpan") ?? 1,
             RowSpan = attributes?.Elements.GetInteger("/RowSpan") ?? 1,
             MarkCount = MarksOf(element),
-            AnnotationCount = ReferencesOf(element, "/OBJR"),
+            AnnotationCount = ReferencesOf(element, "/OBJR")
         };
     }
 

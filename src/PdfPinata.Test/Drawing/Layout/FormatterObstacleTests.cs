@@ -208,7 +208,7 @@ public class FormatterObstacleTests
 
         lines.Should().NotBeEmpty();
 
-        double moved = unobstructed[0].Y - lines[0].Y;
+        var moved = unobstructed[0].Y - lines[0].Y;
         moved.Should().BeGreaterThanOrEqualTo(40, "it clears the nearer obstacle");
         moved.Should().BeLessThan(80, "and stops there, rather than stepping over usable bands");
 

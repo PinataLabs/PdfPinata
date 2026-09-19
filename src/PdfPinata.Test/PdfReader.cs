@@ -15,7 +15,7 @@ public class PdfReader
         var existingPdfPath = Path.Combine(root, "Assets", "FamilyTree.pdf");
 
         var fs = File.OpenRead(existingPdfPath);
-        PdfDocument inputDocument = Pdf.IO.PdfReader.Open(fs, PdfDocumentOpenMode.Import);
+        var inputDocument = Pdf.IO.PdfReader.Open(fs, PdfDocumentOpenMode.Import);
         fs.Dispose();
 
         Assert.True(true);

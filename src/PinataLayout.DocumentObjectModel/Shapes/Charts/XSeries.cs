@@ -67,7 +67,7 @@ public partial class XSeries : ChartObject
   /// </summary>
   public void AddBlank()
   {
-    this.xSeriesElements.AddBlank();
+    xSeriesElements.AddBlank();
   }
 
   /// <summary>
@@ -75,7 +75,7 @@ public partial class XSeries : ChartObject
   /// </summary>
   public XValue Add(string value)
   {
-    return this.xSeriesElements.Add(value);
+    return xSeriesElements.Add(value);
   }
 
   /// <summary>
@@ -83,7 +83,7 @@ public partial class XSeries : ChartObject
   /// </summary>
   public void Add(params string[] values)
   {
-    this.xSeriesElements.Add(values);
+    xSeriesElements.Add(values);
   }
   #endregion
 
@@ -96,7 +96,7 @@ public partial class XSeries : ChartObject
     serializer.WriteLine("\\xvalues");
 
     serializer.BeginContent();
-    this.xSeriesElements.Serialize(serializer);
+    xSeriesElements.Serialize(serializer);
     serializer.WriteLine("");
     serializer.EndContent();
   }

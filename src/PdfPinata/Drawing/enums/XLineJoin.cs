@@ -48,5 +48,5 @@ public enum XLineJoin
     /// <summary>
     /// Specifies a beveled join. This produces a diagonal corner.
     /// </summary>
-    Bevel = 2,
+    Bevel = 2
 }

@@ -175,7 +175,7 @@ public class FontPlumbingTests
         {
             XGlyphSegment.StartAt(new XPoint(0, 0)),
             XGlyphSegment.LineTo(new XPoint(10, 0)),
-            XGlyphSegment.Close(),
+            XGlyphSegment.Close()
         };
 
         var outline = new XGlyphOutline(segments);

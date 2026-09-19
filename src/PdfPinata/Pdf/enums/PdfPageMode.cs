@@ -64,5 +64,5 @@ public enum PdfPageMode
     /// <summary>
     /// (PDF 1.6) Attachments panel visible.
     /// </summary>
-    UseAttachments,
+    UseAttachments
 }

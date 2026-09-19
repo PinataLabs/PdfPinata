@@ -49,18 +49,18 @@ internal abstract class LegendRenderer : Renderer
   /// </summary>
   internal override void Format()
   {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    LegendRendererInfo lri = cri.legendRendererInfo;
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var lri = cri.legendRendererInfo;
     if (lri == null)
       return;
 
-    RendererParameters parms = new RendererParameters();
+    var parms = new RendererParameters();
     parms.Graphics = this.rendererParms.Graphics;
 
-    bool verticalLegend = (lri.legend.docking == DockingType.Left || lri.legend.docking == DockingType.Right);
-    XSize maxMarkerArea = new XSize();
-    LegendEntryRenderer ler = new LegendEntryRenderer(parms);
-    foreach (LegendEntryRendererInfo leri in lri.Entries)
+    var verticalLegend = (lri.legend.docking == DockingType.Left || lri.legend.docking == DockingType.Right);
+    var maxMarkerArea = new XSize();
+    var ler = new LegendEntryRenderer(parms);
+    foreach (var leri in lri.Entries)
     {
       parms.RendererInfo = leri;
       ler.Format();
@@ -76,14 +76,14 @@ internal abstract class LegendRenderer : Renderer
     // combination chart: LegendEntryRenderer.Format gives a Line entry three times the marker of a
     // column, every column entry was then drawn three times wider than it had been measured, and
     // the entries printed on top of one another.
-    foreach (LegendEntryRendererInfo leri in lri.Entries)
+    foreach (var leri in lri.Entries)
     {
       leri.Width += maxMarkerArea.Width - leri.MarkerArea.Width;
       leri.Height = Math.Max(leri.Height, maxMarkerArea.Height);
       leri.MarkerArea = maxMarkerArea;
     }
 
-    foreach (LegendEntryRendererInfo leri in lri.Entries)
+    foreach (var leri in lri.Entries)
     {
       if (verticalLegend)
       {
@@ -98,7 +98,7 @@ internal abstract class LegendRenderer : Renderer
     }
 
     // Add padding to left, right, top and bottom
-    int paddingFactor = 1;
+    var paddingFactor = 1;
     if (lri.BorderPen != null)
       paddingFactor = 2;
     lri.Width += (LegendRenderer.LeftPadding + LegendRenderer.RightPadding) * paddingFactor;
@@ -114,27 +114,27 @@ internal abstract class LegendRenderer : Renderer
   /// </summary>
   internal override void Draw()
   {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    LegendRendererInfo lri = cri.legendRendererInfo;
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var lri = cri.legendRendererInfo;
     if (lri == null)
       return;
 
-    XGraphics gfx = this.rendererParms.Graphics;
-    RendererParameters parms = new RendererParameters();
+    var gfx = this.rendererParms.Graphics;
+    var parms = new RendererParameters();
     parms.Graphics = gfx;
 
-    LegendEntryRenderer ler = new LegendEntryRenderer(parms);
+    var ler = new LegendEntryRenderer(parms);
 
-    bool verticalLegend = (lri.legend.docking == DockingType.Left || lri.legend.docking == DockingType.Right);
-    int paddingFactor = 1;
+    var verticalLegend = (lri.legend.docking == DockingType.Left || lri.legend.docking == DockingType.Right);
+    var paddingFactor = 1;
     if (lri.BorderPen != null)
       paddingFactor = 2;
-    XRect legendRect = lri.Rect;
+    var legendRect = lri.Rect;
     legendRect.X += LegendRenderer.LeftPadding * paddingFactor;
     legendRect.Y += LegendRenderer.TopPadding * paddingFactor;
-    foreach (LegendEntryRendererInfo leri in cri.legendRendererInfo.Entries)
+    foreach (var leri in cri.legendRendererInfo.Entries)
     {
-      XRect entryRect = legendRect;
+      var entryRect = legendRect;
       entryRect.Width = leri.Width;
       entryRect.Height = leri.Height;
 
@@ -151,7 +151,7 @@ internal abstract class LegendRenderer : Renderer
     // Draw border around legend
     if (lri.BorderPen != null)
     {
-      XRect borderRect = lri.Rect;
+      var borderRect = lri.Rect;
       borderRect.X += LegendRenderer.LeftPadding;
       borderRect.Y += LegendRenderer.TopPadding;
       borderRect.Width -= LegendRenderer.LeftPadding + LegendRenderer.RightPadding;

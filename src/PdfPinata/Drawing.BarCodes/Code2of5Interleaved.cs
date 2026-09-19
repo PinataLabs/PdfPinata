@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -73,7 +73,7 @@ public class Code2of5Interleaved : ThickThinBarCode
     {
         return Lines[digit];
     }
-    static bool[][] Lines = 
+    static bool[][] Lines =
     {
         new bool[] {false, false, true, true, false},
         new bool[] {true, false, false, false, true},
@@ -84,7 +84,7 @@ public class Code2of5Interleaved : ThickThinBarCode
         new bool[] {false, true, true, false, false},
         new bool[] {false, false, false, true, true},
         new bool[] {true, false, false, true, false},
-        new bool[] {false, true, false, true, false},
+        new bool[] {false, true, false, true, false}
     };
 
     /// <summary>
@@ -92,9 +92,9 @@ public class Code2of5Interleaved : ThickThinBarCode
     /// </summary>
     protected internal override void Render(XGraphics gfx, XBrush brush, XFont font, XPoint position)
     {
-        XGraphicsState state = gfx.Save();
+        var state = gfx.Save();
 
-        BarCodeRenderInfo info = new BarCodeRenderInfo(gfx, brush, font, position);
+        var info = new BarCodeRenderInfo(gfx, brush, font, position);
         InitRendering(info);
         info.CurrPosInString = 0;
         //info.CurrPos = info.Center - Size / 2;
@@ -132,7 +132,7 @@ public class Code2of5Interleaved : ThickThinBarCode
          *
          * Total width = (6 + r + (2 * r + 3) * text.Length) * thin
          */
-        double thinLineAmount = 6 + WideNarrowRatio + (2 * WideNarrowRatio + 3) * Text.Length;
+        var thinLineAmount = 6 + WideNarrowRatio + (2 * WideNarrowRatio + 3) * Text.Length;
         info.ThinBarWidth = Size.Width / thinLineAmount;
     }
 
@@ -156,11 +156,11 @@ public class Code2of5Interleaved : ThickThinBarCode
     /// </summary>
     private void RenderNextPair(BarCodeRenderInfo info)
     {
-        int digitForLines = int.Parse(Text[info.CurrPosInString].ToString());
-        int digitForGaps = int.Parse(Text[info.CurrPosInString + 1].ToString());
-        bool[] linesArray = Lines[digitForLines];
-        bool[] gapsArray = Lines[digitForGaps];
-        for (int idx = 0; idx < 5; ++idx)
+        var digitForLines = int.Parse(Text[info.CurrPosInString].ToString());
+        var digitForGaps = int.Parse(Text[info.CurrPosInString + 1].ToString());
+        var linesArray = Lines[digitForLines];
+        var gapsArray = Lines[digitForGaps];
+        for (var idx = 0; idx < 5; ++idx)
         {
             RenderBar(info, linesArray[idx]);
             RenderGap(info, gapsArray[idx]);
@@ -190,7 +190,7 @@ public class Code2of5Interleaved : ThickThinBarCode
         if (text.Length % 2 != 0)
             throw new ArgumentException(BcgSR.Invalid2Of5Code(text));
 
-        foreach (char ch in text)
+        foreach (var ch in text)
         {
             if (ch < '0' || ch > '9')
                 throw new ArgumentException(BcgSR.Invalid2Of5Code(text));

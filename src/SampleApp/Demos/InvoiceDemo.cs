@@ -34,7 +34,7 @@ internal sealed class InvoiceDemo : PdfDemo
         "A header and footer that repeat, with page fields resolved at render time",
         "An address block positioned as a text frame, in a window envelope's place",
         "Tab stops aligning a reference block without a table",
-        "A borderless item table, merged total rows, and a shaded terms box",
+        "A borderless item table, merged total rows, and a shaded terms box"
     };
 
     public override int PageCount => 1;
@@ -63,24 +63,29 @@ internal sealed class InvoiceDemo : PdfDemo
             ("PS-8000", "Archival conversion, per thousand pages", 34, 12.75m),
             ("PS-8001", "Optical character recognition pass", 34, 8.20m),
             ("PS-9000", "Signature and encryption review", 1, 1150.00m),
-            ("PS-9001", "Long term validation setup", 1, 640.00m),
+            ("PS-9001", "Long term validation setup", 1, 640.00m)
         };
 
         // docs:begin document-and-styles
-        Document document = new Document();
-        document.Info.Title = "Invoice 2026-0417";
-        document.Info.Author = "Thornbury & Vale Ltd";
+        var document = new Document
+        {
+            Info =
+            {
+                Title = "Invoice 2026-0417",
+                Author = "Thornbury & Vale Ltd"
+            }
+        };
 
         document.Styles["Normal"].Font.Name = "Liberation Sans";
         document.Styles["Normal"].Font.Size = 9;
 
-        Style reference = document.Styles.AddStyle("Reference", "Normal");
+        var reference = document.Styles.AddStyle("Reference", "Normal");
         reference.ParagraphFormat.SpaceBefore = 0;
         reference.ParagraphFormat.SpaceAfter = 0;
         // docs:end document-and-styles
 
         // docs:begin page-setup
-        Section section = document.AddSection();
+        var section = document.AddSection();
         section.PageSetup.PageFormat = PageFormat.A4;
         section.PageSetup.TopMargin = Unit.FromCentimeter(4.5);
         section.PageSetup.BottomMargin = Unit.FromCentimeter(2.5);
@@ -92,14 +97,14 @@ internal sealed class InvoiceDemo : PdfDemo
         // The image goes through the ImageSource seam rather than XImage, which is how
         // PinataLayout reaches a backend. The stream factory reads the embedded photograph.
         // docs:begin header-and-footer
-        Paragraph mark = section.Headers.Primary.AddParagraph();
+        var mark = section.Headers.Primary.AddParagraph();
         mark.Format.Alignment = ParagraphAlignment.Right;
-        Image logo = mark.AddImage(ImageSource.FromStream(
+        var logo = mark.AddImage(ImageSource.FromStream(
             "logo.jpg", () => Assets.Open(Assets.ImagePrefix + "frog-and-toad.jpg")));
         logo.Height = Unit.FromCentimeter(1.8);
         logo.LockAspectRatio = true;
 
-        Paragraph letterhead = section.Headers.Primary.AddParagraph();
+        var letterhead = section.Headers.Primary.AddParagraph();
         letterhead.Format.Alignment = ParagraphAlignment.Right;
         letterhead.Format.Font.Size = 8;
         letterhead.Format.Font.Color = Colors.Gray;
@@ -107,7 +112,7 @@ internal sealed class InvoiceDemo : PdfDemo
         letterhead.AddLineBreak();
         letterhead.AddText("VAT 271 8834 09 · accounts@thornburyvale.example");
 
-        Paragraph footer = section.Footers.Primary.AddParagraph();
+        var footer = section.Footers.Primary.AddParagraph();
         footer.Format.Alignment = ParagraphAlignment.Center;
         footer.Format.Font.Size = 8;
         footer.Format.Font.Color = Colors.Gray;
@@ -121,7 +126,7 @@ internal sealed class InvoiceDemo : PdfDemo
         // A text frame is positioned rather than flowed, which is what puts an address
         // where a window envelope expects to find it.
         // docs:begin address-frame
-        TextFrame address = section.AddTextFrame();
+        var address = section.AddTextFrame();
         address.Width = Unit.FromCentimeter(8);
         address.Height = Unit.FromCentimeter(3);
         address.Left = ShapePosition.Left;
@@ -138,10 +143,10 @@ internal sealed class InvoiceDemo : PdfDemo
         // ---- Reference block ----------------------------------------------------------
         // Tab stops align a two column block without the weight of a table. The right
         // aligned stop is what keeps the values flush with the margin.
-        Paragraph spacer = section.AddParagraph();
+        var spacer = section.AddParagraph();
         spacer.Format.SpaceAfter = Unit.FromCentimeter(2.6);
 
-        Paragraph invoiceTitle = section.AddParagraph("INVOICE");
+        var invoiceTitle = section.AddParagraph("INVOICE");
         invoiceTitle.Format.Font.Size = 20;
         invoiceTitle.Format.Font.Bold = true;
         invoiceTitle.Format.SpaceAfter = Unit.FromPoint(10);
@@ -151,13 +156,13 @@ internal sealed class InvoiceDemo : PdfDemo
             ("Invoice number", "2026-0417"),
             ("Invoice date", "12 August 2026"),
             ("Payment due", "11 September 2026"),
-            ("Purchase order", "MF-PO-88213"),
+            ("Purchase order", "MF-PO-88213")
         };
 
         // docs:begin tab-stops
-        foreach ((string label, string value) in references)
+        foreach ((var label, var value) in references)
         {
-            Paragraph line = section.AddParagraph();
+            var line = section.AddParagraph();
             line.Style = "Reference";
             line.Format.TabStops.ClearAll();
             line.Format.TabStops.AddTabStop(Unit.FromCentimeter(4), TabAlignment.Left);
@@ -168,10 +173,10 @@ internal sealed class InvoiceDemo : PdfDemo
         // docs:end tab-stops
 
         // ---- Items --------------------------------------------------------------------
-        Paragraph itemsGap = section.AddParagraph();
+        var itemsGap = section.AddParagraph();
         itemsGap.Format.SpaceAfter = Unit.FromPoint(16);
 
-        Table table = section.AddTable();
+        var table = section.AddTable();
         table.Borders.Width = 0;
         table.Rows.LeftIndent = 0;
 
@@ -181,7 +186,7 @@ internal sealed class InvoiceDemo : PdfDemo
         table.AddColumn(Unit.FromCentimeter(2.6)).Format.Alignment = ParagraphAlignment.Right;
         table.AddColumn(Unit.FromCentimeter(2.8)).Format.Alignment = ParagraphAlignment.Right;
 
-        Row head = table.AddRow();
+        var head = table.AddRow();
         head.HeadingFormat = true;
         head.Format.Font.Bold = true;
         head.Borders.Bottom.Width = 0.8;
@@ -190,17 +195,17 @@ internal sealed class InvoiceDemo : PdfDemo
         head.BottomPadding = Unit.FromPoint(4);
 
         string[] headings = { "Code", "Description", "Qty", "Unit price", "Amount" };
-        for (int column = 0; column < headings.Length; column++)
+        for (var column = 0; column < headings.Length; column++)
             head.Cells[column].AddParagraph(headings[column]);
 
         decimal net = 0;
-        for (int index = 0; index < items.Length; index++)
+        for (var index = 0; index < items.Length; index++)
         {
-            (string code, string description, int quantity, decimal unitPrice) = items[index];
-            decimal amount = quantity * unitPrice;
+            (var code, var description, var quantity, var unitPrice) = items[index];
+            var amount = quantity * unitPrice;
             net += amount;
 
-            Row row = table.AddRow();
+            var row = table.AddRow();
             row.TopPadding = Unit.FromPoint(3);
             row.BottomPadding = Unit.FromPoint(3);
             row.Borders.Bottom.Width = 0.25;
@@ -213,12 +218,12 @@ internal sealed class InvoiceDemo : PdfDemo
             row.Cells[4].AddParagraph($"{amount:N2}");
         }
 
-        decimal vat = net * 0.20m;
+        var vat = net * 0.20m;
 
         // docs:begin total-rows
         void Total(string label, decimal amount, bool emphasis)
         {
-            Row row = table.AddRow();
+            var row = table.AddRow();
             row.TopPadding = Unit.FromPoint(4);
             row.BottomPadding = Unit.FromPoint(4);
             row.Cells[0].MergeRight = 3;
@@ -241,7 +246,7 @@ internal sealed class InvoiceDemo : PdfDemo
 
         // ---- Terms --------------------------------------------------------------------
         // docs:begin terms-box
-        Paragraph terms = section.AddParagraph();
+        var terms = section.AddParagraph();
         terms.Format.SpaceBefore = Unit.FromPoint(20);
         terms.Format.Borders.Width = 0.5;
         terms.Format.Borders.Color = Colors.Gainsboro;
@@ -256,7 +261,7 @@ internal sealed class InvoiceDemo : PdfDemo
             + "under the Late Payment of Commercial Debts (Interest) Act 1998.");
         // docs:end terms-box
 
-        PdfDocumentRenderer renderer = new PdfDocumentRenderer(true) { Document = document };
+        var renderer = new PdfDocumentRenderer(true) { Document = document };
         renderer.RenderDocument();
         #endregion
 

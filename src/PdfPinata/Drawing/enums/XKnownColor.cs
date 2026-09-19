@@ -456,5 +456,5 @@ public enum XKnownColor
     Yellow = 139,
 
     /// <summary>A pre-defined color.</summary>
-    YellowGreen = 140,
+    YellowGreen = 140
 }

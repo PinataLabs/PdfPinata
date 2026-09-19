@@ -64,16 +64,16 @@ public static class VisualOrder
 
         // Where each character ended up, which is the inverse of the order the algorithm answers.
         var placed = new int[resolved.Levels.Count];
-        for (int idx = 0; idx < placed.Length; idx++)
+        for (var idx = 0; idx < placed.Length; idx++)
             placed[idx] = int.MaxValue;
-        for (int at = 0; at < resolved.VisualOrder.Count; at++)
+        for (var at = 0; at < resolved.VisualOrder.Count; at++)
             placed[resolved.VisualOrder[at]] = at;
 
         var keys = new int[spans.Count];
-        for (int idx = 0; idx < spans.Count; idx++)
+        for (var idx = 0; idx < spans.Count; idx++)
         {
-            int leftmost = int.MaxValue;
-            for (int ch = spans[idx].Start; ch < spans[idx].Start + spans[idx].Length; ch++)
+            var leftmost = int.MaxValue;
+            for (var ch = spans[idx].Start; ch < spans[idx].Start + spans[idx].Length; ch++)
                 leftmost = Math.Min(leftmost, placed[ch]);
 
             keys[idx] = leftmost == int.MaxValue && idx > 0 ? keys[idx - 1] : leftmost;

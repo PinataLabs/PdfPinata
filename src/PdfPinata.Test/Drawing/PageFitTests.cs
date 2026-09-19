@@ -143,7 +143,7 @@ public class PageFitTests
         { PageAlignment.MiddleRight, 200d, 50d },
         { PageAlignment.TopLeft, 0d, 100d },
         { PageAlignment.TopCenter, 100d, 100d },
-        { PageAlignment.TopRight, 200d, 100d },
+        { PageAlignment.TopRight, 200d, 100d }
     };
 
     [Theory]

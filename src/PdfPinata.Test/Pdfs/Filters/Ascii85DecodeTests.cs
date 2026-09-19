@@ -35,12 +35,12 @@ public class Ascii85DecodeTests
         var wrong = new List<string>();
         var random = new Random(20260815);
 
-        for (int length = 0; length <= 40; length++)
+        for (var length = 0; length <= 40; length++)
         {
-            byte[] original = new byte[length];
+            var original = new byte[length];
             random.NextBytes(original);
 
-            byte[] decoded = Decode(Filter.Encode(original));
+            var decoded = Decode(Filter.Encode(original));
 
             if (!decoded.SequenceEqual(original))
                 wrong.Add($"{length} bytes came back as {decoded.Length}");
@@ -62,7 +62,7 @@ public class Ascii85DecodeTests
     [InlineData(7)]
     public void APartialGroupOfHighBytesComesBackAsItself(int length)
     {
-        byte[] original = Enumerable.Repeat((byte)0xFF, length).ToArray();
+        var original = Enumerable.Repeat((byte)0xFF, length).ToArray();
 
         Decode(Filter.Encode(original)).Should().Equal(original);
     }
@@ -75,7 +75,7 @@ public class Ascii85DecodeTests
     [InlineData(8)]
     public void ARunOfZerosComesBackAsItself(int length)
     {
-        byte[] original = new byte[length];
+        var original = new byte[length];
 
         Decode(Filter.Encode(original)).Should().Equal(original);
     }
@@ -88,9 +88,9 @@ public class Ascii85DecodeTests
     [Fact]
     public void AZeroGroupIsWrittenAsZAndExpandedAgain()
     {
-        byte[] fourZeros = new byte[4];
+        var fourZeros = new byte[4];
 
-        byte[] encoded = Filter.Encode(fourZeros);
+        var encoded = Filter.Encode(fourZeros);
 
         Encoding.ASCII.GetString(encoded).Should().Be("z~>");
         Decode(encoded).Should().Equal(fourZeros);
@@ -101,7 +101,7 @@ public class Ascii85DecodeTests
     {
         byte[] original = { 1, 2, 3, 4, 0, 0, 0, 0, 5, 6, 7, 8 };
 
-        byte[] encoded = Filter.Encode(original);
+        var encoded = Filter.Encode(original);
 
         Encoding.ASCII.GetString(encoded).Should().Contain("z");
         Decode(encoded).Should().Equal(original);
@@ -110,7 +110,7 @@ public class Ascii85DecodeTests
     [Fact]
     public void NothingEncodesToTheEndMarkerAloneAndDecodesBackToNothing()
     {
-        byte[] encoded = Filter.Encode(Array.Empty<byte>());
+        var encoded = Filter.Encode(Array.Empty<byte>());
 
         Encoding.ASCII.GetString(encoded).Should().Be("~>");
         Decode(encoded).Should().BeEmpty();
@@ -140,10 +140,10 @@ public class Ascii85DecodeTests
     [InlineData("\0")]
     public void WhiteSpaceInsideTheDataIsSteppedOver(string inserted)
     {
-        string encoded = Encoded();
-        string broken = encoded.Insert(encoded.Length / 2, inserted);
+        var encoded = Encoded();
+        var broken = encoded.Insert(encoded.Length / 2, inserted);
 
-        byte[] decoded = Decode(Encoding.ASCII.GetBytes(broken));
+        var decoded = Decode(Encoding.ASCII.GetBytes(broken));
 
         Encoding.ASCII.GetString(decoded).Should().Be(Text);
     }
@@ -151,7 +151,7 @@ public class Ascii85DecodeTests
     [Fact]
     public void TheSameTextDecodesWithNoWhiteSpaceAtAll()
     {
-        byte[] decoded = Decode(Encoding.ASCII.GetBytes(Encoded()));
+        var decoded = Decode(Encoding.ASCII.GetBytes(Encoded()));
 
         Encoding.ASCII.GetString(decoded).Should().Be(Text);
     }
@@ -163,7 +163,7 @@ public class Ascii85DecodeTests
     [Fact]
     public void DataWithNoEndMarkerIsRejected()
     {
-        string withoutMarker = Encoded().Replace("~>", "");
+        var withoutMarker = Encoded().Replace("~>", "");
 
         Action decode = () => Decode(Encoding.ASCII.GetBytes(withoutMarker));
 
@@ -173,7 +173,7 @@ public class Ascii85DecodeTests
     [Fact]
     public void ATildeNotFollowedByAngleBracketIsRejected()
     {
-        string wrongMarker = Encoded().Replace("~>", "~x");
+        var wrongMarker = Encoded().Replace("~>", "~x");
 
         Action decode = () => Decode(Encoding.ASCII.GetBytes(wrongMarker));
 
@@ -189,7 +189,7 @@ public class Ascii85DecodeTests
     [Fact]
     public void ATildeThatEndsTheDataIsRejected()
     {
-        string truncated = Encoded().Replace("~>", "~");
+        var truncated = Encoded().Replace("~>", "~");
 
         Action decode = () => Decode(Encoding.ASCII.GetBytes(truncated));
 
@@ -236,7 +236,7 @@ public class Ascii85DecodeTests
     {
         byte[] original = { 0xFF, 0xFF, 0xFF, 0xFF };
 
-        byte[] encoded = Filter.Encode(original);
+        var encoded = Filter.Encode(original);
 
         Encoding.ASCII.GetString(encoded).Should().Be("s8W-!~>");
         Decode(encoded).Should().Equal(original);
@@ -260,9 +260,9 @@ public class Ascii85DecodeTests
     [Fact]
     public void DecodingWritesOverTheArrayItWasGiven()
     {
-        string withSpace = Encoded().Insert(3, " ");
-        byte[] encoded = Encoding.ASCII.GetBytes(withSpace);
-        byte[] asHandedIn = encoded.ToArray();
+        var withSpace = Encoded().Insert(3, " ");
+        var encoded = Encoding.ASCII.GetBytes(withSpace);
+        var asHandedIn = encoded.ToArray();
 
         Decode(encoded);
 

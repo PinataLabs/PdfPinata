@@ -571,7 +571,7 @@ public partial class FormattedText : DocumentObject, IVisitable
     /// </summary>
     internal override void Serialize(Serializer serializer)
     {
-        bool isFormatted = false;
+        var isFormatted = false;
         if (!IsNull("Font"))
         {
             Font.Serialize(serializer);

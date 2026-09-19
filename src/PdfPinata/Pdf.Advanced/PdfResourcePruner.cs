@@ -39,11 +39,11 @@ internal sealed class PdfResourcePruner : PdfPageWalk
     {
         ArgumentNullException.ThrowIfNull(page);
 
-        PdfDictionary resources = page.Elements.GetDictionary(PdfPage.Keys.Resources);
+        var resources = page.Elements.GetDictionary(PdfPage.Keys.Resources);
         if (resources == null)
             return;
 
-        PdfResourcePruner pruner = new PdfResourcePruner(resources);
+        var pruner = new PdfResourcePruner(resources);
         pruner.ReadPage(page);
         if (!pruner.Understood)
             return;
@@ -87,12 +87,12 @@ internal sealed class PdfResourcePruner : PdfPageWalk
     /// </summary>
     void Rewrite(PdfPage page, PdfDictionary resources)
     {
-        PdfResources pruned = new PdfResources(page.Owner);
-        bool anythingDropped = false;
+        var pruned = new PdfResources(page.Owner);
+        var anythingDropped = false;
 
-        foreach (PdfName key in resources.Elements.KeyNames)
+        foreach (var key in resources.Elements.KeyNames)
         {
-            PdfDictionary entries = Array.IndexOf(Categories, key.Value) < 0
+            var entries = Array.IndexOf(Categories, key.Value) < 0
                 ? null
                 : resources.Elements.GetDictionary(key.Value);
 
@@ -103,8 +103,8 @@ internal sealed class PdfResourcePruner : PdfPageWalk
                 continue;
             }
 
-            PdfDictionary kept = new PdfDictionary(page.Owner);
-            foreach (PdfName name in entries.Elements.KeyNames)
+            var kept = new PdfDictionary(page.Owner);
+            foreach (var name in entries.Elements.KeyNames)
             {
                 if (IsUsed(key.Value, name.Value))
                     kept.Elements[name.Value] = entries.Elements[name.Value];

@@ -164,7 +164,7 @@ public partial class Barcode : Shape
 
     serializer.WriteLine("\\barcode(\"" + this.Code + "\")");
 
-    int pos = serializer.BeginAttributes();
+    var pos = serializer.BeginAttributes();
 
     base.Serialize(serializer);
 

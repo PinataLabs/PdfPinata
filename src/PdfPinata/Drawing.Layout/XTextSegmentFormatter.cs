@@ -153,7 +153,7 @@ public class XTextSegmentFormatter
 			? blocks.Max(b => b.Location.Y)
 			: 0;
 		var maxLineHeight = 0.0;
-		for (int i = blocks.Count - 1; i >= 0; i--)
+		for (var i = blocks.Count - 1; i >= 0; i--)
 		{
 			if (blocks[i].Type == BlockType.LineBreak)
 			{
@@ -223,7 +223,7 @@ public class XTextSegmentFormatter
 
 		CreateLayout(blockUnits, layoutRectangle);
 
-		for (int index = 0; index < blockUnits.Count; index++)
+		for (var index = 0; index < blockUnits.Count; index++)
 		{
 			var blockUnit = blockUnits[index];
 			var maxCyAscend = blockUnit.Max(b => b.Environment.CyAscent);
@@ -283,7 +283,7 @@ public class XTextSegmentFormatter
 
 			for (var idx = 0; idx < length; idx++)
 			{
-				char ch = textSegment.Text[idx];
+				var ch = textSegment.Text[idx];
 
 				// Treat CR and CRLF as LF
 				if (ch == Chars.CR)
@@ -371,7 +371,7 @@ public class XTextSegmentFormatter
 			var startLineSpace = blockUnit[0].Environment.LineSpace;
 			var startCyDescent = blockUnit[0].Environment.CyDescent;
 
-			for (int idx = 0; idx < count; idx++)
+			for (var idx = 0; idx < count; idx++)
 			{
 				var block = blockUnit[idx];
 				if (block.Type == BlockType.LineBreak)
@@ -410,7 +410,7 @@ public class XTextSegmentFormatter
 				}
 				else
 				{
-					double width = block.Width;
+					var width = block.Width;
 
 					if (x == 0.0)
 					{
@@ -503,7 +503,7 @@ public class XTextSegmentFormatter
 	{
 		while (block.Text.StartsWith(' '))
 		{
-			block.Text = block.Text.Substring(1);
+			block.Text = block.Text[1..];
 			block.Width -= block.Environment.SpaceWidth;
 			width -= block.Environment.SpaceWidth;
 		}
@@ -534,7 +534,7 @@ public class XTextSegmentFormatter
 		if (Alignment == XParagraphAlignment.Justify)
 		{
 			// Skip not movable leading blocks
-			for (int idx = firstIndex; idx <= lastIndex; idx++)
+			for (var idx = firstIndex; idx <= lastIndex; idx++)
 			{
 				if (!blockUnit[idx].SkipParagraphAlignment && !blockUnit[idx].NextBlockBelongsToMe)
 				{
@@ -551,7 +551,7 @@ public class XTextSegmentFormatter
 		}
 
 		// Remove not movable blocks from space calculation
-		for (int idx = firstIndex; idx <= lastIndex; idx++)
+		for (var idx = firstIndex; idx <= lastIndex; idx++)
 		{
 			totalWidth += blockUnit[idx].Width + (blockUnit[idx].NextBlockBelongsToMe ? 0 : blockUnit[idx].Environment.SpaceWidth);
 			if (idx == lastIndex)
@@ -575,7 +575,7 @@ public class XTextSegmentFormatter
 				dx /= 2;
 			}
 
-			for (int idx = firstIndex; idx <= lastIndex; idx++)
+			for (var idx = firstIndex; idx <= lastIndex; idx++)
 			{
 				var block = blockUnit[idx];
 				block.Location += new XSize(dx, 0);
@@ -586,7 +586,7 @@ public class XTextSegmentFormatter
 			dx /= count - 1;
 			var spaceCounter = 1;
 
-			for (int idx = firstIndex + 1; idx <= lastIndex; idx++)
+			for (var idx = firstIndex + 1; idx <= lastIndex; idx++)
 			{
 				var block = blockUnit[idx];
 				block.Location += new XSize(dx * spaceCounter, 0);

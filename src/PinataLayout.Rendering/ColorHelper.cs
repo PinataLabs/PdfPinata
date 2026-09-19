@@ -1,4 +1,5 @@
 #region Copyright
+
 //
 // Authors:
 //   Klaus Potzesny (mailto:Klaus.Potzesny@PdfPinata.com)
@@ -24,8 +25,9 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
+
 #endregion
 
 using PdfPinata.Drawing;
@@ -35,17 +37,16 @@ namespace PinataLayout.Rendering;
 
 static class ColorHelper
 {
-  /// <summary>
-  /// Converts Color to XColor.
-  /// </summary>
-  public static XColor ToXColor(Color color, bool cmyk)
-  {
-    if (color.IsEmpty)
-      return XColor.Empty;
+    /// <summary>
+    /// Converts Color to XColor.
+    /// </summary>
+    public static XColor ToXColor(Color color, bool cmyk)
+    {
+        if (color.IsEmpty)
+            return XColor.Empty;
 
-    if (cmyk)
-      return XColor.FromCmyk(color.Alpha / 100.0, color.C / 100.0, color.M / 100.0, color.Y / 100.0, color.K / 100.0);
-    else
-      return XColor.FromArgb((int)color.Argb);
-  }
+        return cmyk
+            ? XColor.FromCmyk(color.Alpha / 100.0, color.C / 100.0, color.M / 100.0, color.Y / 100.0, color.K / 100.0)
+            : XColor.FromArgb((int)color.Argb);
+    }
 }

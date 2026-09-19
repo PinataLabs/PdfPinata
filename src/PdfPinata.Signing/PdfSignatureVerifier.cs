@@ -142,7 +142,7 @@ public static class PdfSignatureVerifier
     /// </remarks>
     static DateTimeOffset? TimestampOf(SignerInfo signerInfo)
     {
-        foreach (CryptographicAttributeObject attribute in signerInfo.UnsignedAttributes)
+        foreach (var attribute in signerInfo.UnsignedAttributes)
         {
             if (attribute.Oid?.Value != SignatureTimeStampTokenOid || attribute.Values.Count == 0)
                 continue;

@@ -24,7 +24,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
 #endregion
@@ -69,7 +69,7 @@ public sealed class PdfCheckBoxField : PdfButtonField
         {
             if (!HasKids) //R080317
             {
-                string value = Elements.GetString(Keys.V);
+                var value = Elements.GetString(Keys.V);
                 return value.Length != 0 && value != "/Off";
             }
             else //R080317
@@ -77,11 +77,11 @@ public sealed class PdfCheckBoxField : PdfButtonField
                 // The answer lives in the first child rather than in the field, whatever the
                 // number of children: a field with one widget is as much a tick box as a field
                 // with the twin widgets the setter below was written for.
-                PdfDictionary child = ChildAt(0);
+                var child = ChildAt(0);
                 if (child == null)
                     return false;
 
-                string value = child.Elements.GetString(Keys.V);
+                var value = child.Elements.GetString(Keys.V);
                 return
                     value.Length != 0 && value != "/Off" &&
                     value != "/Nein"; //R081114 (3Std.!!) auch auf Nein prüfen; //TODO woher kommt der Wert?
@@ -93,7 +93,7 @@ public sealed class PdfCheckBoxField : PdfButtonField
 
             if (!HasKids)
             {
-                string name = value ? GetNonOffValue() : "/Off";
+                var name = value ? GetNonOffValue() : "/Off";
                 Elements.SetName(Keys.V, name);
                 Elements.SetName(PdfAnnotation.Keys.AS, name);
             }
@@ -103,8 +103,8 @@ public sealed class PdfCheckBoxField : PdfButtonField
                 // not merged into the field, and it is a tick box rather than half of a pair: the
                 // state asked for is the state it takes. The names come from the child, because
                 // the child is what carries the appearances.
-                PdfDictionary child = ChildAt(0);
-                string name = value ? OnStateOf(child) : OffStateOf(child);
+                var child = ChildAt(0);
+                var name = value ? OnStateOf(child) : OffStateOf(child);
                 if (child != null && name.Length != 0)
                 {
                     child.Elements.SetName(Keys.V, name);
@@ -123,16 +123,16 @@ public sealed class PdfCheckBoxField : PdfButtonField
                     if (value)
                     {
                         //Element 0 behandeln -> auf checked setzen
-                        string name1 = "";
-                        PdfDictionary o =
+                        var name1 = "";
+                        var o =
                             ((PdfDictionary)(((PdfReference)(Fields.Elements.Items[0])).Value)).Elements["/AP"] as
                             PdfDictionary;
                         if (o != null)
                         {
-                            PdfDictionary n = o.Elements["/N"] as PdfDictionary;
+                            var n = o.Elements["/N"] as PdfDictionary;
                             if (n != null)
                             {
-                                foreach (string name in n.Elements.Keys)
+                                foreach (var name in n.Elements.Keys)
                                 {
                                     if (name != "/Off")
                                     {
@@ -161,10 +161,10 @@ public sealed class PdfCheckBoxField : PdfButtonField
                             PdfDictionary;
                         if (o != null)
                         {
-                            PdfDictionary n = o.Elements["/N"] as PdfDictionary;
+                            var n = o.Elements["/N"] as PdfDictionary;
                             if (n != null)
                             {
-                                foreach (string name in n.Elements.Keys)
+                                foreach (var name in n.Elements.Keys)
                                 {
                                     if (name == "/Off")
                                     {
@@ -186,16 +186,16 @@ public sealed class PdfCheckBoxField : PdfButtonField
                     else
                     {
                         //Element 0 behandeln -> auf unchecked setzen
-                        string name1 = "";
-                        PdfDictionary o =
+                        var name1 = "";
+                        var o =
                             ((PdfDictionary)(((PdfReference)(Fields.Elements.Items[1])).Value)).Elements["/AP"] as
                             PdfDictionary;
                         if (o != null)
                         {
-                            PdfDictionary n = o.Elements["/N"] as PdfDictionary;
+                            var n = o.Elements["/N"] as PdfDictionary;
                             if (n != null)
                             {
-                                foreach (string name in n.Elements.Keys)
+                                foreach (var name in n.Elements.Keys)
                                 {
                                     if (name != "/Off")
                                     {
@@ -221,10 +221,10 @@ public sealed class PdfCheckBoxField : PdfButtonField
                             PdfDictionary;
                         if (o != null)
                         {
-                            PdfDictionary n = o.Elements["/N"] as PdfDictionary;
+                            var n = o.Elements["/N"] as PdfDictionary;
                             if (n != null)
                             {
-                                foreach (string name in n.Elements.Keys)
+                                foreach (var name in n.Elements.Keys)
                                 {
                                     if (name == "/Off")
                                     {
@@ -254,11 +254,11 @@ public sealed class PdfCheckBoxField : PdfButtonField
     /// </summary>
     PdfDictionary ChildAt(int index)
     {
-        PdfItem[] kids = Fields.Elements.Items;
+        var kids = Fields.Elements.Items;
         if (index < 0 || index >= kids.Length)
             return null;
 
-        PdfItem kid = kids[index];
+        var kid = kids[index];
         if (kid is PdfReference reference)
             kid = reference.Value;
         return kid as PdfDictionary;
@@ -277,12 +277,12 @@ public sealed class PdfCheckBoxField : PdfButtonField
 
     static string StateOf(PdfDictionary child, bool wanted)
     {
-        PdfDictionary appearances = child?.Elements["/AP"] as PdfDictionary;
-        PdfDictionary normal = appearances?.Elements["/N"] as PdfDictionary;
+        var appearances = child?.Elements["/AP"] as PdfDictionary;
+        var normal = appearances?.Elements["/N"] as PdfDictionary;
         if (normal == null)
             return "";
 
-        foreach (string name in normal.Elements.Keys)
+        foreach (var name in normal.Elements.Keys)
         {
             if (name == "/Off" == wanted)
                 return name;
@@ -315,7 +315,7 @@ public sealed class PdfCheckBoxField : PdfButtonField
     string _uncheckedName = "/Off";
 
     /// <summary>
-    /// Predefined keys of this dictionary. 
+    /// Predefined keys of this dictionary.
     /// The description comes from PDF 1.4 Reference.
     /// </summary>
     public new class Keys : PdfButtonField.Keys

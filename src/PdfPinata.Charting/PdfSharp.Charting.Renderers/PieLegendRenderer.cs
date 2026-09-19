@@ -52,7 +52,7 @@ internal class PieLegendRenderer : LegendRenderer
   internal override RendererInfo Init()
   {
     LegendRendererInfo lri = null;
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
     if (cri.chart.legend != null)
     {
       lri = new LegendRendererInfo();
@@ -68,12 +68,12 @@ internal class PieLegendRenderer : LegendRenderer
       if (cri.chart.xValues != null)
         xseries = cri.chart.xValues[0];
 
-      int index = 0;
-      SeriesRendererInfo sri = cri.seriesRendererInfos[0];
+      var index = 0;
+      var sri = cri.seriesRendererInfos[0];
       lri.Entries = new LegendEntryRendererInfo[sri.pointRendererInfos.Length];
-      foreach (PointRendererInfo pri in sri.pointRendererInfos)
+      foreach (var pri in sri.pointRendererInfos)
       {
-        LegendEntryRendererInfo leri = new LegendEntryRendererInfo();
+        var leri = new LegendEntryRendererInfo();
         leri.seriesRendererInfo = sri;
         leri.legendRendererInfo = lri;
         leri.EntryText = string.Empty;

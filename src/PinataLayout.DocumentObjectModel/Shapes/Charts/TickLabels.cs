@@ -68,8 +68,8 @@ public partial class TickLabels : ChartObject
   /// </summary>
   public string Style
   {
-    get => this.style ?? "";
-    set => this.style = value;
+    get => style ?? "";
+    set => style = value;
   }
   [DV]
   internal string style;
@@ -79,8 +79,8 @@ public partial class TickLabels : ChartObject
   /// </summary>
   public string Format
   {
-    get => this.format ?? "";
-    set => this.format = value;
+    get => format ?? "";
+    set => format = value;
   }
   [DV]
   internal string format;
@@ -92,15 +92,15 @@ public partial class TickLabels : ChartObject
   {
     get
     {
-      if (this.font == null)
-        this.font = new Font(this);
+      if (font == null)
+        font = new Font(this);
 
-      return this.font;
+      return font;
     }
     set
     {
       SetParent(value);
-      this.font = value;
+      font = value;
     }
   }
   [DV]
@@ -113,16 +113,16 @@ public partial class TickLabels : ChartObject
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    int pos = serializer.BeginContent("TickLabels");
+    var pos = serializer.BeginContent("TickLabels");
 
-    if (this.style != null)
-      serializer.WriteSimpleAttribute("Style", this.Style);
+    if (style != null)
+      serializer.WriteSimpleAttribute("Style", Style);
 
-    if (this.font != null)
-      this.font.Serialize(serializer);
+    if (font != null)
+      font.Serialize(serializer);
 
-    if (this.format != null)
-      serializer.WriteSimpleAttribute("Format", this.Format);
+    if (format != null)
+      serializer.WriteSimpleAttribute("Format", Format);
 
     serializer.EndContent();
   }

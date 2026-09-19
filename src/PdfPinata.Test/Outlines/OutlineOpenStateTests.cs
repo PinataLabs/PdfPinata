@@ -32,8 +32,8 @@ public class OutlineOpenStateTests
     [Fact]
     public void AnOpenedEntryWithChildrenCountsThemUp()
     {
-        PdfDocument document = ThreePages();
-        PdfOutline chapter = document.Outlines.Add("Chapter", document.Pages[0], opened: true);
+        var document = ThreePages();
+        var chapter = document.Outlines.Add("Chapter", document.Pages[0], opened: true);
         chapter.Outlines.Add("1.1", document.Pages[1]);
         chapter.Outlines.Add("1.2", document.Pages[2]);
 
@@ -46,8 +46,8 @@ public class OutlineOpenStateTests
     [Fact]
     public void AClosedEntryCountsTheSameNumberDownwards()
     {
-        PdfDocument document = ThreePages();
-        PdfOutline chapter = document.Outlines.Add("Chapter", document.Pages[0], opened: false);
+        var document = ThreePages();
+        var chapter = document.Outlines.Add("Chapter", document.Pages[0], opened: false);
         chapter.Outlines.Add("1.1", document.Pages[1]);
         chapter.Outlines.Add("1.2", document.Pages[2]);
 
@@ -60,8 +60,8 @@ public class OutlineOpenStateTests
     [Fact]
     public void OpenedSetAfterTheEntryWasAddedIsStillWritten()
     {
-        PdfDocument document = ThreePages();
-        PdfOutline chapter = document.Outlines.Add("Chapter", document.Pages[0], opened: false);
+        var document = ThreePages();
+        var chapter = document.Outlines.Add("Chapter", document.Pages[0], opened: false);
         chapter.Outlines.Add("1.1", document.Pages[1]);
 
         // The assignment the old bookkeeping could not see: it ran once, inside Add.
@@ -75,8 +75,8 @@ public class OutlineOpenStateTests
     [Fact]
     public void AnEntryWithNoChildrenCarriesNoCount()
     {
-        PdfDocument document = ThreePages();
-        PdfOutline leaf = document.Outlines.Add("Leaf", document.Pages[0], opened: true);
+        var document = ThreePages();
+        var leaf = document.Outlines.Add("Leaf", document.Pages[0], opened: true);
 
         Save(document);
 
@@ -86,14 +86,14 @@ public class OutlineOpenStateTests
     [Fact]
     public void AClosedChildHidesItsOwnDescendantsFromTheCountAbove()
     {
-        PdfDocument document = ThreePages();
-        PdfOutline chapter = document.Outlines.Add("Chapter", document.Pages[0], opened: true);
+        var document = ThreePages();
+        var chapter = document.Outlines.Add("Chapter", document.Pages[0], opened: true);
 
-        PdfOutline shut = chapter.Outlines.Add("1.1", document.Pages[1], opened: false);
+        var shut = chapter.Outlines.Add("1.1", document.Pages[1], opened: false);
         shut.Outlines.Add("1.1.1", document.Pages[2]);
         shut.Outlines.Add("1.1.2", document.Pages[2]);
 
-        PdfOutline open = chapter.Outlines.Add("1.2", document.Pages[1], opened: true);
+        var open = chapter.Outlines.Add("1.2", document.Pages[1], opened: true);
         open.Outlines.Add("1.2.1", document.Pages[2]);
 
         Save(document);
@@ -106,40 +106,40 @@ public class OutlineOpenStateTests
     [Fact]
     public void TheOutlineDictionaryCountsEveryRowAReaderWouldShow()
     {
-        PdfDocument document = ThreePages();
+        var document = ThreePages();
 
-        PdfOutline first = document.Outlines.Add("One", document.Pages[0], opened: true);
+        var first = document.Outlines.Add("One", document.Pages[0], opened: true);
         first.Outlines.Add("1.1", document.Pages[1]);
         first.Outlines.Add("1.2", document.Pages[1]);
 
-        PdfOutline second = document.Outlines.Add("Two", document.Pages[1], opened: false);
+        var second = document.Outlines.Add("Two", document.Pages[1], opened: false);
         second.Outlines.Add("2.1", document.Pages[2]);
 
-        using PdfDocument reopened = SaveAndOpen(document);
+        using var reopened = SaveAndOpen(document);
 
         // Two top-level entries, plus the two under the open one. The closed one's child does
         // not show, and the root's count is never negative.
-        PdfDictionary root = (PdfDictionary)reopened.Internals.Catalog.Elements.GetObject("/Outlines");
+        var root = (PdfDictionary)reopened.Internals.Catalog.Elements.GetObject("/Outlines");
         root.Elements.GetInteger("/Count").Should().Be(4);
     }
 
     [Fact]
     public void OpenedSurvivesAReadAndAnotherSave()
     {
-        PdfDocument document = ThreePages();
-        PdfOutline open = document.Outlines.Add("Open", document.Pages[0], opened: true);
+        var document = ThreePages();
+        var open = document.Outlines.Add("Open", document.Pages[0], opened: true);
         open.Outlines.Add("1.1", document.Pages[1]);
-        PdfOutline shut = document.Outlines.Add("Shut", document.Pages[1], opened: false);
+        var shut = document.Outlines.Add("Shut", document.Pages[1], opened: false);
         shut.Outlines.Add("2.1", document.Pages[2]);
 
-        using PdfDocument once = SaveAndOpen(document);
+        using var once = SaveAndOpen(document);
 
         // Reading did not used to set Opened at all, so a document opened and saved again lost
         // every expanded branch it had.
         once.Outlines[0].Opened.Should().BeTrue();
         once.Outlines[1].Opened.Should().BeFalse();
 
-        using PdfDocument twice = SaveAndOpen(once);
+        using var twice = SaveAndOpen(once);
 
         twice.Outlines[0].Opened.Should().BeTrue();
         twice.Outlines[1].Opened.Should().BeFalse();
@@ -150,17 +150,17 @@ public class OutlineOpenStateTests
     [Fact]
     public void ADeepChainCountsEveryLevelBeneathIt()
     {
-        PdfDocument document = ThreePages();
+        var document = ThreePages();
 
         // A chapter per page and a heading per section is the shape that used to cost the most:
         // the counts are now taken in one post-order pass rather than each level re-walking
         // everything below it, so this also pins the arithmetic that pass has to get right.
         const int Depth = 40;
-        List<PdfOutline> chain = new List<PdfOutline>();
-        PdfOutline current = document.Outlines.Add("0", document.Pages[0], opened: true);
+        var chain = new List<PdfOutline>();
+        var current = document.Outlines.Add("0", document.Pages[0], opened: true);
         chain.Add(current);
 
-        for (int level = 1; level < Depth; level++)
+        for (var level = 1; level < Depth; level++)
         {
             current = current.Outlines.Add(level.ToString(), document.Pages[level % 3], opened: true);
             chain.Add(current);
@@ -171,18 +171,18 @@ public class OutlineOpenStateTests
         // Every entry is open, so each one shows everything beneath it: the deepest is a leaf
         // with no key at all, its parent shows one row, and so on up to the first.
         chain[Depth - 1].Elements.ContainsKey("/Count").Should().BeFalse();
-        for (int level = 0; level < Depth - 1; level++)
+        for (var level = 0; level < Depth - 1; level++)
             CountOf(chain[level]).Should().Be(Depth - 1 - level);
     }
 
     [Fact]
     public void ClosingOneLinkOfADeepChainHidesEverythingUnderIt()
     {
-        PdfDocument document = ThreePages();
+        var document = ThreePages();
 
-        PdfOutline top = document.Outlines.Add("top", document.Pages[0], opened: true);
-        PdfOutline middle = top.Outlines.Add("middle", document.Pages[1], opened: false);
-        PdfOutline bottom = middle.Outlines.Add("bottom", document.Pages[2], opened: true);
+        var top = document.Outlines.Add("top", document.Pages[0], opened: true);
+        var middle = top.Outlines.Add("middle", document.Pages[1], opened: false);
+        var bottom = middle.Outlines.Add("bottom", document.Pages[2], opened: true);
         bottom.Outlines.Add("leaf", document.Pages[0]);
 
         Save(document);
@@ -201,13 +201,13 @@ public class OutlineOpenStateTests
     /// </summary>
     static void Save(PdfDocument document)
     {
-        using MemoryStream stream = new MemoryStream();
+        using var stream = new MemoryStream();
         document.Save(stream, false);
     }
 
     static PdfDocument SaveAndOpen(PdfDocument document)
     {
-        using MemoryStream stream = new MemoryStream();
+        using var stream = new MemoryStream();
         document.Save(stream, false);
         stream.Position = 0;
         // Fully qualified: PdfPinata.Test carries a PdfReader of its own, which wins here.
@@ -221,12 +221,12 @@ public class OutlineOpenStateTests
 
     static PdfDocument ThreePages()
     {
-        PdfDocument document = new PdfDocument();
-        XFont font = new XFont("Liberation Sans", 12);
+        var document = new PdfDocument();
+        var font = new XFont("Liberation Sans", 12);
 
-        for (int page = 1; page <= 3; page++)
+        for (var page = 1; page <= 3; page++)
         {
-            XGraphics gfx = XGraphics.FromPdfPage(document.AddPage());
+            var gfx = XGraphics.FromPdfPage(document.AddPage());
             gfx.DrawString($"Page {page}", font, XBrushes.Black, 20, 50, XStringFormats.Default);
         }
 

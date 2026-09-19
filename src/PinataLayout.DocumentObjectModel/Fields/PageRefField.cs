@@ -89,7 +89,7 @@ public partial class PageRefField : NumericFieldBase
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    string str = "\\field(PageRef)";
+    var str = "\\field(PageRef)";
     str += "[Name = \"" + this.Name + "\"";
 
     if ((this.format ?? "") != "")

@@ -26,7 +26,7 @@ public enum PdfPageLabelStyle
     UppercaseLetters,
 
     /// <summary>Lowercase letters: a to z, then aa to zz, and so on.</summary>
-    LowercaseLetters,
+    LowercaseLetters
 }
 
 /// <summary>
@@ -83,7 +83,7 @@ public sealed class PdfPageLabels
     PdfNumberTreeNode Tree(bool create)
     {
         PdfDictionary catalog = _document.Internals.Catalog;
-        PdfItem value = catalog.Elements.GetValue(PdfCatalog.Keys.PageLabels,
+        var value = catalog.Elements.GetValue(PdfCatalog.Keys.PageLabels,
             create ? VCF.CreateIndirect : VCF.None);
         return value as PdfNumberTreeNode;
     }
@@ -95,7 +95,7 @@ public sealed class PdfPageLabels
     {
         get
         {
-            PdfNumberTreeNode tree = Tree(false);
+            var tree = Tree(false);
             return tree == null ? 0 : tree.Count;
         }
     }
@@ -105,7 +105,7 @@ public sealed class PdfPageLabels
     /// </summary>
     public int[] GetRangeStarts()
     {
-        PdfNumberTreeNode tree = Tree(false);
+        var tree = Tree(false);
         return tree == null ? Array.Empty<int>() : tree.GetKeys();
     }
 
@@ -130,10 +130,10 @@ public sealed class PdfPageLabels
 
     void Write(int startPageIndex, PdfPageLabelStyle style, string prefix, int start)
     {
-        PdfDictionary label = new PdfDictionary(_document);
+        var label = new PdfDictionary(_document);
         label.Elements.SetName(PdfPageLabelKeys.Type, "/PageLabel");
 
-        string name = NameOf(style);
+        var name = NameOf(style);
         if (name != null)
             label.Elements.SetName(PdfPageLabelKeys.Style, name);
 
@@ -161,7 +161,7 @@ public sealed class PdfPageLabels
     /// </summary>
     void LabelPageZero()
     {
-        PdfNumberTreeNode tree = Tree(false);
+        var tree = Tree(false);
         if (tree == null || tree.Count == 0 || tree.Contains(0))
             return;
 
@@ -181,7 +181,7 @@ public sealed class PdfPageLabels
     /// </summary>
     public bool Remove(int startPageIndex)
     {
-        PdfNumberTreeNode tree = Tree(false);
+        var tree = Tree(false);
         if (tree == null || !tree.Remove(startPageIndex))
             return false;
 
@@ -210,13 +210,13 @@ public sealed class PdfPageLabels
     /// </summary>
     public PdfPageLabelRange GetRange(int pageIndex)
     {
-        PdfNumberTreeNode tree = Tree(false);
+        var tree = Tree(false);
         if (tree == null)
             return null;
 
         // The range a page falls in is the last one starting at or before it.
-        int start = -1;
-        foreach (int candidate in tree.GetKeys())
+        var start = -1;
+        foreach (var candidate in tree.GetKeys())
         {
             if (candidate > pageIndex)
                 break;
@@ -227,7 +227,7 @@ public sealed class PdfPageLabels
         if (start < 0)
             return null;
 
-        PdfDictionary label = tree.GetDictionary(start);
+        var label = tree.GetDictionary(start);
         if (label == null)
             return null;
 
@@ -247,11 +247,11 @@ public sealed class PdfPageLabels
     /// </summary>
     public string GetLabel(int pageIndex)
     {
-        PdfPageLabelRange range = GetRange(pageIndex);
+        var range = GetRange(pageIndex);
         if (range == null)
             return null;
 
-        int number = range.Start + (pageIndex - range.StartPageIndex);
+        var number = range.Start + (pageIndex - range.StartPageIndex);
         return (range.Prefix ?? "") + Numeral(number, range.Style);
     }
 
@@ -291,8 +291,8 @@ public sealed class PdfPageLabels
         if (number < 1)
             return "";
 
-        StringBuilder numeral = new StringBuilder();
-        for (int at = 0; at < RomanValues.Length; at++)
+        var numeral = new StringBuilder();
+        for (var at = 0; at < RomanValues.Length; at++)
         {
             while (number >= RomanValues[at])
             {
@@ -312,8 +312,8 @@ public sealed class PdfPageLabels
         if (number < 1)
             return "";
 
-        int index = (number - 1) % 26;
-        int repeats = (number - 1) / 26 + 1;
+        var index = (number - 1) % 26;
+        var repeats = (number - 1) / 26 + 1;
         return new string((char)(first + index), repeats);
     }
 

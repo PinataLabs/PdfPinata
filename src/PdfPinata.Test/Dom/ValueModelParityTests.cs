@@ -31,7 +31,7 @@ public class ValueModelParityTests
     public static TheoryData<Type> DomTypes()
     {
         var data = new TheoryData<Type>();
-        foreach (Type type in ReflectionMeta.AllDocumentObjectTypes())
+        foreach (var type in ReflectionMeta.AllDocumentObjectTypes())
             data.Add(type);
         return data;
     }
@@ -58,11 +58,11 @@ public class ValueModelParityTests
     [MemberData(nameof(DomTypes))]
     public void EveryMemberKeepsItsTypesAndFlags(Type type)
     {
-        Meta meta = MetaFor(type);
+        var meta = MetaFor(type);
 
         foreach (var expected in ReflectionMeta.Build(type))
         {
-            ValueDescriptor actual = meta[expected.Name];
+            var actual = meta[expected.Name];
             actual.Should().NotBeNull($"{type.Name}.{expected.Name} is in the model");
 
             actual.ValueType.Should().Be(expected.ValueType, $"{type.Name}.{expected.Name} value type");
@@ -88,9 +88,9 @@ public class ValueModelParityTests
     [MemberData(nameof(DomTypes))]
     public void NameLookupIsCaseInsensitive(Type type)
     {
-        Meta meta = MetaFor(type);
+        var meta = MetaFor(type);
 
-        foreach (ValueDescriptor descriptor in Descriptors(meta))
+        foreach (var descriptor in Descriptors(meta))
         {
             meta[descriptor.ValueName.ToUpperInvariant()].Should().BeSameAs(descriptor);
             meta[descriptor.ValueName.ToLowerInvariant()].Should().BeSameAs(descriptor);
@@ -119,15 +119,15 @@ public class ValueModelParityTests
     public void InheritedMembersAreIncluded()
     {
         // parent is declared protected internal on DocumentObject and carries [DV(RefOnly = true)].
-        foreach (Type type in ReflectionMeta.AllDocumentObjectTypes())
+        foreach (var type in ReflectionMeta.AllDocumentObjectTypes())
         {
-            ValueDescriptor parent = MetaFor(type)["parent"];
+            var parent = MetaFor(type)["parent"];
             parent.Should().NotBeNull($"{type.Name} inherits parent from DocumentObject");
             parent.IsRefOnly.Should().BeTrue($"{type.Name}.parent must stay out of recursive walks");
         }
 
         // Image derives from Shape, whose [DV] fields are internal rather than protected.
-        Meta image = MetaFor(typeof(PinataLayout.DocumentObjectModel.Shapes.Image));
+        var image = MetaFor(typeof(PinataLayout.DocumentObjectModel.Shapes.Image));
         image["relativeHorizontal"].Should().NotBeNull("declared on the Shape base class");
         image["width"].Should().NotBeNull("declared on the Shape base class");
     }
@@ -139,7 +139,7 @@ public class ValueModelParityTests
     [Fact]
     public void ParentIsTheOnlyRefOnlyMember()
     {
-        foreach (Type type in ReflectionMeta.AllDocumentObjectTypes())
+        foreach (var type in ReflectionMeta.AllDocumentObjectTypes())
         {
             var refOnly = Descriptors(MetaFor(type)).Where(d => d.IsRefOnly).Select(d => d.ValueName);
             refOnly.Should().Equal(new[] { "parent" }, $"{type.Name}");

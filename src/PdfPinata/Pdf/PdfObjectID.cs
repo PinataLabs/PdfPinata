@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -89,7 +89,7 @@ public struct PdfObjectID : IComparable
     {
         if (obj is PdfObjectID)
         {
-            PdfObjectID id = (PdfObjectID)obj;
+            var id = (PdfObjectID)obj;
             if (_objectNumber == id._objectNumber)
                 return _generationNumber == id._generationNumber;
         }
@@ -140,7 +140,7 @@ public struct PdfObjectID : IComparable
     {
         if (obj is PdfObjectID)
         {
-            PdfObjectID id = (PdfObjectID)obj;
+            var id = (PdfObjectID)obj;
             if (_objectNumber == id._objectNumber)
                 return _generationNumber - id._generationNumber;
             return _objectNumber - id._objectNumber;
@@ -151,5 +151,5 @@ public struct PdfObjectID : IComparable
     /// <summary>
     /// Gets the DebuggerDisplayAttribute text.
     /// </summary>
-    internal string DebuggerDisplay => String.Format("id=({0})", ToString());
+    internal string DebuggerDisplay => $"id=({ToString()})";
 }

@@ -54,20 +54,20 @@ internal class CMapInfo
     {
         if (text != null)
         {
-            bool symbol = _descriptor.FontFace.cmap.symbol;
-            int length = text.Length;
-            for (int idx = 0; idx < length; idx++)
+            var symbol = _descriptor.FontFace.cmap.symbol;
+            var length = text.Length;
+            for (var idx = 0; idx < length; idx++)
             {
-                char ch = text[idx];
+                var ch = text[idx];
                 if (!CharacterToGlyphIndex.ContainsKey(ch))
                 {
-                    char ch2 = ch;
+                    var ch2 = ch;
                     if (symbol)
                     {
                         // Remap ch for symbol fonts.
                         ch2 = (char)(ch | (_descriptor.FontFace.os2.usFirstCharIndex & 0xFF00));  // @@@ refactor
                     }
-                    int glyphIndex = _descriptor.CharCodeToGlyphIndex(ch2);
+                    var glyphIndex = _descriptor.CharCodeToGlyphIndex(ch2);
                     CharacterToGlyphIndex.Add(ch, glyphIndex);
                     GlyphIndices[glyphIndex] = null;
                     MinChar = (char)Math.Min(MinChar, ch);
@@ -103,16 +103,16 @@ internal class CMapInfo
             return;
 
         var glyphs = run.Glyphs;
-        for (int idx = 0; idx < glyphs.Count; idx++)
+        for (var idx = 0; idx < glyphs.Count; idx++)
         {
             int glyphIndex = glyphs[idx].GlyphId;
             GlyphIndices[glyphIndex] = null;
 
-            string characters = TextShaping.CharactersOf(run, idx, text);
+            var characters = TextShaping.CharactersOf(run, idx, text);
             if (characters.Length == 0)
                 continue;
 
-            if (!GlyphIndexToCharacters.TryGetValue(glyphIndex, out string known)
+            if (!GlyphIndexToCharacters.TryGetValue(glyphIndex, out var known)
                 || characters.Length < known.Length)
             {
                 GlyphIndexToCharacters[glyphIndex] = characters;
@@ -127,8 +127,8 @@ internal class CMapInfo
     {
         if (glyphIndices != null)
         {
-            int length = glyphIndices.Length;
-            for (int idx = 0; idx < length; idx++)
+            var length = glyphIndices.Length;
+            for (var idx = 0; idx < length; idx++)
             {
                 int glyphIndex = glyphIndices[idx];
                 GlyphIndices[glyphIndex] = null;
@@ -141,10 +141,10 @@ internal class CMapInfo
     /// </summary>
     internal void AddAnsiChars()
     {
-        byte[] ansi = new byte[256 - 32];
-        for (int idx = 0; idx < 256 - 32; idx++)
+        var ansi = new byte[256 - 32];
+        for (var idx = 0; idx < 256 - 32; idx++)
             ansi[idx] = (byte)(idx + 32);
-        string text = PdfEncoders.WinAnsiEncoding.GetString(ansi, 0, ansi.Length);
+        var text = PdfEncoders.WinAnsiEncoding.GetString(ansi, 0, ansi.Length);
         AddChars(text);
     }
 
@@ -157,7 +157,7 @@ internal class CMapInfo
     {
         get
         {
-            char[] chars = new char[CharacterToGlyphIndex.Count];
+            var chars = new char[CharacterToGlyphIndex.Count];
             CharacterToGlyphIndex.Keys.CopyTo(chars, 0);
             Array.Sort(chars);
             return chars;
@@ -166,7 +166,7 @@ internal class CMapInfo
 
     public int[] GetGlyphIndices()
     {
-        int[] indices = new int[GlyphIndices.Count];
+        var indices = new int[GlyphIndices.Count];
         GlyphIndices.Keys.CopyTo(indices, 0);
         Array.Sort(indices);
         return indices;
@@ -198,7 +198,7 @@ internal class CMapInfo
 
         foreach (var entry in GlyphIndexToCharacters)
         {
-            if (!meanings.TryGetValue(entry.Key, out string known) || entry.Value.Length < known.Length)
+            if (!meanings.TryGetValue(entry.Key, out var known) || entry.Value.Length < known.Length)
                 meanings[entry.Key] = entry.Value;
         }
 

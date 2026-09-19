@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -70,7 +70,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
             if (index < 0 || index >= Count)
                 throw new ArgumentOutOfRangeException(nameof(index), index, PSSR.PageIndexOutOfRange);
 
-            PdfDictionary dict = (PdfDictionary)((PdfReference)PagesArray.Elements[index]).Value;
+            var dict = (PdfDictionary)((PdfReference)PagesArray.Elements[index]).Value;
             if (!(dict is PdfPage))
                 dict = new PdfPage(dict);
             return (PdfPage)dict;
@@ -110,7 +110,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     public PdfPage Add()
     {
         EnsureCanModify("adding a page");
-        PdfPage page = new PdfPage();
+        var page = new PdfPage();
         return Insert(Count, page);
     }
 
@@ -132,7 +132,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     public PdfPage Insert(int index)
     {
         EnsureCanModify("inserting a page");
-        PdfPage page = new PdfPage();
+        var page = new PdfPage();
         return Insert(index, page);
     }
 
@@ -150,16 +150,16 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         if (page.Owner == Owner)
         {
             // Case: Page is first removed and than inserted again, maybe at another position.
-            int count = Count;
+            var count = Count;
             // Check if page is not already part of the document.
-            for (int idx = 0; idx < count; idx++)
+            for (var idx = 0; idx < count; idx++)
             {
                 if (ReferenceEquals(this[idx], page))
                     throw new InvalidOperationException(PSSR.PageAlreadyPlaced(idx, index));
             }
 
             // TODO: check this case
-            // Because the owner of the inserted page is this document we assume that the page was former part of it 
+            // Because the owner of the inserted page is this document we assume that the page was former part of it
             // and it is therefore well-defined.
             Owner._irefTable.Add(page);
             Debug.Assert(page.Owner == Owner);
@@ -187,12 +187,12 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         else
         {
             // Case: Page is from an external document -> import it.
-            PdfPage importPage = page;
+            var importPage = page;
             page = ImportExternalPage(importPage, annotationCopying);
             Owner._irefTable.Add(page);
 
             // Add page substitute to importedObjectTable.
-            PdfImportedObjectTable importedObjectTable = Owner.FormTable.GetImportedObjectTable(importPage);
+            var importedObjectTable = Owner.FormTable.GetImportedObjectTable(importPage);
             importedObjectTable.Add(importPage.ObjectID, page.Reference);
 
             PagesArray.Elements.Insert(index, page.Reference);
@@ -219,7 +219,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         PdfPage.InheritablePageKeys.Rotate,
         PdfPage.Keys.BleedBox,
         PdfPage.Keys.TrimBox,
-        PdfPage.Keys.ArtBox,
+        PdfPage.Keys.ArtBox
     };
 
     /// <summary>
@@ -231,8 +231,8 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     {
         ArgumentNullException.ThrowIfNull(page);
 
-        int count = Count;
-        for (int idx = 0; idx < count; idx++)
+        var count = Count;
+        for (var idx = 0; idx < count; idx++)
         {
             if (ReferenceEquals(this[idx], page))
                 return idx;
@@ -263,7 +263,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
             throw new InvalidOperationException(PSSR.PageBelongsToAnotherDocument);
 
         // Insert rejects an already placed page with a message naming the remedy.
-        PdfPage placed = Insert(index, page);
+        var placed = Insert(index, page);
         Debug.Assert(ReferenceEquals(placed, page), "Place must never copy the page.");
         return placed;
     }
@@ -290,7 +290,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         if (page.Owner == null || page.Owner == Owner)
             throw new InvalidOperationException(PSSR.PageBelongsToThisDocument);
 
-        PdfPage imported = Insert(index, page, annotationCopying);
+        var imported = Insert(index, page, annotationCopying);
         Debug.Assert(!ReferenceEquals(imported, page), "Import must always copy the page.");
         return imported;
     }
@@ -317,11 +317,11 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         if (index < 0 || index > Count)
             throw new ArgumentOutOfRangeException(nameof(index), "Argument 'index' out of range.");
 
-        PdfPage source = this[sourceIndex];
-        PdfPage duplicate = new PdfPage(Owner);
-        foreach (string key in DuplicatedPageKeys)
+        var source = this[sourceIndex];
+        var duplicate = new PdfPage(Owner);
+        foreach (var key in DuplicatedPageKeys)
         {
-            PdfItem item = source.Elements[key];
+            var item = source.Elements[key];
             if (item == null)
                 continue;
 
@@ -346,11 +346,11 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     /// </summary>
     PdfItem CloneResources(PdfItem resources)
     {
-        PdfDictionary dictionary = ResolveDictionary(resources);
+        var dictionary = ResolveDictionary(resources);
         if (dictionary == null)
             return resources;
 
-        PdfDictionary clone = dictionary.Clone();
+        var clone = dictionary.Clone();
         clone.Document = Owner;
         return clone;
     }
@@ -361,7 +361,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     /// </summary>
     static PdfDictionary ResolveDictionary(PdfItem item)
     {
-        PdfReference reference = item as PdfReference;
+        var reference = item as PdfReference;
         if (reference != null)
             item = reference.Value;
         return item as PdfDictionary;
@@ -383,7 +383,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         if (index < 0 || index > Count)
             throw new ArgumentOutOfRangeException(nameof(index), "Argument 'index' out of range.");
 
-        int importDocumentPageCount = document.PageCount;
+        var importDocumentPageCount = document.PageCount;
 
         if (startIndex < 0 || startIndex + pageCount > importDocumentPageCount)
             throw new ArgumentOutOfRangeException(nameof(startIndex), "Argument 'startIndex' out of range.");
@@ -395,13 +395,13 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
              importIndex < startIndex + pageCount;
              insertIndex++, importIndex++)
         {
-            PdfPage importPage = document.Pages[importIndex];
-            PdfPage page = ImportExternalPage(importPage, annotationCopying);
+            var importPage = document.Pages[importIndex];
+            var page = ImportExternalPage(importPage, annotationCopying);
 
             Owner._irefTable.Add(page);
 
             // Add page substitute to importedObjectTable.
-            PdfImportedObjectTable importedObjectTable = Owner.FormTable.GetImportedObjectTable(importPage);
+            var importedObjectTable = Owner.FormTable.GetImportedObjectTable(importPage);
             importedObjectTable.Add(importPage.ObjectID, page.Reference);
 
             PagesArray.Elements.Insert(insertIndex, page.Reference);
@@ -478,7 +478,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
             return;
 
         //PdfPage page = (PdfPage)pagesArray.Elements[oldIndex];
-        PdfReference page = (PdfReference)_pagesArray.Elements[oldIndex];
+        var page = (PdfReference)_pagesArray.Elements[oldIndex];
         _pagesArray.Elements.RemoveAt(oldIndex);
         _pagesArray.Elements.Insert(newIndex, page);
     }
@@ -494,7 +494,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         if (importPage.Owner._openMode != PdfDocumentOpenMode.Import)
             throw new InvalidOperationException("A PDF document must be opened with PdfDocumentOpenMode.Import to import pages from it.");
 
-        PdfPage page = new PdfPage(_document);
+        var page = new PdfPage(_document);
 
         // ReSharper disable AccessToStaticMemberViaDerivedType for a better code readability.
         CloneElement(page, importPage, PdfPage.Keys.Resources, false);
@@ -526,7 +526,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         Debug.Assert(importPage.Owner != null);
         Debug.Assert(importPage.Owner != _document);
 
-        PdfItem item = importPage.Elements[key];
+        var item = importPage.Elements[key];
         if (item != null)
         {
             PdfImportedObjectTable importedObjectTable = null;
@@ -538,7 +538,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
                 item = ((PdfReference)item).Value;
             if (item is PdfObject)
             {
-                PdfObject root = (PdfObject)item;
+                var root = (PdfObject)item;
                 if (deepcopy)
                 {
                     Debug.Assert(root.Owner != null, "See 'else' case for details");
@@ -574,21 +574,21 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     /// </summary>
     void DetachImportedDestinations(PdfPage page, PdfPage importPage, PdfImportedObjectTable importedObjectTable)
     {
-        PdfArray importedAnnotations = page.Elements.GetArray(PdfPage.Keys.Annots);
-        PdfArray externalAnnotations = importPage.Elements.GetArray(PdfPage.Keys.Annots);
+        var importedAnnotations = page.Elements.GetArray(PdfPage.Keys.Annots);
+        var externalAnnotations = importPage.Elements.GetArray(PdfPage.Keys.Annots);
         if (importedAnnotations == null || externalAnnotations == null)
             return;
 
         // The document the page is being taken out of, which is the one that holds what the
         // destinations naming rather than stating where they go stand for.
-        PdfDocument externalDocument = importPage.Owner;
+        var externalDocument = importPage.Owner;
 
         // The annotations were copied one by one, so the two arrays run in parallel.
-        int count = Math.Min(importedAnnotations.Elements.Count, externalAnnotations.Elements.Count);
-        for (int idx = 0; idx < count; idx++)
+        var count = Math.Min(importedAnnotations.Elements.Count, externalAnnotations.Elements.Count);
+        for (var idx = 0; idx < count; idx++)
         {
-            PdfDictionary imported = importedAnnotations.Elements.GetDictionary(idx);
-            PdfDictionary external = externalAnnotations.Elements.GetDictionary(idx);
+            var imported = importedAnnotations.Elements.GetDictionary(idx);
+            var external = externalAnnotations.Elements.GetDictionary(idx);
             if (imported == null || external == null)
                 continue;
 
@@ -596,8 +596,8 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
             DetachDestination(imported, imported, external, PdfLinkAnnotation.Keys.Dest,
                 importedObjectTable, externalDocument);
 
-            PdfDictionary importedAction = imported.Elements.GetDictionary(PdfAnnotation.Keys.A);
-            PdfDictionary externalAction = external.Elements.GetDictionary(PdfAnnotation.Keys.A);
+            var importedAction = imported.Elements.GetDictionary(PdfAnnotation.Keys.A);
+            var externalAction = external.Elements.GetDictionary(PdfAnnotation.Keys.A);
             if (importedAction == null || externalAction == null)
                 continue;
 
@@ -606,7 +606,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
             // and a name is for that file to resolve, so their destination is left alone. An
             // action that does not say what it is is taken to be a go-to, which is what it was
             // taken to be before any of them were told apart.
-            string subtype = externalAction.Elements.GetName("/S");
+            var subtype = externalAction.Elements.GetName("/S");
             if (subtype.Length == 0 || subtype == "/GoTo")
                 DetachDestination(imported, importedAction, externalAction, "/D",
                     importedObjectTable, externalDocument);
@@ -627,8 +627,8 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     void DetachDestination(PdfDictionary annotation, PdfDictionary holder, PdfDictionary externalHolder,
         string key, PdfImportedObjectTable importedObjectTable, PdfDocument externalDocument)
     {
-        PdfArray externalDestination = externalHolder.Elements.GetArray(key);
-        bool named = externalDestination == null;
+        var externalDestination = externalHolder.Elements.GetArray(key);
+        var named = externalDestination == null;
         if (named)
             externalDestination = PdfNamedDestinations.Lookup(externalDocument, externalHolder.Elements[key]);
 
@@ -637,7 +637,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
 
         // A destination going into another file names its page by number rather than holding a
         // reference to it, and there is nothing here to detach.
-        PdfReference externalPage = externalDestination.Elements[0] as PdfReference;
+        var externalPage = externalDestination.Elements[0] as PdfReference;
         if (externalPage == null)
             return;
 
@@ -671,13 +671,13 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     /// </summary>
     PdfArray ExplicitDestination(PdfArray externalDestination)
     {
-        PdfArray destination = new PdfArray(_document);
+        var destination = new PdfArray(_document);
         destination.Elements.Add(PdfNull.Value);
 
-        int count = externalDestination.Elements.Count;
-        for (int idx = 1; idx < count; idx++)
+        var count = externalDestination.Elements.Count;
+        for (var idx = 1; idx < count; idx++)
         {
-            PdfItem item = externalDestination.Elements[idx];
+            var item = externalDestination.Elements[idx];
 
             // Where on the page to go is written with names and numbers. Anything else is an
             // object of the other document, which cloning would not bring across.
@@ -699,19 +699,19 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         if (_importedDestinations.Count == 0)
             return;
 
-        Dictionary<PdfReference, object> ownPages = new Dictionary<PdfReference, object>();
-        foreach (PdfItem item in PagesArray.Elements)
+        var ownPages = new Dictionary<PdfReference, object>();
+        foreach (var item in PagesArray.Elements)
         {
-            PdfReference iref = item as PdfReference;
+            var iref = item as PdfReference;
             if (iref != null)
                 ownPages[iref] = null;
         }
 
-        foreach (ImportedDestination destination in _importedDestinations)
+        foreach (var destination in _importedDestinations)
         {
             // The page substitute overwrites whatever the import left under this identifier, so
             // the entry is the imported page itself as soon as the page was imported as a page.
-            PdfReference page = destination.ImportedObjectTable.Contains(destination.ExternalPageID)
+            var page = destination.ImportedObjectTable.Contains(destination.ExternalPageID)
                 ? destination.ImportedObjectTable[destination.ExternalPageID]
                 : null;
 
@@ -795,15 +795,15 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         //PdfDictionary[] pages = GetKids(xrefRoot, null);
 
         // Promote inheritable values down the page tree
-        PdfPage.InheritedValues values = new PdfPage.InheritedValues();
+        var values = new PdfPage.InheritedValues();
         PdfPage.InheritValues(this, ref values);
-        PdfDictionary[] pages = GetKids(Reference, values, null);
+        var pages = GetKids(Reference, values, null);
 
         // Replace /Pages in catalog by this object
         // xrefRoot.Value = this;
 
-        PdfArray array = new PdfArray(Owner);
-        foreach (PdfDictionary page in pages)
+        var array = new PdfArray(Owner);
+        foreach (var page in pages)
         {
             // Fix the parent
             page.Elements[PdfPage.Keys.Parent] = Reference;
@@ -823,9 +823,9 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     static PdfDictionary[] GetKids(PdfReference iref, PdfPage.InheritedValues values, PdfDictionary parent)
     {
         // TODO: inherit inheritable keys...
-        PdfDictionary kid = (PdfDictionary)iref.Value;
+        var kid = (PdfDictionary)iref.Value;
 
-        string type = kid.Elements.GetName(Keys.Type);
+        var type = kid.Elements.GetName(Keys.Type);
         if (type == "/Page")
         {
             PdfPage.InheritValues(kid, values);
@@ -842,18 +842,18 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
 
         Debug.Assert(kid.Elements.GetName(Keys.Type) == "/Pages");
         PdfPage.InheritValues(kid, ref values);
-        List<PdfDictionary> list = new List<PdfDictionary>();
-        PdfArray kids = kid.Elements["/Kids"] as PdfArray;
+        var list = new List<PdfDictionary>();
+        var kids = kid.Elements["/Kids"] as PdfArray;
 
         if (kids == null)
         {
-            PdfReference xref3 = kid.Elements["/Kids"] as PdfReference;
+            var xref3 = kid.Elements["/Kids"] as PdfReference;
             kids = xref3.Value as PdfArray;
         }
 
         foreach (PdfReference xref2 in kids)
             list.AddRange(GetKids(xref2, values, kid));
-        int count = list.Count;
+        var count = list.Count;
         Debug.Assert(count == kid.Elements.GetInteger("/Count"));
         return list.ToArray();
     }
@@ -874,10 +874,10 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         // Through the property, not the field. The field is filled in lazily, and reading it here
         // only worked because every path that reached this point happened to have touched the
         // property first — an incremental save does not, and got a null reference for it.
-        int count = PagesArray.Elements.Count;
-        for (int idx = 0; idx < count; idx++)
+        var count = PagesArray.Elements.Count;
+        for (var idx = 0; idx < count; idx++)
         {
-            PdfPage page = this[idx];
+            var page = this[idx];
             page.PrepareForSave();
         }
     }
@@ -944,7 +944,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     internal sealed class Keys : PdfPage.InheritablePageKeys
     {
         /// <summary>
-        /// (Required) The type of PDF object that this dictionary describes; 
+        /// (Required) The type of PDF object that this dictionary describes;
         /// must be Pages for a page tree node.
         /// </summary>
         [KeyInfo(KeyType.Name | KeyType.Required, FixedValue = "Pages")]
@@ -965,7 +965,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         public const string Kids = "/Kids";
 
         /// <summary>
-        /// (Required) The number of leaf nodes (page objects) that are descendants of this node 
+        /// (Required) The number of leaf nodes (page objects) that are descendants of this node
         /// within the page tree.
         /// </summary>
         [KeyInfo(KeyType.Integer | KeyType.Required)]

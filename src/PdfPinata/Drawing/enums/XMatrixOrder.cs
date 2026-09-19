@@ -42,5 +42,5 @@ public enum XMatrixOrder
     /// <summary>
     /// The new operation is applied after the old operation.
     /// </summary>
-    Append = 1,
+    Append = 1
 }

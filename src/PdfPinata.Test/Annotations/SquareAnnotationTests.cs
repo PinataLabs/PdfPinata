@@ -30,7 +30,7 @@ public sealed class SquareAnnotationTests : IDisposable
 
     public void Dispose()
     {
-        foreach (MagickImageCollection collection in _rasterized)
+        foreach (var collection in _rasterized)
             collection.Dispose();
 
         _rasterized.Clear();
@@ -46,21 +46,21 @@ public sealed class SquareAnnotationTests : IDisposable
     [Fact]
     public void ASquareNamesItsSubtypeAndCarriesADefaultBorder()
     {
-        PdfSquareAnnotation square = OnAPage(out _);
+        var square = OnAPage(out _);
 
         square.Elements.GetName("/Subtype").Should().Be("/Square");
         square.BorderWidth.Should().Be(1);
 
         // A square given nothing but a rectangle still has to appear, so the defaults draw
         // something rather than nothing.
-        PdfDictionary border = square.Elements.GetDictionary("/BS");
+        var border = square.Elements.GetDictionary("/BS");
         border.Elements.GetReal("/W").Should().Be(1);
     }
 
     [Fact]
     public void AnUnfilledSquareSaysSoWithAnEmptyArray()
     {
-        PdfSquareAnnotation square = OnAPage(out _);
+        var square = OnAPage(out _);
 
         // The specification's way of saying "no interior colour" - and not the same as saying
         // nothing, which would leave a reader to guess.
@@ -71,11 +71,11 @@ public sealed class SquareAnnotationTests : IDisposable
     [Fact]
     public void AFilledSquareWritesItsInteriorColour()
     {
-        PdfSquareAnnotation square = OnAPage(out _);
+        var square = OnAPage(out _);
 
         square.Interior = XColors.RoyalBlue;
 
-        PdfArray colour = square.Elements.GetArray("/IC");
+        var colour = square.Elements.GetArray("/IC");
         colour.Elements.Count.Should().Be(3);
         colour.Elements.GetReal(0).Should().BeApproximately(65 / 255.0, 0.01);
         colour.Elements.GetReal(2).Should().BeApproximately(225 / 255.0, 0.01);
@@ -84,26 +84,26 @@ public sealed class SquareAnnotationTests : IDisposable
     [Fact]
     public void TheBorderIsDrawnInsideTheRectangleAndRecordedInRd()
     {
-        PdfSquareAnnotation square = OnAPage(out _);
+        var square = OnAPage(out _);
 
         square.BorderWidth = 6;
 
         // Half the width on each side, because a stroke straddles the path it follows. Without
         // this the outer half of a wide border falls outside the annotation and is clipped.
-        PdfArray differences = square.Elements.GetArray("/RD");
+        var differences = square.Elements.GetArray("/RD");
         differences.Elements.Count.Should().Be(4);
-        foreach (int side in new[] { 0, 1, 2, 3 })
+        foreach (var side in new[] { 0, 1, 2, 3 })
             differences.Elements.GetReal(side).Should().Be(3);
     }
 
     [Fact]
     public void ChangingTheInteriorOrTheBorderStampsTheModificationDate()
     {
-        PdfSquareAnnotation square = OnAPage(out _);
+        var square = OnAPage(out _);
 
         // Rewound rather than read, so that the assertion does not turn on the clock ticking
         // between two statements.
-        DateTime before = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        var before = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
         square.Elements.SetDateTime("/M", before);
         square.Interior = XColors.RoyalBlue;
@@ -117,7 +117,7 @@ public sealed class SquareAnnotationTests : IDisposable
     [Fact]
     public void ANegativeBorderIsRefused()
     {
-        PdfSquareAnnotation square = OnAPage(out _);
+        var square = OnAPage(out _);
 
         Action act = () => square.BorderWidth = -1;
 
@@ -127,10 +127,10 @@ public sealed class SquareAnnotationTests : IDisposable
     [Fact]
     public void TheAppearanceIsBuiltWhenTheAnnotationReachesAPage()
     {
-        PdfDocument document = new PdfDocument();
-        PdfPage page = document.AddPage();
+        var document = new PdfDocument();
+        var page = document.AddPage();
 
-        PdfSquareAnnotation square = new PdfSquareAnnotation();
+        var square = new PdfSquareAnnotation();
         square.Interior = XColors.RoyalBlue;
         square.Rectangle = new PdfRectangle(Where);
 
@@ -146,15 +146,15 @@ public sealed class SquareAnnotationTests : IDisposable
     [Fact]
     public void ChangingWhatItIsDrawnFromRebuildsTheAppearance()
     {
-        PdfSquareAnnotation square = OnAPage(out _);
+        var square = OnAPage(out _);
 
-        PdfDictionary first =
+        var first =
             (PdfDictionary)square.Elements.GetDictionary("/AP").Elements.GetObject("/N");
-        byte[] before = first.Stream.Value;
+        var before = first.Stream.Value;
 
         square.Interior = XColors.Firebrick;
 
-        PdfDictionary second =
+        var second =
             (PdfDictionary)square.Elements.GetDictionary("/AP").Elements.GetObject("/N");
         second.Stream.Value.Should().NotEqual(before);
     }
@@ -162,7 +162,7 @@ public sealed class SquareAnnotationTests : IDisposable
     [GoldenImageFact]
     public void AFilledSquareIsPainted()
     {
-        IMagickImage<byte> page = Rasterize("filled", square =>
+        var page = Rasterize("filled", square =>
         {
             square.Interior = XColors.RoyalBlue;
             square.BorderWidth = 0;
@@ -174,7 +174,7 @@ public sealed class SquareAnnotationTests : IDisposable
     [GoldenImageFact]
     public void AnUnfilledSquareIsAnOutlineAndNothingMore()
     {
-        IMagickImage<byte> page = Rasterize("outline", square =>
+        var page = Rasterize("outline", square =>
         {
             square.Color = XColors.Firebrick;
             square.BorderWidth = 4;
@@ -193,7 +193,7 @@ public sealed class SquareAnnotationTests : IDisposable
     [GoldenImageFact]
     public void ASquareWithNoBorderAndNoFillDrawsNothing()
     {
-        IMagickImage<byte> page = Rasterize("empty", square =>
+        var page = Rasterize("empty", square =>
         {
             square.BorderWidth = 0;
         });
@@ -207,17 +207,17 @@ public sealed class SquareAnnotationTests : IDisposable
     {
         GlobalFontSettings.FontResolver ??= new PinnedFontResolver();
 
-        PdfDocument document = new PdfDocument();
-        PdfPage page = document.AddPage();
-        XGraphics gfx = XGraphics.FromPdfPage(page);
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        var gfx = XGraphics.FromPdfPage(page);
 
-        PdfSquareAnnotation square = new PdfSquareAnnotation();
+        var square = new PdfSquareAnnotation();
         page.Annotations.Add(square);
         square.Rectangle = new PdfRectangle(gfx.Transformer.WorldToDefaultPage(Where));
 
         arrange(square);
 
-        MagickImageCollection images = PdfHelper.Rasterize(document).ImageCollection;
+        var images = PdfHelper.Rasterize(document).ImageCollection;
         _rasterized.Add(images);
         PdfHelper.WriteImageCollection(images, OutDir, name);
         return images[0];
@@ -226,7 +226,7 @@ public sealed class SquareAnnotationTests : IDisposable
     static PdfSquareAnnotation OnAPage(out PdfDocument document)
     {
         document = new PdfDocument();
-        PdfSquareAnnotation square = new PdfSquareAnnotation();
+        var square = new PdfSquareAnnotation();
         document.AddPage().Annotations.Add(square);
 
         // Without somewhere to be there is nothing to draw, so nothing derived from the geometry
@@ -243,11 +243,11 @@ public sealed class SquareAnnotationTests : IDisposable
     {
         // The page is A4 and the rectangle is placed in world coordinates from the top left,
         // which is the space the image is in too, so this scales straight across.
-        double scale = image.Width / PageSizeConverter.ToSize(PageSize.A4).Width;
-        int x = (int)((box.X + box.Width / 2) * scale);
-        int y = (int)((box.Y + box.Height / 2) * scale);
+        var scale = image.Width / PageSizeConverter.ToSize(PageSize.A4).Width;
+        var x = (int)((box.X + box.Width / 2) * scale);
+        var y = (int)((box.Y + box.Height / 2) * scale);
 
-        using IPixelCollection<byte> pixels = image.GetPixels();
+        using var pixels = image.GetPixels();
         return pixels.GetPixel(x, y).ToColor();
     }
 
@@ -259,10 +259,10 @@ public sealed class SquareAnnotationTests : IDisposable
 
     static int Count(IMagickImage<byte> image, Func<IMagickColor<byte>, bool> match)
     {
-        using IPixelCollection<byte> pixels = image.GetPixels();
+        using var pixels = image.GetPixels();
         return pixels.Count(p =>
         {
-            IMagickColor<byte> c = p.ToColor();
+            var c = p.ToColor();
             return c != null && match(c);
         });
     }

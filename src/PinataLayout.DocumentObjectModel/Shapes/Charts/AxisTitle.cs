@@ -69,8 +69,8 @@ public partial class AxisTitle : ChartObject
   /// </summary>
   public string Style
   {
-    get => this.style ?? "";
-    set => this.style = value;
+    get => style ?? "";
+    set => style = value;
   }
   [DV]
   internal string style;
@@ -80,8 +80,8 @@ public partial class AxisTitle : ChartObject
   /// </summary>
   public string Caption
   {
-    get => this.caption ?? "";
-    set => this.caption = value;
+    get => caption ?? "";
+    set => caption = value;
   }
   [DV]
   internal string caption;
@@ -93,15 +93,15 @@ public partial class AxisTitle : ChartObject
   {
     get
     {
-      if (this.font == null)
-        this.font = new Font(this);
+      if (font == null)
+        font = new Font(this);
 
-      return this.font;
+      return font;
     }
     set
     {
       SetParent(value);
-      this.font = value;
+      font = value;
     }
   }
   [DV]
@@ -112,8 +112,8 @@ public partial class AxisTitle : ChartObject
   /// </summary>
   public Unit Orientation
   {
-    get => this.orientation;
-    set => this.orientation = value;
+    get => orientation;
+    set => orientation = value;
   }
   [DV]
   internal Unit orientation = Unit.NullValue;
@@ -123,8 +123,8 @@ public partial class AxisTitle : ChartObject
   /// </summary>
   public HorizontalAlignment Alignment
   {
-    get => this.alignment ?? default;
-    set => this.alignment = EnumGuard.Checked(value);
+    get => alignment ?? default;
+    set => alignment = EnumGuard.Checked(value);
   }
   [DV]
   internal HorizontalAlignment? alignment;
@@ -134,8 +134,8 @@ public partial class AxisTitle : ChartObject
   /// </summary>
   public VerticalAlignment VerticalAlignment
   {
-    get => this.verticalAlignment ?? default;
-    set => this.verticalAlignment = EnumGuard.Checked(value);
+    get => verticalAlignment ?? default;
+    set => verticalAlignment = EnumGuard.Checked(value);
   }
   [DV]
   internal VerticalAlignment? verticalAlignment;
@@ -147,29 +147,29 @@ public partial class AxisTitle : ChartObject
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    int pos = serializer.BeginContent("Title");
+    var pos = serializer.BeginContent("Title");
 
-    if (this.style != null)
-      serializer.WriteSimpleAttribute("Style", this.Style);
+    if (style != null)
+      serializer.WriteSimpleAttribute("Style", Style);
 
-    if (!this.IsNull("Font"))
-      this.font.Serialize(serializer);
+    if (!IsNull("Font"))
+      font.Serialize(serializer);
 
     // IsNull rather than != null: Unit is a value type, so "!= null" compiles only by way of the
     // implicit string conversion, which converts the null literal and throws. Every other Unit in
     // the charting DOM is tested this way; this one was the exception, and it made an axis title
     // impossible to write.
-    if (!this.orientation.IsNull)
-      serializer.WriteSimpleAttribute("Orientation", this.Orientation);
+    if (!orientation.IsNull)
+      serializer.WriteSimpleAttribute("Orientation", Orientation);
 
-    if (this.alignment != null)
-      serializer.WriteSimpleAttribute("Alignment", this.Alignment);
+    if (alignment != null)
+      serializer.WriteSimpleAttribute("Alignment", Alignment);
 
-    if (this.verticalAlignment != null)
-      serializer.WriteSimpleAttribute("VerticalAlignment", this.VerticalAlignment);
+    if (verticalAlignment != null)
+      serializer.WriteSimpleAttribute("VerticalAlignment", VerticalAlignment);
 
-    if (this.caption != null)
-      serializer.WriteSimpleAttribute("Caption", this.Caption);
+    if (caption != null)
+      serializer.WriteSimpleAttribute("Caption", Caption);
 
     serializer.EndContent();
   }

@@ -49,8 +49,8 @@ internal abstract class ChartRenderer : Renderer
   /// </summary>
   protected XRect LayoutLegend()
   {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    XRect remainingRect = this.rendererParms.Box;
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var remainingRect = this.rendererParms.Box;
     if (cri.legendRendererInfo != null)
     {
       switch (cri.legendRendererInfo.legend.Docking)
@@ -58,7 +58,7 @@ internal abstract class ChartRenderer : Renderer
         case DockingType.Left:
           cri.legendRendererInfo.X = remainingRect.Left;
           cri.legendRendererInfo.Y = remainingRect.Height / 2 - cri.legendRendererInfo.Height / 2;
-          double width = cri.legendRendererInfo.Width + ChartRenderer.LegendSpacing;
+          var width = cri.legendRendererInfo.Width + ChartRenderer.LegendSpacing;
           remainingRect.X += width;
           remainingRect.Width -= width;
           break;
@@ -72,7 +72,7 @@ internal abstract class ChartRenderer : Renderer
         case DockingType.Top:
           cri.legendRendererInfo.X = remainingRect.Width / 2 - cri.legendRendererInfo.Width / 2;
           cri.legendRendererInfo.Y = remainingRect.Top;
-          double height = cri.legendRendererInfo.Height + ChartRenderer.LegendSpacing;
+          var height = cri.legendRendererInfo.Height + ChartRenderer.LegendSpacing;
           remainingRect.Y += height;
           remainingRect.Height -= height;
           break;

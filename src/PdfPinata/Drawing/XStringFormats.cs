@@ -49,7 +49,7 @@ public static class XStringFormats
         get
         {
             // Create new format to allow changes.
-            XStringFormat format = new XStringFormat();
+            var format = new XStringFormat();
             format.Alignment = XStringAlignment.Near;
             format.LineAlignment = XLineAlignment.BaseLine;
             return format;
@@ -64,7 +64,7 @@ public static class XStringFormats
         get
         {
             // Create new format to allow changes.
-            XStringFormat format = new XStringFormat();
+            var format = new XStringFormat();
             format.Alignment = XStringAlignment.Near;
             format.LineAlignment = XLineAlignment.Near;
             return format;
@@ -79,7 +79,7 @@ public static class XStringFormats
         get
         {
             // Create new format to allow changes.
-            XStringFormat format = new XStringFormat();
+            var format = new XStringFormat();
             format.Alignment = XStringAlignment.Near;
             format.LineAlignment = XLineAlignment.Center;
             return format;
@@ -94,7 +94,7 @@ public static class XStringFormats
         get
         {
             // Create new format to allow changes.
-            XStringFormat format = new XStringFormat();
+            var format = new XStringFormat();
             format.Alignment = XStringAlignment.Near;
             format.LineAlignment = XLineAlignment.Far;
             return format;
@@ -109,7 +109,7 @@ public static class XStringFormats
         get
         {
             // Create new format to allow changes.
-            XStringFormat format = new XStringFormat();
+            var format = new XStringFormat();
             format.Alignment = XStringAlignment.Center;
             format.LineAlignment = XLineAlignment.BaseLine;
             return format;
@@ -124,7 +124,7 @@ public static class XStringFormats
         get
         {
             // Create new format to allow changes.
-            XStringFormat format = new XStringFormat();
+            var format = new XStringFormat();
             format.Alignment = XStringAlignment.Center;
             format.LineAlignment = XLineAlignment.Near;
             return format;
@@ -139,7 +139,7 @@ public static class XStringFormats
         get
         {
             // Create new format to allow changes.
-            XStringFormat format = new XStringFormat();
+            var format = new XStringFormat();
             format.Alignment = XStringAlignment.Center;
             format.LineAlignment = XLineAlignment.Center;
             return format;
@@ -154,7 +154,7 @@ public static class XStringFormats
         get
         {
             // Create new format to allow changes.
-            XStringFormat format = new XStringFormat();
+            var format = new XStringFormat();
             format.Alignment = XStringAlignment.Center;
             format.LineAlignment = XLineAlignment.Far;
             return format;
@@ -169,7 +169,7 @@ public static class XStringFormats
         get
         {
             // Create new format to allow changes.
-            XStringFormat format = new XStringFormat();
+            var format = new XStringFormat();
             format.Alignment = XStringAlignment.Far;
             format.LineAlignment = XLineAlignment.BaseLine;
             return format;
@@ -184,7 +184,7 @@ public static class XStringFormats
         get
         {
             // Create new format to allow changes.
-            XStringFormat format = new XStringFormat();
+            var format = new XStringFormat();
             format.Alignment = XStringAlignment.Far;
             format.LineAlignment = XLineAlignment.Near;
             return format;
@@ -199,7 +199,7 @@ public static class XStringFormats
         get
         {
             // Create new format to allow changes.
-            XStringFormat format = new XStringFormat();
+            var format = new XStringFormat();
             format.Alignment = XStringAlignment.Far;
             format.LineAlignment = XLineAlignment.Center;
             return format;
@@ -214,7 +214,7 @@ public static class XStringFormats
         get
         {
             // Create new format to allow changes.
-            XStringFormat format = new XStringFormat();
+            var format = new XStringFormat();
             format.Alignment = XStringAlignment.Far;
             format.LineAlignment = XLineAlignment.Far;
             return format;

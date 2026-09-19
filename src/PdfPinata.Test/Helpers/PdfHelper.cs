@@ -91,7 +91,7 @@ public abstract class PdfHelper
 
         return new RasterizeOutput
         {
-            ImageCollection = images,
+            ImageCollection = images
         };
     }
 

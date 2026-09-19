@@ -78,11 +78,11 @@ public static class PdfReader
         try
         {
             int pageNumber;
-            string realPath = Drawing.XPdfForm.ExtractPageNumber(path, out pageNumber);
+            var realPath = Drawing.XPdfForm.ExtractPageNumber(path, out pageNumber);
             if (File.Exists(realPath)) // prevent unwanted exceptions during debugging
             {
                 stream = new FileStream(realPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-                byte[] bytes = new byte[1024];
+                var bytes = new byte[1024];
                 // A file shorter than the buffer is normal here; the remainder stays zero.
                 PdfPinata.Internal.StreamHelper.ReadUpTo(stream, bytes, 0, 1024);
                 return GetPdfFileVersion(bytes);
@@ -119,7 +119,7 @@ public static class PdfReader
         try
         {
             pos = stream.Position;
-            byte[] bytes = new byte[1024];
+            var bytes = new byte[1024];
             // A file shorter than the buffer is normal here; the remainder stays zero.
             PdfPinata.Internal.StreamHelper.ReadUpTo(stream, bytes, 0, 1024);
             return GetPdfFileVersion(bytes);
@@ -156,7 +156,7 @@ public static class PdfReader
     ///
     internal static int GetPdfFileVersion(byte[] bytes)
     {
-        int version = ScanFileVersion(PdfEncoders.RawEncoding, bytes);
+        var version = ScanFileVersion(PdfEncoders.RawEncoding, bytes);
 
         // If it doesn't work with the specified encoding the file might be incorrectly encoded as ASCII.
         if (version == 0)
@@ -174,16 +174,16 @@ public static class PdfReader
         try
         {
             // Acrobat accepts headers like «%!PS-Adobe-N.n PDF-M.m»...
-            string header = encoding.GetString(bytes, 0, bytes.Length);
+            var header = encoding.GetString(bytes, 0, bytes.Length);
             if (header.Length == 0)
                 return 0;
             if (header[0] == '%' || header.Contains("%PDF", StringComparison.Ordinal))
             {
-                int ich = header.IndexOf("PDF-", StringComparison.Ordinal);
+                var ich = header.IndexOf("PDF-", StringComparison.Ordinal);
                 if (ich > 0 && ich + 6 < header.Length && header[ich + 5] == '.')
                 {
-                    char major = header[ich + 4];
-                    char minor = header[ich + 6];
+                    var major = header[ich + 4];
+                    var minor = header[ich + 6];
                     // PDF 1.0 to 1.7 and PDF 2.0 are the versions defined so far.
                     if (major >= '1' && major <= '2' && minor >= '0' && minor <= '9')
                         return (major - '0') * 10 + (minor - '0');
@@ -374,14 +374,14 @@ public static class PdfReader
         PdfDocument document;
         try
         {
-            Lexer lexer = new Lexer(stream);
+            var lexer = new Lexer(stream);
             document = new PdfDocument(lexer);
             document._state |= DocumentState.Imported;
             document._openMode = openmode;
             document._fileSize = stream.Length;
 
             // Get file version.
-            byte[] header = new byte[1024];
+            var header = new byte[1024];
             stream.Position = 0;
             // A file shorter than the buffer is normal here; the remainder stays zero.
             PdfPinata.Internal.StreamHelper.ReadUpTo(stream, header, 0, 1024);
@@ -390,7 +390,7 @@ public static class PdfReader
                 throw new InvalidOperationException(PSSR.InvalidPdf);
 
             document._irefTable.IsUnderConstruction = true;
-            Parser parser = new Parser(document);
+            var parser = new Parser(document);
 
             // Read all trailers or cross-reference streams, but no objects.
             document._trailer = parser.ReadTrailer(accuracy);
@@ -402,22 +402,22 @@ public static class PdfReader
             document._irefTable.IsUnderConstruction = false;
 
             // Is document encrypted?
-            PdfReference xrefEncrypt = document._trailer.Elements[PdfTrailer.Keys.Encrypt] as PdfReference;
+            var xrefEncrypt = document._trailer.Elements[PdfTrailer.Keys.Encrypt] as PdfReference;
             if (xrefEncrypt != null)
             {
                 //xrefEncrypt.Value = parser.ReadObject(null, xrefEncrypt.ObjectID, false);
-                PdfObject encrypt = parser.ReadObject(null, xrefEncrypt.ObjectID, false, false);
+                var encrypt = parser.ReadObject(null, xrefEncrypt.ObjectID, false, false);
 
                 encrypt.Reference = xrefEncrypt;
                 xrefEncrypt.Value = encrypt;
-                PdfStandardSecurityHandler securityHandler = document.SecurityHandler;
+                var securityHandler = document.SecurityHandler;
                 TryAgain:
-                PasswordValidity validity = securityHandler.ValidatePassword(password);
+                var validity = securityHandler.ValidatePassword(password);
                 if (validity == PasswordValidity.Invalid)
                 {
                     if (passwordProvider != null)
                     {
-                        PdfPasswordProviderArgs args = new PdfPasswordProviderArgs();
+                        var args = new PdfPasswordProviderArgs();
                         passwordProvider(args);
                         if (args.Abort)
                             return null;
@@ -436,7 +436,7 @@ public static class PdfReader
                 {
                     if (passwordProvider != null)
                     {
-                        PdfPasswordProviderArgs args = new PdfPasswordProviderArgs();
+                        var args = new PdfPasswordProviderArgs();
                         passwordProvider(args);
                         if (args.Abort)
                             return null;
@@ -467,30 +467,30 @@ public static class PdfReader
                 }
             }
 
-            PdfReference[] irefs2 = document._irefTable.AllReferences;
-            int count2 = irefs2.Length;
+            var irefs2 = document._irefTable.AllReferences;
+            var count2 = irefs2.Length;
 
             // 3rd: Create iRefs for all compressed objects.
-            Dictionary<int, object> objectStreams = new Dictionary<int, object>();
-            for (int idx = 0; idx < count2; idx++)
+            var objectStreams = new Dictionary<int, object>();
+            for (var idx = 0; idx < count2; idx++)
             {
-                PdfReference iref = irefs2[idx];
-                PdfCrossReferenceStream xrefStream = iref.Value as PdfCrossReferenceStream;
+                var iref = irefs2[idx];
+                var xrefStream = iref.Value as PdfCrossReferenceStream;
                 if (xrefStream != null)
                 {
-                    for (int idx2 = 0; idx2 < xrefStream.Entries.Count; idx2++)
+                    for (var idx2 = 0; idx2 < xrefStream.Entries.Count; idx2++)
                     {
-                        PdfCrossReferenceStream.CrossReferenceStreamEntry item = xrefStream.Entries[idx2];
+                        var item = xrefStream.Entries[idx2];
                         // Is type xref to compressed object?
                         if (item.Type == 2)
                         {
                             //PdfReference irefNew = parser.ReadCompressedObject(new PdfObjectID((int)item.Field2), (int)item.Field3);
                             //document._irefTable.Add(irefNew);
-                            int objectNumber = (int)item.Field2;
+                            var objectNumber = (int)item.Field2;
                             if (!objectStreams.ContainsKey(objectNumber))
                             {
                                 objectStreams.Add(objectNumber, null);
-                                PdfObjectID objectID = new PdfObjectID((int)item.Field2);
+                                var objectID = new PdfObjectID((int)item.Field2);
                                 parser.ReadIRefsFromCompressedObject(objectID);
                             }
                         }
@@ -499,19 +499,19 @@ public static class PdfReader
             }
 
             // 4th: Read compressed objects.
-            for (int idx = 0; idx < count2; idx++)
+            for (var idx = 0; idx < count2; idx++)
             {
-                PdfReference iref = irefs2[idx];
-                PdfCrossReferenceStream xrefStream = iref.Value as PdfCrossReferenceStream;
+                var iref = irefs2[idx];
+                var xrefStream = iref.Value as PdfCrossReferenceStream;
                 if (xrefStream != null)
                 {
-                    for (int idx2 = 0; idx2 < xrefStream.Entries.Count; idx2++)
+                    for (var idx2 = 0; idx2 < xrefStream.Entries.Count; idx2++)
                     {
-                        PdfCrossReferenceStream.CrossReferenceStreamEntry item = xrefStream.Entries[idx2];
+                        var item = xrefStream.Entries[idx2];
                         // Is type xref to compressed object?
                         if (item.Type == 2)
                         {
-                            PdfReference irefNew = parser.ReadCompressedObject(new PdfObjectID((int)item.Field2),
+                            var irefNew = parser.ReadCompressedObject(new PdfObjectID((int)item.Field2),
                                 (int)item.Field3);
                             Debug.Assert(document._irefTable.Contains(iref.ObjectID));
                             //document._irefTable.Add(irefNew);
@@ -521,19 +521,19 @@ public static class PdfReader
             }
 
 
-            PdfReference[] irefs = document._irefTable.AllReferences;
-            int count = irefs.Length;
+            var irefs = document._irefTable.AllReferences;
+            var count = irefs.Length;
 
             // Read all indirect objects.
-            for (int idx = 0; idx < count; idx++)
+            for (var idx = 0; idx < count; idx++)
             {
-                PdfReference iref = irefs[idx];
+                var iref = irefs[idx];
                 if (iref.Value == null)
                 {
                     try
                     {
                         Debug.Assert(document._irefTable.Contains(iref.ObjectID));
-                        PdfObject pdfObject = parser.ReadObject(null, iref.ObjectID, false, false);
+                        var pdfObject = parser.ReadObject(null, iref.ObjectID, false, false);
                         Debug.Assert(pdfObject.Reference == iref);
                         pdfObject.Reference = iref;
                         Debug.Assert(pdfObject.Reference.Value != null, "Something went wrong.");
@@ -581,7 +581,7 @@ public static class PdfReader
                     document._trailer.CreateNewDocumentIDs();
                 else
                 {
-                    byte[] agTemp = Guid.NewGuid().ToByteArray();
+                    var agTemp = Guid.NewGuid().ToByteArray();
                     document.Internals.SecondDocumentID = PdfEncoders.RawEncoding.GetString(agTemp, 0, agTemp.Length);
                 }
 
@@ -606,7 +606,7 @@ public static class PdfReader
                     // [Conditional("DEBUG")], so the compiler removes the call *and its argument* in
                     // a release build. Written as an assertion on document.Pages, the flattening
                     // this depends on simply would not happen where it matters most.
-                    PdfPages pages = document.Pages;
+                    var pages = document.Pages;
                     Debug.Assert(pages != null);
 
                     document.CaptureOriginalBytes(stream);
@@ -614,12 +614,12 @@ public static class PdfReader
                 else
                 {
                     // Remove all unreachable objects
-                    int removed = document._irefTable.Compact();
+                    var removed = document._irefTable.Compact();
                     if (removed != 0)
                         Debug.WriteLine("Number of deleted unreachable objects: " + removed);
 
                     // Force flattening of page tree
-                    PdfPages pages = document.Pages;
+                    var pages = document.Pages;
                     Debug.Assert(pages != null);
 
                     //bool b = document.irefTable.Contains(new PdfObjectID(1108));

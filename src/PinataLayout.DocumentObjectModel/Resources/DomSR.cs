@@ -53,8 +53,8 @@ internal static class DomSR
 
     internal static string ParentAlreadySet(DocumentObject value, DocumentObject docObject)
     {
-        return string.Format("Value of type '{0}' must be cloned before set into '{1}'.",
-            value.GetType().ToString(), docObject.GetType().ToString());
+        return
+            $"Value of type '{value.GetType().ToString()}' must be cloned before set into '{docObject.GetType().ToString()}'.";
     }
 
     internal static string UndefinedBaseStyle(string baseStyle)

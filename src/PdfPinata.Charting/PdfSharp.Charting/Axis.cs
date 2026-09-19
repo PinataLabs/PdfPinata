@@ -56,7 +56,7 @@ public class Axis : ChartObject
   /// </summary>
   protected override object DeepCopy()
   {
-    Axis axis = (Axis)base.DeepCopy();
+    var axis = (Axis)base.DeepCopy();
     if (axis.title != null)
     {
       axis.title = axis.title.Clone();

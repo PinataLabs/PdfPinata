@@ -24,7 +24,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -47,7 +47,7 @@ internal class LineFormatRenderer
 
   private XColor GetColor()
   {
-    Color clr = Colors.Black;
+    var clr = Colors.Black;
 
     if (lineFormat != null && !lineFormat.Color.IsEmpty)
       clr = lineFormat.Color;
@@ -73,10 +73,10 @@ internal class LineFormatRenderer
 
   internal void Render(XUnit xPosition, XUnit yPosition, XUnit width, XUnit height)
   {
-    XUnit lineWidth = GetWidth();
+    var lineWidth = GetWidth();
     if (lineWidth > 0)
     {
-      XPen pen = GetPen(lineWidth);
+      var pen = GetPen(lineWidth);
       gfx.DrawRectangle(pen, xPosition, yPosition, width, height);
     }
   }
@@ -86,7 +86,7 @@ internal class LineFormatRenderer
     if (width == 0)
       return null;
 
-    XPen pen = new XPen(GetColor(), width);
+    var pen = new XPen(GetColor(), width);
     switch (lineFormat.DashStyle)
     {
       case DashStyle.Dash:

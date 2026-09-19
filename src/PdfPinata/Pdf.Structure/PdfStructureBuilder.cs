@@ -263,7 +263,7 @@ public sealed class PdfStructureBuilder
 
         if (item is PdfArray array)
         {
-            for (int idx = 0; idx < array.Elements.Count; idx++)
+            for (var idx = 0; idx < array.Elements.Count; idx++)
                 RetagNotes(array.Elements[idx], pdf20Namespace, depth + 1);
             return;
         }
@@ -301,7 +301,7 @@ public sealed class PdfStructureBuilder
         // bytes.
         named.Sort((left, right) => string.CompareOrdinal(left.Key, right.Key));
 
-        for (int idx = 1; idx < named.Count; idx++)
+        for (var idx = 1; idx < named.Count; idx++)
         {
             // Two elements under one name make the index ambiguous, and the loser is silently
             // unreachable. Refused rather than resolved, because which of the two a reader should
@@ -332,7 +332,7 @@ public sealed class PdfStructureBuilder
 
         if (item is PdfArray array)
         {
-            for (int idx = 0; idx < array.Elements.Count; idx++)
+            for (var idx = 0; idx < array.Elements.Count; idx++)
                 Collect(array.Elements[idx], named, depth + 1);
             return;
         }

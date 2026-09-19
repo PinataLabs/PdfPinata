@@ -40,7 +40,7 @@ public class ImageSharpVersionTest
 
         // The out-parameter overload this backend depends on. It does not exist in ImageSharp 3.x,
         // so a dependency bump stops the test assembly compiling as well as failing the test above.
-        var image = Image.Load<Rgba32>(path, out IImageFormat format);
+        var image = Image.Load<Rgba32>(path, out var format);
 
         // Goes through the public factory rather than ImageSource.ImageSourceImpl, which is a global
         // the rest of the suite has pointed at Skia.

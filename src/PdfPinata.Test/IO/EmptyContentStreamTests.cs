@@ -236,7 +236,7 @@ public class EmptyContentStreamTests
             "<</Type/Page/Parent 2 0 R/MediaBox[0 0 200 200]/Contents[4 0 R 5 0 R 6 0 R]>>",
             RawPdf.Stream("", "0 0 1 RG 10 10 100 100 re S"),
             RawPdf.Stream("", "0 1 0 RG 20 20 100 100 re S"),
-            RawPdf.Stream("", "1 0 0 RG 30 30 100 100 re S"),
+            RawPdf.Stream("", "1 0 0 RG 30 30 100 100 re S")
         });
     }
 }

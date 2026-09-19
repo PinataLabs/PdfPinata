@@ -20,11 +20,11 @@ internal static class StreamHelper
     /// </remarks>
     public static int ReadUpTo(Stream stream, byte[] buffer, int offset, int count)
     {
-        int total = 0;
+        var total = 0;
 
         while (total < count)
         {
-            int read = stream.Read(buffer, offset + total, count - total);
+            var read = stream.Read(buffer, offset + total, count - total);
             if (read <= 0)
                 break;
 

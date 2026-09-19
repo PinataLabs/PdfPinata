@@ -123,7 +123,7 @@ public sealed class PdfFreeTextAnnotation : PdfAnnotation
     {
         get
         {
-            PdfDictionary border = Elements.GetDictionary(Keys.BS);
+            var border = Elements.GetDictionary(Keys.BS);
             return border == null ? 1 : border.Elements.GetReal("/W");
         }
         set
@@ -133,7 +133,7 @@ public sealed class PdfFreeTextAnnotation : PdfAnnotation
 
             // A direct dictionary, so that it needs no owner - the width can be set before the
             // annotation has been added to a page.
-            PdfDictionary border = new PdfDictionary();
+            var border = new PdfDictionary();
             border.Elements.SetName("/Type", "/Border");
             border.Elements.SetReal("/W", value);
             border.Elements.SetName("/S", "/S");
@@ -168,7 +168,7 @@ public sealed class PdfFreeTextAnnotation : PdfAnnotation
         {
             _justified = value == XParagraphAlignment.Justify;
 
-            int quadding =
+            var quadding =
                 value == XParagraphAlignment.Center ? 1 :
                 value == XParagraphAlignment.Right ? 2 : 0;
 
@@ -202,9 +202,9 @@ public sealed class PdfFreeTextAnnotation : PdfAnnotation
     void WriteDefaultAppearance()
     {
         // Size read off the font rather than stored, so that /DA and the drawing cannot disagree.
-        double size = _font?.Size ?? 10;
+        var size = _font?.Size ?? 10;
 
-        string appearance = string.Format(CultureInfo.InvariantCulture,
+        var appearance = string.Format(CultureInfo.InvariantCulture,
             "/Helv {0:0.###} Tf {1:0.###} {2:0.###} {3:0.###} rg",
             size, _textColor.R / 255.0, _textColor.G / 255.0, _textColor.B / 255.0);
 
@@ -218,16 +218,16 @@ public sealed class PdfFreeTextAnnotation : PdfAnnotation
         if (Owner == null)
             return;
 
-        PdfRectangle rect = Elements.GetRectangle(Keys.Rect);
-        double width = rect.X2 - rect.X1;
-        double height = rect.Y2 - rect.Y1;
+        var rect = Elements.GetRectangle(Keys.Rect);
+        var width = rect.X2 - rect.X1;
+        var height = rect.Y2 - rect.Y1;
 
-        double border = BorderWidth;
-        string text = Contents ?? "";
+        var border = BorderWidth;
+        var text = Contents ?? "";
 
         // Read from the dictionary rather than through Color, which answers black for an
         // annotation carrying no /C - so a box nobody gave a background to would get a black one.
-        bool hasBackground = Elements.GetArray(Keys.C)?.Elements.Count == 3;
+        var hasBackground = Elements.GetArray(Keys.C)?.Elements.Count == 3;
 
         // Nothing to draw: no room to draw it in, or nothing asked for. The appearance already
         // there has to go, or the annotation keeps showing what it was last asked for rather than
@@ -248,10 +248,10 @@ public sealed class PdfFreeTextAnnotation : PdfAnnotation
         // The border is drawn inside /Rect rather than centred on its edge, so that a wide one is
         // not clipped in half by the annotation's own bounds - and the text is inset from the
         // border by its own width again, so that it does not touch it.
-        double inset = border + Math.Max(border, 2);
+        var inset = border + Math.Max(border, 2);
 
-        XForm form = new XForm(Owner, new XSize(width, height));
-        using (XGraphics gfx = XGraphics.FromForm(form))
+        var form = new XForm(Owner, new XSize(width, height));
+        using (var gfx = XGraphics.FromForm(form))
         {
             if (hasBackground)
                 gfx.DrawRectangle(new XSolidBrush(Color), new XRect(0, 0, width, height));
@@ -262,13 +262,13 @@ public sealed class PdfFreeTextAnnotation : PdfAnnotation
                     new XRect(border / 2, border / 2, width - border, height - border));
             }
 
-            double textWidth = width - 2 * inset;
-            double textHeight = height - 2 * inset;
+            var textWidth = width - 2 * inset;
+            var textHeight = height - 2 * inset;
             if (text.Length > 0 && textWidth > 0 && textHeight > 0)
             {
-                XTextFormatter formatter = new XTextFormatter(gfx)
+                var formatter = new XTextFormatter(gfx)
                 {
-                    Alignment = Alignment,
+                    Alignment = Alignment
                 };
 
                 formatter.DrawString(text, Font, new XSolidBrush(_textColor),

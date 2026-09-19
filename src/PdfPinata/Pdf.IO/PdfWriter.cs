@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -40,7 +40,7 @@ using PdfPinata.Pdf.Internal;
 namespace PdfPinata.Pdf.IO;
 
 /// <summary>
-/// Represents a writer for generation of PDF streams. 
+/// Represents a writer for generation of PDF streams.
 /// </summary>
 internal class PdfWriter
 {
@@ -189,8 +189,8 @@ internal class PdfWriter
     public void Write(PdfString value)
     {
         WriteSeparator(CharCat.Delimiter);
-        PdfStringEncoding encoding = (PdfStringEncoding)(value.Flags & PdfStringFlags.EncodingMask);
-        string pdf = (value.Flags & PdfStringFlags.HexLiteral) == 0 ?
+        var encoding = (PdfStringEncoding)(value.Flags & PdfStringFlags.EncodingMask);
+        var pdf = (value.Flags & PdfStringFlags.HexLiteral) == 0 ?
             PdfEncoders.ToStringLiteral(value.EncryptionValue, encoding == PdfStringEncoding.Unicode, SecurityHandler) :
             PdfEncoders.ToHexStringLiteral(value.EncryptionValue, encoding == PdfStringEncoding.Unicode, SecurityHandler);
         WriteRaw(pdf);
@@ -204,12 +204,12 @@ internal class PdfWriter
     public void Write(PdfName value)
     {
         WriteSeparator(CharCat.Delimiter, '/');
-        string name = value.Value;
+        var name = value.Value;
 
-        StringBuilder pdf = new StringBuilder("/");
-        for (int idx = 1; idx < name.Length; idx++)
+        var pdf = new StringBuilder("/");
+        for (var idx = 1; idx < name.Length; idx++)
         {
-            char ch = name[idx];
+            var ch = name[idx];
             Debug.Assert(ch < 256);
             if (ch > ' ')
                 switch (ch)
@@ -274,7 +274,7 @@ internal class PdfWriter
     {
         WriteSeparator(CharCat.Delimiter);
         //WriteRaw(PdfEncoders.DocEncode(text, false));
-        byte[] bytes = PdfEncoders.DocEncoding.GetBytes(text);
+        var bytes = PdfEncoders.DocEncoding.GetBytes(text);
         bytes = PdfEncoders.FormatStringLiteral(bytes, false, false, false, _securityHandler);
         Write(bytes);
         _lastCat = CharCat.Delimiter;
@@ -284,7 +284,7 @@ internal class PdfWriter
     {
         WriteSeparator(CharCat.Delimiter);
         //WriteRaw(PdfEncoders.DocEncodeHex(text));
-        byte[] bytes = PdfEncoders.DocEncoding.GetBytes(text);
+        var bytes = PdfEncoders.DocEncoding.GetBytes(text);
         bytes = PdfEncoders.FormatStringLiteral(bytes, false, false, true, _securityHandler);
         _stream.Write(bytes, 0, bytes.Length);
         _lastCat = CharCat.Delimiter;
@@ -295,7 +295,7 @@ internal class PdfWriter
     /// </summary>
     public void WriteBeginObject(PdfObject obj)
     {
-        bool indirect = obj.IsIndirect;
+        var indirect = obj.IsIndirect;
         if (indirect && !_omitIndirectFraming)
         {
             WriteObjectAddress(obj);
@@ -336,14 +336,14 @@ internal class PdfWriter
     /// </summary>
     public void WriteEndObject()
     {
-        int count = _stack.Count;
+        var count = _stack.Count;
         Debug.Assert(count > 0, "PdfWriter stack underflow.");
 
-        StackItem stackItem = _stack[count - 1];
+        var stackItem = _stack[count - 1];
         _stack.RemoveAt(count - 1);
 
-        PdfObject value = stackItem.Object;
-        bool indirect = value.IsIndirect;
+        var value = stackItem.Object;
+        var indirect = value.IsIndirect;
         if (_layout == PdfWriterLayout.Verbose)
             DecreaseIndent();
         if (value is PdfArray)
@@ -412,7 +412,7 @@ internal class PdfWriter
     /// </summary>
     public void WriteStream(PdfDictionary value, bool omitStream)
     {
-        StackItem stackItem = _stack[_stack.Count - 1];
+        var stackItem = _stack[^1];
         Debug.Assert(stackItem.Object is PdfDictionary);
         Debug.Assert(stackItem.Object.IsIndirect);
         stackItem.HasStream = true;
@@ -425,7 +425,7 @@ internal class PdfWriter
         }
         else
         {
-            byte[] bytes = value.Stream.Value;
+            var bytes = value.Stream.Value;
             if (bytes.Length != 0)
             {
                 if (_securityHandler != null)
@@ -454,9 +454,9 @@ internal class PdfWriter
         if (String.IsNullOrEmpty(rawString))
             return;
 
-        byte[] bytes = PdfEncoders.RawEncoding.GetBytes(rawString);
+        var bytes = PdfEncoders.RawEncoding.GetBytes(rawString);
         _stream.Write(bytes, 0, bytes.Length);
-        _lastCat = GetCategory((char)bytes[bytes.Length - 1]);
+        _lastCat = GetCategory((char)bytes[^1]);
     }
 
     public void WriteRaw(char ch)
@@ -473,30 +473,29 @@ internal class PdfWriter
             return;
 
         _stream.Write(bytes, 0, bytes.Length);
-        _lastCat = GetCategory((char)bytes[bytes.Length - 1]);
+        _lastCat = GetCategory((char)bytes[^1]);
     }
 
     void WriteObjectAddress(PdfObject value)
     {
         if (_layout == PdfWriterLayout.Verbose)
-            WriteRaw(String.Format("{0} {1} obj   % {2}\n",
-                value.ObjectID.ObjectNumber, value.ObjectID.GenerationNumber,
-                value.GetType().FullName));
+            WriteRaw(
+                $"{value.ObjectID.ObjectNumber} {value.ObjectID.GenerationNumber} obj   % {value.GetType().FullName}\n");
         else
-            WriteRaw(String.Format("{0} {1} obj\n", value.ObjectID.ObjectNumber, value.ObjectID.GenerationNumber));
+            WriteRaw($"{value.ObjectID.ObjectNumber} {value.ObjectID.GenerationNumber} obj\n");
     }
 
     public void WriteFileHeader(PdfDocument document)
     {
-        StringBuilder header = new StringBuilder("%PDF-");
-        int version = document._version;
+        var header = new StringBuilder("%PDF-");
+        var version = document._version;
         header.Append((version / 10).ToString(CultureInfo.InvariantCulture) + "." +
-                      (version % 10).ToString(CultureInfo.InvariantCulture) + "\n%\xD3\xF4\xCC\xE1\n");
+                      (version % 10).ToString(CultureInfo.InvariantCulture) + "\n%\xD3\xF4\xCC\xE1" + "\n");
         WriteRaw(header.ToString());
 
         if (_layout == PdfWriterLayout.Verbose)
         {
-            WriteRaw(String.Format("% PDFsharp Version {0} (verbose mode)\n", VersionInfo.Version));
+            WriteRaw($"% PDFsharp Version {VersionInfo.Version} (verbose mode)\n");
             // Keep some space for later fix-up.
             _commentPosition = (int)_stream.Position + 2;
             WriteRaw("%                                                \n");
@@ -523,7 +522,7 @@ internal class PdfWriter
         // credit: in development, and never in release.
         if (_layout == PdfWriterLayout.Verbose && _commentPosition >= 0)
         {
-            TimeSpan duration = GlobalTimeSettings.Now - document._creation;
+            var duration = GlobalTimeSettings.Now - document._creation;
 
             _stream.Position = _commentPosition;
             // Without InvariantCulture parameter the following line fails if the current culture is e.g.
@@ -601,6 +600,8 @@ internal class PdfWriter
             case CharCat.Character:
                 _stream.WriteByte((byte)' ');
                 break;
+            default:
+                throw new ArgumentOutOfRangeException();
         }
     }
 
@@ -628,7 +629,7 @@ internal class PdfWriter
     {
         NewLine,
         Character,
-        Delimiter,
+        Delimiter
     };
     CharCat _lastCat;
 

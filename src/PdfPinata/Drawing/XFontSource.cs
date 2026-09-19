@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -42,7 +42,7 @@ namespace PdfPinata.Drawing;
 internal class XFontSource
 {
     // Implementation Notes
-    // 
+    //
     // * XFontSource represents a single font (file) in memory.
     // * An XFontSource hold a reference to it OpenTypeFontface.
     // * To prevent large heap fragmentation this class must exists only once.
@@ -65,7 +65,7 @@ internal class XFontSource
     /// </summary>
     public static XFontSource GetOrCreateFrom(byte[] bytes)
     {
-        ulong key = FontHelper.CalcChecksum(bytes);
+        var key = FontHelper.CalcChecksum(bytes);
         XFontSource fontSource;
         if (!FontFactory.TryGetFontSourceByKey(key, out fontSource))
         {
@@ -78,7 +78,7 @@ internal class XFontSource
     public static XFontSource GetOrCreateFrom(string typefaceKey, byte[] fontBytes)
     {
         XFontSource fontSource;
-        ulong key = FontHelper.CalcChecksum(fontBytes);
+        var key = FontHelper.CalcChecksum(fontBytes);
         if (FontFactory.TryGetFontSourceByKey(key, out fontSource))
         {
             // The font source already exists, but is not yet cached under the specified typeface key.
@@ -95,7 +95,7 @@ internal class XFontSource
 
     public static XFontSource CreateCompiledFont(byte[] bytes)
     {
-        XFontSource fontSource = new XFontSource(bytes, 0);
+        var fontSource = new XFontSource(bytes, 0);
         return fontSource;
     }
 
@@ -155,7 +155,7 @@ internal class XFontSource
 
     public override bool Equals(object obj)
     {
-        XFontSource fontSource = obj as XFontSource;
+        var fontSource = obj as XFontSource;
         if (fontSource == null)
             return false;
         return Key == fontSource.Key;

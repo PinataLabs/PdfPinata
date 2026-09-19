@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -63,7 +63,7 @@ public enum VCF
     /// <summary>
     /// Create the value as indirect object.
     /// </summary>
-    CreateIndirect,
+    CreateIndirect
 }
 
 /// <summary>
@@ -116,16 +116,15 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
     /// </summary>
     protected override object Copy()
     {
-        PdfDictionary dict = (PdfDictionary)base.Copy();
+        var dict = (PdfDictionary)base.Copy();
         if (dict._elements != null)
         {
             dict._elements = dict._elements.Clone();
             dict._elements.ChangeOwner(dict);
-            PdfName[] names = dict._elements.KeyNames;
-            foreach (PdfName name in names)
+            var names = dict._elements.KeyNames;
+            foreach (var name in names)
             {
-                PdfObject obj = dict._elements[name] as PdfObject;
-                if (obj != null)
+                if (dict._elements[name] is PdfObject obj)
                 {
                     obj = obj.Clone();
                     // Recall that obj.Document is now null.
@@ -144,7 +143,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
     /// <summary>
     /// Gets the dictionary containing the elements of this dictionary.
     /// </summary>
-    public DictionaryElements Elements => _elements ?? (_elements = new DictionaryElements(this));
+    public DictionaryElements Elements => _elements ??= new DictionaryElements(this);
 
     /// <summary>
     /// The elements of the dictionary.
@@ -170,14 +169,14 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
     public override string ToString()
     {
         // Get keys and sort.
-        PdfName[] keys = Elements.KeyNames;
-        List<PdfName> list = new List<PdfName>(keys);
+        var keys = Elements.KeyNames;
+        var list = new List<PdfName>(keys);
         list.Sort(PdfName.Comparer);
         list.CopyTo(keys, 0);
 
-        StringBuilder pdf = new StringBuilder();
+        var pdf = new StringBuilder();
         pdf.Append("<< ");
-        foreach (PdfName key in keys)
+        foreach (var key in keys)
             pdf.Append(key + " " + Elements[key] + " ");
         pdf.Append(">>");
 
@@ -188,7 +187,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
     {
         writer.WriteBeginObject(this);
         //int count = Elements.Count;
-        PdfName[] keys = Elements.KeyNames;
+        var keys = Elements.KeyNames;
 
         // TODO: automatically set length
         if (_stream != null)
@@ -198,12 +197,12 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         // Araxis Merge is easier with sorted keys.
         if (writer.Layout == PdfWriterLayout.Verbose)
         {
-            List<PdfName> list = new List<PdfName>(keys);
+            var list = new List<PdfName>(keys);
             list.Sort(PdfName.Comparer);
             list.CopyTo(keys, 0);
         }
 
-        foreach (PdfName key in keys)
+        foreach (var key in keys)
             WriteDictionaryElement(writer, key);
         if (Stream != null)
             WriteDictionaryStream(writer);
@@ -217,7 +216,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
     internal virtual void WriteDictionaryElement(PdfWriter writer, PdfName key)
     {
         ArgumentNullException.ThrowIfNull(key);
-        PdfItem item = Elements[key];
+        var item = Elements[key];
         if (item is PdfObject && ((PdfObject)item).IsIndirect)
         {
             // Replace an indirect object by its Reference. The Elements setter does this on the way
@@ -283,7 +282,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
 
         object ICloneable.Clone()
         {
-            DictionaryElements dictionaryElements = (DictionaryElements)MemberwiseClone();
+            var dictionaryElements = (DictionaryElements)MemberwiseClone();
             dictionaryElements._elements = new Dictionary<string, PdfItem>(dictionaryElements._elements);
             dictionaryElements._ownerDictionary = null;
             return dictionaryElements;
@@ -332,8 +331,8 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// </remarks>
         PdfItem ValueOf(string key)
         {
-            PdfItem item = this[key];
-            PdfItem value = item is PdfReference reference ? reference.Value : item;
+            var item = this[key];
+            var value = item is PdfReference reference ? reference.Value : item;
             return value is PdfNull || value is PdfNullObject ? null : item;
         }
 
@@ -352,15 +351,13 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                 return false;
             }
 
-            if (obj is PdfReference)
-                obj = ((PdfReference)obj).Value;
+            if (obj is PdfReference reference)
+                obj = reference.Value;
 
-            PdfBoolean boolean = obj as PdfBoolean;
-            if (boolean != null)
+            if (obj is PdfBoolean boolean)
                 return boolean.Value;
 
-            PdfBooleanObject booleanObject = obj as PdfBooleanObject;
-            if (booleanObject != null)
+            if (obj is PdfBooleanObject booleanObject)
                 return booleanObject.Value;
             throw new InvalidCastException("GetBoolean: Object is not a boolean.");
         }
@@ -398,20 +395,16 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                 return 0;
             }
 
-            PdfReference reference = obj as PdfReference;
-            if (reference != null)
+            if (obj is PdfReference reference)
                 obj = reference.Value;
 
-            PdfInteger integer = obj as PdfInteger;
-            if (integer != null)
+            if (obj is PdfInteger integer)
                 return integer.Value;
 
-            PdfIntegerObject integerObject = obj as PdfIntegerObject;
-            if (integerObject != null)
+            if (obj is PdfIntegerObject integerObject)
                 return integerObject.Value;
 
-            PdfUInteger uinteger = obj as PdfUInteger;
-            if (uinteger != null)
+            if (obj is PdfUInteger uinteger)
                 return (int)uinteger.Value;
             throw new InvalidCastException("GetInteger: Object is not an integer.");
         }
@@ -449,24 +442,19 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                 return 0;
             }
 
-            PdfReference reference = obj as PdfReference;
-            if (reference != null)
+            if (obj is PdfReference reference)
                 obj = reference.Value;
 
-            PdfReal real = obj as PdfReal;
-            if (real != null)
+            if (obj is PdfReal real)
                 return real.Value;
 
-            PdfRealObject realObject = obj as PdfRealObject;
-            if (realObject != null)
+            if (obj is PdfRealObject realObject)
                 return realObject.Value;
 
-            PdfInteger integer = obj as PdfInteger;
-            if (integer != null)
+            if (obj is PdfInteger integer)
                 return integer.Value;
 
-            PdfIntegerObject integerObject = obj as PdfIntegerObject;
-            if (integerObject != null)
+            if (obj is PdfIntegerObject integerObject)
                 return integerObject.Value;
 
             throw new InvalidCastException("GetReal: Object is not a number.");
@@ -504,23 +492,20 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                 return "";
             }
 
-            PdfReference reference = obj as PdfReference;
-            if (reference != null)
+            if (obj is PdfReference reference)
                 obj = reference.Value;
 
-            PdfString str = obj as PdfString;
-            if (str != null)
+            if (obj is PdfString str)
                 return str.Value;
 
-            PdfStringObject strObject = obj as PdfStringObject;
-            if (strObject != null)
+            if (obj is PdfStringObject strObject)
                 return strObject.Value;
 
-            PdfName name = obj as PdfName;
+            var name = obj as PdfName;
             if (name != null)
                 return name.Value;
 
-            PdfNameObject nameObject = obj as PdfNameObject;
+            var nameObject = obj as PdfNameObject;
             if (nameObject != null)
                 return nameObject.Value;
 
@@ -546,32 +531,29 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             if (obj == null)
                 return false;
 
-            PdfReference reference = obj as PdfReference;
-            if (reference != null)
+            if (obj is PdfReference reference)
                 obj = reference.Value;
 
-            PdfString str = obj as PdfString;
-            if (str != null)
+            if (obj is PdfString str)
             {
                 value = str.Value;
                 return true;
             }
 
-            PdfStringObject strObject = obj as PdfStringObject;
-            if (strObject != null)
+            if (obj is PdfStringObject strObject)
             {
                 value = strObject.Value;
                 return true;
             }
 
-            PdfName name = obj as PdfName;
+            var name = obj as PdfName;
             if (name != null)
             {
                 value = name.Value;
                 return true;
             }
 
-            PdfNameObject nameObject = obj as PdfNameObject;
+            var nameObject = obj as PdfNameObject;
             if (nameObject != null)
             {
                 value = nameObject.Value;
@@ -613,15 +595,14 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                 return String.Empty;
             }
 
-            PdfReference reference = obj as PdfReference;
-            if (reference != null)
+            if (obj is PdfReference reference)
                 obj = reference.Value;
 
-            PdfName name = obj as PdfName;
+            var name = obj as PdfName;
             if (name != null)
                 return name.Value;
 
-            PdfNameObject nameObject = obj as PdfNameObject;
+            var nameObject = obj as PdfNameObject;
             if (nameObject != null)
                 return nameObject.Value;
 
@@ -649,7 +630,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// </summary>
         public PdfRectangle GetRectangle(string key, bool create)
         {
-            PdfRectangle value = new PdfRectangle();
+            var value = new PdfRectangle();
             object obj = ValueOf(key);
             if (obj == null)
             {
@@ -657,11 +638,10 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                     this[key] = value = new PdfRectangle();
                 return value;
             }
-            if (obj is PdfReference)
-                obj = ((PdfReference)obj).Value;
+            if (obj is PdfReference reference)
+                obj = reference.Value;
 
-            PdfArray array = obj as PdfArray;
-            if (array != null && array.Elements.Count == 4)
+            if (obj is PdfArray array && array.Elements.Count == 4)
             {
                 value = new PdfRectangle(array.Elements.GetReal(0), array.Elements.GetReal(1),
                     array.Elements.GetReal(2), array.Elements.GetReal(3));
@@ -696,7 +676,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// If the value is not convertible, the function throws an InvalidCastException.
         public XMatrix GetMatrix(string key, bool create)
         {
-            XMatrix value = new XMatrix();
+            var value = new XMatrix();
             object obj = ValueOf(key);
             if (obj == null)
             {
@@ -704,12 +684,11 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                     this[key] = PdfLiteral.FromMatrix(value);
                 return value;
             }
-            PdfReference reference = obj as PdfReference;
-            if (reference != null)
+
+            if (obj is PdfReference reference)
                 obj = reference.Value;
 
-            PdfArray array = obj as PdfArray;
-            if (array != null && array.Elements.Count == 6)
+            if (obj is PdfArray array && array.Elements.Count == 6)
             {
                 value = new XMatrix(array.Elements.GetReal(0), array.Elements.GetReal(1), array.Elements.GetReal(2),
                     array.Elements.GetReal(3), array.Elements.GetReal(4), array.Elements.GetReal(5));
@@ -736,16 +715,16 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// </summary>
         static XMatrix MatrixFromLiteral(PdfLiteral literal)
         {
-            string text = (literal.Value ?? "").Trim();
+            var text = (literal.Value ?? "").Trim();
             if (text.StartsWith('[') && text.EndsWith(']'))
                 text = text.Substring(1, text.Length - 2);
 
-            string[] parts = text.Split(MatrixLiteralSeparators, StringSplitOptions.RemoveEmptyEntries);
+            var parts = text.Split(MatrixLiteralSeparators, StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length != 6)
                 throw new InvalidCastException("Element is not an array with 6 values.");
 
-            double[] numbers = new double[6];
-            for (int index = 0; index < 6; index++)
+            var numbers = new double[6];
+            for (var index = 0; index < 6; index++)
             {
                 if (!Double.TryParse(parts[index], NumberStyles.Float, CultureInfo.InvariantCulture, out numbers[index]))
                     throw new InvalidCastException("Element is not an array with 6 values.");
@@ -783,22 +762,18 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                 return defaultValue;
             }
 
-            PdfReference reference = obj as PdfReference;
-            if (reference != null)
+            if (obj is PdfReference reference)
                 obj = reference.Value;
 
-            PdfDate date = obj as PdfDate;
-            if (date != null)
+            if (obj is PdfDate date)
                 return date.Value;
 
             string strDate;
-            PdfString pdfString = obj as PdfString;
-            if (pdfString != null)
+            if (obj is PdfString pdfString)
                 strDate = pdfString.Value;
             else
             {
-                PdfStringObject stringObject = obj as PdfStringObject;
-                if (stringObject != null)
+                if (obj is PdfStringObject stringObject)
                     strDate = stringObject.Value;
                 else
                     throw new InvalidCastException("GetName: Object is not a name.");
@@ -828,10 +803,10 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
 
         internal int GetEnumFromName(string key, object defaultValue, bool create)
         {
-            if (!(defaultValue is Enum))
+            if (defaultValue is not Enum)
                 throw new ArgumentException("The default value must be an enumeration value.", nameof(defaultValue));
 
-            PdfItem obj = ValueOf(key);
+            var obj = ValueOf(key);
             if (obj == null)
             {
                 if (create)
@@ -862,21 +837,18 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// </summary>
         public PdfItem GetValue(string key, VCF options)
         {
-            PdfObject obj;
-            PdfDictionary dict;
-            PdfArray array;
-            PdfReference iref;
-            PdfItem value = ValueOf(key);
+            var value = ValueOf(key);
             if (value == null)
             {
                 if (options != VCF.None)
                 {
-                    Type type = GetValueType(key);
+                    var type = GetValueType(key);
                     if (type != null)
                     {
                         // Rewritten WinRT style.
-                        TypeInfo typeInfo = type.GetTypeInfo();
+                        var typeInfo = type.GetTypeInfo();
                         Debug.Assert(typeof(PdfItem).GetTypeInfo().IsAssignableFrom(typeInfo), "Type not allowed.");
+                        PdfObject obj;
                         if (typeof(PdfDictionary).GetTypeInfo().IsAssignableFrom(typeInfo))
                         {
                             value = obj = CreateDictionary(type, null);
@@ -903,6 +875,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             {
                 // The value exists and can be returned. But for imported documents check for necessary
                 // object type transformation.
+                PdfReference iref;
                 if ((iref = value as PdfReference) != null)
                 {
                     // Case: value is an indirect reference.
@@ -915,11 +888,11 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
 
                     if (true) // || _owner.Document.IsImported)
                     {
-                        Type type = GetValueType(key);
+                        var type = GetValueType(key);
                         Debug.Assert(type != null, "No value type specified in meta information. Please send this file to PDFsharp support.");
 
                         // Rewritten WinRT style.
-                        TypeInfo typeInfo = type.GetTypeInfo();
+                        var typeInfo = type.GetTypeInfo();
                         if (type != null && type != value.GetType())
                         {
                             if (typeof(PdfDictionary).GetTypeInfo().IsAssignableFrom(typeInfo))
@@ -943,22 +916,24 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                 if (true) // || _owner.Document.IsImported)
                 {
                     // Case: value is a direct object
+                    PdfDictionary dict;
                     if ((dict = value as PdfDictionary) != null)
                     {
                         Debug.Assert(!dict.IsIndirect);
 
-                        Type type = GetValueType(key);
+                        var type = GetValueType(key);
                         Debug.Assert(type != null, "No value type specified in meta information. Please send this file to PDFsharp support.");
                         if (dict.GetType() != type)
                             dict = CreateDictionary(type, dict);
                         return dict;
                     }
 
+                    PdfArray array;
                     if ((array = value as PdfArray) != null)
                     {
                         Debug.Assert(!array.IsIndirect);
 
-                        Type type = GetValueType(key);
+                        var type = GetValueType(key);
                         // This is more complicated. If type is null do nothing
                         //Debug.Assert(type != null, "No value type specified in meta information. Please send this file to PDFsharp support.");
                         if (type != null && type != array.GetType())
@@ -971,7 +946,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         }
 
         /// <summary>
-        /// Short cut for GetValue(key, VCF.None).
+        /// Shortcut for GetValue(key, VCF.None).
         /// </summary>
         public PdfItem GetValue(string key)
         {
@@ -985,17 +960,10 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         Type GetValueType(string key)  // TODO: move to PdfObject
         {
             Type type = null;
-            DictionaryMeta meta = _ownerDictionary.Meta;
-            if (meta != null)
-            {
-                KeyDescriptor kd = meta[key];
-                if (kd != null)
-                    type = kd.GetValueType();
-                //else
-                //    Debug.WriteLine("Warning: Key not descriptor table: " + key);  // TODO: check what this means...
-            }
-            //else
-            //    Debug.WriteLine("Warning: No meta provided for type: " + _owner.GetType().Name);  // TODO: check what this means...
+            var meta = _ownerDictionary.Meta;
+            var kd = meta?[key];
+            if (kd != null)
+                type = kd.GetValueType();
             return type;
         }
 
@@ -1005,19 +973,17 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             PdfArray array = null;
             if (oldArray == null)
             {
-                // Use contstructor with signature 'Ctor(PdfDocument owner)'.
+                // Use constructor with signature 'Ctor(PdfDocument owner)'.
                 var ctorInfos = type.GetTypeInfo().DeclaredConstructors; //.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
-                //null, new Type[] { typeof(PdfDocument) }, null);
                 foreach (var ctorInfo in ctorInfos)
                 {
                     var parameters = ctorInfo.GetParameters();
                     if (parameters.Length == 1 && parameters[0].ParameterType == typeof(PdfDocument))
                     {
-                        array = ctorInfo.Invoke(new object[] { _ownerDictionary.Owner }) as PdfArray;
+                        array = ctorInfo.Invoke([_ownerDictionary.Owner]) as PdfArray;
                         break;
                     }
                 }
-                Debug.Assert(array != null, "No appropriate constructor found for type: " + type.Name);
             }
             else
             {
@@ -1033,8 +999,9 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                         break;
                     }
                 }
-                Debug.Assert(array != null, "No appropriate constructor found for type: " + type.Name);
             }
+
+            Debug.Assert(array != null, "No appropriate constructor found for type: " + type.Name);
             return array;
         }
 
@@ -1045,7 +1012,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             PdfDictionary dict = null;
             if (oldDictionary == null)
             {
-                // Use contstructor with signature 'Ctor(PdfDocument owner)'.
+                // Use constructor with signature 'Ctor(PdfDocument owner)'.
                 var ctorInfos = type.GetTypeInfo().DeclaredConstructors; //GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
                 //null, new Type[] { typeof(PdfDocument) }, null);
                 foreach (var ctorInfo in ctorInfos)
@@ -1108,9 +1075,8 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// </summary>
         public PdfObject GetObject(string key)
         {
-            PdfItem item = ValueOf(key);
-            PdfReference reference = item as PdfReference;
-            if (reference != null)
+            var item = ValueOf(key);
+            if (item is PdfReference reference)
                 return reference.Value;
             return item as PdfObject;
         }
@@ -1138,7 +1104,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// </summary>
         public PdfReference GetReference(string key)
         {
-            PdfItem item = ValueOf(key);
+            var item = ValueOf(key);
             return item as PdfReference;
         }
 
@@ -1210,8 +1176,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             {
                 ArgumentNullException.ThrowIfNull(value);
 
-                PdfObject obj = value as PdfObject;
-                if (obj != null && obj.IsIndirect)
+                if (value is PdfObject obj && obj.IsIndirect)
                     value = obj.Reference;
                 _elements[key] = value;
                 PdfObject.Contain(value, _ownerDictionary);
@@ -1233,8 +1198,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                 // it has to be replaced before asking whether what is left can be one. Asking
                 // first rejected an indirect stream - a content stream, an image - that the
                 // this[string] overload beside this one stores without complaint.
-                PdfObject obj = value as PdfObject;
-                if (obj != null && obj.IsIndirect)
+                if (value is PdfObject obj && obj.IsIndirect)
                     value = obj.Reference;
                 else if (value is PdfDictionary dictionary && dictionary._stream != null)
                     throw new ArgumentException("A dictionary with stream cannot be a direct value.");
@@ -1326,8 +1290,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                 throw new ArgumentException("The key must start with a slash '/'.");
 
             // If object is indirect automatically convert value to reference.
-            PdfObject obj = value as PdfObject;
-            if (obj != null && obj.IsIndirect)
+            if (value is PdfObject obj && obj.IsIndirect)
                 value = obj.Reference;
 
             _elements.Add(key, value);
@@ -1351,11 +1314,11 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             get
             {
                 ICollection values = _elements.Keys;
-                int count = values.Count;
-                string[] strings = new string[count];
+                var count = values.Count;
+                var strings = new string[count];
                 values.CopyTo(strings, 0);
-                PdfName[] names = new PdfName[count];
-                for (int idx = 0; idx < count; idx++)
+                var names = new PdfName[count];
+                for (var idx = 0; idx < count; idx++)
                     names[idx] = new PdfName(strings[idx]);
                 return names;
             }
@@ -1370,8 +1333,8 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             get
             {
                 ICollection values = _elements.Keys;
-                int count = values.Count;
-                string[] keys = new string[count];
+                var count = values.Count;
+                var keys = new string[count];
                 values.CopyTo(keys, 0);
                 return keys;
             }
@@ -1395,7 +1358,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             get
             {
                 ICollection values = _elements.Values;
-                PdfItem[] items = new PdfItem[values.Count];
+                var items = new PdfItem[values.Count];
                 values.CopyTo(items, 0);
                 return items;
             }
@@ -1450,11 +1413,11 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         {
             get
             {
-                StringBuilder sb = new StringBuilder();
+                var sb = new StringBuilder();
                 sb.AppendFormat(CultureInfo.InvariantCulture, "key={0}:(", _elements.Count);
-                bool addSpace = false;
+                var addSpace = false;
                 ICollection<string> keys = _elements.Keys;
-                foreach (string key in keys)
+                foreach (var key in keys)
                 {
                     if (addSpace)
                         sb.Append(' ');
@@ -1503,7 +1466,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// </summary>
         public PdfStream Clone()
         {
-            PdfStream stream = (PdfStream)MemberwiseClone();
+            var stream = (PdfStream)MemberwiseClone();
             stream._ownerDictionary = null;
             if (stream._value != null)
             {
@@ -1566,14 +1529,14 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                 byte[] bytes = null;
                 if (_value != null)
                 {
-                    PdfItem filter = _ownerDictionary.Elements[Keys.Filter];
+                    var filter = _ownerDictionary.Elements[Keys.Filter];
                     if (filter != null)
                     {
                         var decodeParms = _ownerDictionary.Elements[Keys.DecodeParms];
                         bytes = Filtering.Decode(_value, filter, decodeParms);
                         if (bytes == null)
                         {
-                            string message = String.Format("«Cannot decode filter '{0}'»", filter);
+                            var message = $"«Cannot decode filter '{filter}'»";
                             bytes = PdfEncoders.RawEncoding.GetBytes(message);
                         }
                     }
@@ -1597,12 +1560,12 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         {
             if (_value != null)
             {
-                PdfItem filter = _ownerDictionary.Elements[Keys.Filter];
+                var filter = _ownerDictionary.Elements[Keys.Filter];
                 if (filter != null)
                 {
                     var decodeParms = _ownerDictionary.Elements[Keys.DecodeParms];
                     // PDFsharp can only uncompress streams that are compressed with the ZIP or LZH algorithm.
-                    byte[] bytes = Filtering.Decode(_value, filter, decodeParms);
+                    var bytes = Filtering.Decode(_value, filter, decodeParms);
                     if (bytes != null)
                     {
                         _ownerDictionary.Elements.Remove(Keys.Filter);
@@ -1642,11 +1605,11 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                 return "«null»";
 
             string stream;
-            PdfItem filter = _ownerDictionary.Elements[Keys.Filter];
+            var filter = _ownerDictionary.Elements[Keys.Filter];
             if (filter != null)
             {
                 var decodeParms = _ownerDictionary.Elements[Keys.DecodeParms];
-                byte[] bytes = Filtering.Decode(_value, filter, decodeParms);
+                var bytes = Filtering.Decode(_value, filter, decodeParms);
                 if (bytes != null)
                     stream = PdfEncoders.RawEncoding.GetString(bytes, 0, bytes.Length);
                 else
@@ -1700,7 +1663,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             /// (Optional) A parameter dictionary or an array of such dictionaries, used by the filters
             /// specified by Filter. If there is only one filter and that filter has parameters, DecodeParms
             /// must be set to the filter’s parameter dictionary unless all the filter’s parameters have
-            /// their default values, in which case the DecodeParms entry may be omitted. If there are 
+            /// their default values, in which case the DecodeParms entry may be omitted. If there are
             /// multiple filters and any of the filters has parameters set to nondefault values, DecodeParms
             /// must be an array with one entry for each filter: either the parameter dictionary for that
             /// filter, or the null object if that filter has no parameters (or if all of its parameters have
@@ -1752,8 +1715,8 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
     /// Gets the DebuggerDisplayAttribute text.
     /// </summary>
     // ReSharper disable UnusedMember.Local
-    string DebuggerDisplay => String.Format(CultureInfo.InvariantCulture, "dictionary({0},[{1}])={2}", 
-        ObjectID.DebuggerDisplay, 
+    string DebuggerDisplay => String.Format(CultureInfo.InvariantCulture, "dictionary({0},[{1}])={2}",
+        ObjectID.DebuggerDisplay,
         Elements.Count,
         _elements.DebuggerDisplay); // ReSharper restore UnusedMember.Local
 }

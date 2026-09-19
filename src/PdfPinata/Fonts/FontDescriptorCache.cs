@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -46,7 +46,7 @@ internal sealed class FontDescriptorCache
     }
 
     ///// <summary>
-    ///// Gets the FontDescriptor identified by the specified FontSelector. If no such object 
+    ///// Gets the FontDescriptor identified by the specified FontSelector. If no such object
     ///// exists, a new FontDescriptor is created and added to the stock.
     ///// </summary>
     //public static FontDescriptor GetOrCreateDescriptor_DEL-ETE(string familyName, XFontStyle stlye, OpenTypeFontface fontface)
@@ -68,7 +68,7 @@ internal sealed class FontDescriptorCache
     //}
 
     /// <summary>
-    /// Gets the FontDescriptor identified by the specified XFont. If no such object 
+    /// Gets the FontDescriptor identified by the specified XFont. If no such object
     /// exists, a new FontDescriptor is created and added to the cache.
     /// </summary>
     public static FontDescriptor GetOrCreateDescriptorFor(XFont font)
@@ -76,7 +76,7 @@ internal sealed class FontDescriptorCache
         ArgumentNullException.ThrowIfNull(font);
 
         //FontSelector1 selector = new FontSelector1(font);
-        string fontDescriptorKey = FontDescriptor.ComputeKey(font);
+        var fontDescriptorKey = FontDescriptor.ComputeKey(font);
         try
         {
             Lock.EnterFontFactory();
@@ -92,7 +92,7 @@ internal sealed class FontDescriptorCache
     }
 
     /// <summary>
-    /// Gets the FontDescriptor identified by the specified FontSelector. If no such object 
+    /// Gets the FontDescriptor identified by the specified FontSelector. If no such object
     /// exists, a new FontDescriptor is created and added to the stock.
     /// </summary>
     public static FontDescriptor GetOrCreateDescriptor(string fontFamilyName, XFontStyle style)
@@ -101,14 +101,14 @@ internal sealed class FontDescriptorCache
             throw new ArgumentNullException(nameof(fontFamilyName));
 
         //FontSelector1 selector = new FontSelector1(fontFamilyName, style);
-        string fontDescriptorKey = FontDescriptor.ComputeKey(fontFamilyName, style);
+        var fontDescriptorKey = FontDescriptor.ComputeKey(fontFamilyName, style);
         try
         {
             Lock.EnterFontFactory();
             FontDescriptor descriptor;
             if (!Singleton._cache.TryGetValue(fontDescriptorKey, out descriptor))
             {
-                XFont font = new XFont(fontFamilyName, 10, style);
+                var font = new XFont(fontFamilyName, 10, style);
                 descriptor = GetOrCreateDescriptorFor(font);
                 Singleton._cache.TryAdd(fontDescriptorKey, descriptor);
             }
@@ -120,7 +120,7 @@ internal sealed class FontDescriptorCache
     public static FontDescriptor GetOrCreateDescriptor(string idName, byte[] fontData)
     {
         //FontSelector1 selector = new FontSelector1(idName);
-        string fontDescriptorKey = FontDescriptor.ComputeKey(idName);
+        var fontDescriptorKey = FontDescriptor.ComputeKey(idName);
         try
         {
             Lock.EnterFontFactory();

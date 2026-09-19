@@ -1,4 +1,5 @@
 #region Copyright
+
 //
 // Authors:
 //   Stefan Lange (mailto:Stefan.Lange@PdfPinata.com)
@@ -28,6 +29,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
+
 #endregion
 
 using System;
@@ -41,290 +43,286 @@ namespace PinataLayout.DocumentObjectModel;
 /// </summary>
 public abstract class DocumentObjectCollection : DocumentObject, IList, IVisitable
 {
-  /// <summary>
-  /// Initializes a new instance of the DocumentObjectCollection class.
-  /// </summary>
-  internal DocumentObjectCollection()
-  {
-    elements = new ArrayList();
-  }
-
-  /// <summary>
-  /// Initializes a new instance of the DocumentObjectCollection class with the specified parent.
-  /// </summary>
-  internal DocumentObjectCollection(DocumentObject parent)
-    : base(parent)
-  {
-    elements = new ArrayList();
-  }
-
-  /// <summary>
-  /// Gets the first value in the Collection, if there is any, otherwise null.
-  /// </summary>
-  public DocumentObject First
-  {
-    get
+    /// <summary>
+    /// Initializes a new instance of the DocumentObjectCollection class.
+    /// </summary>
+    internal DocumentObjectCollection()
     {
-      if (Count > 0)
-        return this[0];
-      else
-        return null;
+        elements = new ArrayList();
     }
-  }
 
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new DocumentObjectCollection Clone()
-  {
-    return (DocumentObjectCollection)DeepCopy();
-  }
-
-  /// <summary>
-  /// Implements the deep copy of the object.
-  /// </summary>
-  protected override object DeepCopy()
-  {
-    DocumentObjectCollection coll = (DocumentObjectCollection)base.DeepCopy();
-
-    int count = Count;
-    coll.elements = new ArrayList(count);
-    for (int index = 0; index < count; ++index)
+    /// <summary>
+    /// Initializes a new instance of the DocumentObjectCollection class with the specified parent.
+    /// </summary>
+    internal DocumentObjectCollection(DocumentObject parent)
+        : base(parent)
     {
-      DocumentObject doc = this[index];
-      if (doc != null)
-      {
-        doc = doc.Clone() as DocumentObject;
-        doc.parent = coll;
-      }
-      coll.elements.Add(doc);
+        elements = new ArrayList();
     }
-    return coll;
-  }
 
-  /// <summary>
-  /// Copies the entire collection to a compatible one-dimensional System.Array,
-  /// starting at the specified index of the target array.
-  /// </summary>
-  public void CopyTo(Array array, int index)
-  {
-    elements.CopyTo(array, index);
-  }
+    /// <summary>
+    /// Gets the first value in the Collection, if there is any, otherwise null.
+    /// </summary>
+    public DocumentObject First => Count > 0 ? this[0] : null;
 
-  /// <summary>
-  /// Gets a value indicating whether the Collection is read-only.
-  /// </summary>
-  bool IList.IsReadOnly => false;
-
-  /// <summary>
-  /// Gets a value indicating whether the Collection has a fixed size.
-  /// </summary>
-  bool IList.IsFixedSize => false;
-
-  /// <summary>
-  /// Gets a value indicating whether access to the Collection is synchronized.
-  /// </summary>
-  bool ICollection.IsSynchronized => false;
-
-  /// <summary>
-  /// Gets an object that can be used to synchronize access to the collection.
-  /// </summary>
-  object ICollection.SyncRoot => null;
-
-  /// <summary>
-  /// Gets the number of elements actually contained in the collection.
-  /// </summary>
-  public int Count => elements.Count;
-
-  /// <summary>
-  /// Removes all elements from the collection.
-  /// </summary>
-  public void Clear()
-  {
-    ((IList)this).Clear();
-  }
-
-  /// <summary>
-  /// Inserts an object at the specified index.
-  /// </summary>
-  public virtual void InsertObject(int index, DocumentObject val)
-  {
-    SetParent(val);
-    ((IList)this).Insert(index, val);
-    // Call ResetCachedValues for all objects moved by the Insert operation.
-    int count = ((IList)this).Count;
-    for (int idx = index + 1; idx < count; ++idx)
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new DocumentObjectCollection Clone()
     {
-      DocumentObject obj = (DocumentObject)((IList)this)[idx];
-      obj.ResetCachedValues();
+        return (DocumentObjectCollection)DeepCopy();
     }
-  }
 
-  /// <summary>
-  /// Determines the index of a specific item in the collection.
-  /// </summary>
-  public int IndexOf(DocumentObject val)
-  {
-    return ((IList)this).IndexOf(val);
-  }
-
-  /// <summary>
-  /// Gets or sets the element at the specified index.
-  /// </summary>
-  public virtual DocumentObject this[int index]
-  {
-    get => elements[index] as DocumentObject;
-    set
+    /// <summary>
+    /// Implements the deep copy of the object.
+    /// </summary>
+    protected override object DeepCopy()
     {
-      SetParent(value);
-      elements[index] = value;
-    }
-  }
+        var coll = (DocumentObjectCollection)base.DeepCopy();
 
-  /// <summary>
-  /// Gets the last element or null, if no such element exists.
-  /// </summary>
-  public DocumentObject LastObject
-  {
-    get
+        var count = Count;
+        coll.elements = new ArrayList(count);
+        for (var index = 0; index < count; ++index)
+        {
+            var doc = this[index];
+            if (doc != null)
+            {
+                doc = doc.Clone() as DocumentObject;
+                doc.parent = coll;
+            }
+
+            coll.elements.Add(doc);
+        }
+
+        return coll;
+    }
+
+    /// <summary>
+    /// Copies the entire collection to a compatible one-dimensional System.Array,
+    /// starting at the specified index of the target array.
+    /// </summary>
+    public void CopyTo(Array array, int index)
     {
-      int count = elements.Count;
-      if (count > 0)
-        return (DocumentObject)elements[count - 1];
-      return null;
+        elements.CopyTo(array, index);
     }
-  }
 
-  /// <summary>
-  /// Removes the element at the specified index.
-  /// </summary>
-  public void RemoveObjectAt(int index)
-  {
-    ((IList)this).RemoveAt(index);
-    // Call ResetCachedValues for all objects moved by the RemoveAt operation.
-    int count = ((IList)this).Count;
-    for (int idx = index; idx < count; ++idx)
+    /// <summary>
+    /// Gets a value indicating whether the Collection is read-only.
+    /// </summary>
+    bool IList.IsReadOnly => false;
+
+    /// <summary>
+    /// Gets a value indicating whether the Collection has a fixed size.
+    /// </summary>
+    bool IList.IsFixedSize => false;
+
+    /// <summary>
+    /// Gets a value indicating whether access to the Collection is synchronized.
+    /// </summary>
+    bool ICollection.IsSynchronized => false;
+
+    /// <summary>
+    /// Gets an object that can be used to synchronize access to the collection.
+    /// </summary>
+    object ICollection.SyncRoot => null;
+
+    /// <summary>
+    /// Gets the number of elements actually contained in the collection.
+    /// </summary>
+    public int Count => elements.Count;
+
+    /// <summary>
+    /// Removes all elements from the collection.
+    /// </summary>
+    public void Clear()
     {
-      DocumentObject obj = (DocumentObject)((IList)this)[idx];
-      obj.ResetCachedValues();
+        ((IList)this).Clear();
     }
-  }
 
-  /// <summary>
-  /// Inserts the object into the collection and sets it's parent.
-  /// </summary>
-  public virtual void Add(DocumentObject value)
-  {
-    SetParent(value);
-    elements.Add(value);
-  }
-
-  /// <summary>
-  /// Determines whether this instance is null.
-  /// </summary>
-  public override bool IsNull()
-  {
-    if (!Meta.IsNull(this))
-      return false;
-    if (elements == null)
-      return true;
-    foreach (DocumentObject docObject in elements)
+    /// <summary>
+    /// Inserts an object at the specified index.
+    /// </summary>
+    public virtual void InsertObject(int index, DocumentObject val)
     {
-      if (docObject != null && !docObject.IsNull())
-        return false;
+        SetParent(val);
+        ((IList)this).Insert(index, val);
+        // Call ResetCachedValues for all objects moved by the Insert operation.
+        var count = ((IList)this).Count;
+        for (var idx = index + 1; idx < count; ++idx)
+        {
+            var obj = (DocumentObject)((IList)this)[idx];
+            obj.ResetCachedValues();
+        }
     }
-    return true;
-  }
 
-  /// <summary>
-  /// Allows the visitor object to visit the document object and it's child objects.
-  /// </summary>
-  void IVisitable.AcceptVisitor(DocumentObjectVisitor visitor, bool visitChildren)
-  {
-    visitor.VisitDocumentObjectCollection(this);
-
-    foreach (DocumentObject docobj in this)
+    /// <summary>
+    /// Determines the index of a specific item in the collection.
+    /// </summary>
+    public int IndexOf(DocumentObject val)
     {
-      IVisitable visitable = docobj as IVisitable;
-      if (visitable != null)
-        visitable.AcceptVisitor(visitor, visitChildren);
+        return ((IList)this).IndexOf(val);
     }
-  }
 
-  /// <summary>
-  /// Returns an enumerator that can iterate through this collection.
-  /// </summary>
-  public IEnumerator GetEnumerator()
-  {
-    return elements.GetEnumerator();
-  }
+    /// <summary>
+    /// Gets or sets the element at the specified index.
+    /// </summary>
+    public virtual DocumentObject this[int index]
+    {
+        get => elements[index] as DocumentObject;
+        set
+        {
+            SetParent(value);
+            elements[index] = value;
+        }
+    }
 
-  ArrayList elements;
+    /// <summary>
+    /// Gets the last element or null, if no such element exists.
+    /// </summary>
+    public DocumentObject LastObject
+    {
+        get
+        {
+            var count = elements.Count;
+            if (count > 0)
+                return (DocumentObject)elements[count - 1];
+            return null;
+        }
+    }
 
-  #region IList Members
-  /// <summary>
-  /// Gets or sets the element at the specified index.
-  /// </summary>
-  object IList.this[int index]
-  {
-    get => elements[index];
-    set => elements[index] = value;
-  }
+    /// <summary>
+    /// Removes the element at the specified index.
+    /// </summary>
+    public void RemoveObjectAt(int index)
+    {
+        ((IList)this).RemoveAt(index);
+        // Call ResetCachedValues for all objects moved by the RemoveAt operation.
+        var count = ((IList)this).Count;
+        for (var idx = index; idx < count; ++idx)
+        {
+            var obj = (DocumentObject)((IList)this)[idx];
+            obj.ResetCachedValues();
+        }
+    }
 
-  /// <summary>
-  /// Removes the item at the specified index from the Collection.
-  /// </summary>
-  void IList.RemoveAt(int index)
-  {
-    elements.RemoveAt(index);
-  }
+    /// <summary>
+    /// Inserts the object into the collection and sets it's parent.
+    /// </summary>
+    public virtual void Add(DocumentObject value)
+    {
+        SetParent(value);
+        elements.Add(value);
+    }
 
-  /// <summary>
-  /// Inserts an object at the specified index.
-  /// </summary>
-  void IList.Insert(int index, object value)
-  {
-    elements.Insert(index, value);
-  }
+    /// <summary>
+    /// Determines whether this instance is null.
+    /// </summary>
+    public override bool IsNull()
+    {
+        if (!Meta.IsNull(this))
+            return false;
+        if (elements == null)
+            return true;
+        foreach (DocumentObject docObject in elements)
+        {
+            if (docObject != null && !docObject.IsNull())
+                return false;
+        }
 
-  /// <summary>
-  /// Removes the first occurrence of the specific object.
-  /// </summary>
-  void IList.Remove(object value)
-  {
-    elements.Remove(value);
-  }
+        return true;
+    }
 
-  /// <summary>
-  /// Determines whether an element exists.
-  /// </summary>
-  bool IList.Contains(object value)
-  {
-    return elements.Contains(value);
-  }
+    /// <summary>
+    /// Allows the visitor object to visit the document object and it's child objects.
+    /// </summary>
+    void IVisitable.AcceptVisitor(DocumentObjectVisitor visitor, bool visitChildren)
+    {
+        visitor.VisitDocumentObjectCollection(this);
 
-  /// <summary>
-  /// Determines the index of a specific item in the Collection.
-  /// </summary>
-  int IList.IndexOf(object value)
-  {
-    return elements.IndexOf(value);
-  }
+        foreach (DocumentObject docobj in this)
+        {
+            var visitable = docobj as IVisitable;
+            if (visitable != null)
+                visitable.AcceptVisitor(visitor, visitChildren);
+        }
+    }
 
-  /// <summary>
-  /// Adds an item to the Collection.
-  /// </summary>
-  int IList.Add(object value)
-  {
-    return elements.Add(value);
-  }
+    /// <summary>
+    /// Returns an enumerator that can iterate through this collection.
+    /// </summary>
+    public IEnumerator GetEnumerator()
+    {
+        return elements.GetEnumerator();
+    }
 
-  /// <summary>
-  /// Removes all items from the Collection.
-  /// </summary>
-  void IList.Clear()
-  {
-    elements.Clear();
-  }
-  #endregion
+    ArrayList elements;
+
+    #region IList Members
+
+    /// <summary>
+    /// Gets or sets the element at the specified index.
+    /// </summary>
+    object IList.this[int index]
+    {
+        get => elements[index];
+        set => elements[index] = value;
+    }
+
+    /// <summary>
+    /// Removes the item at the specified index from the Collection.
+    /// </summary>
+    void IList.RemoveAt(int index)
+    {
+        elements.RemoveAt(index);
+    }
+
+    /// <summary>
+    /// Inserts an object at the specified index.
+    /// </summary>
+    void IList.Insert(int index, object value)
+    {
+        elements.Insert(index, value);
+    }
+
+    /// <summary>
+    /// Removes the first occurrence of the specific object.
+    /// </summary>
+    void IList.Remove(object value)
+    {
+        elements.Remove(value);
+    }
+
+    /// <summary>
+    /// Determines whether an element exists.
+    /// </summary>
+    bool IList.Contains(object value)
+    {
+        return elements.Contains(value);
+    }
+
+    /// <summary>
+    /// Determines the index of a specific item in the Collection.
+    /// </summary>
+    int IList.IndexOf(object value)
+    {
+        return elements.IndexOf(value);
+    }
+
+    /// <summary>
+    /// Adds an item to the Collection.
+    /// </summary>
+    int IList.Add(object value)
+    {
+        return elements.Add(value);
+    }
+
+    /// <summary>
+    /// Removes all items from the Collection.
+    /// </summary>
+    void IList.Clear()
+    {
+        elements.Clear();
+    }
+
+    #endregion
 }

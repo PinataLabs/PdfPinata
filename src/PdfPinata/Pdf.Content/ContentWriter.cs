@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -35,7 +35,7 @@ using PdfPinata.Pdf.Internal;
 namespace PdfPinata.Pdf.Content;
 
 /// <summary>
-/// Represents a writer for generation of PDF streams. 
+/// Represents a writer for generation of PDF streams.
 /// </summary>
 internal class ContentWriter
 {
@@ -91,9 +91,9 @@ internal class ContentWriter
         if (String.IsNullOrEmpty(rawString))
             return;
         //AppendBlank(rawString[0]);
-        byte[] bytes = PdfEncoders.RawEncoding.GetBytes(rawString);
+        var bytes = PdfEncoders.RawEncoding.GetBytes(rawString);
         _stream.Write(bytes, 0, bytes.Length);
-        _lastCat = GetCategory((char)bytes[bytes.Length - 1]);
+        _lastCat = GetCategory((char)bytes[^1]);
     }
 
     public void WriteLineRaw(string rawString)
@@ -101,10 +101,10 @@ internal class ContentWriter
         if (String.IsNullOrEmpty(rawString))
             return;
         //AppendBlank(rawString[0]);
-        byte[] bytes = PdfEncoders.RawEncoding.GetBytes(rawString);
+        var bytes = PdfEncoders.RawEncoding.GetBytes(rawString);
         _stream.Write(bytes, 0, bytes.Length);
         _stream.Write(new byte[] { (byte)'\n' }, 0, 1);
-        _lastCat = GetCategory((char)bytes[bytes.Length - 1]);
+        _lastCat = GetCategory((char)bytes[^1]);
     }
 
     public void WriteRaw(char ch)
@@ -202,7 +202,7 @@ internal class ContentWriter
     {
         NewLine,
         Character,
-        Delimiter,
+        Delimiter
     };
     CharCat _lastCat;
 
