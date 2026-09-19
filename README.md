@@ -1,8 +1,8 @@
-# PdfPinata
-
 <p align="center">
-  <img src="assets/logo.jpg" alt="PdfPinata logo" width="200">
+  <img src="assets/logo.jpg" alt="PdfPinata logo" width="400">
 </p>
+
+# PdfPinata
 
 **PdfPinata is a .NET library for creating, drawing, and manipulating PDF documents.**
 
