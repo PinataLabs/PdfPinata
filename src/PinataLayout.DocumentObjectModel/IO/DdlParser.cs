@@ -2493,8 +2493,33 @@ internal class DdlParser
     /// </summary>
     private void AssertSymbol(Symbol symbol)
     {
-        if (Symbol != symbol)
-            ThrowParserException(DomMsgID.SymbolExpected, KeyWords.NameFromSymbol(symbol), Token);
+        if (Symbol == symbol)
+            return;
+
+        // A literal has no keyword to be named by - NameFromSymbol knows keywords and punctuation
+        // only - so the message says which kind of token was wanted instead.
+        switch (symbol)
+        {
+            case Symbol.Identifier:
+                ThrowParserException(DomMsgID.IdentifierExpected, Token);
+                break;
+
+            case Symbol.StringLiteral:
+                ThrowParserException(DomMsgID.StringExpected, Token);
+                break;
+
+            case Symbol.IntegerLiteral:
+                ThrowParserException(DomMsgID.IntegerExpected, Token);
+                break;
+
+            case Symbol.RealLiteral:
+                ThrowParserException(DomMsgID.RealExpected, Token);
+                break;
+
+            default:
+                ThrowParserException(DomMsgID.SymbolExpected, KeyWords.NameFromSymbol(symbol), Token);
+                break;
+        }
     }
 
     /// <summary>

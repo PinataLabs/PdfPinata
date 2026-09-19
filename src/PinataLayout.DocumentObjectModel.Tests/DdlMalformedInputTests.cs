@@ -179,6 +179,19 @@ public class DdlMalformedInputTests
     }
 
     [Theory(Timeout = Patience)]
+    [InlineData("\\field(\"Page\")", "Identifier expected: 'Page'.")]
+    [InlineData("\\field(3)", "Identifier expected: '3'.")]
+    [InlineData("\\space(Em, x)", "Integer expected: 'x'.")]
+    [InlineData("\\space(Em, 1.5)", "Integer expected: '1.5'.")]
+    public async Task WhereALiteralRatherThanAKeywordIsExpectedTheKindOfLiteralIsNamed(
+        string paragraphBody, string complaint)
+    {
+        // An identifier or a number has no keyword to name it by, so the complaint says which
+        // kind of token was wanted rather than "'x' expected".
+        (await ComplaintsAboutParagraph(paragraphBody)).First().Should().Be(complaint);
+    }
+
+    [Theory(Timeout = Patience)]
     [InlineData("\\fontcolor(\"Red\"){x}", "Invalid color: 'Red'.")]
     [InlineData("\\fontcolor(HSB){x}", "Invalid color: 'HSB'.")]
     [InlineData("\\fontcolor(Lab){x}", "Invalid color: 'Lab'.")]
