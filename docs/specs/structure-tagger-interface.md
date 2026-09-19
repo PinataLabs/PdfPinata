@@ -127,7 +127,7 @@ output is already tested.
 layout and its tagged output and deliberately rasterizes nothing, so it needs neither Ghostscript nor
 ImageMagick — which makes it the right home. `TheMarksStayInTheOrderTheTextIsRead` is the model for
 asserting on two properties of the tree at once. The four content-stream readers linked from
-`PdfPinata.Test/Helpers` are available there.
+`src/PdfPinata.Test/Helpers` are available there.
 
 **The test worth writing, which does not exist today.** Draw a figure inside a running head — a
 header, which is drawn inside an artifact — and give it alternate text. Assert that the alternate

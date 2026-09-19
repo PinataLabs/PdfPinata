@@ -59,7 +59,7 @@ public static class PdfOutputIntents
     /// 456 bytes, released to the public domain under CC0, so a document carrying it owes nobody
     /// anything. It is a real profile rather than a plausible one: the true sRGB primaries, a white
     /// point adapted to the D50 connection space every ICC profile is expressed in, and the
-    /// transfer curve sampled at 42 points. <c>assets/icc/LICENSE.txt</c> in the repository records
+    /// transfer curve sampled at 42 points. <c>src/assets/icc/LICENSE.txt</c> in the repository records
     /// where it came from and what is in it.
     /// </para>
     /// <para>

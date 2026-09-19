@@ -8,9 +8,9 @@ demo in it is built on every commit and its page count is asserted by `DemoSmoke
 that stops working fails the build; a code block on one of these pages cannot.
 
 ```powershell
-dotnet run --project SampleApp -- list      # what the demos cover
-dotnet run --project SampleApp -- run       # write one PDF per demo into SampleApp/output
-dotnet run --project SampleApp -- run -e Vectors    # just the one
+dotnet run --project src/SampleApp -- list      # what the demos cover
+dotnet run --project src/SampleApp -- run       # write one PDF per demo into src/SampleApp/output
+dotnet run --project src/SampleApp -- run -e Vectors    # just the one
 ```
 
 Each demo prints the source that drew its PDF. It comes off disk where the file is there to read -
@@ -87,5 +87,5 @@ Thirteen of the thirty demos have no page here at all, because upstream never wr
 `Images`, `ImageFailures`, `Barcodes`, `Charts`, `Tables`, `Bleed`, `Forms`, `Invoice`, `Ddl`,
 `Footnotes`, and the three combined layouts `Newspaper`, `Magazine` and `SideWrap`.
 
-`dotnet run --project SampleApp -- list` is the current list. This table is a snapshot and the list
+`dotnet run --project src/SampleApp -- list` is the current list. This table is a snapshot and the list
 is not.

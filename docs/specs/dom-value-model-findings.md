@@ -219,7 +219,7 @@ always have generated code for.
 
 | file | line |
 |---|---|
-| `PinataLayout.DocumentObjectModel/Paragraph.cs` | 608 |
+| `src/PinataLayout.DocumentObjectModel/Paragraph.cs` | 608 |
 | `PinataLayout.DocumentObjectModel.Visitors/PdfFlattenVisitor.cs` | 92 |
 | `MigraDoc.Rendering/FormattedCell.cs` | 172 |
 | `MigraDoc.Rendering/FormattedDocument.cs` | 254 |

@@ -1,6 +1,6 @@
 # Spec — ScriptItemizer put back where it is actually called from (T16)
 
-`PdfPinata/Text/ScriptItemizer.cs` and `TextItemizer.cs` had the same UAX #24 sweep twice: the
+`src/PdfPinata/Text/ScriptItemizer.cs` and `TextItemizer.cs` had the same UAX #24 sweep twice: the
 public `ScriptItemizer.Itemize(string)` walked a whole string, and `TextItemizer`'s private
 `ScriptsOf`/`ScriptOf` did the identical walk by hand — decoding surrogate pairs, sweeping Common and
 Inherited characters forward — scoped to one bidirectional run instead. Six lines apart in the file
@@ -80,10 +80,10 @@ would move from `public` to `internal`, that no `InternalsVisibleTo` would be ad
 
 ## Testing
 
-`PdfPinata.Test/Text/ItemizationTests.cs` went from 17 tests to 25. The eight pre-existing
+`src/PdfPinata.Test/Text/ItemizationTests.cs` went from 17 tests to 25. The eight pre-existing
 script-only tests (`TextOfOneScriptIsOneRun` through `AnAstralCharacterIsOneCharacterAndNotTwo`) keep
 calling the now-internal `ScriptItemizer.Itemize` — by reflection, the way
-`PdfPinata.Test/IO/CharacterScanningTests.cs` already reaches `CharacterScanning`. The class-level
+`src/PdfPinata.Test/IO/CharacterScanningTests.cs` already reaches `CharacterScanning`. The class-level
 remark at `ItemizationTests.cs:20-28` explains why: several of those inputs (`"Hi" + Arabic`, for
 one) are also mixed-direction, so routing them through `TextItemizer.Itemize` would make the
 assertion pass for a bidi-run boundary rather than a script boundary, and a script-itemisation

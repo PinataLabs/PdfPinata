@@ -67,12 +67,12 @@ jobs:
       # package, so a project that no longer packs fails here rather than at release time. The
       # tests below build and run the Debug configuration, where Debug.Assert is live.
       - name: Build
-        run: dotnet build PdfPinata.slnx --configuration Release
+        run: dotnet build src/PdfPinata.slnx --configuration Release
       # A package with a published vulnerability anywhere in the dependency graph fails the build,
       # so it cannot reach a release without somebody deciding that it should.
       - name: Check vulnerable packages
         run: |
-          OUTPUT=$(dotnet list PdfPinata.slnx package --vulnerable --include-transitive --format json)
+          OUTPUT=$(dotnet list src/PdfPinata.slnx package --vulnerable --include-transitive --format json)
           echo "$OUTPUT"
           if echo "$OUTPUT" | jq -e '.projects[] | select(.frameworks)' > /dev/null 2>&1; then
             echo "::error::Vulnerable packages detected"
@@ -98,11 +98,11 @@ jobs:
           /d:sonar.token="$SONAR_TOKEN"
           /d:sonar.host.url="https://sonarcloud.io"
           /d:sonar.cs.opencover.reportsPaths="**/coverage*.opencover.xml"
-          /d:sonar.coverage.exclusions="ConformanceCorpus/**,PinataLayout.AotSmokeTest/**"
+          /d:sonar.coverage.exclusions="src/ConformanceCorpus/**,src/PinataLayout.AotSmokeTest/**"
       - name: Build for tests
-        run: dotnet build PdfPinata.slnx --configuration Debug --no-restore
+        run: dotnet build src/PdfPinata.slnx --configuration Debug --no-restore
       - name: Test
-        run: dotnet test PdfPinata.slnx --no-build --verbosity normal /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
+        run: dotnet test src/PdfPinata.slnx --no-build --verbosity normal /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
       - name: End SonarCloud analysis
         if: env.SONAR_TOKEN != ''
         run: dotnet sonarscanner end /d:sonar.token="$SONAR_TOKEN"
@@ -113,8 +113,8 @@ jobs:
       - name: AOT smoke test
         run: |
           sudo apt-get install -y clang zlib1g-dev
-          dotnet publish PinataLayout.AotSmokeTest/PinataLayout.AotSmokeTest.csproj -c Release -r linux-x64
-          ./PinataLayout.AotSmokeTest/bin/Release/net10.0/linux-x64/publish/PinataLayout.AotSmokeTest
+          dotnet publish src/PinataLayout.AotSmokeTest/PinataLayout.AotSmokeTest.csproj -c Release -r linux-x64
+          ./src/PinataLayout.AotSmokeTest/bin/Release/net10.0/linux-x64/publish/PinataLayout.AotSmokeTest
       # Every PDF/A and PDF/UA claim this library makes is otherwise self-certified: the writer
       # refuses to save a document that breaks a rule it can check, and PdfUaValidator says in its own
       # remarks which rules it cannot reach. This is the outside opinion, and it is the same script a

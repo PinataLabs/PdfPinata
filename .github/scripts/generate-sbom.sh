@@ -45,7 +45,7 @@ mkdir -p "$output"
 status=0
 
 for project in "$@"; do
-  csproj="$repo_root/$project/$project.csproj"
+  csproj="$repo_root/src/$project/$project.csproj"
   filename="$project.$version.cdx.json"
 
   if [[ ! -f "$csproj" ]]; then

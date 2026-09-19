@@ -92,7 +92,7 @@ The fix for `strikethrough` itself is one line. The point of this spec is the re
     more than emit values, so that this does not become a rewrite of the DDL writer.
 13. As a maintainer, I want the value model to keep its current interface, so that the depth it
     already has is not disturbed.
-14. As a maintainer, I want `PdfPinata.Test/Dom` and `PinataLayout.DocumentObjectModel.Tests` to
+14. As a maintainer, I want `src/PdfPinata.Test/Dom` and `PinataLayout.DocumentObjectModel.Tests` to
     keep covering the model from their two different sides, so that neither loses its purpose.
 15. As a consumer of the DOM, I want no public type to change, so that this costs me nothing.
 16. As a consumer, I want documents I already produce to be byte-identical afterwards, apart from
@@ -145,11 +145,11 @@ because both constructors are `internal`.
 
 **Modules under test.** The DOM itself, from both sides it is already tested from:
 `PinataLayout.DocumentObjectModel.Tests` for `Unit`, MDDDL and the flattening visitors, and
-`PdfPinata.Test/Dom` for the value model, colours, styles and the generated property machinery.
+`src/PdfPinata.Test/Dom` for the value model, colours, styles and the generated property machinery.
 The generator through `CSharpGeneratorDriver` in
 `PinataLayout.DocumentObjectModel.Generators.Tests`.
 
-**Prior art to follow rather than reinvent.** `PdfPinata.Test/Dom/ValueModelKnownDefectsTests.cs`
+**Prior art to follow rather than reinvent.** `src/PdfPinata.Test/Dom/ValueModelKnownDefectsTests.cs`
 is where assertions about the model go when they can only be made through a real DOM type.
 `GeneratorHarness` is how a diagnostic is asserted — MDG007 gets a test that compiles a type with an
 uncovered member and expects the diagnostic, beside the existing MDG001–MDG006 tests.

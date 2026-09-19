@@ -10,10 +10,10 @@ there, and a file hung off a `PdfFileAttachmentAnnotation` was the one path onto
 name-tree-only check could not see.
 
 The shape landed exactly as the plan called it. `PdfAttachments.Reachable(bool includeAnnotations)`
-is the one walk, `PdfPinata/Pdf.Advanced/PdfAttachments.cs:259-291`. `Specifications()` is a
+is the one walk, `src/PdfPinata/Pdf.Advanced/PdfAttachments.cs:259-291`. `Specifications()` is a
 one-line call to it with `includeAnnotations: false` (`PdfAttachments.cs:235`), and
 `PdfConformanceWriter.EmbeddedFiles` calls it with `includeAnnotations: true` and keeps the one
-filter that was never about reachability (`PdfPinata/Pdf.Metadata/PdfConformanceWriter.cs:373-384`).
+filter that was never about reachability (`src/PdfPinata/Pdf.Metadata/PdfConformanceWriter.cs:373-384`).
 `Reachable` stayed `internal`. `IsListedIn` was not touched. `AttachmentTests.cs` was not touched
 either — it does not appear in the commit's diff at all.
 
@@ -73,7 +73,7 @@ was added. `PdfPinata.EInvoice` still never touches `Reachable` — it calls the
 ## Testing
 
 No test file changed. The plan named five existing tests in
-`PdfPinata.Test/Pdfs/AttachmentTests.cs` as adequate coverage for both configurations —
+`src/PdfPinata.Test/Pdfs/AttachmentTests.cs` as adequate coverage for both configurations —
 `TheSpecificationIsOneObjectRatherThanOneCopyPerPlaceItIsMentioned` and
 `AnAttachmentListedOnlyInTheNameTreeIsStillFound` for the narrow walk through `document.Attachments`,
 `AnAttachmentHangingOffAnAnnotationIsSeenByTheCheckToo` and

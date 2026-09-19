@@ -11,7 +11,7 @@ Gap **G1** of the competitive gap analysis.
 | 4 | Encryption interaction — an object inside an `ObjStm` is not separately encrypted | done, **and it found a reader defect** |
 | 5 | Reading a cross-reference stream and writing one back | done |
 
-Covered by `PdfPinata.Test/IO/CrossReferenceStreamTests.cs`.
+Covered by `src/PdfPinata.Test/IO/CrossReferenceStreamTests.cs`.
 
 ## Two things the proposal got wrong
 
@@ -148,7 +148,7 @@ stream side.
 
 ## Tests
 
-`PdfPinata.Test/IO/CrossReferenceStreamTests.cs`, fourteen of them. The ones that carry weight
+`src/PdfPinata.Test/IO/CrossReferenceStreamTests.cs`, fourteen of them. The ones that carry weight
 rather than merely pass:
 
 - **A page keeps its size across the round trip.** Page dictionaries are exactly what gets moved into
@@ -164,7 +164,7 @@ rather than merely pass:
 - **More objects than fit one stream are split across several**, with `MaxObjectsPerObjectStream` set
   low enough to force it, and the document still reopens.
 
-`PdfPinata.Test/IO/CrossReferenceStreamDecodingTests.cs` covers the reading half from the other
+`src/PdfPinata.Test/IO/CrossReferenceStreamDecodingTests.cs` covers the reading half from the other
 side: `Parser.ReadXRefStream` reached directly through `ParserProbe`, with `/W`, `/Index` and `/Size`
 varied against a hand-packed stream body rather than against whatever shapes a written document
 happens to produce. The entries it decodes and what it puts in the cross-reference table are what

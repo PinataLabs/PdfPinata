@@ -1,6 +1,6 @@
 # Spec — the simple-type rule enforced, not just stated (T12)
 
-`PdfItem` (`PdfPinata/Pdf/PdfItem.cs:40-43`) carried the rule as a bare comment — *"All simple
+`PdfItem` (`src/PdfPinata/Pdf/PdfItem.cs:40-43`) carried the rule as a bare comment — *"All simple
 types (i.e. derived from PdfItem but not from PdfObject) must be immutable"* — and `Copy()`
 (`:61-64`, still `MemberwiseClone()`) leaned on it without anything checking it. Twelve concrete
 types derive from `PdfItem` without deriving from `PdfObject`. Eleven kept the rule for free, by
@@ -12,7 +12,7 @@ apologising for.
 
 ## The reflection test
 
-`SimpleTypeImmutabilityTests` (`PdfPinata.Test/Pdfs/SimpleTypeImmutabilityTests.cs`) landed
+`SimpleTypeImmutabilityTests` (`src/PdfPinata.Test/Pdfs/SimpleTypeImmutabilityTests.cs`) landed
 essentially as planned. `AllSimpleTypes()` (`:33-39`) enumerates
 `typeof(PdfItem).Assembly.GetTypes()` and keeps every `t` where `PdfItem.IsAssignableFrom(t)`,
 `!PdfObject.IsAssignableFrom(t)`, and `!t.IsAbstract` — the rule's own wording read back as a
@@ -92,7 +92,7 @@ doubt this says dirty") in its defence. A whole test was specified for it: open 
 document, reopen for `Append`, call `SaveIncremental` with nothing else changed, and assert the
 appended bytes are non-empty and contain the object that held the decrypted string.
 
-It does not happen. `PdfDocument.CaptureOriginalBytes` (`PdfPinata/Pdf/PdfDocument.cs:448-479`)
+It does not happen. `PdfDocument.CaptureOriginalBytes` (`src/PdfPinata/Pdf/PdfDocument.cs:448-479`)
 clears `IsDirty` on every object once a document opened for `Append` has finished being read
 (`:476-477`), under its own comment explaining why: "Reading a document mutates plenty of it … so
 whatever is dirty at this point is dirty from being read rather than from being changed, and none
@@ -123,12 +123,12 @@ The rest of the plan's testing intentions landed as described: the reflection sw
 `BytesAlreadyKnownToBeUnicodeAreReadAsUnicode`, `EverythingButTheEncodingSurvivesTheReplacement`,
 `TheDecryptedStringIsANewObject`), and `PdfStringNoLongerOffersAWayToAssignItsValue` asserts
 `typeof(PdfString).GetProperty("EncryptionValue", …).SetMethod` is `null` — the setter is gone, not
-merely unused. The existing encryption integration tests in `PdfPinata.Test/Security/PdfSecurity.cs`
+merely unused. The existing encryption integration tests in `src/PdfPinata.Test/Security/PdfSecurity.cs`
 needed no change, exactly as the plan expected.
 
 ## `PdfStringObject`: an existing file, left alone and now explained
 
-The diff touches `PdfPinata/Pdf/PdfStringObject.cs`, but it is not a new file — it existed
+The diff touches `src/PdfPinata/Pdf/PdfStringObject.cs`, but it is not a new file — it existed
 before this commit with its mutating `EncryptionValue` property already in place, and the whole of
 the change is a seven-line `<remarks>` block added above that property (`:118-127`). The property
 itself — getter and setter both, still assigning `_value` and `Encoding` in place
@@ -145,7 +145,7 @@ would have to reconstruct.
 
 Everything the plan's Out of Scope section named stayed out of scope: `PdfReference`'s mutability
 is unreworked, `PdfItem.Copy()` still uses `MemberwiseClone()` (now actually correct for all twelve
-covered types), the AES/RC4 correctness in `PdfPinata.Test/Security/` is untouched, and
+covered types), the AES/RC4 correctness in `src/PdfPinata.Test/Security/` is untouched, and
 `IEncryptor.Encrypt` still runs the AES *decrypt* operation under that name (`AESEncryptor.cs:290`)
 — unrenamed, as planned, because renaming it is a separate and unrelated fix. No source analyzer
 was added; the reflection test is the only enforcement mechanism, running on every `dotnet test`

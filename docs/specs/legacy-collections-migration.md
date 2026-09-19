@@ -37,9 +37,9 @@ Grouped by what the migration costs, not by where the code lives.
 
 | file | member | holds | becomes |
 |---|---|---|---|
-| `PinataLayout.DocumentObjectModel/DocumentObjectCollection.cs:262` | `elements` | `DocumentObject` | `List<DocumentObject>` |
+| `src/PinataLayout.DocumentObjectModel/DocumentObjectCollection.cs:262` | `elements` | `DocumentObject` | `List<DocumentObject>` |
 | `PinataLayout.DocumentObjectModel.IO/DdlReaderErrors.cs:70` | `errors` | `DdlReaderError` | `List<DdlReaderError>` |
-| `PinataLayout.DocumentObjectModel/Paragraph.cs:580` | `paragraphs` (local) | `Paragraph` | `List<Paragraph>` |
+| `src/PinataLayout.DocumentObjectModel/Paragraph.cs:580` | `paragraphs` (local) | `Paragraph` | `List<Paragraph>` |
 | `PinataLayout.DocumentObjectModel.Visitors/PdfFlattenVisitor.cs:82` | `textIndices` (local) | boxed `int` | `List<int>` |
 | `MigraDoc.Rendering/FormattedCell.cs:184` and four siblings | `renderInfos` | `RenderInfo` | `List<RenderInfo>` |
 | `MigraDoc.Rendering/TopDownFormatter.cs:83,239,255` | `renderInfos` | `RenderInfo` | `List<RenderInfo>` |
@@ -56,7 +56,7 @@ Grouped by what the migration costs, not by where the code lives.
 | file | member | key → value | becomes |
 |---|---|---|---|
 | `PinataLayout.DocumentObjectModel.IO/Symbols.cs:232-233` | `enumToName`, `nameToEnum` | `Symbol` ↔ `string` | `Dictionary<Symbol, string>`, `Dictionary<string, Symbol>` |
-| `PinataLayout.DocumentObjectModel/Styles.cs:414` | `visitedStyles` | `Style` → `null` | **`HashSet<Style>`** — it is a set, not a map |
+| `src/PinataLayout.DocumentObjectModel/Styles.cs:414` | `visitedStyles` | `Style` → `null` | **`HashSet<Style>`** — it is a set, not a map |
 | `MigraDoc.Rendering/DocumentRenderer.cs:347` | `previousListNumbers` | `ListType` → `int` | `Dictionary<ListType, int>` |
 | `MigraDoc.Rendering/ParagraphFormatInfo.cs:168` | `imageRenderInfos` | `Image` → `RenderInfo` | `Dictionary<Image, RenderInfo>` |
 | `MigraDoc.Rendering/ParagraphRenderer.cs:2616` | `imageRenderInfos` | `Image` → `RenderInfo` | `Dictionary<Image, RenderInfo>` |
@@ -236,7 +236,7 @@ last deliberately: it is the least covered code and the most likely to need a go
 | 6 | `DocumentRenderer.previousListNumbers` | Trivial, but it is the last one and closes the count |
 
 Not in the list: `Borders.BorderEnumerator` (§1.3, an API decision), and the commented-out
-`Hashtable` that used to sit in `PinataLayout.Rendering/MigraDoc.Rendering.UnitTest/TestLayout.cs`.
+`Hashtable` that used to sit in `src/PinataLayout.Rendering/MigraDoc.Rendering.UnitTest/TestLayout.cs`.
 That folder was a test project of upstream MigraDoc's whose `.csproj` did not survive the port,
 which left five files being swallowed by the renderer's own source glob and four accidental public
 types shipping in the package. It has been deleted; what was worth keeping in it was promoted to

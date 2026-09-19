@@ -293,7 +293,7 @@ meaning - the header is formatted once per position and reused across every page
 
 `PinataLayout.Rendering.Tests` is the home — it covers MigraDoc's own layout and deliberately
 rasterizes nothing, which is right for this. The content-stream readers it links out of
-`PdfPinata.Test/Helpers` are how the assertions get at what was drawn.
+`src/PdfPinata.Test/Helpers` are how the assertions get at what was drawn.
 
 Twenty-four of them, all passing. What they pin:
 

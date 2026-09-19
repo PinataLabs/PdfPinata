@@ -10,7 +10,7 @@ Gap **G6** of the competitive gap analysis.
 | 3 | ~~`PdfReader.Open` retains the source bytes in `Modify` mode~~ — a new `Append` mode | done |
 | 4 | A new xref section with `/Prev`, and a trailer keeping `/ID[0]` | done |
 
-Covered by `PdfPinata.Test/IO/IncrementalUpdateTests.cs`.
+Covered by `src/PdfPinata.Test/IO/IncrementalUpdateTests.cs`.
 
 ## The proposal was wrong about the open mode, and it matters
 

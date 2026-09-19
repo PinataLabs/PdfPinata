@@ -100,7 +100,7 @@ $tf/
 _ReSharper*/
 *.[Rr]e[Ss]harper
 *.DotSettings.user
-PdfPinata/PdfPinata.csproj.DotSettings
+src/PdfPinata/PdfPinata.csproj.DotSettings
 
 # JustCode is a .NET coding add-in
 .JustCode
@@ -279,7 +279,7 @@ __pycache__/
 
 # The PDFs the demonstration app writes
 /output/
-/SampleApp/output/
+/src/SampleApp/output/
 
 # Research trails from /autoresearch runs. The conclusions worth keeping go to docs/specs/.
 /autoresearch/

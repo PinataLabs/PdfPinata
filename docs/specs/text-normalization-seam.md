@@ -13,7 +13,7 @@ this document is organized around.
 
 ## `Fonts/TextNormalization.cs`, built as sketched
 
-`PdfPinata/Fonts/TextNormalization.cs` is a new, internal, static class, sibling to
+`src/PdfPinata/Fonts/TextNormalization.cs` is a new, internal, static class, sibling to
 `TextShaping.cs` as planned, and its two members are the two the proposal specified almost verbatim:
 
 ```csharp
@@ -93,7 +93,7 @@ which is a line-breaking question, not a filtering one. That is exactly the dist
 `docs/specs/text-shaping-and-bidi.md`'s rewritten passage (438-459 in the current file) draws when it
 says measuring and drawing "now do [agree] — about every character except `\n`."
 
-## `SampleApp/Demos/TextDemo.cs`, updated past what the plan asked
+## `src/SampleApp/Demos/TextDemo.cs`, updated past what the plan asked
 
 The proposal's item 6 asked for the panel's comment and demo string to stop describing behaviour that
 was about to become false. `TextDemo.cs:111-123` was rewritten:
@@ -112,9 +112,9 @@ newly agrees (`\t`) — rather than only the one the plan called out by name.
 
 ## Testing: matched the plan, with a few places it did better
 
-`PdfPinata.Test/Fonts/TextNormalizationTests.cs` is new, as planned, and reaches the internal
+`src/PdfPinata.Test/Fonts/TextNormalizationTests.cs` is new, as planned, and reaches the internal
 `TextNormalization` type by reflection rather than asking for `InternalsVisibleTo` — the same pattern
-`PdfPinata.Test/IO/CharacterScanningTests.cs` already uses for the shared character scanner
+`src/PdfPinata.Test/IO/CharacterScanningTests.cs` already uses for the shared character scanner
 (`docs/specs/shared-character-scanner.md`), and the test file's own remarks say so. It covers
 `TryNormalize` and `NormalizeLine` directly: the tab-to-space case, every other sub-32 character
 dropped (`\n`, `\r`, `\v`, `\f`, `\0`, escape, and 31 — "the last one below the cut"), everything at

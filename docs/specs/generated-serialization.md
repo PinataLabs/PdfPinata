@@ -277,7 +277,7 @@ left alone, there is nothing left for it to declare.
 
 ## 7. MDG007, shipped
 
-Step 1 landed: `PinataLayout.DocumentObjectModel.Generators/Diagnostics.cs` has
+Step 1 landed: `src/PinataLayout.DocumentObjectModel.Generators/Diagnostics.cs` has
 `MemberMissingFromSerialize`, and `Parser.cs` scans every method literally named `Serialize` for a
 mention of each of the type's own `[DV]` members — a string literal (`WriteSimpleAttribute("Style",
 …)`) or a plain identifier (`Columns.Serialize(serializer)`, `WriteComment(comment)`), matched

@@ -96,7 +96,7 @@ if (-not (Test-Docker)) {
 
 if (-not $SkipBuild) {
     Write-Host 'Building the conformance corpus...' -ForegroundColor Cyan
-    $project = Join-Path $repository 'ConformanceCorpus/ConformanceCorpus.csproj'
+    $project = Join-Path $repository 'src/ConformanceCorpus/ConformanceCorpus.csproj'
     # Out-Host rather than letting it fall into the pipeline: Write-Host below goes straight to the
     # console and this would not, so the corpus listing would arrive after the summary it precedes.
     & dotnet run --project $project -c Release -- --out $Corpus | Out-Host

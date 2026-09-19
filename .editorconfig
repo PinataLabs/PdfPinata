@@ -13,8 +13,8 @@ insert_final_newline = true
 trim_trailing_whitespace = true
 charset = utf-8
 
-# Binary assets. PdfPinata.Test/Assets/NotAValid.pdf is a deliberately
-# malformed PDF read byte for byte by PdfPinata.Test/IO/PdfReader.cs, so
+# Binary assets. src/PdfPinata.Test/Assets/NotAValid.pdf is a deliberately
+# malformed PDF read byte for byte by src/PdfPinata.Test/IO/PdfReader.cs, so
 # nothing should be appended to it.
 [*.pdf]
 insert_final_newline = false
@@ -28,7 +28,7 @@ trim_trailing_whitespace = false
 # asserts it, and hoisting that array into a static field (CA1861), narrowing a helper's return type
 # (CA1859) or source-generating a regex that runs once (SYSLIB1045) would make the test harder to
 # read and buy nothing. Every other rule applies to tests as it does to the library.
-[{PdfPinata.Test,PdfPinata.Charting.Tests,PinataLayout.DocumentObjectModel.Tests,PinataLayout.DocumentObjectModel.Generators.Tests,PinataLayout.Rendering.Tests}/**.cs]
+[src/{PdfPinata.Test,PdfPinata.Charting.Tests,PinataLayout.DocumentObjectModel.Tests,PinataLayout.DocumentObjectModel.Generators.Tests,PinataLayout.Rendering.Tests}/**.cs]
 dotnet_diagnostic.CA1861.severity = none
 dotnet_diagnostic.CA1859.severity = none
 dotnet_diagnostic.SYSLIB1045.severity = none

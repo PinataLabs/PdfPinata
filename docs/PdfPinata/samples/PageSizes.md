@@ -1,8 +1,8 @@
 # Page Sizes
 
 > **Runnable version:** the `Orientation` demo, and `PageResize` for changing one afterwards.
-> `dotnet run --project SampleApp -- run -e Orientation`
-> `dotnet run --project SampleApp -- run -e PageResize`
+> `dotnet run --project src/SampleApp -- run -e Orientation`
+> `dotnet run --project src/SampleApp -- run -e PageResize`
 >
 > The demos are built on every commit and their page counts are asserted by
 > `DemoSmokeTests`, so one that stops working fails the build. The code on this page is

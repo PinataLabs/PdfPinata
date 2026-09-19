@@ -31,7 +31,7 @@ and neither is a reason to stop the world:
 | Open | What it is | Where |
 |---|---|---|
 | **F23** | A paragraph with no style is written without a `\paragraph` keyword, so text whose first character needs escaping is read back at section level, where the escape is not honoured. Pinned by a test that asserts the failure; the repair belongs in the serializer rather than the encoder. | `docs/specs/crap-coverage-backlog.md` |
-| **Generator cache granularity** | An edit *anywhere above* a declaration invalidates the cache, because the model holds absolute source positions. Recorded and pinned, not fixed. | `PinataLayout.DocumentObjectModel.Generators.Tests/IncrementalCachingTests.cs` |
+| **Generator cache granularity** | An edit *anywhere above* a declaration invalidates the cache, because the model holds absolute source positions. Recorded and pinned, not fixed. | `src/PinataLayout.DocumentObjectModel.Generators.Tests/IncrementalCachingTests.cs` |
 
 ---
 
@@ -142,7 +142,7 @@ next health check repeats the work — or worse, "fixes" them.
 
 - [ ] Add a short section to `docs/specs/` (or extend `crap-coverage-backlog.md`) covering:
   - The `catch (Exception ex) when (!Unrecoverable.Is(ex))` idiom, why it exists, and that
-    `PdfPinata/Internal/Unrecoverable.cs` and its MigraDoc twin are the two copies of it.
+    `src/PdfPinata/Internal/Unrecoverable.cs` and its MigraDoc twin are the two copies of it.
   - The three sibling filter forms that are equally deliberate:
     `ImageSharpVersion.IsBindingFailure(ex)` in the ImageSharp backend, `!IsUnrecoverable(ex)` in
     `ImageRenderer`, and the explicit type-list filter in `PdfSignatureVerifier.cs:92`.
@@ -176,7 +176,7 @@ the four `RenderInfo.DocumentObject` overrides, `FormattedDocument.Equals`/`GetH
 
 ### 3.1 Decide on the `ImageSource` namespace mismatch
 
-`PdfPinata/Drawing/ImageSource.cs` ships in the **PdfPinata** assembly but declares the
+`src/PdfPinata/Drawing/ImageSource.cs` ships in the **PdfPinata** assembly but declares the
 namespace `PinataLayout.DocumentObjectModel.Shapes`. Registering an image backend therefore needs a MigraDoc `using` from code with no other MigraDoc involvement.
 `CLAUDE.md` already flags it as a trap for the eye.
 
@@ -188,7 +188,7 @@ namespace `PinataLayout.DocumentObjectModel.Shapes`. Registering an image backen
 ### 3.2 Note the Debug-build file lock in developer docs
 
 The Debug build fails on a machine running the Roslyn MCP navigator: it holds
-`PinataLayout.DocumentObjectModel.Generators/bin/Debug/netstandard2.0/…Generators.dll` open, and the
+`src/PinataLayout.DocumentObjectModel.Generators/bin/Debug/netstandard2.0/…Generators.dll` open, and the
 copy step gives up with MSB3027/MSB3021 after ten retries. Release builds to a different path and is
 unaffected. This is environmental, not a project defect.
 
@@ -216,7 +216,7 @@ Each of these looks like a finding and is not. Changing any of them is a regress
 | Fill the 7 "empty catch" AP007 sites in production | All 7 were opened and read. `PdfReader.TestPdfFile` (×2) and `ScanFileVersion` are contractually documented as *"never throws an exception"*; `Color.cs:286` is an `Enum.Parse` probe with a comment saying so; `PdfDictionary.cs:811` falls back to a default date. Each already carries the explanatory comment the detector asks for. |
 | Narrow the blanket `catch` in `DdlParser.cs` | Recorded as a deliberate decision in `crap-coverage-backlog.md` finding F7 — *"a reader that carries on past a bad attribute is a defensible choice"* — and pinned by `DdlColourTests`. |
 | Move `GenerateDocumentationFile` into `Directory.Build.props` | It is in each `.csproj` on purpose. `Directory.Build.props` is imported after the SDK derives `DocumentationFile`, so it would silently stop working. Each project carries a comment saying so. |
-| Delete `Polyfills/` or the PolySharp reference | They look like dead code on a modern-target glance. They are the `netstandard2.1` polyfills, compiled into that leg alone: PolySharp generates the missing types and `Polyfills/` holds the missing members. |
+| Delete `src/Polyfills/` or the PolySharp reference | They look like dead code on a modern-target glance. They are the `netstandard2.1` polyfills, compiled into that leg alone: PolySharp generates the missing types and `src/Polyfills/` holds the missing members. |
 | Drop the `netstandard2.1` target leg | It exists for Unity, whose scripting runtime cannot consume a `net8.0` assembly. Check with the maintainer first. |
 | Chase the 4% structural test-coverage number | The metric is invalid for this suite — it is behaviour-driven, not one test class per production type. The real figure is 78.3% line coverage (§1.2). |
 | Add `InternalsVisibleTo` to make testing easier | Explicitly forbidden. Reach `internal` targets through public API, or by reflection the way `AreaProbe`, `ParagraphIteratorProbe` and `MappedChartProbe` already do. |
@@ -229,14 +229,14 @@ Run after each task. A task is done when its own check passes **and** these stay
 
 ```powershell
 # Build — must stay 0 errors, 0 warnings
-dotnet build PdfPinata.slnx -c Release
+dotnet build src/PdfPinata.slnx -c Release
 
 # Full suite — judge by exit code, and check the total against --list-tests
-dotnet test
-dotnet test --list-tests
+dotnet test src/PdfPinata.slnx
+dotnet test src/PdfPinata.slnx --list-tests
 
 # Vulnerable packages — must stay empty
-dotnet list PdfPinata.slnx package --vulnerable --include-transitive
+dotnet list src/PdfPinata.slnx package --vulnerable --include-transitive
 ```
 
 Public API documentation — the compiler is the only trustworthy measure. Must stay at zero for every
@@ -245,7 +245,7 @@ shipped package:
 ```powershell
 foreach ($p in @('PdfPinata','PdfPinata.Skia','PdfPinata.ImageSharp','PdfPinata.Signing',
                  'PdfPinata.Charting','PinataLayout.DocumentObjectModel','PinataLayout.Rendering')) {
-  $out = dotnet build "$p/$p.csproj" -c Release --no-incremental 2>&1
+  $out = dotnet build "src/$p/$p.csproj" -c Release --no-incremental 2>&1
   "{0,-34} CS1591={1}" -f $p, ($out | Select-String 'warning CS1591').Count
 }
 ```

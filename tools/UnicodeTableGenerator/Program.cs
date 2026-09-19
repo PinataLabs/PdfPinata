@@ -6,7 +6,7 @@ using System.Text;
 
 var version = Argument(args, "--version") ?? "17.0.0";
 var cache = Argument(args, "--cache") ?? Path.Combine(Path.GetTempPath(), "ucd-" + version);
-var output = Argument(args, "--out") ?? Path.Combine("PdfPinata", "Text");
+var output = Argument(args, "--out") ?? Path.Combine("src", "PdfPinata", "Text");
 
 Directory.CreateDirectory(cache);
 Directory.CreateDirectory(output);
@@ -299,7 +299,7 @@ static string Emit(string version, string enumName, string storage, string summa
 //   Generated from the Unicode Character Database {version} by tools/UnicodeTableGenerator.
 //   Do not edit by hand. To regenerate after a Unicode version bump:
 //
-//       dotnet run --project tools/UnicodeTableGenerator -- --version {version} --out PdfPinata/Text
+//       dotnet run --project tools/UnicodeTableGenerator -- --version {version} --out src/PdfPinata/Text
 //
 //   The tool is deliberately outside PdfPinata.slnx: it runs by hand, and what it writes is
 //   checked in so that the build needs no network and a version bump is a reviewable diff.

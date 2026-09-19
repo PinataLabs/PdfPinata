@@ -9,17 +9,15 @@
          imported after the SDK has already derived DocumentationFile from it. -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Authors>Stefan Steiger and Contributors</Authors>
-    <Description>ImageSharp imaging and font backend for PdfPinata.
+    <Description>SkiaSharp imaging and font backend for PdfPinata.
 
-Provides ImageSharpImageSource and ImageSharpFontResolver. Pinned to the Apache-2.0 licensed SixLabors 2.1.x / 1.0.x lines; later SixLabors releases use the Six Labors Split License.</Description>
+Provides SkiaImageSource and SkiaFontResolver. SkiaSharp is a native library: consumers must also reference the SkiaSharp.NativeAssets package for their target platform.</Description>
     <Copyright>Copyright (c) 2026 PdfPinata; Copyright (c) 2005-2007 empira Software GmbH, Cologne (Germany)</Copyright>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/PinataLabs/PdfPinata</PackageProjectUrl>
     <RepositoryUrl>https://github.com/PinataLabs/PdfPinata</RepositoryUrl>
-    <summary>ImageSharp backend for PdfPinata</summary>
-    <IsTrimmable>true</IsTrimmable>
-    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <summary>SkiaSharp backend for PdfPinata</summary>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -31,13 +29,7 @@ Provides ImageSharpImageSource and ImageSharpFontResolver. Pinned to the Apache-
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- ImageSharp 3.0 is not binary compatible with 2.1.x: the Load(..., out IImageFormat)
-         overloads were removed and every encoder property changed from set to init, which
-         alters the setter signature. Code compiled here against 2.1.x throws
-         MissingMethodException if the consumer's graph unifies ImageSharp to 3.x, so the
-         upper bound turns that into a restore-time version conflict instead. See #348. -->
-    <PackageReference Include="SixLabors.ImageSharp" Version="[2.1.13,3.0.0)" />
-    <PackageReference Include="SixLabors.Fonts" Version="1.0.1" />
+    <PackageReference Include="SkiaSharp" Version="4.150.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -45,8 +37,8 @@ Provides ImageSharpImageSource and ImageSharpFontResolver. Pinned to the Apache-
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\LICENSE.md" Pack="true" PackagePath="" />
-    <None Include="..\README.md" Pack="true" PackagePath="" />
+    <None Include="..\..\LICENSE.md" Pack="true" PackagePath="" />
+    <None Include="..\..\README.md" Pack="true" PackagePath="" />
   </ItemGroup>
 
 </Project>

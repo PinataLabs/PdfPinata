@@ -19,8 +19,8 @@ Gap **G2** of the competitive gap analysis. **All three stages are built.**
 | 9 | A note's `/ID` may be chosen | C | done, `Footnote.Identifier` |
 | 10 | No two MCIDs nested one inside the other | C | done |
 
-Covered by `PdfPinata.Test/IO/TaggedPdfTests.cs` for Stage A, and
-`PinataLayout.Rendering.Tests/TaggedOutputTests.cs` and `PdfUaConformanceTests.cs` for B and C.
+Covered by `src/PdfPinata.Test/IO/TaggedPdfTests.cs` for Stage A, and
+`src/PinataLayout.Rendering.Tests/TaggedOutputTests.cs` and `PdfUaConformanceTests.cs` for B and C.
 
 ```csharp
 // Stage B: nothing asked for, and the document comes out described.
@@ -65,7 +65,7 @@ nests inside the text object instead of containing it. `BeginGraphicMode` is cal
 **Tagging MigraDoc is on by default, and `PdfPage.Resize` is the cost.** The proposal called the
 default flip "the break worth taking" and did not say what it breaks. `PdfDocumentRenderer.TagContent`
 defaults to `true`, so every document rendered through MigraDoc now carries a structure tree — and
-`PdfPinata/Pdf.Advanced/PdfPageResizer.cs` refuses a tagged document outright, because resizing
+`src/PdfPinata/Pdf.Advanced/PdfPageResizer.cs` refuses a tagged document outright, because resizing
 moves a page's content into a form XObject and leaves every identifier in the tree pointing at content
 that is no longer where the tree says it is. That refusal used to be an edge case for files other
 people made. It is now the common path, and code that rendered a MigraDoc document and then resized
@@ -132,7 +132,7 @@ and it is deliberately not done for a structural scope, whose identifier is alre
 **Tagging moves the operands and not the glyphs.** A `BDC` is always written in graphic mode, so
 tagging ends the text object before each scope and starts a new one after it, and every `Td` in a
 fresh text object is measured from the origin instead of from the line before. The layout pin in
-`PdfPinata.Test/Rendering/MigraDocLayoutPinTests.cs` therefore does two things now: it renders the
+`src/PdfPinata.Test/Rendering/MigraDocLayoutPinTests.cs` therefore does two things now: it renders the
 corpus untagged and demands the historical bytes exactly, and it renders it tagged and demands the
 same glyph runs in the same order on the same pages. Re-capturing the baseline with marks in it would
 have recorded whatever the new code did and called it correct.
@@ -550,7 +550,7 @@ may ask the question at a moment of their own choosing.
 ## Tests
 
 `PinataLayout.Rendering.Tests` is the right home, as the proposal said: it covers MigraDoc's own
-layout, links the content-stream readers out of `PdfPinata.Test/Helpers`, and **deliberately
+layout, links the content-stream readers out of `src/PdfPinata.Test/Helpers`, and **deliberately
 rasterizes nothing**, so it needs neither Ghostscript nor ImageMagick. Structure assertions are exactly
 that shape — save, reopen, walk `/StructTreeRoot`, assert the tree — and `Helpers/Structure.cs` is what
 turns a walk of `/K` into something a test can say a sentence about.

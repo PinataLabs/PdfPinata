@@ -1,8 +1,8 @@
 # Work on Pdf Objects
 
 > **Runnable version:** the `Inspect` demo, and `Navigation` for the open action.
-> `dotnet run --project SampleApp -- run -e Inspect`
-> `dotnet run --project SampleApp -- run -e Navigation`
+> `dotnet run --project src/SampleApp -- run -e Inspect`
+> `dotnet run --project src/SampleApp -- run -e Navigation`
 >
 > The demos are built on every commit and their page counts are asserted by
 > `DemoSmokeTests`, so one that stops working fails the build. The code on this page is

@@ -16,7 +16,7 @@ Gap **G5** of the competitive gap analysis.
 | 9 | Chain building, trust stores, revocation checking | not done, **deliberately** |
 | 10 | Enforcing what a `/DocMDP` level permits | done, [signature-lifetime.md](signature-lifetime.md) |
 
-Covered by `PdfPinata.Test/IO/SigningTests.cs`.
+Covered by `src/PdfPinata.Test/IO/SigningTests.cs`.
 
 ---
 

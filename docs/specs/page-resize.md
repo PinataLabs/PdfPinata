@@ -236,19 +236,19 @@ resized.
 
 ## Verification
 
-- `PdfPinata.Test/Drawing/PageFitTests.cs` — 31 tests over the arithmetic alone: four fit modes,
+- `src/PdfPinata.Test/Drawing/PageFitTests.cs` — 31 tests over the arithmetic alone: four fit modes,
   nine alignments, margins, auto-rotate on matching and opposing aspects, sources away from the
   origin, and the guards. Asserts where corners land, not what the matrix components are.
-- `PdfPinata.Test/IO/PageResizeTests.cs` — the content really moves, via a walker that follows
+- `src/PdfPinata.Test/IO/PageResizeTests.cs` — the content really moves, via a walker that follows
   the `Do` into the wrapper (`Helpers/ResizedContentProbe.cs`); unbalanced `q` and `Q`; `/Group`;
   compressed content not recompressed; two pages sharing a resource dictionary; the caches on
   `Resources` and `Contents`; resizing twice and three times; every refusal; save and read back.
-- `PdfPinata.Test/IO/PageResizeAnnotationTests.cs` — every geometry entry, the appearance stream
+- `src/PdfPinata.Test/IO/PageResizeAnnotationTests.cs` — every geometry entry, the appearance stream
   left byte-identical, an unknown subtype, the pass turned off, and a turned page.
-- `PdfPinata.Test/IO/PageResizeDestinationTests.cs` — every destination form and every place one
+- `src/PdfPinata.Test/IO/PageResizeDestinationTests.cs` — every destination form and every place one
   can hide, the zoom unchanged on both a shrink and an enlargement, `/GoToR` left alone, a shared
   array moved once.
-- `PdfPinata.Test/IO/PageResizeRenderingTests.cs` — `FamilyTree.pdf`, `test.pdf` and `Pdf20.pdf`
+- `src/PdfPinata.Test/IO/PageResizeRenderingTests.cs` — `FamilyTree.pdf`, `test.pdf` and `Pdf20.pdf`
   rasterized before and after. Resized to the size they already are, and down to half and back
   again: both have to render identically, and do. This is what says a font, a shading or a clipping
   path survived the move, which no content walk can.

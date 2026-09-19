@@ -1,8 +1,8 @@
 # Bookmarks
 
 > **Runnable version:** the `Outline` demo, and `Structure` for the MigraDoc route.
-> `dotnet run --project SampleApp -- run -e Outline`
-> `dotnet run --project SampleApp -- run -e Structure`
+> `dotnet run --project src/SampleApp -- run -e Outline`
+> `dotnet run --project src/SampleApp -- run -e Structure`
 >
 > The demos are built on every commit and their page counts are asserted by
 > `DemoSmokeTests`, so one that stops working fails the build. The code on this page is

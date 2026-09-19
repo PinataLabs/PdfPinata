@@ -138,9 +138,9 @@ one, and the point of the extraction is that they no longer have to.
 **Modules under test.** The shared scanner directly, once it exists. Both lexers through their
 existing tests. `CParser` for anything about the dead symbol branches.
 
-**Prior art to follow rather than reinvent.** `PdfPinata.Test/Pdfs/Content/CLexerTests.cs` and the
+**Prior art to follow rather than reinvent.** `src/PdfPinata.Test/Pdfs/Content/CLexerTests.cs` and the
 `Lexer*Tests` family — `LexerHexStringTests`, `LexerNameEncodingTests`, `LexerUnicodeStringTests` —
-are the model: bytes in, symbol and token out. `PdfPinata.Test/IO/RawPdf.cs` builds byte-exact
+are the model: bytes in, symbol and token out. `src/PdfPinata.Test/IO/RawPdf.cs` builds byte-exact
 documents by hand for the cases that genuinely need a document around them.
 
 **Every closed guard gets the content-lexer twin of an existing document-lexer test.** Seven of

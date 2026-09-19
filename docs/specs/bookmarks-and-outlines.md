@@ -242,7 +242,7 @@ back as whatever the caller had last assigned.
 
 ## Verification
 
-`PdfPinata.Test/Outlines/BookmarkAndOutlineTests.cs`, 9 tests:
+`src/PdfPinata.Test/Outlines/BookmarkAndOutlineTests.cs`, 9 tests:
 
 - an outline entry points at the heading, and one further down the page points further down —
   before the change the destination carried no position at all, so both fail outright;
@@ -259,7 +259,7 @@ back as whatever the caller had last assigned.
 Whole suite green on net8.0 and net10.0, 337 passed on each, one pre-existing skip
 (`CanCreatePdfOver2gb`). Solution builds with 0 warnings.
 
-`PdfPinata.Test/Outlines/OutlineOpenStateTests.cs`, 9 tests, for item 5:
+`src/PdfPinata.Test/Outlines/OutlineOpenStateTests.cs`, 9 tests, for item 5:
 
 - an open entry counts its children up, and a closed one counts the same number down;
 - `Opened` assigned **after** the entry was added is still written — the case the old bookkeeping

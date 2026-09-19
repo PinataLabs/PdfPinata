@@ -130,7 +130,7 @@ existing helpers do it well.
 ones `axis-renderer-duplication.md` will have just merged. The plot-area, data-label and axis-title
 renderers after, if the seam proves out.
 
-**Prior art to follow rather than reinvent.** `PdfPinata.Charting.Tests/Helpers/Charts.cs` builds
+**Prior art to follow rather than reinvent.** `src/PdfPinata.Charting.Tests/Helpers/Charts.cs` builds
 the chart fixtures and is reusable unchanged — the arrangement half of every test does not change,
 only the assertion half. `Drawn.cs` stays for the round trip. `PaintedRectangles`, `ShownText` and
 the linked `StrokedLines`, `PageContent` and `TextOperators` stay for the same reason.

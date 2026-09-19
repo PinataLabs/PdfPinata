@@ -1,44 +1,39 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
+    <!--
+      The full three, unlike PdfPinata.Signing. Nothing here is cryptography or platform
+      anything: it writes a file specification and a string of RDF/XML, so the Unity leg costs
+      nothing and there is no reason to refuse it.
+    -->
     <TargetFrameworks>netstandard2.1;net8.0;net10.0</TargetFrameworks>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <!-- Ship the XML documentation alongside the assembly, so a consumer of the package gets the
          doc comments as IntelliSense. This project is clean of CS1591, so a public member added
          without one now warns. Set per project rather than in Directory.Build.props, which is
-         imported before GeneratePackageOnBuild is known, or Directory.Build.targets, which is
-         imported after the SDK has already derived DocumentationFile from it. -->
+         imported before GeneratePackageOnBuild is known. -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Authors>Stefan Steiger and Contributors</Authors>
-    <Description>PinataLayout.Rendering for .NET Core
+    <Description>Hybrid e-invoicing for PdfPinata: attaches a Factur-X / ZUGFeRD 2.x invoice to a PDF/A-3 document with the file name, relationship and XMP extension schema the standard asks for.
 
-PinataLayout.Rendering was ported from MigraDoc version 1.32</Description>
+Generating the EN 16931 invoice XML itself is out of scope — hand this the XML another library produced.</Description>
     <Copyright>Copyright (c) 2026 PdfPinata; Copyright (c) 2005-2007 empira Software GmbH, Cologne (Germany)</Copyright>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/PinataLabs/PdfPinata</PackageProjectUrl>
     <RepositoryUrl>https://github.com/PinataLabs/PdfPinata</RepositoryUrl>
-    <summary>PinataLayout.Rendering for .NET Core</summary>
+    <PackageTags>pdf;pdfa;zugferd;factur-x;e-invoice;en16931</PackageTags>
     <IsTrimmable>true</IsTrimmable>
     <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DefineConstants>TRACE;DEBUG;</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DefineConstants>TRACE;RELEASE;</DefineConstants>
-  </PropertyGroup>
-
   <ItemGroup>
-    <ProjectReference Include="..\PinataLayout.DocumentObjectModel\PinataLayout.DocumentObjectModel.csproj" />
-    <ProjectReference Include="..\PdfPinata.Charting\PdfPinata.Charting.csproj" />
     <ProjectReference Include="..\PdfPinata\PdfPinata.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\LICENSE.md" Pack="true" PackagePath="" />
-    <None Include="..\README.md" Pack="true" PackagePath="" />
+    <None Include="..\..\LICENSE.md" Pack="true" PackagePath="" />
+    <None Include="..\..\README.md" Pack="true" PackagePath="" />
   </ItemGroup>
 
 </Project>
