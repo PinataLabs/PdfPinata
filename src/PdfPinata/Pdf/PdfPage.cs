@@ -1056,6 +1056,22 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     }
 
     /// <summary>
+    /// The item an inheritable entry holds, or null when there is no entry or the entry is null.
+    /// </summary>
+    /// <remarks>
+    /// ISO 32000-1 7.3.7 makes an entry whose value is the null object the same as no entry at
+    /// all, and a reference to null (7.3.10) is a null value too. So a page tree node that says
+    /// null passes on nothing and leaves whatever a node above it stated in place, and a page
+    /// that says null inherits as though it had said nothing.
+    /// </remarks>
+    static PdfItem InheritableEntry(PdfDictionary dictionary, string key)
+    {
+        PdfItem item = dictionary.Elements[key];
+        PdfItem value = item is PdfReference reference ? reference.Value : item;
+        return value is null or PdfNull or PdfNullObject ? null : item;
+    }
+
+    /// <summary>
     /// Inherit values from parent node.
     /// </summary>
     internal static void InheritValues(PdfDictionary page, InheritedValues values)
@@ -1064,7 +1080,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         if (values.Resources != null)
         {
             PdfDictionary resources;
-            PdfItem res = page.Elements[InheritablePageKeys.Resources];
+            PdfItem res = InheritableEntry(page, InheritablePageKeys.Resources);
             if (res is PdfReference)
             {
                 resources = (PdfDictionary)((PdfReference)res).Value.Clone();
@@ -1094,13 +1110,13 @@ public sealed class PdfPage : PdfDictionary, IContentStream
             }
         }
 
-        if (values.MediaBox != null && page.Elements[InheritablePageKeys.MediaBox] == null)
+        if (values.MediaBox != null && InheritableEntry(page, InheritablePageKeys.MediaBox) == null)
             page.Elements[InheritablePageKeys.MediaBox] = values.MediaBox;
 
-        if (values.CropBox != null && page.Elements[InheritablePageKeys.CropBox] == null)
+        if (values.CropBox != null && InheritableEntry(page, InheritablePageKeys.CropBox) == null)
             page.Elements[InheritablePageKeys.CropBox] = values.CropBox;
 
-        if (values.Rotate != null && page.Elements[InheritablePageKeys.Rotate] == null)
+        if (values.Rotate != null && InheritableEntry(page, InheritablePageKeys.Rotate) == null)
             page.Elements[InheritablePageKeys.Rotate] = values.Rotate;
     }
 
@@ -1109,7 +1125,9 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// </summary>
     internal static void InheritValues(PdfDictionary page, ref InheritedValues values)
     {
-        PdfItem item = page.Elements[InheritablePageKeys.Resources];
+        // A null entry is skipped rather than recorded, so it neither reaches the pages below as
+        // an empty box nor overrides what a node further up stated.
+        PdfItem item = InheritableEntry(page, InheritablePageKeys.Resources);
         if (item != null)
         {
             PdfReference reference = item as PdfReference;
@@ -1119,15 +1137,15 @@ public sealed class PdfPage : PdfDictionary, IContentStream
                 values.Resources = (PdfDictionary)item;
         }
 
-        item = page.Elements[InheritablePageKeys.MediaBox];
+        item = InheritableEntry(page, InheritablePageKeys.MediaBox);
         if (item != null)
             values.MediaBox = new PdfRectangle(item);
 
-        item = page.Elements[InheritablePageKeys.CropBox];
+        item = InheritableEntry(page, InheritablePageKeys.CropBox);
         if (item != null)
             values.CropBox = new PdfRectangle(item);
 
-        item = page.Elements[InheritablePageKeys.Rotate];
+        item = InheritableEntry(page, InheritablePageKeys.Rotate);
         if (item != null)
         {
             if (item is PdfReference)

@@ -74,6 +74,16 @@ public sealed class PdfStringObject : PdfObject
         _flags = (PdfStringFlags)encoding;
     }
 
+    /// <summary>
+    /// A string object read from a file, with the encoding and form the lexer found in it.
+    /// </summary>
+    internal PdfStringObject(PdfDocument document, string value, PdfStringFlags flags)
+        : base(document)
+    {
+        _value = value;
+        _flags = flags;
+    }
+
     internal PdfStringObject(string value, PdfStringFlags flags)
     {
         _value = value;

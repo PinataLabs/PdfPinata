@@ -11,7 +11,8 @@ stream. That has a consequence worth stating plainly — **everything below was 
 public API**. None of it needed reflection to find, and none of it needed reflection to hit.
 
 Eight defects came out of it — seven from writing the tests, one more from review of the fixes.
-All eight are now fixed, and the test that recorded each has been turned round to assert the
+A second round of tests, over legends, markers and the object model's copying, found three more.
+All eleven are now fixed, and the test that recorded each has been turned round to assert the
 behaviour that replaced it.
 
 | # | finding | severity | status |
@@ -24,6 +25,9 @@ behaviour that replaced it.
 | C6 | An axis title's alignment moves it nowhere, or only sometimes | low | **fixed** (see below) |
 | C7 | `DataLabelPosition.InsideBase` stacks every pie label on one point | low | **fixed** |
 | C8 | A chart with nothing plotted throws before it draws | medium | **fixed** |
+| C9 | `Chart.Clone` shares its legend and font with the original | medium | **fixed** |
+| C10 | Cloning a collection that holds a blank throws | medium | **fixed** |
+| C11 | A legend reserves a line marker's size in its own unit rather than in points | low | **fixed** |
 
 C3 and C4 were one shape seen twice: two renderers written as copies of each other, which had
 drifted apart on which inputs they survive. C1 and C8 were another, seen four times over: a
@@ -364,6 +368,64 @@ and `.ALineChartWithASinglePointDrawsNoLine`.
 
 ---
 
+## C9. `Chart.Clone` shared its legend and font with the original — fixed
+
+```csharp
+chart.Legend.Docking = DockingType.Left;
+var copy = chart.Clone();
+copy.Legend.Docking = DockingType.Top;
+// chart.Legend.Docking is now Top as well
+```
+
+`Chart.DeepCopy` clones its children by hand, each behind a null check and each reparented to the
+copy. It named seven — the three axes, the series, the categories, the plot area and the data
+label — and left out `legend` and `font`, so `MemberwiseClone` carried those two across as shared
+references still naming the original as their parent. Both are now cloned and reparented the same
+way. Every other `DeepCopy` in the model already covers each `DocumentObject` field its class holds,
+so nothing else had the gap.
+
+Pinned by `ChartCloneAndLineFormatTests.ACopiedChartHasALegendAndAFontOfItsOwn` and
+`.EveryChildOfACopiedChartNamesTheCopyAsItsParent`.
+
+---
+
+## C10. Cloning a collection that held a blank threw — fixed
+
+`DocumentObjectCollection.DeepCopy` copied each element with `this[index].Clone()`, and a blank is
+a null. So `new XSeriesElements()` with `Add("a")` and `AddBlank()` threw on `Clone()`, and so did
+`Chart.Clone` on any chart whose series or categories held one — the C2 shape again, one layer
+down: the thing `AddBlank` exists to permit was the thing the copy could not survive.
+
+A blank is now copied as a null at the same index. Each copied element is also given the new
+collection as its parent: `DocumentObject.DeepCopy` clears the parent, and nothing set it again, so
+a copied element used to belong to nothing, where one added through `Add` belongs to its collection.
+
+Pinned by `DocumentObjectCollectionTests.ACloneKeepsABlankWhereItWas`,
+`.ACloneOfASeriesKeepsABlankBetweenItsValues`, `.AChartWhoseSeriesHoldsABlankCanStillBeCloned` and
+`.ACloneIsTheParentOfEveryElementItCopied`.
+
+---
+
+## C11. A legend reserved a line marker's size in the wrong unit — fixed
+
+Found by `LegendTests`, which now covers what the list below used to call untested: docking, entry
+layout, borders, and the keys for line and pie charts.
+
+`LegendEntryRenderer.Format` sized the key for a line series from
+`markerRendererInfo.MarkerSize.Value` — the number in whatever unit the size was given in.
+`MarkerRenderer` draws the marker at its size in points, and `ColumnLikeLegendRenderer` reads it
+the same way, so the three agreed only for a size stated in points. A marker of
+`XUnit.FromCentimeter(1)` was given a key of three units, held up to the 21-point minimum, and
+then drawn 28.35 points wide across it, overhanging the room its entry had reserved. It now reads
+`MarkerSize.Point`, and the key is 85 points long.
+
+PinataLayout's chart mapper converts a DOM marker size to points before it hands it over, and the
+demos state theirs in points, so nothing either of them draws moves.
+
+Pinned by `LegendTests.ALineKeyIsMeasuredFromAMarkerSizeInPointsWhateverItsUnit`.
+
+---
+
 ## What is still open
 
 None of these is a defect. They are gaps the fixes above put in plain view, and each would be a
@@ -384,6 +446,3 @@ change to what a chart looks like rather than to whether it can be drawn.
 - **Line, area and pie geometry.** Where the wedges and line segments themselves land is not
   asserted; those renderers were not among the ten and would want a path reader rather than a
   rectangle reader.
-- **Legends.** `LegendRenderer` and its three subclasses draw an entry per series with a swatch
-  beside it. One test reaches the swatch incidentally; the docking, wrapping and entry layout are
-  untested.

@@ -176,9 +176,9 @@ public sealed class PdfInteger : PdfNumber, IConvertible, IFormattable
 
     #region IFormattable Members
 
-    string IFormattable.ToString(string _value, IFormatProvider provider)
+    string IFormattable.ToString(string format, IFormatProvider provider)
     {
-        return _value;
+        return _value.ToString(format, provider);
     }
 
     #endregion

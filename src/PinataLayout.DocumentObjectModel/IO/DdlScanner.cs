@@ -33,6 +33,7 @@
 using System;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using PinataLayout.DocumentObjectModel.Resources;
 
 
@@ -781,22 +782,50 @@ internal class DdlScanner
   /// <summary>
   /// Interpret current token as integer literal.
   /// </summary>
-  /// <returns></returns>
+  /// <remarks>
+  /// A literal that is not a number, or is one too large for an integer, is a fault in the text
+  /// and is thrown as a DdlParserException, which the parser reports and recovers from; a
+  /// FormatException or OverflowException would escape the reader altogether.
+  /// </remarks>
   internal int GetTokenValueAsInt()
   {
+    int value;
     if (symbol == Symbol.IntegerLiteral)
     {
-      return Int32.Parse(token, CultureInfo.InvariantCulture);
+      if (Int32.TryParse(token, NumberStyles.Integer, CultureInfo.InvariantCulture, out value))
+        return value;
+
+      // ScanNumber lets nothing but a sign and digits into a decimal literal, so one that does
+      // not parse is too large rather than malformed.
+      throw IntegerOutOfRange();
     }
     else if (symbol == Symbol.HexIntegerLiteral)
     {
       string number = token.Substring(2);
-      return Int32.Parse(number, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
+      if (Int32.TryParse(number, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out value))
+        return value;
+
+      // ReadHexNumber takes in any identifier character, so a hex literal can be malformed as
+      // well as too large.
+      if (number.Length > 0 && number.All(IsHexDigit))
+        throw IntegerOutOfRange();
+      throw ParserException(DomMsgID.IntegerExpected, token);
     }
     //TODO NiSc
     //Check.Assert(false);
     return 0;
   }
+
+  DdlParserException IntegerOutOfRange() =>
+    ParserException(DomMsgID.OutOfRange,
+      String.Format(CultureInfo.InvariantCulture, "{0} - {1}", Int32.MinValue, Int32.MaxValue));
+
+  /// <summary>
+  /// A DdlParserException carrying the given message and the position of the current token.
+  /// </summary>
+  DdlParserException ParserException(DomMsgID errorCode, params object[] args) =>
+    new DdlParserException(new DdlReaderError(DdlErrorLevel.Error, DomSR.FormatMessage(errorCode, args),
+      (int)errorCode, DocumentFileName, CurrentLine, CurrentLinePos));
 
   /// <summary>
   /// Interpret current token as unsigned integer literal.

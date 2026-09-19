@@ -155,7 +155,8 @@ public class XRectTests
                 rect.Height = -1;
         };
 
-        act.Should().Throw<ArgumentException>();
+        act.Should().Throw<ArgumentException>()
+            .WithMessage(testWidth ? "WidthCannotBeNegative" : "HeightCannotBeNegative");
     }
 
     [Fact]
