@@ -207,6 +207,60 @@ public class ContentObjectWritingTests
         Written(new CSequence { show }).Should().Be("[(A)-250(B)]TJ\n");
     }
 
+    [Theory]
+    // A dash pattern: two numbers side by side, which used to be written as the one number 32.
+    [InlineData("[3 2] 0 d", "[3 2]0 d\n")]
+    [InlineData("[0.5 1.5] 0 d", "[0.5 1.5]0 d\n")]
+    [InlineData("[] 0 d", "[]0 d\n")]
+    // A name ends in a regular character too, so it needs a blank either side of a number.
+    [InlineData("[/A 1 /B 2.5] TJ", "[/A 1 /B 2.5]TJ\n")]
+    // A string or an array delimits itself, and nothing is put beside one.
+    [InlineData("[(A) -250 (B) 3 4 (C)] TJ", "[(A)-250(B)3 4(C)]TJ\n")]
+    public void TheItemsOfAnArrayAreSeparatedWhereTheyWouldOtherwiseRunTogether(string content, string expected)
+    {
+        var written = Written(ContentReader.ReadContent(Encoding.Latin1.GetBytes(content)));
+
+        written.Should().Be(expected);
+        Written(ContentReader.ReadContent(Encoding.Latin1.GetBytes(written)))
+            .Should().Be(written, "what is written reads back as the same items");
+    }
+
+    [Fact]
+    public void AnArrayBuiltByHandKeepsItsNumbersApart()
+    {
+        var array = new CArray
+        {
+            new CInteger { Value = 3 },
+            new CReal { Value = 2.5 },
+            new CName("/F1"),
+            new CInteger { Value = -1 },
+        };
+
+        array.ToString().Should().Be("[3 2.5 /F1 -1]");
+
+        var reread = ContentReader.ReadContent(Encoding.Latin1.GetBytes(array + " TJ"));
+        var items = reread[0].Should().BeOfType<COperator>().Subject.Operands[0]
+            .Should().BeOfType<CArray>().Subject;
+        items.Should().HaveCount(4);
+        items[0].Should().BeOfType<CInteger>().Which.Value.Should().Be(3);
+        items[1].Should().BeOfType<CReal>().Which.Value.Should().Be(2.5);
+        items[2].Should().BeOfType<CName>().Which.Name.Should().Be("/F1");
+        items[3].Should().BeOfType<CInteger>().Which.Value.Should().Be(-1);
+    }
+
+    [Fact]
+    public void AnArrayInsideAnArrayDelimitsItselfLikeAString()
+    {
+        // Built by hand, because the content parser refuses an array within an array - and each
+        // inner one cast to CObject, because the CSequence overload of Add would spread it.
+        var array = new CArray();
+        array.Add((CObject)new CArray { new CInteger { Value = 1 }, new CInteger { Value = 2 } });
+        array.Add(new CInteger { Value = 3 });
+        array.Add((CObject)new CArray { new CInteger { Value = 4 } });
+
+        array.ToString().Should().Be("[[1 2]3[4]]");
+    }
+
     [Fact]
     public void AnOperatorIsWrittenAfterItsOperandsAndEndsTheLine()
     {

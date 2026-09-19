@@ -768,9 +768,32 @@ public class CArray : CSequence
     /// <summary>
     /// Returns a string that represents the current value.
     /// </summary>
+    /// <remarks>
+    /// Unlike the sequence it derives from, this is the array's written form, so its items have
+    /// to be told apart when read back: two items are separated by a blank unless one of them
+    /// delimits itself. A string and an array do, and so stay packed against their neighbours as
+    /// in <c>[(A)-250(B)]</c>; a number or a name ends in a regular character, so <c>[3 2]</c>
+    /// written without the blank would read back as the one number 32.
+    /// </remarks>
     public override string ToString()
     {
-        return "[" + base.ToString() + "]";
+        var s = new StringBuilder("[");
+        CObject previous = null;
+        foreach (var item in this)
+        {
+            if (previous != null && !DelimitsItself(previous) && !DelimitsItself(item))
+                s.Append(' ');
+            s.Append(item);
+            previous = item;
+        }
+
+        s.Append(']');
+        return s.ToString();
+    }
+
+    static bool DelimitsItself(CObject item)
+    {
+        return item is CString or CArray;
     }
 
     internal override void WriteObject(ContentWriter writer)
