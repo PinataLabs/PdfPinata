@@ -73,9 +73,9 @@ public sealed class PdfReference : PdfItem
     /// <summary>
     /// Initializes a new PdfReference instance from the specified object identifier and file position.
     /// </summary>
-    public PdfReference(PdfObjectID objectID, long position)
+    public PdfReference(PdfObjectID objectId, long position)
     {
-        _objectID = objectID;
+        _objectID = objectId;
         _position = position;
     }
 
@@ -116,7 +116,7 @@ public sealed class PdfReference : PdfItem
             {
                 //PdfXRefTable table = Document.xrefTable;
                 //table.Remove(this);
-                //objectID = value;
+                //objectId = value;
                 //table.Add(this);
             }
         }

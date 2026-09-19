@@ -79,11 +79,11 @@ public class PdfObjectStream : PdfDictionary
         {
             var objectNumber = _header[idx][0];
 
-            var objectID = new PdfObjectID(objectNumber);
+            var objectId = new PdfObjectID(objectNumber);
 
             // HACK: -1 indicates compressed object.
-            var iref = new PdfReference(objectID, -1);
-            ////iref.ObjectID = objectID;
+            var iref = new PdfReference(objectId, -1);
+            ////iref.ObjectID = objectId;
             ////iref.Value = xrefStream;
             if (!xrefTable.Contains(iref.ObjectID))
                 xrefTable.Add(iref);

@@ -104,9 +104,9 @@ public class PdfInternals // TODO: PdfDocumentInternals... PdfPageInternals etc.
     /// <summary>
     /// Returns the object with the specified Identifier, or null, if no such object exists.
     /// </summary>
-    public PdfObject GetObject(PdfObjectID objectID)
+    public PdfObject GetObject(PdfObjectID objectId)
     {
-        return _document._irefTable[objectID].Value;
+        return _document._irefTable[objectId].Value;
     }
 
     /// <summary>

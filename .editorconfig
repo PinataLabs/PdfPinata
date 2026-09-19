@@ -35,15 +35,24 @@ dotnet_diagnostic.SYSLIB1045.severity = none
 
 # Naming. Private instance fields are _camelCase, which is what the code already does and what
 # InspectCode's own default (no prefix) would otherwise ask every one of them to stop doing.
-# Mirrored in src/PdfPinata.sln.DotSettings for ReSharper and Rider.
+# Internal and protected instance fields are PascalCase. The private rule is mirrored in
+# src/PdfPinata.sln.DotSettings for ReSharper and Rider.
 [*.cs]
 dotnet_naming_rule.private_instance_fields_underscore.symbols = private_instance_fields
 dotnet_naming_rule.private_instance_fields_underscore.style = underscore_camel_case
 dotnet_naming_rule.private_instance_fields_underscore.severity = suggestion
 
+dotnet_naming_rule.non_private_instance_fields_pascal.symbols = non_private_instance_fields
+dotnet_naming_rule.non_private_instance_fields_pascal.style = pascal_case
+dotnet_naming_rule.non_private_instance_fields_pascal.severity = suggestion
+
 dotnet_naming_symbols.private_instance_fields.applicable_kinds = field
 dotnet_naming_symbols.private_instance_fields.applicable_accessibilities = private
-dotnet_naming_symbols.private_instance_fields.required_modifiers =
+
+dotnet_naming_symbols.non_private_instance_fields.applicable_kinds = field
+dotnet_naming_symbols.non_private_instance_fields.applicable_accessibilities = internal, protected, protected_internal, private_protected
 
 dotnet_naming_style.underscore_camel_case.required_prefix = _
 dotnet_naming_style.underscore_camel_case.capitalization = camel_case
+
+dotnet_naming_style.pascal_case.capitalization = pascal_case

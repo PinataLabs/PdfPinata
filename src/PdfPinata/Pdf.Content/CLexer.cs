@@ -774,13 +774,13 @@ public class CLexer
 
     /// <summary>
     /// Move current position one character further in content stream, folding a carriage return
-    /// into a line feed when <paramref name="handleCRLF"/> is set - CR LF becomes LF, and a lone
+    /// into a line feed when <paramref name="handleCrlf"/> is set - CR LF becomes LF, and a lone
     /// CR becomes LF as well. A literal string reads its characters with it clear, the way the
     /// document lexer's <c>Lexer.ScanNextChar</c> does, so that a raw carriage return inside the
     /// string is kept rather than folded, and only an escaped one - <c>\</c> followed by either
     /// end-of-line spelling - continues the line.
     /// </summary>
-    internal char ScanNextChar(bool handleCRLF = true)
+    internal char ScanNextChar(bool handleCrlf = true)
     {
         if (ContLength <= _charIndex)
         {
@@ -791,12 +791,12 @@ public class CLexer
             _nextChar = Chars.EOF;
             // Treat a single CR as LF, as the branch below does. Nothing is left to pair it
             // with, so it cannot be the CR of a CR LF.
-            if (handleCRLF && _currChar == Chars.CR)
+            if (handleCrlf && _currChar == Chars.CR)
                 _currChar = Chars.LF;
         }
         else
         {
-            CharacterScanning.Advance(ref _currChar, ref _nextChar, handleCRLF, _readNextRawByte);
+            CharacterScanning.Advance(ref _currChar, ref _nextChar, handleCrlf, _readNextRawByte);
         }
         return _currChar;
     }

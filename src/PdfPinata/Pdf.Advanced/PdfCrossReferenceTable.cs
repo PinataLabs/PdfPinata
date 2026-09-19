@@ -101,11 +101,11 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
     /// Gets a cross-reference entry from an object identifier.
     /// Returns null if no object with the specified ID exists in the object table.
     /// </summary>
-    public PdfReference this[PdfObjectID objectID]
+    public PdfReference this[PdfObjectID objectId]
     {
         get
         {
-            ObjectTable.TryGetValue(objectID, out var iref);
+            ObjectTable.TryGetValue(objectId, out var iref);
             return iref;
         }
     }
@@ -113,9 +113,9 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
     /// <summary>
     /// Indicates whether the specified object identifier is in the table.
     /// </summary>
-    public bool Contains(PdfObjectID objectID)
+    public bool Contains(PdfObjectID objectId)
     {
-        return ObjectTable.ContainsKey(objectID);
+        return ObjectTable.ContainsKey(objectId);
     }
 
     /// <summary>

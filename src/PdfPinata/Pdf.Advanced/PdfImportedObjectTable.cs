@@ -77,26 +77,26 @@ internal sealed class PdfImportedObjectTable
     /// <summary>
     /// Indicates whether the specified object is already imported.
     /// </summary>
-    public bool Contains(PdfObjectID externalID)
+    public bool Contains(PdfObjectID externalId)
     {
-        return _externalIDs.ContainsKey(externalID.ToString());
+        return _externalIDs.ContainsKey(externalId.ToString());
     }
 
     /// <summary>
     /// Adds a cloned object to this table.
     /// </summary>
-    /// <param name="externalID">The object identifier in the foreign object.</param>
+    /// <param name="externalId">The object identifier in the foreign object.</param>
     /// <param name="iref">The cross-reference to the clone of the foreign object, which belongs to
     /// this document. In general the clone has a different object identifier.</param>
-    public void Add(PdfObjectID externalID, PdfReference iref)
+    public void Add(PdfObjectID externalId, PdfReference iref)
     {
-        _externalIDs[externalID.ToString()] = iref;
+        _externalIDs[externalId.ToString()] = iref;
     }
 
     /// <summary>
     /// Gets the cloned object that corresponds to the specified external identifier.
     /// </summary>
-    public PdfReference this[PdfObjectID externalID] => _externalIDs[externalID.ToString()];
+    public PdfReference this[PdfObjectID externalId] => _externalIDs[externalId.ToString()];
 
     /// <summary>
     /// Maps external object identifiers to cross-reference entries of the importing document

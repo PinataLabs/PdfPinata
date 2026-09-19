@@ -300,13 +300,13 @@ public class XColorResourceManager
 
     internal struct ColorResourceInfo
     {
-        public ColorResourceInfo(XKnownColor knownColor, XColor color, uint argb, string name, string nameDE)
+        public ColorResourceInfo(XKnownColor knownColor, XColor color, uint argb, string name, string nameDe)
         {
             KnownColor = knownColor;
             Color = color;
             Argb = argb;
             Name = name;
-            NameDE = nameDE;
+            NameDE = nameDe;
         }
         public XKnownColor KnownColor;
         public XColor Color;
