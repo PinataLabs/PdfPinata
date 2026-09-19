@@ -176,6 +176,31 @@ public class DdlMalformedInputTests
         (await ComplaintsAboutParagraph(paragraphBody)).Should().NotBeEmpty(why);
     }
 
+    // ----- numbers in paragraph content ------------------------------------------------------------------
+
+    [Theory(Timeout = Patience)]
+    [InlineData("\\chr(0x1G)")]
+    [InlineData("\\chr(65, 0x1G)")]
+    [InlineData("\\symbol(Euro, 0x1G)")]
+    public async Task AHexNumberWithALetterThatIsNotAHexDigitIsReported(string paragraphBody)
+    {
+        (await ComplaintsAboutParagraph(paragraphBody)).First().Should().Be("Integer expected: '0x1G'.");
+    }
+
+    [Theory(Timeout = Patience)]
+    [InlineData("\\chr(99999999999)")]
+    [InlineData("\\chr(65, 99999999999)")]
+    [InlineData("\\chr(0x123456789)")]
+    [InlineData("\\space(99999999999)")]
+    [InlineData("\\space(-99999999999)")]
+    [InlineData("\\space(Em, 99999999999)")]
+    [InlineData("\\symbol(Euro, 99999999999)")]
+    public async Task ANumberTooLargeForAnIntegerIsReported(string paragraphBody)
+    {
+        (await ComplaintsAboutParagraph(paragraphBody)).First()
+            .Should().Be("Valid range only within '-2147483648 - 2147483647'.");
+    }
+
     // ----- tables --------------------------------------------------------------------------------------
 
     [Theory(Timeout = Patience)]
