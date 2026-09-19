@@ -511,7 +511,7 @@ public static class PdfReader
                         // Is type xref to compressed object?
                         if (item.Type == 2)
                         {
-                            var irefNew = parser.ReadCompressedObject(new PdfObjectID((int)item.Field2),
+                            parser.ReadCompressedObject(new PdfObjectID((int)item.Field2),
                                 (int)item.Field3);
                             Debug.Assert(document._irefTable.Contains(iref.ObjectID));
                             //document._irefTable.Add(irefNew);

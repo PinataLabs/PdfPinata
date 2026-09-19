@@ -320,8 +320,6 @@ internal class ChartRenderer : ShapeRenderer
     using (Tagger.Artifact(Gfx))
       RenderFilling();
 
-    var contentArea = renderInfo.LayoutInfo.ContentArea;
-
     // A chart is a picture of data, and to a reader who cannot see it that is all it is: axis labels
     // and data labels read out in drawing order say nothing about the shape they describe. So it is
     // one figure standing or falling on its description, exactly as an image is — see

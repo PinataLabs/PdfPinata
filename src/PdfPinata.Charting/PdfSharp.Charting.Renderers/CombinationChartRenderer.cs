@@ -87,7 +87,7 @@ internal class CombinationChartRenderer : ChartRenderer
     var yar = new VerticalYAxisRenderer(this.rendererParms);
     cri.yAxisRendererInfo = (AxisRendererInfo)yar.Init();
 
-    var plotArea = cri.chart.PlotArea;
+    _ = cri.chart.PlotArea; // creates the plot area on the chart, which the renderers below read
     var apar = new AreaPlotAreaRenderer(this.rendererParms);
     cri.plotAreaRendererInfo = (PlotAreaRendererInfo)apar.Init();
 

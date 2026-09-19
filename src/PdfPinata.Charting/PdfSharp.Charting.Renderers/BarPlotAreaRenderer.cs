@@ -55,7 +55,6 @@ internal abstract class BarPlotAreaRenderer : PlotAreaRenderer
     var xMax = cri.xAxisRendererInfo.MaximumScale;
     var yMin = cri.yAxisRendererInfo.MinimumScale;
     var yMax = cri.yAxisRendererInfo.MaximumScale;
-    var xMajorTick = cri.xAxisRendererInfo.MajorTick;
 
     var plotAreaBox = cri.plotAreaRendererInfo.Rect;
 
@@ -92,7 +91,6 @@ internal abstract class BarPlotAreaRenderer : PlotAreaRenderer
     var xMax = cri.xAxisRendererInfo.MaximumScale;
     var yMin = cri.yAxisRendererInfo.MinimumScale;
     var yMax = cri.yAxisRendererInfo.MaximumScale;
-    var xMajorTick = cri.xAxisRendererInfo.MajorTick;
 
     LineFormatRenderer lineFormatRenderer;
 

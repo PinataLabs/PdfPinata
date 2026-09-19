@@ -93,7 +93,7 @@ public partial class Gridlines : ChartObject
   {
     var axisObject = parent as Axis;
 
-    var pos = serializer.BeginContent(axisObject.CheckGridlines(this));
+    serializer.BeginContent(axisObject.CheckGridlines(this));
 
     if (!IsNull("LineFormat"))
       lineFormat.Serialize(serializer);

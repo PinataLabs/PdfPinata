@@ -583,7 +583,6 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
     void InitializeChildren()
     {
         var firstRef = Elements.GetReference(Keys.First);
-        var lastRef = Elements.GetReference(Keys.Last);
         var current = firstRef;
         while (current != null)
         {

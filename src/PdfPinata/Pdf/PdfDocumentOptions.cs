@@ -36,7 +36,7 @@ namespace PdfPinata.Pdf;
 /// </summary>
 public sealed class PdfDocumentOptions
 {
-    internal PdfDocumentOptions(PdfDocument document)
+    internal PdfDocumentOptions()
     {
         //_deflateContents = true;
         //_writeProcedureSets = true;

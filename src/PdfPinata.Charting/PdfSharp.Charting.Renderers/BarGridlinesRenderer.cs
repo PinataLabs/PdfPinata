@@ -67,7 +67,6 @@ internal class BarGridlinesRenderer : GridlinesRenderer
     var yMajorTick = yari.MajorTick;
     var xMinorTick = xari.MinorTick;
     var yMinorTick = yari.MinorTick;
-    var xMaxExtension = xari.MajorTick;
 
     var matrix = cri.plotAreaRendererInfo.matrix;
 

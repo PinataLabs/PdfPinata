@@ -296,7 +296,7 @@ internal class DdlParser
                     ParseHeaderFooter(section);
 
                 // 2nd parse all other stuff
-                ParseDocumentElements(section.Elements, Symbol.Section);
+                ParseDocumentElements(section.Elements);
             }
             AssertSymbol(Symbol.BraceRight);
             ReadCode(); // read beyond '}'
@@ -342,7 +342,7 @@ internal class DdlParser
             else
             {
                 ReadCode(); // parse '{'
-                ParseDocumentElements(headerFooter.Elements, Symbol.HeaderOrFooter);
+                ParseDocumentElements(headerFooter.Elements);
             }
             AssertSymbol(Symbol.BraceRight);
             ReadCode(); // parse beyond '{'
@@ -421,7 +421,7 @@ internal class DdlParser
     /// <summary>
     /// Parses the document elements of a «\paragraph», «\cell» or comparable.
     /// </summary>
-    private DocumentElements ParseDocumentElements(DocumentElements elements, Symbol context)
+    private DocumentElements ParseDocumentElements(DocumentElements elements)
     {
         //
         // This is clear:
@@ -635,12 +635,12 @@ internal class DdlParser
                     break;
 
                 case Symbol.Field:
-                    ParseField(elements, nestingLevel + 1);
+                    ParseField(elements);
                     ReadText(rootLevel);
                     break;
 
                 case Symbol.Footnote:
-                    ParseFootnote(elements, nestingLevel + 1);
+                    ParseFootnote(elements);
                     ReadText(rootLevel);
                     break;
 
@@ -651,7 +651,7 @@ internal class DdlParser
 
                 case Symbol.Space:
                     RemoveTrailingBlank(elements);
-                    ParseSpace(elements, nestingLevel + 1);
+                    ParseSpace(elements);
                     scanner.MoveToNonWhiteSpaceOrEol();
                     ReadText(rootLevel);
                     break;
@@ -878,7 +878,7 @@ internal class DdlParser
     /// <summary>
     /// Parses the keyword «\field».
     /// </summary>
-    private void ParseField(ParagraphElements elements, int nestingLevel)
+    private void ParseField(ParagraphElements elements)
     {
         AssertSymbol(Symbol.Field);
 
@@ -939,7 +939,7 @@ internal class DdlParser
     /// <summary>
     /// Parses the keyword «\footnote».
     /// </summary>
-    private void ParseFootnote(ParagraphElements elements, int nestingLevel)
+    private void ParseFootnote(ParagraphElements elements)
     {
         AssertSymbol(Symbol.Footnote);
         ReadCode();
@@ -959,7 +959,7 @@ internal class DdlParser
         else
         {
             ReadCode(); // read beyond '{'
-            ParseDocumentElements(footnote.Elements, Symbol.Footnote);
+            ParseDocumentElements(footnote.Elements);
         }
         AssertSymbol(Symbol.BraceRight);
     }
@@ -985,7 +985,7 @@ internal class DdlParser
     /// <summary>
     /// Parses the keyword «\space».
     /// </summary>
-    private void ParseSpace(ParagraphElements elements, int nestingLevel)
+    private void ParseSpace(ParagraphElements elements)
     {
         // Samples
         // \space
@@ -1197,7 +1197,6 @@ internal class DdlParser
 
             var loop = true;
             var idx = 0;
-            var cells = row.Cells.Count;
             while (loop)
             {
                 switch (Symbol)
@@ -1247,7 +1246,7 @@ internal class DdlParser
             {
                 ReadCode();
                 if (Symbol != Symbol.BraceRight)
-                    ParseDocumentElements(cell.Elements, Symbol.Cell);
+                    ParseDocumentElements(cell.Elements);
             }
             AssertSymbol(Symbol.BraceRight);
             ReadCode(); // read '}'
@@ -1312,7 +1311,7 @@ internal class DdlParser
             else
             {
                 ReadCode(); // read '{'
-                ParseDocumentElements(textFrame.Elements, Symbol.TextFrame);
+                ParseDocumentElements(textFrame.Elements);
             }
             AssertSymbol(Symbol.BraceRight);
             ReadCode(); // read beyond '}'
@@ -2157,13 +2156,11 @@ internal class DdlParser
     {
         // Create value if it does not exist
         var val = vd.GetValue(dom, GV.ReadWrite);
-        var docObj = (DocumentObject)val;
 
         try
         {
             if (Symbol == Symbol.Null)
             {
-                var name = vd.ValueName;
                 var type = vd.ValueType;
                 if (typeof(Border) == type)
                     ((Border)val).Clear();
@@ -2216,7 +2213,7 @@ internal class DdlParser
     /// </summary>
     private void ParseColorAssignment(DocumentObject dom, ValueDescriptor vd)
     {
-        var val = vd.GetValue(dom, GV.ReadWrite);
+        vd.GetValue(dom, GV.ReadWrite);
         var color = ParseColor();
         dom.SetValue(vd.ValueName, color);
     }

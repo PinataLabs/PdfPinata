@@ -36,7 +36,7 @@ public class XmpMetadataTests
     [Fact]
     public void ADocumentGetsNoMetadataPacketUnlessItAsksForOne()
     {
-        var bytes = Save(document => { });
+        var bytes = Save(_ => { });
 
         Latin1(bytes).Should().NotContain("xpacket",
             "the packet is several hundred bytes and most documents have no use for it");
@@ -699,7 +699,7 @@ public class XmpMetadataTests
     [Fact]
     public void ADocumentThatClaimsNothingIsUnchanged()
     {
-        var bytes = Save(document => { });
+        var bytes = Save(_ => { });
 
         Latin1(bytes).Should().NotContain("/OutputIntent").And.NotContain("pdfaid");
     }

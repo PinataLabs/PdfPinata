@@ -93,7 +93,7 @@ internal class ContentWriter
         //AppendBlank(rawString[0]);
         var bytes = PdfEncoders.RawEncoding.GetBytes(rawString);
         _stream.Write(bytes, 0, bytes.Length);
-        _lastCat = GetCategory((char)bytes[^1]);
+        _lastCat = GetCategory();
     }
 
     public void WriteLineRaw(string rawString)
@@ -103,15 +103,15 @@ internal class ContentWriter
         //AppendBlank(rawString[0]);
         var bytes = PdfEncoders.RawEncoding.GetBytes(rawString);
         _stream.Write(bytes, 0, bytes.Length);
-        _stream.Write(new byte[] { (byte)'\n' }, 0, 1);
-        _lastCat = GetCategory((char)bytes[^1]);
+        _stream.Write(new[] { (byte)'\n' }, 0, 1);
+        _lastCat = GetCategory();
     }
 
     public void WriteRaw(char ch)
     {
         Debug.Assert(ch < 256, "Raw character greater than 255 detected.");
         _stream.WriteByte((byte)ch);
-        _lastCat = GetCategory(ch);
+        _lastCat = GetCategory();
     }
 
     /// <summary>
@@ -151,7 +151,7 @@ internal class ContentWriter
         WriteRaw(IndentBlanks);
     }
 
-    void WriteSeparator(CharCat cat, char ch)
+    void WriteSeparator()
     {
         switch (_lastCat)
         {
@@ -178,18 +178,13 @@ internal class ContentWriter
         }
     }
 
-    void WriteSeparator(CharCat cat)
-    {
-        WriteSeparator(cat, '\0');
-    }
-
     public void NewLine()
     {
         if (_lastCat != CharCat.NewLine)
             WriteRaw('\n');
     }
 
-    static CharCat GetCategory(char ch)
+    static CharCat GetCategory()
     {
         //if (Lexer.IsDelimiter(ch))
         //  return CharCat.Delimiter;

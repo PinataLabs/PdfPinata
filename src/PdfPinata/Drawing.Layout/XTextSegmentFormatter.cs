@@ -147,7 +147,7 @@ public class XTextSegmentFormatter
 		var layoutRectangle = new XRect(0, 0, width, 100000000);
 		var blocks = new List<Block>();
 
-		ProcessTextSegments(textSegments, layoutRectangle, format, (block, dx, dy) => blocks.Add(block), true);
+		ProcessTextSegments(textSegments, layoutRectangle, format, (block, _, _) => blocks.Add(block), true);
 
 		var height = blocks.Count > 0
 			? blocks.Max(b => b.Location.Y)

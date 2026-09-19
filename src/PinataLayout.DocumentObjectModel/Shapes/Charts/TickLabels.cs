@@ -113,7 +113,7 @@ public partial class TickLabels : ChartObject
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    var pos = serializer.BeginContent("TickLabels");
+    serializer.BeginContent("TickLabels");
 
     if (style != null)
       serializer.WriteSimpleAttribute("Style", Style);

@@ -235,7 +235,7 @@ public class TaggedTextExtractionTests
         // The dictionary never sees its closing '>>' before the content ends. CLexer.ScanDictionary
         // gives up at the end of the content rather than running forever; extraction has to give up
         // just as gracefully.
-        var page = Reopen(WithContentReplaced((font, shown) =>
+        var page = Reopen(WithContentReplaced((font, _) =>
             $"BT {font} 12 Tf /Span <</MCID 0"));
 
         var extracting = () => PdfTextExtractor.ExtractRuns(page);

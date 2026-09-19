@@ -797,7 +797,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         // Promote inheritable values down the page tree
         var values = new PdfPage.InheritedValues();
         PdfPage.InheritValues(this, ref values);
-        var pages = GetKids(Reference, values, null);
+        var pages = GetKids(Reference, values);
 
         // Replace /Pages in catalog by this object
         // xrefRoot.Value = this;
@@ -820,7 +820,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     /// <summary>
     /// Recursively converts the page tree into a flat array.
     /// </summary>
-    static PdfDictionary[] GetKids(PdfReference iref, PdfPage.InheritedValues values, PdfDictionary parent)
+    static PdfDictionary[] GetKids(PdfReference iref, PdfPage.InheritedValues values)
     {
         // TODO: inherit inheritable keys...
         var kid = (PdfDictionary)iref.Value;
@@ -852,7 +852,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         }
 
         foreach (PdfReference xref2 in kids)
-            list.AddRange(GetKids(xref2, values, kid));
+            list.AddRange(GetKids(xref2, values));
         var count = list.Count;
         Debug.Assert(count == kid.Elements.GetInteger("/Count"));
         return list.ToArray();

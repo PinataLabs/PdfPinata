@@ -64,7 +64,7 @@ internal class LineChartRenderer : ColumnLikeChartRenderer
     var yar = new VerticalYAxisRenderer(this.rendererParms);
     cri.yAxisRendererInfo = (AxisRendererInfo)yar.Init();
 
-    var plotArea = cri.chart.PlotArea;
+    _ = cri.chart.PlotArea; // creates the plot area on the chart, which the renderers below read
     var lpar = new LinePlotAreaRenderer(this.rendererParms);
     cri.plotAreaRendererInfo = (PlotAreaRendererInfo)lpar.Init();
 
@@ -76,8 +76,6 @@ internal class LineChartRenderer : ColumnLikeChartRenderer
   /// </summary>
   internal override void Format()
   {
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-
     var lr = new ColumnLikeLegendRenderer(this.rendererParms);
     lr.Format();
 

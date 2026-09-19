@@ -68,7 +68,7 @@ public sealed class GenericAnnotationRenderingTests : IDisposable
     [GoldenImageFact]
     public void ASquareWithoutAnAppearanceIsNotPaintedAtAll()
     {
-        var page = Rasterize("square-bare", annotation => { });
+        var page = Rasterize("square-bare", _ => { });
 
         // The whole reason SetAppearance had to exist. A /Square carrying a rectangle and no
         // /AP is a well-formed annotation that every reader draws nothing for, so a caller who

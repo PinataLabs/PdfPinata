@@ -148,7 +148,6 @@ public sealed class XFontFamily
     #pragma warning disable CA1822 // Public API: making it static would break every caller that asks a family about its styles.
     public bool IsStyleAvailable(XFontStyle style)
     {
-        var xStyle = ((XGdiFontStyle)style) & XGdiFontStyle.BoldItalic;
         return false;
     }
     #pragma warning restore CA1822

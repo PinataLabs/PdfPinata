@@ -491,7 +491,6 @@ internal sealed class OpenTypeFontface
             entry.Write(writer);
         }
         writer.Stream.Flush();
-        var l = (int)writer.Stream.Length;
         FontSource = XFontSource.CreateCompiledFont(stream.ToArray());
     }
     // 2^entrySelector[n] <= n

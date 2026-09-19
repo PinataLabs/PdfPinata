@@ -190,7 +190,7 @@ public class AxisTitleTests
     [Fact]
     public void TheCategoryAxisReadsItsCaptionsAlignmentAndOrientationToo()
     {
-        var plain = CategoryCaption(title => { });
+        var plain = CategoryCaption(_ => { });
         var aligned = CategoryCaption(title => title.Alignment = HorizontalAlignment.Right);
         var rotated = CategoryCaption(title => title.Orientation = 90);
 

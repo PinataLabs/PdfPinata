@@ -48,7 +48,7 @@ internal class FontFamilyInternal
     //    is not possible to use two different fonts that have the same
     //    family name.
 
-    FontFamilyInternal(string familyName, bool createPlatformObjects)
+    FontFamilyInternal(string familyName)
     {
         _sourceName = _name = familyName;
     }
@@ -61,7 +61,7 @@ internal class FontFamilyInternal
             var family = FontFamilyCache.GetFamilyByName(familyName);
             if (family == null)
             {
-                family = new FontFamilyInternal(familyName, createPlatformObject);
+                family = new FontFamilyInternal(familyName);
                 family = FontFamilyCache.CacheOrGetFontFamily(family);
             }
             return family;

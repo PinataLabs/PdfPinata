@@ -29,7 +29,7 @@ public class CidFontConformanceTests
         // ISO 32000-1 Table 117 makes /CIDToGIDMap optional with a default of /Identity, and PDF/A
         // and PDF/UA both require it written out. This library writes glyph indices as the character
         // codes, so the identity is the truth - it was simply never said.
-        var cidFont = DescendantFontOf(Saved(document => { }));
+        var cidFont = DescendantFontOf(Saved(_ => { }));
 
         cidFont.Elements.GetName("/Subtype").Should().Be("/CIDFontType2",
             "Liberation Sans has glyf outlines, so the descendant is a Type 2 CIDFont");
@@ -59,7 +59,7 @@ public class CidFontConformanceTests
         // PDF/A-2 dropped the requirement as redundant, so this is bytes that exactly one profile
         // has a use for. Writing it into every document would be a cost paid by every caller for a
         // rule none of them invoked.
-        var descriptor = FontDescriptorOf(Saved(document => { }));
+        var descriptor = FontDescriptorOf(Saved(_ => { }));
 
         descriptor.Elements.GetDictionary("/CIDSet").Should().BeNull();
     }

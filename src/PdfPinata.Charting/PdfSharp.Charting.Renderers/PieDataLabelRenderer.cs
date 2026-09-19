@@ -133,7 +133,6 @@ internal class PieDataLabelRenderer : DataLabelRenderer
   internal override void CalcPositions()
   {
     var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    var gfx = this.rendererParms.Graphics;
 
     if (cri.seriesRendererInfos.Length > 0)
     {

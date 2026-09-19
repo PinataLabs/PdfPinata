@@ -147,7 +147,7 @@ public partial class AxisTitle : ChartObject
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    var pos = serializer.BeginContent("Title");
+    serializer.BeginContent("Title");
 
     if (style != null)
       serializer.WriteSimpleAttribute("Style", Style);

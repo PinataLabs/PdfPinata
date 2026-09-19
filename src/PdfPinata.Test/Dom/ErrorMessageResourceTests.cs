@@ -121,7 +121,7 @@ public class ErrorMessageResourceTests
 
     static string FormatMessage(object id, params object[] args) => (string)DomSRType
         .GetMethod("FormatMessage", BindingFlags.Static | BindingFlags.NonPublic)
-        .Invoke(null, new object[] { id, args });
+        .Invoke(null, new[] { id, args });
 
     static object MsgId(string name) => Enum.Parse(MsgIdType, name);
 

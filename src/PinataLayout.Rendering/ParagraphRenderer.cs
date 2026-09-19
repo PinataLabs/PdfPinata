@@ -1434,7 +1434,7 @@ internal class ParagraphRenderer : Renderer
                 break;
 
             case "Image":
-                RenderImage((Image)docObj);
+                RenderImage();
                 break;
 
             case "Footnote":
@@ -1445,7 +1445,7 @@ internal class ParagraphRenderer : Renderer
         }
     }
 
-    void RenderImage(Image image)
+    void RenderImage()
     {
         var renderInfo = CurrentImageRenderInfo;
         var top = CurrentBaselinePosition;
@@ -1461,7 +1461,7 @@ internal class ParagraphRenderer : Renderer
             return;
         }
 
-        RenderByInfos(currentXPosition, top, new RenderInfo[] { renderInfo });
+        RenderByInfos(currentXPosition, top, new[] { renderInfo });
 
         RenderUnderline(contentArea.Width, true);
         RenderStrikethrough(contentArea.Width, true);
@@ -2219,7 +2219,7 @@ internal class ParagraphRenderer : Renderer
                 return FormatPageRefField((PageRefField)docObj);
 
             case "Image":
-                return FormatImage((Image)docObj);
+                return FormatImage();
 
             // Only the reference mark: the note's own content is block content, laid out on its
             // own and drawn at the foot of the page. See FormatFootnote.
@@ -2313,7 +2313,7 @@ internal class ParagraphRenderer : Renderer
         }
     }
 
-    FormatResult FormatImage(Image image)
+    FormatResult FormatImage()
     {
         var width = CurrentImageRenderInfo.LayoutInfo.ContentArea.Width;
         return FormatAsWord(width);
@@ -2679,7 +2679,7 @@ internal class ParagraphRenderer : Renderer
 
             default:
                 var c = character.Char;
-                var chars = System.Text.Encoding.UTF8.GetChars(new byte[] { (byte)c });
+                var chars = System.Text.Encoding.UTF8.GetChars(new[] { (byte)c });
                 ch = chars[0];
                 break;
         }

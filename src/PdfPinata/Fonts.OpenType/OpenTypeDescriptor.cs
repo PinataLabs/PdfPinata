@@ -44,7 +44,7 @@ internal sealed class OpenTypeDescriptor : FontDescriptor
     /// <summary>
     /// New...
     /// </summary>
-    public OpenTypeDescriptor(string fontDescriptorKey, string name, XFontStyle stlye, OpenTypeFontface fontface, XPdfFontOptions options)
+    public OpenTypeDescriptor(string fontDescriptorKey, string name, OpenTypeFontface fontface)
         : base(fontDescriptorKey)
     {
         FontFace = fontface;
@@ -178,7 +178,6 @@ internal sealed class OpenTypeDescriptor : FontDescriptor
         Debug.Assert(Descender >= 0);
 
         var cellHeight = Ascender + Descender;
-        var internalLeading = cellHeight - UnitsPerEm; // Not used, only for debugging.
         var externalLeading = LineSpacing - cellHeight;
         Leading = externalLeading;
 
@@ -195,7 +194,6 @@ internal sealed class OpenTypeDescriptor : FontDescriptor
 
         //flags = image.
         var ansi = PdfEncoders.WinAnsiEncoding; // System.Text.Encoding.Default;
-        var unicode = Encoding.Unicode;
         var bytes = new byte[256];
 
         var symbol = FontFace.cmap.symbol;

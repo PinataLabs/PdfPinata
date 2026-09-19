@@ -770,7 +770,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
         get
         {
             if (_options == null)
-                _options = new PdfDocumentOptions(this);
+                _options = new PdfDocumentOptions();
             return _options;
         }
     }
@@ -785,7 +785,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
         get
         {
             if (_settings == null)
-                _settings = new PdfDocumentSettings(this);
+                _settings = new PdfDocumentSettings();
             return _settings;
         }
     }

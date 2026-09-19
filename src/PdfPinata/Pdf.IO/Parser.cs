@@ -550,7 +550,7 @@ internal sealed class Parser
         {
             var val = items[idx];
             if (includeReferences && val is PdfReference)
-                val = ReadReference((PdfReference)val, true);
+                val = ReadReference();
             array.Elements.Add(val);
         }
 
@@ -563,7 +563,6 @@ internal sealed class Parser
 
         if (dict == null)
             dict = new PdfDictionary(_document);
-        var meta = dict.Meta;
 
         var sp = _stack.SP;
         ParseObject(Symbol.EndDictionary);
@@ -588,7 +587,7 @@ internal sealed class Parser
             var key = val.ToString();
             val = items[idx + 1];
             if (includeReferences && val is PdfReference)
-                val = ReadReference((PdfReference)val, true);
+                val = ReadReference();
             dict.Elements[key] = val;
             idx += 2;
         }
@@ -825,7 +824,7 @@ internal sealed class Parser
             obj.SetObjectID(objectNubmer, generationNumber);
     }
 
-    private PdfItem ReadReference(PdfReference iref, bool includeReferences)
+    private PdfItem ReadReference()
     {
         throw new NotImplementedException("ReadReference");
     }
@@ -921,7 +920,7 @@ internal sealed class Parser
     /// <summary>
     /// Reads an integer value directly from the PDF data stream.
     /// </summary>
-    private int ReadInteger(bool canBeIndirect)
+    private int ReadInteger()
     {
         var symbol = _lexer.ScanNextToken();
         if (symbol == Symbol.Integer)
@@ -942,20 +941,10 @@ internal sealed class Parser
         return 0;
     }
 
-    private int ReadInteger()
-    {
-        return ReadInteger(false);
-    }
-
-    private long ReadLong()
-    {
-        return ReadLong(false);
-    }
-
     /// <summary>
     /// Reads an integer value directly from the PDF data stream.
     /// </summary>
-    private long ReadLong(bool canBeIndirect)
+    private long ReadLong()
     {
         var symbol = _lexer.ScanNextToken();
         if (symbol == Symbol.Long)
@@ -1164,7 +1153,7 @@ internal sealed class Parser
         {
             var number = ReadInteger();
             var offset = ReadInteger() + first; // Calculate absolute offset.
-            header[idx] = new int[] { number, offset };
+            header[idx] = new[] { number, offset };
         }
 
         return header;
@@ -1424,7 +1413,6 @@ internal sealed class Parser
 
         var size = xrefStream.Elements.GetInteger(PdfCrossReferenceStream.Keys.Size);
         var index = xrefStream.Elements.GetValue(PdfCrossReferenceStream.Keys.Index) as PdfArray;
-        var prev = xrefStream.Elements.GetInteger(PdfCrossReferenceStream.Keys.Prev);
         var w = (PdfArray)xrefStream.Elements.GetValue(PdfCrossReferenceStream.Keys.W);
 
         // E.g.: W[1 2 1] ¤ Index[7 12] ¤ Size 19
@@ -1438,7 +1426,7 @@ internal sealed class Parser
             // Setup with default values.
             subsectionCount = 1;
             subsections = new int[subsectionCount][];
-            subsections[0] = new int[] { 0, size }; // HACK: What is size? Contratiction in PDF reference.
+            subsections[0] = new[] { 0, size }; // HACK: What is size? Contratiction in PDF reference.
             subsectionEntryCount = size;
         }
         else
@@ -1449,7 +1437,7 @@ internal sealed class Parser
             subsections = new int[subsectionCount][];
             for (var idx = 0; idx < subsectionCount; idx++)
             {
-                subsections[idx] = new int[]
+                subsections[idx] = new[]
                     { index.Elements.GetInteger(2 * idx), index.Elements.GetInteger(2 * idx + 1) };
                 subsectionEntryCount += subsections[idx][1];
             }
@@ -1460,8 +1448,6 @@ internal sealed class Parser
         int[] wsize = { w.Elements.GetInteger(0), w.Elements.GetInteger(1), w.Elements.GetInteger(2) };
         var wsum = StreamHelper.WSize(wsize);
         Debug.Assert(wsum * subsectionEntryCount == bytes.Length, "Check implementation here.");
-        var testcount = subsections[0][1];
-        var currentSubsection = subsections[0];
 
         var index2 = -1;
         for (var ssc = 0; ssc < subsectionCount; ssc++)
@@ -1828,7 +1814,7 @@ internal sealed class Parser
               break;
 
             case KeyType.Integer:
-              result = ReadInteger(descriptor.CanBeIndirect);
+              result = ReadInteger();
               break;
 
             case KeyType.Real:

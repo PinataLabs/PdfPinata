@@ -75,16 +75,16 @@ public class Code2of5Interleaved : ThickThinBarCode
     }
     static bool[][] Lines =
     {
-        new bool[] {false, false, true, true, false},
-        new bool[] {true, false, false, false, true},
-        new bool[] {false, true, false, false, true},
-        new bool[] {true, true, false, false, false},
-        new bool[] {false, false, true, false, true},
-        new bool[] {true, false, true, false, false},
-        new bool[] {false, true, true, false, false},
-        new bool[] {false, false, false, true, true},
-        new bool[] {true, false, false, true, false},
-        new bool[] {false, true, false, true, false}
+        new[] {false, false, true, true, false},
+        new[] {true, false, false, false, true},
+        new[] {false, true, false, false, true},
+        new[] {true, true, false, false, false},
+        new[] {false, false, true, false, true},
+        new[] {true, false, true, false, false},
+        new[] {false, true, true, false, false},
+        new[] {false, false, false, true, true},
+        new[] {true, false, false, true, false},
+        new[] {false, true, false, true, false}
     };
 
     /// <summary>

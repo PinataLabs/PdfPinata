@@ -330,7 +330,6 @@ public class DocumentRenderer
         if (formattedHeader == null)
             return;
 
-        var headerArea = formattedDocument.GetHeaderArea(page);
         var renderInfos = formattedHeader.GetRenderInfos();
         var fieldInfos = formattedDocument.GetFieldInfos(page);
 

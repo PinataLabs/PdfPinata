@@ -144,7 +144,7 @@ internal sealed class PdfType0Font : PdfFont
         Debug.Assert(_fontOptions != null);
 
         _cmapInfo = new CMapInfo(ttDescriptor);
-        _descendantFont = new PdfCIDFont(document, FontDescriptor, fontData);
+        _descendantFont = new PdfCIDFont(document, FontDescriptor);
         _descendantFont.CMapInfo = _cmapInfo;
 
         // Create ToUnicode map

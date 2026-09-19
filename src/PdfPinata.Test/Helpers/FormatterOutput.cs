@@ -45,7 +45,7 @@ internal static class FormatterOutput
         var font = new XFont("Arial", 10);
         var area = new XRect(40, 40, 400, 240);
 
-        foreach (var (name, arrange) in Arrangements())
+        foreach (var (_, arrange) in Arrangements())
         {
             var page = document.AddPage();
             using var gfx = XGraphics.FromPdfPage(page);

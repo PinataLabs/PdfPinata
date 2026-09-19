@@ -54,7 +54,7 @@ public class AttachmentTests
     {
         // Reading the collection looks at the catalog rather than building anything, so a document
         // that only ever asks is written exactly as it was before.
-        var withoutAsking = Save(document => { });
+        var withoutAsking = Save(_ => { });
         var afterAsking = Save(document => document.Attachments.Count.Should().Be(0));
 
         Latin1(afterAsking).Should().NotContain("/AF").And.NotContain("/EmbeddedFiles");

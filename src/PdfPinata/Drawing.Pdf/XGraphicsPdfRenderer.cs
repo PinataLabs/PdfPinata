@@ -390,8 +390,6 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
             return;
 
         var lineSpace = font.GetHeight();
-        var cyAscent = lineSpace * font.CellAscent / font.CellSpace;
-        var cyDescent = lineSpace * font.CellDescent / font.CellSpace;
         // Measured through the same format the text is drawn with: alignment and the underline and
         // strikeout rules below are all placed from this width.
         var width = _gfx.MeasureString(s, font, format).Width;
@@ -442,7 +440,6 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         Debug.Assert(realizedFont != null);
 
         const string format2 = Config.SignificantFigures4;
-        var descriptor = realizedFont.FontDescriptor._descriptor;
 
         // The whole show-text operation, its operator included: usually a Tj, but a TJ array when
         // the words have to be spaced out by hand. See PdfGraphicsState.NeedsWordSpacingByHand.
@@ -732,7 +729,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
             var form = (XForm)image;
             form.Finish();
 
-            var pdfForm = Owner.FormTable.GetForm(form);
+            Owner.FormTable.GetForm(form);
 
             var cx = width / image.PointWidth;
             var cy = height / image.PointHeight;
@@ -795,7 +792,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
             var form = (XForm)image;
             form.Finish();
 
-            var pdfForm = Owner.FormTable.GetForm(form);
+            Owner.FormTable.GetForm(form);
 
             var cx = width / image.PointWidth;
             var cy = height / image.PointHeight;
@@ -973,7 +970,6 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
 
         // Save InternalGraphicsState and transformation of the current graphical state.
         var state = _gfxState.InternalState;
-        var ctm = _gfxState.EffectiveCtm;
         // Empty clip path by switching back to the previous state.
         RestoreState();
         SaveState();

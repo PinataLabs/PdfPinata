@@ -176,7 +176,7 @@ public class UnitTests
     [Fact]
     public void ASuffixThatNamesNoMeasureIsRefused()
     {
-        var act = () => { Unit unit = "5furlongs"; };
+        var act = () => { _ = (Unit)"5furlongs"; };
 
         act.Should().Throw<ArgumentException>().WithMessage("*furlongs*");
     }
@@ -184,7 +184,7 @@ public class UnitTests
     [Fact]
     public void SomethingThatIsNotANumberAtAllIsRefused()
     {
-        var act = () => { Unit unit = "wide"; };
+        var act = () => { _ = (Unit)"wide"; };
 
         act.Should().Throw<ArgumentException>();
     }
@@ -199,7 +199,7 @@ public class UnitTests
     [Fact]
     public void ANullStringSaysWhatWentWrongRatherThanFailingBlankly()
     {
-        var act = () => { Unit unit = null; };
+        var act = () => { _ = (Unit)(string)null; };
 
         act.Should().Throw<ArgumentNullException>().WithMessage("*IsEmpty*");
     }

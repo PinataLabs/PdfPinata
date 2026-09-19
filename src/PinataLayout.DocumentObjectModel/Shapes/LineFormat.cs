@@ -124,7 +124,7 @@ public partial class LineFormat : DocumentObject
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    var pos = serializer.BeginContent("LineFormat");
+    serializer.BeginContent("LineFormat");
     if (this.visible != null)
       serializer.WriteSimpleAttribute("Visible", this.Visible);
     if (this.style != null)

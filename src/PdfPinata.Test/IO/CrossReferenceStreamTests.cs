@@ -30,7 +30,7 @@ public class CrossReferenceStreamTests
     [Fact]
     public void TheClassicCrossReferenceTableIsStillWhatADocumentGetsByDefault()
     {
-        var bytes = Save(document => { });
+        var bytes = Save(_ => { });
 
         Latin1(bytes).Should().Contain("trailer",
             "changing the default would change the bytes of every document written by anyone who "

@@ -151,7 +151,7 @@ public class IncrementalUpdateTests
     public void ChangingNothingStillProducesAReadableDocument()
     {
         // The producer string is always rewritten, so "nothing changed" is never literally nothing.
-        var updated = AppendChange(OriginalDocument(), document => { });
+        var updated = AppendChange(OriginalDocument(), _ => { });
 
         Reopen(updated).Info.Title.Should().Be("Original title");
     }

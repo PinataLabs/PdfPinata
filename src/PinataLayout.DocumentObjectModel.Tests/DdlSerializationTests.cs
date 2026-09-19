@@ -77,7 +77,7 @@ public class DdlSerializationTests
         // The paragraph on its own rather than the whole document: a document carries the built-in
         // styles, and some of those do describe a font, so "no font anywhere" was never the
         // property - it is that a paragraph nobody has formatted writes no format block.
-        var document = DocumentWithAParagraph(out var paragraph);
+        DocumentWithAParagraph(out var paragraph);
         paragraph.AddText("text");
 
         var plain = DdlWriter.WriteToString(paragraph);

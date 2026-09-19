@@ -60,7 +60,7 @@ internal class PdfCIDFont : PdfFont
         FontEncoding = font.PdfOptions.FontEncoding;
     }
 
-    public PdfCIDFont(PdfDocument document, PdfFontDescriptor fontDescriptor, byte[] fontData)
+    public PdfCIDFont(PdfDocument document, PdfFontDescriptor fontDescriptor)
         : base(document)
     {
         Elements.SetName(Keys.Type, "/Font");

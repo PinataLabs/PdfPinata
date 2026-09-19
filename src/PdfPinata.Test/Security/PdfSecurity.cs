@@ -104,7 +104,7 @@ public class PdfSecurity
         // should throw because no password was provided
         var ex = Assert.Throws<PdfReaderException>(() =>
         {
-            var readBackDoc = Pdf.IO.PdfReader.Open(saveFileName, PdfDocumentOpenMode.Import);
+            Pdf.IO.PdfReader.Open(saveFileName, PdfDocumentOpenMode.Import);
         });
         ex.Message.Should().Contain("A password is required to open the PDF document");
 

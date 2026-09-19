@@ -88,7 +88,7 @@ internal class PdfWriter
     /// </summary>
     public void Write(bool value)
     {
-        WriteSeparator(CharCat.Character);
+        WriteSeparator();
         WriteRaw(value ? bool.TrueString : bool.FalseString);
         _lastCat = CharCat.Character;
     }
@@ -98,7 +98,7 @@ internal class PdfWriter
     /// </summary>
     public void Write(PdfBoolean value)
     {
-        WriteSeparator(CharCat.Character);
+        WriteSeparator();
         WriteRaw(value.Value ? "true" : "false");
         _lastCat = CharCat.Character;
     }
@@ -108,7 +108,7 @@ internal class PdfWriter
     /// </summary>
     public void Write(int value)
     {
-        WriteSeparator(CharCat.Character);
+        WriteSeparator();
         WriteRaw(value.ToString(CultureInfo.InvariantCulture));
         _lastCat = CharCat.Character;
     }
@@ -118,7 +118,7 @@ internal class PdfWriter
     /// </summary>
     public void Write(long value)
     {
-        WriteSeparator(CharCat.Character);
+        WriteSeparator();
         WriteRaw(value.ToString(CultureInfo.InvariantCulture));
         _lastCat = CharCat.Character;
     }
@@ -128,7 +128,7 @@ internal class PdfWriter
     /// </summary>
     public void Write(uint value)
     {
-        WriteSeparator(CharCat.Character);
+        WriteSeparator();
         WriteRaw(value.ToString(CultureInfo.InvariantCulture));
         _lastCat = CharCat.Character;
     }
@@ -138,7 +138,7 @@ internal class PdfWriter
     /// </summary>
     public void Write(PdfInteger value)
     {
-        WriteSeparator(CharCat.Character);
+        WriteSeparator();
         _lastCat = CharCat.Character;
         WriteRaw(value.Value.ToString(CultureInfo.InvariantCulture));
     }
@@ -148,7 +148,7 @@ internal class PdfWriter
     /// </summary>
     public void Write(PdfLong value)
     {
-        WriteSeparator(CharCat.Character);
+        WriteSeparator();
         _lastCat = CharCat.Character;
         WriteRaw(value.Value.ToString(CultureInfo.InvariantCulture));
     }
@@ -158,7 +158,7 @@ internal class PdfWriter
     /// </summary>
     public void Write(PdfUInteger value)
     {
-        WriteSeparator(CharCat.Character);
+        WriteSeparator();
         _lastCat = CharCat.Character;
         WriteRaw(value.Value.ToString(CultureInfo.InvariantCulture));
     }
@@ -168,7 +168,7 @@ internal class PdfWriter
     /// </summary>
     public void Write(double value)
     {
-        WriteSeparator(CharCat.Character);
+        WriteSeparator();
         WriteRaw(value.ToString(Config.SignificantFigures7, CultureInfo.InvariantCulture));
         _lastCat = CharCat.Character;
     }
@@ -178,7 +178,7 @@ internal class PdfWriter
     /// </summary>
     public void Write(PdfReal value)
     {
-        WriteSeparator(CharCat.Character);
+        WriteSeparator();
         WriteRaw(value.Value.ToString(Config.SignificantFigures7, CultureInfo.InvariantCulture));
         _lastCat = CharCat.Character;
     }
@@ -188,7 +188,7 @@ internal class PdfWriter
     /// </summary>
     public void Write(PdfString value)
     {
-        WriteSeparator(CharCat.Delimiter);
+        WriteSeparator();
         var encoding = (PdfStringEncoding)(value.Flags & PdfStringFlags.EncodingMask);
         var pdf = (value.Flags & PdfStringFlags.HexLiteral) == 0 ?
             PdfEncoders.ToStringLiteral(value.EncryptionValue, encoding == PdfStringEncoding.Unicode, SecurityHandler) :
@@ -203,7 +203,7 @@ internal class PdfWriter
     /// </summary>
     public void Write(PdfName value)
     {
-        WriteSeparator(CharCat.Delimiter, '/');
+        WriteSeparator();
         var name = value.Value;
 
         var pdf = new StringBuilder("/");
@@ -236,7 +236,7 @@ internal class PdfWriter
 
     public void Write(PdfLiteral value)
     {
-        WriteSeparator(CharCat.Character);
+        WriteSeparator();
         WriteRaw(value.Value);
         _lastCat = CharCat.Character;
     }
@@ -244,21 +244,21 @@ internal class PdfWriter
     public void Write(PdfRectangle rect)
     {
         const string format = Config.SignificantFigures3;
-        WriteSeparator(CharCat.Delimiter, '/');
+        WriteSeparator();
         WriteRaw(PdfEncoders.Format("[{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "}]", rect.X1, rect.Y1, rect.X2, rect.Y2));
         _lastCat = CharCat.Delimiter;
     }
 
     public void Write(PdfReference iref)
     {
-        WriteSeparator(CharCat.Character);
+        WriteSeparator();
         WriteRaw(iref.ToString());
         _lastCat = CharCat.Character;
     }
 
     public void WriteDocString(string text, bool unicode)
     {
-        WriteSeparator(CharCat.Delimiter);
+        WriteSeparator();
         //WriteRaw(PdfEncoders.DocEncode(text, unicode));
         byte[] bytes;
         if (!unicode)
@@ -272,7 +272,7 @@ internal class PdfWriter
 
     public void WriteDocString(string text)
     {
-        WriteSeparator(CharCat.Delimiter);
+        WriteSeparator();
         //WriteRaw(PdfEncoders.DocEncode(text, false));
         var bytes = PdfEncoders.DocEncoding.GetBytes(text);
         bytes = PdfEncoders.FormatStringLiteral(bytes, false, false, false, _securityHandler);
@@ -282,7 +282,7 @@ internal class PdfWriter
 
     public void WriteDocStringHex(string text)
     {
-        WriteSeparator(CharCat.Delimiter);
+        WriteSeparator();
         //WriteRaw(PdfEncoders.DocEncodeHex(text));
         var bytes = PdfEncoders.DocEncoding.GetBytes(text);
         bytes = PdfEncoders.FormatStringLiteral(bytes, false, false, true, _securityHandler);
@@ -315,14 +315,14 @@ internal class PdfWriter
         {
             if (obj is PdfArray)
             {
-                WriteSeparator(CharCat.Delimiter);
+                WriteSeparator();
                 WriteRaw('[');
                 _lastCat = CharCat.Delimiter;
             }
             else if (obj is PdfDictionary)
             {
                 NewLine();
-                WriteSeparator(CharCat.Delimiter);
+                WriteSeparator();
                 WriteRaw("<<\n");
                 _lastCat = CharCat.NewLine;
             }
@@ -369,7 +369,7 @@ internal class PdfWriter
             else
             {
                 Debug.Assert(!stackItem.HasStream, "Direct object with stream??");
-                WriteSeparator(CharCat.NewLine);
+                WriteSeparator();
                 WriteRaw(">>\n");
                 _lastCat = CharCat.NewLine;
             }
@@ -585,7 +585,7 @@ internal class PdfWriter
         WriteRaw(IndentBlanks);
     }
 
-    void WriteSeparator(CharCat cat, char ch)
+    void WriteSeparator()
     {
         switch (_lastCat)
         {
@@ -603,11 +603,6 @@ internal class PdfWriter
             default:
                 throw new ArgumentOutOfRangeException();
         }
-    }
-
-    void WriteSeparator(CharCat cat)
-    {
-        WriteSeparator(cat, '\0');
     }
 
     public void NewLine()

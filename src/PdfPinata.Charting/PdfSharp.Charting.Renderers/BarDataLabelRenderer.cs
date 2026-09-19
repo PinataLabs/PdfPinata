@@ -114,7 +114,6 @@ internal class BarDataLabelRenderer : DataLabelRenderer
   internal override void CalcPositions()
   {
     var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    var gfx = this.rendererParms.Graphics;
 
     foreach (var sri in cri.seriesRendererInfos)
     {

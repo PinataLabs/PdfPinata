@@ -1348,8 +1348,6 @@ public sealed class XGraphics : IDisposable
 
         CheckXPdfFormConsistence(image);
 
-        var width = image.PointWidth;
-        var height = image.PointHeight;
 
         if (_renderer != null)
             _renderer.DrawImage(image, x, y, image.PointWidth, image.PointHeight);

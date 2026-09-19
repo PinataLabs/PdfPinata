@@ -64,7 +64,7 @@ internal class BarChartRenderer : ChartRenderer
     var yar = GetYAxisRenderer();
     cri.yAxisRendererInfo = (AxisRendererInfo)yar.Init();
 
-    var plotArea = cri.chart.PlotArea;
+    _ = cri.chart.PlotArea; // creates the plot area on the chart, which the renderers below read
     var renderer = GetPlotAreaRenderer();
     cri.plotAreaRendererInfo = (PlotAreaRendererInfo)renderer.Init();
 

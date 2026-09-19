@@ -78,7 +78,6 @@ public class PdfObjectStream : PdfDictionary
         for (var idx = 0; idx < _header.Length; idx++)
         {
             var objectNumber = _header[idx][0];
-            var offset = _header[idx][1];
 
             var objectID = new PdfObjectID(objectNumber);
 

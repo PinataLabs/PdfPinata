@@ -151,7 +151,7 @@ internal sealed class ImageFailuresDemo : PdfDemo
         // The event lives on DocumentRenderer, which PdfDocumentRenderer builds lazily - so reading
         // the property here is what creates it, and attaching before RenderDocument is what catches
         // everything. Attaching afterwards would attach to a renderer that had already finished.
-        probeRenderer.DocumentRenderer.ImageFailed += (sender, e) =>
+        probeRenderer.DocumentRenderer.ImageFailed += (_, e) =>
         {
             failures.Add((
                 // The DOM Image carries the IImageSource itself rather than a path, so the name is

@@ -34,7 +34,7 @@ namespace PdfPinata.Pdf;
 /// </summary>
 public sealed class PdfDocumentSettings
 {
-    internal PdfDocumentSettings(PdfDocument document)
+    internal PdfDocumentSettings()
     { }
 
     /// <summary>

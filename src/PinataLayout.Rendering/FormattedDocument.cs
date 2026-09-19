@@ -613,13 +613,13 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
     {
         pageRenderInfos.Add(currentPage, renderInfos);
         var pageSize = CalcPageSize(currentSection.PageSetup);
-        var pageOrientation = CalcPageOrientation(currentSection.PageSetup);
+        var pageOrientation = CalcPageOrientation();
         var pageInfo = new PageInfo(pageSize.Width, pageSize.Height, pageOrientation);
         pageInfos.Add(currentPage, pageInfo);
         pageFieldInfos.Add(currentPage, currentFieldInfos);
     }
 
-    PageOrientation CalcPageOrientation(PageSetup pageSetup)
+    PageOrientation CalcPageOrientation()
     {
         var pageOrientation = PageOrientation.Portrait;
         if (currentSection.PageSetup.Orientation == Orientation.Landscape)
@@ -804,7 +804,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
         emptyPages.Add(currentPage, null);
 
         var pageSize = CalcPageSize(currentSection.PageSetup);
-        var pageOrientation = CalcPageOrientation(currentSection.PageSetup);
+        var pageOrientation = CalcPageOrientation();
         var pageInfo = new PageInfo(pageSize.Width, pageSize.Height, pageOrientation);
         pageInfos.Add(currentPage, pageInfo);
     }
