@@ -1,0 +1,1 @@
+magick icon-large.png -filter Lanczos -resize 32x32 -strip icon-32.png
