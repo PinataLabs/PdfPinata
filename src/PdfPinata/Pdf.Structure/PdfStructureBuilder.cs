@@ -231,7 +231,11 @@ public sealed class PdfStructureBuilder
     {
         var ns = new PdfDictionary(_document);
         ns.Elements.SetName("/Type", "/Namespace");
+        // A namespace name, not an address: nothing is ever fetched from it, and ISO 32000-2 spells
+        // it with "http", so that is the only string a reader will recognise.
+        #pragma warning disable S5332 // A namespace identifier, never requested; the standard fixes its scheme.
         ns.Elements.SetString("/NS", "http://iso.org/pdf2/ssn");
+        #pragma warning restore S5332
         _document._irefTable.Add(ns);
 
         // ISO 32000-2 14.7.4.1: the root lists every namespace the tree names. An element's /NS is

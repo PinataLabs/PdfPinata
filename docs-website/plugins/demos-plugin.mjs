@@ -19,6 +19,21 @@ function markdownFiles(dir) {
   });
 }
 
+/**
+ * Reads one-line `key: value` fields out of a page's front matter. Plain string work rather than a
+ * regular expression, so that a long line cannot make the match backtrack.
+ */
+function frontMatterField(frontMatter) {
+  const lines = frontMatter.split('\n');
+  return (name) => lines.find((line) => line.startsWith(`${name}:`))?.slice(name.length + 1).trim();
+}
+
+/** Removes one pair of matching quotes from around a YAML scalar. */
+function unquote(value) {
+  const quoted = value.length >= 2 && (value[0] === '"' || value[0] === "'") && value.at(-1) === value[0];
+  return quoted ? value.slice(1, -1) : value;
+}
+
 /** Maps each demo name to the guide pages whose front matter lists it under `demos:`. */
 function guidesByDemo(docsDir) {
   const guides = {};
@@ -26,12 +41,13 @@ function guidesByDemo(docsDir) {
     const text = fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n');
     const front = text.match(/^---\n([\s\S]*?)\n---/);
     if (!front) continue;
-    const demos = front[1].match(/^demos:\s*\[([^\]]*)\]/m);
-    if (!demos) continue;
-    const title = front[1].match(/^title:\s*(.+)$/m)?.[1].trim().replace(/^['"]|['"]$/g, '');
+    const field = frontMatterField(front[1]);
+    const demos = field('demos');
+    if (!demos?.startsWith('[') || !demos.endsWith(']')) continue;
+    const title = unquote(field('title') ?? '');
     const id = path.relative(docsDir, file).replace(/\\/g, '/').replace(/\.mdx?$/, '');
-    for (const name of demos[1].split(',').map((s) => s.trim()).filter(Boolean)) {
-      (guides[name] ??= []).push({title: title ?? id, to: `/${id}`});
+    for (const name of demos.slice(1, -1).split(',').map((s) => s.trim()).filter(Boolean)) {
+      (guides[name] ??= []).push({title: title || id, to: `/${id}`});
     }
   }
   return guides;

@@ -1,5 +1,7 @@
 using System;
 using System.Globalization;
+using System.Reflection;
+using System.Runtime.Serialization;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using Xunit;
@@ -148,5 +150,32 @@ public class XSizeTests
         IFormattable size = new XSize(1.23456, 2.34567);
 
         size.ToString("0.0", CultureInfo.InvariantCulture).Should().Be("1.2,2.3");
+    }
+
+    /// <summary>
+    ///   Deserialization writes the fields directly and never runs the constructor that refuses a
+    ///   negative extent, so the struct checks again once it has been read. The fields are set here
+    ///   by reflection, which is what a formatter does.
+    /// </summary>
+    [Fact]
+    public void ADeserializedSizeWithANegativeExtentIsRefused()
+    {
+        object size = new XSize(3, 4);
+        typeof(XSize).GetField("_height", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(size, -1.0);
+
+        Action deserialized = () => ((IDeserializationCallback)size).OnDeserialization(null);
+
+        deserialized.Should().Throw<SerializationException>();
+    }
+
+    [Fact]
+    public void ADeserializedSizeThatAConstructorCouldHaveMadeIsAccepted()
+    {
+        foreach (XSize size in new[] { new XSize(3, 4), new XSize(0, 0), XSize.Empty })
+        {
+            Action deserialized = () => ((IDeserializationCallback)size).OnDeserialization(null);
+
+            deserialized.Should().NotThrow();
+        }
     }
 }

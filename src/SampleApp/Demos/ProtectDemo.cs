@@ -19,11 +19,13 @@ namespace SampleApp.Demos;
 /// </remarks>
 internal sealed class ProtectDemo : PdfDemo
 {
+    #pragma warning disable S2068 // Not a credential: the demo prints both passwords on its own page so that its output can be opened.
     /// <summary>What a reader is asked for. Printed on the page as well as declared here.</summary>
     const string ReaderPassword = "open-me";
 
     /// <summary>What lifts the restrictions. Never give this one to a reader.</summary>
     const string OwnerPassword = "owner-only";
+    #pragma warning restore S2068
 
     public ProtectDemo() : base() { }
 

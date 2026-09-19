@@ -11,18 +11,28 @@
 
 import {demoExample, demoSnippet, demoSourcePath} from './demo-source.mjs';
 
-/** Parses `key=value` and `key="value with spaces"` pairs out of a code block's meta string. */
-function parseMeta(meta) {
-  const pairs = {};
-  for (const match of (meta ?? '').matchAll(/(\w+)=(?:"([^"]*)"|(\S+))/g)) {
-    pairs[match[1]] = match[2] ?? match[3];
-  }
-  return pairs;
-}
+/** The keys this plugin reads from a code block's meta string. */
+const ownKeys = ['demo', 'snippet'];
 
-/** Removes the keys this plugin consumes from the meta, leaving the ones Docusaurus reads. */
-function stripMeta(meta) {
-  return (meta ?? '').replace(/\b(demo|snippet)=(?:"[^"]*"|\S+)/g, '').trim();
+/**
+ * Splits a code block's meta string into this plugin's own `demo=Name` and `snippet=name`, and the
+ * rest, which Docusaurus reads. Neither value can contain a space, so splitting on spaces is enough.
+ * Plain string work rather than a regular expression, so that a long meta string cannot make the
+ * match backtrack.
+ */
+function splitMeta(meta) {
+  const own = {};
+  const rest = [];
+  for (const word of (meta ?? '').split(' ').filter(Boolean)) {
+    const equals = word.indexOf('=');
+    const key = equals > 0 ? word.slice(0, equals) : '';
+    if (ownKeys.includes(key)) {
+      own[key] = word.slice(equals + 1).replaceAll('"', '');
+    } else {
+      rest.push(word);
+    }
+  }
+  return {own, rest: rest.join(' ')};
 }
 
 function visit(node, callback) {
@@ -34,17 +44,16 @@ export default function remarkDemoCode() {
   return (tree, file) => {
     visit(tree, (node) => {
       if (node.type !== 'code') return;
-      const meta = parseMeta(node.meta);
-      if (!meta.demo) return;
+      const {own, rest} = splitMeta(node.meta);
+      if (!own.demo) return;
 
       try {
-        node.value = meta.snippet ? demoSnippet(meta.demo, meta.snippet) : demoExample(meta.demo);
+        node.value = own.snippet ? demoSnippet(own.demo, own.snippet) : demoExample(own.demo);
       } catch (error) {
         throw new Error(`${file.path}: ${error.message}`);
       }
 
-      const rest = stripMeta(node.meta);
-      const title = /\btitle=/.test(rest) ? '' : ` title="${demoSourcePath(meta.demo)}"`;
+      const title = rest.includes('title=') ? '' : ` title="${demoSourcePath(own.demo)}"`;
       node.meta = `${rest}${title}`.trim();
     });
   };

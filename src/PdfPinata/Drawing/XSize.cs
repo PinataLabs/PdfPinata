@@ -31,6 +31,7 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 using PdfPinata.Internal;
 
 namespace PdfPinata.Drawing;
@@ -41,7 +42,7 @@ namespace PdfPinata.Drawing;
 /// </summary>
 [DebuggerDisplay("{DebuggerDisplay}")]
 [Serializable, StructLayout(LayoutKind.Sequential)] //, ValueSerializer(typeof(SizeValueSerializer)), TypeConverter(typeof(SizeConverter))]
-public struct XSize : IFormattable
+public struct XSize : IFormattable, IDeserializationCallback
 {
     /// <summary>
     /// Initializes a new instance of the XPoint class with the specified values.
@@ -195,6 +196,28 @@ public struct XSize : IFormattable
     /// Gets a value indicating whether this instance is empty.
     /// </summary>
     public bool IsEmpty => _width < 0;
+
+    /// <summary>
+    /// Refuses a deserialized size that no constructor could have made.
+    /// </summary>
+    /// <remarks>
+    /// Deserialization writes the fields directly, past the constructor that refuses a negative
+    /// width or height, so the same check is made again here.
+    /// </remarks>
+    void IDeserializationCallback.OnDeserialization(object sender)
+    {
+        if (!AreValidDimensions(_width, _height))
+            throw new SerializationException("WidthAndHeightCannotBeNegative");
+    }
+
+    /// <summary>
+    /// Whether a width and height are ones a size or a rectangle can hold: neither negative, or
+    /// both negative infinity, which is what <see cref="Empty"/> and <see cref="XRect.Empty"/> are
+    /// made of.
+    /// </summary>
+    internal static bool AreValidDimensions(double width, double height) =>
+        (double.IsNegativeInfinity(width) && double.IsNegativeInfinity(height))
+        || !(width < 0 || height < 0);
 
     /// <summary>
     /// Gets or sets the width.

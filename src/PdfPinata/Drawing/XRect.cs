@@ -31,6 +31,7 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 using PdfPinata.Internal;
 
 namespace PdfPinata.Drawing;
@@ -40,7 +41,7 @@ namespace PdfPinata.Drawing;
 /// </summary>
 [DebuggerDisplay("{DebuggerDisplay}")]
 [Serializable, StructLayout(LayoutKind.Sequential)] // , ValueSerializer(typeof(RectValueSerializer)), TypeConverter(typeof(RectConverter))]
-public struct XRect : IFormattable
+public struct XRect : IFormattable, IDeserializationCallback
 {
     /// <summary>
     /// Initializes a new instance of the XRect class.
@@ -235,6 +236,19 @@ public struct XRect : IFormattable
     /// Gets a value indicating whether this instance is empty.
     /// </summary>
     public bool IsEmpty => _width < 0;
+
+    /// <summary>
+    /// Refuses a deserialized rectangle that no constructor could have made.
+    /// </summary>
+    /// <remarks>
+    /// Deserialization writes the fields directly, past the constructors that refuse a negative
+    /// width or height, so the same check is made again here.
+    /// </remarks>
+    void IDeserializationCallback.OnDeserialization(object sender)
+    {
+        if (!XSize.AreValidDimensions(_width, _height))
+            throw new SerializationException("WidthAndHeightCannotBeNegative");
+    }
 
     /// <summary>
     /// Gets or sets the location of the rectangle.

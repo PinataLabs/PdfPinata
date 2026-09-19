@@ -295,9 +295,11 @@ internal static class PdfEncoders
         }
         else
         {
-            // Unicode is always written in hex, whatever was asked for.
+            // Unicode is always written in hex, whatever was asked for. A byte order mark that was
+            // asked for is already the first two bytes, put there above so that it is encrypted
+            // with the rest.
             // TODO non hex literals... not sure how to treat linefeeds, '(', '\' etc.
-            pdf.Append(prefix ? "<FEFF" : "<");
+            pdf.Append('<');
             for (int idx = 0; idx < count; idx += 2)
             {
                 pdf.AppendFormat("{0:X2}{1:X2}", bytes[idx], bytes[idx + 1]);
