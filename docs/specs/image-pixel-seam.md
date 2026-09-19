@@ -3,7 +3,7 @@
 `IImageSource.SaveAsPdfBitmap` and `PdfImage.ReadTrueColorMemoryBitmap` are gone.
 `IImageSource.GetPixels()` returns a `PixelBuffer` — `Width`, `Height`, and a tightly packed,
 top-down, straight-alpha `ReadOnlyMemory<byte>` in B, G, R, A order — and `PdfImage` consumes it
-directly. Both backends implement the new member; `PdfPinata.Skia/PdfBitmapWriter.cs` is
+directly. Both backends implement the new member; `src/PdfPinata.Skia/PdfBitmapWriter.cs` is
 deleted outright, and `ImageSharpImageSource<TPixel>` no longer references `BmpEncoder` at all.
 
 ## What shipped, against what was proposed
@@ -13,14 +13,14 @@ format tag, one call site, grayscale and CMYK deferred — and that is what land
 implementation diverged from the plan's own risk list is the ImageSharp channel swap, and it
 diverged by confirming the risk rather than avoiding it: the plan flagged that `BmpEncoder` was
 performing the R/B reorder invisibly and that removing it would need an explicit replacement, and
-`ImageSharpImageSourceImpl<TPixel2>.ReadPixels` (`PdfPinata.ImageSharp/ImageSharpImageSource.cs:180-199`)
+`ImageSharpImageSourceImpl<TPixel2>.ReadPixels` (`src/PdfPinata.ImageSharp/ImageSharpImageSource.cs:180-199`)
 is exactly that replacement — `PixelOperations<TPixel2>.Instance.ToBgra32Bytes`, called once per row
 inside `Image.ProcessPixelRows`, which the plan named as the option ImageSharp's 2.1.x line already
 exposed for this. Nothing had to be hand-rolled.
 
 A second commit landed same-day, folded into this one on the branch rather than split out: Skia's
 `GetPixels()` gained a check the plan's Implementation Decisions never mentioned — refusing a
-premultiplied bitmap. `SkiaImageSource.GetPixels()` (`PdfPinata.Skia/SkiaImageSource.cs:128-159`)
+premultiplied bitmap. `SkiaImageSource.GetPixels()` (`src/PdfPinata.Skia/SkiaImageSource.cs:128-159`)
 throws `InvalidOperationException` naming the bitmap's `AlphaType` when it is `Premul`, and passes
 `Opaque` through untouched. The gap it closes: the decode path inside `SkiaImageSource.Decode`
 always requests `SKAlphaType.Unpremul`, but `FromSkiaBitmap` is a public entry point that takes
@@ -35,7 +35,7 @@ so a premultiplied pixel is darkened in proportion to its own transparency with 
 The Problem Statement's derivation — that the write-side bottom-up flip and the read-side
 `height-1-y` flip cancelled exactly, so the whole BMP round trip amounted to a top-down buffer
 turned bottom-up and back — is what the new code no longer does at all. `PdfImage.InitializeNonJpeg`
-(`PdfPinata/Pdf.Advanced/PdfImage.cs:156-257`) walks `y` from `0` to `height` and writes to
+(`src/PdfPinata/Pdf.Advanced/PdfImage.cs:156-257`) walks `y` from `0` to `height` and writes to
 `imageData` at the same `y`, with the comment `// Row r of the source is row r of the output: both
 are top-down and neither pads.` right above the loop. `MonochromeMask.StartLine`
 (`PdfImage.cs:473-478`) takes the line number directly rather than un-flipping it, for the same
@@ -59,10 +59,10 @@ support needs the same larger, separate change the plan described, and it wasn't
 The plan's Testing Decisions called for an asymmetric image specifically because a solid fill or a
 flip-symmetric pattern would pass against a row flip or a channel swap without noticing either. Both
 new test files build one. `SkiaImageSourceTest`'s `GetPixelsPutsEveryCornerWhereItBelongs`
-(`PdfPinata.Test/Imaging/SkiaImageSourceTest.cs:58-76`) uses a 2×2 bitmap with four distinct
+(`src/PdfPinata.Test/Imaging/SkiaImageSourceTest.cs:58-76`) uses a 2×2 bitmap with four distinct
 per-channel corner values and asserts the exact byte sequence, explicit about why: "a vertical flip,
 a horizontal flip and a half turn are each told apart from the right answer and from each other."
-`ImagePixelRoundTripTests` (`PdfPinata.Test/Imaging/ImagePixelRoundTripTests.cs`) goes one level
+`ImagePixelRoundTripTests` (`src/PdfPinata.Test/Imaging/ImagePixelRoundTripTests.cs`) goes one level
 further out — a 3×2 image where `Colour(index)` gives every pixel a distinct R, G and B
 (`static (byte R, byte G, byte B) Colour(int index) => ((byte)(10 + index * 10), (byte)(100 + index
 * 10), (byte)(200 + index * 10))`, lines 36-37) and `Alphas` straddles the monochrome mask's 128
@@ -113,10 +113,10 @@ changed.
 
 ## What else moved with it
 
-`XImage.AsBitmap()` became `XImage.GetPixels()` (`PdfPinata/Drawing/XImage.cs:196-202`), and this
+`XImage.AsBitmap()` became `XImage.GetPixels()` (`src/PdfPinata/Drawing/XImage.cs:196-202`), and this
 is called out as a breaking change in `CHANGELOG.md` alongside the interface change, with a
 before/after diff of the interface member and a paragraph on why the BMP shape was never a real
-interchange format. `PixelBuffer` itself (`PdfPinata/Drawing/PixelBuffer.cs`) is a
+interchange format. `PixelBuffer` itself (`src/PdfPinata/Drawing/PixelBuffer.cs`) is a
 `readonly struct` living in the same MigraDoc-namespaced-but-PdfPinata-assembly location as
 `ImageSource` — `PinataLayout.DocumentObjectModel.Shapes` — for the same
 reason `ImageSource` is there, and its constructor validates one thing: that the buffer is exactly

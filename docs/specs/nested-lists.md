@@ -14,8 +14,8 @@ tagger, which is where it still is.
 | 6 | Nesting survives a page break; an outer list resumes its count after an inner one | done |
 | 7 | A list object in the DOM, `/Lbl` elements, inferring depth from indentation, outline numbering | not done, **deliberately** |
 
-Covered by `PinataLayout.DocumentObjectModel.Tests/ListNestingLevelTests.cs` and the nesting tests in
-`PinataLayout.Rendering.Tests/TaggedOutputTests.cs`. veraPDF still passes the corpus.
+Covered by `src/PinataLayout.DocumentObjectModel.Tests/ListNestingLevelTests.cs` and the nesting tests in
+`src/PinataLayout.Rendering.Tests/TaggedOutputTests.cs`. veraPDF still passes the corpus.
 
 The property is called `NestingLevel`, after `ParagraphFormat.OutlineLevel`; the spec left it unnamed.
 Dropping below the outermost level a run has seen closes everything and starts a fresh top-level list.

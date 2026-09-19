@@ -8,7 +8,7 @@ tied to no upstream issue, and it was written before the work, so the status col
 Measured on `dev/migradoc-render-coverage` at `d0d36e5`, over the six shipped assemblies:
 
 ```powershell
-dotnet test PdfPinata.slnx -f net10.0 --settings coverage.runsettings `
+dotnet test src/PdfPinata.slnx -f net10.0 --settings coverage.runsettings `
   --collect:"XPlat Code Coverage" --results-directory ./TestResults
 ```
 
@@ -42,7 +42,7 @@ no test-host crash** — 152 more than the last row above.
 
 **The percentages from this run are not comparable to the table above, and are deliberately not
 added to it.** The run had to be made in Release: the Roslyn analysis server holds
-`PinataLayout.DocumentObjectModel.Generators/bin/Debug/netstandard2.0/…Generators.dll` open, so the
+`src/PinataLayout.DocumentObjectModel.Generators/bin/Debug/netstandard2.0/…Generators.dll` open, so the
 Debug build cannot complete on a machine running it. Release reports 70.4% of lines and 54.6% of
 branches over eight assemblies, against the 78.3%/73.9% over six above — a different configuration
 over a different denominator, so the difference says nothing about whether coverage moved. Anyone
@@ -104,7 +104,7 @@ Cover: a signed number, an unsigned number, a unit with a suffix, each `ShapePos
 wrong case, surrounding whitespace, a name that is not a member, `""` and null.
 
 **They agree, and they were wrong together** — see F21, which is the same shape as F12. 58 tests in
-`PinataLayout.DocumentObjectModel.Tests/LeftAndTopPositionParityTests`, of which 24 hold both
+`src/PinataLayout.DocumentObjectModel.Tests/LeftAndTopPositionParityTests`, of which 24 hold both
 implementations to one table.
 
 Two things learned rather than assumed, and pinned as such:
@@ -256,7 +256,7 @@ is why they are together rather than one per rank. The round trip is the asserti
 encode, read back through `DdlReader`, and check the string survives. Escapes, braces, backslashes
 and a string that needs no escaping at all are where the branches are.
 
-45 tests in `PinataLayout.DocumentObjectModel.Tests/DdlEncoderTests`, taking both encoders to 100%
+45 tests in `src/PinataLayout.DocumentObjectModel.Tests/DdlEncoderTests`, taking both encoders to 100%
 and both below the threshold. **Two findings, F22 and F23**, and only the first is fixed.
 
 The two methods escape different things, which is deliberate and is now pinned as such: paragraph
@@ -414,7 +414,7 @@ and a null check, so a page held as a direct dictionary rather than an indirect 
 skipped — it answers null where the public indexer answers the page.
 
 18.3's invariants were **moved into tests rather than dropped**, which is the point of removing a
-check that never ran. `PdfPinata.Test/Pdfs/CrossReferenceConsistencyTests` asserts them from
+check that never ran. `src/PdfPinata.Test/Pdfs/CrossReferenceConsistencyTests` asserts them from
 outside, against the bytes the writer produced: every object numbered once, no object numbered zero,
 and the count the xref declares matching the objects the file defines. The renumbering path the old
 checks bracketed is covered directly — importing pages from a second document, where both number
@@ -466,8 +466,8 @@ and then replaces the content stream outright.
 
 ### 18.7 to 18.10 — the last four, and one lesson about which reader to use
 
-7 tests in `PinataLayout.DocumentObjectModel.Tests/TableCloneAndLineFormatTests` and 15 in
-`PinataLayout.Rendering.Tests/TextMeasurementAndRenderObjectTests`.
+7 tests in `src/PinataLayout.DocumentObjectModel.Tests/TableCloneAndLineFormatTests` and 15 in
+`src/PinataLayout.Rendering.Tests/TextMeasurementAndRenderObjectTests`.
 
 `Table.DeepCopy` is `protected override` and reached through the public `Clone`. It clones five
 children by hand — columns, rows, format, borders and shading — so the assertion that matters is
@@ -521,7 +521,7 @@ These are from `CLAUDE.md` and they constrain the batches below more than the co
   asked for a face. A target needing a real font belongs in `PinataLayout.Rendering.Tests` instead.
 - **`PinataLayout.Rendering.Tests` rasterizes nothing**, and neither does
   `PdfPinata.Charting.Tests`. Keep it that way; assert against the content stream through the
-  linked readers under `PdfPinata.Test/Helpers`.
+  linked readers under `src/PdfPinata.Test/Helpers`.
 - **`PdfPinata.Test` is the broad one and the default** for anything in the core package.
 - Assertions use **AwesomeAssertions** — same API as FluentAssertions, different `using`.
 - **Judge a run by its exit code, not by the word `Passed`.** A total below what
@@ -531,7 +531,7 @@ These are from `CLAUDE.md` and they constrain the batches below more than the co
 
 | # | target | where | retires | status |
 |---|---|---|---|---|
-| 0.1 | `Font.ApplyFont(Font, Font)` | `PinataLayout.DocumentObjectModel/PinataLayout.DocumentObjectModel/Font.cs:85` | 3,136 | **deleted** |
+| 0.1 | `Font.ApplyFont(Font, Font)` | `src/PinataLayout.DocumentObjectModel/PinataLayout.DocumentObjectModel/Font.cs:85` | 3,136 | **deleted** |
 
 The highest CRAP score in the tree, and **nothing calls it**. The overload is `internal`, and the
 one call to `ApplyFont` anywhere in the repository is `ParagraphElements.cs:219`, which calls the
@@ -1290,7 +1290,7 @@ Pinned by `AFieldWithOneChildTakesTheStateItIsAskedFor` and
 
 ## Batch 2 — public DOM members with no test at all
 
-~~`PinataLayout.DocumentObjectModel.Tests`.~~ **Written in `PdfPinata.Test/Dom/` instead** — see
+~~`PinataLayout.DocumentObjectModel.Tests`.~~ **Written in `src/PdfPinata.Test/Dom/` instead** — see
 the note below. Direct calls with plain arguments; no document to build.
 
 | # | target | CC | cov | retires | status |
@@ -1306,7 +1306,7 @@ is range checks over a cell block; assert the cells outside the block are untouc
 the ones inside changed.
 
 **Where these went.** The batch says `PinataLayout.DocumentObjectModel.Tests` and they are in
-`PdfPinata.Test/Dom/`, because every one of these four classes already has tests there —
+`src/PdfPinata.Test/Dom/`, because every one of these four classes already has tests there —
 `StyleLookupTests`, `ReadOnlyStyleTests`, `TableRowCellsTests`, `FormattedTextFontRoundTripTests` —
 and `CLAUDE.md` says the two suites do not overlap. Splitting `Style` across both projects to
 follow the batch heading would have cost more than it saved. Four new files:
@@ -1374,8 +1374,8 @@ are not worth a test written to reach a branch rather than to say something.
 `WriteComment` is the interesting one: a comment carrying a newline, and one long enough to wrap,
 are what the uncovered branches are for.
 
-33 tests in `PinataLayout.DocumentObjectModel.Tests/DdlElementSerializationTests`, and five more in
-`PdfPinata.Test/Dom/ImageSerializationTests` — 4.3 is the one item of the batch that cannot go in
+33 tests in `src/PinataLayout.DocumentObjectModel.Tests/DdlElementSerializationTests`, and five more in
+`src/PdfPinata.Test/Dom/ImageSerializationTests` — 4.3 is the one item of the batch that cannot go in
 the backend-free suite, because an image is made by handing `AddImage` an `IImageSource`.
 
 Worth carrying forward: **the DOM treats an object with nothing set as null and skips it when
@@ -1426,7 +1426,7 @@ This is the pattern `CLAUDE.md` warns about for the two lexers and the category-
 change to one nearly always belongs in the other, and the copy usually has one guard the twin lacks.
 
 **They agree, and they were wrong together** — see F12. 24 tests in one file,
-`PdfPinata.Test/Dom/ExtractPageNumberParityTests`, asserting both implementations against one
+`src/PdfPinata.Test/Dom/ExtractPageNumberParityTests`, asserting both implementations against one
 table of twenty paths. Both go in `PdfPinata.Test` rather than one each: it references both
 assemblies, so a single theory can hold the two to the same answer, which is the only arrangement
 that actually makes them agree rather than merely testing them separately.
@@ -1442,10 +1442,10 @@ that actually makes them agree rather than merely testing them separately.
 One setter, 106 uncovered lines. The simple path is already covered; the whole cost is the `HasKids`
 branch that handles two fields sharing a name, which the code's own comment records as two days of
 work. Reach it through public API: open a form PDF with a kids-bearing check box, set the value,
-write it, reopen and read `/V` and `/AS` back. Needs an asset — check `PdfPinata.Test/Assets`
+write it, reopen and read `/V` and `/AS` back. Needs an asset — check `src/PdfPinata.Test/Assets`
 before making one.
 
-No asset needed in the end: `PdfPinata.Test/Pdfs/AcroForms/AcroFormBuilder` already builds a
+No asset needed in the end: `src/PdfPinata.Test/Pdfs/AcroForms/AcroFormBuilder` already builds a
 form from nothing and reads it back, which is how the existing field tests get a
 `PdfCheckBoxField` at all. It gained one method, `WithTypedParent`, for a field that has both a
 type of its own and children of its own. 9 tests in `AcroFormTwinCheckBoxTests`.
@@ -1470,7 +1470,7 @@ are covered; these three were simply missed.
 Each reads an item that may be a `PdfReference`, a null, absent, or the wrong type outright. Cover
 all four, and note that the `create` overloads behave differently from the plain ones.
 
-19 tests in `PdfPinata.Test/Pdfs/TypedElementAccessorTests`. The `PdfReference` case is the one
+19 tests in `src/PdfPinata.Test/Pdfs/TypedElementAccessorTests`. The `PdfReference` case is the one
 that mattered — see F14.
 
 Two things noted in passing. `GetMatrix`'s create overload writes `[1 0 0 1 0 0]` as a
@@ -1527,7 +1527,7 @@ are malformed-object recovery paths that want a corrupt-document fixture apiece.
 A Type 3 font's `/CharProcs` and an annotation's `/AP` stream are the two inputs. Both are cases
 where pruning too much is silent — assert what survived, not only that pruning ran.
 
-7 tests in `PdfPinata.Test/IO/PruneCharProcsAndAppearancesTests`, with three fixtures added to
+7 tests in `src/PdfPinata.Test/IO/PruneCharProcsAndAppearancesTests`, with three fixtures added to
 `SharedResourceFixtures`. Writing the Type 3 one the way a real Type 3 font is written is what
 turned up F15, which is the largest finding of the backlog so far and is not in the pruner at all.
 

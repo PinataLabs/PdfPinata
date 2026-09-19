@@ -1,7 +1,7 @@
 # Multiple Pages
 
 > **Runnable version:** the `Layout` demo.
-> `dotnet run --project SampleApp -- run -e Layout`
+> `dotnet run --project src/SampleApp -- run -e Layout`
 >
 > The demos are built on every commit and their page counts are asserted by
 > `DemoSmokeTests`, so one that stops working fails the build. The code on this page is

@@ -2,7 +2,7 @@
 //   Generated from the Unicode Character Database 17.0.0 by tools/UnicodeTableGenerator.
 //   Do not edit by hand. To regenerate after a Unicode version bump:
 //
-//       dotnet run --project tools/UnicodeTableGenerator -- --version 17.0.0 --out PdfPinata/Text
+//       dotnet run --project tools/UnicodeTableGenerator -- --version 17.0.0 --out src/PdfPinata/Text
 //
 //   The tool is deliberately outside PdfPinata.slnx: it runs by hand, and what it writes is
 //   checked in so that the build needs no network and a version bump is a reviewable diff.

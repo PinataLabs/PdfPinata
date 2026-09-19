@@ -14,7 +14,7 @@ This is the spec for them.
 | 6 | A full `Save` of a certified document is refused; the incremental save is the permitted route | done |
 | 7 | B-LTA, chain building, trust, revocation *checking*, a timestamped corpus document | not done, **deliberately** |
 
-Covered by `PdfPinata.Test/IO/SignatureTimestampTests.cs`, `SignatureValidationDataTests.cs` and
+Covered by `src/PdfPinata.Test/IO/SignatureTimestampTests.cs`, `SignatureValidationDataTests.cs` and
 `CertificationEnforcementTests.cs`. Neither network provider is exercised by the suite.
 
 Two things were decided while building it. **Adding validation data is not gated by the certification

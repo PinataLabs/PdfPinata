@@ -16,9 +16,9 @@ covers.
 | 7 | A Factur-X invoice attaching to a prior PDF/A-3a claim keeps it rather than downgrading it | done, found on the way |
 | 8 | A page whose content walk gives up is unchecked rather than refused; per-page colour-space judgement | not done, **deliberately** |
 
-Covered by `PdfPinata.Test/IO/ResourceConformanceRulesTests.cs`,
-`PdfPinata.Test/Annotations/LinkAnnotationConformanceTests.cs`, the `A`-level and PDF/UA-2 tests in
-`PinataLayout.Rendering.Tests/PdfUaConformanceTests.cs`, and `EInvoiceTests`. The corpus grew from six
+Covered by `src/PdfPinata.Test/IO/ResourceConformanceRulesTests.cs`,
+`src/PdfPinata.Test/Annotations/LinkAnnotationConformanceTests.cs`, the `A`-level and PDF/UA-2 tests in
+`src/PinataLayout.Rendering.Tests/PdfUaConformanceTests.cs`, and `EInvoiceTests`. The corpus grew from six
 documents to nine gated ones — `pdfa-1a`, `pdfa-2a`, `pdfa-3a` — and all nine conform.
 
 **PDF/UA-2 is the one claim veraPDF does not yet pass.** A document claiming it fails a single clause,

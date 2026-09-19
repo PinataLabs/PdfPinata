@@ -14,7 +14,7 @@ defect, which it is — right up to the point where somebody puts a tab in an Ar
 | 6 | `RenderTab` drawing during the probing walk — a second defect, found on the way | done, fixed |
 | 7 | Mirroring tab stops in a right-to-left paragraph; a tab as a bidirectional neutral | not done, **deliberately** |
 
-Covered by the tabbed tests in `PinataLayout.Rendering.Tests/BidirectionalParagraphTests.cs`;
+Covered by the tabbed tests in `src/PinataLayout.Rendering.Tests/BidirectionalParagraphTests.cs`;
 `ALineWithATabInItKeepsTheOrderItWasWritten`, which pinned the old refusal, is gone.
 
 Item 6 was not in the spec. Once a tab's segment became reorderable, `RenderTab` — which never looked

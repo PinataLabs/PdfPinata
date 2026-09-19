@@ -11,14 +11,14 @@ Gap **G4** of the competitive gap analysis.
 | 4 | PDF/A-3 attachments — `/AFRelationship` and catalog `/AF` | done |
 | 5 | `PdfPinata.EInvoice` — a ZUGFeRD / Factur-X helper | done |
 
-Covered by `PdfPinata.Test/IO/XmpMetadataTests.cs`, `PdfPinata.Test/Pdfs/AttachmentTests.cs`
-and `PdfPinata.Test/Pdfs/EInvoiceTests.cs`.
+Covered by `src/PdfPinata.Test/IO/XmpMetadataTests.cs`, `src/PdfPinata.Test/Pdfs/AttachmentTests.cs`
+and `src/PdfPinata.Test/Pdfs/EInvoiceTests.cs`.
 
 ## What is honestly not finished
 
 **An sRGB profile now ships, and an RGB document is given it.** The proposal assumed one could
 simply be embedded as a resource and then found that it needed a vetted, redistributable asset — a
-decision about what the repository ships rather than a piece of code. `assets/icc/sRGB-v2-micro.icc`
+decision about what the repository ships rather than a piece of code. `src/assets/icc/sRGB-v2-micro.icc`
 is that asset: 456 bytes from the Compact ICC Profiles collection, released to the public domain
 under CC0, needing no attribution, its own `cprt` tag reading `CC0`. ICC version 2 rather than 4 on
 purpose, because PDF/A-1 predates version 4 and will not take one, so v2 is the version that serves
@@ -75,7 +75,7 @@ and the name tree are all right.
 **The ICC decision was made afterwards**, and this paragraph used to record it as open. The corpus
 built an sRGB profile in code, which sidestepped the question of what the repository distributes
 rather than answering it, and a caller had to supply their own. Both are now false: the core package
-embeds `assets/icc/sRGB-v2-micro.icc`, an RGB document that names no profile is given it, and the
+embeds `src/assets/icc/sRGB-v2-micro.icc`, an RGB document that names no profile is given it, and the
 corpus sets no output intent at all — so what veraPDF gates on is the default path. See the item 2
 section above for the rule and the two colour modes it deliberately excludes.
 

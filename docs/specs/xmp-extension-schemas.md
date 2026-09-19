@@ -186,10 +186,10 @@ cheapest surface available. `PdfPinata.EInvoice` through a saved and reopened do
 how `EInvoiceTests` already works. `ArchiveDemo` through the existing demo smoke test, which asserts
 it neither throws nor changes its page count.
 
-**Prior art to follow rather than reinvent.** `PdfPinata.Test/Pdfs/EInvoiceTests.cs` already has
+**Prior art to follow rather than reinvent.** `src/PdfPinata.Test/Pdfs/EInvoiceTests.cs` already has
 everything this needs: `XNamespace` constants for `pdfaSchema` and `pdfaProperty`, a `Packet` helper
 that cuts the packet out of a saved document and hands back an `XDocument`, and a `Latin1` helper for
-the cases where string containment is the honest assertion. `PdfPinata.Test/IO/XmpMetadataTests.cs`
+the cases where string containment is the honest assertion. `src/PdfPinata.Test/IO/XmpMetadataTests.cs`
 has the lighter `Save(Action<PdfDocument>)` arrangement for packet-level questions. New tests belong
 in `XmpMetadataTests`, beside the two that exercise the raw hatch.
 

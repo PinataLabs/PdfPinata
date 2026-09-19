@@ -5,16 +5,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```powershell
-dotnet build PdfPinata.slnx           # SDK is pinned to 10.0.100 by global.json
-dotnet test                              # whole suite, both test target frameworks
-dotnet test -f net10.0                   # one framework; the test project targets net8.0;net10.0
-dotnet test --filter "FullyQualifiedName~CLexerTests"                  # one class
-dotnet test --filter "FullyQualifiedName~CLexerTests.ScanNextToken"    # one test
-./verapdf-check.ps1                      # conformance corpus + veraPDF; needs Docker. Gates.
-./verapdf-check.ps1 -NoGate              # the same, but always succeeds — for reading a failure
+dotnet build src/PdfPinata.slnx                     # SDK is pinned to 10.0.100 by global.json
+dotnet test src/PdfPinata.slnx                      # whole suite, both test target frameworks
+dotnet test src/PdfPinata.slnx -f net10.0           # one framework; the test project targets net8.0;net10.0
+dotnet test src/PdfPinata.slnx --filter "FullyQualifiedName~CLexerTests"                  # one class
+dotnet test src/PdfPinata.slnx --filter "FullyQualifiedName~CLexerTests.ScanNextToken"    # one test
+./verapdf-check.ps1                                 # conformance corpus + veraPDF; needs Docker. Gates.
+./verapdf-check.ps1 -NoGate                         # the same, but always succeeds — for reading a failure
 ```
 
-CI (`.github/workflows/build-and-test.yml`) runs on Linux only, builds `PdfPinata.slnx` in Release,
+Every project, and the solution, lives under `src/`; the build props and targets, `global.json`,
+`tools/` and `docs/` stay at the root. Name the solution explicitly — a bare
+`dotnet test` at the root finds nothing to run.
+
+CI (`.github/workflows/build-and-test.yml`) runs on Linux only, builds `src/PdfPinata.slnx` in Release,
 installs Ghostscript, then runs `dotnet test` with coverlet/opencover coverage, which goes to Codecov
 and, with the Debug build it ran against, to SonarCloud (`PinataLabs_PdfPinata`).
 
@@ -49,7 +53,7 @@ CID font is embedded whole rather than subsetted — so it carries no `/CIDToGID
 as a subset, both the opposite of every other document.
 
 `docs/specs/verapdf-validation.md` has the rest. The entry worth carrying is that **the corpus sets
-no output intent at all**: `assets/icc/sRGB-v2-micro.icc` is embedded by the *core* package and an
+no output intent at all**: `src/assets/icc/sRGB-v2-micro.icc` is embedded by the *core* package and an
 RGB document claiming PDF/A that names no profile is given it, so what veraPDF passes here is the
 default path rather than a profile the corpus built for itself. It was built in code for several
 months, and `SrgbProfile.cs` is gone. **A CMYK or `Undefined` document is still refused** — the same
@@ -98,7 +102,7 @@ is the broad one and the default. `PinataLayout.DocumentObjectModel.Generators.T
 DOM's source generator through `CSharpGeneratorDriver`. `PinataLayout.Rendering.Tests` covers
 MigraDoc's own layout — paragraphs, tables, fields, the paragraph iterator — and its tagged output,
 and deliberately rasterizes nothing, so it needs neither Ghostscript nor ImageMagick. It links four
-content-stream readers out of `PdfPinata.Test/Helpers` rather than keeping copies; edit those in
+content-stream readers out of `src/PdfPinata.Test/Helpers` rather than keeping copies; edit those in
 place and both projects get the change.
 
 `PdfPinata.Charting.Tests` covers the charting renderers — axis scales, category axes, plot
@@ -128,13 +132,13 @@ nothing else**: no renderer, and so no backend, no Ghostscript and no font files
 qualification is `NamedFontsOnly.cs`, a module initializer serving a font *name*, because building
 a `Document` builds its standard styles and the Normal style asks the resolver what the default
 font is called. It resolves no face and throws if asked to, which is the line saying a test needing
-a real font belongs in `PinataLayout.Rendering.Tests`. Note that `PdfPinata.Test/Dom/` also
+a real font belongs in `PinataLayout.Rendering.Tests`. Note that `src/PdfPinata.Test/Dom/` also
 covers the DOM, from the other side: the value model, colours, styles and the generated property
 machinery. The two do not overlap.
 
-`SampleApp` is the demonstration app: `dotnet run --project SampleApp -- list` says what it covers,
-`… -- run` writes one PDF per demo into `SampleApp/output` and prints the source that drew each. Its
-demos are covered by `PdfPinata.Test/Demos/DemoSmokeTests.cs`, so a demo that throws or changes
+`SampleApp` is the demonstration app: `dotnet run --project src/SampleApp -- list` says what it covers,
+`… -- run` writes one PDF per demo into `src/SampleApp/output` and prints the source that drew each. Its
+demos are covered by `src/PdfPinata.Test/Demos/DemoSmokeTests.cs`, so a demo that throws or changes
 its page count fails the build.
 
 Three rules there are load-bearing rather than stylistic, all explained in
@@ -231,7 +235,7 @@ document byte-identical.
 
 ## Bidi and script itemisation
 
-`PdfPinata/Text/` holds the Unicode Bidirectional Algorithm (UAX #9) and script itemisation
+`src/PdfPinata/Text/` holds the Unicode Bidirectional Algorithm (UAX #9) and script itemisation
 (UAX #24). Pure text processing, no font and no backend, which is why it is in the core rather than
 behind the shaping seam. `TextItemizer.Itemize` is the entry point worth knowing: it hands back runs
 that are each one direction **and** one script, in the order they are drawn — which is exactly what
@@ -253,7 +257,7 @@ That is the older half of the complaint in `empira/PDFsharp-1.5#144` and it is f
 
 A layout engine that places each word itself has to order them, and two do. `XTextFormatter` hands
 whole lines to `DrawString` for every alignment but one, so only justifying needed changing.
-`PinataLayout.Rendering/ParagraphRenderer.cs` draws one show-text operator per leaf and needed the
+`src/PinataLayout.Rendering/ParagraphRenderer.cs` draws one show-text operator per leaf and needed the
 most: **it walks each line twice**, once with `probing` set to learn how wide every leaf is without
 drawing anything, then again for real with each leaf placed where the bidirectional algorithm says.
 
@@ -272,7 +276,7 @@ across the line.
 
 `ParagraphFormat.TextDirection`, `XTextFormatter.TextDirection` and `XStringFormat.TextDirection`
 all take `BidiParagraphDirection` — one type, not three saying the same thing.
-`Drawing/Layout/BidirectionalLayoutTests.cs` and `PinataLayout.Rendering.Tests/BidirectionalParagraphTests.cs`
+`Drawing/Layout/BidirectionalLayoutTests.cs` and `src/PinataLayout.Rendering.Tests/BidirectionalParagraphTests.cs`
 pin the two engines.
 
 The character property tables are **generated and checked in** — `tools/UnicodeTableGenerator`,
@@ -282,7 +286,7 @@ bump. Read its README before touching them; the short version is that `DerivedBi
 points in the Hebrew and Arabic blocks default to `R` and `AL`.
 
 Everything is pinned to **Unicode 17.0.0**, and three things move together on a bump: the generated
-tables, the gzipped conformance suites in `PdfPinata.Test/Assets/Unicode/`, and the version
+tables, the gzipped conformance suites in `src/PdfPinata.Test/Assets/Unicode/`, and the version
 asserted in `UnicodePropertyTests`. Bumping one without the others tests one Unicode against
 another's expectations.
 
@@ -312,7 +316,7 @@ unit-tested. The hook it writes through is *chained*, because `PdfDocument.Custo
 single property and assigning over it drops whatever the caller put there.
 `docs/specs/pdf-a-conformance.md` has the rest.
 
-`ImageSource` is a trap for the eye: the file is `PdfPinata/Drawing/ImageSource.cs` and it ships
+`ImageSource` is a trap for the eye: the file is `src/PdfPinata/Drawing/ImageSource.cs` and it ships
 in the **PdfPinata** assembly, but its namespace is `PinataLayout.DocumentObjectModel.Shapes`.
 Registering it needs that `using`, from code that otherwise has nothing to do with MigraDoc.
 
@@ -361,7 +365,7 @@ There are two independent lexers, and a change to one usually belongs in the oth
 `Parser` touches exactly one member of `PdfDocument`, `_irefTable`, and reaches it through
 that table's own four members rather than through its backing `ObjectTable` dictionary. It still
 needs *a* document — a `PdfObject` gets its number by looking itself up in one — but no longer the
-one `PdfReader.Open` builds, so a test reaches it through `PdfPinata.Test/IO/ParserProbe.cs`:
+one `PdfReader.Open` builds, so a test reaches it through `src/PdfPinata.Test/IO/ParserProbe.cs`:
 a plain `new PdfDocument()`, a `MemoryStream` of hand-written bytes, and no `%PDF` header, no
 cross-reference table, no trailer and no `startxref`. **That document is not empty**, though — its
 information dictionary is object 1 before a byte is read, so a test writing its own objects numbers
@@ -479,7 +483,7 @@ dropping it. Two consequences:
   on, for `DynamicallyAccessedMembers`. It generates `internal` source for what each compilation
   lacks, so every assembly gets its own copy and the net8.0/net10.0 legs get nothing. **Members**
   — a throw helper, a span overload — PolySharp never supplies; those are C# 14 static extension
-  members in `Polyfills/`, compiled into the netstandard2.1 leg only. Write shared source the
+  members in `src/Polyfills/`, compiled into the netstandard2.1 leg only. Write shared source the
   modern way and add to one of the two, rather than fencing a line with `#if` or a pragma.
 
 ## Tests

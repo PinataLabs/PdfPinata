@@ -632,7 +632,7 @@ much later as a `NullReferenceException` inside the DDL parser.
 ### 4.7 Project layout and packaging
 
 ```
-PinataLayout.DocumentObjectModel.Generators/
+src/PinataLayout.DocumentObjectModel.Generators/
   PinataLayout.DocumentObjectModel.Generators.csproj
   DomValueModelGenerator.cs      // Initialize only
   Parser.cs                      // ISymbol -> model; the only Roslyn-aware file
@@ -707,7 +707,7 @@ Worth adding at the same time: a tiny `PublishAot` console app that builds a doc
 PDF, run in CI. It is the only way to catch a reflection regression that the analyzer misses.
 
 **Done.** Both `DynamicallyAccessedMembers` polyfills in
-`PinataLayout.DocumentObjectModel/CompileFixes/` are deleted along with every use,
+`src/PinataLayout.DocumentObjectModel/CompileFixes/` are deleted along with every use,
 `EnableTrimAnalyzer` is `true`, and the build is clean of `IL2xxx` on all three target frameworks.
 
 `PinataLayout.AotSmokeTest` is the smoke app. It builds a document, exercises the value model the
@@ -829,7 +829,7 @@ under each `GV` flag, and `SetNull` then `IsNull`, must agree between the two im
 
 ### Existing coverage to lean on
 
-`PdfPinata.Test/Dom/` already has the suite built for the PR #46 wrapper-struct migration, and it
+`src/PdfPinata.Test/Dom/` already has the suite built for the PR #46 wrapper-struct migration, and it
 covers exactly the semantics phase 2 is at risk of breaking:
 
 | file | guards |
@@ -844,7 +844,7 @@ covers exactly the semantics phase 2 is at risk of breaking:
 with an enum member defined as `int.MinValue`. No DOM enum defines that value, so the collision was
 never reachable and such a test would assert nothing.
 
-`PdfPinata.Test/Dom/EnumMemberSemanticsTests.cs` covers what actually changed hands instead —
+`src/PdfPinata.Test/Dom/EnumMemberSemanticsTests.cs` covers what actually changed hands instead —
 11 cases over what an unset enum reads back as, that `SetNull` still resets it, that `EnumGuard`
 still rejects an out-of-range assignment, that assigning the zero value differs from leaving it
 unset, DDL round-trip, and the three `Character` cases that pin the carve-out.

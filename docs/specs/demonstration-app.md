@@ -153,9 +153,9 @@ Fonts, images and sources are all `EmbeddedResource`, read through one loader. T
 `CopyToOutputDirectory`, has to work in three places:
 
 ```text
-  SampleApp/bin/…/            files land here                  ✓
+  src/SampleApp/bin/…/            files land here                  ✓
   publish output              files land here                  ✓
-  PdfPinata.Test/bin/…/    they do NOT — a referenced        ✗
+  src/PdfPinata.Test/bin/…/    they do NOT — a referenced        ✗
                               project's content items do not
                               flow to the referencing project
 ```
@@ -412,8 +412,8 @@ carries no dependency of its own.
 **It needed an ICC profile, and that is what unblocked it.** A demo claiming PDF/A-3 has to embed an
 output intent, none shipped, and `Archive` had been building a minimal one in code — its own remark
 said a binary in a sample app "raises a licence question the sample does not need". The question has
-an answer: `assets/icc/sRGB-v2-micro.icc`, 456 bytes released to the public domain under CC0, with
-its provenance in `assets/icc/LICENSE.txt` and its own `cprt` tag reading `CC0`. 250 lines of ICC
+an answer: `src/assets/icc/sRGB-v2-micro.icc`, 456 bytes released to the public domain under CC0, with
+its provenance in `src/assets/icc/LICENSE.txt` and its own `cprt` tag reading `CC0`. 250 lines of ICC
 byte-writing left `ArchiveDemo` with it.
 
 The library then took the profile over, so **neither demo carries one**: the core package embeds it,

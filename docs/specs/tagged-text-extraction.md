@@ -14,8 +14,8 @@ what shipped; this one is for what it does not yet do.
 | 6 | A word MigraDoc hyphenates extracts whole | done, **by changing the writer** — see below |
 | 7 | Reading order, per-glyph boxes, alternate text off the tree, the structure tree itself | not done, **deliberately** |
 
-Covered by `PdfPinata.Test/IO/TaggedTextExtractionTests.cs` and
-`PinataLayout.Rendering.Tests/TaggedOutputTests.AWordBrokenAtAHyphenExtractsWhole`.
+Covered by `src/PdfPinata.Test/IO/TaggedTextExtractionTests.cs` and
+`src/PinataLayout.Rendering.Tests/TaggedOutputTests.AWordBrokenAtAHyphenExtractsWhole`.
 
 **One thing here departs from the spec as written.** It says nothing about the written file changes.
 Building it found that MigraDoc's soft-hyphen renderer set `/ActualText` on the *structure element*

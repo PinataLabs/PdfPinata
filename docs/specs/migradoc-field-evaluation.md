@@ -13,7 +13,7 @@ commit.
 
 ## What shipped
 
-`FieldEvaluator` (`PinataLayout.DocumentObjectModel/PinataLayout.DocumentObjectModel.Fields/FieldEvaluator.cs`)
+`FieldEvaluator` (`src/PinataLayout.DocumentObjectModel/PinataLayout.DocumentObjectModel.Fields/FieldEvaluator.cs`)
 is a static class with two members: `IsField(DocumentObject)`, which replaces `IsRenderedField`, and
 `Evaluate(DocumentObject field, FieldEvaluationContext context)`, which replaces the three private
 methods that used to do this work — `GetFieldValue`, `IsRenderedField`, and `GetDocumentInfo` — inside
@@ -29,7 +29,7 @@ string.
 proposal called for: `DisplayPageNumber` and `SectionNumber` as non-nullable `int`, `NumberOfPages`
 and `PagesInSection` as `int?`, `PrintDate` as `DateTime`, and `ResolveBookmarkPage` as a
 `Func<string, int?>` rather than exposing `FieldInfos`'s bookmark dictionary. `FieldInfos` gains
-`ToEvaluationContext()` (`PinataLayout.Rendering/MigraDoc.Rendering/FieldInfos.cs:102-121`), which
+`ToEvaluationContext()` (`src/PinataLayout.Rendering/MigraDoc.Rendering/FieldInfos.cs:102-121`), which
 does the translation the proposal described — including turning a count of `0` (this class's way of
 saying "not known yet") into `null`, which is what lets `FieldEvaluationContext` use `int?` honestly
 rather than smuggling a sentinel value across the boundary.
@@ -111,7 +111,7 @@ through, but the fields themselves turned out to want nothing beyond a lookup an
 
 ## `NumberFormatter`: what moved, and what it picked up along the way
 
-`NumberFormatter.cs` moved to `PinataLayout.DocumentObjectModel/PinataLayout.DocumentObjectModel.Fields/`
+`NumberFormatter.cs` moved to `src/PinataLayout.DocumentObjectModel/PinataLayout.DocumentObjectModel.Fields/`
 unchanged in its numeral logic, exactly as proposed, and is public for the first time — it always
 needed to be, once `FieldEvaluator` calls it from outside `Rendering`, and `FootnoteNumbering.cs` and
 the list-symbol path in `ParagraphRenderer.cs` (`symbol = NumberFormatter.Format(...)` at line 1914)
@@ -137,7 +137,7 @@ produces a number anywhere near this range.
 
 ## Testing
 
-`FieldEvaluatorTests.cs` (`PinataLayout.DocumentObjectModel.Tests/`, new, 218 lines) is one function
+`FieldEvaluatorTests.cs` (`src/PinataLayout.DocumentObjectModel.Tests/`, new, 218 lines) is one function
 call per case against a hand-built `FieldEvaluationContext`, no `XGraphics` and no
 `PdfDocumentRenderer` — the cost reduction the whole change exists for. It covers each field type's
 happy path, the `ROMAN`/`roman`/`ALPHABETIC`/`alphabetic`/plain-digit `Format` variants against a

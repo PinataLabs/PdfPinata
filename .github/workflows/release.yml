@@ -70,20 +70,20 @@ jobs:
             10.0.x
 
       - name: Restore dependencies
-        run: dotnet restore PdfPinata.slnx
+        run: dotnet restore src/PdfPinata.slnx
 
       # CycloneDX, pinned in .config/dotnet-tools.json.
       - name: Restore .NET tools
         run: dotnet tool restore
 
       - name: Build
-        run: dotnet build PdfPinata.slnx --configuration Release --no-restore
+        run: dotnet build src/PdfPinata.slnx --configuration Release --no-restore
 
       - name: Pack
         run: |
           for project in $PACKAGES; do
             echo "::group::Pack $project"
-            dotnet pack "$project/$project.csproj" --configuration Release --no-build --output ./artifacts
+            dotnet pack "src/$project/$project.csproj" --configuration Release --no-build --output ./artifacts
             echo "::endgroup::"
           done
           ls -la ./artifacts/

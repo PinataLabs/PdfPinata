@@ -35,7 +35,7 @@ and every consumer re-learns it from documentation.
 
 Three consequences bite.
 
-**The seam cannot be asked.** `SampleApp/Infrastructure/Backends.cs` finds out whether a resolver is
+**The seam cannot be asked.** `src/SampleApp/Infrastructure/Backends.cs` finds out whether a resolver is
 registered by reading the property inside a `try` and catching `InvalidOperationException`. Its own
 comment calls this *"Ugly"*. There is no other way.
 
@@ -161,7 +161,7 @@ the lifecycle half is harder. Tests for set-once behaviour need either their own
 arrangement that does not disturb the registered resolver — and `PinnedFontResolver.Register`, which
 adds a font rather than swapping the resolver, is the existing pattern for that.
 
-**Prior art to follow rather than reinvent.** `PdfPinata.Test/TestBackendSetup.cs` is the
+**Prior art to follow rather than reinvent.** `src/PdfPinata.Test/TestBackendSetup.cs` is the
 registration model. `PinnedFontResolver.Register` is how a test adds a font of its own without
 swapping the resolver out from under everything else. `HarfBuzzShapingTests` and `FontFallbackTests`
 show the established way to narrow a global seam: an adapter that declines every run but one

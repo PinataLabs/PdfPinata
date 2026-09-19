@@ -17,7 +17,7 @@ along. A layout engine that hands whole lines to `DrawString` gets reordering fo
 `TextShaping` promises visual order. An engine that places each word itself has to order them, and
 this library has two such engines.
 
-`XTextFormatter` justifies text by placing blocks. `PinataLayout.Rendering/ParagraphRenderer` draws
+`XTextFormatter` justifies text by placing blocks. `src/PinataLayout.Rendering/ParagraphRenderer` draws
 one show-text operator per leaf. Both therefore had to learn the same rule, and both learned it
 separately. `docs/specs/text-shaping-and-bidi.md` states the rule once and CLAUDE.md restates it:
 order a unit by **the leftmost position any of its characters ends up at**, not by its first
@@ -33,9 +33,9 @@ algorithm answers"* — appearing in both files. They differ only in what a unit
 span in one, a `Block` with a text length in the other.
 
 The instructive part is that this repository has already solved the same shape of problem correctly,
-in the same area, in the same week. `PdfPinata/Drawing.Layout/LineSpans.cs` takes doubles in and
+in the same area, in the same week. `src/PdfPinata/Drawing.Layout/LineSpans.cs` takes doubles in and
 returns doubles out *precisely so that it belongs to neither engine*, and is called from
-`XTextFormatter` and from `PinataLayout.Rendering/ObstructedArea`. The widest-free-span scan crossed
+`XTextFormatter` and from `src/PinataLayout.Rendering/ObstructedArea`. The widest-free-span scan crossed
 the seam. The ordering rule, which is the same kind of pure arithmetic, did not.
 
 So a correction to the one rule both engines had to learn is a two-file change in two assemblies,
@@ -79,7 +79,7 @@ what they get back is an order. Neither engine learns anything about the other, 
 ## Implementation Decisions
 
 **The module is placed where `LineSpans` is placed, and for the same reason.**
-`PdfPinata/Drawing.Layout` is reachable from `XTextFormatter` directly and from
+`src/PdfPinata/Drawing.Layout` is reachable from `XTextFormatter` directly and from
 `PinataLayout.Rendering` through its existing dependency on `PdfPinata`. `LineSpans` already
 proves the arrangement works and is already called from both.
 
@@ -124,9 +124,9 @@ what both suites have to do today, and what this change is partly for.
 have.
 
 **Prior art to follow rather than reinvent.**
-`PdfPinata.Test/Drawing/Layout/BidirectionalLayoutTests.cs` and
-`PinataLayout.Rendering.Tests/BidirectionalParagraphTests.cs` pin the two engines and must keep
-passing unchanged — they are the regression proof. `PdfPinata.Test/Text/` holds the tests for the
+`src/PdfPinata.Test/Drawing/Layout/BidirectionalLayoutTests.cs` and
+`src/PinataLayout.Rendering.Tests/BidirectionalParagraphTests.cs` pin the two engines and must keep
+passing unchanged — they are the regression proof. `src/PdfPinata.Test/Text/` holds the tests for the
 bidi algorithm itself, including `BidiConformanceTests`, which runs both UAX #9 suites in full as one
 `[Fact]` each rather than a theory per case.
 
@@ -154,7 +154,7 @@ stays where it is. If one moves, the extraction changed behaviour and is wrong.
 - **Tabbed right-to-left lines.** Left alone deliberately, for the reason recorded in
   `ParagraphRenderer`: a tab's width is consumed from a list that cannot be walked twice, and where a
   tabbed line's columns belong in a right-to-left paragraph is a question nothing here answers.
-- **The bidi algorithm itself.** `PdfPinata/Text/` is pinned to Unicode 17.0.0 by
+- **The bidi algorithm itself.** `src/PdfPinata/Text/` is pinned to Unicode 17.0.0 by
   `BidiConformanceTests` and is not touched.
 - **`ParagraphFormat.TextDirection` and friends.** The three properties already take one type,
   `BidiParagraphDirection`, and that is settled.

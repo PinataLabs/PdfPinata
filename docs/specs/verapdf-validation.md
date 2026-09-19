@@ -69,7 +69,7 @@ alternatives were worse:
   down: the failure is silent-looking, an empty buffer rather than an exception.
 
 **Only the first of those was ever about licences rather than about tools, and it now has an
-answer.** `assets/icc/sRGB-v2-micro.icc` is 456 bytes released to the public domain under CC0 — no
+answer.** `src/assets/icc/sRGB-v2-micro.icc` is 456 bytes released to the public domain under CC0 — no
 attribution owed, the true sRGB primaries, and the real transfer curve sampled at 42 points instead
 of approximated. The other two bullets are untouched by the change and remain the reasons not to
 fetch or generate one.
@@ -88,7 +88,7 @@ Two things were settled along the way, each the answer to an objection worth rai
   `PdfOutputIntents` additionally checks the `acsp` signature every profile carries at byte 36 and
   says so by name.
 - **A binary cannot be read in a diff, and that is the real cost.** The code could be checked against
-  the sRGB specification by reading it. The mitigation is the hash in `assets/icc/LICENSE.txt` and
+  the sRGB specification by reading it. The mitigation is the hash in `src/assets/icc/LICENSE.txt` and
   the fact that veraPDF parses the profile on every run, which is a stronger check than review was.
 
 It has to be a *real* profile, which is the trap worth flagging and the reason none of this was

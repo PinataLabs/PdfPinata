@@ -1,7 +1,7 @@
 # Font Resolver
 
 > **Runnable version:** the `Fonts` demo.
-> `dotnet run --project SampleApp -- run -e Fonts`
+> `dotnet run --project src/SampleApp -- run -e Fonts`
 >
 > The demos are built on every commit and their page counts are asserted by
 > `DemoSmokeTests`, so one that stops working fails the build. The code on this page is
@@ -23,10 +23,10 @@ GlobalFontSettings.FontResolver = new SkiaFontResolver();          // PdfPinata.
 GlobalFontSettings.FontResolver = new ImageSharpFontResolver();    // PdfPinata.ImageSharp
 ```
 
-Both are built on [`FontResolverBase`](../../../PdfPinata/Utils/FontResolverBase.cs), which does
+Both are built on [`FontResolverBase`](../../../src/PdfPinata/Utils/FontResolverBase.cs), which does
 the searching, and both use the fonts installed on the operating system. The directories searched
 depend on which one that is — see
-[`LinuxSystemFontResolver`](../../../PdfPinata/Utils/LinuxSystemFontResolver.cs) for the Linux
+[`LinuxSystemFontResolver`](../../../src/PdfPinata/Utils/LinuxSystemFontResolver.cs) for the Linux
 list:
 
 **Windows**
@@ -94,9 +94,9 @@ itself — or the two will disagree about which face a family means.
 This implementation is obviously not complete.
 But it should be enough for everyone to implement their own.
 For more details have a look at
-[`FontResolverBase`](../../../PdfPinata/Utils/FontResolverBase.cs), which both shipped resolvers
+[`FontResolverBase`](../../../src/PdfPinata/Utils/FontResolverBase.cs), which both shipped resolvers
 are built on, or at
-[`BundledFontResolver`](../../../SampleApp/Infrastructure/BundledFontResolver.cs), which serves
+[`BundledFontResolver`](../../../src/SampleApp/Infrastructure/BundledFontResolver.cs), which serves
 faces out of the assembly exactly as this page describes so that the demos lay out identically
 wherever they are built.
 

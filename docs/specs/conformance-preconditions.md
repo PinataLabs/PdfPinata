@@ -27,7 +27,7 @@ enforcement, it is where it happens relative to where the mistake is made.
 The evidence that this is friction rather than good design is that **both test suites independently
 grew the same undeclared arrangement**. `XmpMetadataTests` has `Conforming(…)`; `EInvoiceTests` has
 `Prepared()`, whose comment explains it exists so that *"a test about invoicing fails for something
-about invoicing"*. `SampleApp/Demos/FacturXDemo.cs` needs a comment to say that setting `Info.Title`
+about invoicing"*. `src/SampleApp/Demos/FacturXDemo.cs` needs a comment to say that setting `Info.Title`
 is load-bearing rather than decorative, because nothing in the type says so.
 
 Two further rules are not in the module that advertises itself as their home. `PdfCIDFont` writes
@@ -149,11 +149,11 @@ the mistake.
 `PdfPinata.EInvoice` through `AttachTo`; the font writer through a saved document reopened and
 read.
 
-**Prior art to follow rather than reinvent.** `PdfPinata.Test/IO/XmpMetadataTests.cs` has
-`Conforming(…)` and `Save(Action<PdfDocument>)`. `PdfPinata.Test/Pdfs/EInvoiceTests.cs` has
+**Prior art to follow rather than reinvent.** `src/PdfPinata.Test/IO/XmpMetadataTests.cs` has
+`Conforming(…)` and `Save(Action<PdfDocument>)`. `src/PdfPinata.Test/Pdfs/EInvoiceTests.cs` has
 `Prepared()`, `Packet(…)` returning an `XDocument`, and `Latin1(…)`. These two helpers should
 converge on one, which is itself a small deliverable of this work.
-`PdfPinata.Test/Pdfs/CidFontConformanceTests.cs` and `StreamLengthTests` pin the writer-level
+`src/PdfPinata.Test/Pdfs/CidFontConformanceTests.cs` and `StreamLengthTests` pin the writer-level
 rules that veraPDF found and must keep passing.
 
 **The behaviours worth pinning.** Each of the six preconditions refused at the claim where it can be,

@@ -17,7 +17,7 @@ Two of them, and fixing only the first leaves the reporter where they started.
 
 ### Item 1 — the type does not exist
 
-`PdfPinata/Pdf.Annotations/` held `PdfLinkAnnotation`, `PdfTextAnnotation`,
+`src/PdfPinata/Pdf.Annotations/` held `PdfLinkAnnotation`, `PdfTextAnnotation`,
 `PdfRubberStampAnnotation`, `PdfWidgetAnnotation`, `PdfFileAttachmentAnnotation` and the `internal`
 `PdfGenericAnnotation`. The code in the issue does not compile.
 
@@ -145,7 +145,7 @@ which composites. No existing golden-image test changes — nothing they render 
 
 ## Verification
 
-`PdfPinata.Test/Annotations/TextMarkupAnnotationTests.cs`, 21 tests over the dictionary:
+`src/PdfPinata.Test/Annotations/TextMarkupAnnotationTests.cs`, 21 tests over the dictionary:
 
 - each subtype names itself; a quad is written as the four corners in the order above;
 - `/Rect` is the box around every quad, over one and over several; quads read back as given;
@@ -160,7 +160,7 @@ which composites. No existing golden-image test changes — nothing they render 
 - the whole thing survives a save and a read, with the quads added before the annotation is put on a
   page and with them added after — the array is built without an owning document in the first case.
 
-`PdfPinata.Test/Annotations/TextMarkupRenderingTests.cs`, 8 golden-image tests in the rasterizing
+`src/PdfPinata.Test/Annotations/TextMarkupRenderingTests.cs`, 8 golden-image tests in the rasterizing
 collection, which count coloured pixels rather than compare against a reference image — the question
 being asked is "is anything drawn at all", and the answer before this change was **0**:
 

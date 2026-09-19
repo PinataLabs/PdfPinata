@@ -8,7 +8,7 @@ The libraries in this project are published Open Source and under the [MIT licen
 PdfPinata is the Open Source .NET library that easily creates and processes PDF documents on the fly.
 The same drawing routines can be used to create PDF documents, draw on the screen, or send output to any printer.
 
-* [PdfPinata](PdfPinata/index.md)
+* [PdfPinata](src/PdfPinata/index.md)
 
 
 ## PinataLayout
