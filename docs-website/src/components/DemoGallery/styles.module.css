@@ -70,3 +70,8 @@
   list-style: none;
   font-size: 0.9rem;
 }
+
+/* Infima spaces consecutive list items vertically, which staggers a wrapped row of links. */
+.links li {
+  margin: 0;
+}

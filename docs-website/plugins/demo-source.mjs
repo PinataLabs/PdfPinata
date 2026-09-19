@@ -95,7 +95,7 @@ function stringMember(source, member) {
 function openPassword(source) {
   const literal = stringMember(source, 'OpenPassword');
   if (literal !== null) return literal;
-  const named = source.match(/override\s+string\?\s+OpenPassword\s*=>\s*(\w+)\s*;/);
+  const named = source.match(/override\s+string\??\s+OpenPassword\s*=>\s*(\w+)\s*;/);
   if (!named) return null;
   const constant = source.match(new RegExp(`const\\s+string\\s+${named[1]}\\s*=\\s*"([^"]*)"`));
   return constant ? constant[1] : null;
