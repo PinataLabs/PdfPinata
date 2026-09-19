@@ -1309,20 +1309,23 @@ public struct XMatrix : IFormattable
                 {
                     if ((type & XMatrixTypes.Scaling) != XMatrixTypes.Identity)
                     {
-                        rect.X *= matrix._m11;
-                        rect.Y *= matrix._m22;
-                        rect.Width *= matrix._m11;
-                        rect.Height *= matrix._m22;
-                        if (rect.Width < 0)
+                        // Computed apart from the rectangle and assigned once, because a mirroring
+                        // scale makes a size negative on the way and XRect refuses one outright.
+                        double x = rect.X * matrix._m11;
+                        double y = rect.Y * matrix._m22;
+                        double width = rect.Width * matrix._m11;
+                        double height = rect.Height * matrix._m22;
+                        if (width < 0)
                         {
-                            rect.X += rect.Width;
-                            rect.Width = -rect.Width;
+                            x += width;
+                            width = -width;
                         }
-                        if (rect.Height < 0)
+                        if (height < 0)
                         {
-                            rect.Y += rect.Height;
-                            rect.Height = -rect.Height;
+                            y += height;
+                            height = -height;
                         }
+                        rect = new XRect(x, y, width, height);
                     }
                     if ((type & XMatrixTypes.Translation) != XMatrixTypes.Identity)
                     {

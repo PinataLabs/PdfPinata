@@ -202,6 +202,28 @@ public class XMatrixFastPathTests
     }
 
     [Fact]
+    public void AMirroringScaleFlipsARectangleAndKeepsItsSizePositive()
+    {
+        // A y-flip is what every page transform with its origin at the bottom left is made of.
+        // The corners (1, 2) and (4, 6) land on (-1, -4) and (-4, -12), so the rectangle they
+        // span starts at the smaller of each pair.
+        var mirror = new XMatrix(-1, 0, 0, -2, 0, 0);
+
+        XRect.Transform(new XRect(1, 2, 3, 4), mirror).Should().Be(new XRect(-4, -12, 3, 8));
+    }
+
+    [Fact]
+    public void AFlipAndATranslationTransformARectangleInPlace()
+    {
+        var flip = new XMatrix(1, 0, 0, -1, 0, 100);
+        var rect = new XRect(10, 20, 30, 40);
+
+        rect.Transform(flip);
+
+        rect.Should().Be(new XRect(10, 40, 30, 40));
+    }
+
+    [Fact]
     public void TheIdentityLeavesARectangleAndNothingMovesTheEmptyOne()
     {
         XRect.Transform(new XRect(1, 2, 3, 4), XMatrix.Identity).Should().Be(new XRect(1, 2, 3, 4));
