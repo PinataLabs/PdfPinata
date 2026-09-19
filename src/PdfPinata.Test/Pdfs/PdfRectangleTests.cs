@@ -19,7 +19,8 @@ namespace PdfPinata.Test.Pdfs;
 ///   <para>
 ///   A page tree read from a file may state a box once on an intermediate node for every page
 ///   beneath it. Reading such a file copies the box down onto each page, and that is where a
-///   rectangle is made from whatever item the node holds: an array, or a reference to one.
+///   rectangle is made from whatever item the node holds: an array, or a reference to one. A node
+///   or a page whose entry is null, directly or by reference, is treated as having no entry.
 ///   </para>
 /// </summary>
 public class PdfRectangleTests
@@ -229,6 +230,69 @@ public class PdfRectangleTests
             .Should().Throw<System.InvalidOperationException>();
     }
 
+    [Theory]
+    [InlineData("/CropBox null", null)]
+    [InlineData("/CropBox 4 0 R", "null")]
+    public void ANullBoxOnTheParentIsNotCopiedOntoThePage(string pagesEntries, string extraObject)
+    {
+        // ISO 32000-1 7.3.7: an entry whose value is null is the same as no entry at all. It used
+        // to be read as the empty rectangle, copied down and written out as /CropBox [0 0 0 0],
+        // which crops the page to nothing; held by reference, it could not be read at all.
+        var extraObjects = extraObject == null ? new string[0] : new[] { extraObject };
+        var document = OpenPageTree("/MediaBox[0 0 300 400]" + pagesEntries, extraObjects);
+
+        document.Pages[0].Elements.ContainsKey("/CropBox").Should().BeFalse();
+
+        using var output = new MemoryStream();
+        document.Save(output, false);
+        var saved = output.ToArray();
+        Encoding.Latin1.GetString(saved).Should().NotContain("[0 0 0 0]");
+
+        var reread = Pdf.IO.PdfReader.Open(new MemoryStream(saved), PdfDocumentOpenMode.Modify);
+        reread.Pages[0].Elements.ContainsKey("/CropBox").Should().BeFalse();
+        reread.Pages[0].MediaBox.Should().Be(new PdfRectangle(new XPoint(0, 0), new XPoint(300, 400)));
+    }
+
+    [Fact]
+    public void ANullBoxPartWayDownTheTreeLeavesTheBoxFromFurtherUpInPlace()
+    {
+        // The inner node's null says nothing, so the box its own parent states still reaches the page.
+        var document = Open(new List<string>
+        {
+            "<</Type/Catalog/Pages 2 0 R>>",
+            "<</Type/Pages/Kids[3 0 R]/Count 1/MediaBox[0 0 300 400]/CropBox[5 5 295 395]>>",
+            "<</Type/Pages/Parent 2 0 R/Kids[4 0 R]/Count 1/CropBox null>>",
+            "<</Type/Page/Parent 3 0 R>>",
+        });
+
+        document.Pages[0].CropBox.Should().Be(new PdfRectangle(new XPoint(5, 5), new XPoint(295, 395)));
+    }
+
+    [Fact]
+    public void APageWhoseOwnBoxIsNullInheritsTheBoxItsParentStates()
+    {
+        var document = Open(new List<string>
+        {
+            "<</Type/Catalog/Pages 2 0 R>>",
+            "<</Type/Pages/Kids[3 0 R]/Count 1/MediaBox[0 0 300 400]/CropBox[5 5 295 395]>>",
+            "<</Type/Page/Parent 2 0 R/CropBox null>>",
+        });
+
+        document.Pages[0].CropBox.Should().Be(new PdfRectangle(new XPoint(5, 5), new XPoint(295, 395)));
+    }
+
+    [Theory]
+    [InlineData("/Rotate")]
+    [InlineData("/Resources")]
+    public void ANullForAnyOtherInheritableEntryIsAsIfItWereAbsent(string key)
+    {
+        // The same rule for the two inheritable entries that are not boxes. Neither could be read
+        // at all: the null was cast to the integer or the dictionary the entry should hold.
+        var document = OpenPageTree("/MediaBox[0 0 300 400]" + key + " null");
+
+        document.Pages[0].Elements.ContainsKey(key).Should().BeFalse();
+    }
+
     /// <summary>
     ///   One page under a page tree node carrying <paramref name="pagesEntries"/>, the page itself
     ///   stating no box at all. Anything in <paramref name="extraObjects"/> is numbered from four.
@@ -243,6 +307,11 @@ public class PdfRectangleTests
         };
         objects.AddRange(extraObjects);
 
+        return Open(objects);
+    }
+
+    private static PdfDocument Open(List<string> objects)
+    {
         return Pdf.IO.PdfReader.Open(new MemoryStream(RawPdf.Build(objects)), PdfDocumentOpenMode.Modify);
     }
 }
