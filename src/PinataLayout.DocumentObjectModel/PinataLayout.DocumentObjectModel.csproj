@@ -44,14 +44,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!--
-      The SDK names an embedded .resx after the root namespace and its folder unless a same-named
-      .cs sits beside it, and AppResources.Designer.cs is not that. The folder is itself called
-      PinataLayout.DocumentObjectModel.Resources, so the default would say PinataLayout.DocumentObjectModel
-      twice, a name the generated ResourceManager does not ask for, and every message in the
-      assembly would fail to load.
-    -->
-    <EmbeddedResource Update="PinataLayout.DocumentObjectModel.Resources\AppResources.resx"
+    <!-- Pinned to the name the generated ResourceManager asks for, so moving the folder cannot change it. -->
+    <EmbeddedResource Update="Resources\AppResources.resx"
                       LogicalName="PinataLayout.DocumentObjectModel.Resources.AppResources.resources" />
   </ItemGroup>
 
