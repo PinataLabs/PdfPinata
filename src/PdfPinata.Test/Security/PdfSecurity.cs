@@ -44,7 +44,7 @@ public class PdfSecurity
 
         loadDocument.PageCount.Should().Be(1);
         loadDocument.Outlines[0].Title.Should().Be("The only page");
-        loadDocument.Info.Producer.Should().Contain("PDFsharp");
+        loadDocument.Info.Producer.Should().Contain("PdfPinata");
     }
 
     [Fact]
