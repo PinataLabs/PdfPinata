@@ -62,5 +62,5 @@ public enum XDashStyle  // Same values as System.Drawing.Drawing2D.DashStyle.
     /// <summary>
     /// Specifies a user-defined custom dash style.
     /// </summary>
-    Custom = 5,
+    Custom = 5
 }

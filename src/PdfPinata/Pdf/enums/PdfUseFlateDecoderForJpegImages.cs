@@ -50,5 +50,5 @@ public enum PdfUseFlateDecoderForJpegImages
     /// PDFsharp will always use FlateDecode, even if this leads to larger files;
     /// this option is meant for testing purposes only and should not be used for production code.
     /// </summary>
-    Always,
+    Always
 }

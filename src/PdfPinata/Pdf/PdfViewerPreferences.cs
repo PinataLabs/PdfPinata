@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -109,10 +109,10 @@ public sealed class PdfViewerPreferences : PdfDictionary
     }
 
     /// <summary>
-    /// The predominant reading order for text: LeftToRight or RightToLeft 
+    /// The predominant reading order for text: LeftToRight or RightToLeft
     /// (including vertical writing systems, such as Chinese, Japanese, and Korean).
     /// This entry has no direct effect on the document’s contents or page numbering
-    /// but can be used to determine the relative positioning of pages when displayed 
+    /// but can be used to determine the relative positioning of pages when displayed
     /// side by side or printed n-up. Default value: LeftToRight.
     /// </summary>
     public PdfReadingDirection? Direction
@@ -200,13 +200,13 @@ public sealed class PdfViewerPreferences : PdfDictionary
         public const string DisplayDocTitle = "/DisplayDocTitle";
 
         /// <summary>
-        /// (Optional) The document’s page mode, specifying how to display the document on 
+        /// (Optional) The document’s page mode, specifying how to display the document on
         /// exiting full-screen mode:
         ///   UseNone     Neither document outline nor thumbnail images visible
         ///   UseOutlines Document outline visible
         ///   UseThumbs   Thumbnail images visible
         ///   UseOC       Optional content group panel visible
-        /// This entry is meaningful only if the value of the PageMode entry in the catalog 
+        /// This entry is meaningful only if the value of the PageMode entry in the catalog
         /// dictionary is FullScreen; it is ignored otherwise. Default value: UseNone.
         /// </summary>
         [KeyInfo(KeyType.Name | KeyType.Optional)]
@@ -217,7 +217,7 @@ public sealed class PdfViewerPreferences : PdfDictionary
         ///   L2R  Left to right
         ///   R2L  Right to left (including vertical writing systems, such as Chinese, Japanese, and Korean)
         /// This entry has no direct effect on the document’s contents or page numbering
-        /// but can be used to determine the relative positioning of pages when displayed 
+        /// but can be used to determine the relative positioning of pages when displayed
         /// side by side or printed n-up. Default value: L2R.
         /// </summary>
         [KeyInfo(KeyType.Name | KeyType.Optional)]
@@ -225,7 +225,7 @@ public sealed class PdfViewerPreferences : PdfDictionary
 
         /// <summary>
         /// (Optional; PDF 1.4) The name of the page boundary representing the area of a page
-        /// to be displayed when viewing the document on the screen. The value is the key 
+        /// to be displayed when viewing the document on the screen. The value is the key
         /// designating the relevant page boundary in the page object. If the specified page
         /// boundary is not defined in the page object, its default value is used.
         /// Default value: CropBox.
@@ -237,9 +237,9 @@ public sealed class PdfViewerPreferences : PdfDictionary
         public const string ViewArea = "/ViewArea";
 
         /// <summary>
-        /// (Optional; PDF 1.4) The name of the page boundary to which the contents of a page 
-        /// are to be clipped when viewing the document on the screen. The value is the key 
-        /// designating the relevant page boundary in the page object. If the specified page 
+        /// (Optional; PDF 1.4) The name of the page boundary to which the contents of a page
+        /// are to be clipped when viewing the document on the screen. The value is the key
+        /// designating the relevant page boundary in the page object. If the specified page
         /// boundary is not defined in the page object, its default value is used.
         /// Default value: CropBox.
         /// Note: This entry is intended primarily for use by prepress applications that
@@ -251,8 +251,8 @@ public sealed class PdfViewerPreferences : PdfDictionary
 
         /// <summary>
         /// (Optional; PDF 1.4) The name of the page boundary representing the area of a page
-        /// to be rendered when printing the document. The value is the key designating the 
-        /// relevant page boundary in the page object. If the specified page boundary is not 
+        /// to be rendered when printing the document. The value is the key designating the
+        /// relevant page boundary in the page object. If the specified page boundary is not
         /// defined in the page object, its default value is used.
         /// Default value: CropBox.
         /// Note: This entry is intended primarily for use by prepress applications that
@@ -264,7 +264,7 @@ public sealed class PdfViewerPreferences : PdfDictionary
 
         /// <summary>
         /// (Optional; PDF 1.4) The name of the page boundary to which the contents of a page
-        /// are to be clipped when printing the document. The value is the key designating the 
+        /// are to be clipped when printing the document. The value is the key designating the
         /// relevant page boundary in the page object. If the specified page boundary is not
         /// defined in the page object, its default value is used.
         /// Default value: CropBox.
@@ -277,7 +277,7 @@ public sealed class PdfViewerPreferences : PdfDictionary
         /// <summary>
         /// (Optional; PDF 1.6) The page scaling option to be selected when a print dialog is
         /// displayed for this document. Valid values are None, which indicates that the print
-        /// dialog should reflect no page scaling, and AppDefault, which indicates that 
+        /// dialog should reflect no page scaling, and AppDefault, which indicates that
         /// applications should use the current print scaling. If this entry has an unrecognized
         /// value, applications should use the current print scaling.
         /// Default value: AppDefault.

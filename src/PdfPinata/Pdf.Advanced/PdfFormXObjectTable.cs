@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -56,7 +56,7 @@ internal sealed class PdfFormXObjectTable : PdfResourceTable
 
     /// <summary>
     /// Gets a PdfFormXObject from an XPdfForm. Because the returned objects must be unique, always
-    /// a new instance of PdfFormXObject is created if none exists for the specified form. 
+    /// a new instance of PdfFormXObject is created if none exists for the specified form.
     /// </summary>
     public PdfFormXObject GetForm(XForm form)
     {
@@ -74,17 +74,17 @@ internal sealed class PdfFormXObjectTable : PdfResourceTable
         if (form is XPdfForm pdfForm)
         {
             // Is the external PDF file from which is imported already known for the current document?
-            Selector selector = new Selector(form);
+            var selector = new Selector(form);
             PdfImportedObjectTable importedObjectTable;
             if (!_forms.TryGetValue(selector, out importedObjectTable))
             {
                 // No: Get the external document from the form and create ImportedObjectTable.
-                PdfDocument doc = pdfForm.ExternalDocument;
+                var doc = pdfForm.ExternalDocument;
                 importedObjectTable = new PdfImportedObjectTable(Owner, doc);
                 _forms[selector] = importedObjectTable;
             }
 
-            PdfFormXObject xObject = importedObjectTable.GetXObject(pdfForm.PageNumber);
+            var xObject = importedObjectTable.GetXObject(pdfForm.PageNumber);
             if (xObject == null)
             {
                 xObject = new PdfFormXObject(Owner, importedObjectTable, pdfForm);
@@ -103,7 +103,7 @@ internal sealed class PdfFormXObjectTable : PdfResourceTable
     public PdfImportedObjectTable GetImportedObjectTable(PdfPage page)
     {
         // Is the external PDF file from which is imported already known for the current document?
-        Selector selector = new Selector(page);
+        var selector = new Selector(page);
         PdfImportedObjectTable importedObjectTable;
         if (!_forms.TryGetValue(selector, out importedObjectTable))
         {
@@ -121,7 +121,7 @@ internal sealed class PdfFormXObjectTable : PdfResourceTable
         ArgumentNullException.ThrowIfNull(document);
 
         // Is the external PDF file from which is imported already known for the current document?
-        Selector selector = new Selector(document);
+        var selector = new Selector(document);
         if (!_forms.TryGetValue(selector, out var importedObjectTable))
         {
             // Create new table for document.
@@ -135,9 +135,9 @@ internal sealed class PdfFormXObjectTable : PdfResourceTable
     {
         if (handle.IsAlive)
         {
-            foreach (Selector selector in _forms.Keys)
+            foreach (var selector in _forms.Keys)
             {
-                PdfImportedObjectTable table = _forms[selector];
+                var table = _forms[selector];
                 if (table.ExternalDocument != null && table.ExternalDocument.Handle == handle)
                 {
                     _forms.Remove(selector);
@@ -147,13 +147,13 @@ internal sealed class PdfFormXObjectTable : PdfResourceTable
         }
 
         // Clean table
-        bool itemRemoved = true;
+        var itemRemoved = true;
         while (itemRemoved)
         {
             itemRemoved = false;
-            foreach (Selector selector in _forms.Keys)
+            foreach (var selector in _forms.Keys)
             {
-                PdfImportedObjectTable table = _forms[selector];
+                var table = _forms[selector];
                 if (table.ExternalDocument == null)
                 {
                     _forms.Remove(selector);
@@ -188,7 +188,7 @@ internal sealed class PdfFormXObjectTable : PdfResourceTable
         /// </summary>
         public Selector(PdfPage page)
         {
-            PdfDocument owner = page.Owner;
+            var owner = page.Owner;
             _path = "*" + owner.Guid.ToString("B");
             _path = _path.ToLowerInvariant();
         }
@@ -208,14 +208,16 @@ internal sealed class PdfFormXObjectTable : PdfResourceTable
 
         public override bool Equals(object obj)
         {
-            Selector selector = obj as Selector;
-            if (obj == null)
+            var selector = obj as Selector;
+            if (selector == null)
                 return false;
-            return _path == selector._path; ;
+            // ReSharper disable once PossibleNullReferenceException
+            return _path == selector._path;
         }
 
         public override int GetHashCode()
         {
+            // ReSharper disable once NonReadonlyMemberInGetHashCode
             return _path.GetHashCode();
         }
     }

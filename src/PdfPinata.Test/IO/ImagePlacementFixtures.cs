@@ -61,7 +61,7 @@ internal static class ImagePlacementFixtures
             RawPdf.Stream("", "q 100 0 0 -100"),
             RawPdf.Stream("", "10 110 cm"),
             RawPdf.Stream("", "/Im0 Do Q"),
-            Image(),
+            Image()
         });
     }
 
@@ -101,7 +101,7 @@ internal static class ImagePlacementFixtures
             "<</Type/Pages/Kids[3 0 R]/Count 1>>",
             Page("/Resources<</XObject<</Im0 5 0 R>>>>/Contents 4 0 R"),
             RawPdf.Stream("/Filter/JPXDecode", "not a JPEG 2000 codestream"),
-            Image(),
+            Image()
         });
     }
 
@@ -139,7 +139,7 @@ internal static class ImagePlacementFixtures
             "<</Type/Catalog/Pages 2 0 R>>",
             "<</Type/Pages/Kids[3 0 R]/Count 1>>",
             Page("/Resources<<" + resources + ">>/Contents 4 0 R"),
-            RawPdf.Stream("", content),
+            RawPdf.Stream("", content)
         };
         objects.AddRange(rest);
 

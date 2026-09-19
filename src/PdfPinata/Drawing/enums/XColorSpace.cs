@@ -47,5 +47,5 @@ public enum XColorSpace
     /// <summary>
     /// Identifies the gray scale color space.
     /// </summary>
-    GrayScale,
+    GrayScale
 }

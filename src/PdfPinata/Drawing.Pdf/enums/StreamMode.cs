@@ -42,5 +42,5 @@ enum StreamMode
     /// <summary>
     /// Text mode.
     /// </summary>
-    Text,
+    Text
 }

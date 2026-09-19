@@ -16,7 +16,7 @@ internal static class PdfContentStreams
     {
         content = null;
 
-        PdfItem item = page.Elements[PdfPage.Keys.Contents];
+        var item = page.Elements[PdfPage.Keys.Contents];
         if (item is PdfReference)
             item = ((PdfReference)item).Value;
 
@@ -27,15 +27,15 @@ internal static class PdfContentStreams
             return true;
         }
 
-        PdfArray streams = item as PdfArray;
+        var streams = item as PdfArray;
         if (streams == null)
             return TryGetContent(item as PdfDictionary, out content);
 
         // The streams of a page are one stream broken up, and a token may span the break, so
         // they are read as one with a separator where each break was.
-        List<byte[]> parts = new List<byte[]>();
-        int length = 0;
-        for (int idx = 0; idx < streams.Elements.Count; idx++)
+        var parts = new List<byte[]>();
+        var length = 0;
+        for (var idx = 0; idx < streams.Elements.Count; idx++)
         {
             byte[] part;
             if (!TryGetContent(streams.Elements.GetDictionary(idx), out part))
@@ -46,8 +46,8 @@ internal static class PdfContentStreams
         }
 
         content = new byte[length];
-        int at = 0;
-        foreach (byte[] part in parts)
+        var at = 0;
+        foreach (var part in parts)
         {
             part.CopyTo(content, at);
             at += part.Length;

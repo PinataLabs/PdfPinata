@@ -63,7 +63,7 @@ public sealed class IntervalSet : IReadOnlyList<XInterval>
     {
         ArgumentNullException.ThrowIfNull(intervals);
 
-        XInterval[] normalised = Normalise(intervals);
+        var normalised = Normalise(intervals);
         return normalised.Length == 0 ? Empty : new IntervalSet(normalised);
     }
 
@@ -87,17 +87,17 @@ public sealed class IntervalSet : IReadOnlyList<XInterval>
     {
         ArgumentNullException.ThrowIfNull(excluded);
 
-        XInterval[] cuts = Normalise(excluded);
+        var cuts = Normalise(excluded);
         if (cuts.Length == 0 || _intervals.Length == 0)
             return this;
 
         var kept = new List<XInterval>();
 
-        foreach (XInterval free in _intervals)
+        foreach (var free in _intervals)
         {
-            double cursor = free.Start;
+            var cursor = free.Start;
 
-            foreach (XInterval cut in cuts)
+            foreach (var cut in cuts)
             {
                 // Wholly to the left of where we have got to, or wholly to the right of this run.
                 // The cuts are in order, so once one starts past the run's end so does every one
@@ -138,9 +138,9 @@ public sealed class IntervalSet : IReadOnlyList<XInterval>
             return Empty;
 
         var kept = new List<XInterval>(_intervals.Length);
-        foreach (XInterval interval in _intervals)
+        foreach (var interval in _intervals)
         {
-            XInterval part = interval.Intersect(bounds);
+            var part = interval.Intersect(bounds);
             if (!part.IsEmpty)
                 kept.Add(part);
         }
@@ -186,10 +186,10 @@ public sealed class IntervalSet : IReadOnlyList<XInterval>
         }
 
         widest = default;
-        double widestSoFar = tolerance;
-        bool found = false;
+        var widestSoFar = tolerance;
+        var found = false;
 
-        foreach (XInterval interval in _intervals)
+        foreach (var interval in _intervals)
         {
             if (interval.Width <= widestSoFar)
                 continue;
@@ -222,7 +222,7 @@ public sealed class IntervalSet : IReadOnlyList<XInterval>
     static XInterval[] Normalise(IEnumerable<XInterval> intervals)
     {
         var ordered = new List<XInterval>();
-        foreach (XInterval interval in intervals)
+        foreach (var interval in intervals)
         {
             if (!interval.IsEmpty)
                 ordered.Add(interval);
@@ -234,12 +234,12 @@ public sealed class IntervalSet : IReadOnlyList<XInterval>
         ordered.Sort((first, second) => first.Start.CompareTo(second.Start));
 
         var merged = new List<XInterval>(ordered.Count);
-        double start = ordered[0].Start;
-        double end = ordered[0].End;
+        var start = ordered[0].Start;
+        var end = ordered[0].End;
 
-        for (int idx = 1; idx < ordered.Count; idx++)
+        for (var idx = 1; idx < ordered.Count; idx++)
         {
-            XInterval next = ordered[idx];
+            var next = ordered[idx];
 
             // Touching counts as merging: two runs meeting end to end are one run, and leaving them
             // apart would offer a caller two narrow spans where there is one wide one.

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -60,24 +59,24 @@ public static class DemoSource
     /// </remarks>
     public static string? Example(PdfDemo demo)
     {
-        string? text = Read(demo);
+        var text = Read(demo);
         return text is null ? null : ExampleFrom(text);
     }
 
     /// <summary>The extraction itself, split out so it can be tested against a string.</summary>
     public static string? ExampleFrom(string source)
     {
-        string[] lines = source.Replace("\r\n", "\n").Split('\n');
+        var lines = source.Replace("\r\n", "\n").Split('\n');
 
-        int begin = Array.FindIndex(lines, line => line.Trim() == BeginMarker);
+        var begin = Array.FindIndex(lines, line => line.Trim() == BeginMarker);
         if (begin < 0)
             return null;
 
-        int end = Array.FindIndex(lines, begin + 1, line => line.Trim().StartsWith(EndMarker, StringComparison.Ordinal));
+        var end = Array.FindIndex(lines, begin + 1, line => line.Trim().StartsWith(EndMarker, StringComparison.Ordinal));
         if (end < 0)
             return null;
 
-        List<string> body = lines
+        var body = lines
             .Skip(begin + 1)
             .Take(end - begin - 1)
             .Where(line => !line.TrimStart().StartsWith(SnippetMarkerPrefix, StringComparison.Ordinal))
@@ -87,13 +86,13 @@ public static class DemoSource
         // report an indent of zero and defeat the dedent.
         while (body.Count > 0 && body[0].Trim().Length == 0)
             body.RemoveAt(0);
-        while (body.Count > 0 && body[body.Count - 1].Trim().Length == 0)
+        while (body.Count > 0 && body[^1].Trim().Length == 0)
             body.RemoveAt(body.Count - 1);
 
         if (body.Count == 0)
             return null;
 
-        int indent = body
+        var indent = body
             .Where(line => line.Trim().Length > 0)
             .Select(line => line.Length - line.TrimStart().Length)
             .DefaultIfEmpty(0)
@@ -101,6 +100,6 @@ public static class DemoSource
 
         return string.Join(
             Environment.NewLine,
-            body.Select(line => line.Length >= indent ? line.Substring(indent) : line.TrimStart()));
+            body.Select(line => line.Length >= indent ? line[indent..] : line.TrimStart()));
     }
 }

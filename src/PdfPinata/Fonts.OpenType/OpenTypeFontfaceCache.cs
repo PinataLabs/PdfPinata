@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -56,7 +56,7 @@ internal class OpenTypeFontfaceCache
         try
         {
             Lock.EnterFontFactory();
-            bool result = Singleton._fontfaceCache.TryGetValue(key, out fontface);
+            var result = Singleton._fontfaceCache.TryGetValue(key, out fontface);
             return result;
         }
         finally { Lock.ExitFontFactory(); }
@@ -70,7 +70,7 @@ internal class OpenTypeFontfaceCache
         try
         {
             Lock.EnterFontFactory();
-            bool result = Singleton._fontfacesByCheckSum.TryGetValue(checkSum, out fontface);
+            var result = Singleton._fontfacesByCheckSum.TryGetValue(checkSum, out fontface);
             return result;
         }
         finally { Lock.ExitFontFactory(); }
@@ -120,15 +120,15 @@ internal class OpenTypeFontfaceCache
 
     internal static string GetCacheState()
     {
-        StringBuilder state = new StringBuilder();
+        var state = new StringBuilder();
         state.Append("====================\n");
         state.Append("OpenType fontfaces by name\n");
-        Dictionary<string, OpenTypeFontface>.KeyCollection familyKeys = Singleton._fontfaceCache.Keys;
-        int count = familyKeys.Count;
-        string[] keys = new string[count];
+        var familyKeys = Singleton._fontfaceCache.Keys;
+        var count = familyKeys.Count;
+        var keys = new string[count];
         familyKeys.CopyTo(keys, 0);
         Array.Sort(keys, StringComparer.OrdinalIgnoreCase);
-        foreach (string key in keys)
+        foreach (var key in keys)
             state.AppendFormat("  {0}: {1}\n", key, Singleton._fontfaceCache[key].DebuggerDisplay);
         state.Append('\n');
         return state.ToString();

@@ -16,5 +16,5 @@ public enum BidiParagraphDirection
     LeftToRight = 1,
 
     /// <summary>Right to left, whatever the text says.</summary>
-    RightToLeft = 2,
+    RightToLeft = 2
 }

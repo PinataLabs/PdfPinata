@@ -23,7 +23,7 @@ internal sealed class OrientationDemo : PdfDemo
         "Six page sizes from the ISO and North American sets",
         "PageOrientation.Landscape swapping the sides",
         "XUnit converting one size into points, millimetres and inches",
-        "page.Rotate turning what a reader shows without moving the drawing",
+        "page.Rotate turning what a reader shows without moving the drawing"
     };
 
     public override int PageCount => 6;
@@ -31,11 +31,11 @@ internal sealed class OrientationDemo : PdfDemo
     protected override PdfDocument Build(DemoContext context)
     {
         #region example
-        PdfDocument document = new PdfDocument();
+        var document = new PdfDocument();
 
-        XFont title = new XFont("Liberation Sans", 22, XFontStyle.Bold);
-        XFont label = new XFont("Liberation Sans", 10);
-        XFont small = new XFont("Liberation Sans", 8);
+        var title = new XFont("Liberation Sans", 22, XFontStyle.Bold);
+        var label = new XFont("Liberation Sans", 10);
+        var small = new XFont("Liberation Sans", 8);
 
         (PageSize Size, PageOrientation Orientation, string Note)[] pages =
         {
@@ -44,13 +44,13 @@ internal sealed class OrientationDemo : PdfDemo
             (PageSize.A3, PageOrientation.Portrait, "twice A4"),
             (PageSize.A6, PageOrientation.Portrait, "an eighth of A3"),
             (PageSize.Letter, PageOrientation.Portrait, "North American"),
-            (PageSize.Legal, PageOrientation.Landscape, "North American, turned"),
+            (PageSize.Legal, PageOrientation.Landscape, "North American, turned")
         };
 
-        foreach ((PageSize size, PageOrientation orientation, string note) in pages)
+        foreach ((var size, var orientation, var note) in pages)
         {
             // docs:begin page-size
-            PdfPage page = document.AddPage();
+            var page = document.AddPage();
 
             // Size and Orientation are set before anything is drawn. The Size setter throws
             // on a page that already has content, because writing a new media box would
@@ -59,19 +59,19 @@ internal sealed class OrientationDemo : PdfDemo
             page.Size = size;
             page.Orientation = orientation;
 
-            XGraphics gfx = XGraphics.FromPdfPage(page);
-            double width = page.Width.Point;
-            double height = page.Height.Point;
+            var gfx = XGraphics.FromPdfPage(page);
+            var width = page.Width.Point;
+            var height = page.Height.Point;
             // docs:end page-size
 
             // A frame, corner ticks and a diagonal, so the shape of the page and which way
             // up it is can be read at a glance.
             gfx.DrawRectangle(new XPen(XColors.Gainsboro, 1), 24, 24, width - 48, height - 48);
             gfx.DrawLine(new XPen(XColors.WhiteSmoke, 1), 24, 24, width - 24, height - 24);
-            foreach (XPoint corner in new[]
+            foreach (var corner in new[]
                      {
                          new XPoint(24, 24), new XPoint(width - 24, 24),
-                         new XPoint(24, height - 24), new XPoint(width - 24, height - 24),
+                         new XPoint(24, height - 24), new XPoint(width - 24, height - 24)
                      })
             {
                 gfx.DrawRectangle(XBrushes.SteelBlue, corner.X - 3, corner.Y - 3, 6, 6);
@@ -84,20 +84,20 @@ internal sealed class OrientationDemo : PdfDemo
             // XUnit is what the page's Width and Height are, and it converts rather than
             // being converted: the same measurement read three ways.
             // docs:begin units
-            XUnit pageWidth = page.Width;
-            XUnit pageHeight = page.Height;
+            var pageWidth = page.Width;
+            var pageHeight = page.Height;
 
             string[] lines =
             {
                 $"{pageWidth.Point:0.#} x {pageHeight.Point:0.#} points",
                 $"{pageWidth.Millimeter:0.#} x {pageHeight.Millimeter:0.#} mm",
                 $"{pageWidth.Inch:0.00} x {pageHeight.Inch:0.00} inches",
-                $"PageSizeConverter.ToSize({size}) = {PageSizeConverter.ToSize(size)}",
+                $"PageSizeConverter.ToSize({size}) = {PageSizeConverter.ToSize(size)}"
             };
             // docs:end units
 
             double y = 148;
-            foreach (string line in lines)
+            foreach (var line in lines)
             {
                 gfx.DrawString(line, label, XBrushes.Black, new XPoint(56, y));
                 y += 16;

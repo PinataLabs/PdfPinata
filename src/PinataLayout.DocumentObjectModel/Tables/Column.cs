@@ -26,7 +26,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -75,7 +75,7 @@ public partial class Column : DocumentObject
     {
       if (this.table == null)
       {
-        Columns clms = this.Parent as Columns;
+        var clms = this.Parent as Columns;
         if (clms != null)
           this.table = clms.Parent as Table;
       }
@@ -93,9 +93,9 @@ public partial class Column : DocumentObject
     {
       if (!index.HasValue)
       {
-        Columns clms = (Columns)Parent;
+        var clms = (Columns)Parent;
         // One for all and all for one.
-        for (int i = 0; i < clms.Count; ++i)
+        for (var i = 0; i < clms.Count; ++i)
         {
           clms[i].index = i;
         }
@@ -109,9 +109,9 @@ public partial class Column : DocumentObject
   /// <summary>
   /// Gets a cell by its row index. The first cell has index 0.
   /// </summary>
-  public Cell this[int index] =>
+  public Cell this[int rowIndex] =>
     //Check.ArgumentOutOfRange(index >= 0 && index < table.Rows.Count, "index");
-    Table.Rows[index][this.index ?? 0];
+    Table.Rows[rowIndex][index ?? 0];
 
   /// <summary>
   /// Sets or gets the default style name for all cells of the column.
@@ -264,7 +264,7 @@ public partial class Column : DocumentObject
     serializer.WriteComment((this.comment ?? ""));
     serializer.WriteLine("\\column");
 
-    int pos = serializer.BeginAttributes();
+    var pos = serializer.BeginAttributes();
 
     if ((this.style ?? "") != String.Empty)
       serializer.WriteSimpleAttribute("Style", this.Style);

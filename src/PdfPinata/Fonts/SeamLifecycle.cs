@@ -19,5 +19,5 @@ public enum SeamLifecycle
     /// The seam may be set, replaced or cleared at any time. Nothing depends on it having stayed
     /// the same.
     /// </summary>
-    SetAnytime,
+    SetAnytime
 }

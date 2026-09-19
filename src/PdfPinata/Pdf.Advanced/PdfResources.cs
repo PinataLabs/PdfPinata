@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -40,7 +40,7 @@ public sealed class PdfResources : PdfDictionary
     // When the user creates an XFont and uses it in the XGraphics of a PdfPage, then at the first time
     // a PdfFont is created and cached in the document global font table. If the user creates a new
     // XFont object for an existing PdfFont, the PdfFont object is reused. When the PdfFont is added
-    // to the resources of a PdfPage for the first time, it is added to the page local PdfResourceMap for 
+    // to the resources of a PdfPage for the first time, it is added to the page local PdfResourceMap for
     // fonts and automatically associated with a local resource name.
 
     /// <summary>
@@ -307,7 +307,7 @@ public sealed class PdfResources : PdfDictionary
     internal bool ExistsResourceNames(string name)
     {
         // TODO: more precise: is this page imported and is PageOptions != Replace
-        // BUG: 
+        // BUG:
         //if (!Owner.IsImported)
         //  return false;
 
@@ -358,7 +358,7 @@ public sealed class PdfResources : PdfDictionary
     public sealed class Keys : KeysBase
     {
         /// <summary>
-        /// (Optional) A dictionary that maps resource names to graphics state 
+        /// (Optional) A dictionary that maps resource names to graphics state
         /// parameter dictionaries.
         /// </summary>
         [KeyInfo(KeyType.Dictionary | KeyType.Optional, typeof(PdfResourceMap))]

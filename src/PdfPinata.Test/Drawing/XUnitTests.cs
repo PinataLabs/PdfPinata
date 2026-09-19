@@ -32,7 +32,7 @@ public class XUnitTests
         XUnit.FromInch(1),
         XUnit.FromMillimeter(OneInchInMillimeter),
         XUnit.FromCentimeter(OneInchInCentimeter),
-        XUnit.FromPresentation(OneInchInPresentation),
+        XUnit.FromPresentation(OneInchInPresentation)
     };
 
     public static TheoryData<int> EachWayOfWritingOneInch()
@@ -71,7 +71,7 @@ public class XUnitTests
             XGraphicsUnit.Millimeter => unit.Millimeter,
             XGraphicsUnit.Centimeter => unit.Centimeter,
             XGraphicsUnit.Presentation => unit.Presentation,
-            _ => throw new InvalidOperationException(),
+            _ => throw new InvalidOperationException()
         };
 
         unit.Value.Should().Be(throughItsOwnGetter);
@@ -282,6 +282,7 @@ public class XUnitTests
     [Fact]
     public void SomethingThatIsNotAUnitIsNotEqualToOne()
     {
+        // ReSharper disable once SuspiciousTypeConversion.Global
         XUnit.FromPoint(1).Equals("1pt").Should().BeFalse();
     }
 

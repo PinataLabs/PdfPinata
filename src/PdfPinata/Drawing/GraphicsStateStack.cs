@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -57,8 +57,8 @@ internal class GraphicsStateStack
         if (state.Invalid)
             throw new ArgumentException("State already restored.", nameof(state));
 
-        int count = 1;
-        InternalGraphicsState top = _stack.Pop();
+        var count = 1;
+        var top = _stack.Pop();
         top.Popped();
         while (top != state)
         {

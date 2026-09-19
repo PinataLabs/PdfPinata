@@ -41,7 +41,7 @@ internal class OpenTypeFontTable : ICloneable
     public OpenTypeFontTable(OpenTypeFontface fontData, string tag)
     {
         _fontData = fontData;
-        if (fontData != null && fontData.TableDictionary.TryGetValue(tag, out TableDirectoryEntry entry))
+        if (fontData != null && fontData.TableDictionary.TryGetValue(tag, out var entry))
             DirectoryEntry = entry;
         else
             DirectoryEntry = new TableDirectoryEntry(tag);
@@ -58,7 +58,7 @@ internal class OpenTypeFontTable : ICloneable
 
     protected virtual OpenTypeFontTable DeepCopy()
     {
-        OpenTypeFontTable fontTable = (OpenTypeFontTable)MemberwiseClone();
+        var fontTable = (OpenTypeFontTable)MemberwiseClone();
         fontTable.DirectoryEntry.Offset = 0;
         fontTable.DirectoryEntry.FontTable = fontTable;
         return fontTable;
@@ -94,8 +94,8 @@ internal class OpenTypeFontTable : ICloneable
         // Cannot use Buffer.BlockCopy because 32-bit values are Big-endian in fonts.
         uint byte3, byte2, byte1, byte0;
         byte3 = byte2 = byte1 = byte0 = 0;
-        int length = bytes.Length;
-        for (int idx = 0; idx < length;)
+        var length = bytes.Length;
+        for (var idx = 0; idx < length;)
         {
             byte3 += bytes[idx++];
             byte2 += bytes[idx++];

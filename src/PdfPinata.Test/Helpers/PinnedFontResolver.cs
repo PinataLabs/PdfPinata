@@ -25,7 +25,7 @@ namespace PdfPinata.Test.Helpers;
 ///   shared with those two projects - so that the one fact deciding every layout assertion in
 ///   three suites has one file to edit. Compiling it needs no project reference, which is why it
 ///   resolves its own path through the executing assembly rather than through
-///   <see cref="PathHelper"/>: a type that, unlike this one, is not linked anywhere.
+///   <c>PathHelper</c>: a type that, unlike this one, is not linked anywhere.
 /// </remarks>
 internal sealed class PinnedFontResolver : IFontResolver
 {
@@ -83,7 +83,7 @@ internal sealed class PinnedFontResolver : IFontResolver
     /// </summary>
     public static void Register(string familyName, byte[] fontBytes)
     {
-        string faceName = familyName + ".test";
+        var faceName = familyName + ".test";
         Fonts.TryAdd(faceName, fontBytes);
         Registered.TryAdd(familyName, faceName);
     }
@@ -92,7 +92,7 @@ internal sealed class PinnedFontResolver : IFontResolver
 
     public FontResolverInfo ResolveTypeface(string familyName, bool isBold, bool isItalic)
     {
-        if (Registered.TryGetValue(familyName, out string testFaceName))
+        if (Registered.TryGetValue(familyName, out var testFaceName))
             return new FontResolverInfo(testFaceName);
 
         if (string.Equals(familyName, ArabicFamilyName, StringComparison.OrdinalIgnoreCase))
@@ -113,7 +113,7 @@ internal sealed class PinnedFontResolver : IFontResolver
             // A regular face is all that is shipped for this family, so a bold or an italic has
             // to be drawn on. That also gives the style-simulation tests a family to work with:
             // the same file answers every request, so only the simulation differs.
-            XStyleSimulations simulations =
+            var simulations =
                 (isBold ? XStyleSimulations.BoldSimulation : XStyleSimulations.None)
                 | (isItalic ? XStyleSimulations.ItalicSimulation : XStyleSimulations.None);
 
@@ -136,7 +136,7 @@ internal sealed class PinnedFontResolver : IFontResolver
     /// </summary>
     /// <remarks>
     ///   Resolved through the executing assembly's own location rather than through
-    ///   <see cref="PathHelper"/>, because this class is linked into two other test projects that
+    ///   <c>PathHelper</c>, because this class is linked into two other test projects that
     ///   do not reference this one and so cannot see that type. Every project this file is linked
     ///   into copies "Assets/Fonts" from this one's into its own output directory.
     /// </remarks>
@@ -144,21 +144,21 @@ internal sealed class PinnedFontResolver : IFontResolver
     {
         var directory = Path.GetDirectoryName(typeof(PinnedFontResolver).GetTypeInfo().Assembly.Location);
 
-        if (faceName == CffFaceName || faceName == ArabicFaceName
-            || faceName == DevanagariFaceName)
+        if (faceName is CffFaceName or ArabicFaceName or DevanagariFaceName)
+            // ReSharper disable once AssignNullToNotNullAttribute
             return Path.Combine(directory, "Assets", "Fonts", faceName);
 
+        // ReSharper disable once AssignNullToNotNullAttribute
         return Path.Combine(directory, "Assets", "Fonts", "LiberationSans-" + faceName + ".ttf");
     }
 
     private static string FaceNameOf(bool isBold, bool isItalic)
     {
-        if (isBold && isItalic)
-            return "BoldItalic";
-        if (isBold)
-            return "Bold";
-        if (isItalic)
-            return "Italic";
-        return "Regular";
+        return isBold switch
+        {
+            true when isItalic => "BoldItalic",
+            true => "Bold",
+            _ => isItalic ? "Italic" : "Regular"
+        };
     }
 }

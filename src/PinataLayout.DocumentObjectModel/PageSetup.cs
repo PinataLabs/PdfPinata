@@ -26,7 +26,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -379,12 +379,12 @@ public partial class PageSetup : DocumentObject
   #endregion
 
   /// <summary>
-  /// Gets the PageSetup of the previous section, or null, if the page setup belongs 
+  /// Gets the PageSetup of the previous section, or null, if the page setup belongs
   /// to the first section.
   /// </summary>
   public PageSetup PreviousPageSetup()
   {
-    Section section = Parent as Section;
+    var section = Parent as Section;
     if (section != null)
     {
       section = section.PreviousSection();
@@ -425,7 +425,7 @@ public partial class PageSetup : DocumentObject
 
   private static PageSetup CreateDefaultPageSetup()
   {
-    PageSetup pageSetup = new PageSetup();
+    var pageSetup = new PageSetup();
     pageSetup.PageFormat = PageFormat.A4;
     pageSetup.SectionStart = BreakType.BreakNextPage;
     pageSetup.Orientation = Orientation.Portrait;
@@ -475,7 +475,7 @@ public partial class PageSetup : DocumentObject
   internal override void Serialize(Serializer serializer)
   {
     serializer.WriteComment((comment ?? ""));
-    int pos = serializer.BeginContent("PageSetup");
+    var pos = serializer.BeginContent("PageSetup");
 
     if (!pageHeight.IsNull)
       serializer.WriteSimpleAttribute("PageHeight", PageHeight);

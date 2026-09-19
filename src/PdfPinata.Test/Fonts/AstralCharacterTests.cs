@@ -105,8 +105,8 @@ public class AstralCharacterTests
     {
         // Guards against a reader that answers plausibly but reads the wrong group - one constant
         // wrong answer would satisfy every test above this one.
-        int drawnLock = DrawnText.Glyphs(DrawnText.Page(Text(Lock), WithFormat12())).Single();
-        int drawnRobot = DrawnText.Glyphs(DrawnText.Page(Text(Robot), WithFormat12())).Single();
+        var drawnLock = DrawnText.Glyphs(DrawnText.Page(Text(Lock), WithFormat12())).Single();
+        var drawnRobot = DrawnText.Glyphs(DrawnText.Page(Text(Robot), WithFormat12())).Single();
 
         drawnLock.Should().NotBe(drawnRobot);
     }
@@ -135,7 +135,7 @@ public class AstralCharacterTests
         // Measuring and drawing go through the same seam, so a width that still counted two
         // .notdef would put every following word in the wrong place.
         var font = WithFormat12();
-        double one = DrawnText.MeasuredWidth(Text(Lock), font);
+        var one = DrawnText.MeasuredWidth(Text(Lock), font);
 
         one.Should().BeGreaterThan(0, "one character has one advance, and it is not a zero one");
 
@@ -157,7 +157,7 @@ public class AstralCharacterTests
         // units later, so what the glyph stands for is the pair rather than half of it. This is the
         // half of the change a reader sees: a destination of one code unit here would mean copying
         // the emoji out of the page yielded half a character.
-        string cmap = ToUnicodeCMapOf(DrawnText.Page(Text(Lock), WithFormat12()));
+        var cmap = ToUnicodeCMapOf(DrawnText.Page(Text(Lock), WithFormat12()));
 
         cmap.Should().NotBeNull("an embedded Identity-H font carries a /ToUnicode CMap");
 
@@ -180,16 +180,16 @@ public class AstralCharacterTests
     /// </remarks>
     static string ToUnicodeCMapOf(PdfPage page)
     {
-        using MemoryStream saved = new MemoryStream();
+        using var saved = new MemoryStream();
         page.Owner.Save(saved, false);
         saved.Position = 0;
 
-        using PdfDocument reopened = Reader.Open(saved, PdfDocumentOpenMode.ReadOnly);
-        foreach (PdfObject item in reopened.Internals.GetAllObjects())
+        using var reopened = Reader.Open(saved, PdfDocumentOpenMode.ReadOnly);
+        foreach (var item in reopened.Internals.GetAllObjects())
         {
             if (item is PdfDictionary dictionary && dictionary.Stream != null)
             {
-                string decoded = Encoding.ASCII.GetString(dictionary.Stream.UnfilteredValue);
+                var decoded = Encoding.ASCII.GetString(dictionary.Stream.UnfilteredValue);
                 if (decoded.Contains("begincmap"))
                     return decoded;
             }
@@ -222,7 +222,7 @@ public class AstralCharacterTests
         // number alone could come from the original face by accident.
         using var _ = new Installed(new Only(new[] { Lock }, PinnedFontResolver.CffFamilyName));
 
-        string content = DrawnText.ContentOf(
+        var content = DrawnText.ContentOf(
             DrawnText.Page("A" + Text(Lock) + "B", WithoutFormat12()));
 
         Regex.Matches(content, @"/F\d+ [\d.]+ Tf")
@@ -237,7 +237,7 @@ public class AstralCharacterTests
         // that was perfectly able to draw the character would be replaced anyway.
         using var _ = new Installed(new Only(new[] { Lock }, "Arial"));
 
-        string content = DrawnText.ContentOf(DrawnText.Page(Text(Lock), WithFormat12()));
+        var content = DrawnText.ContentOf(DrawnText.Page(Text(Lock), WithFormat12()));
 
         Regex.Matches(content, @"/F\d+ [\d.]+ Tf")
             .Select(match => match.Value).Distinct()
@@ -323,18 +323,18 @@ public class AstralCharacterTests
 
     static void SetFormat12Field(byte[] bytes, int offset, uint value)
     {
-        int cmap = TableOffset(bytes, "cmap");
-        int subtables = (bytes[cmap + 2] << 8) | bytes[cmap + 3];
+        var cmap = TableOffset(bytes, "cmap");
+        var subtables = (bytes[cmap + 2] << 8) | bytes[cmap + 3];
 
-        for (int idx = 0; idx < subtables; idx++)
+        for (var idx = 0; idx < subtables; idx++)
         {
-            int record = cmap + 4 + idx * 8;
-            int platform = (bytes[record] << 8) | bytes[record + 1];
-            int encoding = (bytes[record + 2] << 8) | bytes[record + 3];
+            var record = cmap + 4 + idx * 8;
+            var platform = (bytes[record] << 8) | bytes[record + 1];
+            var encoding = (bytes[record + 2] << 8) | bytes[record + 3];
             if (platform != 3 || encoding != 10)
                 continue;
 
-            int at = cmap + (int)ReadUInt32(bytes, record + 4);
+            var at = cmap + (int)ReadUInt32(bytes, record + 4);
             WriteUInt32(bytes, at + offset, value);
             return;
         }
@@ -344,10 +344,10 @@ public class AstralCharacterTests
 
     static int TableOffset(byte[] bytes, string tag)
     {
-        int count = (bytes[4] << 8) | bytes[5];
-        for (int idx = 0; idx < count; idx++)
+        var count = (bytes[4] << 8) | bytes[5];
+        for (var idx = 0; idx < count; idx++)
         {
-            int record = 12 + idx * 16;
+            var record = 12 + idx * 16;
             if (Encoding.ASCII.GetString(bytes, record, 4) == tag)
                 return (int)ReadUInt32(bytes, record + 8);
         }
@@ -394,7 +394,7 @@ public class AstralCharacterTests
     {
         // A lone high surrogate is not a character and cannot be completed. It must not be read as
         // the start of a pair that is not there, and it must not swallow the character after it.
-        string text = "\uD83D" + "A";
+        var text = "\uD83D" + "A";
 
         var glyphs = DrawnText.Glyphs(DrawnText.Page(text, WithFormat12()));
 

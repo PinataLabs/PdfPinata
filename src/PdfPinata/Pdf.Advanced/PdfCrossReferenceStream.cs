@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -91,32 +91,32 @@ internal sealed class PdfCrossReferenceStream : PdfTrailer  // Reference: 3.4.7 
         public const string Index = "/Index";
 
         /// <summary>
-        /// (Present only if the file has more than one cross-reference stream; not meaningful in 
+        /// (Present only if the file has more than one cross-reference stream; not meaningful in
         /// hybrid-reference files) The byte offset from the beginning of the file to the beginning
-        /// of the previous cross-reference stream. This entry has the same function as the Prev 
+        /// of the previous cross-reference stream. This entry has the same function as the Prev
         /// entry in the trailer dictionary.
         /// </summary>
         [KeyInfo(KeyType.Integer | KeyType.Optional)]
         public new const string Prev = "/Prev";
 
         /// <summary>
-        /// (Required) An array of integers representing the size of the fields in a single 
+        /// (Required) An array of integers representing the size of the fields in a single
         /// cross-reference entry. The table describes the types of entries and their fields.
         /// For PDF 1.5, W always contains three integers; the value of each integer is the
         /// number of bytes (in the decoded stream) of the corresponding field. For example,
         /// [1 2 1] means that the fields are one byte, two bytes, and one byte, respectively.
-        /// 
+        ///
         /// A value of zero for an element in the W array indicates that the corresponding field
         /// is not present in the stream, and the default value is used, if there is one. If the
         /// first element is zero, the type field is not present, and it defaults to type 1.
-        /// 
+        ///
         /// The sum of the items is the total length of each entry; it can be used with the
         /// Indexarray to determine the starting position of each subsection.
-        /// 
+        ///
         /// Note: Different cross-reference streams in a PDF file may use different values for W.
-        /// 
+        ///
         /// Entries in a cross-reference stream.
-        /// 
+        ///
         /// TYPE FIELD DESCRIPTION
         ///   0  1  The type of this entry, which must be 0. Type 0 entries define the linked list of free objects (corresponding to f entries in a cross-reference table).
         ///      2  The object number of the next free object.

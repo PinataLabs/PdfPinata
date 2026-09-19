@@ -37,7 +37,7 @@ internal sealed class SigningDemo : PdfDemo
         "PdfSignatureOptions - a visible appearance drawn by the caller, and a reason and location",
         "That the revision is appended rather than rewritten, because rewriting invalidates",
         "PdfSignatures.InDocument, which reads a signature without believing any of it",
-        "PdfSignatureVerifier - IsIntact and CoversWholeDocument, and why both are needed",
+        "PdfSignatureVerifier - IsIntact and CoversWholeDocument, and why both are needed"
     };
 
     public override int PageCount => 3;
@@ -67,21 +67,21 @@ internal sealed class SigningDemo : PdfDemo
     protected override PdfDocument Build(DemoContext context)
     {
         #region example
-        XFont heading = new XFont(BundledFontResolver.SansFamily, 16, XFontStyle.Bold);
-        XFont label = new XFont(BundledFontResolver.SansFamily, 9.5, XFontStyle.Bold);
-        XFont body = new XFont(BundledFontResolver.SansFamily, 9);
-        XFont mono = new XFont(BundledFontResolver.MonoFamily, 8);
+        var heading = new XFont(BundledFontResolver.SansFamily, 16, XFontStyle.Bold);
+        var label = new XFont(BundledFontResolver.SansFamily, 9.5, XFontStyle.Bold);
+        var body = new XFont(BundledFontResolver.SansFamily, 9);
+        var mono = new XFont(BundledFontResolver.MonoFamily, 8);
 
-        PdfDocument document = new PdfDocument();
+        var document = new PdfDocument();
         document.Info.Title = "Signing";
         document.Info.Author = "PdfPinata sample app";
 
         // ----- page one: the document that gets signed ---------------------------------------------
 
-        PdfPage first = document.AddPage();
-        using (XGraphics gfx = XGraphics.FromPdfPage(first))
+        var first = document.AddPage();
+        using (var gfx = XGraphics.FromPdfPage(first))
         {
-            XTextFormatter prose = new XTextFormatter(gfx);
+            var prose = new XTextFormatter(gfx);
 
             gfx.DrawString("Statement of agreement", heading, XBrushes.Black, 50, 70);
 
@@ -146,12 +146,12 @@ internal sealed class SigningDemo : PdfDemo
         // cannot describe its own signature - the description would change the bytes the signature
         // covers - so this signs a copy of page one alone and reports what came back. The file this
         // demo writes is signed the same way, by the same signer, with the same options.
-        Rehearsal rehearsed = Rehearse();
+        var rehearsed = Rehearse();
 
-        PdfPage second = document.AddPage();
-        using (XGraphics gfx = XGraphics.FromPdfPage(second))
+        var second = document.AddPage();
+        using (var gfx = XGraphics.FromPdfPage(second))
         {
-            XTextFormatter prose = new XTextFormatter(gfx);
+            var prose = new XTextFormatter(gfx);
 
             gfx.DrawString("What the signature says", heading, XBrushes.Black, 50, 60);
 
@@ -163,7 +163,7 @@ internal sealed class SigningDemo : PdfDemo
                 body, XBrushes.Black, new XRect(50, 80, 495, 44));
 
             double y = 140;
-            foreach ((string Field, string Value) fact in rehearsed.Said)
+            foreach (var fact in rehearsed.Said)
             {
                 gfx.DrawString(fact.Field, label, XBrushes.Black, 50, y);
                 gfx.DrawString(fact.Value, mono, XBrushes.Black, 205, y);
@@ -202,10 +202,10 @@ internal sealed class SigningDemo : PdfDemo
                 body, XBrushes.Black, new XRect(50, y + 236, 495, 58));
         }
 
-        PdfPage third = document.AddPage();
-        using (XGraphics gfx = XGraphics.FromPdfPage(third))
+        var third = document.AddPage();
+        using (var gfx = XGraphics.FromPdfPage(third))
         {
-            XTextFormatter prose = new XTextFormatter(gfx);
+            var prose = new XTextFormatter(gfx);
 
             gfx.DrawString("What verifying it proves", heading, XBrushes.Black, 50, 60);
 
@@ -218,7 +218,7 @@ internal sealed class SigningDemo : PdfDemo
                 body, XBrushes.Black, new XRect(50, 80, 495, 62));
 
             double y = 160;
-            foreach ((string Field, string Value) fact in rehearsed.Verified)
+            foreach (var fact in rehearsed.Verified)
             {
                 gfx.DrawString(fact.Field, label, XBrushes.Black, 50, y);
                 gfx.DrawString(fact.Value, mono, XBrushes.Black, 205, y);
@@ -271,13 +271,13 @@ internal sealed class SigningDemo : PdfDemo
     /// </remarks>
     protected override void Save(PdfDocument document, string path)
     {
-        using MemoryStream unsigned = new MemoryStream();
+        using var unsigned = new MemoryStream();
         document.Save(unsigned, false);
         unsigned.Position = 0;
 
         try
         {
-            using FileStream output = new FileStream(path, FileMode.Create, FileAccess.Write);
+            using var output = new FileStream(path, FileMode.Create, FileAccess.Write);
             PdfSigner.Sign(unsigned, output, Signer(), OptionsFor(drawAppearance: true));
         }
         finally
@@ -291,7 +291,7 @@ internal sealed class SigningDemo : PdfDemo
     }
 
     /// <summary>Where the visible signature goes, in the coordinates XGraphics draws in.</summary>
-    static XRect SignatureBox => new XRect(50, 640, 230, 70);
+    static XRect SignatureBox => new(50, 640, 230, 70);
 
     /// <summary>
     ///   Signs a small document with the same signer and options, and reads the result back, so that
@@ -299,17 +299,17 @@ internal sealed class SigningDemo : PdfDemo
     /// </summary>
     Rehearsal Rehearse()
     {
-        using PdfDocument probe = new PdfDocument();
+        using var probe = new PdfDocument();
         probe.Info.Title = "A rehearsal";
         probe.AddPage();
 
         byte[] signed;
-        using (MemoryStream unsigned = new MemoryStream())
+        using (var unsigned = new MemoryStream())
         {
             probe.Save(unsigned, false);
             unsigned.Position = 0;
 
-            using MemoryStream output = new MemoryStream();
+            using var output = new MemoryStream();
 
             // No appearance here. The probe has nothing drawn on it to put one beside, and an
             // invisible signature is a real field covering the whole document all the same - which
@@ -318,13 +318,13 @@ internal sealed class SigningDemo : PdfDemo
             signed = output.ToArray();
         }
 
-        PdfSignatureVerification checkedSignature = PdfSignatureVerifier.Verify(signed)[0];
-        PdfSignatureInfo said = checkedSignature.Signature;
+        var checkedSignature = PdfSignatureVerifier.Verify(signed)[0];
+        var said = checkedSignature.Signature;
 
         // The byte range is four numbers: start, length, start, length. The gap between the end of
         // the first span and the start of the second is the hole the signature sits in.
-        int holeStart = said.ByteRange[0] + said.ByteRange[1];
-        int holeEnd = said.ByteRange[2];
+        var holeStart = said.ByteRange[0] + said.ByteRange[1];
+        var holeEnd = said.ByteRange[2];
 
         return new Rehearsal(
             new[]
@@ -342,7 +342,7 @@ internal sealed class SigningDemo : PdfDemo
                 ("The hole", Format(holeStart) + " to " + Format(holeEnd)
                     + " - " + Format(holeEnd - holeStart) + " bytes reserved"),
                 ("Signature written", Format(said.Contents.Length) + " bytes, padded with zeros"),
-                ("File signed", Format(signed.Length) + " bytes"),
+                ("File signed", Format(signed.Length) + " bytes")
             },
             new[]
             {
@@ -353,21 +353,21 @@ internal sealed class SigningDemo : PdfDemo
                 ("Certificate subject", checkedSignature.SignerCertificate?.Subject ?? "(none embedded)"),
                 ("Certificate expires", checkedSignature.SignerCertificate?.NotAfter
                     .ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) ?? "-"),
-                ("Digest", "SHA-256; SHA-1 and MD5 are refused by the signer"),
+                ("Digest", "SHA-256; SHA-1 and MD5 are refused by the signer")
             });
     }
 
-    Pkcs7Signer Signer() => new Pkcs7Signer(Certificate(), PdfSignatureFormat.Pades);
+    Pkcs7Signer Signer() => new(Certificate());
 
     static PdfSignatureOptions OptionsFor(bool drawAppearance)
     {
-        PdfSignatureOptions options = new PdfSignatureOptions
+        var options = new PdfSignatureOptions
         {
             FieldName = "Signature1",
             SignerName = "PdfPinata sample app",
             Reason = "To demonstrate what a signed PDF contains",
             Location = "The sample app's output directory",
-            ContactInfo = "https://github.com/PinataLabs/PdfPinata",
+            ContactInfo = "https://github.com/PinataLabs/PdfPinata"
         };
 
         if (!drawAppearance)
@@ -380,8 +380,8 @@ internal sealed class SigningDemo : PdfDemo
         // What is drawn here is decoration and is not what a reader validates.
         options.DrawAppearance = (gfx, area) =>
         {
-            XFont name = new XFont(BundledFontResolver.SansFamily, 10, XFontStyle.Bold);
-            XFont detail = new XFont(BundledFontResolver.SansFamily, 7);
+            var name = new XFont(BundledFontResolver.SansFamily, 10, XFontStyle.Bold);
+            var detail = new XFont(BundledFontResolver.SansFamily, 7);
 
             gfx.DrawRectangle(XBrushes.WhiteSmoke, area);
             gfx.DrawString("Signed by the sample app", name, XBrushes.Black, 8, 18);
@@ -398,9 +398,9 @@ internal sealed class SigningDemo : PdfDemo
     /// <summary>A self-signed certificate with a usable private key.</summary>
     static X509Certificate2 SelfSigned()
     {
-        using RSA key = RSA.Create(2048);
+        using var key = RSA.Create(2048);
 
-        CertificateRequest request = new CertificateRequest(
+        var request = new CertificateRequest(
             "CN=PdfPinata Sample App, O=Not a real signer",
             key, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
 
@@ -410,7 +410,7 @@ internal sealed class SigningDemo : PdfDemo
         // Disposed once it has been exported. It is the one carrying the ephemeral key the round
         // trip below exists to get rid of, and holding a native key handle open for the life of the
         // process to no purpose is how a demo teaches a habit worth not having.
-        using X509Certificate2 ephemeral = request.CreateSelfSigned(
+        using var ephemeral = request.CreateSelfSigned(
             DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddYears(1));
 
         // Round-tripped through PKCS#12 on purpose. A certificate straight out of CreateSelfSigned

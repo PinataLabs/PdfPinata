@@ -77,7 +77,7 @@ public sealed class RawEncoding : Encoding
     /// </returns>
     public override int GetBytes(char[] chars, int charIndex, int charCount, byte[] bytes, int byteIndex)
     {
-        for (int count = charCount; count > 0; charIndex++, byteIndex++, count--)
+        for (var count = charCount; count > 0; charIndex++, byteIndex++, count--)
         {
             //Debug.Assert((uint)chars[charIndex] < 256, "Raw string contains invalid character with a value > 255.");
             bytes[byteIndex] = (byte)chars[charIndex];
@@ -115,7 +115,7 @@ public sealed class RawEncoding : Encoding
     /// </returns>
     public override int GetChars(byte[] bytes, int byteIndex, int byteCount, char[] chars, int charIndex)
     {
-        for (int count = byteCount; count > 0; byteIndex++, charIndex++, count--)
+        for (var count = byteCount; count > 0; byteIndex++, charIndex++, count--)
             chars[charIndex] = (char)bytes[byteIndex];
         return byteCount;
     }

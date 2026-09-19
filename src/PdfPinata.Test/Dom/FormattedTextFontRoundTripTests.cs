@@ -26,11 +26,11 @@ public class FormattedTextFontRoundTripTests
     static FormattedText RoundTrip(params System.Action<Font>[] apply)
     {
         var document = new Document();
-        FormattedText formatted = document.AddSection().AddParagraph().AddFormattedText("text");
+        var formatted = document.AddSection().AddParagraph().AddFormattedText("text");
         foreach (var set in apply)
             set(formatted.Font);
 
-        Document reread = DdlReader.DocumentFromString(DdlWriter.WriteToString(document));
+        var reread = DdlReader.DocumentFromString(DdlWriter.WriteToString(document));
 
         return ((Paragraph)reread.LastSection.Elements[0])
             .Elements.Cast<DocumentObject>().OfType<FormattedText>().Single();
@@ -46,7 +46,7 @@ public class FormattedTextFontRoundTripTests
     [Fact]
     public void StrikethroughSurvivesAlongsideAPropertyThatHasAShortcut()
     {
-        FormattedText result = RoundTrip(
+        var result = RoundTrip(
             f => f.Strikethrough = Strikethrough.Single,
             f => f.Bold = true);
 
@@ -58,7 +58,7 @@ public class FormattedTextFontRoundTripTests
     [Fact]
     public void EveryFontPropertyTheWriterEmitsCanBeReadBack()
     {
-        FormattedText result = RoundTrip(
+        var result = RoundTrip(
             f => f.Name = "Times New Roman",
             f => f.Size = Unit.FromPoint(14),
             f => f.Bold = true,
@@ -88,13 +88,13 @@ public class FormattedTextFontRoundTripTests
     public void ASinglePropertyStillUsesItsShortcut(string keyword)
     {
         var document = new Document();
-        FormattedText formatted = document.AddSection().AddParagraph().AddFormattedText("text");
+        var formatted = document.AddSection().AddParagraph().AddFormattedText("text");
         if (keyword == "bold")
             formatted.Font.Bold = true;
         else
             formatted.Font.Italic = true;
 
-        string ddl = DdlWriter.WriteToString(document);
+        var ddl = DdlWriter.WriteToString(document);
 
         ddl.Should().Contain((char)92 + keyword + "{", "a lone property keeps its keyword form");
     }
@@ -104,11 +104,11 @@ public class FormattedTextFontRoundTripTests
     {
         var document = new Document();
         document.Styles.AddStyle("Emphasis", "Normal").Font.Italic = true;
-        FormattedText formatted = document.AddSection().AddParagraph().AddFormattedText("text", "Emphasis");
+        var formatted = document.AddSection().AddParagraph().AddFormattedText("text", "Emphasis");
         formatted.Font.Bold = true;
 
-        Document reread = DdlReader.DocumentFromString(DdlWriter.WriteToString(document));
-        FormattedText result = ((Paragraph)reread.LastSection.Elements[0])
+        var reread = DdlReader.DocumentFromString(DdlWriter.WriteToString(document));
+        var result = ((Paragraph)reread.LastSection.Elements[0])
             .Elements.Cast<DocumentObject>().OfType<FormattedText>().Single();
 
         result.Style.Should().Be("Emphasis");

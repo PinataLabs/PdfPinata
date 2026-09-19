@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -83,7 +83,7 @@ public abstract class PdfDictionaryWithContentStream : PdfDictionary, IContentSt
     {
         pdfFont = _document.FontTable.GetFont(font);
         Debug.Assert(pdfFont != null);
-        string name = Resources.AddFont(pdfFont);
+        var name = Resources.AddFont(pdfFont);
         return name;
     }
 
@@ -96,7 +96,7 @@ public abstract class PdfDictionaryWithContentStream : PdfDictionary, IContentSt
     {
         pdfFont = _document.FontTable.GetFont(idName, fontData);
         Debug.Assert(pdfFont != null);
-        string name = Resources.AddFont(pdfFont);
+        var name = Resources.AddFont(pdfFont);
         return name;
     }
 
@@ -110,9 +110,9 @@ public abstract class PdfDictionaryWithContentStream : PdfDictionary, IContentSt
     /// </summary>
     internal string GetImageName(XImage image)
     {
-        PdfImage pdfImage = _document.ImageTable.GetImage(image);
+        var pdfImage = _document.ImageTable.GetImage(image);
         Debug.Assert(pdfImage != null);
-        string name = Resources.AddImage(pdfImage);
+        var name = Resources.AddImage(pdfImage);
         return name;
     }
 
@@ -129,9 +129,9 @@ public abstract class PdfDictionaryWithContentStream : PdfDictionary, IContentSt
     /// </summary>
     internal string GetFormName(XForm form)
     {
-        PdfFormXObject pdfForm = _document.FormTable.GetForm(form);
+        var pdfForm = _document.FormTable.GetForm(form);
         Debug.Assert(pdfForm != null);
-        string name = Resources.AddForm(pdfForm);
+        var name = Resources.AddForm(pdfForm);
         return name;
     }
 

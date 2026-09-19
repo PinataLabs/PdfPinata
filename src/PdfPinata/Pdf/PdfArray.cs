@@ -1,4 +1,5 @@
 ﻿#region Copyright
+
 //
 // Authors:
 //   Stefan Lange
@@ -23,8 +24,9 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
+
 #endregion
 
 using System;
@@ -48,7 +50,8 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
     /// Initializes a new instance of the <see cref="PdfArray"/> class.
     /// </summary>
     public PdfArray()
-    { }
+    {
+    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PdfArray"/> class.
@@ -56,7 +59,8 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
     /// <param name="document">The document.</param>
     public PdfArray(PdfDocument document)
         : base(document)
-    { }
+    {
+    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PdfArray"/> class.
@@ -66,7 +70,7 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
     public PdfArray(PdfDocument document, params PdfItem[] items)
         : base(document)
     {
-        foreach (PdfItem item in items)
+        foreach (var item in items)
             Elements.Add(item);
     }
 
@@ -95,18 +99,19 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
     /// </summary>
     protected override object Copy()
     {
-        PdfArray array = (PdfArray)base.Copy();
+        var array = (PdfArray)base.Copy();
         if (array._elements != null)
         {
             array._elements = array._elements.Clone();
-            int count = array._elements.Count;
-            for (int idx = 0; idx < count; idx++)
+            var count = array._elements.Count;
+            for (var idx = 0; idx < count; idx++)
             {
-                PdfItem item = array._elements[idx];
+                var item = array._elements[idx];
                 if (item is PdfObject)
                     array._elements[idx] = item.Clone();
             }
         }
+
         return array;
     }
 
@@ -133,10 +138,10 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
     /// </summary>
     public override string ToString()
     {
-        StringBuilder pdf = new StringBuilder();
+        var pdf = new StringBuilder();
         pdf.Append("[ ");
-        int count = Elements.Count;
-        for (int idx = 0; idx < count; idx++)
+        var count = Elements.Count;
+        for (var idx = 0; idx < count; idx++)
             pdf.Append(Elements[idx] + " ");
         pdf.Append(']');
         return pdf.ToString();
@@ -145,12 +150,13 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
     internal override void WriteObject(PdfWriter writer)
     {
         writer.WriteBeginObject(this);
-        int count = Elements.Count;
-        for (int idx = 0; idx < count; idx++)
+        var count = Elements.Count;
+        for (var idx = 0; idx < count; idx++)
         {
-            PdfItem value = Elements[idx];
+            var value = Elements[idx];
             value.WriteObject(writer);
         }
+
         writer.WriteEndObject();
     }
 
@@ -167,7 +173,7 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
 
         object ICloneable.Clone()
         {
-            ArrayElements elements = (ArrayElements)MemberwiseClone();
+            var elements = (ArrayElements)MemberwiseClone();
             elements._elements = new List<PdfItem>(elements._elements);
             elements._ownerArray = null;
             return elements;
@@ -210,21 +216,22 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
                 throw new ArgumentOutOfRangeException(nameof(index), index, PSSR.IndexOutOfRange);
 
             object obj = this[index];
-            if (obj == null || obj is PdfNull)
-                return false;
+            switch (obj)
+            {
+                case null or PdfNull:
+                    return false;
+                // Follow an indirect reference the way DictionaryElements does for the same five
+                // accessors. Without this an array holding "3 0 R" threw InvalidCastException where
+                // the identical entry in a dictionary read back its value.
+                case PdfReference reference:
+                    obj = reference.Value;
+                    break;
+            }
 
-            // Follow an indirect reference the way DictionaryElements does for the same five
-            // accessors. Without this an array holding "3 0 R" threw InvalidCastException where
-            // the identical entry in a dictionary read back its value.
-            if (obj is PdfReference reference)
-                obj = reference.Value;
-
-            PdfBoolean boolean = obj as PdfBoolean;
-            if (boolean != null)
+            if (obj is PdfBoolean boolean)
                 return boolean.Value;
 
-            PdfBooleanObject booleanObject = obj as PdfBooleanObject;
-            if (booleanObject != null)
+            if (obj is PdfBooleanObject booleanObject)
                 return booleanObject.Value;
 
             throw new InvalidCastException("GetBoolean: Object is not a boolean.");
@@ -242,7 +249,7 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
                 throw new ArgumentOutOfRangeException(nameof(index), index, PSSR.IndexOutOfRange);
 
             object obj = this[index];
-            if (obj == null || obj is PdfNull)
+            if (obj is null or PdfNull)
                 return 0;
 
             // Follow an indirect reference the way DictionaryElements does for the same five
@@ -251,15 +258,12 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
             if (obj is PdfReference reference)
                 obj = reference.Value;
 
-            PdfInteger integer = obj as PdfInteger;
-            if (integer != null)
-                return integer.Value;
-
-            PdfIntegerObject integerObject = obj as PdfIntegerObject;
-            if (integerObject != null)
-                return integerObject.Value;
-
-            throw new InvalidCastException("GetInteger: Object is not an integer.");
+            return obj switch
+            {
+                PdfInteger integer => integer.Value,
+                PdfIntegerObject integerObject => integerObject.Value,
+                _ => throw new InvalidCastException("GetInteger: Object is not an integer.")
+            };
         }
 
         /// <summary>
@@ -274,29 +278,28 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
                 throw new ArgumentOutOfRangeException(nameof(index), index, PSSR.IndexOutOfRange);
 
             object obj = this[index];
-            if (obj == null || obj is PdfNull)
-                return 0;
+            switch (obj)
+            {
+                case null or PdfNull:
+                    return 0;
+                // Follow an indirect reference the way DictionaryElements does for the same five
+                // accessors. Without this an array holding "3 0 R" threw InvalidCastException where
+                // the identical entry in a dictionary read back its value.
+                case PdfReference reference:
+                    obj = reference.Value;
+                    break;
+            }
 
-            // Follow an indirect reference the way DictionaryElements does for the same five
-            // accessors. Without this an array holding "3 0 R" threw InvalidCastException where
-            // the identical entry in a dictionary read back its value.
-            if (obj is PdfReference reference)
-                obj = reference.Value;
-
-            PdfReal real = obj as PdfReal;
-            if (real != null)
+            if (obj is PdfReal real)
                 return real.Value;
 
-            PdfRealObject realObject = obj as PdfRealObject;
-            if (realObject != null)
+            if (obj is PdfRealObject realObject)
                 return realObject.Value;
 
-            PdfInteger integer = obj as PdfInteger;
-            if (integer != null)
+            if (obj is PdfInteger integer)
                 return integer.Value;
 
-            PdfIntegerObject integerObject = obj as PdfIntegerObject;
-            if (integerObject != null)
+            if (obj is PdfIntegerObject integerObject)
                 return integerObject.Value;
 
             throw new InvalidCastException("GetReal: Object is not a number.");
@@ -314,21 +317,22 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
                 throw new ArgumentOutOfRangeException(nameof(index), index, PSSR.IndexOutOfRange);
 
             object obj = this[index];
-            if (obj == null || obj is PdfNull)
-                return String.Empty;
+            switch (obj)
+            {
+                case null or PdfNull:
+                    return string.Empty;
+                // Follow an indirect reference the way DictionaryElements does for the same five
+                // accessors. Without this an array holding "3 0 R" threw InvalidCastException where
+                // the identical entry in a dictionary read back its value.
+                case PdfReference reference:
+                    obj = reference.Value;
+                    break;
+            }
 
-            // Follow an indirect reference the way DictionaryElements does for the same five
-            // accessors. Without this an array holding "3 0 R" threw InvalidCastException where
-            // the identical entry in a dictionary read back its value.
-            if (obj is PdfReference reference)
-                obj = reference.Value;
-
-            PdfString str = obj as PdfString;
-            if (str != null)
+            if (obj is PdfString str)
                 return str.Value;
 
-            PdfStringObject strObject = obj as PdfStringObject;
-            if (strObject != null)
+            if (obj is PdfStringObject strObject)
                 return strObject.Value;
 
             throw new InvalidCastException("GetString: Object is not a string.");
@@ -346,20 +350,23 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
                 throw new ArgumentOutOfRangeException(nameof(index), index, PSSR.IndexOutOfRange);
 
             object obj = this[index];
-            if (obj == null || obj is PdfNull)
-                return String.Empty;
+            switch (obj)
+            {
+                case null or PdfNull:
+                    return string.Empty;
+                // Follow an indirect reference the way DictionaryElements does for the same five
+                // accessors. Without this an array holding "3 0 R" threw InvalidCastException where
+                // the identical entry in a dictionary read back its value.
+                case PdfReference reference:
+                    obj = reference.Value;
+                    break;
+            }
 
-            // Follow an indirect reference the way DictionaryElements does for the same five
-            // accessors. Without this an array holding "3 0 R" threw InvalidCastException where
-            // the identical entry in a dictionary read back its value.
-            if (obj is PdfReference reference)
-                obj = reference.Value;
-
-            PdfName name = obj as PdfName;
+            var name = obj as PdfName;
             if (name != null)
                 return name.Value;
 
-            PdfNameObject nameObject = obj as PdfNameObject;
+            var nameObject = obj as PdfNameObject;
             if (nameObject != null)
                 return nameObject.Value;
 
@@ -375,9 +382,8 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
             if (index < 0 || index >= Count)
                 throw new ArgumentOutOfRangeException(nameof(index), index, PSSR.IndexOutOfRange);
 
-            PdfItem item = this[index];
-            PdfReference reference = item as PdfReference;
-            if (reference != null)
+            var item = this[index];
+            if (item is PdfReference reference)
                 return reference.Value;
 
             return item as PdfObject;
@@ -406,7 +412,7 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
         /// </summary>
         public PdfReference GetReference(int index)
         {
-            PdfItem item = this[index];
+            var item = this[index];
             return item as PdfReference;
         }
 
@@ -464,7 +470,7 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
         public void Insert(int index, PdfItem value)
         {
             _elements.Insert(index, value);
-            PdfObject.Contain(value, _ownerArray);
+            Contain(value, _ownerArray);
             MarkOwnerAsChanged();
         }
 
@@ -511,25 +517,20 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
         /// </summary>
         public void Add(PdfItem value)
         {
-            // TODO: ??? 
-            //Debug.Assert((value is PdfObject && ((PdfObject)value).Reference == null) | !(value is PdfObject),
-            //  "You try to set an indirect object directly into an array.");
-
-            PdfObject obj = value as PdfObject;
-            if (obj != null && obj.IsIndirect)
+            if (value is PdfObject { IsIndirect: true } obj)
                 _elements.Add(obj.Reference);
             else
                 _elements.Add(value);
-            PdfObject.Contain(value, _ownerArray);
+            Contain(value, _ownerArray);
             MarkOwnerAsChanged();
         }
 
         /// <summary>
         /// Returns false.
         /// </summary>
-        #pragma warning disable CA1822 // Public API: making it static would break every caller that reads it through an instance.
+#pragma warning disable CA1822 // Public API: making it static would break every caller that reads it through an instance.
         public bool IsFixedSize => false;
-        #pragma warning restore CA1822
+#pragma warning restore CA1822
 
         #endregion
 
@@ -538,9 +539,9 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
         /// <summary>
         /// Returns false.
         /// </summary>
-        #pragma warning disable CA1822 // Public API: making it static would break every caller that reads it through an instance.
+#pragma warning disable CA1822 // Public API: making it static would break every caller that reads it through an instance.
         public bool IsSynchronized => false;
-        #pragma warning restore CA1822
+#pragma warning restore CA1822
 
         /// <summary>
         /// Gets the number of elements in the array.
@@ -558,9 +559,9 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
         /// <summary>
         /// The current implementation return null.
         /// </summary>
-        #pragma warning disable CA1822 // Public API: making it static would break every caller that reads it through an instance.
+#pragma warning disable CA1822 // Public API: making it static would break every caller that reads it through an instance.
         public object SyncRoot => null;
-        #pragma warning restore CA1822
+#pragma warning restore CA1822
 
         #endregion
 
@@ -594,5 +595,7 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
     /// Gets the DebuggerDisplayAttribute text.
     /// </summary>
     // ReSharper disable UnusedMember.Local
-    string DebuggerDisplay => String.Format(CultureInfo.InvariantCulture, "array({0},[{1}])", ObjectID.DebuggerDisplay, _elements == null ? 0 : _elements.Count); // ReSharper restore UnusedMember.Local
+    string DebuggerDisplay =>
+        String.Format(CultureInfo.InvariantCulture, "array({0},[{1}])", ObjectID.DebuggerDisplay,
+            _elements?.Count ?? 0); // ReSharper restore UnusedMember.Local
 }

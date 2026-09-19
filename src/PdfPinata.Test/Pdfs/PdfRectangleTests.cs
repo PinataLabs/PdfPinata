@@ -81,7 +81,9 @@ public class PdfRectangleTests
         var rectangle = new PdfRectangle(new XRect(0, 0, 10, 10));
 
         rectangle.Equals(null).Should().BeFalse();
+        // ReSharper disable once SuspiciousTypeConversion.Global
         rectangle.Equals(new XRect(0, 0, 10, 10)).Should().BeFalse();
+        // ReSharper disable once SuspiciousTypeConversion.Global
         rectangle.Equals(new PdfArray()).Should().BeFalse();
     }
 
@@ -118,10 +120,15 @@ public class PdfRectangleTests
         var rectangle = new PdfRectangle(new XRect(1, 2, 3, 4));
         PdfRectangle none = null;
 
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
         (rectangle == none).Should().BeFalse();
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
         (none == rectangle).Should().BeFalse();
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
         (none == null).Should().BeTrue();
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
         (rectangle != none).Should().BeTrue();
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
         (none != rectangle).Should().BeTrue();
     }
 
@@ -262,7 +269,7 @@ public class PdfRectangleTests
             "<</Type/Catalog/Pages 2 0 R>>",
             "<</Type/Pages/Kids[3 0 R]/Count 1/MediaBox[0 0 300 400]/CropBox[5 5 295 395]>>",
             "<</Type/Pages/Parent 2 0 R/Kids[4 0 R]/Count 1/CropBox null>>",
-            "<</Type/Page/Parent 3 0 R>>",
+            "<</Type/Page/Parent 3 0 R>>"
         });
 
         document.Pages[0].CropBox.Should().Be(new PdfRectangle(new XPoint(5, 5), new XPoint(295, 395)));
@@ -275,7 +282,7 @@ public class PdfRectangleTests
         {
             "<</Type/Catalog/Pages 2 0 R>>",
             "<</Type/Pages/Kids[3 0 R]/Count 1/MediaBox[0 0 300 400]/CropBox[5 5 295 395]>>",
-            "<</Type/Page/Parent 2 0 R/CropBox null>>",
+            "<</Type/Page/Parent 2 0 R/CropBox null>>"
         });
 
         document.Pages[0].CropBox.Should().Be(new PdfRectangle(new XPoint(5, 5), new XPoint(295, 395)));
@@ -303,7 +310,7 @@ public class PdfRectangleTests
         {
             "<</Type/Catalog/Pages 2 0 R>>",
             "<</Type/Pages/Kids[3 0 R]/Count 1" + pagesEntries + ">>",
-            "<</Type/Page/Parent 2 0 R>>",
+            "<</Type/Page/Parent 2 0 R>>"
         };
         objects.AddRange(extraObjects);
 

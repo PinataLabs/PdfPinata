@@ -68,7 +68,7 @@ public class XSeries : ChartObject
   /// </summary>
   protected override object DeepCopy()
   {
-    XSeries xSeries = (XSeries)base.DeepCopy();
+    var xSeries = (XSeries)base.DeepCopy();
     if (xSeries.xSeriesElements != null)
     {
       xSeries.xSeriesElements = xSeries.xSeriesElements.Clone();

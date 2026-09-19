@@ -24,7 +24,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -56,7 +56,7 @@ internal class FormattedCell : IAreaProvider
   {
     if (isFirstArea)
     {
-      Rectangle rect = CalcContentRect();
+      var rect = CalcContentRect();
       isFirstArea = false;
       return rect;
     }
@@ -68,20 +68,20 @@ internal class FormattedCell : IAreaProvider
     return null;
   }
 
-  internal void Format(XGraphics gfx)
+  internal void Format(XGraphics graphics)
   {
-    this.gfx = gfx;
+    gfx = graphics;
     formatter = new TopDownFormatter(this, documentRenderer, cell.Elements);
-    formatter.FormatOnAreas(gfx, false);
+    formatter.FormatOnAreas(graphics, false);
     contentHeight = CalcContentHeight(documentRenderer);
   }
 
   private Rectangle CalcContentRect()
   {
-    Column column = cell.Column;
-    XUnit width = InnerWidth;
+    var column = cell.Column;
+    var width = InnerWidth;
     width -= column.LeftPadding.Point;
-    Column rightColumn = cell.Table.Columns[column.Index + cell.MergeRight];
+    var rightColumn = cell.Table.Columns[column.Index + cell.MergeRight];
     width -= rightColumn.RightPadding.Point;
 
     XUnit height = double.MaxValue;
@@ -94,7 +94,7 @@ internal class FormattedCell : IAreaProvider
   {
     get
     {
-      Row row = cell.Row;
+      var row = cell.Row;
       XUnit verticalPadding = row.TopPadding.Point;
       verticalPadding += row.BottomPadding.Point;
 
@@ -118,10 +118,10 @@ internal class FormattedCell : IAreaProvider
     get
     {
       XUnit width = 0;
-      int cellColumnIdx = cell.Column.Index;
-      for (int toRight = 0; toRight <= cell.MergeRight; ++toRight)
+      var cellColumnIdx = cell.Column.Index;
+      for (var toRight = 0; toRight <= cell.MergeRight; ++toRight)
       {
-        int columnIdx = cellColumnIdx + toRight;
+        var columnIdx = cellColumnIdx + toRight;
         width += cell.Table.Columns[columnIdx].Width;
       }
       width -= bordersRenderer.GetWidth(BorderType.Right);
@@ -132,9 +132,9 @@ internal class FormattedCell : IAreaProvider
 
   FieldInfos IAreaProvider.AreaFieldInfos => fieldInfos;
 
-  void IAreaProvider.StoreRenderInfos(ArrayList renderInfos)
+  void IAreaProvider.StoreRenderInfos(ArrayList infos)
   {
-    this.renderInfos = renderInfos;
+    renderInfos = infos;
   }
 
   bool IAreaProvider.IsAreaBreakBefore(LayoutInfo layoutInfo)
@@ -152,12 +152,12 @@ internal class FormattedCell : IAreaProvider
     return false;
   }
 
-  private XUnit CalcContentHeight(DocumentRenderer documentRenderer)
+  private XUnit CalcContentHeight(DocumentRenderer renderer)
   {
-    XUnit height = RenderInfo.GetTotalHeight(GetRenderInfos());
+    var height = RenderInfo.GetTotalHeight(GetRenderInfos());
     if (height == 0)
     {
-      height = ParagraphRenderer.GetLineHeight(cell.Format, gfx, documentRenderer);
+      height = ParagraphRenderer.GetLineHeight(cell.Format, gfx, renderer);
       height += cell.Format.SpaceBefore;
       height += cell.Format.SpaceAfter;
     }

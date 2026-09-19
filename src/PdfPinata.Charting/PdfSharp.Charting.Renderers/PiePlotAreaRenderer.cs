@@ -27,7 +27,6 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
-using PdfPinata.Drawing;
 
 namespace PdfPinata.Charting.Renderers;
 
@@ -57,27 +56,29 @@ internal abstract class PiePlotAreaRenderer : PlotAreaRenderer
   /// </summary>
   internal override void Draw()
   {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    XRect plotAreaRect = cri.plotAreaRendererInfo.Rect;
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var plotAreaRect = cri.PlotAreaRendererInfo.Rect;
     if (HasNoRoom(plotAreaRect))
       return;
 
-    if (cri.seriesRendererInfos.Length == 0)
+    if (cri.SeriesRendererInfos.Length == 0)
       return;
 
-    XGraphics gfx = this.rendererParms.Graphics;
-    XGraphicsState state = gfx.Save();
+    var gfx = this.rendererParms.Graphics;
+    var state = gfx.Save();
 
     // Draw sectors.
-    SeriesRendererInfo sri = cri.seriesRendererInfos[0];
-    foreach (SectorRendererInfo sector in sri.pointRendererInfos)
+    var sri = cri.SeriesRendererInfos[0];
+    foreach (SectorRendererInfo sector in sri.PointRendererInfos)
+    // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
     {
       if (!double.IsNaN(sector.StartAngle) && !double.IsNaN(sector.SweepAngle))
         gfx.DrawPie(sector.FillFormat, sector.Rect, sector.StartAngle, sector.SweepAngle);
     }
 
     // Draw border of the sectors.
-    foreach (SectorRendererInfo sector in sri.pointRendererInfos)
+    foreach (SectorRendererInfo sector in sri.PointRendererInfos)
+    // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
     {
       if (!double.IsNaN(sector.StartAngle) && !double.IsNaN(sector.SweepAngle))
         gfx.DrawPie(sector.LineFormat, sector.Rect, sector.StartAngle, sector.SweepAngle);

@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -48,7 +48,7 @@ internal class FontFamilyInternal
     //    is not possible to use two different fonts that have the same
     //    family name.
 
-    FontFamilyInternal(string familyName, bool createPlatformObjects)
+    FontFamilyInternal(string familyName)
     {
         _sourceName = _name = familyName;
     }
@@ -58,10 +58,10 @@ internal class FontFamilyInternal
         try
         {
             Lock.EnterFontFactory();
-            FontFamilyInternal family = FontFamilyCache.GetFamilyByName(familyName);
+            var family = FontFamilyCache.GetFamilyByName(familyName);
             if (family == null)
             {
-                family = new FontFamilyInternal(familyName, createPlatformObject);
+                family = new FontFamilyInternal(familyName);
                 family = FontFamilyCache.CacheOrGetFontFamily(family);
             }
             return family;

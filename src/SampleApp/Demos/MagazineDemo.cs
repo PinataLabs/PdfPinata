@@ -45,7 +45,7 @@ internal sealed class MagazineDemo : PdfDemo
         "A drop cap from XTextFormatter.DropCap - one property, three lines deep, set by its ink",
         "A title turned into a path by AddString and filled with a gradient",
         "A pull quote slanted with ObliqueAngle, straddling the gutter",
-        "Copy flowing down both sides of it from one DrawString, via XTextFormatter.Obstacles",
+        "Copy flowing down both sides of it from one DrawString, via XTextFormatter.Obstacles"
     };
 
     public override int PageCount => 2;
@@ -73,16 +73,16 @@ internal sealed class MagazineDemo : PdfDemo
             + "placed by the outline of the glyph rather than by its advance, so the ink sits "
             + "flush with the margin instead of a side bearing's width inside it. ";
 
-        PdfDocument document = new PdfDocument();
+        var document = new PdfDocument();
         document.Info.Title = "Feature";
 
         // ---- Page one: the opener --------------------------------------------------------
-        PdfPage page = document.AddPage();
-        XGraphics gfx = XGraphics.FromPdfPage(page);
-        XTextFormatter formatter = new XTextFormatter(gfx);
+        var page = document.AddPage();
+        var gfx = XGraphics.FromPdfPage(page);
+        var formatter = new XTextFormatter(gfx);
 
-        double width = page.Width.Point;
-        double height = page.Height.Point;
+        var width = page.Width.Point;
+        var height = page.Height.Point;
         const double margin = 46;
 
         void RunningFoot(XGraphics target, string folio) =>
@@ -90,7 +90,7 @@ internal sealed class MagazineDemo : PdfDemo
                 new XRect(margin, height - margin, width - margin * 2, 12),
                 XStringFormats.TopCenter);
 
-        using XImage photograph = XImage.FromStream(
+        using var photograph = XImage.FromStream(
             () => Assets.Open(Assets.ImagePrefix + "frog-and-toad.jpg"));
 
         // A full bleed is a rectangle that starts at the page edge and finishes past it.
@@ -98,11 +98,11 @@ internal sealed class MagazineDemo : PdfDemo
         // one dimension overflows, and an overflow off the bottom lands on the article
         // rather than off the page. So it is clipped to the band it belongs in, and the
         // clip is undone by restoring the state, there being no ResetClip.
-        double bleedHeight = height * 0.42;
-        double cover = System.Math.Max(
+        var bleedHeight = height * 0.42;
+        var cover = System.Math.Max(
             width / photograph.PointWidth, bleedHeight / photograph.PointHeight);
 
-        XGraphicsState bleed = gfx.Save();
+        var bleed = gfx.Save();
         gfx.IntersectClip(new XRect(0, 0, width, bleedHeight));
         gfx.DrawImage(photograph, 0, 0,
             photograph.PointWidth * cover, photograph.PointHeight * cover);
@@ -111,7 +111,7 @@ internal sealed class MagazineDemo : PdfDemo
         // be doing underneath it. One gradient, from nothing at the top to nearly opaque at
         // the foot of the band: a gradient honours the alpha of its colours, so this fades out
         // as well as down and the picture shows through the top of it.
-        XRect scrim = new XRect(0, bleedHeight * 0.45, width, bleedHeight * 0.55);
+        var scrim = new XRect(0, bleedHeight * 0.45, width, bleedHeight * 0.55);
         gfx.DrawRectangle(
             new XLinearGradientBrush(scrim,
                 XColor.FromArgb(0, 12, 14, 10), XColor.FromArgb(190, 12, 14, 10),
@@ -133,9 +133,9 @@ internal sealed class MagazineDemo : PdfDemo
             new XPoint(margin, bleedHeight - 20));
 
         // ---- The drop cap ----------------------------------------------------------------
-        XFont body = new XFont(Serif, 10);
-        double textTop = bleedHeight + 30;
-        double measure = width - margin * 2;
+        var body = new XFont(Serif, 10);
+        var textTop = bleedHeight + 30;
+        var measure = width - margin * 2;
 
         // docs:begin drop-cap
         // The cap is one property. The formatter takes the first character of the text,
@@ -179,8 +179,8 @@ internal sealed class MagazineDemo : PdfDemo
         // It needs a glyph outline provider registered, which the runner does along with the
         // other backends. To stroke a title and nothing more you would not come here at all:
         // DrawString takes a pen as well as a brush, which is cheaper and stays searchable.
-        XRect titleBox = new XRect(margin, margin + 30, measure, 44);
-        XGraphicsPath title = new XGraphicsPath();
+        var titleBox = new XRect(margin, margin + 30, measure, 44);
+        var title = new XGraphicsPath();
         title.AddString("Continued", new XFontFamily(Serif), XFontStyle.Bold, 34, titleBox,
             XStringFormats.TopLeft);
 
@@ -199,13 +199,13 @@ internal sealed class MagazineDemo : PdfDemo
         // that this used to be needed the quote's height, the gap either side of it and the
         // line height all kept in step by hand, and got them wrong whenever the font changed.
         // docs:begin obstacle
-        double textTopOfPage = margin + 86;
-        double textHeight = height - textTopOfPage - margin - 20;
+        var textTopOfPage = margin + 86;
+        var textHeight = height - textTopOfPage - margin - 20;
 
         // Positioned relative to the layout rectangle, which is what an obstacle is measured
         // in - so the page coordinates the quote is drawn at are these plus the block's corner.
-        XRect quoteInBlock = new XRect(140, 150, measure - 280, 108);
-        XRect quote = new XRect(margin + quoteInBlock.X, textTopOfPage + quoteInBlock.Y,
+        var quoteInBlock = new XRect(140, 150, measure - 280, 108);
+        var quote = new XRect(margin + quoteInBlock.X, textTopOfPage + quoteInBlock.Y,
             quoteInBlock.Width, quoteInBlock.Height);
 
         // Set on a tint, at a slight slant. ObliqueAngle skews the glyphs where a real
@@ -236,24 +236,24 @@ internal sealed class MagazineDemo : PdfDemo
 
         // Drawn a line at a time with XGraphics rather than flowed, because the slant lives
         // on XStringFormat and XTextFormatter's own DrawString does not take one.
-        XStringFormat slanted = new XStringFormat
+        var slanted = new XStringFormat
         {
             ObliqueAngle = 8,
-            LineAlignment = XLineAlignment.Near,
+            LineAlignment = XLineAlignment.Near
         };
 
         // Set to the width of the quote rather than of the page: it straddles the gutter and is
         // narrower than either, so the lines are broken to suit it.
-        XFont quoteFont = new XFont(Serif, 14);
+        var quoteFont = new XFont(Serif, 14);
         string[] quoteLines =
         {
             "“Nothing decides",
             "that break except a",
             "loop that adds one",
-            "word at a time.”",
+            "word at a time.”"
         };
 
-        for (int line = 0; line < quoteLines.Length; line++)
+        for (var line = 0; line < quoteLines.Length; line++)
         {
             gfx.DrawString(quoteLines[line], quoteFont, XBrushes.DarkSlateGray,
                 new XRect(quote.X + 18, quote.Y + 16 + line * 21, quote.Width - 32, 21),

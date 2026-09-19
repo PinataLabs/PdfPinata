@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -124,14 +124,14 @@ internal abstract class AreaRendererInfo : RendererInfo
 /// </summary>
 internal class ChartRendererInfo : AreaRendererInfo
 {
-  internal Chart chart;
+  internal Chart Chart;
 
-  internal AxisRendererInfo xAxisRendererInfo;
-  internal AxisRendererInfo yAxisRendererInfo;
+  internal AxisRendererInfo XAxisRendererInfo;
+  internal AxisRendererInfo YAxisRendererInfo;
   //internal AxisRendererInfo zAxisRendererInfo; // not yet used
-  internal PlotAreaRendererInfo plotAreaRendererInfo;
-  internal LegendRendererInfo legendRendererInfo;
-  internal SeriesRendererInfo[] seriesRendererInfos;
+  internal PlotAreaRendererInfo PlotAreaRendererInfo;
+  internal LegendRendererInfo LegendRendererInfo;
+  internal SeriesRendererInfo[] SeriesRendererInfos;
 
   /// <summary>
   /// Gets the chart's default font for rendering.
@@ -141,7 +141,7 @@ internal class ChartRendererInfo : AreaRendererInfo
     get
     {
       if (defaultFont == null)
-        defaultFont = Converter.ToXFont(this.chart.font, new XFont("Arial", 12, XFontStyle.Regular));
+        defaultFont = Converter.ToXFont(this.Chart.font, new XFont("Arial", 12, XFontStyle.Regular));
 
       return defaultFont;
     }
@@ -156,7 +156,7 @@ internal class ChartRendererInfo : AreaRendererInfo
     get
     {
       if (defaultDataLabelFont == null)
-        defaultDataLabelFont = Converter.ToXFont(this.chart.font, new XFont("Arial", 10, XFontStyle.Regular));
+        defaultDataLabelFont = Converter.ToXFont(this.Chart.font, new XFont("Arial", 10, XFontStyle.Regular));
 
       return defaultDataLabelFont;
     }
@@ -169,10 +169,10 @@ internal class ChartRendererInfo : AreaRendererInfo
 /// </summary>
 internal class CombinationRendererInfo : ChartRendererInfo
 {
-  internal SeriesRendererInfo[] commonSeriesRendererInfos;
-  internal SeriesRendererInfo[] areaSeriesRendererInfos;
-  internal SeriesRendererInfo[] columnSeriesRendererInfos;
-  internal SeriesRendererInfo[] lineSeriesRendererInfos;
+  internal SeriesRendererInfo[] CommonSeriesRendererInfos;
+  internal SeriesRendererInfo[] AreaSeriesRendererInfos;
+  internal SeriesRendererInfo[] ColumnSeriesRendererInfos;
+  internal SeriesRendererInfo[] LineSeriesRendererInfos;
 }
 
 /// <summary>
@@ -180,7 +180,7 @@ internal class CombinationRendererInfo : ChartRendererInfo
 /// </summary>
 internal class PointRendererInfo : RendererInfo
 {
-  internal Point point;
+  internal Point Point;
 
   /// <summary>
   /// The value this point plots, or NaN if there is nothing to plot.
@@ -188,14 +188,14 @@ internal class PointRendererInfo : RendererInfo
   /// <remarks>
   /// A series may hold a blank - that is what Series.AddBlank adds - and a blank is a null in the
   /// element collection rather than a Point carrying a special value. Reading the value through
-  /// here rather than through <see cref="point"/> is what keeps a blank from being dereferenced.
+  /// here rather than through <see cref="Point"/> is what keeps a blank from being dereferenced.
   ///
   /// NaN, because a blank is already the same thing to a renderer as a point whose value is NaN:
   /// there is nothing to draw and nothing to add to a total. Every comparison against NaN is
   /// false, so a blank falls out of a range test on its own, and the IsNaN tests already written
   /// against missing values now catch both kinds of missing.
   /// </remarks>
-  internal double Value => this.point == null ? double.NaN : this.point.value;
+  internal double Value => this.Point == null ? double.NaN : this.Point.value;
 
   internal XPen LineFormat;
   internal XBrush FillFormat;
@@ -246,16 +246,16 @@ internal class DataLabelRendererInfo : RendererInfo
 /// </summary>
 internal class SeriesRendererInfo : RendererInfo
 {
-  internal Series series;
+  internal Series Series;
 
-  internal DataLabelRendererInfo dataLabelRendererInfo;
-  internal PointRendererInfo[] pointRendererInfos;
+  internal DataLabelRendererInfo DataLabelRendererInfo;
+  internal PointRendererInfo[] PointRendererInfos;
 
   internal XPen LineFormat;
   internal XBrush FillFormat;
 
   // Used if ChartType is set to Line
-  internal MarkerRendererInfo markerRendererInfo;
+  internal MarkerRendererInfo MarkerRendererInfo;
 
   /// <summary>
   /// Gets the sum of all points in PointRendererInfo.
@@ -265,7 +265,7 @@ internal class SeriesRendererInfo : RendererInfo
     get
     {
       double sum = 0;
-      foreach (PointRendererInfo pri in this.pointRendererInfos)
+      foreach (var pri in this.PointRendererInfos)
       {
         if (!double.IsNaN(pri.Value))
           sum += Math.Abs(pri.Value);
@@ -291,7 +291,7 @@ internal class MarkerRendererInfo : RendererInfo
 /// </summary>
 internal class AxisRendererInfo : AreaRendererInfo
 {
-  internal Axis axis;
+  internal Axis Axis;
 
   internal double MinimumScale;
   internal double MaximumScale;
@@ -309,7 +309,7 @@ internal class AxisRendererInfo : AreaRendererInfo
   internal XPen MinorGridlinesLineFormat;
 
   //AxisTitle
-  internal AxisTitleRendererInfo axisTitleRendererInfo;
+  internal AxisTitleRendererInfo AxisTitleRendererInfo;
 
   //TickLabels
   internal string TickLabelsFormat;
@@ -376,7 +376,7 @@ internal class AxisRendererInfo : AreaRendererInfo
 
 internal class AxisTitleRendererInfo : AreaRendererInfo
 {
-  internal AxisTitle axisTitle;
+  internal AxisTitle AxisTitle;
 
   internal string AxisTitleText;
   internal XFont AxisTitleFont;
@@ -392,11 +392,11 @@ internal class AxisTitleRendererInfo : AreaRendererInfo
 /// </summary>
 internal class LegendEntryRendererInfo : AreaRendererInfo
 {
-  internal SeriesRendererInfo seriesRendererInfo;
-  internal LegendRendererInfo legendRendererInfo;
+  internal SeriesRendererInfo SeriesRendererInfo;
+  internal LegendRendererInfo LegendRendererInfo;
 
   internal string EntryText;
-    
+
   /// <summary>
   /// Size for the marker only.
   /// </summary>
@@ -408,7 +408,7 @@ internal class LegendEntryRendererInfo : AreaRendererInfo
   /// Width for marker area. Extra spacing for line charts are considered.
   /// </summary>
   internal XSize MarkerArea;
-    
+
   /// <summary>
   /// Size for text area.
   /// </summary>
@@ -420,7 +420,7 @@ internal class LegendEntryRendererInfo : AreaRendererInfo
 /// </summary>
 internal class LegendRendererInfo : AreaRendererInfo
 {
-  internal Legend legend;
+  internal Legend Legend;
 
   internal XFont Font;
   internal XBrush FontColor;
@@ -433,12 +433,12 @@ internal class LegendRendererInfo : AreaRendererInfo
 /// </summary>
 internal class PlotAreaRendererInfo : AreaRendererInfo
 {
-  internal PlotArea plotArea;
+  internal PlotArea PlotArea;
 
   /// <summary>
   /// Saves the plot area's matrix.
   /// </summary>
-  internal XMatrix matrix;
+  internal XMatrix Matrix;
 
   internal XPen LineFormat;
   internal XBrush FillFormat;

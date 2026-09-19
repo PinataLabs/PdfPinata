@@ -49,5 +49,5 @@ internal enum PathStart
     /// <summary>
     /// Ignores the first point.
     /// </summary>
-    Ignore1st,
+    Ignore1st
 }

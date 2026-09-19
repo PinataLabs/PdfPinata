@@ -67,7 +67,7 @@ public class LeftAndTopPositionParityTests
     {
         return Outcome(() =>
         {
-            LeftPosition parsed = LeftPosition.Parse(value);
+            var parsed = LeftPosition.Parse(value);
             return Describe(parsed.ShapePosition, parsed.Position);
         });
     }
@@ -76,7 +76,7 @@ public class LeftAndTopPositionParityTests
     {
         return Outcome(() =>
         {
-            TopPosition parsed = TopPosition.Parse(value);
+            var parsed = TopPosition.Parse(value);
             return Describe(parsed.ShapePosition, parsed.Position);
         });
     }
@@ -198,11 +198,11 @@ public class LeftAndTopPositionParityTests
     [Fact]
     public void ANamedPositionCarriesNoUnitAndAUnitCarriesNoName()
     {
-        LeftPosition named = LeftPosition.Parse("Right");
+        var named = LeftPosition.Parse("Right");
         named.ShapePosition.Should().Be(ShapePosition.Right);
         named.Position.IsEmpty.Should().BeTrue();
 
-        LeftPosition measured = LeftPosition.Parse("4cm");
+        var measured = LeftPosition.Parse("4cm");
         measured.ShapePosition.Should().Be(ShapePosition.Undefined);
         measured.Position.IsEmpty.Should().BeFalse();
     }

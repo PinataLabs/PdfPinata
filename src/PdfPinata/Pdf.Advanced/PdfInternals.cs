@@ -24,7 +24,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
 #endregion
@@ -84,8 +84,8 @@ public class PdfInternals // TODO: PdfDocumentInternals... PdfPageInternals etc.
         if (id == null || id.Length != 16)
             return Guid.Empty;
 
-        StringBuilder guid = new StringBuilder();
-        for (int idx = 0; idx < 16; idx++)
+        var guid = new StringBuilder();
+        for (var idx = 0; idx < 16; idx++)
             guid.AppendFormat("{0:X2}", (byte)id[idx]);
 
         return new Guid(guid.ToString());
@@ -104,9 +104,9 @@ public class PdfInternals // TODO: PdfDocumentInternals... PdfPageInternals etc.
     /// <summary>
     /// Returns the object with the specified Identifier, or null, if no such object exists.
     /// </summary>
-    public PdfObject GetObject(PdfObjectID objectID)
+    public PdfObject GetObject(PdfObjectID objectId)
     {
-        return _document._irefTable[objectID].Value;
+        return _document._irefTable[objectId].Value;
     }
 
     /// <summary>
@@ -115,9 +115,9 @@ public class PdfInternals // TODO: PdfDocumentInternals... PdfPageInternals etc.
     /// </summary>
     public PdfObject MapExternalObject(PdfObject externalObject)
     {
-        PdfFormXObjectTable table = _document.FormTable;
-        PdfImportedObjectTable iot = table.GetImportedObjectTable(externalObject.Owner);
-        PdfReference reference = iot[externalObject.ObjectID];
+        var table = _document.FormTable;
+        var iot = table.GetImportedObjectTable(externalObject.Owner);
+        var reference = iot[externalObject.ObjectID];
         return reference == null ? null : reference.Value;
     }
 
@@ -163,10 +163,10 @@ public class PdfInternals // TODO: PdfDocumentInternals... PdfPageInternals etc.
     /// </summary>
     public PdfObject[] GetAllObjects()
     {
-        PdfReference[] irefs = _document._irefTable.AllReferences;
-        int count = irefs.Length;
-        PdfObject[] objects = new PdfObject[count];
-        for (int idx = 0; idx < count; idx++)
+        var irefs = _document._irefTable.AllReferences;
+        var count = irefs.Length;
+        var objects = new PdfObject[count];
+        for (var idx = 0; idx < count; idx++)
             objects[idx] = irefs[idx].Value;
         return objects;
     }
@@ -200,9 +200,9 @@ public class PdfInternals // TODO: PdfDocumentInternals... PdfPageInternals etc.
         where T : PdfObject
     {
         ConstructorInfo ctorInfo = null;
-        foreach (ConstructorInfo candidate in typeof(T).GetTypeInfo().DeclaredConstructors)
+        foreach (var candidate in typeof(T).GetTypeInfo().DeclaredConstructors)
         {
-            ParameterInfo[] parameters = candidate.GetParameters();
+            var parameters = candidate.GetParameters();
             if (parameters.Length == 1 && parameters[0].ParameterType == typeof(PdfDocument))
             {
                 ctorInfo = candidate;
@@ -217,13 +217,13 @@ public class PdfInternals // TODO: PdfDocumentInternals... PdfPageInternals etc.
                 + "taking a PdfDocument. Construct it yourself and hand it to AddObject instead.");
         }
 
-        T result = (T)ctorInfo.Invoke(new object[] { _document });
+        var result = (T)ctorInfo.Invoke(new object[] { _document });
         AddObject(result);
         return result;
     }
 
     /// <summary>
-    /// Adds an object to the PDF document. This operation and only this operation makes the object 
+    /// Adds an object to the PDF document. This operation and only this operation makes the object
     /// an indirect object owned by this document.
     /// </summary>
     public void AddObject(PdfObject obj)
@@ -252,9 +252,9 @@ public class PdfInternals // TODO: PdfDocumentInternals... PdfPageInternals etc.
 
     /// <summary>
     /// Returns an array containing the specified object as first element follows by its transitive
-    /// closure. The closure of an object are all objects that can be reached by indirect references. 
+    /// closure. The closure of an object are all objects that can be reached by indirect references.
     /// The transitive closure is the result of applying the calculation of the closure to a closure
-    /// as long as no new objects came along. This is e.g. useful for getting all objects belonging 
+    /// as long as no new objects came along. This is e.g. useful for getting all objects belonging
     /// to the resources of a page.
     /// </summary>
     public PdfObject[] GetClosure(PdfObject obj)
@@ -268,11 +268,11 @@ public class PdfInternals // TODO: PdfDocumentInternals... PdfPageInternals etc.
     /// </summary>
     public PdfObject[] GetClosure(PdfObject obj, int depth)
     {
-        PdfReference[] references = _document._irefTable.TransitiveClosure(obj, depth);
-        int count = references.Length + 1;
-        PdfObject[] objects = new PdfObject[count];
+        var references = _document._irefTable.TransitiveClosure(obj, depth);
+        var count = references.Length + 1;
+        var objects = new PdfObject[count];
         objects[0] = obj;
-        for (int idx = 1; idx < count; idx++)
+        for (var idx = 1; idx < count; idx++)
             objects[idx] = references[idx - 1].Value;
         return objects;
     }

@@ -55,7 +55,7 @@ public class XSeriesElements : DocumentObjectCollection
   /// </summary>
   public void AddBlank()
   {
-    base.Add((DocumentObject)null);
+    base.Add(null);
   }
 
   /// <summary>
@@ -63,7 +63,7 @@ public class XSeriesElements : DocumentObjectCollection
   /// </summary>
   public XValue Add(string value)
   {
-    XValue xValue = new XValue(value);
+    var xValue = new XValue(value);
     Add(xValue);
     return xValue;
   }
@@ -73,7 +73,7 @@ public class XSeriesElements : DocumentObjectCollection
   /// </summary>
   public void Add(params string[] values)
   {
-    foreach (string val in values)
+    foreach (var val in values)
       this.Add(val);
   }
   #endregion

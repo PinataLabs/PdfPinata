@@ -26,7 +26,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -126,7 +126,7 @@ public partial class Character : DocumentObject
   {
     get
     {
-      uint raw = (uint)(symbolName ?? default);
+      var raw = (uint)(symbolName ?? default);
       return (raw & 0xF0000000) == 0 ? (char)raw : '\0';
     }
     set => symbolName = (SymbolName)value;
@@ -150,7 +150,7 @@ public partial class Character : DocumentObject
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    string text = String.Empty;
+    var text = String.Empty;
     // No SymbolName is defined as 0, so an unset symbolName matches none of these - which is what
     // the old (SymbolName)symbolName.Value did too, NEnum having read back 0 when null.
     if (count == 1)
@@ -171,7 +171,7 @@ public partial class Character : DocumentObject
       }
     }
 
-    uint raw = (uint)(symbolName ?? default);
+    var raw = (uint)(symbolName ?? default);
     if ((raw & 0xF0000000) == 0xF0000000)
     {
       // SymbolName == SpaceType?

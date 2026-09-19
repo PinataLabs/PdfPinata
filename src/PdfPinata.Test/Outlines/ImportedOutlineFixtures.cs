@@ -33,7 +33,7 @@ internal static class ImportedOutlineFixtures
             RawPdf.Stream("", "0 0 1 RG 10 10 100 100 re S"),
             RawPdf.Stream("", "1 0 0 RG 10 10 100 100 re S"),
             "<</Type/Outlines/First 8 0 R/Last 8 0 R/Count 1>>",
-            "<</Title(Section 1)/Parent 7 0 R" + entry + ">>",
+            "<</Title(Section 1)/Parent 7 0 R" + entry + ">>"
         };
         objects.AddRange(held);
 

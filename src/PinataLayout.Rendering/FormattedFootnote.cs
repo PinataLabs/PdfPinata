@@ -61,22 +61,22 @@ internal class FormattedFootnote : IAreaProvider
     /// </remarks>
     XUnit CalcIndent(XGraphics gfx)
     {
-        string mark = _documentRenderer.Footnotes.MarkFor(_footnote);
-        XFont font = FontHandler.ToSubSuperFont(NoteFont(gfx));
+        var mark = _documentRenderer.Footnotes.MarkFor(_footnote);
+        var font = FontHandler.ToSubSuperFont(NoteFont(gfx));
         XUnit width = mark.Length > 0 ? gfx.MeasureString(mark, font).Width : 0;
 
         // Never less than the gap, so a note whose mark is empty still sits clear of the margin
         // and reads as a note rather than as another paragraph of the body.
-        return XUnit.FromPoint(System.Math.Max(width.Point + MarkGap.Point, MarkGap.Point * 3));
+        return XUnit.FromPoint(Math.Max(width.Point + MarkGap.Point, MarkGap.Point * 3));
     }
 
     /// <summary>The face the note is set in - its own style, or the predefined Footnote one.</summary>
     internal XFont NoteFont(XGraphics gfx)
     {
-        Document document = _footnote.Document;
-        Style style = document.Styles[
-            _footnote.Style.Length > 0 ? _footnote.Style : StyleNames.Footnote]
-            ?? document.Styles[StyleNames.Normal];
+        var document = _footnote.Document;
+        var style = document.Styles[
+                        _footnote.Style.Length > 0 ? _footnote.Style : StyleNames.Footnote]
+                    ?? document.Styles[StyleNames.Normal];
 
         return FontHandler.FontToXFont(style.Font, _documentRenderer.PrivateFonts, gfx.MUH);
     }

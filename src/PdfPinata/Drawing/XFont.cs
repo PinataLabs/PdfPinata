@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -97,7 +97,7 @@ public sealed class XFont
     /// </summary>
     void Initialize()
     {
-        FontResolvingOptions fontResolvingOptions = OverrideStyleSimulations
+        var fontResolvingOptions = OverrideStyleSimulations
             ? new FontResolvingOptions(_style, StyleSimulations)
             : new FontResolvingOptions(_style);
 
@@ -124,7 +124,7 @@ public sealed class XFont
             _descriptor.Leading, _descriptor.LineSpacing, _descriptor.CapHeight, _descriptor.XHeight, _descriptor.StemV, 0, 0, 0,
             _descriptor.UnderlinePosition, _descriptor.UnderlineThickness, _descriptor.StrikeoutPosition, _descriptor.StrikeoutSize);
 
-        XFontMetrics fm = Metrics;
+        var fm = Metrics;
 
         // Already done in CreateDescriptorAndInitializeFontMetrics.
         //if (_descriptor == null)
@@ -273,7 +273,7 @@ public sealed class XFont
     /// </summary>
     public double GetHeight()
     {
-        double value = CellSpace * _emSize / UnitsPerEm;
+        var value = CellSpace * _emSize / UnitsPerEm;
         return value;
     }
 
@@ -310,11 +310,7 @@ public sealed class XFont
     ShapingFont _shapingFont;
 
 
-    internal OpenTypeDescriptor Descriptor
-    {
-        get => _descriptor;
-        private set => _descriptor = value;
-    }
+    internal OpenTypeDescriptor Descriptor => _descriptor;
     OpenTypeDescriptor _descriptor;
 
 

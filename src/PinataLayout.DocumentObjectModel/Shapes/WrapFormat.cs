@@ -128,7 +128,7 @@ public partial class WrapFormat : DocumentObject
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    int pos = serializer.BeginContent("WrapFormat");
+    serializer.BeginContent("WrapFormat");
     if (this.style != null)
       serializer.WriteSimpleAttribute("Style", this.Style);
     if (!this.distanceTop.IsNull)

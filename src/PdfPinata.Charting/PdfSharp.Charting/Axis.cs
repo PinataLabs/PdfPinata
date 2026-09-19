@@ -56,7 +56,7 @@ public class Axis : ChartObject
   /// </summary>
   protected override object DeepCopy()
   {
-    Axis axis = (Axis)base.DeepCopy();
+    var axis = (Axis)base.DeepCopy();
     if (axis.title != null)
     {
       axis.title = axis.title.Clone();
@@ -153,11 +153,11 @@ public class Axis : ChartObject
       if (!Enum.IsDefined(value))
         throw new InvalidEnumArgumentException("value", (int)value, typeof(TickMarkType));
       this.majorTickMark = value;
-      this.majorTickMarkInitialized = true;
+      this.MajorTickMarkInitialized = true;
     }
   }
   internal TickMarkType majorTickMark;
-  internal bool majorTickMarkInitialized;
+  internal bool MajorTickMarkInitialized;
 
   /// <summary>
   /// Gets or sets the type of the secondary tick mark.
@@ -170,11 +170,11 @@ public class Axis : ChartObject
       if (!Enum.IsDefined(value))
         throw new InvalidEnumArgumentException("value", (int)value, typeof(TickMarkType));
       this.minorTickMark = value;
-      this.minorTickMarkInitialized = true;
+      this.MinorTickMarkInitialized = true;
     }
   }
   internal TickMarkType minorTickMark;
-  internal bool minorTickMarkInitialized;
+  internal bool MinorTickMarkInitialized;
 
   /// <summary>
   /// Gets the label of the primary tick.

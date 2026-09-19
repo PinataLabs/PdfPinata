@@ -76,7 +76,7 @@ public partial class DocumentElements : DocumentObjectCollection, IVisitable
     /// </summary>
     public Paragraph AddParagraph()
     {
-        Paragraph paragraph = new Paragraph();
+        var paragraph = new Paragraph();
         Add(paragraph);
         return paragraph;
     }
@@ -86,7 +86,7 @@ public partial class DocumentElements : DocumentObjectCollection, IVisitable
     /// </summary>
     public Paragraph AddParagraph(string text)
     {
-        Paragraph paragraph = new Paragraph();
+        var paragraph = new Paragraph();
         paragraph.AddText(text);
         Add(paragraph);
         return paragraph;
@@ -97,7 +97,7 @@ public partial class DocumentElements : DocumentObjectCollection, IVisitable
     /// </summary>
     public Paragraph AddParagraph(string text, string style)
     {
-        Paragraph paragraph = new Paragraph();
+        var paragraph = new Paragraph();
         paragraph.AddText(text);
         paragraph.Style = style;
         Add(paragraph);
@@ -117,7 +117,7 @@ public partial class DocumentElements : DocumentObjectCollection, IVisitable
     /// </remarks>
     public BookmarkField AddBookmark(string name)
     {
-        BookmarkField bookmark = new BookmarkField(name);
+        var bookmark = new BookmarkField(name);
         Add(bookmark);
         return bookmark;
     }
@@ -127,7 +127,7 @@ public partial class DocumentElements : DocumentObjectCollection, IVisitable
     /// </summary>
     public Table AddTable()
     {
-        Table tbl = new Table();
+        var tbl = new Table();
         Add(tbl);
         return tbl;
     }
@@ -137,7 +137,7 @@ public partial class DocumentElements : DocumentObjectCollection, IVisitable
     /// </summary>
     public Legend AddLegend()
     {
-        Legend legend = new Legend();
+        var legend = new Legend();
         Add(legend);
         return legend;
     }
@@ -147,7 +147,7 @@ public partial class DocumentElements : DocumentObjectCollection, IVisitable
     /// </summary>
     public void AddPageBreak()
     {
-        PageBreak pageBreak = new PageBreak();
+        var pageBreak = new PageBreak();
         Add(pageBreak);
     }
 
@@ -156,7 +156,7 @@ public partial class DocumentElements : DocumentObjectCollection, IVisitable
     /// </summary>
     public Barcode AddBarcode()
     {
-        Barcode barcode = new Barcode();
+        var barcode = new Barcode();
         Add(barcode);
         return barcode;
     }
@@ -166,7 +166,7 @@ public partial class DocumentElements : DocumentObjectCollection, IVisitable
     /// </summary>
     public Chart AddChart(ChartType type)
     {
-        Chart chart = AddChart();
+        var chart = AddChart();
         chart.Type = type;
         return chart;
     }
@@ -176,7 +176,7 @@ public partial class DocumentElements : DocumentObjectCollection, IVisitable
     /// </summary>
     public Chart AddChart()
     {
-        Chart chart = new Chart();
+        var chart = new Chart();
         chart.Type = ChartType.Line;
         Add(chart);
         return chart;
@@ -185,9 +185,9 @@ public partial class DocumentElements : DocumentObjectCollection, IVisitable
     /// <summary>Adds an image already decoded by the registered image source.</summary>
     public MigraDocImage AddImage(IImageSource image)
     {
-        MigraDocImage img = new MigraDocImage()
+        var img = new MigraDocImage()
         {
-            Source = image,                
+            Source = image
         };
         Add(img);
         return img;
@@ -198,7 +198,7 @@ public partial class DocumentElements : DocumentObjectCollection, IVisitable
     /// </summary>
     public TextFrame AddTextFrame()
     {
-        TextFrame textFrame = new TextFrame();
+        var textFrame = new TextFrame();
         Add(textFrame);
         return textFrame;
     }
@@ -217,11 +217,11 @@ public partial class DocumentElements : DocumentObjectCollection, IVisitable
     /// </summary>
     internal void Serialize(Serializer serializer, bool omitParagraphKeyword)
     {
-        int count = Count;
+        var count = Count;
         if (omitParagraphKeyword && count == 1 && this[0] is Paragraph)
         {
             // Omit keyword if paragraph has no attributes set.
-            Paragraph paragraph = (Paragraph)this[0];
+            var paragraph = (Paragraph)this[0];
             if (paragraph.Style == "" && paragraph.IsNull("Format"))
             {
                 paragraph.SerializeContentOnly = true;
@@ -230,9 +230,9 @@ public partial class DocumentElements : DocumentObjectCollection, IVisitable
                 return;
             }
         }
-        for (int index = 0; index < count; index++)
+        for (var index = 0; index < count; index++)
         {
-            DocumentObject documentElement = this[index];
+            var documentElement = this[index];
             documentElement.Serialize(serializer);
         }
     }

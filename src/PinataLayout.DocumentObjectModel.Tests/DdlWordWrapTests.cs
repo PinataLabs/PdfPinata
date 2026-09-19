@@ -30,13 +30,13 @@ public class DdlWordWrapTests
     [Fact]
     public void TextOfEveryLengthAroundTheLimitIsWritten()
     {
-        foreach (int length in LengthsAcrossTheLimit)
+        foreach (var length in LengthsAcrossTheLimit)
         {
-            string word = new string('a', length);
+            var word = new string('a', length);
             var document = new Document();
             document.AddSection().AddParagraph(word);
 
-            string ddl = DdlWriter.WriteToString(document);
+            var ddl = DdlWriter.WriteToString(document);
 
             ddl.Should().Contain(word, $"a word of {length} characters has to be written out whole");
         }
@@ -45,13 +45,13 @@ public class DdlWordWrapTests
     [Fact]
     public void AnImagePathOfEveryLengthAroundTheLimitIsWritten()
     {
-        foreach (int length in LengthsAcrossTheLimit)
+        foreach (var length in LengthsAcrossTheLimit)
         {
-            string path = "/" + new string('a', length);
+            var path = "/" + new string('a', length);
             var document = new Document();
             document.AddSection().AddImage(new NamedImageSource(path));
 
-            string ddl = DdlWriter.WriteToString(document);
+            var ddl = DdlWriter.WriteToString(document);
 
             ddl.Should().Contain(path, $"a path of {length + 1} characters has to survive being written");
         }
@@ -62,7 +62,7 @@ public class DdlWordWrapTests
     {
         // Nowhere to break means the line goes out over length. Breaking it anyway would put a
         // line ending in the middle of a path, and reading it back would give a different path.
-        string word = new string('a', 400);
+        var word = new string('a', 400);
         var document = new Document();
         document.AddSection().AddParagraph(word);
 
@@ -81,7 +81,7 @@ public class DdlWordWrapTests
         var document = new Document();
         document.AddSection().AddParagraph(new string('a', 250) + " " + new string('b', 250));
 
-        string[] lines = DdlWriter.WriteToString(document).Replace("\r\n", "\n").Split('\n');
+        var lines = DdlWriter.WriteToString(document).Replace("\r\n", "\n").Split('\n');
 
         lines.Should().OnlyContain(line => line.Length < 400,
             "the text is broken at the blank rather than written as one 501 character line");

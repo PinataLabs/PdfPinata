@@ -108,7 +108,7 @@ public class ChartCloneAndLineFormatTests
         new DocumentObject[]
         {
             copy.XAxis, copy.YAxis, copy.ZAxis, copy.SeriesCollection, copy.XValues,
-            copy.PlotArea, copy.DataLabel, copy.Legend, copy.Font,
+            copy.PlotArea, copy.DataLabel, copy.Legend, copy.Font
         }.Should().OnlyContain(child => child.Parent == copy);
     }
 

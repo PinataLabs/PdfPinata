@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -40,7 +40,7 @@ namespace PdfPinata.Drawing;
 //
 // * Before you set a transformation matrix save the graphics state (Save) or begin a new container
 //   (BeginContainer).
-// 
+//
 // * Instead of resetting the transformation matrix, call Restore or EndContainer. If you reset the
 //   transformation, in PDF must be multiplied with the inverse matrix. That leads to round off errors
 //   because in PDF file only 3 digits are used and Acrobat internally uses fixed point numbers (until

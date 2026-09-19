@@ -82,9 +82,9 @@ public abstract partial class DocumentObject
   /// </remarks>
   protected virtual object DeepCopy()
   {
-    DocumentObject value = (DocumentObject)MemberwiseClone();
+    var value = (DocumentObject)MemberwiseClone();
     value.parent = null;
-    foreach (ValueDescriptor vd in Meta.ValueDescriptors)
+    foreach (var vd in Meta.ValueDescriptors)
     {
       // A DocumentObject-kind property with no field of its own - Style.Font, delegating to
       // Style.ParagraphFormat.Font - is not settable and needs nothing here: it has no state
@@ -93,7 +93,7 @@ public abstract partial class DocumentObject
         continue;
       if (vd.GetValue(value, GV.ReadOnly) is DocumentObject child)
       {
-        DocumentObject clone = (DocumentObject)child.Clone();
+        var clone = (DocumentObject)child.Clone();
         clone.parent = value;
         vd.SetValue(value, clone);
       }
@@ -106,10 +106,8 @@ public abstract partial class DocumentObject
   /// </summary>
   public object CreateValue(string name)
   {
-    ValueDescriptor vd = Meta[name];
-    if (vd != null)
-      return vd.CreateValue();
-    return null;
+    var vd = Meta[name];
+    return vd?.CreateValue();
   }
 
   /// <summary>
@@ -133,7 +131,7 @@ public abstract partial class DocumentObject
   /// </remarks>
   internal void ThrowIfReadOnly()
   {
-    for (DocumentObject owner = this; owner != null; owner = owner.parent)
+    for (var owner = this; owner != null; owner = owner.parent)
     {
       if (owner is Style { IsReadOnly: true } style)
       {
@@ -152,10 +150,10 @@ public abstract partial class DocumentObject
   {
     get
     {
-      DocumentObject doc = Parent;
+      var doc = Parent;
       while (doc != null)
       {
-        Document document = doc as Document;
+        var document = doc as Document;
         if (document != null)
           return document;
         doc = doc.parent;
@@ -171,10 +169,10 @@ public abstract partial class DocumentObject
   {
     get
     {
-      DocumentObject doc = Parent;
+      var doc = Parent;
       while (doc != null)
       {
-        Section section = doc as Section;
+        var section = doc as Section;
         if (section != null)
           return section;
         doc = doc.parent;

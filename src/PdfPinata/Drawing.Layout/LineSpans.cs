@@ -117,7 +117,7 @@ public static class LineSpans
         }
 
         var taken = new List<XInterval>(blocked.Count);
-        foreach ((double Start, double End) span in blocked)
+        foreach (var span in blocked)
         {
             // Read the way round it was plainly meant. This never refuses, because it did not
             // refuse before there was an interval type to have an opinion about it.
@@ -126,7 +126,7 @@ public static class LineSpans
                 : new XInterval(span.Start, span.End));
         }
 
-        if (!IntervalSet.Of(left, right).Subtract(taken).TryWidest(tolerance, out XInterval widest))
+        if (!IntervalSet.Of(left, right).Subtract(taken).TryWidest(tolerance, out var widest))
             return false;
 
         start = widest.Start;

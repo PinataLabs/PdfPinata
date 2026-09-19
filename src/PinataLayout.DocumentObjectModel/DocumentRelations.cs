@@ -1,4 +1,5 @@
 #region Copyright
+
 //
 // Authors:
 //   Stefan Lange (mailto:Stefan.Lange@PdfPinata.com)
@@ -26,8 +27,9 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
+
 #endregion
 
 using System;
@@ -39,51 +41,54 @@ namespace PinataLayout.DocumentObjectModel;
 /// </summary>
 public class DocumentRelations
 {
-  /// <summary>
-  /// Determines whether the specified documentObject has a
-  /// parent of the given type somewhere within the document hierarchy.
-  /// </summary>
-  /// <param name="documentObject">The document object to check.</param>
-  /// <param name="type">The parent type to search for.</param>
-  public static bool HasParentOfType(DocumentObject documentObject, Type type)
-  {
-    ArgumentNullException.ThrowIfNull(documentObject);
-
-    ArgumentNullException.ThrowIfNull(type);
-
-    return GetParentOfType(documentObject, type) != null;
-  }
-
-  /// <summary>
-  /// Gets the direct parent of the given document object.
-  /// </summary>
-  /// <param name="documentObject">The document object the parent is searched for.</param>
-  public static DocumentObject GetParent(DocumentObject documentObject)
-  {
-    ArgumentNullException.ThrowIfNull(documentObject);
-
-    return documentObject.Parent;
-  }
-
-  /// <summary>
-  /// Gets a parent of the document object with the given type somewhere within the document hierarchy.
-  /// Returns null if none exists.
-  /// </summary>
-  /// <param name="documentObject">The document object the parent is searched for.</param>
-  /// <param name="type">The parent type to search for.</param>
-  public static DocumentObject GetParentOfType(DocumentObject documentObject, Type type)
-  {
-    ArgumentNullException.ThrowIfNull(documentObject);
-
-    ArgumentNullException.ThrowIfNull(type);
-
-    if (documentObject.parent != null)
+    /// <summary>
+    /// Determines whether the specified documentObject has a
+    /// parent of the given type somewhere within the document hierarchy.
+    /// </summary>
+    /// <param name="documentObject">The document object to check.</param>
+    /// <param name="type">The parent type to search for.</param>
+    public static bool HasParentOfType(DocumentObject documentObject, Type type)
     {
-      if (documentObject.parent.GetType() == type)
-        return documentObject.parent;
-      else
-        return GetParentOfType(documentObject.parent, type);
+        ArgumentNullException.ThrowIfNull(documentObject);
+
+        ArgumentNullException.ThrowIfNull(type);
+
+        return GetParentOfType(documentObject, type) != null;
     }
-    return null;
-  }
+
+    /// <summary>
+    /// Gets the direct parent of the given document object.
+    /// </summary>
+    /// <param name="documentObject">The document object the parent is searched for.</param>
+    public static DocumentObject GetParent(DocumentObject documentObject)
+    {
+        ArgumentNullException.ThrowIfNull(documentObject);
+
+        return documentObject.Parent;
+    }
+
+    /// <summary>
+    /// Gets a parent of the document object with the given type somewhere within the document hierarchy.
+    /// Returns null if none exists.
+    /// </summary>
+    /// <param name="documentObject">The document object the parent is searched for.</param>
+    /// <param name="type">The parent type to search for.</param>
+    public static DocumentObject GetParentOfType(DocumentObject documentObject, Type type)
+    {
+        while (true)
+        {
+            ArgumentNullException.ThrowIfNull(documentObject);
+
+            ArgumentNullException.ThrowIfNull(type);
+
+            if (documentObject.parent != null)
+            {
+                if (documentObject.parent.GetType() == type) return documentObject.parent;
+                documentObject = documentObject.parent;
+                continue;
+            }
+
+            return null;
+        }
+    }
 }

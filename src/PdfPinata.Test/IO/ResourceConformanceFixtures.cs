@@ -104,7 +104,7 @@ internal static class ResourceConformanceFixtures
             "<</Type/Catalog/Pages 2 0 R>>",
             "<</Type/Pages/Kids[3 0 R]/Count 1>>",
             "<</Type/Page/Parent 2 0 R/MediaBox[0 0 200 200]/Contents 4 0 R>>",
-            Draw("0 0 0 1 k 0 0 100 100 re f"),
+            Draw("0 0 0 1 k 0 0 100 100 re f")
         });
     }
 
@@ -171,7 +171,7 @@ internal static class ResourceConformanceFixtures
             "<</Type/Catalog/Pages 2 0 R>>",
             "<</Type/Pages/Kids[3 0 R]/Count 1>>",
             Page("/Resources<<" + resources + ">>/Contents 4 0 R"),
-            Draw(content),
+            Draw(content)
         };
         objects.AddRange(rest);
 

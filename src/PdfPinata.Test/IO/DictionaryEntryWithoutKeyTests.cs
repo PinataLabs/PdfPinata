@@ -121,7 +121,7 @@ public class DictionaryEntryWithoutKeyTests
             "<</Type/Pages/Kids[3 0 R]/Count 1>>",
             "<</Type/Page/Parent 2 0 R/MediaBox[0 0 200 200]/Contents 4 0 R>>",
             RawPdf.Stream("", content),
-            informationDictionary,
+            informationDictionary
         }, "/Info 5 0 R");
     }
 }

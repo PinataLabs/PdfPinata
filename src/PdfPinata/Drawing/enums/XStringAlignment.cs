@@ -51,5 +51,5 @@ public enum XStringAlignment  // Same values as System.Drawing.StringAlignment.
     /// In a left-to-right layout, the far position is right. In a right-to-left layout, the far
     /// position is left. 
     /// </summary>
-    Far = 2,
+    Far = 2
 }

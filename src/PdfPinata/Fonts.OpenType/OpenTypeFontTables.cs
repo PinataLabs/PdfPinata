@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -81,8 +81,8 @@ internal class CMap4 : OpenTypeFontTable
 {
     public WinEncodingId encodingId; // Windows encoding ID.
     public ushort format; // Format number is set to 4.
-    public ushort length; // This is the length in bytes of the subtable. 
-    public ushort language; // This field must be set to zero for all cmap subtables whose platform IDs are other than Macintosh (platform ID 1). 
+    public ushort length; // This is the length in bytes of the subtable.
+    public ushort language; // This field must be set to zero for all cmap subtables whose platform IDs are other than Macintosh (platform ID 1).
     public ushort segCountX2; // 2 x segCount.
     public ushort searchRange; // 2 x (2**floor(log2(segCount)))
     public ushort entrySelector; // log2(searchRange/2)
@@ -115,7 +115,7 @@ internal class CMap4 : OpenTypeFontTable
             entrySelector = _fontData.ReadUShort();
             rangeShift = _fontData.ReadUShort();
 
-            int segCount = segCountX2 / 2;
+            var segCount = segCountX2 / 2;
             glyphCount = (length - (16 + 8 * segCount)) / 2;
 
             //ASSERT_CONDITION(0 <= m_NumGlyphIds && m_NumGlyphIds < m_Length, "Invalid Index");
@@ -127,7 +127,7 @@ internal class CMap4 : OpenTypeFontTable
 
             glyphIdArray = new ushort[glyphCount];
 
-            for (int idx = 0; idx < segCount; idx++)
+            for (var idx = 0; idx < segCount; idx++)
                 endCount[idx] = _fontData.ReadUShort();
 
             //ASSERT_CONDITION(m_EndCount[segs - 1] == 0xFFFF, "Out of Index");
@@ -135,16 +135,16 @@ internal class CMap4 : OpenTypeFontTable
             // Read reserved pad.
             _fontData.ReadUShort();
 
-            for (int idx = 0; idx < segCount; idx++)
+            for (var idx = 0; idx < segCount; idx++)
                 startCount[idx] = _fontData.ReadUShort();
 
-            for (int idx = 0; idx < segCount; idx++)
+            for (var idx = 0; idx < segCount; idx++)
                 idDelta[idx] = _fontData.ReadShort();
 
-            for (int idx = 0; idx < segCount; idx++)
+            for (var idx = 0; idx < segCount; idx++)
                 idRangeOffs[idx] = _fontData.ReadUShort();
 
-            for (int idx = 0; idx < glyphCount; idx++)
+            for (var idx = 0; idx < glyphCount; idx++)
                 glyphIdArray[idx] = _fontData.ReadUShort();
         }
         catch (Exception ex) when (!Unrecoverable.Is(ex))
@@ -219,7 +219,7 @@ internal class CMap12 : OpenTypeFontTable
             const int headerLength = 16;
             const int groupLength = 12;
 
-            long available = _fontData.FontSource.Bytes.Length - (long)_fontData.Position;
+            var available = _fontData.FontSource.Bytes.Length - (long)_fontData.Position;
 
             if (length < headerLength
                 || numGroups > (length - headerLength) / groupLength
@@ -230,11 +230,11 @@ internal class CMap12 : OpenTypeFontTable
             }
 
             groups = new Group[numGroups];
-            for (int idx = 0; idx < numGroups; idx++)
+            for (var idx = 0; idx < numGroups; idx++)
             {
-                uint startCharCode = _fontData.ReadULong();
-                uint endCharCode = _fontData.ReadULong();
-                uint startGlyphId = _fontData.ReadULong();
+                var startCharCode = _fontData.ReadULong();
+                var endCharCode = _fontData.ReadULong();
+                var startGlyphId = _fontData.ReadULong();
                 groups[idx] = new Group(startCharCode, endCharCode, startGlyphId);
             }
         }
@@ -257,14 +257,14 @@ internal class CMap12 : OpenTypeFontTable
         if (groups == null || codePoint < 0)
             return 0;
 
-        uint value = (uint)codePoint;
-        int low = 0;
-        int high = groups.Length - 1;
+        var value = (uint)codePoint;
+        var low = 0;
+        var high = groups.Length - 1;
 
         while (low <= high)
         {
-            int middle = low + ((high - low) >> 1);
-            Group group = groups[middle];
+            var middle = low + ((high - low) >> 1);
+            var group = groups[middle];
 
             if (value < group.StartCharCode)
                 high = middle - 1;
@@ -316,7 +316,7 @@ internal class CMapTable : OpenTypeFontTable
     {
         try
         {
-            int tableOffset = _fontData.Position;
+            var tableOffset = _fontData.Position;
 
             version = _fontData.ReadUShort();
             numTables = _fontData.ReadUShort();
@@ -328,15 +328,15 @@ internal class CMapTable : OpenTypeFontTable
             // first record that would have ended the old loop is the first that sets it here, and
             // nothing later overwrites it - so a face with no format 12 is read exactly as before
             // and every existing document keeps the glyphs it had.
-            int cmap4Offset = -1;
-            bool cmap4IsSymbol = false;
-            int cmap12Offset = -1;
+            var cmap4Offset = -1;
+            var cmap4IsSymbol = false;
+            var cmap12Offset = -1;
 
-            for (int idx = 0; idx < numTables; idx++)
+            for (var idx = 0; idx < numTables; idx++)
             {
-                PlatformId platformId = (PlatformId)_fontData.ReadUShort();
+                var platformId = (PlatformId)_fontData.ReadUShort();
                 int encodingId = _fontData.ReadUShort();
-                int offset = _fontData.ReadLong();
+                var offset = _fontData.ReadLong();
 
                 if (cmap4Offset < 0)
                 {
@@ -395,7 +395,7 @@ internal class CMapTable : OpenTypeFontTable
 
         if (platformId == PlatformId.Apple)
         {
-            AppleEncodingId apple = (AppleEncodingId)encodingId;
+            var apple = (AppleEncodingId)encodingId;
             return apple == AppleEncodingId.Unicode20 || apple == AppleEncodingId.FullUnicode;
         }
 
@@ -404,7 +404,7 @@ internal class CMapTable : OpenTypeFontTable
 }
 
 /// <summary>
-/// This table gives global information about the font. The bounding box values should be computed using 
+/// This table gives global information about the font. The bounding box values should be computed using
 /// only glyphs that have contours. Glyphs with no contours should be ignored for the purposes of these calculations.
 /// </summary>
 internal class FontHeaderTable : OpenTypeFontTable
@@ -463,18 +463,18 @@ internal class FontHeaderTable : OpenTypeFontTable
 }
 
 /// <summary>
-/// This table contains information for horizontal layout. The values in the minRightSidebearing, 
+/// This table contains information for horizontal layout. The values in the minRightSidebearing,
 /// MinLeftSideBearing and xMaxExtent should be computed using only glyphs that have contours.
 /// Glyphs with no contours should be ignored for the purposes of these calculations.
-/// All reserved areas must be set to 0. 
+/// All reserved areas must be set to 0.
 /// </summary>
 internal class HorizontalHeaderTable : OpenTypeFontTable
 {
     public const string Tag = TableTagNames.HHea;
 
     public Fixed version; // 0x00010000 for Version 1.0.
-    public FWord ascender; // Typographic ascent. (Distance from baseline of highest Ascender) 
-    public FWord descender; // Typographic descent. (Distance from baseline of lowest Descender) 
+    public FWord ascender; // Typographic ascent. (Distance from baseline of highest Ascender)
+    public FWord descender; // Typographic descent. (Distance from baseline of lowest Descender)
     public FWord lineGap; // Typographic line gap. Negative LineGap values are treated as zero in Windows 3.1, System 6, and System 7.
     public UFWord advanceWidthMax;
     public FWord minLeftSideBearing;
@@ -574,24 +574,24 @@ internal class HorizontalMetricsTable : OpenTypeFontTable
     {
         try
         {
-            HorizontalHeaderTable hhea = _fontData.hhea;
-            MaximumProfileTable maxp = _fontData.maxp;
+            var hhea = _fontData.hhea;
+            var maxp = _fontData.maxp;
             if (hhea != null && maxp != null)
             {
                 int numMetrics = hhea.numberOfHMetrics; //->NumberOfHMetrics();
-                int numLsbs = maxp.numGlyphs - numMetrics;
+                var numLsbs = maxp.numGlyphs - numMetrics;
 
                 Debug.Assert(numMetrics != 0);
                 Debug.Assert(numLsbs >= 0);
 
                 Metrics = new HorizontalMetrics[numMetrics];
-                for (int idx = 0; idx < numMetrics; idx++)
+                for (var idx = 0; idx < numMetrics; idx++)
                     Metrics[idx] = new HorizontalMetrics(_fontData);
 
                 if (numLsbs > 0)
                 {
                     LeftSideBearing = new FWord[numLsbs];
-                    for (int idx = 0; idx < numLsbs; idx++)
+                    for (var idx = 0; idx < numLsbs; idx++)
                         LeftSideBearing[idx] = _fontData.ReadFWord();
                 }
             }
@@ -610,8 +610,8 @@ internal class VerticalHeaderTable : OpenTypeFontTable
 
     // code comes from HorizontalHeaderTable
     public Fixed Version; // 0x00010000 for Version 1.0.
-    public FWord Ascender; // Typographic ascent. (Distance from baseline of highest Ascender) 
-    public FWord Descender; // Typographic descent. (Distance from baseline of lowest Descender) 
+    public FWord Ascender; // Typographic ascent. (Distance from baseline of highest Ascender)
+    public FWord Descender; // Typographic descent. (Distance from baseline of lowest Descender)
     public FWord LineGap; // Typographic line gap. Negative LineGap values are treated as zero in Windows 3.1, System 6, and System 7.
     public UFWord AdvanceWidthMax;
     public FWord MinLeftSideBearing;
@@ -716,24 +716,24 @@ internal class VerticalMetricsTable : OpenTypeFontTable
     {
         try
         {
-            HorizontalHeaderTable hhea = _fontData.hhea;
-            MaximumProfileTable maxp = _fontData.maxp;
+            var hhea = _fontData.hhea;
+            var maxp = _fontData.maxp;
             if (hhea != null && maxp != null)
             {
                 int numMetrics = hhea.numberOfHMetrics; //->NumberOfHMetrics();
-                int numLsbs = maxp.numGlyphs - numMetrics;
+                var numLsbs = maxp.numGlyphs - numMetrics;
 
                 Debug.Assert(numMetrics != 0);
                 Debug.Assert(numLsbs >= 0);
 
                 metrics = new HorizontalMetrics[numMetrics];
-                for (int idx = 0; idx < numMetrics; idx++)
+                for (var idx = 0; idx < numMetrics; idx++)
                     metrics[idx] = new HorizontalMetrics(_fontData);
 
                 if (numLsbs > 0)
                 {
                     leftSideBearing = new FWord[numLsbs];
-                    for (int idx = 0; idx < numLsbs; idx++)
+                    for (var idx = 0; idx < numLsbs; idx++)
                         leftSideBearing[idx] = _fontData.ReadFWord();
                 }
             }
@@ -749,7 +749,7 @@ internal class VerticalMetricsTable : OpenTypeFontTable
 /// This table establishes the memory requirements for this font.
 /// Fonts with CFF data must use Version 0.5 of this table, specifying only the numGlyphs field.
 /// Fonts with TrueType outlines must use Version 1.0 of this table, where all data is required.
-/// Both formats of OpenType require a 'maxp' table because a number of applications call the 
+/// Both formats of OpenType require a 'maxp' table because a number of applications call the
 /// Windows GetFontData() API on the 'maxp' table to determine the number of glyphs in the font.
 /// </summary>
 internal class MaximumProfileTable : OpenTypeFontTable
@@ -813,7 +813,7 @@ internal class MaximumProfileTable : OpenTypeFontTable
 /// Other parts of the OpenType font file that require these strings can then refer to them simply by
 /// their index number. Clients that need a particular string can look it up by its platform ID, character
 /// encoding ID, language ID and name ID. Note that some platforms may require single byte character
-/// strings, while others may require double byte strings. 
+/// strings, while others may require double byte strings.
 ///
 /// For historical reasons, some applications which install fonts perform Version control using Macintosh
 /// platform (platform ID 1) strings from the 'name' table. Because of this, we strongly recommend that
@@ -865,10 +865,10 @@ internal class NameTable : OpenTypeFontTable
             count = _fontData.ReadUShort();
             stringOffset = _fontData.ReadUShort();
 
-            for (int idx = 0; idx < count; idx++)
+            for (var idx = 0; idx < count; idx++)
             {
-                NameRecord nrec = ReadNameRecord();
-                byte[] value = new byte[nrec.length];
+                var nrec = ReadNameRecord();
+                var value = new byte[nrec.length];
                 Buffer.BlockCopy(_fontData.FontSource.Bytes, DirectoryEntry.Offset + stringOffset + nrec.offset, value, 0, nrec.length);
 
                 //Debug.WriteLine(nrec.platformID.ToString());
@@ -895,8 +895,8 @@ internal class NameTable : OpenTypeFontTable
                 // Read font name and style in US english.
                 if (nrec.platformID == 0 || nrec.platformID == 3)
                 {
-                    // Font Family name. Up to four fonts can share the Font Family name, 
-                    // forming a font style linking group (regular, italic, bold, bold italic - 
+                    // Font Family name. Up to four fonts can share the Font Family name,
+                    // forming a font style linking group (regular, italic, bold, bold italic -
                     // as defined by OS/2.fsSelection bit settings).
                     if (nrec.nameID == 1 && nrec.languageID == 0x0409)
                     {
@@ -904,11 +904,11 @@ internal class NameTable : OpenTypeFontTable
                             Name = Encoding.BigEndianUnicode.GetString(value, 0, value.Length);
                     }
 
-                    // Font Subfamily name. The Font Subfamily name distiguishes the font in a 
+                    // Font Subfamily name. The Font Subfamily name distiguishes the font in a
                     // group with the same Font Family name (name ID 1). This is assumed to
                     // address style (italic, oblique) and weight (light, bold, black, etc.).
                     // A font with no particular differences in weight or style (e.g. medium weight,
-                    // not italic and fsSelection bit 6 set) should have the string “Regular” stored in 
+                    // not italic and fsSelection bit 6 set) should have the string “Regular” stored in
                     // this position.
                     if (nrec.nameID == 2 && nrec.languageID == 0x0409)
                     {
@@ -935,7 +935,7 @@ internal class NameTable : OpenTypeFontTable
 
     NameRecord ReadNameRecord()
     {
-        NameRecord nrec = new NameRecord();
+        var nrec = new NameRecord();
         nrec.platformID = _fontData.ReadUShort();
         nrec.encodingID = _fontData.ReadUShort();
         nrec.languageID = _fontData.ReadUShort();
@@ -957,7 +957,7 @@ internal class NameTable : OpenTypeFontTable
 }
 
 /// <summary>
-/// The OS/2 table consists of a set of Metrics that are required in OpenType fonts. 
+/// The OS/2 table consists of a set of Metrics that are required in OpenType fonts.
 /// </summary>
 internal class OS2Table : OpenTypeFontTable
 {
@@ -968,7 +968,7 @@ internal class OS2Table : OpenTypeFontTable
     {
         Italic = 1 << 0,
         Bold = 1 << 5,
-        Regular = 1 << 6,
+        Regular = 1 << 6
     }
 
     public ushort version;
@@ -1080,7 +1080,7 @@ internal class OS2Table : OpenTypeFontTable
 
 /// <summary>
 /// This table contains additional information needed to use TrueType or OpenTypeTM fonts
-/// on PostScript printers. 
+/// on PostScript printers.
 /// </summary>
 internal class PostScriptTable : OpenTypeFontTable
 {
@@ -1126,12 +1126,13 @@ internal class PostScriptTable : OpenTypeFontTable
 /// <summary>
 /// This table contains a list of values that can be referenced by instructions.
 /// They can be used, among other things, to control characteristics for different glyphs.
-/// The length of the table must be an integral number of FWORD units. 
+/// The length of the table must be an integral number of FWORD units.
 /// </summary>
 internal class ControlValueTable : OpenTypeFontTable
 {
     public const string Tag = TableTagNames.Cvt;
 
+    // ReSharper disable once CollectionNeverQueried.Local
     FWord[] array; // List of n values referenceable by instructions. n is the number of FWORD items that fit in the size of the table.
 
     public ControlValueTable(OpenTypeFontface fontData)
@@ -1146,9 +1147,9 @@ internal class ControlValueTable : OpenTypeFontTable
     {
         try
         {
-            int length = DirectoryEntry.Length / 2;
+            var length = DirectoryEntry.Length / 2;
             array = new FWord[length];
-            for (int idx = 0; idx < length; idx++)
+            for (var idx = 0; idx < length; idx++)
                 array[idx] = _fontData.ReadFWord();
         }
         catch (Exception ex) when (!Unrecoverable.Is(ex))
@@ -1161,12 +1162,13 @@ internal class ControlValueTable : OpenTypeFontTable
 /// <summary>
 /// This table is similar to the CVT Program, except that it is only run once, when the font is first used.
 /// It is used only for FDEFs and IDEFs. Thus the CVT Program need not contain function definitions.
-/// However, the CVT Program may redefine existing FDEFs or IDEFs. 
+/// However, the CVT Program may redefine existing FDEFs or IDEFs.
 /// </summary>
 internal class FontProgram : OpenTypeFontTable
 {
     public const string Tag = TableTagNames.Fpgm;
 
+    // ReSharper disable once CollectionNeverQueried.Local
     byte[] bytes; // Instructions. n is the number of BYTE items that fit in the size of the table.
 
     public FontProgram(OpenTypeFontface fontData)
@@ -1181,9 +1183,9 @@ internal class FontProgram : OpenTypeFontTable
     {
         try
         {
-            int length = DirectoryEntry.Length;
+            var length = DirectoryEntry.Length;
             bytes = new byte[length];
-            for (int idx = 0; idx < length; idx++)
+            for (var idx = 0; idx < length; idx++)
                 bytes[idx] = _fontData.ReadByte();
         }
         catch (Exception ex) when (!Unrecoverable.Is(ex))
@@ -1194,15 +1196,16 @@ internal class FontProgram : OpenTypeFontTable
 }
 
 /// <summary>
-/// The Control Value Program consists of a set of TrueType instructions that will be executed whenever the font or 
+/// The Control Value Program consists of a set of TrueType instructions that will be executed whenever the font or
 /// point size or transformation matrix change and before each glyph is interpreted. Any instruction is legal in the
 /// CVT Program but since no glyph is associated with it, instructions intended to move points within a particular
-/// glyph outline cannot be used in the CVT Program. The name 'prep' is anachronistic. 
+/// glyph outline cannot be used in the CVT Program. The name 'prep' is anachronistic.
 /// </summary>
 internal class ControlValueProgram : OpenTypeFontTable
 {
     public const string Tag = TableTagNames.Prep;
 
+    // ReSharper disable once CollectionNeverQueried.Local
     byte[] bytes; // Set of instructions executed whenever point size or font or transformation change. n is the number of BYTE items that fit in the size of the table.
 
     public ControlValueProgram(OpenTypeFontface fontData)
@@ -1217,9 +1220,9 @@ internal class ControlValueProgram : OpenTypeFontTable
     {
         try
         {
-            int length = DirectoryEntry.Length;
+            var length = DirectoryEntry.Length;
             bytes = new byte[length];
-            for (int idx = 0; idx < length; idx++)
+            for (var idx = 0; idx < length; idx++)
                 bytes[idx] = _fontData.ReadByte();
         }
         catch (Exception ex) when (!Unrecoverable.Is(ex))
@@ -1231,7 +1234,7 @@ internal class ControlValueProgram : OpenTypeFontTable
 
 /// <summary>
 /// This table contains information that describes the glyphs in the font in the TrueType outline format.
-/// Information regarding the rasterizer (scaler) refers to the TrueType rasterizer. 
+/// Information regarding the rasterizer (scaler) refers to the TrueType rasterizer.
 /// </summary>
 internal class GlyphSubstitutionTable : OpenTypeFontTable
 {

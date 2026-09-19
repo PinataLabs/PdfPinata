@@ -64,7 +64,7 @@ public abstract class PdfSquareCircleAnnotation : PdfAnnotation
     {
         // Validated even though the two subclasses here pass constants: the constructors are
         // protected on a public class, so a subtype can come from outside this assembly.
-        Elements.SetName(Keys.Subtype, SubtypeName(subtype));
+        Elements.SetName(PdfAnnotation.Keys.Subtype, SubtypeName(subtype));
 
         // A visible default, so that an annotation given nothing but a rectangle still appears.
         // Nothing else about this class has a sensible zero: a border of no width and no interior
@@ -88,7 +88,7 @@ public abstract class PdfSquareCircleAnnotation : PdfAnnotation
         {
             _interior = value;
             WriteInteriorColor();
-            Elements.SetDateTime(Keys.M, GlobalTimeSettings.Now);
+            Elements.SetDateTime(PdfAnnotation.Keys.M, GlobalTimeSettings.Now);
             OnAppearanceInvalidated();
         }
     }
@@ -114,13 +114,13 @@ public abstract class PdfSquareCircleAnnotation : PdfAnnotation
 
             // A direct dictionary, so that it needs no owner - the width can be set before the
             // annotation has been added to a page.
-            PdfDictionary border = new PdfDictionary();
+            var border = new PdfDictionary();
             border.Elements.SetName("/Type", "/Border");
             border.Elements.SetReal("/W", value);
             border.Elements.SetName("/S", "/S");
-            Elements[Keys.BS] = border;
+            Elements[PdfAnnotation.Keys.BS] = border;
 
-            Elements.SetDateTime(Keys.M, GlobalTimeSettings.Now);
+            Elements.SetDateTime(PdfAnnotation.Keys.M, GlobalTimeSettings.Now);
             OnAppearanceInvalidated();
         }
     }
@@ -130,7 +130,7 @@ public abstract class PdfSquareCircleAnnotation : PdfAnnotation
     {
         // An empty array is how the specification says "no interior colour", and is not the same
         // as the entry being absent - which means the same thing, but says nothing about intent.
-        PdfArray colour = new PdfArray();
+        var colour = new PdfArray();
         if (_interior != XColor.Empty)
         {
             colour.Elements.Add(new PdfReal(_interior.R / 255.0));
@@ -166,15 +166,15 @@ public abstract class PdfSquareCircleAnnotation : PdfAnnotation
         if (Owner == null)
             return;
 
-        PdfRectangle rect = Elements.GetRectangle(Keys.Rect);
-        double width = rect.X2 - rect.X1;
-        double height = rect.Y2 - rect.Y1;
+        var rect = Elements.GetRectangle(PdfAnnotation.Keys.Rect);
+        var width = rect.X2 - rect.X1;
+        var height = rect.Y2 - rect.Y1;
 
-        double inset = _borderWidth / 2;
-        double drawnWidth = width - _borderWidth;
-        double drawnHeight = height - _borderWidth;
+        var inset = _borderWidth / 2;
+        var drawnWidth = width - _borderWidth;
+        var drawnHeight = height - _borderWidth;
 
-        XPen pen = _borderWidth > 0 ? new XPen(Color, _borderWidth) : null;
+        var pen = _borderWidth > 0 ? new XPen(Color, _borderWidth) : null;
         XBrush brush = _interior == XColor.Empty ? null : new XSolidBrush(_interior);
 
         // Nothing to draw: no rectangle yet, none left once the border has taken its half from
@@ -188,18 +188,18 @@ public abstract class PdfSquareCircleAnnotation : PdfAnnotation
         if (width < 1 || height < 1 || drawnWidth <= 0 || drawnHeight <= 0
             || (pen == null && brush == null))
         {
-            Elements.Remove(Keys.AP);
+            Elements.Remove(PdfAnnotation.Keys.AP);
             Elements.Remove(Keys.RD);
 
             // /AS names one of a set of appearances, so leaving it behind would point at a state
             // in an /AP that is no longer there. SetAppearance clears it for the same reason.
-            Elements.Remove(Keys.AS);
+            Elements.Remove(PdfAnnotation.Keys.AS);
             return;
         }
 
-        XRect drawn = new XRect(inset, inset, drawnWidth, drawnHeight);
-        XForm form = new XForm(Owner, new XSize(width, height));
-        using (XGraphics gfx = XGraphics.FromForm(form))
+        var drawn = new XRect(inset, inset, drawnWidth, drawnHeight);
+        var form = new XForm(Owner, new XSize(width, height));
+        using (var gfx = XGraphics.FromForm(form))
         {
             DrawShape(gfx, pen, brush, drawn);
         }

@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -35,7 +35,7 @@ namespace PdfPinata.Pdf;
 /// <summary>
 /// Represents trim margins added to the page.
 /// </summary>
-[DebuggerDisplay("(Left={left.Millimeter}mm, Right={right.Millimeter}mm, Top={top.Millimeter}mm, Bottom={bottom.Millimeter}mm)")]
+[DebuggerDisplay("(Left={_left.Millimeter}mm, Right={_right.Millimeter}mm, Top={_top.Millimeter}mm, Bottom={_bottom.Millimeter}mm)")]
 public sealed class TrimMargins
 {
     ///// <summary>

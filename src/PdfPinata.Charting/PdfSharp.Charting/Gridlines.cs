@@ -60,7 +60,7 @@ public class Gridlines : ChartObject
   /// </summary>
   protected override object DeepCopy()
   {
-    Gridlines gridlines = (Gridlines)base.DeepCopy();
+    var gridlines = (Gridlines)base.DeepCopy();
     if (gridlines.lineFormat != null)
     {
       gridlines.lineFormat = gridlines.lineFormat.Clone();

@@ -30,7 +30,7 @@ public class HeadingLevelTests
         var document = new Document();
         var section = document.AddSection();
 
-        foreach (int level in headingLevels)
+        foreach (var level in headingLevels)
             section.AddParagraph("Heading at level " + level, "Heading" + level);
 
         section.AddParagraph("Body text, so that a heading has something under it.");
@@ -39,7 +39,7 @@ public class HeadingLevelTests
         {
             Document = document,
             TagContent = true,
-            Language = "en-GB",
+            Language = "en-GB"
         };
 
         renderer.RenderDocument();

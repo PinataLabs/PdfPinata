@@ -62,5 +62,5 @@ public enum PdfPageLayout
     /// <summary>
     /// (PDF 1.5) Display the pages two at a time, with odd-numbered pages on the right.
     /// </summary>
-    TwoPageRight,
+    TwoPageRight
 }

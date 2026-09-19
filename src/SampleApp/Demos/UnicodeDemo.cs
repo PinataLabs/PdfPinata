@@ -27,7 +27,7 @@ internal sealed class UnicodeDemo : PdfDemo
         "The difference in the file: a simple font with a readable literal, or a CID font with glyph ids",
         "PdfDocumentRenderer(unicode: true) - the same switch, under a name that hides it",
         "TrueType embedded as a subset in /FontFile2, CFF embedded whole in /FontFile3",
-        "Why CJK is not on this page",
+        "Why CJK is not on this page"
     };
 
     public override int PageCount => 2;
@@ -35,21 +35,21 @@ internal sealed class UnicodeDemo : PdfDemo
     protected override PdfDocument Build(DemoContext context)
     {
         #region example
-        PdfDocument document = new PdfDocument();
+        var document = new PdfDocument();
         document.Info.Title = "Unicode";
 
-        XFont heading = new XFont("Liberation Sans", 16, XFontStyle.Bold);
-        XFont label = new XFont("Liberation Sans", 9, XFontStyle.Bold);
-        XFont body = new XFont("Liberation Sans", 9);
-        XFont mono = new XFont("Source Code Pro", 8.5);
+        var heading = new XFont("Liberation Sans", 16, XFontStyle.Bold);
+        var label = new XFont("Liberation Sans", 9, XFontStyle.Bold);
+        var body = new XFont("Liberation Sans", 9);
+        var mono = new XFont("Source Code Pro", 8.5);
 
         // The same family and size, differing only in what encoding the font is written with. The
         // options go in the constructor: there is no property to change afterwards, because the
         // encoding decides which kind of PDF font object gets built.
         // docs:begin encodings
-        XFont winAnsi = new XFont("Liberation Sans", 13, XFontStyle.Regular,
+        var winAnsi = new XFont("Liberation Sans", 13, XFontStyle.Regular,
             XPdfFontOptions.WinAnsiDefault);
-        XFont unicode = new XFont("Liberation Sans", 13, XFontStyle.Regular,
+        var unicode = new XFont("Liberation Sans", 13, XFontStyle.Regular,
             XPdfFontOptions.UnicodeDefault);
         // docs:end encodings
 
@@ -60,14 +60,14 @@ internal sealed class UnicodeDemo : PdfDemo
             ("Ελληνικά", "Greek - outside WinAnsi"),
             ("Кириллица", "Cyrillic - outside WinAnsi"),
             ("Ćwiczenia, Łódź", "Latin Extended - outside WinAnsi"),
-            ("→ ← ↑ ↓ ∑ ∞", "Arrows and mathematics - outside WinAnsi"),
+            ("→ ← ↑ ↓ ∑ ∞", "Arrows and mathematics - outside WinAnsi")
         };
 
         // ----- page 1: what each encoding can carry -----
 
-        PdfPage page1 = document.AddPage();
-        XGraphics gfx1 = XGraphics.FromPdfPage(page1);
-        XTextFormatter prose1 = new XTextFormatter(gfx1);
+        var page1 = document.AddPage();
+        var gfx1 = XGraphics.FromPdfPage(page1);
+        var prose1 = new XTextFormatter(gfx1);
 
         gfx1.DrawString("What each encoding carries", heading, XBrushes.Black, new XPoint(50, 60));
 
@@ -85,7 +85,7 @@ internal sealed class UnicodeDemo : PdfDemo
 
         // docs:begin side-by-side
         double y = 190;
-        foreach ((string Text, string What) sample in samples)
+        foreach (var sample in samples)
         {
             gfx1.DrawString(sample.Text, winAnsi, XBrushes.Black, new XPoint(50, y));
             gfx1.DrawString(sample.Text, unicode, XBrushes.Black, new XPoint(280, y));
@@ -109,12 +109,12 @@ internal sealed class UnicodeDemo : PdfDemo
         (string Encoding, string Subtype, string FontFile, int Length, long Bytes) Probe(
             XPdfFontOptions options, string text, string family)
         {
-            using MemoryStream buffer = new MemoryStream();
-            using (PdfDocument probe = new PdfDocument())
+            using var buffer = new MemoryStream();
+            using (var probe = new PdfDocument())
             {
                 probe.Options.CompressContentStreams = true;
-                PdfPage page = probe.AddPage();
-                using (XGraphics gfx = XGraphics.FromPdfPage(page))
+                var page = probe.AddPage();
+                using (var gfx = XGraphics.FromPdfPage(page))
                 {
                     gfx.DrawString(text, new XFont(family, 12, XFontStyle.Regular, options),
                         XBrushes.Black, new XPoint(50, 50));
@@ -124,28 +124,28 @@ internal sealed class UnicodeDemo : PdfDemo
             }
 
             buffer.Position = 0;
-            using PdfDocument reopened = PdfReader.Open(buffer, PdfDocumentOpenMode.Import);
+            using var reopened = PdfReader.Open(buffer, PdfDocumentOpenMode.Import);
 
             // Walk the page's font resources and report what kind of font object was written and
             // which key the face's bytes ended up under.
-            PdfDictionary? fonts = reopened.Pages[0].Elements
+            var fonts = reopened.Pages[0].Elements
                 .GetDictionary("/Resources")?.Elements.GetDictionary("/Font");
 
             string subtype = "none", fontFile = "none";
-            int length = 0;
+            var length = 0;
 
             if (fonts != null)
             {
-                foreach (string key in fonts.Elements.KeyNames.Select(name => name.Value))
+                foreach (var key in fonts.Elements.KeyNames.Select(name => name.Value))
                 {
-                    PdfDictionary font = fonts.Elements.GetDictionary(key);
+                    var font = fonts.Elements.GetDictionary(key);
                     subtype = font.Elements.GetName("/Subtype");
 
                     // A CID font hides the descriptor one level down, under /DescendantFonts.
-                    PdfDictionary? descriptor = font.Elements.GetDictionary("/FontDescriptor");
+                    var descriptor = font.Elements.GetDictionary("/FontDescriptor");
                     if (descriptor == null)
                     {
-                        PdfArray descendants = font.Elements.GetArray("/DescendantFonts");
+                        var descendants = font.Elements.GetArray("/DescendantFonts");
                         if (descendants != null && descendants.Elements.Count > 0)
                         {
                             descriptor = (descendants.Elements.GetDictionary(0))
@@ -155,9 +155,9 @@ internal sealed class UnicodeDemo : PdfDemo
 
                     if (descriptor != null)
                     {
-                        foreach (string file in new[] { "/FontFile", "/FontFile2", "/FontFile3" })
+                        foreach (var file in new[] { "/FontFile", "/FontFile2", "/FontFile3" })
                         {
-                            PdfDictionary embedded = descriptor.Elements.GetDictionary(file);
+                            var embedded = descriptor.Elements.GetDictionary(file);
                             if (embedded != null)
                             {
                                 fontFile = file;
@@ -177,19 +177,19 @@ internal sealed class UnicodeDemo : PdfDemo
             Probe(XPdfFontOptions.UnicodeDefault, "Hello", "Liberation Sans"),
             Probe(XPdfFontOptions.UnicodeDefault, "Кириллица", "Liberation Sans"),
             Probe(XPdfFontOptions.WinAnsiDefault, "Hello", "Source Code Pro"),
-            Probe(XPdfFontOptions.UnicodeDefault, "Hello", "Source Code Pro"),
+            Probe(XPdfFontOptions.UnicodeDefault, "Hello", "Source Code Pro")
         };
 
         string[] descriptions =
         {
             "Liberation Sans, WinAnsi", "Liberation Sans, Unicode",
             "Liberation Sans, Unicode, Cyrillic", "Source Code Pro, WinAnsi",
-            "Source Code Pro, Unicode",
+            "Source Code Pro, Unicode"
         };
 
-        PdfPage page2 = document.AddPage();
-        XGraphics gfx2 = XGraphics.FromPdfPage(page2);
-        XTextFormatter prose2 = new XTextFormatter(gfx2);
+        var page2 = document.AddPage();
+        var gfx2 = XGraphics.FromPdfPage(page2);
+        var prose2 = new XTextFormatter(gfx2);
 
         gfx2.DrawString("What it does to the file", heading, XBrushes.Black, new XPoint(50, 60));
 
@@ -206,7 +206,7 @@ internal sealed class UnicodeDemo : PdfDemo
         gfx2.DrawString("file", label, XBrushes.Black, new XPoint(490, 135));
 
         double row = 155;
-        for (int index = 0; index < probes.Length; index++)
+        for (var index = 0; index < probes.Length; index++)
         {
             gfx2.DrawString(descriptions[index], body, XBrushes.Black, new XPoint(50, row));
             gfx2.DrawString(probes[index].Subtype, mono, XBrushes.Firebrick, new XPoint(230, row));

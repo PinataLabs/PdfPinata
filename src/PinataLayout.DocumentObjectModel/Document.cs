@@ -66,7 +66,7 @@ public sealed partial class Document : DocumentObject, IVisitable
   /// </summary>
   protected override object DeepCopy()
   {
-    Document document = (Document)base.DeepCopy();
+    var document = (Document)base.DeepCopy();
     document.renderer = null;
     return document;
   }
@@ -74,17 +74,17 @@ public sealed partial class Document : DocumentObject, IVisitable
   /// <summary>
   /// Internal function used by renderers to bind this instance to it.
   /// </summary>
-  public void BindToRenderer(object renderer)
+  public void BindToRenderer(object newRenderer)
   {
     //if (this.renderer != null && this.renderer != renderer)
-    if (this.renderer != null && renderer != null && !ReferenceEquals(this.renderer, renderer))
+    if (renderer != null && newRenderer != null && !ReferenceEquals(renderer, newRenderer))
     {
       throw new InvalidOperationException("The document is already bound to another renderer. " +
                                           "A PinataLayout document can be rendered by only one renderer, because the rendering process " +
                                           "modifies its internal structure. If you want to render a PinataLayout document on different renderers, " +
                                           "you must create a copy of it using the Clone function.");
     }
-    this.renderer = renderer;
+    renderer = newRenderer;
   }
   object renderer;
 
@@ -139,7 +139,7 @@ public sealed partial class Document : DocumentObject, IVisitable
   /// <summary>
   /// Gets the last section of the document, or null, if the document has no sections.
   /// </summary>
-  public Section LastSection => (sections != null && sections.Count > 0) ?
+  public Section LastSection => sections is { Count: > 0 } ?
     sections.LastObject as Section : null;
 
   /// <summary>
@@ -313,10 +313,10 @@ public sealed partial class Document : DocumentObject, IVisitable
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    serializer.WriteComment((comment ?? ""));
+    serializer.WriteComment(comment ?? "");
     serializer.WriteLine("\\document");
 
-    int pos = serializer.BeginAttributes();
+    var pos = serializer.BeginAttributes();
     if (!IsNull("Info"))
       Info.Serialize(serializer);
     if (!defaultTabStop.IsNull)
@@ -352,7 +352,9 @@ public sealed partial class Document : DocumentObject, IVisitable
     visitor.VisitDocument(this);
     if (visitChildren)
     {
+      // ReSharper disable once ConditionIsAlwaysTrueOrFalse
       ((IVisitable)Styles).AcceptVisitor(visitor, visitChildren);
+      // ReSharper disable once ConditionIsAlwaysTrueOrFalse
       ((IVisitable)Sections).AcceptVisitor(visitor, visitChildren);
     }
   }

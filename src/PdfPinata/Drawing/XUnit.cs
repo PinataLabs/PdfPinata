@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -266,7 +266,7 @@ public struct XUnit : IFormattable
     /// </summary>
     public string ToString(IFormatProvider formatProvider)
     {
-        string valuestring = _value.ToString(formatProvider) + GetSuffix();
+        var valuestring = _value.ToString(formatProvider) + GetSuffix();
         return valuestring;
     }
 
@@ -276,7 +276,7 @@ public struct XUnit : IFormattable
     /// </summary>
     string IFormattable.ToString(string format, IFormatProvider formatProvider)
     {
-        string valuestring = _value.ToString(format, formatProvider) + GetSuffix();
+        var valuestring = _value.ToString(format, formatProvider) + GetSuffix();
         return valuestring;
     }
 
@@ -285,7 +285,7 @@ public struct XUnit : IFormattable
     /// </summary>
     public override string ToString()
     {
-        string valuestring = _value.ToString(CultureInfo.InvariantCulture) + GetSuffix();
+        var valuestring = _value.ToString(CultureInfo.InvariantCulture) + GetSuffix();
         return valuestring;
     }
 
@@ -390,11 +390,11 @@ public struct XUnit : IFormattable
         // HACK for Germans...
         value = value.Replace(',', '.');
 
-        int count = value.Length;
-        int valLen = 0;
+        var count = value.Length;
+        var valLen = 0;
         for (; valLen < count; )
         {
-            char ch = value[valLen];
+            var ch = value[valLen];
             if (ch == '.' || ch == '-' || ch == '+' || char.IsNumber(ch))
                 valLen++;
             else
@@ -403,18 +403,18 @@ public struct XUnit : IFormattable
 
         try
         {
-            unit._value = Double.Parse(value.Substring(0, valLen).Trim(), CultureInfo.InvariantCulture);
+            unit._value = Double.Parse(value[..valLen].Trim(), CultureInfo.InvariantCulture);
         }
         catch (Exception ex) when (!Unrecoverable.Is(ex))
         {
             unit._value = 1;
-            string message = String.Format("String '{0}' is not a valid value for structure 'XUnit'.", value);
+            var message = $"String '{value}' is not a valid value for structure 'XUnit'.";
             #pragma warning disable S3877 // Public API: this conversion is the parser, and a string that names no unit has nothing to convert to.
             throw new ArgumentException(message, ex);
             #pragma warning restore S3877
         }
 
-        string typeStr = value.Substring(valLen).Trim().ToLower();
+        var typeStr = value[valLen..].Trim().ToLower();
         unit._type = XGraphicsUnit.Point;
         switch (typeStr)
         {
@@ -476,7 +476,7 @@ public struct XUnit : IFormattable
     }
 
     /// <summary>
-    /// Memberwise comparison. To compare by value, 
+    /// Memberwise comparison. To compare by value,
     /// use code like Math.Abs(a.Pt - b.Pt) &lt; 1e-5.
     /// </summary>
     public static bool operator ==(XUnit value1, XUnit value2)
@@ -489,7 +489,7 @@ public struct XUnit : IFormattable
     }
 
     /// <summary>
-    /// Memberwise comparison. To compare by value, 
+    /// Memberwise comparison. To compare by value,
     /// use code like Math.Abs(a.Pt - b.Pt) &lt; 1e-5.
     /// </summary>
     public static bool operator !=(XUnit value1, XUnit value2)

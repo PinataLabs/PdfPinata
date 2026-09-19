@@ -70,7 +70,7 @@ public static class Interruptibly
             // and moved on. A background thread does not hold the process open, so the run still
             // finishes and still reports.
             IsBackground = true,
-            Name = "interruptible test work",
+            Name = "interruptible test work"
         };
 
         thread.Start();

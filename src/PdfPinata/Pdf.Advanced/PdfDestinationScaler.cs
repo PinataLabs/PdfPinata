@@ -66,8 +66,8 @@ static class PdfDestinationScaler
         if (document == null || matrices == null || matrices.Count == 0)
             return;
 
-        Dictionary<PdfObjectID, XMatrix> byObjectId = new Dictionary<PdfObjectID, XMatrix>();
-        foreach (KeyValuePair<PdfPage, XMatrix> pair in matrices)
+        var byObjectId = new Dictionary<PdfObjectID, XMatrix>();
+        foreach (var pair in matrices)
         {
             if (pair.Key?.Reference != null)
                 byObjectId[pair.Key.Reference.ObjectID] = pair.Value;
@@ -78,25 +78,25 @@ static class PdfDestinationScaler
 
         // A destination array can be indirect and pointed at from more than one link. Moving one
         // twice would move it twice as far, so each is done once however often it is found.
-        Sweep sweep = new Sweep(byObjectId);
+        var sweep = new Sweep(byObjectId);
 
-        foreach (PdfPage page in document.Pages)
+        foreach (var page in document.Pages)
             sweep.VisitAnnotationsOf(page);
 
-        PdfCatalog catalog = document.Catalog;
+        var catalog = document.Catalog;
         if (catalog == null)
             return;
 
         sweep.VisitOutline(catalog.Elements.GetDictionary(PdfCatalog.Keys.Outlines), 0);
 
-        PdfDictionary names = catalog.Elements.GetDictionary(PdfCatalog.Keys.Names);
+        var names = catalog.Elements.GetDictionary(PdfCatalog.Keys.Names);
         if (names != null)
             sweep.VisitNameTree(names.Elements.GetDictionary("/Dests"), 0);
 
-        PdfDictionary dests = catalog.Elements.GetDictionary(PdfCatalog.Keys.Dests);
+        var dests = catalog.Elements.GetDictionary(PdfCatalog.Keys.Dests);
         if (dests != null)
         {
-            foreach (PdfName key in dests.Elements.KeyNames)
+            foreach (var key in dests.Elements.KeyNames)
                 sweep.VisitDestinationHolder(dests, key.Value);
         }
 
@@ -121,11 +121,11 @@ static class PdfDestinationScaler
         {
             // The element rather than the property: reading page.Annotations would give a page
             // without any an empty array to hold.
-            PdfItem item = Resolve(page.Elements[PdfPage.Keys.Annots]);
+            var item = Resolve(page.Elements[PdfPage.Keys.Annots]);
             if (item is not PdfArray annotations)
                 return;
 
-            foreach (PdfItem element in annotations.Elements)
+            foreach (var element in annotations.Elements)
             {
                 if (Resolve(element) is PdfDictionary annotation)
                     VisitHolderAndItsAction(annotation, "/Dest");
@@ -140,8 +140,8 @@ static class PdfDestinationScaler
 
             VisitHolderAndItsAction(node, "/Dest");
 
-            PdfDictionary child = node.Elements.GetDictionary("/First");
-            int guard = 0;
+            var child = node.Elements.GetDictionary("/First");
+            var guard = 0;
             while (child != null && guard++ <= MaxSiblings)
             {
                 VisitOutline(child, depth + 1);
@@ -159,17 +159,17 @@ static class PdfDestinationScaler
                 return;
 
             // A leaf alternates the names with what each one stands for.
-            PdfArray leaves = node.Elements.GetArray("/Names");
+            var leaves = node.Elements.GetArray("/Names");
             if (leaves != null)
             {
-                for (int index = 1; index < leaves.Elements.Count; index += 2)
+                for (var index = 1; index < leaves.Elements.Count; index += 2)
                     VisitDestination(leaves.Elements[index]);
             }
 
-            PdfArray kids = node.Elements.GetArray("/Kids");
+            var kids = node.Elements.GetArray("/Kids");
             if (kids != null)
             {
-                for (int index = 0; index < kids.Elements.Count; index++)
+                for (var index = 0; index < kids.Elements.Count; index++)
                     VisitNameTree(kids.Elements.GetDictionary(index), depth + 1);
             }
         }
@@ -181,7 +181,7 @@ static class PdfDestinationScaler
         {
             VisitDestinationHolder(holder, key);
 
-            PdfDictionary action = holder.Elements.GetDictionary("/A");
+            var action = holder.Elements.GetDictionary("/A");
             if (action == null)
                 return;
 
@@ -189,7 +189,7 @@ static class PdfDestinationScaler
             // another file, where the numbers mean what they say and this resize has no business
             // touching them. An action that does not say what it is is taken to be a go-to,
             // which is how the import path treats one too.
-            string subtype = action.Elements.GetName("/S");
+            var subtype = action.Elements.GetName("/S");
             if (subtype.Length == 0 || subtype == "/GoTo")
                 VisitDestinationHolder(action, "/D");
         }
@@ -226,7 +226,7 @@ static class PdfDestinationScaler
             if (destination.Elements[0] is not PdfReference page)
                 return;
 
-            if (!_matrices.TryGetValue(page.ObjectID, out XMatrix matrix))
+            if (!_matrices.TryGetValue(page.ObjectID, out var matrix))
                 return;
 
             Move(destination, matrix);
@@ -269,12 +269,12 @@ static class PdfDestinationScaler
             if (destination.Elements.Count < 4)
                 return;
 
-            bool hasLeft = PdfPageResizer.TryNumber(destination.Elements[2], out double left);
-            bool hasTop = PdfPageResizer.TryNumber(destination.Elements[3], out double top);
+            var hasLeft = PdfPageResizer.TryNumber(destination.Elements[2], out var left);
+            var hasTop = PdfPageResizer.TryNumber(destination.Elements[3], out var top);
 
             if (hasLeft && hasTop)
             {
-                XPoint moved = matrix.Transform(new XPoint(left, top));
+                var moved = matrix.Transform(new XPoint(left, top));
                 destination.Elements[2] = new PdfReal(moved.X);
                 destination.Elements[3] = new PdfReal(moved.Y);
                 return;
@@ -298,19 +298,19 @@ static class PdfDestinationScaler
             if (destination.Elements.Count < 6)
                 return;
 
-            double[] corners = new double[4];
-            for (int index = 0; index < 4; index++)
+            var corners = new double[4];
+            for (var index = 0; index < 4; index++)
             {
                 if (!PdfPageResizer.TryNumber(destination.Elements[index + 2], out corners[index]))
                     return;
             }
 
-            double left = corners[0];
-            double bottom = corners[1];
-            double right = corners[2];
-            double top = corners[3];
+            var left = corners[0];
+            var bottom = corners[1];
+            var right = corners[2];
+            var top = corners[3];
 
-            XRect moved = PdfPageResizer.Transformed(
+            var moved = PdfPageResizer.Transformed(
                 new XRect(Math.Min(left, right), Math.Min(bottom, top),
                     Math.Abs(right - left), Math.Abs(top - bottom)),
                 matrix);
@@ -328,7 +328,7 @@ static class PdfDestinationScaler
         static void MoveHorizontalLine(PdfArray destination, XMatrix matrix)
         {
             if (destination.Elements.Count < 3 ||
-                !PdfPageResizer.TryNumber(destination.Elements[2], out double value))
+                !PdfPageResizer.TryNumber(destination.Elements[2], out var value))
                 return;
 
             if (IsAxisAligned(matrix))
@@ -349,7 +349,7 @@ static class PdfDestinationScaler
         static void MoveVerticalLine(PdfArray destination, XMatrix matrix)
         {
             if (destination.Elements.Count < 3 ||
-                !PdfPageResizer.TryNumber(destination.Elements[2], out double value))
+                !PdfPageResizer.TryNumber(destination.Elements[2], out var value))
                 return;
 
             if (IsAxisAligned(matrix))

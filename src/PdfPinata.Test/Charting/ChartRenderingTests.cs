@@ -54,7 +54,7 @@ public class ChartRenderingTests
             var frame = new ChartFrame
             {
                 Location = new XPoint(20, 20),
-                Size = new XSize(width, height),
+                Size = new XSize(width, height)
             };
             frame.Add(chart);
             frame.DrawChart(gfx);
@@ -295,7 +295,7 @@ public class ChartRenderingTests
         // from the same rules the renderer uses would assert nothing. CurrentCulture is per thread
         // and xUnit gives a test method a thread to itself, so this does not reach a test running
         // beside it.
-        CultureInfo previous = CultureInfo.CurrentCulture;
+        var previous = CultureInfo.CurrentCulture;
         CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
         try
         {

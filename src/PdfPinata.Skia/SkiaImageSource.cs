@@ -22,7 +22,8 @@ public class SkiaImageSource
     {
         ArgumentNullException.ThrowIfNull(bitmap);
 
-        string name = "*" + Guid.NewGuid().ToString("B");
+        var name = "*" + Guid.NewGuid().ToString("B");
+        // ReSharper disable once PossibleInvalidOperationException
         return new SkiaImageSourceImpl(name, bitmap, (int)quality, transparent);
     }
 
@@ -30,7 +31,7 @@ public class SkiaImageSource
     /// <summary>Decodes an image from a file.</summary>
     protected override IImageSource FromFileImpl(string path, int? quality = 75)
     {
-        using SKData data = SKData.Create(path);
+        using var data = SKData.Create(path);
         return Decode(path, data, quality);
     }
 
@@ -38,7 +39,7 @@ public class SkiaImageSource
     /// <summary>Decodes an image from bytes fetched on demand.</summary>
     protected override IImageSource FromBinaryImpl(string name, Func<byte[]> imageSource, int? quality = 75)
     {
-        using SKData data = SKData.CreateCopy(imageSource.Invoke());
+        using var data = SKData.CreateCopy(imageSource.Invoke());
         return Decode(name, data, quality);
     }
 
@@ -46,8 +47,8 @@ public class SkiaImageSource
     /// <summary>Decodes an image from a stream opened on demand.</summary>
     protected override IImageSource FromStreamImpl(string name, Func<Stream> imageStream, int? quality = 75)
     {
-        using Stream stream = imageStream.Invoke();
-        using SKData data = SKData.Create(stream);
+        using var stream = imageStream.Invoke();
+        using var data = SKData.Create(stream);
         return Decode(name, data, quality);
     }
 
@@ -57,20 +58,20 @@ public class SkiaImageSource
         if (data == null)
             throw new InvalidOperationException("Unable to read image data for '" + name + "'.");
 
-        using SKCodec codec = SKCodec.Create(data);
+        using var codec = SKCodec.Create(data);
         if (codec == null)
             throw new InvalidOperationException("Unsupported or corrupt image format for '" + name + "'.");
 
         // Decode to unpremultiplied BGRA. Skia premultiplies by default, which would darken
         // semi-transparent pixels once PdfImage reads the colour and alpha channels separately.
         // Bgra8888 also matches the byte order PdfImage expects: B, G, R, A.
-        SKImageInfo info = new SKImageInfo(
+        var info = new SKImageInfo(
             codec.Info.Width, codec.Info.Height, SKColorType.Bgra8888, SKAlphaType.Unpremul);
 
-        SKBitmap bitmap = new SKBitmap(info);
+        var bitmap = new SKBitmap(info);
         try
         {
-            SKCodecResult result = codec.GetPixels(info, bitmap.GetPixels());
+            var result = codec.GetPixels(info, bitmap.GetPixels());
             if (result != SKCodecResult.Success && result != SKCodecResult.IncompleteInput)
                 throw new InvalidOperationException(
                     "Failed to decode image '" + name + "': " + result + ".");
@@ -83,8 +84,9 @@ public class SkiaImageSource
 
         // Mirrors the previous ImageSharp behaviour: PNG sources keep their alpha and take the
         // FLATE path, everything else is re-encoded as JPEG.
-        bool transparent = codec.EncodedFormat == SKEncodedImageFormat.Png;
+        var transparent = codec.EncodedFormat == SKEncodedImageFormat.Png;
 
+        // ReSharper disable once PossibleInvalidOperationException
         return new SkiaImageSourceImpl(name, bitmap, (int)quality, transparent);
     }
 
@@ -115,8 +117,8 @@ public class SkiaImageSource
 
         public void SaveAsJpeg(MemoryStream ms)
         {
-            using SKImage image = SKImage.FromBitmap(_bitmap);
-            using SKData data = image.Encode(SKEncodedImageFormat.Jpeg, _quality);
+            using var image = SKImage.FromBitmap(_bitmap);
+            using var data = image.Encode(SKEncodedImageFormat.Jpeg, _quality);
             if (data == null)
                 throw new InvalidOperationException("JPEG encoding failed for '" + Name + "'.");
 
@@ -141,17 +143,17 @@ public class SkiaImageSource
                     + "Decode into SKAlphaType.Unpremul, or unpremultiply before handing the bitmap "
                     + "to SkiaImageSource.FromSkiaBitmap.");
 
-            int width = _bitmap.Width;
-            int height = _bitmap.Height;
-            int stride = width * PixelBuffer.BytesPerPixel;
+            var width = _bitmap.Width;
+            var height = _bitmap.Height;
+            var stride = width * PixelBuffer.BytesPerPixel;
 
             // Skia decodes straight into the layout a PixelBuffer promises - top-down, four bytes
             // per pixel, B, G, R, A - so this is a copy out of native memory and nothing more. Rows
             // are copied one at a time because SKBitmap.RowBytes may exceed the packed width.
-            byte[] pixels = new byte[stride * height];
+            var pixels = new byte[stride * height];
             ReadOnlySpan<byte> source = _bitmap.GetPixelSpan();
-            int rowBytes = _bitmap.RowBytes;
-            for (int y = 0; y < height; y++)
+            var rowBytes = _bitmap.RowBytes;
+            for (var y = 0; y < height; y++)
                 source.Slice(y * rowBytes, stride).CopyTo(pixels.AsSpan(y * stride, stride));
 
             return new PixelBuffer(width, height, pixels);

@@ -58,7 +58,7 @@ public partial class XSeriesElements : DocumentObjectCollection
   /// </summary>
   public void AddBlank()
   {
-    base.Add((DocumentObject)null);
+    base.Add(null);
   }
 
   /// <summary>
@@ -66,7 +66,7 @@ public partial class XSeriesElements : DocumentObjectCollection
   /// </summary>
   public XValue Add(string value)
   {
-    XValue xValue = new XValue(value);
+    var xValue = new XValue(value);
     Add(xValue);
     return xValue;
   }
@@ -76,8 +76,8 @@ public partial class XSeriesElements : DocumentObjectCollection
   /// </summary>
   public void Add(params string[] values)
   {
-    foreach (string val in values)
-      this.Add(val);
+    foreach (var val in values)
+      Add(val);
   }
   #endregion
 
@@ -87,10 +87,10 @@ public partial class XSeriesElements : DocumentObjectCollection
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    int count = Count;
-    for (int index = 0; index < count; index++)
+    var count = Count;
+    for (var index = 0; index < count; index++)
     {
-      XValue xValue = this[index] as XValue;
+      var xValue = this[index] as XValue;
       if (xValue == null)
         serializer.Write("null, ");
       else

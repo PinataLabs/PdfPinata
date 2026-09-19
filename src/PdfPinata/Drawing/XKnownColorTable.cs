@@ -52,7 +52,7 @@ internal class XKnownColorTable
 
     public static bool IsKnownColor(uint argb)
     {
-        for (int idx = 0; idx < ColorTable.Length; idx++)
+        for (var idx = 0; idx < ColorTable.Length; idx++)
         {
             if (ColorTable[idx] == argb)
                 return true;
@@ -62,7 +62,7 @@ internal class XKnownColorTable
 
     public static XKnownColor GetKnownColor(uint argb)
     {
-        for (int idx = 0; idx < ColorTable.Length; idx++)
+        for (var idx = 0; idx < ColorTable.Length; idx++)
         {
             if (ColorTable[idx] == argb)
                 return (XKnownColor)idx;
@@ -74,7 +74,7 @@ internal class XKnownColorTable
     {
         // Same values as in GDI+ and System.Windows.Media.XColors
         // Note that Magenta is the same as Fuchsia and Zyan is the same as Aqua.
-        uint[] colors = new uint[141];
+        var colors = new uint[141];
         colors[0] = 0xFFF0F8FF;  // AliceBlue
         colors[1] = 0xFFFAEBD7;  // AntiqueWhite
         colors[2] = 0xFF00FFFF;  // Aqua

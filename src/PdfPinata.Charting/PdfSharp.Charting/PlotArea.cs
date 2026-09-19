@@ -62,7 +62,7 @@ public class PlotArea : ChartObject
   /// </summary>
   protected override object DeepCopy()
   {
-    PlotArea plotArea = (PlotArea)base.DeepCopy();
+    var plotArea = (PlotArea)base.DeepCopy();
     if (plotArea.lineFormat != null)
     {
       plotArea.lineFormat = plotArea.lineFormat.Clone();

@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -67,14 +67,14 @@ internal static class ParserDiagnostics
     public static void HandleUnexpectedCharacter(char ch)
     {
         // Hex formatting does not work with type char. It must be casted to integer.
-        string message = string.Format(CultureInfo.InvariantCulture,
+        var message = string.Format(CultureInfo.InvariantCulture,
             "Unexpected character '0x{0:x4}' in PDF stream. The file may be corrupted. " +
             "If you think this is a bug in PDFsharp, please send us your PDF file.", (int)ch);
         ThrowParserException(message);
     }
     public static void HandleUnexpectedToken(string token)
     {
-        string message = string.Format(CultureInfo.InvariantCulture,
+        var message = string.Format(CultureInfo.InvariantCulture,
             "Unexpected token '{0}' in PDF stream. The file may be corrupted. " +
             "If you think this is a bug in PDFsharp, please send us your PDF file.", token);
         ThrowParserException(message);
@@ -95,13 +95,13 @@ internal static class ContentReaderDiagnostics
 
     public static void ThrowNumberOutOfIntegerRange(long value)
     {
-        string message = string.Format(CultureInfo.InvariantCulture, "Number '{0}' out of integer range.", value);
+        var message = string.Format(CultureInfo.InvariantCulture, "Number '{0}' out of integer range.", value);
         ThrowContentReaderException(message);
     }
 
     public static void HandleUnexpectedCharacter(char ch)
     {
-        string message = string.Format(CultureInfo.InvariantCulture,
+        var message = string.Format(CultureInfo.InvariantCulture,
             "Unexpected character '0x{0:x4}' in content stream. The stream may be corrupted or the feature is not implemented. " +
             "If you think this is a bug in PDFsharp, please send us your PDF file.", ch);
         ThrowContentReaderException(message);

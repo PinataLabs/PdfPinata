@@ -28,8 +28,8 @@ namespace PdfPinata.Test.Rendering;
 /// </remarks>
 public class TrimmedPageRenderingTests
 {
-    static readonly XUnit Bleed = PdfPinata.Drawing.XUnit.FromMillimeter(3);
-    static readonly XUnit Marks = PdfPinata.Drawing.XUnit.FromMillimeter(5);
+    static readonly XUnit Bleed = XUnit.FromMillimeter(3);
+    static readonly XUnit Marks = XUnit.FromMillimeter(5);
 
     /// <summary>From the corner of the sheet to the corner of the trimmed page.</summary>
     static double Inset => Bleed.Point + Marks.Point;
@@ -60,8 +60,8 @@ public class TrimmedPageRenderingTests
         // A 2.5cm top margin is PinataLayout's default, and the sheet's own margins are on top of it.
         // Asserted as a range because the first baseline sits a line's ascent below the margin,
         // not on it.
-        first.Should().BeGreaterThan(Inset + PdfPinata.Drawing.XUnit.FromCentimeter(2.5).Point);
-        first.Should().BeLessThan(Inset + PdfPinata.Drawing.XUnit.FromCentimeter(3.5).Point);
+        first.Should().BeGreaterThan(Inset + XUnit.FromCentimeter(2.5).Point);
+        first.Should().BeLessThan(Inset + XUnit.FromCentimeter(3.5).Point);
     }
 
     [Fact]
@@ -112,8 +112,8 @@ public class TrimmedPageRenderingTests
     {
         var pdf = new PdfDocument();
         var page = pdf.AddPage();
-        page.Width = PdfPinata.Drawing.XUnit.FromPoint(A5Width);
-        page.Height = PdfPinata.Drawing.XUnit.FromPoint(A5Height);
+        page.Width = XUnit.FromPoint(A5Width);
+        page.Height = XUnit.FromPoint(A5Height);
         if (trimmed)
             page.TrimMargins.All = Bleed;
 

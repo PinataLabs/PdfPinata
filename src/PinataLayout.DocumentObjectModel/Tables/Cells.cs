@@ -71,7 +71,7 @@ public partial class Cells : DocumentObjectCollection
     {
       if (this.table == null)
       {
-        Row rw = this.Parent as Row;
+        var rw = this.Parent as Row;
         if (rw != null)
           this.table = rw.Table;
       }
@@ -116,7 +116,7 @@ public partial class Cells : DocumentObjectCollection
   /// </summary>
   private void Resize(int index)
   {
-    for (int currentIndex = this.Count; currentIndex <= index; currentIndex++)
+    for (var currentIndex = this.Count; currentIndex <= index; currentIndex++)
       Add(new Cell());
   }
 
@@ -126,8 +126,8 @@ public partial class Cells : DocumentObjectCollection
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    int cells = Count;
-    for (int cell = 0; cell < cells; cell++)
+    var cells = Count;
+    for (var cell = 0; cell < cells; cell++)
       this[cell].Serialize(serializer);
   }
 

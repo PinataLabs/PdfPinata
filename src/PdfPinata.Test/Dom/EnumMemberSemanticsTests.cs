@@ -96,7 +96,7 @@ public class EnumMemberSemanticsTests
     {
         var format = AFormat();
 
-        foreach (ParagraphAlignment alignment in Enum.GetValues<ParagraphAlignment>())
+        foreach (var alignment in Enum.GetValues<ParagraphAlignment>())
         {
             format.Alignment = alignment;
             format.Alignment.Should().Be(alignment);
@@ -124,7 +124,7 @@ public class EnumMemberSemanticsTests
         // Only the section body. The built-in Heading1..9 styles assign OutlineLevel themselves, so
         // the \styles block legitimately mentions it whatever this paragraph does.
         var ddl = DdlWriter.WriteToString(document);
-        var section = ddl.Substring(ddl.IndexOf("\\section", StringComparison.Ordinal));
+        var section = ddl[ddl.IndexOf("\\section", StringComparison.Ordinal)..];
 
         section.Should().Contain("Alignment", "the assigned enum is written");
         section.Should().NotContain("OutlineLevel", "an enum nobody assigned stays out of the output");

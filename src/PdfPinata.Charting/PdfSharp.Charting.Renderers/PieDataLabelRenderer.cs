@@ -50,28 +50,29 @@ internal class PieDataLabelRenderer : DataLabelRenderer
   /// </summary>
   internal override void Format()
   {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    if (cri.seriesRendererInfos.Length == 0)
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    if (cri.SeriesRendererInfos.Length == 0)
       return;
 
-    SeriesRendererInfo sri = cri.seriesRendererInfos[0];
-    if (sri.dataLabelRendererInfo == null)
+    var sri = cri.SeriesRendererInfos[0];
+    if (sri.DataLabelRendererInfo == null)
       return;
 
-    double sumValues = sri.SumOfPoints;
-    XGraphics gfx = this.rendererParms.Graphics;
+    var sumValues = sri.SumOfPoints;
+    var gfx = this.rendererParms.Graphics;
 
-    sri.dataLabelRendererInfo.Entries = new DataLabelEntryRendererInfo[sri.pointRendererInfos.Length];
-    int index = 0;
-    foreach (SectorRendererInfo sector in sri.pointRendererInfos)
+    sri.DataLabelRendererInfo.Entries = new DataLabelEntryRendererInfo[sri.PointRendererInfos.Length];
+    var index = 0;
+    // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
+    foreach (SectorRendererInfo sector in sri.PointRendererInfos)
     {
-      DataLabelEntryRendererInfo dleri = new DataLabelEntryRendererInfo();
+      var dleri = new DataLabelEntryRendererInfo();
 
       // A blank draws no wedge, so it is left with no text either and Draw passes over it.
       // Writing what NaN formats to would label a wedge that is not there.
-      if (sri.dataLabelRendererInfo.Type != DataLabelType.None && !double.IsNaN(sector.Value))
+      if (sri.DataLabelRendererInfo.Type != DataLabelType.None && !double.IsNaN(sector.Value))
       {
-        if (sri.dataLabelRendererInfo.Type == DataLabelType.Percent)
+        if (sri.DataLabelRendererInfo.Type == DataLabelType.Percent)
         {
           // Two ways of asking for a percentage, and the caller's format says which. A format
           // carrying '%' is a .NET percent format, which scales by a hundred and writes the sign
@@ -82,20 +83,20 @@ internal class PieDataLabelRenderer : DataLabelRenderer
           // Appending unconditionally made the natural format the broken one: "0%" over a share of
           // 0.1875 produced "1875%%" rather than "19%", because 18.75 was scaled by a hundred a
           // second time and signed twice. It read back exactly as it was set and printed nonsense.
-          double share = Math.Abs(sector.Value) / sumValues;
-          string format = sri.dataLabelRendererInfo.Format;
+          var share = Math.Abs(sector.Value) / sumValues;
+          var format = sri.DataLabelRendererInfo.Format;
           dleri.Text = format != null && format.Contains('%')
             ? share.ToString(format)
             : (share * 100).ToString(format) + "%";
         }
-        else if (sri.dataLabelRendererInfo.Type == DataLabelType.Value)
-          dleri.Text = sector.Value.ToString(sri.dataLabelRendererInfo.Format);
+        else if (sri.DataLabelRendererInfo.Type == DataLabelType.Value)
+          dleri.Text = sector.Value.ToString(sri.DataLabelRendererInfo.Format);
 
         if (dleri.Text.Length > 0)
-          dleri.Size = gfx.MeasureString(dleri.Text, sri.dataLabelRendererInfo.Font);
+          dleri.Size = gfx.MeasureString(dleri.Text, sri.DataLabelRendererInfo.Font);
       }
 
-      sri.dataLabelRendererInfo.Entries[index++] = dleri;
+      sri.DataLabelRendererInfo.Entries[index++] = dleri;
     }
   }
 
@@ -104,22 +105,23 @@ internal class PieDataLabelRenderer : DataLabelRenderer
   /// </summary>
   internal override void Draw()
   {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    if (cri.seriesRendererInfos.Length == 0)
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    if (cri.SeriesRendererInfos.Length == 0)
       return;
 
-    SeriesRendererInfo sri = cri.seriesRendererInfos[0];
-    if (sri.dataLabelRendererInfo == null)
+    var sri = cri.SeriesRendererInfos[0];
+    if (sri.DataLabelRendererInfo == null)
       return;
 
+    // ReSharper disable once ConditionIsAlwaysTrueOrFalse
     if (sri != null)
     {
-      XGraphics gfx = this.rendererParms.Graphics;
-      XFont font = sri.dataLabelRendererInfo.Font;
-      XBrush fontColor = sri.dataLabelRendererInfo.FontColor;
-      XStringFormat format = XStringFormats.Center;
+      var gfx = this.rendererParms.Graphics;
+      var font = sri.DataLabelRendererInfo.Font;
+      var fontColor = sri.DataLabelRendererInfo.FontColor;
+      var format = XStringFormats.Center;
       format.LineAlignment = XLineAlignment.Center;
-      foreach (DataLabelEntryRendererInfo dataLabel in sri.dataLabelRendererInfo.Entries)
+      foreach (var dataLabel in sri.DataLabelRendererInfo.Entries)
       {
         if (dataLabel.Text != null)
           gfx.DrawString(dataLabel.Text, font, fontColor, dataLabel.Rect, format);
@@ -132,39 +134,39 @@ internal class PieDataLabelRenderer : DataLabelRenderer
   /// </summary>
   internal override void CalcPositions()
   {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    XGraphics gfx = this.rendererParms.Graphics;
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
 
-    if (cri.seriesRendererInfos.Length > 0)
+    if (cri.SeriesRendererInfos.Length > 0)
     {
-      SeriesRendererInfo sri = cri.seriesRendererInfos[0];
-      if (sri != null && sri.dataLabelRendererInfo != null)
+      var sri = cri.SeriesRendererInfos[0];
+      if (sri != null && sri.DataLabelRendererInfo != null)
       {
-        int sectorIndex = 0;
-        foreach (SectorRendererInfo sector in sri.pointRendererInfos)
+        var sectorIndex = 0;
+        foreach (SectorRendererInfo sector in sri.PointRendererInfos)
+        // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
         {
           // Determine output rectangle
-          double midAngle = sector.StartAngle + sector.SweepAngle / 2;
-          double radMidAngle = midAngle / 180 * Math.PI;
-          XPoint origin = new XPoint(sector.Rect.X + sector.Rect.Width / 2,
+          var midAngle = sector.StartAngle + sector.SweepAngle / 2;
+          var radMidAngle = midAngle / 180 * Math.PI;
+          var origin = new XPoint(sector.Rect.X + sector.Rect.Width / 2,
             sector.Rect.Y + sector.Rect.Height / 2);
-          double radius = sector.Rect.Width / 2;
-          double halfradius = radius / 2;
+          var radius = sector.Rect.Width / 2;
+          var halfradius = radius / 2;
 
-          DataLabelEntryRendererInfo dleri = sri.dataLabelRendererInfo.Entries[sectorIndex++];
+          var dleri = sri.DataLabelRendererInfo.Entries[sectorIndex++];
 
           // The two "end" positions put a corner of the label exactly on the arc, which draws the
           // text hard against the edge of the wedge - and, on the outside, hard against whatever is
           // beyond it. Both are moved off the arc along their own radius by a third of the label's
           // own height, so the gap is in proportion to the text rather than to the chart, and a
           // large pie and a small one look alike.
-          double inset = dleri.Height / 3;
+          var inset = dleri.Height / 3;
 
-          switch (sri.dataLabelRendererInfo.Position)
+          switch (sri.DataLabelRendererInfo.Position)
           {
             case DataLabelPosition.OutsideEnd:
               // Just beyond the outer border of the circle.
-              double beyond = radius + inset;
+              var beyond = radius + inset;
               dleri.X = origin.X + (beyond * Math.Cos(radMidAngle));
               dleri.Y = origin.Y + (beyond * Math.Sin(radMidAngle));
               if (dleri.X < origin.X)
@@ -176,7 +178,7 @@ internal class PieDataLabelRenderer : DataLabelRenderer
             case DataLabelPosition.InsideEnd:
               // Just within the outer border of the circle. Never past the middle, however tall
               // the label: a pie small enough for that is one whose labels have nowhere to go.
-              double within = Math.Max(radius - inset, halfradius);
+              var within = Math.Max(radius - inset, halfradius);
               dleri.X = origin.X + (within * Math.Cos(radMidAngle));
               dleri.Y = origin.Y + (within * Math.Sin(radMidAngle));
               if (dleri.X > origin.X)

@@ -26,7 +26,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -251,7 +251,7 @@ public sealed partial class Font : DocumentObject
     /// </summary>
     private FontProperties CheckWhatIsNotNull()
     {
-        FontProperties fp = FontProperties.None;
+        var fp = FontProperties.None;
         if (name != null)
             fp |= FontProperties.Name;
         if (!size.IsNull)
@@ -289,11 +289,11 @@ public sealed partial class Font : DocumentObject
     {
         if (Parent is FormattedText)
         {
-            string fontStyle = "";
+            var fontStyle = "";
             if (((FormattedText)Parent).style == null)
             {
                 // Check if we can use a DDL keyword.
-                FontProperties notNull = CheckWhatIsNotNull();
+                var notNull = CheckWhatIsNotNull();
                 if (notNull == FontProperties.Size)
                 {
                     serializer.Write("\\fontsize(" + size.ToString() + ")");
@@ -318,13 +318,12 @@ public sealed partial class Font : DocumentObject
             else
                 fontStyle = "(\"" + ((FormattedText)Parent).Style + "\")";
 
-            //bool needBlank = false;  // nice, but later...
             serializer.Write("\\font" + fontStyle + "[");
 
             if (name != null && (name ?? "") != "")
                 serializer.WriteSimpleAttribute("Name", Name);
 
-            if ((!size.IsNull))
+            if (!size.IsNull)
                 serializer.WriteSimpleAttribute("Size", Size);
 
             if (bold != null)
@@ -352,7 +351,7 @@ public sealed partial class Font : DocumentObject
         }
         else
         {
-            int pos = serializer.BeginContent("Font");
+            var pos = serializer.BeginContent("Font");
 
             // Don't write null values if font is null.
             // Do write null values if font is not null!
@@ -363,7 +362,7 @@ public sealed partial class Font : DocumentObject
             if (!size.IsNull &&
                 (font == null || Size != font.Size))
                 serializer.WriteSimpleAttribute("Size", Size);
-            //NBool and NEnum have to be compared directly to check whether the value Null is
+            // NBool and NEnum have to be compared directly to check whether the value Null is
             if (bold != null && (font == null || Bold != font.Bold || font.bold == null))
                 serializer.WriteSimpleAttribute("Bold", Bold);
 

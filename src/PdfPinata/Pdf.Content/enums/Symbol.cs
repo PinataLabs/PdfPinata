@@ -64,5 +64,5 @@ public enum CSymbol
     /// <summary>The end of the content stream.</summary>
     Eof,
     /// <summary>The scanner could not make a symbol of what it read.</summary>
-    Error = -1,
+    Error = -1
 }

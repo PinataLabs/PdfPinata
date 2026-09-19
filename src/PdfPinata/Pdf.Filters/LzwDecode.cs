@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -55,7 +55,7 @@ public class LzwDecode : Filter
         if (data[0] == 0x00 && data[1] == 0x01)
             throw new Exception("LZW flavour not supported.");
 
-        MemoryStream outputStream = new MemoryStream();
+        var outputStream = new MemoryStream();
 
         InitializeDictionary();
 
@@ -95,7 +95,7 @@ public class LzwDecode : Filter
                     // defining, which it does whenever the input repeats a run. That entry is the
                     // previous string followed by that string's own first byte, so writing the
                     // previous string alone drops the repeated byte.
-                    byte[] previous = _stringTable[oldCode];
+                    var previous = _stringTable[oldCode];
                     str = AddEntry(previous, previous[0]);
                     outputStream.Write(str, 0, str.Length);
                     oldCode = code;
@@ -121,7 +121,7 @@ public class LzwDecode : Filter
     {
         _stringTable = new byte[8192][];
 
-        for (int i = 0; i < 256; i++)
+        for (var i = 0; i < 256; i++)
         {
             _stringTable[i] = new byte[1];
             _stringTable[i][0] = (byte)i;
@@ -136,8 +136,8 @@ public class LzwDecode : Filter
     /// </summary>
     byte[] AddEntry(byte[] oldstring, byte newstring)
     {
-        int length = oldstring.Length;
-        byte[] str = new byte[length + 1];
+        var length = oldstring.Length;
+        var str = new byte[length + 1];
         Array.Copy(oldstring, 0, str, 0, length);
         str[length] = newstring;
 
@@ -171,7 +171,7 @@ public class LzwDecode : Filter
                     _nextBits += 8;
                 }
 
-                int code = (_nextData >> (_nextBits - _bitsToGet)) & _andTable[_bitsToGet - 9];
+                var code = (_nextData >> (_nextBits - _bitsToGet)) & _andTable[_bitsToGet - 9];
                 _nextBits -= _bitsToGet;
 
                 return code;
@@ -193,6 +193,6 @@ public class LzwDecode : Filter
     byte[] _data;
     int _tableIndex, _bitsToGet = 9;
     int _bytePointer;
-    int _nextData = 0;
-    int _nextBits = 0;
+    int _nextData;
+    int _nextBits;
 }

@@ -31,18 +31,18 @@ public class CompositeGlyphClosureTest
     [Fact]
     public void ASubsetCarriesTheGlyphsReachedThroughAComponentThatIsItselfComposite()
     {
-        byte[] original = File.ReadAllBytes(
+        var original = File.ReadAllBytes(
             PathHelper.GetInstance().GetAssetPath("Fonts", "LiberationSans-Regular.ttf"));
         var source = new TrueTypeGlyphs(original);
 
-        int drawn = source.GlyphIndexOf('é');
+        var drawn = source.GlyphIndexOf('é');
         source.IsComposite(drawn).Should().BeTrue("the letter drawn has to be a composite glyph");
 
-        int nested = ACompositeGlyphReachedOnlyThrough(source, drawn);
-        int[] expected = source.ComponentsOf(nested);
+        var nested = ACompositeGlyphReachedOnlyThrough(source, drawn);
+        var expected = source.ComponentsOf(nested);
         expected.Should().NotBeEmpty();
 
-        byte[] patched = source.WithFirstComponentRepointed(drawn, nested);
+        var patched = source.WithFirstComponentRepointed(drawn, nested);
         PinnedFontResolver.Register(FamilyName, new TrueTypeGlyphs(patched).WithADistinctFontName());
 
         var subset = new TrueTypeGlyphs(EmbeddedSubsetOfPageDrawing("é"));
@@ -54,7 +54,7 @@ public class CompositeGlyphClosureTest
 
         // What the letter reaches only through that composite. Chosen below so that this is
         // the only way in: nothing else the letter names leads to them.
-        foreach (int component in expected)
+        foreach (var component in expected)
         {
             subset.LengthOf(component).Should().BeGreaterThan(0,
                 "glyph {0} is what glyph {1} is drawn from, and glyph {1} is in the subset",
@@ -98,13 +98,13 @@ public class CompositeGlyphClosureTest
             saved = stream.ToArray();
         }
 
-        PdfDocument reopened = Pdf.IO.PdfReader.Open(new MemoryStream(saved), PdfDocumentOpenMode.Modify);
+        var reopened = Pdf.IO.PdfReader.Open(new MemoryStream(saved), PdfDocumentOpenMode.Modify);
 
-        PdfDictionary descriptor = reopened.Internals.GetAllObjects()
+        var descriptor = reopened.Internals.GetAllObjects()
             .OfType<PdfDictionary>()
             .Single(d => d.Elements.GetName("/Type") == "/FontDescriptor");
 
-        PdfItem program = descriptor.Elements["/FontFile2"];
+        var program = descriptor.Elements["/FontFile2"];
         return ((PdfDictionary)(program is PdfReference reference ? reference.Value : program))
             .Stream.UnfilteredValue;
     }

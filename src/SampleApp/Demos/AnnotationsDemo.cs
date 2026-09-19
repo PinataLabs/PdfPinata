@@ -20,7 +20,9 @@ namespace SampleApp.Demos;
 /// </remarks>
 internal sealed class AnnotationsDemo : PdfDemo
 {
-    public AnnotationsDemo() : base() { }
+    public AnnotationsDemo() : base()
+    {
+    }
 
     public override string Name => "Annotations";
 
@@ -33,7 +35,7 @@ internal sealed class AnnotationsDemo : PdfDemo
         "Note annotations: the seven icons, an open popup, colour and opacity",
         "Links: to the web, to a page, and to a named destination - PDFKit's link and goTo",
         "A file attachment carrying its bytes, and a rubber stamp",
-        "Which of PDFKit's annotation methods have no counterpart here",
+        "Which of PDFKit's annotation methods have no counterpart here"
     };
 
     public override int PageCount => 3;
@@ -41,19 +43,20 @@ internal sealed class AnnotationsDemo : PdfDemo
     protected override PdfDocument Build(DemoContext context)
     {
         #region example
+
         const string Sans = "Liberation Sans";
 
-        PdfDocument document = new PdfDocument();
+        var document = new PdfDocument();
         document.Info.Title = "Annotations";
 
-        XFont titleFont = new XFont(Sans, 18, XFontStyle.Bold);
-        XFont headingFont = new XFont(Sans, 9, XFontStyle.Bold);
-        XFont body = new XFont(Sans, 11);
-        XFont noteFont = new XFont(Sans, 7.5);
+        var titleFont = new XFont(Sans, 18, XFontStyle.Bold);
+        var headingFont = new XFont(Sans, 9, XFontStyle.Bold);
+        var body = new XFont(Sans, 11);
+        var noteFont = new XFont(Sans, 7.5);
 
         // ---- Page one: text markup, and notes ----------------------------------------
-        PdfPage page = document.AddPage();
-        XGraphics gfx = XGraphics.FromPdfPage(page);
+        var page = document.AddPage();
+        var gfx = XGraphics.FromPdfPage(page);
 
         void Title(XGraphics on, string text)
         {
@@ -75,7 +78,7 @@ internal sealed class AnnotationsDemo : PdfDemo
 
         Title(gfx, "Annotations");
         Note(gfx, "An annotation is not page content. Nothing here is drawn by XGraphics - a reader "
-            + "paints it, and can hide it.", 94);
+                  + "paints it, and can hide it.", 94);
 
         // A markup annotation covers quadrilaterals given in default page space, so the run of
         // text to be marked has to be measured and then converted out of drawing coordinates.
@@ -84,10 +87,10 @@ internal sealed class AnnotationsDemo : PdfDemo
 
         XRect RunOf(string line, string run, XPoint baseline, XFont font)
         {
-            int start = line.IndexOf(run, StringComparison.Ordinal);
-            double before = gfx.MeasureString(line.Substring(0, start), font).Width;
-            double width = gfx.MeasureString(run, font).Width;
-            double ascent = AscentOf(font);
+            var start = line.IndexOf(run, StringComparison.Ordinal);
+            var before = gfx.MeasureString(line[..start], font).Width;
+            var width = gfx.MeasureString(run, font).Width;
+            var ascent = AscentOf(font);
 
             // The box a reader would draw a selection over: from the ascender down past the
             // baseline by what is left of the line.
@@ -118,14 +121,14 @@ internal sealed class AnnotationsDemo : PdfDemo
             ("Strike out draws through the middle of it instead.", "through the middle",
                 () => new PdfStrikeOutAnnotation(), "PdfStrikeOutAnnotation - PDFKit's strike()"),
             ("Squiggly draws the wavy line a spell checker uses.", "the wavy line",
-                () => new PdfSquigglyAnnotation(), "PdfSquigglyAnnotation - PDFKit has no squiggly()"),
+                () => new PdfSquigglyAnnotation(), "PdfSquigglyAnnotation - PDFKit has no squiggly()")
         };
 
         double y = 154;
-        foreach ((string Line, string Run, Func<PdfTextMarkupAnnotation> Make, string Caption) each
-            in markups)
+        foreach (var each
+                 in markups)
         {
-            XPoint baseline = new XPoint(56, y);
+            var baseline = new XPoint(56, y);
             gfx.DrawString(each.Line, body, XBrushes.Black, baseline);
             Mark(each.Make(), each.Line, each.Run, baseline);
             Note(gfx, each.Caption, y + 11);
@@ -135,9 +138,9 @@ internal sealed class AnnotationsDemo : PdfDemo
         // Colour and opacity belong to the annotation rather than to the drawing, so the same
         // text can be marked twice over without the page content knowing.
         const string Twice = "One run, marked twice: green underneath and a strike over the top.";
-        XPoint twiceAt = new XPoint(56, y);
+        var twiceAt = new XPoint(56, y);
         gfx.DrawString(Twice, body, XBrushes.Black, twiceAt);
-        PdfHighlightAnnotation green = Mark(new PdfHighlightAnnotation(), Twice, "marked twice",
+        var green = Mark(new PdfHighlightAnnotation(), Twice, "marked twice",
             twiceAt);
         green.Color = XColors.LightGreen;
         green.Contents = "Highlight with a colour of its own";
@@ -150,13 +153,13 @@ internal sealed class AnnotationsDemo : PdfDemo
         // wraps: the quads are the lines, and /Rect becomes the box around both.
         const string First = "A markup that runs past the end of a line is one annotation with";
         const string Second = "two quadrilaterals in it, not two annotations.";
-        XPoint firstAt = new XPoint(56, y);
-        XPoint secondAt = new XPoint(56, y + 16);
+        var firstAt = new XPoint(56, y);
+        var secondAt = new XPoint(56, y + 16);
         gfx.DrawString(First, body, XBrushes.Black, firstAt);
         gfx.DrawString(Second, body, XBrushes.Black, secondAt);
 
         // docs:begin two-quads
-        PdfHighlightAnnotation wrapped = new PdfHighlightAnnotation();
+        var wrapped = new PdfHighlightAnnotation();
         page.Annotations.Add(wrapped);
         wrapped.Color = XColors.Gold;
         wrapped.Opacity = 0.55;
@@ -172,7 +175,7 @@ internal sealed class AnnotationsDemo : PdfDemo
         // ---- Notes -------------------------------------------------------------------
         Heading(gfx, "Notes - PDFKit's note()", 424);
         Note(gfx, "A note has no appearance of its own: the reader draws the icon, at whatever "
-            + "size it likes.", 444);
+                  + "size it likes.", 444);
 
         PdfTextAnnotationIcon[] icons =
         {
@@ -182,20 +185,20 @@ internal sealed class AnnotationsDemo : PdfDemo
             PdfTextAnnotationIcon.Key,
             PdfTextAnnotationIcon.Insert,
             PdfTextAnnotationIcon.NewParagraph,
-            PdfTextAnnotationIcon.Paragraph,
+            PdfTextAnnotationIcon.Paragraph
         };
 
-        for (int index = 0; index < icons.Length; index++)
+        for (var index = 0; index < icons.Length; index++)
         {
             double x = 56 + index * 68;
 
-            PdfTextAnnotation sticky = new PdfTextAnnotation();
+            var sticky = new PdfTextAnnotation();
             page.Annotations.Add(sticky);
             sticky.Icon = icons[index];
             sticky.Title = "PdfPinata";
             sticky.Subject = icons[index].ToString();
             sticky.Contents = $"The {icons[index]} icon. Every note carries a title, a subject and "
-                + "this text, which is what a reader shows in the popup.";
+                              + "this text, which is what a reader shows in the popup.";
             sticky.CreationDate = new DateTime(2026, 1, 1, 9, 0, 0, DateTimeKind.Utc);
             sticky.Color = XColors.Goldenrod;
             sticky.Rectangle = new PdfRectangle(
@@ -205,7 +208,7 @@ internal sealed class AnnotationsDemo : PdfDemo
         }
 
         // docs:begin note
-        PdfTextAnnotation opened = new PdfTextAnnotation();
+        var opened = new PdfTextAnnotation();
         page.Annotations.Add(opened);
         opened.Icon = PdfTextAnnotationIcon.Comment;
         opened.Open = true;
@@ -213,7 +216,7 @@ internal sealed class AnnotationsDemo : PdfDemo
         opened.Opacity = 0.85;
         opened.Title = "Open on arrival";
         opened.Contents = "Open = true, so a reader shows the popup without being asked. "
-            + "Color tints the note and Opacity applies to the whole annotation.";
+                          + "Color tints the note and Opacity applies to the whole annotation.";
         opened.Rectangle = new PdfRectangle(
             gfx.Transformer.WorldToDefaultPage(new XRect(56, 510, 20, 20)));
         // docs:end note
@@ -224,24 +227,25 @@ internal sealed class AnnotationsDemo : PdfDemo
         gfx.AddNamedDestination("markup", new XPoint(56, 124));
 
         // ---- Page two: links, attachments, stamps ------------------------------------
-        PdfPage second = document.AddPage();
-        XGraphics secondGfx = XGraphics.FromPdfPage(second);
+        var second = document.AddPage();
+        var secondGfx = XGraphics.FromPdfPage(second);
 
         Title(secondGfx, "Links, attachments and stamps");
 
         Heading(secondGfx, "Links - PDFKit's link() and goTo()", 116);
 
         double linkY = 146;
+
         void Link(string label, string caption, Action<XRect> add)
         {
-            XSize size = secondGfx.MeasureString(label, body);
+            var size = secondGfx.MeasureString(label, body);
             secondGfx.DrawString(label, body, XBrushes.MediumBlue, new XPoint(56, linkY));
 
             // The underline is drawn by hand: a link annotation is a hot area, not a decoration.
             secondGfx.DrawLine(new XPen(XColors.MediumBlue, 0.6),
                 56, linkY + 2, 56 + size.Width, linkY + 2);
 
-            double ascent = AscentOf(body);
+            var ascent = AscentOf(body);
             add(new XRect(56, linkY - ascent, size.Width, body.GetHeight()));
 
             Note(secondGfx, caption, linkY + 13);
@@ -265,48 +269,52 @@ internal sealed class AnnotationsDemo : PdfDemo
 
         // A link annotation is a PdfLinkAnnotation like any other, so the returned object can
         // still be given the fields every annotation has.
-        XSize titledSize = secondGfx.MeasureString("A link with a tooltip", body);
+        var titledSize = secondGfx.MeasureString("A link with a tooltip", body);
         secondGfx.DrawString("A link with a tooltip", body, XBrushes.MediumBlue,
             new XPoint(56, linkY));
         secondGfx.DrawLine(new XPen(XColors.MediumBlue, 0.6),
             56, linkY + 2, 56 + titledSize.Width, linkY + 2);
-        PdfLinkAnnotation described = secondGfx.AddWebLink(
+        var described = secondGfx.AddWebLink(
             new XRect(56, linkY - AscentOf(body), titledSize.Width, body.GetHeight()),
             "https://www.pdfa.org/");
         described.Contents = "Shown as a tooltip while the pointer is over the link.";
         Note(secondGfx, "AddWebLink returns the annotation, so /Contents can be set on it "
-            + "afterwards.", linkY + 13);
+                        + "afterwards.", linkY + 13);
 
         // ---- An attachment -----------------------------------------------------------
         Heading(secondGfx, "File attachment - PDFKit's fileAnnotation()", 330);
 
         // docs:begin attachment
-        byte[] payload = Encoding.UTF8.GetBytes(
+        var payload = Encoding.UTF8.GetBytes(
             "This file is carried inside the PDF, as the /EF stream of a file specification.\r\n"
             + "Open the paperclip on the page to save it out again.\r\n");
 
-        PdfEmbeddedFile embedded = new PdfEmbeddedFile(document, payload);
-        embedded.MimeType = "text/plain";
+        var embedded = new PdfEmbeddedFile(document, payload)
+        {
+            MimeType = "text/plain"
+        };
 
-        PdfFileSpecification specification =
+        var specification =
             new PdfFileSpecification(document, "readme.txt", embedded);
 
-        PdfFileAttachmentAnnotation attachment = new PdfFileAttachmentAnnotation(document);
-        attachment.File = specification;
-        attachment.Icon = PdfFileAttachmentAnnotation.IconType.Paperclip;
-        attachment.Title = "PdfPinata";
-        attachment.Contents = "readme.txt, carried inside this document.";
-        attachment.Rectangle = new PdfRectangle(
-            secondGfx.Transformer.WorldToDefaultPage(new XRect(56, 350, 18, 18)));
+        var attachment = new PdfFileAttachmentAnnotation(document)
+        {
+            File = specification,
+            Icon = PdfFileAttachmentAnnotation.IconType.Paperclip,
+            Title = "PdfPinata",
+            Contents = "readme.txt, carried inside this document.",
+            Rectangle = new PdfRectangle(
+                secondGfx.Transformer.WorldToDefaultPage(new XRect(56, 350, 18, 18)))
+        };
         second.Annotations.Add(attachment);
         // docs:end attachment
 
         Note(secondGfx, "PdfEmbeddedFile holds the bytes, PdfFileSpecification names them, and the "
-            + "annotation points at it.", 384);
+                        + "annotation points at it.", 384);
         Note(secondGfx, "The constructor sets PdfAnnotationFlags.Locked, so a reader will not let "
-            + "it be dragged off the page.", 396);
+                        + "it be dragged off the page.", 396);
         Note(secondGfx, "Like a note's, the paperclip is the reader's own drawing - so a renderer "
-            + "that paints only appearance streams shows nothing above.", 408);
+                        + "that paints only appearance streams shows nothing above.", 408);
 
         // ---- A rubber stamp ----------------------------------------------------------
         Heading(secondGfx, "Rubber stamp - PDFKit has no equivalent", 430);
@@ -316,20 +324,22 @@ internal sealed class AnnotationsDemo : PdfDemo
             PdfRubberStampAnnotationIcon.Draft,
             PdfRubberStampAnnotationIcon.Confidential,
             PdfRubberStampAnnotationIcon.ForComment,
-            PdfRubberStampAnnotationIcon.Final,
+            PdfRubberStampAnnotationIcon.Final
         };
 
         // docs:begin stamp
-        for (int index = 0; index < stamps.Length; index++)
+        for (var index = 0; index < stamps.Length; index++)
         {
             double x = 56 + index * 120;
 
-            PdfRubberStampAnnotation stamp = new PdfRubberStampAnnotation(document);
-            stamp.Icon = stamps[index];
-            stamp.Title = "PdfPinata";
-            stamp.Contents = stamps[index] + " stamp";
-            stamp.Rectangle = new PdfRectangle(
-                secondGfx.Transformer.WorldToDefaultPage(new XRect(x, 450, 104, 34)));
+            var stamp = new PdfRubberStampAnnotation(document)
+            {
+                Icon = stamps[index],
+                Title = "PdfPinata",
+                Contents = stamps[index] + " stamp",
+                Rectangle = new PdfRectangle(
+                    secondGfx.Transformer.WorldToDefaultPage(new XRect(x, 450, 104, 34)))
+            };
             second.Annotations.Add(stamp);
 
             secondGfx.DrawString(stamps[index].ToString(), noteFont, XBrushes.Black,
@@ -338,20 +348,20 @@ internal sealed class AnnotationsDemo : PdfDemo
         // docs:end stamp
 
         Note(secondGfx, "Fifteen standard names, drawn by the reader. A stamp with artwork of its "
-            + "own would need an appearance stream.", 520);
+                        + "own would need an appearance stream.", 520);
 
         // ---- Page three: what PDFKit has that this does not ---------------------------
-        PdfPage third = document.AddPage();
-        XGraphics thirdGfx = XGraphics.FromPdfPage(third);
+        var third = document.AddPage();
+        var thirdGfx = XGraphics.FromPdfPage(third);
 
         Title(thirdGfx, "Parity with PDFKit's annotations");
         Note(thirdGfx, "pdfkit.org/docs/annotations.html documents eleven methods. Nine of them "
-            + "have something here; two do not.", 94);
+                       + "have something here; two do not.", 94);
 
-        XFont mono = new XFont("Source Code Pro", 8);
+        var mono = new XFont("Source Code Pro", 8);
 
         (string PdfKit, string Here)[] parity =
-        {
+        [
             ("note(x, y, w, h, contents)", "PdfTextAnnotation"),
             ("link(x, y, w, h, url)", "gfx.AddWebLink / PdfLinkAnnotation.CreateWebLink"),
             ("goTo(x, y, w, h, name)", "gfx.AddNamedLink / gfx.AddDocumentLink"),
@@ -362,8 +372,8 @@ internal sealed class AnnotationsDemo : PdfDemo
             ("lineAnnotation(x1, y1, x2, y2)", "MISSING - no /Line annotation"),
             ("rectAnnotation(x, y, w, h)", "PdfSquareAnnotation"),
             ("ellipseAnnotation(x, y, w, h)", "PdfCircleAnnotation"),
-            ("textAnnotation(x, y, w, h, text)", "MISSING - no /FreeText annotation"),
-        };
+            ("textAnnotation(x, y, w, h, text)", "MISSING - no /FreeText annotation")
+        ];
 
         double rowY = 132;
         thirdGfx.DrawString("PDFKit", headingFont, XBrushes.SteelBlue, new XPoint(56, rowY));
@@ -372,9 +382,9 @@ internal sealed class AnnotationsDemo : PdfDemo
         thirdGfx.DrawLine(XPens.LightGray, 56, rowY, 539, rowY);
         rowY += 18;
 
-        foreach ((string PdfKit, string Here) row in parity)
+        foreach (var row in parity)
         {
-            bool missing = row.Here.StartsWith("MISSING", StringComparison.Ordinal);
+            var missing = row.Here.StartsWith("MISSING", StringComparison.Ordinal);
             XBrush brush = missing ? XBrushes.Crimson : XBrushes.Black;
 
             thirdGfx.DrawString(row.PdfKit, mono, XBrushes.Black, new XPoint(56, rowY));
@@ -387,15 +397,15 @@ internal sealed class AnnotationsDemo : PdfDemo
         rowY += 26;
 
         (string What, string Why)[] extras =
-        {
+        [
             ("PdfSquigglyAnnotation", "the fourth text markup subtype"),
             ("PdfRubberStampAnnotation", "fifteen standard stamp names"),
             ("PdfAnnotation.Opacity", "/CA, applied to the whole annotation"),
             ("PdfAnnotation.Flags", "Hidden, Print, Locked, NoZoom and the rest"),
-            ("PdfTextMarkupAnnotation.AddQuad", "many quads under one annotation"),
-        };
+            ("PdfTextMarkupAnnotation.AddQuad", "many quads under one annotation")
+        ];
 
-        foreach ((string What, string Why) row in extras)
+        foreach (var row in extras)
         {
             thirdGfx.DrawString(row.What, mono, XBrushes.Black, new XPoint(56, rowY));
             thirdGfx.DrawString(row.Why, noteFont, XBrushes.DimGray, new XPoint(260, rowY));
@@ -426,6 +436,7 @@ internal sealed class AnnotationsDemo : PdfDemo
         thirdGfx.DrawString(
             "so a subtype this library has no class for cannot be added through the typed API.",
             noteFont, XBrushes.DimGray, new XPoint(56, rowY));
+
         #endregion
 
         return document;

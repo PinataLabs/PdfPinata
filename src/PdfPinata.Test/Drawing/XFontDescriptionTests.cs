@@ -217,13 +217,15 @@ public class XFontDescriptionTests
         var formats = new[]
         {
             XImageFormat.Png, XImageFormat.Gif, XImageFormat.Jpeg,
-            XImageFormat.Tiff, XImageFormat.Icon, XImageFormat.Pdf,
+            XImageFormat.Tiff, XImageFormat.Icon, XImageFormat.Pdf
         };
 
         for (var outer = 0; outer < formats.Length; outer++)
         {
+            // ReSharper disable once EqualExpressionComparison
             formats[outer].Equals(formats[outer]).Should().BeTrue();
             formats[outer].GetHashCode().Should().Be(formats[outer].GetHashCode());
+            // ReSharper disable once SuspiciousTypeConversion.Global
             formats[outer].Equals("not a format").Should().BeFalse();
             formats[outer].Equals(null).Should().BeFalse();
 

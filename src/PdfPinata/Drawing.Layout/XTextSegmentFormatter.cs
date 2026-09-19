@@ -147,13 +147,13 @@ public class XTextSegmentFormatter
 		var layoutRectangle = new XRect(0, 0, width, 100000000);
 		var blocks = new List<Block>();
 
-		ProcessTextSegments(textSegments, layoutRectangle, format, (block, dx, dy) => blocks.Add(block), true);
+		ProcessTextSegments(textSegments, layoutRectangle, format, (block, _, _) => blocks.Add(block), true);
 
 		var height = blocks.Count > 0
 			? blocks.Max(b => b.Location.Y)
 			: 0;
 		var maxLineHeight = 0.0;
-		for (int i = blocks.Count - 1; i >= 0; i--)
+		for (var i = blocks.Count - 1; i >= 0; i--)
 		{
 			if (blocks[i].Type == BlockType.LineBreak)
 			{
@@ -177,6 +177,8 @@ public class XTextSegmentFormatter
 
 	private void ProcessTextSegments(IEnumerable<TextSegment> textSegments, XRect layoutRectangle, XStringFormat format, Action<Block, double, double> applyBlock, bool applyBlockIfLineBreak)
 	{
+		textSegments = textSegments.ToList();
+
 		if (textSegments.All(ts => string.IsNullOrEmpty(ts.Text)))
 		{
 			return;
@@ -223,7 +225,7 @@ public class XTextSegmentFormatter
 
 		CreateLayout(blockUnits, layoutRectangle);
 
-		for (int index = 0; index < blockUnits.Count; index++)
+		for (var index = 0; index < blockUnits.Count; index++)
 		{
 			var blockUnit = blockUnits[index];
 			var maxCyAscend = blockUnit.Max(b => b.Environment.CyAscent);
@@ -231,6 +233,7 @@ public class XTextSegmentFormatter
 			var dy = layoutRectangle.Location.Y + maxCyAscend;
 
 			// Check all blocks of the current line in order to move all blocks of the next lines down,
+			// ReSharper disable once CompareOfFloatsByEqualityOperator
 			// when the first block of the current line has not the max cy ascent of the whole line
 			#pragma warning disable S1244 // Exact on purpose: compared with a maximum or minimum taken from these same values.
 			if (!blockUnit.All(b => b.Environment.CyAscent == maxCyAscend))
@@ -271,11 +274,14 @@ public class XTextSegmentFormatter
 			}
 
 			// Check whether the current block belongs to the last block
+			// ReSharper disable PossibleNullReferenceException
 			if (blocks.Count > 0 && !textSegment.Text.StartsWith(' '))
 			{
+			// ReSharper restore PossibleNullReferenceException
 				blocks.Last().NextBlockBelongsToMe = true;
 			}
 
+			// ReSharper disable once PossibleNullReferenceException
 			var length = textSegment.Text.Length;
 			var inNonWhiteSpace = false;
 			var startIndex = 0;
@@ -283,7 +289,7 @@ public class XTextSegmentFormatter
 
 			for (var idx = 0; idx < length; idx++)
 			{
-				char ch = textSegment.Text[idx];
+				var ch = textSegment.Text[idx];
 
 				// Treat CR and CRLF as LF
 				if (ch == Chars.CR)
@@ -369,9 +375,9 @@ public class XTextSegmentFormatter
 			var currentMaxCyDescent = 0.0;
 			var currentLineBlocks = new List<Block>();
 			var startLineSpace = blockUnit[0].Environment.LineSpace;
-			var startCyDescent = blockUnit[0].Environment.CyDescent;
+			double startCyDescent;
 
-			for (int idx = 0; idx < count; idx++)
+			for (var idx = 0; idx < count; idx++)
 			{
 				var block = blockUnit[idx];
 				if (block.Type == BlockType.LineBreak)
@@ -410,7 +416,7 @@ public class XTextSegmentFormatter
 				}
 				else
 				{
-					double width = block.Width;
+					var width = block.Width;
 
 					if (x == 0.0)
 					{
@@ -447,6 +453,7 @@ public class XTextSegmentFormatter
 							
 						AlignLine(blockUnit, firstIndex, idx - 1, rectWidth);
 						firstIndex = idx;
+// ReSharper disable once CompareOfFloatsByEqualityOperator
 
 						#pragma warning disable S1244 // Exact on purpose: unchanged unless a larger value replaced it.
 						if (currentMaxLineSpace != startLineSpace)
@@ -503,7 +510,7 @@ public class XTextSegmentFormatter
 	{
 		while (block.Text.StartsWith(' '))
 		{
-			block.Text = block.Text.Substring(1);
+			block.Text = block.Text[1..];
 			block.Width -= block.Environment.SpaceWidth;
 			width -= block.Environment.SpaceWidth;
 		}
@@ -534,7 +541,7 @@ public class XTextSegmentFormatter
 		if (Alignment == XParagraphAlignment.Justify)
 		{
 			// Skip not movable leading blocks
-			for (int idx = firstIndex; idx <= lastIndex; idx++)
+			for (var idx = firstIndex; idx <= lastIndex; idx++)
 			{
 				if (!blockUnit[idx].SkipParagraphAlignment && !blockUnit[idx].NextBlockBelongsToMe)
 				{
@@ -551,7 +558,7 @@ public class XTextSegmentFormatter
 		}
 
 		// Remove not movable blocks from space calculation
-		for (int idx = firstIndex; idx <= lastIndex; idx++)
+		for (var idx = firstIndex; idx <= lastIndex; idx++)
 		{
 			totalWidth += blockUnit[idx].Width + (blockUnit[idx].NextBlockBelongsToMe ? 0 : blockUnit[idx].Environment.SpaceWidth);
 			if (idx == lastIndex)
@@ -575,7 +582,7 @@ public class XTextSegmentFormatter
 				dx /= 2;
 			}
 
-			for (int idx = firstIndex; idx <= lastIndex; idx++)
+			for (var idx = firstIndex; idx <= lastIndex; idx++)
 			{
 				var block = blockUnit[idx];
 				block.Location += new XSize(dx, 0);
@@ -586,7 +593,7 @@ public class XTextSegmentFormatter
 			dx /= count - 1;
 			var spaceCounter = 1;
 
-			for (int idx = firstIndex + 1; idx <= lastIndex; idx++)
+			for (var idx = firstIndex + 1; idx <= lastIndex; idx++)
 			{
 				var block = blockUnit[idx];
 				block.Location += new XSize(dx * spaceCounter, 0);

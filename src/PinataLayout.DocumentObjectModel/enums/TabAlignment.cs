@@ -55,7 +55,7 @@ public enum TabAlignment
   /// <summary>
   /// Positioned at the last dot or comma.
   /// </summary>
-  Decimal,
+  Decimal
 
   //Bar     = 4,  // PinataLayout 2.0
   //List    = 6,  // PinataLayout 2.0

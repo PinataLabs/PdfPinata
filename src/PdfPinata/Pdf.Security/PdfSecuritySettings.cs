@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -43,7 +43,7 @@ public sealed class PdfSecuritySettings
     readonly PdfDocument _document;
 
     /// <summary>
-    /// Indicates whether the granted access to the document is 'owner permission'. Returns true if the document 
+    /// Indicates whether the granted access to the document is 'owner permission'. Returns true if the document
     /// is unprotected or was opened with the owner password. Returns false if the document was opened with the
     /// user password.
     /// </summary>
@@ -109,7 +109,7 @@ public sealed class PdfSecuritySettings
         get => (SecurityHandler.Permission & PdfUserAccessPermission.PermitPrint) != 0;
         set
         {
-            PdfUserAccessPermission permission = SecurityHandler.Permission;
+            var permission = SecurityHandler.Permission;
             if (value)
                 permission |= PdfUserAccessPermission.PermitPrint;
             else
@@ -126,7 +126,7 @@ public sealed class PdfSecuritySettings
         get => (SecurityHandler.Permission & PdfUserAccessPermission.PermitModifyDocument) != 0;
         set
         {
-            PdfUserAccessPermission permission = SecurityHandler.Permission;
+            var permission = SecurityHandler.Permission;
             if (value)
                 permission |= PdfUserAccessPermission.PermitModifyDocument;
             else
@@ -143,7 +143,7 @@ public sealed class PdfSecuritySettings
         get => (SecurityHandler.Permission & PdfUserAccessPermission.PermitExtractContent) != 0;
         set
         {
-            PdfUserAccessPermission permission = SecurityHandler.Permission;
+            var permission = SecurityHandler.Permission;
             if (value)
                 permission |= PdfUserAccessPermission.PermitExtractContent;
             else
@@ -160,7 +160,7 @@ public sealed class PdfSecuritySettings
         get => (SecurityHandler.Permission & PdfUserAccessPermission.PermitAnnotations) != 0;
         set
         {
-            PdfUserAccessPermission permission = SecurityHandler.Permission;
+            var permission = SecurityHandler.Permission;
             if (value)
                 permission |= PdfUserAccessPermission.PermitAnnotations;
             else
@@ -177,7 +177,7 @@ public sealed class PdfSecuritySettings
         get => (SecurityHandler.Permission & PdfUserAccessPermission.PermitFormsFill) != 0;
         set
         {
-            PdfUserAccessPermission permission = SecurityHandler.Permission;
+            var permission = SecurityHandler.Permission;
             if (value)
                 permission |= PdfUserAccessPermission.PermitFormsFill;
             else
@@ -194,7 +194,7 @@ public sealed class PdfSecuritySettings
         get => (SecurityHandler.Permission & PdfUserAccessPermission.PermitAccessibilityExtractContent) != 0;
         set
         {
-            PdfUserAccessPermission permission = SecurityHandler.Permission;
+            var permission = SecurityHandler.Permission;
             if (value)
                 permission |= PdfUserAccessPermission.PermitAccessibilityExtractContent;
             else
@@ -212,7 +212,7 @@ public sealed class PdfSecuritySettings
         get => (SecurityHandler.Permission & PdfUserAccessPermission.PermitAssembleDocument) != 0;
         set
         {
-            PdfUserAccessPermission permission = SecurityHandler.Permission;
+            var permission = SecurityHandler.Permission;
             if (value)
                 permission |= PdfUserAccessPermission.PermitAssembleDocument;
             else
@@ -230,7 +230,7 @@ public sealed class PdfSecuritySettings
         get => (SecurityHandler.Permission & PdfUserAccessPermission.PermitFullQualityPrint) != 0;
         set
         {
-            PdfUserAccessPermission permission = SecurityHandler.Permission;
+            var permission = SecurityHandler.Permission;
             if (value)
                 permission |= PdfUserAccessPermission.PermitFullQualityPrint;
             else

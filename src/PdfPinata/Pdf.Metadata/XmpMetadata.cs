@@ -143,7 +143,7 @@ public sealed class XmpMetadata
             CreatorTool = NullIfEmpty(info.Creator),
             Producer = NullIfEmpty(info.Producer),
             CreationDate = NullIfDefault(info.CreationDate),
-            ModificationDate = NullIfDefault(info.ModificationDate),
+            ModificationDate = NullIfDefault(info.ModificationDate)
         };
     }
 
@@ -339,7 +339,7 @@ public sealed class XmpMetadata
         XmpPropertyCategory.Internal => "internal",
         XmpPropertyCategory.External => "external",
         _ => throw new ArgumentOutOfRangeException(nameof(category), category,
-            "There is no PDF/A category string for this value."),
+            "There is no PDF/A category string for this value.")
     };
 
     /// <summary>
@@ -350,7 +350,7 @@ public sealed class XmpMetadata
         PdfAConformance.PdfA1B or PdfAConformance.PdfA1A => "1",
         PdfAConformance.PdfA2B or PdfAConformance.PdfA2A => "2",
         PdfAConformance.PdfA3B or PdfAConformance.PdfA3A => "3",
-        _ => null,
+        _ => null
     };
 
     /// <summary>
@@ -363,7 +363,7 @@ public sealed class XmpMetadata
     {
         PdfAConformance.None => null,
         PdfAConformance.PdfA1A or PdfAConformance.PdfA2A or PdfAConformance.PdfA3A => "A",
-        _ => "B",
+        _ => "B"
     };
 
     private static void AppendSimple(StringBuilder xmp, string element, string value)

@@ -65,7 +65,7 @@ public class SymbolAndDecimalTabTests
         {
             SymbolName.Euro, SymbolName.Copyright, SymbolName.Trademark,
             SymbolName.RegisteredTrademark, SymbolName.Bullet, SymbolName.Not,
-            SymbolName.EmDash, SymbolName.EnDash,
+            SymbolName.EmDash, SymbolName.EnDash
         }.Select(symbol => string.Join(",", Glyphs.On(Rendered.FirstPageOf(ADocumentShowing(symbol)))));
 
         drawn.Distinct().Should().HaveCount(8);

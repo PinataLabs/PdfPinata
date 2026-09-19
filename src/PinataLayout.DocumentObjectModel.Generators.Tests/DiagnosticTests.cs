@@ -67,7 +67,7 @@ public class DiagnosticTests
             """);
 
         result.Ids.Should().BeEmpty();
-        string generated = result.AllGenerated;
+        var generated = result.AllGenerated;
 
         generated.Should().Contain("valueName: \"nullableValueType\"").And.Contain("ValueKind.Leaf");
         generated.Should().Contain("valueName: \"tracksItsOwnNull\"");
@@ -281,7 +281,7 @@ public class DiagnosticTests
     {
         var result = GeneratorHarness.Run(Ns + snippet);
 
-        Diagnostic reported = result.Diagnostics.Single(d => d.Id == id);
+        var reported = result.Diagnostics.Single(d => d.Id == id);
 
         reported.Location.Should().NotBe(Location.None, "a diagnostic with no location cannot be navigated to");
         reported.Location.GetLineSpan().Path.Should().Be(GeneratorHarness.SnippetPath);
@@ -292,18 +292,18 @@ public class DiagnosticTests
     {
         // Base chain is walked base first, so the second declaration seen is the one the collision
         // is attributable to - and the one a reader would delete or rename.
-        string snippet = """
-            public partial class Widget : DocumentObject
-            {
-                [DV] internal bool? caption;
-                [DV] public bool? Caption { get; set; }
-            }
-            """;
+        var snippet = """
+                      public partial class Widget : DocumentObject
+                      {
+                          [DV] internal bool? caption;
+                          [DV] public bool? Caption { get; set; }
+                      }
+                      """;
         var result = GeneratorHarness.Run(Ns + snippet);
 
-        Diagnostic collision = result.Diagnostics.Single(d => d.Id == "MDG004");
+        var collision = result.Diagnostics.Single(d => d.Id == "MDG004");
 
-        int expected = LineOf(Ns + snippet, "public bool? Caption");
+        var expected = LineOf(Ns + snippet, "public bool? Caption");
         collision.Location.GetLineSpan().StartLinePosition.Line.Should().Be(expected);
     }
 

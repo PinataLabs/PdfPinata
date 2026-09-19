@@ -7,7 +7,6 @@ using PdfPinata.Drawing;
 using PdfPinata.Drawing.Layout;
 using PdfPinata.EInvoice;
 using PdfPinata.Pdf;
-using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
 using SampleApp.Infrastructure;
 
@@ -41,7 +40,7 @@ internal sealed class FacturXDemo : PdfDemo
         "EInvoiceProfile - the exact spelling a receiver reads, spaces and all",
         "FacturXInvoice.FindIn and ReadFrom - the receiving half of the mandate",
         "That the XML carries the line items the page draws, from the same array, and reconciles",
-        "That an RGB document claiming PDF/A is given an sRGB output intent it never asked for",
+        "That an RGB document claiming PDF/A is given an sRGB output intent it never asked for"
     };
 
     public override int PageCount => 2;
@@ -49,13 +48,13 @@ internal sealed class FacturXDemo : PdfDemo
     protected override PdfDocument Build(DemoContext context)
     {
         #region example
-        XFont heading = new XFont(BundledFontResolver.SansFamily, 16, XFontStyle.Bold);
-        XFont label = new XFont(BundledFontResolver.SansFamily, 9.5, XFontStyle.Bold);
-        XFont body = new XFont(BundledFontResolver.SansFamily, 9);
-        XFont mono = new XFont(BundledFontResolver.MonoFamily, 7);
+        var heading = new XFont(BundledFontResolver.SansFamily, 16, XFontStyle.Bold);
+        var label = new XFont(BundledFontResolver.SansFamily, 9.5, XFontStyle.Bold);
+        var body = new XFont(BundledFontResolver.SansFamily, 9);
+        var mono = new XFont(BundledFontResolver.MonoFamily, 7);
 
         // docs:begin prepare
-        PdfDocument document = new PdfDocument();
+        var document = new PdfDocument();
 
         // A PDF/A document has to have a title, and attaching the invoice below is what makes this
         // a PDF/A document - so this line is load-bearing rather than decorative.
@@ -71,10 +70,10 @@ internal sealed class FacturXDemo : PdfDemo
 
         // ----- page one: the invoice a person reads ------------------------------------------------
 
-        PdfPage first = document.AddPage();
-        using (XGraphics gfx = XGraphics.FromPdfPage(first))
+        var first = document.AddPage();
+        using (var gfx = XGraphics.FromPdfPage(first))
         {
-            XTextFormatter prose = new XTextFormatter(gfx);
+            var prose = new XTextFormatter(gfx);
 
             gfx.DrawString("Invoice 2026-0042", heading, XBrushes.Black, 50, 60);
             gfx.DrawString("Issued 14 August 2026 · payable within 30 days", body, XBrushes.Gray, 50, 78);
@@ -92,7 +91,7 @@ internal sealed class FacturXDemo : PdfDemo
             // overload of DrawString takes an XStringFormat, and BaseLineRight is the one that moves
             // the alignment without moving the baseline: XStringFormats.TopRight would also shift
             // every line down by the ascent, because a point has no rectangle to sit at the top of.
-            XStringFormat figures = XStringFormats.BaseLineRight;
+            var figures = XStringFormats.BaseLineRight;
 
             double y = 180;
             gfx.DrawString("Description", label, XBrushes.Black, 50, y);
@@ -102,9 +101,9 @@ internal sealed class FacturXDemo : PdfDemo
             gfx.DrawLine(XPens.Black, 50, y + 5, 545, y + 5);
 
             y += 22;
-            foreach ((string Description, int Quantity, decimal UnitPrice) item in Items)
+            foreach (var item in Items)
             {
-                decimal amount = item.Quantity * item.UnitPrice;
+                var amount = item.Quantity * item.UnitPrice;
                 gfx.DrawString(item.Description, body, XBrushes.Black, 50, y);
                 gfx.DrawString(item.Quantity.ToString(Invariant), body, XBrushes.Black, 375, y, figures);
                 gfx.DrawString(Money(item.UnitPrice), body, XBrushes.Black, 460, y, figures);
@@ -119,12 +118,12 @@ internal sealed class FacturXDemo : PdfDemo
             {
                 ("Net", Net),
                 ("VAT 19%", Tax),
-                ("Total due", Gross),
+                ("Total due", Gross)
             };
 
-            foreach ((string Caption, decimal Amount) total in totals)
+            foreach (var total in totals)
             {
-                XFont font = total.Caption == "Total due" ? label : body;
+                var font = total.Caption == "Total due" ? label : body;
                 gfx.DrawString(total.Caption, font, XBrushes.Black, 460, y, figures);
                 gfx.DrawString(Money(total.Amount), font, XBrushes.Black, 545, y, figures);
                 y += 16;
@@ -145,31 +144,31 @@ internal sealed class FacturXDemo : PdfDemo
         // ----- the attachment: what makes it a Factur-X invoice ------------------------------------
 
         // docs:begin attach
-        byte[] xml = Encoding.UTF8.GetBytes(CrossIndustryInvoice());
+        var xml = Encoding.UTF8.GetBytes(CrossIndustryInvoice());
 
         // The whole of the PDF side of ZUGFeRD and Factur-X. It names the attachment factur-x.xml,
         // relates it to the document as /Data, calls it text/xml, associates it with the catalog so
         // that it is part of the document rather than merely inside it, claims PDF/A-3 - the only
         // archival profile that may carry a file at all - and writes the two metadata descriptions
         // the format wants. None of that is difficult; all of it is silent when it is wrong.
-        FacturXInvoice invoice = new FacturXInvoice(xml)
+        var invoice = new FacturXInvoice(xml)
         {
             // The profile is a claim about the XML, and the spelling of it is a trap worth an enum:
             // the value a receiver reads is "EN 16931", with the space, and "BASIC WL" for the one
             // below it. A document writing EN16931 passes every check that looks at the PDF.
             Profile = EInvoiceProfile.En16931,
-            Description = "Invoice 2026-0042 as EN 16931 CII data",
+            Description = "Invoice 2026-0042 as EN 16931 CII data"
         };
 
-        PdfFileSpecification attached = invoice.AttachTo(document);
+        var attached = invoice.AttachTo(document);
         // docs:end attach
 
         // ----- page two: what that did -------------------------------------------------------------
 
-        PdfPage second = document.AddPage();
-        using (XGraphics gfx = XGraphics.FromPdfPage(second))
+        var second = document.AddPage();
+        using (var gfx = XGraphics.FromPdfPage(second))
         {
-            XTextFormatter prose = new XTextFormatter(gfx);
+            var prose = new XTextFormatter(gfx);
 
             gfx.DrawString("What the attachment has to satisfy", heading, XBrushes.Black, 50, 60);
 
@@ -191,11 +190,11 @@ internal sealed class FacturXDemo : PdfDemo
                 ("Conformance now claimed", document.Options.Conformance.ToString()),
                 ("Output intent", PdfOutputIntents.SrgbIdentifier + ", "
                     + PdfOutputIntents.SrgbProfile.Length.ToString("N0", Invariant)
-                    + " bytes, supplied by the writer"),
+                    + " bytes, supplied by the writer")
             };
 
             double y = 155;
-            foreach ((string Field, string Value) fact in facts)
+            foreach (var fact in facts)
             {
                 gfx.DrawString(fact.Field, label, XBrushes.Black, 50, y);
                 gfx.DrawString(fact.Value, body, XBrushes.Black, 230, y);
@@ -225,7 +224,7 @@ internal sealed class FacturXDemo : PdfDemo
                 body, XBrushes.Black, new XRect(50, y + 114, 495, 76));
 
             y += 202;
-            foreach (string line in InvoiceMetadataOfAProbe())
+            foreach (var line in InvoiceMetadataOfAProbe())
             {
                 if (y > 792)
                     break;
@@ -251,7 +250,7 @@ internal sealed class FacturXDemo : PdfDemo
     {
         ("PdfPinata support, annual", 1, 1200.00m),
         ("Migration consultancy, per day", 2, 780.00m),
-        ("Font licensing review", 1, 450.00m),
+        ("Font licensing review", 1, 450.00m)
     };
 
     const decimal VatRate = 19.00m;
@@ -267,7 +266,7 @@ internal sealed class FacturXDemo : PdfDemo
     static decimal SumOfLines()
     {
         decimal net = 0;
-        foreach ((string Description, int Quantity, decimal UnitPrice) item in Items)
+        foreach (var item in Items)
             net += item.Quantity * item.UnitPrice;
         return net;
     }
@@ -303,7 +302,7 @@ internal sealed class FacturXDemo : PdfDemo
     /// </remarks>
     static string CrossIndustryInvoice()
     {
-        StringBuilder xml = new StringBuilder();
+        var xml = new StringBuilder();
 
         xml.Append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
         xml.Append("<rsm:CrossIndustryInvoice\n");
@@ -325,11 +324,11 @@ internal sealed class FacturXDemo : PdfDemo
         // The lines come first: CII puts them before the three header groups rather than after
         // them, so a document writing them last is refused by the schema rather than by a business
         // rule. One element per row of the table on page one, in the same order.
-        int line = 0;
-        foreach ((string Description, int Quantity, decimal UnitPrice) item in Items)
+        var line = 0;
+        foreach (var item in Items)
         {
             line++;
-            decimal amount = item.Quantity * item.UnitPrice;
+            var amount = item.Quantity * item.UnitPrice;
 
             xml.Append("    <ram:IncludedSupplyChainTradeLineItem>\n");
             xml.Append("      <ram:AssociatedDocumentLineDocument>\n");
@@ -420,31 +419,31 @@ internal sealed class FacturXDemo : PdfDemo
     /// </remarks>
     static IEnumerable<string> InvoiceMetadataOfAProbe()
     {
-        using PdfDocument probe = new PdfDocument();
+        using var probe = new PdfDocument();
         probe.AddPage();
         probe.Info.Title = "A probe";
 
-        byte[] xml = Encoding.UTF8.GetBytes(CrossIndustryInvoice());
+        var xml = Encoding.UTF8.GetBytes(CrossIndustryInvoice());
         new FacturXInvoice(xml).AttachTo(probe);
 
-        using MemoryStream buffer = new MemoryStream();
+        using var buffer = new MemoryStream();
         probe.Save(buffer, false);
         buffer.Position = 0;
 
-        using PdfDocument reopened = PdfReader.Open(buffer, PdfDocumentOpenMode.Import);
+        using var reopened = PdfReader.Open(buffer, PdfDocumentOpenMode.Import);
 
-        PdfDictionary metadata = reopened.Internals.Catalog.Elements.GetDictionary("/Metadata");
-        string packet = Encoding.UTF8.GetString(metadata.Stream.UnfilteredValue);
+        var metadata = reopened.Internals.Catalog.Elements.GetDictionary("/Metadata");
+        var packet = Encoding.UTF8.GetString(metadata.Stream.UnfilteredValue);
 
         // The extension schema and the properties it declares, which is the part of the packet this
         // package exists to write. The rest of it - the title, the producer, the pdfaid identifier -
         // is the Archive demo's page two.
-        int begins = packet.IndexOf("<rdf:Description rdf:about=\"\" xmlns:pdfaExtension", StringComparison.Ordinal);
-        int ends = packet.IndexOf("</rdf:RDF>", StringComparison.Ordinal);
+        var begins = packet.IndexOf("<rdf:Description rdf:about=\"\" xmlns:pdfaExtension", StringComparison.Ordinal);
+        var ends = packet.IndexOf("</rdf:RDF>", StringComparison.Ordinal);
 
         if (begins >= 0 && ends > begins)
         {
-            foreach (string line in packet.Substring(begins, ends - begins).TrimEnd().Split('\n'))
+            foreach (var line in packet.Substring(begins, ends - begins).TrimEnd().Split('\n'))
                 yield return line.TrimEnd();
         }
 
@@ -454,8 +453,8 @@ internal sealed class FacturXDemo : PdfDemo
         // it is a PDF. Found by name, because the standards name the file precisely so that a
         // receiver need not guess - and not by relationship and media type, which every /Data
         // attachment that is text/xml would match.
-        PdfFileSpecification found = FacturXInvoice.FindIn(reopened);
-        byte[] read = FacturXInvoice.ReadFrom(reopened);
+        var found = FacturXInvoice.FindIn(reopened);
+        var read = FacturXInvoice.ReadFrom(reopened);
 
         yield return "FacturXInvoice.FindIn(reopened).FileName  ->  " + found.FileName;
         yield return "FacturXInvoice.ReadFrom(reopened).Length  ->  " + read.Length

@@ -71,7 +71,7 @@ public partial class HeadersFooters : DocumentObject, IVisitable
   {
     get
     {
-      Section sec = (Section)parent;
+      var sec = (Section)parent;
       return sec.headers == this;
     }
   }
@@ -159,9 +159,9 @@ public partial class HeadersFooters : DocumentObject, IVisitable
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    bool hasPrimary = HasHeaderFooter(HeaderFooterIndex.Primary);
-    bool hasEvenPage = HasHeaderFooter(HeaderFooterIndex.EvenPage);
-    bool hasFirstPage = HasHeaderFooter(HeaderFooterIndex.FirstPage);
+    var hasPrimary = HasHeaderFooter(HeaderFooterIndex.Primary);
+    var hasEvenPage = HasHeaderFooter(HeaderFooterIndex.EvenPage);
+    var hasFirstPage = HasHeaderFooter(HeaderFooterIndex.FirstPage);
 
     // \primary...
     if (hasPrimary)
@@ -186,10 +186,13 @@ public partial class HeadersFooters : DocumentObject, IVisitable
     if (visitChildren)
     {
       if (HasHeaderFooter(HeaderFooterIndex.Primary))
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
         ((IVisitable)primary).AcceptVisitor(visitor, visitChildren);
       if (HasHeaderFooter(HeaderFooterIndex.EvenPage))
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
         ((IVisitable)evenPage).AcceptVisitor(visitor, visitChildren);
       if (HasHeaderFooter(HeaderFooterIndex.FirstPage))
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
         ((IVisitable)firstPage).AcceptVisitor(visitor, visitChildren);
     }
   }

@@ -204,21 +204,21 @@ public sealed class PdfNamedDestinationTable
         if (!_adopted)
             return;
 
-        PdfCatalog catalog = _document.Catalog;
+        var catalog = _document.Catalog;
 
         // Whatever else the document already names - an imported /Names holds file attachments and
         // JavaScript in the same dictionary - is left where it is.
-        PdfDictionary names = catalog.Elements.GetDictionary(PdfCatalog.Keys.Names);
+        var names = catalog.Elements.GetDictionary(PdfCatalog.Keys.Names);
         if (names == null)
         {
             names = new PdfDictionary(_document);
             catalog.Elements[PdfCatalog.Keys.Names] = names;
         }
 
-        PdfArray leaves = new PdfArray(_document);
-        foreach (string name in Names)
+        var leaves = new PdfArray(_document);
+        foreach (var name in Names)
         {
-            Destination destination = _destinations[name];
+            var destination = _destinations[name];
             leaves.Elements.Add(new PdfString(name));
             leaves.Elements.Add(destination.Written ?? DestinationArrayFor(destination));
         }
@@ -231,7 +231,7 @@ public sealed class PdfNamedDestinationTable
             return;
         }
 
-        PdfDictionary dests = new PdfDictionary(_document);
+        var dests = new PdfDictionary(_document);
         dests.Elements[PdfCatalog.Keys.Names] = leaves;
         names.Elements[PdfCatalog.Keys.Dests] = dests;
     }
@@ -241,14 +241,14 @@ public sealed class PdfNamedDestinationTable
     /// </summary>
     PdfArray DestinationArrayFor(Destination destination)
     {
-        PdfArray array = new PdfArray(_document);
+        var array = new PdfArray(_document);
         array.Elements.Add(destination.Page.Reference);
         array.Elements.Add(new PdfName("/XYZ"));
 
         // Left, top, zoom. Null leaves the reader's own choice alone, and a zoom of zero means
         // the same - the three together are what /XYZ takes.
         array.Elements.Add(PdfNull.Value);
-        array.Elements.Add(double.IsNaN(destination.Top) ? (PdfItem)PdfNull.Value : new PdfReal(destination.Top));
+        array.Elements.Add(double.IsNaN(destination.Top) ? PdfNull.Value : new PdfReal(destination.Top));
         array.Elements.Add(new PdfInteger(0));
         return array;
     }

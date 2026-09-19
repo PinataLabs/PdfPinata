@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -99,7 +99,7 @@ public static class OpCodes
     static public COperator OperatorFromName(string name)
     {
         COperator op = null;
-        OpCode opcode = StringToOpCode[name];
+        var opcode = StringToOpCode[name];
         if (opcode != null)
         {
             op = new COperator(opcode);
@@ -117,9 +117,9 @@ public static class OpCodes
     static OpCodes()
     {
         StringToOpCode = new Dictionary<string, OpCode>();
-        for (int idx = 0; idx < ops.Length; idx++)
+        for (var idx = 0; idx < ops.Length; idx++)
         {
-            OpCode op = ops[idx];
+            var op = ops[idx];
             StringToOpCode.Add(op.Name, op);
         }
     }
@@ -353,7 +353,7 @@ public static class OpCodes
     /// Array of all OpCodes.
     /// </summary>
     static readonly OpCode[] ops = // new OpCode[]
-    { 
+    {
         // Must be defined behind the code above to ensure that the values are initialized.
         Dictionary,
         b, B, bx, Bx, BDC, BI, BMC, BT, BX, c, cm, CS, cs, d, d0, d1, Do,

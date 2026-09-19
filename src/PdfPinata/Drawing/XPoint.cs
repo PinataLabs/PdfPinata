@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -42,7 +42,7 @@ namespace PdfPinata.Drawing;
 [DebuggerDisplay("{DebuggerDisplay}")]
 [Serializable]
 [StructLayout(LayoutKind.Sequential)]  // TypeConverter(typeof(PointConverter)), ValueSerializer(typeof(PointValueSerializer))]
-public struct XPoint : IFormattable
+public struct XPoint : IFormattable, IEquatable<XPoint>
 {
     /// <summary>
     /// Initializes a new instance of the XPoint class with the specified coordinates.
@@ -114,10 +114,10 @@ public struct XPoint : IFormattable
     /// </summary>
     public static XPoint Parse(string source)
     {
-        CultureInfo cultureInfo = CultureInfo.InvariantCulture;
-        TokenizerHelper helper = new TokenizerHelper(source, cultureInfo);
-        string str = helper.NextTokenRequired();
-        XPoint point = new XPoint(Convert.ToDouble(str, cultureInfo), Convert.ToDouble(helper.NextTokenRequired(), cultureInfo));
+        var cultureInfo = CultureInfo.InvariantCulture;
+        var helper = new TokenizerHelper(source, cultureInfo);
+        var str = helper.NextTokenRequired();
+        var point = new XPoint(Convert.ToDouble(str, cultureInfo), Convert.ToDouble(helper.NextTokenRequired(), cultureInfo));
         helper.LastTokenRequired();
         return point;
     }
@@ -130,10 +130,10 @@ public struct XPoint : IFormattable
         ArgumentNullException.ThrowIfNull(value);
         // TODO: Reflect reliabel implementation from Avalon
         // TODOWPF
-        string[] values = value.Split(' ');
-        int count = values.Length;
-        XPoint[] points = new XPoint[count];
-        for (int idx = 0; idx < count; idx++)
+        var values = value.Split(' ');
+        var count = values.Length;
+        var points = new XPoint[count];
+        for (var idx = 0; idx < count; idx++)
             points[idx] = Parse(values[idx]);
         return points;
     }
@@ -187,7 +187,7 @@ public struct XPoint : IFormattable
     /// </summary>
     internal string ConvertToString(string format, IFormatProvider provider)
     {
-        char numericListSeparator = TokenizerHelper.GetNumericListSeparator(provider);
+        var numericListSeparator = TokenizerHelper.GetNumericListSeparator(provider);
         provider = provider ?? CultureInfo.InvariantCulture;
         return string.Format(provider, "{1:" + format + "}{0}{2:" + format + "}", new object[] { numericListSeparator, _x, _y });
     }

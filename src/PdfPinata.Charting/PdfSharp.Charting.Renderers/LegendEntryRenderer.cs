@@ -50,8 +50,8 @@ internal class LegendEntryRenderer : Renderer
   /// </summary>
   internal override void Format()
   {
-    XGraphics gfx = this.rendererParms.Graphics;
-    LegendEntryRendererInfo leri = (LegendEntryRendererInfo)this.rendererParms.RendererInfo;
+    var gfx = this.rendererParms.Graphics;
+    var leri = (LegendEntryRendererInfo)this.rendererParms.RendererInfo;
 
     // Initialize
     leri.MarkerArea.Width = MaxLegendMarkerWidth;
@@ -59,17 +59,17 @@ internal class LegendEntryRenderer : Renderer
     leri.MarkerSize = new XSize();
     leri.MarkerSize.Width = leri.MarkerArea.Width;
     leri.MarkerSize.Height = leri.MarkerArea.Height;
-    if (leri.seriesRendererInfo.series.chartType == ChartType.Line)
+    if (leri.SeriesRendererInfo.Series.chartType == ChartType.Line)
       leri.MarkerArea.Width *= 3;
     leri.Width = leri.MarkerArea.Width;
     leri.Height = leri.MarkerArea.Height;
 
     if (leri.EntryText != "")
     {
-      leri.TextSize = gfx.MeasureString(leri.EntryText, leri.legendRendererInfo.Font);
-      if (leri.seriesRendererInfo.series.chartType == ChartType.Line)
+      leri.TextSize = gfx.MeasureString(leri.EntryText, leri.LegendRendererInfo.Font);
+      if (leri.SeriesRendererInfo.Series.chartType == ChartType.Line)
       {
-        leri.MarkerSize.Width = leri.seriesRendererInfo.markerRendererInfo.MarkerSize.Point;
+        leri.MarkerSize.Width = leri.SeriesRendererInfo.MarkerRendererInfo.MarkerSize.Point;
         leri.MarkerArea.Width = Math.Max(3 * leri.MarkerSize.Width, leri.MarkerArea.Width);
       }
 
@@ -85,21 +85,21 @@ internal class LegendEntryRenderer : Renderer
   /// </summary>
   internal override void Draw()
   {
-    XGraphics gfx = this.rendererParms.Graphics;
-    LegendEntryRendererInfo leri = (LegendEntryRendererInfo)this.rendererParms.RendererInfo;
+    var gfx = this.rendererParms.Graphics;
+    var leri = (LegendEntryRendererInfo)this.rendererParms.RendererInfo;
 
     XRect rect;
-    if (leri.seriesRendererInfo.series.chartType == ChartType.Line)
+    if (leri.SeriesRendererInfo.Series.chartType == ChartType.Line)
     {
       // Draw line.
-      XPoint posLineStart = new XPoint(leri.X, leri.Y + leri.Height / 2);
-      XPoint posLineEnd = new XPoint(leri.X + leri.MarkerArea.Width, leri.Y + leri.Height / 2);
+      var posLineStart = new XPoint(leri.X, leri.Y + leri.Height / 2);
+      var posLineEnd = new XPoint(leri.X + leri.MarkerArea.Width, leri.Y + leri.Height / 2);
       gfx.DrawLine(new XPen(((XSolidBrush)leri.MarkerBrush).Color), posLineStart, posLineEnd);
 
       // Draw marker.
-      double x = leri.X + leri.MarkerArea.Width / 2;
-      XPoint posMarker = new XPoint(x, leri.Y + leri.Height / 2);
-      MarkerRenderer.Draw(gfx, posMarker, leri.seriesRendererInfo.markerRendererInfo);
+      var x = leri.X + leri.MarkerArea.Width / 2;
+      var posMarker = new XPoint(x, leri.Y + leri.Height / 2);
+      MarkerRenderer.Draw(gfx, posMarker, leri.SeriesRendererInfo.MarkerRendererInfo);
     }
     else
     {
@@ -114,17 +114,12 @@ internal class LegendEntryRenderer : Renderer
     {
       rect = leri.Rect;
       rect.X += leri.MarkerArea.Width + LegendEntryRenderer.SpacingBetweenMarkerAndText;
-      XStringFormat format = new XStringFormat();
+      var format = new XStringFormat();
       format.LineAlignment = XLineAlignment.Near;
-      gfx.DrawString(leri.EntryText, leri.legendRendererInfo.Font,
-        leri.legendRendererInfo.FontColor, rect, format);
+      gfx.DrawString(leri.EntryText, leri.LegendRendererInfo.Font,
+        leri.LegendRendererInfo.FontColor, rect, format);
     }
   }
-
-  /// <summary>
-  /// Absolute width for markers (including line) in point.
-  /// </summary>
-  private const double MarkerWidth = 4.3; // 1.5 mm
 
   /// <summary>
   /// Maximum legend marker width in point.

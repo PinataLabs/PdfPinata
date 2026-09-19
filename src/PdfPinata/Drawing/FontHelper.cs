@@ -72,9 +72,9 @@ static class FontHelper
     /// </summary>
     public static XSize MeasureString(string text, XFont font, XStringFormat stringFormat)
     {
-        XSize size = new XSize();
+        var size = new XSize();
 
-        OpenTypeDescriptor descriptor = FontDescriptorCache.GetOrCreateDescriptorFor(font) as OpenTypeDescriptor;
+        var descriptor = FontDescriptorCache.GetOrCreateDescriptorFor(font) as OpenTypeDescriptor;
         if (descriptor != null)
         {
             // Height is the sum of ascender and descender.
@@ -83,10 +83,10 @@ static class FontHelper
 
             Debug.Assert(descriptor.Ascender > 0);
 
-            XStringFormat format = stringFormat ?? XStringFormats.Default;
+            var format = stringFormat ?? XStringFormats.Default;
 
             // Unsure how to deal with white space. Currently count as regular character.
-            double wordSpacing = format.WordSpacing;
+            var wordSpacing = format.WordSpacing;
 
             // A glyph advances by its own width plus the character spacing, and a space by the word
             // spacing on top of that; the horizontal scaling then applies to the lot. PDF 32000-1
@@ -105,7 +105,7 @@ static class FontHelper
             double LineWidth(ShapedText shaped, int spaces)
             {
                 double points = 0;
-                for (int idx = 0; idx < shaped.Segments.Count; idx++)
+                for (var idx = 0; idx < shaped.Segments.Count; idx++)
                     points += SegmentWidth(shaped.Segments[idx]);
 
                 return points + spaces * wordSpacing;
@@ -125,16 +125,16 @@ static class FontHelper
                 return LineWidth(shaped, spaces);
             }
 
-            int length = text.Length;
+            var length = text.Length;
 
             // Nothing here needs rewriting before it can be shaped, so the string is shaped where
             // it stands. Much the commonest case, and the one the layout engine measures every
             // word of, so it is worth not copying for.
-            bool plain = true;
-            int plainSpaces = 0;
-            for (int idx = 0; idx < length; idx++)
+            var plain = true;
+            var plainSpaces = 0;
+            for (var idx = 0; idx < length; idx++)
             {
-                char ch = text[idx];
+                var ch = text[idx];
                 if (ch < 32)
                 {
                     plain = false;
@@ -158,14 +158,14 @@ static class FontHelper
                 // other control characters dropped - the three things the loop below used to do
                 // to a character on its way to the cmap, which a shaper must not be asked to do
                 // anything with.
-                char[] line = ArrayPool<char>.Shared.Rent(length);
+                var line = ArrayPool<char>.Shared.Rent(length);
                 try
                 {
-                    int lineLength = 0;
-                    int spaceCount = 0;
-                    for (int idx = 0; idx < length; idx++)
+                    var lineLength = 0;
+                    var spaceCount = 0;
+                    for (var idx = 0; idx < length; idx++)
                     {
-                        char ch = text[idx];
+                        var ch = text[idx];
 
                         // Handle line feed ( \n)
                         if (ch == 10)
@@ -223,11 +223,11 @@ static class FontHelper
         const uint prime = 65521; // largest prime smaller than 65536
         uint s1 = 0;
         uint s2 = 0;
-        int length = buffer.Length;
-        int offset = 0;
+        var length = buffer.Length;
+        var offset = 0;
         while (length > 0)
         {
-            int n = 3800;
+            var n = 3800;
             if (n > length)
                 n = length;
             length -= n;
@@ -239,9 +239,9 @@ static class FontHelper
             s1 %= prime;
             s2 %= prime;
         }
-        ulong ul1 = (ulong)s2 << 16;
+        var ul1 = (ulong)s2 << 16;
         ul1 = ul1 | s1;
-        ulong ul2 = (ulong)buffer.Length;
+        var ul2 = (ulong)buffer.Length;
         return (ul1 << 32) | ul2;
     }
 

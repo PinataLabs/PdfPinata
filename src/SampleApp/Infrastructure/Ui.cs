@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Spectre.Console;
 
@@ -10,14 +11,14 @@ public static class Ui
 {
     public static void WriteDemoList(IReadOnlyList<PdfDemo> demos)
     {
-        Table table = new Table()
+        var table = new Table()
             .Border(TableBorder.Rounded)
             .BorderColor(Color.Grey35)
             .AddColumn("[bold]Demo[/]")
             .AddColumn("[bold]Pages[/]", column => column.RightAligned())
             .AddColumn("[bold]Shows[/]");
 
-        foreach (PdfDemo demo in demos)
+        foreach (var demo in demos)
         {
             table.AddRow(
                 new Markup($"[bold]{Markup.Escape(demo.Name)}[/]\n[grey]{Markup.Escape(demo.Summary)}[/]"),
@@ -37,7 +38,7 @@ public static class Ui
         AnsiConsole.Write(new Rule($"[bold]{Markup.Escape(demo.Name)}[/]")
         {
             Justification = Justify.Left,
-            Style = Style.Parse("grey35"),
+            Style = Style.Parse("grey35")
         });
         AnsiConsole.MarkupLine($"[grey]{Markup.Escape(demo.Summary)}[/]");
     }
@@ -48,7 +49,7 @@ public static class Ui
     /// </summary>
     public static void WriteSource(PdfDemo demo)
     {
-        string? example = DemoSource.Example(demo);
+        var example = DemoSource.Example(demo);
         if (example is null)
         {
             AnsiConsole.MarkupLine(
@@ -57,15 +58,15 @@ public static class Ui
             return;
         }
 
-        string[] lines = example.Split('\n');
-        StringBuilder markup = new StringBuilder();
-        for (int index = 0; index < lines.Length; index++)
+        var lines = example.Split('\n');
+        var markup = new StringBuilder();
+        for (var index = 0; index < lines.Length; index++)
         {
             if (index > 0)
                 markup.Append('\n');
 
             markup.Append($"[grey30]{index + 1,3}[/] ")
-                  .Append(CSharpHighlighter.Highlight(lines[index].TrimEnd('\r')));
+                .Append(CSharpHighlighter.Highlight(lines[index].TrimEnd('\r')));
         }
 
         AnsiConsole.Write(new Panel(new Markup(markup.ToString()))
@@ -73,7 +74,7 @@ public static class Ui
             Header = new PanelHeader($" {Markup.Escape(demo.SourceFileName)} "),
             Border = BoxBorder.Rounded,
             BorderStyle = Style.Parse("grey35"),
-            Expand = true,
+            Expand = true
         });
     }
 
@@ -104,7 +105,7 @@ public static class Ui
     {
         AnsiConsole.WriteLine();
 
-        string wrote = $"{succeeded} PDF{(succeeded == 1 ? "" : "s")} in {Markup.Escape(outputDirectory)}";
+        var wrote = $"{succeeded} PDF{(succeeded == 1 ? "" : "s")} in {Markup.Escape(outputDirectory)}";
         AnsiConsole.MarkupLine(failed == 0
             ? $"[green]Done.[/] [grey]{wrote}[/]"
             : $"[red]{failed} demo{(failed == 1 ? "" : "s")} failed.[/] [grey]{wrote}[/]");
@@ -112,10 +113,9 @@ public static class Ui
 
     static IEnumerable<string> Bulleted(IReadOnlyList<string> items)
     {
-        foreach (string item in items)
-            yield return "[grey]·[/] " + Markup.Escape(item);
+        return items.Select(item => "[grey]·[/] " + Markup.Escape(item));
     }
 
-    static string Kilobytes(long bytes) =>
+    private static string Kilobytes(long bytes) =>
         bytes < 1024 ? $"{bytes} B" : $"{bytes / 1024.0:F0} KB";
 }

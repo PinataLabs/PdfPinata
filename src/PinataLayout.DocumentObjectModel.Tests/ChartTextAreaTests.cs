@@ -43,7 +43,7 @@ public class ChartTextAreaTests
             area.AddParagraph("text"),
             area.AddTable(),
             area.AddImage(new UndrawnImage()),
-            area.AddLegend(),
+            area.AddLegend()
         ];
 
         area.Elements.Cast<object>().Should().Equal(added);
@@ -151,7 +151,7 @@ public class ChartTextAreaTests
             "toparea" => chart.TopArea,
             "bottomarea" => chart.BottomArea,
             "leftarea" => chart.LeftArea,
-            _ => chart.RightArea,
+            _ => chart.RightArea
         };
         area.AddParagraph("here");
 

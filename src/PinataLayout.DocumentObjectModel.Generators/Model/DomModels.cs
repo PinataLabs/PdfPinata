@@ -11,7 +11,7 @@ internal enum MemberKind
     NullableValue,
     PlainValue,
     DocumentObject,
-    Collection,
+    Collection
 }
 
 /// <summary>
@@ -33,7 +33,7 @@ internal sealed record DomMemberModel(
     bool IsWritable,
     bool CanConstruct,
     bool IsEnum,
-    string? BoxedDefaultExpression) : IEquatable<DomMemberModel>;
+    string? BoxedDefaultExpression);
 
 /// <summary>
 /// One DOM class and the members its value model contains, its own and its bases'.
@@ -42,7 +42,7 @@ internal sealed record DomTypeModel(
     string Namespace,
     string Name,
     string HintName,
-    EquatableArray<DomMemberModel> Members) : IEquatable<DomTypeModel>;
+    EquatableArray<DomMemberModel> Members);
 
 /// <summary>
 /// A member as parsed, before the base chain is closed.
@@ -58,7 +58,7 @@ internal sealed record ParsedMember(
     DomMemberModel Member,
     string TypeFqn,
     int DeclarationOrder,
-    LocationInfo? Location) : IEquatable<ParsedMember>;
+    LocationInfo? Location);
 
 /// <summary>
 /// A DocumentObject class, whether or not it declares any [DV] members of its own.
@@ -82,4 +82,4 @@ internal sealed record ParsedType(
     string? BaseFqn,
     bool IsAbstract,
     bool IsPartial,
-    EquatableArray<string>? SerializeLiterals) : IEquatable<ParsedType>;
+    EquatableArray<string>? SerializeLiterals);

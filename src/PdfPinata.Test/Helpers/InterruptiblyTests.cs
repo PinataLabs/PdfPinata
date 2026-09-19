@@ -38,7 +38,7 @@ public class InterruptiblyTests
     {
         // The whole point of the class. A pool thread is one the runtime may not start for as long
         // as it likes, and a Timeout counts that wait against the work.
-        bool pooled = await Interruptibly.Run(() => Thread.CurrentThread.IsThreadPoolThread);
+        var pooled = await Interruptibly.Run(() => Thread.CurrentThread.IsThreadPoolThread);
 
         pooled.Should().BeFalse();
     }
@@ -48,7 +48,7 @@ public class InterruptiblyTests
     {
         // Work that never ends outlives the test that gave up on it, so the thread it is on has to
         // be one the runtime will abandon at exit.
-        bool background = await Interruptibly.Run(() => Thread.CurrentThread.IsBackground);
+        var background = await Interruptibly.Run(() => Thread.CurrentThread.IsBackground);
 
         background.Should().BeTrue();
     }
@@ -56,9 +56,9 @@ public class InterruptiblyTests
     [Fact]
     public async Task WorkRunsSomewhereOtherThanTheTest()
     {
-        int testThread = Environment.CurrentManagedThreadId;
+        var testThread = Environment.CurrentManagedThreadId;
 
-        int workThread = await Interruptibly.Run(() => Environment.CurrentManagedThreadId);
+        var workThread = await Interruptibly.Run(() => Environment.CurrentManagedThreadId);
 
         // xUnit honours a Timeout only against what is not on the test's own thread.
         workThread.Should().NotBe(testThread);
@@ -67,7 +67,7 @@ public class InterruptiblyTests
     [Fact]
     public async Task WorkWithNothingToReturnStillRuns()
     {
-        bool ran = false;
+        var ran = false;
 
         await Interruptibly.Run(() => { ran = true; });
 
@@ -79,7 +79,7 @@ public class InterruptiblyTests
     {
         // Typed as Action rather than left to inference: these refuse before there is a task to
         // await, and a lambda inferred as returning one would be asserted on as if there were.
-        Action withNothingToReturn = () => Interruptibly.Run((Action)null);
+        Action withNothingToReturn = () => Interruptibly.Run(null);
         Action withSomethingToReturn = () => Interruptibly.Run((Func<int>)null);
 
         withNothingToReturn.Should().Throw<ArgumentNullException>();

@@ -141,7 +141,7 @@ public class ImagePixelRoundTripTests
     static byte[] ExpectedRgb()
     {
         var expected = new byte[Width * Height * 3];
-        for (int i = 0; i < Width * Height; i++)
+        for (var i = 0; i < Width * Height; i++)
         {
             var (r, g, b) = Colour(i);
             expected[i * 3] = r;
@@ -156,7 +156,7 @@ public class ImagePixelRoundTripTests
         var bitmap = new SKBitmap(
             new SKImageInfo(Width, Height, SKColorType.Bgra8888, SKAlphaType.Unpremul));
 
-        for (int i = 0; i < Width * Height; i++)
+        for (var i = 0; i < Width * Height; i++)
         {
             var (r, g, b) = Colour(i);
             bitmap.SetPixel(i % Width, i / Width, new SKColor(r, g, b, opaque ? (byte)255 : Alphas[i]));
@@ -168,7 +168,7 @@ public class ImagePixelRoundTripTests
     static ImageSource.IImageSource ImageSharp()
     {
         var image = new Image<Rgba32>(Width, Height);
-        for (int i = 0; i < Width * Height; i++)
+        for (var i = 0; i < Width * Height; i++)
         {
             var (r, g, b) = Colour(i);
             image[i % Width, i / Width] = new Rgba32(r, g, b, Alphas[i]);

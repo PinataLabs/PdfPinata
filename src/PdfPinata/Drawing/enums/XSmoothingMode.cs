@@ -68,5 +68,5 @@ public enum XSmoothingMode  // same values as System.Drawing.Drawing2D.Smoothing
     /// <summary>
     /// Specifies antialiased rendering.
     /// </summary>
-    AntiAlias = 4,
+    AntiAlias = 4
 }

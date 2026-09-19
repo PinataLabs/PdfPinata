@@ -60,7 +60,7 @@ public abstract class PdfTextMarkupAnnotation : PdfAnnotation
     /// </summary>
     protected PdfTextMarkupAnnotation()
     {
-        Elements.SetDateTime(Keys.CreationDate, GlobalTimeSettings.Now);
+        Elements.SetDateTime(PdfAnnotation.Keys.CreationDate, GlobalTimeSettings.Now);
     }
 
     /// <summary>
@@ -70,7 +70,7 @@ public abstract class PdfTextMarkupAnnotation : PdfAnnotation
     protected PdfTextMarkupAnnotation(PdfDocument document)
         : base(document)
     {
-        Elements.SetDateTime(Keys.CreationDate, GlobalTimeSettings.Now);
+        Elements.SetDateTime(PdfAnnotation.Keys.CreationDate, GlobalTimeSettings.Now);
     }
 
     /// <summary>
@@ -85,19 +85,19 @@ public abstract class PdfTextMarkupAnnotation : PdfAnnotation
         get
         {
             var quads = new List<PdfRectangle>();
-            PdfArray array = Elements.GetArray(Keys.QuadPoints);
+            var array = Elements.GetArray(Keys.QuadPoints);
             if (array == null)
                 return quads;
 
             // Whole quads only: a trailing fragment is not a quadrilateral and is ignored
             // rather than read as one with coordinates that are not there.
-            for (int idx = 0; idx + 7 < array.Elements.Count; idx += 8)
+            for (var idx = 0; idx + 7 < array.Elements.Count; idx += 8)
             {
                 // Written in the order every producer uses; see AddQuad.
-                double left = array.Elements.GetReal(idx);
-                double top = array.Elements.GetReal(idx + 1);
-                double right = array.Elements.GetReal(idx + 2);
-                double bottom = array.Elements.GetReal(idx + 5);
+                var left = array.Elements.GetReal(idx);
+                var top = array.Elements.GetReal(idx + 1);
+                var right = array.Elements.GetReal(idx + 2);
+                var bottom = array.Elements.GetReal(idx + 5);
                 quads.Add(new PdfRectangle(Math.Min(left, right), Math.Min(top, bottom),
                     Math.Max(left, right), Math.Max(top, bottom)));
             }
@@ -121,7 +121,7 @@ public abstract class PdfTextMarkupAnnotation : PdfAnnotation
     {
         ArgumentNullException.ThrowIfNull(rect);
 
-        PdfArray array = Elements.GetArray(Keys.QuadPoints);
+        var array = Elements.GetArray(Keys.QuadPoints);
         if (array == null)
         {
             array = new PdfArray(Owner);
@@ -134,7 +134,7 @@ public abstract class PdfTextMarkupAnnotation : PdfAnnotation
         // Upper-left, upper-right, lower-left, lower-right. The specification's prose calls for
         // the four vertices "in counterclockwise order", which would put the lower two the other
         // way round, but no producer writes them that way and viewers read this order instead.
-        foreach (double value in new[] { left, top, right, top, left, bottom, right, bottom })
+        foreach (var value in new[] { left, top, right, top, left, bottom, right, bottom })
             array.Elements.Add(new PdfReal(value));
 
         UpdateRectangle();
@@ -159,11 +159,11 @@ public abstract class PdfTextMarkupAnnotation : PdfAnnotation
     {
         get
         {
-            IReadOnlyList<PdfRectangle> quads = Quads;
+            var quads = Quads;
             if (quads.Count > 0)
                 return quads;
 
-            PdfRectangle rect = Rectangle;
+            var rect = Rectangle;
             return rect == null || rect.IsEmpty
                 ? new List<PdfRectangle>()
                 : new List<PdfRectangle> { rect };
@@ -176,20 +176,20 @@ public abstract class PdfTextMarkupAnnotation : PdfAnnotation
     /// </summary>
     void UpdateRectangle()
     {
-        IReadOnlyList<PdfRectangle> quads = Quads;
+        var quads = Quads;
         if (quads.Count == 0)
             return;
 
         double x1 = double.MaxValue, y1 = double.MaxValue;
         double x2 = double.MinValue, y2 = double.MinValue;
-        foreach (PdfRectangle quad in quads)
+        foreach (var quad in quads)
         {
             x1 = Math.Min(x1, quad.X1);
             y1 = Math.Min(y1, quad.Y1);
             x2 = Math.Max(x2, quad.X2);
             y2 = Math.Max(y2, quad.Y2);
         }
-        Elements.SetRectangle(Keys.Rect, new PdfRectangle(x1, y1, x2, y2));
+        Elements.SetRectangle(PdfAnnotation.Keys.Rect, new PdfRectangle(x1, y1, x2, y2));
     }
 
     internal override void OnAddedToPage()
@@ -229,23 +229,23 @@ public abstract class PdfTextMarkupAnnotation : PdfAnnotation
         if (Owner == null)
             return;
 
-        IReadOnlyList<PdfRectangle> quads = EffectiveQuads;
+        var quads = EffectiveQuads;
         if (quads.Count == 0)
             return;
 
-        PdfRectangle box = Elements.GetRectangle(Keys.Rect);
+        var box = Elements.GetRectangle(PdfAnnotation.Keys.Rect);
 
         var content = new StringBuilder();
         content.Append("/GS0 gs\n");
-        XColor color = Color;
+        var color = Color;
         content.Append(PdfEncoders.Format("{0:0.###} {1:0.###} {2:0.###} rg\n",
             color.R / 255.0, color.G / 255.0, color.B / 255.0));
         content.Append(PdfEncoders.Format("{0:0.###} {1:0.###} {2:0.###} RG\n",
             color.R / 255.0, color.G / 255.0, color.B / 255.0));
-        foreach (PdfRectangle quad in quads)
+        foreach (var quad in quads)
             DrawQuad(content, quad);
 
-        PdfDictionary form = _appearanceForm;
+        var form = _appearanceForm;
         if (form == null)
         {
             form = new PdfDictionary(Owner);
@@ -257,7 +257,7 @@ public abstract class PdfTextMarkupAnnotation : PdfAnnotation
 
             var appearance = new PdfDictionary(Owner);
             appearance.Elements["/N"] = form.Reference;
-            Elements[Keys.AP] = appearance;
+            Elements[PdfAnnotation.Keys.AP] = appearance;
         }
 
         form.Elements["/BBox"] = new PdfArray(Owner,
@@ -266,7 +266,7 @@ public abstract class PdfTextMarkupAnnotation : PdfAnnotation
 
         // A stream cannot be created twice on one dictionary, so the second time round the
         // bytes are set on the stream that is already there.
-        byte[] bytes = new RawEncoding().GetBytes(content.ToString());
+        var bytes = new RawEncoding().GetBytes(content.ToString());
         if (form.Stream == null)
             form.CreateStream(bytes);
         else

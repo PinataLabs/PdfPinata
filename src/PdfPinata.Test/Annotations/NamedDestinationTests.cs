@@ -370,8 +370,8 @@ public class NamedDestinationTests
     {
         // An XGraphics that draws somewhere other than a PDF page has nowhere to put an annotation.
         var document = new PdfDocument();
-        var page = document.AddPage();
-        var form = new PdfPinata.Drawing.XForm(document, XUnit.FromPoint(100), XUnit.FromPoint(100));
+        document.AddPage();
+        var form = new XForm(document, XUnit.FromPoint(100), XUnit.FromPoint(100));
         using var gfx = XGraphics.FromForm(form);
 
         gfx.Invoking(g => g.AddWebLink(new XRect(0, 0, 10, 10), "https://example.com"))

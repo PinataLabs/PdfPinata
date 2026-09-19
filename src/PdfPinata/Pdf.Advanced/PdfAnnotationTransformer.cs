@@ -55,16 +55,16 @@ static class PdfAnnotationTransformer
     {
         // Read the element and not the Annotations property, whose getter gives a page without
         // annotations an empty array to hold.
-        PdfItem item = page.Elements[PdfPage.Keys.Annots];
+        var item = page.Elements[PdfPage.Keys.Annots];
         if (item is PdfReference reference)
             item = reference.Value;
 
         if (item is not PdfArray annotations)
             return;
 
-        foreach (PdfItem element in annotations.Elements)
+        foreach (var element in annotations.Elements)
         {
-            PdfItem annotationItem = element;
+            var annotationItem = element;
             if (annotationItem is PdfReference annotationReference)
                 annotationItem = annotationReference.Value;
 
@@ -118,18 +118,18 @@ static class PdfAnnotationTransformer
     /// </summary>
     static void TransformRectangle(PdfDictionary dictionary, string key, XMatrix matrix)
     {
-        PdfItem item = Resolve(dictionary.Elements[key]);
-        double[] numbers = NumbersOf(item);
+        var item = Resolve(dictionary.Elements[key]);
+        var numbers = NumbersOf(item);
         if (numbers == null || numbers.Length != 4)
             return;
 
-        XRect rect = new XRect(
+        var rect = new XRect(
             Math.Min(numbers[0], numbers[2]),
             Math.Min(numbers[1], numbers[3]),
             Math.Abs(numbers[2] - numbers[0]),
             Math.Abs(numbers[3] - numbers[1]));
 
-        XRect moved = PdfPageResizer.Transformed(rect, matrix);
+        var moved = PdfPageResizer.Transformed(rect, matrix);
 
         dictionary.Elements.SetRectangle(key,
             new PdfRectangle(moved.X, moved.Y, moved.X + moved.Width, moved.Y + moved.Height));
@@ -140,7 +140,7 @@ static class PdfAnnotationTransformer
     /// </summary>
     static void TransformPoints(PdfDictionary dictionary, string key, XMatrix matrix)
     {
-        PdfItem item = Resolve(dictionary.Elements[key]);
+        var item = Resolve(dictionary.Elements[key]);
         if (item is not PdfArray array)
             return;
 
@@ -152,11 +152,11 @@ static class PdfAnnotationTransformer
     /// </summary>
     static void TransformPointsOfEach(PdfDictionary dictionary, string key, XMatrix matrix)
     {
-        PdfItem item = Resolve(dictionary.Elements[key]);
+        var item = Resolve(dictionary.Elements[key]);
         if (item is not PdfArray outer)
             return;
 
-        foreach (PdfItem element in outer.Elements)
+        foreach (var element in outer.Elements)
         {
             if (Resolve(element) is PdfArray inner)
                 WritePoints(inner, matrix);
@@ -165,7 +165,7 @@ static class PdfAnnotationTransformer
 
     static void WritePoints(PdfArray array, XMatrix matrix)
     {
-        int count = array.Elements.Count;
+        var count = array.Elements.Count;
 
         // Pairs. An odd count is a malformed array and there is no sensible half a point to
         // move, so it is left as it stands.
@@ -176,16 +176,16 @@ static class PdfAnnotationTransformer
         // malformed array half moved and half not - worse than either - and would do it after
         // the content had already been wrapped and the boxes set, so there would be no going
         // back. Anything that is not a number leaves the array exactly as it was found.
-        double[] numbers = new double[count];
-        for (int index = 0; index < count; index++)
+        var numbers = new double[count];
+        for (var index = 0; index < count; index++)
         {
             if (!PdfPageResizer.TryNumber(array.Elements[index], out numbers[index]))
                 return;
         }
 
-        for (int index = 0; index < count; index += 2)
+        for (var index = 0; index < count; index += 2)
         {
-            XPoint moved = matrix.Transform(new XPoint(numbers[index], numbers[index + 1]));
+            var moved = matrix.Transform(new XPoint(numbers[index], numbers[index + 1]));
 
             array.Elements[index] = new PdfReal(moved.X);
             array.Elements[index + 1] = new PdfReal(moved.Y);
@@ -203,20 +203,20 @@ static class PdfAnnotationTransformer
     /// </summary>
     static void TransformDifferences(PdfDictionary dictionary, string key, XMatrix matrix)
     {
-        PdfItem item = Resolve(dictionary.Elements[key]);
-        double[] numbers = NumbersOf(item);
+        var item = Resolve(dictionary.Elements[key]);
+        var numbers = NumbersOf(item);
         if (numbers == null || numbers.Length != 4)
             return;
 
         // What a unit step along each axis measures after the transform. For a plain scale these
         // are the two scale factors; for a turned one they come out swapped, which is what makes
         // the arithmetic below work out in the right units either way.
-        double alongX = Math.Sqrt(matrix.M11 * matrix.M11 + matrix.M12 * matrix.M12);
-        double alongY = Math.Sqrt(matrix.M21 * matrix.M21 + matrix.M22 * matrix.M22);
+        var alongX = Math.Sqrt(matrix.M11 * matrix.M11 + matrix.M12 * matrix.M12);
+        var alongY = Math.Sqrt(matrix.M21 * matrix.M21 + matrix.M22 * matrix.M22);
 
         double left = numbers[0], top = numbers[1], right = numbers[2], bottom = numbers[3];
 
-        double[] moved = IsTurned(matrix)
+        var moved = IsTurned(matrix)
             // Turned a quarter clockwise: what was at the left is at the top, what was at the
             // top is at the right, and so on round.
             ? new[] { bottom * alongY, left * alongX, top * alongY, right * alongX }
@@ -224,7 +224,7 @@ static class PdfAnnotationTransformer
 
         if (Resolve(dictionary.Elements[key]) is PdfArray array && array.Elements.Count == 4)
         {
-            for (int index = 0; index < 4; index++)
+            for (var index = 0; index < 4; index++)
                 array.Elements[index] = new PdfReal(moved[index]);
         }
     }
@@ -256,8 +256,8 @@ static class PdfAnnotationTransformer
         if (item is not PdfArray array)
             return null;
 
-        double[] numbers = new double[array.Elements.Count];
-        for (int index = 0; index < numbers.Length; index++)
+        var numbers = new double[array.Elements.Count];
+        for (var index = 0; index < numbers.Length; index++)
         {
             if (!PdfPageResizer.TryNumber(array.Elements[index], out numbers[index]))
                 return null;

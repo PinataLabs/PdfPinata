@@ -22,7 +22,7 @@ public static class CSharpHighlighter
     const string KeywordStyle = "steelblue1";
     const string NumberStyle = "wheat4";
 
-    static readonly HashSet<string> Keywords = new HashSet<string>(StringComparer.Ordinal)
+    static readonly HashSet<string> Keywords = new(StringComparer.Ordinal)
     {
         "abstract", "as", "base", "bool", "break", "byte", "case", "catch", "char", "checked",
         "class", "const", "continue", "decimal", "default", "delegate", "do", "double", "else",
@@ -32,28 +32,28 @@ public static class CSharpHighlighter
         "private", "protected", "public", "readonly", "ref", "return", "sbyte", "sealed", "short",
         "sizeof", "stackalloc", "static", "string", "struct", "switch", "this", "throw", "true",
         "try", "typeof", "uint", "ulong", "unchecked", "unsafe", "ushort", "using", "var",
-        "virtual", "void", "while", "nameof", "when", "where", "yield", "record", "init", "with",
+        "virtual", "void", "while", "nameof", "when", "where", "yield", "record", "init", "with"
     };
 
     /// <summary>Highlights one line. The result is Spectre markup, already escaped.</summary>
     public static string Highlight(string line)
     {
-        StringBuilder markup = new StringBuilder(line.Length + 32);
-        int index = 0;
+        var markup = new StringBuilder(line.Length + 32);
+        var index = 0;
 
         while (index < line.Length)
         {
-            char current = line[index];
+            var current = line[index];
 
             if (current == '/' && index + 1 < line.Length && line[index + 1] == '/')
             {
-                Append(markup, line.Substring(index), CommentStyle);
+                Append(markup, line[index..], CommentStyle);
                 break;
             }
 
             if (current == '"' || (current == '@' && index + 1 < line.Length && line[index + 1] == '"'))
             {
-                int end = EndOfString(line, index);
+                var end = EndOfString(line, index);
                 Append(markup, line.Substring(index, end - index), StringStyle);
                 index = end;
                 continue;
@@ -61,7 +61,7 @@ public static class CSharpHighlighter
 
             if (current == '\'')
             {
-                int end = EndOfChar(line, index);
+                var end = EndOfChar(line, index);
                 Append(markup, line.Substring(index, end - index), StringStyle);
                 index = end;
                 continue;
@@ -69,11 +69,11 @@ public static class CSharpHighlighter
 
             if (char.IsLetter(current) || current == '_')
             {
-                int end = index;
+                var end = index;
                 while (end < line.Length && (char.IsLetterOrDigit(line[end]) || line[end] == '_'))
                     end++;
 
-                string word = line.Substring(index, end - index);
+                var word = line.Substring(index, end - index);
                 Append(markup, word, Keywords.Contains(word) ? KeywordStyle : null);
                 index = end;
                 continue;
@@ -81,7 +81,7 @@ public static class CSharpHighlighter
 
             if (char.IsDigit(current))
             {
-                int end = index;
+                var end = index;
                 while (end < line.Length && (char.IsLetterOrDigit(line[end]) || line[end] == '.'))
                     end++;
 
@@ -99,7 +99,7 @@ public static class CSharpHighlighter
 
     static void Append(StringBuilder markup, string text, string? style)
     {
-        string escaped = Markup.Escape(text);
+        var escaped = Markup.Escape(text);
         if (style is null)
             markup.Append(escaped);
         else
@@ -108,8 +108,8 @@ public static class CSharpHighlighter
 
     static int EndOfString(string line, int start)
     {
-        bool verbatim = line[start] == '@';
-        int index = start + (verbatim ? 2 : 1);
+        var verbatim = line[start] == '@';
+        var index = start + (verbatim ? 2 : 1);
 
         while (index < line.Length)
         {
@@ -142,19 +142,20 @@ public static class CSharpHighlighter
 
     static int EndOfChar(string line, int start)
     {
-        int index = start + 1;
+        var index = start + 1;
         while (index < line.Length)
         {
-            if (line[index] == '\\')
+            switch (line[index])
             {
-                index += 2;
-                continue;
+                case '\\':
+                    index += 2;
+                    continue;
+                case '\'':
+                    return index + 1;
+                default:
+                    index++;
+                    break;
             }
-
-            if (line[index] == '\'')
-                return index + 1;
-
-            index++;
         }
 
         return line.Length;

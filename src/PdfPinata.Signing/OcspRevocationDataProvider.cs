@@ -85,6 +85,7 @@ public sealed class OcspRevocationDataProvider : IRevocationDataProvider, IDispo
             using var content = new ByteArrayContent(request);
             content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/ocsp-request");
 
+            // ReSharper disable once UsingStatementResourceInitialization
             using var httpRequest = new HttpRequestMessage(HttpMethod.Post, responderUri) { Content = content };
 
             // ResponseHeadersRead so the body is read by ReadBounded, under its own cap, rather than
@@ -137,7 +138,7 @@ public sealed class OcspRevocationDataProvider : IRevocationDataProvider, IDispo
         if (chain == null)
             return null;
 
-        foreach (X509Certificate2 candidate in chain)
+        foreach (var candidate in chain)
         {
             if (candidate.Thumbprint != certificate.Thumbprint
                 && String.Equals(candidate.Subject, certificate.Issuer, StringComparison.Ordinal))

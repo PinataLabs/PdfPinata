@@ -8,5 +8,5 @@ public enum XVerticalAlignment
     /// <summary>Text is centred in the height of the rectangle.</summary>
     Middle,
     /// <summary>Text sits against the bottom of the rectangle.</summary>
-    Bottom,
+    Bottom
 }

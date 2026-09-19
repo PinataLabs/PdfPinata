@@ -44,10 +44,10 @@ public class RtfFlattenVisitor : VisitorBase
 
   internal override void VisitFormattedText(FormattedText formattedText)
   {
-    Document document = formattedText.Document;
+    var document = formattedText.Document;
     ParagraphFormat format = null;
 
-    Style style = document.styles[(formattedText.style ?? "")];
+    var style = document.styles[(formattedText.style ?? "")];
     if (style != null)
       format = style.paragraphFormat;
     else if ((formattedText.style ?? "") != "")
@@ -64,7 +64,7 @@ public class RtfFlattenVisitor : VisitorBase
 
   internal override void VisitHyperlink(Hyperlink hyperlink)
   {
-    Font styleFont = hyperlink.Document.Styles["Hyperlink"].Font;
+    var styleFont = hyperlink.Document.Styles["Hyperlink"].Font;
     if (hyperlink.font == null)
       hyperlink.Font = styleFont.Clone();
     else

@@ -85,7 +85,7 @@ static class FontFallbackResolution
             return null;
 
         var key = (descriptor.FontName, codePoint, requested.Style);
-        if (!_decided.TryGetValue(key, out string family))
+        if (!_decided.TryGetValue(key, out var family))
         {
             family = Decide(fallback, codePoint, requested, descriptor);
             _decided[key] = family;

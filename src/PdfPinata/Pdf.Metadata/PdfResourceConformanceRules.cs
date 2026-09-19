@@ -173,7 +173,7 @@ internal static class PdfResourceConformanceRules
         "/DeviceGray" or "/G" => 1,
         "/DeviceRGB" or "/RGB" => 3,
         "/DeviceCMYK" or "/CMYK" => 4,
-        _ => null,
+        _ => null
     };
 
     static PdfItem Resolve(PdfItem item) => item is PdfReference reference ? reference.Value : item;

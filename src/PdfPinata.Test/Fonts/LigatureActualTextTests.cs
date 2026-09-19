@@ -184,7 +184,7 @@ public class LigatureActualTextTests
     static List<ShapedGlyph> OneGlyphEach(string text)
     {
         var glyphs = new List<ShapedGlyph>(text.Length);
-        for (int idx = 0; idx < text.Length; idx++)
+        for (var idx = 0; idx < text.Length; idx++)
             glyphs.Add(new ShapedGlyph((ushort)(40 + idx), idx, 500));
 
         return glyphs;
@@ -199,17 +199,15 @@ public class LigatureActualTextTests
         document.Options.CompressContentStreams = false;
 
         var page = document.AddPage();
-        using (var gfx = XGraphics.FromPdfPage(page))
+        using var gfx = XGraphics.FromPdfPage(page);
+        GlobalFontSettings.TextShaper = new Handed(Clustered, glyphs);
+        try
         {
-            GlobalFontSettings.TextShaper = new Handed(Clustered, glyphs);
-            try
-            {
-                gfx.DrawString(Clustered, new XFont("Arial", 20), XBrushes.Black, 20, 40);
-            }
-            finally
-            {
-                GlobalFontSettings.TextShaper = null;
-            }
+            gfx.DrawString(Clustered, new XFont("Arial", 20), XBrushes.Black, 20, 40);
+        }
+        finally
+        {
+            GlobalFontSettings.TextShaper = null;
         }
 
         return page;
@@ -247,18 +245,16 @@ public class LigatureActualTextTests
         document.Options.CompressContentStreams = false;
 
         var page = document.AddPage();
-        using (var gfx = XGraphics.FromPdfPage(page))
+        using var gfx = XGraphics.FromPdfPage(page);
+        using var shaper = new OnlyFor(sentinel);
+        GlobalFontSettings.TextShaper = shaper;
+        try
         {
-            using var shaper = new OnlyFor(sentinel);
-            GlobalFontSettings.TextShaper = shaper;
-            try
-            {
-                gfx.DrawString(text ?? sentinel, new XFont("Arial", 20), XBrushes.Black, 20, 40);
-            }
-            finally
-            {
-                GlobalFontSettings.TextShaper = null;
-            }
+            gfx.DrawString(text ?? sentinel, new XFont("Arial", 20), XBrushes.Black, 20, 40);
+        }
+        finally
+        {
+            GlobalFontSettings.TextShaper = null;
         }
 
         return page;
@@ -286,7 +282,7 @@ public class LigatureActualTextTests
 
         var digits = content.Substring(open + 1, close - open - 1);
         var bytes = new byte[digits.Length / 2];
-        for (int idx = 0; idx < bytes.Length; idx++)
+        for (var idx = 0; idx < bytes.Length; idx++)
             bytes[idx] = Convert.ToByte(digits.Substring(idx * 2, 2), 16);
 
         // UTF-16 big-endian behind a byte-order mark, which is how a PDF text string says it is not
@@ -298,8 +294,8 @@ public class LigatureActualTextTests
 
     static int Occurrences(string text, string what)
     {
-        int count = 0;
-        for (int at = text.IndexOf(what, StringComparison.Ordinal); at >= 0;
+        var count = 0;
+        for (var at = text.IndexOf(what, StringComparison.Ordinal); at >= 0;
              at = text.IndexOf(what, at + what.Length, StringComparison.Ordinal))
         {
             count++;
@@ -331,14 +327,14 @@ public class LigatureActualTextTests
         public ShapedRun Shape(ReadOnlySpan<char> text, ShapingFont font, XTextDirection direction,
             string script, string language)
             => text.SequenceEqual(_mine.AsSpan())
-                ? new ShapedRun(_glyphs, font.UnitsPerEm, XTextDirection.LeftToRight)
+                ? new ShapedRun(_glyphs, font.UnitsPerEm)
                 : null;
     }
 
     sealed class OnlyFor : ITextShaper, IDisposable
     {
         readonly string _mine;
-        readonly HarfBuzzTextShaper _shaper = new HarfBuzzTextShaper();
+        readonly HarfBuzzTextShaper _shaper = new();
 
         internal OnlyFor(string mine) => _mine = mine;
 

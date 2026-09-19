@@ -42,7 +42,7 @@ public class XTextFormatterOptionsTests
     /// <summary>
     ///   Lays the text out and hands back the page, with the formatter set up by the caller.
     /// </summary>
-    static PdfPage PageShowing(string text, XRect layout, System.Action<XTextFormatter> setUp = null)
+    static PdfPage PageShowing(string text, XRect layout, Action<XTextFormatter> setUp = null)
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -172,7 +172,7 @@ public class XTextFormatterOptionsTests
         lines.Count.Should().BeGreaterThan(2);
 
         var withinParagraph = lines[0] - lines[1];
-        var acrossParagraphs = lines[lines.Count - 2] - lines[lines.Count - 1];
+        var acrossParagraphs = lines[^2] - lines[^1];
 
         withinParagraph.Should().BeApproximately(LineHeight, 0.01);
         acrossParagraphs.Should().BeApproximately(LineHeight + 10, 0.01);
@@ -204,7 +204,7 @@ public class XTextFormatterOptionsTests
 
         var shown = TextOperators.ShownStrings(page);
         shown.Should().NotBeEmpty();
-        shown[shown.Count - 1].Should().EndWith("...");
+        shown[^1].Should().EndWith("...");
     }
 
     [Fact]
@@ -376,8 +376,8 @@ public class XTextFormatterOptionsTests
         shown.Should().NotBeEmpty();
 
         // Cut off at the bottom of the second column, not the first.
-        shown[shown.Count - 1].Should().EndWith("...");
-        runs[runs.Count - 1].X.Should().BeGreaterThan(runs[0].X);
+        shown[^1].Should().EndWith("...");
+        runs[^1].X.Should().BeGreaterThan(runs[0].X);
     }
 
     // ----- the options leave the ordinary case alone ---------------------------------------------

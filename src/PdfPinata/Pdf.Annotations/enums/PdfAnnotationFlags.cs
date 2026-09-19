@@ -108,5 +108,5 @@ public enum PdfAnnotationFlags
     /// A typical use is to have an annotation that appears only when a mouse cursor is
     /// held over it.
     /// </summary>
-    ToggleNoView = 1 << (9 - 1),
+    ToggleNoView = 1 << (9 - 1)
 }

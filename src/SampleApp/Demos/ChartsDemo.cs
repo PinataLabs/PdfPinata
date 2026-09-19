@@ -30,7 +30,7 @@ internal sealed class ChartsDemo : PdfDemo
         "A combination chart: one series drawn as a line on a chart of columns",
         "Pie2D and PieExploded2D, with percentage data labels and the legend docked four ways",
         "ChartFrame.DrawChart against ChartFrame.Draw - the second brings its own frame",
-        "The same figures again through PinataLayout, laid out in the flow between paragraphs",
+        "The same figures again through PinataLayout, laid out in the flow between paragraphs"
     };
 
     public override int PageCount => 4;
@@ -38,7 +38,7 @@ internal sealed class ChartsDemo : PdfDemo
     protected override PdfDocument Build(DemoContext context)
     {
         #region example
-        PdfDocument document = new PdfDocument();
+        var document = new PdfDocument();
         document.Info.Title = "Charts";
 
         // One set of figures for the whole demo, so that what changes from chart to chart is the
@@ -48,8 +48,8 @@ internal sealed class ChartsDemo : PdfDemo
         double[] south = { 31, 29, 44, 38 };
         double[] west = { 18, 26, 33, 47 };
 
-        XFont heading = new XFont("Liberation Sans", 16, XFontStyle.Bold);
-        XFont caption = new XFont("Liberation Sans", 8);
+        var heading = new XFont("Liberation Sans", 16, XFontStyle.Bold);
+        var caption = new XFont("Liberation Sans", 8);
 
         // docs:begin chart-frame
         // A chart carries no size of its own. ChartFrame is what gives it one: set the frame's
@@ -58,10 +58,10 @@ internal sealed class ChartsDemo : PdfDemo
         // a drop shadow first, which page 3 shows.
         void Place(XGraphics gfx, Charting.Chart chart, XRect rect, string label)
         {
-            Charting.ChartFrame frame = new Charting.ChartFrame
+            var frame = new Charting.ChartFrame
             {
                 Location = new XPoint(rect.X, rect.Y),
-                Size = new XSize(rect.Width, rect.Height),
+                Size = new XSize(rect.Width, rect.Height)
             };
             frame.Add(chart);
             frame.DrawChart(gfx);
@@ -77,16 +77,21 @@ internal sealed class ChartsDemo : PdfDemo
         // series per region.
         Charting.Chart Regional(Charting.ChartType type, params string[] series)
         {
-            Charting.Chart chart = new Charting.Chart(type);
-            chart.Font.Name = "Liberation Sans";
-            chart.Font.Size = 7;
+            var chart = new Charting.Chart(type)
+            {
+                Font =
+                {
+                    Name = "Liberation Sans",
+                    Size = 7
+                }
+            };
 
-            Charting.XSeries labels = chart.XValues.AddXSeries();
+            var labels = chart.XValues.AddXSeries();
             labels.Add(quarters);
 
-            foreach (string name in series)
+            foreach (var name in series)
             {
-                Charting.Series values = chart.SeriesCollection.AddSeries();
+                var values = chart.SeriesCollection.AddSeries();
                 values.Name = name;
                 values.Add(name switch { "North" => north, "South" => south, _ => west });
             }
@@ -101,8 +106,8 @@ internal sealed class ChartsDemo : PdfDemo
 
         // ----- page 1: the column and bar family -----
 
-        PdfPage page1 = document.AddPage();
-        XGraphics gfx1 = XGraphics.FromPdfPage(page1);
+        var page1 = document.AddPage();
+        var gfx1 = XGraphics.FromPdfPage(page1);
         gfx1.DrawString("Columns and bars", heading, XBrushes.Black, new XPoint(50, 60));
 
         // Clustered puts the regions side by side and compares them; stacked puts them on top of
@@ -118,13 +123,13 @@ internal sealed class ChartsDemo : PdfDemo
 
         // ----- page 2: lines, areas, and one chart of two kinds -----
 
-        PdfPage page2 = document.AddPage();
-        XGraphics gfx2 = XGraphics.FromPdfPage(page2);
+        var page2 = document.AddPage();
+        var gfx2 = XGraphics.FromPdfPage(page2);
         gfx2.DrawString("Lines, areas and combinations", heading, XBrushes.Black, new XPoint(50, 60));
 
         // docs:begin fixed-scale
-        Charting.Chart line = Regional(Charting.ChartType.Line, "North", "South", "West");
-        foreach (int index in new[] { 0, 1, 2 })
+        var line = Regional(Charting.ChartType.Line, "North", "South", "West");
+        foreach (var index in new[] { 0, 1, 2 })
         {
             line.SeriesCollection[index].MarkerStyle = Charting.MarkerStyle.Circle;
             line.SeriesCollection[index].MarkerSize = 4;
@@ -146,7 +151,7 @@ internal sealed class ChartsDemo : PdfDemo
         // A series carries its own ChartType, and a chart whose series disagree with it is drawn by
         // CombinationChartRenderer instead. That is the whole of the combination API: set the
         // property on the series that should be different.
-        Charting.Chart combination = Regional(Charting.ChartType.Column2D, "North", "South", "West");
+        var combination = Regional(Charting.ChartType.Column2D, "North", "South", "West");
         combination.SeriesCollection[2].ChartType = Charting.ChartType.Line;
         combination.SeriesCollection[2].MarkerStyle = Charting.MarkerStyle.Diamond;
         combination.SeriesCollection[2].MarkerSize = 5;
@@ -156,17 +161,22 @@ internal sealed class ChartsDemo : PdfDemo
 
         // ----- page 3: pies, labels and the framed drawing -----
 
-        PdfPage page3 = document.AddPage();
-        XGraphics gfx3 = XGraphics.FromPdfPage(page3);
+        var page3 = document.AddPage();
+        var gfx3 = XGraphics.FromPdfPage(page3);
         gfx3.DrawString("Pies, labels and frames", heading, XBrushes.Black, new XPoint(50, 60));
 
         // docs:begin pie
         // A pie shows one series, so the X series labels the slices rather than an axis.
         Charting.Chart Pie(Charting.ChartType type, Charting.DockingType docking)
         {
-            Charting.Chart chart = new Charting.Chart(type);
-            chart.Font.Name = "Liberation Sans";
-            chart.Font.Size = 7;
+            var chart = new Charting.Chart(type)
+            {
+                Font =
+                {
+                    Name = "Liberation Sans",
+                    Size = 7
+                }
+            };
             chart.XValues.AddXSeries().Add(quarters);
             chart.SeriesCollection.AddSeries().Add(north);
             chart.Legend.Docking = docking;
@@ -191,10 +201,10 @@ internal sealed class ChartsDemo : PdfDemo
         // shadow of its own before laying the chart out inside them, and it draws every chart the
         // frame holds rather than only the first. Worth knowing which one you called: a chart that
         // arrives with a border nobody asked for arrived through here.
-        Charting.ChartFrame framed = new Charting.ChartFrame
+        var framed = new Charting.ChartFrame
         {
             Location = new XPoint(50, 350),
-            Size = new XSize(495, 230),
+            Size = new XSize(495, 230)
         };
         framed.Add(Regional(Charting.ChartType.Column2D, "North", "South"));
         framed.Draw(gfx3);
@@ -208,14 +218,14 @@ internal sealed class ChartsDemo : PdfDemo
         // charting engine above at render time - PinataLayout.Rendering.ChartMapper does the copying.
         // The difference is not the picture, it is who decides where the chart goes: here the
         // renderer places it in the flow, where above the caller passed a rectangle.
-        Document report = new Document();
+        var report = new Document();
         report.Styles[StyleNames.Normal].Font.Name = "Liberation Sans";
-        Section section = report.AddSection();
+        var section = report.AddSection();
         section.PageSetup.LeftMargin = Unit.FromPoint(50);
         section.PageSetup.RightMargin = Unit.FromPoint(50);
         section.PageSetup.TopMargin = Unit.FromPoint(50);
 
-        Paragraph title = section.AddParagraph("The same figures through PinataLayout");
+        var title = section.AddParagraph("The same figures through PinataLayout");
         title.Format.Font.Size = 16;
         title.Format.Font.Bold = true;
         title.Format.SpaceAfter = Unit.FromPoint(12);
@@ -227,7 +237,7 @@ internal sealed class ChartsDemo : PdfDemo
             .Format.SpaceAfter = Unit.FromPoint(10);
 
         // docs:begin dom-chart
-        Chart flowed = section.AddChart(ChartType.Column2D);
+        var flowed = section.AddChart(ChartType.Column2D);
         flowed.Width = Unit.FromPoint(440);
         flowed.Height = Unit.FromPoint(220);
         // The DOM's chart takes its type from a paragraph format rather than from a Font of its
@@ -236,10 +246,10 @@ internal sealed class ChartsDemo : PdfDemo
         flowed.Format.Font.Size = 8;
 
         flowed.XValues.AddXSeries().Add(quarters);
-        Series domNorth = flowed.SeriesCollection.AddSeries();
+        var domNorth = flowed.SeriesCollection.AddSeries();
         domNorth.Name = "North";
         domNorth.Add(north);
-        Series domSouth = flowed.SeriesCollection.AddSeries();
+        var domSouth = flowed.SeriesCollection.AddSeries();
         domSouth.Name = "South";
         domSouth.Add(south);
 
@@ -256,19 +266,19 @@ internal sealed class ChartsDemo : PdfDemo
             + "a document, and for the drawn one when it belongs to a page you are laying out "
             + "yourself.").Format.SpaceBefore = Unit.FromPoint(10);
 
-        PdfDocumentRenderer renderer = new PdfDocumentRenderer(unicode: true) { Document = report };
+        var renderer = new PdfDocumentRenderer(unicode: true) { Document = report };
         renderer.RenderDocument();
 
         // Saved and reopened rather than imported from the live document: a document being written
         // and a document being read are different things to PdfSharp, and Import is the mode that
         // permits taking pages out of one.
-        using (MemoryStream buffer = new MemoryStream())
+        using (var buffer = new MemoryStream())
         {
             renderer.PdfDocument.Save(buffer, false);
             buffer.Position = 0;
 
-            using PdfDocument laidOut = PdfReader.Open(buffer, PdfDocumentOpenMode.Import);
-            foreach (PdfPage rendered in laidOut.Pages)
+            using var laidOut = PdfReader.Open(buffer, PdfDocumentOpenMode.Import);
+            foreach (var rendered in laidOut.Pages)
                 document.AddPage(rendered);
         }
         #endregion

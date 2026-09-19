@@ -27,7 +27,7 @@ internal sealed class PageResizeDemo : PdfDemo
     {
         "Two A4 pages resized to A5 in one call",
         "Content scaled rather than cropped",
-        "A link and the destination it points at moving with the words",
+        "A link and the destination it points at moving with the words"
     };
 
     public override int PageCount => 2;
@@ -35,18 +35,18 @@ internal sealed class PageResizeDemo : PdfDemo
     protected override PdfDocument Build(DemoContext context)
     {
         #region example
-        PdfDocument document = new PdfDocument();
-        XFont font = new XFont("Liberation Sans", 14);
+        var document = new PdfDocument();
+        var font = new XFont("Liberation Sans", 14);
 
-        PdfPage first = document.AddPage();
+        var first = document.AddPage();
         first.Size = PageSize.A4;
-        PdfPage second = document.AddPage();
+        var second = document.AddPage();
         second.Size = PageSize.A4;
 
-        using (XGraphics gfx = XGraphics.FromPdfPage(first))
+        using (var gfx = XGraphics.FromPdfPage(first))
             gfx.DrawString("Go to chapter two", font, XBrushes.Blue, new XPoint(60, 100));
 
-        using (XGraphics gfx = XGraphics.FromPdfPage(second))
+        using (var gfx = XGraphics.FromPdfPage(second))
             gfx.DrawString("Chapter two", font, XBrushes.Black, new XPoint(60, 100));
 
         // A link on page one, pointing a third of the way down page two.

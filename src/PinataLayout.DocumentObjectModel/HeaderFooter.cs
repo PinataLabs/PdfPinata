@@ -26,7 +26,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -197,9 +197,9 @@ public partial class HeaderFooter : DocumentObject, IVisitable
         get => style ?? "";
         set
         {
-            // Just save style name. 
-            Style style = Document.Styles[value];
-            if (style != null)
+            // Just save style name.
+            var styleObj = Document.Styles[value];
+            if (styleObj != null)
                 this.style = value;
             else
                 throw new ArgumentException("Invalid style name '" + value + "'.");
@@ -266,7 +266,8 @@ public partial class HeaderFooter : DocumentObject, IVisitable
     /// </summary>
     internal override void Serialize(Serializer serializer)
     {
-        HeadersFooters headersfooters = parent as HeadersFooters;
+        var headersfooters = parent as HeadersFooters;
+        // ReSharper disable once PossibleNullReferenceException
         if (headersfooters.Primary == this)
             Serialize(serializer, "primary");
         else if (headersfooters.EvenPage == this)
@@ -280,11 +281,11 @@ public partial class HeaderFooter : DocumentObject, IVisitable
     /// </summary>
     internal void Serialize(Serializer serializer, string prefix)
     {
-        serializer.WriteComment((comment ?? ""));
+        serializer.WriteComment(comment ?? "");
         serializer.WriteLine("\\" + prefix + (IsHeader ? "header" : "footer"));
 
-        int pos = serializer.BeginAttributes();
-        if ((style ?? "") != String.Empty)
+        var pos = serializer.BeginAttributes();
+        if ((style ?? "") != string.Empty)
             serializer.WriteSimpleAttribute("Style", Style);
         if (!IsNull("Format"))
             format.Serialize(serializer, "Format", null);
@@ -304,6 +305,7 @@ public partial class HeaderFooter : DocumentObject, IVisitable
         visitor.VisitHeaderFooter(this);
 
         if (visitChildren && elements != null)
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             ((IVisitable)elements).AcceptVisitor(visitor, visitChildren);
     }
 

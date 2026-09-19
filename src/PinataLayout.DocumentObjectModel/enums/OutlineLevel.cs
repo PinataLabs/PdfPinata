@@ -56,5 +56,5 @@ public enum OutlineLevel
   /// <summary>The eighth outline level.</summary>
   Level8,
   /// <summary>The ninth outline level.</summary>
-  Level9,
+  Level9
 }

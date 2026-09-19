@@ -70,15 +70,15 @@ public partial class Gridlines : ChartObject
   {
     get
     {
-      if (this.lineFormat == null)
-        this.lineFormat = new LineFormat(this);
+      if (lineFormat == null)
+        lineFormat = new LineFormat(this);
 
-      return this.lineFormat;
+      return lineFormat;
     }
     set
     {
       SetParent(value);
-      this.lineFormat = value;
+      lineFormat = value;
     }
   }
   [DV]
@@ -91,12 +91,13 @@ public partial class Gridlines : ChartObject
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    Axis axisObject = this.parent as Axis;
+    var axisObject = parent as Axis;
 
-    int pos = serializer.BeginContent(axisObject.CheckGridlines(this));
+    // ReSharper disable once PossibleNullReferenceException
+    serializer.BeginContent(axisObject.CheckGridlines(this));
 
-    if (!this.IsNull("LineFormat"))
-      this.lineFormat.Serialize(serializer);
+    if (!IsNull("LineFormat"))
+      lineFormat.Serialize(serializer);
 
     serializer.EndContent();
   }

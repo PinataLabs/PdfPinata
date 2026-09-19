@@ -27,7 +27,6 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
-using PdfPinata.Drawing;
 
 namespace PdfPinata.Charting.Renderers;
 
@@ -50,34 +49,34 @@ internal class BarClusteredLegendRenderer : ColumnLikeLegendRenderer
   /// </summary>
   internal override void Draw()
   {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    LegendRendererInfo lri = cri.legendRendererInfo;
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var lri = cri.LegendRendererInfo;
     if (lri == null)
       return;
 
-    XGraphics gfx = this.rendererParms.Graphics;
-    RendererParameters parms = new RendererParameters();
+    var gfx = this.rendererParms.Graphics;
+    var parms = new RendererParameters();
     parms.Graphics = gfx;
 
-    LegendEntryRenderer ler = new LegendEntryRenderer(parms);
+    var ler = new LegendEntryRenderer(parms);
 
-    bool verticalLegend = (lri.legend.docking == DockingType.Left || lri.legend.docking == DockingType.Right);
-    int paddingFactor = 1;
+    var verticalLegend = (lri.Legend.docking == DockingType.Left || lri.Legend.docking == DockingType.Right);
+    var paddingFactor = 1;
     if (lri.BorderPen != null)
       paddingFactor = 2;
-    XRect legendRect = lri.Rect;
+    var legendRect = lri.Rect;
     legendRect.X += LegendRenderer.LeftPadding * paddingFactor;
     if (verticalLegend)
       legendRect.Y = legendRect.Bottom - LegendRenderer.BottomPadding * paddingFactor;
     else
       legendRect.Y += LegendRenderer.TopPadding * paddingFactor;
 
-    foreach (LegendEntryRendererInfo leri in cri.legendRendererInfo.Entries)
+    foreach (var leri in cri.LegendRendererInfo.Entries)
     {
       if (verticalLegend)
         legendRect.Y -= leri.Height;
 
-      XRect entryRect = legendRect;
+      var entryRect = legendRect;
       entryRect.Width = leri.Width;
       entryRect.Height = leri.Height;
 
@@ -94,7 +93,7 @@ internal class BarClusteredLegendRenderer : ColumnLikeLegendRenderer
     // Draw border around legend
     if (lri.BorderPen != null)
     {
-      XRect borderRect = lri.Rect;
+      var borderRect = lri.Rect;
       borderRect.X += LegendRenderer.LeftPadding;
       borderRect.Y += LegendRenderer.TopPadding;
       borderRect.Width -= LegendRenderer.LeftPadding + LegendRenderer.RightPadding;

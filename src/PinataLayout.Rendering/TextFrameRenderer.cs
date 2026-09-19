@@ -24,7 +24,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -43,11 +43,11 @@ internal class TextFrameRenderer : ShapeRenderer
     : base(gfx, textframe, fieldInfos)
   {
     this.textframe = textframe;
-    TextFrameRenderInfo renderInfo = new TextFrameRenderInfo
+    var textFrameRenderInfo = new TextFrameRenderInfo
     {
       shape = shape
     };
-    this.renderInfo = renderInfo;
+    this.renderInfo = textFrameRenderInfo;
   }
 
   internal TextFrameRenderer(XGraphics gfx, RenderInfo renderInfo, FieldInfos fieldInfos)
@@ -58,15 +58,15 @@ internal class TextFrameRenderer : ShapeRenderer
 
   internal override void Format(Area area, FormatInfo previousFormatInfo)
   {
-    FormattedTextFrame formattedTextFrame = new FormattedTextFrame(textframe, documentRenderer, fieldInfos);
-    formattedTextFrame.Format(gfx);
+    var formattedTextFrame = new FormattedTextFrame(textframe, DocumentRenderer, fieldInfos);
+    formattedTextFrame.Format(Gfx);
     ((TextFrameFormatInfo)renderInfo.FormatInfo).formattedTextFrame = formattedTextFrame;
     base.Format(area, previousFormatInfo);
   }
 
   internal override void Render()
   {
-    using (Tagger.Artifact(gfx))
+    using (Tagger.Artifact(Gfx))
       RenderFilling();
 
     // A text frame holds real content — paragraphs and tables, which tag themselves — so it is a
@@ -74,29 +74,29 @@ internal class TextFrameRenderer : ShapeRenderer
     // out as artifacts; nothing here needs alternate text, because everything inside it is text that
     // a reader can read for itself.
     Tagger.EndList();
-    using (Tagger.Container(gfx, textframe, PdfTag.Section))
+    using (Tagger.Container(Gfx, textframe, PdfTag.Section))
       RenderContent();
 
-    using (Tagger.Artifact(gfx))
+    using (Tagger.Artifact(Gfx))
       RenderLine();
   }
 
   void RenderContent()
   {
-    FormattedTextFrame formattedTextFrame = ((TextFrameFormatInfo)renderInfo.FormatInfo).formattedTextFrame;
-    RenderInfo[] renderInfos = formattedTextFrame.GetRenderInfos();
+    var formattedTextFrame = ((TextFrameFormatInfo)renderInfo.FormatInfo).formattedTextFrame;
+    var renderInfos = formattedTextFrame.GetRenderInfos();
     if (renderInfos == null)
       return;
 
-    XGraphicsState state = Transform();
+    var state = Transform();
     RenderByInfos(renderInfos);
     ResetTransform(state);
   }
 
   XGraphicsState Transform()
   {
-    Area frameContentArea = renderInfo.LayoutInfo.ContentArea;
-    XGraphicsState state = gfx.Save();
+    var frameContentArea = renderInfo.LayoutInfo.ContentArea;
+    var state = Gfx.Save();
     XUnit xPosition;
     XUnit yPosition;
     switch (textframe.Orientation)
@@ -106,22 +106,22 @@ internal class TextFrameRenderer : ShapeRenderer
       case TextOrientation.VerticalFarEast:
         xPosition = frameContentArea.X + frameContentArea.Width;
         yPosition = frameContentArea.Y;
-        gfx.TranslateTransform(xPosition, yPosition);
-        gfx.RotateTransform(90);
+        Gfx.TranslateTransform(xPosition, yPosition);
+        Gfx.RotateTransform(90);
         break;
 
       case TextOrientation.Upward:
-        state = gfx.Save();
+        state = Gfx.Save();
         xPosition = frameContentArea.X;
         yPosition = frameContentArea.Y + frameContentArea.Height;
-        gfx.TranslateTransform(xPosition, yPosition);
-        gfx.RotateTransform(-90);
+        Gfx.TranslateTransform(xPosition, yPosition);
+        Gfx.RotateTransform(-90);
         break;
 
       default:
         xPosition = frameContentArea.X;
         yPosition = frameContentArea.Y;
-        gfx.TranslateTransform(xPosition, yPosition);
+        Gfx.TranslateTransform(xPosition, yPosition);
         break;
     }
     return state;
@@ -130,7 +130,7 @@ internal class TextFrameRenderer : ShapeRenderer
   void ResetTransform(XGraphicsState state)
   {
     if (state != null)
-      gfx.Restore(state);
+      Gfx.Restore(state);
   }
   TextFrame textframe;
 }

@@ -61,5 +61,5 @@ public enum Underline
   /// <summary>
   /// 
   /// </summary>
-  DotDotDash,
+  DotDotDash
 }

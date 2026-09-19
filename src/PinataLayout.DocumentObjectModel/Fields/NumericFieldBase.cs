@@ -99,9 +99,9 @@ public abstract partial class NumericFieldBase : DocumentObject
   /// <summary>
   /// Determines whether the format is valid for numeric fields.
   /// </summary>
-  protected bool IsValidFormat(string format)
+  protected bool IsValidFormat(string formatName)
   {
-    foreach (string name in validFormatStrings)
+    foreach (var name in validFormatStrings)
     {
       if (name == this.Format)
         return true;

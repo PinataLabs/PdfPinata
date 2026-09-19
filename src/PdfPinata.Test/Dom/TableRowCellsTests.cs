@@ -130,7 +130,7 @@ public class TableRowCellsTests
                   \rows{ \row{ \cell{ \paragraph{Test} } } }
               } } }");
 
-        var table = (Table)((Section)document.Sections[0]).Elements[0];
+        var table = (Table)document.Sections[0].Elements[0];
 
         table.Rows[0].Cells.Count.Should().Be(Columns);
     }

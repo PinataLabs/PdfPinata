@@ -449,7 +449,7 @@ internal sealed class StructureTagger
             List = list,
             Parent = parent,
             Type = type,
-            Level = level,
+            Level = level
         });
     }
 
@@ -462,7 +462,7 @@ internal sealed class StructureTagger
     {
         ListType.BulletList1 or ListType.BulletList2 or ListType.BulletList3 => PdfListNumbering.Disc,
         ListType.NumberList1 or ListType.NumberList2 or ListType.NumberList3 => PdfListNumbering.Decimal,
-        _ => PdfListNumbering.None,
+        _ => PdfListNumbering.None
     };
 
     /// <summary>
@@ -502,7 +502,7 @@ internal sealed class StructureTagger
             return Nothing;
 
         var parent = ParentFor(footnote);
-        var reference = Element(footnote, PdfTag.Reference, parent, ReferenceSlot);
+        var reference = Element(footnote, PdfTag.Reference, parent);
 
         // Built now rather than when the note is drawn, and built before the scope is entered so that
         // it hangs off the paragraph beside the reference rather than inside it.
@@ -545,7 +545,7 @@ internal sealed class StructureTagger
             //
             // The counter advances either way, so that setting one note's identifier does not
             // renumber the notes around it.
-            int generated = ++_notes;
+            var generated = ++_notes;
             note.Id = footnote.Identifier.Length > 0 ? footnote.Identifier : "note" + generated;
         }
 

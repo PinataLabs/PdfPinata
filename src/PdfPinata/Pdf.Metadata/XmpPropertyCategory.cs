@@ -10,5 +10,5 @@ public enum XmpPropertyCategory
     Internal,
 
     /// <summary>The value came from outside the document.</summary>
-    External,
+    External
 }

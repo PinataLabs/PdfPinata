@@ -191,7 +191,7 @@ public class AcroFormTwinCheckBoxTests
         var field = (PdfCheckBoxField)new AcroFormBuilder()
             .WithTypedParent("/Btn", "agree",
                 kid => AcroFormBuilder.WithOnAndOffAppearances(kid, "/Ja"),
-                kid => { })
+                _ => { })
             .Build().AcroForm.Fields["agree"];
 
         field.Checked = true;

@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -46,7 +46,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
 {
     /// <summary>
     /// Initializes a new page. The page must be added to a document before it can be used.
-    /// Depending of the IsMetric property of the current region the page size is set to 
+    /// Depending of the IsMetric property of the current region the page size is set to
     /// A4 or Letter respectively. If this size is not appropriate it should be changed before
     /// any drawing operations are performed on the page.
     /// </summary>
@@ -89,7 +89,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         _sheet = new PdfPageSheet(this);
 
         // Set Orientation depending on /Rotate.
-        int rotate = Elements.GetInteger(InheritablePageKeys.Rotate);
+        var rotate = Elements.GetInteger(InheritablePageKeys.Rotate);
         if (Math.Abs((rotate / 90)) % 2 == 1)
             _orientation = PageOrientation.Landscape;
     }
@@ -108,11 +108,9 @@ public sealed class PdfPage : PdfDictionary, IContentStream
             // at System.Globalization.RegionInfo..ctor
             Size = PageSize.A4;
         }
-            
-#pragma warning disable 168
+
         // Force creation of MediaBox object by invoking property
-        PdfRectangle rect = MediaBox;
-#pragma warning restore 168
+        _ = MediaBox;
     }
 
     /// <summary>
@@ -129,7 +127,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// <summary>
     /// Closes the page. A closes page cannot be modified anymore and it is not possible to
     /// get an XGraphics object for a closed page. Closing a page is not required, but may saves
-    /// resources if the document has many pages. 
+    /// resources if the document has many pages.
     /// </summary>
     public void Close()
     {
@@ -166,7 +164,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
 
     /// <summary>
     /// Gets or sets the orientation of the page. The default value PageOrientation.Portrait.
-    /// If an imported page has a /Rotate value that matches the formula 90 + n * 180 the 
+    /// If an imported page has a /Rotate value that matches the formula 90 + n * 180 the
     /// orientation is set to PageOrientation.Landscape.
     /// </summary>
     public PageOrientation Orientation
@@ -189,7 +187,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
 
             RefuseToResizeByReboxing(nameof(Size));
 
-            XSize size = PageSizeConverter.ToSize(value);
+            var size = PageSizeConverter.ToSize(value);
             // MediaBox is always in Portrait mode (see Height, Width).
             // So take Orientation NOT into account.
             MediaBox = new PdfRectangle(0, 0, size.Width, size.Height);
@@ -209,7 +207,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     {
         get
         {
-            PdfItem item = Elements[Keys.Contents];
+            var item = Elements[Keys.Contents];
             if (item is PdfReference reference)
                 item = reference.Value;
 
@@ -223,7 +221,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
                 PdfArray array => HoldsBytes(array),
                 // A single content stream holds nothing when it has no bytes.
                 PdfDictionary dictionary => dictionary.Stream != null && dictionary.Stream.Length > 0,
-                _ => true,
+                _ => true
             };
         }
     }
@@ -235,9 +233,9 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// </summary>
     static bool HoldsBytes(PdfArray array)
     {
-        foreach (PdfItem element in array.Elements)
+        foreach (var element in array.Elements)
         {
-            PdfItem item = element;
+            var item = element;
             if (item is PdfReference reference)
                 item = reference.Value;
 
@@ -335,7 +333,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
                 typeof(PageOrientation));
         }
 
-        XSize points = PageSizeConverter.ToSize(size);
+        var points = PageSizeConverter.ToSize(size);
         return orientation == PageOrientation.Landscape
             ? new XSize(points.Height, points.Width)
             : points;
@@ -464,12 +462,12 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// </summary>
     public PdfRectangle MediaBox
     {
-        get => Elements.GetRectangle(Keys.MediaBox, true);
+        get => Elements.GetRectangle(InheritablePageKeys.MediaBox, true);
         set
         {
             // Whatever the page was asked to be, it is not that any more.
             _sheet.TrimmedSize = null;
-            Elements.SetRectangle(Keys.MediaBox, value);
+            Elements.SetRectangle(InheritablePageKeys.MediaBox, value);
         }
     }
 
@@ -478,8 +476,8 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// </summary>
     public PdfRectangle CropBox
     {
-        get => Elements.GetRectangle(Keys.CropBox, true);
-        set => Elements.SetRectangle(Keys.CropBox, value);
+        get => Elements.GetRectangle(InheritablePageKeys.CropBox, true);
+        set => Elements.SetRectangle(InheritablePageKeys.CropBox, value);
     }
 
     /// <summary>
@@ -523,14 +521,14 @@ public sealed class PdfPage : PdfDictionary, IContentStream
             if (_sheet.TrimmedSize is { } trimmed)
                 return trimmed.Height;
 
-            PdfRectangle rect = MediaBox;
+            var rect = MediaBox;
             return VisibleSizeIsTurned ? rect.Width : rect.Height;
         }
         set
         {
             RefuseToResizeByReboxing(nameof(Height));
 
-            PdfRectangle rect = MediaBox;
+            var rect = MediaBox;
             if (VisibleSizeIsTurned)
                 MediaBox = new PdfRectangle(0, rect.Y1, value, rect.Y2);
             else
@@ -550,14 +548,14 @@ public sealed class PdfPage : PdfDictionary, IContentStream
             if (_sheet.TrimmedSize is { } trimmed)
                 return trimmed.Width;
 
-            PdfRectangle rect = MediaBox;
+            var rect = MediaBox;
             return VisibleSizeIsTurned ? rect.Height : rect.Width;
         }
         set
         {
             RefuseToResizeByReboxing(nameof(Width));
 
-            PdfRectangle rect = MediaBox;
+            var rect = MediaBox;
             if (VisibleSizeIsTurned)
                 MediaBox = new PdfRectangle(rect.X1, 0, rect.X2, value);
             else
@@ -567,9 +565,9 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     }
 
     /// <summary>
-    /// Gets or sets the /Rotate entry of the PDF page. The value is the number of degrees by which the page 
+    /// Gets or sets the /Rotate entry of the PDF page. The value is the number of degrees by which the page
     /// should be rotated clockwise when displayed or printed. The value must be a multiple of 90.
-    /// TODO: Next statement is not correct: 
+    /// TODO: Next statement is not correct:
     /// PDFsharp does not set this value, but for imported pages this value can be set and must be taken
     /// into account when adding graphic to such a page.
     /// </summary>
@@ -611,7 +609,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     {
         get
         {
-            PdfRectangle rect = MediaBox;
+            var rect = MediaBox;
             return MediaBoxIsTurnedWhenWritten
                 ? new XSize(rect.Height, rect.Width)
                 : new XSize(rect.Width, rect.Height);
@@ -658,7 +656,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
             {
                 if (true) // || Document.IsImported)
                 {
-                    PdfItem item = Elements[Keys.Contents];
+                    var item = Elements[Keys.Contents];
                     if (item == null)
                     {
                         _contents = new PdfContents(Owner);
@@ -669,7 +667,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
                         if (item is PdfReference)
                             item = ((PdfReference)item).Value;
 
-                        PdfArray array = item as PdfArray;
+                        var array = item as PdfArray;
                         if (array != null)
                         {
                             // It is already an array of content streams.
@@ -687,7 +685,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
                             // Only one content stream -> create array
                             _contents = new PdfContents(Owner);
                             //Owner.irefTable.Add(_contents);
-                            PdfContent content = new PdfContent((PdfDictionary)item);
+                            var content = new PdfContent((PdfDictionary)item);
                             _contents.Elements.Add(content.Reference);
                         }
                     }
@@ -755,7 +753,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// <param name="destinationPage">The destination page.</param>
     public PdfLinkAnnotation AddDocumentLink(PdfRectangle rect, int destinationPage)
     {
-        PdfLinkAnnotation annotation = PdfLinkAnnotation.CreateDocumentLink(rect, destinationPage);
+        var annotation = PdfLinkAnnotation.CreateDocumentLink(rect, destinationPage);
         Annotations.Add(annotation);
         return annotation;
     }
@@ -771,7 +769,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// </param>
     public PdfLinkAnnotation AddDocumentLink(PdfRectangle rect, int destinationPage, double destinationTop)
     {
-        PdfLinkAnnotation annotation = PdfLinkAnnotation.CreateDocumentLink(rect, destinationPage, destinationTop);
+        var annotation = PdfLinkAnnotation.CreateDocumentLink(rect, destinationPage, destinationTop);
         Annotations.Add(annotation);
         return annotation;
     }
@@ -783,7 +781,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// <param name="url">The URL.</param>
     public PdfLinkAnnotation AddWebLink(PdfRectangle rect, string url)
     {
-        PdfLinkAnnotation annotation = PdfLinkAnnotation.CreateWebLink(rect, url);
+        var annotation = PdfLinkAnnotation.CreateWebLink(rect, url);
         Annotations.Add(annotation);
         return annotation;
     }
@@ -795,7 +793,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// <param name="destinationName">The name, as given to <see cref="PdfDocument.NamedDestinations"/>.</param>
     public PdfLinkAnnotation AddNamedLink(PdfRectangle rect, string destinationName)
     {
-        PdfLinkAnnotation annotation = PdfLinkAnnotation.CreateNamedLink(rect, destinationName);
+        var annotation = PdfLinkAnnotation.CreateNamedLink(rect, destinationName);
         Annotations.Add(annotation);
         return annotation;
     }
@@ -807,7 +805,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// <param name="fileName">Name of the file.</param>
     public PdfLinkAnnotation AddFileLink(PdfRectangle rect, string fileName)
     {
-        PdfLinkAnnotation annotation = PdfLinkAnnotation.CreateFileLink(rect, fileName);
+        var annotation = PdfLinkAnnotation.CreateFileLink(rect, fileName);
         Annotations.Add(annotation);
         return annotation;
     }
@@ -843,7 +841,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         get
         {
             if (_resources == null)
-                _resources = (PdfResources)Elements.GetValue(Keys.Resources, VCF.Create); //VCF.CreateIndirect
+                _resources = (PdfResources)Elements.GetValue(InheritablePageKeys.Resources, VCF.Create); //VCF.CreateIndirect
             return _resources;
         }
     }
@@ -855,7 +853,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// </summary>
     internal void ReplaceResources(PdfResources resources)
     {
-        Elements[Keys.Resources] = resources;
+        Elements[InheritablePageKeys.Resources] = resources;
         _resources = null;
     }
 
@@ -872,7 +870,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         // the writer expects: PdfArray.WriteObject writes no brackets round an indirect array, so
         // making this one indirect writes a page whose /Contents is a bare reference and an
         // object that is not an object, and the file will not open again.
-        PdfContents contents = new PdfContents(Owner);
+        var contents = new PdfContents(Owner);
         contents.Elements.Add(content.Reference);
 
         Elements[Keys.Contents] = contents;
@@ -915,7 +913,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     {
         pdfFont = _document.FontTable.GetFont(font);
         Debug.Assert(pdfFont != null);
-        string name = Resources.AddFont(pdfFont);
+        var name = Resources.AddFont(pdfFont);
         return name;
     }
 
@@ -946,7 +944,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         //pdfFont = new PdfType0Font(Owner, idName, fontData);
         //pdfFont.Document = _document;
         Debug.Assert(pdfFont != null);
-        string name = Resources.AddFont(pdfFont);
+        var name = Resources.AddFont(pdfFont);
         return name;
     }
 
@@ -960,10 +958,10 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// </summary>
     internal string GetImageName(XImage image)
     {
-        PdfImage pdfImage = _document.ImageTable.GetImage(image);
+        var pdfImage = _document.ImageTable.GetImage(image);
         Debug.Assert(pdfImage != null);
         NoteTransparencyOf(pdfImage);
-        string name = Resources.AddImage(pdfImage);
+        var name = Resources.AddImage(pdfImage);
         return name;
     }
 
@@ -980,10 +978,10 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// </summary>
     internal string GetFormName(XForm form)
     {
-        PdfFormXObject pdfForm = _document.FormTable.GetForm(form);
+        var pdfForm = _document.FormTable.GetForm(form);
         Debug.Assert(pdfForm != null);
         NoteTransparencyOf(pdfForm);
-        string name = Resources.AddForm(pdfForm);
+        var name = Resources.AddForm(pdfForm);
         return name;
     }
 
@@ -998,7 +996,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     internal override void WriteObject(PdfWriter writer)
     {
         // HACK: temporarily flip media box if Landscape
-        PdfRectangle mediaBox = MediaBox;
+        var mediaBox = MediaBox;
         if (MediaBoxIsTurnedWhenWritten)
             MediaBox = new PdfRectangle(mediaBox.X1, mediaBox.Y1, mediaBox.Y2, mediaBox.X2);
 
@@ -1013,7 +1011,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         if (TransparencyUsed && !Elements.ContainsKey(Keys.Group) &&
             _document.Options.ColorMode != PdfColorMode.Undefined)
         {
-            PdfDictionary group = new PdfDictionary();
+            var group = new PdfDictionary();
             _elements["/Group"] = group;
             if (_document.Options.ColorMode != PdfColorMode.Cmyk)
                 group.Elements.SetName("/CS", "/DeviceRGB");
@@ -1066,8 +1064,8 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// </remarks>
     static PdfItem InheritableEntry(PdfDictionary dictionary, string key)
     {
-        PdfItem item = dictionary.Elements[key];
-        PdfItem value = item is PdfReference reference ? reference.Value : item;
+        var item = dictionary.Elements[key];
+        var value = item is PdfReference reference ? reference.Value : item;
         return value is null or PdfNull or PdfNullObject ? null : item;
     }
 
@@ -1080,7 +1078,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         if (values.Resources != null)
         {
             PdfDictionary resources;
-            PdfItem res = InheritableEntry(page, InheritablePageKeys.Resources);
+            var res = InheritableEntry(page, InheritablePageKeys.Resources);
             if (res is PdfReference)
             {
                 resources = (PdfDictionary)((PdfReference)res).Value.Clone();
@@ -1097,11 +1095,11 @@ public sealed class PdfPage : PdfDictionary, IContentStream
             }
             else
             {
-                foreach (PdfName name in values.Resources.Elements.KeyNames)
+                foreach (var name in values.Resources.Elements.KeyNames)
                 {
                     if (!resources.Elements.ContainsKey(name.Value))
                     {
-                        PdfItem item = values.Resources.Elements[name];
+                        var item = values.Resources.Elements[name];
                         if (item is PdfObject)
                             item = item.Clone();
                         resources.Elements.Add(name.ToString(), item);
@@ -1127,10 +1125,10 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     {
         // A null entry is skipped rather than recorded, so it neither reaches the pages below as
         // an empty box nor overrides what a node further up stated.
-        PdfItem item = InheritableEntry(page, InheritablePageKeys.Resources);
+        var item = InheritableEntry(page, InheritablePageKeys.Resources);
         if (item != null)
         {
-            PdfReference reference = item as PdfReference;
+            var reference = item as PdfReference;
             if (reference != null)
                 values.Resources = (PdfDictionary)(reference.Value);
             else
@@ -1211,9 +1209,9 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         if (_contents == null)
             return;
 
-        for (int idx = _contents.Elements.Count - 1; idx >= 0; idx--)
+        for (var idx = _contents.Elements.Count - 1; idx >= 0; idx--)
         {
-            PdfDictionary content = _contents.Elements.GetDictionary(idx);
+            var content = _contents.Elements.GetDictionary(idx);
             if (content != null && (content.Stream == null || content.Stream.Length == 0))
                 _contents.Elements.RemoveAt(idx);
         }
@@ -1241,7 +1239,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         /// <summary>
         /// (Required if PieceInfo is present; optional otherwise; PDF 1.3) The date and time
         /// when the page's contents were most recently modified. If a page-piece dictionary
-        /// (PieceInfo) is present, the modification date is used to ascertain which of the 
+        /// (PieceInfo) is present, the modification date is used to ascertain which of the
         /// application data dictionaries that it contains correspond to the current content
         /// of the page.
         /// </summary>
@@ -1249,7 +1247,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         public const string LastModified = "/LastModified";
 
         /// <summary>
-        /// (Optional; PDF 1.3) A rectangle, expressed in default user space units, defining the 
+        /// (Optional; PDF 1.3) A rectangle, expressed in default user space units, defining the
         /// region to which the contents of the page should be clipped when output in a production
         /// environment. Default value: the value of CropBox.
         /// </summary>
@@ -1258,7 +1256,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
 
         /// <summary>
         /// (Optional; PDF 1.3) A rectangle, expressed in default user space units, defining the
-        /// intended dimensions of the finished page after trimming. Default value: the value of 
+        /// intended dimensions of the finished page after trimming. Default value: the value of
         /// CropBox.
         /// </summary>
         [KeyInfo("1.3", KeyType.Rectangle | KeyType.Optional)]
@@ -1273,29 +1271,29 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         public const string ArtBox = "/ArtBox";
 
         /// <summary>
-        /// (Optional; PDF 1.4) A box color information dictionary specifying the colors and other 
+        /// (Optional; PDF 1.4) A box color information dictionary specifying the colors and other
         /// visual characteristics to be used in displaying guidelines on the screen for the various
-        /// page boundaries. If this entry is absent, the application should use its own current 
+        /// page boundaries. If this entry is absent, the application should use its own current
         /// default settings.
         /// </summary>
         [KeyInfo("1.4", KeyType.Dictionary | KeyType.Optional)]
         public const string BoxColorInfo = "/BoxColorInfo";
 
         /// <summary>
-        /// (Optional) A content stream describing the contents of this page. If this entry is absent, 
-        /// the page is empty. The value may be either a single stream or an array of streams. If the 
+        /// (Optional) A content stream describing the contents of this page. If this entry is absent,
+        /// the page is empty. The value may be either a single stream or an array of streams. If the
         /// value is an array, the effect is as if all of the streams in the array were concatenated,
         /// in order, to form a single stream. This allows PDF producers to create image objects and
         /// other resources as they occur, even though they interrupt the content stream. The division
         /// between streams may occur only at the boundaries between lexical tokens but is unrelated
-        /// to the page's logical content or organization. Applications that consume or produce PDF 
+        /// to the page's logical content or organization. Applications that consume or produce PDF
         /// files are not required to preserve the existing structure of the Contents array.
         /// </summary>
         [KeyInfo(KeyType.Array | KeyType.Stream | KeyType.Optional)]
         public const string Contents = "/Contents";
 
         /// <summary>
-        /// (Optional; PDF 1.4) A group attributes dictionary specifying the attributes of the page's 
+        /// (Optional; PDF 1.4) A group attributes dictionary specifying the attributes of the page's
         /// page group for use in the transparent imaging model.
         /// </summary>
         [KeyInfo("1.4", KeyType.Dictionary | KeyType.Optional)]
@@ -1309,37 +1307,37 @@ public sealed class PdfPage : PdfDictionary, IContentStream
 
         /// <summary>
         /// (Optional; PDF 1.1; recommended if the page contains article beads) An array of indirect
-        /// references to article beads appearing on the page. The beads are listed in the array in 
+        /// references to article beads appearing on the page. The beads are listed in the array in
         /// natural reading order.
         /// </summary>
         [KeyInfo("1.1", KeyType.Array | KeyType.Optional)]
         public const string B = "/B";
 
         /// <summary>
-        /// (Optional; PDF 1.1) The page's display duration (also called its advance timing): the 
+        /// (Optional; PDF 1.1) The page's display duration (also called its advance timing): the
         /// maximum length of time, in seconds, that the page is displayed during presentations before
-        /// the viewer application automatically advances to the next page. By default, the viewer does 
+        /// the viewer application automatically advances to the next page. By default, the viewer does
         /// not advance automatically.
         /// </summary>
         [KeyInfo("1.1", KeyType.Real | KeyType.Optional)]
         public const string Dur = "/Dur";
 
         /// <summary>
-        /// (Optional; PDF 1.1) A transition dictionary describing the transition effect to be used 
+        /// (Optional; PDF 1.1) A transition dictionary describing the transition effect to be used
         /// when displaying the page during presentations.
         /// </summary>
         [KeyInfo("1.1", KeyType.Dictionary | KeyType.Optional)]
         public const string Trans = "/Trans";
 
         /// <summary>
-        /// (Optional) An array of annotation dictionaries representing annotations associated with 
+        /// (Optional) An array of annotation dictionaries representing annotations associated with
         /// the page.
         /// </summary>
         [KeyInfo(KeyType.Array | KeyType.Optional, typeof(PdfAnnotations))]
         public const string Annots = "/Annots";
 
         /// <summary>
-        /// (Optional; PDF 1.2) An additional-actions dictionary defining actions to be performed 
+        /// (Optional; PDF 1.2) An additional-actions dictionary defining actions to be performed
         /// when the page is opened or closed.
         /// </summary>
         [KeyInfo("1.2", KeyType.Dictionary | KeyType.Optional)]
@@ -1372,7 +1370,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         public const string ID = "/ID";
 
         /// <summary>
-        /// (Optional; PDF 1.3) The page's preferred zoom (magnification) factor: the factor 
+        /// (Optional; PDF 1.3) The page's preferred zoom (magnification) factor: the factor
         /// by which it should be scaled to achieve the natural display magnification.
         /// </summary>
         [KeyInfo("1.3", KeyType.Real | KeyType.Optional)]
@@ -1415,7 +1413,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         public const string UserUnit = "/UserUnit";
 
         /// <summary>
-        /// (Optional; PDF 1.6) An array of viewport dictionaries specifying rectangular regions 
+        /// (Optional; PDF 1.6) An array of viewport dictionaries specifying rectangular regions
         /// of the page.
         /// </summary>
         [KeyInfo("1.6", KeyType.Dictionary | KeyType.Optional)]
@@ -1440,24 +1438,24 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     internal class InheritablePageKeys : KeysBase
     {
         /// <summary>
-        /// (Required; inheritable) A dictionary containing any resources required by the page. 
+        /// (Required; inheritable) A dictionary containing any resources required by the page.
         /// If the page requires no resources, the value of this entry should be an empty dictionary.
-        /// Omitting the entry entirely indicates that the resources are to be inherited from an 
+        /// Omitting the entry entirely indicates that the resources are to be inherited from an
         /// ancestor node in the page tree.
         /// </summary>
         [KeyInfo(KeyType.Dictionary | KeyType.Required | KeyType.Inheritable, typeof(PdfResources))]
         public const string Resources = "/Resources";
 
         /// <summary>
-        /// (Required; inheritable) A rectangle, expressed in default user space units, defining the 
+        /// (Required; inheritable) A rectangle, expressed in default user space units, defining the
         /// boundaries of the physical medium on which the page is intended to be displayed or printed.
         /// </summary>
         [KeyInfo(KeyType.Rectangle | KeyType.Required | KeyType.Inheritable)]
         public const string MediaBox = "/MediaBox";
 
         /// <summary>
-        /// (Optional; inheritable) A rectangle, expressed in default user space units, defining the 
-        /// visible region of default user space. When the page is displayed or printed, its contents 
+        /// (Optional; inheritable) A rectangle, expressed in default user space units, defining the
+        /// visible region of default user space. When the page is displayed or printed, its contents
         /// are to be clipped (cropped) to this rectangle and then imposed on the output medium in some
         /// implementation defined manner. Default value: the value of MediaBox.
         /// </summary>
@@ -1465,7 +1463,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         public const string CropBox = "/CropBox";
 
         /// <summary>
-        /// (Optional; inheritable) The number of degrees by which the page should be rotated clockwise 
+        /// (Optional; inheritable) The number of degrees by which the page should be rotated clockwise
         /// when displayed or printed. The value must be a multiple of 90. Default value: 0.
         /// </summary>
         [KeyInfo(KeyType.Integer | KeyType.Optional)]

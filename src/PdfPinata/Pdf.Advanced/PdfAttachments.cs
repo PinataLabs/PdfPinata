@@ -119,7 +119,7 @@ public sealed class PdfAttachments : IEnumerable<PdfFileSpecification>
         var specification = new PdfFileSpecification(_document, fileName, embedded)
         {
             Relationship = relationship,
-            Description = description,
+            Description = description
         };
 
         // Indirect because it has to be: ISO 32000-1 says a file specification carrying /EF is
@@ -160,7 +160,7 @@ public sealed class PdfAttachments : IEnumerable<PdfFileSpecification>
             _document._irefTable.Add(specification);
 
         var associated = AssociatedFiles();
-        for (int idx = 0; idx < associated.Elements.Count; idx++)
+        for (var idx = 0; idx < associated.Elements.Count; idx++)
         {
             if (ReferenceEquals(Resolve(associated.Elements[idx]), specification))
                 return false;
@@ -184,7 +184,7 @@ public sealed class PdfAttachments : IEnumerable<PdfFileSpecification>
         var associated = _document.Catalog.Elements.GetArray(PdfCatalog.Keys.AF);
         if (associated != null)
         {
-            for (int idx = associated.Elements.Count - 1; idx >= 0; idx--)
+            for (var idx = associated.Elements.Count - 1; idx >= 0; idx--)
             {
                 if (ReferenceEquals(Resolve(associated.Elements[idx]), specification))
                 {
@@ -202,7 +202,7 @@ public sealed class PdfAttachments : IEnumerable<PdfFileSpecification>
         {
             // Backwards, and two at a time: the array alternates key and value, so removing a pair
             // from the front would renumber every pair after it mid-walk.
-            for (int idx = leaves.Elements.Count - 2; idx >= 0; idx -= 2)
+            for (var idx = leaves.Elements.Count - 2; idx >= 0; idx -= 2)
             {
                 if (ReferenceEquals(Resolve(leaves.Elements[idx + 1]), specification))
                 {
@@ -259,7 +259,7 @@ public sealed class PdfAttachments : IEnumerable<PdfFileSpecification>
         var associated = _document.Catalog.Elements.GetArray(PdfCatalog.Keys.AF);
         if (associated != null)
         {
-            for (int idx = 0; idx < associated.Elements.Count; idx++)
+            for (var idx = 0; idx < associated.Elements.Count; idx++)
                 AddOnce(found, associated.Elements[idx]);
         }
 
@@ -268,13 +268,13 @@ public sealed class PdfAttachments : IEnumerable<PdfFileSpecification>
 
         if (includeAnnotations)
         {
-            foreach (PdfPage page in _document.Pages)
+            foreach (var page in _document.Pages)
             {
                 var annotations = page.Elements.GetArray("/Annots");
                 if (annotations == null)
                     continue;
 
-                for (int idx = 0; idx < annotations.Elements.Count; idx++)
+                for (var idx = 0; idx < annotations.Elements.Count; idx++)
                 {
                     var annotation = Dictionary(annotations.Elements[idx]);
                     if (annotation != null)
@@ -295,7 +295,7 @@ public sealed class PdfAttachments : IEnumerable<PdfFileSpecification>
         // By instance rather than by name. Resolving transforms the dictionary in place and points
         // the reference at the result, so the same file reached from both places is the same object
         // the second time — while two files that happen to share a name stay two.
-        for (int idx = 0; idx < found.Count; idx++)
+        for (var idx = 0; idx < found.Count; idx++)
         {
             if (ReferenceEquals(found[idx], specification))
                 return;
@@ -411,8 +411,8 @@ public sealed class PdfAttachments : IEnumerable<PdfFileSpecification>
 
         // Where the name belongs, by the byte order a reader compares keys in. The pair goes in
         // together, so the array keeps alternating key and value.
-        int at = leaves.Elements.Count;
-        for (int idx = 0; idx + 1 < leaves.Elements.Count; idx += 2)
+        var at = leaves.Elements.Count;
+        for (var idx = 0; idx + 1 < leaves.Elements.Count; idx += 2)
         {
             if (string.CompareOrdinal(PdfNameTree.TextOf(leaves.Elements[idx]) ?? "", fileName) > 0)
             {

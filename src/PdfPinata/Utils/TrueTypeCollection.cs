@@ -1,4 +1,3 @@
-
 using System;
 using System.IO;
 
@@ -59,10 +58,7 @@ public static class TrueTypeCollection
     /// </summary>
     public static int FaceCount(byte[] data)
     {
-        if (!IsCollection(data))
-            return 1;
-
-        return ValidateFaceCount(U32(data, 8), data.Length);
+        return !IsCollection(data) ? 1 : ValidateFaceCount(U32(data, 8), data.Length);
     }
 
 
@@ -78,16 +74,16 @@ public static class TrueTypeCollection
     {
         faceCount = 1;
 
-        using (FileStream stream = File.OpenRead(path))
+        using (var stream = File.OpenRead(path))
         {
-            byte[] header = new byte[OffsetTableLength];
+            var header = new byte[OffsetTableLength];
 
-            int read = 0;
+            var read = 0;
             while (read < header.Length)
             {
-                int count = stream.Read(header, read, header.Length - read);
+                var count = stream.Read(header, read, header.Length - read);
                 if (count == 0)
-                    return false;  // Too short to be a collection, and too short to be a font.
+                    return false; // Too short to be a collection, and too short to be a font.
                 read += count;
             }
 
@@ -139,35 +135,35 @@ public static class TrueTypeCollection
             return data;
         }
 
-        int faceCount = ValidateFaceCount(U32(data, 8), data.Length);
+        var faceCount = ValidateFaceCount(U32(data, 8), data.Length);
         if (faceIndex < 0 || faceIndex >= faceCount)
             throw new ArgumentOutOfRangeException(nameof(faceIndex),
                 "Font collection holds " + faceCount + " faces; face " + faceIndex + " was asked for.");
 
-        int directory = (int)U32(data, OffsetTableLength + faceIndex * 4);
+        var directory = (int)U32(data, OffsetTableLength + faceIndex * 4);
         if (directory < 0 || directory + OffsetTableLength > data.Length)
             throw new InvalidOperationException("Font collection points at a face outside the file.");
 
-        uint sfntVersion = U32(data, directory);
-        int tableCount = U16(data, directory + 4);
+        var sfntVersion = U32(data, directory);
+        var tableCount = U16(data, directory + 4);
         if (tableCount == 0)
             throw new InvalidOperationException("Font collection face declares no tables.");
 
-        int records = directory + OffsetTableLength;
+        var records = directory + OffsetTableLength;
         if (records + tableCount * TableRecordLength > data.Length)
             throw new InvalidOperationException("Font collection face declares more tables than the file holds.");
 
         // Lay the new file out: offset table, then the directory, then each table 4-byte aligned.
-        int[] lengths = new int[tableCount];
-        int[] sources = new int[tableCount];
-        int position = OffsetTableLength + tableCount * TableRecordLength;
-        int[] targets = new int[tableCount];
+        var lengths = new int[tableCount];
+        var sources = new int[tableCount];
+        var position = OffsetTableLength + tableCount * TableRecordLength;
+        var targets = new int[tableCount];
 
-        for (int idx = 0; idx < tableCount; idx++)
+        for (var idx = 0; idx < tableCount; idx++)
         {
-            int record = records + idx * TableRecordLength;
-            int offset = (int)U32(data, record + 8);
-            int length = (int)U32(data, record + 12);
+            var record = records + idx * TableRecordLength;
+            var offset = (int)U32(data, record + 8);
+            var length = (int)U32(data, record + 12);
 
             if (offset < 0 || length < 0 || offset + length > data.Length)
                 throw new InvalidOperationException("Font collection face points at table data outside the file.");
@@ -178,23 +174,23 @@ public static class TrueTypeCollection
             position += Align4(length);
         }
 
-        byte[] font = new byte[position];
+        var font = new byte[position];
 
         W32(font, 0, sfntVersion);
         W16(font, 4, tableCount);
 
         // The binary-search hints of the offset table describe this directory, not the one the
         // face had inside the collection, so they are recomputed rather than copied.
-        int entrySelector = EntrySelector(tableCount);
-        int searchRange = (1 << entrySelector) * TableRecordLength;
+        var entrySelector = EntrySelector(tableCount);
+        var searchRange = (1 << entrySelector) * TableRecordLength;
         W16(font, 6, searchRange);
         W16(font, 8, entrySelector);
         W16(font, 10, tableCount * TableRecordLength - searchRange);
 
-        for (int idx = 0; idx < tableCount; idx++)
+        for (var idx = 0; idx < tableCount; idx++)
         {
-            int source = records + idx * TableRecordLength;
-            int target = OffsetTableLength + idx * TableRecordLength;
+            var source = records + idx * TableRecordLength;
+            var target = OffsetTableLength + idx * TableRecordLength;
 
             // Tag and checksum carry over untouched; only the offset is rewritten.
             Buffer.BlockCopy(data, source, font, target, 8);
@@ -213,7 +209,7 @@ public static class TrueTypeCollection
     /// </summary>
     private static int EntrySelector(int count)
     {
-        int selector = 0;
+        var selector = 0;
         while (1 << (selector + 1) <= count)
             selector++;
 

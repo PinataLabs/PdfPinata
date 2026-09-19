@@ -28,8 +28,8 @@ public class LineSpansTests
 
     static (bool Found, double Start, double Width) WidestFree(params (double Start, double End)[] blocked)
     {
-        bool found = LineSpans.TryWidestFree(Left, Right, blocked.ToList(), Tolerance,
-            out double start, out double width);
+        var found = LineSpans.TryWidestFree(Left, Right, blocked.ToList(), Tolerance,
+            out var start, out var width);
         return (found, start, width);
     }
 
@@ -212,7 +212,7 @@ public class LineSpansTests
     {
         double.NaN,
         double.PositiveInfinity,
-        double.NegativeInfinity,
+        double.NegativeInfinity
     };
 
     [Theory]
@@ -255,8 +255,8 @@ public class LineSpansTests
     [Fact]
     public void AToleranceOfNothingAllowsAnyWidthAtAll()
     {
-        bool found = LineSpans.TryWidestFree(Left, Right, new List<(double, double)>(),
-            0, out _, out double width);
+        var found = LineSpans.TryWidestFree(Left, Right, new List<(double, double)>(),
+            0, out _, out var width);
 
         found.Should().BeTrue();
         width.Should().Be(Right - Left);

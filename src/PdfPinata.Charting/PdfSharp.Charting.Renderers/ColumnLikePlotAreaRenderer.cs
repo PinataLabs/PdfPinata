@@ -50,14 +50,14 @@ internal abstract class ColumnLikePlotAreaRenderer : PlotAreaRenderer
   /// </summary>
   internal override void Format()
   {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
 
-    double xMin = cri.xAxisRendererInfo.MinimumScale;
-    double xMax = cri.xAxisRendererInfo.MaximumScale;
-    double yMin = cri.yAxisRendererInfo.MinimumScale;
-    double yMax = cri.yAxisRendererInfo.MaximumScale;
+    var xMin = cri.XAxisRendererInfo.MinimumScale;
+    var xMax = cri.XAxisRendererInfo.MaximumScale;
+    var yMin = cri.YAxisRendererInfo.MinimumScale;
+    var yMax = cri.YAxisRendererInfo.MaximumScale;
 
-    XRect plotAreaBox = cri.plotAreaRendererInfo.Rect;
+    var plotAreaBox = cri.PlotAreaRendererInfo.Rect;
 
     // A chart with nothing plotted has a category scale of zero, because that scale is the number
     // of points in its longest series. Dividing by it gives an infinity, and every coordinate
@@ -66,7 +66,7 @@ internal abstract class ColumnLikePlotAreaRenderer : PlotAreaRenderer
     // renderers that would use it draw their nothing against it.
     if (xMax <= xMin || yMax <= yMin)
     {
-      cri.plotAreaRendererInfo.matrix = new XMatrix();
+      cri.PlotAreaRendererInfo.Matrix = new XMatrix();
       return;
     }
 
@@ -77,10 +77,10 @@ internal abstract class ColumnLikePlotAreaRenderer : PlotAreaRenderer
     // the value axis takes one from the Axis object - so this changes nothing now. It means the
     // pair goes on agreeing if the category axis ever learns to honour a minimum, rather than
     // quietly drawing the whole chart short of the edge it was scaled to reach.
-    cri.plotAreaRendererInfo.matrix = new XMatrix();  //XMatrix.Identity;
-    cri.plotAreaRendererInfo.matrix.TranslatePrepend(-xMin, yMax);
-    cri.plotAreaRendererInfo.matrix.Scale(plotAreaBox.Width / (xMax - xMin), plotAreaBox.Height / (yMax - yMin), XMatrixOrder.Append);
-    cri.plotAreaRendererInfo.matrix.ScalePrepend(1, -1);
-    cri.plotAreaRendererInfo.matrix.Translate(plotAreaBox.X, plotAreaBox.Y, XMatrixOrder.Append);
+    cri.PlotAreaRendererInfo.Matrix = new XMatrix();  //XMatrix.Identity;
+    cri.PlotAreaRendererInfo.Matrix.TranslatePrepend(-xMin, yMax);
+    cri.PlotAreaRendererInfo.Matrix.Scale(plotAreaBox.Width / (xMax - xMin), plotAreaBox.Height / (yMax - yMin), XMatrixOrder.Append);
+    cri.PlotAreaRendererInfo.Matrix.ScalePrepend(1, -1);
+    cri.PlotAreaRendererInfo.Matrix.Translate(plotAreaBox.X, plotAreaBox.Y, XMatrixOrder.Append);
   }
 }

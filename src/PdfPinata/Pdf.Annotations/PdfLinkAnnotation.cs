@@ -90,7 +90,7 @@ public sealed class PdfLinkAnnotation : PdfAnnotation
         if (destinationPage < 1)
             throw new ArgumentException("Invalid destination page in call to CreateDocumentLink: page number is one-based and must be 1 or higher.", nameof(destinationPage));
 
-        PdfLinkAnnotation link = new PdfLinkAnnotation();
+        var link = new PdfLinkAnnotation();
         link._linkType = LinkType.Document;
         link.Rectangle = rect;
         link._destPage = destinationPage;
@@ -107,7 +107,7 @@ public sealed class PdfLinkAnnotation : PdfAnnotation
     /// </summary>
     public static PdfLinkAnnotation CreateWebLink(PdfRectangle rect, string url)
     {
-        PdfLinkAnnotation link = new PdfLinkAnnotation();
+        var link = new PdfLinkAnnotation();
         link._linkType = LinkType.Web;
         link.Rectangle = rect;
         link._url = url;
@@ -128,7 +128,7 @@ public sealed class PdfLinkAnnotation : PdfAnnotation
         if (string.IsNullOrEmpty(destinationName))
             throw new ArgumentException("A named link must name something.", nameof(destinationName));
 
-        PdfLinkAnnotation link = new PdfLinkAnnotation();
+        var link = new PdfLinkAnnotation();
         link._linkType = LinkType.Named;
         link.Rectangle = rect;
         link._destName = destinationName;
@@ -141,7 +141,7 @@ public sealed class PdfLinkAnnotation : PdfAnnotation
     /// </summary>
     public static PdfLinkAnnotation CreateFileLink(PdfRectangle rect, string fileName)
     {
-        PdfLinkAnnotation link = new PdfLinkAnnotation();
+        var link = new PdfLinkAnnotation();
         link._linkType = LinkType.File;
         // TODO: Adjust bleed box here (if possible)
         link.Rectangle = rect;
@@ -151,7 +151,6 @@ public sealed class PdfLinkAnnotation : PdfAnnotation
 
     internal override void WriteObject(PdfWriter writer)
     {
-        PdfPage dest = null;
         //pdf.AppendFormat(CultureInfo.InvariantCulture,
         //  "{0} 0 obj\n<<\n/Type/Annot\n/Subtype/Link\n" +
         //  "/Rect[{1} {2} {3} {4}]\n/BS<</Type/Border>>\n/Border[0 0 0]\n/C[0 0 0]\n",
@@ -176,11 +175,11 @@ public sealed class PdfLinkAnnotation : PdfAnnotation
 
             case LinkType.Document:
                 // destIndex > Owner.PageCount can happen when rendering pages using PDFsharp directly.
-                int destIndex = _destPage;
+                var destIndex = _destPage;
                 if (destIndex > Owner.PageCount)
                     destIndex = Owner.PageCount;
                 destIndex--;
-                dest = Owner.Pages[destIndex];
+                var dest = Owner.Pages[destIndex];
                 //pdf.AppendFormat("/Dest[{0} 0 R/XYZ null null 0]\n", dest.ObjectID);
                 // A destination without a top lands the reader wherever the page is already
                 // scrolled to, so a link to a place halfway down a page needs the coordinate.

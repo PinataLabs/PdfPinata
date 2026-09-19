@@ -204,7 +204,7 @@ public class FilteringTests
     /// </summary>
     /// <remarks>
     ///   Streams are built here rather than pasted in as hex because nothing in PdfPinata can
-    ///   encode LZW - <see cref="LzwDecode.Encode"/> throws - so there is nothing to round-trip
+    ///   encode LZW - <see cref="LzwDecode.Encode(byte[])"/> throws - so there is nothing to round-trip
     ///   against, and a stream written out by hand is one nobody can check by reading it. Nine
     ///   bits is the whole story for these tests: the width only grows once the table passes 511
     ///   entries, which takes a stream far longer than any of them.

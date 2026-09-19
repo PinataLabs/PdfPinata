@@ -151,7 +151,7 @@ public class IncrementalUpdateTests
     public void ChangingNothingStillProducesAReadableDocument()
     {
         // The producer string is always rewritten, so "nothing changed" is never literally nothing.
-        var updated = AppendChange(OriginalDocument(), document => { });
+        var updated = AppendChange(OriginalDocument(), _ => { });
 
         Reopen(updated).Info.Title.Should().Be("Original title");
     }
@@ -309,6 +309,7 @@ public class IncrementalUpdateTests
         using var source = new MemoryStream(OriginalDocument());
         var document = Reader.Open(source, PdfDocumentOpenMode.Append);
 
+        // ReSharper disable once AccessToDisposedClosure
         var saving = () => document.SaveIncremental(source);
 
         saving.Should().Throw<ArgumentException>();

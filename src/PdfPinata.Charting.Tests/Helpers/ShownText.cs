@@ -251,7 +251,7 @@ internal static class ShownText
     /// <summary>The strings inside an operand list, whether given bare or inside a TJ array.</summary>
     private static IEnumerable<string> StringsIn(CSequence operands)
     {
-        foreach (CObject operand in operands)
+        foreach (var operand in operands)
         {
             switch (operand)
             {
@@ -260,7 +260,7 @@ internal static class ShownText
                     break;
 
                 case CArray array:
-                    foreach (CObject item in array)
+                    foreach (var item in array)
                     {
                         if (item is CString part)
                             yield return part.Value;

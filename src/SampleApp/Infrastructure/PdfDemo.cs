@@ -108,11 +108,11 @@ public abstract class PdfDemo
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        string path = context.PrepareOutputPath(Name);
+        var path = context.PrepareOutputPath(Name);
 
-        Stopwatch stopwatch = Stopwatch.StartNew();
+        var stopwatch = Stopwatch.StartNew();
         int pages;
-        using (PdfDocument document = Build(context))
+        using (var document = Build(context))
         {
             pages = document.PageCount;
             Save(document, path);

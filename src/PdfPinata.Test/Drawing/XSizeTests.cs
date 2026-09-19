@@ -111,6 +111,7 @@ public class XSizeTests
         (size != new XSize(3, 5)).Should().BeTrue();
         size.Equals(new XSize(3, 4)).Should().BeTrue();
         size.Equals((object)new XSize(3, 4)).Should().BeTrue();
+        // ReSharper disable once SuspiciousTypeConversion.Global
         size.Equals("not a size").Should().BeFalse();
         size.GetHashCode().Should().Be(new XSize(3, 4).GetHashCode());
     }
@@ -161,9 +162,10 @@ public class XSizeTests
     public void ADeserializedSizeWithANegativeExtentIsRefused()
     {
         object size = new XSize(3, 4);
+        // ReSharper disable once PossibleNullReferenceException
         typeof(XSize).GetField("_height", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(size, -1.0);
 
-        Action deserialized = () => ((IDeserializationCallback)size).OnDeserialization(null);
+        var deserialized = () => ((IDeserializationCallback)size).OnDeserialization(null);
 
         deserialized.Should().Throw<SerializationException>();
     }
@@ -171,9 +173,9 @@ public class XSizeTests
     [Fact]
     public void ADeserializedSizeThatAConstructorCouldHaveMadeIsAccepted()
     {
-        foreach (XSize size in new[] { new XSize(3, 4), new XSize(0, 0), XSize.Empty })
+        foreach (var size in new[] { new XSize(3, 4), new XSize(0, 0), XSize.Empty })
         {
-            Action deserialized = () => ((IDeserializationCallback)size).OnDeserialization(null);
+            var deserialized = () => ((IDeserializationCallback)size).OnDeserialization(null);
 
             deserialized.Should().NotThrow();
         }

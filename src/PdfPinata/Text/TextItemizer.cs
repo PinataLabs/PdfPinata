@@ -36,7 +36,7 @@ public static class TextItemizer
 
         foreach (var level in bidi.Runs())
         {
-            int first = runs.Count;
+            var first = runs.Count;
 
             // Script itemisation of this run and nothing else. Asking it of the paragraph and then
             // cutting the answer at these boundaries is a different question with a different

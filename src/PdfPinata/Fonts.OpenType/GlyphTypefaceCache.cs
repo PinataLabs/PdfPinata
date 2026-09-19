@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -50,7 +50,7 @@ internal class GlyphTypefaceCache
         try
         {
             Lock.EnterFontFactory();
-            bool result = Singleton._glyphTypefacesByKey.TryGetValue(key, out glyphTypeface);
+            var result = Singleton._glyphTypefacesByKey.TryGetValue(key, out glyphTypeface);
             return result;
         }
         finally { Lock.ExitFontFactory(); }
@@ -61,7 +61,7 @@ internal class GlyphTypefaceCache
         try
         {
             Lock.EnterFontFactory();
-            GlyphTypefaceCache cache = Singleton;
+            var cache = Singleton;
             cache._glyphTypefacesByKey.TryAdd(glyphTypeface.Key, glyphTypeface);
         }
         finally { Lock.ExitFontFactory(); }
@@ -92,15 +92,15 @@ internal class GlyphTypefaceCache
 
     internal static string GetCacheState()
     {
-        StringBuilder state = new StringBuilder();
+        var state = new StringBuilder();
         state.Append("====================\n");
         state.Append("Glyph typefaces by name\n");
         var familyKeys = Singleton._glyphTypefacesByKey.Keys;
-        int count = familyKeys.Count;
-        string[] keys = new string[count];
+        var count = familyKeys.Count;
+        var keys = new string[count];
         familyKeys.CopyTo(keys, 0);
         Array.Sort(keys, StringComparer.OrdinalIgnoreCase);
-        foreach (string key in keys)
+        foreach (var key in keys)
             state.AppendFormat("  {0}: {1}\n", key, Singleton._glyphTypefacesByKey[key].DebuggerDisplay);
         state.Append('\n');
         return state.ToString();

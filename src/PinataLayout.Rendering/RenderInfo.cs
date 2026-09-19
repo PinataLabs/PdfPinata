@@ -24,7 +24,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -65,11 +65,11 @@ public abstract class RenderInfo
     if (renderInfos == null || renderInfos.Length == 0)
       return 0;
 
-    int lastIdx = renderInfos.Length - 1;
-    RenderInfo firstRenderInfo = renderInfos[0];
-    RenderInfo lastRenderInfo = renderInfos[lastIdx];
-    LayoutInfo firstLayoutInfo = firstRenderInfo.LayoutInfo;
-    LayoutInfo lastLayoutInfo = lastRenderInfo.LayoutInfo;
+    var lastIdx = renderInfos.Length - 1;
+    var firstRenderInfo = renderInfos[0];
+    var lastRenderInfo = renderInfos[lastIdx];
+    var firstLayoutInfo = firstRenderInfo.LayoutInfo;
+    var lastLayoutInfo = lastRenderInfo.LayoutInfo;
     XUnit top = firstLayoutInfo.ContentArea.Y - firstLayoutInfo.MarginTop;
     XUnit bottom = lastLayoutInfo.ContentArea.Y + lastLayoutInfo.ContentArea.Height;
     bottom += lastLayoutInfo.MarginBottom;

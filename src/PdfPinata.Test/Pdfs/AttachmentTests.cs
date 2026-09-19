@@ -54,7 +54,7 @@ public class AttachmentTests
     {
         // Reading the collection looks at the catalog rather than building anything, so a document
         // that only ever asks is written exactly as it was before.
-        var withoutAsking = Save(document => { });
+        var withoutAsking = Save(_ => { });
         var afterAsking = Save(document => document.Attachments.Count.Should().Be(0));
 
         Latin1(afterAsking).Should().NotContain("/AF").And.NotContain("/EmbeddedFiles");
@@ -386,7 +386,7 @@ public class AttachmentTests
     ///   entering each node once.
     /// </summary>
     /// <remarks>
-    ///   Wrapped in <see cref="Task.Run"/> because xUnit honours a timeout only on an async test, and
+    ///   Wrapped in <see cref="Task.Run(Func{Task})"/> because xUnit honours a timeout only on an async test, and
     ///   a timeout is the whole point here: without one a regression stops the run instead of failing
     ///   it, and a stopped run is the failure mode this repository already has to be careful about.
     /// </remarks>

@@ -33,7 +33,7 @@ public class ReadOnlyStyleTests
     [Fact]
     public void WritingToAReadOnlyStylesFontThrows()
     {
-        Style style = DefaultParagraphFont();
+        var style = DefaultParagraphFont();
 
         var write = () => style.Font.Bold = true;
 
@@ -45,7 +45,7 @@ public class ReadOnlyStyleTests
     [Fact]
     public void WritingToAReadOnlyStylesParagraphFormatThrows()
     {
-        Style style = DefaultParagraphFont();
+        var style = DefaultParagraphFont();
 
         var write = () => style.ParagraphFormat.Alignment = ParagraphAlignment.Center;
 
@@ -55,7 +55,7 @@ public class ReadOnlyStyleTests
     [Fact]
     public void AWriteThatUsedToVanishNoLongerDoes()
     {
-        Style style = DefaultParagraphFont();
+        var style = DefaultParagraphFont();
 
         try { style.Font.Bold = true; } catch (InvalidOperationException) { }
 
@@ -66,7 +66,7 @@ public class ReadOnlyStyleTests
     [Fact]
     public void ReadingAReadOnlyStyleStillWorks()
     {
-        Style style = DefaultParagraphFont();
+        var style = DefaultParagraphFont();
 
         style.Invoking(s => { _ = s.Font.Name; _ = s.Font.Bold; _ = s.ParagraphFormat.Alignment; })
             .Should().NotThrow("inspecting a built-in style is legitimate");
@@ -76,7 +76,7 @@ public class ReadOnlyStyleTests
     public void AUserDefinedStyleIsUnaffected()
     {
         var document = new Document();
-        Style style = document.Styles.AddStyle("Mine", Style.DefaultParagraphName);
+        var style = document.Styles.AddStyle("Mine", Style.DefaultParagraphName);
 
         style.IsReadOnly.Should().BeFalse();
         style.Font.Bold = true;
@@ -94,7 +94,7 @@ public class ReadOnlyStyleTests
     public void AStyleBasedOnAReadOnlyStyleIsWritable()
     {
         var document = new Document();
-        Style style = document.Styles.AddStyle("Derived", Style.DefaultParagraphFontName);
+        var style = document.Styles.AddStyle("Derived", Style.DefaultParagraphFontName);
 
         style.Font.Italic = true;
 

@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -120,9 +120,9 @@ public struct XVector : IFormattable
     /// </summary>
     public static XVector Parse(string source)
     {
-        TokenizerHelper helper = new TokenizerHelper(source, CultureInfo.InvariantCulture);
-        string str = helper.NextTokenRequired();
-        XVector vector = new XVector(Convert.ToDouble(str, CultureInfo.InvariantCulture), Convert.ToDouble(helper.NextTokenRequired(), CultureInfo.InvariantCulture));
+        var helper = new TokenizerHelper(source, CultureInfo.InvariantCulture);
+        var str = helper.NextTokenRequired();
+        var vector = new XVector(Convert.ToDouble(str, CultureInfo.InvariantCulture), Convert.ToDouble(helper.NextTokenRequired(), CultureInfo.InvariantCulture));
         helper.LastTokenRequired();
         return vector;
     }
@@ -208,8 +208,8 @@ public struct XVector : IFormattable
     /// </summary>
     public static double AngleBetween(XVector vector1, XVector vector2)
     {
-        double y = vector1._x * vector2._y - vector2._x * vector1._y;
-        double x = vector1._x * vector2._x + vector1._y * vector2._y;
+        var y = vector1._x * vector2._y - vector2._x * vector1._y;
+        var x = vector1._x * vector2._x + vector1._y * vector2._y;
         return (Math.Atan2(y, x) * 57.295779513082323);
     }
 

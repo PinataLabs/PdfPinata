@@ -103,7 +103,7 @@ internal static class Glyphs
     /// </summary>
     internal static IReadOnlyList<int> For(params string[] lines)
     {
-        var document = new PinataLayout.DocumentObjectModel.Document();
+        var document = new DocumentObjectModel.Document();
         var paragraph = document.AddSection().AddParagraph();
 
         for (var idx = 0; idx < lines.Length; idx++)

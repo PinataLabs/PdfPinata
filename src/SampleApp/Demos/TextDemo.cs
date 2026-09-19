@@ -21,7 +21,7 @@ internal sealed class TextDemo : PdfDemo
         "The nine XStringFormats presets, each in the box it was given",
         "Character and word spacing, horizontal scaling, text rise and slant",
         "Fill, stroke, and fill with stroke - the PDF text rendering modes",
-        "Colour from RGB, CMYK and grey, and a link over a word",
+        "Colour from RGB, CMYK and grey, and a link over a word"
     };
 
     public override int PageCount => 3;
@@ -31,15 +31,15 @@ internal sealed class TextDemo : PdfDemo
         #region example
         const string Sans = "Liberation Sans";
 
-        PdfDocument document = new PdfDocument();
-        XFont body = new XFont(Sans, 11);
-        XFont note = new XFont(Sans, 8);
-        XFont headingFont = new XFont(Sans, 9, XFontStyle.Bold);
-        XPen boxPen = new XPen(XColors.Gainsboro, 0.5);
+        var document = new PdfDocument();
+        var body = new XFont(Sans, 11);
+        var note = new XFont(Sans, 8);
+        var headingFont = new XFont(Sans, 9, XFontStyle.Bold);
+        var boxPen = new XPen(XColors.Gainsboro, 0.5);
 
         // ---- Page one: where the string goes -----------------------------------------
-        PdfPage page = document.AddPage();
-        XGraphics gfx = XGraphics.FromPdfPage(page);
+        var page = document.AddPage();
+        var gfx = XGraphics.FromPdfPage(page);
 
         void Heading(string text, double y)
         {
@@ -59,7 +59,7 @@ internal sealed class TextDemo : PdfDemo
 
         // The rectangle overload places the string inside the box according to the
         // format. The box itself is never drawn by the library.
-        XRect box = new XRect(320, 76, 228, 28);
+        var box = new XRect(320, 76, 228, 28);
         gfx.DrawRectangle(boxPen, box);
         gfx.DrawString("Centred in a rectangle", body, XBrushes.Black, box,
             XStringFormats.Center);
@@ -80,12 +80,13 @@ internal sealed class TextDemo : PdfDemo
             ("CenterRight", XStringFormats.CenterRight),
             ("BottomLeft", XStringFormats.BottomLeft),
             ("BottomCenter", XStringFormats.BottomCenter),
-            ("BottomRight", XStringFormats.BottomRight),
+            ("BottomRight", XStringFormats.BottomRight)
         };
 
-        for (int index = 0; index < presets.Length; index++)
+        for (var index = 0; index < presets.Length; index++)
         {
-            XRect cell = new XRect(48 + index % 3 * 172, 144 + index / 3 * 72, 160, 60);
+            // ReSharper disable once PossibleLossOfFraction
+            var cell = new XRect(48 + index % 3 * 172, 144 + index / 3 * 72, 160, 60);
             gfx.DrawRectangle(boxPen, cell);
             gfx.DrawString(presets[index].Name, body, XBrushes.Black, cell,
                 presets[index].Format);
@@ -98,7 +99,7 @@ internal sealed class TextDemo : PdfDemo
         // the width of the text can be drawn under it.
         // docs:begin measure
         const string measured = "MeasureString gives this rule its length";
-        XSize size = gfx.MeasureString(measured, body);
+        var size = gfx.MeasureString(measured, body);
         gfx.DrawString(measured, body, XBrushes.Black, new XPoint(48, 400));
         gfx.DrawLine(new XPen(XColors.SteelBlue, 1), 48, 404, 48 + size.Width, 404);
         gfx.DrawString($"{size.Width:0.#} x {size.Height:0.#} points", note,
@@ -138,7 +139,7 @@ internal sealed class TextDemo : PdfDemo
 
         Heading("Spacing and scaling", 56);
 
-        XFont sample = new XFont(Sans, 13);
+        var sample = new XFont(Sans, 13);
         double y = 84;
 
         void Row(string label, XStringFormat format)
@@ -151,20 +152,20 @@ internal sealed class TextDemo : PdfDemo
 
         // docs:begin spacing
         // Tc in the content stream: extra space after every glyph, negative to tighten.
-        foreach (double spacing in new[] { -0.4, 0.0, 2.0 })
+        foreach (var spacing in new[] { -0.4, 0.0, 2.0 })
             Row($"CharacterSpacing = {spacing}", new XStringFormat { CharacterSpacing = spacing });
 
         y += 8;
 
         // Tw: extra space after every space character only, so it stretches the gaps
         // between words and leaves the words themselves alone.
-        foreach (double spacing in new[] { 0.0, 4.0, 10.0 })
+        foreach (var spacing in new[] { 0.0, 4.0, 10.0 })
             Row($"WordSpacing = {spacing}", new XStringFormat { WordSpacing = spacing });
 
         y += 8;
 
         // Tz: the glyphs are stretched or squeezed horizontally, a percentage of normal.
-        foreach (double scale in new[] { 60.0, 100.0, 150.0 })
+        foreach (var scale in new[] { 60.0, 100.0, 150.0 })
             Row($"HorizontalScaling = {scale}", new XStringFormat { HorizontalScaling = scale });
 
         y += 8;
@@ -180,7 +181,7 @@ internal sealed class TextDemo : PdfDemo
         y += 34;
 
         // docs:begin text-rise
-        XFont small = new XFont(Sans, 8);
+        var small = new XFont(Sans, 8);
         double x = 48;
         gfx.DrawString("H", sample, XBrushes.Black, new XPoint(x, y));
         x += gfx.MeasureString("H", sample).Width;
@@ -212,8 +213,8 @@ internal sealed class TextDemo : PdfDemo
         // decides it: brush alone fills (Tr 0), pen alone strokes the outline (Tr 1),
         // and both together fills and then strokes (Tr 2).
         // docs:begin fill-stroke
-        XFont display = new XFont(Sans, 40, XFontStyle.Bold);
-        XPen outline = new XPen(XColors.Crimson, 0.8);
+        var display = new XFont(Sans, 40, XFontStyle.Bold);
+        var outline = new XPen(XColors.Crimson, 0.8);
 
         gfx.DrawString("Filled", display, XBrushes.Black, new XPoint(48, 120));
         gfx.DrawString("Stroked", display, outline, XBrushes.Transparent, new XPoint(48, 172));
@@ -232,11 +233,11 @@ internal sealed class TextDemo : PdfDemo
             ("XColor.FromArgb(220, 60, 60)", XColor.FromArgb(220, 60, 60)),
             ("XColor.FromArgb(90, 0, 0, 255) - alpha", XColor.FromArgb(90, 0, 0, 255)),
             ("XColor.FromCmyk(0.8, 0, 0.4, 0.1)", XColor.FromCmyk(0.8, 0, 0.4, 0.1)),
-            ("XColor.FromGrayScale(0.45)", XColor.FromGrayScale(0.45)),
+            ("XColor.FromGrayScale(0.45)", XColor.FromGrayScale(0.45))
         };
 
         y = 288;
-        foreach ((string label, XColor colour) in colours)
+        foreach ((var label, var colour) in colours)
         {
             // A tint behind the alpha row, so that the transparency has something to
             // show through.
@@ -254,8 +255,8 @@ internal sealed class TextDemo : PdfDemo
         // without them the link is invisible.
         // docs:begin links
         const string linkText = "The PdfPinata repository";
-        XFont linkFont = new XFont(Sans, 12, XFontStyle.Underline);
-        XSize linkSize = gfx.MeasureString(linkText, linkFont);
+        var linkFont = new XFont(Sans, 12, XFontStyle.Underline);
+        var linkSize = gfx.MeasureString(linkText, linkFont);
         gfx.DrawString(linkText, linkFont, XBrushes.MediumBlue, new XPoint(48, y));
         gfx.AddWebLink(new XRect(48, y - linkSize.Height + 3, linkSize.Width, linkSize.Height),
             "https://github.com/PinataLabs/PdfPinata");
@@ -267,7 +268,7 @@ internal sealed class TextDemo : PdfDemo
         // after the pages have been moved or the document resized.
         gfx.AddNamedDestination("colours", new XPoint(48, 260));
         const string namedText = "Back up to the colours on this page";
-        XSize namedSize = gfx.MeasureString(namedText, linkFont);
+        var namedSize = gfx.MeasureString(namedText, linkFont);
         gfx.DrawString(namedText, linkFont, XBrushes.MediumBlue, new XPoint(48, y));
         gfx.AddNamedLink(new XRect(48, y - namedSize.Height + 3, namedSize.Width, namedSize.Height),
             "colours");
@@ -275,7 +276,7 @@ internal sealed class TextDemo : PdfDemo
         y += 26;
 
         const string pageText = "To page one";
-        XSize pageSize = gfx.MeasureString(pageText, linkFont);
+        var pageSize = gfx.MeasureString(pageText, linkFont);
         gfx.DrawString(pageText, linkFont, XBrushes.MediumBlue, new XPoint(48, y));
         gfx.AddDocumentLink(new XRect(48, y - pageSize.Height + 3, pageSize.Width, pageSize.Height), 1);
         // docs:end links

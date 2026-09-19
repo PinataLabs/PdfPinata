@@ -64,7 +64,7 @@ public abstract class Filter
     /// </summary>
     public virtual byte[] Encode(string rawString)
     {
-        byte[] bytes = PdfEncoders.RawEncoding.GetBytes(rawString);
+        var bytes = PdfEncoders.RawEncoding.GetBytes(rawString);
         bytes = Encode(bytes);
         return bytes;
     }
@@ -87,8 +87,8 @@ public abstract class Filter
     /// </summary>
     public virtual string DecodeToString(byte[] data, FilterParms parms)
     {
-        byte[] bytes = Decode(data, parms);
-        string text = PdfEncoders.RawEncoding.GetString(bytes, 0, bytes.Length);
+        var bytes = Decode(data, parms);
+        var text = PdfEncoders.RawEncoding.GetString(bytes, 0, bytes.Length);
         return text;
     }
 
@@ -106,9 +106,9 @@ public abstract class Filter
     #pragma warning disable CA1822 // Public API: a filter derived outside this library calls it as an instance member.
     protected byte[] RemoveWhiteSpace(byte[] data)
     {
-        int count = data.Length;
-        int j = 0;
-        for (int i = 0; i < count; i++, j++)
+        var count = data.Length;
+        var j = 0;
+        for (var i = 0; i < count; i++, j++)
         {
             switch (data[i])
             {
@@ -129,9 +129,9 @@ public abstract class Filter
         }
         if (j < count)
         {
-            byte[] temp = data;
+            var temp = data;
             data = new byte[j];
-            for (int idx = 0; idx < j; idx++)
+            for (var idx = 0; idx < j; idx++)
                 data[idx] = temp[idx];
         }
         return data;

@@ -22,7 +22,7 @@ internal sealed class FontsDemo : PdfDemo
         "Three families: a sans, a serif and a monospace",
         "Real bold and italic beside simulated ones",
         "A size ramp placed by MeasureString rather than by a fixed step",
-        "The six XTextDecoration line styles, and a decoration in its own colour",
+        "The six XTextDecoration line styles, and a decoration in its own colour"
     };
 
     public override int PageCount => 2;
@@ -34,14 +34,14 @@ internal sealed class FontsDemo : PdfDemo
         const string Serif = "Liberation Serif";
         const string Mono = "Source Code Pro";
 
-        PdfDocument document = new PdfDocument();
+        var document = new PdfDocument();
 
         // ---- Page one: families and styles -------------------------------------------
-        PdfPage page = document.AddPage();
-        XGraphics gfx = XGraphics.FromPdfPage(page);
+        var page = document.AddPage();
+        var gfx = XGraphics.FromPdfPage(page);
 
-        XFont heading = new XFont(Sans, 9, XFontStyle.Bold);
-        XFont note = new XFont(Sans, 8);
+        var heading = new XFont(Sans, 9, XFontStyle.Bold);
+        var note = new XFont(Sans, 8);
         double y = 60;
 
         void Heading(string text)
@@ -59,7 +59,7 @@ internal sealed class FontsDemo : PdfDemo
         {
             (Sans, "Liberation Sans - TrueType outlines, the metrics of Arial"),
             (Serif, "Liberation Serif - TrueType outlines, the metrics of Times New Roman"),
-            (Mono, "Source Code Pro - PostScript (CFF) outlines, regular face only"),
+            (Mono, "Source Code Pro - PostScript (CFF) outlines, regular face only")
         };
 
         (XFontStyle Style, string Label)[] styles =
@@ -67,15 +67,15 @@ internal sealed class FontsDemo : PdfDemo
             (XFontStyle.Regular, "Regular"),
             (XFontStyle.Bold, "Bold"),
             (XFontStyle.Italic, "Italic"),
-            (XFontStyle.BoldItalic, "Bold italic"),
+            (XFontStyle.BoldItalic, "Bold italic")
         };
 
-        foreach ((string family, string label) in families)
+        foreach ((var family, var label) in families)
         {
             gfx.DrawString(label, note, XBrushes.DimGray, new XPoint(56, y));
             y += 16;
 
-            foreach ((XFontStyle style, string styleLabel) in styles)
+            foreach ((var style, var styleLabel) in styles)
             {
                 gfx.DrawString($"{styleLabel} - Sphinx of black quartz, judge my vow",
                     new XFont(family, 13, style), XBrushes.Black, new XPoint(70, y));
@@ -128,10 +128,10 @@ internal sealed class FontsDemo : PdfDemo
         // same units the page is drawn in. The size label goes on the left, where a long
         // word set large cannot grow into it.
         // docs:begin size-ramp
-        foreach (double size in new[] { 6.0, 8, 10, 12, 16, 21, 28, 38 })
+        foreach (var size in new[] { 6.0, 8, 10, 12, 16, 21, 28, 38 })
         {
-            XFont font = new XFont(Serif, size);
-            XSize measured = gfx.MeasureString("Handgloves", font);
+            var font = new XFont(Serif, size);
+            var measured = gfx.MeasureString("Handgloves", font);
 
             gfx.DrawString($"{size:0}pt", note, XBrushes.LightSlateGray,
                 new XPoint(56, y + measured.Height));
@@ -159,17 +159,17 @@ internal sealed class FontsDemo : PdfDemo
         // and lets the line take a colour of its own - the one thing a caller cannot do by
         // drawing the rule by hand afterwards, since it would have to measure the text.
         // docs:begin string-format-decorations
-        XFont body = new XFont(Sans, 12);
-        foreach (XTextDecoration decoration in new[]
+        var body = new XFont(Sans, 12);
+        foreach (var decoration in new[]
                  {
                      XTextDecoration.Single, XTextDecoration.Words, XTextDecoration.Dotted,
-                     XTextDecoration.Dash, XTextDecoration.DotDash, XTextDecoration.DotDotDash,
+                     XTextDecoration.Dash, XTextDecoration.DotDash, XTextDecoration.DotDotDash
                  })
         {
-            XStringFormat format = new XStringFormat
+            var format = new XStringFormat
             {
                 Underline = decoration,
-                DecorationColor = XColors.Crimson,
+                DecorationColor = XColors.Crimson
             };
 
             gfx.DrawString($"XTextDecoration.{decoration} underlines these words", body,

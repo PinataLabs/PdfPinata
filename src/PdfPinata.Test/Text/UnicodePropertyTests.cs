@@ -101,8 +101,8 @@ public class UnicodePropertyTests
         // lookup can fail to answer for - and a binary search that walked off the end would be
         // found here rather than in the middle of laying out a page. What each answers has to be
         // one of the values its type names, too, or a table has a hole where a class should be.
-        int undefined = 0;
-        for (int codePoint = 0; codePoint <= 0x10FFFF; codePoint++)
+        var undefined = 0;
+        for (var codePoint = 0; codePoint <= 0x10FFFF; codePoint++)
         {
             if (!Enum.IsDefined(UnicodeProperties.BidiClassOf(codePoint)))
                 undefined++;

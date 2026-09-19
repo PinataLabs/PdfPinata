@@ -111,8 +111,8 @@ public class BidirectionalLayoutTests
     /// </summary>
     static XRect Room(XGraphics graphics, XFont font, string fits, string andOneMore)
     {
-        double enough = graphics.MeasureString(fits, font).Width;
-        double tooMuch = graphics.MeasureString(andOneMore, font).Width;
+        var enough = graphics.MeasureString(fits, font).Width;
+        var tooMuch = graphics.MeasureString(andOneMore, font).Width;
 
         return new XRect(12, 12, (enough + tooMuch) / 2, 100);
     }

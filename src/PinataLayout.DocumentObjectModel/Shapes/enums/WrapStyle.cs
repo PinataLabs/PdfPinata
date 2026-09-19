@@ -93,5 +93,5 @@ public enum WrapStyle
   /// produce the same layout as <see cref="Largest"/>. The two are kept apart because they say
   /// different things, and would part company if a line were ever laid out across several spans.
   /// </remarks>
-  Both,
+  Both
 }

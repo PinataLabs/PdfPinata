@@ -76,6 +76,7 @@ public class BordersTests
         var top = borders.Top;
         var diagonal = borders.DiagonalDown;
 
+        // ReSharper disable once GenericEnumeratorNotDisposed
         var enumerator = (Borders.BorderEnumerator)((System.Collections.IEnumerable)borders).GetEnumerator();
         var seen = new System.Collections.Generic.List<Border>();
         while (enumerator.MoveNext())
@@ -123,8 +124,14 @@ public class BordersTests
     [Fact]
     public void ACloneIsDeep()
     {
-        var borders = new Borders { Width = 2, Color = Colors.Red };
-        borders.Top.Style = BorderStyle.Dot;
+        var borders = new Borders
+        {
+            Width = 2, Color = Colors.Red,
+            Top =
+            {
+                Style = BorderStyle.Dot
+            }
+        };
 
         var clone = borders.Clone();
 

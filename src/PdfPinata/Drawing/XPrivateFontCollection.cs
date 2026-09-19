@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -54,15 +54,4 @@ public sealed class XPrivateFontCollection
 
     internal static XPrivateFontCollection _singleton = new();
 
-    static string MakeKey(string familyName, XFontStyle style)
-    {
-        return MakeKey(familyName, (style & XFontStyle.Bold) != 0, (style & XFontStyle.Italic) != 0);
-    }
-
-    static string MakeKey(string familyName, bool bold, bool italic)
-    {
-        return familyName + "#" + (bold ? "b" : "") + (italic ? "i" : "");
-    }
-
-    readonly Dictionary<string, XGlyphTypeface> _typefaces = new();
 }

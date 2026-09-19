@@ -63,8 +63,8 @@ public class Merge
         var consolidatedFilePath = CreateOutFilePath("images-merged-consolidated.pdf");
         outputDocument.Save(consolidatedFilePath);
 
-        long mergedLength = new FileInfo(mergedFilePath).Length;
-        long consolidatedLength = new FileInfo(consolidatedFilePath).Length;
+        var mergedLength = new FileInfo(mergedFilePath).Length;
+        var consolidatedLength = new FileInfo(consolidatedFilePath).Length;
         Assert.True(consolidatedLength < mergedLength / 4);
     }
 
@@ -94,6 +94,7 @@ public class Merge
         var dir = Path.GetDirectoryName(outFilePath);
         if (!Directory.Exists(dir))
         {
+            // ReSharper disable once AssignNullToNotNullAttribute
             Directory.CreateDirectory(dir);
         }
 

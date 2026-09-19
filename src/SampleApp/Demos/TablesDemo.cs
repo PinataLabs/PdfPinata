@@ -126,7 +126,7 @@ internal sealed class TablesDemo : PdfDemo
         {
             "North", "South", "East", "West", "Central", "Highlands", "Islands",
             "Coastal", "Riverside", "Uplands", "Lowlands", "Borders", "Midlands",
-            "Fenland", "Weald", "Downs", "Moors", "Dales", "Marches", "Cinque Ports",
+            "Fenland", "Weald", "Downs", "Moors", "Dales", "Marches", "Cinque Ports"
         };
         string[] quarters = { "Q1", "Q2", "Q3", "Q4" };
 
@@ -211,7 +211,7 @@ internal sealed class TablesDemo : PdfDemo
             "The heading row above repeats on every page this table reaches, which is what "
                 + "HeadingFormat is for.",
             "This list is a PinataLayout ListInfo - the marker, the indent and the hanging "
-                + "alignment all come from the style rather than being drawn.",
+                + "alignment all come from the style rather than being drawn."
         };
 
         // docs:begin bullet-list

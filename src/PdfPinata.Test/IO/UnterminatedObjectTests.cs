@@ -69,7 +69,7 @@ public class UnterminatedObjectTests
         var inputDocument = PdfPinata.Pdf.IO.PdfReader.Open(input, PdfDocumentOpenMode.Import);
 
         var merged = new PdfDocument();
-        foreach (PdfPage page in inputDocument.Pages)
+        foreach (var page in inputDocument.Pages)
             merged.AddPage(page);
 
         using var output = new MemoryStream();
@@ -92,7 +92,7 @@ public class UnterminatedObjectTests
             "<</Type/Pages/Kids[3 0 R]/Count 1>>",
             "<</Type/Page/Parent 2 0 R/MediaBox[0 0 200 200]/Contents 4 0 R>>",
             RawPdf.Stream("", content),
-            body,
+            body
         });
     }
 }

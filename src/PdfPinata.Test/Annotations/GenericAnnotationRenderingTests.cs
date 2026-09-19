@@ -42,7 +42,7 @@ public sealed class GenericAnnotationRenderingTests : IDisposable
 
     public void Dispose()
     {
-        foreach (MagickImageCollection collection in _rasterized)
+        foreach (var collection in _rasterized)
             collection.Dispose();
 
         _rasterized.Clear();
@@ -58,7 +58,7 @@ public sealed class GenericAnnotationRenderingTests : IDisposable
     [GoldenImageFact]
     public void ASquareWithAnAppearanceIsPainted()
     {
-        IMagickImage<byte> page = Rasterize("square-drawn", annotation =>
+        var page = Rasterize("square-drawn", annotation =>
             annotation.SetAppearance(Filled(annotation.Owner, XColors.RoyalBlue)));
 
         // 120 x 60 points at the rasterizing resolution is several thousand pixels.
@@ -68,7 +68,7 @@ public sealed class GenericAnnotationRenderingTests : IDisposable
     [GoldenImageFact]
     public void ASquareWithoutAnAppearanceIsNotPaintedAtAll()
     {
-        IMagickImage<byte> page = Rasterize("square-bare", annotation => { });
+        var page = Rasterize("square-bare", _ => { });
 
         // The whole reason SetAppearance had to exist. A /Square carrying a rectangle and no
         // /AP is a well-formed annotation that every reader draws nothing for, so a caller who
@@ -80,7 +80,7 @@ public sealed class GenericAnnotationRenderingTests : IDisposable
     [GoldenImageFact]
     public void OnlyTheAppearanceNamedByTheStateIsPainted()
     {
-        IMagickImage<byte> page = Rasterize("square-states", annotation =>
+        var page = Rasterize("square-states", annotation =>
         {
             annotation.SetAppearance("/On", Filled(annotation.Owner, XColors.RoyalBlue));
             annotation.SetAppearance("/Off", new XForm(annotation.Owner, Where.Size));
@@ -96,18 +96,18 @@ public sealed class GenericAnnotationRenderingTests : IDisposable
     {
         GlobalFontSettings.FontResolver ??= new PinnedFontResolver();
 
-        PdfDocument document = new PdfDocument();
-        PdfPage page = document.AddPage();
+        var document = new PdfDocument();
+        var page = document.AddPage();
 
-        PdfGenericAnnotation annotation = new PdfGenericAnnotation("/Square");
+        var annotation = new PdfGenericAnnotation("/Square");
         page.Annotations.Add(annotation);
 
-        XGraphics gfx = XGraphics.FromPdfPage(page);
+        var gfx = XGraphics.FromPdfPage(page);
         annotation.Rectangle = new PdfRectangle(gfx.Transformer.WorldToDefaultPage(Where));
 
         arrange(annotation);
 
-        MagickImageCollection images = PdfHelper.Rasterize(document).ImageCollection;
+        var images = PdfHelper.Rasterize(document).ImageCollection;
         _rasterized.Add(images);
         PdfHelper.WriteImageCollection(images, OutDir, name);
         return images[0];
@@ -115,8 +115,8 @@ public sealed class GenericAnnotationRenderingTests : IDisposable
 
     static XForm Filled(PdfDocument document, XColor colour)
     {
-        XForm form = new XForm(document, Where.Size);
-        using (XGraphics gfx = XGraphics.FromForm(form))
+        var form = new XForm(document, Where.Size);
+        using (var gfx = XGraphics.FromForm(form))
         {
             gfx.DrawRectangle(new XSolidBrush(colour), 0, 0, Where.Width, Where.Height);
         }
@@ -130,10 +130,10 @@ public sealed class GenericAnnotationRenderingTests : IDisposable
 
     static int Count(IMagickImage<byte> image, Func<IMagickColor<byte>, bool> match)
     {
-        using IPixelCollection<byte> pixels = image.GetPixels();
+        using var pixels = image.GetPixels();
         return pixels.Count(p =>
         {
-            IMagickColor<byte> c = p.ToColor();
+            var c = p.ToColor();
             return c != null && match(c);
         });
     }

@@ -77,7 +77,7 @@ public class BidiConformanceTests
         ["LRI"] = 0x2066,
         ["RLI"] = 0x2067,
         ["FSI"] = 0x2068,
-        ["PDI"] = 0x2069,
+        ["PDI"] = 0x2069
     };
 
     [Fact]
@@ -109,11 +109,11 @@ public class BidiConformanceTests
     public void TheBidiTestSuitePasses()
     {
         var failures = new List<string>();
-        int cases = 0;
+        var cases = 0;
 
-        byte[] expectedLevels = Array.Empty<byte>();
-        bool[] levelIgnored = Array.Empty<bool>();
-        int[] expectedOrder = Array.Empty<int>();
+        var expectedLevels = Array.Empty<byte>();
+        var levelIgnored = Array.Empty<bool>();
+        var expectedOrder = Array.Empty<int>();
 
         foreach (var raw in ReadLines("BidiTest.txt.gz"))
         {
@@ -142,13 +142,13 @@ public class BidiConformanceTests
 
             var classes = Fields(parts[0]);
             var codePoints = classes.Select(name => Representative[name]).ToList();
-            int bitset = int.Parse(parts[1].Trim(), CultureInfo.InvariantCulture);
+            var bitset = int.Parse(parts[1].Trim(), CultureInfo.InvariantCulture);
 
             foreach (var (bit, direction) in new[]
                      {
                          (1, BidiParagraphDirection.Automatic),
                          (2, BidiParagraphDirection.LeftToRight),
-                         (4, BidiParagraphDirection.RightToLeft),
+                         (4, BidiParagraphDirection.RightToLeft)
                      })
             {
                 if ((bitset & bit) == 0)
@@ -171,7 +171,7 @@ public class BidiConformanceTests
     public void TheBidiCharacterTestSuitePasses()
     {
         var failures = new List<string>();
-        int cases = 0;
+        var cases = 0;
 
         foreach (var raw in ReadLines("BidiCharacterTest.txt.gz"))
         {
@@ -192,10 +192,10 @@ public class BidiConformanceTests
             {
                 0 => BidiParagraphDirection.LeftToRight,
                 1 => BidiParagraphDirection.RightToLeft,
-                _ => BidiParagraphDirection.Automatic,
+                _ => BidiParagraphDirection.Automatic
             };
 
-            byte paragraphLevel = byte.Parse(parts[2].Trim(), CultureInfo.InvariantCulture);
+            var paragraphLevel = byte.Parse(parts[2].Trim(), CultureInfo.InvariantCulture);
             var levelFields = Fields(parts[3]);
             var expectedLevels = levelFields
                 .Select(f => f == "x" ? (byte)0 : byte.Parse(f, CultureInfo.InvariantCulture)).ToArray();
@@ -206,7 +206,7 @@ public class BidiConformanceTests
             cases++;
             var result = BidiAlgorithm.Resolve(codePoints, direction);
 
-            string complaint = result.ParagraphLevel != paragraphLevel
+            var complaint = result.ParagraphLevel != paragraphLevel
                 ? $"paragraph level {result.ParagraphLevel}, expected {paragraphLevel}"
                 : Compare(result, expectedLevels, levelIgnored, expectedOrder);
 
@@ -232,7 +232,7 @@ public class BidiConformanceTests
         if (result.Levels.Count != expectedLevels.Length)
             return $"{result.Levels.Count} levels, expected {expectedLevels.Length}";
 
-        for (int idx = 0; idx < expectedLevels.Length; idx++)
+        for (var idx = 0; idx < expectedLevels.Length; idx++)
         {
             if (levelIgnored[idx])
             {
@@ -255,7 +255,7 @@ public class BidiConformanceTests
             return $"{order.Count} in visual order, expected {expectedOrder.Length}"
                  + $" ({string.Join(" ", order)} against {string.Join(" ", expectedOrder)})";
 
-        for (int idx = 0; idx < expectedOrder.Length; idx++)
+        for (var idx = 0; idx < expectedOrder.Length; idx++)
         {
             if (order[idx] != expectedOrder[idx])
                 return $"visual order {string.Join(" ", order)}, expected {string.Join(" ", expectedOrder)}";

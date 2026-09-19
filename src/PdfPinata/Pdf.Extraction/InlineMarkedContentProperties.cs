@@ -23,7 +23,7 @@ static class InlineMarkedContentProperties
         // always its content, hex strings, nested dictionaries and all. See CLexer.ScanDictionary.
         if (rawDictionary == null || rawDictionary.Length < 4
             || rawDictionary[0] != '<' || rawDictionary[1] != '<'
-            || rawDictionary[rawDictionary.Length - 1] != '>' || rawDictionary[rawDictionary.Length - 2] != '>')
+            || rawDictionary[^1] != '>' || rawDictionary[^2] != '>')
             return (null, null);
 
         var inner = rawDictionary.Substring(2, rawDictionary.Length - 4);

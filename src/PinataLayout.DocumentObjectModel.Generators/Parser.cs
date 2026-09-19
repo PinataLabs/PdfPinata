@@ -23,19 +23,19 @@ internal static class Parser
     /// A [DV] member, or null with a diagnostic if it is one the model cannot describe.
     /// </summary>
     /// <remarks>
-    /// The diagnostic comes back as a <see cref="DiagnosticInfo"/> rather than a
+    /// The diagnostic comes back as a <see cref="Model.DiagnosticInfo"/> rather than a
     /// <see cref="Diagnostic"/> because this return value goes into the pipeline, and a Diagnostic
     /// carries a Location, which carries the SyntaxTree it came from.
     /// </remarks>
     public static (ParsedMember? Member, DiagnosticInfo? Error) Parse(GeneratorAttributeSyntaxContext context, int order)
     {
-        ISymbol symbol = context.TargetSymbol;
-        INamedTypeSymbol? owner = symbol.ContainingType;
+        var symbol = context.TargetSymbol;
+        var owner = symbol.ContainingType;
         if (owner is null)
             return (null, null);
 
-        string ownerFqn = owner.ToDisplayString(Fqn);
-        LocationInfo? location = LocationInfo.From(symbol.Locations.FirstOrDefault());
+        var ownerFqn = owner.ToDisplayString(Fqn);
+        var location = LocationInfo.From(symbol.Locations.FirstOrDefault());
 
         if (symbol.IsStatic)
         {
@@ -86,8 +86,8 @@ internal static class Parser
                 owner.Name, symbol.Name, memberType.ToDisplayString()));
         }
 
-        (MemberKind kind, ITypeSymbol valueTypeSymbol) = classified.Value;
-        bool isRefOnly = ReadRefOnly(context.Attributes);
+        (var kind, var valueTypeSymbol) = classified.Value;
+        var isRefOnly = ReadRefOnly(context.Attributes);
 
         if (isRefOnly && memberType.IsValueType)
         {
@@ -97,7 +97,7 @@ internal static class Parser
 
         // A DocumentObject member is only assignable through the model when it is a field. The
         // descriptor class this replaces threw "This value cannot be set." for every property.
-        bool settable = kind is MemberKind.DocumentObject or MemberKind.Collection
+        var settable = kind is MemberKind.DocumentObject or MemberKind.Collection
             ? isField
             : isWritable;
 
@@ -131,7 +131,7 @@ internal static class Parser
         if (!DerivesFrom(symbol, DocumentObject))
             return null;
 
-        bool suppressed = symbol.GetAttributes().Any(a =>
+        var suppressed = symbol.GetAttributes().Any(a =>
             a.AttributeClass?.ToDisplayString(Fqn) == "global::" + SuppressSerializeCheckAttribute);
 
         return new ParsedType(
@@ -165,21 +165,21 @@ internal static class Parser
     /// </remarks>
     static EquatableArray<string>? SerializeMentions(ClassDeclarationSyntax classDecl)
     {
-        List<MethodDeclarationSyntax> methods = classDecl.Members
+        var methods = classDecl.Members
             .OfType<MethodDeclarationSyntax>()
             .Where(m => m.Identifier.Text == "Serialize")
             .ToList();
         if (methods.Count == 0)
             return null;
 
-        IEnumerable<SyntaxNode> nodes = methods.SelectMany(m => m.DescendantNodes());
+        var nodes = methods.SelectMany(m => m.DescendantNodes()).ToList();
 
-        IEnumerable<string> literals = nodes
+        var literals = nodes
             .OfType<LiteralExpressionSyntax>()
             .Where(l => l.IsKind(Microsoft.CodeAnalysis.CSharp.SyntaxKind.StringLiteralExpression))
             .Select(l => l.Token.ValueText);
 
-        IEnumerable<string> identifiers = nodes
+        var identifiers = nodes
             .OfType<IdentifierNameSyntax>()
             .Select(i => i.Identifier.Text);
 
@@ -228,9 +228,9 @@ internal static class Parser
 
     static bool ReadRefOnly(System.Collections.Immutable.ImmutableArray<AttributeData> attributes)
     {
-        foreach (AttributeData attribute in attributes)
+        foreach (var attribute in attributes)
         {
-            foreach (KeyValuePair<string, TypedConstant> named in attribute.NamedArguments)
+            foreach (var named in attribute.NamedArguments)
             {
                 if (named.Key == "RefOnly" && named.Value.Value is bool value)
                     return value;
@@ -254,7 +254,7 @@ internal static class Parser
 
     static bool DerivesFrom(ITypeSymbol type, string baseFqn)
     {
-        for (ITypeSymbol? t = type; t is not null; t = t.BaseType)
+        for (var t = type; t is not null; t = t.BaseType)
         {
             if (t.ToDisplayString(Fqn) == "global::" + baseFqn)
                 return true;
@@ -288,19 +288,19 @@ internal static class Parser
             .ToDictionary(g => g.Key, g => g.OrderBy(m => m.DeclarationOrder).ToList());
 
         var declarations = new Dictionary<string, ParsedType>(System.StringComparer.Ordinal);
-        foreach (ParsedType type in types)
+        foreach (var type in types)
             declarations[type.Fqn] = type;
 
-        foreach (ParsedType type in declarations.Values.OrderBy(t => t.Fqn, System.StringComparer.Ordinal))
+        foreach (var type in declarations.Values.OrderBy(t => t.Fqn, System.StringComparer.Ordinal))
         {
             // MDG007 checks a type's own [DV] members against its own Serialize - independent of
             // whether the type is abstract, and independent of the base chain the table below
             // closes, since a member declared here is this type's responsibility to serialize,
             // not a descendant's.
-            if (type.SerializeLiterals is { } literals && byType.TryGetValue(type.Fqn, out List<ParsedMember>? ownMembers))
+            if (type.SerializeLiterals is { } literals && byType.TryGetValue(type.Fqn, out var ownMembers))
             {
                 var written = new HashSet<string>(literals, System.StringComparer.OrdinalIgnoreCase);
-                foreach (ParsedMember member in ownMembers)
+                foreach (var member in ownMembers)
                 {
                     if (!member.Member.IsRefOnly && !written.Contains(member.Member.Name))
                     {
@@ -318,19 +318,19 @@ internal static class Parser
 
             // Base first, so the order is deterministic. Reflection's own order never was.
             var chain = new List<string>();
-            for (string? t = type.Fqn; t is not null; )
+            for (var t = type.Fqn; t is not null; )
             {
                 chain.Insert(0, t);
-                t = declarations.TryGetValue(t, out ParsedType? found) ? found.BaseFqn : null;
+                t = declarations.TryGetValue(t, out var found) ? found.BaseFqn : null;
             }
 
             var collected = new List<DomMemberModel>();
             var seen = new Dictionary<string, string>(System.StringComparer.OrdinalIgnoreCase);
-            foreach (string owner in chain)
+            foreach (var owner in chain)
             {
-                if (!byType.TryGetValue(owner, out List<ParsedMember>? declared))
+                if (!byType.TryGetValue(owner, out var declared))
                     continue;
-                foreach (ParsedMember member in declared)
+                foreach (var member in declared)
                 {
                     if (seen.ContainsKey(member.Member.Name))
                     {

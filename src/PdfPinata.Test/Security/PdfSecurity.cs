@@ -60,9 +60,11 @@ public class PdfSecurity
         document.Save(ms, false);
 
         document.SecuritySettings.DocumentSecurityLevel.Should().Be(PdfDocumentSecurityLevel.None);
+        // ReSharper disable PossibleNullReferenceException
         var md5 = securityHandler.GetType()
             .GetField("_md5Instance", BindingFlags.NonPublic | BindingFlags.Instance)
             .GetValue(securityHandler);
+        // ReSharper restore PossibleNullReferenceException
         md5.Should().BeNull("nothing is encrypted, so no hash algorithm should have been created");
     }
 
@@ -104,7 +106,7 @@ public class PdfSecurity
         // should throw because no password was provided
         var ex = Assert.Throws<PdfReaderException>(() =>
         {
-            var readBackDoc = Pdf.IO.PdfReader.Open(saveFileName, PdfDocumentOpenMode.Import);
+            Pdf.IO.PdfReader.Open(saveFileName, PdfDocumentOpenMode.Import);
         });
         ex.Message.Should().Contain("A password is required to open the PDF document");
 

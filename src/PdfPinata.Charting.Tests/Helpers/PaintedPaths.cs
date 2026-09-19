@@ -99,7 +99,7 @@ internal static class PaintedPaths
 
         var points = new List<(double X, double Y)>();
         var curves = 0;
-        (double X, double Y) current = (0, 0);
+        (double X, double Y) current;
 
         var fill = PaintedRectangles.Black;
         var stroke = PaintedRectangles.Black;

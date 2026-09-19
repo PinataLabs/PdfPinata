@@ -49,7 +49,7 @@ public class CellTests
             cell.AddChart(ChartType.Pie2D),
             cell.AddChart(),
             cell.AddImage(new UndrawnImage()),
-            cell.AddTextFrame(),
+            cell.AddTextFrame()
         ];
 
         cell.Elements.Cast<object>().Should().Equal(added);

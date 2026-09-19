@@ -69,5 +69,5 @@ internal enum XGdiFontStyle  // Same values as System.Drawing.FontStyle.
     /// <summary>
     /// Text with a line through the middle.
     /// </summary>
-    Strikeout = 8,
+    Strikeout = 8
 }

@@ -46,6 +46,7 @@ public class DecryptedStringReplacementTests
             BindingFlags.Static | BindingFlags.NonPublic);
         factory.Should().NotBeNull("the setter was replaced by a factory, not deleted outright");
 
+        // ReSharper disable once PossibleNullReferenceException
         return (PdfString)factory.Invoke(null, new[] { bytes, Enum.Parse(Flags, flagName) });
     }
 
@@ -103,13 +104,16 @@ public class DecryptedStringReplacementTests
             BindingFlags.Static | BindingFlags.NonPublic);
         var original = new PdfString("Original title");
 
+        // ReSharper disable PossibleNullReferenceException
         var decrypted = (PdfString)factory.Invoke(null,
             new[] { original.GetType()
                         .GetProperty("EncryptionValue", BindingFlags.Instance | BindingFlags.NonPublic)
                         .GetValue(original),
                     Enum.Parse(Flags, "RawEncoding") });
+        // ReSharper restore PossibleNullReferenceException
 
         decrypted.Should().NotBeSameAs(original);
+        // ReSharper disable once PossibleNullReferenceException
         decrypted.Value.Should().Be(original.Value);
     }
 
@@ -117,9 +121,11 @@ public class DecryptedStringReplacementTests
     public void PdfStringNoLongerOffersAWayToAssignItsValue()
     {
         // The repair is only a repair while there is no second door back into the field.
+        // ReSharper disable PossibleNullReferenceException
         typeof(PdfString).GetProperty("EncryptionValue",
                 BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
             .SetMethod.Should().BeNull("a simple type must be immutable");
+        // ReSharper restore PossibleNullReferenceException
     }
 
     // ----- what going through the indexer costs ---------------------------------------------------
@@ -187,8 +193,4 @@ public class DecryptedStringReplacementTests
         document.Save(output, false);
         return output.ToArray();
     }
-
-    /// <summary>What was appended, and nothing that was there before.</summary>
-    static string Appended(byte[] updated, int originalLength) =>
-        Encoding.Latin1.GetString(updated, originalLength, updated.Length - originalLength);
 }

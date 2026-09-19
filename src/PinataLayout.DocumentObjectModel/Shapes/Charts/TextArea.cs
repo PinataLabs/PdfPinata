@@ -68,7 +68,7 @@ public partial class TextArea : ChartObject, IVisitable
   /// </summary>
   public Paragraph AddParagraph()
   {
-    return this.Elements.AddParagraph();
+    return Elements.AddParagraph();
   }
 
   /// <summary>
@@ -76,7 +76,7 @@ public partial class TextArea : ChartObject, IVisitable
   /// </summary>
   public Paragraph AddParagraph(string paragraphText)
   {
-    return this.Elements.AddParagraph(paragraphText);
+    return Elements.AddParagraph(paragraphText);
   }
 
   /// <summary>
@@ -84,7 +84,7 @@ public partial class TextArea : ChartObject, IVisitable
   /// </summary>
   public Table AddTable()
   {
-    return this.Elements.AddTable();
+    return Elements.AddTable();
   }
 
   /// <summary>
@@ -92,7 +92,7 @@ public partial class TextArea : ChartObject, IVisitable
   /// </summary>
   public Image AddImage(IImageSource imageSource)
   {
-    return this.Elements.AddImage(imageSource);
+    return Elements.AddImage(imageSource);
   }
 
   /// <summary>
@@ -100,7 +100,7 @@ public partial class TextArea : ChartObject, IVisitable
   /// </summary>
   public Legend AddLegend()
   {
-    return this.Elements.AddLegend();
+    return Elements.AddLegend();
   }
 
   /// <summary>
@@ -108,7 +108,7 @@ public partial class TextArea : ChartObject, IVisitable
   /// </summary>
   public void Add(Paragraph paragraph)
   {
-    this.Elements.Add(paragraph);
+    Elements.Add(paragraph);
   }
 
   /// <summary>
@@ -116,7 +116,7 @@ public partial class TextArea : ChartObject, IVisitable
   /// </summary>
   public void Add(Table table)
   {
-    this.Elements.Add(table);
+    Elements.Add(table);
   }
 
   /// <summary>
@@ -124,7 +124,7 @@ public partial class TextArea : ChartObject, IVisitable
   /// </summary>
   public void Add(Image image)
   {
-    this.Elements.Add(image);
+    Elements.Add(image);
   }
 
   /// <summary>
@@ -132,7 +132,7 @@ public partial class TextArea : ChartObject, IVisitable
   /// </summary>
   public void Add(Legend legend)
   {
-    this.Elements.Add(legend);
+    Elements.Add(legend);
   }
   #endregion
 
@@ -142,8 +142,8 @@ public partial class TextArea : ChartObject, IVisitable
   /// </summary>
   public Unit Height
   {
-    get => this.height;
-    set => this.height = value;
+    get => height;
+    set => height = value;
   }
   [DV]
   internal Unit height = Unit.NullValue;
@@ -153,8 +153,8 @@ public partial class TextArea : ChartObject, IVisitable
   /// </summary>
   public Unit Width
   {
-    get => this.width;
-    set => this.width = value;
+    get => width;
+    set => width = value;
   }
   [DV]
   internal Unit width = Unit.NullValue;
@@ -164,8 +164,8 @@ public partial class TextArea : ChartObject, IVisitable
   /// </summary>
   public string Style
   {
-    get => this.style ?? "";
-    set => this.style = value;
+    get => style ?? "";
+    set => style = value;
   }
   [DV]
   internal string style;
@@ -177,15 +177,15 @@ public partial class TextArea : ChartObject, IVisitable
   {
     get
     {
-      if (this.format == null)
-        this.format = new ParagraphFormat(this);
+      if (format == null)
+        format = new ParagraphFormat(this);
 
-      return this.format;
+      return format;
     }
     set
     {
       SetParent(value);
-      this.format = value;
+      format = value;
     }
   }
   [DV]
@@ -198,15 +198,15 @@ public partial class TextArea : ChartObject, IVisitable
   {
     get
     {
-      if (this.lineFormat == null)
-        this.lineFormat = new LineFormat(this);
+      if (lineFormat == null)
+        lineFormat = new LineFormat(this);
 
-      return this.lineFormat;
+      return lineFormat;
     }
     set
     {
       SetParent(value);
-      this.lineFormat = value;
+      lineFormat = value;
     }
   }
   [DV]
@@ -219,15 +219,15 @@ public partial class TextArea : ChartObject, IVisitable
   {
     get
     {
-      if (this.fillFormat == null)
-        this.fillFormat = new FillFormat(this);
+      if (fillFormat == null)
+        fillFormat = new FillFormat(this);
 
-      return this.fillFormat;
+      return fillFormat;
     }
     set
     {
       SetParent(value);
-      this.fillFormat = value;
+      fillFormat = value;
     }
   }
   [DV]
@@ -238,8 +238,8 @@ public partial class TextArea : ChartObject, IVisitable
   /// </summary>
   public Unit LeftPadding
   {
-    get => this.leftPadding;
-    set => this.leftPadding = value;
+    get => leftPadding;
+    set => leftPadding = value;
   }
   [DV]
   internal Unit leftPadding = Unit.NullValue;
@@ -249,8 +249,8 @@ public partial class TextArea : ChartObject, IVisitable
   /// </summary>
   public Unit RightPadding
   {
-    get => this.rightPadding;
-    set => this.rightPadding = value;
+    get => rightPadding;
+    set => rightPadding = value;
   }
   [DV]
   internal Unit rightPadding = Unit.NullValue;
@@ -260,8 +260,8 @@ public partial class TextArea : ChartObject, IVisitable
   /// </summary>
   public Unit TopPadding
   {
-    get => this.topPadding;
-    set => this.topPadding = value;
+    get => topPadding;
+    set => topPadding = value;
   }
   [DV]
   internal Unit topPadding = Unit.NullValue;
@@ -271,8 +271,8 @@ public partial class TextArea : ChartObject, IVisitable
   /// </summary>
   public Unit BottomPadding
   {
-    get => this.bottomPadding;
-    set => this.bottomPadding = value;
+    get => bottomPadding;
+    set => bottomPadding = value;
   }
   [DV]
   internal Unit bottomPadding = Unit.NullValue;
@@ -282,8 +282,8 @@ public partial class TextArea : ChartObject, IVisitable
   /// </summary>
   public VerticalAlignment VerticalAlignment
   {
-    get => this.verticalAlignment ?? default;
-    set => this.verticalAlignment = EnumGuard.Checked(value);
+    get => verticalAlignment ?? default;
+    set => verticalAlignment = EnumGuard.Checked(value);
   }
   [DV]
   internal VerticalAlignment? verticalAlignment;
@@ -295,15 +295,15 @@ public partial class TextArea : ChartObject, IVisitable
   {
     get
     {
-      if (this.elements == null)
-        this.elements = new DocumentElements(this);
+      if (elements == null)
+        elements = new DocumentElements(this);
 
-      return this.elements;
+      return elements;
     }
     set
     {
       SetParent(value);
-      this.elements = value;
+      elements = value;
     }
   }
   [DV]
@@ -316,43 +316,44 @@ public partial class TextArea : ChartObject, IVisitable
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    Chart chartObject = this.parent as Chart;
+    var chartObject = parent as Chart;
 
+    // ReSharper disable once PossibleNullReferenceException
     serializer.WriteLine("\\" + chartObject.CheckTextArea(this));
-    int pos = serializer.BeginAttributes();
+    var pos = serializer.BeginAttributes();
 
-    if (this.style != null)
-      serializer.WriteSimpleAttribute("Style", this.Style);
-    if (!this.IsNull("Format"))
-      this.format.Serialize(serializer, "Format", null);
+    if (style != null)
+      serializer.WriteSimpleAttribute("Style", Style);
+    if (!IsNull("Format"))
+      format.Serialize(serializer, "Format", null);
 
-    if (!this.topPadding.IsNull)
-      serializer.WriteSimpleAttribute("TopPadding", this.TopPadding);
-    if (!this.leftPadding.IsNull)
-      serializer.WriteSimpleAttribute("LeftPadding", this.LeftPadding);
-    if (!this.rightPadding.IsNull)
-      serializer.WriteSimpleAttribute("RightPadding", this.RightPadding);
-    if (!this.bottomPadding.IsNull)
-      serializer.WriteSimpleAttribute("BottomPadding", this.BottomPadding);
+    if (!topPadding.IsNull)
+      serializer.WriteSimpleAttribute("TopPadding", TopPadding);
+    if (!leftPadding.IsNull)
+      serializer.WriteSimpleAttribute("LeftPadding", LeftPadding);
+    if (!rightPadding.IsNull)
+      serializer.WriteSimpleAttribute("RightPadding", RightPadding);
+    if (!bottomPadding.IsNull)
+      serializer.WriteSimpleAttribute("BottomPadding", BottomPadding);
 
-    if (!this.width.IsNull)
-      serializer.WriteSimpleAttribute("Width", this.Width);
-    if (!this.height.IsNull)
-      serializer.WriteSimpleAttribute("Height", this.Height);
+    if (!width.IsNull)
+      serializer.WriteSimpleAttribute("Width", Width);
+    if (!height.IsNull)
+      serializer.WriteSimpleAttribute("Height", Height);
 
-    if (this.verticalAlignment != null)
-      serializer.WriteSimpleAttribute("VerticalAlignment", this.VerticalAlignment);
+    if (verticalAlignment != null)
+      serializer.WriteSimpleAttribute("VerticalAlignment", VerticalAlignment);
 
-    if (!this.IsNull("LineFormat"))
-      this.lineFormat.Serialize(serializer);
-    if (!this.IsNull("FillFormat"))
-      this.fillFormat.Serialize(serializer);
+    if (!IsNull("LineFormat"))
+      lineFormat.Serialize(serializer);
+    if (!IsNull("FillFormat"))
+      fillFormat.Serialize(serializer);
 
     serializer.EndAttributes(pos);
 
     serializer.BeginContent();
-    if (this.elements != null)
-      this.elements.Serialize(serializer);
+    if (elements != null)
+      elements.Serialize(serializer);
     serializer.EndContent();
   }
 
@@ -361,7 +362,8 @@ public partial class TextArea : ChartObject, IVisitable
   void IVisitable.AcceptVisitor(DocumentObjectVisitor visitor, bool visitChildren)
   {
     visitor.VisitTextArea(this);
-    if (this.elements != null && visitChildren)
-      ((IVisitable)this.elements).AcceptVisitor(visitor, visitChildren);
+    if (elements != null && visitChildren)
+      // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+      ((IVisitable)elements).AcceptVisitor(visitor, visitChildren);
   }
 }

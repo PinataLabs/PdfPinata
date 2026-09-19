@@ -47,5 +47,5 @@ public enum XGraphicsPdfPageOptions
     /// <summary>
     /// The new content entirely replaces the old content and any subsequent drawing in done on a blank page.
     /// </summary>
-    Replace,
+    Replace
 }

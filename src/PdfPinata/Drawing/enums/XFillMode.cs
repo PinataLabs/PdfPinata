@@ -42,5 +42,5 @@ public enum XFillMode  // Same values as System.Drawing.FillMode.
     /// <summary>
     /// Specifies the winding fill mode. Called the 'nonzero winding number rule' in PDF terminology.
     /// </summary>
-    Winding = 1,
+    Winding = 1
 }

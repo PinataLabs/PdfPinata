@@ -105,7 +105,7 @@ public class SignatureValidationDataTests
         var document = new PdfDocument();
         document.AddPage();
 
-        Action adding = () => PdfValidationData.Add(document, new MemoryStream(),
+        var adding = () => PdfValidationData.Add(document, new MemoryStream(),
             new PdfValidationDataEntry(Array.Empty<byte[]>(), Array.Empty<byte[]>(), Array.Empty<byte[]>()));
 
         adding.Should().Throw<InvalidOperationException>().WithMessage("*Append*");
@@ -122,7 +122,7 @@ public class SignatureValidationDataTests
     {
         var document = Reader.Open(new MemoryStream(Sign(Unsigned())), PdfDocumentOpenMode.Append);
 
-        Action adding = () => PdfSignatureValidationData.Add(document, null, new ThrowingRevocationDataProvider());
+        var adding = () => PdfSignatureValidationData.Add(document, null, new ThrowingRevocationDataProvider());
 
         adding.Should().Throw<ArgumentNullException>().WithParameterName("output");
     }

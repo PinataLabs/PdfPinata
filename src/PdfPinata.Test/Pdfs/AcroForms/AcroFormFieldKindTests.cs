@@ -445,8 +445,8 @@ public class AcroFormFieldKindTests
         document.Save(written, false);
         written.Position = 0;
         // Fully qualified: this test assembly has a PdfReader of its own.
-        var reopened = PdfPinata.Pdf.IO.PdfReader.Open(
-            written, PdfPinata.Pdf.IO.PdfDocumentOpenMode.Modify);
+        var reopened = Pdf.IO.PdfReader.Open(
+            written, Pdf.IO.PdfDocumentOpenMode.Modify);
 
         ((PdfListBoxField)reopened.AcroForm.Fields["county"]).SelectedIndex.Should().Be(1);
     }
@@ -518,7 +518,7 @@ public class AcroFormFieldKindTests
     {
         var field = (PdfListBoxField)FormWith("/Ch", "county").AcroForm.Fields["county"];
 
-        var act = () => ((PdfListBoxField)field).SelectedIndices = new[] { 0 };
+        var act = () => (field).SelectedIndices = new[] { 0 };
 
         act.Should().Throw<ArgumentOutOfRangeException>();
         field.Elements.ContainsKey("/V").Should().BeFalse("nothing was written");
@@ -539,8 +539,8 @@ public class AcroFormFieldKindTests
         document.Save(written, false);
         written.Position = 0;
         // Fully qualified: this test assembly has a PdfReader of its own.
-        var reopened = PdfPinata.Pdf.IO.PdfReader.Open(
-            written, PdfPinata.Pdf.IO.PdfDocumentOpenMode.Modify);
+        var reopened = Pdf.IO.PdfReader.Open(
+            written, Pdf.IO.PdfDocumentOpenMode.Modify);
 
         var field = (PdfListBoxField)reopened.AcroForm.Fields["county"];
         field.SelectedIndices.Should().Equal(new[] { 0, 2 });
@@ -602,7 +602,7 @@ public class AcroFormFieldKindTests
         document.Save(written, false);
         written.Position = 0;
         // Fully qualified: this test assembly has a PdfReader of its own.
-        var reopened = PdfPinata.Pdf.IO.PdfReader.Open(written, PdfPinata.Pdf.IO.PdfDocumentOpenMode.Modify);
+        var reopened = Pdf.IO.PdfReader.Open(written, Pdf.IO.PdfDocumentOpenMode.Modify);
 
         var field = (PdfComboBoxField)reopened.AcroForm.Fields["county"];
         field.Elements[PdfChoiceField.Keys.I].Should().BeOfType<PdfArray>();

@@ -56,7 +56,7 @@ public sealed class PageBleedRenderingTests : IDisposable
         InkAt(sheet, 0.94, Marks.Point + 2).Should().Be("black");
 
         // ...and the paper still shows below it, so "black at the top" is not "black everywhere".
-        InkAt(sheet, 0.5, sheet.Height / 2.0 * 72 / Dpi(sheet)).Should().Be("white");
+        InkAt(sheet, 0.5, sheet.Height / 2.0 * 72 / Dpi()).Should().Be("white");
     }
 
     [GoldenImageFact]
@@ -69,7 +69,7 @@ public sealed class PageBleedRenderingTests : IDisposable
         foreach (var down in new[] { 0.06, 0.5, 0.94 })
             InkDownAt(sheet, Marks.Point + 2, down).Should().Be("black");
 
-        InkDownAt(sheet, sheet.Width / 2.0 * 72 / Dpi(sheet), 0.5).Should().Be("white");
+        InkDownAt(sheet, sheet.Width / 2.0 * 72 / Dpi(), 0.5).Should().Be("white");
     }
 
     [GoldenImageFact]
@@ -140,7 +140,7 @@ public sealed class PageBleedRenderingTests : IDisposable
     }
 
     /// <summary>What the sheet was drawn at, so points can be turned into pixels.</summary>
-    static double Dpi(IMagickImage<byte> sheet) => 300;
+    static double Dpi() => 300;
 
     static double ToPixels(double points) => points * 300 / 72.0;
 
@@ -167,6 +167,7 @@ public sealed class PageBleedRenderingTests : IDisposable
         using var pixels = sheet.GetPixels();
         var colour = pixels.GetPixel(Math.Clamp(x, 0, (int)sheet.Width - 1),
                                      Math.Clamp(y, 0, (int)sheet.Height - 1)).ToColor();
+        // ReSharper disable once PossibleNullReferenceException
         var luminance = 0.299 * colour.R + 0.587 * colour.G + 0.114 * colour.B;
 
         // Named rather than numeric so a failure reads as "white where black was wanted" rather
@@ -196,8 +197,10 @@ public sealed class PageBleedRenderingTests : IDisposable
             for (var x = left; x < right; x++)
             {
                 var colour = pixels.GetPixel(x, y).ToColor();
+                // ReSharper disable PossibleNullReferenceException
                 if (0.299 * colour.R + 0.587 * colour.G + 0.114 * colour.B < 230)
                     return true;
+                // ReSharper restore PossibleNullReferenceException
             }
         }
 

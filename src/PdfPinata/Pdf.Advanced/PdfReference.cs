@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -40,10 +40,10 @@ namespace PdfPinata.Pdf.Advanced;
 [DebuggerDisplay("iref({ObjectNumber}, {GenerationNumber})")]
 public sealed class PdfReference : PdfItem
 {
-    // About PdfReference 
-    // 
+    // About PdfReference
+    //
     // * A PdfReference holds either the ObjectID or the PdfObject or both.
-    // 
+    //
     // * Each PdfObject has a PdfReference if and only if it is an indirect object. Direct objects have
     //   no PdfReference, because they are embedded in a parent objects.
     //
@@ -73,9 +73,9 @@ public sealed class PdfReference : PdfItem
     /// <summary>
     /// Initializes a new PdfReference instance from the specified object identifier and file position.
     /// </summary>
-    public PdfReference(PdfObjectID objectID, long position)
+    public PdfReference(PdfObjectID objectId, long position)
     {
-        _objectID = objectID;
+        _objectID = objectId;
         _position = position;
     }
 
@@ -87,8 +87,7 @@ public sealed class PdfReference : PdfItem
         // PDFsharp does not yet support PDF 1.5 object streams.
 
         // Each line must be exactly 20 bytes long, otherwise Acrobat repairs the file.
-        string text = String.Format("{0:0000000000} {1:00000} n\n",
-            _position, _objectID.GenerationNumber); // InUse ? 'n' : 'f');
+        var text = $"{_position:0000000000} {_objectID.GenerationNumber:00000} n\n"; // InUse ? 'n' : 'f');
         writer.WriteRaw(text);
     }
 
@@ -117,7 +116,7 @@ public sealed class PdfReference : PdfItem
             {
                 //PdfXRefTable table = Document.xrefTable;
                 //table.Remove(this);
-                //objectID = value;
+                //objectId = value;
                 //table.Add(this);
             }
         }
@@ -203,8 +202,8 @@ public sealed class PdfReference : PdfItem
     {
         public int Compare(PdfReference x, PdfReference y)
         {
-            PdfReference l = x;
-            PdfReference r = y;
+            var l = x;
+            var r = y;
             if (l != null)
             {
                 if (r != null)

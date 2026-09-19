@@ -33,7 +33,7 @@ public class TaggedFootnoteTests
     [Fact]
     public void AFootnoteIsANote()
     {
-        var document = Document(out Section section);
+        var document = Document(out var section);
         section.AddParagraph("A claim").AddFootnote("The support.");
 
         var tree = Structure.Of(document);
@@ -44,7 +44,7 @@ public class TaggedFootnoteTests
     [Fact]
     public void TheMarkInTheSentenceIsAReferenceToIt()
     {
-        var document = Document(out Section section);
+        var document = Document(out var section);
         section.AddParagraph("A claim").AddFootnote("The support.");
 
         var tree = Structure.Of(document);
@@ -59,7 +59,7 @@ public class TaggedFootnoteTests
         // The whole point of building the element at the citation. Drawing order would put every note
         // after all the body text of the page, severed from the sentence that cited it - which is
         // exactly the reading order a structure tree exists to correct.
-        var document = Document(out Section section);
+        var document = Document(out var section);
         section.AddParagraph("A claim").AddFootnote("The support.");
         section.AddParagraph("A later paragraph.");
 
@@ -76,7 +76,7 @@ public class TaggedFootnoteTests
     [Fact]
     public void TheNoteHoldsTheParagraphsOfItsOwnContent()
     {
-        var document = Document(out Section section);
+        var document = Document(out var section);
         section.AddParagraph("A claim").AddFootnote("The support.");
 
         var note = Structure.Of(document).Single("Note");
@@ -99,7 +99,7 @@ public class TaggedFootnoteTests
     [Fact]
     public void ANoteWithSeveralParagraphsKeepsThemAllInside()
     {
-        var document = Document(out Section section);
+        var document = Document(out var section);
         var footnote = section.AddParagraph("A claim").AddFootnote();
         footnote.AddParagraph("The first half.");
         footnote.AddParagraph("The second half.");
@@ -124,7 +124,7 @@ public class TaggedFootnoteTests
     [Fact]
     public void TwoNotesGetIdentifiersOfTheirOwn()
     {
-        var document = Document(out Section section);
+        var document = Document(out var section);
         var paragraph = section.AddParagraph("Two claims");
         paragraph.AddFootnote("The first support.");
         paragraph.AddFootnote("The second support.");
@@ -182,7 +182,7 @@ public class TaggedFootnoteTests
     [Fact]
     public void ADocumentWithNoNotesInItHasNoIdentifierIndex()
     {
-        var document = Document(out Section section);
+        var document = Document(out var section);
         section.AddParagraph("A claim with nothing to support it.");
 
         var rendered = Rendered.Of(document);
@@ -217,7 +217,7 @@ public class TaggedFootnoteTests
         {
             Document = WithOneNote(),
             TagContent = true,
-            Language = "en-GB",
+            Language = "en-GB"
         };
 
         renderer.RenderDocument();
@@ -262,7 +262,7 @@ public class TaggedFootnoteTests
 
     static Document WithOneNote()
     {
-        var document = Document(out Section section);
+        var document = Document(out var section);
         section.AddParagraph("A claim").AddFootnote("The support.");
         return document;
     }

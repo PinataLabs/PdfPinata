@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -40,8 +40,8 @@ namespace PdfPinata.Fonts;
 //     Font -> Schriftschnitt
 //     Computer font -> Font (Informationstechnik)
 //     Typeface (Font family) -> Schriftart / Schriftfamilie
-//     Glyph -> Glyphe 
-// 
+//     Glyph -> Glyphe
+//
 // It seems that typeface and font family are synonyms in english.
 // In WPF a family name is used as a term for a bunch of fonts that share the same
 // characteristics, like Univers or Times New Roman.
@@ -49,23 +49,23 @@ namespace PdfPinata.Fonts;
 // Univers medium bold italic.
 // In WPF a glyph typeface is the result of requesting a typeface, i.e. a physical font
 // plus the information whether bold and/or italic should be simulated.
-// 
+//
 // Wikipedia DE -> EN
 //     Schriftart -> Typeface
 //     Schriftschnitt -> Font
 //     Schriftfamilie -> ~   (means Font family)
 //     Schriftsippe -> Font superfamily
 //     Font -> Computer font
-// 
+//
 // http://en.wikipedia.org/wiki/Font
 // http://en.wikipedia.org/wiki/Computer_font
 // http://en.wikipedia.org/wiki/Typeface
 // http://en.wikipedia.org/wiki/Glyph
 // http://en.wikipedia.org/wiki/Typographic_unit
-// 
+//
 // FaceName: A unique and only internally used name of a glyph typeface. In other words the name of the font data that represents a specific font.
-// 
-// 
+//
+//
 
 /// <summary>
 /// Describes the physical font that must be used to render a particular XFont.

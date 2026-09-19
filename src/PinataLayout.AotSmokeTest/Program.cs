@@ -37,7 +37,7 @@ public static class Program
         PdfPinata.Fonts.GlobalFontSettings.FontResolver = new PdfPinata.Utils.SkiaFontResolver();
         DocumentObjectModel.Shapes.ImageSource.ImageSourceImpl = new SkiaImageSource();
 
-        Document document = BuildDocument();
+        var document = BuildDocument();
 
         CheckValueModel(document);
         CheckDdlRoundTrip(document);
@@ -58,15 +58,15 @@ public static class Program
         var document = new Document();
         document.Info.Title = "AOT smoke test";
 
-        Style style = document.Styles.AddStyle("Highlight", "Normal");
+        var style = document.Styles.AddStyle("Highlight", "Normal");
         style.Font.Bold = true;
         style.Font.Color = Colors.DarkBlue;
 
-        Section section = document.AddSection();
+        var section = document.AddSection();
         section.PageSetup.Orientation = Orientation.Portrait;
         section.PageSetup.LeftMargin = Unit.FromCentimeter(2);
 
-        Paragraph paragraph = section.AddParagraph("Rendered from a natively compiled binary.");
+        var paragraph = section.AddParagraph("Rendered from a natively compiled binary.");
         paragraph.Format.Alignment = ParagraphAlignment.Justify;
         paragraph.Format.SpaceAfter = Unit.FromPoint(6);
         paragraph.Format.Borders.Top.Style = BorderStyle.DashDot;
@@ -75,11 +75,11 @@ public static class Program
 
         section.AddParagraph("Styled.").Style = "Highlight";
 
-        Table table = section.AddTable();
+        var table = section.AddTable();
         table.Borders.Width = Unit.FromPoint(0.5);
         table.AddColumn(Unit.FromCentimeter(4));
         table.AddColumn(Unit.FromCentimeter(4));
-        Row row = table.AddRow();
+        var row = table.AddRow();
         row.VerticalAlignment = VerticalAlignment.Center;
         row.Cells[0].AddParagraph("Left");
         row.Cells[1].AddParagraph("Right");
@@ -92,7 +92,7 @@ public static class Program
     /// </summary>
     static void CheckValueModel(Document document)
     {
-        Section section = document.LastSection;
+        var section = document.LastSection;
         var paragraph = (Paragraph)section.Elements[0];
 
         // Leaf, through a dotted path.
@@ -126,7 +126,7 @@ public static class Program
         Check("CreateValue", document.CreateValue("Info") is DocumentInfo);
 
         // RefOnly: parent must never be walked, or IsNull recurses up the tree forever.
-        ValueDescriptor parent = Meta.GetMeta(paragraph)["parent"];
+        var parent = Meta.GetMeta(paragraph)["parent"];
         Check("parent is RefOnly", parent is { IsRefOnly: true });
 
         // The descriptor table itself survived native compilation.
@@ -138,12 +138,12 @@ public static class Program
     /// </summary>
     static void CheckDdlRoundTrip(Document document)
     {
-        string ddl = DdlWriter.WriteToString(document);
+        var ddl = DdlWriter.WriteToString(document);
         Check("DDL is written", ddl.Length > 200 && ddl.Contains("\\document"));
         Check("assigned enum is written", ddl.Contains("DashDot"));
         Check("unassigned member is not written", !ddl.Contains("OutlineLevel = BodyText"));
 
-        Document reread = DdlReader.DocumentFromString(ddl);
+        var reread = DdlReader.DocumentFromString(ddl);
         var paragraph = (Paragraph)reread.LastSection.Elements[0];
 
         Check("enum survives DDL", paragraph.Format.Borders.Top.Style == BorderStyle.DashDot);

@@ -66,7 +66,7 @@ public class PredictorTests
                     2 => above,
                     3 => (left + above) / 2,
                     4 => Paeth(left, above, aboveLeft),
-                    _ => throw new ArgumentOutOfRangeException(nameof(filterTypeOfRow), filterType, "PNG defines filter types 0 to 4."),
+                    _ => throw new ArgumentOutOfRangeException(nameof(filterTypeOfRow), filterType, "PNG defines filter types 0 to 4.")
                 };
                 output[pos++] = (byte)(row[idx] - predicted);
             }
@@ -91,7 +91,7 @@ public class PredictorTests
         new byte[] { 10, 20, 30, 40, 50, 60 },
         new byte[] { 12, 24, 36, 48, 60, 72 },
         new byte[] { 200, 190, 180, 170, 160, 150 },
-        new byte[] { 0, 255, 0, 255, 0, 255 },
+        new byte[] { 0, 255, 0, 255, 0, 255 }
     };
 
     static byte[] Flat => Rows.SelectMany(row => row).ToArray();
@@ -144,7 +144,7 @@ public class PredictorTests
         var rows = new[]
         {
             new byte[] { 10, 20, 30, 11, 21, 31, 12, 22, 32 },
-            new byte[] { 40, 50, 60, 41, 51, 61, 42, 52, 62 },
+            new byte[] { 40, 50, 60, 41, 51, 61, 42, 52, 62 }
         };
         var predicted = Predict(1, 3, rows);
 

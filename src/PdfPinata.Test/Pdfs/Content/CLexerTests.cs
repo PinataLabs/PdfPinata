@@ -43,7 +43,7 @@ public class CLexerTests
     [InlineData((byte)173)] // soft hyphen
     public async Task ScanNextToken_treatsAVerticalTabAndASoftHyphenAsWhiteSpace(byte separator)
     {
-        var content = new byte[] { (byte)'B', (byte)'T', separator, (byte)'Q' };
+        var content = new[] { (byte)'B', (byte)'T', separator, (byte)'Q' };
 
         var tokens = await ScanAll(new CLexer(content));
 

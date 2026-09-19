@@ -35,7 +35,7 @@ internal sealed class ExtractDemo : PdfDemo
         "Text decoded through the font's own /ToUnicode map, so a subset font still reads back",
         "A run under a scaled transformation reporting its width and size in user space",
         "That runs come back in drawing order, which on a two-column page is not reading order",
-        "That white-on-white text extracts perfectly, because invisible is not absent",
+        "That white-on-white text extracts perfectly, because invisible is not absent"
     };
 
     public override int PageCount => 4;
@@ -43,18 +43,18 @@ internal sealed class ExtractDemo : PdfDemo
     protected override PdfDocument Build(DemoContext context)
     {
         #region example
-        XFont heading = new XFont(BundledFontResolver.SansFamily, 16, XFontStyle.Bold);
-        XFont label = new XFont(BundledFontResolver.SansFamily, 9.5, XFontStyle.Bold);
-        XFont body = new XFont(BundledFontResolver.SansFamily, 9);
-        XFont mono = new XFont(BundledFontResolver.MonoFamily, 7.5);
+        var heading = new XFont(BundledFontResolver.SansFamily, 16, XFontStyle.Bold);
+        var label = new XFont(BundledFontResolver.SansFamily, 9.5, XFontStyle.Bold);
+        var body = new XFont(BundledFontResolver.SansFamily, 9);
+        var mono = new XFont(BundledFontResolver.MonoFamily, 7.5);
 
         // ----- pages one and two: the text that will be read back ----------------------------------
 
-        using PdfDocument source = new PdfDocument();
+        using var source = new PdfDocument();
         source.Info.Title = "Extract";
 
-        PdfPage first = source.AddPage();
-        using (XGraphics gfx = XGraphics.FromPdfPage(first))
+        var first = source.AddPage();
+        using (var gfx = XGraphics.FromPdfPage(first))
         {
             gfx.DrawString("A page to be read back", heading, XBrushes.Black, 50, 60);
 
@@ -74,7 +74,7 @@ internal sealed class ExtractDemo : PdfDemo
             // Both the width and the size come back in user space, measured through the same matrix.
             // A test that only translates cannot see the difference, because a translation scales
             // by one - which is why this demo scales.
-            XGraphicsState saved = gfx.Save();
+            var saved = gfx.Save();
             gfx.TranslateTransform(50, 230);
             gfx.ScaleTransform(2.0, 2.0);
             gfx.DrawString("Twice the size, drawn at half of it.", body, XBrushes.Black, 0, 0);
@@ -92,7 +92,7 @@ internal sealed class ExtractDemo : PdfDemo
                 "positions. Nothing in the file",
                 "says which of them belong",
                 "together, or in what order a",
-                "person would read them.",
+                "person would read them."
             };
 
             string[] right =
@@ -101,12 +101,12 @@ internal sealed class ExtractDemo : PdfDemo
                 "it can prove: one run per",
                 "show-text operator, with the",
                 "origin and the total width it",
-                "advanced by.",
+                "advanced by."
             };
 
             // Drawn a line at a time across both columns, which is the order a typesetter would
             // never use and a naive loop always does. The point of the exercise is on page three.
-            for (int line = 0; line < left.Length; line++)
+            for (var line = 0; line < left.Length; line++)
             {
                 double y = 350 + line * 14;
                 gfx.DrawString(left[line], body, XBrushes.Black, 50, y);
@@ -115,17 +115,17 @@ internal sealed class ExtractDemo : PdfDemo
 
             gfx.DrawString("Rotated, which keeps its origin and its width:", label, XBrushes.Black, 50, 450);
 
-            XGraphicsState turned = gfx.Save();
+            var turned = gfx.Save();
             gfx.TranslateTransform(60, 560);
             gfx.RotateTransform(-30);
             gfx.DrawString("Thirty degrees off the horizontal.", body, XBrushes.Black, 0, 0);
             gfx.Restore(turned);
         }
 
-        PdfPage second = source.AddPage();
-        using (XGraphics gfx = XGraphics.FromPdfPage(second))
+        var second = source.AddPage();
+        using (var gfx = XGraphics.FromPdfPage(second))
         {
-            XTextFormatter prose = new XTextFormatter(gfx);
+            var prose = new XTextFormatter(gfx);
 
             gfx.DrawString("A second page, laid out by the formatter", heading, XBrushes.Black, 50, 60);
 
@@ -149,23 +149,23 @@ internal sealed class ExtractDemo : PdfDemo
         // Saved and opened again, because that is the situation the extractor is for: a file that
         // arrived from somewhere, whose fonts are subsets and whose codes mean nothing without the
         // /ToUnicode map the file carries.
-        MemoryStream buffer = new MemoryStream();
+        var buffer = new MemoryStream();
         source.Save(buffer, false);
         buffer.Position = 0;
 
-        PdfDocument document = PdfReader.Open(buffer, PdfDocumentOpenMode.Modify);
+        var document = PdfReader.Open(buffer, PdfDocumentOpenMode.Modify);
 
-        string extracted = PdfTextExtractor.ExtractText(document.Pages[0]);
+        var extracted = PdfTextExtractor.ExtractText(document.Pages[0]);
         IReadOnlyList<PdfTextRun> runs = PdfTextExtractor.ExtractRuns(document.Pages[0]);
         IReadOnlyList<PdfTextRun> secondPage = PdfTextExtractor.ExtractRuns(document.Pages[1]);
         // docs:end extract
 
         // ----- page three: what came back ----------------------------------------------------------
 
-        PdfPage third = document.AddPage();
-        using (XGraphics gfx = XGraphics.FromPdfPage(third))
+        var third = document.AddPage();
+        using (var gfx = XGraphics.FromPdfPage(third))
         {
-            XTextFormatter prose = new XTextFormatter(gfx);
+            var prose = new XTextFormatter(gfx);
 
             gfx.DrawString("What page one says", heading, XBrushes.Black, 50, 60);
 
@@ -177,7 +177,7 @@ internal sealed class ExtractDemo : PdfDemo
                 body, XBrushes.Black, new XRect(50, 80, 495, 48));
 
             double y = 140;
-            foreach (string line in extracted.Replace("\r\n", "\n").Split('\n'))
+            foreach (var line in extracted.Replace("\r\n", "\n").Split('\n'))
             {
                 if (y > 470)
                     break;
@@ -215,10 +215,10 @@ internal sealed class ExtractDemo : PdfDemo
 
         // ----- page four: where it says it ---------------------------------------------------------
 
-        PdfPage fourth = document.AddPage();
-        using (XGraphics gfx = XGraphics.FromPdfPage(fourth))
+        var fourth = document.AddPage();
+        using (var gfx = XGraphics.FromPdfPage(fourth))
         {
-            XTextFormatter prose = new XTextFormatter(gfx);
+            var prose = new XTextFormatter(gfx);
 
             gfx.DrawString("Where page one says it", heading, XBrushes.Black, 50, 60);
 
@@ -238,7 +238,7 @@ internal sealed class ExtractDemo : PdfDemo
 
             double y = 152;
             // docs:begin read-runs
-            foreach (PdfTextRun run in runs)
+            foreach (var run in runs)
             {
                 if (y > 600)
                     break;
@@ -267,7 +267,7 @@ internal sealed class ExtractDemo : PdfDemo
             // Reported rather than assumed. If the run cannot be found the sentence says so instead
             // of printing a nought as though it were a measurement - the same rule the refusal pages
             // in the Archive and Accessibility demos follow.
-            double? scaled = SizeOfScaledRun(runs);
+            var scaled = SizeOfScaledRun(runs);
 
             prose.DrawString(
                 (scaled.HasValue
@@ -301,7 +301,7 @@ internal sealed class ExtractDemo : PdfDemo
     /// </remarks>
     static double? SizeOfScaledRun(IReadOnlyList<PdfTextRun> runs)
     {
-        foreach (PdfTextRun run in runs)
+        foreach (var run in runs)
         {
             if (run.Text.StartsWith("Twice the size", StringComparison.Ordinal))
                 return run.FontSize;

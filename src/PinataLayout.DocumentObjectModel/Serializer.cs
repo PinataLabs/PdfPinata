@@ -93,7 +93,7 @@ internal class Serializer
     get => writeIndent;
     set => writeIndent = value;
   }
-  protected int writeIndent = 0;
+  protected int writeIndent;
 
   /// <summary>
   /// Increases indent of DDL code.
@@ -128,11 +128,11 @@ internal class Serializer
   /// </summary>
   internal void Write(string str)
   {
-    string wrappedStr = DoWordWrap(str);
+    var wrappedStr = DoWordWrap(str);
     if (wrappedStr.Length < str.Length && wrappedStr != "")
     {
       WriteLineToStream(wrappedStr);
-      Write(str.Substring(wrappedStr.Length));
+      Write(str[wrappedStr.Length..]);
     }
     else
       WriteToStream(str);
@@ -144,11 +144,11 @@ internal class Serializer
   /// </summary>
   internal void WriteLine(string str)
   {
-    string wrappedStr = DoWordWrap(str);
+    var wrappedStr = DoWordWrap(str);
     if (wrappedStr.Length < str.Length)
     {
       WriteLineToStream(wrappedStr);
-      WriteLine(str.Substring(wrappedStr.Length));
+      WriteLine(str[wrappedStr.Length..]);
     }
     else
       WriteLineToStream(wrappedStr);
@@ -164,18 +164,18 @@ internal class Serializer
     if (str.Length + writeIndent < lineBreakBeyond)
       return str;
 
-    int idxCRLF = str.IndexOf("\x0D\x0A");
+    var idxCRLF = str.IndexOf("\x0D\x0A", StringComparison.Ordinal);
     if (idxCRLF > 0 && idxCRLF + writeIndent <= lineBreakBeyond)
-      return str.Substring(0, idxCRLF + 1);
+      return str[..(idxCRLF + 1)];
 
     // Where the line runs out of room, kept inside the string at both ends: an indent already
     // past the limit leaves no room at all, and a string reaching the limit exactly leaves
     // nothing beyond it to search.
-    int wrapAt = Math.Min(Math.Max(lineBreakBeyond - writeIndent, 0), str.Length);
+    var wrapAt = Math.Min(Math.Max(lineBreakBeyond - writeIndent, 0), str.Length);
 
-    int splitIndexBlank = str.Substring(0, wrapAt).LastIndexOf(' ');
-    int splitIndexCRLF = str.Substring(0, wrapAt).LastIndexOf("\x0D\x0A");
-    int splitIndex = Math.Max(splitIndexBlank, splitIndexCRLF);
+    var splitIndexBlank = str[..wrapAt].LastIndexOf(' ');
+    var splitIndexCRLF = str[..wrapAt].LastIndexOf("\x0D\x0A", StringComparison.Ordinal);
+    var splitIndex = Math.Max(splitIndexBlank, splitIndexCRLF);
     if (splitIndex == -1)
       // Nothing to break on within the line, so take the first blank past it. Asking instead for
       // the smaller of the next blank and the next line break answered -1 whenever either kind
@@ -185,7 +185,7 @@ internal class Serializer
       // already ends the line when it is written, so breaking at it would only hand the line
       // break itself to the next write and end the line twice.
       splitIndex = str.IndexOf(' ', wrapAt);
-    return splitIndex > 0 ? str.Substring(0, splitIndex) : str;
+    return splitIndex > 0 ? str[..splitIndex] : str;
   }
 
   /// <summary>
@@ -221,16 +221,16 @@ internal class Serializer
       return;
 
     // if string contains CR/LF, split up recursively
-    int crlf = comment.IndexOf("\x0D\x0A");
+    var crlf = comment.IndexOf("\x0D\x0A", StringComparison.Ordinal);
     if (crlf != -1)
     {
-      WriteComment(comment.Substring(0, crlf));
-      WriteComment(comment.Substring(crlf + 2));
+      WriteComment(comment[..crlf]);
+      WriteComment(comment[(crlf + 2)..]);
       return;
     }
     CloseUpLine();
     int len;
-    int chopBeyond = lineBreakBeyond - indent - "// ".Length;
+    var chopBeyond = lineBreakBeyond - indent - "// ".Length;
     while ((len = comment.Length) > 0)
     {
       string wrt;
@@ -251,7 +251,7 @@ internal class Serializer
         else
         {
           wrt = string.Concat("// ", comment.AsSpan(0, idxChop));
-          comment = comment.Substring(idxChop + 1);
+          comment = comment[(idxChop + 1)..];
         }
       }
       WriteLineToStream(wrt);
@@ -277,15 +277,15 @@ internal class Serializer
   void WriteToStream(string text, bool fLineBreak, bool fAutoIndent)
   {
     // if string contains CR/LF, split up recursively
-    int crlf = text.IndexOf("\x0D\x0A");
+    var crlf = text.IndexOf("\x0D\x0A", StringComparison.Ordinal);
     if (crlf != -1)
     {
-      WriteToStream(text.Substring(0, crlf), true, fAutoIndent);
-      WriteToStream(text.Substring(crlf + 2), fLineBreak, fAutoIndent);
+      WriteToStream(text[..crlf], true, fAutoIndent);
+      WriteToStream(text[(crlf + 2)..], fLineBreak, fAutoIndent);
       return;
     }
 
-    int len = text.Length;
+    var len = text.Length;
     if (len > 0)
     {
       if (linePos > 0)
@@ -310,15 +310,12 @@ internal class Serializer
         fLineBreak = true;
         //this.textWriter.Write("//¶");  // for debugging only
       }
-      else
-        lastChar = text[len - 1];
     }
 
     if (fLineBreak)
     {
       textWriter.WriteLine(String.Empty);  // what a line break is may depend on encoding
       linePos = 0;
-      lastChar = '\x0A';
     }
   }
 
@@ -339,30 +336,11 @@ internal class Serializer
   }
 
   /// <summary>
-  /// Mighty function to figure out if a blank is required as separator.
-  /// // Does not work without context...
-  /// </summary>
-  static bool IsBlankRequired(char left, char right)
-  {
-    if (left == ' ' || right == ' ')
-      return false;
-
-    // 1st try
-    bool leftLetterOrDigit = Char.IsLetterOrDigit(left);
-    bool rightLetterOrDigit = Char.IsLetterOrDigit(right);
-
-    if (leftLetterOrDigit && rightLetterOrDigit)
-      return true;
-
-    return false;
-  }
-
-  /// <summary>
   /// Start attribute part.
   /// </summary>
   internal int BeginAttributes()
   {
-    int pos = Position;
+    var pos = Position;
     WriteLineNoCommit("[");
     IncreaseIndent();
     BeginBlock();
@@ -374,7 +352,7 @@ internal class Serializer
   /// </summary>
   internal int BeginAttributes(string str)
   {
-    int pos = Position;
+    var pos = Position;
     WriteLineNoCommit(str);
     WriteLineNoCommit("[");
     IncreaseIndent();
@@ -397,7 +375,7 @@ internal class Serializer
   /// </summary>
   internal bool EndAttributes(int pos)
   {
-    bool commit = EndAttributes();
+    var commit = EndAttributes();
     if (!commit)
       Position = pos;
     return commit;
@@ -408,15 +386,15 @@ internal class Serializer
   /// </summary>
   internal void WriteSimpleAttribute(string valueName, object value)
   {
-    INullableValue ival = value as INullableValue;
+    var ival = value as INullableValue;
     if (ival != null)
       value = ival.GetValue();
 
-    Type type = value.GetType();
+    var type = value.GetType();
 
     if (type == typeof(Unit))
     {
-      string strUnit = value.ToString();
+      var strUnit = value.ToString();
       if (((Unit)value).Type == UnitType.Point)
         WriteLine(valueName + " = " + strUnit);
       else
@@ -432,22 +410,23 @@ internal class Serializer
     }
     else if (type == typeof(bool))
     {
+      // ReSharper disable once PossibleNullReferenceException
       WriteLine(valueName + " = " + value.ToString().ToLower());
     }
     else if (type == typeof(string))
     {
-      StringBuilder sb = new StringBuilder(value.ToString());
+      var sb = new StringBuilder(value.ToString());
       sb.Replace("\\", "\\\\");
       sb.Replace("\"", "\\\"");
-      WriteLine(valueName + " = \"" + sb.ToString() + "\"");
+      WriteLine(valueName + " = \"" + sb + "\"");
     }
     else if (type == typeof(int) || type.GetTypeInfo().BaseType == typeof(Enum) || type == typeof(Color))
     {
-      WriteLine(valueName + " = " + value.ToString());
+      WriteLine(valueName + " = " + value);
     }
     else
     {
-      string message = String.Format("Type '{0}' of value '{1}' not supported", type.ToString(), valueName);
+      var message = $"Type '{type}' of value '{valueName}' not supported";
       Debug.Assert(false, message);
     }
   }
@@ -457,7 +436,7 @@ internal class Serializer
   /// </summary>
   internal int BeginContent()
   {
-    int pos = Position;
+    var pos = Position;
     WriteLineNoCommit("{");
     IncreaseIndent();
     BeginBlock();
@@ -469,7 +448,7 @@ internal class Serializer
   /// </summary>
   internal int BeginContent(string str)
   {
-    int pos = Position;
+    var pos = Position;
     WriteLineNoCommit(str);
     WriteLineNoCommit("{");
     IncreaseIndent();
@@ -492,7 +471,7 @@ internal class Serializer
   /// </summary>
   internal bool EndContent(int pos)
   {
-    bool commit = EndContent();
+    var commit = EndContent();
     if (!commit)
       Position = pos;
     return commit;
@@ -503,7 +482,7 @@ internal class Serializer
   /// </summary>
   internal int BeginBlock()
   {
-    int pos = Position;
+    var pos = Position;
     if (stackIdx + 1 >= commitTextStack.Length)
       throw new ArgumentException("Block nesting level exhausted.");
     stackIdx += 1;
@@ -529,7 +508,7 @@ internal class Serializer
   /// </summary>
   internal bool EndBlock(int pos)
   {
-    bool commit = EndBlock();
+    var commit = EndBlock();
     if (!commit)
       Position = pos;
     return commit;
@@ -588,11 +567,10 @@ internal class Serializer
   {
     commitTextStack[stackIdx] = true;
   }
-  private int stackIdx = 0;
+  private int stackIdx;
   private bool[] commitTextStack = new bool[32];
 
   int linePos;
   int lineBreakBeyond = 200;
-  char lastChar;
   bool fWriteStamp = false;
 }

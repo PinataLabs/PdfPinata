@@ -113,7 +113,7 @@ public sealed class PageResizeOptions
     public static PageResizeOptions Crop => new()
     {
         Fit = PageFitMode.None,
-        Alignment = PageAlignment.TopLeft,
+        Alignment = PageAlignment.TopLeft
     };
 
     /// <summary>
@@ -129,7 +129,7 @@ public sealed class PageResizeOptions
             Margin = Margin,
             AutoRotate = AutoRotate,
             ScaleAnnotations = ScaleAnnotations,
-            ScaleDestinations = ScaleDestinations,
+            ScaleDestinations = ScaleDestinations
         };
     }
 }

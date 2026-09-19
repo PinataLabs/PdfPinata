@@ -68,7 +68,7 @@ public class Chart : DocumentObject
   /// </summary>
   protected override object DeepCopy()
   {
-    Chart chart = (Chart)base.DeepCopy();
+    var chart = (Chart)base.DeepCopy();
     if (chart.font != null)
     {
       chart.font = chart.font.Clone();

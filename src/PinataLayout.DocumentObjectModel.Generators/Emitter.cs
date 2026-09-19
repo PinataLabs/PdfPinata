@@ -10,7 +10,6 @@ namespace PinataLayout.DocumentObjectModel.Generators;
 internal static class Emitter
 {
     const string Internals = "global::PinataLayout.DocumentObjectModel.Internals";
-    const string Dom = "global::PinataLayout.DocumentObjectModel.DocumentObject";
 
     public static string Emit(DomTypeModel type)
     {
@@ -38,7 +37,7 @@ internal static class Emitter
         source.AppendLine("    /// </remarks>");
         source.Append("    private static readonly ").Append(Internals).AppendLine(".Meta GeneratedMeta = new(");
 
-        for (int i = 0; i < type.Members.Count; i++)
+        for (var i = 0; i < type.Members.Count; i++)
         {
             EmitDescriptor(source, type, type.Members[i]);
             source.AppendLine(i == type.Members.Count - 1 ? ");" : ",");
@@ -54,7 +53,7 @@ internal static class Emitter
 
     static void EmitDescriptor(StringBuilder source, DomTypeModel type, DomMemberModel member)
     {
-        string self = $"(({type.Name})o)";
+        var self = $"(({type.Name})o)";
 
         source.Append("        new ").Append(Internals).AppendLine(".ValueDescriptor(");
         source.Append("            valueName: \"").Append(member.Name).AppendLine("\",");

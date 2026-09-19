@@ -39,7 +39,7 @@ public sealed class DemoContext
     {
         Directory.CreateDirectory(OutputDirectory);
 
-        string path = Path.Combine(OutputDirectory, demoName + ".pdf");
+        var path = Path.Combine(OutputDirectory, demoName + ".pdf");
         if (File.Exists(path))
             File.Delete(path);
 

@@ -49,42 +49,39 @@ internal class BarClusteredPlotAreaRenderer : BarPlotAreaRenderer
   /// </summary>
   protected override void CalcBars()
   {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    if (cri.seriesRendererInfos.Length == 0)
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    if (cri.SeriesRendererInfos.Length == 0)
       return;
 
-    double xMax = cri.xAxisRendererInfo.MaximumScale;
-    double yMin = cri.yAxisRendererInfo.MinimumScale;
-    double yMax = cri.yAxisRendererInfo.MaximumScale;
-
-    int pointCount = 0;
-    foreach (SeriesRendererInfo sri in cri.seriesRendererInfos)
-      pointCount += sri.series.Elements.Count;
+    var xMax = cri.XAxisRendererInfo.MaximumScale;
+    var yMin = cri.YAxisRendererInfo.MinimumScale;
+    var yMax = cri.YAxisRendererInfo.MaximumScale;
 
     // Space shared by one clustered bar.
-    double groupWidth = cri.xAxisRendererInfo.MajorTick;
+    var groupWidth = cri.XAxisRendererInfo.MajorTick;
 
     // Space used by one bar.
-    double columnWidth = groupWidth * 0.75 / cri.seriesRendererInfos.Length;
+    var columnWidth = groupWidth * 0.75 / cri.SeriesRendererInfos.Length;
 
-    int seriesIdx = 0;
-    XPoint[] points = new XPoint[2];
-    foreach (SeriesRendererInfo sri in cri.seriesRendererInfos)
+    var seriesIdx = 0;
+    var points = new XPoint[2];
+    foreach (var sri in cri.SeriesRendererInfos)
     {
       // Set x to first clustered bar for each series.
-      double x = xMax - groupWidth / 2;
+      var x = xMax - groupWidth / 2;
         
       // Offset for bars of a particular series from the start of a clustered bar.
-      double dx = (columnWidth * seriesIdx) - (columnWidth / 2 * cri.seriesRendererInfos.Length);
-      double y0 = yMin;
+      var dx = (columnWidth * seriesIdx) - (columnWidth / 2 * cri.SeriesRendererInfos.Length);
+      var y0 = yMin;
 
-      foreach (ColumnRendererInfo column in sri.pointRendererInfos)
+      foreach (ColumnRendererInfo column in sri.PointRendererInfos)
       {
         if (!double.IsNaN(column.Value))
         {
-          double x0 = x - dx;
-          double x1 = x - dx - columnWidth;
-          double y1 = column.Value;
+          // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
+          var x0 = x - dx;
+          var x1 = x - dx - columnWidth;
+          var y1 = column.Value;
 
           // Draw from zero base line, if it exists.
           if (y0 < 0 && yMax >= 0)
@@ -93,7 +90,7 @@ internal class BarClusteredPlotAreaRenderer : BarPlotAreaRenderer
           // y0 should always be lower than y1, i. e. draw bar from bottom to top.
           if (y1 < 0 && y1 < y0)
           {
-            double y = y0;
+            var y = y0;
             y0 = y1;
             y1 = y;
           }
@@ -103,7 +100,7 @@ internal class BarClusteredPlotAreaRenderer : BarPlotAreaRenderer
           points[1].X = y1; // lower right
           points[1].Y = x1;
 
-          cri.plotAreaRendererInfo.matrix.TransformPoints(points);
+          cri.PlotAreaRendererInfo.Matrix.TransformPoints(points);
 
           column.Rect = new XRect(points[0].X,
             points[1].Y,

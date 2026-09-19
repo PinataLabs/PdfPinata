@@ -89,9 +89,11 @@ public class ShapedFontEmbeddingTests
         var resources = Resolve(document.Pages[0].Elements["/Resources"]) as PdfDictionary;
         var fonts = Resolve(resources?.Elements["/Font"]) as PdfDictionary;
 
+        // ReSharper disable PossibleNullReferenceException
         return fonts.Elements.KeyNames
             .Select(key => Resolve(fonts.Elements[key.Value]) as PdfDictionary)
             .Single(font => font != null && font.Elements.GetName("/Subtype") == "/Type0");
+        // ReSharper restore PossibleNullReferenceException
     }
 
     /// <summary>The glyph identifiers the descendant font's /W array gives a width for.</summary>
@@ -99,10 +101,13 @@ public class ShapedFontEmbeddingTests
     {
         var font = CompositeFontOf(document);
         var descendants = Resolve(font.Elements["/DescendantFonts"]) as PdfArray;
+        // ReSharper disable once PossibleNullReferenceException
         var descendant = Resolve(descendants.Elements[0]) as PdfDictionary;
+        // ReSharper disable once PossibleNullReferenceException
         var widths = descendant.Elements["/W"].ToString();
 
         // "[300[1000]301[1000]]" - a glyph identifier, then its width in a bracket of its own.
+        // ReSharper disable once AssignNullToNotNullAttribute
         return Regex.Matches(widths, @"(\d+)\s*\[")
             .Select(match => int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture))
             .ToList();
@@ -117,6 +122,7 @@ public class ShapedFontEmbeddingTests
     {
         var meanings = new Dictionary<int, string>();
         var map = Resolve(CompositeFontOf(document).Elements["/ToUnicode"]) as PdfDictionary;
+        // ReSharper disable once PossibleNullReferenceException
         var cmap = Encoding.UTF8.GetString(map.Stream.UnfilteredValue);
 
         // Only inside the blocks. The codespacerange above them is two codes side by side and
@@ -166,7 +172,7 @@ public class ShapedFontEmbeddingTests
         // Glyph 300 is a real glyph of the face and one the cmap would never return for any of
         // these characters - which is exactly the position a ligature is in.
         using var _ = new Installed(new SelectiveShaper(WidthSentinel,
-            font => new[] { new ShapedGlyph(300, 0, 1000) }));
+            __ => new[] { new ShapedGlyph(300, 0, 1000) }));
 
         GlyphsGivenAWidth(Written(WidthSentinel)).Should().Contain(300,
             "a glyph drawn without a width in /W falls back to the default width, and a glyph "
@@ -177,7 +183,7 @@ public class ShapedFontEmbeddingTests
     public void TheGlyphsAShaperDidNotChooseAreNotCarriedAlongForNothing()
     {
         using var _ = new Installed(new SelectiveShaper(WidthSentinel,
-            font => new[] { new ShapedGlyph(300, 0, 1000) }));
+            __ => new[] { new ShapedGlyph(300, 0, 1000) }));
 
         var widths = GlyphsGivenAWidth(Written(WidthSentinel));
 
@@ -195,10 +201,10 @@ public class ShapedFontEmbeddingTests
     {
         // Two glyphs for thirteen characters: the first cluster runs from 0 up to the second
         // cluster at 11, so glyph 300 means "ShapedProbe" and glyph 301 means "AB".
-        using var _ = new Installed(new SelectiveShaper(MeaningSentinel, font => new[]
+        using var _ = new Installed(new SelectiveShaper(MeaningSentinel, __ => new[]
         {
             new ShapedGlyph(300, 0, 1000),
-            new ShapedGlyph(301, 11, 1000),
+            new ShapedGlyph(301, 11, 1000)
         }));
 
         var meanings = Meanings(Written(MeaningSentinel));

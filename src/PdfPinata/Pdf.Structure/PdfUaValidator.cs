@@ -246,11 +246,11 @@ public static class PdfUaValidator
     /// </remarks>
     static void RequireHeadingsNotToSkipALevel(PdfDocument document)
     {
-        int previous = 0;
+        var previous = 0;
 
         foreach (var element in ElementsInReadingOrder(document))
         {
-            int level = HeadingLevelOf(element.Elements.GetName(PdfStructureElement.Keys.S));
+            var level = HeadingLevelOf(element.Elements.GetName(PdfStructureElement.Keys.S));
             if (level == 0)
                 continue;
 
@@ -289,7 +289,7 @@ public static class PdfUaValidator
             return 0;
         }
 
-        int level = structureType[2] - '0';
+        var level = structureType[2] - '0';
         return level >= 1 && level <= 6 ? level : 0;
     }
 

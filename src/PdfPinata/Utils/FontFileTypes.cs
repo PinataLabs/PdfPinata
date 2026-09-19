@@ -23,9 +23,9 @@ internal static class FontFileTypes
 
     public static bool IsFontFile(string path)
     {
-        string extension = Path.GetExtension(path);
+        var extension = Path.GetExtension(path);
 
-        foreach (string candidate in Extensions)
+        foreach (var candidate in Extensions)
         {
             if (string.Equals(extension, candidate, StringComparison.OrdinalIgnoreCase))
                 return true;
@@ -42,7 +42,7 @@ internal static class FontFileTypes
     private static readonly EnumerationOptions WalkOptions = new()
     {
         RecurseSubdirectories = true,
-        IgnoreInaccessible = true,
+        IgnoreInaccessible = true
     };
 
 
@@ -52,7 +52,7 @@ internal static class FontFileTypes
     /// </summary>
     public static IEnumerable<string> In(string directory)
     {
-        foreach (string path in Directory.EnumerateFiles(directory, "*", WalkOptions))
+        foreach (var path in Directory.EnumerateFiles(directory, "*", WalkOptions))
         {
             if (IsFontFile(path))
                 yield return path;

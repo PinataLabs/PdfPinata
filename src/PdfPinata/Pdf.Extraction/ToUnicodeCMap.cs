@@ -252,7 +252,7 @@ internal sealed class ToUnicodeCMap
         if (hex.Length == 0)
             return 0;
 
-        return int.TryParse(hex.Length > 8 ? hex.Substring(0, 8) : hex,
+        return int.TryParse(hex.Length > 8 ? hex[..8] : hex,
             NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var code) ? code : 0;
     }
 

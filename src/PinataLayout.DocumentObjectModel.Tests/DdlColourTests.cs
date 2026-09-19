@@ -33,8 +33,10 @@ public class DdlColourTests
 
         Complaints(errors).Should().BeEmpty("this colour is a valid one");
 
+        // ReSharper disable PossibleNullReferenceException
         return (document.LastSection.Elements[0] as Paragraph)
             .Elements.OfType<FormattedText>().Single().Font.Color;
+        // ReSharper restore PossibleNullReferenceException
     }
 
     /// <summary>What the reader had to say about a document, as text an assertion can match.</summary>
@@ -216,8 +218,10 @@ public class DdlColourTests
     {
         var document = DdlReader.DocumentFromString(DocumentWith("Puce"));
 
+        // ReSharper disable PossibleNullReferenceException
         var formatted = (document.LastSection.Elements[0] as Paragraph)
             .Elements.OfType<FormattedText>().Single();
+        // ReSharper restore PossibleNullReferenceException
 
         formatted.Font.Color.Should().Be(Color.Empty, "the assignment never happened");
     }

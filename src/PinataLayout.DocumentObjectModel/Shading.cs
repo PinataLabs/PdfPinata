@@ -99,7 +99,7 @@ public sealed partial class Shading : DocumentObject
   /// </summary>
   public bool IsCleared => isCleared;
 
-  internal bool isCleared = false;
+  internal bool isCleared;
   #endregion
 
   #region Null handling
@@ -135,7 +135,7 @@ public sealed partial class Shading : DocumentObject
     if (isCleared)
       serializer.WriteLine("Shading = null");
 
-    int pos = serializer.BeginContent("Shading");
+    var pos = serializer.BeginContent("Shading");
 
     if (visible != null)
       serializer.WriteSimpleAttribute("Visible", Visible);

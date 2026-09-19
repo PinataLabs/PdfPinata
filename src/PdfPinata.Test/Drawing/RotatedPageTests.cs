@@ -30,7 +30,7 @@ public class RotatedPageTests
         { 0, 0, MediaBoxHeight },                    // stored top left
         { 90, 0, 0 },                                // stored bottom left
         { 180, MediaBoxWidth, 0 },                   // stored bottom right
-        { 270, MediaBoxWidth, MediaBoxHeight },      // stored top right
+        { 270, MediaBoxWidth, MediaBoxHeight } // stored top right
     };
 
     [Theory]

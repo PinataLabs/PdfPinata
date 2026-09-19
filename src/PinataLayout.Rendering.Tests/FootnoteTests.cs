@@ -40,7 +40,7 @@ public class FootnoteTests
     [Fact]
     public void AFootnoteIsDrawnRatherThanDropped()
     {
-        var document = Document(out Section section);
+        var document = Document(out var section);
         section.AddParagraph("A claim").AddFootnote("The support.");
 
         var page = Rendered.FirstPageOf(document);
@@ -51,7 +51,7 @@ public class FootnoteTests
     [Fact]
     public void TheNoteIsSeparatedFromTheBodyByARule()
     {
-        var document = Document(out Section section);
+        var document = Document(out var section);
         section.AddParagraph("A claim").AddFootnote("The support.");
 
         var page = Rendered.FirstPageOf(document);
@@ -63,7 +63,7 @@ public class FootnoteTests
     public void APageWithNoFootnoteOnItIsRuledOffFromNothing()
     {
         // The guard on the test above: a rule drawn on every page would be worse than none.
-        var document = Document(out Section section);
+        var document = Document(out var section);
         section.AddParagraph("A claim with nothing to support it.");
 
         var page = Rendered.FirstPageOf(document);
@@ -74,12 +74,13 @@ public class FootnoteTests
     [Fact]
     public void TheNoteSitsBelowTheBodyText()
     {
-        var document = Document(out Section section);
+        var document = Document(out var section);
         section.AddParagraph("A claim").AddFootnote("The support.");
         for (var block = 0; block < 3; block++)
             section.AddParagraph(Prose);
 
         var page = Rendered.FirstPageOf(document);
+        // ReSharper disable once PossibleInvalidOperationException
         var rule = Separator(page).Value;
 
         // Everything the body draws is above the rule; everything the note draws is below it.
@@ -110,6 +111,7 @@ public class FootnoteTests
         var document = Filled(note: true);
 
         var page = Rendered.FirstPageOf(document);
+        // ReSharper disable once PossibleInvalidOperationException
         var rule = Separator(page).Value;
 
         // Every baseline on the page is either above the rule (body) or below it (note). None sits
@@ -138,7 +140,7 @@ public class FootnoteTests
     [Fact]
     public void TwoNotesOnOnePageAreRuledOffOnceBetweenThem()
     {
-        var document = Document(out Section section);
+        var document = Document(out var section);
         var paragraph = section.AddParagraph("A claim");
         paragraph.AddFootnote("The first support.");
         paragraph.AddText(" and another");
@@ -156,11 +158,12 @@ public class FootnoteTests
     [Fact]
     public void BottomOfPagePinsTheBlockToTheFootWhateverThePageHolds()
     {
-        var document = Document(out Section section);
+        var document = Document(out var section);
         document.FootnoteLocation = FootnoteLocation.BottomOfPage;
         section.AddParagraph("A claim").AddFootnote("The support.");
 
         var page = Rendered.FirstPageOf(document);
+        // ReSharper disable once PossibleInvalidOperationException
         var rule = Separator(page).Value;
 
         // A page holding one short paragraph, with the block at its foot: the rule is a long way
@@ -173,11 +176,12 @@ public class FootnoteTests
     [Fact]
     public void BeneathTextPutsTheBlockUnderTheTextRatherThanAtTheFoot()
     {
-        var document = Document(out Section section);
+        var document = Document(out var section);
         document.FootnoteLocation = FootnoteLocation.BeneathText;
         section.AddParagraph("A claim").AddFootnote("The support.");
 
         var page = Rendered.FirstPageOf(document);
+        // ReSharper disable once PossibleInvalidOperationException
         var rule = Separator(page).Value;
 
         var bodyBaseline = TextBaselines.Of(page).Max();
@@ -194,6 +198,7 @@ public class FootnoteTests
         document.FootnoteLocation = FootnoteLocation.BeneathText;
 
         var page = Rendered.FirstPageOf(document);
+        // ReSharper disable once PossibleInvalidOperationException
         var rule = Separator(page).Value;
 
         var noteText = Glyphs.For("The support.");
@@ -222,7 +227,7 @@ public class FootnoteTests
     [Fact]
     public void ACallersOwnReferenceIsUsedInsteadOfANumber()
     {
-        var document = Document(out Section section);
+        var document = Document(out var section);
         var paragraph = section.AddParagraph("A claim");
         paragraph.AddFootnote("The support.").Reference = "*";
 
@@ -237,7 +242,7 @@ public class FootnoteTests
     {
         // A note the caller marked shows a symbol of their choosing. Letting it count would make
         // the numbers around it skip for a reason no reader could see.
-        var document = Document(out Section section);
+        var document = Document(out var section);
         var paragraph = section.AddParagraph("A claim");
         paragraph.AddFootnote("First.");
         paragraph.AddText(" and");
@@ -284,7 +289,7 @@ public class FootnoteTests
     {
         // A section spanning two pages, so the answer tells RestartSection apart from RestartPage.
         // Two sections each on their own page would give the same marks under either rule.
-        var document = Document(out Section first);
+        var document = Document(out var first);
         document.FootnoteNumberingRule = FootnoteNumberingRule.RestartSection;
         first.AddParagraph("A claim").AddFootnote("First.");
 
@@ -330,7 +335,7 @@ public class FootnoteTests
     [Fact]
     public void TheMarkIsRaisedAboveTheLineItSitsOn()
     {
-        var document = Document(out Section section);
+        var document = Document(out var section);
         var paragraph = section.AddParagraph("A claim");
         paragraph.AddFootnote("The support.");
         paragraph.AddText(" continues");
@@ -366,7 +371,7 @@ public class FootnoteTests
     /// <summary>A page filled to the brim, with or without a note on it.</summary>
     static Document Filled(bool note)
     {
-        var document = Document(out Section section);
+        var document = Document(out var section);
 
         var first = section.AddParagraph("A claim");
         if (note)
@@ -380,7 +385,7 @@ public class FootnoteTests
 
     static Document ThreeNotesOnAPage(FootnoteNumberStyle style)
     {
-        var document = Document(out Section section);
+        var document = Document(out var section);
         document.FootnoteNumberStyle = style;
 
         var paragraph = section.AddParagraph("A claim");
@@ -395,7 +400,7 @@ public class FootnoteTests
 
     static Document TwoPagesOfNotes()
     {
-        var document = Document(out Section section);
+        var document = Document(out var section);
         section.AddParagraph("A claim").AddFootnote("First.");
 
         for (var block = 0; block < 20; block++)
@@ -414,7 +419,7 @@ public class FootnoteTests
     static StrokedLines.Line? Separator(PdfPage page)
     {
         var rules = Rules(page);
-        return rules.Count == 0 ? (StrokedLines.Line?)null : rules[0];
+        return rules.Count == 0 ? null : rules[0];
     }
 
     /// <summary>Roughly how much body text a page holds, counted in distinct baselines above the rule.</summary>

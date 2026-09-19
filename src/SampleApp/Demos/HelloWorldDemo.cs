@@ -21,7 +21,7 @@ internal sealed class HelloWorldDemo : PdfDemo
     {
         "The four calls a document needs: new, AddPage, FromPdfPage, Save",
         "Every writable field of PdfDocument.Info",
-        "A string centred in a rectangle with XStringFormats.Center",
+        "A string centred in a rectangle with XStringFormats.Center"
     };
 
     public override int PageCount => 1;
@@ -30,7 +30,7 @@ internal sealed class HelloWorldDemo : PdfDemo
     {
         #region example
         // docs:begin new-document
-        PdfDocument document = new PdfDocument();
+        var document = new PdfDocument();
 
         // What a reader shows under "document properties". Producer is not set here: the
         // library writes its own and the property is read only.
@@ -46,23 +46,23 @@ internal sealed class HelloWorldDemo : PdfDemo
         // docs:end new-document
 
         // docs:begin draw-text
-        PdfPage page = document.AddPage();
-        XGraphics gfx = XGraphics.FromPdfPage(page);
+        var page = document.AddPage();
+        var gfx = XGraphics.FromPdfPage(page);
 
-        double width = page.Width.Point;
-        double height = page.Height.Point;
+        var width = page.Width.Point;
+        var height = page.Height.Point;
 
         // The rectangle overload plus a format centres the string in the box. The point
         // overload would put the text's baseline at the point instead.
-        XFont title = new XFont("Liberation Sans", 30, XFontStyle.Bold);
+        var title = new XFont("Liberation Sans", 30, XFontStyle.Bold);
         gfx.DrawString("Hello, World!", title, XBrushes.Black,
             new XRect(0, 0, width, height * 0.4), XStringFormats.Center);
         // docs:end draw-text
 
         // The same metadata again, on the page, so it can be read without a properties
         // dialog - and so a round trip through a reader can be checked against it.
-        XFont label = new XFont("Liberation Sans", 10, XFontStyle.Bold);
-        XFont value = new XFont("Liberation Sans", 10);
+        var label = new XFont("Liberation Sans", 10, XFontStyle.Bold);
+        var value = new XFont("Liberation Sans", 10);
 
         (string Label, string Value)[] rows =
         {
@@ -71,11 +71,11 @@ internal sealed class HelloWorldDemo : PdfDemo
             ("Subject", document.Info.Subject),
             ("Keywords", document.Info.Keywords),
             ("Creator", document.Info.Creator),
-            ("CreationDate", document.Info.CreationDate.ToString("u")),
+            ("CreationDate", document.Info.CreationDate.ToString("u"))
         };
 
-        double y = height * 0.45;
-        foreach ((string Label, string Value) row in rows)
+        var y = height * 0.45;
+        foreach (var row in rows)
         {
             gfx.DrawString(row.Label, label, XBrushes.Black, new XPoint(80, y));
             gfx.DrawString(row.Value, value, XBrushes.DimGray, new XPoint(190, y));

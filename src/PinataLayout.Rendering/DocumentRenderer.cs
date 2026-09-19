@@ -30,7 +30,6 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using PinataLayout.DocumentObjectModel;
 using PdfPinata.Pdf;
 using PdfPinata.Drawing;
@@ -66,7 +65,7 @@ public class DocumentRenderer
     /// </summary>
     public void PrepareDocument()
     {
-        PdfFlattenVisitor visitor = new PdfFlattenVisitor();
+        var visitor = new PdfFlattenVisitor();
         visitor.Visit(document);
         previousListNumbers = new Hashtable(3);
         previousListNumbers[ListType.NumberList1] = 0;
@@ -74,7 +73,7 @@ public class DocumentRenderer
         previousListNumbers[ListType.NumberList3] = 0;
         formattedDocument = new FormattedDocument(document, this);
         //REM: Size should not be necessary in this case.
-        XGraphics gfx = XGraphics.CreateMeasureContext(new XSize(2000, 2000), XGraphicsUnit.Point, XPageDirection.Downwards);
+        var gfx = XGraphics.CreateMeasureContext(new XSize(2000, 2000), XGraphicsUnit.Point, XPageDirection.Downwards);
         //      this.previousListNumber = int.MinValue;
         //gfx.MUH = this.unicode;
         //gfx.MFEH = this.fontEmbedding;
@@ -111,7 +110,7 @@ public class DocumentRenderer
         if (PrepareDocumentProgress != null)
         {
             // Invokes the delegates.
-            PrepareDocumentProgressEventArgs e = new PrepareDocumentProgressEventArgs(value, maximum);
+            var e = new PrepareDocumentProgressEventArgs(value, maximum);
             PrepareDocumentProgress(this, e);
         }
     }
@@ -202,7 +201,7 @@ public class DocumentRenderer
         if (formattedDocument.IsEmptyPage(page))
             return;
 
-        FieldInfos fieldInfos = formattedDocument.GetFieldInfos(page);
+        var fieldInfos = formattedDocument.GetFieldInfos(page);
 
         if (printDate != DateTime.MinValue)
             fieldInfos.date = printDate;
@@ -216,13 +215,13 @@ public class DocumentRenderer
 
         if ((options & PageRenderOptions.RenderContent) == PageRenderOptions.RenderContent)
         {
-            RenderInfo[] renderInfos = formattedDocument.GetRenderInfos(page);
+            var renderInfos = formattedDocument.GetRenderInfos(page);
             //foreach (RenderInfo renderInfo in renderInfos)
-            int count = renderInfos.Length;
-            for (int idx = 0; idx < count; idx++)
+            var count = renderInfos.Length;
+            for (var idx = 0; idx < count; idx++)
             {
-                RenderInfo renderInfo = renderInfos[idx];
-                Renderer renderer = Renderer.Create(gfx, this, renderInfo, fieldInfos);
+                var renderInfo = renderInfos[idx];
+                var renderer = Renderer.Create(gfx, this, renderInfo, fieldInfos);
                 renderer.Render();
             }
 
@@ -240,12 +239,12 @@ public class DocumentRenderer
     /// </remarks>
     void RenderFootnotes(XGraphics gfx, int page, FieldInfos fieldInfos)
     {
-        IReadOnlyList<Footnote> notes = footnotes.On(page);
+        var notes = footnotes.On(page);
         if (notes.Count == 0)
             return;
 
-        Rectangle content = formattedDocument.ContentRectOf(page);
-        XUnit height = formattedDocument.FootnoteBlockHeight(page);
+        var content = formattedDocument.ContentRectOf(page);
+        var height = formattedDocument.FootnoteBlockHeight(page);
 
         // BottomOfPage pins the block to the foot of the text area, whatever the page holds.
         // BeneathText puts it directly under the last thing laid out, which on a page that is not
@@ -255,7 +254,7 @@ public class DocumentRenderer
         XUnit top = content.Y + content.Height - height;
         if (document.FootnoteLocation == FootnoteLocation.BeneathText)
         {
-            XUnit afterText = formattedDocument.BottomOfContentOn(page);
+            var afterText = formattedDocument.BottomOfContentOn(page);
             if (afterText > 0 && afterText < top)
                 top = afterText;
         }
@@ -269,10 +268,11 @@ public class DocumentRenderer
     /// </summary>
     public DocumentObject[] GetDocumentObjectsFromPage(int page)
     {
-        RenderInfo[] renderInfos = formattedDocument.GetRenderInfos(page);
-        int count = renderInfos != null ? renderInfos.Length : 0;
-        DocumentObject[] documentObjects = new DocumentObject[count];
-        for (int idx = 0; idx < count; idx++)
+        var renderInfos = formattedDocument.GetRenderInfos(page);
+        var count = renderInfos != null ? renderInfos.Length : 0;
+        var documentObjects = new DocumentObject[count];
+        for (var idx = 0; idx < count; idx++)
+            // ReSharper disable once PossibleNullReferenceException
             documentObjects[idx] = renderInfos[idx].DocumentObject;
         return documentObjects;
     }
@@ -303,10 +303,10 @@ public class DocumentRenderer
             !(documentObject is Paragraph))
             throw new ArgumentException(AppResources.ObjectNotRenderable, nameof(documentObject));
 
-        Renderer renderer = Renderer.Create(graphics, this, documentObject, null);
+        var renderer = Renderer.Create(graphics, this, documentObject, null);
         renderer.Format(new Rectangle(xPosition, yPosition, width, double.MaxValue), null);
 
-        RenderInfo renderInfo = renderer.RenderInfo;
+        var renderInfo = renderer.RenderInfo;
         renderInfo.LayoutInfo.ContentArea.X = xPosition;
         renderInfo.LayoutInfo.ContentArea.Y = yPosition;
 
@@ -326,22 +326,21 @@ public class DocumentRenderer
 
     private void RenderHeader(XGraphics graphics, int page)
     {
-        FormattedHeaderFooter formattedHeader = formattedDocument.GetFormattedHeader(page);
+        var formattedHeader = formattedDocument.GetFormattedHeader(page);
         if (formattedHeader == null)
             return;
 
-        Rectangle headerArea = formattedDocument.GetHeaderArea(page);
-        RenderInfo[] renderInfos = formattedHeader.GetRenderInfos();
-        FieldInfos fieldInfos = formattedDocument.GetFieldInfos(page);
+        var renderInfos = formattedHeader.GetRenderInfos();
+        var fieldInfos = formattedDocument.GetFieldInfos(page);
 
         // A running head is furniture, never content. Read out between every paragraph it is worse
         // than useless, which is why marking it as an artifact is half the accessibility rule and
         // not a tidiness measure.
         using (Tagger.Artifact(graphics))
         {
-            foreach (RenderInfo renderInfo in renderInfos)
+            foreach (var renderInfo in renderInfos)
             {
-                Renderer renderer = Renderer.Create(graphics, this, renderInfo, fieldInfos);
+                var renderer = Renderer.Create(graphics, this, renderInfo, fieldInfos);
                 renderer.Render();
             }
         }
@@ -349,12 +348,12 @@ public class DocumentRenderer
 
     private void RenderFooter(XGraphics graphics, int page)
     {
-        FormattedHeaderFooter formattedFooter = formattedDocument.GetFormattedFooter(page);
+        var formattedFooter = formattedDocument.GetFormattedFooter(page);
         if (formattedFooter == null)
             return;
 
-        Rectangle footerArea = formattedDocument.GetFooterArea(page);
-        RenderInfo[] renderInfos = formattedFooter.GetRenderInfos();
+        var footerArea = formattedDocument.GetFooterArea(page);
+        var renderInfos = formattedFooter.GetRenderInfos();
         if (renderInfos.Length == 0)
             return;
 
@@ -362,20 +361,20 @@ public class DocumentRenderer
         // come down by however much of the area it leaves empty. That is one distance for the
         // whole of it: moving each element to the same place instead lays them all on top of
         // one another. See https://github.com/ststeiger/PdfSharpCore/issues/414.
-        LayoutInfo firstLayoutInfo = renderInfos[0].LayoutInfo;
+        var firstLayoutInfo = renderInfos[0].LayoutInfo;
         XUnit formattedTop = firstLayoutInfo.ContentArea.Y - firstLayoutInfo.MarginTop;
         XUnit renderedTop = footerArea.Y + footerArea.Height - RenderInfo.GetTotalHeight(renderInfos);
         XUnit distance = renderedTop - formattedTop;
 
-        FieldInfos fieldInfos = formattedDocument.GetFieldInfos(page);
+        var fieldInfos = formattedDocument.GetFieldInfos(page);
 
         // As the header: a folio is furniture. See RenderHeader.
         using (Tagger.Artifact(graphics))
         {
-            foreach (RenderInfo renderInfo in renderInfos)
+            foreach (var renderInfo in renderInfos)
             {
-                Renderer renderer = Renderer.Create(graphics, this, renderInfo, fieldInfos);
-                XUnit savedY = renderer.RenderInfo.LayoutInfo.ContentArea.Y;
+                var renderer = Renderer.Create(graphics, this, renderInfo, fieldInfos);
+                var savedY = renderer.RenderInfo.LayoutInfo.ContentArea.Y;
                 renderer.RenderInfo.LayoutInfo.ContentArea.Y = savedY + distance;
                 try
                 {
@@ -412,40 +411,41 @@ public class DocumentRenderer
         if (level < 1 || destinationPage == null)
             return;
 
-        PdfDocument document = destinationPage.Owner;
+        var document = destinationPage.Owner;
 
         if (document == null)
             return;
 
-        PdfOutlineCollection outlines = document.Outlines;
+        var outlines = document.Outlines;
         while (--level > 0)
         {
-            int count = outlines.Count;
+            var count = outlines.Count;
             if (count == 0)
             {
                 // You cannot add empty bookmarks to PDF. So we use blank here.
-                PdfOutline outline = outlines.Add(" ", destinationPage, true);
+                var outline = outlines.Add(" ", destinationPage, true);
                 outline.Top = destinationTop;
                 outlines = outline.Outlines;
             }
             else
                 outlines = outlines[count - 1].Outlines;
         }
-        PdfOutline added = outlines.Add(title, destinationPage, true);
+        var added = outlines.Add(title, destinationPage, true);
         added.Top = destinationTop;
     }
 
     internal int NextListNumber(ListInfo listInfo)
     {
-        ListType listType = listInfo.ListType;
-        bool isNumberList = listType == ListType.NumberList1 ||
-                            listType == ListType.NumberList2 ||
-                            listType == ListType.NumberList3;
+        var listType = listInfo.ListType;
+        var isNumberList = listType == ListType.NumberList1 ||
+                           listType == ListType.NumberList2 ||
+                           listType == ListType.NumberList3;
 
-        int listNumber = int.MinValue;
+        var listNumber = int.MinValue;
         if (listInfo == previousListInfo)
         {
             if (isNumberList)
+                // ReSharper disable once PossibleNullReferenceException
                 return (int)previousListNumbers[listType];
             return listNumber;
         }
@@ -456,13 +456,11 @@ public class DocumentRenderer
         {
             listNumber = 1;
             if (/*!listTypeChanged &&*/ (listInfo.IsNull("ContinuePreviousList") || listInfo.ContinuePreviousList))
+                // ReSharper disable once PossibleNullReferenceException
                 listNumber = (int)previousListNumbers[listType] + 1;
 
             previousListNumbers[listType] = listNumber;
         }
-        //      else
-        //        listNumber = int.MinValue;
-
         previousListInfo = listInfo;
         return listNumber;
     }

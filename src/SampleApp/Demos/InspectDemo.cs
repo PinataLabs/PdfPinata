@@ -30,7 +30,7 @@ internal sealed class InspectDemo : PdfDemo
         "The CObject model - COperator, CInteger, CReal, CString, CName, CArray",
         "The operators a few ordinary drawing calls actually produce, listed in order",
         "A count by operator, which is the fastest way to see what a page is made of",
-        "Why the text reads as numbers: a font embedded as Identity-H shows glyph ids, not letters",
+        "Why the text reads as numbers: a font embedded as Identity-H shows glyph ids, not letters"
     };
 
     public override int PageCount => 3;
@@ -38,18 +38,18 @@ internal sealed class InspectDemo : PdfDemo
     protected override PdfDocument Build(DemoContext context)
     {
         #region example
-        PdfDocument document = new PdfDocument();
+        var document = new PdfDocument();
         document.Info.Title = "Inspect";
 
-        XFont heading = new XFont("Liberation Sans", 16, XFontStyle.Bold);
-        XFont label = new XFont("Liberation Sans", 9, XFontStyle.Bold);
-        XFont body = new XFont("Liberation Sans", 9);
-        XFont mono = new XFont("Source Code Pro", 7.5);
+        var heading = new XFont("Liberation Sans", 16, XFontStyle.Bold);
+        var label = new XFont("Liberation Sans", 9, XFontStyle.Bold);
+        var body = new XFont("Liberation Sans", 9);
+        var mono = new XFont("Source Code Pro", 7.5);
 
         // ----- page 1: something worth reading back -----
 
-        PdfPage subject = document.AddPage();
-        using (XGraphics gfx = XGraphics.FromPdfPage(subject))
+        var subject = document.AddPage();
+        using (var gfx = XGraphics.FromPdfPage(subject))
         {
             gfx.DrawString("The page being read", heading, XBrushes.Black, new XPoint(50, 60));
 
@@ -65,10 +65,10 @@ internal sealed class InspectDemo : PdfDemo
             gfx.DrawLine(new XPen(XColors.Firebrick, 3), 300, 150, 500, 250);
             gfx.DrawEllipse(new XPen(XColors.SeaGreen, 1.5), null, 50, 280, 200, 100);
 
-            XGraphicsPath path = new XGraphicsPath();
+            var path = new XGraphicsPath();
             path.AddPolygon(new[]
             {
-                new XPoint(320, 290), new XPoint(420, 290), new XPoint(370, 370),
+                new XPoint(320, 290), new XPoint(420, 290), new XPoint(370, 370)
             });
             gfx.DrawPath(new XPen(XColors.DarkOrange, 1.5), path);
 
@@ -81,30 +81,30 @@ internal sealed class InspectDemo : PdfDemo
         // read is the content stream as it was written, and until the document is saved there is
         // no stream to read. This is the same round trip the test suite's helpers make.
         byte[] saved;
-        using (MemoryStream buffer = new MemoryStream())
+        using (var buffer = new MemoryStream())
         {
             document.Save(buffer, false);
             saved = buffer.ToArray();
         }
 
-        List<COperator> operators = new List<COperator>();
-        using (MemoryStream buffer = new MemoryStream(saved))
+        var operators = new List<COperator>();
+        using (var buffer = new MemoryStream(saved))
         {
-            using PdfDocument reopened = PdfReader.Open(buffer, PdfDocumentOpenMode.Import);
+            using var reopened = PdfReader.Open(buffer, PdfDocumentOpenMode.Import);
 
             // One call. What comes back is a CSequence - a list of CObject, most of which are the
             // operators, each carrying the operands it was given.
-            CSequence content = ContentReader.ReadContent(reopened.Pages[0]);
+            var content = ContentReader.ReadContent(reopened.Pages[0]);
             operators.AddRange(content.OfType<COperator>());
         }
         // docs:end read-content
 
         // ----- page 2: the operators themselves -----
 
-        PdfPage listing = document.AddPage();
-        using (XGraphics gfx = XGraphics.FromPdfPage(listing))
+        var listing = document.AddPage();
+        using (var gfx = XGraphics.FromPdfPage(listing))
         {
-            XTextFormatter prose = new XTextFormatter(gfx);
+            var prose = new XTextFormatter(gfx);
 
             gfx.DrawString("What the page is made of", heading, XBrushes.Black, new XPoint(50, 60));
 
@@ -125,15 +125,15 @@ internal sealed class InspectDemo : PdfDemo
                 CName name => name.Name,
                 CString text => $"({text.Value.Length} bytes)",
                 CArray array => $"[{array.Count} items]",
-                _ => operand.ToString() ?? "",
+                _ => operand.ToString() ?? ""
             };
             // docs:end operands
 
             double y = 140;
             double x = 50;
-            foreach (COperator op in operators.Take(60))
+            foreach (var op in operators.Take(60))
             {
-                string operands = string.Join(" ", op.Operands.Select(Describe));
+                var operands = string.Join(" ", op.Operands.Select(Describe));
                 gfx.DrawString(op.OpCode.Name, mono, XBrushes.Firebrick, new XPoint(x, y));
                 gfx.DrawString(operands.Length > 44 ? string.Concat(operands.AsSpan(0, 41), "...") : operands,
                     mono, XBrushes.DimGray, new XPoint(x + 26, y));
@@ -149,10 +149,10 @@ internal sealed class InspectDemo : PdfDemo
 
         // ----- page 3: the tally, and what the text does not say -----
 
-        PdfPage tally = document.AddPage();
-        using (XGraphics gfx = XGraphics.FromPdfPage(tally))
+        var tally = document.AddPage();
+        using (var gfx = XGraphics.FromPdfPage(tally))
         {
-            XTextFormatter prose = new XTextFormatter(gfx);
+            var prose = new XTextFormatter(gfx);
 
             gfx.DrawString("By operator", heading, XBrushes.Black, new XPoint(50, 60));
 
@@ -184,13 +184,13 @@ internal sealed class InspectDemo : PdfDemo
                 ("rg", "set a non-stroking colour"), ("RG", "set a stroking colour"),
                 ("w", "set the line width"), ("gs", "apply an extended graphics state"),
                 ("J", "set the line cap"), ("j", "set the line join"), ("d", "set the dash"),
-                ("Do", "paint an XObject"), ("M", "set the miter limit"),
+                ("Do", "paint an XObject"), ("M", "set the miter limit")
             };
 
             double y = 140;
             foreach (var entry in counted)
             {
-                string? means = glossary.FirstOrDefault(item => item.Code == entry.Name).Means;
+                var means = glossary.FirstOrDefault(item => item.Code == entry.Name).Means;
 
                 gfx.DrawString($"{entry.Count,4}", mono, XBrushes.Black, new XPoint(50, y));
                 gfx.DrawString(entry.Name, mono, XBrushes.Firebrick, new XPoint(90, y));

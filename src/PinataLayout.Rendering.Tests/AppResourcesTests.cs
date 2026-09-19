@@ -40,6 +40,7 @@ public class AppResourcesTests
         var resources = typeof(PdfDocumentRenderer).Assembly.GetType(
             "PinataLayout.Rendering.Resources.AppResources", true);
 
+        // ReSharper disable once PossibleNullReferenceException
         return resources
             .GetProperties(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public)
             .Where(property => property.PropertyType == typeof(string))

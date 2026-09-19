@@ -58,7 +58,7 @@ public sealed class PdfStrikeOutAnnotation : PdfTextMarkupAnnotation
 
     void Initialize()
     {
-        Elements.SetName(Keys.Subtype, "/StrikeOut");
+        Elements.SetName(PdfAnnotation.Keys.Subtype, "/StrikeOut");
         Color = XColors.Red;
     }
 
@@ -68,8 +68,8 @@ public sealed class PdfStrikeOutAnnotation : PdfTextMarkupAnnotation
     /// </summary>
     protected override void DrawQuad(StringBuilder content, PdfRectangle quad)
     {
-        double thickness = TextMarkupGeometry.RuleThickness(quad);
-        double height = quad.Y2 - quad.Y1;
+        var thickness = TextMarkupGeometry.RuleThickness(quad);
+        var height = quad.Y2 - quad.Y1;
         content.Append(PdfEncoders.Format("{0:0.###} {1:0.###} {2:0.###} {3:0.###} re f\n",
             quad.X1, quad.Y1 + height * 3 / 7, quad.X2 - quad.X1, thickness));
     }

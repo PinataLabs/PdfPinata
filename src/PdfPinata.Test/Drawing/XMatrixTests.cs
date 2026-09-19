@@ -95,7 +95,7 @@ public class XMatrixTests
     {
         var matrix = new XMatrix
         {
-            M11 = 1, M12 = 2, M21 = 3, M22 = 4, OffsetX = 5, OffsetY = 6,
+            M11 = 1, M12 = 2, M21 = 3, M22 = 4, OffsetX = 5, OffsetY = 6
         };
 
         matrix.GetElements().Should().Equal(new double[] { 1, 2, 3, 4, 5, 6 });
@@ -478,7 +478,7 @@ public class XMatrixTests
         new(1, 0, 0, 1, 10, 20),
         new(2, 0, 0, 4, 0, 0),
         new(2, 0, 0, 4, 10, 20),
-        new(1, 2, 3, 4, 5, 6),
+        new(1, 2, 3, 4, 5, 6)
     };
 
     public static TheoryData<int> EachInvertibleMatrix()
@@ -520,6 +520,7 @@ public class XMatrixTests
         (matrix != new XMatrix(1, 2, 3, 4, 5, 7)).Should().BeTrue();
         matrix.Equals(new XMatrix(1, 2, 3, 4, 5, 6)).Should().BeTrue();
         matrix.Equals((object)new XMatrix(1, 2, 3, 4, 5, 6)).Should().BeTrue();
+        // ReSharper disable once SuspiciousTypeConversion.Global
         matrix.Equals("not a matrix").Should().BeFalse();
         XMatrix.Equals(matrix, new XMatrix(1, 2, 3, 4, 5, 6)).Should().BeTrue();
         XMatrix.Equals(XMatrix.Identity, XMatrix.Identity).Should().BeTrue();

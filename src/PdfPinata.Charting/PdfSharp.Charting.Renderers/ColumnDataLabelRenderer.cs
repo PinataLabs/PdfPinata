@@ -50,33 +50,34 @@ internal class ColumnDataLabelRenderer : DataLabelRenderer
   /// </summary>
   internal override void Format()
   {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    foreach (SeriesRendererInfo sri in cri.seriesRendererInfos)
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    foreach (var sri in cri.SeriesRendererInfos)
     {
-      if (sri.dataLabelRendererInfo == null)
+      if (sri.DataLabelRendererInfo == null)
         continue;
 
-      XGraphics gfx = this.rendererParms.Graphics;
+      var gfx = this.rendererParms.Graphics;
 
-      sri.dataLabelRendererInfo.Entries = new DataLabelEntryRendererInfo[sri.pointRendererInfos.Length];
-      int index = 0;
-      foreach (ColumnRendererInfo column in sri.pointRendererInfos)
+      sri.DataLabelRendererInfo.Entries = new DataLabelEntryRendererInfo[sri.PointRendererInfos.Length];
+      var index = 0;
+      // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
+      foreach (ColumnRendererInfo column in sri.PointRendererInfos)
       {
-        DataLabelEntryRendererInfo dleri = new DataLabelEntryRendererInfo();
-        if (sri.dataLabelRendererInfo.Type == DataLabelType.Percent)
+        var dleri = new DataLabelEntryRendererInfo();
+        if (sri.DataLabelRendererInfo.Type == DataLabelType.Percent)
           throw new InvalidOperationException(PSCSR.PercentNotSupportedByColumnDataLabel);
 
         // A blank has no value to write, so it is left with no text at all and Draw passes over
         // it. Writing what NaN formats to would put the word NaN on the plot area.
-        if (sri.dataLabelRendererInfo.Type == DataLabelType.Value && !double.IsNaN(column.Value))
+        if (sri.DataLabelRendererInfo.Type == DataLabelType.Value && !double.IsNaN(column.Value))
         {
-          dleri.Text = column.Value.ToString(sri.dataLabelRendererInfo.Format);
+          dleri.Text = column.Value.ToString(sri.DataLabelRendererInfo.Format);
 
           if (dleri.Text.Length > 0)
-            dleri.Size = gfx.MeasureString(dleri.Text, sri.dataLabelRendererInfo.Font);
+            dleri.Size = gfx.MeasureString(dleri.Text, sri.DataLabelRendererInfo.Font);
         }
 
-        sri.dataLabelRendererInfo.Entries[index++] = dleri;
+        sri.DataLabelRendererInfo.Entries[index++] = dleri;
       }
     }
 
@@ -88,19 +89,19 @@ internal class ColumnDataLabelRenderer : DataLabelRenderer
   /// </summary>
   internal override void Draw()
   {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
 
-    foreach (SeriesRendererInfo sri in cri.seriesRendererInfos)
+    foreach (var sri in cri.SeriesRendererInfos)
     {
-      if (sri.dataLabelRendererInfo == null)
+      if (sri.DataLabelRendererInfo == null)
         continue;
 
-      XGraphics gfx = this.rendererParms.Graphics;
-      XFont font = sri.dataLabelRendererInfo.Font;
-      XBrush fontColor = sri.dataLabelRendererInfo.FontColor;
-      XStringFormat format = XStringFormats.Center;
+      var gfx = this.rendererParms.Graphics;
+      var font = sri.DataLabelRendererInfo.Font;
+      var fontColor = sri.DataLabelRendererInfo.FontColor;
+      var format = XStringFormats.Center;
       format.LineAlignment = XLineAlignment.Center;
-      foreach (DataLabelEntryRendererInfo dataLabel in sri.dataLabelRendererInfo.Entries)
+      foreach (var dataLabel in sri.DataLabelRendererInfo.Entries)
       {
         if (dataLabel.Text != null)
           gfx.DrawString(dataLabel.Text, font, fontColor, dataLabel.Rect, format);
@@ -113,21 +114,21 @@ internal class ColumnDataLabelRenderer : DataLabelRenderer
   /// </summary>
   internal override void CalcPositions()
   {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    XGraphics gfx = this.rendererParms.Graphics;
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
 
-    foreach (SeriesRendererInfo sri in cri.seriesRendererInfos)
+    foreach (var sri in cri.SeriesRendererInfos)
     {
-      if (sri.dataLabelRendererInfo == null)
+      if (sri.DataLabelRendererInfo == null)
         continue;
 
-      int columnIndex = 0;
-      foreach (ColumnRendererInfo column in sri.pointRendererInfos)
+      var columnIndex = 0;
+      foreach (ColumnRendererInfo column in sri.PointRendererInfos)
+      // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
       {
-        DataLabelEntryRendererInfo dleri = sri.dataLabelRendererInfo.Entries[columnIndex++];
+        var dleri = sri.DataLabelRendererInfo.Entries[columnIndex++];
 
         dleri.X = column.Rect.X + column.Rect.Width / 2 - dleri.Width / 2; // Always the same...
-        switch (sri.dataLabelRendererInfo.Position)
+        switch (sri.DataLabelRendererInfo.Position)
         {
           case DataLabelPosition.InsideEnd:
             // Inner border of the column.

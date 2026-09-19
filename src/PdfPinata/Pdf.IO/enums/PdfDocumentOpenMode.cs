@@ -95,5 +95,5 @@ public enum PdfDocumentOpenMode
     /// this one, never in the middle, and never into 3.
     /// </para>
     /// </remarks>
-    Append = 4,
+    Append = 4
 }

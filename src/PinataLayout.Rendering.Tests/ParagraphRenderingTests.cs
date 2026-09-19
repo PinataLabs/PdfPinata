@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
@@ -157,7 +158,7 @@ public class ParagraphRenderingTests
     enum SeparatedBy
     {
         ABlankElement,
-        ASpaceInTheText,
+        ASpaceInTheText
     }
 
     /// <summary>
@@ -203,7 +204,7 @@ public class ParagraphRenderingTests
 
     static void Sized(Paragraph paragraph, double size, Strikethrough struck, TextFormat format = TextFormat.NotBold)
     {
-        var text = paragraph.AddFormattedText(size.ToString(), format);
+        var text = paragraph.AddFormattedText(size.ToString(CultureInfo.InvariantCulture), format);
         text.Font.Size = size;
         text.Font.Strikethrough = struck;
         text.AddText(" ");

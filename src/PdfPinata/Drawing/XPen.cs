@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -154,6 +154,7 @@ public sealed class XPen
             if (_immutable)
                 throw new ArgumentException(PSSR.CannotChangeImmutableObject("XPen"));
             #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
+            // ReSharper disable once CompareOfFloatsByEqualityOperator
             _dirty = _dirty || _width != value;
             #pragma warning restore S1244
             _width = value;
@@ -204,6 +205,7 @@ public sealed class XPen
             if (_immutable)
                 throw new ArgumentException(PSSR.CannotChangeImmutableObject("XPen"));
             #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
+            // ReSharper disable once CompareOfFloatsByEqualityOperator
             _dirty = _dirty || _miterLimit != value;
             #pragma warning restore S1244
             _miterLimit = value;
@@ -238,6 +240,7 @@ public sealed class XPen
             if (_immutable)
                 throw new ArgumentException(PSSR.CannotChangeImmutableObject("XPen"));
             #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
+            // ReSharper disable once CompareOfFloatsByEqualityOperator
             _dirty = _dirty || _dashOffset != value;
             #pragma warning restore S1244
             _dashOffset = value;
@@ -261,11 +264,11 @@ public sealed class XPen
             if (_immutable)
                 throw new ArgumentException(PSSR.CannotChangeImmutableObject("XPen"));
 
-            int length = value.Length;
+            var length = value.Length;
             //if (length == 0)
             //  throw new ArgumentException("Dash pattern array must not be empty.");
 
-            for (int idx = 0; idx < length; idx++)
+            for (var idx = 0; idx < length; idx++)
             {
                 if (value[idx] <= 0)
                     throw new ArgumentException("Dash pattern value must greater than zero.");

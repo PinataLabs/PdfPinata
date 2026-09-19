@@ -26,7 +26,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -55,12 +55,12 @@ public sealed class DdlEncoder
     if (str == null)
       return null;
 
-    int length = str.Length;
-    StringBuilder strb = new StringBuilder(length + (int)(length >> 2));
-    for (int index = 0; index < length; ++index)
+    var length = str.Length;
+    var strb = new StringBuilder(length + (length >> 2));
+    for (var index = 0; index < length; ++index)
     {
       // Don't convert characters into DDL.
-      char ch = str[index];
+      var ch = str[index];
       switch (ch)
       {
         case '\\':
@@ -100,15 +100,15 @@ public sealed class DdlEncoder
   /// </summary>
   public static string StringToLiteral(string str)
   {
-    int length = 0;
+    int length;
     if (str == null || (length = str.Length) == 0)
       return "\"\"";
 
-    StringBuilder strb = new StringBuilder(length + (int)(length >> 2));
+    var strb = new StringBuilder(length + (length >> 2));
     strb.Append('"');
-    for (int index = 0; index < length; ++index)
+    for (var index = 0; index < length; ++index)
     {
-      char ch = str[index];
+      var ch = str[index];
       switch (ch)
       {
         case '\\':
@@ -138,13 +138,13 @@ public sealed class DdlEncoder
     if (name == null || name == String.Empty)
       return false;
 
-    int len = name.Length;
+    var len = name.Length;
     if (len > 64)
       return false;
 
-    for (int index = 0; index < len; index++)
+    for (var index = 0; index < len; index++)
     {
-      char ch = name[index];
+      var ch = name[index];
       if (ch == ' ')
         return false;
 

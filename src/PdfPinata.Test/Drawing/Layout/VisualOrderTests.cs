@@ -19,13 +19,12 @@ public class VisualOrderTests
     // so that a source file mixing right-to-left text with left-to-right code cannot be misread.
     const string First = "אב";
     const string Second = "גד";
-    const string Third = "הו";
 
     static (int Start, int Length)[] WordSpans(params string[] words)
     {
         var spans = new (int Start, int Length)[words.Length];
-        int at = 0;
-        for (int idx = 0; idx < words.Length; idx++)
+        var at = 0;
+        for (var idx = 0; idx < words.Length; idx++)
         {
             spans[idx] = (at, words[idx].Length);
             at += words[idx].Length + 1; // one space between words, as both callers join lines

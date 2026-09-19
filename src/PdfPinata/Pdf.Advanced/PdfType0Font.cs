@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -80,12 +80,12 @@ internal sealed class PdfType0Font : PdfFont
     {
         // The getter answers a PDF name, which carries its solidus; a name being assembled here may
         // not have one yet.
-        int start = baseFont.Length > 0 && baseFont[0] == '/' ? 1 : 0;
+        var start = baseFont.Length > 0 && baseFont[0] == '/' ? 1 : 0;
 
         if (baseFont.Length < start + 7 || baseFont[start + 6] != '+')
             return false;
 
-        for (int index = start; index < start + 6; index++)
+        for (var index = start; index < start + 6; index++)
         {
             if (baseFont[index] < 'A' || baseFont[index] > 'Z')
                 return false;
@@ -101,7 +101,7 @@ internal sealed class PdfType0Font : PdfFont
         Elements.SetName(Keys.Subtype, "/Type0");
         Elements.SetName(Keys.Encoding, vertical ? "/Identity-V" : "/Identity-H");
 
-        OpenTypeDescriptor ttDescriptor = (OpenTypeDescriptor)FontDescriptorCache.GetOrCreateDescriptorFor(font);
+        var ttDescriptor = (OpenTypeDescriptor)FontDescriptorCache.GetOrCreateDescriptorFor(font);
         FontDescriptor = new PdfFontDescriptor(document, ttDescriptor);
         _fontOptions = font.PdfOptions;
         Debug.Assert(_fontOptions != null);
@@ -125,7 +125,7 @@ internal sealed class PdfType0Font : PdfFont
         FontDescriptor.FontName = BaseFont;
         _descendantFont.BaseFont = BaseFont;
 
-        PdfArray descendantFonts = new PdfArray(document);
+        var descendantFonts = new PdfArray(document);
         Owner._irefTable.Add(_descendantFont);
         descendantFonts.Elements.Add(_descendantFont.Reference);
         Elements[Keys.DescendantFonts] = descendantFonts;
@@ -138,13 +138,13 @@ internal sealed class PdfType0Font : PdfFont
         Elements.SetName(Keys.Subtype, "/Type0");
         Elements.SetName(Keys.Encoding, vertical ? "/Identity-V" : "/Identity-H");
 
-        OpenTypeDescriptor ttDescriptor = (OpenTypeDescriptor)FontDescriptorCache.GetOrCreateDescriptor(idName, fontData);
+        var ttDescriptor = (OpenTypeDescriptor)FontDescriptorCache.GetOrCreateDescriptor(idName, fontData);
         FontDescriptor = new PdfFontDescriptor(document, ttDescriptor);
         _fontOptions = new XPdfFontOptions(PdfFontEncoding.Unicode);
         Debug.Assert(_fontOptions != null);
 
         _cmapInfo = new CMapInfo(ttDescriptor);
-        _descendantFont = new PdfCIDFont(document, FontDescriptor, fontData);
+        _descendantFont = new PdfCIDFont(document, FontDescriptor);
         _descendantFont.CMapInfo = _cmapInfo;
 
         // Create ToUnicode map
@@ -164,13 +164,11 @@ internal sealed class PdfType0Font : PdfFont
         FontDescriptor.FontName = BaseFont;
         _descendantFont.BaseFont = BaseFont;
 
-        PdfArray descendantFonts = new PdfArray(document);
+        var descendantFonts = new PdfArray(document);
         Owner._irefTable.Add(_descendantFont);
         descendantFonts.Elements.Add(_descendantFont.Reference);
         Elements[Keys.DescendantFonts] = descendantFonts;
     }
-
-    XPdfFontOptions FontOptions => _fontOptions;
 
     XPdfFontOptions _fontOptions;
 
@@ -189,20 +187,20 @@ internal sealed class PdfType0Font : PdfFont
         base.PrepareForSave();
 
         // Use GetGlyphIndices to create the widths array.
-        OpenTypeDescriptor descriptor = (OpenTypeDescriptor)FontDescriptor._descriptor;
-        StringBuilder w = new StringBuilder("[");
+        var descriptor = FontDescriptor._descriptor;
+        var w = new StringBuilder("[");
         if (_cmapInfo != null)
         {
-            int[] glyphIndices = _cmapInfo.GetGlyphIndices();
-            int count = glyphIndices.Length;
-            int[] glyphWidths = new int[count];
+            var glyphIndices = _cmapInfo.GetGlyphIndices();
+            var count = glyphIndices.Length;
+            var glyphWidths = new int[count];
 
-            for (int idx = 0; idx < count; idx++)
+            for (var idx = 0; idx < count; idx++)
                 glyphWidths[idx] = descriptor.GlyphIndexToPdfWidth(glyphIndices[idx]);
 
             //TODO: optimize order of indices
 
-            for (int idx = 0; idx < count; idx++)
+            for (var idx = 0; idx < count; idx++)
                 w.AppendFormat("{0}[{1}]", glyphIndices[idx], glyphWidths[idx]);
             w.Append(']');
             _descendantFont.Elements.SetValue(PdfCIDFont.Keys.W, new PdfLiteral(w.ToString()));

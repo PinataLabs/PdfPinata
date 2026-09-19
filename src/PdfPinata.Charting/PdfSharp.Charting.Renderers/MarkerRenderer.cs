@@ -47,14 +47,14 @@ internal class MarkerRenderer
       return;
 
     double size = rendererInfo.MarkerSize;
-    double size2 = size / 2;
+    var size2 = size / 2;
     double x0, y0, x1, y1;
     double g;
 
-    XPen foreground = new XPen(rendererInfo.MarkerForegroundColor, 0.5);
+    var foreground = new XPen(rendererInfo.MarkerForegroundColor, 0.5);
     XBrush background = new XSolidBrush(rendererInfo.MarkerBackgroundColor);
 
-    XGraphicsPath gp = new XGraphicsPath();
+    var gp = new XGraphicsPath();
     switch (rendererInfo.MarkerStyle)
     {
       case MarkerStyle.Square:
@@ -135,14 +135,14 @@ internal class MarkerRenderer
 
       case MarkerStyle.Star:
       {
-        XPoint[] points = new XPoint[10];
+        var points = new XPoint[10];
 
-        double radStep = 2 * Math.PI / 5;
-        double outerCircle = size / 2;
-        double innerCircle = size / 5;
+        var radStep = 2 * Math.PI / 5;
+        var outerCircle = size / 2;
+        var innerCircle = size / 5;
         // outer circle
-        double rad = -(Math.PI / 2); // 90°
-        for (int idx = 0; idx < 10; idx += 2)
+        var rad = -(Math.PI / 2); // 90°
+        for (var idx = 0; idx < 10; idx += 2)
         {
           points[idx].X = pos.X + outerCircle * Math.Cos(rad);
           points[idx].Y = pos.Y + outerCircle * Math.Sin(rad);
@@ -151,8 +151,8 @@ internal class MarkerRenderer
 
         // inner circle
         rad = -(Math.PI / 4); // 45°
-        double x = innerCircle * Math.Cos(rad);
-        double y = innerCircle * Math.Sin(rad);
+        var x = innerCircle * Math.Cos(rad);
+        var y = innerCircle * Math.Sin(rad);
         points[1].X = pos.X + x;
         points[1].Y = pos.Y + y;
         points[9].X = pos.X - x;

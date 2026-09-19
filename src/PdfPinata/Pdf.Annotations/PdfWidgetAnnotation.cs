@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -69,7 +69,7 @@ public sealed class PdfWidgetAnnotation : PdfAnnotation
 
     void Initialize()
     {
-        Elements.SetName(Keys.Subtype, "/Widget");
+        Elements.SetName(PdfAnnotation.Keys.Subtype, "/Widget");
     }
 
     /// <summary>
@@ -87,14 +87,14 @@ public sealed class PdfWidgetAnnotation : PdfAnnotation
         ///     offset the contents of the annotation rectangle to appear as if it were being pushed below
         ///     the surface of the page.
         ///   T (Toggle) Same as P (which is preferred).
-        /// A highlighting mode other than P overrides any down appearance defined for the annotation. 
+        /// A highlighting mode other than P overrides any down appearance defined for the annotation.
         /// Default value: I.
         /// </summary>
         [KeyInfo(KeyType.Name | KeyType.Optional)]
         public const string H = "/H";
 
         /// <summary>
-        /// (Optional) An appearance characteristics dictionary to be used in constructing a dynamic 
+        /// (Optional) An appearance characteristics dictionary to be used in constructing a dynamic
         /// appearance stream specifying the annotation’s visual presentation on the page.
         /// The name MK for this entry is of historical significance only and has no direct meaning.
         /// </summary>

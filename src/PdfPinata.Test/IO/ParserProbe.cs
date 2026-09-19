@@ -20,7 +20,7 @@ namespace PdfPinata.Test.IO;
 ///   What this buys is a test that builds bytes rather than a document. The parser still needs a
 ///   <see cref="PdfDocument"/> to own the objects it makes - every <c>PdfObject</c> is numbered by
 ///   looking itself up in a document's cross-reference table - but it needs nothing else that
-///   <see cref="PdfReader.Open"/> builds: no <c>%PDF</c> header, no real cross-reference table, no
+///   <c>PdfReader.Open</c> builds: no <c>%PDF</c> header, no real cross-reference table, no
 ///   trailer, no <c>startxref</c> found by scanning the end of a file. A plain
 ///   <c>new PdfDocument()</c> and a <see cref="MemoryStream"/> of hand-written bytes are the whole
 ///   of what a test needs to stand one up.
@@ -82,8 +82,10 @@ static class ParserProbe
     internal static Symbol Scan(object parser) =>
         (Symbol)Invoke(Method("ScanNextToken", Type.EmptyTypes), parser);
 
+    // ReSharper disable PossibleNullReferenceException
     internal static long Position(object parser) =>
         (long)LexerMember("Position").GetValue(Lexer(parser));
+    // ReSharper restore PossibleNullReferenceException
 
     /// <summary>
     ///   Moves the input to the given byte offset, the way the reader does before handing an
@@ -116,10 +118,12 @@ static class ParserProbe
     {
         var stack = Field(ParserType, "_stack").GetValue(parser);
         var pointer = Member(ShiftStackType, "SP");
+        // ReSharper disable once PossibleNullReferenceException
         var before = (int)pointer.GetValue(stack);
 
         Invoke(Method("ParseObject", new[] { typeof(Symbol) }), parser, stop);
 
+        // ReSharper disable once PossibleNullReferenceException
         var count = (int)pointer.GetValue(stack) - before;
         return (PdfItem[])Invoke(
             Method(ShiftStackType, "ToArray", new[] { typeof(int), typeof(int) }), stack, before, count);
@@ -154,10 +158,13 @@ static class ParserProbe
         var field2 = Field(entryType, "Field2");
         var field3 = Field(entryType, "Field3");
 
+        // ReSharper disable once AssignNullToNotNullAttribute
+        // ReSharper disable PossibleNullReferenceException
         return ((IEnumerable)Field(XRefStreamType, "Entries").GetValue(xrefStream))
             .Cast<object>()
             .Select(entry => ((uint)type.GetValue(entry), (uint)field2.GetValue(entry), (uint)field3.GetValue(entry)))
             .ToArray();
+        // ReSharper restore PossibleNullReferenceException
     }
 
     // ----- The one member of PdfDocument the parser reads --------------------------------------------

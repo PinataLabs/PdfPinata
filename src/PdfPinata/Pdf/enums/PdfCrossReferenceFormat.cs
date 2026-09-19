@@ -15,5 +15,5 @@ public enum PdfCrossReferenceFormat
     /// A cross-reference stream, with the objects that may go in one gathered into object streams
     /// and compressed together. Smaller, and needs a reader that understands PDF 1.5.
     /// </summary>
-    Stream,
+    Stream
 }

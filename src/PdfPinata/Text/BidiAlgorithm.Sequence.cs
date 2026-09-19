@@ -53,7 +53,7 @@ public static partial class BidiAlgorithm
             // is attached to is an isolate initiator or a PDI - because those are about to become
             // neutrals and a mark must not inherit a direction from one.
             var previous = _sos;
-            for (int idx = 0; idx < Count; idx++)
+            for (var idx = 0; idx < Count; idx++)
             {
                 var type = TypeAt(idx);
                 if (type == BidiClass.NSM)
@@ -74,7 +74,7 @@ public static partial class BidiAlgorithm
 
             // W2. A European number after an Arabic letter is an Arabic number.
             var strong = _sos;
-            for (int idx = 0; idx < Count; idx++)
+            for (var idx = 0; idx < Count; idx++)
             {
                 var type = TypeAt(idx);
                 if (type == BidiClass.L || type == BidiClass.R || type == BidiClass.AL)
@@ -84,14 +84,14 @@ public static partial class BidiAlgorithm
             }
 
             // W3. Arabic letters are simply strong right-to-left from here on.
-            for (int idx = 0; idx < Count; idx++)
+            for (var idx = 0; idx < Count; idx++)
             {
                 if (TypeAt(idx) == BidiClass.AL)
                     SetType(idx, BidiClass.R);
             }
 
             // W4. A single separator between two numbers of the same kind joins them.
-            for (int idx = 1; idx < Count - 1; idx++)
+            for (var idx = 1; idx < Count - 1; idx++)
             {
                 var type = TypeAt(idx);
                 if (type != BidiClass.ES && type != BidiClass.CS)
@@ -108,21 +108,21 @@ public static partial class BidiAlgorithm
 
             // W5. A run of terminators touching a European number joins it - "$1" and "1%" alike,
             // so the run has to be looked at from both ends.
-            for (int idx = 0; idx < Count; idx++)
+            for (var idx = 0; idx < Count; idx++)
             {
                 if (TypeAt(idx) != BidiClass.ET)
                     continue;
 
-                int end = idx;
+                var end = idx;
                 while (end + 1 < Count && TypeAt(end + 1) == BidiClass.ET)
                     end++;
 
-                bool adjacent = (idx > 0 && TypeAt(idx - 1) == BidiClass.EN)
-                    || (end + 1 < Count && TypeAt(end + 1) == BidiClass.EN);
+                var adjacent = (idx > 0 && TypeAt(idx - 1) == BidiClass.EN)
+                               || (end + 1 < Count && TypeAt(end + 1) == BidiClass.EN);
 
                 if (adjacent)
                 {
-                    for (int scan = idx; scan <= end; scan++)
+                    for (var scan = idx; scan <= end; scan++)
                         SetType(scan, BidiClass.EN);
                 }
 
@@ -130,7 +130,7 @@ public static partial class BidiAlgorithm
             }
 
             // W6. Whatever separators and terminators are left are neutral.
-            for (int idx = 0; idx < Count; idx++)
+            for (var idx = 0; idx < Count; idx++)
             {
                 var type = TypeAt(idx);
                 if (type == BidiClass.ET || type == BidiClass.ES || type == BidiClass.CS)
@@ -139,7 +139,7 @@ public static partial class BidiAlgorithm
 
             // W7. A European number in left-to-right context is simply left-to-right.
             strong = _sos;
-            for (int idx = 0; idx < Count; idx++)
+            for (var idx = 0; idx < Count; idx++)
             {
                 var type = TypeAt(idx);
                 if (type == BidiClass.L || type == BidiClass.R)
@@ -180,7 +180,7 @@ public static partial class BidiAlgorithm
             {
                 // N0 b and c: what is inside the brackets decides, and only strong types count.
                 bool foundEmbedding = false, foundOpposite = false;
-                for (int idx = open + 1; idx < close; idx++)
+                for (var idx = open + 1; idx < close; idx++)
                 {
                     var strong = StrongDirectionOf(TypeAt(idx));
                     if (strong == BidiClass.ON)
@@ -202,7 +202,7 @@ public static partial class BidiAlgorithm
                     // c. Something inside runs the other way, so what came before the brackets
                     // decides whether they follow it or stay with the embedding.
                     var context = _sos;
-                    for (int idx = open - 1; idx >= 0; idx--)
+                    for (var idx = open - 1; idx >= 0; idx--)
                     {
                         var strong = StrongDirectionOf(TypeAt(idx));
                         if (strong != BidiClass.ON)
@@ -229,9 +229,9 @@ public static partial class BidiAlgorithm
             SetType(open, type);
             SetType(close, type);
 
-            foreach (int bracket in new[] { open, close })
+            foreach (var bracket in new[] { open, close })
             {
-                for (int idx = bracket + 1; idx < Count; idx++)
+                for (var idx = bracket + 1; idx < Count; idx++)
                 {
                     if (InitialAt(idx) != BidiClass.NSM)
                         break;
@@ -250,23 +250,23 @@ public static partial class BidiAlgorithm
             // processing BD16 for the remainder of the isolating run sequence." Sixty-three is the
             // number the specification gives, and it is not negotiable: a longer stack would find
             // pairs a conformant implementation does not.
-            const int Capacity = 63;
+            const int capacity = 63;
 
             var stack = new List<(int Closing, int Position)>();
             var pairs = new List<(int Open, int Close)>();
 
-            for (int idx = 0; idx < Count; idx++)
+            for (var idx = 0; idx < Count; idx++)
             {
                 // Only a bracket that is still a neutral is a bracket for this purpose.
                 if (TypeAt(idx) != BidiClass.ON)
                     continue;
 
-                int codePoint = _paragraph.CodePoints[_indices[idx]];
+                var codePoint = _paragraph.CodePoints[_indices[idx]];
 
-                int closing = ClosingBracketOf(codePoint);
+                var closing = ClosingBracketOf(codePoint);
                 if (closing >= 0)
                 {
-                    if (stack.Count == Capacity)
+                    if (stack.Count == capacity)
                         break;
 
                     stack.Add((Canonical(closing), idx));
@@ -276,8 +276,8 @@ public static partial class BidiAlgorithm
                 if (!IsClosingBracket(codePoint))
                     continue;
 
-                int wanted = Canonical(codePoint);
-                for (int depth = stack.Count - 1; depth >= 0; depth--)
+                var wanted = Canonical(codePoint);
+                for (var depth = stack.Count - 1; depth >= 0; depth--)
                 {
                     if (stack[depth].Closing != wanted)
                         continue;
@@ -300,12 +300,12 @@ public static partial class BidiAlgorithm
         {
             0x3008 => 0x2329,
             0x3009 => 0x232A,
-            _ => codePoint,
+            _ => codePoint
         };
 
         static int ClosingBracketOf(int codePoint)
         {
-            int index = Array.BinarySearch(UnicodeTables.BracketOpen, codePoint);
+            var index = Array.BinarySearch(UnicodeTables.BracketOpen, codePoint);
             return index >= 0 ? UnicodeTables.BracketClose[index] : -1;
         }
 
@@ -316,12 +316,12 @@ public static partial class BidiAlgorithm
 
         void ResolveNeutralTypes()
         {
-            for (int idx = 0; idx < Count; idx++)
+            for (var idx = 0; idx < Count; idx++)
             {
                 if (!IsNeutralOrIsolate(TypeAt(idx)))
                     continue;
 
-                int end = idx;
+                var end = idx;
                 while (end + 1 < Count && IsNeutralOrIsolate(TypeAt(end + 1)))
                     end++;
 
@@ -330,7 +330,7 @@ public static partial class BidiAlgorithm
 
                 // N1 when the two sides agree, N2 - the embedding direction - when they do not.
                 var resolved = before == after && before != BidiClass.ON ? before : Embedding;
-                for (int scan = idx; scan <= end; scan++)
+                for (var scan = idx; scan <= end; scan++)
                     SetType(scan, resolved);
 
                 idx = end;
@@ -341,8 +341,8 @@ public static partial class BidiAlgorithm
 
         void ResolveImplicitLevels()
         {
-            bool even = (_level & 1) == 0;
-            for (int idx = 0; idx < Count; idx++)
+            var even = (_level & 1) == 0;
+            for (var idx = 0; idx < Count; idx++)
             {
                 var type = TypeAt(idx);
                 int bump;

@@ -165,7 +165,7 @@ public partial class Cell : DocumentObject, IVisitable
         {
             if (table == null)
             {
-                Cells cls = Parent as Cells;
+                var cls = Parent as Cells;
                 if (cls != null)
                     table = cls.Table;
             }
@@ -183,8 +183,9 @@ public partial class Cell : DocumentObject, IVisitable
         {
             if (clm == null)
             {
-                Cells cells = Parent as Cells;
-                for (int index = 0; index < cells.Count; ++index)
+                var cells = Parent as Cells;
+                // ReSharper disable once PossibleNullReferenceException
+                for (var index = 0; index < cells.Count; ++index)
                 {
                     if (cells[index] == this)
                         clm = Table.Columns[index];
@@ -204,7 +205,8 @@ public partial class Cell : DocumentObject, IVisitable
         {
             if (row == null)
             {
-                Cells cells = Parent as Cells;
+                var cells = Parent as Cells;
+                // ReSharper disable once PossibleNullReferenceException
                 row = cells.Row;
             }
             return row;
@@ -370,7 +372,7 @@ public partial class Cell : DocumentObject, IVisitable
         serializer.WriteComment((comment ?? ""));
         serializer.WriteLine("\\cell");
 
-        int pos = serializer.BeginAttributes();
+        var pos = serializer.BeginAttributes();
 
         if ((style ?? "") != String.Empty)
             serializer.WriteSimpleAttribute("Style", Style);
@@ -412,6 +414,7 @@ public partial class Cell : DocumentObject, IVisitable
         visitor.VisitCell(this);
 
         if (visitChildren && elements != null)
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             ((IVisitable)elements).AcceptVisitor(visitor, visitChildren);
     }
 

@@ -24,7 +24,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -55,9 +55,9 @@ internal class BordersRenderer
 
   private XColor GetColor(BorderType type)
   {
-    Color clr = Colors.Black;
+    var clr = Colors.Black;
 
-    Border border = GetBorder(type);
+    var border = GetBorder(type);
     if (border != null && !border.Color.IsEmpty)
       clr = border.Color;
     else if (!borders.Color.IsEmpty)
@@ -68,9 +68,9 @@ internal class BordersRenderer
 
   private BorderStyle GetStyle(BorderType type)
   {
-    BorderStyle style = BorderStyle.Single;
+    var style = BorderStyle.Single;
 
-    Border border = GetBorder(type);
+    var border = GetBorder(type);
     if (border != null && !border.IsNull("Style"))
       style = border.Style;
     else if (!borders.IsNull("Style"))
@@ -84,22 +84,20 @@ internal class BordersRenderer
     if (borders == null)
       return 0;
 
-    Border border = GetBorder(type);
+    var border = GetBorder(type);
 
     if (border != null)
     {
       if (!border.IsNull("Visible") && !border.Visible)
         return 0;
 
+      // ReSharper disable once ConditionIsAlwaysTrueOrFalse
       if (border != null && !border.IsNull("Width"))
         return border.Width.Point;
 
       if (!border.IsNull("Color") || !border.IsNull("Style") || border.Visible)
       {
-        if (!borders.IsNull("Width"))
-          return borders.Width.Point;
-
-        return 0.5;
+        return !borders.IsNull("Width") ? borders.Width.Point : 0.5;
       }
     }
     else if (!(type == BorderType.DiagonalDown || type == BorderType.DiagonalUp))
@@ -125,7 +123,7 @@ internal class BordersRenderer
   /// <param name="height">The height on which to render the border.</param>
   internal void RenderVertically(BorderType type, XUnit left, XUnit top, XUnit height)
   {
-    XUnit borderWidth = GetWidth(type);
+    var borderWidth = GetWidth(type);
     if (borderWidth == 0)
       return;
 
@@ -142,7 +140,7 @@ internal class BordersRenderer
   /// <param name="width">The width on which to render the border.</param>
   internal void RenderHorizontally(BorderType type, XUnit left, XUnit top, XUnit width)
   {
-    XUnit borderWidth = GetWidth(type);
+    var borderWidth = GetWidth(type);
     if (borderWidth == 0)
       return;
 
@@ -153,11 +151,11 @@ internal class BordersRenderer
 
   internal void RenderDiagonally(BorderType type, XUnit left, XUnit top, XUnit width, XUnit height)
   {
-    XUnit borderWidth = GetWidth(type);
+    var borderWidth = GetWidth(type);
     if (borderWidth == 0)
       return;
 
-    XGraphicsState state = gfx.Save();
+    var state = gfx.Save();
     gfx.IntersectClip(new XRect(left, top, width, height));
 
     if (type == BorderType.DiagonalDown)
@@ -168,30 +166,30 @@ internal class BordersRenderer
     gfx.Restore(state);
   }
 
-  internal void RenderRounded(RoundedCorner roundedCorner, XUnit x, XUnit y, XUnit width, XUnit height) 
+  internal void RenderRounded(RoundedCorner roundedCorner, XUnit x, XUnit y, XUnit width, XUnit height)
   {
     if (roundedCorner == RoundedCorner.None)
       return;
-      
+
     // As source we use the vertical borders.
     // If not set originally, they have been set to the horizontal border values in TableRenderer.EqualizeRoundedCornerBorders().
-    BorderType borderType = BorderType.Top;
+    var borderType = BorderType.Top;
     if (roundedCorner == RoundedCorner.TopLeft || roundedCorner == RoundedCorner.BottomLeft)
       borderType = BorderType.Left;
     if (roundedCorner == RoundedCorner.TopRight || roundedCorner == RoundedCorner.BottomRight)
       borderType = BorderType.Right;
-      
-    XUnit borderWidth = GetWidth(borderType);
-    XPen borderPen = GetPen(borderType);
-      
+
+    var borderWidth = GetWidth(borderType);
+    var borderPen = GetPen(borderType);
+
     if (borderWidth == 0)
       return;
-      
+
     x -= borderWidth / 2;
     y -= borderWidth / 2;
     XUnit ellipseWidth = width * 2 + borderWidth;
     XUnit ellipseHeight = height * 2 + borderWidth;
-      
+
     switch (roundedCorner) {
       case RoundedCorner.TopLeft:
         gfx.DrawArc(borderPen, new XRect(x, y, ellipseWidth, ellipseHeight), 180, 90);
@@ -210,12 +208,12 @@ internal class BordersRenderer
 
   private XPen GetPen(BorderType type)
   {
-    XUnit borderWidth = GetWidth(type);
+    var borderWidth = GetWidth(type);
     if (borderWidth == 0)
       return null;
 
-    XPen pen = new XPen(GetColor(type), borderWidth);
-    BorderStyle style = GetStyle(type);
+    var pen = new XPen(GetColor(type), borderWidth);
+    var style = GetStyle(type);
     switch (style)
     {
       case BorderStyle.DashDot:

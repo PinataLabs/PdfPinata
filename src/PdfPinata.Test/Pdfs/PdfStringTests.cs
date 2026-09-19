@@ -19,7 +19,7 @@ public class PdfStringTests
     [Fact]
     public void AStringMadeFromNullIsEmptyAndRaw()
     {
-        var text = new PdfString((string)null);
+        var text = new PdfString(null);
 
         text.Value.Should().BeEmpty();
         text.Length.Should().Be(0);
@@ -105,10 +105,10 @@ public class PdfStringTests
     [Fact]
     public void ReadingAsPdfDocEncodingMapsEveryCharacterOfTheString()
     {
-        var text = new PdfString("\x93nal \x84 \xA0" + "5", PdfStringEncoding.RawEncoding);
+        var text = new PdfString("\u0093nal \u0084 \u00A0" + "5", PdfStringEncoding.RawEncoding);
 
         text.ToStringFromPdfDocEncoded().Should().Be("ﬁnal — €5");
-        text.Value.Should().Be("\x93nal \x84 \xA0" + "5", "the string itself is a simple type and does not change");
+        text.Value.Should().Be("\u0093nal \u0084 \u00A0" + "5", "the string itself is a simple type and does not change");
     }
 
     [Fact]

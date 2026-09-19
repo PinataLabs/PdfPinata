@@ -71,8 +71,8 @@ public readonly struct XInterval : IEquatable<XInterval>
     /// </summary>
     public XInterval Intersect(XInterval other)
     {
-        double start = Math.Max(Start, other.Start);
-        double end = Math.Min(End, other.End);
+        var start = Math.Max(Start, other.Start);
+        var end = Math.Min(End, other.End);
         return end <= start ? new XInterval(start, start) : new XInterval(start, end);
     }
 

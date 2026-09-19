@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -54,7 +54,7 @@ internal class FontDescriptor
 
 
     ///// <summary>
-    ///// 
+    /////
     ///// </summary>
     //public string FontFile
     //{
@@ -64,7 +64,7 @@ internal class FontDescriptor
     //string _fontFile;
 
     ///// <summary>
-    ///// 
+    /////
     ///// </summary>
     //public string FontType
     //{
@@ -74,7 +74,7 @@ internal class FontDescriptor
     //string _fontType;
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public string FontName
     {
@@ -84,7 +84,7 @@ internal class FontDescriptor
     string _fontName;
 
     ///// <summary>
-    ///// 
+    /////
     ///// </summary>
     //public string FullName
     //{
@@ -94,7 +94,7 @@ internal class FontDescriptor
     //string _fullName;
 
     ///// <summary>
-    ///// 
+    /////
     ///// </summary>
     //public string FamilyName
     //{
@@ -104,11 +104,12 @@ internal class FontDescriptor
     //string _familyName;
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public string Weight
     {
         get => _weight;
+        // ReSharper disable once UnusedMember.Local
         private set => _weight = value; // BUG: never set
     }
     string _weight;
@@ -119,7 +120,7 @@ internal class FontDescriptor
     public virtual bool IsBoldFace => false;
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public float ItalicAngle
     {
@@ -134,7 +135,7 @@ internal class FontDescriptor
     public virtual bool IsItalicFace => false;
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public int XMin
     {
@@ -144,7 +145,7 @@ internal class FontDescriptor
     int _xMin;
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public int YMin
     {
@@ -154,7 +155,7 @@ internal class FontDescriptor
     int _yMin;
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public int XMax
     {
@@ -164,7 +165,7 @@ internal class FontDescriptor
     int _xMax;
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public int YMax
     {
@@ -174,11 +175,12 @@ internal class FontDescriptor
     int _yMax;
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public bool IsFixedPitch
     {
         get => _isFixedPitch;
+        // ReSharper disable once UnusedMember.Local
         private set => _isFixedPitch = value; // BUG: never set
     }
     bool _isFixedPitch;
@@ -186,7 +188,7 @@ internal class FontDescriptor
     //Rect FontBBox;
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public int UnderlinePosition
     {
@@ -196,7 +198,7 @@ internal class FontDescriptor
     int _underlinePosition;
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public int UnderlineThickness
     {
@@ -206,7 +208,7 @@ internal class FontDescriptor
     int _underlineThickness;
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public int StrikeoutPosition
     {
@@ -216,7 +218,7 @@ internal class FontDescriptor
     int _strikeoutPosition;
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public int StrikeoutSize
     {
@@ -226,17 +228,18 @@ internal class FontDescriptor
     int _strikeoutSize;
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public string Version
     {
         get => _version;
+        // ReSharper disable once UnusedMember.Local
         private set => _version = value; // BUG: never set
     }
     string _version;
 
     ///// <summary>
-    ///// 
+    /////
     ///// </summary>
     //public string Notice
     //{
@@ -245,17 +248,18 @@ internal class FontDescriptor
     //protected string notice;
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public string EncodingScheme
     {
         get => _encodingScheme;
+        // ReSharper disable once UnusedMember.Local
         private set => _encodingScheme = value; // BUG: never set
     }
     string _encodingScheme;
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public int UnitsPerEm
     {
@@ -265,7 +269,7 @@ internal class FontDescriptor
     int _unitsPerEm;
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public int CapHeight
     {
@@ -275,7 +279,7 @@ internal class FontDescriptor
     int _capHeight;
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public int XHeight
     {
@@ -285,7 +289,7 @@ internal class FontDescriptor
     int _xHeight;
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public int Ascender
     {
@@ -295,7 +299,7 @@ internal class FontDescriptor
     int _ascender;
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public int Descender
     {
@@ -305,7 +309,7 @@ internal class FontDescriptor
     int _descender;
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public int Leading
     {
@@ -315,17 +319,18 @@ internal class FontDescriptor
     int _leading;
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public int Flags
     {
         get => _flags;
+        // ReSharper disable once UnusedMember.Local
         private set => _flags = value; // BUG: never set
     }
     int _flags;
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public int StemV
     {
@@ -335,7 +340,7 @@ internal class FontDescriptor
     int _stemV;
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public int LineSpacing
     {
@@ -364,14 +369,14 @@ internal class FontDescriptor
 
     internal static string ComputeKey(string name, bool isBold, bool isItalic)
     {
-        string key = name.ToLowerInvariant() + '/'
-                                             + (isBold ? "b" : "") + (isItalic ? "i" : "");
+        var key = name.ToLowerInvariant() + '/'
+                                          + (isBold ? "b" : "") + (isItalic ? "i" : "");
         return key;
     }
 
     internal static string ComputeKey(string name)
     {
-        string key = name.ToLowerInvariant();
+        var key = name.ToLowerInvariant();
         return key;
     }
 }

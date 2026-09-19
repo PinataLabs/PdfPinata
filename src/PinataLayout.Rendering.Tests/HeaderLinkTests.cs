@@ -74,7 +74,7 @@ public class HeaderLinkTests
         {
             Document = document,
             TagContent = true,
-            Language = "en-GB",
+            Language = "en-GB"
         };
 
         renderer.RenderDocument();

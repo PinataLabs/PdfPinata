@@ -44,7 +44,7 @@ public class UnitTests
         { UnitType.Inch, 1, PointsPerInch },
         { UnitType.Centimeter, CentimetresPerInch, PointsPerInch },
         { UnitType.Millimeter, CentimetresPerInch * 10, PointsPerInch },
-        { UnitType.Pica, 6, PointsPerInch },
+        { UnitType.Pica, 6, PointsPerInch }
     };
 
     [Theory]
@@ -71,7 +71,7 @@ public class UnitTests
             UnitType.Centimeter => Unit.FromCentimeter(value),
             UnitType.Millimeter => Unit.FromMillimeter(value),
             UnitType.Pica => Unit.FromPica(value),
-            _ => throw new ArgumentOutOfRangeException(nameof(type)),
+            _ => throw new ArgumentOutOfRangeException(nameof(type))
         };
 
         named.Type.Should().Be(type);
@@ -176,7 +176,7 @@ public class UnitTests
     [Fact]
     public void ASuffixThatNamesNoMeasureIsRefused()
     {
-        var act = () => { Unit unit = "5furlongs"; };
+        var act = () => { _ = (Unit)"5furlongs"; };
 
         act.Should().Throw<ArgumentException>().WithMessage("*furlongs*");
     }
@@ -184,7 +184,7 @@ public class UnitTests
     [Fact]
     public void SomethingThatIsNotANumberAtAllIsRefused()
     {
-        var act = () => { Unit unit = "wide"; };
+        var act = () => { _ = (Unit)"wide"; };
 
         act.Should().Throw<ArgumentException>();
     }
@@ -199,7 +199,7 @@ public class UnitTests
     [Fact]
     public void ANullStringSaysWhatWentWrongRatherThanFailingBlankly()
     {
-        var act = () => { Unit unit = (string)null; };
+        var act = () => { _ = (Unit)(string)null; };
 
         act.Should().Throw<ArgumentNullException>().WithMessage("*IsEmpty*");
     }
@@ -296,6 +296,7 @@ public class UnitTests
         // Equality is by the number and the measure, not by the length: this is a value type
         // standing in for what the document says, and the document says "1in" or "72pt".
         Unit.FromInch(1).Should().Be(Unit.FromInch(1));
+        // ReSharper disable once EqualExpressionComparison
         (Unit.FromInch(1) == Unit.FromInch(1)).Should().BeTrue();
         (Unit.FromInch(1) != Unit.FromPoint(72)).Should().BeTrue();
     }
@@ -309,6 +310,7 @@ public class UnitTests
     [Fact]
     public void SomethingThatIsNotAUnitIsNotEqualToOne()
     {
+        // ReSharper disable once SuspiciousTypeConversion.Global
         Unit.FromPoint(3).Equals("3").Should().BeFalse();
         Unit.FromPoint(3).Equals(null).Should().BeFalse();
     }

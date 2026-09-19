@@ -43,7 +43,7 @@ internal sealed class ProtectDemo : PdfDemo
         "PdfDocumentSecurityLevel - 40-bit and 128-bit RC4 are what this library writes",
         "Reading a protected document back, and which open modes each password permits",
         "PdfPasswordProvider, for when the password is not known before the file is opened",
-        "HasOwnerPermissions, which says which of the two passwords a document was opened with",
+        "HasOwnerPermissions, which says which of the two passwords a document was opened with"
     };
 
     public override int PageCount => 2;
@@ -51,19 +51,19 @@ internal sealed class ProtectDemo : PdfDemo
     protected override PdfDocument Build(DemoContext context)
     {
         #region example
-        PdfDocument document = new PdfDocument();
+        var document = new PdfDocument();
         document.Info.Title = "Protect";
 
-        XFont heading = new XFont("Liberation Sans", 16, XFontStyle.Bold);
-        XFont label = new XFont("Liberation Sans", 9, XFontStyle.Bold);
-        XFont body = new XFont("Liberation Sans", 9);
-        XFont mono = new XFont("Source Code Pro", 8.5);
+        var heading = new XFont("Liberation Sans", 16, XFontStyle.Bold);
+        var label = new XFont("Liberation Sans", 9, XFontStyle.Bold);
+        var body = new XFont("Liberation Sans", 9);
+        var mono = new XFont("Source Code Pro", 8.5);
 
         // ----- page 1: what was asked for -----
 
-        PdfPage page1 = document.AddPage();
-        XGraphics gfx1 = XGraphics.FromPdfPage(page1);
-        XTextFormatter prose1 = new XTextFormatter(gfx1);
+        var page1 = document.AddPage();
+        var gfx1 = XGraphics.FromPdfPage(page1);
+        var prose1 = new XTextFormatter(gfx1);
 
         gfx1.DrawString("This document is encrypted", heading, XBrushes.Black, new XPoint(50, 60));
 
@@ -91,13 +91,13 @@ internal sealed class ProtectDemo : PdfDemo
             ("PermitModifyDocument", false, "Change the content"),
             ("PermitAssembleDocument", true, "Insert, rotate or delete pages without changing them"),
             ("PermitAnnotations", true, "Add notes and markup"),
-            ("PermitFormsFill", true, "Fill in form fields"),
+            ("PermitFormsFill", true, "Fill in form fields")
         };
 
         gfx1.DrawString("Permissions", label, XBrushes.Black, new XPoint(50, 215));
 
         double y = 235;
-        foreach ((string Name, bool Allowed, string What) permission in permissions)
+        foreach (var permission in permissions)
         {
             gfx1.DrawString(permission.Allowed ? "allowed" : "refused", body,
                 permission.Allowed ? XBrushes.SeaGreen : XBrushes.Firebrick, new XPoint(50, y));
@@ -128,10 +128,10 @@ internal sealed class ProtectDemo : PdfDemo
         // the document being built cannot be reopened until it has been saved, and by then the
         // demo has handed it over.
         string report;
-        using (MemoryStream buffer = new MemoryStream())
+        using (var buffer = new MemoryStream())
         {
             // docs:begin encrypt
-            PdfDocument sample = new PdfDocument();
+            var sample = new PdfDocument();
             sample.AddPage();
             sample.SecuritySettings.DocumentSecurityLevel = PdfDocumentSecurityLevel.Encrypted128Bit;
             sample.SecuritySettings.UserPassword = ReaderPassword;
@@ -149,7 +149,7 @@ internal sealed class ProtectDemo : PdfDemo
             try
             {
                 buffer.Position = 0;
-                using PdfDocument _ = PdfReader.Open(buffer, ReaderPassword, PdfDocumentOpenMode.Modify);
+                using var _ = PdfReader.Open(buffer, ReaderPassword, PdfDocumentOpenMode.Modify);
                 refusal = "Modify with the user password was allowed";
             }
             catch (PdfReaderException exception)
@@ -158,10 +158,10 @@ internal sealed class ProtectDemo : PdfDemo
             }
 
             buffer.Position = 0;
-            using PdfDocument asReader = PdfReader.Open(buffer, ReaderPassword, PdfDocumentOpenMode.ReadOnly);
+            using var asReader = PdfReader.Open(buffer, ReaderPassword, PdfDocumentOpenMode.ReadOnly);
 
             buffer.Position = 0;
-            using PdfDocument asOwner = PdfReader.Open(buffer, OwnerPassword, PdfDocumentOpenMode.Modify);
+            using var asOwner = PdfReader.Open(buffer, OwnerPassword, PdfDocumentOpenMode.Modify);
             // docs:end open-modes
 
             // HasOwnerPermissions is how a program finds out which password it was let in with,
@@ -175,9 +175,9 @@ internal sealed class ProtectDemo : PdfDemo
                 + $"PermitPrint read back as {asOwner.SecuritySettings.PermitPrint}";
         }
 
-        PdfPage page2 = document.AddPage();
-        XGraphics gfx2 = XGraphics.FromPdfPage(page2);
-        XTextFormatter prose2 = new XTextFormatter(gfx2);
+        var page2 = document.AddPage();
+        var gfx2 = XGraphics.FromPdfPage(page2);
+        var prose2 = new XTextFormatter(gfx2);
 
         gfx2.DrawString("Reading a protected document", heading, XBrushes.Black, new XPoint(50, 60));
 
@@ -192,7 +192,7 @@ internal sealed class ProtectDemo : PdfDemo
         gfx2.DrawString("What came back", label, XBrushes.Black, new XPoint(50, 165));
 
         double line = 185;
-        foreach (string row in report.Split('\n'))
+        foreach (var row in report.Split('\n'))
         {
             gfx2.DrawString(row, mono, XBrushes.Black, new XPoint(50, line));
             line += 15;
@@ -202,17 +202,17 @@ internal sealed class ProtectDemo : PdfDemo
 
         // Demonstrated rather than described: the provider is asked for a password only because
         // the document has one, and args.Abort is how a caller says the user gave up.
-        int timesAsked = 0;
-        using (MemoryStream buffer = new MemoryStream())
+        var timesAsked = 0;
+        using (var buffer = new MemoryStream())
         {
-            PdfDocument sample = new PdfDocument();
+            var sample = new PdfDocument();
             sample.AddPage();
             sample.SecuritySettings.UserPassword = ReaderPassword;
             sample.Save(buffer, false);
 
             // docs:begin password-provider
             buffer.Position = 0;
-            using PdfDocument reopened = PdfReader.Open(buffer, PdfDocumentOpenMode.Modify,
+            using var reopened = PdfReader.Open(buffer, PdfDocumentOpenMode.Modify,
                 args =>
                 {
                     timesAsked++;
@@ -241,7 +241,7 @@ internal sealed class ProtectDemo : PdfDemo
         document.SecuritySettings.UserPassword = ReaderPassword;
         document.SecuritySettings.OwnerPassword = OwnerPassword;
 
-        foreach ((string Name, bool Allowed, string What) permission in permissions)
+        foreach (var permission in permissions)
         {
             switch (permission.Name)
             {

@@ -47,5 +47,5 @@ public enum PasswordValidity
     /// <summary>
     /// Password is owner password.
     /// </summary>
-    OwnerPassword,
+    OwnerPassword
 }

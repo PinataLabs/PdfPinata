@@ -47,11 +47,11 @@ public class ChartMapper
 
   private static ChartFrame MapObject(DocumentObjectModel.Shapes.Charts.Chart domChart)
   {
-    ChartFrame chartFrame = new ChartFrame();
+    var chartFrame = new ChartFrame();
     chartFrame.Size = new XSize(domChart.Width.Point, domChart.Height.Point);
     chartFrame.Location = new XPoint(domChart.Left.Position.Point, domChart.Top.Position.Point);
 
-    Chart chart = new Chart((ChartType)domChart.Type);
+    var chart = new Chart((ChartType)domChart.Type);
 
     if (!domChart.IsNull("XAxis"))
       AxisMapper.Map(chart.XAxis, domChart.XAxis);

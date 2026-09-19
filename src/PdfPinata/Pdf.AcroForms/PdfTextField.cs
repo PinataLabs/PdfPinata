@@ -22,7 +22,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
 #endregion
@@ -60,12 +60,12 @@ public sealed class PdfTextField : PdfAcroField
     /// </summary>
     public string Text
     {
-        get => Elements.GetString(Keys.V);
+        get => Elements.GetString(PdfAcroField.Keys.V);
         set
         {
             Owner?.EnsureCanModify("filling in a form field", PdfChangeKind.FormFieldValues);
 
-            Elements.SetString(Keys.V, value);
+            Elements.SetString(PdfAcroField.Keys.V, value);
             RenderAppearance();
         } //HACK in PdfTextField
     }
@@ -203,13 +203,13 @@ public sealed class PdfTextField : PdfAcroField
             return;
         }
 
-        PdfArray kids = Elements.GetArray(Keys.Kids);
+        var kids = Elements.GetArray(PdfAcroField.Keys.Kids);
         if (kids == null)
             return;
 
-        foreach (PdfItem kid in kids.Elements.Items)
+        foreach (var kid in kids.Elements.Items)
         {
-            PdfItem item = kid is PdfReference reference ? reference.Value : kid;
+            var item = kid is PdfReference reference ? reference.Value : kid;
             if (item is PdfDictionary widget && widget.Elements.ContainsKey(PdfAnnotation.Keys.Rect))
                 RenderAppearanceOn(widget);
         }
@@ -224,7 +224,7 @@ public sealed class PdfTextField : PdfAcroField
 
     void RenderAppearanceOn(PdfDictionary annotation)
     {
-        PdfRectangle rect = annotation.Elements.GetRectangle(PdfAnnotation.Keys.Rect);
+        var rect = annotation.Elements.GetRectangle(PdfAnnotation.Keys.Rect);
 
         // A rectangle too small to draw in draws nothing, and XForm refuses to be made of one:
         // its floor is a point in each direction, so the test is against 1 rather than against 0.
@@ -242,8 +242,8 @@ public sealed class PdfTextField : PdfAcroField
             return;
         }
 
-        XForm form = new XForm(_document, rect.Size);
-        XGraphics gfx = XGraphics.FromForm(form);
+        var form = new XForm(_document, rect.Size);
+        var gfx = XGraphics.FromForm(form);
 
         if (_backColor != XColor.Empty)
             gfx.DrawRectangle(new XSolidBrush(BackColor), rect.ToXRect() - rect.Location);
@@ -256,7 +256,7 @@ public sealed class PdfTextField : PdfAcroField
                 new XRect(0.5, 0.5, rect.Width - 1, rect.Height - 1));
         }
 
-        string text = Text;
+        var text = Text;
         if (text.Length > 0)
             gfx.DrawString(Text, Font, new XSolidBrush(ForeColor),
                 rect.ToXRect() - rect.Location + new XPoint(2, 0), XStringFormats.TopLeft);
@@ -265,7 +265,7 @@ public sealed class PdfTextField : PdfAcroField
         form.PdfForm.Elements.Add("/FormType", new PdfLiteral("1"));
 
         // Get existing or create new appearance dictionary.
-        PdfDictionary ap = annotation.Elements[PdfAnnotation.Keys.AP] as PdfDictionary;
+        var ap = annotation.Elements[PdfAnnotation.Keys.AP] as PdfDictionary;
         if (ap == null)
         {
             ap = new PdfDictionary(_document);
@@ -275,8 +275,8 @@ public sealed class PdfTextField : PdfAcroField
         // Set XRef to normal state
         ap.Elements["/N"] = form.PdfForm.Reference;
 
-        PdfFormXObject xobj = form.PdfForm;
-        string s = xobj.Stream.ToString();
+        var xobj = form.PdfForm;
+        var s = xobj.Stream.ToString();
         // Thank you Adobe: Without putting the content in 'EMC brackets'
         // the text is not rendered by PDF Reader 9 or higher.
         s = "/Tx BMC\n" + s + "\nEMC";
@@ -290,7 +290,7 @@ public sealed class PdfTextField : PdfAcroField
     }
 
     /// <summary>
-    /// Predefined keys of this dictionary. 
+    /// Predefined keys of this dictionary.
     /// The description comes from PDF 1.4 Reference.
     /// </summary>
     public new class Keys : PdfAcroField.Keys

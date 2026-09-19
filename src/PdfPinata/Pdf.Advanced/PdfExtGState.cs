@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -178,7 +178,7 @@ public sealed class PdfExtGState : PdfDictionary
 
     internal static string MakeKey(double alpha, bool overPaint)
     {
-        string key = ((int)(1000 * alpha)).ToString(CultureInfo.InvariantCulture) + (overPaint ? "O" : "0");
+        var key = ((int)(1000 * alpha)).ToString(CultureInfo.InvariantCulture) + (overPaint ? "O" : "0");
         return key;
     }
 
@@ -236,7 +236,7 @@ public sealed class PdfExtGState : PdfDictionary
         /// <summary>
         /// (Optional) A flag specifying whether to apply overprint. In PDF 1.2 and earlier,
         /// there is a single overprint parameter that applies to all painting operations.
-        /// Beginning with PDF 1.3, there are two separate overprint parameters: one for stroking 
+        /// Beginning with PDF 1.3, there are two separate overprint parameters: one for stroking
         /// and one for all other painting operations. Specifying an OP entry sets both parameters
         /// unless there is also an op entry in the same graphics state parameter dictionary, in
         /// which case the OP entry sets only the overprint parameter for stroking.
@@ -276,7 +276,7 @@ public sealed class PdfExtGState : PdfDictionary
         /// <summary>
         /// (Optional; PDF 1.3) Same as BG except that the value may also be the name Default,
         /// denoting the black-generation function that was in effect at the start of the page.
-        /// If both BG and BG2 are present in the same graphics state parameter dictionary, 
+        /// If both BG and BG2 are present in the same graphics state parameter dictionary,
         /// BG2 takes precedence.
         /// </summary>
         [KeyInfo(KeyType.FunctionOrName | KeyType.Optional)]
@@ -292,7 +292,7 @@ public sealed class PdfExtGState : PdfDictionary
         /// <summary>
         /// (Optional; PDF 1.3) Same as UCR except that the value may also be the name Default,
         /// denoting the undercolor-removal function that was in effect at the start of the page.
-        /// If both UCR and UCR2 are present in the same graphics state parameter dictionary, 
+        /// If both UCR and UCR2 are present in the same graphics state parameter dictionary,
         /// UCR2 takes precedence.
         /// </summary>
         [KeyInfo(KeyType.FunctionOrName | KeyType.Optional)]
@@ -324,7 +324,7 @@ public sealed class PdfExtGState : PdfDictionary
         public const string SMask = "/SMask";
 
         /// <summary>
-        /// (Optional; PDF 1.4) The current stroking alpha constant, specifying the constant 
+        /// (Optional; PDF 1.4) The current stroking alpha constant, specifying the constant
         /// shape or constant opacity value to be used for stroking operations in the transparent
         /// imaging model.
         /// </summary>
@@ -338,7 +338,7 @@ public sealed class PdfExtGState : PdfDictionary
         public const string ca = "/ca";
 
         /// <summary>
-        /// (Optional; PDF 1.4) The alpha source flag (“alpha is shape”), specifying whether 
+        /// (Optional; PDF 1.4) The alpha source flag (“alpha is shape”), specifying whether
         /// the current soft mask and alpha constant are to be interpreted as shape values (true)
         /// or opacity values (false).
         /// </summary>
@@ -346,7 +346,7 @@ public sealed class PdfExtGState : PdfDictionary
         public const string AIS = "/AIS";
 
         /// <summary>
-        /// (Optional; PDF 1.4) The text knockout flag, which determines the behavior of 
+        /// (Optional; PDF 1.4) The text knockout flag, which determines the behavior of
         /// overlapping glyphs within a text object in the transparent imaging model.
         /// </summary>
         [KeyInfo(KeyType.Boolean | KeyType.Optional)]

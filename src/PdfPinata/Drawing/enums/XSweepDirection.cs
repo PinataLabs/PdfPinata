@@ -42,5 +42,5 @@ public enum XSweepDirection // Same values as System.Windows.Media.SweepDirectio
     /// <summary>
     /// Specifies that arcs are drawn in a clockwise (positive-angle) direction.
     /// </summary>
-    Clockwise = 1,
+    Clockwise = 1
 }

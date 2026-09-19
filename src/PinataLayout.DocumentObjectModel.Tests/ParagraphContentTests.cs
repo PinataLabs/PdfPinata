@@ -75,11 +75,11 @@ public class ParagraphContentTests
             paragraph.AddInfoField(InfoFieldType.Author),
             paragraph.AddFootnote("note"),
             paragraph.AddFootnote(),
-            paragraph.AddImage(image),
+            paragraph.AddImage(image)
         ];
 
         paragraph.Elements.Cast<object>().Should().Equal(added);
-        paragraph.Elements.OfType<Shapes.Image>().Single().Source.Should().BeSameAs(image);
+        paragraph.Elements.OfType<Image>().Single().Source.Should().BeSameAs(image);
     }
 
     [Fact]
@@ -117,7 +117,7 @@ public class ParagraphContentTests
             formatted.AddInfoField(InfoFieldType.Title),
             formatted.AddFootnote("note"),
             formatted.AddFootnote(),
-            formatted.AddImage(new UndrawnImage()),
+            formatted.AddImage(new UndrawnImage())
         ];
 
         formatted.Elements.Cast<object>().Should().Equal(added);
@@ -156,7 +156,7 @@ public class ParagraphContentTests
             hyperlink.AddInfoField(InfoFieldType.Subject),
             hyperlink.AddFootnote("note"),
             hyperlink.AddFootnote(),
-            hyperlink.AddImage(new UndrawnImage()),
+            hyperlink.AddImage(new UndrawnImage())
         ];
 
         hyperlink.Elements.Cast<object>().Should().Equal(added);
@@ -208,8 +208,8 @@ public class ParagraphContentTests
         new Footnote(),
         new Text("text"),
         new FormattedText(),
-        new Shapes.Image(),
-        new Character { SymbolName = SymbolName.Bullet },
+        new Image(),
+        new Character { SymbolName = SymbolName.Bullet }
     ];
 
     [Fact]
@@ -230,7 +230,7 @@ public class ParagraphContentTests
         paragraph.Add((Footnote)elements[8]);
         paragraph.Add((Text)elements[9]);
         paragraph.Add((FormattedText)elements[10]);
-        paragraph.Add((Shapes.Image)elements[11]);
+        paragraph.Add((Image)elements[11]);
         paragraph.Add((Character)elements[12]);
         paragraph.Add(hyperlink);
 
@@ -255,7 +255,7 @@ public class ParagraphContentTests
         formatted.Add((Footnote)elements[8]);
         formatted.Add((Text)elements[9]);
         formatted.Add((FormattedText)elements[10]);
-        formatted.Add((Shapes.Image)elements[11]);
+        formatted.Add((Image)elements[11]);
         formatted.Add((Character)elements[12]);
         formatted.Add(hyperlink);
 
@@ -279,7 +279,7 @@ public class ParagraphContentTests
         hyperlink.Add((Footnote)elements[8]);
         hyperlink.Add((Text)elements[9]);
         hyperlink.Add((FormattedText)elements[10]);
-        hyperlink.Add((Shapes.Image)elements[11]);
+        hyperlink.Add((Image)elements[11]);
         hyperlink.Add((Character)elements[12]);
 
         hyperlink.Elements.Cast<DocumentObject>().Should().Equal(elements);
@@ -298,7 +298,7 @@ public class ParagraphContentTests
             Italic = true,
             Underline = Underline.Dash,
             Color = Colors.Firebrick,
-            Superscript = true,
+            Superscript = true
         };
 
         formatted.Font.Name.Should().Be("Courier");

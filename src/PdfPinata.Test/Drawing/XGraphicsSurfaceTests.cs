@@ -27,12 +27,12 @@ public class XGraphicsSurfaceTests
 {
     static readonly XPoint[] ThreePoints =
     {
-        new(100, 100), new(200, 150), new(300, 100),
+        new(100, 100), new(200, 150), new(300, 100)
     };
 
     static readonly XPoint[] FourBezierPoints =
     {
-        new(100, 100), new(150, 50), new(250, 50), new(300, 100),
+        new(100, 100), new(150, 50), new(250, 50), new(300, 100)
     };
 
     static PdfPage PageShowing(Action<XGraphics> draw)
@@ -133,12 +133,16 @@ public class XGraphicsSurfaceTests
     {
         using var gfx = OnAPage();
 
+        // ReSharper disable once AccessToDisposedClosure
         var setDirection = () => gfx.PageDirection = XPageDirection.Downwards;
+        // ReSharper disable once AccessToDisposedClosure
         var setOrigin = () => gfx.PageOrigin = new XPoint(0, 0);
         // Obsolete on purpose - the point of the test is that asking for it is refused.
 #pragma warning disable CS0618
+        // ReSharper disable once AccessToDisposedClosure
         var setUpwards = () => gfx.PageDirection = XPageDirection.Upwards;
 #pragma warning restore CS0618
+        // ReSharper disable once AccessToDisposedClosure
         var moveOrigin = () => gfx.PageOrigin = new XPoint(10, 10);
 
         setDirection.Should().NotThrow();
@@ -159,6 +163,7 @@ public class XGraphicsSurfaceTests
         gfx.MeasureString("Handles", new XFont("Arial", 12)).Width.Should().BeGreaterThan(0);
 
         // Nothing to draw on, and asking anyway must not throw - the shape is simply discarded.
+        // ReSharper disable once AccessToDisposedClosure
         var draw = () => gfx.DrawRectangle(XPens.Black, 10, 10, 100, 100);
         draw.Should().NotThrow();
     }
@@ -204,6 +209,7 @@ public class XGraphicsSurfaceTests
     {
         using var gfx = OnAPage();
 
+        // ReSharper disable once AccessToDisposedClosure
         var act = () => gfx.WriteComment(null);
 
         act.Should().Throw<ArgumentNullException>();
@@ -230,9 +236,13 @@ public class XGraphicsSurfaceTests
     {
         using var gfx = OnAPage();
 
+        // ReSharper disable once AccessToDisposedClosure
         var noPen = () => gfx.DrawLines(null, ThreePoints);
-        var noPoints = () => gfx.DrawLines(XPens.Black, (XPoint[])null);
+        // ReSharper disable once AccessToDisposedClosure
+        var noPoints = () => gfx.DrawLines(XPens.Black, null);
+        // ReSharper disable once AccessToDisposedClosure
         var onePoint = () => gfx.DrawLines(XPens.Black, new[] { new XPoint(1, 1) });
+        // ReSharper disable once AccessToDisposedClosure
         var noNumbers = () => gfx.DrawLines(XPens.Black, 1, 1, null);
 
         noPen.Should().Throw<ArgumentNullException>();
@@ -264,7 +274,9 @@ public class XGraphicsSurfaceTests
 
         PointCount(g => g.DrawBeziers(XPens.Black, Array.Empty<XPoint>())).Should().Be(0);
 
+        // ReSharper disable once AccessToDisposedClosure
         var noPen = () => gfx.DrawBeziers(null, FourBezierPoints);
+        // ReSharper disable once AccessToDisposedClosure
         var wrongLength = () => gfx.DrawBeziers(XPens.Black, new XPoint[5]);
 
         noPen.Should().Throw<ArgumentNullException>();
@@ -284,7 +296,7 @@ public class XGraphicsSurfaceTests
         var many = new[]
         {
             new XPoint(0, 0), new XPoint(100, 100), new XPoint(200, 150), new XPoint(300, 100),
-            new XPoint(400, 400),
+            new XPoint(400, 400)
         };
 
         ShapeOf(gfx => gfx.DrawCurve(XPens.Black, many, 1, 3, 0.5))
@@ -296,8 +308,11 @@ public class XGraphicsSurfaceTests
     {
         using var gfx = OnAPage();
 
+        // ReSharper disable once AccessToDisposedClosure
         var noPen = () => gfx.DrawCurve(null, ThreePoints);
+        // ReSharper disable once AccessToDisposedClosure
         var noPoints = () => gfx.DrawCurve(XPens.Black, null, 0.5);
+        // ReSharper disable once AccessToDisposedClosure
         var onePoint = () => gfx.DrawCurve(XPens.Black, new[] { new XPoint(1, 1) });
 
         noPen.Should().Throw<ArgumentNullException>();
@@ -331,6 +346,7 @@ public class XGraphicsSurfaceTests
     {
         using var gfx = OnAPage();
 
+        // ReSharper disable once AccessToDisposedClosure
         var act = () => gfx.DrawArc(null, 100, 100, 200, 200, 0, 90);
 
         act.Should().Throw<ArgumentNullException>();
@@ -366,7 +382,8 @@ public class XGraphicsSurfaceTests
     {
         using var gfx = OnAPage();
 
-        var neither = () => gfx.DrawRectangle((XPen)null, (XBrush)null, 0, 0, 10, 10);
+        // ReSharper disable once AccessToDisposedClosure
+        var neither = () => gfx.DrawRectangle(null, null, 0, 0, 10, 10);
 
         neither.Should().Throw<ArgumentNullException>()
             .Which.ParamName.Should().Be("pen", "a parameter name names one parameter, the pen coming first");
@@ -377,7 +394,7 @@ public class XGraphicsSurfaceTests
     {
         var rects = new[]
         {
-            new XRect(100, 100, 50, 50), new XRect(200, 100, 50, 50), new XRect(300, 100, 50, 50),
+            new XRect(100, 100, 50, 50), new XRect(200, 100, 50, 50), new XRect(300, 100, 50, 50)
         };
 
         CountOf(ShapeOf(gfx => gfx.DrawRectangles(XPens.Black, rects)), "re").Should().Be(3);
@@ -446,7 +463,8 @@ public class XGraphicsSurfaceTests
     {
         using var gfx = OnAPage();
 
-        var act = () => gfx.DrawEllipse((XPen)null, (XBrush)null, 0, 0, 10, 10);
+        // ReSharper disable once AccessToDisposedClosure
+        var act = () => gfx.DrawEllipse(null, null, 0, 0, 10, 10);
 
         act.Should().Throw<ArgumentNullException>();
     }
@@ -469,10 +487,15 @@ public class XGraphicsSurfaceTests
     {
         using var gfx = OnAPage();
 
-        var noPen = () => gfx.DrawPolygon((XPen)null, ThreePoints);
-        var noBrush = () => gfx.DrawPolygon((XBrush)null, ThreePoints, XFillMode.Alternate);
+        // ReSharper disable once AccessToDisposedClosure
+        var noPen = () => gfx.DrawPolygon(null, ThreePoints);
+        // ReSharper disable once AccessToDisposedClosure
+        var noBrush = () => gfx.DrawPolygon(null, ThreePoints, XFillMode.Alternate);
+        // ReSharper disable once AccessToDisposedClosure
         var neither = () => gfx.DrawPolygon(null, null, ThreePoints, XFillMode.Alternate);
-        var noPoints = () => gfx.DrawPolygon(XPens.Black, (XPoint[])null);
+        // ReSharper disable once AccessToDisposedClosure
+        var noPoints = () => gfx.DrawPolygon(XPens.Black, null);
+        // ReSharper disable once AccessToDisposedClosure
         var onePoint = () => gfx.DrawPolygon(XPens.Black, new[] { new XPoint(1, 1) });
 
         noPen.Should().Throw<ArgumentNullException>();
@@ -502,8 +525,11 @@ public class XGraphicsSurfaceTests
     {
         using var gfx = OnAPage();
 
+        // ReSharper disable once AccessToDisposedClosure
         var noPen = () => gfx.DrawPie((XPen)null, 0, 0, 10, 10, 0, 90);
+        // ReSharper disable once AccessToDisposedClosure
         var noBrush = () => gfx.DrawPie((XBrush)null, 0, 0, 10, 10, 0, 90);
+        // ReSharper disable once AccessToDisposedClosure
         var neither = () => gfx.DrawPie(null, null, 0, 0, 10, 10, 0, 90);
 
         noPen.Should().Throw<ArgumentNullException>();
@@ -536,7 +562,9 @@ public class XGraphicsSurfaceTests
 
         PointCount(g => g.DrawClosedCurve(XPens.Black, Array.Empty<XPoint>())).Should().Be(0);
 
+        // ReSharper disable once AccessToDisposedClosure
         var onePoint = () => gfx.DrawClosedCurve(XPens.Black, new[] { new XPoint(1, 1) });
+        // ReSharper disable once AccessToDisposedClosure
         var neither = () => gfx.DrawClosedCurve(null, null, ThreePoints, XFillMode.Alternate, 0.5);
 
         onePoint.Should().Throw<ArgumentException>();
@@ -567,11 +595,17 @@ public class XGraphicsSurfaceTests
         using var gfx = OnAPage();
         var path = new XGraphicsPath();
 
+        // ReSharper disable once AccessToDisposedClosure
         var noPen = () => gfx.DrawPath((XPen)null, path);
+        // ReSharper disable once AccessToDisposedClosure
         var noBrush = () => gfx.DrawPath((XBrush)null, path);
+        // ReSharper disable once AccessToDisposedClosure
         var neither = () => gfx.DrawPath(null, null, path);
-        var noPathToStroke = () => gfx.DrawPath(XPens.Black, (XGraphicsPath)null);
-        var noPathToFill = () => gfx.DrawPath(XBrushes.Black, (XGraphicsPath)null);
+        // ReSharper disable once AccessToDisposedClosure
+        var noPathToStroke = () => gfx.DrawPath(XPens.Black, null);
+        // ReSharper disable once AccessToDisposedClosure
+        var noPathToFill = () => gfx.DrawPath(XBrushes.Black, null);
+        // ReSharper disable once AccessToDisposedClosure
         var noPathAtAll = () => gfx.DrawPath(XPens.Black, XBrushes.Black, null);
 
         noPen.Should().Throw<ArgumentNullException>();
@@ -724,7 +758,9 @@ public class XGraphicsSurfaceTests
     {
         using var gfx = OnAPage();
 
+        // ReSharper disable once AccessToDisposedClosure
         var noSave = () => gfx.Restore();
+        // ReSharper disable once AccessToDisposedClosure
         var noState = () => gfx.Restore(null);
 
         noSave.Should().Throw<InvalidOperationException>();
@@ -765,8 +801,10 @@ public class XGraphicsSurfaceTests
     {
         using var gfx = OnAPage();
 
+        // ReSharper disable once AccessToDisposedClosure
         var inMillimetres = () => gfx.BeginContainer(
             new XRect(0, 0, 1, 1), new XRect(0, 0, 1, 1), XGraphicsUnit.Millimeter);
+        // ReSharper disable once AccessToDisposedClosure
         var endNothing = () => gfx.EndContainer(null);
 
         inMillimetres.Should().Throw<ArgumentException>();
@@ -866,7 +904,8 @@ public class XGraphicsSurfaceTests
     {
         using var gfx = OnAPage();
 
-        var act = () => gfx.IntersectClip((XGraphicsPath)null);
+        // ReSharper disable once AccessToDisposedClosure
+        var act = () => gfx.IntersectClip(null);
 
         act.Should().Throw<ArgumentNullException>();
     }

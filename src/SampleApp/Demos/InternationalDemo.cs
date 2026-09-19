@@ -29,7 +29,7 @@ internal sealed class InternationalDemo : PdfDemo
         "XStringFormat.TextDirection - saying what the text is instead of leaving it to be guessed",
         "Arabic letters joined by the face's own GSUB rules, through PdfPinata.HarfBuzz",
         "GlobalFontSettings.FontFallback - Arabic in a document that asked for a Latin face",
-        "XTextFormatter.TextDirection, for a paragraph laid out into a rectangle",
+        "XTextFormatter.TextDirection, for a paragraph laid out into a rectangle"
     };
 
     public override int PageCount => 3;
@@ -37,7 +37,7 @@ internal sealed class InternationalDemo : PdfDemo
     protected override PdfDocument Build(DemoContext context)
     {
         #region example
-        PdfDocument document = new PdfDocument();
+        var document = new PdfDocument();
         document.Info.Title = "International";
 
         // Every character in this file is ASCII, and the right-to-left text is assembled from code
@@ -47,25 +47,25 @@ internal sealed class InternationalDemo : PdfDemo
 
         // "shalom", four Hebrew letters. Liberation Sans has Hebrew in it, so this needs neither a
         // shaper nor a fallback - the only thing that can be wrong about it is the order.
-        string hebrew = From(0x05E9, 0x05DC, 0x05D5, 0x05DD);
+        var hebrew = From(0x05E9, 0x05DC, 0x05D5, 0x05DD);
 
         // "marhaba", a greeting - and a word whose middle letters join on both sides, which is what
         // makes it worth drawing twice on the second page.
-        string arabic = From(0x0645, 0x0631, 0x062D, 0x0628, 0x0627);
+        var arabic = From(0x0645, 0x0631, 0x062D, 0x0628, 0x0627);
 
         // "arabiyya", the name of the script, in it.
-        string arabicName = From(0x0639, 0x0631, 0x0628, 0x064A, 0x0629);
+        var arabicName = From(0x0639, 0x0631, 0x0628, 0x064A, 0x0629);
 
-        XFont heading = new XFont(BundledFontResolver.SansFamily, 16, XFontStyle.Bold);
-        XFont label = new XFont(BundledFontResolver.SansFamily, 9, XFontStyle.Bold);
-        XFont body = new XFont(BundledFontResolver.SansFamily, 9);
-        XFont sample = new XFont(BundledFontResolver.SansFamily, 20);
-        XFont arabicFace = new XFont(BundledFontResolver.ArabicFamily, 22);
+        var heading = new XFont(BundledFontResolver.SansFamily, 16, XFontStyle.Bold);
+        var label = new XFont(BundledFontResolver.SansFamily, 9, XFontStyle.Bold);
+        var body = new XFont(BundledFontResolver.SansFamily, 9);
+        var sample = new XFont(BundledFontResolver.SansFamily, 20);
+        var arabicFace = new XFont(BundledFontResolver.ArabicFamily, 22);
 
         // ----- page one: the order the letters go on the page -------------------------------------
 
-        PdfPage first = document.AddPage();
-        using (XGraphics gfx = XGraphics.FromPdfPage(first))
+        var first = document.AddPage();
+        using (var gfx = XGraphics.FromPdfPage(first))
         {
             gfx.DrawString("Reading order", heading, XBrushes.Black, 50, 60);
 
@@ -81,7 +81,7 @@ internal sealed class InternationalDemo : PdfDemo
 
             gfx.DrawString("The same letters, one call each, left to right:", label, XBrushes.Black, 50, 232);
             double at = 50;
-            foreach (char letter in hebrew)
+            foreach (var letter in hebrew)
             {
                 gfx.DrawString(letter.ToString(), sample, XBrushes.Gray, at, 259);
                 at += 26;
@@ -108,21 +108,22 @@ internal sealed class InternationalDemo : PdfDemo
             // often than not and wrong exactly where it matters: a right-to-left line opening with a
             // brand name, a part number, or a quotation.
             // docs:begin declared-direction
-            XStringFormat declared = new XStringFormat();
-            declared.TextDirection = BidiParagraphDirection.RightToLeft;
-
-            // A default XStringFormat is not the default DrawString uses. The overload without one
-            // passes XStringFormats.Default, whose LineAlignment is BaseLine; a new XStringFormat
-            // leaves LineAlignment at its zero value, Near, which measures from the top of the box
-            // instead - so the y below would mean two different things on the two lines.
-            declared.LineAlignment = XLineAlignment.BaseLine;
+            var declared = new XStringFormat
+            {
+                TextDirection = BidiParagraphDirection.RightToLeft,
+                // A default XStringFormat is not the default DrawString uses. The overload without one
+                // passes XStringFormats.Default, whose LineAlignment is BaseLine; a new XStringFormat
+                // leaves LineAlignment at its zero value, Near, which measures from the top of the box
+                // instead - so the y below would mean two different things on the two lines.
+                LineAlignment = XLineAlignment.BaseLine
+            };
 
             // A digit is not a strong character but a Latin letter is, so this line's first strong
             // character is the A of ACME and Automatic resolves it left to right. That is the case
             // worth showing: with "2026" in front of the Hebrew instead, the first strong character
             // is still the Hebrew, Automatic already answers right to left, and declaring it changes
             // nothing at all.
-            string branded = "ACME " + hebrew;
+            var branded = "ACME " + hebrew;
 
             gfx.DrawString("Guessed from the text, then declared right to left:", label, XBrushes.Black, 50, 500);
             gfx.DrawString(branded, sample, XBrushes.Black, 50, 527);
@@ -140,14 +141,14 @@ internal sealed class InternationalDemo : PdfDemo
 
         // ----- page two: the letters themselves ----------------------------------------------------
 
-        PdfPage second = document.AddPage();
-        using (XGraphics gfx = XGraphics.FromPdfPage(second))
+        var second = document.AddPage();
+        using (var gfx = XGraphics.FromPdfPage(second))
         {
             gfx.DrawString("Shaping", heading, XBrushes.Black, 50, 60);
 
             // Read rather than assumed, because this demo is worth running both ways: the smoke
             // test drives it with no shaper registered, and then the page says so.
-            bool shaping = GlobalFontSettings.TextShaper != null;
+            var shaping = GlobalFontSettings.TextShaper != null;
 
             Note(gfx, label, body, 50, 90,
                 shaping ? "A shaper is registered, so these letters join." : "No shaper is registered.",
@@ -166,7 +167,7 @@ internal sealed class InternationalDemo : PdfDemo
             // The same characters with a zero-width non-joiner between each pair, which asks the
             // face for the isolated forms. It is the comparison that makes the line above legible:
             // two rows of the same letters, differing only in shape.
-            string unjoined = string.Join(From(0x200C), arabic.ToCharArray());
+            var unjoined = string.Join(From(0x200C), arabic.ToCharArray());
             gfx.DrawString("The same five letters, asked not to join:", label, XBrushes.Black, 50, 340);
             gfx.DrawString(unjoined, arabicFace, XBrushes.Gray, 50, 375);
 
@@ -188,12 +189,12 @@ internal sealed class InternationalDemo : PdfDemo
 
         // ----- page three: a face that has the character ------------------------------------------
 
-        PdfPage third = document.AddPage();
-        using (XGraphics gfx = XGraphics.FromPdfPage(third))
+        var third = document.AddPage();
+        using (var gfx = XGraphics.FromPdfPage(third))
         {
             gfx.DrawString("Fallback", heading, XBrushes.Black, 50, 60);
 
-            bool fallback = GlobalFontSettings.FontFallback != null;
+            var fallback = GlobalFontSettings.FontFallback != null;
 
             Note(gfx, label, body, 50, 90,
                 fallback ? "A fallback is registered." : "No fallback is registered.",
@@ -204,7 +205,7 @@ internal sealed class InternationalDemo : PdfDemo
 
             // Note the font on every line below: the sans. Nothing here names the Arabic family.
             // docs:begin fallback
-            XFont asked = new XFont(BundledFontResolver.SansFamily, 20);
+            var asked = new XFont(BundledFontResolver.SansFamily, 20);
 
             gfx.DrawString("A Latin face asked to draw Arabic:", label, XBrushes.Black, 50, 180);
             gfx.DrawString(arabic, asked, XBrushes.Black, 50, 210);
@@ -224,17 +225,19 @@ internal sealed class InternationalDemo : PdfDemo
             // XTextFormatter lays a paragraph into a rectangle and places each line itself, so it
             // has to be told which way the text runs for the same reason a page does.
             // docs:begin rtl-formatter
-            XTextFormatter formatter = new XTextFormatter(gfx);
-            formatter.TextDirection = BidiParagraphDirection.RightToLeft;
-            formatter.Alignment = XParagraphAlignment.Justify;
+            var formatter = new XTextFormatter(gfx)
+            {
+                TextDirection = BidiParagraphDirection.RightToLeft,
+                Alignment = XParagraphAlignment.Justify
+            };
 
-            XRect column = new XRect(50, 430, 320, 95);
+            var column = new XRect(50, 430, 320, 95);
             gfx.DrawString("XTextFormatter, declared right to left and justified:",
                 label, XBrushes.Black, 50, 420);
             gfx.DrawRectangle(XPens.LightGray, column);
 
-            StringBuilder paragraph = new StringBuilder();
-            for (int word = 0; word < 10; word++)
+            var paragraph = new StringBuilder();
+            for (var word = 0; word < 10; word++)
                 paragraph.Append(word % 2 == 0 ? hebrew : arabic).Append(' ');
 
             formatter.DrawString(paragraph.ToString().Trim(),
@@ -258,8 +261,8 @@ internal sealed class InternationalDemo : PdfDemo
     /// </summary>
     static string From(params int[] codePoints)
     {
-        StringBuilder built = new StringBuilder(codePoints.Length);
-        foreach (int codePoint in codePoints)
+        var built = new StringBuilder(codePoints.Length);
+        foreach (var codePoint in codePoints)
             built.Append(char.ConvertFromUtf32(codePoint));
 
         return built.ToString();
@@ -276,14 +279,14 @@ internal sealed class InternationalDemo : PdfDemo
     static void Note(XGraphics gfx, XFont label, XFont body, double x, double y,
         string? lead, params string[] lines)
     {
-        double at = y;
+        var at = y;
         if (lead != null)
         {
             gfx.DrawString(lead, label, XBrushes.Black, x, at);
             at += 14;
         }
 
-        foreach (string line in lines)
+        foreach (var line in lines)
         {
             gfx.DrawString(line, body, XBrushes.Black, x, at);
             at += 12;

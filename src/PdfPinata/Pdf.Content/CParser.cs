@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -31,7 +31,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using PdfPinata.Internal;
-using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.Content.Objects;
 
 
@@ -45,9 +44,8 @@ public sealed class CParser
     /// <summary>Initializes a parser over the combined content streams of a page.</summary>
     public CParser(PdfPage page)
     {
-        _page = page;
-        PdfContent content = page.Contents.CreateSingleContent();
-        byte[] bytes = content.Stream.Value;
+        var content = page.Contents.CreateSingleContent();
+        var bytes = content.Stream.Value;
         _lexer = new CLexer(bytes);
     }
 
@@ -76,7 +74,7 @@ public sealed class CParser
     /// <summary>Reads the whole content stream into a sequence of operators and their operands.</summary>
     public CSequence ReadContent()
     {
-        CSequence sequence = new CSequence();
+        var sequence = new CSequence();
         ParseObject(sequence, CSymbol.Eof);
 
         return sequence;
@@ -102,14 +100,18 @@ public sealed class CParser
                     break;
 
                 case CSymbol.Integer:
-                    CInteger n = new CInteger();
-                    n.Value = _lexer.TokenToInteger;
+                    var n = new CInteger
+                    {
+                        Value = _lexer.TokenToInteger
+                    };
                     _operands.Add(n);
                     break;
 
                 case CSymbol.Real:
-                    CReal r = new CReal();
-                    r.Value = _lexer.TokenToReal;
+                    var r = new CReal
+                    {
+                        Value = _lexer.TokenToReal
+                    };
                     _operands.Add(r);
                     break;
 
@@ -117,15 +119,19 @@ public sealed class CParser
                 case CSymbol.HexString:
                 case CSymbol.UnicodeString:
                 case CSymbol.UnicodeHexString:
-                    s = new CString();
-                    s.Value = _lexer.Token;
+                    s = new CString
+                    {
+                        Value = _lexer.Token
+                    };
                     _operands.Add(s);
                     break;
 
                 case CSymbol.Dictionary:
-                    s = new CString();
-                    s.Value = _lexer.Token;
-                    s.CStringType = CStringType.Dictionary;
+                    s = new CString
+                    {
+                        Value = _lexer.Token,
+                        CStringType = CStringType.Dictionary
+                    };
                     _operands.Add(s);
                     op = CreateOperator(OpCodeName.Dictionary);
                     //_operands.Clear();
@@ -134,8 +140,10 @@ public sealed class CParser
                     break;
 
                 case CSymbol.Name:
-                    CName name = new CName();
-                    name.Name = _lexer.Token;
+                    var name = new CName
+                    {
+                        Name = _lexer.Token
+                    };
                     _operands.Add(name);
                     break;
 
@@ -146,7 +154,7 @@ public sealed class CParser
                     break;
 
                 case CSymbol.BeginArray:
-                    CArray array = new CArray();
+                    var array = new CArray();
                     if (_operands.Count != 0)
                         ContentReaderDiagnostics.ThrowContentReaderException("Array within array...");
 
@@ -165,15 +173,15 @@ public sealed class CParser
 
     COperator CreateOperator()
     {
-        string name = _lexer.Token;
-        COperator op = OpCodes.OperatorFromName(name);
+        var name = _lexer.Token;
+        var op = OpCodes.OperatorFromName(name);
         return CreateOperator(op);
     }
 
     COperator CreateOperator(OpCodeName nameop)
     {
-        string name = nameop.ToString();
-        COperator op = OpCodes.OperatorFromName(name);
+        var name = nameop.ToString();
+        var op = OpCodes.OperatorFromName(name);
         return CreateOperator(op);
     }
 
@@ -207,25 +215,6 @@ public sealed class CParser
         return _lexer.ScanNextToken();
     }
 
-    CSymbol ScanNextToken(out string token)
-    {
-        CSymbol symbol = _lexer.ScanNextToken();
-        token = _lexer.Token;
-        return symbol;
-    }
-
-    /// <summary>
-    /// Reads the next symbol that must be the specified one.
-    /// </summary>
-    CSymbol ReadSymbol(CSymbol symbol)
-    {
-        CSymbol current = _lexer.ScanNextToken();
-        if (symbol != current)
-            ContentReaderDiagnostics.ThrowContentReaderException(PSSR.UnexpectedToken(_lexer.Token));
-        return current;
-    }
-
     readonly CSequence _operands = new();
-    PdfPage _page;
     readonly CLexer _lexer;
 }

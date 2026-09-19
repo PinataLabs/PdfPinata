@@ -51,24 +51,24 @@ internal static class PdfNamedDestinations
         if (document == null || name == null)
             return null;
 
-        string text = TextOf(name);
+        var text = TextOf(name);
         if (text == null)
             return null;
 
-        PdfCatalog catalog = document.Catalog;
+        var catalog = document.Catalog;
         if (catalog == null)
             return null;
 
         PdfItem found = null;
 
-        PdfDictionary names = catalog.Elements.GetDictionary("/Names");
+        var names = catalog.Elements.GetDictionary("/Names");
         if (names != null)
             found = Search(names.Elements.GetDictionary("/Dests"), text, 0, new HashSet<PdfDictionary>());
 
         if (found == null)
         {
             // The keys of a dictionary carry the slash a name is written with.
-            PdfDictionary dests = catalog.Elements.GetDictionary("/Dests");
+            var dests = catalog.Elements.GetDictionary("/Dests");
             if (dests != null)
                 found = dests.Elements["/" + text];
         }
@@ -93,35 +93,35 @@ internal static class PdfNamedDestinations
         // A node says which names lie below it, so one the name is outside can be passed over.
         // Anything unreadable about the bounds leaves the node to be searched rather than
         // skipped: searching one node too many costs time, skipping one loses the destination.
-        PdfArray limits = node.Elements.GetArray("/Limits");
+        var limits = node.Elements.GetArray("/Limits");
         if (limits != null && limits.Elements.Count == 2)
         {
-            string low = TextOf(limits.Elements[0]);
-            string high = TextOf(limits.Elements[1]);
+            var low = TextOf(limits.Elements[0]);
+            var high = TextOf(limits.Elements[1]);
             if (low != null && high != null &&
                 (string.CompareOrdinal(name, low) < 0 || string.CompareOrdinal(name, high) > 0))
                 return null;
         }
 
         // A leaf holds the names themselves, alternating with what each one stands for.
-        PdfArray leaves = node.Elements.GetArray("/Names");
+        var leaves = node.Elements.GetArray("/Names");
         if (leaves != null)
         {
-            int count = leaves.Elements.Count;
-            for (int idx = 0; idx + 1 < count; idx += 2)
+            var count = leaves.Elements.Count;
+            for (var idx = 0; idx + 1 < count; idx += 2)
             {
                 if (TextOf(leaves.Elements[idx]) == name)
                     return leaves.Elements[idx + 1];
             }
         }
 
-        PdfArray kids = node.Elements.GetArray("/Kids");
+        var kids = node.Elements.GetArray("/Kids");
         if (kids != null)
         {
-            int count = kids.Elements.Count;
-            for (int idx = 0; idx < count; idx++)
+            var count = kids.Elements.Count;
+            for (var idx = 0; idx < count; idx++)
             {
-                PdfItem found = Search(kids.Elements.GetDictionary(idx), name, depth + 1, seen);
+                var found = Search(kids.Elements.GetDictionary(idx), name, depth + 1, seen);
                 if (found != null)
                     return found;
             }

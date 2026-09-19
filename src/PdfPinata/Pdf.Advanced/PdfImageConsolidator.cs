@@ -30,22 +30,22 @@ internal sealed class PdfImageConsolidator
     {
         ArgumentNullException.ThrowIfNull(pages);
 
-        List<ImageInfo> images = ImageInfo.FindAll(pages);
+        var images = ImageInfo.FindAll(pages);
 
-        Dictionary<int, string> mapHashcodeToMd5 = new Dictionary<int, string>();
-        Dictionary<string, PdfItem> mapMd5ToPdfItem = new Dictionary<string, PdfItem>();
+        var mapHashcodeToMd5 = new Dictionary<int, string>();
+        var mapMd5ToPdfItem = new Dictionary<string, PdfItem>();
 
         // Calculate MD5 for each image XObject and build lookups for all images.
-        foreach (ImageInfo img in images)
+        foreach (var img in images)
         {
             mapHashcodeToMd5[img.XObject.GetHashCode()] = img.XObjectMD5;
             mapMd5ToPdfItem[img.XObjectMD5] = img.Item.Value;
         }
 
         // Set the PdfItem for each image to the one chosen for the MD5.
-        foreach (ImageInfo img in images)
+        foreach (var img in images)
         {
-            string md5 = mapHashcodeToMd5[img.XObject.GetHashCode()];
+            var md5 = mapHashcodeToMd5[img.XObject.GetHashCode()];
             img.XObjects.Elements[img.Item.Key] = mapMd5ToPdfItem[md5];
         }
     }
@@ -99,8 +99,8 @@ internal sealed class PdfImageConsolidator
                 Hasher.Initialize();
             }
 
-            StringBuilder sb = new StringBuilder();
-            foreach (byte x in hashBytes)
+            var sb = new StringBuilder();
+            foreach (var x in hashBytes)
             {
                 sb.Append(x.ToString("x2"));
             }

@@ -20,9 +20,9 @@ namespace PinataLayout.Rendering.Tests;
 /// </remarks>
 public class TextMeasurementAndRenderObjectTests
 {
-    static XGraphics OnAPage(out PdfDocument document)
+    static XGraphics OnAPage()
     {
-        document = new PdfDocument();
+        var document = new PdfDocument();
         return XGraphics.FromPdfPage(document.AddPage());
     }
 
@@ -30,7 +30,7 @@ public class TextMeasurementAndRenderObjectTests
 
     static XSize MeasuredIn(UnitType unit)
     {
-        using var gfx = OnAPage(out _);
+        using var gfx = OnAPage();
         return new TextMeasurement(gfx, new Font("Arial", 12)).MeasureString("Measure me", unit);
     }
 
@@ -63,7 +63,7 @@ public class TextMeasurementAndRenderObjectTests
     [Fact]
     public void TheOverloadWithoutAUnitMeasuresInPoints()
     {
-        using var gfx = OnAPage(out _);
+        using var gfx = OnAPage();
         var measurement = new TextMeasurement(gfx, new Font("Arial", 12));
 
         var implied = measurement.MeasureString("Measure me");
@@ -76,7 +76,7 @@ public class TextMeasurementAndRenderObjectTests
     [Fact]
     public void MeasuringNothingIsRefusedRatherThanAnsweredWithZero()
     {
-        using var gfx = OnAPage(out _);
+        using var gfx = OnAPage();
         var measurement = new TextMeasurement(gfx, new Font("Arial", 12));
 
         var measuring = () => measurement.MeasureString(null, UnitType.Point);
@@ -90,7 +90,7 @@ public class TextMeasurementAndRenderObjectTests
         // The guard exists because the switch below it has an arm per unit and a Debug.Assert(false)
         // for anything else - which in a release build is a no-op that would return the measurement
         // in points under whatever name was asked for.
-        using var gfx = OnAPage(out _);
+        using var gfx = OnAPage();
         var measurement = new TextMeasurement(gfx, new Font("Arial", 12));
 
         var measuring = () => measurement.MeasureString("Measure me", (UnitType)999);
@@ -103,7 +103,7 @@ public class TextMeasurementAndRenderObjectTests
     {
         // The cached XFont is dropped when the font is replaced, which is the only reason the second
         // measurement can differ from the first.
-        using var gfx = OnAPage(out _);
+        using var gfx = OnAPage();
         var measurement = new TextMeasurement(gfx, new Font("Arial", 12));
 
         var small = measurement.MeasureString("Measure me", UnitType.Point);
@@ -204,8 +204,9 @@ public class TextMeasurementAndRenderObjectTests
         var document = new Document();
         var renderer = RendererFor(document);
 
-        using var gfx = OnAPage(out _);
+        using var gfx = OnAPage();
         var drawing = () => renderer.RenderObject(
+            // ReSharper disable once AccessToDisposedClosure
             gfx, XUnit.FromPoint(20), XUnit.FromPoint(20), XUnit.FromPoint(300), null);
 
         drawing.Should().Throw<ArgumentNullException>();
@@ -221,8 +222,9 @@ public class TextMeasurementAndRenderObjectTests
         section.AddParagraph("Something");
         var renderer = RendererFor(document);
 
-        using var gfx = OnAPage(out _);
+        using var gfx = OnAPage();
         var drawing = () => renderer.RenderObject(
+            // ReSharper disable once AccessToDisposedClosure
             gfx, XUnit.FromPoint(20), XUnit.FromPoint(20), XUnit.FromPoint(300), section);
 
         drawing.Should().Throw<ArgumentException>();

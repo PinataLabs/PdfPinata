@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -15,7 +14,7 @@ public sealed class DomValueModelGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        IncrementalValuesProvider<(ParsedMember? Member, DiagnosticInfo? Error)> members = context.SyntaxProvider
+        var members = context.SyntaxProvider
             .ForAttributeWithMetadataName(
                 Parser.DvAttribute,
                 predicate: static (node, _) => node is VariableDeclaratorSyntax or PropertyDeclarationSyntax,
@@ -23,7 +22,7 @@ public sealed class DomValueModelGenerator : IIncrementalGenerator
 
         // Every DocumentObject needs a table, including the 15 that declare no [DV] member of their
         // own and inherit only parent. An attribute-driven provider cannot see those.
-        IncrementalValuesProvider<ParsedType?> types = context.SyntaxProvider
+        var types = context.SyntaxProvider
             .CreateSyntaxProvider(
                 predicate: static (node, _) => node is ClassDeclarationSyntax { BaseList: not null },
                 transform: static (ctx, _) => Parser.ParseType(ctx))
@@ -35,13 +34,13 @@ public sealed class DomValueModelGenerator : IIncrementalGenerator
         {
             // Back to a Diagnostic only here. Everything upstream of this point is cached, and a
             // Diagnostic holds a Location, which holds the syntax tree it came from.
-            foreach (DiagnosticInfo error in pair.Right.Select(m => m.Error).OfType<DiagnosticInfo>())
+            foreach (var error in pair.Right.Select(m => m.Error).OfType<DiagnosticInfo>())
                 spc.ReportDiagnostic(error.ToDiagnostic());
 
-            IEnumerable<ParsedType> allTypes = pair.Left.OfType<ParsedType>();
-            IEnumerable<ParsedMember> allMembers = pair.Right.Select(m => m.Member).OfType<ParsedMember>();
+            var allTypes = pair.Left.OfType<ParsedType>();
+            var allMembers = pair.Right.Select(m => m.Member).OfType<ParsedMember>();
 
-            foreach (DomTypeModel type in Parser.GroupByTypeClosingInheritance(allTypes, allMembers, spc))
+            foreach (var type in Parser.GroupByTypeClosingInheritance(allTypes, allMembers, spc))
                 spc.AddSource($"{type.HintName}.g.cs", Emitter.Emit(type));
         });
     }
