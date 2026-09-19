@@ -760,7 +760,18 @@ internal class DdlParser
 
         AssertSymbol(Symbol.ParenLeft);
         ReadCode();  // read color token
-        Color color = ParseColor();
+        Color color = Color.Empty;
+        try
+        {
+            color = ParseColor();
+        }
+        catch (Exception ex) when (ex is not DdlParserException && !Unrecoverable.Is(ex))
+        {
+            // What ParseColor refuses without a parser error - a quoted name, HSB, Lab, a number
+            // too large - is reported for a color attribute by ParseAssign's catch; here nothing
+            // above would catch it.
+            ThrowParserException(ex, DomMsgID.InvalidColor, Token);
+        }
         formattedText.Font.Color = color;
         AssertSymbol(Symbol.ParenRight);
         ReadCode();

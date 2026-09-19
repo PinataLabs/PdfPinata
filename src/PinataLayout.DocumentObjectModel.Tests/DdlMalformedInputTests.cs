@@ -167,6 +167,19 @@ public class DdlMalformedInputTests
         (await ComplaintsAboutParagraph(paragraphBody)).First().Should().Be(complaint);
     }
 
+    [Theory(Timeout = Patience)]
+    [InlineData("\\fontcolor(\"Red\"){x}", "Invalid color: 'Red'.")]
+    [InlineData("\\fontcolor(HSB){x}", "Invalid color: 'HSB'.")]
+    [InlineData("\\fontcolor(Lab){x}", "Invalid color: 'Lab'.")]
+    [InlineData("\\fontcolor(0x1G){x}", "Invalid color: '0x1G'.")]
+    [InlineData("\\fontcolor(99999999999){x}", "Invalid color: '99999999999'.")]
+    [InlineData("\\fontcolor(NoSuch){x}", "Invalid color: 'NoSuch'.")]
+    [InlineData("\\fontcolor(RGB(1, 2)){x}", "',' expected, found ')'.")]
+    public async Task AFontColorThatIsNotAColourIsReported(string paragraphBody, string complaint)
+    {
+        (await ComplaintsAboutParagraph(paragraphBody)).First().Should().Be(complaint);
+    }
+
     [Fact(Timeout = Patience)]
     public async Task AStyleNamedByFormattedTextHasToBeQuoted()
     {
