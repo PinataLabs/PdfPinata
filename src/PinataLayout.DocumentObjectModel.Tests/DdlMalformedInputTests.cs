@@ -153,7 +153,7 @@ public class DdlMalformedInputTests
     [InlineData("a\\space{b}", "Unexpected symbol '{'.")]
     public async Task SomethingThatCannotBeInAParagraphIsNamed(string paragraphBody, string complaint)
     {
-        (await ComplaintsAboutParagraph(paragraphBody)).First().Should().Be(complaint);
+        (await ComplaintsAboutParagraph(paragraphBody))[0].Should().Be(complaint);
     }
 
     [Theory(Timeout = Patience)]
@@ -175,7 +175,7 @@ public class DdlMalformedInputTests
     [InlineData("\\space(3 x)", "')' expected, found 'x'.")]
     public async Task AParagraphKeywordMissingPartOfItsSyntaxSaysWhatWasExpected(string paragraphBody, string complaint)
     {
-        (await ComplaintsAboutParagraph(paragraphBody)).First().Should().Be(complaint);
+        (await ComplaintsAboutParagraph(paragraphBody))[0].Should().Be(complaint);
     }
 
     [Theory(Timeout = Patience)]
@@ -188,7 +188,7 @@ public class DdlMalformedInputTests
     {
         // An identifier or a number has no keyword to name it by, so the complaint says which
         // kind of token was wanted rather than "'x' expected".
-        (await ComplaintsAboutParagraph(paragraphBody)).First().Should().Be(complaint);
+        (await ComplaintsAboutParagraph(paragraphBody))[0].Should().Be(complaint);
     }
 
     [Theory(Timeout = Patience)]
@@ -201,20 +201,20 @@ public class DdlMalformedInputTests
     [InlineData("\\fontcolor(RGB(1, 2)){x}", "',' expected, found ')'.")]
     public async Task AFontColorThatIsNotAColourIsReported(string paragraphBody, string complaint)
     {
-        (await ComplaintsAboutParagraph(paragraphBody)).First().Should().Be(complaint);
+        (await ComplaintsAboutParagraph(paragraphBody))[0].Should().Be(complaint);
     }
 
     [Fact(Timeout = Patience)]
     public async Task AStyleNamedByFormattedTextHasToBeQuoted()
     {
-        (await ComplaintsAboutParagraph("\\font(Heading1){x}")).First()
+        (await ComplaintsAboutParagraph("\\font(Heading1){x}"))[0]
             .Should().Be("String expected: 'Heading1'.");
     }
 
     [Fact(Timeout = Patience)]
     public async Task ASymbolNameMustBeAName()
     {
-        (await ComplaintsAboutParagraph("\\symbol(123)")).First().Should().Be("Unexpected symbol '123'.");
+        (await ComplaintsAboutParagraph("\\symbol(123)"))[0].Should().Be("Unexpected symbol '123'.");
     }
 
     [Theory(Timeout = Patience)]
@@ -224,7 +224,7 @@ public class DdlMalformedInputTests
     [InlineData("\\space(em)", "'em' '\\space'.", "the names are case sensitive here, where an enum attribute's are not")]
     public async Task ASymbolOrSpaceOfTheWrongKindIsRefused(string paragraphBody, string complaint, string why)
     {
-        (await ComplaintsAboutParagraph(paragraphBody)).First().Should().Be(complaint, why);
+        (await ComplaintsAboutParagraph(paragraphBody))[0].Should().Be(complaint, why);
     }
 
     // ----- numbers in paragraph content ------------------------------------------------------------------
@@ -235,7 +235,7 @@ public class DdlMalformedInputTests
     [InlineData("\\symbol(Euro, 0x1G)")]
     public async Task AHexNumberWithALetterThatIsNotAHexDigitIsReported(string paragraphBody)
     {
-        (await ComplaintsAboutParagraph(paragraphBody)).First().Should().Be("Integer expected: '0x1G'.");
+        (await ComplaintsAboutParagraph(paragraphBody))[0].Should().Be("Integer expected: '0x1G'.");
     }
 
     [Theory(Timeout = Patience)]
@@ -248,7 +248,7 @@ public class DdlMalformedInputTests
     [InlineData("\\symbol(Euro, 99999999999)")]
     public async Task ANumberTooLargeForAnIntegerIsReported(string paragraphBody)
     {
-        (await ComplaintsAboutParagraph(paragraphBody)).First()
+        (await ComplaintsAboutParagraph(paragraphBody))[0]
             .Should().Be("Valid range only within '-2147483648 - 2147483647'.");
     }
 
@@ -262,7 +262,7 @@ public class DdlMalformedInputTests
     [InlineData("\\table{\\columns{\\column}\\rows{\\row{\\column}}}", "Unexpected symbol '\\column'.")]
     public async Task ATableOutOfOrderSaysWhatItExpected(string table, string complaint)
     {
-        (await ComplaintsAbout("\\document{\\section{" + table + "\\paragraph{after}}}")).First()
+        (await ComplaintsAbout("\\document{\\section{" + table + "\\paragraph{after}}}"))[0]
             .Should().Be(complaint);
     }
 
@@ -283,7 +283,7 @@ public class DdlMalformedInputTests
     [InlineData("\\toparea{\\nosuch}")]
     public async Task AKeywordAChartDoesNotKnowIsNamed(string chartBody)
     {
-        (await ComplaintsAboutChart(chartBody)).First().Should().Be("Unexpected symbol '\\nosuch'.");
+        (await ComplaintsAboutChart(chartBody))[0].Should().Be("Unexpected symbol '\\nosuch'.");
     }
 
     [Fact(Timeout = Patience)]
@@ -302,7 +302,7 @@ public class DdlMalformedInputTests
     [InlineData("\\leftarea{\\legend[3]}")]
     public async Task AnAttributeBlockInAChartThatHoldsNoAttributeIsReported(string chartBody)
     {
-        (await ComplaintsAboutChart(chartBody)).First().Should().Be("']' expected, found '3'.");
+        (await ComplaintsAboutChart(chartBody))[0].Should().Be("']' expected, found '3'.");
     }
 
     [Theory(Timeout = Patience)]
@@ -313,13 +313,13 @@ public class DdlMalformedInputTests
     [InlineData("\\xvalues{\"a\" null}")]
     public async Task TwoValuesInASeriesWithNoCommaBetweenThemAreReported(string chartBody)
     {
-        (await ComplaintsAboutChart(chartBody)).First().Should().Be("Missing comma.");
+        (await ComplaintsAboutChart(chartBody))[0].Should().Be("Missing comma.");
     }
 
     [Fact(Timeout = Patience)]
     public async Task SomethingThatIsNotAValueInTheXValuesIsNamed()
     {
-        (await ComplaintsAboutChart("\\xvalues{\"a\", \\point}")).First().Should().Be("Unexpected symbol '\\point'.");
+        (await ComplaintsAboutChart("\\xvalues{\"a\", \\point}"))[0].Should().Be("Unexpected symbol '\\point'.");
     }
 
     [Theory(Timeout = Patience)]
@@ -339,7 +339,7 @@ public class DdlMalformedInputTests
     [Fact(Timeout = Patience)]
     public async Task APointHoldingMoreThanOneNumberIsReported()
     {
-        (await ComplaintsAboutChart("\\series{\\point{4 5}}")).First()
+        (await ComplaintsAboutChart("\\series{\\point{4 5}}"))[0]
             .Should().Be("Missing right brace after '\\point'.");
     }
 
@@ -400,7 +400,7 @@ public class DdlMalformedInputTests
     [InlineData("\\section{\\paragraph[Format{Font{Bold = true}} ; ]{t}}", "']' expected, found ';'.")]
     public async Task SomethingInAnAttributeBlockThatIsNotAnAttributeIsNamed(string section, string complaint)
     {
-        (await ComplaintsAbout("\\document{" + section + "}")).First().Should().Be(complaint);
+        (await ComplaintsAbout("\\document{" + section + "}"))[0].Should().Be(complaint);
     }
 
     [Theory(Timeout = Patience)]
@@ -419,7 +419,7 @@ public class DdlMalformedInputTests
     [InlineData("Alignment = 3", "Identifier expected: '3'.")]
     public async Task AValueOfTheWrongKindIsNamedInTheFirstComplaint(string formatBody, string complaint)
     {
-        (await ComplaintsAboutParagraphFormat(formatBody)).First().Should().Contain(complaint);
+        (await ComplaintsAboutParagraphFormat(formatBody))[0].Should().Contain(complaint);
     }
 
     [Theory(Timeout = Patience)]
@@ -429,14 +429,14 @@ public class DdlMalformedInputTests
     public async Task AnIntegerAttributeRefusesWhatIsNotAnInteger(string literal, string complaint)
     {
         (await ComplaintsAbout("\\document{\\section[PageSetup{StartingNumber = " + literal + "}]{\\paragraph{t}}}"))
-            .First().Should().Contain(complaint);
+            [0].Should().Contain(complaint);
     }
 
     [Fact(Timeout = Patience)]
     public async Task AShapePositionThatIsNeitherAPlaceNorADistanceIsNamed()
     {
         (await ComplaintsAbout("\\document{\\section{\\textframe[Left = Nowhere]{framed}}}"))
-            .First().Should().Contain("'Nowhere'");
+            [0].Should().Contain("'Nowhere'");
     }
 
     [Fact(Timeout = Patience)]
@@ -444,7 +444,7 @@ public class DdlMalformedInputTests
     {
         // "1.2" is a number and ".3" is another: a point with a digit after it starts a real
         // literal of its own, so the second point is not a syntax error inside the first number.
-        (await ComplaintsAboutParagraphFormat("Font{Size = 1.2.3}")).First()
+        (await ComplaintsAboutParagraphFormat("Font{Size = 1.2.3}"))[0]
             .Should().Be("'}' expected, found '.3'.");
     }
 
@@ -454,6 +454,6 @@ public class DdlMalformedInputTests
     public async Task AStringLiteralCannotRunOverALineEnd()
     {
         (await ComplaintsAbout("\\document[Info{Title = \"a\nb\"}]{\\section{\\paragraph{t}}}"))
-            .First().Should().Be("Newline in string not allowed.");
+            [0].Should().Be("Newline in string not allowed.");
     }
 }

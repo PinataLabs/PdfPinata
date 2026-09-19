@@ -314,7 +314,7 @@ public class LegendTests
     {
         var bordered = Drawn.Page(Bordered(DockingType.Right));
         var border = BorderOn(bordered);
-        var firstSwatch = Swatches(bordered).First();
+        var firstSwatch = Swatches(bordered)[0];
 
         (firstSwatch.X - border.X).Should().BeApproximately(Padding, 0.01);
         (border.Top - firstSwatch.Top).Should().BeGreaterThanOrEqualTo(Padding);
@@ -358,7 +358,7 @@ public class LegendTests
         Length(key).Should().BeApproximately(keyLength, 0.01);
         Math.Max(key.X1, key.X2).Should().BeApproximately(text.X - MarkerToText, 0.01);
 
-        var marker = PaintedPaths.FilledIn(page, blue).First();
+        var marker = PaintedPaths.FilledIn(page, blue)[0];
         marker.CentreX.Should().BeApproximately((key.X1 + key.X2) / 2, 0.01);
         marker.CentreY.Should().BeApproximately(key.Y1, 0.01);
         marker.Width.Should().BeApproximately(markerSize, 0.01);
@@ -389,7 +389,7 @@ public class LegendTests
         Length(key).Should().BeApproximately(3 * markerSize, 0.01);
         Math.Max(key.X1, key.X2).Should().BeApproximately(text.X - MarkerToText, 0.01);
 
-        var marker = PaintedPaths.FilledIn(page, blue).First();
+        var marker = PaintedPaths.FilledIn(page, blue)[0];
         marker.Width.Should().BeApproximately(markerSize, 0.01);
         marker.Left.Should().BeGreaterThanOrEqualTo(Math.Min(key.X1, key.X2),
             "the marker is drawn inside the room its entry reserved for it");
