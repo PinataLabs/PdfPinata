@@ -145,6 +145,7 @@ internal sealed class ExtractDemo : PdfDemo
                 body, XBrushes.Black, new XRect(50, 170, 495, 70));
         }
 
+        // docs:begin extract
         // Saved and opened again, because that is the situation the extractor is for: a file that
         // arrived from somewhere, whose fonts are subsets and whose codes mean nothing without the
         // /ToUnicode map the file carries.
@@ -157,6 +158,7 @@ internal sealed class ExtractDemo : PdfDemo
         string extracted = PdfTextExtractor.ExtractText(document.Pages[0]);
         IReadOnlyList<PdfTextRun> runs = PdfTextExtractor.ExtractRuns(document.Pages[0]);
         IReadOnlyList<PdfTextRun> secondPage = PdfTextExtractor.ExtractRuns(document.Pages[1]);
+        // docs:end extract
 
         // ----- page three: what came back ----------------------------------------------------------
 
@@ -235,6 +237,7 @@ internal sealed class ExtractDemo : PdfDemo
             gfx.DrawString("text", label, XBrushes.Black, 254, 138);
 
             double y = 152;
+            // docs:begin read-runs
             foreach (PdfTextRun run in runs)
             {
                 if (y > 600)
@@ -248,6 +251,7 @@ internal sealed class ExtractDemo : PdfDemo
                 gfx.DrawString(Shortened(run.Text), mono, XBrushes.Black, 254, y);
                 y += 9.4;
             }
+            // docs:end read-runs
 
             gfx.DrawString("One run per operator, not one box per glyph", label, XBrushes.Black, 50, y + 22);
 

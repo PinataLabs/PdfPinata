@@ -74,14 +74,17 @@ internal sealed class NavigationDemo : PdfDemo
 
         // ----- page labels -----
 
+        // docs:begin page-labels
         // A reader shows these where it shows a page number, so the fourth sheet of this document
         // reads "iv" and the tenth would read "1". They are ranges: each Add says where a run
         // starts and how it is numbered, and the run lasts until the next one begins.
         document.PageLabels.Add(0, PdfPageLabelStyle.LowercaseRoman);
         document.PageLabels.Add(3, PdfPageLabelStyle.Decimal, prefix: null, start: 1);
+        // docs:end page-labels
 
         // ----- viewer preferences, layout and mode -----
 
+        // docs:begin viewer-preferences
         // What a reader does when the document opens. None of it changes a pixel of any page.
         document.PageLayout = PdfPageLayout.TwoColumnRight;
         document.PageMode = PdfPageMode.UseOutlines;
@@ -91,19 +94,25 @@ internal sealed class NavigationDemo : PdfDemo
         document.ViewerPreferences.DisplayDocTitle = true;
         document.ViewerPreferences.HideToolbar = false;
         document.ViewerPreferences.HideMenubar = false;
+        // docs:end viewer-preferences
 
+        // docs:begin language
         // What a screen reader announces the document in, and what a reader uses to pick
         // hyphenation rules. A single tag, and nothing else in the file records it.
         document.Language = "en-GB";
+        // docs:end language
 
         // ----- private data and named destinations -----
 
+        // docs:begin custom-values
         // Anything the producer wants to carry that is not part of the page. It lives in the
         // catalog under a key of the caller's choosing, no reader displays it, and it survives a
         // round trip - which is exactly what a pipeline needs to recognise its own output later.
         byte[] pipeline = Encoding.UTF8.GetBytes("{\"stage\":\"demonstration\",\"run\":42}");
         document.CustomValues["/Pipeline"] = new PdfCustomValue(pipeline);
+        // docs:end custom-values
 
+        // docs:begin named-destinations
         // A destination named rather than numbered, so a link can point at "chapter-two" and go on
         // pointing at it after pages are inserted in front of it. The table is the document-wide
         // one; the Text demo makes a single named destination on its own page.
@@ -111,6 +120,7 @@ internal sealed class NavigationDemo : PdfDemo
         document.NamedDestinations.Add("contents", made[2]);
         document.NamedDestinations.Add("chapter-one", made[3]);
         document.NamedDestinations.Add("chapter-two", made[4], top: 200);
+        // docs:end named-destinations
 
         // Outlines, so that PageMode.UseOutlines has something to open.
         document.Outlines.Add("Front matter", made[0], true);
@@ -172,6 +182,7 @@ internal sealed class NavigationDemo : PdfDemo
             double styleY = y + 40;
             foreach ((PdfPageLabelStyle Style, string? Prefix) style in styles)
             {
+                // docs:begin label-probe
                 using PdfDocument probe = new PdfDocument();
                 for (int index = 0; index < 4; index++)
                     probe.AddPage();
@@ -180,6 +191,7 @@ internal sealed class NavigationDemo : PdfDemo
                 List<string> labels = new List<string>();
                 for (int index = 0; index < 4; index++)
                     labels.Add(probe.PageLabels.GetLabel(index));
+                // docs:end label-probe
 
                 gfx.DrawString(style.Style.ToString(), mono, XBrushes.Black, new XPoint(50, styleY));
                 gfx.DrawString(style.Prefix is null ? "" : $"prefix \"{style.Prefix}\"",

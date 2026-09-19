@@ -52,9 +52,11 @@ internal sealed class OutlineDemo : PdfDemo
         PdfDocument document = new PdfDocument();
         document.Info.Title = "Outline";
 
+        // docs:begin page-mode
         // Ask the reader to show the bookmark panel when the document opens. Without this an
         // outline is there but folded away, and a demo of bookmarks that shows none is no demo.
         document.PageMode = PdfPageMode.UseOutlines;
+        // docs:end page-mode
 
         XFont titleFont = new XFont(Sans, 22, XFontStyle.Bold);
         XFont chapterFont = new XFont(Sans, 16, XFontStyle.Bold);
@@ -64,6 +66,7 @@ internal sealed class OutlineDemo : PdfDemo
         XFont noteFont = new XFont(Sans, 7.5);
         XFont mono = new XFont("Source Code Pro", 8);
 
+        // docs:begin top-of
         // An outline destination is a position in default page space, measured up from the foot
         // of the page. Everything drawn below is placed in world space, measured down from the
         // head of it, so every heading's position has to be converted on the way into the tree.
@@ -71,7 +74,9 @@ internal sealed class OutlineDemo : PdfDemo
         {
             return on.Transformer.WorldToDefaultPage(new XRect(0, worldY, 0, 0)).Y;
         }
+        // docs:end top-of
 
+        // docs:begin heading
         // Draws a heading and hands back the place an entry pointing at it should land: a little
         // above the text, so the heading is not flush against the top edge of the window.
         //
@@ -90,6 +95,7 @@ internal sealed class OutlineDemo : PdfDemo
 
             return TopOf(on, landing);
         }
+        // docs:end heading
 
         void Paragraphs(XGraphics on, double x, double baseline, int count)
         {
@@ -152,6 +158,7 @@ internal sealed class OutlineDemo : PdfDemo
         titleGfx.DrawLine(XPens.LightGray, 56, y + 6, 539, y + 6);
         double contentsY = y + 26;
 
+        // docs:begin contents-link
         // One line of the contents, linked to the heading it names. The hot area is measured
         // rather than guessed: a rectangle wider than its text swallows clicks meant for the line
         // beside it, and one the height of the font rather than of the row leaves no dead gap.
@@ -172,6 +179,7 @@ internal sealed class OutlineDemo : PdfDemo
 
             contentsY += advance;
         }
+        // docs:end contents-link
 
         // ---- Pages two to four: three chapters ---------------------------------------
         (string Chapter, bool Opened, XColor Colour, PdfOutlineStyle Style, string[] Sections)[] book =
@@ -194,11 +202,13 @@ internal sealed class OutlineDemo : PdfDemo
             gfx.DrawLine(new XPen(XColors.SteelBlue, 1.5), 56, 106, 539, 106);
             Paragraphs(gfx, 56, 128, 2);
 
+            // docs:begin chapter
             // Add(title, page, opened, style, colour) is the widest overload. The colour and the
             // style are the entry's own - they say nothing about the heading on the page.
             PdfOutline chapter = document.Outlines.Add(part.Chapter, page, part.Opened,
                 part.Style, part.Colour);
             chapter.Top = chapterTop;
+            // docs:end chapter
 
             ContentsLine(part.Chapter, subFont, XBrushes.Black, 56, 15,
                 document.PageCount.ToString());
@@ -206,11 +216,13 @@ internal sealed class OutlineDemo : PdfDemo
             double sectionY = 176;
             foreach (string title in part.Sections)
             {
+                // docs:begin section
                 double sectionTop = Heading(gfx, title, sectionFont, 56, sectionY);
                 Paragraphs(gfx, 56, sectionY + 20, 2);
 
                 PdfOutline section = chapter.Outlines.Add(title, page);
                 section.Top = sectionTop;
+                // docs:end section
 
                 ContentsLine(title, body, XBrushes.DimGray, 76, 13, null);
 
@@ -286,6 +298,7 @@ internal sealed class OutlineDemo : PdfDemo
             appendixGfx.DrawString(row.Label, body, XBrushes.Black, new XPoint(56, rowY));
             appendixGfx.DrawString(row.Reads, mono, XBrushes.DimGray, new XPoint(320, rowY));
 
+            // docs:begin destination-types
             PdfOutline entry = appendixEntry.Outlines.Add(row.Label, appendix);
             entry.PageDestinationType = row.Type;
             entry.Top = entryTop;
@@ -296,6 +309,7 @@ internal sealed class OutlineDemo : PdfDemo
             // Xyz alone reads Zoom. 2 is 200%; leaving it unset keeps the reader's own.
             if (row.Type == PdfPageDestinationType.Xyz)
                 entry.Zoom = 2;
+            // docs:end destination-types
 
             rowY += 22;
         }

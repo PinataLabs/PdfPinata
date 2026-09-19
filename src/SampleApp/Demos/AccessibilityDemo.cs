@@ -44,6 +44,7 @@ internal sealed class AccessibilityDemo : PdfDemo
         normal.Font.Size = 10.5;
         normal.ParagraphFormat.SpaceAfter = Unit.FromPoint(6);
 
+        // docs:begin headings
         Style heading1 = report.Styles[StyleNames.Heading1];
         heading1.Font.Name = "Liberation Sans";
         heading1.Font.Size = 17;
@@ -54,6 +55,7 @@ internal sealed class AccessibilityDemo : PdfDemo
         // The same property that puts a heading in the bookmark panel is what gives it its
         // structure type: /H1 from Level1, and so on down to /H6. Nothing else has to be said.
         heading1.ParagraphFormat.OutlineLevel = OutlineLevel.Level1;
+        // docs:end headings
 
         Style heading2 = report.Styles[StyleNames.Heading2];
         heading2.Font.Name = "Liberation Sans";
@@ -71,6 +73,7 @@ internal sealed class AccessibilityDemo : PdfDemo
         section.PageSetup.TopMargin = Unit.FromCentimeter(2.2);
         section.PageSetup.BottomMargin = Unit.FromCentimeter(2);
 
+        // docs:begin running-head
         // A running head is decoration, not content. The renderer draws it inside an artifact scope
         // and nothing inside one is tagged at all - so this line does not appear in the tree, and a
         // reader announcing the document does not read it out once per page.
@@ -78,6 +81,7 @@ internal sealed class AccessibilityDemo : PdfDemo
         runningHead.Format.Font.Size = 8;
         runningHead.Format.Font.Color = Colors.DimGray;
         runningHead.Format.Alignment = ParagraphAlignment.Right;
+        // docs:end running-head
 
         // ----- what the tree is for -----
 
@@ -122,6 +126,7 @@ internal sealed class AccessibilityDemo : PdfDemo
         table.TopPadding = Unit.FromPoint(3);
         table.BottomPadding = Unit.FromPoint(3);
 
+        // docs:begin table
         // Written to /Summary on the /Table element. A caption describes a table to somebody who
         // can see its shape; a summary describes the shape itself, which is what somebody who
         // cannot see it is missing.
@@ -143,6 +148,7 @@ internal sealed class AccessibilityDemo : PdfDemo
         header.Cells[0].AddParagraph("Region");
         header.Cells[1].AddParagraph("Revenue (GBP thousand)");
         header.Cells[2].AddParagraph("Headcount");
+        // docs:end table
 
         (string Region, string Revenue, string People)[] figures =
         {
@@ -175,6 +181,7 @@ internal sealed class AccessibilityDemo : PdfDemo
             + "What conforms to nothing is a /Figure with nothing to say, and that is the one thing "
             + "a document produces by accident.");
 
+        // docs:begin alt-text
         Paragraph described = section.AddParagraph();
         described.Format.Alignment = ParagraphAlignment.Center;
         Image photograph = described.AddImage(ImageSource.FromStream(
@@ -187,6 +194,7 @@ internal sealed class AccessibilityDemo : PdfDemo
         // refusal on the last page had to be provoked by reaching past the renderer.
         photograph.AlternativeText =
             "A photograph of a frog and a toad sitting side by side on a mossy log.";
+        // docs:end alt-text
 
         section.AddParagraph(
             "The image above carries AlternativeText and is therefore a described /Figure. Set it "
@@ -249,6 +257,7 @@ internal sealed class AccessibilityDemo : PdfDemo
             said.Format.LeftIndent = Unit.FromCentimeter(0.5);
         }
 
+        // docs:begin claim
         PdfDocumentRenderer renderer = new PdfDocumentRenderer(unicode: true)
         {
             Document = report,
@@ -274,6 +283,7 @@ internal sealed class AccessibilityDemo : PdfDemo
 
         // The claim itself. Everything above had to be true before this line could be written.
         document.Options.UAConformance = PdfUAConformance.PdfUA1;
+        // docs:end claim
         #endregion
 
         return document;

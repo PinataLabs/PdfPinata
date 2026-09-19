@@ -49,6 +49,7 @@ internal sealed class OrientationDemo : PdfDemo
 
         foreach ((PageSize size, PageOrientation orientation, string note) in pages)
         {
+            // docs:begin page-size
             PdfPage page = document.AddPage();
 
             // Size and Orientation are set before anything is drawn. The Size setter throws
@@ -61,6 +62,7 @@ internal sealed class OrientationDemo : PdfDemo
             XGraphics gfx = XGraphics.FromPdfPage(page);
             double width = page.Width.Point;
             double height = page.Height.Point;
+            // docs:end page-size
 
             // A frame, corner ticks and a diagonal, so the shape of the page and which way
             // up it is can be read at a glance.
@@ -81,6 +83,7 @@ internal sealed class OrientationDemo : PdfDemo
 
             // XUnit is what the page's Width and Height are, and it converts rather than
             // being converted: the same measurement read three ways.
+            // docs:begin units
             XUnit pageWidth = page.Width;
             XUnit pageHeight = page.Height;
 
@@ -91,6 +94,7 @@ internal sealed class OrientationDemo : PdfDemo
                 $"{pageWidth.Inch:0.00} x {pageHeight.Inch:0.00} inches",
                 $"PageSizeConverter.ToSize({size}) = {PageSizeConverter.ToSize(size)}",
             };
+            // docs:end units
 
             double y = 148;
             foreach (string line in lines)
@@ -102,6 +106,7 @@ internal sealed class OrientationDemo : PdfDemo
             // Rotate asks the reader to turn the page when it displays it. The drawing is
             // untouched - the words below are laid down the same way as every other page
             // here, and it is the viewer that turns them.
+            // docs:begin rotate
             if (size == PageSize.A6)
             {
                 page.Rotate = 90;
@@ -114,6 +119,7 @@ internal sealed class OrientationDemo : PdfDemo
                 gfx.DrawString("the drawing did not.", small,
                     XBrushes.Crimson, new XPoint(56, y + 20));
             }
+            // docs:end rotate
         }
         #endregion
 

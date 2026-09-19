@@ -95,6 +95,7 @@ internal sealed class AnnotationsDemo : PdfDemo
                 font.GetHeight());
         }
 
+        // docs:begin mark
         // The annotation has to be on the page before a quad is added: AddQuad builds the
         // /QuadPoints array against the document that owns it, and rebuilds the appearance.
         T Mark<T>(T annotation, string line, string run, XPoint baseline)
@@ -104,6 +105,7 @@ internal sealed class AnnotationsDemo : PdfDemo
             annotation.AddQuad(gfx.Transformer.WorldToDefaultPage(RunOf(line, run, baseline, body)));
             return annotation;
         }
+        // docs:end mark
 
         Heading(gfx, "Text markup", 124);
 
@@ -153,6 +155,7 @@ internal sealed class AnnotationsDemo : PdfDemo
         gfx.DrawString(First, body, XBrushes.Black, firstAt);
         gfx.DrawString(Second, body, XBrushes.Black, secondAt);
 
+        // docs:begin two-quads
         PdfHighlightAnnotation wrapped = new PdfHighlightAnnotation();
         page.Annotations.Add(wrapped);
         wrapped.Color = XColors.Gold;
@@ -163,6 +166,7 @@ internal sealed class AnnotationsDemo : PdfDemo
             RunOf(First, "past the end of a line is one annotation with", firstAt, body)));
         wrapped.AddQuad(gfx.Transformer.WorldToDefaultPage(
             RunOf(Second, "two quadrilaterals in it", secondAt, body)));
+        // docs:end two-quads
         Note(gfx, "AddQuad twice. /Rect is recomputed as the box around every quad.", y + 27);
 
         // ---- Notes -------------------------------------------------------------------
@@ -200,6 +204,7 @@ internal sealed class AnnotationsDemo : PdfDemo
             gfx.DrawString(icons[index].ToString(), noteFont, XBrushes.Black, new XPoint(x, 494));
         }
 
+        // docs:begin note
         PdfTextAnnotation opened = new PdfTextAnnotation();
         page.Annotations.Add(opened);
         opened.Icon = PdfTextAnnotationIcon.Comment;
@@ -211,6 +216,7 @@ internal sealed class AnnotationsDemo : PdfDemo
             + "Color tints the note and Opacity applies to the whole annotation.";
         opened.Rectangle = new PdfRectangle(
             gfx.Transformer.WorldToDefaultPage(new XRect(56, 510, 20, 20)));
+        // docs:end note
         Note(gfx, "Open = true on this one - its popup should already be showing.", 544);
 
         // The place page two links back to. A named destination is a name in the document's
@@ -242,6 +248,7 @@ internal sealed class AnnotationsDemo : PdfDemo
             linkY += 44;
         }
 
+        // docs:begin links
         Link("The PdfPinata repository",
             "gfx.AddWebLink(rect, url) - a URI action. PDFKit calls this link().",
             rect => secondGfx.AddWebLink(rect, "https://github.com/PinataLabs/PdfPinata"));
@@ -254,6 +261,7 @@ internal sealed class AnnotationsDemo : PdfDemo
             "gfx.AddNamedLink(rect, \"markup\") against gfx.AddNamedDestination on page one - "
             + "PDFKit's goTo().",
             rect => secondGfx.AddNamedLink(rect, "markup"));
+        // docs:end links
 
         // A link annotation is a PdfLinkAnnotation like any other, so the returned object can
         // still be given the fields every annotation has.
@@ -272,6 +280,7 @@ internal sealed class AnnotationsDemo : PdfDemo
         // ---- An attachment -----------------------------------------------------------
         Heading(secondGfx, "File attachment - PDFKit's fileAnnotation()", 330);
 
+        // docs:begin attachment
         byte[] payload = Encoding.UTF8.GetBytes(
             "This file is carried inside the PDF, as the /EF stream of a file specification.\r\n"
             + "Open the paperclip on the page to save it out again.\r\n");
@@ -290,6 +299,7 @@ internal sealed class AnnotationsDemo : PdfDemo
         attachment.Rectangle = new PdfRectangle(
             secondGfx.Transformer.WorldToDefaultPage(new XRect(56, 350, 18, 18)));
         second.Annotations.Add(attachment);
+        // docs:end attachment
 
         Note(secondGfx, "PdfEmbeddedFile holds the bytes, PdfFileSpecification names them, and the "
             + "annotation points at it.", 384);
@@ -309,6 +319,7 @@ internal sealed class AnnotationsDemo : PdfDemo
             PdfRubberStampAnnotationIcon.Final,
         };
 
+        // docs:begin stamp
         for (int index = 0; index < stamps.Length; index++)
         {
             double x = 56 + index * 120;
@@ -324,6 +335,7 @@ internal sealed class AnnotationsDemo : PdfDemo
             secondGfx.DrawString(stamps[index].ToString(), noteFont, XBrushes.Black,
                 new XPoint(x, 498));
         }
+        // docs:end stamp
 
         Note(secondGfx, "Fifteen standard names, drawn by the reader. A stamp with artwork of its "
             + "own would need an appearance stream.", 520);

@@ -55,11 +55,13 @@ internal sealed class PageResizeDemo : PdfDemo
             destinationPage: 2,
             destinationTop: second.Height - 90);
 
+        // docs:begin resize
         // One call. The drawing on both pages is scaled to 70.6%, the link rectangle shrinks with
         // the words underneath it, and the destination it points at moves to where those words
         // ended up. Setting page.Size on a page that has been drawn on now throws and names
         // Resize, because writing a new media box would crop the page and leave the link behind.
         document.ResizePages(PageSize.A5);
+        // docs:end resize
         #endregion
 
         return document;

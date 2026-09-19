@@ -137,6 +137,7 @@ internal sealed class MagazineDemo : PdfDemo
         double textTop = bleedHeight + 30;
         double measure = width - margin * 2;
 
+        // docs:begin drop-cap
         // The cap is one property. The formatter takes the first character of the text,
         // scales it so that its foot rests on the baseline of the third line, reserves the
         // room beside it and shortens the three lines that sit against it. The size is not
@@ -155,6 +156,7 @@ internal sealed class MagazineDemo : PdfDemo
         formatter.DropCap = null;
         formatter.Columns = 1;
         formatter.Alignment = XParagraphAlignment.Left;
+        // docs:end drop-cap
 
         RunningFoot(gfx, "1");
 
@@ -196,6 +198,7 @@ internal sealed class MagazineDemo : PdfDemo
         // Nothing here measures text. The two blocks with a gap arithmetic'd between them
         // that this used to be needed the quote's height, the gap either side of it and the
         // line height all kept in step by hand, and got them wrong whenever the font changed.
+        // docs:begin obstacle
         double textTopOfPage = margin + 86;
         double textHeight = height - textTopOfPage - margin - 20;
 
@@ -227,6 +230,7 @@ internal sealed class MagazineDemo : PdfDemo
             XBrushes.Black, new XRect(margin, textTopOfPage, measure, textHeight));
 
         formatter.Obstacles.Clear();
+        // docs:end obstacle
         formatter.Columns = 1;
         formatter.Alignment = XParagraphAlignment.Left;
 

@@ -52,6 +52,7 @@ internal sealed class TextDemo : PdfDemo
 
         // The point overload puts the baseline of the text at the point. Nothing is
         // centred, nothing is measured, and the string runs to the right of it.
+        // docs:begin point-and-rect
         gfx.DrawLine(XPens.Crimson, 48, 90, 300, 90);
         gfx.DrawString("Drawn at a point: this is the baseline", body, XBrushes.Black,
             new XPoint(48, 90));
@@ -62,11 +63,13 @@ internal sealed class TextDemo : PdfDemo
         gfx.DrawRectangle(boxPen, box);
         gfx.DrawString("Centred in a rectangle", body, XBrushes.Black, box,
             XStringFormats.Center);
+        // docs:end point-and-rect
 
         Heading("The nine presets", 124);
 
         // Every combination of near, centre and far in both directions. Each is drawn in
         // the same rectangle so it is the format alone that moves the words.
+        // docs:begin presets
         (string Name, XStringFormat Format)[] presets =
         {
             ("TopLeft", XStringFormats.TopLeft),
@@ -87,27 +90,32 @@ internal sealed class TextDemo : PdfDemo
             gfx.DrawString(presets[index].Name, body, XBrushes.Black, cell,
                 presets[index].Format);
         }
+        // docs:end presets
 
         Heading("Measuring, and the baseline", 372);
 
         // MeasureString answers in the units the page is drawn in, so a rule of exactly
         // the width of the text can be drawn under it.
+        // docs:begin measure
         const string measured = "MeasureString gives this rule its length";
         XSize size = gfx.MeasureString(measured, body);
         gfx.DrawString(measured, body, XBrushes.Black, new XPoint(48, 400));
         gfx.DrawLine(new XPen(XColors.SteelBlue, 1), 48, 404, 48 + size.Width, 404);
         gfx.DrawString($"{size.Width:0.#} x {size.Height:0.#} points", note,
             XBrushes.DimGray, new XPoint(48 + size.Width + 10, 400));
+        // docs:end measure
 
         // XLineAlignment.BaseLine puts the baseline of the text on the top edge of the
         // rectangle rather than fitting the text inside it, which is the right choice
         // when the position that matters is the line the text sits on. The rectangle's
         // height must be exactly 0 - there is nothing for the text to be aligned within,
         // and passing a height throws rather than quietly ignoring it.
+        // docs:begin baseline
         gfx.DrawLine(XPens.Crimson, 48, 440, 300, 440);
         gfx.DrawString("BaseLine sits on the rule", body, XBrushes.Black,
             new XRect(48, 440, 252, 0),
             new XStringFormat { LineAlignment = XLineAlignment.BaseLine });
+        // docs:end baseline
 
         Heading("DrawString does not wrap", 480);
 
@@ -117,10 +125,12 @@ internal sealed class TextDemo : PdfDemo
         // font draws for a character it has no glyph for. A tab is drawn as the single
         // space it measures as. Wrapping and breaking are XTextFormatter's job - see the
         // Layout demo.
+        // docs:begin no-wrap
         gfx.DrawString("A newline\nvanishes between these words, a tab\tis the space it "
             + "measures as, and a long line runs off the edge of the page rather than "
             + "wrapping", body, XBrushes.Black,
             new XPoint(48, 510));
+        // docs:end no-wrap
 
         // ---- Page two: the state a string is drawn under -------------------------------
         page = document.AddPage();
@@ -139,6 +149,7 @@ internal sealed class TextDemo : PdfDemo
             y += 30;
         }
 
+        // docs:begin spacing
         // Tc in the content stream: extra space after every glyph, negative to tighten.
         foreach (double spacing in new[] { -0.4, 0.0, 2.0 })
             Row($"CharacterSpacing = {spacing}", new XStringFormat { CharacterSpacing = spacing });
@@ -161,12 +172,14 @@ internal sealed class TextDemo : PdfDemo
         // A skew rather than an italic: the upright glyphs are slanted, where a real italic
         // is a different set of shapes. The Fonts demo sets the two side by side.
         Row("ObliqueAngle = 12", new XStringFormat { ObliqueAngle = 12 });
+        // docs:end spacing
 
         // Ts: the baseline moves up or down without changing the size of the glyphs, so a
         // superscript needs the rise and a smaller font together.
         Heading("Text rise", y + 6);
         y += 34;
 
+        // docs:begin text-rise
         XFont small = new XFont(Sans, 8);
         double x = 48;
         gfx.DrawString("H", sample, XBrushes.Black, new XPoint(x, y));
@@ -184,6 +197,7 @@ internal sealed class TextDemo : PdfDemo
         x += gfx.MeasureString("x", sample).Width;
         gfx.DrawString("2", small, XBrushes.Black, new XRect(x, y, 20, 0),
             new XStringFormat { TextRise = 5, LineAlignment = XLineAlignment.BaseLine });
+        // docs:end text-rise
 
         gfx.DrawString("a negative rise for the subscript, a positive one for the power",
             note, XBrushes.DimGray, new XPoint(48, y + 22));
@@ -197,6 +211,7 @@ internal sealed class TextDemo : PdfDemo
         // There is no rendering-mode property. Which of the brush and the pen is given
         // decides it: brush alone fills (Tr 0), pen alone strokes the outline (Tr 1),
         // and both together fills and then strokes (Tr 2).
+        // docs:begin fill-stroke
         XFont display = new XFont(Sans, 40, XFontStyle.Bold);
         XPen outline = new XPen(XColors.Crimson, 0.8);
 
@@ -204,6 +219,7 @@ internal sealed class TextDemo : PdfDemo
         gfx.DrawString("Stroked", display, outline, XBrushes.Transparent, new XPoint(48, 172));
         gfx.DrawString("Both", display, outline, new XSolidBrush(XColors.Wheat),
             new XPoint(48, 224));
+        // docs:end fill-stroke
 
         gfx.DrawString("brush only", note, XBrushes.DimGray, new XPoint(300, 116));
         gfx.DrawString("pen only", note, XBrushes.DimGray, new XPoint(300, 168));
@@ -236,6 +252,7 @@ internal sealed class TextDemo : PdfDemo
         // AddWebLink takes a rectangle in the same coordinates the drawing uses. The
         // library draws nothing - the blue and the underline are the caller's job, and
         // without them the link is invisible.
+        // docs:begin links
         const string linkText = "The PdfPinata repository";
         XFont linkFont = new XFont(Sans, 12, XFontStyle.Underline);
         XSize linkSize = gfx.MeasureString(linkText, linkFont);
@@ -261,6 +278,7 @@ internal sealed class TextDemo : PdfDemo
         XSize pageSize = gfx.MeasureString(pageText, linkFont);
         gfx.DrawString(pageText, linkFont, XBrushes.MediumBlue, new XPoint(48, y));
         gfx.AddDocumentLink(new XRect(48, y - pageSize.Height + 3, pageSize.Width, pageSize.Height), 1);
+        // docs:end links
         #endregion
 
         return document;

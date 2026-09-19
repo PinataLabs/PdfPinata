@@ -35,6 +35,7 @@ internal sealed class BleedDemo : PdfDemo
         #region example
         PdfDocument document = new PdfDocument();
 
+        // docs:begin bleed
         // Three millimetres is what a printer asks for and what page-layout applications
         // default to: enough that a cut landing slightly off the mark still falls on ink.
         XUnit bleed = XUnit.FromMillimeter(3);
@@ -48,11 +49,14 @@ internal sealed class BleedDemo : PdfDemo
         // paper will be cut. Nothing in this demo would have to change if the margin were
         // removed - it would simply lose its bleed.
         page.TrimMargins.All = bleed;
+        // docs:end bleed
 
+        // docs:begin mark-margins
         // Outside the bleed there is a further margin, five millimetres unless it is changed,
         // which is the room the press needs around the artwork. The eight crop marks are drawn
         // into it when the document is saved. Setting it to zero takes both away.
         XUnit marks = page.MarkMargins.Left;
+        // docs:end mark-margins
 
         // Points, because that is the only unit TrimMargins supports. XGraphics asserts it.
         XGraphics gfx = XGraphics.FromPdfPage(page);
@@ -68,10 +72,12 @@ internal sealed class BleedDemo : PdfDemo
 
         // ---- The photograph, off three edges ------------------------------------------------
         //
+        // docs:begin negative-coordinates
         // Negative coordinates are the whole technique. The rectangle starts one bleed above and
         // one bleed left of the origin and is two bleeds wider than the page, so it covers the
         // sheet on the top, left and right and stops short of the bottom.
         XRect bled = new XRect(-over, -over, width + 2 * over, height * 0.62 + over);
+        // docs:end negative-coordinates
 
         // Filled rather than fitted, so the photograph covers every point of that rectangle
         // instead of leaving paper showing at two edges. The scale is the larger of the two

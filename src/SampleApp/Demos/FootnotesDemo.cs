@@ -48,22 +48,26 @@ internal sealed class FootnotesDemo : PdfDemo
         heading.Font.Bold = true;
         heading.ParagraphFormat.SpaceAfter = Unit.FromPoint(8);
 
+        // docs:begin footnote-style
         // The notes are set in this predefined style. It is based on Normal and exists whether or
         // not anybody touches it, so a document that says nothing about footnotes still gets a
         // sensible one - and a document that wants them smaller says so here rather than on each.
         Style footnote = document.Styles[StyleNames.Footnote];
         footnote.Font.Size = 8;
         footnote.Font.Color = Colors.Black;
+        // docs:end footnote-style
 
         Style caption = document.Styles.AddStyle("Caption", StyleNames.Normal);
         caption.Font.Size = 8.5;
         caption.Font.Italic = true;
         caption.Font.Color = Colors.DimGray;
 
+        // docs:begin numbering-rule
         // Continuous numbering, so the marks on this page carry on from each other rather than
         // starting again. The default is RestartPage, which is worth knowing and is why this line
         // is here at all - see the last page.
         document.FootnoteNumberingRule = FootnoteNumberingRule.RestartContinuous;
+        // docs:end numbering-rule
 
         // ----- page one: what a footnote is -----
 
@@ -72,6 +76,7 @@ internal sealed class FootnotesDemo : PdfDemo
 
         first.AddParagraph("A note at the foot of the page").Style = StyleNames.Heading1;
 
+        // docs:begin add-footnote
         Paragraph opening = first.AddParagraph(
             "A footnote is a paragraph element like any other run of text");
         opening.AddFootnote(
@@ -83,12 +88,14 @@ internal sealed class FootnotesDemo : PdfDemo
         opening.AddFormattedText(" - here inside a bold run", TextFormat.Bold)
             .AddFootnote("Attached from inside a FormattedText, and numbered in reading order.");
         opening.AddText(".");
+        // docs:end add-footnote
 
         first.AddParagraph(
             "The mark in the running text is drawn as a superscript, at the reduced size the font "
             + "asks for. The note itself is not part of this paragraph and takes no room in it: it "
             + "is laid out separately and drawn in a band at the foot of the page.");
 
+        // docs:begin block-content
         Paragraph blockContent = first.AddParagraph(
             "A note is not a string. Footnote.Elements is block content, so a note can hold more "
             + "than one paragraph");
@@ -100,6 +107,7 @@ internal sealed class FootnotesDemo : PdfDemo
             "The second. Both are laid out into a column the width of the text above, indented by "
             + "the width of the mark, so the mark stands in the margin and the lines all line up.");
         blockContent.AddText(", and a table or an image as readily as a paragraph.");
+        // docs:end block-content
 
         first.AddParagraph(
             "Room for the note comes off the page before the paragraph carrying its mark is laid "
@@ -107,6 +115,7 @@ internal sealed class FootnotesDemo : PdfDemo
             + "block. That is the whole of the layout problem, and it is why a footnote is a "
             + "feature rather than a line of drawing code.").Style = "Caption";
 
+        // docs:begin own-mark
         Paragraph ownMark = first.AddParagraph(
             "A note can carry a mark of the caller's own instead of a number");
         ownMark.AddFootnote(
@@ -118,6 +127,7 @@ internal sealed class FootnotesDemo : PdfDemo
         Paragraph after = first.AddParagraph("The numbering carries on regardless");
         after.AddFootnote("The fourth note, and the third number - the starred one did not count.");
         after.AddText(".");
+        // docs:end own-mark
 
         // ----- page two: the five number styles -----
 

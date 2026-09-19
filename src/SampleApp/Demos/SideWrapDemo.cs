@@ -119,6 +119,7 @@ internal sealed class SideWrapDemo : PdfDemo
             explanation.Style = "Caption";
             explanation.Format.SpaceAfter = Unit.FromPoint(14);
 
+            // docs:begin wrap-frame
             // The frame is added to the flow like any other element. RelativeVertical.Paragraph is
             // what makes it float at all: a shape anchored to the page or the margin is placed
             // absolutely and the text is laid out as though it were not there.
@@ -148,6 +149,7 @@ internal sealed class SideWrapDemo : PdfDemo
             frame.WrapFormat.DistanceRight = Unit.FromPoint(10);
             frame.WrapFormat.DistanceTop = Unit.FromPoint(4);
             frame.WrapFormat.DistanceBottom = Unit.FromPoint(4);
+            // docs:end wrap-frame
 
             Paragraph inside = frame.AddParagraph("A sidebar");
             inside.Format.Font.Name = "Liberation Sans";

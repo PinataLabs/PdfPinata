@@ -96,15 +96,18 @@ internal sealed class InternationalDemo : PdfDemo
             // A left-to-right sentence with a right-to-left word in it, and the other way about.
             // The whole line is not reversed in either case: each run turns round inside itself,
             // which is the difference between the bidirectional algorithm and calling Reverse.
+            // docs:begin mixed-direction
             gfx.DrawString("A Hebrew word inside an English sentence:", label, XBrushes.Black, 50, 360);
             gfx.DrawString("The word " + hebrew + " means peace.", sample, XBrushes.Black, 50, 387);
 
             gfx.DrawString("An English word inside a Hebrew sentence:", label, XBrushes.Black, 50, 427);
             gfx.DrawString(hebrew + " peace " + hebrew, sample, XBrushes.Black, 50, 454);
+            // docs:end mixed-direction
 
             // Automatic takes the direction from the first strong character, which is right far more
             // often than not and wrong exactly where it matters: a right-to-left line opening with a
             // brand name, a part number, or a quotation.
+            // docs:begin declared-direction
             XStringFormat declared = new XStringFormat();
             declared.TextDirection = BidiParagraphDirection.RightToLeft;
 
@@ -124,6 +127,7 @@ internal sealed class InternationalDemo : PdfDemo
             gfx.DrawString("Guessed from the text, then declared right to left:", label, XBrushes.Black, 50, 500);
             gfx.DrawString(branded, sample, XBrushes.Black, 50, 527);
             gfx.DrawString(branded, sample, XBrushes.Black, 50, 557, declared);
+            // docs:end declared-direction
 
             Note(gfx, label, body, 50, 590,
                 "The name moves, and the letters do not.",
@@ -199,6 +203,7 @@ internal sealed class InternationalDemo : PdfDemo
                 "GlobalFontSettings.FontFallback says which families to try instead.");
 
             // Note the font on every line below: the sans. Nothing here names the Arabic family.
+            // docs:begin fallback
             XFont asked = new XFont(BundledFontResolver.SansFamily, 20);
 
             gfx.DrawString("A Latin face asked to draw Arabic:", label, XBrushes.Black, 50, 180);
@@ -206,6 +211,7 @@ internal sealed class InternationalDemo : PdfDemo
 
             gfx.DrawString("Mixed, in one string and one DrawString call:", label, XBrushes.Black, 50, 255);
             gfx.DrawString("Peace, " + arabic + ", shalom.", asked, XBrushes.Black, 50, 285);
+            // docs:end fallback
 
             Note(gfx, label, body, 50, 320,
                 "Two faces on one line, and both embedded in the file.",
@@ -217,6 +223,7 @@ internal sealed class InternationalDemo : PdfDemo
 
             // XTextFormatter lays a paragraph into a rectangle and places each line itself, so it
             // has to be told which way the text runs for the same reason a page does.
+            // docs:begin rtl-formatter
             XTextFormatter formatter = new XTextFormatter(gfx);
             formatter.TextDirection = BidiParagraphDirection.RightToLeft;
             formatter.Alignment = XParagraphAlignment.Justify;
@@ -232,6 +239,7 @@ internal sealed class InternationalDemo : PdfDemo
 
             formatter.DrawString(paragraph.ToString().Trim(),
                 new XFont(BundledFontResolver.SansFamily, 13), XBrushes.Black, column);
+            // docs:end rtl-formatter
 
             Note(gfx, label, body, 50, 550,
                 "Justifying is the alignment that needed changing.",

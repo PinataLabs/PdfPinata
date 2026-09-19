@@ -72,6 +72,7 @@ internal sealed class TablesDemo : PdfDemo
         title.Format.Font.Bold = true;
         title.Format.SpaceAfter = Unit.FromPoint(12);
 
+        // docs:begin columns
         var table = section.AddTable();
         table.Borders.Width = 0.4;
         table.Borders.Color = Colors.LightGray;
@@ -87,7 +88,9 @@ internal sealed class TablesDemo : PdfDemo
 
         foreach (var _ in new[] { "units", "revenue", "margin" })
             table.AddColumn(Unit.FromCentimeter(3)).Format.Alignment = ParagraphAlignment.Right;
+        // docs:end columns
 
+        // docs:begin heading-rows
         // A title band across the whole width. MergeRight is a count of the cells to
         // swallow to the right, so the other four cells of this row are never filled in.
         var band = table.AddRow();
@@ -114,6 +117,7 @@ internal sealed class TablesDemo : PdfDemo
         string[] headings = { "Region", "Quarter", "Units", "Revenue", "Margin" };
         for (var column = 0; column < headings.Length; column++)
             header.Cells[column].AddParagraph(headings[column]).Style = "TableHeading";
+        // docs:end heading-rows
 
         // Twenty regions of four quarters each is eighty rows, which is comfortably more
         // than an A4 page holds. That is the point: a table that fits on one page has
@@ -138,6 +142,7 @@ internal sealed class TablesDemo : PdfDemo
         {
             for (var q = 0; q < quarters.Length; q++)
             {
+                // docs:begin banding-and-merge-down
                 var row = table.AddRow();
                 row.VerticalAlignment = VerticalAlignment.Center;
 
@@ -154,6 +159,7 @@ internal sealed class TablesDemo : PdfDemo
                     row.Cells[0].VerticalAlignment = VerticalAlignment.Center;
                     row.Cells[0].AddParagraph(name);
                 }
+                // docs:end banding-and-merge-down
 
                 var units = 400 + rowIndex * 37 % 900;
                 var revenue = units * 12.5;
@@ -171,12 +177,15 @@ internal sealed class TablesDemo : PdfDemo
                 rowIndex++;
             }
 
+            // docs:begin set-edge
             // A rule under each region's block, so the merged cell has a visible extent.
             // SetEdge takes a column, a row, how many of each, and which edges to draw.
             table.SetEdge(0, table.Rows.Count - 1, 5, 1, Edge.Bottom, BorderStyle.Single, 0.8,
                 Colors.Gainsboro);
+            // docs:end set-edge
         }
 
+        // docs:begin total-row
         var total = table.AddRow();
         total.Shading.Color = Colors.Gainsboro;
         total.Format.Font.Bold = true;
@@ -189,6 +198,7 @@ internal sealed class TablesDemo : PdfDemo
         total.Cells[4].AddParagraph($"{marginTimesUnits / totalUnits:P1}");
 
         table.SetEdge(0, table.Rows.Count - 1, 5, 1, Edge.Box, BorderStyle.Single, 1, Colors.Black);
+        // docs:end total-row
 
         // Lists live here rather than in the Layout demo, because ListInfo is PinataLayout's
         // and there is nothing like it on the PdfSharp side.
@@ -204,12 +214,14 @@ internal sealed class TablesDemo : PdfDemo
                 + "alignment all come from the style rather than being drawn.",
         };
 
+        // docs:begin bullet-list
         foreach (var note in notes)
         {
             var item = section.AddParagraph(note);
             item.Format.ListInfo.ListType = ListType.BulletList1;
             item.Format.LeftIndent = Unit.FromCentimeter(0.6);
         }
+        // docs:end bullet-list
 
         // PinataLayout owns the PdfDocument: the renderer builds it, and it is handed back for
         // the base class to save exactly as the hand-drawn demos hand theirs back.

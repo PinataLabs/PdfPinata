@@ -60,6 +60,7 @@ internal sealed class ImpositionDemo : PdfDemo
             + "XForm is an XImage, which is why the drawing call is the one for images.",
             body, XBrushes.Black, new XRect(50, 80, 495, 70));
 
+        // docs:begin create-form
         // The form has to belong to a document from the moment it is created: it is stored in that
         // document's resources, and there would be nowhere else to put it.
         XForm rosette = new XForm(document, new XSize(60, 60));
@@ -82,7 +83,9 @@ internal sealed class ImpositionDemo : PdfDemo
         // DrawingFinished is called for you the first time the form is placed. Calling it by hand
         // is how a form is closed off before then - after it, the form cannot be drawn on again.
         rosette.DrawingFinished();
+        // docs:end create-form
 
+        // docs:begin place-form
         for (int index = 0; index < 20; index++)
         {
             double scale = 0.4 + index % 5 * 0.25;
@@ -93,6 +96,7 @@ internal sealed class ImpositionDemo : PdfDemo
             gfx1.DrawImage(rosette, -30, -30, 60, 60);
             gfx1.Restore(state);
         }
+        // docs:end place-form
 
         // Measured rather than asserted. The same twenty rosettes, drawn straight onto a page
         // instead of through a form, into a throwaway document that is never saved to disk.
@@ -170,6 +174,7 @@ internal sealed class ImpositionDemo : PdfDemo
             sourceBytes = buffer.ToArray();
         }
 
+        // docs:begin pdf-form
         // An XPdfForm is a page of an existing PDF, made drawable. PageNumber selects which - it
         // is one-based, where PageIndex beside it is not, and mixing them up is the usual reason
         // the wrong page turns up on the sheet.
@@ -179,6 +184,7 @@ internal sealed class ImpositionDemo : PdfDemo
             form.PageNumber = number;
             return form;
         }
+        // docs:end pdf-form
 
         // ----- page 2: watermarks, under and over -----
 
@@ -193,6 +199,7 @@ internal sealed class ImpositionDemo : PdfDemo
             + "correct - a draft stamp wants to be over, a background tint wants to be under.",
             body, XBrushes.Black, new XRect(50, 80, 495, 60));
 
+        // docs:begin watermark
         // The two marks differ in nothing but when they are drawn, so the colour is the same for
         // both - black, which reads over either of the source pages' panels.
         void Watermark(XGraphics gfx, XRect where, string text, double alpha)
@@ -205,11 +212,13 @@ internal sealed class ImpositionDemo : PdfDemo
                 new XPoint(0, 0), XStringFormats.Center);
             gfx.Restore(state);
         }
+        // docs:end watermark
 
         // A4 proportions, so the imposed pages are not stretched. 230 wide gives about 325 tall.
         XRect under = new XRect(50, 165, 230, 230 * 297 / 210.0);
         XRect over = new XRect(315, 165, 230, 230 * 297 / 210.0);
 
+        // docs:begin under-over
         // Under: the mark first, the page on top of it. The page's own coloured panel is opaque,
         // so it covers the mark completely - which is the thing to see.
         Watermark(gfx2, under, "DRAFT", 1.0);
@@ -220,6 +229,7 @@ internal sealed class ImpositionDemo : PdfDemo
         using (XPdfForm second = Page(2))
             gfx2.DrawImage(second, over);
         Watermark(gfx2, over, "DRAFT", 0.45);
+        // docs:end under-over
 
         gfx2.DrawString("Drawn under the page - hidden by it", note, XBrushes.DimGray,
             new XRect(under.X, under.Bottom + 6, under.Width, 12), XStringFormats.TopCenter);
@@ -244,6 +254,7 @@ internal sealed class ImpositionDemo : PdfDemo
         double slotWidth = (sheetWidth - 60) / 2;
         double slotHeight = sheetHeight - 110;
 
+        // docs:begin two-up
         for (int index = 0; index < 2; index++)
         {
             using XPdfForm form = Page(index + 1);
@@ -257,6 +268,7 @@ internal sealed class ImpositionDemo : PdfDemo
 
             gfx3.DrawImage(form, x, y, width, height);
         }
+        // docs:end two-up
 
         // The fold, drawn down the middle of the sheet rather than between the two slots, because
         // the fold is where the paper bends and not where the artwork happens to stop.
@@ -271,11 +283,13 @@ internal sealed class ImpositionDemo : PdfDemo
         // the last page and the first; the inner one carries the second and the third. Getting
         // that order right is the whole of booklet imposition, and it is arithmetic rather than
         // an API: for n pages, sheet i holds n-i on the left and i+1 on the right.
+        // docs:begin booklet-sheets
         (int Left, int Right, string Caption)[] sheets =
         {
             (4, 1, "Front of the sheet: page 4 on the left, page 1 on the right"),
             (2, 3, "Back of the sheet: page 2 on the left, page 3 on the right"),
         };
+        // docs:end booklet-sheets
 
         foreach ((int Left, int Right, string Caption) sheet in sheets)
         {
@@ -292,6 +306,7 @@ internal sealed class ImpositionDemo : PdfDemo
             double slot = (width - 60) / 2;
             double tall = height - 110;
 
+            // docs:begin booklet-place
             foreach ((int Number, int Position) placement in new[]
             {
                 (sheet.Left, 0), (sheet.Right, 1),
@@ -306,6 +321,7 @@ internal sealed class ImpositionDemo : PdfDemo
                     20 + placement.Position * (slot + 20) + (slot - w) / 2,
                     75 + (tall - h) / 2, w, h);
             }
+            // docs:end booklet-place
 
             gfx.DrawLine(new XPen(XColors.Gray, 0.5) { DashStyle = XDashStyle.Dash },
                 width / 2, 70, width / 2, height - 30);

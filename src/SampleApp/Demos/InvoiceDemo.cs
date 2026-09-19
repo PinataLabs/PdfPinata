@@ -66,6 +66,7 @@ internal sealed class InvoiceDemo : PdfDemo
             ("PS-9001", "Long term validation setup", 1, 640.00m),
         };
 
+        // docs:begin document-and-styles
         Document document = new Document();
         document.Info.Title = "Invoice 2026-0417";
         document.Info.Author = "Thornbury & Vale Ltd";
@@ -76,17 +77,21 @@ internal sealed class InvoiceDemo : PdfDemo
         Style reference = document.Styles.AddStyle("Reference", "Normal");
         reference.ParagraphFormat.SpaceBefore = 0;
         reference.ParagraphFormat.SpaceAfter = 0;
+        // docs:end document-and-styles
 
+        // docs:begin page-setup
         Section section = document.AddSection();
         section.PageSetup.PageFormat = PageFormat.A4;
         section.PageSetup.TopMargin = Unit.FromCentimeter(4.5);
         section.PageSetup.BottomMargin = Unit.FromCentimeter(2.5);
         section.PageSetup.LeftMargin = Unit.FromCentimeter(2.2);
         section.PageSetup.RightMargin = Unit.FromCentimeter(2.2);
+        // docs:end page-setup
 
         // ---- Letterhead ---------------------------------------------------------------
         // The image goes through the ImageSource seam rather than XImage, which is how
         // PinataLayout reaches a backend. The stream factory reads the embedded photograph.
+        // docs:begin header-and-footer
         Paragraph mark = section.Headers.Primary.AddParagraph();
         mark.Format.Alignment = ParagraphAlignment.Right;
         Image logo = mark.AddImage(ImageSource.FromStream(
@@ -110,10 +115,12 @@ internal sealed class InvoiceDemo : PdfDemo
         footer.AddPageField();
         footer.AddText(" of ");
         footer.AddNumPagesField();
+        // docs:end header-and-footer
 
         // ---- Addressee ----------------------------------------------------------------
         // A text frame is positioned rather than flowed, which is what puts an address
         // where a window envelope expects to find it.
+        // docs:begin address-frame
         TextFrame address = section.AddTextFrame();
         address.Width = Unit.FromCentimeter(8);
         address.Height = Unit.FromCentimeter(3);
@@ -126,6 +133,7 @@ internal sealed class InvoiceDemo : PdfDemo
         address.AddParagraph("Attn: Accounts Payable");
         address.AddParagraph("88 Corn Street");
         address.AddParagraph("Bristol BS1 1HQ");
+        // docs:end address-frame
 
         // ---- Reference block ----------------------------------------------------------
         // Tab stops align a two column block without the weight of a table. The right
@@ -146,6 +154,7 @@ internal sealed class InvoiceDemo : PdfDemo
             ("Purchase order", "MF-PO-88213"),
         };
 
+        // docs:begin tab-stops
         foreach ((string label, string value) in references)
         {
             Paragraph line = section.AddParagraph();
@@ -156,6 +165,7 @@ internal sealed class InvoiceDemo : PdfDemo
             line.AddTab();
             line.AddFormattedText(value, TextFormat.Bold);
         }
+        // docs:end tab-stops
 
         // ---- Items --------------------------------------------------------------------
         Paragraph itemsGap = section.AddParagraph();
@@ -205,6 +215,7 @@ internal sealed class InvoiceDemo : PdfDemo
 
         decimal vat = net * 0.20m;
 
+        // docs:begin total-rows
         void Total(string label, decimal amount, bool emphasis)
         {
             Row row = table.AddRow();
@@ -226,8 +237,10 @@ internal sealed class InvoiceDemo : PdfDemo
         Total("Net", net, false);
         Total("VAT at 20%", vat, false);
         Total("Total due (GBP)", net + vat, true);
+        // docs:end total-rows
 
         // ---- Terms --------------------------------------------------------------------
+        // docs:begin terms-box
         Paragraph terms = section.AddParagraph();
         terms.Format.SpaceBefore = Unit.FromPoint(20);
         terms.Format.Borders.Width = 0.5;
@@ -241,6 +254,7 @@ internal sealed class InvoiceDemo : PdfDemo
         terms.AddText("Payment within 30 days by transfer to the account above, quoting the "
             + "invoice number. Interest is charged on overdue amounts at 8% above base rate "
             + "under the Late Payment of Commercial Debts (Interest) Act 1998.");
+        // docs:end terms-box
 
         PdfDocumentRenderer renderer = new PdfDocumentRenderer(true) { Document = document };
         renderer.RenderDocument();
