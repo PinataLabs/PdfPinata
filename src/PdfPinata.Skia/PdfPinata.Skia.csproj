@@ -29,7 +29,8 @@ Provides SkiaImageSource and SkiaFontResolver. SkiaSharp is a native library: co
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="SkiaSharp" Version="4.150.1" />
+    <PackageReference Include="SkiaSharp" Version="4.152.1" />
+    <PackageReference Update="Microsoft.Sbom.Targets" Version="4.1.12" />
   </ItemGroup>
 
   <ItemGroup>

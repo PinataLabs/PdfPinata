@@ -29,7 +29,8 @@ Provides HarfBuzzTextShaper, an ITextShaper for GlobalFontSettings.TextShaper, s
       imaging backend - PdfPinata.ImageSharp is pinned to SixLabors.Fonts 1.0.1 for licence
       reasons and cannot shape for itself. It targets netstandard2.1, so the Unity leg survives.
     -->
-    <PackageReference Include="HarfBuzzSharp" Version="14.2.1.2" />
+    <PackageReference Include="HarfBuzzSharp" Version="14.2.1.201" />
+    <PackageReference Update="Microsoft.Sbom.Targets" Version="4.1.12" />
   </ItemGroup>
 
   <ItemGroup>
