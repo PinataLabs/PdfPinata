@@ -228,4 +228,110 @@ public class DdlCharacterAndPunctuationTests
             .Should().NotBe(nameof(IndexOutOfRangeException),
                 "a document ending in a sign is malformed, not a reason to read off the end");
     }
+
+    /// <summary>
+    ///   <c>ScanPunctuator</c>, reached where the parser is reading code rather than text. A
+    ///   <c>\symbol</c> argument list is the shortest place that names the token it did not
+    ///   want, so each punctuator put where the closing parenthesis belongs comes back in the
+    ///   complaint as the token the scanner made of it - one character, or two for the compound
+    ///   assignments, and never the start of something longer.
+    /// </summary>
+    [Theory(Timeout = 5000)]
+    [InlineData(";")]
+    [InlineData("%")]
+    [InlineData("$")]
+    [InlineData("#")]
+    [InlineData("¤")]
+    [InlineData("/")]
+    [InlineData("+")]
+    [InlineData("-")]
+    [InlineData("+=")]
+    [InlineData("-=")]
+    [InlineData("@")]
+    [InlineData("=")]
+    [InlineData(":")]
+    [InlineData(".")]
+    [InlineData("[")]
+    [InlineData("]")]
+    [InlineData("(")]
+    [InlineData("{")]
+    [InlineData("}")]
+    [InlineData("?")]
+    public async Task EveryPunctuatorInCodeIsATokenOfItsOwn(string punctuator)
+    {
+        var complaints = await Task.Run(() =>
+            ComplaintsAbout("\\document{\\section{\\paragraph{\\symbol(Euro" + punctuator + ")}}}"));
+
+        complaints.First().Should().Be("')' expected, found '" + punctuator + "'.");
+    }
+
+    /// <summary>
+    ///   <c>PeekPunctuator</c>, reached from inside a paragraph: after <c>\space</c> the parser
+    ///   looks ahead for the parenthesis that would give it a count, and whatever it finds instead
+    ///   is left where it is to be read as text. Every character the lookahead has an arm for is
+    ///   put there, and every one of them has to come back as the text it is.
+    /// </summary>
+    [Theory]
+    [InlineData(";")]
+    [InlineData("[")]
+    [InlineData("]")]
+    [InlineData(")")]
+    [InlineData(":")]
+    [InlineData(".")]
+    [InlineData(",")]
+    [InlineData("%")]
+    [InlineData("$")]
+    [InlineData("@")]
+    [InlineData("#")]
+    [InlineData("¤")]
+    [InlineData("=")]
+    [InlineData("/")]
+    [InlineData("+")]
+    [InlineData("+=")]
+    [InlineData("-")]
+    [InlineData("-=")]
+    [InlineData("?")]
+    public void WhatFollowsASpaceWithoutACountIsText(string punctuator)
+    {
+        var paragraph = FirstParagraphOf("a\\space" + punctuator + "b");
+
+        var space = paragraph.Elements.OfType<Character>().Single();
+        space.SymbolName.Should().Be(SymbolName.Blank);
+        space.Count.Should().Be(1);
+        string.Concat(paragraph.Elements.OfType<Text>().Select(t => t.Content))
+            .Should().Be("a" + punctuator + "b");
+    }
+
+    [Theory]
+    [InlineData("\\{", "{")]
+    [InlineData("\\}", "}")]
+    [InlineData("\\\\", "\\")]
+    [InlineData("\\-", "­")]
+    public void AnEscapeAfterASpaceIsTextRatherThanAKeyword(string escape, string text)
+    {
+        // The lookahead has to recognise these as escapes rather than try to read a keyword name
+        // out of them.
+        var paragraph = FirstParagraphOf("a\\space" + escape + "b");
+
+        paragraph.Elements.OfType<Character>().Should().ContainSingle();
+        string.Concat(paragraph.Elements.OfType<Text>().Select(t => t.Content)).Should().Be("a" + text + "b");
+    }
+
+    [Fact]
+    public void AKeywordAfterASpaceIsReadAsThatKeyword()
+    {
+        var paragraph = FirstParagraphOf("a\\space\\bold{b}\\space\\(66)");
+
+        paragraph.Elements.OfType<FormattedText>().Should().ContainSingle();
+        paragraph.Elements.OfType<Character>().Select(c => c.Char).Should().Contain('B');
+    }
+
+    [Fact]
+    public void WhatFollowsAFieldWithNoAttributesIsText()
+    {
+        var paragraph = FirstParagraphOf("\\field(Page);x");
+
+        paragraph.Elements.OfType<Fields.PageField>().Should().ContainSingle();
+        string.Concat(paragraph.Elements.OfType<Text>().Select(t => t.Content)).Should().Be(";x");
+    }
 }
