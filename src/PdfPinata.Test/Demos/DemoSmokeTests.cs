@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.IO;
 using AwesomeAssertions;
 using PdfPinata.Fonts;
@@ -87,6 +89,66 @@ public class DemoSmokeTests
         string example = DemoSource.Example(demo);
         example.Should().NotBeNullOrWhiteSpace();
         example.Should().NotContain(DemoSource.BeginMarker);
+        example.Should().NotContain(DemoSource.SnippetMarkerPrefix);
+    }
+
+    [Fact]
+    public void The_printed_example_leaves_out_the_documentation_excerpt_markers()
+    {
+        const string source = """
+            class Demo
+            {
+                void Build()
+                {
+                    #region example
+                    // docs:begin first
+                    int a = 1;
+                    // docs:end first
+                    int b = 2;
+                    #endregion
+                }
+            }
+            """;
+
+        string example = DemoSource.ExampleFrom(source);
+
+        example.Should().Be("int a = 1;" + Environment.NewLine + "int b = 2;");
+    }
+
+    [Theory]
+    [MemberData(nameof(EveryDemo))]
+    public void Every_documentation_excerpt_a_demo_marks_is_closed_once_and_in_order(string name)
+    {
+        DemoRegistry.TryGet(name, out PdfDemo demo).Should().BeTrue();
+        string source = DemoSource.Read(demo);
+
+        // The website quotes these excerpts by name and fails its build on one it cannot find, but
+        // it only looks for the ones some page asks for. An excerpt nobody quotes yet is checked here.
+        HashSet<string> open = new HashSet<string>();
+        HashSet<string> seen = new HashSet<string>();
+        foreach (string raw in source.Replace("\r\n", "\n").Split('\n'))
+        {
+            string line = raw.Trim();
+            if (!line.StartsWith(DemoSource.SnippetMarkerPrefix, StringComparison.Ordinal))
+                continue;
+
+            string[] parts = line.Substring(DemoSource.SnippetMarkerPrefix.Length).Split(' ', 2);
+            parts.Should().HaveCount(2, "a marker is '// docs:begin name' or '// docs:end name': {0}", line);
+            string excerpt = parts[1].Trim();
+
+            if (parts[0] == "begin")
+            {
+                seen.Add(excerpt).Should().BeTrue("excerpt '{0}' is begun twice", excerpt);
+                open.Add(excerpt);
+            }
+            else
+            {
+                parts[0].Should().Be("end", "the only markers are begin and end: {0}", line);
+                open.Remove(excerpt).Should().BeTrue("excerpt '{0}' is ended without being begun", excerpt);
+            }
+        }
+
+        open.Should().BeEmpty("every excerpt begun is ended");
     }
 
     [Fact]
