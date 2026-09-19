@@ -51,23 +51,23 @@ internal abstract class DataLabelRenderer : Renderer
   internal override RendererInfo Init()
   {
     var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    foreach (var sri in cri.seriesRendererInfos)
+    foreach (var sri in cri.SeriesRendererInfos)
     {
-      if (cri.chart.hasDataLabel || cri.chart.dataLabel != null ||
-          sri.series.hasDataLabel || sri.series.dataLabel != null)
+      if (cri.Chart.hasDataLabel || cri.Chart.dataLabel != null ||
+          sri.Series.hasDataLabel || sri.Series.dataLabel != null)
       {
         var dlri = new DataLabelRendererInfo();
 
-        var dl = sri.series.dataLabel;
+        var dl = sri.Series.dataLabel;
         if (dl == null)
-          dl = cri.chart.dataLabel;
+          dl = cri.Chart.dataLabel;
         if (dl == null)
         {
           dlri.Format = "0";
           dlri.Font = cri.DefaultDataLabelFont;
           dlri.FontColor = new XSolidBrush(XColors.Black);
           dlri.Position = DataLabelPosition.InsideEnd;
-          if (cri.chart.type == ChartType.Pie2D || cri.chart.type == ChartType.PieExploded2D)
+          if (cri.Chart.type == ChartType.Pie2D || cri.Chart.type == ChartType.PieExploded2D)
             dlri.Type = DataLabelType.Percent;
           else
             dlri.Type = DataLabelType.Value;
@@ -77,22 +77,22 @@ internal abstract class DataLabelRenderer : Renderer
           dlri.Format = dl.Format.Length > 0 ? dl.Format : "0";
           dlri.Font = Converter.ToXFont(dl.font, cri.DefaultDataLabelFont);
           dlri.FontColor = Converter.ToXBrush(dl.font, XColors.Black);
-          if (dl.positionInitialized)
+          if (dl.PositionInitialized)
             dlri.Position = dl.position;
           else
             dlri.Position = DataLabelPosition.OutsideEnd;
-          if (dl.typeInitialized)
+          if (dl.TypeInitialized)
             dlri.Type = dl.type;
           else
           {
-            if (cri.chart.type == ChartType.Pie2D || cri.chart.type == ChartType.PieExploded2D)
+            if (cri.Chart.type == ChartType.Pie2D || cri.Chart.type == ChartType.PieExploded2D)
               dlri.Type = DataLabelType.Percent;
             else
               dlri.Type = DataLabelType.Value;
           }
         }
 
-        sri.dataLabelRendererInfo = dlri;
+        sri.DataLabelRendererInfo = dlri;
       }
     }
 

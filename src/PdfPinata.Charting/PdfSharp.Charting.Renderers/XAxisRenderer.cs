@@ -75,7 +75,7 @@ internal abstract class XAxisRenderer : AxisRenderer
     var chart = (Chart)this.rendererParms.DrawingItem;
 
     var xari = new AxisRendererInfo();
-    xari.axis = chart.xAxis;
+    xari.Axis = chart.xAxis;
 
     // Outside the test below, as the Y axis renderers calculate their scale outside theirs. The
     // scale is what the plot area divides its own width by, so a chart that was never asked for an
@@ -84,7 +84,7 @@ internal abstract class XAxisRenderer : AxisRenderer
     // labelling, not the scale.
     CalculateXAxisValues(chart, xari);
 
-    if (xari.axis != null)
+    if (xari.Axis != null)
     {
       var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
 
@@ -117,10 +117,10 @@ internal abstract class XAxisRenderer : AxisRenderer
   /// </summary>
   internal override void Format()
   {
-    var xari = ((ChartRendererInfo)this.rendererParms.RendererInfo).xAxisRendererInfo;
-    if (xari.axis != null)
+    var xari = ((ChartRendererInfo)this.rendererParms.RendererInfo).XAxisRendererInfo;
+    if (xari.Axis != null)
     {
-      var atri = xari.axisTitleRendererInfo;
+      var atri = xari.AxisTitleRendererInfo;
 
       // Calculate space used for axis title, through the renderer that draws it rather than by
       // measuring the string here. Measuring it here took no account of the title's orientation,
@@ -196,7 +196,7 @@ internal abstract class XAxisRenderer : AxisRenderer
   {
     var gfx = this.rendererParms.Graphics;
     var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    var xari = cri.xAxisRendererInfo;
+    var xari = cri.XAxisRendererInfo;
 
     var xMax = xari.MaximumScale;
     var xMajorTick = xari.MajorTick;
@@ -385,7 +385,7 @@ internal abstract class XAxisRenderer : AxisRenderer
     // of which are settable and both of which the value axis has always honoured. It also meant
     // the caption was centred on half the axis's right edge instead of on the middle of the axis,
     // which is the same thing only when the axis starts at zero.
-    var atri = xari.axisTitleRendererInfo;
+    var atri = xari.AxisTitleRendererInfo;
     if (atri != null && atri.AxisTitleText != null && atri.AxisTitleText.Length > 0)
     {
       if (isHorizontal)
@@ -416,7 +416,7 @@ internal abstract class XAxisRenderer : AxisRenderer
   /// </summary>
   private static void CalculateXAxisValues(Chart chart, AxisRendererInfo rendererInfo)
   {
-    // The chart is passed in rather than reached through rendererInfo.axis.parent, because this
+    // The chart is passed in rather than reached through rendererInfo.Axis.parent, because this
     // runs for a chart that has no axis to be reached through.
     var seriesCollection = chart.SeriesCollection;
 
@@ -439,7 +439,7 @@ internal abstract class XAxisRenderer : AxisRenderer
   /// </summary>
   private void InitXValues(AxisRendererInfo rendererInfo)
   {
-    rendererInfo.XValues = ((Chart)rendererInfo.axis.parent).xValues;
+    rendererInfo.XValues = ((Chart)rendererInfo.Axis.parent).xValues;
     if (rendererInfo.XValues == null)
     {
       rendererInfo.XValues = new XValues();

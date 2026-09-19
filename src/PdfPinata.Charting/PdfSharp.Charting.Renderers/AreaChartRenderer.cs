@@ -50,23 +50,23 @@ internal class AreaChartRenderer : ColumnLikeChartRenderer
   internal override RendererInfo Init()
   {
     var cri = new ChartRendererInfo();
-    cri.chart = (Chart)this.rendererParms.DrawingItem;
+    cri.Chart = (Chart)this.rendererParms.DrawingItem;
     this.rendererParms.RendererInfo = cri;
 
     InitSeriesRendererInfo();
 
     var lr = new ColumnLikeLegendRenderer(this.rendererParms);
-    cri.legendRendererInfo = (LegendRendererInfo)lr.Init();
+    cri.LegendRendererInfo = (LegendRendererInfo)lr.Init();
 
     var xar = new HorizontalXAxisRenderer(this.rendererParms);
-    cri.xAxisRendererInfo = (AxisRendererInfo)xar.Init();
+    cri.XAxisRendererInfo = (AxisRendererInfo)xar.Init();
 
     var yar = new VerticalYAxisRenderer(this.rendererParms);
-    cri.yAxisRendererInfo = (AxisRendererInfo)yar.Init();
+    cri.YAxisRendererInfo = (AxisRendererInfo)yar.Init();
 
-    _ = cri.chart.PlotArea; // creates the plot area on the chart, which the renderers below read
+    _ = cri.Chart.PlotArea; // creates the plot area on the chart, which the renderers below read
     var renderer = new AreaPlotAreaRenderer(this.rendererParms);
-    cri.plotAreaRendererInfo = (PlotAreaRendererInfo)renderer.Init();
+    cri.PlotAreaRendererInfo = (PlotAreaRendererInfo)renderer.Init();
 
     return cri;
   }
@@ -119,13 +119,13 @@ internal class AreaChartRenderer : ColumnLikeChartRenderer
     renderer.Draw();
 
     // Draw axes.
-    if (cri.xAxisRendererInfo.axis != null)
+    if (cri.XAxisRendererInfo.Axis != null)
     {
       var xar = new HorizontalXAxisRenderer(this.rendererParms);
       xar.Draw();
     }
 
-    if (cri.yAxisRendererInfo.axis != null)
+    if (cri.YAxisRendererInfo.Axis != null)
     {
       var yar = new VerticalYAxisRenderer(this.rendererParms);
       yar.Draw();
@@ -139,13 +139,13 @@ internal class AreaChartRenderer : ColumnLikeChartRenderer
   {
     var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
 
-    var seriesColl = cri.chart.SeriesCollection;
-    cri.seriesRendererInfos = new SeriesRendererInfo[seriesColl.Count];
+    var seriesColl = cri.Chart.SeriesCollection;
+    cri.SeriesRendererInfos = new SeriesRendererInfo[seriesColl.Count];
     for (var idx = 0; idx < seriesColl.Count; ++idx)
     {
       var sri = new SeriesRendererInfo();
-      sri.series = seriesColl[idx];
-      cri.seriesRendererInfos[idx] = sri;
+      sri.Series = seriesColl[idx];
+      cri.SeriesRendererInfos[idx] = sri;
     }
 
     InitSeries();
@@ -159,17 +159,17 @@ internal class AreaChartRenderer : ColumnLikeChartRenderer
     var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
 
     var seriesIndex = 0;
-    foreach (var sri in cri.seriesRendererInfos)
+    foreach (var sri in cri.SeriesRendererInfos)
     {
-      sri.LineFormat = Converter.ToXPen(sri.series.lineFormat, XColors.Black, ChartRenderer.DefaultSeriesLineWidth);
-      sri.FillFormat = Converter.ToXBrush(sri.series.fillFormat, ColumnColors.Item(seriesIndex++));
+      sri.LineFormat = Converter.ToXPen(sri.Series.lineFormat, XColors.Black, ChartRenderer.DefaultSeriesLineWidth);
+      sri.FillFormat = Converter.ToXBrush(sri.Series.fillFormat, ColumnColors.Item(seriesIndex++));
 
-      sri.pointRendererInfos = new PointRendererInfo[sri.series.Elements.Count];
-      for (var pointIdx = 0; pointIdx < sri.pointRendererInfos.Length; ++pointIdx)
+      sri.PointRendererInfos = new PointRendererInfo[sri.Series.Elements.Count];
+      for (var pointIdx = 0; pointIdx < sri.PointRendererInfos.Length; ++pointIdx)
       {
         var pri = new PointRendererInfo();
-        var point = sri.series.Elements[pointIdx];
-        pri.point = point;
+        var point = sri.Series.Elements[pointIdx];
+        pri.Point = point;
         if (point != null)
         {
           pri.LineFormat = sri.LineFormat;
@@ -179,7 +179,7 @@ internal class AreaChartRenderer : ColumnLikeChartRenderer
           if (point.fillFormat != null && point.lineFormat != null && !point.lineFormat.color.IsEmpty)
             pri.FillFormat = new XSolidBrush(point.fillFormat.color);
         }
-        sri.pointRendererInfos[pointIdx] = pri;
+        sri.PointRendererInfos[pointIdx] = pri;
       }
     }
   }

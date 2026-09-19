@@ -116,13 +116,13 @@ public class ErrorMessageResourceTests
     }
 
     // ReSharper disable PossibleNullReferenceException
-    static string GetString(object id) => (string)DomSRType
+    static string GetString(object id) => (string)DomSrType
         .GetMethod("GetString", BindingFlags.Static | BindingFlags.NonPublic)
         .Invoke(null, new[] { id });
     // ReSharper restore PossibleNullReferenceException
 
     // ReSharper disable PossibleNullReferenceException
-    static string FormatMessage(object id, params object[] args) => (string)DomSRType
+    static string FormatMessage(object id, params object[] args) => (string)DomSrType
         .GetMethod("FormatMessage", BindingFlags.Static | BindingFlags.NonPublic)
         .Invoke(null, new[] { id, args });
     // ReSharper restore PossibleNullReferenceException
@@ -133,7 +133,7 @@ public class ErrorMessageResourceTests
     ///   Both are internal to the document object model, and this repository carries no
     ///   <c>InternalsVisibleTo</c>, so they are reached by name the way AppResources above is.
     /// </summary>
-    static readonly Type DomSRType = typeof(Document).Assembly.GetType(
+    static readonly Type DomSrType = typeof(Document).Assembly.GetType(
         "PinataLayout.DocumentObjectModel.Resources.DomSR", true);
 
     static readonly Type MsgIdType = typeof(Document).Assembly.GetType(

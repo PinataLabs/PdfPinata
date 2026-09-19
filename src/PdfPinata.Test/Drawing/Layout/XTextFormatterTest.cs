@@ -17,8 +17,8 @@ namespace PdfPinata.Test.Drawing.Layout;
 [Collection(RasterizingCollection.Name)]
 public class XTextFormatterTest
 {
-    private static readonly string _outDir = "TestResults/XTextFormatterTest";
-    private static readonly string _expectedImagesPath = Path.Combine("Drawing", "Layout");
+    private static readonly string OutDir = "TestResults/XTextFormatterTest";
+    private static readonly string ExpectedImagesPath = Path.Combine("Drawing", "Layout");
 
     /// <summary>
     ///   How far a page may stand from its reference image before the comparison fails.
@@ -283,8 +283,8 @@ public class XTextFormatterTest
     private static DiffOutput DiffPage(PdfDocument document, string filePrefix, int pageNum)
     {
         using var rasterized = PdfHelper.Rasterize(document);
-        var rasterizedFiles = PdfHelper.WriteImageCollection(rasterized.ImageCollection, _outDir, filePrefix);
-        var expectedImagePath = PathHelper.GetInstance().GetAssetPath(_expectedImagesPath, $"{filePrefix}_{pageNum}.png");
-        return PdfHelper.Diff(rasterizedFiles[pageNum-1], expectedImagePath, _outDir, filePrefix);
+        var rasterizedFiles = PdfHelper.WriteImageCollection(rasterized.ImageCollection, OutDir, filePrefix);
+        var expectedImagePath = PathHelper.GetInstance().GetAssetPath(ExpectedImagesPath, $"{filePrefix}_{pageNum}.png");
+        return PdfHelper.Diff(rasterizedFiles[pageNum-1], expectedImagePath, OutDir, filePrefix);
     }
 }

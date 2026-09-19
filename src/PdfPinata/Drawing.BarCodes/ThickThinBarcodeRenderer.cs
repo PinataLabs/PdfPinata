@@ -78,7 +78,7 @@ public abstract class ThickThinBarCode : BarCode  // TODO: The name is not optim
         set
         {
             if (value > 3 || value < 2)
-                throw new ArgumentOutOfRangeException(nameof(value), BcgSR.Invalid2of5Relation);
+                throw new ArgumentOutOfRangeException(nameof(value), BcgSR.Invalid2Of5Relation);
             _wideNarrowRatio = value;
         }
     }

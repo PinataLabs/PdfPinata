@@ -64,7 +64,7 @@ public class Code2of5Interleaved : ThickThinBarCode
         : base(code, size, direction)
     {}
 
-    static bool[][] Lines =
+    static bool[][] _lines =
     {
         new[] {false, false, true, true, false},
         new[] {true, false, false, false, true},
@@ -149,8 +149,8 @@ public class Code2of5Interleaved : ThickThinBarCode
     {
         var digitForLines = int.Parse(Text[info.CurrPosInString].ToString());
         var digitForGaps = int.Parse(Text[info.CurrPosInString + 1].ToString());
-        var linesArray = Lines[digitForLines];
-        var gapsArray = Lines[digitForGaps];
+        var linesArray = _lines[digitForLines];
+        var gapsArray = _lines[digitForGaps];
         for (var idx = 0; idx < 5; ++idx)
         {
             RenderBar(info, linesArray[idx]);

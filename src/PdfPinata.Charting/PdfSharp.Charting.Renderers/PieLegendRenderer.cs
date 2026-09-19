@@ -53,29 +53,29 @@ internal class PieLegendRenderer : LegendRenderer
   {
     LegendRendererInfo lri = null;
     var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    if (cri.chart.legend != null)
+    if (cri.Chart.legend != null)
     {
       lri = new LegendRendererInfo();
-      lri.legend = cri.chart.legend;
+      lri.Legend = cri.Chart.legend;
 
-      lri.Font = Converter.ToXFont(lri.legend.font, cri.DefaultFont);
+      lri.Font = Converter.ToXFont(lri.Legend.font, cri.DefaultFont);
       lri.FontColor = new XSolidBrush(XColors.Black);
 
-      if (lri.legend.lineFormat != null)
-        lri.BorderPen = Converter.ToXPen(lri.legend.lineFormat, XColors.Black, DefaultLineWidth, XDashStyle.Solid);
+      if (lri.Legend.lineFormat != null)
+        lri.BorderPen = Converter.ToXPen(lri.Legend.lineFormat, XColors.Black, DefaultLineWidth, XDashStyle.Solid);
 
       XSeries xseries = null;
-      if (cri.chart.xValues != null)
-        xseries = cri.chart.xValues[0];
+      if (cri.Chart.xValues != null)
+        xseries = cri.Chart.xValues[0];
 
       var index = 0;
-      var sri = cri.seriesRendererInfos[0];
-      lri.Entries = new LegendEntryRendererInfo[sri.pointRendererInfos.Length];
-      foreach (var pri in sri.pointRendererInfos)
+      var sri = cri.SeriesRendererInfos[0];
+      lri.Entries = new LegendEntryRendererInfo[sri.PointRendererInfos.Length];
+      foreach (var pri in sri.PointRendererInfos)
       {
         var leri = new LegendEntryRendererInfo();
-        leri.seriesRendererInfo = sri;
-        leri.legendRendererInfo = lri;
+        leri.SeriesRendererInfo = sri;
+        leri.LegendRendererInfo = lri;
         leri.EntryText = string.Empty;
         if (xseries != null)
         {

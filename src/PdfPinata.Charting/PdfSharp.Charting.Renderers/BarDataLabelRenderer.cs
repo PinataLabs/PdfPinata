@@ -51,33 +51,33 @@ internal class BarDataLabelRenderer : DataLabelRenderer
   internal override void Format()
   {
     var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    foreach (var sri in cri.seriesRendererInfos)
+    foreach (var sri in cri.SeriesRendererInfos)
     {
-      if (sri.dataLabelRendererInfo == null)
+      if (sri.DataLabelRendererInfo == null)
         continue;
 
       var gfx = this.rendererParms.Graphics;
 
-      sri.dataLabelRendererInfo.Entries = new DataLabelEntryRendererInfo[sri.pointRendererInfos.Length];
+      sri.DataLabelRendererInfo.Entries = new DataLabelEntryRendererInfo[sri.PointRendererInfos.Length];
       var index = 0;
       // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
-      foreach (ColumnRendererInfo column in sri.pointRendererInfos)
+      foreach (ColumnRendererInfo column in sri.PointRendererInfos)
       {
         var dleri = new DataLabelEntryRendererInfo();
-        if (sri.dataLabelRendererInfo.Type == DataLabelType.Percent)
+        if (sri.DataLabelRendererInfo.Type == DataLabelType.Percent)
           throw new InvalidOperationException(PSCSR.PercentNotSupportedByColumnDataLabel);
 
         // A blank has no value to write, so it is left with no text at all and Draw passes over
         // it. Writing what NaN formats to would put the word NaN on the plot area.
-        if (sri.dataLabelRendererInfo.Type == DataLabelType.Value && !double.IsNaN(column.Value))
+        if (sri.DataLabelRendererInfo.Type == DataLabelType.Value && !double.IsNaN(column.Value))
         {
-          dleri.Text = column.Value.ToString(sri.dataLabelRendererInfo.Format);
+          dleri.Text = column.Value.ToString(sri.DataLabelRendererInfo.Format);
 
           if (dleri.Text.Length > 0)
-            dleri.Size = gfx.MeasureString(dleri.Text, sri.dataLabelRendererInfo.Font);
+            dleri.Size = gfx.MeasureString(dleri.Text, sri.DataLabelRendererInfo.Font);
         }
 
-        sri.dataLabelRendererInfo.Entries[index++] = dleri;
+        sri.DataLabelRendererInfo.Entries[index++] = dleri;
       }
     }
 
@@ -91,17 +91,17 @@ internal class BarDataLabelRenderer : DataLabelRenderer
   {
     var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
 
-    foreach (var sri in cri.seriesRendererInfos)
+    foreach (var sri in cri.SeriesRendererInfos)
     {
-      if (sri.dataLabelRendererInfo == null)
+      if (sri.DataLabelRendererInfo == null)
         continue;
 
       var gfx = this.rendererParms.Graphics;
-      var font = sri.dataLabelRendererInfo.Font;
-      var fontColor = sri.dataLabelRendererInfo.FontColor;
+      var font = sri.DataLabelRendererInfo.Font;
+      var fontColor = sri.DataLabelRendererInfo.FontColor;
       var format = XStringFormats.Center;
       format.LineAlignment = XLineAlignment.Center;
-      foreach (var dataLabel in sri.dataLabelRendererInfo.Entries)
+      foreach (var dataLabel in sri.DataLabelRendererInfo.Entries)
       {
         if (dataLabel.Text != null)
           gfx.DrawString(dataLabel.Text, font, fontColor, dataLabel.Rect, format);
@@ -116,19 +116,19 @@ internal class BarDataLabelRenderer : DataLabelRenderer
   {
     var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
 
-    foreach (var sri in cri.seriesRendererInfos)
+    foreach (var sri in cri.SeriesRendererInfos)
     {
-      if (sri.dataLabelRendererInfo == null)
+      if (sri.DataLabelRendererInfo == null)
         continue;
 
       var columnIndex = 0;
-      foreach (ColumnRendererInfo bar in sri.pointRendererInfos)
+      foreach (ColumnRendererInfo bar in sri.PointRendererInfos)
       // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
       {
-        var dleri = sri.dataLabelRendererInfo.Entries[columnIndex++];
+        var dleri = sri.DataLabelRendererInfo.Entries[columnIndex++];
 
         dleri.Y = bar.Rect.Y + (bar.Rect.Height - dleri.Height) / 2; // Always the same...
-        switch (sri.dataLabelRendererInfo.Position)
+        switch (sri.DataLabelRendererInfo.Position)
         {
           case DataLabelPosition.InsideEnd:
             // Inner border of the column.

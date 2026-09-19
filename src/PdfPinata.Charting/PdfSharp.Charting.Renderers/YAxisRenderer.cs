@@ -66,9 +66,9 @@ internal abstract class YAxisRenderer : AxisRenderer
     var chart = (Chart)this.rendererParms.DrawingItem;
 
     var yari = new AxisRendererInfo();
-    yari.axis = chart.yAxis;
+    yari.Axis = chart.yAxis;
     InitScale(yari);
-    if (yari.axis != null)
+    if (yari.Axis != null)
     {
       var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
       InitTickLabels(yari, cri.DefaultFont);
@@ -84,8 +84,8 @@ internal abstract class YAxisRenderer : AxisRenderer
   /// </summary>
   internal override void Format()
   {
-    var yari = ((ChartRendererInfo)this.rendererParms.RendererInfo).yAxisRendererInfo;
-    if (yari.axis != null)
+    var yari = ((ChartRendererInfo)this.rendererParms.RendererInfo).YAxisRendererInfo;
+    if (yari.Axis != null)
     {
       var gfx = this.rendererParms.Graphics;
 
@@ -123,15 +123,15 @@ internal abstract class YAxisRenderer : AxisRenderer
 
       // Measure axis title
       var titleSize = new XSize(0, 0);
-      if (yari.axisTitleRendererInfo != null)
+      if (yari.AxisTitleRendererInfo != null)
       {
         var parms = new RendererParameters();
         parms.Graphics = gfx;
         parms.RendererInfo = yari;
         var atr = new AxisTitleRenderer(parms);
         atr.Format();
-        titleSize.Height = yari.axisTitleRendererInfo.Height;
-        titleSize.Width = yari.axisTitleRendererInfo.Width;
+        titleSize.Height = yari.AxisTitleRendererInfo.Height;
+        titleSize.Width = yari.AxisTitleRendererInfo.Width;
       }
 
       if (isHorizontal)
@@ -164,7 +164,7 @@ internal abstract class YAxisRenderer : AxisRenderer
   /// </summary>
   internal override void Draw()
   {
-    var yari = ((ChartRendererInfo)this.rendererParms.RendererInfo).yAxisRendererInfo;
+    var yari = ((ChartRendererInfo)this.rendererParms.RendererInfo).YAxisRendererInfo;
 
     var yMin = yari.MinimumScale;
     var yMax = yari.MaximumScale;
@@ -339,29 +339,29 @@ internal abstract class YAxisRenderer : AxisRenderer
     // Draw axis title
     if (isHorizontal)
     {
-      if (yari.axisTitleRendererInfo != null)
+      if (yari.AxisTitleRendererInfo != null)
       {
         var parms = new RendererParameters();
         parms.Graphics = gfx;
         parms.RendererInfo = yari;
         var rcTitle = yari.Rect;
-        rcTitle.Height = yari.axisTitleRendererInfo.Height;
+        rcTitle.Height = yari.AxisTitleRendererInfo.Height;
         rcTitle.Y += yari.Rect.Height - rcTitle.Height;
-        yari.axisTitleRendererInfo.Rect = rcTitle;
+        yari.AxisTitleRendererInfo.Rect = rcTitle;
         var atr = new AxisTitleRenderer(parms);
         atr.Draw();
       }
     }
     else
     {
-      if (yari.axisTitleRendererInfo != null && yari.axisTitleRendererInfo.AxisTitleText != "")
+      if (yari.AxisTitleRendererInfo != null && yari.AxisTitleRendererInfo.AxisTitleText != "")
       {
         var parms = new RendererParameters();
         parms.Graphics = gfx;
         parms.RendererInfo = yari;
-        var width = yari.axisTitleRendererInfo.Width;
-        yari.axisTitleRendererInfo.Rect = yari.InnerRect;
-        yari.axisTitleRendererInfo.Width = width;
+        var width = yari.AxisTitleRendererInfo.Width;
+        yari.AxisTitleRendererInfo.Rect = yari.InnerRect;
+        yari.AxisTitleRendererInfo.Width = width;
         var atr = new AxisTitleRenderer(parms);
         atr.Draw();
       }
@@ -439,18 +439,18 @@ internal abstract class YAxisRenderer : AxisRenderer
     var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
 
     var maxPoints = 0;
-    foreach (var sri in cri.seriesRendererInfos)
-      maxPoints = Math.Max(maxPoints, sri.series.Elements.Count);
+    foreach (var sri in cri.SeriesRendererInfos)
+      maxPoints = Math.Max(maxPoints, sri.Series.Elements.Count);
 
     for (var pointIdx = 0; pointIdx < maxPoints; ++pointIdx)
     {
       double valueSumPos = 0, valueSumNeg = 0;
-      foreach (var sri in cri.seriesRendererInfos)
+      foreach (var sri in cri.SeriesRendererInfos)
       {
-        if (sri.pointRendererInfos.Length <= pointIdx)
+        if (sri.PointRendererInfos.Length <= pointIdx)
           break;
 
-        var column = (ColumnRendererInfo)sri.pointRendererInfos[pointIdx];
+        var column = (ColumnRendererInfo)sri.PointRendererInfos[pointIdx];
         if (!double.IsNaN(column.Value))
         {
           if (column.Value < 0)
@@ -518,32 +518,32 @@ internal abstract class YAxisRenderer : AxisRenderer
 
     var yari = rendererInfo;
     var stepWidth = normedStepWidth * Math.Pow(10.0, digits - 1.0);
-    if (yari.axis == null || double.IsNaN(yari.axis.majorTick))
+    if (yari.Axis == null || double.IsNaN(yari.Axis.majorTick))
       yari.MajorTick = stepWidth;
     else
-      yari.MajorTick = yari.axis.majorTick;
+      yari.MajorTick = yari.Axis.majorTick;
 
     var roundFactor = stepWidth * 0.5;
-    if (yari.axis == null || double.IsNaN(yari.axis.minimumScale))
+    if (yari.Axis == null || double.IsNaN(yari.Axis.minimumScale))
     {
       var signumMin = (yMin != 0) ? yMin / Math.Abs(yMin) : 0;
       yari.MinimumScale = (int)(Math.Abs((yMin - roundFactor) / stepWidth) - (1 * signumMin)) * stepWidth * signumMin;
     }
     else
-      yari.MinimumScale = yari.axis.minimumScale;
+      yari.MinimumScale = yari.Axis.minimumScale;
 
-    if (yari.axis == null || double.IsNaN(yari.axis.maximumScale))
+    if (yari.Axis == null || double.IsNaN(yari.Axis.maximumScale))
     {
       var signumMax = (yMax != 0) ? yMax / Math.Abs(yMax) : 0;
       yari.MaximumScale = (int)(Math.Abs((yMax + roundFactor) / stepWidth) + (1 * signumMax)) * stepWidth * signumMax;
     }
     else
-      yari.MaximumScale = yari.axis.maximumScale;
+      yari.MaximumScale = yari.Axis.maximumScale;
 
-    if (yari.axis == null || double.IsNaN(yari.axis.minorTick))
+    if (yari.Axis == null || double.IsNaN(yari.Axis.minorTick))
       yari.MinorTick = yari.MajorTick / 5;
     else
-      yari.MinorTick = yari.axis.minorTick;
+      yari.MinorTick = yari.Axis.minorTick;
   }
 
   /// <summary>

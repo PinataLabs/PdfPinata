@@ -51,7 +51,7 @@ internal class LinePlotAreaRenderer : ColumnLikePlotAreaRenderer
   {
     var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
 
-    var plotAreaRect = cri.plotAreaRendererInfo.Rect;
+    var plotAreaRect = cri.PlotAreaRendererInfo.Rect;
     if (HasNoRoom(plotAreaRect))
       return;
 
@@ -65,12 +65,12 @@ internal class LinePlotAreaRenderer : ColumnLikePlotAreaRenderer
     //     (NotPlotted, Interpolate etc.)
 
     // Draw lines and markers for each data series.
-    var matrix = cri.plotAreaRendererInfo.matrix;
+    var matrix = cri.PlotAreaRendererInfo.Matrix;
 
-    var xMajorTick = cri.xAxisRendererInfo.MajorTick;
-    foreach (var sri in cri.seriesRendererInfos)
+    var xMajorTick = cri.XAxisRendererInfo.MajorTick;
+    foreach (var sri in cri.SeriesRendererInfos)
     {
-      var count = sri.series.Elements.Count;
+      var count = sri.Series.Elements.Count;
 
       // A line needs two points to be a line, and DrawLines says so by throwing. A series with
       // fewer has nothing to draw rather than something to complain about.
@@ -80,10 +80,10 @@ internal class LinePlotAreaRenderer : ColumnLikePlotAreaRenderer
       var points = new XPoint[count];
       for (var idx = 0; idx < count; idx++)
       {
-        // Off the series rather than through pointRendererInfos, which the line chart renderer
+        // Off the series rather than through PointRendererInfos, which the line chart renderer
         // does not fill in. A blank is a null element, and joins the values that are already
         // drawn at zero - which is what the TODO above is about, and is not settled here.
-        var element = sri.series.Elements[idx];
+        var element = sri.Series.Elements[idx];
         var v = element == null ? double.NaN : element.Value;
         if (double.IsNaN(v))
           v = 0;
@@ -104,6 +104,6 @@ internal class LinePlotAreaRenderer : ColumnLikePlotAreaRenderer
   private static void DrawMarker(XGraphics graphics, XPoint[] points, SeriesRendererInfo rendererInfo)
   {
     foreach (var pos in points)
-      MarkerRenderer.Draw(graphics, pos, rendererInfo.markerRendererInfo);
+      MarkerRenderer.Draw(graphics, pos, rendererInfo.MarkerRendererInfo);
   }
 }

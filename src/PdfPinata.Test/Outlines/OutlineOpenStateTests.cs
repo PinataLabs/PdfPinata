@@ -155,12 +155,12 @@ public class OutlineOpenStateTests
         // A chapter per page and a heading per section is the shape that used to cost the most:
         // the counts are now taken in one post-order pass rather than each level re-walking
         // everything below it, so this also pins the arithmetic that pass has to get right.
-        const int Depth = 40;
+        const int depth = 40;
         var chain = new List<PdfOutline>();
         var current = document.Outlines.Add("0", document.Pages[0], opened: true);
         chain.Add(current);
 
-        for (var level = 1; level < Depth; level++)
+        for (var level = 1; level < depth; level++)
         {
             current = current.Outlines.Add(level.ToString(), document.Pages[level % 3], opened: true);
             chain.Add(current);
@@ -170,9 +170,9 @@ public class OutlineOpenStateTests
 
         // Every entry is open, so each one shows everything beneath it: the deepest is a leaf
         // with no key at all, its parent shows one row, and so on up to the first.
-        chain[Depth - 1].Elements.ContainsKey("/Count").Should().BeFalse();
-        for (var level = 0; level < Depth - 1; level++)
-            CountOf(chain[level]).Should().Be(Depth - 1 - level);
+        chain[depth - 1].Elements.ContainsKey("/Count").Should().BeFalse();
+        for (var level = 0; level < depth - 1; level++)
+            CountOf(chain[level]).Should().Be(depth - 1 - level);
     }
 
     [Fact]

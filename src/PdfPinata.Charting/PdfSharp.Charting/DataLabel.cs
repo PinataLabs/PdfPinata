@@ -111,11 +111,11 @@ public class DataLabel : DocumentObject
         throw new InvalidEnumArgumentException("value", (int)value, typeof(DataLabelPosition));
 
       this.position = value;
-      this.positionInitialized = true;
+      this.PositionInitialized = true;
     }
   }
   internal DataLabelPosition position;
-  internal bool positionInitialized;
+  internal bool PositionInitialized;
 
   /// <summary>
   /// Gets or sets the type of the DataLabel.
@@ -129,10 +129,10 @@ public class DataLabel : DocumentObject
         throw new InvalidEnumArgumentException("value", (int)value, typeof(DataLabelType));
 
       this.type = value;
-      this.typeInitialized = true;
+      this.TypeInitialized = true;
     }
   }
   internal DataLabelType type;
-  internal bool typeInitialized;
+  internal bool TypeInitialized;
   #endregion
 }

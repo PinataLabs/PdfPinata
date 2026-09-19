@@ -60,24 +60,24 @@ internal abstract class ColumnPlotAreaRenderer : ColumnLikePlotAreaRenderer
   {
     var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
 
-    var plotAreaBox = cri.plotAreaRendererInfo.Rect;
+    var plotAreaBox = cri.PlotAreaRendererInfo.Rect;
     if (HasNoRoom(plotAreaBox))
       return;
 
     var gfx = this.rendererParms.Graphics;
 
-    var xMin = cri.xAxisRendererInfo.MinimumScale;
-    var xMax = cri.xAxisRendererInfo.MaximumScale;
-    var yMin = cri.yAxisRendererInfo.MinimumScale;
-    var yMax = cri.yAxisRendererInfo.MaximumScale;
+    var xMin = cri.XAxisRendererInfo.MinimumScale;
+    var xMax = cri.XAxisRendererInfo.MaximumScale;
+    var yMin = cri.YAxisRendererInfo.MinimumScale;
+    var yMax = cri.YAxisRendererInfo.MaximumScale;
 
     LineFormatRenderer lineFormatRenderer;
 
     // Under some circumstances it is possible that no zero base line will be drawn,
     // e. g. because of unfavourable minimum/maximum scale and/or major tick, so force to draw
     // a zero base line if necessary.
-    if (cri.yAxisRendererInfo.MajorGridlinesLineFormat != null ||
-        cri.yAxisRendererInfo.MinorGridlinesLineFormat != null)
+    if (cri.YAxisRendererInfo.MajorGridlinesLineFormat != null ||
+        cri.YAxisRendererInfo.MinorGridlinesLineFormat != null)
     {
       if (yMin < 0 && yMax > 0)
       {
@@ -86,12 +86,12 @@ internal abstract class ColumnPlotAreaRenderer : ColumnLikePlotAreaRenderer
         points[0].Y = 0;
         points[1].X = xMax;
         points[1].Y = 0;
-        cri.plotAreaRendererInfo.matrix.TransformPoints(points);
+        cri.PlotAreaRendererInfo.Matrix.TransformPoints(points);
 
-        if (cri.yAxisRendererInfo.MinorGridlinesLineFormat != null)
-          lineFormatRenderer = new LineFormatRenderer(gfx, cri.yAxisRendererInfo.MinorGridlinesLineFormat);
+        if (cri.YAxisRendererInfo.MinorGridlinesLineFormat != null)
+          lineFormatRenderer = new LineFormatRenderer(gfx, cri.YAxisRendererInfo.MinorGridlinesLineFormat);
         else
-          lineFormatRenderer = new LineFormatRenderer(gfx, cri.yAxisRendererInfo.MajorGridlinesLineFormat);
+          lineFormatRenderer = new LineFormatRenderer(gfx, cri.YAxisRendererInfo.MajorGridlinesLineFormat);
 
         lineFormatRenderer.DrawLine(points[0], points[1]);
       }
@@ -99,10 +99,10 @@ internal abstract class ColumnPlotAreaRenderer : ColumnLikePlotAreaRenderer
 
     // Draw columns
     var state = gfx.Save();
-    foreach (var sri in cri.seriesRendererInfos)
+    foreach (var sri in cri.SeriesRendererInfos)
     {
       // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
-      foreach (ColumnRendererInfo column in sri.pointRendererInfos)
+      foreach (ColumnRendererInfo column in sri.PointRendererInfos)
       {
         // Do not draw column if value is outside yMin/yMax range. Clipping does not make sense.
         if (IsDataInside(yMin, yMax, column.Value))
@@ -112,10 +112,10 @@ internal abstract class ColumnPlotAreaRenderer : ColumnLikePlotAreaRenderer
 
     // Draw borders around column.
     // A border can overlap neighbor columns, so it is important to draw borders at the end.
-    foreach (var sri in cri.seriesRendererInfos)
+    foreach (var sri in cri.SeriesRendererInfos)
     {
       // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
-      foreach (ColumnRendererInfo column in sri.pointRendererInfos)
+      foreach (ColumnRendererInfo column in sri.PointRendererInfos)
       {
         // Do not draw column if value is outside yMin/yMax range. Clipping does not make sense.
         if (IsDataInside(yMin, yMax, column.Value) && column.LineFormat.Width > 0)

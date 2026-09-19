@@ -51,15 +51,15 @@ internal class BarStackedPlotAreaRenderer : BarPlotAreaRenderer
   protected override void CalcBars()
   {
     var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    if (cri.seriesRendererInfos.Length == 0)
+    if (cri.SeriesRendererInfos.Length == 0)
       return;
 
-    var xMax = cri.xAxisRendererInfo.MaximumScale;
-    var xMajorTick = cri.xAxisRendererInfo.MajorTick;
+    var xMax = cri.XAxisRendererInfo.MaximumScale;
+    var xMajorTick = cri.XAxisRendererInfo.MajorTick;
 
     var maxPoints = 0;
-    foreach (var sri in cri.seriesRendererInfos)
-      maxPoints = Math.Max(maxPoints, sri.series.Elements.Count);
+    foreach (var sri in cri.SeriesRendererInfos)
+      maxPoints = Math.Max(maxPoints, sri.Series.Elements.Count);
 
     // Space used by one bar.
     var x = xMax - xMajorTick / 2;
@@ -72,12 +72,12 @@ internal class BarStackedPlotAreaRenderer : BarPlotAreaRenderer
       var x0 = x - columnWidth;
       var x1 = x + columnWidth;
 
-      foreach (var sri in cri.seriesRendererInfos)
+      foreach (var sri in cri.SeriesRendererInfos)
       {
-        if (sri.pointRendererInfos.Length <= pointIdx)
+        if (sri.PointRendererInfos.Length <= pointIdx)
           break;
 
-        var column = (ColumnRendererInfo)sri.pointRendererInfos[pointIdx];
+        var column = (ColumnRendererInfo)sri.PointRendererInfos[pointIdx];
         if (!double.IsNaN(column.Value))
         {
           var y = column.Value;
@@ -99,7 +99,7 @@ internal class BarStackedPlotAreaRenderer : BarPlotAreaRenderer
           points[1].Y = x1; // unten rechts
           points[1].X = y1;
 
-          cri.plotAreaRendererInfo.matrix.TransformPoints(points);
+          cri.PlotAreaRendererInfo.Matrix.TransformPoints(points);
 
           column.Rect = new XRect(points[0].X,
             points[0].Y,

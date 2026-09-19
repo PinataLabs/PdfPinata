@@ -78,7 +78,7 @@ public class EInvoiceTests
     }
 
     [Fact]
-    public void APriorPdfA3aClaimSurvivesAttachingTheInvoice()
+    public void APriorPdfA3AClaimSurvivesAttachingTheInvoice()
     {
         // PDF/A-3a is PDF/A-3b plus a tagged structure tree, and it may carry a file for exactly
         // the reason PDF/A-3b may: attaching must neither refuse it, the way it refuses every part

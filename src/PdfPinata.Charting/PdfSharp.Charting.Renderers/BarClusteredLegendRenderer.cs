@@ -50,7 +50,7 @@ internal class BarClusteredLegendRenderer : ColumnLikeLegendRenderer
   internal override void Draw()
   {
     var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    var lri = cri.legendRendererInfo;
+    var lri = cri.LegendRendererInfo;
     if (lri == null)
       return;
 
@@ -60,7 +60,7 @@ internal class BarClusteredLegendRenderer : ColumnLikeLegendRenderer
 
     var ler = new LegendEntryRenderer(parms);
 
-    var verticalLegend = (lri.legend.docking == DockingType.Left || lri.legend.docking == DockingType.Right);
+    var verticalLegend = (lri.Legend.docking == DockingType.Left || lri.Legend.docking == DockingType.Right);
     var paddingFactor = 1;
     if (lri.BorderPen != null)
       paddingFactor = 2;
@@ -71,7 +71,7 @@ internal class BarClusteredLegendRenderer : ColumnLikeLegendRenderer
     else
       legendRect.Y += LegendRenderer.TopPadding * paddingFactor;
 
-    foreach (var leri in cri.legendRendererInfo.Entries)
+    foreach (var leri in cri.LegendRendererInfo.Entries)
     {
       if (verticalLegend)
         legendRect.Y -= leri.Height;

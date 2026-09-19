@@ -50,23 +50,23 @@ internal class LineChartRenderer : ColumnLikeChartRenderer
   internal override RendererInfo Init()
   {
     var cri = new ChartRendererInfo();
-    cri.chart = (Chart)this.rendererParms.DrawingItem;
+    cri.Chart = (Chart)this.rendererParms.DrawingItem;
     this.rendererParms.RendererInfo = cri;
 
     InitSeriesRendererInfo();
 
     var lr = new ColumnLikeLegendRenderer(this.rendererParms);
-    cri.legendRendererInfo = (LegendRendererInfo)lr.Init();
+    cri.LegendRendererInfo = (LegendRendererInfo)lr.Init();
 
     var xar = new HorizontalXAxisRenderer(this.rendererParms);
-    cri.xAxisRendererInfo = (AxisRendererInfo)xar.Init();
+    cri.XAxisRendererInfo = (AxisRendererInfo)xar.Init();
 
     var yar = new VerticalYAxisRenderer(this.rendererParms);
-    cri.yAxisRendererInfo = (AxisRendererInfo)yar.Init();
+    cri.YAxisRendererInfo = (AxisRendererInfo)yar.Init();
 
-    _ = cri.chart.PlotArea; // creates the plot area on the chart, which the renderers below read
+    _ = cri.Chart.PlotArea; // creates the plot area on the chart, which the renderers below read
     var lpar = new LinePlotAreaRenderer(this.rendererParms);
-    cri.plotAreaRendererInfo = (PlotAreaRendererInfo)lpar.Init();
+    cri.PlotAreaRendererInfo = (PlotAreaRendererInfo)lpar.Init();
 
     return cri;
   }
@@ -120,13 +120,13 @@ internal class LineChartRenderer : ColumnLikeChartRenderer
     lpar.Draw();
 
     // Draw x- and y-axis.
-    if (cri.xAxisRendererInfo.axis != null)
+    if (cri.XAxisRendererInfo.Axis != null)
     {
       var xar = new HorizontalXAxisRenderer(this.rendererParms);
       xar.Draw();
     }
 
-    if (cri.yAxisRendererInfo.axis != null)
+    if (cri.YAxisRendererInfo.Axis != null)
     {
       var yar = new VerticalYAxisRenderer(this.rendererParms);
       yar.Draw();
@@ -140,13 +140,13 @@ internal class LineChartRenderer : ColumnLikeChartRenderer
   {
     var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
 
-    var seriesColl = cri.chart.SeriesCollection;
-    cri.seriesRendererInfos = new SeriesRendererInfo[seriesColl.Count];
+    var seriesColl = cri.Chart.SeriesCollection;
+    cri.SeriesRendererInfos = new SeriesRendererInfo[seriesColl.Count];
     for (var idx = 0; idx < seriesColl.Count; ++idx)
     {
       var sri = new SeriesRendererInfo();
-      sri.series = seriesColl[idx];
-      cri.seriesRendererInfos[idx] = sri;
+      sri.Series = seriesColl[idx];
+      cri.SeriesRendererInfos[idx] = sri;
     }
 
     InitSeries();
@@ -160,33 +160,33 @@ internal class LineChartRenderer : ColumnLikeChartRenderer
     var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
 
     var seriesIndex = 0;
-    foreach (var sri in cri.seriesRendererInfos)
+    foreach (var sri in cri.SeriesRendererInfos)
     {
-      if (sri.series.markerBackgroundColor.IsEmpty)
-        sri.LineFormat = Converter.ToXPen(sri.series.lineFormat, LineColors.Item(seriesIndex), ChartRenderer.DefaultSeriesLineWidth);
+      if (sri.Series.markerBackgroundColor.IsEmpty)
+        sri.LineFormat = Converter.ToXPen(sri.Series.lineFormat, LineColors.Item(seriesIndex), ChartRenderer.DefaultSeriesLineWidth);
       else
-        sri.LineFormat = Converter.ToXPen(sri.series.lineFormat, sri.series.markerBackgroundColor, ChartRenderer.DefaultSeriesLineWidth);
+        sri.LineFormat = Converter.ToXPen(sri.Series.lineFormat, sri.Series.markerBackgroundColor, ChartRenderer.DefaultSeriesLineWidth);
       sri.LineFormat.LineJoin = XLineJoin.Bevel;
 
       var mri = new MarkerRendererInfo();
-      sri.markerRendererInfo = mri;
+      sri.MarkerRendererInfo = mri;
 
-      mri.MarkerForegroundColor = sri.series.markerForegroundColor;
+      mri.MarkerForegroundColor = sri.Series.markerForegroundColor;
       if (mri.MarkerForegroundColor.IsEmpty)
         mri.MarkerForegroundColor = XColors.Black;
 
-      mri.MarkerBackgroundColor = sri.series.markerBackgroundColor;
+      mri.MarkerBackgroundColor = sri.Series.markerBackgroundColor;
       if (mri.MarkerBackgroundColor.IsEmpty)
         mri.MarkerBackgroundColor = sri.LineFormat.Color;
 
-      mri.MarkerSize = sri.series.markerSize;
+      mri.MarkerSize = sri.Series.markerSize;
       if (mri.MarkerSize == 0)
         mri.MarkerSize = 7;
 
-      if (!sri.series.markerStyleInitialized)
+      if (!sri.Series.MarkerStyleInitialized)
         mri.MarkerStyle = (MarkerStyle)(seriesIndex % (Enum.GetNames<MarkerStyle>().Length - 1) + 1);
       else
-        mri.MarkerStyle = sri.series.markerStyle;
+        mri.MarkerStyle = sri.Series.markerStyle;
 
       ++seriesIndex;
     }

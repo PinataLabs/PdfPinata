@@ -31,10 +31,10 @@ public class CrossReferenceStreamDecodingTests
     /// </summary>
     const string Placeholder = "2 0 obj\n<< /Kind /Placeholder >>\nendobj\n";
 
-    static readonly PdfObjectID PlaceholderID = new PdfObjectID(2, 0);
+    static readonly PdfObjectID PlaceholderId = new PdfObjectID(2, 0);
 
     /// <summary>The object number the cross-reference stream itself is written under.</summary>
-    static readonly PdfObjectID StreamID = new PdfObjectID(4, 0);
+    static readonly PdfObjectID StreamId = new PdfObjectID(4, 0);
 
     // ----- The /W arithmetic --------------------------------------------------------------------------
 
@@ -88,7 +88,7 @@ public class CrossReferenceStreamDecodingTests
         var table = await Task.Run(() => TableAfterReading(
             Build(w, index: new[] { 2, 1 }, size: 3, data: Encode(w, (1u, 0u, 0u)))));
 
-        ParserProbe.ReferenceTo(table, PlaceholderID).Position.Should()
+        ParserProbe.ReferenceTo(table, PlaceholderId).Position.Should()
             .Be(0, "the entry says the object is written at the start of the file");
     }
 
@@ -100,12 +100,12 @@ public class CrossReferenceStreamDecodingTests
         var table = await Task.Run(() =>
         {
             var owner = new PdfDocument();
-            ParserProbe.AddReference(owner, PlaceholderID, 4711);
+            ParserProbe.AddReference(owner, PlaceholderId, 4711);
             return TableAfterReading(
                 Build(w, index: new[] { 2, 1 }, size: 3, data: Encode(w, (1u, 0u, 0u))), owner);
         });
 
-        ParserProbe.ReferenceTo(table, PlaceholderID).Position.Should().Be(4711);
+        ParserProbe.ReferenceTo(table, PlaceholderId).Position.Should().Be(4711);
     }
 
     [Fact(Timeout = 5000)]
@@ -119,8 +119,8 @@ public class CrossReferenceStreamDecodingTests
             Build(w, index: new[] { 2, 2 }, size: 4, data: Encode(w, (0u, 0u, 0u), (2u, 9u, 0u)))));
 
         ParserProbe.ObjectIdsIn(table).Should()
-            .NotContain(PlaceholderID, "neither entry names an object written in the file")
-            .And.Contain(StreamID);
+            .NotContain(PlaceholderId, "neither entry names an object written in the file")
+            .And.Contain(StreamId);
     }
 
     [Fact(Timeout = 5000)]
@@ -136,7 +136,7 @@ public class CrossReferenceStreamDecodingTests
             return Read(built, owner);
         });
 
-        ParserProbe.ReferenceTo(table, StreamID).Value.Should().BeSameAs(stream);
+        ParserProbe.ReferenceTo(table, StreamId).Value.Should().BeSameAs(stream);
     }
 
     // ----- Building one, and reading it back -----------------------------------------------------------------

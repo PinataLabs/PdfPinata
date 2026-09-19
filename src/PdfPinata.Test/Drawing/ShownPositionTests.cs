@@ -59,8 +59,8 @@ public class ShownPositionTests
         // The arrangement is only worth asserting about if it really produced the shape: one
         // operator, more than one string in it, and a number between them that is not zero.
         TextOperators.ShowTextOperators(page).Should().Equal(OpCodeName.TJ);
-        TextOperators.TJRunCounts(page).Should().Equal(2);
-        TextOperators.TJAdjustments(page).Should().Contain(adjustment => adjustment != 0);
+        TextOperators.TjRunCounts(page).Should().Equal(2);
+        TextOperators.TjAdjustments(page).Should().Contain(adjustment => adjustment != 0);
 
         // One entry, not one per string. The numbers inside a TJ array move glyphs within the run;
         // they do not place pieces of it separately, and the run began at the pen. Reporting each

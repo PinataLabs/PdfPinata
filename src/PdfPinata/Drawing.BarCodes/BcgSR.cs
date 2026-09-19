@@ -50,7 +50,7 @@ internal class BcgSR
 
     internal static string EmptyBarCodeSize => "A non-empty size must be set before rendering the bar code.";
 
-    internal static string Invalid2of5Relation => "Value of relation between thick and thin lines on the interleaved 2 of 5 code must be between 2 and 3.";
+    internal static string Invalid2Of5Relation => "Value of relation between thick and thin lines on the interleaved 2 of 5 code must be between 2 and 3.";
 
     internal static string InvalidMarkName(string name)
     {

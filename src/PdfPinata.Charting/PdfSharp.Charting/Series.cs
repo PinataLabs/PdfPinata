@@ -60,10 +60,10 @@ public class Series : ChartObject
   protected override object DeepCopy()
   {
     var series = (Series)base.DeepCopy();
-    if (series.seriesElements != null)
+    if (series.SeriesElements != null)
     {
-      series.seriesElements = series.seriesElements.Clone();
-      series.seriesElements.parent = series;
+      series.SeriesElements = series.SeriesElements.Clone();
+      series.SeriesElements.parent = series;
     }
     if (series.lineFormat != null)
     {
@@ -116,13 +116,13 @@ public class Series : ChartObject
   {
     get
     {
-      if (this.seriesElements == null)
-        this.seriesElements = new SeriesElements(this);
+      if (this.SeriesElements == null)
+        this.SeriesElements = new SeriesElements(this);
 
-      return this.seriesElements;
+      return this.SeriesElements;
     }
   }
-  internal SeriesElements seriesElements;
+  internal SeriesElements SeriesElements;
 
   /// <summary>
   /// Gets or sets the name of the series which will be used in the legend.
@@ -186,11 +186,11 @@ public class Series : ChartObject
         throw new InvalidEnumArgumentException("value", (int)value, typeof(MarkerStyle));
 
       this.markerStyle = value;
-      this.markerStyleInitialized = true;
+      this.MarkerStyleInitialized = true;
     }
   }
   internal MarkerStyle markerStyle;
-  internal bool markerStyleInitialized;
+  internal bool MarkerStyleInitialized;
 
   /// <summary>
   /// Gets or sets the foreground color of the marker in a line chart.
@@ -261,8 +261,8 @@ public class Series : ChartObject
   {
     get 
     {
-      if (this.seriesElements != null)
-        return this.seriesElements.Count;
+      if (this.SeriesElements != null)
+        return this.SeriesElements.Count;
 
       return 0;
     }

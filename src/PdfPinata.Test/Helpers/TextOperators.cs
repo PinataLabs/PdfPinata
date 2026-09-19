@@ -108,9 +108,9 @@ internal static class TextOperators
     ///   The numbers inside every TJ array on the page - the amounts the pen is moved by between
     ///   the runs of glyphs, in negated thousandths of the font size.
     /// </summary>
-    internal static IReadOnlyList<double> TJAdjustments(PdfPage page)
+    internal static IReadOnlyList<double> TjAdjustments(PdfPage page)
     {
-        return TJArrays(page)
+        return TjArrays(page)
             .SelectMany(array => ItemsOf(array).OfType<CNumber>())
             .Select(Number)
             .ToList();
@@ -119,9 +119,9 @@ internal static class TextOperators
     /// <summary>
     ///   How many separate runs of glyphs each TJ array on the page is broken into.
     /// </summary>
-    internal static IReadOnlyList<int> TJRunCounts(PdfPage page)
+    internal static IReadOnlyList<int> TjRunCounts(PdfPage page)
     {
-        return TJArrays(page)
+        return TjArrays(page)
             .Select(array => ItemsOf(array).OfType<CString>().Count())
             .ToList();
     }
@@ -290,7 +290,7 @@ internal static class TextOperators
         return shown;
     }
 
-    static IEnumerable<CArray> TJArrays(PdfPage page)
+    static IEnumerable<CArray> TjArrays(PdfPage page)
     {
         return Operators(page)
             .Where(op => op.OpCode.OpCodeName == OpCodeName.TJ)

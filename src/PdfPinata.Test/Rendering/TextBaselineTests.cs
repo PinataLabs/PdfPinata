@@ -51,7 +51,7 @@ public class TextBaselineTests
     }
 
     [Fact]
-    public void TDSetsTheLeadingAsWellAsMoving()
+    public void TdSetsTheLeadingAsWellAsMoving()
     {
         // TD is Td with the leading set to the distance it moved down by, so the T* after it
         // moves by that same distance without a TL of its own.

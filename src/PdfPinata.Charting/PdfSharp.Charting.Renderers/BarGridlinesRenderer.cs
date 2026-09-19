@@ -52,12 +52,12 @@ internal class BarGridlinesRenderer : GridlinesRenderer
   {
     var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
 
-    var plotAreaRect = cri.plotAreaRendererInfo.Rect;
+    var plotAreaRect = cri.PlotAreaRendererInfo.Rect;
     if (HasNoRoom(plotAreaRect))
       return;
 
-    var xari = cri.xAxisRendererInfo;
-    var yari = cri.yAxisRendererInfo;
+    var xari = cri.XAxisRendererInfo;
+    var yari = cri.YAxisRendererInfo;
 
     var xMin = xari.MinimumScale;
     var xMax = xari.MaximumScale;
@@ -68,7 +68,7 @@ internal class BarGridlinesRenderer : GridlinesRenderer
     var xMinorTick = xari.MinorTick;
     var yMinorTick = yari.MinorTick;
 
-    var matrix = cri.plotAreaRendererInfo.matrix;
+    var matrix = cri.PlotAreaRendererInfo.Matrix;
 
     LineFormatRenderer lineFormatRenderer;
     var gfx = this.rendererParms.Graphics;

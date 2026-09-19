@@ -141,7 +141,7 @@ public class TextStateOperatorTests
 
         // -wordSpacing * 1000 / fontSize, the number that buys one word spacing back.
         var expected = -5 * 1000 / FontSize;
-        TextOperators.TJAdjustments(page).Should().HaveCount(2)
+        TextOperators.TjAdjustments(page).Should().HaveCount(2)
             .And.AllSatisfy(adjustment => adjustment.Should().BeApproximately(expected, 0.001));
     }
 
@@ -153,7 +153,7 @@ public class TextStateOperatorTests
 
         // "a b c" - the space stays with the word in front of it, so the pieces are "a ", "b "
         // and "c", with the gap opened up after each of the first two.
-        TextOperators.TJRunCounts(PageShowing("a b c", UnicodeFont, format)).Should().Equal(3);
+        TextOperators.TjRunCounts(PageShowing("a b c", UnicodeFont, format)).Should().Equal(3);
     }
 
     [Fact]
@@ -166,8 +166,8 @@ public class TextStateOperatorTests
         // owed, because measurement counted it.
         var page = PageShowing("a ", UnicodeFont, format);
 
-        TextOperators.TJRunCounts(page).Should().Equal(1);
-        TextOperators.TJAdjustments(page).Should().HaveCount(1);
+        TextOperators.TjRunCounts(page).Should().Equal(1);
+        TextOperators.TjAdjustments(page).Should().HaveCount(1);
     }
 
     [Fact]
@@ -193,7 +193,7 @@ public class TextStateOperatorTests
         // AUnicodeRunWithNoWordSpacingIsStillDrawnInOneGo asks for, and which this case used to
         // miss by writing a TJ of one run and no adjustments.
         TextOperators.ShowTextOperators(page).Should().Equal(OpCodeName.Tj);
-        TextOperators.TJAdjustments(page).Should().BeEmpty();
+        TextOperators.TjAdjustments(page).Should().BeEmpty();
     }
 
     // ----- horizontal scaling, A5 ---------------------------------------------------------------
@@ -487,8 +487,8 @@ public class TextStateOperatorTests
         var page = PageShowing("Hand\tgloves", UnicodeFont, format);
 
         // Two pieces, split at the space the tab became.
-        TextOperators.TJRunCounts(page).Should().Equal(2);
-        TextOperators.TJAdjustments(page).Should().ContainSingle();
+        TextOperators.TjRunCounts(page).Should().Equal(2);
+        TextOperators.TjAdjustments(page).Should().ContainSingle();
     }
 
     [Fact]

@@ -50,26 +50,26 @@ internal class PieClosedPlotAreaRenderer : PiePlotAreaRenderer
   protected override void CalcSectors()
   {
     var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    if (cri.seriesRendererInfos.Length == 0)
+    if (cri.SeriesRendererInfos.Length == 0)
       return;
 
-    var sri = cri.seriesRendererInfos[0];
+    var sri = cri.SeriesRendererInfos[0];
 
     var sumValues = sri.SumOfPoints;
     if (sumValues == 0)
       return;
 
     double textMeasure = 0;
-    if (sri.dataLabelRendererInfo != null && sri.dataLabelRendererInfo.Position == DataLabelPosition.OutsideEnd)
+    if (sri.DataLabelRendererInfo != null && sri.DataLabelRendererInfo.Position == DataLabelPosition.OutsideEnd)
     {
-      foreach (var dleri in sri.dataLabelRendererInfo.Entries)
+      foreach (var dleri in sri.DataLabelRendererInfo.Entries)
       {
         textMeasure = Math.Max(textMeasure, dleri.Width);
         textMeasure = Math.Max(textMeasure, dleri.Height);
       }
     }
 
-    var pieRect = cri.plotAreaRendererInfo.Rect;
+    var pieRect = cri.PlotAreaRendererInfo.Rect;
     if (textMeasure != 0)
     {
       pieRect.X += textMeasure;
@@ -79,7 +79,7 @@ internal class PieClosedPlotAreaRenderer : PiePlotAreaRenderer
     }
 
     double startAngle = 270, sweepAngle = 0;
-    foreach (SectorRendererInfo sector in sri.pointRendererInfos)
+    foreach (SectorRendererInfo sector in sri.PointRendererInfos)
     // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
     {
       if (!double.IsNaN(sector.Value) && sector.Value != 0)

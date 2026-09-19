@@ -50,30 +50,30 @@ internal class ColumnClusteredPlotAreaRenderer : ColumnPlotAreaRenderer
   protected override void CalcColumns()
   {
     var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    if (cri.seriesRendererInfos.Length == 0)
+    if (cri.SeriesRendererInfos.Length == 0)
       return;
 
-    var xMin = cri.xAxisRendererInfo.MinimumScale;
-    var yMin = cri.yAxisRendererInfo.MinimumScale;
-    var yMax = cri.yAxisRendererInfo.MaximumScale;
+    var xMin = cri.XAxisRendererInfo.MinimumScale;
+    var yMin = cri.YAxisRendererInfo.MinimumScale;
+    var yMax = cri.YAxisRendererInfo.MaximumScale;
 
     // Space shared by one clustered column.
-    var groupWidth = cri.xAxisRendererInfo.MajorTick;
+    var groupWidth = cri.XAxisRendererInfo.MajorTick;
 
     // Space used by one column.
-    var columnWidth = groupWidth * 3 / 4 / cri.seriesRendererInfos.Length;
+    var columnWidth = groupWidth * 3 / 4 / cri.SeriesRendererInfos.Length;
 
     var seriesIdx = 0;
     var points = new XPoint[2];
-    foreach (var sri in cri.seriesRendererInfos)
+    foreach (var sri in cri.SeriesRendererInfos)
     {
       // Set x to first clustered column for each series.
       var x = xMin + groupWidth / 2;
         
       // Offset for columns of a particular series from the start of a clustered cloumn.
-      var dx = (columnWidth * seriesIdx) - (columnWidth / 2 * cri.seriesRendererInfos.Length);
+      var dx = (columnWidth * seriesIdx) - (columnWidth / 2 * cri.SeriesRendererInfos.Length);
 
-      foreach (ColumnRendererInfo column in sri.pointRendererInfos)
+      foreach (ColumnRendererInfo column in sri.PointRendererInfos)
       {
         if (!double.IsNaN(column.Value))
         {
@@ -100,7 +100,7 @@ internal class ColumnClusteredPlotAreaRenderer : ColumnPlotAreaRenderer
           points[1].X = x1; // lower right
           points[1].Y = y0;
 
-          cri.plotAreaRendererInfo.matrix.TransformPoints(points);
+          cri.PlotAreaRendererInfo.Matrix.TransformPoints(points);
 
           column.Rect = new XRect(points[0].X,
             points[0].Y,

@@ -49,7 +49,7 @@ internal abstract class PlotAreaRenderer : Renderer
   internal override RendererInfo Init()
   {
     var pari = new PlotAreaRendererInfo();
-    pari.plotArea = ((ChartRendererInfo)this.rendererParms.RendererInfo).chart.plotArea;
+    pari.PlotArea = ((ChartRendererInfo)this.rendererParms.RendererInfo).Chart.plotArea;
     InitLineFormat(pari);
     InitFillFormat(pari);
     return pari;
@@ -61,8 +61,8 @@ internal abstract class PlotAreaRenderer : Renderer
   /// </summary>
   protected static void InitLineFormat(PlotAreaRendererInfo rendererInfo)
   {
-    if (rendererInfo.plotArea.lineFormat != null)
-      rendererInfo.LineFormat = Converter.ToXPen(rendererInfo.plotArea.lineFormat, XColors.Black, DefaultLineWidth);
+    if (rendererInfo.PlotArea.lineFormat != null)
+      rendererInfo.LineFormat = Converter.ToXPen(rendererInfo.PlotArea.lineFormat, XColors.Black, DefaultLineWidth);
   }
 
   /// <summary>
@@ -71,8 +71,8 @@ internal abstract class PlotAreaRenderer : Renderer
   /// </summary>
   protected static void InitFillFormat(PlotAreaRendererInfo rendererInfo)
   {
-    if (rendererInfo.plotArea.fillFormat != null)
-      rendererInfo.FillFormat = Converter.ToXBrush(rendererInfo.plotArea.fillFormat, XColors.White);
+    if (rendererInfo.PlotArea.fillFormat != null)
+      rendererInfo.FillFormat = Converter.ToXBrush(rendererInfo.PlotArea.fillFormat, XColors.White);
   }
 
   /// <summary>

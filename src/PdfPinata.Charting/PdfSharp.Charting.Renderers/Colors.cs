@@ -41,13 +41,13 @@ internal sealed class ColumnColors
   /// </summary>
   public static XColor Item(int index)
   {
-    return XColor.FromArgb((int)seriesColors[index]);
+    return XColor.FromArgb((int)_seriesColors[index]);
   }
 
   /// <summary>
   /// Colors for column/bar charts taken from Excel.
   /// </summary>
-  static uint[] seriesColors = new[]
+  static uint[] _seriesColors = new[]
   {
     0xFF9999FF, 0xFF993366, 0xFFFFFFCC, 0xFFCCFFFF, 0xFF660066, 0xFFFF8080,
     0xFF0066CC, 0xFFCCCCFF, 0xFF000080, 0xFFFF00FF, 0xFFFFFF00, 0xFF00FFFF,
@@ -72,13 +72,13 @@ internal sealed class LineColors
   /// </summary>
   public static XColor Item(int index)
   {
-    return XColor.FromArgb((int)lineColors[index]);
+    return XColor.FromArgb((int)_lineColors[index]);
   }
 
   /// <summary>
   /// Colors for line charts taken from Excel.
   /// </summary>
-  static uint[] lineColors = new[]
+  static uint[] _lineColors = new[]
   {
     0xFF000080, 0xFFFF00FF, 0xFFFFFF00, 0xFF00FFFF, 0xFF800080, 0xFF800000,
     0xFF008080, 0xFF0000FF, 0xFF00CCFF, 0xFFCCFFFF, 0xFFCCFFCC, 0xFFFFFF99,
@@ -103,13 +103,13 @@ internal sealed class PieColors
   /// </summary>
   public static XColor Item(int index)
   {
-    return XColor.FromArgb((int)sectorColors[index]);
+    return XColor.FromArgb((int)_sectorColors[index]);
   }
 
   /// <summary>
   /// Colors for pie charts taken from Excel.
   /// </summary>
-  static uint[] sectorColors = new[]
+  static uint[] _sectorColors = new[]
   {
     0xFF9999FF, 0xFF993366, 0xFFFFFFCC, 0xFFCCFFFF, 0xFF660066, 0xFFFF8080,
     0xFF0066CC, 0xFFCCCCFF, 0xFF000080, 0xFFFF00FF, 0xFFFFFF00, 0xFF00FFFF,

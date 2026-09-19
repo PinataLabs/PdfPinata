@@ -51,15 +51,15 @@ internal class ColumnStackedPlotAreaRenderer : ColumnPlotAreaRenderer
   protected override void CalcColumns()
   {
     var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    if (cri.seriesRendererInfos.Length == 0)
+    if (cri.SeriesRendererInfos.Length == 0)
       return;
 
-    var xMin = cri.xAxisRendererInfo.MinimumScale;
-    var xMajorTick = cri.xAxisRendererInfo.MajorTick;
+    var xMin = cri.XAxisRendererInfo.MinimumScale;
+    var xMajorTick = cri.XAxisRendererInfo.MajorTick;
 
     var maxPoints = 0;
-    foreach (var sri in cri.seriesRendererInfos)
-      maxPoints = Math.Max(maxPoints, sri.series.Elements.Count);
+    foreach (var sri in cri.SeriesRendererInfos)
+      maxPoints = Math.Max(maxPoints, sri.Series.Elements.Count);
 
     var x = xMin + xMajorTick / 2;
 
@@ -74,12 +74,12 @@ internal class ColumnStackedPlotAreaRenderer : ColumnPlotAreaRenderer
       var x0 = x - columnWidth;
       var x1 = x + columnWidth;
 
-      foreach (var sri in cri.seriesRendererInfos)
+      foreach (var sri in cri.SeriesRendererInfos)
       {
-        if (sri.pointRendererInfos.Length <= pointIdx)
+        if (sri.PointRendererInfos.Length <= pointIdx)
           break;
 
-        var column = (ColumnRendererInfo)sri.pointRendererInfos[pointIdx];
+        var column = (ColumnRendererInfo)sri.PointRendererInfos[pointIdx];
         if (!double.IsNaN(column.Value))
         {
           var y = column.Value;
@@ -101,7 +101,7 @@ internal class ColumnStackedPlotAreaRenderer : ColumnPlotAreaRenderer
           points[1].X = x1; // lower right
           points[1].Y = y0;
 
-          cri.plotAreaRendererInfo.matrix.TransformPoints(points);
+          cri.PlotAreaRendererInfo.Matrix.TransformPoints(points);
 
           column.Rect = new XRect(points[0].X,
             points[0].Y,

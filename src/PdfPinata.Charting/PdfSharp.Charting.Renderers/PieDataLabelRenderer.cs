@@ -51,28 +51,28 @@ internal class PieDataLabelRenderer : DataLabelRenderer
   internal override void Format()
   {
     var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    if (cri.seriesRendererInfos.Length == 0)
+    if (cri.SeriesRendererInfos.Length == 0)
       return;
 
-    var sri = cri.seriesRendererInfos[0];
-    if (sri.dataLabelRendererInfo == null)
+    var sri = cri.SeriesRendererInfos[0];
+    if (sri.DataLabelRendererInfo == null)
       return;
 
     var sumValues = sri.SumOfPoints;
     var gfx = this.rendererParms.Graphics;
 
-    sri.dataLabelRendererInfo.Entries = new DataLabelEntryRendererInfo[sri.pointRendererInfos.Length];
+    sri.DataLabelRendererInfo.Entries = new DataLabelEntryRendererInfo[sri.PointRendererInfos.Length];
     var index = 0;
     // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
-    foreach (SectorRendererInfo sector in sri.pointRendererInfos)
+    foreach (SectorRendererInfo sector in sri.PointRendererInfos)
     {
       var dleri = new DataLabelEntryRendererInfo();
 
       // A blank draws no wedge, so it is left with no text either and Draw passes over it.
       // Writing what NaN formats to would label a wedge that is not there.
-      if (sri.dataLabelRendererInfo.Type != DataLabelType.None && !double.IsNaN(sector.Value))
+      if (sri.DataLabelRendererInfo.Type != DataLabelType.None && !double.IsNaN(sector.Value))
       {
-        if (sri.dataLabelRendererInfo.Type == DataLabelType.Percent)
+        if (sri.DataLabelRendererInfo.Type == DataLabelType.Percent)
         {
           // Two ways of asking for a percentage, and the caller's format says which. A format
           // carrying '%' is a .NET percent format, which scales by a hundred and writes the sign
@@ -84,19 +84,19 @@ internal class PieDataLabelRenderer : DataLabelRenderer
           // 0.1875 produced "1875%%" rather than "19%", because 18.75 was scaled by a hundred a
           // second time and signed twice. It read back exactly as it was set and printed nonsense.
           var share = Math.Abs(sector.Value) / sumValues;
-          var format = sri.dataLabelRendererInfo.Format;
+          var format = sri.DataLabelRendererInfo.Format;
           dleri.Text = format != null && format.Contains('%')
             ? share.ToString(format)
             : (share * 100).ToString(format) + "%";
         }
-        else if (sri.dataLabelRendererInfo.Type == DataLabelType.Value)
-          dleri.Text = sector.Value.ToString(sri.dataLabelRendererInfo.Format);
+        else if (sri.DataLabelRendererInfo.Type == DataLabelType.Value)
+          dleri.Text = sector.Value.ToString(sri.DataLabelRendererInfo.Format);
 
         if (dleri.Text.Length > 0)
-          dleri.Size = gfx.MeasureString(dleri.Text, sri.dataLabelRendererInfo.Font);
+          dleri.Size = gfx.MeasureString(dleri.Text, sri.DataLabelRendererInfo.Font);
       }
 
-      sri.dataLabelRendererInfo.Entries[index++] = dleri;
+      sri.DataLabelRendererInfo.Entries[index++] = dleri;
     }
   }
 
@@ -106,22 +106,22 @@ internal class PieDataLabelRenderer : DataLabelRenderer
   internal override void Draw()
   {
     var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    if (cri.seriesRendererInfos.Length == 0)
+    if (cri.SeriesRendererInfos.Length == 0)
       return;
 
-    var sri = cri.seriesRendererInfos[0];
-    if (sri.dataLabelRendererInfo == null)
+    var sri = cri.SeriesRendererInfos[0];
+    if (sri.DataLabelRendererInfo == null)
       return;
 
     // ReSharper disable once ConditionIsAlwaysTrueOrFalse
     if (sri != null)
     {
       var gfx = this.rendererParms.Graphics;
-      var font = sri.dataLabelRendererInfo.Font;
-      var fontColor = sri.dataLabelRendererInfo.FontColor;
+      var font = sri.DataLabelRendererInfo.Font;
+      var fontColor = sri.DataLabelRendererInfo.FontColor;
       var format = XStringFormats.Center;
       format.LineAlignment = XLineAlignment.Center;
-      foreach (var dataLabel in sri.dataLabelRendererInfo.Entries)
+      foreach (var dataLabel in sri.DataLabelRendererInfo.Entries)
       {
         if (dataLabel.Text != null)
           gfx.DrawString(dataLabel.Text, font, fontColor, dataLabel.Rect, format);
@@ -136,13 +136,13 @@ internal class PieDataLabelRenderer : DataLabelRenderer
   {
     var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
 
-    if (cri.seriesRendererInfos.Length > 0)
+    if (cri.SeriesRendererInfos.Length > 0)
     {
-      var sri = cri.seriesRendererInfos[0];
-      if (sri != null && sri.dataLabelRendererInfo != null)
+      var sri = cri.SeriesRendererInfos[0];
+      if (sri != null && sri.DataLabelRendererInfo != null)
       {
         var sectorIndex = 0;
-        foreach (SectorRendererInfo sector in sri.pointRendererInfos)
+        foreach (SectorRendererInfo sector in sri.PointRendererInfos)
         // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
         {
           // Determine output rectangle
@@ -153,7 +153,7 @@ internal class PieDataLabelRenderer : DataLabelRenderer
           var radius = sector.Rect.Width / 2;
           var halfradius = radius / 2;
 
-          var dleri = sri.dataLabelRendererInfo.Entries[sectorIndex++];
+          var dleri = sri.DataLabelRendererInfo.Entries[sectorIndex++];
 
           // The two "end" positions put a corner of the label exactly on the arc, which draws the
           // text hard against the edge of the wedge - and, on the outside, hard against whatever is
@@ -162,7 +162,7 @@ internal class PieDataLabelRenderer : DataLabelRenderer
           // large pie and a small one look alike.
           var inset = dleri.Height / 3;
 
-          switch (sri.dataLabelRendererInfo.Position)
+          switch (sri.DataLabelRendererInfo.Position)
           {
             case DataLabelPosition.OutsideEnd:
               // Just beyond the outer border of the circle.

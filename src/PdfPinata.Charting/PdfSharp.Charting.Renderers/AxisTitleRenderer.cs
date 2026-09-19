@@ -52,7 +52,7 @@ internal class AxisTitleRenderer : Renderer
   {
     var gfx = this.rendererParms.Graphics;
 
-    var atri = ((AxisRendererInfo)this.rendererParms.RendererInfo).axisTitleRendererInfo;
+    var atri = ((AxisRendererInfo)this.rendererParms.RendererInfo).AxisTitleRendererInfo;
     if (atri.AxisTitleText != "")
     {
       var size = gfx.MeasureString(atri.AxisTitleText, atri.AxisTitleFont);
@@ -91,7 +91,7 @@ internal class AxisTitleRenderer : Renderer
   internal override void Draw()
   {
     var ari = (AxisRendererInfo)this.rendererParms.RendererInfo;
-    var atri = ari.axisTitleRendererInfo;
+    var atri = ari.AxisTitleRendererInfo;
     if (atri.AxisTitleText != "")
     {
       var gfx = this.rendererParms.Graphics;

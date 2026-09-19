@@ -53,15 +53,15 @@ internal abstract class ColumnLikeChartRenderer : ChartRenderer
 
     // Calculate rects and positions.
     var chartRect = LayoutLegend();
-    cri.xAxisRendererInfo.X = chartRect.Left + cri.yAxisRendererInfo.Width;
-    cri.xAxisRendererInfo.Y = chartRect.Bottom - cri.xAxisRendererInfo.Height;
-    cri.xAxisRendererInfo.Width = chartRect.Width - cri.yAxisRendererInfo.Width;
-    cri.yAxisRendererInfo.X = chartRect.Left;
-    cri.yAxisRendererInfo.Y = chartRect.Top;
-    cri.yAxisRendererInfo.Height = cri.xAxisRendererInfo.Y - chartRect.Top;
-    cri.plotAreaRendererInfo.X = cri.xAxisRendererInfo.X;
-    cri.plotAreaRendererInfo.Y = cri.yAxisRendererInfo.InnerRect.Y;
-    cri.plotAreaRendererInfo.Width = cri.xAxisRendererInfo.Width;
-    cri.plotAreaRendererInfo.Height = cri.yAxisRendererInfo.InnerRect.Height;
+    cri.XAxisRendererInfo.X = chartRect.Left + cri.YAxisRendererInfo.Width;
+    cri.XAxisRendererInfo.Y = chartRect.Bottom - cri.XAxisRendererInfo.Height;
+    cri.XAxisRendererInfo.Width = chartRect.Width - cri.YAxisRendererInfo.Width;
+    cri.YAxisRendererInfo.X = chartRect.Left;
+    cri.YAxisRendererInfo.Y = chartRect.Top;
+    cri.YAxisRendererInfo.Height = cri.XAxisRendererInfo.Y - chartRect.Top;
+    cri.PlotAreaRendererInfo.X = cri.XAxisRendererInfo.X;
+    cri.PlotAreaRendererInfo.Y = cri.YAxisRendererInfo.InnerRect.Y;
+    cri.PlotAreaRendererInfo.Width = cri.XAxisRendererInfo.Width;
+    cri.PlotAreaRendererInfo.Height = cri.YAxisRendererInfo.InnerRect.Height;
   }
 }

@@ -281,7 +281,7 @@ public class PageResizeTests
     // --------------------------------------------------------- 8.2 the graphics state survives
 
     [Fact]
-    public void ContentThatLeavesAQUnmatchedIsStillScaledAllTheWayThrough()
+    public void ContentThatLeavesAqUnmatchedIsStillScaledAllTheWayThrough()
     {
         // The reason the content is moved into a form rather than given a cm in front of it. A
         // form is a graphics state of its own, so an unbalanced q inside it cannot swallow the Q

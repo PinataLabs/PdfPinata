@@ -57,19 +57,19 @@ internal abstract class PiePlotAreaRenderer : PlotAreaRenderer
   internal override void Draw()
   {
     var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    var plotAreaRect = cri.plotAreaRendererInfo.Rect;
+    var plotAreaRect = cri.PlotAreaRendererInfo.Rect;
     if (HasNoRoom(plotAreaRect))
       return;
 
-    if (cri.seriesRendererInfos.Length == 0)
+    if (cri.SeriesRendererInfos.Length == 0)
       return;
 
     var gfx = this.rendererParms.Graphics;
     var state = gfx.Save();
 
     // Draw sectors.
-    var sri = cri.seriesRendererInfos[0];
-    foreach (SectorRendererInfo sector in sri.pointRendererInfos)
+    var sri = cri.SeriesRendererInfos[0];
+    foreach (SectorRendererInfo sector in sri.PointRendererInfos)
     // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
     {
       if (!double.IsNaN(sector.StartAngle) && !double.IsNaN(sector.SweepAngle))
@@ -77,7 +77,7 @@ internal abstract class PiePlotAreaRenderer : PlotAreaRenderer
     }
 
     // Draw border of the sectors.
-    foreach (SectorRendererInfo sector in sri.pointRendererInfos)
+    foreach (SectorRendererInfo sector in sri.PointRendererInfos)
     // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
     {
       if (!double.IsNaN(sector.StartAngle) && !double.IsNaN(sector.SweepAngle))

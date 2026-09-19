@@ -53,30 +53,30 @@ internal class ColumnLikeLegendRenderer : LegendRenderer
   {
     LegendRendererInfo lri = null;
     var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    if (cri.chart.legend != null)
+    if (cri.Chart.legend != null)
     {
       lri = new LegendRendererInfo();
-      lri.legend = cri.chart.legend;
+      lri.Legend = cri.Chart.legend;
 
-      lri.Font = Converter.ToXFont(lri.legend.font, cri.DefaultFont);
+      lri.Font = Converter.ToXFont(lri.Legend.font, cri.DefaultFont);
       lri.FontColor = new XSolidBrush(XColors.Black);
 
-      if (lri.legend.lineFormat != null)
-        lri.BorderPen = Converter.ToXPen(lri.legend.lineFormat, XColors.Black, DefaultLineWidth, XDashStyle.Solid);
+      if (lri.Legend.lineFormat != null)
+        lri.BorderPen = Converter.ToXPen(lri.Legend.lineFormat, XColors.Black, DefaultLineWidth, XDashStyle.Solid);
 
-      lri.Entries = new LegendEntryRendererInfo[cri.seriesRendererInfos.Length];
+      lri.Entries = new LegendEntryRendererInfo[cri.SeriesRendererInfos.Length];
       var index = 0;
-      foreach (var sri in cri.seriesRendererInfos)
+      foreach (var sri in cri.SeriesRendererInfos)
       {
         var leri = new LegendEntryRendererInfo();
-        leri.seriesRendererInfo = sri;
-        leri.legendRendererInfo = lri;
-        leri.EntryText = sri.series.name;
-        if (sri.markerRendererInfo != null)
+        leri.SeriesRendererInfo = sri;
+        leri.LegendRendererInfo = lri;
+        leri.EntryText = sri.Series.name;
+        if (sri.MarkerRendererInfo != null)
         {
-          leri.MarkerSize.Width = leri.MarkerSize.Height = sri.markerRendererInfo.MarkerSize.Point;
-          leri.MarkerPen = new XPen(sri.markerRendererInfo.MarkerForegroundColor);
-          leri.MarkerBrush = new XSolidBrush(sri.markerRendererInfo.MarkerBackgroundColor);
+          leri.MarkerSize.Width = leri.MarkerSize.Height = sri.MarkerRendererInfo.MarkerSize.Point;
+          leri.MarkerPen = new XPen(sri.MarkerRendererInfo.MarkerForegroundColor);
+          leri.MarkerBrush = new XSolidBrush(sri.MarkerRendererInfo.MarkerBackgroundColor);
         }
         else
         {
@@ -84,9 +84,9 @@ internal class ColumnLikeLegendRenderer : LegendRenderer
           leri.MarkerBrush = sri.FillFormat;
         }
 
-        if (cri.chart.type == ChartType.ColumnStacked2D)
+        if (cri.Chart.type == ChartType.ColumnStacked2D)
           // stacked columns are revers ordered
-          lri.Entries[cri.seriesRendererInfos.Length - index++ - 1] = leri;
+          lri.Entries[cri.SeriesRendererInfos.Length - index++ - 1] = leri;
         else
           lri.Entries[index++] = leri;
       }

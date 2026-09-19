@@ -51,17 +51,17 @@ internal class PieChartRenderer : ChartRenderer
   internal override RendererInfo Init()
   {
     var cri = new ChartRendererInfo();
-    cri.chart = (Chart)this.rendererParms.DrawingItem;
+    cri.Chart = (Chart)this.rendererParms.DrawingItem;
     this.rendererParms.RendererInfo = cri;
 
     InitSeries(cri);
 
     var lr = new PieLegendRenderer(this.rendererParms);
-    cri.legendRendererInfo = (LegendRendererInfo)lr.Init();
+    cri.LegendRendererInfo = (LegendRendererInfo)lr.Init();
 
-    _ = cri.chart.PlotArea; // creates the plot area on the chart, which the renderers below read
+    _ = cri.Chart.PlotArea; // creates the plot area on the chart, which the renderers below read
     var renderer = GetPlotAreaRenderer();
-    cri.plotAreaRendererInfo = (PlotAreaRendererInfo)renderer.Init();
+    cri.PlotAreaRendererInfo = (PlotAreaRendererInfo)renderer.Init();
 
     var dlr = new PieDataLabelRenderer(this.rendererParms);
     dlr.Init();
@@ -81,12 +81,12 @@ internal class PieChartRenderer : ChartRenderer
 
     // Calculate rects and positions.
     var chartRect = LayoutLegend();
-    cri.plotAreaRendererInfo.Rect = chartRect;
+    cri.PlotAreaRendererInfo.Rect = chartRect;
     var edge = Math.Min(chartRect.Width, chartRect.Height);
-    cri.plotAreaRendererInfo.X += (chartRect.Width - edge) / 2;
-    cri.plotAreaRendererInfo.Y += (chartRect.Height - edge) / 2;
-    cri.plotAreaRendererInfo.Width = edge;
-    cri.plotAreaRendererInfo.Height = edge;
+    cri.PlotAreaRendererInfo.X += (chartRect.Width - edge) / 2;
+    cri.PlotAreaRendererInfo.Y += (chartRect.Height - edge) / 2;
+    cri.PlotAreaRendererInfo.Width = edge;
+    cri.PlotAreaRendererInfo.Height = edge;
 
     var dlr = new PieDataLabelRenderer(this.rendererParms);
     dlr.Format();
@@ -141,23 +141,23 @@ internal class PieChartRenderer : ChartRenderer
   /// </summary>
   protected static void InitSeries(ChartRendererInfo rendererInfo)
   {
-    var seriesColl = rendererInfo.chart.SeriesCollection;
-    rendererInfo.seriesRendererInfos = new SeriesRendererInfo[seriesColl.Count];
+    var seriesColl = rendererInfo.Chart.SeriesCollection;
+    rendererInfo.SeriesRendererInfos = new SeriesRendererInfo[seriesColl.Count];
     for (var idx = 0; idx < seriesColl.Count; ++idx)
     {
       var sri = new SeriesRendererInfo();
-      rendererInfo.seriesRendererInfos[idx] = sri;
-      sri.series = seriesColl[idx];
+      rendererInfo.SeriesRendererInfos[idx] = sri;
+      sri.Series = seriesColl[idx];
 
-      sri.LineFormat = Converter.ToXPen(sri.series.lineFormat, XColors.Black, ChartRenderer.DefaultSeriesLineWidth);
-      sri.FillFormat = Converter.ToXBrush(sri.series.fillFormat, ColumnColors.Item(idx));
+      sri.LineFormat = Converter.ToXPen(sri.Series.lineFormat, XColors.Black, ChartRenderer.DefaultSeriesLineWidth);
+      sri.FillFormat = Converter.ToXBrush(sri.Series.fillFormat, ColumnColors.Item(idx));
 
-      sri.pointRendererInfos = new PointRendererInfo[sri.series.Elements.Count];
-      for (var pointIdx = 0; pointIdx < sri.pointRendererInfos.Length; ++pointIdx)
+      sri.PointRendererInfos = new PointRendererInfo[sri.Series.Elements.Count];
+      for (var pointIdx = 0; pointIdx < sri.PointRendererInfos.Length; ++pointIdx)
       {
         PointRendererInfo pri = new SectorRendererInfo();
-        var point = sri.series.Elements[pointIdx];
-        pri.point = point;
+        var point = sri.Series.Elements[pointIdx];
+        pri.Point = point;
         if (point != null)
         {
           pri.LineFormat = sri.LineFormat;
@@ -169,7 +169,7 @@ internal class PieChartRenderer : ChartRenderer
             pri.FillFormat = new XSolidBrush(PieColors.Item(pointIdx));
           pri.LineFormat.LineJoin = XLineJoin.Round;
         }
-        sri.pointRendererInfos[pointIdx] = pri;
+        sri.PointRendererInfos[pointIdx] = pri;
       }
     }
   }

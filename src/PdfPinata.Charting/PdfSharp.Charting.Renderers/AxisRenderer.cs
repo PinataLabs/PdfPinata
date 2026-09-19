@@ -50,21 +50,21 @@ internal abstract class AxisRenderer : Renderer
   /// </summary>
   protected static void InitAxisTitle(AxisRendererInfo rendererInfo, XFont defaultFont)
   {
-    if (rendererInfo.axis.title != null)
+    if (rendererInfo.Axis.title != null)
     {
       var atri = new AxisTitleRendererInfo();
-      rendererInfo.axisTitleRendererInfo = atri;
+      rendererInfo.AxisTitleRendererInfo = atri;
 
-      atri.axisTitle = rendererInfo.axis.title;
-      atri.AxisTitleText = rendererInfo.axis.title.caption;
-      atri.AxisTitleAlignment = rendererInfo.axis.title.alignment;
-      atri.AxisTitleVerticalAlignment = rendererInfo.axis.title.verticalAlignment;
-      atri.AxisTitleFont = Converter.ToXFont(rendererInfo.axis.title.font, defaultFont);
+      atri.AxisTitle = rendererInfo.Axis.title;
+      atri.AxisTitleText = rendererInfo.Axis.title.caption;
+      atri.AxisTitleAlignment = rendererInfo.Axis.title.alignment;
+      atri.AxisTitleVerticalAlignment = rendererInfo.Axis.title.verticalAlignment;
+      atri.AxisTitleFont = Converter.ToXFont(rendererInfo.Axis.title.font, defaultFont);
       var fontColor = XColors.Black;
-      if (rendererInfo.axis.title.font != null && !rendererInfo.axis.title.font.color.IsEmpty)
-        fontColor = rendererInfo.axis.title.font.color;
+      if (rendererInfo.Axis.title.font != null && !rendererInfo.Axis.title.font.color.IsEmpty)
+        fontColor = rendererInfo.Axis.title.font.color;
       atri.AxisTitleBrush = new XSolidBrush(fontColor);
-      atri.AxisTitleOrientation = rendererInfo.axis.title.orientation;
+      atri.AxisTitleOrientation = rendererInfo.Axis.title.orientation;
     }
   }
 
@@ -74,15 +74,15 @@ internal abstract class AxisRenderer : Renderer
   /// </summary>
   protected void InitTickLabels(AxisRendererInfo rendererInfo, XFont defaultFont)
   {
-    if (rendererInfo.axis.tickLabels != null)
+    if (rendererInfo.Axis.tickLabels != null)
     {
-      rendererInfo.TickLabelsFont = Converter.ToXFont(rendererInfo.axis.tickLabels.font, defaultFont);
+      rendererInfo.TickLabelsFont = Converter.ToXFont(rendererInfo.Axis.tickLabels.font, defaultFont);
       var fontColor = XColors.Black;
-      if (rendererInfo.axis.tickLabels.font != null && !rendererInfo.axis.tickLabels.font.color.IsEmpty)
-        fontColor = rendererInfo.axis.tickLabels.font.color;
+      if (rendererInfo.Axis.tickLabels.font != null && !rendererInfo.Axis.tickLabels.font.color.IsEmpty)
+        fontColor = rendererInfo.Axis.tickLabels.font.color;
       rendererInfo.TickLabelsBrush = new XSolidBrush(fontColor);
 
-      rendererInfo.TickLabelsFormat = rendererInfo.axis.tickLabels.format;
+      rendererInfo.TickLabelsFormat = rendererInfo.Axis.tickLabels.format;
       if (rendererInfo.TickLabelsFormat == null)
         rendererInfo.TickLabelsFormat = GetDefaultTickLabelsFormat();
     }
@@ -99,24 +99,24 @@ internal abstract class AxisRenderer : Renderer
   /// </summary>
   protected static void InitAxisLineFormat(AxisRendererInfo rendererInfo)
   {
-    if (rendererInfo.axis.minorTickMarkInitialized)
-      rendererInfo.MinorTickMark = rendererInfo.axis.MinorTickMark;
+    if (rendererInfo.Axis.MinorTickMarkInitialized)
+      rendererInfo.MinorTickMark = rendererInfo.Axis.MinorTickMark;
 
-    if (rendererInfo.axis.majorTickMarkInitialized)
-      rendererInfo.MajorTickMark = rendererInfo.axis.MajorTickMark;
+    if (rendererInfo.Axis.MajorTickMarkInitialized)
+      rendererInfo.MajorTickMark = rendererInfo.Axis.MajorTickMark;
     else
       rendererInfo.MajorTickMark = TickMarkType.Outside;
 
     if (rendererInfo.MinorTickMark != TickMarkType.None)
-      rendererInfo.MinorTickMarkLineFormat = Converter.ToXPen(rendererInfo.axis.lineFormat, XColors.Black, DefaultMinorTickMarkLineWidth);
+      rendererInfo.MinorTickMarkLineFormat = Converter.ToXPen(rendererInfo.Axis.lineFormat, XColors.Black, DefaultMinorTickMarkLineWidth);
 
     if (rendererInfo.MajorTickMark != TickMarkType.None)
-      rendererInfo.MajorTickMarkLineFormat = Converter.ToXPen(rendererInfo.axis.lineFormat, XColors.Black, DefaultMajorTickMarkLineWidth);
+      rendererInfo.MajorTickMarkLineFormat = Converter.ToXPen(rendererInfo.Axis.lineFormat, XColors.Black, DefaultMajorTickMarkLineWidth);
 
-    if (rendererInfo.axis.lineFormat != null)
+    if (rendererInfo.Axis.lineFormat != null)
     {
-      rendererInfo.LineFormat = Converter.ToXPen(rendererInfo.axis.LineFormat, XColors.Black, DefaultLineWidth);
-      if (!rendererInfo.axis.majorTickMarkInitialized)
+      rendererInfo.LineFormat = Converter.ToXPen(rendererInfo.Axis.LineFormat, XColors.Black, DefaultLineWidth);
+      if (!rendererInfo.Axis.MajorTickMarkInitialized)
         rendererInfo.MajorTickMark = TickMarkType.Outside;
     }
   }
@@ -126,23 +126,23 @@ internal abstract class AxisRenderer : Renderer
   /// </summary>
   protected static void InitGridlines(AxisRendererInfo rendererInfo)
   {
-    if (rendererInfo.axis.minorGridlines != null)
+    if (rendererInfo.Axis.minorGridlines != null)
     {
       rendererInfo.MinorGridlinesLineFormat =
-        Converter.ToXPen(rendererInfo.axis.minorGridlines.lineFormat, XColors.Black, DefaultGridLineWidth);
+        Converter.ToXPen(rendererInfo.Axis.minorGridlines.lineFormat, XColors.Black, DefaultGridLineWidth);
     }
-    else if (rendererInfo.axis.hasMinorGridlines)
+    else if (rendererInfo.Axis.hasMinorGridlines)
     {
       // No minor gridlines object are given, but user asked for.
       rendererInfo.MinorGridlinesLineFormat = new XPen(XColors.Black, DefaultGridLineWidth);
     }
 
-    if (rendererInfo.axis.majorGridlines != null)
+    if (rendererInfo.Axis.majorGridlines != null)
     {
       rendererInfo.MajorGridlinesLineFormat =
-        Converter.ToXPen(rendererInfo.axis.majorGridlines.lineFormat, XColors.Black, DefaultGridLineWidth);
+        Converter.ToXPen(rendererInfo.Axis.majorGridlines.lineFormat, XColors.Black, DefaultGridLineWidth);
     }
-    else if (rendererInfo.axis.hasMajorGridlines)
+    else if (rendererInfo.Axis.hasMajorGridlines)
     {
       // No major gridlines object are given, but user asked for.
       rendererInfo.MajorGridlinesLineFormat = new XPen(XColors.Black, DefaultGridLineWidth);
