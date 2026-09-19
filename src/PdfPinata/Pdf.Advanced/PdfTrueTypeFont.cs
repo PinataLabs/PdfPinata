@@ -77,8 +77,6 @@ internal class PdfTrueTypeFont : PdfFont
         FontEncoding = font.PdfOptions.FontEncoding;
     }
 
-    XPdfFontOptions FontOptions => _fontOptions;
-
     readonly XPdfFontOptions _fontOptions;
 
     public string BaseFont

@@ -88,6 +88,7 @@ public sealed partial class Style : DocumentObject, IVisitable
     /// <summary>
     /// Returns the value with the specified name and value access.
     /// </summary>
+    // ReSharper disable once ParameterHidesMember
     public override object GetValue(string name, GV flags) //newStL
     {
         ArgumentNullException.ThrowIfNull(name);
@@ -249,11 +250,11 @@ public sealed partial class Style : DocumentObject, IVisitable
                     styleType = StyleType.Character;
                 else
                 {
-                    var baseStyle = GetBaseStyle();
-                    if (baseStyle == null)
+                    var baseStyleObj = GetBaseStyle();
+                    if (baseStyleObj == null)
                         throw new InvalidOperationException("User defined style has no valid base Style.");
 
-                    styleType = baseStyle.Type;
+                    styleType = baseStyleObj.Type;
                 }
             }
 
@@ -352,8 +353,8 @@ public sealed partial class Style : DocumentObject, IVisitable
 
                 refStyle = buildInStyles[buildInStyles.GetIndex(Name)];
                 refFormat = refStyle.ParagraphFormat;
-                var name = DdlEncoder.QuoteIfNameContainsBlanks(Name);
-                serializer.WriteLineNoCommit(name);
+                var quotedName = DdlEncoder.QuoteIfNameContainsBlanks(Name);
+                serializer.WriteLineNoCommit(quotedName);
             }
             else
             {
@@ -363,8 +364,8 @@ public sealed partial class Style : DocumentObject, IVisitable
                 if (String.Compare(BaseStyle, refStyle.BaseStyle, StringComparison.OrdinalIgnoreCase) == 0)
                 {
                     // case: build-in style with unmodified base style name
-                    var name = DdlEncoder.QuoteIfNameContainsBlanks(Name);
-                    serializer.WriteLineNoCommit(name);
+                    var quotedName = DdlEncoder.QuoteIfNameContainsBlanks(Name);
+                    serializer.WriteLineNoCommit(quotedName);
                     // It's fine if we have the predefined base style, but ...
                     // ... the base style may have been modified or may even have a modified base style.
                     // Methinks it's wrong to compare with the built-in style, so let's compare with the
@@ -379,9 +380,9 @@ public sealed partial class Style : DocumentObject, IVisitable
                 else
                 {
                     // case: build-in style with modified base style name
-                    var name = DdlEncoder.QuoteIfNameContainsBlanks(Name);
+                    var quotedName = DdlEncoder.QuoteIfNameContainsBlanks(Name);
                     var baseName = DdlEncoder.QuoteIfNameContainsBlanks(BaseStyle);
-                    serializer.WriteLine(name + " : " + baseName);
+                    serializer.WriteLine(quotedName + " : " + baseName);
                     refStyle = Document.Styles[Document.Styles.GetIndex((baseStyle ?? ""))];
                     refFormat = refStyle.ParagraphFormat;
                 }
@@ -391,9 +392,9 @@ public sealed partial class Style : DocumentObject, IVisitable
         {
             // case: user-defined style; base style always exists
 
-            var name = DdlEncoder.QuoteIfNameContainsBlanks(Name);
+            var quotedName = DdlEncoder.QuoteIfNameContainsBlanks(Name);
             var baseName = DdlEncoder.QuoteIfNameContainsBlanks(BaseStyle);
-            serializer.WriteLine(name + " : " + baseName);
+            serializer.WriteLine(quotedName + " : " + baseName);
             refStyle = Document.Styles[(baseStyle ?? "")];
             refFormat = refStyle != null ? refStyle.ParagraphFormat : null;
         }
@@ -410,14 +411,6 @@ public sealed partial class Style : DocumentObject, IVisitable
         }
 
         serializer.EndContent();
-    }
-
-    /// <summary>
-    /// Sets all properties to Null that have the same value as the base style.
-    /// </summary>
-    private static void Optimize()
-    {
-        // just here as a reminder to do it...
     }
 
     /// <summary>

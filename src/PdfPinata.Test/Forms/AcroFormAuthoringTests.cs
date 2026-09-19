@@ -55,7 +55,7 @@ public class AcroFormAuthoringTests
         var form = document.GetOrCreateAcroForm();
 
         form.Reference.Should().NotBeNull();
-        document.Internals.Catalog.Elements["/AcroForm"].Should().BeOfType<PdfPinata.Pdf.Advanced.PdfReference>();
+        document.Internals.Catalog.Elements["/AcroForm"].Should().BeOfType<Pdf.Advanced.PdfReference>();
     }
 
     [Theory]
@@ -91,7 +91,7 @@ public class AcroFormAuthoringTests
 
         field.Reference.Should().NotBeNull();
         form.Fields.Elements.Count.Should().Be(1);
-        form.Fields.Elements[0].Should().BeOfType<PdfPinata.Pdf.Advanced.PdfReference>();
+        form.Fields.Elements[0].Should().BeOfType<Pdf.Advanced.PdfReference>();
     }
 
     [Fact]
@@ -191,8 +191,8 @@ public class AcroFormAuthoringTests
         page.Annotations.Count.Should().Be(1);
 
         // The three links that make a widget part of a form rather than a loose annotation.
-        widget.Elements["/Parent"].Should().BeOfType<PdfPinata.Pdf.Advanced.PdfReference>();
-        widget.Elements["/P"].Should().BeOfType<PdfPinata.Pdf.Advanced.PdfReference>();
+        widget.Elements["/Parent"].Should().BeOfType<Pdf.Advanced.PdfReference>();
+        widget.Elements["/P"].Should().BeOfType<Pdf.Advanced.PdfReference>();
         field.Elements.GetArray("/Kids").Elements.Count.Should().Be(1);
     }
 

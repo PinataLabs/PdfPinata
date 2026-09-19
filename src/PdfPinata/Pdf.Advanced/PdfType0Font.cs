@@ -170,8 +170,6 @@ internal sealed class PdfType0Font : PdfFont
         Elements[Keys.DescendantFonts] = descendantFonts;
     }
 
-    XPdfFontOptions FontOptions => _fontOptions;
-
     XPdfFontOptions _fontOptions;
 
     public string BaseFont

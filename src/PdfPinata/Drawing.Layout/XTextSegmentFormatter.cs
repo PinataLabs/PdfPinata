@@ -233,6 +233,7 @@ public class XTextSegmentFormatter
 			var dy = layoutRectangle.Location.Y + maxCyAscend;
 
 			// Check all blocks of the current line in order to move all blocks of the next lines down,
+			// ReSharper disable once CompareOfFloatsByEqualityOperator
 			// when the first block of the current line has not the max cy ascent of the whole line
 			#pragma warning disable S1244 // Exact on purpose: compared with a maximum or minimum taken from these same values.
 			if (!blockUnit.All(b => b.Environment.CyAscent == maxCyAscend))
@@ -449,6 +450,7 @@ public class XTextSegmentFormatter
 							
 						AlignLine(blockUnit, firstIndex, idx - 1, rectWidth);
 						firstIndex = idx;
+// ReSharper disable once CompareOfFloatsByEqualityOperator
 
 						#pragma warning disable S1244 // Exact on purpose: unchanged unless a larger value replaced it.
 						if (currentMaxLineSpace != startLineSpace)

@@ -46,12 +46,12 @@ internal class FormattedTextFrame : IAreaProvider
     this.documentRenderer = documentRenderer;
   }
 
-  internal void Format(XGraphics gfx)
+  internal void Format(XGraphics graphics)
   {
-    this.gfx = gfx;
+    gfx = graphics;
     isFirstArea = true;
     formatter = new TopDownFormatter(this, documentRenderer, textframe.Elements);
-    formatter.FormatOnAreas(gfx, false);
+    formatter.FormatOnAreas(graphics, false);
     contentHeight = RenderInfo.GetTotalHeight(GetRenderInfos());
   }
 
@@ -67,9 +67,9 @@ internal class FormattedTextFrame : IAreaProvider
 
   FieldInfos IAreaProvider.AreaFieldInfos => fieldInfos;
 
-  void IAreaProvider.StoreRenderInfos(ArrayList renderInfos)
+  void IAreaProvider.StoreRenderInfos(ArrayList infos)
   {
-    this.renderInfos = renderInfos;
+    renderInfos = infos;
   }
 
   bool IAreaProvider.IsAreaBreakBefore(LayoutInfo layoutInfo)
@@ -129,8 +129,6 @@ internal class FormattedTextFrame : IAreaProvider
     XUnit height = double.MaxValue;
     return new Rectangle(xOffset, yOffset, width, height);
   }
-
-  XUnit ContentHeight => contentHeight;
 
   bool IAreaProvider.PositionVertically(LayoutInfo layoutInfo)
   {

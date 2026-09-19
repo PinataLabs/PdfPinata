@@ -31,7 +31,6 @@ using System;
 using System.Diagnostics;
 using System.Text;
 using PdfPinata.Fonts;
-using PdfPinata.Fonts.OpenType;
 
 namespace PdfPinata.Pdf.Advanced;
 
@@ -71,7 +70,7 @@ public class PdfFont : PdfDictionary
             _cmapInfo.AddChars(text);
     }
 
-    internal void AddShapedRun(Fonts.ShapedRun run, string text)
+    internal void AddShapedRun(ShapedRun run, string text)
     {
         if (_cmapInfo != null)
             _cmapInfo.AddShapedRun(run, text);

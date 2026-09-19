@@ -90,6 +90,7 @@ internal sealed class PdfFontTable : PdfResourceTable
     {
         string selector = null; // ComputeKey(font); //new FontSelector(font);
         PdfFont pdfFont;
+        // ReSharper disable once AssignNullToNotNullAttribute
         if (!_fonts.TryGetValue(selector, out pdfFont))
         {
             //if (font.Unicode)

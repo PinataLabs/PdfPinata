@@ -3,7 +3,6 @@ using AwesomeAssertions;
 using PdfPinata.Test.Helpers;
 using PdfPinata.Utils;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.PixelFormats;
 using Xunit;
 

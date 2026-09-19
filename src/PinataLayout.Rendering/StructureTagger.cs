@@ -502,7 +502,7 @@ internal sealed class StructureTagger
             return Nothing;
 
         var parent = ParentFor(footnote);
-        var reference = Element(footnote, PdfTag.Reference, parent, ReferenceSlot);
+        var reference = Element(footnote, PdfTag.Reference, parent);
 
         // Built now rather than when the note is drawn, and built before the scope is entered so that
         // it hangs off the paragraph beside the reference rather than inside it.

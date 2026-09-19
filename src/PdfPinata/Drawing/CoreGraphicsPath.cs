@@ -206,16 +206,6 @@ internal class CoreGraphicsPath
             _types[count - 1] |= PathPointTypeCloseSubpath;
     }
 
-    /// <summary>
-    /// Gets or sets the current fill mode (alternate or winding).
-    /// </summary>
-    XFillMode FillMode
-    {
-        get => _fillMode;
-        set => _fillMode = value;
-    }
-    XFillMode _fillMode;
-
     public void AddArc(double x, double y, double width, double height, double startAngle, double sweepAngle)
     {
         var matrix = XMatrix.Identity;

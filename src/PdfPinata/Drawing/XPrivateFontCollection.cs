@@ -54,15 +54,4 @@ public sealed class XPrivateFontCollection
 
     internal static XPrivateFontCollection _singleton = new();
 
-    static string MakeKey(string familyName, XFontStyle style)
-    {
-        return MakeKey(familyName, (style & XFontStyle.Bold) != 0, (style & XFontStyle.Italic) != 0);
-    }
-
-    static string MakeKey(string familyName, bool bold, bool italic)
-    {
-        return familyName + "#" + (bold ? "b" : "") + (italic ? "i" : "");
-    }
-
-    readonly Dictionary<string, XGlyphTypeface> _typefaces = new();
 }

@@ -31,7 +31,6 @@ using System;
 using System.Globalization;
 using System.Text;
 using PdfPinata.Drawing;
-using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.Internal;
 
 namespace PdfPinata.Pdf;

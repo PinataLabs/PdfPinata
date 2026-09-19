@@ -2,7 +2,6 @@ using System.IO;
 using System.Linq;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
-using PdfPinata.Fonts;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.Content;
@@ -27,10 +26,7 @@ public class StyleSimulationTest
 {
     private const string Family = "Liberation Sans";
 
-    private static readonly string Regular = Face("Regular");
     private static readonly string Bold = Face("Bold");
-    private static readonly string Italic = Face("Italic");
-    private static readonly string BoldItalic = Face("BoldItalic");
 
     [Theory]
     // A family shipping every face simulates nothing.

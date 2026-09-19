@@ -154,6 +154,7 @@ static class ParserProbe
         var field2 = Field(entryType, "Field2");
         var field3 = Field(entryType, "Field3");
 
+        // ReSharper disable once AssignNullToNotNullAttribute
         return ((IEnumerable)Field(XRefStreamType, "Entries").GetValue(xrefStream))
             .Cast<object>()
             .Select(entry => ((uint)type.GetValue(entry), (uint)field2.GetValue(entry), (uint)field3.GetValue(entry)))

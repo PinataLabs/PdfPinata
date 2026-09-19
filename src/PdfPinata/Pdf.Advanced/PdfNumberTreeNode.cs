@@ -206,6 +206,7 @@ public sealed class PdfNumberTreeNode : PdfDictionary
         // A key written as a real is not what the standard asks for, but it is unambiguous.
         var real = item as PdfReal;
         #pragma warning disable S1244 // Exact on purpose: a real is an integer only when it is exactly one.
+        // ReSharper disable once CompareOfFloatsByEqualityOperator
         if (real != null && real.Value == Math.Floor(real.Value))
         #pragma warning restore S1244
         {

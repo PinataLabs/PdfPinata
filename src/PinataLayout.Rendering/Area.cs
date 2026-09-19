@@ -145,15 +145,15 @@ internal class Rectangle : Area
     /// Gets the largest fitting rect with the given y position and height.
     /// </summary>
     /// <param name="yPosition">Top bound of the searched rectangle.</param>
-    /// <param name="height">Height of the searched rectangle.</param>
+    /// <param name="fittingHeight">Height of the searched rectangle.</param>
     /// <returns>The largest fitting rect with the given y position and height</returns>
-    internal override Rectangle GetFittingRect(XUnit yPosition, XUnit height)
+    internal override Rectangle GetFittingRect(XUnit yPosition, XUnit fittingHeight)
     {
         // Null past the bottom, which is the only way a rectangle can have nowhere to put a line.
         // The callers honour it: see the remarks on Area.GetFittingRect.
-        return yPosition + height > y + this.height + Renderer.Tolerance
+        return yPosition + fittingHeight > y + height + Renderer.Tolerance
             ? null
-            : new Rectangle(x, yPosition, width, height);
+            : new Rectangle(x, yPosition, width, fittingHeight);
     }
 
     /// <summary>

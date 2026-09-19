@@ -129,28 +129,6 @@ class MD5Managed
 
     static class MD5Core
     {
-        public static byte[] GetHash(byte[] input)
-        {
-            ArgumentNullException.ThrowIfNull(input);
-
-            // Intitial values defined in RFC 1321.
-            var abcd = new ABCDStruct();
-            abcd.A = A;
-            abcd.B = B;
-            abcd.C = C;
-            abcd.D = D;
-
-            // We pass in the input array by block, the final block of data must be handled specially for padding & length embeding.
-            var startIndex = 0;
-            while (startIndex <= input.Length - 64)
-            {
-                GetHashBlock(input, ref abcd, startIndex);
-                startIndex += 64;
-            }
-            // The final data block.
-            return GetHashFinalBlock(input, startIndex, input.Length - startIndex, abcd, (Int64)input.Length * 8);
-        }
-
         internal static byte[] GetHashFinalBlock(byte[] input, int ibStart, int cbSize, ABCDStruct abcd, Int64 len)
         {
             var working = new byte[64];

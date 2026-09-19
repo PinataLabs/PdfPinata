@@ -124,6 +124,7 @@ internal abstract class BarPlotAreaRenderer : PlotAreaRenderer
     {
       foreach (ColumnRendererInfo column in sri.pointRendererInfos)
       {
+        // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
         // Do not draw bar if value is outside yMin/yMax range. Clipping does not make sense.
         if (IsDataInside(yMin, yMax, column.Value))
           gfx.DrawRectangle(column.FillFormat, column.Rect);
@@ -136,6 +137,7 @@ internal abstract class BarPlotAreaRenderer : PlotAreaRenderer
     {
       foreach (ColumnRendererInfo column in sri.pointRendererInfos)
       {
+        // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
         // Do not draw bar if value is outside yMin/yMax range. Clipping does not make sense.
         if (IsDataInside(yMin, yMax, column.Value))
         {

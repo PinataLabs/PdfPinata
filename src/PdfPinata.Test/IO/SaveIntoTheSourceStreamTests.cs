@@ -54,7 +54,7 @@ public class SaveIntoTheSourceStreamTests
 
         var saved = Encoding.Latin1.GetString(pdf.ToArray());
         saved.Should().StartWith("%PDF-");
-        saved.IndexOf("%PDF-", 1, System.StringComparison.Ordinal).Should().Be(-1);
+        saved.IndexOf("%PDF-", 1, StringComparison.Ordinal).Should().Be(-1);
     }
 
     [Fact]

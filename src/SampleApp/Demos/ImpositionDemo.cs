@@ -90,6 +90,7 @@ internal sealed class ImpositionDemo : PdfDemo
         {
             var scale = 0.4 + index % 5 * 0.25;
             var state = gfx1.Save();
+            // ReSharper disable once PossibleLossOfFraction
             gfx1.TranslateTransform(80 + index % 5 * 110, 220 + index / 5 * 110);
             gfx1.RotateTransform(index * 17);
             gfx1.ScaleTransform(scale, scale);
@@ -109,6 +110,7 @@ internal sealed class ImpositionDemo : PdfDemo
             {
                 var scale = 0.4 + index % 5 * 0.25;
                 var state = gfx.Save();
+                // ReSharper disable once PossibleLossOfFraction
                 gfx.TranslateTransform(80 + index % 5 * 110, 220 + index / 5 * 110);
                 gfx.RotateTransform(index * 17);
                 gfx.ScaleTransform(scale, scale);

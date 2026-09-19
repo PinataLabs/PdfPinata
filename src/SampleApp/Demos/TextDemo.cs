@@ -85,6 +85,7 @@ internal sealed class TextDemo : PdfDemo
 
         for (var index = 0; index < presets.Length; index++)
         {
+            // ReSharper disable once PossibleLossOfFraction
             var cell = new XRect(48 + index % 3 * 172, 144 + index / 3 * 72, 160, 60);
             gfx.DrawRectangle(boxPen, cell);
             gfx.DrawString(presets[index].Name, body, XBrushes.Black, cell,

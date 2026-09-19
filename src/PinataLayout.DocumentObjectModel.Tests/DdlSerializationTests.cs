@@ -282,9 +282,9 @@ public class DdlSerializationTests
         var againSeries = again.SeriesCollection[0];
 
         againSeries.Count.Should().Be(3);
-        ((Shapes.Charts.Point)againSeries.Elements[0]).Value.Should().Be(1);
+        ((Point)againSeries.Elements[0]).Value.Should().Be(1);
         againSeries.Elements[1].Should().BeNull("the gap is still a gap");
-        ((Shapes.Charts.Point)againSeries.Elements[2]).Value.Should().Be(3);
+        ((Point)againSeries.Elements[2]).Value.Should().Be(3);
     }
 
     // ----- the whole document ----------------------------------------------------------------------------

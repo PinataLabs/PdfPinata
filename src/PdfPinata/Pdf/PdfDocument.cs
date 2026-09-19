@@ -903,9 +903,9 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// <see cref="Advanced.PdfAttachments"/> for why both are needed, and note that only PDF/A-3
     /// among the archival profiles may carry one at all.
     /// </remarks>
-    public Advanced.PdfAttachments Attachments => _attachments ??= new Advanced.PdfAttachments(this);
+    public PdfAttachments Attachments => _attachments ??= new PdfAttachments(this);
 
-    Advanced.PdfAttachments _attachments;
+    PdfAttachments _attachments;
 
     /// <summary>
     /// Gets a value indicating whether anything has been tagged, without creating a structure tree

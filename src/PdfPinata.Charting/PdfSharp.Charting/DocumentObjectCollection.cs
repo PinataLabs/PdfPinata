@@ -219,7 +219,7 @@ public abstract class DocumentObjectCollection : DocumentObject, IList
     //return false;
   }
 
-  int System.Collections.IList.IndexOf(object value)
+  int IList.IndexOf(object value)
   {
     throw new NotImplementedException("IList.IndexOf");
     // TODO:  Add DocumentObjectCollection.System.Collections.IList.IndexOf implementation
@@ -237,6 +237,7 @@ public abstract class DocumentObjectCollection : DocumentObject, IList
   #region ICollection
   bool ICollection.IsSynchronized => false;
 
+  // ReSharper disable once AssignNullToNotNullAttribute
   object ICollection.SyncRoot => null;
 
   #endregion

@@ -171,6 +171,7 @@ public sealed class HarfBuzzTextShaper : ITextShaper, IDisposable
             var pointer = Marshal.AllocHGlobal(array.Count);
             try
             {
+                // ReSharper disable once AssignNullToNotNullAttribute
                 Marshal.Copy(array.Array, array.Offset, pointer, array.Count);
                 var blob = new Blob(pointer, array.Count, MemoryMode.ReadOnly,
                     () => Marshal.FreeHGlobal(pointer));

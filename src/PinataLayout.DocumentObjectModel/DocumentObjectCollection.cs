@@ -124,6 +124,7 @@ public abstract class DocumentObjectCollection : DocumentObject, IList, IVisitab
     /// <summary>
     /// Gets an object that can be used to synchronize access to the collection.
     /// </summary>
+    // ReSharper disable once AssignNullToNotNullAttribute
     object ICollection.SyncRoot => null;
 
     /// <summary>

@@ -27,6 +27,7 @@ public class FontPlumbingTests
     /// </summary>
     static object ResolvingOptions(params object[] arguments) =>
         Activator.CreateInstance(
+            // ReSharper disable once AssignNullToNotNullAttribute
             typeof(XPoint).Assembly.GetType("PdfPinata.Fonts.FontResolvingOptions", throwOnError: true),
             BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
             null, arguments, null);
@@ -296,6 +297,7 @@ public class FontPlumbingTests
             var property = settings.GetProperty("DefaultFontEncoding");
             _ = property.GetValue(null);
             property.SetValue(null, Enum.Parse(
+                // ReSharper disable once AssignNullToNotNullAttribute
                 assembly.GetType("PdfPinata.Pdf.PdfFontEncoding", throwOnError: true), "WinAnsi"));
             return null;
         });
@@ -313,6 +315,7 @@ public class FontPlumbingTests
             var settings = assembly.GetType("PdfPinata.Fonts.GlobalFontSettings", throwOnError: true);
             var property = settings.GetProperty("DefaultFontEncoding");
             var unicode = Enum.Parse(
+                // ReSharper disable once AssignNullToNotNullAttribute
                 assembly.GetType("PdfPinata.Pdf.PdfFontEncoding", throwOnError: true), "Unicode");
             property.SetValue(null, unicode);
             property.SetValue(null, unicode);

@@ -28,8 +28,6 @@ namespace PdfPinata.Test.Pdfs;
 /// </summary>
 public class EInvoiceTests
 {
-    private const string Title = ConformingDocument.Title;
-
     private const string InvoiceXml =
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Invoice><ID>2026-0042</ID></Invoice>";
 

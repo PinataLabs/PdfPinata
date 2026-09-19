@@ -336,25 +336,6 @@ internal class Serializer
   }
 
   /// <summary>
-  /// Mighty function to figure out if a blank is required as separator.
-  /// // Does not work without context...
-  /// </summary>
-  static bool IsBlankRequired(char left, char right)
-  {
-    if (left == ' ' || right == ' ')
-      return false;
-
-    // 1st try
-    var leftLetterOrDigit = Char.IsLetterOrDigit(left);
-    var rightLetterOrDigit = Char.IsLetterOrDigit(right);
-
-    if (leftLetterOrDigit && rightLetterOrDigit)
-      return true;
-
-    return false;
-  }
-
-  /// <summary>
   /// Start attribute part.
   /// </summary>
   internal int BeginAttributes()

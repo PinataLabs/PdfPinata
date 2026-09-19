@@ -68,11 +68,11 @@ internal class FormattedCell : IAreaProvider
     return null;
   }
 
-  internal void Format(XGraphics gfx)
+  internal void Format(XGraphics graphics)
   {
-    this.gfx = gfx;
+    gfx = graphics;
     formatter = new TopDownFormatter(this, documentRenderer, cell.Elements);
-    formatter.FormatOnAreas(gfx, false);
+    formatter.FormatOnAreas(graphics, false);
     contentHeight = CalcContentHeight(documentRenderer);
   }
 
@@ -132,9 +132,9 @@ internal class FormattedCell : IAreaProvider
 
   FieldInfos IAreaProvider.AreaFieldInfos => fieldInfos;
 
-  void IAreaProvider.StoreRenderInfos(ArrayList renderInfos)
+  void IAreaProvider.StoreRenderInfos(ArrayList infos)
   {
-    this.renderInfos = renderInfos;
+    renderInfos = infos;
   }
 
   bool IAreaProvider.IsAreaBreakBefore(LayoutInfo layoutInfo)
@@ -152,12 +152,12 @@ internal class FormattedCell : IAreaProvider
     return false;
   }
 
-  private XUnit CalcContentHeight(DocumentRenderer documentRenderer)
+  private XUnit CalcContentHeight(DocumentRenderer renderer)
   {
     var height = RenderInfo.GetTotalHeight(GetRenderInfos());
     if (height == 0)
     {
-      height = ParagraphRenderer.GetLineHeight(cell.Format, gfx, documentRenderer);
+      height = ParagraphRenderer.GetLineHeight(cell.Format, gfx, renderer);
       height += cell.Format.SpaceBefore;
       height += cell.Format.SpaceAfter;
     }

@@ -2184,24 +2184,6 @@ internal class DdlParser
     }
 
     /// <summary>
-    /// Parses the assignment to a Value l-value.
-    /// </summary>
-    private void ParseValueAssignment(DocumentObject dom, ValueDescriptor vd)
-    {
-        try
-        {
-            // What ever it is, send it to SetValue.
-            dom.SetValue(vd.ValueName, Token);
-        }
-        catch (Exception ex) when (!Unrecoverable.Is(ex))
-        {
-            ThrowParserException(ex, DomMsgID.InvalidEnum, scanner.Token, vd.ValueName);
-        }
-
-        ReadCode();  // read next token
-    }
-
-    /// <summary>
     /// Parses the assignment to a Color l-value.
     /// </summary>
     private void ParseColorAssignment(DocumentObject dom, ValueDescriptor vd)
@@ -2548,14 +2530,6 @@ internal class DdlParser
             this.scanner.DocumentFileName, this.scanner.CurrentLine, this.scanner.CurrentLinePos);
 
         this.errors.AddError(error);
-    }
-
-    /// <summary>
-    /// Creates an ErrorInfo based on the given error and parms and adds it to the ErrorManager2.
-    /// </summary>
-    private void ReportParserException(DomMsgID error, params string[] parms)
-    {
-        ReportParserException(null, error, parms);
     }
 
     /// <summary>

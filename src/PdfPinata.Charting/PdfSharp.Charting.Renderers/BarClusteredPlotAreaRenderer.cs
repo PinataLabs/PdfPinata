@@ -78,6 +78,7 @@ internal class BarClusteredPlotAreaRenderer : BarPlotAreaRenderer
       {
         if (!double.IsNaN(column.Value))
         {
+          // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
           var x0 = x - dx;
           var x1 = x - dx - columnWidth;
           var y1 = column.Value;

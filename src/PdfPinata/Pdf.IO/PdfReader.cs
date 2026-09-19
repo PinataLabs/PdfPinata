@@ -33,7 +33,6 @@ using System.Diagnostics;
 using System.IO;
 using PdfPinata.Exceptions;
 using PdfPinata.Pdf.Advanced;
-using PdfPinata.Pdf.Security;
 using PdfPinata.Pdf.Internal;
 using PdfPinata.Internal;
 using PdfPinata.Pdf.IO.enums;

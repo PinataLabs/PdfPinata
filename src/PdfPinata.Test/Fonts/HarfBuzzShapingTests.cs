@@ -136,7 +136,7 @@ public class HarfBuzzShapingTests
         // Shaped at 20 points and at 200, the run is the same - which is what lets a shaped run be
         // cached and drawn at any size, and why advances are not in points.
         using var shaper = new HarfBuzzTextShaper();
-        var small = shaper.Shape("Wave".AsSpan(), Liberation(20), XTextDirection.LeftToRight, "latn", null);
+        var small = shaper.Shape("Wave".AsSpan(), Liberation(), XTextDirection.LeftToRight, "latn", null);
         var large = shaper.Shape("Wave".AsSpan(), Liberation(200), XTextDirection.LeftToRight, "latn", null);
 
         large.Width.Should().Be(small.Width);

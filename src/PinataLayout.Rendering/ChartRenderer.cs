@@ -47,11 +47,11 @@ internal class ChartRenderer : ShapeRenderer
     : base(gfx, chart, fieldInfos)
   {
     this.chart = chart;
-    var renderInfo = new ChartRenderInfo
+    var chartRenderInfo = new ChartRenderInfo
     {
       shape = shape
     };
-    this.renderInfo = renderInfo;
+    this.renderInfo = chartRenderInfo;
   }
 
   internal ChartRenderer(XGraphics gfx, RenderInfo renderInfo, FieldInfos fieldInfos)
@@ -296,8 +296,8 @@ internal class ChartRenderer : ShapeRenderer
     var textArea = area.textArea;
 
 
-    var fillFormatRenderer = new FillFormatRenderer((FillFormat)textArea.GetValue("FillFormat", GV.ReadOnly), Gfx);
-    fillFormatRenderer.Render(rect.X, rect.Y, rect.Width, rect.Height);
+    var fillRenderer = new FillFormatRenderer((FillFormat)textArea.GetValue("FillFormat", GV.ReadOnly), Gfx);
+    fillRenderer.Render(rect.X, rect.Y, rect.Width, rect.Height);
 
     var top = rect.Y;
     top += textArea.TopPadding;
@@ -311,8 +311,8 @@ internal class ChartRenderer : ShapeRenderer
     var renderInfos = area.GetRenderInfos();
     RenderByInfos(left, top, renderInfos);
 
-    var lineFormatRenderer = new LineFormatRenderer((LineFormat)textArea.GetValue("LineFormat", GV.ReadOnly), Gfx);
-    lineFormatRenderer.Render(rect.X, rect.Y, rect.Width, rect.Height);
+    var lineRenderer = new LineFormatRenderer((LineFormat)textArea.GetValue("LineFormat", GV.ReadOnly), Gfx);
+    lineRenderer.Render(rect.X, rect.Y, rect.Width, rect.Height);
   }
 
   internal override void Render()

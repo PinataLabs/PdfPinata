@@ -197,9 +197,9 @@ public partial class Paragraph : DocumentObject, IVisitable
     /// <summary>
     /// Adds a new FormattedText object with the given text and style.
     /// </summary>
-    public FormattedText AddFormattedText(string text, string style)
+    public FormattedText AddFormattedText(string text, string styleName)
     {
-        return Elements.AddFormattedText(text, style);
+        return Elements.AddFormattedText(text, styleName);
     }
 
     /// <summary>
@@ -278,9 +278,9 @@ public partial class Paragraph : DocumentObject, IVisitable
     /// <summary>
     /// Adds a new DateField.
     /// </summary>
-    public DateField AddDateField(string format)
+    public DateField AddDateField(string dateFormat)
     {
-        return Elements.AddDateField(format);
+        return Elements.AddDateField(dateFormat);
     }
 
     /// <summary>

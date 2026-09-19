@@ -31,7 +31,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using PdfPinata.Pdf.IO;
-using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.Internal;
 
 
@@ -324,16 +323,6 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     }
 
     /// <summary>
-    /// Generates the user key based on the padded owner password.
-    /// </summary>
-    void InitWithOwnerPassword(byte[] documentID, string ownerPassword, byte[] ownerKey, int permissions, bool strongEncryption)
-    {
-        var userPad = ComputeOwnerKey(ownerKey, PadPassword(ownerPassword), strongEncryption);
-        InitEncryptionKey(documentID, userPad, ownerKey, permissions, strongEncryption);
-        SetupUserKey(documentID);
-    }
-
-    /// <summary>
     /// Computes the padded user password from the padded owner password.
     /// </summary>
     byte[] ComputeOwnerKey(byte[] userPad, byte[] ownerPad, bool strongEncryption)
@@ -395,10 +384,12 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
             for (var idx = 0; idx < 50; idx++)
             {
                 digest = _md5.ComputeHash(digest);
+                // ReSharper disable once AssignNullToNotNullAttribute
                 _md5.Initialize();
             }
         }
         Array.Copy(digest, 0, _encryptionKey, 0, _encryptionKey.Length);
+    // ReSharper disable once AssignNullToNotNullAttribute
     }
 
     /// <summary>
@@ -413,6 +404,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
             var digest = _md5.Hash;
             _md5.Initialize();
             Array.Copy(digest, 0, _userKey, 0, 16);
+            // ReSharper disable once AssignNullToNotNullAttribute
             for (var idx = 16; idx < 32; idx++)
                 _userKey[idx] = 0;
             //Encrypt the key
@@ -513,19 +505,6 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
             _state[y] = b;
             outputData[idx] = (byte)(inputData[idx] ^ _state[(_state[x] + _state[y]) & 255]);
         }
-    }
-
-    /// <summary>
-    /// Checks whether the calculated key correct.
-    /// </summary>
-    bool EqualsKey(byte[] value, int length)
-    {
-        for (var idx = 0; idx < length; idx++)
-        {
-            if (_userKey[idx] != value[idx])
-                return false;
-        }
-        return true;
     }
 
     /// <summary>

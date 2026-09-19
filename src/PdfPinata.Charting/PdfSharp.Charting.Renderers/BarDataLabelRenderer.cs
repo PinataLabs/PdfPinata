@@ -60,6 +60,7 @@ internal class BarDataLabelRenderer : DataLabelRenderer
 
       sri.dataLabelRendererInfo.Entries = new DataLabelEntryRendererInfo[sri.pointRendererInfos.Length];
       var index = 0;
+      // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
       foreach (ColumnRendererInfo column in sri.pointRendererInfos)
       {
         var dleri = new DataLabelEntryRendererInfo();
@@ -122,6 +123,7 @@ internal class BarDataLabelRenderer : DataLabelRenderer
 
       var columnIndex = 0;
       foreach (ColumnRendererInfo bar in sri.pointRendererInfos)
+      // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
       {
         var dleri = sri.dataLabelRendererInfo.Entries[columnIndex++];
 

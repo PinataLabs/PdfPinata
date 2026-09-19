@@ -1988,14 +1988,6 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     }
 
     /// <summary>
-    /// Makes the specified brush to the current graphics object.
-    /// </summary>
-    void Realize(XBrush brush)
-    {
-        Realize(null, brush);
-    }
-
-    /// <summary>
     /// Makes the specified font and brush to the current graphics objects.
     /// </summary>
     void Realize(XFont font, XBrush brush, XPen pen, bool boldSimulation, XStringFormat format)

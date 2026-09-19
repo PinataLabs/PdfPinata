@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.Shapes;
-using PinataLayout.DocumentObjectModel.Tables;
 using PinataLayout.Rendering;
 using PdfPinata.Pdf;
 using SampleApp.Infrastructure;

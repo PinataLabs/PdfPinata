@@ -79,7 +79,7 @@ public class ParagraphContentTests
         ];
 
         paragraph.Elements.Cast<object>().Should().Equal(added);
-        paragraph.Elements.OfType<Shapes.Image>().Single().Source.Should().BeSameAs(image);
+        paragraph.Elements.OfType<Image>().Single().Source.Should().BeSameAs(image);
     }
 
     [Fact]
@@ -208,7 +208,7 @@ public class ParagraphContentTests
         new Footnote(),
         new Text("text"),
         new FormattedText(),
-        new Shapes.Image(),
+        new Image(),
         new Character { SymbolName = SymbolName.Bullet }
     ];
 
@@ -230,7 +230,7 @@ public class ParagraphContentTests
         paragraph.Add((Footnote)elements[8]);
         paragraph.Add((Text)elements[9]);
         paragraph.Add((FormattedText)elements[10]);
-        paragraph.Add((Shapes.Image)elements[11]);
+        paragraph.Add((Image)elements[11]);
         paragraph.Add((Character)elements[12]);
         paragraph.Add(hyperlink);
 
@@ -255,7 +255,7 @@ public class ParagraphContentTests
         formatted.Add((Footnote)elements[8]);
         formatted.Add((Text)elements[9]);
         formatted.Add((FormattedText)elements[10]);
-        formatted.Add((Shapes.Image)elements[11]);
+        formatted.Add((Image)elements[11]);
         formatted.Add((Character)elements[12]);
         formatted.Add(hyperlink);
 
@@ -279,7 +279,7 @@ public class ParagraphContentTests
         hyperlink.Add((Footnote)elements[8]);
         hyperlink.Add((Text)elements[9]);
         hyperlink.Add((FormattedText)elements[10]);
-        hyperlink.Add((Shapes.Image)elements[11]);
+        hyperlink.Add((Image)elements[11]);
         hyperlink.Add((Character)elements[12]);
 
         hyperlink.Elements.Cast<DocumentObject>().Should().Equal(elements);

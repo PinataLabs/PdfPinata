@@ -49,9 +49,6 @@ internal class XFontSource
     // * A font collection never reaches here: PdfPinata.Utils.TrueTypeCollection extracts
     //   the requested face in the font resolver, so what arrives is always a single font.
 
-    // Signature of a true type collection font.
-    const uint ttcf = 0x66637474;
-
     XFontSource(byte[] bytes, ulong key)
     {
         _fontName = null;

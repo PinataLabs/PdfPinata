@@ -27,7 +27,6 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
-using PdfPinata.Drawing;
 
 namespace PdfPinata.Charting.Renderers;
 

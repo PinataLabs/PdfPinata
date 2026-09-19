@@ -74,11 +74,11 @@ internal class TopDownFormatter
     /// <summary>
     /// Formats the elements on the areas provided by the area provider.
     /// </summary>
-    /// <param name="gfx">The graphics object to render on.</param>
+    /// <param name="graphics">The graphics object to render on.</param>
     /// <param name="topLevel">if set to <c>true</c> formats the object is on top level.</param>
-    public void FormatOnAreas(XGraphics gfx, bool topLevel)
+    public void FormatOnAreas(XGraphics graphics, bool topLevel)
     {
-        this.gfx = gfx;
+        gfx = graphics;
         XUnit prevBottomMargin = 0;
         RenderInfo prevRenderInfo = null;
         FormatInfo prevFormatInfo = null;

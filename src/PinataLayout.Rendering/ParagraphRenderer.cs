@@ -1447,9 +1447,9 @@ internal class ParagraphRenderer : Renderer
 
     void RenderImage()
     {
-        var renderInfo = CurrentImageRenderInfo;
+        var imageRenderInfo = CurrentImageRenderInfo;
         var top = CurrentBaselinePosition;
-        var contentArea = renderInfo.LayoutInfo.ContentArea;
+        var contentArea = imageRenderInfo.LayoutInfo.ContentArea;
         top -= contentArea.Height;
 
         if (probing)
@@ -1461,7 +1461,7 @@ internal class ParagraphRenderer : Renderer
             return;
         }
 
-        RenderByInfos(currentXPosition, top, new[] { renderInfo });
+        RenderByInfos(currentXPosition, top, new[] { imageRenderInfo });
 
         RenderUnderline(contentArea.Width, true);
         RenderStrikethrough(contentArea.Width, true);
@@ -2679,7 +2679,7 @@ internal class ParagraphRenderer : Renderer
 
             default:
                 var c = character.Char;
-                var chars = System.Text.Encoding.UTF8.GetChars(new[] { (byte)c });
+                var chars = Encoding.UTF8.GetChars(new[] { (byte)c });
                 ch = chars[0];
                 break;
         }
@@ -3169,6 +3169,7 @@ internal class ParagraphRenderer : Renderer
             return true;
 
         #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
+        // ReSharper disable once CompareOfFloatsByEqualityOperator
         return pen.Width != currentUnderlinePen.Width;
         #pragma warning restore S1244
     }
@@ -3231,6 +3232,7 @@ internal class ParagraphRenderer : Renderer
             return true;
 
         #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
+        // ReSharper disable once CompareOfFloatsByEqualityOperator
         return pen.Width != currentStrikethroughPen.Width;
         #pragma warning restore S1244
     }
@@ -3250,9 +3252,9 @@ internal class ParagraphRenderer : Renderer
                     if (imageRenderInfos == null)
                         imageRenderInfos = new Hashtable();
 
-                    var renderInfo = CalcImageRenderInfo(image);
-                    imageRenderInfos.Add(image, renderInfo);
-                    return renderInfo;
+                    var imageRenderInfo = CalcImageRenderInfo(image);
+                    imageRenderInfos.Add(image, imageRenderInfo);
+                    return imageRenderInfo;
                 }
             }
             return null;

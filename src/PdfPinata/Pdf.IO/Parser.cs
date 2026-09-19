@@ -589,6 +589,7 @@ internal sealed class Parser
             if (includeReferences && val is PdfReference)
                 val = ReadReference();
             dict.Elements[key] = val;
+            // ReSharper disable once AssignNullToNotNullAttribute
             idx += 2;
         }
 
@@ -838,29 +839,6 @@ internal sealed class Parser
         var current = _lexer.ScanNextToken();
         if (symbol != current && current != Symbol.Eof)
             ParserDiagnostics.HandleUnexpectedToken(_lexer.Token);
-    }
-
-    /// <summary>
-    /// Reads the next token that must be the specified one.
-    /// </summary>
-    private Symbol ReadToken(string token)
-    {
-        var current = _lexer.ScanNextToken();
-        if (token != _lexer.Token)
-            ParserDiagnostics.HandleUnexpectedToken(_lexer.Token);
-        return current;
-    }
-
-    /// <summary>
-    /// Reads a name from the PDF data stream. The preceding slash is part of the result string.
-    /// </summary>
-    private string ReadName()
-    {
-        string name;
-        var symbol = ScanNextToken(out name);
-        if (symbol != Symbol.Name)
-            ParserDiagnostics.HandleUnexpectedToken(name);
-        return name;
     }
 
     /*

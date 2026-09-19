@@ -91,7 +91,7 @@ public static class PdfSignatureVerifier
             var timestamp = signed.SignerInfos.Count > 0 ? TimestampOf(signed.SignerInfos[0]) : null;
             return new PdfSignatureVerification(signature, true, covers, certificate, null, timestamp);
         }
-        catch (Exception problem) when (problem is System.Security.Cryptography.CryptographicException
+        catch (Exception problem) when (problem is CryptographicException
                                             or AsnContentException
                                             or ArgumentException)
         {

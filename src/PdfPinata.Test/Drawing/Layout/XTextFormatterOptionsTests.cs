@@ -42,7 +42,7 @@ public class XTextFormatterOptionsTests
     /// <summary>
     ///   Lays the text out and hands back the page, with the formatter set up by the caller.
     /// </summary>
-    static PdfPage PageShowing(string text, XRect layout, System.Action<XTextFormatter> setUp = null)
+    static PdfPage PageShowing(string text, XRect layout, Action<XTextFormatter> setUp = null)
     {
         var document = new PdfDocument();
         var page = document.AddPage();

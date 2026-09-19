@@ -122,11 +122,6 @@ internal class LegendEntryRenderer : Renderer
   }
 
   /// <summary>
-  /// Absolute width for markers (including line) in point.
-  /// </summary>
-  private const double MarkerWidth = 4.3; // 1.5 mm
-
-  /// <summary>
   /// Maximum legend marker width in point.
   /// </summary>
   private const double MaxLegendMarkerWidth = 7; // 2.5 mm

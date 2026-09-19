@@ -29,7 +29,6 @@
 
 using System;
 using System.Collections;
-using PdfPinata.Drawing;
 
 namespace PdfPinata.Charting.Renderers;
 

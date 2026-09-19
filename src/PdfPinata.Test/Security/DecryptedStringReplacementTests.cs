@@ -187,8 +187,4 @@ public class DecryptedStringReplacementTests
         document.Save(output, false);
         return output.ToArray();
     }
-
-    /// <summary>What was appended, and nothing that was there before.</summary>
-    static string Appended(byte[] updated, int originalLength) =>
-        Encoding.Latin1.GetString(updated, originalLength, updated.Length - originalLength);
 }

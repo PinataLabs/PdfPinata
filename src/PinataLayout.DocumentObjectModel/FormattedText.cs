@@ -197,9 +197,9 @@ public partial class FormattedText : DocumentObject, IVisitable
     /// <summary>
     /// Adds a new FormattedText with the given Font.
     /// </summary>
-    public FormattedText AddFormattedText(Font font)
+    public FormattedText AddFormattedText(Font textFont)
     {
-        return Elements.AddFormattedText(font);
+        return Elements.AddFormattedText(textFont);
     }
 
     /// <summary>
@@ -221,17 +221,17 @@ public partial class FormattedText : DocumentObject, IVisitable
     /// <summary>
     /// Adds a new FormattedText object with the given text and font.
     /// </summary>
-    public FormattedText AddFormattedText(string text, Font font)
+    public FormattedText AddFormattedText(string text, Font textFont)
     {
-        return Elements.AddFormattedText(text, font);
+        return Elements.AddFormattedText(text, textFont);
     }
 
     /// <summary>
     /// Adds a new FormattedText object with the given text and style.
     /// </summary>
-    public FormattedText AddFormattedText(string text, string style)
+    public FormattedText AddFormattedText(string text, string styleName)
     {
-        return Elements.AddFormattedText(text, style);
+        return Elements.AddFormattedText(text, styleName);
     }
 
     /// <summary>

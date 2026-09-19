@@ -437,7 +437,7 @@ public abstract class PdfAcroField : PdfDictionary
     /// </remarks>
     internal static string TextOfOption(PdfItem item)
     {
-        if (item is Advanced.PdfReference reference)
+        if (item is PdfReference reference)
             item = reference.Value;
 
         return item switch

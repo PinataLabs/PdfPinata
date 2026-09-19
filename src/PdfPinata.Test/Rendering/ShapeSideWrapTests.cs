@@ -60,7 +60,7 @@ public class ShapeSideWrapTests
     [Fact]
     public void TheLinesLevelWithTheShapeAreShortenedAndTheOthersAreNot()
     {
-        var laid = LaidOut(WrapStyle.Right, ShapePosition.Left);
+        var laid = LaidOut(WrapStyle.Right);
 
         laid.LevelWithTheShape.Should().NotBeEmpty("some lines stand against the shape");
         laid.Lines.Count.Should().BeGreaterThan(laid.LevelWithTheShape.Count, "and some do not");
@@ -74,7 +74,7 @@ public class ShapeSideWrapTests
     [Fact]
     public void NoLineIsDrawnAcrossTheShape()
     {
-        var laid = LaidOut(WrapStyle.Right, ShapePosition.Left, shapeWidth: "6cm");
+        var laid = LaidOut(WrapStyle.Right, shapeWidth: "6cm");
 
         foreach (var line in laid.LevelWithTheShape)
         {
@@ -107,7 +107,7 @@ public class ShapeSideWrapTests
     [Fact]
     public void AskingForTheTextOnTheRightPutsItOnTheRight()
     {
-        var laid = LaidOut(WrapStyle.Right, ShapePosition.Left);
+        var laid = LaidOut(WrapStyle.Right);
 
         laid.LevelWithTheShape.Should().NotBeEmpty();
         laid.LevelWithTheShape.Should().OnlyContain(line => line.X >= laid.ShapeRight - 1,
@@ -119,7 +119,7 @@ public class ShapeSideWrapTests
     {
         // The one failure a single page cannot show: a wrap that is consistently backwards.
         var left = LaidOut(WrapStyle.Left, ShapePosition.Right).LevelWithTheShape;
-        var right = LaidOut(WrapStyle.Right, ShapePosition.Left).LevelWithTheShape;
+        var right = LaidOut(WrapStyle.Right).LevelWithTheShape;
 
         left.First().X.Should().BeLessThan(right.First().X - 50);
     }
@@ -128,7 +128,7 @@ public class ShapeSideWrapTests
     public void AskingForEitherSideFillsTheRoomierOne()
     {
         // Against the left margin, so the room is on the right.
-        var laid = LaidOut(WrapStyle.Both, ShapePosition.Left);
+        var laid = LaidOut(WrapStyle.Both);
 
         laid.LevelWithTheShape.Should().NotBeEmpty();
         laid.LevelWithTheShape.Should().OnlyContain(line => line.X >= laid.ShapeRight - 1);
@@ -139,8 +139,8 @@ public class ShapeSideWrapTests
     {
         // Documented on the enumeration and asserted here, so that the day they part company a
         // test says so rather than a reader noticing.
-        var largest = LaidOut(WrapStyle.Largest, ShapePosition.Left).Lines;
-        var both = LaidOut(WrapStyle.Both, ShapePosition.Left).Lines;
+        var largest = LaidOut(WrapStyle.Largest).Lines;
+        var both = LaidOut(WrapStyle.Both).Lines;
 
         largest.Select(line => (Math.Round(line.X, 3), Math.Round(line.Y, 3)))
             .Should().Equal(both.Select(line => (Math.Round(line.X, 3), Math.Round(line.Y, 3))));
@@ -151,8 +151,8 @@ public class ShapeSideWrapTests
     [Fact]
     public void AHorizontalDistanceHoldsTheTextOffTheShape()
     {
-        var tight = LaidOut(WrapStyle.Right, ShapePosition.Left, arrange: wrap => wrap.DistanceRight = 0);
-        var held = LaidOut(WrapStyle.Right, ShapePosition.Left, arrange: wrap => wrap.DistanceRight = "1cm");
+        var tight = LaidOut(WrapStyle.Right, arrange: wrap => wrap.DistanceRight = 0);
+        var held = LaidOut(WrapStyle.Right, arrange: wrap => wrap.DistanceRight = "1cm");
 
         (held.LevelWithTheShape.First().X - tight.LevelWithTheShape.First().X)
             .Should().BeApproximately(Centimetres(1), 0.5,
@@ -162,7 +162,7 @@ public class ShapeSideWrapTests
     [Fact]
     public void NoDistanceAtAllLetsTheTextRunUpToTheShape()
     {
-        var laid = LaidOut(WrapStyle.Right, ShapePosition.Left,
+        var laid = LaidOut(WrapStyle.Right,
             arrange: wrap => { wrap.DistanceLeft = 0; wrap.DistanceRight = 0; });
 
         laid.LevelWithTheShape.First().X.Should().BeApproximately(laid.ShapeRight, 1.0);
@@ -171,8 +171,8 @@ public class ShapeSideWrapTests
     [Fact]
     public void AVerticalDistancePushesTheFirstClearLineFurtherDown()
     {
-        var tight = LaidOut(WrapStyle.Right, ShapePosition.Left, arrange: wrap => wrap.DistanceBottom = 0);
-        var held = LaidOut(WrapStyle.Right, ShapePosition.Left, arrange: wrap => wrap.DistanceBottom = "1cm");
+        var tight = LaidOut(WrapStyle.Right, arrange: wrap => wrap.DistanceBottom = 0);
+        var held = LaidOut(WrapStyle.Right, arrange: wrap => wrap.DistanceBottom = "1cm");
 
         // DistanceBottom grows the obstacle downwards, so a line that would have cleared the shape
         // by a hair is pushed past it instead. That is the reading these distances were given for a
@@ -196,7 +196,7 @@ public class ShapeSideWrapTests
     [Fact]
     public void AShapePlacedBetweenItsNeighboursStillPushesThemDown()
     {
-        var laid = LaidOut(WrapStyle.TopBottom, ShapePosition.Left);
+        var laid = LaidOut(WrapStyle.TopBottom);
 
         // Nothing level with it at all: the text starts below. That is what TopBottom has always
         // meant, and the pinned corpus says the same in bytes.
@@ -206,8 +206,8 @@ public class ShapeSideWrapTests
     [Fact]
     public void AShapeTheTextIgnoresIsStillIgnored()
     {
-        var through = LaidOut(WrapStyle.Through, ShapePosition.Left).Lines;
-        var none = LaidOut(WrapStyle.None, ShapePosition.Left).Lines;
+        var through = LaidOut(WrapStyle.Through).Lines;
+        var none = LaidOut(WrapStyle.None).Lines;
 
         through.Select(line => (Math.Round(line.X, 3), Math.Round(line.Y, 3)))
             .Should().Equal(none.Select(line => (Math.Round(line.X, 3), Math.Round(line.Y, 3))));
@@ -216,7 +216,7 @@ public class ShapeSideWrapTests
     [Fact]
     public void AShapeTheTextIgnoresHasTextDrawnAcrossIt()
     {
-        var laid = LaidOut(WrapStyle.Through, ShapePosition.Left);
+        var laid = LaidOut(WrapStyle.Through);
 
         // The overlap is the point of Through, and it is what tells it apart from every side wrap.
         // A change that quietly made Through behave like a wrap would pass every other test here.

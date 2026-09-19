@@ -67,7 +67,7 @@ internal class FormattedFootnote : IAreaProvider
 
         // Never less than the gap, so a note whose mark is empty still sits clear of the margin
         // and reads as a note rather than as another paragraph of the body.
-        return XUnit.FromPoint(System.Math.Max(width.Point + MarkGap.Point, MarkGap.Point * 3));
+        return XUnit.FromPoint(Math.Max(width.Point + MarkGap.Point, MarkGap.Point * 3));
     }
 
     /// <summary>The face the note is set in - its own style, or the predefined Footnote one.</summary>

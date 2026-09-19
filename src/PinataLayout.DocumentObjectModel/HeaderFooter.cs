@@ -198,8 +198,8 @@ public partial class HeaderFooter : DocumentObject, IVisitable
         set
         {
             // Just save style name.
-            var style = Document.Styles[value];
-            if (style != null)
+            var styleObj = Document.Styles[value];
+            if (styleObj != null)
                 this.style = value;
             else
                 throw new ArgumentException("Invalid style name '" + value + "'.");

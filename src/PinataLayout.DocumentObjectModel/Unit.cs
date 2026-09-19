@@ -83,14 +83,14 @@ public struct Unit : IFormattable, INullableValue
     /// <summary>
     /// Sets the unit to the given value.
     /// </summary>
-    void INullableValue.SetValue(object value)
+    void INullableValue.SetValue(object newValue)
     {
-        ArgumentNullException.ThrowIfNull(value);
+        ArgumentNullException.ThrowIfNull(newValue);
 
-        if (value is Unit)
-            this = (Unit)value;
+        if (newValue is Unit)
+            this = (Unit)newValue;
         else
-            this = value.ToString();
+            this = newValue.ToString();
     }
 
     /// <summary>
@@ -618,6 +618,7 @@ public struct Unit : IFormattable, INullableValue
     public static bool operator ==(Unit l, Unit r)
     {
         #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
+        // ReSharper disable once CompareOfFloatsByEqualityOperator
         return (l.initialized == r.initialized && l.type == r.type && l.value == r.value);
         #pragma warning restore S1244
     }
@@ -663,15 +664,15 @@ public struct Unit : IFormattable, INullableValue
     /// <summary>
     /// Converts an existing object from one unit into another unit type.
     /// </summary>
-    public void ConvertType(UnitType type)
+    public void ConvertType(UnitType newType)
     {
-        if (this.type == type)
+        if (type == newType)
             return;
 
-        if (!Enum.IsDefined(type))
-            throw new ArgumentException(DomSR.InvalidUnitType(type.ToString()));
+        if (!Enum.IsDefined(newType))
+            throw new ArgumentException(DomSR.InvalidUnitType(newType.ToString()));
 
-        switch (type)
+        switch (newType)
         {
             case UnitType.Centimeter:
                 value = (float)Centimeter;

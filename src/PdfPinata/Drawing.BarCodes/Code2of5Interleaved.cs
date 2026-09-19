@@ -64,15 +64,6 @@ public class Code2of5Interleaved : ThickThinBarCode
         : base(code, size, direction)
     {}
 
-    /// <summary>
-    /// Returns an array of size 5 that represents the thick (true) and thin (false) lines or spaces
-    /// representing the specified digit.
-    /// </summary>
-    /// <param name="digit">The digit to represent.</param>
-    static bool[] ThickAndThinLines(int digit)
-    {
-        return Lines[digit];
-    }
     static bool[][] Lines =
     {
         new[] {false, false, true, true, false},

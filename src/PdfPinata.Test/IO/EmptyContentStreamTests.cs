@@ -194,10 +194,10 @@ public class EmptyContentStreamTests
         var objects = new List<string>();
         for (var idx = 0; ;)
         {
-            var start = raw.IndexOf(" 0 obj", idx, System.StringComparison.Ordinal);
+            var start = raw.IndexOf(" 0 obj", idx, StringComparison.Ordinal);
             if (start < 0)
                 return objects;
-            var end = raw.IndexOf("endobj", start, System.StringComparison.Ordinal);
+            var end = raw.IndexOf("endobj", start, StringComparison.Ordinal);
             if (end < 0)
                 return objects;
             objects.Add(raw.Substring(start, end - start));

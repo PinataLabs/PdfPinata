@@ -207,7 +207,7 @@ internal class DdlScanner
         return Symbol.Character;
     }
 
-    var token = "\\";
+    var keyword = "\\";
     var idx = index;
     var length = this.ddlLength - idx;
     while (length > 0)
@@ -215,13 +215,13 @@ internal class DdlScanner
       var ch = m_strDocument[idx++];
       if (DdlScanner.IsLetter(ch))
       {
-        token += ch;
+        keyword += ch;
         length--;
       }
       else
         break;
     }
-    return KeyWords.SymbolFromName(token);
+    return KeyWords.SymbolFromName(keyword);
   }
 
   /// <summary>

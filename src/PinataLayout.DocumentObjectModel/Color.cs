@@ -106,20 +106,20 @@ public struct Color : INullableValue, IEquatable<Color>
     {
         // Similar formula as in PDFsharp
         isCmyk = false;
-        var c = 255 - (int)R;
-        var m = 255 - (int)G;
-        var y = 255 - (int)B;
-        var k = Math.Min(c, Math.Min(m, y));
-        if (k == 255)
+        var cyan = 255 - (int)R;
+        var magenta = 255 - (int)G;
+        var yellow = 255 - (int)B;
+        var key = Math.Min(cyan, Math.Min(magenta, yellow));
+        if (key == 255)
             this.c = this.m = this.y = 0;
         else
         {
-            var black = 255f - k;
-            this.c = 100f * (c - k) / black;
-            this.m = 100f * (m - k) / black;
-            this.y = 100f * (y - k) / black;
+            var black = 255f - key;
+            this.c = 100f * (cyan - key) / black;
+            this.m = 100f * (magenta - key) / black;
+            this.y = 100f * (yellow - key) / black;
         }
-        this.k = 100f * k / 255f;
+        this.k = 100f * key / 255f;
         a = A / 2.55f;
     }
 
@@ -129,11 +129,11 @@ public struct Color : INullableValue, IEquatable<Color>
         isCmyk = true;
         var black = k * 2.55f + 0.5f;
         var factor = (255f - black) / 100f;
-        var a = (byte)(this.a * 2.55 + 0.5);
+        var alpha = (byte)(this.a * 2.55 + 0.5);
         var r = (byte)(255 - Math.Min(255f, c * factor + black));
         var g = (byte)(255 - Math.Min(255f, m * factor + black));
         var b = (byte)(255 - Math.Min(255f, y * factor + black));
-        argb = ((uint)a << 24) | ((uint)r << 16) | ((uint)g << 8) | b;
+        argb = ((uint)alpha << 24) | ((uint)r << 16) | ((uint)g << 8) | b;
     }
 
     /// <summary>
@@ -225,6 +225,7 @@ public struct Color : INullableValue, IEquatable<Color>
                 return false;
             #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
             if (isCmyk)
+                // ReSharper disable once CompareOfFloatsByEqualityOperator
                 return a == color.a && c == color.c && m == color.m && y == color.y && k == color.k;
                 #pragma warning restore S1244
             else
@@ -250,6 +251,7 @@ public struct Color : INullableValue, IEquatable<Color>
     }
 
     /// <summary>
+    // ReSharper disable once CompareOfFloatsByEqualityOperator
     /// Compares two color objects. True if both argb values are equal, false otherwise.
     /// </summary>
     public static bool operator ==(Color color1, Color color2)
@@ -390,6 +392,7 @@ public struct Color : INullableValue, IEquatable<Color>
     }
 
     /// <summary>
+    // ReSharper disable once CompareOfFloatsByEqualityOperator
     /// Writes the Color object in its hexadecimal value.
     /// </summary>
     public override string ToString()

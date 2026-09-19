@@ -167,7 +167,7 @@ public class GradientTransparencyTests
 
     static PdfPage SavedPageWith(XBrush brush) => SavedPageWith(gfx => gfx.DrawRectangle(brush, Box));
 
-    static PdfPage SavedPageWith(System.Action<XGraphics> draw)
+    static PdfPage SavedPageWith(Action<XGraphics> draw)
     {
         var document = new PdfDocument();
         var page = document.AddPage();

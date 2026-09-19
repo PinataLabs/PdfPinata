@@ -28,9 +28,7 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
-using System;
 using System.Diagnostics;
-using System.IO;
 using PinataLayout.DocumentObjectModel.Shapes;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf.Filters;

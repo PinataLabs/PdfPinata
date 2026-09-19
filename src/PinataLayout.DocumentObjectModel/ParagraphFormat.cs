@@ -72,9 +72,9 @@ public partial class ParagraphFormat : DocumentObject
   /// <summary>
   /// Adds a TabStop object to the collection and sets its alignment and leader.
   /// </summary>
-  public TabStop AddTabStop(Unit position, TabAlignment alignment, TabLeader leader)
+  public TabStop AddTabStop(Unit position, TabAlignment tabAlignment, TabLeader leader)
   {
-    return TabStops.AddTabStop(position, alignment, leader);
+    return TabStops.AddTabStop(position, tabAlignment, leader);
   }
 
   /// <summary>
@@ -88,9 +88,9 @@ public partial class ParagraphFormat : DocumentObject
   /// <summary>
   /// Adds a TabStop object to the collection and sets its alignment.
   /// </summary>
-  public TabStop AddTabStop(Unit position, TabAlignment alignment)
+  public TabStop AddTabStop(Unit position, TabAlignment tabAlignment)
   {
-    return TabStops.AddTabStop(position, alignment);
+    return TabStops.AddTabStop(position, tabAlignment);
   }
 
   /// <summary>

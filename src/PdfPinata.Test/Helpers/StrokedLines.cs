@@ -184,6 +184,7 @@ internal static class StrokedLines
         // Closing a subpath draws the segment back to where it began.
         void CloseSubpath()
         {
+            // ReSharper disable once CompareOfFloatsByEqualityOperator
             if (inSubpath && (x != startX || y != startY))
                 path.Add(new Line(x, y, startX, startY, width, colour));
 

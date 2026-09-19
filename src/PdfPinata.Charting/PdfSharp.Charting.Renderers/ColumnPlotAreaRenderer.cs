@@ -101,6 +101,7 @@ internal abstract class ColumnPlotAreaRenderer : ColumnLikePlotAreaRenderer
     var state = gfx.Save();
     foreach (var sri in cri.seriesRendererInfos)
     {
+      // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
       foreach (ColumnRendererInfo column in sri.pointRendererInfos)
       {
         // Do not draw column if value is outside yMin/yMax range. Clipping does not make sense.
@@ -113,6 +114,7 @@ internal abstract class ColumnPlotAreaRenderer : ColumnLikePlotAreaRenderer
     // A border can overlap neighbor columns, so it is important to draw borders at the end.
     foreach (var sri in cri.seriesRendererInfos)
     {
+      // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
       foreach (ColumnRendererInfo column in sri.pointRendererInfos)
       {
         // Do not draw column if value is outside yMin/yMax range. Clipping does not make sense.

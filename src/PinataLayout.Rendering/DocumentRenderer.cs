@@ -30,7 +30,6 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using PinataLayout.DocumentObjectModel;
 using PdfPinata.Pdf;
 using PdfPinata.Drawing;

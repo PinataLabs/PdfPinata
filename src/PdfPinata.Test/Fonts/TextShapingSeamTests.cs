@@ -208,7 +208,9 @@ public class TextShapingSeamTests
         // Two glyphs for six characters, and each of them half an em wide.
         using var _ = Installed(new SelectiveShaper(text, f => new[]
         {
+            // ReSharper disable once PossibleLossOfFraction
             new ShapedGlyph(7, 0, f.UnitsPerEm / 2),
+            // ReSharper disable once PossibleLossOfFraction
             new ShapedGlyph(8, 3, f.UnitsPerEm / 2)
         }));
 
@@ -365,7 +367,9 @@ public class TextShapingSeamTests
         // some other fraction so that it comes to a round 250 thousandths of an em.
         using var _ = Installed(new SelectiveShaper(text, f => new[]
         {
+            // ReSharper disable once PossibleLossOfFraction
             new ShapedGlyph(10, 0, f.UnitsPerEm / 2),
+            // ReSharper disable once PossibleLossOfFraction
             new ShapedGlyph(11, 1, f.UnitsPerEm / 2, offsetX: f.UnitsPerEm / 4)
         }));
 
@@ -387,7 +391,9 @@ public class TextShapingSeamTests
 
         using var _ = Installed(new SelectiveShaper(text, f => new[]
         {
+            // ReSharper disable once PossibleLossOfFraction
             new ShapedGlyph(10, 0, f.UnitsPerEm / 2),
+            // ReSharper disable once PossibleLossOfFraction
             new ShapedGlyph(11, 1, f.UnitsPerEm / 2, offsetY: f.UnitsPerEm / 4)
         }));
 
@@ -412,7 +418,9 @@ public class TextShapingSeamTests
         // every string after it.
         using var _ = Installed(new SelectiveShaper(text, f => new[]
         {
+            // ReSharper disable once PossibleLossOfFraction
             new ShapedGlyph(10, 0, f.UnitsPerEm / 2),
+            // ReSharper disable once PossibleLossOfFraction
             new ShapedGlyph(11, 1, f.UnitsPerEm / 2, offsetY: f.UnitsPerEm / 4)
         }));
 

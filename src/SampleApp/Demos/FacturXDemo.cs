@@ -7,7 +7,6 @@ using PdfPinata.Drawing;
 using PdfPinata.Drawing.Layout;
 using PdfPinata.EInvoice;
 using PdfPinata.Pdf;
-using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
 using SampleApp.Infrastructure;
 

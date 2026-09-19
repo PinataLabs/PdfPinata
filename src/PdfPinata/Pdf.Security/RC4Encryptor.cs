@@ -39,10 +39,12 @@ class RC4Encryptor : EncryptorBase, IEncryptor
             for (var i = 0; i < 50; i++)
             {
                 md5.Initialize();
+                // ReSharper disable once AssignNullToNotNullAttribute
                 hash = md5.ComputeHash(hash, 0, keyLength);
             }
         }
         encryptionKey = new byte[keyLength];
+        // ReSharper disable once AssignNullToNotNullAttribute
         Array.Copy(hash, encryptionKey, keyLength);
     }
 
@@ -157,6 +159,7 @@ class RC4Encryptor : EncryptorBase, IEncryptor
             md5.TransformBlock(passwordPadding, 0, passwordPadding.Length, passwordPadding, 0);
             md5.TransformFinalBlock(documentId, 0, documentId.Length);
             var mkey = md5.Hash;
+            // ReSharper disable once AssignNullToNotNullAttribute
             Array.Copy(mkey, computedUserValue, mkey.Length);
             for (var i = 0; i < 20; i++)
             {
@@ -203,15 +206,15 @@ class RC4Encryptor : EncryptorBase, IEncryptor
     /// <summary>
     /// Prepare the encryption key.
     /// </summary>
-    protected void PrepareRC4Key(byte[] key)
+    protected void PrepareRC4Key(byte[] keyBytes)
     {
-        PrepareRC4Key(key, 0, keySize);
+        PrepareRC4Key(keyBytes, 0, keySize);
     }
 
     /// <summary>
     /// Prepare the encryption key.
     /// </summary>
-    protected void PrepareRC4Key(byte[] key, int offset, int length)
+    protected void PrepareRC4Key(byte[] keyBytes, int offset, int length)
     {
         var idx1 = 0;
         var idx2 = 0;
@@ -220,7 +223,7 @@ class RC4Encryptor : EncryptorBase, IEncryptor
         byte tmp;
         for (var idx = 0; idx < 256; idx++)
         {
-            idx2 = (key[idx1 + offset] + state[idx] + idx2) & 255;
+            idx2 = (keyBytes[idx1 + offset] + state[idx] + idx2) & 255;
             tmp = state[idx];
             state[idx] = state[idx2];
             state[idx2] = tmp;

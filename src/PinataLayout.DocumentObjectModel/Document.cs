@@ -74,17 +74,17 @@ public sealed partial class Document : DocumentObject, IVisitable
   /// <summary>
   /// Internal function used by renderers to bind this instance to it.
   /// </summary>
-  public void BindToRenderer(object renderer)
+  public void BindToRenderer(object newRenderer)
   {
     //if (this.renderer != null && this.renderer != renderer)
-    if (this.renderer != null && renderer != null && !ReferenceEquals(this.renderer, renderer))
+    if (renderer != null && newRenderer != null && !ReferenceEquals(renderer, newRenderer))
     {
       throw new InvalidOperationException("The document is already bound to another renderer. " +
                                           "A PinataLayout document can be rendered by only one renderer, because the rendering process " +
                                           "modifies its internal structure. If you want to render a PinataLayout document on different renderers, " +
                                           "you must create a copy of it using the Clone function.");
     }
-    this.renderer = renderer;
+    renderer = newRenderer;
   }
   object renderer;
 

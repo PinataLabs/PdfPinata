@@ -94,6 +94,7 @@ public class Merge
         var dir = Path.GetDirectoryName(outFilePath);
         if (!Directory.Exists(dir))
         {
+            // ReSharper disable once AssignNullToNotNullAttribute
             Directory.CreateDirectory(dir);
         }
 

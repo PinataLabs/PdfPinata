@@ -3,7 +3,6 @@ using System.IO;
 using System.Text;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
-using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Pdf.IO.enums;
 using Xunit;

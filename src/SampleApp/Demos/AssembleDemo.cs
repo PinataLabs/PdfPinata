@@ -124,10 +124,10 @@ internal sealed class AssembleDemo : PdfDemo
         // copy keeps the annotation and its destination if the destination is coming too, a deep
         // copy drags in what it points at, and DoNotCopy leaves it behind.
         foreach (var page in sourceA.Pages)
-            document.AddPage(page, AnnotationCopyingType.ShallowCopy);
+            document.AddPage(page);
 
         foreach (var page in sourceB.Pages)
-            document.AddPage(page, AnnotationCopyingType.ShallowCopy);
+            document.AddPage(page);
         // docs:end merge
 
         var bytesMerged = Bytes(document);

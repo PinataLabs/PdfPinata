@@ -85,7 +85,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
     /// <summary>
     /// Formats the document by performing line breaks and page breaks.
     /// </summary>
-    internal void Format(XGraphics gfx)
+    internal void Format(XGraphics graphics)
     {
         bookmarks = new Dictionary<string, FieldInfos.BookmarkInfo>();
         pageRenderInfos = new Dictionary<int, ArrayList>();
@@ -93,7 +93,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
         pageFieldInfos = new Dictionary<int, FieldInfos>();
         formattedHeaders = new Dictionary<HeaderFooterPosition, FormattedHeaderFooter>();
         formattedFooters = new Dictionary<HeaderFooterPosition, FormattedHeaderFooter>();
-        this.gfx = gfx;
+        gfx = graphics;
         currentPage = 0;
         sectionNumber = 0;
         pageCount = 0;
@@ -517,7 +517,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
     /// and a negative would mean giving back room an element has already been laid out in.
     /// </para>
     /// </remarks>
-    XUnit IFootnoteAreaProvider.ReserveFootnotes(DocumentObject element, XUnit width, XGraphics gfx)
+    XUnit IFootnoteAreaProvider.ReserveFootnotes(DocumentObject element, XUnit width, XGraphics graphics)
     {
         var notes = Footnotes.In(element);
         if (notes.Count == 0)
@@ -536,7 +536,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
             // and "viii" both are, was then written over the note's first word. Place overwrites,
             // so registering first is safe on the second and later attempts at the same note.
             registry.Place(note, sectionNumber, currentPage, formatted);
-            formatted.Format(gfx);
+            formatted.Format(graphics);
         }
 
         var required = FootnoteBlockHeight(currentPage);

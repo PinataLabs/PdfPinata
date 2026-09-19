@@ -151,6 +151,7 @@ internal abstract class YAxisRenderer : AxisRenderer
         // every vertical axis - settled that way rather than carried across by assumption; see
         // docs/specs/axis-renderer-duplication.md.
         yari.InnerRect = yari.Rect;
+        // ReSharper disable once PossibleLossOfFraction
         yari.InnerRect.Y += yari.TickLabelsFont.Height / 2;
       }
 
@@ -469,6 +470,7 @@ internal abstract class YAxisRenderer : AxisRenderer
   protected static void FineTuneYAxis(AxisRendererInfo rendererInfo, double yMin, double yMax)
   {
     #pragma warning disable S1244 // Exact on purpose: compared with a sentinel the value is set to, never with the result of arithmetic.
+    // ReSharper disable once CompareOfFloatsByEqualityOperator
     if (yMin == double.MaxValue && yMax == double.MinValue)
     #pragma warning restore S1244
     {
@@ -478,6 +480,7 @@ internal abstract class YAxisRenderer : AxisRenderer
     }
 
     #pragma warning disable S1244 // Exact on purpose: the two are equal only when every value is the same one, and then the axis needs widening.
+    // ReSharper disable once CompareOfFloatsByEqualityOperator
     if (yMin == yMax)
     #pragma warning restore S1244
     {

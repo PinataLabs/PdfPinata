@@ -144,8 +144,8 @@ public class PenRenderingTests
         var content = ContentOf(page);
         content.Should().Contain("/Pattern CS", "the gradient pen still strokes with a pattern");
 
-        var pattern = content.IndexOf("/Pattern CS", System.StringComparison.Ordinal);
-        content.IndexOf(" RG", pattern, System.StringComparison.Ordinal)
+        var pattern = content.IndexOf("/Pattern CS", StringComparison.Ordinal);
+        content.IndexOf(" RG", pattern, StringComparison.Ordinal)
             .Should().BeGreaterThan(-1, "the solid pen after it has to name its colour again");
     }
 

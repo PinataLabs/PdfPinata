@@ -110,7 +110,7 @@ public partial class Row : DocumentObject, IVisitable
   /// <summary>
   /// Gets a cell by its column index. The first cell has index 0.
   /// </summary>
-  public Cell this[int index] => Cells[index];
+  public Cell this[int columnIndex] => Cells[columnIndex];
 
   /// <summary>
   /// Gets or sets the default style name for all cells of the row.

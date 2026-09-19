@@ -138,11 +138,11 @@ public class WrapStyleSerializationTests
         return DdlReader.DocumentFromString(Written(build));
     }
 
-    static PinataLayout.DocumentObjectModel.Shapes.TextFrame FrameIn(Document document)
+    static TextFrame FrameIn(Document document)
     {
         var section = document.Sections[0];
         return section.Elements
-            .OfType<PinataLayout.DocumentObjectModel.Shapes.TextFrame>()
+            .OfType<TextFrame>()
             .Single();
     }
 }

@@ -145,8 +145,10 @@ internal sealed class PinnedFontResolver : IFontResolver
         var directory = Path.GetDirectoryName(typeof(PinnedFontResolver).GetTypeInfo().Assembly.Location);
 
         if (faceName is CffFaceName or ArabicFaceName or DevanagariFaceName)
+            // ReSharper disable once AssignNullToNotNullAttribute
             return Path.Combine(directory, "Assets", "Fonts", faceName);
 
+        // ReSharper disable once AssignNullToNotNullAttribute
         return Path.Combine(directory, "Assets", "Fonts", "LiberationSans-" + faceName + ".ttf");
     }
 

@@ -359,7 +359,7 @@ public class DdlReadingTests
     {
         var act = () => Read("this is not DDL");
 
-        act.Should().Throw<System.Exception>();
+        act.Should().Throw<Exception>();
     }
 
     /// <summary>

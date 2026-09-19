@@ -310,11 +310,7 @@ public sealed class XFont
     ShapingFont _shapingFont;
 
 
-    internal OpenTypeDescriptor Descriptor
-    {
-        get => _descriptor;
-        private set => _descriptor = value;
-    }
+    internal OpenTypeDescriptor Descriptor => _descriptor;
     OpenTypeDescriptor _descriptor;
 
 

@@ -21,6 +21,7 @@ public class MD5ManagedTest
     {
         var type = typeof(PdfDocument).Assembly.GetType("PdfPinata.Pdf.Security.MD5Managed");
         type.Should().NotBeNull("the managed MD5 implementation is what makes encryption work without platform support");
+        // ReSharper disable once AssignNullToNotNullAttribute
         return (HashAlgorithm)Activator.CreateInstance(type, true);
     }
 

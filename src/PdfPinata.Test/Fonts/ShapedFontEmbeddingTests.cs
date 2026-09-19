@@ -103,6 +103,7 @@ public class ShapedFontEmbeddingTests
         var widths = descendant.Elements["/W"].ToString();
 
         // "[300[1000]301[1000]]" - a glyph identifier, then its width in a bracket of its own.
+        // ReSharper disable once AssignNullToNotNullAttribute
         return Regex.Matches(widths, @"(\d+)\s*\[")
             .Select(match => int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture))
             .ToList();

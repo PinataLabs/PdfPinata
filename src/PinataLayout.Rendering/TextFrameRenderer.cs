@@ -43,11 +43,11 @@ internal class TextFrameRenderer : ShapeRenderer
     : base(gfx, textframe, fieldInfos)
   {
     this.textframe = textframe;
-    var renderInfo = new TextFrameRenderInfo
+    var textFrameRenderInfo = new TextFrameRenderInfo
     {
       shape = shape
     };
-    this.renderInfo = renderInfo;
+    this.renderInfo = textFrameRenderInfo;
   }
 
   internal TextFrameRenderer(XGraphics gfx, RenderInfo renderInfo, FieldInfos fieldInfos)

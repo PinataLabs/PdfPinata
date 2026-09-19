@@ -857,7 +857,7 @@ public class XTextFormatter
         {
             foreach (var segment in outline.Segments)
             {
-                if (segment.Kind == Fonts.XGlyphSegmentKind.Close)
+                if (segment.Kind == XGlyphSegmentKind.Close)
                     continue;
 
                 left = Math.Min(left, segment.End.X);
@@ -879,11 +879,11 @@ public class XTextFormatter
     /// throws when it is unset, which is right for a caller who asked for outlines and wrong here:
     /// a drop cap without a provider is drawn by advance rather than refused.
     /// </summary>
-    static Fonts.IGlyphOutlineProvider OutlineProviderOrNull()
+    static IGlyphOutlineProvider OutlineProviderOrNull()
     {
         try
         {
-            return Fonts.GlobalFontSettings.GlyphOutlineProvider;
+            return GlobalFontSettings.GlyphOutlineProvider;
         }
         catch (InvalidOperationException)
         {
@@ -1050,6 +1050,7 @@ public class XTextFormatter
                 // A block that starts a line is placed whether it fits or not, since moving it to
                 // a line of its own would not make it any narrower.
                 #pragma warning disable S1244 // Exact on purpose: x is lineStart until something has been placed on the line.
+                // ReSharper disable once CompareOfFloatsByEqualityOperator
                 if (!LineBreak || x + width <= measure.Width || x == lineStart)
                 #pragma warning restore S1244
                 {

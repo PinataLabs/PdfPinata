@@ -445,8 +445,8 @@ public class AcroFormFieldKindTests
         document.Save(written, false);
         written.Position = 0;
         // Fully qualified: this test assembly has a PdfReader of its own.
-        var reopened = PdfPinata.Pdf.IO.PdfReader.Open(
-            written, PdfPinata.Pdf.IO.PdfDocumentOpenMode.Modify);
+        var reopened = Pdf.IO.PdfReader.Open(
+            written, Pdf.IO.PdfDocumentOpenMode.Modify);
 
         ((PdfListBoxField)reopened.AcroForm.Fields["county"]).SelectedIndex.Should().Be(1);
     }
@@ -539,8 +539,8 @@ public class AcroFormFieldKindTests
         document.Save(written, false);
         written.Position = 0;
         // Fully qualified: this test assembly has a PdfReader of its own.
-        var reopened = PdfPinata.Pdf.IO.PdfReader.Open(
-            written, PdfPinata.Pdf.IO.PdfDocumentOpenMode.Modify);
+        var reopened = Pdf.IO.PdfReader.Open(
+            written, Pdf.IO.PdfDocumentOpenMode.Modify);
 
         var field = (PdfListBoxField)reopened.AcroForm.Fields["county"];
         field.SelectedIndices.Should().Equal(new[] { 0, 2 });
@@ -602,7 +602,7 @@ public class AcroFormFieldKindTests
         document.Save(written, false);
         written.Position = 0;
         // Fully qualified: this test assembly has a PdfReader of its own.
-        var reopened = PdfPinata.Pdf.IO.PdfReader.Open(written, PdfPinata.Pdf.IO.PdfDocumentOpenMode.Modify);
+        var reopened = Pdf.IO.PdfReader.Open(written, Pdf.IO.PdfDocumentOpenMode.Modify);
 
         var field = (PdfComboBoxField)reopened.AcroForm.Fields["county"];
         field.Elements[PdfChoiceField.Keys.I].Should().BeOfType<PdfArray>();

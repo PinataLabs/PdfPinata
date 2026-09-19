@@ -125,59 +125,6 @@ internal class ContentWriter
     protected int _indent = 2;
     protected int _writeIndent;
 
-    /// <summary>
-    /// Increases indent level.
-    /// </summary>
-    void IncreaseIndent()
-    {
-        _writeIndent += _indent;
-    }
-
-    /// <summary>
-    /// Decreases indent level.
-    /// </summary>
-    void DecreaseIndent()
-    {
-        _writeIndent -= _indent;
-    }
-
-    /// <summary>
-    /// Gets an indent string of current indent.
-    /// </summary>
-    string IndentBlanks => new(' ', _writeIndent);
-
-    void WriteIndent()
-    {
-        WriteRaw(IndentBlanks);
-    }
-
-    void WriteSeparator()
-    {
-        switch (_lastCat)
-        {
-            //case CharCat.NewLine:
-            //  if (this.layout == PdfWriterLayout.Verbose)
-            //    WriteIndent();
-            //  break;
-
-            case CharCat.Delimiter:
-                break;
-
-            //case CharCat.Character:
-            //  if (this.layout == PdfWriterLayout.Verbose)
-            //  {
-            //    //if (cat == CharCat.Character || ch == '/')
-            //    this.stream.WriteByte((byte)' ');
-            //  }
-            //  else
-            //  {
-            //    if (cat == CharCat.Character)
-            //      this.stream.WriteByte((byte)' ');
-            //  }
-            //  break;
-        }
-    }
-
     public void NewLine()
     {
         if (_lastCat != CharCat.NewLine)

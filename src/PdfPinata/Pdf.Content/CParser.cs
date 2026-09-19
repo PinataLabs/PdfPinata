@@ -31,7 +31,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using PdfPinata.Internal;
-using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.Content.Objects;
 
 
@@ -214,24 +213,6 @@ public sealed class CParser
     CSymbol ScanNextToken()
     {
         return _lexer.ScanNextToken();
-    }
-
-    CSymbol ScanNextToken(out string token)
-    {
-        var symbol = _lexer.ScanNextToken();
-        token = _lexer.Token;
-        return symbol;
-    }
-
-    /// <summary>
-    /// Reads the next symbol that must be the specified one.
-    /// </summary>
-    CSymbol ReadSymbol(CSymbol symbol)
-    {
-        var current = _lexer.ScanNextToken();
-        if (symbol != current)
-            ContentReaderDiagnostics.ThrowContentReaderException(PSSR.UnexpectedToken(_lexer.Token));
-        return current;
     }
 
     readonly CSequence _operands = new();

@@ -96,14 +96,6 @@ public class XImage : IDisposable
         Initialize();
     }
 
-    XImage(Func<byte[]> data)
-    {
-        // Create a dummy unique path.
-        _path = "*" + Guid.NewGuid().ToString("B");
-        _source = FromBinary(_path, data);
-        Initialize();
-    }
-
     /// <summary>
     /// Creates an image from the specified file.
     /// For non-pdf files, this requires that an instance of an implementation of <see cref="T:PinataLayout.DocumentObjectModel.Shapes.ImageSource"/> be set on the `ImageSource.ImageSourceImpl` property.

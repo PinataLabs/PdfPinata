@@ -123,12 +123,12 @@ public struct TopPosition : INullableValue
   /// <summary>
   /// Sets shapeposition enum and resets position.
   /// </summary>
-  private void SetFromEnum(ShapePosition shapePosition)
+  private void SetFromEnum(ShapePosition newShapePosition)
   {
-    if (!IsValid(shapePosition))
+    if (!IsValid(newShapePosition))
       throw new ArgumentException(AppResources.InvalidEnumForTopPosition);
 
-    this.shapePosition = shapePosition;
+    shapePosition = newShapePosition;
     this.position = Unit.NullValue;
   }
 

@@ -224,7 +224,7 @@ public class TaggedPdfTests
         // every page rather than counting across the document.
         var bytes = SaveTwoPages();
 
-        Occurrences(ContentOf(bytes, 0), "<</MCID 0>>").Should().Be(1);
+        Occurrences(ContentOf(bytes), "<</MCID 0>>").Should().Be(1);
         Occurrences(ContentOf(bytes, 1), "<</MCID 0>>").Should().Be(1);
     }
 

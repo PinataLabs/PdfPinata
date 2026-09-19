@@ -88,6 +88,7 @@ internal class PieExplodedPlotAreaRenderer : PiePlotAreaRenderer
       rInnerCircle = pieRect.Width / 15,
       rOuterCircle = pieRect.Width / 2;
 
+    // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
     foreach (SectorRendererInfo sector in sri.pointRendererInfos)
     {
       if (!double.IsNaN(sector.Value) && sector.Value != 0)

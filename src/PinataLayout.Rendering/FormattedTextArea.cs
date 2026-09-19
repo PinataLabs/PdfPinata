@@ -48,12 +48,12 @@ internal class FormattedTextArea : IAreaProvider
     this.documentRenderer = documentRenderer;
   }
 
-  internal void Format(XGraphics gfx)
+  internal void Format(XGraphics graphics)
   {
-    this.gfx = gfx;
+    gfx = graphics;
     isFirstArea = true;
     formatter = new TopDownFormatter(this, documentRenderer, textArea.Elements);
-    formatter.FormatOnAreas(gfx, false);
+    formatter.FormatOnAreas(graphics, false);
   }
 
   internal XUnit InnerWidth
@@ -114,9 +114,9 @@ internal class FormattedTextArea : IAreaProvider
 
   FieldInfos IAreaProvider.AreaFieldInfos => fieldInfos;
 
-  void IAreaProvider.StoreRenderInfos(ArrayList renderInfos)
+  void IAreaProvider.StoreRenderInfos(ArrayList infos)
   {
-    this.renderInfos = renderInfos;
+    renderInfos = infos;
   }
 
   bool IAreaProvider.IsAreaBreakBefore(LayoutInfo layoutInfo)

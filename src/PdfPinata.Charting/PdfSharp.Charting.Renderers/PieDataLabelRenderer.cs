@@ -63,6 +63,7 @@ internal class PieDataLabelRenderer : DataLabelRenderer
 
     sri.dataLabelRendererInfo.Entries = new DataLabelEntryRendererInfo[sri.pointRendererInfos.Length];
     var index = 0;
+    // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
     foreach (SectorRendererInfo sector in sri.pointRendererInfos)
     {
       var dleri = new DataLabelEntryRendererInfo();
@@ -141,6 +142,7 @@ internal class PieDataLabelRenderer : DataLabelRenderer
       {
         var sectorIndex = 0;
         foreach (SectorRendererInfo sector in sri.pointRendererInfos)
+        // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
         {
           // Determine output rectangle
           var midAngle = sector.StartAngle + sector.SweepAngle / 2;

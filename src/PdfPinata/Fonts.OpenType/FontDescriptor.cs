@@ -109,6 +109,7 @@ internal class FontDescriptor
     public string Weight
     {
         get => _weight;
+        // ReSharper disable once UnusedMember.Local
         private set => _weight = value; // BUG: never set
     }
     string _weight;
@@ -179,6 +180,7 @@ internal class FontDescriptor
     public bool IsFixedPitch
     {
         get => _isFixedPitch;
+        // ReSharper disable once UnusedMember.Local
         private set => _isFixedPitch = value; // BUG: never set
     }
     bool _isFixedPitch;
@@ -231,6 +233,7 @@ internal class FontDescriptor
     public string Version
     {
         get => _version;
+        // ReSharper disable once UnusedMember.Local
         private set => _version = value; // BUG: never set
     }
     string _version;
@@ -250,6 +253,7 @@ internal class FontDescriptor
     public string EncodingScheme
     {
         get => _encodingScheme;
+        // ReSharper disable once UnusedMember.Local
         private set => _encodingScheme = value; // BUG: never set
     }
     string _encodingScheme;
@@ -320,6 +324,7 @@ internal class FontDescriptor
     public int Flags
     {
         get => _flags;
+        // ReSharper disable once UnusedMember.Local
         private set => _flags = value; // BUG: never set
     }
     int _flags;

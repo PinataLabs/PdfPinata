@@ -851,6 +851,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
             kids = xref3.Value as PdfArray;
         }
 
+        // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
         foreach (PdfReference xref2 in kids)
             list.AddRange(GetKids(xref2, values));
         var count = list.Count;

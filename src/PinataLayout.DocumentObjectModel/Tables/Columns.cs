@@ -53,10 +53,10 @@ public partial class Columns : DocumentObjectCollection, IVisitable
   /// </summary>
   public Columns(params Unit[] widths)
   {
-    foreach (var width in widths)
+    foreach (var columnWidth in widths)
     {
       var clm = new Column();
-      clm.Width = width;
+      clm.Width = columnWidth;
       // ReSharper disable once VirtualMemberCallInConstructor
       this.Add(clm);
     }

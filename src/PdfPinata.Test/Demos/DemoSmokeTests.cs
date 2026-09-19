@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using AwesomeAssertions;
 using PdfPinata.Fonts;
-using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
 using SampleApp.Infrastructure;
@@ -121,6 +120,7 @@ public class DemoSmokeTests
     {
         DemoRegistry.TryGet(name, out var demo).Should().BeTrue();
         var source = DemoSource.Read(demo);
+// ReSharper disable once AssignNullToNotNullAttribute
 
         // The website quotes these excerpts by name and fails its build on one it cannot find, but
         // it only looks for the ones some page asks for. An excerpt nobody quotes yet is checked here.

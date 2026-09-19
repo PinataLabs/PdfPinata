@@ -39,7 +39,6 @@ internal static class DoubleUtil
 {
     const double Epsilon = 2.2204460492503131E-16; // smallest such that 1.0 + Epsilon != 1.0
     private const double TenTimesEpsilon = 10.0 * Epsilon;
-    const float FloatMinimum = 1.175494E-38f;
 
     /// <summary>
     /// Indicates whether the values are so close that they can be considered as equal.
@@ -63,6 +62,7 @@ internal static class DoubleUtil
     public static bool AreRoughlyEqual(double value1, double value2, int decimalPlace)
     {
         #pragma warning disable S1244 // Exact on purpose: the exact case of the tolerant comparison, taken before the tolerance.
+        // ReSharper disable once CompareOfFloatsByEqualityOperator
         if (value1 == value2)
             return true;
         #pragma warning restore S1244

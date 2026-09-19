@@ -1,5 +1,4 @@
 using AwesomeAssertions;
-using Microsoft.CodeAnalysis;
 using Xunit;
 
 namespace PinataLayout.DocumentObjectModel.Generators.Tests;

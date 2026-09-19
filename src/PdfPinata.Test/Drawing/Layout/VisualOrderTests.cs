@@ -19,7 +19,6 @@ public class VisualOrderTests
     // so that a source file mixing right-to-left text with left-to-right code cannot be misread.
     const string First = "אב";
     const string Second = "גד";
-    const string Third = "הו";
 
     static (int Start, int Length)[] WordSpans(params string[] words)
     {
