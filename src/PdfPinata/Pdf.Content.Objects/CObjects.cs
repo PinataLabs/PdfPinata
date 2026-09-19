@@ -833,8 +833,9 @@ public class COperator : CObject
     /// </summary>
     protected override CObject Copy()
     {
-        CObject obj = base.Copy();
-        return obj;
+        var copy = (COperator)base.Copy();
+        copy._seqence = _seqence?.Clone();
+        return copy;
     }
 
     /// <summary>

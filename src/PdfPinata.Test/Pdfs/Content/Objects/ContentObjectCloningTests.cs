@@ -126,6 +126,40 @@ public class ContentObjectCloningTests
     }
 
     [Fact]
+    public void AnOperatorCloneHasOperandsOfItsOwn()
+    {
+        var original = (COperator)Read("1 0 0 1 20 30 cm")[0];
+        var firstOperand = original.Operands[0];
+
+        COperator clone = original.Clone();
+
+        // The operands used to be shared, so adding one to the clone added it to the original.
+        clone.Operands.Should().NotBeSameAs(original.Operands);
+        clone.Operands.Should().HaveCount(6);
+        clone.Operands[0].Should().NotBeSameAs(firstOperand);
+        original.Operands[0].Should().BeSameAs(firstOperand);
+
+        clone.Operands.Add(new CInteger { Value = 7 });
+        ((CInteger)clone.Operands[4]).Value = 99;
+
+        original.Operands.Should().HaveCount(6);
+        Written(new CSequence { original }).Should().Be("1 0 0 1 20 30 cm\n");
+        Written(new CSequence { clone }).Should().Be("1 0 0 1 99 30 7 cm\n");
+    }
+
+    [Fact]
+    public void AnOperatorWithoutOperandsClonesToOneWithoutOperands()
+    {
+        var original = OpCodes.OperatorFromName("q");
+
+        COperator clone = original.Clone();
+        clone.Operands.Add(new CInteger { Value = 1 });
+
+        original.Operands.Should().BeEmpty();
+        Written(new CSequence { original }).Should().Be("q\n");
+    }
+
+    [Fact]
     public void AnOperatorCanBeDerivedFromAndIsClonedAsItsOwnType()
     {
         var original = new NamedOperator("sh");
