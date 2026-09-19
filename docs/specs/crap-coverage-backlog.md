@@ -1645,7 +1645,7 @@ does not mistake them for work.
 
 | target | CC | cov |
 |---|---|---|
-| `PageSizeConverter.ToSize(PageSize)` — `root/PageSizeConverter.cs:44` | 123 | 100% |
+| `PageSizeConverter.ToSize(PageSize)` — `src/PdfPinata/PageSizeConverter.cs:44` | 123 | 100% |
 | `AnsiEncoding.IsAnsi1252Char(char)` — `Pdf.Internal/AnsiEncoding.cs:104` | 78 | 100% |
 | `AnsiEncoding.UnicodeToAnsi(char)` — `Pdf.Internal/AnsiEncoding.cs:151` | 78 | 100% |
 | `Filtering.GetFilter(string)` — `Pdf.Filters/Filtering.cs:44` | 78 | 100% |
