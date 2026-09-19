@@ -89,6 +89,10 @@ jobs:
       # coverlet OpenCover output Codecov reads below, one file per test project and framework.
       #
       # SonarCloud's Automatic Analysis must be off for this project, or it refuses a CI analysis.
+      #
+      # Coverage is not measured for the demonstration app or the documentation website: neither
+      # ships, the SampleApp's demos are run by DemoSmokeTests for what they produce rather than
+      # for coverage, and the site's scripts have no tests at all.
       - name: Begin SonarCloud analysis
         if: env.SONAR_TOKEN != ''
         run: >
@@ -98,7 +102,7 @@ jobs:
           /d:sonar.token="$SONAR_TOKEN"
           /d:sonar.host.url="https://sonarcloud.io"
           /d:sonar.cs.opencover.reportsPaths="**/coverage*.opencover.xml"
-          /d:sonar.coverage.exclusions="src/ConformanceCorpus/**,src/PinataLayout.AotSmokeTest/**"
+          /d:sonar.coverage.exclusions="src/ConformanceCorpus/**,src/PinataLayout.AotSmokeTest/**,src/SampleApp/**,docs-website/**"
       - name: Build for tests
         run: dotnet build src/PdfPinata.slnx --configuration Debug --no-restore
       - name: Test
