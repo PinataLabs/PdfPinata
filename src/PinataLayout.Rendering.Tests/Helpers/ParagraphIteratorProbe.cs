@@ -6,7 +6,7 @@ using PinataLayout.DocumentObjectModel;
 namespace PinataLayout.Rendering.Tests.Helpers;
 
 /// <summary>
-///   Reaches MigraDoc's paragraph iterator, which is internal to the rendering assembly, so that
+///   Reaches PinataLayout's paragraph iterator, which is internal to the rendering assembly, so that
 ///   its traversal can be tested directly rather than inferred from a rendered page.
 /// </summary>
 /// <remarks>

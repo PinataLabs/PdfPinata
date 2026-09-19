@@ -94,7 +94,7 @@ public class XUnitTests
     [Fact]
     public void SettingPresentationLeavesTheUnitCallingItselfPoint()
     {
-        // Documented behaviour or not, this is what the setter does, and MigraDoc reads Type back
+        // Documented behaviour or not, this is what the setter does, and PinataLayout reads Type back
         // to decide what to write. Pinned so that changing it is a decision rather than a slip.
         var unit = XUnit.FromInch(1);
 
@@ -266,7 +266,7 @@ public class XUnitTests
     public void TwoUnitsAreEqualOnlyWhenBothTheNumberAndTheUnitAgree()
     {
         // Documented as a memberwise comparison: one inch and 72 point are the same length but
-        // not the same XUnit, because the type is part of what the value means to MigraDoc.
+        // not the same XUnit, because the type is part of what the value means to PinataLayout.
         var oneInch = XUnit.FromInch(1);
         var seventyTwoPoint = XUnit.FromPoint(72);
 

@@ -6,7 +6,6 @@ using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.Shapes;
 using PinataLayout.DocumentObjectModel.Shapes.Charts;
-using PinataLayout.DocumentObjectModel.Tables;
 using PinataLayout.Rendering.Tests.Helpers;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
@@ -19,7 +18,7 @@ using Xunit;
 namespace PinataLayout.Rendering.Tests;
 
 /// <summary>
-///   MigraDoc knows what it is drawing — a <c>Paragraph</c> whose style is <c>Heading1</c>, a
+///   PinataLayout knows what it is drawing — a <c>Paragraph</c> whose style is <c>Heading1</c>, a
 ///   <c>Row</c> flagged as a heading, an <c>Image</c> — and used to throw all of it away on the way
 ///   to the page, where a heading and a caption are both a <c>Tj</c>. These are the assertions that
 ///   it now keeps it.
@@ -61,7 +60,7 @@ public class TaggedOutputTests
     [InlineData("Heading3", "H3")]
     [InlineData("Heading4", "H4")]
     [InlineData("Heading5", "H5")]
-    // MigraDoc has nine heading levels and PDF has six, so the last four land on the deepest one
+    // PinataLayout has nine heading levels and PDF has six, so the last four land on the deepest one
     // PDF has. A heading too deep to name exactly is still a heading, and calling it a paragraph
     // would lose more than calling it an H6 does.
     [InlineData("Heading6", "H6")]
@@ -454,7 +453,7 @@ public class TaggedOutputTests
         var document = new Document();
         var section = document.AddSection();
 
-        // The same word, with room for it. MigraDoc draws no hyphen when it does not need one, so
+        // The same word, with room for it. PinataLayout draws no hyphen when it does not need one, so
         // there is no word to put back together and nothing to say about it.
         section.AddParagraph("A demon­strate of it.");
 
@@ -696,7 +695,7 @@ public class TaggedOutputTests
 
     /// <summary>
     ///   A document narrow enough that "demonstrate" cannot finish the line it starts on, so
-    ///   MigraDoc breaks it at the soft hyphen in the middle of it.
+    ///   PinataLayout breaks it at the soft hyphen in the middle of it.
     /// </summary>
     /// <remarks>
     ///   Narrowed with an indent rather than with a page size, which is both what the other

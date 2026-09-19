@@ -1,7 +1,6 @@
 using System;
 using System.Globalization;
 using AwesomeAssertions;
-using PinataLayout.DocumentObjectModel;
 using Xunit;
 
 namespace PinataLayout.DocumentObjectModel.Tests;

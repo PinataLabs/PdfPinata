@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -236,7 +236,7 @@ public class XStringFormat
     /// them in the colour of the text.
     /// </summary>
     /// <remarks>
-    /// MigraDoc has never offered this - its underline is always the colour of the font
+    /// PinataLayout has never offered this - its underline is always the colour of the font
     /// (<c>ParagraphRenderer</c>) - and neither does PDFKit. It is here because a rule that cannot
     /// be told apart from the text is the one thing a caller cannot achieve by other means.
     /// </remarks>

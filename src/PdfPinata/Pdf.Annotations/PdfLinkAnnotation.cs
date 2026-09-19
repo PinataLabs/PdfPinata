@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -38,7 +38,7 @@ namespace PdfPinata.Pdf.Annotations;
 /// </summary>
 public sealed class PdfLinkAnnotation : PdfAnnotation
 {
-    // Just a hack to make MigraDoc work with this code.
+    // Just a hack to make PinataLayout work with this code.
     enum LinkType
     {
         None, Document, Web, File, Named
@@ -210,7 +210,7 @@ public sealed class PdfLinkAnnotation : PdfAnnotation
                 break;
 
             case LinkType.File:
-                //pdf.AppendFormat("/A<</Type/Action/S/Launch/F<</Type/Filespec/F{0}>> >>\n", 
+                //pdf.AppendFormat("/A<</Type/Action/S/Launch/F<</Type/Filespec/F{0}>> >>\n",
                 //  PdfEncoders.EncodeAsLiteral(url));
                 Elements[PdfAnnotation.Keys.A] = new PdfLiteral("<</Type/Action/S/Launch/F<</Type/Filespec/F{0}>> >>",
                     //PdfEncoders.EncodeAsLiteral(url));
@@ -252,9 +252,9 @@ public sealed class PdfLinkAnnotation : PdfAnnotation
         public const string H = "/H";
 
         /// <summary>
-        /// (Optional; PDF 1.3) A URI action formerly associated with this annotation. When Web 
-        /// Capture changes and annotation from a URI to a go-to action, it uses this entry to save 
-        /// the data from the original URI action so that it can be changed back in case the target page for 
+        /// (Optional; PDF 1.3) A URI action formerly associated with this annotation. When Web
+        /// Capture changes and annotation from a URI to a go-to action, it uses this entry to save
+        /// the data from the original URI action so that it can be changed back in case the target page for
         /// the go-to action is subsequently deleted.
         /// </summary>
         [KeyInfo("1.3", KeyType.Dictionary | KeyType.Optional)]

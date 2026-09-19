@@ -5,7 +5,6 @@ using System.Runtime.CompilerServices;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.Internals;
-using PdfPinata.Test.Helpers;
 using Xunit;
 
 namespace PdfPinata.Test.Dom;

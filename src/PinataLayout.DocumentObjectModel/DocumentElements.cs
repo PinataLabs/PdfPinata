@@ -31,7 +31,6 @@
 #endregion
 
 using PinataLayout.DocumentObjectModel.Fields;
-using PinataLayout.DocumentObjectModel.Internals;
 using PinataLayout.DocumentObjectModel.Visitors;
 using PinataLayout.DocumentObjectModel.Tables;
 using PinataLayout.DocumentObjectModel.Shapes.Charts;

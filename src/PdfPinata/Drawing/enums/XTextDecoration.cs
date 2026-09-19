@@ -4,7 +4,7 @@ namespace PdfPinata.Drawing;
 /// Specifies how the rule under or through a run of text is drawn.
 /// </summary>
 /// <remarks>
-/// The same six rules MigraDoc offers for its underline and strikethrough, so that the two
+/// The same six rules PinataLayout offers for its underline and strikethrough, so that the two
 /// layers of this library can say the same things. PDFKit has only on and off, which is
 /// <see cref="Single"/>.
 /// </remarks>

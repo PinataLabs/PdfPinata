@@ -92,7 +92,7 @@ PdfPinata ─────────────┬── PdfPinata.Skia       
    │              └── PinataLayout.DocumentObjectModel.Tests  (the DOM alone; no backend)
    │                                                                             │
    │                             PdfPinata.Charting.Tests  (charting alone; no backend) ─┘
-   └── PdfPinata.Test  (the broad one; covers MigraDoc and SampleApp too)
+   └── PdfPinata.Test  (the broad one; covers PinataLayout and SampleApp too)
            ▲
            └── SampleApp  (the demonstration CLI; net8.0 alone, so both test legs can reference it)
 ```
@@ -100,7 +100,7 @@ PdfPinata ─────────────┬── PdfPinata.Skia       
 Five test projects, and which one a new test belongs in is worth a moment. `PdfPinata.Test`
 is the broad one and the default. `PinataLayout.DocumentObjectModel.Generators.Tests` drives the
 DOM's source generator through `CSharpGeneratorDriver`. `PinataLayout.Rendering.Tests` covers
-MigraDoc's own layout — paragraphs, tables, fields, the paragraph iterator — and its tagged output,
+PinataLayout's own layout — paragraphs, tables, fields, the paragraph iterator — and its tagged output,
 and deliberately rasterizes nothing, so it needs neither Ghostscript nor ImageMagick. It links four
 content-stream readers out of `src/PdfPinata.Test/Helpers` rather than keeping copies; edit those in
 place and both projects get the change.
@@ -208,7 +208,7 @@ shaper filtering underneath them would answer cluster indices into a string nobo
 survives. **It does not split on `\n`**: it draws one line and drops the newline, while
 `MeasureString` still splits and reports several — the one remaining disagreement, pinned on purpose
 by `TextStateOperatorTests.ALineFeedIsAbsorbedByDrawStringWhileMeasureStringStillReportsTwoLines`.
-Multi-line text is `XTextFormatter`'s job and MigraDoc's, and both split before `DrawString` is
+Multi-line text is `XTextFormatter`'s job and PinataLayout's, and both split before `DrawString` is
 reached.
 
 Both of those call `TextShaping.ShapeText`, not `TextShaping.Shape`: a *string* is not a run, and
@@ -265,7 +265,7 @@ Both order a word by **the leftmost position any of its characters ends up at**,
 character — a right-to-left word's first character is its rightmost. That is also what keeps an
 English phrase inside a Hebrew sentence in its own order, where reversing the line turns it round.
 
-Two things about the MigraDoc pass are load-bearing. **The second walk is still in the order the
+Two things about the PinataLayout pass are load-bearing. **The second walk is still in the order the
 leaves were written** — only the x changes — so the marked content stays in reading order, which
 is what a structure tree is for; `TheMarksStayInTheOrderTheTextIsRead` asserts both orders at once.
 And **a line with a tab in it is reordered one segment at a time** — the tabs stay put and the text
@@ -318,7 +318,7 @@ single property and assigning over it drops whatever the caller put there.
 
 `ImageSource` is a trap for the eye: the file is `src/PdfPinata/Drawing/ImageSource.cs` and it ships
 in the **PdfPinata** assembly, but its namespace is `PinataLayout.DocumentObjectModel.Shapes`.
-Registering it needs that `using`, from code that otherwise has nothing to do with MigraDoc.
+Registering it needs that `using`, from code that otherwise has nothing to do with PinataLayout.
 
 ## PDF object model and IO
 
@@ -440,7 +440,7 @@ would override the built-in one, and ZapfDingbats is how a check box draws its t
 ## Drawing
 
 `XGraphics` is the drawing surface and holds an `IXGraphicsRenderer`; `XGraphicsPdfRenderer`
-(`Drawing.Pdf/`) is the only implementation and emits content-stream operators. MigraDoc renders
+(`Drawing.Pdf/`) is the only implementation and emits content-stream operators. PinataLayout renders
 through the same surface, so a layout fix lands in `PinataLayout.Rendering` and a drawing fix in
 `Drawing.Pdf`.
 
@@ -450,9 +450,9 @@ simulated by stroking or skewing.
 
 ## Tagged output
 
-**MigraDoc tags what it draws, and that is the default** — `PdfDocumentRenderer.TagContent` is `true`,
+**PinataLayout tags what it draws, and that is the default** — `PdfDocumentRenderer.TagContent` is `true`,
 so every document it renders carries a structure tree. Two consequences bite immediately.
-`PdfPage.Resize` refuses a tagged document, so code that renders through MigraDoc and then resizes has
+`PdfPage.Resize` refuses a tagged document, so code that renders through PinataLayout and then resizes has
 to set `TagContent = false`. And a renderer that draws anything must say what it is drawing:
 `Renderer.Tagger` hands out the scopes, content goes in `Tagger.Block`/`Container`/`Marks` and
 decoration in `Tagger.Artifact`, and **anything inside an artifact scope is not tagged at all** — the

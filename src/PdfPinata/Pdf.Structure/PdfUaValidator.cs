@@ -59,7 +59,7 @@ public static class PdfUaValidator
             throw new InvalidOperationException(
                 "A PDF/UA document has to be tagged, and nothing in this one is. Build a structure "
                 + "tree through PdfDocument.Structure and XGraphics.BeginMarkedContent, or let "
-                + "MigraDoc do it — its renderer tags what it draws unless told not to.");
+                + "PinataLayout do it — its renderer tags what it draws unless told not to.");
     }
 
     static void RequireTitle(PdfDocument document)
@@ -125,7 +125,7 @@ public static class PdfUaValidator
                     "A figure in the structure tree has no alternate text, which leaves it saying "
                     + "nothing at all to the reader it was tagged for. Give it one, or make it an "
                     + "artifact — a decorative image honestly marked as decoration conforms, and an "
-                    + "undescribed figure does not. From MigraDoc, set Image.AlternativeText.");
+                    + "undescribed figure does not. From PinataLayout, set Image.AlternativeText.");
         }
     }
 
@@ -158,7 +158,7 @@ public static class PdfUaValidator
                     "A note in the structure tree has no /ID, which PDF/UA requires of every one: a "
                     + "note exists to be pointed at from the mark that cited it, and an element with "
                     + "no identifier cannot be pointed at. Set PdfStructureElement.Id. A footnote "
-                    + "rendered by MigraDoc is given one automatically.");
+                    + "rendered by PinataLayout is given one automatically.");
         }
     }
 
@@ -211,7 +211,7 @@ public static class PdfUaValidator
                     throw new InvalidOperationException(
                         "A link on page " + (index + 1) + " has no /Contents, so a reader announcing "
                         + "it can only say \"link\". Give the annotation a description of where it "
-                        + "goes. From MigraDoc, this is written from the hyperlink's own text.");
+                        + "goes. From PinataLayout, this is written from the hyperlink's own text.");
 
                 if (!dictionary.Elements.ContainsKey("/StructParent"))
                     throw new InvalidOperationException(
@@ -240,7 +240,7 @@ public static class PdfUaValidator
     /// one that has to pay for the ordering.
     /// </para>
     /// <para>
-    /// MigraDoc reaches this through <c>ParagraphFormat.OutlineLevel</c>, which is what a heading
+    /// PinataLayout reaches this through <c>ParagraphFormat.OutlineLevel</c>, which is what a heading
     /// style sets — so the fix is nearly always to the styles rather than to any code that draws.
     /// </para>
     /// </remarks>
@@ -263,7 +263,7 @@ public static class PdfUaValidator
                         : "levels " + (previous + 1) + " to " + (level - 1))
                     + ". PDF/UA requires the heading levels to descend one at a time, because they "
                     + "are the outline a reader lets somebody jump around by and a missing level is "
-                    + "a hole in it. From MigraDoc this is ParagraphFormat.OutlineLevel, which a "
+                    + "a hole in it. From PinataLayout this is ParagraphFormat.OutlineLevel, which a "
                     + "heading style sets — so it is usually the styles that need fixing rather "
                     + "than anything that draws.");
             }

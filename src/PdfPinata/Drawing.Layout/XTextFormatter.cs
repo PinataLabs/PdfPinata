@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -41,7 +41,7 @@ namespace PdfPinata.Drawing.Layout;
 /// <summary>
 /// Represents a very simple text formatter.
 /// If this class does not satisfy your needs on formatting paragraphs I recommend to take a look
-/// at MigraDoc Foundation. Alternatively you should copy this class in your own source code and modify it.
+/// at PinataLayout Foundation. Alternatively you should copy this class in your own source code and modify it.
 /// </summary>
 public class XTextFormatter
 {
@@ -131,12 +131,12 @@ public class XTextFormatter
     /// When true, ignore the height of text areas when rendering multiline strings
     /// </summary>
     public bool AllowVerticalOverflow { get; set; } = false;
-        
+
     /// <summary>
     /// Gets or sets the horizontal alignment of the text.
     /// </summary>
     public XParagraphAlignment Alignment { get; set; } = XParagraphAlignment.Left;
-        
+
     /// <summary>
     /// Gets or sets the vertical alignment of the text.
     /// </summary>
@@ -331,8 +331,8 @@ public class XTextFormatter
     {
         return column * (columnWidth + ColumnGap);
     }
-        
-        
+
+
     /// <summary>
     /// Draws the text.
     /// </summary>

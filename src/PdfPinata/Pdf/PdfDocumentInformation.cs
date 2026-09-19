@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -84,7 +84,7 @@ public sealed class PdfDocumentInformation : PdfDictionary
     }
 
     /// <summary>
-    /// Gets or sets the name of the application (for example, MigraDoc) that created the document.
+    /// Gets or sets the name of the application (for example, PinataLayout) that created the document.
     /// </summary>
     public string Creator
     {
@@ -161,7 +161,7 @@ public sealed class PdfDocumentInformation : PdfDictionary
 
         /// <summary>
         /// (Optional) If the document was converted to PDF from another format,
-        /// the name of the application (for example, empira MigraDoc) that created the
+        /// the name of the application (for example, PinataLayout) that created the
         /// original document from which it was converted.
         /// </summary>
         [KeyInfo(KeyType.String | KeyType.Optional)]
@@ -188,7 +188,7 @@ public sealed class PdfDocumentInformation : PdfDictionary
         public const string ModDate = "/ModDate";
 
         /// <summary>
-        /// (Optional; PDF 1.3) A name object indicating whether the document has been modified 
+        /// (Optional; PDF 1.3) A name object indicating whether the document has been modified
         /// to include trapping information.
         /// </summary>
         [KeyInfo("1.3", KeyType.Name | KeyType.Optional)]

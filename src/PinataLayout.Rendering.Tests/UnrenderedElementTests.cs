@@ -114,7 +114,7 @@ public class UnrenderedElementTests
         Action render = () => Rendered.Of(document);
 
         // PdfSharp draws bar codes and always has. The demonstration app's Barcodes demo is that
-        // route; this message is how somebody who started in MigraDoc finds it.
+        // route; this message is how somebody who started in PinataLayout finds it.
         render.Should().Throw<NotSupportedException>()
             .WithMessage("*XGraphics.DrawBarCode*");
     }

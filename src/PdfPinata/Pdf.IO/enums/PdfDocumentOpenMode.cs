@@ -27,8 +27,6 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
-using PdfPinata.Pdf;
-
 namespace PdfPinata.Pdf.IO;
 
 /// <summary>

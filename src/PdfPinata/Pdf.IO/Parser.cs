@@ -31,7 +31,6 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using PdfPinata.Exceptions;
 using PdfPinata.Internal;
 using PdfPinata.Pdf.Advanced;

@@ -15,7 +15,7 @@ namespace PinataLayout.Rendering.Tests;
 ///   merge takes away, and where a cell puts its text when it has more room than it needs.
 /// </summary>
 /// <remarks>
-///   Promoted from MigraDoc 1.32's TestTable, which built one of each of these and saved it to a
+///   Promoted from PinataLayout 1.32's TestTable, which built one of each of these and saved it to a
 ///   file for a person to look at. Each arrangement is kept; what was a look is now an assertion
 ///   about the segments and the text positions in the content stream, which is exact and does not
 ///   need the page rasterized.

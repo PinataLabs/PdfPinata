@@ -12,7 +12,7 @@ namespace PdfPinata.Test.Dom;
 /// <summary>
 ///   The strongly typed resource class named the resources of the assembly it was generated in
 ///   before this fork renamed that assembly, so it asked for
-///   "MigraDoc.DocumentObjectModel...AppResources" while the assembly embeds
+///   "PinataLayout.DocumentObjectModel...AppResources" while the assembly embeds
 ///   "PinataLayout.DocumentObjectModel...AppResources". Every message it holds threw
 ///   MissingManifestResourceException instead, so the error you were given was never the error
 ///   meant for you: asking for an unreadable colour reported a missing resource rather than the

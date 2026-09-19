@@ -89,7 +89,7 @@ public class ColdColourTableTests
     {
         // Which is what makes the two tests above hold rather than happening to hold: a field the
         // type initializer fills can never be read before it is filled, and nothing can empty it
-        // again. The MigraDoc colour table was bitten by the other arrangement - built on first
+        // again. The PinataLayout colour table was bitten by the other arrangement - built on first
         // use, assigned while still half built - and ColorThreadSafetyTests records what that
         // cost.
         var tableType = typeof(XColor).Assembly

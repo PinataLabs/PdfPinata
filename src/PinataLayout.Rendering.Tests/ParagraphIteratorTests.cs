@@ -14,7 +14,7 @@ namespace PinataLayout.Rendering.Tests;
 ///   leaves are and about their order.
 /// </summary>
 /// <remarks>
-///   Promoted from MigraDoc 1.32's TestParagraphIterator, which built the two walks into strings
+///   Promoted from PinataLayout 1.32's TestParagraphIterator, which built the two walks into strings
 ///   and returned them for a person to read. The walks are the part worth keeping; the reading is
 ///   what an assertion is for.
 ///

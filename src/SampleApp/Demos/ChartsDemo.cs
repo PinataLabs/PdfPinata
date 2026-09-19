@@ -12,7 +12,7 @@ using Charting = PdfPinata.Charting;
 namespace SampleApp.Demos;
 
 /// <summary>
-///   The charting engine, reached both ways: drawn straight onto a page, and laid out by MigraDoc.
+///   The charting engine, reached both ways: drawn straight onto a page, and laid out by PinataLayout.
 /// </summary>
 internal sealed class ChartsDemo : PdfDemo
 {
@@ -30,7 +30,7 @@ internal sealed class ChartsDemo : PdfDemo
         "A combination chart: one series drawn as a line on a chart of columns",
         "Pie2D and PieExploded2D, with percentage data labels and the legend docked four ways",
         "ChartFrame.DrawChart against ChartFrame.Draw - the second brings its own frame",
-        "The same figures again through MigraDoc, laid out in the flow between paragraphs",
+        "The same figures again through PinataLayout, laid out in the flow between paragraphs",
     };
 
     public override int PageCount => 4;
@@ -190,9 +190,9 @@ internal sealed class ChartsDemo : PdfDemo
         gfx3.DrawString("ChartFrame.Draw - the frame is the frame's, not the chart's",
             caption, XBrushes.DimGray, new XRect(50, 584, 495, 12), XStringFormats.TopCenter);
 
-        // ----- page 4: the same engine, reached through MigraDoc -----
+        // ----- page 4: the same engine, reached through PinataLayout -----
 
-        // MigraDoc holds a chart of its own in the document object model and maps it onto the
+        // PinataLayout holds a chart of its own in the document object model and maps it onto the
         // charting engine above at render time - PinataLayout.Rendering.ChartMapper does the copying.
         // The difference is not the picture, it is who decides where the chart goes: here the
         // renderer places it in the flow, where above the caller passed a rectangle.
@@ -203,7 +203,7 @@ internal sealed class ChartsDemo : PdfDemo
         section.PageSetup.RightMargin = Unit.FromPoint(50);
         section.PageSetup.TopMargin = Unit.FromPoint(50);
 
-        Paragraph title = section.AddParagraph("The same figures through MigraDoc");
+        Paragraph title = section.AddParagraph("The same figures through PinataLayout");
         title.Format.Font.Size = 16;
         title.Format.Font.Bold = true;
         title.Format.SpaceAfter = Unit.FromPoint(12);
@@ -218,7 +218,7 @@ internal sealed class ChartsDemo : PdfDemo
         flowed.Width = Unit.FromPoint(440);
         flowed.Height = Unit.FromPoint(220);
         // The DOM's chart takes its type from a paragraph format rather than from a Font of its
-        // own, because everything in a MigraDoc document is formatted the same way.
+        // own, because everything in a PinataLayout document is formatted the same way.
         flowed.Format.Font.Name = "Liberation Sans";
         flowed.Format.Font.Size = 8;
 

@@ -1,4 +1,3 @@
-using System.Linq;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.Shapes.Charts;

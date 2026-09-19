@@ -41,7 +41,7 @@ public sealed class RectangleObstacle : IFlowObstacle
     /// How far text is held off it. <b>A property of the obstacle and not of the formatter</b>,
     /// because how much air a thing needs around it is a fact about that thing: two obstacles in one
     /// block can want different amounts, and a single setting on the formatter could not say so.
-    /// MigraDoc carries four such distances on <c>WrapFormat</c> and they earn their keep; one
+    /// PinataLayout carries four such distances on <c>WrapFormat</c> and they earn their keep; one
     /// distance is enough here, and growing it to four sides later changes this class and nothing
     /// else.
     /// </param>
@@ -100,7 +100,7 @@ public sealed class RectangleObstacle : IFlowObstacle
     {
         // Judged against the reserved rectangle, so the padding holds a line off vertically as well
         // as horizontally: a line whose box would otherwise clear the obstacle by a hair is pushed
-        // past it instead. MigraDoc's DistanceTop and DistanceBottom do the same, and for the same
+        // past it instead. PinataLayout's DistanceTop and DistanceBottom do the same, and for the same
         // reason - a line that just barely clears an image looks like a mistake.
         return band.Overlaps(_top, _bottom) ? _taken : None;
     }

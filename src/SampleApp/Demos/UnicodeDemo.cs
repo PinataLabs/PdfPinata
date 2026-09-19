@@ -4,7 +4,6 @@ using System.Linq;
 using PdfPinata.Drawing;
 using PdfPinata.Drawing.Layout;
 using PdfPinata.Pdf;
-using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
 using SampleApp.Infrastructure;
 
@@ -95,7 +94,7 @@ internal sealed class UnicodeDemo : PdfDemo
             "Nothing threw. A character WinAnsi has no place for is not an error - it is dropped or "
             + "replaced on the way out, which is exactly the failure that gets noticed after the "
             + "document has been sent. Unicode is the safe default and is what "
-            + "PdfDocumentRenderer(unicode: true) selects for a MigraDoc document, under a name "
+            + "PdfDocumentRenderer(unicode: true) selects for a PinataLayout document, under a name "
             + "that gives no hint that it is this setting.",
             body, XBrushes.Black, new XRect(50, y + 10, 495, 60));
 

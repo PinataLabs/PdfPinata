@@ -17,7 +17,7 @@ namespace PinataLayout.Rendering.Tests;
 /// <remarks>
 ///   <para>
 ///     The document object model has carried footnotes since the fork began and this assembly drew
-///     none of them. See <c>docs/specs/migradoc-footnotes.md</c> for the design and for what was
+///     none of them. See <c>docs/specs/PinataLayout-footnotes.md</c> for the design and for what was
 ///     deliberately left out of it.
 ///   </para>
 ///   <para>
@@ -512,7 +512,7 @@ public class FootnoteTests
 
     /// <summary>How many times a mark is drawn on the page.</summary>
     /// <remarks>
-    ///   Compared as glyphs rather than as characters: MigraDoc embeds Identity-H, so a show-text
+    ///   Compared as glyphs rather than as characters: PinataLayout embeds Identity-H, so a show-text
     ///   operator carries glyph identifiers. See <see cref="Glyphs"/>.
     /// </remarks>
     static int CountOfMark(PdfPage page, string mark)

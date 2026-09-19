@@ -26,7 +26,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -45,10 +45,10 @@ public enum BorderType
   Bottom,
   /// <summary>The right border.</summary>
   Right,
-  /// <summary>The horizontal borders between cells. Not used by MigraDoc.</summary>
-  Horizontal,  // not used in MigraDoc 1.2
-  /// <summary>The vertical borders between cells. Not used by MigraDoc.</summary>
-  Vertical,    // not used in MigraDoc 1.2
+  /// <summary>The horizontal borders between cells. Not used by PinataLayout.</summary>
+  Horizontal,  // not used in PinataLayout 1.2
+  /// <summary>The vertical borders between cells. Not used by PinataLayout.</summary>
+  Vertical,    // not used in PinataLayout 1.2
   /// <summary>The diagonal running from the top left corner to the bottom right.</summary>
   DiagonalDown,
   /// <summary>The diagonal running from the bottom left corner to the top right.</summary>

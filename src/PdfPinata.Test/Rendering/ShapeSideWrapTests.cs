@@ -25,7 +25,7 @@ namespace PdfPinata.Test.Rendering;
 ///     the drawn positions rather than trusting that a page came out at all.
 ///   </para>
 ///   <para>
-///     Two things about reading them. MigraDoc draws <b>one run per word</b>, so a line is every run
+///     Two things about reading them. PinataLayout draws <b>one run per word</b>, so a line is every run
 ///     sharing a baseline and its left edge is the leftmost of them. And the shape's box is read off
 ///     the page from the rectangle its border draws, rather than worked out from the page setup — so
 ///     every number compared against here comes from where a reader's eye would take it.
@@ -350,7 +350,7 @@ public class ShapeSideWrapTests
             ShapeRight = ShapeLeft + Number(3);
             ShapeTop = ShapeBottom + Number(4);
 
-            // MigraDoc draws one run per word, so a line is every run sharing a baseline and its
+            // PinataLayout draws one run per word, so a line is every run sharing a baseline and its
             // left edge is the leftmost of them.
             Lines = TextBaselines.PositionsOf(page)
                 .GroupBy(position => Math.Round(position.Y, 3))

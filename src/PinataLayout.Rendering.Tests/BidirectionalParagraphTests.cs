@@ -3,7 +3,6 @@ using System.Linq;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.Rendering.Tests.Helpers;
-using PdfPinata.Pdf.Annotations;
 using PdfPinata.Test.Helpers;
 using PdfPinata.Text;
 using Xunit;
@@ -50,7 +49,7 @@ public class BidirectionalParagraphTests
 
     /// <summary>
     ///   The glyphs the given letters draw as, in the order given. Nothing separates the words:
-    ///   MigraDoc puts the space between two words in the positioning rather than drawing one, so
+    ///   PinataLayout puts the space between two words in the positioning rather than drawing one, so
     ///   no whitespace glyph is ever shown.
     /// </summary>
     static IReadOnlyList<int> Drawn(string letters) => letters.Select(GlyphOf).ToList();

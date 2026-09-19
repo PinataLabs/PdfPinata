@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using PdfPinata.Drawing;
 using PdfPinata.Drawing.Layout;
-using PdfPinata.Drawing.Layout.enums;
 using PdfPinata.Pdf;
 using SampleApp.Infrastructure;
 
@@ -20,13 +19,13 @@ namespace SampleApp.Demos;
 ///   <para>
 ///     The pull quote is a property now too. It used to be two text blocks with a gap arithmetic'd
 ///     between them, and this demo's own notes said it was going to stay that way - that the
-///     formatter had no notion of a shape to flow around, and that MigraDoc's side wrap was the
+///     formatter had no notion of a shape to flow around, and that PinataLayout's side wrap was the
 ///     nearest thing there would ever be. That turned out to be a fact about the formatter's API
 ///     rather than about the formatter: it already flowed text beside a drop cap, and what was
 ///     missing was a way for a caller to say where something else was.
 ///   </para>
 ///   <para>
-///     The two engines are still separate and still deliberately so. MigraDoc wraps a
+///     The two engines are still separate and still deliberately so. PinataLayout wraps a
 ///     <i>shape in a document tree</i>; this wraps a rectangle a caller drew and knows the position
 ///     of. Same idea, different level, and neither is the other's implementation.
 ///   </para>
@@ -65,7 +64,7 @@ internal sealed class MagazineDemo : PdfDemo
             + "than the thirty lines this demo used to carry. The pull quote on the next page used "
             + "to be two text blocks with a gap measured out between them; it is one block and one "
             + "obstacle now, and the copy finds its own way down both sides of it. The SideWrap "
-            + "demo does the same thing a level up, for a shape in a MigraDoc document. ";
+            + "demo does the same thing a level up, for a shape in a PinataLayout document. ";
 
         const string Body =
             "The letter beside these lines is not drawn separately. DropCap says how many lines "

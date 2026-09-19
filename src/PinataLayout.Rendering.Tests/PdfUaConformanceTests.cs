@@ -85,7 +85,7 @@ public class PdfUaConformanceTests
     {
         var renderer = Claiming();
 
-        // Reaching past the renderer, because MigraDoc will not produce one: an image with no
+        // Reaching past the renderer, because PinataLayout will not produce one: an image with no
         // alternative text is drawn as an artifact rather than as a figure with nothing to say. This
         // is the check standing behind a document tagged by hand, or by a later version of this.
         var structure = renderer.PdfDocument.Structure;
@@ -304,7 +304,7 @@ public class PdfUaConformanceTests
     public void ABulletedListCarriesADiscListNumbering()
     {
         // ISO 14289-2 clause 8.2.5.25 requires this of any list carrying a /Lbl, at any value but
-        // None — not only under PDF/UA-2: MigraDoc writes it for every list, since it costs nothing
+        // None — not only under PDF/UA-2: PinataLayout writes it for every list, since it costs nothing
         // for the profiles that do not ask for it and is what the correct one already looked like.
         var renderer = TaggedWithAFootnoteAndAList();
 

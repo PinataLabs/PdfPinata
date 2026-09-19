@@ -1,8 +1,6 @@
 using System;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
-using PinataLayout.DocumentObjectModel.Shapes;
-using PinataLayout.DocumentObjectModel.Tables;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;

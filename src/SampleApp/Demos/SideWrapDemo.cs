@@ -25,7 +25,7 @@ namespace SampleApp.Demos;
 ///     deliberate.
 ///   </para>
 ///   <para>
-///     This is MigraDoc, not <c>XTextFormatter</c>. The formatter has no notion of a shape, so the
+///     This is PinataLayout, not <c>XTextFormatter</c>. The formatter has no notion of a shape, so the
 ///     pull quote on the second page of the Magazine demo is still arithmetic and will stay that
 ///     way - it is drawn on a page rather than laid out in a document. The two engines are
 ///     separate, which is worth seeing in one place.

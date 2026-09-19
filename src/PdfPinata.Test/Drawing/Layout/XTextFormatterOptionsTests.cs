@@ -4,7 +4,6 @@ using System.Linq;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Drawing.Layout;
-using PdfPinata.Drawing.Layout.enums;
 using PdfPinata.Pdf;
 using PdfPinata.Test.Helpers;
 using Xunit;

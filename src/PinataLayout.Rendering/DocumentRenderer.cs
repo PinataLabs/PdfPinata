@@ -24,7 +24,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -54,7 +54,7 @@ public class DocumentRenderer
     /// <summary>
     /// Initializes a new instance of the DocumentRenderer class.
     /// </summary>
-    /// <param name="document">The migradoc document to render.</param>
+    /// <param name="document">The PinataLayout document to render.</param>
     public DocumentRenderer(Document document)
     {
         this.document = document;
@@ -110,7 +110,7 @@ public class DocumentRenderer
     {
         if (PrepareDocumentProgress != null)
         {
-            // Invokes the delegates. 
+            // Invokes the delegates.
             PrepareDocumentProgressEventArgs e = new PrepareDocumentProgressEventArgs(value, maximum);
             PrepareDocumentProgress(this, e);
         }
@@ -182,7 +182,7 @@ public class DocumentRenderer
     StructureTagger tagger;
 
     /// <summary>
-    /// Renders a MigraDoc document to the specified graphics object.
+    /// Renders a PinataLayout document to the specified graphics object.
     /// </summary>
     public void RenderPage(XGraphics gfx, int page)
     {
@@ -190,7 +190,7 @@ public class DocumentRenderer
     }
 
     /// <summary>
-    /// Renders a MigraDoc document to the specified graphics object.
+    /// Renders a PinataLayout document to the specified graphics object.
     /// </summary>
     public void RenderPage(XGraphics gfx, int page, PageRenderOptions options)
     {

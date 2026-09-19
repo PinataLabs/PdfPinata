@@ -8,10 +8,10 @@ using SampleApp.Infrastructure;
 namespace SampleApp.Demos;
 
 /// <summary>
-///   A MigraDoc table long enough to cross a page, so the heading row has something to repeat onto.
+///   A PinataLayout table long enough to cross a page, so the heading row has something to repeat onto.
 /// </summary>
 /// <remarks>
-///   The first demo that goes through MigraDoc rather than drawing on the page directly. Content
+///   The first demo that goes through PinataLayout rather than drawing on the page directly. Content
 ///   flows and breaks by itself, which is the whole reason to reach for it - and the reason a
 ///   table is where the difference shows.
 /// </remarks>
@@ -21,71 +21,76 @@ internal sealed class TablesDemo : PdfDemo
 
     public override string Name => "Tables";
 
-    public override string Summary => "A MigraDoc table that breaks across pages.";
+    public override string Summary => "A PinataLayout table that breaks across pages.";
 
-    public override IReadOnlyList<string> Shows => new[]
-    {
+    public override IReadOnlyList<string> Shows =>
+    [
         "A heading row repeated on every page the table reaches",
         "Merged cells, across and down",
         "Alternate row shading and per-column alignment",
-        "SetEdge ruling a block, and a footer counting the pages",
-    };
+        "SetEdge ruling a block, and a footer counting the pages"
+    ];
 
     public override int PageCount => 2;
 
     protected override PdfDocument Build(DemoContext context)
     {
         #region example
-        Document document = new Document();
-        document.Info.Title = "Tables";
+        var document = new Document
+        {
+            Info =
+            {
+                Title = "Tables"
+            }
+        };
 
         // Styles are named and inherited, so setting Normal here sets the font of
         // everything that does not override it - including the table.
         document.Styles["Normal"].Font.Name = "Liberation Sans";
         document.Styles["Normal"].Font.Size = 9;
 
-        Style heading = document.Styles.AddStyle("TableHeading", "Normal");
+        var heading = document.Styles.AddStyle("TableHeading", "Normal");
         heading.Font.Bold = true;
         heading.Font.Color = Colors.White;
 
-        Section section = document.AddSection();
+        var section = document.AddSection();
         section.PageSetup.PageFormat = PageFormat.A4;
         section.PageSetup.TopMargin = Unit.FromCentimeter(2);
         section.PageSetup.BottomMargin = Unit.FromCentimeter(2);
 
         // The footer is written once and appears on every page. The two fields are
         // resolved at render time, when how many pages there are is finally known.
-        Paragraph footer = section.Footers.Primary.AddParagraph();
+        var footer = section.Footers.Primary.AddParagraph();
         footer.Format.Alignment = ParagraphAlignment.Center;
         footer.AddText("Page ");
         footer.AddPageField();
         footer.AddText(" of ");
         footer.AddNumPagesField();
 
-        Paragraph title = section.AddParagraph("Quarterly returns by region");
+        var title = section.AddParagraph("Quarterly returns by region");
         title.Format.Font.Size = 16;
         title.Format.Font.Bold = true;
         title.Format.SpaceAfter = Unit.FromPoint(12);
 
-        Table table = section.AddTable();
+        var table = section.AddTable();
         table.Borders.Width = 0.4;
         table.Borders.Color = Colors.LightGray;
         table.Rows.LeftIndent = 0;
 
         // Columns are added with their widths, and each carries the alignment of the
         // cells in it - set once here rather than on every cell below.
-        Column region = table.AddColumn(Unit.FromCentimeter(3.4));
+        var region = table.AddColumn(Unit.FromCentimeter(3.4));
         region.Format.Alignment = ParagraphAlignment.Left;
 
-        Column quarter = table.AddColumn(Unit.FromCentimeter(2.2));
+        var quarter = table.AddColumn(Unit.FromCentimeter(2.2));
         quarter.Format.Alignment = ParagraphAlignment.Left;
 
-        foreach (string _ in new[] { "units", "revenue", "margin" })
+        foreach (var _ in new[] { "units", "revenue", "margin" })
             table.AddColumn(Unit.FromCentimeter(3)).Format.Alignment = ParagraphAlignment.Right;
 
         // A title band across the whole width. MergeRight is a count of the cells to
         // swallow to the right, so the other four cells of this row are never filled in.
-        Row band = table.AddRow();
+        var band = table.AddRow();
         band.Shading.Color = Colors.DarkSlateGray;
         band.Cells[0].MergeRight = 4;
         band.Cells[0].Format.Alignment = ParagraphAlignment.Center;
@@ -100,14 +105,14 @@ internal sealed class TablesDemo : PdfDemo
         // the run empty and nothing would repeat at all.
         band.HeadingFormat = true;
 
-        Row header = table.AddRow();
+        var header = table.AddRow();
         header.HeadingFormat = true;
         header.Shading.Color = Colors.SlateGray;
         header.VerticalAlignment = VerticalAlignment.Center;
         header.Height = Unit.FromPoint(20);
 
         string[] headings = { "Region", "Quarter", "Units", "Revenue", "Margin" };
-        for (int column = 0; column < headings.Length; column++)
+        for (var column = 0; column < headings.Length; column++)
             header.Cells[column].AddParagraph(headings[column]).Style = "TableHeading";
 
         // Twenty regions of four quarters each is eighty rows, which is comfortably more
@@ -124,16 +129,16 @@ internal sealed class TablesDemo : PdfDemo
         // Accumulated as the rows are built rather than worked out again afterwards, so the
         // totals row cannot disagree with the column above it. A reader who adds the column
         // up is exactly the reader a table demo has to survive.
-        int rowIndex = 0;
+        var rowIndex = 0;
         long totalUnits = 0;
         double totalRevenue = 0;
         double marginTimesUnits = 0;
 
-        foreach (string name in regions)
+        foreach (var name in regions)
         {
-            for (int q = 0; q < quarters.Length; q++)
+            for (var q = 0; q < quarters.Length; q++)
             {
-                Row row = table.AddRow();
+                var row = table.AddRow();
                 row.VerticalAlignment = VerticalAlignment.Center;
 
                 // Banding by row rather than by border, which stays readable when the
@@ -150,9 +155,9 @@ internal sealed class TablesDemo : PdfDemo
                     row.Cells[0].AddParagraph(name);
                 }
 
-                int units = 400 + rowIndex * 37 % 900;
-                double revenue = units * 12.5;
-                double margin = (units % 17 + 8) / 100.0;
+                var units = 400 + rowIndex * 37 % 900;
+                var revenue = units * 12.5;
+                var margin = (units % 17 + 8) / 100.0;
 
                 totalUnits += units;
                 totalRevenue += revenue;
@@ -172,7 +177,7 @@ internal sealed class TablesDemo : PdfDemo
                 Colors.Gainsboro);
         }
 
-        Row total = table.AddRow();
+        var total = table.AddRow();
         total.Shading.Color = Colors.Gainsboro;
         total.Format.Font.Bold = true;
         total.Cells[0].MergeRight = 1;
@@ -185,7 +190,7 @@ internal sealed class TablesDemo : PdfDemo
 
         table.SetEdge(0, table.Rows.Count - 1, 5, 1, Edge.Box, BorderStyle.Single, 1, Colors.Black);
 
-        // Lists live here rather than in the Layout demo, because ListInfo is MigraDoc's
+        // Lists live here rather than in the Layout demo, because ListInfo is PinataLayout's
         // and there is nothing like it on the PdfSharp side.
         section.AddParagraph().Format.SpaceAfter = Unit.FromPoint(10);
         section.AddParagraph("Notes").Format.Font.Bold = true;
@@ -195,20 +200,20 @@ internal sealed class TablesDemo : PdfDemo
             "Margin is gross and excludes carriage.",
             "The heading row above repeats on every page this table reaches, which is what "
                 + "HeadingFormat is for.",
-            "This list is a MigraDoc ListInfo - the marker, the indent and the hanging "
+            "This list is a PinataLayout ListInfo - the marker, the indent and the hanging "
                 + "alignment all come from the style rather than being drawn.",
         };
 
-        foreach (string note in notes)
+        foreach (var note in notes)
         {
-            Paragraph item = section.AddParagraph(note);
+            var item = section.AddParagraph(note);
             item.Format.ListInfo.ListType = ListType.BulletList1;
             item.Format.LeftIndent = Unit.FromCentimeter(0.6);
         }
 
-        // MigraDoc owns the PdfDocument: the renderer builds it, and it is handed back for
+        // PinataLayout owns the PdfDocument: the renderer builds it, and it is handed back for
         // the base class to save exactly as the hand-drawn demos hand theirs back.
-        PdfDocumentRenderer renderer = new PdfDocumentRenderer(true) { Document = document };
+        var renderer = new PdfDocumentRenderer(true) { Document = document };
         renderer.RenderDocument();
         #endregion
 

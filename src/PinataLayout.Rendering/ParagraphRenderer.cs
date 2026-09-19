@@ -24,7 +24,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -236,7 +236,7 @@ internal class ParagraphRenderer : Renderer
     /// <remarks>
     /// From the outline level rather than from the style name, because the level is what the style
     /// sets and what a caller overrides per paragraph — a heading styled by hand still says so there.
-    /// PDF has six heading levels and MigraDoc has nine, so the last three land on <c>/H6</c>: a
+    /// PDF has six heading levels and PinataLayout has nine, so the last three land on <c>/H6</c>: a
     /// heading too deep to name exactly is still a heading, and calling it a paragraph would lose
     /// more.
     /// </remarks>
@@ -3145,7 +3145,7 @@ internal class ParagraphRenderer : Renderer
         //XUnit yPosition = this.currentYPosition + this.currentVerticalInfo.height + pen.Width / 2;
         //yPosition -= 0.66 * this.currentVerticalInfo.descent;
 
-        //New KlPo 
+        //New KlPo
         XUnit yPosition = CurrentBaselinePosition;
         yPosition += 0.33 * currentVerticalInfo.descent;
         gfx.DrawLine(pen, underlineStartPos, yPosition, xPosition, yPosition);

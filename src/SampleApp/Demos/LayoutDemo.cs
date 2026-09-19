@@ -157,7 +157,7 @@ internal sealed class LayoutDemo : PdfDemo
 
         Heading("Lists, by hand", 486);
 
-        // There is no list support on this side of the library - MigraDoc has ListInfo,
+        // There is no list support on this side of the library - PinataLayout has ListInfo,
         // and the Tables and Invoice demos use it. Here the marker is drawn separately
         // and the text flows into a rectangle inset by the width of the marker, which is
         // the whole of what a hanging indent is.

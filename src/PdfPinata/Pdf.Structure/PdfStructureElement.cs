@@ -1,5 +1,3 @@
-using PdfPinata.Pdf.Advanced;
-
 namespace PdfPinata.Pdf.Structure;
 
 /// <summary>

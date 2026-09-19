@@ -1,4 +1,3 @@
-using System;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;

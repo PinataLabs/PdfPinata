@@ -41,7 +41,7 @@ public enum PdfAConformance
 
     /// <summary>
     /// PDF/A-1a (ISO 19005-1). PDF/A-1b plus a tagged structure tree — the oldest and strictest
-    /// archival profile, made available to a document MigraDoc or the caller has tagged.
+    /// archival profile, made available to a document PinataLayout or the caller has tagged.
     /// </summary>
     /// <remarks>
     /// Appended rather than inserted next to <see cref="PdfA1B"/>, along with the two after it: the

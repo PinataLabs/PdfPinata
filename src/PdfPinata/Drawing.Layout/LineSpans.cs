@@ -9,9 +9,9 @@ namespace PdfPinata.Drawing.Layout;
 /// <remarks>
 /// <para>
 /// This is the one piece of arithmetic the two layout engines in this solution genuinely share.
-/// MigraDoc's <c>ObstructedArea</c> asks it once per line to place a paragraph beside a floating
+/// PinataLayout's <c>ObstructedArea</c> asks it once per line to place a paragraph beside a floating
 /// shape; <see cref="XTextFormatter"/> asks it once per line to place text beside a reserved
-/// region. Everything else about the two is different - MigraDoc's obstacles are page-absolute and
+/// region. Everything else about the two is different - PinataLayout's obstacles are page-absolute and
 /// the formatter's are relative to the block, and that difference is real rather than incidental,
 /// so gathering the obstacles and deciding which of them stand in a band stays with each engine.
 /// </para>
@@ -29,7 +29,7 @@ namespace PdfPinata.Drawing.Layout;
 /// <b>The sweep itself lives in <see cref="IntervalSet"/> and this is the shorthand for it.</b> It
 /// began as its own hand-rolled scan, written before there was an interval type; keeping both would
 /// have been two implementations of one idea sitting in one folder, which is the thing this class
-/// was extracted to stop. What is left here is the signature MigraDoc calls - doubles in, doubles
+/// was extracted to stop. What is left here is the signature PinataLayout calls - doubles in, doubles
 /// out - over geometry that is now written once.
 /// </para>
 /// <para>

@@ -2,12 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using PinataLayout.DocumentObjectModel;
-using PinataLayout.DocumentObjectModel.Tables;
 using PinataLayout.Rendering;
 using PdfPinata.Drawing;
 using PdfPinata.EInvoice;
 using PdfPinata.Pdf;
-using PdfPinata.Pdf.Advanced;
 
 namespace ConformanceCorpus;
 
@@ -187,7 +185,7 @@ static class Corpus
     }
 
     /// <summary>
-    /// A tagged document rendered through MigraDoc, making whichever accessibility or archival
+    /// A tagged document rendered through PinataLayout, making whichever accessibility or archival
     /// claim <paramref name="claim"/> asks for.
     /// </summary>
     /// <remarks>

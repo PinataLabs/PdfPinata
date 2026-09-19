@@ -14,7 +14,7 @@ namespace PdfPinata.Drawing.Layout;
 /// <para>
 /// <b>This is not a shape model.</b> It takes obstacles, not shapes - no wrap style, no floating,
 /// no element. Those describe a shape in a document tree, and there is no document tree here;
-/// MigraDoc has one and keeps its own.
+/// PinataLayout has one and keeps its own.
 /// </para>
 /// </remarks>
 public sealed class TextFlowRegion

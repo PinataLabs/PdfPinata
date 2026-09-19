@@ -24,7 +24,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -433,7 +433,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
     /// Must be called after rendering the document.
     /// </summary>
     /// <returns>The current Y position at the end of the last page.</returns>
-    public double GetCurrentMigraDocPosition()
+    public double GetCurrentPinataLayoutPosition()
     {
         RenderInfo[] RenderInfos = GetRenderInfos(PageCount);
         RenderInfo r = RenderInfos[RenderInfos.Length - 1];
@@ -575,7 +575,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
     /// </summary>
     /// <remarks>
     /// Fixed rather than settable. The document object model has no property for the separator and
-    /// this work deliberately adds none - see docs/specs/migradoc-footnotes.md - because a rule at
+    /// this work deliberately adds none - see docs/specs/PinataLayout-footnotes.md - because a rule at
     /// hairline weight over a third of the column is what Word and LaTeX both draw and what a
     /// reader expects to see.
     /// </remarks>

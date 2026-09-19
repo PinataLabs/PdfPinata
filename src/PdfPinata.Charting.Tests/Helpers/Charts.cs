@@ -45,7 +45,7 @@ internal static class Charts
     /// <remarks>
     ///   Both axes are read, which is not idle: <see cref="Chart.XAxis"/> creates the axis the
     ///   first time it is asked for, and a chart that was never asked has none. A chart drawn by
-    ///   anything else - MigraDoc's chart mapper, or a caller following the package's own samples
+    ///   anything else - PinataLayout's chart mapper, or a caller following the package's own samples
     ///   - has them, so creating them here is what makes these tests the ordinary case rather
     ///   than a corner of it.
     ///

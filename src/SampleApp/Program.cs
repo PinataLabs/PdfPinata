@@ -1,4 +1,3 @@
-using System.CommandLine;
 using SampleApp.Infrastructure;
 
 namespace SampleApp;

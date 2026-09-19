@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -63,7 +63,7 @@ public class XPdfForm : XForm
 
         if (PdfReader.TestPdfFile(path) == 0)
             throw new ArgumentException("The specified file has no valid PDF file header.", nameof(path));
-            
+
         _path = path;
         _pathReadAccuracy = accuracy;
         if (pageNumber != 0)
@@ -368,7 +368,7 @@ public class XPdfForm : XForm
         // The problem is that you can ask an XPdfForm about the number of its pages before it was
         // drawn the first time. At this moment the XPdfForm doesn't know the document where it will
         // be later draw on one of its pages. To prevent the import of the same document more than
-        // once, all imported documents of a thread are cached. The cache is local to the current 
+        // once, all imported documents of a thread are cached. The cache is local to the current
         // thread and not to the appdomain, because I won't get problems in a multi-thread environment
         // that I don't understand.
         get
@@ -402,7 +402,7 @@ public class XPdfForm : XForm
             {
                 // Bound first: the old order asked whether path[-1] was a digit when every
                 // character was one, and char.IsDigit threw rather than the loop ending.
-                // Duplicated in MigraDoc's ImageHelper.
+                // Duplicated in PinataLayout's ImageHelper.
                 while (length >= 0 && char.IsDigit(path, length))
                     length--;
                 if (length > 0 && path[length] == '#')

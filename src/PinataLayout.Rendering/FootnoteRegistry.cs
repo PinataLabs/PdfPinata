@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using PinataLayout.DocumentObjectModel;
-using PdfPinata.Drawing;
 
 namespace PinataLayout.Rendering;
 

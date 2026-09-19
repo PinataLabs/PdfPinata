@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Linq;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;

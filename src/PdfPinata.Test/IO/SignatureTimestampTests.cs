@@ -4,12 +4,10 @@ using System.Linq;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
-using PdfPinata.Pdf.IO;
 using PdfPinata.Pdf.Signatures;
 using PdfPinata.Signing;
 using PdfPinata.Test.Helpers;
 using Xunit;
-using Reader = PdfPinata.Pdf.IO.PdfReader;
 
 namespace PdfPinata.Test.IO;
 

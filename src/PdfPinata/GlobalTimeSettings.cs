@@ -4,7 +4,7 @@ namespace PdfPinata;
 
 /// <summary>
 /// Where PdfPinata reads the current time. Everything the library stamps a document with — a
-/// creation date, a modification date, an annotation's date, a signing time, the value a MigraDoc
+/// creation date, a modification date, an annotation's date, a signing time, the value a PinataLayout
 /// date field renders to — is read through here rather than from <see cref="DateTime.Now"/>
 /// directly, so that a caller who needs a document to come out the same twice can say what the
 /// time is.

@@ -17,7 +17,7 @@ namespace PinataLayout.Rendering.Tests;
 ///     section three levels deep and nothing two levels deep containing it.
 ///   </para>
 ///   <para>
-///     In MigraDoc this is <c>ParagraphFormat.OutlineLevel</c>, which is what a heading style sets —
+///     In PinataLayout this is <c>ParagraphFormat.OutlineLevel</c>, which is what a heading style sets —
 ///     so the mistake is nearly always in the styles rather than in anything that draws, and it is
 ///     made by reaching for Heading3 because of how it looks.
 ///   </para>

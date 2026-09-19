@@ -11,7 +11,7 @@ using SampleApp.Infrastructure;
 namespace SampleApp.Demos;
 
 /// <summary>
-///   A document that says what it is rather than only how it looks: a structure tree MigraDoc
+///   A document that says what it is rather than only how it looks: a structure tree PinataLayout
 ///   builds for itself, and the PDF/UA-1 claim the writer refuses to make unless it is true.
 /// </summary>
 internal sealed class AccessibilityDemo : PdfDemo
@@ -85,7 +85,7 @@ internal sealed class AccessibilityDemo : PdfDemo
 
         section.AddParagraph(
             "Everything on this page is in a structure tree, and nothing here asked for one. "
-            + "PdfDocumentRenderer.TagContent defaults to true, so MigraDoc records what it is "
+            + "PdfDocumentRenderer.TagContent defaults to true, so PinataLayout records what it is "
             + "drawing as it draws it: this paragraph is a /P, the line above it is an /H1, and "
             + "the table further down is a /Table whose first row is headers.");
 
@@ -182,7 +182,7 @@ internal sealed class AccessibilityDemo : PdfDemo
         photograph.Width = Unit.FromCentimeter(6);
         photograph.LockAspectRatio = true;
 
-        // Set, so this one is a /Figure with an /Alt. Left unset, MigraDoc draws the image as an
+        // Set, so this one is a /Figure with an /Alt. Left unset, PinataLayout draws the image as an
         // artifact instead - it will not produce a figure with nothing to say, which is why the
         // refusal on the last page had to be provoked by reaching past the renderer.
         photograph.AlternativeText =
@@ -302,7 +302,7 @@ internal sealed class AccessibilityDemo : PdfDemo
             _ => { },
             document =>
             {
-                // Reaching past the renderer, because MigraDoc will not produce one: an image with
+                // Reaching past the renderer, because PinataLayout will not produce one: an image with
                 // no alternative text is drawn as an artifact rather than as an undescribed figure.
                 // This is the check standing behind a document tagged by hand.
                 document.Structure.CreateElement(PdfPinata.Pdf.Structure.PdfTag.Figure);

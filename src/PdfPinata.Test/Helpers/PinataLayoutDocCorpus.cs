@@ -4,15 +4,13 @@ using System.IO;
 using System.Text;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.Shapes;
-using PinataLayout.DocumentObjectModel.Tables;
 using PinataLayout.Rendering;
-using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 
 namespace PdfPinata.Test.Helpers;
 
 /// <summary>
-///   A corpus of MigraDoc documents covering the shapes of layout that a change to
+///   A corpus of PinataLayout documents covering the shapes of layout that a change to
 ///   <c>Area.GetFittingRect</c> could disturb, and the content streams they render to.
 /// </summary>
 /// <remarks>
@@ -25,7 +23,7 @@ namespace PdfPinata.Test.Helpers;
 ///   identifier that have nothing to do with layout.
 ///   </para>
 /// </remarks>
-internal static class MigraDocCorpus
+internal static class PinataLayoutDocCorpus
 {
     const string Prose =
         "The quick brown fox jumps over the lazy dog, and having jumped it lands and looks about " +

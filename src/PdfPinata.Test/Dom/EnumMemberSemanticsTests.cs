@@ -3,7 +3,6 @@ using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.Internals;
 using PinataLayout.DocumentObjectModel.IO;
-using PdfPinata.Test.Helpers;
 using Xunit;
 
 namespace PdfPinata.Test.Dom;

@@ -12,7 +12,7 @@ namespace SampleApp.Demos;
 ///   A real business document: letterhead, addressee, line items, totals and terms.
 /// </summary>
 /// <remarks>
-///   MigraDoc's kind of document. Everything here flows: nothing is positioned by arithmetic except
+///   PinataLayout's kind of document. Everything here flows: nothing is positioned by arithmetic except
 ///   the address, the header and footer repeat without being asked twice, and how many pages there
 ///   are is not known until it has all been laid out - which is why the footer can count them.
 ///   <para>
@@ -86,7 +86,7 @@ internal sealed class InvoiceDemo : PdfDemo
 
         // ---- Letterhead ---------------------------------------------------------------
         // The image goes through the ImageSource seam rather than XImage, which is how
-        // MigraDoc reaches a backend. The stream factory reads the embedded photograph.
+        // PinataLayout reaches a backend. The stream factory reads the embedded photograph.
         Paragraph mark = section.Headers.Primary.AddParagraph();
         mark.Format.Alignment = ParagraphAlignment.Right;
         Image logo = mark.AddImage(ImageSource.FromStream(

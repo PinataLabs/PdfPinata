@@ -16,7 +16,7 @@ namespace PinataLayout.Rendering.Tests;
 ///   where the alignment, the indents and the tab stops put them.
 /// </summary>
 /// <remarks>
-///   Promoted from MigraDoc 1.32's TestParagraphRenderer, which built one document per feature and
+///   Promoted from PinataLayout 1.32's TestParagraphRenderer, which built one document per feature and
 ///   saved each to a file. The arrangements are kept and the looking is replaced by assertions.
 ///
 ///   Two of them are no longer quite what was there. The alignment harness had every arrangement

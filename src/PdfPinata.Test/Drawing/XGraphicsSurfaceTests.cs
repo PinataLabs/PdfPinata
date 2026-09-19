@@ -12,7 +12,7 @@ using Xunit;
 namespace PdfPinata.Test.Drawing;
 
 /// <summary>
-///   <see cref="XGraphics"/> is the drawing surface: the whole library, MigraDoc included, reaches
+///   <see cref="XGraphics"/> is the drawing surface: the whole library, PinataLayout included, reaches
 ///   the page through it. Almost every shape it can draw comes in three spellings - stroke it,
 ///   fill it, or do both - and each of those in two more, taking a rectangle or four numbers. That
 ///   is a lot of overloads whose only job is to forward, and the way they go wrong is by
@@ -150,7 +150,7 @@ public class XGraphicsSurfaceTests
     [Fact]
     public void ASurfaceCanBeMadeJustToMeasureWithAndDrawsNowhere()
     {
-        // MigraDoc measures text long before it knows what page it will land on, so it needs a
+        // PinataLayout measures text long before it knows what page it will land on, so it needs a
         // surface with no page behind it.
         using var gfx = XGraphics.CreateMeasureContext(
             new XSize(400, 600), XGraphicsUnit.Point, XPageDirection.Downwards);
@@ -175,7 +175,7 @@ public class XGraphicsSurfaceTests
     }
 
     [Fact]
-    public void TheSmoothingModeAndTheMigraDocEncodingHackAreRememberedAsGiven()
+    public void TheSmoothingModeAndThePinataLayoutEncodingHackAreRememberedAsGiven()
     {
         using var gfx = OnAPage();
 

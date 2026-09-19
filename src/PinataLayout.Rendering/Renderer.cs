@@ -24,7 +24,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -74,7 +74,7 @@ internal abstract class Renderer
   /// </summary>
   /// <remarks>
   /// In inherited classes, the following parts are set properly:
-  /// MarginTop, MarginLeft, MarginRight, MarginBottom, 
+  /// MarginTop, MarginLeft, MarginRight, MarginBottom,
   /// KeepTogether, KeepWithNext, PagebreakBefore, Floating,
   /// VerticalReference, HorizontalReference.
   /// </remarks>
@@ -209,7 +209,7 @@ internal abstract class Renderer
   }
 
   /// <summary>
-  /// Reports a bar code that MigraDoc can hold but cannot draw.
+  /// Reports a bar code that PinataLayout can hold but cannot draw.
   /// </summary>
   /// <remarks>
   /// The DOM has carried <see cref="Barcode"/> since it was forked and this assembly has never had a
@@ -220,7 +220,7 @@ internal abstract class Renderer
   /// </remarks>
   static NotSupportedException NoBarcodeRenderer() =>
     new NotSupportedException(
-      "MigraDoc has no renderer for the Barcode shape, so one added to a document would be dropped "
+      "PinataLayout has no renderer for the Barcode shape, so one added to a document would be dropped "
       + "from the page without a word. Draw bar codes on the PdfSharp surface instead: build a "
       + "PdfPinata.Drawing.BarCodes.BarCode and pass it to XGraphics.DrawBarCode, or a "
       + "CodeDataMatrix and XGraphics.DrawMatrixCode.");

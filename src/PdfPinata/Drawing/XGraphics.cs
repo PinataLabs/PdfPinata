@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -55,8 +55,8 @@ enum InternalGraphicsMode
     DrawingPdfContent,
     DrawingBitmap,
 }
-    
-    
+
+
 /// <summary>
 /// Represents a drawing surface for a fixed size page.
 /// </summary>
@@ -398,12 +398,12 @@ public sealed class XGraphics : IDisposable
     bool _disposed;
 
     /// <summary>
-    /// Internal hack for MigraDoc. Will be removed in further releases.
+    /// Internal hack for PinataLayout. Will be removed in further releases.
     /// Unicode support requires a global refactoring of MigraDoc and will be done in further releases.
     /// </summary>
     // ReSharper disable once InconsistentNaming
     // ReSharper disable once ConvertToAutoProperty
-    public PdfFontEncoding MUH  // MigraDoc Unicode Hack...
+    public PdfFontEncoding MUH  // PinataLayout Unicode Hack...
     {
         get => _muh;
         set => _muh = value;
@@ -593,7 +593,7 @@ public sealed class XGraphics : IDisposable
     }
 
     /// <summary>
-    /// Draws a cardinal spline through a specified array of points using a specified tension. 
+    /// Draws a cardinal spline through a specified array of points using a specified tension.
     /// </summary>
     public void DrawCurve(XPen pen, XPoint[] points, double tension)
     {
@@ -1157,7 +1157,7 @@ public sealed class XGraphics : IDisposable
     // a tab is drawn as the single space it is measured as, and every other character below 32 -
     // \n and \r among them - is dropped, so that the glyphs drawn are the glyphs MeasureString
     // measured. Wrapping, breaking, tab stops and justification belong to XTextFormatter and to
-    // MigraDoc's ParagraphRenderer, both of which split a paragraph into lines before any of this
+    // PinataLayout's ParagraphRenderer, both of which split a paragraph into lines before any of this
     // is called. See PdfPinata/Fonts/TextNormalization.cs for the filtering rule itself.
 
     /// <summary>
@@ -1277,7 +1277,7 @@ public sealed class XGraphics : IDisposable
     /// </para>
     /// <para>
     /// For text that wraps, breaks at a line feed, honours tab stops or is justified, use
-    /// <see cref="PdfPinata.Drawing.Layout.XTextFormatter"/>, or render a MigraDoc document.
+    /// <see cref="PdfPinata.Drawing.Layout.XTextFormatter"/>, or render a PinataLayout document.
     /// Both split a paragraph into lines and place each one themselves, and both call this once
     /// per line.
     /// </para>
@@ -1735,7 +1735,7 @@ public sealed class XGraphics : IDisposable
     }
 
     /// <summary>
-    /// Restores the state of this XGraphics object to the state represented by the specified 
+    /// Restores the state of this XGraphics object to the state represented by the specified
     /// XGraphicsState object.
     /// </summary>
     public void Restore(XGraphicsState state)
@@ -1759,7 +1759,7 @@ public sealed class XGraphics : IDisposable
     }
 
     /// <summary>
-    /// Saves a graphics container with the current state of this XGraphics and 
+    /// Saves a graphics container with the current state of this XGraphics and
     /// opens and uses a new graphics container.
     /// </summary>
     public XGraphicsContainer BeginContainer()
@@ -1768,7 +1768,7 @@ public sealed class XGraphics : IDisposable
     }
 
     /// <summary>
-    /// Saves a graphics container with the current state of this XGraphics and 
+    /// Saves a graphics container with the current state of this XGraphics and
     /// opens and uses a new graphics container.
     /// </summary>
     public XGraphicsContainer BeginContainer(XRect dstrect, XRect srcrect, XGraphicsUnit unit)
@@ -1800,7 +1800,7 @@ public sealed class XGraphics : IDisposable
     }
 
     /// <summary>
-    /// Closes the current graphics container and restores the state of this XGraphics 
+    /// Closes the current graphics container and restores the state of this XGraphics
     /// to the state saved by a call to the BeginContainer method.
     /// </summary>
     public void EndContainer(XGraphicsContainer container)
@@ -1844,7 +1844,7 @@ public sealed class XGraphics : IDisposable
     #region Transformation
 
     /// <summary>
-    /// Applies the specified translation operation to the transformation matrix of this object by 
+    /// Applies the specified translation operation to the transformation matrix of this object by
     /// prepending it to the object's transformation matrix.
     /// </summary>
     public void TranslateTransform(double dx, double dy)
@@ -1864,7 +1864,7 @@ public sealed class XGraphics : IDisposable
     }
 
     /// <summary>
-    /// Applies the specified scaling operation to the transformation matrix of this object by 
+    /// Applies the specified scaling operation to the transformation matrix of this object by
     /// prepending it to the object's transformation matrix.
     /// </summary>
     public void ScaleTransform(double scaleX, double scaleY)
@@ -1884,7 +1884,7 @@ public sealed class XGraphics : IDisposable
     }
 
     /// <summary>
-    /// Applies the specified scaling operation to the transformation matrix of this object by 
+    /// Applies the specified scaling operation to the transformation matrix of this object by
     /// prepending it to the object's transformation matrix.
     /// </summary>
     // ReSharper disable once InconsistentNaming
@@ -1904,7 +1904,7 @@ public sealed class XGraphics : IDisposable
     }
 
     /// <summary>
-    /// Applies the specified scaling operation to the transformation matrix of this object by 
+    /// Applies the specified scaling operation to the transformation matrix of this object by
     /// prepending it to the object's transformation matrix.
     /// </summary>
     public void ScaleAtTransform(double scaleX, double scaleY, double centerX, double centerY)
@@ -1913,7 +1913,7 @@ public sealed class XGraphics : IDisposable
     }
 
     /// <summary>
-    /// Applies the specified scaling operation to the transformation matrix of this object by 
+    /// Applies the specified scaling operation to the transformation matrix of this object by
     /// prepending it to the object's transformation matrix.
     /// </summary>
     public void ScaleAtTransform(double scaleX, double scaleY, XPoint center)
@@ -1922,7 +1922,7 @@ public sealed class XGraphics : IDisposable
     }
 
     /// <summary>
-    /// Applies the specified rotation operation to the transformation matrix of this object by 
+    /// Applies the specified rotation operation to the transformation matrix of this object by
     /// prepending it to the object's transformation matrix.
     /// </summary>
     public void RotateTransform(double angle)
@@ -1942,7 +1942,7 @@ public sealed class XGraphics : IDisposable
     }
 
     /// <summary>
-    /// Applies the specified rotation operation to the transformation matrix of this object by 
+    /// Applies the specified rotation operation to the transformation matrix of this object by
     /// prepending it to the object's transformation matrix.
     /// </summary>
     public void RotateAtTransform(double angle, XPoint point)
@@ -1951,7 +1951,7 @@ public sealed class XGraphics : IDisposable
     }
 
     /// <summary>
-    /// Applies the specified rotation operation to the transformation matrix of this object by 
+    /// Applies the specified rotation operation to the transformation matrix of this object by
     /// prepending it to the object's transformation matrix.
     /// </summary>
     public void RotateAtTransform(double angle, XPoint point, XMatrixOrder order)
@@ -1960,7 +1960,7 @@ public sealed class XGraphics : IDisposable
     }
 
     /// <summary>
-    /// Applies the specified shearing operation to the transformation matrix of this object by 
+    /// Applies the specified shearing operation to the transformation matrix of this object by
     /// prepending it to the object's transformation matrix.
     /// ShearTransform is a synonym for SkewAtTransform.
     /// Parameter shearX specifies the horizontal skew which is measured in degrees counterclockwise from the y-axis.
@@ -1984,7 +1984,7 @@ public sealed class XGraphics : IDisposable
     }
 
     /// <summary>
-    /// Applies the specified shearing operation to the transformation matrix of this object by 
+    /// Applies the specified shearing operation to the transformation matrix of this object by
     /// prepending it to the object's transformation matrix.
     /// ShearTransform is a synonym for SkewAtTransform.
     /// Parameter shearX specifies the horizontal skew which is measured in degrees counterclockwise from the y-axis.
@@ -1996,7 +1996,7 @@ public sealed class XGraphics : IDisposable
     }
 
     /// <summary>
-    /// Applies the specified shearing operation to the transformation matrix of this object by 
+    /// Applies the specified shearing operation to the transformation matrix of this object by
     /// prepending it to the object's transformation matrix.
     /// ShearTransform is a synonym for SkewAtTransform.
     /// Parameter shearX specifies the horizontal skew which is measured in degrees counterclockwise from the y-axis.
@@ -2051,7 +2051,7 @@ public sealed class XGraphics : IDisposable
     #region Clipping
 
     /// <summary>
-    /// Updates the clip region of this XGraphics to the intersection of the 
+    /// Updates the clip region of this XGraphics to the intersection of the
     /// current clip region and the specified rectangle.
     /// </summary>
     public void IntersectClip(XRect rect)
@@ -2062,7 +2062,7 @@ public sealed class XGraphics : IDisposable
     }
 
     /// <summary>
-    /// Updates the clip region of this XGraphics to the intersection of the 
+    /// Updates the clip region of this XGraphics to the intersection of the
     /// current clip region and the specified graphical path.
     /// </summary>
     public void IntersectClip(XGraphicsPath path)
@@ -2247,7 +2247,7 @@ public sealed class XGraphics : IDisposable
 
     /// <summary>
     /// (This class is under construction.)
-    /// Currently used in MigraDoc
+    /// Currently used in PinataLayout
     /// </summary>
     public class SpaceTransformer
     {

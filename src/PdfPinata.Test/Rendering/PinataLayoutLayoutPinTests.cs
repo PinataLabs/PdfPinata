@@ -9,7 +9,7 @@ using Xunit;
 namespace PdfPinata.Test.Rendering;
 
 /// <summary>
-///   A corpus of MigraDoc documents, pinned to the bytes they rendered to before the area a line
+///   A corpus of PinataLayout documents, pinned to the bytes they rendered to before the area a line
 ///   is laid out in could be anything but a rectangle.
 /// </summary>
 /// <remarks>
@@ -17,16 +17,16 @@ namespace PdfPinata.Test.Rendering;
 ///   regression is silent: every word is still on the page, a little way from where it was. So
 ///   "a document that asks for no side wrap is unchanged" has to be an observation.
 ///   <para>
-///   To re-capture after a deliberate change, write <c>MigraDocCorpus.OfEveryDocument()</c> to
-///   <c>Assets/Layout/migradoc-baseline.txt</c> and read the diff before believing it.
+///   To re-capture after a deliberate change, write <c>PinataLayoutCorpus.OfEveryDocument()</c> to
+///   <c>Assets/Layout/PinataLayout-baseline.txt</c> and read the diff before believing it.
 ///   </para>
 /// </remarks>
-public class MigraDocLayoutPinTests
+public class PinataLayoutLayoutPinTests
 {
     [Fact]
     public void EveryDocumentInTheCorpusRendersExactlyAsItDid()
     {
-        var rendered = SplitByDocument(Normalized(MigraDocCorpus.OfEveryDocument(tagged: false)));
+        var rendered = SplitByDocument(Normalized(PinataLayoutDocCorpus.OfEveryDocument(tagged: false)));
         var pinned = SplitByDocument(Normalized(File.ReadAllText(BaselinePath)));
 
         rendered.Keys.Should().BeEquivalentTo(pinned.Keys);
@@ -60,8 +60,8 @@ public class MigraDocLayoutPinTests
     [Fact]
     public void TaggingDrawsTheSameTextInTheSameOrder()
     {
-        var tagged = SplitByDocument(Normalized(MigraDocCorpus.OfEveryDocument(tagged: true)));
-        var plain = SplitByDocument(Normalized(MigraDocCorpus.OfEveryDocument(tagged: false)));
+        var tagged = SplitByDocument(Normalized(PinataLayoutDocCorpus.OfEveryDocument(tagged: true)));
+        var plain = SplitByDocument(Normalized(PinataLayoutDocCorpus.OfEveryDocument(tagged: false)));
 
         foreach (var document in plain.Keys)
             GlyphRuns(tagged[document]).Should().Equal(GlyphRuns(plain[document]),
@@ -111,7 +111,7 @@ public class MigraDocLayoutPinTests
 
         // Taken from the corpus rather than written out again here, so that adding a document
         // without re-capturing fails instead of going uncovered.
-        pinned.Keys.Should().BeEquivalentTo(MigraDocCorpus.Names);
+        pinned.Keys.Should().BeEquivalentTo(PinataLayoutDocCorpus.Names);
         pinned.Keys.Should().Contain(new[]
         {
             "table across a page break", "text frame beside prose", "image between paragraphs",
@@ -119,7 +119,7 @@ public class MigraDocLayoutPinTests
     }
 
     static string BaselinePath =>
-        Path.Combine(PathHelper.GetInstance().GetAssetPath("Layout"), "migradoc-baseline.txt");
+        Path.Combine(PathHelper.GetInstance().GetAssetPath("Layout"), "PinataLayout-baseline.txt");
 
     static Dictionary<string, string> SplitByDocument(string report)
     {

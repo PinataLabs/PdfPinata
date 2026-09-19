@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using PdfPinata;
 using PdfPinata.Drawing;
 using PdfPinata.Drawing.Layout;
-using PdfPinata.Drawing.Layout.enums;
 using PdfPinata.Pdf;
 using SampleApp.Infrastructure;
 
@@ -13,9 +12,9 @@ namespace SampleApp.Demos;
 ///   A broadsheet front page, set in columns.
 /// </summary>
 /// <remarks>
-///   Hand drawn rather than flowed through MigraDoc, and not by preference: MigraDoc's PageSetup
+///   Hand drawn rather than flowed through PinataLayout, and not by preference: PinataLayout's PageSetup
 ///   has no columns at all, so the only multi-column engine in the library is
-///   <see cref="XTextFormatter.Columns"/>. A newspaper laid out through MigraDoc would be text
+///   <see cref="XTextFormatter.Columns"/>. A newspaper laid out through PinataLayout would be text
 ///   frames positioned by arithmetic, which is more work and less honest.
 /// </remarks>
 internal sealed class NewspaperDemo : PdfDemo

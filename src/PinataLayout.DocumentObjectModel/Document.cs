@@ -26,7 +26,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -38,7 +38,7 @@ using PinataLayout.DocumentObjectModel.Visitors;
 namespace PinataLayout.DocumentObjectModel;
 
 /// <summary>
-/// Represents a MigraDoc document.
+/// Represents a PinataLayout document.
 /// </summary>
 public sealed partial class Document : DocumentObject, IVisitable
 {
@@ -80,8 +80,8 @@ public sealed partial class Document : DocumentObject, IVisitable
     if (this.renderer != null && renderer != null && !ReferenceEquals(this.renderer, renderer))
     {
       throw new InvalidOperationException("The document is already bound to another renderer. " +
-                                          "A MigraDoc document can be rendered by only one renderer, because the rendering process " +
-                                          "modifies its internal structure. If you want to render a MigraDoc document  on different renderers, " +
+                                          "A PinataLayout document can be rendered by only one renderer, because the rendering process " +
+                                          "modifies its internal structure. If you want to render a PinataLayout document on different renderers, " +
                                           "you must create a copy of it using the Clone function.");
     }
     this.renderer = renderer;
