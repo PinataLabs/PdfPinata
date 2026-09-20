@@ -23,6 +23,17 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ### Fixed
 
+- **A malformed page tree says which node is wrong instead of raising a `NullReferenceException`.**
+  `/Kids` was read as an array or else as a reference to one, with no third case, so a `/Kids` that
+  was neither dereferenced null inside the reader; so did a reference whose target was not an array;
+  and an entry in the array that was not an indirect reference threw `InvalidCastException` out of the
+  loop. All three are reachable from a file, and none of them named the object at fault. They now
+  throw `PdfReaderException` naming the page tree node and what was found there.
+
+  A node with **no** `/Kids` is read as a node with no children, which is the tolerant reading the
+  reader already takes for a node with no `/Type`. A `/Kids` whose reference the file never defines,
+  or that is written as `null`, reads the same way — a null entry is the same as no entry.
+
 - **A font program is held under its name rather than under a null key.**
   `PdfFontTable.GetFont(idName, fontData)` looked the font up under a hard-coded `null` and threw
   `ArgumentNullException` out of the dictionary; `TryGetFont(idName)` did the same and opened with

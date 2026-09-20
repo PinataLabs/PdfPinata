@@ -823,7 +823,12 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     static PdfDictionary[] GetKids(PdfReference iref, PdfPage.InheritedValues values)
     {
         // TODO: inherit inheritable keys...
-        var kid = (PdfDictionary)iref.Value;
+        if (iref.Value is not PdfDictionary kid)
+        {
+            throw new PdfReaderException(
+                $"Object {iref.ObjectID} stands in a page tree but is a " +
+                $"{TypeNameOf(iref.Value)} rather than a dictionary.");
+        }
 
         var type = kid.Elements.GetName(Keys.Type);
         if (type == "/Page")
@@ -842,25 +847,57 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
 
         Debug.Assert(kid.Elements.GetName(Keys.Type) == "/Pages");
         PdfPage.InheritValues(kid, ref values);
-        var list = new List<PdfDictionary>();
-        var kids = kid.Elements["/Kids"] as PdfArray;
 
-        if (kids == null)
+        // The array itself, or an indirect reference to it. Both are well-formed; a reference is
+        // resolved here so that what is reported below is what the entry came to rather than the
+        // reference that got there.
+        var entry = kid.Elements[Keys.Kids];
+        if (entry is PdfReference reference)
+            entry = reference.Value;
+
+        // A node that lists no children is read as a node with no children, which is the tolerant
+        // reading already taken a few lines above for a node with no /Type. /Kids is required of a
+        // page tree node by ISO 32000-1 Table 29, so this is already a file that does not say what it
+        // should. A reference the file never defines is the null object by 7.3.9 and a null entry is
+        // the same as no entry, which is how the rest of a page reads one - see DanglingReferenceTests.
+        if (entry == null || entry is PdfNull)
+            return [];
+
+        // Anything else - a number, a name, a dictionary - is a page tree this method cannot walk, and
+        // saying which node it gave up on is worth more than the NullReferenceException it used to
+        // raise two lines later.
+        if (entry is not PdfArray kids)
         {
-            var xref3 = kid.Elements["/Kids"] as PdfReference;
-            // ReSharper disable once PossibleNullReferenceException
-            kids = xref3.Value as PdfArray;
+            throw new PdfReaderException(
+                $"The /Kids entry of page tree node {iref.ObjectID} is a {TypeNameOf(entry)} " +
+                "rather than an array.");
         }
 
-        // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
-        // ReSharper disable PossibleNullReferenceException
-        foreach (PdfReference xref2 in kids)
+        var list = new List<PdfDictionary>();
+        foreach (var item in kids)
+        {
+            if (item is not PdfReference xref2)
+            {
+                throw new PdfReaderException(
+                    $"The /Kids array of page tree node {iref.ObjectID} holds a " +
+                    $"{TypeNameOf(item)} where an indirect reference to a page or a page tree " +
+                    "node was expected.");
+            }
+
             list.AddRange(GetKids(xref2, values));
-        // ReSharper restore PossibleNullReferenceException
-        var count = list.Count;
-        Debug.Assert(count == kid.Elements.GetInteger("/Count"));
+        }
+
+        // /Count is not asserted against what was found. FlattenPageTree overwrites it with the real
+        // count the moment this returns, and an empty node tolerated above legitimately leaves the
+        // two disagreeing - so the assertion that used to stand here could only fire on the files
+        // this method now reads on purpose.
         return list.ToArray();
     }
+
+    /// <summary>
+    /// What to call an object in a message about a page tree that does not hold what it should.
+    /// </summary>
+    static string TypeNameOf(PdfItem item) => item == null ? "null" : item.GetType().Name;
 
     /// <summary>
     /// Prepares the document for saving.
