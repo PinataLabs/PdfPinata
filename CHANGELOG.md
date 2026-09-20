@@ -41,6 +41,17 @@ This file starts at the entry below. Changes before that point are recorded only
   answer null from. Had the key worked, every program in a document would still have shared one
   entry, so the second name asked for would have been answered with the first name's font.
 
+- **`PdfDocumentRenderer.Save(path)` honours `WorkingDirectory`.** The line meant to apply it called
+  `Path.Combine` and threw the result away, so a relative path was written against the process's
+  current directory and the property decided nothing.
+
+  **This changes where a file lands** for a caller who sets `WorkingDirectory` and passes `Save` a
+  relative path — which is what that caller was asking for, and the property has no other effect:
+  nothing in this library reads `DocumentRenderer.WorkingDirectory`, and an image reaches the renderer
+  as an `ImageSource` rather than as a path to resolve. A caller who passes an absolute path is
+  unaffected either way, `Path.Combine` answering one with itself. To keep the old behaviour, leave
+  `WorkingDirectory` unset and combine the path yourself.
+
 ### Changed
 
 - **BREAKING: the doubled `MigraDoc.DocumentObjectModel` segment is gone from two namespaces.**
