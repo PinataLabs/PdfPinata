@@ -23,6 +23,11 @@ This file starts at the entry below. Changes before that point are recorded only
   and the property answered null however it had been set, in the same document and out of the file
   it wrote. Both spellings are now taken, for an entry set as a name by hand.
 
+- **`Section.LastParagraph` and `Section.LastTable` answer null on an empty section** instead of
+  raising a `NullReferenceException`. Both read the backing field rather than the `Elements`
+  property, and a section nobody has added anything to has not built its element collection yet —
+  so the one case each of them documents an answer for was the one case that threw.
+
 ## [0.2.0] - 2026-09-20
 
 ### Added
