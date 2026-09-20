@@ -10,6 +10,8 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-20
+
 ### Added
 
 - **`PdfPage.AddFontProgram` and `PdfPage.TryGetFontProgramName`** — embed a font program you supply,
