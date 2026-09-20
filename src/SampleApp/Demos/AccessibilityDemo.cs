@@ -184,7 +184,7 @@ internal sealed class AccessibilityDemo : PdfDemo
         var described = section.AddParagraph();
         described.Format.Alignment = ParagraphAlignment.Center;
         var photograph = described.AddImage(ImageSource.FromStream(
-            "described.jpg", () => Assets.Open(Assets.ImagePrefix + "frog-and-toad.jpg")));
+            "described.jpg", () => Assets.Open(Assets.ImagePrefix + "pdf-pinata.jpg")));
         photograph.Width = Unit.FromCentimeter(6);
         photograph.LockAspectRatio = true;
 
@@ -192,7 +192,8 @@ internal sealed class AccessibilityDemo : PdfDemo
         // artifact instead - it will not produce a figure with nothing to say, which is why the
         // refusal on the last page had to be provoked by reaching past the renderer.
         photograph.AlternativeText =
-            "A photograph of a frog and a toad sitting side by side on a mossy log.";
+            "A brightly coloured paper donkey pinata sitting at a desk, typing the words "
+            + "PDF Pinata onto a sheet in an old typewriter.";
         // docs:end alt-text
 
         section.AddParagraph(

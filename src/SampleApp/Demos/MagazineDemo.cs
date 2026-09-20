@@ -91,7 +91,7 @@ internal sealed class MagazineDemo : PdfDemo
                 XStringFormats.TopCenter);
 
         using var photograph = XImage.FromStream(
-            () => Assets.Open(Assets.ImagePrefix + "frog-and-toad.jpg"));
+            () => Assets.Open(Assets.ImagePrefix + "pdf-pinata.jpg"));
 
         // A full bleed is a rectangle that starts at the page edge and finishes past it.
         // The image is scaled to cover, exactly as in the Images demo - but covering means

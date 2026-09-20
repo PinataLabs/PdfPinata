@@ -201,7 +201,7 @@ internal sealed class TablesDemo : PdfDemo
         // docs:end total-row
 
         // Lists live here rather than in the Layout demo, because ListInfo is PinataLayout's
-        // and there is nothing like it on the PdfSharp side.
+        // and there is nothing like it on the PdfPinata side.
         section.AddParagraph().Format.SpaceAfter = Unit.FromPoint(10);
         section.AddParagraph("Notes").Format.Font.Bold = true;
 

@@ -139,7 +139,7 @@ internal sealed class NewspaperDemo : PdfDemo
 
         // ---- Photograph, spanning the middle columns -----------------------------------
         using var photograph = XImage.FromStream(
-            () => Assets.Open(Assets.ImagePrefix + "frog-and-toad.jpg"));
+            () => Assets.Open(Assets.ImagePrefix + "pdf-pinata.jpg"));
 
         // The picture takes columns two to four of its band, leaving the first column of
         // that band for the side story. Both sit between the two blocks of body text

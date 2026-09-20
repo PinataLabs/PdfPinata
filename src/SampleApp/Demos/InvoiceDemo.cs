@@ -99,7 +99,7 @@ internal sealed class InvoiceDemo : PdfDemo
         var mark = section.Headers.Primary.AddParagraph();
         mark.Format.Alignment = ParagraphAlignment.Right;
         var logo = mark.AddImage(ImageSource.FromStream(
-            "logo.jpg", () => Assets.Open(Assets.ImagePrefix + "frog-and-toad.jpg")));
+            "logo.jpg", () => Assets.Open(Assets.ImagePrefix + "pdf-pinata.jpg")));
         logo.Height = Unit.FromCentimeter(1.8);
         logo.LockAspectRatio = true;
 
