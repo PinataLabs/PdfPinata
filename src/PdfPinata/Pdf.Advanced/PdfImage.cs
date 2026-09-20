@@ -202,10 +202,21 @@ public sealed class PdfImage : PdfXObject
             }
 
             var fd = new FlateDecode();
-            if (hasMask)
+
+            // The soft mask carries alpha exactly; the stencil rounds it to transparent or opaque
+            // at 128. Where the soft mask goes the stencil is therefore redundant at best, and it
+            // is worse than that: ISO 32000-1 Table 89 has /SMask override an image's /Mask, and
+            // pdf.js obeys that, but Ghostscript and macOS Quartz apply both - so a picture whose
+            // alpha lay wholly below 128, a watermark say, was embedded, referenced, and
+            // invisible. So the two are alternatives rather than a pair. That leaves the stencil
+            // the two cases where it is the whole answer: transparency that is already binary,
+            // where it loses nothing, and a document too old to be read a soft mask.
+            var hasSoftMask = hasMask && hasAlphaMask && pdfVersion >= 14;
+
+            if (hasMask && !hasSoftMask)
             {
-                // monochrome mask is either sufficient or
-                // provided for compatibility with older reader versions
+                // Either binary transparency, which the stencil states exactly, or a pre-1.4
+                // document, where it is all a reader of that vintage could have been given.
                 var maskDataCompressed = fd.Encode(mask.MaskData, _document.Options.FlateEncodeMode);
                 var pdfMask = new PdfDictionary(_document);
                 pdfMask.Elements.SetName(Keys.Type, "/XObject");
@@ -221,7 +232,7 @@ public sealed class PdfImage : PdfXObject
                 pdfMask.Elements[Keys.ImageMask] = new PdfBoolean(true);
                 Elements[Keys.Mask] = pdfMask.Reference;
             }
-            if (hasMask && hasAlphaMask && pdfVersion >= 14)
+            if (hasSoftMask)
             {
                 // The image provides an alpha mask (requires Arcrobat 5.0 or higher)
                 var alphaMaskCompressed = fd.Encode(alphaMask, _document.Options.FlateEncodeMode);
