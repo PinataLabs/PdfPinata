@@ -89,7 +89,12 @@ internal class PdfWriter
     public void Write(bool value)
     {
         WriteSeparator();
-        WriteRaw(value ? bool.TrueString : bool.FalseString);
+        // Lowercase, because ISO 32000-1 7.3.2 spells the two boolean keywords that way and a
+        // reader looking for them finds nothing else. This wrote bool.TrueString - "True" - and
+        // got away with it because its only caller is PdfBooleanObject, which nothing in this
+        // library creates: an indirect boolean was the one value written as a token no PDF
+        // defines. The PdfBoolean overload below always had it right.
+        WriteRaw(value ? "true" : "false");
         _lastCat = CharCat.Character;
     }
 

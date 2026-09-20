@@ -10,6 +10,14 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ## [Unreleased]
 
+### Fixed
+
+- **An indirect boolean is written as `true` or `false` rather than `True` or `False`.**
+  `PdfWriter.Write(bool)` wrote `bool.TrueString`, and ISO 32000-1 7.3.2 spells the two keywords in
+  lowercase — a reader looking for them finds nothing else. Its only caller is `PdfBooleanObject`,
+  which nothing in this library creates for itself, so an indirect boolean was the one value written
+  as a token no PDF defines. The `PdfBoolean` overload beside it always had it right.
+
 ## [0.2.0] - 2026-09-20
 
 ### Added
