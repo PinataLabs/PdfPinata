@@ -10,6 +10,24 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ## [Unreleased]
 
+### Fixed
+
+- **An indirect boolean is written as `true` or `false` rather than `True` or `False`.**
+  `PdfWriter.Write(bool)` wrote `bool.TrueString`, and ISO 32000-1 7.3.2 spells the two keywords in
+  lowercase — a reader looking for them finds nothing else. Its only caller is `PdfBooleanObject`,
+  which nothing in this library creates for itself, so an indirect boolean was the one value written
+  as a token no PDF defines. The `PdfBoolean` overload beside it always had it right.
+
+- **`ViewerPreferences.Direction` reads back what it was set to.** The getter compared the stored
+  name against `"L2R"` and `"R2L"`, and a PDF name carries its slash — so nothing ever matched
+  and the property answered null however it had been set, in the same document and out of the file
+  it wrote. Both spellings are now taken, for an entry set as a name by hand.
+
+- **`Section.LastParagraph` and `Section.LastTable` answer null on an empty section** instead of
+  raising a `NullReferenceException`. Both read the backing field rather than the `Elements`
+  property, and a section nobody has added anything to has not built its element collection yet —
+  so the one case each of them documents an answer for was the one case that threw.
+
 ## [0.2.0] - 2026-09-20
 
 ### Added

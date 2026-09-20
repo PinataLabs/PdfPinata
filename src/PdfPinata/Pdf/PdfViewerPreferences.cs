@@ -119,11 +119,18 @@ public sealed class PdfViewerPreferences : PdfDictionary
     {
         get
         {
+            // A PDF name carries its slash, and that is what GetName answers with - SetName below
+            // even adds one when the caller leaves it out. So matching against the bare "L2R" and
+            // "R2L" matched nothing at all, and this property could be set and never read back,
+            // neither in the document it was set on nor out of the file it was written to. Both
+            // spellings are taken, because an element set as a name by hand need not have one.
             switch (Elements.GetName(Keys.Direction))
             {
+                case "/L2R":
                 case "L2R":
                     return PdfReadingDirection.LeftToRight;
 
+                case "/R2L":
                 case "R2L":
                     return PdfReadingDirection.RightToLeft;
             }

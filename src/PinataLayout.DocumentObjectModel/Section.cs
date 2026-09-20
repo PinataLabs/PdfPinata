@@ -295,11 +295,14 @@ public partial class Section : DocumentObject, IVisitable
     {
         get
         {
-            var count = elements.Count;
+            // Through the property rather than the field. A section nobody has added anything to
+            // has not built its element collection yet, and the field is null until it does - so
+            // asking the field for its count threw where the summary above promises a null.
+            var count = Elements.Count;
             for (var idx = count - 1; idx >= 0; idx--)
             {
-                if (elements[idx] is Paragraph)
-                    return (Paragraph)elements[idx];
+                if (Elements[idx] is Paragraph paragraph)
+                    return paragraph;
             }
             return null;
         }
@@ -312,11 +315,12 @@ public partial class Section : DocumentObject, IVisitable
     {
         get
         {
-            var count = elements.Count;
+            // Through the property, for the reason given on LastParagraph above.
+            var count = Elements.Count;
             for (var idx = count - 1; idx >= 0; idx--)
             {
-                if (elements[idx] is Table)
-                    return (Table)elements[idx];
+                if (Elements[idx] is Table table)
+                    return table;
             }
             return null;
         }
