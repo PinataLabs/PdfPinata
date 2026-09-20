@@ -200,6 +200,10 @@ public class PdfDocumentRenderer
 
     /// <summary>
     /// Saves the PdfDocument to the specified path. If a file already exists, it will be overwritten.
+    /// <para>
+    /// A relative path is resolved against <see cref="WorkingDirectory"/> when one is set, and
+    /// against the process's current directory otherwise. An absolute path is used as it stands.
+    /// </para>
     /// </summary>
     public void Save(string path)
     {
@@ -211,8 +215,12 @@ public class PdfDocumentRenderer
                 throw new ArgumentException("PDF file Path must not be empty");
         }
 
+        // The combined path, which is what this line was for. It used to throw the result away, so
+        // the working directory decided nothing and every relative path was written against whatever
+        // the process's current directory happened to be. A caller passing an absolute path is
+        // unaffected either way: Path.Combine answers one with itself.
         if (_workingDirectory != null)
-            Path.Combine(_workingDirectory, path);
+            path = Path.Combine(_workingDirectory, path);
 
         _pdfDocument.Save(path);
     }
@@ -261,7 +269,8 @@ public class PdfDocumentRenderer
     }
 
     /// <summary>
-    /// Gets or sets a working directory for the printing process.
+    /// Gets or sets the directory a relative path given to <see cref="Save(string)"/> is resolved
+    /// against. Unset, a relative path is resolved against the process's current directory.
     /// </summary>
     public string WorkingDirectory
     {
