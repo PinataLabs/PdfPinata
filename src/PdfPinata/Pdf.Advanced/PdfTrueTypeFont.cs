@@ -55,18 +55,18 @@ internal class PdfTrueTypeFont : PdfFont
         // TrueType with WinAnsiEncoding only.
         var ttDescriptor = (OpenTypeDescriptor)FontDescriptorCache.GetOrCreateDescriptorFor(font);
         FontDescriptor = new PdfFontDescriptor(document, ttDescriptor);
-        _fontOptions = font.PdfOptions;
-        Debug.Assert(_fontOptions != null);
+        var fontOptions = font.PdfOptions;
+        Debug.Assert(fontOptions != null);
 
         //cmapInfo = new CMapInfo(null/*ttDescriptor*/);
-        _cmapInfo = new CMapInfo(ttDescriptor);
+        CmapInfo = new CMapInfo(ttDescriptor);
 
         BaseFont = font.GlyphTypeface.GetBaseName();
 
         BaseFont = CreateEmbeddedFontSubsetName(BaseFont);
         FontDescriptor.FontName = BaseFont;
 
-        Debug.Assert(_fontOptions.FontEncoding == PdfFontEncoding.WinAnsi);
+        Debug.Assert(fontOptions.FontEncoding == PdfFontEncoding.WinAnsi);
         if (!IsSymbolFont)
             Encoding = "/WinAnsiEncoding";
 
@@ -76,8 +76,6 @@ internal class PdfTrueTypeFont : PdfFont
 
         FontEncoding = font.PdfOptions.FontEncoding;
     }
-
-    readonly XPdfFontOptions _fontOptions;
 
     public string BaseFont
     {
@@ -120,7 +118,7 @@ internal class PdfTrueTypeFont : PdfFont
         var width = Widths;
         //width.Elements.Clear();
         for (var idx = 0; idx < 256; idx++)
-            width.Elements.Add(new PdfInteger(FontDescriptor._descriptor.Widths[idx]));
+            width.Elements.Add(new PdfInteger(FontDescriptor.Descriptor.Widths[idx]));
     }
 
     /// <summary>

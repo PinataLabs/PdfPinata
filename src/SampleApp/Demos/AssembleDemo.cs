@@ -124,10 +124,10 @@ internal sealed class AssembleDemo : PdfDemo
         // copy keeps the annotation and its destination if the destination is coming too, a deep
         // copy drags in what it points at, and DoNotCopy leaves it behind.
         foreach (var page in sourceA.Pages)
-            document.AddPage(page);
+            _ = document.AddPage(page);
 
         foreach (var page in sourceB.Pages)
-            document.AddPage(page);
+            _ = document.AddPage(page);
         // docs:end merge
 
         var bytesMerged = Bytes(document);
@@ -149,7 +149,7 @@ internal sealed class AssembleDemo : PdfDemo
         // docs:begin duplicate-and-move
         // A duplicate of the first imported page, placed at the end. Within one document, so no
         // import is involved and the copy shares what it can with the original.
-        document.DuplicatePage(1, document.PageCount);
+        _ = document.DuplicatePage(1, document.PageCount);
 
         // And a reorder. The pages that follow this report are their own evidence: B2 has moved
         // from the end of the run to the front of it.
@@ -176,7 +176,7 @@ internal sealed class AssembleDemo : PdfDemo
             foreach (var page in assembled.Pages)
             {
                 using var single = new PdfDocument();
-                single.AddPage(page);
+                _ = single.AddPage(page);
                 splitTotal += Bytes(single);
                 splitCount++;
             }

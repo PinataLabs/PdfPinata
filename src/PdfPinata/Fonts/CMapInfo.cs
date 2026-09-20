@@ -43,9 +43,9 @@ internal class CMapInfo
     public CMapInfo(OpenTypeDescriptor descriptor)
     {
         Debug.Assert(descriptor != null);
-        _descriptor = descriptor;
+        Descriptor = descriptor;
     }
-    internal OpenTypeDescriptor _descriptor;
+    internal OpenTypeDescriptor Descriptor;
 
     /// <summary>
     /// Adds the characters of the specified string to the hashtable.
@@ -54,7 +54,7 @@ internal class CMapInfo
     {
         if (text != null)
         {
-            var symbol = _descriptor.FontFace.cmap.symbol;
+            var symbol = Descriptor.FontFace.cmap.symbol;
             var length = text.Length;
             for (var idx = 0; idx < length; idx++)
             {
@@ -65,9 +65,9 @@ internal class CMapInfo
                     if (symbol)
                     {
                         // Remap ch for symbol fonts.
-                        ch2 = (char)(ch | (_descriptor.FontFace.os2.usFirstCharIndex & 0xFF00));  // @@@ refactor
+                        ch2 = (char)(ch | (Descriptor.FontFace.os2.usFirstCharIndex & 0xFF00));  // @@@ refactor
                     }
-                    var glyphIndex = _descriptor.CharCodeToGlyphIndex(ch2);
+                    var glyphIndex = Descriptor.CharCodeToGlyphIndex(ch2);
                     CharacterToGlyphIndex.Add(ch, glyphIndex);
                     GlyphIndices[glyphIndex] = null;
                     MinChar = (char)Math.Min(MinChar, ch);

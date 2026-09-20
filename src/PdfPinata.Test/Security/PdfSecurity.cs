@@ -51,7 +51,7 @@ public class PdfSecurity
     public void SavingAnUnencryptedDocumentDoesNotCreateAHashAlgorithm()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         // Saving reads this property whenever the trailer is a cross-reference stream, whether
         // or not the document is encrypted, so constructing the handler must stay harmless.
         var securityHandler = document.SecurityHandler;
@@ -96,7 +96,7 @@ public class PdfSecurity
         // import pages into a new document
         var encryptedDoc = new PdfDocument();
         foreach (var page in document.Pages)
-            encryptedDoc.AddPage(page);
+            _ = encryptedDoc.AddPage(page);
 
         // save enrypted
         encryptedDoc.SecuritySettings.UserPassword = "supersecret!11";

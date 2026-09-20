@@ -345,7 +345,7 @@ public class SigningTests
     public void ADocumentThatWasNotOpenedForAppendingCannotBeSigned()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
 
         var signing = () => PdfSigner.Sign(document, new MemoryStream(),
             new Pkcs7Signer(SigningCertificates.Default));
@@ -432,8 +432,8 @@ public class SigningTests
     static byte[] TwoPages()
     {
         var document = new PdfDocument();
-        document.AddPage();
-        document.AddPage();
+        _ = document.AddPage();
+        _ = document.AddPage();
 
         using var output = new MemoryStream();
         document.Save(output, false);

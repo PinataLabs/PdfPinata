@@ -28,6 +28,7 @@
 #endregion
 
 using System;
+using System.Linq;
 using PdfPinata.Drawing;
 
 namespace PdfPinata.Charting.Renderers;
@@ -60,8 +61,7 @@ internal class BarDataLabelRenderer : DataLabelRenderer
 
       sri.DataLabelRendererInfo.Entries = new DataLabelEntryRendererInfo[sri.PointRendererInfos.Length];
       var index = 0;
-      // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
-      foreach (ColumnRendererInfo column in sri.PointRendererInfos)
+      foreach (var column in sri.PointRendererInfos.Cast<ColumnRendererInfo>())
       {
         var dleri = new DataLabelEntryRendererInfo();
         if (sri.DataLabelRendererInfo.Type == DataLabelType.Percent)
@@ -122,8 +122,7 @@ internal class BarDataLabelRenderer : DataLabelRenderer
         continue;
 
       var columnIndex = 0;
-      foreach (ColumnRendererInfo bar in sri.PointRendererInfos)
-      // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
+      foreach (var bar in sri.PointRendererInfos.Cast<ColumnRendererInfo>())
       {
         var dleri = sri.DataLabelRendererInfo.Entries[columnIndex++];
 

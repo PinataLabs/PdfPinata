@@ -70,7 +70,7 @@ static class PdfGradientSoftMask
     /// </summary>
     internal static bool NeedsMask(XBaseGradientBrush brush)
     {
-        return brush._color1.A < 1 || brush._color2.A < 1;
+        return brush.Color1.A < 1 || brush.Color2.A < 1;
     }
 
     /// <summary>

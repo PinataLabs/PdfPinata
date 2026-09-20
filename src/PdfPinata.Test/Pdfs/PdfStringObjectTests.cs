@@ -224,7 +224,7 @@ public class PdfStringObjectTests
     {
         const string password = "owner";
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         var text = new PdfStringObject(value, encoding);
         document.Internals.AddObject(text);
         document.Internals.Catalog.Elements["/TestText"] = text.Reference;
@@ -251,7 +251,7 @@ public class PdfStringObjectTests
         // so its bytes are the UTF-16BE of the text alone, and they are read back the same way.
         const string password = "owner";
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         document.SecuritySettings.OwnerPassword = password;
         // A fixed identifier fixes the key, so that what the first pass produces is known not to
         // begin with a byte order mark of its own.
@@ -277,7 +277,7 @@ public class PdfStringObjectTests
     private static (byte[] Saved, int ObjectNumber) SaveWithIndirectString(PdfStringObject text)
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         document.Internals.AddObject(text);
         document.Internals.Catalog.Elements["/TestText"] = text.Reference;
         return (Save(document), text.Reference.ObjectNumber);

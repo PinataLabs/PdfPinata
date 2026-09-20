@@ -66,20 +66,20 @@ public class PdfFont : PdfDictionary
 
     internal void AddChars(string text)
     {
-        if (_cmapInfo != null)
-            _cmapInfo.AddChars(text);
+        if (CmapInfo != null)
+            CmapInfo.AddChars(text);
     }
 
     internal void AddShapedRun(ShapedRun run, string text)
     {
-        if (_cmapInfo != null)
-            _cmapInfo.AddShapedRun(run, text);
+        if (CmapInfo != null)
+            CmapInfo.AddShapedRun(run, text);
     }
 
     internal void AddGlyphIndices(string glyphIndices)
     {
-        if (_cmapInfo != null)
-            _cmapInfo.AddGlyphIndices(glyphIndices);
+        if (CmapInfo != null)
+            CmapInfo.AddGlyphIndices(glyphIndices);
     }
 
     /// <summary>
@@ -87,20 +87,20 @@ public class PdfFont : PdfDictionary
     /// </summary>
     internal CMapInfo CMapInfo
     {
-        get => _cmapInfo;
-        set => _cmapInfo = value;
+        get => CmapInfo;
+        set => CmapInfo = value;
     }
-    internal CMapInfo _cmapInfo;
+    internal CMapInfo CmapInfo;
 
     /// <summary>
     /// Gets or sets ToUnicodeMap.
     /// </summary>
     internal PdfToUnicodeMap ToUnicodeMap
     {
-        get => _toUnicode;
-        set => _toUnicode = value;
+        get => ToUnicode;
+        set => ToUnicode = value;
     }
-    internal PdfToUnicodeMap _toUnicode;
+    internal PdfToUnicodeMap ToUnicode;
 
 
     /// <summary>
@@ -118,12 +118,12 @@ public class PdfFont : PdfDictionary
     /// </remarks>
     internal void EmbedFontProgram(bool cidFont)
     {
-        var fontFace = FontDescriptor._descriptor.FontFace;
+        var fontFace = FontDescriptor.Descriptor.FontFace;
         var postscriptOutlines = fontFace.IsPostscriptOutlines;
 
         var fontData = postscriptOutlines
             ? fontFace.FontSource.Bytes
-            : fontFace.CreateFontSubSet(_cmapInfo.GlyphIndices, cidFont).FontSource.Bytes;
+            : fontFace.CreateFontSubSet(CmapInfo.GlyphIndices, cidFont).FontSource.Bytes;
 
         var fontStream = new PdfDictionary(Owner);
         Owner.Internals.AddObject(fontStream);

@@ -245,7 +245,7 @@ public class PagePlacementTests
         var plainSize = Save(plain).Length;
 
         var doubled = OpenForModify();
-        doubled.DuplicatePage(0, 1);
+        _ = doubled.DuplicatePage(0, 1);
         var doubledSize = Save(doubled).Length;
 
         // A duplicated page adds a page object, not another copy of the content stream.

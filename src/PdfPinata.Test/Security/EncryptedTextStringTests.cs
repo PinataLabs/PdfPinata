@@ -130,7 +130,7 @@ public class EncryptedTextStringTests
     public void AnUnencryptedDocumentIsWrittenExactlyAsBefore(string title)
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         document.Info.Title = title;
 
         using var output = new MemoryStream();
@@ -161,7 +161,7 @@ public class EncryptedTextStringTests
     private static byte[] SaveEncryptedDocument(PdfDocumentSecurityLevel level)
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         document.Info.Title = Title;
         document.Info.Author = Author;
 

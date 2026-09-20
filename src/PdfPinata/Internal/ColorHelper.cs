@@ -37,18 +37,18 @@ namespace PdfPinata.Internal;
 #pragma warning disable 0649
 struct SColor
 {
-    public byte a;
-    public byte r;
-    public byte g;
-    public byte b;
+    public byte A;
+    public byte R;
+    public byte G;
+    public byte B;
 }
 
 struct SCColor
 {
-    public float a;
-    public float r;
-    public float g;
-    public float b;
+    public float A;
+    public float R;
+    public float G;
+    public float B;
 }
 #pragma warning restore 0649
 

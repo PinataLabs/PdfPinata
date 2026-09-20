@@ -1158,7 +1158,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         // appending to. Close it here rather than leaving it to the writer, so that whatever it
         // wrote counts towards the decision below. This is the "close all open content streams"
         // the page tree has wanted for a long time.
-        RenderContent?._pdfRenderer?.Close();
+        RenderContent?.PdfRenderer?.Close();
 
         RemoveEmptyContentStreams();
 

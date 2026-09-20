@@ -174,7 +174,7 @@ public class XPdfForm : XForm
         //Gfx.Dispose();
         //Gfx = null;
 
-        //if (_pdfRenderer != null)
+        //if (PdfRenderer != null)
         //{
         //  _pdfForm.Stream = new PdfDictionary.PdfStream(PdfEncoders.RawEncoding.GetBytes(pdfRenderer.GetContent()), this.pdfForm);
 

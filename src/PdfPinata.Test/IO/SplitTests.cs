@@ -58,7 +58,7 @@ public class SplitTests
 
         var merged = new PdfDocument();
         foreach (var page in inputDocument.Pages)
-            merged.AddPage(page);
+            _ = merged.AddPage(page);
 
         using var output = new MemoryStream();
         merged.Save(output, false);
@@ -105,7 +105,7 @@ public class SplitTests
         for (var i = 0; i < inputDocument.PageCount; i++)
         {
             var outputDocument = new PdfDocument();
-            outputDocument.AddPage(inputDocument.Pages[i]);
+            _ = outputDocument.AddPage(inputDocument.Pages[i]);
 
             var output = new MemoryStream();
             outputDocument.Save(output, false);

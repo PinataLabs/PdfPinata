@@ -185,7 +185,7 @@ internal sealed class NavigationDemo : PdfDemo
                 // docs:begin label-probe
                 using var probe = new PdfDocument();
                 for (var index = 0; index < 4; index++)
-                    probe.AddPage();
+                    _ = probe.AddPage();
                 probe.PageLabels.Add(0, style.Style, style.Prefix, 1);
 
                 var labels = new List<string>();
@@ -211,7 +211,7 @@ internal sealed class NavigationDemo : PdfDemo
             // version of any of this that matters.
             using var buffer = new MemoryStream();
             using var copy = new PdfDocument();
-            copy.AddPage();
+            _ = copy.AddPage();
             copy.Language = "en-GB";
             copy.CustomValues["/Pipeline"] = new PdfCustomValue(Encoding.UTF8.GetBytes("kept"));
             copy.PageLabels.Add(0, PdfPageLabelStyle.LowercaseRoman);

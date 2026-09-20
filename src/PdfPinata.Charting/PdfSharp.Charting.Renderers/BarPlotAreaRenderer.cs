@@ -27,6 +27,7 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
+using System.Linq;
 using PdfPinata.Drawing;
 
 namespace PdfPinata.Charting.Renderers;
@@ -122,9 +123,8 @@ internal abstract class BarPlotAreaRenderer : PlotAreaRenderer
     var state = gfx.Save();
     foreach (var sri in cri.SeriesRendererInfos)
     {
-      foreach (ColumnRendererInfo column in sri.PointRendererInfos)
+      foreach (var column in sri.PointRendererInfos.Cast<ColumnRendererInfo>())
       {
-        // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
         // Do not draw bar if value is outside yMin/yMax range. Clipping does not make sense.
         if (IsDataInside(yMin, yMax, column.Value))
           gfx.DrawRectangle(column.FillFormat, column.Rect);
@@ -135,9 +135,8 @@ internal abstract class BarPlotAreaRenderer : PlotAreaRenderer
     // A border can overlap neighbor bars, so it is important to draw borders at the end.
     foreach (var sri in cri.SeriesRendererInfos)
     {
-      foreach (ColumnRendererInfo column in sri.PointRendererInfos)
+      foreach (var column in sri.PointRendererInfos.Cast<ColumnRendererInfo>())
       {
-        // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
         // Do not draw bar if value is outside yMin/yMax range. Clipping does not make sense.
         if (IsDataInside(yMin, yMax, column.Value))
         {

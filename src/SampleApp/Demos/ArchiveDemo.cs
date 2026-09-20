@@ -346,7 +346,7 @@ internal sealed class ArchiveDemo : PdfDemo
     static IEnumerable<string> PacketOfAProbe(byte[] profile)
     {
         using var probe = new PdfDocument();
-        probe.AddPage();
+        _ = probe.AddPage();
         probe.Info.Title = "A probe";
         probe.Info.Author = "PdfPinata sample app";
         probe.Options.Conformance = PdfAConformance.PdfA3B;
@@ -419,7 +419,7 @@ internal sealed class ArchiveDemo : PdfDemo
         Action<PdfDocument> breakARule)
     {
         using var probe = new PdfDocument();
-        probe.AddPage();
+        _ = probe.AddPage();
         probe.Info.Title = "A probe";
         probe.Options.Conformance = PdfAConformance.PdfA2B;
         probe.Options.OutputIntentIccProfile = profile;

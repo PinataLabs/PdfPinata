@@ -51,11 +51,11 @@ internal sealed class PdfImageTable : PdfResourceTable
     /// </summary>
     public PdfImage GetImage(XImage image)
     {
-        var selector = image._selector;
+        var selector = image.Selector;
         if (selector == null)
         {
             selector = new ImageSelector(image);
-            image._selector = selector;
+            image.Selector = selector;
         }
         if (!_images.TryGetValue(selector, out var pdfImage))
         {

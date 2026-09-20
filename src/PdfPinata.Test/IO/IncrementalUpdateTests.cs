@@ -127,7 +127,7 @@ public class IncrementalUpdateTests
     [Fact]
     public void APageAddedByAnUpdateIsThere()
     {
-        var updated = AppendChange(OriginalDocument(), document => document.AddPage());
+        var updated = AppendChange(OriginalDocument(), document => _ = document.AddPage());
 
         Reopen(updated).PageCount.Should().Be(3);
     }
@@ -173,7 +173,7 @@ public class IncrementalUpdateTests
     public void ADocumentCreatedFromScratchCannotBeAppendedTo()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
 
         var appending = () => document.SaveIncremental(new MemoryStream());
 

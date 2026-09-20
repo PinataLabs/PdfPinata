@@ -189,7 +189,7 @@ public class PdfRectangleTests
     public void ARectangleComesBackFromTheFileAsAnEqualRectangle()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         var rectangle = new PdfRectangle(new XPoint(1.5, 2), new XPoint(300.25, 400));
         document.Internals.Catalog.Elements.SetRectangle("/TestBox", rectangle);
 

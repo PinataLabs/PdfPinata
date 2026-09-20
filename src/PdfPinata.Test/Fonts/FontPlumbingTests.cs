@@ -399,8 +399,9 @@ public class FontPlumbingTests
         var isSet = OnAColdCopyOfTheLibrary(assembly =>
         {
             var settings = assembly.GetType("PdfPinata.Fonts.GlobalFontSettings", throwOnError: true);
-            // ReSharper disable once PossibleNullReferenceException
+            // ReSharper disable PossibleNullReferenceException
             _ = settings.GetProperty("DefaultFontEncoding").GetValue(null);
+            // ReSharper restore PossibleNullReferenceException
             // ReSharper disable once PossibleNullReferenceException
             return settings.GetProperty("IsDefaultFontEncodingSet").GetValue(null);
         });
@@ -422,8 +423,9 @@ public class FontPlumbingTests
             var imageSourceType = assembly.GetType(
                 "PinataLayout.DocumentObjectModel.Shapes.ImageSource",
                 throwOnError: true);
-            // ReSharper disable once PossibleNullReferenceException
+            // ReSharper disable PossibleNullReferenceException
             return imageSourceType.GetProperty("IsImageSourceImplSet").GetValue(null);
+            // ReSharper restore PossibleNullReferenceException
         });
 
         isSet.Should().Be(false);

@@ -587,8 +587,8 @@ internal sealed class Parser
             val = items[idx + 1];
             if (includeReferences && val is PdfReference)
                 val = ReadReference();
-            dict.Elements[key] = val;
             // ReSharper disable once AssignNullToNotNullAttribute
+            dict.Elements[key] = val;
             idx += 2;
         }
 
@@ -745,20 +745,13 @@ internal sealed class Parser
         return _lexer.ScanNextToken();
     }
 
-    private Symbol ScanNextToken(out string token)
-    {
-        var symbol = _lexer.ScanNextToken();
-        token = _lexer.Token;
-        return symbol;
-    }
-
     private void SkipCharsUntil(Symbol stop)
     {
         Symbol symbol;
         switch (stop)
         {
             case Symbol.EndDictionary:
-                SkipCharsUntil(">>", stop);
+                SkipCharsUntil(">>");
                 break;
 
             default:
@@ -771,7 +764,7 @@ internal sealed class Parser
         }
     }
 
-    private Symbol SkipCharsUntil(string text, Symbol stop)
+    private void SkipCharsUntil(string text)
     {
         var length = text.Length;
         var idx = 0;
@@ -783,7 +776,7 @@ internal sealed class Parser
                 if (idx + 1 == length)
                 {
                     _lexer.ScanNextChar(true);
-                    return stop;
+                    return;
                 }
 
                 idx++;
@@ -791,8 +784,6 @@ internal sealed class Parser
             else
                 idx = 0;
         }
-
-        return Symbol.Eof;
     }
 
     //protected Symbol ScanNextToken(out string token, bool testReference)

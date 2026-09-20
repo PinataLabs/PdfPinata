@@ -172,7 +172,7 @@ public class ShapedFontEmbeddingTests
         // Glyph 300 is a real glyph of the face and one the cmap would never return for any of
         // these characters - which is exactly the position a ligature is in.
         using var _ = new Installed(new SelectiveShaper(WidthSentinel,
-            __ => new[] { new ShapedGlyph(300, 0, 1000) }));
+            _ => new[] { new ShapedGlyph(300, 0, 1000) }));
 
         GlyphsGivenAWidth(Written(WidthSentinel)).Should().Contain(300,
             "a glyph drawn without a width in /W falls back to the default width, and a glyph "
@@ -183,7 +183,7 @@ public class ShapedFontEmbeddingTests
     public void TheGlyphsAShaperDidNotChooseAreNotCarriedAlongForNothing()
     {
         using var _ = new Installed(new SelectiveShaper(WidthSentinel,
-            __ => new[] { new ShapedGlyph(300, 0, 1000) }));
+            _ => new[] { new ShapedGlyph(300, 0, 1000) }));
 
         var widths = GlyphsGivenAWidth(Written(WidthSentinel));
 
@@ -201,7 +201,7 @@ public class ShapedFontEmbeddingTests
     {
         // Two glyphs for thirteen characters: the first cluster runs from 0 up to the second
         // cluster at 11, so glyph 300 means "ShapedProbe" and glyph 301 means "AB".
-        using var _ = new Installed(new SelectiveShaper(MeaningSentinel, __ => new[]
+        using var _ = new Installed(new SelectiveShaper(MeaningSentinel, _ => new[]
         {
             new ShapedGlyph(300, 0, 1000),
             new ShapedGlyph(301, 11, 1000)

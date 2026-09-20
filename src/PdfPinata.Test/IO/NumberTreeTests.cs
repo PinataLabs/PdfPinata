@@ -98,7 +98,7 @@ public class NumberTreeTests
     public void EntriesPutInAreFoundAgainInOrder()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         var tree = NewPageLabels(document);
 
         tree.SetValue(3, Label(document, "/D"));
@@ -114,7 +114,7 @@ public class NumberTreeTests
     public void PuttingAValueUnderAKeyThatIsTakenReplacesIt()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         var tree = NewPageLabels(document);
 
         tree.SetValue(0, Label(document, "/r"));
@@ -128,7 +128,7 @@ public class NumberTreeTests
     public void AnEntryCanBeTakenOutAgain()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         var tree = NewPageLabels(document);
         tree.SetValue(0, Label(document, "/r"));
 
@@ -141,7 +141,7 @@ public class NumberTreeTests
     public void ASmallTreeIsWrittenAsOneNodeStatingNoLimits()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         var tree = NewPageLabels(document);
 
         tree.SetValue(0, Label(document, "/r"));
@@ -156,7 +156,7 @@ public class NumberTreeTests
     public void ATreeTooBigForOneNodeIsWrittenAsNodesBelowTheRoot()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         var tree = NewPageLabels(document);
 
         for (var page = 0; page < 200; page++)
@@ -183,7 +183,7 @@ public class NumberTreeTests
     public void ATreeSurvivesBeingSavedAndReadBack()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         var tree = NewPageLabels(document);
         tree.SetValue(0, Label(document, "/r"));
         tree.SetValue(3, Label(document, "/D"));
@@ -199,7 +199,7 @@ public class NumberTreeTests
     public void ATreeOfManyNodesSurvivesBeingSavedAndReadBack()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         var tree = NewPageLabels(document);
         for (var page = 0; page < 500; page++)
             tree.SetValue(page * 2, Started(document, page + 1));

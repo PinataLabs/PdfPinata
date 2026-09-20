@@ -134,7 +134,7 @@ public class PdfUIntegerTests
     private static PdfItem RoundTrip(PdfUInteger value, out string written)
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         document.Internals.Catalog.Elements["/TestValue"] = value;
 
         using var output = new MemoryStream();

@@ -279,7 +279,7 @@ internal sealed class ChartsDemo : PdfDemo
 
             using var laidOut = PdfReader.Open(buffer, PdfDocumentOpenMode.Import);
             foreach (var rendered in laidOut.Pages)
-                document.AddPage(rendered);
+                _ = document.AddPage(rendered);
         }
         #endregion
 

@@ -58,7 +58,7 @@ public class IndirectStreamLengthTests
 
         var merged = new PdfDocument();
         foreach (var page in inputDocument.Pages)
-            merged.AddPage(page);
+            _ = merged.AddPage(page);
 
         using var output = new MemoryStream();
         merged.Save(output, false);

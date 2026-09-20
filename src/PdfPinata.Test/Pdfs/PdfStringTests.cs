@@ -67,7 +67,7 @@ public class PdfStringTests
     {
         // é is 0xE9 in WinAnsi and in the Latin-1 the reader takes an unmarked string's bytes as.
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         document.Internals.Catalog.Elements["/TestText"] = new PdfString("café", PdfStringEncoding.WinAnsiEncoding);
 
         using var output = new MemoryStream();

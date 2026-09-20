@@ -302,6 +302,6 @@ public class XImage : IDisposable
     /// Cache PdfImageTable.ImageSelector to speed up finding the right PdfImage
     /// if this image is used more than once.
     /// </summary>
-    internal PdfImageTable.ImageSelector _selector;
+    internal PdfImageTable.ImageSelector Selector;
     private IImageSource _source;
 }

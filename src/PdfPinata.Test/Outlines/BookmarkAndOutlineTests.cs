@@ -132,7 +132,7 @@ public class BookmarkAndOutlineTests
     public void ADocumentLinkWithoutAPositionStillNamesOnlyThePage()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         var page = document.AddPage();
         page.AddDocumentLink(new PdfRectangle(new XRect(10, 10, 50, 20)), 1);
 
@@ -146,7 +146,7 @@ public class BookmarkAndOutlineTests
     public void ADocumentLinkGivenAPositionCarriesIt()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         var page = document.AddPage();
         page.AddDocumentLink(new PdfRectangle(new XRect(10, 10, 50, 20)), 1, 456.5);
 

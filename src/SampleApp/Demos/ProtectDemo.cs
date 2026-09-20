@@ -132,7 +132,7 @@ internal sealed class ProtectDemo : PdfDemo
         {
             // docs:begin encrypt
             var sample = new PdfDocument();
-            sample.AddPage();
+            _ = sample.AddPage();
             sample.SecuritySettings.DocumentSecurityLevel = PdfDocumentSecurityLevel.Encrypted128Bit;
             sample.SecuritySettings.UserPassword = ReaderPassword;
             sample.SecuritySettings.OwnerPassword = OwnerPassword;
@@ -206,7 +206,7 @@ internal sealed class ProtectDemo : PdfDemo
         using (var buffer = new MemoryStream())
         {
             var sample = new PdfDocument();
-            sample.AddPage();
+            _ = sample.AddPage();
             sample.SecuritySettings.UserPassword = ReaderPassword;
             sample.Save(buffer, false);
 

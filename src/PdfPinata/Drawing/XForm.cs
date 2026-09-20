@@ -87,7 +87,7 @@ public class XForm : XImage, IContentStream
 
         _formState = FormState.Created;
         _document = document;
-        _pdfForm = new PdfFormXObject(document, this);
+        _pdfForm = new PdfFormXObject(document);
         //_templateSize = size;
         _viewBox = viewBox;
         var rect = new PdfRectangle(viewBox);

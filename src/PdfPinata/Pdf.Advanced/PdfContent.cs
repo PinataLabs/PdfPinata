@@ -143,12 +143,12 @@ public sealed class PdfContent : PdfDictionary
 
     internal override void WriteObject(PdfWriter writer)
     {
-        if (_pdfRenderer != null)
+        if (PdfRenderer != null)
         {
             // GetContent also disposes the underlying XGraphics object, if one exists
             //Stream = new PdfStream(PdfEncoders.RawEncoding.GetBytes(pdfRenderer.GetContent()), this);
-            _pdfRenderer.Close();
-            Debug.Assert(_pdfRenderer == null);
+            PdfRenderer.Close();
+            Debug.Assert(PdfRenderer == null);
         }
 
         if (Stream != null)
@@ -176,7 +176,7 @@ public sealed class PdfContent : PdfDictionary
         base.WriteObject(writer);
     }
 
-    internal XGraphicsPdfRenderer _pdfRenderer;
+    internal XGraphicsPdfRenderer PdfRenderer;
 
     /// <summary>
     /// Predefined keys of this dictionary.

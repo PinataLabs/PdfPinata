@@ -34,7 +34,7 @@ public class CertificationEnforcementTests
     {
         var document = OpenedForAppend(Certified(UnsignedWithAField(), level));
 
-        Action act = () => document.AddPage();
+        Action act = () => _ = document.AddPage();
 
         act.Should().Throw<InvalidOperationException>()
             .WithMessage($"*PdfCertificationLevel.{level}*")
@@ -151,7 +151,7 @@ public class CertificationEnforcementTests
         Action filling = () => Field(document).Value = new PdfString("filled");
         filling.Should().NotThrow();
 
-        Action addingAPage = () => document.AddPage();
+        Action addingAPage = () => _ = document.AddPage();
         addingAPage.Should().Throw<InvalidOperationException>()
             .WithMessage("*FormFillingAllowed*");
     }
@@ -168,7 +168,7 @@ public class CertificationEnforcementTests
         var annotating = () => document.Pages[0].Annotations.Add(new PdfTextAnnotation());
         annotating.Should().NotThrow();
 
-        Action addingAPage = () => document.AddPage();
+        Action addingAPage = () => _ = document.AddPage();
         addingAPage.Should().Throw<InvalidOperationException>()
             .WithMessage("*FormFillingAndAnnotationsAllowed*");
     }
@@ -178,7 +178,7 @@ public class CertificationEnforcementTests
     {
         var document = OpenedForAppend(Certified(UnsignedWithAField(), PdfCertificationLevel.NoChangesAllowed));
 
-        Action act = () => document.AddPage();
+        Action act = () => _ = document.AddPage();
 
         act.Should().Throw<InvalidOperationException>()
             .WithMessage("*certified*")
@@ -191,7 +191,7 @@ public class CertificationEnforcementTests
         var certified = Certified(UnsignedWithAField(), PdfCertificationLevel.NoChangesAllowed);
         var document = Reader.Open(new MemoryStream(certified), PdfDocumentOpenMode.ReadOnly);
 
-        Action act = () => document.AddPage();
+        Action act = () => _ = document.AddPage();
 
         // Refused once, for the mode - the more fundamental of the two reasons, and the one to fix
         // first. The certification refusal, worded differently, is never reached.
@@ -228,7 +228,7 @@ public class CertificationEnforcementTests
 
         Field(document).Value = new PdfString("filled");
         document.Pages[0].Annotations.Add(new PdfTextAnnotation());
-        document.AddPage();
+        _ = document.AddPage();
 
         var act = () => document.Save(new MemoryStream(), false);
         act.Should().NotThrow();

@@ -46,8 +46,8 @@ public sealed class XLinearGradientBrush : XBaseGradientBrush
     /// </summary>
     public XLinearGradientBrush(XPoint point1, XPoint point2, XColor color1, XColor color2) : base(color1, color2)
     {
-        _point1 = point1;
-        _point2 = point2;
+        Point1 = point1;
+        Point2 = point2;
     }
 
 
@@ -62,9 +62,9 @@ public sealed class XLinearGradientBrush : XBaseGradientBrush
         if (rect.Width == 0 || rect.Height == 0)
             throw new ArgumentException("Invalid rectangle.", nameof(rect));
 
-        _useRect = true;
-        _rect = rect;
-        _linearGradientMode = linearGradientMode;
+        UseRect = true;
+        Rect = rect;
+        LinearGradientMode = linearGradientMode;
     }
 
     // TODO: 
@@ -74,8 +74,8 @@ public sealed class XLinearGradientBrush : XBaseGradientBrush
     //public XLinearGradientBrush(RectangleF rect, XColor color1, XColor color2, double angle, bool isAngleScaleable);
     //public XLinearGradientBrush(RectangleF rect, XColor color1, XColor color2, double angle, bool isAngleScaleable);
 
-    internal bool _useRect;
-    internal XPoint _point1, _point2;
-    internal XRect _rect;
-    internal XLinearGradientMode _linearGradientMode;
+    internal bool UseRect;
+    internal XPoint Point1, Point2;
+    internal XRect Rect;
+    internal XLinearGradientMode LinearGradientMode;
 }

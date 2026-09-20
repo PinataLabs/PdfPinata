@@ -184,7 +184,7 @@ public class PdfIntegerTests
     public void AnIntegerComesBackFromTheFileAsTheSameInteger(int number)
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         document.Internals.Catalog.Elements["/TestValue"] = new PdfIntegerValue(number);
 
         var saved = Save(document);

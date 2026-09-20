@@ -202,7 +202,7 @@ public class PruneUnusedResourcesTests
         for (var i = 0; i < inputDocument.PageCount; i++)
         {
             var outputDocument = new PdfDocument();
-            outputDocument.AddPage(inputDocument.Pages[i]);
+            _ = outputDocument.AddPage(inputDocument.Pages[i]);
             if (prune)
                 outputDocument.PruneUnusedResources();
 

@@ -1411,7 +1411,7 @@ public sealed class XGraphics : IDisposable
                     throw new InvalidOperationException(
                         "A XPdfForm object is always bound to the document it was created for and cannot be drawn in the context of another document.");
 
-                if (xForm == ((XGraphicsPdfRenderer)_renderer)._form)
+                if (xForm == ((XGraphicsPdfRenderer)_renderer).Form)
                     throw new InvalidOperationException(
                         "A XPdfForm cannot be drawn on itself.");
             }
@@ -1489,7 +1489,7 @@ public sealed class XGraphics : IDisposable
     public IDisposable BeginMarkedContent(PdfStructure.PdfTag tag, string alternateText = null)
     {
         var renderer = PdfRenderer("Marked content can only be written to a PDF page.");
-        var page = renderer._page
+        var page = renderer.Page
             ?? throw new InvalidOperationException(
                 "Marked content can only be written to a PDF page, not to a form.");
 
@@ -1540,7 +1540,7 @@ public sealed class XGraphics : IDisposable
         ArgumentNullException.ThrowIfNull(element);
 
         var renderer = PdfRenderer("Marked content can only be written to a PDF page.");
-        var page = renderer._page
+        var page = renderer.Page
             ?? throw new InvalidOperationException(
                 "Marked content can only be written to a PDF page, not to a form.");
 
@@ -1645,7 +1645,7 @@ public sealed class XGraphics : IDisposable
     void ResumeMarkedContent(PdfStructure.PdfStructureElement element)
     {
         var renderer = PdfRenderer("Marked content can only be written to a PDF page.");
-        var page = renderer._page;
+        var page = renderer.Page;
         if (page == null)
             return;
 
@@ -1685,7 +1685,7 @@ public sealed class XGraphics : IDisposable
             if (_isStructural)
             {
                 var element = _gfx._markedContent.Pop();
-                CloseMarkedContent(renderer, renderer._page, element);
+                CloseMarkedContent(renderer, renderer.Page, element);
 
                 // The sequence this one interrupted picks up where it left off, in a content item of
                 // its own. Left unresumed, everything the parent draws after its child would be
@@ -2168,7 +2168,7 @@ public sealed class XGraphics : IDisposable
         get
         {
             var renderer = _renderer as XGraphicsPdfRenderer;
-            return renderer != null ? renderer._page : null;
+            return renderer != null ? renderer.Page : null;
         }
     }
 

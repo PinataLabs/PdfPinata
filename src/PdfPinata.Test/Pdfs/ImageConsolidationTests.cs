@@ -114,8 +114,8 @@ public class ImageConsolidationTests
     public void ADocumentWithNoImagesIsUntouched()
     {
         var document = new PdfDocument();
-        document.AddPage();
-        document.AddPage();
+        _ = document.AddPage();
+        _ = document.AddPage();
 
         var consolidate = () => document.ConsolidateImages();
 

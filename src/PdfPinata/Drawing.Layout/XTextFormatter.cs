@@ -1004,7 +1004,7 @@ public class XTextFormatter
         // The measure of the line being filled. Re-asked for at every line, because a drop cap -
         // or anything else the text has to flow beside - makes the answer depend on how far down
         // the column the line sits.
-        LineMeasure measure = default;
+        LineMeasure measure;
         double y = 0;
         var count = _blocks.Count;
 

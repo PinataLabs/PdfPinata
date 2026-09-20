@@ -349,9 +349,10 @@ public class Lexer
         var l = Int64.Parse(_token.ToString(), CultureInfo.InvariantCulture);
         if (l >= Int32.MinValue && l <= Int32.MaxValue)
             return Symbol.Integer;
-        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+        // ReSharper disable ConditionIsAlwaysTrueOrFalse
         if (l >= Int64.MinValue && l <= Int64.MaxValue)
             return Symbol.Long;
+        // ReSharper restore ConditionIsAlwaysTrueOrFalse
 
         // Got an AutoCAD PDF file that contains this: /C 264584027963392
         // Best we can do is to convert it to real value.

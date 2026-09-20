@@ -36,7 +36,7 @@ namespace PdfPinata.Charting.Renderers;
 /// <summary>
 /// Represents the base class for all X axis renderer, and - since a horizontal and a vertical
 /// category axis compute the same things and differ only in which page coordinate a value
-/// becomes - the one place both are drawn from. <see cref="orientation"/> says which axis this is.
+/// becomes - the one place both are drawn from. <c>isHorizontal</c> says which axis this is.
 /// </summary>
 internal abstract class XAxisRenderer : AxisRenderer
 {
@@ -47,11 +47,8 @@ internal abstract class XAxisRenderer : AxisRenderer
   internal XAxisRenderer(RendererParameters parms, AxisOrientation orientation)
     : base(parms)
   {
-    this.orientation = orientation;
     this.isHorizontal = orientation == AxisOrientation.Horizontal;
   }
-
-  readonly AxisOrientation orientation;
 
   /// <summary>
   /// Whether this is the horizontal axis, cached once rather than compared for on every one of

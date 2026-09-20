@@ -102,27 +102,27 @@ public sealed class PdfFontDescriptor : PdfDictionary
     internal PdfFontDescriptor(PdfDocument document, OpenTypeDescriptor descriptor)
         : base(document)
     {
-        _descriptor = descriptor;
+        Descriptor = descriptor;
         Elements.SetName(Keys.Type, "/FontDescriptor");
 
-        Elements.SetInteger(Keys.Ascent, _descriptor.DesignUnitsToPdf(_descriptor.Ascender));
-        Elements.SetInteger(Keys.CapHeight, _descriptor.DesignUnitsToPdf(_descriptor.CapHeight));
-        Elements.SetInteger(Keys.Descent, _descriptor.DesignUnitsToPdf(_descriptor.Descender));
-        Elements.SetInteger(Keys.Flags, (int)FlagsFromDescriptor(_descriptor));
+        Elements.SetInteger(Keys.Ascent, Descriptor.DesignUnitsToPdf(Descriptor.Ascender));
+        Elements.SetInteger(Keys.CapHeight, Descriptor.DesignUnitsToPdf(Descriptor.CapHeight));
+        Elements.SetInteger(Keys.Descent, Descriptor.DesignUnitsToPdf(Descriptor.Descender));
+        Elements.SetInteger(Keys.Flags, (int)FlagsFromDescriptor(Descriptor));
         Elements.SetRectangle(Keys.FontBBox, new PdfRectangle(
-            _descriptor.DesignUnitsToPdf(_descriptor.XMin),
-            _descriptor.DesignUnitsToPdf(_descriptor.YMin),
-            _descriptor.DesignUnitsToPdf(_descriptor.XMax),
-            _descriptor.DesignUnitsToPdf(_descriptor.YMax)));
+            Descriptor.DesignUnitsToPdf(Descriptor.XMin),
+            Descriptor.DesignUnitsToPdf(Descriptor.YMin),
+            Descriptor.DesignUnitsToPdf(Descriptor.XMax),
+            Descriptor.DesignUnitsToPdf(Descriptor.YMax)));
         // not here, done in PdfFont later...
         //Elements.SetName(Keys.FontName, "abc"); //descriptor.FontName);
-        Elements.SetReal(Keys.ItalicAngle, _descriptor.ItalicAngle);
-        Elements.SetInteger(Keys.StemV, _descriptor.StemV);
-        Elements.SetInteger(Keys.XHeight, _descriptor.DesignUnitsToPdf(_descriptor.XHeight));
+        Elements.SetReal(Keys.ItalicAngle, Descriptor.ItalicAngle);
+        Elements.SetInteger(Keys.StemV, Descriptor.StemV);
+        Elements.SetInteger(Keys.XHeight, Descriptor.DesignUnitsToPdf(Descriptor.XHeight));
     }
 
     //HACK OpenTypeDescriptor descriptor
-    internal OpenTypeDescriptor _descriptor;
+    internal OpenTypeDescriptor Descriptor;
 
     /// <summary>
     /// Gets or sets the name of the font.

@@ -35,7 +35,7 @@ namespace PdfPinata.Charting.Renderers;
 /// <summary>
 /// Represents the base class for all Y axis renderer, and - since a horizontal and a vertical
 /// value axis compute the same things and differ only in which page coordinate a value becomes -
-/// the one place both are drawn from. <see cref="orientation"/> says which axis this is.
+/// the one place both are drawn from. <c>isHorizontal</c> says which axis this is.
 /// </summary>
 internal abstract class YAxisRenderer : AxisRenderer
 {
@@ -46,11 +46,8 @@ internal abstract class YAxisRenderer : AxisRenderer
   internal YAxisRenderer(RendererParameters parms, AxisOrientation orientation)
     : base(parms)
   {
-    this.orientation = orientation;
     this.isHorizontal = orientation == AxisOrientation.Horizontal;
   }
-
-  readonly AxisOrientation orientation;
 
   /// <summary>
   /// Whether this is the horizontal axis, cached once rather than compared for on every one of
@@ -470,8 +467,9 @@ internal abstract class YAxisRenderer : AxisRenderer
   protected static void FineTuneYAxis(AxisRendererInfo rendererInfo, double yMin, double yMax)
   {
     #pragma warning disable S1244 // Exact on purpose: compared with a sentinel the value is set to, never with the result of arithmetic.
-    // ReSharper disable once CompareOfFloatsByEqualityOperator
+    // ReSharper disable CompareOfFloatsByEqualityOperator
     if (yMin == double.MaxValue && yMax == double.MinValue)
+    // ReSharper restore CompareOfFloatsByEqualityOperator
     #pragma warning restore S1244
     {
       // No series data given.

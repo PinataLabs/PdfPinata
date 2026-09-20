@@ -32,12 +32,8 @@ using PdfPinata.Charting;
 
 namespace PinataLayout.Rendering.ChartMapper;
 
-internal class LegendMapper
+internal static class LegendMapper
 {
-  private LegendMapper()
-  {
-  }
-
   static void MapObject(Chart chart, DocumentObjectModel.Shapes.Charts.Chart domChart)
   {
     DocumentObjectModel.Shapes.Charts.Legend domLegend = null;

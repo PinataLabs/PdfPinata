@@ -82,17 +82,17 @@ public sealed class PdfShading : PdfDictionary
         ArgumentNullException.ThrowIfNull(brush);
 
         var colorMode = _document.Options.ColorMode;
-        var color1 = ColorSpaceHelper.EnsureColorMode(colorMode, brush._color1);
-        var color2 = ColorSpaceHelper.EnsureColorMode(colorMode, brush._color2);
+        var color1 = ColorSpaceHelper.EnsureColorMode(colorMode, brush.Color1);
+        var color2 = ColorSpaceHelper.EnsureColorMode(colorMode, brush.Color2);
 
         Elements[Keys.ShadingType] = new PdfInteger(3);
         Elements[Keys.ColorSpace] = new PdfName(ColorSpaceOf(colorMode, channel));
 
-        var p1 = renderer.WorldToView(brush._center1);
-        var p2 = renderer.WorldToView(brush._center2);
+        var p1 = renderer.WorldToView(brush.Center1);
+        var p2 = renderer.WorldToView(brush.Center2);
 
-        var rv1 = renderer.WorldToView(new XPoint(brush._r1 + brush._center1.X, brush._center1.Y));
-        var rv2 = renderer.WorldToView(new XPoint(brush._r2 + brush._center2.X, brush._center2.Y));
+        var rv1 = renderer.WorldToView(new XPoint(brush.R1 + brush.Center1.X, brush.Center1.Y));
+        var rv2 = renderer.WorldToView(new XPoint(brush.R2 + brush.Center2.X, brush.Center2.Y));
 
         var dx1 = rv1.X - p1.X;
         var dy1 = rv1.Y - p1.Y;
@@ -120,19 +120,19 @@ public sealed class PdfShading : PdfDictionary
         ArgumentNullException.ThrowIfNull(brush);
 
         var colorMode = _document.Options.ColorMode;
-        var color1 = ColorSpaceHelper.EnsureColorMode(colorMode, brush._color1);
-        var color2 = ColorSpaceHelper.EnsureColorMode(colorMode, brush._color2);
+        var color1 = ColorSpaceHelper.EnsureColorMode(colorMode, brush.Color1);
+        var color2 = ColorSpaceHelper.EnsureColorMode(colorMode, brush.Color2);
 
         Elements[Keys.ShadingType] = new PdfInteger(2);
         Elements[Keys.ColorSpace] = new PdfName(ColorSpaceOf(colorMode, channel));
 
         double x1 = 0, y1 = 0, x2 = 0, y2 = 0;
-        if (brush._useRect)
+        if (brush.UseRect)
         {
-            var pt1 = renderer.WorldToView(brush._rect.TopLeft);
-            var pt2 = renderer.WorldToView(brush._rect.BottomRight);
+            var pt1 = renderer.WorldToView(brush.Rect.TopLeft);
+            var pt2 = renderer.WorldToView(brush.Rect.BottomRight);
 
-            switch (brush._linearGradientMode)
+            switch (brush.LinearGradientMode)
             {
                 case XLinearGradientMode.Horizontal:
                     x1 = pt1.X;
@@ -165,8 +165,8 @@ public sealed class PdfShading : PdfDictionary
         }
         else
         {
-            var pt1 = renderer.WorldToView(brush._point1);
-            var pt2 = renderer.WorldToView(brush._point2);
+            var pt1 = renderer.WorldToView(brush.Point1);
+            var pt2 = renderer.WorldToView(brush.Point2);
 
             x1 = pt1.X;
             y1 = pt1.Y;

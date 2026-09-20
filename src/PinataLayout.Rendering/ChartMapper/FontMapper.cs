@@ -33,12 +33,8 @@ using PdfPinata.Drawing;
 
 namespace PinataLayout.Rendering.ChartMapper;
 
-internal class FontMapper
+internal static class FontMapper
 {
-  private FontMapper()
-  {
-  }
-
   static void MapObject(Font font, DocumentObjectModel.Font domFont)
   {
     font.Bold = domFont.Bold;

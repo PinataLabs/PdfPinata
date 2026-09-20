@@ -42,7 +42,7 @@ public sealed class XGraphicsPath
     /// </summary>
     public XGraphicsPath()
     {
-        _corePath = new CoreGraphicsPath();
+        CorePath = new CoreGraphicsPath();
     }
 
     /// <summary>
@@ -51,7 +51,7 @@ public sealed class XGraphicsPath
     public XGraphicsPath Clone()
     {
         var path = (XGraphicsPath)MemberwiseClone();
-        _corePath = new CoreGraphicsPath(_corePath);
+        CorePath = new CoreGraphicsPath(CorePath);
         return path;
     }
 
@@ -67,15 +67,15 @@ public sealed class XGraphicsPath
 
     /// <summary>Starts a new figure at the given point without drawing anything.</summary>
     public void AddMove(double x1, double y1)
-        => _corePath.MoveTo(x1, y1);
+        => CorePath.MoveTo(x1, y1);
 
     /// <summary>
     /// Adds  a line segment to current figure.
     /// </summary>
     public void AddLine(double x1, double y1, double x2, double y2)
     {
-        _corePath.MoveOrLineTo(x1, y1);
-        _corePath.LineTo(x2, y2, false);
+        CorePath.MoveOrLineTo(x1, y1);
+        CorePath.LineTo(x2, y2, false);
     }
 
     // ----- AddLines -----------------------------------------------------------------------------
@@ -90,9 +90,9 @@ public sealed class XGraphicsPath
         var count = points.Length;
         if (count == 0)
             return;
-        _corePath.MoveOrLineTo(points[0].X, points[0].Y);
+        CorePath.MoveOrLineTo(points[0].X, points[0].Y);
         for (var idx = 1; idx < count; idx++)
-            _corePath.LineTo(points[idx].X, points[idx].Y, false);
+            CorePath.LineTo(points[idx].X, points[idx].Y, false);
     }
 
     // ----- AddBezier ----------------------------------------------------------------------------
@@ -110,8 +110,8 @@ public sealed class XGraphicsPath
     /// </summary>
     public void AddBezier(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4)
     {
-        _corePath.MoveOrLineTo(x1, y1);
-        _corePath.BezierTo(x2, y2, x3, y3, x4, y4, false);
+        CorePath.MoveOrLineTo(x1, y1);
+        CorePath.BezierTo(x2, y2, x3, y3, x4, y4, false);
     }
 
     // ----- AddBeziers ---------------------------------------------------------------------------
@@ -131,10 +131,10 @@ public sealed class XGraphicsPath
             throw new ArgumentException("Invalid number of points for bezier curve. Number must fulfil 4+3n.",
                 nameof(points));
 
-        _corePath.MoveOrLineTo(points[0].X, points[0].Y);
+        CorePath.MoveOrLineTo(points[0].X, points[0].Y);
         for (var idx = 1; idx < count; idx += 3)
         {
-            _corePath.BezierTo(points[idx].X, points[idx].Y, points[idx + 1].X, points[idx + 1].Y,
+            CorePath.BezierTo(points[idx].X, points[idx].Y, points[idx + 1].X, points[idx + 1].Y,
                 points[idx + 2].X, points[idx + 2].Y, false);
         }
     }
@@ -157,7 +157,7 @@ public sealed class XGraphicsPath
         var count = points.Length;
         if (count < 2)
             throw new ArgumentException("AddCurve requires two or more points.", nameof(points));
-        _corePath.AddCurve(points, tension);
+        CorePath.AddCurve(points, tension);
     }
 
     /// <summary>
@@ -183,7 +183,7 @@ public sealed class XGraphicsPath
     /// </summary>
     public void AddArc(double x, double y, double width, double height, double startAngle, double sweepAngle)
     {
-        _corePath.AddArc(x, y, width, height, startAngle, sweepAngle);
+        CorePath.AddArc(x, y, width, height, startAngle, sweepAngle);
     }
 
     /// <summary>
@@ -191,7 +191,7 @@ public sealed class XGraphicsPath
     /// </summary>
     public void AddArc(XPoint point1, XPoint point2, XSize size, double rotationAngle, bool isLargeArg, XSweepDirection sweepDirection)
     {
-        _corePath.AddArc(point1, point2, size, rotationAngle, isLargeArg, sweepDirection);
+        CorePath.AddArc(point1, point2, size, rotationAngle, isLargeArg, sweepDirection);
     }
 
     // ----- AddRectangle -------------------------------------------------------------------------
@@ -201,11 +201,11 @@ public sealed class XGraphicsPath
     /// </summary>
     public void AddRectangle(XRect rect)
     {
-        _corePath.MoveTo(rect.X, rect.Y);
-        _corePath.LineTo(rect.X + rect.Width, rect.Y, false);
-        _corePath.LineTo(rect.X + rect.Width, rect.Y + rect.Height, false);
-        _corePath.LineTo(rect.X, rect.Y + rect.Height, true);
-        _corePath.CloseSubpath();
+        CorePath.MoveTo(rect.X, rect.Y);
+        CorePath.LineTo(rect.X + rect.Width, rect.Y, false);
+        CorePath.LineTo(rect.X + rect.Width, rect.Y + rect.Height, false);
+        CorePath.LineTo(rect.X, rect.Y + rect.Height, true);
+        CorePath.CloseSubpath();
     }
 
     /// <summary>
@@ -239,19 +239,19 @@ public sealed class XGraphicsPath
     {
         var arcWidth = ellipseWidth / 2;
         var arcHeight = ellipseHeight / 2;
-        _corePath.MoveTo(x + width - arcWidth, y);
-        _corePath.QuadrantArcTo(x + width - arcWidth, y + arcHeight, arcWidth, arcHeight, 1, true);
+        CorePath.MoveTo(x + width - arcWidth, y);
+        CorePath.QuadrantArcTo(x + width - arcWidth, y + arcHeight, arcWidth, arcHeight, 1, true);
 
-        _corePath.LineTo(x + width, y + height - arcHeight, false);
-        _corePath.QuadrantArcTo(x + width - arcWidth, y + height - arcHeight, arcWidth, arcHeight, 4, true);
+        CorePath.LineTo(x + width, y + height - arcHeight, false);
+        CorePath.QuadrantArcTo(x + width - arcWidth, y + height - arcHeight, arcWidth, arcHeight, 4, true);
 
-        _corePath.LineTo(x + arcWidth, y + height, false);
-        _corePath.QuadrantArcTo(x + arcWidth, y + height - arcHeight, arcWidth, arcHeight, 3, true);
+        CorePath.LineTo(x + arcWidth, y + height, false);
+        CorePath.QuadrantArcTo(x + arcWidth, y + height - arcHeight, arcWidth, arcHeight, 3, true);
 
-        _corePath.LineTo(x, y + arcHeight, false);
-        _corePath.QuadrantArcTo(x + arcWidth, y + arcHeight, arcWidth, arcHeight, 2, true);
+        CorePath.LineTo(x, y + arcHeight, false);
+        CorePath.QuadrantArcTo(x + arcWidth, y + arcHeight, arcWidth, arcHeight, 2, true);
 
-        _corePath.CloseSubpath();
+        CorePath.CloseSubpath();
 
     }
 
@@ -274,12 +274,12 @@ public sealed class XGraphicsPath
         var h = height / 2;
         var xc = x + w;
         var yc = y + h;
-        _corePath.MoveTo(x + w, y);
-        _corePath.QuadrantArcTo(xc, yc, w, h, 1, true);
-        _corePath.QuadrantArcTo(xc, yc, w, h, 4, true);
-        _corePath.QuadrantArcTo(xc, yc, w, h, 3, true);
-        _corePath.QuadrantArcTo(xc, yc, w, h, 2, true);
-        _corePath.CloseSubpath();
+        CorePath.MoveTo(x + w, y);
+        CorePath.QuadrantArcTo(xc, yc, w, h, 1, true);
+        CorePath.QuadrantArcTo(xc, yc, w, h, 4, true);
+        CorePath.QuadrantArcTo(xc, yc, w, h, 3, true);
+        CorePath.QuadrantArcTo(xc, yc, w, h, 2, true);
+        CorePath.CloseSubpath();
     }
 
     // ----- AddPolygon ---------------------------------------------------------------------------
@@ -293,11 +293,11 @@ public sealed class XGraphicsPath
         if (count == 0)
             return;
 
-        _corePath.MoveTo(points[0].X, points[0].Y);
+        CorePath.MoveTo(points[0].X, points[0].Y);
         for (var idx = 0; idx < count - 1; idx++)
-            _corePath.LineTo(points[idx].X, points[idx].Y, false);
-        _corePath.LineTo(points[count - 1].X, points[count - 1].Y, true);
-        _corePath.CloseSubpath();
+            CorePath.LineTo(points[idx].X, points[idx].Y, false);
+        CorePath.LineTo(points[count - 1].X, points[count - 1].Y, true);
+        CorePath.CloseSubpath();
 
     }
 
@@ -316,7 +316,7 @@ public sealed class XGraphicsPath
     /// </summary>
     public void AddPie(double x, double y, double width, double height, double startAngle, double sweepAngle)
     {
-        _corePath.AddPie(x, y, width, height, startAngle, sweepAngle);
+        CorePath.AddPie(x, y, width, height, startAngle, sweepAngle);
     }
 
     // ----- AddClosedCurve ------------------------------------------------------------------------
@@ -340,7 +340,7 @@ public sealed class XGraphicsPath
             return;
         if (count < 2)
             throw new ArgumentException("Not enough points.", nameof(points));
-        _corePath.AddClosedCurve(points, tension);
+        CorePath.AddClosedCurve(points, tension);
     }
 
     // ----- AddPath ------------------------------------------------------------------------------
@@ -355,7 +355,7 @@ public sealed class XGraphicsPath
         // The appended path's own FillMode is not carried over. A path has one fill rule and it
         // belongs to the path being drawn, so taking the other one's would silently change how the
         // figures already here are filled.
-        _corePath.AddPath(path._corePath, connect);
+        CorePath.AddPath(path.CorePath, connect);
     }
 
     // ----- AddString ----------------------------------------------------------------------------
@@ -448,22 +448,22 @@ public sealed class XGraphicsPath
             switch (segment.Kind)
             {
                 case XGlyphSegmentKind.Start:
-                    _corePath.MoveTo(origin.X + segment.End.X, origin.Y - segment.End.Y);
+                    CorePath.MoveTo(origin.X + segment.End.X, origin.Y - segment.End.Y);
                     break;
 
                 case XGlyphSegmentKind.Line:
-                    _corePath.LineTo(origin.X + segment.End.X, origin.Y - segment.End.Y, false);
+                    CorePath.LineTo(origin.X + segment.End.X, origin.Y - segment.End.Y, false);
                     break;
 
                 case XGlyphSegmentKind.Curve:
-                    _corePath.BezierTo(
+                    CorePath.BezierTo(
                         origin.X + segment.Control1.X, origin.Y - segment.Control1.Y,
                         origin.X + segment.Control2.X, origin.Y - segment.Control2.Y,
                         origin.X + segment.End.X, origin.Y - segment.End.Y, false);
                     break;
 
                 case XGlyphSegmentKind.Close:
-                    _corePath.CloseSubpath();
+                    CorePath.CloseSubpath();
                     break;
             }
         }
@@ -476,7 +476,7 @@ public sealed class XGraphicsPath
     /// </summary>
     public void CloseFigure()
     {
-        _corePath.CloseSubpath();
+        CorePath.CloseSubpath();
     }
 
     /// <summary>
@@ -570,5 +570,5 @@ public sealed class XGraphicsPath
     /// <summary>
     /// Gets access to underlying Core graphics path.
     /// </summary>
-    internal CoreGraphicsPath _corePath;
+    internal CoreGraphicsPath CorePath;
 }

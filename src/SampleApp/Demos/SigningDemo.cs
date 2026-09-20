@@ -301,7 +301,7 @@ internal sealed class SigningDemo : PdfDemo
     {
         using var probe = new PdfDocument();
         probe.Info.Title = "A rehearsal";
-        probe.AddPage();
+        _ = probe.AddPage();
 
         byte[] signed;
         using (var unsigned = new MemoryStream())
