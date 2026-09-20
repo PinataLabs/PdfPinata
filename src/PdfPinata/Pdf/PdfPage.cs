@@ -923,6 +923,47 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     }
 
     /// <summary>
+    /// Embeds the given font program in the document under a name of the caller's choosing and adds
+    /// it to this page's resources, returning the resource name a content stream refers to it by.
+    /// <para>
+    /// The program is embedded as a composite font with Identity-H encoding, so a show-text operator
+    /// written against it gives glyph indices rather than character codes. It is for a caller writing
+    /// its own content stream; text drawn through <see cref="Drawing.XGraphics"/> names its font with
+    /// an <see cref="Drawing.XFont"/> and needs none of this.
+    /// </para>
+    /// <para>
+    /// The name identifies the program within the document. Asking twice under the same name embeds
+    /// it once and answers the same resource, whatever bytes the second call was handed - which is
+    /// also what lets <see cref="TryGetFontProgramName"/> find it again.
+    /// </para>
+    /// </summary>
+    /// <param name="idName">The caller's name for the font program. Not a PDF name; no slash.</param>
+    /// <param name="fontData">The font program itself, as an OpenType or TrueType file.</param>
+    public string AddFontProgram(string idName, byte[] fontData)
+    {
+        if (idName == null)
+            throw new ArgumentNullException(nameof(idName));
+        if (idName.Length == 0)
+            throw new ArgumentException("The name of a font program must not be empty.", nameof(idName));
+        if (fontData == null)
+            throw new ArgumentNullException(nameof(fontData));
+
+        return GetFontName(idName, fontData, out _);
+    }
+
+    /// <summary>
+    /// Gets the resource name of a font program already embedded in the document under this name and
+    /// added to this page, or null if the document has none by that name.
+    /// </summary>
+    public string TryGetFontProgramName(string idName)
+    {
+        if (idName == null)
+            throw new ArgumentNullException(nameof(idName));
+
+        return TryGetFontName(idName, out _);
+    }
+
+    /// <summary>
     /// Tries to get the resource name of the specified font data within this page.
     /// Returns null if no such font exists.
     /// </summary>

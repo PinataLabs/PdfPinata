@@ -10,6 +10,26 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ## [Unreleased]
 
+### Added
+
+- **`PdfPage.AddFontProgram` and `PdfPage.TryGetFontProgramName`** — embed a font program you supply,
+  under a name of your own, and get the resource name a content stream refers to it by. It is for a
+  caller writing its own content stream; text drawn through `XGraphics` names its font with an
+  `XFont` and needs none of this. The program is embedded as a composite font with Identity-H
+  encoding, and the document holds one per name, so asking twice embeds it once.
+
+  The plumbing underneath had been there since PDFsharp and could not be reached, which is why
+  nobody had found that it did not work — see the fix below.
+
+### Fixed
+
+- **A font program is held under its name rather than under a null key.**
+  `PdfFontTable.GetFont(idName, fontData)` looked the font up under a hard-coded `null` and threw
+  `ArgumentNullException` out of the dictionary; `TryGetFont(idName)` did the same and opened with
+  `Debug.Assert(false)` besides, so in a Debug build it never reached the lookup it is documented to
+  answer null from. Had the key worked, every program in a document would still have shared one
+  entry, so the second name asked for would have been answered with the first name's font.
+
 ### Changed
 
 - **BREAKING: the doubled `MigraDoc.DocumentObjectModel` segment is gone from two namespaces.**

@@ -27,6 +27,7 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
+using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 using PdfPinata.Drawing;
@@ -88,16 +89,16 @@ internal sealed class PdfFontTable : PdfResourceTable
     /// </summary>
     public PdfFont GetFont(string idName, byte[] fontData)
     {
-        string selector = null; // ComputeKey(font); //new FontSelector(font);
+        if (idName == null)
+            throw new ArgumentNullException(nameof(idName));
+        if (fontData == null)
+            throw new ArgumentNullException(nameof(fontData));
+
+        var selector = ComputeKey(idName);
         PdfFont pdfFont;
-        // ReSharper disable once AssignNullToNotNullAttribute
         if (!_fonts.TryGetValue(selector, out pdfFont))
         {
-            //if (font.Unicode)
             pdfFont = new PdfType0Font(Owner, idName, fontData, false);
-            //else
-            //  pdfFont = new PdfTrueTypeFont(_owner, font);
-            //pdfFont.Document = _document;
             Debug.Assert(pdfFont.Owner == Owner);
             _fonts[selector] = pdfFont;
         }
@@ -110,11 +111,11 @@ internal sealed class PdfFontTable : PdfResourceTable
     /// </summary>
     public PdfFont TryGetFont(string idName)
     {
-        Debug.Assert(false);
-        //FontSelector selector = new FontSelector(idName);
-        string selector = null;
+        if (idName == null)
+            throw new ArgumentNullException(nameof(idName));
+
         PdfFont pdfFont;
-        _fonts.TryGetValue(selector, out pdfFont);
+        _fonts.TryGetValue(ComputeKey(idName), out pdfFont);
         return pdfFont;
     }
 
@@ -125,6 +126,16 @@ internal sealed class PdfFontTable : PdfResourceTable
                   (glyphTypeface.IsBold ? "/b" : "") + (glyphTypeface.IsItalic ? "/i" : "") + font.Unicode;
         return key;
     }
+
+    /// <summary>
+    /// The key a font embedded from a font program is held under. It is the caller's own name for the
+    /// program and nothing else, so that <see cref="TryGetFont"/> finds again what
+    /// <see cref="GetFont(string, byte[])"/> put there: both are handed the name alone, and a key
+    /// drawn from the bytes as well could not be recomputed from it. The prefix keeps it clear of the
+    /// keys <see cref="ComputeKey(XFont)"/> makes, so a program named after an installed face cannot
+    /// be answered in place of the face.
+    /// </summary>
+    static string ComputeKey(string idName) => "program:" + idName;
 
     /// <summary>
     /// Map from PdfFontSelector to PdfFont.
