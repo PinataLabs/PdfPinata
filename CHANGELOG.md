@@ -12,6 +12,12 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ### Fixed
 
+- **`XUnit.Presentation` stores a length in presentation units rather than in points.** The setter
+  was a copy of the one for `Point` and recorded `XGraphicsUnit.Point` as the measure, so a length
+  assigned in presentation units was kept as that many points — four thirds of what the caller
+  asked for, and read back as such by every one of the five getters. The other four setters each
+  named their own measure and always had.
+
 - **A document built on an output stream writes a readable file.** `PdfDocument(Stream)` was the
   only one of the three constructors that never set the PDF version, so the field stayed 0 and the
   header read `%PDF-0.0` — enough bytes to look like a save had worked, and refused by every reader

@@ -73,8 +73,10 @@ public class XUnitConversionTests
         byMillimetre.Type.Should().Be(XGraphicsUnit.Millimeter);
         byMillimetre.Inch.Should().BeApproximately(1, 1e-9);
 
-        // The presentation setter is the odd one out and deliberately so - see
-        // XUnitTests.SettingPresentationLeavesTheUnitCallingItselfPoint, which pins it.
+        var byPresentation = XUnit.FromPoint(5);
+        byPresentation.Presentation = PresentationUnitsPerInch;
+        byPresentation.Type.Should().Be(XGraphicsUnit.Presentation);
+        byPresentation.Inch.Should().BeApproximately(1, 1e-9);
     }
 
     // ----- converting the value itself ---------------------------------------------------------------

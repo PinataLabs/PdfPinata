@@ -91,17 +91,26 @@ public class XUnitTests
         unit.Point.Should().BeApproximately(144, 1e-9);
     }
 
+    /// <summary>
+    ///   The presentation setter is the fifth of five and behaves like the other four. This test
+    ///   used to assert the opposite - that the unit called itself Point afterwards - on the
+    ///   grounds that PinataLayout reads Type back to decide what to write. It does, but the type it
+    ///   reads is <c>PinataLayout.DocumentObjectModel.Unit</c> and its <c>UnitType</c>, which has no
+    ///   presentation member and is not this type at all. Nothing anywhere assigns
+    ///   <see cref="XUnit.Presentation"/>, which is why a copy of the Point setter sat here
+    ///   unnoticed.
+    /// </summary>
     [Fact]
-    public void SettingPresentationLeavesTheUnitCallingItselfPoint()
+    public void SettingPresentationLeavesTheUnitCallingItselfPresentation()
     {
-        // Documented behaviour or not, this is what the setter does, and PinataLayout reads Type back
-        // to decide what to write. Pinned so that changing it is a decision rather than a slip.
         var unit = XUnit.FromInch(1);
 
         unit.Presentation = 96;
 
-        unit.Type.Should().Be(XGraphicsUnit.Point);
+        unit.Type.Should().Be(XGraphicsUnit.Presentation);
         unit.Value.Should().Be(96);
+        unit.Inch.Should().BeApproximately(1, 1e-9, "ninety-six presentation units are an inch");
+        unit.Point.Should().BeApproximately(72, 1e-9);
     }
 
     [Theory]
