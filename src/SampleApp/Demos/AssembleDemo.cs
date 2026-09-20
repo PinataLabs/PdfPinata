@@ -74,7 +74,7 @@ internal sealed class AssembleDemo : PdfDemo
                     // share one XObject; two that loaded the same bytes separately do not, and
                     // that is the case ConsolidateImages exists for.
                     using var photograph = XImage.FromStream(
-                        () => Assets.Open(Assets.ImagePrefix + "frog-and-toad.jpg"));
+                        () => Assets.Open(Assets.ImagePrefix + "pdf-pinata.jpg"));
                     gfx.DrawImage(photograph, 50, 160, 200, 150);
                 }
 

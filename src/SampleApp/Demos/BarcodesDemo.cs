@@ -60,7 +60,7 @@ internal sealed class BarcodesDemo : PdfDemo
         // A bar code is an object rather than a call: it carries the text, the size it should
         // occupy and the direction it runs in, and DrawBarCode paints it at a point. That point is
         // the code's Anchor, which is its top left corner until it is told otherwise.
-        var code39 = new Code3of9Standard("PDFSHARP-2026", new XSize(230, 50))
+        var code39 = new Code3of9Standard("PDFPINATA-2026", new XSize(230, 50))
         {
             TextLocation = TextLocation.Below
         };
@@ -252,8 +252,8 @@ internal sealed class BarcodesDemo : PdfDemo
         // one too small for the text, is refused rather than silently truncated.
         (string Code, int Size, string Note)[] matrices =
         {
-            ("PDFSHARPCORE", 16, "16 x 16 modules"),
-            ("PDFSHARPCORE-2026-08-16", 22, "22 x 22, the same plus a date"),
+            ("PDFPINATA", 16, "16 x 16 modules"),
+            ("PDFPINATA-2026-08-16", 22, "22 x 22, the same plus a date"),
             ("https://github.com/PinataLabs/PdfPinata", 32, "32 x 32, a whole URL")
         };
 
@@ -285,7 +285,7 @@ internal sealed class BarcodesDemo : PdfDemo
             // square box comes out with rectangular modules. Matching the box to the symbol's own
             // proportions is the caller's job.
             var height = 120.0 * shape.Rows / shape.Columns;
-            var oblong = new CodeDataMatrix("PDFSHARP", shape.Rows, shape.Columns,
+            var oblong = new CodeDataMatrix("PDFPINATA", shape.Rows, shape.Columns,
                 new XSize(120, height));
             gfx3.DrawMatrixCode(oblong, XBrushes.Black, new XPoint(left, 300));
             Caption(gfx3, left, 440, shape.Note, "");

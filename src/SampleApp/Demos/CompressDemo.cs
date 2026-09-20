@@ -82,7 +82,7 @@ internal sealed class CompressDemo : PdfDemo
             gfx.DrawPath(new XPen(XColors.MidnightBlue, 0.8), path);
 
             using var photograph = XImage.FromStream(
-                () => Assets.Open(Assets.ImagePrefix + "frog-and-toad.jpg"));
+                () => Assets.Open(Assets.ImagePrefix + "pdf-pinata.jpg"));
             gfx.DrawImage(photograph, 50, 580, 240, 180);
         }
 

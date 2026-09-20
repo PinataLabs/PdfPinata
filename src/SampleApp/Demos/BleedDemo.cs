@@ -68,7 +68,7 @@ internal sealed class BleedDemo : PdfDemo
         var over = bleed.Point;
 
         using var photograph = XImage.FromStream(
-            () => Assets.Open(Assets.ImagePrefix + "frog-and-toad.jpg"));
+            () => Assets.Open(Assets.ImagePrefix + "pdf-pinata.jpg"));
 
         // ---- The photograph, off three edges ------------------------------------------------
         //

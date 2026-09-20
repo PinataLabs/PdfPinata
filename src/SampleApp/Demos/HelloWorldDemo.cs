@@ -34,10 +34,10 @@ internal sealed class HelloWorldDemo : PdfDemo
 
         // What a reader shows under "document properties". Producer is not set here: the
         // library writes its own and the property is read only.
-        document.Info.Title = "Hello World";
+        document.Info.Title = "Hola, mundo!";
         document.Info.Author = "PdfPinata";
         document.Info.Subject = "The smallest document worth saving";
-        document.Info.Keywords = "pdfsharpcore; demo; metadata";
+        document.Info.Keywords = "pdfpinata; demo; metadata";
         document.Info.Creator = "PdfPinata SampleApp";
 
         // A fixed date rather than DateTime.Now, so that running the demo twice produces
@@ -55,7 +55,7 @@ internal sealed class HelloWorldDemo : PdfDemo
         // The rectangle overload plus a format centres the string in the box. The point
         // overload would put the text's baseline at the point instead.
         var title = new XFont("Liberation Sans", 30, XFontStyle.Bold);
-        gfx.DrawString("Hello, World!", title, XBrushes.Black,
+        gfx.DrawString("Hola, mundo!", title, XBrushes.Black,
             new XRect(0, 0, width, height * 0.4), XStringFormats.Center);
         // docs:end draw-text
 

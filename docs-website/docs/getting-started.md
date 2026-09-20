@@ -4,7 +4,7 @@ description: Make your first PDF with PdfPinata, first by drawing on a page with
 demos: [HelloWorld]
 ---
 
-This page makes a one-page PDF that says "Hello, World!". You make it twice: first by drawing on
+This page makes a one-page PDF that says "Hola, mundo!". You make it twice: first by drawing on
 the page with `XGraphics`, then by describing a document and letting PinataLayout lay it out.
 [Overview](./overview.md#two-ways-to-make-a-page) explains when to use each way.
 
@@ -116,10 +116,10 @@ places them on pages.
    ImageSource.ImageSourceImpl = new SkiaImageSource();
 
    Document document = new Document();
-   document.Info.Title = "Hello World";
+   document.Info.Title = "Hola, mundo!";
 
    Section section = document.AddSection();
-   Paragraph paragraph = section.AddParagraph("Hello, World!");
+   Paragraph paragraph = section.AddParagraph("Hola, mundo!");
    paragraph.Format.Font.Size = 30;
    paragraph.Format.Font.Bold = true;
 

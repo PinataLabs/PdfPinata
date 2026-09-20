@@ -44,7 +44,7 @@ internal sealed class ImagesDemo : PdfDemo
         // wherever the app runs. FromStream takes a factory rather than a stream: the
         // library opens it when it needs it and may do so more than once.
         using var photograph = XImage.FromStream(
-            () => Assets.Open(Assets.ImagePrefix + "frog-and-toad.jpg"));
+            () => Assets.Open(Assets.ImagePrefix + "pdf-pinata.jpg"));
         // docs:end load
 
         // ---- Page one: sizing ---------------------------------------------------------
@@ -210,11 +210,11 @@ internal sealed class ImagesDemo : PdfDemo
         // two panels below look like depends on the reader - and some ignore it entirely.
         // docs:begin interpolate
         using var blocky = XImage.FromStream(
-            () => Assets.Open(Assets.ImagePrefix + "frog-and-toad.jpg"));
+            () => Assets.Open(Assets.ImagePrefix + "pdf-pinata.jpg"));
         blocky.Interpolate = false;
 
         using var smooth = XImage.FromStream(
-            () => Assets.Open(Assets.ImagePrefix + "frog-and-toad.jpg"));
+            () => Assets.Open(Assets.ImagePrefix + "pdf-pinata.jpg"));
         smooth.Interpolate = true;
         // docs:end interpolate
 

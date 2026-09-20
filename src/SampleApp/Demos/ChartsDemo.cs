@@ -270,7 +270,7 @@ internal sealed class ChartsDemo : PdfDemo
         renderer.RenderDocument();
 
         // Saved and reopened rather than imported from the live document: a document being written
-        // and a document being read are different things to PdfSharp, and Import is the mode that
+        // and a document being read are different things to PdfPinata, and Import is the mode that
         // permits taking pages out of one.
         using (var buffer = new MemoryStream())
         {
