@@ -85,14 +85,17 @@ jobs:
         run: sudo apt-get install -y ghostscript
       # SonarCloud analyses what is compiled between "begin" and "end", so exactly one build sits
       # between them: the Debug build the tests run against. The Release build above stays outside,
-      # or every project would be analysed twice. The coverage the tests write is the same
-      # coverlet OpenCover output Codecov reads below, one file per test project and framework.
+      # or every project would be analysed twice. The coverage the tests write is the same OpenCover
+      # output Codecov reads below - one file per test project and framework, under that project's
+      # TestResults, which is what the wildcard in reportsPaths is reaching for.
       #
       # SonarCloud's Automatic Analysis must be off for this project, or it refuses a CI analysis.
       #
       # Coverage is not measured for the demonstration app or the documentation website: neither
       # ships, the SampleApp's demos are run by DemoSmokeTests for what they produce rather than
-      # for coverage, and the site's scripts have no tests at all.
+      # for coverage, and the site's scripts have no tests at all. coverage.runsettings keeps those
+      # assemblies out of the report in the first place; this keeps their files from counting as
+      # uncovered here.
       - name: Begin SonarCloud analysis
         if: env.SONAR_TOKEN != ''
         run: >
@@ -105,8 +108,24 @@ jobs:
           /d:sonar.coverage.exclusions="src/ConformanceCorpus/**,src/PinataLayout.AotSmokeTest/**,src/SampleApp/**,docs-website/**"
       - name: Build for tests
         run: dotnet build src/PdfPinata.slnx --configuration Debug --no-restore
+      # Coverage is collected by coverlet's data collector, not by its MSBuild driver, and the
+      # difference is not cosmetic. /p:CollectCoverage=true has each instrumented assembly write its
+      # hit counts to a temp file as the test host exits, and reads them back once the run is over -
+      # but VSTest tears the host down the moment the run reports complete. An assembly that has not
+      # flushed yet leaves no file, which coverlet reports as 0% and mentions only at verbosity
+      # "verbose", or leaves half a file, which ends the step with "Unable to read beyond the end of
+      # the stream". A different handful of assemblies lost it on every run, and PdfPinata.EInvoice
+      # lost it on both frameworks at once, so it read 0% on Codecov and SonarCloud for months with
+      # all of its tests passing. The collector reports from inside the test host, where there is
+      # nothing left to race.
+      #
+      # coverage.runsettings is the file a developer runs locally, so CI and a local run now measure
+      # the same thing: no test, benchmark or demonstration assembly, no generated file, nothing
+      # marked [ExcludeFromCodeCoverage]. Only the format differs - OpenCover alone here, because
+      # that is what SonarCloud and Codecov both read, where locally it also writes Cobertura for
+      # ReportGenerator's CRAP scores.
       - name: Test
-        run: dotnet test src/PdfPinata.slnx --no-build --verbosity normal /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
+        run: dotnet test src/PdfPinata.slnx --no-build --verbosity normal --settings coverage.runsettings --collect:"XPlat Code Coverage;Format=opencover"
       - name: End SonarCloud analysis
         if: env.SONAR_TOKEN != ''
         run: dotnet sonarscanner end /d:sonar.token="$SONAR_TOKEN"
@@ -151,6 +170,10 @@ jobs:
       # It fails quietly by design: fail_ci_if_error is left at its default of false because a
       # coverage upload is a report about the build rather than a verdict on it. The cost is that
       # a rejected upload shows in this step's log and nowhere else - the step still goes green.
+      #
+      # The CLI searches the tree for reports rather than being handed them, which is why nothing
+      # here names a path: the collector writes into a directory named for a run it has just made
+      # up. It lists what it found, so that log is where to look if a report ever goes missing.
       - name: Codecov
         uses: codecov/codecov-action@v7
         with:
