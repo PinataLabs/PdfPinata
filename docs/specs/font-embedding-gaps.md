@@ -41,7 +41,7 @@ not finding them.
 ### What happens today
 
 `OpenTypeFontface.Read()` recognises the `OTTO` signature and sets
-`_fontTechnology = FontTechnology.PostscriptOutlines`. That field is then **never read anywhere in
+`FontTechnology = FontTechnology.PostscriptOutlines`. That field is then **never read anywhere in
 the codebase** — `FontTechnology` appears only in its own enum declaration and in that one
 assignment. Parsing continues; `glyf` and `loca` are simply absent, because a CFF font has neither.
 
@@ -54,10 +54,10 @@ unconditionally, whose second statement is `locaNew.ShortIndex = loca.ShortIndex
 *Type0 (Unicode) fonts* — `PdfCIDFont.PrepareForSave` has a guard:
 
 ```csharp
-if (FontDescriptor._descriptor.FontFace.loca == null)
-    subSet = FontDescriptor._descriptor.FontFace;   // no subsetting
+if (FontDescriptor.Descriptor.FontFace.loca == null)
+    subSet = FontDescriptor.Descriptor.FontFace;   // no subsetting
 else
-    subSet = ...CreateFontSubSet(_cmapInfo.GlyphIndices, true);
+    subSet = ...CreateFontSubSet(CmapInfo.GlyphIndices, true);
 ```
 
 so it survives, but then writes the whole `OTTO` file into `/FontFile2` under a descendant font
@@ -73,7 +73,7 @@ by hand.
 Route CFF fonts to `/FontFile3` with `/Subtype /OpenType`, which PDF 1.6 defines for exactly this,
 and set the descendant `/Subtype` to `/CIDFontType0`.
 
-1. Expose the technology: `OpenTypeFontface.IsPostscriptOutlines => _fontTechnology ==
+1. Expose the technology: `OpenTypeFontface.IsPostscriptOutlines => FontTechnology ==
    FontTechnology.PostscriptOutlines`, and prefer testing that over `loca == null`.
 2. `PdfCIDFont` — take `/Subtype` off the constructor's hardcoded string and set it from the
    descriptor's technology at `PrepareForSave` time (the fontface is known by then; the constructor
@@ -114,7 +114,7 @@ This is a deliberate stopping point, not an oversight — it is the line between
 ```csharp
 if (startTag == TTCF)
 {
-    _fontTechnology = FontTechnology.TrueTypeCollection;
+    FontTechnology = FontTechnology.TrueTypeCollection;
     throw new InvalidOperationException("TrueType collection fonts are not yet supported by PdfPinata.");
 }
 ```

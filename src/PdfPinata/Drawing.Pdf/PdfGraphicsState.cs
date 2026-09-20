@@ -262,8 +262,8 @@ internal sealed class PdfGraphicsState : ICloneable
             _renderer.AppendFormatString("{0} gs\n", gs);
 
             // Must create transparency group.
-            if (_renderer._page != null && color.A < 1)
-                _renderer._page.TransparencyUsed = true;
+            if (_renderer.Page != null && color.A < 1)
+                _renderer.Page.TransparencyUsed = true;
         }
         _realizedStrokeColor = color;
         _realizedStrokeOverPrint = overPrint;
@@ -422,8 +422,8 @@ internal sealed class PdfGraphicsState : ICloneable
         _realizedSoftMask = true;
 
         // A page carrying a soft mask needs the transparency group that says how to composite it.
-        if (_renderer._page != null)
-            _renderer._page.TransparencyUsed = true;
+        if (_renderer.Page != null)
+            _renderer.Page.TransparencyUsed = true;
     }
 
     private void RealizeFillColor(XColor color, bool overPrint, PdfColorMode colorMode)
@@ -460,8 +460,8 @@ internal sealed class PdfGraphicsState : ICloneable
             _renderer.AppendFormatString("{0} gs\n", gs);
 
             // Must create transparency group.
-            if (_renderer._page != null && color.A < 1)
-                _renderer._page.TransparencyUsed = true;
+            if (_renderer.Page != null && color.A < 1)
+                _renderer.Page.TransparencyUsed = true;
         }
         _realizedFillColor = color;
         _realizedNonStrokeOverPrint = overPrint;
@@ -478,7 +478,7 @@ internal sealed class PdfGraphicsState : ICloneable
 
     #region Text
 
-    internal PdfFont _realizedFont;
+    internal PdfFont RealizedFont;
     string _realizedFontName = String.Empty;
     double _realizedFontSize;
     int _realizedRenderingMode;  // Reference: TABLE 5.2  Text state operators / Page 398
@@ -544,7 +544,7 @@ internal sealed class PdfGraphicsState : ICloneable
 
         var renderingMode = TextRenderingMode(brush, pen, boldSimulation);
 
-        RealizeBrush(brush, _renderer._colorMode, renderingMode, font.Size, false, pen); // _renderer.page.document.Options.ColorMode);
+        RealizeBrush(brush, _renderer.ColorMode, renderingMode, font.Size, false, pen); // _renderer.page.document.Options.ColorMode);
 
         // Realize rendering mode.
         if (_realizedRenderingMode != renderingMode)
@@ -601,8 +601,8 @@ internal sealed class PdfGraphicsState : ICloneable
             _realizedTextRise = format.TextRise;
         }
 
-        _realizedFont = null;
-        var fontName = _renderer.GetFontName(font, out _realizedFont);
+        RealizedFont = null;
+        var fontName = _renderer.GetFontName(font, out RealizedFont);
         #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
         if (fontName != _realizedFontName || _realizedFontSize != font.Size)
         #pragma warning restore S1244
@@ -740,7 +740,7 @@ internal sealed class PdfGraphicsState : ICloneable
     {
         _renderer.BeginGraphicMode();
         RealizeCtm();
-        _renderer.AppendPath(clipPath._corePath);
+        _renderer.AppendPath(clipPath.CorePath);
         _renderer.Append(clipPath.FillMode == XFillMode.Winding ? "W n\n" : "W* n\n");
     }
 

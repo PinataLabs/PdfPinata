@@ -123,7 +123,6 @@ internal class ContentWriter
         set => _indent = value;
     }
     protected int _indent = 2;
-    protected int _writeIndent;
 
     public void NewLine()
     {

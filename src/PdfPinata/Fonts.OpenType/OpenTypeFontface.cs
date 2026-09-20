@@ -137,7 +137,7 @@ internal sealed class OpenTypeFontface
     }
     XFontSource _fontSource;
 
-    internal FontTechnology _fontTechnology;
+    internal FontTechnology FontTechnology;
 
     /// <summary>
     /// Gets a value indicating whether the glyphs of this font are described as PostScript
@@ -148,7 +148,7 @@ internal sealed class OpenTypeFontface
     /// <see cref="CreateFontSubSet"/> and cannot be embedded as '/FontFile2'. It goes into a
     /// PDF whole, as '/FontFile3' with a subtype of '/OpenType'.
     /// </remarks>
-    public bool IsPostscriptOutlines => _fontTechnology == FontTechnology.PostscriptOutlines;
+    public bool IsPostscriptOutlines => FontTechnology == FontTechnology.PostscriptOutlines;
 
     internal OffsetTable _offsetTable;
 
@@ -285,7 +285,7 @@ internal sealed class OpenTypeFontface
         var startTag = ReadULong();
         if (startTag == TTCF)
         {
-            _fontTechnology = FontTechnology.TrueTypeCollection;
+            FontTechnology = FontTechnology.TrueTypeCollection;
             throw new InvalidOperationException("TrueType collection fonts are not yet supported by PdfPinata.");
         }
 
@@ -301,9 +301,9 @@ internal sealed class OpenTypeFontface
         //tableDictionary = (offsetTable.TableCount);
 
         if (_offsetTable.Version == OTTO)
-            _fontTechnology = FontTechnology.PostscriptOutlines;
+            FontTechnology = FontTechnology.PostscriptOutlines;
         else
-            _fontTechnology = FontTechnology.TrueTypeOutlines;
+            FontTechnology = FontTechnology.TrueTypeOutlines;
 
         for (var idx = 0; idx < _offsetTable.TableCount; idx++)
         {

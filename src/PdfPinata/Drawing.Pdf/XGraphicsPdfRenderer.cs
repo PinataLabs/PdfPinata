@@ -51,19 +51,19 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
 {
     public XGraphicsPdfRenderer(PdfPage page, XGraphics gfx, XGraphicsPdfPageOptions options)
     {
-        _page = page;
-        _colorMode = page._document.Options.ColorMode;
+        Page = page;
+        ColorMode = page._document.Options.ColorMode;
         _options = options;
         _gfx = gfx;
         _content = new StringBuilder();
-        page.RenderContent._pdfRenderer = this;
+        page.RenderContent.PdfRenderer = this;
         _gfxState = new PdfGraphicsState(this);
     }
 
     public XGraphicsPdfRenderer(XForm form, XGraphics gfx)
     {
-        _form = form;
-        _colorMode = form.Owner.Options.ColorMode;
+        Form = form;
+        ColorMode = form.Owner.Options.ColorMode;
         _gfx = gfx;
         _content = new StringBuilder();
         form.PdfRenderer = this;
@@ -83,22 +83,22 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
 
     public void Close()
     {
-        if (_page != null)
+        if (Page != null)
         {
-            var content2 = _page.RenderContent;
+            var content2 = Page.RenderContent;
             content2.CreateStream(PdfEncoders.RawEncoding.GetBytes(GetContent()));
 
             _gfx = null;
-            _page.RenderContent._pdfRenderer = null;
-            _page.RenderContent = null;
-            _page = null;
+            Page.RenderContent.PdfRenderer = null;
+            Page.RenderContent = null;
+            Page = null;
         }
-        else if (_form != null)
+        else if (Form != null)
         {
-            _form._pdfForm.CreateStream(PdfEncoders.RawEncoding.GetBytes(GetContent()));
+            Form._pdfForm.CreateStream(PdfEncoders.RawEncoding.GetBytes(GetContent()));
             _gfx = null;
-            _form.PdfRenderer = null;
-            _form = null;
+            Form.PdfRenderer = null;
+            Form = null;
         }
     }
 
@@ -367,7 +367,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
             throw new ArgumentNullException(nameof(pen));
 
         Realize(pen, brush);
-        AppendPath(path._corePath);
+        AppendPath(path.CorePath);
         AppendStrokeFill(pen, brush, path.FillMode, false);
     }
 
@@ -436,7 +436,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         var x = origin.X;
         var y = origin.Y;
 
-        var realizedFont = _gfxState._realizedFont;
+        var realizedFont = _gfxState.RealizedFont;
         Debug.Assert(realizedFont != null);
 
         const string format2 = Config.SignificantFigures4;
@@ -527,8 +527,8 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
 
         if (underline != XTextDecoration.None)
         {
-            var underlinePosition = lineSpace * realizedFont.FontDescriptor._descriptor.UnderlinePosition / font.CellSpace;
-            var underlineThickness = lineSpace * realizedFont.FontDescriptor._descriptor.UnderlineThickness / font.CellSpace;
+            var underlinePosition = lineSpace * realizedFont.FontDescriptor.Descriptor.UnderlinePosition / font.CellSpace;
+            var underlineThickness = lineSpace * realizedFont.FontDescriptor.Descriptor.UnderlineThickness / font.CellSpace;
             //DrawRectangle(null, brush, x, y - underlinePosition, width, underlineThickness);
             var underlineRectY = Gfx.PageDirection == XPageDirection.Downwards
                 ? y - underlinePosition
@@ -538,8 +538,8 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
 
         if (strikeout != XTextDecoration.None)
         {
-            var strikeoutPosition = lineSpace * realizedFont.FontDescriptor._descriptor.StrikeoutPosition / font.CellSpace;
-            var strikeoutSize = lineSpace * realizedFont.FontDescriptor._descriptor.StrikeoutSize / font.CellSpace;
+            var strikeoutPosition = lineSpace * realizedFont.FontDescriptor.Descriptor.StrikeoutPosition / font.CellSpace;
+            var strikeoutSize = lineSpace * realizedFont.FontDescriptor.Descriptor.StrikeoutSize / font.CellSpace;
             //DrawRectangle(null, brush, x, y - strikeoutPosition - strikeoutSize, width, strikeoutSize);
             var strikeoutRectY = Gfx.PageDirection == XPageDirection.Downwards
                 ? y - strikeoutPosition
@@ -1563,13 +1563,13 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
                 // Take TrimBox into account.
                 PageHeightPt = VisiblePageSize.Height;
                 var trimOffset = new XPoint();
-                if (_page != null && _page.TrimMargins.AreSet)
+                if (Page != null && Page.TrimMargins.AreSet)
                 {
                     // The sheet is the page plus the bleed plus the room for printer's marks, and
                     // the origin is the corner of the page rather than of the sheet. Both come
                     // from the page so that this and XGraphics.Initialize cannot disagree.
-                    PageHeightPt += _page.SheetExtraHeight;
-                    trimOffset = _page.SheetOffset;
+                    PageHeightPt += Page.SheetExtraHeight;
+                    trimOffset = Page.SheetOffset;
                 }
 
                 // Scale with page units.
@@ -1713,9 +1713,9 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     {
         get
         {
-            if (_page == null)
+            if (Page == null)
                 return 0;
-            var rotation = _page.Rotate % 360;
+            var rotation = Page.Rotate % 360;
             return rotation < 0 ? rotation + 360 : rotation;
         }
     }
@@ -1742,7 +1742,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// Gets the size of this page or form as it is written to the file. It is the area drawing
     /// ends up in, before the viewer turns the page.
     /// </summary>
-    internal XSize StoredPageSize => _page != null ? _page.StoredSize : _form.Size;
+    internal XSize StoredPageSize => Page != null ? Page.StoredSize : Form.Size;
 
     /// <summary>
     /// The transform the content stream has in force where something is drawn, given the matrix
@@ -1766,7 +1766,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// Gets the size of this page or form as the viewer shows it, which is the size the caller
     /// draws on. It differs from the stored size when the page is turned by a quarter.
     /// </summary>
-    XSize VisiblePageSize => _page != null ? new XSize(_page.Width, _page.Height) : _form.Size;
+    XSize VisiblePageSize => Page != null ? new XSize(Page.Width, Page.Height) : Form.Size;
 
     /// <summary>
     /// Ends the content stream, i.e. ends the text mode and balances the graphic state stack.
@@ -1972,12 +1972,12 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         RealizeTransform();
 
         if (pen != null)
-            _gfxState.RealizePen(pen, _colorMode); // page.document.Options.ColorMode);
+            _gfxState.RealizePen(pen, ColorMode); // page.document.Options.ColorMode);
 
         if (brush != null)
         {
             // Render mode is 0 except for bold simulation.
-            _gfxState.RealizeBrush(brush, _colorMode, 0, 0); // page.document.Options.ColorMode);
+            _gfxState.RealizeBrush(brush, ColorMode, 0, 0); // page.document.Options.ColorMode);
         }
     }
 
@@ -2556,7 +2556,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         RealizeTransform();
 
         // The transparency set for a brush also applies to images. Set opacity to 100% so image will be drawn without transparency.
-        _gfxState.RealizeNonStrokeTransparency(1, _colorMode);
+        _gfxState.RealizeNonStrokeTransparency(1, ColorMode);
 
         var form = image as XForm;
         return form != null ? GetFormName(form) : GetImageName(image);
@@ -2603,9 +2603,9 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     {
         get
         {
-            if (_page != null)
-                return _page.Owner;
-            return _form.Owner;
+            if (Page != null)
+                return Page.Owner;
+            return Form.Owner;
         }
     }
 
@@ -2618,9 +2618,9 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     {
         get
         {
-            if (_page != null)
-                return _page.Resources;
-            return _form.Resources;
+            if (Page != null)
+                return Page.Resources;
+            return Form.Resources;
         }
     }
 
@@ -2629,9 +2629,9 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// </summary>
     internal string GetFontName(XFont font, out PdfFont pdfFont)
     {
-        if (_page != null)
-            return _page.GetFontName(font, out pdfFont);
-        return _form.GetFontName(font, out pdfFont);
+        if (Page != null)
+            return Page.GetFontName(font, out pdfFont);
+        return Form.GetFontName(font, out pdfFont);
     }
 
     /// <summary>
@@ -2639,9 +2639,9 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// </summary>
     internal string GetImageName(XImage image)
     {
-        if (_page != null)
-            return _page.GetImageName(image);
-        return _form.GetImageName(image);
+        if (Page != null)
+            return Page.GetImageName(image);
+        return Form.GetImageName(image);
     }
 
     /// <summary>
@@ -2649,14 +2649,14 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// </summary>
     internal string GetFormName(XForm form)
     {
-        if (_page != null)
-            return _page.GetFormName(form);
-        return _form.GetFormName(form);
+        if (Page != null)
+            return Page.GetFormName(form);
+        return Form.GetFormName(form);
     }
 
-    internal PdfPage _page;
-    internal XForm _form;
-    internal PdfColorMode _colorMode;
+    internal PdfPage Page;
+    internal XForm Form;
+    internal PdfColorMode ColorMode;
     XGraphicsPdfPageOptions _options;
     XGraphics _gfx;
     readonly StringBuilder _content;

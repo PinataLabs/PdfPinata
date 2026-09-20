@@ -106,14 +106,14 @@ internal sealed class PdfType0Font : PdfFont
         _fontOptions = font.PdfOptions;
         Debug.Assert(_fontOptions != null);
 
-        _cmapInfo = new CMapInfo(ttDescriptor);
+        CmapInfo = new CMapInfo(ttDescriptor);
         _descendantFont = new PdfCIDFont(document, FontDescriptor, font);
-        _descendantFont.CMapInfo = _cmapInfo;
+        _descendantFont.CMapInfo = CmapInfo;
 
         // Create ToUnicode map
-        _toUnicode = new PdfToUnicodeMap(document, _cmapInfo);
-        document.Internals.AddObject(_toUnicode);
-        Elements.Add(Keys.ToUnicode, _toUnicode);
+        ToUnicode = new PdfToUnicodeMap(document, CmapInfo);
+        document.Internals.AddObject(ToUnicode);
+        Elements.Add(Keys.ToUnicode, ToUnicode);
 
         BaseFont = font.GlyphTypeface.GetBaseName();
 
@@ -143,14 +143,14 @@ internal sealed class PdfType0Font : PdfFont
         _fontOptions = new XPdfFontOptions(PdfFontEncoding.Unicode);
         Debug.Assert(_fontOptions != null);
 
-        _cmapInfo = new CMapInfo(ttDescriptor);
+        CmapInfo = new CMapInfo(ttDescriptor);
         _descendantFont = new PdfCIDFont(document, FontDescriptor);
-        _descendantFont.CMapInfo = _cmapInfo;
+        _descendantFont.CMapInfo = CmapInfo;
 
         // Create ToUnicode map
-        _toUnicode = new PdfToUnicodeMap(document, _cmapInfo);
-        document.Internals.AddObject(_toUnicode);
-        Elements.Add(Keys.ToUnicode, _toUnicode);
+        ToUnicode = new PdfToUnicodeMap(document, CmapInfo);
+        document.Internals.AddObject(ToUnicode);
+        Elements.Add(Keys.ToUnicode, ToUnicode);
 
         //BaseFont = ttDescriptor.FontName.Replace(" ", "");
         BaseFont = ttDescriptor.FontName;
@@ -187,11 +187,11 @@ internal sealed class PdfType0Font : PdfFont
         base.PrepareForSave();
 
         // Use GetGlyphIndices to create the widths array.
-        var descriptor = FontDescriptor._descriptor;
+        var descriptor = FontDescriptor.Descriptor;
         var w = new StringBuilder("[");
-        if (_cmapInfo != null)
+        if (CmapInfo != null)
         {
-            var glyphIndices = _cmapInfo.GetGlyphIndices();
+            var glyphIndices = CmapInfo.GetGlyphIndices();
             var count = glyphIndices.Length;
             var glyphWidths = new int[count];
 
@@ -207,7 +207,7 @@ internal sealed class PdfType0Font : PdfFont
 
         }
         _descendantFont.PrepareForSave();
-        _toUnicode.PrepareForSave();
+        ToUnicode.PrepareForSave();
     }
 
     /// <summary>

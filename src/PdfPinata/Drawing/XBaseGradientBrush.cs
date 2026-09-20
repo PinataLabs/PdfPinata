@@ -38,8 +38,8 @@ public class XBaseGradientBrush : XBrush
     /// <summary>Initializes a new gradient brush running between the two given colours.</summary>
     protected XBaseGradientBrush(XColor color1, XColor color2)
     {
-        _color1 = color1;
-        _color2 = color2;
+        Color1 = color1;
+        Color2 = color2;
 
     }
 
@@ -48,8 +48,8 @@ public class XBaseGradientBrush : XBrush
     /// </summary>
     public XMatrix Transform
     {
-        get => _matrix;
-        set => _matrix = value;
+        get => Matrix;
+        set => Matrix = value;
     }
 
     /// <summary>
@@ -57,7 +57,7 @@ public class XBaseGradientBrush : XBrush
     /// </summary>
     public void TranslateTransform(double dx, double dy)
     {
-        _matrix.TranslatePrepend(dx, dy);
+        Matrix.TranslatePrepend(dx, dy);
     }
 
     /// <summary>
@@ -65,7 +65,7 @@ public class XBaseGradientBrush : XBrush
     /// </summary>
     public void TranslateTransform(double dx, double dy, XMatrixOrder order)
     {
-        _matrix.Translate(dx, dy, order);
+        Matrix.Translate(dx, dy, order);
     }
 
     /// <summary>
@@ -73,7 +73,7 @@ public class XBaseGradientBrush : XBrush
     /// </summary>
     public void ScaleTransform(double sx, double sy)
     {
-        _matrix.ScalePrepend(sx, sy);
+        Matrix.ScalePrepend(sx, sy);
     }
 
     /// <summary>
@@ -81,7 +81,7 @@ public class XBaseGradientBrush : XBrush
     /// </summary>
     public void ScaleTransform(double sx, double sy, XMatrixOrder order)
     {
-        _matrix.Scale(sx, sy, order);
+        Matrix.Scale(sx, sy, order);
     }
 
     /// <summary>
@@ -89,7 +89,7 @@ public class XBaseGradientBrush : XBrush
     /// </summary>
     public void RotateTransform(double angle)
     {
-        _matrix.RotatePrepend(angle);
+        Matrix.RotatePrepend(angle);
     }
 
     /// <summary>
@@ -97,7 +97,7 @@ public class XBaseGradientBrush : XBrush
     /// </summary>
     public void RotateTransform(double angle, XMatrixOrder order)
     {
-        _matrix.Rotate(angle, order);
+        Matrix.Rotate(angle, order);
     }
 
     /// <summary>
@@ -105,7 +105,7 @@ public class XBaseGradientBrush : XBrush
     /// </summary>
     public void MultiplyTransform(XMatrix matrix)
     {
-        _matrix.Prepend(matrix);
+        Matrix.Prepend(matrix);
     }
 
     /// <summary>
@@ -113,7 +113,7 @@ public class XBaseGradientBrush : XBrush
     /// </summary>
     public void MultiplyTransform(XMatrix matrix, XMatrixOrder order)
     {
-        _matrix.Multiply(matrix, order);
+        Matrix.Multiply(matrix, order);
     }
 
     /// <summary>
@@ -121,7 +121,7 @@ public class XBaseGradientBrush : XBrush
     /// </summary>
     public void ResetTransform()
     {
-        _matrix = new XMatrix();
+        Matrix = new XMatrix();
     }
 
     //public void SetBlendTriangularShape(double focus);
@@ -139,7 +139,7 @@ public class XBaseGradientBrush : XBrush
     //public WrapMode WrapMode { get; set; }
     //private bool interpolationColorsWasSet;
 
-    internal XColor _color1, _color2;
-    internal XMatrix _matrix;
+    internal XColor Color1, Color2;
+    internal XMatrix Matrix;
 
 }

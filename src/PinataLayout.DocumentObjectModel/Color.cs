@@ -251,7 +251,6 @@ public struct Color : INullableValue, IEquatable<Color>
     }
 
     /// <summary>
-    // ReSharper disable once CompareOfFloatsByEqualityOperator
     /// Compares two color objects. True if both argb values are equal, false otherwise.
     /// </summary>
     public static bool operator ==(Color color1, Color color2)
@@ -259,6 +258,7 @@ public struct Color : INullableValue, IEquatable<Color>
         if (color1.isCmyk ^ color2.isCmyk)
             return false;
         #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
+        // ReSharper disable once CompareOfFloatsByEqualityOperator
         if (color1.isCmyk)
             return color1.a == color2.a && color1.c == color2.c && color1.m == color2.m && color1.y == color2.y && color1.k == color2.k;
             #pragma warning restore S1244
@@ -392,7 +392,6 @@ public struct Color : INullableValue, IEquatable<Color>
     }
 
     /// <summary>
-    // ReSharper disable once CompareOfFloatsByEqualityOperator
     /// Writes the Color object in its hexadecimal value.
     /// </summary>
     public override string ToString()
@@ -401,6 +400,7 @@ public struct Color : INullableValue, IEquatable<Color>
         {
             string s;
             #pragma warning disable S1244 // Exact on purpose: only the exact value takes the special case, and the general path is right for anything near it.
+            // ReSharper disable once CompareOfFloatsByEqualityOperator
             if (Alpha == 100.0)
                 s = String.Format(CultureInfo.InvariantCulture, "CMYK({0:0.##},{1:0.##},{2:0.##},{3:0.##})", C, M, Y, K);
             #pragma warning restore S1244

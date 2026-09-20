@@ -95,7 +95,7 @@ internal class PdfCIDFont : PdfFont
         // The subtype cannot be settled in the constructor: which outlines the font has is only
         // known once its face has been read. CIDFontType2 means glyf outlines, CIDFontType0
         // means CFF ones, and a viewer reading the program is entitled to be told which.
-        var postscriptOutlines = FontDescriptor._descriptor.FontFace.IsPostscriptOutlines;
+        var postscriptOutlines = FontDescriptor.Descriptor.FontFace.IsPostscriptOutlines;
         Elements.SetName(Keys.Subtype, postscriptOutlines ? "/CIDFontType0" : "/CIDFontType2");
 
         if (postscriptOutlines)

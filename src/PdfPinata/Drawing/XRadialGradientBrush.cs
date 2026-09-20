@@ -44,10 +44,10 @@ public sealed class XRadialGradientBrush : XBaseGradientBrush
     /// </summary>
     public XRadialGradientBrush(XPoint center1, XPoint center2, double r1, double r2, XColor color1, XColor color2) : base(color1, color2)
     {
-        _center1 = center1;
-        _center2 = center2;
-        _r1 = r1;
-        _r2 = r2;
+        Center1 = center1;
+        Center2 = center2;
+        R1 = r1;
+        R2 = r2;
     }
 
     /// <summary>
@@ -55,12 +55,12 @@ public sealed class XRadialGradientBrush : XBaseGradientBrush
     /// </summary>
     public XRadialGradientBrush(XPoint center, double r1, double r2, XColor color1, XColor color2) : base(color1, color2)
     {
-        _center1 = center;
-        _center2 = center;
-        _r1 = r1;
-        _r2 = r2;
+        Center1 = center;
+        Center2 = center;
+        R1 = r1;
+        R2 = r2;
     }
 
-    internal XPoint _center1, _center2;
-    internal double _r1, _r2;
+    internal XPoint Center1, Center2;
+    internal double R1, R2;
 }

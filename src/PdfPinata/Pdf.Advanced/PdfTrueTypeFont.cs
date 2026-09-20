@@ -59,7 +59,7 @@ internal class PdfTrueTypeFont : PdfFont
         Debug.Assert(_fontOptions != null);
 
         //cmapInfo = new CMapInfo(null/*ttDescriptor*/);
-        _cmapInfo = new CMapInfo(ttDescriptor);
+        CmapInfo = new CMapInfo(ttDescriptor);
 
         BaseFont = font.GlyphTypeface.GetBaseName();
 
@@ -120,7 +120,7 @@ internal class PdfTrueTypeFont : PdfFont
         var width = Widths;
         //width.Elements.Clear();
         for (var idx = 0; idx < 256; idx++)
-            width.Elements.Add(new PdfInteger(FontDescriptor._descriptor.Widths[idx]));
+            width.Elements.Add(new PdfInteger(FontDescriptor.Descriptor.Widths[idx]));
     }
 
     /// <summary>
