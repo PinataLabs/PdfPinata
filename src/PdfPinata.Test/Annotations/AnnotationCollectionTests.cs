@@ -1,0 +1,205 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using AwesomeAssertions;
+using PdfPinata.Drawing;
+using PdfPinata.Pdf;
+using PdfPinata.Pdf.Annotations;
+using PdfPinata.Pdf.IO;
+using Xunit;
+
+namespace PdfPinata.Test.Annotations;
+
+/// <summary>
+///   <see cref="PdfAnnotations"/> is the array a page keeps its annotations in, and it is both a
+///   <see cref="PdfArray"/> of references and a typed collection that hands back annotation
+///   objects. The typed half is where an annotation read from a file is given the class that knows
+///   what it is, which is the one thing the array underneath cannot do for itself.
+/// </summary>
+public class AnnotationCollectionTests
+{
+    static PdfRectangle ARectangle(double x = 10, double y = 10) => new(new XRect(x, y, 100, 20));
+
+    static PdfPage APageWith(params PdfAnnotation[] annotations)
+    {
+        var page = new PdfDocument().AddPage();
+        foreach (var annotation in annotations)
+            page.Annotations.Add(annotation);
+        return page;
+    }
+
+    static PdfTextAnnotation ANote(string text = "a note")
+    {
+        return new PdfTextAnnotation { Rectangle = ARectangle(), Contents = text };
+    }
+
+    // ----- what the collection holds ------------------------------------------------------------------
+
+    [Fact]
+    public void APageStartsWithNoAnnotationsAndSaysSoWithoutMakingAny()
+    {
+        var page = new PdfDocument().AddPage();
+
+        page.HasAnnotations.Should().BeFalse();
+        page.Elements.ContainsKey("/Annots").Should().BeFalse("asking must not write");
+    }
+
+    [Fact]
+    public void AnAnnotationAddedToAPageIsCountedAndFoundAgain()
+    {
+        var note = ANote();
+        var page = APageWith(note);
+
+        page.HasAnnotations.Should().BeTrue();
+        page.Annotations.Count.Should().Be(1);
+        page.Annotations[0].Should().BeSameAs(note);
+    }
+
+    [Fact]
+    public void AnAnnotationCanBeTakenOffThePageAgain()
+    {
+        var first = ANote("first");
+        var second = ANote("second");
+        var page = APageWith(first, second);
+
+        page.Annotations.Remove(first);
+
+        page.Annotations.Count.Should().Be(1);
+        page.Annotations[0].Elements.GetString("/Contents").Should().Be("second");
+    }
+
+    [Fact]
+    public void AnAnnotationFromAnotherDocumentCannotBeRemovedFromThisOne()
+    {
+        var page = APageWith(ANote());
+        var elsewhere = new PdfDocument().AddPage();
+        var stranger = ANote("elsewhere");
+        elsewhere.Annotations.Add(stranger);
+
+        var removing = () => page.Annotations.Remove(stranger);
+
+        removing.Should().Throw<InvalidOperationException>();
+    }
+
+    [Fact]
+    public void EveryAnnotationCanBeClearedAtOnce()
+    {
+        var page = APageWith(ANote("one"), ANote("two"), ANote("three"));
+
+        page.Annotations.Clear();
+
+        page.Annotations.Count.Should().Be(0);
+    }
+
+    [Fact]
+    public void TheCollectionEnumeratesTheAnnotationsInIt()
+    {
+        var page = APageWith(ANote("one"), ANote("two"));
+
+        var seen = new List<PdfItem>();
+        foreach (var annotation in page.Annotations)
+            seen.Add(annotation);
+
+        seen.Should().HaveCount(2);
+
+        var untyped = new List<object>();
+        foreach (var annotation in (IEnumerable)page.Annotations)
+            untyped.Add(annotation);
+
+        untyped.Should().HaveCount(2);
+    }
+
+    // ----- annotations read back out of a file ---------------------------------------------------------
+
+    /// <summary>
+    ///   An annotation in a file is a plain dictionary, and nothing in the reader restores the
+    ///   class that wrote it. Asking the collection for one wraps it in a
+    ///   <see cref="PdfGenericAnnotation"/> whatever its subtype says, so a caller reading a file
+    ///   works with the dictionary rather than with the typed annotation it was written from.
+    /// </summary>
+    [Fact]
+    public void AnAnnotationReadBackIsHandedOverAsAGenericOne()
+    {
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        page.Annotations.Add(ANote("kept"));
+        page.AddWebLink(ARectangle(10, 60), "https://example.invalid/");
+
+        var reopened = ReadBack(document);
+        var annotations = reopened.Pages[0].Annotations;
+
+        annotations.Count.Should().Be(2);
+        annotations[0].Should().BeOfType<PdfGenericAnnotation>();
+        annotations[0].Elements.GetName("/Subtype").Should().Be("/Text");
+        annotations[1].Should().BeOfType<PdfGenericAnnotation>();
+        annotations[1].Elements.GetName("/Subtype").Should().Be("/Link");
+    }
+
+    [Fact]
+    public void AnAnnotationOfASubtypeWithNoClassOfItsOwnIsStillHandedBack()
+    {
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        var unknown = new PdfDictionary(document);
+        unknown.Elements.SetName("/Type", "/Annot");
+        unknown.Elements.SetName("/Subtype", "/Wibble");
+        unknown.Elements.SetRectangle("/Rect", ARectangle());
+        document.Internals.AddObject(unknown);
+        page.Elements.GetValue("/Annots", VCF.Create);
+        page.Elements.GetArray("/Annots")!.Elements.Add(unknown.Reference);
+
+        var reopened = ReadBack(document);
+        var annotation = reopened.Pages[0].Annotations[0];
+
+        annotation.Should().NotBeNull();
+        annotation.Elements.GetName("/Subtype").Should().Be("/Wibble");
+    }
+
+    [Fact]
+    public void AnAnnotationHeldDirectlyRatherThanByReferenceIsStillHandedBack()
+    {
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        var direct = new PdfDictionary(document);
+        direct.Elements.SetName("/Type", "/Annot");
+        direct.Elements.SetName("/Subtype", "/Wibble");
+        direct.Elements.SetRectangle("/Rect", ARectangle());
+        page.Elements.GetValue("/Annots", VCF.Create);
+        page.Elements.GetArray("/Annots")!.Elements.Add(direct);
+
+        var annotation = page.Annotations[0];
+
+        annotation.Should().NotBeNull();
+        annotation.Elements.GetName("/Subtype").Should().Be("/Wibble");
+    }
+
+    /// <summary>
+    ///   An imported annotation's <c>/P</c> points back at the page it was on in the file it came
+    ///   from. Placing the page fixes it to point at the page it is on now.
+    /// </summary>
+    [Fact]
+    public void AnImportedAnnotationIsPointedAtThePageItEndsUpOn()
+    {
+        var source = new PdfDocument();
+        var sourcePage = source.AddPage();
+        var note = ANote("travelling");
+        sourcePage.Annotations.Add(note);
+        note.Elements["/P"] = sourcePage.Reference;
+
+        var imported = ReadBack(source, PdfDocumentOpenMode.Import);
+        var target = new PdfDocument();
+        var placed = target.AddPage(imported.Pages[0]);
+
+        var annotation = placed.Annotations[0];
+
+        annotation.Elements.GetReference("/P").Should().BeSameAs(placed.Reference);
+    }
+
+    static PdfDocument ReadBack(PdfDocument document,
+        PdfDocumentOpenMode mode = PdfDocumentOpenMode.Modify)
+    {
+        var output = new System.IO.MemoryStream();
+        document.Save(output, false);
+        return PdfPinata.Pdf.IO.PdfReader.Open(new System.IO.MemoryStream(output.ToArray()), mode);
+    }
+}

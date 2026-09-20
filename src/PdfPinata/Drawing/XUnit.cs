@@ -256,7 +256,11 @@ public struct XUnit : IFormattable
         set
         {
             _value = value;
-            _type = XGraphicsUnit.Point;
+            // Presentation, not Point. Every other setter names its own measure; this one was a
+            // copy of the Point setter, so a length assigned in presentation units was stored as
+            // that many points - four thirds of the length the caller asked for, and read back as
+            // such by every one of the five getters.
+            _type = XGraphicsUnit.Presentation;
         }
     }
 

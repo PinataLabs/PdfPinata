@@ -35,7 +35,7 @@ public class AttachmentTests
     ///   Not a real ICC profile — nothing here parses one, and saying so plainly keeps this from
     ///   reading as a colour-management test.
     /// </summary>
-    private static readonly byte[] SomeProfile = Encoding.ASCII.GetBytes("NOT-AN-ICC-PROFILE");
+    private static readonly byte[] SomeProfile = "NOT-AN-ICC-PROFILE"u8.ToArray();
 
     // ── What a document says when nothing is attached ───────────────────────────────────────────
 
@@ -109,7 +109,7 @@ public class AttachmentTests
         // one that is not known. Leaving the entry out to be honest about not knowing writes a file
         // that conforms to nothing; writing this says exactly as much and conforms.
         var reread = SaveAndReopen(document =>
-            document.Attachments.Add("mystery.bin", new byte[] { 1, 2, 3 }));
+            document.Attachments.Add("mystery.bin", [1, 2, 3]));
 
         reread.Attachments.Single().EmbeddedFile.MimeType
             .Should().Be("/application/octet-stream");
@@ -162,7 +162,7 @@ public class AttachmentTests
         // the document through.
         var document = new PdfDocument();
         _ = document.AddPage();
-        var attachment = document.Attachments.Add("elsewhere.txt", new byte[] { 1, 2, 3 });
+        var attachment = document.Attachments.Add("elsewhere.txt", [1, 2, 3]);
 
         var files = attachment.Elements.GetDictionary("/EF");
         var stream = files.Elements["/F"];
@@ -170,7 +170,7 @@ public class AttachmentTests
         files.Elements["/UF"] = stream;
 
         attachment.EmbeddedFile.Should().NotBeNull();
-        attachment.EmbeddedFile.Stream.UnfilteredValue.Should().Equal(new byte[] { 1, 2, 3 });
+        attachment.EmbeddedFile.Stream.UnfilteredValue.Should().Equal(1, 2, 3);
     }
 
     [Fact]
@@ -179,7 +179,7 @@ public class AttachmentTests
         var saving = () => Save(document =>
         {
             Conforming(PdfAConformance.PdfA1B)(document);
-            var attachment = document.Attachments.Add("elsewhere.txt", new byte[] { 1 });
+            var attachment = document.Attachments.Add("elsewhere.txt", [1]);
 
             var files = attachment.Elements.GetDictionary("/EF");
             var stream = files.Elements["/F"];
@@ -196,7 +196,7 @@ public class AttachmentTests
     {
         var document = new PdfDocument();
         _ = document.AddPage();
-        var attachment = document.Attachments.Add("elsewhere.txt", new byte[] { 1 });
+        var attachment = document.Attachments.Add("elsewhere.txt", [1]);
 
         var files = attachment.Elements.GetDictionary("/EF");
         files.Elements["/UF"] = files.Elements["/F"];
@@ -260,7 +260,7 @@ public class AttachmentTests
         // /Unspecified rather than a missing entry. PDF/A-3 wants the entry there, and "I do not
         // know" is a legal answer where silence is a broken file.
         var reread = SaveAndReopen(document =>
-            document.Attachments.Add("notes.txt", Encoding.UTF8.GetBytes("hello")));
+            document.Attachments.Add("notes.txt", [.. "hello"u8]));
 
         reread.Attachments.Single().Relationship.Should().Be(PdfAFRelationship.Unspecified);
     }
@@ -272,7 +272,7 @@ public class AttachmentTests
         // Refusing to read the rest of the attachment over a name we do not know would help nobody.
         var document = new PdfDocument();
         _ = document.AddPage();
-        var attachment = document.Attachments.Add("payload.bin", new byte[] { 1, 2, 3 });
+        var attachment = document.Attachments.Add("payload.bin", [1, 2, 3]);
 
         attachment.Elements.SetName(PdfFileSpecification.Keys.AFRelationship, "/EncryptedPayload");
 
@@ -287,9 +287,9 @@ public class AttachmentTests
     {
         var document = new PdfDocument();
         _ = document.AddPage();
-        document.Attachments.Add("factur-x.xml", Encoding.UTF8.GetBytes("first"));
+        document.Attachments.Add("factur-x.xml", [.. "first"u8]);
 
-        var attaching = () => document.Attachments.Add("factur-x.xml", Encoding.UTF8.GetBytes("second"));
+        var attaching = () => document.Attachments.Add("factur-x.xml", [.. "second"u8]);
 
         attaching.Should().Throw<InvalidOperationException>().WithMessage("*already carries*factur-x.xml*");
     }
@@ -300,9 +300,9 @@ public class AttachmentTests
         // A reader is entitled to binary-search a name tree, even one that is a single node.
         var document = new PdfDocument();
         _ = document.AddPage();
-        document.Attachments.Add("zeta.txt", new byte[] { 1 });
-        document.Attachments.Add("alpha.txt", new byte[] { 2 });
-        document.Attachments.Add("middle.txt", new byte[] { 3 });
+        document.Attachments.Add("zeta.txt", [1]);
+        document.Attachments.Add("alpha.txt", [2]);
+        document.Attachments.Add("middle.txt", [3]);
 
         Keys(document).Should().ContainInOrder("alpha.txt", "middle.txt", "zeta.txt");
     }
@@ -315,7 +315,7 @@ public class AttachmentTests
         var document = new PdfDocument();
         _ = document.AddPage();
 
-        var attaching = () => document.Attachments.Add(fileName, new byte[] { 1 });
+        var attaching = () => document.Attachments.Add(fileName, [1]);
 
         attaching.Should().Throw<ArgumentException>();
     }
@@ -338,7 +338,7 @@ public class AttachmentTests
     {
         var document = new PdfDocument();
         _ = document.AddPage();
-        var attachment = document.Attachments.Add("scratch.txt", new byte[] { 1 });
+        var attachment = document.Attachments.Add("scratch.txt", [1]);
 
         document.Attachments.Remove(attachment).Should().BeTrue();
 
@@ -354,7 +354,7 @@ public class AttachmentTests
         var document = new PdfDocument();
         _ = document.AddPage();
         var elsewhere = new PdfFileSpecification(document, "other.txt",
-            new PdfEmbeddedFile(document, new byte[] { 1 }));
+            new PdfEmbeddedFile(document, [1]));
 
         document.Attachments.Remove(elsewhere).Should().BeFalse();
     }
@@ -369,7 +369,7 @@ public class AttachmentTests
         // caller an empty document that plainly has a file in it.
         var reread = SaveAndReopen(document =>
         {
-            document.Attachments.Add("legacy.txt", Encoding.UTF8.GetBytes("older"));
+            document.Attachments.Add("legacy.txt", "older"u8.ToArray());
             document.Internals.Catalog.Elements.Remove("/AF");
         });
 
@@ -397,7 +397,7 @@ public class AttachmentTests
         {
             var document = new PdfDocument();
             _ = document.AddPage();
-            document.Attachments.Add("real.txt", new byte[] { 1 });
+            document.Attachments.Add("real.txt", [1]);
 
             var tree = document.Internals.Catalog.Elements.GetDictionary("/Names")
                 .Elements.GetDictionary("/EmbeddedFiles");
@@ -570,7 +570,7 @@ public class AttachmentTests
     /// </summary>
     private static PdfFileSpecification AttachToAnAnnotation(PdfDocument document)
     {
-        var embedded = new PdfEmbeddedFile(document, Encoding.UTF8.GetBytes("attached"));
+        var embedded = new PdfEmbeddedFile(document, "attached"u8.ToArray());
 
         // Set by hand, because building a specification by hand is what leaves it out — which is the
         // whole reason PDF/A-3 is held to it here rather than trusted to have been thought about.
@@ -598,11 +598,13 @@ public class AttachmentTests
         var names = document.Internals.Catalog.Elements.GetDictionary("/Names");
         var leaves = names?.Elements.GetDictionary("/EmbeddedFiles")?.Elements.GetArray("/Names");
         if (leaves == null)
-            return Array.Empty<string>();
+            return [];
 
-        return Enumerable.Range(0, leaves.Elements.Count / 2)
-            .Select(pair => ((PdfString)leaves.Elements[pair * 2]).Value)
-            .ToArray();
+        return
+        [
+            .. Enumerable.Range(0, leaves.Elements.Count / 2)
+                .Select(pair => ((PdfString)leaves.Elements[pair * 2]).Value)
+        ];
     }
 
     private static byte[] Save(Action<PdfDocument> arrange)
