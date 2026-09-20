@@ -258,6 +258,49 @@ public class Lexer
     }
 
     /// <summary>
+    /// Gets the position of the last occurrence of the marker given, or -1 when the file does not
+    /// contain it. The marker is matched against the raw bytes, one character to one byte, the way
+    /// the rest of the lexer reads them.
+    /// </summary>
+    /// <remarks>
+    /// The file is read backwards a chunk at a time and no part of it is ever turned into a string,
+    /// so looking for a marker costs one fixed buffer however long the file is. Reading the whole
+    /// file in to search it - which is what this replaced - cannot work at all beyond 1,073,741,791
+    /// bytes, because that is as long as a <see cref="string" /> gets.
+    /// </remarks>
+    internal long FindLastMarker(string marker)
+    {
+        Debug.Assert(marker.Length is > 0 and < BackwardScanChunkSize);
+
+        var pattern = new byte[marker.Length];
+        for (var i = 0; i < marker.Length; i++)
+            pattern[i] = (byte)marker[i];
+
+        // A marker straddling a chunk boundary is in neither chunk, so each chunk reaches the
+        // length of the marker less one byte into the chunk already searched.
+        var overlap = pattern.Length - 1;
+        var buffer = new byte[BackwardScanChunkSize + overlap];
+        var end = _pdfLength;
+
+        while (end > 0)
+        {
+            var start = Math.Max(0, end - BackwardScanChunkSize);
+            var count = (int)(Math.Min(end + overlap, _pdfLength) - start);
+
+            _pdfSteam.Position = start;
+            var read = PdfPinata.Internal.StreamHelper.ReadUpTo(_pdfSteam, buffer, 0, count);
+
+            var idx = buffer.AsSpan(0, read).LastIndexOf(pattern.AsSpan());
+            if (idx >= 0)
+                return start + idx;
+
+            end = start;
+        }
+
+        return -1;
+    }
+
+    /// <summary>
     /// Scans a comment line.
     /// </summary>
     public Symbol ScanComment()
@@ -794,6 +837,11 @@ public class Lexer
     /// Gets the length of the PDF output.
     /// </summary>
     public long PdfLength => _pdfLength;
+
+    /// <summary>
+    /// How much of the file <see cref="FindLastMarker" /> holds at a time.
+    /// </summary>
+    const int BackwardScanChunkSize = 64 * 1024;
 
     readonly long _pdfLength;
     long _idxChar;
