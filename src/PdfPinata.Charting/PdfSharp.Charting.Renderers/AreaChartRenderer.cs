@@ -64,7 +64,6 @@ internal class AreaChartRenderer : ColumnLikeChartRenderer
     var yar = new VerticalYAxisRenderer(this.rendererParms);
     cri.YAxisRendererInfo = (AxisRendererInfo)yar.Init();
 
-    _ = cri.Chart.PlotArea; // creates the plot area on the chart, which the renderers below read
     var renderer = new AreaPlotAreaRenderer(this.rendererParms);
     cri.PlotAreaRendererInfo = (PlotAreaRendererInfo)renderer.Init();
 

@@ -59,7 +59,6 @@ internal class PieChartRenderer : ChartRenderer
     var lr = new PieLegendRenderer(this.rendererParms);
     cri.LegendRendererInfo = (LegendRendererInfo)lr.Init();
 
-    _ = cri.Chart.PlotArea; // creates the plot area on the chart, which the renderers below read
     var renderer = GetPlotAreaRenderer();
     cri.PlotAreaRendererInfo = (PlotAreaRendererInfo)renderer.Init();
 
