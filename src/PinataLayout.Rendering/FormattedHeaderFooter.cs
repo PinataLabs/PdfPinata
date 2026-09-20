@@ -1,4 +1,5 @@
 #region Copyright
+
 //
 // Authors:
 //   Klaus Potzesny (mailto:Klaus.Potzesny@PdfPinata.com)
@@ -24,13 +25,13 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
+
 #endregion
 
 using System;
 using System.Collections;
-
 using PinataLayout.DocumentObjectModel;
 using PdfPinata.Drawing;
 
@@ -41,89 +42,81 @@ namespace PinataLayout.Rendering;
 /// </summary>
 internal class FormattedHeaderFooter : IAreaProvider
 {
-  internal FormattedHeaderFooter(HeaderFooter headerFooter, DocumentRenderer documentRenderer, FieldInfos fieldInfos)
-  {
-    this.headerFooter = headerFooter;
-    this.fieldInfos = fieldInfos;
-    this.documentRenderer = documentRenderer;
-  }
-
-  internal void Format(XGraphics gfx)
-  {
-    this.gfx = gfx;
-    isFirstArea = true;
-    formatter = new TopDownFormatter(this, documentRenderer, headerFooter.Elements);
-    formatter.FormatOnAreas(gfx, false);
-    contentHeight = RenderInfo.GetTotalHeight(GetRenderInfos());
-  }
-
-  Area IAreaProvider.GetNextArea()
-  {
-    if (isFirstArea)
-      return new Rectangle(ContentRect.X, ContentRect.Y, ContentRect.Width, double.MaxValue);
-
-    return null;
-  }
-
-  Area IAreaProvider.ProbeNextArea()
-  {
-    return null;
-  }
-
-  FieldInfos IAreaProvider.AreaFieldInfos => fieldInfos;
-
-  void IAreaProvider.StoreRenderInfos(ArrayList renderInfos)
-  {
-    this.renderInfos = renderInfos;
-  }
-
-  bool IAreaProvider.IsAreaBreakBefore(LayoutInfo layoutInfo)
-  {
-    return false;
-  }
-
-
-  internal RenderInfo[] GetRenderInfos()
-  {
-    if (renderInfos != null)
+    internal FormattedHeaderFooter(HeaderFooter headerFooter, DocumentRenderer documentRenderer, FieldInfos fieldInfos)
     {
-      // Not ToArray(Type): it builds the array type at run time, which carries
-      // RequiresDynamicCode and an AOT compiler cannot always have code for.
-      var result = new RenderInfo[renderInfos.Count];
-      renderInfos.CopyTo(result);
-      return result;
+        this._headerFooter = headerFooter;
+        this._fieldInfos = fieldInfos;
+        this._documentRenderer = documentRenderer;
     }
 
-    return Array.Empty<RenderInfo>();
-  }
+    internal void Format(XGraphics gfx)
+    {
+        _isFirstArea = true;
+        _formatter = new TopDownFormatter(this, _documentRenderer, _headerFooter.Elements);
+        _formatter.FormatOnAreas(gfx, false);
+    }
 
-  internal Rectangle ContentRect
-  {
-    get => contentRect;
-    set => contentRect = value;
-  }
-  private Rectangle contentRect;
+    Area IAreaProvider.GetNextArea()
+    {
+        return _isFirstArea ? new Rectangle(ContentRect.X, ContentRect.Y, ContentRect.Width, double.MaxValue) : null;
+    }
 
-  XUnit ContentHeight => contentHeight;
+    Area IAreaProvider.ProbeNextArea()
+    {
+        return null;
+    }
 
-  bool IAreaProvider.PositionVertically(LayoutInfo layoutInfo)
-  {
-    IAreaProvider formattedDoc = (IAreaProvider)documentRenderer.FormattedDocument;
-    return formattedDoc.PositionVertically(layoutInfo);
-  }
+    FieldInfos IAreaProvider.AreaFieldInfos => _fieldInfos;
 
-  bool IAreaProvider.PositionHorizontally(LayoutInfo layoutInfo)
-  {
-    IAreaProvider formattedDoc = (IAreaProvider)documentRenderer.FormattedDocument;
-    return formattedDoc.PositionHorizontally(layoutInfo); ;
-  }
+    void IAreaProvider.StoreRenderInfos(ArrayList renderInfos)
+    {
+        this._renderInfos = renderInfos;
+    }
 
-  private HeaderFooter headerFooter;
-  private FieldInfos fieldInfos;
-  private TopDownFormatter formatter;
-  private ArrayList renderInfos;
-  private XGraphics gfx;
-  private bool isFirstArea;
-  private XUnit contentHeight;
-  private DocumentRenderer documentRenderer;
+    bool IAreaProvider.IsAreaBreakBefore(LayoutInfo layoutInfo)
+    {
+        return false;
+    }
+
+
+    internal RenderInfo[] GetRenderInfos()
+    {
+        if (_renderInfos != null)
+        {
+            // Not ToArray(Type): it builds the array type at run time, which carries
+            // RequiresDynamicCode and an AOT compiler cannot always have code for.
+            var result = new RenderInfo[_renderInfos.Count];
+            _renderInfos.CopyTo(result);
+            return result;
+        }
+
+        return Array.Empty<RenderInfo>();
+    }
+
+    internal Rectangle ContentRect
+    {
+        get => _contentRect;
+        set => _contentRect = value;
+    }
+
+    private Rectangle _contentRect;
+
+    bool IAreaProvider.PositionVertically(LayoutInfo layoutInfo)
+    {
+        IAreaProvider formattedDoc = _documentRenderer.FormattedDocument;
+        return formattedDoc.PositionVertically(layoutInfo);
+    }
+
+    bool IAreaProvider.PositionHorizontally(LayoutInfo layoutInfo)
+    {
+        var formattedDoc = (IAreaProvider)_documentRenderer.FormattedDocument;
+        return formattedDoc.PositionHorizontally(layoutInfo);
+    }
+
+    private readonly HeaderFooter _headerFooter;
+    private readonly FieldInfos _fieldInfos;
+    private TopDownFormatter _formatter;
+    private ArrayList _renderInfos;
+    private bool _isFirstArea;
+    private readonly DocumentRenderer _documentRenderer;
 }

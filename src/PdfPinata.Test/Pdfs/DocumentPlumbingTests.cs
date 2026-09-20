@@ -116,19 +116,27 @@ public class DocumentPlumbingTests
         internal static object For(PdfDocument owner) =>
             Activator.CreateInstance(TableType, Any, null, new object[] { owner }, null);
 
+        // ReSharper disable PossibleNullReferenceException
         internal static void Remember(object table, PdfDocument external) =>
             TableType.GetMethod("GetImportedObjectTable", Any, null,
                 new[] { typeof(PdfDocument) }, null).Invoke(table, new object[] { external });
+        // ReSharper restore PossibleNullReferenceException
 
+        // ReSharper disable PossibleNullReferenceException
         internal static void Detach(object table, PdfDocument external) =>
             TableType.GetMethod("DetachDocument", Any)
                 .Invoke(table, new[] { HandleOf(external) });
+        // ReSharper restore PossibleNullReferenceException
 
+        // ReSharper disable PossibleNullReferenceException
         internal static int Count(object table) =>
             ((ICollection)TableType.GetField("_forms", Any).GetValue(table)).Count;
+        // ReSharper restore PossibleNullReferenceException
 
+        // ReSharper disable PossibleNullReferenceException
         static object HandleOf(PdfDocument document) =>
             typeof(PdfDocument).GetProperty("Handle", Any).GetValue(document);
+        // ReSharper restore PossibleNullReferenceException
     }
 
     [Fact]

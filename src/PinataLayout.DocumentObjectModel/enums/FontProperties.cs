@@ -57,5 +57,5 @@ enum FontProperties
   /// so Font.Serialize took the "only one property is set" shortcut and wrote \bold for a font that
   /// was bold and struck through, silently dropping the strikethrough.
   /// </summary>
-  Strikethrough = 0x0200,
+  Strikethrough = 0x0200
 }

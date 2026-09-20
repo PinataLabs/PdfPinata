@@ -55,7 +55,7 @@ public partial class XValue : ChartObject
   {
     ArgumentNullException.ThrowIfNull(value);
 
-    this.Value = value;
+    Value = value;
   }
 
   /// <summary>
@@ -80,7 +80,7 @@ public partial class XValue : ChartObject
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    serializer.Write("\"" + this.Value + "\", ");
+    serializer.Write("\"" + Value + "\", ");
   }
 
   #endregion

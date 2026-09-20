@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -79,7 +79,7 @@ public sealed class PdfTilingPattern : PdfDictionaryWithContentStream
 
         /// <summary>
         /// (Required) A code that determines how the color of the pattern cell is to be specified:
-        /// 1: Colored tiling pattern. The pattern’s content stream specifies the colors used to 
+        /// 1: Colored tiling pattern. The pattern’s content stream specifies the colors used to
         /// paint the pattern cell. When the content stream begins execution, the current color
         /// is the one that was initially in effect in the pattern’s parent content stream.
         /// 2: Uncolored tiling pattern. The pattern’s content stream does not specify any color
@@ -105,7 +105,7 @@ public sealed class PdfTilingPattern : PdfDictionaryWithContentStream
         /// is painted. This achieves the spacing requested by XStep and YStep on average but not
         /// necessarily for each individual pattern cell.
         /// 3: Constant spacing and faster tiling. Pattern cells are spaced consistently as in tiling
-        /// type 1 but with additional distortion permitted to enable a more efficient implementation. 
+        /// type 1 but with additional distortion permitted to enable a more efficient implementation.
         /// </summary>
         [KeyInfo(KeyType.Integer | KeyType.Required)]
         public const string TilingType = "/TilingType";

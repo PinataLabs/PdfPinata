@@ -37,19 +37,19 @@ internal class FootnoteRenderer
         DrawSeparator(left, top, width);
 
         XUnit y = top + FormattedDocument.FootnoteSeparatorBand;
-        foreach (Footnote note in notes)
+        foreach (var note in notes)
         {
-            FormattedFootnote formatted = _documentRenderer.Footnotes.FormattedOf(note);
+            var formatted = _documentRenderer.Footnotes.FormattedOf(note);
             if (formatted == null)
                 continue;
 
-            RenderInfo[] renderInfos = formatted.GetRenderInfos();
+            var renderInfos = formatted.GetRenderInfos();
 
             // The element the paragraph renderer built where this note was cited. Entered rather than
             // marked: the note draws its content through renderers of its own, which mark what they
             // draw, and a /Note holding marks directly as well would claim that some of the page
             // belongs to the note rather than to the paragraphs inside it.
-            PdfStructureElement element = Tagger.FootnoteFor(_gfx, note);
+            var element = Tagger.FootnoteFor(_gfx, note);
             using (Tagger.Enter(element))
             {
                 // The note's text sits to the right of the gutter it was laid out to leave; the mark
@@ -93,12 +93,12 @@ internal class FootnoteRenderer
     void DrawMark(Footnote note, FormattedFootnote formatted, XUnit left, XUnit top,
         PdfStructureElement element)
     {
-        string mark = _documentRenderer.Footnotes.MarkFor(note);
+        var mark = _documentRenderer.Footnotes.MarkFor(note);
         if (mark.Length == 0)
             return;
 
-        XFont font = formatted.NoteFont(_gfx);
-        XFont raised = FontHandler.ToSubSuperFont(font);
+        var font = formatted.NoteFont(_gfx);
+        var raised = FontHandler.ToSubSuperFont(font);
 
         // Raised off the note's first line exactly as the reference mark is raised off the line it
         // sits in, and by the same arithmetic - see ParagraphRenderer.FootnoteMarkBaseline. Setting
@@ -118,13 +118,13 @@ internal class FootnoteRenderer
         if (renderInfos == null)
             return;
 
-        foreach (RenderInfo renderInfo in renderInfos)
+        foreach (var renderInfo in renderInfos)
         {
-            XUnit savedX = renderInfo.LayoutInfo.ContentArea.X;
-            XUnit savedY = renderInfo.LayoutInfo.ContentArea.Y;
+            var savedX = renderInfo.LayoutInfo.ContentArea.X;
+            var savedY = renderInfo.LayoutInfo.ContentArea.Y;
             renderInfo.LayoutInfo.ContentArea.X += xShift;
             renderInfo.LayoutInfo.ContentArea.Y += yShift;
-            Renderer renderer = Renderer.Create(_gfx, _documentRenderer, renderInfo, _fieldInfos);
+            var renderer = Renderer.Create(_gfx, _documentRenderer, renderInfo, _fieldInfos);
             renderer.Render();
             renderInfo.LayoutInfo.ContentArea.X = savedX;
             renderInfo.LayoutInfo.ContentArea.Y = savedY;

@@ -27,7 +27,6 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
-using PdfPinata.Drawing;
 
 namespace PdfPinata.Charting.Renderers;
 
@@ -49,12 +48,12 @@ internal class PlotAreaBorderRenderer : Renderer
   /// </summary>
   internal override void Draw()
   {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    if (cri.plotAreaRendererInfo.LineFormat != null && cri.plotAreaRendererInfo.LineFormat.Width > 0)
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    if (cri.PlotAreaRendererInfo.LineFormat != null && cri.PlotAreaRendererInfo.LineFormat.Width > 0)
     {
-      XGraphics gfx = this.rendererParms.Graphics;
-      LineFormatRenderer lineFormatRenderer = new LineFormatRenderer(gfx, cri.plotAreaRendererInfo.LineFormat);
-      lineFormatRenderer.DrawRectangle(cri.plotAreaRendererInfo.Rect);
+      var gfx = this.rendererParms.Graphics;
+      var lineFormatRenderer = new LineFormatRenderer(gfx, cri.PlotAreaRendererInfo.LineFormat);
+      lineFormatRenderer.DrawRectangle(cri.PlotAreaRendererInfo.Rect);
     }
   }
 }

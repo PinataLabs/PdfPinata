@@ -48,7 +48,7 @@ public sealed class PdfLineAnnotation : PdfAnnotation
 
     void Initialize()
     {
-        Elements.SetName(Keys.Subtype, "/Line");
+        Elements.SetName(PdfAnnotation.Keys.Subtype, "/Line");
 
         // A visible default, for the same reason PdfSquareCircleAnnotation has one: a line of no
         // width is an annotation that draws nothing, which is the very thing this class exists to
@@ -99,7 +99,7 @@ public sealed class PdfLineAnnotation : PdfAnnotation
     {
         get
         {
-            PdfDictionary border = Elements.GetDictionary(Keys.BS);
+            var border = Elements.GetDictionary(PdfAnnotation.Keys.BS);
             return border == null ? 1 : border.Elements.GetReal("/W");
         }
         set
@@ -109,11 +109,11 @@ public sealed class PdfLineAnnotation : PdfAnnotation
 
             // A direct dictionary, so that it needs no owner - the width can be set before the
             // annotation has been added to a page.
-            PdfDictionary border = new PdfDictionary();
+            var border = new PdfDictionary();
             border.Elements.SetName("/Type", "/Border");
             border.Elements.SetReal("/W", value);
             border.Elements.SetName("/S", "/S");
-            Elements[Keys.BS] = border;
+            Elements[PdfAnnotation.Keys.BS] = border;
 
             Touch();
         }
@@ -127,7 +127,7 @@ public sealed class PdfLineAnnotation : PdfAnnotation
     {
         get
         {
-            PdfArray colour = Elements.GetArray(Keys.IC);
+            var colour = Elements.GetArray(Keys.IC);
             if (colour == null || colour.Elements.Count < 3)
                 return XColor.Empty;
 
@@ -144,7 +144,7 @@ public sealed class PdfLineAnnotation : PdfAnnotation
             // An empty array is how the specification says "no interior colour", and is not the
             // same as the entry being absent - which means the same thing, but says nothing
             // about intent.
-            PdfArray colour = new PdfArray();
+            var colour = new PdfArray();
             if (value != XColor.Empty)
             {
                 colour.Elements.Add(new PdfReal(value.R / 255.0));
@@ -187,7 +187,7 @@ public sealed class PdfLineAnnotation : PdfAnnotation
 
     XPoint EndpointAt(int first)
     {
-        PdfArray line = Elements.GetArray(Keys.L);
+        var line = Elements.GetArray(Keys.L);
         if (line == null || line.Elements.Count < 4)
             return new XPoint();
 
@@ -204,13 +204,13 @@ public sealed class PdfLineAnnotation : PdfAnnotation
 
     PdfLineEnding EndingAt(int index)
     {
-        PdfArray endings = Elements.GetArray(Keys.LE);
+        var endings = Elements.GetArray(Keys.LE);
         if (endings == null || endings.Elements.Count <= index)
             return PdfLineEnding.None;
 
-        string name = endings.Elements.GetName(index);
+        var name = endings.Elements.GetName(index);
         if (name.Length > 0 && name[0] == '/')
-            name = name.Substring(1);
+            name = name[1..];
 
         return Enum.IsDefined(typeof(PdfLineEnding), name)
             ? Enum.Parse<PdfLineEnding>(name, false)
@@ -230,7 +230,7 @@ public sealed class PdfLineAnnotation : PdfAnnotation
     /// </summary>
     void Touch()
     {
-        Elements.SetDateTime(Keys.M, GlobalTimeSettings.Now);
+        Elements.SetDateTime(PdfAnnotation.Keys.M, GlobalTimeSettings.Now);
         RebuildAppearance();
     }
 
@@ -250,23 +250,23 @@ public sealed class PdfLineAnnotation : PdfAnnotation
         if (Owner == null)
             return;
 
-        XPoint start = Start;
-        XPoint end = End;
-        double width = BorderWidth;
+        var start = Start;
+        var end = End;
+        var width = BorderWidth;
 
-        bool anyEnding = StartEnding != PdfLineEnding.None || EndEnding != PdfLineEnding.None;
-        double reach = width / 2 + (anyEnding ? EndingSize : 0);
+        var anyEnding = StartEnding != PdfLineEnding.None || EndEnding != PdfLineEnding.None;
+        var reach = width / 2 + (anyEnding ? EndingSize : 0);
 
         // /Rect has to enclose everything drawn, and what is drawn is the line plus whatever sits
         // at its ends. Written even when nothing will be drawn, because /Rect is required.
-        double x1 = Math.Min(start.X, end.X) - reach;
-        double y1 = Math.Min(start.Y, end.Y) - reach;
-        double x2 = Math.Max(start.X, end.X) + reach;
-        double y2 = Math.Max(start.Y, end.Y) + reach;
-        Elements.SetRectangle(Keys.Rect, new PdfRectangle(new XPoint(x1, y1), new XPoint(x2, y2)));
+        var x1 = Math.Min(start.X, end.X) - reach;
+        var y1 = Math.Min(start.Y, end.Y) - reach;
+        var x2 = Math.Max(start.X, end.X) + reach;
+        var y2 = Math.Max(start.Y, end.Y) + reach;
+        Elements.SetRectangle(PdfAnnotation.Keys.Rect, new PdfRectangle(new XPoint(x1, y1), new XPoint(x2, y2)));
 
-        double boxWidth = x2 - x1;
-        double boxHeight = y2 - y1;
+        var boxWidth = x2 - x1;
+        var boxHeight = y2 - y1;
 
         // Nothing to draw: no width to draw it with, no line to draw, or a box too small to draw
         // it in. That last is XForm's floor of a point in each direction, which a hairline lying
@@ -275,29 +275,30 @@ public sealed class PdfLineAnnotation : PdfAnnotation
         // what it was last asked for rather than what it is being asked for now - a width set back
         // to nothing would stay on the page.
         #pragma warning disable S1244 // Exact on purpose: only the exact value takes the special case, and the general path is right for anything near it.
+        // ReSharper disable once CompareOfFloatsByEqualityOperator
         if (width <= 0 || (start.X == end.X && start.Y == end.Y)
             || boxWidth < 1 || boxHeight < 1)
         #pragma warning restore S1244
         {
-            Elements.Remove(Keys.AP);
+            Elements.Remove(PdfAnnotation.Keys.AP);
 
             // /AS names one of a set of appearances, so leaving it behind would point at a state
             // in an /AP that is no longer there. SetAppearance clears it for the same reason.
-            Elements.Remove(Keys.AS);
+            Elements.Remove(PdfAnnotation.Keys.AS);
             return;
         }
 
         // The form is drawn on with the origin at its top left and y running down, as every other
         // XGraphics surface is, while the endpoints above are default user space with y running
         // up. That flip is the whole of the conversion.
-        XPoint from = new XPoint(start.X - x1, y2 - start.Y);
-        XPoint to = new XPoint(end.X - x1, y2 - end.Y);
+        var from = new XPoint(start.X - x1, y2 - start.Y);
+        var to = new XPoint(end.X - x1, y2 - end.Y);
 
-        XPen pen = new XPen(Color, width);
+        var pen = new XPen(Color, width);
         XBrush brush = Interior == XColor.Empty ? null : new XSolidBrush(Interior);
 
-        XForm form = new XForm(Owner, new XSize(boxWidth, boxHeight));
-        using (XGraphics gfx = XGraphics.FromForm(form))
+        var form = new XForm(Owner, new XSize(boxWidth, boxHeight));
+        using (var gfx = XGraphics.FromForm(form))
         {
             gfx.DrawLine(pen, from, to);
 
@@ -315,9 +316,9 @@ public sealed class PdfLineAnnotation : PdfAnnotation
     /// </summary>
     static XVector Direction(XPoint from, XPoint to)
     {
-        double dx = to.X - from.X;
-        double dy = to.Y - from.Y;
-        double length = Math.Sqrt(dx * dx + dy * dy);
+        var dx = to.X - from.X;
+        var dy = to.Y - from.Y;
+        var length = Math.Sqrt(dx * dx + dy * dy);
 
         return length == 0 ? new XVector(1, 0) : new XVector(dx / length, dy / length);
     }
@@ -327,15 +328,15 @@ public sealed class PdfLineAnnotation : PdfAnnotation
         if (ending == PdfLineEnding.None)
             return;
 
-        double size = EndingSize;
-        double half = size / 2;
+        var size = EndingSize;
+        var half = size / 2;
 
         // Reversed arrowheads are the same triangle turned round, which is the only thing the
         // R-prefixed members of Table 176 change.
         if (ending == PdfLineEnding.ROpenArrow || ending == PdfLineEnding.RClosedArrow)
             outward = new XVector(-outward.X, -outward.Y);
 
-        XVector across = new XVector(-outward.Y, outward.X);
+        var across = new XVector(-outward.Y, outward.X);
 
         switch (ending)
         {
@@ -343,12 +344,12 @@ public sealed class PdfLineAnnotation : PdfAnnotation
                 DrawShape(gfx, pen, brush, new[]
                 {
                     new XPoint(at.X - half, at.Y - half), new XPoint(at.X + half, at.Y - half),
-                    new XPoint(at.X + half, at.Y + half), new XPoint(at.X - half, at.Y + half),
+                    new XPoint(at.X + half, at.Y + half), new XPoint(at.X - half, at.Y + half)
                 });
                 break;
 
             case PdfLineEnding.Circle:
-                XRect circle = new XRect(at.X - half, at.Y - half, size, size);
+                var circle = new XRect(at.X - half, at.Y - half, size, size);
                 if (brush == null)
                     gfx.DrawEllipse(pen, circle);
                 else
@@ -359,7 +360,7 @@ public sealed class PdfLineAnnotation : PdfAnnotation
                 DrawShape(gfx, pen, brush, new[]
                 {
                     new XPoint(at.X, at.Y - half), new XPoint(at.X + half, at.Y),
-                    new XPoint(at.X, at.Y + half), new XPoint(at.X - half, at.Y),
+                    new XPoint(at.X, at.Y + half), new XPoint(at.X - half, at.Y)
                 });
                 break;
 
@@ -374,7 +375,7 @@ public sealed class PdfLineAnnotation : PdfAnnotation
             case PdfLineEnding.RClosedArrow:
                 DrawShape(gfx, pen, brush, new[]
                 {
-                    at, Barb(at, outward, across, size, half, 1), Barb(at, outward, across, size, half, -1),
+                    at, Barb(at, outward, across, size, half, 1), Barb(at, outward, across, size, half, -1)
                 });
                 break;
 
@@ -387,9 +388,9 @@ public sealed class PdfLineAnnotation : PdfAnnotation
             case PdfLineEnding.Slash:
                 // "Approximately thirty degrees clockwise from perpendicular", which is what the
                 // specification asks for and how precisely it asks for it.
-                double cos = Math.Cos(Math.PI / 6);
-                double sin = Math.Sin(Math.PI / 6);
-                XVector slash = new XVector(
+                var cos = Math.Cos(Math.PI / 6);
+                var sin = Math.Sin(Math.PI / 6);
+                var slash = new XVector(
                     across.X * cos - across.Y * sin,
                     across.X * sin + across.Y * cos);
                 gfx.DrawLine(pen,

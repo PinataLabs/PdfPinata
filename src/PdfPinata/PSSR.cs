@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -47,7 +47,7 @@ static class PSSR
 {
     // How to use:
     // Create a function or property for each message text, depending on how many parameters are
-    // part of the message. For the beginning, type plain English text in the function or property. 
+    // part of the message. For the beginning, type plain English text in the function or property.
     // The use of functions is safe when a parameter must be changed. The compiler tells you all
     // places in your code that must be modified.
     // For localization, create an enum value for each function or property with the same name. Then
@@ -77,7 +77,7 @@ static class PSSR
         }
         catch (Exception ex) when (!Unrecoverable.Is(ex))
         {
-            message = String.Format("UNEXPECTED ERROR while formatting message with ID {0}: {1}", id.ToString(), ex.ToString());
+            message = $"UNEXPECTED ERROR while formatting message with ID {id}: {ex}";
         }
         return message;
     }
@@ -93,7 +93,7 @@ static class PSSR
         }
         catch (Exception ex) when (!Unrecoverable.Is(ex))
         {
-            message = String.Format("UNEXPECTED ERROR while formatting message '{0}': {1}", format, ex);
+            message = $"UNEXPECTED ERROR while formatting message '{format}': {ex}";
         }
         return message;
     }
@@ -156,17 +156,17 @@ static class PSSR
 
     public static string CannotChangeImmutableObject(string typename)
     {
-        return String.Format("You cannot change this immutable {0} object.", typename);
+        return $"You cannot change this immutable {typename} object.";
     }
 
     public static string FontAlreadyAdded(string fontname)
     {
-        return String.Format("Fontface with the name '{0}' already added to font collection.", fontname);
+        return $"Fontface with the name '{fontname}' already added to font collection.";
     }
 
     public static string NotImplementedForFontsRetrievedWithFontResolver(string name)
     {
-        return String.Format("Not implemented for font '{0}', because it was retrieved with font resolver.", name);
+        return $"Not implemented for font '{name}', because it was retrieved with font resolver.";
     }
 
     #endregion
@@ -208,9 +208,9 @@ static class PSSR
     /// </remarks>
     public static string CannotModify(string operation, PdfDocumentOpenMode openMode)
     {
-        return String.Format(
-            "This document was opened with PdfDocumentOpenMode.{0} and {1} needs a document opened " +
-            "with PdfDocumentOpenMode.Modify or PdfDocumentOpenMode.Append.", openMode, operation);
+        return
+            $"This document was opened with PdfDocumentOpenMode.{openMode} and {operation} needs a document opened " +
+            "with PdfDocumentOpenMode.Modify or PdfDocumentOpenMode.Append.";
     }
 
     /// <summary>
@@ -220,9 +220,8 @@ static class PSSR
     /// </summary>
     public static string CertificationForbids(string operation, PdfCertificationLevel level)
     {
-        return String.Format(
-            "This document was certified with PdfCertificationLevel.{0} and {1} is not permitted by " +
-            "that certification.", level, operation);
+        return $"This document was certified with PdfCertificationLevel.{level} and {operation} is not permitted by " +
+               "that certification.";
     }
 
     public static string NameMustStartWithSlash =>
@@ -309,8 +308,8 @@ static class PSSR
                 space = "(undefined)";
                 break;
         }
-        return String.Format("The document requires color mode {0}, but a color is defined using {1}. " +
-                             "Use only colors that match the color mode of the PDF document", mode, space);
+        return $"The document requires color mode {mode}, but a color is defined using {space}. " +
+               "Use only colors that match the color mode of the PDF document";
     }
 
     public static string CannotGetGlyphTypeface(string fontName)

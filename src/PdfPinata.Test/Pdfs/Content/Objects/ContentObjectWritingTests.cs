@@ -195,7 +195,7 @@ public class ContentObjectWritingTests
         {
             new CString { Value = "A" },
             new CInteger { Value = -250 },
-            new CString { Value = "B" },
+            new CString { Value = "B" }
         };
         var show = OpCodes.OperatorFromName("TJ");
 
@@ -233,7 +233,7 @@ public class ContentObjectWritingTests
             new CInteger { Value = 3 },
             new CReal { Value = 2.5 },
             new CName("/F1"),
-            new CInteger { Value = -1 },
+            new CInteger { Value = -1 }
         };
 
         array.ToString().Should().Be("[3 2.5 /F1 -1]");
@@ -282,7 +282,7 @@ public class ContentObjectWritingTests
         {
             new CName("/F1"),
             new CString { Value = "x" },
-            OpCodes.OperatorFromName("Q"),
+            OpCodes.OperatorFromName("Q")
         };
 
         sequence.ToString().Should().Be("/F1(x)Q");

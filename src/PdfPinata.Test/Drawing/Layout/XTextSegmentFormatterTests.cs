@@ -106,7 +106,7 @@ public class XTextSegmentFormatterTests
     /// <summary>
     ///   The same text laid out under a given alignment, in a rectangle whose left edge is at
     ///   <see cref="LayoutLeft"/>. Alignment is a property of the formatter rather than an
-    ///   argument, which is why this cannot go through <see cref="PageShowing"/>.
+    ///   argument, which is why this cannot go through <see cref="PageShowing(TextSegment[])"/>.
     /// </summary>
     static PdfPage PageShowing(XParagraphAlignment alignment, params TextSegment[] segments)
     {
@@ -214,7 +214,7 @@ public class XTextSegmentFormatterTests
         var counts = new[]
         {
             XParagraphAlignment.Left, XParagraphAlignment.Right,
-            XParagraphAlignment.Center, XParagraphAlignment.Justify,
+            XParagraphAlignment.Center, XParagraphAlignment.Justify
         }.Select(alignment => LineStartsOf(
             PageShowing(alignment, Segment(TwoLinesOfWords, Plain, XBrushes.Black))).Length);
 

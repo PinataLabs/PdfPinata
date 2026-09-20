@@ -262,7 +262,7 @@ public class GlyphOutlineTests
     [InlineData("oooo")]
     public void EachBackendMovesThePenByTheFontsOwnAdvanceWidth(string repeated)
     {
-        var one = repeated.Substring(0, 1);
+        var one = repeated[..1];
         var advance = Measure(one + one, TrueTypeFamily).Width - Measure(one, TrueTypeFamily).Width;
 
         foreach (var provider in new IGlyphOutlineProvider[]

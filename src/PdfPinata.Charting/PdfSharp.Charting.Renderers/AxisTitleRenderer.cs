@@ -50,21 +50,21 @@ internal class AxisTitleRenderer : Renderer
   /// </summary>
   internal override void Format()
   {
-    XGraphics gfx = this.rendererParms.Graphics;
+    var gfx = this.rendererParms.Graphics;
 
-    AxisTitleRendererInfo atri = ((AxisRendererInfo)this.rendererParms.RendererInfo).axisTitleRendererInfo;
+    var atri = ((AxisRendererInfo)this.rendererParms.RendererInfo).AxisTitleRendererInfo;
     if (atri.AxisTitleText != "")
     {
-      XSize size = gfx.MeasureString(atri.AxisTitleText, atri.AxisTitleFont);
+      var size = gfx.MeasureString(atri.AxisTitleText, atri.AxisTitleFont);
       if (atri.AxisTitleOrientation != 0)
       {
-        XPoint[] points = new XPoint[2];
+        var points = new XPoint[2];
         points[0].X = 0;
         points[0].Y = 0;
         points[1].X = size.Width;
         points[1].Y = size.Height;
 
-        XMatrix matrix = new XMatrix();  //XMatrix.Identity;
+        var matrix = new XMatrix();  //XMatrix.Identity;
         matrix.RotatePrepend(-atri.AxisTitleOrientation);
         matrix.TransformPoints(points);
 
@@ -90,11 +90,11 @@ internal class AxisTitleRenderer : Renderer
   /// </summary>
   internal override void Draw()
   {
-    AxisRendererInfo ari = (AxisRendererInfo)this.rendererParms.RendererInfo;
-    AxisTitleRendererInfo atri = ari.axisTitleRendererInfo;
+    var ari = (AxisRendererInfo)this.rendererParms.RendererInfo;
+    var atri = ari.AxisTitleRendererInfo;
     if (atri.AxisTitleText != "")
     {
-      XGraphics gfx = this.rendererParms.Graphics;
+      var gfx = this.rendererParms.Graphics;
       if (atri.AxisTitleOrientation != 0)
       {
         // The box the caption occupies, centred on the origin: the surface is moved and turned
@@ -105,18 +105,18 @@ internal class AxisTitleRenderer : Renderer
         // aside to place it in. Halving the strip instead is what used to make Right and Bottom
         // land where Center does - the strip is what the offsets below are measured against, so
         // using it on both sides of the subtraction cancelled it out.
-        XSize caption = atri.AxisTitleSize;
-        XRect layout = new XRect(-(caption.Width / 2), -(caption.Height / 2),
+        var caption = atri.AxisTitleSize;
+        var layout = new XRect(-(caption.Width / 2), -(caption.Height / 2),
           caption.Width, caption.Height);
 
-        RotatedCaptionLayout position = AxisTitleGeometry.RotatedCaption(
+        var position = AxisTitleGeometry.RotatedCaption(
           atri.Rect, caption, atri.AxisTitleOrientation, atri.AxisTitleAlignment, atri.AxisTitleVerticalAlignment);
 
-        XStringFormat xsf = new XStringFormat();
+        var xsf = new XStringFormat();
         xsf.Alignment = XStringAlignment.Center;
         xsf.LineAlignment = XLineAlignment.Center;
 
-        XGraphicsState state = gfx.Save();
+        var state = gfx.Save();
         gfx.TranslateTransform(position.Anchor.X, position.Anchor.Y);
         gfx.RotateTransform(position.RotationDegrees);
         gfx.DrawString(atri.AxisTitleText, atri.AxisTitleFont, atri.AxisTitleBrush, layout, xsf);
@@ -124,7 +124,7 @@ internal class AxisTitleRenderer : Renderer
       }
       else
       {
-        XStringFormat format = new XStringFormat();
+        var format = new XStringFormat();
         switch (atri.AxisTitleAlignment)
         {
           case HorizontalAlignment.Center:

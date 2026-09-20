@@ -33,8 +33,8 @@ public class GenericAnnotationTests
     [InlineData("Circle", "/Circle")]
     public void AnAnnotationNamesTheSubtypeItWasGiven(string given, string written)
     {
-        PdfDocument document = new PdfDocument();
-        PdfGenericAnnotation annotation = new PdfGenericAnnotation(given);
+        var document = new PdfDocument();
+        var annotation = new PdfGenericAnnotation(given);
         document.AddPage().Annotations.Add(annotation);
 
         annotation.Elements.GetName("/Subtype").Should().Be(written);
@@ -60,19 +60,19 @@ public class GenericAnnotationTests
     [Fact]
     public void AnAppearanceIsWrittenAsTheNormalOneUnderAp()
     {
-        PdfDocument document = new PdfDocument();
-        PdfPage page = document.AddPage();
+        var document = new PdfDocument();
+        var page = document.AddPage();
 
-        PdfGenericAnnotation square = new PdfGenericAnnotation("/Square");
+        var square = new PdfGenericAnnotation("/Square");
         page.Annotations.Add(square);
         square.Rectangle = new PdfRectangle(new XRect(40, 40, 120, 60));
 
         square.SetAppearance(Filled(document, new XSize(120, 60), XColors.RoyalBlue));
 
-        PdfDictionary appearance = square.Elements.GetDictionary("/AP");
+        var appearance = square.Elements.GetDictionary("/AP");
         appearance.Should().NotBeNull();
 
-        PdfDictionary normal = (PdfDictionary)appearance.Elements.GetObject("/N");
+        var normal = (PdfDictionary)appearance.Elements.GetObject("/N");
         normal.Elements.GetName("/Subtype").Should().Be("/Form");
         normal.Stream.Should().NotBeNull();
         normal.Stream.Length.Should().BeGreaterThan(0);
@@ -81,13 +81,13 @@ public class GenericAnnotationTests
     [Fact]
     public void AnAppearanceMustBelongToTheSameDocument()
     {
-        PdfDocument document = new PdfDocument();
-        PdfGenericAnnotation square = new PdfGenericAnnotation("/Square");
+        var document = new PdfDocument();
+        var square = new PdfGenericAnnotation("/Square");
         document.AddPage().Annotations.Add(square);
 
-        XForm elsewhere = Filled(new PdfDocument(), new XSize(20, 20), XColors.Red);
+        var elsewhere = Filled(new PdfDocument(), new XSize(20, 20), XColors.Red);
 
-        Action act = () => square.SetAppearance(elsewhere);
+        var act = () => square.SetAppearance(elsewhere);
 
         // A reference into another document's object table would be written as a number that
         // means something else here, which is a corrupt file rather than a missing drawing.
@@ -97,10 +97,10 @@ public class GenericAnnotationTests
     [Fact]
     public void AnAppearanceNeedsTheAnnotationToBeOnAPageFirst()
     {
-        PdfDocument document = new PdfDocument();
-        PdfGenericAnnotation square = new PdfGenericAnnotation("/Square");
+        var document = new PdfDocument();
+        var square = new PdfGenericAnnotation("/Square");
 
-        Action act = () => square.SetAppearance(Filled(document, new XSize(20, 20), XColors.Red));
+        var act = () => square.SetAppearance(Filled(document, new XSize(20, 20), XColors.Red));
 
         // Until it is added it has no Owner, so there is no object table to put the form in.
         act.Should().Throw<InvalidOperationException>();
@@ -109,16 +109,16 @@ public class GenericAnnotationTests
     [Fact]
     public void NamedAppearancesAccumulateAndTheLastOneNamedIsShown()
     {
-        PdfDocument document = new PdfDocument();
-        PdfPage page = document.AddPage();
+        var document = new PdfDocument();
+        var page = document.AddPage();
 
-        PdfGenericAnnotation widget = new PdfGenericAnnotation("/Square");
+        var widget = new PdfGenericAnnotation("/Square");
         page.Annotations.Add(widget);
 
         widget.SetAppearance("/Off", Filled(document, new XSize(16, 16), XColors.White));
         widget.SetAppearance("Yes", Filled(document, new XSize(16, 16), XColors.Black));
 
-        PdfDictionary states =
+        var states =
             (PdfDictionary)widget.Elements.GetDictionary("/AP").Elements.GetObject("/N");
 
         // Both are in the file at once - a check box needs them there to be toggled between -
@@ -131,16 +131,16 @@ public class GenericAnnotationTests
     [Fact]
     public void ASingleAppearanceReplacesASetOfNamedOnes()
     {
-        PdfDocument document = new PdfDocument();
-        PdfPage page = document.AddPage();
+        var document = new PdfDocument();
+        var page = document.AddPage();
 
-        PdfGenericAnnotation annotation = new PdfGenericAnnotation("/Square");
+        var annotation = new PdfGenericAnnotation("/Square");
         page.Annotations.Add(annotation);
 
         annotation.SetAppearance("/Yes", Filled(document, new XSize(16, 16), XColors.Black));
         annotation.SetAppearance(Filled(document, new XSize(16, 16), XColors.Red));
 
-        PdfDictionary normal =
+        var normal =
             (PdfDictionary)annotation.Elements.GetDictionary("/AP").Elements.GetObject("/N");
 
         // One appearance is a form rather than a dictionary of them, and /AS naming a state that
@@ -152,12 +152,12 @@ public class GenericAnnotationTests
     [Fact]
     public void AFormCannotBeDrawnOnAfterItHasBeenGivenToAnAnnotation()
     {
-        PdfDocument document = new PdfDocument();
-        PdfPage page = document.AddPage();
-        PdfGenericAnnotation square = new PdfGenericAnnotation("/Square");
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        var square = new PdfGenericAnnotation("/Square");
         page.Annotations.Add(square);
 
-        XForm form = new XForm(document, new XSize(40, 40));
+        var form = new XForm(document, new XSize(40, 40));
         square.SetAppearance(form);
 
         Action act = () => XGraphics.FromForm(form);
@@ -170,19 +170,19 @@ public class GenericAnnotationTests
     [Fact]
     public void AnAppearanceThatDrawsNothingIsStillAnAppearance()
     {
-        PdfDocument document = new PdfDocument();
-        PdfPage page = document.AddPage();
-        PdfGenericAnnotation widget = new PdfGenericAnnotation("/Square");
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        var widget = new PdfGenericAnnotation("/Square");
         page.Annotations.Add(widget);
 
         // The "off" state of a check box is an empty content stream. Finishing a form that was
         // never drawn on used to throw a NullReferenceException out of XForm.Finish, which
         // disposed an XGraphics that had never been made.
-        Action act = () => widget.SetAppearance("/Off", new XForm(document, new XSize(16, 16)));
+        var act = () => widget.SetAppearance("/Off", new XForm(document, new XSize(16, 16)));
 
         act.Should().NotThrow();
 
-        PdfDictionary states =
+        var states =
             (PdfDictionary)widget.Elements.GetDictionary("/AP").Elements.GetObject("/N");
         states.Elements.ContainsKey("/Off").Should().BeTrue();
     }
@@ -190,10 +190,10 @@ public class GenericAnnotationTests
     [Fact]
     public void TheShowingStateCanBeNamedWithOrWithoutItsSolidus()
     {
-        PdfDocument document = new PdfDocument();
-        PdfPage page = document.AddPage();
+        var document = new PdfDocument();
+        var page = document.AddPage();
 
-        PdfGenericAnnotation widget = new PdfGenericAnnotation("/Square");
+        var widget = new PdfGenericAnnotation("/Square");
         page.Annotations.Add(widget);
 
         widget.SetAppearance("/Off", Filled(document, new XSize(16, 16), XColors.White));
@@ -212,10 +212,10 @@ public class GenericAnnotationTests
     [Fact]
     public void AnAppearanceStateWithNoNameIsRefusedTheWaySettingOneIs()
     {
-        PdfDocument document = new PdfDocument();
-        PdfPage page = document.AddPage();
+        var document = new PdfDocument();
+        var page = document.AddPage();
 
-        PdfGenericAnnotation widget = new PdfGenericAnnotation("/Square");
+        var widget = new PdfGenericAnnotation("/Square");
         page.Annotations.Add(widget);
 
         // /AS names a state and the empty name names none. SetAppearance has always said so;
@@ -232,8 +232,8 @@ public class GenericAnnotationTests
     /// </summary>
     static XForm Filled(PdfDocument document, XSize size, XColor colour)
     {
-        XForm form = new XForm(document, size);
-        using (XGraphics gfx = XGraphics.FromForm(form))
+        var form = new XForm(document, size);
+        using (var gfx = XGraphics.FromForm(form))
         {
             gfx.DrawRectangle(new XSolidBrush(colour), 0, 0, size.Width, size.Height);
         }

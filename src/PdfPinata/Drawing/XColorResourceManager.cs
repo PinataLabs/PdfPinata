@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -61,7 +61,7 @@ public class XColorResourceManager
     /// </summary>
     public static XKnownColor GetKnownColor(uint argb)
     {
-        XKnownColor knownColor = XKnownColorTable.GetKnownColor(argb);
+        var knownColor = XKnownColorTable.GetKnownColor(argb);
         if ((int)knownColor == -1)
             throw new ArgumentException("The argument is not a known color", nameof(argb));
         return knownColor;
@@ -73,8 +73,8 @@ public class XColorResourceManager
     /// <param name="includeTransparent">Indicates whether to include the color Transparent.</param>
     public static XKnownColor[] GetKnownColors(bool includeTransparent)
     {
-        int count = colorInfos.Length;
-        XKnownColor[] knownColor = new XKnownColor[count - (includeTransparent ? 0 : 1)];
+        var count = colorInfos.Length;
+        var knownColor = new XKnownColor[count - (includeTransparent ? 0 : 1)];
         for (int idxIn = includeTransparent ? 0 : 1, idxOut = 0; idxIn < count; idxIn++, idxOut++)
             knownColor[idxOut] = colorInfos[idxIn].KnownColor;
         return knownColor;
@@ -85,7 +85,7 @@ public class XColorResourceManager
     /// </summary>
     public string ToColorName(XKnownColor knownColor)
     {
-        ColorResourceInfo colorInfo = GetColorInfo(knownColor);
+        var colorInfo = GetColorInfo(knownColor);
 
         // Currently German only
         if (_cultureInfo.TwoLetterISOLanguageName == "de")
@@ -103,15 +103,15 @@ public class XColorResourceManager
         if (color.IsKnownColor)
             name = ToColorName(XKnownColorTable.GetKnownColor(color.Argb));
         else
-            name = String.Format("{0}, {1}, {2}, {3}", (int)(255 * color.A), color.R, color.G, color.B);
+            name = $"{(int)(255 * color.A)}, {color.R}, {color.G}, {color.B}";
         return name;
     }
 
     static ColorResourceInfo GetColorInfo(XKnownColor knownColor)
     {
-        for (int idx = 0; idx < colorInfos.Length; idx++)
+        for (var idx = 0; idx < colorInfos.Length; idx++)
         {
-            ColorResourceInfo colorInfo = colorInfos[idx];
+            var colorInfo = colorInfos[idx];
             if (colorInfo.KnownColor == knownColor)
                 return colorInfo;
         }
@@ -295,18 +295,18 @@ public class XColorResourceManager
         new(XKnownColor.DarkKhaki, XColors.DarkKhaki, 0xFFBDB76B, "Darkkhaki", "Dunkles Khaki"),
         new(XKnownColor.YellowGreen, XColors.YellowGreen, 0xFF9ACD32, "Yellowgreen", "Gelbgrün"),
         new(XKnownColor.Chartreuse, XColors.Chartreuse, 0xFF7FFF00, "Chartreuse", "Hellgrün"),
-        new(XKnownColor.GreenYellow, XColors.GreenYellow, 0xFFADFF2F, "Greenyellow", "Grüngelb"),
+        new(XKnownColor.GreenYellow, XColors.GreenYellow, 0xFFADFF2F, "Greenyellow", "Grüngelb")
     };
 
     internal struct ColorResourceInfo
     {
-        public ColorResourceInfo(XKnownColor knownColor, XColor color, uint argb, string name, string nameDE)
+        public ColorResourceInfo(XKnownColor knownColor, XColor color, uint argb, string name, string nameDe)
         {
             KnownColor = knownColor;
             Color = color;
             Argb = argb;
             Name = name;
-            NameDE = nameDE;
+            NameDE = nameDe;
         }
         public XKnownColor KnownColor;
         public XColor Color;

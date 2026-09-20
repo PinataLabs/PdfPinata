@@ -88,9 +88,9 @@ public class PdfIntegerTests
     {
         var value = new PdfIntegerValue(200);
 
-        Convert.ToByte(value).Should().Be((byte)200);
-        Convert.ToInt16(value).Should().Be((short)200);
-        Convert.ToUInt16(value).Should().Be((ushort)200);
+        Convert.ToByte(value).Should().Be(200);
+        Convert.ToInt16(value).Should().Be(200);
+        Convert.ToUInt16(value).Should().Be(200);
         Convert.ToUInt32(value).Should().Be(200u);
         Convert.ToUInt64(value).Should().Be(200ul);
         Convert.ToChar(new PdfIntegerValue('A')).Should().Be('A');

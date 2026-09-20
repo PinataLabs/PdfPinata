@@ -50,7 +50,7 @@ public class CreateSimplePdf
         document.Save(ms);
         ms.Position = 0;
 
-        PdfDocument generatedDocument = Pdf.IO.PdfReader.Open(ms);
+        var generatedDocument = Pdf.IO.PdfReader.Open(ms);
 
         Assert.Equal(data, generatedDocument.Info.Title);
         Assert.Equal(data, generatedDocument.Info.Subject);
@@ -107,6 +107,7 @@ public class CreateSimplePdf
         var dir = Path.GetDirectoryName(outFilePath);
         if (!Directory.Exists(dir))
         {
+            // ReSharper disable once AssignNullToNotNullAttribute
             Directory.CreateDirectory(dir);
         }
 

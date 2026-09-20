@@ -76,7 +76,7 @@ internal static class PathGeometry
     static IReadOnlyList<CObject> ItemsOf(CSequence sequence)
     {
         var items = new List<CObject>();
-        foreach (CObject item in sequence)
+        foreach (var item in sequence)
             items.Add(item);
         return items;
     }

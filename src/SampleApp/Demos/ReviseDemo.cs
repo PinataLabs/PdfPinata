@@ -35,7 +35,7 @@ internal sealed class ReviseDemo : PdfDemo
         "The /Prev chain, which is how a reader walks backwards through the revisions",
         "That an object number means the same thing in every revision, so a later one shadows",
         "PdfObject.MarkAsChanged, and why a direct array inside a page needs it",
-        "The trap: appending into the file it was read from, which silently loses the revision",
+        "The trap: appending into the file it was read from, which silently loses the revision"
     };
 
     public override int PageCount => 4;
@@ -43,22 +43,22 @@ internal sealed class ReviseDemo : PdfDemo
     protected override PdfDocument Build(DemoContext context)
     {
         #region example
-        XFont heading = new XFont(BundledFontResolver.SansFamily, 16, XFontStyle.Bold);
-        XFont label = new XFont(BundledFontResolver.SansFamily, 9.5, XFontStyle.Bold);
-        XFont body = new XFont(BundledFontResolver.SansFamily, 9);
-        XFont mono = new XFont(BundledFontResolver.MonoFamily, 7.5);
-        XFont stamp = new XFont(BundledFontResolver.SansFamily, 11, XFontStyle.Bold);
+        var heading = new XFont(BundledFontResolver.SansFamily, 16, XFontStyle.Bold);
+        var label = new XFont(BundledFontResolver.SansFamily, 9.5, XFontStyle.Bold);
+        var body = new XFont(BundledFontResolver.SansFamily, 9);
+        var mono = new XFont(BundledFontResolver.MonoFamily, 7.5);
+        var stamp = new XFont(BundledFontResolver.SansFamily, 11, XFontStyle.Bold);
 
         // ----- revision one: an ordinary document, saved the ordinary way --------------------------
 
-        using PdfDocument original = new PdfDocument();
+        using var original = new PdfDocument();
         original.Info.Title = "Revise";
         original.Info.Author = "PdfPinata sample app";
 
-        PdfPage first = original.AddPage();
-        using (XGraphics gfx = XGraphics.FromPdfPage(first))
+        var first = original.AddPage();
+        using (var gfx = XGraphics.FromPdfPage(first))
         {
-            XTextFormatter prose = new XTextFormatter(gfx);
+            var prose = new XTextFormatter(gfx);
 
             gfx.DrawString("Revision one", heading, XBrushes.Black, 50, 60);
 
@@ -97,10 +97,10 @@ internal sealed class ReviseDemo : PdfDemo
                 body, XBrushes.Black, new XRect(50, 335, 495, 62));
         }
 
-        PdfPage second = original.AddPage();
-        using (XGraphics gfx = XGraphics.FromPdfPage(second))
+        var second = original.AddPage();
+        using (var gfx = XGraphics.FromPdfPage(second))
         {
-            XTextFormatter prose = new XTextFormatter(gfx);
+            var prose = new XTextFormatter(gfx);
 
             gfx.DrawString("Append is a mode, not a flag", heading, XBrushes.Black, 50, 60);
 
@@ -138,14 +138,14 @@ internal sealed class ReviseDemo : PdfDemo
         }
 
         // docs:begin append
-        MemoryStream revisionOne = new MemoryStream();
+        var revisionOne = new MemoryStream();
         original.Save(revisionOne, false);
-        long sizeOfOne = revisionOne.Length;
+        var sizeOfOne = revisionOne.Length;
 
         // ----- revision two: opened for appending, a page added ------------------------------------
 
         revisionOne.Position = 0;
-        using PdfDocument appended = PdfReader.Open(revisionOne, PdfDocumentOpenMode.Append);
+        using var appended = PdfReader.Open(revisionOne, PdfDocumentOpenMode.Append);
 
         // Changing something that was already there, as well as adding. The title is in the
         // information dictionary, which is an object like any other: the appended revision carries a
@@ -153,10 +153,10 @@ internal sealed class ReviseDemo : PdfDemo
         appended.Info.Subject = "Amended by revision two";
         // docs:end append
 
-        PdfPage third = appended.AddPage();
-        using (XGraphics gfx = XGraphics.FromPdfPage(third))
+        var third = appended.AddPage();
+        using (var gfx = XGraphics.FromPdfPage(third))
         {
-            XTextFormatter prose = new XTextFormatter(gfx);
+            var prose = new XTextFormatter(gfx);
 
             gfx.DrawString("Revision two", heading, XBrushes.Black, 50, 60);
 
@@ -177,11 +177,11 @@ internal sealed class ReviseDemo : PdfDemo
                 ("Objects reachable now", appended.Internals.GetAllObjects().Length
                     .ToString(CultureInfo.InvariantCulture) + " across both revisions"),
                 ("Pages before this one", "2"),
-                ("Changed as well as added", "/Info /Subject, which revision one had left empty"),
+                ("Changed as well as added", "/Info /Subject, which revision one had left empty")
             };
 
             double y = 190;
-            foreach ((string What, string Value) fact in facts)
+            foreach (var fact in facts)
             {
                 gfx.DrawString(fact.What, label, XBrushes.Black, 50, y);
                 gfx.DrawString(fact.Value, mono, XBrushes.Black, 200, y);
@@ -202,20 +202,20 @@ internal sealed class ReviseDemo : PdfDemo
         }
 
         // docs:begin save-incremental
-        MemoryStream revisionTwo = new MemoryStream();
+        var revisionTwo = new MemoryStream();
         appended.SaveIncremental(revisionTwo);
-        byte[] afterTwo = revisionTwo.ToArray();
+        var afterTwo = revisionTwo.ToArray();
 
         // ----- revision three: opened again, and this is the one written to the file ----------------
 
         revisionTwo.Position = 0;
-        PdfDocument document = PdfReader.Open(revisionTwo, PdfDocumentOpenMode.Append);
+        var document = PdfReader.Open(revisionTwo, PdfDocumentOpenMode.Append);
         // docs:end save-incremental
 
-        PdfPage fourth = document.AddPage();
-        using (XGraphics gfx = XGraphics.FromPdfPage(fourth))
+        var fourth = document.AddPage();
+        using (var gfx = XGraphics.FromPdfPage(fourth))
         {
-            XTextFormatter prose = new XTextFormatter(gfx);
+            var prose = new XTextFormatter(gfx);
 
             gfx.DrawString("Revision three", heading, XBrushes.Black, 50, 60);
 
@@ -236,11 +236,11 @@ internal sealed class ReviseDemo : PdfDemo
                     .ToString(CultureInfo.InvariantCulture) + " - one per revision"),
                 ("/Prev, anywhere in the bytes", Count(afterTwo, "/Prev")
                     .ToString(CultureInfo.InvariantCulture) + " - one fewer, and rightly so"),
-                ("This file", "one revision deeper again"),
+                ("This file", "one revision deeper again")
             };
 
             double y = 145;
-            foreach ((string What, string Value) fact in found)
+            foreach (var fact in found)
             {
                 gfx.DrawString(fact.What, label, XBrushes.Black, 50, y);
                 gfx.DrawString(fact.Value, mono, XBrushes.Black, 200, y);
@@ -314,7 +314,7 @@ internal sealed class ReviseDemo : PdfDemo
     /// </remarks>
     protected override void Save(PdfDocument document, string path)
     {
-        using FileStream output = new FileStream(path, FileMode.Create, FileAccess.Write);
+        using var output = new FileStream(path, FileMode.Create, FileAccess.Write);
         document.SaveIncremental(output);
     }
 
@@ -335,10 +335,10 @@ internal sealed class ReviseDemo : PdfDemo
     /// </remarks>
     static int Count(byte[] bytes, string marker)
     {
-        string text = Encoding.Latin1.GetString(bytes);
+        var text = Encoding.Latin1.GetString(bytes);
 
-        int found = 0;
-        int at = text.IndexOf(marker, StringComparison.Ordinal);
+        var found = 0;
+        var at = text.IndexOf(marker, StringComparison.Ordinal);
         while (at >= 0)
         {
             found++;
@@ -354,10 +354,10 @@ internal sealed class ReviseDemo : PdfDemo
     /// </summary>
     static int CountAtLineStart(byte[] bytes, string marker)
     {
-        string text = Encoding.Latin1.GetString(bytes);
+        var text = Encoding.Latin1.GetString(bytes);
 
-        int found = 0;
-        int at = text.IndexOf(marker, StringComparison.Ordinal);
+        var found = 0;
+        var at = text.IndexOf(marker, StringComparison.Ordinal);
         while (at >= 0)
         {
             if (at == 0 || text[at - 1] == '\n' || text[at - 1] == '\r')

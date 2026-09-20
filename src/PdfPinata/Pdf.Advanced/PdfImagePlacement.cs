@@ -24,7 +24,7 @@ public enum PdfImageOrientation
     /// The image is turned, sheared or otherwise placed in a way none of the above describes.
     /// <see cref="PdfImagePlacement.Transform"/> says what was asked for.
     /// </summary>
-    Other,
+    Other
 }
 
 /// <summary>
@@ -96,12 +96,12 @@ public sealed class PdfImagePlacement
 
             // Judged against the size of the transform rather than against a fixed figure, so
             // that a matrix carrying a rounding error in the off-diagonal is still square.
-            double scale = Math.Max(Math.Max(Math.Abs(a), Math.Abs(b)),
+            var scale = Math.Max(Math.Max(Math.Abs(a), Math.Abs(b)),
                 Math.Max(Math.Abs(c), Math.Abs(d)));
             if (scale <= 0)
                 return PdfImageOrientation.Normal;
 
-            double tolerance = scale * 1e-6;
+            var tolerance = scale * 1e-6;
             if (Math.Abs(b) > tolerance || Math.Abs(c) > tolerance)
                 return PdfImageOrientation.Other;
 
@@ -120,7 +120,7 @@ public sealed class PdfImagePlacement
     {
         get
         {
-            double determinant = _transform.M11 * _transform.M22 - _transform.M12 * _transform.M21;
+            var determinant = _transform.M11 * _transform.M22 - _transform.M12 * _transform.M21;
             return determinant < 0;
         }
     }

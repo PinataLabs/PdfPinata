@@ -115,13 +115,17 @@ public class ErrorMessageResourceTests
             .Should().Be("Unexpected symbol '\\pagebreak'.");
     }
 
-    static string GetString(object id) => (string)DomSRType
+    // ReSharper disable PossibleNullReferenceException
+    static string GetString(object id) => (string)DomSrType
         .GetMethod("GetString", BindingFlags.Static | BindingFlags.NonPublic)
         .Invoke(null, new[] { id });
+    // ReSharper restore PossibleNullReferenceException
 
-    static string FormatMessage(object id, params object[] args) => (string)DomSRType
+    // ReSharper disable PossibleNullReferenceException
+    static string FormatMessage(object id, params object[] args) => (string)DomSrType
         .GetMethod("FormatMessage", BindingFlags.Static | BindingFlags.NonPublic)
-        .Invoke(null, new object[] { id, args });
+        .Invoke(null, new[] { id, args });
+    // ReSharper restore PossibleNullReferenceException
 
     static object MsgId(string name) => Enum.Parse(MsgIdType, name);
 
@@ -129,7 +133,7 @@ public class ErrorMessageResourceTests
     ///   Both are internal to the document object model, and this repository carries no
     ///   <c>InternalsVisibleTo</c>, so they are reached by name the way AppResources above is.
     /// </summary>
-    static readonly Type DomSRType = typeof(Document).Assembly.GetType(
+    static readonly Type DomSrType = typeof(Document).Assembly.GetType(
         "PinataLayout.DocumentObjectModel.Resources.DomSR", true);
 
     static readonly Type MsgIdType = typeof(Document).Assembly.GetType(
@@ -144,11 +148,13 @@ public class ErrorMessageResourceTests
         var resources = typeof(Document).Assembly.GetType(
             "PinataLayout.DocumentObjectModel.Resources.AppResources", true);
 
+        // ReSharper disable PossibleNullReferenceException
         return resources
             .GetProperties(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public)
             .Where(property => property.PropertyType == typeof(string))
             .Select(property => new KeyValuePair<string, string>(property.Name, Read(property)))
             .ToList();
+        // ReSharper restore PossibleNullReferenceException
     }
 
     static string Read(PropertyInfo property)

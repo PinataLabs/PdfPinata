@@ -63,5 +63,5 @@ public enum PageAlignment
     BottomCenter,
 
     /// <summary>The bottom right corner of the content meets the bottom right corner of the box.</summary>
-    BottomRight,
+    BottomRight
 }

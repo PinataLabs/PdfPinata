@@ -20,10 +20,9 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 /// </summary>
 public class FlatteningTests
 {
-    static Document Flattened(Document document)
+    static void Flattened(Document document)
     {
         new PdfFlattenVisitor().Visit(document);
-        return document;
     }
 
     // ----- styles into paragraphs ---------------------------------------------------------------------
@@ -178,9 +177,9 @@ public class FlatteningTests
 
     // ----- tables and the cells merged away ------------------------------------------------------------------
 
-    static Table ThreeByThree(out Document document)
+    static Table ThreeByThree()
     {
-        document = new Document();
+        var document = new Document();
         var table = document.AddSection().AddTable();
         for (var column = 0; column < 3; column++)
             table.AddColumn("2cm");
@@ -192,7 +191,7 @@ public class FlatteningTests
     [Fact]
     public void AMergedCellCoversTheOnesItSwallowedAndTheyAreNotInTheList()
     {
-        var table = ThreeByThree(out _);
+        var table = ThreeByThree();
         table[0, 0].MergeRight = 1;
         table[1, 1].MergeDown = 1;
 
@@ -210,7 +209,7 @@ public class FlatteningTests
     {
         // It is not drawn, so asking how to draw it is the caller's mistake rather than a case to
         // answer - and the exception says which cell.
-        var table = ThreeByThree(out _);
+        var table = ThreeByThree();
         table[0, 0].MergeRight = 1;
         var merged = new MergedCellList(table);
 
@@ -222,7 +221,7 @@ public class FlatteningTests
     [Fact]
     public void ACellKeepsItsOwnBorderWhereItHasOne()
     {
-        var table = ThreeByThree(out _);
+        var table = ThreeByThree();
         table[0, 0].Borders.Bottom.Width = "5pt";
 
         var borders = new MergedCellList(table).GetEffectiveBorders(table[0, 0]);
@@ -238,7 +237,7 @@ public class FlatteningTests
     [Fact]
     public void TheHeavierOfTwoNeighbouringBordersIsTheOneBothCellsGet()
     {
-        var table = ThreeByThree(out _);
+        var table = ThreeByThree();
         table[0, 0].Borders.Right.Width = "4pt";
         table[0, 1].Borders.Left.Width = "1pt";
 
@@ -253,7 +252,7 @@ public class FlatteningTests
     {
         // The right-hand edge of a merged run is the right-hand edge of the last cell in it, which
         // is a cell that is not itself in the list.
-        var table = ThreeByThree(out _);
+        var table = ThreeByThree();
         table[0, 0].MergeRight = 1;
         table[0, 1].Borders.Right.Width = "6pt";
 
@@ -265,7 +264,7 @@ public class FlatteningTests
     [Fact]
     public void TheBorderOfACellMergedDownComesFromTheCellAtTheBottom()
     {
-        var table = ThreeByThree(out _);
+        var table = ThreeByThree();
         table[0, 0].MergeDown = 1;
         table[1, 0].Borders.Bottom.Width = "7pt";
 
@@ -277,7 +276,7 @@ public class FlatteningTests
     [Fact]
     public void ATableWithNothingMergedListsEveryCellItHas()
     {
-        var table = ThreeByThree(out _);
+        var table = ThreeByThree();
 
         new MergedCellList(table).Count.Should().Be(9);
     }
@@ -286,7 +285,7 @@ public class FlatteningTests
     public void TheCellsAreListedRowByRowFromTheTopLeft()
     {
         // The list is binary-searched by position, so the order is not cosmetic.
-        var table = ThreeByThree(out _);
+        var table = ThreeByThree();
         var merged = new MergedCellList(table);
 
         for (var index = 1; index < merged.Count; index++)

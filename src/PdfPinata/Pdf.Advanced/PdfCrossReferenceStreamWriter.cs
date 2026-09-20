@@ -97,7 +97,7 @@ internal static class PdfCrossReferenceStreamWriter
         {
             Type = 0,
             Field2 = 0,
-            Field3 = 65535,
+            Field3 = 65535
         };
 
         foreach (var iref in uncompressed)
@@ -113,7 +113,7 @@ internal static class PdfCrossReferenceStreamWriter
             {
                 Type = 2,
                 Field2 = (uint)placement.ObjectStreamNumber,
-                Field3 = (uint)placement.Index,
+                Field3 = (uint)placement.Index
             };
         }
 
@@ -154,7 +154,7 @@ internal static class PdfCrossReferenceStreamWriter
         {
             Type = 1,
             Field2 = (uint)iref.Position,
-            Field3 = (uint)iref.GenerationNumber,
+            Field3 = (uint)iref.GenerationNumber
         };
 
     /// <summary>
@@ -168,7 +168,7 @@ internal static class PdfCrossReferenceStreamWriter
             PdfTrailer.Keys.Root,
             PdfTrailer.Keys.Info,
             PdfTrailer.Keys.ID,
-            PdfTrailer.Keys.Encrypt,
+            PdfTrailer.Keys.Encrypt
         };
 
         foreach (var key in carried)

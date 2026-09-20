@@ -63,7 +63,7 @@ public class DataLabel : DocumentObject
   /// </summary>
   protected override object DeepCopy()
   {
-    DataLabel dataLabel = (DataLabel)base.DeepCopy();
+    var dataLabel = (DataLabel)base.DeepCopy();
     if (dataLabel.font != null)
     {
       dataLabel.font = dataLabel.font.Clone();
@@ -104,35 +104,35 @@ public class DataLabel : DocumentObject
   /// </summary>
   public DataLabelPosition Position
   {
-    get => (DataLabelPosition)this.position;
+    get => this.position;
     set
     {
       if (!Enum.IsDefined(value))
         throw new InvalidEnumArgumentException("value", (int)value, typeof(DataLabelPosition));
 
       this.position = value;
-      this.positionInitialized = true;
+      this.PositionInitialized = true;
     }
   }
   internal DataLabelPosition position;
-  internal bool positionInitialized;
+  internal bool PositionInitialized;
 
   /// <summary>
   /// Gets or sets the type of the DataLabel.
   /// </summary>
   public DataLabelType Type
   {
-    get => (DataLabelType)this.type;
+    get => this.type;
     set
     {
       if (!Enum.IsDefined(value))
         throw new InvalidEnumArgumentException("value", (int)value, typeof(DataLabelType));
 
       this.type = value;
-      this.typeInitialized = true;
+      this.TypeInitialized = true;
     }
   }
   internal DataLabelType type;
-  internal bool typeInitialized;
+  internal bool TypeInitialized;
   #endregion
 }

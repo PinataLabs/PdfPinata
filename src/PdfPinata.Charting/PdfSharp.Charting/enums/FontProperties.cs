@@ -47,5 +47,5 @@ enum FontProperties
   Color = 0x0020,
   Border = 0x0040,
   Superscript = 0x0080,
-  Subscript = 0x0100,
+  Subscript = 0x0100
 }

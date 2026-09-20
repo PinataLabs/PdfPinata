@@ -45,5 +45,5 @@ public enum PdfTextStringEncoding
     /// <summary>
     /// Specifies that hypertext uses unicode encoding.
     /// </summary>
-    Unicode = 1,
+    Unicode = 1
 }

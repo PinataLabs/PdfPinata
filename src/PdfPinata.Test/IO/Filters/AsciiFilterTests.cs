@@ -163,7 +163,7 @@ public class AsciiFilterTests
         var original = Bytes(12);
         var encoded = Encoding.ASCII.GetString(Filtering.ASCII85Decode.Encode(original));
         var broken = Encoding.ASCII.GetBytes(
-            encoded.Substring(0, 5) + "\r\n" + encoded.Substring(5, 5) + "\n" + encoded.Substring(10));
+            encoded[..5] + "\r\n" + encoded.Substring(5, 5) + "\n" + encoded[10..]);
 
         Filtering.ASCII85Decode.Decode(broken, (FilterParms)null).Should().Equal(original);
     }

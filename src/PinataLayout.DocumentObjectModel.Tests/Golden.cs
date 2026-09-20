@@ -103,7 +103,7 @@ internal static class Golden
         "        Color = Lime",
         "      }",
         "    }",
-        "  }",
+        "  }"
     });
 
     public static readonly string NullableValuesSetAndUnset = string.Join(System.Environment.NewLine, new[]
@@ -143,7 +143,7 @@ internal static class Golden
         "    }",
         "  }",
         "}",
-        "",
+        ""
     });
 
     public static readonly string FormattedTextFont = string.Join(System.Environment.NewLine, new[]
@@ -164,7 +164,7 @@ internal static class Golden
         "    ]{text}",
         "  }",
         "}",
-        "",
+        ""
     });
 
     public static readonly string ClearedBordersAndShading = string.Join(System.Environment.NewLine, new[]
@@ -194,7 +194,7 @@ internal static class Golden
         "    }",
         "  }",
         "}",
-        "",
+        ""
     });
 
     public static readonly string Table = string.Join(System.Environment.NewLine, new[]
@@ -248,7 +248,7 @@ internal static class Golden
         "    }",
         "  }",
         "}",
-        "",
+        ""
     });
 
     public static readonly string Chart = string.Join(System.Environment.NewLine, new[]
@@ -271,7 +271,7 @@ internal static class Golden
         "    }",
         "  }",
         "}",
-        "",
+        ""
     });
 
     public static readonly string StyledParagraph = string.Join(System.Environment.NewLine, new[]
@@ -393,6 +393,6 @@ internal static class Golden
         "    }",
         "  }",
         "}",
-        "",
+        ""
     });
 }

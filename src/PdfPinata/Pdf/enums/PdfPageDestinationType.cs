@@ -93,5 +93,5 @@ public enum PdfPageDestinationType  // Reference: TABLE 8.2  Destination Syntax 
     /// the window and the contents of the page magnified just enough to fit the entire
     /// height of its bounding box within the window.
     /// </summary>
-    FitBV,
+    FitBV
 }

@@ -26,7 +26,7 @@ public class CharacterScanningTests
     [Fact]
     public void Advance_shiftsNextCharIntoCurrCharAndReadsAFreshNextChar()
     {
-        var (curr, next) = InvokeAdvance('a', handleCRLF: false, queue: "b");
+        var (curr, next) = InvokeAdvance('a', handleCrlf: false, queue: "b");
 
         curr.Should().Be('a');
         next.Should().Be('b');
@@ -35,7 +35,7 @@ public class CharacterScanningTests
     [Fact]
     public void Advance_foldsALoneCarriageReturnIntoALineFeedWhenAsked()
     {
-        var (curr, next) = InvokeAdvance('\r', handleCRLF: true, queue: "b");
+        var (curr, next) = InvokeAdvance('\r', handleCrlf: true, queue: "b");
 
         curr.Should().Be('\n');
         next.Should().Be('b');
@@ -46,7 +46,7 @@ public class CharacterScanningTests
     {
         // Both bytes of the pair are consumed - the fold does not leave the LF behind for the
         // next character to see.
-        var (curr, next) = InvokeAdvance('\r', handleCRLF: true, queue: "\nb");
+        var (curr, next) = InvokeAdvance('\r', handleCrlf: true, queue: "\nb");
 
         curr.Should().Be('\n');
         next.Should().Be('b');
@@ -57,7 +57,7 @@ public class CharacterScanningTests
     {
         // A grammar decoding raw bytes character by character - a literal string's escape
         // handling - passes false so it can tell a carriage return from a line feed itself.
-        var (curr, next) = InvokeAdvance('\r', handleCRLF: false, queue: "b");
+        var (curr, next) = InvokeAdvance('\r', handleCrlf: false, queue: "b");
 
         curr.Should().Be('\r');
         next.Should().Be('b');
@@ -66,7 +66,7 @@ public class CharacterScanningTests
     [Fact]
     public void Advance_readsTheEndOfSourceAsEOF()
     {
-        var (curr, next) = InvokeAdvance('z', handleCRLF: true, queue: "");
+        var (curr, next) = InvokeAdvance('z', handleCrlf: true, queue: "");
 
         curr.Should().Be('z');
         next.Should().Be(Eof);
@@ -87,7 +87,7 @@ public class CharacterScanningTests
     {
         var queue = new string(whiteSpace, 3) + "x";
         var index = 0;
-        Func<char> next = () => index < queue.Length ? queue[index++] : Eof;
+        var next = () => index < queue.Length ? queue[index++] : Eof;
 
         var result = InvokeSkipWhiteSpace(next(), next);
 
@@ -99,7 +99,7 @@ public class CharacterScanningTests
     {
         var queue = "   ";
         var index = 0;
-        Func<char> next = () => index < queue.Length ? queue[index++] : Eof;
+        var next = () => index < queue.Length ? queue[index++] : Eof;
 
         var result = InvokeSkipWhiteSpace(next(), next);
 
@@ -179,13 +179,14 @@ public class CharacterScanningTests
     // ----- reflection plumbing --------------------------------------------------------------------
 
     /// <summary>Invokes Advance once, seeding nextChar and reading the rest of the queue from it.</summary>
-    static (char curr, char next) InvokeAdvance(char initialNextChar, bool handleCRLF, string queue)
+    static (char curr, char next) InvokeAdvance(char initialNextChar, bool handleCrlf, string queue)
     {
         var index = 0;
-        Func<char> readNextByte = () => index < queue.Length ? queue[index++] : Eof;
+        var readNextByte = () => index < queue.Length ? queue[index++] : Eof;
 
         var method = ScannerType.GetMethod("Advance", BindingFlags.Public | BindingFlags.Static);
-        object[] args = { '\0', initialNextChar, handleCRLF, readNextByte };
+        object[] args = { '\0', initialNextChar, handleCrlf, readNextByte };
+        // ReSharper disable once PossibleNullReferenceException
         method.Invoke(null, args);
         return ((char)args[0], (char)args[1]);
     }
@@ -193,12 +194,14 @@ public class CharacterScanningTests
     static char InvokeSkipWhiteSpace(char currChar, Func<char> scanNextChar)
     {
         var method = ScannerType.GetMethod("SkipWhiteSpace", BindingFlags.Public | BindingFlags.Static);
+        // ReSharper disable once PossibleNullReferenceException
         return (char)method.Invoke(null, new object[] { currChar, scanNextChar });
     }
 
     static T InvokeStatic<T>(string methodName, params object[] args)
     {
         var method = ScannerType.GetMethod(methodName, BindingFlags.Public | BindingFlags.Static);
+        // ReSharper disable once PossibleNullReferenceException
         return (T)method.Invoke(null, args);
     }
 }

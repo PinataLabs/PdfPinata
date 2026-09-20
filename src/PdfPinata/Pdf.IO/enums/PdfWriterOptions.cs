@@ -51,5 +51,5 @@ internal enum PdfWriterOptions
     /// <summary>
     /// Omit inflate filter. For debugging purposes only.
     /// </summary>
-    OmitInflation = 0x000002,
+    OmitInflation = 0x000002
 }

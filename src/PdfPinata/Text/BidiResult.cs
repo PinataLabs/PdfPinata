@@ -85,15 +85,15 @@ public sealed class BidiResult
         var runs = new List<BidiRun>();
         var order = VisualOrder;
 
-        for (int idx = 0; idx < order.Count;)
+        for (var idx = 0; idx < order.Count;)
         {
-            byte level = Levels[order[idx]];
-            int start = idx;
+            var level = Levels[order[idx]];
+            var start = idx;
 
             // A run is as long as the level holds and the indices keep stepping the way the level
             // says they should - +1 for an even level, -1 for an odd one. Anything else is a new
             // run, however equal the levels happen to be.
-            int step = (level & 1) == 0 ? 1 : -1;
+            var step = (level & 1) == 0 ? 1 : -1;
             while (idx + 1 < order.Count
                    && Levels[order[idx + 1]] == level
                    && order[idx + 1] == Next(order[idx], step))
@@ -101,8 +101,8 @@ public sealed class BidiResult
                 idx++;
             }
 
-            int first = Math.Min(order[start], order[idx]);
-            int last = Math.Max(order[start], order[idx]);
+            var first = Math.Min(order[start], order[idx]);
+            var last = Math.Max(order[start], order[idx]);
             runs.Add(new BidiRun(first, last - first + 1, level));
             idx++;
         }
@@ -116,7 +116,7 @@ public sealed class BidiResult
     /// </summary>
     int Next(int from, int step)
     {
-        int at = from + step;
+        var at = from + step;
         while (at >= 0 && at < _joining.Length && _joining[at])
             at += step;
 

@@ -48,6 +48,7 @@ public class DdlSerializationTests
 
         var again = RoundTrip(document).LastSection.Elements[0] as Paragraph;
 
+        // ReSharper disable once PossibleNullReferenceException
         again.Format.Font.Name.Should().Be("Palatino");
         again.Format.Font.Size.Point.Should().BeApproximately(13.5, 1e-4);
         again.Format.Font.Bold.Should().BeTrue();
@@ -67,6 +68,7 @@ public class DdlSerializationTests
 
         var again = RoundTrip(document).LastSection.Elements[0] as Paragraph;
 
+        // ReSharper disable once PossibleNullReferenceException
         again.Format.Font.Subscript.Should().BeTrue();
         again.Format.Font.Superscript.Should().BeFalse();
     }
@@ -77,7 +79,7 @@ public class DdlSerializationTests
         // The paragraph on its own rather than the whole document: a document carries the built-in
         // styles, and some of those do describe a font, so "no font anywhere" was never the
         // property - it is that a paragraph nobody has formatted writes no format block.
-        var document = DocumentWithAParagraph(out var paragraph);
+        DocumentWithAParagraph(out var paragraph);
         paragraph.AddText("text");
 
         var plain = DdlWriter.WriteToString(paragraph);
@@ -110,6 +112,7 @@ public class DdlSerializationTests
         format.OutlineLevel = OutlineLevel.Level3;
         format.TextDirection = BidiParagraphDirection.RightToLeft;
 
+        // ReSharper disable once PossibleNullReferenceException
         var again = (RoundTrip(document).LastSection.Elements[0] as Paragraph).Format;
 
         again.Alignment.Should().Be(ParagraphAlignment.Justify);
@@ -134,6 +137,7 @@ public class DdlSerializationTests
         paragraph.Format.TabStops.AddTabStop("4cm", TabAlignment.Right, TabLeader.Dots);
         paragraph.Format.TabStops.AddTabStop("8cm", TabAlignment.Decimal);
 
+        // ReSharper disable once PossibleNullReferenceException
         var again = (RoundTrip(document).LastSection.Elements[0] as Paragraph).Format;
 
         again.TabStops.Count.Should().Be(2);
@@ -149,6 +153,7 @@ public class DdlSerializationTests
         var document = DocumentWithAParagraph(out var paragraph);
         paragraph.Format.Shading.Color = Colors.LightYellow;
 
+        // ReSharper disable once PossibleNullReferenceException
         var again = (RoundTrip(document).LastSection.Elements[0] as Paragraph).Format;
 
         again.Shading.Color.Should().Be(Colors.LightYellow);
@@ -170,6 +175,7 @@ public class DdlSerializationTests
         // in a document is hostage to everything else the document happens to contain, including
         // the built-in styles.
         var ddl = DdlWriter.WriteToString(paragraph);
+        // ReSharper disable once PossibleNullReferenceException
         var again = (RoundTrip(document).LastSection.Elements[0] as Paragraph).Format.Borders;
 
         again.Width.Point.Should().BeApproximately(2, 1e-4);
@@ -188,6 +194,7 @@ public class DdlSerializationTests
         borders.Top.Color = Colors.Red;
         borders.Bottom.Style = BorderStyle.DashDot;
 
+        // ReSharper disable once PossibleNullReferenceException
         var again = (RoundTrip(document).LastSection.Elements[0] as Paragraph).Format.Borders;
 
         again.Left.Width.Point.Should().BeApproximately(1, 1e-4);
@@ -206,6 +213,7 @@ public class DdlSerializationTests
         borders.DistanceFromTop = "3mm";
         borders.DistanceFromBottom = "4mm";
 
+        // ReSharper disable once PossibleNullReferenceException
         var again = (RoundTrip(document).LastSection.Elements[0] as Paragraph).Format.Borders;
 
         again.DistanceFromLeft.Millimeter.Should().BeApproximately(1, 1e-4);
@@ -227,6 +235,7 @@ public class DdlSerializationTests
 
         var again = RoundTrip(document).LastSection.Elements[0] as Table;
 
+        // ReSharper disable once PossibleNullReferenceException
         again.Rows[0][0].Borders.Bottom.Width.Point.Should().BeApproximately(3, 1e-4);
         again.Rows[0][1].Shading.Color.Should().Be(Colors.WhiteSmoke);
     }
@@ -244,6 +253,7 @@ public class DdlSerializationTests
         var again = RoundTrip(document).LastSection.Elements[0] as Chart;
 
         again.Should().NotBeNull();
+        // ReSharper disable once PossibleNullReferenceException
         again.Type.Should().Be(ChartType.Line);
     }
 
@@ -261,6 +271,7 @@ public class DdlSerializationTests
 
         var again = RoundTrip(document).LastSection.Elements[0] as Chart;
 
+        // ReSharper disable once PossibleNullReferenceException
         again.YAxis.MinimumScale.Should().Be(0);
         again.YAxis.MaximumScale.Should().Be(10);
         again.YAxis.HasMajorGridlines.Should().BeTrue();
@@ -279,12 +290,13 @@ public class DdlSerializationTests
         series.Add(3.0);
 
         var again = RoundTrip(document).LastSection.Elements[0] as Chart;
+        // ReSharper disable once PossibleNullReferenceException
         var againSeries = again.SeriesCollection[0];
 
         againSeries.Count.Should().Be(3);
-        ((Shapes.Charts.Point)againSeries.Elements[0]).Value.Should().Be(1);
+        ((Point)againSeries.Elements[0]).Value.Should().Be(1);
         againSeries.Elements[1].Should().BeNull("the gap is still a gap");
-        ((Shapes.Charts.Point)againSeries.Elements[2]).Value.Should().Be(3);
+        ((Point)againSeries.Elements[2]).Value.Should().Be(3);
     }
 
     // ----- the whole document ----------------------------------------------------------------------------

@@ -49,25 +49,26 @@ public class PdfFlattenVisitor : VisitorBase
 
   internal override void VisitDocumentElements(DocumentElements elements)
   {
-    SortedList splitParaList = new SortedList();
+    var splitParaList = new SortedList();
 
-    for (int idx = 0; idx < elements.Count; ++idx)
+    for (var idx = 0; idx < elements.Count; ++idx)
     {
-      Paragraph paragraph = elements[idx] as Paragraph;
+      var paragraph = elements[idx] as Paragraph;
       if (paragraph != null)
       {
-        Paragraph[] paragraphs = paragraph.SplitOnParaBreak();
+        var paragraphs = paragraph.SplitOnParaBreak();
         if (paragraphs != null)
           splitParaList.Add(idx, paragraphs);
       }
     }
 
-    int insertedObjects = 0;
-    for (int idx = 0; idx < splitParaList.Count; ++idx)
+    var insertedObjects = 0;
+    for (var idx = 0; idx < splitParaList.Count; ++idx)
     {
-      int insertPosition = (int)splitParaList.GetKey(idx);
-      Paragraph[] paragraphs = (Paragraph[])splitParaList.GetByIndex(idx);
-      foreach (Paragraph paragraph in paragraphs)
+      var insertPosition = (int)splitParaList.GetKey(idx);
+      var paragraphs = (Paragraph[])splitParaList.GetByIndex(idx);
+      // ReSharper disable once PossibleNullReferenceException
+      foreach (var paragraph in paragraphs)
       {
         elements.InsertObject(insertPosition + insertedObjects, paragraph);
         ++insertedObjects;
@@ -79,10 +80,10 @@ public class PdfFlattenVisitor : VisitorBase
 
   internal override void VisitDocumentObjectCollection(DocumentObjectCollection elements)
   {
-    ArrayList textIndices = new ArrayList();
+    var textIndices = new ArrayList();
     if (elements is ParagraphElements)
     {
-      for (int idx = 0; idx < elements.Count; ++idx)
+      for (var idx = 0; idx < elements.Count; ++idx)
       {
         if (elements[idx] is Text)
           textIndices.Add(idx);
@@ -93,17 +94,19 @@ public class PdfFlattenVisitor : VisitorBase
     // and an AOT compiler cannot always have code for. Unboxed one at a time rather than by
     // CopyTo, so the conversion out of the ArrayList's object[] is written down rather than left
     // to Array.Copy's unboxing rules.
-    int[] indices = new int[textIndices.Count];
-    for (int idx = 0; idx < indices.Length; ++idx)
+    var indices = new int[textIndices.Count];
+    for (var idx = 0; idx < indices.Length; ++idx)
+      // ReSharper disable once PossibleNullReferenceException
       indices[idx] = (int)textIndices[idx];
+    // ReSharper disable once ConditionIsAlwaysTrueOrFalse
     if (indices != null)
     {
-      int insertedObjects = 0;
-      foreach (int idx in indices)
+      var insertedObjects = 0;
+      foreach (var idx in indices)
       {
-        Text text = (Text)elements[idx + insertedObjects];
-        string currentString = "";
-        foreach (char ch in text.Content)
+        var text = (Text)elements[idx + insertedObjects];
+        var currentString = "";
+        foreach (var ch in text.Content)
         {
           switch (ch)
           {
@@ -133,7 +136,6 @@ public class PdfFlattenVisitor : VisitorBase
               {
                 elements.InsertObject(idx + insertedObjects, new Text(currentString));
                 ++insertedObjects;
-                currentString = "";
               }
               elements.InsertObject(idx + insertedObjects, new Text(new string(Chars.SoftHyphen, 1)));
               ++insertedObjects;
@@ -158,10 +160,10 @@ public class PdfFlattenVisitor : VisitorBase
 
   internal override void VisitFormattedText(FormattedText formattedText)
   {
-    Document document = formattedText.Document;
+    var document = formattedText.Document;
     ParagraphFormat format = null;
 
-    Style style = document.styles[(formattedText.style ?? "")];
+    var style = document.styles[(formattedText.style ?? "")];
     if (style != null)
       format = style.paragraphFormat;
     else if ((formattedText.style ?? "") != "")
@@ -175,7 +177,7 @@ public class PdfFlattenVisitor : VisitorBase
         FlattenFont(formattedText.font, format.font);
     }
 
-    Font parentFont = GetParentFont(formattedText);
+    var parentFont = GetParentFont(formattedText);
 
     if (formattedText.font == null)
       formattedText.Font = parentFont.Clone();
@@ -185,7 +187,7 @@ public class PdfFlattenVisitor : VisitorBase
 
   internal override void VisitHyperlink(Hyperlink hyperlink)
   {
-    Font styleFont = hyperlink.Document.Styles["Hyperlink"].Font;
+    var styleFont = hyperlink.Document.Styles["Hyperlink"].Font;
     if (hyperlink.font == null)
       hyperlink.Font = styleFont.Clone();
     else
@@ -198,12 +200,12 @@ public class PdfFlattenVisitor : VisitorBase
   /// <summary>Returns the font the given object inherits from whatever holds it.</summary>
   protected Font GetParentFont(DocumentObject obj)
   {
-    DocumentObject parentElements = DocumentRelations.GetParent(obj);
-    DocumentObject parentObject = DocumentRelations.GetParent(parentElements);
-    Font parentFont = null;
+    var parentElements = DocumentRelations.GetParent(obj);
+    var parentObject = DocumentRelations.GetParent(parentElements);
+    Font parentFont;
     if (parentObject is Paragraph)
     {
-      ParagraphFormat format = ((Paragraph)parentObject).Format;
+      var format = ((Paragraph)parentObject).Format;
       parentFont = format.font;
     }
     else //Hyperlink or FormattedText

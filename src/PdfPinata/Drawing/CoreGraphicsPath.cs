@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 using System;
@@ -57,7 +57,7 @@ internal class CoreGraphicsPath
     {
         // Make a MoveTo if there is no previous subpath or the previous subpath was closed.
         // Otherwise make a LineTo.
-        if (_types.Count == 0 || (_types[_types.Count - 1] & PathPointTypeCloseSubpath) == PathPointTypeCloseSubpath)
+        if (_types.Count == 0 || (_types[^1] & PathPointTypeCloseSubpath) == PathPointTypeCloseSubpath)
             MoveTo(x, y);
         else
             LineTo(x, y, false);
@@ -71,7 +71,7 @@ internal class CoreGraphicsPath
 
     public void LineTo(double x, double y, bool closeSubpath)
     {
-        if (_points.Count > 0 && _points[_points.Count - 1].Equals(new XPoint(x, y)))
+        if (_points.Count > 0 && _points[^1].Equals(new XPoint(x, y)))
             return;
 
         _points.Add(new XPoint(x, y));
@@ -101,8 +101,8 @@ internal class CoreGraphicsPath
             throw new ArgumentOutOfRangeException(nameof(height));
         #pragma warning restore CA1512
 
-        double w = Const.κ * width;
-        double h = Const.κ * height;
+        var w = Const.κ * width;
+        var h = Const.κ * height;
         double x1, y1, x2, y2, x3, y3;
         switch (quadrant)
         {
@@ -201,42 +201,32 @@ internal class CoreGraphicsPath
     /// </summary>
     public void CloseSubpath()
     {
-        int count = _types.Count;
+        var count = _types.Count;
         if (count > 0)
             _types[count - 1] |= PathPointTypeCloseSubpath;
     }
 
-    /// <summary>
-    /// Gets or sets the current fill mode (alternate or winding).
-    /// </summary>
-    XFillMode FillMode
-    {
-        get => _fillMode;
-        set => _fillMode = value;
-    }
-    XFillMode _fillMode;
-
     public void AddArc(double x, double y, double width, double height, double startAngle, double sweepAngle)
     {
-        XMatrix matrix = XMatrix.Identity;
-        List<XPoint> points = GeometryHelper.BezierCurveFromArc(x, y, width, height, startAngle, sweepAngle, PathStart.MoveTo1st, ref matrix);
-        int count = points.Count;
+        var matrix = XMatrix.Identity;
+        var points = GeometryHelper.BezierCurveFromArc(x, y, width, height, startAngle, sweepAngle, PathStart.MoveTo1st, ref matrix);
+        var count = points.Count;
         Debug.Assert((count + 2) % 3 == 0);
 
         MoveOrLineTo(points[0].X, points[0].Y);
-        for (int idx = 1; idx < count; idx += 3)
+        for (var idx = 1; idx < count; idx += 3)
             BezierTo(points[idx].X, points[idx].Y, points[idx + 1].X, points[idx + 1].Y, points[idx + 2].X, points[idx + 2].Y, false);
     }
 
     public void AddArc(XPoint point1, XPoint point2, XSize size, double rotationAngle, bool isLargeArg, XSweepDirection sweepDirection)
     {
-        List<XPoint> points = GeometryHelper.BezierCurveFromArc(point1, point2, size, rotationAngle, isLargeArg,
+        var points = GeometryHelper.BezierCurveFromArc(point1, point2, size, rotationAngle, isLargeArg,
             sweepDirection == XSweepDirection.Clockwise, PathStart.MoveTo1st);
-        int count = points.Count;
+        var count = points.Count;
         Debug.Assert((count + 2) % 3 == 0);
 
         MoveOrLineTo(points[0].X, points[0].Y);
-        for (int idx = 1; idx < count; idx += 3)
+        for (var idx = 1; idx < count; idx += 3)
             BezierTo(points[idx].X, points[idx].Y, points[idx + 1].X, points[idx + 1].Y, points[idx + 2].X, points[idx + 2].Y, false);
     }
 
@@ -251,10 +241,10 @@ internal class CoreGraphicsPath
     /// </remarks>
     public void AddPie(double x, double y, double width, double height, double startAngle, double sweepAngle)
     {
-        XMatrix matrix = XMatrix.Identity;
-        List<XPoint> points = GeometryHelper.BezierCurveFromArc(x, y, width, height, startAngle,
+        var matrix = XMatrix.Identity;
+        var points = GeometryHelper.BezierCurveFromArc(x, y, width, height, startAngle,
             sweepAngle, PathStart.MoveTo1st, ref matrix);
-        int count = points.Count;
+        var count = points.Count;
         Debug.Assert((count + 2) % 3 == 0);
 
         // MoveTo rather than MoveOrLineTo: a pie is a closed shape of its own, like a rectangle or
@@ -263,7 +253,7 @@ internal class CoreGraphicsPath
         // CloseSubpath below would then close the pair of them as one shape.
         MoveTo(x + width / 2, y + height / 2);
         LineTo(points[0].X, points[0].Y, false);
-        for (int idx = 1; idx < count; idx += 3)
+        for (var idx = 1; idx < count; idx += 3)
             BezierTo(points[idx].X, points[idx].Y, points[idx + 1].X, points[idx + 1].Y, points[idx + 2].X, points[idx + 2].Y, false);
 
         CloseSubpath();
@@ -280,7 +270,7 @@ internal class CoreGraphicsPath
     /// </remarks>
     public void AddClosedCurve(XPoint[] points, double tension)
     {
-        int count = points.Length;
+        var count = points.Length;
         if (count < 2)
             throw new ArgumentException("AddClosedCurve requires two or more points.", nameof(points));
 
@@ -296,7 +286,7 @@ internal class CoreGraphicsPath
         else
         {
             ToCurveSegment(points[count - 1], points[0], points[1], points[2], tension);
-            for (int idx = 1; idx < count - 2; idx++)
+            for (var idx = 1; idx < count - 2; idx++)
                 ToCurveSegment(points[idx - 1], points[idx], points[idx + 1], points[idx + 2], tension);
             ToCurveSegment(points[count - 3], points[count - 2], points[count - 1], points[0], tension);
             ToCurveSegment(points[count - 2], points[count - 1], points[0], points[1], tension);
@@ -318,16 +308,16 @@ internal class CoreGraphicsPath
     {
         ArgumentNullException.ThrowIfNull(path);
 
-        int count = path._points.Count;
+        var count = path._points.Count;
         if (count == 0)
             return;
 
-        bool canConnect = connect && _types.Count > 0
-            && (_types[_types.Count - 1] & PathPointTypeCloseSubpath) != PathPointTypeCloseSubpath;
+        var canConnect = connect && _types.Count > 0
+                                 && (_types[^1] & PathPointTypeCloseSubpath) != PathPointTypeCloseSubpath;
 
-        for (int idx = 0; idx < count; idx++)
+        for (var idx = 0; idx < count; idx++)
         {
-            byte type = path._types[idx];
+            var type = path._types[idx];
 
             // The only byte that has to change is the first, and only when the figures are being
             // joined: a start point turns into a line to the same place. Every other point keeps
@@ -342,7 +332,7 @@ internal class CoreGraphicsPath
 
     public void AddCurve(XPoint[] points, double tension)
     {
-        int count = points.Length;
+        var count = points.Length;
         if (count < 2)
             throw new ArgumentException("AddCurve requires two or more points.", nameof(points));
 
@@ -357,7 +347,7 @@ internal class CoreGraphicsPath
         {
             //figure.Segments.Add(GeometryHelper.CreateCurveSegment(points[0], points[0], points[1], points[2], tension));
             ToCurveSegment(points[0], points[0], points[1], points[2], tension);
-            for (int idx = 1; idx < count - 2; idx++)
+            for (var idx = 1; idx < count - 2; idx++)
             {
                 //figure.Segments.Add(GeometryHelper.CreateCurveSegment(points[idx - 1], points[idx], points[idx + 1], points[idx + 2], tension));
                 ToCurveSegment(points[idx - 1], points[idx], points[idx + 1], points[idx + 2], tension);

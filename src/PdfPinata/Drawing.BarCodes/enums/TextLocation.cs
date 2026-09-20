@@ -59,5 +59,5 @@ public enum TextLocation
     /// <summary>
     /// The text is located below within the code.
     /// </summary>
-    BelowEmbedded,
+    BelowEmbedded
 }

@@ -72,7 +72,7 @@ public class PageSizeConverterTests
     [InlineData(PageSize.Tabloid, 792.00, 1224.00)]
     public void SizeMatchesThePublishedDimensions(PageSize size, double width, double height)
     {
-        XSize actual = PageSizeConverter.ToSize(size);
+        var actual = PageSizeConverter.ToSize(size);
 
         actual.Width.Should().BeApproximately(width, 1, $"{size} is {width} points wide");
         actual.Height.Should().BeApproximately(height, 1, $"{size} is {height} points high");
@@ -85,11 +85,11 @@ public class PageSizeConverterTests
     [Fact]
     public void EveryNamedSizeConvertsToPoints()
     {
-        PageSize[] named = Enum.GetValues<PageSize>()
+        var named = Enum.GetValues<PageSize>()
             .Where(size => size != PageSize.Undefined)
             .ToArray();
 
-        foreach (PageSize size in named)
+        foreach (var size in named)
         {
             XSize converted = default;
             Action convert = () => converted = PageSizeConverter.ToSize(size);

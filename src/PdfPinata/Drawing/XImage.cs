@@ -43,7 +43,7 @@ internal enum XImageState
 {
     UsedInDrawingContext = 0x00000001,
 
-    StateMask = 0x0000FFFF,
+    StateMask = 0x0000FFFF
 }
 
 /// <summary>
@@ -93,14 +93,6 @@ public class XImage : IDisposable
         // Create a dummy unique path.
         _path = "*" + Guid.NewGuid().ToString("B");
         _source = ImageSource.FromStream(_path, stream);
-        Initialize();
-    }
-
-    XImage(Func<byte[]> data)
-    {
-        // Create a dummy unique path.
-        _path = "*" + Guid.NewGuid().ToString("B");
-        _source = FromBinary(_path, data);
         Initialize();
     }
 

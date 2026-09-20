@@ -143,7 +143,7 @@ public class PageFitTests
         { PageAlignment.MiddleRight, 200d, 50d },
         { PageAlignment.TopLeft, 0d, 100d },
         { PageAlignment.TopCenter, 100d, 100d },
-        { PageAlignment.TopRight, 200d, 100d },
+        { PageAlignment.TopRight, 200d, 100d }
     };
 
     [Theory]
@@ -216,10 +216,10 @@ public class PageFitTests
         var wasBottomLeft = matrix.Transform(new XPoint(0, 0));
         var wasBottomRight = matrix.Transform(new XPoint(A4Width, 0));
         wasBottomLeft.Should().BeEquivalentTo(new XPoint(0, A4Width),
-            options => options.Using<double>(ctx => ctx.Subject.Should().BeApproximately(ctx.Expectation, 1e-9))
+            o => o.Using<double>(ctx => ctx.Subject.Should().BeApproximately(ctx.Expectation, 1e-9))
                 .WhenTypeIs<double>());
         wasBottomRight.Should().BeEquivalentTo(new XPoint(0, 0),
-            options => options.Using<double>(ctx => ctx.Subject.Should().BeApproximately(ctx.Expectation, 1e-9))
+            o => o.Using<double>(ctx => ctx.Subject.Should().BeApproximately(ctx.Expectation, 1e-9))
                 .WhenTypeIs<double>());
     }
 

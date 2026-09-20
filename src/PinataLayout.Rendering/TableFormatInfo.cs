@@ -55,9 +55,6 @@ internal class TableFormatInfo : FormatInfo
 
   internal override bool IsStarting => startRow == lastHeaderRow + 1;
 
-  internal int startColumn = -1;
-  internal int endColumn = -1;
-
   internal int startRow = -1;
   internal int endRow = -1;
 

@@ -2,7 +2,6 @@ using System.IO;
 using System.Linq;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
-using PdfPinata.Fonts;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.Content;
@@ -27,10 +26,7 @@ public class StyleSimulationTest
 {
     private const string Family = "Liberation Sans";
 
-    private static readonly string Regular = Face("Regular");
     private static readonly string Bold = Face("Bold");
-    private static readonly string Italic = Face("Italic");
-    private static readonly string BoldItalic = Face("BoldItalic");
 
     [Theory]
     // A family shipping every face simulates nothing.
@@ -56,7 +52,7 @@ public class StyleSimulationTest
         var resolver = new Probe();
         resolver.SetupFontsFiles(shipped.Select(Face).ToArray());
 
-        FontResolverInfo info = resolver.ResolveTypeface(Family, isBold, isItalic);
+        var info = resolver.ResolveTypeface(Family, isBold, isItalic);
 
         info.FaceName.Should().Be("LiberationSans-" + expectedFace + ".ttf");
         info.StyleSimulations.Should().Be(expected);
@@ -73,7 +69,7 @@ public class StyleSimulationTest
         var resolver = new Probe();
         resolver.SetupFontsFiles(new[] { Bold });
 
-        FontResolverInfo info = resolver.ResolveTypeface(Family, true, false);
+        var info = resolver.ResolveTypeface(Family, true, false);
 
         info.FaceName.Should().Be("LiberationSans-Bold.ttf");
         info.StyleSimulations.Should().Be(XStyleSimulations.None,
@@ -129,7 +125,7 @@ public class StyleSimulationTest
     {
         return OperatorsOf(style)
             .Where(op => op.OpCode.OpCodeName == OpCodeName.Tr)
-            .Select(op => (int)((CInteger)op.Operands[0]).Value)
+            .Select(op => ((CInteger)op.Operands[0]).Value)
             .ToArray();
     }
 
@@ -163,14 +159,14 @@ public class StyleSimulationTest
         document.Save(stream, false);
         stream.Position = 0;
 
-        PdfPage reread = Pdf.IO.PdfReader.Open(stream, PdfDocumentOpenMode.Modify).Pages[0];
+        var reread = Pdf.IO.PdfReader.Open(stream, PdfDocumentOpenMode.Modify).Pages[0];
 
         return ContentReader.ReadContent(ContentOf(reread)).OfType<COperator>().ToArray();
     }
 
     private static byte[] ContentOf(PdfPage page)
     {
-        PdfItem item = page.Elements["/Contents"];
+        var item = page.Elements["/Contents"];
         if (item is PdfReference reference)
             item = reference.Value;
 

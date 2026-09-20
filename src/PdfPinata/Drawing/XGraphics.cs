@@ -53,7 +53,7 @@ enum InternalGraphicsMode
 {
     DrawingGdiGraphics,
     DrawingPdfContent,
-    DrawingBitmap,
+    DrawingBitmap
 }
 
 
@@ -98,7 +98,6 @@ public sealed class XGraphics : IDisposable
         }
         page.RenderContent = content;
         _renderer = new XGraphicsPdfRenderer(page, this, options);
-        _pageSizePoints = new XSize(page.Width, page.Height);
         switch (pageUnit)
         {
             case XGraphicsUnit.Point:
@@ -132,7 +131,6 @@ public sealed class XGraphics : IDisposable
     XGraphics(XSize size, XGraphicsUnit pageUnit, XPageDirection pageDirection)
     {
         _gsStack = new GraphicsStateStack(this);
-        _pageSizePoints = new XSize(size.Width, size.Height);
         switch (pageUnit)
         {
             case XGraphicsUnit.Point:
@@ -168,7 +166,6 @@ public sealed class XGraphics : IDisposable
     {
         _renderer = renderer ?? throw new ArgumentNullException(nameof(renderer));
         _gsStack = new GraphicsStateStack(this);
-        _pageSizePoints = new XSize(size.Width, size.Height);
         switch (pageUnit)
         {
             case XGraphicsUnit.Point:
@@ -326,7 +323,7 @@ public sealed class XGraphics : IDisposable
     {
         ArgumentNullException.ThrowIfNull(image);
 
-        XBitmapImage bmImage = image as XBitmapImage;
+        var bmImage = image as XBitmapImage;
         if (bmImage != null)
         {
         }
@@ -340,16 +337,16 @@ public sealed class XGraphics : IDisposable
     {
         _pageOrigin = new XPoint();
 
-        double pageHeight = _pageSize.Height;
-        PdfPage targetPage = PdfPage;
-        XPoint trimOffset = new XPoint();
+        var pageHeight = _pageSize.Height;
+        var targetPage = PdfPage;
+        var trimOffset = new XPoint();
         if (targetPage != null && targetPage.TrimMargins.AreSet)
         {
             pageHeight += targetPage.SheetExtraHeight;
             trimOffset = targetPage.SheetOffset;
         }
 
-        XMatrix matrix = new XMatrix();
+        var matrix = new XMatrix();
         if (_pageDirection != XPageDirection.Downwards)
             matrix.Prepend(new XMatrix(1, 0, 0, -1, 0, pageHeight));
 
@@ -469,7 +466,6 @@ public sealed class XGraphics : IDisposable
     //  throw new NotImplementedException("PageSize cannot be modified in current implementation.");
     //}
     XSize _pageSize;
-    XSize _pageSizePoints;
 
     #region Drawing
 
@@ -517,11 +513,11 @@ public sealed class XGraphics : IDisposable
         ArgumentNullException.ThrowIfNull(pen);
         ArgumentNullException.ThrowIfNull(value);
 
-        int length = value.Length;
-        XPoint[] points = new XPoint[length / 2 + 1];
+        var length = value.Length;
+        var points = new XPoint[length / 2 + 1];
         points[0].X = x;
         points[0].Y = y;
-        for (int idx = 0; idx < length / 2; idx++)
+        for (var idx = 0; idx < length / 2; idx++)
         {
             points[idx + 1].X = value[2 * idx];
             points[idx + 1].Y = value[2 * idx + 1];
@@ -560,7 +556,7 @@ public sealed class XGraphics : IDisposable
     {
         ArgumentNullException.ThrowIfNull(pen);
 
-        int count = points.Length;
+        var count = points.Length;
         if (count == 0)
             return;
 
@@ -587,7 +583,7 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public void DrawCurve(XPen pen, XPoint[] points, int offset, int numberOfSegments, double tension)
     {
-        XPoint[] points2 = new XPoint[numberOfSegments];
+        var points2 = new XPoint[numberOfSegments];
         Array.Copy(points, offset, points2, 0, numberOfSegments);
         DrawCurve(pen, points2, tension);
     }
@@ -600,7 +596,7 @@ public sealed class XGraphics : IDisposable
         ArgumentNullException.ThrowIfNull(pen);
         ArgumentNullException.ThrowIfNull(points);
 
-        int count = points.Length;
+        var count = points.Length;
         if (count < 2)
             throw new ArgumentException("DrawCurve requires two or more points.", nameof(points));
 
@@ -747,13 +743,13 @@ public sealed class XGraphics : IDisposable
             throw new ArgumentNullException(nameof(pen), PSSR.NeedPenOrBrush);
         ArgumentNullException.ThrowIfNull(rectangles);
 
-        int count = rectangles.Length;
+        var count = rectangles.Length;
 
         if (_renderer != null)
         {
-            for (int idx = 0; idx < count; idx++)
+            for (var idx = 0; idx < count; idx++)
             {
-                XRect rect = rectangles[idx];
+                var rect = rectangles[idx];
                 _renderer.DrawRectangle(pen, brush, rect.X, rect.Y, rect.Width, rect.Height);
             }
         }
@@ -1093,7 +1089,7 @@ public sealed class XGraphics : IDisposable
             throw new ArgumentNullException(nameof(pen), PSSR.NeedPenOrBrush);
         }
 
-        int count = points.Length;
+        var count = points.Length;
         if (count == 0)
             return;
         if (count < 2)
@@ -1316,7 +1312,7 @@ public sealed class XGraphics : IDisposable
         ArgumentNullException.ThrowIfNull(font);
         ArgumentNullException.ThrowIfNull(stringFormat);
 
-        XSize size = FontHelper.MeasureString(text, font, stringFormat);
+        var size = FontHelper.MeasureString(text, font, stringFormat);
         return size;
     }
     #pragma warning restore CA1822
@@ -1348,8 +1344,6 @@ public sealed class XGraphics : IDisposable
 
         CheckXPdfFormConsistence(image);
 
-        double width = image.PointWidth;
-        double height = image.PointHeight;
 
         if (_renderer != null)
             _renderer.DrawImage(image, x, y, image.PointWidth, image.PointHeight);
@@ -1404,7 +1398,7 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     void CheckXPdfFormConsistence(XImage image)
     {
-        XForm xForm = image as XForm;
+        var xForm = image as XForm;
         if (xForm != null)
         {
             // Force disposing of XGraphics that draws the content
@@ -1559,7 +1553,7 @@ public sealed class XGraphics : IDisposable
         // Reopening is what keeps the paragraph whole. An element may own as many content items as it
         // likes - that is already how a paragraph broken over two pages is one paragraph - so the
         // text before the link and the text after it are two items of the same element.
-        bool suspendedParent = _markedContent.Count > 0;
+        var suspendedParent = _markedContent.Count > 0;
         if (suspendedParent)
             CloseMarkedContent(renderer, page, _markedContent.Peek());
 
@@ -1722,9 +1716,8 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public XGraphicsState Save()
     {
-        XGraphicsState xState = null;
-        xState = new XGraphicsState();
-        InternalGraphicsState iState = new InternalGraphicsState(this, xState);
+        var xState = new XGraphicsState();
+        var iState = new InternalGraphicsState(this, xState);
         iState.Transform = _transform;
         _gsStack.Push(iState);
 
@@ -1777,10 +1770,9 @@ public sealed class XGraphics : IDisposable
         if (unit != XGraphicsUnit.Point)
             throw new ArgumentException("The current implementation supports XGraphicsUnit.Point only.", nameof(unit));
 
-        XGraphicsContainer xContainer = null;
-        xContainer = new XGraphicsContainer();
+        var xContainer = new XGraphicsContainer();
 
-        InternalGraphicsState iState = new InternalGraphicsState(this, xContainer);
+        var iState = new InternalGraphicsState(this, xContainer);
         iState.Transform = _transform;
 
         _gsStack.Push(iState);
@@ -1788,9 +1780,9 @@ public sealed class XGraphics : IDisposable
         if (_renderer != null)
             _renderer.BeginContainer(xContainer, dstrect, srcrect, unit);
 
-        XMatrix matrix = new XMatrix();
-        double scaleX = dstrect.Width / srcrect.Width;
-        double scaleY = dstrect.Height / srcrect.Height;
+        var matrix = new XMatrix();
+        var scaleX = dstrect.Width / srcrect.Width;
+        var scaleY = dstrect.Height / srcrect.Height;
         matrix.TranslatePrepend(-srcrect.X, -srcrect.Y);
         matrix.ScalePrepend(scaleX, scaleY);
         matrix.TranslatePrepend(dstrect.X / scaleX, dstrect.Y / scaleY);
@@ -1858,7 +1850,7 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public void TranslateTransform(double dx, double dy, XMatrixOrder order)
     {
-        XMatrix matrix = new XMatrix();
+        var matrix = new XMatrix();
         matrix.TranslatePrepend(dx, dy);
         AddTransform(matrix, order);
     }
@@ -1878,7 +1870,7 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public void ScaleTransform(double scaleX, double scaleY, XMatrixOrder order)
     {
-        XMatrix matrix = new XMatrix();
+        var matrix = new XMatrix();
         matrix.ScalePrepend(scaleX, scaleY);
         AddTransform(matrix, order);
     }
@@ -1936,7 +1928,7 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public void RotateTransform(double angle, XMatrixOrder order)
     {
-        XMatrix matrix = new XMatrix();
+        var matrix = new XMatrix();
         matrix.RotatePrepend(angle);
         AddTransform(matrix, order);
     }
@@ -2035,7 +2027,7 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     void AddTransform(XMatrix transform, XMatrixOrder order)
     {
-        XMatrix matrix = _transform;
+        var matrix = _transform;
         matrix.Multiply(transform, order);
         _transform = matrix;
         matrix = DefaultViewMatrix;
@@ -2056,7 +2048,7 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public void IntersectClip(XRect rect)
     {
-        XGraphicsPath path = new XGraphicsPath();
+        var path = new XGraphicsPath();
         path.AddRectangle(rect);
         IntersectClip(path);
     }
@@ -2175,7 +2167,7 @@ public sealed class XGraphics : IDisposable
     {
         get
         {
-            XGraphicsPdfRenderer renderer = _renderer as XGraphicsPdfRenderer;
+            var renderer = _renderer as XGraphicsPdfRenderer;
             return renderer != null ? renderer._page : null;
         }
     }
@@ -2225,8 +2217,8 @@ public sealed class XGraphics : IDisposable
     /// <param name="worldPoint">The place, in the coordinates the drawing methods take.</param>
     public void AddNamedDestination(string name, XPoint worldPoint)
     {
-        PdfPage page = PageForAnnotation();
-        XRect onPage = Transformer.WorldToDefaultPage(new XRect(worldPoint.X, worldPoint.Y, 0, 0));
+        var page = PageForAnnotation();
+        var onPage = Transformer.WorldToDefaultPage(new XRect(worldPoint.X, worldPoint.Y, 0, 0));
 
         // The top of the window, which PDF measures up the page from the bottom.
         page.Owner.NamedDestinations.Add(name, page, onPage.Y);
@@ -2234,7 +2226,7 @@ public sealed class XGraphics : IDisposable
 
     PdfPage PageForAnnotation()
     {
-        PdfPage page = PdfPage;
+        var page = PdfPage;
         if (page == null)
             throw new InvalidOperationException("Annotations can only be added to an XGraphics that draws onto a PDF page.");
         return page;
@@ -2271,7 +2263,7 @@ public sealed class XGraphics : IDisposable
         {
             XPoint[] points = { point };
 
-            XMatrix matrix = _gfx.Transform;
+            var matrix = _gfx.Transform;
             matrix.TransformPoints(points);
 
             return new XPoint(points[0].X, _gfx.PageSize.Height - points[0].Y);
@@ -2283,25 +2275,25 @@ public sealed class XGraphics : IDisposable
         /// </summary>
         public XRect WorldToDefaultPage(XRect rect)
         {
-            XPoint[] points = new XPoint[4];
+            var points = new XPoint[4];
             points[0] = new XPoint(rect.X, rect.Y);
             points[1] = new XPoint(rect.X + rect.Width, rect.Y);
             points[2] = new XPoint(rect.X, rect.Y + rect.Height);
             points[3] = new XPoint(rect.X + rect.Width, rect.Y + rect.Height);
 
-            XMatrix matrix = _gfx.Transform;
+            var matrix = _gfx.Transform;
             matrix.TransformPoints(points);
 
-            double height = _gfx.PageSize.Height;
+            var height = _gfx.PageSize.Height;
             points[0].Y = height - points[0].Y;
             points[1].Y = height - points[1].Y;
             points[2].Y = height - points[2].Y;
             points[3].Y = height - points[3].Y;
 
-            double xmin = Math.Min(Math.Min(points[0].X, points[1].X), Math.Min(points[2].X, points[3].X));
-            double xmax = Math.Max(Math.Max(points[0].X, points[1].X), Math.Max(points[2].X, points[3].X));
-            double ymin = Math.Min(Math.Min(points[0].Y, points[1].Y), Math.Min(points[2].Y, points[3].Y));
-            double ymax = Math.Max(Math.Max(points[0].Y, points[1].Y), Math.Max(points[2].Y, points[3].Y));
+            var xmin = Math.Min(Math.Min(points[0].X, points[1].X), Math.Min(points[2].X, points[3].X));
+            var xmax = Math.Max(Math.Max(points[0].X, points[1].X), Math.Max(points[2].X, points[3].X));
+            var ymin = Math.Min(Math.Min(points[0].Y, points[1].Y), Math.Min(points[2].Y, points[3].Y));
+            var ymax = Math.Max(Math.Max(points[0].Y, points[1].Y), Math.Max(points[2].Y, points[3].Y));
 
             return new XRect(xmin, ymin, xmax - xmin, ymax - ymin);
         }

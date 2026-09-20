@@ -71,5 +71,5 @@ public enum ValueKind
   /// A DocumentObjectCollection. Behaves as <see cref="DocumentObject"/> does; kept distinct
   /// because the DDL parser and the serializer care about the difference.
   /// </summary>
-  Collection,
+  Collection
 }

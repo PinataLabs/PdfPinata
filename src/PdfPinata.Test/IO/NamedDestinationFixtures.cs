@@ -43,7 +43,7 @@ internal static class NamedDestinationFixtures
             Image(),
             Image(),
             Content("Im0"),
-            Content("Im1"),
+            Content("Im1")
         };
 
         // The annotations take the four numbers up to the ones the catalog holds, whatever the

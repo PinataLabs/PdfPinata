@@ -21,7 +21,7 @@ public class IntegerConvertibleTests
     {
         { nameof(Pdf.PdfInteger), TypeCode.Int32 },
         { nameof(PdfUInteger), TypeCode.UInt32 },
-        { nameof(PdfLong), TypeCode.Int64 },
+        { nameof(PdfLong), TypeCode.Int64 }
     };
 
     static IConvertible Number(string wrapper) => wrapper switch
@@ -29,7 +29,7 @@ public class IntegerConvertibleTests
         nameof(Pdf.PdfInteger) => new Pdf.PdfInteger(-7),
         nameof(PdfUInteger) => new PdfUInteger(3_000_000_000),
         nameof(PdfLong) => new PdfLong(5_000_000_000),
-        _ => throw new ArgumentOutOfRangeException(nameof(wrapper), wrapper, null),
+        _ => throw new ArgumentOutOfRangeException(nameof(wrapper), wrapper, null)
     };
 
     [Theory]
@@ -54,7 +54,7 @@ public class IntegerConvertibleTests
             TypeCode.Int32 => number.ToInt32(null),
             TypeCode.UInt32 => number.ToUInt32(null),
             TypeCode.Int64 => number.ToInt64(null),
-            var other => throw new InvalidOperationException($"No arm for {other}."),
+            var other => throw new InvalidOperationException($"No arm for {other}.")
         };
 
         Convert.ToDecimal(value).Should().Be(number.ToDecimal(null));

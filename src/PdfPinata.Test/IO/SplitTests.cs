@@ -25,7 +25,7 @@ public class SplitTests
     {
         { "/Dest[4 0 R/Fit]" },                 // A destination on the annotation.
         { "/A<</S/GoTo/D[4 0 R/Fit]>>" },       // A go-to action.
-        { "/P 3 0 R/Dest[4 0 R/Fit]" },         // Both, and a page back reference.
+        { "/P 3 0 R/Dest[4 0 R/Fit]" } // Both, and a page back reference.
     };
 
     [Theory]
@@ -57,7 +57,7 @@ public class SplitTests
         var inputDocument = Pdf.IO.PdfReader.Open(input, PdfDocumentOpenMode.Import);
 
         var merged = new PdfDocument();
-        foreach (PdfPage page in inputDocument.Pages)
+        foreach (var page in inputDocument.Pages)
             merged.AddPage(page);
 
         using var output = new MemoryStream();

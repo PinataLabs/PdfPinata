@@ -52,11 +52,11 @@ static class PdfTransparencyDetector
             return ImagePaints(xObject);
 
         // A form declaring a transparency group of its own says so outright.
-        PdfDictionary group = xObject.Elements.GetDictionary(PdfPage.Keys.Group);
+        var group = xObject.Elements.GetDictionary(PdfPage.Keys.Group);
         if (group != null && group.Elements.GetName("/S") == "/Transparency")
             return true;
 
-        return ResourcesPaint(xObject.Elements.GetDictionary(PdfPage.Keys.Resources), seen, depth);
+        return ResourcesPaint(xObject.Elements.GetDictionary(PdfPage.InheritablePageKeys.Resources), seen, depth);
     }
 
     /// <summary>
@@ -89,22 +89,22 @@ static class PdfTransparencyDetector
         if (resources == null)
             return false;
 
-        PdfDictionary states = resources.Elements.GetDictionary("/ExtGState");
+        var states = resources.Elements.GetDictionary("/ExtGState");
         if (states != null)
         {
-            foreach (PdfName name in states.Elements.KeyNames)
+            foreach (var name in states.Elements.KeyNames)
             {
                 if (StatePaints(states.Elements.GetDictionary(name.Value)))
                     return true;
             }
         }
 
-        PdfDictionary xObjects = resources.Elements.GetDictionary("/XObject");
+        var xObjects = resources.Elements.GetDictionary("/XObject");
         if (xObjects != null)
         {
-            foreach (PdfName name in xObjects.Elements.KeyNames)
+            foreach (var name in xObjects.Elements.KeyNames)
             {
-                PdfDictionary nested = xObjects.Elements.GetDictionary(name.Value);
+                var nested = xObjects.Elements.GetDictionary(name.Value);
                 if (nested != null && Paints(nested, seen, depth + 1))
                     return true;
             }
@@ -112,16 +112,16 @@ static class PdfTransparencyDetector
 
         // A tiling pattern paints from a content stream of its own and carries its own resources.
         // A shading pattern has none, so there is nothing under it to look at.
-        PdfDictionary patterns = resources.Elements.GetDictionary("/Pattern");
+        var patterns = resources.Elements.GetDictionary("/Pattern");
         if (patterns != null)
         {
-            foreach (PdfName name in patterns.Elements.KeyNames)
+            foreach (var name in patterns.Elements.KeyNames)
             {
-                PdfDictionary pattern = patterns.Elements.GetDictionary(name.Value);
+                var pattern = patterns.Elements.GetDictionary(name.Value);
                 if (pattern == null)
                     continue;
 
-                if (ResourcesPaint(pattern.Elements.GetDictionary(PdfPage.Keys.Resources), seen, depth + 1))
+                if (ResourcesPaint(pattern.Elements.GetDictionary(PdfPage.InheritablePageKeys.Resources), seen, depth + 1))
                     return true;
             }
         }
@@ -160,7 +160,7 @@ static class PdfTransparencyDetector
         // Not GetReal: it answers 0 for a key that is absent, which would read every graphics
         // state in the document as fully transparent. TryNumber also follows a reference, which
         // a number in a dictionary is allowed to be.
-        return PdfPageResizer.TryNumber(state.Elements[key], out double alpha) ? alpha : 1;
+        return PdfPageResizer.TryNumber(state.Elements[key], out var alpha) ? alpha : 1;
     }
 
     /// <summary>
@@ -179,7 +179,7 @@ static class PdfTransparencyDetector
         // knows winning. Any of them being a real blend is enough to want a group.
         if (item is PdfArray array)
         {
-            foreach (PdfItem element in array.Elements)
+            foreach (var element in array.Elements)
             {
                 if (BlendsWithTheBackdrop(element))
                     return true;
@@ -217,7 +217,7 @@ static class PdfTransparencyDetector
         if (!xObject.IsIndirect)
             return true;
 
-        string id = xObject.ObjectID.ToString();
+        var id = xObject.ObjectID.ToString();
         if (seen.ContainsKey(id))
             return false;
 

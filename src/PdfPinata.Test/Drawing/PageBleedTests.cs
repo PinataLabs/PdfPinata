@@ -542,6 +542,7 @@ public class PageBleedTests
         ///   are written in a content stream of their own under no transformation at all, which
         ///   is what makes reading them this directly honest.
         /// </summary>
+        // ReSharper disable once MemberHidesStaticFromOuterClass
         internal IReadOnlyList<Segment> Marks =>
             Regex.Matches(Content, @"(-?[\d.]+) (-?[\d.]+) m (-?[\d.]+) (-?[\d.]+) l S")
                 .Select(match => new Segment(

@@ -26,7 +26,7 @@ internal sealed class AssembleDemo : PdfDemo
         "MovePage and DuplicatePage, with the result visible in the pages that follow",
         "Splitting the merged document back into one file per page, in memory",
         "PruneUnusedResources and ConsolidateImages, reported as the bytes they save",
-        "Why a document this library wrote has little to prune, and what does",
+        "Why a document this library wrote has little to prune, and what does"
     };
 
     public override int PageCount => 7;
@@ -34,17 +34,17 @@ internal sealed class AssembleDemo : PdfDemo
     protected override PdfDocument Build(DemoContext context)
     {
         #region example
-        XFont heading = new XFont("Liberation Sans", 16, XFontStyle.Bold);
-        XFont label = new XFont("Liberation Sans", 9, XFontStyle.Bold);
-        XFont body = new XFont("Liberation Sans", 9);
-        XFont mono = new XFont("Source Code Pro", 8.5);
-        XFont huge = new XFont("Liberation Sans", 48, XFontStyle.Bold);
+        var heading = new XFont("Liberation Sans", 16, XFontStyle.Bold);
+        var label = new XFont("Liberation Sans", 9, XFontStyle.Bold);
+        var body = new XFont("Liberation Sans", 9);
+        var mono = new XFont("Source Code Pro", 8.5);
+        var huge = new XFont("Liberation Sans", 48, XFontStyle.Bold);
 
         // Every source page says loudly which document and which page it was, so that the order
         // the assembled document ends up in can be read off the pages themselves.
         void Stamp(PdfPage page, string name, XColor colour)
         {
-            using XGraphics gfx = XGraphics.FromPdfPage(page);
+            using var gfx = XGraphics.FromPdfPage(page);
             gfx.DrawRectangle(new XSolidBrush(colour), 0, 0, page.Width.Point, 90);
             gfx.DrawString(name, huge, XBrushes.White, new XRect(0, 10, page.Width.Point, 70),
                 XStringFormats.Center);
@@ -56,15 +56,15 @@ internal sealed class AssembleDemo : PdfDemo
         PdfDocument Source(string prefix, int pages, XColor colour, bool withLink, bool withImage,
             out long bytes)
         {
-            PdfDocument source = new PdfDocument();
+            var source = new PdfDocument();
             source.Info.Title = prefix;
 
-            for (int index = 1; index <= pages; index++)
+            for (var index = 1; index <= pages; index++)
             {
-                PdfPage page = source.AddPage();
+                var page = source.AddPage();
                 Stamp(page, $"{prefix}{index}", colour);
 
-                using XGraphics gfx = XGraphics.FromPdfPage(page);
+                using var gfx = XGraphics.FromPdfPage(page);
                 gfx.DrawString($"Page {index} of document {prefix}", body, XBrushes.Black,
                     new XPoint(50, 130));
 
@@ -73,7 +73,7 @@ internal sealed class AssembleDemo : PdfDemo
                     // A fresh XImage per page, deliberately. Two pages sharing one XImage already
                     // share one XObject; two that loaded the same bytes separately do not, and
                     // that is the case ConsolidateImages exists for.
-                    using XImage photograph = XImage.FromStream(
+                    using var photograph = XImage.FromStream(
                         () => Assets.Open(Assets.ImagePrefix + "frog-and-toad.jpg"));
                     gfx.DrawImage(photograph, 50, 160, 200, 150);
                 }
@@ -89,7 +89,7 @@ internal sealed class AssembleDemo : PdfDemo
             // Measured here rather than after reopening: a document opened in Import mode is not
             // one that can be saved, so its size has to be taken while it is still being written.
             // docs:begin reopen-for-import
-            using MemoryStream buffer = new MemoryStream();
+            using var buffer = new MemoryStream();
             source.Save(buffer, false);
             bytes = buffer.Length;
 
@@ -100,50 +100,50 @@ internal sealed class AssembleDemo : PdfDemo
 
         long Bytes(PdfDocument document)
         {
-            using MemoryStream buffer = new MemoryStream();
+            using var buffer = new MemoryStream();
             document.Save(buffer, false);
             return buffer.Length;
         }
 
-        using PdfDocument sourceA = Source("A", 3, XColor.FromArgb(70, 130, 180),
-            withLink: true, withImage: true, out long bytesA);
-        using PdfDocument sourceB = Source("B", 2, XColor.FromArgb(178, 34, 34),
-            withLink: false, withImage: true, out long bytesB);
+        using var sourceA = Source("A", 3, XColor.FromArgb(70, 130, 180),
+            withLink: true, withImage: true, out var bytesA);
+        using var sourceB = Source("B", 2, XColor.FromArgb(178, 34, 34),
+            withLink: false, withImage: true, out var bytesB);
 
         // ----- the assembly itself -----
 
-        PdfDocument document = new PdfDocument();
+        var document = new PdfDocument();
         document.Info.Title = "Assemble";
 
         // Created first and drawn last, once there are numbers to put on it.
-        PdfPage report = document.AddPage();
+        var report = document.AddPage();
 
         // docs:begin merge
         // AddPage(PdfPage) takes a page belonging to another document and copies it in. The
         // annotation setting decides what happens to anything interactive on the way: a shallow
         // copy keeps the annotation and its destination if the destination is coming too, a deep
         // copy drags in what it points at, and DoNotCopy leaves it behind.
-        foreach (PdfPage page in sourceA.Pages)
-            document.AddPage(page, AnnotationCopyingType.ShallowCopy);
+        foreach (var page in sourceA.Pages)
+            document.AddPage(page);
 
-        foreach (PdfPage page in sourceB.Pages)
-            document.AddPage(page, AnnotationCopyingType.ShallowCopy);
+        foreach (var page in sourceB.Pages)
+            document.AddPage(page);
         // docs:end merge
 
-        long bytesMerged = Bytes(document);
+        var bytesMerged = Bytes(document);
 
         // docs:begin consolidate-and-prune
         // Both source documents drew the same photograph, and each loaded it separately, so the
         // merged document carries the image twice over. Nothing about the pages changes; one of
         // the two XObjects simply stops being referenced.
         document.ConsolidateImages();
-        long bytesConsolidated = Bytes(document);
+        var bytesConsolidated = Bytes(document);
 
         // Dropping what no page actually draws with. A document this library wrote gives each page
         // its own resource dictionary, so there is usually nothing here to find - the saving turns
         // up on pages imported from a producer that names every font in the document on every page.
         document.PruneUnusedResources();
-        long bytesPruned = Bytes(document);
+        var bytesPruned = Bytes(document);
         // docs:end consolidate-and-prune
 
         // docs:begin duplicate-and-move
@@ -156,7 +156,7 @@ internal sealed class AssembleDemo : PdfDemo
         document.MovePage(5, 1);
         // docs:end duplicate-and-move
 
-        int annotationsOnFirstImported = document.Pages[2].Annotations.Count;
+        var annotationsOnFirstImported = document.Pages[2].Annotations.Count;
 
         // ----- splitting, which is importing read backwards -----
 
@@ -166,16 +166,16 @@ internal sealed class AssembleDemo : PdfDemo
         // Saving it and reopening in Import mode is the whole of the technique - and is the same
         // step the two source documents went through on their way in.
         long splitTotal = 0;
-        int splitCount = 0;
-        using (MemoryStream buffer = new MemoryStream())
+        var splitCount = 0;
+        using (var buffer = new MemoryStream())
         {
             document.Save(buffer, false);
             buffer.Position = 0;
 
-            using PdfDocument assembled = PdfReader.Open(buffer, PdfDocumentOpenMode.Import);
-            foreach (PdfPage page in assembled.Pages)
+            using var assembled = PdfReader.Open(buffer, PdfDocumentOpenMode.Import);
+            foreach (var page in assembled.Pages)
             {
-                using PdfDocument single = new PdfDocument();
+                using var single = new PdfDocument();
                 single.AddPage(page);
                 splitTotal += Bytes(single);
                 splitCount++;
@@ -185,9 +185,9 @@ internal sealed class AssembleDemo : PdfDemo
 
         // ----- the report page, now that everything has a number -----
 
-        using (XGraphics gfx = XGraphics.FromPdfPage(report))
+        using (var gfx = XGraphics.FromPdfPage(report))
         {
-            XTextFormatter prose = new XTextFormatter(gfx);
+            var prose = new XTextFormatter(gfx);
 
             gfx.DrawString("Assembling documents", heading, XBrushes.Black, new XPoint(50, 60));
 
@@ -209,11 +209,11 @@ internal sealed class AssembleDemo : PdfDemo
                 ("PruneUnusedResources", $"{bytesConsolidated - bytesPruned:N0} bytes saved."),
                 ("DuplicatePage(1, 6)", "A copy of the first imported page, placed at the end."),
                 ("MovePage(5, 1)", "B2 moved from the end of the run to the front of it."),
-                ("Split", $"{splitCount} single-page documents, {splitTotal:N0} bytes between them."),
+                ("Split", $"{splitCount} single-page documents, {splitTotal:N0} bytes between them.")
             };
 
             double y = 175;
-            foreach ((string Step, string Detail) step in steps)
+            foreach (var step in steps)
             {
                 gfx.DrawString(step.Step, mono, XBrushes.Black, new XPoint(50, y));
                 gfx.DrawString(step.Detail, body, XBrushes.DimGray, new XPoint(190, y));

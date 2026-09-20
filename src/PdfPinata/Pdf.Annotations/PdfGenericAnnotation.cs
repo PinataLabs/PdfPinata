@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -75,7 +75,7 @@ public sealed class PdfGenericAnnotation : PdfAnnotation
     /// </param>
     public PdfGenericAnnotation(string subtype)
     {
-        Elements.SetName(Keys.Subtype, SubtypeName(subtype));
+        Elements.SetName(PdfAnnotation.Keys.Subtype, SubtypeName(subtype));
     }
 
     /// <summary>
@@ -88,13 +88,13 @@ public sealed class PdfGenericAnnotation : PdfAnnotation
     public PdfGenericAnnotation(PdfDocument document, string subtype)
         : base(document)
     {
-        Elements.SetName(Keys.Subtype, SubtypeName(subtype));
+        Elements.SetName(PdfAnnotation.Keys.Subtype, SubtypeName(subtype));
     }
 
     /// <summary>
     /// The subtype this annotation names itself with, including its solidus.
     /// </summary>
-    public string Subtype => Elements.GetName(Keys.Subtype);
+    public string Subtype => Elements.GetName(PdfAnnotation.Keys.Subtype);
 
     /// <summary>
     /// Predefined keys of this dictionary.

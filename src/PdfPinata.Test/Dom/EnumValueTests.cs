@@ -43,7 +43,7 @@ public class EnumValueTests
     [Fact]
     public void AnUnsetEnumReadsAsItsFirstValue()
     {
-        ABordersObject().Top.Style.Should().Be((BorderStyle)0);
+        ABordersObject().Top.Style.Should().Be(0);
         ABordersObject().Top.IsNull("Style").Should().BeTrue();
     }
 

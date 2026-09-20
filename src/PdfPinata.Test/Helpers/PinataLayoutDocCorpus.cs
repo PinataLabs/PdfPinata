@@ -91,7 +91,7 @@ internal static class PinataLayoutDocCorpus
             {
                 var row = table.AddRow();
                 row.Cells[0].AddParagraph("Row " + idx);
-                row.Cells[1].AddParagraph(Prose.Substring(0, 40));
+                row.Cells[1].AddParagraph(Prose[..40]);
             }
         });
 

@@ -58,5 +58,5 @@ public enum EInvoiceProfile
     /// Carried in a Factur-X container as CII, which is what makes it a value here rather than a
     /// format of its own.
     /// </summary>
-    XRechnung,
+    XRechnung
 }

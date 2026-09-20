@@ -25,7 +25,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
 #endregion
@@ -74,11 +74,11 @@ internal class TopDownFormatter
     /// <summary>
     /// Formats the elements on the areas provided by the area provider.
     /// </summary>
-    /// <param name="gfx">The graphics object to render on.</param>
+    /// <param name="graphics">The graphics object to render on.</param>
     /// <param name="topLevel">if set to <c>true</c> formats the object is on top level.</param>
-    public void FormatOnAreas(XGraphics gfx, bool topLevel)
+    public void FormatOnAreas(XGraphics graphics, bool topLevel)
     {
-        this.gfx = gfx;
+        gfx = graphics;
         XUnit prevBottomMargin = 0;
         RenderInfo prevRenderInfo = null;
         FormatInfo prevFormatInfo = null;
@@ -339,7 +339,7 @@ internal class TopDownFormatter
             layoutInfo.Floating != Floating.BothSides)
             return null;
 
-        Area shape = layoutInfo.ContentArea;
+        var shape = layoutInfo.ContentArea;
         if (shape == null)
             return null;
 

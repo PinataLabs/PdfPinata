@@ -26,7 +26,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -59,20 +59,20 @@ public struct LeftPosition : INullableValue
     if (!(value == ShapePosition.Undefined || IsValid(value)))
       throw new ArgumentException(AppResources.InvalidEnumForLeftPosition);
 
-    this.shapePosition = value;
-    this.position = Unit.NullValue;
-    this.notNull = (value != ShapePosition.Undefined);
+    shapePosition = value;
+    position = Unit.NullValue;
+    notNull = value != ShapePosition.Undefined;
   }
 
   /// <summary>
   /// Sets shapeposition enum and resets position.
   /// </summary>
-  private void SetFromEnum(ShapePosition shapePosition)
+  private void SetFromEnum(ShapePosition newShapePosition)
   {
-    if (!IsValid(shapePosition))
+    if (!IsValid(newShapePosition))
       throw new ArgumentException(AppResources.InvalidEnumForLeftPosition);
 
-    this.shapePosition = shapePosition;
+    shapePosition = newShapePosition;
     this.position = Unit.NullValue;
   }
 
@@ -191,7 +191,7 @@ public struct LeftPosition : INullableValue
   }
 
   /// <summary>
-  /// Converts an integer to a LeftPosition. 
+  /// Converts an integer to a LeftPosition.
   /// The integer is interpreted as a Unit in Point.
   /// </summary>
   public static implicit operator LeftPosition(int value)
@@ -213,7 +213,7 @@ public struct LeftPosition : INullableValue
     if (value.Length == 0)
       throw new ArgumentNullException(nameof(value));
 
-    char ch = value[0];
+    var ch = value[0];
     if (ch == '+' || ch == '-' || Char.IsNumber(ch))
       return Unit.Parse(value);
     else
@@ -223,7 +223,7 @@ public struct LeftPosition : INullableValue
   #region Internal
   /// <summary>
   /// Converts LeftPosition into DDL.
-  /// </summary>  
+  /// </summary>
   internal void Serialize(Serializer serializer)
   {
     if (this.shapePosition == ShapePosition.Undefined)

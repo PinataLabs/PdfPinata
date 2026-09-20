@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -104,10 +104,10 @@ public class PdfOutlineCollection : PdfObject, IList<PdfOutline>
     {
         if (Count > 0)
         {
-            PdfOutline[] array = new PdfOutline[Count];
+            var array = new PdfOutline[Count];
             _outlines.CopyTo(array);
             _outlines.Clear();
-            foreach (PdfOutline item in array)
+            foreach (var item in array)
             {
                 RemoveFromOutlinesTree(item);
             }
@@ -140,7 +140,7 @@ public class PdfOutlineCollection : PdfObject, IList<PdfOutline>
     /// <param name="textColor">The color used to draw the outline text.</param>
     public PdfOutline Add(string title, PdfPage destinationPage, bool opened, PdfOutlineStyle style, XColor textColor)
     {
-        PdfOutline outline = new PdfOutline(title, destinationPage, opened, style, textColor);
+        var outline = new PdfOutline(title, destinationPage, opened, style, textColor);
         Add(outline);
         return outline;
     }
@@ -154,7 +154,7 @@ public class PdfOutlineCollection : PdfObject, IList<PdfOutline>
     /// <param name="style">The font style used to draw the outline text.</param>
     public PdfOutline Add(string title, PdfPage destinationPage, bool opened, PdfOutlineStyle style)
     {
-        PdfOutline outline = new PdfOutline(title, destinationPage, opened, style);
+        var outline = new PdfOutline(title, destinationPage, opened, style);
         Add(outline);
         return outline;
     }
@@ -167,7 +167,7 @@ public class PdfOutlineCollection : PdfObject, IList<PdfOutline>
     /// <param name="opened">Specifies whether the node is displayed expanded (opened) or collapsed.</param>
     public PdfOutline Add(string title, PdfPage destinationPage, bool opened)
     {
-        PdfOutline outline = new PdfOutline(title, destinationPage, opened);
+        var outline = new PdfOutline(title, destinationPage, opened);
         Add(outline);
         return outline;
     }
@@ -177,7 +177,7 @@ public class PdfOutlineCollection : PdfObject, IList<PdfOutline>
     /// </summary>
     public PdfOutline Add(string title, PdfPage destinationPage)
     {
-        PdfOutline outline = new PdfOutline(title, destinationPage);
+        var outline = new PdfOutline(title, destinationPage);
         Add(outline);
         return outline;
     }
@@ -208,7 +208,7 @@ public class PdfOutlineCollection : PdfObject, IList<PdfOutline>
     /// </summary>
     public void RemoveAt(int index)
     {
-        PdfOutline outline = _outlines[index];
+        var outline = _outlines[index];
         _outlines.RemoveAt(index);
         RemoveFromOutlinesTree(outline);
     }

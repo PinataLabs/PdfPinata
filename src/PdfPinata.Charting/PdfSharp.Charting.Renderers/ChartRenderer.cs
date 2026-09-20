@@ -49,38 +49,38 @@ internal abstract class ChartRenderer : Renderer
   /// </summary>
   protected XRect LayoutLegend()
   {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    XRect remainingRect = this.rendererParms.Box;
-    if (cri.legendRendererInfo != null)
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var remainingRect = this.rendererParms.Box;
+    if (cri.LegendRendererInfo != null)
     {
-      switch (cri.legendRendererInfo.legend.Docking)
+      switch (cri.LegendRendererInfo.Legend.Docking)
       {
         case DockingType.Left:
-          cri.legendRendererInfo.X = remainingRect.Left;
-          cri.legendRendererInfo.Y = remainingRect.Height / 2 - cri.legendRendererInfo.Height / 2;
-          double width = cri.legendRendererInfo.Width + ChartRenderer.LegendSpacing;
+          cri.LegendRendererInfo.X = remainingRect.Left;
+          cri.LegendRendererInfo.Y = remainingRect.Height / 2 - cri.LegendRendererInfo.Height / 2;
+          var width = cri.LegendRendererInfo.Width + ChartRenderer.LegendSpacing;
           remainingRect.X += width;
           remainingRect.Width -= width;
           break;
 
         case DockingType.Right:
-          cri.legendRendererInfo.X = remainingRect.Right - cri.legendRendererInfo.Width;
-          cri.legendRendererInfo.Y = remainingRect.Height / 2 - cri.legendRendererInfo.Height / 2;
-          remainingRect.Width -= cri.legendRendererInfo.Width + ChartRenderer.LegendSpacing;
+          cri.LegendRendererInfo.X = remainingRect.Right - cri.LegendRendererInfo.Width;
+          cri.LegendRendererInfo.Y = remainingRect.Height / 2 - cri.LegendRendererInfo.Height / 2;
+          remainingRect.Width -= cri.LegendRendererInfo.Width + ChartRenderer.LegendSpacing;
           break;
           
         case DockingType.Top:
-          cri.legendRendererInfo.X = remainingRect.Width / 2 - cri.legendRendererInfo.Width / 2;
-          cri.legendRendererInfo.Y = remainingRect.Top;
-          double height = cri.legendRendererInfo.Height + ChartRenderer.LegendSpacing;
+          cri.LegendRendererInfo.X = remainingRect.Width / 2 - cri.LegendRendererInfo.Width / 2;
+          cri.LegendRendererInfo.Y = remainingRect.Top;
+          var height = cri.LegendRendererInfo.Height + ChartRenderer.LegendSpacing;
           remainingRect.Y += height;
           remainingRect.Height -= height;
           break;
           
         case DockingType.Bottom:
-          cri.legendRendererInfo.X = remainingRect.Width / 2 - cri.legendRendererInfo.Width / 2;
-          cri.legendRendererInfo.Y = remainingRect.Bottom - cri.legendRendererInfo.Height;
-          remainingRect.Height -= cri.legendRendererInfo.Height + ChartRenderer.LegendSpacing;
+          cri.LegendRendererInfo.X = remainingRect.Width / 2 - cri.LegendRendererInfo.Width / 2;
+          cri.LegendRendererInfo.Y = remainingRect.Bottom - cri.LegendRendererInfo.Height;
+          remainingRect.Height -= cri.LegendRendererInfo.Height + ChartRenderer.LegendSpacing;
           break;
       }
     }

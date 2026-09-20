@@ -50,5 +50,5 @@ enum DocumentState
     /// <summary>
     /// The document is disposed.
     /// </summary>
-    Disposed = 0x8000,
+    Disposed = 0x8000
 }

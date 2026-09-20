@@ -26,7 +26,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -48,7 +48,7 @@ public struct TopPosition : INullableValue
   {
     this.shapePosition = ShapePosition.Undefined;
     this.position = value;
-    this.notNull = !value.IsNull;
+    this._notNull = !value.IsNull;
   }
 
   /// <summary>
@@ -61,7 +61,7 @@ public struct TopPosition : INullableValue
 
     this.shapePosition = value;
     this.position = Unit.NullValue;
-    this.notNull = (value != ShapePosition.Undefined);
+    this._notNull = (value != ShapePosition.Undefined);
   }
 
   /// <summary>
@@ -111,7 +111,7 @@ public struct TopPosition : INullableValue
   }
 
   /// <summary>
-  /// Converts an integer to a TopPosition. 
+  /// Converts an integer to a TopPosition.
   /// The integer is interpreted as a Unit in Point.
   /// </summary>
   public static implicit operator TopPosition(int value)
@@ -123,12 +123,12 @@ public struct TopPosition : INullableValue
   /// <summary>
   /// Sets shapeposition enum and resets position.
   /// </summary>
-  private void SetFromEnum(ShapePosition shapePosition)
+  private void SetFromEnum(ShapePosition newShapePosition)
   {
-    if (!IsValid(shapePosition))
+    if (!IsValid(newShapePosition))
       throw new ArgumentException(AppResources.InvalidEnumForTopPosition);
 
-    this.shapePosition = shapePosition;
+    shapePosition = newShapePosition;
     this.position = Unit.NullValue;
   }
 
@@ -148,14 +148,14 @@ public struct TopPosition : INullableValue
   {
     ArgumentNullException.ThrowIfNull(value);
 
-    if (value is ShapePosition)
-      SetFromEnum((ShapePosition)value);
-    else if (value is string && Enum.IsDefined(typeof(ShapePosition), value))
-      SetFromEnum((ShapePosition)Enum.Parse(typeof(ShapePosition), (string)value));
+    if (value is ShapePosition value1)
+      SetFromEnum(value1);
+    else if (value is string s && Enum.IsDefined(typeof(ShapePosition), s))
+      SetFromEnum((ShapePosition)Enum.Parse(typeof(ShapePosition), s));
     else
       SetFromUnit(value.ToString());
 
-    this.notNull = true;
+    this._notNull = true;
   }
 
   /// <summary>
@@ -180,7 +180,7 @@ public struct TopPosition : INullableValue
   /// <summary>
   /// Determines whether this instance is null (not set).
   /// </summary>
-  bool INullableValue.IsNull => !this.notNull;
+  bool INullableValue.IsNull => !this._notNull;
 
   /// <summary>
   /// Gets the value of the position in unit.
@@ -190,11 +190,11 @@ public struct TopPosition : INullableValue
   /// <summary>
   /// Gets the value of the position.
   /// </summary>
-  public ShapePosition ShapePosition => this.shapePosition;
+  public ShapePosition ShapePosition => shapePosition;
 
   internal ShapePosition shapePosition;
   internal Unit position;
-  private bool notNull;
+  private bool _notNull;
 
   /// <summary>
   /// Parses the specified value.
@@ -209,7 +209,7 @@ public struct TopPosition : INullableValue
     if (value.Length == 0)
       throw new ArgumentNullException(nameof(value));
 
-    char ch = value[0];
+    var ch = value[0];
     if (ch == '+' || ch == '-' || Char.IsNumber(ch))
       return Unit.Parse(value);
     else
@@ -219,7 +219,7 @@ public struct TopPosition : INullableValue
   #region Internal
   /// <summary>
   /// Converts TopPosition into DDL.
-  /// </summary>  
+  /// </summary>
   internal void Serialize(Serializer serializer)
   {
     if (this.shapePosition == ShapePosition.Undefined)

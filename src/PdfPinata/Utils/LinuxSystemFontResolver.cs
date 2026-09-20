@@ -156,10 +156,7 @@ public static class LinuxSystemFontResolver
     {
         var ptr = IntPtr.Zero;
         var result = FcPatternGetString(handle, obj, 0, ref ptr);
-        if (result == 0)
-            return Marshal.PtrToStringAnsi(ptr);
-        else
-            return null;
+        return result == 0 ? Marshal.PtrToStringAnsi(ptr) : null;
     }
 
 
@@ -171,7 +168,7 @@ public static class LinuxSystemFontResolver
         using (var fs = FcFontList(config, pattern, os))
         {
             var fset = fs.Read();
-            for (int index = 0; index < fset.nfont; index++)
+            for (var index = 0; index < fset.nfont; index++)
             {
                 var font = Marshal.ReadIntPtr(fset.fonts, index * Marshal.SizeOf<IntPtr>());
                 var family = GetString(font, "family");
@@ -226,7 +223,7 @@ public static class LinuxSystemFontResolver
             if (!Directory.Exists(path))
                 return;
 
-            foreach (string subDir in Directory.EnumerateDirectories(path, "*", SearchOption.AllDirectories))
+            foreach (var subDir in Directory.EnumerateDirectories(path, "*", SearchOption.AllDirectories))
                 fontList.AddRange(Directory.EnumerateFiles(subDir, "*", SearchOption.AllDirectories));
         }
 
@@ -248,18 +245,18 @@ public static class LinuxSystemFontResolver
         try
         {
             #pragma warning disable SYSLIB1045 // netstandard2.1 has no GeneratedRegex, and this runs only when fontconfig cannot be loaded.
-            Regex confRegex = new Regex("<dir>(?<dir>.*)</dir>", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
+            var confRegex = new Regex("<dir>(?<dir>.*)</dir>", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
             #pragma warning restore SYSLIB1045
             using (var reader = new StreamReader(File.OpenRead("/etc/fonts/fonts.conf")))
             {
                 string line;
                 while ((line = reader.ReadLine()) != null)
                 {
-                    Match match = confRegex.Match(line);
+                    var match = confRegex.Match(line);
                     if (!match.Success)
                         continue;
 
-                    string path = match.Groups["dir"].Value.Trim();
+                    var path = match.Groups["dir"].Value.Trim();
                     if (path.StartsWith('~'))
                     {
                         path = string.Concat(Environment.GetEnvironmentVariable("HOME"), path.AsSpan(1));

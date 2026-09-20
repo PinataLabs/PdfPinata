@@ -397,7 +397,7 @@ internal static class PdfConformanceWriter
             var space = new string(new[]
             {
                 (char)profile[SpaceAt], (char)profile[SpaceAt + 1],
-                (char)profile[SpaceAt + 2], (char)profile[SpaceAt + 3],
+                (char)profile[SpaceAt + 2], (char)profile[SpaceAt + 3]
             });
 
             switch (space)
@@ -449,7 +449,7 @@ internal static class PdfConformanceWriter
         if (associated == null)
             return false;
 
-        for (int idx = 0; idx < associated.Elements.Count; idx++)
+        for (var idx = 0; idx < associated.Elements.Count; idx++)
         {
             if (ReferenceEquals(PdfAttachments.Resolve(associated.Elements[idx]), attachment))
                 return true;

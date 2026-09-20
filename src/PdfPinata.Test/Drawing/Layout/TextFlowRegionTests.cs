@@ -32,7 +32,7 @@ public class TextFlowRegionTests
     static TextFlowRegion BlockWith(params IFlowObstacle[] obstacles)
     {
         var region = new TextFlowRegion(Block);
-        foreach (IFlowObstacle obstacle in obstacles)
+        foreach (var obstacle in obstacles)
             region.With(obstacle);
         return region;
     }
@@ -188,7 +188,7 @@ public class TextFlowRegionTests
         var room = BlockWith(Standing(20, 30)).GetAvailableIntervals(Band);
 
         room.Should().HaveCount(2, "both sides are reported");
-        room.TryWidest(Tolerance, out XInterval widest).Should().BeTrue();
+        room.TryWidest(Tolerance, out var widest).Should().BeTrue();
         widest.Should().Be(new XInterval(50, 100), "and the roomier one is chosen");
     }
 

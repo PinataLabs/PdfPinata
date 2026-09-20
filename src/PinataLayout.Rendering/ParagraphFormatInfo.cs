@@ -24,7 +24,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -97,16 +97,19 @@ internal class ParagraphFormatInfo : FormatInfo
 
   internal LineInfo GetLineInfo(int lineIdx)
   {
+    // ReSharper disable once PossibleNullReferenceException
     return (LineInfo)lineInfos[lineIdx];
   }
 
   internal LineInfo GetLastLineInfo()
   {
+    // ReSharper disable once PossibleNullReferenceException
     return (LineInfo)lineInfos[LineCount - 1];
   }
 
   internal LineInfo GetFirstLineInfo()
   {
+    // ReSharper disable once PossibleNullReferenceException
     return (LineInfo)lineInfos[0];
   }
 
@@ -118,13 +121,13 @@ internal class ParagraphFormatInfo : FormatInfo
   internal int LineCount => lineInfos.Count;
 
   /// <summary>
-  /// 
+  ///
   /// </summary>
   /// <param name="mergeInfo"></param>
   /// <returns></returns>
   internal void Append(FormatInfo mergeInfo)
   {
-    ParagraphFormatInfo formatInfo = (ParagraphFormatInfo)mergeInfo;
+    var formatInfo = (ParagraphFormatInfo)mergeInfo;
     lineInfos.AddRange(formatInfo.lineInfos);
   }
 

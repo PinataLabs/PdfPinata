@@ -70,15 +70,15 @@ public partial class PlotArea : ChartObject
   {
     get
     {
-      if (this.lineFormat == null)
-        this.lineFormat = new LineFormat(this);
+      if (lineFormat == null)
+        lineFormat = new LineFormat(this);
 
-      return this.lineFormat;
+      return lineFormat;
     }
     set
     {
       SetParent(value);
-      this.lineFormat = value;
+      lineFormat = value;
     }
   }
   [DV]
@@ -91,15 +91,15 @@ public partial class PlotArea : ChartObject
   {
     get
     {
-      if (this.fillFormat == null)
-        this.fillFormat = new FillFormat(this);
+      if (fillFormat == null)
+        fillFormat = new FillFormat(this);
 
-      return this.fillFormat;
+      return fillFormat;
     }
     set
     {
       SetParent(value);
-      this.fillFormat = value;
+      fillFormat = value;
     }
   }
   [DV]
@@ -110,8 +110,8 @@ public partial class PlotArea : ChartObject
   /// </summary>
   public Unit LeftPadding
   {
-    get => this.leftPadding;
-    set => this.leftPadding = value;
+    get => leftPadding;
+    set => leftPadding = value;
   }
   [DV]
   internal Unit leftPadding = Unit.NullValue;
@@ -121,8 +121,8 @@ public partial class PlotArea : ChartObject
   /// </summary>
   public Unit RightPadding
   {
-    get => this.rightPadding;
-    set => this.rightPadding = value;
+    get => rightPadding;
+    set => rightPadding = value;
   }
   [DV]
   internal Unit rightPadding = Unit.NullValue;
@@ -132,8 +132,8 @@ public partial class PlotArea : ChartObject
   /// </summary>
   public Unit TopPadding
   {
-    get => this.topPadding;
-    set => this.topPadding = value;
+    get => topPadding;
+    set => topPadding = value;
   }
   [DV]
   internal Unit topPadding = Unit.NullValue;
@@ -143,8 +143,8 @@ public partial class PlotArea : ChartObject
   /// </summary>
   public Unit BottomPadding
   {
-    get => this.bottomPadding;
-    set => this.bottomPadding = value;
+    get => bottomPadding;
+    set => bottomPadding = value;
   }
   [DV]
   internal Unit bottomPadding = Unit.NullValue;
@@ -157,21 +157,21 @@ public partial class PlotArea : ChartObject
   internal override void Serialize(Serializer serializer)
   {
     serializer.WriteLine("\\plotarea");
-    int pos = serializer.BeginAttributes();
+    var pos = serializer.BeginAttributes();
 
-    if (!this.topPadding.IsNull)
-      serializer.WriteSimpleAttribute("TopPadding", this.TopPadding);
-    if (!this.leftPadding.IsNull)
-      serializer.WriteSimpleAttribute("LeftPadding", this.LeftPadding);
-    if (!this.rightPadding.IsNull)
-      serializer.WriteSimpleAttribute("RightPadding", this.RightPadding);
-    if (!this.bottomPadding.IsNull)
-      serializer.WriteSimpleAttribute("BottomPadding", this.BottomPadding);
+    if (!topPadding.IsNull)
+      serializer.WriteSimpleAttribute("TopPadding", TopPadding);
+    if (!leftPadding.IsNull)
+      serializer.WriteSimpleAttribute("LeftPadding", LeftPadding);
+    if (!rightPadding.IsNull)
+      serializer.WriteSimpleAttribute("RightPadding", RightPadding);
+    if (!bottomPadding.IsNull)
+      serializer.WriteSimpleAttribute("BottomPadding", BottomPadding);
 
-    if (!this.IsNull("LineFormat"))
-      this.lineFormat.Serialize(serializer);
-    if (!this.IsNull("FillFormat"))
-      this.fillFormat.Serialize(serializer);
+    if (!IsNull("LineFormat"))
+      lineFormat.Serialize(serializer);
+    if (!IsNull("FillFormat"))
+      fillFormat.Serialize(serializer);
 
     serializer.EndAttributes(pos);
 

@@ -52,7 +52,7 @@ public partial class Point : ChartObject
   public Point(double value)
     : this()
   {
-    this.Value = value;
+    Value = value;
   }
 
   #region Methods
@@ -74,15 +74,15 @@ public partial class Point : ChartObject
   {
     get
     {
-      if (this.lineFormat == null)
-        this.lineFormat = new LineFormat(this);
+      if (lineFormat == null)
+        lineFormat = new LineFormat(this);
 
-      return this.lineFormat;
+      return lineFormat;
     }
     set
     {
       SetParent(value);
-      this.lineFormat = value;
+      lineFormat = value;
     }
   }
   [DV]
@@ -95,15 +95,15 @@ public partial class Point : ChartObject
   {
     get
     {
-      if (this.fillFormat == null)
-        this.fillFormat = new FillFormat(this);
+      if (fillFormat == null)
+        fillFormat = new FillFormat(this);
 
-      return this.fillFormat;
+      return fillFormat;
     }
     set
     {
       SetParent(value);
-      this.fillFormat = value;
+      fillFormat = value;
     }
   }
   [DV]
@@ -114,7 +114,7 @@ public partial class Point : ChartObject
   /// </summary>
   public double Value
   {
-    get => this.value ?? 0;
+    get => value ?? 0;
     set => this.value = value;
   }
   [DV]
@@ -127,24 +127,24 @@ public partial class Point : ChartObject
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    if (!this.IsNull("LineFormat") || !this.IsNull("FillFormat"))
+    if (!IsNull("LineFormat") || !IsNull("FillFormat"))
     {
       serializer.WriteLine("");
       serializer.WriteLine("\\point");
-      int pos = serializer.BeginAttributes();
+      var pos = serializer.BeginAttributes();
 
-      if (!this.IsNull("LineFormat"))
-        this.lineFormat.Serialize(serializer);
-      if (!this.IsNull("FillFormat"))
-        this.fillFormat.Serialize(serializer);
+      if (!IsNull("LineFormat"))
+        lineFormat.Serialize(serializer);
+      if (!IsNull("FillFormat"))
+        fillFormat.Serialize(serializer);
 
       serializer.EndAttributes(pos);
       serializer.BeginContent();
-      serializer.WriteLine(this.Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
+      serializer.WriteLine(Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
       serializer.EndContent();
     }
     else
-      serializer.Write(this.Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
+      serializer.Write(Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
 
     serializer.Write(", ");
   }

@@ -71,7 +71,7 @@ public class PageFormatTests
     public void AFormatDefinedInMillimetresMeasuresThoseMillimetres(
         PageFormat format, double width, double height)
     {
-        PageSetup.GetPageSize(format, out Unit pageWidth, out Unit pageHeight);
+        PageSetup.GetPageSize(format, out var pageWidth, out var pageHeight);
 
         pageWidth.Millimeter.Should().BeApproximately(width, 0.001, $"{format} is {width} mm wide");
         pageHeight.Millimeter.Should().BeApproximately(height, 0.001, $"{format} is {height} mm high");
@@ -105,7 +105,7 @@ public class PageFormatTests
     public void AFormatDefinedInInchesMeasuresThoseInches(
         PageFormat format, double width, double height)
     {
-        PageSetup.GetPageSize(format, out Unit pageWidth, out Unit pageHeight);
+        PageSetup.GetPageSize(format, out var pageWidth, out var pageHeight);
 
         pageWidth.Inch.Should().BeApproximately(width, 0.001, $"{format} is {width} inch wide");
         pageHeight.Inch.Should().BeApproximately(height, 0.001, $"{format} is {height} inch high");
@@ -119,11 +119,11 @@ public class PageFormatTests
     [Fact]
     public void EveryNamedFormatHasASize()
     {
-        PageFormat[] named = Enum.GetValues<PageFormat>().ToArray();
+        var named = Enum.GetValues<PageFormat>();
 
-        foreach (PageFormat format in named)
+        foreach (var format in named)
         {
-            PageSetup.GetPageSize(format, out Unit pageWidth, out Unit pageHeight);
+            PageSetup.GetPageSize(format, out var pageWidth, out var pageHeight);
 
             pageWidth.Point.Should().BePositive($"{format} has a width");
             pageHeight.Point.Should().BePositive($"{format} has a height");
@@ -137,8 +137,8 @@ public class PageFormatTests
     [Fact]
     public void B5IsTheIsoSheetAndTheJisOneIsNamedSeparately()
     {
-        PageSetup.GetPageSize(PageFormat.B5, out Unit isoWidth, out Unit isoHeight);
-        PageSetup.GetPageSize(PageFormat.JISB5, out Unit jisWidth, out Unit jisHeight);
+        PageSetup.GetPageSize(PageFormat.B5, out var isoWidth, out var isoHeight);
+        PageSetup.GetPageSize(PageFormat.JISB5, out var jisWidth, out var jisHeight);
 
         isoWidth.Millimeter.Should().BeApproximately(176, 0.001);
         isoHeight.Millimeter.Should().BeApproximately(250, 0.001);
@@ -146,7 +146,7 @@ public class PageFormatTests
         jisHeight.Millimeter.Should().BeApproximately(257, 0.001);
 
         // Halving B4 across its longer side gives B5, which is what makes the series a series.
-        PageSetup.GetPageSize(PageFormat.B4, out Unit b4Width, out Unit b4Height);
+        PageSetup.GetPageSize(PageFormat.B4, out var b4Width, out var b4Height);
         isoWidth.Millimeter.Should().BeApproximately(b4Height.Millimeter / 2, 1);
         isoHeight.Millimeter.Should().BeApproximately(b4Width.Millimeter, 0.001);
     }
@@ -159,7 +159,7 @@ public class PageFormatTests
     [Fact]
     public void ASizeDefinedInInchesIsStillCarriedAsPoints()
     {
-        PageSetup.GetPageSize(PageFormat.Letter, out Unit pageWidth, out Unit pageHeight);
+        PageSetup.GetPageSize(PageFormat.Letter, out var pageWidth, out var pageHeight);
 
         pageWidth.ToString().Should().Be("612");
         pageHeight.ToString().Should().Be("792");

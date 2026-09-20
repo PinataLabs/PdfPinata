@@ -50,37 +50,37 @@ internal class BarStackedPlotAreaRenderer : BarPlotAreaRenderer
   /// </summary>
   protected override void CalcBars()
   {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    if (cri.seriesRendererInfos.Length == 0)
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    if (cri.SeriesRendererInfos.Length == 0)
       return;
 
-    double xMax = cri.xAxisRendererInfo.MaximumScale;
-    double xMajorTick = cri.xAxisRendererInfo.MajorTick;
+    var xMax = cri.XAxisRendererInfo.MaximumScale;
+    var xMajorTick = cri.XAxisRendererInfo.MajorTick;
 
-    int maxPoints = 0;
-    foreach (SeriesRendererInfo sri in cri.seriesRendererInfos)
-      maxPoints = Math.Max(maxPoints, sri.series.Elements.Count);
+    var maxPoints = 0;
+    foreach (var sri in cri.SeriesRendererInfos)
+      maxPoints = Math.Max(maxPoints, sri.Series.Elements.Count);
 
     // Space used by one bar.
-    double x = xMax - xMajorTick / 2;
-    double columnWidth = xMajorTick * 0.75 / 2;
+    var x = xMax - xMajorTick / 2;
+    var columnWidth = xMajorTick * 0.75 / 2;
 
-    XPoint[] points = new XPoint[2];
-    for (int pointIdx = 0; pointIdx < maxPoints; ++pointIdx)
+    var points = new XPoint[2];
+    for (var pointIdx = 0; pointIdx < maxPoints; ++pointIdx)
     {
-      double yMin = 0, yMax = 0, y0 = 0, y1 = 0;
-      double x0 = x - columnWidth;
-      double x1 = x + columnWidth;
+      double yMin = 0, yMax = 0, y0, y1;
+      var x0 = x - columnWidth;
+      var x1 = x + columnWidth;
 
-      foreach (SeriesRendererInfo sri in cri.seriesRendererInfos)
+      foreach (var sri in cri.SeriesRendererInfos)
       {
-        if (sri.pointRendererInfos.Length <= pointIdx)
+        if (sri.PointRendererInfos.Length <= pointIdx)
           break;
 
-        ColumnRendererInfo column = (ColumnRendererInfo)sri.pointRendererInfos[pointIdx];
+        var column = (ColumnRendererInfo)sri.PointRendererInfos[pointIdx];
         if (!double.IsNaN(column.Value))
         {
-          double y = column.Value;
+          var y = column.Value;
           if (y < 0)
           {
             y0 = yMin + y;
@@ -99,7 +99,7 @@ internal class BarStackedPlotAreaRenderer : BarPlotAreaRenderer
           points[1].Y = x1; // unten rechts
           points[1].X = y1;
 
-          cri.plotAreaRendererInfo.matrix.TransformPoints(points);
+          cri.PlotAreaRendererInfo.Matrix.TransformPoints(points);
 
           column.Rect = new XRect(points[0].X,
             points[0].Y,

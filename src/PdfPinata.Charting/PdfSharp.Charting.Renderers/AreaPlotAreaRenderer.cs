@@ -50,29 +50,29 @@ internal class AreaPlotAreaRenderer : ColumnLikePlotAreaRenderer
   /// </summary>
   internal override void Draw()
   {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    XRect plotAreaRect = cri.plotAreaRendererInfo.Rect;
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var plotAreaRect = cri.PlotAreaRendererInfo.Rect;
     if (HasNoRoom(plotAreaRect))
       return;
 
-    XGraphics gfx = this.rendererParms.Graphics;
-    XGraphicsState state = gfx.Save();
+    var gfx = this.rendererParms.Graphics;
+    var state = gfx.Save();
     //gfx.SetClip(plotAreaRect, XCombineMode.Intersect);
     gfx.IntersectClip(plotAreaRect);
 
-    XMatrix matrix = cri.plotAreaRendererInfo.matrix;
-    double xMajorTick = cri.xAxisRendererInfo.MajorTick;
-    foreach (SeriesRendererInfo sri in cri.seriesRendererInfos)
+    var matrix = cri.PlotAreaRendererInfo.Matrix;
+    var xMajorTick = cri.XAxisRendererInfo.MajorTick;
+    foreach (var sri in cri.SeriesRendererInfos)
     {
-      int count = sri.pointRendererInfos.Length;
-      XPoint[] points = new XPoint[count + 2];
+      var count = sri.PointRendererInfos.Length;
+      var points = new XPoint[count + 2];
       points[0] = new XPoint(xMajorTick / 2, 0);
-      for (int idx = 0; idx < count; idx++)
+      for (var idx = 0; idx < count; idx++)
       {
         // Read through the renderer info rather than off the series, which would dereference a
         // blank. A blank reads as NaN and so joins the values that are already drawn at zero: an
         // area is a closed shape and has to have a point for every category to close over.
-        double pointValue = sri.pointRendererInfos[idx].Value;
+        var pointValue = sri.PointRendererInfos[idx].Value;
         if (double.IsNaN(pointValue))
           pointValue = 0;
         points[idx + 1] = new XPoint(idx + xMajorTick / 2, pointValue);

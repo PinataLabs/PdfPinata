@@ -60,7 +60,7 @@ public class ItemizationTests
 
         runs.Select(run => run.Script).Should().Equal(new[]
         {
-            UnicodeScript.Latin, UnicodeScript.Arabic,
+            UnicodeScript.Latin, UnicodeScript.Arabic
         });
         runs[0].Length.Should().Be(2);
         runs[1].Length.Should().Be(4);
@@ -370,6 +370,7 @@ public class ItemizationTests
             "Itemize", BindingFlags.Public | BindingFlags.Static, binder: null,
             types: signature, modifiers: null);
 
+        // ReSharper disable once PossibleNullReferenceException
         return method.Invoke(null, args);
     }
 
@@ -379,11 +380,13 @@ public class ItemizationTests
         foreach (var run in (IEnumerable)runs)
         {
             var type = run.GetType();
+            // ReSharper disable PossibleNullReferenceException
             read.Add(new ScriptRunView(
                 (int)type.GetProperty("Start").GetValue(run),
                 (int)type.GetProperty("Length").GetValue(run),
                 (UnicodeScript)type.GetProperty("Script").GetValue(run),
                 (string)type.GetProperty("ScriptCode").GetValue(run)));
+            // ReSharper restore PossibleNullReferenceException
         }
 
         return read;

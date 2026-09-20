@@ -49,14 +49,14 @@ internal class LinePlotAreaRenderer : ColumnLikePlotAreaRenderer
   /// </summary>
   internal override void Draw()
   {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
 
-    XRect plotAreaRect = cri.plotAreaRendererInfo.Rect;
+    var plotAreaRect = cri.PlotAreaRendererInfo.Rect;
     if (HasNoRoom(plotAreaRect))
       return;
 
-    XGraphics gfx = this.rendererParms.Graphics;
-    XGraphicsState state = gfx.Save();
+    var gfx = this.rendererParms.Graphics;
+    var state = gfx.Save();
     //gfx.SetClip(plotAreaRect, XCombineMode.Intersect);
     gfx.IntersectClip(plotAreaRect);
 
@@ -65,26 +65,26 @@ internal class LinePlotAreaRenderer : ColumnLikePlotAreaRenderer
     //     (NotPlotted, Interpolate etc.)
 
     // Draw lines and markers for each data series.
-    XMatrix matrix = cri.plotAreaRendererInfo.matrix;
+    var matrix = cri.PlotAreaRendererInfo.Matrix;
 
-    double xMajorTick = cri.xAxisRendererInfo.MajorTick;
-    foreach (SeriesRendererInfo sri in cri.seriesRendererInfos)
+    var xMajorTick = cri.XAxisRendererInfo.MajorTick;
+    foreach (var sri in cri.SeriesRendererInfos)
     {
-      int count = sri.series.Elements.Count;
+      var count = sri.Series.Elements.Count;
 
       // A line needs two points to be a line, and DrawLines says so by throwing. A series with
       // fewer has nothing to draw rather than something to complain about.
       if (count < 2)
         continue;
 
-      XPoint[] points = new XPoint[count];
-      for (int idx = 0; idx < count; idx++)
+      var points = new XPoint[count];
+      for (var idx = 0; idx < count; idx++)
       {
-        // Off the series rather than through pointRendererInfos, which the line chart renderer
+        // Off the series rather than through PointRendererInfos, which the line chart renderer
         // does not fill in. A blank is a null element, and joins the values that are already
         // drawn at zero - which is what the TODO above is about, and is not settled here.
-        Point element = sri.series.Elements[idx];
-        double v = element == null ? double.NaN : element.Value;
+        var element = sri.Series.Elements[idx];
+        var v = element == null ? double.NaN : element.Value;
         if (double.IsNaN(v))
           v = 0;
         points[idx] = new XPoint(idx + xMajorTick / 2, v);
@@ -103,7 +103,7 @@ internal class LinePlotAreaRenderer : ColumnLikePlotAreaRenderer
   /// </summary>
   private static void DrawMarker(XGraphics graphics, XPoint[] points, SeriesRendererInfo rendererInfo)
   {
-    foreach (XPoint pos in points)
-      MarkerRenderer.Draw(graphics, pos, rendererInfo.markerRendererInfo);
+    foreach (var pos in points)
+      MarkerRenderer.Draw(graphics, pos, rendererInfo.MarkerRendererInfo);
   }
 }

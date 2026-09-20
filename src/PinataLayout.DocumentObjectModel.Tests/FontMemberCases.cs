@@ -21,6 +21,6 @@ internal static class FontMemberCases
         { "Color", f => f.Color = Colors.Purple, f => f.Color },
         { "Superscript", f => f.Superscript = true, f => f.Superscript },
         { "Subscript", f => f.Subscript = true, f => f.Subscript },
-        { "Strikethrough", f => f.Strikethrough = Strikethrough.Single, f => f.Strikethrough },
+        { "Strikethrough", f => f.Strikethrough = Strikethrough.Single, f => f.Strikethrough }
     };
 }

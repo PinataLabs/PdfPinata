@@ -59,5 +59,5 @@ public enum PageFitMode
     /// alignment, and whatever falls outside the target is cropped. This is the mode to ask for
     /// when the intent is to crop or to pad rather than to resize.
     /// </summary>
-    None,
+    None
 }

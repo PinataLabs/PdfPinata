@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -55,7 +55,7 @@ internal sealed class PdfGraphicsState : ICloneable
 
     public PdfGraphicsState Clone()
     {
-        PdfGraphicsState state = (PdfGraphicsState)MemberwiseClone();
+        var state = (PdfGraphicsState)MemberwiseClone();
         return state;
     }
 
@@ -84,7 +84,6 @@ internal sealed class PdfGraphicsState : ICloneable
     int _realizedLineJoin = -1;
     double _realizedMiterLimit = -1;
     XDashStyle _realizedDashStyle = (XDashStyle)(-1);
-    string _realizedDashPattern;
     XColor _realizedStrokeColor = XColor.Empty;
     bool _realizedStrokeOverPrint;
 
@@ -92,9 +91,9 @@ internal sealed class PdfGraphicsState : ICloneable
     {
         const string frmt2 = Config.SignificantFigures2;
         const string format = Config.SignificantFigures3;
-        XColor color = pen.Color;
-        bool overPrint = pen.Overprint;
-        XBrush penBrush = pen.Brush;
+        var color = pen.Color;
+        var overPrint = pen.Overprint;
+        var penBrush = pen.Brush;
 
         // A pen built from a brush has no Color of its own - the constructor never sets one - so
         // pen.Color is XColor.Empty, whose alpha is zero. Left as it stands that reaches the stroke
@@ -159,11 +158,11 @@ internal sealed class PdfGraphicsState : ICloneable
 
         if (_realizedDashStyle != pen._dashStyle || pen._dashStyle == XDashStyle.Custom)
         {
-            double dot = pen.Width;
-            double dash = 3 * dot;
+            var dot = pen.Width;
+            var dash = 3 * dot;
 
             // Line width 0 is not recommended but valid.
-            XDashStyle dashStyle = pen.DashStyle;
+            var dashStyle = pen.DashStyle;
             if (dot == 0)
                 dashStyle = XDashStyle.Solid;
 
@@ -195,14 +194,16 @@ internal sealed class PdfGraphicsState : ICloneable
                     // going through an Append method, because the array is assembled as text a
                     // piece at a time. The check the Append methods make therefore has to be made
                     // here as well, or a dash length that is not a number would be written out.
-                    StringBuilder pdf = new StringBuilder("[", 256);
-                    int len = pen._dashPattern == null ? 0 : pen._dashPattern.Length;
-                    for (int idx = 0; idx < len; idx++)
+                    var pdf = new StringBuilder("[", 256);
+                    var len = pen._dashPattern == null ? 0 : pen._dashPattern.Length;
+                    for (var idx = 0; idx < len; idx++)
                     {
                         if (idx > 0)
                             pdf.Append(' ');
+                        // ReSharper disable PossibleNullReferenceException
                         XGraphicsPdfRenderer.EnsureWritable(
                             pen._dashPattern[idx] * pen._width, "a dash pattern");
+                        // ReSharper restore PossibleNullReferenceException
                         pdf.Append(PdfEncoders.ToString(pen._dashPattern[idx] * pen._width));
                     }
                     // Make an even number of values look like in GDI+
@@ -215,13 +216,12 @@ internal sealed class PdfGraphicsState : ICloneable
                     XGraphicsPdfRenderer.EnsureWritable(
                         pen._dashOffset * pen._width, "a dash pattern");
                     pdf.AppendFormat(CultureInfo.InvariantCulture, "]{0:" + format + "} d\n", pen._dashOffset * pen._width);
-                    string pattern = pdf.ToString();
+                    var pattern = pdf.ToString();
 
                     // BUG: drice2@ageone.de reported a realizing problem
                     // HACK: I remove the if clause
                     //if (_realizedDashPattern != pattern)
                     {
-                        _realizedDashPattern = pattern;
                         _renderer.Append(pattern);
                     }
                 }
@@ -257,8 +257,8 @@ internal sealed class PdfGraphicsState : ICloneable
         if (_renderer.Owner.Version >= 14 && (_realizedStrokeColor.A != color.A || _realizedStrokeOverPrint != overPrint))
         #pragma warning restore S1244
         {
-            PdfExtGState extGState = _renderer.Owner.ExtGStateTable.GetExtGStateStroke(color.A, overPrint);
-            string gs = _renderer.Resources.AddExtGState(extGState);
+            var extGState = _renderer.Owner.ExtGStateTable.GetExtGStateStroke(color.A, overPrint);
+            var gs = _renderer.Resources.AddExtGState(extGState);
             _renderer.AppendFormatString("{0} gs\n", gs);
 
             // Must create transparency group.
@@ -314,15 +314,15 @@ internal sealed class PdfGraphicsState : ICloneable
         // Mode 0 fills, 1 strokes, 2 does both. Mode 3 paints nothing and is not produced here -
         // PDFKit does not produce it either, and nothing asks for invisible text.
         // Reference: TABLE 5.3  Text rendering modes / Page 402
-        bool fills = renderingMode == 0 || renderingMode == 2;
-        bool strokes = renderingMode == 1 || renderingMode == 2;
+        var fills = renderingMode == 0 || renderingMode == 2;
+        var strokes = renderingMode == 1 || renderingMode == 2;
 
-        XSolidBrush solidBrush = brush as XSolidBrush;
+        var solidBrush = brush as XSolidBrush;
 
         // A stroking mode is answerable either by the caller's pen or, failing that, by a pen made
         // from the brush's colour. A filling one always needs the brush.
-        bool haveStroke = strokes && (textPen != null || solidBrush != null);
-        bool haveFill = fills && solidBrush != null;
+        var haveStroke = strokes && (textPen != null || solidBrush != null);
+        var haveFill = fills && solidBrush != null;
 
         if (haveStroke || haveFill)
         {
@@ -355,11 +355,11 @@ internal sealed class PdfGraphicsState : ICloneable
             if (brush is XBaseGradientBrush gradientBrush)
             {
                 Debug.Assert(UnrealizedCtm.IsIdentity, "Must realize ctm first.");
-                XMatrix matrix = _renderer.DefaultViewMatrix;
+                var matrix = _renderer.DefaultViewMatrix;
                 matrix.Prepend(EffectiveCtm);
-                PdfShadingPattern pattern = new PdfShadingPattern(_renderer.Owner);
+                var pattern = new PdfShadingPattern(_renderer.Owner);
                 pattern.SetupFromBrush(gradientBrush, matrix, _renderer);
-                string name = _renderer.Resources.AddPattern(pattern);
+                var name = _renderer.Resources.AddPattern(pattern);
 
                 // A shading carries colour and no alpha, so a gradient between translucent
                 // colours is painted under a mask built from the same geometry. A gradient whose
@@ -440,6 +440,7 @@ internal sealed class PdfGraphicsState : ICloneable
         }
         else
         {
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             Debug.Assert(colorMode == PdfColorMode.Cmyk);
 
             if (_realizedFillColor.IsEmpty || !ColorSpaceHelper.IsEqualCmyk(_realizedFillColor, color))
@@ -454,8 +455,8 @@ internal sealed class PdfGraphicsState : ICloneable
         #pragma warning restore S1244
         {
 
-            PdfExtGState extGState = _renderer.Owner.ExtGStateTable.GetExtGStateNonStroke(color.A, overPrint);
-            string gs = _renderer.Resources.AddExtGState(extGState);
+            var extGState = _renderer.Owner.ExtGStateTable.GetExtGStateNonStroke(color.A, overPrint);
+            var gs = _renderer.Resources.AddExtGState(extGState);
             _renderer.AppendFormatString("{0} gs\n", gs);
 
             // Must create transparency group.
@@ -468,7 +469,7 @@ internal sealed class PdfGraphicsState : ICloneable
 
     internal void RealizeNonStrokeTransparency(double transparency, PdfColorMode colorMode)
     {
-        XColor color = _realizedFillColor;
+        var color = _realizedFillColor;
         color.A = transparency;
         RealizeFillColor(color, _realizedNonStrokeOverPrint, colorMode);
     }
@@ -531,7 +532,7 @@ internal sealed class PdfGraphicsState : ICloneable
     /// </remarks>
     public static int TextRenderingMode(XBrush brush, XPen pen, bool boldSimulation)
     {
-        bool strokes = pen != null || boldSimulation;
+        var strokes = pen != null || boldSimulation;
         if (brush == null)
             return 1;
         return strokes ? 2 : 0;
@@ -541,7 +542,7 @@ internal sealed class PdfGraphicsState : ICloneable
     {
         const string numberFormat = Config.SignificantFigures3;
 
-        int renderingMode = TextRenderingMode(brush, pen, boldSimulation);
+        var renderingMode = TextRenderingMode(brush, pen, boldSimulation);
 
         RealizeBrush(brush, _renderer._colorMode, renderingMode, font.Size, false, pen); // _renderer.page.document.Options.ColorMode);
 
@@ -558,7 +559,7 @@ internal sealed class PdfGraphicsState : ICloneable
         //
         // Keyed on the simulation rather than on the rendering mode: a caller who strokes their
         // text is in mode 2 as well, and owes none of this widening.
-        double charSpace = format.CharacterSpacing;
+        var charSpace = format.CharacterSpacing;
         if (boldSimulation)
             charSpace += font.Size * Const.BoldEmphasis;
 
@@ -572,7 +573,7 @@ internal sealed class PdfGraphicsState : ICloneable
 
         // Realize word spacing. Held at zero for the fonts Tw cannot speak for, rather than
         // written and silently ignored; DrawString spaces those out with a TJ array instead.
-        double wordSpace = NeedsWordSpacingByHand(font, format) ? 0 : format.WordSpacing;
+        var wordSpace = NeedsWordSpacingByHand(font, format) ? 0 : format.WordSpacing;
         #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
         if (_realizedWordSpace != wordSpace)
         #pragma warning restore S1244
@@ -601,7 +602,7 @@ internal sealed class PdfGraphicsState : ICloneable
         }
 
         _realizedFont = null;
-        string fontName = _renderer.GetFontName(font, out _realizedFont);
+        var fontName = _renderer.GetFontName(font, out _realizedFont);
         #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
         if (fontName != _realizedFontName || _realizedFontSize != font.Size)
         #pragma warning restore S1244
@@ -682,7 +683,7 @@ internal sealed class PdfGraphicsState : ICloneable
         // TODO: User matrixOrder
         if (matrixOrder == XMatrixOrder.Append)
             throw new NotImplementedException("XMatrixOrder.Append");
-        XMatrix transform = value;
+        var transform = value;
         if (_renderer.Gfx.PageDirection == XPageDirection.Downwards)
         {
             // Take chirality into account and
@@ -707,7 +708,7 @@ internal sealed class PdfGraphicsState : ICloneable
 
             const string format = Config.SignificantFigures7;
 
-            double[] matrix = UnrealizedCtm.GetElements();
+            var matrix = UnrealizedCtm.GetElements();
             // Use up to six decimal digits to prevent round up problems.
             _renderer.AppendFormatArgs("{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format + "} {5:" + format + "} cm\n",
                 matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5]);
@@ -725,7 +726,7 @@ internal sealed class PdfGraphicsState : ICloneable
 
     public void SetAndRealizeClipRect(XRect clipRect)
     {
-        XGraphicsPath clipPath = new XGraphicsPath();
+        var clipPath = new XGraphicsPath();
         clipPath.AddRectangle(clipRect);
         RealizeClipPath(clipPath);
     }

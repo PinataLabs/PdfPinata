@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -101,13 +101,13 @@ public sealed class PdfFormXObject : PdfXObject, IContentStream
 
         // The same document, so the resources need no importing. Handing the reference over
         // leaves a dictionary shared with other pages exactly as it was.
-        PdfItem resources = page.Elements[PdfPage.Keys.Resources];
+        var resources = page.Elements[PdfPage.InheritablePageKeys.Resources];
         if (resources != null)
             Elements[Keys.Resources] = resources;
 
         // A transparency group left behind on the page would no longer wrap the content that
         // needed it, so it travels with the content.
-        PdfItem group = page.Elements[PdfPage.Keys.Group];
+        var group = page.Elements[PdfPage.Keys.Group];
         if (group != null)
             Elements["/Group"] = group;
 
@@ -125,25 +125,21 @@ public sealed class PdfFormXObject : PdfXObject, IContentStream
     /// </summary>
     void TakeContentOf(PdfPage page)
     {
-        PdfItem item = page.Elements[PdfPage.Keys.Contents];
+        var item = page.Elements[PdfPage.Keys.Contents];
         if (item is PdfReference reference)
             item = reference.Value;
 
-        PdfDictionary single = item as PdfDictionary;
+        var single = item as PdfDictionary;
         if (item is PdfArray array)
         {
             if (array.Elements.Count == 1)
             {
-                PdfItem only = array.Elements[0];
+                var only = array.Elements[0];
                 if (only is PdfReference onlyReference)
                     only = onlyReference.Value;
                 single = only as PdfDictionary;
             }
-            else if (array.Elements.Count == 0)
-            {
-                single = null;
-            }
-            else
+            else if (array.Elements.Count != 0)
             {
                 TakeRunTogetherContentOf(page);
                 return;
@@ -160,11 +156,11 @@ public sealed class PdfFormXObject : PdfXObject, IContentStream
         }
 
         // Verbatim: the bytes as they are held, with whatever filter is undoing them.
-        PdfItem filter = single.Elements["/Filter"];
+        var filter = single.Elements["/Filter"];
         if (filter != null)
             Elements["/Filter"] = filter.Clone();
 
-        PdfItem decodeParms = single.Elements["/DecodeParms"];
+        var decodeParms = single.Elements["/DecodeParms"];
         if (decodeParms != null)
             Elements["/DecodeParms"] = decodeParms.Clone();
 
@@ -178,8 +174,8 @@ public sealed class PdfFormXObject : PdfXObject, IContentStream
     void TakeRunTogetherContentOf(PdfPage page)
     {
         // CreateSingleContent decodes as it concatenates, so what comes back is unfiltered.
-        PdfContent joined = page.Contents.CreateSingleContent();
-        byte[] bytes = joined.Stream.Value;
+        var joined = page.Contents.CreateSingleContent();
+        var bytes = joined.Stream.Value;
 
         if (Owner.Options.CompressContentStreams)
         {
@@ -220,15 +216,15 @@ public sealed class PdfFormXObject : PdfXObject, IContentStream
         }
         Debug.Assert(importedObjectTable != null);
 
-        XPdfForm pdfForm = form;
+        var pdfForm = form;
         // Get import page
-        PdfPages importPages = importedObjectTable.ExternalDocument.Pages;
+        var importPages = importedObjectTable.ExternalDocument.Pages;
         if (pdfForm.PageNumber < 1 || pdfForm.PageNumber > importPages.Count)
             PSSR.ImportPageNumberOutOfRange(pdfForm.PageNumber, importPages.Count, form._path);
-        PdfPage importPage = importPages[pdfForm.PageNumber - 1];
+        var importPage = importPages[pdfForm.PageNumber - 1];
 
         // Import resources
-        PdfItem res = importPage.Elements["/Resources"];
+        var res = importPage.Elements["/Resources"];
         if (res != null) // unlikely but possible
         {
             // Get root object
@@ -251,7 +247,7 @@ public sealed class PdfFormXObject : PdfXObject, IContentStream
         // into this form. Leaving it behind on the page in the other document would mean the
         // content arrives composited against the wrong backdrop - which is the whole of what a
         // group says - so it is imported along with everything else.
-        PdfItem group = importPage.Elements[PdfPage.Keys.Group];
+        var group = importPage.Elements[PdfPage.Keys.Group];
         if (group is PdfReference reference)
             group = reference.Value;
 
@@ -259,7 +255,7 @@ public sealed class PdfFormXObject : PdfXObject, IContentStream
         // writer says a key is not there, and a page that says nothing has nothing to bring.
         if (group is PdfDictionary groupDictionary)
         {
-            PdfObject root = ImportClosure(importedObjectTable, thisDocument, groupDictionary);
+            var root = ImportClosure(importedObjectTable, thisDocument, groupDictionary);
             // A group written straight into the page dictionary comes across as a direct object.
             if (root.Reference == null)
                 thisDocument._irefTable.Add(root);
@@ -269,8 +265,8 @@ public sealed class PdfFormXObject : PdfXObject, IContentStream
         }
 
         // Take /Rotate into account
-        PdfRectangle rect = importPage.Elements.GetRectangle(PdfPage.Keys.MediaBox);
-        int rotate = importPage.Elements.GetInteger(PdfPage.Keys.Rotate);
+        var rect = importPage.Elements.GetRectangle(PdfPage.InheritablePageKeys.MediaBox);
+        var rotate = importPage.Elements.GetInteger(PdfPage.InheritablePageKeys.Rotate);
         if (rotate == 0)
         {
             // Set bounding box to media box
@@ -282,13 +278,13 @@ public sealed class PdfFormXObject : PdfXObject, IContentStream
             Elements["/BBox"] = rect;
 
             // Rotate the image such that it is upright
-            XMatrix matrix = new XMatrix();
-            double width = rect.Width;
-            double height = rect.Height;
+            var matrix = new XMatrix();
+            var width = rect.Width;
+            var height = rect.Height;
             matrix.RotateAtPrepend(-rotate, new XPoint(width / 2, height / 2));
 
             // Translate the image such that its center lies on the center of the rotated bounding box
-            double offset = (height - width) / 2;
+            var offset = (height - width) / 2;
             if (rotate == 90)
                 matrix.TranslatePrepend(offset, offset);
             else if (rotate == -90)
@@ -298,8 +294,8 @@ public sealed class PdfFormXObject : PdfXObject, IContentStream
         }
 
         // Preserve filter because the content keeps unmodified
-        PdfContent content = importPage.Contents.CreateSingleContent();
-        PdfItem filter = content.Elements["/Filter"];
+        var content = importPage.Contents.CreateSingleContent();
+        var filter = content.Elements["/Filter"];
         if (filter != null)
             Elements["/Filter"] = filter.Clone();
 
@@ -327,7 +323,7 @@ public sealed class PdfFormXObject : PdfXObject, IContentStream
     {
         pdfFont = _document.FontTable.GetFont(font);
         Debug.Assert(pdfFont != null);
-        string name = Resources.AddFont(pdfFont);
+        var name = Resources.AddFont(pdfFont);
         return name;
     }
 
@@ -343,7 +339,7 @@ public sealed class PdfFormXObject : PdfXObject, IContentStream
     {
         pdfFont = _document.FontTable.GetFont(idName, fontData);
         Debug.Assert(pdfFont != null);
-        string name = Resources.AddFont(pdfFont);
+        var name = Resources.AddFont(pdfFont);
         return name;
     }
 
@@ -390,8 +386,8 @@ public sealed class PdfFormXObject : PdfXObject, IContentStream
         public const string FormType = "/FormType";
 
         /// <summary>
-        /// (Required) An array of four numbers in the form coordinate system, giving the 
-        /// coordinates of the left, bottom, right, and top edges, respectively, of the 
+        /// (Required) An array of four numbers in the form coordinate system, giving the
+        /// coordinates of the left, bottom, right, and top edges, respectively, of the
         /// form XObject’s bounding box. These boundaries are used to clip the form XObject
         /// and to determine its size for caching.
         /// </summary>

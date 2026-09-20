@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -53,7 +53,7 @@ public sealed class PdfRectangle : PdfItem
 
     /// <summary>
     /// Initializes a new instance of the PdfRectangle class with two points specifying
-    /// two diagonally opposite corners. Notice that in contrast to GDI+ convention the 
+    /// two diagonally opposite corners. Notice that in contrast to GDI+ convention the
     /// 3rd and the 4th parameter specify a point and not a width. This is so much confusing
     /// that this function is for internal use only.
     /// </summary>
@@ -110,7 +110,7 @@ public sealed class PdfRectangle : PdfItem
         if (item is PdfReference)
             item = ((PdfReference)item).Value;
 
-        PdfArray array = item as PdfArray;
+        var array = item as PdfArray;
         if (array == null)
             throw new InvalidOperationException(PSSR.UnexpectedTokenInPdfFile);
 
@@ -133,7 +133,7 @@ public sealed class PdfRectangle : PdfItem
     /// </summary>
     protected override object Copy()
     {
-        PdfRectangle rect = (PdfRectangle)base.Copy();
+        var rect = (PdfRectangle)base.Copy();
         return rect;
     }
 
@@ -151,10 +151,10 @@ public sealed class PdfRectangle : PdfItem
     public override bool Equals(object obj)
     {
         // ReSharper disable CompareOfFloatsByEqualityOperator
-        PdfRectangle rectangle = obj as PdfRectangle;
+        var rectangle = obj as PdfRectangle;
         if (rectangle != null)
         {
-            PdfRectangle rect = rectangle;
+            var rect = rectangle;
             #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
             return rect._x1 == _x1 && rect._y1 == _y1 && rect._x2 == _x2 && rect._y2 == _y2;
             #pragma warning restore S1244

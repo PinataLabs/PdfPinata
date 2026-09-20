@@ -33,7 +33,7 @@ public sealed class ShapedRun
         Direction = direction;
 
         double width = 0;
-        for (int idx = 0; idx < glyphs.Count; idx++)
+        for (var idx = 0; idx < glyphs.Count; idx++)
             width += glyphs[idx].Advance;
         Width = width;
     }

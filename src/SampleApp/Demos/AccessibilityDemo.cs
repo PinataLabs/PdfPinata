@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.Shapes;
-using PinataLayout.DocumentObjectModel.Tables;
 using PinataLayout.Rendering;
 using PdfPinata.Pdf;
 using SampleApp.Infrastructure;
@@ -29,7 +28,7 @@ internal sealed class AccessibilityDemo : PdfDemo
         "A table whose heading row is /TH with /Scope /Column, and Table.Summary as /Summary",
         "Image.AlternativeText, which decides between a described /Figure and an artifact",
         "PdfUAConformance.PdfUA1 - the claim, and the six rules the writer holds it to",
-        "The refusal messages themselves, caught from documents deliberately built wrong",
+        "The refusal messages themselves, caught from documents deliberately built wrong"
     };
 
     public override int PageCount => 2;
@@ -37,15 +36,15 @@ internal sealed class AccessibilityDemo : PdfDemo
     protected override PdfDocument Build(DemoContext context)
     {
         #region example
-        Document report = new Document();
+        var report = new Document();
 
-        Style normal = report.Styles[StyleNames.Normal];
+        var normal = report.Styles[StyleNames.Normal];
         normal.Font.Name = "Liberation Serif";
         normal.Font.Size = 10.5;
         normal.ParagraphFormat.SpaceAfter = Unit.FromPoint(6);
 
         // docs:begin headings
-        Style heading1 = report.Styles[StyleNames.Heading1];
+        var heading1 = report.Styles[StyleNames.Heading1];
         heading1.Font.Name = "Liberation Sans";
         heading1.Font.Size = 17;
         heading1.Font.Bold = true;
@@ -57,19 +56,19 @@ internal sealed class AccessibilityDemo : PdfDemo
         heading1.ParagraphFormat.OutlineLevel = OutlineLevel.Level1;
         // docs:end headings
 
-        Style heading2 = report.Styles[StyleNames.Heading2];
+        var heading2 = report.Styles[StyleNames.Heading2];
         heading2.Font.Name = "Liberation Sans";
         heading2.Font.Size = 12.5;
         heading2.Font.Bold = true;
         heading2.ParagraphFormat.SpaceBefore = Unit.FromPoint(12);
         heading2.ParagraphFormat.OutlineLevel = OutlineLevel.Level2;
 
-        Style caption = report.Styles.AddStyle("Caption", StyleNames.Normal);
+        var caption = report.Styles.AddStyle("Caption", StyleNames.Normal);
         caption.Font.Size = 8.5;
         caption.Font.Italic = true;
         caption.Font.Color = Colors.DimGray;
 
-        Section section = report.AddSection();
+        var section = report.AddSection();
         section.PageSetup.TopMargin = Unit.FromCentimeter(2.2);
         section.PageSetup.BottomMargin = Unit.FromCentimeter(2);
 
@@ -77,7 +76,7 @@ internal sealed class AccessibilityDemo : PdfDemo
         // A running head is decoration, not content. The renderer draws it inside an artifact scope
         // and nothing inside one is tagged at all - so this line does not appear in the tree, and a
         // reader announcing the document does not read it out once per page.
-        Paragraph runningHead = section.Headers.Primary.AddParagraph("Accessible output");
+        var runningHead = section.Headers.Primary.AddParagraph("Accessible output");
         runningHead.Format.Font.Size = 8;
         runningHead.Format.Font.Color = Colors.DimGray;
         runningHead.Format.Alignment = ParagraphAlignment.Right;
@@ -118,7 +117,7 @@ internal sealed class AccessibilityDemo : PdfDemo
             + "header cell announced before the value under it turns a grid of numbers back into "
             + "sentences.");
 
-        Table table = section.AddTable();
+        var table = section.AddTable();
         table.Borders.Width = 0.5;
         table.Borders.Color = Colors.Gray;
         table.LeftPadding = Unit.FromPoint(4);
@@ -138,7 +137,7 @@ internal sealed class AccessibilityDemo : PdfDemo
         table.AddColumn(Unit.FromCentimeter(4));
         table.AddColumn(Unit.FromCentimeter(3));
 
-        Row header = table.AddRow();
+        var header = table.AddRow();
 
         // The one flag that makes the difference. A heading row's cells are tagged /TH with
         // /Scope /Column rather than /TD, and it is also what repeats the row over a page break.
@@ -154,12 +153,12 @@ internal sealed class AccessibilityDemo : PdfDemo
         {
             ("North", "1,240", "38"),
             ("Midlands", "980", "31"),
-            ("South West", "1,505", "44"),
+            ("South West", "1,505", "44")
         };
 
-        foreach ((string Region, string Revenue, string People) each in figures)
+        foreach (var each in figures)
         {
-            Row row = table.AddRow();
+            var row = table.AddRow();
             row.Cells[0].AddParagraph(each.Region);
             row.Cells[1].AddParagraph(each.Revenue);
             row.Cells[2].AddParagraph(each.People);
@@ -182,9 +181,9 @@ internal sealed class AccessibilityDemo : PdfDemo
             + "a document produces by accident.");
 
         // docs:begin alt-text
-        Paragraph described = section.AddParagraph();
+        var described = section.AddParagraph();
         described.Format.Alignment = ParagraphAlignment.Center;
-        Image photograph = described.AddImage(ImageSource.FromStream(
+        var photograph = described.AddImage(ImageSource.FromStream(
             "described.jpg", () => Assets.Open(Assets.ImagePrefix + "frog-and-toad.jpg")));
         photograph.Width = Unit.FromCentimeter(6);
         photograph.LockAspectRatio = true;
@@ -211,7 +210,7 @@ internal sealed class AccessibilityDemo : PdfDemo
             + "Options.UAConformance to PdfUA1 makes the claim, and the writer then walks the "
             + "document before writing a byte and throws on the first rule it breaks.");
 
-        Paragraph link = section.AddParagraph("The rules are listed on PdfUaValidator, and ");
+        var link = section.AddParagraph("The rules are listed on PdfUaValidator, and ");
         link.AddHyperlink("https://github.com/PinataLabs/PdfPinata", HyperlinkType.Web)
             .AddFormattedText("this link", TextFormat.Underline);
         link.AddText(
@@ -244,21 +243,21 @@ internal sealed class AccessibilityDemo : PdfDemo
             + "one rule and then asked to save. Nothing here is quoted from documentation - the "
             + "text is whatever the library said when this demo was run.");
 
-        foreach ((string Broken, string Message) refusal in Refusals())
+        foreach (var refusal in Refusals())
         {
-            Paragraph what = section.AddParagraph(refusal.Broken);
+            var what = section.AddParagraph(refusal.Broken);
             what.Format.Font.Bold = true;
             what.Format.SpaceBefore = Unit.FromPoint(8);
             what.Format.SpaceAfter = Unit.FromPoint(1);
 
-            Paragraph said = section.AddParagraph(refusal.Message);
+            var said = section.AddParagraph(refusal.Message);
             said.Format.Font.Name = "Source Code Pro";
             said.Format.Font.Size = 7.5;
             said.Format.LeftIndent = Unit.FromCentimeter(0.5);
         }
 
         // docs:begin claim
-        PdfDocumentRenderer renderer = new PdfDocumentRenderer(unicode: true)
+        var renderer = new PdfDocumentRenderer(unicode: true)
         {
             Document = report,
 
@@ -268,12 +267,12 @@ internal sealed class AccessibilityDemo : PdfDemo
 
             // An RFC 3066 tag, and a rule of its own: a reader that does not know the language
             // cannot choose a voice to read the document in.
-            Language = "en-GB",
+            Language = "en-GB"
         };
 
         renderer.RenderDocument();
 
-        PdfDocument document = renderer.PdfDocument;
+        var document = renderer.PdfDocument;
 
         // A rule rather than a nicety. The title is what a reader announces the document as, and
         // the file name standing in for it is the failure the rule exists to stop.
@@ -322,29 +321,29 @@ internal sealed class AccessibilityDemo : PdfDemo
     static (string Broken, string Message) Refusal(string broken,
         Action<PdfDocumentRenderer> arrangeRenderer, Action<PdfDocument> arrangeDocument)
     {
-        Document probe = new Document();
-        Section section = probe.AddSection();
+        var probe = new Document();
+        var section = probe.AddSection();
         section.AddParagraph("A heading", StyleNames.Heading1);
         section.AddParagraph("And a paragraph under it.");
 
-        PdfDocumentRenderer renderer = new PdfDocumentRenderer(unicode: true)
+        var renderer = new PdfDocumentRenderer(unicode: true)
         {
             Document = probe,
             TagContent = true,
-            Language = "en-GB",
+            Language = "en-GB"
         };
 
         arrangeRenderer(renderer);
         renderer.RenderDocument();
 
-        using PdfDocument document = renderer.PdfDocument;
+        using var document = renderer.PdfDocument;
         document.Info.Title = "A probe";
         document.Options.UAConformance = PdfUAConformance.PdfUA1;
         arrangeDocument(document);
 
         try
         {
-            using MemoryStream buffer = new MemoryStream();
+            using var buffer = new MemoryStream();
             document.Save(buffer, false);
         }
         catch (InvalidOperationException refused)

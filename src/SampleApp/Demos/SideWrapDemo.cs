@@ -46,7 +46,7 @@ internal sealed class SideWrapDemo : PdfDemo
         "WrapStyle.Largest - the frame standing clear of both margins, the text taking the roomier side",
         "WrapStyle.Both - the same arrangement, asking for either side rather than the roomier one",
         "The four WrapFormat distances holding the text off all four edges of the frame",
-        "Lines above and below the frame running the full measure, with no line drawn across it",
+        "Lines above and below the frame running the full measure, with no line drawn across it"
     };
 
     public override int PageCount => 4;
@@ -62,14 +62,19 @@ internal sealed class SideWrapDemo : PdfDemo
             + "it run the full measure. Nothing here counts characters, probes a rectangle or adds "
             + "one word at a time until the answer stops fitting. ";
 
-        Document document = new Document();
-        document.Info.Title = "Side wrap";
+        var document = new Document
+        {
+            Info =
+            {
+                Title = "Side wrap"
+            }
+        };
 
         document.Styles["Normal"].Font.Name = "Liberation Serif";
         document.Styles["Normal"].Font.Size = 10;
         document.Styles["Normal"].ParagraphFormat.SpaceAfter = Unit.FromPoint(6);
 
-        Style caption = document.Styles.AddStyle("Caption", "Normal");
+        var caption = document.Styles.AddStyle("Caption", "Normal");
         caption.Font.Name = "Liberation Sans";
         caption.Font.Size = 8;
         caption.Font.Color = Colors.DimGray;
@@ -97,25 +102,25 @@ internal sealed class SideWrapDemo : PdfDemo
                 "The same arrangement asking for either side rather than the roomier one. A line is "
                 + "given one span rather than every span, so this lays out as Largest does today; "
                 + "the two are kept apart because they say different things and would part company "
-                + "if that changed."),
+                + "if that changed.")
         };
 
-        foreach ((WrapStyle style, ShapePosition? where, string title, string note) in pages)
+        foreach ((var style, var where, var title, var note) in pages)
         {
-            Section section = document.AddSection();
+            var section = document.AddSection();
             section.PageSetup.PageFormat = PageFormat.A5;
             section.PageSetup.TopMargin = Unit.FromCentimeter(2);
             section.PageSetup.BottomMargin = Unit.FromCentimeter(2);
             section.PageSetup.LeftMargin = Unit.FromCentimeter(2);
             section.PageSetup.RightMargin = Unit.FromCentimeter(2);
 
-            Paragraph heading = section.AddParagraph(title);
+            var heading = section.AddParagraph(title);
             heading.Format.Font.Name = "Liberation Sans";
             heading.Format.Font.Bold = true;
             heading.Format.Font.Size = 13;
             heading.Format.SpaceAfter = Unit.FromPoint(2);
 
-            Paragraph explanation = section.AddParagraph(note);
+            var explanation = section.AddParagraph(note);
             explanation.Style = "Caption";
             explanation.Format.SpaceAfter = Unit.FromPoint(14);
 
@@ -123,7 +128,7 @@ internal sealed class SideWrapDemo : PdfDemo
             // The frame is added to the flow like any other element. RelativeVertical.Paragraph is
             // what makes it float at all: a shape anchored to the page or the margin is placed
             // absolutely and the text is laid out as though it were not there.
-            TextFrame frame = section.AddTextFrame();
+            var frame = section.AddTextFrame();
             frame.Width = Unit.FromCentimeter(4.5);
             frame.Height = Unit.FromCentimeter(4);
             frame.RelativeVertical = RelativeVertical.Paragraph;
@@ -151,22 +156,22 @@ internal sealed class SideWrapDemo : PdfDemo
             frame.WrapFormat.DistanceBottom = Unit.FromPoint(4);
             // docs:end wrap-frame
 
-            Paragraph inside = frame.AddParagraph("A sidebar");
+            var inside = frame.AddParagraph("A sidebar");
             inside.Format.Font.Name = "Liberation Sans";
             inside.Format.Font.Bold = true;
             inside.Format.SpaceAfter = Unit.FromPoint(4);
 
-            Paragraph insideBody = frame.AddParagraph(
+            var insideBody = frame.AddParagraph(
                 "Whatever goes in the frame is laid out inside it, independently of the copy "
                 + "flowing past outside.");
             insideBody.Format.Font.Size = 8.5;
 
-            Paragraph body = section.AddParagraph(string.Concat(Prose, Prose, Prose));
+            var body = section.AddParagraph(string.Concat(Prose, Prose, Prose));
             body.Format.Alignment = ParagraphAlignment.Justify;
             body.Format.FirstLineIndent = Unit.FromPoint(0);
         }
 
-        PdfDocumentRenderer renderer = new PdfDocumentRenderer(unicode: true) { Document = document };
+        var renderer = new PdfDocumentRenderer(unicode: true) { Document = document };
         renderer.RenderDocument();
         return renderer.PdfDocument;
         #endregion

@@ -26,7 +26,7 @@ internal sealed class FootnotesDemo : PdfDemo
         "Document.FootnoteNumberingRule - and that its default restarts on every page",
         "Document.FootnoteLocation - what BeneathText would change, on a page with room to spare",
         "Footnote.Reference, a mark of the caller's own, which does not advance the numbering",
-        "StyleNames.Footnote, the predefined style the notes are set in",
+        "StyleNames.Footnote, the predefined style the notes are set in"
     };
 
     public override int PageCount => 5;
@@ -34,15 +34,20 @@ internal sealed class FootnotesDemo : PdfDemo
     #region example
     protected override PdfDocument Build(DemoContext context)
     {
-        Document document = new Document();
-        document.Info.Title = "Footnotes";
+        var document = new Document
+        {
+            Info =
+            {
+                Title = "Footnotes"
+            }
+        };
 
-        Style normal = document.Styles[StyleNames.Normal];
+        var normal = document.Styles[StyleNames.Normal];
         normal.Font.Name = "Liberation Serif";
         normal.Font.Size = 10.5;
         normal.ParagraphFormat.SpaceAfter = Unit.FromPoint(6);
 
-        Style heading = document.Styles[StyleNames.Heading1];
+        var heading = document.Styles[StyleNames.Heading1];
         heading.Font.Name = "Liberation Sans";
         heading.Font.Size = 17;
         heading.Font.Bold = true;
@@ -52,12 +57,12 @@ internal sealed class FootnotesDemo : PdfDemo
         // The notes are set in this predefined style. It is based on Normal and exists whether or
         // not anybody touches it, so a document that says nothing about footnotes still gets a
         // sensible one - and a document that wants them smaller says so here rather than on each.
-        Style footnote = document.Styles[StyleNames.Footnote];
+        var footnote = document.Styles[StyleNames.Footnote];
         footnote.Font.Size = 8;
         footnote.Font.Color = Colors.Black;
         // docs:end footnote-style
 
-        Style caption = document.Styles.AddStyle("Caption", StyleNames.Normal);
+        var caption = document.Styles.AddStyle("Caption", StyleNames.Normal);
         caption.Font.Size = 8.5;
         caption.Font.Italic = true;
         caption.Font.Color = Colors.DimGray;
@@ -71,13 +76,13 @@ internal sealed class FootnotesDemo : PdfDemo
 
         // ----- page one: what a footnote is -----
 
-        Section first = document.AddSection();
+        var first = document.AddSection();
         first.PageSetup.TopMargin = Unit.FromCentimeter(2.5);
 
         first.AddParagraph("A note at the foot of the page").Style = StyleNames.Heading1;
 
         // docs:begin add-footnote
-        Paragraph opening = first.AddParagraph(
+        var opening = first.AddParagraph(
             "A footnote is a paragraph element like any other run of text");
         opening.AddFootnote(
             "This is the note. It is attached to the word before the mark, and it appears at the "
@@ -96,10 +101,10 @@ internal sealed class FootnotesDemo : PdfDemo
             + "is laid out separately and drawn in a band at the foot of the page.");
 
         // docs:begin block-content
-        Paragraph blockContent = first.AddParagraph(
+        var blockContent = first.AddParagraph(
             "A note is not a string. Footnote.Elements is block content, so a note can hold more "
             + "than one paragraph");
-        Footnote longNote = blockContent.AddFootnote();
+        var longNote = blockContent.AddFootnote();
         longNote.AddParagraph(
             "The first paragraph of a note that has two. Everything PinataLayout can put in a section "
             + "can go in here.");
@@ -116,7 +121,7 @@ internal sealed class FootnotesDemo : PdfDemo
             + "feature rather than a line of drawing code.").Style = "Caption";
 
         // docs:begin own-mark
-        Paragraph ownMark = first.AddParagraph(
+        var ownMark = first.AddParagraph(
             "A note can carry a mark of the caller's own instead of a number");
         ownMark.AddFootnote(
             "Marked with an asterisk rather than a number, by setting Reference. A note marked "
@@ -124,14 +129,14 @@ internal sealed class FootnotesDemo : PdfDemo
             .Reference = "*";
         ownMark.AddText(", which is what Footnote.Reference is for.");
 
-        Paragraph after = first.AddParagraph("The numbering carries on regardless");
+        var after = first.AddParagraph("The numbering carries on regardless");
         after.AddFootnote("The fourth note, and the third number - the starred one did not count.");
         after.AddText(".");
         // docs:end own-mark
 
         // ----- page two: the five number styles -----
 
-        Section styles = document.AddSection();
+        var styles = document.AddSection();
         styles.PageSetup.TopMargin = Unit.FromCentimeter(2.5);
 
         styles.AddParagraph("Five ways to mark a note").Style = StyleNames.Heading1;
@@ -141,7 +146,7 @@ internal sealed class FootnotesDemo : PdfDemo
             + "setting, so the three notes below are all in the style named at the end of this "
             + "sentence: " + document.FootnoteNumberStyle + ".");
 
-        Paragraph marks = styles.AddParagraph("Three notes in a row");
+        var marks = styles.AddParagraph("Three notes in a row");
         marks.AddFootnote("The first.");
         marks.AddText(", one after another");
         marks.AddFootnote("The second.");
@@ -158,7 +163,7 @@ internal sealed class FootnotesDemo : PdfDemo
 
         // ----- page three: where the block goes -----
 
-        Section beneath = document.AddSection();
+        var beneath = document.AddSection();
         beneath.PageSetup.TopMargin = Unit.FromCentimeter(2.5);
 
         beneath.AddParagraph("Where the block sits on the page").Style = StyleNames.Heading1;
@@ -169,7 +174,7 @@ internal sealed class FootnotesDemo : PdfDemo
             + "page holds. BeneathText puts it directly under the last thing laid out, which on a "
             + "page like this one is a long way higher up.");
 
-        Paragraph shortPage = beneath.AddParagraph("This page stops here");
+        var shortPage = beneath.AddParagraph("This page stops here");
         shortPage.AddFootnote(
             "Pinned to the foot of the sheet, a long way below the line it belongs to, because "
             + "this document uses BottomOfPage.");
@@ -189,7 +194,7 @@ internal sealed class FootnotesDemo : PdfDemo
 
         // ----- pages four and five: the numbering rule -----
 
-        Section rule = document.AddSection();
+        var rule = document.AddSection();
         rule.PageSetup.TopMargin = Unit.FromCentimeter(2.5);
 
         rule.AddParagraph("Where the numbering starts again").Style = StyleNames.Heading1;
@@ -199,7 +204,7 @@ internal sealed class FootnotesDemo : PdfDemo
             + "numbers the whole document, which is what this one does and what most reports want. "
             + "RestartSection begins again at each section. RestartPage begins again on each page.");
 
-        Paragraph acrossOne = rule.AddParagraph("A note on this page");
+        var acrossOne = rule.AddParagraph("A note on this page");
         acrossOne.AddFootnote("Numbered on from every note before it in the document.");
         acrossOne.AddText(", and another on the next.");
 
@@ -211,13 +216,13 @@ internal sealed class FootnotesDemo : PdfDemo
 
         rule.AddPageBreak();
 
-        Paragraph acrossTwo = rule.AddParagraph("The note on the page after");
+        var acrossTwo = rule.AddParagraph("The note on the page after");
         acrossTwo.AddFootnote(
             "Under RestartContinuous this carries on from the page before. Under the default it "
             + "would be number one again.");
         acrossTwo.AddText(".");
 
-        PdfDocumentRenderer renderer = new PdfDocumentRenderer(unicode: true) { Document = document };
+        var renderer = new PdfDocumentRenderer(unicode: true) { Document = document };
         renderer.RenderDocument();
         #endregion
 

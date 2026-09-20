@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -53,6 +53,7 @@ public abstract class PdfObject : PdfItem
         // Calling a virtual member in a constructor is dangerous.
         // In PDFsharp Document is overridden in PdfPage and the code is checked to be save
         // when called for a not completely initialized object.
+        // ReSharper disable once VirtualMemberCallInConstructor
         Document = document;
     }
 
@@ -81,7 +82,7 @@ public abstract class PdfObject : PdfItem
     /// </summary>
     protected override object Copy()
     {
-        PdfObject obj = (PdfObject)base.Copy();
+        var obj = (PdfObject)base.Copy();
         obj._document = null;
         obj._iref = null;
         return obj;
@@ -94,7 +95,7 @@ public abstract class PdfObject : PdfItem
     /// </summary>
     internal void SetObjectID(int objectNumber, int generationNumber)
     {
-        PdfObjectID objectID = new PdfObjectID(objectNumber, generationNumber);
+        var objectID = new PdfObjectID(objectNumber, generationNumber);
 
         // TODO: check imported
         if (_iref == null)
@@ -201,14 +202,14 @@ public abstract class PdfObject : PdfItem
     internal static PdfObject DeepCopyClosure(PdfDocument owner, PdfObject externalObject)
     {
         // Get transitive closure.
-        PdfObject[] elements = externalObject.Owner.Internals.GetClosure(externalObject);
-        int count = elements.Length;
+        var elements = externalObject.Owner.Internals.GetClosure(externalObject);
+        var count = elements.Length;
         // 1st loop. Replace all objects by their clones.
-        PdfImportedObjectTable iot = new PdfImportedObjectTable(owner, externalObject.Owner);
-        for (int idx = 0; idx < count; idx++)
+        var iot = new PdfImportedObjectTable(owner, externalObject.Owner);
+        for (var idx = 0; idx < count; idx++)
         {
-            PdfObject obj = elements[idx];
-            PdfObject clone = obj.Clone();
+            var obj = elements[idx];
+            var clone = obj.Clone();
             Debug.Assert(clone.Reference == null);
             clone.Document = owner;
             if (obj.Reference != null)
@@ -231,9 +232,9 @@ public abstract class PdfObject : PdfItem
             elements[idx] = clone;
         }
         // 2nd loop. Fix up all indirect references that still refers to the import document.
-        for (int idx = 0; idx < count; idx++)
+        for (var idx = 0; idx < count; idx++)
         {
-            PdfObject obj = elements[idx];
+            var obj = elements[idx];
             Debug.Assert(obj.Owner == owner);
             FixUpObject(iot, owner, obj);
         }
@@ -256,18 +257,18 @@ public abstract class PdfObject : PdfItem
             "The ExternalDocument of the importedObjectTable does not belong to the owner of object to be imported.");
 
         // Get transitive closure of external object.
-        PdfObject[] elements = externalObject.Owner.Internals.GetClosure(externalObject);
-        int count = elements.Length;
+        var elements = externalObject.Owner.Internals.GetClosure(externalObject);
+        var count = elements.Length;
         // 1st loop. Already imported objects are reused and new ones are cloned.
-        for (int idx = 0; idx < count; idx++)
+        for (var idx = 0; idx < count; idx++)
         {
-            PdfObject obj = elements[idx];
+            var obj = elements[idx];
             Debug.Assert(!ReferenceEquals(obj.Owner, owner));
 
             if (importedObjectTable.Contains(obj.ObjectID))
             {
                 // Case: External object was already imported.
-                PdfReference iref = importedObjectTable[obj.ObjectID];
+                var iref = importedObjectTable[obj.ObjectID];
                 Debug.Assert(iref != null);
                 Debug.Assert(iref.Value != null);
                 Debug.Assert(iref.Document == owner);
@@ -277,7 +278,7 @@ public abstract class PdfObject : PdfItem
             else
             {
                 // Case: External object was not yet imported ealier and must be cloned.
-                PdfObject clone = obj.Clone();
+                var clone = obj.Clone();
                 Debug.Assert(clone.Reference == null);
                 clone.Document = owner;
                 if (obj.Reference != null)
@@ -300,9 +301,9 @@ public abstract class PdfObject : PdfItem
             }
         }
         // 2nd loop. Fix up indirect references that still refers to the external document.
-        for (int idx = 0; idx < count; idx++)
+        for (var idx = 0; idx < count; idx++)
         {
-            PdfObject obj = elements[idx];
+            var obj = elements[idx];
             Debug.Assert(owner != null);
             FixUpObject(importedObjectTable, importedObjectTable.Owner, obj);
         }
@@ -337,14 +338,14 @@ public abstract class PdfObject : PdfItem
             }
 
             // Search for indirect references in all dictionary elements.
-            PdfName[] names = dict.Elements.KeyNames;
-            foreach (PdfName name in names)
+            var names = dict.Elements.KeyNames;
+            foreach (var name in names)
             {
-                PdfItem item = dict.Elements[name];
+                var item = dict.Elements[name];
                 Debug.Assert(item != null, "A dictionary element cannot be null.");
 
                 // Is item an iref?
-                PdfReference iref = item as PdfReference;
+                var iref = item as PdfReference;
                 if (iref != null)
                 {
                     // Case: The item is a reference.
@@ -357,7 +358,7 @@ public abstract class PdfObject : PdfItem
 
                     //Debug.Assert(iref.Document == iot.Document);
                     // No: Replace with iref of cloned object.
-                    PdfReference newXRef = iot[iref.ObjectID];  // TODO: Explain this line of code in all details.
+                    var newXRef = iot[iref.ObjectID];  // TODO: Explain this line of code in all details.
                     Debug.Assert(newXRef != null);
                     Debug.Assert(newXRef.Document == owner);
                     dict.Elements[name] = newXRef;
@@ -366,7 +367,7 @@ public abstract class PdfObject : PdfItem
                 {
                     // Case: The item is not a reference.
                     // If item is an object recursively fix its inner items.
-                    PdfObject pdfObject = item as PdfObject;
+                    var pdfObject = item as PdfObject;
                     if (pdfObject != null)
                     {
                         // Fix up inner objects, i.e. recursively walk down the object tree.
@@ -392,14 +393,14 @@ public abstract class PdfObject : PdfItem
             }
 
             // Search for indirect references in all array elements.
-            int count = array.Elements.Count;
-            for (int idx = 0; idx < count; idx++)
+            var count = array.Elements.Count;
+            for (var idx = 0; idx < count; idx++)
             {
-                PdfItem item = array.Elements[idx];
+                var item = array.Elements[idx];
                 Debug.Assert(item != null, "An array element cannot be null.");
 
                 // Is item an iref?
-                PdfReference iref = item as PdfReference;
+                var iref = item as PdfReference;
                 if (iref != null)
                 {
                     // Case: The item is a reference.
@@ -412,7 +413,7 @@ public abstract class PdfObject : PdfItem
 
                     // No: replace with iref of cloned object.
                     Debug.Assert(iref.Document == iot.ExternalDocument);
-                    PdfReference newXRef = iot[iref.ObjectID];
+                    var newXRef = iot[iref.ObjectID];
                     Debug.Assert(newXRef != null);
                     Debug.Assert(newXRef.Document == owner);
                     array.Elements[idx] = newXRef;
@@ -421,7 +422,7 @@ public abstract class PdfObject : PdfItem
                 {
                     // Case: The item is not a reference.
                     // If item is an object recursively fix its inner items.
-                    PdfObject pdfObject = item as PdfObject;
+                    var pdfObject = item as PdfObject;
                     if (pdfObject != null)
                     {
                         // Fix up inner objects, i.e. recursively walk down the object tree.

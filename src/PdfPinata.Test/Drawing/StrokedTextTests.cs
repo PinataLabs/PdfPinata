@@ -9,8 +9,8 @@ using Xunit;
 namespace PdfPinata.Test.Drawing;
 
 /// <summary>
-///   Text can be outlined as well as filled. <see cref="XGraphics.DrawString(string, XFont, XPen,
-///   XBrush, XRect, XStringFormat)"/> takes a pen beside its brush, the way every other Draw method
+///   Text can be outlined as well as filled. <see cref="XGraphics.DrawString(string, XFont, XPen, XBrush, XRect, XStringFormat)"/>
+///   takes a pen beside its brush, the way every other Draw method
 ///   in the library does, and the two decide the PDF text rendering mode between them: a brush
 ///   alone fills, a pen alone strokes, both do both.
 ///   <para>
@@ -86,7 +86,7 @@ public class StrokedTextTests
         using var gfx = XGraphics.FromPdfPage(document.AddPage());
 
         // The same answer DrawRectangle gives to the same question.
-        gfx.Invoking(g => g.DrawString("Hello", PlainFont, (XPen)null, (XBrush)null, 20, 40))
+        gfx.Invoking(g => g.DrawString("Hello", PlainFont, null, null, 20, 40))
             .Should().Throw<ArgumentNullException>();
     }
 
@@ -96,7 +96,7 @@ public class StrokedTextTests
         var document = new PdfDocument();
         using var gfx = XGraphics.FromPdfPage(document.AddPage());
 
-        gfx.Invoking(g => g.DrawString("Hello", PlainFont, (XBrush)null, 20, 40))
+        gfx.Invoking(g => g.DrawString("Hello", PlainFont, null, 20, 40))
             .Should().Throw<ArgumentNullException>();
     }
 

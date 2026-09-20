@@ -30,7 +30,9 @@ public class PdfNameObjectComparisonTests
     {
         PdfNameObject name = null;
 
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
         (name != null).Should().BeFalse("a null name is null, and asking must not throw");
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
         (name == null).Should().BeTrue();
     }
 
@@ -39,7 +41,9 @@ public class PdfNameObjectComparisonTests
     {
         PdfNameObject name = null;
 
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
         (name == "/Kent").Should().BeFalse();
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
         (name != "/Kent").Should().BeTrue();
     }
 
@@ -51,6 +55,7 @@ public class PdfNameObjectComparisonTests
         (name == "/Kent").Should().BeTrue();
         (name != "/Kent").Should().BeFalse();
         (name == "/Sussex").Should().BeFalse();
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
         (name != null).Should().BeTrue();
     }
 
@@ -64,7 +69,9 @@ public class PdfNameObjectComparisonTests
         var name = new PdfNameObject(new PdfDocument(), "/Kent");
         name.Value = null;
 
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
         (name == null).Should().BeFalse("the name is there, whatever it holds");
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
         (name != null).Should().BeTrue();
         (name == "/Kent").Should().BeFalse();
     }
@@ -81,6 +88,7 @@ public class PdfNameObjectComparisonTests
         var name = new PdfNameObject(new PdfDocument(), "/Kent");
         name.Value = null;
 
+        // ReSharper disable once SuspiciousTypeConversion.Global
         name.Equals("/Kent").Should().BeFalse();
         name.Equals(null).Should().BeFalse("a name that is there equals nothing when it holds nothing");
         name.GetHashCode().Should().Be(0);
@@ -102,7 +110,9 @@ public class PdfNameObjectComparisonTests
     {
         var name = new PdfNameObject(new PdfDocument(), "/Kent");
 
+        // ReSharper disable once SuspiciousTypeConversion.Global
         name.Equals("/Kent").Should().BeTrue();
+        // ReSharper disable once SuspiciousTypeConversion.Global
         name.Equals("/Sussex").Should().BeFalse();
         name.GetHashCode().Should().Be("/Kent".GetHashCode(), "the name hashes as the string it is");
     }

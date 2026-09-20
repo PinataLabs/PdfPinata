@@ -12,8 +12,8 @@ namespace PdfPinata.Test.IO;
 ///   Four PDF/A rules the conformance writer admitted, in its own comments, that it could not
 ///   check: no transparency and no JPEG 2000 image under PDF/A-1, no interpolated image under any
 ///   archival profile, and no device colour the output intent does not describe. Answering any of
-///   them means walking every page's resources, which is <see cref="Advanced.PdfResourcePruner"/>'s
-///   job as well — lifted into <see cref="Advanced.PdfPageResourceUsage"/> so the two cannot
+///   them means walking every page's resources, which is <c>PdfResourcePruner</c>'s
+///   job as well — lifted into <c>PdfPageResourceUsage</c> so the two cannot
 ///   disagree about what a page uses.
 /// </summary>
 public class ResourceConformanceRulesTests

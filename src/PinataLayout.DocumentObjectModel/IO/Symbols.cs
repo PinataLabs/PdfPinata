@@ -200,15 +200,15 @@ internal class KeyWords
   internal static Symbol SymbolFromName(string name)
   {
     Symbol docsym;
-    object obj = nameToEnum[name];
+    var obj = nameToEnum[name];
     if (obj == null)
     {
       // Check for case sensitive keywords. Allow first character upper case only.
-      if (string.Compare(name, "True", false) == 0)
+      if (string.Equals(name, "True", System.StringComparison.Ordinal))
         docsym = Symbol.True;
-      else if (string.Compare(name, "False", false) == 0)
+      else if (string.Equals(name, "False", System.StringComparison.Ordinal))
         docsym = Symbol.False;
-      else if (string.Compare(name, "Null", false) == 0)
+      else if (string.Equals(name, "Null", System.StringComparison.Ordinal))
         docsym = Symbol.Null;
       else
         docsym = Symbol.None;
@@ -223,7 +223,7 @@ internal class KeyWords
   /// </summary>
   internal static string NameFromSymbol(Symbol symbol)
   {
-    string name = (string)enumToName[symbol];
+    var name = (string)enumToName[symbol];
     Debug.Assert(name != null);
     return name;
   }

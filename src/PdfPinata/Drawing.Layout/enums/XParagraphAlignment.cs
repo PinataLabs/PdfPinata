@@ -57,5 +57,5 @@ public enum XParagraphAlignment
     /// <summary>
     /// The paragraph is rendered justified.
     /// </summary>
-    Justify,
+    Justify
 }

@@ -64,7 +64,7 @@ namespace System
         extension(ObjectDisposedException)
         {
             /// <summary>Throws an <see cref="ObjectDisposedException"/> if <paramref name="condition"/> is true.</summary>
-            public static void ThrowIf([DoesNotReturnIf(true)] bool condition, object instance)
+            public static void ThrowIf([DoesNotReturnIf(true)] bool condition, object? instance)
             {
                 if (condition)
                     throw new ObjectDisposedException(instance?.GetType().FullName);

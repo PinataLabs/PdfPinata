@@ -76,10 +76,10 @@ public partial class TabStops : DocumentObjectCollection
   /// </summary>
   public TabStop GetTabStopAt(Unit position)
   {
-    int count = Count;
-    for (int index = 0; index < count; index++)
+    var count = Count;
+    for (var index = 0; index < count; index++)
     {
-      TabStop tabStop = (TabStop)this[index];
+      var tabStop = this[index];
       if (Math.Abs(tabStop.Position.Point - position.Point) < TabStopPrecision)
         return tabStop;
     }
@@ -105,16 +105,16 @@ public partial class TabStops : DocumentObjectCollection
 
     if (TabStopExists(tabStop.Position))
     {
-      int index = IndexOf(GetTabStopAt(tabStop.Position));
+      var index = IndexOf(GetTabStopAt(tabStop.Position));
       RemoveObjectAt(index);
       InsertObject(index, tabStop);
     }
     else
     {
-      int count = Count;
-      for (int index = 0; index < count; index++)
+      var count = Count;
+      for (var index = 0; index < count; index++)
       {
-        if (tabStop.Position.Point < ((TabStop)this[index]).Position.Point)
+        if (tabStop.Position.Point < (this[index]).Position.Point)
         {
           InsertObject(index, tabStop);
           return tabStop;
@@ -134,7 +134,7 @@ public partial class TabStops : DocumentObjectCollection
     if (TabStopExists(position))
       return GetTabStopAt(position);
 
-    TabStop tab = new TabStop(position);
+    var tab = new TabStop(position);
     return AddTabStop(tab);
   }
 
@@ -143,7 +143,7 @@ public partial class TabStops : DocumentObjectCollection
   /// </summary>
   public TabStop AddTabStop(Unit position, TabAlignment alignment, TabLeader leader)
   {
-    TabStop tab = AddTabStop(position);
+    var tab = AddTabStop(position);
     tab.Alignment = alignment;
     tab.Leader = leader;
     return tab;
@@ -154,7 +154,7 @@ public partial class TabStops : DocumentObjectCollection
   /// </summary>
   public TabStop AddTabStop(Unit position, TabLeader leader)
   {
-    TabStop tab = AddTabStop(position);
+    var tab = AddTabStop(position);
     tab.Leader = leader;
     return tab;
   }
@@ -164,7 +164,7 @@ public partial class TabStops : DocumentObjectCollection
   /// </summary>
   public TabStop AddTabStop(Unit position, TabAlignment alignment)
   {
-    TabStop tab = AddTabStop(position);
+    var tab = AddTabStop(position);
     tab.Alignment = alignment;
     return tab;
   }
@@ -175,7 +175,7 @@ public partial class TabStops : DocumentObjectCollection
   /// </summary>
   public void RemoveTabStop(Unit position)
   {
-    TabStop tab = AddTabStop(position);
+    var tab = AddTabStop(position);
     tab.AddTab = false;
   }
 
@@ -197,7 +197,7 @@ public partial class TabStops : DocumentObjectCollection
   /// </summary>
   public bool TabsCleared => fClearAll;
 
-  internal bool fClearAll = false;
+  internal bool fClearAll;
   #endregion
 
   #region Internal
@@ -209,10 +209,10 @@ public partial class TabStops : DocumentObjectCollection
     if (fClearAll)
       serializer.WriteLine("TabStops = null");
 
-    int count = Count;
-    for (int index = 0; index < count; index++)
+    var count = Count;
+    for (var index = 0; index < count; index++)
     {
-      TabStop tabstop = (TabStop)this[index];
+      var tabstop = this[index];
       tabstop.Serialize(serializer);
     }
   }

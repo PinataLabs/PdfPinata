@@ -51,16 +51,16 @@ public static class ReflectionMeta
     {
         var members = new List<Member>();
 
-        foreach (FieldInfo field in type.GetRuntimeFields())
+        foreach (var field in type.GetRuntimeFields())
         {
-            object dv = FindDv(field);
+            var dv = FindDv(field);
             if (dv != null)
                 members.Add(Describe(field.Name, field.FieldType, dv));
         }
 
-        foreach (PropertyInfo property in type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+        foreach (var property in type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
         {
-            object dv = FindDv(property);
+            var dv = FindDv(property);
             if (dv != null)
                 members.Add(Describe(property.Name, property.PropertyType, dv));
         }
@@ -75,7 +75,7 @@ public static class ReflectionMeta
     /// </summary>
     static object FindDv(MemberInfo member)
     {
-        object[] found = member.GetCustomAttributes(false)
+        var found = member.GetCustomAttributes(false)
             .Where(a => a.GetType().Name == "DVAttribute")
             .ToArray();
         return found.Length == 1 ? found[0] : null;
@@ -83,10 +83,11 @@ public static class ReflectionMeta
 
     static Member Describe(string name, Type memberType, object dv)
     {
-        bool refOnly = (bool)dv.GetType().GetField("RefOnly").GetValue(dv);
+        // ReSharper disable once PossibleNullReferenceException
+        var refOnly = (bool)dv.GetType().GetField("RefOnly").GetValue(dv);
 
         // Nullable<T> first: it is a struct, so the value-type test below would swallow it.
-        Type underlying = Nullable.GetUnderlyingType(memberType);
+        var underlying = Nullable.GetUnderlyingType(memberType);
         if (underlying != null)
             return new Member(name, memberType, underlying, refOnly, "Leaf");
 
@@ -97,7 +98,7 @@ public static class ReflectionMeta
         {
             // INullableValue is internal, so it is matched by name like DVAttribute is. A struct
             // that implements it tracks its own null; a plain bool or enum has none to track.
-            bool tracksItsOwnNull = memberType.GetInterfaces().Any(i => i.Name == "INullableValue");
+            var tracksItsOwnNull = memberType.GetInterfaces().Any(i => i.Name == "INullableValue");
             return new Member(name, memberType, memberType, refOnly,
                 tracksItsOwnNull ? "NullableValue" : "PlainValue");
         }
@@ -113,7 +114,7 @@ public static class ReflectionMeta
 
     static bool IsAssignableToNamed(Type type, string baseName)
     {
-        for (Type t = type; t != null; t = t.BaseType)
+        for (var t = type; t != null; t = t.BaseType)
             if (t.Name == baseName)
                 return true;
         return false;

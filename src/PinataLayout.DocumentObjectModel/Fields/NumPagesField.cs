@@ -65,7 +65,7 @@ public partial class NumPagesField : NumericFieldBase
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    string str = "\\field(NumPages)";
+    var str = "\\field(NumPages)";
 
     if ((this.format ?? "") != "")
       str += "[Format = \"" + this.Format + "\"]";

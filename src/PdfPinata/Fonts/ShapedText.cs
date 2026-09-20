@@ -40,8 +40,8 @@ sealed class ShapedText
         Segments = segments ?? throw new ArgumentNullException(nameof(segments));
 
         double width = 0;
-        int glyphs = 0;
-        for (int idx = 0; idx < segments.Count; idx++)
+        var glyphs = 0;
+        for (var idx = 0; idx < segments.Count; idx++)
         {
             width += segments[idx].Run.WidthAt(segments[idx].Font.Size);
             glyphs += segments[idx].Run.Glyphs.Count;
@@ -81,7 +81,7 @@ sealed class ShapedText
     /// </summary>
     internal bool IsAllOneFont(XFont font)
     {
-        for (int idx = 0; idx < Segments.Count; idx++)
+        for (var idx = 0; idx < Segments.Count; idx++)
         {
             if (!ReferenceEquals(Segments[idx].Font, font))
                 return false;

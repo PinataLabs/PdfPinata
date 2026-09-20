@@ -60,6 +60,7 @@ public class ListNestingLevelTests
         var text = DdlWriter.WriteToString(document);
         var again = DdlReader.DocumentFromString(text).LastSection.Elements[0] as Paragraph;
 
+        // ReSharper disable once PossibleNullReferenceException
         again.Format.ListInfo.NestingLevel.Should().Be(2);
     }
 

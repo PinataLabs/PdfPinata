@@ -28,7 +28,7 @@ public class PageTransparencyGroupTests
     /// </summary>
     static PdfDocument RoundTripped(PdfDocument document)
     {
-        using MemoryStream stream = new MemoryStream();
+        using var stream = new MemoryStream();
         document.Save(stream, false);
         stream.Position = 0;
         return PdfPinata.Pdf.IO.PdfReader.Open(stream, PdfDocumentOpenMode.Modify);
@@ -45,12 +45,12 @@ public class PageTransparencyGroupTests
     /// </summary>
     static XImage SquareWithAlpha(byte alpha)
     {
-        using SKBitmap bitmap = new SKBitmap(new SKImageInfo(8, 8, SKColorType.Bgra8888, SKAlphaType.Unpremul));
+        using var bitmap = new SKBitmap(new SKImageInfo(8, 8, SKColorType.Bgra8888, SKAlphaType.Unpremul));
         bitmap.Erase(new SKColor(0, 128, 255, alpha));
 
-        using SKImage image = SKImage.FromBitmap(bitmap);
-        using SKData encoded = image.Encode(SKEncodedImageFormat.Png, 100);
-        byte[] png = encoded.ToArray();
+        using var image = SKImage.FromBitmap(bitmap);
+        using var encoded = image.Encode(SKEncodedImageFormat.Png, 100);
+        var png = encoded.ToArray();
 
         return XImage.FromStream(() => new MemoryStream(png));
     }
@@ -60,10 +60,10 @@ public class PageTransparencyGroupTests
     [Fact]
     public void APageDrawnOnOpaquelyIsWrittenWithoutATransparencyGroup()
     {
-        PdfDocument document = new PdfDocument();
-        PdfPage page = document.AddPage();
+        var document = new PdfDocument();
+        var page = document.AddPage();
 
-        using (XGraphics gfx = XGraphics.FromPdfPage(page))
+        using (var gfx = XGraphics.FromPdfPage(page))
             gfx.DrawRectangle(XBrushes.LightGray, new XRect(10, 10, 100, 100));
 
         GroupOf(RoundTripped(document).Pages[0]).Should().BeNull(
@@ -74,7 +74,7 @@ public class PageTransparencyGroupTests
     [Fact]
     public void APageWithNothingOnItIsWrittenWithoutATransparencyGroup()
     {
-        PdfDocument document = new PdfDocument();
+        var document = new PdfDocument();
         document.AddPage();
 
         GroupOf(RoundTripped(document).Pages[0]).Should().BeNull();
@@ -85,12 +85,12 @@ public class PageTransparencyGroupTests
     {
         // The report this was written for: opening a document and saving it again stamped a
         // /Group onto every page of it, whatever the pages themselves had said.
-        string path = PathHelper.GetInstance().GetAssetPath("test.pdf");
+        var path = PathHelper.GetInstance().GetAssetPath("test.pdf");
 
-        PdfDocument source = PdfPinata.Pdf.IO.PdfReader.Open(path, PdfDocumentOpenMode.ReadOnly);
+        var source = PdfPinata.Pdf.IO.PdfReader.Open(path, PdfDocumentOpenMode.ReadOnly);
         GroupOf(source.Pages[0]).Should().BeNull("the fixture this rests on must have no group");
 
-        PdfDocument document = PdfPinata.Pdf.IO.PdfReader.Open(path, PdfDocumentOpenMode.Modify);
+        var document = PdfPinata.Pdf.IO.PdfReader.Open(path, PdfDocumentOpenMode.Modify);
 
         GroupOf(RoundTripped(document).Pages[0]).Should().BeNull(
             "a document that is only read and written back must come out the way it went in");
@@ -99,15 +99,15 @@ public class PageTransparencyGroupTests
     [Fact]
     public void AnImportedPageThatHadATransparencyGroupKeepsTheOneItHad()
     {
-        PdfDocument document = new PdfDocument();
-        PdfPage page = document.AddPage();
+        var document = new PdfDocument();
+        var page = document.AddPage();
 
-        PdfDictionary group = new PdfDictionary(document);
+        var group = new PdfDictionary(document);
         group.Elements.SetName("/S", "/Transparency");
         group.Elements.SetName("/CS", "/DeviceGray");
         page.Elements[GroupKey] = group;
 
-        PdfDictionary written = GroupOf(RoundTripped(document).Pages[0]);
+        var written = GroupOf(RoundTripped(document).Pages[0]);
 
         written.Should().NotBeNull();
         written.Elements.GetName("/CS").Should().Be("/DeviceGray",
@@ -119,13 +119,13 @@ public class PageTransparencyGroupTests
     [Fact]
     public void APageDrawnOnWithATranslucentBrushIsGivenATransparencyGroup()
     {
-        PdfDocument document = new PdfDocument();
-        PdfPage page = document.AddPage();
+        var document = new PdfDocument();
+        var page = document.AddPage();
 
-        using (XGraphics gfx = XGraphics.FromPdfPage(page))
+        using (var gfx = XGraphics.FromPdfPage(page))
             gfx.DrawRectangle(new XSolidBrush(XColor.FromArgb(128, 255, 0, 0)), new XRect(10, 10, 100, 100));
 
-        PdfDictionary group = GroupOf(RoundTripped(document).Pages[0]);
+        var group = GroupOf(RoundTripped(document).Pages[0]);
 
         group.Should().NotBeNull();
         group.Elements.GetName("/S").Should().Be("/Transparency");
@@ -135,10 +135,10 @@ public class PageTransparencyGroupTests
     [Fact]
     public void APageDrawnOnWithATranslucentPenIsGivenATransparencyGroup()
     {
-        PdfDocument document = new PdfDocument();
-        PdfPage page = document.AddPage();
+        var document = new PdfDocument();
+        var page = document.AddPage();
 
-        using (XGraphics gfx = XGraphics.FromPdfPage(page))
+        using (var gfx = XGraphics.FromPdfPage(page))
             gfx.DrawLine(new XPen(XColor.FromArgb(128, 0, 0, 255), 4), 10, 10, 100, 100);
 
         GroupOf(RoundTripped(document).Pages[0]).Should().NotBeNull();
@@ -152,10 +152,10 @@ public class PageTransparencyGroupTests
         // The case the old code's "TODO: check XObjects" stood for. No colour the renderer draws
         // with has alpha in it - the transparency is inside the image, as a soft mask - so it is
         // found only by looking at what was placed on the page.
-        PdfDocument document = new PdfDocument();
-        PdfPage page = document.AddPage();
+        var document = new PdfDocument();
+        var page = document.AddPage();
 
-        using (XGraphics gfx = XGraphics.FromPdfPage(page))
+        using (var gfx = XGraphics.FromPdfPage(page))
             gfx.DrawImage(SquareWithAlpha(100), new XRect(10, 10, 50, 50));
 
         GroupOf(RoundTripped(document).Pages[0]).Should().NotBeNull(
@@ -165,10 +165,10 @@ public class PageTransparencyGroupTests
     [Fact]
     public void APageCarryingAnOpaqueImageIsWrittenWithoutATransparencyGroup()
     {
-        PdfDocument document = new PdfDocument();
-        PdfPage page = document.AddPage();
+        var document = new PdfDocument();
+        var page = document.AddPage();
 
-        using (XGraphics gfx = XGraphics.FromPdfPage(page))
+        using (var gfx = XGraphics.FromPdfPage(page))
             gfx.DrawImage(SquareWithAlpha(255), new XRect(10, 10, 50, 50));
 
         GroupOf(RoundTripped(document).Pages[0]).Should().BeNull(
@@ -182,14 +182,14 @@ public class PageTransparencyGroupTests
     {
         // The transparency is a graphics state within the form. The page is never asked to draw
         // a colour with alpha in it, so the form has to be looked into.
-        PdfDocument document = new PdfDocument();
-        PdfPage page = document.AddPage();
+        var document = new PdfDocument();
+        var page = document.AddPage();
 
-        XForm form = new XForm(document, new XSize(100, 100));
-        using (XGraphics formGfx = XGraphics.FromForm(form))
+        var form = new XForm(document, new XSize(100, 100));
+        using (var formGfx = XGraphics.FromForm(form))
             formGfx.DrawRectangle(new XSolidBrush(XColor.FromArgb(128, 0, 255, 0)), new XRect(0, 0, 100, 100));
 
-        using (XGraphics gfx = XGraphics.FromPdfPage(page))
+        using (var gfx = XGraphics.FromPdfPage(page))
             gfx.DrawImage(form, new XRect(10, 10, 100, 100));
 
         GroupOf(RoundTripped(document).Pages[0]).Should().NotBeNull();
@@ -198,14 +198,14 @@ public class PageTransparencyGroupTests
     [Fact]
     public void APageCarryingAFormThatWasDrawnOnOpaquelyIsWrittenWithoutATransparencyGroup()
     {
-        PdfDocument document = new PdfDocument();
-        PdfPage page = document.AddPage();
+        var document = new PdfDocument();
+        var page = document.AddPage();
 
-        XForm form = new XForm(document, new XSize(100, 100));
-        using (XGraphics formGfx = XGraphics.FromForm(form))
+        var form = new XForm(document, new XSize(100, 100));
+        using (var formGfx = XGraphics.FromForm(form))
             formGfx.DrawRectangle(XBrushes.Green, new XRect(0, 0, 100, 100));
 
-        using (XGraphics gfx = XGraphics.FromPdfPage(page))
+        using (var gfx = XGraphics.FromPdfPage(page))
             gfx.DrawImage(form, new XRect(10, 10, 100, 100));
 
         GroupOf(RoundTripped(document).Pages[0]).Should().BeNull();
@@ -216,14 +216,14 @@ public class PageTransparencyGroupTests
     [Fact]
     public void ThePageOfADocumentSetToCmykGetsAGroupInThatColourSpace()
     {
-        PdfDocument document = new PdfDocument();
+        var document = new PdfDocument();
         document.Options.ColorMode = PdfColorMode.Cmyk;
-        PdfPage page = document.AddPage();
+        var page = document.AddPage();
 
-        using (XGraphics gfx = XGraphics.FromPdfPage(page))
+        using (var gfx = XGraphics.FromPdfPage(page))
             gfx.DrawRectangle(new XSolidBrush(XColor.FromArgb(128, 255, 0, 0)), new XRect(10, 10, 100, 100));
 
-        PdfDictionary group = GroupOf(RoundTripped(document).Pages[0]);
+        var group = GroupOf(RoundTripped(document).Pages[0]);
 
         group.Should().NotBeNull();
         group.Elements.GetName("/CS").Should().Be("/DeviceCMYK");
@@ -232,11 +232,11 @@ public class PageTransparencyGroupTests
     [Fact]
     public void ADocumentWithNoColourModeGetsNoGroupEvenWhereTransparencyIsUsed()
     {
-        PdfDocument document = new PdfDocument();
+        var document = new PdfDocument();
         document.Options.ColorMode = PdfColorMode.Undefined;
-        PdfPage page = document.AddPage();
+        var page = document.AddPage();
 
-        using (XGraphics gfx = XGraphics.FromPdfPage(page))
+        using (var gfx = XGraphics.FromPdfPage(page))
             gfx.DrawRectangle(new XSolidBrush(XColor.FromArgb(128, 255, 0, 0)), new XRect(10, 10, 100, 100));
 
         GroupOf(RoundTripped(document).Pages[0]).Should().BeNull(
@@ -257,13 +257,13 @@ public class PageTransparencyGroupTests
     static PdfPage PageDrawnOnWith(byte[] source)
     {
         // Not disposed until the drawing is done: the form reads the document out of the stream.
-        MemoryStream stream = new MemoryStream(source);
-        XPdfForm form = XPdfForm.FromStream(stream);
+        var stream = new MemoryStream(source);
+        var form = XPdfForm.FromStream(stream);
 
-        PdfDocument document = new PdfDocument();
-        PdfPage page = document.AddPage();
+        var document = new PdfDocument();
+        var page = document.AddPage();
 
-        using (XGraphics gfx = XGraphics.FromPdfPage(page))
+        using (var gfx = XGraphics.FromPdfPage(page))
             gfx.DrawImage(form, new XRect(0, 0, 200, 200));
 
         return RoundTripped(document).Pages[0];
@@ -284,12 +284,12 @@ public class PageTransparencyGroupTests
     /// </summary>
     static byte[] PageWithEntries(string entries, params string[] rest)
     {
-        List<string> objects = new List<string>
+        var objects = new List<string>
         {
             "<</Type/Catalog/Pages 2 0 R>>",
             "<</Type/Pages/Kids[3 0 R]/Count 1>>",
             "<</Type/Page/Parent 2 0 R/MediaBox[0 0 200 200]" + entries + "/Contents 4 0 R>>",
-            RawPdf.Stream("", "0 0 200 200 re f"),
+            RawPdf.Stream("", "0 0 200 200 re f")
         };
         objects.AddRange(rest);
 
@@ -302,13 +302,13 @@ public class PageTransparencyGroupTests
     /// </summary>
     static byte[] PageWithResources(string resources, params string[] rest)
     {
-        List<string> objects = new List<string>
+        var objects = new List<string>
         {
             "<</Type/Catalog/Pages 2 0 R>>",
             "<</Type/Pages/Kids[3 0 R]/Count 1>>",
             "<</Type/Page/Parent 2 0 R/MediaBox[0 0 200 200]" +
             "/Resources<<" + resources + ">>/Contents 4 0 R>>",
-            RawPdf.Stream("", "q 100 0 0 100 10 10 cm /GS0 gs Q"),
+            RawPdf.Stream("", "q 100 0 0 100 10 10 cm /GS0 gs Q")
         };
         objects.AddRange(rest);
 
@@ -321,7 +321,7 @@ public class PageTransparencyGroupTests
     /// </summary>
     static byte[] PageWithGraphicsState(string state, params string[] rest)
     {
-        List<string> objects = new List<string> { "<</Type/ExtGState" + state + ">>" };
+        var objects = new List<string> { "<</Type/ExtGState" + state + ">>" };
         objects.AddRange(rest);
 
         return PageWithResources("/ExtGState<</GS0 5 0 R>>", objects.ToArray());
@@ -451,9 +451,9 @@ public class PageTransparencyGroupTests
         // A group describes the content it wraps. Drawing the page into a form moves the content
         // and has to move the group with it, or the content arrives composited against a backdrop
         // that is not the one it was written for.
-        PdfPage written = PageDrawnOnWith(
+        var written = PageDrawnOnWith(
             PageWithEntries("/Group<</S/Transparency/CS/DeviceGray>>"));
-        PdfDictionary group = FormOn(written).Elements.GetDictionary(GroupKey);
+        var group = FormOn(written).Elements.GetDictionary(GroupKey);
 
         group.Should().NotBeNull("the group belongs to the content, which is now inside the form");
         group.Elements.GetName("/S").Should().Be("/Transparency");
@@ -485,7 +485,7 @@ public class PageTransparencyGroupTests
     /// <summary>The single XObject named by the page's resources.</summary>
     static PdfDictionary FormOn(PdfPage page)
     {
-        PdfDictionary xObjects = page.Elements.GetDictionary("/Resources")
+        var xObjects = page.Elements.GetDictionary("/Resources")
             .Elements.GetDictionary("/XObject");
 
         return xObjects.Elements.GetDictionary(xObjects.Elements.KeyNames[0].Value);

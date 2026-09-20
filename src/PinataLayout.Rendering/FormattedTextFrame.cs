@@ -24,7 +24,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -46,21 +46,18 @@ internal class FormattedTextFrame : IAreaProvider
     this.documentRenderer = documentRenderer;
   }
 
-  internal void Format(XGraphics gfx)
+  internal void Format(XGraphics graphics)
   {
-    this.gfx = gfx;
+    gfx = graphics;
     isFirstArea = true;
     formatter = new TopDownFormatter(this, documentRenderer, textframe.Elements);
-    formatter.FormatOnAreas(gfx, false);
+    formatter.FormatOnAreas(graphics, false);
     contentHeight = RenderInfo.GetTotalHeight(GetRenderInfos());
   }
 
   Area IAreaProvider.GetNextArea()
   {
-    if (isFirstArea)
-      return CalcContentRect();
-
-    return null;
+    return isFirstArea ? CalcContentRect() : null;
   }
 
   Area IAreaProvider.ProbeNextArea()
@@ -70,9 +67,9 @@ internal class FormattedTextFrame : IAreaProvider
 
   FieldInfos IAreaProvider.AreaFieldInfos => fieldInfos;
 
-  void IAreaProvider.StoreRenderInfos(ArrayList renderInfos)
+  void IAreaProvider.StoreRenderInfos(ArrayList infos)
   {
-    this.renderInfos = renderInfos;
+    renderInfos = infos;
   }
 
   bool IAreaProvider.IsAreaBreakBefore(LayoutInfo layoutInfo)
@@ -96,8 +93,8 @@ internal class FormattedTextFrame : IAreaProvider
 
   Rectangle CalcContentRect()
   {
-    LineFormatRenderer lfr = new LineFormatRenderer(textframe.LineFormat, gfx);
-    XUnit lineWidth = lfr.GetWidth();
+    var lfr = new LineFormatRenderer(textframe.LineFormat, gfx);
+    var lineWidth = lfr.GetWidth();
     XUnit width;
     XUnit xOffset = lineWidth / 2;
     XUnit yOffset = lineWidth / 2;
@@ -133,8 +130,6 @@ internal class FormattedTextFrame : IAreaProvider
     return new Rectangle(xOffset, yOffset, width, height);
   }
 
-  XUnit ContentHeight => contentHeight;
-
   bool IAreaProvider.PositionVertically(LayoutInfo layoutInfo)
   {
     return false;
@@ -142,7 +137,7 @@ internal class FormattedTextFrame : IAreaProvider
 
   bool IAreaProvider.PositionHorizontally(LayoutInfo layoutInfo)
   {
-    Rectangle rect = CalcContentRect();
+    var rect = CalcContentRect();
     switch (layoutInfo.HorizontalAlignment)
     {
       case ElementAlignment.Near:

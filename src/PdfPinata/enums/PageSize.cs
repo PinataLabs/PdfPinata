@@ -384,7 +384,7 @@ public enum PageSize
     /// <summary>
     /// Identifies a paper sheet size of 10 inch times 14 inch.
     /// </summary>
-    Size10x14 = 122,
+    Size10x14 = 122
 
     //A 11 × 8.5 279 × 216
     //B 17 × 11 432 × 279

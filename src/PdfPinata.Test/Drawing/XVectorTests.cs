@@ -156,6 +156,7 @@ public class XVectorTests
         (vector != new XVector(1, 3)).Should().BeTrue();
         vector.Equals(new XVector(1, 2)).Should().BeTrue();
         vector.Equals((object)new XVector(1, 2)).Should().BeTrue();
+        // ReSharper disable once SuspiciousTypeConversion.Global
         vector.Equals("not a vector").Should().BeFalse();
         XVector.Equals(vector, new XVector(1, 3)).Should().BeFalse();
         vector.GetHashCode().Should().Be(new XVector(1, 2).GetHashCode());

@@ -25,7 +25,7 @@ public class WrapStyleSerializationTests
         get
         {
             var data = new TheoryData<WrapStyle>();
-            foreach (WrapStyle style in Enum.GetValues<WrapStyle>())
+            foreach (var style in Enum.GetValues<WrapStyle>())
                 data.Add(style);
             return data;
         }
@@ -104,7 +104,7 @@ public class WrapStyleSerializationTests
         values.Should().Contain(new[]
         {
             WrapStyle.TopBottom, WrapStyle.None, WrapStyle.Through,
-            WrapStyle.Left, WrapStyle.Right, WrapStyle.Largest, WrapStyle.Both,
+            WrapStyle.Left, WrapStyle.Right, WrapStyle.Largest, WrapStyle.Both
         });
     }
 
@@ -138,11 +138,11 @@ public class WrapStyleSerializationTests
         return DdlReader.DocumentFromString(Written(build));
     }
 
-    static PinataLayout.DocumentObjectModel.Shapes.TextFrame FrameIn(Document document)
+    static TextFrame FrameIn(Document document)
     {
-        var section = document.Sections[0] as Section;
+        var section = document.Sections[0];
         return section.Elements
-            .OfType<PinataLayout.DocumentObjectModel.Shapes.TextFrame>()
+            .OfType<TextFrame>()
             .Single();
     }
 }

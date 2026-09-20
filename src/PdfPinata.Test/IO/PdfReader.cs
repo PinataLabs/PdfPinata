@@ -22,6 +22,7 @@ public class PdfReader
     public void WillThrowExceptionWhenReadingInvalidPdf()
     {
         using var fs = File.OpenRead(PathHelper.GetInstance().GetAssetPath("NotAValid.pdf"));
+        // ReSharper disable once AccessToDisposedClosure
         Action act = () => Pdf.IO.PdfReader.Open(fs, PdfDocumentOpenMode.ReadOnly);
         act.Should().Throw<InvalidOperationException>().WithMessage("The file is not a valid PDF document.");
     }

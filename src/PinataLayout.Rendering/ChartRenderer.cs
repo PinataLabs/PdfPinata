@@ -24,7 +24,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -47,9 +47,11 @@ internal class ChartRenderer : ShapeRenderer
     : base(gfx, chart, fieldInfos)
   {
     this.chart = chart;
-    ChartRenderInfo renderInfo = new ChartRenderInfo();
-    renderInfo.shape = shape;
-    this.renderInfo = renderInfo;
+    var chartRenderInfo = new ChartRenderInfo
+    {
+      shape = shape
+    };
+    this.renderInfo = chartRenderInfo;
   }
 
   internal ChartRenderer(XGraphics gfx, RenderInfo renderInfo, FieldInfos fieldInfos)
@@ -63,12 +65,12 @@ internal class ChartRenderer : ShapeRenderer
     if (area == null)
       return null;
 
-    FormattedTextArea formattedTextArea = new FormattedTextArea(documentRenderer, area, fieldInfos);
+    var formattedTextArea = new FormattedTextArea(DocumentRenderer, area, fieldInfos);
 
     if (!double.IsNaN(width))
       formattedTextArea.InnerWidth = width;
 
-    formattedTextArea.Format(gfx);
+    formattedTextArea.Format(Gfx);
     return formattedTextArea;
   }
 
@@ -80,8 +82,8 @@ internal class ChartRenderer : ShapeRenderer
   void GetLeftRightVerticalPosition(out XUnit top, out XUnit bottom)
   {
     //REM: Line width is still ignored while layouting charts.
-    Area contentArea = renderInfo.LayoutInfo.ContentArea;
-    ChartFormatInfo formatInfo = (ChartFormatInfo)renderInfo.FormatInfo;
+    var contentArea = renderInfo.LayoutInfo.ContentArea;
+    var formatInfo = (ChartFormatInfo)renderInfo.FormatInfo;
     top = contentArea.Y;
 
     if (formatInfo.formattedHeader != null)
@@ -94,80 +96,80 @@ internal class ChartRenderer : ShapeRenderer
 
   Rectangle GetLeftRect()
   {
-    Area contentArea = renderInfo.LayoutInfo.ContentArea;
-    ChartFormatInfo formatInfo = (ChartFormatInfo)renderInfo.FormatInfo;
+    var contentArea = renderInfo.LayoutInfo.ContentArea;
+    var formatInfo = (ChartFormatInfo)renderInfo.FormatInfo;
     XUnit top;
     XUnit bottom;
     GetLeftRightVerticalPosition(out top, out bottom);
 
-    XUnit left = contentArea.X;
-    XUnit width = formatInfo.formattedLeft.InnerWidth;
+    var left = contentArea.X;
+    var width = formatInfo.formattedLeft.InnerWidth;
 
     return new Rectangle(left, top, width, bottom - top);
   }
 
   Rectangle GetRightRect()
   {
-    Area contentArea = renderInfo.LayoutInfo.ContentArea;
-    ChartFormatInfo formatInfo = (ChartFormatInfo)renderInfo.FormatInfo;
+    var contentArea = renderInfo.LayoutInfo.ContentArea;
+    var formatInfo = (ChartFormatInfo)renderInfo.FormatInfo;
     XUnit top;
     XUnit bottom;
     GetLeftRightVerticalPosition(out top, out bottom);
 
     XUnit left = contentArea.X + contentArea.Width - formatInfo.formattedRight.InnerWidth;
-    XUnit width = formatInfo.formattedRight.InnerWidth;
+    var width = formatInfo.formattedRight.InnerWidth;
 
     return new Rectangle(left, top, width, bottom - top);
   }
 
   Rectangle GetHeaderRect()
   {
-    Area contentArea = renderInfo.LayoutInfo.ContentArea;
-    ChartFormatInfo formatInfo = (ChartFormatInfo)renderInfo.FormatInfo;
+    var contentArea = renderInfo.LayoutInfo.ContentArea;
+    var formatInfo = (ChartFormatInfo)renderInfo.FormatInfo;
 
-    XUnit left = contentArea.X;
-    XUnit top = contentArea.Y;
-    XUnit width = contentArea.Width;
-    XUnit height = formatInfo.formattedHeader.InnerHeight;
+    var left = contentArea.X;
+    var top = contentArea.Y;
+    var width = contentArea.Width;
+    var height = formatInfo.formattedHeader.InnerHeight;
 
     return new Rectangle(left, top, width, height);
   }
 
   Rectangle GetFooterRect()
   {
-    Area contentArea = renderInfo.LayoutInfo.ContentArea;
-    ChartFormatInfo formatInfo = (ChartFormatInfo)renderInfo.FormatInfo;
+    var contentArea = renderInfo.LayoutInfo.ContentArea;
+    var formatInfo = (ChartFormatInfo)renderInfo.FormatInfo;
 
-    XUnit left = contentArea.X;
+    var left = contentArea.X;
     XUnit top = contentArea.Y + contentArea.Height - formatInfo.formattedFooter.InnerHeight;
-    XUnit width = contentArea.Width;
-    XUnit height = formatInfo.formattedFooter.InnerHeight;
+    var width = contentArea.Width;
+    var height = formatInfo.formattedFooter.InnerHeight;
 
     return new Rectangle(left, top, width, height);
   }
 
   Rectangle GetTopRect()
   {
-    Area contentArea = renderInfo.LayoutInfo.ContentArea;
-    ChartFormatInfo formatInfo = (ChartFormatInfo)renderInfo.FormatInfo;
+    var contentArea = renderInfo.LayoutInfo.ContentArea;
+    var formatInfo = (ChartFormatInfo)renderInfo.FormatInfo;
 
     XUnit left;
     XUnit right;
     GetTopBottomHorizontalPosition(out left, out right);
 
-    XUnit top = contentArea.Y;
+    var top = contentArea.Y;
     if (formatInfo.formattedHeader != null)
       top += formatInfo.formattedHeader.InnerHeight;
 
-    XUnit height = formatInfo.formattedTop.InnerHeight;
+    var height = formatInfo.formattedTop.InnerHeight;
 
     return new Rectangle(left, top, right - left, height);
   }
 
   Rectangle GetBottomRect()
   {
-    Area contentArea = renderInfo.LayoutInfo.ContentArea;
-    ChartFormatInfo formatInfo = (ChartFormatInfo)renderInfo.FormatInfo;
+    var contentArea = renderInfo.LayoutInfo.ContentArea;
+    var formatInfo = (ChartFormatInfo)renderInfo.FormatInfo;
 
     XUnit left;
     XUnit right;
@@ -177,15 +179,15 @@ internal class ChartRenderer : ShapeRenderer
     if (formatInfo.formattedFooter != null)
       top -= formatInfo.formattedFooter.InnerHeight;
 
-    XUnit height = formatInfo.formattedBottom.InnerHeight;
+    var height = formatInfo.formattedBottom.InnerHeight;
     return new Rectangle(left, top, right - left, height);
   }
 
   Rectangle GetPlotRect()
   {
-    Area contentArea = renderInfo.LayoutInfo.ContentArea;
-    ChartFormatInfo formatInfo = (ChartFormatInfo)renderInfo.FormatInfo;
-    XUnit top = contentArea.Y;
+    var contentArea = renderInfo.LayoutInfo.ContentArea;
+    var formatInfo = (ChartFormatInfo)renderInfo.FormatInfo;
+    var top = contentArea.Y;
     if (formatInfo.formattedHeader != null)
       top += formatInfo.formattedHeader.InnerHeight;
 
@@ -199,7 +201,7 @@ internal class ChartRenderer : ShapeRenderer
     if (formatInfo.formattedBottom != null)
       bottom -= formatInfo.formattedBottom.InnerHeight;
 
-    XUnit left = contentArea.X;
+    var left = contentArea.X;
     if (formatInfo.formattedLeft != null)
       left += formatInfo.formattedLeft.InnerWidth;
 
@@ -212,9 +214,9 @@ internal class ChartRenderer : ShapeRenderer
 
   internal override void Format(Area area, FormatInfo previousFormatInfo)
   {
-    ChartFormatInfo formatInfo = (ChartFormatInfo)renderInfo.FormatInfo;
+    var formatInfo = (ChartFormatInfo)renderInfo.FormatInfo;
 
-    TextArea textArea = (TextArea)chart.GetValue("HeaderArea", GV.ReadOnly);
+    var textArea = (TextArea)chart.GetValue("HeaderArea", GV.ReadOnly);
     formatInfo.formattedHeader = GetFormattedTextArea(textArea, chart.Width.Point);
 
     textArea = (TextArea)chart.GetValue("FooterArea", GV.ReadOnly);
@@ -257,7 +259,7 @@ internal class ChartRenderer : ShapeRenderer
   /// <returns>The width of the top and bottom area</returns>
   private XUnit GetTopBottomWidth()
   {
-    ChartFormatInfo formatInfo = (ChartFormatInfo)renderInfo.FormatInfo;
+    var formatInfo = (ChartFormatInfo)renderInfo.FormatInfo;
     XUnit width = chart.Width.Point;
     if (formatInfo.formattedRight != null)
       width -= formatInfo.formattedRight.InnerWidth;
@@ -274,8 +276,8 @@ internal class ChartRenderer : ShapeRenderer
   /// <param name="right">The right boundary of the top and bottom area</param>
   private void GetTopBottomHorizontalPosition(out XUnit left, out XUnit right)
   {
-    Area contentArea = renderInfo.LayoutInfo.ContentArea;
-    ChartFormatInfo formatInfo = (ChartFormatInfo)renderInfo.FormatInfo;
+    var contentArea = renderInfo.LayoutInfo.ContentArea;
+    var formatInfo = (ChartFormatInfo)renderInfo.FormatInfo;
     left = contentArea.X;
     right = contentArea.X + contentArea.Width;
 
@@ -291,34 +293,32 @@ internal class ChartRenderer : ShapeRenderer
       return;
 
 
-    TextArea textArea = area.textArea;
+    var textArea = area.textArea;
 
 
-    FillFormatRenderer fillFormatRenderer = new FillFormatRenderer((FillFormat)textArea.GetValue("FillFormat", GV.ReadOnly), gfx);
-    fillFormatRenderer.Render(rect.X, rect.Y, rect.Width, rect.Height);
+    var fillRenderer = new FillFormatRenderer((FillFormat)textArea.GetValue("FillFormat", GV.ReadOnly), Gfx);
+    fillRenderer.Render(rect.X, rect.Y, rect.Width, rect.Height);
 
-    XUnit top = rect.Y;
+    var top = rect.Y;
     top += textArea.TopPadding;
     XUnit bottom = rect.Y + rect.Height;
     bottom -= textArea.BottomPadding;
     top = AlignVertically(textArea.VerticalAlignment, top, bottom, area.ContentHeight);
 
-    XUnit left = rect.X;
+    var left = rect.X;
     left += textArea.LeftPadding;
 
-    RenderInfo[] renderInfos = area.GetRenderInfos();
+    var renderInfos = area.GetRenderInfos();
     RenderByInfos(left, top, renderInfos);
 
-    LineFormatRenderer lineFormatRenderer = new LineFormatRenderer((LineFormat)textArea.GetValue("LineFormat", GV.ReadOnly), gfx);
-    lineFormatRenderer.Render(rect.X, rect.Y, rect.Width, rect.Height);
+    var lineRenderer = new LineFormatRenderer((LineFormat)textArea.GetValue("LineFormat", GV.ReadOnly), Gfx);
+    lineRenderer.Render(rect.X, rect.Y, rect.Width, rect.Height);
   }
 
   internal override void Render()
   {
-    using (Tagger.Artifact(gfx))
+    using (Tagger.Artifact(Gfx))
       RenderFilling();
-
-    Area contentArea = renderInfo.LayoutInfo.ContentArea;
 
     // A chart is a picture of data, and to a reader who cannot see it that is all it is: axis labels
     // and data labels read out in drawing order say nothing about the shape they describe. So it is
@@ -328,7 +328,7 @@ internal class ChartRenderer : ShapeRenderer
     Tagger.EndList();
     using (BeginStructure())
     {
-      ChartFormatInfo formatInfo = (ChartFormatInfo)renderInfo.FormatInfo;
+      var formatInfo = (ChartFormatInfo)renderInfo.FormatInfo;
       if (formatInfo.formattedHeader != null)
         RenderArea(formatInfo.formattedHeader, GetHeaderRect());
 
@@ -347,12 +347,12 @@ internal class ChartRenderer : ShapeRenderer
       if (formatInfo.formattedRight != null)
         RenderArea(formatInfo.formattedRight, GetRightRect());
 
-      PlotArea plotArea = (PlotArea)chart.GetValue("PlotArea", GV.ReadOnly);
+      var plotArea = (PlotArea)chart.GetValue("PlotArea", GV.ReadOnly);
       if (plotArea != null)
         RenderPlotArea(plotArea, GetPlotRect());
     }
 
-    using (Tagger.Artifact(gfx))
+    using (Tagger.Artifact(Gfx))
       RenderLine();
   }
 
@@ -363,9 +363,9 @@ internal class ChartRenderer : ShapeRenderer
   IDisposable BeginStructure()
   {
     if (chart.IsNull("AlternativeText") || string.IsNullOrEmpty(chart.AlternativeText))
-      return Tagger.Artifact(gfx);
+      return Tagger.Artifact(Gfx);
 
-    var scope = Tagger.Block(gfx, chart, PdfTag.Figure, out var element);
+    var scope = Tagger.Block(Gfx, chart, PdfTag.Figure, out var element);
     if (element != null)
       element.AlternateText = chart.AlternativeText;
 
@@ -374,15 +374,15 @@ internal class ChartRenderer : ShapeRenderer
 
   void RenderPlotArea(PlotArea area, Rectangle rect)
   {
-    PdfPinata.Charting.ChartFrame chartFrame = ((ChartFormatInfo)renderInfo.FormatInfo).chartFrame;
+    var chartFrame = ((ChartFormatInfo)renderInfo.FormatInfo).chartFrame;
 
-    XUnit top = rect.Y;
+    var top = rect.Y;
     top += area.TopPadding;
 
     XUnit bottom = rect.Y + rect.Height;
     bottom -= area.BottomPadding;
 
-    XUnit left = rect.X;
+    var left = rect.X;
     left += area.LeftPadding;
 
     XUnit right = rect.X + rect.Width;
@@ -390,7 +390,7 @@ internal class ChartRenderer : ShapeRenderer
 
     chartFrame.Location = new XPoint(left, top);
     chartFrame.Size = new XSize(right - left, bottom - top);
-    chartFrame.DrawChart(gfx);
+    chartFrame.DrawChart(Gfx);
   }
   Chart chart;
 }

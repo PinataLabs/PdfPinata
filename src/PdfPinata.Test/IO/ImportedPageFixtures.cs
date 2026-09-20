@@ -38,7 +38,7 @@ internal static class ImportedPageFixtures
             Image(),
             Content("Im0"),
             Content("Im1"),
-            Content("Im2"),
+            Content("Im2")
         };
         objects.AddRange(annotations);
 

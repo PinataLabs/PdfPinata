@@ -99,6 +99,7 @@ public partial class Table : DocumentObject, IVisitable
     /// <summary>
     /// Sets a shading of the specified Color in the specified Tablerange.
     /// </summary>
+    // ReSharper disable once ParameterHidesMember
     public void SetShading(int clm, int row, int clms, int rows, Color clr)
     {
         // Through the properties rather than the fields: the fields are null until something has
@@ -138,15 +139,15 @@ public partial class Table : DocumentObject, IVisitable
     ///   once both sides say so. Writing one side alone leaves the other inheriting whatever the
     ///   table, row or column says, which is how a cleared interior border used to survive.
     /// </remarks>
-    public void SetEdge(int clm, int row, int clms, int rows,
-        Edge edge, BorderStyle style, Unit width, Color clr)
+    public void SetEdge(int clm, int row, int clms, int rowCount,
+        Edge edge, BorderStyle borderStyle, Unit width, Color clr)
     {
-        var maxRow = row + rows - 1;
+        var maxRow = row + rowCount - 1;
         var maxClm = clm + clms - 1;
 
         void Apply(Border border)
         {
-            border.Style = style;
+            border.Style = borderStyle;
             border.Width = width;
             if (clr != Color.Empty)
                 border.Color = clr;
@@ -195,9 +196,9 @@ public partial class Table : DocumentObject, IVisitable
     /// <summary>
     /// Sets the borders surrounding the specified range of the table.
     /// </summary>
-    public void SetEdge(int clm, int row, int clms, int rows, Edge edge, BorderStyle style, Unit width)
+    public void SetEdge(int clm, int row, int clms, int rowCount, Edge edge, BorderStyle borderStyle, Unit width)
     {
-        SetEdge(clm, row, clms, rows, edge, style, width, Color.Empty);
+        SetEdge(clm, row, clms, rowCount, edge, borderStyle, width, Color.Empty);
     }
 
     #endregion

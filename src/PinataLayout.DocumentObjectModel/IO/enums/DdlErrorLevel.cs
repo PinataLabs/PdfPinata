@@ -55,5 +55,5 @@ public enum DdlErrorLevel
   /// <summary>
   /// An error diagnostic.
   /// </summary>
-  Error,
+  Error
 }

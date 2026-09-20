@@ -60,5 +60,5 @@ public enum PdfAConformance
     /// PDF/A-3a (ISO 19005-3). PDF/A-3b plus a tagged structure tree, so a hybrid e-invoice can be
     /// accessible as well as carry its attachment.
     /// </summary>
-    PdfA3A,
+    PdfA3A
 }

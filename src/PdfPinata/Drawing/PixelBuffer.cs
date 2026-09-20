@@ -51,7 +51,7 @@ public readonly struct PixelBuffer
         if (height < 0)
             throw new ArgumentOutOfRangeException(nameof(height), height, "Height cannot be negative.");
 
-        long expected = (long)width * height * BytesPerPixel;
+        var expected = (long)width * height * BytesPerPixel;
         if (pixels.Length != expected)
             throw new ArgumentException(
                 "A " + width + "x" + height + " PixelBuffer needs exactly " + expected

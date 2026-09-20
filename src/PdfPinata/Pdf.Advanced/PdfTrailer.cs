@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -63,7 +63,7 @@ internal class PdfTrailer : PdfDictionary  // Reference: 3.4.4  File Trailer / P
         // /Root 1 0 R
         // /Size 10
 
-        PdfReference iref = trailer.Elements.GetReference(Keys.Info);
+        var iref = trailer.Elements.GetReference(Keys.Info);
         if (iref != null)
             Elements.SetReference(Keys.Info, iref);
 
@@ -71,7 +71,7 @@ internal class PdfTrailer : PdfDictionary  // Reference: 3.4.4  File Trailer / P
 
         Elements.SetInteger(Keys.Size, trailer.Elements.GetInteger(Keys.Size));
 
-        PdfArray id = trailer.Elements.GetArray(Keys.ID);
+        var id = trailer.Elements.GetArray(Keys.ID);
         if (id != null)
             Elements.SetValue(Keys.ID, id);
     }
@@ -104,10 +104,10 @@ internal class PdfTrailer : PdfDictionary  // Reference: 3.4.4  File Trailer / P
         if (index < 0 || index > 1)
             throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be 0 or 1.");
 
-        PdfArray array = Elements[Keys.ID] as PdfArray;
+        var array = Elements[Keys.ID] as PdfArray;
         if (array == null || array.Elements.Count < 2)
             return "";
-        PdfItem item = array.Elements[index];
+        var item = array.Elements[index];
         if (item is PdfString)
             return ((PdfString)item).Value;
         return "";
@@ -121,7 +121,7 @@ internal class PdfTrailer : PdfDictionary  // Reference: 3.4.4  File Trailer / P
         if (index < 0 || index > 1)
             throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be 0 or 1.");
 
-        PdfArray array = Elements[Keys.ID] as PdfArray;
+        var array = Elements[Keys.ID] as PdfArray;
         if (array == null || array.Elements.Count < 2)
             array = CreateNewDocumentIDs();
         array.Elements[index] = new PdfString(value, PdfStringFlags.HexLiteral);
@@ -132,9 +132,9 @@ internal class PdfTrailer : PdfDictionary  // Reference: 3.4.4  File Trailer / P
     /// </summary>
     internal PdfArray CreateNewDocumentIDs()
     {
-        PdfArray array = new PdfArray(_document);
-        byte[] docID = Guid.NewGuid().ToByteArray();
-        string id = PdfEncoders.RawEncoding.GetString(docID, 0, docID.Length);
+        var array = new PdfArray(_document);
+        var docId = Guid.NewGuid().ToByteArray();
+        var id = PdfEncoders.RawEncoding.GetString(docId, 0, docId.Length);
         array.Elements.Add(new PdfString(id, PdfStringFlags.HexLiteral));
         array.Elements.Add(new PdfString(id, PdfStringFlags.HexLiteral));
         Elements[Keys.ID] = array;
@@ -158,11 +158,11 @@ internal class PdfTrailer : PdfDictionary  // Reference: 3.4.4  File Trailer / P
     internal override void WriteObject(PdfWriter writer)
     {
         // Delete /XRefStm entry, if any.
-        // HACK: 
+        // HACK:
         _elements.Remove(Keys.XRefStm);
 
         // Don't encrypt myself
-        PdfStandardSecurityHandler securityHandler = writer.SecurityHandler;
+        var securityHandler = writer.SecurityHandler;
         writer.SecurityHandler = null;
         base.WriteObject(writer);
         writer.SecurityHandler = securityHandler;
@@ -174,7 +174,7 @@ internal class PdfTrailer : PdfDictionary  // Reference: 3.4.4  File Trailer / P
     internal void Finish()
     {
         // /Root
-        PdfReference iref = _document._trailer.Elements[Keys.Root] as PdfReference;
+        var iref = _document._trailer.Elements[Keys.Root] as PdfReference;
         if (iref != null && iref.Value == null)
         {
             iref = _document._irefTable[iref.ObjectID];
@@ -212,7 +212,7 @@ internal class PdfTrailer : PdfDictionary  // Reference: 3.4.4  File Trailer / P
     internal class Keys : KeysBase  // Reference: TABLE 3.13  Entries in the file trailer dictionary / Page 97
     {
         /// <summary>
-        /// (Required; must not be an indirect reference) The total number of entries in the file’s 
+        /// (Required; must not be an indirect reference) The total number of entries in the file’s
         /// cross-reference table, as defined by the combination of the original section and all
         /// update sections. Equivalently, this value is 1 greater than the highest object number
         /// used in the file.
@@ -224,7 +224,7 @@ internal class PdfTrailer : PdfDictionary  // Reference: 3.4.4  File Trailer / P
 
         /// <summary>
         /// (Present only if the file has more than one cross-reference section; must not be an indirect
-        /// reference) The byte offset from the beginning of the file to the beginning of the previous 
+        /// reference) The byte offset from the beginning of the file to the beginning of the previous
         /// cross-reference section.
         /// </summary>
         [KeyInfo(KeyType.Integer | KeyType.Optional)]
@@ -251,7 +251,7 @@ internal class PdfTrailer : PdfDictionary  // Reference: 3.4.4  File Trailer / P
 
         /// <summary>
         /// (Optional, but strongly recommended; PDF 1.1) An array of two strings constituting
-        /// a file identifier for the file. Although this entry is optional, 
+        /// a file identifier for the file. Although this entry is optional,
         /// its absence might prevent the file from functioning in some workflows
         /// that depend on files being uniquely identified.
         /// </summary>

@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -90,39 +90,39 @@ public class ChartFrame
   public void Draw(XGraphics gfx)
   {
     // Draw frame of ChartFrame. First shadow frame.
-    int dx = 5;
-    int dy = 5;
+    var dx = 5;
+    var dy = 5;
     gfx.DrawRoundedRectangle(XBrushes.Gainsboro,
       this.location.X + dx, this.location.Y + dy,
       this.size.Width, this.size.Height, 20, 20);
 
-    XRect chartRect = new XRect(this.location.X, this.location.Y, this.size.Width, this.size.Height);
-    XLinearGradientBrush brush = new XLinearGradientBrush(chartRect, XColor.FromArgb(0xFFD0DEEF), XColors.White,
+    var chartRect = new XRect(this.location.X, this.location.Y, this.size.Width, this.size.Height);
+    var brush = new XLinearGradientBrush(chartRect, XColor.FromArgb(0xFFD0DEEF), XColors.White,
       XLinearGradientMode.Vertical);
-    XPen penBorder = new XPen(XColors.SteelBlue, 2.5);
+    var penBorder = new XPen(XColors.SteelBlue, 2.5);
     gfx.DrawRoundedRectangle(penBorder, brush,
       this.location.X, this.location.Y, this.size.Width, this.size.Height,
       15, 15);
 
-    XGraphicsState state = gfx.Save();
+    var state = gfx.Save();
     gfx.TranslateTransform(this.location.X, this.location.Y);
 
     // Calculate rectangle for all charts. Y-Position will be moved for each chart.
-    int charts = this.chartList.Count;
+    var charts = this.chartList.Count;
     uint dxChart = 20;
     uint dyChart = 20;
     uint dyBetweenCharts = 30;
-    XRect rect = new XRect(dxChart, dyChart,
+    var rect = new XRect(dxChart, dyChart,
       this.size.Width - 2 * dxChart,
       (this.size.Height - (charts - 1) * dyBetweenCharts - 2 * dyChart) / charts);
 
     // draw each chart in list
     foreach (Chart chart in this.chartList)
     {
-      RendererParameters parms = new RendererParameters(gfx, rect);
+      var parms = new RendererParameters(gfx, rect);
       parms.DrawingItem = chart;
 
-      ChartRenderer renderer = GetChartRenderer(chart, parms);
+      var renderer = GetChartRenderer(chart, parms);
       renderer.Init();
       renderer.Format();
       renderer.Draw();
@@ -160,17 +160,17 @@ public class ChartFrame
   /// </summary>
   public void DrawChart(XGraphics gfx)
   {
-    XGraphicsState state = gfx.Save();
+    var state = gfx.Save();
     gfx.TranslateTransform(this.location.X, this.location.Y);
 
     if (this.chartList.Count > 0)
     {
-      XRect chartRect = new XRect(0, 0, this.size.Width, this.size.Height);
-      Chart chart = (Chart)this.chartList[0];
-      RendererParameters parms = new RendererParameters(gfx, chartRect);
+      var chartRect = new XRect(0, 0, this.size.Width, this.size.Height);
+      var chart = (Chart)this.chartList[0];
+      var parms = new RendererParameters(gfx, chartRect);
       parms.DrawingItem = chart;
 
-      ChartRenderer renderer = GetChartRenderer(chart, parms);
+      var renderer = GetChartRenderer(chart, parms);
       renderer.Init();
       renderer.Format();
       renderer.Draw();
@@ -183,8 +183,8 @@ public class ChartFrame
   /// </summary>
   private static ChartRenderer GetChartRenderer(Chart chart, RendererParameters parms)
   {
-    ChartType chartType = chart.Type;
-    bool useCombinationRenderer = false;
+    var chartType = chart.Type;
+    var useCombinationRenderer = false;
 
     // The property rather than the field: SeriesCollection creates the collection the first time
     // it is asked for, so a chart nothing was ever added to has none at all, and reading the field

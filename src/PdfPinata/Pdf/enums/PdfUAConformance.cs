@@ -47,5 +47,5 @@ public enum PdfUAConformance
     /// this is a claim the library cannot yet stand behind end to end, and no document claiming it
     /// is in the gated conformance corpus — see <c>ConformanceCorpus.Corpus.Documents</c>.
     /// </remarks>
-    PdfUA2,
+    PdfUA2
 }

@@ -187,7 +187,7 @@ public class PdfStringObjectTests
             "<</Type/Catalog/Pages 2 0 R/TestText 4 0 R>>",
             "<</Type/Pages/Kids[3 0 R]/Count 1>>",
             "<</Type/Page/Parent 2 0 R/MediaBox[0 0 100 100]>>",
-            written,
+            written
         });
 
         var document = Pdf.IO.PdfReader.Open(new MemoryStream(saved), PdfDocumentOpenMode.Modify);
@@ -206,7 +206,7 @@ public class PdfStringObjectTests
             "<</Type/Catalog/Pages 2 0 R/TestText 4 0 R>>",
             "<</Type/Pages/Kids[3 0 R]/Count 1>>",
             "<</Type/Page/Parent 2 0 R/MediaBox[0 0 100 100]>>",
-            "(from another producer)",
+            "(from another producer)"
         });
 
         var document = Pdf.IO.PdfReader.Open(new MemoryStream(saved), PdfDocumentOpenMode.Modify);

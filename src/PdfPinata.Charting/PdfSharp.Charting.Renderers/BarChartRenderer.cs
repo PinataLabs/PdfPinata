@@ -49,26 +49,26 @@ internal class BarChartRenderer : ChartRenderer
   /// </summary>
   internal override RendererInfo Init()
   {
-    ChartRendererInfo cri = new ChartRendererInfo();
-    cri.chart = (Chart)this.rendererParms.DrawingItem;
+    var cri = new ChartRendererInfo();
+    cri.Chart = (Chart)this.rendererParms.DrawingItem;
     this.rendererParms.RendererInfo = cri;
 
     InitSeriesRendererInfo();
 
-    LegendRenderer lr = GetLegendRenderer();
-    cri.legendRendererInfo = (LegendRendererInfo)lr.Init();
+    var lr = GetLegendRenderer();
+    cri.LegendRendererInfo = (LegendRendererInfo)lr.Init();
 
-    VerticalXAxisRenderer xar = new VerticalXAxisRenderer(this.rendererParms);
-    cri.xAxisRendererInfo = (AxisRendererInfo)xar.Init();
+    var xar = new VerticalXAxisRenderer(this.rendererParms);
+    cri.XAxisRendererInfo = (AxisRendererInfo)xar.Init();
 
-    YAxisRenderer yar = GetYAxisRenderer();
-    cri.yAxisRendererInfo = (AxisRendererInfo)yar.Init();
+    var yar = GetYAxisRenderer();
+    cri.YAxisRendererInfo = (AxisRendererInfo)yar.Init();
 
-    PlotArea plotArea = cri.chart.PlotArea;
-    PlotAreaRenderer renderer = GetPlotAreaRenderer();
-    cri.plotAreaRendererInfo = (PlotAreaRendererInfo)renderer.Init();
+    _ = cri.Chart.PlotArea; // creates the plot area on the chart, which the renderers below read
+    var renderer = GetPlotAreaRenderer();
+    cri.PlotAreaRendererInfo = (PlotAreaRendererInfo)renderer.Init();
 
-    BarDataLabelRenderer dlr = new BarDataLabelRenderer(this.rendererParms);
+    var dlr = new BarDataLabelRenderer(this.rendererParms);
     dlr.Init();
 
     return cri;
@@ -79,36 +79,36 @@ internal class BarChartRenderer : ChartRenderer
   /// </summary>
   internal override void Format()
   {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
 
-    LegendRenderer lr = GetLegendRenderer();
+    var lr = GetLegendRenderer();
     lr.Format();
 
     // axes
-    VerticalXAxisRenderer xar = new VerticalXAxisRenderer(this.rendererParms);
+    var xar = new VerticalXAxisRenderer(this.rendererParms);
     xar.Format();
 
-    YAxisRenderer yar = GetYAxisRenderer();
+    var yar = GetYAxisRenderer();
     yar.Format();
 
     // Calculate rects and positions.
-    XRect chartRect = LayoutLegend();
-    cri.xAxisRendererInfo.X = chartRect.Left;
-    cri.xAxisRendererInfo.Y = chartRect.Top;
-    cri.xAxisRendererInfo.Height = chartRect.Height - cri.yAxisRendererInfo.Height;
-    cri.yAxisRendererInfo.X = chartRect.Left + cri.xAxisRendererInfo.Width;
-    cri.yAxisRendererInfo.Y = chartRect.Bottom - cri.yAxisRendererInfo.Height;
-    cri.yAxisRendererInfo.Width = chartRect.Width - cri.xAxisRendererInfo.Width;
-    cri.plotAreaRendererInfo.X = cri.yAxisRendererInfo.X;
-    cri.plotAreaRendererInfo.Y = cri.xAxisRendererInfo.Y;
-    cri.plotAreaRendererInfo.Width = cri.yAxisRendererInfo.InnerRect.Width;
-    cri.plotAreaRendererInfo.Height = cri.xAxisRendererInfo.Height;
+    var chartRect = LayoutLegend();
+    cri.XAxisRendererInfo.X = chartRect.Left;
+    cri.XAxisRendererInfo.Y = chartRect.Top;
+    cri.XAxisRendererInfo.Height = chartRect.Height - cri.YAxisRendererInfo.Height;
+    cri.YAxisRendererInfo.X = chartRect.Left + cri.XAxisRendererInfo.Width;
+    cri.YAxisRendererInfo.Y = chartRect.Bottom - cri.YAxisRendererInfo.Height;
+    cri.YAxisRendererInfo.Width = chartRect.Width - cri.XAxisRendererInfo.Width;
+    cri.PlotAreaRendererInfo.X = cri.YAxisRendererInfo.X;
+    cri.PlotAreaRendererInfo.Y = cri.XAxisRendererInfo.Y;
+    cri.PlotAreaRendererInfo.Width = cri.YAxisRendererInfo.InnerRect.Width;
+    cri.PlotAreaRendererInfo.Height = cri.XAxisRendererInfo.Height;
 
     // Calculated remaining plot area, now it's safe to format.
-    PlotAreaRenderer renderer = GetPlotAreaRenderer();
+    var renderer = GetPlotAreaRenderer();
     renderer.Format();
 
-    BarDataLabelRenderer dlr = new BarDataLabelRenderer(this.rendererParms);
+    var dlr = new BarDataLabelRenderer(this.rendererParms);
     dlr.Format();
   }
 
@@ -117,35 +117,35 @@ internal class BarChartRenderer : ChartRenderer
   /// </summary>
   internal override void Draw()
   {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
       
-    LegendRenderer lr = GetLegendRenderer();
+    var lr = GetLegendRenderer();
     lr.Draw();
 
-    WallRenderer wr = new WallRenderer(this.rendererParms);
+    var wr = new WallRenderer(this.rendererParms);
     wr.Draw();
 
-    BarGridlinesRenderer glr = new BarGridlinesRenderer(this.rendererParms);
+    var glr = new BarGridlinesRenderer(this.rendererParms);
     glr.Draw();
 
-    PlotAreaBorderRenderer pabr = new PlotAreaBorderRenderer(this.rendererParms);
+    var pabr = new PlotAreaBorderRenderer(this.rendererParms);
     pabr.Draw();
 
-    PlotAreaRenderer renderer = GetPlotAreaRenderer();
+    var renderer = GetPlotAreaRenderer();
     renderer.Draw();
 
-    BarDataLabelRenderer dlr = new BarDataLabelRenderer(this.rendererParms);
+    var dlr = new BarDataLabelRenderer(this.rendererParms);
     dlr.Draw();
 
-    if (cri.xAxisRendererInfo.axis != null)
+    if (cri.XAxisRendererInfo.Axis != null)
     {
-      VerticalXAxisRenderer xar = new VerticalXAxisRenderer(this.rendererParms);
+      var xar = new VerticalXAxisRenderer(this.rendererParms);
       xar.Draw();
     }
 
-    if (cri.yAxisRendererInfo.axis != null)
+    if (cri.YAxisRendererInfo.Axis != null)
     {
-      YAxisRenderer yar = GetYAxisRenderer();
+      var yar = GetYAxisRenderer();
       yar.Draw();
     }
   }
@@ -155,7 +155,7 @@ internal class BarChartRenderer : ChartRenderer
   /// </summary>
   private PlotAreaRenderer GetPlotAreaRenderer()
   {
-    Chart chart = (Chart)this.rendererParms.DrawingItem;
+    var chart = (Chart)this.rendererParms.DrawingItem;
     switch (chart.type)
     {
       case ChartType.Bar2D:
@@ -172,7 +172,7 @@ internal class BarChartRenderer : ChartRenderer
   /// </summary>
   private LegendRenderer GetLegendRenderer()
   {
-    Chart chart = (Chart)this.rendererParms.DrawingItem;
+    var chart = (Chart)this.rendererParms.DrawingItem;
     switch (chart.type)
     {
       case ChartType.Bar2D:
@@ -189,7 +189,7 @@ internal class BarChartRenderer : ChartRenderer
   /// </summary>
   private YAxisRenderer GetYAxisRenderer()
   {
-    Chart chart = (Chart)this.rendererParms.DrawingItem;
+    var chart = (Chart)this.rendererParms.DrawingItem;
     switch (chart.type)
     {
       case ChartType.Bar2D:
@@ -206,16 +206,16 @@ internal class BarChartRenderer : ChartRenderer
   /// </summary>
   private void InitSeriesRendererInfo()
   {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
 
-    SeriesCollection seriesColl = cri.chart.SeriesCollection;
-    cri.seriesRendererInfos = new SeriesRendererInfo[seriesColl.Count];
+    var seriesColl = cri.Chart.SeriesCollection;
+    cri.SeriesRendererInfos = new SeriesRendererInfo[seriesColl.Count];
     // Lowest series is the first, like in Excel 
-    for (int idx = 0; idx < seriesColl.Count; ++idx)
+    for (var idx = 0; idx < seriesColl.Count; ++idx)
     {
-      SeriesRendererInfo sri = new SeriesRendererInfo();
-      sri.series = seriesColl[idx];
-      cri.seriesRendererInfos[idx] = sri;
+      var sri = new SeriesRendererInfo();
+      sri.Series = seriesColl[idx];
+      cri.SeriesRendererInfos[idx] = sri;
     }
 
     InitSeries();
@@ -226,20 +226,20 @@ internal class BarChartRenderer : ChartRenderer
   /// </summary>
   internal void InitSeries()
   {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
 
-    int seriesIndex = 0;
-    foreach (SeriesRendererInfo sri in cri.seriesRendererInfos)
+    var seriesIndex = 0;
+    foreach (var sri in cri.SeriesRendererInfos)
     {
-      sri.LineFormat = Converter.ToXPen(sri.series.lineFormat, XColors.Black, ChartRenderer.DefaultSeriesLineWidth);
-      sri.FillFormat = Converter.ToXBrush(sri.series.fillFormat, ColumnColors.Item(seriesIndex++));
+      sri.LineFormat = Converter.ToXPen(sri.Series.lineFormat, XColors.Black, ChartRenderer.DefaultSeriesLineWidth);
+      sri.FillFormat = Converter.ToXBrush(sri.Series.fillFormat, ColumnColors.Item(seriesIndex++));
 
-      sri.pointRendererInfos = new ColumnRendererInfo[sri.series.Elements.Count];
-      for (int pointIdx = 0; pointIdx < sri.pointRendererInfos.Length; ++pointIdx)
+      sri.PointRendererInfos = new PointRendererInfo[sri.Series.Elements.Count];
+      for (var pointIdx = 0; pointIdx < sri.PointRendererInfos.Length; ++pointIdx)
       {
         PointRendererInfo pri = new ColumnRendererInfo();
-        Point point = sri.series.Elements[pointIdx];
-        pri.point = point;
+        var point = sri.Series.Elements[pointIdx];
+        pri.Point = point;
         if (point != null)
         {
           pri.LineFormat = sri.LineFormat;
@@ -249,7 +249,7 @@ internal class BarChartRenderer : ChartRenderer
           if (point.fillFormat != null && !point.fillFormat.color.IsEmpty)
             pri.FillFormat = new XSolidBrush(point.fillFormat.color);
         }
-        sri.pointRendererInfos[pointIdx] = pri;
+        sri.PointRendererInfos[pointIdx] = pri;
       }
     }
   }

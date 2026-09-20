@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -56,7 +56,7 @@ static class ColorHelper
 {
     public static float sRgbToScRgb(byte bval)
     {
-        float num = ((float)bval) / 255f;
+        var num = bval / 255f;
         if (num <= 0.0)
             return 0f;
         if (num <= 0.04045)
@@ -71,9 +71,9 @@ static class ColorHelper
         if (val <= 0.0)
             return 0;
         if (val <= 0.0031308)
-            return (byte)(((255f * val) * 12.92f) + 0.5f);
+            return (byte)((255f * val * 12.92f) + 0.5f);
         if (val < 1.0)
-            return (byte)((255f * ((1.055f * ((float)Math.Pow((double)val, 0.41666666666666669))) - 0.055f)) + 0.5f);
+            return (byte)(255f * ((1.055f * ((float)Math.Pow(val, 0.41666666666666669))) - 0.055f) + 0.5f);
         return 0xff;
     }
 }

@@ -119,9 +119,9 @@ public abstract class FontResolverBase
     /// </remarks>
     protected virtual FontMetadata[] ReadCollectionMetadata(string fontFilePath, int faceCount)
     {
-        FontMetadata[] metadata = new FontMetadata[faceCount];
+        var metadata = new FontMetadata[faceCount];
 
-        for (int face = 0; face < faceCount; face++)
+        for (var face = 0; face < faceCount; face++)
             metadata[face] = ReadFontMetadata(fontFilePath, face);
 
         return metadata;
@@ -161,7 +161,7 @@ public abstract class FontResolverBase
     {
         string fontDir;
 
-        bool isOSX = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.OSX);
+        var isOSX = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.OSX);
         if (isOSX)
         {
             fontDir = "/Library/Fonts/";
@@ -171,13 +171,13 @@ public abstract class FontResolverBase
             return FontFileTypes.In(fontDir).ToArray();
         }
 
-        bool isLinux = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Linux);
+        var isLinux = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Linux);
         if (isLinux)
         {
             return LinuxSystemFontResolver.Resolve();
         }
 
-        bool isWindows = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows);
+        var isWindows = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows);
         if (isWindows)
         {
             fontDir = System.Environment.ExpandEnvironmentVariables(@"%SystemRoot%\Fonts");
@@ -223,12 +223,12 @@ public abstract class FontResolverBase
     /// </summary>
     public void SetupFontsFiles(string[] sSupportedFonts)
     {
-        Dictionary<string, FaceLocation> facePaths = new Dictionary<string, FaceLocation>(System.StringComparer.OrdinalIgnoreCase);
-        List<FontFileInfo> tempFontInfoList = new List<FontFileInfo>();
+        var facePaths = new Dictionary<string, FaceLocation>(System.StringComparer.OrdinalIgnoreCase);
+        var tempFontInfoList = new List<FontFileInfo>();
 
-        foreach (string fontPathFile in sSupportedFonts)
+        foreach (var fontPathFile in sSupportedFonts)
         {
-            string fileName = System.IO.Path.GetFileName(fontPathFile);
+            var fileName = System.IO.Path.GetFileName(fontPathFile);
 
             int faceCount;
             bool isCollection;
@@ -262,12 +262,12 @@ public abstract class FontResolverBase
                 }
             }
 
-            for (int face = 0; face < faceCount; face++)
+            for (var face = 0; face < faceCount; face++)
             {
                 // Only a member of a collection carries an index; a single font keeps the plain
                 // file name it has always been known by.
-                int faceIndex = isCollection ? face : -1;
-                string faceName = isCollection ? TrueTypeCollection.FaceName(fileName, face) : fileName;
+                var faceIndex = isCollection ? face : -1;
+                var faceName = isCollection ? TrueTypeCollection.FaceName(fileName, face) : fileName;
 
                 // Two font directories habitually hold a file of the same name - on Windows the
                 // system one and the per-user one. The first found wins, so that the face name a
@@ -295,14 +295,14 @@ public abstract class FontResolverBase
             }
         }
 
-        Dictionary<string, FontFamilyModel> installedFonts = new Dictionary<string, FontFamilyModel>();
+        var installedFonts = new Dictionary<string, FontFamilyModel>();
 
         // Deserialize all font families
-        foreach (IGrouping<string, FontFileInfo> familyGroup in tempFontInfoList.GroupBy(info => info.FamilyName))
+        foreach (var familyGroup in tempFontInfoList.GroupBy(info => info.FamilyName))
             try
             {
-                string familyName = familyGroup.Key;
-                FontFamilyModel family = DeserializeFontFamily(familyName, familyGroup);
+                var familyName = familyGroup.Key;
+                var family = DeserializeFontFamily(familyName, familyGroup);
                 installedFonts.Add(familyName.ToLower(), family);
             }
             catch (System.Exception e) when (!Unrecoverable.Is(e))
@@ -333,11 +333,11 @@ public abstract class FontResolverBase
     /// </remarks>
     private static FontFamilyModel DeserializeFontFamily(string fontFamilyName, IEnumerable<FontFileInfo> fontList)
     {
-        FontFamilyModel font = new FontFamilyModel { Name = fontFamilyName };
+        var font = new FontFamilyModel { Name = fontFamilyName };
 
-        foreach (FontFileInfo info in fontList)
+        foreach (var info in fontList)
         {
-            XFontStyle style = info.GuessFontStyle();
+            var style = info.GuessFontStyle();
             if (!font.FontFiles.ContainsKey(style))
                 font.FontFiles.Add(style, info.FaceName);
         }
@@ -350,11 +350,11 @@ public abstract class FontResolverBase
     {
         EnsureInitialized();
 
-        if (!_facePaths.TryGetValue(faceName, out FaceLocation location))
+        if (!_facePaths.TryGetValue(faceName, out var location))
             throw new System.IO.FileNotFoundException(
                 "No font file was discovered for the face name '" + faceName + "'.", faceName);
 
-        byte[] bytes = System.IO.File.ReadAllBytes(location.Path);
+        var bytes = System.IO.File.ReadAllBytes(location.Path);
 
         // A collection is taken apart here, because nothing below this point understands one.
         return location.FaceIndex < 0
@@ -381,7 +381,7 @@ public abstract class FontResolverBase
         if (_installedFonts.Count == 0)
             throw new System.IO.FileNotFoundException("No Fonts installed on this device!");
 
-        if (_installedFonts.TryGetValue(familyName.ToLower(), out FontFamilyModel family))
+        if (_installedFonts.TryGetValue(familyName.ToLower(), out var family))
             return Resolve(family, isBold, isItalic);
 
         if (NullIfFontNotFound)
@@ -403,9 +403,9 @@ public abstract class FontResolverBase
     /// </remarks>
     private static FontResolverInfo Resolve(FontFamilyModel family, bool isBold, bool isItalic)
     {
-        foreach (KeyValuePair<XFontStyle, XStyleSimulations> candidate in Candidates(isBold, isItalic))
+        foreach (var candidate in Candidates(isBold, isItalic))
         {
-            if (family.FontFiles.TryGetValue(candidate.Key, out string faceName))
+            if (family.FontFiles.TryGetValue(candidate.Key, out var faceName))
                 return new FontResolverInfo(faceName, candidate.Value);
         }
 

@@ -66,7 +66,7 @@ public class HarfBuzzShapingTests
     public void APairThatKernsIsNarrowerTogetherThanApart(string pair)
     {
         var together = Shape(pair);
-        var apart = Shape(pair.Substring(0, 1)).Width + Shape(pair.Substring(1)).Width;
+        var apart = Shape(pair[..1]).Width + Shape(pair[1..]).Width;
 
         together.Glyphs.Should().HaveCount(2, "kerning moves glyphs, it does not merge them");
         together.Width.Should().BeLessThan(apart,
@@ -136,7 +136,7 @@ public class HarfBuzzShapingTests
         // Shaped at 20 points and at 200, the run is the same - which is what lets a shaped run be
         // cached and drawn at any size, and why advances are not in points.
         using var shaper = new HarfBuzzTextShaper();
-        var small = shaper.Shape("Wave".AsSpan(), Liberation(20), XTextDirection.LeftToRight, "latn", null);
+        var small = shaper.Shape("Wave".AsSpan(), Liberation(), XTextDirection.LeftToRight, "latn", null);
         var large = shaper.Shape("Wave".AsSpan(), Liberation(200), XTextDirection.LeftToRight, "latn", null);
 
         large.Width.Should().Be(small.Width);
@@ -272,6 +272,7 @@ public class HarfBuzzShapingTests
             false, false, 12, 1000, new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 });
 
         using var shaper = new HarfBuzzTextShaper();
+        // ReSharper disable once AccessToDisposedClosure
         var act = () => shaper.Shape("abc".AsSpan(), rubbish, XTextDirection.LeftToRight, "latn", null);
 
         // Either a declined run or a run of .notdef, but never an exception out of the middle of a
@@ -304,6 +305,7 @@ public class HarfBuzzShapingTests
         var results = new ShapedRun[64];
 
         Parallel.For(0, results.Length, idx =>
+            // ReSharper disable once AccessToDisposedClosure
             results[idx] = shaper.Shape("Waverley".AsSpan(), Liberation(),
                 XTextDirection.LeftToRight, "latn", null));
 

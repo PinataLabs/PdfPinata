@@ -28,7 +28,7 @@ internal sealed class NavigationDemo : PdfDemo
         "PageLayout and PageMode, which decide what a reader shows when the document opens",
         "Document.Language, which is what a screen reader announces the document in",
         "CustomValues - private data in the catalog that survives a round trip and no reader displays",
-        "NamedDestinations, the table, as against the single named destination the Text demo makes",
+        "NamedDestinations, the table, as against the single named destination the Text demo makes"
     };
 
     public override int PageCount => 6;
@@ -36,14 +36,14 @@ internal sealed class NavigationDemo : PdfDemo
     protected override PdfDocument Build(DemoContext context)
     {
         #region example
-        PdfDocument document = new PdfDocument();
+        var document = new PdfDocument();
         document.Info.Title = "Navigation";
 
-        XFont heading = new XFont("Liberation Sans", 16, XFontStyle.Bold);
-        XFont label = new XFont("Liberation Sans", 9, XFontStyle.Bold);
-        XFont body = new XFont("Liberation Sans", 9);
-        XFont mono = new XFont("Source Code Pro", 8.5);
-        XFont big = new XFont("Liberation Sans", 40, XFontStyle.Bold);
+        var heading = new XFont("Liberation Sans", 16, XFontStyle.Bold);
+        var label = new XFont("Liberation Sans", 9, XFontStyle.Bold);
+        var body = new XFont("Liberation Sans", 9);
+        var mono = new XFont("Source Code Pro", 8.5);
+        var big = new XFont("Liberation Sans", 40, XFontStyle.Bold);
 
         // Six pages: three of front matter and three of body, which is what gives the page labels
         // below something to label differently.
@@ -54,16 +54,16 @@ internal sealed class NavigationDemo : PdfDemo
             ("front", "Contents"),
             ("body", "Chapter one"),
             ("body", "Chapter two"),
-            ("body", "What the settings are"),
+            ("body", "What the settings are")
         };
 
-        List<PdfPage> made = new List<PdfPage>();
-        for (int index = 0; index < pages.Length; index++)
+        var made = new List<PdfPage>();
+        for (var index = 0; index < pages.Length; index++)
         {
-            PdfPage page = document.AddPage();
+            var page = document.AddPage();
             made.Add(page);
 
-            using XGraphics gfx = XGraphics.FromPdfPage(page);
+            using var gfx = XGraphics.FromPdfPage(page);
             gfx.DrawString(pages[index].Title, big, XBrushes.Black,
                 new XRect(0, 120, page.Width.Point, 60), XStringFormats.TopCenter);
             gfx.DrawString(
@@ -108,7 +108,7 @@ internal sealed class NavigationDemo : PdfDemo
         // Anything the producer wants to carry that is not part of the page. It lives in the
         // catalog under a key of the caller's choosing, no reader displays it, and it survives a
         // round trip - which is exactly what a pipeline needs to recognise its own output later.
-        byte[] pipeline = Encoding.UTF8.GetBytes("{\"stage\":\"demonstration\",\"run\":42}");
+        var pipeline = Encoding.UTF8.GetBytes("{\"stage\":\"demonstration\",\"run\":42}");
         document.CustomValues["/Pipeline"] = new PdfCustomValue(pipeline);
         // docs:end custom-values
 
@@ -130,9 +130,9 @@ internal sealed class NavigationDemo : PdfDemo
 
         // ----- the last page reports it all back -----
 
-        using (XGraphics gfx = XGraphics.FromPdfPage(made[5]))
+        using (var gfx = XGraphics.FromPdfPage(made[5]))
         {
-            XTextFormatter prose = new XTextFormatter(gfx);
+            var prose = new XTextFormatter(gfx);
 
             gfx.DrawString("What this document asks a reader for", heading, XBrushes.Black,
                 new XPoint(50, 250));
@@ -153,11 +153,11 @@ internal sealed class NavigationDemo : PdfDemo
                 ("DisplayDocTitle", "true", "The title bar shows Info.Title, not the file name"),
                 ("Language", "en-GB", "What a screen reader announces it in"),
                 ("CustomValues[\"/Pipeline\"]", $"{pipeline.Length} bytes of JSON", "Private data; no reader shows it"),
-                ("NamedDestinations", "4 names", "Links that survive pages being inserted"),
+                ("NamedDestinations", "4 names", "Links that survive pages being inserted")
             };
 
             double y = 325;
-            foreach ((string Setting, string Value, string Effect) row in rows)
+            foreach (var row in rows)
             {
                 gfx.DrawString(row.Setting, mono, XBrushes.Black, new XPoint(50, y));
                 gfx.DrawString(row.Value, body, XBrushes.Firebrick, new XPoint(210, y));
@@ -176,20 +176,20 @@ internal sealed class NavigationDemo : PdfDemo
                 (PdfPageLabelStyle.UppercaseRoman, null),
                 (PdfPageLabelStyle.LowercaseLetters, null),
                 (PdfPageLabelStyle.UppercaseLetters, null),
-                (PdfPageLabelStyle.None, "Appendix "),
+                (PdfPageLabelStyle.None, "Appendix ")
             };
 
-            double styleY = y + 40;
-            foreach ((PdfPageLabelStyle Style, string? Prefix) style in styles)
+            var styleY = y + 40;
+            foreach (var style in styles)
             {
                 // docs:begin label-probe
-                using PdfDocument probe = new PdfDocument();
-                for (int index = 0; index < 4; index++)
+                using var probe = new PdfDocument();
+                for (var index = 0; index < 4; index++)
                     probe.AddPage();
                 probe.PageLabels.Add(0, style.Style, style.Prefix, 1);
 
-                List<string> labels = new List<string>();
-                for (int index = 0; index < 4; index++)
+                var labels = new List<string>();
+                for (var index = 0; index < 4; index++)
                     labels.Add(probe.PageLabels.GetLabel(index));
                 // docs:end label-probe
 
@@ -209,8 +209,8 @@ internal sealed class NavigationDemo : PdfDemo
 
             // Round-tripped rather than asserted: what survives a save and a reopen is the only
             // version of any of this that matters.
-            using MemoryStream buffer = new MemoryStream();
-            using PdfDocument copy = new PdfDocument();
+            using var buffer = new MemoryStream();
+            using var copy = new PdfDocument();
             copy.AddPage();
             copy.Language = "en-GB";
             copy.CustomValues["/Pipeline"] = new PdfCustomValue(Encoding.UTF8.GetBytes("kept"));
@@ -218,7 +218,7 @@ internal sealed class NavigationDemo : PdfDemo
             copy.Save(buffer, false);
             buffer.Position = 0;
 
-            using PdfDocument reopened = PdfReader.Open(buffer, PdfDocumentOpenMode.Modify);
+            using var reopened = PdfReader.Open(buffer, PdfDocumentOpenMode.Modify);
 
             gfx.DrawString("After a save and a reopen", label, XBrushes.Black,
                 new XPoint(50, styleY + 60));

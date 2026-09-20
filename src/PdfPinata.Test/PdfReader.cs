@@ -1,6 +1,5 @@
 ﻿using System.IO;
 using System.Reflection;
-using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using Xunit;
 
@@ -13,9 +12,10 @@ public class PdfReader
     {
         var root = Path.GetDirectoryName(GetType().GetTypeInfo().Assembly.Location);
         var existingPdfPath = Path.Combine(root, "Assets", "FamilyTree.pdf");
+// ReSharper disable once AssignNullToNotNullAttribute
 
         var fs = File.OpenRead(existingPdfPath);
-        PdfDocument inputDocument = Pdf.IO.PdfReader.Open(fs, PdfDocumentOpenMode.Import);
+        Pdf.IO.PdfReader.Open(fs, PdfDocumentOpenMode.Import);
         fs.Dispose();
 
         Assert.True(true);

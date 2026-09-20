@@ -116,9 +116,6 @@ internal static class GeneratorHarness
         public string AllGenerated => string.Concat(GeneratedSources);
     }
 
-    /// <summary>
-    /// Compiles <paramref name="source"/> together with the preamble and runs the generator over it.
-    /// </summary>
     /// <summary>The path the snippet is parsed under, so a test can assert where a diagnostic points.</summary>
     public const string SnippetPath = "Snippet.cs";
 
@@ -134,19 +131,19 @@ internal static class GeneratorHarness
             new[]
             {
                 CSharpSyntaxTree.ParseText(Preamble, path: "Preamble.cs"),
-                CSharpSyntaxTree.ParseText(source, path: SnippetPath),
+                CSharpSyntaxTree.ParseText(source, path: SnippetPath)
             },
             References,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
     public static Result Run(string source)
     {
-        CSharpCompilation compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new DomValueModelGenerator());
-        driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out Compilation output, out _);
+        driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var output, out _);
 
-        GeneratorDriverRunResult run = driver.GetRunResult();
+        var run = driver.GetRunResult();
 
         return new Result(
             run.Diagnostics,

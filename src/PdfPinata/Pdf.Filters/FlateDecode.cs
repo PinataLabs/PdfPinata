@@ -54,12 +54,12 @@ public class FlateDecode : Filter
     #pragma warning disable CA1822 // Public API: making it static would break every caller that reaches it through an instance.
     public byte[] Encode(byte[] data, PdfFlateEncodeMode mode)
     {
-        MemoryStream ms = new MemoryStream();
+        var ms = new MemoryStream();
 
         // DeflateStream/GZipStream does not work immediately and I have not the leisure to work it out.
         // So I keep on using SharpZipLib even with .NET 2.0.
 
-        int level = Deflater.DEFAULT_COMPRESSION;
+        var level = Deflater.DEFAULT_COMPRESSION;
         switch (mode)
         {
             case PdfFlateEncodeMode.BestCompression:
@@ -69,7 +69,7 @@ public class FlateDecode : Filter
                 level = Deflater.BEST_SPEED;
                 break;
         }
-        DeflaterOutputStream zip = new DeflaterOutputStream(ms, new Deflater(level, false));
+        var zip = new DeflaterOutputStream(ms, new Deflater(level, false));
         zip.Write(data, 0, data.Length);
         zip.Finish();
         return ms.ToArray();
@@ -83,12 +83,12 @@ public class FlateDecode : Filter
     {
         if (data.Length == 0) return data;
 
-        MemoryStream msInput = new MemoryStream(data);
-        MemoryStream msOutput = new MemoryStream();
+        var msInput = new MemoryStream(data);
+        var msOutput = new MemoryStream();
 
-        InflaterInputStream iis = new InflaterInputStream(msInput, new Inflater(false));
+        var iis = new InflaterInputStream(msInput, new Inflater(false));
         int cbRead;
-        byte[] abResult = new byte[32768];
+        var abResult = new byte[32768];
         do
         {
             cbRead = iis.Read(abResult, 0, abResult.Length);

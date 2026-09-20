@@ -102,11 +102,11 @@ public class ValueModelKnownDefectsTests
         // A user-defined style, not Styles[0] - the built-in styles are read-only and now throw
         // on any write. See ReadOnlyStyleTests.
         var document = new Document();
-        Style style = document.Styles.AddStyle("Probe", "Normal");
+        var style = document.Styles.AddStyle("Probe", "Normal");
         style.Font.Bold = true;
         style.Font.Name = "Times New Roman";
 
-        ValueDescriptor font = Meta.GetMeta(style)["Font"];
+        var font = Meta.GetMeta(style)["Font"];
 
         font.IsNull(style).Should().BeFalse("the font plainly has values");
         font.IsNull(style).Should().Be(style.Font.IsNull(), "the descriptor must agree with the object");
@@ -116,9 +116,9 @@ public class ValueModelKnownDefectsTests
     public void AnEmptyDocumentObjectPropertyStillReportsNull()
     {
         var document = new Document();
-        Style style = document.Styles.AddStyle("Empty", "Normal");
+        var style = document.Styles.AddStyle("Empty", "Normal");
 
-        ValueDescriptor font = Meta.GetMeta(style)["Font"];
+        var font = Meta.GetMeta(style)["Font"];
 
         font.IsNull(style).Should().BeTrue("nothing has been assigned to it");
     }
@@ -134,7 +134,7 @@ public class ValueModelKnownDefectsTests
     public void TheRoutesCallersTakeAreUnchanged()
     {
         var document = new Document();
-        Style style = document.Styles.AddStyle("Probe", "Normal");
+        var style = document.Styles.AddStyle("Probe", "Normal");
         style.Font.Bold = true;
 
         style.IsNull("Font").Should().BeFalse("Meta.IsNull(dom, name) asks the object, not the descriptor");

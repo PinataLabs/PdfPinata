@@ -602,6 +602,7 @@ public class TaggedOutputTests
         using var pdf = new PdfDocument();
         using var gfx = XGraphics.FromPdfPage(pdf.AddPage());
 
+        // ReSharper disable once AccessToDisposedClosure
         var act = () => renderer.RenderObject(gfx, XUnit.FromCentimeter(1), XUnit.FromCentimeter(1),
             XUnit.FromCentimeter(10), paragraph);
 

@@ -1,4 +1,5 @@
 #region Copyright
+
 //
 // Authors:
 //   Stefan Lange (mailto:Stefan.Lange@PdfPinata.com)
@@ -26,8 +27,9 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
+
 #endregion
 
 using PinataLayout.DocumentObjectModel.Internals;
@@ -39,267 +41,263 @@ namespace PinataLayout.DocumentObjectModel.Shapes.Charts;
 /// </summary>
 public partial class Series : ChartObject
 {
-  /// <summary>
-  /// Initializes a new instance of the Series class.
-  /// </summary>
-  public Series()
-  {
-  }
-
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new Series Clone()
-  {
-    return (Series)DeepCopy();
-  }
-
-  /// <summary>
-  /// Adds a blank to the series.
-  /// </summary>
-  public void AddBlank()
-  {
-    this.Elements.AddBlank();
-  }
-
-  /// <summary>
-  /// Adds a real value to the series.
-  /// </summary>
-  public Point Add(double value)
-  {
-    return this.Elements.Add(value);
-  }
-
-  /// <summary>
-  /// Adds an array of real values to the series.
-  /// </summary>
-  public void Add(params double[] values)
-  {
-    this.Elements.Add(values);
-  }
-  #endregion
-
-  #region Properties
-  /// <summary>
-  /// The actual value container of the series.
-  /// </summary>
-  public SeriesElements Elements
-  {
-    get
+    /// <summary>
+    /// Initializes a new instance of the Series class.
+    /// </summary>
+    public Series()
     {
-      if (this.seriesElements == null)
-        this.seriesElements = new SeriesElements(this);
-
-      return this.seriesElements;
     }
-    set
+
+    #region Methods
+
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new Series Clone()
     {
-      SetParent(value);
-      this.seriesElements = value;
+        return (Series)DeepCopy();
     }
-  }
-  [DV]
-  internal SeriesElements seriesElements;
 
-  /// <summary>
-  /// Gets or sets the name of the series which will be used in the legend.
-  /// </summary>
-  public string Name
-  {
-    get => this.name ?? "";
-    set => this.name = value;
-  }
-  [DV]
-  internal string name;
-
-  /// <summary>
-  /// Gets the line format of the border of each data.
-  /// </summary>
-  public LineFormat LineFormat
-  {
-    get
+    /// <summary>
+    /// Adds a blank to the series.
+    /// </summary>
+    public void AddBlank()
     {
-      if (this.lineFormat == null)
-        this.lineFormat = new LineFormat(this);
-
-      return this.lineFormat;
+        Elements.AddBlank();
     }
-    set
+
+    /// <summary>
+    /// Adds a real value to the series.
+    /// </summary>
+    public Point Add(double value)
     {
-      SetParent(value);
-      this.lineFormat = value;
+        return Elements.Add(value);
     }
-  }
-  [DV]
-  internal LineFormat lineFormat;
 
-  /// <summary>
-  /// Gets the background filling of the data.
-  /// </summary>
-  public FillFormat FillFormat
-  {
-    get
+    /// <summary>
+    /// Adds an array of real values to the series.
+    /// </summary>
+    public void Add(params double[] values)
     {
-      if (this.fillFormat == null)
-        this.fillFormat = new FillFormat(this);
-
-      return this.fillFormat;
+        Elements.Add(values);
     }
-    set
+
+    #endregion
+
+    #region Properties
+
+    /// <summary>
+    /// The actual value container of the series.
+    /// </summary>
+    public SeriesElements Elements
     {
-      SetParent(value);
-      this.fillFormat = value;
+        get
+        {
+            if (seriesElements == null)
+                seriesElements = new SeriesElements(this);
+
+            return seriesElements;
+        }
+        set
+        {
+            SetParent(value);
+            seriesElements = value;
+        }
     }
-  }
-  [DV]
-  internal FillFormat fillFormat;
 
-  /// <summary>
-  /// Gets or sets the size of the marker in a line chart.
-  /// </summary>
-  public Unit MarkerSize
-  {
-    get => this.markerSize;
-    set => this.markerSize = value;
-  }
-  [DV]
-  internal Unit markerSize = Unit.NullValue;
+    [DV] internal SeriesElements seriesElements;
 
-  /// <summary>
-  /// Gets or sets the style of the marker in a line chart.
-  /// </summary>
-  public MarkerStyle MarkerStyle
-  {
-    get => this.markerStyle ?? default;
-    set => this.markerStyle = EnumGuard.Checked(value);
-  }
-  [DV]
-  internal MarkerStyle? markerStyle;
-
-  /// <summary>
-  /// Gets or sets the foreground color of the marker in a line chart.
-  /// </summary>
-  public Color MarkerForegroundColor
-  {
-    get => this.markerForegroundColor;
-    set => this.markerForegroundColor = value;
-  }
-  [DV]
-  internal Color markerForegroundColor = Color.Empty;
-
-  /// <summary>
-  /// Gets or sets the background color of the marker in a line chart.
-  /// </summary>
-  public Color MarkerBackgroundColor
-  {
-    get => this.markerBackgroundColor;
-    set => this.markerBackgroundColor = value;
-  }
-  [DV]
-  internal Color markerBackgroundColor = Color.Empty;
-
-  /// <summary>
-  /// Gets or sets the chart type of the series if it's intended to be different than the global chart type.
-  /// </summary>
-  public ChartType ChartType
-  {
-    get => this.chartType ?? default;
-    set => this.chartType = EnumGuard.Checked(value);
-  }
-  [DV]
-  internal ChartType? chartType;
-
-  /// <summary>
-  /// Gets the DataLabel of the series.
-  /// </summary>
-  public DataLabel DataLabel
-  {
-    get
+    /// <summary>
+    /// Gets or sets the name of the series which will be used in the legend.
+    /// </summary>
+    public string Name
     {
-      if (this.dataLabel == null)
-        this.dataLabel = new DataLabel(this);
-
-      return this.dataLabel;
+        get => name ?? "";
+        set => name = value;
     }
-    set
+
+    [DV] internal string name;
+
+    /// <summary>
+    /// Gets the line format of the border of each data.
+    /// </summary>
+    public LineFormat LineFormat
     {
-      SetParent(value);
-      this.dataLabel = value;
+        get
+        {
+            if (lineFormat == null)
+                lineFormat = new LineFormat(this);
+
+            return lineFormat;
+        }
+        set
+        {
+            SetParent(value);
+            lineFormat = value;
+        }
     }
-  }
-  [DV]
-  internal DataLabel dataLabel;
 
-  /// <summary>
-  /// Gets or sets whether the series has a DataLabel.
-  /// </summary>
-  public bool HasDataLabel
-  {
-    get => this.hasDataLabel ?? false;
-    set => this.hasDataLabel = value;
-  }
-  [DV]
-  internal bool? hasDataLabel;
+    [DV] internal LineFormat lineFormat;
 
-  /// <summary>
-  /// Gets the elementcount of the series.
-  /// </summary>
-  public int Count
-  {
-    get
+    /// <summary>
+    /// Gets the background filling of the data.
+    /// </summary>
+    public FillFormat FillFormat
     {
-      if (this.seriesElements != null)
-        return this.seriesElements.Count;
+        get
+        {
+            if (fillFormat == null)
+                fillFormat = new FillFormat(this);
 
-      return 0;
+            return fillFormat;
+        }
+        set
+        {
+            SetParent(value);
+            fillFormat = value;
+        }
     }
-  }
-  #endregion
 
-  #region Internal
-  /// <summary>
-  /// Converts Series into DDL.
-  /// </summary>
-  internal override void Serialize(Serializer serializer)
-  {
-    serializer.WriteLine("\\series");
+    [DV] internal FillFormat fillFormat;
 
-    int pos = serializer.BeginAttributes();
+    /// <summary>
+    /// Gets or sets the size of the marker in a line chart.
+    /// </summary>
+    public Unit MarkerSize
+    {
+        get => markerSize;
+        set => markerSize = value;
+    }
 
-    if (this.name != null)
-      serializer.WriteSimpleAttribute("Name", this.Name);
+    [DV] internal Unit markerSize = Unit.NullValue;
 
-    if (!this.markerSize.IsNull)
-      serializer.WriteSimpleAttribute("MarkerSize", this.MarkerSize);
-    if (this.markerStyle != null)
-      serializer.WriteSimpleAttribute("MarkerStyle", this.MarkerStyle);
+    /// <summary>
+    /// Gets or sets the style of the marker in a line chart.
+    /// </summary>
+    public MarkerStyle MarkerStyle
+    {
+        get => markerStyle ?? default;
+        set => markerStyle = EnumGuard.Checked(value);
+    }
 
-    if (!this.markerBackgroundColor.IsNull)
-      serializer.WriteSimpleAttribute("MarkerBackgroundColor", this.MarkerBackgroundColor);
-    if (!this.markerForegroundColor.IsNull)
-      serializer.WriteSimpleAttribute("MarkerForegroundColor", this.MarkerForegroundColor);
+    [DV] internal MarkerStyle? markerStyle;
 
-    if (this.chartType != null)
-      serializer.WriteSimpleAttribute("ChartType", this.ChartType);
+    /// <summary>
+    /// Gets or sets the foreground color of the marker in a line chart.
+    /// </summary>
+    public Color MarkerForegroundColor
+    {
+        get => markerForegroundColor;
+        set => markerForegroundColor = value;
+    }
 
-    if (this.hasDataLabel != null)
-      serializer.WriteSimpleAttribute("HasDataLabel", this.HasDataLabel);
+    [DV] internal Color markerForegroundColor = Color.Empty;
 
-    if (!this.IsNull("LineFormat"))
-      this.lineFormat.Serialize(serializer);
-    if (!this.IsNull("FillFormat"))
-      this.fillFormat.Serialize(serializer);
-    if (!this.IsNull("DataLabel"))
-      this.dataLabel.Serialize(serializer);
+    /// <summary>
+    /// Gets or sets the background color of the marker in a line chart.
+    /// </summary>
+    public Color MarkerBackgroundColor
+    {
+        get => markerBackgroundColor;
+        set => markerBackgroundColor = value;
+    }
 
-    serializer.EndAttributes(pos);
+    [DV] internal Color markerBackgroundColor = Color.Empty;
 
-    serializer.BeginContent();
-    this.seriesElements.Serialize(serializer);
-    serializer.WriteLine("");
-    serializer.EndContent();
-  }
+    /// <summary>
+    /// Gets or sets the chart type of the series if it's intended to be different than the global chart type.
+    /// </summary>
+    public ChartType ChartType
+    {
+        get => chartType ?? default;
+        set => chartType = EnumGuard.Checked(value);
+    }
 
-  #endregion
+    [DV] internal ChartType? chartType;
+
+    /// <summary>
+    /// Gets the DataLabel of the series.
+    /// </summary>
+    public DataLabel DataLabel
+    {
+        get
+        {
+            if (dataLabel == null)
+                dataLabel = new DataLabel(this);
+
+            return dataLabel;
+        }
+        set
+        {
+            SetParent(value);
+            dataLabel = value;
+        }
+    }
+
+    [DV] internal DataLabel dataLabel;
+
+    /// <summary>
+    /// Gets or sets whether the series has a DataLabel.
+    /// </summary>
+    public bool HasDataLabel
+    {
+        get => hasDataLabel ?? false;
+        set => hasDataLabel = value;
+    }
+
+    [DV] internal bool? hasDataLabel;
+
+    /// <summary>
+    /// Gets the elementcount of the series.
+    /// </summary>
+    public int Count => seriesElements?.Count ?? 0;
+
+    #endregion
+
+    #region Internal
+
+    /// <summary>
+    /// Converts Series into DDL.
+    /// </summary>
+    internal override void Serialize(Serializer serializer)
+    {
+        serializer.WriteLine("\\series");
+
+        var pos = serializer.BeginAttributes();
+
+        if (name != null)
+            serializer.WriteSimpleAttribute("Name", Name);
+
+        if (!markerSize.IsNull)
+            serializer.WriteSimpleAttribute("MarkerSize", MarkerSize);
+        if (markerStyle != null)
+            serializer.WriteSimpleAttribute("MarkerStyle", MarkerStyle);
+
+        if (!markerBackgroundColor.IsNull)
+            serializer.WriteSimpleAttribute("MarkerBackgroundColor", MarkerBackgroundColor);
+        if (!markerForegroundColor.IsNull)
+            serializer.WriteSimpleAttribute("MarkerForegroundColor", MarkerForegroundColor);
+
+        if (chartType != null)
+            serializer.WriteSimpleAttribute("ChartType", ChartType);
+
+        if (hasDataLabel != null)
+            serializer.WriteSimpleAttribute("HasDataLabel", HasDataLabel);
+
+        if (!IsNull("LineFormat"))
+            lineFormat.Serialize(serializer);
+        if (!IsNull("FillFormat"))
+            fillFormat.Serialize(serializer);
+        if (!IsNull("DataLabel"))
+            dataLabel.Serialize(serializer);
+
+        serializer.EndAttributes(pos);
+
+        serializer.BeginContent();
+        seriesElements.Serialize(serializer);
+        serializer.WriteLine("");
+        serializer.EndContent();
+    }
+
+    #endregion
 }

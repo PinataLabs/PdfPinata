@@ -25,7 +25,7 @@ public class StyleLookupTests
     static Document WithDerivedStyle(string baseStyleName)
     {
         var document = new Document();
-        Style derived = document.Styles.AddStyle("Derived", baseStyleName);
+        var derived = document.Styles.AddStyle("Derived", baseStyleName);
         derived.Font.Italic = true;
         document.AddSection().AddParagraph("text").Style = "Derived";
         return document;
@@ -34,7 +34,7 @@ public class StyleLookupTests
     [Fact]
     public void AStyleBasedOnDefaultParagraphFontSerializes()
     {
-        Document document = WithDerivedStyle(Style.DefaultParagraphFontName);
+        var document = WithDerivedStyle(Style.DefaultParagraphFontName);
 
         document.Invoking(d => DdlWriter.WriteToString(d))
             .Should().NotThrow<NullReferenceException>(
@@ -44,11 +44,11 @@ public class StyleLookupTests
     [Fact]
     public void AStyleBasedOnDefaultParagraphFontRoundTrips()
     {
-        Document document = WithDerivedStyle(Style.DefaultParagraphFontName);
+        var document = WithDerivedStyle(Style.DefaultParagraphFontName);
 
-        Document reread = DdlReader.DocumentFromString(DdlWriter.WriteToString(document));
+        var reread = DdlReader.DocumentFromString(DdlWriter.WriteToString(document));
 
-        Style derived = reread.Styles["Derived"];
+        var derived = reread.Styles["Derived"];
         derived.Should().NotBeNull();
         derived.BaseStyle.Should().Be(Style.DefaultParagraphFontName);
         derived.Font.Italic.Should().BeTrue();
@@ -68,11 +68,11 @@ public class StyleLookupTests
     [Fact]
     public void LookupByNameAgreesWithGetIndex()
     {
-        Styles styles = new Document().Styles;
+        var styles = new Document().Styles;
 
-        for (int index = 0; index < styles.Count; index++)
+        for (var index = 0; index < styles.Count; index++)
         {
-            string name = ((Style)styles[index]).Name;
+            var name = ((Style)styles[index]).Name;
 
             styles.GetIndex(name).Should().Be(index, $"GetIndex should find '{name}' where it is");
             styles[name].Should().NotBeNull($"'{name}' is in the collection and must be findable by name");
@@ -83,7 +83,7 @@ public class StyleLookupTests
     [Fact]
     public void TheBuiltInCharacterStyleIsNowFindableByName()
     {
-        Styles styles = new Document().Styles;
+        var styles = new Document().Styles;
 
         styles[Style.DefaultParagraphFontName].Should().NotBeNull();
         styles[Style.DefaultParagraphFontName].Should().BeSameAs(styles[0]);
@@ -102,8 +102,8 @@ public class StyleLookupTests
     [Fact]
     public void FindingItByNameDoesNotMakeItWritable()
     {
-        Styles styles = new Document().Styles;
-        Style builtIn = styles[Style.DefaultParagraphFontName];
+        var styles = new Document().Styles;
+        var builtIn = styles[Style.DefaultParagraphFontName];
 
         builtIn.Invoking(s => s.Font.Bold = true).Should().Throw<InvalidOperationException>();
     }

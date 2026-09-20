@@ -62,7 +62,7 @@ public class TickLabels : ChartObject
   /// </summary>
   protected override object DeepCopy()
   {
-    TickLabels tickLabels = (TickLabels)base.DeepCopy();
+    var tickLabels = (TickLabels)base.DeepCopy();
     if (tickLabels.font != null)
     {
       tickLabels.font = tickLabels.font.Clone();

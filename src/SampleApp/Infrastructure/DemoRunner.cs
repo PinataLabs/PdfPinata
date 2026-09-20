@@ -22,11 +22,11 @@ public static class DemoRunner
     {
         Backends.EnsureRegistered();
 
-        DemoContext context = new DemoContext(options.OutputDirectory);
-        int succeeded = 0;
-        int failed = 0;
+        var context = new DemoContext(options.OutputDirectory);
+        var succeeded = 0;
+        var failed = 0;
 
-        foreach (PdfDemo demo in options.Demos)
+        foreach (var demo in options.Demos)
         {
             Ui.WriteDemoHeading(demo);
 
@@ -35,7 +35,7 @@ public static class DemoRunner
 
             try
             {
-                DemoResult result = demo.Run(context);
+                var result = demo.Run(context);
                 Ui.WriteResult(result);
                 succeeded++;
             }

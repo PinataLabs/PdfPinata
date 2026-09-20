@@ -68,7 +68,7 @@ internal class ShadingRenderer
         if (shading == null || brush == null)
             return;
 
-        XGraphicsPath path = new XGraphicsPath();
+        var path = new XGraphicsPath();
 
         switch (roundedCorner)
         {

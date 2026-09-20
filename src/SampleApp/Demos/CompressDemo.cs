@@ -28,7 +28,7 @@ internal sealed class CompressDemo : PdfDemo
         "UseFlateDecoderForJpegImages, Always against Automatic, measured on a real photograph",
         "ColorMode RGB against CMYK, and what changes in the file when it is switched",
         "CrossReferenceFormat - Classic against Stream, measured where it helps and where it does not",
-        "A page whose whole subject is the byte counts, because nothing else here is visible",
+        "A page whose whole subject is the byte counts, because nothing else here is visible"
     };
 
     public override int PageCount => 3;
@@ -36,23 +36,23 @@ internal sealed class CompressDemo : PdfDemo
     protected override PdfDocument Build(DemoContext context)
     {
         #region example
-        XFont heading = new XFont("Liberation Sans", 16, XFontStyle.Bold);
-        XFont label = new XFont("Liberation Sans", 9, XFontStyle.Bold);
-        XFont body = new XFont("Liberation Sans", 9);
-        XFont mono = new XFont("Source Code Pro", 8.5);
+        var heading = new XFont("Liberation Sans", 16, XFontStyle.Bold);
+        var label = new XFont("Liberation Sans", 9, XFontStyle.Bold);
+        var body = new XFont("Liberation Sans", 9);
+        var mono = new XFont("Source Code Pro", 8.5);
 
         // One page of representative content - text, a long path, a photograph - built the same
         // way every time so that the only thing that varies between the measurements below is the
         // options the document was saved under.
         void Representative(PdfDocument target)
         {
-            PdfPage page = target.AddPage();
-            using XGraphics gfx = XGraphics.FromPdfPage(page);
+            var page = target.AddPage();
+            using var gfx = XGraphics.FromPdfPage(page);
 
             gfx.DrawString("Representative content", heading, XBrushes.Black, new XPoint(50, 60));
 
-            XTextFormatter prose = new XTextFormatter(gfx);
-            for (int block = 0; block < 4; block++)
+            var prose = new XTextFormatter(gfx);
+            for (var block = 0; block < 4; block++)
             {
                 prose.DrawString(
                     "Compression acts on the content stream, which is the list of drawing "
@@ -64,11 +64,11 @@ internal sealed class CompressDemo : PdfDemo
 
             // A path with a great many segments. This is what compression has something to work
             // on: a few hundred coordinates written out as text.
-            XGraphicsPath path = new XGraphicsPath();
-            for (int step = 0; step < 400; step++)
+            var path = new XGraphicsPath();
+            for (var step = 0; step < 400; step++)
             {
-                double t = step / 400.0 * Math.PI * 8;
-                XPoint point = new XPoint(
+                var t = step / 400.0 * Math.PI * 8;
+                var point = new XPoint(
                     50 + step * 495.0 / 400,
                     500 + Math.Sin(t) * 60 * (1 - step / 400.0));
 
@@ -81,7 +81,7 @@ internal sealed class CompressDemo : PdfDemo
 
             gfx.DrawPath(new XPen(XColors.MidnightBlue, 0.8), path);
 
-            using XImage photograph = XImage.FromStream(
+            using var photograph = XImage.FromStream(
                 () => Assets.Open(Assets.ImagePrefix + "frog-and-toad.jpg"));
             gfx.DrawImage(photograph, 50, 580, 240, 180);
         }
@@ -90,11 +90,11 @@ internal sealed class CompressDemo : PdfDemo
         // Saved under one arrangement of the options and measured. Nothing is written to disk.
         long Measure(Action<PdfDocumentOptions> configure)
         {
-            using PdfDocument probe = new PdfDocument();
+            using var probe = new PdfDocument();
             configure(probe.Options);
             Representative(probe);
 
-            using MemoryStream buffer = new MemoryStream();
+            using var buffer = new MemoryStream();
             probe.Save(buffer, false);
             return buffer.Length;
         }
@@ -104,50 +104,50 @@ internal sealed class CompressDemo : PdfDemo
         // "the defaults" would go quietly wrong the day a default changed, and this one did change:
         // it used to be declared false under #if DEBUG and true otherwise, so the same code wrote a
         // materially larger file from a debug build than from a release one.
-        bool defaultCompression = new PdfDocument().Options.CompressContentStreams;
+        var defaultCompression = new PdfDocument().Options.CompressContentStreams;
 
         // docs:begin compress-content
-        long compressed = Measure(options => options.CompressContentStreams = true);
-        long uncompressed = Measure(options => options.CompressContentStreams = false);
-        long noCompression = Measure(options =>
+        var compressed = Measure(options => options.CompressContentStreams = true);
+        var uncompressed = Measure(options => options.CompressContentStreams = false);
+        var noCompression = Measure(options =>
         {
             options.CompressContentStreams = true;
             options.NoCompression = true;
         });
         // docs:end compress-content
         // docs:begin flate-mode
-        long flateBest = Measure(options =>
+        var flateBest = Measure(options =>
         {
             options.CompressContentStreams = true;
             options.FlateEncodeMode = PdfFlateEncodeMode.BestCompression;
         });
-        long flateFast = Measure(options =>
+        var flateFast = Measure(options =>
         {
             options.CompressContentStreams = true;
             options.FlateEncodeMode = PdfFlateEncodeMode.BestSpeed;
         });
         // docs:end flate-mode
         // docs:begin jpeg-flate
-        long jpegFlate = Measure(options =>
+        var jpegFlate = Measure(options =>
         {
             options.CompressContentStreams = true;
             options.UseFlateDecoderForJpegImages = PdfUseFlateDecoderForJpegImages.Always;
         });
-        long jpegAuto = Measure(options =>
+        var jpegAuto = Measure(options =>
         {
             options.CompressContentStreams = true;
             options.UseFlateDecoderForJpegImages = PdfUseFlateDecoderForJpegImages.Automatic;
         });
         // docs:end jpeg-flate
         // docs:begin cmyk
-        long cmyk = Measure(options =>
+        var cmyk = Measure(options =>
         {
             options.CompressContentStreams = true;
             options.ColorMode = PdfColorMode.Cmyk;
         });
         // docs:end cmyk
         // docs:begin xref-stream
-        long xrefStream = Measure(options =>
+        var xrefStream = Measure(options =>
         {
             options.CompressContentStreams = true;
             options.CrossReferenceFormat = PdfCrossReferenceFormat.Stream;
@@ -162,39 +162,39 @@ internal sealed class CompressDemo : PdfDemo
         // docs:begin many-objects
         long ManyObjects(PdfCrossReferenceFormat format)
         {
-            using PdfDocument probe = new PdfDocument();
+            using var probe = new PdfDocument();
             probe.Options.CompressContentStreams = true;
             probe.Options.CrossReferenceFormat = format;
 
-            for (int number = 1; number <= 100; number++)
+            for (var number = 1; number <= 100; number++)
             {
-                PdfPage page = probe.AddPage();
-                using XGraphics gfx = XGraphics.FromPdfPage(page);
+                var page = probe.AddPage();
+                using var gfx = XGraphics.FromPdfPage(page);
                 gfx.DrawString($"Page {number}", body, XBrushes.Black, new XPoint(50, 60));
             }
 
-            using MemoryStream buffer = new MemoryStream();
+            using var buffer = new MemoryStream();
             probe.Save(buffer, false);
             return buffer.Length;
         }
 
-        long manyClassic = ManyObjects(PdfCrossReferenceFormat.Classic);
-        long manyStream = ManyObjects(PdfCrossReferenceFormat.Stream);
+        var manyClassic = ManyObjects(PdfCrossReferenceFormat.Classic);
+        var manyStream = ManyObjects(PdfCrossReferenceFormat.Stream);
         // docs:end many-objects
 
         // ----- the document the demo hands back -----
 
-        PdfDocument document = new PdfDocument();
+        var document = new PdfDocument();
         document.Info.Title = "Compress";
 
         // Page one is the content itself, so the reader can see that every measurement above was
         // taken over this and that none of the settings changed how it looks.
         Representative(document);
 
-        PdfPage report = document.AddPage();
-        using (XGraphics gfx = XGraphics.FromPdfPage(report))
+        var report = document.AddPage();
+        using (var gfx = XGraphics.FromPdfPage(report))
         {
-            XTextFormatter prose = new XTextFormatter(gfx);
+            var prose = new XTextFormatter(gfx);
 
             gfx.DrawString("What each setting costs", heading, XBrushes.Black, new XPoint(50, 60));
 
@@ -215,7 +215,7 @@ internal sealed class CompressDemo : PdfDemo
                 ("UseFlateDecoderForJpegImages.Always", jpegFlate, "Flate over the already-compressed JPEG, whatever it costs"),
                 ("UseFlateDecoderForJpegImages.Automatic", jpegAuto, "The same, kept only if it turned out smaller"),
                 ("ColorMode.Cmyk", cmyk, "Four components per colour instead of three"),
-                ("CrossReferenceFormat.Stream", xrefStream, "Barely moves a page that is mostly one content stream"),
+                ("CrossReferenceFormat.Stream", xrefStream, "Barely moves a page that is mostly one content stream")
             };
 
             double y = 145;
@@ -224,9 +224,9 @@ internal sealed class CompressDemo : PdfDemo
             gfx.DrawString("against the first row", label, XBrushes.Black, new XPoint(350, y));
             y += 18;
 
-            foreach ((string Setting, long Bytes, string Note) row in rows)
+            foreach (var row in rows)
             {
-                long delta = row.Bytes - compressed;
+                var delta = row.Bytes - compressed;
                 gfx.DrawString(row.Setting, mono, XBrushes.Black, new XPoint(50, y));
                 gfx.DrawString($"{row.Bytes:N0}", body, XBrushes.Black, new XPoint(280, y));
                 gfx.DrawString(
@@ -287,10 +287,10 @@ internal sealed class CompressDemo : PdfDemo
         // A page of its own rather than the foot of the one before it. The table above ends near the
         // bottom margin already, and a block appended after it was drawn off the media box entirely -
         // painted, and invisible, which is the one kind of layout mistake nothing complains about.
-        PdfPage objects = document.AddPage();
-        using (XGraphics gfx = XGraphics.FromPdfPage(objects))
+        var objects = document.AddPage();
+        using (var gfx = XGraphics.FromPdfPage(objects))
         {
-            XTextFormatter prose = new XTextFormatter(gfx);
+            var prose = new XTextFormatter(gfx);
 
             gfx.DrawString("Where a cross-reference stream pays", heading, XBrushes.Black,
                 new XPoint(50, 60));

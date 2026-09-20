@@ -32,7 +32,7 @@ public sealed class LineAnnotationTests : IDisposable
 
     public void Dispose()
     {
-        foreach (MagickImageCollection collection in _rasterized)
+        foreach (var collection in _rasterized)
             collection.Dispose();
 
         _rasterized.Clear();
@@ -49,7 +49,7 @@ public sealed class LineAnnotationTests : IDisposable
     [Fact]
     public void ALineNamesItsSubtypeAndCarriesADefaultWidth()
     {
-        PdfLineAnnotation line = OnAPage();
+        var line = OnAPage();
 
         line.Elements.GetName("/Subtype").Should().Be("/Line");
         line.BorderWidth.Should().Be(1);
@@ -59,9 +59,9 @@ public sealed class LineAnnotationTests : IDisposable
     [Fact]
     public void TheEndpointsAreWrittenToLInTheOrderTheyWereGiven()
     {
-        PdfLineAnnotation line = OnAPage();
+        var line = OnAPage();
 
-        PdfArray l = line.Elements.GetArray("/L");
+        var l = line.Elements.GetArray("/L");
         l.Elements.Count.Should().Be(4);
         l.Elements.GetReal(0).Should().Be(100);
         l.Elements.GetReal(1).Should().Be(400);
@@ -75,13 +75,13 @@ public sealed class LineAnnotationTests : IDisposable
     [Fact]
     public void TheRectangleIsWorkedOutFromTheLineRatherThanSet()
     {
-        PdfLineAnnotation line = OnAPage();
+        var line = OnAPage();
 
         // Half the width on each side, because a stroke straddles the path it follows. Without
         // it the outer half of a wide line falls outside the annotation and is clipped.
         line.BorderWidth = 8;
 
-        PdfRectangle rect = line.Elements.GetRectangle("/Rect");
+        var rect = line.Elements.GetRectangle("/Rect");
         rect.X1.Should().Be(96);
         rect.X2.Should().Be(304);
         rect.Y1.Should().Be(396);
@@ -91,7 +91,7 @@ public sealed class LineAnnotationTests : IDisposable
     [Fact]
     public void ARectangleAssignedByHandIsOverwrittenByTheNextChange()
     {
-        PdfLineAnnotation line = OnAPage();
+        var line = OnAPage();
 
         line.Rectangle = new PdfRectangle(new XRect(0, 0, 10, 10));
         line.BorderWidth = 2;
@@ -104,9 +104,9 @@ public sealed class LineAnnotationTests : IDisposable
     [Fact]
     public void AnEndingMakesRoomForItselfInTheRectangle()
     {
-        PdfLineAnnotation line = OnAPage();
+        var line = OnAPage();
 
-        double withoutHead = line.Elements.GetRectangle("/Rect").Y2;
+        var withoutHead = line.Elements.GetRectangle("/Rect").Y2;
 
         line.EndEnding = PdfLineEnding.ClosedArrow;
 
@@ -118,12 +118,12 @@ public sealed class LineAnnotationTests : IDisposable
     [Fact]
     public void BothEndingsAreWrittenAsTwoNames()
     {
-        PdfLineAnnotation line = OnAPage();
+        var line = OnAPage();
 
         line.StartEnding = PdfLineEnding.Circle;
         line.EndEnding = PdfLineEnding.OpenArrow;
 
-        PdfArray endings = line.Elements.GetArray("/LE");
+        var endings = line.Elements.GetArray("/LE");
         endings.Elements.Count.Should().Be(2);
         endings.Elements.GetName(0).Should().Be("/Circle");
         endings.Elements.GetName(1).Should().Be("/OpenArrow");
@@ -135,7 +135,7 @@ public sealed class LineAnnotationTests : IDisposable
     [Fact]
     public void AnEndingNamingSomethingUnknownReadsBackAsNone()
     {
-        PdfLineAnnotation line = OnAPage();
+        var line = OnAPage();
 
         line.Elements["/LE"] = new PdfArray(line.Owner, new PdfName("/Trumpet"), new PdfName("/None"));
 
@@ -147,7 +147,7 @@ public sealed class LineAnnotationTests : IDisposable
     [Fact]
     public void AnUnfilledEndingSaysSoWithAnEmptyArray()
     {
-        PdfLineAnnotation line = OnAPage();
+        var line = OnAPage();
 
         line.Interior.Should().Be(XColor.Empty);
         line.Elements.GetArray("/IC").Should().BeNull();
@@ -159,11 +159,11 @@ public sealed class LineAnnotationTests : IDisposable
     [Fact]
     public void AFilledEndingWritesItsInteriorColour()
     {
-        PdfLineAnnotation line = OnAPage();
+        var line = OnAPage();
 
         line.Interior = XColors.RoyalBlue;
 
-        PdfArray colour = line.Elements.GetArray("/IC");
+        var colour = line.Elements.GetArray("/IC");
         colour.Elements.Count.Should().Be(3);
         colour.Elements.GetReal(0).Should().BeApproximately(65 / 255.0, 0.01);
         colour.Elements.GetReal(2).Should().BeApproximately(225 / 255.0, 0.01);
@@ -174,21 +174,21 @@ public sealed class LineAnnotationTests : IDisposable
     [Fact]
     public void AnInteriorColourSurvivesTheFile()
     {
-        PdfLineAnnotation line = OnAPage();
+        var line = OnAPage();
         line.Interior = XColor.FromArgb(127, 127, 127);
 
         // What the file carries. A component goes out as a fraction of 255 to the seven decimal
         // places PdfWriter gives a real, so 127 becomes 0.4980392 - and reading it back is a
         // separate document's problem, since reopening one gives a PdfGenericAnnotation rather
         // than this class.
-        PdfDocument reopened = SaveAndReopen(line.Owner);
-        PdfArray written = reopened.Pages[0].Annotations[0].Elements.GetArray("/IC");
+        var reopened = SaveAndReopen(line.Owner);
+        var written = reopened.Pages[0].Annotations[0].Elements.GetArray("/IC");
         written.Elements.GetReal(0).Should().BeApproximately(0.4980392, 1e-9);
 
         // And what this class makes of it. 0.4980392 times 255 is 126.999996, so truncating loses
         // a value the file all but said, and the grey a caller asked for comes back a shade
         // darker every time it is saved.
-        PdfLineAnnotation read = OnAPage();
+        var read = OnAPage();
         read.Elements["/IC"] = new PdfArray(
             read.Owner, new PdfReal(0.4980392), new PdfReal(0.4980392), new PdfReal(0.4980392));
 
@@ -200,13 +200,13 @@ public sealed class LineAnnotationTests : IDisposable
     [Fact]
     public void ALineTooThinToMakeAFormOfIsLeftUndrawnRatherThanRefused()
     {
-        PdfDocument document = new PdfDocument();
-        PdfPage page = document.AddPage();
+        var document = new PdfDocument();
+        var page = document.AddPage();
 
-        PdfLineAnnotation line = new PdfLineAnnotation
+        var line = new PdfLineAnnotation
         {
             Start = new XPoint(100, 700),
-            End = new XPoint(300, 700),
+            End = new XPoint(300, 700)
         };
         page.Annotations.Add(line);
 
@@ -227,11 +227,11 @@ public sealed class LineAnnotationTests : IDisposable
     [Fact]
     public void MovingTheLineStampsTheModificationDate()
     {
-        PdfLineAnnotation line = OnAPage();
+        var line = OnAPage();
 
         // Rewound rather than read, so that the assertion does not turn on the clock ticking
         // between two statements.
-        DateTime before = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        var before = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
         line.Elements.SetDateTime("/M", before);
         line.End = new XPoint(320, 420);
@@ -241,7 +241,7 @@ public sealed class LineAnnotationTests : IDisposable
     [Fact]
     public void ANegativeWidthIsRefused()
     {
-        PdfLineAnnotation line = OnAPage();
+        var line = OnAPage();
 
         Action act = () => line.BorderWidth = -1;
 
@@ -251,10 +251,10 @@ public sealed class LineAnnotationTests : IDisposable
     [Fact]
     public void TheAppearanceIsBuiltWhenTheAnnotationReachesAPage()
     {
-        PdfDocument document = new PdfDocument();
-        PdfPage page = document.AddPage();
+        var document = new PdfDocument();
+        var page = document.AddPage();
 
-        PdfLineAnnotation line = new PdfLineAnnotation();
+        var line = new PdfLineAnnotation();
         line.SetLine(From, To);
 
         // Everything above was set with no document to build a form in. Adding it to the page is
@@ -269,9 +269,9 @@ public sealed class LineAnnotationTests : IDisposable
     [Fact]
     public void ChangingWhatItIsDrawnFromRebuildsTheAppearance()
     {
-        PdfLineAnnotation line = OnAPage();
+        var line = OnAPage();
 
-        byte[] before = NormalStream(line);
+        var before = NormalStream(line);
 
         line.EndEnding = PdfLineEnding.ClosedArrow;
 
@@ -281,7 +281,7 @@ public sealed class LineAnnotationTests : IDisposable
     [Fact]
     public void ALineOfNoWidthDrawsNothingAndKeepsNoAppearance()
     {
-        PdfLineAnnotation line = OnAPage();
+        var line = OnAPage();
 
         line.BorderWidth = 0;
 
@@ -295,7 +295,7 @@ public sealed class LineAnnotationTests : IDisposable
     [Fact]
     public void ALineGoingNowhereDrawsNothing()
     {
-        PdfLineAnnotation line = OnAPage();
+        var line = OnAPage();
 
         line.SetLine(From, From);
 
@@ -305,16 +305,16 @@ public sealed class LineAnnotationTests : IDisposable
     [Fact]
     public void ALineSurvivesBeingWrittenAndReadBack()
     {
-        PdfDocument document = new PdfDocument();
-        PdfPage page = document.AddPage();
-        PdfLineAnnotation line = new PdfLineAnnotation();
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        var line = new PdfLineAnnotation();
         page.Annotations.Add(line);
         line.SetLine(From, To);
         line.EndEnding = PdfLineEnding.ClosedArrow;
 
-        PdfDocument reopened = SaveAndReopen(document);
+        var reopened = SaveAndReopen(document);
 
-        PdfAnnotation read = reopened.Pages[0].Annotations[0];
+        var read = reopened.Pages[0].Annotations[0];
         read.Elements.GetName("/Subtype").Should().Be("/Line");
         read.Elements.GetArray("/L").Elements.GetReal(2).Should().Be(300);
         read.Elements.GetArray("/LE").Elements.GetName(1).Should().Be("/ClosedArrow");
@@ -324,7 +324,7 @@ public sealed class LineAnnotationTests : IDisposable
     [GoldenImageFact]
     public void ALineIsPainted()
     {
-        IMagickImage<byte> page = Rasterize("plain", line =>
+        var page = Rasterize("plain", line =>
         {
             line.Color = XColors.Firebrick;
             line.BorderWidth = 6;
@@ -336,13 +336,13 @@ public sealed class LineAnnotationTests : IDisposable
     [GoldenImageFact]
     public void AnArrowheadPutsMoreInkOnThePageThanThePlainLineDoes()
     {
-        int plain = Count(Rasterize("bare", line =>
+        var plain = Count(Rasterize("bare", line =>
         {
             line.Color = XColors.Firebrick;
             line.BorderWidth = 4;
         }), IsRed);
 
-        int arrowed = Count(Rasterize("arrow", line =>
+        var arrowed = Count(Rasterize("arrow", line =>
         {
             line.Color = XColors.Firebrick;
             line.BorderWidth = 4;
@@ -358,23 +358,23 @@ public sealed class LineAnnotationTests : IDisposable
     [GoldenImageFact]
     public void ALineOfNoWidthRasterizesToNothing()
     {
-        IMagickImage<byte> page = Rasterize("empty", line => line.BorderWidth = 0);
+        var page = Rasterize("empty", line => line.BorderWidth = 0);
 
         Count(page, IsAnythingButWhite).Should().Be(0);
     }
 
     IMagickImage<byte> Rasterize(string name, Action<PdfLineAnnotation> arrange)
     {
-        PdfDocument document = new PdfDocument();
-        PdfPage page = document.AddPage();
+        var document = new PdfDocument();
+        var page = document.AddPage();
 
-        PdfLineAnnotation line = new PdfLineAnnotation();
+        var line = new PdfLineAnnotation();
         page.Annotations.Add(line);
         line.SetLine(From, To);
 
         arrange(line);
 
-        MagickImageCollection images = PdfHelper.Rasterize(document).ImageCollection;
+        var images = PdfHelper.Rasterize(document).ImageCollection;
         _rasterized.Add(images);
         PdfHelper.WriteImageCollection(images, OutDir, name);
         return images[0];
@@ -382,8 +382,8 @@ public sealed class LineAnnotationTests : IDisposable
 
     static PdfLineAnnotation OnAPage()
     {
-        PdfDocument document = new PdfDocument();
-        PdfLineAnnotation line = new PdfLineAnnotation();
+        var document = new PdfDocument();
+        var line = new PdfLineAnnotation();
         document.AddPage().Annotations.Add(line);
 
         line.SetLine(From, To);
@@ -392,14 +392,14 @@ public sealed class LineAnnotationTests : IDisposable
 
     static byte[] NormalStream(PdfLineAnnotation line)
     {
-        PdfDictionary form =
+        var form =
             (PdfDictionary)line.Elements.GetDictionary("/AP").Elements.GetObject("/N");
         return form.Stream.Value;
     }
 
     static PdfDocument SaveAndReopen(PdfDocument document)
     {
-        using MemoryStream stream = new MemoryStream();
+        using var stream = new MemoryStream();
         document.Save(stream, false);
         stream.Position = 0;
         // Named in full: this assembly has a test class called PdfReader too, and it wins.
@@ -412,10 +412,10 @@ public sealed class LineAnnotationTests : IDisposable
 
     static int Count(IMagickImage<byte> image, Func<IMagickColor<byte>, bool> match)
     {
-        using IPixelCollection<byte> pixels = image.GetPixels();
+        using var pixels = image.GetPixels();
         return pixels.Count(p =>
         {
-            IMagickColor<byte> c = p.ToColor();
+            var c = p.ToColor();
             return c != null && match(c);
         });
     }

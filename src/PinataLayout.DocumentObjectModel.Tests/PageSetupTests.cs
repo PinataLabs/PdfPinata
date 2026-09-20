@@ -24,7 +24,7 @@ public class PageSetupTests
         get
         {
             var data = new TheoryData<PageFormat>();
-            foreach (PageFormat format in Enum.GetValues<PageFormat>())
+            foreach (var format in Enum.GetValues<PageFormat>())
                 data.Add(format);
             return data;
         }

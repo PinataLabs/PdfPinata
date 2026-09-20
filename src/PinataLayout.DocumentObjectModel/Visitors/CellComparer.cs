@@ -52,7 +52,7 @@ public class CellComparer : IComparer<Cell>
     if (ReferenceEquals(rhs, null))
       throw new ArgumentNullException(nameof(rhs));
 
-    int rowCmpr = lhs.Row.Index - rhs.Row.Index;
+    var rowCmpr = lhs.Row.Index - rhs.Row.Index;
     if (rowCmpr != 0)
       return rowCmpr;
 

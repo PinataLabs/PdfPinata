@@ -11,7 +11,7 @@ namespace PdfPinata.Test.IO;
 public abstract class IoBaseTest
 {
     private readonly string _rootPath = PathHelper.GetInstance().RootDir;
-    private const string _outputDirName = "Out";
+    private const string OutputDirName = "Out";
 
     public void CanReadPdf(string fileName)
     {
@@ -28,6 +28,7 @@ public abstract class IoBaseTest
         var dir = Path.GetDirectoryName(outFilePath);
         if (!Directory.Exists(dir))
         {
+            // ReSharper disable once AssignNullToNotNullAttribute
             Directory.CreateDirectory(dir);
         }
 
@@ -69,6 +70,6 @@ public abstract class IoBaseTest
 
     protected string GetOutFilePath(string name)
     {
-        return Path.Combine(_rootPath, _outputDirName, name);
+        return Path.Combine(_rootPath, OutputDirName, name);
     }
 }

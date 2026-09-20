@@ -80,5 +80,5 @@ public enum SymbolName : uint
   /// <summary>A space a line may not be broken at, U+00A0.</summary>
   NonBreakableBlank = 0xF8000009,
   /// <summary>A space a line may not be broken at. Same as <see cref="NonBreakableBlank"/>.</summary>
-  HardBlank = NonBreakableBlank,
+  HardBlank = NonBreakableBlank
 }

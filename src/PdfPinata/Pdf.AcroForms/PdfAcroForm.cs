@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -32,7 +32,7 @@ using System;
 namespace PdfPinata.Pdf.AcroForms;
 
 /// <summary>
-/// Represents a interactive form (or AcroForm), a collection of fields for 
+/// Represents a interactive form (or AcroForm), a collection of fields for
 /// gathering information interactively from the user.
 /// </summary>
 public sealed class PdfAcroForm : PdfDictionary
@@ -113,7 +113,7 @@ public sealed class PdfAcroForm : PdfDictionary
     {
         get
         {
-            PdfDictionary resources = Elements.GetDictionary(Keys.DR);
+            var resources = Elements.GetDictionary(Keys.DR);
             if (resources == null)
             {
                 resources = new PdfDictionary(Owner);
@@ -150,10 +150,10 @@ public sealed class PdfAcroForm : PdfDictionary
         if (string.IsNullOrWhiteSpace(baseFont))
             throw new ArgumentException("A standard font has to be named.", nameof(baseFont));
 
-        string key = resourceName[0] == '/' ? resourceName : "/" + resourceName;
-        string face = baseFont[0] == '/' ? baseFont : "/" + baseFont;
+        var key = resourceName[0] == '/' ? resourceName : "/" + resourceName;
+        var face = baseFont[0] == '/' ? baseFont : "/" + baseFont;
 
-        PdfDictionary font = new PdfDictionary(Owner);
+        var font = new PdfDictionary(Owner);
         Owner.Internals.AddObject(font);
         font.Elements.SetName("/Type", "/Font");
         font.Elements.SetName("/Subtype", "/Type1");
@@ -162,8 +162,8 @@ public sealed class PdfAcroForm : PdfDictionary
         if (face != "/Symbol" && face != "/ZapfDingbats")
             font.Elements.SetName("/Encoding", "/WinAnsiEncoding");
 
-        PdfDictionary resources = DefaultResources;
-        PdfDictionary fonts = resources.Elements.GetDictionary("/Font");
+        var resources = DefaultResources;
+        var fonts = resources.Elements.GetDictionary("/Font");
         if (fonts == null)
         {
             fonts = new PdfDictionary(Owner);
@@ -191,7 +191,7 @@ public sealed class PdfAcroForm : PdfDictionary
     PdfAcroField.PdfAcroFieldCollection _fields;
 
     /// <summary>
-    /// Predefined keys of this dictionary. 
+    /// Predefined keys of this dictionary.
     /// The description comes from PDF 1.4 Reference.
     /// </summary>
     public sealed class Keys : KeysBase
@@ -224,7 +224,7 @@ public sealed class PdfAcroForm : PdfDictionary
         /// <summary>
         /// (Required if any fields in the document have additional-actions dictionaries
         /// containing a C entry; PDF 1.3) An array of indirect references to field dictionaries
-        /// with calculation actions, defining the calculation order in which their values will 
+        /// with calculation actions, defining the calculation order in which their values will
         /// be recalculated when the value of any field changes.
         /// </summary>
         [KeyInfo(KeyType.Array)]

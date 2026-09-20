@@ -24,7 +24,7 @@ internal static class PngFilter
             Array.Copy(inData, pos + 1, row, 0, stride);
             var filterType = inData[pos];
             if (filterType > 4)
-                throw new PdfReaderException(string.Format("Unexpected Png-Predictor {0} in Xref Stream. Expected 0 to 4.", filterType));
+                throw new PdfReaderException($"Unexpected Png-Predictor {filterType} in Xref Stream. Expected 0 to 4.");
             switch (filterType)
             {
                 case 0:         // None

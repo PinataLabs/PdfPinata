@@ -232,6 +232,7 @@ public partial class TextFrame : Shape, IVisitable
         visitor.VisitTextFrame(this);
 
         if (visitChildren && this.elements != null)
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             ((IVisitable)this.elements).AcceptVisitor(visitor, visitChildren);
     }
 
@@ -242,7 +243,7 @@ public partial class TextFrame : Shape, IVisitable
     internal override void Serialize(Serializer serializer)
     {
         serializer.WriteLine("\\textframe");
-        int pos = serializer.BeginAttributes();
+        var pos = serializer.BeginAttributes();
         base.Serialize(serializer);
         if (!this.marginLeft.IsNull)
             serializer.WriteSimpleAttribute("MarginLeft", this.MarginLeft);

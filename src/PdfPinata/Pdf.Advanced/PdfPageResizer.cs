@@ -56,14 +56,14 @@ static class PdfPageResizer
     {
         ArgumentNullException.ThrowIfNull(page);
 
-        PdfDocument document = page.Owner
-                               ?? throw new InvalidOperationException(
-                                   "The page belongs to no document, so there is nothing to resize it within.");
+        var document = page.Owner
+                       ?? throw new InvalidOperationException(
+                           "The page belongs to no document, so there is nothing to resize it within.");
 
         options = (options ?? PageResizeOptions.Default).Clone();
         RefuseWhatCannotBeResized(document);
 
-        XMatrix matrix = ResizeOnePage(page, visibleTarget, size, options);
+        var matrix = ResizeOnePage(page, visibleTarget, size, options);
 
         if (options.ScaleDestinations)
         {
@@ -87,8 +87,8 @@ static class PdfPageResizer
         // be left with half its pages resized.
         RefuseWhatCannotBeResized(document);
 
-        Dictionary<PdfPage, XMatrix> matrices = new Dictionary<PdfPage, XMatrix>();
-        foreach (PdfPage page in document.Pages)
+        var matrices = new Dictionary<PdfPage, XMatrix>();
+        foreach (var page in document.Pages)
             matrices[page] = ResizeOnePage(page, visibleTarget, size, options);
 
         if (options.ScaleDestinations)
@@ -115,11 +115,11 @@ static class PdfPageResizer
         // A page turned by a quarter is stored across the way the reader sees it, so the box that
         // has to be written is the target with its sides swapped. Everything from here on is in
         // the coordinates the content is really drawn in, which is what the viewer then turns.
-        XSize storedTarget = page.IsTurnedByAQuarter
+        var storedTarget = page.IsTurnedByAQuarter
             ? new XSize(visibleTarget.Height, visibleTarget.Width)
             : visibleTarget;
 
-        XRect target = new XRect(0, 0, storedTarget.Width, storedTarget.Height);
+        var target = new XRect(0, 0, storedTarget.Width, storedTarget.Height);
 
         // The transform written in front of the content, and the transform that carries the page
         // as it stands now onto the page as it will be. They are the same thing the first time a
@@ -130,11 +130,11 @@ static class PdfPageResizer
         XMatrix contentMatrix;
         XMatrix delta;
 
-        if (TryFindWrapper(page, out string name, out XRect wrapped, out XMatrix already))
+        if (TryFindWrapper(page, out var name, out var wrapped, out var already))
         {
             contentMatrix = PageFit.Calculate(wrapped, target, options);
 
-            XMatrix undo = already;
+            var undo = already;
             undo.Invert();
             delta = undo * contentMatrix;
 
@@ -142,7 +142,7 @@ static class PdfPageResizer
         }
         else
         {
-            XRect source = SourceRectOf(page);
+            var source = SourceRectOf(page);
             contentMatrix = PageFit.Calculate(source, target, options);
             delta = contentMatrix;
 
@@ -169,9 +169,9 @@ static class PdfPageResizer
     {
         // Not page.CropBox: its getter passes create: true, so merely asking whether there is a
         // crop box would give the page one.
-        PdfRectangle media = RectangleOf(page, PdfPage.Keys.MediaBox);
-        PdfRectangle crop = RectangleOf(page, PdfPage.Keys.CropBox);
-        PdfRectangle box = crop ?? media;
+        var media = RectangleOf(page, PdfPage.InheritablePageKeys.MediaBox);
+        var crop = RectangleOf(page, PdfPage.InheritablePageKeys.CropBox);
+        var box = crop ?? media;
 
         if (box == null || box.Width <= 0 || box.Height <= 0)
         {
@@ -179,7 +179,7 @@ static class PdfPageResizer
                 "The page has no usable media box, so there is no telling what size it is now.");
         }
 
-        XRect rect = Normalized(box);
+        var rect = Normalized(box);
 
         // A crop box is not allowed to reach outside the media box; where one does, a reader
         // takes the part of it that lies within, and so does this. Without that a page whose
@@ -212,8 +212,8 @@ static class PdfPageResizer
     /// </summary>
     static XRect Normalized(PdfRectangle rect)
     {
-        double x = Math.Min(rect.X1, rect.X2);
-        double y = Math.Min(rect.Y1, rect.Y2);
+        var x = Math.Min(rect.X1, rect.X2);
+        var y = Math.Min(rect.Y1, rect.Y2);
         return new XRect(x, y, Math.Abs(rect.X2 - rect.X1), Math.Abs(rect.Y2 - rect.Y1));
     }
 
@@ -223,15 +223,15 @@ static class PdfPageResizer
     /// </summary>
     static void WrapContent(PdfPage page, XRect source, XMatrix matrix)
     {
-        PdfFormXObject form = new PdfFormXObject(page.Owner, page,
+        var form = new PdfFormXObject(page.Owner, page,
             new PdfRectangle(source.X, source.Y, source.X + source.Width, source.Y + source.Height));
         page.Owner._irefTable.Add(form);
 
         // A dictionary of its own holding nothing but the wrapper. Never the one the page had:
         // that one may be shared with other pages, and it has just been handed to the form.
-        PdfResources resources = new PdfResources(page.Owner);
+        var resources = new PdfResources(page.Owner);
         page.Owner._irefTable.Add(resources);
-        string name = resources.AddForm(form);
+        var name = resources.AddForm(form);
 
         page.ReplaceResources(resources);
         page.ReplaceContents(ContentDrawing(page.Owner, name, matrix));
@@ -242,7 +242,7 @@ static class PdfPageResizer
     /// </summary>
     static PdfContent ContentDrawing(PdfDocument document, string name, XMatrix matrix)
     {
-        StringBuilder builder = new StringBuilder();
+        var builder = new StringBuilder();
         builder.Append("q ");
         AppendNumber(builder, matrix.M11);
         AppendNumber(builder, matrix.M12);
@@ -252,7 +252,7 @@ static class PdfPageResizer
         AppendNumber(builder, matrix.OffsetY);
         builder.Append("cm ").Append(name).Append(" Do Q\n");
 
-        PdfContent content = new PdfContent(document);
+        var content = new PdfContent(document);
         content.CreateStream(PdfEncoders.RawEncoding.GetBytes(builder.ToString()));
         document._irefTable.Add(content);
         return content;
@@ -284,7 +284,7 @@ static class PdfPageResizer
         wrapped = default;
         already = XMatrix.Identity;
 
-        PdfDictionary content = SingleContentStreamOf(page);
+        var content = SingleContentStreamOf(page);
         if (content?.Stream == null)
             return false;
 
@@ -306,19 +306,19 @@ static class PdfPageResizer
 
         // The name has to lead to a form this made. Read the resources through the element
         // rather than the property so that a page without any does not get given some.
-        PdfItem resourcesItem = page.Elements[PdfPage.Keys.Resources];
+        var resourcesItem = page.Elements[PdfPage.InheritablePageKeys.Resources];
         if (resourcesItem is PdfReference resourcesReference)
             resourcesItem = resourcesReference.Value;
         if (resourcesItem is not PdfDictionary resources)
             return false;
 
-        PdfItem xObjectsItem = resources.Elements["/XObject"];
+        var xObjectsItem = resources.Elements["/XObject"];
         if (xObjectsItem is PdfReference xObjectsReference)
             xObjectsItem = xObjectsReference.Value;
         if (xObjectsItem is not PdfDictionary xObjects)
             return false;
 
-        PdfItem formItem = xObjects.Elements[name];
+        var formItem = xObjects.Elements[name];
         if (formItem is PdfReference formReference)
             formItem = formReference.Value;
         if (formItem is not PdfDictionary form)
@@ -330,7 +330,7 @@ static class PdfPageResizer
         // The rectangle the content occupied when it was first wrapped is the form's bounding
         // box. Working the new transform out against that rather than against the transform
         // already in force is what keeps a page from drifting as it is resized over and over.
-        PdfRectangle box = RectangleOf(form, "/BBox");
+        var box = RectangleOf(form, "/BBox");
         if (box == null || box.Width <= 0 || box.Height <= 0)
             return false;
 
@@ -343,7 +343,7 @@ static class PdfPageResizer
     /// </summary>
     static PdfRectangle RectangleOf(PdfDictionary dictionary, string key)
     {
-        PdfItem item = dictionary.Elements[key];
+        var item = dictionary.Elements[key];
         if (item is PdfReference reference)
             item = reference.Value;
 
@@ -352,8 +352,8 @@ static class PdfPageResizer
 
         if (item is PdfArray array && array.Elements.Count == 4)
         {
-            double[] corners = new double[4];
-            for (int index = 0; index < 4; index++)
+            var corners = new double[4];
+            for (var index = 0; index < 4; index++)
             {
                 if (!TryNumber(array.Elements[index], out corners[index]))
                     return null;
@@ -382,7 +382,7 @@ static class PdfPageResizer
     /// </summary>
     static PdfDictionary SingleContentStreamOf(PdfPage page)
     {
-        PdfItem item = page.Elements[PdfPage.Keys.Contents];
+        var item = page.Elements[PdfPage.Keys.Contents];
         if (item is PdfReference reference)
             item = reference.Value;
 
@@ -415,7 +415,7 @@ static class PdfPageResizer
         if (content == null)
             return false;
 
-        string[] tokens = PdfEncoders.RawEncoding.GetString(content, 0, content.Length)
+        var tokens = PdfEncoders.RawEncoding.GetString(content, 0, content.Length)
             .Split(WrapperSeparators, StringSplitOptions.RemoveEmptyEntries);
 
         // q, six numbers, cm, the name, Do, Q. Anything longer or shorter is somebody else's.
@@ -425,8 +425,8 @@ static class PdfPageResizer
         if (tokens[0] != "q" || tokens[7] != "cm" || tokens[9] != "Do" || tokens[10] != "Q")
             return false;
 
-        double[] numbers = new double[6];
-        for (int index = 0; index < 6; index++)
+        var numbers = new double[6];
+        for (var index = 0; index < 6; index++)
         {
             if (!double.TryParse(tokens[index + 1], NumberStyles.Float, CultureInfo.InvariantCulture,
                     out numbers[index]))
@@ -449,17 +449,17 @@ static class PdfPageResizer
         // The crop box and the rest describe parts of the content, so they go where it goes.
         // Read and write the elements rather than the properties, whose getters would create the
         // very boxes this is meant to leave absent.
-        foreach (string key in new[]
+        foreach (var key in new[]
                  {
-                     PdfPage.Keys.CropBox, PdfPage.Keys.BleedBox,
-                     PdfPage.Keys.TrimBox, PdfPage.Keys.ArtBox,
+                     PdfPage.InheritablePageKeys.CropBox, PdfPage.Keys.BleedBox,
+                     PdfPage.Keys.TrimBox, PdfPage.Keys.ArtBox
                  })
         {
-            PdfRectangle box = RectangleOf(page, key);
+            var box = RectangleOf(page, key);
             if (box == null)
                 continue;
 
-            XRect moved = Transformed(Normalized(box), matrix);
+            var moved = Transformed(Normalized(box), matrix);
 
             // None of these is allowed to reach outside the media box. Fill and None both let
             // the content overflow the new page on purpose, and a box that travelled with it
@@ -532,12 +532,12 @@ static class PdfPageResizer
             matrix.Transform(new XPoint(rect.X, rect.Y)),
             matrix.Transform(new XPoint(rect.X + rect.Width, rect.Y)),
             matrix.Transform(new XPoint(rect.X + rect.Width, rect.Y + rect.Height)),
-            matrix.Transform(new XPoint(rect.X, rect.Y + rect.Height)),
+            matrix.Transform(new XPoint(rect.X, rect.Y + rect.Height))
         };
 
         double minX = corners[0].X, maxX = corners[0].X;
         double minY = corners[0].Y, maxY = corners[0].Y;
-        for (int index = 1; index < corners.Length; index++)
+        for (var index = 1; index < corners.Length; index++)
         {
             minX = Math.Min(minX, corners[index].X);
             maxX = Math.Max(maxX, corners[index].X);
@@ -597,7 +597,7 @@ static class PdfPageResizer
     /// </summary>
     static bool HasSignature(PdfDocument document)
     {
-        PdfItem formItem = document.Catalog.Elements[PdfCatalog.Keys.AcroForm];
+        var formItem = document.Catalog.Elements[PdfCatalog.Keys.AcroForm];
         if (formItem is PdfReference formReference)
             formItem = formReference.Value;
         if (formItem is not PdfDictionary form)
@@ -606,7 +606,7 @@ static class PdfPageResizer
         if (form.Elements.GetInteger("/SigFlags") != 0)
             return true;
 
-        PdfItem fieldsItem = form.Elements["/Fields"];
+        var fieldsItem = form.Elements["/Fields"];
         if (fieldsItem is PdfReference fieldsReference)
             fieldsItem = fieldsReference.Value;
         if (fieldsItem is not PdfArray fields)
@@ -625,9 +625,9 @@ static class PdfPageResizer
         if (depth > 16)
             return false;
 
-        foreach (PdfItem item in fields.Elements)
+        foreach (var item in fields.Elements)
         {
-            PdfItem fieldItem = item;
+            var fieldItem = item;
             if (fieldItem is PdfReference reference)
                 fieldItem = reference.Value;
             if (fieldItem is not PdfDictionary field)
@@ -636,7 +636,7 @@ static class PdfPageResizer
             if (field.Elements.GetName("/FT") == "/Sig")
                 return true;
 
-            PdfItem kidsItem = field.Elements["/Kids"];
+            var kidsItem = field.Elements["/Kids"];
             if (kidsItem is PdfReference kidsReference)
                 kidsItem = kidsReference.Value;
             if (kidsItem is PdfArray kids && HoldsSignatureField(kids, depth + 1))

@@ -170,12 +170,12 @@ public class XGraphicsPathTests
         // one adds only its two controls and its end.
         var four = new[]
         {
-            new XPoint(100, 100), new XPoint(150, 50), new XPoint(250, 50), new XPoint(300, 100),
+            new XPoint(100, 100), new XPoint(150, 50), new XPoint(250, 50), new XPoint(300, 100)
         };
         var seven = new[]
         {
             new XPoint(100, 100), new XPoint(150, 50), new XPoint(250, 50), new XPoint(300, 100),
-            new XPoint(350, 150), new XPoint(450, 150), new XPoint(500, 100),
+            new XPoint(350, 150), new XPoint(450, 150), new XPoint(500, 100)
         };
 
         PointCount(path => path.AddBeziers(four)).Should().Be(4);
@@ -221,7 +221,7 @@ public class XGraphicsPathTests
         // duplicated end so the spline starts and finishes flat rather than overshooting.
         var points = new[]
         {
-            new XPoint(100, 100), new XPoint(200, 50), new XPoint(300, 150), new XPoint(400, 100),
+            new XPoint(100, 100), new XPoint(200, 50), new XPoint(300, 150), new XPoint(400, 100)
         };
 
         PointCount(path => path.AddCurve(points)).Should().Be(10);
@@ -232,7 +232,7 @@ public class XGraphicsPathTests
     {
         var points = new[]
         {
-            new XPoint(100, 100), new XPoint(200, 50), new XPoint(300, 150), new XPoint(400, 100),
+            new XPoint(100, 100), new XPoint(200, 50), new XPoint(300, 150), new XPoint(400, 100)
         };
 
         var slack = Bounds(path => path.AddCurve(points, 0.0));
@@ -382,7 +382,7 @@ public class XGraphicsPathTests
     {
         var rects = new[]
         {
-            new XRect(100, 100, 50, 50), new XRect(200, 100, 50, 50), new XRect(300, 100, 50, 50),
+            new XRect(100, 100, 50, 50), new XRect(200, 100, 50, 50), new XRect(300, 100, 50, 50)
         };
 
         FigureCount(path => path.AddRectangles(rects)).Should().Be(3);
@@ -614,7 +614,8 @@ public class XGraphicsPathTests
         var document = new PdfDocument();
         using var gfx = XGraphics.FromPdfPage(document.AddPage());
 
-        var act = () => gfx.DrawPath((XPen)null, (XBrush)null, path);
+        // ReSharper disable once AccessToDisposedClosure
+        var act = () => gfx.DrawPath(null, null, path);
 
         act.Should().Throw<ArgumentNullException>();
     }
@@ -761,6 +762,6 @@ public class XGraphicsPathTests
     static readonly XPoint[] Diamond =
     {
         new XPoint(200, 100), new XPoint(260, 175),
-        new XPoint(200, 250), new XPoint(140, 175),
+        new XPoint(200, 250), new XPoint(140, 175)
     };
 }

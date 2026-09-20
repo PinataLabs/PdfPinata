@@ -46,5 +46,5 @@ public enum XPageDirection
     /// It is not implemented when drawing on a System.Drawing.Graphics object.
     /// </summary>
     [Obsolete("Not implemeted - yagni")]
-    Upwards = 1, // Possible, but needs a lot of case differentiation - postponed.
+    Upwards = 1 // Possible, but needs a lot of case differentiation - postponed.
 }

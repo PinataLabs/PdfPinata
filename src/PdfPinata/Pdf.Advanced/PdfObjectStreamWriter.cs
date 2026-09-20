@@ -112,7 +112,7 @@ internal static class PdfObjectStreamWriter
         var writer = new PdfWriter(destination, null)
         {
             Layout = PdfWriterLayout.Compact,
-            OmitIndirectFraming = true,
+            OmitIndirectFraming = true
         };
         iref.Value.WriteObject(writer);
         destination.Flush();

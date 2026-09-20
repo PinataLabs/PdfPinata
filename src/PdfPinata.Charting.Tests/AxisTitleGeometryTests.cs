@@ -64,7 +64,7 @@ public class AxisTitleGeometryTests
         {
             AnchorY(VerticalAlignment.Top),
             AnchorY(VerticalAlignment.Center),
-            AnchorY(VerticalAlignment.Bottom),
+            AnchorY(VerticalAlignment.Bottom)
         };
 
         positions.Should().OnlyHaveUniqueItems();

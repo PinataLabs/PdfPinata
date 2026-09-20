@@ -59,5 +59,5 @@ public enum PdfLineEnding
     /// <summary>
     /// A short line at the endpoint, about thirty degrees clockwise from perpendicular.
     /// </summary>
-    Slash,
+    Slash
 }

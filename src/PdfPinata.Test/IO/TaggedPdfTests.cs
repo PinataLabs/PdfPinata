@@ -35,7 +35,7 @@ public class TaggedPdfTests
     [Fact]
     public void ADocumentThatNeverAsksToBeTaggedIsWrittenExactlyAsBefore()
     {
-        var bytes = Save((gfx, document) => gfx.DrawString("Plain", Font, XBrushes.Black, 40, 60));
+        var bytes = Save((gfx, _) => gfx.DrawString("Plain", Font, XBrushes.Black, 40, 60));
 
         var catalog = Catalog(bytes);
         catalog.Elements.ContainsKey("/StructTreeRoot").Should().BeFalse();
@@ -48,7 +48,7 @@ public class TaggedPdfTests
     [Fact]
     public void TaggedContentIsWrappedInAMarkedContentSequence()
     {
-        var bytes = Save((gfx, document) =>
+        var bytes = Save((gfx, _) =>
         {
             using (gfx.BeginMarkedContent(PdfTag.H1))
                 gfx.DrawString("Invoice", Font, XBrushes.Black, 40, 60);
@@ -62,7 +62,7 @@ public class TaggedPdfTests
     [Fact]
     public void TheCatalogSaysTheDocumentIsTagged()
     {
-        var bytes = Save((gfx, document) =>
+        var bytes = Save((gfx, _) =>
         {
             using (gfx.BeginMarkedContent(PdfTag.P))
                 gfx.DrawString("Body", Font, XBrushes.Black, 40, 60);
@@ -79,7 +79,7 @@ public class TaggedPdfTests
     [Fact]
     public void TheStructureTreeIsReadBackWithTheTypesItWasGiven()
     {
-        var bytes = Save((gfx, document) =>
+        var bytes = Save((gfx, _) =>
         {
             using (gfx.BeginMarkedContent(PdfTag.H1))
                 gfx.DrawString("Heading", Font, XBrushes.Black, 40, 60);
@@ -97,7 +97,7 @@ public class TaggedPdfTests
     [Fact]
     public void AScopeOpenedInsideAnotherBecomesItsChild()
     {
-        var bytes = Save((gfx, document) =>
+        var bytes = Save((gfx, _) =>
         {
             using (gfx.BeginMarkedContent(PdfTag.Section))
             {
@@ -128,7 +128,7 @@ public class TaggedPdfTests
         // draws. A scope opened before that would have the q land inside it while the matching Q,
         // written when the page closes, lands after the EMC — the two pairs crossing rather than
         // nesting, which is not allowed.
-        var bytes = Save((gfx, document) =>
+        var bytes = Save((gfx, _) =>
         {
             using (gfx.BeginMarkedContent(PdfTag.P))
                 gfx.DrawString("First thing drawn", Font, XBrushes.Black, 40, 60);
@@ -189,7 +189,7 @@ public class TaggedPdfTests
     public void AnArtifactJoinsNoStructureElement()
     {
         // A page number read out between every paragraph is worse than no page number.
-        var bytes = Save((gfx, document) =>
+        var bytes = Save((gfx, _) =>
         {
             using (gfx.BeginMarkedContent(PdfTag.P))
                 gfx.DrawString("Body", Font, XBrushes.Black, 40, 60);
@@ -224,7 +224,7 @@ public class TaggedPdfTests
         // every page rather than counting across the document.
         var bytes = SaveTwoPages();
 
-        Occurrences(ContentOf(bytes, 0), "<</MCID 0>>").Should().Be(1);
+        Occurrences(ContentOf(bytes), "<</MCID 0>>").Should().Be(1);
         Occurrences(ContentOf(bytes, 1), "<</MCID 0>>").Should().Be(1);
     }
 
@@ -243,7 +243,7 @@ public class TaggedPdfTests
     [Fact]
     public void AFigureCarriesTheTextThatStandsInForIt()
     {
-        var bytes = Save((gfx, document) =>
+        var bytes = Save((gfx, _) =>
         {
             using (gfx.BeginMarkedContent(PdfTag.Figure, "A bar chart of monthly revenue"))
                 gfx.DrawRectangle(XBrushes.LightGray, 40, 40, 120, 80);

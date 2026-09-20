@@ -32,7 +32,7 @@ public class ChosenNoteIdentifierTests
     public void AnUnsetIdentifierIsStillGenerated()
     {
         // The default, and the behaviour every existing document depends on.
-        var document = Document(out Section section);
+        var document = Document(out var section);
         section.AddParagraph("A claim").AddFootnote("The support.");
 
         Structure.Of(document).Single("Note").Id.Should().Be("note1");
@@ -41,7 +41,7 @@ public class ChosenNoteIdentifierTests
     [Fact]
     public void AChosenIdentifierIsWhatIsWritten()
     {
-        var document = Document(out Section section);
+        var document = Document(out var section);
         var footnote = section.AddParagraph("A claim").AddFootnote("The support.");
         footnote.Identifier = "clause-4-note";
 
@@ -54,7 +54,7 @@ public class ChosenNoteIdentifierTests
         // The counter advances for every note whether or not its name came from the counter, so the
         // notes that did take a generated name keep the number their citation order gives them. A
         // counter that only advanced on generated names would make note 3 answer to "note2".
-        var document = Document(out Section section);
+        var document = Document(out var section);
         var paragraph = section.AddParagraph("Three claims");
         paragraph.AddFootnote("The first.");
         paragraph.AddFootnote("The second.").Identifier = "chosen";
@@ -69,7 +69,7 @@ public class ChosenNoteIdentifierTests
     {
         // The identifier tree refuses it, and has to: an identifier is what something else points
         // at, so a name that reaches two elements reaches neither.
-        var document = Document(out Section section);
+        var document = Document(out var section);
         var paragraph = section.AddParagraph("Two claims");
         paragraph.AddFootnote("The first.").Identifier = "same";
         paragraph.AddFootnote("The second.").Identifier = "same";
@@ -84,7 +84,7 @@ public class ChosenNoteIdentifierTests
     {
         // The trap the prefix exists to make visible rather than to prevent: "note2" is exactly the
         // name a caller reaches for, and the second note is about to be given it.
-        var document = Document(out Section section);
+        var document = Document(out var section);
         var paragraph = section.AddParagraph("Two claims");
         paragraph.AddFootnote("The first.").Identifier = "note2";
         paragraph.AddFootnote("The second.");
@@ -99,7 +99,7 @@ public class ChosenNoteIdentifierTests
     {
         // It is a DOM property, so it belongs in MDDDL like every other one - a document written out
         // and read back has to be the same document.
-        var document = Document(out Section section);
+        var document = Document(out var section);
         section.AddParagraph("A claim").AddFootnote("The support.").Identifier = "clause-4-note";
 
         var writer = new StringWriter();
@@ -116,7 +116,7 @@ public class ChosenNoteIdentifierTests
     public void AnUnsetIdentifierIsNotWrittenToTheDocumentModel()
     {
         // Nothing gained by writing the empty string into every footnote in every MDDDL file.
-        var document = Document(out Section section);
+        var document = Document(out var section);
         section.AddParagraph("A claim").AddFootnote("The support.");
 
         var writer = new StringWriter();

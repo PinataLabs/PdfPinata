@@ -40,7 +40,7 @@ internal sealed class FormsDemo : PdfDemo
         "A check box and a radio group, each with the appearance streams a viewer toggles between",
         "A combo box and a list box, both from an /Opt array, one of them editable",
         "A push button carrying a URI action",
-        "That every field here is made through the typed API rather than assembled by hand",
+        "That every field here is made through the typed API rather than assembled by hand"
     };
 
     public override int PageCount => 2;
@@ -50,22 +50,22 @@ internal sealed class FormsDemo : PdfDemo
         #region example
         const string Sans = "Liberation Sans";
 
-        PdfDocument document = new PdfDocument();
+        var document = new PdfDocument();
         document.Info.Title = "Interactive form";
 
-        PdfPage page = document.AddPage();
-        XGraphics gfx = XGraphics.FromPdfPage(page);
+        var page = document.AddPage();
+        var gfx = XGraphics.FromPdfPage(page);
 
-        XFont titleFont = new XFont(Sans, 18, XFontStyle.Bold);
-        XFont labelFont = new XFont(Sans, 9, XFontStyle.Bold);
-        XFont noteFont = new XFont(Sans, 7.5);
+        var titleFont = new XFont(Sans, 18, XFontStyle.Bold);
+        var labelFont = new XFont(Sans, 9, XFontStyle.Bold);
+        var noteFont = new XFont(Sans, 7.5);
 
         // ---- The form ----------------------------------------------------------------
         //
         // docs:begin create-form
         // GetOrCreateAcroForm makes the form, makes it indirect and puts it in the catalogue.
         // PdfDocument.AcroForm only reads, and answers null until this has been called.
-        PdfAcroForm form = document.GetOrCreateAcroForm();
+        var form = document.GetOrCreateAcroForm();
 
         // /NeedAppearances asks the viewer to build the appearance streams for the text and
         // choice fields, which is what saves this demo from laying out their glyphs. The buttons
@@ -131,9 +131,14 @@ internal sealed class FormsDemo : PdfDemo
         // this and the push button's action are the only entries the demo still writes by name.
         void Decorate(PdfWidgetAnnotation widget, double grey)
         {
-            PdfDictionary appearance = new PdfDictionary(document);
-            appearance.Elements["/BG"] = new PdfArray(document, new PdfReal(grey));
-            appearance.Elements["/BC"] = new PdfArray(document, new PdfReal(0.45));
+            var appearance = new PdfDictionary(document)
+            {
+                Elements =
+                {
+                    ["/BG"] = new PdfArray(document, new PdfReal(grey)),
+                    ["/BC"] = new PdfArray(document, new PdfReal(0.45))
+                }
+            };
             widget.Elements["/MK"] = appearance;
         }
 
@@ -158,19 +163,19 @@ internal sealed class FormsDemo : PdfDemo
         // nothing and reports nothing. Drawing through XGraphics puts that mistake out of reach.
         XForm Appearance(XRect box, Action<XGraphics> draw)
         {
-            XForm appearance = new XForm(document, new XSize(box.Width, box.Height));
-            using (XGraphics into = XGraphics.FromForm(appearance))
+            var appearance = new XForm(document, new XSize(box.Width, box.Height));
+            using (var into = XGraphics.FromForm(appearance))
                 draw(into);
             return appearance;
         }
 
         // ---- Text fields -------------------------------------------------------------
         // docs:begin text-fields
-        XRect fullNameBox = Row("Full name", 20);
-        PdfTextField fullName = new PdfTextField(document)
+        var fullNameBox = Row("Full name", 20);
+        var fullName = new PdfTextField(document)
         {
             Name = "fullName",
-            ToolTip = "Your name as it appears on your passport",
+            ToolTip = "Your name as it appears on your passport"
         };
         form.Fields.Add(fullName);
         StyleText(fullName);
@@ -178,12 +183,12 @@ internal sealed class FormsDemo : PdfDemo
         fullName.Text = "Ada Lovelace";
         EndRow(fullNameBox, "A value in /V, a tooltip in /TU, and a box the library draws itself.");
 
-        XRect emailBox = Row("Email", 20);
-        PdfTextField email = new PdfTextField(document)
+        var emailBox = Row("Email", 20);
+        var email = new PdfTextField(document)
         {
             Name = "email",
             ToolTip = "Required - we will not use it for anything",
-            Flags = PdfAcroFieldFlags.Required,
+            Flags = PdfAcroFieldFlags.Required
         };
         form.Fields.Add(email);
         StyleText(email);
@@ -191,12 +196,12 @@ internal sealed class FormsDemo : PdfDemo
         EndRow(emailBox, "Required, so a reader marks it when the form is submitted empty.");
         // docs:end text-fields
 
-        XRect secretBox = Row("Passphrase", 20);
-        PdfTextField secret = new PdfTextField(document)
+        var secretBox = Row("Passphrase", 20);
+        var secret = new PdfTextField(document)
         {
             Name = "secret",
             ToolTip = "Typed back as bullets",
-            Password = true,
+            Password = true
         };
         form.Fields.Add(secret);
         StyleText(secret);
@@ -206,13 +211,13 @@ internal sealed class FormsDemo : PdfDemo
         // a guarantee to the author - so a form field is not somewhere to keep a secret.
         EndRow(secretBox, "Password: echoed as bullets. Advisory only - not secret storage.");
 
-        XRect postcodeBox = Row("Postcode", 20);
-        PdfTextField postcode = new PdfTextField(document)
+        var postcodeBox = Row("Postcode", 20);
+        var postcode = new PdfTextField(document)
         {
             Name = "postcode",
             ToolTip = "Six cells, one character each",
             MaxLength = 6,
-            Flags = PdfAcroFieldFlags.Comb,
+            Flags = PdfAcroFieldFlags.Comb
         };
         form.Fields.Add(postcode);
         StyleText(postcode);
@@ -222,12 +227,12 @@ internal sealed class FormsDemo : PdfDemo
         // draws the boxes for a postcode or a card number.
         EndRow(postcodeBox, "Comb + MaxLength: one character per cell, evenly spaced.");
 
-        XRect notesBox = Row("Notes", 56);
-        PdfTextField notes = new PdfTextField(document)
+        var notesBox = Row("Notes", 56);
+        var notes = new PdfTextField(document)
         {
             Name = "notes",
             ToolTip = "Anything else we should know",
-            MultiLine = true,
+            MultiLine = true
         };
         form.Fields.Add(notes);
         StyleText(notes);
@@ -240,19 +245,19 @@ internal sealed class FormsDemo : PdfDemo
         // Both states are drawn here rather than left to /NeedAppearances. What a check box
         // shows IS its value, so the two streams are the field rather than a rendering of it.
         // docs:begin check-box
-        XRect tickBox = Row("Subscribe", 16);
+        var tickBox = Row("Subscribe", 16);
         tickBox = new XRect(tickBox.X, tickBox.Y, 16, 16);
 
-        PdfCheckBoxField subscribe = new PdfCheckBoxField(document)
+        var subscribe = new PdfCheckBoxField(document)
         {
             Name = "subscribe",
-            ToolTip = "Send me the newsletter",
+            ToolTip = "Send me the newsletter"
         };
         form.Fields.Add(subscribe);
-        PdfWidgetAnnotation tick = Place(subscribe, tickBox);
+        var tick = Place(subscribe, tickBox);
 
-        XPen boxOutline = new XPen(XColors.Gray, 1);
-        XRect inside = new XRect(0.5, 0.5, 15, 15);
+        var boxOutline = new XPen(XColors.Gray, 1);
+        var inside = new XRect(0.5, 0.5, 15, 15);
 
         tick.SetAppearance("/Yes", Appearance(tickBox, into =>
         {
@@ -274,14 +279,14 @@ internal sealed class FormsDemo : PdfDemo
         // One field, three widgets. The field holds the name and the value; each widget's "on"
         // state is named after the choice it stands for, and that name is what /V is compared
         // against - so the two have to agree exactly.
-        XRect deliveryRow = Row("Delivery", 14);
+        var deliveryRow = Row("Delivery", 14);
 
         // docs:begin radio-field
-        PdfRadioButtonField delivery = new PdfRadioButtonField(document)
+        var delivery = new PdfRadioButtonField(document)
         {
             Name = "delivery",
             ToolTip = "How soon do you want it",
-            Flags = PdfAcroFieldFlags.Radio | PdfAcroFieldFlags.NoToggleToOff,
+            Flags = PdfAcroFieldFlags.Radio | PdfAcroFieldFlags.NoToggleToOff
         };
         form.Fields.Add(delivery);
 
@@ -292,13 +297,13 @@ internal sealed class FormsDemo : PdfDemo
         const int Chosen = 0;
 
         // docs:begin radio-widgets
-        for (int index = 0; index < choices.Length; index++)
+        for (var index = 0; index < choices.Length; index++)
         {
-            XRect dot = new XRect(FieldX + index * 100, deliveryRow.Y, 14, 14);
-            PdfWidgetAnnotation button = Place(delivery, dot);
+            var dot = new XRect(FieldX + index * 100, deliveryRow.Y, 14, 14);
+            var button = Place(delivery, dot);
 
-            XRect ring = new XRect(0.5, 0.5, 13, 13);
-            XRect pip = new XRect(3.5, 3.5, 7, 7);
+            var ring = new XRect(0.5, 0.5, 13, 13);
+            var pip = new XRect(3.5, 3.5, 7, 7);
 
             button.SetAppearance("/" + choices[index], Appearance(dot, into =>
             {
@@ -325,17 +330,17 @@ internal sealed class FormsDemo : PdfDemo
             "One field, three widgets under /Kids. The field holds the name and the value.");
 
         // ---- Choice fields -----------------------------------------------------------
-        XRect countryBox = Row("Country", 20);
+        var countryBox = Row("Country", 20);
         // docs:begin combo-box
-        PdfComboBoxField country = new PdfComboBoxField(document)
+        var country = new PdfComboBoxField(document)
         {
             Name = "country",
             ToolTip = "Pick one, or type your own",
             Flags = PdfAcroFieldFlags.Combo | PdfAcroFieldFlags.Edit | PdfAcroFieldFlags.Sort,
             Options = new[]
             {
-                "Australia", "Canada", "Ireland", "New Zealand", "United Kingdom",
-            },
+                "Australia", "Canada", "Ireland", "New Zealand", "United Kingdom"
+            }
         };
         form.Fields.Add(country);
         country.DefaultAppearance = "/Helv 9 Tf 0 g";
@@ -345,17 +350,17 @@ internal sealed class FormsDemo : PdfDemo
         EndRow(countryBox,
             "Combo + Edit, so the list can also be typed into. Sort orders it for display.");
 
-        XRect interestsBox = Row("Interests", 56);
+        var interestsBox = Row("Interests", 56);
         // docs:begin list-box
-        PdfListBoxField interests = new PdfListBoxField(document)
+        var interests = new PdfListBoxField(document)
         {
             Name = "interests",
             ToolTip = "Choose as many as you like",
             Flags = PdfAcroFieldFlags.MultiSelect,
             Options = new[]
             {
-                "Typography", "Colour management", "Page imposition", "Tagged PDF",
-            },
+                "Typography", "Colour management", "Page imposition", "Tagged PDF"
+            }
         };
         form.Fields.Add(interests);
         interests.DefaultAppearance = "/Helv 9 Tf 0 g";
@@ -370,28 +375,28 @@ internal sealed class FormsDemo : PdfDemo
         // A push button has no value at all - it exists for its action. This one opens a URL,
         // which lives on the widget rather than on the field, because an action is something a
         // person does to an annotation.
-        XRect buttonBox = Row("Then", 24);
+        var buttonBox = Row("Then", 24);
         buttonBox = new XRect(buttonBox.X, buttonBox.Y, 140, 24);
 
         // docs:begin push-button
-        PdfPushButtonField help = new PdfPushButtonField(document)
+        var help = new PdfPushButtonField(document)
         {
             Name = "help",
-            ToolTip = "Opens the PdfPinata repository",
+            ToolTip = "Opens the PdfPinata repository"
         };
         form.Fields.Add(help);
-        PdfWidgetAnnotation face = Place(help, buttonBox);
+        var face = Place(help, buttonBox);
 
         face.Elements["/A"] = new PdfLiteral(
             "<</S/URI/URI(https://github.com/PinataLabs/PdfPinata)>>");
 
-        PdfDictionary caption = new PdfDictionary(document);
+        var caption = new PdfDictionary(document);
         caption.Elements.SetString("/CA", "Read the manual");
         face.Elements["/MK"] = caption;
 
         // Unlike the text fields, a push button gets no help from /NeedAppearances, so its face
         // is drawn here - with the same XGraphics calls that drew the page.
-        XFont buttonFont = new XFont(Sans, 10);
+        var buttonFont = new XFont(Sans, 10);
         face.SetAppearance(Appearance(buttonBox, into =>
         {
             into.DrawRectangle(new XPen(XColor.FromArgb(89, 115, 153), 1),
@@ -405,15 +410,15 @@ internal sealed class FormsDemo : PdfDemo
             "A push button carries an action instead of a value: /A here is a URI action.");
 
         // ---- Page two: what the typed API can and cannot do ---------------------------
-        PdfPage notesPage = document.AddPage();
-        XGraphics notesGfx = XGraphics.FromPdfPage(notesPage);
+        var notesPage = document.AddPage();
+        var notesGfx = XGraphics.FromPdfPage(notesPage);
 
         notesGfx.DrawString("What the typed AcroForm API does", titleFont, XBrushes.Black,
             new XPoint(56, 68));
         notesGfx.DrawLine(new XPen(XColors.SteelBlue, 1.5), 56, 78, 539, 78);
 
-        XFont body = new XFont(Sans, 9.5);
-        XFont mono = new XFont("Source Code Pro", 8.5);
+        var body = new XFont(Sans, 9.5);
+        var mono = new XFont("Source Code Pro", 8.5);
 
         string[] paragraphs =
         {
@@ -424,11 +429,11 @@ internal sealed class FormsDemo : PdfDemo
             "It used to be. Every constructor under PdfPinata.Pdf.AcroForms was internal,",
             "PdfAcroFieldCollection had no Add, PdfWidgetAnnotation was internal and there was no",
             "way to make a form at all - so the only route was to write the dictionaries of",
-            "ISO 32000-1 section 12.7 yourself and hang them off the catalogue's /AcroForm.",
+            "ISO 32000-1 section 12.7 yourself and hang them off the catalogue's /AcroForm."
         };
 
         double lineY = 104;
-        foreach (string paragraph in paragraphs)
+        foreach (var paragraph in paragraphs)
         {
             notesGfx.DrawString(paragraph, body, XBrushes.Black, new XPoint(56, lineY));
             lineY += 14;
@@ -446,7 +451,7 @@ internal sealed class FormsDemo : PdfDemo
             ("Read and fill a form somebody wrote", "AcroForm.Fields[name].Value"),
             ("Make every field read-only", "PdfDocument.MakeAcroFormsReadOnly()"),
             ("Sign a document", "PdfPinata.Signing - see the Signing demo"),
-            ("Flatten a form into page content", "not offered"),
+            ("Flatten a form into page content", "not offered")
         };
 
         lineY += 16;
@@ -456,7 +461,7 @@ internal sealed class FormsDemo : PdfDemo
         notesGfx.DrawLine(XPens.LightGray, 56, lineY, 539, lineY);
         lineY += 16;
 
-        foreach ((string Capability, string State) row in table)
+        foreach (var row in table)
         {
             notesGfx.DrawString(row.Capability, body, XBrushes.Black, new XPoint(56, lineY));
             notesGfx.DrawString(row.State, mono, XBrushes.DimGray, new XPoint(250, lineY));
@@ -472,10 +477,10 @@ internal sealed class FormsDemo : PdfDemo
             "",
             "One rule to know. A partial field name may not contain a period, because a period is",
             "what joins nested names into the path a field is found by - so Name = \"name.full\" is",
-            "refused at the call rather than left to produce a field nobody can look up.",
+            "refused at the call rather than left to produce a field nobody can look up."
         };
 
-        foreach (string line in closing)
+        foreach (var line in closing)
         {
             notesGfx.DrawString(line, body, XBrushes.Black, new XPoint(56, lineY));
             lineY += 14;

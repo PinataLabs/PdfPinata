@@ -51,5 +51,5 @@ public enum PdfAFRelationship
     /// The attached file supplements the document — the full dataset behind a summary, or the
     /// working that a figure was drawn from.
     /// </summary>
-    Supplement,
+    Supplement
 }

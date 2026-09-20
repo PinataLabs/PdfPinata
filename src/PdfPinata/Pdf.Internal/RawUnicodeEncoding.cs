@@ -37,9 +37,6 @@ namespace PdfPinata.Pdf.Internal;
 /// </summary>
 internal sealed class RawUnicodeEncoding : Encoding
 {
-    public RawUnicodeEncoding()
-    { }
-
     public override int GetByteCount(char[] chars, int index, int count)
     {
         // Each character represents exactly an ushort value, which is a glyph index.
@@ -48,9 +45,9 @@ internal sealed class RawUnicodeEncoding : Encoding
 
     public override int GetBytes(char[] chars, int charIndex, int charCount, byte[] bytes, int byteIndex)
     {
-        for (int count = charCount; count > 0; charIndex++, count--)
+        for (var count = charCount; count > 0; charIndex++, count--)
         {
-            char ch = chars[charIndex];
+            var ch = chars[charIndex];
             bytes[byteIndex++] = (byte)(ch >> 8);
             bytes[byteIndex++] = (byte)ch;
         }
@@ -64,9 +61,9 @@ internal sealed class RawUnicodeEncoding : Encoding
 
     public override int GetChars(byte[] bytes, int byteIndex, int byteCount, char[] chars, int charIndex)
     {
-        for (int count = byteCount; count > 0; byteIndex += 2, charIndex++, count -= 2)
+        for (var count = byteCount; count > 0; byteIndex += 2, charIndex++, count -= 2)
         {
-            chars[charIndex] = (char)((int)(bytes[byteIndex] << 8) + (int)bytes[byteIndex + 1]);
+            chars[charIndex] = (char)((bytes[byteIndex] << 8) + bytes[byteIndex + 1]);
         }
         return byteCount;
     }

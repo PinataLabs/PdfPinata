@@ -20,10 +20,10 @@ internal static class DataMatrixSymbol
     /// </summary>
     internal static bool[,] Build(string text, string encoding, int rows, int columns)
     {
-        Ecc200Block size = SizeOf(rows, columns);
+        var size = SizeOf(rows, columns);
 
-        byte[] data = DataMatrixEncoder.Encode(text ?? "", encoding, size.Bytes);
-        byte[] codewords = AddErrorCorrection(data, size);
+        var data = DataMatrixEncoder.Encode(text ?? "", encoding, size.Bytes);
+        var codewords = AddErrorCorrection(data, size);
 
         return Assemble(codewords, size);
     }
@@ -33,9 +33,9 @@ internal static class DataMatrixSymbol
     /// </summary>
     internal static void SmallestSizeFor(string text, string encoding, out int rows, out int columns)
     {
-        int needed = DataMatrixEncoder.CountCodewords(text ?? "", encoding);
+        var needed = DataMatrixEncoder.CountCodewords(text ?? "", encoding);
 
-        foreach (Ecc200Block candidate in Ecc200Sizes.All)
+        foreach (var candidate in Ecc200Sizes.All)
         {
             if (candidate.Height == 0)
                 break;
@@ -54,7 +54,7 @@ internal static class DataMatrixSymbol
 
     static Ecc200Block SizeOf(int rows, int columns)
     {
-        foreach (Ecc200Block candidate in Ecc200Sizes.All)
+        foreach (var candidate in Ecc200Sizes.All)
         {
             if (candidate.Height == rows && candidate.Width == columns)
                 return candidate;
@@ -72,26 +72,26 @@ internal static class DataMatrixSymbol
     /// </summary>
     static byte[] AddErrorCorrection(byte[] data, Ecc200Block size)
     {
-        int blocks = (data.Length + size.DataBlock - 1) / size.DataBlock;
-        byte[] codewords = new byte[data.Length + blocks * size.RSBlock];
+        var blocks = (data.Length + size.DataBlock - 1) / size.DataBlock;
+        var codewords = new byte[data.Length + blocks * size.RSBlock];
 
         Array.Copy(data, codewords, data.Length);
 
-        for (int block = 0; block < blocks; block++)
+        for (var block = 0; block < blocks; block++)
         {
             // The codewords of a block are every blocks'th one, taken from the start.
-            int length = 0;
-            for (int at = block; at < data.Length; at += blocks)
+            var length = 0;
+            for (var at = block; at < data.Length; at += blocks)
                 length++;
 
-            byte[] blockData = new byte[length];
-            int written = 0;
-            for (int at = block; at < data.Length; at += blocks)
+            var blockData = new byte[length];
+            var written = 0;
+            for (var at = block; at < data.Length; at += blocks)
                 blockData[written++] = data[at];
 
-            byte[] correction = DataMatrixReedSolomon.Compute(blockData, size.RSBlock);
+            var correction = DataMatrixReedSolomon.Compute(blockData, size.RSBlock);
 
-            for (int at = 0; at < size.RSBlock; at++)
+            for (var at = 0; at < size.RSBlock; at++)
                 codewords[data.Length + at * blocks + block] = correction[at];
         }
 
@@ -108,29 +108,29 @@ internal static class DataMatrixSymbol
     /// </summary>
     static bool[,] Assemble(byte[] codewords, Ecc200Block size)
     {
-        int regionsDown = size.Height / size.CellHeight;
-        int regionsAcross = size.Width / size.CellWidth;
+        var regionsDown = size.Height / size.CellHeight;
+        var regionsAcross = size.Width / size.CellWidth;
 
         // The data regions with their finder patterns taken off, laid side by side.
-        int height = size.Height - 2 * regionsDown;
-        int width = size.Width - 2 * regionsAcross;
+        var height = size.Height - 2 * regionsDown;
+        var width = size.Width - 2 * regionsAcross;
 
-        Placement placement = new Placement(height, width);
+        var placement = new Placement(height, width);
         placement.Run();
 
-        bool[,] modules = new bool[size.Height, size.Width];
+        var modules = new bool[size.Height, size.Width];
 
-        for (int row = 0; row < height; row++)
+        for (var row = 0; row < height; row++)
         {
-            for (int column = 0; column < width; column++)
+            for (var column = 0; column < width; column++)
             {
-                bool dark = placement.IsDark(row, column, codewords);
+                var dark = placement.IsDark(row, column, codewords);
 
                 // Back into the region it belongs to, past the finder pattern around it.
-                int regionRow = row / (size.CellHeight - 2);
-                int regionColumn = column / (size.CellWidth - 2);
-                int y = regionRow * size.CellHeight + 1 + row % (size.CellHeight - 2);
-                int x = regionColumn * size.CellWidth + 1 + column % (size.CellWidth - 2);
+                var regionRow = row / (size.CellHeight - 2);
+                var regionColumn = column / (size.CellWidth - 2);
+                var y = regionRow * size.CellHeight + 1 + row % (size.CellHeight - 2);
+                var x = regionColumn * size.CellWidth + 1 + column % (size.CellWidth - 2);
 
                 modules[y, x] = dark;
             }
@@ -147,22 +147,22 @@ internal static class DataMatrixSymbol
     /// </summary>
     static void DrawFinderPatterns(bool[,] modules, Ecc200Block size, int regionsDown, int regionsAcross)
     {
-        for (int regionRow = 0; regionRow < regionsDown; regionRow++)
+        for (var regionRow = 0; regionRow < regionsDown; regionRow++)
         {
-            for (int regionColumn = 0; regionColumn < regionsAcross; regionColumn++)
+            for (var regionColumn = 0; regionColumn < regionsAcross; regionColumn++)
             {
-                int top = regionRow * size.CellHeight;
-                int left = regionColumn * size.CellWidth;
-                int bottom = top + size.CellHeight - 1;
-                int right = left + size.CellWidth - 1;
+                var top = regionRow * size.CellHeight;
+                var left = regionColumn * size.CellWidth;
+                var bottom = top + size.CellHeight - 1;
+                var right = left + size.CellWidth - 1;
 
-                for (int y = top; y <= bottom; y++)
+                for (var y = top; y <= bottom; y++)
                 {
                     modules[y, left] = true;                        // solid, down the left
                     modules[y, right] = (y - top) % 2 == 1;         // alternating, up the right
                 }
 
-                for (int x = left; x <= right; x++)
+                for (var x = left; x <= right; x++)
                 {
                     modules[bottom, x] = true;                      // solid, along the bottom
                     modules[top, x] = (x - left) % 2 == 0;          // alternating, along the top
@@ -198,14 +198,14 @@ internal static class DataMatrixSymbol
 
         internal bool IsDark(int row, int column, byte[] codewords)
         {
-            int at = row * _width + column;
+            var at = row * _width + column;
             if (_forcedDark[at])
                 return true;
 
             if (!_filled[at])
                 return false;
 
-            int index = _codeword[at];
+            var index = _codeword[at];
             if (index >= codewords.Length)
                 return false;
 
@@ -215,9 +215,9 @@ internal static class DataMatrixSymbol
 
         internal void Run()
         {
-            int codeword = 0;
-            int row = 4;
-            int column = 0;
+            var codeword = 0;
+            var row = 4;
+            var column = 0;
 
             do
             {
@@ -286,7 +286,7 @@ internal static class DataMatrixSymbol
                 row += 4 - ((_width + 4) % 8);
             }
 
-            int at = row * _width + column;
+            var at = row * _width + column;
             _codeword[at] = codeword;
             _bit[at] = bit;
             _filled[at] = true;

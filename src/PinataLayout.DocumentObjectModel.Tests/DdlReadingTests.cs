@@ -312,6 +312,7 @@ public class DdlReadingTests
             + "}}}");
 
         var table = document.LastSection.Elements[0] as Table;
+        // ReSharper disable once PossibleNullReferenceException
         table.Columns.Count.Should().Be(2);
         table.Rows.Count.Should().Be(2);
         table.Columns[1].Width.Centimeter.Should().BeApproximately(4, 1e-4);
@@ -349,6 +350,7 @@ public class DdlReadingTests
 
         document.Styles["Quiet"].Should().NotBeNull();
         document.Styles["Quiet"].Font.Size.Point.Should().BeApproximately(8, 1e-4);
+        // ReSharper disable once PossibleNullReferenceException
         (document.LastSection.Elements[0] as Paragraph).Style.Should().Be("Quiet");
     }
 
@@ -359,7 +361,7 @@ public class DdlReadingTests
     {
         var act = () => Read("this is not DDL");
 
-        act.Should().Throw<System.Exception>();
+        act.Should().Throw<Exception>();
     }
 
     /// <summary>

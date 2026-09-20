@@ -49,5 +49,5 @@ public enum PageOrientation
     /// <summary>
     /// The width and height of the page are reversed.
     /// </summary>
-    Landscape,
+    Landscape
 }

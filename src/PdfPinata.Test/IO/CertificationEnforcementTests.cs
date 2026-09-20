@@ -91,7 +91,7 @@ public class CertificationEnforcementTests
     {
         var document = OpenedForAppend(Certified(UnsignedWithAField(), PdfCertificationLevel.NoChangesAllowed));
 
-        Action act = () => document.Pages[0].Annotations.Add(new PdfTextAnnotation());
+        var act = () => document.Pages[0].Annotations.Add(new PdfTextAnnotation());
 
         act.Should().Throw<InvalidOperationException>().WithMessage("*NoChangesAllowed*");
     }
@@ -104,7 +104,7 @@ public class CertificationEnforcementTests
         Action filling = () => Field(document).Value = new PdfString("filled");
         filling.Should().NotThrow();
 
-        Action annotating = () => document.Pages[0].Annotations.Add(new PdfTextAnnotation());
+        var annotating = () => document.Pages[0].Annotations.Add(new PdfTextAnnotation());
         annotating.Should().Throw<InvalidOperationException>().WithMessage("*FormFillingAllowed*");
     }
 
@@ -165,7 +165,7 @@ public class CertificationEnforcementTests
         Action filling = () => Field(document).Value = new PdfString("filled");
         filling.Should().NotThrow();
 
-        Action annotating = () => document.Pages[0].Annotations.Add(new PdfTextAnnotation());
+        var annotating = () => document.Pages[0].Annotations.Add(new PdfTextAnnotation());
         annotating.Should().NotThrow();
 
         Action addingAPage = () => document.AddPage();
@@ -205,7 +205,7 @@ public class CertificationEnforcementTests
     {
         var document = OpenedForAppend(Certified(UnsignedWithAField(), PdfCertificationLevel.FormFillingAllowed));
 
-        Action act = () => document.Save(new MemoryStream(), false);
+        var act = () => document.Save(new MemoryStream(), false);
 
         act.Should().Throw<InvalidOperationException>().WithMessage("*FormFillingAllowed*");
     }
@@ -216,7 +216,7 @@ public class CertificationEnforcementTests
         var document = OpenedForAppend(Certified(UnsignedWithAField(), PdfCertificationLevel.FormFillingAllowed));
         Field(document).Value = new PdfString("filled");
 
-        Action act = () => document.SaveIncremental(new MemoryStream());
+        var act = () => document.SaveIncremental(new MemoryStream());
 
         act.Should().NotThrow();
     }
@@ -230,7 +230,7 @@ public class CertificationEnforcementTests
         document.Pages[0].Annotations.Add(new PdfTextAnnotation());
         document.AddPage();
 
-        Action act = () => document.Save(new MemoryStream(), false);
+        var act = () => document.Save(new MemoryStream(), false);
         act.Should().NotThrow();
     }
 

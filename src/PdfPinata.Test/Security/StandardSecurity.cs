@@ -26,19 +26,19 @@ internal sealed class StandardSecurity
     {
         _pdf = Encoding.Latin1.GetString(document);
 
-        byte[] id = FromHex(Last(_pdf, @"/ID\s*\[\s*<([0-9A-Fa-f]+)>").Groups[1].Value);
+        var id = FromHex(Last(_pdf, @"/ID\s*\[\s*<([0-9A-Fa-f]+)>").Groups[1].Value);
         var encrypt = ObjectBody(int.Parse(Last(_pdf, @"/Encrypt\s+(\d+)\s+\d+\s+R").Groups[1].Value));
 
         Revision = int.Parse(Regex.Match(encrypt, @"/R\s+(\d+)").Groups[1].Value);
-        int permissions = int.Parse(Regex.Match(encrypt, @"/P\s+(-?\d+)").Groups[1].Value);
-        int keyLength = (encrypt.Contains("/Length")
+        var permissions = int.Parse(Regex.Match(encrypt, @"/P\s+(-?\d+)").Groups[1].Value);
+        var keyLength = (encrypt.Contains("/Length")
             ? int.Parse(Regex.Match(encrypt, @"/Length\s+(\d+)").Groups[1].Value)
             : 40) / 8;
 
         _fileKey = FileKey(StringValue(encrypt, "/O"), permissions, id, Revision, keyLength);
 
-        byte[] expected = UserEntry(_fileKey, id, Revision);
-        byte[] actual = StringValue(encrypt, "/U");
+        var expected = UserEntry(_fileKey, id, Revision);
+        var actual = StringValue(encrypt, "/U");
         DerivedKeyMatchesTheDocument = StartsWith(actual, expected, Revision == 2 ? 32 : 16);
     }
 
@@ -59,7 +59,7 @@ internal sealed class StandardSecurity
     /// <summary>The entry of the /Info dictionary, decrypted and decoded the way a reader decodes it.</summary>
     public string DecryptInfoString(string key)
     {
-        byte[] plain = DecryptedInfoBytes(key);
+        var plain = DecryptedInfoBytes(key);
         if (plain.Length >= 2 && plain[0] == 0xFE && plain[1] == 0xFF)
             return Encoding.BigEndianUnicode.GetString(plain, 2, plain.Length - 2);
         return Encoding.Latin1.GetString(plain);
@@ -79,9 +79,9 @@ internal sealed class StandardSecurity
     /// </summary>
     public byte[] RewriteAsWrittenBeforeTheFix(string key, string text)
     {
-        byte[] withoutMark = Encoding.BigEndianUnicode.GetBytes(text);
-        string replacement = "<FEFF" + ToHex(Rc4(ObjectKey(_fileKey, InfoObjectNumber, 0), withoutMark)) + ">";
-        string original = RawInfoString(key);
+        var withoutMark = Encoding.BigEndianUnicode.GetBytes(text);
+        var replacement = "<FEFF" + ToHex(Rc4(ObjectKey(_fileKey, InfoObjectNumber, 0), withoutMark)) + ">";
+        var original = RawInfoString(key);
 
         if (original == null)
             throw new InvalidOperationException($"{key} is not a hexadecimal string in this document.");
@@ -90,8 +90,8 @@ internal sealed class StandardSecurity
                 $"{key}: replacement is {replacement.Length} characters and the original {original.Length}; " +
                 "the offsets in the document would no longer hold.");
 
-        int at = _pdf.IndexOf(original, InfoDictionaryIndex, StringComparison.Ordinal);
-        string rewritten = string.Concat(_pdf.AsSpan(0, at), replacement, _pdf.AsSpan(at + original.Length));
+        var at = _pdf.IndexOf(original, InfoDictionaryIndex, StringComparison.Ordinal);
+        var rewritten = string.Concat(_pdf.AsSpan(0, at), replacement, _pdf.AsSpan(at + original.Length));
         return Encoding.Latin1.GetBytes(rewritten);
     }
 
@@ -112,7 +112,7 @@ internal sealed class StandardSecurity
         input.AddRange(BitConverter.GetBytes(permissions));
         input.AddRange(id);
 
-        byte[] hash = MD5.HashData(input.ToArray());
+        var hash = MD5.HashData(input.ToArray());
         if (revision >= 3)
         {
             for (var i = 0; i < 50; i++)
@@ -141,7 +141,7 @@ internal sealed class StandardSecurity
         var input = new List<byte>(Padding);
         input.AddRange(id);
 
-        byte[] result = Rc4(fileKey, MD5.HashData(input.ToArray()));
+        var result = Rc4(fileKey, MD5.HashData(input.ToArray()));
         for (var i = 1; i <= 19; i++)
         {
             var key = new byte[fileKey.Length];
@@ -187,12 +187,12 @@ internal sealed class StandardSecurity
 
         var bytes = new List<byte>();
         var depth = 1;
-        for (int i = literal.Index + literal.Length; i < dictionary.Length; i++)
+        for (var i = literal.Index + literal.Length; i < dictionary.Length; i++)
         {
-            char c = dictionary[i];
+            var c = dictionary[i];
             if (c == '\\')
             {
-                char escaped = dictionary[++i];
+                var escaped = dictionary[++i];
                 switch (escaped)
                 {
                     case 'n': bytes.Add((byte)'\n'); break;
@@ -203,7 +203,7 @@ internal sealed class StandardSecurity
                     default:
                         if (escaped >= '0' && escaped <= '7')
                         {
-                            int value = escaped - '0';
+                            var value = escaped - '0';
                             for (var digit = 0; digit < 2 && i + 1 < dictionary.Length
                                                           && dictionary[i + 1] >= '0' && dictionary[i + 1] <= '7'; digit++)
                                 value = value * 8 + (dictionary[++i] - '0');
@@ -242,7 +242,7 @@ internal sealed class StandardSecurity
     private static string ToHex(byte[] bytes)
     {
         var text = new StringBuilder();
-        foreach (byte b in bytes)
+        foreach (var b in bytes)
             text.AppendFormat("{0:X2}", b);
         return text.ToString();
     }

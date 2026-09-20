@@ -170,7 +170,7 @@ public sealed class PdfStructureElement : PdfDictionary
         if (kids == null || kids.Elements.Count == 0)
             return false;
 
-        var last = kids.Elements[kids.Elements.Count - 1];
+        var last = kids.Elements[^1];
 
         if (last is PdfInteger integer && integer.Value == mcid)
         {

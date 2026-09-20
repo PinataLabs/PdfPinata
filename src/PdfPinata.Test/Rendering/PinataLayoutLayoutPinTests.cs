@@ -114,7 +114,7 @@ public class PinataLayoutLayoutPinTests
         pinned.Keys.Should().BeEquivalentTo(PinataLayoutDocCorpus.Names);
         pinned.Keys.Should().Contain(new[]
         {
-            "table across a page break", "text frame beside prose", "image between paragraphs",
+            "table across a page break", "text frame beside prose", "image between paragraphs"
         });
     }
 

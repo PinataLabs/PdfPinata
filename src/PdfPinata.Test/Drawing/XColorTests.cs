@@ -330,6 +330,7 @@ public class XColorTests
         (color != XColor.FromArgb(10, 20, 30)).Should().BeFalse();
         (color != XColor.FromArgb(10, 20, 31)).Should().BeTrue();
         color.Equals(XColor.FromArgb(10, 20, 30)).Should().BeTrue();
+        // ReSharper disable once SuspiciousTypeConversion.Global
         color.Equals("not a colour").Should().BeFalse();
         color.GetHashCode().Should().Be(XColor.FromArgb(10, 20, 30).GetHashCode());
     }

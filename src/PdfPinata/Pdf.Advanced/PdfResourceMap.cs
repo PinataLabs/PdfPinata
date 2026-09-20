@@ -53,8 +53,8 @@ internal class PdfResourceMap : PdfDictionary //, IEnumerable
     internal void CollectResourceNames(Dictionary<string, object> usedResourceNames)
     {
         // ?TODO: Imported resources (e.g. fonts) can be reused, but I think this is rather difficult. Will be an issue in PDFsharp 2.0.
-        PdfName[] names = Elements.KeyNames;
-        foreach (PdfName name in names)
+        var names = Elements.KeyNames;
+        foreach (var name in names)
             usedResourceNames.Add(name.ToString(), null);
     }
 }

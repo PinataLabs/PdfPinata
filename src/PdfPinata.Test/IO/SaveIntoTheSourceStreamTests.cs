@@ -54,7 +54,7 @@ public class SaveIntoTheSourceStreamTests
 
         var saved = Encoding.Latin1.GetString(pdf.ToArray());
         saved.Should().StartWith("%PDF-");
-        saved.IndexOf("%PDF-", 1, System.StringComparison.Ordinal).Should().Be(-1);
+        saved.IndexOf("%PDF-", 1, StringComparison.Ordinal).Should().Be(-1);
     }
 
     [Fact]
@@ -88,6 +88,7 @@ public class SaveIntoTheSourceStreamTests
         while (document.Pages.Count > 0)
             document.Pages.RemoveAt(0);
 
+        // ReSharper disable once AccessToDisposedClosure
         document.Invoking(d => d.Save(pdf)).Should().Throw<InvalidOperationException>();
 
         pdf.ToArray().Should().Equal(original);

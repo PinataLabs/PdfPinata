@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -46,7 +46,7 @@ public class CodeOmr : BarCode
     /// </summary>
     protected internal override void Render(XGraphics gfx, XBrush brush, XFont font, XPoint position)
     {
-        XGraphicsState state = gfx.Save();
+        var state = gfx.Save();
 
         switch (Direction)
         {
@@ -64,7 +64,7 @@ public class CodeOmr : BarCode
         }
 
         //XPoint pt = center - size / 2;
-        XPoint pt = position - CalcDistance(AnchorType.TopLeft, Anchor, Size);
+        var pt = position - CalcDistance(AnchorType.TopLeft, Anchor, Size);
         uint value;
         _ = uint.TryParse(Text, out value);
         // HACK: Project Wallenwein: set LK
@@ -73,15 +73,15 @@ public class CodeOmr : BarCode
 
         if (_synchronizeCode)
         {
-            XRect rect = new XRect(pt.X, pt.Y, _makerThickness, Size.Height);
+            var rect = new XRect(pt.X, pt.Y, _makerThickness, Size.Height);
             gfx.DrawRectangle(brush, rect);
             pt.X += 2 * _makerDistance;
         }
-        for (int idx = 0; idx < 32; idx++)
+        for (var idx = 0; idx < 32; idx++)
         {
             if ((value & 1) == 1)
             {
-                XRect rect = new XRect(pt.X + idx * _makerDistance, pt.Y, _makerThickness, Size.Height);
+                var rect = new XRect(pt.X + idx * _makerDistance, pt.Y, _makerThickness, Size.Height);
                 gfx.DrawRectangle(brush, rect);
             }
             value = value >> 1;
@@ -191,7 +191,7 @@ public class CodeOmr : BarCode
 
     ///// <summary>
     ///// The lower distance from the last possible mark to the end of the reading zone.
-    ///// The default value is 
+    ///// The default value is
     ///// </summary>
     //double LowerDistance
     //{
@@ -202,7 +202,7 @@ public class CodeOmr : BarCode
 
     ///// <summary>
     ///// Gets or sets the width of the reading zone.
-    ///// Default and minimum is 3/12 inch. 
+    ///// Default and minimum is 3/12 inch.
     ///// </summary>
     //public double Width
     //{

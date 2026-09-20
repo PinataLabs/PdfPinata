@@ -45,6 +45,6 @@ public enum OpCodeFlags
     /// <summary>
     /// 
     /// </summary>
-    TextOut = 0x0001,
+    TextOut = 0x0001
     //Color, Pattern, Images,...
 }

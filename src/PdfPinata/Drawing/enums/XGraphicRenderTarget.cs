@@ -58,5 +58,5 @@ enum XGraphicTargetContext
     /// <summary>
     /// Universal Windows Platform.
     /// </summary>
-    UWP = 10,
+    UWP = 10
 }

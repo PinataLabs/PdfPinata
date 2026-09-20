@@ -22,7 +22,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
 #endregion
@@ -36,7 +36,7 @@ using PdfPinata.Pdf.IO;
 namespace PdfPinata.Pdf.Advanced;
 
 /// <summary>
-/// Represents the cross-reference table of a PDF document. 
+/// Represents the cross-reference table of a PDF document.
 /// It contains all indirect objects of a document.
 /// </summary>
 internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObject.
@@ -101,11 +101,11 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
     /// Gets a cross-reference entry from an object identifier.
     /// Returns null if no object with the specified ID exists in the object table.
     /// </summary>
-    public PdfReference this[PdfObjectID objectID]
+    public PdfReference this[PdfObjectID objectId]
     {
         get
         {
-            ObjectTable.TryGetValue(objectID, out var iref);
+            ObjectTable.TryGetValue(objectId, out var iref);
             return iref;
         }
     }
@@ -113,9 +113,9 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
     /// <summary>
     /// Indicates whether the specified object identifier is in the table.
     /// </summary>
-    public bool Contains(PdfObjectID objectID)
+    public bool Contains(PdfObjectID objectId)
     {
-        return ObjectTable.ContainsKey(objectID);
+        return ObjectTable.ContainsKey(objectId);
     }
 
     /// <summary>
@@ -140,8 +140,8 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
         var irefs = AllReferences;
 
         var count = irefs.Length;
-        writer.WriteRaw(String.Format("0 {0}\n", count + 1));
-        writer.WriteRaw(String.Format("{0:0000000000} {1:00000} {2} \n", 0, 65535, "f"));
+        writer.WriteRaw($"0 {count + 1}\n");
+        writer.WriteRaw($"{0:0000000000} {65535:00000} {"f"} \n");
         //PdfEncoders.WriteAnsi(stream, text);
 
         for (var idx = 0; idx < count; idx++)
@@ -149,8 +149,7 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
             var iref = irefs[idx];
 
             // Acrobat is very pedantic; it must be exactly 20 bytes per line.
-            writer.WriteRaw(String.Format("{0:0000000000} {1:00000} {2} \n", iref.Position, iref.GenerationNumber,
-                "n"));
+            writer.WriteRaw($"{iref.Position:0000000000} {iref.GenerationNumber:00000} {"n"} \n");
         }
     }
 
@@ -258,12 +257,12 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
         TryAgain:
         if (_overflow.Count > 0)
         {
-            var array = new PdfObject[_overflow.Count];
+            var array = new PdfItem[_overflow.Count];
             _overflow.Keys.CopyTo(array, 0);
             _overflow = new Dictionary<PdfItem, object>();
             for (var idx = 0; idx < array.Length; idx++)
             {
-                var obj = array[idx];
+                var obj = (PdfObject)array[idx];
                 TransitiveClosureImplementation(objects, obj);
             }
 
@@ -310,7 +309,7 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
                     if (item is PdfReference iref)
                     {
                         if (!ReferenceEquals(iref.Document, _document))
-                            Debug.WriteLine(String.Format("Bad iref: {0}", iref.ObjectID.ToString()));
+                            Debug.WriteLine($"Bad iref: {iref.ObjectID.ToString()}");
 
                         Debug.Assert(ReferenceEquals(iref.Document, _document) || iref.Document == null,
                             "External object detected!");

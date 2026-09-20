@@ -65,7 +65,7 @@ public partial class SectionPagesField : NumericFieldBase
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    string str = "\\field(SectionPages)";
+    var str = "\\field(SectionPages)";
 
     if ((this.format ?? "") != "")
       str += "[Format = \"" + this.Format + "\"]";

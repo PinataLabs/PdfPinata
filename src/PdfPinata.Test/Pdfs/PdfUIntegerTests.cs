@@ -65,9 +65,9 @@ public class PdfUIntegerTests
     {
         var value = new PdfUInteger(200);
 
-        value.ToByte(null).Should().Be((byte)200);
-        value.ToInt16(null).Should().Be((short)200);
-        value.ToUInt16(null).Should().Be((ushort)200);
+        value.ToByte(null).Should().Be(200);
+        value.ToInt16(null).Should().Be(200);
+        value.ToUInt16(null).Should().Be(200);
         value.ToInt32(null).Should().Be(200);
         new PdfUInteger('Z').ToChar(null).Should().Be('Z');
     }

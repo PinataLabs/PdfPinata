@@ -28,9 +28,11 @@ public class DdlEncoderTests
     static Document RoundTrip(Document document) =>
         DdlReader.DocumentFromString(DdlWriter.WriteToString(document));
 
+    // ReSharper disable PossibleNullReferenceException
     static string TextOf(Document document) =>
         string.Concat((document.LastSection.Elements[0] as Paragraph)
             .Elements.OfType<Text>().Select(text => text.Content));
+    // ReSharper restore PossibleNullReferenceException
 
     static Document DocumentSaying(string text)
     {
@@ -153,7 +155,7 @@ public class DdlEncoderTests
     [InlineData("///")]
     public void TextBeginningWithAnEscapedCharacterCannotBeReadBack(string text)
     {
-        string ddl = DdlWriter.WriteToString(DocumentSaying(text));
+        var ddl = DdlWriter.WriteToString(DocumentSaying(text));
 
         var reading = () => DdlReader.DocumentFromString(ddl);
 

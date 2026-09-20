@@ -114,7 +114,7 @@ public class UnicodeTextStringTests
         document.SecuritySettings.DocumentSecurityLevel = level;
         document.SecuritySettings.OwnerPassword = ownerPassword;
 
-        byte[] saved = Save(document);
+        var saved = Save(document);
 
         AsLatin1(saved).Should().NotContain("/O <FEFF").And.NotContain("/U <FEFF");
 

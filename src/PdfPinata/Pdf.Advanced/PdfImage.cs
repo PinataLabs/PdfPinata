@@ -24,13 +24,11 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
-using System;
 using System.Diagnostics;
-using System.IO;
 using PinataLayout.DocumentObjectModel.Shapes;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf.Filters;
@@ -103,23 +101,23 @@ public sealed class PdfImage : PdfXObject
     /// </summary>
     void InitializeJpeg()
     {
-        byte[] imageBits = null;
+        byte[] imageBits;
 
-        using (MemoryStream memory = _image.AsJpeg())
+        using (var memory = _image.AsJpeg())
         {
             imageBits = memory.ToArray();
         }
 
-        bool tryFlateDecode = _document.Options.UseFlateDecoderForJpegImages == PdfUseFlateDecoderForJpegImages.Automatic;
-        bool useFlateDecode = _document.Options.UseFlateDecoderForJpegImages == PdfUseFlateDecoderForJpegImages.Always;
+        var tryFlateDecode = _document.Options.UseFlateDecoderForJpegImages == PdfUseFlateDecoderForJpegImages.Automatic;
+        var useFlateDecode = _document.Options.UseFlateDecoderForJpegImages == PdfUseFlateDecoderForJpegImages.Always;
 
-        FlateDecode fd = new FlateDecode();
-        byte[] imageDataCompressed = (useFlateDecode || tryFlateDecode) ? fd.Encode(imageBits, _document.Options.FlateEncodeMode) : null;
+        var fd = new FlateDecode();
+        var imageDataCompressed = (useFlateDecode || tryFlateDecode) ? fd.Encode(imageBits, _document.Options.FlateEncodeMode) : null;
         if (useFlateDecode || tryFlateDecode && imageDataCompressed.Length < imageBits.Length)
         {
             Stream = new PdfStream(imageDataCompressed, this);
             Elements[PdfStream.Keys.Length] = new PdfInteger(imageDataCompressed.Length);
-            PdfArray arrayFilters = new PdfArray(_document);
+            var arrayFilters = new PdfArray(_document);
             arrayFilters.Elements.Add(new PdfName("/FlateDecode"));
             arrayFilters.Elements.Add(new PdfName("/DCTDecode"));
             Elements[PdfStream.Keys.Filter] = arrayFilters;
@@ -155,39 +153,39 @@ public sealed class PdfImage : PdfXObject
     /// </remarks>
     void InitializeNonJpeg()
     {
-        int pdfVersion = Owner.Version;
-        PixelBuffer pixels = _image.GetPixels();
+        var pdfVersion = Owner.Version;
+        var pixels = _image.GetPixels();
 
         Debug.Assert(!pixels.IsEmpty, "Image decoding produced no pixels.");
         if (!pixels.IsEmpty)
         {
-            int width = pixels.Width;
-            int height = pixels.Height;
-            ReadOnlySpan<byte> source = pixels.Pixels.Span;
+            var width = pixels.Width;
+            var height = pixels.Height;
+            var source = pixels.Pixels.Span;
 
-            byte[] imageData = new byte[3 * width * height];
+            var imageData = new byte[3 * width * height];
 
-            bool hasMask = false;
-            bool hasAlphaMask = false;
-            byte[] alphaMask = new byte[width * height];
-            MonochromeMask mask = new MonochromeMask(width, height);
+            var hasMask = false;
+            var hasAlphaMask = false;
+            var alphaMask = new byte[width * height];
+            var mask = new MonochromeMask(width, height);
 
             // Row r of the source is row r of the output: both are top-down and neither pads.
-            int read = 0;
-            int write = 0;
-            int writeAlpha = 0;
-            for (int y = 0; y < height; ++y)
+            var read = 0;
+            var write = 0;
+            var writeAlpha = 0;
+            for (var y = 0; y < height; ++y)
             {
                 mask.StartLine(y);
 
-                for (int x = 0; x < width; ++x)
+                for (var x = 0; x < width; ++x)
                 {
                     // BGRA in, RGB out.
                     imageData[write] = source[read + 2];
                     imageData[write + 1] = source[read + 1];
                     imageData[write + 2] = source[read];
 
-                    byte alpha = source[read + 3];
+                    var alpha = source[read + 3];
                     mask.AddPel(alpha);
                     alphaMask[writeAlpha] = alpha;
                     if (alpha != 255)
@@ -203,13 +201,13 @@ public sealed class PdfImage : PdfXObject
                 }
             }
 
-            FlateDecode fd = new FlateDecode();
+            var fd = new FlateDecode();
             if (hasMask)
             {
                 // monochrome mask is either sufficient or
                 // provided for compatibility with older reader versions
-                byte[] maskDataCompressed = fd.Encode(mask.MaskData, _document.Options.FlateEncodeMode);
-                PdfDictionary pdfMask = new PdfDictionary(_document);
+                var maskDataCompressed = fd.Encode(mask.MaskData, _document.Options.FlateEncodeMode);
+                var pdfMask = new PdfDictionary(_document);
                 pdfMask.Elements.SetName(Keys.Type, "/XObject");
                 pdfMask.Elements.SetName(Keys.Subtype, "/Image");
 
@@ -226,8 +224,8 @@ public sealed class PdfImage : PdfXObject
             if (hasMask && hasAlphaMask && pdfVersion >= 14)
             {
                 // The image provides an alpha mask (requires Arcrobat 5.0 or higher)
-                byte[] alphaMaskCompressed = fd.Encode(alphaMask, _document.Options.FlateEncodeMode);
-                PdfDictionary smask = new PdfDictionary(_document);
+                var alphaMaskCompressed = fd.Encode(alphaMask, _document.Options.FlateEncodeMode);
+                var smask = new PdfDictionary(_document);
                 smask.Elements.SetName(Keys.Type, "/XObject");
                 smask.Elements.SetName(Keys.Subtype, "/Image");
 
@@ -242,7 +240,7 @@ public sealed class PdfImage : PdfXObject
                 Elements[Keys.SMask] = smask.Reference;
             }
 
-            byte[] imageDataCompressed = fd.Encode(imageData, _document.Options.FlateEncodeMode);
+            var imageDataCompressed = fd.Encode(imageData, _document.Options.FlateEncodeMode);
 
             Stream = new PdfStream(imageDataCompressed, this);
             Elements[PdfStream.Keys.Length] = new PdfInteger(imageDataCompressed.Length);
@@ -303,11 +301,11 @@ public sealed class PdfImage : PdfXObject
         /// <summary>
         /// (Required except for image masks and images that use the JPXDecode filter)
         /// The number of bits used to represent each color component. Only a single value may be specified;
-        /// the number of bits is the same for all color components. Valid values are 1, 2, 4, 8, and 
-        /// (in PDF 1.5) 16. If ImageMask is true, this entry is optional, and if specified, its value 
+        /// the number of bits is the same for all color components. Valid values are 1, 2, 4, 8, and
+        /// (in PDF 1.5) 16. If ImageMask is true, this entry is optional, and if specified, its value
         /// must be 1.
-        /// If the image stream uses a filter, the value of BitsPerComponent must be consistent with the 
-        /// size of the data samples that the filter delivers. In particular, a CCITTFaxDecode or JBIG2Decode 
+        /// If the image stream uses a filter, the value of BitsPerComponent must be consistent with the
+        /// size of the data samples that the filter delivers. In particular, a CCITTFaxDecode or JBIG2Decode
         /// filter always delivers 1-bit samples, a RunLengthDecode or DCTDecode filter delivers 8-bit samples,
         /// and an LZWDecode or FlateDecode filter delivers samples of a specified size if a predictor function
         /// is used.
@@ -335,7 +333,7 @@ public sealed class PdfImage : PdfXObject
 
         /// <summary>
         /// (Optional except for image masks; not allowed for image masks; PDF 1.3)
-        /// An image XObject defining an image mask to be applied to this image, or an array specifying 
+        /// An image XObject defining an image mask to be applied to this image, or an array specifying
         /// a range of colors to be applied to it as a color key mask. If ImageMask is true, this entry
         /// must not be present.
         /// </summary>
@@ -345,7 +343,7 @@ public sealed class PdfImage : PdfXObject
         /// <summary>
         /// (Optional) An array of numbers describing how to map image samples into the range of values
         /// appropriate for the image’s color space. If ImageMask is true, the array must be either
-        /// [0 1] or [1 0]; otherwise, its length must be twice the number of color components required 
+        /// [0 1] or [1 0]; otherwise, its length must be twice the number of color components required
         /// by ColorSpace. If the image uses the JPXDecode filter and ImageMask is false, Decode is ignored.
         /// Default value: see “Decode Arrays”.
         /// </summary>
@@ -353,27 +351,27 @@ public sealed class PdfImage : PdfXObject
         public const string Decode = "/Decode";
 
         /// <summary>
-        /// (Optional) A flag indicating whether image interpolation is to be performed. 
+        /// (Optional) A flag indicating whether image interpolation is to be performed.
         /// Default value: false.
         /// </summary>
         [KeyInfo(KeyType.Boolean | KeyType.Optional)]
         public const string Interpolate = "/Interpolate";
 
         /// <summary>
-        /// (Optional; PDF 1.3) An array of alternate image dictionaries for this image. The order of 
-        /// elements within the array has no significance. This entry may not be present in an image 
+        /// (Optional; PDF 1.3) An array of alternate image dictionaries for this image. The order of
+        /// elements within the array has no significance. This entry may not be present in an image
         /// XObject that is itself an alternate image.
         /// </summary>
         [KeyInfo(KeyType.Array | KeyType.Optional)]
         public const string Alternates = "/Alternates";
 
         /// <summary>
-        /// (Optional; PDF 1.4) A subsidiary image XObject defining a soft-mask image to be used as a 
-        /// source of mask shape or mask opacity values in the transparent imaging model. The alpha 
+        /// (Optional; PDF 1.4) A subsidiary image XObject defining a soft-mask image to be used as a
+        /// source of mask shape or mask opacity values in the transparent imaging model. The alpha
         /// source parameter in the graphics state determines whether the mask values are interpreted as
         /// shape or opacity. If present, this entry overrides the current soft mask in the graphics state,
-        /// as well as the image’s Mask entry, if any. (However, the other transparency related graphics 
-        /// state parameters — blend mode and alpha constant — remain in effect.) If SMask is absent, the 
+        /// as well as the image’s Mask entry, if any. (However, the other transparency related graphics
+        /// state parameters — blend mode and alpha constant — remain in effect.) If SMask is absent, the
         /// image has no associated soft mask (although the current soft mask in the graphics state may
         /// still apply).
         /// </summary>
@@ -385,12 +383,12 @@ public sealed class PdfImage : PdfXObject
         /// A code specifying how soft-mask information encoded with image samples should be used:
         /// 0 If present, encoded soft-mask image information should be ignored.
         /// 1 The image’s data stream includes encoded soft-mask values. An application can create
-        ///   a soft-mask image from the information to be used as a source of mask shape or mask 
+        ///   a soft-mask image from the information to be used as a source of mask shape or mask
         ///   opacity in the transparency imaging model.
-        /// 2 The image’s data stream includes color channels that have been preblended with a 
+        /// 2 The image’s data stream includes color channels that have been preblended with a
         ///   background; the image data also includes an opacity channel. An application can create
         ///   a soft-mask image with a Matte entry from the opacity channel information to be used as
-        ///   a source of mask shape or mask opacity in the transparency model. If this entry has a 
+        ///   a source of mask shape or mask opacity in the transparency model. If this entry has a
         ///   nonzero value, SMask should not be specified.
         /// Default value: 0.
         /// </summary>
@@ -398,14 +396,14 @@ public sealed class PdfImage : PdfXObject
         public const string SMaskInData = "/SMaskInData";
 
         /// <summary>
-        /// (Required in PDF 1.0; optional otherwise) The name by which this image XObject is 
+        /// (Required in PDF 1.0; optional otherwise) The name by which this image XObject is
         /// referenced in the XObject subdictionary of the current resource dictionary.
         /// </summary>
         [KeyInfo(KeyType.Name | KeyType.Optional)]
         public const string Name = "/Name";
 
         /// <summary>
-        /// (Required if the image is a structural content item; PDF 1.3) The integer key of the 
+        /// (Required if the image is a structural content item; PDF 1.3) The integer key of the
         /// image’s entry in the structural parent tree.
         /// </summary>
         [KeyInfo(KeyType.Integer | KeyType.Required)]
@@ -419,7 +417,7 @@ public sealed class PdfImage : PdfXObject
         public const string ID = "/ID";
 
         /// <summary>
-        /// (Optional; PDF 1.2) An OPI version dictionary for the image. If ImageMask is true, 
+        /// (Optional; PDF 1.2) An OPI version dictionary for the image. If ImageMask is true,
         /// this entry is ignored.
         /// </summary>
         [KeyInfo(KeyType.Dictionary | KeyType.Optional)]
@@ -434,7 +432,7 @@ public sealed class PdfImage : PdfXObject
         /// <summary>
         /// (Optional; PDF 1.5) An optional content group or optional content membership dictionary,
         /// specifying the optional content properties for this image XObject. Before the image is
-        /// processed, its visibility is determined based on this entry. If it is determined to be 
+        /// processed, its visibility is determined based on this entry. If it is determined to be
         /// invisible, the entire image is skipped, as if there were no Do operator to invoke it.
         /// </summary>
         [KeyInfo(KeyType.Dictionary | KeyType.Optional)]
@@ -462,7 +460,7 @@ class MonochromeMask
     public MonochromeMask(int sizeX, int sizeY)
     {
         _sizeX = sizeX;
-        int byteSize = ((sizeX + 7) / 8) * sizeY;
+        var byteSize = ((sizeX + 7) / 8) * sizeY;
         _maskData = new byte[byteSize];
         StartLine(0);
     }
@@ -499,7 +497,7 @@ class MonochromeMask
             }
             else if (_bitsWritten == _sizeX)
             {
-                int n = 8 - (_bitsWritten & 7);
+                var n = 8 - (_bitsWritten & 7);
                 _byteBuffer = _byteBuffer << n;
                 _maskData[_writeOffset] = (byte)_byteBuffer;
             }

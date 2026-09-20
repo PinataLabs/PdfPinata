@@ -42,5 +42,5 @@ enum FontWeightValues
     Bold = 700,
     ExtraBold = 800,
     Black = 900,
-    ExtraBlack = 950,
+    ExtraBlack = 950
 }

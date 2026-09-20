@@ -33,18 +33,19 @@ public sealed class SkiaGlyphOutlineProvider : IGlyphOutlineProvider
 
         // Through the registered resolver, never around it: a provider that picked its own face
         // would one day disagree with the text that was drawn.
-        IFontResolver resolver = GlobalFontSettings.FontResolver;
-        FontResolverInfo info = resolver.ResolveTypeface(familyName, isBold, isItalic)
-                                ?? throw new InvalidOperationException(
-                                    "The font resolver has no face for the family '" + familyName + "'.");
+        var resolver = GlobalFontSettings.FontResolver;
+        var info = resolver.ResolveTypeface(familyName, isBold, isItalic)
+                   ?? throw new InvalidOperationException(
+                       "The font resolver has no face for the family '" + familyName + "'.");
 
-        byte[] fontBytes = resolver.GetFont(info.FaceName);
+        var fontBytes = resolver.GetFont(info.FaceName);
 
-        using MemoryStream stream = new MemoryStream(fontBytes);
-        using SKTypeface typeface = SKTypeface.FromStream(stream)
-                                    ?? throw new InvalidOperationException(
-                                        "SkiaSharp could not read the font '" + info.FaceName + "'.");
-        using SKFont font = new SKFont(typeface, (float)emSize)
+        using var stream = new MemoryStream(fontBytes);
+        using var typeface = SKTypeface.FromStream(stream)
+                             ?? throw new InvalidOperationException(
+                                 "SkiaSharp could not read the font '" + info.FaceName + "'.");
+        // ReSharper disable once UsingStatementResourceInitialization
+        using var font = new SKFont(typeface, (float)emSize)
         {
             // Hinting and rounded advances are for fitting glyphs to a grid of pixels. There is no
             // grid here: these outlines become a path in a PDF, drawn at whatever size the reader
@@ -55,17 +56,17 @@ public sealed class SkiaGlyphOutlineProvider : IGlyphOutlineProvider
             // directly and never rounds.
             Hinting = SKFontHinting.None,
             LinearMetrics = true,
-            Subpixel = true,
+            Subpixel = true
         };
 
-        ushort[] glyphs = font.GetGlyphs(text);
-        float[] advances = font.GetGlyphWidths(glyphs);
+        var glyphs = font.GetGlyphs(text);
+        var advances = font.GetGlyphWidths(glyphs);
 
-        List<XGlyphOutline> outlines = new List<XGlyphOutline>(glyphs.Length);
+        var outlines = new List<XGlyphOutline>(glyphs.Length);
         double pen = 0;
-        for (int idx = 0; idx < glyphs.Length; idx++)
+        for (var idx = 0; idx < glyphs.Length; idx++)
         {
-            using SKPath path = font.GetGlyphPath(glyphs[idx]);
+            using var path = font.GetGlyphPath(glyphs[idx]);
             outlines.Add(OutlineOf(path, pen));
 
             // The run is advanced here so that the caller has one origin to place rather than one
@@ -90,15 +91,15 @@ public sealed class SkiaGlyphOutlineProvider : IGlyphOutlineProvider
     /// </remarks>
     static XGlyphOutline OutlineOf(SKPath path, double pen)
     {
-        List<XGlyphSegment> segments = new List<XGlyphSegment>();
+        var segments = new List<XGlyphSegment>();
         if (path == null)
             return new XGlyphOutline(segments);
 
-        SKPoint[] points = new SKPoint[4];
-        XPoint start = new XPoint();
-        XPoint current = new XPoint();
+        var points = new SKPoint[4];
+        var start = new XPoint();
+        var current = new XPoint();
 
-        using SKPath.Iterator iterator = path.CreateIterator(false);
+        using var iterator = path.CreateIterator(false);
         SKPathVerb verb;
         while ((verb = iterator.Next(points)) != SKPathVerb.Done)
         {
@@ -120,8 +121,8 @@ public sealed class SkiaGlyphOutlineProvider : IGlyphOutlineProvider
                     // A conic is a rational quadratic. Font outlines are not drawn with them, so
                     // treating one as its unweighted quadratic is a fallback that never fires
                     // rather than an approximation anyone relies on.
-                    XPoint control = At(points[1], pen);
-                    XPoint end = At(points[2], pen);
+                    var control = At(points[1], pen);
+                    var end = At(points[2], pen);
                     segments.Add(XGlyphSegment.CurveTo(
                         Lerp(current, control, 2.0 / 3.0),
                         Lerp(end, control, 2.0 / 3.0),

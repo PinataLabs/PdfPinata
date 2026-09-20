@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -43,7 +43,7 @@ internal enum FontType
     /// <summary>
     /// TrueType with Identity-H or Identity-V encoding (unicode).
     /// </summary>
-    Type0 = 2,
+    Type0 = 2
 }
 
 /// <summary>
@@ -63,7 +63,7 @@ internal sealed class PdfFontTable : PdfResourceTable
     /// </summary>
     public PdfFont GetFont(XFont font)
     {
-        string selector = font.Selector;
+        var selector = font.Selector;
         if (selector == null)
         {
             selector = ComputeKey(font); //new FontSelector(font);
@@ -90,6 +90,7 @@ internal sealed class PdfFontTable : PdfResourceTable
     {
         string selector = null; // ComputeKey(font); //new FontSelector(font);
         PdfFont pdfFont;
+        // ReSharper disable once AssignNullToNotNullAttribute
         if (!_fonts.TryGetValue(selector, out pdfFont))
         {
             //if (font.Unicode)
@@ -119,9 +120,9 @@ internal sealed class PdfFontTable : PdfResourceTable
 
     internal static string ComputeKey(XFont font)
     {
-        XGlyphTypeface glyphTypeface = font.GlyphTypeface;
-        string key = glyphTypeface.Fontface.FullFaceName.ToLowerInvariant() +
-                     (glyphTypeface.IsBold ? "/b" : "") + (glyphTypeface.IsItalic ? "/i" : "") + font.Unicode;
+        var glyphTypeface = font.GlyphTypeface;
+        var key = glyphTypeface.Fontface.FullFaceName.ToLowerInvariant() +
+                  (glyphTypeface.IsBold ? "/b" : "") + (glyphTypeface.IsItalic ? "/i" : "") + font.Unicode;
         return key;
     }
 
@@ -132,7 +133,7 @@ internal sealed class PdfFontTable : PdfResourceTable
 
     public void PrepareForSave()
     {
-        foreach (PdfFont font in _fonts.Values)
+        foreach (var font in _fonts.Values)
             font.PrepareForSave();
     }
 }

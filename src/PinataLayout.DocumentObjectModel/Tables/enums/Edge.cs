@@ -61,5 +61,5 @@ public enum Edge
   /// <summary>Both sets of borders between the cells of the range.</summary>
   Interior = Horizontal | Vertical,
   /// <summary>Both diagonals.</summary>
-  Cross = DiagonalDown | DiagonalUp,
+  Cross = DiagonalDown | DiagonalUp
 }

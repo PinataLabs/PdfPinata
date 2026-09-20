@@ -58,7 +58,7 @@ public sealed class FacturXInvoice
         "factur-x.xml",
         "zugferd-invoice.xml",
         "xrechnung.xml",
-        "order-x.xml",
+        "order-x.xml"
     };
 
     /// <summary>

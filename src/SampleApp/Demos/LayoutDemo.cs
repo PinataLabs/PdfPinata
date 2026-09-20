@@ -25,7 +25,7 @@ internal sealed class LayoutDemo : PdfDemo
         "Columns and the gutter between them",
         "Ellipsis truncation when the text will not fit the box",
         "Lists built by hand, because there is no list API on this side",
-        "GetLayout measuring the box the text will need",
+        "GetLayout measuring the box the text will need"
     };
 
     public override int PageCount => 3;
@@ -41,16 +41,16 @@ internal sealed class LayoutDemo : PdfDemo
             + "there is enough text here to wrap onto several lines and show what the "
             + "formatter does with the space left at the end of each of them.";
 
-        PdfDocument document = new PdfDocument();
-        XFont body = new XFont(Serif, 10);
-        XFont note = new XFont(Sans, 8);
-        XFont headingFont = new XFont(Sans, 9, XFontStyle.Bold);
-        XPen boxPen = new XPen(XColors.Gainsboro, 0.5);
+        var document = new PdfDocument();
+        var body = new XFont(Serif, 10);
+        var note = new XFont(Sans, 8);
+        var headingFont = new XFont(Sans, 9, XFontStyle.Bold);
+        var boxPen = new XPen(XColors.Gainsboro, 0.5);
 
         // ---- Page one: wrapping, alignment and truncation ------------------------------
-        PdfPage page = document.AddPage();
-        XGraphics gfx = XGraphics.FromPdfPage(page);
-        XTextFormatter formatter = new XTextFormatter(gfx);
+        var page = document.AddPage();
+        var gfx = XGraphics.FromPdfPage(page);
+        var formatter = new XTextFormatter(gfx);
 
         // Headings take a left edge and a width, so that one over a right hand column does
         // not rule a line straight through the column beside it.
@@ -69,15 +69,15 @@ internal sealed class LayoutDemo : PdfDemo
             (XParagraphAlignment.Left, "Left - ragged on the right"),
             (XParagraphAlignment.Center, "Center - ragged on both"),
             (XParagraphAlignment.Right, "Right - ragged on the left"),
-            (XParagraphAlignment.Justify, "Justify - flush both sides, last line left"),
+            (XParagraphAlignment.Justify, "Justify - flush both sides, last line left")
         };
 
         double y = 78;
-        foreach ((XParagraphAlignment alignment, string label) in alignments)
+        foreach ((var alignment, var label) in alignments)
         {
             gfx.DrawString(label, note, XBrushes.DimGray, new XPoint(48, y));
 
-            XRect rect = new XRect(48, y + 6, 240, 62);
+            var rect = new XRect(48, y + 6, 240, 62);
             gfx.DrawRectangle(boxPen, rect);
             formatter.Alignment = alignment;
             formatter.DrawString(Paragraph, body, XBrushes.Black, rect);
@@ -94,7 +94,7 @@ internal sealed class LayoutDemo : PdfDemo
         // loses the rest. Setting Ellipsis marks where the loss happened instead of
         // letting the text stop mid-sentence as though it had finished.
         // docs:begin ellipsis
-        XRect tooShort = new XRect(320, 78, 228, 34);
+        var tooShort = new XRect(320, 78, 228, 34);
         gfx.DrawRectangle(boxPen, tooShort);
         formatter.Ellipsis = XTextFormatter.DefaultEllipsis;
         formatter.DrawString(Paragraph, body, XBrushes.Black, tooShort);
@@ -106,7 +106,7 @@ internal sealed class LayoutDemo : PdfDemo
         // With LineBreak off nothing wraps: the text runs straight out of the box and off
         // the page. The line breaks written into the string are still obeyed.
         // docs:begin no-line-break
-        XRect noWrap = new XRect(320, 150, 228, 30);
+        var noWrap = new XRect(320, 150, 228, 30);
         gfx.DrawRectangle(boxPen, noWrap);
         formatter.LineBreak = false;
         formatter.DrawString("LineBreak = false runs on past the right edge", body,
@@ -124,7 +124,7 @@ internal sealed class LayoutDemo : PdfDemo
         // The rectangle is divided into Columns of equal width with ColumnGap between
         // them, and the text fills each in turn before moving to the next.
         // docs:begin columns
-        XRect columns = new XRect(48, 78, 500, 180);
+        var columns = new XRect(48, 78, 500, 180);
         gfx.DrawRectangle(boxPen, columns);
         formatter.Columns = 3;
         formatter.ColumnGap = 16;
@@ -142,9 +142,9 @@ internal sealed class LayoutDemo : PdfDemo
 
         Heading("Indents and gaps", 296);
 
-        string twoParagraphs = Paragraph + "\n" + Paragraph;
+        var twoParagraphs = Paragraph + "\n" + Paragraph;
 
-        XRect plain = new XRect(48, 318, 240, 130);
+        var plain = new XRect(48, 318, 240, 130);
         gfx.DrawRectangle(boxPen, plain);
         formatter.DrawString(twoParagraphs, body, XBrushes.Black, plain);
         gfx.DrawString("as it comes", note, XBrushes.DimGray, new XPoint(48, 460));
@@ -152,7 +152,7 @@ internal sealed class LayoutDemo : PdfDemo
         // Indent moves the first line of each paragraph, ParagraphGap opens the space
         // between one paragraph and the next, LineGap the space between every line.
         // docs:begin indents
-        XRect indented = new XRect(308, 318, 240, 130);
+        var indented = new XRect(308, 318, 240, 130);
         gfx.DrawRectangle(boxPen, indented);
         formatter.Indent = 14;
         formatter.ParagraphGap = 6;
@@ -178,15 +178,15 @@ internal sealed class LayoutDemo : PdfDemo
             "The text flowed into a rectangle that starts after it, so the second and "
                 + "later lines of a long item line up under the first rather than under "
                 + "the marker",
-            "Which is all a hanging indent is",
+            "Which is all a hanging indent is"
         };
 
         y = 506;
-        for (int index = 0; index < items.Length; index++)
+        for (var index = 0; index < items.Length; index++)
         {
             gfx.DrawString($"{index + 1}.", body, XBrushes.Black, new XPoint(48, y + 8));
 
-            XRect itemRect = new XRect(68, y, 480, 40);
+            var itemRect = new XRect(68, y, 480, 40);
             formatter.DrawString(items[index], body, XBrushes.Black, itemRect);
 
             // Measure the item to find where the next one starts, rather than assuming
@@ -203,14 +203,14 @@ internal sealed class LayoutDemo : PdfDemo
         Heading("Vertical alignment", 56);
 
         // docs:begin vertical-alignment
-        foreach ((XVerticalAlignment alignment, int column) in new[]
+        foreach ((var alignment, var column) in new[]
                  {
                      (XVerticalAlignment.Top, 0),
                      (XVerticalAlignment.Middle, 1),
-                     (XVerticalAlignment.Bottom, 2),
+                     (XVerticalAlignment.Bottom, 2)
                  })
         {
-            XRect rect = new XRect(48 + column * 172, 78, 160, 110);
+            var rect = new XRect(48 + column * 172, 78, 160, 110);
             gfx.DrawRectangle(boxPen, rect);
             formatter.DrawString($"{alignment} in a box taller than the text needs", body,
                 XBrushes.Black, rect,
@@ -229,7 +229,7 @@ internal sealed class LayoutDemo : PdfDemo
 
         // docs:begin measure
         formatter.AllowVerticalOverflow = true;
-        XRect measured = formatter.GetLayout(toMeasure, body, XBrushes.Black,
+        var measured = formatter.GetLayout(toMeasure, body, XBrushes.Black,
             new XRect(0, 0, 200, 200));
         formatter.AllowVerticalOverflow = false;
 
@@ -252,10 +252,10 @@ internal sealed class LayoutDemo : PdfDemo
         // out of the rectangle entirely - the corner is the anchor, not the box.
         // docs:begin rotation
         double[] rotations = { 0.0, 15.0, 45.0, 90.0 };
-        for (int index = 0; index < rotations.Length; index++)
+        for (var index = 0; index < rotations.Length; index++)
         {
             double left = 90 + index * 130;
-            XRect rect = new XRect(left, 560, 130, 60);
+            var rect = new XRect(left, 560, 130, 60);
 
             gfx.DrawRectangle(new XSolidBrush(XColor.FromArgb(255, 245, 220)), left - 2, 558, 4, 4);
 

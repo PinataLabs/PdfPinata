@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -81,15 +81,15 @@ public sealed class PdfShading : PdfDictionary
     {
         ArgumentNullException.ThrowIfNull(brush);
 
-        PdfColorMode colorMode = _document.Options.ColorMode;
-        XColor color1 = ColorSpaceHelper.EnsureColorMode(colorMode, brush._color1);
-        XColor color2 = ColorSpaceHelper.EnsureColorMode(colorMode, brush._color2);
+        var colorMode = _document.Options.ColorMode;
+        var color1 = ColorSpaceHelper.EnsureColorMode(colorMode, brush._color1);
+        var color2 = ColorSpaceHelper.EnsureColorMode(colorMode, brush._color2);
 
         Elements[Keys.ShadingType] = new PdfInteger(3);
         Elements[Keys.ColorSpace] = new PdfName(ColorSpaceOf(colorMode, channel));
 
-        XPoint p1 = renderer.WorldToView(brush._center1);
-        XPoint p2 = renderer.WorldToView(brush._center2);
+        var p1 = renderer.WorldToView(brush._center1);
+        var p2 = renderer.WorldToView(brush._center2);
 
         var rv1 = renderer.WorldToView(new XPoint(brush._r1 + brush._center1.X, brush._center1.Y));
         var rv2 = renderer.WorldToView(new XPoint(brush._r2 + brush._center2.X, brush._center2.Y));
@@ -119,9 +119,9 @@ public sealed class PdfShading : PdfDictionary
     {
         ArgumentNullException.ThrowIfNull(brush);
 
-        PdfColorMode colorMode = _document.Options.ColorMode;
-        XColor color1 = ColorSpaceHelper.EnsureColorMode(colorMode, brush._color1);
-        XColor color2 = ColorSpaceHelper.EnsureColorMode(colorMode, brush._color2);
+        var colorMode = _document.Options.ColorMode;
+        var color1 = ColorSpaceHelper.EnsureColorMode(colorMode, brush._color1);
+        var color2 = ColorSpaceHelper.EnsureColorMode(colorMode, brush._color2);
 
         Elements[Keys.ShadingType] = new PdfInteger(2);
         Elements[Keys.ColorSpace] = new PdfName(ColorSpaceOf(colorMode, channel));
@@ -129,8 +129,8 @@ public sealed class PdfShading : PdfDictionary
         double x1 = 0, y1 = 0, x2 = 0, y2 = 0;
         if (brush._useRect)
         {
-            XPoint pt1 = renderer.WorldToView(brush._rect.TopLeft);
-            XPoint pt2 = renderer.WorldToView(brush._rect.BottomRight);
+            var pt1 = renderer.WorldToView(brush._rect.TopLeft);
+            var pt2 = renderer.WorldToView(brush._rect.BottomRight);
 
             switch (brush._linearGradientMode)
             {
@@ -165,8 +165,8 @@ public sealed class PdfShading : PdfDictionary
         }
         else
         {
-            XPoint pt1 = renderer.WorldToView(brush._point1);
-            XPoint pt2 = renderer.WorldToView(brush._point2);
+            var pt1 = renderer.WorldToView(brush._point1);
+            var pt2 = renderer.WorldToView(brush._point2);
 
             x1 = pt1.X;
             y1 = pt1.Y;
@@ -229,7 +229,7 @@ public sealed class PdfShading : PdfDictionary
             c1 = new PdfLiteral("[" + PdfEncoders.ToString(color2, colorMode) + "]");
         }
 
-        PdfDictionary function = new PdfDictionary();
+        var function = new PdfDictionary();
         function.Elements["/FunctionType"] = new PdfInteger(2);
         function.Elements["/C0"] = c0;
         function.Elements["/C1"] = c1;
@@ -257,7 +257,7 @@ public sealed class PdfShading : PdfDictionary
         public const string ShadingType = "/ShadingType";
 
         /// <summary>
-        /// (Required) The color space in which color values are expressed. This may be any device, 
+        /// (Required) The color space in which color values are expressed. This may be any device,
         /// CIE-based, or special color space except a Pattern space.
         /// </summary>
         [KeyInfo(KeyType.NameOrArray | KeyType.Required)]
@@ -265,19 +265,19 @@ public sealed class PdfShading : PdfDictionary
 
         /// <summary>
         /// (Optional) An array of color components appropriate to the color space, specifying
-        /// a single background color value. If present, this color is used, before any painting 
-        /// operation involving the shading, to fill those portions of the area to be painted 
-        /// that lie outside the bounds of the shading object. In the opaque imaging model, 
-        /// the effect is as if the painting operation were performed twice: first with the 
+        /// a single background color value. If present, this color is used, before any painting
+        /// operation involving the shading, to fill those portions of the area to be painted
+        /// that lie outside the bounds of the shading object. In the opaque imaging model,
+        /// the effect is as if the painting operation were performed twice: first with the
         /// background color and then with the shading.
         /// </summary>
         [KeyInfo(KeyType.Array | KeyType.Optional)]
         public const string Background = "/Background";
 
         /// <summary>
-        /// (Optional) An array of four numbers giving the left, bottom, right, and top coordinates, 
-        /// respectively, of the shading's bounding box. The coordinates are interpreted in the 
-        /// shading's target coordinate space. If present, this bounding box is applied as a temporary 
+        /// (Optional) An array of four numbers giving the left, bottom, right, and top coordinates,
+        /// respectively, of the shading's bounding box. The coordinates are interpreted in the
+        /// shading's target coordinate space. If present, this bounding box is applied as a temporary
         /// clipping boundary when the shading is painted, in addition to the current clipping path
         /// and any other clipping boundaries in effect at that time.
         /// </summary>
@@ -285,8 +285,8 @@ public sealed class PdfShading : PdfDictionary
         public const string BBox = "/BBox";
 
         /// <summary>
-        /// (Optional) A flag indicating whether to filter the shading function to prevent aliasing 
-        /// artifacts. The shading operators sample shading functions at a rate determined by the 
+        /// (Optional) A flag indicating whether to filter the shading function to prevent aliasing
+        /// artifacts. The shading operators sample shading functions at a rate determined by the
         /// resolution of the output device. Aliasing can occur if the function is not smooth - that
         /// is, if it has a high spatial frequency relative to the sampling rate. Anti-aliasing can
         /// be computationally expensive and is usually unnecessary, since most shading functions

@@ -11,7 +11,7 @@ namespace PdfPinata.Test.IO;
 ///   The parsing the document parser does when the file it is reading is not what the
 ///   specification promises: an object that leaves "endobj" out, a stream whose dictionary does
 ///   not say how long it is, a dictionary entry with no key, and a reference to an object that is
-///   not there. Every one of these is pinned today only through <see cref="PdfReader.Open"/>,
+///   not there. Every one of these is pinned today only through <c>PdfReader.Open</c>,
 ///   which means a whole file - header, cross-reference table, trailer with a /Root - has to be
 ///   assembled around the few bytes the test is actually about. These reach the parser through
 ///   <see cref="ParserProbe"/> instead: a plain <c>new PdfDocument()</c> to own what is read, and

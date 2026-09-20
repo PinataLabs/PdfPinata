@@ -21,5 +21,5 @@ public enum XTextDirection
     /// The run advances to the left. The glyphs are in visual order, leftmost first, so a renderer
     /// draws them exactly as it draws a left-to-right run - the reordering has already happened.
     /// </summary>
-    RightToLeft = 1,
+    RightToLeft = 1
 }

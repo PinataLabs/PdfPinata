@@ -60,7 +60,7 @@ public class XPenAndBrushTests
             LineCap = XLineCap.Round,
             MiterLimit = 5,
             DashOffset = 2,
-            Overprint = true,
+            Overprint = true
         };
 
         pen.Color.Should().Be(XColors.Green);
@@ -134,7 +134,7 @@ public class XPenAndBrushTests
             LineJoin = XLineJoin.Bevel,
             LineCap = XLineCap.Square,
             DashOffset = 1.5,
-            DashPattern = new double[] { 4, 2 },
+            DashPattern = new double[] { 4, 2 }
         };
 
         var copy = original.Clone();
@@ -175,7 +175,7 @@ public class XPenAndBrushTests
         () => XPens.Black.DashStyle = XDashStyle.Dot,
         () => XPens.Black.DashOffset = 1,
         () => XPens.Black.DashPattern = new double[] { 1, 1 },
-        () => XPens.Black.Overprint = true,
+        () => XPens.Black.Overprint = true
     };
 
     public static TheoryData<int> EachWayOfChangingAPredefinedPen()
@@ -393,7 +393,7 @@ public class XPenAndBrushTests
     {
         var brush = new XRadialGradientBrush(new XPoint(50, 50), 0, 40, XColors.Red, XColors.Blue)
         {
-            Transform = new XMatrix(2, 0, 0, 2, 0, 0),
+            Transform = new XMatrix(2, 0, 0, 2, 0, 0)
         };
 
         brush.Transform.Transform(new XPoint(1, 1)).Should().Be(new XPoint(2, 2));

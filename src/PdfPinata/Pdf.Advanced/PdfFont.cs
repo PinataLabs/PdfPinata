@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -31,7 +31,6 @@ using System;
 using System.Diagnostics;
 using System.Text;
 using PdfPinata.Fonts;
-using PdfPinata.Fonts.OpenType;
 
 namespace PdfPinata.Pdf.Advanced;
 
@@ -71,7 +70,7 @@ public class PdfFont : PdfDictionary
             _cmapInfo.AddChars(text);
     }
 
-    internal void AddShapedRun(Fonts.ShapedRun run, string text)
+    internal void AddShapedRun(ShapedRun run, string text)
     {
         if (_cmapInfo != null)
             _cmapInfo.AddShapedRun(run, text);
@@ -119,14 +118,14 @@ public class PdfFont : PdfDictionary
     /// </remarks>
     internal void EmbedFontProgram(bool cidFont)
     {
-        OpenTypeFontface fontFace = FontDescriptor._descriptor.FontFace;
-        bool postscriptOutlines = fontFace.IsPostscriptOutlines;
+        var fontFace = FontDescriptor._descriptor.FontFace;
+        var postscriptOutlines = fontFace.IsPostscriptOutlines;
 
-        byte[] fontData = postscriptOutlines
+        var fontData = postscriptOutlines
             ? fontFace.FontSource.Bytes
             : fontFace.CreateFontSubSet(_cmapInfo.GlyphIndices, cidFont).FontSource.Bytes;
 
-        PdfDictionary fontStream = new PdfDictionary(Owner);
+        var fontStream = new PdfDictionary(Owner);
         Owner.Internals.AddObject(fontStream);
 
         if (postscriptOutlines)
@@ -164,9 +163,9 @@ public class PdfFont : PdfDictionary
     /// </summary>
     internal static string CreateEmbeddedFontSubsetName(string name)
     {
-        StringBuilder s = new StringBuilder(64);
-        byte[] bytes = Guid.NewGuid().ToByteArray();
-        for (int idx = 0; idx < 6; idx++)
+        var s = new StringBuilder(64);
+        var bytes = Guid.NewGuid().ToByteArray();
+        for (var idx = 0; idx < 6; idx++)
             s.Append((char)('A' + bytes[idx] % 26));
         s.Append('+');
         if (name.StartsWith('/'))
@@ -203,7 +202,7 @@ public class PdfFont : PdfDictionary
         /// <summary>
         /// (Required except for the standard 14 fonts; must be an indirect reference)
         /// A font descriptor describing the font�s metrics other than its glyph widths.
-        /// Note: For the standard 14 fonts, the entries FirstChar, LastChar, Widths, and 
+        /// Note: For the standard 14 fonts, the entries FirstChar, LastChar, Widths, and
         /// FontDescriptor must either all be present or all be absent. Ordinarily, they are
         /// absent; specifying them enables a standard font to be overridden.
         /// </summary>

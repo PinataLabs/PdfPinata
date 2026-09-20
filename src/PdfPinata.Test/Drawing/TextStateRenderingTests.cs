@@ -88,10 +88,10 @@ public class TextStateRenderingTests
         var inked = InkOf(text, font, format, 48);
 
         int top = inked.Min(p => p.Y), bottom = inked.Max(p => p.Y);
-        int band = Math.Max(1, (bottom - top) / 6);
+        var band = Math.Max(1, (bottom - top) / 6);
 
-        double meanTop = inked.Where(p => p.Y <= top + band).Average(p => (double)p.X);
-        double meanBottom = inked.Where(p => p.Y >= bottom - band).Average(p => (double)p.X);
+        var meanTop = inked.Where(p => p.Y <= top + band).Average(p => (double)p.X);
+        var meanBottom = inked.Where(p => p.Y >= bottom - band).Average(p => (double)p.X);
         return (meanTop - meanBottom) / PixelsPerPoint;
     }
 

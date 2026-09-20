@@ -80,7 +80,7 @@ public partial class DateField : DocumentObject
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    string str = "\\field(Date)";
+    var str = "\\field(Date)";
     if ((this.format ?? "") != string.Empty)
       str += "[Format = \"" + this.Format + "\"]";
     else

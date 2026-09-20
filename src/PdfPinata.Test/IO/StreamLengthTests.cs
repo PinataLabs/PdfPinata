@@ -78,7 +78,7 @@ public class StreamLengthTests
             var declared = int.Parse(match.Groups[1].Value);
             var start = match.Index + match.Length;
 
-            text.Substring(start + declared).Should().StartWith("\n",
+            text[(start + declared)..].Should().StartWith("\n",
                 "the byte after the data is the end-of-line marker, and endstream follows it");
         }
     }

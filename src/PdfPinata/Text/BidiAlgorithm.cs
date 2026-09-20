@@ -55,7 +55,7 @@ public static partial class BidiAlgorithm
 
         var codePoints = new List<int>(text.Length);
         var unitsPer = new List<int>(text.Length);
-        for (int idx = 0; idx < text.Length;)
+        for (var idx = 0; idx < text.Length;)
         {
             if (char.IsHighSurrogate(text[idx]) && idx + 1 < text.Length
                 && char.IsLowSurrogate(text[idx + 1]))
@@ -93,7 +93,7 @@ public static partial class BidiAlgorithm
         for (int idx = 0, unit = 0; idx < unitsPer.Count; idx++)
         {
             firstUnit[idx] = unit;
-            for (int repeat = 0; repeat < unitsPer[idx]; repeat++, unit++)
+            for (var repeat = 0; repeat < unitsPer[idx]; repeat++, unit++)
             {
                 levels[unit] = resolved.Levels[idx];
                 removed[unit] = resolved.Removed[idx];
@@ -102,11 +102,11 @@ public static partial class BidiAlgorithm
         }
 
         var order = new List<int>(length);
-        foreach (int idx in resolved.VisualOrder)
+        foreach (var idx in resolved.VisualOrder)
         {
             // A surrogate pair is drawn as one character, so its units stay in written order
             // inside the run however the run itself was reversed.
-            for (int repeat = 0; repeat < unitsPer[idx]; repeat++)
+            for (var repeat = 0; repeat < unitsPer[idx]; repeat++)
                 order.Add(firstUnit[idx] + repeat);
         }
 
@@ -158,7 +158,7 @@ public static partial class BidiAlgorithm
             _matchingPdi = new int[_length];
             _matchingInitiator = new int[_length];
 
-            for (int idx = 0; idx < _length; idx++)
+            for (var idx = 0; idx < _length; idx++)
                 _initial[idx] = _types[idx] = UnicodeProperties.BidiClassOf(codePoints[idx]);
         }
 
@@ -169,7 +169,7 @@ public static partial class BidiAlgorithm
             {
                 BidiParagraphDirection.LeftToRight => 0,
                 BidiParagraphDirection.RightToLeft => 1,
-                _ => ParagraphLevelOf(0, _length),
+                _ => ParagraphLevelOf(0, _length)
             };
 
             ResolveExplicitLevels();
@@ -181,7 +181,7 @@ public static partial class BidiAlgorithm
 
             var removed = new bool[_length];
             var joining = new bool[_length];
-            for (int idx = 0; idx < _length; idx++)
+            for (var idx = 0; idx < _length; idx++)
             {
                 removed[idx] = IsRemovedByX9(_initial[idx]);
 
@@ -197,19 +197,19 @@ public static partial class BidiAlgorithm
 
         void DetermineMatchingIsolates()
         {
-            for (int idx = 0; idx < _length; idx++)
+            for (var idx = 0; idx < _length; idx++)
             {
                 _matchingPdi[idx] = -1;
                 _matchingInitiator[idx] = -1;
             }
 
-            for (int idx = 0; idx < _length; idx++)
+            for (var idx = 0; idx < _length; idx++)
             {
                 if (!IsIsolateInitiator(_initial[idx]))
                     continue;
 
-                int depth = 1;
-                int scan = idx + 1;
+                var depth = 1;
+                var scan = idx + 1;
                 for (; scan < _length; scan++)
                 {
                     var type = _initial[scan];
@@ -236,7 +236,7 @@ public static partial class BidiAlgorithm
 
         byte ParagraphLevelOf(int start, int end)
         {
-            for (int idx = start; idx < end; idx++)
+            for (var idx = start; idx < end; idx++)
             {
                 var type = _initial[idx];
 
@@ -269,7 +269,7 @@ public static partial class BidiAlgorithm
 
             int overflowIsolate = 0, overflowEmbedding = 0, validIsolate = 0;
 
-            for (int idx = 0; idx < _length; idx++)
+            for (var idx = 0; idx < _length; idx++)
             {
                 var type = _initial[idx];
                 switch (type)
@@ -282,8 +282,8 @@ public static partial class BidiAlgorithm
                     {
                         _levels[idx] = stack.Peek().Level;
 
-                        bool rightToLeft = type == BidiClass.RLE || type == BidiClass.RLO;
-                        int next = NextLevel(stack.Peek().Level, rightToLeft);
+                        var rightToLeft = type == BidiClass.RLE || type == BidiClass.RLO;
+                        var next = NextLevel(stack.Peek().Level, rightToLeft);
                         var over = type == BidiClass.RLO ? BidiClass.R
                             : type == BidiClass.LRO ? BidiClass.L
                             : BidiClass.ON;
@@ -302,14 +302,14 @@ public static partial class BidiAlgorithm
                     case BidiClass.LRI:
                     case BidiClass.FSI:
                     {
-                        bool rightToLeft = type == BidiClass.RLI
-                            || (type == BidiClass.FSI
-                                && ParagraphLevelOf(idx + 1, Math.Min(_matchingPdi[idx], _length)) == 1);
+                        var rightToLeft = type == BidiClass.RLI
+                                          || (type == BidiClass.FSI
+                                              && ParagraphLevelOf(idx + 1, Math.Min(_matchingPdi[idx], _length)) == 1);
 
                         _levels[idx] = stack.Peek().Level;
                         Override(idx, stack.Peek().Override);
 
-                        int next = NextLevel(stack.Peek().Level, rightToLeft);
+                        var next = NextLevel(stack.Peek().Level, rightToLeft);
                         if (next <= MaxDepth && overflowIsolate == 0 && overflowEmbedding == 0)
                         {
                             validIsolate++;
@@ -419,7 +419,7 @@ public static partial class BidiAlgorithm
             List<int> current = null;
             byte level = 0;
 
-            for (int idx = 0; idx < _length; idx++)
+            for (var idx = 0; idx < _length; idx++)
             {
                 if (IsRemovedByX9(_initial[idx]))
                     continue;
@@ -441,39 +441,39 @@ public static partial class BidiAlgorithm
         {
             var runs = LevelRuns();
             var runOfCharacter = new Dictionary<int, int>();
-            for (int idx = 0; idx < runs.Count; idx++)
+            for (var idx = 0; idx < runs.Count; idx++)
             {
-                foreach (int character in runs[idx])
+                foreach (var character in runs[idx])
                     runOfCharacter[character] = idx;
             }
 
             var used = new bool[runs.Count];
             var sequences = new List<Sequence>();
 
-            for (int idx = 0; idx < runs.Count; idx++)
+            for (var idx = 0; idx < runs.Count; idx++)
             {
                 if (used[idx])
                     continue;
 
                 // BD13: a sequence starts at a run whose first character is not a PDI that closes
                 // something. A PDI that does belongs to the sequence its initiator started.
-                int first = runs[idx][0];
+                var first = runs[idx][0];
                 if (_initial[first] == BidiClass.PDI && _matchingInitiator[first] != -1)
                     continue;
 
                 var indices = new List<int>();
-                int run = idx;
+                var run = idx;
                 while (true)
                 {
                     used[run] = true;
                     indices.AddRange(runs[run]);
 
-                    int last = runs[run][runs[run].Count - 1];
+                    var last = runs[run][runs[run].Count - 1];
                     if (!IsIsolateInitiator(_initial[last]))
                         break;
 
-                    int pdi = _matchingPdi[last];
-                    if (pdi >= _length || !runOfCharacter.TryGetValue(pdi, out int next) || used[next])
+                    var pdi = _matchingPdi[last];
+                    if (pdi >= _length || !runOfCharacter.TryGetValue(pdi, out var next) || used[next])
                         break;
 
                     run = next;
@@ -484,7 +484,7 @@ public static partial class BidiAlgorithm
 
             // A run whose first character is a matched PDI but whose initiator was never reached -
             // which happens when the initiator overflowed - is still a sequence of its own.
-            for (int idx = 0; idx < runs.Count; idx++)
+            for (var idx = 0; idx < runs.Count; idx++)
             {
                 if (!used[idx])
                     sequences.Add(BuildSequence(new List<int>(runs[idx])));
@@ -495,13 +495,13 @@ public static partial class BidiAlgorithm
 
         Sequence BuildSequence(List<int> indices)
         {
-            byte level = _levels[indices[0]];
+            var level = _levels[indices[0]];
 
             // sos: the higher of this sequence's level and the level of whatever precedes it,
             // read as a direction. eos: the same looking forward, except that a sequence ending in
             // an isolate initiator with nothing to close it looks at the paragraph instead.
-            byte before = _paragraphLevel;
-            for (int idx = indices[0] - 1; idx >= 0; idx--)
+            var before = _paragraphLevel;
+            for (var idx = indices[0] - 1; idx >= 0; idx--)
             {
                 if (IsRemovedByX9(_initial[idx]))
                     continue;
@@ -510,11 +510,11 @@ public static partial class BidiAlgorithm
                 break;
             }
 
-            int lastIndex = indices[indices.Count - 1];
-            byte after = _paragraphLevel;
+            var lastIndex = indices[^1];
+            var after = _paragraphLevel;
             if (!(IsIsolateInitiator(_initial[lastIndex]) && _matchingPdi[lastIndex] >= _length))
             {
-                for (int idx = lastIndex + 1; idx < _length; idx++)
+                for (var idx = lastIndex + 1; idx < _length; idx++)
                 {
                     if (IsRemovedByX9(_initial[idx]))
                         continue;
@@ -524,7 +524,7 @@ public static partial class BidiAlgorithm
                 }
             }
 
-            byte lastLevel = _levels[lastIndex];
+            var lastLevel = _levels[lastIndex];
             return new Sequence(this, indices, level,
                 DirectionOf(Math.Max(level, before)),
                 DirectionOf(Math.Max(lastLevel, after)));
@@ -538,8 +538,8 @@ public static partial class BidiAlgorithm
         {
             // Read from the *original* types, not the resolved ones: by now a space may have been
             // turned into something strong, and L1 is not interested in that.
-            bool trailing = true;
-            for (int idx = _length - 1; idx >= 0; idx--)
+            var trailing = true;
+            for (var idx = _length - 1; idx >= 0; idx--)
             {
                 var type = _initial[idx];
                 if (type == BidiClass.B || type == BidiClass.S)
@@ -564,7 +564,7 @@ public static partial class BidiAlgorithm
         int[] Reorder(bool[] removed)
         {
             var order = new List<int>(_length);
-            for (int idx = 0; idx < _length; idx++)
+            for (var idx = 0; idx < _length; idx++)
             {
                 if (!removed[idx])
                     order.Add(idx);
@@ -575,9 +575,9 @@ public static partial class BidiAlgorithm
 
             byte highest = 0;
             byte lowestOdd = MaxDepth + 1;
-            foreach (int idx in order)
+            foreach (var idx in order)
             {
-                byte level = _levels[idx];
+                var level = _levels[idx];
                 if (level > highest)
                     highest = level;
 
@@ -588,12 +588,12 @@ public static partial class BidiAlgorithm
             var array = order.ToArray();
             for (int level = highest; level >= lowestOdd; level--)
             {
-                for (int start = 0; start < array.Length; start++)
+                for (var start = 0; start < array.Length; start++)
                 {
                     if (_levels[array[start]] < level)
                         continue;
 
-                    int end = start;
+                    var end = start;
                     while (end + 1 < array.Length && _levels[array[end + 1]] >= level)
                         end++;
 

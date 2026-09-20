@@ -100,7 +100,7 @@ internal class AESEncryptor : RC4Encryptor
                 using (var cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read))
                 {
                     encryptionKey = new byte[32];
-                    PdfPinata.Internal.StreamHelper.ReadUpTo(cs, encryptionKey, 0, 32);
+                    StreamHelper.ReadUpTo(cs, encryptionKey, 0, 32);
                 }
             }
         }
@@ -187,6 +187,7 @@ internal class AESEncryptor : RC4Encryptor
                 if (ownerKey != null)
                     sha256.TransformBlock(ownerKey, 0, ownerKey.Length, ownerKey, 0);
                 sha256.TransformFinalBlock(salt, 0, 0);
+                // ReSharper disable once AssignNullToNotNullAttribute
                 Array.Copy(sha256.Hash, block, sha256.HashSize / 8);
             }
             for (i = 0; i < 64 || i < data[dataLen * 64 - 1] + 32; i++)
@@ -223,10 +224,11 @@ internal class AESEncryptor : RC4Encryptor
                     {
                         32 => SHA256.Create(),
                         48 => SHA384.Create(),
-                        _ => SHA512.Create(),
+                        _ => SHA512.Create()
                     };
                     hashAlg.TransformBlock(data, 0, dataLen * 64, data, 0);
                     hashAlg.TransformFinalBlock(data, 0, 0);
+                    // ReSharper disable once AssignNullToNotNullAttribute
                     Array.Copy(hashAlg.Hash, block, hashAlg.HashSize / 8);
                 }
             }

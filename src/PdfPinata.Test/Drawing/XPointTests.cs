@@ -111,6 +111,7 @@ public class XPointTests
         (point == new XPoint(1, 3)).Should().BeFalse();
         point.Equals(new XPoint(1, 2)).Should().BeTrue();
         point.Equals((object)new XPoint(1, 2)).Should().BeTrue();
+        // ReSharper disable once SuspiciousTypeConversion.Global
         point.Equals("not a point").Should().BeFalse();
         XPoint.Equals(point, new XPoint(1, 2)).Should().BeTrue();
         point.GetHashCode().Should().Be(new XPoint(1, 2).GetHashCode());

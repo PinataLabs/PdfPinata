@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -60,7 +60,7 @@ public sealed class XFontFamily
     }
     internal static XFontFamily CreateFromName_not_used(string name, bool createPlatformFamily)
     {
-        XFontFamily fontFamily = new XFontFamily(name);
+        var fontFamily = new XFontFamily(name);
         return fontFamily;
     }
 
@@ -71,7 +71,7 @@ public sealed class XFontFamily
     internal static XFontFamily CreateSolitary(string name)
     {
         // Custom font resolver face names must not clash with platform family names.
-        FontFamilyInternal fontFamilyInternal = FontFamilyCache.GetFamilyByName(name);
+        var fontFamilyInternal = FontFamilyCache.GetFamilyByName(name);
         if (fontFamilyInternal == null)
         {
             fontFamilyInternal = FontFamilyInternal.GetOrCreateFromName(name, false);
@@ -104,8 +104,8 @@ public sealed class XFontFamily
     /// </summary>
     public int GetCellAscent(XFontStyle style)
     {
-        OpenTypeDescriptor descriptor = (OpenTypeDescriptor)FontDescriptorCache.GetOrCreateDescriptor(Name, style);
-        int result = descriptor.Ascender;
+        var descriptor = (OpenTypeDescriptor)FontDescriptorCache.GetOrCreateDescriptor(Name, style);
+        var result = descriptor.Ascender;
         return result;
     }
 
@@ -114,8 +114,8 @@ public sealed class XFontFamily
     /// </summary>
     public int GetCellDescent(XFontStyle style)
     {
-        OpenTypeDescriptor descriptor = (OpenTypeDescriptor)FontDescriptorCache.GetOrCreateDescriptor(Name, style);
-        int result = descriptor.Descender;
+        var descriptor = (OpenTypeDescriptor)FontDescriptorCache.GetOrCreateDescriptor(Name, style);
+        var result = descriptor.Descender;
         return result;
     }
 
@@ -124,8 +124,8 @@ public sealed class XFontFamily
     /// </summary>
     public int GetEmHeight(XFontStyle style)
     {
-        OpenTypeDescriptor descriptor = (OpenTypeDescriptor)FontDescriptorCache.GetOrCreateDescriptor(Name, style);
-        int result = descriptor.UnitsPerEm;
+        var descriptor = (OpenTypeDescriptor)FontDescriptorCache.GetOrCreateDescriptor(Name, style);
+        var result = descriptor.UnitsPerEm;
         return result;
     }
 
@@ -135,8 +135,8 @@ public sealed class XFontFamily
     /// </summary>
     public int GetLineSpacing(XFontStyle style)
     {
-        OpenTypeDescriptor descriptor = (OpenTypeDescriptor)FontDescriptorCache.GetOrCreateDescriptor(Name, style);
-        int result = descriptor.LineSpacing;
+        var descriptor = (OpenTypeDescriptor)FontDescriptorCache.GetOrCreateDescriptor(Name, style);
+        var result = descriptor.LineSpacing;
         return result;
     }
 
@@ -148,7 +148,6 @@ public sealed class XFontFamily
     #pragma warning disable CA1822 // Public API: making it static would break every caller that asks a family about its styles.
     public bool IsStyleAvailable(XFontStyle style)
     {
-        XGdiFontStyle xStyle = ((XGdiFontStyle)style) & XGdiFontStyle.BoldItalic;
         return false;
     }
     #pragma warning restore CA1822

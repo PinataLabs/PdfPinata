@@ -110,9 +110,9 @@ public class XTextFormatter
     /// </remarks>
     static double CapHeightOf(XFont font)
     {
-        double lineSpace = font.GetHeight();
-        double ascent = lineSpace * font.CellAscent / font.CellSpace;
-        double capHeight = lineSpace * font.Metrics.CapHeight / font.CellSpace;
+        var lineSpace = font.GetHeight();
+        var ascent = lineSpace * font.CellAscent / font.CellSpace;
+        var capHeight = lineSpace * font.Metrics.CapHeight / font.CellSpace;
 
         return capHeight > 0 && capHeight <= ascent ? capHeight : ascent;
     }
@@ -372,7 +372,7 @@ public class XTextFormatter
         // list, so nothing stops a caller adding the null their own lookup just returned - and an
         // obstacle quietly dropped is a page that looks deliberate and has text running over the
         // thing it was meant to avoid. Refusing also leaves the count below meaning what it says.
-        for (int idx = 0; idx < _obstacles.Count; idx++)
+        for (var idx = 0; idx < _obstacles.Count; idx++)
         {
             if (_obstacles[idx] == null)
             {
@@ -407,7 +407,7 @@ public class XTextFormatter
         // what text there is to break and how wide the opening lines may be.
         _dropCap = MeasureDropCap(text);
         if (_dropCap != null)
-            _text = text.Substring(1);
+            _text = text[1..];
 
         CreateBlocks();
 
@@ -437,8 +437,8 @@ public class XTextFormatter
 
         SetAlignment(alignments);
 
-        double dx = layoutRectangle.Location.X;
-        double dy = layoutRectangle.Location.Y;
+        var dx = layoutRectangle.Location.X;
+        var dy = layoutRectangle.Location.Y;
 
         var lines = GetLines(_blocks).ToArray();
 
@@ -486,7 +486,7 @@ public class XTextFormatter
 
                 // The last line of a paragraph keeps its natural width. Stretching it over the
                 // full width of the column would tear the few words it holds apart.
-                if (Alignment == XParagraphAlignment.Justify && !lineBlocks[lineBlocks.Length - 1].EndsParagraph)
+                if (Alignment == XParagraphAlignment.Justify && !lineBlocks[^1].EndsParagraph)
                 {
                     var locationX = columnLeft + indent;
                     var gaps = lineBlocks.Length - 1;
@@ -566,12 +566,12 @@ public class XTextFormatter
     void CreateBlocks()
     {
         _blocks.Clear();
-        int length = _text.Length;
-        bool inNonWhiteSpace = false;
+        var length = _text.Length;
+        var inNonWhiteSpace = false;
         int startIndex = 0, blockLength = 0;
-        for (int idx = 0; idx < length; idx++)
+        for (var idx = 0; idx < length; idx++)
         {
-            char ch = _text[idx];
+            var ch = _text[idx];
 
             // Treat CR and CRLF as LF
             if (ch == Chars.CR)
@@ -584,7 +584,7 @@ public class XTextFormatter
             {
                 if (blockLength != 0)
                 {
-                    string token = _text.Substring(startIndex, blockLength);
+                    var token = _text.Substring(startIndex, blockLength);
                     _blocks.Add(new Block(token, BlockType.Text,
                         _gfx.MeasureString(token, _font).Width));
                 }
@@ -596,7 +596,7 @@ public class XTextFormatter
             {
                 if (inNonWhiteSpace)
                 {
-                    string token = _text.Substring(startIndex, blockLength);
+                    var token = _text.Substring(startIndex, blockLength);
                     _blocks.Add(new Block(token, BlockType.Text,
                         _gfx.MeasureString(token, _font).Width));
                     startIndex = idx + 1;
@@ -615,7 +615,7 @@ public class XTextFormatter
         }
         if (blockLength != 0)
         {
-            string token = _text.Substring(startIndex, blockLength);
+            var token = _text.Substring(startIndex, blockLength);
             _blocks.Add(new Block(token, BlockType.Text,
                 _gfx.MeasureString(token, _font).Width));
         }
@@ -714,29 +714,29 @@ public class XTextFormatter
     /// </remarks>
     LineMeasure MeasureOfLineAt(double yTop, bool firstLineOfParagraph, double columnWidth, int column)
     {
-        double indent = IndentOf(firstLineOfParagraph);
+        var indent = IndentOf(firstLineOfParagraph);
         if (_region == null)
             return new LineMeasure(indent, columnWidth);
 
         var band = new FlowBand(yTop, yTop + _lineHeight);
-        double columnLeft = ColumnLeft(column, columnWidth);
+        var columnLeft = ColumnLeft(column, columnWidth);
 
         // Everything is worked out across the whole block and then clipped to the column the line
         // sits in. That is what makes "a cap belongs to the first column" and "an obstacle
         // straddling the gutter narrows both columns" the same rule rather than two: an obstacle
         // reaches the columns it overlaps, and no others, because that is where it is.
-        IntervalSet room = _region.GetAvailableIntervals(band)
+        var room = _region.GetAvailableIntervals(band)
             .Intersect(new XInterval(columnLeft, columnLeft + columnWidth));
 
-        if (!room.TryWidest(MinimumRoom, out XInterval widest))
+        if (!room.TryWidest(MinimumRoom, out var widest))
             return BlockedAt(band, indent, columnWidth);
 
         // Back into the column's own coordinates, which is what the layout loop counts in. The
         // indent is added to where the run begins rather than to the column's left edge, so a first
         // line set beside something is indented from that thing - which is what it did when the
         // only thing it could be set beside was a drop cap.
-        double start = widest.Start - columnLeft + indent;
-        double limit = widest.End - columnLeft;
+        var start = widest.Start - columnLeft + indent;
+        var limit = widest.End - columnLeft;
 
         // The indent can eat what little room an obstacle left, and a line that starts at or past
         // its own limit is not a narrow line - it is no line.
@@ -757,7 +757,7 @@ public class XTextFormatter
     /// </remarks>
     LineMeasure BlockedAt(FlowBand band, double start, double limit)
     {
-        double clearsAt = _region.NextClearanceBelow(band) ?? band.Bottom;
+        var clearsAt = _region.NextClearanceBelow(band) ?? band.Bottom;
         return LineMeasure.Blocked(start, limit, clearsAt);
     }
 
@@ -775,20 +775,20 @@ public class XTextFormatter
         if (DropCap == null || string.IsNullOrEmpty(text))
             return null;
 
-        string character = text.Substring(0, 1);
+        var character = text[..1];
         if (char.IsWhiteSpace(character[0]))
             return null;
 
         // The foot of the cap goes on the baseline of the last line it is set into. Lines are
         // placed by the top of their box and the baseline sits an ascent below that.
-        double baseline = (DropCap.Lines - 1) * (_lineHeight + LineGap) + _cyAscent;
+        var baseline = (DropCap.Lines - 1) * (_lineHeight + LineGap) + _cyAscent;
 
         // The head goes on the cap height of the first line - the top of the letter standing
         // beside it, not the top of the box that letter is set in. The two differ by the room the
         // face keeps above a capital for accents, and a cap hung from the box stands that much
         // clear of its neighbour: about a fifth of an em in Liberation Sans, which at the size a
         // cap is set to is a gap nobody has to measure to see.
-        double depth = baseline - (_cyAscent - _cyCapHeight);
+        var depth = baseline - (_cyAscent - _cyCapHeight);
         if (depth <= 0)
             return null;
 
@@ -796,17 +796,17 @@ public class XTextFormatter
         // this glyph's ink - the font's own metrics describe the whole face, and a cap letter fills
         // neither the ascent nor the em box exactly.
         const double probe = 100;
-        XFont probeFont = new XFont(DropCap.Font.FontFamily.Name, probe, DropCap.Font.Style);
+        var probeFont = new XFont(DropCap.Font.FontFamily.Name, probe, DropCap.Font.Style);
 
-        XRect probeInk = InkOf(character, probeFont);
+        var probeInk = InkOf(character, probeFont);
         if (probeInk.Height <= 0 || probeInk.Width <= 0)
             return null;
 
-        double size = probe * depth / probeInk.Height;
-        XFont capFont = new XFont(DropCap.Font.FontFamily.Name, size, DropCap.Font.Style);
-        XRect ink = InkOf(character, capFont);
+        var size = probe * depth / probeInk.Height;
+        var capFont = new XFont(DropCap.Font.FontFamily.Name, size, DropCap.Font.Style);
+        var ink = InkOf(character, capFont);
 
-        double gutter = DropCap.Gutter ?? _spaceWidth;
+        var gutter = DropCap.Gutter ?? _spaceWidth;
 
         return new DropCapMetrics
         {
@@ -815,7 +815,7 @@ public class XTextFormatter
             InkOffset = ink.X,
             Baseline = baseline,
             Reserved = new XRect(0, 0, ink.Width + gutter,
-                (DropCap.Lines - 1) * (_lineHeight + LineGap) + _lineHeight),
+                (DropCap.Lines - 1) * (_lineHeight + LineGap) + _lineHeight)
         };
     }
 
@@ -837,27 +837,27 @@ public class XTextFormatter
     /// </remarks>
     XRect InkOf(string text, XFont font)
     {
-        Fonts.IGlyphOutlineProvider provider = OutlineProviderOrNull();
+        var provider = OutlineProviderOrNull();
         if (provider == null)
         {
             // The advance across, and the cap height down: the nearest the font's own metrics come
             // to the box a capital's ink fills. The ascent would be the whole box the letter is set
             // in, which is taller than the letter by the room kept above it, and scaling that box
             // to the cap's depth sets the letter itself short of the depth by the same amount.
-            XSize measured = _gfx.MeasureString(text, font);
-            double capHeight = CapHeightOf(font);
+            var measured = _gfx.MeasureString(text, font);
+            var capHeight = CapHeightOf(font);
             return new XRect(0, -capHeight, measured.Width, capHeight);
         }
 
         double left = double.MaxValue, right = double.MinValue;
         double top = double.MinValue, bottom = double.MaxValue;
 
-        foreach (Fonts.XGlyphOutline outline in provider.GetOutlines(text, font.FontFamily.Name,
+        foreach (var outline in provider.GetOutlines(text, font.FontFamily.Name,
                      (font.Style & XFontStyle.Bold) != 0, (font.Style & XFontStyle.Italic) != 0, font.Size))
         {
-            foreach (Fonts.XGlyphSegment segment in outline.Segments)
+            foreach (var segment in outline.Segments)
             {
-                if (segment.Kind == Fonts.XGlyphSegmentKind.Close)
+                if (segment.Kind == XGlyphSegmentKind.Close)
                     continue;
 
                 left = Math.Min(left, segment.End.X);
@@ -879,11 +879,11 @@ public class XTextFormatter
     /// throws when it is unset, which is right for a caller who asked for outlines and wrong here:
     /// a drop cap without a provider is drawn by advance rather than refused.
     /// </summary>
-    static Fonts.IGlyphOutlineProvider OutlineProviderOrNull()
+    static IGlyphOutlineProvider OutlineProviderOrNull()
     {
         try
         {
-            return Fonts.GlobalFontSettings.GlyphOutlineProvider;
+            return GlobalFontSettings.GlyphOutlineProvider;
         }
         catch (InvalidOperationException)
         {
@@ -933,7 +933,7 @@ public class XTextFormatter
     /// </para>
     /// </remarks>
     bool MeasureLineWithRoom(bool firstLineOfParagraph, double columnWidth, double rectHeight,
-        ref LineMeasure measure, ref int column, ref double y)
+        out LineMeasure measure, ref int column, ref double y)
     {
         measure = MeasureOfLineAt(y, firstLineOfParagraph, columnWidth, column);
         while (measure.IsBlocked)
@@ -980,7 +980,7 @@ public class XTextFormatter
         // No null check: GetLayout refuses a list with a gap in it, and every route here comes
         // through GetLayout. Skipping nulls here as well would be the second opinion that makes
         // the first one look optional.
-        foreach (IFlowObstacle obstacle in _obstacles)
+        foreach (var obstacle in _obstacles)
             region.With(obstacle);
 
         if (_dropCap != null)
@@ -994,34 +994,34 @@ public class XTextFormatter
 
     void CreateLayout()
     {
-        double rectWidth = _layoutRectangle.Width;
-        double rectHeight = _layoutRectangle.Height - _cyAscent - _cyDescent;
-        double columnWidth = ColumnWidthWithin(rectWidth);
+        var rectWidth = _layoutRectangle.Width;
+        var rectHeight = _layoutRectangle.Height - _cyAscent - _cyDescent;
+        var columnWidth = ColumnWidthWithin(rectWidth);
         _region = RegionFor(rectWidth, rectHeight, columnWidth);
-        int firstIndex = 0;
-        int column = 0;
+        var firstIndex = 0;
+        var column = 0;
 
         // The measure of the line being filled. Re-asked for at every line, because a drop cap -
         // or anything else the text has to flow beside - makes the answer depend on how far down
         // the column the line sits.
         LineMeasure measure = default;
         double y = 0;
-        int count = _blocks.Count;
+        var count = _blocks.Count;
 
         // Asked before the first block rather than at it: a first band with no room in it is
         // answered by starting the text further down, and there is no text placed yet to move.
         // Where that runs out of layout there is nowhere for any of the text to go.
-        int placeable = MeasureLineWithRoom(true, columnWidth, rectHeight, ref measure, ref column, ref y)
+        var placeable = MeasureLineWithRoom(true, columnWidth, rectHeight, out measure, ref column, ref y)
             ? count
             : 0;
         if (placeable == 0 && count > 0)
             _blocks[0].Stop = true;
 
-        double lineStart = measure.Start;
-        double x = lineStart;
-        for (int idx = 0; idx < placeable; idx++)
+        var lineStart = measure.Start;
+        var x = lineStart;
+        for (var idx = 0; idx < placeable; idx++)
         {
-            Block block = _blocks[idx];
+            var block = _blocks[idx];
             if (block.Type == BlockType.LineBreak)
             {
                 if (idx > firstIndex)
@@ -1036,7 +1036,7 @@ public class XTextFormatter
                 // After the column move, not before: a line carried to the top of the next column
                 // is a line somewhere else, and its measure is whatever is free there.
                 if (!MoveToNextColumnIfFull(ref column, ref y, rectHeight)
-                    || !MeasureLineWithRoom(true, columnWidth, rectHeight, ref measure, ref column, ref y))
+                    || !MeasureLineWithRoom(true, columnWidth, rectHeight, out measure, ref column, ref y))
                 {
                     block.Stop = true;
                     break;
@@ -1046,10 +1046,11 @@ public class XTextFormatter
             }
             else
             {
-                double width = block.Width;
+                var width = block.Width;
                 // A block that starts a line is placed whether it fits or not, since moving it to
                 // a line of its own would not make it any narrower.
                 #pragma warning disable S1244 // Exact on purpose: x is lineStart until something has been placed on the line.
+                // ReSharper disable once CompareOfFloatsByEqualityOperator
                 if (!LineBreak || x + width <= measure.Width || x == lineStart)
                 #pragma warning restore S1244
                 {
@@ -1067,7 +1068,7 @@ public class XTextFormatter
                     firstIndex = idx;
                     y += _lineHeight + LineGap;
                     if (!MoveToNextColumnIfFull(ref column, ref y, rectHeight)
-                        || !MeasureLineWithRoom(false, columnWidth, rectHeight, ref measure, ref column, ref y))
+                        || !MeasureLineWithRoom(false, columnWidth, rectHeight, out measure, ref column, ref y))
                     {
                         block.Stop = true;
                         break;
@@ -1093,7 +1094,7 @@ public class XTextFormatter
             return;
         }
 
-        laidOutBlocks[laidOutBlocks.Length - 1].EndsParagraph = true;
+        laidOutBlocks[^1].EndsParagraph = true;
 
         var minY = laidOutBlocks.Min(b => b.Location.Y);
         var maxY = laidOutBlocks.Max(b => b.Location.Y + _lineHeight);
@@ -1130,16 +1131,16 @@ public class XTextFormatter
         if (laidOut.Length == 0)
             return;
 
-        Block last = laidOut[laidOut.Length - 1];
+        var last = laidOut[^1];
 
         // To the right edge of the line rather than of the column. A truncated line that falls
         // inside a drop cap's depth has less room than the column does, and measuring against the
         // column would let the ellipsis run past the edge the line was broken to.
-        double available = ColumnLeft(last.Column, columnWidth) + last.LineWidth - last.Location.X;
+        var available = ColumnLeft(last.Column, columnWidth) + last.LineWidth - last.Location.X;
 
-        string text = last.Text;
+        var text = last.Text;
         while (text.Length > 0 && _gfx.MeasureString(text + Ellipsis, _font).Width > available)
-            text = text.Substring(0, text.Length - 1);
+            text = text[..^1];
 
         last.Text = text + Ellipsis;
         last.Width = _gfx.MeasureString(last.Text, _font).Width;
@@ -1150,28 +1151,28 @@ public class XTextFormatter
     /// </summary>
     void HorizontalAlignLine(int firstIndex, int lastIndex, double layoutWidth)
     {
-        XParagraphAlignment blockAlignment = _blocks[firstIndex].Alignment;
+        var blockAlignment = _blocks[firstIndex].Alignment;
         if (Alignment == XParagraphAlignment.Left || blockAlignment == XParagraphAlignment.Left)
             return;
 
-        int count = lastIndex - firstIndex + 1;
+        var count = lastIndex - firstIndex + 1;
         if (count == 0)
             return;
 
-        double totalWidth = -_spaceWidth;
-        for (int idx = firstIndex; idx <= lastIndex; idx++)
+        var totalWidth = -_spaceWidth;
+        for (var idx = firstIndex; idx <= lastIndex; idx++)
             totalWidth += _blocks[idx].Width + _spaceWidth;
 
         // An indented line has that much less room to be centred, pushed right or stretched in.
-        double dx = Math.Max(layoutWidth - _blocks[firstIndex].LineIndent - totalWidth, 0);
+        var dx = Math.Max(layoutWidth - _blocks[firstIndex].LineIndent - totalWidth, 0);
         //Debug.Assert(dx >= 0);
         if (Alignment != XParagraphAlignment.Justify)
         {
             if (Alignment == XParagraphAlignment.Center)
                 dx /= 2;
-            for (int idx = firstIndex; idx <= lastIndex; idx++)
+            for (var idx = firstIndex; idx <= lastIndex; idx++)
             {
-                Block block = _blocks[idx];
+                var block = _blocks[idx];
                 block.Location += new XSize(dx, 0);
             }
         }
@@ -1180,7 +1181,7 @@ public class XTextFormatter
             dx /= count - 1;
             for (int idx = firstIndex + 1, i = 1; idx <= lastIndex; idx++, i++)
             {
-                Block block = _blocks[idx];
+                var block = _blocks[idx];
                 block.Location += new XSize(dx * i, 0);
             }
         }
@@ -1256,7 +1257,7 @@ public class XTextFormatter
         // so that both branches resolve the same text.
         var line = new StringBuilder();
         var starts = new int[lineBlocks.Length];
-        for (int idx = 0; idx < lineBlocks.Length; idx++)
+        for (var idx = 0; idx < lineBlocks.Length; idx++)
         {
             if (idx > 0)
                 line.Append(' ');
@@ -1269,7 +1270,7 @@ public class XTextFormatter
             return lineBlocks;
 
         var spans = new (int Start, int Length)[lineBlocks.Length];
-        for (int idx = 0; idx < lineBlocks.Length; idx++)
+        for (var idx = 0; idx < lineBlocks.Length; idx++)
             spans[idx] = (starts[idx], lineBlocks[idx].Text.Length);
 
         return VisualOrder.Of(resolved, spans)

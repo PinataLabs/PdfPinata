@@ -24,7 +24,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -113,7 +113,7 @@ public class CodeDataMatrix : MatrixCode
 
     static string CreateEncoding(DataMatrixEncoding dmEncoding, int length)
     {
-        string tempencoding = "";
+        var tempencoding = "";
         switch (dmEncoding)
         {
             case DataMatrixEncoding.Ascii:
@@ -153,7 +153,7 @@ public class CodeDataMatrix : MatrixCode
     /// </summary>
     protected internal override void Render(XGraphics gfx, XBrush brush, XPoint position)
     {
-        XGraphicsState state = gfx.Save();
+        var state = gfx.Save();
 
         switch (Direction)
         {
@@ -170,19 +170,19 @@ public class CodeDataMatrix : MatrixCode
                 break;
         }
 
-        bool[,] modules = DataMatrixSymbol.Build(Text, Encoding, Rows, Columns);
+        var modules = DataMatrixSymbol.Build(Text, Encoding, Rows, Columns);
 
-        XSize size = Size.IsEmpty ? DefaultSize(modules) : Size;
+        var size = Size.IsEmpty ? DefaultSize(modules) : Size;
 
-        XPoint pos = position + CalcDistance(Anchor, AnchorType.TopLeft, size);
+        var pos = position + CalcDistance(Anchor, AnchorType.TopLeft, size);
 
         if (QuietZone > 0)
         {
-            XSize sizeWithZone = new XSize(size.Width, size.Height);
+            var sizeWithZone = new XSize(size.Width, size.Height);
             sizeWithZone.Width = sizeWithZone.Width / (Columns + 2 * QuietZone) * Columns;
             sizeWithZone.Height = sizeWithZone.Height / (Rows + 2 * QuietZone) * Rows;
 
-            XPoint posWithZone = new XPoint(pos.X, pos.Y);
+            var posWithZone = new XPoint(pos.X, pos.Y);
             posWithZone.X += size.Width / (Columns + 2 * QuietZone) * QuietZone;
             posWithZone.Y += size.Height / (Rows + 2 * QuietZone) * QuietZone;
 
@@ -237,21 +237,21 @@ public class CodeDataMatrix : MatrixCode
     /// </summary>
     static void DrawModules(XGraphics gfx, XBrush brush, bool[,] modules, XPoint position, XSize size)
     {
-        int rows = modules.GetLength(0);
-        int columns = modules.GetLength(1);
-        double moduleWidth = size.Width / columns;
-        double moduleHeight = size.Height / rows;
+        var rows = modules.GetLength(0);
+        var columns = modules.GetLength(1);
+        var moduleWidth = size.Width / columns;
+        var moduleHeight = size.Height / rows;
 
-        for (int row = 0; row < rows; row++)
+        for (var row = 0; row < rows; row++)
         {
-            for (int column = 0; column < columns; column++)
+            for (var column = 0; column < columns; column++)
             {
                 if (!modules[row, column])
                     continue;
 
                 // Run of adjacent dark modules drawn as one rectangle, which keeps the
                 // content stream short and leaves no seam between them.
-                int run = 1;
+                var run = 1;
                 while (column + run < columns && modules[row, column + run])
                     run++;
 

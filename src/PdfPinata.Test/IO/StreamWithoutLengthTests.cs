@@ -54,7 +54,7 @@ public class StreamWithoutLengthTests
         var inputDocument = PdfPinata.Pdf.IO.PdfReader.Open(input, PdfDocumentOpenMode.Import, PdfReadAccuracy.Moderate);
 
         var merged = new PdfDocument();
-        foreach (PdfPage page in inputDocument.Pages)
+        foreach (var page in inputDocument.Pages)
             merged.AddPage(page);
 
         using var output = new MemoryStream();
@@ -77,7 +77,7 @@ public class StreamWithoutLengthTests
             "<</Type/Pages/Kids[3 0 R]/Count 1>>",
             "<</Type/Page/Parent 2 0 R/MediaBox[0 0 200 200]/Contents 4 0 R>>",
             "<</Length " + content.Length + ">>stream\n" + content + "\nendstream",
-            "<</Subtype/XML/Type/Metadata>>stream\n" + Metadata + "\nendstream",
+            "<</Subtype/XML/Type/Metadata>>stream\n" + Metadata + "\nendstream"
         };
 
         var pdf = new StringBuilder("%PDF-1.7\n");

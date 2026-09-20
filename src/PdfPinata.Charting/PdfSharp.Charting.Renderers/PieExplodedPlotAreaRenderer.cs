@@ -50,27 +50,27 @@ internal class PieExplodedPlotAreaRenderer : PiePlotAreaRenderer
   /// </summary>
   protected override void CalcSectors()
   {
-    ChartRendererInfo cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    if (cri.seriesRendererInfos.Length == 0)
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    if (cri.SeriesRendererInfos.Length == 0)
       return;
 
-    SeriesRendererInfo sri = cri.seriesRendererInfos[0];
+    var sri = cri.SeriesRendererInfos[0];
 
-    double sumValues = sri.SumOfPoints;
+    var sumValues = sri.SumOfPoints;
     if (sumValues == 0)
       return;
 
     double textMeasure = 0;
-    if (sri.dataLabelRendererInfo != null && sri.dataLabelRendererInfo.Position == DataLabelPosition.OutsideEnd)
+    if (sri.DataLabelRendererInfo != null && sri.DataLabelRendererInfo.Position == DataLabelPosition.OutsideEnd)
     {
-      foreach (DataLabelEntryRendererInfo dleri in sri.dataLabelRendererInfo.Entries)
+      foreach (var dleri in sri.DataLabelRendererInfo.Entries)
       {
         textMeasure = Math.Max(textMeasure, dleri.Width);
         textMeasure = Math.Max(textMeasure, dleri.Height);
       }
     }
 
-    XRect pieRect = cri.plotAreaRendererInfo.Rect;
+    var pieRect = cri.PlotAreaRendererInfo.Rect;
     if (textMeasure != 0)
     {
       pieRect.X += textMeasure;
@@ -79,16 +79,17 @@ internal class PieExplodedPlotAreaRenderer : PiePlotAreaRenderer
       pieRect.Height -= 2 * textMeasure;
     }
 
-    XPoint origin = new XPoint(pieRect.X + pieRect.Width / 2, pieRect.Y + pieRect.Height / 2);
-    XRect innerRect = new XRect();
-    XPoint p1 = new XPoint();
+    var origin = new XPoint(pieRect.X + pieRect.Width / 2, pieRect.Y + pieRect.Height / 2);
+    var innerRect = new XRect();
+    var p1 = new XPoint();
 
-    double midAngle = 0, sectorStartAngle = 0, sectorSweepAngle = 0,
-      deltaAngle = 2, startAngle = 270, sweepAngle = 0,
+    double midAngle, sectorStartAngle, sectorSweepAngle,
+      deltaAngle = 2, startAngle = 270, sweepAngle,
       rInnerCircle = pieRect.Width / 15,
       rOuterCircle = pieRect.Width / 2;
 
-    foreach (SectorRendererInfo sector in sri.pointRendererInfos)
+    // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
+    foreach (SectorRendererInfo sector in sri.PointRendererInfos)
     {
       if (!double.IsNaN(sector.Value) && sector.Value != 0)
       {

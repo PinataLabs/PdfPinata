@@ -52,7 +52,7 @@ public class FormatterLayoutPinTests
         pinned.Keys.Should().BeEquivalentTo(FormatterOutput.ArrangementNames);
         pinned.Keys.Should().Contain(new[]
         {
-            "plain", "justified", "centred", "right", "ellipsis", "two columns", "rotated",
+            "plain", "justified", "centred", "right", "ellipsis", "two columns", "rotated"
         });
     }
 

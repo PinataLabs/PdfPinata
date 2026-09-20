@@ -1,4 +1,5 @@
 #region Copyright
+
 //
 // Authors:
 //   Stefan Lange
@@ -23,8 +24,9 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
+
 #endregion
 
 using System;
@@ -45,7 +47,7 @@ public sealed class PdfName : PdfItem
     /// </summary>
     public PdfName()
     {
-        _value = "/";  // Empty name.
+        _value = "/"; // Empty name.
     }
 
     /// <summary>
@@ -97,7 +99,7 @@ public sealed class PdfName : PdfItem
     /// <summary>
     /// Determines whether the specified name and string are equal.
     /// </summary>
-    #pragma warning disable S3875 // Public API: callers compare a name with a string through this operator, and removing it would break them.
+#pragma warning disable S3875 // Public API: callers compare a name with a string through this operator, and removing it would break them.
     public static bool operator ==(PdfName name, string str)
     {
         if (ReferenceEquals(name, null))
@@ -105,7 +107,7 @@ public sealed class PdfName : PdfItem
 
         return name._value == str;
     }
-    #pragma warning restore S3875
+#pragma warning restore S3875
 
     /// <summary>
     /// Determines whether the specified name and string are not equal.
@@ -128,7 +130,7 @@ public sealed class PdfName : PdfItem
     /// </summary>
     internal override void WriteObject(PdfWriter writer)
     {
-        // TODO: what if unicode character are part of the name? 
+        // TODO: what if unicode character are part of the name?
         writer.Write(this);
     }
 
@@ -149,16 +151,10 @@ public sealed class PdfName : PdfItem
         /// <param name="r">The second object to compare.</param>
         public int Compare(PdfName l, PdfName r)
         {
-
-            if (l != null)
-            {
-                if (r != null)
-                    return String.Compare(l._value, r._value, StringComparison.Ordinal);
-                return -1;
-            }
+            if (l == null) return r != null ? 1 : 0;
             if (r != null)
-                return 1;
-            return 0;
+                return string.Compare(l._value, r._value, StringComparison.Ordinal);
+            return -1;
         }
     }
 }

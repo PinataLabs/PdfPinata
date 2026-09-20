@@ -118,7 +118,7 @@ public class SimpleTypeImmutabilityTests
             typeof(PdfBoolean), typeof(PdfDate), typeof(PdfPinata.Pdf.PdfInteger),
             typeof(PdfLiteral), typeof(PdfLong), typeof(PdfName), typeof(PdfNull),
             typeof(PdfRectangle), typeof(PdfReal), typeof(PdfReference), typeof(PdfString),
-            typeof(PdfUInteger),
+            typeof(PdfUInteger)
         });
     }
 }

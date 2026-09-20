@@ -26,7 +26,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -79,7 +79,7 @@ public partial class Borders : DocumentObject, IEnumerable
     /// </summary>
     IEnumerator IEnumerable.GetEnumerator()
     {
-        Hashtable ht = new Hashtable();
+        var ht = new Hashtable();
         ht.Add("Top", top);
         ht.Add("Left", left);
         ht.Add("Bottom", bottom);
@@ -339,7 +339,7 @@ public partial class Borders : DocumentObject, IEnumerable
         set => clearAll = value;
     }
     /// <summary>Backing field for <see cref="BordersCleared"/>.</summary>
-    protected bool clearAll = false;
+    protected bool clearAll;
     #endregion
 
     #region Null handling
@@ -383,7 +383,7 @@ public partial class Borders : DocumentObject, IEnumerable
         if (clearAll)
             serializer.WriteLine("Borders = null");
 
-        int pos = serializer.BeginContent("Borders");
+        var pos = serializer.BeginContent("Borders");
 
         if (visible != null && (refBorders == null || refBorders.visible == null || (Visible != refBorders.Visible)))
             serializer.WriteSimpleAttribute("Visible", Visible);
@@ -392,6 +392,7 @@ public partial class Borders : DocumentObject, IEnumerable
             serializer.WriteSimpleAttribute("Style", Style);
 
         #pragma warning disable S1244 // Exact on purpose: a value is written unless it is exactly the one it inherits.
+        // ReSharper disable once CompareOfFloatsByEqualityOperator
         if (!width.IsNull && (refBorders == null || (width.Value != refBorders.width.Value)))
             serializer.WriteSimpleAttribute("Width", Width);
         #pragma warning restore S1244
@@ -400,15 +401,19 @@ public partial class Borders : DocumentObject, IEnumerable
             serializer.WriteSimpleAttribute("Color", Color);
 
         #pragma warning disable S1244 // Exact on purpose: a value is written unless it is exactly the one it inherits.
+        // ReSharper disable once CompareOfFloatsByEqualityOperator
         if (!distanceFromTop.IsNull && (refBorders == null || (DistanceFromTop.Point != refBorders.DistanceFromTop.Point)))
             serializer.WriteSimpleAttribute("DistanceFromTop", DistanceFromTop);
 
+        // ReSharper disable once CompareOfFloatsByEqualityOperator
         if (!distanceFromBottom.IsNull && (refBorders == null || (DistanceFromBottom.Point != refBorders.DistanceFromBottom.Point)))
             serializer.WriteSimpleAttribute("DistanceFromBottom", DistanceFromBottom);
 
+        // ReSharper disable once CompareOfFloatsByEqualityOperator
         if (!distanceFromLeft.IsNull && (refBorders == null || (DistanceFromLeft.Point != refBorders.DistanceFromLeft.Point)))
             serializer.WriteSimpleAttribute("DistanceFromLeft", DistanceFromLeft);
 
+        // ReSharper disable once CompareOfFloatsByEqualityOperator
         if (!distanceFromRight.IsNull && (refBorders == null || (DistanceFromRight.Point != refBorders.DistanceFromRight.Point)))
             serializer.WriteSimpleAttribute("DistanceFromRight", DistanceFromRight);
         #pragma warning restore S1244
@@ -486,10 +491,12 @@ public partial class Borders : DocumentObject, IEnumerable
         {
             get
             {
+                // ReSharper disable once GenericEnumeratorNotDisposed
                 IEnumerator enumerator = ht.GetEnumerator();
                 enumerator.Reset();
-                for (int idx = 0; idx < index + 1; idx++)
+                for (var idx = 0; idx < index + 1; idx++)
                     enumerator.MoveNext();
+                // ReSharper disable once PossibleNullReferenceException
                 return ((DictionaryEntry)enumerator.Current).Value as Border;
             }
         }

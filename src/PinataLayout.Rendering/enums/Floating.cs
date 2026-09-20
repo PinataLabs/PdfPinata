@@ -41,5 +41,5 @@ internal enum Floating
   //Served for future extensions:
   Left,
   Right,
-  BothSides,
+  BothSides
 }

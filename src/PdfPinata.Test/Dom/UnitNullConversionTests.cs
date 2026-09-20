@@ -21,7 +21,7 @@ public class UnitNullConversionTests
     [Fact]
     public void ConvertingANullStringThrowsSomethingThatExplainsItself()
     {
-        var convert = () => { Unit _ = (string)null; };
+        var convert = () => { Unit _ = null; };
 
         convert.Should().Throw<ArgumentNullException>()
             .WithMessage("*unit == null*", "the message names the mistake that usually causes this")
@@ -35,7 +35,7 @@ public class UnitNullConversionTests
     [Fact]
     public void ComparingAUnitToNullThrowsSomethingThatExplainsItself()
     {
-        Unit unit = Unit.FromPoint(3);
+        var unit = Unit.FromPoint(3);
 
         var compare = () => unit == null;
 
@@ -57,8 +57,8 @@ public class UnitNullConversionTests
     [Fact]
     public void EmptinessIsTestedWithIsEmpty()
     {
-        Unit unset = new Unit();
-        Unit set = Unit.FromPoint(1);
+        var unset = new Unit();
+        var set = Unit.FromPoint(1);
 
         unset.IsEmpty.Should().BeTrue();
         set.IsEmpty.Should().BeFalse();

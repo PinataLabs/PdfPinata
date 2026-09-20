@@ -42,7 +42,7 @@ internal class FootnoteRegistry
     /// </summary>
     internal void Place(Footnote footnote, int section, int page, FormattedFootnote formatted)
     {
-        if (!_entries.TryGetValue(footnote, out Entry entry))
+        if (!_entries.TryGetValue(footnote, out var entry))
         {
             entry = new Entry();
             _entries.Add(footnote, entry);
@@ -66,10 +66,9 @@ internal class FootnoteRegistry
         if (footnote.Reference.Length > 0)
             return footnote.Reference;
 
-        if (!_entries.TryGetValue(footnote, out Entry entry))
-            return "";
-
-        return FootnoteNumbering.Mark(OrdinalOf(footnote, entry), _document.FootnoteNumberStyle);
+        return !_entries.TryGetValue(footnote, out var entry)
+            ? ""
+            : FootnoteNumbering.Mark(OrdinalOf(footnote, entry), _document.FootnoteNumberStyle);
     }
 
     /// <summary>The notes whose marks landed on this page, in reading order.</summary>
@@ -78,7 +77,7 @@ internal class FootnoteRegistry
 
     /// <summary>The note as it was laid out, or null if it never was.</summary>
     internal FormattedFootnote FormattedOf(Footnote footnote) =>
-        _entries.TryGetValue(footnote, out Entry entry) ? entry.Formatted : null;
+        _entries.TryGetValue(footnote, out var entry) ? entry.Formatted : null;
 
     /// <summary>
     /// Where this note comes in the sequence its numbering rule counts, from the document's
@@ -91,12 +90,12 @@ internal class FootnoteRegistry
     /// </remarks>
     int OrdinalOf(Footnote footnote, Entry entry)
     {
-        int start = _document.FootnoteStartingNumber;
+        var start = _document.FootnoteStartingNumber;
         if (start < 1)
             start = 1;
 
-        int before = 0;
-        foreach (Footnote earlier in _order)
+        var before = 0;
+        foreach (var earlier in _order)
         {
             if (earlier == footnote)
                 break;

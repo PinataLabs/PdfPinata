@@ -147,8 +147,10 @@ public class DdlElementSerializationTests
 
         var footnote = FirstParagraphOf(RoundTrip(document)).Elements.OfType<Footnote>().Single();
 
+        // ReSharper disable PossibleNullReferenceException
         string.Concat((footnote.Elements[0] as Paragraph).Elements.OfType<Text>()
             .Select(t => t.Content)).Should().Be("the note itself");
+        // ReSharper restore PossibleNullReferenceException
     }
 
     [Fact]
@@ -316,7 +318,7 @@ public class DdlElementSerializationTests
         // line break in the middle of it, which would end the comment and leave the rest as code.
         var document = new Document();
         document.AddSection().AddParagraph("t");
-        document.Comment = "first line\x0D\x0Asecond line";
+        document.Comment = "first line\r\nsecond line";
 
         var written = Write(document);
 
@@ -341,7 +343,7 @@ public class DdlElementSerializationTests
         commentLines.Count.Should().BeGreaterThan(1, "sixty words do not fit on one line");
         commentLines.Should().AllSatisfy(line =>
             line.TrimEnd().Length.Should().BeLessThanOrEqualTo(200, "which is where the writer wraps"));
-        string.Join(" ", commentLines.Select(line => line.Trim().Substring(3).Trim()))
+        string.Join(" ", commentLines.Select(line => line.Trim()[3..].Trim()))
             .Should().Be(document.Comment, "and no word is lost or cut in half");
     }
 

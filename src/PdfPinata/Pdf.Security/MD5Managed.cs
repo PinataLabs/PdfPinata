@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -90,8 +90,8 @@ class MD5Managed
 
     protected override void HashCore(byte[] array, int ibStart, int cbSize)
     {
-        int startIndex = ibStart;
-        int totalArrayLength = _dataSize + cbSize;
+        var startIndex = ibStart;
+        var totalArrayLength = _dataSize + cbSize;
         if (totalArrayLength >= 64)
         {
             Array.Copy(array, startIndex, _data, _dataSize, 64 - _dataSize);
@@ -129,34 +129,12 @@ class MD5Managed
 
     static class MD5Core
     {
-        public static byte[] GetHash(byte[] input)
-        {
-            ArgumentNullException.ThrowIfNull(input);
-
-            // Intitial values defined in RFC 1321.
-            ABCDStruct abcd = new ABCDStruct();
-            abcd.A = A;
-            abcd.B = B;
-            abcd.C = C;
-            abcd.D = D;
-
-            // We pass in the input array by block, the final block of data must be handled specially for padding & length embeding.
-            int startIndex = 0;
-            while (startIndex <= input.Length - 64)
-            {
-                GetHashBlock(input, ref abcd, startIndex);
-                startIndex += 64;
-            }
-            // The final data block. 
-            return GetHashFinalBlock(input, startIndex, input.Length - startIndex, abcd, (Int64)input.Length * 8);
-        }
-
         internal static byte[] GetHashFinalBlock(byte[] input, int ibStart, int cbSize, ABCDStruct abcd, Int64 len)
         {
-            byte[] working = new byte[64];
-            byte[] length = BitConverter.GetBytes(len);
+            var working = new byte[64];
+            var length = BitConverter.GetBytes(len);
 
-            // Padding is a single bit 1, followed by the number of 0s required to make size congruent to 448 modulo 512. Step 1 of RFC 1321  
+            // Padding is a single bit 1, followed by the number of 0s required to make size congruent to 448 modulo 512. Step 1 of RFC 1321
             // The CLR ensures that our buffer is 0-assigned, we don't need to explicitly set it. This is why it ends up being quicker to just
             // use a temporary array rather then doing in-place assignment (5% for small inputs)
             Array.Copy(input, ibStart, working, 0, cbSize);
@@ -176,7 +154,7 @@ class MD5Managed
                 Array.Copy(length, 0, working, 56, 8);
                 GetHashBlock(working, ref abcd, 0);
             }
-            byte[] output = new byte[16];
+            var output = new byte[16];
             Array.Copy(BitConverter.GetBytes(abcd.A), 0, output, 0, 4);
             Array.Copy(BitConverter.GetBytes(abcd.B), 0, output, 4, 4);
             Array.Copy(BitConverter.GetBytes(abcd.C), 0, output, 8, 4);
@@ -186,11 +164,11 @@ class MD5Managed
 
         internal static void GetHashBlock(byte[] input, ref ABCDStruct ABCDValue, int ibStart)
         {
-            uint[] temp = Converter(input, ibStart);
-            uint a = ABCDValue.A;
-            uint b = ABCDValue.B;
-            uint c = ABCDValue.C;
-            uint d = ABCDValue.D;
+            var temp = Converter(input, ibStart);
+            var a = ABCDValue.A;
+            var b = ABCDValue.B;
+            var c = ABCDValue.C;
+            var d = ABCDValue.D;
 
             a = r1(a, b, c, d, temp[0], 7, 0xd76aa478);
             d = r1(d, a, b, c, temp[1], 12, 0xe8c7b756);
@@ -296,7 +274,7 @@ class MD5Managed
         }
 
         // Implementation of left rotate
-        // s is an int instead of a uint because the CLR requires the argument passed to >>/<< is of 
+        // s is an int instead of a uint because the CLR requires the argument passed to >>/<< is of
         // type int. Doing the demoting inside this function would add overhead.
         private static uint LSR(uint i, int s)
         {
@@ -308,8 +286,8 @@ class MD5Managed
         {
             ArgumentNullException.ThrowIfNull(input);
 
-            uint[] result = new uint[16];
-            for (int idx = 0; idx < 16; idx++)
+            var result = new uint[16];
+            for (var idx = 0; idx < 16; idx++)
             {
                 result[idx] = input[ibStart + idx * 4];
                 result[idx] += (uint)input[ibStart + idx * 4 + 1] << 8;
@@ -325,13 +303,15 @@ class MD5Managed
             return result;
         }
 
-        // Simple struct for the (a,b,c,d) which is used to compute the mesage digest.    
+        // Simple struct for the (a,b,c,d) which is used to compute the mesage digest.
         public struct ABCDStruct
         {
+            // ReSharper disable MemberHidesStaticFromOuterClass
             public uint A;
             public uint B;
             public uint C;
             public uint D;
+            // ReSharper restore MemberHidesStaticFromOuterClass
         }
     }
 }

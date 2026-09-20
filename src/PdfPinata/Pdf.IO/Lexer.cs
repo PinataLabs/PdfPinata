@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -96,7 +96,7 @@ public class Lexer
         Again:
         _token = new StringBuilder();
 
-        char ch = MoveToNonWhiteSpace();
+        var ch = MoveToNonWhiteSpace();
         switch (ch)
         {
             case '%':
@@ -173,12 +173,12 @@ public class Lexer
     {
         var pos = MoveToStartOfStream();
         _pdfSteam.Position = pos;
-        byte[] bytes = new byte[length];
+        var bytes = new byte[length];
         // A stream whose dictionary declares more bytes than the file holds is read as the bytes
         // that are there. What it is really as long as is then the caller's problem, which it
         // was going to be anyway.
         // Named in full: this namespace has a StreamHelper of its own, in Parser.cs.
-        int read = PdfPinata.Internal.StreamHelper.ReadUpTo(_pdfSteam, bytes, 0, length);
+        var read = PdfPinata.Internal.StreamHelper.ReadUpTo(_pdfSteam, bytes, 0, length);
         if (read < length)
             Array.Resize(ref bytes, read);
 
@@ -252,7 +252,7 @@ public class Lexer
     public string ReadRawString(long position, int length)
     {
         _pdfSteam.Position = position;
-        byte[] bytes = new byte[length];
+        var bytes = new byte[length];
         PdfPinata.Internal.StreamHelper.ReadUpTo(_pdfSteam, bytes, 0, length);
         return PdfEncoders.RawEncoding.GetString(bytes, 0, bytes.Length);
     }
@@ -267,7 +267,7 @@ public class Lexer
         _token = new StringBuilder();
         while (true)
         {
-            char ch = AppendAndScanNextChar();
+            var ch = AppendAndScanNextChar();
             if (ch == Chars.LF || ch == Chars.EOF)
                 break;
         }
@@ -287,14 +287,14 @@ public class Lexer
         _token = new StringBuilder();
         while (true)
         {
-            char ch = AppendAndScanNextChar();
+            var ch = AppendAndScanNextChar();
             if (IsWhiteSpace(ch) || IsDelimiter(ch) || ch == Chars.EOF)
                 return _symbol = Symbol.Name;
 
             if (ch == '#')
             {
                 ScanNextChar(true);
-                char[] hex = new char[2];
+                var hex = new char[2];
                 hex[0] = _currChar;
                 hex[1] = _nextChar;
                 ScanNextChar(true);
@@ -310,15 +310,15 @@ public class Lexer
     /// </summary>
     public Symbol ScanNumber()
     {
-        // I found a PDF file created with Acrobat 7 with this entry 
+        // I found a PDF file created with Acrobat 7 with this entry
         //   /Checksum 2996984786
         // What is this? It is neither an integer nor a real.
         // I introduced an UInteger...
-        bool period = false;
+        var period = false;
         //bool sign;
 
         _token = new StringBuilder();
-        char ch = _currChar;
+        var ch = _currChar;
         if (ch == '+' || ch == '-')
         {
             //sign = true;
@@ -346,9 +346,10 @@ public class Lexer
 
         if (period)
             return Symbol.Real;
-        long l = Int64.Parse(_token.ToString(), CultureInfo.InvariantCulture);
+        var l = Int64.Parse(_token.ToString(), CultureInfo.InvariantCulture);
         if (l >= Int32.MinValue && l <= Int32.MaxValue)
             return Symbol.Integer;
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
         if (l >= Int64.MinValue && l <= Int64.MaxValue)
             return Symbol.Long;
 
@@ -360,7 +361,7 @@ public class Lexer
     /// <summary>Scans a number, which may turn out to be the first part of an indirect reference.</summary>
     public Symbol ScanNumberOrReference()
     {
-        Symbol result = ScanNumber();
+        var result = ScanNumber();
         return result;
     }
 
@@ -370,7 +371,7 @@ public class Lexer
     public Symbol ScanKeyword()
     {
         _token = new StringBuilder();
-        char ch = _currChar;
+        var ch = _currChar;
         // Scan token
         while (true)
         {
@@ -430,8 +431,8 @@ public class Lexer
 
         Debug.Assert(_currChar == Chars.ParenLeft);
         _token = new StringBuilder();
-        int parenLevel = 0;
-        char ch = ScanNextChar(false);
+        var parenLevel = 0;
+        var ch = ScanNextChar(false);
 
         // Phase 1: deal with escape characters.
         while (ch != Chars.EOF)
@@ -489,7 +490,7 @@ public class Lexer
                             ch = Chars.BackSlash;
                             break;
 
-                        // AutoCAD PDFs my contain such strings: (\ ) 
+                        // AutoCAD PDFs my contain such strings: (\ )
                         case ' ':
                             ch = ' ';
                             break;
@@ -505,9 +506,9 @@ public class Lexer
                                 // Octal character code.
                                 if (ch >= '8')
                                     break; // Since the first possible octal character is not valid,
-                                // the backslash is ignored. 
+                                // the backslash is ignored.
 
-                                int n = ch - '0';
+                                var n = ch - '0';
                                 if (char.IsDigit(_nextChar))  // Second octal character.
                                 {
                                     ch = ScanNextChar(false);
@@ -530,8 +531,6 @@ public class Lexer
                     }
                     break;
                 }
-                default:
-                    break;
             }
 
             _token.Append(ch);
@@ -544,8 +543,8 @@ public class Lexer
         if (_token.Length >= 2 && _token[0] == '\xFE' && _token[1] == '\xFF')
         {
             // Combine two ANSI characters to get one Unicode character.
-            StringBuilder temp = _token;
-            int length = temp.Length;
+            var temp = _token;
+            var length = temp.Length;
             if ((length & 1) == 1)
             {
                 // A UTF-16 string with an odd number of bytes is short of the low byte of its last
@@ -559,7 +558,7 @@ public class Lexer
                 ++length;
             }
             _token = new StringBuilder();
-            for (int i = 2; i < length; i += 2)
+            for (var i = 2; i < length; i += 2)
             {
                 _token.Append((char)(256 * temp[i] + temp[i + 1]));
             }
@@ -569,8 +568,8 @@ public class Lexer
         if (_token.Length >= 2 && _token[0] == '\xFF' && _token[1] == '\xFE')
         {
             // Combine two ANSI characters to get one Unicode character.
-            StringBuilder temp = _token;
-            int length = temp.Length;
+            var temp = _token;
+            var length = temp.Length;
             if ((length & 1) == 1)
             {
                 // As above, for the little endian order Adobe Reader also accepts. The digit this
@@ -581,7 +580,7 @@ public class Lexer
                 ++length;
             }
             _token = new StringBuilder();
-            for (int i = 2; i < length; i += 2)
+            for (var i = 2; i < length; i += 2)
             {
                 _token.Append((char)(256 * temp[i + 1] + temp[i]));
             }
@@ -596,7 +595,7 @@ public class Lexer
         Debug.Assert(_currChar == Chars.Less);
 
         _token = new StringBuilder();
-        char[] hex = new char[2];
+        var hex = new char[2];
         ScanNextChar(true);
         while (true)
         {
@@ -638,8 +637,8 @@ public class Lexer
             }
             _token.Append((char)int.Parse(new string(hex), NumberStyles.AllowHexSpecifier));
         }
-        string chars = _token.ToString();
-        int count = chars.Length;
+        var chars = _token.ToString();
+        var count = chars.Length;
         if (count > 2 && chars[0] == (char)0xFE && chars[1] == (char)0xFF)
         {
             // The last character of the string may be short of its low byte, which is a zero
@@ -651,7 +650,7 @@ public class Lexer
                 ++count;
             }
             _token.Length = 0;
-            for (int idx = 2; idx < count; idx += 2)
+            for (var idx = 2; idx < count; idx += 2)
                 _token.Append((char)(chars[idx] * 256 + chars[idx + 1]));
             return _symbol = Symbol.UnicodeHexString;
         }
@@ -773,9 +772,9 @@ public class Lexer
     {
         get
         {
-            string[] numbers = Token.Split('|');
-            int objectNumber = Int32.Parse(numbers[0]);
-            int generationNumber = Int32.Parse(numbers[1]);
+            var numbers = Token.Split('|');
+            var objectNumber = Int32.Parse(numbers[0]);
+            var generationNumber = Int32.Parse(numbers[1]);
             return new PdfObjectID(objectNumber, generationNumber);
         }
     }

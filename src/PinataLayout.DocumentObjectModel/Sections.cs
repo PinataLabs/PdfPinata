@@ -70,7 +70,7 @@ public partial class Sections : DocumentObjectCollection, IVisitable
   /// </summary>
   public Section AddSection()
   {
-    Section section = new Section();
+    var section = new Section();
     Add(section);
     return section;
   }
@@ -82,10 +82,10 @@ public partial class Sections : DocumentObjectCollection, IVisitable
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    int count = Count;
-    for (int index = 0; index < count; ++index)
+    var count = Count;
+    for (var index = 0; index < count; ++index)
     {
-      Section section = this[index];
+      var section = this[index];
       section.Serialize(serializer);
     }
   }

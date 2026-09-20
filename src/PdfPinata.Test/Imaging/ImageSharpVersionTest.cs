@@ -3,7 +3,6 @@ using AwesomeAssertions;
 using PdfPinata.Test.Helpers;
 using PdfPinata.Utils;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.PixelFormats;
 using Xunit;
 
@@ -26,11 +25,13 @@ public class ImageSharpVersionTest
         var version = typeof(Image).Assembly.GetName().Version;
 
         version.Should().NotBeNull();
+        // ReSharper disable PossibleNullReferenceException
         version.Major.Should().Be(2,
             "PdfPinata.ImageSharp calls APIs that only exist in the ImageSharp 2.1.x line. "
             + "Raising the dependency past 3.0 needs ImageSharpImageSource rewritten, not just the "
             + "version bumped - see issue #348. Consumers who need a newer ImageSharp should use "
             + "the PdfPinata.Skia backend instead.");
+        // ReSharper restore PossibleNullReferenceException
     }
 
     [Fact]
@@ -40,7 +41,7 @@ public class ImageSharpVersionTest
 
         // The out-parameter overload this backend depends on. It does not exist in ImageSharp 3.x,
         // so a dependency bump stops the test assembly compiling as well as failing the test above.
-        var image = Image.Load<Rgba32>(path, out IImageFormat format);
+        var image = Image.Load<Rgba32>(path, out var format);
 
         // Goes through the public factory rather than ImageSource.ImageSourceImpl, which is a global
         // the rest of the suite has pointed at Skia.

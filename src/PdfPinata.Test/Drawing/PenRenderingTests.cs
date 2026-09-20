@@ -28,7 +28,7 @@ public class PenRenderingTests
         {
             gfx.DrawLines(pen, new[]
             {
-                new XPoint(100, 300), new XPoint(200, 100), new XPoint(300, 300),
+                new XPoint(100, 300), new XPoint(200, 100), new XPoint(300, 300)
             });
         }
 
@@ -56,7 +56,7 @@ public class PenRenderingTests
 
         return ContentOf(page).Split('\n')
             .Where(line => line.EndsWith(" gs"))
-            .Select(line => states.Elements.GetDictionary(line.Substring(0, line.Length - 3)))
+            .Select(line => states.Elements.GetDictionary(line[..^3]))
             .Where(state => state != null && state.Elements.ContainsKey("/CA"))
             .Select(state => state.Elements.GetReal("/CA"))
             .ToList();
@@ -144,8 +144,8 @@ public class PenRenderingTests
         var content = ContentOf(page);
         content.Should().Contain("/Pattern CS", "the gradient pen still strokes with a pattern");
 
-        var pattern = content.IndexOf("/Pattern CS", System.StringComparison.Ordinal);
-        content.IndexOf(" RG", pattern, System.StringComparison.Ordinal)
+        var pattern = content.IndexOf("/Pattern CS", StringComparison.Ordinal);
+        content.IndexOf(" RG", pattern, StringComparison.Ordinal)
             .Should().BeGreaterThan(-1, "the solid pen after it has to name its colour again");
     }
 
@@ -170,7 +170,7 @@ public class PenRenderingTests
         {
             LineJoin = XLineJoin.Miter,
             LineCap = XLineCap.Round,
-            MiterLimit = 3,
+            MiterLimit = 3
         });
 
         MiterLimitsOn(page).Should().Equal(3);

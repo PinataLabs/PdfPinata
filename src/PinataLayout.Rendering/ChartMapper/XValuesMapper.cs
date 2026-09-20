@@ -24,7 +24,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -48,8 +48,9 @@ public class XValuesMapper
   {
     foreach (DocumentObjectModel.Shapes.Charts.XSeries domXSeries in domXValues)
     {
-      XSeries xSeries = xValues.AddXSeries();
-      DocumentObjectModel.Shapes.Charts.XSeriesElements domXSeriesElements = domXSeries.GetValue("XSeriesElements") as DocumentObjectModel.Shapes.Charts.XSeriesElements;
+      var xSeries = xValues.AddXSeries();
+      var domXSeriesElements = domXSeries.GetValue("XSeriesElements") as DocumentObjectModel.Shapes.Charts.XSeriesElements;
+      // ReSharper disable once PossibleNullReferenceException
       foreach (DocumentObjectModel.Shapes.Charts.XValue domXValue in domXSeriesElements)
       {
         if (domXValue == null)

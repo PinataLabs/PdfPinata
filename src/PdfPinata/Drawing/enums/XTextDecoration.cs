@@ -43,5 +43,5 @@ public enum XTextDecoration
     /// <summary>
     /// A rule of dashes separated by pairs of dots.
     /// </summary>
-    DotDotDash = 6,
+    DotDotDash = 6
 }

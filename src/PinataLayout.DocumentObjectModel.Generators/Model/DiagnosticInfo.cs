@@ -16,7 +16,6 @@ namespace PinataLayout.DocumentObjectModel.Generators.Model;
 /// reference nothing, and comparing by value is what they already do.
 /// </remarks>
 internal sealed record LocationInfo(string FilePath, TextSpan TextSpan, LinePositionSpan LineSpan)
-    : IEquatable<LocationInfo>
 {
     public Location ToLocation() => Location.Create(FilePath, TextSpan, LineSpan);
 
@@ -45,7 +44,7 @@ internal sealed record LocationInfo(string FilePath, TextSpan TextSpan, LinePosi
 internal sealed record DiagnosticInfo(
     DiagnosticDescriptor Descriptor,
     LocationInfo? Location,
-    EquatableArray<string> MessageArgs) : IEquatable<DiagnosticInfo>
+    EquatableArray<string> MessageArgs)
 {
     public static DiagnosticInfo Create(
         DiagnosticDescriptor descriptor,

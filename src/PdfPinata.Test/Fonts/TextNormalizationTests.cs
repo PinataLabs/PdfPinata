@@ -125,6 +125,7 @@ public class TextNormalizationTests
         var method = NormalizationType.GetMethod("TryNormalize",
             BindingFlags.NonPublic | BindingFlags.Static);
         object[] args = { ch, '\0' };
+        // ReSharper disable once PossibleNullReferenceException
         var survives = (bool)method.Invoke(null, args);
         return (survives, (char)args[1]);
     }
@@ -133,6 +134,7 @@ public class TextNormalizationTests
     {
         var method = NormalizationType.GetMethod("NormalizeLine",
             BindingFlags.NonPublic | BindingFlags.Static);
+        // ReSharper disable once PossibleNullReferenceException
         return (string)method.Invoke(null, new object[] { text });
     }
 }

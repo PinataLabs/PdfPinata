@@ -71,5 +71,5 @@ enum PSMsgID
     /// <summary>
     /// PSMsgID.
     /// </summary>
-    UnknownEncryption,
+    UnknownEncryption
 }

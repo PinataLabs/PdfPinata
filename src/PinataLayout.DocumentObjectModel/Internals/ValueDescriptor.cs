@@ -148,7 +148,7 @@ public sealed class ValueDescriptor
     {
       case ValueKind.Leaf:
       {
-        object value = getter(dom);
+        var value = getter(dom);
         if (value == null)
           return flags == GV.GetNull ? null : valueWhenNull;
         return value;
@@ -156,7 +156,7 @@ public sealed class ValueDescriptor
 
       case ValueKind.NullableValue:
       {
-        object value = getter(dom);
+        var value = getter(dom);
         if (value is INullableValue nullable && nullable.IsNull && flags == GV.GetNull)
           return null;
         return value;
@@ -167,7 +167,7 @@ public sealed class ValueDescriptor
 
       default:
       {
-        DocumentObject value = getter(dom) as DocumentObject;
+        var value = getter(dom) as DocumentObject;
         // Only a field is created on demand. A property has nowhere to put the new object.
         if (isField && value == null && flags == GV.ReadWrite)
         {
@@ -207,7 +207,7 @@ public sealed class ValueDescriptor
       case ValueKind.NullableValue:
       {
         // The struct is boxed by the getter, mutated through the interface, and written back.
-        object value = getter(dom);
+        var value = getter(dom);
         ((INullableValue)value).SetNull();
         setter(dom, value);
         break;
@@ -222,7 +222,7 @@ public sealed class ValueDescriptor
 
       default:
       {
-        DocumentObject value = getter(dom) as DocumentObject;
+        var value = getter(dom) as DocumentObject;
         if (value != null)
           value.SetNull();
         break;
@@ -254,7 +254,7 @@ public sealed class ValueDescriptor
         // held. That was carried forward unchanged through the move to a generated model so the
         // parity harness gated a replacement rather than a behaviour change; this is the deliberate
         // change afterwards.
-        DocumentObject value = getter(dom) as DocumentObject;
+        var value = getter(dom) as DocumentObject;
         return value == null || value.IsNull();
       }
     }

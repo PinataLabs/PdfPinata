@@ -63,7 +63,7 @@ public class Legend : ChartObject
   /// </summary>
   protected override object DeepCopy()
   {
-    Legend legend = (Legend)base.DeepCopy();
+    var legend = (Legend)base.DeepCopy();
     if (legend.lineFormat != null)
     {
       legend.lineFormat = legend.lineFormat.Clone();

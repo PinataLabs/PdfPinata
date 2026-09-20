@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -116,7 +116,7 @@ internal static class PdfEncoders
             default:
                 throw new NotImplementedException(encoding.ToString());
         }
-        byte[] temp = FormatStringLiteral(bytes, encoding == PdfStringEncoding.Unicode, true, false, securityHandler);
+        var temp = FormatStringLiteral(bytes, encoding == PdfStringEncoding.Unicode, true, false, securityHandler);
         return RawEncoding.GetString(temp, 0, temp.Length);
     }
 
@@ -128,7 +128,7 @@ internal static class PdfEncoders
         if (bytes == null || bytes.Length == 0)
             return "()";
 
-        byte[] temp = FormatStringLiteral(bytes, unicode, true, false, securityHandler);
+        var temp = FormatStringLiteral(bytes, unicode, true, false, securityHandler);
         return RawEncoding.GetString(temp, 0, temp.Length);
     }
 
@@ -164,7 +164,7 @@ internal static class PdfEncoders
                 throw new NotImplementedException(encoding.ToString());
         }
 
-        byte[] agTemp = FormatStringLiteral(bytes, encoding == PdfStringEncoding.Unicode, true, true, securityHandler);
+        var agTemp = FormatStringLiteral(bytes, encoding == PdfStringEncoding.Unicode, true, true, securityHandler);
         return RawEncoding.GetString(agTemp, 0, agTemp.Length);
     }
 
@@ -176,7 +176,7 @@ internal static class PdfEncoders
         if (bytes == null || bytes.Length == 0)
             return "<>";
 
-        byte[] agTemp = FormatStringLiteral(bytes, unicode, true, true, securityHandler);
+        var agTemp = FormatStringLiteral(bytes, unicode, true, true, securityHandler);
         return RawEncoding.GetString(agTemp, 0, agTemp.Length);
     }
 
@@ -201,7 +201,7 @@ internal static class PdfEncoders
         // if it were text, which shifts everything after it and leaves the whole string unreadable
         // to every reader but this one. Putting it into the bytes here writes the same characters
         // as before when nothing is encrypted.
-        int byteOrderMarkLength = 0;
+        var byteOrderMarkLength = 0;
         if (unicode && prefix)
         {
             var withByteOrderMark = new byte[bytes.Length + 2];
@@ -210,7 +210,6 @@ internal static class PdfEncoders
             Array.Copy(bytes, 0, withByteOrderMark, 2, bytes.Length);
             bytes = withByteOrderMark;
             byteOrderMarkLength = 2;
-            prefix = false;
         }
 
         if (securityHandler != null)
@@ -219,16 +218,16 @@ internal static class PdfEncoders
             bytes = securityHandler.EncryptBytes(bytes);
         }
 
-        int count = bytes.Length;
-        StringBuilder pdf = new StringBuilder();
+        var count = bytes.Length;
+        var pdf = new StringBuilder();
         if (!unicode)
         {
             if (!hex)
             {
                 pdf.Append('(');
-                for (int idx = 0; idx < count; idx++)
+                for (var idx = 0; idx < count; idx++)
                 {
-                    char ch = (char)bytes[idx];
+                    var ch = (char)bytes[idx];
                     if (ch < 32)
                     {
                         switch (ch)
@@ -288,7 +287,7 @@ internal static class PdfEncoders
             else
             {
                 pdf.Append('<');
-                for (int idx = 0; idx < count; idx++)
+                for (var idx = 0; idx < count; idx++)
                     pdf.AppendFormat("{0:X2}", bytes[idx]);
                 pdf.Append('>');
             }
@@ -300,12 +299,12 @@ internal static class PdfEncoders
             // with the rest.
             // TODO non hex literals... not sure how to treat linefeeds, '(', '\' etc.
             pdf.Append('<');
-            for (int idx = 0; idx < count; idx += 2)
+            for (var idx = 0; idx < count; idx += 2)
             {
                 pdf.AppendFormat("{0:X2}{1:X2}", bytes[idx], bytes[idx + 1]);
                 // The mark is part of the bytes now, so count from the text that follows it
                 // and the lines break where they always did.
-                int positionInText = idx - byteOrderMarkLength;
+                var positionInText = idx - byteOrderMarkLength;
                 if (positionInText != 0 && (positionInText % 48) == 0)
                     pdf.Append('\n');
             }
@@ -319,7 +318,7 @@ internal static class PdfEncoders
     /// </summary>
     static byte[] docencode_______ =
     [
-        // TODO: 
+        // TODO:
         0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
         0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F,
         0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2A, 0x2B, 0x2C, 0x2D, 0x2E, 0x2F,
@@ -380,7 +379,7 @@ internal static class PdfEncoders
     //            encoded.Append("\\f");
     //            break;
     //
-    //          default: 
+    //          default:
     //            encoded.Append(InvalidChar); // TODO
     //            break;
     //        }

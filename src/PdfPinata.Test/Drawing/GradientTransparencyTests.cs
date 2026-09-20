@@ -167,7 +167,7 @@ public class GradientTransparencyTests
 
     static PdfPage SavedPageWith(XBrush brush) => SavedPageWith(gfx => gfx.DrawRectangle(brush, Box));
 
-    static PdfPage SavedPageWith(System.Action<XGraphics> draw)
+    static PdfPage SavedPageWith(Action<XGraphics> draw)
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -188,6 +188,7 @@ public class GradientTransparencyTests
     /// <summary>The two values of a shading's ramp, with the spacing a round trip adds removed.</summary>
     static string RampEnd(PdfDictionary shading, string key)
     {
+        // ReSharper disable once PossibleNullReferenceException
         return shading.Elements.GetDictionary("/Function").Elements[key].ToString().Replace(" ", "");
     }
 
@@ -202,7 +203,7 @@ public class GradientTransparencyTests
 
         return ContentOf(page).Split('\n')
             .Where(line => line.EndsWith(" gs"))
-            .Select(line => states.Elements.GetDictionary(line.Substring(0, line.Length - 3)))
+            .Select(line => states.Elements.GetDictionary(line[..^3]))
             .Select(state => state.Elements.GetDictionary("/SMask") != null ? "mask"
                 : state.Elements.GetName("/SMask") == "/None" ? "none"
                 : "quiet")

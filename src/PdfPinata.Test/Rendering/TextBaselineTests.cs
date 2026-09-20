@@ -51,7 +51,7 @@ public class TextBaselineTests
     }
 
     [Fact]
-    public void TDSetsTheLeadingAsWellAsMoving()
+    public void TdSetsTheLeadingAsWellAsMoving()
     {
         // TD is Td with the leading set to the distance it moved down by, so the T* after it
         // moves by that same distance without a TL of its own.
@@ -82,7 +82,7 @@ public class TextBaselineTests
         var objects = new List<string>
         {
             "<</Type/Catalog/Pages 2 0 R>>",
-            "<</Type/Pages/Kids[3 0 R]/Count 1>>",
+            "<</Type/Pages/Kids[3 0 R]/Count 1>>"
         };
 
         var contents = parts.Length == 1

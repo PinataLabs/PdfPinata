@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -72,13 +72,13 @@ public sealed class PdfRadioButtonField : PdfButtonField
     {
         get
         {
-            PdfArray options = Elements.GetArray(Keys.Opt);
+            var options = Elements.GetArray(Keys.Opt);
             if (options == null)
                 return Array.Empty<string>();
 
-            int count = options.Elements.Count;
-            string[] text = new string[count];
-            for (int idx = 0; idx < count; idx++)
+            var count = options.Elements.Count;
+            var text = new string[count];
+            for (var idx = 0; idx < count; idx++)
                 text[idx] = TextOfOption(options.Elements[idx]);
 
             return text;
@@ -87,8 +87,8 @@ public sealed class PdfRadioButtonField : PdfButtonField
         {
             ArgumentNullException.ThrowIfNull(value);
 
-            PdfArray options = new PdfArray(Owner);
-            foreach (string option in value)
+            var options = new PdfArray(Owner);
+            foreach (var option in value)
                 options.Elements.Add(new PdfString(option ?? ""));
 
             Elements[Keys.Opt] = options;
@@ -102,41 +102,41 @@ public sealed class PdfRadioButtonField : PdfButtonField
     {
         get
         {
-            string value = Elements.GetString(Keys.V);
+            var value = Elements.GetString(PdfAcroField.Keys.V);
             // /V is a name, while /Opt holds the export values as text strings. The slash that
             // makes the name a name is not part of the value it stands for.
             if (value.Length != 0 && value[0] == '/')
-                value = value.Substring(1);
+                value = value[1..];
             return IndexInOptStrings(value);
         }
         set
         {
             Owner?.EnsureCanModify("filling in a form field", PdfChangeKind.FormFieldValues);
 
-            PdfArray opt = Elements[Keys.Opt] as PdfArray;
+            var opt = Elements[Keys.Opt] as PdfArray;
 
             if (opt == null)
-                opt = Elements[Keys.Kids] as PdfArray;
+                opt = Elements[PdfAcroField.Keys.Kids] as PdfArray;
 
             if (opt != null)
             {
-                int count = opt.Elements.Count;
+                var count = opt.Elements.Count;
                 if (value < 0 || value >= count)
                     throw new ArgumentOutOfRangeException(nameof(value));
-                Elements.SetName(Keys.V, TextOfOption(opt.Elements[value]));
+                Elements.SetName(PdfAcroField.Keys.V, TextOfOption(opt.Elements[value]));
             }
         }
     }
 
     int IndexInOptStrings(string value)
     {
-        PdfArray opt = Elements[Keys.Opt] as PdfArray;
+        var opt = Elements[Keys.Opt] as PdfArray;
         if (opt != null)
         {
-            int count = opt.Elements.Count;
-            for (int idx = 0; idx < count; idx++)
+            var count = opt.Elements.Count;
+            for (var idx = 0; idx < count; idx++)
             {
-                PdfItem item = opt.Elements[idx];
+                var item = opt.Elements[idx];
                 if (item is PdfString)
                 {
                     if (TextOfOption(item) == value)
@@ -148,7 +148,7 @@ public sealed class PdfRadioButtonField : PdfButtonField
     }
 
     /// <summary>
-    /// Predefined keys of this dictionary. 
+    /// Predefined keys of this dictionary.
     /// The description comes from PDF 1.4 Reference.
     /// </summary>
     public new class Keys : PdfButtonField.Keys

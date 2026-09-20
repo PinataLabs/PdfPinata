@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -49,7 +49,7 @@ public sealed class AnsiEncoding : Encoding
     /// </summary>
     public override int GetBytes(char[] chars, int charIndex, int charCount, byte[] bytes, int byteIndex)
     {
-        int count = charCount;
+        var count = charCount;
         for (; charCount > 0; byteIndex++, charIndex++, charCount--)
             bytes[byteIndex] = (byte)UnicodeToAnsi(chars[charIndex]);
         return count;
@@ -68,7 +68,7 @@ public sealed class AnsiEncoding : Encoding
     /// </summary>
     public override int GetChars(byte[] bytes, int byteIndex, int byteCount, char[] chars, int charIndex)
     {
-        for (int idx = byteCount; idx > 0; byteIndex++, charIndex++, idx--)
+        for (var idx = byteCount; idx > 0; byteIndex++, charIndex++, idx--)
             chars[charIndex] = AnsiToUnicode[bytes[byteIndex]];
         return byteCount;
     }

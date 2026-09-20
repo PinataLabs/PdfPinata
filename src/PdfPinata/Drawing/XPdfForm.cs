@@ -238,7 +238,7 @@ public class XPdfForm : XForm
         {
             if (IsTemplate)
                 return null;
-            PdfPage page = ExternalDocument.Pages[_pageNumber - 1];
+            var page = ExternalDocument.Pages[_pageNumber - 1];
             return page;
         }
     }
@@ -266,7 +266,7 @@ public class XPdfForm : XForm
     {
         get
         {
-            PdfPage page = ExternalDocument.Pages[_pageNumber - 1];
+            var page = ExternalDocument.Pages[_pageNumber - 1];
             return page.Width;
         }
     }
@@ -278,7 +278,7 @@ public class XPdfForm : XForm
     {
         get
         {
-            PdfPage page = ExternalDocument.Pages[_pageNumber - 1];
+            var page = ExternalDocument.Pages[_pageNumber - 1];
             return page.Height;
         }
     }
@@ -306,7 +306,7 @@ public class XPdfForm : XForm
     {
         get
         {
-            PdfPage page = ExternalDocument.Pages[_pageNumber - 1];
+            var page = ExternalDocument.Pages[_pageNumber - 1];
             return new XSize(page.Width, page.Height);
         }
     }
@@ -394,7 +394,7 @@ public class XPdfForm : XForm
         ArgumentNullException.ThrowIfNull(path);
 
         pageNumber = 0;
-        int length = path.Length;
+        var length = path.Length;
         if (length != 0)
         {
             length--;
@@ -410,8 +410,8 @@ public class XPdfForm : XForm
                     // Must have at least one dot left of colon to distinguish from e.g. '#123'
                     if (path.Contains('.'))
                     {
-                        pageNumber = int.Parse(path.Substring(length + 1));
-                        path = path.Substring(0, length);
+                        pageNumber = int.Parse(path[(length + 1)..]);
+                        path = path[..length];
                     }
                 }
             }

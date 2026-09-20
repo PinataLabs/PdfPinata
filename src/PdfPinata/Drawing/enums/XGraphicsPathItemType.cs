@@ -43,5 +43,5 @@ internal enum XGraphicsPathItemType
     Ellipse,
     Polygon,
     CloseFigure,
-    StartFigure,
+    StartFigure
 }

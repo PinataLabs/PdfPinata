@@ -93,21 +93,21 @@ public class OpenModeEnforcementTests
         ["PdfDocument.ResizePages"] =
             new Mutation("resizing a page", (document, _) => document.ResizePages(PageSize.A5)),
         ["PdfDocument.GetOrCreateAcroForm"] =
-            new Mutation("creating an interactive form", (document, _) => document.GetOrCreateAcroForm()),
+            new Mutation("creating an interactive form", (document, _) => document.GetOrCreateAcroForm())
     };
 
     /// <summary>The modes that let a document be changed.</summary>
     static readonly PdfDocumentOpenMode[] Modifiable =
     {
         PdfDocumentOpenMode.Modify,
-        PdfDocumentOpenMode.Append,
+        PdfDocumentOpenMode.Append
     };
 
     /// <summary>The modes that do not.</summary>
     static readonly PdfDocumentOpenMode[] NotModifiable =
     {
         PdfDocumentOpenMode.ReadOnly,
-        PdfDocumentOpenMode.Import,
+        PdfDocumentOpenMode.Import
     };
 
     public static TheoryData<PdfDocumentOpenMode, string> RefusedCells() => Cells(NotModifiable);
@@ -117,8 +117,8 @@ public class OpenModeEnforcementTests
     static TheoryData<PdfDocumentOpenMode, string> Cells(PdfDocumentOpenMode[] modes)
     {
         var cells = new TheoryData<PdfDocumentOpenMode, string>();
-        foreach (PdfDocumentOpenMode mode in modes)
-            foreach (string call in Mutations.Keys)
+        foreach (var mode in modes)
+            foreach (var call in Mutations.Keys)
                 cells.Add(mode, call);
         return cells;
     }
@@ -127,10 +127,10 @@ public class OpenModeEnforcementTests
     [MemberData(nameof(RefusedCells))]
     public void AModeThatCannotModifyRefusesEveryOperationThatWould(PdfDocumentOpenMode mode, string call)
     {
-        Mutation mutation = Mutations[call];
-        PdfDocument document = OpenedWith(mode);
+        var mutation = Mutations[call];
+        var document = OpenedWith(mode);
 
-        Action act = () => mutation.Act(document, AForeignPage());
+        var act = () => mutation.Act(document, AForeignPage());
 
         act.Should().Throw<InvalidOperationException>()
             .WithMessage($"*PdfDocumentOpenMode.{mode}*")
@@ -141,10 +141,10 @@ public class OpenModeEnforcementTests
     [MemberData(nameof(AllowedCells))]
     public void AModeThatCanModifyAllowsEveryOneOfThem(PdfDocumentOpenMode mode, string call)
     {
-        Mutation mutation = Mutations[call];
-        PdfDocument document = OpenedWith(mode);
+        var mutation = Mutations[call];
+        var document = OpenedWith(mode);
 
-        Action act = () => mutation.Act(document, AForeignPage());
+        var act = () => mutation.Act(document, AForeignPage());
 
         act.Should().NotThrow();
     }
@@ -156,7 +156,7 @@ public class OpenModeEnforcementTests
     [Fact]
     public void ARefusalNamesTheModeUsedAndTheModesNeeded()
     {
-        PdfDocument document = OpenedWith(PdfDocumentOpenMode.ReadOnly);
+        var document = OpenedWith(PdfDocumentOpenMode.ReadOnly);
 
         Action act = () => document.AddPage();
 
@@ -177,9 +177,9 @@ public class OpenModeEnforcementTests
     [InlineData(PdfDocumentOpenMode.Import)]
     public void CloseIsAllowedInEveryMode(PdfDocumentOpenMode mode)
     {
-        PdfDocument document = OpenedWith(mode);
+        var document = OpenedWith(mode);
 
-        Action act = () => document.Close();
+        var act = () => document.Close();
 
         act.Should().NotThrow();
     }
@@ -194,9 +194,9 @@ public class OpenModeEnforcementTests
     [InlineData(PdfDocumentOpenMode.Import)]
     public void OnlyAppendCanBeSavedIncrementally(PdfDocumentOpenMode mode)
     {
-        PdfDocument document = OpenedWith(mode);
+        var document = OpenedWith(mode);
 
-        Action act = () => document.SaveIncremental(new MemoryStream());
+        var act = () => document.SaveIncremental(new MemoryStream());
 
         act.Should().Throw<InvalidOperationException>()
             .WithMessage($"*PdfDocumentOpenMode.{mode}*")
@@ -206,10 +206,10 @@ public class OpenModeEnforcementTests
     [Fact]
     public void AppendCanBeSavedIncrementally()
     {
-        PdfDocument document = OpenedWith(PdfDocumentOpenMode.Append);
+        var document = OpenedWith(PdfDocumentOpenMode.Append);
         document.Info.Title = "Changed";
 
-        Action act = () => document.SaveIncremental(new MemoryStream());
+        var act = () => document.SaveIncremental(new MemoryStream());
 
         act.Should().NotThrow();
     }
@@ -221,10 +221,10 @@ public class OpenModeEnforcementTests
     [Fact]
     public void ADocumentThatWasCreatedRatherThanOpenedIsToldSo()
     {
-        PdfDocument document = new PdfDocument();
+        var document = new PdfDocument();
         document.AddPage();
 
-        Action act = () => document.SaveIncremental(new MemoryStream());
+        var act = () => document.SaveIncremental(new MemoryStream());
 
         act.Should().Throw<InvalidOperationException>().WithMessage("*created rather than opened*");
     }
@@ -237,7 +237,7 @@ public class OpenModeEnforcementTests
     [InlineData(PdfDocumentOpenMode.Import)]
     public void AModeThatCannotModifyStillReads(PdfDocumentOpenMode mode)
     {
-        PdfDocument document = OpenedWith(mode);
+        var document = OpenedWith(mode);
 
         document.PageCount.Should().Be(2);
         document.Pages[0].Width.Point.Should().BeApproximately(595, 1);
@@ -253,8 +253,8 @@ public class OpenModeEnforcementTests
     [Fact]
     public void ImportExtractsPagesIntoADocumentThatMayBeChanged()
     {
-        PdfDocument source = OpenedWith(PdfDocumentOpenMode.Import);
-        PdfDocument target = new PdfDocument();
+        var source = OpenedWith(PdfDocumentOpenMode.Import);
+        var target = new PdfDocument();
 
         target.AddPage(source.Pages[0]);
 
@@ -268,8 +268,8 @@ public class OpenModeEnforcementTests
     [Fact]
     public void APageCannotBeImportedFromADocumentNotOpenedForImport()
     {
-        PdfDocument source = OpenedWith(PdfDocumentOpenMode.ReadOnly);
-        PdfDocument target = new PdfDocument();
+        var source = OpenedWith(PdfDocumentOpenMode.ReadOnly);
+        var target = new PdfDocument();
 
         Action act = () => target.AddPage(source.Pages[0]);
 
@@ -290,15 +290,15 @@ public class OpenModeEnforcementTests
 
     static byte[] TwoPageDocument()
     {
-        PdfDocument document = new PdfDocument();
+        var document = new PdfDocument();
         document.Info.Title = "Two pages";
-        for (int index = 0; index < 2; index++)
+        for (var index = 0; index < 2; index++)
         {
-            PdfPage page = document.AddPage();
+            var page = document.AddPage();
             page.Size = PageSize.A4;
         }
 
-        MemoryStream buffer = new MemoryStream();
+        var buffer = new MemoryStream();
         document.Save(buffer, false);
         return buffer.ToArray();
     }

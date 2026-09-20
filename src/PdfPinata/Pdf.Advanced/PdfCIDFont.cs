@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -46,7 +46,7 @@ internal class PdfCIDFont : PdfFont
     {
         Elements.SetName(Keys.Type, "/Font");
         Elements.SetName(Keys.Subtype, "/CIDFontType2");
-        PdfDictionary cid = new PdfDictionary();
+        var cid = new PdfDictionary();
         cid.Elements.SetString("/Ordering", "Identity");
         cid.Elements.SetString("/Registry", "Adobe");
         cid.Elements.SetInteger("/Supplement", 0);
@@ -60,12 +60,12 @@ internal class PdfCIDFont : PdfFont
         FontEncoding = font.PdfOptions.FontEncoding;
     }
 
-    public PdfCIDFont(PdfDocument document, PdfFontDescriptor fontDescriptor, byte[] fontData)
+    public PdfCIDFont(PdfDocument document, PdfFontDescriptor fontDescriptor)
         : base(document)
     {
         Elements.SetName(Keys.Type, "/Font");
         Elements.SetName(Keys.Subtype, "/CIDFontType2");
-        PdfDictionary cid = new PdfDictionary();
+        var cid = new PdfDictionary();
         cid.Elements.SetString("/Ordering", "Identity");
         cid.Elements.SetString("/Registry", "Adobe");
         cid.Elements.SetInteger("/Supplement", 0);
@@ -95,7 +95,7 @@ internal class PdfCIDFont : PdfFont
         // The subtype cannot be settled in the constructor: which outlines the font has is only
         // known once its face has been read. CIDFontType2 means glyf outlines, CIDFontType0
         // means CFF ones, and a viewer reading the program is entitled to be told which.
-        bool postscriptOutlines = FontDescriptor._descriptor.FontFace.IsPostscriptOutlines;
+        var postscriptOutlines = FontDescriptor._descriptor.FontFace.IsPostscriptOutlines;
         Elements.SetName(Keys.Subtype, postscriptOutlines ? "/CIDFontType0" : "/CIDFontType2");
 
         if (postscriptOutlines)
@@ -145,7 +145,7 @@ internal class PdfCIDFont : PdfFont
     void EmbedCidSet()
     {
         var cids = CMapInfo.GetGlyphIndices();
-        int highest = 0;
+        var highest = 0;
         foreach (var cid in cids)
         {
             if (cid > highest)
@@ -248,7 +248,7 @@ internal class PdfCIDFont : PdfFont
         /// be Identity, indicating that the mapping between CIDs and glyph indices is
         /// the identity mapping.
         /// Default value: Identity.
-        /// This entry may appear only in a Type 2 CIDFont whose associated True-Type font 
+        /// This entry may appear only in a Type 2 CIDFont whose associated True-Type font
         /// program is embedded in the PDF file.
         /// </summary>
         [KeyInfo(KeyType.Dictionary | KeyType.StreamOrName)]

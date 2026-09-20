@@ -58,7 +58,7 @@ public sealed class PdfHighlightAnnotation : PdfTextMarkupAnnotation
 
     void Initialize()
     {
-        Elements.SetName(Keys.Subtype, "/Highlight");
+        Elements.SetName(PdfAnnotation.Keys.Subtype, "/Highlight");
         Color = XColors.Yellow;
     }
 

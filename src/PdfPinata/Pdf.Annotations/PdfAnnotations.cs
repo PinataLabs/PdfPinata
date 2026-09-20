@@ -82,7 +82,7 @@ public sealed class PdfAnnotations : PdfArray
     /// </summary>
     public void Clear()
     {
-        for (int idx = Count - 1; idx >= 0; idx--)
+        for (var idx = Count - 1; idx >= 0; idx--)
             Page.Annotations.Remove(_page.Annotations[idx]);
     }
 
@@ -106,7 +106,7 @@ public sealed class PdfAnnotations : PdfArray
         {
             PdfReference iref;
             PdfDictionary dict;
-            PdfItem item = Elements[index];
+            var item = Elements[index];
             if ((iref = item as PdfReference) != null)
             {
                 Debug.Assert(iref.Value is PdfDictionary, "Reference to dictionary expected.");
@@ -117,7 +117,7 @@ public sealed class PdfAnnotations : PdfArray
                 Debug.Assert(item is PdfDictionary, "Dictionary expected.");
                 dict = (PdfDictionary)item;
             }
-            PdfAnnotation annotation = dict as PdfAnnotation;
+            var annotation = dict as PdfAnnotation;
             if (annotation == null)
             {
                 annotation = new PdfGenericAnnotation(dict);
@@ -159,13 +159,13 @@ public sealed class PdfAnnotations : PdfArray
     /// </summary>
     internal static void FixImportedAnnotation(PdfPage page)
     {
-        PdfArray annots = page.Elements.GetArray(PdfPage.Keys.Annots);
+        var annots = page.Elements.GetArray(PdfPage.Keys.Annots);
         if (annots != null)
         {
-            int count = annots.Elements.Count;
-            for (int idx = 0; idx < count; idx++)
+            var count = annots.Elements.Count;
+            for (var idx = 0; idx < count; idx++)
             {
-                PdfDictionary annot = annots.Elements.GetDictionary(idx);
+                var annot = annots.Elements.GetDictionary(idx);
                 if (annot != null && annot.Elements.ContainsKey("/P"))
                     annot.Elements["/P"] = page.Reference;
             }
@@ -177,7 +177,7 @@ public sealed class PdfAnnotations : PdfArray
     /// </summary>
     public override IEnumerator<PdfItem> GetEnumerator()
     {
-        return (IEnumerator<PdfItem>)new AnnotationsIterator(this);
+        return new AnnotationsIterator(this);
     }
     // THHO4STLA: AnnotationsIterator: Implementation does not work http://forum.PdfPinata.net/viewtopic.php?p=3285#p3285
     // Code using the enumerator like this will crash:

@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -102,7 +102,7 @@ internal sealed class KeyDescriptor
     [return: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)]
     public Type GetValueType()
     {
-        Type type = _objectType;
+        var type = _objectType;
         if (type == null)
         {
             // If we have no ObjectType specified, use the KeyType enumeration.
@@ -184,14 +184,15 @@ internal class DictionaryMeta
     public DictionaryMeta([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] Type type)
     {
 #if NET5_0_OR_GREATER
-            FieldInfo[] fields = type.GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
-            foreach (FieldInfo field in fields)
+            var fields = type.GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
+            foreach (var field in fields)
             {
                 var attributes = field.GetCustomAttributes<KeyInfoAttribute>(false);
                 foreach (var attribute in attributes)
                 {
-                    KeyDescriptor descriptor = new KeyDescriptor(attribute);
+                    var descriptor = new KeyDescriptor(attribute);
                     descriptor.KeyValue = (string)field.GetValue(null);
+                    // ReSharper disable once AssignNullToNotNullAttribute
                     _keyDescriptors[descriptor.KeyValue] = descriptor;
                 }
             }
@@ -222,12 +223,12 @@ internal class DictionaryMeta
     {
         // Get fields of the specified type only.
         var fields = type.GetTypeInfo().DeclaredFields;
-        foreach (FieldInfo field in fields)
+        foreach (var field in fields)
         {
             var attributes = field.GetCustomAttributes(typeof(KeyInfoAttribute), false);
             foreach (var attribute in attributes)
             {
-                KeyDescriptor descriptor = new KeyDescriptor((KeyInfoAttribute)attribute);
+                var descriptor = new KeyDescriptor((KeyInfoAttribute)attribute);
                 descriptor.KeyValue = (string)field.GetValue(null);
                 _keyDescriptors[descriptor.KeyValue] = descriptor;
             }

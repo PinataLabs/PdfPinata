@@ -42,20 +42,20 @@ internal class Converter
   /// </summary>
   internal static XFont ToXFont(Font font, XFont defaultFont)
   {
-    XFont xfont = defaultFont;
+    var xfont = defaultFont;
     if (font != null)
     {
-      string fontFamily = font.name;
+      var fontFamily = font.name;
       if (fontFamily == "")
         fontFamily = defaultFont.Name;
 
-      XFontStyle fontStyle = defaultFont.Style;
+      var fontStyle = defaultFont.Style;
       if (font.bold)
         fontStyle |= XFontStyle.Bold;
       if (font.italic)
         fontStyle |= XFontStyle.Italic;
 
-      double size = font.size.Point; //emSize???
+      var size = font.size.Point; //emSize???
       if (size == 0)
         size = defaultFont.Size;
 
@@ -88,7 +88,7 @@ internal class Converter
   /// </summary>
   internal static XPen ToXPen(LineFormat lineFormat, XColor defaultColor, double defaultWidth, XDashStyle defaultDashStyle)
   {
-    XPen pen = null;
+    XPen pen;
     if (lineFormat == null)
     {
       pen = new XPen(defaultColor, defaultWidth);
@@ -96,11 +96,11 @@ internal class Converter
     }
     else
     {
-      XColor color = defaultColor;
+      var color = defaultColor;
       if (!lineFormat.Color.IsEmpty)
         color = lineFormat.Color;
 
-      double width = lineFormat.Width.Point;
+      var width = lineFormat.Width.Point;
       if (!lineFormat.Visible)
         width = 0;
       if (lineFormat.Visible && width == 0)

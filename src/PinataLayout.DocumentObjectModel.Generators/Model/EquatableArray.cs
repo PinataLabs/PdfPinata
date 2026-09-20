@@ -32,7 +32,7 @@ internal readonly struct EquatableArray<T> : IEquatable<EquatableArray<T>>, IEnu
             return array is null && other.array is null;
         if (array.Length != other.array.Length)
             return false;
-        for (int i = 0; i < array.Length; i++)
+        for (var i = 0; i < array.Length; i++)
         {
             if (!array[i].Equals(other.array[i]))
                 return false;
@@ -46,8 +46,8 @@ internal readonly struct EquatableArray<T> : IEquatable<EquatableArray<T>>, IEnu
     {
         if (array is null)
             return 0;
-        int hash = 17;
-        foreach (T item in array)
+        var hash = 17;
+        foreach (var item in array)
             hash = hash * 31 + item.GetHashCode();
         return hash;
     }

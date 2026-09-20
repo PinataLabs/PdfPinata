@@ -107,5 +107,5 @@ public enum PdfRubberStampAnnotationIcon
     /// <summary>
     /// A pre-defined rubber stamp annotation icon.
     /// </summary>
-    TopSecret,
+    TopSecret
 }

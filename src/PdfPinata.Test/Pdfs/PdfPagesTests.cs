@@ -156,7 +156,7 @@ public class PdfPagesTests
         var document = new PdfDocument();
         var kept = document.AddPage();
 
-        document.Pages.InsertRange(0, AnImportableDocument(3));
+        document.Pages.InsertRange(0, AnImportableDocument());
 
         document.PageCount.Should().Be(4);
         document.Pages.IndexOf(kept).Should().Be(3, "the range went in ahead of it");
@@ -167,7 +167,7 @@ public class PdfPagesTests
     {
         var document = new PdfDocument();
 
-        document.Pages.InsertRange(0, AnImportableDocument(3), startIndex: 1, pageCount: 2);
+        document.Pages.InsertRange(0, AnImportableDocument(), startIndex: 1, pageCount: 2);
 
         document.PageCount.Should().Be(2);
     }

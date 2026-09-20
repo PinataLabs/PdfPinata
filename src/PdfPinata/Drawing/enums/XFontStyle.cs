@@ -65,7 +65,7 @@ public enum XFontStyle  // Same values as System.Drawing.FontStyle.
     /// <summary>
     /// Text with a line through the middle.
     /// </summary>
-    Strikeout = XGdiFontStyle.Strikeout,
+    Strikeout = XGdiFontStyle.Strikeout
 
     // Additional flags:
     // BoldSimulation

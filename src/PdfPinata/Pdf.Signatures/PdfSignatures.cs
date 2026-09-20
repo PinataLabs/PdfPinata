@@ -123,7 +123,7 @@ public static class PdfSignatures
             return null;
 
         var time = value.Elements.GetDateTime("/M", DateTime.MinValue);
-        return time == DateTime.MinValue ? (DateTime?)null : time;
+        return time == DateTime.MinValue ? null : time;
     }
 
     /// <summary>

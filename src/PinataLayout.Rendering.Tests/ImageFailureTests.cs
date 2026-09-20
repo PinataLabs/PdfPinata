@@ -104,7 +104,7 @@ public class ImageFailureTests
         foreach (var source in new[]
         {
             Failing.OfNoPixels(), Failing.OfAnUnreadableType(),
-            Failing.WhenMeasured(), Failing.WhenDrawn(),
+            Failing.WhenMeasured(), Failing.WhenDrawn()
         })
         {
             var image = section.AddImage(source);
@@ -149,7 +149,7 @@ public class ImageFailureTests
         // Reading the property is what builds the DocumentRenderer, and attaching before
         // RenderDocument is what catches everything - the events are raised as the placeholders
         // are drawn.
-        renderer.DocumentRenderer.ImageFailed += (sender, e) => failures.Add(e);
+        renderer.DocumentRenderer.ImageFailed += (_, e) => failures.Add(e);
         renderer.RenderDocument();
 
         return failures;

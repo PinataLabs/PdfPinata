@@ -55,5 +55,5 @@ public enum XStyleSimulations  // Identical to WpfStyleSimulations.
     /// <summary>
     /// Bold and Italic style simulation.
     /// </summary>
-    BoldItalicSimulation = ItalicSimulation | BoldSimulation,
+    BoldItalicSimulation = ItalicSimulation | BoldSimulation
 }

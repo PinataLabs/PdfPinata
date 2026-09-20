@@ -57,7 +57,7 @@ public class NestedMarkedContentTests
     [Fact]
     public void AFootnoteMarkIsNotNestedInsideTheParagraphThatCitesIt()
     {
-        var document = Document(out Section section);
+        var document = Document(out var section);
         section.AddParagraph("A claim").AddFootnote("The support.");
 
         DeepestNesting(document).Should().Be(1,
@@ -67,7 +67,7 @@ public class NestedMarkedContentTests
     [Fact]
     public void AHyperlinkIsNotNestedInsideItsParagraph()
     {
-        var document = Document(out Section section);
+        var document = Document(out var section);
         var paragraph = section.AddParagraph("See ");
         paragraph.AddHyperlink("https://example.com", HyperlinkType.Web).AddText("the terms");
         paragraph.AddText(" before signing.");
@@ -78,7 +78,7 @@ public class NestedMarkedContentTests
     [Fact]
     public void AListLabelIsNotNestedInsideItsBody()
     {
-        var document = Document(out Section section);
+        var document = Document(out var section);
         foreach (var text in new[] { "First", "Second" })
         {
             var item = section.AddParagraph(text);
@@ -94,7 +94,7 @@ public class NestedMarkedContentTests
         // Suspending is only safe because the sequence is resumed. Without the resume the text after
         // the link would be outside the structure tree entirely, which is a PDF/UA failure rather
         // than the warning nesting was.
-        var document = Document(out Section section);
+        var document = Document(out var section);
         var paragraph = section.AddParagraph("Before ");
         paragraph.AddHyperlink("https://example.com", HyperlinkType.Web).AddText("the link");
         paragraph.AddText(" and after.");
@@ -111,7 +111,7 @@ public class NestedMarkedContentTests
         // The sequence resumed after the link is closed with nothing drawn in it, so it is taken
         // back — and its identifier has to go back too, or the tree names marks the content stream
         // does not hold.
-        var document = Document(out Section section);
+        var document = Document(out var section);
         var paragraph = section.AddParagraph("See ");
         paragraph.AddHyperlink("https://example.com", HyperlinkType.Web).AddText("the terms");
 

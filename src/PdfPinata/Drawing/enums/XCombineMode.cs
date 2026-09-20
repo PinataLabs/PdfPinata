@@ -62,5 +62,5 @@ public enum XCombineMode  // Same values as System.Drawing.Drawing2D.CombineMode
     /// <summary>
     /// Not yet implemented in PdfPinata.
     /// </summary>
-    Complement = 5,
+    Complement = 5
 }

@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -80,13 +80,13 @@ public abstract class PdfChoiceField : PdfAcroField
     {
         get
         {
-            PdfArray options = Elements.GetArray(Keys.Opt);
+            var options = Elements.GetArray(Keys.Opt);
             if (options == null)
                 return Array.Empty<string>();
 
-            int count = options.Elements.Count;
-            string[] text = new string[count];
-            for (int idx = 0; idx < count; idx++)
+            var count = options.Elements.Count;
+            var text = new string[count];
+            for (var idx = 0; idx < count; idx++)
                 text[idx] = ValueInOptArray(idx);
 
             return text;
@@ -95,8 +95,8 @@ public abstract class PdfChoiceField : PdfAcroField
         {
             ArgumentNullException.ThrowIfNull(value);
 
-            PdfArray options = new PdfArray(Owner);
-            foreach (string option in value)
+            var options = new PdfArray(Owner);
+            foreach (var option in value)
                 options.Elements.Add(new PdfString(option ?? ""));
 
             Elements[Keys.Opt] = options;
@@ -124,17 +124,17 @@ public abstract class PdfChoiceField : PdfAcroField
     /// </remarks>
     int IndexInOptArray(string value, List<int> taken)
     {
-        PdfArray opt = Elements.GetArray(Keys.Opt);
+        var opt = Elements.GetArray(Keys.Opt);
 
         if (opt != null)
         {
-            int count = opt.Elements.Count;
-            for (int idx = 0; idx < count; idx++)
+            var count = opt.Elements.Count;
+            for (var idx = 0; idx < count; idx++)
             {
                 if (taken != null && taken.Contains(idx))
                     continue;
 
-                PdfItem item = opt.Elements[idx];
+                var item = opt.Elements[idx];
                 if (item is PdfString)
                 {
                     if (TextOfOption(item) == value)
@@ -144,7 +144,7 @@ public abstract class PdfChoiceField : PdfAcroField
                 {
                     // An option may be an [exportValue displayText] pair, and it is the export
                     // value that /V is meant to match.
-                    PdfArray array = (PdfArray)item;
+                    var array = (PdfArray)item;
                     if (array.Elements.Count != 0)
                     {
                         if (TextOfOption(array.Elements[0]) == value)
@@ -161,20 +161,20 @@ public abstract class PdfChoiceField : PdfAcroField
     /// </summary>
     protected string ValueInOptArray(int index)
     {
-        PdfArray opt = Elements.GetArray(Keys.Opt);
+        var opt = Elements.GetArray(Keys.Opt);
         if (opt != null)
         {
-            int count = opt.Elements.Count;
+            var count = opt.Elements.Count;
             if (index < 0 || index >= count)
                 throw new ArgumentOutOfRangeException(nameof(index));
 
-            PdfItem item = opt.Elements[index];
+            var item = opt.Elements[index];
             if (item is PdfString)
                 return TextOfOption(item);
 
             if (item is PdfArray)
             {
-                PdfArray array = (PdfArray)item;
+                var array = (PdfArray)item;
                 if (array.Elements.Count != 0)
                     return TextOfOption(array.Elements[0]);
             }
@@ -195,7 +195,7 @@ public abstract class PdfChoiceField : PdfAcroField
     /// </remarks>
     protected int[] SelectedIndicesFromValue()
     {
-        PdfItem value = Elements[Keys.V];
+        var value = Elements[PdfAcroField.Keys.V];
         if (value is Advanced.PdfReference reference)
             value = reference.Value;
 
@@ -205,12 +205,12 @@ public abstract class PdfChoiceField : PdfAcroField
         // The export values /V names, in the order it names them.
         var chosenTexts = new List<string>();
         if (value is PdfArray chosen)
-            foreach (PdfItem item in chosen.Elements)
+            foreach (var item in chosen.Elements)
                 chosenTexts.Add(TextOfOption(item));
         else
             chosenTexts.Add(TextOfOption(value));
 
-        int[] disambiguated = SelectedIndicesFromIndexEntry(chosenTexts);
+        var disambiguated = SelectedIndicesFromIndexEntry(chosenTexts);
         if (disambiguated != null)
             return disambiguated;
 
@@ -220,9 +220,9 @@ public abstract class PdfChoiceField : PdfAcroField
         // usable; this is what is left when it is not, and the specification requires it to be
         // there in exactly this case.
         var indices = new List<int>();
-        foreach (string text in chosenTexts)
+        foreach (var text in chosenTexts)
         {
-            int index = IndexInOptArray(text, indices);
+            var index = IndexInOptArray(text, indices);
             if (index != -1)
                 indices.Add(index);
         }
@@ -244,20 +244,20 @@ public abstract class PdfChoiceField : PdfAcroField
     /// </remarks>
     int[] SelectedIndicesFromIndexEntry(List<string> chosenTexts)
     {
-        PdfArray entry = Elements.GetArray(Keys.I);
-        PdfArray opt = Elements.GetArray(Keys.Opt);
+        var entry = Elements.GetArray(Keys.I);
+        var opt = Elements.GetArray(Keys.Opt);
         if (entry == null || opt == null || entry.Elements.Count != chosenTexts.Count)
             return null;
 
         var indices = new List<int>();
         var unaccountedFor = new List<string>(chosenTexts);
-        foreach (PdfItem item in entry.Elements)
+        foreach (var item in entry.Elements)
         {
-            PdfItem resolved = item is Advanced.PdfReference reference ? reference.Value : item;
+            var resolved = item is Advanced.PdfReference reference ? reference.Value : item;
             if (!(resolved is PdfInteger number))
                 return null;
 
-            int index = number.Value;
+            var index = number.Value;
             if (index < 0 || index >= opt.Elements.Count || indices.Contains(index))
                 return null;
 
@@ -288,8 +288,8 @@ public abstract class PdfChoiceField : PdfAcroField
 
         // Sorted here rather than trusted from the caller, so that the entry is in the order the
         // specification gives for it however this is reached.
-        PdfArray entry = new PdfArray(Owner);
-        foreach (int index in Ordered(indices))
+        var entry = new PdfArray(Owner);
+        foreach (var index in Ordered(indices))
             entry.Elements.Add(new PdfInteger(index));
         Elements[Keys.I] = entry;
     }
@@ -301,7 +301,7 @@ public abstract class PdfChoiceField : PdfAcroField
     internal static int[] Ordered(int[] indices)
     {
         var ordered = new List<int>();
-        foreach (int index in indices ?? Array.Empty<int>())
+        foreach (var index in indices ?? Array.Empty<int>())
             if (!ordered.Contains(index))
                 ordered.Add(index);
         ordered.Sort();

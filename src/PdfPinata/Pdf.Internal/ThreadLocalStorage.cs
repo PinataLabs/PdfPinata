@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -80,8 +80,8 @@ internal class ThreadLocalStorage // #???
     {
         get
         {
-            List<PdfDocument> list = new List<PdfDocument>();
-            foreach (PdfDocument.DocumentHandle handle in _importedDocuments.Values)
+            var list = new List<PdfDocument>();
+            foreach (var handle in _importedDocuments.Values)
             {
                 if (handle.IsAlive)
                     list.Add(handle.Target);
@@ -94,7 +94,7 @@ internal class ThreadLocalStorage // #???
     {
         if (handle.IsAlive)
         {
-            foreach (string path in _importedDocuments.Keys)
+            foreach (var path in _importedDocuments.Keys)
             {
                 if (_importedDocuments[path] == handle)
                 {
@@ -105,11 +105,11 @@ internal class ThreadLocalStorage // #???
         }
 
         // Clean table
-        bool itemRemoved = true;
+        var itemRemoved = true;
         while (itemRemoved)
         {
             itemRemoved = false;
-            foreach (string path in _importedDocuments.Keys)
+            foreach (var path in _importedDocuments.Keys)
             {
                 if (!_importedDocuments[path].IsAlive)
                 {

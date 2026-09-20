@@ -72,7 +72,7 @@ public class Point : ChartObject
   /// </summary>
   protected override object DeepCopy()
   {
-    Point point = (Point)base.DeepCopy();
+    var point = (Point)base.DeepCopy();
     if (point.lineFormat != null)
     {
       point.lineFormat = point.lineFormat.Clone();

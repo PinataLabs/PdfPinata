@@ -236,7 +236,7 @@ public class TextExtractionTests
 
         // The same string, the same spacing, shown two ways. Whatever the number is, it is the same
         // number.
-        runs[runs.Count - 1].Width.Should().BeApproximately(runs[runs.Count - 2].Width, 0.01);
+        runs[^1].Width.Should().BeApproximately(runs[^2].Width, 0.01);
     }
 
     [Fact]
