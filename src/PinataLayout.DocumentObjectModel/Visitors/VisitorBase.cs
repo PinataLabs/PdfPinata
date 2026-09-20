@@ -286,19 +286,23 @@ public abstract class VisitorBase : DocumentObjectVisitor
         }
         else
         {
+            // Fill in the one that is missing. The two arms used to fill in the other one: a
+            // section given a height and no width had its height overwritten and its width left
+            // unset, so the page came out no width at all - and the length the caller did set was
+            // the one that was thrown away.
             if (pageSetup.pageWidth.IsNull)
-            {
-                if (pageSetup.pageFormat == null)
-                    pageSetup.pageHeight = refPageSetup.pageHeight;
-                else
-                    PageSetup.GetPageSize(pageSetup.PageFormat, out _, out pageSetup.pageHeight);
-            }
-            else if (pageSetup.pageHeight.IsNull)
             {
                 if (pageSetup.pageFormat == null)
                     pageSetup.pageWidth = refPageSetup.pageWidth;
                 else
                     PageSetup.GetPageSize(pageSetup.PageFormat, out pageSetup.pageWidth, out _);
+            }
+            else if (pageSetup.pageHeight.IsNull)
+            {
+                if (pageSetup.pageFormat == null)
+                    pageSetup.pageHeight = refPageSetup.pageHeight;
+                else
+                    PageSetup.GetPageSize(pageSetup.PageFormat, out _, out pageSetup.pageHeight);
             }
         }
 

@@ -105,6 +105,10 @@ public sealed class PdfDocument : PdfObject, IDisposable
 
         _creation = GlobalTimeSettings.Now;
         _state = DocumentState.Created;
+        // The version has to be set here as well as in the other two constructors. Without it the
+        // field stayed 0 and the file header read "%PDF-0.0", which no reader will open - so every
+        // document built on an output stream was written unreadable.
+        _version = 14;
         Initialize();
         Info.CreationDate = _creation;
 

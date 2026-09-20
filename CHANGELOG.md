@@ -12,6 +12,17 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ### Fixed
 
+- **A document built on an output stream writes a readable file.** `PdfDocument(Stream)` was the
+  only one of the three constructors that never set the PDF version, so the field stayed 0 and the
+  header read `%PDF-0.0` — enough bytes to look like a save had worked, and refused by every reader
+  including this one. Every document written through `Close()` rather than `Save()` came out
+  unopenable.
+
+- **A section that names a page format and one of its two lengths keeps the length it set.**
+  The two arms of that decision in the flattening visitor were swapped: a section given a height
+  and no width had its height overwritten from the format and its width left unset, so the page
+  came out no width at all — and the one measurement the caller did set was the one thrown away.
+
 - **An indirect boolean is written as `true` or `false` rather than `True` or `False`.**
   `PdfWriter.Write(bool)` wrote `bool.TrueString`, and ISO 32000-1 7.3.2 spells the two keywords in
   lowercase — a reader looking for them finds nothing else. Its only caller is `PdfBooleanObject`,
