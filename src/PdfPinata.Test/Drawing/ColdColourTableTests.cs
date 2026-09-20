@@ -82,8 +82,9 @@ public class ColdColourTableTests
             var managerType = assembly.GetType("PdfPinata.Drawing.XColorResourceManager", throwOnError: true);
             // ReSharper disable once PossibleNullReferenceException
             var getKnownColor = managerType.GetMethod("GetKnownColor", new[] { typeof(uint) });
-            // ReSharper disable once PossibleNullReferenceException
+            // ReSharper disable PossibleNullReferenceException
             return getKnownColor.Invoke(null, new object[] { 0xFFFF0000u }).ToString();
+            // ReSharper restore PossibleNullReferenceException
         });
 
         name.Should().Be("Red");

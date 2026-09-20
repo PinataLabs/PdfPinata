@@ -100,7 +100,7 @@ public class CrossReferenceConsistencyTests
     {
         var document = new PdfDocument();
         for (var page = 0; page < pages; page++)
-            document.AddPage();
+            _ = document.AddPage();
         return Save(document);
     }
 
@@ -162,7 +162,7 @@ public class CrossReferenceConsistencyTests
         var target = Reader.Open(new MemoryStream(ADocumentOf(2)), PdfDocumentOpenMode.Modify);
 
         foreach (var page in source.Pages)
-            target.AddPage(page);
+            _ = target.AddPage(page);
 
         var written = Save(target);
 

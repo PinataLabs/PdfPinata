@@ -239,8 +239,9 @@ public class PdfDocumentRenderer
         if (_documentRenderer?.FormattedDocument == null)
             PrepareRenderPages();
 
-        // ReSharper disable once PossibleNullReferenceException
+        // ReSharper disable PossibleNullReferenceException
         ArgumentOutOfRangeException.ThrowIfGreaterThan(endPage, _documentRenderer.FormattedDocument.PageCount);
+        // ReSharper restore PossibleNullReferenceException
 
         _pdfDocument ??= CreatePdfDocument();
 

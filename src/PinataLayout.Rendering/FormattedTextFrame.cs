@@ -52,7 +52,6 @@ internal class FormattedTextFrame : IAreaProvider
     isFirstArea = true;
     formatter = new TopDownFormatter(this, documentRenderer, textframe.Elements);
     formatter.FormatOnAreas(graphics, false);
-    contentHeight = RenderInfo.GetTotalHeight(GetRenderInfos());
   }
 
   Area IAreaProvider.GetNextArea()
@@ -171,6 +170,5 @@ internal class FormattedTextFrame : IAreaProvider
   private ArrayList renderInfos;
   private XGraphics gfx;
   private bool isFirstArea;
-  private XUnit contentHeight;
   private DocumentRenderer documentRenderer;
 }

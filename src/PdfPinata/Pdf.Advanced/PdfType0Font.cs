@@ -103,8 +103,7 @@ internal sealed class PdfType0Font : PdfFont
 
         var ttDescriptor = (OpenTypeDescriptor)FontDescriptorCache.GetOrCreateDescriptorFor(font);
         FontDescriptor = new PdfFontDescriptor(document, ttDescriptor);
-        _fontOptions = font.PdfOptions;
-        Debug.Assert(_fontOptions != null);
+        Debug.Assert(font.PdfOptions != null);
 
         CmapInfo = new CMapInfo(ttDescriptor);
         _descendantFont = new PdfCIDFont(document, FontDescriptor, font);
@@ -140,8 +139,6 @@ internal sealed class PdfType0Font : PdfFont
 
         var ttDescriptor = (OpenTypeDescriptor)FontDescriptorCache.GetOrCreateDescriptor(idName, fontData);
         FontDescriptor = new PdfFontDescriptor(document, ttDescriptor);
-        _fontOptions = new XPdfFontOptions(PdfFontEncoding.Unicode);
-        Debug.Assert(_fontOptions != null);
 
         CmapInfo = new CMapInfo(ttDescriptor);
         _descendantFont = new PdfCIDFont(document, FontDescriptor);
@@ -169,8 +166,6 @@ internal sealed class PdfType0Font : PdfFont
         descendantFonts.Elements.Add(_descendantFont.Reference);
         Elements[Keys.DescendantFonts] = descendantFonts;
     }
-
-    XPdfFontOptions _fontOptions;
 
     public string BaseFont
     {

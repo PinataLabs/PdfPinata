@@ -21,7 +21,7 @@ public class PdfLongTests
     public void AnIntegerWiderThan32BitsIsReadBackAsAPdfLong()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         document.Info.Elements["/Wide"] = new PdfLong(WiderThanAnInt);
         using var stream = new MemoryStream();
         document.Save(stream, false);

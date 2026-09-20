@@ -7,19 +7,11 @@ using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace PdfPinata.Test;
 
 public class Merge
 {
-    private readonly ITestOutputHelper _output;
-        
-    public Merge(ITestOutputHelper output)
-    {
-        _output = output;
-    }
-        
     [Fact]
     public void CanMerge2Documents()
     {
@@ -81,7 +73,7 @@ public class Merge
             for (var idx = 0; idx < count; idx++)
             {
                 var page = inputDocument.Pages[idx];
-                outputDocument.AddPage(page);
+                _ = outputDocument.AddPage(page);
             }
         }
 

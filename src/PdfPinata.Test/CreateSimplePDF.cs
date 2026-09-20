@@ -46,7 +46,7 @@ public class CreateSimplePdf
         document.Info.Author = data;
 
         using var ms = new MemoryStream();
-        document.AddPage();
+        _ = document.AddPage();
         document.Save(ms);
         ms.Position = 0;
 

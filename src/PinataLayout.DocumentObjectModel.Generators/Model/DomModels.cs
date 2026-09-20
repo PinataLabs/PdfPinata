@@ -1,5 +1,3 @@
-using System;
-
 namespace PinataLayout.DocumentObjectModel.Generators.Model;
 
 /// <summary>

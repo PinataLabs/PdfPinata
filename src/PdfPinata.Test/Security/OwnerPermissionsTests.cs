@@ -30,7 +30,7 @@ public class OwnerPermissionsTests
     static MemoryStream Protected(string user = User, string owner = Owner)
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         document.SecuritySettings.DocumentSecurityLevel = PdfDocumentSecurityLevel.Encrypted128Bit;
         if (user != null)
             document.SecuritySettings.UserPassword = user;
@@ -80,7 +80,7 @@ public class OwnerPermissionsTests
         // Nothing to be shut out of, and the property is read by callers deciding whether they may
         // change something - so an unencrypted document has to answer yes rather than no.
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
 
         using var buffer = new MemoryStream();
         document.Save(buffer, false);
@@ -117,7 +117,7 @@ public class OwnerPermissionsTests
         // The guard beside it: reading the flags back is what a caller does after checking
         // HasOwnerPermissions, and they have to be the flags that were written.
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         document.SecuritySettings.UserPassword = User;
         document.SecuritySettings.OwnerPassword = Owner;
         document.SecuritySettings.PermitPrint = true;

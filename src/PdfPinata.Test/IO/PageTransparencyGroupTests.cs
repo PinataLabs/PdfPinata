@@ -75,7 +75,7 @@ public class PageTransparencyGroupTests
     public void APageWithNothingOnItIsWrittenWithoutATransparencyGroup()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
 
         GroupOf(RoundTripped(document).Pages[0]).Should().BeNull();
     }

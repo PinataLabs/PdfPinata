@@ -27,6 +27,7 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
+using System.Linq;
 using PdfPinata.Drawing;
 
 namespace PdfPinata.Charting.Renderers;
@@ -74,11 +75,10 @@ internal class BarClusteredPlotAreaRenderer : BarPlotAreaRenderer
       var dx = (columnWidth * seriesIdx) - (columnWidth / 2 * cri.SeriesRendererInfos.Length);
       var y0 = yMin;
 
-      foreach (ColumnRendererInfo column in sri.PointRendererInfos)
+      foreach (var column in sri.PointRendererInfos.Cast<ColumnRendererInfo>())
       {
         if (!double.IsNaN(column.Value))
         {
-          // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
           var x0 = x - dx;
           var x1 = x - dx - columnWidth;
           var y1 = column.Value;

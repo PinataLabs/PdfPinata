@@ -69,8 +69,9 @@ static class ColorSpaceHelper
         if (x.ColorSpace != XColorSpace.Cmyk || y.ColorSpace != XColorSpace.Cmyk)
             return false;
         #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
-        // ReSharper disable once CompareOfFloatsByEqualityOperator
+        // ReSharper disable CompareOfFloatsByEqualityOperator
         return x.C == y.C && x.M == y.M && x.Y == y.Y && x.K == y.K;
+        // ReSharper restore CompareOfFloatsByEqualityOperator
         #pragma warning restore S1244
     }
 }

@@ -183,7 +183,7 @@ public class DecryptedStringReplacementTests
     static byte[] EncryptedDocument()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         document.Info.Title = Title;
         document.Info.Author = Author;
         document.SecuritySettings.DocumentSecurityLevel = PdfDocumentSecurityLevel.Encrypted128Bit;

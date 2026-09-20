@@ -425,7 +425,7 @@ public class XmpMetadataTests
         // attach a file afterwards, which is exactly what FacturXInvoice does. That rule is not
         // moved early — it stays at Save, checked against the document as it stands there.
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         document.Info.Title = Title;
 
         document.ClaimConformance(PdfAConformance.PdfA1B);
@@ -727,7 +727,7 @@ public class XmpMetadataTests
     private static byte[] Save(Action<PdfDocument> arrange)
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         document.Info.Title = Title;
 
         arrange(document);

@@ -32,12 +32,8 @@ using PdfPinata.Charting;
 
 namespace PinataLayout.Rendering.ChartMapper;
 
-internal class DataLabelMapper
+internal static class DataLabelMapper
 {
-  private DataLabelMapper()
-  {
-  }
-
   static void MapObject(DataLabel dataLabel, DocumentObjectModel.Shapes.Charts.DataLabel domDataLabel)
   {
     if (!domDataLabel.IsNull("Style"))

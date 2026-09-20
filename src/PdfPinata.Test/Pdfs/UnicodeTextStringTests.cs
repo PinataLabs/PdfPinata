@@ -109,7 +109,7 @@ public class UnicodeTextStringTests
         const string ownerPassword = "12343";
 
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         document.Info.Title = Accented;
         document.SecuritySettings.DocumentSecurityLevel = level;
         document.SecuritySettings.OwnerPassword = ownerPassword;
@@ -131,7 +131,7 @@ public class UnicodeTextStringTests
     public void AnEmbeddedFileChecksumIsStillWrittenAsBytes()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         var checksum = new string(new[] { '\x00', '\xE4', '\xFF', '\x7F' });
 
         var embedded = new PdfEmbeddedFile(document, new byte[] { 1, 2, 3 }, checksum);
@@ -186,7 +186,7 @@ public class UnicodeTextStringTests
     private static PdfFileSpecification FileSpecificationNamed(string fileName)
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         var embedded = new PdfEmbeddedFile(document, new byte[] { 1, 2, 3 });
 
         return new PdfFileSpecification(document, fileName, embedded);

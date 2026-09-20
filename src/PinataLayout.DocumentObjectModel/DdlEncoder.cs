@@ -38,15 +38,8 @@ namespace PinataLayout.DocumentObjectModel;
 /// <summary>
 /// Provides functions for encoding and decoding of DDL text.
 /// </summary>
-public sealed class DdlEncoder
+public static class DdlEncoder
 {
-  /// <summary>
-  /// Initializes a new instance of the DdlEncoder class.
-  /// </summary>
-  DdlEncoder()
-  {
-  }
-
   /// <summary>
   /// Converts a string into a text phrase.
   /// </summary>

@@ -28,7 +28,7 @@ public class PdfPagesTests
     {
         var source = new PdfDocument();
         for (var i = 0; i < pageCount; i++)
-            source.AddPage();
+            _ = source.AddPage();
 
         var bytes = new MemoryStream();
         source.Save(bytes, false);
@@ -42,7 +42,7 @@ public class PdfPagesTests
     public void InsertingAPageNobodyOwnsPlacesThatVeryPage()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         var page = new PdfPage();
 
         var inserted = document.Pages.Insert(0, page);
@@ -83,7 +83,7 @@ public class PdfPagesTests
     public void InsertingAPageThisDocumentOwnsButHasNotPlacedPlacesThatVeryPage()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         var page = new PdfPage(document);
         document.Pages.IndexOf(page).Should().Be(-1, "a page built this way is not yet in the tree");
 
@@ -113,7 +113,7 @@ public class PdfPagesTests
     public void InsertingAPageFromAnotherDocumentCopiesIt()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         var foreign = AnImportableDocument(1);
         var foreignPage = foreign.Pages[0];
 

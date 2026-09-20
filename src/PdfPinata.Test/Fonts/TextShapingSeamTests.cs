@@ -174,7 +174,7 @@ public class TextShapingSeamTests
         const string text = "seam-glyphs";
         var unshaped = AllGlyphs(Drawn(text));
 
-        using var _ = Installed(new SelectiveShaper(text, __ => new[]
+        using var _ = Installed(new SelectiveShaper(text, _ => new[]
         {
             new ShapedGlyph(41, 0, 500),
             new ShapedGlyph(42, 1, 500)
@@ -224,7 +224,7 @@ public class TextShapingSeamTests
         const string text = "seam-fi";
 
         using var _ = Installed(new SelectiveShaper(text,
-            __ => new[] { new ShapedGlyph(300, 0, 900) }));
+            _ => new[] { new ShapedGlyph(300, 0, 900) }));
 
         GlyphRuns(Drawn(text)).Single().Should().Equal(new[] { 300 },
             "a whole string became one glyph, and nothing in the write path assumes otherwise");
@@ -239,7 +239,7 @@ public class TextShapingSeamTests
 
         // Registered, but this is not its string.
         using var _ = Installed(new SelectiveShaper("seam-something else",
-            __ => new[] { new ShapedGlyph(1, 0, 1) }));
+            _ => new[] { new ShapedGlyph(1, 0, 1) }));
 
         GlyphRuns(Drawn(text)).Single().Should().Equal(before);
         MeasuredWidth(text).Should().Be(width);
@@ -249,7 +249,7 @@ public class TextShapingSeamTests
     public void TheShaperIsHandedTheFontWhoseBytesItMustReadFrom()
     {
         const string text = "seam-bytes";
-        var shaper = new SelectiveShaper(text, __ => new[] { new ShapedGlyph(1, 0, 100) });
+        var shaper = new SelectiveShaper(text, _ => new[] { new ShapedGlyph(1, 0, 100) });
 
         using var _ = Installed(shaper);
         Drawn(text);
@@ -270,7 +270,7 @@ public class TextShapingSeamTests
     public void TheSameFontIsTheSameFaceEveryTimeTheShaperSeesIt()
     {
         const string text = "stable";
-        var shaper = new SelectiveShaper(text, __ => new[] { new ShapedGlyph(1, 0, 100) });
+        var shaper = new SelectiveShaper(text, _ => new[] { new ShapedGlyph(1, 0, 100) });
 
         using var _ = Installed(shaper);
         Drawn(text);
@@ -285,7 +285,7 @@ public class TextShapingSeamTests
     public void ARunWithNothingSaidAboutItIsLeftToTheShaperToDecide()
     {
         const string text = "seam-defaults";
-        var shaper = new SelectiveShaper(text, __ => new[] { new ShapedGlyph(1, 0, 100) });
+        var shaper = new SelectiveShaper(text, _ => new[] { new ShapedGlyph(1, 0, 100) });
 
         using var _ = Installed(shaper);
         Drawn(text);
@@ -310,7 +310,7 @@ public class TextShapingSeamTests
         const string text = "ab cd";
         var format = new XStringFormat { WordSpacing = 4 };
 
-        using var _ = Installed(new SelectiveShaper(text, __ => new[]
+        using var _ = Installed(new SelectiveShaper(text, _ => new[]
         {
             new ShapedGlyph(70, 0, 500),   // the ab ligature
             new ShapedGlyph(3, 2, 250),    // the space
@@ -337,7 +337,7 @@ public class TextShapingSeamTests
         var format = new XStringFormat { WordSpacing = 4 };
 
         // A space that shaped into two glyphs - odd, but the split must not land between them.
-        using var _ = Installed(new SelectiveShaper(text, __ => new[]
+        using var _ = Installed(new SelectiveShaper(text, _ => new[]
         {
             new ShapedGlyph(10, 0, 500),
             new ShapedGlyph(11, 1, 125),
@@ -369,8 +369,7 @@ public class TextShapingSeamTests
         {
             // ReSharper disable once PossibleLossOfFraction
             new ShapedGlyph(10, 0, f.UnitsPerEm / 2),
-            // ReSharper disable once PossibleLossOfFraction
-            new ShapedGlyph(11, 1, f.UnitsPerEm / 2, offsetX: f.UnitsPerEm / 4)
+            new ShapedGlyph(11, 1, f.UnitsPerEm / 2.0, offsetX: f.UnitsPerEm / 4.0)
         }));
 
         var content = Content(Drawn(text));
@@ -393,8 +392,7 @@ public class TextShapingSeamTests
         {
             // ReSharper disable once PossibleLossOfFraction
             new ShapedGlyph(10, 0, f.UnitsPerEm / 2),
-            // ReSharper disable once PossibleLossOfFraction
-            new ShapedGlyph(11, 1, f.UnitsPerEm / 2, offsetY: f.UnitsPerEm / 4)
+            new ShapedGlyph(11, 1, f.UnitsPerEm / 2.0, offsetY: f.UnitsPerEm / 4.0)
         }));
 
         var content = Content(Drawn(text));
@@ -420,8 +418,7 @@ public class TextShapingSeamTests
         {
             // ReSharper disable once PossibleLossOfFraction
             new ShapedGlyph(10, 0, f.UnitsPerEm / 2),
-            // ReSharper disable once PossibleLossOfFraction
-            new ShapedGlyph(11, 1, f.UnitsPerEm / 2, offsetY: f.UnitsPerEm / 4)
+            new ShapedGlyph(11, 1, f.UnitsPerEm / 2.0, offsetY: f.UnitsPerEm / 4.0)
         }));
 
         var content = Content(Drawn(text, new XStringFormat { TextRise = 3 }));
@@ -438,7 +435,7 @@ public class TextShapingSeamTests
     {
         const string text = "plain";
 
-        using var _ = Installed(new SelectiveShaper(text, __ => new[]
+        using var _ = Installed(new SelectiveShaper(text, _ => new[]
         {
             new ShapedGlyph(10, 0, 500),
             new ShapedGlyph(11, 1, 500)

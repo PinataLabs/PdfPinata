@@ -32,7 +32,7 @@ public class ImportedAnnotationsTests
         using var output = Import(source =>
         {
             var target = new PdfDocument();
-            target.AddPage(source.Pages[0]);
+            _ = target.AddPage(source.Pages[0]);
             return target;
         });
 
@@ -58,7 +58,7 @@ public class ImportedAnnotationsTests
         using var output = Import(source =>
         {
             var target = new PdfDocument();
-            target.Pages.Add(source.Pages[0], AnnotationCopyingType.DeepCopy);
+            _ = target.Pages.Add(source.Pages[0], AnnotationCopyingType.DeepCopy);
             return target;
         });
 
@@ -71,7 +71,7 @@ public class ImportedAnnotationsTests
         using var output = Import(source =>
         {
             var target = new PdfDocument();
-            target.Pages.Add(source.Pages[0], AnnotationCopyingType.DoNotCopy);
+            _ = target.Pages.Add(source.Pages[0], AnnotationCopyingType.DoNotCopy);
             return target;
         });
 
@@ -89,7 +89,7 @@ public class ImportedAnnotationsTests
         using var output = Import(source =>
         {
             var target = new PdfDocument();
-            target.AddPage(source.Pages[0]);
+            _ = target.AddPage(source.Pages[0]);
             return target;
         });
 

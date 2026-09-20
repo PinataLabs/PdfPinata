@@ -29,7 +29,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Text;
 using PdfPinata.Pdf.Internal;
 using PdfPinata.Drawing;
 

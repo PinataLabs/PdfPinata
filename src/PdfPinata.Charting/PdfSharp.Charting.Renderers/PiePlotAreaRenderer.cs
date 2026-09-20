@@ -27,6 +27,7 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
+using System.Linq;
 
 namespace PdfPinata.Charting.Renderers;
 
@@ -69,16 +70,14 @@ internal abstract class PiePlotAreaRenderer : PlotAreaRenderer
 
     // Draw sectors.
     var sri = cri.SeriesRendererInfos[0];
-    foreach (SectorRendererInfo sector in sri.PointRendererInfos)
-    // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
+    foreach (var sector in sri.PointRendererInfos.Cast<SectorRendererInfo>())
     {
       if (!double.IsNaN(sector.StartAngle) && !double.IsNaN(sector.SweepAngle))
         gfx.DrawPie(sector.FillFormat, sector.Rect, sector.StartAngle, sector.SweepAngle);
     }
 
     // Draw border of the sectors.
-    foreach (SectorRendererInfo sector in sri.PointRendererInfos)
-    // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
+    foreach (var sector in sri.PointRendererInfos.Cast<SectorRendererInfo>())
     {
       if (!double.IsNaN(sector.StartAngle) && !double.IsNaN(sector.SweepAngle))
         gfx.DrawPie(sector.LineFormat, sector.Rect, sector.StartAngle, sector.SweepAngle);

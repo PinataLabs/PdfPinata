@@ -43,7 +43,7 @@ public class AttachmentTests
     public void ADocumentCarriesNothingUntilSomethingIsAttached()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
 
         document.Attachments.Count.Should().Be(0);
         document.Attachments.Should().BeEmpty();
@@ -161,7 +161,7 @@ public class AttachmentTests
         // plainly there - and then the PDF/A-1 refusal, which asks exactly that question, would let
         // the document through.
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         var attachment = document.Attachments.Add("elsewhere.txt", new byte[] { 1, 2, 3 });
 
         var files = attachment.Elements.GetDictionary("/EF");
@@ -195,7 +195,7 @@ public class AttachmentTests
     public void ClearingAnEmbeddedFileClearsItUnderEitherKey()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         var attachment = document.Attachments.Add("elsewhere.txt", new byte[] { 1 });
 
         var files = attachment.Elements.GetDictionary("/EF");
@@ -271,7 +271,7 @@ public class AttachmentTests
         // ISO 32000-2 has three this enumeration does not, and a document is entitled to use one.
         // Refusing to read the rest of the attachment over a name we do not know would help nobody.
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         var attachment = document.Attachments.Add("payload.bin", new byte[] { 1, 2, 3 });
 
         attachment.Elements.SetName(PdfFileSpecification.Keys.AFRelationship, "/EncryptedPayload");
@@ -286,7 +286,7 @@ public class AttachmentTests
     public void TwoAttachmentsMayNotShareAName()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         document.Attachments.Add("factur-x.xml", Encoding.UTF8.GetBytes("first"));
 
         var attaching = () => document.Attachments.Add("factur-x.xml", Encoding.UTF8.GetBytes("second"));
@@ -299,7 +299,7 @@ public class AttachmentTests
     {
         // A reader is entitled to binary-search a name tree, even one that is a single node.
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         document.Attachments.Add("zeta.txt", new byte[] { 1 });
         document.Attachments.Add("alpha.txt", new byte[] { 2 });
         document.Attachments.Add("middle.txt", new byte[] { 3 });
@@ -313,7 +313,7 @@ public class AttachmentTests
     public void AnAttachmentHasToBeNamed(string fileName)
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
 
         var attaching = () => document.Attachments.Add(fileName, new byte[] { 1 });
 
@@ -324,7 +324,7 @@ public class AttachmentTests
     public void AnAttachmentHasToHaveContent()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
 
         var attaching = () => document.Attachments.Add("empty.txt", null);
 
@@ -337,7 +337,7 @@ public class AttachmentTests
     public void AnAttachmentCanBeTakenBackOffAgain()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         var attachment = document.Attachments.Add("scratch.txt", new byte[] { 1 });
 
         document.Attachments.Remove(attachment).Should().BeTrue();
@@ -352,7 +352,7 @@ public class AttachmentTests
     public void RemovingAFileTheDocumentDoesNotCarrySaysSo()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         var elsewhere = new PdfFileSpecification(document, "other.txt",
             new PdfEmbeddedFile(document, new byte[] { 1 }));
 
@@ -396,7 +396,7 @@ public class AttachmentTests
         await Task.Run(() =>
         {
             var document = new PdfDocument();
-            document.AddPage();
+            _ = document.AddPage();
             document.Attachments.Add("real.txt", new byte[] { 1 });
 
             var tree = document.Internals.Catalog.Elements.GetDictionary("/Names")
@@ -608,7 +608,7 @@ public class AttachmentTests
     private static byte[] Save(Action<PdfDocument> arrange)
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         document.Info.Title = Title;
 
         arrange(document);

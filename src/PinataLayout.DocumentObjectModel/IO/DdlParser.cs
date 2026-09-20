@@ -39,7 +39,6 @@ using PinataLayout.DocumentObjectModel.Internals;
 using PinataLayout.DocumentObjectModel.Tables;
 using PinataLayout.DocumentObjectModel.Shapes;
 using PinataLayout.DocumentObjectModel.Shapes.Charts;
-using PinataLayout.DocumentObjectModel.Fields;
 using PinataLayout.DocumentObjectModel.Resources;
 
 namespace PinataLayout.DocumentObjectModel.IO;
@@ -67,7 +66,7 @@ internal class DdlParser
         else
             this.errors = new DdlReaderErrors();
 
-        scanner = new DdlScanner(fileName, ddl, errors);
+        scanner = new DdlScanner(fileName, ddl);
     }
 
     /// <summary>
@@ -185,7 +184,6 @@ internal class DdlParser
         //   {
         //     ...
         //   }
-        Style style = null;
         try
         {
             var styleName = scanner.Token;
@@ -214,7 +212,7 @@ internal class DdlParser
             }
 
             // Get or create style.
-            style = styles[styleName];
+            var style = styles[styleName];
             if (style != null)
             {
                 // Reset base style.
@@ -1912,7 +1910,7 @@ internal class DdlParser
                     // Hard-coded for TabStops only...
                     if (!(doc is ParagraphFormat))
                         ThrowParserException(DomMsgID.SymbolNotAllowed, scanner.Token);
-                    if (String.Compare(valueName, "TabStops", true) != 0)
+                    if (String.Compare(valueName, "TabStops", StringComparison.OrdinalIgnoreCase) != 0)
                         ThrowParserException(DomMsgID.InvalidValueForOperation, valueName, scanner.Token);
 
                     var paragraphFormat = (ParagraphFormat)doc;

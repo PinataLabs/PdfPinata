@@ -35,10 +35,8 @@ namespace PinataLayout.DocumentObjectModel;
 /// <summary>
 /// Represents 141 predefined colors.
 /// </summary>
-public class Colors
+public static class Colors
 {
-  Colors() { }
-
   /// <summary>The predefined colour <c>AliceBlue</c>, ARGB <c>#FFF0F8FF</c>.</summary>
   public static readonly Color AliceBlue = new Color(0xFFF0F8FF);
   /// <summary>The predefined colour <c>AntiqueWhite</c>, ARGB <c>#FFFAEBD7</c>.</summary>

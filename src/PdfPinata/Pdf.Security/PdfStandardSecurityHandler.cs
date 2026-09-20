@@ -376,7 +376,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
         _md5.TransformBlock(permission, 0, 4, permission, 0);
         _md5.TransformBlock(documentID, 0, documentID.Length, documentID, 0);
         _md5.TransformFinalBlock(permission, 0, 0);
-        var digest = _md5.Hash;
+        var digest = _md5.Hash!;
         _md5.Initialize();
         // Create the hash 50 times (only for 128 bit)
         if (_encryptionKey.Length == 16)
@@ -384,12 +384,10 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
             for (var idx = 0; idx < 50; idx++)
             {
                 digest = _md5.ComputeHash(digest);
-                // ReSharper disable once AssignNullToNotNullAttribute
                 _md5.Initialize();
             }
         }
         Array.Copy(digest, 0, _encryptionKey, 0, _encryptionKey.Length);
-    // ReSharper disable once AssignNullToNotNullAttribute
     }
 
     /// <summary>
@@ -401,10 +399,9 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
         {
             _md5.TransformBlock(PasswordPadding, 0, PasswordPadding.Length, PasswordPadding, 0);
             _md5.TransformFinalBlock(documentID, 0, documentID.Length);
-            var digest = _md5.Hash;
+            var digest = _md5.Hash!;
             _md5.Initialize();
             Array.Copy(digest, 0, _userKey, 0, 16);
-            // ReSharper disable once AssignNullToNotNullAttribute
             for (var idx = 16; idx < 32; idx++)
                 _userKey[idx] = 0;
             //Encrypt the key

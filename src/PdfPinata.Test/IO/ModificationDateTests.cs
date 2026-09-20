@@ -101,7 +101,7 @@ public class ModificationDateTests
     public void WritingANewlyAuthoredDocumentDoesNotStampIt()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
 
         using var written = new MemoryStream();
         document.Save(written, false);
@@ -113,7 +113,7 @@ public class ModificationDateTests
     private static byte[] ADocumentModifiedOn(DateTime? modificationDate)
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         if (modificationDate.HasValue)
             document.Info.ModificationDate = modificationDate.Value;
 

@@ -103,7 +103,7 @@ public class SignatureValidationDataTests
     public void AddingValidationDataToADocumentNotOpenedForAppendingIsRefused()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
 
         var adding = () => PdfValidationData.Add(document, new MemoryStream(),
             new PdfValidationDataEntry(Array.Empty<byte[]>(), Array.Empty<byte[]>(), Array.Empty<byte[]>()));
@@ -147,7 +147,7 @@ public class SignatureValidationDataTests
     static byte[] Unsigned()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
 
         using var output = new MemoryStream();
         document.Save(output, false);

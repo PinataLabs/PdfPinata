@@ -225,8 +225,9 @@ public struct Color : INullableValue, IEquatable<Color>
                 return false;
             #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
             if (isCmyk)
-                // ReSharper disable once CompareOfFloatsByEqualityOperator
+                // ReSharper disable CompareOfFloatsByEqualityOperator
                 return a == color.a && c == color.c && m == color.m && y == color.y && k == color.k;
+                // ReSharper restore CompareOfFloatsByEqualityOperator
                 #pragma warning restore S1244
             else
                 return argb == color.argb;
@@ -258,9 +259,10 @@ public struct Color : INullableValue, IEquatable<Color>
         if (color1.isCmyk ^ color2.isCmyk)
             return false;
         #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
-        // ReSharper disable once CompareOfFloatsByEqualityOperator
         if (color1.isCmyk)
+            // ReSharper disable CompareOfFloatsByEqualityOperator
             return color1.a == color2.a && color1.c == color2.c && color1.m == color2.m && color1.y == color2.y && color1.k == color2.k;
+            // ReSharper restore CompareOfFloatsByEqualityOperator
             #pragma warning restore S1244
         else
             return color1.argb == color2.argb;

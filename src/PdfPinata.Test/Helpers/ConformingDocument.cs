@@ -28,7 +28,7 @@ internal static class ConformingDocument
     internal static PdfDocument Prepared()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         document.Info.Title = Title;
         document.Options.OutputIntentIccProfile = SomeProfile;
         document.Options.OutputIntentIdentifier = "sRGB IEC61966-2.1";

@@ -119,7 +119,7 @@ public class EmptyContentStreamTests
     public void APageWhoseOnlyContentIsEmptyIsStillAPage()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
 
         using (XGraphics.FromPdfPage(document.Pages[0])) { }
 

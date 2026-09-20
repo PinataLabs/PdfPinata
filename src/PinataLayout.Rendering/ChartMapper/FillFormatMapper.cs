@@ -33,12 +33,8 @@ using PdfPinata.Drawing;
 
 namespace PinataLayout.Rendering.ChartMapper;
 
-internal class FillFormatMapper
+internal static class FillFormatMapper
 {
-  private FillFormatMapper()
-  {
-  }
-
   static void MapObject(FillFormat fillFormat, DocumentObjectModel.Shapes.FillFormat domFillFormat)
   {
     if (domFillFormat.Color.IsEmpty)

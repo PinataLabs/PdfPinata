@@ -370,7 +370,7 @@ public class NamedDestinationTests
     {
         // An XGraphics that draws somewhere other than a PDF page has nowhere to put an annotation.
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         var form = new XForm(document, XUnit.FromPoint(100), XUnit.FromPoint(100));
         using var gfx = XGraphics.FromForm(form);
 

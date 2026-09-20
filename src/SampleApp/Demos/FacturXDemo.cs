@@ -420,7 +420,7 @@ internal sealed class FacturXDemo : PdfDemo
     static IEnumerable<string> InvoiceMetadataOfAProbe()
     {
         using var probe = new PdfDocument();
-        probe.AddPage();
+        _ = probe.AddPage();
         probe.Info.Title = "A probe";
 
         var xml = Encoding.UTF8.GetBytes(CrossIndustryInvoice());

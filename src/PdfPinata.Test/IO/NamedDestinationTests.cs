@@ -171,7 +171,7 @@ public class NamedDestinationTests
 
         var target = new PdfDocument();
         for (var idx = 0; idx < pageCount; idx++)
-            target.AddPage(source.Pages[idx]);
+            _ = target.AddPage(source.Pages[idx]);
 
         var output = new MemoryStream();
         target.Save(output, false);

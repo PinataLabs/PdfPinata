@@ -28,6 +28,7 @@
 #endregion
 
 using System;
+using System.Linq;
 
 namespace PdfPinata.Charting.Renderers;
 
@@ -78,13 +79,12 @@ internal class PieClosedPlotAreaRenderer : PiePlotAreaRenderer
       pieRect.Height -= 2 * textMeasure;
     }
 
-    double startAngle = 270, sweepAngle = 0;
-    foreach (SectorRendererInfo sector in sri.PointRendererInfos)
-    // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
+    double startAngle = 270;
+    foreach (var sector in sri.PointRendererInfos.Cast<SectorRendererInfo>())
     {
       if (!double.IsNaN(sector.Value) && sector.Value != 0)
       {
-        sweepAngle = 360 / (sumValues / Math.Abs(sector.Value));
+        var sweepAngle = 360 / (sumValues / Math.Abs(sector.Value));
 
         sector.Rect = pieRect;
         sector.StartAngle = startAngle;

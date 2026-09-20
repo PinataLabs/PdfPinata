@@ -48,27 +48,35 @@ public class OpenModeEnforcementTests
     }
 
     /// <summary>
+    ///   A mutation that adds a page returns it, and the matrix looks only at whether the call was allowed. A lambda
+    ///   whose own parameter is <c>_</c> cannot say <c>_ =</c>: that would assign to the parameter.
+    /// </summary>
+    static void Discard(PdfPage _)
+    {
+    }
+
+    /// <summary>
     ///   Everything that changes a document, keyed by the call a caller would write. Reached by name
     ///   rather than passed as a delegate so that each cell of the matrix is named in the test run.
     /// </summary>
     static readonly IReadOnlyDictionary<string, Mutation> Mutations = new Dictionary<string, Mutation>
     {
         ["PdfDocument.AddPage()"] =
-            new Mutation("adding a page", (document, _) => document.AddPage()),
+            new Mutation("adding a page", (document, _) => Discard(document.AddPage())),
         ["PdfDocument.AddPage(page)"] =
-            new Mutation("adding a page", (document, foreign) => document.AddPage(foreign)),
+            new Mutation("adding a page", (document, foreign) => _ = document.AddPage(foreign)),
         ["PdfDocument.InsertPage(index)"] =
-            new Mutation("inserting a page", (document, _) => document.InsertPage(0)),
+            new Mutation("inserting a page", (document, _) => Discard(document.InsertPage(0))),
         ["PdfDocument.PlacePage"] =
             new Mutation("placing a page", (document, _) => document.PlacePage(0, new PdfPage(document))),
         ["PdfDocument.ImportPage"] =
-            new Mutation("importing a page", (document, foreign) => document.ImportPage(0, foreign)),
+            new Mutation("importing a page", (document, foreign) => _ = document.ImportPage(0, foreign)),
         ["PdfDocument.DuplicatePage"] =
-            new Mutation("duplicating a page", (document, _) => document.DuplicatePage(0, 1)),
+            new Mutation("duplicating a page", (document, _) => Discard(document.DuplicatePage(0, 1))),
         ["PdfDocument.MovePage"] =
             new Mutation("moving a page", (document, _) => document.MovePage(0, 1)),
         ["PdfDocument.Pages.Add()"] =
-            new Mutation("adding a page", (document, _) => document.Pages.Add()),
+            new Mutation("adding a page", (document, _) => Discard(document.Pages.Add())),
         ["PdfDocument.Pages.RemoveAt"] =
             new Mutation("removing a page", (document, _) => document.Pages.RemoveAt(0)),
         ["PdfDocument.Pages.Remove"] =
@@ -158,7 +166,7 @@ public class OpenModeEnforcementTests
     {
         var document = OpenedWith(PdfDocumentOpenMode.ReadOnly);
 
-        Action act = () => document.AddPage();
+        Action act = () => _ = document.AddPage();
 
         act.Should().Throw<InvalidOperationException>().WithMessage(
             "This document was opened with PdfDocumentOpenMode.ReadOnly and adding a page needs a "
@@ -222,7 +230,7 @@ public class OpenModeEnforcementTests
     public void ADocumentThatWasCreatedRatherThanOpenedIsToldSo()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
 
         var act = () => document.SaveIncremental(new MemoryStream());
 
@@ -256,7 +264,7 @@ public class OpenModeEnforcementTests
         var source = OpenedWith(PdfDocumentOpenMode.Import);
         var target = new PdfDocument();
 
-        target.AddPage(source.Pages[0]);
+        _ = target.AddPage(source.Pages[0]);
 
         target.PageCount.Should().Be(1);
     }
@@ -271,7 +279,7 @@ public class OpenModeEnforcementTests
         var source = OpenedWith(PdfDocumentOpenMode.ReadOnly);
         var target = new PdfDocument();
 
-        Action act = () => target.AddPage(source.Pages[0]);
+        Action act = () => _ = target.AddPage(source.Pages[0]);
 
         act.Should().Throw<InvalidOperationException>()
             .WithMessage("*PdfDocumentOpenMode.Import*");

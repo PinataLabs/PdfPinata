@@ -317,7 +317,7 @@ public class PageLabelTests
     {
         var document = new PdfDocument();
         for (var at = 0; at < count; at++)
-            document.AddPage();
+            _ = document.AddPage();
 
         return document;
     }

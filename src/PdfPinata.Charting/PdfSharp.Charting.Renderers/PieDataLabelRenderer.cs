@@ -28,6 +28,7 @@
 #endregion
 
 using System;
+using System.Linq;
 using PdfPinata.Drawing;
 
 namespace PdfPinata.Charting.Renderers;
@@ -63,8 +64,7 @@ internal class PieDataLabelRenderer : DataLabelRenderer
 
     sri.DataLabelRendererInfo.Entries = new DataLabelEntryRendererInfo[sri.PointRendererInfos.Length];
     var index = 0;
-    // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
-    foreach (SectorRendererInfo sector in sri.PointRendererInfos)
+    foreach (var sector in sri.PointRendererInfos.Cast<SectorRendererInfo>())
     {
       var dleri = new DataLabelEntryRendererInfo();
 
@@ -142,8 +142,7 @@ internal class PieDataLabelRenderer : DataLabelRenderer
       if (sri != null && sri.DataLabelRendererInfo != null)
       {
         var sectorIndex = 0;
-        foreach (SectorRendererInfo sector in sri.PointRendererInfos)
-        // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
+        foreach (var sector in sri.PointRendererInfos.Cast<SectorRendererInfo>())
         {
           // Determine output rectangle
           var midAngle = sector.StartAngle + sector.SweepAngle / 2;

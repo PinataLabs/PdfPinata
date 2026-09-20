@@ -121,8 +121,8 @@ public class DemoSmokeTests
     public void Every_documentation_excerpt_a_demo_marks_is_closed_once_and_in_order(string name)
     {
         DemoRegistry.TryGet(name, out var demo).Should().BeTrue();
+        // ReSharper disable once AssignNullToNotNullAttribute
         var source = DemoSource.Read(demo);
-// ReSharper disable once AssignNullToNotNullAttribute
 
         // The website quotes these excerpts by name and fails its build on one it cannot find, but
         // it only looks for the ones some page asks for. An excerpt nobody quotes yet is checked here.

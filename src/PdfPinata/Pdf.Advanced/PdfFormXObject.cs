@@ -46,14 +46,6 @@ public sealed class PdfFormXObject : PdfXObject, IContentStream
         Elements.SetName(Keys.Subtype, "/Form");
     }
 
-    internal PdfFormXObject(PdfDocument thisDocument, XForm form)
-        : base(thisDocument)
-    {
-        // BUG: form is not used
-        Elements.SetName(Keys.Type, "/XObject");
-        Elements.SetName(Keys.Subtype, "/Form");
-    }
-
     /// <summary>
     /// The key marking a form as one a page resize wrapped a page's content in. Private to
     /// PdfPinata; a reader that does not know it ignores it, as PDF requires of any key it
