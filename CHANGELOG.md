@@ -18,6 +18,11 @@ This file starts at the entry below. Changes before that point are recorded only
   which nothing in this library creates for itself, so an indirect boolean was the one value written
   as a token no PDF defines. The `PdfBoolean` overload beside it always had it right.
 
+- **`ViewerPreferences.Direction` reads back what it was set to.** The getter compared the stored
+  name against `"L2R"` and `"R2L"`, and a PDF name carries its slash — so nothing ever matched
+  and the property answered null however it had been set, in the same document and out of the file
+  it wrote. Both spellings are now taken, for an entry set as a name by hand.
+
 ## [0.2.0] - 2026-09-20
 
 ### Added
