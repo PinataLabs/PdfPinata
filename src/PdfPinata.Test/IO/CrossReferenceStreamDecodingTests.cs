@@ -109,18 +109,65 @@ public class CrossReferenceStreamDecodingTests
     }
 
     [Fact(Timeout = 5000)]
-    public async Task AFreeOrCompressedEntryPutsNothingInTheTable()
+    public async Task AFreeEntryPutsNothingInTheTable()
     {
-        // Only the cross-reference stream's own object is entered; a type 0 entry describes a free
-        // object and a type 2 entry describes one inside an object stream, which is reached
-        // through that stream rather than by position.
         var w = new[] { 1, 2, 1 };
         var table = await Task.Run(() => TableAfterReading(
-            Build(w, index: new[] { 2, 2 }, size: 4, data: Encode(w, (0u, 0u, 0u), (2u, 9u, 0u)))));
+            Build(w, index: new[] { 2, 1 }, size: 3, data: Encode(w, (0u, 0u, 0u)))));
 
         ParserProbe.ObjectIdsIn(table).Should()
-            .NotContain(PlaceholderId, "neither entry names an object written in the file")
+            .NotContain(PlaceholderId, "a free entry names no object at all")
             .And.Contain(StreamId);
+    }
+
+    [Fact(Timeout = 5000)]
+    public async Task ACompressedEntryClaimsItsNumberWithoutAPosition()
+    {
+        // A type 2 entry's object is inside an object stream and is read through that stream, not
+        // by position - but its number is claimed as the entry is read, because the revisions are
+        // read newest first and an older revision's entry for the same number must not take it.
+        var w = new[] { 1, 2, 1 };
+        var table = await Task.Run(() => TableAfterReading(
+            Build(w, index: new[] { 3, 1 }, size: 4, data: Encode(w, (2u, 9u, 0u)))));
+
+        ParserProbe.ReferenceTo(table, new PdfObjectID(3, 0)).Position.Should()
+            .Be(-1, "the object is somewhere inside object 9, which no offset in the file describes");
+    }
+
+    [Fact(Timeout = 5000)]
+    public async Task AnEntryForTheStreamsNumberThatPointsElsewhereIsNotTheStream()
+    {
+        // A later revision gave the stream's number to an object of its own, as the file attached
+        // to empira/PDFsharp#213 did with its /AcroForm. That entry was read first; the stream is
+        // not what it means (empira/PDFsharp#353).
+        var w = new[] { 1, 2, 1 };
+        var table = await Task.Run(() =>
+        {
+            var owner = new PdfDocument();
+            ParserProbe.AddReference(owner, StreamId, 4711);
+            return TableAfterReading(
+                Build(w, index: new[] { 2, 1 }, size: 3, data: Encode(w, (1u, 0u, 0u))), owner);
+        });
+
+        var entry = ParserProbe.ReferenceTo(table, StreamId);
+        entry.Position.Should().Be(4711);
+        entry.Value.Should().BeNull("the object at 4711 is still to be read, and is not this stream");
+    }
+
+    [Fact(Timeout = 5000)]
+    public async Task AnEntryForTheStreamsNumberThatPointsAtItIsTheStream()
+    {
+        // A newer cross-reference stream may list this one among its objects, at its own offset.
+        var w = new[] { 1, 2, 1 };
+        var (stream, table) = await Task.Run(() =>
+        {
+            var owner = new PdfDocument();
+            var built = Build(w, index: new[] { 2, 1 }, size: 3, data: Encode(w, (1u, 0u, 0u)));
+            ParserProbe.AddReference(owner, StreamId, built.Position);
+            return Read(built, owner);
+        });
+
+        ParserProbe.ReferenceTo(table, StreamId).Value.Should().BeSameAs(stream);
     }
 
     [Fact(Timeout = 5000)]
@@ -197,7 +244,7 @@ public class CrossReferenceStreamDecodingTests
         ParserProbe.Scan(parser).Should().Be(Symbol.Integer, "the object number is what is read first");
 
         var table = ParserProbe.IrefTableOf(owner);
-        return (ParserProbe.ReadXRefStream(parser, table), table);
+        return (ParserProbe.ReadXRefStream(parser, table, file.Position), table);
     }
 
     static (uint Type, uint Field2, uint Field3)[] EntriesOf(BuiltFile file) =>
