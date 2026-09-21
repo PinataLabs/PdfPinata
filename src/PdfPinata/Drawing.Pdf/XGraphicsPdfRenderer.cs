@@ -763,66 +763,60 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         }
     }
 
-    // TODO: incomplete - srcRect not used
+    /// <summary>
+    /// Draws the part of an image that <paramref name="srcRect"/> names, measured in
+    /// <paramref name="srcUnit"/> from the image's top left corner, scaled to fill
+    /// <paramref name="destRect"/>.
+    /// </summary>
+    /// <remarks>
+    /// PDF has no operator that draws part of an image, so the whole image is drawn, scaled and
+    /// moved so that the part asked for lands on the destination, and clipped to the destination
+    /// so that nothing else shows. Asked for the whole image, this is the plain overload exactly,
+    /// with no clip written.
+    /// </remarks>
     public void DrawImage(XImage image, XRect destRect, XRect srcRect, XGraphicsUnit srcUnit)
     {
-        const string format = Config.SignificantFigures4;
+        if (!Enum.IsDefined(srcUnit))
+            throw new ArgumentException("The unit is not a member of XGraphicsUnit.", nameof(srcUnit));
 
-        var x = destRect.X;
-        var y = destRect.Y;
-        var width = destRect.Width;
-        var height = destRect.Height;
+        var srcX = new XUnit(srcRect.X, srcUnit).Point;
+        var srcY = new XUnit(srcRect.Y, srcUnit).Point;
+        var srcWidth = new XUnit(srcRect.Width, srcUnit).Point;
+        var srcHeight = new XUnit(srcRect.Height, srcUnit).Point;
 
-        var name = Realize(image);
-        if (!(image is XForm))
+        var imageWidth = image.PointWidth;
+        var imageHeight = image.PointHeight;
+
+        if (IsAbout(srcX, 0) && IsAbout(srcY, 0) && IsAbout(srcWidth, imageWidth) && IsAbout(srcHeight, imageHeight))
         {
-            if (_gfx.PageDirection == XPageDirection.Downwards)
-            {
-                AppendFormatImage("q {2:" + format + "} 0 0 {3:" + format + "} {0:" + format + "} {1:" + format + "} cm {4} Do\nQ\n",
-                    x, y + height, width, height, name);
-            }
-            else
-            {
-                AppendFormatImage("q {2:" + format + "} 0 0 {3:" + format + "} {0:" + format + "} {1:" + format + "} cm {4} Do Q\n",
-                    x, y, width, height, name);
-            }
+            DrawImage(image, destRect.X, destRect.Y, destRect.Width, destRect.Height);
+            return;
         }
-        else
-        {
-            BeginPage();
 
-            var form = (XForm)image;
-            form.Finish();
+        // No part of the image, or not a number: there is nothing to scale to the destination.
+        if (!(srcWidth > 0) || !(srcHeight > 0))
+            return;
 
-            Owner.FormTable.GetForm(form);
+        var scaleX = destRect.Width / srcWidth;
+        var scaleY = destRect.Height / srcHeight;
 
-            var cx = width / image.PointWidth;
-            var cy = height / image.PointHeight;
+        BeginPage();
+        BeginGraphicMode();
+        RealizeTransform();
+        SaveState();
 
-            if (cx != 0 && cy != 0)
-            {
-                var xForm = image as XPdfForm;
-                if (_gfx.PageDirection == XPageDirection.Downwards)
-                {
-                    var xDraw = x;
-                    var yDraw = y;
-                    if (xForm != null)
-                    {
-                        // Yes, it is an XPdfForm - adjust the position where the page will be drawn.
-                        xDraw -= xForm.Page.MediaBox.X1;
-                        yDraw += xForm.Page.MediaBox.Y1;
-                    }
-                    AppendFormatImage("q {2:" + format + "} 0 0 {3:" + format + "} {0:" + format + "} {1:" + format + "} cm {4} Do Q\n",
-                        xDraw, yDraw + height, cx, cy, name);
-                }
-                else
-                {
-                    // TODO Translation for MediaBox.
-                    AppendFormatImage("q {2:" + format + "} 0 0 {3:" + format + "} {0:" + format + "} {1:" + format + "} cm {4} Do Q\n",
-                        x, y, cx, cy, name);
-                }
-            }
-        }
+        var clip = new XGraphicsPath();
+        clip.AddRectangle(destRect);
+        _gfxState.SetAndRealizeClipPath(clip);
+
+        DrawImage(image, destRect.X - srcX * scaleX, destRect.Y - srcY * scaleY,
+            imageWidth * scaleX, imageHeight * scaleY);
+
+        BeginGraphicMode();
+        RestoreState();
+
+        static bool IsAbout(double value, double expected) =>
+            Math.Abs(value - expected) <= 1e-6 * Math.Max(1, Math.Abs(expected));
     }
 
     #endregion

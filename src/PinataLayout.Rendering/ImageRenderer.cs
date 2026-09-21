@@ -101,9 +101,17 @@ internal class ImageRenderer : ShapeRenderer
             {
                 try
                 {
-                    var srcRect = new XRect(formatInfo.CropX, formatInfo.CropY, formatInfo.CropWidth, formatInfo.CropHeight);
                     using (var xImage = XImage.FromImageSource(formatInfo.ImageSource))
-                        Gfx.DrawImage(xImage, destRect, srcRect, XGraphicsUnit.Point); //Pixel.
+                    {
+                        // The crop is counted in pixels and the source rectangle is measured in the
+                        // image's own points, so each pixel is the image's width in points over its
+                        // width in pixels.
+                        var pointsPerPixelX = xImage.PointWidth / xImage.PixelWidth;
+                        var pointsPerPixelY = xImage.PointHeight / xImage.PixelHeight;
+                        var srcRect = new XRect(formatInfo.CropX * pointsPerPixelX, formatInfo.CropY * pointsPerPixelY,
+                            formatInfo.CropWidth * pointsPerPixelX, formatInfo.CropHeight * pointsPerPixelY);
+                        Gfx.DrawImage(xImage, destRect, srcRect, XGraphicsUnit.Point);
+                    }
                 }
                 catch (Exception ex) when (!IsUnrecoverable(ex))
                 {
