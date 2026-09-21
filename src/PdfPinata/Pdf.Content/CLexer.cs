@@ -197,16 +197,16 @@ public class CLexer
             if (IsWhiteSpace(ch) || IsDelimiter(ch) || ch == Chars.EOF)
                 return _symbol = CSymbol.Name;
 
-            if (ch == '#')
+            // A '#' followed by two hexadecimal digits stands for the byte they spell. Anything
+            // else after it - one digit, a character that is not a digit, or the end of the
+            // content - leaves the '#' as an ordinary character of the name, which is what it was
+            // before PDF 1.2 gave it a meaning. int.Parse used to be handed whatever two characters
+            // came next, and threw on /A#ZZ, taking the whole content stream down with it.
+            if (ch == '#' && IsHexChar(_nextChar) && IsHexChar(PeekAfterNextChar()))
             {
-                ScanNextChar();
-                var hex = new char[2];
-                hex[0] = _currChar;
-                hex[1] = _nextChar;
-                ScanNextChar();
-                // TODO Check syntax
-                ch = (char)(ushort)int.Parse(new string(hex), NumberStyles.AllowHexSpecifier);
-                _currChar = ch;
+                var high = ScanNextChar();
+                var low = ScanNextChar();
+                _currChar = (char)(HexValue(high) * 16 + HexValue(low));
             }
         }
     }
@@ -809,6 +809,15 @@ public class CLexer
     char ReadNextRawByte() => ContLength <= _charIndex ? Chars.EOF : (char)_content[_charIndex++];
 
     char ScanNextCharFolding() => ScanNextChar();
+
+    /// <summary>
+    /// The character after <see cref="_nextChar"/>, without reading it: the byte
+    /// <see cref="_charIndex"/> already points at, or <see cref="Chars.EOF"/> past the end.
+    /// </summary>
+    char PeekAfterNextChar() => ContLength <= _charIndex ? Chars.EOF : (char)_content[_charIndex];
+
+    /// <summary>The value of a character <see cref="IsHexChar"/> accepts.</summary>
+    static int HexValue(char ch) => ch <= '9' ? ch - '0' : (ch | 0x20) - 'a' + 10;
 
     /// <summary>
     /// Resets the current token to the empty string.
