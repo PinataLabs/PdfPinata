@@ -97,12 +97,64 @@ public class AppendedRevisionSizeTests
         reread.PageCount.Should().Be(2);
     }
 
+    [Fact]
+    public void ASizeAnEarlierUpdateShrankIsNotBelievedOverTheOneBeforeIt()
+    {
+        // What this library's own SaveIncremental used to write: a revision whose /Size fell back to
+        // one past the live objects. The larger /Size is then only in the revision before it, and
+        // appending again from the newest trailer alone would reuse the numbers it freed.
+        var original = WithShrunkenRevision(OriginalDocument(crossReferenceStream: false));
+        var updated = AppendChange(original, document => document.AddPage());
+
+        var appended = Appended(updated, original.Length);
+        ObjectNumbersIn(appended).Where(number => number > 4)
+            .Should().OnlyContain(number => number >= PreviousSize);
+        AppendedSize(appended).Should().BeGreaterThanOrEqualTo(PreviousSize);
+        Reader.Open(new MemoryStream(updated), PdfDocumentOpenMode.Modify).PageCount.Should().Be(2);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ASizeNoFileCouldHaveIsIgnored(bool crossReferenceStream)
+    {
+        // ISO 32000-1 Annex C allows 8,388,607 indirect objects. A /Size far beyond that is damage,
+        // and believing it pushed the next number to int.MaxValue and the one after it negative.
+        var original = OriginalDocument(crossReferenceStream, declaredSize: int.MaxValue);
+        var updated = AppendChange(original, document => document.AddPage());
+
+        var appended = Appended(updated, original.Length);
+        ObjectNumbersIn(appended).Should().OnlyContain(number => number > 0 && number < PreviousSize);
+        AppendedSize(appended).Should().BeInRange(1, PreviousSize);
+        Reader.Open(new MemoryStream(updated), PdfDocumentOpenMode.Modify).PageCount.Should().Be(2);
+    }
+
+    /// <summary>
+    /// Appends to a classic fixture a hand-written revision that redefines the information
+    /// dictionary and declares <c>/Size 5</c>, one past its live objects and below the
+    /// <c>/Size 12</c> of the revision it points back at.
+    /// </summary>
+    private static byte[] WithShrunkenRevision(byte[] original)
+    {
+        var text = new StringBuilder(Encoding.Latin1.GetString(original));
+        var previous = Regex.Match(text.ToString(), @"startxref\s+(\d+)", RegexOptions.RightToLeft).Groups[1].Value;
+
+        var infoOffset = text.Length;
+        text.Append("4 0 obj\n<< /Title (Original title) /Subject (Shrunk) >>\nendobj\n");
+        var startxref = text.Length;
+        text.Append($"xref\n4 1\n{infoOffset:0000000000} 00000 n \n");
+        text.Append($"trailer\n<< /Size 5 /Root 1 0 R /Info 4 0 R /Prev {previous} ");
+        text.Append("/ID [<00112233445566778899AABBCCDDEEFF> <00112233445566778899AABBCCDDEEFF>] >>\n");
+        text.Append($"startxref\n{startxref}\n%%EOF\n");
+        return Encoding.Latin1.GetBytes(text.ToString());
+    }
+
     /// <summary>
     /// A one-page document whose only cross-reference section says <c>/Size 12</c> but whose live
     /// objects stop at 4 (or at 5, the cross-reference stream itself): the entries after that are
     /// free, as a writer leaves them after deleting the objects with the highest numbers.
     /// </summary>
-    private static byte[] OriginalDocument(bool crossReferenceStream)
+    private static byte[] OriginalDocument(bool crossReferenceStream, int declaredSize = PreviousSize)
     {
         var bodies = new[]
         {
@@ -139,7 +191,7 @@ public class AppendedRevisionSizeTests
             for (var number = offsets.Count + 1; number < PreviousSize; number++)
                 Row(0, 0, 1);
 
-            text.Append($"5 0 obj\n<< /Type /XRef /Size {PreviousSize} /W [1 4 2] /Root 1 0 R /Info 4 0 R {ids} /Length {rows.Count} >>\nstream\n");
+            text.Append($"5 0 obj\n<< /Type /XRef /Size {declaredSize} /Index [0 {PreviousSize}] /W [1 4 2] /Root 1 0 R /Info 4 0 R {ids} /Length {rows.Count} >>\nstream\n");
             text.Append(Encoding.Latin1.GetString(rows.ToArray()));
             text.Append("\nendstream\nendobj\n");
         }
@@ -150,7 +202,7 @@ public class AppendedRevisionSizeTests
                 text.Append($"{offset:0000000000} 00000 n \n");
             for (var number = offsets.Count + 1; number < PreviousSize; number++)
                 text.Append("0000000000 00001 f \n");
-            text.Append($"trailer\n<< /Size {PreviousSize} /Root 1 0 R /Info 4 0 R {ids} >>\n");
+            text.Append($"trailer\n<< /Size {declaredSize} /Root 1 0 R /Info 4 0 R {ids} >>\n");
         }
 
         text.Append($"startxref\n{startxref}\n%%EOF\n");

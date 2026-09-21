@@ -84,10 +84,18 @@ entries — its highest objects deleted, `/Size` left where it was — therefore
 them, took numbers the previous revision had freed. ISO 32000-1 7.5.5 has `/Size` one past the
 highest number used anywhere in the file, and an update may not make it smaller.
 
-`PdfReader` now raises the table's `MaxObjectNumber` to the last revision's `/Size` less one when it
-opens a document for `Append`, before the page tree is flattened and so before anything can be given
-a number. Every number handed out after that is at least the previous `/Size`, and both sections
-write `/Size` as one past the highest number, so neither needed a rule of its own.
+`PdfReader` now raises the table's `MaxObjectNumber` to the largest `/Size` less one when it opens a
+document for `Append`, before the page tree is flattened and so before anything can be given a
+number. Every number handed out after that is at least the previous `/Size`, and both sections write
+`/Size` as one past the highest number, so neither needed a rule of its own. Two details:
+
+- **The largest over every revision, not the newest.** `Parser.ReadTrailer` records it as it walks
+  `/Prev`, because a file this library appended to before the fix has its larger `/Size` only in the
+  revision before the shrunken one.
+- **A `/Size` above 8,388,608 is ignored.** ISO 32000-1 Annex C allows 8,388,607 indirect objects,
+  so anything larger is damage, and believing `/Size 2147483647` gave the next object `int.MaxValue`
+  and the one after it a negative number.
+
 `AppendedRevisionSizeTests` hand-writes one file of each kind with `/Size 12` and four live objects.
 
 ## What it costs, honestly

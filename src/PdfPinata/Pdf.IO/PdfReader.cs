@@ -606,14 +606,14 @@ public static class PdfReader
                     // a release build. Written as an assertion on document.Pages, the flattening
                     // this depends on simply would not happen where it matters most.
                     //
-                    // Before anything can be given a number: every number below the last revision's
-                    // /Size is one the file already accounts for, in use or freed, so the next new
-                    // object starts from there rather than one past the highest object in use. A
-                    // section that ends in free entries has a /Size above that, and numbering from
-                    // the live objects shrank the appended /Size and reused a freed number, both of
-                    // which ISO 32000-1 7.5.5 forbids an update to do.
+                    // Before anything can be given a number: every number below a revision's /Size
+                    // is one the file already accounts for, in use or freed, so the next new object
+                    // starts from the largest of them rather than one past the highest object in
+                    // use. A section that ends in free entries has a /Size above that, and numbering
+                    // from the live objects shrank the appended /Size and reused a freed number,
+                    // both of which ISO 32000-1 7.5.5 forbids an update to do.
                     document._irefTable.MaxObjectNumber = Math.Max(document._irefTable.MaxObjectNumber,
-                        document._trailer.Size - 1);
+                        parser.LargestSize - 1);
 
                     var pages = document.Pages;
                     Debug.Assert(pages != null);

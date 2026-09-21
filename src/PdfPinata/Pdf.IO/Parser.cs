@@ -95,6 +95,22 @@ internal sealed class Parser
     /// </summary>
     internal List<PdfCrossReferenceStream> CrossReferenceStreams { get; } = new();
 
+    /// <summary>
+    /// The largest <c>/Size</c> any trailer <see cref="ReadTrailer"/> has read declares, over every
+    /// revision rather than the newest alone, or zero when none declares one it can believe.
+    /// </summary>
+    /// <remarks>
+    /// Every number below it is one the file accounts for, in use or freed, and an appended
+    /// revision may not reuse one (ISO 32000-1 7.5.5). The newest trailer is not enough: a file an
+    /// earlier incremental save shrank the /Size of carries the larger value only further back. A
+    /// /Size beyond the most indirect objects ISO 32000-1 Annex C lets a file have is damage rather
+    /// than a count, and is ignored rather than allowed to push new numbers towards overflow.
+    /// </remarks>
+    internal int LargestSize { get; private set; }
+
+    /// <summary>ISO 32000-1 Table C.1: at most 8,388,607 indirect objects, so /Size is at most one more.</summary>
+    const int MaximumSize = 8_388_608;
+
     public PdfObjectID ReadObjectNumber(int position)
     {
         _lexer.Position = position;
@@ -1173,6 +1189,10 @@ internal sealed class Parser
             // Before /Prev, because the stream belongs to the revision just read rather than to the
             // one before it.
             ReadHybridCrossReferenceStream(trailer, accuracy);
+
+            var size = trailer != null ? trailer.Elements.GetInteger(PdfTrailer.Keys.Size) : 0;
+            if (size <= MaximumSize)
+                LargestSize = Math.Max(LargestSize, size);
 
             var prev = trailer != null ? trailer.Elements.GetInteger(PdfTrailer.Keys.Prev) : 0;
             if (prev == 0)
