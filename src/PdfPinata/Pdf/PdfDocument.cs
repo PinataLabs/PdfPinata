@@ -421,7 +421,14 @@ public sealed class PdfDocument : PdfObject, IDisposable
 
         stream.Write(_originalBytes, 0, _originalBytes.Length);
 
-        var writer = new PdfWriter(stream, _securitySettings?.SecurityHandler);
+        // Only a revision of a file that was read encrypted is written encrypted. The handler is not
+        // asked for otherwise: on a trailer with no /Encrypt its getter builds an empty handler with
+        // no key, and anything that had merely touched SecuritySettings - the PDF/A check asks the
+        // security level - left the writer failing on it.
+        var securityHandler = _trailer.Elements.ContainsKey(PdfTrailer.Keys.Encrypt)
+            ? _trailer.SecurityHandler
+            : null;
+        var writer = new PdfWriter(stream, securityHandler);
         try
         {
             var changed = new List<PdfReference>();

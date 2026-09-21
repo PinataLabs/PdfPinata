@@ -352,6 +352,25 @@ public class IncrementalUpdateTests
         adding.Should().Throw<InvalidOperationException>();
     }
 
+    [Fact]
+    public void AskingAnUnencryptedDocumentAboutItsSecurityDoesNotEncryptTheRevision()
+    {
+        // SaveIncremental used to hand the writer whatever SecuritySettings.SecurityHandler answered,
+        // and on a document read without /Encrypt that getter builds an empty handler with no key -
+        // so merely having asked about security, as the PDF/A check does, ended the save in a
+        // NullReferenceException inside the writer.
+        var original = OriginalDocument();
+
+        var updated = AppendChange(original, document =>
+        {
+            _ = document.SecuritySettings.DocumentSecurityLevel;
+            document.Info.Subject = "Changed";
+        });
+
+        Appended(updated, original.Length).Should().NotContain("/Encrypt");
+        Reopen(updated).Info.Subject.Should().Be("Changed");
+    }
+
     /// <summary>A document to append to, with more than one page so a change is visibly partial.</summary>
     private static byte[] OriginalDocument()
     {
