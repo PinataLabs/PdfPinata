@@ -150,6 +150,58 @@ public class TableRenderingTests
         return document;
     }
 
+    // ----- a cell over every column at once -----
+    //
+    // The shape in https://github.com/empira/PDFsharp/issues/358, where upstream's table renderer
+    // throws "GetMinMergedCell: Unexpected problem #1" while laying it out. It is not a defect
+    // here: that method still looks for the cell whose merge ends soonest at or below the row it
+    // is asked about, where upstream's rewrite of it asks each cell of the row whether its merge
+    // ends on that row - which is a way of asking whether it is merged downwards at all, and no
+    // cell of such a row is not. Grafting upstream's version into this fork fails all three of
+    // these with that message, so they are a guard rather than a formality.
+
+    [Theory]
+    [InlineData(2, 1)]
+    [InlineData(8, 1)]
+    [InlineData(8, 2)]
+    public void ACellOverEveryColumnAndMoreThanOneRowIsDrawnWithTheRowsBelowIt(int columns, int mergeDown)
+    {
+        var page = Rendered.FirstPageOf(SpanningEveryColumn(columns, mergeDown));
+
+        // One run of text for the cell that spans the table, and one for each cell of the ordinary
+        // row underneath it - so the table was laid out to the end rather than abandoned part way.
+        TextOperators.ShownStrings(page).Count.Should().Be(1 + columns);
+    }
+
+    /// <summary>
+    ///   A table whose first cell covers every column and more than one row, with an ordinary row
+    ///   under it.
+    /// </summary>
+    static Document SpanningEveryColumn(int columns, int mergeDown)
+    {
+        var document = new Document();
+        var table = document.AddSection().AddTable();
+        table.Borders.Visible = true;
+
+        for (var column = 0; column < columns; column++)
+            table.AddColumn(Unit.FromCentimeter(2));
+
+        var first = table.AddRow();
+        first[0].MergeRight = columns - 1;
+        first[0].MergeDown = mergeDown;
+        first[0].AddParagraph("over");
+
+        // The rows the merge reaches into hold no cells of their own.
+        for (var row = 0; row < mergeDown; row++)
+            table.AddRow();
+
+        var last = table.AddRow();
+        for (var column = 0; column < columns; column++)
+            last[column].AddParagraph("c" + column);
+
+        return document;
+    }
+
     /// <summary>A two by two table, with whatever the caller wants merged in it merged.</summary>
     static Document Merged(Action<(Cell TopLeft, Cell TopRight)> merge)
     {
