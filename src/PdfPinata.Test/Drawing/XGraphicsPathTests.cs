@@ -560,16 +560,50 @@ public class XGraphicsPathTests
     }
 
     [Fact]
-    public void StartingAFigureExplicitlyDoesNothing()
+    public void StartingAFigureExplicitlyBeginsANewContour()
     {
-        // Unlike AddMove, StartFigure is a stub - it does not begin a contour. Worth pinning
-        // because the name promises otherwise.
+        // Two lines added one after the other are joined into one figure; StartFigure between
+        // them is what keeps them apart, without closing the first.
+        FigureCount(path =>
+        {
+            path.AddLine(100, 100, 200, 100);
+            path.AddLine(300, 300, 400, 300);
+        }).Should().Be(1);
+
         FigureCount(path =>
         {
             path.AddLine(100, 100, 200, 100);
             path.StartFigure();
             path.AddLine(300, 300, 400, 300);
-        }).Should().Be(1);
+        }).Should().Be(2);
+    }
+
+    [Fact]
+    public void StartingAFigureKeepsAConnectedPathApartToo()
+    {
+        var other = new XGraphicsPath();
+        other.AddLine(300, 300, 400, 300);
+
+        FigureCount(path =>
+        {
+            path.AddLine(100, 100, 200, 100);
+            path.StartFigure();
+            path.AddPath(other, connect: true);
+        }).Should().Be(2);
+    }
+
+    [Fact]
+    public void StartingAFigureAsksOnlyOnce()
+    {
+        // The request is spent by the segment that begins the new figure; the one after it
+        // continues that figure as usual.
+        FigureCount(path =>
+        {
+            path.AddLine(100, 100, 200, 100);
+            path.StartFigure();
+            path.AddLine(300, 300, 400, 300);
+            path.AddLine(400, 300, 400, 400);
+        }).Should().Be(2);
     }
 
     // ----- the path as an object -----------------------------------------------------------------

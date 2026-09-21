@@ -51,13 +51,14 @@ internal class CoreGraphicsPath
     {
         _points = new List<XPoint>(path._points);
         _types = new List<byte>(path._types);
+        _startNewFigure = path._startNewFigure;
     }
 
     public void MoveOrLineTo(double x, double y)
     {
-        // Make a MoveTo if there is no previous subpath or the previous subpath was closed.
-        // Otherwise make a LineTo.
-        if (_types.Count == 0 || (_types[^1] & PathPointTypeCloseSubpath) == PathPointTypeCloseSubpath)
+        // Make a MoveTo if there is no previous subpath, the previous subpath was closed, or a new
+        // figure was asked for. Otherwise make a LineTo.
+        if (!CanContinueFigure)
             MoveTo(x, y);
         else
             LineTo(x, y, false);
@@ -67,7 +68,24 @@ internal class CoreGraphicsPath
     {
         _points.Add(new XPoint(x, y));
         _types.Add(PathPointTypeStart);
+        _startNewFigure = false;
     }
+
+    /// <summary>
+    /// Leaves the current subpath open but makes the next point added start a subpath of its own.
+    /// </summary>
+    public void StartFigure()
+    {
+        _startNewFigure = true;
+    }
+
+    /// <summary>
+    /// Whether the next point added may be joined to the current subpath: there is one, it is not
+    /// closed, and no new figure has been asked for since it was begun.
+    /// </summary>
+    bool CanContinueFigure =>
+        !_startNewFigure && _types.Count > 0
+                         && (_types[^1] & PathPointTypeCloseSubpath) != PathPointTypeCloseSubpath;
 
     public void LineTo(double x, double y, bool closeSubpath)
     {
@@ -312,8 +330,8 @@ internal class CoreGraphicsPath
         if (count == 0)
             return;
 
-        var canConnect = connect && _types.Count > 0
-                                 && (_types[^1] & PathPointTypeCloseSubpath) != PathPointTypeCloseSubpath;
+        var canConnect = connect && CanContinueFigure;
+        _startNewFigure = false;
 
         for (var idx = 0; idx < count; idx++)
         {
@@ -389,4 +407,5 @@ internal class CoreGraphicsPath
 
     readonly List<XPoint> _points = new();
     readonly List<byte> _types = new();
+    bool _startNewFigure;
 }

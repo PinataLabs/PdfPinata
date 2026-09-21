@@ -1759,11 +1759,21 @@ public sealed class XGraphics : IDisposable
     /// Saves a graphics container with the current state of this XGraphics and
     /// opens and uses a new graphics container.
     /// </summary>
+    /// <param name="dstrect">The rectangle, in points, the source rectangle is mapped onto.</param>
+    /// <param name="srcrect">The rectangle, measured in <paramref name="unit"/>, mapped onto the destination.</param>
+    /// <param name="unit">The unit the source rectangle is measured in. What is drawn inside the container
+    /// is still measured in points; the unit says only how big the source rectangle is.</param>
     public XGraphicsContainer BeginContainer(XRect dstrect, XRect srcrect, XGraphicsUnit unit)
     {
-        // TODO: unit
+        if (!Enum.IsDefined(unit))
+            throw new ArgumentException("The unit is not a member of XGraphicsUnit.", nameof(unit));
+
         if (unit != XGraphicsUnit.Point)
-            throw new ArgumentException("The current implementation supports XGraphicsUnit.Point only.", nameof(unit));
+        {
+            srcrect = new XRect(new XUnit(srcrect.X, unit).Point, new XUnit(srcrect.Y, unit).Point,
+                new XUnit(srcrect.Width, unit).Point, new XUnit(srcrect.Height, unit).Point);
+            unit = XGraphicsUnit.Point;
+        }
 
         var xContainer = new XGraphicsContainer();
 
@@ -1778,9 +1788,12 @@ public sealed class XGraphics : IDisposable
         var matrix = new XMatrix();
         var scaleX = dstrect.Width / srcrect.Width;
         var scaleY = dstrect.Height / srcrect.Height;
-        matrix.TranslatePrepend(-srcrect.X, -srcrect.Y);
+        // A point is moved so the source corner is the origin, scaled, then moved onto the
+        // destination corner. Each prepend comes before the ones already there, so they are
+        // written in the reverse of that order.
+        matrix.TranslatePrepend(dstrect.X, dstrect.Y);
         matrix.ScalePrepend(scaleX, scaleY);
-        matrix.TranslatePrepend(dstrect.X / scaleX, dstrect.Y / scaleY);
+        matrix.TranslatePrepend(-srcrect.X, -srcrect.Y);
         AddTransform(matrix, XMatrixOrder.Prepend);
 
         return xContainer;

@@ -763,66 +763,67 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         }
     }
 
-    // TODO: incomplete - srcRect not used
+    /// <summary>
+    /// Draws the part of an image that <paramref name="srcRect"/> names, measured in
+    /// <paramref name="srcUnit"/> from the image's top left corner, scaled to fill
+    /// <paramref name="destRect"/>.
+    /// </summary>
+    /// <remarks>
+    /// PDF has no operator that draws part of an image, so the whole image is drawn, scaled and
+    /// moved so that the part asked for lands on the destination, and clipped to the destination
+    /// so that nothing else shows. Asked for the whole image, this is the plain overload exactly,
+    /// with no clip written.
+    /// </remarks>
     public void DrawImage(XImage image, XRect destRect, XRect srcRect, XGraphicsUnit srcUnit)
     {
-        const string format = Config.SignificantFigures4;
+        if (!Enum.IsDefined(srcUnit))
+            throw new ArgumentException("The unit is not a member of XGraphicsUnit.", nameof(srcUnit));
 
-        var x = destRect.X;
-        var y = destRect.Y;
-        var width = destRect.Width;
-        var height = destRect.Height;
+        var srcX = new XUnit(srcRect.X, srcUnit).Point;
+        var srcY = new XUnit(srcRect.Y, srcUnit).Point;
+        var srcWidth = new XUnit(srcRect.Width, srcUnit).Point;
+        var srcHeight = new XUnit(srcRect.Height, srcUnit).Point;
 
-        var name = Realize(image);
-        if (!(image is XForm))
+        var imageWidth = image.PointWidth;
+        var imageHeight = image.PointHeight;
+
+        if (IsAbout(srcX, 0) && IsAbout(srcY, 0) && IsAbout(srcWidth, imageWidth) && IsAbout(srcHeight, imageHeight))
         {
-            if (_gfx.PageDirection == XPageDirection.Downwards)
-            {
-                AppendFormatImage("q {2:" + format + "} 0 0 {3:" + format + "} {0:" + format + "} {1:" + format + "} cm {4} Do\nQ\n",
-                    x, y + height, width, height, name);
-            }
-            else
-            {
-                AppendFormatImage("q {2:" + format + "} 0 0 {3:" + format + "} {0:" + format + "} {1:" + format + "} cm {4} Do Q\n",
-                    x, y, width, height, name);
-            }
+            DrawImage(image, destRect.X, destRect.Y, destRect.Width, destRect.Height);
+            return;
         }
-        else
+
+        // No part of the image, or not a number: there is nothing to scale to the destination.
+        if (!(srcWidth > 0) || !(srcHeight > 0))
+            return;
+
+        var scaleX = destRect.Width / srcWidth;
+        var scaleY = destRect.Height / srcHeight;
+
+        BeginPage();
+        BeginGraphicMode();
+        RealizeTransform();
+        SaveState();
+
+        // Restored whatever happens, or a failed image would leave everything after it on the page
+        // clipped to where the image was to go.
+        try
         {
-            BeginPage();
+            var clip = new XGraphicsPath();
+            clip.AddRectangle(destRect);
+            _gfxState.SetAndRealizeClipPath(clip);
 
-            var form = (XForm)image;
-            form.Finish();
-
-            Owner.FormTable.GetForm(form);
-
-            var cx = width / image.PointWidth;
-            var cy = height / image.PointHeight;
-
-            if (cx != 0 && cy != 0)
-            {
-                var xForm = image as XPdfForm;
-                if (_gfx.PageDirection == XPageDirection.Downwards)
-                {
-                    var xDraw = x;
-                    var yDraw = y;
-                    if (xForm != null)
-                    {
-                        // Yes, it is an XPdfForm - adjust the position where the page will be drawn.
-                        xDraw -= xForm.Page.MediaBox.X1;
-                        yDraw += xForm.Page.MediaBox.Y1;
-                    }
-                    AppendFormatImage("q {2:" + format + "} 0 0 {3:" + format + "} {0:" + format + "} {1:" + format + "} cm {4} Do Q\n",
-                        xDraw, yDraw + height, cx, cy, name);
-                }
-                else
-                {
-                    // No MediaBox offset here, unlike Downwards: Upwards is obsolete and was never finished.
-                    AppendFormatImage("q {2:" + format + "} 0 0 {3:" + format + "} {0:" + format + "} {1:" + format + "} cm {4} Do Q\n",
-                        x, y, cx, cy, name);
-                }
-            }
+            DrawImage(image, destRect.X - srcX * scaleX, destRect.Y - srcY * scaleY,
+                imageWidth * scaleX, imageHeight * scaleY);
         }
+        finally
+        {
+            BeginGraphicMode();
+            RestoreState();
+        }
+
+        static bool IsAbout(double value, double expected) =>
+            Math.Abs(value - expected) <= 1e-6 * Math.Max(1, Math.Abs(expected));
     }
 
     #endregion
@@ -972,14 +973,26 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
 
         // Save InternalGraphicsState and transformation of the current graphical state.
         var state = _gfxState.InternalState;
+        var effectiveCtm = _gfxState.RealizedCtm;
+        effectiveCtm.Prepend(_gfxState.UnrealizedCtm);
+        var worldTransform = _gfxState.WorldTransform;
         // Empty clip path by switching back to the previous state.
         RestoreState();
         SaveState();
         // Save internal state
         _gfxState.InternalState = state;
-        // Restore CTM
-        // TODO: check rest of clip
-        //GfxState.Transform = ctm;
+        // The Q that emptied the clip also discarded every cm written since the clip was set, so what
+        // XGraphics.Transform says is no longer what the page has. Whatever the restored state lacks
+        // becomes unrealized again, and the next drawing operation writes it back.
+        var restoredInverse = _gfxState.RealizedCtm;
+        if (restoredInverse.HasInverse)
+        {
+            restoredInverse.Invert();
+            var unrealized = effectiveCtm;
+            unrealized.Append(restoredInverse);
+            _gfxState.UnrealizedCtm = unrealized;
+            _gfxState.WorldTransform = worldTransform;
+        }
     }
 
     /// <summary>
@@ -999,8 +1012,10 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// </summary>
     public void WriteComment(string comment)
     {
-        comment = comment.Replace("\n", "\n% ");
-        // TODO: Some more checks necessary?
+        // A PDF comment runs to the end of the line, and a carriage return ends a line as surely as a
+        // line feed does - so every line break, of whichever kind, has to start another comment, or
+        // what follows it is read as content.
+        comment = comment.Replace("\r\n", "\n").Replace('\r', '\n').Replace("\n", "\n% ");
         Append("% " + comment + "\n");
     }
 
