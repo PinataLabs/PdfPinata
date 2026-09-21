@@ -108,6 +108,18 @@ The stream is dropped **whole**. It is read into a cross-reference table of its 
 the document's only once all of it has been read, so a stream damaged halfway through does not leave
 the entries before the damage in effect.
 
+That takes two lists rather than one. The parser also keeps every cross-reference stream it reads,
+for `PdfReader` to resolve compressed objects from once the whole chain is read, and it adds a
+stream to that list before decoding a single entry — so a dropped stream is taken back out of it as
+well, or `PdfReader` would still read the compressed objects its entries named before the damage.
+`ModerateAccuracyKeepsNothingOfACompressedEntryReadBeforeTheDamage` pins it.
+
+The stream's own entry is merged on the condition `ReadXRefStream` uses for any cross-reference
+stream: an entry already holding the stream's number is the stream's only if it points at the
+stream. A newer revision may have given that number to another object (empira/PDFsharp#353), and
+hanging the stream on that object's entry turns the object into a cross-reference stream.
+`ANewerRevisionGivingTheStreamsNumberToAnotherObjectKeepsThatObject` pins it.
+
 A `/XRefStm` naming a position outside the file is refused the same way and says so in those words,
 rather than arriving as an out-of-range exception from the lexer. So is one naming a position inside
 the file where there is no cross-reference stream — a classic table, or anything else — which would

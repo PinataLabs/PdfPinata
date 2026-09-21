@@ -154,6 +154,30 @@ public class HybridCrossReferenceTests
     }
 
     [Fact]
+    public void ModerateAccuracyKeepsNothingOfACompressedEntryReadBeforeTheDamage()
+    {
+        // The same, with the good entry a compressed one. Those are resolved by PdfReader once the
+        // whole trailer chain is read, from every cross-reference stream the parser kept - so a
+        // stream dropped from the table but not from that list still put object 7 in the document.
+        var document = Opened(DamagedAfterACompressedEntry(), accuracy: PdfReadAccuracy.Moderate);
+
+        document.PageCount.Should().Be(1);
+        GraphicsStateOf(document).Should().BeNull();
+    }
+
+    [Fact]
+    public void ANewerRevisionGivingTheStreamsNumberToAnotherObjectKeepsThatObject()
+    {
+        // The newer revision is read first, so its entry for 6 is in the table, with a position and
+        // no value, when the older revision's /XRefStm is merged. Hanging the stream on that entry
+        // made the newer object read as a cross-reference stream - empira/PDFsharp#353's shape.
+        var document = Opened(WithAnUpdateReusingTheStreamsNumber());
+
+        document.Internals.Catalog.Elements.GetDictionary("/Extra")!.Elements.GetName("/Kind").Should().Be("/Newer");
+        GraphicsStateOf(document).Should().NotBeNull("the stream still says where object 7 is");
+    }
+
+    [Fact]
     public void ModerateAccuracyOpensAFileWhoseXRefStmNamesNoStream()
     {
         var document = Opened(Hybrid(nameTheCatalog: true), accuracy: PdfReadAccuracy.Moderate);
@@ -243,6 +267,58 @@ public class HybridCrossReferenceTests
         return pdf.Finish(inUse: 6, free: new[] { 7 }, trailerExtras: " /XRefStm " + pdf.PositionOf(6));
 
         static string Entry(int position) => "\u0001" + (char)(position >> 8) + (char)(position & 0xFF) + "\u0000";
+    }
+
+    /// <summary>
+    ///   A hybrid file whose stream locates object 7 inside object stream 5 and then names, for
+    ///   object 8, a position where no object starts.
+    /// </summary>
+    static byte[] DamagedAfterACompressedEntry()
+    {
+        var pdf = new Builder();
+
+        pdf.Object(1, "<< /Type /Catalog /Pages 2 0 R >>");
+        pdf.Object(2, "<< /Type /Pages /Kids [3 0 R] /Count 1 >>");
+        pdf.Object(3, Page);
+        pdf.Object(4, RawPdf.Stream("", Content));
+
+        var packed = "7 0\n" + GraphicsState;
+        pdf.Object(5, "<< /Type /ObjStm /N 1 /First 4 /Length " + packed.Length + " >>stream\n" +
+                      packed + "\nendstream");
+
+        // Type 2, in object stream 5, first in it; then type 1 at the catalog's dictionary.
+        var position = DictionaryOf(pdf, 1);
+        var entries = "\u0002\u0000\u0005\u0000" +
+                      "\u0001" + (char)(position >> 8) + (char)(position & 0xFF) + "\u0000";
+        pdf.Object(6, "<< /Type /XRef /Size 9 /W [1 2 1] /Index [7 2] /Root 1 0 R /Length " + entries.Length +
+                      " >>stream\n" + entries + "\nendstream");
+
+        return pdf.Finish(inUse: 6, free: new[] { 7 }, trailerExtras: " /XRefStm " + pdf.PositionOf(6));
+    }
+
+    /// <summary>
+    ///   <see cref="Hybrid" /> with a classic incremental update after it that gives number 6 - the
+    ///   cross-reference stream's - to a new object, and rewrites the catalog to name it.
+    /// </summary>
+    static byte[] WithAnUpdateReusingTheStreamsNumber()
+    {
+        var original = Encoding.Latin1.GetString(Hybrid());
+        var marker = original.LastIndexOf("startxref\n", StringComparison.Ordinal) + "startxref\n".Length;
+        var previous = original.Substring(marker, original.IndexOf('\n', marker) - marker);
+
+        var pdf = new StringBuilder(original);
+        var catalog = pdf.Length;
+        pdf.Append("1 0 obj\n<< /Type /Catalog /Pages 2 0 R /Extra 6 0 R >>\nendobj\n");
+        var newer = pdf.Length;
+        pdf.Append("6 0 obj\n<< /Kind /Newer >>\nendobj\n");
+
+        var startOfTable = pdf.Length;
+        pdf.Append("xref\n1 1\n").Append(catalog.ToString("D10")).Append(" 00000 n \n");
+        pdf.Append("6 1\n").Append(newer.ToString("D10")).Append(" 00000 n \n");
+        pdf.Append("trailer\n<< /Size 8 /Root 1 0 R /Prev ").Append(previous).Append(" >>\n");
+        pdf.Append("startxref\n").Append(startOfTable).Append("\n%%EOF\n");
+
+        return Encoding.Latin1.GetBytes(pdf.ToString());
     }
 
     /// <summary>Where an object's body starts, past its <c>n 0 obj</c> line.</summary>
