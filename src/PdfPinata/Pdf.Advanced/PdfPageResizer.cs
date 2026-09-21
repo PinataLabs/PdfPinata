@@ -167,8 +167,7 @@ static class PdfPageResizer
     /// </summary>
     internal static XRect SourceRectOf(PdfPage page)
     {
-        // Not page.CropBox: its getter passes create: true, so merely asking whether there is a
-        // crop box would give the page one.
+        // Null for a box the page does not state, where page.CropBox answers the empty rectangle.
         var media = RectangleOf(page, PdfPage.InheritablePageKeys.MediaBox);
         var crop = RectangleOf(page, PdfPage.InheritablePageKeys.CropBox);
         var box = crop ?? media;
@@ -341,7 +340,7 @@ static class PdfPageResizer
     /// <summary>
     /// The rectangle held under the key of any dictionary, or null where it holds none.
     /// </summary>
-    static PdfRectangle RectangleOf(PdfDictionary dictionary, string key)
+    internal static PdfRectangle RectangleOf(PdfDictionary dictionary, string key)
     {
         var item = dictionary.Elements[key];
         if (item is PdfReference reference)
@@ -447,8 +446,8 @@ static class PdfPageResizer
     static void SetBoxes(PdfPage page, XRect target, XMatrix matrix, PageSize size)
     {
         // The crop box and the rest describe parts of the content, so they go where it goes.
-        // Read and write the elements rather than the properties, whose getters would create the
-        // very boxes this is meant to leave absent.
+        // Read the elements rather than the properties, so that a box the page does not state is
+        // told apart from one it states as empty, and is left absent.
         foreach (var key in new[]
                  {
                      PdfPage.InheritablePageKeys.CropBox, PdfPage.Keys.BleedBox,

@@ -9,7 +9,7 @@ investigation turned up. All three are tracked the same way, because what a read
 first is the same in each case: is this the code as it stands, or the code as somebody hoped it
 would be?
 
-**45 done · 4 in progress · 10 not started · 59 total.**
+**46 done · 4 in progress · 10 not started · 60 total.**
 
 Read the relevant spec before extending that feature area.
 
@@ -46,6 +46,7 @@ decisions, not outstanding work.
 - [x] [nested-lists.md](nested-lists.md) — a list inside a list, said through `ListInfo.NestingLevel` and nested in the tree (G2 tail)
 - [x] [nice-to-have-inventory.md](nice-to-have-inventory.md) — the ten deferred features, each with the seam it would be tested at; re-verified 30 August 2026 and none picked up. An inventory, not a proposal.
 - [x] [outline-destinations.md](outline-destinations.md) — outlines on a LaTeX document, empira#8
+- [x] [page-boxes.md](page-boxes.md) — reading a page box no longer writes an empty one; `Has…Box` and `Effective…Box` (ISO 32000-1 14.11.2)
 - [x] [page-resize.md](page-resize.md) — resizing a page that already has content on it
 - [x] [parser-document-decoupling.md](parser-document-decoupling.md) — narrowing what the parser needs of a document (T13)
 - [x] [pdf-a-conformance.md](pdf-a-conformance.md) — PDF/A, XMP metadata and hybrid e-invoicing (G4)
