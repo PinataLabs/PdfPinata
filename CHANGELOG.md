@@ -70,6 +70,22 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ### Fixed
 
+- **A read-only form field refuses a value however it is given one.** `PdfAcroField.Value` threw
+  `InvalidOperationException` for a field whose `ReadOnly` flag was set, but `PdfTextField.Text`,
+  `PdfCheckBoxField.Checked`, `SelectedIndex` on radio groups, combo boxes and list boxes, and
+  `PdfListBoxField.SelectedIndices` wrote `/V` without asking — so the same field was refused a value
+  by one name and took it by another. They all make the same check now. Code that set `ReadOnly`
+  before filling a field in has to fill it in first (#62).
+
+- **An incremental save no longer writes a `/Size` smaller than the revision before it, or reuses a
+  freed object number.** New objects were numbered from one past the highest object still in use,
+  and the appended `/Size` was written the same way, for a classic trailer and for the
+  cross-reference stream `SaveIncremental` now writes. When a file's last cross-reference section
+  ended in free entries, the update shrank `/Size` and handed out numbers the file had already
+  freed, both of which ISO 32000-1 7.5.5 forbids. Numbering now starts at the largest `/Size` any
+  revision declares. A `/Size` beyond the 8,388,607 objects ISO 32000-1 allows is ignored rather than
+  allowed to overflow the numbering (#63).
+
 - **A fully transparent pen or brush is painted transparent when it is the first colour drawn, or
   the first after a gradient.** The colour last written started out as `XColor.Empty`, whose alpha
   is 0, so a first colour with alpha 0 matched it and no `/CA` or `/ca` was written — and the shape
