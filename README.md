@@ -22,7 +22,7 @@ PdfPinata is a fork of [PdfSharpCore](https://github.com/ststeiger/PdfSharpCore)
 
 The core `PdfPinata` package has no imaging or font-rendering dependency of its own. Choose a backend package and register it once when your application starts.
 
-**Documentation:** <https://pinatalabs.github.io/PdfPinata/> has installation steps, a getting-started guide, a page for each feature, and a gallery of every demo with the PDF it makes.
+**[Documentation](https://pinatalabs.github.io/PdfPinata):**  has installation steps, a getting-started guide, a page for each feature, and a gallery of every demo with the PDF it makes.
 
 ## Badges
 
