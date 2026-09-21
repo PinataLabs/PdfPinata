@@ -107,13 +107,15 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ### Deprecated
 
-- **`XGraphics.FromImage` and `XBitmapImage.CreateBitmap`.** `FromImage` has always returned null,
-  because this library has no way to draw onto an image. `CreateBitmap` makes a bitmap with a size
-  and no pixels, whose only use was to be passed to `FromImage`. Both are left from PDFsharp's GDI+
-  and WPF builds and will be removed. To draw something that can be placed like an image, draw onto
-  an `XForm` through `XGraphics.FromForm`.
+- **`XBitmapImage.CreateBitmap`.** It makes a bitmap with a size and no pixels, whose only use was
+  to be passed to `XGraphics.FromImage`, which is removed below. It is left from PDFsharp's GDI+ and
+  WPF builds and will be removed too.
 
 ### Removed
+
+- **`XGraphics.FromImage`.** It always returned null, because this library has no way to draw onto
+  an image. It was left from PDFsharp's GDI+ and WPF builds. To draw something that can be placed
+  like an image, draw onto an `XForm` through `XGraphics.FromForm`.
 
 - **`PdfWriterLayout.Verbose`.** Nothing in the library ever selected it, since the writer that
   reads the layout is internal and is always given the default, `Compact`. So no document was

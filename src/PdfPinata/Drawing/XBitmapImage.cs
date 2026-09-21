@@ -58,7 +58,7 @@ public sealed class XBitmapImage : XBitmapSource
     /// <summary>
     /// Creates a default 24 bit ARGB bitmap with the specified pixel size.
     /// </summary>
-    [System.Obsolete("The bitmap has a size and no pixels, and nothing can draw onto it - XGraphics.FromImage returns null. It will be removed.")]
+    [System.Obsolete("The bitmap has a size and no pixels, and nothing can draw onto it. It will be removed.")]
     public static XBitmapSource CreateBitmap(int width, int height)
     {
         // Create a default 24 bit ARGB bitmap.

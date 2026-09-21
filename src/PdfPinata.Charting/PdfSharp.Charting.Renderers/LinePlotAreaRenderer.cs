@@ -78,8 +78,8 @@ internal class LinePlotAreaRenderer : ColumnLikePlotAreaRenderer
             for (var idx = 0; idx < count; idx++)
             {
                 // Off the series rather than through PointRendererInfos, which the line chart renderer
-                // does not fill in. A blank is a null element, and joins the values that are already
-                // drawn at zero - which is what the TODO above is about, and is not settled here.
+                // does not fill in. A blank is a null element, and is drawn at zero whatever
+                // Chart.DisplayBlanksAs says: NotPlotted and Interpolated are not implemented here.
                 var element = sri.Series.Elements[idx];
                 var v = element?.Value ?? double.NaN;
                 if (double.IsNaN(v))
