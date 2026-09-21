@@ -1203,21 +1203,6 @@ public class XTextFormatter
 
     readonly List<Block> _blocks = new();
 
-    // TODO:
-    // - more XStringFormat variations
-    // - left and right indent
-    // - first line indent
-    // - margins and paddings
-    // - background color
-    // - text background color
-    // - border style
-    // - hyphens, soft hyphens, hyphenation
-    // - kerning
-    // - change font, size, text color etc.
-    // - underline and strike-out variation
-    // - super- and sub-script
-    // - ...
-
     private XStringFormat GetXStringFormat()
     {
         // Every one of these builds a new format rather than handing out a shared one, which is

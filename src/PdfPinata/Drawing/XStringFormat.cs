@@ -43,19 +43,6 @@ public class XStringFormat
     {
     }
 
-    //TODO public StringFormat(StringFormat format);
-    //public StringFormat(StringFormatFlags options);
-    //public StringFormat(StringFormatFlags options, int language);
-    //public object Clone();
-    //public void Dispose();
-    //private void Dispose(bool disposing);
-    //protected override void Finalize();
-    //public float[] GetTabStops(out float firstTabOffset);
-    //public void SetDigitSubstitution(int language, StringDigitSubstitute substitute);
-    //public void SetMeasurableCharacterRanges(CharacterRange[] ranges);
-    //public void SetTabStops(float firstTabOffset, float[] tabStops);
-    //public override string ToString();
-
     /// <summary>
     /// Gets or sets horizontal text alignment information.
     /// </summary>
@@ -65,13 +52,6 @@ public class XStringFormat
         set => _alignment = value;
     }
     XStringAlignment _alignment;
-
-    //public int DigitSubstitutionLanguage { get; }
-    //public StringDigitSubstitute DigitSubstitutionMethod { get; }
-    //public StringFormatFlags FormatFlags { get; set; }
-    //public static StringFormat GenericDefault { get; }
-    //public static StringFormat GenericTypographic { get; }
-    //public HotkeyPrefix HotkeyPrefix { get; set; }
 
     /// <summary>
     /// Gets or sets the line alignment.

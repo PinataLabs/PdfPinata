@@ -634,20 +634,4 @@ public class XTextSegmentFormatter
 		segment.SpaceWidth = _gfx.MeasureString("x x", segment.Font).Width;
 		segment.SpaceWidth -= _gfx.MeasureString("xx", segment.Font).Width;
 	}
-
-	// TODO:
-	// - more XStringFormat variations
-	// - calculate bounding box
-	// - left and right indent
-	// - first line indent
-	// - margins and paddings
-	// - background color
-	// - text background color
-	// - border style
-	// - hyphens, soft hyphens, hyphenation
-	// - kerning
-	// - line spacing
-	// - underline and strike-out variation
-	// - super- and sub-script
-	// - ...
 }
