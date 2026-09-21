@@ -12,7 +12,7 @@ public API**. None of it needed reflection to find, and none of it needed reflec
 
 Eight defects came out of it — seven from writing the tests, one more from review of the fixes.
 A second round of tests, over legends, markers and the object model's copying, found three more,
-and an upstream report one after that. All twelve are now fixed, and the test that recorded each
+and upstream reports two after that. All thirteen are now fixed, and the test that recorded each
 has been turned round to assert the behaviour that replaced it.
 
 | # | finding | severity | status |
@@ -29,6 +29,7 @@ has been turned round to assert the behaviour that replaced it.
 | C10 | Cloning a collection that holds a blank throws | medium | **fixed** |
 | C11 | A legend reserves a line marker's size in its own unit rather than in points | low | **fixed** |
 | C12 | A line format that says `Visible = false` is still stroked, as a hairline | medium | **fixed** |
+| C13 | A second category series is drawn past the end of the axis (empira/PDFsharp#286) | medium | **fixed** |
 
 C3 and C4 were one shape seen twice: two renderers written as copies of each other, which had
 drifted apart on which inputs they survive. C1 and C8 were another, seen four times over: a
@@ -453,6 +454,33 @@ hands over, so nothing it draws is affected.
 
 Pinned by `HiddenSeriesLineTests`, across line, area, column, bar and pie charts, with and without
 a legend.
+
+---
+
+## C13. A second category series was drawn past the end of the axis — fixed
+
+Reported upstream as empira/PDFsharp#286 against Line, Column2D, ColumnStacked2D, Area2D, Bar2D
+and BarStacked2D, and reproduced here on all six. `Chart.XValues` is a collection, and
+`AddXSeries` can be called more than once, but `XAxisRenderer.Draw` walked every series without
+putting the pen back at the first category between them. With three values and two category
+series `A B C` and `X Y Z`, a column chart 400 points wide drew `X`, `Y` and `Z` at 459, 584 and
+710, and a bar chart drew them below its own foot, at -34, -127 and -220. `Format` disagreed with
+itself as well: the horizontal axis measured only the first series, the vertical one measured
+every series and reserved the width of the widest label in any of them.
+
+**What several category series should mean is not written down anywhere**, so this is a choice.
+The axis has one slot per category and one row of labels, and it is now labelled from **the first
+series alone**, in both orientations, when measuring and when drawing. That is the series the
+horizontal axis already measured and the pie legend already read (`PieLegendRenderer` takes
+`xValues[0]`), and it is what Excel does when each series names categories of its own: the axis
+takes the first series' categories and ignores the rest. The alternative, several rows of labels
+in the manner of Excel's multi-level category axis, would be a new feature with a layout of its
+own rather than a repair, and nothing in the object model says the series are levels.
+
+The one place both orientations read the series from is `XAxisRenderer.CategoryLabels`. Pinned by
+`SeveralCategorySeriesTests`, which draws all six chart types with a second, wider series and
+asserts both that none of its labels is shown and that every run of text on the page is where it
+would be with the first series alone.
 
 ---
 
