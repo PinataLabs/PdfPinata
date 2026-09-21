@@ -423,11 +423,15 @@ public sealed class PdfDocument : PdfObject, IDisposable
 
         // Only a revision of a file that was read encrypted is written encrypted. The handler is not
         // asked for otherwise: on a trailer with no /Encrypt its getter builds an empty handler with
-        // no key, and anything that had merely touched SecuritySettings - the PDF/A check asks the
-        // security level - left the writer failing on it.
-        var securityHandler = _trailer.Elements.ContainsKey(PdfTrailer.Keys.Encrypt)
-            ? _trailer.SecurityHandler
-            : null;
+        // no key and hangs it on the trailer as /Encrypt, so anything that had merely touched
+        // SecuritySettings - the PDF/A check asks the security level - left the writer failing on
+        // it. Whether the file was encrypted is therefore settled by the reader, not by the trailer.
+        // The empty handler such a question made is an object in the table too, and is left out of
+        // the revision along with the entry that pointed at it.
+        var securityHandler = _readEncrypted ? _trailer.SecurityHandler : null;
+        var strayHandler = _readEncrypted ? null : _trailer._securityHandler;
+        if (!_readEncrypted)
+            _trailer.Elements.Remove(PdfTrailer.Keys.Encrypt);
         var writer = new PdfWriter(stream, securityHandler);
         try
         {
@@ -438,7 +442,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
                 // setting an entry on it - /Info, created on save for a file that had none - marks
                 // it changed. It is the previous revision's index and is never written again: the
                 // new revision gets an index of its own.
-                if (iref.Value == _trailer)
+                if (iref.Value == _trailer || (strayHandler != null && iref.Value == strayHandler))
                     continue;
 
                 if (iref.Value != null && (iref.Value.IsDirty || !_originalObjectNumbers.Contains(iref.ObjectNumber)))
@@ -587,6 +591,13 @@ public sealed class PdfDocument : PdfObject, IDisposable
     byte[] _originalBytes;
     long _originalStartXref;
     HashSet<int> _originalObjectNumbers;
+
+    /// <summary>
+    /// Whether the file this document was read from was encrypted, recorded by the reader as it
+    /// decrypts. The live trailer cannot answer it: asking <c>SecuritySettings</c> about a
+    /// permission or a password on an unencrypted document creates an empty <c>/Encrypt</c> there.
+    /// </summary>
+    internal bool _readEncrypted;
 
     /// <summary>
     /// Whether this document has the original bytes <see cref="SaveIncremental"/> needs, which is
