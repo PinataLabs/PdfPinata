@@ -307,7 +307,7 @@ Font rasterisation varies between operating systems and installed fonts, so thes
 
 ## Contributing
 
-Feedback, bug reports, pull requests, and other contributions are welcome. [Contributing](https://pinatalabs.github.io/PdfPinata/reference/contributing) on the documentation site says how to build, test, and work on the documentation.
+Feedback, bug reports, pull requests, and other contributions are welcome. See [Contributing](https://pinatalabs.github.io/PdfPinata/reference/contributing).
 
 ## License
 
