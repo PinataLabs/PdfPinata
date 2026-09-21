@@ -117,10 +117,13 @@ internal class PdfCIDFont : PdfFont
         }
 
         // CID fonts must always be embedded. A font with CFF outlines is embedded whole,
-        // because it cannot be subsetted; only TrueType outlines are subsetted first.
+        // because it cannot be subsetted, and so is a TrueType face whose licence forbids
+        // subsetting when the document honours it; other TrueType outlines are subsetted first.
         EmbedFontProgram(true);
 
-        if (!postscriptOutlines && PdfConformanceWriter.RequiresCidSet(Owner.Options.Conformance))
+        // PDF/A-1 asks a /CIDSet of a subset alone, and one listing only the glyphs drawn would
+        // misdescribe a program holding all of them.
+        if (EmbedsSubset && PdfConformanceWriter.RequiresCidSet(Owner.Options.Conformance))
             EmbedCidSet();
     }
 

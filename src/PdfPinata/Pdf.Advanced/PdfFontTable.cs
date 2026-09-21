@@ -31,6 +31,8 @@ using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 using PdfPinata.Drawing;
+using PdfPinata.Fonts;
+using PdfPinata.Fonts.OpenType;
 
 namespace PdfPinata.Pdf.Advanced;
 
@@ -73,6 +75,12 @@ internal sealed class PdfFontTable : PdfResourceTable
         PdfFont pdfFont;
         if (!_fonts.TryGetValue(selector, out pdfFont))
         {
+            // Refused before anything is added to the document, so that a font the document will
+            // not carry leaves nothing of itself behind, and the exception comes from the call that
+            // drew with it.
+            if (Owner.Options.RespectFontEmbeddingRestrictions)
+                FontEmbeddingPermissions.EnsureEmbeddable(font.GlyphTypeface.Fontface);
+
             if (font.Unicode)
                 pdfFont = new PdfType0Font(Owner, font, font.IsVertical);
             else
@@ -98,6 +106,12 @@ internal sealed class PdfFontTable : PdfResourceTable
         PdfFont pdfFont;
         if (!_fonts.TryGetValue(selector, out pdfFont))
         {
+            if (Owner.Options.RespectFontEmbeddingRestrictions)
+            {
+                var descriptor = (OpenTypeDescriptor)FontDescriptorCache.GetOrCreateDescriptor(idName, fontData);
+                FontEmbeddingPermissions.EnsureEmbeddable(descriptor.FontFace);
+            }
+
             pdfFont = new PdfType0Font(Owner, idName, fontData, false);
             Debug.Assert(pdfFont.Owner == Owner);
             _fonts[selector] = pdfFont;
@@ -144,6 +158,12 @@ internal sealed class PdfFontTable : PdfResourceTable
 
     public void PrepareForSave()
     {
+        // Every font is asked before any is prepared, so that a refusal leaves the fonts as they
+        // were. The option may have been set after the fonts were drawn with, which is why the
+        // question is asked here as well as in GetFont.
+        foreach (var font in _fonts.Values)
+            font.EnsureEmbeddingPermitted();
+
         foreach (var font in _fonts.Values)
             font.PrepareForSave();
     }

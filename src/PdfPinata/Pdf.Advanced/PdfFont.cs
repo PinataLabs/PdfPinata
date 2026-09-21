@@ -31,6 +31,7 @@ using System;
 using System.Diagnostics;
 using System.Text;
 using PdfPinata.Fonts;
+using PdfPinata.Fonts.OpenType;
 
 namespace PdfPinata.Pdf.Advanced;
 
@@ -102,6 +103,65 @@ public class PdfFont : PdfDictionary
     }
     internal PdfToUnicodeMap ToUnicode;
 
+    /// <summary>
+    /// The base font name as it was before the constructor gave it a subset tag, or null when it
+    /// gave it none.
+    /// </summary>
+    /// <remarks>
+    /// Kept so that <see cref="RestoreWholeFontName"/> can take the tag off again: whether the
+    /// program is a subset is settled at save time, by <see cref="EmbedsSubset"/>, and the
+    /// constructor has to name the font before then.
+    /// </remarks>
+    internal string UntaggedBaseFont;
+
+    /// <summary>
+    /// Whether the font program this font embeds is a subset of its face rather than the whole of it.
+    /// </summary>
+    /// <remarks>
+    /// Two things embed a face whole. PostScript (CFF) outlines cannot be subsetted here at all, and
+    /// a face whose <c>fsType</c> says No Subsetting may not be once the document has been asked,
+    /// through <see cref="PdfDocumentOptions.RespectFontEmbeddingRestrictions"/>, to honour what its
+    /// fonts say. Everything that depends on the answer — the program written, the subset tag on the
+    /// name, PDF/A-1's <c>/CIDSet</c> — asks here, so none of them can disagree.
+    /// </remarks>
+    internal bool EmbedsSubset
+    {
+        get
+        {
+            var fontFace = FontDescriptor.Descriptor.FontFace;
+            if (fontFace.IsPostscriptOutlines)
+                return false;
+
+            return !(Owner.Options.RespectFontEmbeddingRestrictions
+                     && FontEmbeddingPermissions.Of(fontFace).ForbidsSubsetting);
+        }
+    }
+
+    /// <summary>
+    /// Refuses the font when the document honours embedding restrictions and the face's licence
+    /// forbids embedding it.
+    /// </summary>
+    internal void EnsureEmbeddingPermitted()
+    {
+        if (Owner.Options.RespectFontEmbeddingRestrictions)
+            FontEmbeddingPermissions.EnsureEmbeddable(FontDescriptor.Descriptor.FontFace);
+    }
+
+    /// <summary>
+    /// Takes off the subset tag the constructor added, when the program turns out to be embedded
+    /// whole. ISO 32000-1 9.6.4 reserves the tag for a program holding only some of the face's
+    /// glyphs, so wearing it on a whole font says something untrue.
+    /// </summary>
+    /// <param name="setBaseFont">Writes the name wherever this font carries it.</param>
+    internal void RestoreWholeFontName(Action<string> setBaseFont)
+    {
+        if (UntaggedBaseFont == null || EmbedsSubset)
+            return;
+
+        setBaseFont(UntaggedBaseFont);
+        FontDescriptor.FontName = UntaggedBaseFont;
+        UntaggedBaseFont = null;
+    }
 
     /// <summary>
     /// Writes the font program into the document and points the font descriptor at it.
@@ -114,16 +174,17 @@ public class PdfFont : PdfDictionary
     /// mean rebuilding its charstrings and subroutines - so it is embedded whole as
     /// '/FontFile3' with a subtype of '/OpenType'. '/FontFile2' would be a misdescription:
     /// the key is defined as a TrueType font program, and a viewer is entitled to read it
-    /// as one.
+    /// as one. A TrueType face that may not be subsetted, as <see cref="EmbedsSubset"/> decides,
+    /// goes into '/FontFile2' whole: its glyph indices are the ones the document already uses.
     /// </remarks>
     internal void EmbedFontProgram(bool cidFont)
     {
         var fontFace = FontDescriptor.Descriptor.FontFace;
         var postscriptOutlines = fontFace.IsPostscriptOutlines;
 
-        var fontData = postscriptOutlines
-            ? fontFace.FontSource.Bytes
-            : fontFace.CreateFontSubSet(CmapInfo.GlyphIndices, cidFont).FontSource.Bytes;
+        var fontData = EmbedsSubset
+            ? fontFace.CreateFontSubSet(CmapInfo.GlyphIndices, cidFont).FontSource.Bytes
+            : fontFace.FontSource.Bytes;
 
         var fontStream = new PdfDictionary(Owner);
         Owner.Internals.AddObject(fontStream);

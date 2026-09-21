@@ -151,9 +151,10 @@ internal sealed class TrueTypeGlyphs
     ///   A copy that calls itself something else. The library caches a font source under the
     ///   name in the font's own name table, and refuses a second one by that name, so a font
     ///   built by altering another has to stop claiming to be it. Only the first letter of each
-    ///   name is overwritten, so every string keeps its length and its offset.
+    ///   name is overwritten, so every string keeps its length and its offset. Fonts altered in
+    ///   different ways need different <paramref name="letter"/>s, or they share a name again.
     /// </summary>
-    public byte[] WithADistinctFontName()
+    public byte[] WithADistinctFontName(char letter = 'X')
     {
         var renamed = (byte[])_bytes.Clone();
         var name = _tables["name"];
@@ -174,9 +175,46 @@ internal sealed class TrueTypeGlyphs
 
             var at = storage + U16(record + 10);
             // Windows names are UTF-16BE, so the letter is the second byte of the pair.
-            renamed[U16(record) == 3 ? at + 1 : at] = (byte)'X';
+            renamed[U16(record) == 3 ? at + 1 : at] = (byte)letter;
         }
         return renamed;
+    }
+
+    /// <summary>
+    ///   A copy whose OS/2 table declares the embedding permissions <paramref name="fsType"/>,
+    ///   with the table's checksum in the directory recomputed so that the file still describes
+    ///   itself. The field is two bytes at offset 8 of the table.
+    /// </summary>
+    public byte[] WithFsType(ushort fsType)
+    {
+        var patched = (byte[])_bytes.Clone();
+        var os2 = _tables["OS/2"];
+        patched[os2 + 8] = (byte)(fsType >> 8);
+        patched[os2 + 9] = (byte)fsType;
+
+        var numTables = U16(4);
+        for (var idx = 0; idx < numTables; idx++)
+        {
+            var record = 12 + idx * 16;
+            if (Ascii(record, 4) != "OS/2")
+                continue;
+
+            var length = (int)U32(record + 12);
+            uint sum = 0;
+            for (var at = 0; at < length; at += 4)
+            {
+                uint word = 0;
+                for (var b = 0; b < 4; b++)
+                    word = (word << 8) | (at + b < length ? patched[os2 + at + b] : (byte)0);
+                sum = unchecked(sum + word);
+            }
+
+            patched[record + 4] = (byte)(sum >> 24);
+            patched[record + 5] = (byte)(sum >> 16);
+            patched[record + 6] = (byte)(sum >> 8);
+            patched[record + 7] = (byte)sum;
+        }
+        return patched;
     }
 
     private string Ascii(int offset, int length)
