@@ -54,7 +54,7 @@ GlobalFontSettings.FontResolver = new SkiaFontResolver();
 ImageSource.ImageSourceImpl = new SkiaImageSource();
 ```
 
-If a font or image API is used before its backend has been registered, PdfPinata throws a descriptive `InvalidOperationException`.
+If a font or image API is used before its backend has been registered, PdfPinata throws a `InvalidOperationException`.
 
 ### Text shaping
 
