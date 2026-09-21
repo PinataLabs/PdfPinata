@@ -55,6 +55,29 @@ This file starts at the entry below. Changes before that point are recorded only
   the defaults of ISO 32000-1 14.11.2 — the crop box defaults to the media box, the other three to
   the crop box — and clip to the media box. See `docs/specs/page-boxes.md` (#58).
 
+- **Spot colours.** `XSpotColor` names a colorant — a Pantone ink, a white underprint, a varnish —
+  with a DeviceCMYK, DeviceRGB or DeviceGray alternate, and `XColor.FromSpot(spot, tint)` paints
+  with it wherever an `XColor` goes: brushes, pens and text. It is written as one `/Separation`
+  colour space per colorant name per document, with a Type 2 tint transform. Two definitions of one
+  name with different alternates are refused, and under PDF/A the alternate is held to the output
+  intent like any device colour. Gradients, DeviceN and PinataLayout colours are not covered; see
+  `docs/specs/spot-colours.md` (empira/PDFsharp#201, #67).
+
+- **`PdfDocumentOptions.DeduplicateResources`** writes one copy of each identical font, image,
+  form, colour space, graphics state, pattern, shading and content stream when saving, so a
+  document merged from many files by importing their pages no longer carries each file's copy of
+  the same resources. Equality is structural all the way down, so a font merges together with its
+  descriptor, program, widths and `/ToUnicode` map. Pages, annotations, fields, structure elements,
+  optional content groups and signatures are never merged, and a document opened with
+  `PdfDocumentOpenMode.Append` refuses the option. Twenty copies of a 735 KB page save as 740 KB
+  rather than 14.7 MB. See `docs/specs/resource-deduplication.md` (empira/PDFsharp#275, #68).
+
+- **`PdfSignatureOptions.AnnotationFlags`** sets the signature widget's `/F`, which was fixed at
+  Print. It is written into the signed revision, so the signature covers it. The default is still
+  `Print`, and no flags leaves `/F` out. When `Options.Conformance` claims PDF/A, flags the profile
+  forbids are refused: Print is required, and Invisible, Hidden, NoView and — for parts 2 and 3 —
+  ToggleNoView are forbidden (empira/PDFsharp#157, #65).
+
 ### Changed
 
 - **`PdfSquareCircleAnnotation.Interior` and `BorderWidth` are read from the dictionary** (`/IC`
@@ -69,6 +92,23 @@ This file starts at the entry below. Changes before that point are recorded only
   Shift-JIS name that used to be written raw is now written escaped (#59).
 
 ### Fixed
+
+- **`PdfReader.Open` no longer hangs on a file whose cross-reference `/Prev` chain loops back on
+  itself.** Under `Strict`, the default, it throws `PdfReaderException`; under `Moderate` it reads
+  each section once and opens the document. The file attached to empira/PDFsharp#266, whose
+  `startxref` is followed by a hex string that never ends, already threw here, and a test now pins
+  that (#66).
+
+- **`SaveIncremental` and `PdfSigner.Sign` no longer throw `NullReferenceException` on an
+  unencrypted document whose `SecuritySettings` was read first**, which includes reading a
+  permission and signing a document that claims PDF/A. An appended revision is now encrypted only
+  when the file it extends was read encrypted (#65).
+
+- **`XTextFormatter` no longer drops the last line of text laid out in a rectangle exactly as tall
+  as `XGraphics.MeasureString` reports for it.** The two reach the same height by different
+  floating-point routes, and the fit test now allows a millionth of a point for rounding. A
+  rectangle sized as n times the height of one measured line is still too short by the line gaps
+  between them; measure the whole text instead (empira/PDFsharp#198, #64).
 
 - **A read-only form field refuses a value however it is given one.** `PdfAcroField.Value` threw
   `InvalidOperationException` for a field whose `ReadOnly` flag was set, but `PdfTextField.Text`,
