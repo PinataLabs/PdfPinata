@@ -157,22 +157,24 @@ public class CSequence : CObject, IList<CObject> // , ICollection<CObject>, IEnu
     }
 
     /// <summary>
-    /// Adds the specified sequence.
+    /// Appends the <em>contents</em> of another sequence, or an array as a single item.
     /// </summary>
-    /// <param name="sequence">The sequence.</param>
-    /// <summary>
-    /// Appends the <em>contents</em> of another sequence, not the sequence itself.
-    /// </summary>
+    /// <param name="sequence">The sequence whose items are appended, or the array to append.</param>
     /// <remarks>
-    /// Worth knowing before reaching for it, because the overload below and the
-    /// <c>IList&lt;CObject&gt;</c> one both add what they are handed as a single item, and
-    /// <see cref="CArray"/> derives from this class - so adding an array through this overload
-    /// spreads its items into the sequence and the brackets do not survive to be written. Kept as
-    /// it is, spelling and all, because it is the shape upstream ships and a caller compiled
-    /// against that is entitled to go on binding to it.
+    /// <see cref="CArray"/> derives from this class, so <c>Add(array)</c> binds here rather than to
+    /// <see cref="Add(CObject)"/>. Spreading an array's items into the sequence lost its brackets,
+    /// and <c>[(A)-250(B)] TJ</c> was written as <c>(A)-250(B)TJ</c>; an array is one operand, and
+    /// is added as one. A plain sequence - a list of operands, as the content parser builds - is
+    /// still appended item by item.
     /// </remarks>
     public void Add(CSequence sequence)
     {
+        if (sequence is CArray array)
+        {
+            _items.Add(array);
+            return;
+        }
+
         var count = sequence.Count;
         for (var idx = 0; idx < count; idx++)
             _items.Add(sequence[idx]);
