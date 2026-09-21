@@ -25,6 +25,16 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ### Fixed
 
+- **A chart line format that says `Visible = false` is no longer drawn as a hairline**
+  (empira/PDFsharp#287). The converter turns a hidden format into a pen of width 0, and PDF strokes
+  a width of 0 as the thinnest line the device can draw rather than not at all. The column plot
+  area already skipped such a pen; the line, area, bar and pie plot areas did not, and neither did
+  the legend — which also drew a line chart's key at a width of 1 whatever the series said. A hidden
+  series line, area outline, bar border or pie sector border is now not stroked, in the plot area or
+  in the legend. A line series' markers are still drawn, and so is an area's fill. A format that
+  sets a width or a colour but never `Visible = true` was already converted to width 0, and is now
+  not drawn either, as a column's border already was.
+
 - **A gradient brush's own `Transform` is honoured.** `TranslateTransform`, `ScaleTransform`,
   `RotateTransform`, `MultiplyTransform` and the `Transform` setter all changed a matrix that nothing
   read, so a transformed gradient was drawn exactly as an untransformed one. The transform now applies
