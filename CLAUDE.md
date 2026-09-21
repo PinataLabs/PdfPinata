@@ -436,9 +436,13 @@ a field that cannot be found. Nest the fields instead.
 **The same collection is a form's `/Fields` and a field's `/Kids`, and `Add` writes `/Parent` for
 the second.** ISO 32000-1 Table 220 requires the back-reference of a field that is the child of
 another and forbids it of a root field, and the collection cannot tell which it is from the outside —
-so `PdfAcroField.Fields` tells it, and `PdfAcroForm.Fields` leaves it unset. Nothing here reads
-`/Parent`; every lookup walks *down* from `/Fields`, which is why its absence went unnoticed. A
-reader assembling a field's full name walks up.
+so `PdfAcroField.Fields` tells it, and `PdfAcroForm.Fields` leaves it unset. Every *lookup* walks
+*down* from `/Fields`, which is why its absence went unnoticed; a reader assembling a field's full
+name walks up. The one thing here that reads `/Parent` is **inheritance**: `/FT` and `/Ff` are
+inheritable (Table 220), so `Flags` and the kind detection that picks a field's class both take the
+field's own entry, or else the nearest ancestor's, through `PdfAcroField.InheritedFrom` — which
+stops where a malformed chain first repeats. A file read from disk routinely says them once, on a
+parent, and a child read on its own entries alone was a flagless `PdfGenericField`.
 
 **A field's kind is written in `/Ff`, and the `Flags` setter puts those bits back.** `/Btn` is a push
 button, a radio group or a check box by two bits and `/Ch` is a combo or a list box by one, so

@@ -157,11 +157,17 @@ public abstract class PdfAcroField : PdfDictionary
     /// combo box that has to be filled in, and without this would write a <c>/Ch</c> with no
     /// <c>Combo</c> bit - which is a list box, and is what reopening the file would give back.
     /// </para>
+    /// <para>
+    /// <c>/Ff</c> is inheritable (ISO 32000-1 Table 220), so reading answers the field's own entry
+    /// when it has one and otherwise the nearest ancestor's, found up <c>/Parent</c>. A form read
+    /// from a file routinely sets the flags once on a parent and leaves its children without, and
+    /// reading the field's own entry alone answered zero for every one of them. Writing always
+    /// writes this field's own entry, which from then on replaces whatever it inherited.
+    /// </para>
     /// </remarks>
     public PdfAcroFieldFlags Flags
     {
-        // TODO: This entry is inheritable, thus the implementation is incorrect...
-        get => (PdfAcroFieldFlags)Elements.GetInteger(Keys.Ff);
+        get => InheritedFlags(this);
         set => Elements.SetInteger(Keys.Ff, (int)((value & ~KindMask) | KindFlags));
     }
 
@@ -182,8 +188,40 @@ public abstract class PdfAcroField : PdfDictionary
 
     internal PdfAcroFieldFlags SetFlags
     {
-        get => (PdfAcroFieldFlags)Elements.GetInteger(Keys.Ff);
+        // Read the way Flags reads, so that setting one bit on a field that inherits the rest
+        // writes the rest too - its own /Ff replaces the inherited one rather than adding to it.
+        get => InheritedFlags(this);
         set => Elements.SetInteger(Keys.Ff, (int)value);
+    }
+
+    /// <summary>
+    /// The field flags a field dictionary has in effect: its own <c>/Ff</c>, or the nearest
+    /// ancestor's when it has none.
+    /// </summary>
+    static PdfAcroFieldFlags InheritedFlags(PdfDictionary field)
+        => (PdfAcroFieldFlags)(InheritedFrom(field, Keys.Ff)?.Elements.GetInteger(Keys.Ff) ?? 0);
+
+    /// <summary>
+    /// The nearest of a field dictionary and its ancestors, walking up <c>/Parent</c>, that
+    /// carries an entry for an inheritable key; or null when none does.
+    /// </summary>
+    /// <remarks>
+    /// A <c>/Parent</c> chain that comes back on itself is malformed but possible in a file read
+    /// from disk, and is treated as ending where it first repeats rather than walked for ever.
+    /// </remarks>
+    static PdfDictionary InheritedFrom(PdfDictionary field, string key)
+    {
+        HashSet<PdfDictionary> visited = null;
+        for (var dict = field; dict != null; dict = dict.Elements.GetDictionary(Keys.Parent))
+        {
+            if (dict.Elements.ContainsKey(key))
+                return dict;
+
+            visited ??= [];
+            if (!visited.Add(dict))
+                return null;
+        }
+        return null;
     }
 
     /// <summary>
@@ -575,9 +613,9 @@ public abstract class PdfAcroField : PdfDictionary
             Elements.Add(field.Reference);
 
             // ISO 32000-1 Table 220: /Parent is required of a field that is the child of another
-            // and absent otherwise. Nothing in this library needs it - every lookup here walks
-            // down from /Fields - but a reader working out what a field is called walks up, and
-            // a validator checks that the two directions agree.
+            // and absent otherwise. Every lookup here walks down from /Fields, but the inheritable
+            // entries - /FT and /Ff - are read up it, a reader working out what a field is called
+            // walks up, and a validator checks that the two directions agree.
             if (_parent != null)
                 field.Elements.SetReference(Keys.Parent, _parent);
             else
@@ -683,8 +721,11 @@ public abstract class PdfAcroField : PdfDictionary
         /// </summary>
         static PdfAcroField CreateAcroField(PdfDictionary dict)
         {
-            var ft = dict.Elements.GetName(Keys.FT);
-            var flags = (PdfAcroFieldFlags)dict.Elements.GetInteger(Keys.Ff);
+            // Both entries are inheritable, and a terminal field read from a file often carries
+            // neither itself: a group of radio buttons, say, whose parent says /Btn and Radio once
+            // for all of them.
+            var ft = InheritedFrom(dict, Keys.FT)?.Elements.GetName(Keys.FT) ?? "";
+            var flags = InheritedFlags(dict);
             switch (ft)
             {
                 case "/Btn":
