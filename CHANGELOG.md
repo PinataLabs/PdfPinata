@@ -115,6 +115,9 @@ This file starts at the entry below. Changes before that point are recorded only
   to be passed to `XGraphics.FromImage`, which is removed below. It is left from PDFsharp's GDI+ and
   WPF builds and will be removed too.
 
+- **`PdfCustomValueCompressionMode`.** Its one use was `PdfCustomValue.CompressionMode`, which is
+  removed below, so nothing reads it. It will be removed.
+
 ### Removed
 
 - **`XGraphics.FromImage`.** It always returned null, because this library has no way to draw onto
