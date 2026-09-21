@@ -167,10 +167,14 @@ internal class LegendEntryRenderer : Renderer
     XRect rect;
     if (leri.SeriesRendererInfo.Series.chartType == ChartType.Line)
     {
-      // Draw line.
-      var posLineStart = new XPoint(leri.X, leri.Y + keyHeight / 2);
-      var posLineEnd = new XPoint(leri.X + leri.MarkerArea.Width, leri.Y + keyHeight / 2);
-      gfx.DrawLine(new XPen(((XSolidBrush)leri.MarkerBrush).Color), posLineStart, posLineEnd);
+      // Draw line, unless the series' own line is hidden: a pen of width 0 is how a line format
+      // that says Visible = false comes out of the converter.
+      if (leri.SeriesRendererInfo.LineFormat.Width > 0)
+      {
+        var posLineStart = new XPoint(leri.X, leri.Y + keyHeight / 2);
+        var posLineEnd = new XPoint(leri.X + leri.MarkerArea.Width, leri.Y + keyHeight / 2);
+        gfx.DrawLine(new XPen(((XSolidBrush)leri.MarkerBrush).Color), posLineStart, posLineEnd);
+      }
 
       // Draw marker.
       var x = leri.X + leri.MarkerArea.Width / 2;
@@ -182,7 +186,8 @@ internal class LegendEntryRenderer : Renderer
       // Draw series rectangle for column, bar or pie charts.
       rect = new XRect(leri.X, leri.Y, leri.MarkerArea.Width, leri.MarkerArea.Height);
       rect.Y += (keyHeight - leri.MarkerArea.Height) / 2;
-      gfx.DrawRectangle(leri.MarkerPen, leri.MarkerBrush, rect);
+      var border = leri.MarkerPen is { Width: > 0 } ? leri.MarkerPen : null;
+      gfx.DrawRectangle(border, leri.MarkerBrush, rect);
     }
 
     // Draw text, one line under another.

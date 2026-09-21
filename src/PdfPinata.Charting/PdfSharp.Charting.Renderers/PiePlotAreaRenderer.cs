@@ -76,10 +76,11 @@ internal abstract class PiePlotAreaRenderer : PlotAreaRenderer
         gfx.DrawPie(sector.FillFormat, sector.Rect, sector.StartAngle, sector.SweepAngle);
     }
 
-    // Draw border of the sectors.
+    // Draw border of the sectors. A pen of width 0 is a hidden border, and PDF would stroke it
+    // as a hairline.
     foreach (var sector in sri.PointRendererInfos.Cast<SectorRendererInfo>())
     {
-      if (!double.IsNaN(sector.StartAngle) && !double.IsNaN(sector.SweepAngle))
+      if (!double.IsNaN(sector.StartAngle) && !double.IsNaN(sector.SweepAngle) && sector.LineFormat.Width > 0)
         gfx.DrawPie(sector.LineFormat, sector.Rect, sector.StartAngle, sector.SweepAngle);
     }
 

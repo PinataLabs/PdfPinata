@@ -90,7 +90,11 @@ internal class LinePlotAreaRenderer : ColumnLikePlotAreaRenderer
         points[idx] = new XPoint(idx + xMajorTick / 2, v);
       }
       matrix.TransformPoints(points);
-      gfx.DrawLines(sri.LineFormat, points);
+
+      // A line format that says Visible = false converts to a pen of width 0, which to PDF is the
+      // thinnest line the device can draw rather than no line. The markers are still drawn.
+      if (sri.LineFormat.Width > 0)
+        gfx.DrawLines(sri.LineFormat, points);
       DrawMarker(gfx, points, sri);
     }
 
