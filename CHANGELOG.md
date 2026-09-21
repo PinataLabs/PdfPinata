@@ -10,6 +10,20 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ## [Unreleased]
 
+### Fixed
+
+- **A chart legend too wide for its chart wraps instead of running off both sides of it.** A legend
+  docked above or below the chart — which is where PinataLayout's `FooterArea.AddLegend()` and
+  `HeaderArea.AddLegend()` put it — set every entry in one row however many there were, and centred
+  that row on the chart, so a dozen category names ran off both edges of the chart and of the page
+  ([empira/PDFsharp#306](https://github.com/empira/PDFsharp/issues/306)). The entries now start a
+  new row whenever the next one would not fit across the chart, each row centred as the single row
+  was. An entry wider than the chart on its own is word wrapped inside its entry, whichever side the
+  legend is docked to, with its marker against the first line; a single word wider than the chart
+  is kept whole. A line break in a series or category name now starts a new line of its entry,
+  where `DrawString` used to drop it and run the two halves together. A legend that fits in one row
+  is laid out exactly as before. See C12 in `docs/specs/charting-renderer-findings.md`.
+
 ## [0.2.1] - 2026-09-21
 
 ### Added

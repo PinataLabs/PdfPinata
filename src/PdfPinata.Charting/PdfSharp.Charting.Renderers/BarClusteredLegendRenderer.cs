@@ -77,6 +77,11 @@ internal class BarClusteredLegendRenderer : ColumnLikeLegendRenderer
         legendRect.Y -= leri.Height;
 
       var entryRect = legendRect;
+      if (!verticalLegend)
+      {
+        entryRect.X += leri.Offset.X;
+        entryRect.Y += leri.Offset.Y;
+      }
       entryRect.Width = leri.Width;
       entryRect.Height = leri.Height;
 
@@ -86,8 +91,6 @@ internal class BarClusteredLegendRenderer : ColumnLikeLegendRenderer
 
       if (verticalLegend)
         legendRect.Y -= LegendRenderer.EntrySpacing;
-      else
-        legendRect.X += entryRect.Width + LegendRenderer.EntrySpacing;
     }
 
     // Draw border around legend

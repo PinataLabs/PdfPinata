@@ -28,6 +28,7 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using PdfPinata.Drawing;
 
 namespace PdfPinata.Charting.Renderers;
@@ -63,21 +64,92 @@ internal class LegendEntryRenderer : Renderer
       leri.MarkerArea.Width *= 3;
     leri.Width = leri.MarkerArea.Width;
     leri.Height = leri.MarkerArea.Height;
+    leri.LineHeight = leri.Height;
+    leri.Lines = [];
 
     if (leri.EntryText != "")
     {
-      leri.TextSize = gfx.MeasureString(leri.EntryText, leri.LegendRendererInfo.Font);
+      // A line break in the text starts a new line of the entry. DrawString draws one line and
+      // drops a line feed, so a name written over two lines used to be drawn as one run-on word.
+      leri.Lines = leri.EntryText.Split(LineBreaks, StringSplitOptions.None);
+      Measure(gfx, leri);
       if (leri.SeriesRendererInfo.Series.chartType == ChartType.Line)
       {
         leri.MarkerSize.Width = leri.SeriesRendererInfo.MarkerRendererInfo.MarkerSize.Point;
         leri.MarkerArea.Width = Math.Max(3 * leri.MarkerSize.Width, leri.MarkerArea.Width);
       }
 
-      leri.MarkerArea.Height = Math.Min(leri.MarkerArea.Height, leri.TextSize.Height);
-      leri.MarkerSize.Height = Math.Min(leri.MarkerSize.Height, leri.TextSize.Height);
+      leri.MarkerArea.Height = Math.Min(leri.MarkerArea.Height, leri.LineHeight);
+      leri.MarkerSize.Height = Math.Min(leri.MarkerSize.Height, leri.LineHeight);
       leri.Width = leri.TextSize.Width + leri.MarkerArea.Width + SpacingBetweenMarkerAndText;
       leri.Height = leri.TextSize.Height;
     }
+  }
+
+  /// <summary>
+  /// Word wraps the entry's text so that the entry, marker and all, is no wider than the given
+  /// width, and measures it again. An entry already narrow enough is left exactly as it was, and a
+  /// single word wider than the room on its own is kept whole on a line of its own.
+  /// </summary>
+  internal void FitToWidth(double maxWidth)
+  {
+    var leri = (LegendEntryRendererInfo)this.rendererParms.RendererInfo;
+    if (leri.Lines.Length == 0 || leri.Width <= maxWidth)
+      return;
+
+    var gfx = this.rendererParms.Graphics;
+    var font = leri.LegendRendererInfo.Font;
+    var textWidth = maxWidth - leri.MarkerArea.Width - SpacingBetweenMarkerAndText;
+    var lines = new List<string>();
+    foreach (var paragraph in leri.EntryText.Split(LineBreaks, StringSplitOptions.None))
+    {
+      if (gfx.MeasureString(paragraph, font).Width <= textWidth)
+      {
+        lines.Add(paragraph);
+        continue;
+      }
+
+      string line = null;
+      foreach (var word in paragraph.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
+      {
+        if (line == null)
+          line = word;
+        else if (gfx.MeasureString(line + " " + word, font).Width <= textWidth)
+          line += " " + word;
+        else
+        {
+          lines.Add(line);
+          line = word;
+        }
+      }
+      lines.Add(line ?? "");
+    }
+
+    leri.Lines = lines.ToArray();
+    Measure(gfx, leri);
+    leri.Width = leri.TextSize.Width + leri.MarkerArea.Width + SpacingBetweenMarkerAndText;
+    leri.Height = Math.Max(leri.Height, leri.TextSize.Height);
+  }
+
+  /// <summary>
+  /// Sets the entry's text size and line height from its lines: as wide as the widest, and one
+  /// line height for each. A single line is measured exactly as the whole text always was.
+  /// </summary>
+  private static void Measure(XGraphics gfx, LegendEntryRendererInfo leri)
+  {
+    var font = leri.LegendRendererInfo.Font;
+    var size = new XSize();
+    foreach (var line in leri.Lines)
+    {
+      // An empty line still takes a line's height; measuring a space says how much.
+      var measured = gfx.MeasureString(line.Length > 0 ? line : " ", font);
+      size.Width = Math.Max(size.Width, line.Length > 0 ? measured.Width : 0);
+      size.Height = Math.Max(size.Height, measured.Height);
+    }
+
+    leri.LineHeight = size.Height;
+    size.Height *= leri.Lines.Length;
+    leri.TextSize = size;
   }
 
   /// <summary>
@@ -88,38 +160,53 @@ internal class LegendEntryRenderer : Renderer
     var gfx = this.rendererParms.Graphics;
     var leri = (LegendEntryRendererInfo)this.rendererParms.RendererInfo;
 
+    // The marker keys the first line of the entry. For an entry of one line that is the middle
+    // of the entry, as it always was; for one of several it is not.
+    var keyHeight = leri.Lines.Length > 1 ? leri.LineHeight : leri.Height;
+
     XRect rect;
     if (leri.SeriesRendererInfo.Series.chartType == ChartType.Line)
     {
       // Draw line.
-      var posLineStart = new XPoint(leri.X, leri.Y + leri.Height / 2);
-      var posLineEnd = new XPoint(leri.X + leri.MarkerArea.Width, leri.Y + leri.Height / 2);
+      var posLineStart = new XPoint(leri.X, leri.Y + keyHeight / 2);
+      var posLineEnd = new XPoint(leri.X + leri.MarkerArea.Width, leri.Y + keyHeight / 2);
       gfx.DrawLine(new XPen(((XSolidBrush)leri.MarkerBrush).Color), posLineStart, posLineEnd);
 
       // Draw marker.
       var x = leri.X + leri.MarkerArea.Width / 2;
-      var posMarker = new XPoint(x, leri.Y + leri.Height / 2);
+      var posMarker = new XPoint(x, leri.Y + keyHeight / 2);
       MarkerRenderer.Draw(gfx, posMarker, leri.SeriesRendererInfo.MarkerRendererInfo);
     }
     else
     {
       // Draw series rectangle for column, bar or pie charts.
       rect = new XRect(leri.X, leri.Y, leri.MarkerArea.Width, leri.MarkerArea.Height);
-      rect.Y += (leri.Height - leri.MarkerArea.Height) / 2;
+      rect.Y += (keyHeight - leri.MarkerArea.Height) / 2;
       gfx.DrawRectangle(leri.MarkerPen, leri.MarkerBrush, rect);
     }
 
-    // Draw text
+    // Draw text, one line under another.
     if (leri.EntryText.Length > 0)
     {
       rect = leri.Rect;
       rect.X += leri.MarkerArea.Width + LegendEntryRenderer.SpacingBetweenMarkerAndText;
       var format = new XStringFormat();
       format.LineAlignment = XLineAlignment.Near;
-      gfx.DrawString(leri.EntryText, leri.LegendRendererInfo.Font,
-        leri.LegendRendererInfo.FontColor, rect, format);
+      if (leri.Lines.Length > 1)
+        rect.Height = leri.LineHeight;
+      foreach (var line in leri.Lines)
+      {
+        if (line.Length > 0)
+          gfx.DrawString(line, leri.LegendRendererInfo.Font, leri.LegendRendererInfo.FontColor, rect, format);
+        rect.Y += leri.LineHeight;
+      }
     }
   }
+
+  /// <summary>
+  /// The line breaks a legend entry's text is split at.
+  /// </summary>
+  private static readonly string[] LineBreaks = ["\r\n", "\n", "\r"];
 
   /// <summary>
   /// Maximum legend marker width in point.
