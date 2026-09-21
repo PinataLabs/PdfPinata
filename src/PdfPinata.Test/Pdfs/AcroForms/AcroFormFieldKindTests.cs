@@ -904,4 +904,89 @@ public class AcroFormFieldKindTests
         document.AcroForm.Fields.DescendantNames
             .Should().BeEquivalentTo(new[] { "print", "signature", "mystery" });
     }
+
+    // ----- a read-only field ---------------------------------------------------------------------
+
+    /// <summary>
+    ///   <see cref="PdfAcroField.Value"/> has always refused to fill a read-only field, and the
+    ///   typed properties that fill one went round it: <c>Text</c>, <c>Checked</c> and each
+    ///   <c>SelectedIndex</c> wrote <c>/V</c> directly, so the same field could be filled by one
+    ///   name and not by another. Each now asks the same question and gives the same answer.
+    /// </summary>
+    [Fact]
+    public void AReadOnlyTextFieldRefusesTextAsItRefusesAValue()
+    {
+        var field = (PdfTextField)FormWith("/Tx", "surname", f =>
+        {
+            AcroFormBuilder.WithFlags(f, PdfAcroFieldFlags.ReadOnly);
+            f.Elements.SetString(PdfAcroField.Keys.V, "Bosch");
+        }).AcroForm.Fields["surname"];
+
+        var act = () => field.Text = "Brueghel";
+
+        act.Should().Throw<InvalidOperationException>().WithMessage("*read only*");
+        field.Text.Should().Be("Bosch", "a refused value leaves the field as it was");
+    }
+
+    [Fact]
+    public void AReadOnlyCheckBoxRefusesToBeTicked()
+    {
+        var field = (PdfCheckBoxField)FormWith("/Btn", "agree", f =>
+        {
+            AcroFormBuilder.WithFlags(f, PdfAcroFieldFlags.ReadOnly);
+            AcroFormBuilder.WithOnAndOffAppearances(f);
+        }).AcroForm.Fields["agree"];
+
+        var act = () => field.Checked = true;
+
+        act.Should().Throw<InvalidOperationException>().WithMessage("*read only*");
+        field.Checked.Should().BeFalse();
+    }
+
+    [Fact]
+    public void AReadOnlyRadioGroupRefusesAChoice()
+    {
+        var field = (PdfRadioButtonField)FormWith("/Btn", "size", f =>
+        {
+            AcroFormBuilder.WithFlags(f, PdfAcroFieldFlags.Radio | PdfAcroFieldFlags.ReadOnly);
+            AcroFormBuilder.WithOptions(f, "small", "large");
+        }).AcroForm.Fields["size"];
+
+        var act = () => field.SelectedIndex = 1;
+
+        act.Should().Throw<InvalidOperationException>().WithMessage("*read only*");
+        field.SelectedIndex.Should().Be(-1);
+    }
+
+    [Fact]
+    public void AReadOnlyComboBoxRefusesAChoice()
+    {
+        var field = (PdfComboBoxField)FormWith("/Ch", "county", f =>
+        {
+            AcroFormBuilder.WithFlags(f, PdfAcroFieldFlags.Combo | PdfAcroFieldFlags.ReadOnly);
+            AcroFormBuilder.WithOptions(f, "Kent", "Sussex");
+        }).AcroForm.Fields["county"];
+
+        var act = () => field.SelectedIndex = 1;
+
+        act.Should().Throw<InvalidOperationException>().WithMessage("*read only*");
+        field.SelectedIndex.Should().Be(-1);
+    }
+
+    [Fact]
+    public void AReadOnlyListBoxRefusesAChoiceByOneIndexOrByMany()
+    {
+        var field = (PdfListBoxField)FormWith("/Ch", "county", f =>
+        {
+            AcroFormBuilder.WithFlags(f, PdfAcroFieldFlags.MultiSelect | PdfAcroFieldFlags.ReadOnly);
+            AcroFormBuilder.WithOptions(f, "Kent", "Sussex", "Surrey");
+        }).AcroForm.Fields["county"];
+
+        var one = () => field.SelectedIndex = 1;
+        var many = () => field.SelectedIndices = new[] { 0, 2 };
+
+        one.Should().Throw<InvalidOperationException>().WithMessage("*read only*");
+        many.Should().Throw<InvalidOperationException>().WithMessage("*read only*");
+        field.SelectedIndices.Should().BeEmpty();
+    }
 }

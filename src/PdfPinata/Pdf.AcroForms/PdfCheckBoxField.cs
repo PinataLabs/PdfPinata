@@ -89,7 +89,7 @@ public sealed class PdfCheckBoxField : PdfButtonField
         }
         set
         {
-            Owner?.EnsureCanModify("filling in a form field", PdfChangeKind.FormFieldValues);
+            EnsureCanBeFilled();
 
             if (!HasKids)
             {
