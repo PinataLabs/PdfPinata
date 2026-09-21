@@ -27,6 +27,7 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
+using System.Collections.Generic;
 using PdfPinata.Drawing;
 
 namespace PdfPinata.Charting.Renderers;
@@ -90,7 +91,28 @@ internal class ColumnLikeLegendRenderer : LegendRenderer
         else
           lri.Entries[index++] = leri;
       }
+
+      if (cri is CombinationRendererInfo { ColumnsStacked: true })
+        ReverseStackedEntries(lri.Entries);
     }
     return lri;
+  }
+
+  /// <summary>
+  /// Reverses the entries of the stacked column series among themselves, leaving every other
+  /// series where it was, so that in a combination chart the stacked columns are listed top of the
+  /// stack first, as a chart of stacked columns alone lists them.
+  /// </summary>
+  private static void ReverseStackedEntries(LegendEntryRendererInfo[] entries)
+  {
+    var stacked = new List<int>();
+    for (var idx = 0; idx < entries.Length; ++idx)
+    {
+      if (entries[idx].SeriesRendererInfo.Series.chartType == ChartType.ColumnStacked2D)
+        stacked.Add(idx);
+    }
+
+    for (int low = 0, high = stacked.Count - 1; low < high; ++low, --high)
+      (entries[stacked[low]], entries[stacked[high]]) = (entries[stacked[high]], entries[stacked[low]]);
   }
 }
