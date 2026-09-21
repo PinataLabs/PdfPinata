@@ -35,7 +35,7 @@ This file starts at the entry below. Changes before that point are recorded only
   legend is docked to, with its marker against the first line; a single word wider than the chart
   is kept whole. A line break in a series or category name now starts a new line of its entry,
   where `DrawString` used to drop it and run the two halves together. A legend that fits in one row
-  is laid out exactly as before. See C13 in `docs/specs/charting-renderer-findings.md`.
+  is laid out exactly as before. See C14 in `docs/specs/charting-renderer-findings.md`.
 
 - **A chart line format that says `Visible = false` is no longer drawn as a hairline**
   (empira/PDFsharp#287). The converter turns a hidden format into a pen of width 0, and PDF strokes

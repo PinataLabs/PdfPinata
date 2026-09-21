@@ -12,7 +12,7 @@ public API**. None of it needed reflection to find, and none of it needed reflec
 
 Eight defects came out of it — seven from writing the tests, one more from review of the fixes.
 A second round of tests, over legends, markers and the object model's copying, found three more,
-and an upstream report one after that. All twelve are now fixed, and the test that recorded each
+and upstream reports three after that. All fourteen are now fixed, and the test that recorded each
 has been turned round to assert the behaviour that replaced it.
 
 | # | finding | severity | status |
@@ -29,7 +29,7 @@ has been turned round to assert the behaviour that replaced it.
 | C10 | Cloning a collection that holds a blank throws | medium | **fixed** |
 | C11 | A legend reserves a line marker's size in its own unit rather than in points | low | **fixed** |
 | C12 | A line format that says `Visible = false` is still stroked, as a hairline | medium | **fixed** |
-| C13 | A legend too wide for its chart runs off both sides of it (empira/PDFsharp#306) | medium | **fixed** |
+| C14 | A legend too wide for its chart runs off both sides of it (empira/PDFsharp#306) | medium | **fixed** |
 
 C3 and C4 were one shape seen twice: two renderers written as copies of each other, which had
 drifted apart on which inputs they survive. C1 and C8 were another, seen four times over: a
@@ -457,7 +457,7 @@ a legend.
 
 ---
 
-## C13. A legend too wide for its chart ran off both sides of it — fixed
+## C14. A legend too wide for its chart ran off both sides of it — fixed
 
 Reported upstream as [empira/PDFsharp#306](https://github.com/empira/PDFsharp/issues/306), "MigraDoc
 Chart Legend does not Word Wrap": a legend in a chart's footer with many entries, or long ones,
