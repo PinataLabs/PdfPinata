@@ -85,6 +85,34 @@ public class EmptyInlineElementTests
         link.AnnotationCount.Should().Be(1);
     }
 
+    // ----- the other end of the same walk -----
+    //
+    // Every leaf a paragraph really holds reaches that paragraph, so the walk ends there and the
+    // test above it is all a rendered page can ask. What a page cannot arrange is a leaf whose
+    // ancestry runs out first, and that is the case the walk's other ending answers for: without
+    // it the walk asks for the parent of nothing and throws exactly as an empty FormattedText
+    // used to. Asked of the renderer directly, because nothing else can ask it.
+
+    [Fact]
+    public void TheWalkEndsAtTheTopWhenTheLeafBelongsToNoParagraph()
+    {
+        var detached = new FormattedText();
+        detached.AddText("a phrase belonging to nothing");
+
+        HyperlinkWalkProbe.Around(detached.Elements).Should().BeNull();
+    }
+
+    [Fact]
+    public void TheSameWalkStillFindsAHyperlinkItPassesOnTheWayUp()
+    {
+        // The control for the test above: the walk answers null there because it ran out of
+        // document, not because it stopped looking.
+        var detached = new Hyperlink();
+        detached.AddText("the terms");
+
+        HyperlinkWalkProbe.Around(detached.Elements).Should().BeSameAs(detached);
+    }
+
     static Document Paragraph(Action<Paragraph> build)
     {
         var document = new Document();
