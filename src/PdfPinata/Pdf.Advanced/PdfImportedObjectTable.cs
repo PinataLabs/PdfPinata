@@ -99,6 +99,18 @@ internal sealed class PdfImportedObjectTable
     public PdfReference this[PdfObjectID externalId] => _externalIDs[externalId.ToString()];
 
     /// <summary>
+    /// Replaces the imported copies that have been merged into another object by that object.
+    /// </summary>
+    internal void Redirect(IReadOnlyDictionary<PdfReference, PdfReference> replacements)
+    {
+        foreach (var key in new List<string>(_externalIDs.Keys))
+        {
+            if (replacements.TryGetValue(_externalIDs[key], out var replacement))
+                _externalIDs[key] = replacement;
+        }
+    }
+
+    /// <summary>
     /// Maps external object identifiers to cross-reference entries of the importing document
     /// {PdfObjectID -> PdfReference}.
     /// </summary>
