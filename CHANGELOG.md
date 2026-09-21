@@ -12,6 +12,23 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ### Fixed
 
+- **A file whose `startxref` is a long way from its end is read by scanning back to it, not by
+  reading the file into one string.** The trailer scan looked in the last 1030 bytes and, failing
+  there, read the whole file into a `string` to call `LastIndexOf` on it — so a document with a
+  distant `startxref` cost twice its own size in memory, and one larger than 1,073,741,791 bytes
+  could not be opened at all, because that is as long as a `string` gets whatever memory the
+  machine has. `Lexer.FindLastMarker` now reads backwards 64 kiB at a time into one reused buffer.
+  The 1 GiB document reported as [empira/PDFsharp#390](https://github.com/empira/PDFsharp/issues/390)
+  — a two-kilobyte PDF followed by a gigabyte-long comment — threw `OutOfMemoryException` and now
+  opens in about three seconds with no measurable allocation. A file past `int.MaxValue` used to be
+  refused outright with `NotImplementedException`, and reads now too. See
+  `docs/specs/large-file-trailer-scan.md`.
+
+- **A file with no `startxref` anywhere in it is refused by name.** The scan assigned
+  `Lexer.Position` from the index it had just failed to find, and a stream position cannot be -1,
+  so every such file came out as `ArgumentOutOfRangeException: value ('-1') must be a non-negative
+  value` and the sentence written to explain the case — "The StartXRef table could not be found,
+  the file cannot be opened." — was unreachable.
 - **A partly transparent image is drawn rather than erased.** Such an image was written with both
   an 8-bit `/SMask`, carrying its alpha exactly, and a 1-bit `/Mask` stencil rounding that same
   alpha to transparent or opaque at 128. ISO 32000-1 has the soft mask override the stencil, but
