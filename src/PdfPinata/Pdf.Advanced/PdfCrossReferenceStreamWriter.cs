@@ -149,6 +149,93 @@ internal static class PdfCrossReferenceStreamWriter
         return startxref;
     }
 
+    /// <summary>
+    /// Writes the cross-reference stream that indexes the objects an incremental save has just
+    /// appended, and answers the offset the <c>startxref</c> after it has to name.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// A revision appended to a file whose last revision was indexed by a cross-reference stream is
+    /// indexed by another one, as <c>docs/specs/incremental-update-save.md</c> always said it should
+    /// be. The document's trailer is then the <em>previous</em> stream, read back in, and writing it
+    /// as though it were a trailer dictionary is what issue #55 was: the keyword <c>trailer</c>, then
+    /// the old stream's object header, then its stale entries, in a file nothing could read.
+    /// </para>
+    /// <para>
+    /// The stream takes the next object number free and is <em>not</em> added to the table, just as
+    /// the classic path adds nothing: the document is left as it was read, so a second incremental
+    /// save from it appends to the same original rather than finding this revision's index among the
+    /// objects it thinks are new. <c>/Index</c> names the runs the entries fall into, because the
+    /// numbers in between belong to objects this revision leaves where they were.
+    /// </para>
+    /// <para>
+    /// The changed objects themselves are written standing on their own rather than gathered into an
+    /// object stream. A reader follows a type 1 entry as readily as a type 2 one, and an appended
+    /// revision is usually a handful of objects, where packing would save little and would add an
+    /// object stream to every revision.
+    /// </para>
+    /// </remarks>
+    public static long WriteIncrementalSection(PdfDocument document, PdfWriter writer,
+        List<PdfReference> changed, long previousStartXref)
+    {
+        var xrefStream = new PdfCrossReferenceStream(document);
+        xrefStream.SetObjectID(document._irefTable.MaxObjectNumber + 1, 0);
+
+        var startxref = writer.Position;
+        xrefStream.Reference.Position = startxref;
+
+        var ordered = new List<PdfReference>(changed) { xrefStream.Reference };
+        ordered.Sort(PdfReference.Comparer);
+
+        var index = new PdfArray(document);
+        var entries = new PdfCrossReferenceStream.CrossReferenceStreamEntry[ordered.Count];
+        var at = 0;
+        while (at < ordered.Count)
+        {
+            var runLength = 1;
+            while (at + runLength < ordered.Count
+                   && ordered[at + runLength].ObjectNumber == ordered[at].ObjectNumber + runLength)
+                runLength++;
+
+            index.Elements.Add(new PdfInteger(ordered[at].ObjectNumber));
+            index.Elements.Add(new PdfInteger(runLength));
+            at += runLength;
+        }
+        for (var entry = 0; entry < ordered.Count; entry++)
+            entries[entry] = InUse(ordered[entry]);
+
+        CopyTrailerElements(document._trailer, xrefStream);
+        xrefStream.Elements.SetName(PdfCrossReferenceStream.Keys.Type, "/XRef");
+        xrefStream.Elements.SetInteger(PdfCrossReferenceStream.Keys.Size, xrefStream.ObjectNumber + 1);
+        xrefStream.Elements[PdfCrossReferenceStream.Keys.Index] = index;
+
+        // Where the previous revision's cross-reference stream begins. The cast is safe for the
+        // reason SaveIncremental gives for its own /Prev: an original that fits in an array ends
+        // before int.MaxValue.
+        xrefStream.Elements.SetInteger(PdfCrossReferenceStream.Keys.Prev, checked((int)previousStartXref));
+
+        var widths = new PdfArray(document);
+        foreach (var width in FieldWidths)
+            widths.Elements.Add(new PdfInteger(width));
+        xrefStream.Elements[PdfCrossReferenceStream.Keys.W] = widths;
+
+        var content = Encode(entries);
+        if (document.Options.NoCompression)
+        {
+            xrefStream.CreateStream(content);
+        }
+        else
+        {
+            xrefStream.CreateStream(Filtering.FlateDecode.Encode(content, document.Options.FlateEncodeMode));
+            xrefStream.Elements.SetName(PdfDictionary.PdfStream.Keys.Filter, "/FlateDecode");
+        }
+
+        // Never encrypted, for the reason WriteBody gives.
+        xrefStream.WriteObject(writer);
+
+        return startxref;
+    }
+
     static PdfCrossReferenceStream.CrossReferenceStreamEntry InUse(PdfReference iref) =>
         new()
         {

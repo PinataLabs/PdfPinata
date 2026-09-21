@@ -25,6 +25,13 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ### Fixed
 
+- **`SaveIncremental` on a file indexed by a cross-reference stream writes a revision that can be
+  read back.** It wrote the keyword `trailer` and then the previous revision's `/XRef` stream, object
+  header and all, where a trailer dictionary belonged, so appending to any PDF 1.5-style file made it
+  unreadable. The appended revision is now indexed by a cross-reference stream of its own, with an
+  `/Index` naming only the objects it changed and a `/Prev` naming the stream before it. A file
+  indexed by a classic table is appended to exactly as before (#55).
+
 - **A chart given more than one `XSeries` draws its category labels on the axis.** The category
   axis drew every series one after another without going back to the first slot, so a second
   series' labels ran off the right of a column, line or area chart and below the foot of a bar

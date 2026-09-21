@@ -50,6 +50,31 @@ first two hundred bytes of somebody else's document. It now defaults to -1 and t
 skipped. Note where this would have been found and where it would not: broken in development, fine
 in release.
 
+## A revision after a cross-reference stream is indexed by one (#55)
+
+When the file's last revision is indexed by a cross-reference stream, the document's trailer is that
+stream, read back in as a `PdfCrossReferenceStream`. The appended revision used to be written the
+classic way regardless — `trailer`, then `_trailer.WriteObject` — which put the old stream there,
+`7 0 obj` and all, and nothing could read the result. Every test fixture was classic, so nothing saw it.
+
+`SaveIncremental` now asks which the trailer is. A classic trailer gets a classic section, as before.
+A stream gets `PdfCrossReferenceStreamWriter.WriteIncrementalSection`: a new cross-reference stream
+numbered one past the highest number in use, with `/Index` naming the runs the changed objects fall
+into, `/Prev` naming the previous stream, and `/Root`, `/Info`, `/ID` and `/Encrypt` carried over.
+Three choices in it:
+
+- **The new stream is not added to the object table**, just as the classic path adds nothing, so a
+  second `SaveIncremental` from the same document still appends to the same original.
+- **The changed objects stand on their own** (type 1 entries) rather than going into an object stream.
+  A revision is usually a handful of objects, where packing saves little.
+- **A classic section after a stream is not written**, though ISO 32000-1 does not forbid it: this is
+  the convention this note set out from — a file is updated in the form it was written in.
+
+`IncrementalUpdateOfCrossReferenceStreamTests` covers it. One thing it found and does not fix:
+`SaveIncremental` on an *encrypted* document whose change touches an object throws a
+`NullReferenceException` from the security handler, classic or stream alike, because nothing
+prepares the handler for writing on this path.
+
 ## What it costs, honestly
 
 The dirty set is **conservative**. After appending a change to nothing but a document property, the

@@ -437,6 +437,16 @@ public sealed class PdfDocument : PdfObject, IDisposable
                 iref.Value.WriteObject(writer);
             }
 
+            // A revision is indexed the way the one before it was. The trailer of a file whose last
+            // revision is a cross-reference stream is that stream, read back in, and it cannot be
+            // written as a trailer dictionary - see WriteIncrementalSection.
+            if (_trailer is PdfCrossReferenceStream)
+            {
+                writer.WriteEof(this,
+                    PdfCrossReferenceStreamWriter.WriteIncrementalSection(this, writer, changed, _originalStartXref));
+                return;
+            }
+
             var startxref = writer.Position;
             WriteIncrementalCrossReferenceTable(writer, changed);
 
