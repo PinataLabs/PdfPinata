@@ -287,7 +287,7 @@ public class XForm : XImage, IContentStream
     public XRect BoundingBox
     {
         get => _boundingBox;
-        set => _boundingBox = value; // TODO: pdfForm = null
+        set => _boundingBox = value;
     }
     XRect _boundingBox;
 
@@ -429,7 +429,7 @@ public class XForm : XImage, IContentStream
     /// The PdfFormXObject gets invalid when PageNumber or transform changed. This is because a modification
     /// of an XPdfForm must not change objects that are already been drawn.
     /// </summary>
-    internal PdfFormXObject _pdfForm;  // TODO: make private
+    internal PdfFormXObject _pdfForm;
 
     internal XGraphicsPdfRenderer PdfRenderer;
 

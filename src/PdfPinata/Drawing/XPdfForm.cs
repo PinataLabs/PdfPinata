@@ -117,7 +117,6 @@ public class XPdfForm : XForm
     /// </summary>
     public new static XPdfForm FromFile(string path, PdfReadAccuracy accuracy)
     {
-        // TODO: Same file should return same object (that's why the function is static).
         return new XPdfForm(path, accuracy);
     }
 

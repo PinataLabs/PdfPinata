@@ -1375,10 +1375,6 @@ public sealed class XGraphics : IDisposable
             _renderer.DrawImage(image, x, y, width, height);
     }
 
-    // TODO: calculate destination size
-    //public void DrawImage(XImage image, double x, double y, GdiRectF srcRect, XGraphicsUnit srcUnit)
-    //public void DrawImage(XImage image, double x, double y, XRect srcRect, XGraphicsUnit srcUnit)
-
     /// <summary>
     /// Draws the specified image.
     /// </summary>
@@ -1391,10 +1387,6 @@ public sealed class XGraphics : IDisposable
         if (_renderer != null)
             _renderer.DrawImage(image, destRect, srcRect, srcUnit);
     }
-
-    //TODO?
-    //public void DrawImage(XImage image, Rectangle destRect, double srcX, double srcY, double srcWidth, double srcHeight, GraphicsUnit srcUnit);
-    //public void DrawImage(XImage image, Rectangle destRect, double srcX, double srcY, double srcWidth, double srcHeight, GraphicsUnit srcUnit);
 
     /// <summary>
     /// Checks whether drawing is allowed and disposes the XGraphics object, if necessary.
@@ -2107,11 +2099,6 @@ public sealed class XGraphics : IDisposable
     public void WriteComment(string comment)
     {
         ArgumentNullException.ThrowIfNull(comment);
-
-        if (_drawGraphics)
-        {
-            // TODO: Do something if metafile?
-        }
 
         if (_renderer != null)
             _renderer.WriteComment(comment);
