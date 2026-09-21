@@ -202,6 +202,35 @@ public class ResourceDeduplicationTests
     }
 
     [Fact]
+    public void ARefusedSaveLeavesACrossReferenceStreamTrailerAlone()
+    {
+        // Save replaces a cross-reference stream trailer with a classic one before it prepares
+        // anything, and an incremental save afterwards would then write a classic trailer whose
+        // /Prev names a cross-reference stream. The refusal has to come before that.
+        var document = new PdfDocument();
+        document.AddPage();
+        document.Options.CrossReferenceFormat = PdfCrossReferenceFormat.Stream;
+        using var original = new MemoryStream();
+        document.Save(original, false);
+
+        original.Position = 0;
+        var appended = Pdf.IO.PdfReader.Open(original, PdfDocumentOpenMode.Append);
+        appended.Options.DeduplicateResources = true;
+
+        var save = () => appended.Save(new MemoryStream());
+        save.Should().Throw<InvalidOperationException>();
+
+        appended.Options.DeduplicateResources = false;
+        using var revised = new MemoryStream();
+        appended.SaveIncremental(revised);
+
+        var revision = System.Text.Encoding.Latin1.GetString(revised.ToArray(), (int)original.Length,
+            (int)(revised.Length - original.Length));
+        revision.Should().NotContain("trailer", "the revision continues the cross-reference streams before it");
+        revision.Should().Contain("/XRef");
+    }
+
+    [Fact]
     public void AnEncryptedDocumentIsDeduplicatedAndReadsBack()
     {
         const string password = "owner";

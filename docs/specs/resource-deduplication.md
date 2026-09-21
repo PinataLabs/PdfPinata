@@ -118,8 +118,11 @@ dictionary written `/Filter /FlateDecode` is not a dictionary written `/Filter [
 
 - **Refused for an appended revision.** A document opened with `PdfDocumentOpenMode.Append` keeps
   every object of the revisions before it, so merging duplicates saves nothing and rewrites every
-  dictionary that referred to one. `Save` and `SaveIncremental` both throw naming the option, checked
-  at the top of `PrepareForSave` so that a save which cannot happen has changed nothing.
+  dictionary that referred to one. `Save` and `SaveIncremental` both throw naming the option, and
+  both check it first. The code review caught it checked at the top of `PrepareForSave`, which was
+  too late for `Save`: by then it had asked for the security settings and swapped a
+  cross-reference-stream trailer for a classic one, and a `SaveIncremental` after the refused `Save`
+  crashed in the security handler.
 - **The imported-object tables are redirected too.** Importing remembers which copy each object of
   the source became, so that importing a second page of a source reuses what the first brought. A
   copy merged away is no longer in the document, and a later import from the still-open source would
@@ -161,7 +164,8 @@ read, saved with the option and read back:
 - two identical pages, each with an identical annotation → two pages and two annotations, two
   appearance streams, one content stream and one font;
 - two identical graphics states carrying `/Parent` → kept apart;
-- an `Append` document → `Save` and `SaveIncremental` both refuse;
+- an `Append` document → `Save` and `SaveIncremental` both refuse, and a refused `Save` leaves a
+  cross-reference-stream document still able to append a cross-reference-stream revision;
 - an encrypted save → merged, and the image reads back under the password;
 - saving twice → the same size as saving once;
 - a page imported after the save from the same source → resolves to the kept copy; fails with the
