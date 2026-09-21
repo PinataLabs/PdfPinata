@@ -38,7 +38,25 @@ internal static class PdfConformanceWriter
         var claimsAccessibility = options.UAConformance != PdfUAConformance.None;
         var requiresTagging = RequiresTagging(options.Conformance);
 
-        if (!claimsConformance && !claimsAccessibility && !options.WriteXmpMetadata)
+        var strategy = options.MetadataStrategy;
+
+        if (strategy == PdfMetadataStrategy.NoMetadata)
+        {
+            // Refused before anything is checked or written: the claim lives in the packet, so a
+            // file with a claim and no packet claims nothing a validator can find.
+            if (claimsConformance || claimsAccessibility)
+            {
+                throw new InvalidOperationException(
+                    "The document claims " + ClaimName(options) + ", which is made in its XMP "
+                    + "metadata, but Options.MetadataStrategy is NoMetadata. Remove the claim or "
+                    + "choose KeepExisting or AutoGenerate.");
+            }
+
+            document.Catalog.Elements.Remove(PdfCatalog.Keys.Metadata);
+            return;
+        }
+
+        if (!claimsConformance && !claimsAccessibility && strategy != PdfMetadataStrategy.AutoGenerate)
             return;
 
         if (claimsConformance)
@@ -55,6 +73,9 @@ internal static class PdfConformanceWriter
 
         AttachMetadata(document);
     }
+
+    static string ClaimName(PdfDocumentOptions options) =>
+        options.Conformance != PdfAConformance.None ? options.Conformance.ToString() : options.UAConformance.ToString();
 
     /// <summary>
     /// Whether the claimed archival profile is an <c>A</c> level, which additionally requires the
@@ -116,6 +137,14 @@ internal static class PdfConformanceWriter
     {
         if (conformance == PdfAConformance.None)
             return;
+
+        if (document.Options.MetadataStrategy == PdfMetadataStrategy.NoMetadata)
+        {
+            throw new InvalidOperationException(
+                conformance + " is claimed in the document's XMP metadata, and "
+                + "Options.MetadataStrategy is NoMetadata. Choose KeepExisting or AutoGenerate "
+                + "before claiming it.");
+        }
 
         // Settleable immediately, unlike the rest of what tagging implies: a document with no
         // structure tree cannot become tagged by being saved, so there is nothing to gain by

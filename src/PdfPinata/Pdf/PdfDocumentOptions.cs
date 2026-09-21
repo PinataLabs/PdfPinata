@@ -153,12 +153,44 @@ public sealed class PdfDocumentOptions
     /// Gets or sets a value indicating that an XMP metadata packet is written even when no
     /// conformance is claimed. A claimed conformance implies one regardless.
     /// </summary>
+    /// <remarks>
+    /// The older spelling of <see cref="MetadataStrategy"/>: true is
+    /// <see cref="Metadata.PdfMetadataStrategy.AutoGenerate"/>. Setting it false undoes that and
+    /// leaves any other strategy as it was.
+    /// </remarks>
     public bool WriteXmpMetadata
     {
-        get => _writeXmpMetadata;
-        set => _writeXmpMetadata = value;
+        get => _metadataStrategy == Metadata.PdfMetadataStrategy.AutoGenerate;
+        set
+        {
+            if (value)
+                _metadataStrategy = Metadata.PdfMetadataStrategy.AutoGenerate;
+            else if (_metadataStrategy == Metadata.PdfMetadataStrategy.AutoGenerate)
+                _metadataStrategy = Metadata.PdfMetadataStrategy.KeepExisting;
+        }
     }
-    bool _writeXmpMetadata;
+
+    /// <summary>
+    /// Gets or sets what a save does with the document's XMP metadata packet. The default,
+    /// <see cref="Metadata.PdfMetadataStrategy.KeepExisting"/>, is what saving has always done.
+    /// </summary>
+    /// <remarks>
+    /// A conformance claim always writes a fresh packet, and refuses
+    /// <see cref="Metadata.PdfMetadataStrategy.NoMetadata"/> at save time; see
+    /// <see cref="Metadata.PdfMetadataStrategy"/>.
+    /// </remarks>
+    public Metadata.PdfMetadataStrategy MetadataStrategy
+    {
+        get => _metadataStrategy;
+        set
+        {
+            if (!System.Enum.IsDefined(typeof(Metadata.PdfMetadataStrategy), value))
+                throw new System.ArgumentOutOfRangeException(nameof(value), value, "Not a metadata strategy.");
+
+            _metadataStrategy = value;
+        }
+    }
+    Metadata.PdfMetadataStrategy _metadataStrategy;
 
     /// <summary>
     /// Gets or sets the ICC profile embedded as the document's output intent, which every PDF/A
