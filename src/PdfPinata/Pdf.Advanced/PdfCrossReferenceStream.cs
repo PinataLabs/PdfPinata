@@ -47,6 +47,13 @@ internal sealed class PdfCrossReferenceStream : PdfTrailer  // Reference: 3.4.7 
 
     public readonly List<CrossReferenceStreamEntry> Entries = new();
 
+    /// <summary>
+    /// Where the section this stream is begins, and where its object number ends: an entry for the
+    /// stream's number is this stream's own only if it points in between. Set by the reader; not
+    /// written.
+    /// </summary>
+    internal long StartOfSection, EndOfNumber;
+
     [DebuggerDisplay("{Type} {Field2} {Field3}")]
     public struct CrossReferenceStreamEntry
     {

@@ -36,6 +36,7 @@ decisions, not outstanding work.
 - [x] [font-embedding-gaps.md](font-embedding-gaps.md) — `.otf`/`.ttc` discovery, CFF embedding, style simulation, G1–G6
 - [x] [font-path-thread-safety.md](font-path-thread-safety.md) — empira#381 checked here and absent: no memo in the conversion, locks under it, and tests proved against a grafted copy of the bug
 - [x] [graphics-state-stack-unification.md](graphics-state-stack-unification.md) — the dead state stack removed, the live pair kept apart (T15)
+- [x] [hybrid-reference-files.md](hybrid-reference-files.md) — the `/XRefStm` a classic trailer names, empira#388; every compressed object was invisible without it
 - [x] [image-failure-reporting.md](image-failure-reporting.md) — an image decode failure that says which failure, empira#366
 - [x] [image-pixel-seam.md](image-pixel-seam.md) — the image seam widened from an invented BMP to pixels (T14)
 - [x] [import-size-and-annotations.md](import-size-and-annotations.md) — page-import defects found beyond issue #461

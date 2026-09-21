@@ -75,6 +75,23 @@ This file starts at the entry below. Changes before that point are recorded only
   read as the older compressed copy. The newest entry for a number now decides what the number
   means, whichever form either revision stored it in.
 
+- **An object a hybrid-reference file keeps in an object stream is read rather than lost.** ISO
+  32000-1 7.5.8.4 lets one revision be described twice — a classic cross-reference table that marks
+  every compressed object *free*, so a PDF 1.4 reader sees a smaller document rather than a broken
+  one, and beside it a cross-reference stream, named by the trailer's `/XRefStm`, saying where those
+  objects really are. `/XRefStm` was declared here and read by nothing, so the objects were not
+  merely unavailable but contradicted: the table called them free and nothing said otherwise. A
+  dangling reference reads as null by design, so nothing threw — the document opened, the page
+  imported and the file saved with a font, an image or a whole `/Resources` dictionary silently
+  gone. Acrobat and Canva both write files this way. The stream is now read after the table of the
+  same revision and before its `/Prev`, for its entries alone: entries already in the table win, and
+  the classic trailer beside it stays the document's. A stream that cannot be read stops the read
+  under the default `Strict` accuracy, naming `/XRefStm` and the position, and under `Moderate` is
+  dropped whole so the document opens as the PDF 1.4 file its table describes — a lossy fallback,
+  short of every compressed object only the stream located. Reported upstream as
+  [empira/PDFsharp#388](https://github.com/empira/PDFsharp/issues/388); see
+  `docs/specs/hybrid-reference-files.md`.
+
 ## [0.2.1] - 2026-09-21
 
 ### Added

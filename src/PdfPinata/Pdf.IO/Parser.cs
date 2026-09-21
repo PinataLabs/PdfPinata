@@ -1169,6 +1169,11 @@ internal sealed class Parser
             // 1st trailer seems to be the best.
             if (firstTrailer == null)
                 firstTrailer = trailer;
+
+            // Before /Prev, because the stream belongs to the revision just read rather than to the
+            // one before it.
+            ReadHybridCrossReferenceStream(trailer, accuracy);
+
             var prev = trailer != null ? trailer.Elements.GetInteger(PdfTrailer.Keys.Prev) : 0;
             if (prev == 0)
                 break;
@@ -1179,6 +1184,108 @@ internal sealed class Parser
         }
 
         return firstTrailer;
+    }
+
+    /// <summary>
+    /// Reads the cross-reference stream a classic trailer names in /XRefStm, which is where a
+    /// hybrid-reference file says its compressed objects are.
+    /// </summary>
+    /// <remarks>
+    /// ISO 32000-1 7.5.8.4. Such a file carries both kinds of cross-reference section for the same
+    /// revision: a classic table, which marks every object that lives in an object stream as free
+    /// so that a reader knowing nothing of object streams sees a document without them, and beside
+    /// it a cross-reference stream saying where those objects really are. Skipping the entry is
+    /// therefore not a tolerant reading of the file - it is reading the smaller document the table
+    /// describes, and the objects left out are silently missing from the pages that use them.
+    ///
+    /// Entries already in the table win, which is the rule the table itself is read under and what
+    /// makes the newest revision the one that counts. The stream's own trailer is dropped, because
+    /// the classic trailer of this revision is the document's, and its /Prev is not followed: the
+    /// classic trailers are the chain of revisions and each of them names its own stream. Both
+    /// pdf.js and pypdf read one in the same place and the same order.
+    /// </remarks>
+    void ReadHybridCrossReferenceStream(PdfTrailer trailer, PdfReadAccuracy accuracy)
+    {
+        var position = trailer?.Elements.GetInteger(PdfTrailer.Keys.XRefStm) ?? 0;
+        if (position == 0)
+            return;
+
+        if (position < 0 || position >= _lexer.PdfLength)
+        {
+            if (accuracy == PdfReadAccuracy.Strict)
+                ParserDiagnostics.ThrowParserException(
+                    "The trailer's /XRefStm names position " + position + ", which is not inside the file.");
+
+            return;
+        }
+
+        // Read into a table of its own and merged only once the whole stream has been read, so that
+        // a stream damaged halfway through is dropped whole rather than left half in effect.
+        var section = new PdfCrossReferenceTable(_document);
+        // ReadXRefStream keeps every stream it reads for PdfReader to resolve compressed objects
+        // from, and it does so before it has decoded a single entry - so a stream dropped here has
+        // to be taken back out of that list too, or PdfReader reads the objects its entries name
+        // regardless, and a stream damaged halfway through is half in effect after all.
+        var streamsBefore = CrossReferenceStreams.Count;
+        PdfTrailer read;
+        try
+        {
+            _lexer.Position = position;
+            read = ReadXRefTableAndTrailer(section, accuracy);
+        }
+        catch (Exception ex) when (!Unrecoverable.Is(ex))
+        {
+            // What a cross-reference stream can be damaged in is not a list worth enumerating. Under
+            // Moderate the document opens as the PDF 1.4 file the classic table describes - without
+            // whichever compressed objects only the stream said where to find.
+            if (accuracy == PdfReadAccuracy.Strict)
+                throw new PdfReaderException(
+                    "The cross-reference stream at position " + position +
+                    ", named by the trailer's /XRefStm, could not be read.", ex);
+
+            Debug.WriteLine(ex.Message);
+            CrossReferenceStreams.RemoveRange(streamsBefore, CrossReferenceStreams.Count - streamsBefore);
+            return;
+        }
+
+        // A classic table, or nothing recognisable, is not what /XRefStm promises.
+        if (read is not PdfCrossReferenceStream xrefStream)
+        {
+            if (accuracy == PdfReadAccuracy.Strict)
+                ParserDiagnostics.ThrowParserException(
+                    "The trailer's /XRefStm names position " + position + ", where there is no cross-reference stream.");
+
+            return;
+        }
+
+        foreach (var iref in section.AllReferences)
+        {
+            // The stream's own entry. When the table already has one, ReadXRefStream would have
+            // filled in its value rather than added a second, so the merge does the same - and on
+            // the same condition, that the entry points at this stream. A newer revision may have
+            // given the stream's number to another object (empira/PDFsharp#353), and hanging the
+            // stream on that object's entry makes the object read as a cross-reference stream.
+            // Left out of the table, the stream is still in CrossReferenceStreams, which is what
+            // its compressed objects are read through.
+            if (ReferenceEquals(iref.Value, xrefStream))
+            {
+                var existing = _document._irefTable[iref.ObjectID];
+                if (existing != null)
+                {
+                    if (existing.Value == null &&
+                        PointsAtStream(existing, xrefStream.StartOfSection, xrefStream.EndOfNumber))
+                    {
+                        xrefStream.Reference = null;
+                        existing.Value = xrefStream;
+                    }
+
+                    continue;
+                }
+            }
+
+            // Entries already in the table win; Add leaves one it already has alone.
+            _document._irefTable.Add(iref);
+        }
     }
 
     /// <summary>
@@ -1323,6 +1430,14 @@ internal sealed class Parser
     }
 
     /// <summary>
+    /// Whether an entry with no value yet is the entry of the cross-reference stream whose section
+    /// begins at <paramref name="startOfSection"/> and whose object number ends at
+    /// <paramref name="endOfNumber"/>, rather than another object's under the same number.
+    /// </summary>
+    static bool PointsAtStream(PdfReference iref, long startOfSection, long endOfNumber)
+        => iref.Position >= startOfSection && iref.Position <= endOfNumber;
+
+    /// <summary>
     /// Reads cross reference stream(s).
     /// </summary>
     private PdfCrossReferenceStream ReadXRefStream(PdfCrossReferenceTable xrefTable, long startOfSection)
@@ -1362,10 +1477,12 @@ internal sealed class Parser
         // cross-reference stream with no /Fields (empira/PDFsharp#353). Such a stream is left out
         // of the table, where the newer object keeps the number; CrossReferenceStreams is what
         // still finds it, for the compressed objects its revision indexes.
+        xrefStream.StartOfSection = startOfSection;
+        xrefStream.EndOfNumber = endOfNumber;
         var iref = xrefTable[objectID];
         if (iref != null)
         {
-            if (iref.Value == null && iref.Position >= startOfSection && iref.Position <= endOfNumber)
+            if (iref.Value == null && PointsAtStream(iref, startOfSection, endOfNumber))
             {
                 iref.Value = xrefStream;
             }
