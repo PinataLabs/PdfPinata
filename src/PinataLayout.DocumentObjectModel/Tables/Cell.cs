@@ -331,6 +331,30 @@ public partial class Cell : DocumentObject, IVisitable
     internal int? mergeDown;
 
     /// <summary>
+    /// Gets the index of the last column this cell covers: its own when it is merged with none,
+    /// and never past the last column of the table however far <see cref="MergeRight"/> reaches.
+    /// </summary>
+    /// <remarks>
+    /// A merge is written before the table is finished — the cell is made by the row that holds it,
+    /// and the columns and rows it says it covers may be added afterwards or never — so there is no
+    /// moment at which <see cref="MergeRight"/> can be checked against a table. What it says is
+    /// therefore taken as how far the cell reaches for rather than how far it reaches, and where it
+    /// reaches past the table it is read as reaching the edge.
+    /// </remarks>
+    public int MergedRightColumnIndex =>
+        Math.Min(Column.Index + MergeRight, Table.Columns.Count - 1);
+
+    /// <summary>
+    /// Gets the index of the last row this cell covers: its own when it is merged with none, and
+    /// never past the last row of the table however far <see cref="MergeDown"/> reaches.
+    /// </summary>
+    /// <remarks>
+    /// The same reading as <see cref="MergedRightColumnIndex"/>, downwards.
+    /// </remarks>
+    public int MergedBottomRowIndex =>
+        Math.Min(Row.Index + MergeDown, Table.Rows.Count - 1);
+
+    /// <summary>
     /// Gets the collection of document objects that defines the cell.
     /// </summary>
     public DocumentElements Elements

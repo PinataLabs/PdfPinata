@@ -81,7 +81,7 @@ internal class FormattedCell : IAreaProvider
     var column = cell.Column;
     var width = InnerWidth;
     width -= column.LeftPadding.Point;
-    var rightColumn = cell.Table.Columns[column.Index + cell.MergeRight];
+    var rightColumn = cell.Table.Columns[cell.MergedRightColumnIndex];
     width -= rightColumn.RightPadding.Point;
 
     XUnit height = double.MaxValue;
@@ -118,12 +118,9 @@ internal class FormattedCell : IAreaProvider
     get
     {
       XUnit width = 0;
-      var cellColumnIdx = cell.Column.Index;
-      for (var toRight = 0; toRight <= cell.MergeRight; ++toRight)
-      {
-        var columnIdx = cellColumnIdx + toRight;
+      var lastColumnIdx = cell.MergedRightColumnIndex;
+      for (var columnIdx = cell.Column.Index; columnIdx <= lastColumnIdx; ++columnIdx)
         width += cell.Table.Columns[columnIdx].Width;
-      }
       width -= bordersRenderer.GetWidth(BorderType.Right);
 
       return width;

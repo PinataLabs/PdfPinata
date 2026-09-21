@@ -159,4 +159,69 @@ public class CellTests
         again.RoundedCorner.Should().Be(RoundedCorner.TopLeft);
         again.Elements.Count.Should().Be(1);
     }
+
+    // ----- how far a merge really reaches -----
+    //
+    // MergeRight and MergeDown are written while the table is still being built, so neither can be
+    // checked against one at the time: the rows and columns they speak of may be added later, or
+    // never. What each says is therefore how far the cell reaches *for*, and these two say how far
+    // it reaches.
+
+    [Fact]
+    public void AMergeInsideTheTableEndsWhereItSays()
+    {
+        var document = new Document();
+        var table = ThreeByThree(document.AddSection());
+        table[0, 0].MergeRight = 1;
+        table[0, 0].MergeDown = 2;
+
+        table[0, 0].MergedRightColumnIndex.Should().Be(1);
+        table[0, 0].MergedBottomRowIndex.Should().Be(2);
+    }
+
+    [Fact]
+    public void AMergeWithNothingMergedIsTheCellItself()
+    {
+        var document = new Document();
+        var table = ThreeByThree(document.AddSection());
+
+        table[1, 2].MergedRightColumnIndex.Should().Be(2);
+        table[1, 2].MergedBottomRowIndex.Should().Be(1);
+    }
+
+    [Fact]
+    public void AMergePastTheTableEndsAtTheEdgeOfIt()
+    {
+        var document = new Document();
+        var table = ThreeByThree(document.AddSection());
+        table[0, 0].MergeRight = 9;
+        table[0, 0].MergeDown = 5;
+
+        table[0, 0].MergedRightColumnIndex.Should().Be(2);
+        table[0, 0].MergedBottomRowIndex.Should().Be(2);
+    }
+
+    [Fact]
+    public void TheMergeItselfStillReadsBackAsItWasWritten()
+    {
+        // Because it is what the caller set and what a writer has to put back out again; only the
+        // reading of it is bounded.
+        var document = new Document();
+        var table = ThreeByThree(document.AddSection());
+        table[0, 0].MergeRight = 9;
+        table[0, 0].MergeDown = 5;
+
+        table[0, 0].MergeRight.Should().Be(9);
+        table[0, 0].MergeDown.Should().Be(5);
+    }
+
+    static Table ThreeByThree(Section section)
+    {
+        var table = section.AddTable();
+        for (var column = 0; column < 3; column++)
+            table.AddColumn();
+        for (var row = 0; row < 3; row++)
+            table.AddRow();
+        return table;
+    }
 }

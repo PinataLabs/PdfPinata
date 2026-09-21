@@ -21,6 +21,14 @@ This file starts at the entry below. Changes before that point are recorded only
   document holds as a dictionary is answered as itself, so it comes back the same each time; one
   written as a bare name is answered as a specification carrying that name, made on the spot and
   outside the document. See `docs/specs/external-file-streams.md`.
+
+- **`Cell.MergedRightColumnIndex` and `Cell.MergedBottomRowIndex`** — the last column and the last
+  row a table cell actually covers. `MergeRight` and `MergeDown` are written while the table is
+  still being built, so neither can be checked against one at the time: the rows and columns they
+  speak of may be added afterwards, or never. What each says is therefore how far the cell reaches
+  *for*, and these two say how far it reaches — the same number whenever the merge is inside the
+  table, and the edge of the table when it is not.
+
 ### Changed
 
 - **`XUnit` implements `IEquatable<XUnit>`.** A value type that overrides `Equals` and defines `==`
@@ -106,6 +114,18 @@ This file starts at the entry below. Changes before that point are recorded only
   every page went with it. `/Length` counts the bytes that are in this file whether or not `/F` is
   there, so reading it the ordinary way is all such a stream ever needed. The entries saying where
   the data really is are carried through untouched; nothing goes and fetches it.
+
+- **A cell merged past the last row or column of its table is laid out instead of throwing.**
+  Nothing can check a merge when it is written, so a cell can claim more of a table than the table
+  ever has — and every place that read a merge as a position then indexed past the end. The
+  document was accepted by the object model without a word and the *formatter* threw
+  `ArgumentOutOfRangeException`, naming nothing but `index`, from six places: the borders of a
+  merged cell, its width, the map of bottom border positions, and the structure tree's spans. Such
+  a merge is read as reaching the edge now, which is the reading `TableRenderer`'s own `KeepWith`
+  arithmetic already took, so a cell merged nine columns right in a three column table draws
+  exactly what one merged two columns right draws — and writes `/ColSpan 3` rather than `/ColSpan
+  10`, which is a grid no reader could lay out. A merge that fits is unaffected: the bound is only
+  ever the edge it already stopped at.
 
 - **`Section.LastParagraph` and `Section.LastTable` answer null on an empty section** instead of
   raising a `NullReferenceException`. Both read the backing field rather than the `Elements`
