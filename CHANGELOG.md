@@ -10,6 +10,8 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-09-21
+
 ### Added
 
 - **`PdfDictionary.PdfStream.ExternalFile`** — the `PdfFileSpecification` a stream names in its
@@ -19,6 +21,14 @@ This file starts at the entry below. Changes before that point are recorded only
   document holds as a dictionary is answered as itself, so it comes back the same each time; one
   written as a bare name is answered as a specification carrying that name, made on the spot and
   outside the document. See `docs/specs/external-file-streams.md`.
+
+- **`Cell.MergedRightColumnIndex` and `Cell.MergedBottomRowIndex`** — the last column and the last
+  row a table cell actually covers. `MergeRight` and `MergeDown` are written while the table is
+  still being built, so neither can be checked against one at the time: the rows and columns they
+  speak of may be added afterwards, or never. What each says is therefore how far the cell reaches
+  *for*, and these two say how far it reaches — the same number whenever the merge is inside the
+  table, and the edge of the table when it is not.
+
 ### Changed
 
 - **`XUnit` implements `IEquatable<XUnit>`.** A value type that overrides `Equals` and defines `==`
@@ -105,6 +115,18 @@ This file starts at the entry below. Changes before that point are recorded only
   there, so reading it the ordinary way is all such a stream ever needed. The entries saying where
   the data really is are carried through untouched; nothing goes and fetches it.
 
+- **A cell merged past the last row or column of its table is laid out instead of throwing.**
+  Nothing can check a merge when it is written, so a cell can claim more of a table than the table
+  ever has — and every place that read a merge as a position then indexed past the end. The
+  document was accepted by the object model without a word and the *formatter* threw
+  `ArgumentOutOfRangeException`, naming nothing but `index`, from six places: the borders of a
+  merged cell, its width, the map of bottom border positions, and the structure tree's spans. Such
+  a merge is read as reaching the edge now, which is the reading `TableRenderer`'s own `KeepWith`
+  arithmetic already took, so a cell merged nine columns right in a three column table draws
+  exactly what one merged two columns right draws — and writes `/ColSpan 3` rather than `/ColSpan
+  10`, which is a grid no reader could lay out. A merge that fits is unaffected: the bound is only
+  ever the edge it already stopped at.
+
 - **`Section.LastParagraph` and `Section.LastTable` answer null on an empty section** instead of
   raising a `NullReferenceException`. Both read the backing field rather than the `Elements`
   property, and a section nobody has added anything to has not built its element collection yet —
@@ -123,6 +145,17 @@ This file starts at the entry below. Changes before that point are recorded only
   that two parents list is *not* a loop and still reads: it is a page counted twice, which is
   malformed but ends. Reported upstream as
   [empira/PDFsharp#361](https://github.com/empira/PDFsharp/issues/361).
+- **A paragraph holding an inline element with no text in it renders.** `AddFormattedText("")` is
+  accepted while the document is built, and `RenderDocument` then threw `ArgumentNullException`
+  from `DocumentRelations.GetParent` — so a string that happened to be empty took the whole
+  document with it, wherever the paragraph sat. An element holding nothing has nothing to descend
+  to, so `ParagraphIterator` hands back its own empty collection as a leaf, one level above the word
+  a leaf usually is. Everything the renderer does with a leaf tolerated that except the walk asking
+  which hyperlink the leaf sits in: it stepped two levels at a time, so from there it landed on the
+  collections rather than on the objects, never met the paragraph it stops at, and ran off the top
+  of the document. It now takes one level at a time and stops at the top as well as at the
+  paragraph. A hyperlink with no text in it is the same leaf and threw the same way. Reported as
+  [PinataLabs/PdfPinata#45](https://github.com/PinataLabs/PdfPinata/issues/45).
 
 ## [0.2.0] - 2026-09-20
 

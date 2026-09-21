@@ -156,8 +156,8 @@ internal class TableRenderer : Renderer
     if (element == null)
       return;
 
-    var columns = cell.MergeRight + 1;
-    var rows = cell.MergeDown + 1;
+    var columns = cell.MergedRightColumnIndex - cell.Column.Index + 1;
+    var rows = cell.MergedBottomRowIndex - cell.Row.Index + 1;
     var header = IsHeaderCell(cell);
 
     if (!header && columns == 1 && rows == 1)
@@ -327,7 +327,7 @@ internal class TableRenderer : Renderer
     if (cell.Row.Index > _lastHeaderRow)
       y -= _bottomBorderMap[_startRow];
 
-    var lowerBorderPos = _bottomBorderMap[cell.Row.Index + cell.MergeDown + 1];
+    var lowerBorderPos = _bottomBorderMap[cell.MergedBottomRowIndex + 1];
 
 
     XUnit height = lowerBorderPos - upperBorderPos;
@@ -756,16 +756,14 @@ internal class TableRenderer : Renderer
     maxBottomBorderPosition += CalcBottomBorderWidth(minMergedCell);
 
     // Note: Caching the indices does speed up this function for large tables greatly.
-    var minMergedCellRowIndex = minMergedCell.Row.Index;
-    var minMergedCellMergeDown = minMergedCell.MergeDown;
-    var mergedIndexPlusDown = minMergedCellRowIndex + minMergedCellMergeDown;
+    var mergedIndexPlusDown = minMergedCell.MergedBottomRowIndex;
     foreach (var cell in _mergedCells)
     {
       var rowIndex = cell.Row.Index;
       if (rowIndex > mergedIndexPlusDown)
         break;
 
-      if (rowIndex + cell.MergeDown == mergedIndexPlusDown)
+      if (cell.MergedBottomRowIndex == mergedIndexPlusDown)
       {
         var formattedCell = _formattedCells[cell];
         var topBorderPos = _bottomBorderMap[rowIndex];
@@ -806,17 +804,18 @@ internal class TableRenderer : Renderer
     foreach (var cell in _mergedCells)
     {
       var rowIndex = cell.Row.Index; // Note: Taking index only once speeds up large tables.
-      if (rowIndex <= row && rowIndex + cell.MergeDown >= row)
+      var lastRowIndex = cell.MergedBottomRowIndex;
+      if (rowIndex <= row && lastRowIndex >= row)
       {
-        if (rowIndex == row && cell.MergeDown == 0)
+        if (rowIndex == row && lastRowIndex == row)
         {
           // Perfect match: non-merged cell in the desired row.
           minCell = cell;
           break;
         }
-        else if (rowIndex + cell.MergeDown - row < minMerge)
+        else if (lastRowIndex - row < minMerge)
         {
-          minMerge = rowIndex + cell.MergeDown - row;
+          minMerge = lastRowIndex - row;
           minCell = cell;
         }
       }

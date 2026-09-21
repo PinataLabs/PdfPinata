@@ -126,6 +126,29 @@ public class TaggedOutputTests
     }
 
     [Fact]
+    public void AMergeThatRunsPastTheTableSaysOnlyHowFarItReaches()
+    {
+        var document = new Document();
+        var table = document.AddSection().AddTable();
+        table.AddColumn("4cm");
+        table.AddColumn("4cm");
+
+        var row = table.AddRow();
+        row.Cells[0].MergeRight = 9;
+        row.Cells[0].MergeDown = 5;
+        row.Cells[0].AddParagraph("Everything");
+        table.AddRow();
+
+        // A span is how a reader knows which columns and rows the cell occupies, so one wider or
+        // taller than the table describes a grid the reader cannot lay out — and the caller wrote
+        // it into a table that has no such columns or rows to give.
+        var merged = Structure.Of(document).Single("Table").Children[0].Children[0];
+
+        merged.ColumnSpan.Should().Be(2);
+        merged.RowSpan.Should().Be(2);
+    }
+
+    [Fact]
     public void AListIsAListAndItsBulletIsALabel()
     {
         var document = new Document();

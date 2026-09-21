@@ -130,7 +130,7 @@ public class MergedCellList : List<Cell>
 
     if (cell.mergeRight > 0)
     {
-      var rightBorderCell = cell.Table[cell.Row.Index, cell.Column.Index + (cell.mergeRight ?? 0)];
+      var rightBorderCell = cell.Table[cell.Row.Index, cell.MergedRightColumnIndex];
       if (rightBorderCell.borders != null && rightBorderCell.borders.right != null)
         borders.Right = rightBorderCell.borders.right.Clone();
       else
@@ -139,7 +139,7 @@ public class MergedCellList : List<Cell>
 
     if (cell.mergeDown > 0)
     {
-      var bottomBorderCell = cell.Table[cell.Row.Index + (cell.mergeDown ?? 0), cell.Column.Index];
+      var bottomBorderCell = cell.Table[cell.MergedBottomRowIndex, cell.Column.Index];
       if (bottomBorderCell.borders != null && bottomBorderCell.borders.bottom != null)
         borders.Bottom = bottomBorderCell.borders.bottom.Clone();
       else
@@ -258,8 +258,8 @@ public class MergedCellList : List<Cell>
     var cell = this[cellIdx];
     if (cell.Column.Index == 0 && position == NeighborPosition.Left ||
         cell.Row.Index == 0 && position == NeighborPosition.Top ||
-        cell.Row.Index + cell.MergeDown == cell.Table.Rows.Count - 1 && position == NeighborPosition.Bottom ||
-        cell.Column.Index + cell.MergeRight == cell.Table.Columns.Count - 1 && position == NeighborPosition.Right)
+        cell.MergedBottomRowIndex == cell.Table.Rows.Count - 1 && position == NeighborPosition.Bottom ||
+        cell.MergedRightColumnIndex == cell.Table.Columns.Count - 1 && position == NeighborPosition.Right)
         return null;
 
     switch (position)
