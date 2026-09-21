@@ -39,5 +39,8 @@ internal class PSCSR
     return $"ChartType '{chartType.ToString()}' not valid for combination of charts.";
   }
 
+  internal static string ClusteredAndStackedColumnsInCombination =>
+    "A combination of charts cannot hold both 'Column2D' and 'ColumnStacked2D' series; make every column series one or the other.";
+
   internal static string PercentNotSupportedByColumnDataLabel => "Column data label cannot be set to 'Percent'";
 }

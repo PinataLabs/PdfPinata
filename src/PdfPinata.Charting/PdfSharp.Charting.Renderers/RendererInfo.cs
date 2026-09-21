@@ -173,6 +173,12 @@ internal class CombinationRendererInfo : ChartRendererInfo
   internal SeriesRendererInfo[] AreaSeriesRendererInfos;
   internal SeriesRendererInfo[] ColumnSeriesRendererInfos;
   internal SeriesRendererInfo[] LineSeriesRendererInfos;
+
+  /// <summary>
+  /// Whether the column series are stacked (ColumnStacked2D) rather than clustered (Column2D).
+  /// A combination chart holds one kind or the other, never both.
+  /// </summary>
+  internal bool ColumnsStacked;
 }
 
 /// <summary>

@@ -83,7 +83,7 @@ internal class CombinationChartRenderer : ChartRenderer
     var xar = new HorizontalXAxisRenderer(this.rendererParms);
     cri.XAxisRendererInfo = (AxisRendererInfo)xar.Init();
 
-    var yar = new VerticalYAxisRenderer(this.rendererParms);
+    var yar = GetYAxisRenderer();
     cri.YAxisRendererInfo = (AxisRendererInfo)yar.Init();
 
     var apar = new AreaPlotAreaRenderer(this.rendererParms);
@@ -115,7 +115,7 @@ internal class CombinationChartRenderer : ChartRenderer
     var xar = new HorizontalXAxisRenderer(this.rendererParms);
     xar.Format();
 
-    var yar = new VerticalYAxisRenderer(this.rendererParms);
+    var yar = GetYAxisRenderer();
     yar.Format();
 
     // Calculate rects and positions.
@@ -142,8 +142,7 @@ internal class CombinationChartRenderer : ChartRenderer
     if (cri.ColumnSeriesRendererInfos != null)
     {
       cri.SeriesRendererInfos = cri.ColumnSeriesRendererInfos;
-      //TODO Check for Clustered- or StackedPlotAreaRenderer
-      renderer = new ColumnClusteredPlotAreaRenderer(this.rendererParms);
+      renderer = GetColumnPlotAreaRenderer();
       renderer.Format();
     }
     if (cri.LineSeriesRendererInfos != null)
@@ -192,8 +191,7 @@ internal class CombinationChartRenderer : ChartRenderer
     if (cri.ColumnSeriesRendererInfos != null)
     {
       cri.SeriesRendererInfos = cri.ColumnSeriesRendererInfos;
-      //TODO Check for Clustered- or StackedPlotAreaRenderer
-      renderer = new ColumnClusteredPlotAreaRenderer(this.rendererParms);
+      renderer = GetColumnPlotAreaRenderer();
       renderer.Draw();
     }
     if (cri.LineSeriesRendererInfos != null)
@@ -220,9 +218,32 @@ internal class CombinationChartRenderer : ChartRenderer
     }
     if (cri.YAxisRendererInfo.Axis != null)
     {
-      var yar = new VerticalYAxisRenderer(this.rendererParms);
+      var yar = GetYAxisRenderer();
       yar.Draw();
     }
+  }
+
+  /// <summary>
+  /// Returns the plot area renderer for the column series: stacked or clustered, as they are.
+  /// </summary>
+  private PlotAreaRenderer GetColumnPlotAreaRenderer()
+  {
+    var cri = (CombinationRendererInfo)this.rendererParms.RendererInfo;
+    return cri.ColumnsStacked
+      ? new ColumnStackedPlotAreaRenderer(this.rendererParms)
+      : new ColumnClusteredPlotAreaRenderer(this.rendererParms);
+  }
+
+  /// <summary>
+  /// Returns the y axis renderer. Stacked columns are scaled to their totals, which the stacked
+  /// renderer works out from the column series alone before taking in every other value.
+  /// </summary>
+  private YAxisRenderer GetYAxisRenderer()
+  {
+    var cri = (CombinationRendererInfo)this.rendererParms.RendererInfo;
+    return cri.ColumnsStacked
+      ? new VerticalStackedYAxisRenderer(this.rendererParms)
+      : new VerticalYAxisRenderer(this.rendererParms);
   }
 
   /// <summary>
@@ -251,6 +272,8 @@ internal class CombinationChartRenderer : ChartRenderer
     var areaSeries = new ArrayList();
     var columnSeries = new ArrayList();
     var lineSeries = new ArrayList();
+    var clustered = false;
+    var stacked = false;
     foreach (var sri in cri.SeriesRendererInfos)
     {
       switch (sri.Series.chartType)
@@ -260,6 +283,12 @@ internal class CombinationChartRenderer : ChartRenderer
           break;
 
         case ChartType.Column2D:
+          clustered = true;
+          columnSeries.Add(sri);
+          break;
+
+        case ChartType.ColumnStacked2D:
+          stacked = true;
           columnSeries.Add(sri);
           break;
 
@@ -271,6 +300,12 @@ internal class CombinationChartRenderer : ChartRenderer
           throw new InvalidOperationException(PSCSR.InvalidChartTypeForCombination(sri.Series.chartType));
       }
     }
+
+    // One set of columns shares one slot per category, and it is either divided between the
+    // series or stacked up in it - there is no drawing both in the same place.
+    if (clustered && stacked)
+      throw new InvalidOperationException(PSCSR.ClusteredAndStackedColumnsInCombination);
+    cri.ColumnsStacked = stacked;
 
     cri.CommonSeriesRendererInfos = cri.SeriesRendererInfos;
     if (areaSeries.Count > 0)
