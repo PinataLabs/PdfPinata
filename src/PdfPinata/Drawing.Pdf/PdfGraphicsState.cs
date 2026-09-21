@@ -747,7 +747,8 @@ internal sealed class PdfGraphicsState : ICloneable
 
     public void AddTransform(XMatrix value, XMatrixOrder matrixOrder)
     {
-        // TODO: User matrixOrder
+        // A cm operator can only prepend, so XGraphics turns an appended transform into the
+        // equivalent prepend before it gets here.
         if (matrixOrder == XMatrixOrder.Append)
             throw new NotImplementedException("XMatrixOrder.Append");
         var transform = value;

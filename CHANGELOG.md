@@ -212,6 +212,14 @@ This file starts at the entry below. Changes before that point are recorded only
   sets a width or a colour but never `Visible = true` was already converted to width 0, and is now
   not drawn either, as a column's border already was.
 
+- **A transform appended on `XGraphics` is drawn where `XGraphics.Transform` says it is.**
+  `TranslateTransform`, `ScaleTransform`, `RotateTransform` and the rest take an `XMatrixOrder`, and
+  `Transform` always honoured `Append`, but the page was handed the same matrix as a prepend, because
+  a `cm` operator can say nothing else. So `TranslateTransform(100, 50)` and then an appended
+  `ScaleTransform(2, 2)` drew at (100, 50) rather than (200, 100). An appended matrix `T` is now
+  written as the prepend with the same effect, `W · T · W⁻¹`. Appending to a matrix with no inverse
+  throws `InvalidOperationException` and changes nothing. Prepended transforms are written as before.
+
 - **A gradient brush's own `Transform` is honoured.** `TranslateTransform`, `ScaleTransform`,
   `RotateTransform`, `MultiplyTransform` and the `Transform` setter all changed a matrix that nothing
   read, so a transformed gradient was drawn exactly as an untransformed one. The transform now applies

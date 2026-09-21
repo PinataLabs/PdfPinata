@@ -2066,15 +2066,32 @@ public sealed class XGraphics : IDisposable
     /// <summary>
     /// Applies a new transformation to the current transformation matrix.
     /// </summary>
+    /// <remarks>
+    /// The renderer is only ever handed a prepend, because that is all the PDF <c>cm</c> operator
+    /// can say: it applies its matrix in the current user space, before everything already there.
+    /// An appended transform is therefore passed on as the prepend with the same effect,
+    /// <c>W · T · W⁻¹</c>, which is what makes <see cref="Transform"/> and the page agree. A
+    /// prepend is passed on untouched, so no existing document changes by a byte.
+    /// </remarks>
     void AddTransform(XMatrix transform, XMatrixOrder order)
     {
+        var prepended = transform;
+        if (order == XMatrixOrder.Append)
+        {
+            if (!_transform.HasInverse)
+                throw new InvalidOperationException(
+                    "A transformation cannot be appended to a transformation matrix that has no inverse.");
+
+            var inverse = _transform;
+            inverse.Invert();
+            prepended = _transform * transform * inverse;
+        }
+
         var matrix = _transform;
         matrix.Multiply(transform, order);
         _transform = matrix;
-        matrix = DefaultViewMatrix;
-        matrix.Multiply(_transform, XMatrixOrder.Prepend);
         if (_renderer != null)
-            _renderer.AddTransform(transform, XMatrixOrder.Prepend);
+            _renderer.AddTransform(prepended, XMatrixOrder.Prepend);
     }
 
     #endregion
