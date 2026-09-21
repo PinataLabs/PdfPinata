@@ -1011,8 +1011,10 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// </summary>
     public void WriteComment(string comment)
     {
-        comment = comment.Replace("\n", "\n% ");
-        // TODO: Some more checks necessary?
+        // A PDF comment runs to the end of the line, and a carriage return ends a line as surely as a
+        // line feed does - so every line break, of whichever kind, has to start another comment, or
+        // what follows it is read as content.
+        comment = comment.Replace("\r\n", "\n").Replace('\r', '\n').Replace("\n", "\n% ");
         Append("% " + comment + "\n");
     }
 

@@ -204,6 +204,24 @@ public class XGraphicsSurfaceTests
         PathGeometry.PointsOf(page).Should().HaveCount(2, "the comment is not ink");
     }
 
+    [Theory]
+    [InlineData("\r")]
+    [InlineData("\r\n")]
+    [InlineData("\n")]
+    public void EveryLineOfACommentStaysAComment(string lineBreak)
+    {
+        // A carriage return ends a line in PDF as surely as a line feed does, so the second line
+        // here would be read as a path of its own if it were not commented out as well.
+        var page = PageShowing(gfx =>
+        {
+            gfx.WriteComment("a landmark" + lineBreak + "300 300 m 400 400 l S");
+            gfx.DrawLine(XPens.Black, 100, 100, 200, 200);
+        });
+
+        ContentOf(page).Should().Contain("% 300 300 m 400 400 l S");
+        PathGeometry.PointsOf(page).Should().HaveCount(2, "no line of the comment is ink");
+    }
+
     [Fact]
     public void ACommentOfNothingIsRefused()
     {
