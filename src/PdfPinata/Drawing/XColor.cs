@@ -36,7 +36,8 @@ using System.ComponentModel;
 namespace PdfPinata.Drawing;
 
 ///<summary>
-/// Represents a RGB, CMYK, or gray scale color.
+/// Represents a RGB, CMYK, or gray scale color, or a spot colour at a tint (see
+/// <see cref="FromSpot(XSpotColor, double)"/>).
 /// </summary>
 [DebuggerDisplay("clr=(A={A}, R={R}, G={G}, B={B} C={C}, M={M}, Y={Y}, K={K})")]
 public struct XColor : IEquatable<XColor>
@@ -192,6 +193,56 @@ public struct XColor : IEquatable<XColor>
     }
 
     /// <summary>
+    /// Creates an XColor that paints with a spot colour at the given tint, opaque.
+    /// </summary>
+    /// <param name="spot">The colorant to paint with.</param>
+    /// <param name="tint">
+    /// How much of the ink, from 0 (none - the paper shows) to 1 (solid). Clamped to that range.
+    /// </param>
+    /// <remarks>
+    /// Drawn through <see cref="XGraphics"/> - filled, stroked or as text - the colour is written as
+    /// a <c>/Separation</c> colour space and a tint, so a press puts it on the colorant's own plate.
+    /// Its RGB, CMYK and grey components are the alternate at this tint, which is what anything that
+    /// does not know about spot colours - a gradient, for one - paints instead. Setting any of those
+    /// components makes it an ordinary process colour again; setting <see cref="A"/> does not.
+    /// </remarks>
+    public static XColor FromSpot(XSpotColor spot, double tint = 1)
+    {
+        return FromSpot(1, spot, tint);
+    }
+
+    /// <summary>
+    /// Creates an XColor that paints with a spot colour at the given tint and alpha.
+    /// </summary>
+    /// <param name="alpha">The opacity, from 0 (transparent) to 1 (opaque).</param>
+    /// <param name="spot">The colorant to paint with.</param>
+    /// <param name="tint">How much of the ink, from 0 to 1. Clamped to that range.</param>
+    public static XColor FromSpot(double alpha, XSpotColor spot, double tint)
+    {
+        ArgumentNullException.ThrowIfNull(spot);
+        if (double.IsNaN(tint))
+            throw new ArgumentOutOfRangeException(nameof(tint), "A tint has to be a number between 0 and 1.");
+
+        tint = tint > 1 ? 1 : (tint < 0 ? 0 : tint);
+        var color = spot.Tinted(tint);
+        color.A = alpha;
+        color._spot = spot;
+        color._tint = (float)tint;
+        return color;
+    }
+
+    /// <summary>
+    /// The spot colour this colour paints with, or null for a process colour.
+    /// </summary>
+    public XSpotColor Spot => _spot;
+
+    /// <summary>
+    /// How much of <see cref="Spot"/>'s ink this colour paints with, from 0 to 1. Zero for a
+    /// process colour.
+    /// </summary>
+    public double Tint => _tint;
+
+    /// <summary>
     /// Creates an XColor from the specified pre-defined color.
     /// </summary>
     public static XColor FromKnownColor(XKnownColor color)
@@ -239,7 +290,7 @@ public struct XColor : IEquatable<XColor>
             #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
             if (_r == color._r && _g == color._g && _b == color._b &&
                 _c == color._c && _m == color._m && _y == color._y && _k == color._k &&
-                _gs == color._gs)
+                _gs == color._gs && _tint == color._tint && Equals(_spot, color._spot))
             {
                 return _a == color._a;
                 #pragma warning restore S1244
@@ -276,7 +327,7 @@ public struct XColor : IEquatable<XColor>
         #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
         if (left._r == right._r && left._g == right._g && left._b == right._b &&
             left._c == right._c && left._m == right._m && left._y == right._y && left._k == right._k &&
-            left._gs == right._gs)
+            left._gs == right._gs && left._tint == right._tint && Equals(left._spot, right._spot))
         {
             return left._a == right._a;
             #pragma warning restore S1244
@@ -411,6 +462,8 @@ public struct XColor : IEquatable<XColor>
     /// </summary>
     void RgbChanged()
     {
+        _spot = null;
+        _tint = 0;
         // ReSharper disable LocalVariableHidesMember
         _cs = XColorSpace.Rgb;
         var c = 255 - _r;
@@ -435,6 +488,8 @@ public struct XColor : IEquatable<XColor>
     /// </summary>
     void CmykChanged()
     {
+        _spot = null;
+        _tint = 0;
         _cs = XColorSpace.Cmyk;
         var black = _k * 255;
         var factor = 255f - black;
@@ -449,6 +504,8 @@ public struct XColor : IEquatable<XColor>
     /// </summary>
     void GrayChanged()
     {
+        _spot = null;
+        _tint = 0;
         _cs = XColorSpace.GrayScale;
         _r = (byte)(_gs * 255);
         _g = (byte)(_gs * 255);
@@ -635,6 +692,11 @@ public struct XColor : IEquatable<XColor>
             _k = float.Parse(values[6], CultureInfo.InvariantCulture);
             _gs = float.Parse(values[7], CultureInfo.InvariantCulture);
             _a = float.Parse(values[8], CultureInfo.InvariantCulture);
+
+            // The string carries the process components alone, so what it describes is a process
+            // colour - the alternate a spot colour stood for, not the ink.
+            _spot = null;
+            _tint = 0;
         }
     }
 
@@ -658,4 +720,9 @@ public struct XColor : IEquatable<XColor>
     float _k;  // /
 
     float _gs; // >--- gray scale
+
+    // A colour naming a colorant: the fields above hold the alternate at this tint. Reset by
+    // every change to them, because a colour whose components were set is no longer the ink.
+    XSpotColor _spot;
+    float _tint;
 }

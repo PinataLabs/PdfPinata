@@ -1319,6 +1319,13 @@ public sealed class PdfDocument : PdfObject, IDisposable
     PdfExtGStateTable _extGStateTable;
 
     /// <summary>
+    /// Gets the document table of the Separation colour spaces its spot colours are painted in.
+    /// </summary>
+    internal PdfSpotColorTable SpotColorTable => _spotColorTable ??= new PdfSpotColorTable(this);
+
+    PdfSpotColorTable _spotColorTable;
+
+    /// <summary>
     /// Gets the PdfCatalog of the current document.
     /// </summary>
     internal PdfCatalog Catalog

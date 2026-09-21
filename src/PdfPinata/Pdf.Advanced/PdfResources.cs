@@ -161,6 +161,23 @@ public sealed class PdfResources : PdfDictionary
     }
 
     /// <summary>
+    /// Adds the specified colour space - an array such as a Separation - to this resource
+    /// dictionary and returns its local resource name.
+    /// </summary>
+    internal string AddColorSpace(PdfArray colorSpace)
+    {
+        if (!_resources.TryGetValue(colorSpace, out var name))
+        {
+            name = NextColorSpaceName;
+            _resources[colorSpace] = name;
+            if (colorSpace.Reference == null)
+                Owner._irefTable.Add(colorSpace);
+            ColorSpaces.Elements[name] = colorSpace.Reference;
+        }
+        return name;
+    }
+
+    /// <summary>
     /// Adds the specified shading to this resource dictionary
     /// and returns its local resource name.
     /// </summary>
@@ -299,6 +316,20 @@ public sealed class PdfResources : PdfDictionary
         }
     }
     int _shadingNumber;
+
+    /// <summary>
+    /// Gets a new local name for this resource.
+    /// </summary>
+    string NextColorSpaceName
+    {
+        get
+        {
+            string name;
+            while (ExistsResourceNames(name = $"/CS{_colorSpaceNumber++}")) { }
+            return name;
+        }
+    }
+    int _colorSpaceNumber;
 
     /// <summary>
     /// Check whether a resource name is already used in the context of this resource dictionary.
