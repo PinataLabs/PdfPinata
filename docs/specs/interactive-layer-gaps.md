@@ -197,7 +197,10 @@ list box, and the list box's `SelectedIndices`. So one field could be filled by 
 another. All of them now go through `PdfAcroField.EnsureCanBeFilled`, which asks both questions a
 value has to pass, read-only first and then the document's open mode, and nothing inside the library
 sets a value on a field it did not just create, so no internal path needed routing round it.
-`AcroFormFieldKindTests` has a test per property.
+`AcroFormFieldKindTests` has a test per property. Two things it does not do: `ReadOnly` still reads
+the field's own `/Ff` and not one inherited from a parent field, so a kid of a read-only parent
+is still filled; and a caller wanting a pre-filled field nobody can edit sets the value first and
+the flag second, because the flag now stops the program as well as the reader.
 
 #### What is still the caller's
 
