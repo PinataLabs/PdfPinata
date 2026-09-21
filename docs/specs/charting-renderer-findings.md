@@ -12,8 +12,8 @@ public API**. None of it needed reflection to find, and none of it needed reflec
 
 Eight defects came out of it — seven from writing the tests, one more from review of the fixes.
 A second round of tests, over legends, markers and the object model's copying, found three more,
-and an upstream report one after that. All twelve are now fixed, and the test that recorded each has been turned round to assert the
-behaviour that replaced it.
+and an upstream report one after that. All twelve are now fixed, and the test that recorded each
+has been turned round to assert the behaviour that replaced it.
 
 | # | finding | severity | status |
 |---|---|---|---|
