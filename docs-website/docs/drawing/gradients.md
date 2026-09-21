@@ -96,9 +96,9 @@ A gradient with transparency is drawn through a soft mask, which PDF/A-1 does no
   gradients next to each other, or nest radial gradients with matching radii.
 - **Unpainted means unpainted.** Without `ExtendLeft` or `ExtendRight`, the parts of the shape past
   the gradient's ends show what was on the page before, not white.
-- **The same brush can fill many shapes.** The gradient's coordinates are page coordinates, not
-  coordinates relative to the shape. Two rectangles filled with the same brush show two parts of one
-  gradient.
+- **The same brush can fill many shapes.** The gradient's coordinates are the coordinates you draw
+  in, not coordinates relative to the shape. Two rectangles filled with the same brush show two parts
+  of one gradient.
 
 ## See it in action
 
