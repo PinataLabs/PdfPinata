@@ -797,7 +797,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         // Promote inheritable values down the page tree
         var values = new PdfPage.InheritedValues();
         PdfPage.InheritValues(this, ref values);
-        var pages = GetKids(Reference, values);
+        var pages = GetKids(Reference, values, Owner._irefTable.ObjectTable.Count);
 
         // Replace /Pages in catalog by this object
         // xrefRoot.Value = this;
@@ -820,8 +820,44 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     /// <summary>
     /// Recursively converts the page tree into a flat array.
     /// </summary>
-    static PdfDictionary[] GetKids(PdfReference iref, PdfPage.InheritedValues values)
+    static PdfDictionary[] GetKids(PdfReference iref, PdfPage.InheritedValues values, int objectCount)
     {
+        // A tree enters each of its nodes once, so the walk of a file holding n objects enters at
+        // most n nodes. A node two parents list is entered twice, which is read rather than refused -
+        // but a chain of nodes each listing the next one twice doubles at every level, and forty
+        // levels are a trillion nodes in a file of forty objects: no loop, nothing deep, and a walk
+        // that never ends in practice. Twice the objects in the file is room for every node to be
+        // listed twice and no room for that.
+        var budget = 2 * objectCount + 1;
+        return GetKids(iref, values, [], ref budget);
+    }
+
+    /// <summary>
+    /// How deep the page tree of a document may be nested before the file is read as malformed.
+    /// </summary>
+    /// <remarks>
+    /// Not a limit on how many pages a document may have: a tree this deep branching two ways at
+    /// every level holds more pages than a file could name. The number it is really about is the
+    /// stack, which this walk overflowed at about 1,800 frames — and a stack overflow cannot be
+    /// caught, so the process goes, and the file was only being opened.
+    /// </remarks>
+    const int MaxPageTreeDepth = 256;
+
+    /// <summary>
+    /// The same walk, carrying the nodes it is currently inside — which is both the loop detector
+    /// and the depth, since a node appears on the path at most once.
+    /// </summary>
+    static PdfDictionary[] GetKids(PdfReference iref, PdfPage.InheritedValues values,
+        HashSet<PdfObjectID> ancestors, ref int budget)
+    {
+        if (--budget < 0)
+        {
+            throw new PdfReaderException(
+                $"The page tree has been entered more than twice as many times as the file has " +
+                $"objects, reaching node {iref.ObjectID}, so it lists the same subtrees over and over " +
+                "rather than each once as a tree does.");
+        }
+
         // TODO: inherit inheritable keys...
         if (iref.Value is not PdfDictionary kid)
         {
@@ -873,6 +909,27 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
                 "rather than an array.");
         }
 
+        // Descending is the one thing that can fail to end, so this is where the walk is asked
+        // whether it is going anywhere new. A node that stands among its own ancestors is a loop
+        // rather than a deeper tree, and a tree deeper than any document builds is one the stack
+        // cannot hold. Both used to run until the stack ran out, which takes the process with it —
+        // an untrusted file killed the program that merely opened it. ISO 32000-1 7.7.3.2 has the
+        // pages of a document in a *tree*; empira/PDFsharp#361 is a file where they are not.
+        if (!ancestors.Add(iref.ObjectID))
+        {
+            throw new PdfReaderException(
+                $"Page tree node {iref.ObjectID} stands among its own descendants, so the /Kids " +
+                "of this document form a loop rather than a tree.");
+        }
+
+        if (ancestors.Count > MaxPageTreeDepth)
+        {
+            throw new PdfReaderException(
+                $"The page tree is nested more than {MaxPageTreeDepth} levels deep at node " +
+                $"{iref.ObjectID}, which is deeper than a tree of pages is ever built and deeper " +
+                "than this walk can go.");
+        }
+
         var list = new List<PdfDictionary>();
         foreach (var item in kids)
         {
@@ -884,8 +941,13 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
                     "node was expected.");
             }
 
-            list.AddRange(GetKids(xref2, values));
+            list.AddRange(GetKids(xref2, values, ancestors, ref budget));
         }
+
+        // Only while the walk is inside it. A node listed by two parents is a page counted twice,
+        // which is malformed but ends; it is a node listed by itself that does not, and that is
+        // what the set above is asked about.
+        ancestors.Remove(iref.ObjectID);
 
         // /Count is not asserted against what was found. FlattenPageTree overwrites it with the real
         // count the moment this returns, and an empty node tolerated above legitimately leaves the
