@@ -10,6 +10,16 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ## [Unreleased]
 
+### Added
+
+- **`PdfDictionary.PdfStream.ExternalFile`** — the `PdfFileSpecification` a stream names in its
+  `/F` entry when its data is in another file, and null when it names none. It is a way of reading
+  where the data is: nothing fetches the file, because a file specification is written by a stranger
+  and can name a path outside the document's directory or, in its dictionary form, a URL. A `/F` the
+  document holds as a dictionary is answered as itself, so it comes back the same each time; one
+  written as a bare name is answered as a specification carrying that name, made on the spot and
+  outside the document. See `docs/specs/external-file-streams.md`.
+
 ### Fixed
 
 - **`XUnit.Presentation` stores a length in presentation units rather than in points.** The setter
@@ -39,6 +49,16 @@ This file starts at the entry below. Changes before that point are recorded only
   name against `"L2R"` and `"R2L"`, and a PDF name carries its slash — so nothing ever matched
   and the property answered null however it had been set, in the same document and out of the file
   it wrote. Both spellings are now taken, for an entry set as a name by hand.
+
+- **A document is read although one of its streams says its data is in another file.** ISO 32000-1
+  Table 5 gives a stream dictionary an optional `/F` naming the file its data is really in, and the
+  parser refused every dictionary carrying one with `NotImplementedException: "File streams are not
+  yet implemented."` — before reading a byte, so the exception came out of `PdfReader.Open` and the
+  whole document was lost for it, whatever that stream was for. The reported case is a catalog whose
+  `/Metadata` says its XMP is in a file beside the document: nothing on any page needed it, and
+  every page went with it. `/Length` counts the bytes that are in this file whether or not `/F` is
+  there, so reading it the ordinary way is all such a stream ever needed. The entries saying where
+  the data really is are carried through untouched; nothing goes and fetches it.
 
 - **`Section.LastParagraph` and `Section.LastTable` answer null on an empty section** instead of
   raising a `NullReferenceException`. Both read the backing field rather than the `Elements`

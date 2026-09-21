@@ -1552,6 +1552,55 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         }
 
         /// <summary>
+        /// The file this stream says its data is really in, or null when it says nothing about one.
+        /// <para>
+        /// ISO 32000-1 Table 5 lets a stream keep its data in another file, named by <c>/F</c>; the
+        /// bytes between the keywords are then to be ignored, and the filters to apply to the file
+        /// are <c>/FFilter</c> rather than <c>/Filter</c>. Nothing here goes and fetches that file.
+        /// Where it is, and what a document may make a reader do by naming it, is the application's
+        /// decision rather than this library's — see <c>docs/specs/external-file-streams.md</c>.
+        /// </para>
+        /// <para>
+        /// A <c>/F</c> the document holds as a dictionary is answered as itself, so the same
+        /// specification comes back each time and writing to it writes to the document. A <c>/F</c>
+        /// written as a bare name — the simple form of 7.11.2 — is answered as a specification
+        /// carrying that name and nothing else, made on the spot and standing outside the document:
+        /// holding it would mean turning the name into a dictionary, which is not this property's
+        /// business to do on a read. It is a way of reading where the data is, which is what the
+        /// entry is for.
+        /// </para>
+        /// </summary>
+        public PdfFileSpecification ExternalFile
+        {
+            get
+            {
+                var entry = _ownerDictionary.Elements[Keys.F];
+                if (entry == null)
+                    return null;
+
+                if (entry is PdfString name)
+                {
+                    // A file specification string stays one byte per character, the way FileName
+                    // writes one and the way the file holds it.
+                    var carrier = new PdfDictionary();
+                    carrier.Elements.SetString(PdfFileSpecification.Keys.F, name.Value,
+                        PdfStringEncoding.RawEncoding);
+                    return new PdfFileSpecification(carrier);
+                }
+
+                var specification = PdfAttachments.Resolve(entry);
+                // Resolving transforms the dictionary into the specification, and re-points the
+                // reference at it — so a specification that is an object of its own is found again
+                // by itself next time. One written out inside this dictionary has no reference to
+                // re-point, and has to be put back under the key for that to hold.
+                if (specification != null && entry is not PdfReference)
+                    _ownerDictionary.Elements[Keys.F] = specification;
+
+                return specification;
+            }
+        }
+
+        /// <summary>
         /// Tries to unfilter the bytes of the stream. If the stream is filtered and PDFsharp knows the filter
         /// algorithm, the stream content is replaced by its unfiltered value and the function returns true.
         /// Otherwise the content remains untouched and the function returns false.

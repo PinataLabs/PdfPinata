@@ -9,7 +9,7 @@ investigation turned up. All three are tracked the same way, because what a read
 first is the same in each case: is this the code as it stands, or the code as somebody hoped it
 would be?
 
-**43 done · 4 in progress · 10 not started · 57 total.**
+**44 done · 4 in progress · 10 not started · 58 total.**
 
 Read the relevant spec before extending that feature area.
 
@@ -32,6 +32,7 @@ decisions, not outstanding work.
 - [x] [demonstration-app.md](demonstration-app.md) — what `SampleApp` is, and what it deliberately is not
 - [x] [dom-thread-safety.md](dom-thread-safety.md) — the unsynchronised `static Meta` that failed two tests at random
 - [x] [dom-value-model-findings.md](dom-value-model-findings.md) — what replacing the DOM value model turned up
+- [x] [external-file-streams.md](external-file-streams.md) — a stream whose data is in another file, empira#389; `PdfStream.ExternalFile` says where, and nothing fetches it
 - [x] [font-embedding-gaps.md](font-embedding-gaps.md) — `.otf`/`.ttc` discovery, CFF embedding, style simulation, G1–G6
 - [x] [graphics-state-stack-unification.md](graphics-state-stack-unification.md) — the dead state stack removed, the live pair kept apart (T15)
 - [x] [image-failure-reporting.md](image-failure-reporting.md) — an image decode failure that says which failure, empira#366
