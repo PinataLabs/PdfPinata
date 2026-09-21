@@ -42,7 +42,7 @@ namespace PdfPinata.Pdf.Advanced;
 /// Provides access to the internal document data structures. This class prevents the public
 /// interfaces from pollution with too much internal functions.
 /// </summary>
-public class PdfInternals // TODO: PdfDocumentInternals... PdfPageInternals etc.
+public class PdfInternals
 {
     internal PdfInternals(PdfDocument document)
     {

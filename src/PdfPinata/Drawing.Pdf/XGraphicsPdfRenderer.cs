@@ -1558,9 +1558,6 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     {
         if (_gfxState.Level == GraphicsStackLevelInitial)
         {
-            // TODO: Is PageOriging and PageScale (== Viewport) useful? Or just public DefaultViewMatrix (like Presentation Manager has had)
-            // May be a BeginContainer(windows, viewport) is useful for userer that are not familar with maxtrix transformations.
-
             // Flip page horizontally and mirror text.
 
             // PDF uses a standard right-handed Cartesian coordinate system with the y axis directed up

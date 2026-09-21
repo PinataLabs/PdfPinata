@@ -31,7 +31,6 @@ using System;
 using System.Diagnostics;
 
 namespace PdfPinata.Fonts.OpenType;
-// TODO: Create a font driver for reading and writing OpenType font files.
 
 /// <summary>
 /// Base class for all OpenType tables used in PdfPinata.

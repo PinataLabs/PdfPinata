@@ -51,9 +51,6 @@ public sealed class PdfImage : PdfXObject
 
         _image = image;
 
-        ////// TODO: identify multiple used images. If the image already exists use the same XRef.
-        ////_defaultName = PdfImageTable.NextImageName;
-
         switch (_image.Format.Guid.ToString("B").ToUpper())
         {
             // Pdf supports Jpeg, therefore we can write what we've read:
@@ -66,8 +63,6 @@ public sealed class PdfImage : PdfXObject
             case "{B96B3CB0-0728-11D3-9D7B-0000F81EF32E}":  //XImageFormat.Gif
             case "{B96B3CB1-0728-11D3-9D7B-0000F81EF32E}":  //XImageFormat.Tiff
             case "{B96B3CB5-0728-11D3-9D7B-0000F81EF32E}":  //XImageFormat.Icon
-                // TODO: possible optimization for PNG (do not decompress/recompress)???
-                // TODO: try Jpeg for size optimization???
                 InitializeNonJpeg();
                 break;
 

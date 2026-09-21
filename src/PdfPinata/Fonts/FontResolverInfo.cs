@@ -104,7 +104,6 @@ public class FontResolverInfo
         _faceName = faceName;
         _mustSimulateBold = mustSimulateBold;
         _mustSimulateItalic = mustSimulateItalic;
-        _collectionNumber = collectionNumber;
     }
 
     /// <summary>
@@ -162,14 +161,6 @@ public class FontResolverInfo
     /// Gets the style simulation flags.
     /// </summary>
     public XStyleSimulations StyleSimulations => (_mustSimulateBold ? XStyleSimulations.BoldSimulation : 0) | (_mustSimulateItalic ? XStyleSimulations.ItalicSimulation : 0);
-
-    /// <summary>
-    /// The number of the font in a Truetype font collection file. The number of the first font is 0.
-    /// NOT YET IMPLEMENTED. Must be zero.
-    /// </summary>
-    internal int CollectionNumber => _collectionNumber; // TODO : Find a better name.
-
-    readonly int _collectionNumber;
 
     /// <summary>
     /// Gets the DebuggerDisplayAttribute text.

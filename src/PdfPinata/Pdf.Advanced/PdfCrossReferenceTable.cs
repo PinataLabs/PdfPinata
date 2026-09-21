@@ -193,7 +193,6 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
     /// </summary>
     internal int Compact()
     {
-        // TODO: remove PdfBooleanObject, PdfIntegerObject etc.
         var removed = ObjectTable.Count;
         var irefs = TransitiveClosure(_document._trailer);
 

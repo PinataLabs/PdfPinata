@@ -208,27 +208,22 @@ public sealed class PdfResources : PdfDictionary
 
     PdfResourceMap _xObjects;
 
-    // TODO: make own class
     internal PdfResourceMap ExtGStates => _extGStates ??= (PdfResourceMap)Elements.GetValue(Keys.ExtGState, VCF.Create);
 
     PdfResourceMap _extGStates;
 
-    // TODO: make own class
     internal PdfResourceMap ColorSpaces => _colorSpaces ??= (PdfResourceMap)Elements.GetValue(Keys.ColorSpace, VCF.Create);
 
     PdfResourceMap _colorSpaces;
 
-    // TODO: make own class
     internal PdfResourceMap Patterns => _patterns ??= (PdfResourceMap) Elements.GetValue(Keys.Pattern, VCF.Create);
 
     PdfResourceMap _patterns;
 
-    // TODO: make own class
     internal PdfResourceMap Shadings => _shadings ??= (PdfResourceMap) Elements.GetValue(Keys.Shading, VCF.Create);
 
     PdfResourceMap _shadings;
 
-    // TODO: make own class
     internal PdfResourceMap Properties => _properties ??= (PdfResourceMap) Elements.GetValue(Keys.Properties, VCF.Create);
 
     PdfResourceMap _properties;

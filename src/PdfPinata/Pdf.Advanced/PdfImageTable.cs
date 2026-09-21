@@ -82,12 +82,11 @@ internal sealed class PdfImageTable : PdfResourceTable
         /// </summary>
         public ImageSelector(XImage image)
         {
-            // HACK: implement a way to identify images when they are reused
-            // TODO 4STLA Implementation that calculates MD5 hashes for images generated for the images can be found here: http://forum.PdfPinata.net/viewtopic.php?p=6959#p6959
+            // Images are matched by path here; identical content drawn from different sources is
+            // merged at save time when PdfDocumentOptions.DeduplicateResources is set.
             if (image.Path == null)
                 image.Path = "*" + Guid.NewGuid().ToString("B");
 
-            // HACK: just use full path to identify
             _path = image.Path.ToLowerInvariant();
         }
 
