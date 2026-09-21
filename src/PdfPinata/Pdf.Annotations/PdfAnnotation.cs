@@ -108,6 +108,12 @@ public abstract class PdfAnnotation : PdfDictionary
             "/Stamp" => new PdfRubberStampAnnotation(dict),
             "/FileAttachment" => new PdfFileAttachmentAnnotation(dict),
             "/Widget" => new PdfWidgetAnnotation(dict),
+            "/Ink" => new PdfInkAnnotation(dict),
+            "/Polygon" => new PdfPolygonAnnotation(dict),
+            "/PolyLine" => new PdfPolyLineAnnotation(dict),
+            "/Popup" => new PdfPopupAnnotation(dict),
+            "/Caret" => new PdfCaretAnnotation(dict),
+            "/Redact" => new PdfRedactAnnotation(dict),
             _ => new PdfGenericAnnotation(dict),
         };
     }
@@ -557,6 +563,37 @@ public abstract class PdfAnnotation : PdfDictionary
             return 1;
 
         return borderStyle.Elements.GetReal("/W");
+    }
+
+    /// <summary>
+    /// A border style dictionary for a solid border of the given width - a direct one, so that it
+    /// needs no owner and the width can be set before the annotation is on a page.
+    /// </summary>
+    private protected static PdfDictionary SolidBorder(double width)
+    {
+        if (width < 0)
+            throw new ArgumentOutOfRangeException(nameof(width), width, "A border cannot be narrower than nothing.");
+
+        var border = new PdfDictionary();
+        border.Elements.SetName("/Type", "/Border");
+        border.Elements.SetReal("/W", width);
+        border.Elements.SetName("/S", "/S");
+        return border;
+    }
+
+    /// <summary>
+    /// Takes away the appearance an annotation that draws itself had, for when it is asked to draw
+    /// nothing - or it goes on showing what it was last asked for rather than what it is asked for
+    /// now.
+    /// </summary>
+    /// <remarks>
+    /// <c>/AS</c> goes too: it names one of a set of appearances, and would be left pointing at a
+    /// state in an <c>/AP</c> that is no longer there.
+    /// </remarks>
+    private protected void RemoveAppearance()
+    {
+        Elements.Remove(Keys.AP);
+        Elements.Remove(Keys.AS);
     }
 
     /// <summary>

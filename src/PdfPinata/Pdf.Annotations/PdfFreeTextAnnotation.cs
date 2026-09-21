@@ -33,7 +33,7 @@ namespace PdfPinata.Pdf.Annotations;
 /// ISO 32000-1 has it: a free text annotation's border takes its colour from <c>/DA</c>.
 /// </para>
 /// </remarks>
-public sealed class PdfFreeTextAnnotation : PdfAnnotation
+public sealed class PdfFreeTextAnnotation : PdfMarkupAnnotation
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="PdfFreeTextAnnotation"/> class.

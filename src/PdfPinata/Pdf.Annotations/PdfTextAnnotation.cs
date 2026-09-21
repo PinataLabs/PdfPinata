@@ -34,7 +34,7 @@ namespace PdfPinata.Pdf.Annotations;
 /// <summary>
 /// Represents a text annotation.
 /// </summary>
-public sealed class PdfTextAnnotation : PdfAnnotation
+public sealed class PdfTextAnnotation : PdfMarkupAnnotation
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="PdfTextAnnotation"/> class.

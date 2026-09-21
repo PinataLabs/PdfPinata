@@ -26,7 +26,7 @@ namespace PdfPinata.Pdf.Annotations;
 /// a reader - none of which <c>XGraphics.DrawRectangle</c> can offer, because that is ink.
 /// </para>
 /// </remarks>
-public abstract class PdfSquareCircleAnnotation : PdfAnnotation
+public abstract class PdfSquareCircleAnnotation : PdfMarkupAnnotation
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="PdfSquareCircleAnnotation"/> class.

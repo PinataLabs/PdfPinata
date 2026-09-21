@@ -35,7 +35,7 @@ namespace PdfPinata.Pdf.Annotations;
 /// <summary>
 /// Represents a rubber stamp annotation.
 /// </summary>
-public sealed class PdfRubberStampAnnotation : PdfAnnotation
+public sealed class PdfRubberStampAnnotation : PdfMarkupAnnotation
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="PdfRubberStampAnnotation"/> class.

@@ -6,7 +6,7 @@ namespace PdfPinata.Pdf.Annotations;
 /// <summary>
 /// Represent a file that is attached to the PDF
 /// </summary>
-public class PdfFileAttachmentAnnotation : PdfAnnotation
+public class PdfFileAttachmentAnnotation : PdfMarkupAnnotation
 {
     /// <summary>
     /// Name of icons used in displaying the annotation.

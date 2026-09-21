@@ -62,6 +62,12 @@ public sealed class TypedAnnotationReadingTests : IDisposable
         { "/Stamp", typeof(PdfRubberStampAnnotation) },
         { "/FileAttachment", typeof(PdfFileAttachmentAnnotation) },
         { "/Widget", typeof(PdfWidgetAnnotation) },
+        { "/Ink", typeof(PdfInkAnnotation) },
+        { "/Polygon", typeof(PdfPolygonAnnotation) },
+        { "/PolyLine", typeof(PdfPolyLineAnnotation) },
+        { "/Popup", typeof(PdfPopupAnnotation) },
+        { "/Caret", typeof(PdfCaretAnnotation) },
+        { "/Redact", typeof(PdfRedactAnnotation) },
         { "/Wibble", typeof(PdfGenericAnnotation) },
     };
 
@@ -183,6 +189,11 @@ public sealed class TypedAnnotationReadingTests : IDisposable
     [InlineData("/Line")]
     [InlineData("/FreeText")]
     [InlineData("/Highlight")]
+    [InlineData("/Ink")]
+    [InlineData("/Polygon")]
+    [InlineData("/PolyLine")]
+    [InlineData("/Caret")]
+    [InlineData("/Redact")]
     public void ReadingAnAnnotationThatDrawsItselfLeavesItsAppearanceAlone(string subtype)
     {
         var original = WithForeignAppearance(subtype);
