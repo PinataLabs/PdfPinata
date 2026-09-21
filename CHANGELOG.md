@@ -110,6 +110,20 @@ This file starts at the entry below. Changes before that point are recorded only
   property, and a section nobody has added anything to has not built its element collection yet —
   so the one case each of them documents an answer for was the one case that threw.
 
+- **A page tree that loops, or that is nested deeper than the stack can hold, is refused instead of
+  killing the process.** ISO 32000-1 7.7.3.2 has a document's pages in a *tree*, and
+  `PdfPages.GetKids` believed it: a `/Kids` entry leading back to a node the walk was already
+  inside recursed until the stack ran out, and a stack overflow cannot be caught, so the process
+  went with it. Opening the file was enough — the catalog asks for the pages while
+  `PdfReader.Open` is still running — which makes it a denial of service on any program that opens
+  a document it did not write. The walk now carries the nodes it is inside: a node that stands
+  among its own ancestors is refused as a loop, naming it, and a tree nested more than 256 levels
+  deep is refused as too deep, which is the case no loop detector catches — a chain of two thousand
+  nodes repeats nothing and still died, at about the eighteen hundred frames the stack held. A node
+  that two parents list is *not* a loop and still reads: it is a page counted twice, which is
+  malformed but ends. Reported upstream as
+  [empira/PDFsharp#361](https://github.com/empira/PDFsharp/issues/361).
+
 ## [0.2.0] - 2026-09-20
 
 ### Added
