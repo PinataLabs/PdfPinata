@@ -99,6 +99,13 @@ This file starts at the entry below. Changes before that point are recorded only
   `ProductVersionInfo.Producer` is now a static property rather than a constant, and
   `ProductVersionInfo.Producer2` is gone.
 
+### Removed
+
+- **`PdfWriterLayout.Verbose`.** Nothing in the library ever selected it, since the writer that
+  reads the layout is internal and is always given the default, `Compact`. So no document was
+  written with it, and the header comments, indentation and sorted keys it stood for went with it.
+  The members before it keep their values.
+
 ### Fixed
 
 - **`PdfReader.Open` no longer hangs on a file whose cross-reference `/Prev` chain loops back on

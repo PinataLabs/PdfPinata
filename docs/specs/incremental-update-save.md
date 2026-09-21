@@ -50,6 +50,10 @@ first two hundred bytes of somebody else's document. It now defaults to -1 and t
 skipped. Note where this would have been found and where it would not: broken in development, fine
 in release.
 
+*Since removed.* Nothing in the library selected the verbose layout any more, so the header
+comments, the patching and `PdfWriterLayout.Verbose` itself were deleted, and `WriteEof` no longer
+seeks anywhere.
+
 ## A revision after a cross-reference stream is indexed by one (#55)
 
 When the file's last revision is indexed by a cross-reference stream, the document's trailer is that

@@ -342,8 +342,6 @@ internal class PdfWriter
                 _lastCat = CharCat.NewLine;
             }
         }
-        if (_layout == PdfWriterLayout.Verbose)
-            IncreaseIndent();
     }
 
     /// <summary>
@@ -359,8 +357,6 @@ internal class PdfWriter
 
         var value = stackItem.Object;
         var indirect = value.IsIndirect;
-        if (_layout == PdfWriterLayout.Verbose)
-            DecreaseIndent();
         if (value is PdfArray)
         {
             if (indirect)
@@ -393,8 +389,6 @@ internal class PdfWriter
         {
             NewLine();
             WriteRaw("endobj\n");
-            if (_layout == PdfWriterLayout.Verbose)
-                WriteRaw("%--------------------------------------------------------------------------------------------------\n");
         }
     }
 
@@ -493,11 +487,7 @@ internal class PdfWriter
 
     void WriteObjectAddress(PdfObject value)
     {
-        if (_layout == PdfWriterLayout.Verbose)
-            WriteRaw(
-                $"{value.ObjectID.ObjectNumber} {value.ObjectID.GenerationNumber} obj   % {value.GetType().FullName}\n");
-        else
-            WriteRaw($"{value.ObjectID.ObjectNumber} {value.ObjectID.GenerationNumber} obj\n");
+        WriteRaw($"{value.ObjectID.ObjectNumber} {value.ObjectID.GenerationNumber} obj\n");
     }
 
     public void WriteFileHeader(PdfDocument document)
@@ -507,97 +497,13 @@ internal class PdfWriter
         header.Append((version / 10).ToString(CultureInfo.InvariantCulture) + "." +
                       (version % 10).ToString(CultureInfo.InvariantCulture) + "\n%\xD3\xF4\xCC\xE1" + "\n");
         WriteRaw(header.ToString());
-
-        if (_layout == PdfWriterLayout.Verbose)
-        {
-            WriteRaw($"% PDFsharp Version {VersionInfo.Version} (verbose mode)\n");
-            // Keep some space for later fix-up.
-            _commentPosition = (int)_stream.Position + 2;
-            WriteRaw("%                                                \n");
-            WriteRaw("%                                                \n");
-            WriteRaw("%                                                \n");
-            WriteRaw("%                                                \n");
-            WriteRaw("%                                                \n");
-            WriteRaw("%--------------------------------------------------------------------------------------------------\n");
-        }
     }
 
-    public void WriteEof(PdfDocument document, long startxref)
+    public void WriteEof(long startxref)
     {
         WriteRaw("startxref\n");
         WriteRaw(startxref.ToString(CultureInfo.InvariantCulture));
         WriteRaw("\n%%EOF\n");
-        var fileSize = _stream.Position;
-
-        // Only when this writer wrote the header those comments live in. Patching them means
-        // seeking backwards to a position the header recorded, and a writer that never wrote one
-        // has no such position — an incremental save appends to a file it did not write, and
-        // patching there scribbles over the start of somebody else's document. Verbose is the
-        // default in a debug build, so this would only ever have gone wrong where it is hardest to
-        // credit: in development, and never in release.
-        if (_layout == PdfWriterLayout.Verbose && _commentPosition >= 0)
-        {
-            var duration = GlobalTimeSettings.Now - document._creation;
-
-            _stream.Position = _commentPosition;
-            // Without InvariantCulture parameter the following line fails if the current culture is e.g.
-            // a Far East culture, because the date string contains non-ASCII characters.
-            // So never never never never use ToString without a culture info.
-            WriteRaw("Creation date: " + document._creation.ToString("G", CultureInfo.InvariantCulture));
-            _stream.Position = _commentPosition + 50;
-            WriteRaw("Creation time: " + duration.TotalSeconds.ToString("0.000", CultureInfo.InvariantCulture) + " seconds");
-            _stream.Position = _commentPosition + 100;
-            WriteRaw("File size: " + fileSize.ToString(CultureInfo.InvariantCulture) + " bytes");
-            _stream.Position = _commentPosition + 150;
-            WriteRaw("Pages: " + document.Pages.Count.ToString(CultureInfo.InvariantCulture));
-            _stream.Position = _commentPosition + 200;
-            WriteRaw("Objects: " + document._irefTable.ObjectTable.Count.ToString(CultureInfo.InvariantCulture));
-        }
-    }
-
-    /// <summary>
-    /// Gets or sets the indentation for a new indentation level.
-    /// </summary>
-    internal int Indent
-    {
-        get => _indent;
-        set => _indent = value;
-    }
-    int _indent = 2;
-    int _writeIndent;
-
-    /// <summary>
-    /// Increases indent level.
-    /// </summary>
-    void IncreaseIndent()
-    {
-        _writeIndent += _indent;
-    }
-
-    /// <summary>
-    /// Decreases indent level.
-    /// </summary>
-    void DecreaseIndent()
-    {
-        _writeIndent -= _indent;
-    }
-
-    ///// <summary>
-    ///// Returns an indent string of blanks.
-    ///// </summary>
-    //static string Ind(int _indent)
-    //{
-    //  return new String(' ', _indent);
-    //}
-
-    /// <summary>
-    /// Gets an indent string of current indent.
-    /// </summary>
-    string IndentBlanks => new(' ', _writeIndent);
-
-    void WriteIndent()
-    {
-        WriteRaw(IndentBlanks);
     }
 
     void WriteSeparator()
@@ -605,10 +511,6 @@ internal class PdfWriter
         switch (_lastCat)
         {
             case CharCat.NewLine:
-                if (_layout == PdfWriterLayout.Verbose)
-                    WriteIndent();
-                break;
-
             case CharCat.Delimiter:
                 break;
 
@@ -669,8 +571,4 @@ internal class PdfWriter
     }
 
     readonly List<StackItem> _stack = new();
-    /// <summary>
-    /// Where the header comments this writer wrote begin, or -1 when it wrote none.
-    /// </summary>
-    int _commentPosition = -1;
 }

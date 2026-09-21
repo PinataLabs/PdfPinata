@@ -462,7 +462,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
             // written as a trailer dictionary - see WriteIncrementalSection.
             if (_trailer is PdfCrossReferenceStream)
             {
-                writer.WriteEof(this,
+                writer.WriteEof(
                     PdfCrossReferenceStreamWriter.WriteIncrementalSection(this, writer, changed, _originalStartXref));
                 return;
             }
@@ -480,7 +480,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
             // refusal fails here rather than writing a negative /Prev.
             _trailer.Elements.SetInteger(PdfTrailer.Keys.Prev, checked((int)_originalStartXref));
             _trailer.WriteObject(writer);
-            writer.WriteEof(this, startxref);
+            writer.WriteEof(startxref);
         }
         finally
         {
@@ -689,7 +689,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
 
                 writer.WriteFileHeader(this);
                 var startxref = PdfCrossReferenceStreamWriter.WriteBody(this, writer);
-                writer.WriteEof(this, startxref);
+                writer.WriteEof(startxref);
             }
             else
             {
@@ -708,7 +708,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
                 writer.WriteRaw("trailer\n");
                 _trailer.Elements.SetInteger("/Size", count + 1);
                 _trailer.WriteObject(writer);
-                writer.WriteEof(this, startxref);
+                writer.WriteEof(startxref);
             }
 
             //if (encrypt)

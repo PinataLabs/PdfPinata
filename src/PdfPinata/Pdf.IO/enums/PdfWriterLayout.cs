@@ -49,12 +49,5 @@ public enum PdfWriterLayout
     /// The PDF stream is indented to reflect the nesting levels of the objects. This is useful
     /// for analyzing PDF files, but increases the size of the file significantly.
     /// </summary>
-    Indented,
-
-    /// <summary>
-    /// The PDF stream is indented to reflect the nesting levels of the objects and contains additional
-    /// information about the PDFsharp objects. Furthermore content streams are not deflated. This 
-    /// is useful for debugging purposes only and increases the size of the file significantly.
-    /// </summary>
-    Verbose
+    Indented
 }
