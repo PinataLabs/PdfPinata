@@ -129,10 +129,6 @@ public class XImage : IDisposable
     /// <param name="path">The path to a BMP, PNG, GIF, JPEG, TIFF, or PDF file.</param>
     public static bool ExistsFile(string path)
     {
-        // Support for "base64:" pseudo protocol is a PinataLayout feature, currently completely implemented in MigraDoc files. TODO: Does support for "base64:" make sense for PDFsharp? Probably not as PDFsharp can handle images from streams.
-        //if (path.StartsWith("base64:")) // The Image is stored in the string here, so the file exists.
-        //    return true;
-
         if (PdfReader.TestPdfFile(path) > 0)
             return true;
         return false;

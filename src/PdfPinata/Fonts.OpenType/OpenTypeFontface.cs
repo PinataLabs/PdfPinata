@@ -177,8 +177,8 @@ internal sealed class OpenTypeFontface
     // vertically yet, so Read() does not seek them and these stay null. Scoped rather than
     // disabled for the whole file, so that a field that goes unassigned by accident still warns.
 #pragma warning disable 0649
-    internal VerticalHeaderTable vhea; // TODO
-    internal VerticalMetricsTable vmtx; // TODO
+    internal VerticalHeaderTable vhea;
+    internal VerticalMetricsTable vmtx;
 #pragma warning restore 0649
     // ReSharper restore InconsistentNaming
 

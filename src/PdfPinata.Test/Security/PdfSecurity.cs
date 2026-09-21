@@ -90,32 +90,47 @@ public class PdfSecurity
     [Fact]
     public void DocumentWithUserPasswordCannotBeOpenedWithoutPassword()
     {
+        using var saved = SaveWithUserPassword("supersecret!11", out _);
+
+        // should throw because no password was provided
+        var ex = Assert.Throws<PdfReaderException>(() =>
+        {
+            Pdf.IO.PdfReader.Open(saved, PdfDocumentOpenMode.Import);
+        });
+        ex.Message.Should().Contain("A password is required to open the PDF document");
+    }
+
+    [Fact]
+    public void DocumentWithUserPasswordCanBeOpenedWithThePassword()
+    {
+        using var saved = SaveWithUserPassword("supersecret!11", out var pageCount);
+
+        var readBackDoc = Pdf.IO.PdfReader.Open(saved, "supersecret!11", PdfDocumentOpenMode.Import);
+        IO.PdfReader.AssertIsAValidPdfDocumentWithProperties(readBackDoc, (int)saved.Length);
+        readBackDoc.PageCount.Should().Be(pageCount);
+    }
+
+    /// <summary>
+    /// Imports the pages of an existing encrypted asset into a new document and saves that,
+    /// protected by <paramref name="userPassword"/>, to a stream positioned at its start.
+    /// </summary>
+    static MemoryStream SaveWithUserPassword(string userPassword, out int pageCount)
+    {
         var file = PathHelper.GetInstance().GetAssetPath("AesEncrypted.pdf");
         var document = Pdf.IO.PdfReader.Open(file, PdfDocumentOpenMode.Import);
+        pageCount = document.PageCount;
 
         // import pages into a new document
         var encryptedDoc = new PdfDocument();
         foreach (var page in document.Pages)
             _ = encryptedDoc.AddPage(page);
 
-        // save enrypted
-        encryptedDoc.SecuritySettings.UserPassword = "supersecret!11";
-        var saveFileName = PathHelper.GetInstance().GetAssetPath("SavedEncrypted.pdf");
-        encryptedDoc.Save(saveFileName);
-
-        // should throw because no password was provided
-        var ex = Assert.Throws<PdfReaderException>(() =>
-        {
-            Pdf.IO.PdfReader.Open(saveFileName, PdfDocumentOpenMode.Import);
-        });
-        ex.Message.Should().Contain("A password is required to open the PDF document");
-
-        // check with password
-        // TODO: should be checked in a separate test, but i was lazy...
-        var fi = new FileInfo(saveFileName);
-        var readBackDoc = Pdf.IO.PdfReader.Open(saveFileName, "supersecret!11", PdfDocumentOpenMode.Import);
-        IO.PdfReader.AssertIsAValidPdfDocumentWithProperties(readBackDoc, (int)fi.Length);
-        readBackDoc.PageCount.Should().Be(document.PageCount);
+        // save encrypted
+        encryptedDoc.SecuritySettings.UserPassword = userPassword;
+        var saved = new MemoryStream();
+        encryptedDoc.Save(saved, false);
+        saved.Position = 0;
+        return saved;
     }
 
     // Same PDF protected by different tools or online-services
