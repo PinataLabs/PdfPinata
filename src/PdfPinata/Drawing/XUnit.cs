@@ -1,4 +1,5 @@
 #region Copyright
+
 //
 // Authors:
 //   Stefan Lange
@@ -25,6 +26,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
+
 #endregion
 
 using System;
@@ -39,19 +41,12 @@ namespace PdfPinata.Drawing;
 /// double with a value measured in point.
 /// </summary>
 [DebuggerDisplay("{DebuggerDisplay}")]
-public struct XUnit : IFormattable
+public struct XUnit : IFormattable, IEquatable<XUnit>
 {
-    internal const double PointFactor = 1;
     internal const double InchFactor = 72;
     internal const double MillimeterFactor = 72 / 25.4;
     internal const double CentimeterFactor = 72 / 2.54;
     internal const double PresentationFactor = 72 / 96.0;
-
-    internal const double PointFactorWpf = 96 / 72.0;
-    internal const double InchFactorWpf = 96;
-    internal const double MillimeterFactorWpf = 96 / 25.4;
-    internal const double CentimeterFactorWpf = 96 / 2.54;
-    internal const double PresentationFactorWpf = 1;
 
     /// <summary>
     /// Initializes a new instance of the XUnit class with type set to point.
@@ -92,26 +87,15 @@ public struct XUnit : IFormattable
     {
         get
         {
-            switch (_type)
+            return _type switch
             {
-                case XGraphicsUnit.Point:
-                    return _value;
-
-                case XGraphicsUnit.Inch:
-                    return _value * 72;
-
-                case XGraphicsUnit.Millimeter:
-                    return _value * 72 / 25.4;
-
-                case XGraphicsUnit.Centimeter:
-                    return _value * 72 / 2.54;
-
-                case XGraphicsUnit.Presentation:
-                    return _value * 72 / 96;
-
-                default:
-                    throw new InvalidCastException();
-            }
+                XGraphicsUnit.Point => _value,
+                XGraphicsUnit.Inch => _value * 72,
+                XGraphicsUnit.Millimeter => _value * 72 / 25.4,
+                XGraphicsUnit.Centimeter => _value * 72 / 2.54,
+                XGraphicsUnit.Presentation => _value * 72 / 96,
+                _ => throw new InvalidCastException()
+            };
         }
         set
         {
@@ -127,26 +111,15 @@ public struct XUnit : IFormattable
     {
         get
         {
-            switch (_type)
+            return _type switch
             {
-                case XGraphicsUnit.Point:
-                    return _value / 72;
-
-                case XGraphicsUnit.Inch:
-                    return _value;
-
-                case XGraphicsUnit.Millimeter:
-                    return _value / 25.4;
-
-                case XGraphicsUnit.Centimeter:
-                    return _value / 2.54;
-
-                case XGraphicsUnit.Presentation:
-                    return _value / 96;
-
-                default:
-                    throw new InvalidCastException();
-            }
+                XGraphicsUnit.Point => _value / 72,
+                XGraphicsUnit.Inch => _value,
+                XGraphicsUnit.Millimeter => _value / 25.4,
+                XGraphicsUnit.Centimeter => _value / 2.54,
+                XGraphicsUnit.Presentation => _value / 96,
+                _ => throw new InvalidCastException()
+            };
         }
         set
         {
@@ -162,26 +135,15 @@ public struct XUnit : IFormattable
     {
         get
         {
-            switch (_type)
+            return _type switch
             {
-                case XGraphicsUnit.Point:
-                    return _value * 25.4 / 72;
-
-                case XGraphicsUnit.Inch:
-                    return _value * 25.4;
-
-                case XGraphicsUnit.Millimeter:
-                    return _value;
-
-                case XGraphicsUnit.Centimeter:
-                    return _value * 10;
-
-                case XGraphicsUnit.Presentation:
-                    return _value * 25.4 / 96;
-
-                default:
-                    throw new InvalidCastException();
-            }
+                XGraphicsUnit.Point => _value * 25.4 / 72,
+                XGraphicsUnit.Inch => _value * 25.4,
+                XGraphicsUnit.Millimeter => _value,
+                XGraphicsUnit.Centimeter => _value * 10,
+                XGraphicsUnit.Presentation => _value * 25.4 / 96,
+                _ => throw new InvalidCastException()
+            };
         }
         set
         {
@@ -197,26 +159,15 @@ public struct XUnit : IFormattable
     {
         get
         {
-            switch (_type)
+            return _type switch
             {
-                case XGraphicsUnit.Point:
-                    return _value * 2.54 / 72;
-
-                case XGraphicsUnit.Inch:
-                    return _value * 2.54;
-
-                case XGraphicsUnit.Millimeter:
-                    return _value / 10;
-
-                case XGraphicsUnit.Centimeter:
-                    return _value;
-
-                case XGraphicsUnit.Presentation:
-                    return _value * 2.54 / 96;
-
-                default:
-                    throw new InvalidCastException();
-            }
+                XGraphicsUnit.Point => _value * 2.54 / 72,
+                XGraphicsUnit.Inch => _value * 2.54,
+                XGraphicsUnit.Millimeter => _value / 10,
+                XGraphicsUnit.Centimeter => _value,
+                XGraphicsUnit.Presentation => _value * 2.54 / 96,
+                _ => throw new InvalidCastException()
+            };
         }
         set
         {
@@ -232,26 +183,15 @@ public struct XUnit : IFormattable
     {
         get
         {
-            switch (_type)
+            return _type switch
             {
-                case XGraphicsUnit.Point:
-                    return _value * 96 / 72;
-
-                case XGraphicsUnit.Inch:
-                    return _value * 96;
-
-                case XGraphicsUnit.Millimeter:
-                    return _value * 96 / 25.4;
-
-                case XGraphicsUnit.Centimeter:
-                    return _value * 96 / 2.54;
-
-                case XGraphicsUnit.Presentation:
-                    return _value;
-
-                default:
-                    throw new InvalidCastException();
-            }
+                XGraphicsUnit.Point => _value * 96 / 72,
+                XGraphicsUnit.Inch => _value * 96,
+                XGraphicsUnit.Millimeter => _value * 96 / 25.4,
+                XGraphicsUnit.Centimeter => _value * 96 / 2.54,
+                XGraphicsUnit.Presentation => _value,
+                _ => throw new InvalidCastException()
+            };
         }
         set
         {
@@ -270,8 +210,7 @@ public struct XUnit : IFormattable
     /// </summary>
     public string ToString(IFormatProvider formatProvider)
     {
-        var valuestring = _value.ToString(formatProvider) + GetSuffix();
-        return valuestring;
+        return _value.ToString(formatProvider) + GetSuffix();
     }
 
     /// <summary>
@@ -280,8 +219,7 @@ public struct XUnit : IFormattable
     /// </summary>
     string IFormattable.ToString(string format, IFormatProvider formatProvider)
     {
-        var valuestring = _value.ToString(format, formatProvider) + GetSuffix();
-        return valuestring;
+        return _value.ToString(format, formatProvider) + GetSuffix();
     }
 
     /// <summary>
@@ -289,8 +227,7 @@ public struct XUnit : IFormattable
     /// </summary>
     public override string ToString()
     {
-        var valuestring = _value.ToString(CultureInfo.InvariantCulture) + GetSuffix();
-        return valuestring;
+        return _value.ToString(CultureInfo.InvariantCulture) + GetSuffix();
     }
 
     /// <summary>
@@ -298,32 +235,15 @@ public struct XUnit : IFormattable
     /// </summary>
     string GetSuffix()
     {
-        switch (_type)
+        return _type switch
         {
-            case XGraphicsUnit.Point:
-                return "pt";
-
-            case XGraphicsUnit.Inch:
-                return "in";
-
-            case XGraphicsUnit.Millimeter:
-                return "mm";
-
-            case XGraphicsUnit.Centimeter:
-                return "cm";
-
-            case XGraphicsUnit.Presentation:
-                return "pu";
-
-            //case XGraphicsUnit.Pica:
-            //  return "pc";
-
-            //case XGraphicsUnit.Line:
-            //  return "li";
-
-            default:
-                throw new InvalidCastException();
-        }
+            XGraphicsUnit.Point => "pt",
+            XGraphicsUnit.Inch => "in",
+            XGraphicsUnit.Millimeter => "mm",
+            XGraphicsUnit.Centimeter => "cm",
+            XGraphicsUnit.Presentation => "pu",
+            _ => throw new InvalidCastException()
+        };
     }
 
     /// <summary>
@@ -391,12 +311,11 @@ public struct XUnit : IFormattable
         XUnit unit;
         value = value.Trim();
 
-        // HACK for Germans...
         value = value.Replace(',', '.');
 
         var count = value.Length;
         var valLen = 0;
-        for (; valLen < count; )
+        for (; valLen < count;)
         {
             var ch = value[valLen];
             if (ch == '.' || ch == '-' || ch == '+' || char.IsNumber(ch))
@@ -407,45 +326,30 @@ public struct XUnit : IFormattable
 
         try
         {
-            unit._value = Double.Parse(value[..valLen].Trim(), CultureInfo.InvariantCulture);
+            unit._value = double.Parse(value[..valLen].Trim(), CultureInfo.InvariantCulture);
         }
         catch (Exception ex) when (!Unrecoverable.Is(ex))
         {
             unit._value = 1;
             var message = $"String '{value}' is not a valid value for structure 'XUnit'.";
-            #pragma warning disable S3877 // Public API: this conversion is the parser, and a string that names no unit has nothing to convert to.
+#pragma warning disable S3877 // Public API: this conversion is the parser, and a string that names no unit has nothing to convert to.
             throw new ArgumentException(message, ex);
-            #pragma warning restore S3877
+#pragma warning restore S3877
         }
 
         var typeStr = value[valLen..].Trim().ToLower();
         unit._type = XGraphicsUnit.Point;
-        switch (typeStr)
+        unit._type = typeStr switch
         {
-            case "cm":
-                unit._type = XGraphicsUnit.Centimeter;
-                break;
+            "cm" => XGraphicsUnit.Centimeter,
+            "in" => XGraphicsUnit.Inch,
+            "mm" => XGraphicsUnit.Millimeter,
+            "" or "pt" => XGraphicsUnit.Point,
+            "pu" => // presentation units
+                XGraphicsUnit.Presentation,
+            _ => throw new ArgumentException("Unknown unit type: '" + typeStr + "'")
+        };
 
-            case "in":
-                unit._type = XGraphicsUnit.Inch;
-                break;
-
-            case "mm":
-                unit._type = XGraphicsUnit.Millimeter;
-                break;
-
-            case "":
-            case "pt":
-                unit._type = XGraphicsUnit.Point;
-                break;
-
-            case "pu":  // presentation units
-                unit._type = XGraphicsUnit.Presentation;
-                break;
-
-            default:
-                throw new ArgumentException("Unknown unit type: '" + typeStr + "'");
-        }
         return unit;
     }
 
@@ -486,9 +390,9 @@ public struct XUnit : IFormattable
     public static bool operator ==(XUnit value1, XUnit value2)
     {
         // ReSharper disable CompareOfFloatsByEqualityOperator
-        #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
+#pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
         return value1._type == value2._type && value1._value == value2._value;
-        #pragma warning restore S1244
+#pragma warning restore S1244
         // ReSharper restore CompareOfFloatsByEqualityOperator
     }
 
@@ -504,10 +408,10 @@ public struct XUnit : IFormattable
     /// <summary>
     /// Calls base class Equals.
     /// </summary>
-    public override bool Equals(Object obj)
+    public override bool Equals(object obj)
     {
-        if (obj is XUnit)
-            return this == (XUnit)obj;
+        if (obj is XUnit unit)
+            return this == unit;
         return false;
     }
 
@@ -575,21 +479,56 @@ public struct XUnit : IFormattable
     /// </summary>
     public static readonly XUnit Zero = new();
 
-    double _value;
-    XGraphicsUnit _type;
+    private double _value;
+    private XGraphicsUnit _type;
 
     /// <summary>
     /// Gets the DebuggerDisplayAttribute text.
     /// </summary>
     /// <value>The debugger display.</value>
     // ReSharper disable UnusedMember.Local
-    string DebuggerDisplay
+    private string DebuggerDisplay
         // ReSharper restore UnusedMember.Local
     {
         get
         {
             const string format = Config.SignificantFigures10;
-            return String.Format(CultureInfo.InvariantCulture, "unit=({0:" + format + "} {1})", _value, GetSuffix());
+            return string.Format(CultureInfo.InvariantCulture, "unit=({0:" + format + "} {1})", _value, GetSuffix());
         }
     }
+
+    /// <summary>
+    /// Indicates whether this instance and the one given are the same measure of the same unit.
+    /// It decides that exactly as <c>operator ==</c> does, so that the two cannot give different
+    /// answers. A memberwise comparison would: <see cref="double.Equals(double)" /> holds two NaNs
+    /// to be equal, where <c>==</c> holds nothing equal to a NaN at all.
+    /// </summary>
+    /// <remarks>
+    /// Worth knowing what implementing <see cref="IEquatable{T}" /> does to an argument that is not
+    /// an <see cref="XUnit" />. An int, a double and a float all convert to one implicitly, and
+    /// <see cref="XUnit" /> is a better conversion target than <see cref="object" />, so
+    /// <c>unit.Equals(72)</c> binds here and is converted before it is compared - which is what
+    /// <c>unit == 72</c> has always done. It used to bind to <see cref="Equals(object)" /> instead,
+    /// box the argument, ask whether an object was an <see cref="XUnit" /> and answer false, so the
+    /// operator and <c>Equals</c> disagreed about the same pair of values. An argument declared as
+    /// <see cref="object" /> still answers false, because at that point there is no conversion left
+    /// to make. A string would bind here too, and must not - see <see cref="Equals(string)" />.
+    /// </remarks>
+    public bool Equals(XUnit other) => this == other;
+
+    /// <summary>
+    /// Always false: a string is not an <see cref="XUnit" />, and this is the overload that says so.
+    /// </summary>
+    /// <remarks>
+    /// It is here to keep <c>unit.Equals(someString)</c> from binding to
+    /// <see cref="Equals(XUnit)" /> through the implicit conversion from <see cref="string" />,
+    /// which would parse the string before comparing it - and throw <see cref="ArgumentException" />
+    /// for one that names no unit, where an <c>Equals</c> is required to answer rather than to fail.
+    /// Delete this and <c>unit.Equals("an inch")</c> stops answering false and starts throwing.
+    /// Note that <c>unit == "an inch"</c> does throw, and always has; that is the operator's
+    /// business and it is not made better by <c>Equals</c> joining in.
+    /// </remarks>
+    #pragma warning disable S3400 // Deliberate: the constant is the answer, and the remarks say why the overload exists at all.
+    public bool Equals(string other) => false;
+    #pragma warning restore S3400
 }

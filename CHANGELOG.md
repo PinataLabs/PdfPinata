@@ -19,8 +19,53 @@ This file starts at the entry below. Changes before that point are recorded only
   document holds as a dictionary is answered as itself, so it comes back the same each time; one
   written as a bare name is answered as a specification carrying that name, made on the spot and
   outside the document. See `docs/specs/external-file-streams.md`.
+### Changed
+
+- **`XUnit` implements `IEquatable<XUnit>`.** A value type that overrides `Equals` and defines `==`
+  is expected to, and without it `EqualityComparer<XUnit>.Default` boxed both operands on every
+  comparison a `List<XUnit>`, a `Dictionary<XUnit, …>` or a LINQ `Distinct` made.
+
+  **It changes one answer, and changes it towards the operator.** `XUnit` converts implicitly from
+  `int`, `double` and `float`, and `XUnit` is a better conversion target than `object` — so
+  `unit.Equals(72)` now binds to `Equals(XUnit)` and converts before comparing, exactly as
+  `unit == 72` always has. It used to bind to `Equals(object)`, box the argument, ask whether an
+  object was an `XUnit` and answer false, so the operator and `Equals` disagreed about the same
+  pair of values. An argument declared as `object` still answers false, because at that point there
+  is no conversion left to make.
+
+  **A string is unchanged, deliberately.** `XUnit` converts implicitly from `string` too, so
+  `unit.Equals("an inch")` would have bound the same way, parsed, and *thrown* rather than
+  answered — and an `Equals` has to answer. A `bool Equals(string)` overload returning false takes
+  that binding instead, so `unit.Equals(anyString)` is false exactly as before. `unit == "an inch"`
+  still throws; that is the operator's business and is not changed here.
 
 ### Fixed
+
+- **A file whose `startxref` is a long way from its end is read by scanning back to it, not by
+  reading the file into one string.** The trailer scan looked in the last 1030 bytes and, failing
+  there, read the whole file into a `string` to call `LastIndexOf` on it — so a document with a
+  distant `startxref` cost twice its own size in memory, and one larger than 1,073,741,791 bytes
+  could not be opened at all, because that is as long as a `string` gets whatever memory the
+  machine has. `Lexer.FindLastMarker` now reads backwards 64 kiB at a time into one reused buffer.
+  The 1 GiB document reported as [empira/PDFsharp#390](https://github.com/empira/PDFsharp/issues/390)
+  — a two-kilobyte PDF followed by a gigabyte-long comment — threw `OutOfMemoryException` and now
+  opens in about three seconds with no measurable allocation. A file past `int.MaxValue` used to be
+  refused outright with `NotImplementedException`, and reads now too. See
+  `docs/specs/large-file-trailer-scan.md`.
+
+- **A file with no `startxref` anywhere in it is refused by name.** The scan assigned
+  `Lexer.Position` from the index it had just failed to find, and a stream position cannot be -1,
+  so every such file came out as `ArgumentOutOfRangeException: value ('-1') must be a non-negative
+  value` and the sentence written to explain the case — "The StartXRef table could not be found,
+  the file cannot be opened." — was unreachable.
+- **A partly transparent image is drawn rather than erased.** Such an image was written with both
+  an 8-bit `/SMask`, carrying its alpha exactly, and a 1-bit `/Mask` stencil rounding that same
+  alpha to transparent or opaque at 128. ISO 32000-1 has the soft mask override the stencil, but
+  Ghostscript and macOS Quartz apply both, so every pixel below 128 was discarded: soft edges lost
+  their antialiasing, and an image whose alpha lay wholly under 128 — a watermark, a faint overlay
+  — was embedded, referenced from the page, and invisible. The stencil is now written only where no
+  soft mask is, which is where it loses nothing: transparency that is already binary, and a
+  document below PDF 1.4. Reported upstream as empira/PDFsharp#392.
 
 - **`XUnit.Presentation` stores a length in presentation units rather than in points.** The setter
   was a copy of the one for `Point` and recorded `XGraphicsUnit.Point` as the measure, so a length
