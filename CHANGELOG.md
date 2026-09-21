@@ -122,8 +122,8 @@ This file starts at the entry below. Changes before that point are recorded only
   same revision and before its `/Prev`, for its entries alone: entries already in the table win, and
   the classic trailer beside it stays the document's. A stream that cannot be read stops the read
   under the default `Strict` accuracy, naming `/XRefStm` and the position, and under `Moderate` is
-  dropped so the document opens as the PDF 1.4 file its table describes — the one place where losing
-  a cross-reference section loses nothing the file does not say twice. Reported upstream as
+  dropped whole so the document opens as the PDF 1.4 file its table describes — a lossy fallback,
+  short of every compressed object only the stream located. Reported upstream as
   [empira/PDFsharp#388](https://github.com/empira/PDFsharp/issues/388); see
   `docs/specs/hybrid-reference-files.md`.
 

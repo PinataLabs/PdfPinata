@@ -88,10 +88,11 @@ alone, and the classic trailer of the same revision stays the document's.
 
 ## When the stream cannot be read
 
-The file then says two things, and only one of them is damaged. That is the one place in this reader
-where dropping a whole cross-reference section loses nothing the file does not say twice — the
-classic table is a complete section of its own, which is the entire point of writing the file this
-way.
+The file then says two things, and only one of them is damaged. The classic table is a complete
+section of its own, which is the entire point of writing the file this way, so the document it
+describes can still be opened. It is not the whole document, though: the table does not repeat
+where the compressed objects are, so dropping the stream drops every one of them — one object or
+many, whichever only the stream located.
 
 So the failure is routed through `PdfReadAccuracy`, whose two members already say exactly this:
 
@@ -100,10 +101,17 @@ So the failure is routed through `PdfReadAccuracy`, whose two members already sa
   damaged in more ways than are worth enumerating, so what is caught is broad and what is reported
   is specific.
 - **`Moderate`**: the stream is dropped and the document opens as the PDF 1.4 file its table
-  describes — one object short, which is what a 1.4 reader would have made of it.
+  describes — short of every object the stream alone located, which is what a 1.4 reader would
+  have made of it. The fallback is lossy by nature, and chosen by asking for `Moderate`.
+
+The stream is dropped **whole**. It is read into a cross-reference table of its own and merged into
+the document's only once all of it has been read, so a stream damaged halfway through does not leave
+the entries before the damage in effect.
 
 A `/XRefStm` naming a position outside the file is refused the same way and says so in those words,
-rather than arriving as an out-of-range exception from the lexer.
+rather than arriving as an out-of-range exception from the lexer. So is one naming a position inside
+the file where there is no cross-reference stream — a classic table, or anything else — which would
+otherwise be read as nothing at all. `Moderate` drops either, as it drops a damaged stream.
 
 ## Deliberately not done
 
@@ -125,10 +133,12 @@ ordinary file**, so the objects now have to be reachable the plain way in the co
 `src/PdfPinata.Test/IO/HybridCrossReferenceTests.cs`. The documents are written by hand, because
 this library writes neither kind of hybrid file; object 7 is a graphics state the page names, kept
 in an object stream and named by nothing but the cross-reference stream, and every test turns on
-whether it is there. Seven of the nine fail without the change.
+whether it is there. Eight of the twelve fail without the change.
 
-The two that do not are the ones guarding the new behaviour rather than reproducing the old: that
+The four that do not are the ones guarding the new behaviour rather than reproducing the old: that
 the stream's `/Root` does not become the document's, and that `Moderate` opens a file whose stream
-is damaged.
+is damaged, damaged part way through, or not a stream at all. The part-way one is written as a
+stream whose first entry is good and whose second names no object, and fails against a reader that
+merges entries as it goes — which is what the first version of this change did.
 
 [empira/PDFsharp#248]: https://github.com/empira/PDFsharp/issues/248

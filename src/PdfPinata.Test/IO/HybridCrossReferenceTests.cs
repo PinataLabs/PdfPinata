@@ -120,12 +120,43 @@ public class HybridCrossReferenceTests
     }
 
     [Fact]
+    public void APositionWhereThereIsNoStreamIsRefusedTheSameWay()
+    {
+        // In range, and pointing at a dictionary rather than at a cross-reference stream - which
+        // used to be read as nothing at all and let through.
+        Action open = () => Opened(Hybrid(nameTheCatalog: true));
+
+        open.Should().Throw<PdfReaderException>().WithMessage("*no cross-reference stream*");
+    }
+
+    [Fact]
     public void ModerateAccuracyReadsTheDocumentTheTableDescribes()
     {
-        // The one place where dropping a cross-reference section loses nothing the file does not
-        // say twice: the classic table is a complete section of its own, which is the whole point
-        // of writing a file this way. So the document opens, one object short.
+        // The classic table is a complete section of its own, which is the whole point of writing
+        // a file this way, so the document opens. It is not the whole document, though: whatever
+        // only the stream said where to find is missing - here, the one compressed object.
         var document = Opened(Damaged(), accuracy: PdfReadAccuracy.Moderate);
+
+        document.PageCount.Should().Be(1);
+        GraphicsStateOf(document).Should().BeNull();
+    }
+
+    [Fact]
+    public void ModerateAccuracyKeepsNothingOfAStreamDamagedPartWayThrough()
+    {
+        // The stream's first entry is good and says where object 7 is; its second points at no
+        // object at all. Dropping the stream means dropping all of it, not keeping what was read
+        // before the damage was found.
+        var document = Opened(DamagedPartWay(), accuracy: PdfReadAccuracy.Moderate);
+
+        document.PageCount.Should().Be(1);
+        GraphicsStateOf(document).Should().BeNull();
+    }
+
+    [Fact]
+    public void ModerateAccuracyOpensAFileWhoseXRefStmNamesNoStream()
+    {
+        var document = Opened(Hybrid(nameTheCatalog: true), accuracy: PdfReadAccuracy.Moderate);
 
         document.PageCount.Should().Be(1);
         GraphicsStateOf(document).Should().BeNull();
@@ -156,7 +187,9 @@ public class HybridCrossReferenceTests
     /// <param name="namedPosition">What /XRefStm says, when it is not to say where the stream is.</param>
     /// <param name="listTheStream">Whether the classic table has an entry for the stream itself.</param>
     /// <param name="rootInTheStream">The /Root the stream carries in its own trailer dictionary.</param>
-    static byte[] Hybrid(int? namedPosition = null, bool listTheStream = true, string rootInTheStream = "1 0 R")
+    /// <param name="nameTheCatalog">Whether /XRefStm names the catalog's dictionary instead.</param>
+    static byte[] Hybrid(int? namedPosition = null, bool listTheStream = true, string rootInTheStream = "1 0 R",
+        bool nameTheCatalog = false)
     {
         var pdf = new Builder();
 
@@ -176,11 +209,44 @@ public class HybridCrossReferenceTests
         pdf.Object(6, "<< /Type /XRef /Size 8 /W [1 2 1] /Index [7 1] /Root " + rootInTheStream +
                       " /Length 4 >>stream\n\u0002\u0000\u0005\u0000\nendstream");
 
+        var named = nameTheCatalog ? DictionaryOf(pdf, 1) : namedPosition ?? pdf.PositionOf(6);
+
         return pdf.Finish(
             inUse: listTheStream ? 6 : 5,
             free: new[] { 7 },
-            trailerExtras: " /XRefStm " + (namedPosition ?? pdf.PositionOf(6)));
+            trailerExtras: " /XRefStm " + named);
     }
+
+    /// <summary>
+    ///   A hybrid file whose stream locates object 7 the ordinary way and then names, for object 8,
+    ///   a position where no object starts.
+    /// </summary>
+    static byte[] DamagedPartWay()
+    {
+        var pdf = new Builder();
+
+        pdf.Object(1, "<< /Type /Catalog /Pages 2 0 R >>");
+        pdf.Object(2, "<< /Type /Pages /Kids [3 0 R] /Count 1 >>");
+        pdf.Object(3, Page);
+        pdf.Object(4, RawPdf.Stream("", Content));
+        pdf.Object(5, "<< /Kind /Placeholder >>");
+
+        // Written plainly, but free in the table, so that only the stream can say where it is.
+        pdf.Object(7, GraphicsState);
+
+        // Two entries of type 1, a two-byte position and generation 0 each: object 7, then object 8
+        // at the start of the catalog's dictionary, where there is no object number to read.
+        var entries = Entry(pdf.PositionOf(7)) + Entry(DictionaryOf(pdf, 1));
+        pdf.Object(6, "<< /Type /XRef /Size 9 /W [1 2 1] /Index [7 2] /Root 1 0 R /Length " + entries.Length +
+                      " >>stream\n" + entries + "\nendstream");
+
+        return pdf.Finish(inUse: 6, free: new[] { 7 }, trailerExtras: " /XRefStm " + pdf.PositionOf(6));
+
+        static string Entry(int position) => "\u0001" + (char)(position >> 8) + (char)(position & 0xFF) + "\u0000";
+    }
+
+    /// <summary>Where an object's body starts, past its <c>n 0 obj</c> line.</summary>
+    static int DictionaryOf(Builder pdf, int id) => pdf.PositionOf(id) + (id + " 0 obj\n").Length;
 
     /// <summary>The same page with object 7 written the ordinary way, table entry and all.</summary>
     static byte[] Plain()

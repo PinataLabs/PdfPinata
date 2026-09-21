@@ -1211,23 +1211,60 @@ internal sealed class Parser
             return;
         }
 
+        // Read into a table of its own and merged only once the whole stream has been read, so that
+        // a stream damaged halfway through is dropped whole rather than left half in effect.
+        var section = new PdfCrossReferenceTable(_document);
+        PdfTrailer read;
         try
         {
             _lexer.Position = position;
-            ReadXRefTableAndTrailer(_document._irefTable, accuracy);
+            read = ReadXRefTableAndTrailer(section, accuracy);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!Unrecoverable.Is(ex))
         {
-            // What a cross-reference stream can be damaged in is not a list worth enumerating, and
-            // the classic table beside it has already been read - so under Moderate the document
-            // opens as the PDF 1.4 file that table describes, which is the one case where dropping
-            // a section loses nothing the file did not already say twice.
+            // What a cross-reference stream can be damaged in is not a list worth enumerating. Under
+            // Moderate the document opens as the PDF 1.4 file the classic table describes - without
+            // whichever compressed objects only the stream said where to find.
             if (accuracy == PdfReadAccuracy.Strict)
                 throw new PdfReaderException(
                     "The cross-reference stream at position " + position +
                     ", named by the trailer's /XRefStm, could not be read.", ex);
 
             Debug.WriteLine(ex.Message);
+            return;
+        }
+
+        // A classic table, or nothing recognisable, is not what /XRefStm promises.
+        if (read is not PdfCrossReferenceStream xrefStream)
+        {
+            if (accuracy == PdfReadAccuracy.Strict)
+                ParserDiagnostics.ThrowParserException(
+                    "The trailer's /XRefStm names position " + position + ", where there is no cross-reference stream.");
+
+            return;
+        }
+
+        foreach (var iref in section.AllReferences)
+        {
+            // The stream's own entry. When the table already has one, ReadXRefStream would have
+            // filled in its value rather than added a second, so the merge does the same.
+            if (ReferenceEquals(iref.Value, xrefStream))
+            {
+                var existing = _document._irefTable[iref.ObjectID];
+                if (existing != null)
+                {
+                    if (existing.Value == null)
+                    {
+                        xrefStream.Reference = null;
+                        existing.Value = xrefStream;
+                    }
+
+                    continue;
+                }
+            }
+
+            // Entries already in the table win; Add leaves one it already has alone.
+            _document._irefTable.Add(iref);
         }
     }
 
