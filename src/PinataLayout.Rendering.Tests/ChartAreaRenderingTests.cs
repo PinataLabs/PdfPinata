@@ -1,3 +1,4 @@
+using System.Linq;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.Shapes.Charts;
@@ -117,5 +118,38 @@ public class ChartAreaRenderingTests
         var runs = Glyphs.RunsOn(page);
         foreach (var word in new[] { "Juliett", "Kilo", "Lima" })
             runs.Should().ContainEquivalentOf(Glyphs.For(word));
+    }
+
+    /// <summary>
+    ///   A legend in the footer is docked below the chart, and one with more entries than fit
+    ///   across the chart wraps them onto more rows inside it - where it used to run on in a single
+    ///   row centred on the chart, off both sides of it and off the page (empira/PDFsharp#306).
+    ///   A pie with no data labels draws no text but its legend, so every run on the page is one.
+    /// </summary>
+    [Fact]
+    public void AFooterLegendTooWideForTheChartStaysInsideIt()
+    {
+        var document = new Document();
+        var chart = document.AddSection().AddChart(ChartType.Pie2D);
+        chart.Width = Unit.FromCentimeter(12);
+        chart.Height = Unit.FromCentimeter(8);
+
+        var series = chart.SeriesCollection.AddSeries();
+        var categories = chart.XValues.AddXSeries();
+        for (var n = 1; n <= 12; n++)
+        {
+            series.Add(1.0);
+            categories.Add($"Region {n}");
+        }
+        chart.FooterArea.AddLegend();
+
+        var placed = Glyphs.PlacedOn(Rendered.FirstPageOf(document));
+
+        placed.Should().HaveCount(12);
+        // The chart draws in a space of its own, so its positions are measured from its left edge.
+        placed.Should().OnlyContain(run => run.X >= 0 && run.X < Unit.FromCentimeter(12).Point,
+            "every entry starts inside the chart");
+        placed.Select(run => System.Math.Round(run.Y, 2)).Distinct().Should().HaveCountGreaterThan(1,
+            "twelve entries do not fit in one row across twelve centimetres");
     }
 }

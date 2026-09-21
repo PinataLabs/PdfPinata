@@ -16,9 +16,10 @@ namespace PdfPinata.Charting.Tests;
 /// </summary>
 /// <remarks>
 ///   <c>LegendRenderer.Format</c> measures one entry per series - a marker, a gap and the series
-///   name - and adds them up: side by side for a legend docked above or below the chart, one under
-///   another for a legend docked beside it, with padding round the outside that is doubled when the
-///   legend has a border to keep clear of. <c>ChartRenderer.LayoutLegend</c> then takes that much
+///   name - and adds them up: side by side for a legend docked above or below the chart, in as
+///   many rows as it takes to fit across it, and one under another for a legend docked beside it,
+///   with padding round the outside that is doubled when the legend has a border to keep clear of.
+///   <c>ChartRenderer.LayoutLegend</c> then takes that much
 ///   room off the side it is docked to, and <c>LegendRenderer.Draw</c> hands each entry its
 ///   rectangle for <c>LegendEntryRenderer</c> to draw into: a swatch of the series' fill for a
 ///   column, a stroke of the line with its marker on it for a line.
@@ -436,7 +437,146 @@ public class LegendTests
         runs.Select(run => run.Y).Should().BeInDescendingOrder();
     }
 
+    // ----- a legend too wide for the chart (empira/PDFsharp#306) -----
+
+    /// <summary>
+    ///   Above or below the chart the entries run side by side until the next one would not fit
+    ///   across the chart, and then start a new row under the last - where they used to run on in
+    ///   a single row centred on the chart, off both edges of it and of the page it was on.
+    /// </summary>
+    [Theory]
+    [InlineData(ChartType.Pie2D, DockingType.Bottom)]
+    [InlineData(ChartType.Pie2D, DockingType.Top)]
+    [InlineData(ChartType.Column2D, DockingType.Bottom)]
+    [InlineData(ChartType.Bar2D, DockingType.Bottom)]
+    public void ALegendTooWideForTheChartWrapsItsEntriesOntoMoreRows(ChartType type, DockingType docking)
+    {
+        var chart = NamedEntries(type, TwelveRegions);
+        chart.Legend.Docking = docking;
+
+        var page = Drawn.Page(chart);
+        var runs = ShownText.RunsOn(page).Where(run => TwelveRegions.Contains(run.Text)).ToList();
+
+        runs.Select(run => run.Text).Should().BeEquivalentTo(TwelveRegions);
+        runs.Should().OnlyContain(run => run.X >= 0 && run.X + WidthOf(run.Text, DefaultFontSize) <= Drawn.DefaultWidth,
+            "every entry is drawn inside the chart");
+        runs.Select(run => Math.Round(run.Y, 2)).Distinct().Should().HaveCountGreaterThan(1,
+            "twelve entries this wide do not fit in one row across the chart");
+
+        // Read top to bottom and left to right, the entries come in the order they were given.
+        runs.OrderByDescending(run => Math.Round(run.Y, 2)).ThenBy(run => run.X).Select(run => run.Text)
+            .Should().Equal(TwelveRegions);
+    }
+
+    /// <summary>
+    ///   The rows of a wrapped legend are each centred across the chart, as a single row always was,
+    ///   and they stack with the entry spacing between one row and the next.
+    /// </summary>
+    [Fact]
+    public void TheRowsOfAWrappedLegendAreCentredAndSpacedAsEntriesAre()
+    {
+        var chart = NamedEntries(ChartType.Pie2D, TwelveRegions);
+        chart.Legend.Docking = DockingType.Bottom;
+
+        var page = Drawn.Page(chart);
+        var rows = ShownText.RunsOn(page).Where(run => TwelveRegions.Contains(run.Text))
+            .GroupBy(run => Math.Round(run.Y, 2)).OrderByDescending(row => row.Key).ToList();
+
+        rows.Should().HaveCountGreaterThan(1);
+        for (var idx = 1; idx < rows.Count; idx++)
+            (rows[idx - 1].Key - rows[idx].Key).Should().BeApproximately(HeightOf(DefaultFontSize) + EntrySpacing, 0.01);
+
+        foreach (var row in rows)
+        {
+            var left = row.Min(run => run.X) - Swatch - MarkerToText;
+            var last = row.OrderBy(run => run.X).Last();
+            var right = last.X + WidthOf(last.Text, DefaultFontSize);
+            ((left + right) / 2).Should().BeApproximately(Drawn.DefaultWidth / 2, 0.01);
+        }
+    }
+
+    /// <summary>
+    ///   An entry that would be wider than the chart on its own is word wrapped inside its entry,
+    ///   with its swatch against the first line, rather than pushing the legend off both sides.
+    /// </summary>
+    [Theory]
+    [InlineData(DockingType.Bottom)]
+    [InlineData(DockingType.Right)]
+    public void AnEntryWiderThanTheChartIsWordWrapped(DockingType docking)
+    {
+        const string longName = "The quarterly revenue of every northern region taken together, before tax";
+        var chart = TwoNamedSeries(ChartType.Column2D);
+        chart.SeriesCollection[0].Name = longName;
+        chart.Legend.Docking = docking;
+
+        var page = Drawn.Page(chart);
+        var lines = ShownText.RunsOn(page).Where(run => run.Text.Length > 1 && longName.Contains(run.Text)).ToList();
+
+        lines.Should().HaveCountGreaterThan(1);
+        string.Join(" ", lines.Select(line => line.Text)).Should().Be(longName);
+        lines.Should().OnlyContain(line => line.X >= 0 && line.X + WidthOf(line.Text, DefaultFontSize) <= Drawn.DefaultWidth);
+        lines.Select(line => Math.Round(line.X, 2)).Distinct().Should().HaveCount(1, "the lines of one entry start together");
+        for (var idx = 1; idx < lines.Count; idx++)
+            (lines[idx - 1].Y - lines[idx].Y).Should().BeApproximately(HeightOf(DefaultFontSize), 0.01);
+
+        var swatch = Swatches(page).Single(s => s.Colour == PaintedRectangles.ColourOf(NorthColour));
+        swatch.Right.Should().BeApproximately(lines[0].X - MarkerToText, 0.01);
+        swatch.CentreY.Should().BeInRange(lines[0].Y, lines[0].Y + HeightOf(DefaultFontSize) / 2,
+            "the swatch keys the first line, not the middle of the entry");
+    }
+
+    /// <summary>
+    ///   A line break in a series name starts a new line of its entry, where it used to be dropped
+    ///   and the two halves run together.
+    /// </summary>
+    [Fact]
+    public void ALineBreakInASeriesNameStartsANewLineOfItsEntry()
+    {
+        var chart = TwoNamedSeries(ChartType.Column2D);
+        chart.SeriesCollection[0].Name = "North\nand East";
+        chart.Legend.Docking = DockingType.Right;
+
+        var page = Drawn.Page(chart);
+        var first = RunReading(page, "North");
+        var second = RunReading(page, "and East");
+
+        second.X.Should().BeApproximately(first.X, 0.01);
+        (first.Y - second.Y).Should().BeApproximately(HeightOf(DefaultFontSize), 0.01);
+    }
+
     // ----- helpers -----
+
+    private static readonly string[] TwelveRegions = Enumerable.Range(1, 12).Select(n => $"Region {n}").ToArray();
+
+    /// <summary>
+    ///   A chart whose legend has one entry per name: the categories of a pie, the series of
+    ///   anything else.
+    /// </summary>
+    private static Chart NamedEntries(ChartType type, IReadOnlyList<string> names)
+    {
+        var chart = Charts.Empty(type);
+        var categories = chart.XValues.AddXSeries();
+        if (type == ChartType.Pie2D)
+        {
+            var series = chart.SeriesCollection.AddSeries();
+            foreach (var name in names)
+            {
+                categories.Add(name);
+                series.Add(1.0);
+            }
+        }
+        else
+        {
+            categories.Add("A");
+            foreach (var name in names)
+            {
+                var series = chart.SeriesCollection.AddSeries();
+                series.Name = name;
+                series.Add(10.0);
+            }
+        }
+        return chart;
+    }
 
     /// <summary>The size the chart's default font is set at, which a legend inherits.</summary>
     private const double DefaultFontSize = 12;

@@ -32,6 +32,18 @@ This file starts at the entry below. Changes before that point are recorded only
   from the first series alone — the series the pie legend already used, and what Excel does — in
   both orientations. A bar chart no longer widens its category axis for labels it does not draw.
 
+- **A chart legend too wide for its chart wraps instead of running off both sides of it.** A legend
+  docked above or below the chart — which is where PinataLayout's `FooterArea.AddLegend()` and
+  `HeaderArea.AddLegend()` put it — set every entry in one row however many there were, and centred
+  that row on the chart, so a dozen category names ran off both edges of the chart and of the page
+  ([empira/PDFsharp#306](https://github.com/empira/PDFsharp/issues/306)). The entries now start a
+  new row whenever the next one would not fit across the chart, each row centred as the single row
+  was. An entry wider than the chart on its own is word wrapped inside its entry, whichever side the
+  legend is docked to, with its marker against the first line; a single word wider than the chart
+  is kept whole. A line break in a series or category name now starts a new line of its entry,
+  where `DrawString` used to drop it and run the two halves together. A legend that fits in one row
+  is laid out exactly as before. See C14 in `docs/specs/charting-renderer-findings.md`.
+
 - **A chart line format that says `Visible = false` is no longer drawn as a hairline**
   (empira/PDFsharp#287). The converter turns a hidden format into a pen of width 0, and PDF strokes
   a width of 0 as the thinnest line the device can draw rather than not at all. The column plot

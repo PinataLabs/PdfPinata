@@ -28,6 +28,7 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using PdfPinata.Drawing;
 
 namespace PdfPinata.Charting.Renderers;
@@ -83,30 +84,85 @@ internal abstract class LegendRenderer : Renderer
       leri.MarkerArea = maxMarkerArea;
     }
 
-    foreach (var leri in lri.Entries)
+    var paddingFactor = 1;
+    if (lri.BorderPen != null)
+      paddingFactor = 2;
+
+    // The room the entries have across the chart: its width, less the legend's padding either
+    // side. An entry wider than that is word wrapped to fit, whichever side the legend is docked
+    // to - a single entry longer than the chart used to push the legend off both sides of it.
+    var maxWidth = this.rendererParms.Box.Width
+      - (LegendRenderer.LeftPadding + LegendRenderer.RightPadding) * paddingFactor;
+    if (maxWidth > 0)
     {
-      if (verticalLegend)
+      foreach (var leri in lri.Entries)
+      {
+        parms.RendererInfo = leri;
+        ler.FitToWidth(maxWidth);
+      }
+    }
+
+    if (verticalLegend)
+    {
+      foreach (var leri in lri.Entries)
       {
         lri.Width = Math.Max(lri.Width, leri.Width);
         lri.Height += leri.Height;
       }
-      else
-      {
-        lri.Width += leri.Width;
-        lri.Height = Math.Max(lri.Height, leri.Height);
-      }
+      lri.Height += LegendRenderer.EntrySpacing * (lri.Entries.Length - 1);
     }
+    else
+      LayoutRows(lri, maxWidth);
 
     // Add padding to left, right, top and bottom
-    var paddingFactor = 1;
-    if (lri.BorderPen != null)
-      paddingFactor = 2;
     lri.Width += (LegendRenderer.LeftPadding + LegendRenderer.RightPadding) * paddingFactor;
     lri.Height += (LegendRenderer.TopPadding + LegendRenderer.BottomPadding) * paddingFactor;
-    if (verticalLegend)
-      lri.Height += LegendRenderer.EntrySpacing * (lri.Entries.Length - 1);
-    else
-      lri.Width += LegendRenderer.EntrySpacing * (lri.Entries.Length - 1);
+  }
+
+  /// <summary>
+  /// Sets out the entries of a legend docked above or below the chart side by side, starting a
+  /// new row whenever the next entry would not fit in the room across the chart, and centres each
+  /// row across the widest. The legend is as wide as its widest row and as tall as its rows.
+  /// </summary>
+  /// <remarks>
+  /// All the entries used to go in one row however many there were, and the legend is centred on
+  /// the chart, so a row wider than the chart ran off both sides of it - and off the page, for a
+  /// chart as wide as the page (empira/PDFsharp#306). A legend that fits in one row is laid out
+  /// exactly as it always was.
+  /// </remarks>
+  private static void LayoutRows(LegendRendererInfo lri, double maxWidth)
+  {
+    var rows = new List<(int First, int End, double Width)>();
+    var first = 0;
+    double x = 0, y = 0, rowHeight = 0;
+    for (var idx = 0; idx < lri.Entries.Length; idx++)
+    {
+      var leri = lri.Entries[idx];
+      if (idx > first && maxWidth > 0 && x + leri.Width > maxWidth)
+      {
+        rows.Add((first, idx, x - LegendRenderer.EntrySpacing));
+        y += rowHeight + LegendRenderer.EntrySpacing;
+        x = 0;
+        rowHeight = 0;
+        first = idx;
+      }
+
+      leri.Offset = new XPoint(x, y);
+      x += leri.Width + LegendRenderer.EntrySpacing;
+      rowHeight = Math.Max(rowHeight, leri.Height);
+    }
+    rows.Add((first, lri.Entries.Length, x - LegendRenderer.EntrySpacing));
+
+    foreach (var row in rows)
+      lri.Width = Math.Max(lri.Width, row.Width);
+    lri.Height = y + rowHeight;
+
+    foreach (var row in rows)
+    {
+      var shift = (lri.Width - row.Width) / 2;
+      for (var idx = row.First; idx < row.End; idx++)
+        lri.Entries[idx].Offset.X += shift;
+    }
   }
 
   /// <summary>
@@ -135,6 +191,11 @@ internal abstract class LegendRenderer : Renderer
     foreach (var leri in cri.LegendRendererInfo.Entries)
     {
       var entryRect = legendRect;
+      if (!verticalLegend)
+      {
+        entryRect.X += leri.Offset.X;
+        entryRect.Y += leri.Offset.Y;
+      }
       entryRect.Width = leri.Width;
       entryRect.Height = leri.Height;
 
@@ -144,8 +205,6 @@ internal abstract class LegendRenderer : Renderer
 
       if (verticalLegend)
         legendRect.Y += entryRect.Height + LegendRenderer.EntrySpacing;
-      else
-        legendRect.X += entryRect.Width + LegendRenderer.EntrySpacing;
     }
 
     // Draw border around legend

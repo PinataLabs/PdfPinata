@@ -12,7 +12,7 @@ public API**. None of it needed reflection to find, and none of it needed reflec
 
 Eight defects came out of it — seven from writing the tests, one more from review of the fixes.
 A second round of tests, over legends, markers and the object model's copying, found three more,
-and upstream reports two after that. All thirteen are now fixed, and the test that recorded each
+and upstream reports three after that. All fourteen are now fixed, and the test that recorded each
 has been turned round to assert the behaviour that replaced it.
 
 | # | finding | severity | status |
@@ -30,6 +30,7 @@ has been turned round to assert the behaviour that replaced it.
 | C11 | A legend reserves a line marker's size in its own unit rather than in points | low | **fixed** |
 | C12 | A line format that says `Visible = false` is still stroked, as a hairline | medium | **fixed** |
 | C13 | A second category series is drawn past the end of the axis (empira/PDFsharp#286) | medium | **fixed** |
+| C14 | A legend too wide for its chart runs off both sides of it (empira/PDFsharp#306) | medium | **fixed** |
 
 C3 and C4 were one shape seen twice: two renderers written as copies of each other, which had
 drifted apart on which inputs they survive. C1 and C8 were another, seen four times over: a
@@ -481,6 +482,44 @@ The one place both orientations read the series from is `XAxisRenderer.CategoryL
 `SeveralCategorySeriesTests`, which draws all six chart types with a second, wider series and
 asserts both that none of its labels is shown and that every run of text on the page is where it
 would be with the first series alone.
+
+## C14. A legend too wide for its chart ran off both sides of it — fixed
+
+Reported upstream as [empira/PDFsharp#306](https://github.com/empira/PDFsharp/issues/306), "MigraDoc
+Chart Legend does not Word Wrap": a legend in a chart's footer with many entries, or long ones,
+"extends off both sides of the page".
+
+`LegendRenderer.Format` added the entries of a legend docked above or below the chart side by side
+into one row, with no idea how wide the chart was, and `ChartRenderer.LayoutLegend` centred the
+legend with `Box.Width / 2 - legend.Width / 2` — negative, for a legend wider than the box. Twelve
+categories named `Region 1` to `Region 12` on a 400-point chart drew from x = -182 to x = 580.
+PinataLayout maps a legend in `FooterArea` or `BottomArea` to `DockingType.Bottom` and one in
+`HeaderArea` or `TopArea` to `DockingType.Top`, so the DOM route reached exactly the same code.
+
+`Format` now knows the room it has, `Box.Width` less the legend's padding either side, and
+`LayoutRows` sets the entries out in rows: a new row whenever the next entry would not fit, the
+rows stacked with the entry spacing between them, each one centred across the widest. Each entry's
+place is kept in `LegendEntryRendererInfo.Offset`, and both `LegendRenderer.Draw` and its copy
+`BarClusteredLegendRenderer.Draw` read it for a horizontal legend rather than advancing along the
+row themselves — the two draw methods are near-copies, and the second is what a bar chart uses.
+
+An entry wider than the room by itself is word wrapped by `LegendEntryRenderer.FitToWidth`, at
+spaces, measuring with `XGraphics.MeasureString` as the entry always was measured. That applies to
+a legend docked beside the chart too, where one long name used to be as wide as it liked. A single
+word wider than the room is kept whole and still overhangs; breaking inside a word was left out.
+The entry's marker keys the first line of the entry rather than its middle. Splitting the text into
+lines also made a line break in a name work: the text used to go to `DrawString` whole, which draws
+one line and drops a line feed.
+
+A legend that fits in one row is laid out as it always was, and every earlier legend test passes
+unchanged. Wrapping a vertical legend's entries into more *columns* when there are too many to fit
+down the chart was left out: nothing reported it, and a legend beside the chart already takes its
+room from the plot rather than from the page.
+
+Pinned by `LegendTests.ALegendTooWideForTheChartWrapsItsEntriesOntoMoreRows` (pie, column and bar,
+above and below), `TheRowsOfAWrappedLegendAreCentredAndSpacedAsEntriesAre`,
+`AnEntryWiderThanTheChartIsWordWrapped`, `ALineBreakInASeriesNameStartsANewLineOfItsEntry`, and
+through PinataLayout by `ChartAreaRenderingTests.AFooterLegendTooWideForTheChartStaysInsideIt`.
 
 ---
 

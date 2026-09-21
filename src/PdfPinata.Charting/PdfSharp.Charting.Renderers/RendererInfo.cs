@@ -413,6 +413,24 @@ internal class LegendEntryRendererInfo : AreaRendererInfo
   /// Size for text area.
   /// </summary>
   internal XSize TextSize;
+
+  /// <summary>
+  /// The entry's text as the lines it is drawn in: split at each line break it carries, and word
+  /// wrapped where the entry would otherwise be wider than the legend has room for.
+  /// </summary>
+  internal string[] Lines = [];
+
+  /// <summary>
+  /// The height of one line of the entry's text, which is also the height its marker is centred
+  /// on - the first line's, not the whole entry's.
+  /// </summary>
+  internal double LineHeight;
+
+  /// <summary>
+  /// Where the entry sits inside a legend docked above or below the chart, from the top left of
+  /// the legend's padding: across its row, and down to its row.
+  /// </summary>
+  internal XPoint Offset;
 }
 
 /// <summary>
