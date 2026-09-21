@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.Tables;
@@ -201,6 +202,76 @@ public class TableRenderingTests
 
         return document;
     }
+
+    // ----- a merge that runs off the edge of the table -----
+    //
+    // MergeRight and MergeDown are set on a cell while the table is still being built - the rows
+    // and columns they speak of may be added afterwards, or never - so neither can be checked
+    // against a table at the moment it is written, and a cell can end up claiming more of one than
+    // there ever is. Every place that read a merge as a position then indexed past the end: the
+    // formatter threw ArgumentOutOfRangeException naming nothing but "index", out of a document
+    // the object model had accepted without a word. It is read as reaching the edge now, which is
+    // the reading the renderer's own KeepWith arithmetic has always taken.
+
+    [Fact]
+    public void AMergeRunningPastTheLastRowDrawsWhatOneStoppingAtItDraws()
+    {
+        PageDrawnBy(Overmerged(right: 1, down: 5))
+            .Should().Be(PageDrawnBy(Overmerged(right: 1, down: 2)));
+    }
+
+    [Fact]
+    public void AMergeRunningPastTheLastColumnDrawsWhatOneStoppingAtItDraws()
+    {
+        PageDrawnBy(Overmerged(right: 9, down: 1))
+            .Should().Be(PageDrawnBy(Overmerged(right: 2, down: 1)));
+    }
+
+    [Fact]
+    public void AMergeRunningPastBothEdgesIsStillJustTheTable()
+    {
+        PageDrawnBy(Overmerged(right: 9, down: 5))
+            .Should().Be(PageDrawnBy(Overmerged(right: 2, down: 2)));
+    }
+
+    [Fact]
+    public void TheCellsTheMergeDoesNotReachAreStillDrawn()
+    {
+        // So that the comparisons above are between two pages with something on them rather than
+        // between two tables that came out empty in the same way.
+        var page = Rendered.FirstPageOf(Overmerged(right: 1, down: 5));
+
+        // The merged cell plus the three cells of the column it does not cover.
+        TextOperators.ShownStrings(page).Count.Should().Be(4);
+    }
+
+    /// <summary>
+    ///   A three by three table, every cell with a word in it, whose first cell is merged as far
+    ///   as the caller says - which may be further than the table goes.
+    /// </summary>
+    static Document Overmerged(int right, int down)
+    {
+        var document = new Document();
+        var table = document.AddSection().AddTable();
+        table.Borders.Visible = true;
+
+        for (var column = 0; column < 3; column++)
+            table.AddColumn(Unit.FromCentimeter(3));
+
+        var rows = new[] { table.AddRow(), table.AddRow(), table.AddRow() };
+        for (var row = 0; row < 3; row++)
+            for (var column = 0; column < 3; column++)
+                rows[row][column].AddParagraph("r" + row + "c" + column);
+
+        rows[0][0].MergeRight = right;
+        rows[0][0].MergeDown = down;
+
+        return document;
+    }
+
+    /// <summary>The content stream of the first page, as the bytes it was written as.</summary>
+    static string PageDrawnBy(Document document) =>
+        Encoding.Latin1.GetString(PageContent.Of(Rendered.FirstPageOf(document)));
 
     /// <summary>A two by two table, with whatever the caller wants merged in it merged.</summary>
     static Document Merged(Action<(Cell TopLeft, Cell TopRight)> merge)
