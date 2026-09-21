@@ -78,6 +78,14 @@ This file starts at the entry below. Changes before that point are recorded only
   forbids are refused: Print is required, and Invisible, Hidden, NoView and — for parts 2 and 3 —
   ToggleNoView are forbidden (empira/PDFsharp#157, #65).
 
+- **`XGraphicsPath.StartFigure` starts a new figure.** It was an empty method, so the next segment
+  joined the figure before it. Now the next segment added begins a figure of its own and the current
+  one stays open, as in GDI+. `AddPath(…, connect: true)` respects it too.
+
+- **`XGraphics.BeginContainer` accepts every `XGraphicsUnit`.** The source rectangle is measured in
+  the unit given, and what is drawn inside the container is still in points. It used to refuse
+  anything but `Point`.
+
 ### Changed
 
 - **`PdfSquareCircleAnnotation.Interior` and `BorderWidth` are read from the dictionary** (`/IC`
@@ -276,6 +284,22 @@ This file starts at the entry below. Changes before that point are recorded only
   short of every compressed object only the stream located. Reported upstream as
   [empira/PDFsharp#388](https://github.com/empira/PDFsharp/issues/388); see
   `docs/specs/hybrid-reference-files.md`.
+
+- **`XGraphics.DrawImage(image, destRect, srcRect, srcUnit)` draws the part of the image `srcRect`
+  names.** It ignored the source rectangle and drew the whole image squeezed into the destination.
+  The whole image is now scaled so that the part asked for fills the destination, and it is clipped
+  there. Asked for the whole image, it writes exactly what the plain overload does.
+
+- **A PinataLayout image's `PictureFormat` crop crops.** `CropLeft`, `CropTop`, `CropRight` and
+  `CropBottom` used to shrink the space the picture was given and squeeze all of it in. A cropped
+  image is now drawn at its own scale and clipped to what is left. Uncropped images are unchanged.
+
+- **`XGraphics.BeginContainer` maps a source rectangle's corner onto the destination's corner.** The
+  matrix moved a point to `p·scale + destination − source` instead of `(p − source)·scale +
+  destination`. That is right only when the source rectangle starts at the origin.
+
+- **`XGraphics.WriteComment` keeps every line of a comment commented out.** A bare carriage return
+  ended the comment, and whatever followed it was read as content-stream operators.
 
 ## [0.2.1] - 2026-09-21
 
