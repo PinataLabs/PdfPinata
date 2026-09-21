@@ -80,8 +80,8 @@ never re-implements decompression itself. It checks all four things the plan's T
 separated out: the main RGB stream (`TheImageStreamHoldsTheSourcePixelsRowForRowAndChannelForChannel`),
 the absence of any mask when opaque (`AnOpaqueImageIsWrittenWithNoMaskOfEitherKind`), the `/SMask`'s
 alpha bytes (`ThePartlyTransparentImageCarriesItsAlphaInTheSoftMask`), and the 1-bit `/Mask`'s packed
-bits, with the expected byte (`0x00, 0xE0`) worked out by hand from which of the six alphas fall below
-128 (`ThePartlyTransparentImageAlsoCarriesTheOlderOnebitMask`). `TheTwoBackendsWriteTheSameImage` and
+bits, with the expected bytes worked out by hand from which alphas fall below 128
+(`AnImageWhoseTransparencyIsBinaryCarriesTheOnebitMaskAndNoSoftMask`). `TheTwoBackendsWriteTheSameImage` and
 `TheTwoBackendsHandBackTheSamePixels` are the cross-backend parity coverage the plan called for,
 checked once at the document level and once at the seam itself — the second one exists specifically
 so a divergence between backends names which one it started at rather than only the document it
@@ -144,3 +144,41 @@ the same test that already exists to catch an ImageSharp 3.x binding failure, si
 the demo smoke tests still run as before, and per the plan's own Testing Decisions their role is
 unchanged: neither one is evidence about pixel correctness, only that nothing structural broke around
 the change.
+
+## The stencil mask beside the soft mask (empira/PDFsharp#392)
+
+`InitializeNonJpeg` wrote both masks for a partly transparent image: the 8-bit `/SMask` carrying
+alpha exactly, and the 1-bit `/Mask` stencil rounding the same alpha to transparent or opaque at
+128. The comment beside it called the stencil "provided for compatibility with older reader
+versions", which is what it had been in upstream PDFsharp for as long as the code existed.
+
+ISO 32000-1 Table 89 says a soft mask overrides an image's `/Mask`, so on paper the pair is
+harmless, and pdf.js does read it that way. **Ghostscript applies both**, and so, per the upstream
+report, does macOS Quartz — which means every pixel below the stencil's threshold was discarded
+outright. Two consequences, measured on 2026-09-21:
+
+- An image whose alpha lies *wholly* below 128 — a watermark, a faint overlay — was embedded,
+  referenced from the page, and **invisible**. A uniform alpha of 127 rendered as nothing and 128
+  rendered normally, a one-step cliff exactly at `MonochromeMask.AddPel(int shade)`'s `shade < 128`.
+- Any image with soft edges lost its antialiasing. The sample attached to the upstream issue, a
+  4-bit palette PNG whose `tRNS` gives its five entries the alphas 0, 255, 55, 199 and 121, came out
+  with three greys where it should have five; removing `/Mask` from the saved XObject and
+  re-rasterizing brought the other two straight back.
+
+So the two masks are now alternatives rather than a pair, keyed off `hasSoftMask`. The stencil is
+still written where it is the whole answer and loses nothing — transparency that is already binary,
+and a pre-1.4 document that could not be read a soft mask — and is left out wherever the `/SMask`
+goes. An opaque image still carries neither.
+
+Note what the upstream issue is *not* about here. It is reported as a palette PNG being handled
+differently from an RGBA one, and that distinction does not exist in this fork: both backends decode
+to BGRA whatever the source format was, so the issue's two sample files produce byte-identical
+XObjects. Only the mask pairing is shared with upstream, and the palette had nothing to do with it.
+
+`TranslucentImageRenderingTests` pins all of this by rasterizing, which is the point:
+`ImagePixelRoundTripTests` asserted both masks were well formed and went on passing throughout,
+because a dictionary is not a picture. `ThePartlyTransparentImageAlsoCarriesTheOlderOnebitMask` is
+replaced by its inverse and by
+`AnImageWhoseTransparencyIsBinaryCarriesTheOnebitMaskAndNoSoftMask`, which keeps the packed-bits
+assertion on the path that still writes a stencil. The conformance corpus draws no images at all, so
+`verapdf-check.ps1` is untouched by this.
