@@ -241,7 +241,7 @@ public class XTextSegmentFormatter
 			{
 				for (var indexSiblings = index + 1; indexSiblings < blockUnits.Count; indexSiblings++)
 				{
-					blockUnits[indexSiblings].ForEach(b => b.Location += new XSize(0, maxCyAscend - blockUnit.First().Environment.CyAscent));
+					blockUnits[indexSiblings].ForEach(b => b.Location += new XVector(0, maxCyAscend - blockUnit.First().Environment.CyAscent));
 				}
 			}
 
@@ -585,7 +585,7 @@ public class XTextSegmentFormatter
 			for (var idx = firstIndex; idx <= lastIndex; idx++)
 			{
 				var block = blockUnit[idx];
-				block.Location += new XSize(dx, 0);
+				block.Location += new XVector(dx, 0);
 			}
 		}
 		else if (count > 1) // case: justify
@@ -596,7 +596,7 @@ public class XTextSegmentFormatter
 			for (var idx = firstIndex + 1; idx <= lastIndex; idx++)
 			{
 				var block = blockUnit[idx];
-				block.Location += new XSize(dx * spaceCounter, 0);
+				block.Location += new XVector(dx * spaceCounter, 0);
 				if (!block.NextBlockBelongsToMe)
 				{
 					spaceCounter++;
@@ -634,20 +634,4 @@ public class XTextSegmentFormatter
 		segment.SpaceWidth = _gfx.MeasureString("x x", segment.Font).Width;
 		segment.SpaceWidth -= _gfx.MeasureString("xx", segment.Font).Width;
 	}
-
-	// TODO:
-	// - more XStringFormat variations
-	// - calculate bounding box
-	// - left and right indent
-	// - first line indent
-	// - margins and paddings
-	// - background color
-	// - text background color
-	// - border style
-	// - hyphens, soft hyphens, hyphenation
-	// - kerning
-	// - line spacing
-	// - underline and strike-out variation
-	// - super- and sub-script
-	// - ...
 }

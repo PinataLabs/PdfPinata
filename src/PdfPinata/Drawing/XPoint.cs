@@ -210,7 +210,8 @@ public struct XPoint : IFormattable, IEquatable<XPoint>
     /// <summary>
     /// Adds a point and a size.
     /// </summary>
-    public static XPoint operator +(XPoint point, XSize size) // TODO: make obsolete
+    [System.Obsolete("A size is not a displacement. Add an XVector instead: point + new XVector(size.Width, size.Height). It will be removed.")]
+    public static XPoint operator +(XPoint point, XSize size)
     {
         return new XPoint(point._x + size.Width, point._y + size.Height);
     }

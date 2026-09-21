@@ -58,7 +58,8 @@ static class TextOrigin
                     break;
 
                 case XLineAlignment.Center:
-                    // TODO: Use CapHeight. PDFlib also uses 3/4 of ascent
+                    // Three quarters of the ascent stands in for the cap height, as it does in PDFlib.
+                    // Deliberately: the font's own CapHeight would move every vertically centred string.
                     y += (cyAscent * 3 / 4) / 2 + rect.Height / 2;
                     break;
 
@@ -94,7 +95,7 @@ static class TextOrigin
                     break;
 
                 case XLineAlignment.Center:
-                    // TODO: Use CapHeight. PDFlib also uses 3/4 of ascent
+                    // Three quarters of the ascent, deliberately, as above.
                     y += -(cyAscent * 3 / 4) / 2 + rect.Height / 2;
                     break;
 

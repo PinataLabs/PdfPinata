@@ -35,5 +35,4 @@ namespace PdfPinata.Drawing;
 /// </summary>
 public abstract class XBitmapSource : XImage
 {
-    // TODO: Move code from XImage to this class.
 }

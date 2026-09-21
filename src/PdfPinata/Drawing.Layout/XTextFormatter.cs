@@ -1187,7 +1187,7 @@ public class XTextFormatter
             for (var idx = firstIndex; idx <= lastIndex; idx++)
             {
                 var block = _blocks[idx];
-                block.Location += new XSize(dx, 0);
+                block.Location += new XVector(dx, 0);
             }
         }
         else if (count > 1) // case: justify
@@ -1196,27 +1196,12 @@ public class XTextFormatter
             for (int idx = firstIndex + 1, i = 1; idx <= lastIndex; idx++, i++)
             {
                 var block = _blocks[idx];
-                block.Location += new XSize(dx * i, 0);
+                block.Location += new XVector(dx * i, 0);
             }
         }
     }
 
     readonly List<Block> _blocks = new();
-
-    // TODO:
-    // - more XStringFormat variations
-    // - left and right indent
-    // - first line indent
-    // - margins and paddings
-    // - background color
-    // - text background color
-    // - border style
-    // - hyphens, soft hyphens, hyphenation
-    // - kerning
-    // - change font, size, text color etc.
-    // - underline and strike-out variation
-    // - super- and sub-script
-    // - ...
 
     private XStringFormat GetXStringFormat()
     {

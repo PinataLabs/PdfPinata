@@ -755,7 +755,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
                 }
                 else
                 {
-                    // TODO Translation for MediaBox.
+                    // No MediaBox offset here, unlike Downwards: Upwards is obsolete and was never finished.
                     AppendFormatImage("q {2:" + format + "} 0 0 {3:" + format + "} {0:" + format + "} {1:" + format + "} cm {4} Do Q\n",
                         x, y, cx, cy, name);
                 }
@@ -929,7 +929,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         // Ensure that the graphics state stack level is at least 2, because otherwise an error
         // occurs when someone set the clip region before something was drawn.
         if (_gfxState.Level < GraphicsStackLevelWorldSpace)
-            RealizeTransform();  // TODO: refactor this function
+            RealizeTransform();
 
         if (combineMode == XCombineMode.Replace)
         {
