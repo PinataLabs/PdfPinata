@@ -126,7 +126,9 @@ internal sealed class PdfGraphicsState : ICloneable
             color = XColors.Black;
         }
 
-        color = ColorSpaceHelper.EnsureColorMode(colorMode, color);
+        // A spot colour keeps its own alternate whatever the document's mode: see RealizeFillColor.
+        if (color.Spot == null)
+            color = ColorSpaceHelper.EnsureColorMode(colorMode, color);
 
         #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
         if (_realizedLineWith != pen._width)
@@ -246,9 +248,15 @@ internal sealed class PdfGraphicsState : ICloneable
         {
             RealizeBrush(penBrush, colorMode, 0, 0, true);
         }
+        else if (color.Spot != null)
+        {
+            RealizeSpotColor(color, _realizedStrokePattern ? null : _realizedStrokeColor, true);
+        }
         else if (colorMode != PdfColorMode.Cmyk)
         {
-            if (_realizedStrokePattern || (_realizedStrokeColor ?? XColor.Empty).Rgb != color.Rgb)
+            // Null still stands for the default black here, so only a spot colour realized last
+            // forces "RG" - it left the Separation space selected, whatever its components say.
+            if (_realizedStrokePattern || _realizedStrokeColor?.Spot != null || (_realizedStrokeColor ?? XColor.Empty).Rgb != color.Rgb)
             {
                 _renderer.Append(PdfEncoders.ToString(color, PdfColorMode.Rgb));
                 _renderer.Append(" RG\n");
@@ -256,7 +264,7 @@ internal sealed class PdfGraphicsState : ICloneable
         }
         else
         {
-            if (_realizedStrokePattern || _realizedStrokeColor is not { } realizedCmyk || !ColorSpaceHelper.IsEqualCmyk(realizedCmyk, color))
+            if (_realizedStrokePattern || _realizedStrokeColor is not { } realizedCmyk || realizedCmyk.Spot != null || !ColorSpaceHelper.IsEqualCmyk(realizedCmyk, color))
             {
                 _renderer.Append(PdfEncoders.ToString(color, PdfColorMode.Cmyk));
                 _renderer.Append(" K\n");
@@ -446,11 +454,20 @@ internal sealed class PdfGraphicsState : ICloneable
 
     private void RealizeFillColor(XColor color, bool overPrint, PdfColorMode colorMode)
     {
-        color = ColorSpaceHelper.EnsureColorMode(colorMode, color);
-
-        if (colorMode != PdfColorMode.Cmyk)
+        if (color.Spot != null)
         {
-            if (_realizedFillColor is not { } realizedRgb || realizedRgb.Rgb != color.Rgb)
+            // Not converted to the document's colour mode: the mode says how process colour is
+            // written, and a spot colour is not process colour. Its alternate is the caller's.
+            RealizeSpotColor(color, _realizedFillColor, false);
+        }
+        else if (colorMode != PdfColorMode.Cmyk)
+        {
+            color = ColorSpaceHelper.EnsureColorMode(colorMode, color);
+
+            // A spot colour last realized has the Separation space selected, and "rg" is what
+            // selects DeviceRGB again - so its components matching this colour's is no reason to
+            // skip it.
+            if (_realizedFillColor is not { } realizedRgb || realizedRgb.Spot != null || realizedRgb.Rgb != color.Rgb)
             {
                 _renderer.Append(PdfEncoders.ToString(color, PdfColorMode.Rgb));
                 _renderer.Append(" rg\n");
@@ -460,8 +477,9 @@ internal sealed class PdfGraphicsState : ICloneable
         {
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             Debug.Assert(colorMode == PdfColorMode.Cmyk);
+            color = ColorSpaceHelper.EnsureColorMode(colorMode, color);
 
-            if (_realizedFillColor is not { } realizedCmyk || !ColorSpaceHelper.IsEqualCmyk(realizedCmyk, color))
+            if (_realizedFillColor is not { } realizedCmyk || realizedCmyk.Spot != null || !ColorSpaceHelper.IsEqualCmyk(realizedCmyk, color))
             {
                 _renderer.Append(PdfEncoders.ToString(color, PdfColorMode.Cmyk));
                 _renderer.Append(" k\n");
@@ -483,6 +501,36 @@ internal sealed class PdfGraphicsState : ICloneable
         }
         _realizedFillColor = color;
         _realizedNonStrokeOverPrint = overPrint;
+    }
+
+    /// <summary>
+    /// Selects a spot colour's Separation space and sets its tint, for filling or for stroking.
+    /// </summary>
+    /// <param name="color">A colour whose <see cref="XColor.Spot"/> is set.</param>
+    /// <param name="realized">The colour last realized for the same operation, if any.</param>
+    /// <param name="stroke">True for "CS"/"SCN", false for "cs"/"scn".</param>
+    /// <remarks>
+    /// The space is selected again only when the colorant changes: "cs" resets the colour to the
+    /// space's initial tint of 1, so a change of tint alone is "scn" and no more. The caller says
+    /// whether a pattern replaced the space since, by passing null for <paramref name="realized"/>.
+    /// </remarks>
+    void RealizeSpotColor(XColor color, XColor? realized, bool stroke)
+    {
+        var sameSpace = realized is { Spot: { } realizedSpot } && realizedSpot.Equals(color.Spot);
+
+        #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
+        if (sameSpace && realized.Value.Tint == color.Tint)
+            return;
+        #pragma warning restore S1244
+
+        if (!sameSpace)
+        {
+            var colorSpace = _renderer.Owner.SpotColorTable.GetColorSpace(color.Spot);
+            var name = _renderer.Resources.AddColorSpace(colorSpace);
+            _renderer.AppendFormatString(stroke ? "{0} CS\n" : "{0} cs\n", name);
+        }
+
+        _renderer.AppendFormatArgs("{0:" + Config.SignificantFigures3 + (stroke ? "} SCN\n" : "} scn\n"), color.Tint);
     }
 
     internal void RealizeNonStrokeTransparency(double transparency, PdfColorMode colorMode)

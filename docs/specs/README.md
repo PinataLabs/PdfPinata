@@ -9,7 +9,7 @@ investigation turned up. All three are tracked the same way, because what a read
 first is the same in each case: is this the code as it stands, or the code as somebody hoped it
 would be?
 
-**46 done · 4 in progress · 10 not started · 60 total.**
+**47 done · 4 in progress · 10 not started · 61 total.**
 
 Read the relevant spec before extending that feature area.
 
@@ -56,6 +56,7 @@ decisions, not outstanding work.
 - [x] [signature-lifetime.md](signature-lifetime.md) — PAdES B-T and B-LT, and a `/DocMDP` level that is enforced (G5 tail)
 - [x] [simple-type-immutability.md](simple-type-immutability.md) — the simple-type rule enforced, not just stated (T12)
 - [x] [soft-hyphen-in-justified-list.md](soft-hyphen-in-justified-list.md) — a hyphenated word in a justified list item, empira#339
+- [x] [spot-colours.md](spot-colours.md) — named inks written as `/Separation` colour spaces from `XGraphics`, empira#201
 - [x] [tabbed-bidirectional-lines.md](tabbed-bidirectional-lines.md) — a right-to-left line with a tab in it, reordered segment by segment (G3 tail)
 - [x] [tagged-pdf-accessibility.md](tagged-pdf-accessibility.md) — tagged PDF and PDF/UA output, all three stages (G2)
 - [x] [tagged-text-extraction.md](tagged-text-extraction.md) — extraction that reads the marked content the tagger writes; the writer now states `/ActualText` inline too (G7 tail)

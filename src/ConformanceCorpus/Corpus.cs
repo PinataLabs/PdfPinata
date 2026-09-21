@@ -81,6 +81,12 @@ static class Corpus
 
             gfx.DrawRectangle(XBrushes.LightSteelBlue, 50, 140, 200, 60);
 
+            // A spot colour, filled and stroked: a /Separation space with a Type 2 tint transform.
+            // Its alternate is RGB because the output intent is sRGB - a CMYK alternate is device
+            // CMYK to a reader without the ink, and is refused here exactly as "k" would be.
+            var spot = new XSpotColor("PdfPinata Corpus Orange", XColor.FromArgb(240, 120, 0));
+            gfx.DrawRectangle(new XPen(XColor.FromSpot(spot), 3), new XSolidBrush(XColor.FromSpot(spot, 0.4)), 300, 140, 120, 60);
+
             if (transparency)
             {
                 // Forbidden by PDF/A-1b and allowed by the two after it, which is the one thing
