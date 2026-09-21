@@ -10,7 +10,31 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ## [Unreleased]
 
+### Added
+
+- **`XBaseGradientBrush.ExtendLeft` and `ExtendRight`** — whether a gradient goes on past its start
+  and its end in the colour of that end, written as the shading's `/Extend`. The start and end are
+  a linear gradient's two points and a radial gradient's two circles, so `ExtendRight` is what fills
+  the corners a radial gradient leaves unpainted outside its outer circle, and `ExtendLeft` is what
+  fills the hole inside a first circle whose radius is not zero. Both are false by default and write
+  nothing then, so an existing document is written byte for byte as before. The names are PDFsharp's,
+  where both properties exist and have no effect (empira/PDFsharp#321).
+
+- **A Gradients demo and a Gradients page on the documentation site**, covering both brushes, two-
+  centre radial gradients, extension and a brush's own transform.
+
 ### Fixed
+
+- **A gradient brush's own `Transform` is honoured.** `TranslateTransform`, `ScaleTransform`,
+  `RotateTransform`, `MultiplyTransform` and the `Transform` setter all changed a matrix that nothing
+  read, so a transformed gradient was drawn exactly as an untransformed one. The transform now applies
+  to the brush before the transform of the graphics. A radial gradient stretched one way more than the
+  other has ellipses for rings, which a type 3 shading cannot describe on its own, so its circles are
+  written in the brush's own space and the mapping goes into the pattern matrix. A brush with no
+  transform of its own is written as it was.
+
+  Radial gradients themselves, the other half of empira/PDFsharp#321, were already drawn in colour
+  here; `RadialGradientRenderingTests` now reads their pixels to keep it that way.
 
 - **A document updated incrementally is read as its newest revision, where cross-reference streams
   are involved.** Two ways an older revision's object took the place of the newer one's, both met in

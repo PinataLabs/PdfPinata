@@ -33,8 +33,16 @@
 namespace PdfPinata.Drawing;
 
 /// <summary>
-/// Defines a Brush with a linear gradient.
+/// Defines a Brush with a radial gradient: the first colour on a first circle, the second colour
+/// on a second, and a blend between them. With one centre and a first radius of zero it is the
+/// familiar spot of colour fading out to a ring.
 /// </summary>
+/// <remarks>
+/// It is written as a type 3 (radial) shading pattern. Nothing is painted inside the first circle
+/// or outside the second unless <see cref="XBaseGradientBrush.ExtendLeft"/> or
+/// <see cref="XBaseGradientBrush.ExtendRight"/> says to, so a gradient filling a rectangle
+/// usually wants <see cref="XBaseGradientBrush.ExtendRight"/> for its corners.
+/// </remarks>
 public sealed class XRadialGradientBrush : XBaseGradientBrush
 {
     //internal XRadialGradientBrush();

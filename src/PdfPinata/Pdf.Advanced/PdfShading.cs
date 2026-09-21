@@ -65,18 +65,42 @@ public sealed class PdfShading : PdfDictionary
         : base(document)
     { }
 
-    internal void SetupFromBrush(XBaseGradientBrush brush, XGraphicsPdfRenderer renderer,
+    /// <summary>
+    /// Sets the shading up from a gradient brush.
+    /// </summary>
+    /// <returns>
+    /// The matrix from the space the shading's coordinates are written in to the space that
+    /// <see cref="XGraphicsPdfRenderer.WorldToView"/> answers in, for the caller to prepend to
+    /// the pattern matrix. It is the identity wherever the coordinates can be written in that
+    /// space directly, which is every gradient with no transform of its own and every radial
+    /// gradient whose transform does not stretch its circles into ellipses.
+    /// </returns>
+    internal XMatrix SetupFromBrush(XBaseGradientBrush brush, XGraphicsPdfRenderer renderer,
         PdfShadingChannel channel = PdfShadingChannel.Color)
     {
         if (brush is XRadialGradientBrush radialBrush)
-            SetupFromBrush(radialBrush, renderer, channel);
-        else if (brush is XLinearGradientBrush linearBrush)
-            SetupFromBrush(linearBrush, renderer, channel);
-        else
-            throw new ArgumentException("Unsupoorted XGradientBrush: " + brush);
+            return SetupFromBrush(radialBrush, renderer, channel);
+        if (brush is XLinearGradientBrush linearBrush)
+            return SetupFromBrush(linearBrush, renderer, channel);
+        throw new ArgumentException("Unsupported gradient brush: " + brush, nameof(brush));
     }
 
-    internal void SetupFromBrush(XRadialGradientBrush brush, XGraphicsPdfRenderer renderer,
+    /// <summary>
+    /// Sets the shading up from a radial gradient brush, as a type 3 shading.
+    /// </summary>
+    /// <remarks>
+    /// A type 3 shading is two circles, and a circle stays a circle only under a transform that
+    /// scales every direction alike. The transform of the graphics is already in the pattern
+    /// matrix; what lies between the brush and the pattern's space is the brush's own transform
+    /// and the flip from the top-left space <see cref="XGraphics"/> draws in to the bottom-left
+    /// space of the page. Where that mapping scales every direction alike, the circles are
+    /// mapped into the pattern's space and written there, as they always were. Where it does
+    /// not - a brush stretched wider than it is tall - each circle has become an ellipse that no
+    /// type 3 shading can describe in that space. So the circles are written as the brush states
+    /// them, and the mapping goes into the pattern matrix, which turns them into the ellipses the
+    /// drawing asks for.
+    /// </remarks>
+    internal XMatrix SetupFromBrush(XRadialGradientBrush brush, XGraphicsPdfRenderer renderer,
         PdfShadingChannel channel = PdfShadingChannel.Color)
     {
         ArgumentNullException.ThrowIfNull(brush);
@@ -88,33 +112,47 @@ public sealed class PdfShading : PdfDictionary
         Elements[Keys.ShadingType] = new PdfInteger(3);
         Elements[Keys.ColorSpace] = new PdfName(ColorSpaceOf(colorMode, channel));
 
-        var p1 = renderer.WorldToView(brush.Center1);
-        var p2 = renderer.WorldToView(brush.Center2);
+        var brushToView = BrushToView(brush, renderer);
 
-        var rv1 = renderer.WorldToView(new XPoint(brush.R1 + brush.Center1.X, brush.Center1.Y));
-        var rv2 = renderer.WorldToView(new XPoint(brush.R2 + brush.Center2.X, brush.Center2.Y));
-
-        var dx1 = rv1.X - p1.X;
-        var dy1 = rv1.Y - p1.Y;
-        var dx2 = rv2.X - p2.X;
-        var dy2 = rv2.Y - p2.Y;
-
-        var r1 = Math.Sqrt(dx1 * dx1 + dy1 * dy1);
-        var r2 = Math.Sqrt(dx2 * dx2 + dy2 * dy2);
+        XPoint p1, p2;
+        double r1, r2;
+        XMatrix shadingToView;
+        if (ScalesAlike(brushToView, out var scale))
+        {
+            p1 = brushToView.Transform(brush.Center1);
+            p2 = brushToView.Transform(brush.Center2);
+            r1 = brush.R1 * scale;
+            r2 = brush.R2 * scale;
+            shadingToView = XMatrix.Identity;
+        }
+        else
+        {
+            p1 = brush.Center1;
+            p2 = brush.Center2;
+            r1 = brush.R1;
+            r2 = brush.R2;
+            shadingToView = brushToView;
+        }
 
         const string format = Config.SignificantFigures3;
         Elements[Keys.Coords] = new PdfLiteral("[{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format + "} {5:" + format + "}]", p1.X, p1.Y, r1, p2.X, p2.Y, r2);
-
-        //Elements[Keys.Background] = new PdfRawItem("[0 1 1]");
-        //Elements[Keys.Domain] =
         Elements[Keys.Function] = RampFunction(color1, color2, colorMode, channel);
-        //Elements[Keys.Extend] = new PdfRawItem("[true true]");
+        SetExtend(brush);
+
+        return shadingToView;
     }
 
     /// <summary>
-    /// Setups the shading from the specified brush.
+    /// Sets the shading up from a linear gradient brush, as a type 2 shading.
     /// </summary>
-    internal void SetupFromBrush(XLinearGradientBrush brush, XGraphicsPdfRenderer renderer,
+    /// <remarks>
+    /// With no transform of the brush's own, the axis is mapped into the pattern's space and
+    /// written there, as it always was. With one, the axis is written as the brush states it, and
+    /// the brush's transform goes into the pattern matrix together with the graphics' transform.
+    /// Mapping the two end points alone would keep the axis but not the angle the bands make
+    /// with it, and a transform that scales one direction more than another changes that angle.
+    /// </remarks>
+    internal XMatrix SetupFromBrush(XLinearGradientBrush brush, XGraphicsPdfRenderer renderer,
         PdfShadingChannel channel = PdfShadingChannel.Color)
     {
         ArgumentNullException.ThrowIfNull(brush);
@@ -126,11 +164,24 @@ public sealed class PdfShading : PdfDictionary
         Elements[Keys.ShadingType] = new PdfInteger(2);
         Elements[Keys.ColorSpace] = new PdfName(ColorSpaceOf(colorMode, channel));
 
+        Func<XPoint, XPoint> map;
+        XMatrix shadingToView;
+        if (brush.Matrix.IsIdentity)
+        {
+            map = renderer.WorldToView;
+            shadingToView = XMatrix.Identity;
+        }
+        else
+        {
+            map = point => point;
+            shadingToView = BrushToView(brush, renderer);
+        }
+
         double x1 = 0, y1 = 0, x2 = 0, y2 = 0;
         if (brush.UseRect)
         {
-            var pt1 = renderer.WorldToView(brush.Rect.TopLeft);
-            var pt2 = renderer.WorldToView(brush.Rect.BottomRight);
+            var pt1 = map(brush.Rect.TopLeft);
+            var pt2 = map(brush.Rect.BottomRight);
 
             switch (brush.LinearGradientMode)
             {
@@ -165,8 +216,8 @@ public sealed class PdfShading : PdfDictionary
         }
         else
         {
-            var pt1 = renderer.WorldToView(brush.Point1);
-            var pt2 = renderer.WorldToView(brush.Point2);
+            var pt1 = map(brush.Point1);
+            var pt2 = map(brush.Point2);
 
             x1 = pt1.X;
             y1 = pt1.Y;
@@ -176,11 +227,57 @@ public sealed class PdfShading : PdfDictionary
 
         const string format = Config.SignificantFigures3;
         Elements[Keys.Coords] = new PdfLiteral("[{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "}]", x1, y1, x2, y2);
-
-        //Elements[Keys.Background] = new PdfRawItem("[0 1 1]");
-        //Elements[Keys.Domain] =
         Elements[Keys.Function] = RampFunction(color1, color2, colorMode, channel);
-        //Elements[Keys.Extend] = new PdfRawItem("[true true]");
+        SetExtend(brush);
+
+        return shadingToView;
+    }
+
+    /// <summary>
+    /// Writes <c>/Extend</c> when the brush asks for either end to be extended. When it asks for
+    /// neither, which is the default, nothing is written, so a document that never sets either
+    /// property is written exactly as it was before they had any effect.
+    /// </summary>
+    void SetExtend(XBaseGradientBrush brush)
+    {
+        if (brush.ExtendLeft || brush.ExtendRight)
+        {
+            Elements[Keys.Extend] = new PdfLiteral("[{0} {1}]",
+                brush.ExtendLeft ? "true" : "false", brush.ExtendRight ? "true" : "false");
+        }
+    }
+
+    /// <summary>
+    /// The mapping from the space a brush's points are given in to the renderer's view space:
+    /// the brush's own transform first, then the graphics' transform and the flip to the page.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="XGraphicsPdfRenderer.WorldToView"/> is affine, so where it takes three points
+    /// is the whole of it.
+    /// </remarks>
+    static XMatrix BrushToView(XBaseGradientBrush brush, XGraphicsPdfRenderer renderer)
+    {
+        var brushMatrix = brush.Matrix;
+        var origin = renderer.WorldToView(brushMatrix.Transform(new XPoint(0, 0)));
+        var unitX = renderer.WorldToView(brushMatrix.Transform(new XPoint(1, 0)));
+        var unitY = renderer.WorldToView(brushMatrix.Transform(new XPoint(0, 1)));
+        return new XMatrix(unitX.X - origin.X, unitX.Y - origin.Y,
+            unitY.X - origin.X, unitY.Y - origin.Y, origin.X, origin.Y);
+    }
+
+    /// <summary>
+    /// Whether a matrix scales every direction by the same factor. It may turn or mirror, but it
+    /// never squashes, so a circle is still a circle after it.
+    /// </summary>
+    static bool ScalesAlike(XMatrix matrix, out double scale)
+    {
+        double a = matrix.M11, b = matrix.M12, c = matrix.M21, d = matrix.M22;
+        scale = Math.Sqrt(a * a + b * b);
+
+        var slack = 1e-9 * Math.Max(1, scale);
+        var turns = Math.Abs(a - d) <= slack && Math.Abs(b + c) <= slack;
+        var mirrors = Math.Abs(a + d) <= slack && Math.Abs(b - c) <= slack;
+        return scale > 0 && (turns || mirrors);
     }
 
     /// <summary>
