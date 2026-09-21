@@ -496,16 +496,26 @@ internal class ParagraphRenderer : Renderer
         return xPositionAfterTab;
     }
 
+    /// <summary>
+    /// The hyperlink the leaf about to be drawn sits inside, or null when it sits in none.
+    /// </summary>
+    /// <remarks>
+    /// One level at a time, and stopping at the top as well as at the paragraph, because a leaf is
+    /// not always a word. An element holding no text - <c>AddFormattedText("")</c>, or a hyperlink
+    /// with nothing in it - has nothing to descend to, so <see cref="ParagraphIterator"/> hands back
+    /// its own empty collection as the leaf, one level above where a word would be. A walk taking
+    /// two levels at a time from there lands on the collections rather than on the objects, never
+    /// meets the paragraph, and runs off the top of the document.
+    /// </remarks>
     Hyperlink GetHyperlink()
     {
-        var elements = DocumentRelations.GetParent(currentLeaf.Current);
-        var parent = DocumentRelations.GetParent(elements);
-        while (!(parent is Paragraph))
+        var current = currentLeaf.Current;
+        while (current != null && current is not Paragraph)
         {
-            if (parent is Hyperlink)
-                return (Hyperlink)parent;
-            elements = DocumentRelations.GetParent(parent);
-            parent = DocumentRelations.GetParent(elements);
+            if (current is Hyperlink hyperlink)
+                return hyperlink;
+
+            current = DocumentRelations.GetParent(current);
         }
         return null;
     }

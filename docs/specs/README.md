@@ -34,6 +34,7 @@ decisions, not outstanding work.
 - [x] [dom-value-model-findings.md](dom-value-model-findings.md) — what replacing the DOM value model turned up
 - [x] [external-file-streams.md](external-file-streams.md) — a stream whose data is in another file, empira#389; `PdfStream.ExternalFile` says where, and nothing fetches it
 - [x] [font-embedding-gaps.md](font-embedding-gaps.md) — `.otf`/`.ttc` discovery, CFF embedding, style simulation, G1–G6
+- [x] [font-path-thread-safety.md](font-path-thread-safety.md) — empira#381 checked here and absent: no memo in the conversion, locks under it, and tests proved against a grafted copy of the bug
 - [x] [graphics-state-stack-unification.md](graphics-state-stack-unification.md) — the dead state stack removed, the live pair kept apart (T15)
 - [x] [hybrid-reference-files.md](hybrid-reference-files.md) — the `/XRefStm` a classic trailer names, empira#388; every compressed object was invisible without it
 - [x] [image-failure-reporting.md](image-failure-reporting.md) — an image decode failure that says which failure, empira#366
