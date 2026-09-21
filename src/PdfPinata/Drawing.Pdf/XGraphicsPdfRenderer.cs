@@ -972,14 +972,26 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
 
         // Save InternalGraphicsState and transformation of the current graphical state.
         var state = _gfxState.InternalState;
+        var effectiveCtm = _gfxState.RealizedCtm;
+        effectiveCtm.Prepend(_gfxState.UnrealizedCtm);
+        var worldTransform = _gfxState.WorldTransform;
         // Empty clip path by switching back to the previous state.
         RestoreState();
         SaveState();
         // Save internal state
         _gfxState.InternalState = state;
-        // Restore CTM
-        // TODO: check rest of clip
-        //GfxState.Transform = ctm;
+        // The Q that emptied the clip also discarded every cm written since the clip was set, so what
+        // XGraphics.Transform says is no longer what the page has. Whatever the restored state lacks
+        // becomes unrealized again, and the next drawing operation writes it back.
+        var restoredInverse = _gfxState.RealizedCtm;
+        if (restoredInverse.HasInverse)
+        {
+            restoredInverse.Invert();
+            var unrealized = effectiveCtm;
+            unrealized.Append(restoredInverse);
+            _gfxState.UnrealizedCtm = unrealized;
+            _gfxState.WorldTransform = worldTransform;
+        }
     }
 
     /// <summary>
