@@ -10,6 +10,8 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-09-21
+
 ### Added
 
 - **`PdfDictionary.PdfStream.ExternalFile`** — the `PdfFileSpecification` a stream names in its
