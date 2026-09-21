@@ -16,9 +16,9 @@ namespace PdfPinata.Charting.Tests;
 ///   through <see cref="XSeriesElements"/>, the one collection a caller can construct on its own,
 ///   and through a chart's <see cref="SeriesCollection"/>, the one every chart has.
 ///
-///   Only the members the class implements are covered. Its non-generic <see cref="IList"/>
-///   members that add, insert, remove or search are declared but not implemented, and are not
-///   pinned here.
+///   The non-generic <see cref="IList"/> members are covered too. They used to throw
+///   <see cref="System.NotImplementedException"/>, and now go through the typed members, so an
+///   element reaching the collection by either route belongs to it the same way.
 /// </remarks>
 public class DocumentObjectCollectionTests
 {
@@ -177,6 +177,195 @@ public class DocumentObjectCollectionTests
         list[0] = replacement;
 
         elements[0].Should().BeSameAs(replacement);
+    }
+
+    // ----- parents -----
+
+    /// <summary>
+    ///   An element put in place by the indexer belongs to the collection, as an added one does,
+    ///   rather than keeping no parent or the parent it came from.
+    /// </summary>
+    [Fact]
+    public void TheIndexerMakesTheCollectionTheParentOfTheElementSet()
+    {
+        var elements = new XSeriesElements();
+        elements.Add("A", "B");
+        var replacement = new XValue("Z");
+
+        elements[1] = replacement;
+
+        replacement.Parent.Should().BeSameAs(elements);
+    }
+
+    [Fact]
+    public void TheIListIndexerMakesTheCollectionTheParentOfTheElementSet()
+    {
+        var elements = new XSeriesElements();
+        elements.Add("A");
+        IList list = elements;
+        var replacement = new XValue("Z");
+
+        list[0] = replacement;
+
+        replacement.Parent.Should().BeSameAs(elements);
+    }
+
+    [Fact]
+    public void TheIndexerCanSetABlank()
+    {
+        var elements = new XSeriesElements();
+        elements.Add("A", "B");
+
+        elements[0] = null;
+
+        elements.Count.Should().Be(2);
+        elements[0].Should().BeNull();
+    }
+
+    [Fact]
+    public void InsertingMakesTheCollectionTheParentOfTheElement()
+    {
+        var elements = new XSeriesElements();
+        elements.Add("A");
+        var inserted = new XValue("B");
+
+        elements.InsertObject(0, inserted);
+
+        inserted.Parent.Should().BeSameAs(elements);
+    }
+
+    // ----- IList -----
+
+    [Fact]
+    public void IListAddAppendsTheElementAndAnswersItsIndex()
+    {
+        var elements = new XSeriesElements();
+        elements.Add("A");
+        IList list = elements;
+        var added = new XValue("B");
+
+        var index = list.Add(added);
+
+        index.Should().Be(1);
+        elements[1].Should().BeSameAs(added);
+        added.Parent.Should().BeSameAs(elements);
+    }
+
+    [Fact]
+    public void IListAddAcceptsABlank()
+    {
+        var elements = new XSeriesElements();
+        IList list = elements;
+
+        list.Add(null).Should().Be(0);
+
+        elements.Count.Should().Be(1);
+        elements[0].Should().BeNull();
+    }
+
+    [Fact]
+    public void IListInsertPutsTheElementAtTheIndexGivenAndOwnsIt()
+    {
+        var elements = new XSeriesElements();
+        var a = elements.Add("A");
+        var c = elements.Add("C");
+        IList list = elements;
+        var b = new XValue("B");
+
+        list.Insert(1, b);
+
+        elements.Cast<XValue>().Should().Equal(a, b, c);
+        b.Parent.Should().BeSameAs(elements);
+    }
+
+    [Fact]
+    public void IListRemoveAtClosesUpTheGap()
+    {
+        var elements = new XSeriesElements();
+        var a = elements.Add("A");
+        elements.Add("B");
+        var c = elements.Add("C");
+        IList list = elements;
+
+        list.RemoveAt(1);
+
+        elements.Cast<XValue>().Should().Equal(a, c);
+    }
+
+    [Fact]
+    public void IListRemoveTakesOutTheElementAndIgnoresOneNotThere()
+    {
+        var elements = new XSeriesElements();
+        var a = elements.Add("A");
+        var b = elements.Add("B");
+        IList list = elements;
+
+        list.Remove(a);
+        list.Remove(new XValue("B"));
+        list.Remove("not a document object");
+
+        elements.Cast<XValue>().Should().Equal(b);
+    }
+
+    [Fact]
+    public void IListSearchesAreByIdentity()
+    {
+        var elements = new XSeriesElements();
+        elements.Add("A");
+        var b = elements.Add("B");
+        IList list = elements;
+
+        list.IndexOf(b).Should().Be(1);
+        list.Contains(b).Should().BeTrue();
+        list.IndexOf(new XValue("B")).Should().Be(-1);
+        list.Contains(new XValue("B")).Should().BeFalse();
+    }
+
+    [Fact]
+    public void IListSearchesFindABlankAndNeverFindSomethingElse()
+    {
+        var elements = new XSeriesElements();
+        elements.Add("A");
+        elements.AddBlank();
+        IList list = elements;
+
+        list.IndexOf(null).Should().Be(1);
+        list.Contains(null).Should().BeTrue();
+        list.IndexOf("A").Should().Be(-1, "a string is not an element, whatever it says");
+        list.Contains(42).Should().BeFalse();
+    }
+
+    [Fact]
+    public void IListRefusesToStoreSomethingThatIsNotADocumentObject()
+    {
+        var elements = new XSeriesElements();
+        elements.Add("A");
+        IList list = elements;
+
+        var add = () => list.Add("B");
+        var insert = () => list.Insert(0, "B");
+        var set = () => list[0] = "B";
+
+        add.Should().Throw<System.ArgumentException>();
+        insert.Should().Throw<System.ArgumentException>();
+        set.Should().Throw<System.ArgumentException>();
+        elements.Count.Should().Be(1);
+    }
+
+    [Fact]
+    public void IListAddReachesTheCollectionsOwnAdd()
+    {
+        // The IList route is the same list the typed members keep, on every collection.
+        var chart = Charts.Of(ChartType.Column2D, 1.0, 2.0);
+        IList list = chart.SeriesCollection;
+        var series = new Series();
+        series.Add(3.0, 4.0);
+
+        list.Add(series);
+
+        chart.SeriesCollection.Count.Should().Be(2);
+        chart.SeriesCollection[1].Should().BeSameAs(series);
+        series.Parent.Should().BeSameAs(chart.SeriesCollection);
     }
 
     // ----- cloning -----

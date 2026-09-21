@@ -54,13 +54,18 @@ public abstract class DocumentObjectCollection : DocumentObject, IList
   }
 
   /// <summary>
-  /// Gets the element at the specified index.
+  /// Gets or sets the element at the specified index. An element set here belongs to the
+  /// collection, as one added to it does; a null is a blank.
   /// </summary>
   public virtual DocumentObject this[int index]
   {
     get => this.elements[index] as DocumentObject;
-    // TODO: überprüfen ob das erlaubt sein soll
-    set => this.elements[index] = value;
+    set
+    {
+      if (value != null)
+        value.parent = this;
+      this.elements[index] = value;
+    }
   }
 
   #region Methods
@@ -114,10 +119,13 @@ public abstract class DocumentObjectCollection : DocumentObject, IList
   }
 
   /// <summary>
-  /// Inserts an element into the collection at the specified position.
+  /// Inserts an element into the collection at the specified position. The element then belongs
+  /// to the collection, as one added to it does; a null is a blank.
   /// </summary>
   public virtual void InsertObject(int index, DocumentObject val)
   {
+    if (val != null)
+      val.parent = this;
     this.elements.Insert(index, val);
   }
 
@@ -188,49 +196,46 @@ public abstract class DocumentObjectCollection : DocumentObject, IList
 
   bool IList.IsFixedSize => false;
 
+  // The non-generic members go through the typed ones, so that an element reaching the
+  // collection this way belongs to it exactly as one added directly does, and a subclass
+  // overriding Add or InsertObject sees it. A null is a blank and is accepted; anything that is
+  // not a DocumentObject is refused on the way in and simply not found on a search.
+
   object IList.this[int index]
   {
     get => this.elements[index];
-    set => this.elements[index] = value;
+    set => this[index] = AsDocumentObject(value);
   }
 
-  void IList.RemoveAt(int index)
-  {
-    throw new NotImplementedException("IList.RemoveAt");
-    // TODO:  Add DocumentObjectCollection.RemoveAt implementation
-  }
+  void IList.RemoveAt(int index) => RemoveObjectAt(index);
 
-  void IList.Insert(int index, object value)
-  {
-    throw new NotImplementedException("IList.Insert");
-    // TODO:  Add DocumentObjectCollection.Insert implementation
-  }
+  void IList.Insert(int index, object value) => InsertObject(index, AsDocumentObject(value));
 
   void IList.Remove(object value)
   {
-    throw new NotImplementedException("IList.Remove");
-    // TODO:  Add DocumentObjectCollection.Remove implementation
+    var index = ((IList)this).IndexOf(value);
+    if (index >= 0)
+      RemoveObjectAt(index);
   }
 
-  bool IList.Contains(object value)
-  {
-    throw new NotImplementedException("IList.Contains");
-    // TODO:  Add DocumentObjectCollection.Contains implementation
-    //return false;
-  }
+  bool IList.Contains(object value) => ((IList)this).IndexOf(value) >= 0;
 
-  int IList.IndexOf(object value)
-  {
-    throw new NotImplementedException("IList.IndexOf");
-    // TODO:  Add DocumentObjectCollection.System.Collections.IList.IndexOf implementation
-    //return 0;
-  }
+  int IList.IndexOf(object value) => value == null || value is DocumentObject
+    ? IndexOf((DocumentObject)value)
+    : -1;
 
   int IList.Add(object value)
   {
-    throw new NotImplementedException("IList.Add");
-    // TODO:  Add DocumentObjectCollection.Add implementation
-    //return 0;
+    Add(AsDocumentObject(value));
+    return Count - 1;
+  }
+
+  private static DocumentObject AsDocumentObject(object value)
+  {
+    if (value == null || value is DocumentObject)
+      return (DocumentObject)value;
+    throw new ArgumentException(
+      $"A chart collection holds document objects, not {value.GetType().Name}.", nameof(value));
   }
   #endregion
 
