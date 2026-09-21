@@ -10,6 +10,26 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ## [Unreleased]
 
+### Changed
+
+- **`XUnit` implements `IEquatable<XUnit>`.** A value type that overrides `Equals` and defines `==`
+  is expected to, and without it `EqualityComparer<XUnit>.Default` boxed both operands on every
+  comparison a `List<XUnit>`, a `Dictionary<XUnit, …>` or a LINQ `Distinct` made.
+
+  **It changes one answer, and changes it towards the operator.** `XUnit` converts implicitly from
+  `int`, `double` and `float`, and `XUnit` is a better conversion target than `object` — so
+  `unit.Equals(72)` now binds to `Equals(XUnit)` and converts before comparing, exactly as
+  `unit == 72` always has. It used to bind to `Equals(object)`, box the argument, ask whether an
+  object was an `XUnit` and answer false, so the operator and `Equals` disagreed about the same
+  pair of values. An argument declared as `object` still answers false, because at that point there
+  is no conversion left to make.
+
+  **A string is unchanged, deliberately.** `XUnit` converts implicitly from `string` too, so
+  `unit.Equals("an inch")` would have bound the same way, parsed, and *thrown* rather than
+  answered — and an `Equals` has to answer. A `bool Equals(string)` overload returning false takes
+  that binding instead, so `unit.Equals(anyString)` is false exactly as before. `unit == "an inch"`
+  still throws; that is the operator's business and is not changed here.
+
 ### Fixed
 
 - **A file whose `startxref` is a long way from its end is read by scanning back to it, not by

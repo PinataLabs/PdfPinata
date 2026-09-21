@@ -289,10 +289,62 @@ public class XUnitTests
     }
 
     [Fact]
+    public void TheThreeWaysOfAskingWhetherTwoUnitsAreEqualAgree()
+    {
+        // XUnit implements IEquatable<XUnit>, so Equals(XUnit) is what an overload resolution
+        // picks over Equals(object) and what a List<XUnit> or a Dictionary key goes through. It
+        // has to answer what the operator answers, or the same pair of values is equal or not
+        // depending which of the three the caller happened to write. A NaN is where a memberwise
+        // comparison would part company with the operator: double.Equals holds two NaNs equal,
+        // and == holds nothing equal to a NaN, not even itself.
+        var nan = XUnit.FromPoint(double.NaN);
+        var alsoNan = XUnit.FromPoint(double.NaN);
+
+        (nan == alsoNan).Should().BeFalse();
+        nan.Equals(alsoNan).Should().BeFalse();
+        nan.Equals((object)alsoNan).Should().BeFalse();
+
+        var point = XUnit.FromPoint(72);
+        var samePoint = XUnit.FromPoint(72);
+
+        (point == samePoint).Should().BeTrue();
+        point.Equals(samePoint).Should().BeTrue();
+        point.Equals((object)samePoint).Should().BeTrue();
+    }
+
+    [Fact]
     public void SomethingThatIsNotAUnitIsNotEqualToOne()
     {
+        // XUnit converts implicitly from string, so without the Equals(string) overload written to
+        // catch it, both of these would bind to Equals(XUnit) and be parsed before being compared -
+        // and the second would throw rather than answer, which is not a thing an Equals may do.
         // ReSharper disable once SuspiciousTypeConversion.Global
         XUnit.FromPoint(1).Equals("1pt").Should().BeFalse();
+        // ReSharper disable once SuspiciousTypeConversion.Global
+        XUnit.FromPoint(1).Equals("an inch").Should().BeFalse();
+    }
+
+    [Fact]
+    public void ANumberIsEqualToTheUnitItConvertsTo()
+    {
+        // int, double and float convert to XUnit implicitly, and XUnit is a better conversion
+        // target than object - so these bind to Equals(XUnit) and are converted before they are
+        // compared, which is what the operator beside each has always done. Before XUnit
+        // implemented IEquatable<XUnit> they bound to Equals(object), boxed the argument and
+        // answered false, so the operator and Equals disagreed about the same pair of values.
+        XUnit.FromPoint(72).Equals(72).Should().BeTrue();
+        (XUnit.FromPoint(72) == 72).Should().BeTrue();
+
+        XUnit.FromPoint(72).Equals(72.0).Should().BeTrue();
+        (XUnit.FromPoint(72) == 72.0).Should().BeTrue();
+
+        // A bare number is points, so an inch is not equal to 72 of them - the measure is part of
+        // what the value means, exactly as it is between two units.
+        XUnit.FromInch(1).Equals(72).Should().BeFalse();
+
+        // Declared as an object there is no conversion left to make, and the question is the one
+        // Equals(object) answers: whether the thing is an XUnit at all.
+        XUnit.FromPoint(72).Equals((object)72).Should().BeFalse();
     }
 
     [Fact]
