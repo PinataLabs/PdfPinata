@@ -28,6 +28,7 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -86,6 +87,13 @@ internal sealed class Parser
     }
 
     public Symbol Symbol => _lexer.Symbol;
+
+    /// <summary>
+    /// Every cross-reference stream <see cref="ReadTrailer"/> has read, newest revision first.
+    /// Not every one of them is in the document's table: one whose number a later revision gave
+    /// to another object is left out, and is still needed for the objects it compresses.
+    /// </summary>
+    internal List<PdfCrossReferenceStream> CrossReferenceStreams { get; } = new();
 
     public PdfObjectID ReadObjectNumber(int position)
     {
@@ -1275,6 +1283,9 @@ internal sealed class Parser
     {
         Debug.Assert(xrefTable != null);
 
+        // Where this section begins: /Prev and startxref point here, and a newer cross-reference
+        // stream that lists this one as an object gives this offset too.
+        var startOfSection = _lexer.Position;
         var symbol = ScanNextToken();
 
         if (symbol == Symbol.XRef) // Is it a cross-reference table?
@@ -1349,7 +1360,7 @@ internal sealed class Parser
             // TODO: Handle PDF files larger than 2 GiB, see implementation note 21 in Appendix H.
 
             // The parsed integer is the object id of the cross-refernece stream.
-            return ReadXRefStream(xrefTable);
+            return ReadXRefStream(xrefTable, startOfSection);
         }
 
         return null;
@@ -1409,11 +1420,14 @@ internal sealed class Parser
     /// <summary>
     /// Reads cross reference stream(s).
     /// </summary>
-    private PdfCrossReferenceStream ReadXRefStream(PdfCrossReferenceTable xrefTable)
+    private PdfCrossReferenceStream ReadXRefStream(PdfCrossReferenceTable xrefTable, long startOfSection)
     {
         // Read cross reference stream.
         //Debug.Assert(_lexer.Symbol == Symbol.Integer);
 
+        // The object number has just been read, so the stream's own header lies between here and
+        // where the section began.
+        var endOfNumber = _lexer.Position;
         var number = _lexer.TokenToInteger;
         var generation = ReadInteger();
         Debug.Assert(generation == 0);
@@ -1434,10 +1448,19 @@ internal sealed class Parser
         // Making sure that the iref.Value is set here correctly ensure that the mechanisms in PdfReader will work correctly:
         // 1. It needs to find a PdfCrossReferenceStream in iref.Value in order to resolve compressed objects.
         // 2. If we leave null in iref.Value it would do redundant parsing to resolve the value again.
+        //
+        // But an entry already holding this number is this stream only if it points at this
+        // stream. An incremental update may give a new object the number an earlier revision's
+        // cross-reference stream had - the file attached to empira/PDFsharp#213 puts its /AcroForm
+        // there - and the newer revision is read first, so its entry is already here, with a
+        // position and no value yet. Hanging this stream on it made the form read as a
+        // cross-reference stream with no /Fields (empira/PDFsharp#353). Such a stream is left out
+        // of the table, where the newer object keeps the number; CrossReferenceStreams is what
+        // still finds it, for the compressed objects its revision indexes.
         var iref = xrefTable[objectID];
         if (iref != null)
         {
-            if (iref.Value == null)
+            if (iref.Value == null && iref.Position >= startOfSection && iref.Position <= endOfNumber)
             {
                 iref.Value = xrefStream;
             }
@@ -1449,6 +1472,8 @@ internal sealed class Parser
             iref.Value = xrefStream;
             xrefTable.Add(iref);
         }
+
+        CrossReferenceStreams.Add(xrefStream);
 
         Debug.Assert(xrefStream.Stream != null);
         var bytes = xrefStream.Stream.UnfilteredValue;
@@ -1505,6 +1530,7 @@ internal sealed class Parser
                 item.Type = StreamHelper.ReadBytes(bytes, index2 * wsum, wsize[0]);
                 item.Field2 = StreamHelper.ReadBytes(bytes, index2 * wsum + wsize[0], wsize[1]);
                 item.Field3 = StreamHelper.ReadBytes(bytes, index2 * wsum + wsize[0] + wsize[1], wsize[2]);
+                item.ObjectNumber = subsections[ssc][0] + idx;
 
                 xrefStream.Entries.Add(item);
 
@@ -1532,7 +1558,18 @@ internal sealed class Parser
                         break;
 
                     case 2:
-                        // Nothing to do yet.
+                        // A compressed object is read later, once every object stream is known,
+                        // but its number is claimed now, while the revisions are still being read
+                        // newest first, so that an older revision's entry for the same number
+                        // cannot take it. A position of -1 says only "compressed", and it is also
+                        // what tells the reader later that an older revision's compressed copy of
+                        // an object a newer revision wrote out in full is not the one to read.
+                        // Object 0 is never an object, whatever a malformed stream says of it.
+                        if (item.ObjectNumber < 1)
+                            break;
+                        var compressedID = new PdfObjectID(item.ObjectNumber);
+                        if (!xrefTable.Contains(compressedID))
+                            xrefTable.Add(new PdfReference(compressedID, -1));
                         break;
                 }
             }

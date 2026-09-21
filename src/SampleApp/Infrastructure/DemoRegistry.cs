@@ -30,6 +30,7 @@ public static class DemoRegistry
         new ImageFailuresDemo(),
         new TextDemo(),
         new VectorsDemo(),
+        new GradientsDemo(),
         new BarcodesDemo(),
         new LayoutDemo(),
         new TablesDemo(),

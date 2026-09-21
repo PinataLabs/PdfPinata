@@ -29,6 +29,7 @@ const sidebars: SidebarsConfig = {
         'drawing/text',
         'drawing/text-layout',
         'drawing/shapes-pens-and-brushes',
+        'drawing/gradients',
         'drawing/images',
         'drawing/barcodes',
         'drawing/forms-stamps-and-imposition',

@@ -136,6 +136,9 @@ or across a rectangle, and `XRadialGradientBrush` blends outwards from a centre.
 ```csharp demo=Vectors snippet=gradients
 ```
 
+[Gradients](gradients.md) covers both gradient brushes in more detail: two-centre radial gradients,
+extending a gradient past its ends, and a brush's own transform.
+
 An `XPen` can take a brush in place of a colour, so a stroke can carry a gradient:
 
 ```csharp demo=Vectors snippet=pen-from-brush
