@@ -65,8 +65,7 @@ internal class PdfTrueTypeFont : PdfFont
 
         // Tagged now and untagged at save time if the program goes in whole, because only then is
         // it settled: see RestoreWholeFontName.
-        UntaggedBaseFont = BaseFont;
-        BaseFont = CreateEmbeddedFontSubsetName(BaseFont);
+        BaseFont = TagAsSubset(BaseFont);
         FontDescriptor.FontName = BaseFont;
 
         Debug.Assert(fontOptions.FontEncoding == PdfFontEncoding.WinAnsi);

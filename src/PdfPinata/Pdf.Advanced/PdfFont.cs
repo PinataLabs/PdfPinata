@@ -104,15 +104,25 @@ public class PdfFont : PdfDictionary
     internal PdfToUnicodeMap ToUnicode;
 
     /// <summary>
-    /// The base font name as it was before the constructor gave it a subset tag, or null when it
-    /// gave it none.
+    /// The base font name without and with the subset tag the constructor gave it, both null when
+    /// it gave it none.
     /// </summary>
     /// <remarks>
-    /// Kept so that <see cref="RestoreWholeFontName"/> can take the tag off again: whether the
-    /// program is a subset is settled at save time, by <see cref="EmbedsSubset"/>, and the
-    /// constructor has to name the font before then.
+    /// Both are kept so that <see cref="RestoreWholeFontName"/> can choose between them at every
+    /// save: whether the program is a subset is settled then, by <see cref="EmbedsSubset"/>, and
+    /// the option it reads may change between two saves of one document.
     /// </remarks>
-    internal string UntaggedBaseFont;
+    string _untaggedBaseFont, _taggedBaseFont;
+
+    /// <summary>
+    /// Gives <paramref name="name"/> a subset tag, remembering both spellings.
+    /// </summary>
+    internal string TagAsSubset(string name)
+    {
+        _untaggedBaseFont = name;
+        _taggedBaseFont = CreateEmbeddedFontSubsetName(name);
+        return _taggedBaseFont;
+    }
 
     /// <summary>
     /// Whether the font program this font embeds is a subset of its face rather than the whole of it.
@@ -148,19 +158,19 @@ public class PdfFont : PdfDictionary
     }
 
     /// <summary>
-    /// Takes off the subset tag the constructor added, when the program turns out to be embedded
-    /// whole. ISO 32000-1 9.6.4 reserves the tag for a program holding only some of the face's
-    /// glyphs, so wearing it on a whole font says something untrue.
+    /// Takes off the subset tag the constructor added when the program is embedded whole, and puts
+    /// it back when it is a subset again. ISO 32000-1 9.6.4 reserves the tag for a program holding
+    /// only some of the face's glyphs, so wearing it on a whole font says something untrue.
     /// </summary>
     /// <param name="setBaseFont">Writes the name wherever this font carries it.</param>
     internal void RestoreWholeFontName(Action<string> setBaseFont)
     {
-        if (UntaggedBaseFont == null || EmbedsSubset)
+        if (_untaggedBaseFont == null)
             return;
 
-        setBaseFont(UntaggedBaseFont);
-        FontDescriptor.FontName = UntaggedBaseFont;
-        UntaggedBaseFont = null;
+        var name = EmbedsSubset ? _taggedBaseFont : _untaggedBaseFont;
+        setBaseFont(name);
+        FontDescriptor.FontName = name;
     }
 
     /// <summary>

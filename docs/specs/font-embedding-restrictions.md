@@ -45,9 +45,9 @@ one question that three things ask:
 
 * the program written, in `EmbedFontProgram`;
 * the subset tag on the name. The constructors still add the tag, because they must name the font
-  before the option is certain. `RestoreWholeFontName` removes the tag at save time when the program
-  goes in whole. ISO 32000-1 9.6.4 reserves the tag for subsets;
-* PDF/A-1's `/CIDSet`, which is written for a subset only. A set that lists only the glyphs drawn would
+  before the option is certain. `RestoreWholeFontName` chooses the tagged or the untagged name at every
+  save, so a second save after the option changes names the font correctly. ISO 32000-1 9.6.4 reserves the tag for subsets;
+* PDF/A-1's `/CIDSet`, which is written for a subset only and removed otherwise. A set that lists only the glyphs drawn would
   misdescribe a whole program.
 
 A side effect: a *simple* (WinAnsi) font with CFF outlines was always embedded whole but still carried

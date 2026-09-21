@@ -123,6 +123,21 @@ public class FontEmbeddingRestrictionTests
     }
 
     [Fact]
+    public void TurningTheOptionOffBetweenTwoSavesPutsTheSubsetTagBack()
+    {
+        var document = Draw(NoSubsetting, respect: true);
+        FontDescriptorOf(Save(document)).Elements.GetName("/FontName")
+            .Should().NotMatchRegex("^/[A-Z]{6}\\+");
+
+        document.Options.RespectFontEmbeddingRestrictions = false;
+        var descriptor = FontDescriptorOf(Save(document));
+
+        FontProgramOf(descriptor).Length.Should().BeLessThan(Font(NoSubsetting).Length);
+        descriptor.Elements.GetName("/FontName").Should().MatchRegex("^/[A-Z]{6}\\+",
+            "the program is a subset again, and has to say so");
+    }
+
+    [Fact]
     public void WithTheOptionOffAFontThatForbidsSubsettingIsSubsettedAsBefore()
     {
         var saved = Save(Draw(NoSubsetting, respect: false));

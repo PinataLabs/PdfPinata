@@ -125,6 +125,8 @@ internal class PdfCIDFont : PdfFont
         // misdescribe a program holding all of them.
         if (EmbedsSubset && PdfConformanceWriter.RequiresCidSet(Owner.Options.Conformance))
             EmbedCidSet();
+        else
+            FontDescriptor.Elements.Remove(PdfFontDescriptor.Keys.CIDSet);
     }
 
     /// <summary>

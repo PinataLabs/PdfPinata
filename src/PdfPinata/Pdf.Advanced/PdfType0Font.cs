@@ -128,10 +128,7 @@ internal sealed class PdfType0Font : PdfFont
         // A TrueType face may still go in whole, when the document honours its No Subsetting bit;
         // that is settled at save time, where RestoreWholeFontName takes the tag off again.
         if (IsSubsetted(ttDescriptor))
-        {
-            UntaggedBaseFont = BaseFont;
-            BaseFont = CreateEmbeddedFontSubsetName(BaseFont);
-        }
+            BaseFont = TagAsSubset(BaseFont);
 
         FontDescriptor.FontName = BaseFont;
         _descendantFont.BaseFont = BaseFont;
@@ -168,10 +165,7 @@ internal sealed class PdfType0Font : PdfFont
         // name by a caller, and a name that already carries a tag came from a font that was already
         // a subset when it arrived. Tagging it twice would say it had been cut down twice.
         if (IsSubsetted(ttDescriptor) && !HasSubsetPrefix(BaseFont))
-        {
-            UntaggedBaseFont = BaseFont;
-            BaseFont = CreateEmbeddedFontSubsetName(BaseFont);
-        }
+            BaseFont = TagAsSubset(BaseFont);
 
         FontDescriptor.FontName = BaseFont;
         _descendantFont.BaseFont = BaseFont;
