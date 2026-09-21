@@ -236,6 +236,28 @@ public class LegendTests
     }
 
     /// <summary>
+    ///   The same in a combination chart, for the stacked columns among themselves: the series
+    ///   drawn beside the stack keeps its place in the list.
+    /// </summary>
+    [Fact]
+    public void ACombinationLegendListsItsStackedColumnsInStackOrder()
+    {
+        var chart = Charts.OfSeries(ChartType.Line,
+            new[] { 20.0, 40.0, 30.0 }, new[] { 25.0, 35.0, 45.0 }, new[] { 10.0, 10.0, 10.0 });
+        chart.SeriesCollection[0].Name = "North";
+        chart.SeriesCollection[0].ChartType = ChartType.ColumnStacked2D;
+        chart.SeriesCollection[1].Name = "South";
+        chart.SeriesCollection[1].ChartType = ChartType.ColumnStacked2D;
+        chart.SeriesCollection[2].Name = "Target";
+        chart.Legend.Docking = DockingType.Right;
+
+        var page = Drawn.Page(chart);
+
+        RunReading(page, "South").Y.Should().BeGreaterThan(RunReading(page, "North").Y);
+        RunReading(page, "North").Y.Should().BeGreaterThan(RunReading(page, "Target").Y);
+    }
+
+    /// <summary>
     ///   A series with no name still has its entry, and the entry is only its swatch.
     /// </summary>
     [Fact]

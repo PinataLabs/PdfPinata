@@ -403,7 +403,13 @@ internal abstract class YAxisRenderer : AxisRenderer
   /// <summary>
   /// Determines the smallest and the largest number from all series of the chart.
   /// </summary>
-  protected virtual void CalcYAxis(out double yMin, out double yMax)
+  protected virtual void CalcYAxis(out double yMin, out double yMax) => CalcValueYAxis(out yMin, out yMax);
+
+  /// <summary>
+  /// Determines the smallest and the largest number from all series of the chart. Not virtual,
+  /// so that the stacked renderers, which override <see cref="CalcYAxis"/>, can still reach it.
+  /// </summary>
+  private void CalcValueYAxis(out double yMin, out double yMax)
   {
     yMin = double.MaxValue;
     yMax = double.MinValue;
@@ -428,21 +434,44 @@ internal abstract class YAxisRenderer : AxisRenderer
   /// the chart. Shared by both stacked renderers, which otherwise differed only in which
   /// orientation's YAxisRenderer they built on.
   /// </summary>
+  /// <remarks>
+  /// In a combination chart only the column series are stacked, so only they are summed, and the
+  /// scale is then widened to every value of every series: an area or a line drawn beside the
+  /// stack is plotted at its own value, and may reach past the tallest stack or below the lowest.
+  /// A value of a stacked series always lies between the two sums of its category, so taking it
+  /// in again changes nothing.
+  /// </remarks>
   protected void CalcStackedYAxis(out double yMin, out double yMax)
+  {
+    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    if (cri is CombinationRendererInfo combination)
+    {
+      CalcStackedYAxis(combination.ColumnSeriesRendererInfos ?? [], out var stackedMin, out var stackedMax);
+      CalcValueYAxis(out var valueMin, out var valueMax);
+      yMin = Math.Min(stackedMin, valueMin);
+      yMax = Math.Max(stackedMax, valueMax);
+      return;
+    }
+
+    CalcStackedYAxis(cri.SeriesRendererInfos, out yMin, out yMax);
+  }
+
+  /// <summary>
+  /// Determines the sum of the smallest and the largest stacked column or bar of the series given.
+  /// </summary>
+  private static void CalcStackedYAxis(SeriesRendererInfo[] stacked, out double yMin, out double yMax)
   {
     yMin = double.MaxValue;
     yMax = double.MinValue;
 
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-
     var maxPoints = 0;
-    foreach (var sri in cri.SeriesRendererInfos)
+    foreach (var sri in stacked)
       maxPoints = Math.Max(maxPoints, sri.Series.Elements.Count);
 
     for (var pointIdx = 0; pointIdx < maxPoints; ++pointIdx)
     {
       double valueSumPos = 0, valueSumNeg = 0;
-      foreach (var sri in cri.SeriesRendererInfos)
+      foreach (var sri in stacked)
       {
         if (sri.PointRendererInfos.Length <= pointIdx)
           break;
