@@ -892,6 +892,14 @@ public class XTextFormatter
     }
 
     /// <summary>
+    /// How far past the bottom of the rectangle, in points, a line may reach and still count as
+    /// fitting. Floating-point rounding and nothing more: a millionth of a point is far below what
+    /// a content stream writes a coordinate to, so a line it lets in is one no page could show to
+    /// be out.
+    /// </summary>
+    const double FitTolerance = 1e-6;
+
+    /// <summary>
     /// Moves to the top of the next column when the one being filled has run out of room.
     /// Answers false when there is no next column and nowhere left to put the line.
     /// </summary>
@@ -900,10 +908,16 @@ public class XTextFormatter
     /// <see cref="AllowVerticalOverflow"/> says, or there would be no height to break it at and
     /// every column but the first would stay empty. Overflow decides what becomes of the text
     /// after the <em>last</em> column is full.
+    /// <para>
+    /// A line within <see cref="FitTolerance"/> of the bottom still fits. A rectangle sized by
+    /// <see cref="XGraphics.MeasureString(string, XFont)"/> is exactly as tall as its lines in exact
+    /// arithmetic, but the measure adds the font's units up in one order and this loop in another,
+    /// and the last line was refused whenever the rounding fell against it (empira/PDFsharp#198).
+    /// </para>
     /// </remarks>
     bool MoveToNextColumnIfFull(ref int column, ref double y, double rectHeight)
     {
-        if (y <= rectHeight)
+        if (y <= rectHeight + FitTolerance)
             return true;
 
         if (column + 1 < Columns)
