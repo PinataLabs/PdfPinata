@@ -155,7 +155,10 @@ This file starts at the entry below. Changes before that point are recorded only
   deep is refused as too deep, which is the case no loop detector catches — a chain of two thousand
   nodes repeats nothing and still died, at about the eighteen hundred frames the stack held. A node
   that two parents list is *not* a loop and still reads: it is a page counted twice, which is
-  malformed but ends. Reported upstream as
+  malformed but ends. Ending in principle is not enough, though: a chain of nodes each listing the
+  next one twice doubles at every level, and forty levels were a trillion nodes to walk in a file
+  of forty objects, so a walk entering more nodes than twice the objects the file holds is
+  refused as well. Reported upstream as
   [empira/PDFsharp#361](https://github.com/empira/PDFsharp/issues/361).
 - **A paragraph holding an inline element with no text in it renders.** `AddFormattedText("")` is
   accepted while the document is built, and `RenderDocument` then threw `ArgumentNullException`

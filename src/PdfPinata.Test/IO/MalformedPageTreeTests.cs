@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
@@ -254,6 +255,22 @@ public class MalformedPageTreeTests
         ]));
 
         document.Pages.Count.Should().Be(2);
+    }
+
+    [Fact(Timeout = 30_000)]
+    public async Task ANodeListedTwiceAtEveryLevelIsRefusedRatherThanWalkedForever()
+    {
+        // No loop and nothing deep, just every node listed twice by its parent - which the test
+        // above reads, once. Forty levels of it are two to the forty nodes to walk in a file of
+        // forty-odd objects, which ends in principle and never in practice.
+        var objects = new List<string> { "<</Type/Catalog/Pages 2 0 R>>" };
+        for (var id = 2; id <= 41; id++)
+            objects.Add("<</Type/Pages/Kids[" + (id + 1) + " 0 R " + (id + 1) + " 0 R]/Count 1>>");
+        objects.Add(Page);
+
+        var opening = Opening(RawPdf.Build(objects));
+
+        await Task.Run(() => opening.Should().Throw<PdfReaderException>().WithMessage("*over and over*"));
     }
 
     const string Page = "<</Type/Page/Parent 2 0 R/MediaBox[0 0 200 100]>>";

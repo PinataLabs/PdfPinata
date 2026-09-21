@@ -797,7 +797,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         // Promote inheritable values down the page tree
         var values = new PdfPage.InheritedValues();
         PdfPage.InheritValues(this, ref values);
-        var pages = GetKids(Reference, values);
+        var pages = GetKids(Reference, values, Owner._irefTable.ObjectTable.Count);
 
         // Replace /Pages in catalog by this object
         // xrefRoot.Value = this;
@@ -820,9 +820,16 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     /// <summary>
     /// Recursively converts the page tree into a flat array.
     /// </summary>
-    static PdfDictionary[] GetKids(PdfReference iref, PdfPage.InheritedValues values)
+    static PdfDictionary[] GetKids(PdfReference iref, PdfPage.InheritedValues values, int objectCount)
     {
-        return GetKids(iref, values, []);
+        // A tree enters each of its nodes once, so the walk of a file holding n objects enters at
+        // most n nodes. A node two parents list is entered twice, which is read rather than refused -
+        // but a chain of nodes each listing the next one twice doubles at every level, and forty
+        // levels are a trillion nodes in a file of forty objects: no loop, nothing deep, and a walk
+        // that never ends in practice. Twice the objects in the file is room for every node to be
+        // listed twice and no room for that.
+        var budget = 2 * objectCount + 1;
+        return GetKids(iref, values, [], ref budget);
     }
 
     /// <summary>
@@ -841,8 +848,16 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     /// and the depth, since a node appears on the path at most once.
     /// </summary>
     static PdfDictionary[] GetKids(PdfReference iref, PdfPage.InheritedValues values,
-        HashSet<PdfObjectID> ancestors)
+        HashSet<PdfObjectID> ancestors, ref int budget)
     {
+        if (--budget < 0)
+        {
+            throw new PdfReaderException(
+                $"The page tree has been entered more than twice as many times as the file has " +
+                $"objects, reaching node {iref.ObjectID}, so it lists the same subtrees over and over " +
+                "rather than each once as a tree does.");
+        }
+
         // TODO: inherit inheritable keys...
         if (iref.Value is not PdfDictionary kid)
         {
@@ -926,7 +941,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
                     "node was expected.");
             }
 
-            list.AddRange(GetKids(xref2, values, ancestors));
+            list.AddRange(GetKids(xref2, values, ancestors, ref budget));
         }
 
         // Only while the walk is inside it. A node listed by two parents is a page counted twice,
