@@ -45,7 +45,26 @@ public sealed class XSpotColor : IEquatable<XSpotColor>
 
         Name = name;
         alternate.A = 1;
-        Alternate = alternate;
+        Alternate = alternate.ColorSpace == XColorSpace.GrayScale ? ConsistentGray(alternate) : alternate;
+    }
+
+    /// <summary>
+    /// A grey alternate whose <see cref="XColor.GS"/> means lightness, as the tint transform reads it.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="XColor.FromGrayScale"/> stores lightness, but an RGB colour whose
+    /// <see cref="XColor.ColorSpace"/> was set to grey afterwards keeps the <c>GS</c> its RGB
+    /// setters computed, which is how <em>dark</em> it is - black carries 1. Written as it stands,
+    /// that alternate would paint white where black was asked for. Its RGB components are right
+    /// either way, so a GS that disagrees with them is replaced by their luminance.
+    /// </remarks>
+    static XColor ConsistentGray(XColor alternate)
+    {
+        var fromRgb = alternate.R == alternate.G && alternate.G == alternate.B
+            ? alternate.R / 255.0
+            : (0.299 * alternate.R + 0.587 * alternate.G + 0.114 * alternate.B) / 255.0;
+
+        return Math.Abs(alternate.GS - fromRgb) <= 1 / 255.0 ? alternate : XColor.FromGrayScale(fromRgb);
     }
 
     /// <summary>The colorant's name.</summary>

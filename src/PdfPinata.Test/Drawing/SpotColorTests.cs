@@ -92,6 +92,23 @@ public class SpotColorTests
     }
 
     [Fact]
+    public void AnRgbColourDeclaredGreyIsNotWrittenInverted()
+    {
+        // An RGB colour's GS is how dark it is - black carries 1 - while the tint transform reads
+        // a grey alternate as how light it is. Taken as it stood, this black alternate was white.
+        var black = XColor.FromArgb(0, 0, 0);
+        black.ColorSpace = XColorSpace.GrayScale;
+        var ink = new XSpotColor("Black ink", black);
+
+        var page = Reopened(gfx =>
+            gfx.DrawRectangle(new XSolidBrush(XColor.FromSpot(ink)), 10, 10, 100, 100))[0];
+
+        var function = (PdfDictionary)Resolve(ColorSpace(page, "/CS0").Elements[3]);
+        Numbers(function.Elements.GetArray("/C1")).Should().Equal(0);
+        XColor.FromSpot(ink).R.Should().Be(0);
+    }
+
+    [Fact]
     public void ANameOutsideAsciiIsWrittenAsUtf8()
     {
         var ink = new XSpotColor("Weiß", XColor.FromCmyk(0, 0, 0, 0.1));
