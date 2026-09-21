@@ -185,7 +185,7 @@ public class XGraphicsFactoryTests
     [Fact]
     public void AMissingPageIsRefusedRatherThanFollowed()
     {
-        var making = () => XGraphics.FromPdfPage((PdfPage)null!);
+        var making = () => XGraphics.FromPdfPage(null!);
 
         making.Should().Throw<ArgumentNullException>();
     }
@@ -296,18 +296,6 @@ public class XGraphicsFactoryTests
             .Should().Throw<ArgumentNullException>();
     }
 
-    // ----- an image surface -------------------------------------------------------------------------
-
-    [Fact]
-    public void ASurfaceOverAnImageIsNotSomethingThisLibraryOffers()
-    {
-        var image = XImage.FromFile(PdfPinata.Test.Helpers.PathHelper.GetInstance().GetAssetPath("lenna.png"));
-
-        XGraphics.FromImage(image).Should().BeNull();
-        XGraphics.FromImage(image, XGraphicsUnit.Inch).Should().BeNull();
-        ((Action)(() => XGraphics.FromImage(null!))).Should().Throw<ArgumentNullException>();
-    }
-
     // ----- the space transformer ---------------------------------------------------------------------
 
     /// <summary>
@@ -373,7 +361,7 @@ public class XGraphicsFactoryTests
 
         gfx.Dispose();
 
-        var again = () => gfx.Dispose();
+        var again = gfx.Dispose;
         again.Should().NotThrow();
     }
 }

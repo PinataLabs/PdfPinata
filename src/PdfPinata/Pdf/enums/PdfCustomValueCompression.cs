@@ -30,8 +30,9 @@
 namespace PdfPinata.Pdf;
 
 /// <summary>
-/// This class is undocumented and may change or drop in future releases.
+/// How a custom value's stream was to be compressed. Nothing reads it.
 /// </summary>
+[System.Obsolete("Nothing reads this: the PdfCustomValue.CompressionMode field that took it is removed. It will be removed.")]
 public enum PdfCustomValueCompressionMode
 {
     /// <summary>

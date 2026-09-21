@@ -91,6 +91,48 @@ This file starts at the entry below. Changes before that point are recorded only
   `#xx`.** The name's bytes are unchanged; only how they are spelled in the file differs, so a
   Shift-JIS name that used to be written raw is now written escaped (#59).
 
+- **`/Producer` names the version that wrote the file**, e.g. `PdfPinata 0.2.1
+  (https://github.com/PinataLabs/PdfPinata)`, where every document used to say
+  `PdfPinata 1.50.4000-netstandard`, a number left over from PDFsharp. The version is MinVer's,
+  read from the assembly's informational version without the commit hash. This also applies to
+  `/Creator` when the caller sets none, and to the XMP packet's `pdf:Producer`.
+  `ProductVersionInfo.Producer` is now a static property rather than a constant, and
+  `ProductVersionInfo.Producer2` is gone.
+
+- **`ThickThinBarCode` is renamed `TwoWidthBarCode`**, the usual name for bar codes whose bars and
+  gaps are each either narrow or wide. It is the base class of `Code3of9Standard` and
+  `Code2of5Interleaved`, and only code that names the base class itself has to change. The error
+  for a `WideNarrowRatio` outside 2 to 3 now reads "The ratio of wide to narrow lines must be between
+  2 and 3." It used to name the interleaved 2 of 5 code even when Code 39 threw it.
+
+- **`XImage.FromFile(string)` and `FromFile(string, PdfReadAccuracy)` are one method**, with the
+  accuracy optional and `Strict` by default. Source that called either still compiles unchanged, but
+  an assembly compiled against the old overloads has to be rebuilt.
+
+### Deprecated
+
+- **`XBitmapImage.CreateBitmap`.** It makes a bitmap with a size and no pixels, whose only use was
+  to be passed to `XGraphics.FromImage`, which is removed below. It is left from PDFsharp's GDI+ and
+  WPF builds and will be removed too.
+
+- **`PdfCustomValueCompressionMode`.** Its one use was `PdfCustomValue.CompressionMode`, which is
+  removed below, so nothing reads it. It will be removed.
+
+### Removed
+
+- **`XGraphics.FromImage`.** It always returned null, because this library has no way to draw onto
+  an image. It was left from PDFsharp's GDI+ and WPF builds. To draw something that can be placed
+  like an image, draw onto an `XForm` through `XGraphics.FromForm`.
+
+- **`PdfWriterLayout.Verbose`.** Nothing in the library ever selected it, since the writer that
+  reads the layout is internal and is always given the default, `Compact`. So no document was
+  written with it, and the header comments, indentation and sorted keys it stood for went with it.
+  The members before it keep their values.
+
+- **`PdfCustomValue`'s parameterless constructor and its `CompressionMode` field.** The constructor
+  made a value with no bytes, and nothing ever read `CompressionMode`, so setting it did nothing.
+  Construct a value from its bytes with `new PdfCustomValue(byte[])`.
+
 ### Fixed
 
 - **`PdfReader.Open` no longer hangs on a file whose cross-reference `/Prev` chain loops back on
@@ -188,6 +230,14 @@ This file starts at the entry below. Changes before that point are recorded only
   in the legend. A line series' markers are still drawn, and so is an area's fill. A format that
   sets a width or a colour but never `Visible = true` was already converted to width 0, and is now
   not drawn either, as a column's border already was.
+
+- **A transform appended on `XGraphics` is drawn where `XGraphics.Transform` says it is.**
+  `TranslateTransform`, `ScaleTransform`, `RotateTransform` and the rest take an `XMatrixOrder`, and
+  `Transform` always honoured `Append`, but the page was handed the same matrix as a prepend, because
+  a `cm` operator can say nothing else. So `TranslateTransform(100, 50)` and then an appended
+  `ScaleTransform(2, 2)` drew at (100, 50) rather than (200, 100). An appended matrix `T` is now
+  written as the prepend with the same effect, `W · T · W⁻¹`. Appending to a matrix with no inverse
+  throws `InvalidOperationException` and changes nothing. Prepended transforms are written as before.
 
 - **A gradient brush's own `Transform` is honoured.** `TranslateTransform`, `ScaleTransform`,
   `RotateTransform`, `MultiplyTransform` and the `Transform` setter all changed a matrix that nothing

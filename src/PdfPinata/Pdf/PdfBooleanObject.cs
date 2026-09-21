@@ -1,4 +1,5 @@
 ﻿#region Copyright
+
 //
 // Authors:
 //   Stefan Lange
@@ -25,6 +26,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
+
 #endregion
 
 using System.Diagnostics;
@@ -43,14 +45,15 @@ public sealed class PdfBooleanObject : PdfObject
     /// Initializes a new instance of the <see cref="PdfBooleanObject"/> class.
     /// </summary>
     public PdfBooleanObject()
-    { }
+    {
+    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PdfBooleanObject"/> class.
     /// </summary>
     public PdfBooleanObject(bool value)
     {
-        _value = value;
+        Value = value;
     }
 
     /// <summary>
@@ -59,23 +62,20 @@ public sealed class PdfBooleanObject : PdfObject
     public PdfBooleanObject(PdfDocument document, bool value)
         : base(document)
     {
-        _value = value;
+        Value = value;
     }
 
     /// <summary>
     /// Gets the value of this instance as boolean value.
     /// </summary>
-    public bool Value => _value;
-
-    //set { _value = value; }
-    readonly bool _value;
+    public bool Value { get; }
 
     /// <summary>
     /// Returns "false" or "true".
     /// </summary>
     public override string ToString()
     {
-        return _value ? bool.TrueString : bool.FalseString;
+        return Value ? bool.TrueString : bool.FalseString;
     }
 
     /// <summary>
@@ -84,7 +84,7 @@ public sealed class PdfBooleanObject : PdfObject
     internal override void WriteObject(PdfWriter writer)
     {
         writer.WriteBeginObject(this);
-        writer.Write(_value);
+        writer.Write(Value);
         writer.WriteEndObject();
     }
 }

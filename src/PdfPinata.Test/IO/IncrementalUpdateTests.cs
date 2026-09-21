@@ -74,9 +74,8 @@ public class IncrementalUpdateTests
         var updated = AppendChange(original, document => document.Info.Subject = "Changed");
 
         // Asserted by what the appended bytes contain rather than by how many there are. A byte
-        // count is a proxy, and a poor one in a debug build, where the verbose layout puts a
-        // hundred-character rule between every object. What matters is that changing a document
-        // property does not drag the expensive objects along with it.
+        // count is a proxy. What matters is that changing a document property does not drag the
+        // expensive objects along with it.
         var appended = Appended(updated, original.Length);
         appended.Should().NotContain("/BaseFont", "the font was not touched and must not be rewritten");
         appended.Should().NotContain("/FontDescriptor");

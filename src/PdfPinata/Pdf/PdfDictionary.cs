@@ -193,15 +193,6 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         if (_stream != null)
             Debug.Assert(Elements.ContainsKey(PdfStream.Keys.Length), "Dictionary has a stream but no length is set.");
 
-        // Sort keys for diffing purposes. Comparing PDF files with for example programs like
-        // Araxis Merge is easier with sorted keys.
-        if (writer.Layout == PdfWriterLayout.Verbose)
-        {
-            var list = new List<PdfName>(keys);
-            list.Sort(PdfName.Comparer);
-            list.CopyTo(keys, 0);
-        }
-
         foreach (var key in keys)
             WriteDictionaryElement(writer, key);
         if (Stream != null)

@@ -34,7 +34,7 @@ namespace PdfPinata.Drawing.BarCodes;
 /// <summary>
 /// Implementation of the Code 2 of 5 bar code.
 /// </summary>
-public class Code2of5Interleaved : ThickThinBarCode
+public class Code2of5Interleaved : TwoWidthBarCode
 {
     /// <summary>
     /// Initializes a new instance of Interleaved2of5.
@@ -106,25 +106,25 @@ public class Code2of5Interleaved : ThickThinBarCode
     }
 
     /// <summary>
-    /// Calculates the thick and thin line widths,
+    /// Calculates the wide and narrow line widths,
     /// taking into account the required rendering size.
     /// </summary>
-    internal override void CalcThinBarWidth(BarCodeRenderInfo info)
+    internal override void CalcNarrowBarWidth(BarCodeRenderInfo info)
     {
         /*
          * The total width is the sum of the following parts:
-         * Starting lines      = 4 * thin
+         * Starting lines      = 4 * narrow
          *  +
-         * Code Representation = (2 * thick + 3 * thin) * code.Length
+         * Code Representation = (2 * wide + 3 * narrow) * code.Length
          *  +
-         * Stopping lines      =  1 * thick + 2 * thin
+         * Stopping lines      =  1 * wide + 2 * narrow
          *
-         * with r = relation ( = thick / thin), this results in
+         * with r = relation ( = wide / narrow), this results in
          *
-         * Total width = (6 + r + (2 * r + 3) * text.Length) * thin
+         * Total width = (6 + r + (2 * r + 3) * text.Length) * narrow
          */
-        var thinLineAmount = 6 + WideNarrowRatio + (2 * WideNarrowRatio + 3) * Text.Length;
-        info.ThinBarWidth = Size.Width / thinLineAmount;
+        var narrowLineAmount = 6 + WideNarrowRatio + (2 * WideNarrowRatio + 3) * Text.Length;
+        info.NarrowBarWidth = Size.Width / narrowLineAmount;
     }
 
     private void RenderStart(BarCodeRenderInfo info)

@@ -1,4 +1,5 @@
 #region Copyright
+
 //
 // Authors:
 //   Stefan Lange
@@ -25,10 +26,10 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
+
 #endregion
 
 using System;
-using System.Diagnostics;
 using System.IO;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Pdf.Advanced;
@@ -37,14 +38,6 @@ using PdfPinata.Pdf.IO.enums;
 using static PinataLayout.DocumentObjectModel.Shapes.ImageSource;
 
 namespace PdfPinata.Drawing;
-
-[Flags]
-internal enum XImageState
-{
-    UsedInDrawingContext = 0x00000001,
-
-    StateMask = 0x0000FFFF
-}
 
 /// <summary>
 /// Defines an object used to draw image files (bmp, png, jpeg, gif) and PDF forms.
@@ -72,7 +65,8 @@ public class XImage : IDisposable
     /// Initializes a new instance of the <see cref="XImage"/> class.
     /// </summary>
     protected XImage()
-    { }
+    {
+    }
 
     // Useful stuff here: http://stackoverflow.com/questions/350027/setting-wpf-image-source-in-code
     XImage(string path)
@@ -84,27 +78,16 @@ public class XImage : IDisposable
     XImage(IImageSource imageSource)
     {
         _source = imageSource;
-        _path = _source.Name;
+        Path = _source.Name;
         Initialize();
     }
 
     XImage(Func<Stream> stream)
     {
         // Create a dummy unique path.
-        _path = "*" + Guid.NewGuid().ToString("B");
-        _source = ImageSource.FromStream(_path, stream);
+        Path = "*" + Guid.NewGuid().ToString("B");
+        _source = ImageSource.FromStream(Path, stream);
         Initialize();
-    }
-
-    /// <summary>
-    /// Creates an image from the specified file.
-    /// For non-pdf files, this requires that an instance of an implementation of <see cref="T:PinataLayout.DocumentObjectModel.Shapes.ImageSource"/> be set on the `ImageSource.ImageSourceImpl` property.
-    /// If this property is null, an <see cref="T:System.InvalidOperationException"/> is thrown. Install PdfPinata.Skia and set <c>ImageSource.ImageSourceImpl = new SkiaImageSource();</c> (or use PdfPinata.ImageSharp) before loading images.
-    /// </summary>
-    /// <param name="path">The path to a BMP, PNG, GIF, JPEG, TIFF, or PDF file.</param>
-    public static XImage FromFile(string path)
-    {
-        return FromFile(path, PdfReadAccuracy.Strict);
     }
 
     /// <summary>
@@ -114,7 +97,7 @@ public class XImage : IDisposable
     /// </summary>
     /// <param name="path">The path to a BMP, PNG, GIF, JPEG, TIFF, or PDF file.</param>
     /// <param name="accuracy">Moderate allows for broken references when using a PDF file.</param>
-    public static XImage FromFile(string path, PdfReadAccuracy accuracy)
+    public static XImage FromFile(string path, PdfReadAccuracy accuracy = PdfReadAccuracy.Strict)
     {
         if (PdfReader.TestPdfFile(path) > 0)
             return new XPdfForm(path, accuracy);
@@ -131,10 +114,6 @@ public class XImage : IDisposable
     public static XImage FromStream(Func<Stream> stream)
     {
         ArgumentNullException.ThrowIfNull(stream);
-
-        // TODO: Check PDF stream.
-        //if (PdfReader.TestPdfFile(path) > 0)
-        //  return new XPdfForm(path);
         return new XImage(stream);
     }
 
@@ -159,14 +138,7 @@ public class XImage : IDisposable
         return false;
     }
 
-    internal XImageState XImageState
-    {
-        get => _xImageState;
-        set => _xImageState = value;
-    }
-    XImageState _xImageState;
-
-    internal void Initialize()
+    private void Initialize()
     {
         if (_source != null)
         {
@@ -209,6 +181,7 @@ public class XImage : IDisposable
         if (!_disposed)
             _disposed = true;
     }
+
     bool _disposed;
 
     /// <summary>
@@ -254,6 +227,7 @@ public class XImage : IDisposable
         get => _interpolate;
         set => _interpolate = value;
     }
+
     bool _interpolate = true;
 
     /// <summary>
@@ -263,22 +237,6 @@ public class XImage : IDisposable
 
     XImageFormat _format;
 
-    internal void AssociateWithGraphics(XGraphics gfx)
-    {
-        if (_associatedGraphics != null)
-            throw new InvalidOperationException("XImage already associated with XGraphics.");
-        _associatedGraphics = null;
-    }
-
-    internal void DisassociateWithGraphics()
-    {
-        if (_associatedGraphics == null)
-            throw new InvalidOperationException("XImage not associated with XGraphics.");
-        _associatedGraphics.DisassociateImage();
-
-        Debug.Assert(_associatedGraphics == null);
-    }
-
     internal void DisassociateWithGraphics(XGraphics gfx)
     {
         if (_associatedGraphics != gfx)
@@ -286,22 +244,18 @@ public class XImage : IDisposable
         _associatedGraphics = null;
     }
 
-    internal XGraphics AssociatedGraphics
-    {
-        get => _associatedGraphics;
-        set => _associatedGraphics = value;
-    }
     XGraphics _associatedGraphics;
 
     /// <summary>
     /// If path starts with '*' the image is created from a stream and the path is a GUID.
     /// </summary>
-    internal string _path;
+    internal string Path;
 
     /// <summary>
     /// Cache PdfImageTable.ImageSelector to speed up finding the right PdfImage
     /// if this image is used more than once.
     /// </summary>
     internal PdfImageTable.ImageSelector Selector;
-    private IImageSource _source;
+
+    private readonly IImageSource _source;
 }

@@ -221,7 +221,7 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
     /// <summary>
     /// Appends a translation of the specified offsets to this matrix.
     /// </summary>
-    public void TranslateAppend(double offsetX, double offsetY) // TODO: will become default
+    public void TranslateAppend(double offsetX, double offsetY)
     {
         if (_type == XMatrixTypes.Identity)
         {
@@ -281,7 +281,7 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
     /// <summary>
     /// Appends the specified scale vector to this matrix.
     /// </summary>
-    public void ScaleAppend(double scaleX, double scaleY)  // TODO: will become default
+    public void ScaleAppend(double scaleX, double scaleY)
     {
         this *= CreateScaling(scaleX, scaleY);
     }
@@ -376,7 +376,7 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
     /// <summary>
     /// Apppends the specified scale about the specified point of this matrix.
     /// </summary>
-    public void ScaleAtAppend(double scaleX, double scaleY, double centerX, double centerY) // TODO: will become default
+    public void ScaleAtAppend(double scaleX, double scaleY, double centerX, double centerY)
     {
         this *= CreateScaling(scaleX, scaleY, centerX, centerY);
     }
@@ -403,9 +403,9 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
     /// <summary>
     /// Appends a rotation of the specified angle to this matrix.
     /// </summary>
-    public void RotateAppend(double angle) // TODO: will become default Rotate
+    public void RotateAppend(double angle)
     {
-        angle = angle % 360.0;
+        angle %= 360.0;
         this *= CreateRotationRadians(angle * Calc.Deg2Rad);
     }
 
@@ -472,9 +472,9 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
     /// <summary>
     /// Appends a rotation of the specified angle at the specified point to this matrix.
     /// </summary>
-    public void RotateAtAppend(double angle, double centerX, double centerY)  // TODO: will become default
+    public void RotateAtAppend(double angle, double centerX, double centerY)
     {
-        angle = angle % 360.0;
+        angle %= 360.0;
         this *= CreateRotationRadians(angle * Calc.Deg2Rad, centerX, centerY);
     }
 
@@ -548,7 +548,7 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
     /// <summary>
     /// Appends a skew of the specified degrees in the x and y dimensions to this matrix.
     /// </summary>
-    public void ShearAppend(double shearX, double shearY) // TODO: will become default
+    public void ShearAppend(double shearX, double shearY)
     {
         Shear(shearX, shearY, XMatrixOrder.Append);
     }

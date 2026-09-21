@@ -64,8 +64,6 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </summary>
     public PdfDocument()
     {
-        //PdfDocument.Gob.AttatchDocument(Handle);
-
         _creation = GlobalTimeSettings.Now;
         _state = DocumentState.Created;
         _version = 14;
@@ -81,15 +79,12 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </summary>
     public PdfDocument(string filename)
     {
-        //PdfDocument.Gob.AttatchDocument(Handle);
-
         _creation = GlobalTimeSettings.Now;
         _state = DocumentState.Created;
         _version = 14;
         Initialize();
         Info.CreationDate = _creation;
 
-        // TODO 4STLA: encapsulate the whole c'tor with #if !NETFX_CORE?
         throw new NotImplementedException();
     }
 
@@ -101,8 +96,6 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </summary>
     public PdfDocument(Stream outputStream)
     {
-        //PdfDocument.Gob.AttatchDocument(Handle);
-
         _creation = GlobalTimeSettings.Now;
         _state = DocumentState.Created;
         // The version has to be set here as well as in the other two constructors. Without it the
@@ -117,36 +110,20 @@ public sealed class PdfDocument : PdfObject, IDisposable
 
     internal PdfDocument(Lexer lexer)
     {
-        //PdfDocument.Gob.AttatchDocument(Handle);
-
         _creation = GlobalTimeSettings.Now;
         _state = DocumentState.Imported;
-
-        //_info = new PdfInfo(this);
-        //_pages = new PdfPages(this);
-        //_fontTable = new PdfFontTable();
-        //_catalog = new PdfCatalog(this);
-        ////_font = new PdfFont();
-        //_objects = new PdfObjectTable(this);
-        //_trailer = new PdfTrailer(this);
         _irefTable = new PdfCrossReferenceTable(this);
         _lexer = lexer;
     }
 
     void Initialize()
     {
-        //_info = new PdfInfo(this);
         _fontTable = new PdfFontTable(this);
         _imageTable = new PdfImageTable(this);
         _trailer = new PdfTrailer(this);
         _irefTable = new PdfCrossReferenceTable(this);
         _trailer.CreateNewDocumentIDs();
     }
-
-    //~PdfDocument()
-    //{
-    //  Dispose(false);
-    //}
 
     /// <summary>
     /// Disposes all references to this document stored in other documents. This function should be called
@@ -156,7 +133,6 @@ public sealed class PdfDocument : PdfObject, IDisposable
     public void Dispose()
     {
         Dispose(true);
-        //GC.SuppressFinalize(this);
     }
 
     void Dispose(bool disposing)
@@ -167,7 +143,6 @@ public sealed class PdfDocument : PdfObject, IDisposable
             {
                 // Dispose managed resources.
             }
-            //PdfDocument.Gob.DetatchDocument(Handle);
         }
 
         _state = DocumentState.Disposed;
@@ -462,7 +437,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
             // written as a trailer dictionary - see WriteIncrementalSection.
             if (_trailer is PdfCrossReferenceStream)
             {
-                writer.WriteEof(this,
+                writer.WriteEof(
                     PdfCrossReferenceStreamWriter.WriteIncrementalSection(this, writer, changed, _originalStartXref));
                 return;
             }
@@ -480,7 +455,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
             // refusal fails here rather than writing a negative /Prev.
             _trailer.Elements.SetInteger(PdfTrailer.Keys.Prev, checked((int)_originalStartXref));
             _trailer.WriteObject(writer);
-            writer.WriteEof(this, startxref);
+            writer.WriteEof(startxref);
         }
         finally
         {
@@ -689,7 +664,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
 
                 writer.WriteFileHeader(this);
                 var startxref = PdfCrossReferenceStreamWriter.WriteBody(this, writer);
-                writer.WriteEof(this, startxref);
+                writer.WriteEof(startxref);
             }
             else
             {
@@ -708,7 +683,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
                 writer.WriteRaw("trailer\n");
                 _trailer.Elements.SetInteger("/Size", count + 1);
                 _trailer.WriteObject(writer);
-                writer.WriteEof(this, startxref);
+                writer.WriteEof(startxref);
             }
 
             //if (encrypt)
@@ -735,10 +710,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     {
         var info = Info;
 
-        // Add patch level to producer if it is not '0'.
         var pdfSharpProducer = VersionInfo.Producer;
-        if (!ProductVersionInfo.VersionPatch.Equals("0"))
-            pdfSharpProducer = ProductVersionInfo.Producer2;
 
         // Set Creator if value is undefined.
         if (info.Elements[PdfDocumentInformation.Keys.Creator] == null)
@@ -1057,7 +1029,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
         set
         {
             EnsureCanModify("setting the PDF version");
-            if ((value < 12 || value > 17) && value != 20) // TODO not really implemented
+            if (value is < 12 or > 17 && value != 20)
                 throw new ArgumentException(PSSR.InvalidVersionNumber, nameof(value));
             _version = value;
         }
@@ -1099,7 +1071,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
         get { return _fullPath; }
     }
 
-    internal string _fullPath = String.Empty; // TODO: make private
+    internal string _fullPath = string.Empty; // TODO: make private
 
     /// <summary>
     /// Gets a Guid that uniquely identifies this instance of PdfDocument.
@@ -1115,13 +1087,11 @@ public sealed class PdfDocument : PdfObject, IDisposable
     {
         get
         {
-            if (_handle == null)
-                _handle = new DocumentHandle(this);
-            return _handle;
+            if (field == null)
+                field = new DocumentHandle(this);
+            return field;
         }
     }
-
-    DocumentHandle _handle;
 
     /// <summary>
     /// Returns a value indicating whether the document was newly created or opened from an existing document.

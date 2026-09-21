@@ -14,14 +14,16 @@ namespace SampleApp.Demos;
 /// </summary>
 internal sealed class NavigationDemo : PdfDemo
 {
-    public NavigationDemo() : base() { }
+    public NavigationDemo() : base()
+    {
+    }
 
     public override string Name => "Navigation";
 
     public override string Summary => "Page labels, viewer preferences, layout, language and private data.";
 
-    public override IReadOnlyList<string> Shows => new[]
-    {
+    public override IReadOnlyList<string> Shows =>
+    [
         "PdfPageLabels - roman front matter and arabic body, so a reader's page box reads iv, not 4",
         "All six label styles, and the prefix that goes in front of one",
         "PdfViewerPreferences - hide the toolbar, centre the window, show the title rather than the file name",
@@ -29,13 +31,14 @@ internal sealed class NavigationDemo : PdfDemo
         "Document.Language, which is what a screen reader announces the document in",
         "CustomValues - private data in the catalog that survives a round trip and no reader displays",
         "NamedDestinations, the table, as against the single named destination the Text demo makes"
-    };
+    ];
 
     public override int PageCount => 6;
 
     protected override PdfDocument Build(DemoContext context)
     {
         #region example
+
         var document = new PdfDocument();
         document.Info.Title = "Navigation";
 
@@ -48,14 +51,14 @@ internal sealed class NavigationDemo : PdfDemo
         // Six pages: three of front matter and three of body, which is what gives the page labels
         // below something to label differently.
         (string Kind, string Title)[] pages =
-        {
+        [
             ("front", "Half title"),
             ("front", "Title page"),
             ("front", "Contents"),
             ("body", "Chapter one"),
             ("body", "Chapter two"),
             ("body", "What the settings are")
-        };
+        ];
 
         var made = new List<PdfPage>();
         for (var index = 0; index < pages.Length; index++)
@@ -107,8 +110,8 @@ internal sealed class NavigationDemo : PdfDemo
         // docs:begin custom-values
         // Anything the producer wants to carry that is not part of the page. It lives in the
         // catalog under a key of the caller's choosing, no reader displays it, and it survives a
-        // round trip - which is exactly what a pipeline needs to recognise its own output later.
-        var pipeline = Encoding.UTF8.GetBytes("{\"stage\":\"demonstration\",\"run\":42}");
+        // round trip - which is exactly what a pipeline needs to recognize its own output later.
+        var pipeline = "{\"stage\":\"demonstration\",\"run\":42}"u8.ToArray();
         document.CustomValues["/Pipeline"] = new PdfCustomValue(pipeline);
         // docs:end custom-values
 
@@ -144,7 +147,7 @@ internal sealed class NavigationDemo : PdfDemo
                 body, XBrushes.Black, new XRect(50, 268, 495, 40));
 
             (string Setting, string Value, string Effect)[] rows =
-            {
+            [
                 ("PageLabels", "i-iii then 1-3", "The page box reads iv on sheet four, not 4"),
                 ("PageLayout", "TwoColumnRight", "Two pages side by side, odd ones on the right"),
                 ("PageMode", "UseOutlines", "The bookmark panel is open when the file opens"),
@@ -154,7 +157,7 @@ internal sealed class NavigationDemo : PdfDemo
                 ("Language", "en-GB", "What a screen reader announces it in"),
                 ("CustomValues[\"/Pipeline\"]", $"{pipeline.Length} bytes of JSON", "Private data; no reader shows it"),
                 ("NamedDestinations", "4 names", "Links that survive pages being inserted")
-            };
+            ];
 
             double y = 325;
             foreach (var row in rows)
@@ -170,14 +173,14 @@ internal sealed class NavigationDemo : PdfDemo
             // Every style, shown as what the first four sheets of a run would read. Built through
             // the API rather than transcribed, so the table cannot drift from the implementation.
             (PdfPageLabelStyle Style, string? Prefix)[] styles =
-            {
+            [
                 (PdfPageLabelStyle.Decimal, null),
                 (PdfPageLabelStyle.LowercaseRoman, null),
                 (PdfPageLabelStyle.UppercaseRoman, null),
                 (PdfPageLabelStyle.LowercaseLetters, null),
                 (PdfPageLabelStyle.UppercaseLetters, null),
                 (PdfPageLabelStyle.None, "Appendix ")
-            };
+            ];
 
             var styleY = y + 40;
             foreach (var style in styles)
@@ -208,12 +211,12 @@ internal sealed class NavigationDemo : PdfDemo
                 body, XBrushes.Black, new XRect(50, styleY + 10, 495, 40));
 
             // Round-tripped rather than asserted: what survives a save and a reopen is the only
-            // version of any of this that matters.
+            // version of this that matters.
             using var buffer = new MemoryStream();
             using var copy = new PdfDocument();
             _ = copy.AddPage();
             copy.Language = "en-GB";
-            copy.CustomValues["/Pipeline"] = new PdfCustomValue(Encoding.UTF8.GetBytes("kept"));
+            copy.CustomValues["/Pipeline"] = new PdfCustomValue("kept"u8.ToArray());
             copy.PageLabels.Add(0, PdfPageLabelStyle.LowercaseRoman);
             copy.Save(buffer, false);
             buffer.Position = 0;
@@ -229,6 +232,7 @@ internal sealed class NavigationDemo : PdfDemo
                 + $"\"{Encoding.UTF8.GetString(reopened.CustomValues["/Pipeline"].Value)}\"",
                 mono, XBrushes.Black, new XPoint(50, styleY + 78));
         }
+
         #endregion
 
         return document;

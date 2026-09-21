@@ -145,8 +145,7 @@ internal static class FontFactory
     /// </summary>
     public static XFontSource GetFontSourceByTypefaceKey(string typefaceKey)
     {
-        XFontSource fontSource;
-        if (FontSourcesByName.TryGetValue(typefaceKey, out fontSource))
+        if (FontSourcesByName.TryGetValue(typefaceKey, out var fontSource))
             return fontSource;
 
         Debug.Assert(false, $"An XFontSource with the typeface key '{typefaceKey}' does not exists.");
@@ -172,11 +171,6 @@ internal static class FontFactory
     {
         return FontSourcesByName.TryGetValue(typefaceKey, out source);
     }
-
-    //public static bool TryGetFontSourceByFaceName(string faceName, out XFontSource source)
-    //{
-    //    return FontSourcesByName.TryGetValue(faceName, out source);
-    //}
 
     internal static void CacheFontResolverInfo(string typefaceKey, FontResolverInfo fontResolverInfo)
     {
@@ -207,17 +201,10 @@ internal static class FontFactory
         {
             Lock.EnterFontFactory();
             // Check whether an identical font source with a different face name already exists.
-            XFontSource existingFontSource;
-            if (FontSourcesByKey.TryGetValue(fontSource.Key, out existingFontSource))
+            if (FontSourcesByKey.TryGetValue(fontSource.Key, out var existingFontSource))
             {
                 Debug.Assert(existingFontSource.Fontface != null);
                 return existingFontSource;
-
-                //FontsAreNotIdentical:
-                //// Incredible rare case: Two different fonts have the same size and check sum.
-                //// Give the new one a new key until it do not clash with an existing one.
-                //while (FontSourcesByKey.ContainsKey(fontSource.Key))
-                //    fontSource.IncrementKey();
             }
 
             var fontface = fontSource.Fontface;
@@ -238,33 +225,10 @@ internal static class FontFactory
     /// </summary>
     public static XFontSource CacheNewFontSource(string typefaceKey, XFontSource fontSource)
     {
-        // Debug.Assert(!FontSourcesByFaceName.ContainsKey(fontSource.FaceName));
-
         // Check whether an identical font source with a different face name already exists.
-        XFontSource existingFontSource;
-        if (FontSourcesByKey.TryGetValue(fontSource.Key, out existingFontSource))
+        if (FontSourcesByKey.TryGetValue(fontSource.Key, out var existingFontSource))
         {
-            //// Fonts have same length and check sum. Now check byte by byte identity.
-            //int length = fontSource.Bytes.Length;
-            //for (int idx = 0; idx < length; idx++)
-            //{
-            //    if (existingFontSource.Bytes[idx] != fontSource.Bytes[idx])
-            //    {
-            //        goto FontsAreNotIdentical;
-            //    }
-            //}
             return existingFontSource;
-
-            ////// The bytes are really identical. Register font source again with the new face name
-            ////// but return the existing one to save memory.
-            ////FontSourcesByFaceName.Add(fontSource.FaceName, existingFontSource);
-            ////return existingFontSource;
-
-            //FontsAreNotIdentical:
-            //// Incredible rare case: Two different fonts have the same size and check sum.
-            //// Give the new one a new key until it do not clash with an existing one.
-            //while (FontSourcesByKey.ContainsKey(fontSource.Key))
-            //    fontSource.IncrementKey();
         }
 
         var fontface = fontSource.Fontface;
@@ -294,15 +258,13 @@ internal static class FontFactory
     internal static string GetFontCachesState()
     {
         var state = new StringBuilder();
-        string[] keys;
-        int count;
 
         // FontResolverInfo by name.
         state.Append("====================\n");
         state.Append("Font resolver info by name\n");
         var keyCollection = FontResolverInfosByName.Keys;
-        count = keyCollection.Count;
-        keys = new string[count];
+        var count = keyCollection.Count;
+        var keys = new string[count];
         keyCollection.CopyTo(keys, 0);
         Array.Sort(keys, StringComparer.OrdinalIgnoreCase);
         foreach (var key in keys)
@@ -315,7 +277,7 @@ internal static class FontFactory
         count = fontSourceKeys.Count;
         var ulKeys = new ulong[count];
         fontSourceKeys.CopyTo(ulKeys, 0);
-        Array.Sort(ulKeys, delegate (ulong x, ulong y) { return x == y ? 0 : (x > y ? 1 : -1); });
+        Array.Sort(ulKeys, (x, y) => x == y ? 0 : (x > y ? 1 : -1));
         foreach (var ul in ulKeys)
             state.AppendFormat("  {0}: {1}\n", ul, FontSourcesByKey[ul].DebuggerDisplay);
         var fontSourceNames = FontSourcesByName.Keys;
@@ -336,29 +298,15 @@ internal static class FontFactory
         return state.ToString();
     }
 
-    // TODO: Move to ctor
-
     /// <summary>
     /// Maps font typeface key to font resolver info.
     /// </summary>
-    //static readonly Dictionary<string, FontResolverInfo> FontResolverInfosByTypefaceKey = new Dictionary<string, FontResolverInfo>(StringComparer.OrdinalIgnoreCase);
     static readonly Dictionary<string, FontResolverInfo> FontResolverInfosByName = new(StringComparer.OrdinalIgnoreCase);
-
-    ///// <summary>
-    ///// Maps font resolver info key to font resolver info.
-    ///// </summary>
-    //static readonly Dictionary<string, FontResolverInfo> FontResolverInfosByKey = new Dictionary<string, FontResolverInfo>();
 
     /// <summary>
     /// Maps typeface key or font name to font source.
     /// </summary>
-    //static readonly Dictionary<string, XFontSource> FontSourcesByTypefaceKey = new Dictionary<string, XFontSource>(StringComparer.OrdinalIgnoreCase);
     static readonly Dictionary<string, XFontSource> FontSourcesByName = new(StringComparer.OrdinalIgnoreCase);
-
-    ///// <summary>
-    ///// Maps font name to font source.
-    ///// </summary>
-    //static readonly Dictionary<string, XFontSource> FontSourcesByFontName = new Dictionary<string, XFontSource>();
 
     /// <summary>
     /// Maps font source key to font source.

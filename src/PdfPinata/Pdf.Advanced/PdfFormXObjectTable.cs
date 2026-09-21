@@ -190,7 +190,7 @@ internal sealed class PdfFormXObjectTable : PdfResourceTable
         public Selector(XForm form)
         {
             // HACK: just use full path to identify
-            _path = form._path.ToLowerInvariant();
+            _path = form.Path.ToLowerInvariant();
         }
 
         /// <summary>

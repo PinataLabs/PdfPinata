@@ -128,8 +128,6 @@ public struct XPoint : IFormattable, IEquatable<XPoint>
     public static XPoint[] ParsePoints(string value)
     {
         ArgumentNullException.ThrowIfNull(value);
-        // TODO: Reflect reliabel implementation from Avalon
-        // TODOWPF
         var values = value.Split(' ');
         var count = values.Length;
         var points = new XPoint[count];

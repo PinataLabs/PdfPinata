@@ -116,7 +116,7 @@ public class Lexer
             //  }
             //  break;
 
-            case '+': //TODO is it so easy?
+            case '+':
             case '-':
                 return _symbol = ScanNumber();
 

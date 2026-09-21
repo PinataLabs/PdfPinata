@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -42,8 +42,6 @@ public interface IFontResolver
     /// <param name="isItalic">Set to <c>true</c> when an italic fontface is required.</param>
     /// <returns>Information about the physical font, or null if the request cannot be satisfied.</returns>
     FontResolverInfo ResolveTypeface(string familyName, bool isBold, bool isItalic);
-
-    //FontResolverInfo ResolveTypeface(Typeface); TODO in PDFsharp 2.0
 
     /// <summary>
     /// Gets the bytes of a physical font with specified face name.

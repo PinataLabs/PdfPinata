@@ -348,28 +348,6 @@ public sealed class XGraphics : IDisposable
     }
 
     /// <summary>
-    /// Creates a new instance of the XGraphics class from a PdfPinata.Drawing.XForm object.
-    /// </summary>
-    public static XGraphics FromImage(XImage image)
-    {
-        return FromImage(image, XGraphicsUnit.Point);
-    }
-
-    /// <summary>
-    /// Creates a new instance of the XGraphics class from a PdfPinata.Drawing.XImage object.
-    /// </summary>
-    public static XGraphics FromImage(XImage image, XGraphicsUnit unit)
-    {
-        ArgumentNullException.ThrowIfNull(image);
-
-        var bmImage = image as XBitmapImage;
-        if (bmImage != null)
-        {
-        }
-        return null;
-    }
-
-    /// <summary>
     /// Internal setup.
     /// </summary>
     void Initialize()
@@ -452,16 +430,10 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public XGraphicsUnit PageUnit => _pageUnit;
 
-    //set
-    //{
-    //  // TODO: other page units
-    //  if (value != XGraphicsUnit.Point)
-    //    throw new NotImplementedException("PageUnit must be XGraphicsUnit.Point in current implementation.");
-    //}
     readonly XGraphicsUnit _pageUnit;
 
     /// <summary>
-    /// Gets or sets the a value indicating in which direction y-value grow.
+    /// Gets or sets the value indicating in which direction y-value grow.
     /// </summary>
     public XPageDirection PageDirection
     {
@@ -498,17 +470,9 @@ public sealed class XGraphics : IDisposable
     /// Gets the current size of the page.
     /// </summary>
     public XSize PageSize => _pageSize;
-
-    //set
-    //{
-    //  //TODO
-    //  throw new NotImplementedException("PageSize cannot be modified in current implementation.");
-    //}
     XSize _pageSize;
 
     #region Drawing
-
-    // ----- DrawLine -----------------------------------------------------------------------------
 
     /// <summary>
     /// Draws a line connecting two XPoint structures.
@@ -526,7 +490,7 @@ public sealed class XGraphics : IDisposable
         ArgumentNullException.ThrowIfNull(pen);
 
         if (_renderer != null)
-            _renderer.DrawLines(pen, new XPoint[] { new(x1, y1), new(x2, y2) });
+            _renderer.DrawLines(pen, [new(x1, y1), new(x2, y2)]);
     }
 
     // ----- DrawLines ----------------------------------------------------------------------------
@@ -2064,15 +2028,32 @@ public sealed class XGraphics : IDisposable
     /// <summary>
     /// Applies a new transformation to the current transformation matrix.
     /// </summary>
+    /// <remarks>
+    /// The renderer is only ever handed a prepend, because that is all the PDF <c>cm</c> operator
+    /// can say: it applies its matrix in the current user space, before everything already there.
+    /// An appended transform is therefore passed on as the prepend with the same effect,
+    /// <c>W · T · W⁻¹</c>, which is what makes <see cref="Transform"/> and the page agree. A
+    /// prepend is passed on untouched, so no existing document changes by a byte.
+    /// </remarks>
     void AddTransform(XMatrix transform, XMatrixOrder order)
     {
+        var prepended = transform;
+        if (order == XMatrixOrder.Append)
+        {
+            if (!_transform.HasInverse)
+                throw new InvalidOperationException(
+                    "A transformation cannot be appended to a transformation matrix that has no inverse.");
+
+            var inverse = _transform;
+            inverse.Invert();
+            prepended = _transform * transform * inverse;
+        }
+
         var matrix = _transform;
         matrix.Multiply(transform, order);
         _transform = matrix;
-        matrix = DefaultViewMatrix;
-        matrix.Multiply(_transform, XMatrixOrder.Prepend);
         if (_renderer != null)
-            _renderer.AddTransform(transform, XMatrixOrder.Prepend);
+            _renderer.AddTransform(prepended, XMatrixOrder.Prepend);
     }
 
     #endregion
