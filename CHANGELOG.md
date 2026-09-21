@@ -12,6 +12,18 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ### Added
 
+- **A font whose licence forbids embedding can be refused.** Set
+  `PdfDocumentOptions.RespectFontEmbeddingRestrictions` and the document reads the embedding
+  permissions each font declares in its OS/2 `fsType`. A face marked Restricted License is refused
+  with an exception naming the face and the restriction, and so is one marked Bitmap Embedding
+  Only, because this library embeds outlines. The exception comes from the draw that first uses the
+  font, and again from the save if the option was set later. A face marked No Subsetting is
+  embedded whole and not named as a subset. Preview & Print, Editable and Installable faces are
+  embedded as before, and an old font that sets several usage bits is read by the least
+  restrictive, as the OpenType specification says. The option is off by default, so no document
+  that saved before will now throw. A PDF/A claim does not turn it on, because `fsType` is what a
+  font says about its licence, not the licence itself (#78).
+
 - **A combination chart can stack its columns.** A series set to `ColumnStacked2D` in a chart
   whose other series plot as lines or areas used to be refused with "ChartType
   'ColumnStacked2D' not valid for combination of charts". It is now drawn stacked, the value
@@ -95,6 +107,10 @@ This file starts at the entry below. Changes before that point are recorded only
   anything but `Point`.
 
 ### Changed
+
+- **A WinAnsi font with PostScript (CFF) outlines is no longer named as a subset.** It was always
+  embedded whole but still carried a subset tag on its name; it now loses the tag, as the Type 0
+  path already did (#78).
 
 - **`PdfSquareCircleAnnotation.Interior` and `BorderWidth` are read from the dictionary** (`/IC`
   and `/BS`) rather than kept in fields, so an annotation read from a file reports what it says
