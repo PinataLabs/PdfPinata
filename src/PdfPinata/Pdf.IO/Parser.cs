@@ -468,11 +468,10 @@ internal sealed class Parser
         if (dict.Elements.Count == 0)
             return 0;
 
-        if (dict.Elements["/F"] != null)
-        {
-            throw new NotImplementedException("File streams are not yet implemented.");
-        }
-
+        // A stream saying its data is in another file, through /F, is read no differently here:
+        // ISO 32000-1 Table 5 keeps /Length counting the bytes that are in this file, which are
+        // usually none and are to be ignored whatever they are. Refusing such a document was the
+        // whole of empira/PDFsharp#389; see docs/specs/external-file-streams.md.
         var value = dict.Elements["/Length"];
         if (value is PdfInteger)
         {
