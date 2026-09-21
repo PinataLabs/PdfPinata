@@ -59,9 +59,9 @@ classic way regardless — `trailer`, then `_trailer.WriteObject` — which put 
 
 `SaveIncremental` now asks which the trailer is. A classic trailer gets a classic section, as before.
 A stream gets `PdfCrossReferenceStreamWriter.WriteIncrementalSection`: a new cross-reference stream
-numbered one past the highest number in use, with `/Index` naming the runs the changed objects fall
-into, `/Prev` naming the previous stream, and `/Root`, `/Info`, `/ID` and `/Encrypt` carried over.
-Three choices in it:
+numbered one past the highest number the file accounts for (see below), with `/Index` naming the
+runs the changed objects fall into, `/Prev` naming the previous stream, and `/Root`, `/Info`, `/ID`
+and `/Encrypt` carried over. Three choices in it:
 
 - **The new stream is not added to the object table**, just as the classic path adds nothing, so a
   second `SaveIncremental` from the same document still appends to the same original.
@@ -74,6 +74,21 @@ Three choices in it:
 `SaveIncremental` on an *encrypted* document whose change touches an object throws a
 `NullReferenceException` from the security handler, classic or stream alike, because nothing
 prepares the handler for writing on this path.
+
+## An appended revision never shrinks `/Size`
+
+New objects used to be numbered from one past the highest object *in use*, and the appended `/Size`
+was written the same way, on both paths. A file whose last cross-reference section ends in free
+entries — its highest objects deleted, `/Size` left where it was — therefore got a revision whose
+`/Size` was smaller than the previous one, and new objects, the new cross-reference stream among
+them, took numbers the previous revision had freed. ISO 32000-1 7.5.5 has `/Size` one past the
+highest number used anywhere in the file, and an update may not make it smaller.
+
+`PdfReader` now raises the table's `MaxObjectNumber` to the last revision's `/Size` less one when it
+opens a document for `Append`, before the page tree is flattened and so before anything can be given
+a number. Every number handed out after that is at least the previous `/Size`, and both sections
+write `/Size` as one past the highest number, so neither needed a rule of its own.
+`AppendedRevisionSizeTests` hand-writes one file of each kind with `/Size 12` and four live objects.
 
 ## What it costs, honestly
 
