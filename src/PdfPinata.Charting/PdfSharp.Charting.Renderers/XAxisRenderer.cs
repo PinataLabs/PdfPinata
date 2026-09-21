@@ -132,17 +132,16 @@ internal abstract class XAxisRenderer : AxisRenderer
         titleSize = atri.AxisTitleSize;
       }
 
-      // Calculate space used for tick labels. The horizontal axis measures only its first
-      // series - the categories are shared across series, so one is enough - while the vertical
-      // axis measures every series it is given; kept as each was found rather than unified,
-      // since it is not the tick-mark pens this merge is fixing.
+      // Calculate space used for tick labels, from the one category series the axis is labelled
+      // with - see CategoryLabels. The vertical axis used to measure every series it was given,
+      // though only the first was ever meant to be drawn.
+      var categories = CategoryLabels(xari);
       var size = new XSize(0, 0);
       if (isHorizontal)
       {
-        if (xari.XValues.Count > 0)
+        if (categories != null)
         {
-          var xs = xari.XValues[0];
-          foreach (XValue xv in xs)
+          foreach (XValue xv in categories)
           {
             if (xv != null)
             {
@@ -161,9 +160,9 @@ internal abstract class XAxisRenderer : AxisRenderer
       }
       else
       {
-        foreach (XSeries xs in xari.XValues)
+        if (categories != null)
         {
-          foreach (XValue xv in xs)
+          foreach (XValue xv in categories)
           {
             // A category added with XSeries.AddBlank is a null, as it is in Draw below and as
             // the horizontal axis's own measuring already allows for.
@@ -201,6 +200,7 @@ internal abstract class XAxisRenderer : AxisRenderer
 
     // Draw tick labels. Each tick label will be aligned centered.
     var countTickLabels = (int)xMax;
+    var categories = CategoryLabels(xari);
     XPoint startPos;
 
     if (isHorizontal)
@@ -212,42 +212,36 @@ internal abstract class XAxisRenderer : AxisRenderer
       startPos = new XPoint(xari.X + tickLabelStep / 2, xari.Y + xari.TickLabelsHeight);
       if (xari.MajorTickMark != TickMarkType.None)
         startPos.Y += xari.MajorTickMarkWidth;
-      foreach (XSeries xs in xari.XValues)
+      for (var idx = 0; categories != null && idx < countTickLabels && idx < categories.Count; ++idx)
       {
-        for (var idx = 0; idx < countTickLabels && idx < xs.Count; ++idx)
+        var xv = categories[idx];
+        if (xv != null)
         {
-          var xv = xs[idx];
-          if (xv != null)
-          {
-            var tickLabel = xv.Value;
-            var size = gfx.MeasureString(tickLabel, xari.TickLabelsFont);
-            gfx.DrawString(tickLabel, xari.TickLabelsFont, xari.TickLabelsBrush, startPos.X - size.Width / 2, startPos.Y);
-          }
-          startPos.X += tickLabelStep;
+          var tickLabel = xv.Value;
+          var size = gfx.MeasureString(tickLabel, xari.TickLabelsFont);
+          gfx.DrawString(tickLabel, xari.TickLabelsFont, xari.TickLabelsBrush, startPos.X - size.Width / 2, startPos.Y);
         }
+        startPos.X += tickLabelStep;
       }
     }
     else
     {
       var tickLabelStep = xari.Height / countTickLabels;
       startPos = new XPoint(xari.X + xari.Width - xari.MajorTickMarkWidth, xari.Y + tickLabelStep / 2);
-      foreach (XSeries xs in xari.XValues)
+      for (var idx = countTickLabels - 1; categories != null && idx >= 0; --idx)
       {
-        for (var idx = countTickLabels - 1; idx >= 0; --idx)
+        // Both conditions carried across from the horizontal orientation, which this branch
+        // is otherwise a copy of. The count comes from the longest series rather than from the
+        // category list, so there need not be a category at every index; and a category added
+        // with XSeries.AddBlank is a null. Neither is unusual enough to throw over.
+        var xv = idx < categories.Count ? categories[idx] : null;
+        if (xv != null)
         {
-          // Both conditions carried across from the horizontal orientation, which this branch
-          // is otherwise a copy of. The count comes from the longest series rather than from the
-          // category list, so there need not be a category at every index; and a category added
-          // with XSeries.AddBlank is a null. Neither is unusual enough to throw over.
-          var xv = idx < xs.Count ? xs[idx] : null;
-          if (xv != null)
-          {
-            var tickLabel = xv.Value;
-            var size = gfx.MeasureString(tickLabel, xari.TickLabelsFont);
-            gfx.DrawString(tickLabel, xari.TickLabelsFont, xari.TickLabelsBrush, startPos.X - size.Width, startPos.Y + size.Height / 2);
-          }
-          startPos.Y += tickLabelStep;
+          var tickLabel = xv.Value;
+          var size = gfx.MeasureString(tickLabel, xari.TickLabelsFont);
+          gfx.DrawString(tickLabel, xari.TickLabelsFont, xari.TickLabelsBrush, startPos.X - size.Width, startPos.Y + size.Height / 2);
         }
+        startPos.Y += tickLabelStep;
       }
     }
 
@@ -428,6 +422,24 @@ internal abstract class XAxisRenderer : AxisRenderer
     rendererInfo.MinorTick = 0.5;
     rendererInfo.MajorTickMarkWidth = DefaultMajorTickMarkWidth;
     rendererInfo.MinorTickMarkWidth = DefaultMinorTickMarkWidth;
+  }
+
+  /// <summary>
+  /// The category series the axis is labelled with: the first of <see cref="Chart.XValues"/>, or
+  /// null when that collection is empty.
+  /// </summary>
+  /// <remarks>
+  /// The axis has one slot per category and one row of labels, so it shows one series of
+  /// categories, and a chart given several is labelled from the first - the one the pie legend
+  /// reads its entries from too, and the one Excel labels an axis with when each series names
+  /// categories of its own. Measuring and drawing every series in turn was empira/PDFsharp#286:
+  /// the pen was never taken back to the first slot, so the second series' labels carried on
+  /// past the last category, off the right of a column chart and below the foot of a bar chart.
+  /// </remarks>
+  private static XSeries CategoryLabels(AxisRendererInfo rendererInfo)
+  {
+    var xValues = rendererInfo.XValues;
+    return xValues != null && xValues.Count > 0 ? xValues[0] : null;
   }
 
   /// <summary>

@@ -25,6 +25,13 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ### Fixed
 
+- **A chart given more than one `XSeries` draws its category labels on the axis.** The category
+  axis drew every series one after another without going back to the first slot, so a second
+  series' labels ran off the right of a column, line or area chart and below the foot of a bar
+  chart (empira/PDFsharp#286). The axis has room for one row of categories, and it is now labelled
+  from the first series alone — the series the pie legend already used, and what Excel does — in
+  both orientations. A bar chart no longer widens its category axis for labels it does not draw.
+
 - **A chart legend too wide for its chart wraps instead of running off both sides of it.** A legend
   docked above or below the chart — which is where PinataLayout's `FooterArea.AddLegend()` and
   `HeaderArea.AddLegend()` put it — set every entry in one row however many there were, and centred
