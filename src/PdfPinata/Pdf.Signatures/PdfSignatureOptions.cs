@@ -99,8 +99,8 @@ public sealed class PdfSignatureOptions
     /// <para>
     /// PDF/A (ISO 19005-1 6.5.3, -2 and -3 6.3.2) requires <see cref="PdfAnnotationFlags.Print"/> on
     /// every annotation and forbids <see cref="PdfAnnotationFlags.Invisible"/>,
-    /// <see cref="PdfAnnotationFlags.Hidden"/>, <see cref="PdfAnnotationFlags.NoView"/> and
-    /// <see cref="PdfAnnotationFlags.ToggleNoView"/>. Signing a document whose
+    /// <see cref="PdfAnnotationFlags.Hidden"/> and <see cref="PdfAnnotationFlags.NoView"/>, and
+    /// parts 2 and 3 <see cref="PdfAnnotationFlags.ToggleNoView"/> as well. Signing a document whose
     /// <see cref="PdfDocumentOptions.Conformance"/> claims a profile refuses flags that break
     /// that rule. A document opened for signing does not know by itself that its file claims PDF/A,
     /// so when signing an archival file without setting that claim again, keep to the rule by hand.

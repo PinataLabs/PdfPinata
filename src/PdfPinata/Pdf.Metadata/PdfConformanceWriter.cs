@@ -349,7 +349,7 @@ internal static class PdfConformanceWriter
     /// <summary>
     /// Refuses annotation flags the claimed profile forbids: every PDF/A part requires an
     /// annotation to print (ISO 19005-1 6.5.3, ISO 19005-2 and -3 6.3.2) and forbids it to be
-    /// invisible, hidden, not viewed, or toggled out of view.
+    /// invisible, hidden or not viewed - and, from part 2, toggled out of view.
     /// </summary>
     /// <remarks>
     /// Asked by whoever writes an annotation's <c>/F</c> rather than by walking every page at save,
@@ -362,8 +362,10 @@ internal static class PdfConformanceWriter
         if (conformance == PdfAConformance.None)
             return;
 
-        const PdfAnnotationFlags forbidden = PdfAnnotationFlags.Invisible | PdfAnnotationFlags.Hidden
-            | PdfAnnotationFlags.NoView | PdfAnnotationFlags.ToggleNoView;
+        // ToggleNoView is PDF 1.5, later than PDF/A-1's base, and only parts 2 and 3 name it.
+        var forbidden = PdfAnnotationFlags.Invisible | PdfAnnotationFlags.Hidden | PdfAnnotationFlags.NoView;
+        if (!IsPart1(conformance))
+            forbidden |= PdfAnnotationFlags.ToggleNoView;
 
         if ((flags & PdfAnnotationFlags.Print) == 0)
             throw new InvalidOperationException(
@@ -373,8 +375,8 @@ internal static class PdfConformanceWriter
 
         if ((flags & forbidden) != 0)
             throw new InvalidOperationException(
-                conformance + " forbids an annotation to be Invisible, Hidden, NoView or "
-                + "ToggleNoView, and the " + annotation + " was asked for " + (flags & forbidden)
+                conformance + " forbids an annotation to be " + forbidden + ", and the "
+                + annotation + " was asked for " + (flags & forbidden)
                 + ". PDF/A keeps what a document shows on screen and on paper the same.");
     }
 

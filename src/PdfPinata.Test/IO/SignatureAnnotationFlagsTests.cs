@@ -115,6 +115,24 @@ public class SignatureAnnotationFlagsTests
         PdfSignatureVerifier.Verify(signed).Single().IsValid.Should().BeTrue();
     }
 
+    [Fact]
+    public void PdfA1DoesNotNameToggleNoView()
+    {
+        // ToggleNoView is PDF 1.5, later than the PDF 1.4 that PDF/A-1 is built on, and ISO 19005-1
+        // 6.5.3 forbids only Invisible, Hidden and NoView. Parts 2 and 3 add it.
+        using var input = new MemoryStream(Unsigned());
+        var document = Reader.Open(input, PdfDocumentOpenMode.Append);
+        document.Info.Title = "A document to sign";
+        document.Options.Conformance = PdfAConformance.PdfA1B;
+
+        const PdfAnnotationFlags flags = PdfAnnotationFlags.Print | PdfAnnotationFlags.ToggleNoView;
+        var signing = () => PdfSigner.Sign(document, new MemoryStream(),
+            new Pkcs7Signer(SigningCertificates.Default),
+            new PdfSignatureOptions { AnnotationFlags = flags });
+
+        signing.Should().NotThrow();
+    }
+
     static byte[] Unsigned()
     {
         var document = new PdfDocument();

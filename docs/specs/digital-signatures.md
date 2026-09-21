@@ -124,7 +124,7 @@ afterwards without changing a signed object. `PdfSignatureOptions.AnnotationFlag
 defaulting to `Print` — the `/F 4` every earlier version wrote — and no flags at all omits `/F`, whose
 default is zero. `Hidden` and `NoView` are allowed: they govern what a reader draws on the page, not
 whether it finds the signature, which it does through the AcroForm. PDF/A requires `Print` and forbids
-`Invisible`, `Hidden`, `NoView` and `ToggleNoView`, and `PdfConformanceWriter.CheckAnnotationFlags`
+`Invisible`, `Hidden` and `NoView` — parts 2 and 3 `ToggleNoView` too — and `PdfConformanceWriter.CheckAnnotationFlags`
 refuses them before anything is added — but only when the document being signed has
 `Options.Conformance` set. A file opened for appending does not read its own PDF/A claim back out of
 its XMP, so signing an archival file without restating the claim is held to the rule by the caller.
