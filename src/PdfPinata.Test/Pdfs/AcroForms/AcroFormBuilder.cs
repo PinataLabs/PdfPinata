@@ -173,12 +173,23 @@ internal sealed class AcroFormBuilder
     ///   places rather than two tick boxes.
     /// </remarks>
     internal AcroFormBuilder WithTypedParent(string fieldType, string name,
-        params System.Action<PdfDictionary>[] describeKids)
+        params System.Action<PdfDictionary>[] describeKids) =>
+        WithDescribedParent(name, parent =>
+        {
+            parent.Elements.SetName(PdfAcroField.Keys.FT, fieldType);
+            parent.Elements.SetString(PdfAcroField.Keys.DA, "/Helv 10 Tf 0 g");
+        }, describeKids);
+
+    /// <summary>
+    ///   Adds a field with children, describing the parent and each child separately - for the
+    ///   entries a child inherits, which the parent has to be given and the child has to lack.
+    /// </summary>
+    internal AcroFormBuilder WithDescribedParent(string name,
+        System.Action<PdfDictionary> describeParent, params System.Action<PdfDictionary>[] describeKids)
     {
         var parent = new PdfDictionary(_document);
-        parent.Elements.SetName(PdfAcroField.Keys.FT, fieldType);
         parent.Elements.SetString(PdfAcroField.Keys.T, name);
-        parent.Elements.SetString(PdfAcroField.Keys.DA, "/Helv 10 Tf 0 g");
+        describeParent?.Invoke(parent);
         // Before the children, so that they have something to point at.
         _document.Internals.AddObject(parent);
 

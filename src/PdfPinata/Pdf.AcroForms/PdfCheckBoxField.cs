@@ -84,7 +84,8 @@ public sealed class PdfCheckBoxField : PdfButtonField
                 var value = child.Elements.GetString(PdfAcroField.Keys.V);
                 return
                     value.Length != 0 && value != "/Off" &&
-                    value != "/Nein"; //R081114 (3Std.!!) auch auf Nein prüfen; //TODO woher kommt der Wert?
+                    // Some forms name their off state /Nein, German for "no", rather than /Off.
+                    value != "/Nein";
             }
         }
         set
