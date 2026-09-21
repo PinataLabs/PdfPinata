@@ -70,7 +70,7 @@ public sealed class PdfComboBoxField : PdfChoiceField
         }
         set
         {
-            Owner?.EnsureCanModify("filling in a form field", PdfChangeKind.FormFieldValues);
+            EnsureCanBeFilled();
 
             // Minus one means nothing chosen. There is no option at that index to name in /V,
             // so the field keeps what it had rather than being emptied.
@@ -100,10 +100,7 @@ public sealed class PdfComboBoxField : PdfChoiceField
         get => Elements[PdfAcroField.Keys.V];
         set
         {
-            if (ReadOnly)
-                throw new InvalidOperationException("The field is read only.");
-
-            Owner?.EnsureCanModify("filling in a form field", PdfChangeKind.FormFieldValues);
+            EnsureCanBeFilled();
 
             if (!(value is PdfString || value is PdfName))
                 throw new NotImplementedException("Values other than string cannot be set.");

@@ -111,7 +111,7 @@ public sealed class PdfRadioButtonField : PdfButtonField
         }
         set
         {
-            Owner?.EnsureCanModify("filling in a form field", PdfChangeKind.FormFieldValues);
+            EnsureCanBeFilled();
 
             var opt = Elements[Keys.Opt] as PdfArray;
 

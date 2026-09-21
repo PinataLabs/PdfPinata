@@ -63,7 +63,7 @@ public sealed class PdfTextField : PdfAcroField
         get => Elements.GetString(PdfAcroField.Keys.V);
         set
         {
-            Owner?.EnsureCanModify("filling in a form field", PdfChangeKind.FormFieldValues);
+            EnsureCanBeFilled();
 
             Elements.SetString(PdfAcroField.Keys.V, value);
             RenderAppearance();

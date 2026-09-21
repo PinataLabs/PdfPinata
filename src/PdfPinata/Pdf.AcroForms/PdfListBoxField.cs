@@ -107,7 +107,7 @@ public sealed class PdfListBoxField : PdfChoiceField
         get => SelectedIndicesFromValue();
         set
         {
-            Owner?.EnsureCanModify("filling in a form field", PdfChangeKind.FormFieldValues);
+            EnsureCanBeFilled();
 
             var indices = Ordered(value);
 

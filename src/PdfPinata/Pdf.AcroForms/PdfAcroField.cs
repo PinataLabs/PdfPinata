@@ -263,16 +263,34 @@ public abstract class PdfAcroField : PdfDictionary
         get => Elements[Keys.V];
         set
         {
-            if (ReadOnly)
-                throw new InvalidOperationException("The field is read only.");
-
-            Owner?.EnsureCanModify("filling in a form field", PdfChangeKind.FormFieldValues);
+            EnsureCanBeFilled();
 
             if (value is PdfString || value is PdfName)
                 Elements[Keys.V] = value;
             else
                 throw new NotImplementedException("Values other than string cannot be set.");
         }
+    }
+
+    /// <summary>
+    /// Throws unless the field may be given a value: it must not be read only, and the document
+    /// must be open for filling in its form.
+    /// </summary>
+    /// <remarks>
+    /// Every public setter that writes <c>/V</c> asks this, and asks nothing else. <see cref="Value"/>
+    /// used to be the only one that looked at <see cref="ReadOnly"/>, so a read-only text field
+    /// refused a value and took the same value as <c>Text</c>, and likewise a check box's
+    /// <c>Checked</c> and each choice and radio field's <c>SelectedIndex</c>.
+    /// </remarks>
+    /// <exception cref="InvalidOperationException">
+    /// The field is read only, or the document was not opened in a mode that lets it be changed.
+    /// </exception>
+    internal void EnsureCanBeFilled()
+    {
+        if (ReadOnly)
+            throw new InvalidOperationException("The field is read only.");
+
+        Owner?.EnsureCanModify("filling in a form field", PdfChangeKind.FormFieldValues);
     }
 
     /// <summary>
