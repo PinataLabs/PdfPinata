@@ -39,11 +39,9 @@ namespace PdfPinata.Pdf.IO;
 /// </summary>
 internal class ShiftStack
 {
-    // TODO: make Lexer.PeekChars(20) and scan for 'R' to detect indirect references
-
     public ShiftStack()
     {
-        _items = new List<PdfItem>();
+        _items = [];
     }
 
     public PdfItem[] ToArray(int start, int length)

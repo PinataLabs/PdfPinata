@@ -31,7 +31,6 @@ using System;
 
 namespace PdfPinata.Drawing;
 
-// TODO Free GDI objects (pens, brushes, ...) automatically without IDisposable.
 /// <summary>
 /// Defines an object used to draw lines and curves.
 /// </summary>

@@ -57,14 +57,14 @@ public class XPdfForm : XForm
         int pageNumber;
         path = ExtractPageNumber(path, out pageNumber);
 
-        path = Path.GetFullPath(path);
+        path = System.IO.Path.GetFullPath(path);
         if (!File.Exists(path))
             throw new FileNotFoundException(PSSR.FileNotFound(path));
 
         if (PdfReader.TestPdfFile(path) == 0)
             throw new ArgumentException("The specified file has no valid PDF file header.", nameof(path));
 
-        _path = path;
+        Path = path;
         _pathReadAccuracy = accuracy;
         if (pageNumber != 0)
             PageNumber = pageNumber;
@@ -78,7 +78,7 @@ public class XPdfForm : XForm
     internal XPdfForm(Stream stream, PdfReadAccuracy accuracy)
     {
         // Create a dummy unique path
-        _path = "*" + Guid.NewGuid().ToString("B");
+        Path = "*" + Guid.NewGuid().ToString("B");
 
         if (PdfReader.TestPdfFile(stream) == 0)
             throw new ArgumentException("The specified stream has no valid PDF file header.", nameof(stream));
@@ -94,7 +94,7 @@ public class XPdfForm : XForm
     /// <param name="accuracy">Moderate allows for broken references.</param>
     internal XPdfForm(Stream stream, string password, PdfReadAccuracy accuracy) {
         // Create a dummy unique path
-        _path = "*" + Guid.NewGuid().ToString("B");
+        Path = "*" + Guid.NewGuid().ToString("B");
 
         if (PdfReader.TestPdfFile(stream) == 0)
             throw new ArgumentException("The specified stream has no valid PDF file header.", nameof(stream));
@@ -193,7 +193,6 @@ public class XPdfForm : XForm
     /// refer to this document. A reuse of this object doesn't fail, because the underlying PDF document
     /// is re-imported if necessary.
     /// </summary>
-    // TODO: NYI: Dispose
     protected override void Dispose(bool disposing)
     {
         if (!_disposed)
@@ -377,7 +376,7 @@ public class XPdfForm : XForm
                 throw new InvalidOperationException("This XPdfForm is a template and not an imported PDF page; therefore it has no external document.");
 
             if (_externalDocument == null)
-                _externalDocument = PdfDocument.Tls.GetDocument(_path, _pathReadAccuracy);
+                _externalDocument = PdfDocument.Tls.GetDocument(Path, _pathReadAccuracy);
             return _externalDocument;
         }
     }

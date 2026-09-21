@@ -203,7 +203,6 @@ public sealed class PdfFormXObject : PdfXObject, IContentStream
         if (form.IsTemplate)
         {
             Debug.Assert(importedObjectTable == null);
-            // TODO more initialization here???
             return;
         }
         Debug.Assert(importedObjectTable != null);
@@ -212,7 +211,7 @@ public sealed class PdfFormXObject : PdfXObject, IContentStream
         // Get import page
         var importPages = importedObjectTable.ExternalDocument.Pages;
         if (pdfForm.PageNumber < 1 || pdfForm.PageNumber > importPages.Count)
-            PSSR.ImportPageNumberOutOfRange(pdfForm.PageNumber, importPages.Count, form._path);
+            PSSR.ImportPageNumberOutOfRange(pdfForm.PageNumber, importPages.Count, form.Path);
         var importPage = importPages[pdfForm.PageNumber - 1];
 
         // Import resources
@@ -266,7 +265,6 @@ public sealed class PdfFormXObject : PdfXObject, IContentStream
         }
         else
         {
-            // TODO: Have to adjust bounding box? (I think not, but I'm not sure -> wait for problem)
             Elements["/BBox"] = rect;
 
             // Rotate the image such that it is upright

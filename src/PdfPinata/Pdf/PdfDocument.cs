@@ -64,8 +64,6 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </summary>
     public PdfDocument()
     {
-        //PdfDocument.Gob.AttatchDocument(Handle);
-
         _creation = GlobalTimeSettings.Now;
         _state = DocumentState.Created;
         _version = 14;
@@ -81,15 +79,12 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </summary>
     public PdfDocument(string filename)
     {
-        //PdfDocument.Gob.AttatchDocument(Handle);
-
         _creation = GlobalTimeSettings.Now;
         _state = DocumentState.Created;
         _version = 14;
         Initialize();
         Info.CreationDate = _creation;
 
-        // TODO 4STLA: encapsulate the whole c'tor with #if !NETFX_CORE?
         throw new NotImplementedException();
     }
 
@@ -101,8 +96,6 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </summary>
     public PdfDocument(Stream outputStream)
     {
-        //PdfDocument.Gob.AttatchDocument(Handle);
-
         _creation = GlobalTimeSettings.Now;
         _state = DocumentState.Created;
         // The version has to be set here as well as in the other two constructors. Without it the
@@ -118,7 +111,6 @@ public sealed class PdfDocument : PdfObject, IDisposable
     internal PdfDocument(Lexer lexer)
     {
         //PdfDocument.Gob.AttatchDocument(Handle);
-
         _creation = GlobalTimeSettings.Now;
         _state = DocumentState.Imported;
 

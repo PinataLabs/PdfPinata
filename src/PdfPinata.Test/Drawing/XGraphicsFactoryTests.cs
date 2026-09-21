@@ -185,7 +185,7 @@ public class XGraphicsFactoryTests
     [Fact]
     public void AMissingPageIsRefusedRatherThanFollowed()
     {
-        var making = () => XGraphics.FromPdfPage((PdfPage)null!);
+        var making = () => XGraphics.FromPdfPage(null!);
 
         making.Should().Throw<ArgumentNullException>();
     }
@@ -301,7 +301,7 @@ public class XGraphicsFactoryTests
     [Fact]
     public void ASurfaceOverAnImageIsNotSomethingThisLibraryOffers()
     {
-        var image = XImage.FromFile(PdfPinata.Test.Helpers.PathHelper.GetInstance().GetAssetPath("lenna.png"));
+        var image = XImage.FromFile(Helpers.PathHelper.GetInstance().GetAssetPath("lenna.png"));
 
 #pragma warning disable CS0618 // pins what the obsolete member does until it is removed
         XGraphics.FromImage(image).Should().BeNull();
@@ -375,7 +375,7 @@ public class XGraphicsFactoryTests
 
         gfx.Dispose();
 
-        var again = () => gfx.Dispose();
+        var again = gfx.Dispose;
         again.Should().NotThrow();
     }
 }

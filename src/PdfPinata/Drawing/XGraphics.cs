@@ -454,16 +454,10 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public XGraphicsUnit PageUnit => _pageUnit;
 
-    //set
-    //{
-    //  // TODO: other page units
-    //  if (value != XGraphicsUnit.Point)
-    //    throw new NotImplementedException("PageUnit must be XGraphicsUnit.Point in current implementation.");
-    //}
     readonly XGraphicsUnit _pageUnit;
 
     /// <summary>
-    /// Gets or sets the a value indicating in which direction y-value grow.
+    /// Gets or sets the value indicating in which direction y-value grow.
     /// </summary>
     public XPageDirection PageDirection
     {
@@ -500,17 +494,9 @@ public sealed class XGraphics : IDisposable
     /// Gets the current size of the page.
     /// </summary>
     public XSize PageSize => _pageSize;
-
-    //set
-    //{
-    //  //TODO
-    //  throw new NotImplementedException("PageSize cannot be modified in current implementation.");
-    //}
     XSize _pageSize;
 
     #region Drawing
-
-    // ----- DrawLine -----------------------------------------------------------------------------
 
     /// <summary>
     /// Draws a line connecting two XPoint structures.
@@ -528,7 +514,7 @@ public sealed class XGraphics : IDisposable
         ArgumentNullException.ThrowIfNull(pen);
 
         if (_renderer != null)
-            _renderer.DrawLines(pen, new XPoint[] { new(x1, y1), new(x2, y2) });
+            _renderer.DrawLines(pen, [new(x1, y1), new(x2, y2)]);
     }
 
     // ----- DrawLines ----------------------------------------------------------------------------

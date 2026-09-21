@@ -84,11 +84,11 @@ internal sealed class PdfImageTable : PdfResourceTable
         {
             // HACK: implement a way to identify images when they are reused
             // TODO 4STLA Implementation that calculates MD5 hashes for images generated for the images can be found here: http://forum.PdfPinata.net/viewtopic.php?p=6959#p6959
-            if (image._path == null)
-                image._path = "*" + Guid.NewGuid().ToString("B");
+            if (image.Path == null)
+                image.Path = "*" + Guid.NewGuid().ToString("B");
 
             // HACK: just use full path to identify
-            _path = image._path.ToLowerInvariant();
+            _path = image.Path.ToLowerInvariant();
         }
 
         public string Path

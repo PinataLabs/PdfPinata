@@ -31,7 +31,6 @@ using PdfPinata.Drawing;
 
 namespace PdfPinata.Fonts.OpenType;
 
-// TODO: Needs to be refactored #???
 /// <summary>
 /// Base class for all font descriptors.
 /// Currently only OpenTypeDescriptor is derived from this base class.

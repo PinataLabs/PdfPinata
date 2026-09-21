@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -39,8 +39,6 @@ namespace PdfPinata.Drawing;
 /// </summary>
 public sealed class XLinearGradientBrush : XBaseGradientBrush
 {
-    //internal XLinearGradientBrush();
-
     /// <summary>
     /// Initializes a new instance of the <see cref="XLinearGradientBrush"/> class.
     /// </summary>
@@ -66,13 +64,6 @@ public sealed class XLinearGradientBrush : XBaseGradientBrush
         Rect = rect;
         LinearGradientMode = linearGradientMode;
     }
-
-    // TODO: 
-    //public XLinearGradientBrush(Rectangle rect, XColor color1, XColor color2, double angle);
-    //public XLinearGradientBrush(RectangleF rect, XColor color1, XColor color2, double angle);
-    //public XLinearGradientBrush(Rectangle rect, XColor color1, XColor color2, double angle, bool isAngleScaleable);
-    //public XLinearGradientBrush(RectangleF rect, XColor color1, XColor color2, double angle, bool isAngleScaleable);
-    //public XLinearGradientBrush(RectangleF rect, XColor color1, XColor color2, double angle, bool isAngleScaleable);
 
     internal bool UseRect;
     internal XPoint Point1, Point2;

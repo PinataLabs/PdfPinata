@@ -116,7 +116,7 @@ public sealed class XFont
     /// (Setup properties in their getters caused side effects during debugging because Visual Studio calls a getter
     /// to early to show its value in a debugger window.)
     /// </summary>
-    void CreateDescriptorAndInitializeFontMetrics()  // TODO: refactor
+    void CreateDescriptorAndInitializeFontMetrics()
     {
         Debug.Assert(_fontMetrics == null, "InitializeFontMetrics() was already called.");
         _descriptor = (OpenTypeDescriptor)FontDescriptorCache.GetOrCreateDescriptorFor(this); //_familyName, _style, _glyphTypeface.Fontface);

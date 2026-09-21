@@ -108,8 +108,6 @@ public class PdfEmbeddedFile : PdfDictionary
         set => Parameters.Elements.SetDateTime(Keys.CreationDate, value);
     }
 
-    // TODO : Add properties for the subsubdictionnary Mac
-
     /// <summary>
     /// Predefined keys of this embedded file.
     /// </summary>

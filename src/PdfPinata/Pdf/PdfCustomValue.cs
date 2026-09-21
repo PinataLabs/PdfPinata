@@ -1,4 +1,5 @@
 #region Copyright
+
 //
 // Authors:
 //   Stefan Lange
@@ -23,8 +24,9 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
+
 #endregion
 
 using System;
@@ -32,42 +34,23 @@ using System;
 namespace PdfPinata.Pdf;
 
 /// <summary>
-/// This class is intended for empira internal use only and may change or drop in future releases.
+///
 /// </summary>
 public class PdfCustomValue : PdfDictionary
 {
     /// <summary>
-    /// This function is intended for empira internal use only.
+    ///
     /// </summary>
-    public PdfCustomValue()
-    {
-        CreateStream(Array.Empty<byte>());
-    }
-
-    /// <summary>
-    /// This function is intended for empira internal use only.
-    /// </summary>
+    /// <param name="bytes"></param>
     public PdfCustomValue(byte[] bytes)
     {
         CreateStream(bytes);
     }
 
-    internal PdfCustomValue(PdfDocument document)
-        : base(document)
-    {
-        CreateStream(Array.Empty<byte>());
-    }
-
     internal PdfCustomValue(PdfDictionary dict)
         : base(dict)
     {
-        // TODO: uncompress stream
     }
-
-    /// <summary>
-    /// This property is intended for empira internal use only.
-    /// </summary>
-    public PdfCustomValueCompressionMode CompressionMode;
 
     /// <summary>
     /// This property is intended for empira internal use only.

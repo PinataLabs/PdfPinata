@@ -128,8 +128,6 @@ public sealed class PdfDocumentInformation : PdfDictionary
     /// </summary>
     internal bool ModificationDateIsTheCallersOwn { get; private set; }
 
-    // TODO CustomProperties and meta data
-
     /// <summary>
     /// Predefined keys of this dictionary.
     /// </summary>
