@@ -1437,9 +1437,6 @@ internal sealed class Parser
             _lexer.Position = position;
             idChecked = ReadInteger();
             generationChecked = ReadInteger();
-            //// TODO Should we use ScanKeyword here?
-            //ReadKSymbol(Symbol.Keyword);
-            //string token = _lexer.Token;
             var symbol = _lexer.ScanNextToken();
             if (symbol != Symbol.Obj)
                 ParserDiagnostics.ThrowParserException("Invalid entry in XRef table, ID=" + id + ", Generation=" +

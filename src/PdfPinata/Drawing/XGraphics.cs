@@ -348,30 +348,6 @@ public sealed class XGraphics : IDisposable
     }
 
     /// <summary>
-    /// Always returns null: this library cannot draw onto an image.
-    /// </summary>
-    [Obsolete("Drawing onto an image is not supported, and this always returns null. Draw onto an XForm through FromForm instead. It will be removed.")]
-    public static XGraphics FromImage(XImage image)
-    {
-        return FromImage(image, XGraphicsUnit.Point);
-    }
-
-    /// <summary>
-    /// Always returns null: this library cannot draw onto an image.
-    /// </summary>
-    [Obsolete("Drawing onto an image is not supported, and this always returns null. Draw onto an XForm through FromForm instead. It will be removed.")]
-    public static XGraphics FromImage(XImage image, XGraphicsUnit unit)
-    {
-        ArgumentNullException.ThrowIfNull(image);
-
-        var bmImage = image as XBitmapImage;
-        if (bmImage != null)
-        {
-        }
-        return null;
-    }
-
-    /// <summary>
     /// Internal setup.
     /// </summary>
     void Initialize()

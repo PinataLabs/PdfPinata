@@ -103,7 +103,6 @@ public sealed class PdfNameObject : PdfObject
     /// </summary>
     public override string ToString()
     {
-        // TODO: Encode characters.
         return _value;
     }
 

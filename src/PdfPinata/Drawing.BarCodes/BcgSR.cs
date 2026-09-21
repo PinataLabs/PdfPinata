@@ -23,13 +23,12 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
 namespace PdfPinata.Drawing.BarCodes;
 
-// TODO: Mere with PDFsharp strings table
 /// <summary>
 /// String resources for the empira barcode renderer.
 /// </summary>
@@ -50,7 +49,7 @@ internal class BcgSR
 
     internal static string EmptyBarCodeSize => "A non-empty size must be set before rendering the bar code.";
 
-    internal static string Invalid2Of5Relation => "Value of relation between thick and thin lines on the interleaved 2 of 5 code must be between 2 and 3.";
+    internal static string InvalidWideNarrowRatio => "The ratio of wide to narrow lines must be between 2 and 3.";
 
     internal static string InvalidMarkName(string name)
     {

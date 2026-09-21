@@ -33,23 +33,23 @@ using System;
 namespace PdfPinata.Drawing.BarCodes;
 
 /// <summary>
-/// Internal base class for several bar code types.
+/// Base class for the two-width bar codes, whose bars and gaps are each either narrow or wide.
 /// </summary>
-public abstract class ThickThinBarCode : BarCode  // TODO: The name is not optimal
+public abstract class TwoWidthBarCode : BarCode
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="ThickThinBarCode"/> class.
+    /// Initializes a new instance of the <see cref="TwoWidthBarCode"/> class.
     /// </summary>
-    public ThickThinBarCode(string code, XSize size, CodeDirection direction)
+    public TwoWidthBarCode(string code, XSize size, CodeDirection direction)
         : base(code, size, direction)
     { }
 
     internal override void InitRendering(BarCodeRenderInfo info)
     {
         base.InitRendering(info);
-        CalcThinBarWidth(info);
+        CalcNarrowBarWidth(info);
         info.BarHeight = Size.Height;
-        // HACK in ThickThinBarCode
+        // HACK in TwoWidthBarCode
         if (TextLocation != TextLocation.None)
             info.BarHeight *= 4.0 / 5;
         switch (Direction)
@@ -69,7 +69,7 @@ public abstract class ThickThinBarCode : BarCode  // TODO: The name is not optim
     }
 
     /// <summary>
-    /// Gets or sets the ration between thick an thin lines. Must be between 2 and 3.
+    /// Gets or sets the ratio between wide and narrow lines. Must be between 2 and 3.
     /// Optimal and also default value is 2.6.
     /// </summary>
     public override double WideNarrowRatio
@@ -78,20 +78,20 @@ public abstract class ThickThinBarCode : BarCode  // TODO: The name is not optim
         set
         {
             if (value > 3 || value < 2)
-                throw new ArgumentOutOfRangeException(nameof(value), BcgSR.Invalid2Of5Relation);
+                throw new ArgumentOutOfRangeException(nameof(value), BcgSR.InvalidWideNarrowRatio);
             _wideNarrowRatio = value;
         }
     }
     double _wideNarrowRatio = 2.6;
 
     /// <summary>
-    /// Renders a thick or thin line for the bar code.
+    /// Renders a wide or narrow line for the bar code.
     /// </summary>
     /// <param name="info"></param>
-    /// <param name="isThick">Determines whether a thick or a thin line is about to be rendered.</param>
-    internal void RenderBar(BarCodeRenderInfo info, bool isThick)
+    /// <param name="isWide">Determines whether a wide or a narrow line is about to be rendered.</param>
+    internal void RenderBar(BarCodeRenderInfo info, bool isWide)
     {
-        var barWidth = GetBarWidth(info, isThick);
+        var barWidth = GetBarWidth(info, isWide);
         var height = Size.Height;
         var xPos = info.CurrPos.X;
         var yPos = info.CurrPos.Y;
@@ -113,17 +113,17 @@ public abstract class ThickThinBarCode : BarCode  // TODO: The name is not optim
     }
 
     /// <summary>
-    /// Renders a thick or thin gap for the bar code.
+    /// Renders a wide or narrow gap for the bar code.
     /// </summary>
     /// <param name="info"></param>
-    /// <param name="isThick">Determines whether a thick or a thin gap is about to be rendered.</param>
-    internal void RenderGap(BarCodeRenderInfo info, bool isThick)
+    /// <param name="isWide">Determines whether a wide or a narrow gap is about to be rendered.</param>
+    internal void RenderGap(BarCodeRenderInfo info, bool isWide)
     {
-        info.CurrPos.X += GetBarWidth(info, isThick);
+        info.CurrPos.X += GetBarWidth(info, isWide);
     }
 
     /// <summary>
-    /// Renders a thick bar before or behind the code.
+    /// Renders a wide bar before or behind the code.
     /// </summary>
     internal void RenderTurboBit(BarCodeRenderInfo info, bool startBit)
     {
@@ -164,16 +164,16 @@ public abstract class ThickThinBarCode : BarCode  // TODO: The name is not optim
     }
 
     /// <summary>
-    /// Gets the width of a thick or a thin line (or gap). CalcLineWidth must have been called before.
+    /// Gets the width of a wide or a narrow line (or gap). CalcNarrowBarWidth must have been called before.
     /// </summary>
     /// <param name="info"></param>
-    /// <param name="isThick">Determines whether a thick line's with shall be returned.</param>
-    internal double GetBarWidth(BarCodeRenderInfo info, bool isThick)
+    /// <param name="isWide">Determines whether the width of a wide line (or gap) is returned.</param>
+    internal double GetBarWidth(BarCodeRenderInfo info, bool isWide)
     {
-        if (isThick)
-            return info.ThinBarWidth * _wideNarrowRatio;
-        return info.ThinBarWidth;
+        if (isWide)
+            return info.NarrowBarWidth * _wideNarrowRatio;
+        return info.NarrowBarWidth;
     }
 
-    internal abstract void CalcThinBarWidth(BarCodeRenderInfo info);
+    internal abstract void CalcNarrowBarWidth(BarCodeRenderInfo info);
 }

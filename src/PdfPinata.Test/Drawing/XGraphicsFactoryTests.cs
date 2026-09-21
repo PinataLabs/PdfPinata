@@ -296,20 +296,6 @@ public class XGraphicsFactoryTests
             .Should().Throw<ArgumentNullException>();
     }
 
-    // ----- an image surface -------------------------------------------------------------------------
-
-    [Fact]
-    public void ASurfaceOverAnImageIsNotSomethingThisLibraryOffers()
-    {
-        var image = XImage.FromFile(Helpers.PathHelper.GetInstance().GetAssetPath("lenna.png"));
-
-#pragma warning disable CS0618 // pins what the obsolete member does until it is removed
-        XGraphics.FromImage(image).Should().BeNull();
-        XGraphics.FromImage(image, XGraphicsUnit.Inch).Should().BeNull();
-        ((Action)(() => XGraphics.FromImage(null!))).Should().Throw<ArgumentNullException>();
-#pragma warning restore CS0618
-    }
-
     // ----- the space transformer ---------------------------------------------------------------------
 
     /// <summary>

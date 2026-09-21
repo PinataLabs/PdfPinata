@@ -49,5 +49,5 @@ class BarCodeRenderInfo
     public double BarHeight;
     public XPoint CurrPos;
     public int CurrPosInString;
-    public double ThinBarWidth;
+    public double NarrowBarWidth;
 }

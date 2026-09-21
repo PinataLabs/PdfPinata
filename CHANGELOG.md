@@ -99,6 +99,12 @@ This file starts at the entry below. Changes before that point are recorded only
   `ProductVersionInfo.Producer` is now a static property rather than a constant, and
   `ProductVersionInfo.Producer2` is gone.
 
+- **`ThickThinBarCode` is renamed `TwoWidthBarCode`**, the usual name for bar codes whose bars and
+  gaps are each either narrow or wide. It is the base class of `Code3of9Standard` and
+  `Code2of5Interleaved`, and only code that names the base class itself has to change. The error
+  for a `WideNarrowRatio` outside 2 to 3 now reads "The ratio of wide to narrow lines must be between
+  2 and 3." It used to name the interleaved 2 of 5 code even when Code 39 threw it.
+
 ### Deprecated
 
 - **`XGraphics.FromImage` and `XBitmapImage.CreateBitmap`.** `FromImage` has always returned null,

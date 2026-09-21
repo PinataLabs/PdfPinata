@@ -35,7 +35,7 @@ namespace PdfPinata.Drawing.BarCodes;
 /// Imlpementation of the Code 3 of 9 bar code.
 /// </summary>
 // ReSharper disable once InconsistentNaming
-public class Code3of9Standard : ThickThinBarCode
+public class Code3of9Standard : TwoWidthBarCode
 {
     /// <summary>
     /// Initializes a new instance of Standard3of9.
@@ -66,11 +66,11 @@ public class Code3of9Standard : ThickThinBarCode
     { }
 
     /// <summary>
-    /// Returns an array of size 9 that represents the thick (true) and thin (false) lines and spaces
+    /// Returns an array of size 9 that represents the wide (true) and narrow (false) lines and spaces
     /// representing the specified digit.
     /// </summary>
     /// <param name="ch">The character to represent.</param>
-    private static bool[] ThickThinLines(char ch)
+    private static bool[] WideNarrowLines(char ch)
     {
         return Lines["0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%*".IndexOf(ch)];
     }
@@ -168,25 +168,25 @@ public class Code3of9Standard : ThickThinBarCode
 
 
     /// <summary>
-    /// Calculates the thick and thin line widths,
+    /// Calculates the wide and narrow line widths,
     /// taking into account the required rendering size.
     /// </summary>
-    internal override void CalcThinBarWidth(BarCodeRenderInfo info)
+    internal override void CalcNarrowBarWidth(BarCodeRenderInfo info)
     {
         /*
          * The total width is the sum of the following parts:
-         * Starting lines      = 3 * thick + 7 * thin
+         * Starting lines      = 3 * wide + 7 * narrow
          *  +
-         * Code Representation = (3 * thick + 7 * thin) * code.Length
+         * Code Representation = (3 * wide + 7 * narrow) * code.Length
          *  +
-         * Stopping lines      =  3 * thick + 6 * thin
+         * Stopping lines      =  3 * wide + 6 * narrow
          *
-         * with r = relation ( = thick / thin), this results in
+         * with r = relation ( = wide / narrow), this results in
          *
-         * Total width = (13 + 6 * r + (3 * r + 7) * code.Length) * thin
+         * Total width = (13 + 6 * r + (3 * r + 7) * code.Length) * narrow
          */
-        var thinLineAmount = 13 + 6 * WideNarrowRatio + (3 * WideNarrowRatio + 7) * Text.Length;
-        info.ThinBarWidth = Size.Width / thinLineAmount;
+        var narrowLineAmount = 13 + 6 * WideNarrowRatio + (3 * WideNarrowRatio + 7) * Text.Length;
+        info.NarrowBarWidth = Size.Width / narrowLineAmount;
     }
 
     /// <summary>
@@ -245,13 +245,13 @@ public class Code3of9Standard : ThickThinBarCode
 
     private void RenderChar(BarCodeRenderInfo info, char ch)
     {
-        var thickThinLines = ThickThinLines(ch);
+        var wideNarrowLines = WideNarrowLines(ch);
         var idx = 0;
         while (idx < 9)
         {
-            RenderBar(info, thickThinLines[idx]);
+            RenderBar(info, wideNarrowLines[idx]);
             if (idx < 8)
-                RenderGap(info, thickThinLines[idx + 1]);
+                RenderGap(info, wideNarrowLines[idx + 1]);
             idx += 2;
         }
     }

@@ -1,4 +1,5 @@
 #region Copyright
+
 //
 // Authors:
 //   Stefan Lange
@@ -25,6 +26,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
+
 #endregion
 
 using System;
@@ -41,7 +43,7 @@ namespace PdfPinata.Drawing;
 /// PDF document. XPdfForm objects are used like images to draw an existing PDF page of an external
 /// document in the current document. XPdfForm objects can only be placed in PDF documents. If you try
 /// to draw them using a XGraphics based on an GDI+ context no action is taken if no placeholder image
-/// is specified. Otherwise the place holder is drawn.
+/// is specified. Otherwise, the placeholder is drawn.
 /// </summary>
 public class XPdfForm : XForm
 {
@@ -54,8 +56,7 @@ public class XPdfForm : XForm
     /// </summary>
     internal XPdfForm(string path, PdfReadAccuracy accuracy)
     {
-        int pageNumber;
-        path = ExtractPageNumber(path, out pageNumber);
+        path = ExtractPageNumber(path, out var pageNumber);
 
         path = System.IO.Path.GetFullPath(path);
         if (!File.Exists(path))
@@ -92,7 +93,8 @@ public class XPdfForm : XForm
     /// <param name="stream">The stream.</param>
     /// <param name="password">The password.</param>
     /// <param name="accuracy">Moderate allows for broken references.</param>
-    internal XPdfForm(Stream stream, string password, PdfReadAccuracy accuracy) {
+    internal XPdfForm(Stream stream, string password, PdfReadAccuracy accuracy)
+    {
         // Create a dummy unique path
         Path = "*" + Guid.NewGuid().ToString("B");
 
@@ -105,7 +107,7 @@ public class XPdfForm : XForm
     /// <summary>
     /// Creates an XPdfForm from a file.
     /// </summary>
-    public static new XPdfForm FromFile(string path)
+    public static XPdfForm FromFile(string path)
     {
         return FromFile(path, PdfReadAccuracy.Strict);
     }
@@ -113,7 +115,7 @@ public class XPdfForm : XForm
     /// <summary>
     /// Creates an XPdfForm from a file.
     /// </summary>
-    public static new XPdfForm FromFile(string path, PdfReadAccuracy accuracy)
+    public new static XPdfForm FromFile(string path, PdfReadAccuracy accuracy)
     {
         // TODO: Same file should return same object (that's why the function is static).
         return new XPdfForm(path, accuracy);
@@ -138,23 +140,18 @@ public class XPdfForm : XForm
     /// <summary>
     /// Creates an XPdfForm from a stream and a password.
     /// </summary>
-    public static XPdfForm FromStream(Stream stream, string password) {
+    public static XPdfForm FromStream(Stream stream, string password)
+    {
         return FromStream(stream, password, PdfReadAccuracy.Strict);
     }
 
     /// <summary>
     /// Creates an XPdfForm from a stream and a password.
     /// </summary>
-    public static XPdfForm FromStream(Stream stream, string password, PdfReadAccuracy accuracy) {
+    public static XPdfForm FromStream(Stream stream, string password, PdfReadAccuracy accuracy)
+    {
         return new XPdfForm(stream, password, accuracy);
     }
-
-    /*
-        void Initialize()
-        {
-          // ImageFormat has no overridden Equals...
-        }
-    */
 
     /// <summary>
     /// Sets the form in the state FormState.Finished.
@@ -165,27 +162,6 @@ public class XPdfForm : XForm
             return;
 
         base.Finish();
-
-        //if (Gfx.metafile != null)
-        //  image = Gfx.metafile;
-
-        //Debug.Assert(_fromState == FormState.Created || _fromState == FormState.UnderConstruction);
-        //_fromState = FormState.Finished;
-        //Gfx.Dispose();
-        //Gfx = null;
-
-        //if (PdfRenderer != null)
-        //{
-        //  _pdfForm.Stream = new PdfDictionary.PdfStream(PdfEncoders.RawEncoding.GetBytes(pdfRenderer.GetContent()), this.pdfForm);
-
-        //  if (_document.Options.CompressContentStreams)
-        //  {
-        //    _pdfForm.Stream.Value = Filtering.FlateDecode.Encode(pdfForm.Stream.Value);
-        //    _pdfForm.Elements["/Filter"] = new PdfName("/FlateDecode");
-        //  }
-        //  int length = _pdfForm.Stream.Length;
-        //  _pdfForm.Elements.SetInteger("/Length", length);
-        //}
     }
 
     /// <summary>
@@ -204,6 +180,7 @@ public class XPdfForm : XForm
                 {
                     //...
                 }
+
                 if (_externalDocument != null)
                     PdfDocument.Tls.DetachDocument(_externalDocument.Handle);
                 //...
@@ -214,6 +191,7 @@ public class XPdfForm : XForm
             }
         }
     }
+
     bool _disposed;
 
     /// <summary>
@@ -226,6 +204,7 @@ public class XPdfForm : XForm
         get => _placeHolder;
         set => _placeHolder = value;
     }
+
     XImage _placeHolder;
 
     /// <summary>
@@ -256,6 +235,7 @@ public class XPdfForm : XForm
             return _pageCount;
         }
     }
+
     int _pageCount = -1;
 
     /// <summary>
@@ -347,6 +327,7 @@ public class XPdfForm : XForm
             }
         }
     }
+
     int _pageNumber = 1;
 
     /// <summary>
@@ -373,13 +354,15 @@ public class XPdfForm : XForm
         get
         {
             if (IsTemplate)
-                throw new InvalidOperationException("This XPdfForm is a template and not an imported PDF page; therefore it has no external document.");
+                throw new InvalidOperationException(
+                    "This XPdfForm is a template and not an imported PDF page; therefore it has no external document.");
 
             if (_externalDocument == null)
                 _externalDocument = PdfDocument.Tls.GetDocument(Path, _pathReadAccuracy);
             return _externalDocument;
         }
     }
+
     internal PdfDocument _externalDocument;
 
     private PdfReadAccuracy _pathReadAccuracy;
@@ -415,6 +398,7 @@ public class XPdfForm : XForm
                 }
             }
         }
+
         return path;
     }
 }
