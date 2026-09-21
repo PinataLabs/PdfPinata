@@ -67,6 +67,11 @@ public abstract class PdfObject : PdfItem
         // set the value of the reference to this.
         if (obj._iref != null)
             obj._iref.Value = this;
+
+        // The object being transformed may already have been changed since it was read, and this
+        // is what an incremental save asks from now on - a change forgotten here would be silently
+        // left out of the appended revision.
+        IsDirty = obj.IsDirty;
     }
 
     /// <summary>

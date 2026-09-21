@@ -27,6 +27,8 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
+using System;
+
 namespace PdfPinata.Pdf.AcroForms;
 
 /// <summary>
@@ -49,6 +51,52 @@ public sealed class PdfSignatureField : PdfAcroField
     internal PdfSignatureField(PdfDictionary dict)
         : base(dict)
     { }
+
+    /// <summary>
+    /// The fields that become read-only once this field is signed - <c>/Lock</c> - or null.
+    /// </summary>
+    /// <remarks>
+    /// Written as an indirect object, as ISO 32000-1 requires, so the field has to belong to a
+    /// document and the lock to the same one. It is the signing application that honours it:
+    /// <see cref="Signatures.PdfSigner"/> honours the lock it is asked for through
+    /// <see cref="Signatures.PdfSignatureOptions.LockAction"/>, on the field it creates.
+    /// </remarks>
+    public PdfSignatureFieldLock Lock
+    {
+        get => Elements.GetDictionary(Keys.Lock) is { } dict ? PdfSignatureFieldLock.From(dict) : null;
+        set => SetIndirect(Keys.Lock, value);
+    }
+
+    /// <summary>
+    /// What the field's author asks of whoever signs it - <c>/SV</c> - or null.
+    /// </summary>
+    /// <remarks>
+    /// Written as an indirect object, as ISO 32000-1 requires. Modelled and round-tripped only:
+    /// <see cref="Signatures.PdfSigner"/> never signs a field it did not create, so it is never
+    /// the application a seed value asks something of.
+    /// </remarks>
+    public PdfSignatureSeedValue SeedValue
+    {
+        get => Elements.GetDictionary(Keys.SV) is { } dict ? PdfSignatureSeedValue.From(dict) : null;
+        set => SetIndirect(Keys.SV, value);
+    }
+
+    void SetIndirect(string key, PdfDictionary value)
+    {
+        if (value == null)
+        {
+            Elements.Remove(key);
+            return;
+        }
+
+        if (Owner == null || value.Owner != Owner)
+            throw new ArgumentException("The dictionary and the field must belong to the same document.", nameof(value));
+
+        if (value.Reference == null)
+            Owner.Internals.AddObject(value);
+
+        Elements.SetReference(key, value);
+    }
 
     /// <summary>
     /// Predefined keys of this dictionary.
@@ -117,6 +165,20 @@ public sealed class PdfSignatureField : PdfAcroField
         /// </summary>
         [KeyInfo(KeyType.TextString | KeyType.Optional)]
         public const string Reason = "/Reason";
+
+        /// <summary>
+        /// (Optional; shall be an indirect reference; PDF 1.5) A signature field lock dictionary
+        /// that specifies a set of form fields to be locked when this signature field is signed.
+        /// </summary>
+        [KeyInfo("1.5", KeyType.Dictionary | KeyType.Optional)]
+        public const string Lock = "/Lock";
+
+        /// <summary>
+        /// (Optional; shall be an indirect reference; PDF 1.5) A seed value dictionary containing
+        /// information that constrains the properties of a signature that is applied to this field.
+        /// </summary>
+        [KeyInfo("1.5", KeyType.Dictionary | KeyType.Optional)]
+        public const string SV = "/SV";
 
         /// <summary>
         /// Gets the KeysMeta for these keys.

@@ -60,12 +60,7 @@ public abstract class PdfAnnotation : PdfDictionary
     /// </summary>
     internal PdfAnnotation(PdfDictionary dict)
         : base(dict)
-    {
-        // The dictionary being wrapped may already have been changed since it was read, and the
-        // wrapper is what an incremental save asks from now on - a change forgotten here would be
-        // silently left out of the appended revision.
-        IsDirty = dict.IsDirty;
-    }
+    { }
 
     /// <summary>
     /// Gives an annotation dictionary read from a document the class that knows its subtype, or

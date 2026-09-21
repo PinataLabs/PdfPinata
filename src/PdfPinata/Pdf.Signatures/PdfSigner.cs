@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf.AcroForms;
 using PdfPinata.Pdf.Internal;
@@ -94,6 +95,8 @@ public static class PdfSigner
         AttachToAcroForm(document, field);
         if (options.Certification != PdfCertificationLevel.NotCertified)
             Certify(document, signature, options.Certification);
+        if (options.LockAction != null)
+            Lock(document, field, signature, options);
 
         var buffer = WriteRevision(document);
 
@@ -332,9 +335,7 @@ public static class PdfSigner
         reference.Elements["/TransformParams"] = parameters;
         reference.Elements.SetName("/DigestMethod", "/SHA256");
 
-        var references = new PdfArray(document);
-        references.Elements.Add(reference);
-        signature.Elements["/Reference"] = references;
+        AddReference(document, signature, reference);
 
         // And the catalog has to point back at the signature, or a reader has no way of finding out
         // that the document is certified at all.
@@ -344,6 +345,71 @@ public static class PdfSigner
         var catalog = document.Catalog;
         catalog.Elements["/Perms"] = permissions;
         catalog.MarkAsChanged();
+    }
+
+    /// <summary>
+    /// Appends a signature reference dictionary to the signature's <c>/Reference</c> array, which a
+    /// certifying signature that also locks fields has two of.
+    /// </summary>
+    static void AddReference(PdfDocument document, PdfDictionary signature, PdfDictionary reference)
+    {
+        var references = signature.Elements.GetArray("/Reference");
+        if (references == null)
+        {
+            references = new PdfArray(document);
+            signature.Elements["/Reference"] = references;
+        }
+
+        references.Elements.Add(reference);
+    }
+
+    /// <summary>
+    /// Locks the fields the options ask for: <c>/Lock</c> on the field, a <c>/FieldMDP</c>
+    /// reference on the signature, and the read-only flag on every field covered.
+    /// </summary>
+    static void Lock(PdfDocument document, PdfSignatureField field, PdfDictionary signature,
+        PdfSignatureOptions options)
+    {
+        var action = options.LockAction!.Value;
+        var fields = action == PdfFieldLockAction.All ? null : (options.LockFields ?? Array.Empty<string>()).ToArray();
+
+        // A fresh dictionary per signing, rather than one the options hold, so that one options
+        // object can sign any number of documents.
+        field.Lock = new PdfSignatureFieldLock(document, action, fields);
+
+        var parameters = new PdfDictionary(document);
+        parameters.Elements.SetName("/Type", "/TransformParams");
+        parameters.Elements.SetName("/Action", "/" + action);
+        if (fields != null)
+            parameters.Elements["/Fields"] = field.Lock.Elements["/Fields"].Clone();
+        parameters.Elements.SetName("/V", "/1.2");
+
+        var reference = new PdfDictionary(document);
+        reference.Elements.SetName("/Type", "/SigRef");
+        reference.Elements.SetName("/TransformMethod", "/FieldMDP");
+        reference.Elements["/TransformParams"] = parameters;
+        reference.Elements.SetName("/DigestMethod", "/SHA256");
+        AddReference(document, signature, reference);
+
+        var form = document.Catalog.AcroForm;
+        if (form == null)
+            return;
+
+        var own = field.Elements.GetString(PdfAcroField.Keys.T);
+        foreach (var name in form.Fields.DescendantNames)
+        {
+            if (name == own || !field.Lock.Covers(name))
+                continue;
+
+            var locked = form.Fields[name];
+            if (locked == null || locked.ReadOnly)
+                continue;
+
+            locked.ReadOnly = true;
+
+            // Written into the appended revision only if it says it changed.
+            locked.MarkAsChanged();
+        }
     }
 
     /// <summary>
