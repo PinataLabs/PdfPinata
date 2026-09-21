@@ -118,6 +118,10 @@ This file starts at the entry below. Changes before that point are recorded only
 - **`PdfCustomValueCompressionMode`.** Its one use was `PdfCustomValue.CompressionMode`, which is
   removed below, so nothing reads it. It will be removed.
 
+- **`XPoint + XSize`.** It moves a point by the extent of a size, which is a displacement written as
+  a size. Add an `XVector` instead: `point + new XVector(size.Width, size.Height)`. WPF's `Point`
+  has only that overload. It behaves as before and will be removed.
+
 ### Removed
 
 - **`XGraphics.FromImage`.** It always returned null, because this library has no way to draw onto
