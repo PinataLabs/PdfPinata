@@ -44,7 +44,32 @@ public class XBaseGradientBrush : XBrush
     }
 
     /// <summary>
-    /// Gets or sets an XMatrix that defines a local geometric transform for this LinearGradientBrush.
+    /// Gets or sets whether the gradient goes on past its start in its first colour.
+    /// </summary>
+    /// <remarks>
+    /// The start is the first point of an <see cref="XLinearGradientBrush"/>, or the first circle
+    /// of an <see cref="XRadialGradientBrush"/>. Left false, nothing is painted before it, which
+    /// for a radial gradient whose first radius is not zero is a hole in the middle. The name is
+    /// the one PDFsharp gives it; it is written as the first half of the shading's
+    /// <c>/Extend</c>.
+    /// </remarks>
+    public bool ExtendLeft { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether the gradient goes on past its end in its second colour.
+    /// </summary>
+    /// <remarks>
+    /// The end is the second point of an <see cref="XLinearGradientBrush"/>, or the second circle
+    /// of an <see cref="XRadialGradientBrush"/>. Left false, nothing is painted beyond it, so a
+    /// radial gradient filling a rectangle leaves the corners outside its outer circle unpainted;
+    /// set it to give them the second colour.
+    /// </remarks>
+    public bool ExtendRight { get; set; }
+
+    /// <summary>
+    /// Gets or sets an XMatrix that defines a local geometric transform for this gradient. It is
+    /// applied to the gradient's points and radii before the transform of the graphics the
+    /// gradient is drawn with.
     /// </summary>
     public XMatrix Transform
     {

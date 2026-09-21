@@ -49,31 +49,32 @@ public sealed class PdfShadingPattern : PdfDictionaryWithContentStream
     }
 
     /// <summary>
-    /// Setups the shading pattern from the specified brush.
+    /// Sets the shading pattern up from a gradient brush, linear or radial.
     /// </summary>
+    /// <param name="brush">The gradient.</param>
+    /// <param name="matrix">
+    /// The matrix from the renderer's view space to the default space of the page.
+    /// </param>
+    /// <param name="renderer">The renderer painting the gradient.</param>
+    /// <param name="channel">Whether the shading carries the colours or the alpha.</param>
+    /// <remarks>
+    /// A shading whose coordinates cannot be written in view space - a linear gradient with a
+    /// transform of its own, or a radial gradient whose transform stretches its circles into
+    /// ellipses - is written in the brush's space instead, and the mapping from there to view space goes in
+    /// front of the matrix here. For every other shading that mapping is the identity, and the
+    /// matrix is written as it always was.
+    /// </remarks>
     internal void SetupFromBrush(XBaseGradientBrush brush, XMatrix matrix, XGraphicsPdfRenderer renderer,
         PdfShadingChannel channel = PdfShadingChannel.Color)
     {
         ArgumentNullException.ThrowIfNull(brush);
 
         var shading = new PdfShading(_document);
-        shading.SetupFromBrush(brush, renderer, channel);
+        var shadingToView = shading.SetupFromBrush(brush, renderer, channel);
         Elements[Keys.Shading] = shading;
-        //Elements[Keys.Matrix] = new PdfLiteral("[" + PdfEncoders.ToString(matrix) + "]");
-        Elements.SetMatrix(Keys.Matrix, matrix);
-    }
 
-    /// <summary>
-    /// Setups the shading pattern from the specified brush.
-    /// </summary>
-    internal void SetupFromBrush(XLinearGradientBrush brush, XMatrix matrix, XGraphicsPdfRenderer renderer)
-    {
-        ArgumentNullException.ThrowIfNull(brush);
-
-        var shading = new PdfShading(_document);
-        shading.SetupFromBrush(brush, renderer);
-        Elements[Keys.Shading] = shading;
-        //Elements[Keys.Matrix] = new PdfLiteral("[" + PdfEncoders.ToString(matrix) + "]");
+        if (!shadingToView.IsIdentity)
+            matrix.Prepend(shadingToView);
         Elements.SetMatrix(Keys.Matrix, matrix);
     }
 

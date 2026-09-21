@@ -11,10 +11,9 @@ stream. That has a consequence worth stating plainly — **everything below was 
 public API**. None of it needed reflection to find, and none of it needed reflection to hit.
 
 Eight defects came out of it — seven from writing the tests, one more from review of the fixes.
-A second round of tests, over legends, markers and the object model's copying, found three more.
-All eleven are now fixed, and the test that recorded each has been turned round to assert the
-behaviour that replaced it. A twelfth, C12, was reported upstream as empira/PDFsharp#286 and
-reproduced here before it was fixed.
+A second round of tests, over legends, markers and the object model's copying, found three more,
+and upstream reports two after that. All thirteen are now fixed, and the test that recorded each
+has been turned round to assert the behaviour that replaced it.
 
 | # | finding | severity | status |
 |---|---|---|---|
@@ -29,7 +28,8 @@ reproduced here before it was fixed.
 | C9 | `Chart.Clone` shares its legend and font with the original | medium | **fixed** |
 | C10 | Cloning a collection that holds a blank throws | medium | **fixed** |
 | C11 | A legend reserves a line marker's size in its own unit rather than in points | low | **fixed** |
-| C12 | A second category series is drawn past the end of the axis (empira/PDFsharp#286) | medium | **fixed** |
+| C12 | A line format that says `Visible = false` is still stroked, as a hairline | medium | **fixed** |
+| C13 | A second category series is drawn past the end of the axis (empira/PDFsharp#286) | medium | **fixed** |
 
 C3 and C4 were one shape seen twice: two renderers written as copies of each other, which had
 drifted apart on which inputs they survive. C1 and C8 were another, seen four times over: a
@@ -428,7 +428,36 @@ Pinned by `LegendTests.ALineKeyIsMeasuredFromAMarkerSizeInPointsWhateverItsUnit`
 
 ---
 
-## C12. A second category series was drawn past the end of the axis — fixed
+## C12. A line format that says `Visible = false` was still stroked, as a hairline — fixed
+
+Reported upstream as empira/PDFsharp#287, against a line chart: a series whose line format was
+hidden still drew its line.
+
+`Converter.ToXPen` turns a hidden `LineFormat` into a pen of width 0, and the renderers' own
+convention is that such a pen is no line — `ColumnPlotAreaRenderer`, `PlotAreaBorderRenderer` and
+`YAxisRenderer` each test `Width > 0` before they stroke. PDF does not share the convention: a line
+width of 0 is the thinnest line the device can draw. The line, area, bar and pie plot areas handed
+the pen straight to `XGraphics`, so a hidden line came out one device pixel wide. It is the same
+shape as C3 and C4: `BarPlotAreaRenderer` is a copy of `ColumnPlotAreaRenderer` and lacked the
+guard its twin had.
+
+The legend had it twice over. A line chart's key drew its stroke with a pen of width 1 made from
+the marker's colour, never looking at the series' line at all; every other chart's swatch was
+outlined with the series' pen, hairline included.
+
+All five now test `Width > 0`. A hidden line series keeps its markers and its key keeps its marker;
+a hidden area outline keeps its fill. What `Visible` does to a format that never set it is
+unchanged: the property is a plain `bool` whose default is `false`, so a format that states a width
+and not `Visible = true` is converted to width 0 as it always was — and is now not drawn at all,
+where before it was a hairline. PinataLayout's chart mapper sets `Visible` on every format it
+hands over, so nothing it draws is affected.
+
+Pinned by `HiddenSeriesLineTests`, across line, area, column, bar and pie charts, with and without
+a legend.
+
+---
+
+## C13. A second category series was drawn past the end of the axis — fixed
 
 Reported upstream as empira/PDFsharp#286 against Line, Column2D, ColumnStacked2D, Area2D, Bar2D
 and BarStacked2D, and reproduced here on all six. `Chart.XValues` is a collection, and
