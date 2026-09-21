@@ -303,6 +303,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     public void Save(Stream stream, bool closeStream)
     {
         EnsureCanModify("saving the document");
+        EnsureCanDeduplicate();
 
         // TODO: more diagnostic checks
         var message = "";
@@ -417,6 +418,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
                 + "leaves the tail of the old file beyond the new revision, and a reader looking "
                 + "backwards for the last startxref finds the stale one.", nameof(stream));
 
+        EnsureCanDeduplicate();
         PrepareForSave();
 
         stream.Write(_originalBytes, 0, _originalBytes.Length);
@@ -612,10 +614,30 @@ public sealed class PdfDocument : PdfObject, IDisposable
     internal int OriginalByteCount => _originalBytes?.Length ?? 0;
 
     /// <summary>
+    /// Refuses <see cref="PdfDocumentOptions.DeduplicateResources"/> on a document that keeps its
+    /// original bytes. Called first by both saves, before either asks for the security settings or
+    /// touches the trailer, so that a save which cannot happen changes nothing. An appended revision can only add
+    /// objects, never stop referring to one, so merging objects there would leave every copy in the
+    /// file and add the changed dictionaries on top.
+    /// </summary>
+    void EnsureCanDeduplicate()
+    {
+        if (Options.DeduplicateResources && _originalBytes != null)
+            throw new InvalidOperationException(
+                "PdfDocumentOptions.DeduplicateResources cannot be used on a document opened with "
+                + "PdfDocumentOpenMode.Append. An appended revision keeps every object of the "
+                + "revisions before it, so merging duplicates saves nothing and rewrites every "
+                + "dictionary that referred to one. Open the document with PdfDocumentOpenMode.Modify "
+                + "to rewrite it whole, or leave the option off.");
+    }
+
+    /// <summary>
     /// Implements saving a PDF file.
     /// </summary>
     void DoSave(PdfWriter writer)
     {
+        EnsureCanDeduplicate();
+
         if (_pages == null || _pages.Count == 0)
         {
             if (_outStream != null)
@@ -770,6 +792,12 @@ public sealed class PdfDocument : PdfObject, IDisposable
         // XMP packet is built from that dictionary and has to agree with it, and the objects it
         // adds are reachable from the catalog, so Compact leaves them alone.
         Metadata.PdfConformanceWriter.PrepareForSave(this);
+
+        // Last of all, once every font has been subset and every object this document builds for
+        // itself has been written into: comparing a font before its subset is taken would find two
+        // empty programs equal. Before Compact, which is what drops the copies nothing refers to.
+        if (Options.DeduplicateResources)
+            PdfResourceDeduplicator.Deduplicate(this);
 
         // Neither of these may happen on the way to an incremental save. Renumbering would make
         // every appended definition shadow the wrong object, and compacting would drop objects that
@@ -1580,6 +1608,10 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// drew the same picture on many pages carries one copy of it. Images are matched by the MD5 of
     /// their stream, so only byte-identical ones are merged.
     /// </summary>
+    /// <remarks>
+    /// <see cref="PdfDocumentOptions.DeduplicateResources"/> does the same at save time for fonts,
+    /// forms and every other resource as well, comparing whole objects rather than image bytes.
+    /// </remarks>
     public void ConsolidateImages()
     {
         PdfImageConsolidator.Consolidate(Pages);

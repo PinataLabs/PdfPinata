@@ -241,6 +241,30 @@ public sealed class PdfDocumentOptions
     internal const string DefaultOutputIntentIdentifier = "Custom";
 
     /// <summary>
+    /// Gets or sets a value indicating whether the document is written with one copy of each
+    /// font, image, form and other resource whose content is identical, rather than one copy for
+    /// every file it was imported from. The default is <c>false</c>.
+    /// <para>
+    /// Merging many documents by importing their pages copies each document's fonts and images
+    /// separately, so a logo or a font that every one of them carries is written once per
+    /// document. With this set, the save compares the resources of every page - fonts and their
+    /// programs, descriptors and widths, images, forms, colour spaces, graphics states, patterns,
+    /// shadings, functions and page content streams - and keeps one of each set that is byte for
+    /// byte the same, all references included. Objects whose identity matters are never merged:
+    /// pages, annotations, form fields, structure elements, optional content groups, signatures.
+    /// </para>
+    /// <para>
+    /// Only identical objects are merged. Two subsets of the same font taken for different text are
+    /// different programs and both are kept.
+    /// </para>
+    /// <para>
+    /// A document opened with <see cref="IO.PdfDocumentOpenMode.Append"/> refuses to save with this
+    /// set, because an appended revision keeps every object before it and so cannot drop a copy.
+    /// </para>
+    /// </summary>
+    public bool DeduplicateResources { get; set; }
+
+    /// <summary>
     /// Gets or sets how many objects at most are gathered into one object stream. Only meaningful
     /// when <see cref="CrossReferenceFormat"/> is <see cref="PdfCrossReferenceFormat.Stream"/>.
     /// Acrobat uses 200 and so does this; a reader has to decompress a whole object stream to reach

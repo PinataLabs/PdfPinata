@@ -52,6 +52,7 @@ decisions, not outstanding work.
 - [x] [pdf-a-conformance.md](pdf-a-conformance.md) — PDF/A, XMP metadata and hybrid e-invoicing (G4)
 - [x] [pdfdocument-thin-forwarders.md](pdfdocument-thin-forwarders.md) — the page-tree guard moved to the page tree
 - [x] [pdfpage-responsibility-split.md](pdfpage-responsibility-split.md) — the print sheet given a type of its own (T11)
+- [x] [resource-deduplication.md](resource-deduplication.md) — one copy of each identical font, image and form in a merged document, empira#275; `PdfDocumentOptions.DeduplicateResources`
 - [x] [script-itemizer-contract.md](script-itemizer-contract.md) — `ScriptItemizer` put back where it is called from (T16)
 - [x] [signature-lifetime.md](signature-lifetime.md) — PAdES B-T and B-LT, and a `/DocMDP` level that is enforced (G5 tail)
 - [x] [simple-type-immutability.md](simple-type-immutability.md) — the simple-type rule enforced, not just stated (T12)

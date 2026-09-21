@@ -165,6 +165,16 @@ internal sealed class PdfFormXObjectTable : PdfResourceTable
     }
 
     /// <summary>
+    /// Points every imported object that has been merged into another at the one it was merged
+    /// into, so that importing more from the same document reuses what is still in this one.
+    /// </summary>
+    internal void RedirectImportedObjects(IReadOnlyDictionary<PdfReference, PdfReference> replacements)
+    {
+        foreach (var table in _forms.Values)
+            table.Redirect(replacements);
+    }
+
+    /// <summary>
     /// Map from Selector to PdfImportedObjectTable.
     /// </summary>
     readonly Dictionary<Selector, PdfImportedObjectTable> _forms = new();
