@@ -23,7 +23,95 @@ This file starts at the entry below. Changes before that point are recorded only
 - **A Gradients demo and a Gradients page on the documentation site**, covering both brushes, two-
   centre radial gradients, extension and a brush's own transform.
 
+- **An annotation read from a file is handed back as the class its `/Subtype` names**, for 19
+  subtypes, where every one used to arrive as `PdfGenericAnnotation`. Wrapping a read annotation
+  writes nothing into it, so its appearance is saved exactly as the file had it (#60).
+
+- **`PdfInkAnnotation`, `PdfPolygonAnnotation`, `PdfPolyLineAnnotation`, `PdfCaretAnnotation` and
+  `PdfRedactAnnotation`**, each drawing its own appearance, and **`PdfPopupAnnotation`**, which draws
+  none because a reader draws the pop-up itself. A redaction marks a region and removes nothing
+  under it (#60).
+
+- **`PdfMarkupAnnotation`**, a base class between `PdfAnnotation` and every markup annotation, with
+  `Popup` (linked both ways), `InReplyTo`, `ReplyType`, `RichText` and `Intent` (#60).
+
+- **`PdfDocumentOptions.MetadataStrategy`** — `KeepExisting` (the default, and what happened
+  before), `AutoGenerate` or `NoMetadata` for the XMP packet. A PDF/A or PDF/UA claim with
+  `NoMetadata` is refused (#60).
+
+- **`PdfSignatureField.Lock` and `SeedValue`**, modelling a signature field's `/Lock` and `/SV`
+  dictionaries through `PdfSignatureFieldLock`, `PdfSignatureSeedValue` and
+  `PdfCertificateSeedValue`. **`PdfSignatureOptions.LockAction` and `LockFields`** make `PdfSigner`
+  write `/Lock` and a `/FieldMDP` reference and set the covered fields read-only in the signed
+  revision. Seed values are written and read back but not yet honoured when signing (#60).
+
+- **`PdfDocument.PageAdded`, `PageRemoved` and `PageGraphicsCreated`** events. A
+  `PageGraphicsCreated` handler draws inside a saved graphics state, which makes it a place to put
+  a running header or a watermark on every page; in a tagged document it has to draw inside an
+  artifact (#60).
+
+- **`PdfPage.HasMediaBox`, `HasCropBox`, `HasBleedBox`, `HasTrimBox` and `HasArtBox`**, and
+  **`EffectiveCropBox`, `EffectiveBleedBox`, `EffectiveTrimBox` and `EffectiveArtBox`**, which apply
+  the defaults of ISO 32000-1 14.11.2 — the crop box defaults to the media box, the other three to
+  the crop box — and clip to the media box. See `docs/specs/page-boxes.md` (#58).
+
+### Changed
+
+- **`PdfSquareCircleAnnotation.Interior` and `BorderWidth` are read from the dictionary** (`/IC`
+  and `/BS`) rather than kept in fields, so an annotation read from a file reports what it says
+  (#60).
+
+- **`PdfDocumentOptions.WriteXmpMetadata` is now the older name for
+  `MetadataStrategy = AutoGenerate`** (#60).
+
+- **A name is written with every delimiter, `#`, and every byte outside `!`..`~` escaped as
+  `#xx`.** The name's bytes are unchanged; only how they are spelled in the file differs, so a
+  Shift-JIS name that used to be written raw is now written escaped (#59).
+
 ### Fixed
+
+- **A read-only form field refuses a value however it is given one.** `PdfAcroField.Value` threw
+  `InvalidOperationException` for a field whose `ReadOnly` flag was set, but `PdfTextField.Text`,
+  `PdfCheckBoxField.Checked`, `SelectedIndex` on radio groups, combo boxes and list boxes, and
+  `PdfListBoxField.SelectedIndices` wrote `/V` without asking — so the same field was refused a value
+  by one name and took it by another. They all make the same check now. Code that set `ReadOnly`
+  before filling a field in has to fill it in first (#62).
+
+- **An incremental save no longer writes a `/Size` smaller than the revision before it, or reuses a
+  freed object number.** New objects were numbered from one past the highest object still in use,
+  and the appended `/Size` was written the same way, for a classic trailer and for the
+  cross-reference stream `SaveIncremental` now writes. When a file's last cross-reference section
+  ended in free entries, the update shrank `/Size` and handed out numbers the file had already
+  freed, both of which ISO 32000-1 7.5.5 forbids. Numbering now starts at the largest `/Size` any
+  revision declares. A `/Size` beyond the 8,388,607 objects ISO 32000-1 allows is ignored rather than
+  allowed to overflow the numbering (#63).
+
+- **A fully transparent pen or brush is painted transparent when it is the first colour drawn, or
+  the first after a gradient.** The colour last written started out as `XColor.Empty`, whose alpha
+  is 0, so a first colour with alpha 0 matched it and no `/CA` or `/ca` was written — and the shape
+  was painted opaque (empira/PDFsharp#281, #59).
+
+- **A name containing `[`, `]`, `{` or `}` reads back whole.** The writer escaped only some of the
+  delimiters, so `/A[B` was read back as the name `/A` followed by an array (#59).
+
+- **A stream whose `/Filter` or `/DecodeParms` is an indirect object decodes.** So does one whose
+  parameter array is indirect, or holds indirect or `null` elements. Each was reported as
+  "Cannot decode filter" (empira/PDFsharp#323, #59).
+
+- **`CSequence.Add` given a `CArray` adds the array as one operand.** The array matched the
+  `Add(CSequence)` overload, which spread its items into the sequence and lost the brackets
+  (empira/PDFsharp#300, #59).
+
+- **Reading a page box no longer gives the page one.** Reading `CropBox`, `BleedBox`, `TrimBox` or
+  `ArtBox` on a page without that box wrote `[0 0 0 0]` under its key, as did reading `MediaBox` on
+  a page read from a file that has none. A missing box still reads as the empty rectangle. An entry
+  that is not a rectangle now counts as no box rather than throwing `InvalidCastException` (#58).
+
+- **A change to a read object is kept in an incremental save when the object is then wrapped in a
+  typed class.** The wrapping lost the object's dirty flag, so `SaveIncremental` left the change out
+  of the appended revision — and a signature with a field lock dropped the whole AcroForm (#60).
+
+- **A link read from a file is no longer given a zero-width border when it is saved** (#60).
 
 - **`SaveIncremental` on a file indexed by a cross-reference stream writes a revision that can be
   read back.** It wrote the keyword `trailer` and then the previous revision's `/XRef` stream, object
