@@ -265,6 +265,40 @@ public sealed class PdfDocumentOptions
     public bool DeduplicateResources { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether the document honours the embedding permissions a
+    /// font declares in its OS/2 <c>fsType</c>. The default is <c>false</c>, which embeds every font
+    /// as this library always has.
+    /// <para>
+    /// With this set, a font whose licence forbids embedding it is refused with an
+    /// <see cref="System.InvalidOperationException"/> naming the face and the restriction: one marked
+    /// Restricted License, and one marked Bitmap Embedding Only, because this library embeds outlines
+    /// rather than bitmaps. The refusal comes when the font is first drawn in this document and again
+    /// at save time, so setting this after drawing still holds. Preview &amp; Print, Editable and
+    /// Installable fonts are embedded as before, and a font setting several usage bits, as the oldest
+    /// OS/2 tables may, is read by the least restrictive of them, as the OpenType specification says.
+    /// </para>
+    /// <para>
+    /// A font marked No Subsetting is embedded whole rather than refused, as a font with PostScript
+    /// outlines always is, and its name carries no subset tag. That costs the size of the whole font
+    /// program instead of the glyphs the document draws.
+    /// </para>
+    /// <para>
+    /// It is an option of the document rather than of <see cref="Fonts.GlobalFontSettings"/>
+    /// because a font is embedded into one document at a time: the face is read once and shared, but
+    /// whether one document may carry it is that document's question, and one caller opting in
+    /// should not change what another's documents contain.
+    /// </para>
+    /// <para>
+    /// Every PDF/A profile requires its fonts to be legally embeddable, and claiming
+    /// <see cref="Conformance"/> does not turn this on: <c>fsType</c> is what the font says about its
+    /// licence, not the licence itself, and a caller who holds an embedding licence for a restricted
+    /// font is entitled to use it. Set it alongside a conformance claim to have the writer check what
+    /// the font says.
+    /// </para>
+    /// </summary>
+    public bool RespectFontEmbeddingRestrictions { get; set; }
+
+    /// <summary>
     /// Gets or sets how many objects at most are gathered into one object stream. Only meaningful
     /// when <see cref="CrossReferenceFormat"/> is <see cref="PdfCrossReferenceFormat.Stream"/>.
     /// Acrobat uses 200 and so does this; a reader has to decompress a whole object stream to reach

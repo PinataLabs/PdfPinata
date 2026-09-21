@@ -82,8 +82,6 @@ internal sealed class OpenTypeDescriptor : FontDescriptor
 
     void Initialize()
     {
-        // TODO: Respect embedding restrictions.
-        //bool embeddingRestricted = fontData.os2.fsType == 0x0002;
 
         //fontName = image.n
         ItalicAngle = FontFace.post.italicAngle;

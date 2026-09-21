@@ -61,6 +61,13 @@ internal sealed class PdfType0Font : PdfFont
     /// library cannot cut them down, which is what <see cref="PdfFont.EmbedFontProgram"/> decides on
     /// the same question — so the two have to agree, and both ask the face.
     /// </para>
+    /// <para>
+    /// A TrueType face can still be embedded whole, when
+    /// <see cref="PdfDocumentOptions.RespectFontEmbeddingRestrictions"/> honours its No Subsetting
+    /// bit. The option may be set after the font is created, so that is not asked here:
+    /// <see cref="PdfFont.EmbedsSubset"/> settles it at save time, and
+    /// <see cref="PdfFont.RestoreWholeFontName"/> takes back the tag this gave.
+    /// </para>
     /// </remarks>
     static bool IsSubsetted(OpenTypeDescriptor descriptor)
         => !descriptor.FontFace.IsPostscriptOutlines;
@@ -118,8 +125,10 @@ internal sealed class PdfType0Font : PdfFont
 
         // CID fonts are always embedded, but not always subsetted, and the tag says which. Only
         // TrueType outlines are cut down; CFF ones go in whole because they cannot be subsetted.
+        // A TrueType face may still go in whole, when the document honours its No Subsetting bit;
+        // that is settled at save time, where RestoreWholeFontName takes the tag off again.
         if (IsSubsetted(ttDescriptor))
-            BaseFont = CreateEmbeddedFontSubsetName(BaseFont);
+            BaseFont = TagAsSubset(BaseFont);
 
         FontDescriptor.FontName = BaseFont;
         _descendantFont.BaseFont = BaseFont;
@@ -156,7 +165,7 @@ internal sealed class PdfType0Font : PdfFont
         // name by a caller, and a name that already carries a tag came from a font that was already
         // a subset when it arrived. Tagging it twice would say it had been cut down twice.
         if (IsSubsetted(ttDescriptor) && !HasSubsetPrefix(BaseFont))
-            BaseFont = CreateEmbeddedFontSubsetName(BaseFont);
+            BaseFont = TagAsSubset(BaseFont);
 
         FontDescriptor.FontName = BaseFont;
         _descendantFont.BaseFont = BaseFont;
@@ -180,6 +189,12 @@ internal sealed class PdfType0Font : PdfFont
     internal override void PrepareForSave()
     {
         base.PrepareForSave();
+
+        RestoreWholeFontName(name =>
+        {
+            BaseFont = name;
+            _descendantFont.BaseFont = name;
+        });
 
         // Use GetGlyphIndices to create the widths array.
         var descriptor = FontDescriptor.Descriptor;

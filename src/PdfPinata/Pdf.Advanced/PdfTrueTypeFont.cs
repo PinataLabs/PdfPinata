@@ -63,7 +63,9 @@ internal class PdfTrueTypeFont : PdfFont
 
         BaseFont = font.GlyphTypeface.GetBaseName();
 
-        BaseFont = CreateEmbeddedFontSubsetName(BaseFont);
+        // Tagged now and untagged at save time if the program goes in whole, because only then is
+        // it settled: see RestoreWholeFontName.
+        BaseFont = TagAsSubset(BaseFont);
         FontDescriptor.FontName = BaseFont;
 
         Debug.Assert(fontOptions.FontEncoding == PdfFontEncoding.WinAnsi);
@@ -110,7 +112,8 @@ internal class PdfTrueTypeFont : PdfFont
     {
         base.PrepareForSave();
 
-        // Fonts are always embedded.
+        // Fonts are always embedded, and a font embedded whole is not named as a subset.
+        RestoreWholeFontName(name => BaseFont = name);
         EmbedFontProgram(false);
 
         FirstChar = 0;

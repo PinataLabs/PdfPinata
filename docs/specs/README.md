@@ -9,7 +9,7 @@ investigation turned up. All three are tracked the same way, because what a read
 first is the same in each case: is this the code as it stands, or the code as somebody hoped it
 would be?
 
-**47 done · 4 in progress · 10 not started · 61 total.**
+**48 done · 4 in progress · 10 not started · 62 total.**
 
 Read the relevant spec before extending that feature area.
 
@@ -34,6 +34,7 @@ decisions, not outstanding work.
 - [x] [dom-value-model-findings.md](dom-value-model-findings.md) — what replacing the DOM value model turned up
 - [x] [external-file-streams.md](external-file-streams.md) — a stream whose data is in another file, empira#389; `PdfStream.ExternalFile` says where, and nothing fetches it
 - [x] [font-embedding-gaps.md](font-embedding-gaps.md) — `.otf`/`.ttc` discovery, CFF embedding, style simulation, G1–G6
+- [x] [font-embedding-restrictions.md](font-embedding-restrictions.md) — a font's OS/2 `fsType` honoured on request: Restricted and bitmap-only faces refused, No Subsetting embedded whole; `PdfDocumentOptions.RespectFontEmbeddingRestrictions`
 - [x] [font-path-thread-safety.md](font-path-thread-safety.md) — empira#381 checked here and absent: no memo in the conversion, locks under it, and tests proved against a grafted copy of the bug
 - [x] [graphics-state-stack-unification.md](graphics-state-stack-unification.md) — the dead state stack removed, the live pair kept apart (T15)
 - [x] [hybrid-reference-files.md](hybrid-reference-files.md) — the `/XRefStm` a classic trailer names, empira#388; every compressed object was invisible without it
