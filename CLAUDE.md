@@ -461,6 +461,18 @@ Fonts are always embedded, with no setting to disable it. TrueType outlines are 
 PostScript (CFF) outlines cannot be and embed whole. A weight or slant with no font file is
 simulated by stroking or skewing.
 
+**An image's two masks are alternatives, never a pair.** `PdfImage.InitializeNonJpeg` writes the
+8-bit `/SMask` when any alpha is neither 0 nor 255 and the document is 1.4 or later, and the 1-bit
+`/Mask` stencil only where that soft mask is *not* written — binary transparency, or a pre-1.4
+document. Writing both is the shape this inherited from upstream and it made images disappear:
+ISO 32000-1 Table 89 has `/SMask` override `/Mask`, and pdf.js obeys that, but Ghostscript and
+macOS Quartz apply both, so the stencil's rounding of alpha at 128 threw away every pixel below it —
+an image whose alpha lay wholly under 128 was embedded, referenced and invisible. That is
+empira/PDFsharp#392, whose palette PNG was a red herring: both backends decode to BGRA whatever
+the source format is, so this fork has no palette path to differ on. Judging this by the XObject's
+keys is what hid it for so long — `TranslucentImageRenderingTests` rasterizes instead, and
+`docs/specs/image-pixel-seam.md` has the measurements.
+
 ## Tagged output
 
 **PinataLayout tags what it draws, and that is the default** — `PdfDocumentRenderer.TagContent` is `true`,

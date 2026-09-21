@@ -90,18 +90,35 @@ public class ImagePixelRoundTripTests
     }
 
     [Fact]
-    public void ThePartlyTransparentImageAlsoCarriesTheOlderOnebitMask()
+    public void ThePartlyTransparentImageCarriesNoOnebitMaskBesideTheSoftMask()
     {
         var placement = Draw(Skia(opaque: false));
+
+        // The stencil used to be written here too, "for compatibility with older reader versions".
+        // It rounds alpha at 128, and a reader that applies it as well as the soft mask - which
+        // Ghostscript and macOS Quartz both do, ISO 32000-1 Table 89 notwithstanding - throws away
+        // every pixel below that. See TranslucentImageRenderingTests for what it cost.
+        placement.XObject.Elements.ContainsKey("/Mask").Should().BeFalse();
+    }
+
+    [Fact]
+    public void AnImageWhoseTransparencyIsBinaryCarriesTheOnebitMaskAndNoSoftMask()
+    {
+        // Nothing between clear and opaque, so the stencil says the whole of it and there is
+        // nothing for a soft mask to add.
+        var placement = Draw(Skia(0, 255, 255, 0, 255, 0));
+
+        placement.XObject.Elements.ContainsKey("/SMask").Should().BeFalse();
 
         var mask = placement.XObject.Elements.GetDictionary("/Mask");
         mask.Should().NotBeNull();
         mask.Elements.GetInteger("/BitsPerComponent").Should().Be(1);
         mask.Elements.GetBoolean("/ImageMask").Should().BeTrue();
 
-        // A bit is set where the pixel is transparent, meaning an alpha below 128, and the rows run
-        // top-down like everything else. Row 0's alphas are 255, 200, 128 and row 1's are 127, 64, 0.
-        mask.Stream.UnfilteredValue.Should().Equal(0x00, 0xE0);
+        // A bit is set where the pixel is transparent, and the rows run top-down like everything
+        // else. Row 0's alphas are 0, 255, 255 and row 1's are 0, 255, 0, so the packed bits are
+        // 100 and 101, each padded out to a byte of its own.
+        mask.Stream.UnfilteredValue.Should().Equal(0x80, 0xA0);
     }
 
     [Fact]
@@ -153,13 +170,19 @@ public class ImagePixelRoundTripTests
 
     static ImageSource.IImageSource Skia(bool opaque)
     {
+        return Skia(opaque ? new byte[] { 255, 255, 255, 255, 255, 255 } : Alphas);
+    }
+
+    /// <summary>One alpha per pixel, in the order the pixels are written.</summary>
+    static ImageSource.IImageSource Skia(params byte[] alphas)
+    {
         var bitmap = new SKBitmap(
             new SKImageInfo(Width, Height, SKColorType.Bgra8888, SKAlphaType.Unpremul));
 
         for (var i = 0; i < Width * Height; i++)
         {
             var (r, g, b) = Colour(i);
-            bitmap.SetPixel(i % Width, i / Width, new SKColor(r, g, b, opaque ? (byte)255 : Alphas[i]));
+            bitmap.SetPixel(i % Width, i / Width, new SKColor(r, g, b, alphas[i]));
         }
 
         return SkiaImageSource.FromSkiaBitmap(bitmap, transparent: true);

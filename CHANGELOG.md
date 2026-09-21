@@ -29,6 +29,14 @@ This file starts at the entry below. Changes before that point are recorded only
   so every such file came out as `ArgumentOutOfRangeException: value ('-1') must be a non-negative
   value` and the sentence written to explain the case — "The StartXRef table could not be found,
   the file cannot be opened." — was unreachable.
+- **A partly transparent image is drawn rather than erased.** Such an image was written with both
+  an 8-bit `/SMask`, carrying its alpha exactly, and a 1-bit `/Mask` stencil rounding that same
+  alpha to transparent or opaque at 128. ISO 32000-1 has the soft mask override the stencil, but
+  Ghostscript and macOS Quartz apply both, so every pixel below 128 was discarded: soft edges lost
+  their antialiasing, and an image whose alpha lay wholly under 128 — a watermark, a faint overlay
+  — was embedded, referenced from the page, and invisible. The stencil is now written only where no
+  soft mask is, which is where it loses nothing: transparency that is already binary, and a
+  document below PDF 1.4. Reported upstream as empira/PDFsharp#392.
 
 - **`XUnit.Presentation` stores a length in presentation units rather than in points.** The setter
   was a copy of the one for `Point` and recorded `XGraphicsUnit.Point` as the measure, so a length
