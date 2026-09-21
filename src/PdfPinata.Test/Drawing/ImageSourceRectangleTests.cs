@@ -99,6 +99,33 @@ public class ImageSourceRectangleTests
         PlacedOperators.Of(page).Should().NotContain(op => op.Name == OpCodeName.Do);
     }
 
+    [Fact]
+    public void AnImageThatCannotBeDrawnLeavesNoClipBehindIt()
+    {
+        var image = AnImage();
+
+        var page = PageShowing(gfx =>
+        {
+            gfx.DrawRectangle(XBrushes.Black, 10, 10, 20, 20);
+            var draw = () => gfx.DrawImage(image, new XRect(double.NaN, 100, 50, 50),
+                new XRect(0, 0, 10, 10), XGraphicsUnit.Point);
+            draw.Should().Throw<Exception>();
+            gfx.DrawRectangle(XBrushes.Black, 40, 10, 20, 20);
+        });
+
+        // Both rectangles are drawn at the same depth of saved states: the one after the failure is
+        // not inside the state the image opened for its clip.
+        var depths = new List<int>();
+        var depth = 0;
+        foreach (var op in PlacedOperators.Of(page))
+        {
+            if (op.Name == OpCodeName.q) depth++;
+            else if (op.Name == OpCodeName.Q) depth--;
+            else if (op.Name == OpCodeName.re) depths.Add(depth);
+        }
+        depths.Should().HaveCount(2).And.OnlyContain(d => d == depths[0]);
+    }
+
     static PdfPage PageShowing(Action<XGraphics> draw)
     {
         var page = new PdfDocument().AddPage();

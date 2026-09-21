@@ -805,15 +805,22 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         RealizeTransform();
         SaveState();
 
-        var clip = new XGraphicsPath();
-        clip.AddRectangle(destRect);
-        _gfxState.SetAndRealizeClipPath(clip);
+        // Restored whatever happens, or a failed image would leave everything after it on the page
+        // clipped to where the image was to go.
+        try
+        {
+            var clip = new XGraphicsPath();
+            clip.AddRectangle(destRect);
+            _gfxState.SetAndRealizeClipPath(clip);
 
-        DrawImage(image, destRect.X - srcX * scaleX, destRect.Y - srcY * scaleY,
-            imageWidth * scaleX, imageHeight * scaleY);
-
-        BeginGraphicMode();
-        RestoreState();
+            DrawImage(image, destRect.X - srcX * scaleX, destRect.Y - srcY * scaleY,
+                imageWidth * scaleX, imageHeight * scaleY);
+        }
+        finally
+        {
+            BeginGraphicMode();
+            RestoreState();
+        }
 
         static bool IsAbout(double value, double expected) =>
             Math.Abs(value - expected) <= 1e-6 * Math.Max(1, Math.Abs(expected));
