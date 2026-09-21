@@ -5,7 +5,7 @@ Gap **G4** of the competitive gap analysis.
 
 | item | what | status |
 |---|---|---|
-| 1 | An XMP metadata writer, synchronised with the info dictionary | done, **and PDF/UA now shares it** |
+| 1 | An XMP metadata writer, synchronised with the info dictionary | done, **and PDF/UA now shares it**; `PdfDocumentOptions.MetadataStrategy` says what a save does with a packet when nothing is claimed — see [upstream-7-interactive-port.md](upstream-7-interactive-port.md) item 8 |
 | 2 | Output intent with an embedded ICC profile | done, **and an RGB document is given one** |
 | 3 | `PdfDocumentOptions.Conformance` that **enforces** rather than labels | done, the resource rules in [conformance-completeness.md](conformance-completeness.md) |
 | 4 | PDF/A-3 attachments — `/AFRelationship` and catalog `/AF` | done |
