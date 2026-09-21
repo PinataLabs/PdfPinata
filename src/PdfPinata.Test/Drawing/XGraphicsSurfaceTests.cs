@@ -796,18 +796,39 @@ public class XGraphicsSurfaceTests
         gfx.Transform.Transform(new XPoint(100, 100)).Should().Be(new XPoint(300, 300));
     }
 
+    [Theory]
+    [InlineData(XGraphicsUnit.Inch, 1, 72)]
+    [InlineData(XGraphicsUnit.Millimeter, 25.4, 72)]
+    [InlineData(XGraphicsUnit.Centimeter, 2.54, 72)]
+    [InlineData(XGraphicsUnit.Presentation, 96, 72)]
+    [InlineData(XGraphicsUnit.Point, 72, 72)]
+    public void AContainerMeasuresItsSourceRectangleInTheUnitItIsGiven(XGraphicsUnit unit, double side,
+        double sideInPoints)
+    {
+        using var gfx = OnAPage();
+
+        // Every one of these source boxes is an inch on a side, mapped onto a box twice that, so
+        // the scale is two whatever the unit. What is drawn inside is still measured in points.
+        gfx.BeginContainer(new XRect(100, 100, 2 * sideInPoints, 2 * sideInPoints),
+            new XRect(side, side, side, side), unit);
+
+        gfx.Transform.Transform(new XPoint(sideInPoints, sideInPoints)).X.Should().BeApproximately(100, 1e-9);
+        gfx.Transform.Transform(new XPoint(2 * sideInPoints, 2 * sideInPoints)).X
+            .Should().BeApproximately(100 + 2 * sideInPoints, 1e-9);
+    }
+
     [Fact]
-    public void AContainerInAnyUnitButPointIsRefusedAndEndingNothingIsToo()
+    public void AContainerInNoUnitAtAllIsRefusedAndEndingNothingIsToo()
     {
         using var gfx = OnAPage();
 
         // ReSharper disable once AccessToDisposedClosure
-        var inMillimetres = () => gfx.BeginContainer(
-            new XRect(0, 0, 1, 1), new XRect(0, 0, 1, 1), XGraphicsUnit.Millimeter);
+        var inNoUnit = () => gfx.BeginContainer(
+            new XRect(0, 0, 1, 1), new XRect(0, 0, 1, 1), (XGraphicsUnit)99);
         // ReSharper disable once AccessToDisposedClosure
         var endNothing = () => gfx.EndContainer(null);
 
-        inMillimetres.Should().Throw<ArgumentException>();
+        inNoUnit.Should().Throw<ArgumentException>().WithParameterName("unit");
         endNothing.Should().Throw<ArgumentNullException>();
     }
 
