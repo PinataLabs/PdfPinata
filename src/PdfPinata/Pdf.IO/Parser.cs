@@ -1178,7 +1178,13 @@ internal sealed class Parser
         // Read all trailers. The one to keep is decided here and handed back; the caller is what
         // puts it on the document, so that reading a trailer writes nothing behind its back.
         PdfTrailer firstTrailer = null;
-        while (true)
+        // Where every section read so far begins. /Prev is written by whoever wrote the file, and a
+        // section naming itself, or two naming each other, used to be read round and round for
+        // ever. Reading a section a second time adds nothing - entries already in the table win -
+        // so the walk stops at the first one it has seen, and the chain up to there is the whole
+        // of what the file has to say.
+        var sectionsRead = new HashSet<long>();
+        while (sectionsRead.Add(_lexer.Position))
         {
             var trailer = ReadXRefTableAndTrailer(_document._irefTable, accuracy);
 
