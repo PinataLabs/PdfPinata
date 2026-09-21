@@ -1,5 +1,6 @@
 using System;
 using PdfPinata.Drawing;
+using PdfPinata.Pdf.Annotations;
 
 namespace PdfPinata.Pdf.Signatures;
 
@@ -75,6 +76,37 @@ public sealed class PdfSignatureOptions
     /// not what a reader validates, and drawing the word "signed" does not sign anything.
     /// </remarks>
     public Action<XGraphics, XRect> DrawAppearance { get; set; }
+
+    /// <summary>
+    /// The annotation flags written to the signature widget's <c>/F</c>. Defaults to
+    /// <see cref="PdfAnnotationFlags.Print"/>, so the signature is part of the printed document too.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The widget is created while signing and is written into the revision the signature covers,
+    /// so this is the only point at which its flags can be chosen: changing <c>/F</c> afterwards is
+    /// a change to a signed object, and appending that change leaves a signature that no longer
+    /// covers the document as it is shown. <see cref="PdfAnnotationFlags.Locked"/> and
+    /// <see cref="PdfAnnotationFlags.ReadOnly"/> are the usual additions. No flags at all omits
+    /// <c>/F</c>, which is what zero means anyway.
+    /// </para>
+    /// <para>
+    /// <see cref="PdfAnnotationFlags.Hidden"/> and <see cref="PdfAnnotationFlags.NoView"/> are
+    /// accepted: they change what a reader shows on the page, not whether the signature is found
+    /// or validated, which is done through the AcroForm rather than through the page. For a
+    /// signature with no <see cref="Rectangle"/> there is nothing to show either way.
+    /// </para>
+    /// <para>
+    /// PDF/A (ISO 19005-1 6.5.3, -2 and -3 6.3.2) requires <see cref="PdfAnnotationFlags.Print"/> on
+    /// every annotation and forbids <see cref="PdfAnnotationFlags.Invisible"/>,
+    /// <see cref="PdfAnnotationFlags.Hidden"/>, <see cref="PdfAnnotationFlags.NoView"/> and
+    /// <see cref="PdfAnnotationFlags.ToggleNoView"/>. Signing a document whose
+    /// <see cref="PdfDocumentOptions.Conformance"/> claims a profile refuses flags that break
+    /// that rule. A document opened for signing does not know by itself that its file claims PDF/A,
+    /// so when signing an archival file without setting that claim again, keep to the rule by hand.
+    /// </para>
+    /// </remarks>
+    public PdfAnnotationFlags AnnotationFlags { get; set; } = PdfAnnotationFlags.Print;
 
     /// <summary>
     /// Whether this signature certifies the document, and what it then still permits.
