@@ -36,6 +36,16 @@ This file starts at the entry below. Changes before that point are recorded only
   Radial gradients themselves, the other half of empira/PDFsharp#321, were already drawn in colour
   here; `RadialGradientRenderingTests` now reads their pixels to keep it that way.
 
+- **A document updated incrementally is read as its newest revision, where cross-reference streams
+  are involved.** Two ways an older revision's object took the place of the newer one's, both met in
+  signed documents (empira/PDFsharp#353, whose cause is empira/PDFsharp#213). An update may give a
+  new object the number of an earlier revision's cross-reference stream, and the reader hung the
+  stream on it, so an `/AcroForm` under that number read as a cross-reference stream and
+  `AcroForm.Fields.Names` came back empty. And an object stored compressed in an older revision and
+  written out in full by a newer one - a catalog a signing tool rewrites to add its form, for one -
+  read as the older compressed copy. The newest entry for a number now decides what the number
+  means, whichever form either revision stored it in.
+
 ## [0.2.1] - 2026-09-21
 
 ### Added

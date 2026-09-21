@@ -142,10 +142,12 @@ static class ParserProbe
 
     /// <summary>
     ///   Reads a cross-reference stream into the given table. The parser must have just scanned the
-    ///   object number of the stream, which is where ReadXRefTableAndTrailer hands over to it.
+    ///   object number of the stream, which is where ReadXRefTableAndTrailer hands over to it, and
+    ///   <paramref name="startOfSection" /> is where that number began: an entry already in the
+    ///   table for the stream's number is taken to be the stream only if it points there.
     /// </summary>
-    internal static object ReadXRefStream(object parser, object xrefTable) =>
-        Invoke(Method("ReadXRefStream", new[] { TableType }), parser, xrefTable);
+    internal static object ReadXRefStream(object parser, object xrefTable, long startOfSection) =>
+        Invoke(Method("ReadXRefStream", new[] { TableType, typeof(long) }), parser, xrefTable, startOfSection);
 
     /// <summary>
     ///   The entries a cross-reference stream decoded, as the three fields of each.
