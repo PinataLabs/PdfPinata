@@ -112,13 +112,13 @@ public class AnnotationCollectionTests
     // ----- annotations read back out of a file ---------------------------------------------------------
 
     /// <summary>
-    ///   An annotation in a file is a plain dictionary, and nothing in the reader restores the
-    ///   class that wrote it. Asking the collection for one wraps it in a
-    ///   <see cref="PdfGenericAnnotation"/> whatever its subtype says, so a caller reading a file
-    ///   works with the dictionary rather than with the typed annotation it was written from.
+    ///   An annotation in a file is a plain dictionary. Asking the collection for one gives it the
+    ///   class its subtype names, so a caller reading a file works with the same typed annotation
+    ///   it was written from. It used to be a <see cref="PdfGenericAnnotation"/> whatever the
+    ///   subtype said; that is now what a subtype with no class of its own becomes.
     /// </summary>
     [Fact]
-    public void AnAnnotationReadBackIsHandedOverAsAGenericOne()
+    public void AnAnnotationReadBackIsHandedOverAsTheClassItsSubtypeNames()
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -129,9 +129,9 @@ public class AnnotationCollectionTests
         var annotations = reopened.Pages[0].Annotations;
 
         annotations.Count.Should().Be(2);
-        annotations[0].Should().BeOfType<PdfGenericAnnotation>();
-        annotations[0].Elements.GetName("/Subtype").Should().Be("/Text");
-        annotations[1].Should().BeOfType<PdfGenericAnnotation>();
+        annotations[0].Should().BeOfType<PdfTextAnnotation>();
+        annotations[0].Contents.Should().Be("kept");
+        annotations[1].Should().BeOfType<PdfLinkAnnotation>();
         annotations[1].Elements.GetName("/Subtype").Should().Be("/Link");
     }
 

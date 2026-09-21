@@ -60,7 +60,57 @@ public abstract class PdfAnnotation : PdfDictionary
     /// </summary>
     internal PdfAnnotation(PdfDictionary dict)
         : base(dict)
-    { }
+    {
+        // The dictionary being wrapped may already have been changed since it was read, and the
+        // wrapper is what an incremental save asks from now on - a change forgotten here would be
+        // silently left out of the appended revision.
+        IsDirty = dict.IsDirty;
+    }
+
+    /// <summary>
+    /// Gives an annotation dictionary read from a document the class that knows its subtype, or
+    /// <see cref="PdfGenericAnnotation"/> when there is none.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The wrapper takes the dictionary over - its entries, its stream and its place in the
+    /// cross-reference table - and writes nothing into it. That matters most for the subtypes that
+    /// draw their own appearance: constructing one of those afresh writes defaults and draws, and
+    /// doing that to an annotation read from a file would replace the appearance the file carries
+    /// with one this library made up. Only changing a property the appearance is drawn from redraws
+    /// it, exactly as for an annotation made here.
+    /// </para>
+    /// <para>
+    /// A <c>/Widget</c> is often the same dictionary as the form field it shows. Wrapping it here
+    /// shares its entries with any field object already made over it, as the generic wrapper always
+    /// did, so a value written through either is written into the one dictionary.
+    /// </para>
+    /// </remarks>
+    internal static PdfAnnotation FromDictionary(PdfDictionary dict)
+    {
+        ArgumentNullException.ThrowIfNull(dict);
+
+        if (dict is PdfAnnotation annotation)
+            return annotation;
+
+        return dict.Elements.GetName(Keys.Subtype) switch
+        {
+            "/Text" => new PdfTextAnnotation(dict),
+            "/Link" => new PdfLinkAnnotation(dict),
+            "/FreeText" => new PdfFreeTextAnnotation(dict),
+            "/Line" => new PdfLineAnnotation(dict),
+            "/Square" => new PdfSquareAnnotation(dict),
+            "/Circle" => new PdfCircleAnnotation(dict),
+            "/Highlight" => new PdfHighlightAnnotation(dict),
+            "/Underline" => new PdfUnderlineAnnotation(dict),
+            "/StrikeOut" => new PdfStrikeOutAnnotation(dict),
+            "/Squiggly" => new PdfSquigglyAnnotation(dict),
+            "/Stamp" => new PdfRubberStampAnnotation(dict),
+            "/FileAttachment" => new PdfFileAttachmentAnnotation(dict),
+            "/Widget" => new PdfWidgetAnnotation(dict),
+            _ => new PdfGenericAnnotation(dict),
+        };
+    }
 
     void Initialize()
     {
@@ -454,6 +504,59 @@ public abstract class PdfAnnotation : PdfDictionary
         return Enum.IsDefined(typeof(T), member)
             ? Enum.Parse<T>(member, false)
             : fallback;
+    }
+
+    /// <summary>
+    /// Reads a DeviceRGB colour array - <c>/IC</c>, say - or <paramref name="fallback"/> when the
+    /// array is absent or is not three numbers, which is how an empty <c>/IC</c> says "no colour".
+    /// </summary>
+    /// <remarks>
+    /// Rounded rather than truncated. A component is written as a fraction of 255 to the seven
+    /// decimal places PdfWriter gives a real, so 127 goes out as 0.4980392 and comes back as
+    /// 126.999996 - and truncating that loses a value the file all but said.
+    /// </remarks>
+    private protected static XColor ColorFrom(PdfArray colour, XColor fallback)
+    {
+        if (colour == null || colour.Elements.Count != 3)
+            return fallback;
+
+        return XColor.FromArgb(
+            (int)Math.Round(colour.Elements.GetReal(0) * 255),
+            (int)Math.Round(colour.Elements.GetReal(1) * 255),
+            (int)Math.Round(colour.Elements.GetReal(2) * 255));
+    }
+
+    /// <summary>
+    /// Writes a colour as a DeviceRGB array, and <see cref="XColor.Empty"/> as the empty array that
+    /// says "no colour" - which is not the same as the entry being absent: it means the same thing,
+    /// but says nothing about intent.
+    /// </summary>
+    /// <remarks>
+    /// A direct array with no owner, so that it can be written before the annotation is on a page.
+    /// </remarks>
+    private protected static PdfArray ColorArray(XColor colour)
+    {
+        var array = new PdfArray();
+        if (colour != XColor.Empty)
+        {
+            array.Elements.Add(new PdfReal(colour.R / 255.0));
+            array.Elements.Add(new PdfReal(colour.G / 255.0));
+            array.Elements.Add(new PdfReal(colour.B / 255.0));
+        }
+
+        return array;
+    }
+
+    /// <summary>
+    /// The border width a border style dictionary gives, or 1 - ISO 32000-1 Table 166's default for
+    /// <c>/W</c>, and what a reader draws when there is no <c>/BS</c> at all.
+    /// </summary>
+    private protected static double BorderWidthFrom(PdfDictionary borderStyle)
+    {
+        if (borderStyle == null || !borderStyle.Elements.ContainsKey("/W"))
+            return 1;
+
+        return borderStyle.Elements.GetReal("/W");
     }
 
     /// <summary>

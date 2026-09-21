@@ -42,6 +42,14 @@ public class PdfFileAttachmentAnnotation : PdfAnnotation
     }
 
     /// <summary>
+    /// Wraps an annotation dictionary read from a document, keeping every entry it has and
+    /// writing none of the defaults a new one is given.
+    /// </summary>
+    internal PdfFileAttachmentAnnotation(PdfDictionary dict)
+        : base(dict)
+    { }
+
+    /// <summary>
     /// The icon a viewer draws for the attachment. Unlike the icon of a text annotation or a
     /// rubber stamp there is no "none": an attachment with no <c>/Name</c> is a push pin, which
     /// is the default ISO 32000-1 Table 184 gives the entry.

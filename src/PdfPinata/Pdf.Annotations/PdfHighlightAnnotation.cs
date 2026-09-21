@@ -56,6 +56,14 @@ public sealed class PdfHighlightAnnotation : PdfTextMarkupAnnotation
         Initialize();
     }
 
+    /// <summary>
+    /// Wraps an annotation dictionary read from a document, keeping every entry it has and
+    /// writing none of the defaults a new one is given.
+    /// </summary>
+    internal PdfHighlightAnnotation(PdfDictionary dict)
+        : base(dict)
+    { }
+
     void Initialize()
     {
         Elements.SetName(PdfAnnotation.Keys.Subtype, "/Highlight");

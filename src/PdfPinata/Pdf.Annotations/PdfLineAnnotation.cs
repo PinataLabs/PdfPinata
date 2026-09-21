@@ -46,6 +46,14 @@ public sealed class PdfLineAnnotation : PdfAnnotation
         Initialize();
     }
 
+    /// <summary>
+    /// Wraps an annotation dictionary read from a document, keeping every entry it has and
+    /// writing none of the defaults a new one is given.
+    /// </summary>
+    internal PdfLineAnnotation(PdfDictionary dict)
+        : base(dict)
+    { }
+
     void Initialize()
     {
         Elements.SetName(PdfAnnotation.Keys.Subtype, "/Line");
@@ -97,11 +105,7 @@ public sealed class PdfLineAnnotation : PdfAnnotation
     /// </remarks>
     public double BorderWidth
     {
-        get
-        {
-            var border = Elements.GetDictionary(PdfAnnotation.Keys.BS);
-            return border == null ? 1 : border.Elements.GetReal("/W");
-        }
+        get => BorderWidthFrom(Elements.GetDictionary(PdfAnnotation.Keys.BS));
         set
         {
             if (value < 0)
@@ -125,34 +129,10 @@ public sealed class PdfLineAnnotation : PdfAnnotation
     /// </summary>
     public XColor Interior
     {
-        get
-        {
-            var colour = Elements.GetArray(Keys.IC);
-            if (colour == null || colour.Elements.Count < 3)
-                return XColor.Empty;
-
-            // Rounded rather than truncated. A component is written as a fraction of 255 to the
-            // seven decimal places PdfWriter gives a real, so 127 goes out as 0.4980392 and comes
-            // back as 126.999996 - and truncating that loses a value the file all but said.
-            return XColor.FromArgb(
-                (int)Math.Round(colour.Elements.GetReal(0) * 255),
-                (int)Math.Round(colour.Elements.GetReal(1) * 255),
-                (int)Math.Round(colour.Elements.GetReal(2) * 255));
-        }
+        get => ColorFrom(Elements.GetArray(Keys.IC), XColor.Empty);
         set
         {
-            // An empty array is how the specification says "no interior colour", and is not the
-            // same as the entry being absent - which means the same thing, but says nothing
-            // about intent.
-            var colour = new PdfArray();
-            if (value != XColor.Empty)
-            {
-                colour.Elements.Add(new PdfReal(value.R / 255.0));
-                colour.Elements.Add(new PdfReal(value.G / 255.0));
-                colour.Elements.Add(new PdfReal(value.B / 255.0));
-            }
-
-            Elements[Keys.IC] = colour;
+            Elements[Keys.IC] = ColorArray(value);
             Touch();
         }
     }

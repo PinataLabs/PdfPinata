@@ -57,6 +57,14 @@ public sealed class PdfSquigglyAnnotation : PdfTextMarkupAnnotation
         Initialize();
     }
 
+    /// <summary>
+    /// Wraps an annotation dictionary read from a document, keeping every entry it has and
+    /// writing none of the defaults a new one is given.
+    /// </summary>
+    internal PdfSquigglyAnnotation(PdfDictionary dict)
+        : base(dict)
+    { }
+
     void Initialize()
     {
         Elements.SetName(PdfAnnotation.Keys.Subtype, "/Squiggly");

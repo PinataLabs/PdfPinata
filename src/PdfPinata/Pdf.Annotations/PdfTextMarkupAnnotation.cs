@@ -74,6 +74,14 @@ public abstract class PdfTextMarkupAnnotation : PdfAnnotation
     }
 
     /// <summary>
+    /// Wraps an annotation dictionary read from a document, keeping every entry it has and
+    /// writing none of the defaults a new one is given.
+    /// </summary>
+    private protected PdfTextMarkupAnnotation(PdfDictionary dict)
+        : base(dict)
+    { }
+
+    /// <summary>
     /// Gets the quadrilaterals the markup covers, in default page space.
     /// </summary>
     /// <remarks>

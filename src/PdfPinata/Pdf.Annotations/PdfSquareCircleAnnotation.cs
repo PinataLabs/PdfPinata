@@ -49,6 +49,14 @@ public abstract class PdfSquareCircleAnnotation : PdfAnnotation
     }
 
     /// <summary>
+    /// Wraps an annotation dictionary read from a document, keeping every entry it has - its
+    /// appearance above all - and writing none of the defaults a new one is given.
+    /// </summary>
+    private protected PdfSquareCircleAnnotation(PdfDictionary dict)
+        : base(dict)
+    { }
+
+    /// <summary>
     /// Draws the shape into the appearance stream, inside the box the border has left of the
     /// annotation's rectangle.
     /// </summary>
@@ -81,18 +89,20 @@ public abstract class PdfSquareCircleAnnotation : PdfAnnotation
     /// The colour the rectangle is filled with. <see cref="XColor.Empty"/>, which is the default,
     /// leaves it unfilled - the <c>/IC</c> entry of an empty array.
     /// </summary>
+    /// <remarks>
+    /// Read back out of the dictionary rather than kept in a field, so that an annotation read
+    /// from a file reports what the file says rather than what a new one would have.
+    /// </remarks>
     public XColor Interior
     {
-        get => _interior;
+        get => ColorFrom(Elements.GetArray(Keys.IC), XColor.Empty);
         set
         {
-            _interior = value;
-            WriteInteriorColor();
+            WriteInteriorColor(value);
             Elements.SetDateTime(PdfAnnotation.Keys.M, GlobalTimeSettings.Now);
             OnAppearanceInvalidated();
         }
     }
-    XColor _interior = XColor.Empty;
 
     /// <summary>
     /// The width of the border, in points. Zero draws no border, leaving the interior alone.
@@ -104,13 +114,11 @@ public abstract class PdfSquareCircleAnnotation : PdfAnnotation
     /// </remarks>
     public double BorderWidth
     {
-        get => _borderWidth;
+        get => BorderWidthFrom(Elements.GetDictionary(PdfAnnotation.Keys.BS));
         set
         {
             if (value < 0)
                 throw new ArgumentOutOfRangeException(nameof(value), value, "A border cannot be narrower than nothing.");
-
-            _borderWidth = value;
 
             // A direct dictionary, so that it needs no owner - the width can be set before the
             // annotation has been added to a page.
@@ -124,21 +132,11 @@ public abstract class PdfSquareCircleAnnotation : PdfAnnotation
             OnAppearanceInvalidated();
         }
     }
-    double _borderWidth;
-
-    void WriteInteriorColor()
+    void WriteInteriorColor(XColor interior)
     {
         // An empty array is how the specification says "no interior colour", and is not the same
         // as the entry being absent - which means the same thing, but says nothing about intent.
-        var colour = new PdfArray();
-        if (_interior != XColor.Empty)
-        {
-            colour.Elements.Add(new PdfReal(_interior.R / 255.0));
-            colour.Elements.Add(new PdfReal(_interior.G / 255.0));
-            colour.Elements.Add(new PdfReal(_interior.B / 255.0));
-        }
-
-        Elements[Keys.IC] = colour;
+        Elements[Keys.IC] = ColorArray(interior);
     }
 
     internal override void OnAddedToPage()
@@ -170,12 +168,15 @@ public abstract class PdfSquareCircleAnnotation : PdfAnnotation
         var width = rect.X2 - rect.X1;
         var height = rect.Y2 - rect.Y1;
 
-        var inset = _borderWidth / 2;
-        var drawnWidth = width - _borderWidth;
-        var drawnHeight = height - _borderWidth;
+        var borderWidth = BorderWidth;
+        var interior = Interior;
 
-        var pen = _borderWidth > 0 ? new XPen(Color, _borderWidth) : null;
-        XBrush brush = _interior == XColor.Empty ? null : new XSolidBrush(_interior);
+        var inset = borderWidth / 2;
+        var drawnWidth = width - borderWidth;
+        var drawnHeight = height - borderWidth;
+
+        var pen = borderWidth > 0 ? new XPen(Color, borderWidth) : null;
+        XBrush brush = interior == XColor.Empty ? null : new XSolidBrush(interior);
 
         // Nothing to draw: no rectangle yet, none left once the border has taken its half from
         // each side, or neither a border nor a fill asked for. The appearance already there has

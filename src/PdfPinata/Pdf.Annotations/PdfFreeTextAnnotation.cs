@@ -53,6 +53,63 @@ public sealed class PdfFreeTextAnnotation : PdfAnnotation
         Initialize();
     }
 
+    /// <summary>
+    /// Wraps an annotation dictionary read from a document, keeping every entry it has and
+    /// writing none of the defaults a new one is given.
+    /// </summary>
+    internal PdfFreeTextAnnotation(PdfDictionary dict)
+        : base(dict)
+    {
+        // The ink and the size live in /DA, which is the one place a file says them. The face
+        // cannot be recovered - /DA names a resource of the form's, not a font file - so the
+        // default face is drawn at the size the file asked for if the text is ever redrawn.
+        ReadDefaultAppearance(Elements.GetString(Keys.DA));
+    }
+
+    /// <summary>
+    /// Takes the colour and the size back out of a <c>/DA</c> string - the last <c>rg</c>,
+    /// <c>g</c> or <c>k</c> operator and the last <c>Tf</c> - leaving the defaults where it says
+    /// nothing that can be read.
+    /// </summary>
+    void ReadDefaultAppearance(string appearance)
+    {
+        if (string.IsNullOrEmpty(appearance))
+            return;
+
+        var tokens = appearance.Split(new[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        for (var index = 0; index < tokens.Length; index++)
+        {
+            switch (tokens[index])
+            {
+                case "Tf" when index >= 1 && TryNumber(tokens[index - 1], out var size) && size > 0:
+                    _readFontSize = size;
+                    break;
+
+                case "g" when index >= 1 && TryNumber(tokens[index - 1], out var grey):
+                    _textColor = XColor.FromArgb(Component(grey), Component(grey), Component(grey));
+                    break;
+
+                case "rg" when index >= 3 && TryNumber(tokens[index - 3], out var r)
+                                         && TryNumber(tokens[index - 2], out var g)
+                                         && TryNumber(tokens[index - 1], out var b):
+                    _textColor = XColor.FromArgb(Component(r), Component(g), Component(b));
+                    break;
+
+                case "k" when index >= 4 && TryNumber(tokens[index - 4], out var c)
+                                        && TryNumber(tokens[index - 3], out var m)
+                                        && TryNumber(tokens[index - 2], out var y)
+                                        && TryNumber(tokens[index - 1], out var k):
+                    _textColor = XColor.FromCmyk(c, m, y, k);
+                    break;
+            }
+        }
+
+        static bool TryNumber(string token, out double value) =>
+            double.TryParse(token, NumberStyles.Float, CultureInfo.InvariantCulture, out value);
+
+        static int Component(double value) => (int)Math.Round(Math.Clamp(value, 0, 1) * 255);
+    }
+
     void Initialize()
     {
         Elements.SetName(PdfAnnotation.Keys.Subtype, "/FreeText");
@@ -88,7 +145,7 @@ public sealed class PdfFreeTextAnnotation : PdfAnnotation
     /// </remarks>
     public XFont Font
     {
-        get => _font ?? (_font = new XFont(GlobalFontSettings.FontResolver.DefaultFontName, 10));
+        get => _font ?? (_font = new XFont(GlobalFontSettings.FontResolver.DefaultFontName, _readFontSize));
         set
         {
             _font = value ?? throw new ArgumentNullException(nameof(value));
@@ -98,6 +155,12 @@ public sealed class PdfFreeTextAnnotation : PdfAnnotation
         }
     }
     XFont _font;
+
+    /// <summary>
+    /// The size the default face is drawn at - 10, or what <c>/DA</c> said of an annotation read
+    /// from a file.
+    /// </summary>
+    double _readFontSize = 10;
 
     /// <summary>
     /// The colour the text and the border are drawn in. Black by default.
@@ -121,11 +184,7 @@ public sealed class PdfFreeTextAnnotation : PdfAnnotation
     /// </summary>
     public double BorderWidth
     {
-        get
-        {
-            var border = Elements.GetDictionary(PdfAnnotation.Keys.BS);
-            return border == null ? 1 : border.Elements.GetReal("/W");
-        }
+        get => BorderWidthFrom(Elements.GetDictionary(PdfAnnotation.Keys.BS));
         set
         {
             if (value < 0)
@@ -202,7 +261,7 @@ public sealed class PdfFreeTextAnnotation : PdfAnnotation
     void WriteDefaultAppearance()
     {
         // Size read off the font rather than stored, so that /DA and the drawing cannot disagree.
-        var size = _font?.Size ?? 10;
+        var size = _font?.Size ?? _readFontSize;
 
         var appearance = string.Format(CultureInfo.InvariantCulture,
             "/Helv {0:0.###} Tf {1:0.###} {2:0.###} {3:0.###} rg",
