@@ -362,6 +362,17 @@ the removed mode's place. An old assembly passing 3 gets a value the enum does n
 `Append`, never into 3. `OpenModeEnforcementTests` is the matrix of four modes against nineteen
 operations, and `docs/specs/open-mode-enforcement.md` has the rest.
 
+**A revision can be described twice, and both halves have to be read.** A hybrid-reference file
+(ISO 32000-1 7.5.8.4) marks every object it keeps in an object stream *free* in its classic
+cross-reference table and names a cross-reference stream in the trailer's `/XRefStm` that says
+where they really are — so ignoring that entry is not a tolerant reading, it is reading a document
+the compressed objects are missing from, silently, because a dangling reference is null by design.
+`ReadHybridCrossReferenceStream` reads it **after the table of that revision and before its
+`/Prev`**, for its entries alone: entries already in the table win, and the stream's own trailer and
+`/Prev` are dropped, because the classic trailers are the chain of revisions. Nothing here *writes*
+one — `PdfTrailer.WriteObject` deletes `/XRefStm` — so saving a hybrid file produces an ordinary
+one. `docs/specs/hybrid-reference-files.md` has the rest.
+
 **Strings and names are byte strings, one char per byte.** `Lexer` reads with
 `(char)stream.ReadByte()`, `PdfEncoders.RawEncoding` converts back, and `PdfWriter` asserts
 `ch < 256` on the way out. Nothing in the name path re-decodes to Unicode, so a name written in a

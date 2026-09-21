@@ -1161,6 +1161,11 @@ internal sealed class Parser
             // 1st trailer seems to be the best.
             if (firstTrailer == null)
                 firstTrailer = trailer;
+
+            // Before /Prev, because the stream belongs to the revision just read rather than to the
+            // one before it.
+            ReadHybridCrossReferenceStream(trailer, accuracy);
+
             var prev = trailer != null ? trailer.Elements.GetInteger(PdfTrailer.Keys.Prev) : 0;
             if (prev == 0)
                 break;
@@ -1171,6 +1176,59 @@ internal sealed class Parser
         }
 
         return firstTrailer;
+    }
+
+    /// <summary>
+    /// Reads the cross-reference stream a classic trailer names in /XRefStm, which is where a
+    /// hybrid-reference file says its compressed objects are.
+    /// </summary>
+    /// <remarks>
+    /// ISO 32000-1 7.5.8.4. Such a file carries both kinds of cross-reference section for the same
+    /// revision: a classic table, which marks every object that lives in an object stream as free
+    /// so that a reader knowing nothing of object streams sees a document without them, and beside
+    /// it a cross-reference stream saying where those objects really are. Skipping the entry is
+    /// therefore not a tolerant reading of the file - it is reading the smaller document the table
+    /// describes, and the objects left out are silently missing from the pages that use them.
+    ///
+    /// Entries already in the table win, which is the rule the table itself is read under and what
+    /// makes the newest revision the one that counts. The stream's own trailer is dropped, because
+    /// the classic trailer of this revision is the document's, and its /Prev is not followed: the
+    /// classic trailers are the chain of revisions and each of them names its own stream. Both
+    /// pdf.js and pypdf read one in the same place and the same order.
+    /// </remarks>
+    void ReadHybridCrossReferenceStream(PdfTrailer trailer, PdfReadAccuracy accuracy)
+    {
+        var position = trailer?.Elements.GetInteger(PdfTrailer.Keys.XRefStm) ?? 0;
+        if (position == 0)
+            return;
+
+        if (position < 0 || position >= _lexer.PdfLength)
+        {
+            if (accuracy == PdfReadAccuracy.Strict)
+                ParserDiagnostics.ThrowParserException(
+                    "The trailer's /XRefStm names position " + position + ", which is not inside the file.");
+
+            return;
+        }
+
+        try
+        {
+            _lexer.Position = position;
+            ReadXRefTableAndTrailer(_document._irefTable, accuracy);
+        }
+        catch (Exception ex)
+        {
+            // What a cross-reference stream can be damaged in is not a list worth enumerating, and
+            // the classic table beside it has already been read - so under Moderate the document
+            // opens as the PDF 1.4 file that table describes, which is the one case where dropping
+            // a section loses nothing the file did not already say twice.
+            if (accuracy == PdfReadAccuracy.Strict)
+                throw new PdfReaderException(
+                    "The cross-reference stream at position " + position +
+                    ", named by the trailer's /XRefStm, could not be read.", ex);
+
+            Debug.WriteLine(ex.Message);
+        }
     }
 
     /// <summary>

@@ -9,7 +9,7 @@ investigation turned up. All three are tracked the same way, because what a read
 first is the same in each case: is this the code as it stands, or the code as somebody hoped it
 would be?
 
-**44 done · 4 in progress · 10 not started · 58 total.**
+**45 done · 4 in progress · 10 not started · 59 total.**
 
 Read the relevant spec before extending that feature area.
 
@@ -35,6 +35,7 @@ decisions, not outstanding work.
 - [x] [external-file-streams.md](external-file-streams.md) — a stream whose data is in another file, empira#389; `PdfStream.ExternalFile` says where, and nothing fetches it
 - [x] [font-embedding-gaps.md](font-embedding-gaps.md) — `.otf`/`.ttc` discovery, CFF embedding, style simulation, G1–G6
 - [x] [graphics-state-stack-unification.md](graphics-state-stack-unification.md) — the dead state stack removed, the live pair kept apart (T15)
+- [x] [hybrid-reference-files.md](hybrid-reference-files.md) — the `/XRefStm` a classic trailer names, empira#388; every compressed object was invisible without it
 - [x] [image-failure-reporting.md](image-failure-reporting.md) — an image decode failure that says which failure, empira#366
 - [x] [image-pixel-seam.md](image-pixel-seam.md) — the image seam widened from an invented BMP to pixels (T14)
 - [x] [import-size-and-annotations.md](import-size-and-annotations.md) — page-import defects found beyond issue #461
