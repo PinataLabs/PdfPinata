@@ -170,6 +170,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
             // Update page count.
             Elements.SetInteger(Keys.Count, PagesArray.Elements.Count);
 
+            Owner.OnPageAdded(page, index);
             return page;
         }
 
@@ -202,6 +203,8 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         }
         if (Owner.Settings.TrimMargins.AreSet)
             page.TrimMargins = Owner.Settings.TrimMargins;
+
+        Owner.OnPageAdded(page, index);
         return page;
     }
 
@@ -413,6 +416,11 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
                 page.TrimMargins = Owner.Settings.TrimMargins;
         }
         Elements.SetInteger(Keys.Count, PagesArray.Elements.Count);
+
+        // Raised once the whole range is in and the count is right, so a handler looking at the
+        // document never sees it half inserted.
+        for (var offset = 0; offset < pageCount; offset++)
+            Owner.OnPageAdded(this[index + offset], index + offset);
     }
 
     /// <summary>
@@ -448,8 +456,11 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     public void Remove(PdfPage page)
     {
         EnsureCanModify("removing a page");
-        PagesArray.Elements.Remove(page.Reference);
-        Elements.SetInteger(Keys.Count, PagesArray.Elements.Count);
+        var index = PagesArray.Elements.IndexOf(page.Reference);
+        if (index < 0)
+            return;
+
+        RemoveAt(index);
     }
 
     /// <summary>
@@ -458,8 +469,16 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     public void RemoveAt(int index)
     {
         EnsureCanModify("removing a page");
+
+        // Only a handler needs the page, and reading it resolves the reference, so it is asked for
+        // only when somebody is listening.
+        var page = Owner.HasPageRemovedHandlers ? this[index] : null;
+
         PagesArray.Elements.RemoveAt(index);
         Elements.SetInteger(Keys.Count, PagesArray.Elements.Count);
+
+        if (page != null)
+            Owner.OnPageRemoved(page, index);
     }
 
     /// <summary>
