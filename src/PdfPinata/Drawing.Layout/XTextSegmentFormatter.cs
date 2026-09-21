@@ -241,7 +241,7 @@ public class XTextSegmentFormatter
 			{
 				for (var indexSiblings = index + 1; indexSiblings < blockUnits.Count; indexSiblings++)
 				{
-					blockUnits[indexSiblings].ForEach(b => b.Location += new XSize(0, maxCyAscend - blockUnit.First().Environment.CyAscent));
+					blockUnits[indexSiblings].ForEach(b => b.Location += new XVector(0, maxCyAscend - blockUnit.First().Environment.CyAscent));
 				}
 			}
 
@@ -585,7 +585,7 @@ public class XTextSegmentFormatter
 			for (var idx = firstIndex; idx <= lastIndex; idx++)
 			{
 				var block = blockUnit[idx];
-				block.Location += new XSize(dx, 0);
+				block.Location += new XVector(dx, 0);
 			}
 		}
 		else if (count > 1) // case: justify
@@ -596,7 +596,7 @@ public class XTextSegmentFormatter
 			for (var idx = firstIndex + 1; idx <= lastIndex; idx++)
 			{
 				var block = blockUnit[idx];
-				block.Location += new XSize(dx * spaceCounter, 0);
+				block.Location += new XVector(dx * spaceCounter, 0);
 				if (!block.NextBlockBelongsToMe)
 				{
 					spaceCounter++;

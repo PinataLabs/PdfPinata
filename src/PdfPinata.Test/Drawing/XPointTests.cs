@@ -46,7 +46,10 @@ public class XPointTests
     [Fact]
     public void APointPlusASizeMovesItByTheExtent()
     {
+        // The operator is obsolete, not gone: it still has to do what it always did until it is.
+        #pragma warning disable CS0618
         (new XPoint(10, 20) + new XSize(3, 4)).Should().Be(new XPoint(13, 24));
+        #pragma warning restore CS0618
     }
 
     [Fact]
