@@ -99,6 +99,14 @@ This file starts at the entry below. Changes before that point are recorded only
   `ProductVersionInfo.Producer` is now a static property rather than a constant, and
   `ProductVersionInfo.Producer2` is gone.
 
+### Deprecated
+
+- **`XGraphics.FromImage` and `XBitmapImage.CreateBitmap`.** `FromImage` has always returned null,
+  because this library has no way to draw onto an image. `CreateBitmap` makes a bitmap with a size
+  and no pixels, whose only use was to be passed to `FromImage`. Both are left from PDFsharp's GDI+
+  and WPF builds and will be removed. To draw something that can be placed like an image, draw onto
+  an `XForm` through `XGraphics.FromForm`.
+
 ### Removed
 
 - **`PdfWriterLayout.Verbose`.** Nothing in the library ever selected it, since the writer that

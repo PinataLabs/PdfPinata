@@ -14,7 +14,9 @@ public class XBitmapImageTests
     [Fact]
     public void ABitmapIsThePixelSizeItWasCreatedAt()
     {
+#pragma warning disable CS0618 // pins what the obsolete member does until it is removed
         var bitmap = XBitmapImage.CreateBitmap(12, 34);
+#pragma warning restore CS0618
 
         bitmap.PixelWidth.Should().Be(12);
         bitmap.PixelHeight.Should().Be(34);

@@ -303,9 +303,11 @@ public class XGraphicsFactoryTests
     {
         var image = XImage.FromFile(PdfPinata.Test.Helpers.PathHelper.GetInstance().GetAssetPath("lenna.png"));
 
+#pragma warning disable CS0618 // pins what the obsolete member does until it is removed
         XGraphics.FromImage(image).Should().BeNull();
         XGraphics.FromImage(image, XGraphicsUnit.Inch).Should().BeNull();
         ((Action)(() => XGraphics.FromImage(null!))).Should().Throw<ArgumentNullException>();
+#pragma warning restore CS0618
     }
 
     // ----- the space transformer ---------------------------------------------------------------------

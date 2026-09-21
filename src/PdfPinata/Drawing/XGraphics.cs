@@ -348,16 +348,18 @@ public sealed class XGraphics : IDisposable
     }
 
     /// <summary>
-    /// Creates a new instance of the XGraphics class from a PdfPinata.Drawing.XForm object.
+    /// Always returns null: this library cannot draw onto an image.
     /// </summary>
+    [Obsolete("Drawing onto an image is not supported, and this always returns null. Draw onto an XForm through FromForm instead. It will be removed.")]
     public static XGraphics FromImage(XImage image)
     {
         return FromImage(image, XGraphicsUnit.Point);
     }
 
     /// <summary>
-    /// Creates a new instance of the XGraphics class from a PdfPinata.Drawing.XImage object.
+    /// Always returns null: this library cannot draw onto an image.
     /// </summary>
+    [Obsolete("Drawing onto an image is not supported, and this always returns null. Draw onto an XForm through FromForm instead. It will be removed.")]
     public static XGraphics FromImage(XImage image, XGraphicsUnit unit)
     {
         ArgumentNullException.ThrowIfNull(image);
