@@ -57,6 +57,12 @@ internal sealed class PdfCrossReferenceStream : PdfTrailer  // Reference: 3.4.7 
         public uint Field2;
 
         public uint Field3;
+
+        /// <summary>
+        /// The number of the object the entry is about, which a stream says by where the entry
+        /// stands in its /Index rather than in the entry. Set by the reader; not written.
+        /// </summary>
+        public int ObjectNumber;
     }
 
     /// <summary>

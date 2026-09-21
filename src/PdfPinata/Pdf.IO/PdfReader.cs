@@ -466,55 +466,55 @@ public static class PdfReader
                 }
             }
 
-            var irefs2 = document._irefTable.AllReferences;
-            var count2 = irefs2.Length;
+            // The cross-reference streams are taken from the parser rather than looked for in the
+            // table: one whose number a later revision gave to another object is not in the table,
+            // and the objects its revision compressed are still to be read.
+            var xrefStreams = parser.CrossReferenceStreams;
 
             // 3rd: Create iRefs for all compressed objects.
             var objectStreams = new Dictionary<int, object>();
-            for (var idx = 0; idx < count2; idx++)
+            foreach (var xrefStream in xrefStreams)
             {
-                var iref = irefs2[idx];
-                var xrefStream = iref.Value as PdfCrossReferenceStream;
-                if (xrefStream != null)
+                for (var idx2 = 0; idx2 < xrefStream.Entries.Count; idx2++)
                 {
-                    for (var idx2 = 0; idx2 < xrefStream.Entries.Count; idx2++)
+                    var item = xrefStream.Entries[idx2];
+                    // Is type xref to compressed object?
+                    if (item.Type == 2)
                     {
-                        var item = xrefStream.Entries[idx2];
-                        // Is type xref to compressed object?
-                        if (item.Type == 2)
+                        var objectNumber = (int)item.Field2;
+                        if (!objectStreams.ContainsKey(objectNumber))
                         {
-                            //PdfReference irefNew = parser.ReadCompressedObject(new PdfObjectID((int)item.Field2), (int)item.Field3);
-                            //document._irefTable.Add(irefNew);
-                            var objectNumber = (int)item.Field2;
-                            if (!objectStreams.ContainsKey(objectNumber))
-                            {
-                                objectStreams.Add(objectNumber, null);
-                                var objectID = new PdfObjectID((int)item.Field2);
-                                parser.ReadIRefsFromCompressedObject(objectID);
-                            }
+                            objectStreams.Add(objectNumber, null);
+                            var objectID = new PdfObjectID((int)item.Field2);
+                            parser.ReadIRefsFromCompressedObject(objectID);
                         }
                     }
                 }
             }
 
             // 4th: Read compressed objects.
-            for (var idx = 0; idx < count2; idx++)
+            foreach (var xrefStream in xrefStreams)
             {
-                var iref = irefs2[idx];
-                var xrefStream = iref.Value as PdfCrossReferenceStream;
-                if (xrefStream != null)
+                for (var idx2 = 0; idx2 < xrefStream.Entries.Count; idx2++)
                 {
-                    for (var idx2 = 0; idx2 < xrefStream.Entries.Count; idx2++)
+                    var item = xrefStream.Entries[idx2];
+                    // Is type xref to compressed object?
+                    if (item.Type == 2)
                     {
-                        var item = xrefStream.Entries[idx2];
-                        // Is type xref to compressed object?
-                        if (item.Type == 2)
+                        // Only the newest revision's word on an object counts. Reading an older
+                        // revision's compressed copy puts it in the table over whatever the newer
+                        // one says - a catalog a signing tool wrote out uncompressed, with the
+                        // /AcroForm it added, lost to the compressed catalog it replaced. The
+                        // streams are newest first, so the first to read an object is the newest.
+                        if (item.ObjectNumber >= 1)
                         {
-                            parser.ReadCompressedObject(new PdfObjectID((int)item.Field2),
-                                (int)item.Field3);
-                            Debug.Assert(document._irefTable.Contains(iref.ObjectID));
-                            //document._irefTable.Add(irefNew);
+                            var entry = document._irefTable[new PdfObjectID(item.ObjectNumber)];
+                            if (entry is not { Position: < 0, Value: null })
+                                continue;
                         }
+
+                        parser.ReadCompressedObject(new PdfObjectID((int)item.Field2),
+                            (int)item.Field3);
                     }
                 }
             }
