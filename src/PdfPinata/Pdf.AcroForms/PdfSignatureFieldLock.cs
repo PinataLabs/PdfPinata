@@ -103,12 +103,23 @@ public sealed class PdfSignatureFieldLock : PdfDictionary
     /// <summary>
     /// Whether the lock covers the field with the given fully qualified name.
     /// </summary>
+    /// <remarks>
+    /// A name in <see cref="Fields"/> names a field and everything under it, so listing
+    /// <c>address</c> covers <c>address.street</c> - what a reader does too, and the only reading
+    /// under which naming a parent field means anything.
+    /// </remarks>
     public bool Covers(string fullyQualifiedName) => Action switch
     {
-        PdfFieldLockAction.Include => Fields.Contains(fullyQualifiedName, StringComparer.Ordinal),
-        PdfFieldLockAction.Exclude => !Fields.Contains(fullyQualifiedName, StringComparer.Ordinal),
+        PdfFieldLockAction.Include => Fields.Any(listed => Names(listed, fullyQualifiedName)),
+        PdfFieldLockAction.Exclude => !Fields.Any(listed => Names(listed, fullyQualifiedName)),
         _ => true,
     };
+
+    static bool Names(string listed, string field) =>
+        !string.IsNullOrEmpty(listed) && field != null
+        && (field == listed
+            || (field.Length > listed.Length && field[listed.Length] == '.'
+                && field.StartsWith(listed, StringComparison.Ordinal)));
 
     /// <summary>
     /// The lock a dictionary is, typed - the same object when it already is one.

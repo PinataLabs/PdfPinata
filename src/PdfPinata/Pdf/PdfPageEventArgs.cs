@@ -22,8 +22,12 @@ public sealed class PdfPageEventArgs : EventArgs
     public PdfPage Page { get; }
 
     /// <summary>
-    /// Where the page is now, counted from zero - or, for a page removed, where it was.
+    /// Where the page was placed, counted from zero - or, for a page removed, where it was.
     /// </summary>
+    /// <remarks>
+    /// A handler that inserts pages ahead of this one moves it; <see cref="PdfPages.IndexOf"/>
+    /// says where it is after that.
+    /// </remarks>
     public int Index { get; }
 }
 

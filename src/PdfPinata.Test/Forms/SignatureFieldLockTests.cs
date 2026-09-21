@@ -50,6 +50,28 @@ public class SignatureFieldLockTests
         new PdfSignatureFieldLock(document, action, "name").Covers(field).Should().Be(covered);
     }
 
+    [Theory]
+    [InlineData(PdfFieldLockAction.Include, "address.street", true)]
+    [InlineData(PdfFieldLockAction.Include, "address", true)]
+    [InlineData(PdfFieldLockAction.Include, "addressee", false)]
+    [InlineData(PdfFieldLockAction.Exclude, "address.city", false)]
+    [InlineData(PdfFieldLockAction.Exclude, "addressee", true)]
+    public void NamingAParentFieldCoversItsChildren(PdfFieldLockAction action, string field, bool covered)
+    {
+        new PdfSignatureFieldLock(new PdfDocument(), action, "address").Covers(field).Should().Be(covered);
+    }
+
+    [Fact]
+    public void AnEmptyNameInASeedValueListIsRefused()
+    {
+        var seed = new PdfSignatureSeedValue(new PdfDocument());
+
+        Action act = () => seed.SubFilters = new[] { "/adbe.pkcs7.detached", "" };
+
+        act.Should().Throw<ArgumentException>();
+        seed.SubFilters.Should().BeEmpty("nothing is written when a value is refused");
+    }
+
     [Fact]
     public void AnAllLockWritesNoFieldList()
     {

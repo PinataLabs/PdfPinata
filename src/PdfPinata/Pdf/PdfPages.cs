@@ -394,6 +394,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         if (pageCount > importDocumentPageCount)
             throw new ArgumentOutOfRangeException(nameof(pageCount), "Argument 'pageCount' out of range.");
 
+        var inserted = new List<PdfPage>(pageCount);
         for (int insertIndex = index, importIndex = startIndex;
              importIndex < startIndex + pageCount;
              insertIndex++, importIndex++)
@@ -408,6 +409,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
             importedObjectTable.Add(importPage.ObjectID, page.Reference);
 
             PagesArray.Elements.Insert(insertIndex, page.Reference);
+            inserted.Add(page);
 
             PdfAnnotations.FixImportedAnnotation(page);
             DetachImportedDestinations(page, importPage, importedObjectTable);
@@ -418,9 +420,10 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         Elements.SetInteger(Keys.Count, PagesArray.Elements.Count);
 
         // Raised once the whole range is in and the count is right, so a handler looking at the
-        // document never sees it half inserted.
-        for (var offset = 0; offset < pageCount; offset++)
-            Owner.OnPageAdded(this[index + offset], index + offset);
+        // document never sees it half inserted. The pages are the ones inserted rather than looked
+        // up again by position, because a handler may insert pages of its own and move the rest.
+        for (var offset = 0; offset < inserted.Count; offset++)
+            Owner.OnPageAdded(inserted[offset], index + offset);
     }
 
     /// <summary>

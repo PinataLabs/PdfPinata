@@ -100,6 +100,35 @@ public sealed class PageEventsTests : IDisposable
     }
 
     [Fact]
+    public void ARangeReportsTheInsertedPagesEvenWhenAHandlerAddsPagesOfItsOwn()
+    {
+        var source = Reopen(TwoPages(), PdfDocumentOpenMode.Import);
+        var document = new PdfDocument();
+        var original = document.AddPage();
+        var reported = new List<PdfPage>();
+        var separators = new List<PdfPage>();
+        var inHandler = false;
+        document.PageAdded += (_, e) =>
+        {
+            // The handler's own insertion raises the event again, inside itself; this is how a
+            // handler that adds pages keeps from adding them for ever.
+            if (inHandler)
+                return;
+
+            reported.Add(e.Page);
+            inHandler = true;
+            separators.Add(document.InsertPage(0));
+            inHandler = false;
+        };
+
+        document.Pages.InsertRange(1, source);
+
+        reported.Where(page => !separators.Contains(page)).Should().HaveCount(2)
+            .And.OnlyHaveUniqueItems()
+            .And.NotContain(original);
+    }
+
+    [Fact]
     public void DuplicatingAPageReportsTheDuplicate()
     {
         var document = new PdfDocument();

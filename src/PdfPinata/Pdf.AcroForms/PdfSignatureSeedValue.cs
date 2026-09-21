@@ -226,12 +226,19 @@ public sealed class PdfSignatureSeedValue : PdfDictionary
     IReadOnlyList<string> Names(string key) => SeedValues.Read(Elements.GetArray(key), (a, i) => a.Elements.GetName(i));
 
     void SetNames(string key, IReadOnlyList<string> value) =>
-        SeedValues.Write(Elements, key, value, name => new PdfName(name[0] == '/' ? name : "/" + name));
+        SeedValues.Write(Elements, key, value, name =>
+        {
+            if (string.IsNullOrEmpty(name) || name == "/")
+                throw new ArgumentException("A name in " + key + " cannot be empty.", nameof(value));
+
+            return new PdfName(name[0] == '/' ? name : "/" + name);
+        });
 
     IReadOnlyList<string> Strings(string key) => SeedValues.Read(Elements.GetArray(key), (a, i) => a.Elements.GetString(i));
 
     void SetStrings(string key, IReadOnlyList<string> value) =>
-        SeedValues.Write(Elements, key, value, text => new PdfString(text));
+        SeedValues.Write(Elements, key, value, text =>
+            new PdfString(text ?? throw new ArgumentException("A string in " + key + " cannot be null.", nameof(value))));
 
     /// <summary>
     /// Predefined keys of this dictionary.
