@@ -12,6 +12,14 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ### Added
 
+- **A combination chart can stack its columns.** A series set to `ColumnStacked2D` in a chart
+  whose other series plot as lines or areas used to be refused with "ChartType
+  'ColumnStacked2D' not valid for combination of charts". It is now drawn stacked, the value
+  axis is sized to the stacked totals and still reaches any line or area beyond them, and the
+  legend lists the stacked series top of the stack first, as a stacked column chart does. Clustered
+  and stacked columns cannot share one chart, because the columns have one slot per category, and
+  mixing them throws an `InvalidOperationException` that says so (#77).
+
 - **`XBaseGradientBrush.ExtendLeft` and `ExtendRight`** — whether a gradient goes on past its start
   and its end in the colour of that end, written as the shading's `/Extend`. The start and end are
   a linear gradient's two points and a radial gradient's two circles, so `ExtendRight` is what fills
@@ -146,6 +154,14 @@ This file starts at the entry below. Changes before that point are recorded only
   Construct a value from its bytes with `new PdfCustomValue(byte[])`.
 
 ### Fixed
+
+- **The charting collections work as an `IList`.** `DocumentObjectCollection` (behind
+  `SeriesCollection`, `SeriesElements`, `XValues` and `XSeriesElements`) declared the
+  non-generic `Add`, `Insert`, `Remove`, `RemoveAt`, `Contains` and `IndexOf`, and every one threw
+  `NotImplementedException`. They now use the typed members. A null is taken as a blank, and
+  anything that is not a chart object is refused with an `ArgumentException`. An element set
+  through the indexer or put in by `InsertObject` now belongs to the collection, as one added
+  with `Add` always did (#77).
 
 - **A form field reads the flags and the type it inherits.** `/FT` and `/Ff` are inheritable
   (ISO 32000-1 Table 220), and a form read from a file often sets them once, on a parent.
