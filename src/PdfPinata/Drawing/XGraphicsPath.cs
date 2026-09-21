@@ -480,14 +480,13 @@ public sealed class XGraphicsPath
     }
 
     /// <summary>
-    /// Starts a new figure without closing the current figure.
+    /// Starts a new figure without closing the current figure. The next segment added begins a
+    /// figure of its own rather than being joined to the end of the current one.
     /// </summary>
-    #pragma warning disable CA1822 // Public API: making a no-op instance member static would break every caller, and the operation acts on this path once implemented.
     public void StartFigure()
     {
-        // TODO: ???
+        CorePath.StartFigure();
     }
-    #pragma warning restore CA1822
 
     // --------------------------------------------------------------------------------------------
 
