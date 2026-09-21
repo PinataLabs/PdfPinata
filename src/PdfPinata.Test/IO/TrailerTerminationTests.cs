@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
+using PdfPinata.Pdf.IO.enums;
 using PdfPinata.Test.Helpers;
 using Xunit;
 
@@ -28,7 +29,9 @@ namespace PdfPinata.Test.IO;
 ///     The loop that walks the revisions was the other way <c>ReadTrailer</c> could fail to end.
 ///     It followed each trailer's <c>/Prev</c> for as long as there was one, so a section naming
 ///     itself, or two naming each other, was read round and round for ever. The tests below the
-///     first group pin that it now stops at a section it has already read.
+///     first group pin that it now stops at a section it has already read: under
+///     <see cref="PdfReadAccuracy.Moderate"/> the document opens, and under
+///     <see cref="PdfReadAccuracy.Strict"/>, the default, the cycle is reported.
 ///   </para>
 ///   <para>
 ///     Every test runs the read on a thread of its own under a timeout, because what is being
@@ -84,33 +87,51 @@ public class TrailerTerminationTests
     // ----- A chain of revisions that comes back on itself ------------------------------------------
 
     [Fact(Timeout = 5000)]
-    public async Task ASectionWhosePrevNamesItselfIsReadOnce()
+    public async Task ASectionWhosePrevNamesItselfIsReadOnceUnderModerate()
     {
-        var document = await Read(Document(prevToSelf: true));
+        var document = await Read(Document(prevToSelf: true), PdfReadAccuracy.Moderate);
 
         document.PageCount.Should().Be(1);
     }
 
     [Fact(Timeout = 5000)]
-    public async Task TwoSectionsWhosePrevNamesEachOtherAreEachReadOnce()
+    public async Task TwoSectionsWhosePrevNamesEachOtherAreEachReadOnceUnderModerate()
     {
-        var document = await Read(Document(prevCycleOfTwo: true));
+        var document = await Read(Document(prevCycleOfTwo: true), PdfReadAccuracy.Moderate);
 
         document.PageCount.Should().Be(1);
+    }
+
+    [Fact(Timeout = 5000)]
+    public async Task ASectionWhosePrevNamesItselfIsReportedUnderStrict()
+    {
+        var read = async () => await Read(Document(prevToSelf: true));
+
+        (await read.Should().ThrowAsync<PdfReaderException>()).WithMessage("*already been read*");
+    }
+
+    [Fact(Timeout = 5000)]
+    public async Task TwoSectionsWhosePrevNamesEachOtherAreReportedUnderStrict()
+    {
+        var read = async () => await Read(Document(prevCycleOfTwo: true));
+
+        (await read.Should().ThrowAsync<PdfReaderException>()).WithMessage("*already been read*");
     }
 
     [Fact(Timeout = 5000)]
     public async Task AChainOfRevisionsThatEndsIsStillFollowedToItsEnd()
     {
-        // The control for the two above: the newest section is empty and names the older one, so
-        // the document has pages only if /Prev is still followed.
+        // The control for the four above, read under Strict: the newest section is empty and names
+        // the older one, so the document has pages only if /Prev is still followed, and a chain
+        // that ends is not reported as a cycle.
         var document = await Read(Document(emptyNewestRevision: true));
 
         document.PageCount.Should().Be(1);
     }
 
-    static Task<PdfDocument> Read(byte[] document) =>
-        Interruptibly.Run(() => Pdf.IO.PdfReader.Open(new MemoryStream(document), PdfDocumentOpenMode.Modify));
+    static Task<PdfDocument> Read(byte[] document, PdfReadAccuracy accuracy = PdfReadAccuracy.Strict) =>
+        Interruptibly.Run(() =>
+            Pdf.IO.PdfReader.Open(new MemoryStream(document), PdfDocumentOpenMode.Modify, accuracy));
 
     /// <summary>
     ///   A one page document of three objects and one classic cross-reference section.
