@@ -90,7 +90,13 @@ public class LexerNameEncodingTests
         using var ms = new MemoryStream();
         document.Save(ms, false);
 
-        RawStringOf(ms.ToArray()).Should().Contain(lexer.Token);
+        // Bytes outside '!'..'~' are written as #xx (ISO 32000-1 7.3.5), each escape naming the
+        // byte itself rather than anything it was decoded into.
+        RawStringOf(ms.ToArray()).Should().Contain("/#93#FA#96#D1#8C#EA");
+
+        ms.Position = 0;
+        var reread = PdfPinata.Pdf.IO.PdfReader.Open(ms, PdfDocumentOpenMode.Import);
+        RawBytesOf(reread.Pages[0].Elements.GetName("/PdfPinataTestName")).Skip(1).Should().Equal(ShiftJisNihongo);
     }
 
     [Fact]

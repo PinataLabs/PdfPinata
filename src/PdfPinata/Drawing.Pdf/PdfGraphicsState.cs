@@ -84,7 +84,17 @@ internal sealed class PdfGraphicsState : ICloneable
     int _realizedLineJoin = -1;
     double _realizedMiterLimit = -1;
     XDashStyle _realizedDashStyle = (XDashStyle)(-1);
-    XColor _realizedStrokeColor = XColor.Empty;
+    /// <summary>
+    /// The stroke colour last written, or null when none has been written at this level yet.
+    /// </summary>
+    /// <remarks>
+    /// Null rather than <see cref="XColor.Empty"/>, whose alpha is 0: a fully transparent first
+    /// pen matched that, no ExtGState was written for it, and the line was stroked at the default
+    /// alpha of 1. Null always writes the alpha. For the colour itself it still stands for black,
+    /// the default stroke colour, so a first black stroke writes no "RG" - see
+    /// <see cref="_realizedStrokePattern"/>.
+    /// </remarks>
+    XColor? _realizedStrokeColor;
     bool _realizedStrokeOverPrint;
 
     public void RealizePen(XPen pen, PdfColorMode colorMode)
@@ -238,7 +248,7 @@ internal sealed class PdfGraphicsState : ICloneable
         }
         else if (colorMode != PdfColorMode.Cmyk)
         {
-            if (_realizedStrokePattern || _realizedStrokeColor.Rgb != color.Rgb)
+            if (_realizedStrokePattern || (_realizedStrokeColor ?? XColor.Empty).Rgb != color.Rgb)
             {
                 _renderer.Append(PdfEncoders.ToString(color, PdfColorMode.Rgb));
                 _renderer.Append(" RG\n");
@@ -246,7 +256,7 @@ internal sealed class PdfGraphicsState : ICloneable
         }
         else
         {
-            if (_realizedStrokePattern || !ColorSpaceHelper.IsEqualCmyk(_realizedStrokeColor, color))
+            if (_realizedStrokePattern || _realizedStrokeColor is not { } realizedCmyk || !ColorSpaceHelper.IsEqualCmyk(realizedCmyk, color))
             {
                 _renderer.Append(PdfEncoders.ToString(color, PdfColorMode.Cmyk));
                 _renderer.Append(" K\n");
@@ -254,7 +264,7 @@ internal sealed class PdfGraphicsState : ICloneable
         }
 
         #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
-        if (_renderer.Owner.Version >= 14 && (_realizedStrokeColor.A != color.A || _realizedStrokeOverPrint != overPrint))
+        if (_renderer.Owner.Version >= 14 && (_realizedStrokeColor is not { } realized || realized.A != color.A || _realizedStrokeOverPrint != overPrint))
         #pragma warning restore S1244
         {
             var extGState = _renderer.Owner.ExtGStateTable.GetExtGStateStroke(color.A, overPrint);
@@ -276,8 +286,8 @@ internal sealed class PdfGraphicsState : ICloneable
     /// <remarks>
     /// A flag rather than an invalidated <see cref="_realizedStrokeColor"/>, for two reasons. The
     /// colour a gradient pen leaves behind is the black stood in for it, and "no colour realized"
-    /// is <see cref="XColor.Empty"/>, whose Rgb is zero - which is black's as well, so neither
-    /// value distinguishes a pattern from a black stroke. And treating Empty as "re-emit" would
+    /// is null, which the colour comparison reads as black - so neither value distinguishes a
+    /// pattern from a black stroke. And treating null as "re-emit" for the colour would
     /// write an explicit black at the head of every content stream that opens with a black stroke,
     /// which is a change to every file the library writes for the sake of one that gradients.
     ///
@@ -290,7 +300,15 @@ internal sealed class PdfGraphicsState : ICloneable
 
     #region Fill
 
-    XColor _realizedFillColor = XColor.Empty;
+    /// <summary>
+    /// The fill colour last written, or null when none has been, or a pattern has replaced it.
+    /// </summary>
+    /// <remarks>
+    /// Null rather than <see cref="XColor.Empty"/> for the reason given on
+    /// <see cref="_realizedStrokeColor"/>: Empty's alpha is 0, so a fully transparent fill matched
+    /// it and was painted opaque. Null writes both the colour and the alpha.
+    /// </remarks>
+    XColor? _realizedFillColor;
     bool _realizedNonStrokeOverPrint;
 
     /// <summary>
@@ -377,7 +395,7 @@ internal sealed class PdfGraphicsState : ICloneable
                     _renderer.AppendFormatString("{0} scn\n", name);
                 }
                 // Invalidate fill color.
-                _realizedFillColor = XColor.Empty;
+                _realizedFillColor = null;
 
                 // "SCN" replaced the *stroking* colour space, which the line above does not record
                 // - so the pen path says so separately. RealizePen reaches this method only for a
@@ -432,7 +450,7 @@ internal sealed class PdfGraphicsState : ICloneable
 
         if (colorMode != PdfColorMode.Cmyk)
         {
-            if (_realizedFillColor.IsEmpty || _realizedFillColor.Rgb != color.Rgb)
+            if (_realizedFillColor is not { } realizedRgb || realizedRgb.Rgb != color.Rgb)
             {
                 _renderer.Append(PdfEncoders.ToString(color, PdfColorMode.Rgb));
                 _renderer.Append(" rg\n");
@@ -443,7 +461,7 @@ internal sealed class PdfGraphicsState : ICloneable
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             Debug.Assert(colorMode == PdfColorMode.Cmyk);
 
-            if (_realizedFillColor.IsEmpty || !ColorSpaceHelper.IsEqualCmyk(_realizedFillColor, color))
+            if (_realizedFillColor is not { } realizedCmyk || !ColorSpaceHelper.IsEqualCmyk(realizedCmyk, color))
             {
                 _renderer.Append(PdfEncoders.ToString(color, PdfColorMode.Cmyk));
                 _renderer.Append(" k\n");
@@ -451,7 +469,7 @@ internal sealed class PdfGraphicsState : ICloneable
         }
 
         #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
-        if (_renderer.Owner.Version >= 14 && (_realizedFillColor.A != color.A || _realizedNonStrokeOverPrint != overPrint))
+        if (_renderer.Owner.Version >= 14 && (_realizedFillColor is not { } realized || realized.A != color.A || _realizedNonStrokeOverPrint != overPrint))
         #pragma warning restore S1244
         {
 
@@ -469,7 +487,8 @@ internal sealed class PdfGraphicsState : ICloneable
 
     internal void RealizeNonStrokeTransparency(double transparency, PdfColorMode colorMode)
     {
-        var color = _realizedFillColor;
+        // With nothing realized the colour is still written, as it was when this read Empty.
+        var color = _realizedFillColor ?? XColor.Empty;
         color.A = transparency;
         RealizeFillColor(color, _realizedNonStrokeOverPrint, colorMode);
     }

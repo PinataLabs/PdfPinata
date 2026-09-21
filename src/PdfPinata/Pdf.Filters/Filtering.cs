@@ -29,6 +29,7 @@
 
 using System;
 using System.Diagnostics;
+using PdfPinata.Pdf.Advanced;
 
 namespace PdfPinata.Pdf.Filters;
 
@@ -193,6 +194,11 @@ public static class Filtering
     /// </summary>
     public static byte[] Decode(byte[] data, PdfItem filterItem, PdfItem decodeParms)
     {
+        // Either entry, and any element of either, may be an indirect object, and a filter with
+        // default parameters has null in its place in a parameter array (ISO 32000-1 Table 5).
+        filterItem = Direct(filterItem);
+        decodeParms = Direct(decodeParms);
+
         byte[] result = null;
         if (filterItem is PdfName && (decodeParms == null || decodeParms is PdfDictionary))
         {
@@ -215,6 +221,16 @@ public static class Filtering
             result = data;
         }
         return result;
+    }
+
+    /// <summary>
+    /// The object a reference points at, or the item itself; and null for a PDF null.
+    /// </summary>
+    static PdfItem Direct(PdfItem item)
+    {
+        if (item is PdfReference reference)
+            item = reference.Value;
+        return item is PdfNull or PdfNullObject ? null : item;
     }
 
     /// <summary>

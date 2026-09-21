@@ -199,12 +199,50 @@ public class ContentObjectWritingTests
         };
         var show = OpCodes.OperatorFromName("TJ");
 
-        // Cast to CObject, because the CSequence overload of Add would spread the array's items
-        // into the operands and lose its brackets.
         show.Operands.Add((CObject)array);
 
         array.ToString().Should().Be("[(A)-250(B)]");
         Written(new CSequence { show }).Should().Be("[(A)-250(B)]TJ\n");
+    }
+
+    [Fact]
+    public void AnArrayAddedWithoutACastKeepsItsBrackets()
+    {
+        // CArray derives from CSequence, so this binds to Add(CSequence) - which appends a
+        // sequence's items, and used to append an array's too, leaving "(A)-250(B)TJ".
+        var array = new CArray
+        {
+            new CString { Value = "A" },
+            new CInteger { Value = -250 },
+            new CString { Value = "B" }
+        };
+        var show = OpCodes.OperatorFromName("TJ");
+
+        show.Operands.Add(array);
+
+        show.Operands.Count.Should().Be(1);
+        Written(new CSequence { show }).Should().Be("[(A)-250(B)]TJ\n");
+    }
+
+    [Fact]
+    public void AnArrayAddedToAnArrayIsNestedInIt()
+    {
+        var inner = new CArray { new CInteger { Value = 1 }, new CInteger { Value = 2 } };
+        var outer = new CArray { new CInteger { Value = 0 }, inner };
+
+        outer.ToString().Should().Be("[0[1 2]]");
+    }
+
+    [Fact]
+    public void ASequenceThatIsNotAnArrayIsStillAddedItemByItem()
+    {
+        var operands = new CSequence { new CInteger { Value = 10 }, new CInteger { Value = 20 } };
+        var move = OpCodes.OperatorFromName("m");
+
+        move.Operands.Add(operands);
+
+        move.Operands.Count.Should().Be(2);
+        Written(new CSequence { move }).Should().Be("10 20 m\n");
     }
 
     [Theory]
