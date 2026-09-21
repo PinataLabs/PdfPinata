@@ -83,6 +83,11 @@ public static class PdfSigner
                 "The document is already certified. A document can carry only one certifying "
                 + "signature, and it must be the first signature applied to the document.");
 
+        // Refused before anything is added to the document: the widget's flags are covered by the
+        // signature, so they cannot be put right after the fact.
+        Metadata.PdfConformanceWriter.CheckAnnotationFlags(document.Options.Conformance,
+            options.AnnotationFlags, "signature widget");
+
         if (signer.EstimatedSignatureSize < 1)
             throw new ArgumentOutOfRangeException(nameof(signer),
                 "The signer must reserve at least one byte for its signature.");
@@ -208,9 +213,12 @@ public static class PdfSigner
         field.Elements.SetName("/Type", "/Annot");
         field.Elements.SetName("/Subtype", "/Widget");
 
-        // Print, so the field is part of the paper document too. A signature that only exists on
-        // screen is a surprise nobody wants.
-        field.Elements.SetInteger("/F", 4);
+        // Print by default, so the field is part of the paper document too. A signature that only
+        // exists on screen is a surprise nobody wants. Written here or never: the widget is part of
+        // the signed revision, so changing /F afterwards changes a signed object. No flags omits the
+        // entry, whose default is already zero.
+        if (options.AnnotationFlags != 0)
+            field.Elements.SetInteger("/F", (int)options.AnnotationFlags);
 
         return field;
     }

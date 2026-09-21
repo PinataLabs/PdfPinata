@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using PdfPinata.Pdf.Advanced;
+using PdfPinata.Pdf.Annotations;
 using PdfPinata.Pdf.Security;
 
 namespace PdfPinata.Pdf.Metadata;
@@ -344,6 +345,40 @@ internal static class PdfConformanceWriter
     /// dictionary has to act on well before <see cref="PrepareForSave"/> runs.
     /// </remarks>
     internal static bool RequiresCidSet(PdfAConformance conformance) => IsPart1(conformance);
+
+    /// <summary>
+    /// Refuses annotation flags the claimed profile forbids: every PDF/A part requires an
+    /// annotation to print (ISO 19005-1 6.5.3, ISO 19005-2 and -3 6.3.2) and forbids it to be
+    /// invisible, hidden or not viewed - and, from part 2, toggled out of view.
+    /// </summary>
+    /// <remarks>
+    /// Asked by whoever writes an annotation's <c>/F</c> rather than by walking every page at save,
+    /// because the one annotation this library writes flags for on the caller's say-so is the
+    /// signature widget, and by the time a save could see it the document is already being signed.
+    /// </remarks>
+    internal static void CheckAnnotationFlags(PdfAConformance conformance, PdfAnnotationFlags flags,
+        string annotation)
+    {
+        if (conformance == PdfAConformance.None)
+            return;
+
+        // ToggleNoView is PDF 1.5, later than PDF/A-1's base, and only parts 2 and 3 name it.
+        var forbidden = PdfAnnotationFlags.Invisible | PdfAnnotationFlags.Hidden | PdfAnnotationFlags.NoView;
+        if (!IsPart1(conformance))
+            forbidden |= PdfAnnotationFlags.ToggleNoView;
+
+        if ((flags & PdfAnnotationFlags.Print) == 0)
+            throw new InvalidOperationException(
+                conformance + " requires every annotation to have the Print flag set, and the "
+                + annotation + " was asked for flags " + flags + " without it. PDF/A keeps what a "
+                + "document shows on screen and on paper the same.");
+
+        if ((flags & forbidden) != 0)
+            throw new InvalidOperationException(
+                conformance + " forbids an annotation to be " + forbidden + ", and the "
+                + annotation + " was asked for " + (flags & forbidden)
+                + ". PDF/A keeps what a document shows on screen and on paper the same.");
+    }
 
     /// <summary>
     /// The rules PDF/A-3 adds by permitting attachments at all: each has to be attached <em>to</em>

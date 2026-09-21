@@ -404,6 +404,7 @@ public static class PdfReader
             var xrefEncrypt = document._trailer.Elements[PdfTrailer.Keys.Encrypt] as PdfReference;
             if (xrefEncrypt != null)
             {
+                document._readEncrypted = true;
                 //xrefEncrypt.Value = parser.ReadObject(null, xrefEncrypt.ObjectID, false);
                 var encrypt = parser.ReadObject(null, xrefEncrypt.ObjectID, false, false);
 
