@@ -132,8 +132,11 @@ around 1.5 kB, and guessing high costs file size while guessing low costs the sa
   stayed inside it. Doing that means diffing two revisions of an object graph.
 - **Signing an existing signature field.** A field placed by someone else and left empty — the
   "please sign here" workflow — is not filled in; `PdfSigner` always creates its own field.
-- **Multiple widgets on one field, and `/Lock`.** Both are AcroForm features rather than signature
-  ones, and neither is reachable through what is here.
+- **Multiple widgets on one field.** An AcroForm feature rather than a signature one, and not
+  reachable through what is here. `/Lock` was listed here too; it is now written and honoured on the
+  field `PdfSigner` creates through `PdfSignatureOptions.LockAction`, and `/SV` is modelled - see
+  `upstream-7-interactive-port.md` item 9. Honouring either on a field somebody else placed waits on
+  signing an existing field, above.
 - **Interoperability testing against a reader.** The tests verify with the same CMS implementation
   that produced the signature, which proves the byte range and the encoding and does not prove that
   Acrobat agrees. `pdfsig` from poppler-utils in CI would; it is not installed there.

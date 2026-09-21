@@ -6,7 +6,7 @@ namespace PdfPinata.Pdf.Annotations;
 /// <summary>
 /// Represent a file that is attached to the PDF
 /// </summary>
-public class PdfFileAttachmentAnnotation : PdfAnnotation
+public class PdfFileAttachmentAnnotation : PdfMarkupAnnotation
 {
     /// <summary>
     /// Name of icons used in displaying the annotation.
@@ -40,6 +40,14 @@ public class PdfFileAttachmentAnnotation : PdfAnnotation
         Elements.SetName(PdfAnnotation.Keys.Subtype, "/FileAttachment");
         Flags = PdfAnnotationFlags.Locked;
     }
+
+    /// <summary>
+    /// Wraps an annotation dictionary read from a document, keeping every entry it has and
+    /// writing none of the defaults a new one is given.
+    /// </summary>
+    internal PdfFileAttachmentAnnotation(PdfDictionary dict)
+        : base(dict)
+    { }
 
     /// <summary>
     /// The icon a viewer draws for the attachment. Unlike the icon of a text annotation or a

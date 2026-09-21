@@ -881,6 +881,73 @@ public sealed class PdfDocument : PdfObject, IDisposable
     List<Action<Metadata.XmpMetadata>> _metadataContributors;
 
     /// <summary>
+    /// Raised after a page has been placed in the page tree - added, inserted, placed, imported,
+    /// duplicated, or one of a range inserted - with the page and where it now is.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The page is in the tree and the count is updated when this is raised, so a handler sees the
+    /// document as it now is. A page created by <see cref="AddPage()"/> still has the default size
+    /// when this is raised - a caller sets its size afterwards, and PinataLayout does - so a handler
+    /// that draws on the page belongs on <see cref="PageGraphicsCreated"/> instead, which is raised
+    /// when somebody is ready to draw.
+    /// </para>
+    /// <para>
+    /// A handler that adds a page raises this again, from inside itself: nothing here guards
+    /// against it, so a handler that adds a page for every page added never returns.
+    /// <see cref="PdfPages.MovePage"/> raises nothing, since no page arrives or leaves.
+    /// </para>
+    /// </remarks>
+    public event EventHandler<PdfPageEventArgs> PageAdded;
+
+    /// <summary>
+    /// Raised after a page has been taken out of the page tree, with the page and where it was.
+    /// </summary>
+    public event EventHandler<PdfPageEventArgs> PageRemoved;
+
+    /// <summary>
+    /// Raised when <see cref="XGraphics.FromPdfPage(PdfPage)"/> or any of its overloads has made a
+    /// drawing surface for one of this document's pages, before the surface is handed to whoever
+    /// asked for it - which is where a running head, a footer or a watermark is drawn once for
+    /// every page, however the page is drawn.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// What a handler draws goes into the content before the caller's, so it lies underneath - with
+    /// <see cref="XGraphicsPdfPageOptions.Append"/>, the default, after anything the page already
+    /// had and before what the caller is about to draw. The handler draws inside a saved graphics
+    /// state, so a transform or clip it leaves set does not reach the caller. Raised once per
+    /// surface, so a page drawn on twice is decorated twice.
+    /// </para>
+    /// <para>
+    /// A handler may not ask for another surface for the same page: a page has one at a time, and
+    /// <see cref="XGraphics.FromPdfPage(PdfPage)"/> throws. If a handler throws, the surface is
+    /// disposed and the exception reaches the caller.
+    /// </para>
+    /// <para>
+    /// <b>Tagged documents.</b> PinataLayout tags what it draws, and content drawn outside a marked
+    /// sequence is neither structure nor artifact - which PDF/UA forbids, and which a reader reading
+    /// aloud reads in the wrong place. A header or a watermark is decoration, so a handler for a
+    /// tagged document should draw it inside <see cref="XGraphics.BeginArtifact"/>. Nothing here does
+    /// that for it: this library cannot tell a watermark from a heading.
+    /// </para>
+    /// </remarks>
+    public event EventHandler<PdfPageGraphicsEventArgs> PageGraphicsCreated;
+
+    internal bool HasPageGraphicsCreatedHandlers => PageGraphicsCreated != null;
+
+    internal bool HasPageRemovedHandlers => PageRemoved != null;
+
+    internal void OnPageAdded(PdfPage page, int index) =>
+        PageAdded?.Invoke(this, new PdfPageEventArgs(page, index));
+
+    internal void OnPageRemoved(PdfPage page, int index) =>
+        PageRemoved?.Invoke(this, new PdfPageEventArgs(page, index));
+
+    internal void OnPageGraphicsCreated(PdfPage page, XGraphics graphics) =>
+        PageGraphicsCreated?.Invoke(this, new PdfPageGraphicsEventArgs(page, graphics));
+
+    /// <summary>
     /// Claims an archival profile for this document, and checks immediately what the claim can be
     /// held to right now: that the document has a title, is not encrypted, its colour mode can be
     /// described, that — for PDF/A-1 — nothing has already pushed the version past what that profile

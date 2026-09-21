@@ -34,6 +34,14 @@ public sealed class PdfSquareAnnotation : PdfSquareCircleAnnotation
         : base(document, "/Square")
     { }
 
+    /// <summary>
+    /// Wraps an annotation dictionary read from a document, keeping every entry it has and
+    /// writing none of the defaults a new one is given.
+    /// </summary>
+    internal PdfSquareAnnotation(PdfDictionary dict)
+        : base(dict)
+    { }
+
     /// <inheritdoc/>
     protected override void DrawShape(XGraphics gfx, XPen pen, XBrush brush, XRect box)
     {

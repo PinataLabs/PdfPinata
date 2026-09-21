@@ -117,13 +117,12 @@ public sealed class PdfAnnotations : PdfArray
                 Debug.Assert(item is PdfDictionary, "Dictionary expected.");
                 dict = (PdfDictionary)item;
             }
-            var annotation = dict as PdfAnnotation;
-            if (annotation == null)
-            {
-                annotation = new PdfGenericAnnotation(dict);
-                if (iref == null)
-                    Elements[index] = annotation;
-            }
+            // Given the class its subtype names. Wrapping an indirect dictionary points its
+            // reference at the wrapper, so the next read finds the same object; a direct one has
+            // to be put back in the array for the same to be true.
+            var annotation = PdfAnnotation.FromDictionary(dict);
+            if (!ReferenceEquals(annotation, dict) && iref == null)
+                Elements[index] = annotation;
             return annotation;
         }
     }

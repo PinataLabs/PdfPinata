@@ -170,6 +170,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
             // Update page count.
             Elements.SetInteger(Keys.Count, PagesArray.Elements.Count);
 
+            Owner.OnPageAdded(page, index);
             return page;
         }
 
@@ -202,6 +203,8 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         }
         if (Owner.Settings.TrimMargins.AreSet)
             page.TrimMargins = Owner.Settings.TrimMargins;
+
+        Owner.OnPageAdded(page, index);
         return page;
     }
 
@@ -391,6 +394,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         if (pageCount > importDocumentPageCount)
             throw new ArgumentOutOfRangeException(nameof(pageCount), "Argument 'pageCount' out of range.");
 
+        var inserted = new List<PdfPage>(pageCount);
         for (int insertIndex = index, importIndex = startIndex;
              importIndex < startIndex + pageCount;
              insertIndex++, importIndex++)
@@ -405,6 +409,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
             importedObjectTable.Add(importPage.ObjectID, page.Reference);
 
             PagesArray.Elements.Insert(insertIndex, page.Reference);
+            inserted.Add(page);
 
             PdfAnnotations.FixImportedAnnotation(page);
             DetachImportedDestinations(page, importPage, importedObjectTable);
@@ -413,6 +418,12 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
                 page.TrimMargins = Owner.Settings.TrimMargins;
         }
         Elements.SetInteger(Keys.Count, PagesArray.Elements.Count);
+
+        // Raised once the whole range is in and the count is right, so a handler looking at the
+        // document never sees it half inserted. The pages are the ones inserted rather than looked
+        // up again by position, because a handler may insert pages of its own and move the rest.
+        for (var offset = 0; offset < inserted.Count; offset++)
+            Owner.OnPageAdded(inserted[offset], index + offset);
     }
 
     /// <summary>
@@ -448,8 +459,11 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     public void Remove(PdfPage page)
     {
         EnsureCanModify("removing a page");
-        PagesArray.Elements.Remove(page.Reference);
-        Elements.SetInteger(Keys.Count, PagesArray.Elements.Count);
+        var index = PagesArray.Elements.IndexOf(page.Reference);
+        if (index < 0)
+            return;
+
+        RemoveAt(index);
     }
 
     /// <summary>
@@ -458,8 +472,16 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     public void RemoveAt(int index)
     {
         EnsureCanModify("removing a page");
+
+        // Only a handler needs the page, and reading it resolves the reference, so it is asked for
+        // only when somebody is listening.
+        var page = Owner.HasPageRemovedHandlers ? this[index] : null;
+
         PagesArray.Elements.RemoveAt(index);
         Elements.SetInteger(Keys.Count, PagesArray.Elements.Count);
+
+        if (page != null)
+            Owner.OnPageRemoved(page, index);
     }
 
     /// <summary>

@@ -66,6 +66,23 @@ public sealed class PdfLinkAnnotation : PdfAnnotation
     }
 
     /// <summary>
+    /// Wraps an annotation dictionary read from a document, keeping every entry it has and
+    /// writing none of the defaults a new one is given.
+    /// </summary>
+    internal PdfLinkAnnotation(PdfDictionary dict)
+        : base(dict)
+    {
+        _readFromFile = true;
+    }
+
+    /// <summary>
+    /// Whether this link was read from a file rather than made here, in which case its border is
+    /// whatever the file says - including nothing, which ISO 32000-1 reads as a one-point border -
+    /// and the zero-width default below is not this class's to add.
+    /// </summary>
+    readonly bool _readFromFile;
+
+    /// <summary>
     /// Creates a link within the current document.
     /// </summary>
     /// <param name="rect">The link area in default page coordinates.</param>
@@ -161,12 +178,15 @@ public sealed class PdfLinkAnnotation : PdfAnnotation
         // "If neither the Border nor the BS entry is present, the border is drawn as a solid line with a width of 1 point."
         // After this issue was fixed in newer Reader versions older PDFsharp created documents show an ugly solid border.
         // The following hack fixes this by specifying a 0 width border.
-        if (Elements[PdfAnnotation.Keys.BS] == null)
-            Elements[PdfAnnotation.Keys.BS] = new PdfLiteral("<</Type/Border/W 0>>");
+        if (!_readFromFile)
+        {
+            if (Elements[PdfAnnotation.Keys.BS] == null)
+                Elements[PdfAnnotation.Keys.BS] = new PdfLiteral("<</Type/Border/W 0>>");
 
-        // May be superfluous. See comment above.
-        if (Elements[PdfAnnotation.Keys.Border] == null)
-            Elements[PdfAnnotation.Keys.Border] = new PdfLiteral("[0 0 0]");
+            // May be superfluous. See comment above.
+            if (Elements[PdfAnnotation.Keys.Border] == null)
+                Elements[PdfAnnotation.Keys.Border] = new PdfLiteral("[0 0 0]");
+        }
 
         switch (_linkType)
         {

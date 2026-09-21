@@ -53,7 +53,7 @@ namespace PdfPinata.Pdf.Annotations;
 /// what the specification asks of it.
 /// </para>
 /// </remarks>
-public abstract class PdfTextMarkupAnnotation : PdfAnnotation
+public abstract class PdfTextMarkupAnnotation : PdfMarkupAnnotation
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="PdfTextMarkupAnnotation"/> class.
@@ -74,36 +74,21 @@ public abstract class PdfTextMarkupAnnotation : PdfAnnotation
     }
 
     /// <summary>
+    /// Wraps an annotation dictionary read from a document, keeping every entry it has and
+    /// writing none of the defaults a new one is given.
+    /// </summary>
+    private protected PdfTextMarkupAnnotation(PdfDictionary dict)
+        : base(dict)
+    { }
+
+    /// <summary>
     /// Gets the quadrilaterals the markup covers, in default page space.
     /// </summary>
     /// <remarks>
     /// Empty when none have been added, in which case the markup covers
     /// <see cref="PdfAnnotation.Rectangle"/> alone.
     /// </remarks>
-    public IReadOnlyList<PdfRectangle> Quads
-    {
-        get
-        {
-            var quads = new List<PdfRectangle>();
-            var array = Elements.GetArray(Keys.QuadPoints);
-            if (array == null)
-                return quads;
-
-            // Whole quads only: a trailing fragment is not a quadrilateral and is ignored
-            // rather than read as one with coordinates that are not there.
-            for (var idx = 0; idx + 7 < array.Elements.Count; idx += 8)
-            {
-                // Written in the order every producer uses; see AddQuad.
-                var left = array.Elements.GetReal(idx);
-                var top = array.Elements.GetReal(idx + 1);
-                var right = array.Elements.GetReal(idx + 2);
-                var bottom = array.Elements.GetReal(idx + 5);
-                quads.Add(new PdfRectangle(Math.Min(left, right), Math.Min(top, bottom),
-                    Math.Max(left, right), Math.Max(top, bottom)));
-            }
-            return quads;
-        }
-    }
+    public IReadOnlyList<PdfRectangle> Quads => QuadPoints.Read(Elements.GetArray(Keys.QuadPoints));
 
     /// <summary>
     /// Adds a quadrilateral to be marked up, in default page space — the space
@@ -128,14 +113,7 @@ public abstract class PdfTextMarkupAnnotation : PdfAnnotation
             Elements[Keys.QuadPoints] = array;
         }
 
-        double left = Math.Min(rect.X1, rect.X2), right = Math.Max(rect.X1, rect.X2);
-        double bottom = Math.Min(rect.Y1, rect.Y2), top = Math.Max(rect.Y1, rect.Y2);
-
-        // Upper-left, upper-right, lower-left, lower-right. The specification's prose calls for
-        // the four vertices "in counterclockwise order", which would put the lower two the other
-        // way round, but no producer writes them that way and viewers read this order instead.
-        foreach (var value in new[] { left, top, right, top, left, bottom, right, bottom })
-            array.Elements.Add(new PdfReal(value));
+        QuadPoints.Append(array, rect);
 
         UpdateRectangle();
         RebuildAppearance();
@@ -176,20 +154,9 @@ public abstract class PdfTextMarkupAnnotation : PdfAnnotation
     /// </summary>
     void UpdateRectangle()
     {
-        var quads = Quads;
-        if (quads.Count == 0)
-            return;
-
-        double x1 = double.MaxValue, y1 = double.MaxValue;
-        double x2 = double.MinValue, y2 = double.MinValue;
-        foreach (var quad in quads)
-        {
-            x1 = Math.Min(x1, quad.X1);
-            y1 = Math.Min(y1, quad.Y1);
-            x2 = Math.Max(x2, quad.X2);
-            y2 = Math.Max(y2, quad.Y2);
-        }
-        Elements.SetRectangle(PdfAnnotation.Keys.Rect, new PdfRectangle(x1, y1, x2, y2));
+        var enclosing = QuadPoints.Enclosing(Quads);
+        if (enclosing != null)
+            Elements.SetRectangle(PdfAnnotation.Keys.Rect, enclosing);
     }
 
     internal override void OnAddedToPage()

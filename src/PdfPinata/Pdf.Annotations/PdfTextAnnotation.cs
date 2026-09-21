@@ -34,7 +34,7 @@ namespace PdfPinata.Pdf.Annotations;
 /// <summary>
 /// Represents a text annotation.
 /// </summary>
-public sealed class PdfTextAnnotation : PdfAnnotation
+public sealed class PdfTextAnnotation : PdfMarkupAnnotation
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="PdfTextAnnotation"/> class.
@@ -52,6 +52,14 @@ public sealed class PdfTextAnnotation : PdfAnnotation
     {
         Initialize();
     }
+
+    /// <summary>
+    /// Wraps an annotation dictionary read from a document, keeping every entry it has and
+    /// writing none of the defaults a new one is given.
+    /// </summary>
+    internal PdfTextAnnotation(PdfDictionary dict)
+        : base(dict)
+    { }
 
     void Initialize()
     {

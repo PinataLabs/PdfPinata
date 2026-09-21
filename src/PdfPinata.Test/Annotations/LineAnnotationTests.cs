@@ -178,19 +178,15 @@ public sealed class LineAnnotationTests : IDisposable
         line.Interior = XColor.FromArgb(127, 127, 127);
 
         // What the file carries. A component goes out as a fraction of 255 to the seven decimal
-        // places PdfWriter gives a real, so 127 becomes 0.4980392 - and reading it back is a
-        // separate document's problem, since reopening one gives a PdfGenericAnnotation rather
-        // than this class.
+        // places PdfWriter gives a real, so 127 becomes 0.4980392.
         var reopened = SaveAndReopen(line.Owner);
         var written = reopened.Pages[0].Annotations[0].Elements.GetArray("/IC");
         written.Elements.GetReal(0).Should().BeApproximately(0.4980392, 1e-9);
 
-        // And what this class makes of it. 0.4980392 times 255 is 126.999996, so truncating loses
-        // a value the file all but said, and the grey a caller asked for comes back a shade
-        // darker every time it is saved.
-        var read = OnAPage();
-        read.Elements["/IC"] = new PdfArray(
-            read.Owner, new PdfReal(0.4980392), new PdfReal(0.4980392), new PdfReal(0.4980392));
+        // And what this class makes of it, reading the annotation back as itself. 0.4980392 times
+        // 255 is 126.999996, so truncating loses a value the file all but said, and the grey a
+        // caller asked for comes back a shade darker every time it is saved.
+        var read = (PdfLineAnnotation)reopened.Pages[0].Annotations[0];
 
         read.Interior.R.Should().Be(127);
         read.Interior.G.Should().Be(127);

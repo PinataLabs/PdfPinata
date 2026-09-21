@@ -26,7 +26,7 @@ namespace PdfPinata.Pdf.Annotations;
 /// <see cref="XGraphics"/> draws in. <c>gfx.Transformer.WorldToDefaultPage</c> converts.
 /// </para>
 /// </remarks>
-public sealed class PdfLineAnnotation : PdfAnnotation
+public sealed class PdfLineAnnotation : PdfMarkupAnnotation
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="PdfLineAnnotation"/> class.
@@ -45,6 +45,14 @@ public sealed class PdfLineAnnotation : PdfAnnotation
     {
         Initialize();
     }
+
+    /// <summary>
+    /// Wraps an annotation dictionary read from a document, keeping every entry it has and
+    /// writing none of the defaults a new one is given.
+    /// </summary>
+    internal PdfLineAnnotation(PdfDictionary dict)
+        : base(dict)
+    { }
 
     void Initialize()
     {
@@ -97,11 +105,7 @@ public sealed class PdfLineAnnotation : PdfAnnotation
     /// </remarks>
     public double BorderWidth
     {
-        get
-        {
-            var border = Elements.GetDictionary(PdfAnnotation.Keys.BS);
-            return border == null ? 1 : border.Elements.GetReal("/W");
-        }
+        get => BorderWidthFrom(Elements.GetDictionary(PdfAnnotation.Keys.BS));
         set
         {
             if (value < 0)
@@ -125,34 +129,10 @@ public sealed class PdfLineAnnotation : PdfAnnotation
     /// </summary>
     public XColor Interior
     {
-        get
-        {
-            var colour = Elements.GetArray(Keys.IC);
-            if (colour == null || colour.Elements.Count < 3)
-                return XColor.Empty;
-
-            // Rounded rather than truncated. A component is written as a fraction of 255 to the
-            // seven decimal places PdfWriter gives a real, so 127 goes out as 0.4980392 and comes
-            // back as 126.999996 - and truncating that loses a value the file all but said.
-            return XColor.FromArgb(
-                (int)Math.Round(colour.Elements.GetReal(0) * 255),
-                (int)Math.Round(colour.Elements.GetReal(1) * 255),
-                (int)Math.Round(colour.Elements.GetReal(2) * 255));
-        }
+        get => ColorFrom(Elements.GetArray(Keys.IC), XColor.Empty);
         set
         {
-            // An empty array is how the specification says "no interior colour", and is not the
-            // same as the entry being absent - which means the same thing, but says nothing
-            // about intent.
-            var colour = new PdfArray();
-            if (value != XColor.Empty)
-            {
-                colour.Elements.Add(new PdfReal(value.R / 255.0));
-                colour.Elements.Add(new PdfReal(value.G / 255.0));
-                colour.Elements.Add(new PdfReal(value.B / 255.0));
-            }
-
-            Elements[Keys.IC] = colour;
+            Elements[Keys.IC] = ColorArray(value);
             Touch();
         }
     }
@@ -202,25 +182,11 @@ public sealed class PdfLineAnnotation : PdfAnnotation
         Touch();
     }
 
-    PdfLineEnding EndingAt(int index)
-    {
-        var endings = Elements.GetArray(Keys.LE);
-        if (endings == null || endings.Elements.Count <= index)
-            return PdfLineEnding.None;
-
-        var name = endings.Elements.GetName(index);
-        if (name.Length > 0 && name[0] == '/')
-            name = name[1..];
-
-        return Enum.IsDefined(typeof(PdfLineEnding), name)
-            ? Enum.Parse<PdfLineEnding>(name, false)
-            : PdfLineEnding.None;
-    }
+    PdfLineEnding EndingAt(int index) => LineEndings.Read(Elements.GetArray(Keys.LE), index);
 
     void WriteEndings(PdfLineEnding start, PdfLineEnding end)
     {
-        Elements[Keys.LE] = new PdfArray(Owner,
-            new PdfName("/" + start), new PdfName("/" + end));
+        Elements[Keys.LE] = LineEndings.Write(Owner, start, end);
 
         Touch();
     }
@@ -234,15 +200,6 @@ public sealed class PdfLineAnnotation : PdfAnnotation
         RebuildAppearance();
     }
 
-    /// <summary>
-    /// The length an arrowhead runs back along the line, and the width of every other ending.
-    /// </summary>
-    /// <remarks>
-    /// Scaled from the line's own width, floored at one point so that a hairline still gets a
-    /// visible head rather than one four hundredths of a point across.
-    /// </remarks>
-    double EndingSize => Math.Max(BorderWidth, 1) * 4;
-
     void RebuildAppearance()
     {
         // Until it is on a page there is no document to make a form in. OnAddedToPage calls this
@@ -255,7 +212,7 @@ public sealed class PdfLineAnnotation : PdfAnnotation
         var width = BorderWidth;
 
         var anyEnding = StartEnding != PdfLineEnding.None || EndEnding != PdfLineEnding.None;
-        var reach = width / 2 + (anyEnding ? EndingSize : 0);
+        var reach = width / 2 + (anyEnding ? LineEndings.Size(width) : 0);
 
         // /Rect has to enclose everything drawn, and what is drawn is the line plus whatever sits
         // at its ends. Written even when nothing will be drawn, because /Rect is required.
@@ -305,122 +262,12 @@ public sealed class PdfLineAnnotation : PdfAnnotation
 
             // Each ending points away from the other end, which is what makes an arrow at the far
             // end of a line point forwards and one at the near end point back.
-            DrawEnding(gfx, StartEnding, from, Direction(to, from), pen, brush);
-            DrawEnding(gfx, EndEnding, to, Direction(from, to), pen, brush);
+            var size = LineEndings.Size(width);
+            LineEndings.Draw(gfx, StartEnding, from, LineEndings.Direction(to, from), pen, brush, size);
+            LineEndings.Draw(gfx, EndEnding, to, LineEndings.Direction(from, to), pen, brush, size);
         }
 
         SetAppearance(form);
-    }
-
-    /// <summary>
-    /// The unit vector from one point towards another, or the x axis when the two coincide.
-    /// </summary>
-    static XVector Direction(XPoint from, XPoint to)
-    {
-        var dx = to.X - from.X;
-        var dy = to.Y - from.Y;
-        var length = Math.Sqrt(dx * dx + dy * dy);
-
-        return length == 0 ? new XVector(1, 0) : new XVector(dx / length, dy / length);
-    }
-
-    void DrawEnding(XGraphics gfx, PdfLineEnding ending, XPoint at, XVector outward, XPen pen, XBrush brush)
-    {
-        if (ending == PdfLineEnding.None)
-            return;
-
-        var size = EndingSize;
-        var half = size / 2;
-
-        // Reversed arrowheads are the same triangle turned round, which is the only thing the
-        // R-prefixed members of Table 176 change.
-        if (ending == PdfLineEnding.ROpenArrow || ending == PdfLineEnding.RClosedArrow)
-            outward = new XVector(-outward.X, -outward.Y);
-
-        var across = new XVector(-outward.Y, outward.X);
-
-        switch (ending)
-        {
-            case PdfLineEnding.Square:
-                DrawShape(gfx, pen, brush, new[]
-                {
-                    new XPoint(at.X - half, at.Y - half), new XPoint(at.X + half, at.Y - half),
-                    new XPoint(at.X + half, at.Y + half), new XPoint(at.X - half, at.Y + half)
-                });
-                break;
-
-            case PdfLineEnding.Circle:
-                var circle = new XRect(at.X - half, at.Y - half, size, size);
-                if (brush == null)
-                    gfx.DrawEllipse(pen, circle);
-                else
-                    gfx.DrawEllipse(pen, brush, circle);
-                break;
-
-            case PdfLineEnding.Diamond:
-                DrawShape(gfx, pen, brush, new[]
-                {
-                    new XPoint(at.X, at.Y - half), new XPoint(at.X + half, at.Y),
-                    new XPoint(at.X, at.Y + half), new XPoint(at.X - half, at.Y)
-                });
-                break;
-
-            case PdfLineEnding.OpenArrow:
-            case PdfLineEnding.ROpenArrow:
-                // Two segments meeting at the tip, drawn as one polyline so that the join is
-                // mitred rather than two strokes crossing at a point.
-                gfx.DrawLines(pen, new[] { Barb(at, outward, across, size, half, 1), at, Barb(at, outward, across, size, half, -1) });
-                break;
-
-            case PdfLineEnding.ClosedArrow:
-            case PdfLineEnding.RClosedArrow:
-                DrawShape(gfx, pen, brush, new[]
-                {
-                    at, Barb(at, outward, across, size, half, 1), Barb(at, outward, across, size, half, -1)
-                });
-                break;
-
-            case PdfLineEnding.Butt:
-                gfx.DrawLine(pen,
-                    new XPoint(at.X - across.X * half, at.Y - across.Y * half),
-                    new XPoint(at.X + across.X * half, at.Y + across.Y * half));
-                break;
-
-            case PdfLineEnding.Slash:
-                // "Approximately thirty degrees clockwise from perpendicular", which is what the
-                // specification asks for and how precisely it asks for it.
-                var cos = Math.Cos(Math.PI / 6);
-                var sin = Math.Sin(Math.PI / 6);
-                var slash = new XVector(
-                    across.X * cos - across.Y * sin,
-                    across.X * sin + across.Y * cos);
-                gfx.DrawLine(pen,
-                    new XPoint(at.X - slash.X * half, at.Y - slash.Y * half),
-                    new XPoint(at.X + slash.X * half, at.Y + slash.Y * half));
-                break;
-        }
-    }
-
-    /// <summary>
-    /// One of the two back corners of an arrowhead whose tip is at <paramref name="at"/>.
-    /// </summary>
-    static XPoint Barb(XPoint at, XVector outward, XVector across, double size, double half, int side)
-    {
-        return new XPoint(
-            at.X - outward.X * size + across.X * half * side,
-            at.Y - outward.Y * size + across.Y * half * side);
-    }
-
-    /// <summary>
-    /// Fills a closed shape when there is an interior colour and outlines it either way, which is
-    /// what an absent <c>/IC</c> means: the ending is drawn, and is not filled in.
-    /// </summary>
-    static void DrawShape(XGraphics gfx, XPen pen, XBrush brush, XPoint[] points)
-    {
-        if (brush == null)
-            gfx.DrawPolygon(pen, points);
-        else
-            gfx.DrawPolygon(pen, brush, points, XFillMode.Winding);
     }
 
     /// <summary>

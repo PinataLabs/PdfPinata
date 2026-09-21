@@ -272,9 +272,9 @@ rather than honoured, which is documented on the class and asserted in a test so
 decision rather than a surprise.
 
 Everything is read back out of the dictionary rather than kept in a field — `/L`, `/LE`, `/IC`, the
-width in `/BS` — so a line survives a round trip through the file. `PdfSquareCircleAnnotation` keeps
-its interior and border width in fields and does not; that is the older of the two and the difference
-is worth knowing before copying either.
+width in `/BS` — so a line survives a round trip through the file. `PdfSquareCircleAnnotation` kept
+its interior and border width in fields and did not; it reads the dictionary too now, since an
+annotation read from a file is handed back as its own class (`upstream-7-interactive-port.md` item 6).
 
 `PdfLineEnding` is the whole of ISO 32000-1 Table 176 — ten members, including `None`, which is
 written out loud rather than left absent: a line saying it ends in nothing is a line, where one
@@ -314,8 +314,10 @@ is a reader's, and left is what a reader regenerating the appearance would make 
 
 #### What is still missing
 
-There is no `/Polygon`, `/PolyLine` or `/Ink`, and no `/Popup`: `PdfAnnotation.Keys.Popup` is defined
-and no class uses it, so a note's popup is positioned entirely by the reader. A `/Line` has no
+`/Polygon`, `/PolyLine`, `/Ink`, `/Caret`, `/Redact` and `/Popup` now have classes, and a markup
+annotation can be given a pop-up through `PdfMarkupAnnotation.Popup` - see
+`upstream-7-interactive-port.md` item 7. An annotation read from a file is now its own class rather
+than a `PdfGenericAnnotation` (item 6 there). A `/Line` has no
 caption (`/Cap`, `/CP`) and no leader lines (`/LL`, `/LLE`); a `/FreeText` has no callout line
 (`/CL`) and no rich text (`/RC`).
 

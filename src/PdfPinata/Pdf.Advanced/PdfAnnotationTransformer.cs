@@ -102,11 +102,13 @@ static class PdfAnnotationTransformer
             case "/StrikeOut":
             case "/Squiggly":
             case "/Link":
+            case "/Redact":
                 TransformPoints(annotation, "/QuadPoints", matrix);
                 break;
 
             case "/Square":
             case "/Circle":
+            case "/Caret":
                 TransformDifferences(annotation, "/RD", matrix);
                 break;
         }

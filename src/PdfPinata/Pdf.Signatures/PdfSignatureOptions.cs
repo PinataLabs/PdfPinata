@@ -80,4 +80,27 @@ public sealed class PdfSignatureOptions
     /// Whether this signature certifies the document, and what it then still permits.
     /// </summary>
     public PdfCertificationLevel Certification { get; set; } = PdfCertificationLevel.NotCertified;
+
+    /// <summary>
+    /// Which form fields the signature locks, or null - the default - for none.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Locking is three things, all written into the signed revision: the signature field carries a
+    /// <c>/Lock</c> dictionary saying which fields; the signature carries a <c>/FieldMDP</c>
+    /// reference saying the same, which is what a validator checks later revisions against; and
+    /// every field the lock covers is made read-only, which is what stops a reader - and this
+    /// library, whose field setters refuse a read-only field - from changing it.
+    /// </para>
+    /// <para>
+    /// The signature's own field is never locked by it: it is signed already.
+    /// </para>
+    /// </remarks>
+    public AcroForms.PdfFieldLockAction? LockAction { get; set; }
+
+    /// <summary>
+    /// The fully qualified names of the fields <see cref="LockAction"/> includes or excludes.
+    /// Ignored when it is <see cref="AcroForms.PdfFieldLockAction.All"/> or null.
+    /// </summary>
+    public System.Collections.Generic.IReadOnlyList<string> LockFields { get; set; }
 }

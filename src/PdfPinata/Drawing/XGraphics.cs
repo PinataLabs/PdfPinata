@@ -231,11 +231,50 @@ public sealed class XGraphics : IDisposable
     }
 
     /// <summary>
+    /// Creates the surface for a page and tells the document it exists, through
+    /// <see cref="PdfDocument.PageGraphicsCreated"/>, before handing it to the caller.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Raised here rather than in the constructor, so that a handler that throws cannot leave the
+    /// page with a surface nobody holds: the surface is disposed and the exception goes to the
+    /// caller, who can then draw on the page again.
+    /// </para>
+    /// <para>
+    /// The handler draws inside a saved graphics state, so a transform or clip it sets and does not
+    /// undo is undone for it and the caller starts where it would have without the handler.
+    /// </para>
+    /// </remarks>
+    static XGraphics FromPdfPageCore(PdfPage page, XGraphicsPdfPageOptions options, XGraphicsUnit unit, XPageDirection pageDirection)
+    {
+        var gfx = new XGraphics(page, options, unit, pageDirection);
+
+        // Nothing is allocated for a document nobody is listening to, which is almost every one -
+        // PinataLayout draws every page through here.
+        if (!page.Owner.HasPageGraphicsCreatedHandlers)
+            return gfx;
+
+        try
+        {
+            var state = gfx.Save();
+            page.Owner.OnPageGraphicsCreated(page, gfx);
+            gfx.Restore(state);
+        }
+        catch
+        {
+            gfx.Dispose();
+            throw;
+        }
+
+        return gfx;
+    }
+
+    /// <summary>
     /// Creates a new instance of the XGraphics class from a PdfPinata.Pdf.PdfPage object.
     /// </summary>
     public static XGraphics FromPdfPage(PdfPage page)
     {
-        return new XGraphics(page, XGraphicsPdfPageOptions.Append, XGraphicsUnit.Point, XPageDirection.Downwards);
+        return FromPdfPageCore(page, XGraphicsPdfPageOptions.Append, XGraphicsUnit.Point, XPageDirection.Downwards);
     }
 
     /// <summary>
@@ -243,7 +282,7 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public static XGraphics FromPdfPage(PdfPage page, XGraphicsUnit unit)
     {
-        return new XGraphics(page, XGraphicsPdfPageOptions.Append, unit, XPageDirection.Downwards);
+        return FromPdfPageCore(page, XGraphicsPdfPageOptions.Append, unit, XPageDirection.Downwards);
     }
 
     /// <summary>
@@ -251,7 +290,7 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public static XGraphics FromPdfPage(PdfPage page, XPageDirection pageDirection)
     {
-        return new XGraphics(page, XGraphicsPdfPageOptions.Append, XGraphicsUnit.Point, pageDirection);
+        return FromPdfPageCore(page, XGraphicsPdfPageOptions.Append, XGraphicsUnit.Point, pageDirection);
     }
 
     /// <summary>
@@ -259,7 +298,7 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public static XGraphics FromPdfPage(PdfPage page, XGraphicsPdfPageOptions options)
     {
-        return new XGraphics(page, options, XGraphicsUnit.Point, XPageDirection.Downwards);
+        return FromPdfPageCore(page, options, XGraphicsUnit.Point, XPageDirection.Downwards);
     }
 
     /// <summary>
@@ -267,7 +306,7 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public static XGraphics FromPdfPage(PdfPage page, XGraphicsPdfPageOptions options, XPageDirection pageDirection)
     {
-        return new XGraphics(page, options, XGraphicsUnit.Point, pageDirection);
+        return FromPdfPageCore(page, options, XGraphicsUnit.Point, pageDirection);
     }
 
     /// <summary>
@@ -275,7 +314,7 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public static XGraphics FromPdfPage(PdfPage page, XGraphicsPdfPageOptions options, XGraphicsUnit unit)
     {
-        return new XGraphics(page, options, unit, XPageDirection.Downwards);
+        return FromPdfPageCore(page, options, unit, XPageDirection.Downwards);
     }
 
     /// <summary>
@@ -283,7 +322,7 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public static XGraphics FromPdfPage(PdfPage page, XGraphicsPdfPageOptions options, XGraphicsUnit unit, XPageDirection pageDirection)
     {
-        return new XGraphics(page, options, unit, pageDirection);
+        return FromPdfPageCore(page, options, unit, pageDirection);
     }
 
     /// <summary>
