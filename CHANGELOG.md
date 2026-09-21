@@ -110,6 +110,18 @@ This file starts at the entry below. Changes before that point are recorded only
   property, and a section nobody has added anything to has not built its element collection yet —
   so the one case each of them documents an answer for was the one case that threw.
 
+- **A paragraph holding an inline element with no text in it renders.** `AddFormattedText("")` is
+  accepted while the document is built, and `RenderDocument` then threw `ArgumentNullException`
+  from `DocumentRelations.GetParent` — so a string that happened to be empty took the whole
+  document with it, wherever the paragraph sat. An element holding nothing has nothing to descend
+  to, so `ParagraphIterator` hands back its own empty collection as a leaf, one level above the word
+  a leaf usually is. Everything the renderer does with a leaf tolerated that except the walk asking
+  which hyperlink the leaf sits in: it stepped two levels at a time, so from there it landed on the
+  collections rather than on the objects, never met the paragraph it stops at, and ran off the top
+  of the document. It now takes one level at a time and stops at the top as well as at the
+  paragraph. A hyperlink with no text in it is the same leaf and threw the same way. Reported as
+  [PinataLabs/PdfPinata#45](https://github.com/PinataLabs/PdfPinata/issues/45).
+
 ## [0.2.0] - 2026-09-20
 
 ### Added
