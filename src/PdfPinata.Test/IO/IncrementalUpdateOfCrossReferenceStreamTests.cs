@@ -84,6 +84,21 @@ public class IncrementalUpdateOfCrossReferenceStreamTests
     }
 
     [Fact]
+    public void ThePreviousCrossReferenceStreamIsNotWrittenAgainWhenTheFileHadNoInfo()
+    {
+        // The old stream is the document's trailer, and an object in the table besides. A file with
+        // no /Info has one created on save, on the trailer, which marks the stream changed - and it
+        // was then written again under its old number, stale entries and all.
+        var original = WithoutInfo(OriginalDocument());
+        var updated = AppendChange(original, document => document.Info.Subject = "Changed");
+
+        CrossReferenceStreamsIn(Appended(updated, original.Length)).Should().Be(1);
+        var reread = Reopen(updated);
+        reread.Info.Subject.Should().Be("Changed");
+        reread.PageCount.Should().Be(2);
+    }
+
+    [Fact]
     public void TwoSuccessiveUpdatesBothResolve()
     {
         var once = AppendChange(OriginalDocument(), document => document.Info.Subject = "First");
@@ -156,6 +171,19 @@ public class IncrementalUpdateOfCrossReferenceStreamTests
         using var output = new MemoryStream();
         document.Save(output, false);
         return output.ToArray();
+    }
+
+    /// <summary>
+    /// The same file with the cross-reference stream's <c>/Info</c> entry blanked out to spaces, so
+    /// that every offset still holds - the shape many PDF 1.5 producers write.
+    /// </summary>
+    private static byte[] WithoutInfo(byte[] bytes)
+    {
+        var text = Encoding.Latin1.GetString(bytes);
+        var match = Regex.Match(text, @"/Info \d+ 0 R(?=[^%]*?/Type\s*/XRef)", RegexOptions.RightToLeft);
+        match.Success.Should().BeTrue("the fixture's cross-reference stream names its /Info");
+        return Encoding.Latin1.GetBytes(text.Remove(match.Index, match.Length)
+            .Insert(match.Index, new string(' ', match.Length)));
     }
 
     private static byte[] AppendChange(byte[] original, Action<PdfDocument> change)

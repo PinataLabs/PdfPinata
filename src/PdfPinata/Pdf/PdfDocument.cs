@@ -427,6 +427,13 @@ public sealed class PdfDocument : PdfObject, IDisposable
             var changed = new List<PdfReference>();
             foreach (var iref in _irefTable.AllReferences)
             {
+                // A trailer that is a cross-reference stream is also an object in the table, and
+                // setting an entry on it - /Info, created on save for a file that had none - marks
+                // it changed. It is the previous revision's index and is never written again: the
+                // new revision gets an index of its own.
+                if (iref.Value == _trailer)
+                    continue;
+
                 if (iref.Value != null && (iref.Value.IsDirty || !_originalObjectNumbers.Contains(iref.ObjectNumber)))
                     changed.Add(iref);
             }
