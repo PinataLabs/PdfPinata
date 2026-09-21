@@ -108,9 +108,6 @@ public sealed class PdfPage : PdfDictionary, IContentStream
             // at System.Globalization.RegionInfo..ctor
             Size = PageSize.A4;
         }
-
-        // Force creation of MediaBox object by invoking property
-        _ = MediaBox;
     }
 
     /// <summary>
@@ -457,12 +454,19 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     readonly PdfPageSheet _sheet;
 
     /// <summary>
-    /// Gets or sets the media box directly. XGrahics is not prepared to work with a media box
-    /// with an origin other than (0,0).
+    /// Gets or sets the media box directly: the whole sheet the page is printed on. XGrahics is
+    /// not prepared to work with a media box with an origin other than (0,0).
     /// </summary>
+    /// <remarks>
+    /// Reading it never changes the page. A page that states no media box - which ISO 32000-1
+    /// requires, but which a file read from elsewhere can still leave out - answers the empty
+    /// rectangle and is left without one; <see cref="HasMediaBox"/> tells the two apart. A media
+    /// box stated on a node of the page tree is copied onto the page when the document is read,
+    /// so an inherited one counts as the page's own.
+    /// </remarks>
     public PdfRectangle MediaBox
     {
-        get => Elements.GetRectangle(InheritablePageKeys.MediaBox, true);
+        get => BoxOrEmpty(InheritablePageKeys.MediaBox);
         set
         {
             // Whatever the page was asked to be, it is not that any more.
@@ -472,40 +476,199 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     }
 
     /// <summary>
-    /// Gets or sets the crop box.
+    /// Gets a value indicating whether the page states a media box, either itself or through
+    /// the page tree it was read from.
     /// </summary>
+    public bool HasMediaBox => StatedBox(InheritablePageKeys.MediaBox) != null;
+
+    /// <summary>
+    /// Gets or sets the crop box: the part of the page a reader shows and prints.
+    /// </summary>
+    /// <remarks>
+    /// Reading it never changes the page. A page that states no crop box answers the empty
+    /// rectangle, exactly the value it always answered, but is no longer given
+    /// <c>/CropBox [0 0 0 0]</c> for having been asked - a crop box of no size, which crops the
+    /// page to nothing. Use <see cref="HasCropBox"/> to ask whether there is one, and
+    /// <see cref="EffectiveCropBox"/> for the box a reader will actually use. A crop box stated
+    /// on a node of the page tree is copied onto the page when the document is read, so an
+    /// inherited one counts as the page's own.
+    /// </remarks>
     public PdfRectangle CropBox
     {
-        get => Elements.GetRectangle(InheritablePageKeys.CropBox, true);
+        get => BoxOrEmpty(InheritablePageKeys.CropBox);
         set => Elements.SetRectangle(InheritablePageKeys.CropBox, value);
     }
 
     /// <summary>
-    /// Gets or sets the bleed box.
+    /// Gets a value indicating whether the page states a crop box, either itself or through the
+    /// page tree it was read from.
     /// </summary>
+    public bool HasCropBox => StatedBox(InheritablePageKeys.CropBox) != null;
+
+    /// <summary>
+    /// Gets the crop box a reader uses: the one the page states, or its media box when it states
+    /// none (ISO 32000-1 14.11.2), reduced to the part that lies within the media box.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Reading it never changes the page. The result is always written lower-left corner first,
+    /// however the page wrote it, and is the empty rectangle when the box lies wholly outside the
+    /// media box, or when the page states neither it nor a media box. A page with no media box is
+    /// not clipped at all: the crop box it states is answered as it is.
+    /// </para>
+    /// <para>
+    /// The media box is taken as it is written to the file. A page built here as
+    /// <see cref="PageOrientation.Landscape"/> holds its media box upright while it is drawn on
+    /// and turns it over on the way out, and the other boxes are not turned; so for such a page
+    /// this is the media box turned over, not <see cref="MediaBox"/>.
+    /// </para>
+    /// <para>
+    /// The same holds for <see cref="EffectiveBleedBox"/>, <see cref="EffectiveTrimBox"/> and
+    /// <see cref="EffectiveArtBox"/>.
+    /// </para>
+    /// </remarks>
+    public PdfRectangle EffectiveCropBox => EffectiveBox(InheritablePageKeys.CropBox);
+
+    /// <summary>
+    /// Gets or sets the bleed box: how far the artwork runs past the trim, for a page going to a
+    /// press.
+    /// </summary>
+    /// <remarks>
+    /// Reading it never changes the page. A page that states no bleed box answers the empty
+    /// rectangle and is left without one; see <see cref="HasBleedBox"/> and
+    /// <see cref="EffectiveBleedBox"/>.
+    /// </remarks>
     public PdfRectangle BleedBox
     {
-        get => Elements.GetRectangle(Keys.BleedBox, true);
+        get => BoxOrEmpty(Keys.BleedBox);
         set => Elements.SetRectangle(Keys.BleedBox, value);
     }
 
     /// <summary>
-    /// Gets or sets the art box.
+    /// Gets a value indicating whether the page states a bleed box.
     /// </summary>
+    public bool HasBleedBox => StatedBox(Keys.BleedBox) != null;
+
+    /// <summary>
+    /// Gets the bleed box a reader uses: the one the page states, or the
+    /// <see cref="EffectiveCropBox"/> when it states none (ISO 32000-1 14.11.2), reduced to the
+    /// part that lies within the media box.
+    /// </summary>
+    /// <remarks>
+    /// Shaped as <see cref="EffectiveCropBox"/> is, and like it never changes the page.
+    /// </remarks>
+    public PdfRectangle EffectiveBleedBox => EffectiveBox(Keys.BleedBox);
+
+    /// <summary>
+    /// Gets or sets the art box: the extent of the page's meaningful content.
+    /// </summary>
+    /// <remarks>
+    /// Reading it never changes the page. A page that states no art box answers the empty
+    /// rectangle and is left without one; see <see cref="HasArtBox"/> and
+    /// <see cref="EffectiveArtBox"/>.
+    /// </remarks>
     public PdfRectangle ArtBox
     {
-        get => Elements.GetRectangle(Keys.ArtBox, true);
+        get => BoxOrEmpty(Keys.ArtBox);
         set => Elements.SetRectangle(Keys.ArtBox, value);
     }
 
     /// <summary>
-    /// Gets or sets the trim box.
+    /// Gets a value indicating whether the page states an art box.
     /// </summary>
+    public bool HasArtBox => StatedBox(Keys.ArtBox) != null;
+
+    /// <summary>
+    /// Gets the art box a reader uses: the one the page states, or the
+    /// <see cref="EffectiveCropBox"/> when it states none (ISO 32000-1 14.11.2), reduced to the
+    /// part that lies within the media box.
+    /// </summary>
+    /// <remarks>
+    /// Shaped as <see cref="EffectiveCropBox"/> is, and like it never changes the page.
+    /// </remarks>
+    public PdfRectangle EffectiveArtBox => EffectiveBox(Keys.ArtBox);
+
+    /// <summary>
+    /// Gets or sets the trim box: the finished page, where the sheet is cut.
+    /// </summary>
+    /// <remarks>
+    /// Reading it never changes the page. A page that states no trim box answers the empty
+    /// rectangle and is left without one; see <see cref="HasTrimBox"/> and
+    /// <see cref="EffectiveTrimBox"/>.
+    /// </remarks>
     public PdfRectangle TrimBox
     {
-        get => Elements.GetRectangle(Keys.TrimBox, true);
+        get => BoxOrEmpty(Keys.TrimBox);
         set => Elements.SetRectangle(Keys.TrimBox, value);
     }
+
+    /// <summary>
+    /// Gets a value indicating whether the page states a trim box.
+    /// </summary>
+    public bool HasTrimBox => StatedBox(Keys.TrimBox) != null;
+
+    /// <summary>
+    /// Gets the trim box a reader uses: the one the page states, or the
+    /// <see cref="EffectiveCropBox"/> when it states none (ISO 32000-1 14.11.2), reduced to the
+    /// part that lies within the media box.
+    /// </summary>
+    /// <remarks>
+    /// Shaped as <see cref="EffectiveCropBox"/> is, and like it never changes the page.
+    /// </remarks>
+    public PdfRectangle EffectiveTrimBox => EffectiveBox(Keys.TrimBox);
+
+    /// <summary>
+    /// The box the page states under <paramref name="key"/>, or null when it states none. An
+    /// entry whose value is null, directly or by reference, or is not an array of four numbers,
+    /// is no box at all. Nothing is written to the page.
+    /// </summary>
+    PdfRectangle StatedBox(string key) => PdfPageResizer.RectangleOf(this, key);
+
+    PdfRectangle BoxOrEmpty(string key) => StatedBox(key) ?? new PdfRectangle();
+
+    /// <summary>
+    /// The box under <paramref name="key"/> as a reader applies it, following ISO 32000-1
+    /// 14.11.2.
+    /// </summary>
+    /// <remarks>
+    /// A box the page does not state defaults to the crop box, and a crop box it does not state
+    /// defaults to the media box. The result is then reduced to its intersection with the media
+    /// box, because the standard says a box reaching beyond the media box is effectively reduced
+    /// to that. <see cref="EffectiveCropBox"/> says what the caller sees.
+    /// </remarks>
+    PdfRectangle EffectiveBox(string key)
+    {
+        var media = StatedBox(InheritablePageKeys.MediaBox);
+        if (media != null)
+            media = LowerLeftFirst(MediaBoxIsTurnedWhenWritten ? TurnedOver(media) : media);
+
+        var box = StatedBox(key);
+        if (box == null && key != InheritablePageKeys.CropBox)
+            box = StatedBox(InheritablePageKeys.CropBox);
+
+        if (box == null)
+            return media ?? new PdfRectangle();
+
+        box = LowerLeftFirst(box);
+        if (media == null)
+            return box;
+
+        var x1 = Math.Max(box.X1, media.X1);
+        var y1 = Math.Max(box.Y1, media.Y1);
+        var x2 = Math.Min(box.X2, media.X2);
+        var y2 = Math.Min(box.Y2, media.Y2);
+        return x1 <= x2 && y1 <= y2 ? new PdfRectangle(x1, y1, x2, y2) : new PdfRectangle();
+    }
+
+    static PdfRectangle LowerLeftFirst(PdfRectangle box) =>
+        new(Math.Min(box.X1, box.X2), Math.Min(box.Y1, box.Y2),
+            Math.Max(box.X1, box.X2), Math.Max(box.Y1, box.Y2));
+
+    /// <summary>
+    /// The media box the way <see cref="WriteObject"/> turns it over for a landscape page.
+    /// </summary>
+    static PdfRectangle TurnedOver(PdfRectangle mediaBox) =>
+        new(mediaBox.X1, mediaBox.Y1, mediaBox.Y2, mediaBox.X2);
 
     /// <summary>
     /// Gets or sets the height of the page. If orientation is Landscape, this function applies to
@@ -1036,10 +1199,12 @@ public sealed class PdfPage : PdfDictionary, IContentStream
 
     internal override void WriteObject(PdfWriter writer)
     {
-        // HACK: temporarily flip media box if Landscape
+        // HACK: temporarily flip media box if Landscape. A page with no media box has nothing to
+        // turn, and turning the empty rectangle would write one.
         var mediaBox = MediaBox;
-        if (MediaBoxIsTurnedWhenWritten)
-            MediaBox = new PdfRectangle(mediaBox.X1, mediaBox.Y1, mediaBox.Y2, mediaBox.X2);
+        var turned = MediaBoxIsTurnedWhenWritten && HasMediaBox;
+        if (turned)
+            MediaBox = TurnedOver(mediaBox);
 
         // A page that paints with transparency is given a transparency group, without which
         // Adobe's viewer renders it wrongly. A page that does not paint with any is left as it
@@ -1064,7 +1229,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         }
         base.WriteObject(writer);
 
-        if (MediaBoxIsTurnedWhenWritten)
+        if (turned)
             MediaBox = mediaBox;
     }
 
