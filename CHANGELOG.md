@@ -147,6 +147,15 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ### Fixed
 
+- **A form field reads the flags and the type it inherits.** `/FT` and `/Ff` are inheritable
+  (ISO 32000-1 Table 220), and a form read from a file often sets them once, on a parent.
+  `PdfAcroField.Flags` read only the field's own `/Ff`, so it answered no flags for every such
+  child. Reading a child from a file read both entries the same way, so a radio button whose group
+  said `/Btn` and `Radio` came back as a `PdfGenericField`. Both now use the field's own entry, or
+  else the nearest ancestor's, and stop where a malformed `/Parent` chain repeats. Setting one flag
+  on a child that inherits others writes all of them into the child's own `/Ff`, instead of
+  dropping them (#75).
+
 - **`PdfReader.Open` no longer hangs on a file whose cross-reference `/Prev` chain loops back on
   itself.** Under `Strict`, the default, it throws `PdfReaderException`; under `Moderate` it reads
   each section once and opens the document. The file attached to empira/PDFsharp#266, whose
