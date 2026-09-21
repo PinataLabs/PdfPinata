@@ -28,6 +28,7 @@
 #endregion
 
 using System;
+using PdfPinata.Pdf.IO;
 
 namespace PdfPinata.Pdf.Filters;
 
@@ -58,43 +59,60 @@ public class AsciiHexDecode : Filter
 
     /// <summary>
     /// Decodes the specified data.
+    /// <para>
+    /// ISO 32000-1 7.4.2: white space is ignored, <c>&gt;</c> is the end of the data wherever it
+    /// appears and nothing after it is read, an odd number of digits before the end is read as
+    /// though a 0 followed the last one, and any other character is an error.
+    /// </para>
     /// </summary>
+    /// <exception cref="ArgumentException">The data holds a character that is neither a
+    /// hexadecimal digit, white space nor the end-of-data marker.</exception>
     public override byte[] Decode(byte[] data, FilterParms parms)
     {
         ArgumentNullException.ThrowIfNull(data);
 
-        data = RemoveWhiteSpace(data);
-        var count = data.Length;
-        // Ignore EOD (end of data) character.
-        // EOD can be anywhere in the stream, but makes sense only at the end of the stream.
-        if (count > 0 && data[count - 1] == '>')
-            --count;
-        if (count % 2 == 1)
+        // Two digits to a byte, so half the input rounded up is as many bytes as there can be.
+        var bytes = new byte[(data.Length + 1) / 2];
+        var count = 0;
+        var hi = -1;
+        foreach (var ch in data)
         {
-            // "If the filter encounters the EOD marker after reading an odd number of hexadecimal
-            // digits, it shall behave as if a 0 (zero) followed the last digit." Growing the array
-            // pads it with the byte 0x00 rather than the character '0', and 0x00 goes through the
-            // digit arithmetic below as -48, so the missing digit has to be written in.
-            var padded = new byte[count + 1];
-            Array.Copy(data, 0, padded, 0, count);
-            padded[count] = (byte)'0';
-            data = padded;
-            count++;
+            if (ch == '>')
+                break;
+
+            int digit;
+            if (ch >= '0' && ch <= '9')
+                digit = ch - '0';
+            else if (ch >= 'A' && ch <= 'F')
+                digit = ch - 'A' + 10;
+            else if (ch >= 'a' && ch <= 'f')
+                digit = ch - 'a' + 10;
+            else if (IsWhiteSpace(ch))
+                continue;
+            else
+                throw new ArgumentException($"Illegal character 0x{ch:X2} in ASCIIHexDecode data.", nameof(data));
+
+            if (hi < 0)
+                hi = digit;
+            else
+            {
+                bytes[count++] = (byte)(hi << 4 | digit);
+                hi = -1;
+            }
         }
-        count >>= 1;
-        var bytes = new byte[count];
-        for (int i = 0, j = 0; i < count; i++)
-        {
-            // Must support 0-9, A-F, a-f - "Any other characters cause an error."
-            var hi = data[j++];
-            var lo = data[j++];
-            if (hi >= 'a' && hi <= 'f')
-                hi -= 32;
-            if (lo >= 'a' && lo <= 'f')
-                lo -= 32;
-            // TODO Throw on invalid characters. Stop when encountering EOD. Add one more byte if EOD is the lo byte.
-            bytes[i] = (byte)((hi > '9' ? hi - '7'/*'A' + 10*/: hi - '0') * 16 + (lo > '9' ? lo - '7'/*'A' + 10*/: lo - '0'));
-        }
+
+        // "If the filter encounters the EOD marker after reading an odd number of hexadecimal
+        // digits, it shall behave as if a 0 (zero) followed the last digit." Data that ends
+        // without a marker is read the same way.
+        if (hi >= 0)
+            bytes[count++] = (byte)(hi << 4);
+
+        if (count < bytes.Length)
+            Array.Resize(ref bytes, count);
         return bytes;
     }
+
+    // The six characters ISO 32000-1 Table 1 calls white space.
+    static bool IsWhiteSpace(byte ch) =>
+        ch is (byte)Chars.NUL or (byte)Chars.HT or (byte)Chars.LF or (byte)Chars.FF or (byte)Chars.CR or (byte)Chars.SP;
 }

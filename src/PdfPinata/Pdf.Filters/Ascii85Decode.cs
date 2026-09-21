@@ -141,13 +141,23 @@ public class Ascii85Decode : Filter
         var length = data.Length;
         var zCount = 0;
         var idxOut = 0;
+        // How far into a five-character group the characters kept so far reach.
+        var groupLength = 0;
         for (idx = 0; idx < length; idx++)
         {
             var ch = (char)data[idx];
             if (ch >= '!' && ch <= 'u')
+            {
                 data[idxOut++] = (byte)ch;
+                groupLength = (groupLength + 1) % 5;
+            }
             else if (ch == 'z')
             {
+                // A z stands for a whole group of zeros, so it can only come where a group would
+                // begin. Inside one it would be read as a digit worth 89, which no digit is, and
+                // every group after it would be read out of step.
+                if (groupLength != 0)
+                    throw new ArgumentException("Illegal character 'z' inside a group.", nameof(data));
                 data[idxOut++] = (byte)ch;
                 zCount++;
             }
@@ -198,7 +208,8 @@ public class Ascii85Decode : Filter
             if (length - idx < 5)
                 break;
 
-            // TODO: check
+            // Every character here is '!' to 'u', a digit from 0 to 84, so only the first term can
+            // take the sum past 32 bits - hence the long - and the check below refuses one that does.
             var value =
                 (long)(data[idx++] - '!') * (85 * 85 * 85 * 85) +
                 (uint)(data[idx++] - '!') * (85 * 85 * 85) +

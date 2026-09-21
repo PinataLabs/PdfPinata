@@ -202,6 +202,28 @@ public class AsciiFilterTests
         act.Should().Throw<InvalidOperationException>();
     }
 
+    [Theory]
+    [InlineData("!!z!!~>")]
+    [InlineData("<+oue!z~>")]
+    public void Ascii85RefusesAZeroGroupInsideAnotherGroup(string encoded)
+    {
+        // A z stands for a whole group of zeros, so it can only begin one. Inside a group it used
+        // to be read as a digit worth 89 and the rest of the stream decoded out of step.
+        var act = () => Filtering.ASCII85Decode.Decode(Encoding.ASCII.GetBytes(encoded), (FilterParms)null);
+
+        act.Should().Throw<ArgumentException>().WithMessage("*'z'*");
+    }
+
+    [Fact]
+    public void Ascii85ReadsAZeroGroupBetweenWholeGroups()
+    {
+        var original = new byte[] { 1, 2, 3, 4, 0, 0, 0, 0, 5, 6, 7, 8 };
+        var encoded = Filtering.ASCII85Decode.Encode(original);
+
+        Encoding.ASCII.GetString(encoded).Should().Contain("z");
+        Filtering.ASCII85Decode.Decode(encoded, (FilterParms)null).Should().Equal(original);
+    }
+
     [Fact]
     public void Ascii85DecodingCompactsTheBufferItWasGivenRatherThanACopyOfIt()
     {
@@ -289,6 +311,47 @@ public class AsciiFilterTests
         var decoded = Filtering.ASCIIHexDecode.Decode(Encoding.ASCII.GetBytes(hex), (FilterParms)null);
 
         decoded.Last().Should().Be((byte)expected);
+    }
+
+    [Fact]
+    public void AsciiHexReadsNothingAfterTheEndOfDataMarkerWhereverItComes()
+    {
+        // The marker ends the data wherever it is, so what follows it - even what is not hex at
+        // all - is not read. It used to be recognised only as the very last character.
+        Filtering.ASCIIHexDecode.Decode(Encoding.ASCII.GetBytes("4142>4344 not hex"), (FilterParms)null)
+            .Should().Equal(Encoding.ASCII.GetBytes("AB"));
+    }
+
+    [Fact]
+    public void AsciiHexTreatsAMissingLastDigitAsZeroWhenTheMarkerComesMidStream()
+    {
+        Filtering.ASCIIHexDecode.Decode(Encoding.ASCII.GetBytes("41 4>43"), (FilterParms)null)
+            .Should().Equal(0x41, 0x40);
+    }
+
+    [Theory]
+    [InlineData("41G2")]
+    [InlineData("41-42")]
+    [InlineData("<4142>")]
+    [InlineData("41\u000B42")]   // vertical tab is not white space to PDF
+    public void AsciiHexRefusesACharacterThatIsNeitherADigitNorWhiteSpace(string hex)
+    {
+        // "Any other characters shall cause an error." They used to go through the digit
+        // arithmetic as though they were digits and come out as whatever byte that made.
+        var act = () => Filtering.ASCIIHexDecode.Decode(Encoding.ASCII.GetBytes(hex), (FilterParms)null);
+
+        act.Should().Throw<ArgumentException>().WithMessage("*Illegal character*");
+    }
+
+    [Fact]
+    public void AsciiHexLeavesTheBufferItWasGivenAsItWas()
+    {
+        var withSpace = Encoding.ASCII.GetBytes("41 42");
+        var copy = (byte[])withSpace.Clone();
+
+        Filtering.ASCIIHexDecode.Decode(withSpace, (FilterParms)null);
+
+        withSpace.Should().Equal(copy);
     }
 
     // ----- what every filter has in common -------------------------------------------------------
