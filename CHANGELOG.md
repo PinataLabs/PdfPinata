@@ -10,6 +10,19 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ## [Unreleased]
 
+### Added
+
+- **`XBaseGradientBrush.ExtendLeft` and `ExtendRight`** — whether a gradient goes on past its start
+  and its end in the colour of that end, written as the shading's `/Extend`. The start and end are
+  a linear gradient's two points and a radial gradient's two circles, so `ExtendRight` is what fills
+  the corners a radial gradient leaves unpainted outside its outer circle, and `ExtendLeft` is what
+  fills the hole inside a first circle whose radius is not zero. Both are false by default and write
+  nothing then, so an existing document is written byte for byte as before. The names are PDFsharp's,
+  where both properties exist and have no effect (empira/PDFsharp#321).
+
+- **A Gradients demo and a Gradients page on the documentation site**, covering both brushes, two-
+  centre radial gradients, extension and a brush's own transform.
+
 ### Fixed
 
 - **A chart line format that says `Visible = false` is no longer drawn as a hairline**
@@ -21,6 +34,17 @@ This file starts at the entry below. Changes before that point are recorded only
   in the legend. A line series' markers are still drawn, and so is an area's fill. A format that
   sets a width or a colour but never `Visible = true` was already converted to width 0, and is now
   not drawn either, as a column's border already was.
+
+- **A gradient brush's own `Transform` is honoured.** `TranslateTransform`, `ScaleTransform`,
+  `RotateTransform`, `MultiplyTransform` and the `Transform` setter all changed a matrix that nothing
+  read, so a transformed gradient was drawn exactly as an untransformed one. The transform now applies
+  to the brush before the transform of the graphics. A radial gradient stretched one way more than the
+  other has ellipses for rings, which a type 3 shading cannot describe on its own, so its circles are
+  written in the brush's own space and the mapping goes into the pattern matrix. A brush with no
+  transform of its own is written as it was.
+
+  Radial gradients themselves, the other half of empira/PDFsharp#321, were already drawn in colour
+  here; `RadialGradientRenderingTests` now reads their pixels to keep it that way.
 
 - **A document updated incrementally is read as its newest revision, where cross-reference streams
   are involved.** Two ways an older revision's object took the place of the newer one's, both met in
@@ -154,6 +178,22 @@ This file starts at the entry below. Changes before that point are recorded only
   property, and a section nobody has added anything to has not built its element collection yet —
   so the one case each of them documents an answer for was the one case that threw.
 
+- **A page tree that loops, or that is nested deeper than the stack can hold, is refused instead of
+  killing the process.** ISO 32000-1 7.7.3.2 has a document's pages in a *tree*, and
+  `PdfPages.GetKids` believed it: a `/Kids` entry leading back to a node the walk was already
+  inside recursed until the stack ran out, and a stack overflow cannot be caught, so the process
+  went with it. Opening the file was enough — the catalog asks for the pages while
+  `PdfReader.Open` is still running — which makes it a denial of service on any program that opens
+  a document it did not write. The walk now carries the nodes it is inside: a node that stands
+  among its own ancestors is refused as a loop, naming it, and a tree nested more than 256 levels
+  deep is refused as too deep, which is the case no loop detector catches — a chain of two thousand
+  nodes repeats nothing and still died, at about the eighteen hundred frames the stack held. A node
+  that two parents list is *not* a loop and still reads: it is a page counted twice, which is
+  malformed but ends. Ending in principle is not enough, though: a chain of nodes each listing the
+  next one twice doubles at every level, and forty levels were a trillion nodes to walk in a file
+  of forty objects, so a walk entering more nodes than twice the objects the file holds is
+  refused as well. Reported upstream as
+  [empira/PDFsharp#361](https://github.com/empira/PDFsharp/issues/361).
 - **A paragraph holding an inline element with no text in it renders.** `AddFormattedText("")` is
   accepted while the document is built, and `RenderDocument` then threw `ArgumentNullException`
   from `DocumentRelations.GetParent` — so a string that happened to be empty took the whole
