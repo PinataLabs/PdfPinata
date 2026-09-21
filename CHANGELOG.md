@@ -105,6 +105,10 @@ This file starts at the entry below. Changes before that point are recorded only
   for a `WideNarrowRatio` outside 2 to 3 now reads "The ratio of wide to narrow lines must be between
   2 and 3." It used to name the interleaved 2 of 5 code even when Code 39 threw it.
 
+- **`XImage.FromFile(string)` and `FromFile(string, PdfReadAccuracy)` are one method**, with the
+  accuracy optional and `Strict` by default. Source that called either still compiles unchanged, but
+  an assembly compiled against the old overloads has to be rebuilt.
+
 ### Deprecated
 
 - **`XBitmapImage.CreateBitmap`.** It makes a bitmap with a size and no pixels, whose only use was
@@ -121,6 +125,10 @@ This file starts at the entry below. Changes before that point are recorded only
   reads the layout is internal and is always given the default, `Compact`. So no document was
   written with it, and the header comments, indentation and sorted keys it stood for went with it.
   The members before it keep their values.
+
+- **`PdfCustomValue`'s parameterless constructor and its `CompressionMode` field.** The constructor
+  made a value with no bytes, and nothing ever read `CompressionMode`, so setting it did nothing.
+  Construct a value from its bytes with `new PdfCustomValue(byte[])`.
 
 ### Fixed
 
