@@ -27,6 +27,8 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
+using System.Reflection;
+
 namespace PdfPinata;
 
 /// <summary>
@@ -45,15 +47,32 @@ public static class ProductVersionInfo
     public const string Description = "A .NET library for processing PDF.";
 
     /// <summary>
-    /// The PDF producer information string.
-    /// TODO: Called Creator in PinataLayout?
+    /// The version this assembly was built as: the one MinVer derives from the latest git tag, such
+    /// as <c>0.2.1</c>, or <c>0.2.2-alpha.0.16</c> between tags. It is read from the assembly's
+    /// informational version at run time because the version lives in the tag and nowhere in the
+    /// source. The <c>+</c> and commit hash Source Link appends to that attribute are build
+    /// metadata, and are left off.
     /// </summary>
-    public const string Producer = Title + " " + VersionMajor + "." + VersionMinor + "." + VersionBuild + Technology + " (" + Url + ")";
+    // Declared before Producer, which reads it: static initializers run in declaration order.
+    public static string InformationalVersion { get; } = ReadInformationalVersion();
 
     /// <summary>
-    /// The PDF producer information string including VersionPatch.
+    /// The PDF producer information string, written as <c>/Producer</c> in every document saved:
+    /// the product, the version it was released as and where it lives, e.g.
+    /// <c>PdfPinata 0.2.1 (https://github.com/PinataLabs/PdfPinata)</c>.
     /// </summary>
-    public const string Producer2 = Title + " " + VersionMajor + "." + VersionMinor + "." + VersionBuild + "." + VersionPatch + Technology + " (" + Url + ")";
+    public static string Producer { get; } = Title + " " + InformationalVersion + " (" + Url + ")";
+
+    static string ReadInformationalVersion()
+    {
+        var assembly = typeof(ProductVersionInfo).Assembly;
+        var version = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+        if (string.IsNullOrEmpty(version))
+            return assembly.GetName().Version?.ToString(3) ?? "";
+
+        var metadata = version.IndexOf('+');
+        return metadata < 0 ? version : version.Substring(0, metadata);
+    }
 
     /// <summary>
     /// The full version number.

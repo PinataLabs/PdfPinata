@@ -91,6 +91,14 @@ This file starts at the entry below. Changes before that point are recorded only
   `#xx`.** The name's bytes are unchanged; only how they are spelled in the file differs, so a
   Shift-JIS name that used to be written raw is now written escaped (#59).
 
+- **`/Producer` names the version that wrote the file**, e.g. `PdfPinata 0.2.1
+  (https://github.com/PinataLabs/PdfPinata)`, where every document used to say
+  `PdfPinata 1.50.4000-netstandard`, a number left over from PDFsharp. The version is MinVer's,
+  read from the assembly's informational version without the commit hash. This also applies to
+  `/Creator` when the caller sets none, and to the XMP packet's `pdf:Producer`.
+  `ProductVersionInfo.Producer` is now a static property rather than a constant, and
+  `ProductVersionInfo.Producer2` is gone.
+
 ### Fixed
 
 - **`PdfReader.Open` no longer hangs on a file whose cross-reference `/Prev` chain loops back on

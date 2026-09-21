@@ -36,7 +36,7 @@ static class VersionInfo
 {
     public const string Title = ProductVersionInfo.Title;
     public const string Description = ProductVersionInfo.Description;
-    public const string Producer = ProductVersionInfo.Producer;
+    public static string Producer => ProductVersionInfo.Producer;
     public const string Version = ProductVersionInfo.Version;
     public const string Url = ProductVersionInfo.Url;
     public const string Configuration = "";

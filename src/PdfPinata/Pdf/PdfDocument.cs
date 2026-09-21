@@ -735,10 +735,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     {
         var info = Info;
 
-        // Add patch level to producer if it is not '0'.
         var pdfSharpProducer = VersionInfo.Producer;
-        if (!ProductVersionInfo.VersionPatch.Equals("0"))
-            pdfSharpProducer = ProductVersionInfo.Producer2;
 
         // Set Creator if value is undefined.
         if (info.Elements[PdfDocumentInformation.Keys.Creator] == null)
