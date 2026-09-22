@@ -209,43 +209,7 @@ internal class PdfWriter
     public void Write(PdfName value)
     {
         WriteSeparator();
-        var name = value.Value;
-
-        // ISO 32000-1 7.3.5: white space and the ten delimiters would end the name, '#' would
-        // start an escape, and anything outside '!'..'~' should be escaped as well. The char is a
-        // byte (names are never decoded), so #xx writes that same byte back.
-        var pdf = new StringBuilder("/");
-        for (var idx = 1; idx < name.Length; idx++)
-        {
-            var ch = name[idx];
-            Debug.Assert(ch < 256);
-            if (ch < '!' || ch > '~')
-            {
-                pdf.AppendFormat("#{0:X2}", (int)ch);
-                continue;
-            }
-            switch (ch)
-            {
-                case '(':
-                case ')':
-                case '<':
-                case '>':
-                case '[':
-                case ']':
-                case '{':
-                case '}':
-                case '/':
-                case '%':
-                case '#':
-                    pdf.AppendFormat("#{0:X2}", (int)ch);
-                    break;
-
-                default:
-                    pdf.Append(ch);
-                    break;
-            }
-        }
-        WriteRaw(pdf.ToString());
+        WriteRaw(PdfEncoders.ToNameLiteral(value.Value));
         _lastCat = CharCat.Character;
     }
 

@@ -87,6 +87,61 @@ internal static class PdfEncoders
     static Encoding _unicodeEncoding;
 
     /// <summary>
+    /// Converts a name, leading slash included, into the form it is written in: the slash, then
+    /// every byte of the name, with white space, the ten delimiters, '#' and anything outside
+    /// '!'..'~' written as #xx (ISO 32000-1 7.3.5).
+    /// </summary>
+    /// <remarks>
+    /// A name is a byte string held one char per byte, and every name the lexers read has only
+    /// chars below 256, which are written back as exactly those bytes. A char of 256 or more can
+    /// only have come from a caller writing Unicode, and "#" and its hex digits would be read back
+    /// as one byte followed by ordinary characters - so such a name is encoded as UTF-8, which is
+    /// what 7.3.5 recommends, and those bytes are written instead.
+    /// </remarks>
+    public static string ToNameLiteral(string name)
+    {
+        Debug.Assert(name.Length > 0 && name[0] == '/');
+        var pdf = new StringBuilder("/", name.Length + 8);
+
+        var isByteString = true;
+        for (var idx = 1; idx < name.Length; idx++)
+        {
+            if (name[idx] > 0xFF)
+            {
+                isByteString = false;
+                break;
+            }
+        }
+
+        if (isByteString)
+        {
+            for (var idx = 1; idx < name.Length; idx++)
+                AppendNameByte(pdf, (byte)name[idx]);
+        }
+        else
+        {
+            foreach (var b in Encoding.UTF8.GetBytes(name.Substring(1)))
+                AppendNameByte(pdf, b);
+        }
+        return pdf.ToString();
+    }
+
+    static void AppendNameByte(StringBuilder pdf, byte b)
+    {
+        switch ((char)b)
+        {
+            case < '!' or > '~':
+            case '(' or ')' or '<' or '>' or '[' or ']' or '{' or '}' or '/' or '%' or '#':
+                pdf.Append('#').Append(b.ToString("X2", CultureInfo.InvariantCulture));
+                break;
+
+            default:
+                pdf.Append((char)b);
+                break;
+        }
+    }
+
+    /// <summary>
     /// Converts a raw string into a raw string literal, possibly encrypted.
     /// </summary>
     public static string ToStringLiteral(string text, PdfStringEncoding encoding, PdfStandardSecurityHandler securityHandler)

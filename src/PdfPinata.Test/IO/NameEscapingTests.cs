@@ -1,5 +1,6 @@
 using System.IO;
 using System.Linq;
+using System.Text;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
@@ -71,5 +72,48 @@ public class NameEscapingTests
 
         Saved(name).Should().Contain("/caf#E9#7F");
         RoundTripped(name).Should().Be(name);
+    }
+
+    [Fact]
+    public void ANameACallerWroteInUnicodeIsWrittenAsItsUtf8Bytes()
+    {
+        // U+4E2D U+6587. The writer used to escape each char by its whole value, "#4E2D#6587",
+        // which reads back as the byte 0x4E, the characters "2D", the byte 0x65 and "87".
+        var name = "/Zh\u4E2D\u6587";
+
+        Saved(name).Should().Contain("/Zh#E4#B8#AD#E6#96#87");
+    }
+
+    [Fact]
+    public void ANameACallerWroteInUnicodeReadsBackAsItsUtf8BytesOneCharPerByte()
+    {
+        // A name that is read is never decoded, so what comes back is the UTF-8 bytes of what was
+        // written, one char each - the same shape as every other name read from a file.
+        var name = "/Zh\u4E2D\u6587";
+        var utf8 = Encoding.UTF8.GetBytes(name.Substring(1));
+
+        var reread = RoundTripped(name);
+
+        reread.Should().Be("/" + new string(utf8.Select(b => (char)b).ToArray()));
+        reread.Should().Be("/Zh" + (char)0xE4 + (char)0xB8 + (char)0xAD + (char)0xE6 + (char)0x96 + (char)0x87);
+    }
+
+    [Fact]
+    public void ACharBelow256InANameThatAlsoHoldsUnicodeIsEncodedAsUtf8Too()
+    {
+        // The whole name is one encoding or the other: once a char past 0xFF says the caller wrote
+        // Unicode, an e-acute beside it is U+00E9 and becomes C3 A9, not the byte E9.
+        var name = "/caf" + (char)0xE9 + "\u4E2D";
+
+        Saved(name).Should().Contain("/caf#C3#A9#E4#B8#AD");
+    }
+
+    [Fact]
+    public void ADelimiterInANameWrittenInUnicodeIsStillEscaped()
+    {
+        var name = "/a b(\u4E2D)";
+
+        Saved(name).Should().Contain("/a#20b#28#E4#B8#AD#29");
+        RoundTripped(name).Should().Be("/a b(" + (char)0xE4 + (char)0xB8 + (char)0xAD + ")");
     }
 }

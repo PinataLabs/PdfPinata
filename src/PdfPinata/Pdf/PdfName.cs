@@ -130,7 +130,6 @@ public sealed class PdfName : PdfItem
     /// </summary>
     internal override void WriteObject(PdfWriter writer)
     {
-        // TODO: what if unicode character are part of the name?
         writer.Write(this);
     }
 
