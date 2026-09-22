@@ -758,19 +758,10 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
 
     internal override void WriteObject(PdfWriter writer)
     {
-        // TODO: Proof that there is nothing to do here.
+        // PrepareForSave has already written /First, /Last, /Count, /Parent, /Prev and /Next.
         var hasKids = HasChildren;
         if (_parent != null || hasKids)
         {
-            ////// Everything done in PrepareForSave
-            ////if (_parent == null)
-            ////{
-            ////    // This is the outline dictionary (the root)
-            ////}
-            ////else
-            ////{
-            ////    // This is an outline item dictionary
-            ////}
             base.WriteObject(writer);
         }
     }

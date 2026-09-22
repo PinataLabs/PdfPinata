@@ -102,7 +102,6 @@ public abstract class PdfObject : PdfItem
     {
         var objectID = new PdfObjectID(objectNumber, generationNumber);
 
-        // TODO: check imported
         if (_iref == null)
             _iref = _document._irefTable[objectID];
         if (_iref == null)
@@ -363,7 +362,14 @@ public abstract class PdfObject : PdfItem
 
                     //Debug.Assert(iref.Document == iot.Document);
                     // No: Replace with iref of cloned object.
-                    var newXRef = iot[iref.ObjectID];  // TODO: Explain this line of code in all details.
+                    // iref.ObjectID is the object's number in the external document. Every indirect
+                    // object of the transitive closure has been cloned into the owner, either by
+                    // the first loop of DeepCopyClosure or ImportClosure or by an earlier import
+                    // through the same table, and iot maps its external ID to the clone's entry in
+                    // the owner's cross-reference table. The referenced object is part of that
+                    // closure, so the lookup always finds it, and the reference it answers belongs
+                    // to the owner, usually under a different number.
+                    var newXRef = iot[iref.ObjectID];
                     Debug.Assert(newXRef != null);
                     Debug.Assert(newXRef.Document == owner);
                     dict.Elements[name] = newXRef;

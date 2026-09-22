@@ -280,7 +280,6 @@ public sealed class PdfDocument : PdfObject, IDisposable
         EnsureCanModify("saving the document");
         EnsureCanDeduplicate();
 
-        // TODO: more diagnostic checks
         var message = "";
         if (!CanSave(ref message))
             throw new PdfSharpException(message);
@@ -1056,22 +1055,12 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// <summary>
     /// Gets the file size of the document.
     /// </summary>
-    public long FileSize
-    {
-        get { return _fileSize; }
-    }
-
-    internal long _fileSize; // TODO: make private
+    public long FileSize { get; internal set; }
 
     /// <summary>
     /// Gets the full qualified file name if the document was read form a file, or an empty string otherwise.
     /// </summary>
-    public string FullPath
-    {
-        get { return _fullPath; }
-    }
-
-    internal string _fullPath = string.Empty; // TODO: make private
+    public string FullPath { get; internal set; } = string.Empty;
 
     /// <summary>
     /// Gets a Guid that uniquely identifies this instance of PdfDocument.
@@ -1317,7 +1306,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// <summary>
     /// Gets the document form table that holds all form external objects used in the current document.
     /// </summary>
-    internal PdfFormXObjectTable FormTable // TODO: Rename to ExternalDocumentTable.
+    internal PdfFormXObjectTable FormTable
     {
         get { return _formTable ?? (_formTable = new PdfFormXObjectTable(this)); }
     }

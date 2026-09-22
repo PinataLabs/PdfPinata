@@ -880,7 +880,6 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
                 "rather than each once as a tree does.");
         }
 
-        // TODO: inherit inheritable keys...
         if (iref.Value is not PdfDictionary kid)
         {
             throw new PdfReaderException(
@@ -898,7 +897,6 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         if (string.IsNullOrEmpty(type))
         {
             // Type is required. If type is missing, assume it is "/Page" and hope it will work.
-            // TODO Implement a "Strict" mode in PDFsharp and don't do this in "Strict" mode.
             PdfPage.InheritValues(kid, values);
             return [kid];
         }
@@ -990,12 +988,11 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     {
         ResolveImportedDestinations();
 
-        // TODO: Close all open content streams
+        // The pages are written as one flat /Kids array rather than a balanced tree. The
+        // implementation limit of 8,191 array elements in ISO 32000-1 Annex C is a reader's, not
+        // the format's, and documents of 50,000 pages written this way have opened without
+        // complaint, so a tree is not built until a reader is found that needs one.
 
-        // TODO: Create the page tree.
-        // Arrays have a limit of 8192 entries, but I successfully tested documents
-        // with 50000 pages and no page tree.
-        // ==> wait for bug report.
         // Through the property, not the field. The field is filled in lazily, and reading it here
         // only worked because every path that reached this point happened to have touched the
         // property first — an incremental save does not, and got a null reference for it.

@@ -19,6 +19,17 @@ public class PdfReader
     }
 
     [Fact]
+    public void ADocumentReadFromAPathKnowsItsFullPathAndSize()
+    {
+        var path = PathHelper.GetInstance().GetAssetPath("FamilyTree.pdf");
+
+        var inputDocument = Pdf.IO.PdfReader.Open(path, PdfDocumentOpenMode.Import);
+
+        inputDocument.FullPath.Should().Be(Path.GetFullPath(path));
+        AssertIsAValidPdfDocumentWithProperties(inputDocument, 38148);
+    }
+
+    [Fact]
     public void WillThrowExceptionWhenReadingInvalidPdf()
     {
         using var fs = File.OpenRead(PathHelper.GetInstance().GetAssetPath("NotAValid.pdf"));
