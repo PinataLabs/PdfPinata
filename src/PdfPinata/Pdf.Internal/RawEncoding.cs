@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -34,7 +34,7 @@ namespace PdfPinata.Pdf.Internal;
 
 /// <summary>
 /// An encoder for raw strings. The raw encoding is simply the identity relation between
-/// characters and bytes. PDFsharp internally works with raw encoded strings instead of
+/// characters and bytes. PdfPinata internally works with raw encoded strings instead of
 /// byte arrays because strings are much more handy than byte arrays.
 /// </summary>
 /// <remarks>

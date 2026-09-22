@@ -93,7 +93,7 @@ public sealed class XFont
 
     /// <summary>
     /// Initializes this instance by computing the glyph typeface, font family, font source and TrueType fontface.
-    /// (PDFsharp currently only deals with TrueType fonts.)
+    /// (PdfPinata currently only deals with TrueType fonts.)
     /// </summary>
     void Initialize()
     {
@@ -119,7 +119,7 @@ public sealed class XFont
     void CreateDescriptorAndInitializeFontMetrics()
     {
         Debug.Assert(_fontMetrics == null, "InitializeFontMetrics() was already called.");
-        _descriptor = (OpenTypeDescriptor)FontDescriptorCache.GetOrCreateDescriptorFor(this); //_familyName, _style, _glyphTypeface.Fontface);
+        _descriptor = (OpenTypeDescriptor)FontDescriptorCache.GetOrCreateDescriptorFor(this);
         _fontMetrics = new XFontMetrics(_descriptor.FontName, _descriptor.UnitsPerEm, _descriptor.Ascender, _descriptor.Descender,
             _descriptor.Leading, _descriptor.LineSpacing, _descriptor.CapHeight, _descriptor.XHeight, _descriptor.StemV, 0, 0, 0,
             _descriptor.UnderlinePosition, _descriptor.UnderlineThickness, _descriptor.StrikeoutPosition, _descriptor.StrikeoutSize);

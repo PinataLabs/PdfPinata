@@ -26,7 +26,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -39,156 +39,156 @@ internal class KeyWords
 {
   static KeyWords()
   {
-    enumToName.Add(Symbol.True, "true");
-    enumToName.Add(Symbol.False, "false");
-    enumToName.Add(Symbol.Null, "null");
+    _enumToName.Add(Symbol.True, "true");
+    _enumToName.Add(Symbol.False, "false");
+    _enumToName.Add(Symbol.Null, "null");
 
-    enumToName.Add(Symbol.Styles, @"\styles");
-    enumToName.Add(Symbol.Document, @"\document");
-    enumToName.Add(Symbol.Section, @"\section");
-    enumToName.Add(Symbol.Paragraph, @"\paragraph");
-    enumToName.Add(Symbol.Header, @"\header");
-    enumToName.Add(Symbol.Footer, @"\footer");
-    enumToName.Add(Symbol.PrimaryHeader, @"\primaryheader");
-    enumToName.Add(Symbol.PrimaryFooter, @"\primaryfooter");
-    enumToName.Add(Symbol.FirstPageHeader, @"\firstpageheader");
-    enumToName.Add(Symbol.FirstPageFooter, @"\firstpagefooter");
-    enumToName.Add(Symbol.EvenPageHeader, @"\evenpageheader");
-    enumToName.Add(Symbol.EvenPageFooter, @"\evenpagefooter");
-    enumToName.Add(Symbol.Table, @"\table");
-    enumToName.Add(Symbol.Columns, @"\columns");
-    enumToName.Add(Symbol.Column, @"\column");
-    enumToName.Add(Symbol.Rows, @"\rows");
-    enumToName.Add(Symbol.Row, @"\row");
-    enumToName.Add(Symbol.Cell, @"\cell");
-    enumToName.Add(Symbol.Image, @"\image");
-    enumToName.Add(Symbol.TextFrame, @"\textframe");
-    enumToName.Add(Symbol.PageBreak, @"\pagebreak");
-    enumToName.Add(Symbol.Barcode, @"\barcode");
-    enumToName.Add(Symbol.Chart, @"\chart");
-    enumToName.Add(Symbol.HeaderArea, @"\headerarea");
-    enumToName.Add(Symbol.FooterArea, @"\footerarea");
-    enumToName.Add(Symbol.TopArea, @"\toparea");
-    enumToName.Add(Symbol.BottomArea, @"\bottomarea");
-    enumToName.Add(Symbol.LeftArea, @"\leftarea");
-    enumToName.Add(Symbol.RightArea, @"\rightarea");
-    enumToName.Add(Symbol.PlotArea, @"\plotarea");
-    enumToName.Add(Symbol.Legend, @"\legend");
-    enumToName.Add(Symbol.XAxis, @"\xaxis");
-    enumToName.Add(Symbol.YAxis, @"\yaxis");
-    enumToName.Add(Symbol.ZAxis, @"\zaxis");
-    enumToName.Add(Symbol.Series, @"\series");
-    enumToName.Add(Symbol.XValues, @"\xvalues");
-    enumToName.Add(Symbol.Point, @"\point");
+    _enumToName.Add(Symbol.Styles, @"\styles");
+    _enumToName.Add(Symbol.Document, @"\document");
+    _enumToName.Add(Symbol.Section, @"\section");
+    _enumToName.Add(Symbol.Paragraph, @"\paragraph");
+    _enumToName.Add(Symbol.Header, @"\header");
+    _enumToName.Add(Symbol.Footer, @"\footer");
+    _enumToName.Add(Symbol.PrimaryHeader, @"\primaryheader");
+    _enumToName.Add(Symbol.PrimaryFooter, @"\primaryfooter");
+    _enumToName.Add(Symbol.FirstPageHeader, @"\firstpageheader");
+    _enumToName.Add(Symbol.FirstPageFooter, @"\firstpagefooter");
+    _enumToName.Add(Symbol.EvenPageHeader, @"\evenpageheader");
+    _enumToName.Add(Symbol.EvenPageFooter, @"\evenpagefooter");
+    _enumToName.Add(Symbol.Table, @"\table");
+    _enumToName.Add(Symbol.Columns, @"\columns");
+    _enumToName.Add(Symbol.Column, @"\column");
+    _enumToName.Add(Symbol.Rows, @"\rows");
+    _enumToName.Add(Symbol.Row, @"\row");
+    _enumToName.Add(Symbol.Cell, @"\cell");
+    _enumToName.Add(Symbol.Image, @"\image");
+    _enumToName.Add(Symbol.TextFrame, @"\textframe");
+    _enumToName.Add(Symbol.PageBreak, @"\pagebreak");
+    _enumToName.Add(Symbol.Barcode, @"\barcode");
+    _enumToName.Add(Symbol.Chart, @"\chart");
+    _enumToName.Add(Symbol.HeaderArea, @"\headerarea");
+    _enumToName.Add(Symbol.FooterArea, @"\footerarea");
+    _enumToName.Add(Symbol.TopArea, @"\toparea");
+    _enumToName.Add(Symbol.BottomArea, @"\bottomarea");
+    _enumToName.Add(Symbol.LeftArea, @"\leftarea");
+    _enumToName.Add(Symbol.RightArea, @"\rightarea");
+    _enumToName.Add(Symbol.PlotArea, @"\plotarea");
+    _enumToName.Add(Symbol.Legend, @"\legend");
+    _enumToName.Add(Symbol.XAxis, @"\xaxis");
+    _enumToName.Add(Symbol.YAxis, @"\yaxis");
+    _enumToName.Add(Symbol.ZAxis, @"\zaxis");
+    _enumToName.Add(Symbol.Series, @"\series");
+    _enumToName.Add(Symbol.XValues, @"\xvalues");
+    _enumToName.Add(Symbol.Point, @"\point");
 
-    enumToName.Add(Symbol.Bold, @"\bold");
-    enumToName.Add(Symbol.Italic, @"\italic");
-    enumToName.Add(Symbol.Underline, @"\underline");
-    enumToName.Add(Symbol.FontSize, @"\fontsize");
-    enumToName.Add(Symbol.FontColor, @"\fontcolor");
-    enumToName.Add(Symbol.Font, @"\font");
+    _enumToName.Add(Symbol.Bold, @"\bold");
+    _enumToName.Add(Symbol.Italic, @"\italic");
+    _enumToName.Add(Symbol.Underline, @"\underline");
+    _enumToName.Add(Symbol.FontSize, @"\fontsize");
+    _enumToName.Add(Symbol.FontColor, @"\fontcolor");
+    _enumToName.Add(Symbol.Font, @"\font");
     //
-    enumToName.Add(Symbol.Field, @"\field");
-    enumToName.Add(Symbol.Symbol, @"\symbol");
-    enumToName.Add(Symbol.Chr, @"\chr");
+    _enumToName.Add(Symbol.Field, @"\field");
+    _enumToName.Add(Symbol.Symbol, @"\symbol");
+    _enumToName.Add(Symbol.Chr, @"\chr");
     //
-    enumToName.Add(Symbol.Footnote, @"\footnote");
-    enumToName.Add(Symbol.Hyperlink, @"\hyperlink");
+    _enumToName.Add(Symbol.Footnote, @"\footnote");
+    _enumToName.Add(Symbol.Hyperlink, @"\hyperlink");
     //
-    enumToName.Add(Symbol.SoftHyphen, @"\-");
-    enumToName.Add(Symbol.Tab, @"\tab");
-    enumToName.Add(Symbol.LineBreak, @"\linebreak");
-    enumToName.Add(Symbol.Space, @"\space");
-    enumToName.Add(Symbol.NoSpace, @"\nospace");
+    _enumToName.Add(Symbol.SoftHyphen, @"\-");
+    _enumToName.Add(Symbol.Tab, @"\tab");
+    _enumToName.Add(Symbol.LineBreak, @"\linebreak");
+    _enumToName.Add(Symbol.Space, @"\space");
+    _enumToName.Add(Symbol.NoSpace, @"\nospace");
 
     //
     //
-    enumToName.Add(Symbol.BraceLeft, "{");
-    enumToName.Add(Symbol.BraceRight, "}");
-    enumToName.Add(Symbol.BracketLeft, "[");
-    enumToName.Add(Symbol.BracketRight, "]");
-    enumToName.Add(Symbol.ParenLeft, "(");
-    enumToName.Add(Symbol.ParenRight, ")");
-    enumToName.Add(Symbol.Colon, ":");
-    enumToName.Add(Symbol.Semicolon, ";");  //??? id DDL?
-    enumToName.Add(Symbol.Dot, ".");
-    enumToName.Add(Symbol.Comma, ",");
-    enumToName.Add(Symbol.Percent, "%");  //??? id DDL?
-    enumToName.Add(Symbol.Dollar, "$");  //??? id DDL?
-    enumToName.Add(Symbol.Hash, "#");  //??? id DDL?
-    enumToName.Add(Symbol.Assign, "=");
-    enumToName.Add(Symbol.Slash, "/");  //??? id DDL?
-    enumToName.Add(Symbol.BackSlash, "\\");
-    enumToName.Add(Symbol.Plus, "+");  //??? id DDL?
-    enumToName.Add(Symbol.PlusAssign, "+=");
-    enumToName.Add(Symbol.Minus, "-");  //??? id DDL?
-    enumToName.Add(Symbol.MinusAssign, "-=");
-    enumToName.Add(Symbol.Blank, " ");
+    _enumToName.Add(Symbol.BraceLeft, "{");
+    _enumToName.Add(Symbol.BraceRight, "}");
+    _enumToName.Add(Symbol.BracketLeft, "[");
+    _enumToName.Add(Symbol.BracketRight, "]");
+    _enumToName.Add(Symbol.ParenLeft, "(");
+    _enumToName.Add(Symbol.ParenRight, ")");
+    _enumToName.Add(Symbol.Colon, ":");
+    _enumToName.Add(Symbol.Semicolon, ";");  //??? id DDL?
+    _enumToName.Add(Symbol.Dot, ".");
+    _enumToName.Add(Symbol.Comma, ",");
+    _enumToName.Add(Symbol.Percent, "%");  //??? id DDL?
+    _enumToName.Add(Symbol.Dollar, "$");  //??? id DDL?
+    _enumToName.Add(Symbol.Hash, "#");  //??? id DDL?
+    _enumToName.Add(Symbol.Assign, "=");
+    _enumToName.Add(Symbol.Slash, "/");  //??? id DDL?
+    _enumToName.Add(Symbol.BackSlash, "\\");
+    _enumToName.Add(Symbol.Plus, "+");  //??? id DDL?
+    _enumToName.Add(Symbol.PlusAssign, "+=");
+    _enumToName.Add(Symbol.Minus, "-");  //??? id DDL?
+    _enumToName.Add(Symbol.MinusAssign, "-=");
+    _enumToName.Add(Symbol.Blank, " ");
 
     //---------------------------------------------------------------
     //---------------------------------------------------------------
     //---------------------------------------------------------------
 
-    nameToEnum.Add("true", Symbol.True);
-    nameToEnum.Add("false", Symbol.False);
-    nameToEnum.Add("null", Symbol.Null);
+    _nameToEnum.Add("true", Symbol.True);
+    _nameToEnum.Add("false", Symbol.False);
+    _nameToEnum.Add("null", Symbol.Null);
     //
-    nameToEnum.Add(@"\styles", Symbol.Styles);
-    nameToEnum.Add(@"\document", Symbol.Document);
-    nameToEnum.Add(@"\section", Symbol.Section);
-    nameToEnum.Add(@"\paragraph", Symbol.Paragraph);
-    nameToEnum.Add(@"\header", Symbol.Header);
-    nameToEnum.Add(@"\footer", Symbol.Footer);
-    nameToEnum.Add(@"\primaryheader", Symbol.PrimaryHeader);
-    nameToEnum.Add(@"\primaryfooter", Symbol.PrimaryFooter);
-    nameToEnum.Add(@"\firstpageheader", Symbol.FirstPageHeader);
-    nameToEnum.Add(@"\firstpagefooter", Symbol.FirstPageFooter);
-    nameToEnum.Add(@"\evenpageheader", Symbol.EvenPageHeader);
-    nameToEnum.Add(@"\evenpagefooter", Symbol.EvenPageFooter);
-    nameToEnum.Add(@"\table", Symbol.Table);
-    nameToEnum.Add(@"\columns", Symbol.Columns);
-    nameToEnum.Add(@"\column", Symbol.Column);
-    nameToEnum.Add(@"\rows", Symbol.Rows);
-    nameToEnum.Add(@"\row", Symbol.Row);
-    nameToEnum.Add(@"\cell", Symbol.Cell);
-    nameToEnum.Add(@"\image", Symbol.Image);
-    nameToEnum.Add(@"\textframe", Symbol.TextFrame);
-    nameToEnum.Add(@"\pagebreak", Symbol.PageBreak);
-    nameToEnum.Add(@"\barcode", Symbol.Barcode);
-    nameToEnum.Add(@"\chart", Symbol.Chart);
-    nameToEnum.Add(@"\headerarea", Symbol.HeaderArea);
-    nameToEnum.Add(@"\footerarea", Symbol.FooterArea);
-    nameToEnum.Add(@"\toparea", Symbol.TopArea);
-    nameToEnum.Add(@"\bottomarea", Symbol.BottomArea);
-    nameToEnum.Add(@"\leftarea", Symbol.LeftArea);
-    nameToEnum.Add(@"\rightarea", Symbol.RightArea);
-    nameToEnum.Add(@"\plotarea", Symbol.PlotArea);
-    nameToEnum.Add(@"\legend", Symbol.Legend);
-    nameToEnum.Add(@"\xaxis", Symbol.XAxis);
-    nameToEnum.Add(@"\yaxis", Symbol.YAxis);
-    nameToEnum.Add(@"\zaxis", Symbol.ZAxis);
-    nameToEnum.Add(@"\series", Symbol.Series);
-    nameToEnum.Add(@"\xvalues", Symbol.XValues);
-    nameToEnum.Add(@"\point", Symbol.Point);
-    nameToEnum.Add(@"\bold", Symbol.Bold);
-    nameToEnum.Add(@"\italic", Symbol.Italic);
-    nameToEnum.Add(@"\underline", Symbol.Underline);
-    nameToEnum.Add(@"\fontsize", Symbol.FontSize);
-    nameToEnum.Add(@"\fontcolor", Symbol.FontColor);
-    nameToEnum.Add(@"\font", Symbol.Font);
+    _nameToEnum.Add(@"\styles", Symbol.Styles);
+    _nameToEnum.Add(@"\document", Symbol.Document);
+    _nameToEnum.Add(@"\section", Symbol.Section);
+    _nameToEnum.Add(@"\paragraph", Symbol.Paragraph);
+    _nameToEnum.Add(@"\header", Symbol.Header);
+    _nameToEnum.Add(@"\footer", Symbol.Footer);
+    _nameToEnum.Add(@"\primaryheader", Symbol.PrimaryHeader);
+    _nameToEnum.Add(@"\primaryfooter", Symbol.PrimaryFooter);
+    _nameToEnum.Add(@"\firstpageheader", Symbol.FirstPageHeader);
+    _nameToEnum.Add(@"\firstpagefooter", Symbol.FirstPageFooter);
+    _nameToEnum.Add(@"\evenpageheader", Symbol.EvenPageHeader);
+    _nameToEnum.Add(@"\evenpagefooter", Symbol.EvenPageFooter);
+    _nameToEnum.Add(@"\table", Symbol.Table);
+    _nameToEnum.Add(@"\columns", Symbol.Columns);
+    _nameToEnum.Add(@"\column", Symbol.Column);
+    _nameToEnum.Add(@"\rows", Symbol.Rows);
+    _nameToEnum.Add(@"\row", Symbol.Row);
+    _nameToEnum.Add(@"\cell", Symbol.Cell);
+    _nameToEnum.Add(@"\image", Symbol.Image);
+    _nameToEnum.Add(@"\textframe", Symbol.TextFrame);
+    _nameToEnum.Add(@"\pagebreak", Symbol.PageBreak);
+    _nameToEnum.Add(@"\barcode", Symbol.Barcode);
+    _nameToEnum.Add(@"\chart", Symbol.Chart);
+    _nameToEnum.Add(@"\headerarea", Symbol.HeaderArea);
+    _nameToEnum.Add(@"\footerarea", Symbol.FooterArea);
+    _nameToEnum.Add(@"\toparea", Symbol.TopArea);
+    _nameToEnum.Add(@"\bottomarea", Symbol.BottomArea);
+    _nameToEnum.Add(@"\leftarea", Symbol.LeftArea);
+    _nameToEnum.Add(@"\rightarea", Symbol.RightArea);
+    _nameToEnum.Add(@"\plotarea", Symbol.PlotArea);
+    _nameToEnum.Add(@"\legend", Symbol.Legend);
+    _nameToEnum.Add(@"\xaxis", Symbol.XAxis);
+    _nameToEnum.Add(@"\yaxis", Symbol.YAxis);
+    _nameToEnum.Add(@"\zaxis", Symbol.ZAxis);
+    _nameToEnum.Add(@"\series", Symbol.Series);
+    _nameToEnum.Add(@"\xvalues", Symbol.XValues);
+    _nameToEnum.Add(@"\point", Symbol.Point);
+    _nameToEnum.Add(@"\bold", Symbol.Bold);
+    _nameToEnum.Add(@"\italic", Symbol.Italic);
+    _nameToEnum.Add(@"\underline", Symbol.Underline);
+    _nameToEnum.Add(@"\fontsize", Symbol.FontSize);
+    _nameToEnum.Add(@"\fontcolor", Symbol.FontColor);
+    _nameToEnum.Add(@"\font", Symbol.Font);
     //
-    nameToEnum.Add(@"\field", Symbol.Field);
-    nameToEnum.Add(@"\symbol", Symbol.Symbol);
-    nameToEnum.Add(@"\chr", Symbol.Chr);
+    _nameToEnum.Add(@"\field", Symbol.Field);
+    _nameToEnum.Add(@"\symbol", Symbol.Symbol);
+    _nameToEnum.Add(@"\chr", Symbol.Chr);
     //
-    nameToEnum.Add(@"\footnote", Symbol.Footnote);
-    nameToEnum.Add(@"\hyperlink", Symbol.Hyperlink);
+    _nameToEnum.Add(@"\footnote", Symbol.Footnote);
+    _nameToEnum.Add(@"\hyperlink", Symbol.Hyperlink);
     //
-    nameToEnum.Add(@"\-", Symbol.SoftHyphen); //??? \( ist auch was spezielles
-    nameToEnum.Add(@"\tab", Symbol.Tab);
-    nameToEnum.Add(@"\linebreak", Symbol.LineBreak);
-    nameToEnum.Add(@"\space", Symbol.Space);
-    nameToEnum.Add(@"\nospace", Symbol.NoSpace);
+    _nameToEnum.Add(@"\-", Symbol.SoftHyphen); //??? \( ist auch was spezielles
+    _nameToEnum.Add(@"\tab", Symbol.Tab);
+    _nameToEnum.Add(@"\linebreak", Symbol.LineBreak);
+    _nameToEnum.Add(@"\space", Symbol.Space);
+    _nameToEnum.Add(@"\nospace", Symbol.NoSpace);
   }
 
   /// <summary>
@@ -197,10 +197,10 @@ internal class KeyWords
   internal static Symbol SymbolFromName(string name)
   {
     Symbol docsym;
-    var obj = nameToEnum[name];
+    var obj = _nameToEnum[name];
     if (obj == null)
     {
-      // Check for case sensitive keywords. Allow first character upper case only.
+      // Check for case-sensitive keywords. Allow first character upper case only.
       if (string.Equals(name, "True", System.StringComparison.Ordinal))
         docsym = Symbol.True;
       else if (string.Equals(name, "False", System.StringComparison.Ordinal))
@@ -220,11 +220,11 @@ internal class KeyWords
   /// </summary>
   internal static string NameFromSymbol(Symbol symbol)
   {
-    var name = (string)enumToName[symbol];
+    var name = (string)_enumToName[symbol];
     Debug.Assert(name != null);
     return name;
   }
 
-  protected static Hashtable enumToName = new Hashtable();
-  protected static Hashtable nameToEnum = new Hashtable();
+  private static readonly Hashtable _enumToName = new();
+  private static readonly Hashtable _nameToEnum = new();
 }

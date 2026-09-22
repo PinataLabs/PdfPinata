@@ -36,7 +36,7 @@ using PdfPinata.Pdf.IO;
 namespace PdfPinata.Pdf.Advanced;
 
 /// <summary>
-/// Represents the content of a page. PDFsharp supports only one content stream per page.
+/// Represents the content of a page. PdfPinata supports only one content stream per page.
 /// If an imported page has an array of content streams, the streams are concatenated to
 /// one single stream.
 /// </summary>
@@ -117,7 +117,7 @@ public sealed class PdfContent : PdfDictionary
     /// </summary>
     internal void PreserveGraphicsState()
     {
-        // If a content stream is touched by PDFsharp it is typically because graphical operations are
+        // If a content stream is touched by PdfPinata it is typically because graphical operations are
         // prepended or appended. Some nasty PDF tools does not preserve the graphical state correctly.
         // Therefore we try to relieve the problem by surrounding the content stream with push/restore
         // graphic state operation.

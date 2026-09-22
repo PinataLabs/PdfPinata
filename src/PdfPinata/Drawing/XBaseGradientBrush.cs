@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -50,7 +50,7 @@ public class XBaseGradientBrush : XBrush
     /// The start is the first point of an <see cref="XLinearGradientBrush"/>, or the first circle
     /// of an <see cref="XRadialGradientBrush"/>. Left false, nothing is painted before it, which
     /// for a radial gradient whose first radius is not zero is a hole in the middle. The name is
-    /// the one PDFsharp gives it; it is written as the first half of the shading's
+    /// the one PdfPinata gives it; it is written as the first half of the shading's
     /// <c>/Extend</c>.
     /// </remarks>
     public bool ExtendLeft { get; set; }

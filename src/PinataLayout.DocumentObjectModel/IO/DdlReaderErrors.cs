@@ -1,4 +1,5 @@
 #region Copyright
+
 //
 // Authors:
 //   Stefan Lange (mailto:Stefan.Lange@PdfPinata.com)
@@ -26,8 +27,9 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
+
 #endregion
 
 using System.Collections;
@@ -39,40 +41,40 @@ namespace PinataLayout.DocumentObjectModel.IO;
 /// </summary>
 public class DdlReaderErrors : IEnumerable
 {
-  /// <summary>
-  /// Adds the specified DdlReaderError at the end of the error list.
-  /// </summary>
-  public void AddError(DdlReaderError error)
-  {
-    this.errors.Add(error);
-  }
-
-  /// <summary>
-  /// Gets the DdlReaderError at the specified position.
-  /// </summary>
-  public DdlReaderError this[int index] => (DdlReaderError)this.errors[index];
-
-  /// <summary>
-  /// Gets the number of messages that are errors.
-  /// </summary>
-  public int ErrorCount
-  {
-    get
+    /// <summary>
+    /// Adds the specified DdlReaderError at the end of the error list.
+    /// </summary>
+    public void AddError(DdlReaderError error)
     {
-      var count = 0;
-      for (var idx = 0; idx < this.errors.Count; idx++)
-        // ReSharper disable once PossibleNullReferenceException
-        if (((DdlReaderError)this.errors[idx]).ErrorLevel == DdlErrorLevel.Error)
-          count++;
-      return count;
+        _errors.Add(error);
     }
-  }
 
-  private ArrayList errors = new ArrayList();
+    /// <summary>
+    /// Gets the DdlReaderError at the specified position.
+    /// </summary>
+    public DdlReaderError this[int index] => (DdlReaderError)_errors[index];
 
-  /// <summary>Returns an enumerator over the errors, in the order they were reported.</summary>
-  public IEnumerator GetEnumerator()
-  {
-    return this.errors.GetEnumerator();
-  }
+    /// <summary>
+    /// Gets the number of messages that are errors.
+    /// </summary>
+    public int ErrorCount
+    {
+        get
+        {
+            var count = 0;
+            foreach (var t in _errors)
+                if (((DdlReaderError)t).ErrorLevel == DdlErrorLevel.Error)
+                    count++;
+
+            return count;
+        }
+    }
+
+    private readonly ArrayList _errors = new();
+
+    /// <summary>Returns an enumerator over the errors, in the order they were reported.</summary>
+    public IEnumerator GetEnumerator()
+    {
+        return _errors.GetEnumerator();
+    }
 }

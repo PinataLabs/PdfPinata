@@ -1,4 +1,5 @@
 #region Copyright
+
 //
 // Authors:
 //   Stefan Lange (mailto:Stefan.Lange@PdfPinata.com)
@@ -28,6 +29,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
+
 #endregion
 
 using System;
@@ -46,8 +48,8 @@ public class DdlWriter : IDisposable
     /// </summary>
     public DdlWriter(Stream stream)
     {
-        this.writer = new StreamWriter(stream);
-        this.serializer = new Serializer(this.writer);
+        _writer = new StreamWriter(stream);
+        _serializer = new Serializer(_writer);
     }
 
     /// <summary>
@@ -55,8 +57,8 @@ public class DdlWriter : IDisposable
     /// </summary>
     public DdlWriter(string filename)
     {
-        this.writer = new StreamWriter(File.Open(filename, FileMode.Create), Encoding.UTF8, 1024, false);
-        this.serializer = new Serializer(this.writer);
+        _writer = new StreamWriter(File.Open(filename, FileMode.Create), Encoding.UTF8, 1024, false);
+        _serializer = new Serializer(_writer);
     }
 
     /// <summary>
@@ -64,7 +66,7 @@ public class DdlWriter : IDisposable
     /// </summary>
     public DdlWriter(TextWriter writer)
     {
-        this.serializer = new Serializer(writer);
+        _serializer = new Serializer(writer);
     }
 
     /// <summary>
@@ -72,7 +74,7 @@ public class DdlWriter : IDisposable
     /// </summary>
     public void Flush()
     {
-        this.serializer.Flush();
+        _serializer.Flush();
     }
 
     /// <summary>
@@ -80,8 +82,8 @@ public class DdlWriter : IDisposable
     /// </summary>
     public int Indent
     {
-        get => serializer.Indent;
-        set => serializer.Indent = value;
+        get => _serializer.Indent;
+        set => _serializer.Indent = value;
     }
 
     /// <summary>
@@ -89,8 +91,8 @@ public class DdlWriter : IDisposable
     /// </summary>
     public int InitialIndent
     {
-        get => serializer.InitialIndent;
-        set => serializer.InitialIndent = value;
+        get => _serializer.InitialIndent;
+        set => _serializer.InitialIndent = value;
     }
 
     /// <summary>
@@ -98,8 +100,8 @@ public class DdlWriter : IDisposable
     /// </summary>
     public void WriteDocument(DocumentObject documentObject)
     {
-        documentObject.Serialize(this.serializer);
-        this.serializer.Flush();
+        documentObject.Serialize(_serializer);
+        _serializer.Flush();
     }
 
     /// <summary>
@@ -107,8 +109,8 @@ public class DdlWriter : IDisposable
     /// </summary>
     public void WriteDocument(DocumentObjectCollection documentObjectContainer)
     {
-        documentObjectContainer.Serialize(this.serializer);
-        this.serializer.Flush();
+        documentObjectContainer.Serialize(_serializer);
+        _serializer.Flush();
     }
 
     /// <summary>
@@ -143,6 +145,7 @@ public class DdlWriter : IDisposable
                    })
                 wrt.WriteDocument(docObject);
         }
+
         return strBuilder.ToString();
     }
 
@@ -181,6 +184,7 @@ public class DdlWriter : IDisposable
                 wrt.WriteDocument(docObjectContainer);
             }
         }
+
         return sb.ToString();
     }
 
@@ -206,14 +210,12 @@ public class DdlWriter : IDisposable
     public static void WriteToFile(DocumentObject docObject, string filename, int indent, int initialIndent)
     {
         // ReSharper disable once UsingStatementResourceInitialization
-        using (var wrt = new DdlWriter(filename)
-               {
-                   Indent = indent,
-                   InitialIndent = initialIndent
-               })
+        using var wrt = new DdlWriter(filename)
         {
-            wrt.WriteDocument(docObject);
-        }
+            Indent = indent,
+            InitialIndent = initialIndent
+        };
+        wrt.WriteDocument(docObject);
     }
 
     /// <summary>
@@ -237,17 +239,16 @@ public class DdlWriter : IDisposable
     /// Writes a DocumentObjectCollection type object to a DDL file. Indent a new block by
     /// indent + initialIndent characters.
     /// </summary>
-    public static void WriteToFile(DocumentObjectCollection docObjectContainer, string filename, int indent, int initialIndent)
+    public static void WriteToFile(DocumentObjectCollection docObjectContainer, string filename, int indent,
+        int initialIndent)
     {
         // ReSharper disable once UsingStatementResourceInitialization
-        using (var wrt = new DdlWriter(filename)
-               {
-                   Indent = indent,
-                   InitialIndent = initialIndent
-               })
+        using var wrt = new DdlWriter(filename)
         {
-            wrt.WriteDocument(docObjectContainer);
-        }
+            Indent = indent,
+            InitialIndent = initialIndent
+        };
+        wrt.WriteDocument(docObjectContainer);
     }
 
     /// <summary>Releases the underlying writer.</summary>
@@ -263,15 +264,15 @@ public class DdlWriter : IDisposable
     /// <param name="disposing">True when called from <see cref="Dispose()"/> rather than a finalizer.</param>
     protected virtual void Dispose(bool disposing)
     {
-        this.serializer = null;
+        _serializer = null;
 
-        if (this.writer != null)
+        if (_writer != null)
         {
-            this.writer.Dispose();
-            this.writer = null;
+            _writer.Dispose();
+            _writer = null;
         }
     }
 
-    StreamWriter writer;
-    Serializer serializer;
+    private StreamWriter _writer;
+    private Serializer _serializer;
 }

@@ -17,13 +17,13 @@ internal sealed class FontsDemo : PdfDemo
 
     public override string Summary => "Families, weights, slants, sizes and decorations.";
 
-    public override IReadOnlyList<string> Shows => new[]
-    {
+    public override IReadOnlyList<string> Shows =>
+    [
         "Three families: a sans, a serif and a monospace",
         "Real bold and italic beside simulated ones",
         "A size ramp placed by MeasureString rather than by a fixed step",
         "The six XTextDecoration line styles, and a decoration in its own colour"
-    };
+    ];
 
     public override int PageCount => 2;
 
@@ -56,26 +56,26 @@ internal sealed class FontsDemo : PdfDemo
 
         // docs:begin families-and-styles
         (string Family, string Label)[] families =
-        {
+        [
             (Sans, "Liberation Sans - TrueType outlines, the metrics of Arial"),
             (Serif, "Liberation Serif - TrueType outlines, the metrics of Times New Roman"),
             (Mono, "Source Code Pro - PostScript (CFF) outlines, regular face only")
-        };
+        ];
 
         (XFontStyle Style, string Label)[] styles =
-        {
+        [
             (XFontStyle.Regular, "Regular"),
             (XFontStyle.Bold, "Bold"),
             (XFontStyle.Italic, "Italic"),
             (XFontStyle.BoldItalic, "Bold italic")
-        };
+        ];
 
-        foreach ((var family, var label) in families)
+        foreach (var (family, label) in families)
         {
             gfx.DrawString(label, note, XBrushes.DimGray, new XPoint(56, y));
             y += 16;
 
-            foreach ((var style, var styleLabel) in styles)
+            foreach (var (style, styleLabel) in styles)
             {
                 gfx.DrawString($"{styleLabel} - Sphinx of black quartz, judge my vow",
                     new XFont(family, 13, style), XBrushes.Black, new XPoint(70, y));

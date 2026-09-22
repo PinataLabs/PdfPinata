@@ -136,7 +136,7 @@ public class FontResolverInfo
     string _key;
 
     /// <summary>
-    /// A name that uniquely identifies the font (not the family), e.g. the file name of the font. PDFsharp does not use this
+    /// A name that uniquely identifies the font (not the family), e.g. the file name of the font. PdfPinata does not use this
     /// name internally, but passes it to the GetFont function of the IFontResolver interface to retrieve the font data.
     /// </summary>
     public string FaceName => _faceName;

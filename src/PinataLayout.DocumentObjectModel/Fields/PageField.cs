@@ -26,7 +26,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -67,8 +67,8 @@ public partial class PageField : NumericFieldBase
   {
     var str = "\\field(Page)";
 
-    if ((this.format ?? "") != "")
-      str += "[Format = \"" + this.Format + "\"]";
+    if ((format ?? "") != "")
+      str += "[Format = \"" + Format + "\"]";
     else
       str += "[]"; //Has to be appended to avoid confusion with '[' in immediatly following text.
 

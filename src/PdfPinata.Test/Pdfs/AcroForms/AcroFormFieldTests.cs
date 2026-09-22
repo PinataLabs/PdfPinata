@@ -45,7 +45,7 @@ public class AcroFormFieldTests
         fields["push"].Should().BeOfType<PdfPushButtonField>();
         fields["listbox"].Should().BeOfType<PdfListBoxField>("a choice field that is not a combo is a list");
         fields["combo"].Should().BeOfType<PdfComboBoxField>();
-        fields["unknown"].Should().BeOfType<PdfGenericField>("a field type PDFsharp does not know still has a name and flags");
+        fields["unknown"].Should().BeOfType<PdfGenericField>("a field type PdfPinata does not know still has a name and flags");
     }
 
     [Fact]

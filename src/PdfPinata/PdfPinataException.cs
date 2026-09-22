@@ -34,30 +34,30 @@ namespace PdfPinata;
 /// <summary>
 /// Base class of all exceptions in the PDFsharp frame work.
 /// </summary>
-public class PdfSharpException : Exception
+public class PdfPinataException : Exception
 {
     // The class is not yet used
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="PdfSharpException"/> class.
+    /// Initializes a new instance of the <see cref="PdfPinataException"/> class.
     /// </summary>
-    public PdfSharpException()
+    public PdfPinataException()
     { }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="PdfSharpException"/> class.
+    /// Initializes a new instance of the <see cref="PdfPinataException"/> class.
     /// </summary>
     /// <param name="message">The exception message.</param>
-    public PdfSharpException(string message)
+    public PdfPinataException(string message)
         : base(message)
     { }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="PdfSharpException"/> class.
+    /// Initializes a new instance of the <see cref="PdfPinataException"/> class.
     /// </summary>
     /// <param name="message">The exception message.</param>
     /// <param name="innerException">The inner exception.</param>
-    public PdfSharpException(string message, Exception innerException) :
+    public PdfPinataException(string message, Exception innerException) :
         base(message, innerException)
     { }
 }

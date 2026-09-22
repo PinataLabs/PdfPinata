@@ -108,7 +108,7 @@ public class DocumentAndPageSurfaceTests
         message.Should().NotBeEmpty();
 
         var saving = () => document.Save(new MemoryStream(), false);
-        saving.Should().Throw<PdfSharpException>();
+        saving.Should().Throw<PdfPinataException>();
     }
 
     [Fact]
