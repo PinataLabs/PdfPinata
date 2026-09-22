@@ -247,6 +247,13 @@ This file starts at the entry below. Changes before that point are recorded only
   dash pattern is now written once for as many strokes as use it. It used to be written again for
   every stroke.
 
+- **An outline entry writes `/F` only when it has a style and the document is PDF 1.4 or later.**
+  Setting `PdfOutline.Style` wrote `/F` at once, whatever the value. So a regular entry carried
+  `/F 0`, and an entry in a PDF 1.3 document carried a key that PDF 1.3 does not have. The style is
+  now kept on the entry and written when the document is saved. A regular entry, or any entry in a
+  document older than 1.4, carries no `/F`. An entry read with a style and then set to `Regular`
+  loses its `/F` on the next save.
+
 - **A `\x` escape in a quoted MDDDL string is the character it names.** `"\x41"` used to read as
   five literal question marks. The scanner also stepped over the character after the digits, so
   `"\x41 b"` lost its space and `"A\x41"` lost its closing quote and ran on into the next line.

@@ -288,11 +288,17 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
     /// <summary>
     /// Gets or sets the style of the outline text.
     /// </summary>
+    /// <remarks>
+    /// Written as <c>/F</c> when the document is saved, and only for a style other than
+    /// <see cref="PdfOutlineStyle.Regular"/> in a document of PDF 1.4 or later: the entry is new in
+    /// 1.4, and 0 is its default.
+    /// </remarks>
     public PdfOutlineStyle Style
     {
-        get => (PdfOutlineStyle)Elements.GetInteger(Keys.F);
-        set => Elements.SetInteger(Keys.F, (int)value);
+        get => _style;
+        set => _style = value;
     }
+    PdfOutlineStyle _style;
 
     /// <summary>
     /// Gets or sets the type of the page destination.
@@ -369,7 +375,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
             TextColor = XColor.FromArgb((int)(r * 255), (int)(g * 255), (int)(b * 255));
         }
 
-        // Style directly works on dictionary element.
+        _style = (PdfOutlineStyle)Elements.GetInteger(Keys.F);
 
         // An outline entry says where it goes either outright, in /Dest, or by performing an
         // action. A document holding both is malformed, and /Dest is what this reads, because
@@ -694,9 +700,15 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
                 if (_textColor != XColor.Empty && Owner.HasVersion("1.4"))
                     Elements[Keys.C] = new PdfLiteral("[{0}]", PdfEncoders.ToString(_textColor, PdfColorMode.Rgb));
 
-                // if (Style != PdfOutlineStyle.Regular && Document.HasVersion("1.4"))
-                //  //pdf.AppendFormat("/F {0}\n", (int)_style);
-                //  Elements[Keys.F] = new PdfInteger((int)_style);
+                // Table 153: /F is new in PDF 1.4 and defaults to 0, so a regular entry carries none
+                // and an older document has no such key. Taken away otherwise, so an entry read with
+                // a style and made regular since does not keep it. Owner.Version rather than
+                // HasVersion, which reads the catalog's version - always 1.4 for a new document and
+                // 1.3 for one read from a file, whatever either says it is.
+                if (_style != PdfOutlineStyle.Regular && Owner.Version >= 14)
+                    Elements.SetInteger(Keys.F, (int)_style);
+                else
+                    Elements.Remove(Keys.F);
             }
 
             // Prepare child elements.
