@@ -14,13 +14,15 @@ This file starts at the entry below. Changes before that point are recorded only
 
 - **An imported page keeps its transparency group, user unit, tab order and presentation
   entries.** Importing a page used to copy only its resources, contents, boxes, rotation and
-  annotations. So a page composited as a transparency group lost its group, a page with a
-  `/UserUnit` came out a different physical size, and its `/Tabs`, `/Trans` and `/Dur` were lost.
-  All five are now copied. The group's colour space is imported once and shared with the resources
-  that name it. If transparent content is drawn on the page later, its own group is kept and not
-  replaced. Entries that point into structures of the source document are left behind on purpose,
-  because importing a page does not bring those structures along. They include `/StructParents`,
-  `/B`, `/AA`, `/Metadata`, `/PieceInfo` and `/SeparationInfo` (#86).
+  annotations. A page composited as a transparency group lost its group, a page with a `/UserUnit`
+  came out a different physical size, and its `/Tabs`, `/Trans` and `/Dur` were lost. All five are
+  now copied, and a page that brings a `/UserUnit` or a `/Tabs` raises the document to PDF 1.6 or
+  1.5, the versions those entries belong to. The group's colour space is imported once and shared
+  with the resources that name it. A tab order of `/S` (structure order) is dropped, because it
+  orders the annotations by a structure tree that page import does not bring along; row and column
+  order are kept. Entries that point into structures of the source document are left behind on
+  purpose, because importing a page does not bring those structures along. They include
+  `/StructParents`, `/B`, `/AA`, `/Metadata`, `/PieceInfo` and `/SeparationInfo` (#86).
 
 - **A content stream read with `ContentReader` and written back keeps its inline images.** The
   parser used to step over everything between `BI` and `EI`, so `ToContent` wrote back a bare `BI`
@@ -235,7 +237,9 @@ This file starts at the entry below. Changes before that point are recorded only
 - **PDF/A-1 now refuses a page's own transparency group.** The PDF/A-1 transparency rule looked at
   a page's images, graphics states and forms, but not at the page's own `/Group`. So a PDF/A-1
   document holding a page imported with a group saved without error and then failed validation.
-  The group is now refused under part 1 only, the same as other transparency (#86).
+  The group is now refused under part 1 only, the same as other transparency. A page imported
+  with a `/UserUnit` or a `/Tabs` is refused under PDF/A-1 too, because those entries raise the
+  version past the 1.4 PDF/A-1 allows (#86).
 
 - **An undefined `SymbolName` is refused rather than written as MDDDL that cannot be read back.**
   `Character.SymbolName` accepted any value, and one with the top nibble set that named no symbol
