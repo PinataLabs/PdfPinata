@@ -167,11 +167,6 @@ public sealed class PdfLinkAnnotation : PdfAnnotation
 
     internal override void WriteObject(PdfWriter writer)
     {
-        //pdf.AppendFormat(CultureInfo.InvariantCulture,
-        //  "{0} 0 obj\n<<\n/Type/Annot\n/Subtype/Link\n" +
-        //  "/Rect[{1} {2} {3} {4}]\n/BS<</Type/Border>>\n/Border[0 0 0]\n/C[0 0 0]\n",
-        //  ObjectID.ObjectNumber, rect.X1, rect.Y1, rect.X2, rect.Y2);
-
         // Older Adobe Reader versions uses a border width of 0 as default value if neither Border nor BS are present.
         // But the PDF Reference specifies:
         // "If neither the Border nor the BS entry is present, the border is drawn as a solid line with a width of 1 point."
@@ -199,7 +194,6 @@ public sealed class PdfLinkAnnotation : PdfAnnotation
                     destIndex = Owner.PageCount;
                 destIndex--;
                 var dest = Owner.Pages[destIndex];
-                //pdf.AppendFormat("/Dest[{0} 0 R/XYZ null null 0]\n", dest.ObjectID);
                 // A destination without a top lands the reader wherever the page is already
                 // scrolled to, so a link to a place halfway down a page needs the coordinate.
                 Elements[Keys.Dest] = double.IsNaN(_destTop)
@@ -222,16 +216,12 @@ public sealed class PdfLinkAnnotation : PdfAnnotation
                 break;
 
             case LinkType.Web:
-                //pdf.AppendFormat("/A<</S/URI/URI{0}>>\n", PdfEncoders.EncodeAsLiteral(url));
-                Elements[PdfAnnotation.Keys.A] = new PdfLiteral("<</S/URI/URI{0}>>", //PdfEncoders.EncodeAsLiteral(url));
+                Elements[PdfAnnotation.Keys.A] = new PdfLiteral("<</S/URI/URI{0}>>",
                     PdfEncoders.ToStringLiteral(_url, PdfStringEncoding.WinAnsiEncoding, writer.SecurityHandler));
                 break;
 
             case LinkType.File:
-                //pdf.AppendFormat("/A<</Type/Action/S/Launch/F<</Type/Filespec/F{0}>> >>\n",
-                //  PdfEncoders.EncodeAsLiteral(url));
                 Elements[PdfAnnotation.Keys.A] = new PdfLiteral("<</Type/Action/S/Launch/F<</Type/Filespec/F{0}>> >>",
-                    //PdfEncoders.EncodeAsLiteral(url));
                     PdfEncoders.ToStringLiteral(_url, PdfStringEncoding.WinAnsiEncoding, writer.SecurityHandler));
                 break;
         }

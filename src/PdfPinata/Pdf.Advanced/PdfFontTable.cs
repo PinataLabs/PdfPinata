@@ -85,7 +85,6 @@ internal sealed class PdfFontTable : PdfResourceTable
                 pdfFont = new PdfType0Font(Owner, font, font.IsVertical);
             else
                 pdfFont = new PdfTrueTypeFont(Owner, font);
-            //pdfFont.Document = _document;
             Debug.Assert(pdfFont.Owner == Owner);
             _fonts[selector] = pdfFont;
         }

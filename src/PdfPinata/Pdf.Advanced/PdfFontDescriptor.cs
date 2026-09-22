@@ -114,8 +114,6 @@ public sealed class PdfFontDescriptor : PdfDictionary
             Descriptor.DesignUnitsToPdf(Descriptor.YMin),
             Descriptor.DesignUnitsToPdf(Descriptor.XMax),
             Descriptor.DesignUnitsToPdf(Descriptor.YMax)));
-        // not here, done in PdfFont later...
-        //Elements.SetName(Keys.FontName, "abc"); //descriptor.FontName);
         Elements.SetReal(Keys.ItalicAngle, Descriptor.ItalicAngle);
         Elements.SetInteger(Keys.StemV, Descriptor.StemV);
         Elements.SetInteger(Keys.XHeight, Descriptor.DesignUnitsToPdf(Descriptor.XHeight));

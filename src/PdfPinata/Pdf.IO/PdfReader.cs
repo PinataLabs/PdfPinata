@@ -405,7 +405,6 @@ public static class PdfReader
             if (xrefEncrypt != null)
             {
                 document._readEncrypted = true;
-                //xrefEncrypt.Value = parser.ReadObject(null, xrefEncrypt.ObjectID, false);
                 var encrypt = parser.ReadObject(null, xrefEncrypt.ObjectID, false, false);
 
                 encrypt.Reference = xrefEncrypt;
@@ -555,7 +554,6 @@ public static class PdfReader
                 else
                 {
                     Debug.Assert(document._irefTable.Contains(iref.ObjectID));
-                    //iref.GetType();
                 }
                 // Set maximum object number.
                 document._irefTable.MaxObjectNumber = Math.Max(document._irefTable.MaxObjectNumber,
@@ -631,9 +629,6 @@ public static class PdfReader
                     // Force flattening of page tree
                     var pages = document.Pages;
                     Debug.Assert(pages != null);
-
-                    //bool b = document.irefTable.Contains(new PdfObjectID(1108));
-                    //b.GetType();
 
                     document._irefTable.Renumber();
                 }

@@ -82,7 +82,6 @@ internal class KeyInfoAttribute : Attribute
 
     public KeyInfoAttribute(KeyType keyType)
     {
-        //_version = version;
         KeyType = keyType;
     }
 
@@ -95,7 +94,6 @@ internal class KeyInfoAttribute : Attribute
     public KeyInfoAttribute(KeyType keyType, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)]
         Type objectType)
     {
-        //_version = version;
         KeyType = keyType;
         _objectType = objectType;
     }

@@ -101,7 +101,6 @@ public class Lexer
         {
             case '%':
                 // Eat comments, the parser doesn't handle them
-                //return symbol = ScanComment();
                 ScanComment();
                 goto Again;
 
@@ -358,13 +357,11 @@ public class Lexer
         // What is this? It is neither an integer nor a real.
         // I introduced an UInteger...
         var period = false;
-        //bool sign;
 
         _token = new StringBuilder();
         var ch = _currChar;
         if (ch == '+' || ch == '-')
         {
-            //sign = true;
             _token.Append(ch);
             ch = ScanNextChar(true);
         }
@@ -785,16 +782,12 @@ public class Lexer
     /// <summary>
     /// Interprets current token as integer literal.
     /// </summary>
-    public int TokenToInteger =>
-        //Debug.As sert(_token.ToString().IndexOf('.') == -1);
-        int.Parse(_token.ToString(), CultureInfo.InvariantCulture);
+    public int TokenToInteger => int.Parse(_token.ToString(), CultureInfo.InvariantCulture);
 
     /// <summary>
     /// Interprets current token as unsigned integer literal.
     /// </summary>
-    public uint TokenToUInteger =>
-        //Debug.As sert(_token.ToString().IndexOf('.') == -1);
-        uint.Parse(_token.ToString(), CultureInfo.InvariantCulture);
+    public uint TokenToUInteger => uint.Parse(_token.ToString(), CultureInfo.InvariantCulture);
 
     /// <summary>Interprets the current token as a long integer literal.</summary>
     public long TokenToLong => long.Parse(_token.ToString(), CultureInfo.InvariantCulture);

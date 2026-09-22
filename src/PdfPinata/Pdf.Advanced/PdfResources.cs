@@ -361,8 +361,6 @@ public sealed class PdfResources : PdfDictionary
                 Properties.CollectResourceNames(_importedResourceNames);
         }
         return _importedResourceNames.ContainsKey(name);
-        // This is superfluous because PDFsharp resource names cannot be double.
-        // importedResourceNames.Add(name, null);
     }
 
     /// <summary>

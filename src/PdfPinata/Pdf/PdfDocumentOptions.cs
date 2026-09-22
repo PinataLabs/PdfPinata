@@ -38,8 +38,6 @@ public sealed class PdfDocumentOptions
 {
     internal PdfDocumentOptions()
     {
-        //_deflateContents = true;
-        //_writeProcedureSets = true;
     }
 
     /// <summary>

@@ -58,7 +58,6 @@ public struct PdfObjectID : IComparable, IEquatable<PdfObjectID>
     public PdfObjectID(int objectNumber, int generationNumber)
     {
         Debug.Assert(objectNumber >= 1, "Object number out of range.");
-        //Debug.Assert(generationNumber >= 0 && generationNumber <= 65535, "Generation number out of range.");
         _objectNumber = objectNumber;
         _generationNumber = (ushort)generationNumber;
     }

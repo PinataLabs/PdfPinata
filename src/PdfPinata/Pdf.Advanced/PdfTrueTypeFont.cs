@@ -58,7 +58,6 @@ internal class PdfTrueTypeFont : PdfFont
         var fontOptions = font.PdfOptions;
         Debug.Assert(fontOptions != null);
 
-        //cmapInfo = new CMapInfo(null/*ttDescriptor*/);
         CmapInfo = new CMapInfo(ttDescriptor);
 
         BaseFont = font.GlyphTypeface.GetBaseName();
@@ -119,7 +118,6 @@ internal class PdfTrueTypeFont : PdfFont
         FirstChar = 0;
         LastChar = 255;
         var width = Widths;
-        //width.Elements.Clear();
         for (var idx = 0; idx < 256; idx++)
             width.Elements.Add(new PdfInteger(FontDescriptor.Descriptor.Widths[idx]));
     }

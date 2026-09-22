@@ -74,7 +74,6 @@ public class CLexer
         {
             case '%':
                 // Eat comments, the parser doesn't handle them
-                //return symbol = ScanComment();
                 ScanComment();
                 goto Again;
 

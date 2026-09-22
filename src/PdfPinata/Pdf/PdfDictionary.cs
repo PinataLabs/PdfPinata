@@ -186,7 +186,6 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
     internal override void WriteObject(PdfWriter writer)
     {
         writer.WriteBeginObject(this);
-        //int count = Elements.Count;
 
         // The stream's own length is the one the file has to declare, whatever the entry says by
         // now. A stream keeps /Length current only in the dictionary that owns it, so one shared
@@ -613,8 +612,6 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             object obj = ValueOf(key);
             if (obj == null)
             {
-                //if (create)
-                //  this[key] = new Pdf();
                 return String.Empty;
             }
 
@@ -990,7 +987,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             if (oldArray == null)
             {
                 // Use constructor with signature 'Ctor(PdfDocument owner)'.
-                var ctorInfos = type.GetTypeInfo().DeclaredConstructors; //.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
+                var ctorInfos = type.GetTypeInfo().DeclaredConstructors;
                 foreach (var ctorInfo in ctorInfos)
                 {
                     var parameters = ctorInfo.GetParameters();
@@ -1004,8 +1001,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             else
             {
                 // Use contstructor with signature 'Ctor(PdfDictionary dict)'.
-                var ctorInfos = type.GetTypeInfo().DeclaredConstructors; // .GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
-                //null, new Type[] { typeof(PdfArray) }, null);
+                var ctorInfos = type.GetTypeInfo().DeclaredConstructors;
                 foreach (var ctorInfo in ctorInfos)
                 {
                     var parameters = ctorInfo.GetParameters();
@@ -1029,8 +1025,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             if (oldDictionary == null)
             {
                 // Use constructor with signature 'Ctor(PdfDocument owner)'.
-                var ctorInfos = type.GetTypeInfo().DeclaredConstructors; //GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
-                //null, new Type[] { typeof(PdfDocument) }, null);
+                var ctorInfos = type.GetTypeInfo().DeclaredConstructors;
                 foreach (var ctorInfo in ctorInfos)
                 {
                     var parameters = ctorInfo.GetParameters();
@@ -1044,7 +1039,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             }
             else
             {
-                var ctorInfos = type.GetTypeInfo().DeclaredConstructors; // GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new Type[] { typeof(PdfDictionary) }, null);
+                var ctorInfos = type.GetTypeInfo().DeclaredConstructors;
                 foreach (var ctorInfo in ctorInfos)
                 {
                     var parameters = ctorInfo.GetParameters();

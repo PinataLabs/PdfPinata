@@ -51,7 +51,6 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
     public PdfOutline()
     {
         // Create _outlines on demand.
-        //_outlines = new PdfOutlineCollection(this);
     }
 
     /// <summary>
@@ -62,7 +61,6 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
         : base(document)
     {
         // Create _outlines on demand.
-        //_outlines = new PdfOutlineCollection(this);
     }
 
     /// <summary>
@@ -645,7 +643,6 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
                 // properties above would turn it into something else.
                 if (DestinationPage != null && !_keepDestinationAsFound)
                 {
-                    //Elements[Keys.Dest] = new PdfArray(Owner, DestinationPage.Reference, new PdfLiteral("/XYZ null null 0"));
                     Elements[Keys.Dest] = CreateDestArray();
                     // An entry given a destination goes there rather than wherever its action led,
                     // and the specification has one of the two entries, not both.
@@ -800,26 +797,6 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
         public const string Type = "/Type";
 
         // Outline and outline item are combined
-        ///// <summary>
-        ///// (Required if there are any open or closed outline entries; must be an indirect reference)
-        ///// An outline item dictionary representing the first top-level item in the outline.
-        ///// </summary>
-        //[KeyInfo(KeyType.Dictionary)]
-        //public const string First = "/First";
-        //
-        ///// <summary>
-        ///// (Required if there are any open or closed outline entries; must be an indirect reference)
-        ///// An outline item dictionary representing the last top-level item in the outline.
-        ///// </summary>
-        //[KeyInfo(KeyType.Dictionary)]
-        //public const string Last = "/Last";
-        //
-        ///// <summary>
-        ///// (Required if the document has any open outline entries) The total number of open items at all
-        ///// levels of the outline. This entry should be omitted if there are no open outline items.
-        ///// </summary>
-        //[KeyInfo(KeyType.Integer)]
-        //public const string Count = "/Count";
 
         /// <summary>
         /// (Required) The text to be displayed on the screen for this item.

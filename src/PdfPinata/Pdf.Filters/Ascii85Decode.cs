@@ -261,7 +261,6 @@ public class Ascii85Decode : Filter
                 if (c1 != data[idxIn] || c2 != data[idxIn + 1] || c3 != data[idxIn + 2])
                 {
                     value += 0x00010000;
-                    //Count2++;
                 }
             }
             output[idxOut++] = (byte)(value >> 24);
@@ -290,7 +289,6 @@ public class Ascii85Decode : Filter
                 if (c1 != data[idxIn] || c2 != data[idxIn + 1] || c3 != data[idxIn + 2] || c4 != data[idxIn + 3])
                 {
                     value += 0x00000100;
-                    //Count3++;
                 }
             }
             output[idxOut++] = (byte)(value >> 24);

@@ -104,11 +104,6 @@ public class CSequence : CObject, IList<CObject> // , ICollection<CObject>, IEnu
         _items.Clear();
     }
 
-    //bool IList.Contains(object value)
-    //{
-    //  return items.Contains(value);
-    //}
-
     /// <summary>
     /// Determines whether the specified value is in the sequence.
     /// </summary>
@@ -192,22 +187,6 @@ public class CSequence : CObject, IList<CObject> // , ICollection<CObject>, IEnu
     /// Gets the number of elements contained in the sequence.
     /// </summary>
     public int Count => _items.Count;
-
-    ///// <summary>
-    ///// Gets a value indicating whether access to the sequence is synchronized (thread safe).
-    ///// </summary>
-    //public bool IsSynchronized
-    //{
-    //  get { return items.IsSynchronized; }
-    //}
-
-    ///// <summary>
-    ///// Gets an object that can be used to synchronize access to the sequence.
-    ///// </summary>
-    //public object SyncRoot
-    //{
-    //  get { return items.SyncRoot; }
-    //}
 
     #endregion
 

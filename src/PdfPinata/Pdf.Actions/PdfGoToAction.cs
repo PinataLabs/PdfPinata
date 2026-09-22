@@ -63,13 +63,6 @@ public sealed class PdfGoToAction : PdfAction
     /// </summary>
     internal new class Keys : PdfAction.Keys
     {
-        ///// <summary>
-        ///// (Required) The type of action that this dictionary describes;
-        ///// must be GoTo for a go-to action.
-        ///// </summary>
-        //[KeyInfo(KeyType.Name | KeyType.Required, FixedValue = "Goto")]
-        //public const string S = "/S";
-
         /// <summary>
         /// (Required) The destination to jump to (see Section 8.2.1, “Destinations”).
         /// </summary>

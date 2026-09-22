@@ -160,7 +160,6 @@ internal sealed class Parser
                     array = new PdfArray(_document);
                 else
                     array = (PdfArray)pdfObject;
-                //PdfObject.RegisterObject(array, objectID, generation);
                 pdfObject = ReadArray(array, includeReferences);
                 pdfObject.SetObjectID(objectNumber, generationNumber);
                 break;
@@ -171,7 +170,6 @@ internal sealed class Parser
                     dict = new PdfDictionary(_document);
                 else
                     dict = (PdfDictionary)pdfObject;
-                //PdfObject.RegisterObject(dict, objectID, generation);
                 checkForStream = true;
                 pdfObject = ReadDictionary(dict, includeReferences);
                 pdfObject.SetObjectID(objectNumber, generationNumber);
@@ -709,9 +707,6 @@ internal sealed class Parser
                         // An indirect reference to an undefined object is not an error;
                         // it is simply treated as a reference to the null object.
                         _stack.Reduce(PdfNull.Value, 2);
-                        // Let's see what null objects are good for...
-                        //Debug.Assert(false, "Null object detected!");
-                        //stack.Reduce(PdfNull.Value, 2);
                     }
                     else
                         _stack.Reduce(iref, 2);
@@ -836,60 +831,6 @@ internal sealed class Parser
             ParserDiagnostics.HandleUnexpectedToken(_lexer.Token);
     }
 
-    /*
-        /// <summary>
-        /// Reads a string immediately or (optionally) indirectly from the PDF data stream.
-        /// </summary>
-        protected string ReadString(bool canBeIndirect)
-        {
-          Symbol symbol = Symbol.None; //lexer.ScanNextToken(canBeIndirect);
-          if (symbol == Symbol.String || symbol == Symbol.HexString)
-            return lexer.Token;
-          else if (symbol == Symbol.R)
-          {
-            int position = lexer.Position;
-            MoveToObject(lexer.Token);
-            ReadObjectID(null);
-            string s = ReadString();
-            ReadSymbol(Symbol.EndObj);
-            lexer.Position = position;
-            return s;
-          }
-          thr ow new PdfReaderException(PSSR.UnexpectedToken(lexer.Token));
-        }
-
-        protected string ReadString()
-        {
-          return ReadString(false);
-        }
-
-        /// <summary>
-        /// Reads a string immediately or (optionally) indirectly from the PDF data stream.
-        /// </summary>
-        protected bool ReadBoolean(bool canBeIndirect)
-        {
-          Symbol symbol = lexer.ScanNextToken(canBeIndirect);
-          if (symbol == Symbol.Boolean)
-            return lexer.TokenToBoolean;
-          else if (symbol == Symbol.R)
-          {
-            int position = lexer.Position;
-            MoveToObject(lexer.Token);
-            ReadObjectID(null);
-            bool b = ReadBoolean();
-            ReadSymbol(Symbol.EndObj);
-            lexer.Position = position;
-            return b;
-          }
-          thr ow new PdfReaderException(PSSR.UnexpectedToken(lexer.Token));
-        }
-
-        protected bool ReadBoolean()
-        {
-          return ReadBoolean(false);
-        }
-    */
-
     /// <summary>
     /// Reads an integer value directly from the PDF data stream.
     /// </summary>
@@ -902,7 +843,6 @@ internal sealed class Parser
         if (symbol == Symbol.R)
         {
             var position = _lexer.Position;
-            //        MoveToObject(lexer.Token);
             ReadObjectID(null);
             var n = ReadInteger();
             ReadSymbol(Symbol.EndObj);
@@ -1152,8 +1092,6 @@ internal sealed class Parser
             if (prev == 0)
                 break;
 
-            //if (prev > lexer.PdfLength)
-            //  break;
             _lexer.Position = prev;
         }
 
@@ -1413,7 +1351,6 @@ internal sealed class Parser
     private PdfCrossReferenceStream ReadXRefStream(PdfCrossReferenceTable xrefTable, long startOfSection)
     {
         // Read cross reference stream.
-        //Debug.Assert(_lexer.Symbol == Symbol.Integer);
 
         // The object number has just been read, so the stream's own header lies between here and
         // where the section began.
@@ -1661,286 +1598,6 @@ internal sealed class Parser
     /// </summary>
     static bool TryParseField(string date, int start, int length, out int value) =>
         int.TryParse(date.Substring(start, length), NumberStyles.Integer, NumberFormatInfo.CurrentInfo, out value);
-
-    /*
-        /// <summary>
-        /// Reads a date value directly or (optionally) indirectly from the PDF data stream.
-        /// </summary>
-        protected DateTime ReadDate(bool canBeIndirect)
-        {
-          Symbol symbol = lexer.ScanNextToken(canBeIndirect);
-          if (symbol == Symbol.String)
-          {
-            // D:YYYYMMDDHHmmSSOHH'mm'
-            //   ^2      ^10   ^16 ^20
-            string date = lexer.Token;
-            int length = date.Length;
-            int year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0, hh = 0, mm = 0;
-            char o = 'Z';
-            if (length >= 10)
-            {
-              year = Int32.Parse(date.Substring(2, 4));
-              month = Int32.Parse(date.Substring(6, 2));
-              day = Int32.Parse(date.Substring(8, 2));
-              if (length >= 16)
-              {
-                hour = Int32.Parse(date.Substring(10, 2));
-                minute = Int32.Parse(date.Substring(12, 2));
-                second = Int32.Parse(date.Substring(14, 2));
-                if (length >= 23)
-                {
-                  if ((o = date[16]) != 'Z')
-                  {
-                    hh = Int32.Parse(date.Substring(17, 2));
-                    mm = Int32.Parse(date.Substring(20, 2));
-                  }
-                }
-              }
-            }
-            DateTime datetime = new DateTime(year, month, day, hour, minute, second);
-            if (o != 'Z')
-            {
-              TimeSpan ts = new TimeSpan(hh, mm, 0);
-              if (o == '+')
-                datetime.Add(ts);
-              else
-                datetime.Subtract(ts);
-            }
-            return datetime;
-          }
-          else if (symbol == Symbol.R)
-          {
-            int position = lexer.Position;
-            MoveToObject(lexer.Token);
-            ReadObjectID(null);
-            DateTime d = ReadDate();
-            ReadSymbol(Symbol.EndObj);
-            lexer.Position = position;
-            return d;
-          }
-          thr ow new PdfReaderException(PSSR.UnexpectedToken(lexer.Token));
-        }
-
-        protected DateTime ReadDate()
-        {
-          return ReadDate(false);
-        }
-
-        /// <summary>
-        /// Reads a PdfRectangle value directly or (optionally) indirectly from the PDF data stream.
-        /// </summary>
-        protected PdfRectangle ReadRectangle(bool canBeIndirect)
-        {
-          Symbol symbol = lexer.ScanNextToken(canBeIndirect);
-          if (symbol == Symbol.BeginArray)
-          {
-            PdfRectangle rect = new PdfRectangle();
-            rect.X1 = ReadReal();
-            rect.Y1 = ReadReal();
-            rect.X2 = ReadReal();
-            rect.Y2 = ReadReal();
-            ReadSymbol(Symbol.EndArray);
-            return rect;
-          }
-          else if (symbol == Symbol.R)
-          {
-            int position = lexer.Position;
-            MoveToObject(lexer.Token);
-            ReadObjectID(null);
-            PdfRectangle rect = ReadRectangle();
-            ReadSymbol(Symbol.EndObj);
-            lexer.Position = position;
-            return rect;
-          }
-          thr ow new PdfReaderException(PSSR.UnexpectedToken(lexer.Token));
-        }
-
-        /// <summary>
-        /// Short cut for ReadRectangle(false).
-        /// </summary>
-        protected PdfRectangle ReadRectangle()
-        {
-          return ReadRectangle(false);
-        }
-
-        /// <summary>
-        /// Reads a generic dictionary.
-        /// </summary>
-        protected PdfDictionary ReadDictionary(bool canBeIndirect)
-        {
-          // Just read over dictionary
-          PdfDictionary dictionary = new PdfDictionary();
-          Symbol symbol = lexer.ScanNextToken(canBeIndirect);
-          if (symbol == Symbol.BeginDictionary)
-          {
-            int nestingLevel = 0;
-            symbol = ScanNextToken();
-            while (symbol != Symbol.Eof)
-            {
-              switch (symbol)
-              {
-                case Symbol.BeginDictionary:
-                  nestingLevel++;
-                  break;
-
-                case Symbol.EndDictionary:
-                  if (nestingLevel == 0)
-                    return dictionary;
-                  else
-                    nestingLevel--;
-                  break;
-              }
-              symbol = ScanNextToken();
-            }
-            Debug.Assert(false, "Must not come here");
-            return dictionary;
-          }
-          else if (symbol == Symbol.R)
-          {
-            return dictionary;
-          }
-          thr ow new PdfReaderException(PSSR.UnexpectedToken(lexer.Token));
-        }
-
-        /// <summary>
-        /// Short cut for ReadDictionary(false).
-        /// </summary>
-        protected PdfDictionary ReadDictionary()
-        {
-          return ReadDictionary(false);
-        }
-
-        /// <summary>
-        /// Reads a generic array.
-        /// </summary>
-        protected PdfArray ReadArray(bool canBeIndirect)
-        {
-          // Just read over array
-          PdfArray array = new PdfArray();
-          Symbol symbol = lexer.ScanNextToken(canBeIndirect);
-          if (symbol == Symbol.BeginArray)
-          {
-            int nestingLevel = 0;
-            symbol = ScanNextToken();
-            while (symbol != Symbol.Eof)
-            {
-              switch (symbol)
-              {
-                case Symbol.BeginArray:
-                  nestingLevel++;
-                  break;
-
-                case Symbol.EndArray:
-                  if (nestingLevel == 0)
-                    return array;
-                  else
-                    nestingLevel--;
-                  break;
-              }
-              symbol = ScanNextToken();
-            }
-            Debug.Assert(false, "Must not come here");
-            return array;
-          }
-          else if (symbol == Symbol.R)
-          {
-            return array;
-          }
-          th row new PdfReaderException(PSSR.UnexpectedToken(lexer.Token));
-        }
-
-        protected PdfArray ReadArray()
-        {
-          return ReadArray(false);
-        }
-
-        protected object ReadGeneric(KeysMeta meta, string token)
-        {
-          KeyDescriptor descriptor =  meta[token];
-          Debug.Assert(descriptor != null);
-          object result = null;
-          switch (descriptor.KeyType & KeyType.TypeMask)
-          {
-            case KeyType.Name:
-              result = ReadName();
-              break;
-
-            case KeyType.String:
-              result = ReadString(descriptor.CanBeIndirect);
-              break;
-
-            case KeyType.Boolean:
-              result = ReadBoolean(descriptor.CanBeIndirect);
-              break;
-
-            case KeyType.Integer:
-              result = ReadInteger();
-              break;
-
-            case KeyType.Real:
-              result = ReadReal(descriptor.CanBeIndirect);
-              break;
-
-            case KeyType.Date:
-              result = ReadDate(descriptor.CanBeIndirect);
-              break;
-
-            case KeyType.Rectangle:
-              result = ReadRectangle(descriptor.CanBeIndirect);
-              break;
-
-            case KeyType.Array:
-              result = ReadArray(descriptor.CanBeIndirect);
-              break;
-
-            case KeyType.Dictionary:
-              result = ReadDictionary(descriptor.CanBeIndirect);
-              break;
-
-            case KeyType.Stream:
-              break;
-
-            case KeyType.NumberTree:
-              thr ow new NotImplementedException("KeyType.NumberTree");
-
-            case KeyType.NameOrArray:
-              char ch = lexer.MoveToNonWhiteSpace();
-              if (ch == '/')
-                result = ReadName();
-              else if (ch == '[')
-                result = ReadArray();
-              else
-                th row new NotImplementedException("KeyType.NameOrArray");
-              break;
-
-            case KeyType.ArrayOrDictionary:
-              thr ow new NotImplementedException("KeyType.ArrayOrDictionary");
-          }
-          //Debug.Assert(false, "ReadGeneric");
-          return result;
-        }
-
-        //    /// <summary>
-        //    /// Gets the current symbol from the lexer.
-        //    /// </summary>
-        //    protected Symbol Symbol
-        //    {
-        //      get {return lexer.Symbol;}
-        //    }
-        //
-        //    /// <summary>
-        //    /// Gets the current token from the lexer.
-        //    /// </summary>
-        //    protected string Token
-        //    {
-        //      get {return lexer.Token.ToString();}
-        //    }
-
-        public static object Read(PdfObject o, string key)
-        {
-          return null;
-        }
-    */
 
     private ParserState SaveState()
     {
