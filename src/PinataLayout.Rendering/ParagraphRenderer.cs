@@ -2727,59 +2727,71 @@ internal class ParagraphRenderer : Renderer
 
     static string GetSymbol(Character character)
     {
-        char ch;
+        string ch;
         switch (character.SymbolName)
         {
             case SymbolName.Euro:
-                ch = '€';
+                ch = "€";
                 break;
 
             case SymbolName.Copyright:
-                ch = '©';
+                ch = "©";
                 break;
 
             case SymbolName.Trademark:
-                ch = '™';
+                ch = "™";
                 break;
 
             case SymbolName.RegisteredTrademark:
-                ch = '®';
+                ch = "®";
                 break;
 
             case SymbolName.Bullet:
-                ch = '•';
+                ch = "•";
                 break;
 
             case SymbolName.Not:
-                ch = '¬';
+                ch = "¬";
                 break;
 
             // HardBlank is the same value. That no line breaks at it is FormatElement's business.
             case SymbolName.NonBreakableBlank:
-                ch = ' ';
+                ch = "\u00A0";
                 break;
 
             case SymbolName.EmDash:
-                ch = '—';
+                ch = "—";
                 break;
 
             case SymbolName.EnDash:
-                ch = '–';
+                ch = "–";
                 break;
 
+            // A character is its own code. SymbolName rather than Char, which keeps 16 bits of it.
             default:
-                var c = character.Char;
-                var chars = Encoding.UTF8.GetChars(new[] { (byte)c });
-                ch = chars[0];
+                ch = CharacterText((uint)character.SymbolName);
                 break;
         }
-        var returnString = "";
-        returnString += ch;
+        var returnString = ch;
         var count = character.Count;
         while (--count > 0)
             returnString += ch;
         return returnString;
     }
+
+    /// <summary>
+    /// The text a character given by its code stands for. A code past U+FFFF is a surrogate pair,
+    /// and one past the last code point is no character at all and draws as the replacement
+    /// character. A named symbol with no text of its own - the top nibble set - is a NUL, which
+    /// text normalization drops, as it always was.
+    /// </summary>
+    static string CharacterText(uint code) => code switch
+    {
+        <= 0xFFFF => ((char)code).ToString(),
+        <= 0x10FFFF => char.ConvertFromUtf32((int)code),
+        >= 0x10000000 => "\0",
+        _ => "\uFFFD"
+    };
 
     FormatResult FormatSymbol(Character character)
     {

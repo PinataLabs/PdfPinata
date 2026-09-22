@@ -83,11 +83,42 @@ public class SymbolAndDecimalTabTests
     public void ACharacterGivenByNumberDrawsThatCharacter()
     {
         // The default arm: anything that is not one of the named symbols is the character the
-        // model carries, taken through its byte value.
+        // model carries.
         var document = new Document();
         document.AddSection().AddParagraph().AddCharacter('A');
 
         Glyphs.On(Rendered.FirstPageOf(document)).Should().Equal(GlyphsFor("A"));
+    }
+
+    /// <summary>
+    ///   A character beyond ASCII draws itself too. The default arm used to take the character's
+    ///   low byte and decode that one byte as UTF-8, which is only the character it was below 128:
+    ///   'é' is 0xE9, a lead byte with nothing after it, and came out as U+FFFD, and anything above
+    ///   U+00FF lost its high byte before that.
+    /// </summary>
+    [Theory]
+    [InlineData('é')]
+    [InlineData('ß')]
+    [InlineData('Ω')]
+    [InlineData('€')]
+    public void ACharacterBeyondAsciiGivenByNumberDrawsThatCharacter(char ch)
+    {
+        var document = new Document();
+        document.AddSection().AddParagraph().AddCharacter(ch);
+
+        Glyphs.On(Rendered.FirstPageOf(document)).Should().Equal(GlyphsFor(ch.ToString()));
+    }
+
+    [Fact]
+    public void ACharacterAboveTheBasicMultilingualPlaneIsDrawnWhole()
+    {
+        // Reachable only through SymbolName, which keeps the whole code where Char keeps 16 bits.
+        // The face has no glyph for it, so what is compared is that one character is drawn rather
+        // than nothing: the low 16 bits of U+1F600 used to end in a zero byte, which was dropped.
+        var document = new Document();
+        document.AddSection().AddParagraph().AddCharacter((SymbolName)0x1F600);
+
+        Glyphs.On(Rendered.FirstPageOf(document)).Should().Equal(GlyphsFor("\U0001F600"));
     }
 
     /// <summary>
