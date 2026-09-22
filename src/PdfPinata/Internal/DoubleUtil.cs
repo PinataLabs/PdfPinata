@@ -45,7 +45,6 @@ internal static class DoubleUtil
     /// </summary>
     public static bool AreClose(double value1, double value2)
     {
-        //if (value1 == value2)
         #pragma warning disable S1244 // Exact on purpose: the exact case of the tolerant comparison, taken before the tolerance.
         if (value1.Equals(value2))
             return true;

@@ -106,7 +106,6 @@ internal sealed class OpenTypeDescriptor : FontDescriptor
 
         // OS/2 is an optional table, but we can't determine if it is existing in this font.
         var os2SeemsToBeEmpty = FontFace.os2.sTypoAscender == 0 && FontFace.os2.sTypoDescender == 0 && FontFace.os2.sTypoLineGap == 0;
-        //Debug.Assert(!os2SeemsToBeEmpty); // Are there fonts without OS/2 table?
 
         var dontUseWinLineMetrics = (FontFace.os2.fsSelection & 128) != 0;
         if (!os2SeemsToBeEmpty && dontUseWinLineMetrics)
@@ -215,8 +214,6 @@ internal sealed class OpenTypeDescriptor : FontDescriptor
     /// Gets a value indicating whether this instance belongs to a bold font.
     /// </summary>
     public override bool IsBoldFace =>
-        // usWeightClass 700 is Bold
-        //Debug.Assert((fontData.os2.usWeightClass >= 700) == ((fontData.os2.fsSelection & (ushort)OS2Table.FontSelectionFlags.Bold) != 0));
         FontFace.os2.IsBold;
 
     /// <summary>

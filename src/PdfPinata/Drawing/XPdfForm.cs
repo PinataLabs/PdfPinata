@@ -175,14 +175,8 @@ public class XPdfForm : XForm
             _disposed = true;
             try
             {
-                if (disposing)
-                {
-                    //...
-                }
-
                 if (_externalDocument != null)
                     PdfDocument.Tls.DetachDocument(_externalDocument.Handle);
-                //...
             }
             finally
             {
