@@ -27,6 +27,9 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
+using System;
+using System.ComponentModel;
+
 namespace PdfPinata.Drawing.BarCodes;
 
 /// <summary>
@@ -119,123 +122,60 @@ public class CodeOmr : BarCode
     }
     double _makerThickness = 1;
 
-    ///// <summary>
-    ///// Renders the mark at the given position.
-    ///// </summary>
-    ///// <param name="position">The mark position to render.</param>
-    //private void RenderMark(int position)
-    //{
-    //  double yPos =  TopLeft.Y + UpperDistance + position * ToUnit(markDistance).Centimeter;
-    //  //Center mark
-    //  double xPos = TopLeft.X + Width / 2 - this.MarkWidth / 2;
+    /// <summary>
+    /// Gets or sets the distance of the markers as one of the standard distances, or null when
+    /// <see cref="MakerDistance"/> is not one of them.
+    /// </summary>
+    /// <remarks>
+    /// A typed way of saying what <see cref="MakerDistance"/> says in points, and it reads and
+    /// writes that property rather than keeping a value of its own: assigning
+    /// <see cref="MarkDistance.Inch2_6"/> sets <see cref="MakerDistance"/> to 24, and
+    /// assigning <see cref="MakerDistance"/> 24 makes this read <see cref="MarkDistance.Inch2_6"/>.
+    /// A new code reads <see cref="MarkDistance.Inch1_6"/>, the 12 points
+    /// <see cref="MakerDistance"/> has always started at. Null is refused, because there is no
+    /// distance it could set.
+    /// </remarks>
+    public MarkDistance? StandardMarkDistance
+    {
+        get
+        {
+            foreach (MarkDistance distance in Enum.GetValues(typeof(MarkDistance)))
+            {
+                if (ToUnit(distance).Point == _makerDistance)
+                    return distance;
+            }
+            return null;
+        }
+        set
+        {
+            if (value is null)
+                throw new ArgumentNullException(nameof(value),
+                    "A standard mark distance cannot be cleared; assign MakerDistance for a distance that is not one.");
+            _makerDistance = ToUnit(value.Value).Point;
+        }
+    }
 
-    //  Gfx.DrawLine(pen, xPos, yPos, xPos + MarkWidth, yPos);
-    //}
-
-    ///// <summary>
-    ///// Distance of the marks. Default is 2/6 inch.
-    ///// </summary>
-    //public MarkDistance MarkDistance
-    //{
-    //  get { return markDistance; }
-    //  set { markDistance = value; }
-    //}
-    //private MarkDistance markDistance = MarkDistance.Inch2_6;
-
-    ///// <summary>
-    ///// Converts a mark distance to an XUnit object.
-    ///// </summary>
-    ///// <param name="markDistance">The mark distance to convert.</param>
-    ///// <returns>The converted mark distance.</returns>
-    //public static XUnit ToUnit(MarkDistance markDistance)
-    //{
-    //  switch (markDistance)
-    //  {
-    //    case MarkDistance.Inch1_6:
-    //      return XUnit.FromInch(1.0 / 6.0);
-    //    case MarkDistance.Inch2_6:
-    //      return XUnit.FromInch(2.0 / 6.0);
-    //    case MarkDistance.Inch2_8:
-    //      return XUnit.FromInch(2.0 / 8.0);
-    //    default:
-    //      throw new ArgumentOutOfRangeException("markDistance");
-    //  }
-    //}
-
-    ///// <summary>
-    ///// The upper left point of the reading zone.
-    ///// </summary>
-    //public XPoint TopLeft
-    //{
-    //  get
-    //  {
-    //    XPoint topLeft = center;
-    //    topLeft.X -= Width;
-    //    double height = upperDistance + lowerDistance;
-    //    height += (data.Marks.Length - 1) * ToUnit(MarkDistance).Centimeter;
-    //    topLeft.Y -= height / 2;
-    //    return topLeft;
-    //  }
-    //}
-
-    ///// <summary>
-    ///// the upper distance from position to the first mark.
-    ///// The default value is 8 / 6 inch.
-    ///// </summary>
-    //double UpperDistance
-    //{
-    //  get { return upperDistance; }
-    //  set { upperDistance = value; }
-    //}
-    //private double upperDistance = XUnit.FromInch(8.0 / 6.0).Centimeter;
-
-    ///// <summary>
-    ///// The lower distance from the last possible mark to the end of the reading zone.
-    ///// The default value is
-    ///// </summary>
-    //double LowerDistance
-    //{
-    //  get { return lowerDistance; }
-    //  set { lowerDistance = value; }
-    //}
-    //private double lowerDistance = XUnit.FromInch(2.0 / 6.0).Centimeter;
-
-    ///// <summary>
-    ///// Gets or sets the width of the reading zone.
-    ///// Default and minimum is 3/12 inch.
-    ///// </summary>
-    //public double Width
-    //{
-    //  get { return width; }
-    //  set { width = value; }
-    //}
-    //double width = XUnit.FromInch(3.0 / 12.0).Centimeter;
-
-    ///// <summary>
-    ///// Gets or sets the mark width. Default is 1/2 * width.
-    ///// </summary>
-    //public XUnit MarkWidth
-    //{
-    //  get
-    //  {
-    //    if (markWidth > 0)
-    //      return markWidth;
-    //    else
-    //      return width / 2;
-    //  }
-    //  set { markWidth = value; }
-    //}
-    //XUnit markWidth;
-
-    ///// <summary>
-    ///// Gets or sets the width of the mark line. Default is 1pt.
-    ///// </summary>
-    //public XUnit MarkLineWidth
-    //{
-    //  get { return markLineWidth; }
-    //  set { markLineWidth = value; }
-    //}
-    //XUnit markLineWidth = 1;
+    /// <summary>
+    /// Converts a standard mark distance to the length it stands for.
+    /// </summary>
+    /// <param name="markDistance">The mark distance to convert.</param>
+    /// <returns>The distance between two marks.</returns>
+    public static XUnit ToUnit(MarkDistance markDistance)
+    {
+        // In points rather than as fractions of an inch, so that each is exact and a distance
+        // assigned through MakerDistance compares equal to the one it names.
+        switch (markDistance)
+        {
+            case MarkDistance.Inch1_6:
+                return XUnit.FromPoint(12);
+            case MarkDistance.Inch2_6:
+                return XUnit.FromPoint(24);
+            case MarkDistance.Inch2_8:
+                return XUnit.FromPoint(18);
+            default:
+                throw new InvalidEnumArgumentException(nameof(markDistance), (int)markDistance, typeof(MarkDistance));
+        }
+    }
 
     /// <summary>
     /// Determines whether the specified string can be used as Text for the OMR code.
