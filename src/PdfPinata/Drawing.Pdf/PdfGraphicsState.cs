@@ -83,7 +83,10 @@ internal sealed class PdfGraphicsState : ICloneable
     int _realizedLineCap = -1;
     int _realizedLineJoin = -1;
     double _realizedMiterLimit = -1;
-    XDashStyle _realizedDashStyle = (XDashStyle)(-1);
+    /// <summary>
+    /// The dash operator last written, or null when none has been written at this level yet.
+    /// </summary>
+    string _realizedDashPattern;
     /// <summary>
     /// The stroke colour last written, or null when none has been written at this level yet.
     /// </summary>
@@ -99,7 +102,6 @@ internal sealed class PdfGraphicsState : ICloneable
 
     public void RealizePen(XPen pen, PdfColorMode colorMode)
     {
-        const string frmt2 = Config.SignificantFigures2;
         const string format = Config.SignificantFigures3;
         var color = pen.Color;
         var overPrint = pen.Overprint;
@@ -168,78 +170,16 @@ internal sealed class PdfGraphicsState : ICloneable
             }
         }
 
-        if (_realizedDashStyle != pen._dashStyle || pen._dashStyle == XDashStyle.Custom)
+        // Compared as the operator it writes rather than by style. A standard style is measured in
+        // the pen's width, so the same style at another width is another pattern, and one custom
+        // pattern cannot be told from another by its style at all - which is why every custom
+        // pattern used to be written again for every stroke. The pattern belongs to the state
+        // saved by q, so Q puts the one remembered here back with the one the reader restores.
+        var pattern = DashPatternOf(pen);
+        if (_realizedDashPattern != pattern)
         {
-            var dot = pen.Width;
-            var dash = 3 * dot;
-
-            // Line width 0 is not recommended but valid.
-            var dashStyle = pen.DashStyle;
-            if (dot == 0)
-                dashStyle = XDashStyle.Solid;
-
-            switch (dashStyle)
-            {
-                case XDashStyle.Solid:
-                    _renderer.Append("[]0 d\n");
-                    break;
-
-                case XDashStyle.Dash:
-                    _renderer.AppendFormatArgs("[{0:" + frmt2 + "} {1:" + frmt2 + "}]0 d\n", dash, dot);
-                    break;
-
-                case XDashStyle.Dot:
-                    _renderer.AppendFormatArgs("[{0:" + frmt2 + "}]0 d\n", dot);
-                    break;
-
-                case XDashStyle.DashDot:
-                    _renderer.AppendFormatArgs("[{0:" + frmt2 + "} {1:" + frmt2 + "} {1:" + frmt2 + "} {1:" + frmt2 + "}]0 d\n", dash, dot);
-                    break;
-
-                case XDashStyle.DashDotDot:
-                    _renderer.AppendFormatArgs("[{0:" + frmt2 + "} {1:" + frmt2 + "} {1:" + frmt2 + "} {1:" + frmt2 + "} {1:" + frmt2 + "} {1:" + frmt2 + "}]0 d\n", dash, dot);
-                    break;
-
-                case XDashStyle.Custom:
-                {
-                    // This branch is the one place a number reaches the content stream without
-                    // going through an Append method, because the array is assembled as text a
-                    // piece at a time. The check the Append methods make therefore has to be made
-                    // here as well, or a dash length that is not a number would be written out.
-                    var pdf = new StringBuilder("[", 256);
-                    var len = pen._dashPattern == null ? 0 : pen._dashPattern.Length;
-                    for (var idx = 0; idx < len; idx++)
-                    {
-                        if (idx > 0)
-                            pdf.Append(' ');
-                        // ReSharper disable PossibleNullReferenceException
-                        XGraphicsPdfRenderer.EnsureWritable(
-                            pen._dashPattern[idx] * pen._width, "a dash pattern");
-                        // ReSharper restore PossibleNullReferenceException
-                        pdf.Append(PdfEncoders.ToString(pen._dashPattern[idx] * pen._width));
-                    }
-                    // Make an even number of values look like in GDI+
-                    if (len > 0 && len % 2 == 1)
-                    {
-                        pdf.Append(' ');
-                        XGraphicsPdfRenderer.EnsureWritable(0.2 * pen._width, "a dash pattern");
-                        pdf.Append(PdfEncoders.ToString(0.2 * pen._width));
-                    }
-                    XGraphicsPdfRenderer.EnsureWritable(
-                        pen._dashOffset * pen._width, "a dash pattern");
-                    pdf.AppendFormat(CultureInfo.InvariantCulture, "]{0:" + format + "} d\n", pen._dashOffset * pen._width);
-                    var pattern = pdf.ToString();
-
-                    // BUG: drice2@ageone.de reported a realizing problem
-                    // HACK: I remove the if clause
-                    //if (_realizedDashPattern != pattern)
-                    {
-                        _renderer.Append(pattern);
-                    }
-                }
-                    break;
-            }
-            _realizedDashStyle = dashStyle;
+            _renderer.Append(pattern);
+            _realizedDashPattern = pattern;
         }
 
         // penBrush rather than pen.Brush: a solid one was turned into a colour above and takes the
@@ -286,6 +226,73 @@ internal sealed class PdfGraphicsState : ICloneable
         _realizedStrokeColor = color;
         _realizedStrokeOverPrint = overPrint;
         _realizedStrokePattern = penBrush != null;
+    }
+
+    /// <summary>
+    /// The dash operator the pen strokes with, written out as it goes into the content stream.
+    /// </summary>
+    static string DashPatternOf(XPen pen)
+    {
+        const string frmt2 = Config.SignificantFigures2;
+        const string format = Config.SignificantFigures3;
+        var dot = pen.Width;
+        var dash = 3 * dot;
+
+        // Line width 0 is not recommended but valid.
+        var dashStyle = pen.DashStyle;
+        if (dot == 0)
+            dashStyle = XDashStyle.Solid;
+
+        switch (dashStyle)
+        {
+            case XDashStyle.Dash:
+                return Format("[{0:" + frmt2 + "} {1:" + frmt2 + "}]0 d\n", dash, dot);
+
+            case XDashStyle.Dot:
+                return Format("[{0:" + frmt2 + "}]0 d\n", dot);
+
+            case XDashStyle.DashDot:
+                return Format("[{0:" + frmt2 + "} {1:" + frmt2 + "} {1:" + frmt2 + "} {1:" + frmt2 + "}]0 d\n", dash, dot);
+
+            case XDashStyle.DashDotDot:
+                return Format("[{0:" + frmt2 + "} {1:" + frmt2 + "} {1:" + frmt2 + "} {1:" + frmt2 + "} {1:" + frmt2 + "} {1:" + frmt2 + "}]0 d\n", dash, dot);
+
+            case XDashStyle.Custom:
+            {
+                // Every number is checked as it is written, as the Append methods check theirs: a
+                // dash length that is not a number would otherwise reach the content stream.
+                var pdf = new StringBuilder("[", 256);
+                var len = pen._dashPattern == null ? 0 : pen._dashPattern.Length;
+                for (var idx = 0; idx < len; idx++)
+                {
+                    if (idx > 0)
+                        pdf.Append(' ');
+                    // ReSharper disable PossibleNullReferenceException
+                    XGraphicsPdfRenderer.EnsureWritable(
+                        pen._dashPattern[idx] * pen._width, "a dash pattern");
+                    // ReSharper restore PossibleNullReferenceException
+                    pdf.Append(PdfEncoders.ToString(pen._dashPattern[idx] * pen._width));
+                }
+                // Make an even number of values look like in GDI+
+                if (len > 0 && len % 2 == 1)
+                {
+                    pdf.Append(' ');
+                    XGraphicsPdfRenderer.EnsureWritable(0.2 * pen._width, "a dash pattern");
+                    pdf.Append(PdfEncoders.ToString(0.2 * pen._width));
+                }
+                XGraphicsPdfRenderer.EnsureWritable(
+                    pen._dashOffset * pen._width, "a dash pattern");
+                pdf.AppendFormat(CultureInfo.InvariantCulture, "]{0:" + format + "} d\n", pen._dashOffset * pen._width);
+                return pdf.ToString();
+            }
+
+            default:
+                return "[]0 d\n";
+        }
+
+        // The pen's width is checked before this is reached, where "w" is written.
+        static string Format(string text, double first, double second = 0) =>
+            string.Format(CultureInfo.InvariantCulture, text, first, second);
     }
 
     /// <summary>

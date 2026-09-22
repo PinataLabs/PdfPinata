@@ -119,9 +119,19 @@ public sealed class CParser
                 case CSymbol.HexString:
                 case CSymbol.UnicodeString:
                 case CSymbol.UnicodeHexString:
+                    // The kind is kept, so the string is written back in the form it was read in.
+                    // A Unicode string's value is its decoded text, and written back as a plain
+                    // one it went out as the low byte of every character.
                     s = new CString
                     {
-                        Value = _lexer.Token
+                        Value = _lexer.Token,
+                        CStringType = symbol switch
+                        {
+                            CSymbol.HexString => CStringType.HexString,
+                            CSymbol.UnicodeString => CStringType.UnicodeString,
+                            CSymbol.UnicodeHexString => CStringType.UnicodeHexString,
+                            _ => CStringType.String
+                        }
                     };
                     _operands.Add(s);
                     break;

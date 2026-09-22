@@ -130,6 +130,88 @@ public class SymbolAndDecimalTabTests
         runs[^1].X.Should().BeApproximately(expected[^1].X, 0.01);
     }
 
+    // ----- the non-breakable blank ------------------------------------------------------------
+
+    [Fact]
+    public void ANonBreakableBlankDrawsTheNoBreakSpace()
+    {
+        // It used to have no character at all: the symbol carries no code, so GetSymbol fell to
+        // its default arm and answered U+0000, which text normalization drops before a glyph is
+        // looked up - so the blank drew nothing and took no room.
+        var page = Rendered.FirstPageOf(ADocumentShowing("a", SymbolName.NonBreakableBlank, "b"));
+
+        Glyphs.On(page).Should().Equal(GlyphsFor("a b"));
+    }
+
+    [Fact]
+    public void ANonBreakableBlankTakesTheRoomOfASpace()
+    {
+        var withTheSymbol = TextBaselines.PositionsOf(
+            Rendered.FirstPageOf(ADocumentShowing("a", SymbolName.NonBreakableBlank, "b")));
+        var withABlank = TextBaselines.PositionsOf(Rendered.FirstPageOf(ADocumentShowing("a b")));
+
+        withTheSymbol[^1].X.Should().BeApproximately(withABlank[^1].X, 0.01);
+    }
+
+    /// <summary>
+    ///   A paragraph sixty points wide, which holds "aaaa bbbb" but not "aaaa bbbb cccc", with the
+    ///   last two words joined by <paramref name="join"/>.
+    /// </summary>
+    static PdfPinata.Pdf.PdfPage ThreeWordsJoinedBy(object join)
+    {
+        var document = new Document();
+        var section = document.AddSection();
+        section.PageSetup.LeftMargin = Unit.FromPoint(10);
+        section.PageSetup.RightMargin = Unit.FromPoint(10);
+        section.PageSetup.PageWidth = Unit.FromPoint(80);
+        var paragraph = section.AddParagraph();
+        paragraph.AddText("aaaa bbbb");
+        if (join is string text)
+            paragraph.AddText(text);
+        else
+            paragraph.AddCharacter((SymbolName)join);
+        paragraph.AddText("cccc");
+        return Rendered.FirstPageOf(document);
+    }
+
+    [Fact]
+    public void ALineIsNotBrokenAtANonBreakableBlank()
+    {
+        // The breaking blank first, to show the measure really does break between the last two
+        // words: "aaaa bbbb" stays together and "cccc" goes down.
+        var broken = Glyphs.PlacedOn(ThreeWordsJoinedBy(" "));
+        broken[1].Y.Should().Be(broken[0].Y);
+        broken[^1].Y.Should().BeLessThan(broken[0].Y);
+
+        // Joined by a blank a line may not be broken at, "bbbb" has to go down with "cccc".
+        var joined = Glyphs.PlacedOn(ThreeWordsJoinedBy(SymbolName.NonBreakableBlank));
+        joined[1].Y.Should().BeLessThan(joined[0].Y, "\"bbbb\" goes down to the line \"cccc\" is on");
+        joined[1].Y.Should().Be(joined[^1].Y);
+    }
+
+    [Fact]
+    public void ARunTooLongForAnyLineIsStillBrokenAtItsNonBreakableBlank()
+    {
+        // The last resort, as for a word longer than the measure: a run of words joined by
+        // non-breakable blanks that no line can hold is set from the start of a line and broken
+        // where it has to be, rather than refusing to lay out.
+        var document = new Document();
+        var section = document.AddSection();
+        section.PageSetup.LeftMargin = Unit.FromPoint(10);
+        section.PageSetup.RightMargin = Unit.FromPoint(10);
+        section.PageSetup.PageWidth = Unit.FromPoint(80);
+        var paragraph = section.AddParagraph();
+        paragraph.AddText("aaaa");
+        paragraph.AddCharacter(SymbolName.NonBreakableBlank);
+        paragraph.AddText("bbbb");
+        paragraph.AddCharacter(SymbolName.NonBreakableBlank);
+        paragraph.AddText("cccc");
+
+        var placed = Glyphs.PlacedOn(Rendered.FirstPageOf(document));
+
+        placed[0].Y.Should().BeGreaterThan(placed[^1].Y);
+    }
+
     // ----- the decimal-aligned tab ------------------------------------------------------------
 
     /// <summary>

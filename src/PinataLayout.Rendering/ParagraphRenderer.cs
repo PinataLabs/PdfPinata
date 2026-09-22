@@ -2194,6 +2194,82 @@ internal class ParagraphRenderer : Renderer
     /// <returns></returns>
     FormatResult FormatElement(DocumentObject docObj)
     {
+        if (JoinedRunBreaksBeforeCurrentLeaf())
+            return FormatResult.NewLine;
+
+        return FormatLeaf(docObj);
+    }
+
+    static bool IsNonBreakableBlank(DocumentObject docObj) =>
+        docObj is Character character && character.SymbolName == SymbolName.NonBreakableBlank;
+
+    /// <summary>
+    /// Whether no line may be broken between two adjacent leaves: one of them is a non-breakable
+    /// blank and the other is something a word is made of.
+    /// </summary>
+    static bool IsJoinedTo(DocumentObject left, DocumentObject right) =>
+        (IsNonBreakableBlank(left) || IsNonBreakableBlank(right))
+        && IsWordLikeElement(left) && IsWordLikeElement(right);
+
+    bool probingJoinedRun;
+
+    /// <summary>
+    /// Whether the line has to be broken before the current leaf because it begins a run of leaves
+    /// joined by non-breakable blanks and the run does not fit on what is left of the line.
+    /// </summary>
+    /// <remarks>
+    /// A line is broken before whichever leaf does not fit, so without this a non-breakable blank
+    /// would be broken at like any other leaf boundary - before it, or before the word after it.
+    /// The whole run is measured instead, as the soft hyphen measures the word after it, and moved
+    /// down together. A run that starts a line is let through and broken where it has to be, as a
+    /// word longer than the measure is. Only while formatting: the rendering pass measures lines
+    /// already broken and must not break them again.
+    /// </remarks>
+    bool JoinedRunBreaksBeforeCurrentLeaf()
+    {
+        if (probingJoinedRun || phase != Phase.Formatting || currentLeaf == null || startLeaf == null
+            || currentLeaf.Current == startLeaf.Current)
+            return false;
+
+        var first = currentLeaf;
+        var previous = first.GetPreviousLeaf();
+        if (previous != null && IsJoinedTo(previous.Current, first.Current))
+            return false;
+        var next = first.GetNextLeaf();
+        if (next == null || !IsJoinedTo(first.Current, next.Current))
+            return false;
+
+        SaveBeforeProbing(out var iter, out var blankCount, out var wordsWidth, out var xPosition, out var lineWidth, out var blankWidth);
+        var wordWidth = savedWordWidth;
+        var verticalInfo = currentVerticalInfo;
+        var result = FormatResult.Continue;
+        probingJoinedRun = true;
+        try
+        {
+            for (var leaf = first; ; leaf = next)
+            {
+                currentLeaf = leaf;
+                result = FormatLeaf(leaf.Current);
+                if (result != FormatResult.Continue && result != FormatResult.Ignore)
+                    break;
+
+                next = leaf.GetNextLeaf();
+                if (next == null || !IsJoinedTo(leaf.Current, next.Current))
+                    break;
+            }
+        }
+        finally
+        {
+            probingJoinedRun = false;
+            RestoreAfterProbing(iter, blankCount, wordsWidth, xPosition, lineWidth, blankWidth);
+            savedWordWidth = wordWidth;
+            currentVerticalInfo = verticalInfo;
+        }
+        return result == FormatResult.NewLine;
+    }
+
+    FormatResult FormatLeaf(DocumentObject docObj)
+    {
         switch (docObj.GetType().Name)
         {
             case "Text":
@@ -2677,10 +2753,11 @@ internal class ParagraphRenderer : Renderer
             case SymbolName.Not:
                 ch = '¬';
                 break;
-            //REM: Non-breakable blanks are still ignored.
-            //        case SymbolName.SymbolNonBreakableBlank:
-            //          return "\xA0";
-            //          break;
+
+            // HardBlank is the same value. That no line breaks at it is FormatElement's business.
+            case SymbolName.NonBreakableBlank:
+                ch = ' ';
+                break;
 
             case SymbolName.EmDash:
                 ch = '—';

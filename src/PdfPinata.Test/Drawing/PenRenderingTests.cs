@@ -194,4 +194,134 @@ public class PenRenderingTests
 
         MiterLimitsOn(page).Should().BeEmpty();
     }
+
+    // ----- the dash pattern -----
+
+    static readonly XPen Dotted = new(XColors.Black, 2) { DashPattern = new double[] { 1, 2 } };
+    static readonly XPen LongDashes = new(XColors.Black, 2) { DashPattern = new double[] { 6, 2 } };
+
+    static PdfPage DrawnWith(Action<XGraphics> draw)
+    {
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        using (var gfx = XGraphics.FromPdfPage(page))
+            draw(gfx);
+        return page;
+    }
+
+    static void Stroke(XGraphics gfx, XPen pen) => gfx.DrawLine(pen, 100, 100, 300, 100);
+
+    /// <summary>Every dash pattern the page sets, in the order it sets them.</summary>
+    static IReadOnlyList<string> DashPatternsOn(PdfPage page) =>
+        ContentOf(page).Split('\n').Where(line => line.EndsWith(" d")).ToList();
+
+    /// <summary>The dash pattern the pen writes when it is the only one drawn.</summary>
+    static string DashPatternOf(XPen pen) => DashPatternsOn(DrawnWith(gfx => Stroke(gfx, pen))).Single();
+
+    /// <summary>
+    ///   The dash pattern in force at each stroke the page paints, following q and Q as a reader
+    ///   does - so what is asserted is what the lines look like rather than which operators were
+    ///   written.
+    /// </summary>
+    static IReadOnlyList<string> DashPatternAtEachStroke(PdfPage page)
+    {
+        var saved = new Stack<string>();
+        var current = "[]0 d";
+        var strokes = new List<string>();
+        foreach (var line in ContentOf(page).Split('\n'))
+        {
+            if (line == "q")
+                saved.Push(current);
+            else if (line == "Q")
+                current = saved.Pop();
+            else if (line.EndsWith(" d"))
+                current = line;
+            else if (line == "S" || line.EndsWith(" S"))
+                strokes.Add(current);
+        }
+        return strokes;
+    }
+
+    [Fact]
+    public void ACustomDashPatternIsWrittenOnceForAsManyStrokesAsUseIt()
+    {
+        // It was written again for every stroke: the check that the pattern had changed was
+        // commented out, and the style alone cannot tell one custom pattern from another.
+        var page = DrawnWith(gfx =>
+        {
+            Stroke(gfx, Dotted);
+            Stroke(gfx, Dotted);
+            Stroke(gfx, Dotted);
+        });
+
+        DashPatternsOn(page).Should().HaveCount(1);
+        DashPatternAtEachStroke(page).Should().Equal(Enumerable.Repeat(DashPatternOf(Dotted), 3));
+    }
+
+    [Fact]
+    public void ADifferentCustomPatternIsWrittenWhenItComes()
+    {
+        var page = DrawnWith(gfx =>
+        {
+            Stroke(gfx, Dotted);
+            Stroke(gfx, LongDashes);
+            Stroke(gfx, Dotted);
+        });
+
+        DashPatternAtEachStroke(page).Should().Equal(
+            DashPatternOf(Dotted), DashPatternOf(LongDashes), DashPatternOf(Dotted));
+    }
+
+    [Fact]
+    public void ACustomPatternComesBackAfterAStandardDashStyle()
+    {
+        // What a pattern remembered only by the custom branch gets wrong: going to Dash and back
+        // to the same custom pattern finds it unchanged and writes nothing, and the line is
+        // stroked dashed.
+        var dashed = new XPen(XColors.Black, 2) { DashStyle = XDashStyle.Dash };
+        var page = DrawnWith(gfx =>
+        {
+            Stroke(gfx, Dotted);
+            Stroke(gfx, dashed);
+            Stroke(gfx, Dotted);
+        });
+
+        DashPatternAtEachStroke(page).Should().Equal(
+            DashPatternOf(Dotted), DashPatternOf(dashed), DashPatternOf(Dotted));
+    }
+
+    [Fact]
+    public void ThePatternRestoredWithTheGraphicsStateIsTheOneInForce()
+    {
+        var page = DrawnWith(gfx =>
+        {
+            Stroke(gfx, Dotted);
+            var state = gfx.Save();
+            Stroke(gfx, LongDashes);
+            gfx.Restore(state);
+            Stroke(gfx, Dotted);
+            Stroke(gfx, LongDashes);
+        });
+
+        DashPatternAtEachStroke(page).Should().Equal(
+            DashPatternOf(Dotted), DashPatternOf(LongDashes), DashPatternOf(Dotted), DashPatternOf(LongDashes));
+    }
+
+    [Fact]
+    public void AStandardDashStyleIsWrittenAgainForAPenOfAnotherWidth()
+    {
+        // The standard styles are measured in the pen's width, so the same style at another width
+        // is another pattern. Only the style used to be compared, and the thicker line was drawn
+        // with the thinner one's dashes.
+        var thin = new XPen(XColors.Black, 1) { DashStyle = XDashStyle.Dash };
+        var thick = new XPen(XColors.Black, 3) { DashStyle = XDashStyle.Dash };
+        var page = DrawnWith(gfx =>
+        {
+            Stroke(gfx, thin);
+            Stroke(gfx, thick);
+        });
+
+        DashPatternOf(thin).Should().NotBe(DashPatternOf(thick));
+        DashPatternAtEachStroke(page).Should().Equal(DashPatternOf(thin), DashPatternOf(thick));
+    }
 }

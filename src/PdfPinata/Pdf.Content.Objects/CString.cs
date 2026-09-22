@@ -29,6 +29,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.Text;
 using PdfPinata.Pdf.IO;
 
@@ -88,78 +89,109 @@ public class CString : CObject
         switch (CStringType)
         {
             case CStringType.String:
-                s.Append('(');
-                var length = _value.Length;
-                for (var ich = 0; ich < length; ich++)
-                {
-                    var ch = _value[ich];
-                    switch (ch)
-                    {
-                        case Chars.LF:
-                            s.Append("\\n");
-                            break;
-
-                        case Chars.CR:
-                            s.Append("\\r");
-                            break;
-
-                        case Chars.HT:
-                            s.Append("\\t");
-                            break;
-
-                        case Chars.BS:
-                            s.Append("\\b");
-                            break;
-
-                        case Chars.FF:
-                            s.Append("\\f");
-                            break;
-
-                        case Chars.ParenLeft:
-                            s.Append("\\(");
-                            break;
-
-                        case Chars.ParenRight:
-                            s.Append("\\)");
-                            break;
-
-                        case Chars.BackSlash:
-                            s.Append("\\\\");
-                            break;
-
-                        default:
-                            s.Append(ch);
-                            break;
-                    }
-                }
-
-                s.Append(')');
+                AppendLiteral(s, _value);
                 break;
 
-
             case CStringType.HexString:
-                throw new NotImplementedException();
-            //break;
+                s.Append('<');
+                foreach (var ch in _value)
+                {
+                    // One char per byte. Anything wider has no two digits to say it with, and
+                    // writing its low byte would write a different string.
+                    if (ch > 0xFF)
+                        throw new InvalidOperationException(
+                            $"A hex string holds bytes, and U+{(int)ch:X4} is not one. Use CStringType.UnicodeHexString for text.");
+                    s.Append(((int)ch).ToString("X2", CultureInfo.InvariantCulture));
+                }
+                s.Append('>');
+                break;
 
             case CStringType.UnicodeString:
-                throw new NotImplementedException();
-            //break;
+                AppendLiteral(s, BigEndianUtf16Bytes(_value));
+                break;
 
             case CStringType.UnicodeHexString:
-                throw new NotImplementedException();
-            //break;
+                s.Append("<FEFF");
+                foreach (var ch in _value)
+                    s.Append(((int)ch).ToString("X4", CultureInfo.InvariantCulture));
+                s.Append('>');
+                break;
 
             case CStringType.Dictionary:
                 s.Append(_value);
                 break;
 
             default:
-                #pragma warning disable S3877 // An undefined CStringType has no textual form, as the unfinished Unicode cases above already say by throwing.
+                #pragma warning disable S3877 // An undefined CStringType has no textual form.
                 throw new ArgumentOutOfRangeException();
                 #pragma warning restore S3877
         }
 
         return s.ToString();
+    }
+
+    /// <summary>
+    /// The text as the bytes of a string that says it is text: the big-endian byte order mark
+    /// FE FF, then each UTF-16 code unit high byte first - one char per byte.
+    /// </summary>
+    static string BigEndianUtf16Bytes(string text)
+    {
+        var bytes = new StringBuilder(2 + 2 * text.Length);
+        bytes.Append('\xFE').Append('\xFF');
+        foreach (var ch in text)
+            bytes.Append((char)(ch >> 8)).Append((char)(ch & 0xFF));
+        return bytes.ToString();
+    }
+
+    /// <summary>
+    /// Appends the bytes as a literal string, escaping what a literal string cannot hold as it
+    /// stands.
+    /// </summary>
+    static void AppendLiteral(StringBuilder s, string bytes)
+    {
+        s.Append('(');
+        foreach (var ch in bytes)
+        {
+            switch (ch)
+            {
+                case Chars.LF:
+                    s.Append("\\n");
+                    break;
+
+                case Chars.CR:
+                    s.Append("\\r");
+                    break;
+
+                case Chars.HT:
+                    s.Append("\\t");
+                    break;
+
+                case Chars.BS:
+                    s.Append("\\b");
+                    break;
+
+                case Chars.FF:
+                    s.Append("\\f");
+                    break;
+
+                case Chars.ParenLeft:
+                    s.Append("\\(");
+                    break;
+
+                case Chars.ParenRight:
+                    s.Append("\\)");
+                    break;
+
+                case Chars.BackSlash:
+                    s.Append("\\\\");
+                    break;
+
+                default:
+                    s.Append(ch);
+                    break;
+            }
+        }
+        s.Append(')');
     }
 
     internal override void WriteObject(ContentWriter writer)

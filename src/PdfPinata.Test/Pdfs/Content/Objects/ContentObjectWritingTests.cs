@@ -128,6 +128,72 @@ public class ContentObjectWritingTests
         Written(new CSequence { dictionary }).Should().Be(value);
     }
 
+    [Theory]
+    [InlineData("text", "<74657874>")]
+    [InlineData("", "<>")]
+    [InlineData("\0ÿ", "<00FF>")]
+    public void AHexStringIsWrittenAsTwoDigitsPerByte(string value, string written)
+    {
+        // One char per byte, as every string in this library holds its bytes.
+        var text = new CString { Value = value, CStringType = CStringType.HexString };
+
+        text.ToString().Should().Be(written);
+        Written(new CSequence { text }).Should().Be(written);
+    }
+
+    [Fact]
+    public void AHexStringHoldingACharThatIsNotAByteIsRefused()
+    {
+        // Two digits cannot say U+4E2D, and writing its low byte would write another string.
+        var text = new CString { Value = "中", CStringType = CStringType.HexString };
+
+        text.Invoking(t => t.ToString()).Should().Throw<InvalidOperationException>()
+            .WithMessage("*UnicodeHexString*");
+    }
+
+    [Theory]
+    [InlineData("A中", "<FEFF00414E2D>")]
+    [InlineData("", "<FEFF>")]
+    public void AUnicodeHexStringIsWrittenAsBigEndianUtf16AfterItsByteOrderMark(string value, string written)
+    {
+        var text = new CString { Value = value, CStringType = CStringType.UnicodeHexString };
+
+        text.ToString().Should().Be(written);
+    }
+
+    [Theory]
+    [InlineData("A", "(þÿ\0A)")]
+    [InlineData("中", "(þÿN-)")]
+    // A byte of the UTF-16 a literal string cannot hold as it stands is escaped as it would be
+    // anywhere else: U+0028 is 00 28, and U+0A0D is the two bytes \n and \r.
+    [InlineData("(", "(þÿ\0\\()")]
+    [InlineData("਍", "(þÿ\\n\\r)")]
+    public void AUnicodeStringIsWrittenAsBigEndianUtf16AfterItsByteOrderMark(string value, string written)
+    {
+        var text = new CString { Value = value, CStringType = CStringType.UnicodeString };
+
+        text.ToString().Should().Be(written);
+        Written(new CSequence { text }).Should().Be(written);
+    }
+
+    [Theory]
+    [InlineData(CStringType.String, "a(b)\\c\n")]
+    [InlineData(CStringType.HexString, "a(b)\\c\nÿ")]
+    [InlineData(CStringType.UnicodeString, "a(b)\\c\n中਍")]
+    [InlineData(CStringType.UnicodeHexString, "a(b)\\c\n中਍")]
+    public void EveryKindOfStringReadsBackAsTheValueAndTheKindItWasWrittenWith(CStringType type, string value)
+    {
+        var show = OpCodes.OperatorFromName("Tj");
+        show.Operands.Add(new CString { Value = value, CStringType = type });
+
+        var read = ContentReader.ReadContent(new CSequence { show }.ToContent());
+
+        var shown = read[0].Should().BeOfType<COperator>().Subject.Operands[0]
+            .Should().BeOfType<CString>().Subject;
+        shown.Value.Should().Be(value);
+        shown.CStringType.Should().Be(type);
+    }
+
     [Fact]
     public void AStringOfATypeTheEnumDoesNotDefineHasNoWrittenForm()
     {

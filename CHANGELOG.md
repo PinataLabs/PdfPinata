@@ -222,6 +222,38 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ### Fixed
 
+- **A non-breakable blank is drawn as a space, and a line is not broken at it.**
+  `Character.NonBreakableBlank` (and `HardBlank`, the same value) had no character. The renderer
+  drew U+0000, which text normalization drops, so the blank took no room and the words either side
+  of it ran together. It is now drawn as U+00A0 and takes a space's width. A line is also no longer
+  broken before or after it: the words it joins are measured together and moved to the next line
+  together. A run too long for any line is still broken at the blank, as a word longer than the
+  line is broken inside it.
+
+- **A content-stream string of any kind can be written, and is written back in the form it was
+  read in.** `CString.ToString` threw `NotImplementedException` for `CStringType.HexString`,
+  `UnicodeString` and `UnicodeHexString`, although the type can be set by anyone. A hex string is
+  now written as two hex digits per byte, and refuses a character above U+00FF rather than writing
+  its low byte. A Unicode hex string is written as `<FEFF…>` with four digits per UTF-16 code unit,
+  and a Unicode string as a literal string of FE FF followed by big-endian UTF-16. `CParser` now
+  sets the type of each string it reads. It used to give every string `String`, so a Unicode
+  string read from content and written back went out as the low byte of each character. A hex
+  string read from content is now written back as a hex string rather than as a literal one.
+
+- **A dashed pen of another width gets dashes of its own width.** The standard dash styles are
+  measured in the pen's width, but the renderer only compared the style with the one it had
+  written. So a `Dash` line 3 points wide drawn after a `Dash` line 1 point wide used the thinner
+  line's dashes. The renderer now compares the dash operator itself. For the same reason, a custom
+  dash pattern is now written once for as many strokes as use it. It used to be written again for
+  every stroke.
+
+- **An outline entry writes `/F` only when it has a style and the document is PDF 1.4 or later.**
+  Setting `PdfOutline.Style` wrote `/F` at once, whatever the value. So a regular entry carried
+  `/F 0`, and an entry in a PDF 1.3 document carried a key that PDF 1.3 does not have. The style is
+  now kept on the entry and written when the document is saved. A regular entry, or any entry in a
+  document older than 1.4, carries no `/F`. An entry read with a style and then set to `Regular`
+  loses its `/F` on the next save.
+
 - **A `\x` escape in a quoted MDDDL string is the character it names.** `"\x41"` used to read as
   five literal question marks. The scanner also stepped over the character after the digits, so
   `"\x41 b"` lost its space and `"A\x41"` lost its closing quote and ran on into the next line.

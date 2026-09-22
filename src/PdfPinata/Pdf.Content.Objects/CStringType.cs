@@ -50,9 +50,8 @@ public enum CStringType
     /// is text rather than bytes. The value is the decoded text, without the byte order mark.
     /// </summary>
     /// <remarks>
-    /// <see cref="CLexer"/> reports such a string as <see cref="CSymbol.UnicodeString"/>, but
-    /// <see cref="CParser"/> does not carry the distinction over: it gives every string it reads
-    /// <see cref="CStringType.String"/>. <see cref="CString.ToString"/> cannot write this type.
+    /// <see cref="CString.ToString"/> writes it as a literal string of FE FF followed by the text
+    /// as big-endian UTF-16, escaped as any literal string is.
     /// </remarks>
     UnicodeString,
 
@@ -62,9 +61,8 @@ public enum CStringType
     /// decoded text, without the byte order mark.
     /// </summary>
     /// <remarks>
-    /// <see cref="CLexer"/> reports such a string as <see cref="CSymbol.UnicodeHexString"/>, but
-    /// <see cref="CParser"/> does not carry the distinction over: it gives every string it reads
-    /// <see cref="CStringType.String"/>. <see cref="CString.ToString"/> cannot write this type.
+    /// <see cref="CString.ToString"/> writes it as <c>&lt;FEFF</c> followed by four hexadecimal
+    /// digits per UTF-16 code unit.
     /// </remarks>
     UnicodeHexString,
 
