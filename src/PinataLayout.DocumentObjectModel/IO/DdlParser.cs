@@ -984,11 +984,17 @@ internal class DdlParser
         ReadCode();
 
         var hyperlink = elements.AddHyperlink("");
-        //NYI: Without name and type the hyperlink is senseless, so attributes need to be checked
         if (Symbol == Symbol.BracketLeft)
             ParseAttributes(hyperlink);
 
         AssertSymbol(Symbol.BraceLeft);
+
+        // Every kind of link goes to what Name names - a bookmark, a URL or a file - so one without
+        // a name goes nowhere, and Hyperlink.Serialize refuses to write it. Kept, with its text,
+        // and said. After the brace, so that a link missing its text is reported for that alone.
+        if (hyperlink.Name.Length == 0)
+            ReportParserInfo(DdlErrorLevel.Warning, DomMsgID.MissingObligatoryProperty, "Name", "Hyperlink");
+
         ParseFormattedText(hyperlink.Elements, nestingLevel);
         AssertSymbol(Symbol.BraceRight);
     }

@@ -377,7 +377,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to Obigatory property &apos;{0}&apos; not set in &apos;{1}&apos;..
+        ///   Looks up a localized string similar to Obligatory property &apos;{0}&apos; not set in &apos;{1}&apos;..
         /// </summary>
         internal static string MissingObligatoryProperty {
             get {

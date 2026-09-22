@@ -25,6 +25,12 @@ This file starts at the entry below. Changes before that point are recorded only
   "A footnote inside another footnote cannot be rendered", with the line and column where the
   inner `\footnote` is.
 
+- **The DDL reader warns about a hyperlink with no name.** Every kind of hyperlink goes to what
+  its `Name` names, so `\hyperlink{there}` or `\hyperlink[Type = Web]{there}` goes nowhere, and
+  writing the document back out throws. The link and its text are still read, and a warning,
+  "Obligatory property 'Name' not set in 'Hyperlink'.", is added to the `DdlReaderErrors`. That
+  message used to read "Obigatory"; its spelling is fixed wherever it appears.
+
 - **An OMR code's mark distance can be given as one of the standard distances.**
   `CodeOmr.StandardMarkDistance` takes a `MarkDistance`: `Inch1_6` (12 pt), `Inch2_6` (24 pt) or
   `Inch2_8` (18 pt). It reads and writes `MakerDistance` rather than keeping a value of its own, and

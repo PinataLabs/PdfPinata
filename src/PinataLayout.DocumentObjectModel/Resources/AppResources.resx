@@ -223,7 +223,7 @@
     <value>Missing comma.</value>
   </data>
   <data name="MissingObligatoryProperty" xml:space="preserve">
-    <value>Obigatory property '{0}' not set in '{1}'.</value>
+    <value>Obligatory property '{0}' not set in '{1}'.</value>
   </data>
   <data name="MissingParenLeft" xml:space="preserve">
     <value>Missing left parenthesis after '{0}'.</value>
