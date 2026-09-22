@@ -132,6 +132,30 @@ public class ParagraphRenderingTests
         (far.Stop - far.Runs[1]).Should().BeApproximately(near.Stop - near.Runs[1], 0.01);
     }
 
+    /// <summary>
+    ///   The test above holds just as well for a run measured as nothing wide, which puts its
+    ///   start on the stop and sits it zero short of either one. That is what ParagraphRenderer's
+    ///   ProbeAfterTab measured when it began on the tab rather than on what follows it - the
+    ///   probe stops at the first tab it meets, so it stopped before it started. The width the
+    ///   run is set short of the stop is therefore checked against the run's own width here, read
+    ///   from where a run placed straight after it begins.
+    /// </summary>
+    [Fact]
+    public void ARightAlignedTabStopSetsTheRunItsOwnWidthShortOfTheStop()
+    {
+        var tabbed = Tabbed(Unit.FromCentimeter(10));
+
+        (tabbed.Stop - tabbed.Runs[1]).Should().BeApproximately(WidthOf("after"), 0.01);
+    }
+
+    [Fact]
+    public void ACenterAlignedTabStopSetsTheRunHalfItsWidthEitherSideOfTheStop()
+    {
+        var tabbed = Tabbed(Unit.FromCentimeter(10), TabAlignment.Center);
+
+        (tabbed.Stop - tabbed.Runs[1]).Should().BeApproximately(WidthOf("after") / 2, 0.01);
+    }
+
     [Fact]
     public void AParagraphsBordersStandOffItsTextByTheDistancesItNames()
     {
@@ -238,10 +262,10 @@ public class ParagraphRenderingTests
     }
 
     /// <summary>
-    ///   A line with a tab in it, set against a right aligned stop at the position given, and
-    ///   where each of its two runs started.
+    ///   A line with a tab in it, set against a stop at the position given - right aligned unless
+    ///   told otherwise - and where each of its two runs started.
     /// </summary>
-    static (double Stop, IReadOnlyList<double> Runs) Tabbed(Unit stop)
+    static (double Stop, IReadOnlyList<double> Runs) Tabbed(Unit stop, TabAlignment alignment = TabAlignment.Right)
     {
         var document = new Document();
         var section = document.AddSection();
@@ -249,7 +273,7 @@ public class ParagraphRenderingTests
         section.PageSetup.RightMargin = 0;
 
         var paragraph = section.AddParagraph();
-        paragraph.Format.TabStops.AddTabStop(stop, TabAlignment.Right);
+        paragraph.Format.TabStops.AddTabStop(stop, alignment);
         paragraph.AddText("before");
         paragraph.AddTab();
         paragraph.AddText("after");
@@ -259,6 +283,23 @@ public class ParagraphRenderingTests
             .ToList();
 
         return (stop.Point, runs);
+    }
+
+    /// <summary>
+    ///   How wide the text given is when a paragraph sets it, read as where a second run placed
+    ///   straight after it begins on a page with no left margin.
+    /// </summary>
+    static double WidthOf(string text)
+    {
+        var document = new Document();
+        var section = document.AddSection();
+        section.PageSetup.LeftMargin = 0;
+
+        var paragraph = section.AddParagraph();
+        paragraph.AddText(text);
+        paragraph.AddText("|");
+
+        return TextBaselines.PositionsOf(Rendered.FirstPageOf(document))[^1].X;
     }
 
     /// <summary>The bordered paragraph of the original harness, distances and all.</summary>

@@ -262,6 +262,28 @@ public class UnitTests
         Unit.Empty.ToString("0.00").Should().Be("0.00");
     }
 
+    [Fact]
+    public void AnUnsetLengthIsAZeroInTheFormatAndCultureAskedFor()
+    {
+        // Not always "0": the zero is formatted like any number would be, only without a suffix.
+        IFormattable empty = Unit.Empty;
+
+        empty.ToString("F2", CultureInfo.InvariantCulture).Should().Be("0.00");
+        empty.ToString("F2", CultureInfo.GetCultureInfo("de-DE")).Should().Be("0,00");
+        Unit.Empty.ToString(CultureInfo.GetCultureInfo("de-DE")).Should().Be("0");
+
+        var previous = CultureInfo.CurrentCulture;
+        try
+        {
+            CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+            Unit.Empty.ToString("F2").Should().Be("0.00");
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = previous;
+        }
+    }
+
     // ----- nothing, and zero, which are not the same thing ------------------------------------------
 
     [Fact]

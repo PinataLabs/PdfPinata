@@ -346,7 +346,7 @@ public struct Unit : IFormattable, INullableValue
     public string ToString(IFormatProvider formatProvider)
     {
         if (IsNull)
-            return 0.ToString(formatProvider); // TODO: ?? can it be anything other than "0"??
+            return 0.ToString(formatProvider); // A null Unit is a zero with no suffix.
 
         string valuestring;
         valuestring = value.ToString(formatProvider) + GetSuffix();
@@ -360,7 +360,7 @@ public struct Unit : IFormattable, INullableValue
     public string ToString(string format)
     {
         if (IsNull)
-            return 0.ToString(format); // TODO: ?? can it be anything other than "0"??
+            return 0.ToString(format); // A zero with no suffix, in the format asked for: "F2" gives "0.00".
 
         string valuestring;
         valuestring = value.ToString(format) + GetSuffix();
