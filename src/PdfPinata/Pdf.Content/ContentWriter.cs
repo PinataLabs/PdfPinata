@@ -60,58 +60,32 @@ internal class ContentWriter
 
     public int Position => (int)_stream.Position;
 
-    //public PdfWriterLayout Layout
-    //{
-    //  get { return layout; }
-    //  set { layout = value; }
-    //}
-    //PdfWriterLayout layout;
-
-    //public PdfWriterOptions Options
-    //{
-    //  get { return options; }
-    //  set { options = value; }
-    //}
-    //PdfWriterOptions options;
-
     // -----------------------------------------------------------
-
-    /// <summary>
-    /// Writes the specified value to the PDF stream.
-    /// </summary>
-    public static void Write(bool value)
-    {
-        //WriteSeparator(CharCat.Character);
-        //WriteRaw(value ? bool.TrueString : bool.FalseString);
-        //lastCat = CharCat.Character;
-    }
 
     public void WriteRaw(string rawString)
     {
         if (String.IsNullOrEmpty(rawString))
             return;
-        //AppendBlank(rawString[0]);
         var bytes = PdfEncoders.RawEncoding.GetBytes(rawString);
         _stream.Write(bytes, 0, bytes.Length);
-        _lastCat = GetCategory();
+        _wroteAnything = true;
     }
 
     public void WriteLineRaw(string rawString)
     {
         if (String.IsNullOrEmpty(rawString))
             return;
-        //AppendBlank(rawString[0]);
         var bytes = PdfEncoders.RawEncoding.GetBytes(rawString);
         _stream.Write(bytes, 0, bytes.Length);
         _stream.Write(new[] { (byte)'\n' }, 0, 1);
-        _lastCat = GetCategory();
+        _wroteAnything = true;
     }
 
     public void WriteRaw(char ch)
     {
         Debug.Assert(ch < 256, "Raw character greater than 255 detected.");
         _stream.WriteByte((byte)ch);
-        _lastCat = GetCategory();
+        _wroteAnything = true;
     }
 
     /// <summary>
@@ -124,28 +98,21 @@ internal class ContentWriter
     }
     protected int _indent = 2;
 
+    /// <summary>
+    /// Ends the line, unless nothing has been written yet.
+    /// </summary>
+    /// <remarks>
+    /// This does not look at whether the last thing written was already a line feed, and never
+    /// did: the category it once tracked said "character" for everything the moment anything had
+    /// been written. What it does skip is a line feed at the very start of the stream.
+    /// </remarks>
     public void NewLine()
     {
-        if (_lastCat != CharCat.NewLine)
+        if (_wroteAnything)
             WriteRaw('\n');
     }
 
-    static CharCat GetCategory()
-    {
-        //if (Lexer.IsDelimiter(ch))
-        //  return CharCat.Delimiter;
-        //if (ch == Chars.LF)
-        //  return CharCat.NewLine;
-        return CharCat.Character;
-    }
-
-    enum CharCat
-    {
-        NewLine,
-        Character,
-        Delimiter
-    };
-    CharCat _lastCat;
+    bool _wroteAnything;
 
     /// <summary>
     /// Gets the underlying stream.

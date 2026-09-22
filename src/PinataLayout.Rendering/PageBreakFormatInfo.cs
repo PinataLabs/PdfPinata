@@ -35,10 +35,6 @@ namespace PinataLayout.Rendering;
 /// </summary>
 internal class PageBreakFormatInfo : FormatInfo
 {
-  //internal PageBreakFormatInfo()
-  //{
-  //}
-
   internal override bool EndingIsComplete => true;
 
   internal override bool IsComplete => true;

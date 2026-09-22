@@ -1020,26 +1020,6 @@ internal class DdlScanner
     return ch == Chars.Null;
   }
 
-  //internal bool IsNumber();
-  //internal bool IsFormat();
-  //internal bool IsParagraphFormat(Symbol* _docSym /*= null*/);
-  //internal bool IsField();
-  //internal bool IsFieldSpecifier();
-  //internal bool IsSymbol();
-  ////bool IsSymbolSpecifier();
-  //internal bool IsFootnote();
-  //internal bool IsComment();
-  //internal bool IsInlineShape();
-  //
-  //internal bool IsValueSymbole();
-  //internal bool IsScriptSymbole(Symbol _docSym);
-  //internal bool IsParagraphToken();
-  //internal bool IsExtendedParagraphToken();
-  //internal bool IsParagraphElement();
-  //internal bool IsHardHyphen();
-  //internal bool IsNewLine();
-  //internal bool IsWhiteSpace(Symbol _docSym);
-
   /// <summary>
   /// Gets the current filename of the document.
   /// </summary>
@@ -1282,37 +1262,6 @@ internal class DdlScanner
     return sym;
   }
 
-  //    protected Symbol ReadValueIdentifier();
-  ///// <summary>
-  ///// Scans string literals used as identifiers.
-  ///// </summary>
-  ///// <returns></returns>
-  //protected string ReadRawString()  //ScanStringLiteralIdentifier
-  //{
-  //  string str = "";
-  //  char ch = ScanNextChar();
-  //  while (!IsEof(ch))
-  //  {
-  //    if (ch == Chars.QuoteDbl)
-  //    {
-  //      if (nextChar == Chars.QuoteDbl)
-  //      {
-  //        str += ch;
-  //        ch = ScanNextChar();
-  //      }
-  //      else
-  //        break;
-  //    }
-  //
-  //    str += ch;
-  //    ch = ScanNextChar();
-  //  }
-  //
-  //  ScanNextChar();
-  //  return str;
-  //}
-
-
   /// <summary>
   /// Scans verbatim strings like «@"String with ""quoted"" text"».
   /// </summary>
@@ -1395,39 +1344,24 @@ internal class DdlScanner
 
           case 'x':
           {
+            // One or two hex digits name the character. Reading them leaves the scanner on the
+            // character after the last one, which is the next character of the string and must
+            // not be stepped over by the ScanNextChar at the bottom of the loop - so this case
+            // continues rather than breaks. Stepping over it lost that character, and when it
+            // was the closing quote the string ran on into whatever followed it.
             ScanNextChar();
-            var hexNrCount = 0;
+            var hexDigits = "";
             while (IsHexDigit(currChar))
             {
-              ++hexNrCount;
+              hexDigits += currChar;
               ScanNextChar();
             }
-            if (hexNrCount <= 2)
-              str += "?????"; //(char)AscULongFromHexString(hexString);
-            else
+            if (hexDigits.Length is 0 or > 2)
               throw new DdlParserException(DdlErrorLevel.Error,
                 DomSR.GetString(DomMsgID.EscapeSequenceNotAllowed), DomMsgID.EscapeSequenceNotAllowed);
+            str += (char)Convert.ToInt32(hexDigits, 16);
+            continue;
           }
-            break;
-
-          //NYI: octal numbers
-          //case '0':
-          //{
-          //  ScanNextChar();
-          //  int hexNrCount = 0;
-          //  string hexString = "0x";
-          //  while (IsOctDigit(currChar))
-          //  {
-          //    ++hexNrCount;
-          //    hexString += currChar;
-          //    ScanNextChar();
-          //  }
-          //  if (hexNrCount <=2)
-          //    str += "?????"; //(char)AscULongFromHexString(hexString);
-          //  else
-          //    throw new DdlParserException(DdlErrorLevel.Error, "DdlScanner",DomMsgID.EscapeSequenceNotAllowed, null);
-          //}
-          //  break;
 
           default:
             throw new DdlParserException(DdlErrorLevel.Error,

@@ -27,21 +27,25 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
-///// <summary>
-///// Valid mark distances for OMR Codes.
-///// </summary>
-//public enum MarkDistance
-//{
-//  /// <summary>
-//  /// 2/6 inch, valid for printing with 6 lpi. (line height = 12 pt).
-//  /// </summary>
-//  Inch1_6,
-//  /// <summary>
-//  /// 2/6 inch, valid for printing with 6 lpi (line height = 12 pt).
-//  /// </summary>
-//  Inch2_6,
-//  /// <summary>
-//  /// 2/8 inch, valid for printing with 8 lpi (line height = 9 pt).
-//  /// </summary>
-//  Inch2_8
-//}
+namespace PdfPinata.Drawing.BarCodes;
+
+/// <summary>
+/// The standard distances between the marks of an OMR code, each a whole number of print lines.
+/// </summary>
+public enum MarkDistance
+{
+    /// <summary>
+    /// 1/6 inch (12 pt), one line when printing at 6 lpi.
+    /// </summary>
+    Inch1_6,
+
+    /// <summary>
+    /// 2/6 inch (24 pt), two lines when printing at 6 lpi.
+    /// </summary>
+    Inch2_6,
+
+    /// <summary>
+    /// 2/8 inch (18 pt), two lines when printing at 8 lpi (line height 9 pt).
+    /// </summary>
+    Inch2_8
+}

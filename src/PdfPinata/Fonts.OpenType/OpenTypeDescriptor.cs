@@ -208,21 +208,6 @@ internal sealed class OpenTypeDescriptor : FontDescriptor
                 ch = s[0];
             }
 
-            //Debug.Assert(ch == idx);
-
-            //int glyphIndex;
-            //if (symbol)
-            //{
-            //    glyphIndex = idx + (FontFace.os2. usFirstCharIndex & 0xFF00);
-            //    glyphIndex = CharCodeToGlyphIndex((char)glyphIndex);
-            //}
-            //else
-            //{
-            //    //Debug.Assert(idx + (fontData.os2.usFirstCharIndex & 0xFF00) == idx);
-            //    //glyphIndex = CharCodeToGlyphIndex((char)idx);
-            //    glyphIndex = CharCodeToGlyphIndex(ch);
-            //}
-
             if (symbol)
             {
                 // Remap ch for symbol fonts.

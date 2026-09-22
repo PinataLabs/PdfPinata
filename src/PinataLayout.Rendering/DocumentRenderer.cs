@@ -74,9 +74,6 @@ public class DocumentRenderer
         formattedDocument = new FormattedDocument(document, this);
         //REM: Size should not be necessary in this case.
         var gfx = XGraphics.CreateMeasureContext(new XSize(2000, 2000), XGraphicsUnit.Point, XPageDirection.Downwards);
-        //      this.previousListNumber = int.MinValue;
-        //gfx.MUH = this.unicode;
-        //gfx.MFEH = this.fontEmbedding;
 
         previousListInfo = null;
         footnotes.Reset();

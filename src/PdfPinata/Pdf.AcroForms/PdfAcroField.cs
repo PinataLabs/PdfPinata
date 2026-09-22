@@ -426,43 +426,12 @@ public abstract class PdfAcroField : PdfDictionary
                             AppDict(xxx, names);
                     }
                 }
-                //((PdfDictionary)(((PdfReference)(Fields.Elements.Items[1])).Value)).Elements.SetName(Keys.V, name1);
-
             }
         }
         var array = new string[names.Count];
         names.Keys.CopyTo(array, 0);
         return array;
     }
-
-    //static string[] AppearanceNames(PdfDictionary dictIn)
-    //{
-    //  Dictionary<string, object> names = new Dictionary<string, object>();
-    //  PdfDictionary dict = dictIn["/AP"] as PdfDictionary;
-    //  if (dict != null)
-    //  {
-    //    AppDict(dict, names);
-
-    //    if (HasKids)
-    //    {
-    //      PdfItem[] kids = Fields.Elements.Items;
-    //      foreach (PdfItem pdfItem in kids)
-    //      {
-    //        if (pdfItem is PdfReference)
-    //        {
-    //          PdfDictionary xxx = ((PdfReference)pdfItem).Value as PdfDictionary;
-    //          if (xxx != null)
-    //            AppDict(xxx, names);
-    //        }
-    //      }
-    //      //((PdfDictionary)(((PdfReference)(Fields.Elements.Items[1])).Value)).Elements.SetName(Keys.V, name1);
-
-    //    }
-    //  }
-    //  string[] array = new string[names.Count];
-    //  names.Keys.CopyTo(array, 0);
-    //  return array;
-    //}
 
     static void AppDict(PdfDictionary dict, Dictionary<string, object> names)
     {

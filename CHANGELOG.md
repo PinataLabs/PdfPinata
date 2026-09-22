@@ -12,6 +12,13 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ### Added
 
+- **An OMR code's mark distance can be given as one of the standard distances.**
+  `CodeOmr.StandardMarkDistance` takes a `MarkDistance`: `Inch1_6` (12 pt), `Inch2_6` (24 pt) or
+  `Inch2_8` (18 pt). It reads and writes `MakerDistance` rather than keeping a value of its own, and
+  reads null when `MakerDistance` is none of them. `CodeOmr.ToUnit` converts a `MarkDistance` to
+  the length it stands for. The enum and the conversion were in the source as comments, so the
+  enum's file compiled to nothing.
+
 - **An imported page keeps its transparency group, user unit, tab order and presentation
   entries.** Importing a page used to copy only its resources, contents, boxes, rotation and
   annotations. A page composited as a transparency group lost its group, a page with a `/UserUnit`
@@ -214,6 +221,14 @@ This file starts at the entry below. Changes before that point are recorded only
   Construct a value from its bytes with `new PdfCustomValue(byte[])`.
 
 ### Fixed
+
+- **A `\x` escape in a quoted MDDDL string is the character it names.** `"\x41"` used to read as
+  five literal question marks. The scanner also stepped over the character after the digits, so
+  `"\x41 b"` lost its space and `"A\x41"` lost its closing quote and ran on into the next line.
+  One or two hex digits are now converted to the character they name, and the character after them
+  is kept. An escape with no digits, or more than two, is refused as an invalid escape sequence, as
+  more than two always was. Nothing in the DOM writes `\x`, so this only affected files written by
+  hand or by another tool.
 
 - **A colour number in MDDDL that does not fit an unsigned integer is reported as a reader error.**
   A colour written as `99999999999`, as `-1`, or as a hex literal with a letter that is not a hex

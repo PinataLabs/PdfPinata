@@ -45,28 +45,6 @@ internal sealed class FontDescriptorCache
         _cache = new Dictionary<string, FontDescriptor>();
     }
 
-    ///// <summary>
-    ///// Gets the FontDescriptor identified by the specified FontSelector. If no such object
-    ///// exists, a new FontDescriptor is created and added to the stock.
-    ///// </summary>
-    //public static FontDescriptor GetOrCreateDescriptor_DEL-ETE(string familyName, XFontStyle stlye, OpenTypeFontface fontface)
-    //{
-    //    //FontSelector1 selector = new FontSelector1(familyName, stlye);
-    //    string fontDescriptorKey = null; // FontDescriptor.ComputeKey(familyName, stlye);
-    //    try
-    //    {
-    //        Lock.EnterFontFactory();
-    //        FontDescriptor descriptor;
-    //        if (!Singleton._cache.TryGetValue(fontDescriptorKey, out descriptor))
-    //        {
-    //            descriptor = new OpenTypeDescriptor(fontDescriptorKey, familyName, stlye, fontface, null);
-    //            Singleton._cache.Add(fontDescriptorKey, descriptor);
-    //        }
-    //        return descriptor;
-    //    }
-    //    finally { Lock.ExitFontFactory(); }
-    //}
-
     /// <summary>
     /// Gets the FontDescriptor identified by the specified XFont. If no such object
     /// exists, a new FontDescriptor is created and added to the cache.

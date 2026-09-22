@@ -228,22 +228,6 @@ public sealed partial class Style : DocumentObject, IVisitable
     {
         get
         {
-            //old
-            //if (IsNull("Type"))
-            //{
-            //  if (String.Compare ((this.baseStyle ?? ""), DefaultParagraphFontName, true) == 0)
-            //    SetValue("Type", StyleType.Character);
-            //  else
-            //  {
-            //    Style bsStyle = GetBaseStyle();
-            //    if (bsStyle == null)
-            //      throw new ArgumentException("User defined style has no valid base Style.");
-            //
-            //    SetValue("Type", bsStyle.Type);
-            //  }
-            //}
-            //return styleType;
-
             if (styleType == null)
             {
                 if (String.Compare((this.baseStyle ?? ""), DefaultParagraphFontName, StringComparison.OrdinalIgnoreCase) == 0)

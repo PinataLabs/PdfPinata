@@ -719,32 +719,6 @@ internal sealed class PdfGraphicsState : ICloneable
 
     public XMatrix WorldTransform;
 
-    ///// <summary>
-    ///// The world transform in PDF world space.
-    ///// </summary>
-    //public XMatrix EffectiveCtm
-    //{
-    //  get
-    //  {
-    //    //if (MustRealizeCtm)
-    //    if (!UnrealizedCtm.IsIdentity)
-    //    {
-    //      XMatrix matrix = RealizedCtm;
-    //      matrix.Prepend(UnrealizedCtm);
-    //      return matrix;
-    //    }
-    //    return RealizedCtm;
-    //  }
-    //  //set
-    //  //{
-    //  //  XMatrix matrix = realizedCtm;
-    //  //  matrix.Invert();
-    //  //  matrix.Prepend(value);
-    //  //  unrealizedCtm = matrix;
-    //  //  MustRealizeCtm = !unrealizedCtm.IsIdentity;
-    //  //}
-    //}
-
     public void AddTransform(XMatrix value, XMatrixOrder matrixOrder)
     {
         // A cm operator can only prepend, so XGraphics turns an appended transform into the

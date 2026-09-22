@@ -306,12 +306,6 @@ public abstract class VisitorBase : DocumentObjectVisitor
             }
         }
 
-        //      if (pageSetup.pageWidth.IsNull)
-        //        pageSetup.pageWidth = refPageSetup.pageWidth;
-        //      if (pageSetup.pageHeight.IsNull)
-        //        pageSetup.pageHeight = refPageSetup.pageHeight;
-        //      if (pageSetup.pageFormat == null)
-        //        pageSetup.pageFormat = refPageSetup.pageFormat;
         if (pageSetup.sectionStart == null)
             pageSetup.sectionStart = refPageSetup.sectionStart;
         if (pageSetup.orientation == null)

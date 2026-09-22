@@ -146,11 +146,6 @@ internal class FontWriter
         _stream.WriteByte((byte)value);
     }
 
-    //public short ReadFWord()
-    //public ushort ReadUFWord()
-    //public long ReadLongDate()
-    //public string ReadString(int size)
-
     public void Write(byte[] buffer)
     {
         _stream.Write(buffer, 0, buffer.Length);

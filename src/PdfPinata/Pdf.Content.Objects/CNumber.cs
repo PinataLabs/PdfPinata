@@ -50,9 +50,4 @@ public abstract class CNumber : CObject
         var obj = base.Copy();
         return obj;
     }
-
-    //internal override void WriteObject(ContentWriter writer)
-    //{
-    //  throw new Exception("Must not come here.");
-    //}
 }

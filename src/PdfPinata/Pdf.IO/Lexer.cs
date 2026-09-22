@@ -108,14 +108,6 @@ public class Lexer
             case '/':
                 return _symbol = ScanName();
 
-            //case 'R':
-            //  if (Lexer.IsWhiteSpace(nextChar))
-            //  {
-            //    ScanNextChar();
-            //    return Symbol.R;
-            //  }
-            //  break;
-
             case '+':
             case '-':
                 return _symbol = ScanNumber();
@@ -741,14 +733,6 @@ public class Lexer
         _idxChar++;
         return (char)_pdfSteam.ReadByte();
     }
-
-    ///// <summary>
-    ///// Resets the current token to the empty string.
-    ///// </summary>
-    //void ClearToken()
-    //{
-    //    _token.Length = 0;
-    //}
 
     /// <summary>
     /// Appends current character to the token and reads next one.
