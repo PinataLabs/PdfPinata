@@ -240,6 +240,13 @@ This file starts at the entry below. Changes before that point are recorded only
   string read from content and written back went out as the low byte of each character. A hex
   string read from content is now written back as a hex string rather than as a literal one.
 
+- **A dashed pen of another width gets dashes of its own width.** The standard dash styles are
+  measured in the pen's width, but the renderer only compared the style with the one it had
+  written. So a `Dash` line 3 points wide drawn after a `Dash` line 1 point wide used the thinner
+  line's dashes. The renderer now compares the dash operator itself. For the same reason, a custom
+  dash pattern is now written once for as many strokes as use it. It used to be written again for
+  every stroke.
+
 - **A `\x` escape in a quoted MDDDL string is the character it names.** `"\x41"` used to read as
   five literal question marks. The scanner also stepped over the character after the digits, so
   `"\x41 b"` lost its space and `"A\x41"` lost its closing quote and ran on into the next line.
