@@ -43,14 +43,19 @@ public class ContentRoundTripTests
         Written(sequence).Should().Be("q\n(text)Tj\nQ\n");
     }
 
-    // A string parsed out of content has to be written back out, and CParser leaves the type of
-    // a parsed string at the one type CString.ToString knows how to write.
+    // A string parsed out of content has to be written back out, in the form it was read in.
     [Theory]
     [InlineData("(text) Tj", "(text)Tj\n")]
-    [InlineData("<74657874> Tj", "(text)Tj\n")]
+    [InlineData("<74657874> Tj", "<74657874>Tj\n")]
     // A hex string with an odd number of digits: the digit left over is the high one, so the
     // last byte is 0x20 rather than 0x02.
-    [InlineData("<746578742> Tj", "(text )Tj\n")]
+    [InlineData("<746578742> Tj", "<7465787420>Tj\n")]
+    // Text rather than bytes. Both used to be written back as a literal string of the decoded
+    // characters, and U+4E2D went out as its low byte, a hyphen.
+    [InlineData("<FEFF4E2D> Tj", "<FEFF4E2D>Tj\n")]
+    [InlineData(@"(\376\377N-) Tj", "(þÿN-)Tj\n")]
+    // The little-endian byte order mark is read, and written back as the one the reference names.
+    [InlineData(@"(\377\376-N) Tj", "(þÿN-)Tj\n")]
     // The characters a literal string cannot hold as they stand come back escaped.
     [InlineData(@"(a\(b\)c) Tj", "(a\\(b\\)c)Tj\n")]
     [InlineData(@"(a\\b) Tj", "(a\\\\b)Tj\n")]

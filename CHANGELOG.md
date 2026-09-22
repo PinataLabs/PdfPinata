@@ -230,6 +230,16 @@ This file starts at the entry below. Changes before that point are recorded only
   together. A run too long for any line is still broken at the blank, as a word longer than the
   line is broken inside it.
 
+- **A content-stream string of any kind can be written, and is written back in the form it was
+  read in.** `CString.ToString` threw `NotImplementedException` for `CStringType.HexString`,
+  `UnicodeString` and `UnicodeHexString`, although the type can be set by anyone. A hex string is
+  now written as two hex digits per byte, and refuses a character above U+00FF rather than writing
+  its low byte. A Unicode hex string is written as `<FEFF…>` with four digits per UTF-16 code unit,
+  and a Unicode string as a literal string of FE FF followed by big-endian UTF-16. `CParser` now
+  sets the type of each string it reads. It used to give every string `String`, so a Unicode
+  string read from content and written back went out as the low byte of each character. A hex
+  string read from content is now written back as a hex string rather than as a literal one.
+
 - **A `\x` escape in a quoted MDDDL string is the character it names.** `"\x41"` used to read as
   five literal question marks. The scanner also stepped over the character after the digits, so
   `"\x41 b"` lost its space and `"A\x41"` lost its closing quote and ran on into the next line.
