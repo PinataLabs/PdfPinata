@@ -347,11 +347,12 @@ public class DdlStructureReadingTests
     }
 
     [Fact]
-    public void ACarriageReturnOnItsOwnIsNotALineEnd()
+    public void ACarriageReturnOnItsOwnIsALineEnd()
     {
-        // Only a line feed ends a line. A lone carriage return - an old Mac OS line end - is kept
-        // in the text as the character it is, rather than read as the space a line end would be.
-        TextOf(FirstParagraphOf("a\rb")).Should().Be("a\rb");
+        // A lone carriage return - an old Mac OS line end - ends a line as a line feed does, and
+        // so reads as the space a line end is. It used to be kept in the text as the character it
+        // is, which made a whole file written that way a single line.
+        TextOf(FirstParagraphOf("a\rb")).Should().Be("a b");
     }
 
     [Fact]

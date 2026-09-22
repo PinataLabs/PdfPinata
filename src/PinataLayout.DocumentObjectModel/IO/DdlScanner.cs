@@ -906,22 +906,20 @@ internal class DdlScanner
           m_idxLinePos = 0;
           break;
 
-        // ignore CR
+        // A CR before an LF is skipped, and the LF ends the line. A CR on its own ends the line
+        // too, as it does in a classic Mac OS file, and is read as an LF so that everything
+        // looking for the end of a line finds it.
         case Chars.CR:
           if (nextChar == Chars.LF)
           {
             goto SkipChar;
           }
-          else
-          {
-            //TODO NiSc
-            //NYI: MacOS uses CR only
-            //Check.NotImplemented();
-          }
+          currChar = Chars.LF;
+          this.m_idxLine++;
+          this.m_idxLinePos = 0;
           break;
 
         case Chars.LF:
-          //NYI: Unix uses LF only
           this.m_idxLine++;
           this.m_idxLinePos = 0;
           break;
