@@ -25,6 +25,8 @@ public class FilteringTests
     [InlineData("LZW", typeof(LzwDecode))]
     [InlineData("FlateDecode", typeof(FlateDecode))]
     [InlineData("Fl", typeof(FlateDecode))]
+    [InlineData("RunLengthDecode", typeof(RunLengthDecode))]
+    [InlineData("RL", typeof(RunLengthDecode))]
     public void EveryFilterNameAndItsAbbreviationReachTheSameFilter(string name, Type expected)
     {
         // The abbreviations are not in the reference. Some tools write them anyway, and a reader
@@ -44,7 +46,6 @@ public class FilteringTests
     }
 
     [Theory]
-    [InlineData("RunLengthDecode")]
     [InlineData("CCITTFaxDecode")]
     [InlineData("JBIG2Decode")]
     [InlineData("DCTDecode")]

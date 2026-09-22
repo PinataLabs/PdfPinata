@@ -59,7 +59,6 @@ public class FilteringTests
     /// decode.
     /// </summary>
     [Theory]
-    [InlineData("RunLengthDecode")]
     [InlineData("CCITTFaxDecode")]
     [InlineData("JBIG2Decode")]
     [InlineData("DCTDecode")]

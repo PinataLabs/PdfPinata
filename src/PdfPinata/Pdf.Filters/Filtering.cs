@@ -68,6 +68,9 @@ public static class Filtering
                 return _flateDecode ?? (_flateDecode = new FlateDecode());
 
             case "RunLengthDecode":
+            case "RL":
+                return _runLengthDecode ?? (_runLengthDecode = new RunLengthDecode());
+
             case "CCITTFaxDecode":
             case "JBIG2Decode":
             case "DCTDecode":
@@ -108,12 +111,12 @@ public static class Filtering
 
     static FlateDecode _flateDecode;
 
-    //runLengthDecode
-    //ccittFaxDecode
-    //jbig2Decode
-    //dctDecode
-    //jpxDecode
-    //crypt
+    /// <summary>
+    /// Gets the filter singleton.
+    /// </summary>
+    public static RunLengthDecode RunLengthDecode => _runLengthDecode ?? (_runLengthDecode = new RunLengthDecode());
+
+    static RunLengthDecode _runLengthDecode;
 
     /// <summary>
     /// Encodes the data with the specified filter.

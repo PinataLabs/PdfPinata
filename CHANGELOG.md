@@ -12,6 +12,13 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ### Added
 
+- **Streams compressed with RunLengthDecode are decoded.** `Filtering.GetFilter` used to recognise
+  `/RunLengthDecode` and answer null, so `UnfilteredValue` on such a stream gave back the text
+  «Cannot decode filter» and `TryUnfilter` left it as it was. The new `RunLengthDecode` filter,
+  also reached by the abbreviation `RL` and through `Filtering.RunLengthDecode`, decodes and encodes
+  it as ISO 32000-1 7.4.5 describes. Data that ends without the end-of-data marker, or part way
+  through a run, gives back what it holds rather than throwing.
+
 - **An OMR code's mark distance can be given as one of the standard distances.**
   `CodeOmr.StandardMarkDistance` takes a `MarkDistance`: `Inch1_6` (12 pt), `Inch2_6` (24 pt) or
   `Inch2_8` (18 pt). It reads and writes `MakerDistance` rather than keeping a value of its own, and
