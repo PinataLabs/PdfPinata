@@ -13,8 +13,8 @@ namespace PdfPinata.Test.Dom;
 ///   are now plain TEnum? fields, and the range check moved to the public setters as EnumGuard.
 ///
 ///   These pin the behaviour that had to survive that move: what an unset enum reads back as, that
-///   an out-of-range assignment still throws, and that Character - which stores raw characters in
-///   the same field its SymbolName property uses - is exempt from the check, as it was under NEnum.
+///   an out-of-range assignment still throws, and that Character - whose SymbolName property also
+///   reads and writes plain characters - lets a character through the check, as it did under NEnum.
 /// </summary>
 public class EnumMemberSemanticsTests
 {
@@ -131,10 +131,10 @@ public class EnumMemberSemanticsTests
     }
 
     /// <summary>
-    ///   Character.Char writes raw character values through the same field SymbolName reads, and
-    ///   separates the two by the top nibble. Most of what the field legitimately holds is therefore
-    ///   not a defined SymbolName, which is why NEnum carved SymbolName out of its own validation
-    ///   and why the migrated property must not take EnumGuard.
+    ///   Character keeps a character and a symbol in separate fields, but SymbolName presents them
+    ///   as one value told apart by the top nibble, as it did when they shared a field. A character
+    ///   read through it is therefore not a defined SymbolName, which is why NEnum carved SymbolName
+    ///   out of its own validation and why EnumGuard applies only to a value with the nibble set.
     /// </summary>
     [Fact]
     public void CharacterAcceptsRawCharactersThroughTheSymbolNameField()
@@ -163,5 +163,47 @@ public class EnumMemberSemanticsTests
 
         character.Char.Should().Be('\0');
         character.SymbolName.Should().Be(default);
+    }
+
+    /// <summary>
+    ///   The character and the symbol live in separate fields, but the value model still knows
+    ///   them by the one name, SymbolName, and answers for a character as it did when they shared a
+    ///   field.
+    /// </summary>
+    [Fact]
+    public void TheValueModelSeesACharacterUnderSymbolName()
+    {
+        var character = new Character { Char = 'A' };
+
+        character.IsNull("SymbolName").Should().BeFalse();
+        character.GetValue("SymbolName", GV.GetNull).Should().Be((SymbolName)'A');
+    }
+
+    [Fact]
+    public void SetValueOnSymbolNameReachesWhicheverFieldTheValueBelongsTo()
+    {
+        var character = new Character();
+
+        character.SetValue("SymbolName", (int)'B');
+        character.Char.Should().Be('B');
+
+        character.SetValue("SymbolName", SymbolName.Bullet);
+        character.SymbolName.Should().Be(SymbolName.Bullet);
+        character.Char.Should().Be('\0');
+    }
+
+    [Fact]
+    public void SetNullOnSymbolNameClearsACharacterAndASymbolAlike()
+    {
+        var letter = new Character { Char = 'A' };
+        var symbol = new Character { SymbolName = SymbolName.Euro };
+
+        letter.SetNull("SymbolName");
+        symbol.SetNull("SymbolName");
+
+        letter.IsNull("SymbolName").Should().BeTrue();
+        letter.Char.Should().Be('\0');
+        symbol.IsNull("SymbolName").Should().BeTrue();
+        symbol.SymbolName.Should().Be(default);
     }
 }

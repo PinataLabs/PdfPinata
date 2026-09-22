@@ -228,6 +228,14 @@ public char Char
 This is the one place in the migration where a mechanical edit is wrong. Every other `NEnum` field
 takes the guard.
 
+**Since split.** The symbol and the character now live in two private fields, `name` and `code`
+(the latter a `uint?`, so a code above U+FFFF assigned through `SymbolName` is still kept and
+written whole). `[DV]` moved to an internal `symbolName` *property* that presents the two as the one
+value the model always knew, so `GetValue("SymbolName")`, `IsNull`, `SetValue` and `SetNull` answer
+as before and the generator needed nothing new. The public `SymbolName` setter now takes
+`EnumGuard.Checked` for any value with the top nibble set; one with it clear is a character and
+still passes, which is what `AddCharacter((SymbolName)ch)` depends on.
+
 ### Preserving the int assignment
 
 `NEnum` held the value as an `int` and its setter took one, so a boxed `int` handed to the model

@@ -40,8 +40,9 @@ namespace PinataLayout.DocumentObjectModel.Internals;
 /// <remarks>
 /// NEnum stored an int and validated it against the enum type it also carried, throwing
 /// ArgumentException for a value Enum.IsDefined rejected. A TEnum? field accepts whatever the cast
-/// produces, so the guard has to sit in the public property that writes it. Character is the one
-/// deliberate exception - see Character.SymbolName.
+/// produces, so the guard has to sit in the public property that writes it. Character.SymbolName
+/// applies it only to a value with the top nibble set, because one with it clear is a character
+/// rather than a symbol.
 /// </remarks>
 internal static class EnumGuard
 {

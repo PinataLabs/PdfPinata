@@ -140,7 +140,7 @@ public partial class ParagraphElements : DocumentObjectCollection
     /// </summary>
     public Character AddCharacter(char ch)
     {
-        return AddCharacter((SymbolName)ch, 1);
+        return AddCharacter(ch, 1);
     }
 
     /// <summary>
@@ -148,7 +148,11 @@ public partial class ParagraphElements : DocumentObjectCollection
     /// </summary>
     public Character AddCharacter(char ch, int count)
     {
-        return AddCharacter((SymbolName)ch, count);
+        var character = new Character();
+        Add(character);
+        character.Char = ch;
+        character.Count = count;
+        return character;
     }
 
     /// <summary>

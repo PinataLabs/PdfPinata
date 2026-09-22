@@ -38,7 +38,13 @@ namespace PinataLayout.DocumentObjectModel;
 /// <summary>
 /// Represents a special character in paragraph text.
 /// </summary>
-// TODO: So ändern, dass symbolName und char in unterschiedlichen Feldern gespeichert wird
+/// <remarks>
+/// A Character is either a named symbol or a plain character, and the two are held in separate
+/// fields. <see cref="SymbolName"/> still presents them as one value, because it always has: a
+/// character assigned through <see cref="Char"/> reads back through it as its own code, and
+/// <c>AddCharacter(char)</c> is the same as <c>AddCharacter((SymbolName)ch)</c>. What tells the two
+/// apart is the top nibble, which every defined SymbolName has set and no character has.
+/// </remarks>
 public partial class Character : DocumentObject
 {
   // \space
@@ -100,36 +106,77 @@ public partial class Character : DocumentObject
   Character(SymbolName name)
     : this()
   {
-    symbolName = name;
+    this.name = name;
   }
 
   #region Properties
   /// <summary>
-  /// Gets or sets the SymbolName. Returns 0 if the type is defined by a character.
+  /// Gets or sets the SymbolName. A character defined through <see cref="Char"/> reads back as its
+  /// own code cast to SymbolName, and assigning such a value here is the same as assigning
+  /// <see cref="Char"/>. Returns 0 if nothing has been assigned.
   /// </summary>
+  /// <exception cref="ArgumentException">
+  /// The value has its top nibble set, so claims to be a symbol, but is not a defined SymbolName.
+  /// </exception>
   public SymbolName SymbolName
   {
     get => symbolName ?? default;
-    // No EnumGuard here, unlike every other enum property in the DOM. Char below writes arbitrary
-    // character values through this same field and separates them from symbol names by their top
-    // nibble, so most of what this field legitimately holds is not a defined SymbolName. NEnum
-    // carved SymbolName out of its own Enum.IsDefined check for exactly this reason.
-    set => symbolName = value;
+    // A value with the top nibble clear is a character and is let through: it cannot be a defined
+    // SymbolName, and AddCharacter(char) arrives here as one. Anything else claims to be a symbol,
+    // and an undefined one used to be kept and written out as \symbol(<number>), which the parser
+    // cannot read back - so it gets the check every other enum property in the DOM has.
+    set => symbolName = IsCharacter(value) ? value : EnumGuard.Checked(value);
   }
-  [DV]
-  internal SymbolName? symbolName;
 
   /// <summary>
-  /// Gets or sets the SymbolName as character. Returns 0 if the type is defined via an enum.
+  /// The name the value model knows this object's content by. It presents the two fields as the
+  /// single value they were before they were split, so GetValue("SymbolName"), IsNull and SetNull
+  /// answer exactly as they always did. Unchecked, like every generated setter.
+  /// </summary>
+  [DV]
+  internal SymbolName? symbolName
+  {
+    get => name ?? (SymbolName?)code;
+    set
+    {
+      if (value is { } v && IsCharacter(v))
+      {
+        code = (uint)v;
+        name = null;
+      }
+      else
+      {
+        name = value;
+        code = null;
+      }
+    }
+  }
+
+  /// <summary>
+  /// The symbol, when this is one. Never holds a value with the top nibble clear.
+  /// </summary>
+  SymbolName? name;
+
+  /// <summary>
+  /// The character, when this is one. Held as the whole code rather than as a char: a value above
+  /// U+FFFF assigned through <see cref="SymbolName"/> has always been kept and written out whole,
+  /// while <see cref="Char"/> reads back its low 16 bits.
+  /// </summary>
+  uint? code;
+
+  static bool IsCharacter(SymbolName value) => ((uint)value & 0xF0000000) == 0;
+
+  /// <summary>
+  /// Gets or sets the character. Returns 0 if the type is defined via an enum.
   /// </summary>
   public char Char
   {
-    get
+    get => code is { } c ? (char)c : '\0';
+    set
     {
-      var raw = (uint)(symbolName ?? default);
-      return (raw & 0xF0000000) == 0 ? (char)raw : '\0';
+      code = value;
+      name = null;
     }
-    set => symbolName = (SymbolName)value;
   }
 
   /// <summary>
@@ -151,15 +198,14 @@ public partial class Character : DocumentObject
   internal override void Serialize(Serializer serializer)
   {
     var text = String.Empty;
-    // No SymbolName is defined as 0, so an unset symbolName matches none of these - which is what
-    // the old (SymbolName)symbolName.Value did too, NEnum having read back 0 when null.
+    // An unset name matches none of these, and a character is never held there.
     if (count == 1)
     {
-      if (symbolName == SymbolName.Tab)
+      if (name == SymbolName.Tab)
         text = "\\tab ";
-      else if (symbolName == SymbolName.LineBreak)
+      else if (name == SymbolName.LineBreak)
         text = "\\linebreak\x0D\x0A";
-      else if (symbolName == SymbolName.ParaBreak)
+      else if (name == SymbolName.ParaBreak)
         text = "\x0D\x0A\x0D\x0A";
       //else if (symbolType == SymbolName.MarginBreak)
       //  text = "\\marginbreak ";
@@ -177,7 +223,7 @@ public partial class Character : DocumentObject
       // SymbolName == SpaceType?
       if ((raw & 0xF1000000) == 0xF1000000)
       {
-        if (symbolName == SymbolName.Blank)
+        if (name == SymbolName.Blank)
         {
           //Note: Don't try to optimize it by leaving away the braces in case a single space is added.
           //This would lead to confusion with '(' in directly following text.
