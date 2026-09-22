@@ -98,10 +98,10 @@ public sealed class PdfInteger : PdfNumber, IConvertible, IFormattable
         return _value;
     }
 
+    // An integer is not a point in time, and Int32 refuses the conversion the same way.
     DateTime IConvertible.ToDateTime(IFormatProvider provider)
     {
-        // TODO:  Add PdfInteger.ToDateTime implementation
-        return new DateTime();
+        throw new InvalidCastException("Invalid cast from 'PdfInteger' to 'DateTime'.");
     }
 
     float IConvertible.ToSingle(IFormatProvider provider)

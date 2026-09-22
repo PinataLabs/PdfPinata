@@ -170,6 +170,26 @@ public class ContentObjectWritingTests
     }
 
     [Fact]
+    public void ANameReadWithAnEscapeIsWrittenBackWithIt()
+    {
+        // The lexer turns #20 into the blank it stands for, and the name used to be written out
+        // just as it was held - as the two names /A and B( followed by a stray bracket.
+        var sequence = ContentReader.ReadContent(Encoding.Latin1.GetBytes("/A#20B#28 Do"));
+
+        sequence[0].Should().BeOfType<COperator>().Which.Operands[0].Should().BeOfType<CName>()
+            .Which.Name.Should().Be("/A B(");
+        Written(sequence).Should().Be("/A#20B#28 Do\n");
+    }
+
+    [Fact]
+    public void ANameWrittenInUnicodeIsWrittenAsItsUtf8Bytes()
+    {
+        // As in the document body: a char past 0xFF means a caller wrote Unicode, which has no
+        // byte of its own, so the name goes out as UTF-8 - U+4E2D is E4 B8 AD.
+        Written(new CSequence { new CName("/Zh\u4E2D") }).Should().Be("/Zh#E4#B8#AD ");
+    }
+
+    [Fact]
     public void ANameMadeWithoutOneIsTheBareSlash()
     {
         // The empty name, which PDF allows: a slash followed by nothing.
