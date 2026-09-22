@@ -488,7 +488,8 @@ internal sealed class OpenTypeFontface
         FontSource = XFontSource.CreateCompiledFont(stream.ToArray());
     }
     // 2^entrySelector[n] <= n
-    static readonly int[] _entrySelectors = { 0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4 };
+    static readonly int[] _entrySelectors = [0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4
+    ];
 
     public int Position
     {

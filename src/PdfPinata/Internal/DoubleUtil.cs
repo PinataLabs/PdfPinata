@@ -1,5 +1,4 @@
 ﻿#region Copyright
-//
 // Authors:
 //   Microsoft
 //
@@ -25,11 +24,12 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
+
 #endregion
 
 using System;
 using System.Runtime.InteropServices;
-using PdfPinata.Drawing;
+
 namespace PdfPinata.Internal;
 
 /// <summary>
@@ -37,7 +37,7 @@ namespace PdfPinata.Internal;
 /// </summary>
 internal static class DoubleUtil
 {
-    const double Epsilon = 2.2204460492503131E-16; // smallest such that 1.0 + Epsilon != 1.0
+    private const double Epsilon = 2.2204460492503131E-16; // smallest such that 1.0 + Epsilon != 1.0
     private const double TenTimesEpsilon = 10.0 * Epsilon;
 
     /// <summary>
@@ -45,71 +45,14 @@ internal static class DoubleUtil
     /// </summary>
     public static bool AreClose(double value1, double value2)
     {
-        #pragma warning disable S1244 // Exact on purpose: the exact case of the tolerant comparison, taken before the tolerance.
+#pragma warning disable S1244 // Exact on purpose: the exact case of the tolerant comparison, taken before the tolerance.
         if (value1.Equals(value2))
             return true;
-        #pragma warning restore S1244
+#pragma warning restore S1244
         // This computes (|value1-value2| / (|value1| + |value2| + 10.0)) < Epsilon
         var eps = (Math.Abs(value1) + Math.Abs(value2) + 10.0) * Epsilon;
         var delta = value1 - value2;
         return (-eps < delta) && (eps > delta);
-    }
-
-    /// <summary>
-    /// Indicates whether the values are so close that they can be considered as equal.
-    /// </summary>
-    public static bool AreRoughlyEqual(double value1, double value2, int decimalPlace)
-    {
-        #pragma warning disable S1244 // Exact on purpose: the exact case of the tolerant comparison, taken before the tolerance.
-        // ReSharper disable once CompareOfFloatsByEqualityOperator
-        if (value1 == value2)
-            return true;
-        #pragma warning restore S1244
-        return Math.Abs(value1 - value2) < decs[decimalPlace];
-    }
-    static readonly double[] decs = { 1, 1E-1, 1E-2, 1E-3, 1E-4, 1E-5, 1E-6, 1E-7, 1E-8, 1E-9, 1E-10, 1E-11, 1E-12, 1E-13, 1E-14, 1E-15, 1E-16 };
-
-    /// <summary>
-    /// Indicates whether the values are so close that they can be considered as equal.
-    /// </summary>
-    public static bool AreClose(XPoint point1, XPoint point2)
-    {
-        return AreClose(point1.X, point2.X) && AreClose(point1.Y, point2.Y);
-    }
-
-    /// <summary>
-    /// Indicates whether the values are so close that they can be considered as equal.
-    /// </summary>
-    public static bool AreClose(XRect rect1, XRect rect2)
-    {
-        if (rect1.IsEmpty)
-            return rect2.IsEmpty;
-        return !rect2.IsEmpty && AreClose(rect1.X, rect2.X) && AreClose(rect1.Y, rect2.Y) &&
-               AreClose(rect1.Height, rect2.Height) && AreClose(rect1.Width, rect2.Width);
-    }
-
-    /// <summary>
-    /// Indicates whether the values are so close that they can be considered as equal.
-    /// </summary>
-    public static bool AreClose(XSize size1, XSize size2)
-    {
-        return AreClose(size1.Width, size2.Width) && AreClose(size1.Height, size2.Height);
-    }
-
-    /// <summary>
-    /// Indicates whether the values are so close that they can be considered as equal.
-    /// </summary>
-    public static bool AreClose(XVector vector1, XVector vector2)
-    {
-        return AreClose(vector1.X, vector2.X) && AreClose(vector1.Y, vector2.Y);
-    }
-
-    /// <summary>
-    /// Indicates whether value1 is greater than value2 and the values are not close to each other.
-    /// </summary>
-    public static bool GreaterThan(double value1, double value2)
-    {
-        return value1 > value2 && !AreClose(value1, value2);
     }
 
     /// <summary>
@@ -121,27 +64,11 @@ internal static class DoubleUtil
     }
 
     /// <summary>
-    /// Indicates whether value1 is less than value2 and the values are not close to each other.
-    /// </summary>
-    public static bool LessThan(double value1, double value2)
-    {
-        return value1 < value2 && !AreClose(value1, value2);
-    }
-
-    /// <summary>
     /// Indicates whether value1 is less than value2 or the values are close to each other.
     /// </summary>
     public static bool LessThanOrClose(double value1, double value2)
     {
         return value1 < value2 || AreClose(value1, value2);
-    }
-
-    /// <summary>
-    /// Indicates whether the value is between 0 and 1 or close to 0 or 1.
-    /// </summary>
-    public static bool IsBetweenZeroAndOne(double value)
-    {
-        return GreaterThanOrClose(value, 0) && LessThanOrClose(value, 1);
     }
 
     /// <summary>
@@ -156,22 +83,6 @@ internal static class DoubleUtil
         var man = t.UintValue & 0x000fffffffffffff;
 
         return (exp == 0x7ff0000000000000 || exp == 0xfff0000000000000) && (man != 0);
-    }
-
-    /// <summary>
-    /// Indicates whether at least one of the four rectangle values is not a number.
-    /// </summary>
-    public static bool RectHasNaN(XRect r)
-    {
-        return IsNaN(r.X) || IsNaN(r.Y) || IsNaN(r.Height) || IsNaN(r.Width);
-    }
-
-    /// <summary>
-    /// Indicates whether the value is 1 or close to 1.
-    /// </summary>
-    public static bool IsOne(double value)
-    {
-        return Math.Abs(value - 1.0) < TenTimesEpsilon;
     }
 
     /// <summary>
@@ -193,9 +104,7 @@ internal static class DoubleUtil
     [StructLayout(LayoutKind.Explicit)]
     struct NanUnion
     {
-        [FieldOffset(0)]
-        internal double DoubleValue;
-        [FieldOffset(0)]
-        internal readonly ulong UintValue;
+        [FieldOffset(0)] internal double DoubleValue;
+        [FieldOffset(0)] internal readonly ulong UintValue;
     }
 }

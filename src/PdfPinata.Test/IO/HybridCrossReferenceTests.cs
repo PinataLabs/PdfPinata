@@ -61,7 +61,7 @@ public class HybridCrossReferenceTests
         // so an object the reader never saw is not copied - and, reading as null rather than as an
         // error, it leaves a page that looks complete.
         var target = new PdfDocument();
-        target.AddPage(Opened(Hybrid(), PdfDocumentOpenMode.Import).Pages[0]);
+        _ = target.AddPage(Opened(Hybrid(), PdfDocumentOpenMode.Import).Pages[0]);
 
         GraphicsStateOf(target.Pages[0]).Should().NotBeNull();
     }

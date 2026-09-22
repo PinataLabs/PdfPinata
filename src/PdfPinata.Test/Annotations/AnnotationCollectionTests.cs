@@ -127,7 +127,7 @@ public class AnnotationCollectionTests
             asArray.Add(item);
 
         asArray.Should().Equal(one, two);
-        ((IEnumerable<PdfItem>)page.Annotations).Should().Equal(one, two);
+        page.Annotations.Should().Equal(one, two);
     }
 
     [Fact]

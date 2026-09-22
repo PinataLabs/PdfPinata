@@ -6,7 +6,7 @@ namespace PdfPinata.Internal;
 /// Tells an exception that says something about the data being read from one that says something
 /// about the process reading it.
 /// </summary>
-static class Unrecoverable
+internal static class Unrecoverable
 {
     /// <summary>
     ///   Whether an exception is one there is no carrying on from. A catch that means "this input

@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using AwesomeAssertions;
-using PdfPinata.Pdf;
 using PdfPinata.Pdf.Filters;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Test.Helpers;

@@ -253,7 +253,7 @@ static class PdfAnnotationTransformer
     static double[] NumbersOf(PdfItem item)
     {
         if (item is PdfRectangle rectangle)
-            return new[] { rectangle.X1, rectangle.Y1, rectangle.X2, rectangle.Y2 };
+            return [rectangle.X1, rectangle.Y1, rectangle.X2, rectangle.Y2];
 
         if (item is not PdfArray array)
             return null;

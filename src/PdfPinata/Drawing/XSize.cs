@@ -181,7 +181,8 @@ public struct XSize : IFormattable, IDeserializationCallback, IEquatable<XSize>
         var numericListSeparator = TokenizerHelper.GetNumericListSeparator(provider);
         provider = provider ?? CultureInfo.InvariantCulture;
         // ReSharper disable FormatStringProblem
-        return string.Format(provider, "{1:" + format + "}{0}{2:" + format + "}", new object[] { numericListSeparator, _width, _height });
+        return string.Format(provider, "{1:" + format + "}{0}{2:" + format + "}", [numericListSeparator, _width, _height
+        ]);
         // ReSharper restore FormatStringProblem
     }
 

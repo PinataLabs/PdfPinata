@@ -112,7 +112,7 @@ public class ResourceDeduplicationRenderingTests(ITestOutputHelper output)
             using var stream = new MemoryStream(bytes);
             var source = Pdf.IO.PdfReader.Open(stream, PdfDocumentOpenMode.Import);
             foreach (var page in source.Pages)
-                merged.AddPage(page);
+                _ = merged.AddPage(page);
         }
 
         return merged;

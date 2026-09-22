@@ -188,7 +188,7 @@ public class LzwDecode : Filter
         }
     }
 
-    readonly int[] _andTable = { 511, 1023, 2047, 4095 };
+    readonly int[] _andTable = [511, 1023, 2047, 4095];
     byte[][] _stringTable;
     byte[] _data;
     int _tableIndex, _bitsToGet = 9;

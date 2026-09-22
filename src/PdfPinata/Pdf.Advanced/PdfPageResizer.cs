@@ -405,7 +405,7 @@ static class PdfPageResizer
     /// <summary>
     /// The white space a wrapper's tokens are separated by.
     /// </summary>
-    static readonly char[] WrapperSeparators = { ' ', '\t', '\r', '\n', '\f', '\0' };
+    static readonly char[] WrapperSeparators = [' ', '\t', '\r', '\n', '\f', '\0'];
 
     static bool TryReadWrapperName(byte[] content, out string name, out XMatrix matrix)
     {
@@ -527,12 +527,12 @@ static class PdfPageResizer
     internal static XRect Transformed(XRect rect, XMatrix matrix)
     {
         XPoint[] corners =
-        {
+        [
             matrix.Transform(new XPoint(rect.X, rect.Y)),
             matrix.Transform(new XPoint(rect.X + rect.Width, rect.Y)),
             matrix.Transform(new XPoint(rect.X + rect.Width, rect.Y + rect.Height)),
             matrix.Transform(new XPoint(rect.X, rect.Y + rect.Height))
-        };
+        ];
 
         double minX = corners[0].X, maxX = corners[0].X;
         double minY = corners[0].Y, maxY = corners[0].Y;

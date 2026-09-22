@@ -45,7 +45,7 @@ internal struct Ecc200Block
 internal static class Ecc200Sizes
 {
     internal static readonly Ecc200Block[] All =
-    {
+    [
         new( 10,  10, 10, 10,    3,   3,  5),
         new( 12,  12, 12, 12,    5,   5,  7),
         new(  8,  18,  8, 18,    5,   5,  7),
@@ -77,5 +77,5 @@ internal static class Ecc200Sizes
         new(132, 132, 22, 22, 1304, 163, 62),
         new(144, 144, 24, 24, 1558, 156, 62),
         new(  0,   0,  0,  0,    0,    0, 0)     // terminate
-    };
+    ];
 }

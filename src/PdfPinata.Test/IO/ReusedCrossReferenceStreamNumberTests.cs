@@ -153,7 +153,7 @@ public class ReusedCrossReferenceStreamNumberTests
         var document = new PdfDocument();
         document.Options.CrossReferenceFormat = PdfCrossReferenceFormat.Stream;
         document.Info.Title = Title;
-        document.AddPage();
+        _ = document.AddPage();
         var second = document.AddPage();
         second.Width = XUnit.FromPoint(200);
         second.Height = XUnit.FromPoint(400);

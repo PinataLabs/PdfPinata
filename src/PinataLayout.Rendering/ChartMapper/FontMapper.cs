@@ -29,7 +29,6 @@
 #endregion
 
 using PdfPinata.Charting;
-using PdfPinata.Drawing;
 
 namespace PinataLayout.Rendering.ChartMapper;
 

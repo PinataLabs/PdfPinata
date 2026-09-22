@@ -32,7 +32,6 @@ using PdfPinata.Fonts;
 using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.Annotations;
 using PdfPinata.Pdf.Internal;
-using PdfPinata.Pdf.Signatures;
 
 namespace PdfPinata.Pdf.AcroForms;
 

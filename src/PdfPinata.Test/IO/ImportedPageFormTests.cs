@@ -150,7 +150,7 @@ public class ImportedPageFormTests : IDisposable
     {
         using var stream = new MemoryStream(new byte[] { 1, 2, 3, 4, 5 });
 
-        var opening = () => XPdfForm.FromStream(stream, (string)null);
+        var opening = () => XPdfForm.FromStream(stream, null);
 
         opening.Should().Throw<ArgumentException>().WithMessage("*no valid PDF file header*");
     }

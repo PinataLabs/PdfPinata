@@ -65,18 +65,18 @@ public class Code2of5Interleaved : TwoWidthBarCode
     {}
 
     static bool[][] _lines =
-    {
-        new[] {false, false, true, true, false},
-        new[] {true, false, false, false, true},
-        new[] {false, true, false, false, true},
-        new[] {true, true, false, false, false},
-        new[] {false, false, true, false, true},
-        new[] {true, false, true, false, false},
-        new[] {false, true, true, false, false},
-        new[] {false, false, false, true, true},
-        new[] {true, false, false, true, false},
-        new[] {false, true, false, true, false}
-    };
+    [
+        [false, false, true, true, false],
+        [true, false, false, false, true],
+        [false, true, false, false, true],
+        [true, true, false, false, false],
+        [false, false, true, false, true],
+        [true, false, true, false, false],
+        [false, true, true, false, false],
+        [false, false, false, true, true],
+        [true, false, false, true, false],
+        [false, true, false, true, false]
+    ];
 
     /// <summary>
     /// Renders the bar code.

@@ -4,7 +4,6 @@ using System.IO;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
-using PdfPinata.Pdf.Annotations;
 using PdfPinata.Pdf.AcroForms;
 using PdfPinata.Pdf.IO;
 using PdfPinata.Pdf.Security;
@@ -32,7 +31,7 @@ public class DocumentAndPageSurfaceTests
     {
         var output = new MemoryStream();
         var document = new PdfDocument(output);
-        document.AddPage();
+        _ = document.AddPage();
 
         document.Close();
 
@@ -49,7 +48,7 @@ public class DocumentAndPageSurfaceTests
     public void ClosingADocumentThatWasNotGivenAStreamWritesNothingAndDoesNotThrow()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
 
         var closing = () => document.Close();
 
@@ -101,7 +100,7 @@ public class DocumentAndPageSurfaceTests
     public void ADocumentEncryptedWithNoPasswordAtAllCannotBeSaved()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         document.SecuritySettings.DocumentSecurityLevel = PdfDocumentSecurityLevel.Encrypted128Bit;
 
         var message = "";
@@ -116,7 +115,7 @@ public class DocumentAndPageSurfaceTests
     public void CustomValuesOnADocumentCanOnlyBeClearedByAssigningNothing()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
 
         document.CustomValues.Should().NotBeNull();
 
@@ -131,7 +130,7 @@ public class DocumentAndPageSurfaceTests
     public void ResizingEveryPageToAPageSizeThatDoesNotExistIsRefused()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
 
         var resizing = () => document.ResizePages((PageSize)999);
 
@@ -157,7 +156,7 @@ public class DocumentAndPageSurfaceTests
     public void ADocumentWithNoFormAtAllIsStillHappyToBeMadeReadOnly()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
 
         var making = () => document.MakeAcroFormsReadOnly();
 

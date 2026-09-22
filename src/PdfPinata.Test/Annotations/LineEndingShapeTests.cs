@@ -2,7 +2,6 @@ using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Annotations;
-using PdfPinata.Test.Helpers;
 using Xunit;
 
 namespace PdfPinata.Test.Annotations;

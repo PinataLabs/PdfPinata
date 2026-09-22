@@ -15,7 +15,7 @@ public class OutlineStyleTests
     static PdfDocument OnePage(int version = 14)
     {
         var document = new PdfDocument { Version = version };
-        document.AddPage();
+        _ = document.AddPage();
         return document;
     }
 

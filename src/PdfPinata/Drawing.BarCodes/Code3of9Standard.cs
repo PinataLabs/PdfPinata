@@ -75,96 +75,96 @@ public class Code3of9Standard : TwoWidthBarCode
         return Lines["0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%*".IndexOf(ch)];
     }
     static readonly bool[][] Lines =
-    {
+    [
         // '0'
-        new[] {false, false, false, true, true, false, true, false, false},
+        [false, false, false, true, true, false, true, false, false],
         // '1'
-        new[] {true, false, false, true, false, false, false, false, true},
+        [true, false, false, true, false, false, false, false, true],
         // '2'
-        new[] {false, false, true, true, false, false, false, false, true},
+        [false, false, true, true, false, false, false, false, true],
         // '3'
-        new[] {true, false, true, true, false, false, false, false, false},
+        [true, false, true, true, false, false, false, false, false],
         // '4'
-        new[] {false, false, false, true, true, false, false, false, true},
+        [false, false, false, true, true, false, false, false, true],
         // '5'
-        new[] {true, false, false, true, true, false, false, false, false},
+        [true, false, false, true, true, false, false, false, false],
         // '6'
-        new[] {false, false, true, true, true, false, false, false, false},
+        [false, false, true, true, true, false, false, false, false],
         // '7'
-        new[] {false, false, false, true, false, false, true, false, true},
+        [false, false, false, true, false, false, true, false, true],
         // '8'
-        new[] {true, false, false, true, false, false, true, false, false},
+        [true, false, false, true, false, false, true, false, false],
         // '9'
-        new[] {false, false, true, true, false, false, true, false, false},
+        [false, false, true, true, false, false, true, false, false],
         // 'A'
-        new[] {true, false, false, false, false, true, false, false, true},
+        [true, false, false, false, false, true, false, false, true],
         // 'B'
-        new[] {false, false, true, false, false, true, false, false, true},
+        [false, false, true, false, false, true, false, false, true],
         // 'C'
-        new[] {true, false, true, false, false, true, false, false, false},
+        [true, false, true, false, false, true, false, false, false],
         // 'D'
-        new[] {false, false, false, false, true, true, false, false, true},
+        [false, false, false, false, true, true, false, false, true],
         // 'E'
-        new[] {true, false, false, false, true, true, false, false, false},
+        [true, false, false, false, true, true, false, false, false],
         // 'F'
-        new[] {false, false, true, false, true, true, false, false, false},
+        [false, false, true, false, true, true, false, false, false],
         // 'G'
-        new[] {false, false, false, false, false, true, true, false, true},
+        [false, false, false, false, false, true, true, false, true],
         // 'H'
-        new[] {true, false, false, false, false, true, true, false, false},
+        [true, false, false, false, false, true, true, false, false],
         // 'I'
-        new[] {false, false, true, false, false, true, true, false, false},
+        [false, false, true, false, false, true, true, false, false],
         // 'J'
-        new[] {false, false, false, false, true, true, true, false, false},
+        [false, false, false, false, true, true, true, false, false],
         // 'K'
-        new[] {true, false, false, false, false, false, false, true, true},
+        [true, false, false, false, false, false, false, true, true],
         // 'L'
-        new[] {false, false, true, false, false, false, false, true, true},
+        [false, false, true, false, false, false, false, true, true],
         // 'M'
-        new[] {true, false, true, false, false, false, false, true, false},
+        [true, false, true, false, false, false, false, true, false],
         // 'N'
-        new[] {false, false, false, false, true, false, false, true, true},
+        [false, false, false, false, true, false, false, true, true],
         // 'O'
-        new[] {true, false, false, false, true, false, false, true, false},
+        [true, false, false, false, true, false, false, true, false],
         // 'P':
-        new[] {false, false, true, false, true, false, false, true, false},
+        [false, false, true, false, true, false, false, true, false],
         // 'Q'
-        new[] {false, false, false, false, false, false, true, true, true},
+        [false, false, false, false, false, false, true, true, true],
         // 'R'
-        new[] {true, false, false, false, false, false, true, true, false},
+        [true, false, false, false, false, false, true, true, false],
         // 'S'
-        new[] {false, false, true, false, false, false, true, true, false},
+        [false, false, true, false, false, false, true, true, false],
         // 'T'
-        new[] {false, false, false, false, true, false, true, true, false},
+        [false, false, false, false, true, false, true, true, false],
         // 'U'
-        new[] {true, true, false, false, false, false, false, false, true},
+        [true, true, false, false, false, false, false, false, true],
         // 'V'
-        new[] {false, true, true, false, false, false, false, false, true},
+        [false, true, true, false, false, false, false, false, true],
         // 'W'
-        new[] {true, true, true, false, false, false, false, false, false},
+        [true, true, true, false, false, false, false, false, false],
         // 'X'
-        new[] {false, true, false, false, true, false, false, false, true},
+        [false, true, false, false, true, false, false, false, true],
         // 'Y'
-        new[] {true, true, false, false, true, false, false, false, false},
+        [true, true, false, false, true, false, false, false, false],
         // 'Z'
-        new[] {false, true, true, false, true, false, false, false, false},
+        [false, true, true, false, true, false, false, false, false],
         // '-'
-        new[] {false, true, false, false, false, false, true, false, true},
+        [false, true, false, false, false, false, true, false, true],
         // '.'
-        new[] {true, true, false, false, false, false, true, false, false},
+        [true, true, false, false, false, false, true, false, false],
         // ' '
-        new[] {false, true, true, false, false, false, true, false, false},
+        [false, true, true, false, false, false, true, false, false],
         // '$'
-        new[] {false, true, false, true, false, true, false, false, false},
+        [false, true, false, true, false, true, false, false, false],
         // '/'
-        new[] {false, true, false, true, false, false, false, true, false},
+        [false, true, false, true, false, false, false, true, false],
         // '+'
-        new[] {false, true, false, false, false, true, false, true, false},
+        [false, true, false, false, false, true, false, true, false],
         // '%'
-        new[] {false, false, false, true, false, true, false, true, false},
+        [false, false, false, true, false, true, false, true, false],
         // '*'
-        new[] {false, true, false, false, true, false, true, false, false}
-    };
+        [false, true, false, false, true, false, true, false, false]
+    ];
 
 
     /// <summary>

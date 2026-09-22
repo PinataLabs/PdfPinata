@@ -547,7 +547,7 @@ public sealed class XGraphics : IDisposable
 
         if (_renderer != null)
             _renderer.DrawBeziers(pen,
-                new XPoint[] { new(x1, y1), new(x2, y2), new(x3, y3), new(x4, y4) });
+                [new(x1, y1), new(x2, y2), new(x3, y3), new(x4, y4)]);
     }
 
     // ----- DrawBeziers --------------------------------------------------------------------------
@@ -1597,7 +1597,7 @@ public sealed class XGraphics : IDisposable
     /// Which elements have already had their own <c>/ActualText</c> written inline this page. See
     /// <see cref="ActualTextForThisSequence"/>.
     /// </summary>
-    readonly HashSet<PdfStructure.PdfStructureElement> _actualTextEmitted = new();
+    readonly HashSet<PdfStructure.PdfStructureElement> _actualTextEmitted = [];
 
     /// <summary>
     /// Marks everything drawn until the returned scope is disposed as an artifact: on the page, but
@@ -2270,7 +2270,7 @@ public sealed class XGraphics : IDisposable
         /// </remarks>
         public XPoint WorldToDefaultPage(XPoint point)
         {
-            XPoint[] points = { point };
+            XPoint[] points = [point];
 
             var matrix = _gfx.Transform;
             matrix.TransformPoints(points);

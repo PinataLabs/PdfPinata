@@ -93,7 +93,7 @@ internal sealed class Parser
     /// Not every one of them is in the document's table: one whose number a later revision gave
     /// to another object is left out, and is still needed for the objects it compresses.
     /// </summary>
-    internal List<PdfCrossReferenceStream> CrossReferenceStreams { get; } = new();
+    internal List<PdfCrossReferenceStream> CrossReferenceStreams { get; } = [];
 
     /// <summary>
     /// The largest <c>/Size</c> any trailer <see cref="ReadTrailer"/> has read declares, over every
@@ -481,7 +481,7 @@ internal sealed class Parser
         if (end > 0 && bytes[end - 1] == (byte)Chars.CR)
             end--;
 
-        return end == bytes.Length ? bytes : bytes.AsSpan(0, end).ToArray();
+        return end == bytes.Length ? bytes : [.. bytes.AsSpan(0, end)];
     }
 
     // HACK: Solve problem more general.
@@ -1007,7 +1007,7 @@ internal sealed class Parser
         {
             var number = ReadInteger();
             var offset = ReadInteger() + first; // Calculate absolute offset.
-            header[idx] = new[] { number, offset };
+            header[idx] = [number, offset];
         }
 
         return header;
@@ -1407,7 +1407,7 @@ internal sealed class Parser
             // Setup with default values.
             subsectionCount = 1;
             subsections = new int[subsectionCount][];
-            subsections[0] = new[] { 0, size }; // HACK: What is size? Contratiction in PDF reference.
+            subsections[0] = [0, size]; // HACK: What is size? Contratiction in PDF reference.
             subsectionEntryCount = size;
         }
         else
@@ -1418,15 +1418,14 @@ internal sealed class Parser
             subsections = new int[subsectionCount][];
             for (var idx = 0; idx < subsectionCount; idx++)
             {
-                subsections[idx] = new[]
-                    { index.Elements.GetInteger(2 * idx), index.Elements.GetInteger(2 * idx + 1) };
+                subsections[idx] = [index.Elements.GetInteger(2 * idx), index.Elements.GetInteger(2 * idx + 1)];
                 subsectionEntryCount += subsections[idx][1];
             }
         }
 
         // W key.
         Debug.Assert(w.Elements.Count == 3);
-        int[] wsize = { w.Elements.GetInteger(0), w.Elements.GetInteger(1), w.Elements.GetInteger(2) };
+        int[] wsize = [w.Elements.GetInteger(0), w.Elements.GetInteger(1), w.Elements.GetInteger(2)];
         var wsum = StreamHelper.WSize(wsize);
         Debug.Assert(wsum * subsectionEntryCount == bytes.Length, "Check implementation here.");
 

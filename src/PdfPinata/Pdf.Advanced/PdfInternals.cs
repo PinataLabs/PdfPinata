@@ -217,7 +217,7 @@ public class PdfInternals
                 + "taking a PdfDocument. Construct it yourself and hand it to AddObject instead.");
         }
 
-        var result = (T)ctorInfo.Invoke(new object[] { _document });
+        var result = (T)ctorInfo.Invoke([_document]);
         AddObject(result);
         return result;
     }

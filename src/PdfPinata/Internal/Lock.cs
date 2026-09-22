@@ -1,5 +1,5 @@
 #region Copyright
-//
+
 // Authors:
 //   Stefan Lange
 //
@@ -25,6 +25,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
+
 #endregion
 
 using System.Threading;
@@ -36,26 +37,15 @@ namespace PdfPinata.Internal;
 /// </summary>
 internal static class Lock
 {
-    public static void EnterGdiPlus()
-    {
-        Monitor.Enter(GdiPlus);
-    }
-
-    public static void ExitGdiPlus()
-    {
-        Monitor.Exit(GdiPlus);
-    }
-
-    static readonly object GdiPlus = new();
-
     public static void EnterFontFactory()
     {
-        Monitor.Enter(FontFactory);
+        Monitor.Enter(_fontFactory);
     }
 
     public static void ExitFontFactory()
     {
-        Monitor.Exit(FontFactory);
+        Monitor.Exit(_fontFactory);
     }
-    static readonly object FontFactory = new();
+
+    private static readonly object _fontFactory = new();
 }

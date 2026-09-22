@@ -187,7 +187,7 @@ public struct XPoint : IFormattable, IEquatable<XPoint>
     {
         var numericListSeparator = TokenizerHelper.GetNumericListSeparator(provider);
         provider = provider ?? CultureInfo.InvariantCulture;
-        return string.Format(provider, "{1:" + format + "}{0}{2:" + format + "}", new object[] { numericListSeparator, _x, _y });
+        return string.Format(provider, "{1:" + format + "}{0}{2:" + format + "}", [numericListSeparator, _x, _y]);
     }
 
     /// <summary>

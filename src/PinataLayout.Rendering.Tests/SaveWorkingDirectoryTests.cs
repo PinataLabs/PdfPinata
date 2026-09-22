@@ -110,7 +110,7 @@ public class SaveWorkingDirectoryTests
     {
         var renderer = Rendered();
 
-        renderer.Invoking(r => r.Save((string)null)).Should().Throw<ArgumentNullException>();
+        renderer.Invoking(r => r.Save(null)).Should().Throw<ArgumentNullException>();
         renderer.Invoking(r => r.Save("")).Should().Throw<ArgumentException>();
     }
 

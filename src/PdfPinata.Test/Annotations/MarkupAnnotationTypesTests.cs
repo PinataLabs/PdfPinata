@@ -370,7 +370,7 @@ public sealed class MarkupAnnotationTypesTests : IDisposable
     IMagickImage<byte> Rasterize(string name, Action<PdfDocument> arrange)
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         arrange(document);
 
         var images = PdfHelper.Rasterize(document).ImageCollection;

@@ -60,8 +60,8 @@ public sealed class PageEventsTests : IDisposable
         var counts = new List<int>();
         document.PageAdded += (sender, e) => counts.Add(((PdfDocument)sender).PageCount);
 
-        document.AddPage();
-        document.AddPage();
+        _ = document.AddPage();
+        _ = document.AddPage();
 
         counts.Should().Equal(1, 2);
     }
@@ -84,7 +84,7 @@ public sealed class PageEventsTests : IDisposable
     {
         var source = Reopen(TwoPages(), PdfDocumentOpenMode.Import);
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         var counts = new List<int>();
         var indexes = new List<int>();
         document.PageAdded += (_, e) =>
@@ -132,7 +132,7 @@ public sealed class PageEventsTests : IDisposable
     public void DuplicatingAPageReportsTheDuplicate()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         var seen = Record(document);
 
         var duplicate = document.Pages.Duplicate(0, 1);
@@ -160,7 +160,7 @@ public sealed class PageEventsTests : IDisposable
     public void RemovingAPageTheDocumentDoesNotHoldRaisesNothing()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         var stranger = new PdfDocument().AddPage();
         var seen = Record(document);
 
@@ -177,10 +177,10 @@ public sealed class PageEventsTests : IDisposable
         var heard = 0;
         EventHandler<PdfPageEventArgs> handler = (_, _) => heard++;
         document.PageAdded += handler;
-        document.AddPage();
+        _ = document.AddPage();
         document.PageAdded -= handler;
 
-        document.AddPage();
+        _ = document.AddPage();
 
         heard.Should().Be(1);
     }
@@ -309,8 +309,8 @@ public sealed class PageEventsTests : IDisposable
     static byte[] TwoPages()
     {
         var document = new PdfDocument();
-        document.AddPage();
-        document.AddPage();
+        _ = document.AddPage();
+        _ = document.AddPage();
         using var output = new MemoryStream();
         document.Save(output, false);
         return output.ToArray();

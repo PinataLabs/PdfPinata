@@ -109,8 +109,8 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
     public double[] GetElements()
     {
         if (_type == XMatrixTypes.Identity)
-            return new double[] { 1, 0, 0, 1, 0, 0 };
-        return new[] { _m11, _m12, _m21, _m22, _offsetX, _offsetY };
+            return [1, 0, 0, 1, 0, 0];
+        return [_m11, _m12, _m21, _m22, _offsetX, _offsetY];
     }
 
     /// <summary>

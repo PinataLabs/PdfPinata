@@ -146,7 +146,7 @@ public class IndirectSimpleObjectTests
     public void AnIndirectValueNamedByTwoDictionariesIsWrittenOnce()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
 
         var shared = new PdfIntegerObject(document, 42);
         var first = new PdfDictionary(document);

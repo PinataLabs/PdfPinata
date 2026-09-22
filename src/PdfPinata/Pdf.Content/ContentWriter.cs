@@ -77,7 +77,7 @@ internal class ContentWriter
             return;
         var bytes = PdfEncoders.RawEncoding.GetBytes(rawString);
         _stream.Write(bytes, 0, bytes.Length);
-        _stream.Write(new[] { (byte)'\n' }, 0, 1);
+        _stream.Write([(byte)'\n'], 0, 1);
         _wroteAnything = true;
     }
 

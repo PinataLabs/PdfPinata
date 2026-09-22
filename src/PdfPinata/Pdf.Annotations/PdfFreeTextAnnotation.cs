@@ -76,7 +76,7 @@ public sealed class PdfFreeTextAnnotation : PdfMarkupAnnotation
         if (string.IsNullOrEmpty(appearance))
             return;
 
-        var tokens = appearance.Split(new[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        var tokens = appearance.Split([' ', '\t', '\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
         for (var index = 0; index < tokens.Length; index++)
         {
             switch (tokens[index])

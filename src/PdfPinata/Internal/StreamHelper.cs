@@ -1,4 +1,3 @@
-
 using System.IO;
 
 
@@ -6,7 +5,6 @@ namespace PdfPinata.Internal;
 
 internal static class StreamHelper
 {
-
     /// <summary>
     /// Reads until <paramref name="count"/> bytes have been read or the stream ends, and
     /// returns the number of bytes actually read.

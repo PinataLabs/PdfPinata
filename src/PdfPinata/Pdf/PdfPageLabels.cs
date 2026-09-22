@@ -106,7 +106,7 @@ public sealed class PdfPageLabels
     public int[] GetRangeStarts()
     {
         var tree = Tree(false);
-        return tree == null ? Array.Empty<int>() : tree.GetKeys();
+        return tree == null ? [] : tree.GetKeys();
     }
 
     /// <summary>
@@ -282,9 +282,9 @@ public sealed class PdfPageLabels
         }
     }
 
-    static readonly int[] RomanValues = { 1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1 };
+    static readonly int[] RomanValues = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1];
     static readonly string[] RomanNumerals =
-        { "M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I" };
+        ["M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"];
 
     static string Roman(int number)
     {
