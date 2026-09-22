@@ -220,12 +220,15 @@ internal class Serializer
     if (comment == null || comment == String.Empty)
       return;
 
-    // if string contains CR/LF, split up recursively
-    var crlf = comment.IndexOf("\x0D\x0A", StringComparison.Ordinal);
-    if (crlf != -1)
+    // If the comment holds a line end, split it up recursively, one "//" line per line. A CR or
+    // an LF on its own ends a line for the scanner just as a CRLF does, so a comment left in one
+    // piece across either would end there, and the rest of it be read as MDDDL.
+    var lineEnd = comment.IndexOfAny(LineEndChars);
+    if (lineEnd != -1)
     {
-      WriteComment(comment[..crlf]);
-      WriteComment(comment[(crlf + 2)..]);
+      var lineEndLength = comment[lineEnd] == '\r' && lineEnd + 1 < comment.Length && comment[lineEnd + 1] == '\n' ? 2 : 1;
+      WriteComment(comment[..lineEnd]);
+      WriteComment(comment[(lineEnd + lineEndLength)..]);
       return;
     }
     CloseUpLine();
@@ -572,5 +575,6 @@ internal class Serializer
 
   int linePos;
   int lineBreakBeyond = 200;
+  static readonly char[] LineEndChars = ['\r', '\n'];
   bool fWriteStamp = false;
 }

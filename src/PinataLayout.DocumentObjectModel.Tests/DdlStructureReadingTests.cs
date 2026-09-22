@@ -351,7 +351,9 @@ public class DdlStructureReadingTests
     {
         // A lone carriage return - an old Mac OS line end - ends a line as a line feed does, and
         // so reads as the space a line end is. It used to be kept in the text as the character it
-        // is, which made a whole file written that way a single line.
+        // is, which made a whole file written that way a single line. So a Text holding a CR no
+        // longer survives being written and read back, exactly as one holding an LF never has:
+        // a line end in paragraph text is white space in MDDDL, and the writer escapes neither.
         TextOf(FirstParagraphOf("a\rb")).Should().Be("a b");
     }
 
