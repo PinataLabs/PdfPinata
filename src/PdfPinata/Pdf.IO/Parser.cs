@@ -1679,8 +1679,14 @@ internal sealed class Parser
 
                 if (length >= 23 && (o = date[16]) != 'Z')
                 {
+                    // Anything but +, - or Z is no designator, and without the apostrophes the
+                    // digits either side of them are not an offset's hours and minutes.
+                    if ((o != '+' && o != '-') || date[19] != '\'' || date[22] != '\'')
+                        return false;
                     if (!TryParseField(date, 17, 2, out hh) ||
                         !TryParseField(date, 20, 2, out mm))
+                        return false;
+                    if (hh < 0 || hh > 23 || mm < 0 || mm > 59)
                         return false;
                 }
             }

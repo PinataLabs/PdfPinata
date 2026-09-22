@@ -71,6 +71,12 @@ public class PdfDateTests
     [InlineData("D:19981223195200+AB'00'")]    // an offset that is not a number
     [InlineData("D:99991231235900-08'00'")]    // an offset that carries it past the last date
     [InlineData("D:00010101000000+08'00'")]    // or before the first one
+    [InlineData("D:19981223195200X08'00'")]    // a designator that is none of +, - and Z
+    [InlineData("D:19981223195200+24'00'")]    // an offset of a whole day
+    [InlineData("D:19981223195200+08'60'")]    // an offset of an hour's worth of minutes
+    [InlineData("D:19981223195200+-8'00'")]    // an offset with a sign of its own
+    [InlineData("D:19981223195200+08:00'")]    // a separator that is not an apostrophe
+    [InlineData("D:19981223195200+08'00:")]    // nor the one after the minutes
     [InlineData("not a date at all")]
     [InlineData("")]
     public void ADateThatCannotBeReadIsTheEarliestDate(string text)
