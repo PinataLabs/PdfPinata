@@ -237,6 +237,13 @@ This file starts at the entry below. Changes before that point are recorded only
   document holding a page imported with a group saved without error and then failed validation.
   The group is now refused under part 1 only, the same as other transparency (#86).
 
+- **An undefined `SymbolName` is refused rather than written as MDDDL that cannot be read back.**
+  `Character.SymbolName` accepted any value, and one with the top nibble set that named no symbol
+  was written out as `\symbol(<number>)`, which the parser rejects. It now throws
+  `ArgumentException`, as every other DOM enum property does; a character code, top nibble clear,
+  is still accepted as before. A `Character` now keeps its symbol and its character in separate
+  fields, and reads, the value model and MDDDL output are unchanged (#92).
+
 - **A number sign in a content-stream name no longer stops the whole stream from being read.**
   `/A#ZZ`, a single hex digit after `#`, or a `#` at the end of the content threw a
   `FormatException`. A `#` now stands for a byte only when two hexadecimal digits follow it, and is
