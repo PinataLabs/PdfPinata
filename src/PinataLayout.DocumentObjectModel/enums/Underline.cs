@@ -35,6 +35,7 @@ namespace PinataLayout.DocumentObjectModel;
 /// <summary>
 /// Specifies the underline type for the font.
 /// </summary>
+/// <remarks>Word's double, thick, wavy and heavy underlines are not supported.</remarks>
 public enum Underline
 {
   /// <summary>Not drawn at all.</summary>
@@ -51,18 +52,4 @@ public enum Underline
   DotDash,
   /// <summary>A rule of two dots followed by a dash, repeating.</summary>
   DotDotDash
-
-  /* --- unsupported ---
-    Double          = 3,
-    Thick           = 6,
-    Wavy            = 11,
-    WavyHeavy       = 27,
-    DottedHeavy     = 20,
-    DashHeavy       = 23,
-    DotDashHeavy    = 25,
-    DotDotDashHeavy = 26,
-    DashLong        = 39,
-    DashLongHeavy   = 55,
-    WavyDouble      = 43
-  */
 }

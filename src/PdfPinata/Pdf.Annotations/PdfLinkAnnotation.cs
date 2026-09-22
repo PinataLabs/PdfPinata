@@ -233,12 +233,6 @@ public sealed class PdfLinkAnnotation : PdfAnnotation
     /// </summary>
     internal new class Keys : PdfAnnotation.Keys
     {
-        //  /// <summary>
-        //  /// (Required) The type of annotation that this dictionary describes;
-        //  /// must be Link for a link annotation.
-        //  /// </summary>
-        // inherited from base class
-
         /// <summary>
         /// (Optional; not permitted if an A entry is present) A destination to be displayed
         /// when the annotation is activated.

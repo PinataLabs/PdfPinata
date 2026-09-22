@@ -35,6 +35,7 @@ namespace PinataLayout.DocumentObjectModel;
 /// <summary>
 /// Specifies the style of the line of the Border object.
 /// </summary>
+/// <remarks>Word's double, triple, thick-and-thin, wavy and 3-D border styles are not supported.</remarks>
 public enum BorderStyle
 {
   /// <summary>
@@ -65,24 +66,4 @@ public enum BorderStyle
   /// A dash followed by two dots.
   /// </summary>
   DashDotDot
-  /* --- unsupported ---
-    Double                = 7,
-    Triple                = 8,
-    ThinThickSmallGap     = 9,
-    ThickThinSmallGap     = 10,
-    ThinThickThinSmallGap = 11,
-    ThinThickMedGap       = 12,
-    ThickThinMedGap       = 13,
-    ThinThickThinMedGap   = 14,
-    ThinThickLargeGap     = 15,
-    ThickThinLargeGap     = 16,
-    ThinThickThinLargeGap = 17,
-    SingleWavy            = 18,
-    DoubleWavy            = 19,
-    DashDotStroked        = 20,
-    Emboss3D              = 21,
-    Engrave3D             = 22,
-    LineStyleOutset       = 23, //!!!newEG 02-07-22
-    LineStyleInset        = 24  //!!!newEG 02-07-22
-  */
 }
