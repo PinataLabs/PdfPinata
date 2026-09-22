@@ -374,7 +374,6 @@ public sealed partial class Style : DocumentObject, IVisitable
                     // Note: we must write "Underline = none" if the base style has "Underline = single" - we cannot
                     // detect this if we compare with the built-in style that has no underline.
                     // Known problem: Default values like "OutlineLevel = Level1" will now be serialized
-                    // TODO: optimize...
                 }
                 else
                 {
