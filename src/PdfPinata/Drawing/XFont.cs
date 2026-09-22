@@ -145,10 +145,9 @@ public sealed class XFont
     public XFontFamily FontFamily => _glyphTypeface.FontFamily;
 
     /// <summary>
-    /// WRONG: Gets the face name of this Font object.
-    /// Indeed it returns the font family name.
+    /// Gets the name of the font family this font belongs to, the same as
+    /// <c>FontFamily.Name</c>. It is not the face name: "Arial" rather than "Arial Bold".
     /// </summary>
-    // [Obsolete("This function returns the font family name, not the face name. Use xxx.FontFamily.Name or xxx.FaceName")]
     public string Name => _glyphTypeface.FontFamily.Name;
 
     internal string FaceName => _glyphTypeface.FaceName;
