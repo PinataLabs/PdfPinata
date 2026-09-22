@@ -58,7 +58,6 @@ public enum SymbolName : uint
   // for internal use only 
   /// <summary>A paragraph break. For internal use only.</summary>
   ParaBreak = 0xF4000007,
-  //MarginBreak       = 0xF4000002,
 
   // \symbol(...)
   /// <summary>The euro sign, U+20AC.</summary>

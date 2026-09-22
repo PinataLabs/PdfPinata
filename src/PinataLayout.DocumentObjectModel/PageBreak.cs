@@ -49,7 +49,6 @@ public partial class PageBreak : DocumentObject
   /// </summary>
   internal PageBreak(DocumentObject parent) : base(parent) { }
 
-  //#region Methods
   /// <summary>
   /// Creates a deep copy of this object.
   /// </summary>
@@ -57,9 +56,7 @@ public partial class PageBreak : DocumentObject
   {
     return (PageBreak)DeepCopy();
   }
-  //#endregion
 
-  //#region Internal
   /// <summary>
   /// Converts PageBreak into DDL.
   /// </summary>
@@ -67,6 +64,4 @@ public partial class PageBreak : DocumentObject
   {
     serializer.WriteLine("\\pagebreak");
   }
-
-  //#endregion
 }

@@ -69,37 +69,25 @@ internal enum DomMsgID
 
   StyleNameExpected,
 
-  // --- old ---
-  //    Internal,
-
   UnexpectedSymbol,
 
   IdentifierExpected,
   BoolExpected,
   RealExpected,
   IntegerExpected,
-  //    IntegerOrIdentifierExpected,
   StringExpected,
   NullExpected,
-  //    SymboleExpected,
   NumberExpected,
 
   InvalidEnum,
-  //    InvalidFlag,
-  //    InvalidStyle,
-  //    InvalidStyleDefinition,
   InvalidType,
   InvalidAssignment,
   InvalidValueName,
-  //    InvalidOperation,
-  //    InvalidFormat,
   InvalidRange,
   InvalidColor,
   InvalidFieldType,
   InvalidValueForOperation,
   InvalidSymbolType,
-
-  //    ValueOutOfRange,
 
   MissingBraceLeft,
   MissingBraceRight,
@@ -107,55 +95,20 @@ internal enum DomMsgID
   MissingBracketRight,
   MissingParenLeft,
   MissingParenRight,
-  //    MissingSemicolon,
   MissingComma,
-
-  //    MissingDocumentPart,
-  //    MissingEof,
-  //    MissingIdentifier,
-  //    MissingEndBuildingBlock,
-  //    MissingSymbole,
-  //    MissingParameter,
 
   SymbolNotAllowed,
   SymbolIsNotAnObject,
-  //    BlockcommentOutsideCodeBlock,
-  //    EOFReachedMissingSymbole,
-  //    UnexpectedEOFReached,
-  //    StyleAlreadyDefined,
-  //    MultipleDefaultInSwitch,
-  //    UnexpectedNewlineInDirective,
-  //    UnexpectedSymboleInDirective,
 
-  //    UnknownUnitOfMeasure,
-  //    UnknownValueOperator,
-  //    UnknownCodeSymbole,
-  //    UnknownScriptSymbole,
-  //    UnknownFieldSpecifier,
-  //    UnknownFieldOption,
-  //    UnknownValueType,
-  //    UnknownEvaluationType,
-  //    UnknownColorFunction,
-  //    UnknownAxis,
   UnknownChartType,
 
-  //    MisplacedCompilerSettings,
-  //    MisplacedScopeType,
-  //    TooMuchCells,
   NoAccess,
-
-  //    FileNotFound,
-  //    NotSupported,
 
   NewlineInString,
   EscapeSequenceNotAllowed,
-  //    SymboleNotAllowedInsideText,
   NullAssignmentNotSupported,
   OutOfRange,
 
-  //    Warning_StyleOverwrittenMoreThanOnce,
-  //    Warning_StyleAndBaseStyleAreEqual,
-  //    Warning_NestedParagraphInParagraphToken,
   UseOfUndefinedBaseStyle,
   UseOfUndefinedStyle
 

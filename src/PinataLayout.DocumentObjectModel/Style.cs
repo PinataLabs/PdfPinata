@@ -264,7 +264,6 @@ public sealed partial class Style : DocumentObject, IVisitable
 
         var styles = Parent as Styles;
         if (styles == null)
-            //??? 'owner of a parent'? eher 'owned by a parent' oder einfach: "A parent object is required for this operation."
             throw new InvalidOperationException(
                 "This instance of 'style' is currently not owner of a parent; access failed");
         if ((baseStyle ?? "") == "")
@@ -319,8 +318,6 @@ public sealed partial class Style : DocumentObject, IVisitable
         // For build-in styles all properties that differ from their default values
         // are serialized.
         // For user-defined styles all non-null properties are serialized.
-        //!!!newTHHO 26.07.2007 Modified method for built-in styles.
-        //!!!newTHHO 26.07.2007 Modified method for user-defined styles.
         var buildInStyles = Styles.BuildInStyles;
         Style refStyle;
         ParagraphFormat refFormat;

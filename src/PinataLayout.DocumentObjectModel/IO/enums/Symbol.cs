@@ -82,10 +82,8 @@ enum Symbol
   Dollar,            // $
   Hash,              // #
   Currency,          // ¤
-  //Questionmark,    // ?
   Quotationmark,     // "
   At,                // @
-  //Bar,             // |
   PlusAssign,        // +=
   MinusAssign,       // -=
   CR,                // 0x0D

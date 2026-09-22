@@ -61,27 +61,6 @@ public class DdlReaderError
     this.ErrorNumber = errorNumber;
   }
 
-
-  //    public DdlReaderError(string errorName, DdlReaderError _level, DomMsgID _error, string message, string msg2,
-  //      string DocumentFileName, int CurrentLine, int CurrentLinePos)
-  //    {
-  //    }
-  //
-  //    public DdlReaderError(string errorName, int _level, string _error, string message, string adf,
-  //      string  DocumentFileName,  int CurrentLine, int CurrentLinePos)
-  //    {
-  //    }
-  //
-  //    public DdlReaderError(string errorName, DdlErrorLevel errorInfo , string _error, string message, string adf,
-  //      string  DocumentFileName,  int CurrentLine, int CurrentLinePos)
-  //    {
-  //    }
-  //
-  //    public DdlReaderError(string errorName, DdlErrorLevel errorInfo , DomMsgID _error, string message, string adf,
-  //      string  DocumentFileName,  int CurrentLine, int CurrentLinePos)
-  //    {
-  //    }
-
   /// <summary>The number reported for an error that carries none.</summary>
   public const int NoErrorNumber = -1;
 
