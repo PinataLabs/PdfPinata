@@ -108,11 +108,13 @@ public sealed class PdfLong : PdfNumber, IConvertible
     }
 
     /// <summary>
-    /// Returns an undefined DateTime structure.
+    /// Not supported: an integer is not a point in time, and <see cref="Int64"/> refuses the
+    /// conversion the same way.
     /// </summary>
+    /// <exception cref="InvalidCastException">Always.</exception>
     public DateTime ToDateTime(IFormatProvider provider)
     {
-        return new DateTime(_value);
+        throw new InvalidCastException("Invalid cast from 'PdfLong' to 'DateTime'.");
     }
 
     /// <summary>
