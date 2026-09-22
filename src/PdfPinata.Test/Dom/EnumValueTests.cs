@@ -59,8 +59,8 @@ public class EnumValueTests
     }
 
     /// <summary>
-    ///   Character.symbolName is the exception NEnum carries a comment about: its values are not all
-    ///   defined by the enum, so it skips the check the others get.
+    ///   Character.SymbolName is the exception NEnum carries a comment about: a value with the top
+    ///   nibble clear is a character rather than a symbol, so it skips the check the others get.
     /// </summary>
     [Fact]
     public void TheSymbolNameEnumSkipsTheCheck()
