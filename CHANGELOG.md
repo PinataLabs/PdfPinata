@@ -12,6 +12,18 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ### Added
 
+- **An imported page keeps its transparency group, user unit, tab order and presentation
+  entries.** Importing a page used to copy only its resources, contents, boxes, rotation and
+  annotations. A page composited as a transparency group lost its group, a page with a `/UserUnit`
+  came out a different physical size, and its `/Tabs`, `/Trans` and `/Dur` were lost. All five are
+  now copied, and a page that brings a `/UserUnit` or a `/Tabs` raises the document to PDF 1.6 or
+  1.5, the versions those entries belong to. The group's colour space is imported once and shared
+  with the resources that name it. A tab order of `/S` (structure order) is dropped, because it
+  orders the annotations by a structure tree that page import does not bring along; row and column
+  order are kept. Entries that point into structures of the source document are left behind on
+  purpose, because importing a page does not bring those structures along. They include
+  `/StructParents`, `/B`, `/AA`, `/Metadata`, `/PieceInfo` and `/SeparationInfo` (#86).
+
 - **A content stream read with `ContentReader` and written back keeps its inline images.** The
   parser used to step over everything between `BI` and `EI`, so `ToContent` wrote back a bare `BI`
   and `EI` and the image was lost. An inline image is now read as one `CInlineImage`, a `COperator`
@@ -202,6 +214,60 @@ This file starts at the entry below. Changes before that point are recorded only
   Construct a value from its bytes with `new PdfCustomValue(byte[])`.
 
 ### Fixed
+
+- **A name written with characters beyond Latin-1 is saved as its UTF-8 bytes rather than
+  corrupted.** The writer escaped each character of a name as `#` and two hex digits, taking it to
+  be a byte, so a name a caller built with `U+4E2D` in it was written as `#4E2D`, which a reader
+  takes for the byte `0x4E` followed by the characters `2D`. A name holding any character past
+  `U+00FF` is now encoded as UTF-8, as ISO 32000-1 7.3.5 recommends, and each byte is escaped. A
+  name read from a file never holds such a character, so every name that round-trips is written
+  byte for byte as before (#87).
+
+- **A name in a content stream is escaped when it is written back.** `CLexer` turns `#20` in a
+  name into the blank it stands for, and `CName` wrote the name out as it held it, so `/A#20B`
+  came back as the two names `/A` and `B`, and a name holding a bracket or a parenthesis left a
+  stray delimiter in the stream. It now goes through the same escaping as a name in the document
+  body. A `CName` built with an escape already written into it, such as `/A#20B`, now has its `#`
+  escaped in turn, as a `PdfName` always has (#87).
+
+- **`PdfInteger` and `PdfUInteger` refuse to become a `DateTime`.** Their `IConvertible.ToDateTime`
+  returned `DateTime.MinValue`, a date nobody asked for. Both now throw `InvalidCastException`, as
+  the `int` and `uint` they hold do. `PdfLong` still reads its value as ticks (#87).
+
+- **PDF/A-1 now refuses a page's own transparency group.** The PDF/A-1 transparency rule looked at
+  a page's images, graphics states and forms, but not at the page's own `/Group`. So a PDF/A-1
+  document holding a page imported with a group saved without error and then failed validation.
+  The group is now refused under part 1 only, the same as other transparency. A page imported
+  with a `/UserUnit` or a `/Tabs` is refused under PDF/A-1 too, because those entries raise the
+  version past the 1.4 PDF/A-1 allows (#86).
+
+- **An undefined `SymbolName` is refused rather than written as MDDDL that cannot be read back.**
+  `Character.SymbolName` accepted any value, and one with the top nibble set that named no symbol
+  was written out as `\symbol(<number>)`, which the parser rejects. It now throws
+  `ArgumentException`, as every other DOM enum property does; a character code, top nibble clear,
+  is still accepted as before. A `Character` now keeps its symbol and its character in separate
+  fields, and reads, the value model and MDDDL output are unchanged (#92).
+
+- **A stream given to a dictionary through `PdfDictionary.Stream` is written with its `/Length`.**
+  Only `CreateStream` used to write the entry, so a dictionary given another dictionary's stream, or
+  a stream from `PdfStream.Clone()`, was written with no `/Length` in a Release build. A shared
+  stream whose data changed left the second dictionary declaring the old length. Assigning `Value`
+  on a cloned stream threw a `NullReferenceException`. The length is now written when the stream is
+  assigned, and checked again when the dictionary is written (#93).
+
+- **An outline entry can be in one list only, and removing entries no longer breaks the file.** An
+  entry already in a collection, from another document, or being placed under itself or anything
+  below it is now refused with an `InvalidOperationException` or `ArgumentException` that says what
+  to do instead. These used to write an entry that pointed to itself, put one entry in two lists,
+  or overflow the stack on save. Removing entries from a document that had been saved or read left
+  links to them, and the file then failed to reopen. Just reading `document.Outlines` made the
+  catalog point to an outline that was never written. An entry replaced through the indexer, or
+  removed, can now be added again anywhere, including after a save (#93).
+
+- **A page removed and inserted again after a save is written with its content.** The save gave the
+  removed page's object number to another object, and the next save threw "An item with the same
+  key has already been added". The page, and everything it points to, now comes back under a
+  number of its own (#93).
 
 - **A number sign in a content-stream name no longer stops the whole stream from being read.**
   `/A#ZZ`, a single hex digit after `#`, or a `#` at the end of the content threw a
