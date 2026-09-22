@@ -189,9 +189,12 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         //int count = Elements.Count;
         var keys = Elements.KeyNames;
 
-        // TODO: automatically set length
-        if (_stream != null)
-            Debug.Assert(Elements.ContainsKey(PdfStream.Keys.Length), "Dictionary has a stream but no length is set.");
+        // The stream's own length is the one the file has to declare, whatever the entry says by
+        // now. A stream keeps /Length current only in the dictionary that owns it, so one shared
+        // with this dictionary through the Stream setter can have changed since it was assigned.
+        // The writer encrypts the data as it writes it, after this entry, which holds only because
+        // RC4 — the one cipher this library writes with — keeps the length.
+        DeclareStreamLength();
 
         foreach (var key in keys)
             WriteDictionaryElement(writer, key);
@@ -232,12 +235,40 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
     /// Gets or sets the PDF stream belonging to this dictionary. Returns null if the dictionary has
     /// no stream. To create the stream, call the CreateStream function.
     /// </summary>
+    /// <remarks>
+    /// Assigning a stream writes its length into <c>/Length</c>. A stream belonging to no
+    /// dictionary, such as the one <see cref="PdfStream.Clone"/> answers, becomes this one's.
+    /// </remarks>
     public PdfStream Stream
     {
         get => _stream;
-        set => _stream = value;
+        set
+        {
+            _stream = value;
+            if (value == null)
+                return;
+
+            value.AdoptIfUnowned(this);
+            DeclareStreamLength();
+        }
     }
     PdfStream _stream;
+
+    /// <summary>
+    /// Writes the stream's length into <c>/Length</c>, unless the entry already says it — so that
+    /// a dictionary read from a file, whose entry is right, is not marked as changed.
+    /// </summary>
+    void DeclareStreamLength()
+    {
+        if (_stream == null)
+            return;
+
+        var length = _stream.Length;
+        if (Elements[PdfStream.Keys.Length] is PdfInteger declared && declared.Value == length)
+            return;
+
+        Elements.SetInteger(PdfStream.Keys.Length, length);
+    }
 
     /// <summary>
     /// Creates the stream of this dictionary and initializes it with the specified byte array.
@@ -1475,6 +1506,15 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
 
             // Set owners stream to this.
             _ownerDictionary._stream = this;
+        }
+
+        /// <summary>
+        /// Makes <paramref name="dict"/> the owner of a stream that has none, which is what
+        /// <see cref="Clone"/> answers. A stream that already belongs to a dictionary keeps it.
+        /// </summary>
+        internal void AdoptIfUnowned(PdfDictionary dict)
+        {
+            _ownerDictionary ??= dict;
         }
 
         /// <summary>
