@@ -202,7 +202,6 @@ static class FontHelper
                     ArrayPool<char>.Shared.Return(line);
                 }
 
-                // What? size.Width = maxWidth * font.Size * (font.Italic ? 1 : 1) / descriptor.UnitsPerEm;
                 size.Width = maxWidth * format.HorizontalScaling / 100;
                 size.Height = height;
             }

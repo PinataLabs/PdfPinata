@@ -905,7 +905,6 @@ internal sealed class Parser
                 var pdfObject = (PdfDictionary)ReadObject(null, iref.ObjectID, false, false);
                 var objectStream = new PdfObjectStream(pdfObject);
                 Debug.Assert(objectStream.Reference == iref);
-                // objectStream.Reference = iref; Superfluous, see Assert in line before.
                 Debug.Assert(objectStream.Reference.Value != null, "Something went wrong.");
             }
             catch (Exception ex)
@@ -924,7 +923,6 @@ internal sealed class Parser
 
             objectStreamStream = new PdfObjectStream((PdfDictionary)iref.Value);
             Debug.Assert(objectStreamStream.Reference == iref);
-            // objectStream.Reference = iref; Superfluous, see Assert in line before.
             Debug.Assert(objectStreamStream.Reference.Value != null, "Something went wrong.");
         }
 
@@ -953,7 +951,6 @@ internal sealed class Parser
                 var pdfObject = (PdfDictionary)ReadObject(null, iref.ObjectID, false, false);
                 var objectStream = new PdfObjectStream(pdfObject);
                 Debug.Assert(objectStream.Reference == iref);
-                // objectStream.Reference = iref; Superfluous, see Assert in line before.
                 Debug.Assert(objectStream.Reference.Value != null, "Something went wrong.");
             }
             catch (Exception ex)
@@ -972,7 +969,6 @@ internal sealed class Parser
 
             objectStreamStream = new PdfObjectStream((PdfDictionary)iref.Value);
             Debug.Assert(objectStreamStream.Reference == iref);
-            // objectStream.Reference = iref; Superfluous, see Assert in line before.
             Debug.Assert(objectStreamStream.Reference.Value != null, "Something went wrong.");
         }
 

@@ -505,6 +505,5 @@ public class DocumentRenderer
         get => privateFonts;
         set => privateFonts = value;
     }
-    //[DV]
     internal XPrivateFontCollection privateFonts;
 }
