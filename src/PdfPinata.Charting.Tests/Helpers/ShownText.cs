@@ -104,7 +104,9 @@ internal static class ShownText
         string face = null;
         double size = 0;
         var fill = PaintedRectangles.Grey(0);
-        var saved = new Stack<string>();
+        // The text state is part of the graphics state (ISO 32000-1 Table 52), so q and Q save and
+        // restore the font and its size together with the fill.
+        var saved = new Stack<(string Fill, Decoding Current, string Face, double Size)>();
 
         // Where the current line starts, and where the next glyph goes. A chart draws one run per
         // line, so the two only differ if one ever writes two runs without moving between them.
@@ -118,12 +120,12 @@ internal static class ShownText
             switch (op.OpCode.OpCodeName)
             {
                 case OpCodeName.q:
-                    saved.Push(fill);
+                    saved.Push((fill, current, face, size));
                     break;
 
                 case OpCodeName.Q:
                     if (saved.Count > 0)
-                        fill = saved.Pop();
+                        (fill, current, face, size) = saved.Pop();
                     break;
 
                 case OpCodeName.rg:
