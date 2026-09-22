@@ -82,6 +82,22 @@ public class CodeOmrTests
         code.StandardMarkDistance.Should().Be(MarkDistance.Inch2_8);
     }
 
+    [Theory]
+    [InlineData(6, MarkDistance.Inch1_6)]
+    [InlineData(3, MarkDistance.Inch2_6)]
+    [InlineData(4, MarkDistance.Inch2_8)]
+    public void AStandardDistanceGivenInMillimetresReadsAsTheOneItIs(int perInch, MarkDistance expected)
+    {
+        // 25.4 / 6 mm converts to 12.000000000000002 points and 25.4 / 3 mm to 24.000000000000004:
+        // the pitch named, short of the last bit. Compared exactly, those read as no standard
+        // distance at all, although MakerDistance is a double any unit converts into.
+        var code = Omr();
+
+        code.MakerDistance = XUnit.FromMillimeter(25.4 / perInch);
+
+        code.StandardMarkDistance.Should().Be(expected);
+    }
+
     [Fact]
     public void ADistanceInPointsThatIsNoStandardOneReadsAsNull()
     {

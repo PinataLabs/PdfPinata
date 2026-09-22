@@ -29,6 +29,7 @@
 
 using System;
 using System.ComponentModel;
+using PdfPinata.Internal;
 
 namespace PdfPinata.Drawing.BarCodes;
 
@@ -140,7 +141,7 @@ public class CodeOmr : BarCode
         {
             foreach (MarkDistance distance in Enum.GetValues(typeof(MarkDistance)))
             {
-                if (ToUnit(distance).Point == _makerDistance)
+                if (DoubleUtil.AreClose(ToUnit(distance).Point, _makerDistance))
                     return distance;
             }
             return null;
@@ -161,8 +162,9 @@ public class CodeOmr : BarCode
     /// <returns>The distance between two marks.</returns>
     public static XUnit ToUnit(MarkDistance markDistance)
     {
-        // In points rather than as fractions of an inch, so that each is exact and a distance
-        // assigned through MakerDistance compares equal to the one it names.
+        // In points rather than as fractions of an inch, so that each is exact. A distance
+        // assigned through MakerDistance need not be: 25.4 / 6 mm is 12.000000000000002 points,
+        // which is why StandardMarkDistance compares within a tolerance rather than exactly.
         switch (markDistance)
         {
             case MarkDistance.Inch1_6:
