@@ -21,9 +21,10 @@ public class ImportedPageEntriesTests
     /// <summary>
     ///   One page, carrying each entry a page import is to copy and one it is not. The page group
     ///   names as its colour space the very object the resources name, object 4, so whether it
-    ///   was imported once or twice shows in the output.
+    ///   was imported once or twice shows in the output. <paramref name="entries" /> is the rest
+    ///   of the page dictionary, the group and the resources aside.
     /// </summary>
-    static byte[] SourceDocument()
+    static byte[] SourceDocument(string entries = AllEntries)
     {
         return RawPdf.Build(
         [
@@ -31,23 +32,25 @@ public class ImportedPageEntriesTests
             "<</Type/Pages/Kids[3 0 R]/Count 1>>",
             "<</Type/Page/Parent 2 0 R/MediaBox[0 0 200 200]" +
             "/Resources<</ColorSpace<</CS0 4 0 R>>>>/Contents 5 0 R" +
-            "/Group<</Type/Group/S/Transparency/CS 4 0 R/I true>>" +
-            "/UserUnit 2.5/Tabs/R/Trans<</Type/Trans/S/Dissolve/D 1.5>>/Dur 3" +
-            "/StructParents 0>>",
+            "/Group<</Type/Group/S/Transparency/CS 4 0 R/I true>>" + entries + ">>",
             "[/ICCBased 6 0 R]",
             RawPdf.Stream("", "/CS0 cs 1 0 0 sc 10 10 50 50 re f"),
             RawPdf.Stream("/N 3", "not really a profile")
         ]);
     }
 
+    const string AllEntries =
+        "/UserUnit 2.5/Tabs/R/Trans<</Type/Trans/S/Dissolve/D 1.5>>/Dur 3/StructParents 0";
+
     public static TheoryData<string> ImportPaths => ["Add", "Insert", "InsertRange"];
 
-    static PdfDocument Imported(string path, Action<PdfPage> drawOn = null)
+    static PdfDocument Imported(string path, Action<PdfPage> drawOn = null, string entries = AllEntries)
     {
-        using var input = new MemoryStream(SourceDocument());
+        using var input = new MemoryStream(SourceDocument(entries));
         var source = Pdf.IO.PdfReader.Open(input, PdfDocumentOpenMode.Import);
 
-        var target = new PdfDocument();
+        // Written as PDF 1.4 unless the import raises it, so that a raise shows.
+        var target = new PdfDocument { Version = 14 };
         switch (path)
         {
             case "Add":
@@ -125,7 +128,9 @@ public class ImportedPageEntriesTests
     [InlineData(PdfAConformance.PdfA2B, false)]
     public void AnImportedTransparencyGroupIsRefusedUnderPdfA1Alone(PdfAConformance conformance, bool refused)
     {
-        using var input = new MemoryStream(SourceDocument());
+        // The group alone, since a user unit or a tab order would raise the version past what
+        // PDF/A-1 allows and be refused for that instead.
+        using var input = new MemoryStream(SourceDocument(""));
         var source = Pdf.IO.PdfReader.Open(input, PdfDocumentOpenMode.Import);
 
         var target = new PdfDocument();
@@ -140,6 +145,36 @@ public class ImportedPageEntriesTests
             saving.Should().Throw<InvalidOperationException>().WithMessage("*PDF/A-1*transparency group*");
         else
             saving.Should().NotThrow();
+    }
+
+    [Theory]
+    [InlineData("/UserUnit 2.5", 16)]
+    [InlineData("/Tabs/R", 15)]
+    [InlineData("/Tabs/C", 15)]
+    public void AnEntryNewerThanTheDocumentRaisesItsVersion(string entries, int version)
+    {
+        Imported("Add", entries: entries).Version.Should().BeGreaterThanOrEqualTo(version);
+    }
+
+    [Fact]
+    public void AnImportedPageWithNoNewerEntryLeavesTheVersionAlone()
+    {
+        Imported("Add", entries: "").Version.Should().Be(14);
+    }
+
+    [Theory]
+    [InlineData("/R", "/R")]
+    [InlineData("/C", "/C")]
+    [InlineData("/S", null)]
+    public void StructureOrderIsDroppedBecauseTheStructureTreeStaysBehind(string tabs, string expected)
+    {
+        var page = Imported("Add", entries: "/Tabs" + tabs).Pages[0];
+
+        if (expected == null)
+            page.Elements.ContainsKey("/Tabs").Should().BeFalse(
+                "structure order names a structure tree that importing a page does not bring along");
+        else
+            page.Elements.GetName("/Tabs").Should().Be(expected);
     }
 
     [Fact]

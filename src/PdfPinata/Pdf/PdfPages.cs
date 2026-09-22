@@ -543,7 +543,22 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         // A user unit scales default user space, so without it the page comes out a different
         // physical size.
         CloneElement(page, importPage, PdfPage.Keys.UserUnit, true);
+        // /UserUnit arrives in PDF 1.6 and /Tabs in PDF 1.5, so a page bringing either raises
+        // the document to that version. Raising never lowers, and a PDF/A-1 claim, which is held
+        // to PDF 1.4, refuses the raised version rather than writing a header it forbids.
+        if (page.Elements.ContainsKey(PdfPage.Keys.UserUnit))
+            PdfVersionRequirements.Require(_document, 16);
+
         CloneElement(page, importPage, PdfPage.Keys.Tabs, true);
+        // Structure order, /S, orders the annotations by the structure tree, and the tree is not
+        // imported: no import path carries it or the annotations' /StructParent mappings over.
+        // So an /S could only point at a structure this document does not have. It is dropped,
+        // and the page falls back to the default order; if this document is tagged later, the
+        // structure builder writes an /S of its own. Row and column order stand on their own.
+        if (page.Elements.GetName(PdfPage.Keys.Tabs) == "/S")
+            page.Elements.Remove(PdfPage.Keys.Tabs);
+        if (page.Elements.ContainsKey(PdfPage.Keys.Tabs))
+            PdfVersionRequirements.Require(_document, 15);
         // The presentation entries: a transition dictionary holds only names and numbers, and
         // the display duration is a number.
         CloneElement(page, importPage, PdfPage.Keys.Trans, true);
