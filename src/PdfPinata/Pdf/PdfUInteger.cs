@@ -109,12 +109,13 @@ public sealed class PdfUInteger : PdfNumber, IConvertible
     }
 
     /// <summary>
-    /// Returns an undefined DateTime structure.
+    /// Not supported: an integer is not a point in time, and <see cref="UInt32"/> refuses the
+    /// conversion the same way.
     /// </summary>
+    /// <exception cref="InvalidCastException">Always.</exception>
     public DateTime ToDateTime(IFormatProvider provider)
     {
-        // TODO:  Add PdfUInteger.ToDateTime implementation
-        return new DateTime();
+        throw new InvalidCastException("Invalid cast from 'PdfUInteger' to 'DateTime'.");
     }
 
     /// <summary>

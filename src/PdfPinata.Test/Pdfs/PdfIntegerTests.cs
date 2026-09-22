@@ -17,9 +17,8 @@ namespace PdfPinata.Test.Pdfs;
 ///   same conversion of the <see cref="int"/> it wraps would answer, overflow included.
 ///
 ///   <para>
-///   Two members are left out on purpose and reported rather than pinned: <c>ToDateTime</c> is a
-///   stub that answers <see cref="DateTime.MinValue"/> where <see cref="Convert.ToDateTime(int)"/>
-///   throws, and <c>ToSByte</c> throws for every value, including those that fit.
+///   One member is left out on purpose and reported rather than pinned: <c>ToSByte</c> throws for
+///   every value, including those that fit.
 ///   </para>
 /// </summary>
 public class PdfIntegerTests
@@ -195,6 +194,20 @@ public class PdfIntegerTests
         var item = reread.Internals.Catalog.Elements["/TestValue"];
         item.Should().BeOfType<PdfIntegerValue>().Which.Value.Should().Be(number);
         reread.Internals.Catalog.Elements.GetInteger("/TestValue").Should().Be(number);
+    }
+
+    [Fact]
+    public void ConvertingToADateTimeIsRefusedAsItIsForTheIntItWraps()
+    {
+        // It used to answer DateTime.MinValue, a date nobody asked for, where Int32 throws.
+        IConvertible value = new PdfIntegerValue(42);
+
+        var convert = () => value.ToDateTime(null);
+        var throughConvert = () => Convert.ToDateTime(value);
+
+        convert.Should().Throw<InvalidCastException>().WithMessage("*PdfInteger*DateTime*");
+        throughConvert.Should().Throw<InvalidCastException>();
+        ((Func<DateTime>)(() => Convert.ToDateTime(42))).Should().Throw<InvalidCastException>();
     }
 
     private static byte[] Save(PdfDocument document)

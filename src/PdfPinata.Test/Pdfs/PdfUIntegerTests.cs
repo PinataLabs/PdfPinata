@@ -17,8 +17,8 @@ namespace PdfPinata.Test.Pdfs;
 ///   <para>
 ///   The lexer never reads a number as unsigned: what fits an <see cref="int"/> comes back as a
 ///   <see cref="PdfPinata.Pdf.PdfInteger"/> and what does not as a <see cref="PdfLong"/>, so a
-///   round trip keeps the number and not the type. <c>ToDateTime</c> and <c>ToSByte</c> are left
-///   out for the reason the class comment of <see cref="PdfIntegerTests"/> gives.
+///   round trip keeps the number and not the type. <c>ToSByte</c> is left out for the reason the
+///   class comment of <see cref="PdfIntegerTests"/> gives.
 ///   </para>
 /// </summary>
 public class PdfUIntegerTests
@@ -39,6 +39,20 @@ public class PdfUIntegerTests
     public void AnUnsignedIntegerIsSpelledAsTheInvariantCultureSpellsIt(uint number, string expected)
     {
         new PdfUInteger(number).ToString().Should().Be(expected);
+    }
+
+    [Fact]
+    public void ConvertingToADateTimeIsRefusedAsItIsForTheUIntItWraps()
+    {
+        // It used to answer DateTime.MinValue, a date nobody asked for, where UInt32 throws.
+        var value = new PdfUInteger(42);
+
+        var convert = () => value.ToDateTime(null);
+        var throughConvert = () => Convert.ToDateTime(value);
+
+        convert.Should().Throw<InvalidCastException>().WithMessage("*PdfUInteger*DateTime*");
+        throughConvert.Should().Throw<InvalidCastException>();
+        ((Func<DateTime>)(() => Convert.ToDateTime(42u))).Should().Throw<InvalidCastException>();
     }
 
     [Fact]
