@@ -10,14 +10,14 @@ using Xunit;
 namespace PdfPinata.Test.Pdfs.Content;
 
 /// <summary>
-///   A literal string in a content stream is scanned by one of two loops, chosen by the byte order
-///   mark: one reading a byte at a time and one reading two. <see cref="CLexerTests"/> covers the
-///   8-bit loop's escapes, brackets and line continuations; this covers the 16-bit loop's, which
-///   are a second copy of the same switch and can drift from the first without anything noticing.
+///   A literal string in a content stream that opens with a UTF-16 byte order mark has its escapes
+///   resolved on the bytes, like any other, and is decoded from the bytes that leaves.
+///   <see cref="CLexerTests"/> covers the escapes, brackets and line continuations of an 8-bit
+///   string; this covers the same inside a wide one.
 ///   <para>
-///   The escapes are the part where the two loops are genuinely different, not merely duplicated:
-///   the backslash and what follows it are read as <em>single bytes</em> in the middle of a stream
-///   of pairs, so a named escape inside a UTF-16 string is three bytes rather than two characters.
+///   The escapes are where a wide string needs looking at on its own: the backslash and what
+///   follows it are <em>single bytes</em> in the middle of a stream of pairs, so a named escape
+///   inside a UTF-16 string is three bytes rather than two characters.
 ///   </para>
 /// </summary>
 public class CLexerUnicodeStringTests
@@ -100,33 +100,66 @@ public class CLexerUnicodeStringTests
     // ----- the line continuation --------------------------------------------------------------------
 
     /// <summary>
-    ///   A line continuation inside a wide string loses the loop its alignment, and this pins that
-    ///   rather than claiming otherwise. The 8-bit loop reads one character per byte, so resuming
-    ///   after the line ending with a single read is right there; the wide loop reads two bytes per
-    ///   character, and resuming with one leaves every pair after it straddling two characters.
-    ///   Here the wide 'b' and the closing bracket are paired into U+6229, and the string runs on
-    ///   past the terminator that should have ended it.
-    ///   <para>
-    ///   The source says as much beside the switch — "TODO: not sure that this is correct". Nothing
-    ///   in this library writes a continuation into a UTF-16 string, so no document built here meets
-    ///   it, but a file from elsewhere could.
-    ///   </para>
+    ///   A line continuation is a backslash and an end of line, two or three bytes that stand for
+    ///   nothing, written between two characters' byte pairs. The wide loop used to read the
+    ///   string two bytes at a time and work the escape out on a code unit, so resuming after the
+    ///   line ending left every pair after it straddling two characters, and the string ran on past
+    ///   the parenthesis that closed it. The escapes are resolved on the bytes now, and the string
+    ///   decoded afterwards.
     /// </summary>
     [Theory(Timeout = 5000)]
-    [InlineData((byte)'\n')]
-    [InlineData((byte)'\r')]
-    public async Task AContinuationInsideAWideStringLosesTheLoopItsAlignment(byte lineEnding)
+    [InlineData(new byte[] { (byte)'\n' })]
+    [InlineData(new byte[] { (byte)'\r' })]
+    public async Task AContinuationInsideAWideStringJoinsTheCharactersEitherSideOfIt(byte[] lineEnding)
     {
-        var content = BigEndianString(Concat(Wide('a'), Wide('\\'), [lineEnding], Wide('b')));
+        var content = BigEndianString(Concat(Wide('a'), [(byte)'\\'], lineEnding, Wide('b')));
 
         var scanned = await TheStringIn(content);
 
-        scanned.Should().HaveLength(3);
-        scanned[0].Should().Be('a');
-        ((int)scanned[1]).Should().Be(0,
-            "the high byte of the wide 'b' was taken for a whole character");
-        ((int)scanned[2]).Should().Be(0x6229,
-            "and its low byte was paired with the closing bracket, terminator and all");
+        scanned.Should().Be("ab");
+    }
+
+    [Fact(Timeout = 5000)]
+    public async Task AContinuationInsideALittleEndianStringJoinsTheCharactersEitherSideOfIt()
+    {
+        var content = new List<byte> { (byte)'(', 0xFF, 0xFE };
+        content.AddRange([(byte)'a', 0x00]);
+        content.AddRange([(byte)'\\', (byte)'\n']);
+        content.AddRange([(byte)'b', 0x00]);
+        content.Add((byte)')');
+
+        var scanned = await TheStringIn(content.ToArray());
+
+        scanned.Should().Be("ab");
+    }
+
+    /// <summary>
+    ///   An escape is a matter of bytes, so a backslash is whichever byte is 0x5C, whether it is
+    ///   the low byte of a pair or not. Here the wide backslash's high byte is a stray zero, and the
+    ///   continuation after its low byte takes the next character's high byte into that zero's
+    ///   place - which is what the bytes say, and what the document lexer reads too. What matters
+    ///   is that the string still ends at its closing parenthesis, and the tokens after it are read.
+    /// </summary>
+    [Fact(Timeout = 5000)]
+    public async Task AContinuationAfterAWideBackslashStillEndsTheStringAtItsParenthesis()
+    {
+        var content = Concat(
+            BigEndianString(Concat(Wide('a'), Wide('\\'), [(byte)'\n'], Wide('b'))),
+            Encoding.ASCII.GetBytes(" Tj"));
+
+        var tokens = await Interruptibly.Run(() =>
+        {
+            var lexer = new CLexer(content);
+            var scanned = new List<(CSymbol, string)>();
+            CSymbol symbol;
+            while ((symbol = lexer.ScanNextToken()) != CSymbol.Eof)
+                scanned.Add((symbol, lexer.Token));
+            return scanned;
+        });
+
+        // 00 61 | 00 [5C 0A] 00 62 | 00 padded: 'a', U+0000 and U+6200.
+        var expected = new string(['a', (char)0x0000, (char)0x6200]);
+        tokens.Should().Equal((CSymbol.UnicodeString, expected), (CSymbol.Operator, "Tj"));
     }
 
     // ----- brackets -----------------------------------------------------------------------------------
@@ -153,17 +186,19 @@ public class CLexerUnicodeStringTests
         scanned.Should().Be("a((b))c");
     }
 
-    // ----- the little-endian loop ---------------------------------------------------------------------
+    // ----- the little-endian byte order ---------------------------------------------------------------
 
     [Fact(Timeout = 5000)]
-    public async Task AnEscapeIsReadTheSameWayRoundInALittleEndianString()
+    public async Task AnEscapeInALittleEndianStringStandsForTheByteItIsWrittenIn()
     {
-        // The switch sees the wide character the pair spells rather than the bytes it was written
-        // as, so the backslash has to be spelled the little-endian way round like everything else.
+        // An escape stands for one byte wherever it falls, so the line feed U+000A is written the
+        // little-endian way round as the escaped byte 0A followed by its high byte 00. This test
+        // used to write the backslash as the pair 5C 00 and the 'n' after it, which only a loop
+        // working the escape out on a code unit read as a line feed: the byte after the backslash
+        // there is the zero.
         var content = new List<byte> { (byte)'(', 0xFF, 0xFE };
         content.AddRange([(byte)'a', 0x00]);
-        content.AddRange([0x5C, 0x00]);
-        content.Add((byte)'n');
+        content.AddRange([0x5C, (byte)'n', 0x00]);
         content.AddRange([(byte)'b', 0x00]);
         content.Add((byte)')');
 

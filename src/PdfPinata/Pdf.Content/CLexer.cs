@@ -69,6 +69,7 @@ public class CLexer
         Again:
         ClearToken();
         var ch = MoveToNonWhiteSpace();
+        _tokenStart = CurrentCharIndex;
         switch (ch)
         {
             case '%':
@@ -142,27 +143,52 @@ public class CLexer
     }
 
     /// <summary>
-    /// Scans the bytes of an inline image.
-    /// NYI: Just scans over it.
+    /// Scans an inline image, from just after its <c>BI</c> to just after its <c>EI</c>, and keeps
+    /// what it holds in <see cref="InlineImageDictionary"/> and <see cref="InlineImageData"/>:
+    /// <code>
+    /// BI
+    /// … key-value pairs …
+    /// ID
+    /// … image data …
+    /// EI
+    /// </code>
     /// </summary>
+    /// <remarks>
+    /// Nothing says how long the image data is short of decoding it, so its end is found by looking
+    /// for the bytes <c>EI</c> - after the <c>~&gt;</c> that ends ASCII85 data, which may itself hold
+    /// them. Binary data can hold them too, and then the guess is wrong. A content stream that ends
+    /// before the image does leaves the image running to the end of the content.
+    /// </remarks>
     public CSymbol ScanInlineImage()
     {
-        // TODO: Implement inline images.
-        // Skip this:
-        // BI
-        // … Key-value pairs …
-        // ID
-        // … Image data …
-        // EI
-
+        var dictionaryStart = CurrentCharIndex;
+        var dictionaryEnd = ContLength;
+        var foundData = false;
         var ascii85 = false;
-        do
+        while (ScanNextToken() != CSymbol.Eof)
         {
-            ScanNextToken();
             // HACK: Is image ASCII85 decoded?
             if (!ascii85 && _symbol == CSymbol.Name && (Token == "/ASCII85Decode" || Token == "/A85"))
                 ascii85 = true;
-        } while (_symbol != CSymbol.Operator || Token != "ID");
+
+            if (_symbol == CSymbol.Operator && Token == "ID")
+            {
+                dictionaryEnd = _tokenStart;
+                foundData = true;
+                break;
+            }
+        }
+        InlineImageDictionary = RawText(dictionaryStart, dictionaryEnd).Trim(WhiteSpaceCharacters);
+
+        // ID is followed by a single white-space character, which separates it from the data
+        // rather than belonging to it.
+        var dataStart = ContLength;
+        if (foundData)
+        {
+            dataStart = dictionaryEnd + 2;
+            if (dataStart < ContLength && IsWhiteSpace((char)_content[dataStart]))
+                dataStart++;
+        }
 
         if (ascii85)
         {
@@ -177,9 +203,63 @@ public class CLexer
         while (_currChar != Chars.EOF && (_currChar != 'E' || _nextChar != 'I'))
             ScanNextChar();
 
-        // We currently do nothing with inline images.
+        // The white space before EI separates it from the data, as the one after ID does, and is
+        // not kept: CInlineImage writes a separator of its own, so keeping this one too would
+        // add a byte to the data every time the content was read and written back.
+        var dataEnd = CurrentCharIndex;
+        if (foundData && _currChar != Chars.EOF && dataEnd > dataStart && IsWhiteSpace((char)_content[dataEnd - 1]))
+            dataEnd--;
+        InlineImageData = new byte[Math.Max(0, dataEnd - dataStart)];
+        if (InlineImageData.Length > 0)
+            Array.Copy(_content, dataStart, InlineImageData, 0, InlineImageData.Length);
+
+        // Step over the EI itself, so that it is not read again as an operator of its own.
+        if (_currChar != Chars.EOF)
+        {
+            ScanNextChar();
+            ScanNextChar();
+        }
+
         return CSymbol.None;
     }
+
+    /// <summary>
+    /// The entries of the inline image <see cref="ScanInlineImage"/> last read, as they were
+    /// written between its <c>BI</c> and <c>ID</c>, one character per byte and without the white
+    /// space around them.
+    /// </summary>
+    internal string InlineImageDictionary { get; private set; } = "";
+
+    /// <summary>
+    /// The bytes of the inline image <see cref="ScanInlineImage"/> last read, from after the white
+    /// space that follows its <c>ID</c> to just before the white space that precedes its <c>EI</c>.
+    /// </summary>
+    internal byte[] InlineImageData { get; private set; } = [];
+
+    static readonly char[] WhiteSpaceCharacters = [Chars.NUL, Chars.HT, Chars.LF, Chars.FF, Chars.CR, Chars.SP];
+
+    /// <summary>The bytes of the content from one index up to another, one character per byte.</summary>
+    string RawText(int start, int end)
+    {
+        if (end <= start)
+            return "";
+
+        var text = new StringBuilder(end - start);
+        for (var idx = start; idx < end; idx++)
+            text.Append((char)_content[idx]);
+        return text.ToString();
+    }
+
+    /// <summary>
+    /// The index in the content of <see cref="_currChar"/>, or the length of the content once it is
+    /// exhausted. <see cref="_nextChar"/> is read one byte ahead, so the current character is two
+    /// behind <see cref="_charIndex"/> - except at the very end, where nothing is read to follow it.
+    /// A carriage return folded together with the line feed after it is at the line feed's index.
+    /// </summary>
+    int CurrentCharIndex =>
+        _currChar == Chars.EOF ? ContLength
+        : _nextChar == Chars.EOF ? ContLength - 1
+        : _charIndex - 2;
 
     /// <summary>
     /// Scans a name.
@@ -197,16 +277,16 @@ public class CLexer
             if (IsWhiteSpace(ch) || IsDelimiter(ch) || ch == Chars.EOF)
                 return _symbol = CSymbol.Name;
 
-            if (ch == '#')
+            // A '#' followed by two hexadecimal digits stands for the byte they spell. Anything
+            // else after it - one digit, a character that is not a digit, or the end of the
+            // content - leaves the '#' as an ordinary character of the name, which is what it was
+            // before PDF 1.2 gave it a meaning. int.Parse used to be handed whatever two characters
+            // came next, and threw on /A#ZZ, taking the whole content stream down with it.
+            if (ch == '#' && IsHexChar(_nextChar) && IsHexChar(PeekAfterNextChar()))
             {
-                ScanNextChar();
-                var hex = new char[2];
-                hex[0] = _currChar;
-                hex[1] = _nextChar;
-                ScanNextChar();
-                // TODO Check syntax
-                ch = (char)(ushort)int.Parse(new string(hex), NumberStyles.AllowHexSpecifier);
-                _currChar = ch;
+                var high = ScanNextChar();
+                var low = ScanNextChar();
+                _currChar = (char)(HexValue(high) * 16 + HexValue(low));
             }
         }
     }
@@ -452,8 +532,22 @@ public class CLexer
         return _symbol = CSymbol.Operator;
     }
 
-    // TODO
     /// <summary>Scans a string written in parentheses, resolving the escapes inside it.</summary>
+    /// <remarks>
+    /// <para>
+    /// The escapes are resolved on the bytes first, and a string that opens with a UTF-16 byte
+    /// order mark is decoded afterwards, from the bytes that leaves - the order the document
+    /// lexer's <c>ScanLiteralString</c> works in. An escape in a literal string acts on bytes
+    /// whatever they go on to spell: <c>\n</c> is two bytes standing for one, and a backslash
+    /// before an end of line is two or three bytes standing for none, neither of which is a whole
+    /// number of UTF-16 code units.
+    /// </para>
+    /// <para>
+    /// A wide string used to be read two bytes at a time by a second copy of the loop, with each
+    /// escape worked out on a code unit. A line continuation then left every pair after it
+    /// straddling two characters, and the string ran on past the parenthesis that closed it.
+    /// </para>
+    /// </remarks>
     public CSymbol ScanLiteralString()
     {
         Debug.Assert(_currChar == Chars.ParenLeft);
@@ -464,244 +558,151 @@ public class CLexer
         // so a raw carriage return inside the string is kept rather than turned into a line feed,
         // and only an escaped one - '\' before either end-of-line spelling - continues the line.
         var ch = ScanNextChar(false);
-        // Test UNICODE string. The reference only names the big-endian byte order mark, but
-        // Adobe Reader also accepts the little-endian one - the document lexer's ScanLiteralString
-        // does too, decoding after the fact rather than character by character, and a byte-swapped
-        // string here should read the same text it does there.
-        var bigEndian = ch == '\xFE' && _nextChar == '\xFF';
-        var littleEndian = ch == '\xFF' && _nextChar == '\xFE';
-        if (bigEndian || littleEndian)
+        while (true)
         {
-            // I'm not sure if the code is correct in any case.
-            // ? Can a UNICODE character not start with ')' as hibyte
-            // ? What about \# escape sequences
-            ScanNextChar(false);
-            var first = ScanNextChar(false);
-            if (first == ')')
+            SkipChar:
+            // An unterminated string never sees its closing ')', so give up at the end
+            // of the content rather than appending Chars.EOF for ever.
+            if (ch == Chars.EOF)
+                return _symbol = DecodeLiteralString(terminated: false);
+
+            switch (ch)
             {
-                // The empty unicode string...
-                ScanNextChar(false);
-                return _symbol = CSymbol.UnicodeString;
-            }
-            var second = ScanNextChar(false);
-            ch = bigEndian ? (char)(first * 256 + second) : (char)(second * 256 + first);
-            while (true)
-            {
-                SkipChar:
-                // An unterminated string never sees its closing ')', so give up at the end
-                // of the content rather than scanning for ever.
-                if (_currChar == Chars.EOF)
-                    return _symbol = CSymbol.UnicodeString;
+                case '(':
+                    parenLevel++;
+                    break;
 
-                switch (ch)
-                {
-                    case '(':
-                        parenLevel++;
-                        break;
-
-                    case ')':
-                        if (parenLevel == 0)
-                        {
-                            ScanNextChar(false);
-                            return _symbol = CSymbol.UnicodeString;
-                        }
-                        parenLevel--;
-                        break;
-
-                    case '\\':
+                case ')':
+                    if (parenLevel == 0)
                     {
-                        // TODO: not sure that this is correct...
-                        ch = ScanNextChar(false);
-                        switch (ch)
-                        {
-                            case 'n':
-                                ch = Chars.LF;
-                                break;
-
-                            case 'r':
-                                ch = Chars.CR;
-                                break;
-
-                            case 't':
-                                ch = Chars.HT;
-                                break;
-
-                            case 'b':
-                                ch = Chars.BS;
-                                break;
-
-                            case 'f':
-                                ch = Chars.FF;
-                                break;
-
-                            case '(':
-                                ch = Chars.ParenLeft;
-                                break;
-
-                            case ')':
-                                ch = Chars.ParenRight;
-                                break;
-
-                            case '\\':
-                                ch = Chars.BackSlash;
-                                break;
-
-                            // A backslash right before either spelling of an end of line
-                            // continues the string onto the next one; neither the backslash nor
-                            // the line ending becomes part of it.
-                            case Chars.CR:
-                            case Chars.LF:
-                                ch = ScanNextChar(false);
-                                goto SkipChar;
-
-                            default:
-                                if (IsOctalDigit(ch))
-                                {
-                                    // Octal character code
-                                    var n = ch - '0';
-                                    if (IsOctalDigit(_nextChar))
-                                    {
-                                        n = n * 8 + ScanNextChar(false) - '0';
-                                        if (IsOctalDigit(_nextChar))
-                                            n = n * 8 + ScanNextChar(false) - '0';
-                                    }
-                                    ch = (char)n;
-                                }
-                                break;
-                        }
-                        break;
+                        ScanNextChar(false);
+                        return _symbol = DecodeLiteralString(terminated: true);
                     }
+                    parenLevel--;
+                    break;
 
-                    //case '#':
-                    //    ContentReaderDiagnostics.HandleUnexpectedCharacter('#');
-                    //    break;
-                }
-
-                // As in the 8-bit branch below: the end-of-file marker is not a character of the
-                // string. It reaches here when the content ends immediately after a backslash.
-                if (ch == Chars.EOF)
-                    return _symbol = CSymbol.UnicodeString;
-
-                _token.Append(ch);
-                first = ScanNextChar(false);
-                if (first == ')')
+                case '\\':
                 {
-                    ScanNextChar(false);
-                    return _symbol = CSymbol.UnicodeString;
-                }
-                second = ScanNextChar(false);
-                ch = bigEndian ? (char)(first * 256 + second) : (char)(second * 256 + first);
-            }
-        }
-        else
-        {
-            // 8-bit characters
-            while (true)
-            {
-                SkipChar:
-                // An unterminated string never sees its closing ')', so give up at the end
-                // of the content rather than appending Chars.EOF for ever.
-                if (ch == Chars.EOF)
-                    return _symbol = CSymbol.String;
-
-                switch (ch)
-                {
-                    case '(':
-                        parenLevel++;
-                        break;
-
-                    case ')':
-                        if (parenLevel == 0)
-                        {
-                            ScanNextChar(false);
-                            return _symbol = CSymbol.String;
-                        }
-                        parenLevel--;
-                        break;
-
-                    case '\\':
+                    ch = ScanNextChar(false);
+                    switch (ch)
                     {
-                        ch = ScanNextChar(false);
-                        switch (ch)
-                        {
-                            case 'n':
-                                ch = Chars.LF;
-                                break;
+                        case 'n':
+                            ch = Chars.LF;
+                            break;
 
-                            case 'r':
-                                ch = Chars.CR;
-                                break;
+                        case 'r':
+                            ch = Chars.CR;
+                            break;
 
-                            case 't':
-                                ch = Chars.HT;
-                                break;
+                        case 't':
+                            ch = Chars.HT;
+                            break;
 
-                            case 'b':
-                                ch = Chars.BS;
-                                break;
+                        case 'b':
+                            ch = Chars.BS;
+                            break;
 
-                            case 'f':
-                                ch = Chars.FF;
-                                break;
+                        case 'f':
+                            ch = Chars.FF;
+                            break;
 
-                            case '(':
-                                ch = Chars.ParenLeft;
-                                break;
+                        case '(':
+                            ch = Chars.ParenLeft;
+                            break;
 
-                            case ')':
-                                ch = Chars.ParenRight;
-                                break;
+                        case ')':
+                            ch = Chars.ParenRight;
+                            break;
 
-                            case '\\':
-                                ch = Chars.BackSlash;
-                                break;
+                        case '\\':
+                            ch = Chars.BackSlash;
+                            break;
 
-                            // A backslash right before either spelling of an end of line
-                            // continues the string onto the next one; neither the backslash nor
-                            // the line ending becomes part of it.
-                            case Chars.CR:
-                            case Chars.LF:
-                                ch = ScanNextChar(false);
-                                goto SkipChar;
+                        // A backslash right before either spelling of an end of line
+                        // continues the string onto the next one; neither the backslash nor
+                        // the line ending becomes part of it.
+                        case Chars.CR:
+                        case Chars.LF:
+                            ch = ScanNextChar(false);
+                            goto SkipChar;
 
-                            default:
-                                if (IsOctalDigit(ch))
+                        default:
+                            if (IsOctalDigit(ch))
+                            {
+                                // Octal character code.
+                                var n = ch - '0';
+                                if (IsOctalDigit(_nextChar))
                                 {
-                                    // Octal character code.
-                                    var n = ch - '0';
+                                    n = n * 8 + ScanNextChar(false) - '0';
                                     if (IsOctalDigit(_nextChar))
-                                    {
                                         n = n * 8 + ScanNextChar(false) - '0';
-                                        if (IsOctalDigit(_nextChar))
-                                            n = n * 8 + ScanNextChar(false) - '0';
-                                    }
-                                    ch = (char)n;
                                 }
-                                break;
-                        }
-                        break;
+                                ch = (char)n;
+                            }
+                            break;
                     }
-
-                    //case '#':
-                    //    ContentReaderDiagnostics.HandleUnexpectedCharacter('#');
-                    //    break;
+                    break;
                 }
-
-                // The end-of-file marker is not a character of the string. It reaches here when
-                // the content ends immediately after a backslash: the escape read the next
-                // character, which was the end, and the guard at the top of the loop had already
-                // been passed. Appending it put U+FFFF in the middle of the text.
-                if (ch == Chars.EOF)
-                    return _symbol = CSymbol.String;
-
-                _token.Append(ch);
-                //token.Append(Encoding.GetEncoding(1252).GetString(new byte[] { (byte)ch }));
-                ch = ScanNextChar(false);
             }
+
+            // The end-of-file marker is not a character of the string. It reaches here when
+            // the content ends immediately after a backslash: the escape read the next
+            // character, which was the end, and the guard at the top of the loop had already
+            // been passed. Appending it put U+FFFF in the middle of the text.
+            if (ch == Chars.EOF)
+                return _symbol = DecodeLiteralString(terminated: false);
+
+            _token.Append(ch);
+            ch = ScanNextChar(false);
         }
     }
 
-    // TODO
+    /// <summary>
+    /// Decodes the bytes <see cref="ScanLiteralString"/> has gathered in the token as UTF-16 when
+    /// they open with a byte order mark, and says which kind of string they turned out to be.
+    /// </summary>
+    /// <param name="terminated">
+    /// Whether the string reached its closing parenthesis. It decides what becomes of a lone
+    /// byte left over at the end: a string that ended properly is short of the low byte of its
+    /// last character, which is taken to be a zero as the document lexer takes it, while a string
+    /// the content cut off lost the rest of that character, and the half of it is dropped rather
+    /// than turned into a character nobody wrote.
+    /// </param>
+    CSymbol DecodeLiteralString(bool terminated)
+    {
+        // The reference only names the big-endian byte order mark, but Adobe Reader also accepts
+        // the little-endian one - the document lexer does too, and a byte-swapped string here
+        // should read the same text it does there.
+        var bigEndian = _token.Length >= 2 && _token[0] == '\xFE' && _token[1] == '\xFF';
+        var littleEndian = _token.Length >= 2 && _token[0] == '\xFF' && _token[1] == '\xFE';
+        if (!bigEndian && !littleEndian)
+            return CSymbol.String;
+
+        var bytes = _token.ToString();
+        var length = bytes.Length;
+        if ((length & 1) == 1)
+        {
+            if (terminated)
+            {
+                bytes += '\0';
+                ++length;
+            }
+            else
+            {
+                --length;
+            }
+        }
+
+        _token.Length = 0;
+        for (var idx = 2; idx < length; idx += 2)
+        {
+            _token.Append(bigEndian
+                ? (char)(bytes[idx] * 256 + bytes[idx + 1])
+                : (char)(bytes[idx + 1] * 256 + bytes[idx]));
+        }
+        return CSymbol.UnicodeString;
+    }
+
     /// <summary>Scans a string written in angle brackets as pairs of hexadecimal digits.</summary>
     public CSymbol ScanHexadecimalString()
     {
@@ -809,6 +810,15 @@ public class CLexer
     char ReadNextRawByte() => ContLength <= _charIndex ? Chars.EOF : (char)_content[_charIndex++];
 
     char ScanNextCharFolding() => ScanNextChar();
+
+    /// <summary>
+    /// The character after <see cref="_nextChar"/>, without reading it: the byte
+    /// <see cref="_charIndex"/> already points at, or <see cref="Chars.EOF"/> past the end.
+    /// </summary>
+    char PeekAfterNextChar() => ContLength <= _charIndex ? Chars.EOF : (char)_content[_charIndex];
+
+    /// <summary>The value of a character <see cref="IsHexChar"/> accepts.</summary>
+    static int HexValue(char ch) => ch <= '9' ? ch - '0' : (ch | 0x20) - 'a' + 10;
 
     /// <summary>
     /// Resets the current token to the empty string.
@@ -953,6 +963,8 @@ public class CLexer
     readonly Func<char> _scanNextCharFolding;
 
     readonly StringBuilder _token = new();
+    // Where in the content the token last scanned by ScanNextToken begins.
+    int _tokenStart;
     long _tokenAsLong;
     double _tokenAsReal;
     CSymbol _symbol = CSymbol.None;

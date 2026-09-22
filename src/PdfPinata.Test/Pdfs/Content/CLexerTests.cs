@@ -71,6 +71,38 @@ public class CLexerTests
         scanned.Token.Should().Be(expected);
     }
 
+    // A '#' in a name stands for the byte its two hexadecimal digits spell - including a
+    // delimiter or a blank, which the name then keeps rather than ending at.
+    [Theory(Timeout = 5000)]
+    [InlineData("/A#41 ", "/AA")]
+    [InlineData("/A#4a ", "/AJ")]
+    [InlineData("/A#20B ", "/A B")]
+    [InlineData("/A#2F", "/A/")]
+    public async Task ScanName_readsTwoHexDigitsAfterANumberSignAsTheByteTheySpell(string content, string expected)
+    {
+        var tokens = await ScanAll(new CLexer(Encoding.ASCII.GetBytes(content)));
+
+        TokensOf(tokens, CSymbol.Name).Should().Equal(expected);
+    }
+
+    // Anything other than two hexadecimal digits after a '#' leaves it as a character of the
+    // name. int.Parse was handed whatever two characters came next, so each of these threw a
+    // FormatException and the content stream could not be read at all.
+    [Theory(Timeout = 5000)]
+    [InlineData("/A#ZZ Q", "/A#ZZ")]
+    [InlineData("/A#4Z Q", "/A#4Z")]
+    [InlineData("/A#4 Q", "/A#4")]
+    [InlineData("/A# Q", "/A#")]
+    [InlineData("/A#4", "/A#4")]
+    [InlineData("/A#", "/A#")]
+    [InlineData("/A##41 Q", "/A#A")]
+    public async Task ScanName_keepsANumberSignNotFollowedByTwoHexDigits(string content, string expected)
+    {
+        var tokens = await ScanAll(new CLexer(Encoding.ASCII.GetBytes(content)));
+
+        TokensOf(tokens, CSymbol.Name).Should().Equal(expected);
+    }
+
     [Theory(Timeout = 5000)]
     [InlineData("<< /W 16", CSymbol.Dictionary)]
     [InlineData("(unterminated", CSymbol.String)]
