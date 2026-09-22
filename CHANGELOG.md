@@ -114,6 +114,11 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ### Changed
 
+- **A malformed date no longer throws inside the parser.** A date string that will not parse, such
+  as a bad `/CreationDate`, still falls back to the default it always did. It now gets there
+  without throwing and catching an exception, and without failing an assertion in a Debug build.
+  Every well-formed date reads exactly as before (#83).
+
 - **BREAKING: looping over a page's annotations yields `PdfAnnotation`, not `PdfItem`.**
   `PdfAnnotations.GetEnumerator` now returns `IEnumerator<PdfAnnotation>`, so
   `foreach (var annotation in page.Annotations)` needs no cast. Each annotation has the class
@@ -189,6 +194,17 @@ This file starts at the entry below. Changes before that point are recorded only
   Construct a value from its bytes with `new PdfCustomValue(byte[])`.
 
 ### Fixed
+
+- **A `#` in a name that does not begin a two-digit escape is kept rather than refused.** The
+  document lexer read the two characters after every `#` in a name as hexadecimal digits, so
+  `/A#ZZ`, a `#` followed by a single digit, or a `#` at the end of a name ended the read with a
+  `FormatException`. Only `#` followed by two hexadecimal digits is an escape (ISO 32000-1 7.3.5);
+  any other `#` is now kept as written, as readers do (#83).
+
+- **Cross-reference stream offsets past 2 GiB are read whole.** Each object's offset in a
+  cross-reference stream was cast to an `int`, so an object further than 2 GiB into the file was
+  looked for at a wrapped, usually negative, position. An offset written in a five-byte field also
+  lost its top byte. Offsets are now read as wide as the stream's `/W` says (#83).
 
 - **PDFDocEncoding can be decoded as well as written, and both directions follow ISO 32000-1
   Annex D.** The internal decoder threw `NotImplementedException`; it now reads codes 0x18 to 0x1F
