@@ -17,8 +17,7 @@ namespace PdfPinata.Test.Pdfs;
 ///   <para>
 ///   The lexer never reads a number as unsigned: what fits an <see cref="int"/> comes back as a
 ///   <see cref="PdfPinata.Pdf.PdfInteger"/> and what does not as a <see cref="PdfLong"/>, so a
-///   round trip keeps the number and not the type. <c>ToSByte</c> is left out for the reason the
-///   class comment of <see cref="PdfIntegerTests"/> gives.
+///   round trip keeps the number and not the type.
 ///   </para>
 /// </summary>
 public class PdfUIntegerTests
@@ -80,6 +79,7 @@ public class PdfUIntegerTests
         var value = new PdfUInteger(200);
 
         value.ToByte(null).Should().Be(200);
+        new PdfUInteger(5).ToSByte(null).Should().Be(5);
         value.ToInt16(null).Should().Be(200);
         value.ToUInt16(null).Should().Be(200);
         value.ToInt32(null).Should().Be(200);
@@ -95,6 +95,7 @@ public class PdfUIntegerTests
         FluentActions.Invoking(() => large.ToInt16(null)).Should().Throw<OverflowException>();
         FluentActions.Invoking(() => large.ToUInt16(null)).Should().Throw<OverflowException>();
         FluentActions.Invoking(() => large.ToByte(null)).Should().Throw<OverflowException>();
+        FluentActions.Invoking(() => new PdfUInteger(128).ToSByte(null)).Should().Throw<OverflowException>();
         FluentActions.Invoking(() => large.ToChar(null)).Should().Throw<OverflowException>();
     }
 

@@ -85,7 +85,7 @@ public sealed class PdfInteger : PdfNumber, IConvertible, IFormattable
 
     sbyte IConvertible.ToSByte(IFormatProvider provider)
     {
-        throw new InvalidCastException();
+        return Convert.ToSByte(_value);
     }
 
     ulong IConvertible.ToUInt64(IFormatProvider provider)
