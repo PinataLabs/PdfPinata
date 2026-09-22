@@ -224,12 +224,12 @@ internal static class PaintedRectangles
     internal static string ColourOf(XColor colour) =>
         Rgb(colour.R / 255.0, colour.G / 255.0, colour.B / 255.0);
 
-    private static string Rgb(double r, double g, double b) =>
+    internal static string Rgb(double r, double g, double b) =>
         string.Format(CultureInfo.InvariantCulture, "{0:0.###},{1:0.###},{2:0.###}", r, g, b);
 
-    private static string Grey(double level) => Rgb(level, level, level);
+    internal static string Grey(double level) => Rgb(level, level, level);
 
-    private static string Cmyk(double c, double m, double y, double k) =>
+    internal static string Cmyk(double c, double m, double y, double k) =>
         Rgb((1 - c) * (1 - k), (1 - m) * (1 - k), (1 - y) * (1 - k));
 
     private static double Number(CObject operand) => operand switch

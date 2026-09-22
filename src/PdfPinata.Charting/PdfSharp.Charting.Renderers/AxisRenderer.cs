@@ -48,7 +48,7 @@ internal abstract class AxisRenderer : Renderer
   /// Initializes the axis title of the rendererInfo. All missing font attributes will be taken
   /// from the specified defaultFont.
   /// </summary>
-  protected static void InitAxisTitle(AxisRendererInfo rendererInfo, XFont defaultFont)
+  protected static void InitAxisTitle(AxisRendererInfo rendererInfo, XFont defaultFont, XColor defaultColor)
   {
     if (rendererInfo.Axis.title != null)
     {
@@ -60,10 +60,7 @@ internal abstract class AxisRenderer : Renderer
       atri.AxisTitleAlignment = rendererInfo.Axis.title.alignment;
       atri.AxisTitleVerticalAlignment = rendererInfo.Axis.title.verticalAlignment;
       atri.AxisTitleFont = Converter.ToXFont(rendererInfo.Axis.title.font, defaultFont);
-      var fontColor = XColors.Black;
-      if (rendererInfo.Axis.title.font != null && !rendererInfo.Axis.title.font.color.IsEmpty)
-        fontColor = rendererInfo.Axis.title.font.color;
-      atri.AxisTitleBrush = new XSolidBrush(fontColor);
+      atri.AxisTitleBrush = Converter.ToXBrush(rendererInfo.Axis.title.font, defaultColor);
       atri.AxisTitleOrientation = rendererInfo.Axis.title.orientation;
     }
   }
@@ -72,15 +69,12 @@ internal abstract class AxisRenderer : Renderer
   /// Initializes the tick labels of the rendererInfo. All missing font attributes will be taken
   /// from the specified defaultFont.
   /// </summary>
-  protected void InitTickLabels(AxisRendererInfo rendererInfo, XFont defaultFont)
+  protected void InitTickLabels(AxisRendererInfo rendererInfo, XFont defaultFont, XColor defaultColor)
   {
     if (rendererInfo.Axis.tickLabels != null)
     {
       rendererInfo.TickLabelsFont = Converter.ToXFont(rendererInfo.Axis.tickLabels.font, defaultFont);
-      var fontColor = XColors.Black;
-      if (rendererInfo.Axis.tickLabels.font != null && !rendererInfo.Axis.tickLabels.font.color.IsEmpty)
-        fontColor = rendererInfo.Axis.tickLabels.font.color;
-      rendererInfo.TickLabelsBrush = new XSolidBrush(fontColor);
+      rendererInfo.TickLabelsBrush = Converter.ToXBrush(rendererInfo.Axis.tickLabels.font, defaultColor);
 
       rendererInfo.TickLabelsFormat = rendererInfo.Axis.tickLabels.format;
       if (rendererInfo.TickLabelsFormat == null)
@@ -89,7 +83,7 @@ internal abstract class AxisRenderer : Renderer
     else
     {
       rendererInfo.TickLabelsFont = defaultFont;
-      rendererInfo.TickLabelsBrush = new XSolidBrush(XColors.Black);
+      rendererInfo.TickLabelsBrush = new XSolidBrush(defaultColor);
       rendererInfo.TickLabelsFormat = GetDefaultTickLabelsFormat();
     }
   }

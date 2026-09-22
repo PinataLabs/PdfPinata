@@ -68,8 +68,8 @@ internal abstract class YAxisRenderer : AxisRenderer
     if (yari.Axis != null)
     {
       var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-      InitTickLabels(yari, cri.DefaultFont);
-      InitAxisTitle(yari, cri.DefaultFont);
+      InitTickLabels(yari, cri.DefaultFont, cri.DefaultFontColor);
+      InitAxisTitle(yari, cri.DefaultFont, cri.DefaultFontColor);
       InitAxisLineFormat(yari);
       InitGridlines(yari);
     }

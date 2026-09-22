@@ -93,15 +93,15 @@ internal abstract class XAxisRenderer : AxisRenderer
       // this merge's intended behaviour change - see docs/specs/axis-renderer-duplication.md.
       if (isHorizontal)
       {
-        InitTickLabels(xari, cri.DefaultFont);
+        InitTickLabels(xari, cri.DefaultFont, cri.DefaultFontColor);
         InitXValues(xari);
-        InitAxisTitle(xari, cri.DefaultFont);
+        InitAxisTitle(xari, cri.DefaultFont, cri.DefaultFontColor);
       }
       else
       {
         InitXValues(xari);
-        InitAxisTitle(xari, cri.DefaultFont);
-        InitTickLabels(xari, cri.DefaultFont);
+        InitAxisTitle(xari, cri.DefaultFont, cri.DefaultFontColor);
+        InitTickLabels(xari, cri.DefaultFont, cri.DefaultFontColor);
       }
       InitAxisLineFormat(xari);
       InitGridlines(xari);

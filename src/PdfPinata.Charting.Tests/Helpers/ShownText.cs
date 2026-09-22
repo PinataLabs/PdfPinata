@@ -42,11 +42,14 @@ internal static class ShownText
     /// <summary>A string the page shows, and where it starts.</summary>
     internal readonly struct Run
     {
-        internal Run(string text, double x, double y)
+        internal Run(string text, double x, double y, string colour = null, double size = 0, string face = null)
         {
             Text = text;
             X = x;
             Y = y;
+            Colour = colour;
+            Size = size;
+            Face = face;
         }
 
         internal string Text { get; }
@@ -57,7 +60,22 @@ internal static class ShownText
         /// <summary>The baseline of the run - y increases up the page.</summary>
         internal double Y { get; }
 
-        public override string ToString() => $"\"{Text}\" at ({X:F2},{Y:F2})";
+        /// <summary>
+        ///   The fill colour the run is painted in, written as <see cref="PaintedRectangles.ColourOf"/>
+        ///   writes one; black until the page sets another.
+        /// </summary>
+        internal string Colour { get; }
+
+        /// <summary>The size its <c>Tf</c> set.</summary>
+        internal double Size { get; }
+
+        /// <summary>
+        ///   The /BaseFont of the font it is shown in, subset tag and all - so whether it is the
+        ///   bold or the italic face is in the name.
+        /// </summary>
+        internal string Face { get; }
+
+        public override string ToString() => $"\"{Text}\" at ({X:F2},{Y:F2}) {Face} {Size:0.##}pt rgb={Colour}";
     }
 
     /// <summary>Every string the page shows, in the order it draws them.</summary>
@@ -83,6 +101,10 @@ internal static class ShownText
         var fonts = FontsOf(page);
         var shown = new List<Run>();
         Decoding current = null;
+        string face = null;
+        double size = 0;
+        var fill = PaintedRectangles.Grey(0);
+        var saved = new Stack<string>();
 
         // Where the current line starts, and where the next glyph goes. A chart draws one run per
         // line, so the two only differ if one ever writes two runs without moving between them.
@@ -95,6 +117,31 @@ internal static class ShownText
 
             switch (op.OpCode.OpCodeName)
             {
+                case OpCodeName.q:
+                    saved.Push(fill);
+                    break;
+
+                case OpCodeName.Q:
+                    if (saved.Count > 0)
+                        fill = saved.Pop();
+                    break;
+
+                case OpCodeName.rg:
+                    if (op.Operands.Count >= 3)
+                        fill = PaintedRectangles.Rgb(Number(op.Operands[0]), Number(op.Operands[1]), Number(op.Operands[2]));
+                    break;
+
+                case OpCodeName.g:
+                    if (op.Operands.Count >= 1)
+                        fill = PaintedRectangles.Grey(Number(op.Operands[0]));
+                    break;
+
+                case OpCodeName.k:
+                    if (op.Operands.Count >= 4)
+                        fill = PaintedRectangles.Cmyk(Number(op.Operands[0]), Number(op.Operands[1]),
+                            Number(op.Operands[2]), Number(op.Operands[3]));
+                    break;
+
                 case OpCodeName.BT:
                     lineX = lineY = 0;
                     break;
@@ -120,13 +167,18 @@ internal static class ShownText
                 case OpCodeName.Tf:
                     // "/F0 10 Tf" - the resource name is the first operand.
                     if (op.Operands.Count >= 1 && op.Operands[0] is CName name)
+                    {
                         fonts.TryGetValue(name.Name, out current);
+                        face = current?.Face;
+                    }
+                    if (op.Operands.Count >= 2)
+                        size = Number(op.Operands[1]);
                     break;
 
                 case OpCodeName.Tj:
                 case OpCodeName.TJ:
                     foreach (var text in StringsIn(op.Operands))
-                        shown.Add(new Run(Decode(text, current), lineX, lineY));
+                        shown.Add(new Run(Decode(text, current), lineX, lineY, fill, size, face));
                     break;
             }
         }
@@ -165,11 +217,14 @@ internal static class ShownText
     /// <summary>How the bytes of a show-text operator turn back into characters.</summary>
     private sealed class Decoding
     {
-        internal Decoding(bool twoByteCodes, IReadOnlyDictionary<int, char> characters)
+        internal Decoding(bool twoByteCodes, IReadOnlyDictionary<int, char> characters, string face)
         {
             TwoByteCodes = twoByteCodes;
             Characters = characters;
+            Face = face;
         }
+
+        internal string Face { get; }
 
         /// <summary>Composite fonts are keyed two bytes at a time, simple fonts one.</summary>
         internal bool TwoByteCodes { get; }
@@ -211,7 +266,7 @@ internal static class ShownText
                 continue;
 
             var composite = font.Elements.GetName("/Subtype") == "/Type0";
-            decodings[key.Value] = new Decoding(composite, CharactersOf(font));
+            decodings[key.Value] = new Decoding(composite, CharactersOf(font), font.Elements.GetName("/BaseFont"));
         }
 
         return decodings;

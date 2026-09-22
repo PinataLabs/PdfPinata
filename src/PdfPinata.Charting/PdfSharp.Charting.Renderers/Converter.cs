@@ -37,31 +37,31 @@ namespace PdfPinata.Charting.Renderers;
 internal class Converter
 {
   /// <summary>
-  /// Creates a XFont based on the font. Missing attributes will be taken from the defaultFont
-  /// parameter.
+  /// Creates a XFont based on the font and the fonts it inherits from. Whatever none of them sets
+  /// is taken from the defaultFont parameter.
   /// </summary>
   internal static XFont ToXFont(Font font, XFont defaultFont)
   {
-    var xfont = defaultFont;
-    if (font != null)
-    {
-      var fontFamily = font.name;
-      if (fontFamily == "")
-        fontFamily = defaultFont.Name;
+    if (font == null)
+      return defaultFont;
 
-      var fontStyle = defaultFont.Style;
-      if (font.bold)
-        fontStyle |= XFontStyle.Bold;
-      if (font.italic)
-        fontStyle |= XFontStyle.Italic;
+    var fontFamily = font.ResolvedName;
+    if (fontFamily == "")
+      fontFamily = defaultFont.Name;
 
-      var size = font.size.Point; //emSize???
-      if (size == 0)
-        size = defaultFont.Size;
+    // Bold and italic are replaced rather than added to, so that a font saying false is drawn
+    // regular under a chart whose font is bold.
+    var fontStyle = defaultFont.Style & ~(XFontStyle.Bold | XFontStyle.Italic);
+    if (font.ResolvedBold ?? defaultFont.Bold)
+      fontStyle |= XFontStyle.Bold;
+    if (font.ResolvedItalic ?? defaultFont.Italic)
+      fontStyle |= XFontStyle.Italic;
 
-      xfont = new XFont(fontFamily, size, fontStyle);
-    }
-    return xfont;
+    var size = font.ResolvedSize;
+    if (size == 0)
+      size = defaultFont.Size;
+
+    return new XFont(fontFamily, size, fontStyle);
   }
 
   /// <summary>
@@ -130,8 +130,7 @@ internal class Converter
   /// </summary>
   internal static XBrush ToXBrush(Font font, XColor defaultColor)
   {
-    if (font == null || font.color.IsEmpty)
-      return new XSolidBrush(defaultColor);
-    return new XSolidBrush(font.color);
+    var color = font?.ResolvedColor ?? XColor.Empty;
+    return new XSolidBrush(color.IsEmpty ? defaultColor : color);
   }
 }

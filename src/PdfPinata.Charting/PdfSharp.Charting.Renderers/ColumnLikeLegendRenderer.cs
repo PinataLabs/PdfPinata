@@ -60,7 +60,7 @@ internal class ColumnLikeLegendRenderer : LegendRenderer
       lri.Legend = cri.Chart.legend;
 
       lri.Font = Converter.ToXFont(lri.Legend.font, cri.DefaultFont);
-      lri.FontColor = new XSolidBrush(XColors.Black);
+      lri.FontColor = Converter.ToXBrush(lri.Legend.font, cri.DefaultFontColor);
 
       if (lri.Legend.lineFormat != null)
         lri.BorderPen = Converter.ToXPen(lri.Legend.lineFormat, XColors.Black, DefaultLineWidth, XDashStyle.Solid);

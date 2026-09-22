@@ -162,6 +162,13 @@ internal class ChartRendererInfo : AreaRendererInfo
     }
   }
   XFont defaultDataLabelFont;
+
+  /// <summary>
+  /// Gets the colour the chart's text is drawn in where nothing closer to it says one: the chart
+  /// font's, or black.
+  /// </summary>
+  internal XColor DefaultFontColor =>
+    this.Chart.font == null || this.Chart.font.color.IsEmpty ? XColors.Black : this.Chart.font.color;
 }
 
 /// <summary>
