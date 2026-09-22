@@ -518,13 +518,27 @@ public enum CStringType
     HexString,
 
     /// <summary>
-    /// The string... TODO.
+    /// The string has the format "(...)" and its bytes, once its escapes are resolved, open with a
+    /// UTF-16 byte order mark - FE FF, or the little-endian FF FE Adobe Reader also accepts - so it
+    /// is text rather than bytes. The value is the decoded text, without the byte order mark.
     /// </summary>
+    /// <remarks>
+    /// <see cref="CLexer"/> reports such a string as <see cref="CSymbol.UnicodeString"/>, but
+    /// <see cref="CParser"/> does not carry the distinction over: it gives every string it reads
+    /// <see cref="CStringType.String"/>. <see cref="CString.ToString"/> cannot write this type.
+    /// </remarks>
     UnicodeString,
 
     /// <summary>
-    /// The string... TODO.
+    /// The string has the format "&lt;...&gt;" and the bytes its digits spell open with the
+    /// big-endian UTF-16 byte order mark FE FF, so it is text rather than bytes. The value is the
+    /// decoded text, without the byte order mark.
     /// </summary>
+    /// <remarks>
+    /// <see cref="CLexer"/> reports such a string as <see cref="CSymbol.UnicodeHexString"/>, but
+    /// <see cref="CParser"/> does not carry the distinction over: it gives every string it reads
+    /// <see cref="CStringType.String"/>. <see cref="CString.ToString"/> cannot write this type.
+    /// </remarks>
     UnicodeHexString,
 
     /// <summary>
