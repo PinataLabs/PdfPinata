@@ -377,7 +377,7 @@ namespace PinataLayout.DocumentObjectModel.Resources {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to Obigatory property &apos;{0}&apos; not set in &apos;{1}&apos;..
+        ///   Looks up a localized string similar to Obligatory property &apos;{0}&apos; not set in &apos;{1}&apos;..
         /// </summary>
         internal static string MissingObligatoryProperty {
             get {
@@ -400,6 +400,15 @@ namespace PinataLayout.DocumentObjectModel.Resources {
         internal static string MissingParenRight {
             get {
                 return ResourceManager.GetString("MissingParenRight", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to A footnote inside another footnote cannot be rendered. Move it to a paragraph in the section itself..
+        /// </summary>
+        internal static string NestedFootnote {
+            get {
+                return ResourceManager.GetString("NestedFootnote", resourceCulture);
             }
         }
 

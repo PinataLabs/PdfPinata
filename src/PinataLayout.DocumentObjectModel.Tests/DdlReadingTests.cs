@@ -283,6 +283,45 @@ public class DdlReadingTests
         string.Concat(link.Elements.OfType<Text>().Select(t => t.Content)).Should().Be("there");
     }
 
+    /// <summary>
+    ///   Every kind of hyperlink goes somewhere named by <c>Name</c> - a bookmark, a URL, a file -
+    ///   so one without it goes nowhere, and writing it back out throws. It is still read, text and
+    ///   all, and the reader says what is missing and where.
+    /// </summary>
+    [Theory]
+    [InlineData("\\hyperlink{there}")]
+    [InlineData("\\hyperlink[Type = Web]{there}")]
+    [InlineData("\\hyperlink[Name = \"\" Type = File]{there}")]
+    public void AHyperlinkWithoutANameIsReadAndWarnedAbout(string hyperlink)
+    {
+        var errors = new DdlReaderErrors();
+
+        var document = (Document)DdlReader.ObjectFromString(
+            "\\document{\\section{\\paragraph{go " + hyperlink + " now}}}", errors);
+
+        var paragraph = (Paragraph)document.LastSection.Elements[0];
+        var link = paragraph.Elements.OfType<Hyperlink>().Single();
+        link.Name.Should().BeEmpty();
+        string.Concat(link.Elements.OfType<Text>().Select(t => t.Content)).Should().Be("there");
+        TextOf(paragraph).Should().Be("go  now", "the text after the link is still read");
+
+        var warning = errors.Cast<DdlReaderError>().Should().ContainSingle().Subject;
+        warning.ErrorLevel.Should().Be(DdlErrorLevel.Warning);
+        warning.ErrorMessage.Should().Be("Obligatory property 'Name' not set in 'Hyperlink'.");
+        warning.SourceLine.Should().Be(1);
+        errors.ErrorCount.Should().Be(0, "a warning is not an error");
+    }
+
+    [Fact]
+    public void AHyperlinkWithANameIsNotWarnedAbout()
+    {
+        var errors = new DdlReaderErrors();
+
+        DdlReader.ObjectFromString("\\document{\\section{\\paragraph{\\hyperlink[Name = \"x\"]{there}}}}", errors);
+
+        errors.Cast<DdlReaderError>().Should().BeEmpty();
+    }
+
     // ----- the structures around the text ----------------------------------------------------------------------
 
     [Fact]

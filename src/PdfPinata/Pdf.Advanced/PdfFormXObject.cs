@@ -410,16 +410,74 @@ public sealed class PdfFormXObject : PdfXObject, IContentStream
         [KeyInfo(KeyType.Dictionary | KeyType.Optional)]
         public const string Group = "/Group";
 
-        // further keys:
-        //Ref
-        //Metadata
-        //PieceInfo
-        //LastModified
-        //StructParent
-        //StructParents
-        //OPI
-        //OC
-        //Name
+        /// <summary>
+        /// (Optional; PDF 1.4) A reference dictionary identifying a page to be imported from another
+        /// PDF file, and for which the form XObject serves as a proxy
+        /// (see ISO 32000-1 8.10.4, “Reference XObjects”).
+        /// </summary>
+        [KeyInfo(KeyType.Dictionary | KeyType.Optional)]
+        public const string Ref = "/Ref";
+
+        /// <summary>
+        /// (Optional; PDF 1.4) A metadata stream containing metadata for the form XObject
+        /// (see ISO 32000-1 14.3.2, “Metadata Streams”).
+        /// </summary>
+        [KeyInfo(KeyType.Stream | KeyType.Optional)]
+        public const string Metadata = "/Metadata";
+
+        /// <summary>
+        /// (Optional; PDF 1.3) A page-piece dictionary associated with the form XObject
+        /// (see ISO 32000-1 14.5, “Page-Piece Dictionaries”).
+        /// </summary>
+        [KeyInfo(KeyType.Dictionary | KeyType.Optional)]
+        public const string PieceInfo = "/PieceInfo";
+
+        /// <summary>
+        /// (Required if PieceInfo is present; optional otherwise; PDF 1.3) The date and time when
+        /// the form XObject’s contents were most recently modified. If a page-piece dictionary
+        /// (PieceInfo) is present, the modification date is used to ascertain which of the
+        /// application data dictionaries it contains correspond to the current content of the form.
+        /// </summary>
+        [KeyInfo(KeyType.Date | KeyType.Optional)]
+        public const string LastModified = "/LastModified";
+
+        /// <summary>
+        /// (Required if the form XObject is a structural content item; PDF 1.3) The integer key of
+        /// the form XObject’s entry in the structural parent tree.
+        /// </summary>
+        [KeyInfo(KeyType.Integer | KeyType.Optional)]
+        public const string StructParent = "/StructParent";
+
+        /// <summary>
+        /// (Required if the form XObject contains marked-content sequences that are structural
+        /// content items; PDF 1.3) The integer key of the form XObject’s entry in the structural
+        /// parent tree. At most one of StructParent and StructParents may be present.
+        /// </summary>
+        [KeyInfo(KeyType.Integer | KeyType.Optional)]
+        public const string StructParents = "/StructParents";
+
+        /// <summary>
+        /// (Optional; PDF 1.2) An OPI version dictionary for the form XObject
+        /// (see ISO 32000-1 14.11.7, “Open Prepress Interface (OPI)”).
+        /// </summary>
+        [KeyInfo(KeyType.Dictionary | KeyType.Optional)]
+        public const string OPI = "/OPI";
+
+        /// <summary>
+        /// (Optional; PDF 1.5) An optional content group or optional content membership dictionary
+        /// specifying the optional content properties for the form XObject
+        /// (see ISO 32000-1 8.11, “Optional Content”).
+        /// </summary>
+        [KeyInfo(KeyType.Dictionary | KeyType.Optional)]
+        public const string OC = "/OC";
+
+        /// <summary>
+        /// (Required in PDF 1.0; optional otherwise) The name by which this form XObject is
+        /// referenced in the XObject subdictionary of the current resource dictionary.
+        /// This entry is obsolescent and its use is no longer recommended.
+        /// </summary>
+        [KeyInfo(KeyType.Name | KeyType.Optional)]
+        public const string Name = "/Name";
 
         /// <summary>
         /// Gets the KeysMeta for these keys.

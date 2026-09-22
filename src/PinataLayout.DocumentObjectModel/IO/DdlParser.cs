@@ -735,8 +735,17 @@ internal class DdlParser
 
         AssertSymbol(Symbol.ParenLeft);
         ReadCode();
-        //NYI: Check token for correct Unit format
-        formattedText.Font.Size = Token;
+        try
+        {
+            formattedText.Font.Size = Token;
+        }
+        catch (ArgumentException)
+        {
+            // Unit's string conversion refuses what it cannot read, and nothing above would catch
+            // it: it left the reader as it was, with the rest of the document unread and no line
+            // number. Reported here instead, and the text is still read, at the size it inherits.
+            ReportParserInfo(DdlErrorLevel.Error, DomMsgID.InvalidUnitValue, Token);
+        }
         ReadCode();
         AssertSymbol(Symbol.ParenRight);
         ReadCode();
@@ -937,6 +946,13 @@ internal class DdlParser
     private void ParseFootnote(ParagraphElements elements)
     {
         AssertSymbol(Symbol.Footnote);
+
+        // Read as written, because the object model holds it, but the renderer refuses it: the
+        // inner note has no page of its own to go at the foot of. Said here, where there is a line
+        // number to say it with.
+        if (DocumentRelations.HasParentOfType(elements, typeof(Footnote)))
+            ReportParserInfo(DdlErrorLevel.Warning, DomMsgID.NestedFootnote);
+
         ReadCode();
 
         var footnote = elements.AddFootnote();
@@ -968,11 +984,17 @@ internal class DdlParser
         ReadCode();
 
         var hyperlink = elements.AddHyperlink("");
-        //NYI: Without name and type the hyperlink is senseless, so attributes need to be checked
         if (Symbol == Symbol.BracketLeft)
             ParseAttributes(hyperlink);
 
         AssertSymbol(Symbol.BraceLeft);
+
+        // Every kind of link goes to what Name names - a bookmark, a URL or a file - so one without
+        // a name goes nowhere, and Hyperlink.Serialize refuses to write it. Kept, with its text,
+        // and said. After the brace, so that a link missing its text is reported for that alone.
+        if (hyperlink.Name.Length == 0)
+            ReportParserInfo(DdlErrorLevel.Warning, DomMsgID.MissingObligatoryProperty, "Name", "Hyperlink");
+
         ParseFormattedText(hyperlink.Elements, nestingLevel);
         AssertSymbol(Symbol.BraceRight);
     }

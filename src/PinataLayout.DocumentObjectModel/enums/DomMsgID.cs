@@ -110,9 +110,6 @@ internal enum DomMsgID
   OutOfRange,
 
   UseOfUndefinedBaseStyle,
-  UseOfUndefinedStyle
-
-  //    NestedFootnote,
-  //    ImageInFootnote,
-  //    ShapeInFootnote
+  UseOfUndefinedStyle,
+  NestedFootnote
 }

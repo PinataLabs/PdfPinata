@@ -298,11 +298,42 @@ public sealed class PdfExtGState : PdfDictionary
         [KeyInfo(KeyType.FunctionOrName | KeyType.Optional)]
         public const string UCR2 = "/UCR2";
 
-        //TR  function, array, or name
-        //TR2 function, array, or name
-        //HT  dictionary, stream, or name
-        //FL  number
-        //SM  number
+        /// <summary>
+        /// (Optional) The transfer function (see ISO 32000-1 10.5, “Transfer Functions”). The value
+        /// is either a single function, which applies to all process colorants, or an array of four
+        /// functions, which apply to the process colorants individually. The name Identity may be
+        /// used to represent the identity function.
+        /// </summary>
+        [KeyInfo(KeyType.Various | KeyType.Optional)]
+        public const string TR = "/TR";
+
+        /// <summary>
+        /// (Optional; PDF 1.3) Same as TR except that the value may also be the name Default,
+        /// denoting the transfer function that was in effect at the start of the page.
+        /// If both TR and TR2 are present in the same graphics state parameter dictionary,
+        /// TR2 takes precedence.
+        /// </summary>
+        [KeyInfo(KeyType.Various | KeyType.Optional)]
+        public const string TR2 = "/TR2";
+
+        /// <summary>
+        /// (Optional) The halftone dictionary or stream (see ISO 32000-1 10.6, “Halftones”), or the
+        /// name Default, denoting the halftone that was in effect at the start of the page.
+        /// </summary>
+        [KeyInfo(KeyType.Various | KeyType.Optional)]
+        public const string HT = "/HT";
+
+        /// <summary>
+        /// (Optional; PDF 1.3) The flatness tolerance (see ISO 32000-1 10.7.2, “Flatness Tolerance”).
+        /// </summary>
+        [KeyInfo(KeyType.Real | KeyType.Optional)]
+        public const string FL = "/FL";
+
+        /// <summary>
+        /// (Optional; PDF 1.3) The smoothness tolerance (see ISO 32000-1 10.7.3, “Smoothness Tolerance”).
+        /// </summary>
+        [KeyInfo(KeyType.Real | KeyType.Optional)]
+        public const string SM = "/SM";
 
         /// <summary>
         /// (Optional) A flag specifying whether to apply automatic stroke adjustment.

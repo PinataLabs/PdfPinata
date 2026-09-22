@@ -530,6 +530,54 @@ public class DdlStructureReadingTests
         TextOf(footnote.Elements[0] as Paragraph).Should().Be("note");
     }
 
+    /// <summary>
+    ///   A note inside a note is read as written, but the renderer refuses it - the inner note has
+    ///   no page of its own to go at the foot of - so the reader warns, and says where, rather
+    ///   than leaving the first word of it to a render that fails with no line number.
+    /// </summary>
+    [Fact]
+    public void AFootnoteInsideAFootnoteIsReadAndWarnedAbout()
+    {
+        var errors = new DdlReaderErrors();
+
+        var document = (Document)DdlReader.ObjectFromString(
+            "\\document{\\section{\\paragraph{x\\footnote{outer\\footnote{inner}}}}}", errors);
+
+        var outer = ((Paragraph)document.LastSection.Elements[0]).Elements.OfType<Footnote>().Single();
+        var inner = ((Paragraph)outer.Elements[0]).Elements.OfType<Footnote>().Single();
+        TextOf(inner.Elements[0] as Paragraph).Should().Be("inner");
+
+        var warning = errors.Cast<DdlReaderError>().Should().ContainSingle().Subject;
+        warning.ErrorLevel.Should().Be(DdlErrorLevel.Warning);
+        warning.ErrorMessage.Should().Be(
+            "A footnote inside another footnote cannot be rendered. "
+            + "Move it to a paragraph in the section itself.");
+        warning.SourceLine.Should().Be(1);
+        warning.SourceColumn.Should().BeGreaterThan(0, "a warning says where it was raised");
+        errors.ErrorCount.Should().Be(0, "a warning is not an error");
+    }
+
+    [Fact]
+    public void AFootnoteDeeperInsideAFootnoteIsWarnedAboutToo()
+    {
+        // The inner note is inside formatted text inside a second paragraph of the outer one, so
+        // the test is whether any footnote is above it, not whether its paragraph's parent is one.
+        var errors = new DdlReaderErrors();
+
+        DdlReader.ObjectFromString(
+            "\\document{\\section{\\paragraph{x\\footnote{\\paragraph{one}\\paragraph{\\bold{b\\footnote{c}}}}}}}",
+            errors);
+
+        errors.Cast<DdlReaderError>().Should().ContainSingle()
+            .Which.ErrorLevel.Should().Be(DdlErrorLevel.Warning);
+    }
+
+    [Fact]
+    public void FootnotesSideBySideAreNotWarnedAbout()
+    {
+        ReadOnItsOwn("\\document{\\section{\\paragraph{a\\footnote{one} b\\footnote{two}}}}");
+    }
+
     // ----- tables ---------------------------------------------------------------------------------
 
     [Fact]

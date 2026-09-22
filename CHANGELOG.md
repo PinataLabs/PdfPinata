@@ -12,6 +12,25 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ### Added
 
+- **Streams compressed with RunLengthDecode are decoded.** `Filtering.GetFilter` used to recognise
+  `/RunLengthDecode` and answer null, so `UnfilteredValue` on such a stream gave back the text
+  «Cannot decode filter» and `TryUnfilter` left it as it was. The new `RunLengthDecode` filter,
+  also reached by the abbreviation `RL` and through `Filtering.RunLengthDecode`, decodes and encodes
+  it as ISO 32000-1 7.4.5 describes. Data that ends without the end-of-data marker, or part way
+  through a run, gives back what it holds rather than throwing.
+
+- **The DDL reader warns about a footnote inside a footnote.** The note is still read as written,
+  but the renderer refuses one, because the inner note has no page of its own to go at the foot of,
+  and its exception gives no line number. The reader now adds a warning to the `DdlReaderErrors`,
+  "A footnote inside another footnote cannot be rendered", with the line and column where the
+  inner `\footnote` is.
+
+- **The DDL reader warns about a hyperlink with no name.** Every kind of hyperlink goes to what
+  its `Name` names, so `\hyperlink{there}` or `\hyperlink[Type = Web]{there}` goes nowhere, and
+  writing the document back out throws. The link and its text are still read, and a warning,
+  "Obligatory property 'Name' not set in 'Hyperlink'.", is added to the `DdlReaderErrors`. That
+  message used to read "Obigatory"; its spelling is fixed wherever it appears.
+
 - **An OMR code's mark distance can be given as one of the standard distances.**
   `CodeOmr.StandardMarkDistance` takes a `MarkDistance`: `Inch1_6` (12 pt), `Inch2_6` (24 pt) or
   `Inch2_8` (18 pt). It reads and writes `MakerDistance` rather than keeping a value of its own, and
@@ -223,6 +242,13 @@ This file starts at the entry below. Changes before that point are recorded only
   Construct a value from its bytes with `new PdfCustomValue(byte[])`.
 
 ### Fixed
+
+- **A DDL `\fontsize` that is not a size is reported rather than ending the read.**
+  `\fontsize(abc){x}`, or a quoted size with a unit the reader does not know, threw an
+  `ArgumentException` out of `DdlReader`, so the rest of the document was not read and nothing
+  was added to the `DdlReaderErrors`. It is now an error in that list, "String 'abc' is not a valid
+  value for structure 'Unit'.", with its line and column. The text inside the braces is still
+  read, with no size of its own, and so is the rest of the document.
 
 - **A chart's text takes its colour, bold and italic from the chart's font.** An axis title, the
   tick labels, the legend and the data labels each have a font of their own. Where that font sets

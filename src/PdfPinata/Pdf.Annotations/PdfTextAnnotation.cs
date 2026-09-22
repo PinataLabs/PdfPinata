@@ -122,8 +122,20 @@ public sealed class PdfTextAnnotation : PdfMarkupAnnotation
         [KeyInfo(KeyType.Name | KeyType.Optional)]
         public const string Name = "/Name";
 
-        //State
-        //StateModel
+        /// <summary>
+        /// (Optional; PDF 1.5) The state to which the original annotation is set
+        /// (see ISO 32000-1 12.5.6.3, “Annotation States”).
+        /// Default value: Unmarked if StateModel is Marked; None if StateModel is Review.
+        /// </summary>
+        [KeyInfo(KeyType.TextString | KeyType.Optional)]
+        public const string State = "/State";
+
+        /// <summary>
+        /// (Required if State is present, otherwise optional; PDF 1.5) The state model corresponding
+        /// to State.
+        /// </summary>
+        [KeyInfo(KeyType.TextString | KeyType.Optional)]
+        public const string StateModel = "/StateModel";
 
         public static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
 
