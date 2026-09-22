@@ -120,6 +120,36 @@ public class DocEncodingTests
         DocEncoding.GetBytes(ch.ToString()).Should().Equal(new[] { code });
     }
 
+    [Theory]
+    [InlineData('\u007F')] // DEL: 0x7F is undefined
+    [InlineData('\u00AD')] // soft hyphen: 0xAD is undefined
+    [InlineData('\u0018')] // the controls whose codes are the accents
+    [InlineData('\u001F')]
+    [InlineData('\u0081')] // the five C1 controls WinAnsi passes through, whose codes are
+    [InlineData('\u008D')] // printable characters in PDFDocEncoding
+    [InlineData('\u008F')]
+    [InlineData('\u0090')]
+    [InlineData('\u009D')]
+    public void ACharacterPdfDocEncodingCannotHoldIsWrittenAsTheCurrencySign(char ch)
+    {
+        DocEncoding.GetBytes(ch.ToString()).Should().Equal(new byte[] { 0xA4 });
+    }
+
+    [Fact]
+    public void NoCharacterComesBackAsADifferentCharacter()
+    {
+        // Whatever the encoder takes comes back either as itself or as the currency sign it
+        // writes for what it cannot hold, never as some third character. The one exception is
+        // the no-break space, which is written as a space because its WinAnsi code, 0xA0, is the
+        // euro sign here.
+        for (var code = 0; code <= 0xFFFF; code++)
+        {
+            var ch = ((char)code).ToString();
+            var expected = code == 0xA0 ? " " : ch;
+            DocEncoding.GetString(DocEncoding.GetBytes(ch)).Should().BeOneOf(expected, "\u00A4");
+        }
+    }
+
     [Fact]
     public void RepresentativeTextComesBackAsItWent()
     {
