@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -115,5 +116,34 @@ public class NameEscapingTests
 
         Saved(name).Should().Contain("/a#20b#28#E4#B8#AD#29");
         RoundTripped(name).Should().Be("/a b(" + (char)0xE4 + (char)0xB8 + (char)0xAD + ")");
+    }
+
+    [Fact]
+    public void ANameHoldingAnUnpairedSurrogateIsRefusedRatherThanWrittenAsAReplacementCharacter()
+    {
+        // The UTF-8 encoder used to put U+FFFD in the surrogate's place, so the name written was
+        // not the name given, and two names differing only there were written as one.
+        (string Name, int Index)[] cases =
+        [
+            ("/Lone\uD800", 5),
+            ("/Lone\uDC00", 5),
+            ("/Lone\uD800x", 5),
+            ("/Swap\uDC00\uD800", 5),
+            ("/Pair\uD83D\uDE00\uD83D", 7),
+        ];
+
+        foreach (var (name, index) in cases)
+        {
+            var save = () => Saved(name);
+
+            save.Should().Throw<ArgumentException>().WithMessage($"*unpaired surrogate*index {index}*");
+        }
+    }
+
+    [Fact]
+    public void ANameHoldingASurrogatePairIsWrittenAsTheUtf8OfTheCharacterItMakes()
+    {
+        // U+1F600 is F0 9F 98 80: a pair is one character, not two lone halves.
+        Saved("/Face\uD83D\uDE00").Should().Contain("/Face#F0#9F#98#80");
     }
 }
