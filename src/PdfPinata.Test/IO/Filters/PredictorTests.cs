@@ -162,7 +162,82 @@ public class PredictorTests
         Unpredict(predicted, Parms(12, 1, 1, 4)).Should().Equal(new byte[] { 0xA0, 0x50 });
     }
 
-    // ----- the predictors that are not PNG -------------------------------------------------------
+    // ----- the TIFF predictor --------------------------------------------------------------------
+    //
+    // TIFF Predictor 2 is horizontal differencing: every sample after the first pixel of a row is
+    // written as its difference from the same component of the pixel to its left, modulo the
+    // component's range. There is no filter byte and no row above - each row starts afresh. The
+    // predicted bytes below are worked out by hand.
+
+    [Fact]
+    public void TheTiffPredictorSubtractsTheSameComponentOfThePixelToTheLeft()
+    {
+        // Three colours at eight bits, three columns, two rows.
+        var predicted = new byte[]
+        {
+            10, 20, 30,   1, 1, 1,   1, 1, 1,
+            // The second row's first pixel is written as it is, not against the row above.
+            // 35 - 40, 55 - 50, 5 - 60 and so on, each taken modulo 256.
+            40, 50, 60,   251, 5, 201,   10, 251, 65
+        };
+
+        Unpredict(predicted, Parms(2, 3, 8, 3)).Should().Equal(
+            10, 20, 30, 11, 21, 31, 12, 22, 32,
+            40, 50, 60, 35, 55, 5, 45, 50, 70);
+    }
+
+    [Fact]
+    public void TheTiffPredictorReadsSixteenBitSamplesBigEndianAndCarriesBetweenTheirBytes()
+    {
+        // 0x1234, 0x1300, 0x12FF: the differences are 0x00CC, whose sum with 0x1234 carries out of
+        // the low byte, and -1, which is 0xFFFF.
+        var predicted = new byte[] { 0x12, 0x34, 0x00, 0xCC, 0xFF, 0xFF };
+
+        Unpredict(predicted, Parms(2, 1, 16, 3)).Should().Equal(0x12, 0x34, 0x13, 0x00, 0x12, 0xFF);
+    }
+
+    [Fact]
+    public void TheTiffPredictorWorksOnSamplesSmallerThanAByteAndStartsEachRowOnAByte()
+    {
+        // Two bits, one colour, five columns: ten bits, so each row is two bytes and ends in six
+        // bits of padding. Row one is 1 3 0 2 2, written as 1 2 1 2 0 (0 - 3 is 1 modulo 4);
+        // row two is 3 3 3 3 3, written as 3 0 0 0 0.
+        var predicted = new byte[] { 0b01_10_01_10, 0b00_000000, 0b11_00_00_00, 0b00_000000 };
+
+        Unpredict(predicted, Parms(2, 1, 2, 5)).Should().Equal(
+            0b01_11_00_10, 0b10_000000, 0b11_11_11_11, 0b11_000000);
+    }
+
+    [Fact]
+    public void TheTiffPredictorTakesTheComponentsOfASubBytePixelSeparately()
+    {
+        // One bit, two colours, three columns: pixels (1,0) (1,1) (0,1), written as (1,0) (0,1)
+        // (1,0) - each bit against the same colour of the pixel before, not the bit before.
+        var predicted = new byte[] { 0b10_01_10_00 };
+
+        Unpredict(predicted, Parms(2, 2, 1, 3)).Should().Equal(0b10_11_01_00);
+    }
+
+    [Fact]
+    public void TheTiffPredictorLeavesATrailingPartRowAsItFoundIt()
+    {
+        // Four columns of one byte, and two bytes over: not a row, so nothing to undo in them.
+        var predicted = new byte[] { 1, 1, 1, 1, 5, 5 };
+
+        Unpredict(predicted, Parms(2, 1, 8, 4)).Should().Equal(1, 2, 3, 4, 5, 5);
+    }
+
+    [Theory]
+    [InlineData(3)]
+    [InlineData(32)]
+    public void TheTiffPredictorRefusesAComponentSizeThatIsNotAPowerOfTwoBits(int bitsPerComponent)
+    {
+        var act = () => Unpredict(new byte[] { 1, 2, 3, 4 }, Parms(2, 1, bitsPerComponent, 4));
+
+        act.Should().Throw<PdfReaderException>().WithMessage("*bits per component*");
+    }
+
+    // ----- the predictors that are neither -------------------------------------------------------
 
     [Fact]
     public void APredictorOfOneMeansTheDataWasNotPredictedAtAll()
@@ -189,14 +264,6 @@ public class PredictorTests
         var data = new byte[] { 1, 2, 3, 4 };
 
         Unpredict(data, Parms(0, 0, 0, 0)).Should().Equal(data);
-    }
-
-    [Fact]
-    public void TheTiffPredictorIsNotImplementedAndSaysSo()
-    {
-        var act = () => Unpredict(new byte[] { 1, 2, 3, 4 }, Parms(2, 1, 8, 4));
-
-        act.Should().Throw<NotImplementedException>().WithMessage("*TIFF*");
     }
 
     [Theory]
