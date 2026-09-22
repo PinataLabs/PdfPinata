@@ -213,7 +213,6 @@ public class DocumentRenderer
         if ((options & PageRenderOptions.RenderContent) == PageRenderOptions.RenderContent)
         {
             var renderInfos = formattedDocument.GetRenderInfos(page);
-            //foreach (RenderInfo renderInfo in renderInfos)
             var count = renderInfos.Length;
             for (var idx = 0; idx < count; idx++)
             {

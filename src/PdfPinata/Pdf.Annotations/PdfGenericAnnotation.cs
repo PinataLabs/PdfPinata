@@ -55,9 +55,6 @@ namespace PdfPinata.Pdf.Annotations;
 /// </remarks>
 public sealed class PdfGenericAnnotation : PdfAnnotation
 {
-    //DMH 6/7/06
-    //Make this public so we can use it in PdfAnnotations to
-    //get the Meta data from existings annotations.
     /// <summary>
     /// Wraps an existing annotation dictionary. Public so that <see cref="PdfAnnotations"/> can reach
     /// the metadata of annotations read from a document.

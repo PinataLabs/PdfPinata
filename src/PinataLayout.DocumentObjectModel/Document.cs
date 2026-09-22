@@ -75,7 +75,6 @@ public sealed partial class Document : DocumentObject, IVisitable
   /// </summary>
   public void BindToRenderer(object newRenderer)
   {
-    //if (this.renderer != null && this.renderer != renderer)
     if (renderer != null && newRenderer != null && !ReferenceEquals(renderer, newRenderer))
     {
       throw new InvalidOperationException("The document is already bound to another renderer. " +

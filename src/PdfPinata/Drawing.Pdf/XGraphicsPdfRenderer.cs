@@ -2476,7 +2476,6 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
             SaveState();
         }
 
-        //if (gfxState.MustRealizeCtm)
         if (!_gfxState.UnrealizedCtm.IsIdentity)
         {
             BeginGraphicMode();

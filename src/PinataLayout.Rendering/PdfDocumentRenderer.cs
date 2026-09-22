@@ -179,7 +179,6 @@ public class PdfDocumentRenderer
     /// </summary>
     public void PrepareRenderPages()
     {
-        //if (this.documentRenderer == null)
         PrepareDocumentRenderer(true);
 
         if (_pdfDocument == null)

@@ -302,7 +302,6 @@ internal class Serializer
       if (linePos > lineBreakBeyond)
       {
         fLineBreak = true;
-        //this.textWriter.Write("//¶");  // for debugging only
       }
     }
 

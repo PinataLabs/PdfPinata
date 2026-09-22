@@ -1206,8 +1206,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
             else
                 group.Elements.SetName("/CS", "/DeviceCMYK");
             group.Elements.SetName("/S", "/Transparency");
-            //False is default: group.Elements["/I"] = new PdfBoolean(false);
-            //False is default: group.Elements["/K"] = new PdfBoolean(false);
+            // /I and /K are left out: both default to false.
         }
         base.WriteObject(writer);
 

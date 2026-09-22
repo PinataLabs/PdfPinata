@@ -55,7 +55,6 @@ public struct XColor : IEquatable<XColor>
         _k = 0;
         _gs = 0;
         RgbChanged();
-        //_cs.GetType(); // Suppress warning
     }
 
     XColor(byte alpha, byte red, byte green, byte blue)
@@ -71,7 +70,6 @@ public struct XColor : IEquatable<XColor>
         _k = 0;
         _gs = 0;
         RgbChanged();
-        //_cs.GetType(); // Suppress warning
     }
 
     XColor(double alpha, double cyan, double magenta, double yellow, double black)

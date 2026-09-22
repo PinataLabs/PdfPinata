@@ -730,15 +730,11 @@ public abstract class PdfAnnotation : PdfDictionary
         [KeyInfo(KeyType.Real | KeyType.Optional)]
         public const string CA = "/CA";
 
-        //RC
-
         /// <summary>
         /// (Optional; PDF 1.5) The date and time when the annotation was created.
         /// </summary>
         [KeyInfo("1.5", KeyType.Date | KeyType.Optional)]
         public const string CreationDate = "/CreationDate";
-
-        //IRT
 
         /// <summary>
         /// (Optional; PDF 1.5) Text representing a short description of the subject being
@@ -746,9 +742,6 @@ public abstract class PdfAnnotation : PdfDictionary
         /// </summary>
         [KeyInfo("1.5", KeyType.TextString | KeyType.Optional)]
         public const string Subj = "/Subj";
-
-        //RT
-        //IT
         // ReSharper restore InconsistentNaming
     }
 }

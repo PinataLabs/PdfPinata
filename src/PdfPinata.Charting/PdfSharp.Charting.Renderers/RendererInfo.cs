@@ -128,7 +128,6 @@ internal class ChartRendererInfo : AreaRendererInfo
 
   internal AxisRendererInfo XAxisRendererInfo;
   internal AxisRendererInfo YAxisRendererInfo;
-  //internal AxisRendererInfo zAxisRendererInfo; // not yet used
   internal PlotAreaRendererInfo PlotAreaRendererInfo;
   internal LegendRendererInfo LegendRendererInfo;
   internal SeriesRendererInfo[] SeriesRendererInfos;

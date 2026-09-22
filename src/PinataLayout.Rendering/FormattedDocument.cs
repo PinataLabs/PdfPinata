@@ -647,7 +647,6 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
         return false;
     }
 
-    //New KlPo 27.08.07
     /// <summary>
     /// Gets the alignment depending on the currentPage for the alignments "Outside" and "Inside".
     /// </summary>
@@ -754,7 +753,6 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
         {
             case ElementAlignment.Near:
                 yPos = rect.Y;
-                //Added KlPo 12.07.07:
                 if (layoutInfo.Top == 0)
                     yPos += layoutInfo.MarginTop;
                 else

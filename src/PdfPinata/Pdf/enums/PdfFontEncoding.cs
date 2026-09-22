@@ -42,11 +42,6 @@ public enum PdfFontEncoding
     /// </summary>
     WinAnsi = 0,
 
-    ///// <summary>
-    ///// Cause a font to use Windows-1252 (aka WinAnsi) encoding to encode text rendered with this font.
-    ///// </summary>
-    //Windows1252 = 0,
-
     /// <summary>
     /// Cause a font to use Unicode encoding to encode text rendered with this font.
     /// </summary>

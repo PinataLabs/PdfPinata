@@ -439,7 +439,6 @@ public abstract class VisitorBase : DocumentObjectVisitor
 
         FlattenPlotArea(chart.plotArea);
 
-        //      if ((this.hasDataLabel ?? false))
         FlattenDataLabel(chart.dataLabel);
     }
 

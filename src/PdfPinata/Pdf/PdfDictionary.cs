@@ -948,7 +948,6 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
 
                         var type = GetValueType(key);
                         // This is more complicated. If type is null do nothing
-                        //Debug.Assert(type != null, "No value type specified in meta information. Please send this file to PDFsharp support.");
                         if (type != null && type != array.GetType())
                             array = CreateArray(type, array);
                         return array;
@@ -1341,7 +1340,6 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// <summary>
         /// Gets all values currently in use in this dictionary as an array of PdfItem objects.
         /// </summary>
-        //public ICollection<PdfItem> Values
         public ICollection<PdfItem> Values
         {
             // It is by design not to return _elements.Values, but a copy.

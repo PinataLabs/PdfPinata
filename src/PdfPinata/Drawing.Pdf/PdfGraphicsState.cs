@@ -749,7 +749,6 @@ internal sealed class PdfGraphicsState : ICloneable
     /// </summary>
     public void RealizeCtm()
     {
-        //if (MustRealizeCtm)
         if (!UnrealizedCtm.IsIdentity)
         {
             Debug.Assert(!UnrealizedCtm.IsIdentity, "mrCtm is unnecessarily set.");

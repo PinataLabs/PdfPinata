@@ -90,7 +90,7 @@ public struct LeftPosition : INullableValue
   /// </summary>
   void INullableValue.SetValue(object value)
   {
-    //REVIEW KlPo4KlPo: Code-Verdopplung in TopPostion/LeftPosition
+    // TopPosition.SetValue is a copy of this; a change here belongs there too.
     ArgumentNullException.ThrowIfNull(value);
 
     if (value is ShapePosition)

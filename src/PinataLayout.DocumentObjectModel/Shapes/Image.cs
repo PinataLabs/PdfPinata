@@ -55,7 +55,6 @@ public partial class Image : Shape
     /// </summary>
     internal Image(DocumentObject parent) : base(parent) { }
 
-    //#region Methods
     /// <summary>
     /// Creates a deep copy of this object.
     /// </summary>
@@ -64,7 +63,6 @@ public partial class Image : Shape
         return (Image)DeepCopy();
     }
 
-    //#endregion
     [DV]
     // Written only through the reflection layer, so it needs an initializer to count as assigned.
     internal string name = null;
@@ -152,7 +150,6 @@ public partial class Image : Shape
     }
     [DV]
     internal double? resolution;
-    //#endregion
 
     #region Internal
     /// <summary>

@@ -268,7 +268,6 @@ public struct XRect : IFormattable, IDeserializationCallback, IEquatable<XRect>
     /// <summary>
     /// Gets or sets the size of the rectangle.
     /// </summary>
-    //[Browsable(false)]
     public XSize Size
     {
         get
@@ -415,7 +414,6 @@ public struct XRect : IFormattable, IDeserializationCallback, IEquatable<XRect>
     /// <summary>
     /// Gets the center of the rectangle.
     /// </summary>
-    //[Browsable(false)]
     public XPoint Center => new(_x + _width / 2, _y + _height / 2);
 
     /// <summary>
@@ -589,7 +587,6 @@ public struct XRect : IFormattable, IDeserializationCallback, IEquatable<XRect>
     /// <summary>
     /// Translates the rectangle by adding the specified point.
     /// </summary>
-    //[Obsolete("Use Offset.")]
     public static XRect operator +(XRect rect, XPoint point)
     {
         return new XRect(rect._x + point.X, rect.Y + point.Y, rect._width, rect._height);
@@ -598,7 +595,6 @@ public struct XRect : IFormattable, IDeserializationCallback, IEquatable<XRect>
     /// <summary>
     /// Translates the rectangle by subtracting the specified point.
     /// </summary>
-    //[Obsolete("Use Offset.")]
     public static XRect operator -(XRect rect, XPoint point)
     {
         return new XRect(rect._x - point.X, rect.Y - point.Y, rect._width, rect._height);

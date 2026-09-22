@@ -47,9 +47,6 @@ public enum UnitType
   /// </summary>
   Centimeter = 1,
 
-  //[Obsolete("Use Centimeter")]
-  //CM = 1,
-
   /// <summary>
   /// Measure is in inch. 
   /// </summary>
@@ -59,9 +56,6 @@ public enum UnitType
   /// Measure is in millimeter. 
   /// </summary>
   Millimeter = 3,
-
-  //[Obsolete("Use Millimeter")]
-  //MM = 3,
 
   /// <summary>
   /// Measure is in picas. A pica represents 12 points, i.e. 6 pica are one inch.

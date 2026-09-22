@@ -350,7 +350,6 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
             PrepareRC4Key(digest, 0, 5);
             EncryptRC4(userPad, ownerKey);
         }
-        //#endif
         return ownerKey;
     }
 
@@ -586,7 +585,6 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
         Elements[Keys.O] = oValue;
         Elements[Keys.U] = uValue;
         Elements[Keys.P] = pValue;
-        //#endif
     }
 
     /// <summary>
