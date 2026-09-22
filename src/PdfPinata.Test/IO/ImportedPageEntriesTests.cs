@@ -115,6 +115,33 @@ public class ImportedPageEntriesTests
             "it names an entry in a parent tree that belongs to the document the page came from");
     }
 
+    /// <summary>
+    ///   A page group is transparency as far as PDF/A-1 is concerned, even on a page whose
+    ///   content paints nothing translucent, and the group an imported page now brings with it
+    ///   has to be refused under that claim as any other transparency is.
+    /// </summary>
+    [Theory]
+    [InlineData(PdfAConformance.PdfA1B, true)]
+    [InlineData(PdfAConformance.PdfA2B, false)]
+    public void AnImportedTransparencyGroupIsRefusedUnderPdfA1Alone(PdfAConformance conformance, bool refused)
+    {
+        using var input = new MemoryStream(SourceDocument());
+        var source = Pdf.IO.PdfReader.Open(input, PdfDocumentOpenMode.Import);
+
+        var target = new PdfDocument();
+        target.Info.Title = "Imported page";
+        target.Version = 14;
+        target.Options.Conformance = conformance;
+        _ = target.AddPage(source.Pages[0]);
+
+        var saving = () => target.Save(new MemoryStream(), false);
+
+        if (refused)
+            saving.Should().Throw<InvalidOperationException>().WithMessage("*PDF/A-1*transparency group*");
+        else
+            saving.Should().NotThrow();
+    }
+
     [Fact]
     public void DrawingWithTransparencyOnTheImportedPageKeepsTheGroupItBrought()
     {
