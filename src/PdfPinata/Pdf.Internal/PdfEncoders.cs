@@ -97,7 +97,13 @@ internal static class PdfEncoders
     /// only have come from a caller writing Unicode, and "#" and its hex digits would be read back
     /// as one byte followed by ordinary characters - so such a name is encoded as UTF-8, which is
     /// what 7.3.5 recommends, and those bytes are written instead.
+    /// <para>
+    /// An unpaired surrogate has no UTF-8 encoding, and the encoder would silently put U+FFFD in
+    /// its place - so two names differing only there would be written as the same name, and a
+    /// dictionary could end up with the same key twice. Such a name is refused instead.
+    /// </para>
     /// </remarks>
+    /// <exception cref="ArgumentException">The name holds an unpaired surrogate.</exception>
     public static string ToNameLiteral(string name)
     {
         Debug.Assert(name.Length > 0 && name[0] == '/');
@@ -120,10 +126,29 @@ internal static class PdfEncoders
         }
         else
         {
+            EnsureNoLoneSurrogate(name);
             foreach (var b in Encoding.UTF8.GetBytes(name.Substring(1)))
                 AppendNameByte(pdf, b);
         }
         return pdf.ToString();
+    }
+
+    static void EnsureNoLoneSurrogate(string name)
+    {
+        for (var idx = 1; idx < name.Length; idx++)
+        {
+            var ch = name[idx];
+            if (!char.IsSurrogate(ch))
+                continue;
+            if (char.IsHighSurrogate(ch) && idx + 1 < name.Length && char.IsLowSurrogate(name[idx + 1]))
+            {
+                idx++;
+                continue;
+            }
+            throw new ArgumentException(string.Format(CultureInfo.InvariantCulture,
+                "The PDF name '{0}' holds an unpaired surrogate U+{1:X4} at index {2}, which cannot be written as UTF-8.",
+                name, (int)ch, idx), nameof(name));
+        }
     }
 
     static void AppendNameByte(StringBuilder pdf, byte b)

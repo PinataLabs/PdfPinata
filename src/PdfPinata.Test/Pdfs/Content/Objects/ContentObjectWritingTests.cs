@@ -190,6 +190,16 @@ public class ContentObjectWritingTests
     }
 
     [Fact]
+    public void ANameHoldingAnUnpairedSurrogateIsRefused()
+    {
+        // As in the document body: it has no UTF-8 encoding, and writing U+FFFD in its place
+        // would write a different name.
+        var write = () => Written(new CSequence { new CName("/Zh\uD800") });
+
+        write.Should().Throw<ArgumentException>().WithMessage("*unpaired surrogate*");
+    }
+
+    [Fact]
     public void ANameMadeWithoutOneIsTheBareSlash()
     {
         // The empty name, which PDF allows: a slash followed by nothing.
