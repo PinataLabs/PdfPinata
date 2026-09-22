@@ -195,13 +195,48 @@ public class DdlMalformedInputTests
     [InlineData("\\fontcolor(\"Red\"){x}", "Invalid color: 'Red'.")]
     [InlineData("\\fontcolor(HSB){x}", "Invalid color: 'HSB'.")]
     [InlineData("\\fontcolor(Lab){x}", "Invalid color: 'Lab'.")]
-    [InlineData("\\fontcolor(0x1G){x}", "Invalid color: '0x1G'.")]
-    [InlineData("\\fontcolor(99999999999){x}", "Invalid color: '99999999999'.")]
     [InlineData("\\fontcolor(NoSuch){x}", "Invalid color: 'NoSuch'.")]
     [InlineData("\\fontcolor(RGB(1, 2)){x}", "',' expected, found ')'.")]
     public async Task AFontColorThatIsNotAColourIsReported(string paragraphBody, string complaint)
     {
         (await ComplaintsAboutParagraph(paragraphBody))[0].Should().Be(complaint);
+    }
+
+    [Theory(Timeout = Patience)]
+    [InlineData("\\fontcolor(99999999999){x}")]
+    [InlineData("\\fontcolor(0x123456789){x}")]
+    [InlineData("\\fontcolor(-1){x}")]
+    [InlineData("\\fontcolor(RGB(99999999999, 0, 0)){x}")]
+    [InlineData("\\fontcolor(RGB(0, -1, 0)){x}")]
+    public async Task AColourNumberThatDoesNotFitAnUnsignedIntegerIsReportedAsOutOfRange(string paragraphBody)
+    {
+        // The scanner refuses it as it refuses an integer too large for an int, rather than
+        // letting UInt32.Parse throw an OverflowException the parser has no name for.
+        (await ComplaintsAboutParagraph(paragraphBody))[0]
+            .Should().Be("Valid range only within '0 - 4294967295'.");
+    }
+
+    [Theory(Timeout = Patience)]
+    [InlineData("\\fontcolor(0x1G){x}")]
+    [InlineData("\\fontcolor(RGB(0x1G, 0, 0)){x}")]
+    public async Task AColourNumberWithALetterThatIsNotAHexDigitIsReported(string paragraphBody)
+    {
+        (await ComplaintsAboutParagraph(paragraphBody))[0].Should().Be("Integer expected: '0x1G'.");
+    }
+
+    [Theory(Timeout = Patience)]
+    [InlineData("Font{Color = 99999999999}", "Valid range only within '0 - 4294967295'.")]
+    [InlineData("Font{Color = RGB(99999999999, 0, 0)}", "Valid range only within '0 - 4294967295'.")]
+    [InlineData("Font{Color = -1}", "Valid range only within '0 - 4294967295'.")]
+    [InlineData("Font{Color = RGB(0x1G, 0, 0)}", "Integer expected: '0x1G'.")]
+    public async Task AColourAttributeNumberThatIsNotAnUnsignedIntegerIsAReaderError(string formatBody, string complaint)
+    {
+        var complaints = await ComplaintsAboutParagraphFormat(formatBody);
+
+        complaints[0].Should().Contain("Invalid assignment to 'color'.")
+            .And.Contain(complaint)
+            .And.NotContain(nameof(System.OverflowException))
+            .And.NotContain(nameof(System.FormatException));
     }
 
     [Fact(Timeout = Patience)]
