@@ -1,4 +1,5 @@
 ﻿#region Copyright
+
 //
 // Authors:
 //   Microsoft
@@ -25,6 +26,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
+
 #endregion
 
 using System;
@@ -53,7 +55,7 @@ class TokenizerHelper
         Initialize(str, quoteChar, separator);
     }
 
-    void Initialize(string str, char quoteChar, char separator)
+    private void Initialize(string str, char quoteChar, char separator)
     {
         _str = str;
         _strLen = str == null ? 0 : str.Length;
@@ -73,14 +75,18 @@ class TokenizerHelper
     public string NextTokenRequired()
     {
         if (!NextToken(false))
-            throw new InvalidOperationException("PrematureStringTermination"); //SR.Get(SRID.TokenizerHelperPrematureStringTermination, new object[0]));
+            throw
+                new InvalidOperationException(
+                    "PrematureStringTermination"); //SR.Get(SRID.TokenizerHelperPrematureStringTermination, new object[0]));
         return GetCurrentToken();
     }
 
     public string NextTokenRequired(bool allowQuotedToken)
     {
         if (!NextToken(allowQuotedToken))
-            throw new InvalidOperationException("PrematureStringTermination");  //SR.Get(SRID.TokenizerHelperPrematureStringTermination, new object[0]));
+            throw
+                new InvalidOperationException(
+                    "PrematureStringTermination"); //SR.Get(SRID.TokenizerHelperPrematureStringTermination, new object[0]));
         return GetCurrentToken();
     }
 
@@ -92,7 +98,9 @@ class TokenizerHelper
     public void LastTokenRequired()
     {
         if (_charIndex != _strLen)
-            throw new InvalidOperationException("Extra data encountered"); //SR.Get(SRID.TokenizerHelperExtraDataEncountered, new object[0]));
+            throw
+                new InvalidOperationException(
+                    "Extra data encountered"); //SR.Get(SRID.TokenizerHelperExtraDataEncountered, new object[0]));
     }
 
     /// <summary>
@@ -143,7 +151,7 @@ class TokenizerHelper
         {
             currentChar = _str[_charIndex];
 
-            // If have a quoteCount and this is a quote  decrement the quoteCount.
+            // If you have a quoteCount and this is a quote  decrement the quoteCount.
             if (quoteCount > 0)
             {
                 // If anything but a quoteChar we move on.
@@ -172,7 +180,9 @@ class TokenizerHelper
 
         // If quoteCount isn't zero we hit the end of the string before the ending quote.
         if (quoteCount > 0)
-            throw new InvalidOperationException("Missing end quote"); //SR.Get(SRID.TokenizerHelperMissingEndQuote, new object[0]));
+            throw
+                new InvalidOperationException(
+                    "Missing end quote"); //SR.Get(SRID.TokenizerHelperMissingEndQuote, new object[0]));
 
         // Move at the start of the nextToken.
         ScanToNextToken(separator);
@@ -182,7 +192,8 @@ class TokenizerHelper
         _currentTokenLength = newTokenLength;
 
         if (_currentTokenLength < 1)
-            throw new InvalidOperationException("Empty token"); // SR.Get(SRID.TokenizerHelperEmptyToken, new object[0]));
+            throw
+                new InvalidOperationException("Empty token");
 
         return true;
     }
@@ -196,7 +207,9 @@ class TokenizerHelper
 
             // Ensure that currentChar is a white space or separator.
             if (currentChar != separator && !char.IsWhiteSpace(currentChar))
-                throw new InvalidOperationException("ExtraDataEncountered"); //SR.Get(SRID.TokenizerHelperExtraDataEncountered, new object[0]));
+                throw
+                    new InvalidOperationException(
+                        "ExtraDataEncountered");
 
             // Loop until a character that isn't the separator or white space.
             var argSepCount = 0;
@@ -210,7 +223,8 @@ class TokenizerHelper
                     _charIndex++;
 
                     if (argSepCount > 1)
-                        throw new InvalidOperationException("EmptyToken"); //SR.Get(SRID.TokenizerHelperEmptyToken, new object[0]));
+                        throw
+                            new InvalidOperationException("EmptyToken");
                 }
                 else if (char.IsWhiteSpace(currentChar))
                 {
@@ -223,7 +237,8 @@ class TokenizerHelper
 
             // If there was a separatorChar then we shouldn't be at the end of string or means there was a separator but there isn't an arg.
             if (argSepCount > 0 && _charIndex >= _strLen)
-                throw new InvalidOperationException("EmptyToken"); // SR.Get(SRID.TokenizerHelperEmptyToken, new object[0]));
+                throw
+                    new InvalidOperationException("EmptyToken");
         }
     }
 
@@ -231,20 +246,21 @@ class TokenizerHelper
     {
         var numericSeparator = ',';
         var numberFormat = NumberFormatInfo.GetInstance(provider);
-        if (numberFormat.NumberDecimalSeparator.Length > 0 && numericSeparator == numberFormat.NumberDecimalSeparator[0])
+        if (numberFormat.NumberDecimalSeparator.Length > 0 &&
+            numericSeparator == numberFormat.NumberDecimalSeparator[0])
             numericSeparator = ';';
         return numericSeparator;
     }
 
     public bool FoundSeparator => _foundSeparator;
 
-    bool _foundSeparator;
+    private bool _foundSeparator;
 
-    char _argSeparator;
-    int _charIndex;
-    int _currentTokenIndex;
-    int _currentTokenLength;
-    char _quoteChar;
-    string _str;
-    int _strLen;
+    private char _argSeparator;
+    private int _charIndex;
+    private int _currentTokenIndex;
+    private int _currentTokenLength;
+    private char _quoteChar;
+    private string _str;
+    private int _strLen;
 }

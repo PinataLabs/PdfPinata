@@ -25,20 +25,20 @@ namespace PdfPinata.Fonts.OpenType;
 /// </para>
 /// <para>
 /// A face with no OS/2 table says nothing, and nothing said is read as Installable: refusing a font
-/// for lacking a table would refuse fonts no licence restricts.
+/// for lacking a table would refuse fonts no license restricts.
 /// </para>
 /// </remarks>
 internal readonly struct FontEmbeddingPermissions
 {
-    const ushort RestrictedLicense = 0x0002;
-    const ushort PreviewAndPrint = 0x0004;
-    const ushort Editable = 0x0008;
-    const ushort NoSubsetting = 0x0100;
-    const ushort BitmapEmbeddingOnly = 0x0200;
+    private const ushort _restrictedLicense = 0x0002;
+    private const ushort _previewAndPrint = 0x0004;
+    private const ushort _editable = 0x0008;
+    private const ushort _noSubsetting = 0x0100;
+    private const ushort _bitmapEmbeddingOnly = 0x0200;
 
-    readonly ushort _fsType;
+    private readonly ushort _fsType;
 
-    FontEmbeddingPermissions(ushort fsType) => _fsType = fsType;
+    private FontEmbeddingPermissions(ushort fsType) => _fsType = fsType;
 
     /// <summary>
     /// The permissions <paramref name="face"/> declares.
@@ -49,7 +49,7 @@ internal readonly struct FontEmbeddingPermissions
     /// <summary>
     /// Whether the face may be embedded only whole.
     /// </summary>
-    public bool ForbidsSubsetting => (_fsType & NoSubsetting) != 0;
+    public bool ForbidsSubsetting => (_fsType & _noSubsetting) != 0;
 
     /// <summary>
     /// Why the face may not be embedded, or null when it may.
@@ -60,15 +60,15 @@ internal readonly struct FontEmbeddingPermissions
         {
             // The least restrictive usage bit wins, and either of these permits embedding whatever
             // else is set beside it.
-            var permitsEmbedding = (_fsType & (Editable | PreviewAndPrint)) != 0;
+            var permitsEmbedding = (_fsType & (_editable | _previewAndPrint)) != 0;
 
-            if (!permitsEmbedding && (_fsType & RestrictedLicense) != 0)
+            if (!permitsEmbedding && (_fsType & _restrictedLicense) != 0)
             {
                 return "its OS/2 fsType is 0x" + Hex + ", Restricted License embedding: the font must "
                        + "not be embedded without its legal owner's permission";
             }
 
-            if ((_fsType & BitmapEmbeddingOnly) != 0)
+            if ((_fsType & _bitmapEmbeddingOnly) != 0)
             {
                 return "its OS/2 fsType is 0x" + Hex + ", Bitmap Embedding Only: only the font's "
                        + "bitmaps may be embedded, and PdfPinata embeds outlines";
@@ -78,7 +78,7 @@ internal readonly struct FontEmbeddingPermissions
         }
     }
 
-    string Hex => _fsType.ToString("X4", CultureInfo.InvariantCulture);
+    private string Hex => _fsType.ToString("X4", CultureInfo.InvariantCulture);
 
     /// <summary>
     /// Throws when <paramref name="face"/> may not be embedded, naming the face and the restriction.

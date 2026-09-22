@@ -97,19 +97,19 @@ public class DemoSmokeTests
     public void The_printed_example_leaves_out_the_documentation_excerpt_markers()
     {
         const string source = """
-            class Demo
-            {
-                void Build()
-                {
-                    #region example
-                    // docs:begin first
-                    int a = 1;
-                    // docs:end first
-                    int b = 2;
-                    #endregion
-                }
-            }
-            """;
+                              class Demo
+                              {
+                                  void Build()
+                                  {
+                                      #region example
+                                      // docs:begin first
+                                      int a = 1;
+                                      // docs:end first
+                                      int b = 2;
+                                      #endregion
+                                  }
+                              }
+                              """;
 
         var example = DemoSource.ExampleFrom(source);
 
@@ -131,7 +131,7 @@ public class DemoSmokeTests
         // ReSharper disable PossibleNullReferenceException
         foreach (var raw in source.Replace("\r\n", "\n").Split('\n'))
         {
-        // ReSharper restore PossibleNullReferenceException
+            // ReSharper restore PossibleNullReferenceException
             var line = raw.Trim();
             if (!line.StartsWith(DemoSource.SnippetMarkerPrefix, StringComparison.Ordinal))
                 continue;

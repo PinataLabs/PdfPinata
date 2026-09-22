@@ -13,625 +13,633 @@ namespace PdfPinata.Drawing.Layout;
 /// </summary>
 public class XTextSegmentFormatter
 {
-	private readonly XGraphics _gfx;
+    private readonly XGraphics _gfx;
 
-	/// <summary>
-	/// Initializes a new instance of the <see cref="XTextSegmentFormatter"/> class.
-	/// </summary>
-	public XTextSegmentFormatter(XGraphics gfx)
-	{
-		ArgumentNullException.ThrowIfNull(gfx);
+    /// <summary>
+    /// Initializes a new instance of the <see cref="XTextSegmentFormatter"/> class.
+    /// </summary>
+    public XTextSegmentFormatter(XGraphics gfx)
+    {
+        ArgumentNullException.ThrowIfNull(gfx);
 
-		_gfx = gfx;
-	}
+        _gfx = gfx;
+    }
 
-	/// <summary>
-	/// Gets or sets the alignment of the text.
-	/// </summary>
-	public XParagraphAlignment Alignment { get; set; }
+    /// <summary>
+    /// Gets or sets the alignment of the text.
+    /// </summary>
+    public XParagraphAlignment Alignment { get; set; }
 
-	/// <summary>
-	/// Draws the text.
-	/// </summary>
-	/// <param name="text">The text to be drawn.</param>
-	/// <param name="font">The font.</param>
-	/// <param name="brush">The text brush.</param>
-	/// <param name="layoutRectangle">The layout rectangle.</param>
-	public void DrawString(string text, XFont font, XBrush brush, XRect layoutRectangle)
-	{
-		var textSegments = new List<TextSegment>
-		{
-			new() { Font = font, Brush = brush, Text = text }
-		};
+    /// <summary>
+    /// Draws the text.
+    /// </summary>
+    /// <param name="text">The text to be drawn.</param>
+    /// <param name="font">The font.</param>
+    /// <param name="brush">The text brush.</param>
+    /// <param name="layoutRectangle">The layout rectangle.</param>
+    public void DrawString(string text, XFont font, XBrush brush, XRect layoutRectangle)
+    {
+        var textSegments = new List<TextSegment>
+        {
+            new() { Font = font, Brush = brush, Text = text }
+        };
 
-		DrawString(textSegments, layoutRectangle, XStringFormats.TopLeft);
-	}
+        DrawString(textSegments, layoutRectangle, XStringFormats.TopLeft);
+    }
 
-	/// <summary>
-	/// Draws the text.
-	/// </summary>
-	/// <param name="text">The text to be drawn.</param>
-	/// <param name="font">The font.</param>
-	/// <param name="brush">The text brush.</param>
-	/// <param name="layoutRectangle">The layout rectangle.</param>
-	/// <param name="format">The format. Must be <c>XStringFormat.TopLeft</c></param>
-	public void DrawString(string text, XFont font, XBrush brush, XRect layoutRectangle, XStringFormat format)
-	{
-		var textSegments = new List<TextSegment>
-		{
-			new() { Font = font, Brush = brush, Text = text }
-		};
+    /// <summary>
+    /// Draws the text.
+    /// </summary>
+    /// <param name="text">The text to be drawn.</param>
+    /// <param name="font">The font.</param>
+    /// <param name="brush">The text brush.</param>
+    /// <param name="layoutRectangle">The layout rectangle.</param>
+    /// <param name="format">The format. Must be <c>XStringFormat.TopLeft</c></param>
+    public void DrawString(string text, XFont font, XBrush brush, XRect layoutRectangle, XStringFormat format)
+    {
+        var textSegments = new List<TextSegment>
+        {
+            new() { Font = font, Brush = brush, Text = text }
+        };
 
-		DrawString(textSegments, layoutRectangle, format);
-	}
+        DrawString(textSegments, layoutRectangle, format);
+    }
 
-	/// <summary>
-	/// Draws the text. 
-	/// </summary>
-	/// <param name="textSegments">The texts to be drawn with font and color information</param>
-	/// <param name="layoutRectangle">The layout rectangle.</param>
-	public void DrawString(IEnumerable<TextSegment> textSegments, XRect layoutRectangle)
-	{
-		DrawString(textSegments, layoutRectangle, XStringFormats.TopLeft);
-	}
+    /// <summary>
+    /// Draws the text.
+    /// </summary>
+    /// <param name="textSegments">The texts to be drawn with font and color information</param>
+    /// <param name="layoutRectangle">The layout rectangle.</param>
+    public void DrawString(IEnumerable<TextSegment> textSegments, XRect layoutRectangle)
+    {
+        DrawString(textSegments, layoutRectangle, XStringFormats.TopLeft);
+    }
 
-	/// <summary>
-	/// Draws the text. 
-	/// </summary>
-	/// <param name="textSegments">The texts to be drawn with font and color information.</param>
-	/// <param name="layoutRectangle">The layout rectangle.</param>
-	/// <param name="format">The format. Must be <c>XStringFormat.TopLeft</c></param>
-	public void DrawString(IEnumerable<TextSegment> textSegments, XRect layoutRectangle, XStringFormat format)
-	{
-		ProcessTextSegments(
-			textSegments,
-			layoutRectangle,
-			format,
-			(block, dx, dy) => _gfx.DrawString(block.Text, block.Environment.Font, block.Environment.Brush, dx + block.Location.X, dy + block.Location.Y),
-			false
-		);
-	}
+    /// <summary>
+    /// Draws the text.
+    /// </summary>
+    /// <param name="textSegments">The texts to be drawn with font and color information.</param>
+    /// <param name="layoutRectangle">The layout rectangle.</param>
+    /// <param name="format">The format. Must be <c>XStringFormat.TopLeft</c></param>
+    public void DrawString(IEnumerable<TextSegment> textSegments, XRect layoutRectangle, XStringFormat format)
+    {
+        ProcessTextSegments(
+            textSegments,
+            layoutRectangle,
+            format,
+            (block, dx, dy) => _gfx.DrawString(block.Text, block.Environment.Font, block.Environment.Brush,
+                dx + block.Location.X, dy + block.Location.Y),
+            false
+        );
+    }
 
-	/// <summary>
-	/// Calculates the size of the given text
-	/// </summary>
-	/// <param name="text">The text to be drawn.</param>
-	/// <param name="font">The font.</param>
-	/// <param name="brush">The text brush.</param>
-	/// <param name="width">Max text width</param>
-	/// <returns></returns>
-	public XSize CalculateTextSize(string text, XFont font, XBrush brush, double width)
-	{
-		return CalculateTextSize(text, font, brush, width, XStringFormats.TopLeft);
-	}
+    /// <summary>
+    /// Calculates the size of the given text
+    /// </summary>
+    /// <param name="text">The text to be drawn.</param>
+    /// <param name="font">The font.</param>
+    /// <param name="brush">The text brush.</param>
+    /// <param name="width">Max text width</param>
+    /// <returns></returns>
+    public XSize CalculateTextSize(string text, XFont font, XBrush brush, double width)
+    {
+        return CalculateTextSize(text, font, brush, width, XStringFormats.TopLeft);
+    }
 
-	/// <summary>
-	/// Calculates the size of the given text
-	/// </summary>
-	/// <param name="text">The text to be drawn.</param>
-	/// <param name="font">The font.</param>
-	/// <param name="brush">The text brush.</param>
-	/// <param name="width">Max text width</param>
-	/// <param name="format">The format. Must be <c>XStringFormat.TopLeft</c>.</param>
-	/// <returns></returns>
-	public XSize CalculateTextSize(string text, XFont font, XBrush brush, double width, XStringFormat format)
-	{
-		var textSegments = new List<TextSegment>
-		{
-			new() { Font = font, Brush = brush, Text = text }
-		};
+    /// <summary>
+    /// Calculates the size of the given text
+    /// </summary>
+    /// <param name="text">The text to be drawn.</param>
+    /// <param name="font">The font.</param>
+    /// <param name="brush">The text brush.</param>
+    /// <param name="width">Max text width</param>
+    /// <param name="format">The format. Must be <c>XStringFormat.TopLeft</c>.</param>
+    /// <returns></returns>
+    public XSize CalculateTextSize(string text, XFont font, XBrush brush, double width, XStringFormat format)
+    {
+        var textSegments = new List<TextSegment>
+        {
+            new() { Font = font, Brush = brush, Text = text }
+        };
 
-		return CalculateTextSize(textSegments, width, format);
-	}
+        return CalculateTextSize(textSegments, width, format);
+    }
 
-	/// <summary>
-	/// Calculates the size of the given text
-	/// </summary>
-	/// <param name="textSegments">The texts to be drawn with font and color information.</param>
-	/// <param name="width">Max text width</param>
-	/// <returns></returns>
-	public XSize CalculateTextSize(IEnumerable<TextSegment> textSegments, double width)
-	{
-		return CalculateTextSize(textSegments, width, XStringFormats.TopLeft);
-	}
+    /// <summary>
+    /// Calculates the size of the given text
+    /// </summary>
+    /// <param name="textSegments">The texts to be drawn with font and color information.</param>
+    /// <param name="width">Max text width</param>
+    /// <returns></returns>
+    public XSize CalculateTextSize(IEnumerable<TextSegment> textSegments, double width)
+    {
+        return CalculateTextSize(textSegments, width, XStringFormats.TopLeft);
+    }
 
-	/// <summary>
-	/// Calculates the size of the given text
-	/// </summary>
-	/// <param name="textSegments">The texts to be drawn with font and color information.</param>
-	/// <param name="width">Max text width</param>
-	/// <param name="format">The format. Must be <c>XStringFormat.TopLeft</c>.</param>
-	/// <returns></returns>
-	public XSize CalculateTextSize(IEnumerable<TextSegment> textSegments, double width, XStringFormat format)
-	{
-		var layoutRectangle = new XRect(0, 0, width, 100000000);
-		var blocks = new List<Block>();
+    /// <summary>
+    /// Calculates the size of the given text
+    /// </summary>
+    /// <param name="textSegments">The texts to be drawn with font and color information.</param>
+    /// <param name="width">Max text width</param>
+    /// <param name="format">The format. Must be <c>XStringFormat.TopLeft</c>.</param>
+    /// <returns></returns>
+    public XSize CalculateTextSize(IEnumerable<TextSegment> textSegments, double width, XStringFormat format)
+    {
+        var layoutRectangle = new XRect(0, 0, width, 100000000);
+        var blocks = new List<Block>();
 
-		ProcessTextSegments(textSegments, layoutRectangle, format, (block, _, _) => blocks.Add(block), true);
+        ProcessTextSegments(textSegments, layoutRectangle, format, (block, _, _) => blocks.Add(block), true);
 
-		var height = blocks.Count > 0
-			? blocks.Max(b => b.Location.Y)
-			: 0;
-		var maxLineHeight = 0.0;
-		for (var i = blocks.Count - 1; i >= 0; i--)
-		{
-			if (blocks[i].Type == BlockType.LineBreak)
-			{
-				break;
-			}
+        var height = blocks.Count > 0
+            ? blocks.Max(b => b.Location.Y)
+            : 0;
+        var maxLineHeight = 0.0;
+        for (var i = blocks.Count - 1; i >= 0; i--)
+        {
+            if (blocks[i].Type == BlockType.LineBreak)
+            {
+                break;
+            }
 
-			maxLineHeight = Math.Max(maxLineHeight, blocks[i].Environment.LineSpace);
-		}
+            maxLineHeight = Math.Max(maxLineHeight, blocks[i].Environment.LineSpace);
+        }
 
-		var calculatedWith = blocks.Count > 0
-			? blocks.Max(b => b.Location.X + b.Width)
-			: width;
+        var calculatedWith = blocks.Count > 0
+            ? blocks.Max(b => b.Location.X + b.Width)
+            : width;
 
-		if (width < calculatedWith)
-		{
-			calculatedWith = width;
-		}
+        if (width < calculatedWith)
+        {
+            calculatedWith = width;
+        }
 
-		return new XSize(calculatedWith, height + maxLineHeight);
-	}
+        return new XSize(calculatedWith, height + maxLineHeight);
+    }
 
-	private void ProcessTextSegments(IEnumerable<TextSegment> textSegments, XRect layoutRectangle, XStringFormat format, Action<Block, double, double> applyBlock, bool applyBlockIfLineBreak)
-	{
-		textSegments = textSegments.ToList();
+    private void ProcessTextSegments(IEnumerable<TextSegment> textSegments, XRect layoutRectangle, XStringFormat format,
+        Action<Block, double, double> applyBlock, bool applyBlockIfLineBreak)
+    {
+        textSegments = textSegments.ToList();
 
-		if (textSegments.All(ts => string.IsNullOrEmpty(ts.Text)))
-		{
-			return;
-		}
+        if (textSegments.All(ts => string.IsNullOrEmpty(ts.Text)))
+        {
+            return;
+        }
 
-		if (textSegments.Any(ts => ts.Font == default))
-		{
-			throw new ArgumentNullException(nameof(textSegments), "Every text segment needs a font.");
-		}
+        if (textSegments.Any(ts => ts.Font == default))
+        {
+            throw new ArgumentNullException(nameof(textSegments), "Every text segment needs a font.");
+        }
 
-		if (textSegments.Any(ts => ts.Brush == default))
-		{
-			throw new ArgumentNullException(nameof(textSegments), "Every text segment needs a brush.");
-		}
+        if (textSegments.Any(ts => ts.Brush == default))
+        {
+            throw new ArgumentNullException(nameof(textSegments), "Every text segment needs a brush.");
+        }
 
-		if (format.Alignment != XStringAlignment.Near || format.LineAlignment != XLineAlignment.Near)
-		{
-			throw new ArgumentException("Only TopLeft alignment is currently implemented.");
-		}
+        if (format.Alignment != XStringAlignment.Near || format.LineAlignment != XLineAlignment.Near)
+        {
+            throw new ArgumentException("Only TopLeft alignment is currently implemented.");
+        }
 
-		foreach (var segment in textSegments)
-		{
-			SetFontSpacings(segment);
-		}
+        foreach (var segment in textSegments)
+        {
+            SetFontSpacings(segment);
+        }
 
-		var blocks = CreateBlocks(textSegments);
-		var blockUnits = new List<List<Block>>();
-		var currentBlockUnit = new List<Block>();
-		foreach (var block in blocks)
-		{
-			currentBlockUnit.Add(block);
+        var blocks = CreateBlocks(textSegments);
+        var blockUnits = new List<List<Block>>();
+        var currentBlockUnit = new List<Block>();
+        foreach (var block in blocks)
+        {
+            currentBlockUnit.Add(block);
 
-			if (block.Stop || block.Type == BlockType.LineBreak)
-			{
-				blockUnits.Add(currentBlockUnit);
-				currentBlockUnit = new List<Block>();
-			}
-		}
+            if (block.Stop || block.Type == BlockType.LineBreak)
+            {
+                blockUnits.Add(currentBlockUnit);
+                currentBlockUnit = new List<Block>();
+            }
+        }
 
-		if (!blocks.Last().Stop && blocks.Last().Type != BlockType.LineBreak)
-		{
-			blockUnits.Add(currentBlockUnit);
-		}
+        if (!blocks.Last().Stop && blocks.Last().Type != BlockType.LineBreak)
+        {
+            blockUnits.Add(currentBlockUnit);
+        }
 
-		CreateLayout(blockUnits, layoutRectangle);
+        CreateLayout(blockUnits, layoutRectangle);
 
-		for (var index = 0; index < blockUnits.Count; index++)
-		{
-			var blockUnit = blockUnits[index];
-			var maxCyAscend = blockUnit.Max(b => b.Environment.CyAscent);
-			var dx = layoutRectangle.Location.X;
-			var dy = layoutRectangle.Location.Y + maxCyAscend;
+        for (var index = 0; index < blockUnits.Count; index++)
+        {
+            var blockUnit = blockUnits[index];
+            var maxCyAscend = blockUnit.Max(b => b.Environment.CyAscent);
+            var dx = layoutRectangle.Location.X;
+            var dy = layoutRectangle.Location.Y + maxCyAscend;
 
-			// Check all blocks of the current line in order to move all blocks of the next lines down,
-			// ReSharper disable once CompareOfFloatsByEqualityOperator
-			// when the first block of the current line has not the max cy ascent of the whole line
-			#pragma warning disable S1244 // Exact on purpose: compared with a maximum or minimum taken from these same values.
-			if (!blockUnit.All(b => b.Environment.CyAscent == maxCyAscend))
-			#pragma warning restore S1244
-			{
-				for (var indexSiblings = index + 1; indexSiblings < blockUnits.Count; indexSiblings++)
-				{
-					blockUnits[indexSiblings].ForEach(b => b.Location += new XVector(0, maxCyAscend - blockUnit.First().Environment.CyAscent));
-				}
-			}
+            // Check all blocks of the current line in order to move all blocks of the next lines down,
+            // ReSharper disable once CompareOfFloatsByEqualityOperator
+            // when the first block of the current line has not the max cy ascent of the whole line
+#pragma warning disable S1244 // Exact on purpose: compared with a maximum or minimum taken from these same values.
+            if (blockUnit.Any(b => b.Environment.CyAscent != maxCyAscend))
+#pragma warning restore S1244
+            {
+                for (var indexSiblings = index + 1; indexSiblings < blockUnits.Count; indexSiblings++)
+                {
+                    blockUnits[indexSiblings].ForEach(b =>
+                        b.Location += new XVector(0, maxCyAscend - blockUnit.First().Environment.CyAscent));
+                }
+            }
 
-			foreach (var block in blockUnit)
-			{
-				if (block.Stop)
-				{
-					break;
-				}
+            foreach (var block in blockUnit)
+            {
+                if (block.Stop)
+                {
+                    break;
+                }
 
-				if (block.Type == BlockType.LineBreak && !applyBlockIfLineBreak)
-				{
-					continue;
-				}
+                if (block.Type == BlockType.LineBreak && !applyBlockIfLineBreak)
+                {
+                    continue;
+                }
 
-				applyBlock(block, dx, dy);
-			}
-		}
-	}
+                applyBlock(block, dx, dy);
+            }
+        }
+    }
 
-	private List<Block> CreateBlocks(IEnumerable<TextSegment> textSegments)
-	{
-		var blocks = new List<Block>();
+    private List<Block> CreateBlocks(IEnumerable<TextSegment> textSegments)
+    {
+        var blocks = new List<Block>();
 
-		foreach (var textSegment in textSegments)
-		{
-			if (string.IsNullOrEmpty(textSegment.Text) && !(textSegment.Text ?? "").Contains(Chars.LF))
-			{
-				continue;
-			}
+        foreach (var textSegment in textSegments)
+        {
+            if (string.IsNullOrEmpty(textSegment.Text) && !(textSegment.Text ?? "").Contains(Chars.LF))
+            {
+                continue;
+            }
 
-			// Check whether the current block belongs to the last block
-			// ReSharper disable PossibleNullReferenceException
-			if (blocks.Count > 0 && !textSegment.Text.StartsWith(' '))
-			{
-			// ReSharper restore PossibleNullReferenceException
-				blocks.Last().NextBlockBelongsToMe = true;
-			}
+            // Check whether the current block belongs to the last block
+            // ReSharper disable PossibleNullReferenceException
+            if (blocks.Count > 0 && !textSegment.Text.StartsWith(' '))
+            {
+                // ReSharper restore PossibleNullReferenceException
+                blocks.Last().NextBlockBelongsToMe = true;
+            }
 
-			// ReSharper disable once PossibleNullReferenceException
-			var length = textSegment.Text.Length;
-			var inNonWhiteSpace = false;
-			var startIndex = 0;
-			var blockLength = 0;
+            // ReSharper disable once PossibleNullReferenceException
+            var length = textSegment.Text.Length;
+            var inNonWhiteSpace = false;
+            var startIndex = 0;
+            var blockLength = 0;
 
-			for (var idx = 0; idx < length; idx++)
-			{
-				var ch = textSegment.Text[idx];
+            for (var idx = 0; idx < length; idx++)
+            {
+                var ch = textSegment.Text[idx];
 
-				// Treat CR and CRLF as LF
-				if (ch == Chars.CR)
-				{
-					if (idx < length - 1 && textSegment.Text[idx + 1] == Chars.LF)
-					{
-						idx++;
-					}
+                // Treat CR and CRLF as LF
+                if (ch == Chars.CR)
+                {
+                    if (idx < length - 1 && textSegment.Text[idx + 1] == Chars.LF)
+                    {
+                        idx++;
+                    }
 
-					ch = Chars.LF;
-				}
+                    ch = Chars.LF;
+                }
 
-				if (ch == Chars.LF)
-				{
-					if (blockLength != 0)
-					{
-						var token = textSegment.Text.Substring(startIndex, blockLength);
-						var block = new Block(token, BlockType.Text, _gfx.MeasureString(token, textSegment.Font).Width);
-						SetFormatterEnvironment(block, textSegment);
-						block.LineIndent = textSegment.LineIndent;
-						block.SkipParagraphAlignment = textSegment.SkipParagraphAlignment;
-						blocks.Add(block);
-					}
+                if (ch == Chars.LF)
+                {
+                    if (blockLength != 0)
+                    {
+                        var token = textSegment.Text.Substring(startIndex, blockLength);
+                        var block = new Block(token, BlockType.Text, _gfx.MeasureString(token, textSegment.Font).Width);
+                        SetFormatterEnvironment(block, textSegment);
+                        block.LineIndent = textSegment.LineIndent;
+                        block.SkipParagraphAlignment = textSegment.SkipParagraphAlignment;
+                        blocks.Add(block);
+                    }
 
-					startIndex = idx + 1;
-					blockLength = 0;
+                    startIndex = idx + 1;
+                    blockLength = 0;
 
-					var lineBreakBlock = new Block(BlockType.LineBreak);
-					SetFormatterEnvironment(lineBreakBlock, textSegment);
-					blocks.Add(lineBreakBlock);
-				}
-				else if (char.IsWhiteSpace(ch))
-				{
-					if (inNonWhiteSpace)
-					{
-						var token = textSegment.Text.Substring(startIndex, blockLength).Trim();
-						var block = new Block(token, BlockType.Text, _gfx.MeasureString(token, textSegment.Font).Width);
-						SetFormatterEnvironment(block, textSegment);
-						block.LineIndent = textSegment.LineIndent;
-						block.SkipParagraphAlignment = textSegment.SkipParagraphAlignment;
-						blocks.Add(block);
-						startIndex = idx + 1;
-						blockLength = 0;
-					}
-					else
-					{
-						blockLength++;
-					}
-				}
-				else
-				{
-					inNonWhiteSpace = true;
-					blockLength++;
-				}
-			}
+                    var lineBreakBlock = new Block(BlockType.LineBreak);
+                    SetFormatterEnvironment(lineBreakBlock, textSegment);
+                    blocks.Add(lineBreakBlock);
+                }
+                else if (char.IsWhiteSpace(ch))
+                {
+                    if (inNonWhiteSpace)
+                    {
+                        var token = textSegment.Text.Substring(startIndex, blockLength).Trim();
+                        var block = new Block(token, BlockType.Text, _gfx.MeasureString(token, textSegment.Font).Width);
+                        SetFormatterEnvironment(block, textSegment);
+                        block.LineIndent = textSegment.LineIndent;
+                        block.SkipParagraphAlignment = textSegment.SkipParagraphAlignment;
+                        blocks.Add(block);
+                        startIndex = idx + 1;
+                        blockLength = 0;
+                    }
+                    else
+                    {
+                        blockLength++;
+                    }
+                }
+                else
+                {
+                    inNonWhiteSpace = true;
+                    blockLength++;
+                }
+            }
 
-			if (blockLength != 0)
-			{
-				var token = textSegment.Text.Substring(startIndex, blockLength);
-				var block = new Block(token, BlockType.Text, _gfx.MeasureString(token, textSegment.Font).Width);
-				block.LineIndent = textSegment.LineIndent;
-				block.SkipParagraphAlignment = textSegment.SkipParagraphAlignment;
-				SetFormatterEnvironment(block, textSegment);
-				blocks.Add(block);
-			}
-		}
+            if (blockLength != 0)
+            {
+                var token = textSegment.Text.Substring(startIndex, blockLength);
+                var block = new Block(token, BlockType.Text, _gfx.MeasureString(token, textSegment.Font).Width);
+                block.LineIndent = textSegment.LineIndent;
+                block.SkipParagraphAlignment = textSegment.SkipParagraphAlignment;
+                SetFormatterEnvironment(block, textSegment);
+                blocks.Add(block);
+            }
+        }
 
-		return blocks;
-	}
+        return blocks;
+    }
 
-	private void CreateLayout(List<List<Block>> blockUnits, XRect layoutRectangle)
-	{
-		var rectWidth = layoutRectangle.Width;
-		var rectHeight = layoutRectangle.Height - blockUnits.First().First().Environment.CyAscent - blockUnits.Last().Last().Environment.CyDescent;
-		var x = 0.0;
-		var y = 0.0;
+    private void CreateLayout(List<List<Block>> blockUnits, XRect layoutRectangle)
+    {
+        var rectWidth = layoutRectangle.Width;
+        var rectHeight = layoutRectangle.Height - blockUnits.First().First().Environment.CyAscent -
+                         blockUnits.Last().Last().Environment.CyDescent;
+        var x = 0.0;
+        var y = 0.0;
 
-		foreach (var blockUnit in blockUnits)
-		{
-			var count = blockUnit.Count;
-			var firstIndex = 0;
-			var currentMaxLineSpace = 0.0;
-			var currentMaxCyDescent = 0.0;
-			var currentLineBlocks = new List<Block>();
-			var startLineSpace = blockUnit[0].Environment.LineSpace;
-			double startCyDescent;
+        foreach (var blockUnit in blockUnits)
+        {
+            var count = blockUnit.Count;
+            var firstIndex = 0;
+            var currentMaxLineSpace = 0.0;
+            var currentMaxCyDescent = 0.0;
+            var currentLineBlocks = new List<Block>();
+            var startLineSpace = blockUnit[0].Environment.LineSpace;
+            double startCyDescent;
 
-			for (var idx = 0; idx < count; idx++)
-			{
-				var block = blockUnit[idx];
-				if (block.Type == BlockType.LineBreak)
-				{
-					if (Alignment == XParagraphAlignment.Justify)
-					{
-						blockUnit[firstIndex].Alignment = XParagraphAlignment.Left;
-					}
+            for (var idx = 0; idx < count; idx++)
+            {
+                var block = blockUnit[idx];
+                if (block.Type == BlockType.LineBreak)
+                {
+                    if (Alignment == XParagraphAlignment.Justify)
+                    {
+                        blockUnit[firstIndex].Alignment = XParagraphAlignment.Left;
+                    }
 
-					AlignLine(blockUnit, firstIndex, idx - 1, rectWidth);
-					firstIndex = idx + 1;
-					x = 0;
+                    AlignLine(blockUnit, firstIndex, idx - 1, rectWidth);
+                    firstIndex = idx + 1;
+                    x = 0;
 
-					startLineSpace = (idx + 1) < count
-						? blockUnit[idx + 1].Environment.LineSpace
-						: block.Environment.LineSpace;
-					startCyDescent = (idx + 1) < count
-						? blockUnit[idx + 1].Environment.CyDescent
-						: block.Environment.CyDescent;
+                    startLineSpace = (idx + 1) < count
+                        ? blockUnit[idx + 1].Environment.LineSpace
+                        : block.Environment.LineSpace;
+                    startCyDescent = (idx + 1) < count
+                        ? blockUnit[idx + 1].Environment.CyDescent
+                        : block.Environment.CyDescent;
 
-					currentMaxLineSpace = startLineSpace;
-					currentMaxCyDescent = startCyDescent;
+                    currentMaxLineSpace = startLineSpace;
+                    currentMaxCyDescent = startCyDescent;
 
-					y += currentMaxLineSpace;
-					currentLineBlocks.Clear();
+                    y += currentMaxLineSpace;
+                    currentLineBlocks.Clear();
 
-					if (y > rectHeight)
-					{
-						block.Stop = true;
+                    if (y > rectHeight)
+                    {
+                        block.Stop = true;
 
-						break;
-					}
+                        break;
+                    }
 
-					// necessary to correctly calculate closing line breaks
-					block.Location = new XPoint(0, y);
-				}
-				else
-				{
-					var width = block.Width;
+                    // necessary to correctly calculate closing line breaks
+                    block.Location = new XPoint(0, y);
+                }
+                else
+                {
+                    var width = block.Width;
 
-					if (x == 0.0)
-					{
-						x += block.LineIndent;
-					}
+                    if (x == 0.0)
+                    {
+                        x += block.LineIndent;
+                    }
 
-					if (x + width <= rectWidth || x == 0.0)
-					{
-						// if the font style is set to "underline", we don't want a underlined space character 
-						width = RemovedLeadingSpace(block, width);
-						block.Location = new XPoint(x, y);
-						x += width;
-						if (!block.NextBlockBelongsToMe)
-						{
-							// The current and the next block are treated as one unit, so there is no space between them
-							x += block.Environment.SpaceWidth;
-						}
+                    if (x + width <= rectWidth || x == 0.0)
+                    {
+                        // if the font style is set to "underline", we don't want a underlined space character
+                        width = RemovedLeadingSpace(block, width);
+                        block.Location = new XPoint(x, y);
+                        x += width;
+                        if (!block.NextBlockBelongsToMe)
+                        {
+                            // The current and the next block are treated as one unit, so there is no space between them
+                            x += block.Environment.SpaceWidth;
+                        }
 
-						currentLineBlocks.Add(block);
+                        currentLineBlocks.Add(block);
 
-						currentMaxLineSpace = Math.Max(block.Environment.LineSpace, currentMaxLineSpace);
-						currentMaxCyDescent = Math.Max(block.Environment.CyDescent, currentMaxCyDescent);
-					}
-					else
-					{
-						// if the previous blocks are linked to the current block, all linked blocks have to be moved to the next line
-						while (idx > 0 && blockUnit[idx - 1].NextBlockBelongsToMe)
-						{
-							idx--;
-							currentLineBlocks.RemoveAt(currentLineBlocks.Count - 1);
-							block = blockUnit[idx];
-							width = block.Width;
-						}
-							
-						AlignLine(blockUnit, firstIndex, idx - 1, rectWidth);
-						firstIndex = idx;
+                        currentMaxLineSpace = Math.Max(block.Environment.LineSpace, currentMaxLineSpace);
+                        currentMaxCyDescent = Math.Max(block.Environment.CyDescent, currentMaxCyDescent);
+                    }
+                    else
+                    {
+                        // if the previous blocks are linked to the current block, all linked blocks have to be moved to the next line
+                        while (idx > 0 && blockUnit[idx - 1].NextBlockBelongsToMe)
+                        {
+                            idx--;
+                            currentLineBlocks.RemoveAt(currentLineBlocks.Count - 1);
+                            block = blockUnit[idx];
+                            width = block.Width;
+                        }
+
+                        AlignLine(blockUnit, firstIndex, idx - 1, rectWidth);
+                        firstIndex = idx;
 // ReSharper disable once CompareOfFloatsByEqualityOperator
 
-						#pragma warning disable S1244 // Exact on purpose: unchanged unless a larger value replaced it.
-						if (currentMaxLineSpace != startLineSpace)
-						#pragma warning restore S1244
-						{
-							y += -startLineSpace + currentMaxLineSpace;
-							currentLineBlocks.ForEach(b => b.Location = new XPoint(b.Location.X, y));
-						}
+#pragma warning disable S1244 // Exact on purpose: unchanged unless a larger value replaced it.
+                        if (currentMaxLineSpace != startLineSpace)
+#pragma warning restore S1244
+                        {
+                            y += -startLineSpace + currentMaxLineSpace;
+                            currentLineBlocks.ForEach(b => b.Location = new XPoint(b.Location.X, y));
+                        }
 
-						startLineSpace = block.Environment.LineSpace;
-						startCyDescent = block.Environment.CyDescent;
+                        startLineSpace = block.Environment.LineSpace;
+                        startCyDescent = block.Environment.CyDescent;
 
-						if (startLineSpace < currentMaxLineSpace)
-						{
-							var cyDescentDiff = currentMaxCyDescent - startCyDescent;
-							y += cyDescentDiff;
-						}
+                        if (startLineSpace < currentMaxLineSpace)
+                        {
+                            var cyDescentDiff = currentMaxCyDescent - startCyDescent;
+                            y += cyDescentDiff;
+                        }
 
-						currentMaxLineSpace = startLineSpace;
-						currentMaxCyDescent = startCyDescent;
+                        currentMaxLineSpace = startLineSpace;
+                        currentMaxCyDescent = startCyDescent;
 
-						y += currentMaxLineSpace;
-						currentLineBlocks.Clear();
+                        y += currentMaxLineSpace;
+                        currentLineBlocks.Clear();
 
-						if (y > rectHeight)
-						{
-							block.Stop = true;
+                        if (y > rectHeight)
+                        {
+                            block.Stop = true;
 
-							break;
-						}
+                            break;
+                        }
 
-						// A new line must not start with a space character
-						width = RemovedLeadingSpace(block, width);
-						block.Location = new XPoint(block.LineIndent, y);
-						x = block.LineIndent + width;
-						if (!block.NextBlockBelongsToMe)
-						{
-							// The current and the next block are treated as one unit, so there is no space between them
-							x += block.Environment.SpaceWidth;
-						}
-						currentLineBlocks.Add(block);
-					}
-				}
-			}
+                        // A new line must not start with a space character
+                        width = RemovedLeadingSpace(block, width);
+                        block.Location = new XPoint(block.LineIndent, y);
+                        x = block.LineIndent + width;
+                        if (!block.NextBlockBelongsToMe)
+                        {
+                            // The current and the next block are treated as one unit, so there is no space between them
+                            x += block.Environment.SpaceWidth;
+                        }
 
-			if (firstIndex < count && Alignment != XParagraphAlignment.Justify)
-			{
-				AlignLine(blockUnit, firstIndex, count - 1, rectWidth);
-			}
-		}
-	}
+                        currentLineBlocks.Add(block);
+                    }
+                }
+            }
 
-	private static double RemovedLeadingSpace(Block block, double width)
-	{
-		while (block.Text.StartsWith(' '))
-		{
-			block.Text = block.Text[1..];
-			block.Width -= block.Environment.SpaceWidth;
-			width -= block.Environment.SpaceWidth;
-		}
+            if (firstIndex < count && Alignment != XParagraphAlignment.Justify)
+            {
+                AlignLine(blockUnit, firstIndex, count - 1, rectWidth);
+            }
+        }
+    }
 
-		return width;
-	}
+    private static double RemovedLeadingSpace(Block block, double width)
+    {
+        while (block.Text.StartsWith(' '))
+        {
+            block.Text = block.Text[1..];
+            block.Width -= block.Environment.SpaceWidth;
+            width -= block.Environment.SpaceWidth;
+        }
 
-	/// <summary>
-	/// Align center, right, or justify.
-	/// </summary>
-	private void AlignLine(List<Block> blockUnit, int firstIndex, int lastIndex, double layoutWidth)
-	{
-		var firstBlock = blockUnit[firstIndex];
-		var blockAlignment = firstBlock.Alignment;
+        return width;
+    }
 
-		if (Alignment == XParagraphAlignment.Left || blockAlignment == XParagraphAlignment.Left)
-		{
-			return;
-		}
+    /// <summary>
+    /// Align center, right, or justify.
+    /// </summary>
+    private void AlignLine(List<Block> blockUnit, int firstIndex, int lastIndex, double layoutWidth)
+    {
+        var firstBlock = blockUnit[firstIndex];
+        var blockAlignment = firstBlock.Alignment;
 
-		var count = lastIndex - firstIndex + 1;
-		if (count == 0)
-		{
-			return;
-		}
+        if (Alignment == XParagraphAlignment.Left || blockAlignment == XParagraphAlignment.Left)
+        {
+            return;
+        }
 
-		var totalWidth = firstBlock.LineIndent;
-		if (Alignment == XParagraphAlignment.Justify)
-		{
-			// Skip not movable leading blocks
-			for (var idx = firstIndex; idx <= lastIndex; idx++)
-			{
-				if (!blockUnit[idx].SkipParagraphAlignment && !blockUnit[idx].NextBlockBelongsToMe)
-				{
-					firstIndex = idx;
+        var count = lastIndex - firstIndex + 1;
+        if (count == 0)
+        {
+            return;
+        }
 
-					break;
-				}
-				else
-				{
-					count--;
-					layoutWidth -= blockUnit[idx].Width + (blockUnit[idx].NextBlockBelongsToMe ? 0 : blockUnit[idx].Environment.SpaceWidth);
-				}
-			}
-		}
+        var totalWidth = firstBlock.LineIndent;
+        if (Alignment == XParagraphAlignment.Justify)
+        {
+            // Skip not movable leading blocks
+            for (var idx = firstIndex; idx <= lastIndex; idx++)
+            {
+                if (!blockUnit[idx].SkipParagraphAlignment && !blockUnit[idx].NextBlockBelongsToMe)
+                {
+                    firstIndex = idx;
 
-		// Remove not movable blocks from space calculation
-		for (var idx = firstIndex; idx <= lastIndex; idx++)
-		{
-			totalWidth += blockUnit[idx].Width + (blockUnit[idx].NextBlockBelongsToMe ? 0 : blockUnit[idx].Environment.SpaceWidth);
-			if (idx == lastIndex)
-			{
-				totalWidth -= (blockUnit[idx].NextBlockBelongsToMe ? 0 : blockUnit[idx].Environment.SpaceWidth);
-			}
-			if (blockUnit[idx].NextBlockBelongsToMe)
-			{
-				count--;
-			}
-		}
+                    break;
+                }
+                else
+                {
+                    count--;
+                    layoutWidth -= blockUnit[idx].Width +
+                                   (blockUnit[idx].NextBlockBelongsToMe ? 0 : blockUnit[idx].Environment.SpaceWidth);
+                }
+            }
+        }
 
-		var dx = Math.Max(layoutWidth - totalWidth, 0);
+        // Remove not movable blocks from space calculation
+        for (var idx = firstIndex; idx <= lastIndex; idx++)
+        {
+            totalWidth += blockUnit[idx].Width +
+                          (blockUnit[idx].NextBlockBelongsToMe ? 0 : blockUnit[idx].Environment.SpaceWidth);
+            if (idx == lastIndex)
+            {
+                totalWidth -= (blockUnit[idx].NextBlockBelongsToMe ? 0 : blockUnit[idx].Environment.SpaceWidth);
+            }
 
-		if (Alignment != XParagraphAlignment.Justify)
-		{
-			// right or center
+            if (blockUnit[idx].NextBlockBelongsToMe)
+            {
+                count--;
+            }
+        }
 
-			if (Alignment == XParagraphAlignment.Center)
-			{
-				dx /= 2;
-			}
+        var dx = Math.Max(layoutWidth - totalWidth, 0);
 
-			for (var idx = firstIndex; idx <= lastIndex; idx++)
-			{
-				var block = blockUnit[idx];
-				block.Location += new XVector(dx, 0);
-			}
-		}
-		else if (count > 1) // case: justify
-		{
-			dx /= count - 1;
-			var spaceCounter = 1;
+        if (Alignment != XParagraphAlignment.Justify)
+        {
+            // right or center
 
-			for (var idx = firstIndex + 1; idx <= lastIndex; idx++)
-			{
-				var block = blockUnit[idx];
-				block.Location += new XVector(dx * spaceCounter, 0);
-				if (!block.NextBlockBelongsToMe)
-				{
-					spaceCounter++;
-				}
-			}
-		}
-	}
+            if (Alignment == XParagraphAlignment.Center)
+            {
+                dx /= 2;
+            }
 
-	private void SetFormatterEnvironment(Block block, TextSegment textSegment)
-	{
-		block.Alignment = Alignment;
-		block.Environment = new FormatterEnvironment
-		{
-			Font = textSegment.Font,
-			Brush = textSegment.Brush,
-			LineSpace = textSegment.LineSpace,
-			CyAscent = textSegment.CyAscent,
-			CyDescent = textSegment.CyDescent,
-			SpaceWidth = textSegment.SpaceWidth
-		};
-	}
+            for (var idx = firstIndex; idx <= lastIndex; idx++)
+            {
+                var block = blockUnit[idx];
+                block.Location += new XVector(dx, 0);
+            }
+        }
+        else if (count > 1) // case: justify
+        {
+            dx /= count - 1;
+            var spaceCounter = 1;
 
-	private void SetFontSpacings(TextSegment segment)
-	{
-		if (segment.Font == null)
-		{
-			throw new ArgumentNullException(nameof(segment), "The text segment has no font.");
-		}
+            for (var idx = firstIndex + 1; idx <= lastIndex; idx++)
+            {
+                var block = blockUnit[idx];
+                block.Location += new XVector(dx * spaceCounter, 0);
+                if (!block.NextBlockBelongsToMe)
+                {
+                    spaceCounter++;
+                }
+            }
+        }
+    }
 
-		segment.LineSpace = segment.Font.GetHeight();
-		segment.CyAscent = segment.LineSpace * segment.Font.CellAscent / segment.Font.CellSpace;
-		segment.CyDescent = segment.LineSpace * segment.Font.CellDescent / segment.Font.CellSpace;
+    private void SetFormatterEnvironment(Block block, TextSegment textSegment)
+    {
+        block.Alignment = Alignment;
+        block.Environment = new FormatterEnvironment
+        {
+            Font = textSegment.Font,
+            Brush = textSegment.Brush,
+            LineSpace = textSegment.LineSpace,
+            CyAscent = textSegment.CyAscent,
+            CyDescent = textSegment.CyDescent,
+            SpaceWidth = textSegment.SpaceWidth
+        };
+    }
 
-		// HACK in XTextSegmentFormatter
-		segment.SpaceWidth = _gfx.MeasureString("x x", segment.Font).Width;
-		segment.SpaceWidth -= _gfx.MeasureString("xx", segment.Font).Width;
-	}
+    private void SetFontSpacings(TextSegment segment)
+    {
+        if (segment.Font == null)
+        {
+            throw new ArgumentNullException(nameof(segment), "The text segment has no font.");
+        }
+
+        segment.LineSpace = segment.Font.GetHeight();
+        segment.CyAscent = segment.LineSpace * segment.Font.CellAscent / segment.Font.CellSpace;
+        segment.CyDescent = segment.LineSpace * segment.Font.CellDescent / segment.Font.CellSpace;
+
+        // HACK in XTextSegmentFormatter
+        segment.SpaceWidth = _gfx.MeasureString("x x", segment.Font).Width;
+        segment.SpaceWidth -= _gfx.MeasureString("xx", segment.Font).Width;
+    }
 }

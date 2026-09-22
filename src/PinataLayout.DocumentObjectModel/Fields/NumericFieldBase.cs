@@ -1,4 +1,5 @@
 #region Copyright
+
 //
 // Authors:
 //   Stefan Lange (mailto:Stefan.Lange@PdfPinata.com)
@@ -26,8 +27,9 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
+
 #endregion
 
 using System;
@@ -37,83 +39,89 @@ using PinataLayout.DocumentObjectModel.Resources;
 namespace PinataLayout.DocumentObjectModel.Fields;
 
 /// <summary>
-/// NumericFieldBase serves as a base for Numeric fields, which are: 
+/// NumericFieldBase serves as a base for Numeric fields, which are:
 /// NumPagesField, PageField, PageRefField, SectionField, SectionPagesField
 /// </summary>
 public abstract partial class NumericFieldBase : DocumentObject
 {
-  /// <summary>The numbering formats a numeric field accepts, empty meaning ordinary digits.</summary>
-  #pragma warning disable CA2211 // Protected on a type public code can subclass through PageField: making it readonly or a property would change the public API.
-  protected static string[] validFormatStrings =
-  {
-    "",
-    "ROMAN",
-    "roman",
-    "ALPHABETIC",
-    "alphabetic"
-  };
-  #pragma warning restore CA2211
-
-  /// <summary>
-  /// Initializes a new instance of the NumericFieldBase class.
-  /// </summary>
-  internal NumericFieldBase()
-  {
-  }
-
-  /// <summary>
-  /// Initializes a new instance of the NumericFieldBase class with the specified parent.
-  /// </summary>
-  internal NumericFieldBase(DocumentObject parent) : base(parent) { }
-
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new NumericFieldBase Clone()
-  {
-    return (NumericFieldBase)DeepCopy();
-  }
-
-  #endregion
-
-  #region Properties
-  /// <summary>
-  /// Gets or sets the format of the number.
-  /// </summary>
-  public string Format
-  {
-    get => this.format ?? "";
-    set
+    /// <summary>The numbering formats a numeric field accepts, empty meaning ordinary digits.</summary>
+#pragma warning disable CA2211 // Protected on a type public code can subclass through PageField: making it readonly or a property would change the public API.
+    protected static string[] validFormatStrings =
     {
-      if (IsValidFormat(value))
-        this.format = value;
-      else
-        throw new ArgumentException(DomSR.InvalidFieldFormat(value));
-    }
-  }
-  [DV]
-  internal string format;
-  #endregion
+        "",
+        "ROMAN",
+        "roman",
+        "ALPHABETIC",
+        "alphabetic"
+    };
+#pragma warning restore CA2211
 
-  /// <summary>
-  /// Determines whether the format is valid for numeric fields.
-  /// </summary>
-  protected bool IsValidFormat(string formatName)
-  {
-    foreach (var name in validFormatStrings)
+    /// <summary>
+    /// Initializes a new instance of the NumericFieldBase class.
+    /// </summary>
+    internal NumericFieldBase()
     {
-      if (name == this.Format)
-        return true;
     }
-    return false;
-  }
 
-  /// <summary>
-  /// Determines whether this instance is null (not set).
-  /// </summary>
-  public override bool IsNull()
-  {
-    return false;
-  }
+    /// <summary>
+    /// Initializes a new instance of the NumericFieldBase class with the specified parent.
+    /// </summary>
+    internal NumericFieldBase(DocumentObject parent) : base(parent)
+    {
+    }
+
+    #region Methods
+
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new NumericFieldBase Clone()
+    {
+        return (NumericFieldBase)DeepCopy();
+    }
+
+    #endregion
+
+    #region Properties
+
+    /// <summary>
+    /// Gets or sets the format of the number.
+    /// </summary>
+    public string Format
+    {
+        get => this.format ?? "";
+        set
+        {
+            if (IsValidFormat(value))
+                this.format = value;
+            else
+                throw new ArgumentException(DomSR.InvalidFieldFormat(value));
+        }
+    }
+
+    [DV] internal string format;
+
+    #endregion
+
+    /// <summary>
+    /// Determines whether the format is valid for numeric fields.
+    /// </summary>
+    protected bool IsValidFormat(string formatName)
+    {
+        foreach (var name in validFormatStrings)
+        {
+            if (name == this.Format)
+                return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Determines whether this instance is null (not set).
+    /// </summary>
+    public override bool IsNull()
+    {
+        return false;
+    }
 }

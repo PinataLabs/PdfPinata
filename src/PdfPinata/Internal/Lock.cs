@@ -36,18 +36,6 @@ namespace PdfPinata.Internal;
 /// </summary>
 internal static class Lock
 {
-    public static void EnterGdiPlus()
-    {
-        Monitor.Enter(GdiPlus);
-    }
-
-    public static void ExitGdiPlus()
-    {
-        Monitor.Exit(GdiPlus);
-    }
-
-    static readonly object GdiPlus = new();
-
     public static void EnterFontFactory()
     {
         Monitor.Enter(FontFactory);

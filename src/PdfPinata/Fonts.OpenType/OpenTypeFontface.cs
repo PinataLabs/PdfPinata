@@ -416,7 +416,7 @@ internal sealed class OpenTypeFontface
 
         // Create new loca table
         int numGlyphs = maxp.numGlyphs;
-        locaNew.LocaTable = new int[numGlyphs + 1];
+        locaNew.LocationTable = new int[numGlyphs + 1];
 
         // Create new glyf table
         glyfNew.GlyphTable = new byte[glyfNew.DirectoryEntry.PaddedLength];
@@ -426,7 +426,7 @@ internal sealed class OpenTypeFontface
         var glyphIndex = 0;
         for (var idx = 0; idx < numGlyphs; idx++)
         {
-            locaNew.LocaTable[idx] = glyphOffset;
+            locaNew.LocationTable[idx] = glyphOffset;
             if (glyphIndex < glyphCount && glyphArray[glyphIndex] == idx)
             {
                 glyphIndex++;
@@ -439,7 +439,7 @@ internal sealed class OpenTypeFontface
                 }
             }
         }
-        locaNew.LocaTable[numGlyphs] = glyphOffset;
+        locaNew.LocationTable[numGlyphs] = glyphOffset;
 
         // Compile font tables into byte array
         fontData.Compile();
