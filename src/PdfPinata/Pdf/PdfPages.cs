@@ -533,8 +533,30 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         else if (annotationCopying == AnnotationCopyingType.DeepCopy)
             CloneElement(page, importPage, PdfPage.Keys.Annots, true);
 
+        // The page group says how the page is composited against its backdrop, so leaving it
+        // behind changes what a transparent page looks like. It goes through the imported-object
+        // table like the resources, because its /CS may be the very colour space the resources
+        // name, and imported twice it would be written twice. The page keeps the group it
+        // brings: WriteObject makes one for a page drawn on with transparency only when the
+        // page has none.
+        CloneElement(page, importPage, PdfPage.Keys.Group, false);
+        // A user unit scales default user space, so without it the page comes out a different
+        // physical size.
+        CloneElement(page, importPage, PdfPage.Keys.UserUnit, true);
+        CloneElement(page, importPage, PdfPage.Keys.Tabs, true);
+        // The presentation entries: a transition dictionary holds only names and numbers, and
+        // the display duration is a number.
+        CloneElement(page, importPage, PdfPage.Keys.Trans, true);
+        CloneElement(page, importPage, PdfPage.Keys.Dur, true);
+
+        // Deliberately not copied: /StructParents, /B, /AA, /Metadata, /PieceInfo,
+        // /SeparationInfo, /Thumb, /ID, /PZ, /PresSteps, /TemplateInstantiated and /VP. Most
+        // name a place in a structure that belongs to the other document - its structure tree's
+        // parent tree, its article threads, its Web Capture content sets, its navigation nodes -
+        // which importing a page does not bring along, so here the entry would point at nothing
+        // or at the wrong thing. The rest are actions, private data or advisory data written for
+        // the page as it stood in that document, not as it stands in this one.
         // ReSharper restore AccessToStaticMemberViaDerivedType
-        // TODO more elements?
         return page;
     }
 
