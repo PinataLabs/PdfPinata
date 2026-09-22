@@ -57,7 +57,6 @@ internal class AreaPlotAreaRenderer : ColumnLikePlotAreaRenderer
 
     var gfx = this.rendererParms.Graphics;
     var state = gfx.Save();
-    //gfx.SetClip(plotAreaRect, XCombineMode.Intersect);
     gfx.IntersectClip(plotAreaRect);
 
     var matrix = cri.PlotAreaRendererInfo.Matrix;
@@ -84,7 +83,6 @@ internal class AreaPlotAreaRenderer : ColumnLikePlotAreaRenderer
       gfx.DrawPolygon(outline, sri.FillFormat, points, XFillMode.Winding);
     }
 
-    //gfx.ResetClip();
     gfx.Restore(state);
   }
 }

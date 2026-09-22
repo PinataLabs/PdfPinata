@@ -72,7 +72,6 @@ internal sealed class XGlyphTypeface
         _styleSimulations = styleSimulations;
 
         _key = key;
-        //_fontFamily =xfont  FontFamilyCache.GetFamilyByName(familyName);
         _fontSource = fontSource;
 
         Initialize();
@@ -175,7 +174,6 @@ internal sealed class XGlyphTypeface
 
         // Bold, as defined in OS/2 table.
         _isBold = _fontface.os2.IsBold;
-        // Debug.Assert(_isBold == (_fontface.os2.usWeightClass > 400), "Check font weight.");
 
         // Italic, as defined in OS/2 table.
         _isItalic = _fontface.os2.IsItalic;
@@ -250,7 +248,6 @@ internal sealed class XGlyphTypeface
         ich = name.IndexOf("italic", StringComparison.OrdinalIgnoreCase);
         if (ich > 0)
             name = name.Remove(ich, 6);
-        //name = name.Replace(" ", "");
         name = name.Trim();
         name += GetFaceNameSuffix();
         return name;

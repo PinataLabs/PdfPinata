@@ -135,8 +135,6 @@ internal class DdlScanner
       this.symbol = Symbol.StringLiteral;
       this.tokenType = TokenType.StringLiteral;
     }
-    //NYI: else if (IsNumber())
-    //      symbol = ScanNumber(false);
     else if (IsDigit(currChar) ||
              currChar == '-' && IsDigit(nextChar) ||
              currChar == '+' && IsDigit(nextChar))
@@ -288,17 +286,9 @@ internal class DdlScanner
         sym = Symbol.Hash;
         break;
 
-      //case '?':
-      //  sym = Symbol.Question;
-      //  break;
-
       case '¤':
         sym = Symbol.Currency; //??? used in DDL?
         break;
-
-      //case '|':
-      //  sym = Symbol.Bar;
-      //  break;
 
       case '=':
         sym = Symbol.Assign;
@@ -1070,13 +1060,10 @@ internal class DdlScanner
         AppendAndScanNextChar();
       else if (!mantissa && currChar == Chars.Period)
       {
-        //token += currChar;
         return ScanNumber(true);
       }
-      else //if (!IsIdentifierChar(currChar))
+      else
         break;
-      //else
-      //  THROW_COMPILER_ERROR (COMPERR_LEX_NUMBER);
     }
     return mantissa ? Symbol.RealLiteral : Symbol.IntegerLiteral;
   }
@@ -1095,7 +1082,6 @@ internal class DdlScanner
       else if (!IsIdentifierChar(currChar, false)) //???
         break;
       else
-        //THROW_COMPILER_ERROR (COMPERR_LEX_NUMBER);
         AppendAndScanNextChar();
     }
     return Symbol.HexIntegerLiteral;
@@ -1195,17 +1181,9 @@ internal class DdlScanner
         sym = Symbol.Hash;
         break;
 
-      //case '?':
-      //  sym = Symbol.Question;
-      //  break;
-
       case '¤':
         sym = Symbol.Currency; //??? used in DDL?
         break;
-
-      //case '|':
-      //  sym = Symbol.Bar;
-      //  break;
 
       case '=':
         sym = Symbol.Assign;

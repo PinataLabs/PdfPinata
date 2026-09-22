@@ -115,10 +115,7 @@ internal class KeyWords
     enumToName.Add(Symbol.Comma, ",");
     enumToName.Add(Symbol.Percent, "%");  //??? id DDL?
     enumToName.Add(Symbol.Dollar, "$");  //??? id DDL?
-    //enumToName.Add(Symbol.At,                "@");
     enumToName.Add(Symbol.Hash, "#");  //??? id DDL?
-    //enumToName.Add(Symbol.Question,          "?");  //??? id DDL?
-    //enumToName.Add(Symbol.Bar,               "|");  //??? id DDL?
     enumToName.Add(Symbol.Assign, "=");
     enumToName.Add(Symbol.Slash, "/");  //??? id DDL?
     enumToName.Add(Symbol.BackSlash, "\\");

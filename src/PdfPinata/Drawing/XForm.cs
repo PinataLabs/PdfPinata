@@ -88,7 +88,6 @@ public class XForm : XImage, IContentStream
         _formState = FormState.Created;
         _document = document;
         _pdfForm = new PdfFormXObject(document);
-        //_templateSize = size;
         _viewBox = viewBox;
         var rect = new PdfRectangle(viewBox);
         _pdfForm.Elements.SetRectangle(PdfFormXObject.Keys.BBox, rect);
@@ -188,7 +187,6 @@ public class XForm : XImage, IContentStream
 
         if (PdfRenderer != null)
         {
-            //pdfForm.CreateStream(PdfEncoders.RawEncoding.GetBytes(PdfRenderer.GetContent()));
             PdfRenderer.Close();
 
             if (_document.Options.CompressContentStreams)
@@ -231,38 +229,27 @@ public class XForm : XImage, IContentStream
     /// <summary>
     /// Get the width in point of this image.
     /// </summary>
-    public override double PointWidth =>
-        //get { return templateSize.width; }
-        _viewBox.Width;
+    public override double PointWidth => _viewBox.Width;
 
     /// <summary>
     /// Get the height in point of this image.
     /// </summary>
-    public override double PointHeight =>
-        //get { return templateSize.height; }
-        _viewBox.Height;
+    public override double PointHeight => _viewBox.Height;
 
     /// <summary>
     /// Get the width of the page identified by the property PageNumber.
     /// </summary>
-    public override int PixelWidth =>
-        //get { return (int)templateSize.width; }
-        (int)_viewBox.Width;
+    public override int PixelWidth => (int)_viewBox.Width;
 
     /// <summary>
     /// Get the height of the page identified by the property PageNumber.
     /// </summary>
-    public override int PixelHeight =>
-        //get { return (int)templateSize.height; }
-        (int)_viewBox.Height;
+    public override int PixelHeight => (int)_viewBox.Height;
 
     /// <summary>
     /// Get the size of the page identified by the property PageNumber.
     /// </summary>
-    public override XSize Size =>
-        //get { return templateSize; }
-        _viewBox.Size;
-    //XSize templateSize;
+    public override XSize Size => _viewBox.Size;
 
     /// <summary>
     /// Gets the view box of the form.
@@ -312,12 +299,8 @@ public class XForm : XImage, IContentStream
         {
             Debug.Assert(IsTemplate, "This function is for form templates only.");
             return PdfForm.Resources;
-            //if (resources == null)
-            //  resources = (PdfResources)pdfForm.Elements.GetValue(PdfFormXObject.Keys.Resources, VCF.Create); // VCF.CreateIndirect
-            //return resources;
         }
     }
-    //PdfResources resources;
 
     /// <summary>
     /// Implements the interface because the primary function is internal.
@@ -362,8 +345,6 @@ public class XForm : XImage, IContentStream
     {
         Debug.Assert(IsTemplate, "This function is for form templates only.");
         pdfFont = _document.FontTable.GetFont(idName, fontData);
-        //pdfFont = new PdfType0Font(Owner, idName, fontData);
-        //pdfFont.Document = _document;
         Debug.Assert(pdfFont != null);
         var name = Resources.AddFont(pdfFont);
         return name;

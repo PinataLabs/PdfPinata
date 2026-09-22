@@ -291,19 +291,10 @@ internal class Serializer
     var len = text.Length;
     if (len > 0)
     {
-      if (linePos > 0)
+      if (linePos <= 0 && fAutoIndent)
       {
-        // does not work
-        // if (IsBlankRequired(this.lastChar, _text[0]))
-        //   _text = "·" + _text;
-      }
-      else
-      {
-        if (fAutoIndent)
-        {
-          text = Indentation + text;
-          len += writeIndent;
-        }
+        text = Indentation + text;
+        len += writeIndent;
       }
       textWriter.Write(text);
       linePos += len;

@@ -130,29 +130,6 @@ public class ChartFrame
       rect.Y += rect.Height + dyBetweenCharts;
     }
     gfx.Restore(state);
-
-//      // Calculate rectangle for all charts. Y-Position will be moved for each chart.
-//      int charts = this.chartList.Count;
-//      uint dxChart = 0;
-//      uint dyChart = 0;
-//      uint dyBetweenCharts = 0;
-//      XRect rect = new XRect(dxChart, dyChart,
-//        this.size.Width - 2 * dxChart,
-//        (this.size.Height - (charts - 1) * dyBetweenCharts - 2 * dyChart) / charts);
-//
-//      // draw each chart in list
-//      foreach (Chart chart in this.chartList)
-//      {
-//        RendererParameters parms = new RendererParameters(gfx, rect);
-//        parms.DrawingItem = chart;
-//
-//        ChartRenderer renderer = GetChartRenderer(chart, parms);
-//        renderer.Init();
-//        renderer.Format();
-//        renderer.Draw();
-//
-//        rect.Y += rect.Height + dyBetweenCharts;
-//      }
   }
 
   /// <summary>

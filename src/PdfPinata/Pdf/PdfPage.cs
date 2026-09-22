@@ -128,9 +128,6 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// </summary>
     public void Close()
     {
-        //// Close renderer, if any
-        //if (_content.pdfRenderer != null)
-        //  _content.pdfRenderer.endp.Close();
         _closed = true;
     }
     bool _closed;
@@ -818,7 +815,6 @@ public sealed class PdfPage : PdfDictionary, IContentStream
                     if (item == null)
                     {
                         _contents = new PdfContents(Owner);
-                        //Owner.irefTable.Add(_contents);
                     }
                     else
                     {
@@ -841,7 +837,6 @@ public sealed class PdfPage : PdfDictionary, IContentStream
                         {
                             // Only one content stream -> create array
                             _contents = new PdfContents(Owner);
-                            //Owner.irefTable.Add(_contents);
                             var content = new PdfContent((PdfDictionary)item);
                             _contents.Elements.Add(content.Reference);
                         }
@@ -1134,8 +1129,6 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     internal string GetFontName(string idName, byte[] fontData, out PdfFont pdfFont)
     {
         pdfFont = _document.FontTable.GetFont(idName, fontData);
-        //pdfFont = new PdfType0Font(Owner, idName, fontData);
-        //pdfFont.Document = _document;
         Debug.Assert(pdfFont != null);
         var name = Resources.AddFont(pdfFont);
         return name;

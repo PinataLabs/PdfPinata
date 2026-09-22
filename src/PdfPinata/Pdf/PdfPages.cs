@@ -502,7 +502,6 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         if (oldIndex == newIndex)
             return;
 
-        //PdfPage page = (PdfPage)pagesArray.Elements[oldIndex];
         var page = (PdfReference)_pagesArray.Elements[oldIndex];
         _pagesArray.Elements.RemoveAt(oldIndex);
         _pagesArray.Elements.Insert(newIndex, page);
@@ -853,16 +852,10 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         // not difficult but obviously also not necessary. I created a document with 50000 pages with
         // PDF4NET and Acrobat opened it in less than 2 seconds.
 
-        //PdfReference xrefRoot = Document.Catalog.Elements[PdfCatalog.Keys.Pages] as PdfReference;
-        //PdfDictionary[] pages = GetKids(xrefRoot, null);
-
         // Promote inheritable values down the page tree
         var values = new PdfPage.InheritedValues();
         PdfPage.InheritValues(this, ref values);
         var pages = GetKids(Reference, values, Owner._irefTable.ObjectTable.Count);
-
-        // Replace /Pages in catalog by this object
-        // xrefRoot.Value = this;
 
         var array = new PdfArray(Owner);
         foreach (var page in pages)

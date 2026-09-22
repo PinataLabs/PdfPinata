@@ -44,7 +44,6 @@ public class PdfFlattenVisitor : VisitorBase
   /// </summary>
   public PdfFlattenVisitor()
   {
-    //this.docObject = documentObject;
   }
 
   internal override void VisitDocumentElements(DocumentElements elements)

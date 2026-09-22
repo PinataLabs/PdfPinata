@@ -106,8 +106,6 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
 
     #region  Drawing
 
-    //void SetPageLayout(down, point(0, 0), unit
-
     // ----- DrawLine -----------------------------------------------------------------------------
 
     /// <summary>
@@ -232,7 +230,6 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         const string format = Config.SignificantFigures3;
 
         Realize(pen, brush);
-        //AppendFormat123("{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} re\n", x, y, width, -height);
         AppendFormatRect("{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} re\n", x, y + height, width, height);
 
         if (pen != null && brush != null)
@@ -394,8 +391,6 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         // strikeout rules below are all placed from this width.
         var width = _gfx.MeasureString(s, font, format).Width;
 
-        //bool bold = (font.Style & XFontStyle.Bold) != 0;
-        //bool italic = (font.Style & XFontStyle.Italic) != 0;
         var italicSimulation = (font.GlyphTypeface.StyleSimulations & XStyleSimulations.ItalicSimulation) != 0;
         var boldSimulation = FontHelper.SimulatesBold(font);
         // The format's decoration wins; leaving it at None keeps whatever the font's style asks
@@ -482,13 +477,8 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         var pos = new XPoint(x, y);
         pos = WorldToView(pos);
 
+        // Not adjusted for bold simulation, because that would change the center of the glyphs.
         double verticalOffset = 0;
-        if (boldSimulation)
-        {
-            // Adjust baseline in case of bold simulation???
-            // No, because this would change the center of the glyphs.
-            //verticalOffset = font.Size * Const.BoldEmphasis / 2;
-        }
 
         // How far the glyphs lean, as the tangent of the angle. Italic simulation contributes a
         // fixed lean and the caller may ask for one of their own; two shears compose by adding
@@ -529,7 +519,6 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         {
             var underlinePosition = lineSpace * realizedFont.FontDescriptor.Descriptor.UnderlinePosition / font.CellSpace;
             var underlineThickness = lineSpace * realizedFont.FontDescriptor.Descriptor.UnderlineThickness / font.CellSpace;
-            //DrawRectangle(null, brush, x, y - underlinePosition, width, underlineThickness);
             var underlineRectY = Gfx.PageDirection == XPageDirection.Downwards
                 ? y - underlinePosition
                 : y + underlinePosition - underlineThickness;
@@ -540,7 +529,6 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         {
             var strikeoutPosition = lineSpace * realizedFont.FontDescriptor.Descriptor.StrikeoutPosition / font.CellSpace;
             var strikeoutSize = lineSpace * realizedFont.FontDescriptor.Descriptor.StrikeoutSize / font.CellSpace;
-            //DrawRectangle(null, brush, x, y - strikeoutPosition - strikeoutSize, width, strikeoutSize);
             var strikeoutRectY = Gfx.PageDirection == XPageDirection.Downwards
                 ? y - strikeoutPosition
                 : y + strikeoutPosition - strikeoutSize;
@@ -1221,51 +1209,6 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     internal void AppendPath(CoreGraphicsPath path)
     {
         AppendPath(path.PathPoints, path.PathTypes);
-        //XPoint[] points = path.PathPoints;
-        //Byte[] types = path.PathTypes;
-
-        //int count = points.Length;
-        //if (count == 0)
-        //    return;
-
-        //for (int idx = 0; idx < count; idx++)
-        //{
-        //    // From GDI+ documentation:
-        //    const byte PathPointTypeStart = 0; // move
-        //    const byte PathPointTypeLine = 1; // line
-        //    const byte PathPointTypeBezier = 3; // default Bezier (= cubic Bezier)
-        //    const byte PathPointTypePathTypeMask = 0x07; // type mask (lowest 3 bits).
-        //    //const byte PathPointTypeDashMode = 0x10; // currently in dash mode.
-        //    //const byte PathPointTypePathMarker = 0x20; // a marker for the path.
-        //    const byte PathPointTypeCloseSubpath = 0x80; // closed flag
-
-        //    byte type = types[idx];
-        //    switch (type & PathPointTypePathTypeMask)
-        //    {
-        //        case PathPointTypeStart:
-        //            //PDF_moveto(pdf, points[idx].X, points[idx].Y);
-        //            AppendFormat("{0:" + format + "} {1:" + format + "} m\n", points[idx].X, points[idx].Y);
-        //            break;
-
-        //        case PathPointTypeLine:
-        //            //PDF_lineto(pdf, points[idx].X, points[idx].Y);
-        //            AppendFormat("{0:" + format + "} {1:" + format + "} l\n", points[idx].X, points[idx].Y);
-        //            if ((type & PathPointTypeCloseSubpath) != 0)
-        //                Append("h\n");
-        //            break;
-
-        //        case PathPointTypeBezier:
-        //            Debug.Assert(idx + 2 < count);
-        //            //PDF_curveto(pdf, points[idx].X, points[idx].Y,
-        //            //                 points[idx + 1].X, points[idx + 1].Y,
-        //            //                 points[idx + 2].X, points[idx + 2].Y);
-        //            AppendFormat("{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format + "} {5:" + format + "} c\n", points[idx].X, points[idx].Y,
-        //                points[++idx].X, points[idx].Y, points[++idx].X, points[idx].Y);
-        //            if ((types[idx] & PathPointTypeCloseSubpath) != 0)
-        //                Append("h\n");
-        //            break;
-        //    }
-        //}
     }
 
     void AppendPath(XPoint[] points, Byte[] types)
@@ -1283,8 +1226,6 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
             const byte PathPointTypeLine = 1; // line
             const byte PathPointTypeBezier = 3; // default Bezier (= cubic Bezier)
             const byte PathPointTypePathTypeMask = 0x07; // type mask (lowest 3 bits).
-            //const byte PathPointTypeDashMode = 0x10; // currently in dash mode.
-            //const byte PathPointTypePathMarker = 0x20; // a marker for the path.
             const byte PathPointTypeCloseSubpath = 0x80; // closed flag
             // ReSharper restore InconsistentNaming
 
@@ -1292,12 +1233,10 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
             switch (type & PathPointTypePathTypeMask)
             {
                 case PathPointTypeStart:
-                    //PDF_moveto(pdf, points[idx].X, points[idx].Y);
                     AppendFormatPoint("{0:" + format + "} {1:" + format + "} m\n", points[idx].X, points[idx].Y);
                     break;
 
                 case PathPointTypeLine:
-                    //PDF_lineto(pdf, points[idx].X, points[idx].Y);
                     AppendFormatPoint("{0:" + format + "} {1:" + format + "} l\n", points[idx].X, points[idx].Y);
                     if ((type & PathPointTypeCloseSubpath) != 0)
                         Append("h\n");
@@ -1305,9 +1244,6 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
 
                 case PathPointTypeBezier:
                     Debug.Assert(idx + 2 < count);
-                    //PDF_curveto(pdf, points[idx].X, points[idx].Y,
-                    //                 points[idx + 1].X, points[idx + 1].Y,
-                    //                 points[idx + 2].X, points[idx + 2].Y);
                     AppendFormat3Points("{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format + "} {5:" + format + "} c\n", points[idx].X, points[idx].Y,
                         points[++idx].X, points[idx].Y, points[++idx].X, points[idx].Y);
                     if ((types[idx] & PathPointTypeCloseSubpath) != 0)
@@ -1550,7 +1486,6 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
                 {
                     case XGraphicsUnit.Point:
                         // Factor is 1.
-                        // DefaultViewMatrix.ScalePrepend(XUnit.PointFactor);
                         break;
 
                     case XGraphicsUnit.Presentation:
@@ -1588,17 +1523,11 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
                 if (!DefaultViewMatrix.IsIdentity)
                 {
                     Debug.Assert(_gfxState.RealizedCtm.IsIdentity);
-                    //_gfxState.RealizedCtm = DefaultViewMatrix;
                     const string format = Config.SignificantFigures7;
                     var cm = DefaultViewMatrix.GetElements();
                     AppendFormatArgs("{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format + "} {5:" + format + "} cm ",
                         cm[0], cm[1], cm[2], cm[3], cm[4], cm[5]);
                 }
-
-                // Set page transformation
-                //double[] cm = DefaultViewMatrix.GetElements();
-                //AppendFormat("{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format + "} {5:" + format + "} cm ",
-                //  cm[0], cm[1], cm[2], cm[3], cm[4], cm[5]);
             }
             else
             {
@@ -1607,7 +1536,6 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
                 {
                     case XGraphicsUnit.Point:
                         // Factor is 1.
-                        // DefaultViewMatrix.ScalePrepend(XUnit.PointFactor);
                         break;
 
                     case XGraphicsUnit.Presentation:

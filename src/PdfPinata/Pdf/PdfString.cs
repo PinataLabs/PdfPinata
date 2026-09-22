@@ -118,8 +118,6 @@ public sealed class PdfString : PdfItem
     /// </summary>
     public PdfString()
     {
-        // Redundant assignment.
-        //_flags = PdfStringFlags.RawEncoding;
     }
 
     /// <summary>
@@ -169,8 +167,6 @@ public sealed class PdfString : PdfItem
                 throw new ArgumentOutOfRangeException(nameof(encoding));
         }
         _value = value;
-        //if ((flags & PdfStringFlags.EncodingMask) == 0)
-        //  flags |= PdfStringFlags.PDFDocEncoding;
         _flags = (PdfStringFlags)encoding;
     }
 
@@ -283,7 +279,6 @@ public sealed class PdfString : PdfItem
             }
             else
             {
-                //Debug-Break.Break();
                 throw new InvalidOperationException("DocEncoded string contains char greater 255.");
             }
         }

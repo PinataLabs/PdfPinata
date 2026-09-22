@@ -159,7 +159,6 @@ internal sealed class PdfType0Font : PdfFont
         document.Internals.AddObject(ToUnicode);
         Elements.Add(Keys.ToUnicode, ToUnicode);
 
-        //BaseFont = ttDescriptor.FontName.Replace(" ", "");
         BaseFont = ttDescriptor.FontName;
 
         // As above, and this constructor asks a second question: it is handed both the bytes and the

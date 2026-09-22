@@ -1454,8 +1454,6 @@ internal class ParagraphRenderer : Renderer
             case "Footnote":
                 RenderFootnote((Footnote)docObj);
                 break;
-            //        default:
-            //          throw new NotImplementedException(typeName + " is coming soon...");
         }
     }
 
@@ -3156,11 +3154,6 @@ internal class ParagraphRenderer : Renderer
 
     void EndUnderline(XPen pen, XUnit xPosition)
     {
-        //Removed KlPo 06.06.07
-        //XUnit yPosition = this.currentYPosition + this.currentVerticalInfo.height + pen.Width / 2;
-        //yPosition -= 0.66 * this.currentVerticalInfo.descent;
-
-        //New KlPo
         var yPosition = CurrentBaselinePosition;
         yPosition += 0.33 * currentVerticalInfo.descent;
         Gfx.DrawLine(pen, underlineStartPos, yPosition, xPosition, yPosition);

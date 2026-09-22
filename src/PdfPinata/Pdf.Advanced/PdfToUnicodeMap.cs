@@ -134,7 +134,6 @@ internal sealed class PdfToUnicodeMap : PdfDictionary
             Elements.SetName("/Filter", "/FlateDecode");
             bytes = Filtering.FlateDecode.Encode(bytes, _document.Options.FlateEncodeMode);
         }
-        //PdfStream stream = CreateStream(bytes);
         else
         {
             Elements.Remove("/Filter");

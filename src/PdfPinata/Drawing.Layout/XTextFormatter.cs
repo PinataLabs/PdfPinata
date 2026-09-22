@@ -1179,7 +1179,6 @@ public class XTextFormatter
 
         // An indented line has that much less room to be centred, pushed right or stretched in.
         var dx = Math.Max(layoutWidth - _blocks[firstIndex].LineIndent - totalWidth, 0);
-        //Debug.Assert(dx >= 0);
         if (Alignment != XParagraphAlignment.Justify)
         {
             if (Alignment == XParagraphAlignment.Center)

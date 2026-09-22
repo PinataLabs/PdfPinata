@@ -55,7 +55,6 @@ public sealed class PdfContent : PdfDictionary
     internal PdfContent(PdfPage page)
         : base(page != null ? page.Owner : null)
     {
-        //_pageContent = new PageContent(page);
     }
 
     /// <summary>
@@ -145,15 +144,12 @@ public sealed class PdfContent : PdfDictionary
     {
         if (PdfRenderer != null)
         {
-            // GetContent also disposes the underlying XGraphics object, if one exists
-            //Stream = new PdfStream(PdfEncoders.RawEncoding.GetBytes(pdfRenderer.GetContent()), this);
             PdfRenderer.Close();
             Debug.Assert(PdfRenderer == null);
         }
 
         if (Stream != null)
         {
-            //if (Owner.Options.CompressContentStreams)
             if (Owner.Options.CompressContentStreams && Elements.GetName("/Filter").Length == 0)
             {
                 var deflated = Filtering.FlateDecode.Encode(Stream.Value, _document.Options.FlateEncodeMode);
@@ -166,7 +162,6 @@ public sealed class PdfContent : PdfDictionary
                 if (deflated.Length < Stream.Value.Length)
                 {
                     Stream.Value = deflated;
-                    //Elements["/Filter"] = new PdfName("/FlateDecode");
                     Elements.SetName("/Filter", "/FlateDecode");
                 }
             }

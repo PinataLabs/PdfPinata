@@ -349,7 +349,6 @@ public abstract class PdfObject : PdfItem
                         continue;
                     }
 
-                    //Debug.Assert(iref.Document == iot.Document);
                     // No: Replace with iref of cloned object.
                     // iref.ObjectID is the object's number in the external document. Every indirect
                     // object of the transitive closure has been cloned into the owner, either by

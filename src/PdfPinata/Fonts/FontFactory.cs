@@ -44,10 +44,6 @@ namespace PdfPinata.Fonts;
 /// </summary>
 internal static class FontFactory
 {
-    //// Suffix for internal face names to indicate that the font data comes from the platform
-    //// and not from the users font resolver.
-    //public const string PlatformTag = "platform:";
-
     /// <summary>
     /// Converts specified information about a required typeface into a specific font.
     /// </summary>

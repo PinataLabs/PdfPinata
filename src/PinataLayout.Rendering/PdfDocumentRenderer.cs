@@ -190,7 +190,6 @@ public class PdfDocumentRenderer
         }
 
         WriteDocumentInformation();
-        //RenderPages(1, this.documentRenderer.FormattedDocument.PageCount);
     }
 
     /// <summary>

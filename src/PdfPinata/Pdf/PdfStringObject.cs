@@ -69,8 +69,6 @@ public sealed class PdfStringObject : PdfObject
     public PdfStringObject(string value, PdfStringEncoding encoding)
     {
         _value = value;
-        //if ((flags & PdfStringFlags.EncodingMask) == 0)
-        //  flags |= PdfStringFlags.PDFDocEncoding;
         _flags = (PdfStringFlags)encoding;
     }
 
@@ -87,8 +85,6 @@ public sealed class PdfStringObject : PdfObject
     internal PdfStringObject(string value, PdfStringFlags flags)
     {
         _value = value;
-        //if ((flags & PdfStringFlags.EncodingMask) == 0)
-        //  flags |= PdfStringFlags.PDFDocEncoding;
         _flags = flags;
     }
 

@@ -66,7 +66,6 @@ public class CodeOmr : BarCode
                 break;
         }
 
-        //XPoint pt = center - size / 2;
         var pt = position - CalcDistance(AnchorType.TopLeft, Anchor, Size);
         uint value;
         _ = uint.TryParse(Text, out value);

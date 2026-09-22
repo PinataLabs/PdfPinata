@@ -204,8 +204,6 @@ static class PSSR
 
     public static string UserOrOwnerPasswordRequired => GetString(PSMsgID.UserOrOwnerPasswordRequired);
 
-    //get { return "At least a user or an owner password is required to encrypt the document."; }
-
     /// <summary>
     /// Refuses an operation that would change a document that was not opened for changing, naming
     /// both the mode it was opened with and the modes the operation needs.
@@ -239,9 +237,7 @@ static class PSSR
                "that certification.";
     }
 
-    public static string NameMustStartWithSlash =>
-        //get { return GetString(PSMsgID.NameMustStartWithSlash); }
-        "A PDF name must start with a slash (/).";
+    public static string NameMustStartWithSlash => "A PDF name must start with a slash (/).";
 
     public static string ImportPageNumberOutOfRange(int pageNumber, int maxPage, string path)
     {
@@ -338,12 +334,9 @@ static class PSSR
     public static string UnexpectedToken(string token)
     {
         return Format(PSMsgID.UnexpectedToken, token);
-        //return Format("Token '{0}' was not expected.", token);
     }
 
     public static string UnknownEncryption => GetString(PSMsgID.UnknownEncryption);
-
-    //get { return "The PDF document is protected with an encryption not supported by PdfPinata."; }
 
     #endregion
 

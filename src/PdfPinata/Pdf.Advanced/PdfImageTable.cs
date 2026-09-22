@@ -60,7 +60,6 @@ internal sealed class PdfImageTable : PdfResourceTable
         if (!_images.TryGetValue(selector, out var pdfImage))
         {
             pdfImage = new PdfImage(Owner, image);
-            //pdfImage.Document = _document;
             Debug.Assert(pdfImage.Owner == Owner);
             _images[selector] = pdfImage;
         }

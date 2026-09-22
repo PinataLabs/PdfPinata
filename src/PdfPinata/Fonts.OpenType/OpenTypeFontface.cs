@@ -207,9 +207,6 @@ internal sealed class OpenTypeFontface
             fontTable = new IRefFontTable(this, fontTable);
         }
 
-        //Debug.Assert(fontTable.FontData == null);
-        //fontTable.fontData = this;
-
         TableDictionary[fontTable.DirectoryEntry.Tag] = fontTable.DirectoryEntry;
         switch (fontTable.DirectoryEntry.Tag)
         {
@@ -298,7 +295,6 @@ internal sealed class OpenTypeFontface
 
         // Move to table dictionary at position 12
         Debug.Assert(_pos == 12);
-        //tableDictionary = (offsetTable.TableCount);
 
         if (_offsetTable.Version == OTTO)
             FontTechnology = FontTechnology.PostscriptOutlines;
@@ -388,7 +384,6 @@ internal sealed class OpenTypeFontface
         var glyfNew = new GlyphDataTable();
 
         // Add all required tables
-        //fontData.AddTable(os2);
         if (!cidFont)
             fontData.AddTable(cmap);
         if (cvt != null)
@@ -401,7 +396,6 @@ internal sealed class OpenTypeFontface
         fontData.AddTable(hmtx);
         fontData.AddTable(locaNew);
         fontData.AddTable(maxp);
-        //fontData.AddTable(name);
         if (prep != null)
             fontData.AddTable(prep);
 

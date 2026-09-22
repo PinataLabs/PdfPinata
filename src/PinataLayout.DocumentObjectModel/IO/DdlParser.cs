@@ -1350,7 +1350,6 @@ internal class DdlParser
             ReadCode();
             if (Symbol == Symbol.BracketLeft)
                 ParseAttributes(barcode);
-            //barcode->ConsistencyCheck(mInfoHandler->Infos());
         }
         catch (DdlParserException pe)
         {
@@ -2172,7 +2171,6 @@ internal class DdlParser
             else
             {
                 throw new Exception("Case: TopPosition");
-                //dom.SetValue(vd.ValueName, docObj);
             }
         }
         catch (Exception ex) when (!Unrecoverable.Is(ex))
@@ -2408,7 +2406,6 @@ internal class DdlParser
             {
                 case SymbolName.Blank:
                 case SymbolName.Em:
-                //case SymbolName.Em4: // same as SymbolName.EmQuarter
                 case SymbolName.EmQuarter:
                 case SymbolName.En:
                     return true;
@@ -2441,7 +2438,6 @@ internal class DdlParser
                 case SymbolName.EmDash:
                 case SymbolName.EnDash:
                 case SymbolName.NonBreakableBlank:
-                    //case SymbolName.HardBlank: //same as SymbolName.NonBreakableBlank:
                     return true;
             }
         }

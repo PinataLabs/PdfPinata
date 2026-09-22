@@ -60,7 +60,6 @@ public struct Unit : IFormattable, INullableValue
     public Unit(double value, UnitType type)
     {
         if (!Enum.IsDefined(type))
-            //throw new InvalidEnumArgumentException("type", (int)type, type.GetType());
             throw new ArgumentException($"'{type}' is not a defined value of {nameof(UnitType)}.", nameof(type));
         this.value = (float)value;
         this.type = type;

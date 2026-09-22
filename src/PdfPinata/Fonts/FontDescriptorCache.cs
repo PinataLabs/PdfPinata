@@ -53,7 +53,6 @@ internal sealed class FontDescriptorCache
     {
         ArgumentNullException.ThrowIfNull(font);
 
-        //FontSelector1 selector = new FontSelector1(font);
         var fontDescriptorKey = FontDescriptor.ComputeKey(font);
         try
         {
@@ -78,7 +77,6 @@ internal sealed class FontDescriptorCache
         if (string.IsNullOrEmpty(fontFamilyName))
             throw new ArgumentNullException(nameof(fontFamilyName));
 
-        //FontSelector1 selector = new FontSelector1(fontFamilyName, style);
         var fontDescriptorKey = FontDescriptor.ComputeKey(fontFamilyName, style);
         try
         {
@@ -97,7 +95,6 @@ internal sealed class FontDescriptorCache
 
     public static FontDescriptor GetOrCreateDescriptor(string idName, byte[] fontData)
     {
-        //FontSelector1 selector = new FontSelector1(idName);
         var fontDescriptorKey = FontDescriptor.ComputeKey(idName);
         try
         {

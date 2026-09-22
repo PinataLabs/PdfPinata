@@ -105,7 +105,6 @@ internal class CMap4 : OpenTypeFontTable
     {
         try
         {
-            // m_EncodingID = encID;
             format = _fontData.ReadUShort();
             Debug.Assert(format == 4, "Only format 4 expected.");
             length = _fontData.ReadUShort();
@@ -118,8 +117,6 @@ internal class CMap4 : OpenTypeFontTable
             var segCount = segCountX2 / 2;
             glyphCount = (length - (16 + 8 * segCount)) / 2;
 
-            //ASSERT_CONDITION(0 <= m_NumGlyphIds && m_NumGlyphIds < m_Length, "Invalid Index");
-
             endCount = new ushort[segCount];
             startCount = new ushort[segCount];
             idDelta = new short[segCount];
@@ -129,8 +126,6 @@ internal class CMap4 : OpenTypeFontTable
 
             for (var idx = 0; idx < segCount; idx++)
                 endCount[idx] = _fontData.ReadUShort();
-
-            //ASSERT_CONDITION(m_EndCount[segs - 1] == 0xFFFF, "Out of Index");
 
             // Read reserved pad.
             _fontData.ReadUShort();
@@ -870,8 +865,6 @@ internal class NameTable : OpenTypeFontTable
                 var nrec = ReadNameRecord();
                 var value = new byte[nrec.length];
                 Buffer.BlockCopy(_fontData.FontSource.Bytes, DirectoryEntry.Offset + stringOffset + nrec.offset, value, 0, nrec.length);
-
-                //Debug.WriteLine(nrec.platformID.ToString());
 
                 if (nrec.platformID == 1)
                 {

@@ -175,7 +175,6 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
         var count = irefs.Length;
         writer.WriteRaw($"0 {count + 1}\n");
         writer.WriteRaw($"{0:0000000000} {65535:00000} {"f"} \n");
-        //PdfEncoders.WriteAnsi(stream, text);
 
         for (var idx = 0; idx < count; idx++)
         {
@@ -384,21 +383,14 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
 
                                 Debug.Assert(ReferenceEquals(iref.Document, _document));
                                 objects.Add(iref, null);
-                                //Debug.WriteLine(String.Format("objects.Add('{0}', null);", iref.ObjectID.ToString()));
                                 if (value is PdfArray || value is PdfDictionary)
                                     TransitiveClosureImplementation(objects, value /*, ref depth*/);
                             }
-                            //else
-                            //{
-                            //  objects2.Add(this[iref.ObjectID], null);
-                            //}
                         }
                     }
                     else
                     {
                         var pdfObject28 = item as PdfObject;
-                        //if (pdfObject28 != null)
-                        //  Debug.Assert(Object.ReferenceEquals(pdfObject28.Document, _document));
                         if (pdfObject28 != null && (pdfObject28 is PdfDictionary || pdfObject28 is PdfArray))
                             TransitiveClosureImplementation(objects, pdfObject28 /*, ref depth*/);
                     }

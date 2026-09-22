@@ -238,7 +238,6 @@ internal class PdfWriter
     public void WriteDocString(string text, bool unicode)
     {
         WriteSeparator();
-        //WriteRaw(PdfEncoders.DocEncode(text, unicode));
         byte[] bytes;
         if (!unicode)
             bytes = PdfEncoders.DocEncoding.GetBytes(text);
@@ -252,7 +251,6 @@ internal class PdfWriter
     public void WriteDocString(string text)
     {
         WriteSeparator();
-        //WriteRaw(PdfEncoders.DocEncode(text, false));
         var bytes = PdfEncoders.DocEncoding.GetBytes(text);
         bytes = PdfEncoders.FormatStringLiteral(bytes, false, false, false, _securityHandler);
         Write(bytes);
@@ -262,7 +260,6 @@ internal class PdfWriter
     public void WriteDocStringHex(string text)
     {
         WriteSeparator();
-        //WriteRaw(PdfEncoders.DocEncodeHex(text));
         var bytes = PdfEncoders.DocEncoding.GetBytes(text);
         bytes = PdfEncoders.FormatStringLiteral(bytes, false, false, true, _securityHandler);
         _stream.Write(bytes, 0, bytes.Length);

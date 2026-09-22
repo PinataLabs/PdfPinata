@@ -759,8 +759,6 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
                     yPos += layoutInfo.MarginTop;
                 else
                     yPos += layoutInfo.Top;
-                //Removed KlPo 12.07.07
-                //yPos += Math.Max(layoutInfo.Top, layoutInfo.MarginTop);
 
                 layoutInfo.ContentArea.Y = yPos;
                 break;

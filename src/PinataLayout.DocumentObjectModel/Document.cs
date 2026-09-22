@@ -31,7 +31,6 @@
 #endregion
 
 using System;
-//using System.Drawing.Text;
 using PinataLayout.DocumentObjectModel.Internals;
 using PinataLayout.DocumentObjectModel.Visitors;
 

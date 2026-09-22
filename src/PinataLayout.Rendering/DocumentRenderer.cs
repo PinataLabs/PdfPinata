@@ -447,12 +447,10 @@ public class DocumentRenderer
             return listNumber;
         }
 
-        //bool listTypeChanged = this.previousListInfo == null || this.previousListInfo.ListType != listType;
-
         if (isNumberList)
         {
             listNumber = 1;
-            if (/*!listTypeChanged &&*/ (listInfo.IsNull("ContinuePreviousList") || listInfo.ContinuePreviousList))
+            if (listInfo.IsNull("ContinuePreviousList") || listInfo.ContinuePreviousList)
                 // ReSharper disable once PossibleNullReferenceException
                 listNumber = (int)previousListNumbers[listType] + 1;
 

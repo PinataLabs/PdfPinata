@@ -615,9 +615,6 @@ public abstract class PdfAcroField : PdfDictionary
             {
                 var names = new List<string>();
                 GetDescendantNames(ref names, null);
-                //List<string> temp = new List<string>();
-                //foreach (PdfName name in names)
-                //  temp.Add(name.ToString());
                 return names.ToArray();
             }
         }
@@ -653,7 +650,6 @@ public abstract class PdfAcroField : PdfDictionary
                 {
                     // Do type transformation
                     field = CreateAcroField(dict);
-                    //Elements[index] = field.XRef;
                 }
                 return field;
             }

@@ -1350,8 +1350,6 @@ public sealed class XGraphics : IDisposable
 
         if (_renderer != null)
             _renderer.DrawImage(image, x, y, image.PointWidth, image.PointHeight);
-        //image.Width * 72 / image.HorizontalResolution,
-        //image.Height * 72 / image.HorizontalResolution);
     }
 
     /// <summary>

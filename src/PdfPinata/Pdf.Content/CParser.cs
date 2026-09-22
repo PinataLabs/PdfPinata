@@ -134,7 +134,6 @@ public sealed class CParser
                     };
                     _operands.Add(s);
                     op = CreateOperator(OpCodeName.Dictionary);
-                    //_operands.Clear();
                     sequence.Add(op);
 
                     break;
@@ -149,7 +148,6 @@ public sealed class CParser
 
                 case CSymbol.Operator:
                     op = CreateOperator();
-                    //_operands.Clear();
                     sequence.Add(op);
                     break;
 

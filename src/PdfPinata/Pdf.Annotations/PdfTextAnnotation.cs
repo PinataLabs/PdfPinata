@@ -66,17 +66,7 @@ public sealed class PdfTextAnnotation : PdfMarkupAnnotation
         Elements.SetName(PdfAnnotation.Keys.Subtype, "/Text");
         // By default make a yellow comment.
         Icon = PdfTextAnnotationIcon.Comment;
-        //Color = XColors.Yellow;
     }
-
-    //    public static PdfTextAnnotation CreateDocumentLink(PdfRectangle rect, int destinatinPage)
-    //    {
-    //      PdfTextAnnotation link = new PdfTextAnnotation();
-    //      //link.linkType = PdfTextAnnotation.LinkType.Document;
-    //      //link.Rectangle = rect;
-    //      //link.destPage = destinatinPage;
-    //      return link;
-    //    }
 
     /// <summary>
     /// Gets or sets a flag indicating whether the annotation should initially be displayed open.

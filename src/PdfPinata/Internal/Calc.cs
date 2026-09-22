@@ -40,10 +40,4 @@ internal static class Calc
     /// Factor to convert from degree to radian measure.
     /// </summary>
     public const double Deg2Rad = Math.PI / 180;  // = 0.017453292519943295
-
-    ///// <summary>
-    ///// Half of pi.
-    ///// </summary>
-    //public const double πHalf = Math.PI / 2;
-    //// α - β κ
 }

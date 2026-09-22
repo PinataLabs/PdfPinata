@@ -65,7 +65,6 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
         _offsetX = offsetX;
         _offsetY = offsetY;
         _type = XMatrixTypes.Unknown;
-        //_padding = 0;
         DeriveMatrixType();
     }
 
@@ -103,15 +102,6 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
             // ReSharper restore CompareOfFloatsByEqualityOperator
         }
     }
-
-    ///// <summary>
-    ///// Gets an array of double values that represents the elements of this matrix.
-    ///// </summary>
-    //[Obsolete("Use GetElements().")]
-    //public double[] Elements
-    //{
-    //  get { return GetElements(); }
-    //}
 
     /// <summary>
     /// Gets an array of double values that represents the elements of this matrix.
@@ -315,7 +305,6 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
         // ReSharper restore InconsistentNaming
     {
         throw new InvalidOperationException("Temporarily out of order.");
-        //Scale(scaleXY, scaleXY, XMatrixOrder.Prepend);
     }
 
     /// <summary>
@@ -355,7 +344,6 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
     public void ScaleAt(double scaleX, double scaleY, double centerX, double centerY)
     {
         throw new InvalidOperationException("Temporarily out of order.");
-        //this *= CreateScaling(scaleX, scaleY, centerX, centerY);
     }
 
     /// <summary>
@@ -381,8 +369,6 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
     public void Rotate(double angle)
     {
         throw new InvalidOperationException("Temporarily out of order.");
-        //angle = angle % 360.0;
-        //this *= CreateRotationRadians(angle * Calc.Deg2Rad);
     }
 
     /// <summary>
@@ -450,8 +436,6 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
     public void RotateAt(double angle, double centerX, double centerY)
     {
         throw new InvalidOperationException("Temporarily out of order.");
-        //angle = angle % 360.0;
-        //this *= CreateRotationRadians(angle * Calc.Deg2Rad, centerX, centerY);
     }
 
     /// <summary>
@@ -479,7 +463,6 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
     public void RotateAt(double angle, XPoint point)
     {
         throw new InvalidOperationException("Temporarily out of order.");
-        //RotateAt(angle, point, XMatrixOrder.Prepend);
     }
 
     /// <summary>
@@ -507,10 +490,6 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
         {
             angle = angle % 360.0;
             this *= CreateRotationRadians(angle * Calc.Deg2Rad, point.X, point.Y);
-
-            //Translate(point.X, point.Y, order);
-            //Rotate(angle, order);
-            //Translate(-point.X, -point.Y, order);
         }
         else
         {
@@ -527,7 +506,6 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
     public void Shear(double shearX, double shearY)
     {
         throw new InvalidOperationException("Temporarily out of order.");
-        //Shear(shearX, shearY, XMatrixOrder.Prepend);
     }
 
     /// <summary>
@@ -586,9 +564,6 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
     public void Skew(double skewX, double skewY)
     {
         throw new InvalidOperationException("Temporarily out of order.");
-        //skewX = skewX % 360.0;
-        //skewY = skewY % 360.0;
-        //this *= CreateSkewRadians(skewX * Calc.Deg2Rad, skewY * Calc.Deg2Rad);
     }
 
     /// <summary>

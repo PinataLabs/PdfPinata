@@ -684,12 +684,6 @@ public sealed class PdfDocument : PdfObject, IDisposable
                 _trailer.WriteObject(writer);
                 writer.WriteEof(startxref);
             }
-
-            //if (encrypt)
-            //{
-            //  state &= ~DocumentState.SavingEncrypted;
-            //  //_securitySettings.SecurityHandler.EncryptDocument();
-            //}
         }
         finally
         {
@@ -697,7 +691,6 @@ public sealed class PdfDocument : PdfObject, IDisposable
             {
                 writer.Stream.Flush();
                 // DO NOT CLOSE WRITER HERE
-                //writer.Close();
             }
         }
     }
@@ -1264,8 +1257,6 @@ public sealed class PdfDocument : PdfObject, IDisposable
             EnsureCanModify("setting the document language");
             Catalog.Language = value;
         }
-        //get { return Catalog.Elements.GetString(PdfCatalog.Keys.Lang); }
-        //set { Catalog.Elements.SetString(PdfCatalog.Keys.Lang, value); }
     }
 
     /// <summary>
@@ -1600,15 +1591,12 @@ public sealed class PdfDocument : PdfObject, IDisposable
     {
         if (tls != null)
         {
-            //PdfDocument[] documents = tls.Documents;
             tls.DetachDocument(handle);
         }
 
         if (_formTable != null)
             _formTable.DetachDocument(handle);
     }
-
-    //internal static GlobalObjectTable Gob = new GlobalObjectTable();
 
     /// <summary>
     /// Gets the ThreadLocalStorage object. It is used for caching objects that should created

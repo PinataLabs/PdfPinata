@@ -264,18 +264,12 @@ public class XPdfForm : XForm
     /// <summary>
     /// Gets the width in point of the page identified by the property PageNumber.
     /// </summary>
-    public override int PixelWidth =>
-        //PdfPage page = ExternalDocument.Pages[_pageNumber - 1];
-        //return (int)page.Width;
-        DoubleUtil.DoubleToInt(PointWidth);
+    public override int PixelWidth => DoubleUtil.DoubleToInt(PointWidth);
 
     /// <summary>
     /// Gets the height in point of the page identified by the property PageNumber.
     /// </summary>
-    public override int PixelHeight =>
-        //PdfPage page = ExternalDocument.Pages[_pageNumber - 1];
-        //return (int)page.Height;
-        DoubleUtil.DoubleToInt(PointHeight);
+    public override int PixelHeight => DoubleUtil.DoubleToInt(PointHeight);
 
     /// <summary>
     /// Get the size of the page identified by the property PageNumber.

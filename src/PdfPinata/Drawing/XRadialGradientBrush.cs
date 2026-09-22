@@ -45,8 +45,6 @@ namespace PdfPinata.Drawing;
 /// </remarks>
 public sealed class XRadialGradientBrush : XBaseGradientBrush
 {
-    //internal XRadialGradientBrush();
-
     /// <summary>
     /// Initializes a new instance of the <see cref="XRadialGradientBrush"/> class.
     /// </summary>
