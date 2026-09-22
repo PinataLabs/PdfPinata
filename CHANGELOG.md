@@ -12,6 +12,12 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ### Added
 
+- **A stream predicted with the TIFF predictor is now decoded rather than refused.** A Flate or
+  LZW stream whose `/DecodeParms` named `/Predictor 2` threw `NotImplementedException`, so a
+  document using TIFF horizontal differencing could not be read past it. It is now undone for 1,
+  2, 4, 8 and 16 bits per component with any number of colours, sixteen-bit samples big-endian and
+  each row starting afresh, as ISO 32000-1 7.4.4.4 describes (#79).
+
 - **A font whose licence forbids embedding can be refused.** Set
   `PdfDocumentOptions.RespectFontEmbeddingRestrictions` and the document reads the embedding
   permissions each font declares in its OS/2 `fsType`. A face marked Restricted License is refused
@@ -170,6 +176,17 @@ This file starts at the entry below. Changes before that point are recorded only
   Construct a value from its bytes with `new PdfCustomValue(byte[])`.
 
 ### Fixed
+
+- **ASCIIHexDecode stops at its end-of-data marker wherever it comes, and refuses what is not a
+  hex digit.** `>` was recognised only as the last character, so data with the marker mid-stream
+  was decoded marker and all, and a character that was not a digit or white space came out as
+  whatever byte the digit arithmetic made of it. Nothing after the marker is read now, an odd digit
+  before it is read as though a 0 followed, and any other character throws `ArgumentException`, as
+  ISO 32000-1 7.4.2 requires. The decoder also no longer rewrites the caller's buffer (#79).
+
+- **ASCII85Decode refuses a `z` inside a group.** A `z` stands for a whole group of zeros and can
+  only begin one; inside a group it was read as a digit worth 89 and every group after it decoded
+  out of step, silently. It now throws `ArgumentException` (#79).
 
 - **The charting collections work as an `IList`.** `DocumentObjectCollection` (behind
   `SeriesCollection`, `SeriesElements`, `XValues` and `XSeriesElements`) declared the
