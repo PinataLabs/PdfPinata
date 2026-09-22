@@ -404,6 +404,15 @@ namespace PinataLayout.DocumentObjectModel.Resources {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to A footnote inside another footnote cannot be rendered. Move it to a paragraph in the section itself..
+        /// </summary>
+        internal static string NestedFootnote {
+            get {
+                return ResourceManager.GetString("NestedFootnote", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Newline in string not allowed..
         /// </summary>
         internal static string NewlineInString {

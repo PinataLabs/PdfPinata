@@ -286,6 +286,12 @@ That covers cells, text frames, headers, footers and notes nested inside notes, 
 construction rather than by five separate checks. It is the behaviour this whole spec exists to
 produce: the note is not dropped in silence.
 
+The DDL reader says so earlier for the one case it can see: a `\footnote` read inside another
+footnote is kept as written and reported as a warning (`DomMsgID.NestedFootnote`) with the line
+and column it was found at, which the renderer's exception cannot give. An image or a text frame
+inside a note is not refused anywhere, because a note's content is formatted as ordinary block
+content and draws them like any other.
+
 A footnote in a header or footer would be refused in any case, decision or no. It has no sensible
 meaning - the header is formatted once per position and reused across every page it applies to.
 

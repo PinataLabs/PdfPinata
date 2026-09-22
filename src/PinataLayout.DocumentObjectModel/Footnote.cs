@@ -47,9 +47,7 @@ public partial class Footnote : DocumentObject, IVisitable
     /// Initializes a new instance of the Footnote class.
     /// </summary>
     public Footnote()
-    {
-        //NYI: Nested footnote check!
-    }
+    { }
 
     /// <summary>
     /// Initializes a new instance of the Footnote class with the specified parent.

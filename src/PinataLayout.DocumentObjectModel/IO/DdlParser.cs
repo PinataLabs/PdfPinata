@@ -937,6 +937,13 @@ internal class DdlParser
     private void ParseFootnote(ParagraphElements elements)
     {
         AssertSymbol(Symbol.Footnote);
+
+        // Read as written, because the object model holds it, but the renderer refuses it: the
+        // inner note has no page of its own to go at the foot of. Said here, where there is a line
+        // number to say it with.
+        if (DocumentRelations.HasParentOfType(elements, typeof(Footnote)))
+            ReportParserInfo(DdlErrorLevel.Warning, DomMsgID.NestedFootnote);
+
         ReadCode();
 
         var footnote = elements.AddFootnote();

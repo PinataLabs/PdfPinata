@@ -19,6 +19,12 @@ This file starts at the entry below. Changes before that point are recorded only
   it as ISO 32000-1 7.4.5 describes. Data that ends without the end-of-data marker, or part way
   through a run, gives back what it holds rather than throwing.
 
+- **The DDL reader warns about a footnote inside a footnote.** The note is still read as written,
+  but the renderer refuses one, because the inner note has no page of its own to go at the foot of,
+  and its exception gives no line number. The reader now adds a warning to the `DdlReaderErrors`,
+  "A footnote inside another footnote cannot be rendered", with the line and column where the
+  inner `\footnote` is.
+
 - **An OMR code's mark distance can be given as one of the standard distances.**
   `CodeOmr.StandardMarkDistance` takes a `MarkDistance`: `Inch1_6` (12 pt), `Inch2_6` (24 pt) or
   `Inch2_8` (18 pt). It reads and writes `MakerDistance` rather than keeping a value of its own, and
