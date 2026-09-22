@@ -18,7 +18,7 @@ Typical uses include:
 * building reusable document layouts with PinataLayout
 * generating PDFs on Windows, Linux, macOS, and Unity
 
-PdfPinata is a fork of [PdfSharpCore](https://github.com/ststeiger/PdfSharpCore), itself based on [PdfSharp.Xamarin](https://github.com/roceh/PdfSharp.Xamarin/), which is based on [Migradoc's PdfSharp](https://github.com/empira/pdfsharp) The fork continues that API while separating font and image handling into interchangeable backends and extending text support.
+PdfPinata forked [PdfSharpCore](https://github.com/ststeiger/PdfSharpCore), itself based on [PdfSharp.Xamarin](https://github.com/roceh/PdfSharp.Xamarin/), which is based on [Migradoc's PdfSharp](https://github.com/empira/pdfsharp) The fork continues that API while separating font and image handling into interchangeable backends and extending text support.
 
 The core `PdfPinata` package has no imaging or font-rendering dependency of its own. Choose a backend package and register it once when your application starts.
 
