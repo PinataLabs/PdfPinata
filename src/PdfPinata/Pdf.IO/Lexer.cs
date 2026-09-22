@@ -314,9 +314,12 @@ public class Lexer
             if (ch == Chars.LF || ch == Chars.EOF)
                 break;
         }
-        // TODO: not correct
-        if (_token.ToString().StartsWith("%%EOF"))
-            return Symbol.Eof;
+        // The end-of-file marker is reported as such to a caller scanning comments itself.
+        // ScanNextToken discards every comment, this one included: a file that has been
+        // updated incrementally carries one %%EOF per revision, so the body ends only where
+        // the stream does.
+        if (_token.ToString().StartsWith("%%EOF", StringComparison.Ordinal))
+            return _symbol = Symbol.Eof;
         return _symbol = Symbol.Comment;
     }
 
@@ -334,16 +337,21 @@ public class Lexer
             if (IsWhiteSpace(ch) || IsDelimiter(ch) || ch == Chars.EOF)
                 return _symbol = Symbol.Name;
 
-            if (ch == '#')
+            // #hh is the byte hh (ISO 32000-1 7.3.5). A '#' followed by anything else - one hex
+            // digit, none, or the end of the file - is not an escape, and is kept as the
+            // character it is rather than refused, as readers do.
+            if (ch == '#' && IsHexChar(_nextChar))
             {
                 ScanNextChar(true);
-                var hex = new char[2];
-                hex[0] = _currChar;
-                hex[1] = _nextChar;
+                if (!IsHexChar(_nextChar))
+                {
+                    // Only one digit: the '#' stands for itself and the digit is scanned next.
+                    _token.Append('#');
+                    continue;
+                }
+                var high = _currChar;
                 ScanNextChar(true);
-                // TODO Check syntax
-                ch = (char)(ushort)int.Parse(new string(hex), NumberStyles.AllowHexSpecifier);
-                _currChar = ch;
+                _currChar = (char)(HexValue(high) << 4 | HexValue(_currChar));
             }
         }
     }
@@ -702,6 +710,9 @@ public class Lexer
     }
 
     internal static bool IsHexChar(char c) => CharacterScanning.IsHexChar(c);
+
+    /// <summary>The value of a character <see cref="IsHexChar"/> accepts.</summary>
+    static int HexValue(char c) => c <= '9' ? c - '0' : (c | 0x20) - 'a' + 10;
 
     /// <summary>
     /// Move current position one character further in PDF stream.
