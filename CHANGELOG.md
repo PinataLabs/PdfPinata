@@ -12,6 +12,14 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ### Added
 
+- **A content stream read with `ContentReader` and written back keeps its inline images.** The
+  parser used to step over everything between `BI` and `EI`, so `ToContent` wrote back a bare `BI`
+  and `EI` and the image was lost. An inline image is now read as one `CInlineImage`, a `COperator`
+  named `BI` carrying its dictionary entries as written and its raw data, and is written back as
+  `BI … ID … EI`. The end of the data is still found by looking for the bytes `EI`, so binary data
+  that contains them is still misread. Content that ends before an inline image's `ID` no longer
+  makes the reader loop for ever (#84).
+
 - **A stream predicted with the TIFF predictor is now decoded rather than refused.** A Flate or
   LZW stream whose `/DecodeParms` named `/Predictor 2` threw `NotImplementedException`, so a
   document using TIFF horizontal differencing could not be read past it. It is now undone for 1,
@@ -194,6 +202,16 @@ This file starts at the entry below. Changes before that point are recorded only
   Construct a value from its bytes with `new PdfCustomValue(byte[])`.
 
 ### Fixed
+
+- **A number sign in a content-stream name no longer stops the whole stream from being read.**
+  `/A#ZZ`, a single hex digit after `#`, or a `#` at the end of the content threw a
+  `FormatException`. A `#` now stands for a byte only when two hexadecimal digits follow it, and is
+  otherwise kept as a character of the name (#84).
+
+- **A UTF-16 literal string in a content stream has its escapes resolved on its bytes before it is
+  decoded.** A line continuation inside such a string used to shift every character after it by
+  one byte, and the string ran on past its closing parenthesis. Strings in both byte orders now
+  read as the document lexer reads them (#84).
 
 - **A `#` in a name that does not begin a two-digit escape is kept rather than refused.** The
   document lexer read the two characters after every `#` in a name as hexadecimal digits, so
