@@ -196,7 +196,7 @@ If the application directly references ImageSharp 3.x, NuGet's direct-dependency
 <WarningsAsErrors>$(WarningsAsErrors);NU1608</WarningsAsErrors>
 ```
 
-If an incompatible version is loaded anyway, PdfPinata reports a descriptive `InvalidOperationException` including the detected ImageSharp version.
+If an incompatible version is loaded anyway, PdfPinata reports a `InvalidOperationException` including the detected ImageSharp version.
 
 `SixLabors.Fonts` is referenced at `1.0.1` for the same licensing reason, but the API used by `ImageSharpFontResolver` remains compatible with Fonts 2.x. Resolving a newer Fonts version is therefore a licensing choice rather than a known runtime incompatibility.
 
