@@ -28,9 +28,9 @@ internal sealed class PdfResourcePruner : PdfPageWalk
 {
     /// <summary>The categories of a resource dictionary whose entries content names.</summary>
     static readonly string[] Categories =
-    {
+    [
         "/XObject", "/Font", "/ExtGState", "/Shading", "/Pattern", "/ColorSpace", "/Properties"
-    };
+    ];
 
     /// <summary>
     /// Drops the entries of the page's resource dictionary that the page does not draw with.

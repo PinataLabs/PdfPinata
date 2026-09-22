@@ -19,7 +19,7 @@ public class MetadataStrategyTests
     public void ByDefaultANewDocumentIsWrittenWithNoPacket()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
 
         document.Options.MetadataStrategy.Should().Be(PdfMetadataStrategy.KeepExisting);
         Packets(Save(document)).Should().Be(0);
@@ -59,7 +59,7 @@ public class MetadataStrategyTests
     public void AutoGenerateStillCallsTheCustomisationHooks()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         document.Options.MetadataStrategy = PdfMetadataStrategy.AutoGenerate;
         var called = 0;
         document.AddMetadataContributor(_ => called++);
@@ -85,7 +85,7 @@ public class MetadataStrategyTests
     public void AConformanceClaimWithNoMetadataIsRefusedAtSave()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         document.Info.Title = "Claimed";
         document.Options.Conformance = PdfAConformance.PdfA2B;
         document.Options.MetadataStrategy = PdfMetadataStrategy.NoMetadata;
@@ -99,7 +99,7 @@ public class MetadataStrategyTests
     public void AnAccessibilityClaimWithNoMetadataIsRefusedAtSave()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         document.Info.Title = "Claimed";
         document.Options.UAConformance = PdfUAConformance.PdfUA1;
         document.Options.MetadataStrategy = PdfMetadataStrategy.NoMetadata;
@@ -113,7 +113,7 @@ public class MetadataStrategyTests
     public void ClaimingConformanceWithNoMetadataIsRefusedWhereItIsClaimed()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         document.Info.Title = "Claimed";
         document.Options.MetadataStrategy = PdfMetadataStrategy.NoMetadata;
 
@@ -172,7 +172,7 @@ public class MetadataStrategyTests
     static byte[] WithPacket(string title)
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         document.Info.Title = title;
         document.Options.MetadataStrategy = PdfMetadataStrategy.AutoGenerate;
         return Save(document);

@@ -243,6 +243,11 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ### Fixed
 
+- **`PdfAnnotationFlags` is marked `[Flags]`.** It always was a set of bits, ISO 32000-1
+  Table 165, but a combination printed as a bare number. The PDF/A error that refuses a hidden
+  or unprinted annotation now names the flags it objects to, `Invisible, Hidden, NoView` rather than
+  `35`.
+
 - **A DDL `\fontsize` that is not a size is reported rather than ending the read.**
   `\fontsize(abc){x}`, or a quoted size with a unit the reader does not know, threw an
   `ArgumentException` out of `DdlReader`, so the rest of the document was not read and nothing

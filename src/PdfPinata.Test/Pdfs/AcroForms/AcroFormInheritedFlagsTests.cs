@@ -139,7 +139,7 @@ public class AcroFormInheritedFlagsTests
             field.Elements.SetReference(PdfAcroField.Keys.Parent, parent);
             parent.Elements.SetReference(PdfAcroField.Keys.Parent, field);
 
-            field.Flags.Should().Be((PdfAcroFieldFlags)0);
+            field.Flags.Should().Be(0);
         });
     }
 

@@ -208,7 +208,7 @@ public class ResourceDeduplicationTests
         // anything, and an incremental save afterwards would then write a classic trailer whose
         // /Prev names a cross-reference stream. The refusal has to come before that.
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         document.Options.CrossReferenceFormat = PdfCrossReferenceFormat.Stream;
         using var original = new MemoryStream();
         document.Save(original, false);
@@ -278,12 +278,12 @@ public class ResourceDeduplicationTests
 
         var target = new PdfDocument();
         target.Options.DeduplicateResources = true;
-        target.AddPage(source.Pages[0]);
-        target.AddPage(source.Pages[1]);
+        _ = target.AddPage(source.Pages[0]);
+        _ = target.AddPage(source.Pages[1]);
         target.Save(new MemoryStream(), true);
 
         target.Options.DeduplicateResources = false;
-        target.AddPage(source.Pages[1]);
+        _ = target.AddPage(source.Pages[1]);
         using var saved = new MemoryStream();
         target.Save(saved, false);
         saved.Position = 0;

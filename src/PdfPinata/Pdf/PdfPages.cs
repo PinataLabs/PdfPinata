@@ -217,7 +217,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     /// it, so sharing one between two pages would leave that reference pointing at the wrong page.
     /// </summary>
     static readonly string[] DuplicatedPageKeys =
-    {
+    [
         PdfPage.InheritablePageKeys.Resources,
         PdfPage.Keys.Contents,
         PdfPage.InheritablePageKeys.MediaBox,
@@ -226,7 +226,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         PdfPage.Keys.BleedBox,
         PdfPage.Keys.TrimBox,
         PdfPage.Keys.ArtBox
-    };
+    ];
 
     /// <summary>
     /// Returns the index of the specified page in this document, or -1 if the page is not
@@ -796,7 +796,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     /// The destinations of imported annotations, waiting for the page of the external document
     /// they name to be imported as well.
     /// </summary>
-    readonly List<ImportedDestination> _importedDestinations = new();
+    readonly List<ImportedDestination> _importedDestinations = [];
 
     sealed class ImportedDestination
     {
@@ -1006,7 +1006,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         // count the moment this returns, and an empty node tolerated above legitimately leaves the
         // two disagreeing - so the assertion that used to stand here could only fire on the files
         // this method now reads on purpose.
-        return list.ToArray();
+        return [.. list];
     }
 
     /// <summary>

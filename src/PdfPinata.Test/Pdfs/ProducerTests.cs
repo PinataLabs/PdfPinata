@@ -70,7 +70,7 @@ public class ProducerTests
     static PdfDocument NewDocument()
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         return document;
     }
 

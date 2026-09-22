@@ -172,7 +172,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
             PdfArray value3;
             if ((value1 = item.Value as PdfString) != null)
             {
-                decrypted ??= new List<KeyValuePair<string, PdfString>>();
+                decrypted ??= [];
                 decrypted.Add(new KeyValuePair<string, PdfString>(item.Key, EncryptString(value1)));
             }
             else if ((value2 = item.Value as PdfDictionary) != null)
@@ -308,10 +308,10 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
         return padded;
     }
     static readonly byte[] PasswordPadding = // 32 bytes password padding defined by Adobe
-    {
+    [
         0x28, 0xBF, 0x4E, 0x5E, 0x4E, 0x75, 0x8A, 0x41, 0x64, 0x00, 0x4E, 0x56, 0xFF, 0xFA, 0x01, 0x08,
         0x2E, 0x2E, 0x00, 0xB6, 0xD0, 0x68, 0x3E, 0x80, 0x2F, 0x0C, 0xA9, 0xFE, 0x64, 0x53, 0x69, 0x7A
-    };
+    ];
 
     /// <summary>
     /// Generates the user key based on the padded user password.

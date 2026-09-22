@@ -21,8 +21,8 @@ public class StyleTypeAndBaseStyleTests
     [Fact]
     public void AStyleMustBeGivenAName()
     {
-        ((Action)(() => new Style(null!, "Normal"))).Should().Throw<ArgumentNullException>();
-        ((Action)(() => new Style("", "Normal"))).Should().Throw<ArgumentException>();
+        ((Action)(() => _ = new Style(null!, "Normal"))).Should().Throw<ArgumentNullException>();
+        ((Action)(() => _ = new Style("", "Normal"))).Should().Throw<ArgumentException>();
     }
 
     [Fact]

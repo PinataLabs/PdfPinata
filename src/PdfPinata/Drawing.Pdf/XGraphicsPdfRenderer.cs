@@ -114,7 +114,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// </summary>
     public void DrawLine(XPen pen, double x1, double y1, double x2, double y2)
     {
-        DrawLines(pen, new XPoint[] { new(x1, y1), new(x2, y2) });
+        DrawLines(pen, [new(x1, y1), new(x2, y2)]);
     }
 
     // ----- DrawLines ----------------------------------------------------------------------------
@@ -145,7 +145,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     public void DrawBezier(XPen pen, double x1, double y1, double x2, double y2, double x3, double y3, double x4,
         double y4)
     {
-        DrawBeziers(pen, new XPoint[] { new(x1, y1), new(x2, y2), new(x3, y3), new(x4, y4) });
+        DrawBeziers(pen, [new(x1, y1), new(x2, y2), new(x3, y3), new(x4, y4)]);
     }
 
     // ----- DrawBeziers --------------------------------------------------------------------------

@@ -50,7 +50,7 @@ public class AppendedRevisionSizeTests
     public void ANewObjectTakesANumberThePreviousRevisionNeverAccountedFor(bool crossReferenceStream)
     {
         var original = OriginalDocument(crossReferenceStream);
-        var updated = AppendChange(original, document => document.AddPage());
+        var updated = AppendChange(original, document => _ = document.AddPage());
 
         var appended = Appended(updated, original.Length);
         var numbers = ObjectNumbersIn(appended);
@@ -70,7 +70,7 @@ public class AppendedRevisionSizeTests
         var updated = AppendChange(OriginalDocument(crossReferenceStream), document =>
         {
             document.Info.Subject = "Changed";
-            document.AddPage();
+            _ = document.AddPage();
         });
 
         var reread = Reader.Open(new MemoryStream(updated), PdfDocumentOpenMode.Modify);
@@ -86,7 +86,7 @@ public class AppendedRevisionSizeTests
     {
         var original = OriginalDocument(crossReferenceStream);
         var once = AppendChange(original, document => document.Info.Subject = "First");
-        var twice = AppendChange(once, document => document.AddPage());
+        var twice = AppendChange(once, document => _ = document.AddPage());
 
         AppendedSize(Appended(twice, once.Length)).Should().BeGreaterThanOrEqualTo(AppendedSize(Appended(once, original.Length)));
         ObjectNumbersIn(Appended(twice, once.Length)).Where(number => number > 4)
@@ -104,7 +104,7 @@ public class AppendedRevisionSizeTests
         // one past the live objects. The larger /Size is then only in the revision before it, and
         // appending again from the newest trailer alone would reuse the numbers it freed.
         var original = WithShrunkenRevision(OriginalDocument(crossReferenceStream: false));
-        var updated = AppendChange(original, document => document.AddPage());
+        var updated = AppendChange(original, document => _ = document.AddPage());
 
         var appended = Appended(updated, original.Length);
         ObjectNumbersIn(appended).Where(number => number > 4)
@@ -121,7 +121,7 @@ public class AppendedRevisionSizeTests
         // ISO 32000-1 Annex C allows 8,388,607 indirect objects. A /Size far beyond that is damage,
         // and believing it pushed the next number to int.MaxValue and the one after it negative.
         var original = OriginalDocument(crossReferenceStream, declaredSize: int.MaxValue);
-        var updated = AppendChange(original, document => document.AddPage());
+        var updated = AppendChange(original, document => _ = document.AddPage());
 
         var appended = Appended(updated, original.Length);
         ObjectNumbersIn(appended).Should().OnlyContain(number => number > 0 && number < PreviousSize);

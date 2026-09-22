@@ -26,7 +26,7 @@ internal static class PdfCrossReferenceStreamWriter
     /// a few bytes per object and cost the clarity of a fixed layout — the entries are compressed
     /// afterwards anyway, and repeated leading zeroes are exactly what a compressor is good at.
     /// </remarks>
-    static readonly int[] FieldWidths = { 1, 4, 2 };
+    static readonly int[] FieldWidths = [1, 4, 2];
 
     /// <summary>
     /// Writes the body of the document, then the cross-reference stream that indexes it, and
@@ -251,12 +251,12 @@ internal static class PdfCrossReferenceStreamWriter
     static void CopyTrailerElements(PdfTrailer trailer, PdfCrossReferenceStream xrefStream)
     {
         string[] carried =
-        {
+        [
             PdfTrailer.Keys.Root,
             PdfTrailer.Keys.Info,
             PdfTrailer.Keys.ID,
             PdfTrailer.Keys.Encrypt
-        };
+        ];
 
         foreach (var key in carried)
         {

@@ -105,7 +105,7 @@ public class StreamLengthTests
             return Given(document, source.Stream);
         }, out var number);
 
-        LengthsOf(bytes, number).Should().Be(((int?)data.Length, data.Length));
+        LengthsOf(bytes, number).Should().Be((data.Length, data.Length));
         ReopenedStreamValue(bytes, null).Should().Equal(data);
     }
 
@@ -126,7 +126,7 @@ public class StreamLengthTests
             return target;
         }, out var number);
 
-        LengthsOf(bytes, number).Should().Be(((int?)after.Length, after.Length));
+        LengthsOf(bytes, number).Should().Be((after.Length, after.Length));
         ReopenedStreamValue(bytes, null).Should().Equal(after);
     }
 
@@ -147,7 +147,7 @@ public class StreamLengthTests
             return target;
         }, out var number);
 
-        LengthsOf(bytes, number).Should().Be(((int?)replaced.Length, replaced.Length));
+        LengthsOf(bytes, number).Should().Be((replaced.Length, replaced.Length));
         ReopenedStreamValue(bytes, null).Should().Equal(replaced);
     }
 
@@ -166,7 +166,7 @@ public class StreamLengthTests
             return target;
         }, out var number);
 
-        LengthsOf(bytes, number).Should().Be(((int?)data.Length, data.Length));
+        LengthsOf(bytes, number).Should().Be((data.Length, data.Length));
     }
 
     [Theory]
@@ -192,7 +192,7 @@ public class StreamLengthTests
             return Given(document, source.Stream);
         }, out var number);
 
-        LengthsOf(bytes, number).Should().Be(((int?)data.Length, data.Length));
+        LengthsOf(bytes, number).Should().Be((data.Length, data.Length));
         ReopenedStreamValue(bytes, password).Should().Equal(data);
     }
 
@@ -230,7 +230,7 @@ public class StreamLengthTests
     static byte[] SavedWith(Func<PdfDocument, PdfDictionary> arrange, out int objectNumber)
     {
         var document = new PdfDocument();
-        document.AddPage();
+        _ = document.AddPage();
         var target = arrange(document);
         objectNumber = target.Reference.ObjectNumber;
 

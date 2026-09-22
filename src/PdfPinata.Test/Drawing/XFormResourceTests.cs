@@ -44,8 +44,8 @@ public class XFormResourceTests
     {
         var document = new PdfDocument();
 
-        ((Action)(() => new XForm(document, new XRect(0, 0, 0.5, 10)))).Should().Throw<ArgumentNullException>();
-        ((Action)(() => new XForm(document, new XRect(0, 0, 10, 0.5)))).Should().Throw<ArgumentNullException>();
+        ((Action)(() => _ = new XForm(document, new XRect(0, 0, 0.5, 10)))).Should().Throw<ArgumentNullException>();
+        ((Action)(() => _ = new XForm(document, new XRect(0, 0, 10, 0.5)))).Should().Throw<ArgumentNullException>();
     }
 
     [Fact]

@@ -28,7 +28,6 @@
 #endregion
 
 using System;
-using PdfPinata.Pdf.Signatures;
 
 namespace PdfPinata.Pdf.AcroForms;
 

@@ -18,7 +18,7 @@ namespace PdfPinata.Drawing.Layout;
 /// </remarks>
 public sealed class RectangleObstacle : IFlowObstacle
 {
-    static readonly IReadOnlyList<XInterval> None = Array.Empty<XInterval>();
+    static readonly IReadOnlyList<XInterval> None = [];
 
     readonly XInterval[] _taken;
     readonly double _top;
@@ -75,8 +75,8 @@ public sealed class RectangleObstacle : IFlowObstacle
         _top = Reserved.Y;
         _bottom = Reserved.Y + Reserved.Height;
         _taken = Reserved.Width <= 0
-            ? Array.Empty<XInterval>()
-            : new[] { new XInterval(Reserved.X, Reserved.X + Reserved.Width) };
+            ? []
+            : [new XInterval(Reserved.X, Reserved.X + Reserved.Width)];
     }
 
     /// <summary>The rectangle the obstacle itself occupies.</summary>

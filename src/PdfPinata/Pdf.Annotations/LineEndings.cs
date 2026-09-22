@@ -80,11 +80,10 @@ internal static class LineEndings
         switch (ending)
         {
             case PdfLineEnding.Square:
-                DrawClosed(gfx, pen, brush, new[]
-                {
+                DrawClosed(gfx, pen, brush, [
                     new XPoint(at.X - half, at.Y - half), new XPoint(at.X + half, at.Y - half),
                     new XPoint(at.X + half, at.Y + half), new XPoint(at.X - half, at.Y + half)
-                });
+                ]);
                 break;
 
             case PdfLineEnding.Circle:
@@ -96,26 +95,25 @@ internal static class LineEndings
                 break;
 
             case PdfLineEnding.Diamond:
-                DrawClosed(gfx, pen, brush, new[]
-                {
+                DrawClosed(gfx, pen, brush, [
                     new XPoint(at.X, at.Y - half), new XPoint(at.X + half, at.Y),
                     new XPoint(at.X, at.Y + half), new XPoint(at.X - half, at.Y)
-                });
+                ]);
                 break;
 
             case PdfLineEnding.OpenArrow:
             case PdfLineEnding.ROpenArrow:
                 // Two segments meeting at the tip, drawn as one polyline so that the join is
                 // mitred rather than two strokes crossing at a point.
-                gfx.DrawLines(pen, new[] { Barb(at, outward, across, size, half, 1), at, Barb(at, outward, across, size, half, -1) });
+                gfx.DrawLines(pen, [Barb(at, outward, across, size, half, 1), at, Barb(at, outward, across, size, half, -1)
+                ]);
                 break;
 
             case PdfLineEnding.ClosedArrow:
             case PdfLineEnding.RClosedArrow:
-                DrawClosed(gfx, pen, brush, new[]
-                {
+                DrawClosed(gfx, pen, brush, [
                     at, Barb(at, outward, across, size, half, 1), Barb(at, outward, across, size, half, -1)
-                });
+                ]);
                 break;
 
             case PdfLineEnding.Butt:

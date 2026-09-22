@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using PdfPinata.Pdf.Internal;
 using PdfPinata.Pdf.Signatures;
 

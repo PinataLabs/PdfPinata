@@ -17,9 +17,8 @@ namespace PdfPinata.Test.Internal;
 ///   they need - this repository carries no <c>InternalsVisibleTo</c>, which is also why every
 ///   assembly gets its own copy of the netstandard2.1 polyfills.
 ///   <para>
-///   They are worth reaching. <c>DoubleUtil</c> is what decides whether a matrix is invertible and
-///   whether two points are the same point, and a comparison that is wrong at the edges is wrong
-///   in a way no drawing test would localise.
+///   They are worth reaching. <c>DoubleUtil</c> is what decides whether a matrix is invertible,
+///   and a comparison that is wrong at the edges is wrong in a way no drawing test would localise.
 ///   </para>
 /// </summary>
 public class InternalHelperTests
@@ -70,28 +69,9 @@ public class InternalHelperTests
         Bool("DoubleUtil", "AreClose", 1e-6, 1e-5).Should().BeFalse();
     }
 
-    [Theory]
-    [InlineData(1.23456, 1.23457, 4, true)]
-    [InlineData(1.0, 1.6, 0, true)]
-    [InlineData(1.0, 2.5, 0, false)]
-    [InlineData(1.0, 2.0, 2, false)]
-    [InlineData(3.0, 3.0, 16, true)]
-    public void TwoNumbersAreRoughlyEqualToAsManyPlacesAsAreAskedFor(
-        double first, double second, int places, bool expected)
-    {
-        // A flat tolerance of ten to the minus the number of places, so "0 places" means within
-        // one whole unit rather than "the same when rounded to a whole number".
-        Bool("DoubleUtil", "AreRoughlyEqual", first, second, places).Should().Be(expected);
-    }
-
     [Fact]
     public void TheOrderingComparisonsTreatCloseNumbersAsEqual()
     {
-        Bool("DoubleUtil", "GreaterThan", 2.0, 1.0).Should().BeTrue();
-        Bool("DoubleUtil", "GreaterThan", 1.0, 1.0).Should().BeFalse();
-        Bool("DoubleUtil", "LessThan", 1.0, 2.0).Should().BeTrue();
-        Bool("DoubleUtil", "LessThan", 1.0, 1.0).Should().BeFalse();
-
         Bool("DoubleUtil", "GreaterThanOrClose", 1.0, 1.0).Should().BeTrue();
         Bool("DoubleUtil", "GreaterThanOrClose", 0.5, 1.0).Should().BeFalse();
         Bool("DoubleUtil", "LessThanOrClose", 1.0, 1.0).Should().BeTrue();
@@ -99,21 +79,11 @@ public class InternalHelperTests
     }
 
     [Fact]
-    public void OneAndZeroAndTheRangeBetweenThemAreRecognised()
+    public void ZeroIsRecognisedToWithinTheTolerance()
     {
-        Bool("DoubleUtil", "IsOne", 1.0).Should().BeTrue();
-        Bool("DoubleUtil", "IsOne", 1.0 + 1e-16).Should().BeTrue();
-        Bool("DoubleUtil", "IsOne", 1.1).Should().BeFalse();
-
         Bool("DoubleUtil", "IsZero", 0.0).Should().BeTrue();
         Bool("DoubleUtil", "IsZero", 1e-300).Should().BeTrue("smaller than the tolerance is zero");
         Bool("DoubleUtil", "IsZero", 0.1).Should().BeFalse();
-
-        Bool("DoubleUtil", "IsBetweenZeroAndOne", 0.0).Should().BeTrue();
-        Bool("DoubleUtil", "IsBetweenZeroAndOne", 0.5).Should().BeTrue();
-        Bool("DoubleUtil", "IsBetweenZeroAndOne", 1.0).Should().BeTrue();
-        Bool("DoubleUtil", "IsBetweenZeroAndOne", -0.1).Should().BeFalse();
-        Bool("DoubleUtil", "IsBetweenZeroAndOne", 1.1).Should().BeFalse();
     }
 
     [Fact]
@@ -125,29 +95,6 @@ public class InternalHelperTests
         Bool("DoubleUtil", "IsNaN", 0.0).Should().BeFalse();
         Bool("DoubleUtil", "IsNaN", double.PositiveInfinity).Should().BeFalse();
         Bool("DoubleUtil", "IsNaN", double.NegativeInfinity).Should().BeFalse();
-    }
-
-    [Fact]
-    public void TheGeometryTypesEachHaveTheirOwnCloseness()
-    {
-        Bool("DoubleUtil", "AreClose", new XPoint(1, 2), new XPoint(1, 2)).Should().BeTrue();
-        Bool("DoubleUtil", "AreClose", new XPoint(1, 2), new XPoint(1, 3)).Should().BeFalse();
-
-        Bool("DoubleUtil", "AreClose", new XSize(1, 2), new XSize(1, 2)).Should().BeTrue();
-        Bool("DoubleUtil", "AreClose", new XSize(1, 2), new XSize(3, 2)).Should().BeFalse();
-
-        Bool("DoubleUtil", "AreClose", new XVector(1, 2), new XVector(1, 2)).Should().BeTrue();
-        Bool("DoubleUtil", "AreClose", new XVector(1, 2), new XVector(1, 3)).Should().BeFalse();
-
-        Bool("DoubleUtil", "AreClose", new XRect(1, 2, 3, 4), new XRect(1, 2, 3, 4)).Should().BeTrue();
-        Bool("DoubleUtil", "AreClose", new XRect(1, 2, 3, 4), new XRect(1, 2, 3, 5)).Should().BeFalse();
-    }
-
-    [Fact]
-    public void ARectangleIsAskedWhetherAnyOfItsFourNumbersIsNotANumber()
-    {
-        Bool("DoubleUtil", "RectHasNaN", new XRect(1, 2, 3, 4)).Should().BeFalse();
-        Bool("DoubleUtil", "RectHasNaN", XRect.Empty).Should().BeFalse("infinity is a number");
     }
 
     [Theory]

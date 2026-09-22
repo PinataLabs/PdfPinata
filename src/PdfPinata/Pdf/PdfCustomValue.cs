@@ -29,7 +29,6 @@
 
 #endregion
 
-using System;
 
 namespace PdfPinata.Pdf;
 

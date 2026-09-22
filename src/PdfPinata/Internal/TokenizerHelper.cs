@@ -34,9 +34,7 @@ using System.Globalization;
 
 namespace PdfPinata.Internal;
 
-// Reflected from WPF to ensure compatibility
-// Use netmassdownloader -d "C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\v3.0" -output g:\cachetest -v
-class TokenizerHelper
+internal class TokenizerHelper
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="TokenizerHelper"/> class.

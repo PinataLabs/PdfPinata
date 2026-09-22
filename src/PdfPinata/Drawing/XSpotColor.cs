@@ -104,9 +104,9 @@ public sealed class XSpotColor : IEquatable<XSpotColor>
     /// </summary>
     internal double[] AlternateComponents => Alternate.ColorSpace switch
     {
-        XColorSpace.Cmyk => new[] { Alternate.C, Alternate.M, Alternate.Y, Alternate.K },
-        XColorSpace.GrayScale => new[] { Alternate.GS },
-        _ => new[] { Alternate.R / 255.0, Alternate.G / 255.0, Alternate.B / 255.0 }
+        XColorSpace.Cmyk => [Alternate.C, Alternate.M, Alternate.Y, Alternate.K],
+        XColorSpace.GrayScale => [Alternate.GS],
+        _ => [Alternate.R / 255.0, Alternate.G / 255.0, Alternate.B / 255.0]
     };
 
     /// <summary>

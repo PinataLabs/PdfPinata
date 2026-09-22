@@ -353,7 +353,7 @@ public static class OpCodes
     /// Array of all OpCodes.
     /// </summary>
     static readonly OpCode[] ops = // new OpCode[]
-    {
+    [
         // Must be defined behind the code above to ensure that the values are initialized.
         Dictionary,
         b, B, bx, Bx, BDC, BI, BMC, BT, BX, c, cm, CS, cs, d, d0, d1, Do,
@@ -361,6 +361,6 @@ public static class OpCodes
         n, q, Q, re, RG, rg, ri, s, S, SC, sc, SCN, scn, sh,
         Tx, Tc, Td, TD, Tf, Tj, TJ, TL, Tm, Tr, Ts, Tw, Tz, v, w, W, Wx, y,
         QuoteSingle, QuoteDbl
-    };
+    ];
     // ReSharper restore InconsistentNaming
 }

@@ -59,7 +59,7 @@ sealed class ShapedText
     {
         ArgumentNullException.ThrowIfNull(run);
 
-        return new ShapedText(new[] { new ShapedSegment(run, font, 0, length) });
+        return new ShapedText([new ShapedSegment(run, font, 0, length)]);
     }
 
     /// <summary>The segments, in the order they are drawn.</summary>

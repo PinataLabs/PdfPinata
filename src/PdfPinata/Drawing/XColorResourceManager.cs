@@ -123,8 +123,8 @@ public class XColorResourceManager
     // http://blog.patrickkempf.de/archives/2004/04/10/html-farben/
     // http://www.grafikwunder.de/Grafikecke/Farbtabelle/farbtabelle-006.php
     // Silke changed some German translations (women know more colors than men :-)
-    internal static ColorResourceInfo[] colorInfos = new ColorResourceInfo[]
-    {
+    internal static ColorResourceInfo[] colorInfos =
+    [
         new(XKnownColor.Transparent, XColors.Transparent, 0x00FFFFFF, "Transparent", "Transparent"),
         new(XKnownColor.Black, XColors.Black, 0xFF000000, "Black", "Schwarz"),
         new(XKnownColor.DarkSlateGray, XColors.DarkSlateGray, 0xFF8FBC8F, "Darkslategray", "Dunkles Schiefergrau"),
@@ -268,7 +268,7 @@ public class XColorResourceManager
         new(XKnownColor.YellowGreen, XColors.YellowGreen, 0xFF9ACD32, "Yellowgreen", "Gelbgrün"),
         new(XKnownColor.Chartreuse, XColors.Chartreuse, 0xFF7FFF00, "Chartreuse", "Hellgrün"),
         new(XKnownColor.GreenYellow, XColors.GreenYellow, 0xFFADFF2F, "Greenyellow", "Grüngelb")
-    };
+    ];
 
     internal struct ColorResourceInfo
     {

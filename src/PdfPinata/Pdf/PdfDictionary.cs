@@ -728,7 +728,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// <summary>
         /// The white space the numbers of a matrix literal are separated by.
         /// </summary>
-        static readonly char[] MatrixLiteralSeparators = { ' ', '\t', '\r', '\n' };
+        static readonly char[] MatrixLiteralSeparators = [' ', '\t', '\r', '\n'];
 
         /// <summary>
         /// Reads the six numbers of a matrix written as the literal "[a b c d e f]".
@@ -1006,7 +1006,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                     var parameters = ctorInfo.GetParameters();
                     if (parameters.Length == 1 && parameters[0].ParameterType == typeof(PdfArray))
                     {
-                        array = ctorInfo.Invoke(new object[] { oldArray }) as PdfArray;
+                        array = ctorInfo.Invoke([oldArray]) as PdfArray;
                         break;
                     }
                 }
@@ -1030,7 +1030,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                     var parameters = ctorInfo.GetParameters();
                     if (parameters.Length == 1 && parameters[0].ParameterType == typeof(PdfDocument))
                     {
-                        dict = ctorInfo.Invoke(new object[] { _ownerDictionary.Owner }) as PdfDictionary;
+                        dict = ctorInfo.Invoke([_ownerDictionary.Owner]) as PdfDictionary;
                         break;
                     }
                 }
@@ -1044,7 +1044,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                     var parameters = ctorInfo.GetParameters();
                     if (parameters.Length == 1 && parameters[0].ParameterType == typeof(PdfDictionary))
                     {
-                        dict = ctorInfo.Invoke(new object[] { oldDictionary }) as PdfDictionary;
+                        dict = ctorInfo.Invoke([oldDictionary]) as PdfDictionary;
                         break;
                     }
                 }
@@ -1543,7 +1543,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                         _value.CopyTo(bytes, 0);
                     }
                 }
-                return bytes ?? Array.Empty<byte>();
+                return bytes ?? [];
             }
         }
 

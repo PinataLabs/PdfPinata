@@ -183,7 +183,7 @@ public sealed class PdfRedactAnnotation : PdfMarkupAnnotation
 
         var quads = Quads;
         if (quads.Count == 0)
-            quads = new[] { box };
+            quads = [box];
 
         // An outline a point wide, drawn inside each region rather than centred on its edge, so
         // that the part of it on the outermost edges is not clipped by the appearance's bounds.

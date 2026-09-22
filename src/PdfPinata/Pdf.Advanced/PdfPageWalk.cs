@@ -31,7 +31,7 @@ internal abstract class PdfPageWalk
     const int MaximumDepth = 32;
 
     /// <summary>The colour spaces that are always available and never named by a resource dictionary.</summary>
-    static readonly string[] DeviceColorSpaces = { "/DeviceGray", "/DeviceRGB", "/DeviceCMYK", "/Pattern" };
+    static readonly string[] DeviceColorSpaces = ["/DeviceGray", "/DeviceRGB", "/DeviceCMYK", "/Pattern"];
 
     protected PdfPageWalk(PdfDictionary pageResources)
     {
@@ -45,7 +45,7 @@ internal abstract class PdfPageWalk
     /// The streams already read, each paired with the scope it was read in, so that a form drawing
     /// itself does not go round forever.
     /// </summary>
-    readonly HashSet<StreamInScope> _read = new();
+    readonly HashSet<StreamInScope> _read = [];
 
     /// <summary>Whether everything read so far was understood.</summary>
     protected bool _understood = true;

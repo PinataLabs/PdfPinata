@@ -113,7 +113,7 @@ public class IncrementalUpdateOfCrossReferenceStreamTests
     [Fact]
     public void APageAddedByAnUpdateIsThere()
     {
-        var updated = AppendChange(OriginalDocument(), document => document.AddPage());
+        var updated = AppendChange(OriginalDocument(), document => _ = document.AddPage());
 
         Reopen(updated).PageCount.Should().Be(3);
     }
