@@ -222,6 +222,14 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ### Fixed
 
+- **A non-breakable blank is drawn as a space, and a line is not broken at it.**
+  `Character.NonBreakableBlank` (and `HardBlank`, the same value) had no character. The renderer
+  drew U+0000, which text normalization drops, so the blank took no room and the words either side
+  of it ran together. It is now drawn as U+00A0 and takes a space's width. A line is also no longer
+  broken before or after it: the words it joins are measured together and moved to the next line
+  together. A run too long for any line is still broken at the blank, as a word longer than the
+  line is broken inside it.
+
 - **A `\x` escape in a quoted MDDDL string is the character it names.** `"\x41"` used to read as
   five literal question marks. The scanner also stepped over the character after the digits, so
   `"\x41 b"` lost its space and `"A\x41"` lost its closing quote and ran on into the next line.
