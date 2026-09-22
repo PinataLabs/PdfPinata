@@ -37,9 +37,9 @@ namespace PdfPinata.Drawing;
 /// </summary>
 internal class GraphicsStateStack
 {
-    public GraphicsStateStack(XGraphics gfx)
+    public GraphicsStateStack()
     {
-        _current = new InternalGraphicsState(gfx);
+        _current = new InternalGraphicsState();
     }
 
     public int Count => _stack.Count;

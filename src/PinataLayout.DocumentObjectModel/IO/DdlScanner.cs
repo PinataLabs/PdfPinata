@@ -797,7 +797,6 @@ internal class DdlScanner
       // ReSharper disable once PossibleNullReferenceException
       if (number.Length > 0 && number.All(IsHexDigit))
         throw IntegerOutOfRange();
-      throw ParserException(DomMsgID.IntegerExpected, token);
     }
     throw ParserException(DomMsgID.IntegerExpected, token);
   }
@@ -845,7 +844,6 @@ internal class DdlScanner
       // ReSharper disable once PossibleNullReferenceException
       if (number.Length > 0 && number.All(IsHexDigit))
         throw UnsignedIntegerOutOfRange();
-      throw ParserException(DomMsgID.IntegerExpected, token);
     }
     throw ParserException(DomMsgID.IntegerExpected, token);
   }
