@@ -38,7 +38,7 @@ namespace PinataLayout.DocumentObjectModel.IO;
 /// Represents an exception used by the DDL parser. This exception will always be caught inside
 /// the DDL parser.
 /// </summary>
-internal class DdlParserException : Exception // TODO DaSt/KlPo/NiSc: ApplicationException???
+internal class DdlParserException : Exception
 {
   /// <summary>
   /// Initializes a new instance of the DdlParserException class with the specified message.

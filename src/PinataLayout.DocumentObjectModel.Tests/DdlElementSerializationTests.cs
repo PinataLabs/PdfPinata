@@ -326,6 +326,24 @@ public class DdlElementSerializationTests
         written.Should().Contain("// second line");
     }
 
+    [Theory]
+    [InlineData("first line\rsecond line\\section{}")]
+    [InlineData("first line\nsecond line\\section{}")]
+    public void ACommentCarryingALoneLineEndIsWrittenAsTwoCommentsAndReadsBackAsNothing(string comment)
+    {
+        // The reader ends a comment at a CR or an LF on its own, as at a CRLF, so the writer has
+        // to split there too - or the second half is read back as MDDDL, here as a section.
+        var document = new Document();
+        document.AddSection().AddParagraph("t");
+        document.Comment = comment;
+
+        var written = Write(document);
+
+        written.Should().Contain("// first line");
+        written.Should().Contain("// second line");
+        DdlReader.DocumentFromString(written).Sections.Count.Should().Be(1);
+    }
+
     [Fact]
     public void ACommentTooLongForALineIsWrappedAtASpace()
     {

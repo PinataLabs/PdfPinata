@@ -654,9 +654,8 @@ internal class DdlScanner
               return false;
             }
 
-            //TODO NiSc
-            //NYI
-            //Check.NotImplemented("empty line at non-root level");
+            // An empty line inside nested content is skipped, and scanning goes on with the
+            // line after it.
           }
           break;
 
@@ -810,14 +809,16 @@ internal class DdlScanner
         throw IntegerOutOfRange();
       throw ParserException(DomMsgID.IntegerExpected, token);
     }
-    //TODO NiSc
-    //Check.Assert(false);
-    return 0;
+    throw ParserException(DomMsgID.IntegerExpected, token);
   }
 
   DdlParserException IntegerOutOfRange() =>
     ParserException(DomMsgID.OutOfRange,
       String.Format(CultureInfo.InvariantCulture, "{0} - {1}", Int32.MinValue, Int32.MaxValue));
+
+  DdlParserException UnsignedIntegerOutOfRange() =>
+    ParserException(DomMsgID.OutOfRange,
+      String.Format(CultureInfo.InvariantCulture, "{0} - {1}", UInt32.MinValue, UInt32.MaxValue));
 
   /// <summary>
   /// A DdlParserException carrying the given message and the position of the current token.
@@ -829,21 +830,34 @@ internal class DdlScanner
   /// <summary>
   /// Interpret current token as unsigned integer literal.
   /// </summary>
-  /// <returns></returns>
+  /// <remarks>
+  /// Refuses what GetTokenValueAsInt refuses, and a negative literal as well, in the same way:
+  /// as a DdlParserException the parser reports, never as a FormatException or OverflowException.
+  /// </remarks>
   internal uint GetTokenValueAsUInt()
   {
+    uint value;
     if (symbol == Symbol.IntegerLiteral)
     {
-      return UInt32.Parse(token, CultureInfo.InvariantCulture);
+      if (UInt32.TryParse(token, NumberStyles.Integer, CultureInfo.InvariantCulture, out value))
+        return value;
+
+      // A sign and digits only, as for GetTokenValueAsInt, so one that does not parse is too
+      // large or negative rather than malformed.
+      throw UnsignedIntegerOutOfRange();
     }
     else if (symbol == Symbol.HexIntegerLiteral)
     {
       var number = token[2..];
-      return UInt32.Parse(number, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
+      if (UInt32.TryParse(number, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out value))
+        return value;
+
+      // ReSharper disable once PossibleNullReferenceException
+      if (number.Length > 0 && number.All(IsHexDigit))
+        throw UnsignedIntegerOutOfRange();
+      throw ParserException(DomMsgID.IntegerExpected, token);
     }
-    //TODO NiSc
-    //Check.Assert(false);
-    return 0;
+    throw ParserException(DomMsgID.IntegerExpected, token);
   }
 
   /// <summary>
@@ -892,22 +906,20 @@ internal class DdlScanner
           m_idxLinePos = 0;
           break;
 
-        // ignore CR
+        // A CR before an LF is skipped, and the LF ends the line. A CR on its own ends the line
+        // too, as it does in a classic Mac OS file, and is read as an LF so that everything
+        // looking for the end of a line finds it.
         case Chars.CR:
           if (nextChar == Chars.LF)
           {
             goto SkipChar;
           }
-          else
-          {
-            //TODO NiSc
-            //NYI: MacOS uses CR only
-            //Check.NotImplemented();
-          }
+          currChar = Chars.LF;
+          this.m_idxLine++;
+          this.m_idxLinePos = 0;
           break;
 
         case Chars.LF:
-          //NYI: Unix uses LF only
           this.m_idxLine++;
           this.m_idxLinePos = 0;
           break;
