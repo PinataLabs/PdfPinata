@@ -29,15 +29,15 @@ public class InlineImageRoundTripTests
         var image = sequence[1].Should().BeOfType<CInlineImage>().Subject;
         image.OpCode.OpCodeName.Should().Be(OpCodeName.BI);
         image.ImageDictionary.Should().Be("/W 4 /H 4 /CS /G /BPC 8");
-        Encoding.Latin1.GetString(image.Data).Should().Be("xxxxxxxxxxxxxxxx ",
-            "the blank before EI cannot be told from data without decoding the image, so it is kept");
+        Encoding.Latin1.GetString(image.Data).Should().Be("xxxxxxxxxxxxxxxx",
+            "the blanks either side of the data separate it from ID and EI rather than belonging to it");
     }
 
     [Fact]
     public void AnInlineImageIsWrittenBackOut()
     {
         RoundTripOf("q " + Gray4x4 + " Q").Should()
-            .Be("q\nBI\n/W 4 /H 4 /CS /G /BPC 8\nID xxxxxxxxxxxxxxxx EI\nQ\n");
+            .Be("q\nBI\n/W 4 /H 4 /CS /G /BPC 8\nID xxxxxxxxxxxxxxxx\nEI\nQ\n");
     }
 
     [Fact]
@@ -62,7 +62,7 @@ public class InlineImageRoundTripTests
         var reread = ContentReader.ReadContent(written);
 
         var image = reread[0].Should().BeOfType<CInlineImage>().Subject;
-        image.Data.Should().Equal(data.Concat(new[] { (byte)'\n' }));
+        image.Data.Should().Equal(data);
         ((COperator)reread[1]).Name.Should().Be("Q");
     }
 
@@ -72,7 +72,7 @@ public class InlineImageRoundTripTests
         var sequence = Read("BI /W 1 /H 1 /CS /G /BPC 8 /F /A85 ID abEIcd~> EI Q");
 
         var image = sequence[0].Should().BeOfType<CInlineImage>().Subject;
-        Encoding.Latin1.GetString(image.Data).Should().Be("abEIcd~> ");
+        Encoding.Latin1.GetString(image.Data).Should().Be("abEIcd~>");
         ((COperator)sequence[1]).Name.Should().Be("Q");
     }
 
@@ -82,15 +82,34 @@ public class InlineImageRoundTripTests
         // true, false and null have no type among the content objects, and a stencil mask says
         // /IM true, so the dictionary is kept as the text it was written as.
         RoundTripOf("BI /W 8 /H 1 /IM true /D [1 0] ID \x55 EI")
-            .Should().Be("BI\n/W 8 /H 1 /IM true /D [1 0]\nID \x55 EI\n");
+            .Should().Be("BI\n/W 8 /H 1 /IM true /D [1 0]\nID \x55\nEI\n");
     }
 
     [Fact]
-    public void DataNotEndingInWhiteSpaceIsWrittenWithALineFeedBeforeEI()
+    public void TheDataIsAlwaysSeparatedFromEIByALineFeed()
     {
         var sequence = new CSequence { new CInlineImage("/W 1 /H 1 /CS /G /BPC 8", [0x45]) };
 
         Encoding.Latin1.GetString(sequence.ToContent()).Should().Be("BI\n/W 1 /H 1 /CS /G /BPC 8\nID E\nEI\n");
+    }
+
+    // A last byte that happens to be white space - a pixel of 0x20 or 0x00 - is data, and has to
+    // stay data: it is not taken for the separator before EI, and no byte is gained or lost by
+    // reading the content and writing it back again.
+    [Theory]
+    [InlineData(new byte[] { 0x45, 0x20 })]
+    [InlineData(new byte[] { 0x45, 0x00 })]
+    [InlineData(new byte[] { 0x0A })]
+    [InlineData(new byte[0])]
+    public void DataEndingInWhiteSpaceOrHoldingNothingComesBackAsItWas(byte[] data)
+    {
+        var sequence = new CSequence { new CInlineImage("/W 1 /H 1", data) };
+
+        var once = ContentReader.ReadContent(sequence.ToContent());
+        var twice = ContentReader.ReadContent(once.ToContent());
+
+        once[0].Should().BeOfType<CInlineImage>().Which.Data.Should().Equal(data);
+        twice[0].Should().BeOfType<CInlineImage>().Which.Data.Should().Equal(data);
     }
 
     [Fact]

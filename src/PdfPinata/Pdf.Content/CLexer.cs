@@ -203,7 +203,12 @@ public class CLexer
         while (_currChar != Chars.EOF && (_currChar != 'E' || _nextChar != 'I'))
             ScanNextChar();
 
+        // The white space before EI separates it from the data, as the one after ID does, and is
+        // not kept: CInlineImage writes a separator of its own, so keeping this one too would
+        // add a byte to the data every time the content was read and written back.
         var dataEnd = CurrentCharIndex;
+        if (foundData && _currChar != Chars.EOF && dataEnd > dataStart && IsWhiteSpace((char)_content[dataEnd - 1]))
+            dataEnd--;
         InlineImageData = new byte[Math.Max(0, dataEnd - dataStart)];
         if (InlineImageData.Length > 0)
             Array.Copy(_content, dataStart, InlineImageData, 0, InlineImageData.Length);
@@ -227,7 +232,7 @@ public class CLexer
 
     /// <summary>
     /// The bytes of the inline image <see cref="ScanInlineImage"/> last read, from after the white
-    /// space that follows its <c>ID</c> to just before its <c>EI</c>.
+    /// space that follows its <c>ID</c> to just before the white space that precedes its <c>EI</c>.
     /// </summary>
     internal byte[] InlineImageData { get; private set; } = [];
 

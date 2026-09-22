@@ -80,11 +80,13 @@ public class CInlineImage : COperator
 
     /// <summary>
     /// Gets or sets the image data, as it is written between <c>ID</c> and <c>EI</c>: from after the
-    /// single white-space character that follows <c>ID</c> up to the <c>E</c> of <c>EI</c>.
+    /// single white-space character that follows <c>ID</c> up to the single white-space character
+    /// that precedes <c>EI</c>.
     /// </summary>
     /// <remarks>
-    /// Any white space written between the data and <c>EI</c> is part of it, because nothing short
-    /// of decoding the image says whether a last blank or line feed is data or a separator.
+    /// Both separators are left out, and both are written back: the data is always followed by a
+    /// line feed before <c>EI</c>, so a last byte that happens to be white space is never taken for
+    /// the separator, and reading and writing the content again gives the same data.
     /// </remarks>
     public byte[] Data
     {
@@ -106,18 +108,9 @@ public class CInlineImage : COperator
         s.Append("ID ");
         foreach (var b in _data)
             s.Append((char)b);
-        if (!EndsInWhiteSpace())
-            s.Append('\n');
-        s.Append("EI");
+        s.Append("\nEI");
         return s.ToString();
     }
-
-    /// <summary>
-    /// Whether the data already ends in the white space that separates it from <c>EI</c>. Data
-    /// read out of a content stream nearly always does; data that does not is given a line feed,
-    /// so that <c>EI</c> is not written hard against its last byte.
-    /// </summary>
-    bool EndsInWhiteSpace() => _data.Length > 0 && CLexer.IsWhiteSpace((char)_data[^1]);
 
     internal override void WriteObject(ContentWriter writer)
     {
