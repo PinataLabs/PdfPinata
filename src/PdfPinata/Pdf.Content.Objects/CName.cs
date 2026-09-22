@@ -29,6 +29,7 @@
 
 using System;
 using System.Diagnostics;
+using PdfPinata.Pdf.Internal;
 
 namespace PdfPinata.Pdf.Content.Objects;
 
@@ -104,6 +105,9 @@ public class CName : CObject
 
     internal override void WriteObject(ContentWriter writer)
     {
-        writer.WriteRaw(ToString() + " ");
+        // The name is held decoded - CLexer turns #xx into the byte - so it is escaped again on
+        // the way out, the same way a name in the document body is, or /A#20B would be written
+        // back as the two names /A and B.
+        writer.WriteRaw(PdfEncoders.ToNameLiteral(_name) + " ");
     }
 }
