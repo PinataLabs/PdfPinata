@@ -353,7 +353,15 @@ public abstract class VisitorBase : DocumentObjectVisitor
     }
 #pragma warning restore CA1822
 
-    /// <summary>Flattens a chart axis. Empty: an axis takes its formatting from the chart it is drawn in.</summary>
+    /// <summary>
+    /// Flattens a chart axis: the widths of its gridlines and its line, and the fonts of its title
+    /// and its tick labels.
+    /// </summary>
+    /// <remarks>
+    /// Its tick marks, tick spacing and scales are not flattened, because nothing above an axis has
+    /// a value for them to inherit: left unset, <c>AxisMapper</c> leaves them unset too and the chart
+    /// renderers choose - an outside tick mark, and a scale worked out from the data.
+    /// </remarks>
     protected void FlattenAxis(Axis axis)
     {
         if (axis == null)
@@ -370,16 +378,26 @@ public abstract class VisitorBase : DocumentObjectVisitor
         if (axis.lineFormat != null)
             FlattenLineFormat(axis.lineFormat, refLineFormat);
 
-        //      axis.majorTick;
-        //      axis.majorTickMark;
-        //      axis.minorTick;
-        //      axis.minorTickMark;
+        var chart = axis.Parent as Chart;
+        if (axis.title?.font != null)
+            FlattenChartFont(axis.title.font, axis.title.style, chart);
+        if (axis.tickLabels?.font != null)
+            FlattenChartFont(axis.tickLabels.font, axis.tickLabels.style, chart);
+    }
 
-        //      axis.maximumScale;
-        //      axis.minimumScale;
-
-        //      axis.tickLabels;
-        //      axis.title;
+    /// <summary>
+    /// Fills in a chart element's own font from the style it names or, naming none, from the
+    /// chart's. Without it, a title given both a style and a font of its own reached the renderer
+    /// as two fonts, and the second, mapped over the first, answered <c>false</c> for every bold
+    /// and italic it had not set.
+    /// </summary>
+    void FlattenChartFont(Font font, string styleName, Chart chart)
+    {
+        var refFont = !string.IsNullOrEmpty(styleName) && font.Document?.Styles[styleName] is { } style
+            ? style.Font
+            : chart?.format?.font;
+        if (refFont != null)
+            FlattenFont(font, refFont);
     }
 
 #pragma warning disable CA1822 // Protected on an unsealed public visitor: making it static would change the public API.

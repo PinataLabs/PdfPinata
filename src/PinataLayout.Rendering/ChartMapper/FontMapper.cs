@@ -35,24 +35,29 @@ namespace PinataLayout.Rendering.ChartMapper;
 
 internal static class FontMapper
 {
+  // Only what the DOM font sets: a property it leaves unset is left unset here too, so that the
+  // chart's font can supply it. Mapping a style and then a font of its own over it used to answer
+  // false for every bold and italic the second had not set, and an empty colour for its colour.
   static void MapObject(Font font, DocumentObjectModel.Font domFont)
   {
-    font.Bold = domFont.Bold;
-    if (domFont.Color.IsEmpty)
-      font.Color = XColor.Empty;
-    else
-    {
+    if (!domFont.IsNull("Bold"))
+      font.Bold = domFont.Bold;
+    if (!domFont.Color.IsEmpty)
       font.Color = ColorHelper.ToXColor(domFont.Color, domFont.Document.UseCmykColor);
-    }
-    font.Italic = domFont.Italic;
+    if (!domFont.IsNull("Italic"))
+      font.Italic = domFont.Italic;
     if (!domFont.IsNull("Name"))
       font.Name = domFont.Name;
     if (!domFont.IsNull("Size"))
       font.Size = domFont.Size.Point;
-    font.Subscript = domFont.Subscript;
-    font.Superscript = domFont.Superscript;
-    font.Strikethrough = (Strikethrough)domFont.Strikethrough;
-    font.Underline = (Underline)domFont.Underline;
+    if (!domFont.IsNull("Subscript"))
+      font.Subscript = domFont.Subscript;
+    if (!domFont.IsNull("Superscript"))
+      font.Superscript = domFont.Superscript;
+    if (!domFont.IsNull("Strikethrough"))
+      font.Strikethrough = (Strikethrough)domFont.Strikethrough;
+    if (!domFont.IsNull("Underline"))
+      font.Underline = (Underline)domFont.Underline;
   }
 
   internal static void Map(Font font, DocumentObjectModel.Document domDocument, string domStyleName)
