@@ -72,7 +72,6 @@ internal sealed class OpenTypeDescriptor : FontDescriptor
             idName = tag + "+" + FontFace.name.Name;
             if (FontFace.name.Style.Length != 0)
                 idName += "," + FontFace.name.Style;
-            //idName = idName.Replace(" ", "");
         }
         FontName = idName;
         Initialize();
@@ -82,8 +81,6 @@ internal sealed class OpenTypeDescriptor : FontDescriptor
 
     void Initialize()
     {
-
-        //fontName = image.n
         ItalicAngle = FontFace.post.italicAngle;
 
         XMin = FontFace.head.xMin;
@@ -97,11 +94,7 @@ internal sealed class OpenTypeDescriptor : FontDescriptor
         StrikeoutSize = FontFace.os2.yStrikeoutSize;
 
         // No documetation found how to get the set vertical stems width from the
-        // TrueType tables.
-        // The following formula comes from PDFlib Lite source code. Acrobat 5.0 sets
-        // /StemV to 0 always. I think the value doesn't matter.
-        //float weight = (float)(image.os2.usWeightClass / 65.0f);
-        //stemV = (int)(50 + weight * weight);  // MAGIC
+        // TrueType tables. Acrobat 5.0 sets /StemV to 0 always. I think the value doesn't matter.
         StemV = 0;
 
         // PDFlib states that some Apple fonts miss the OS/2 table.
@@ -189,7 +182,6 @@ internal sealed class OpenTypeDescriptor : FontDescriptor
         else
             XHeight = (int)(0.66 * Ascender);
 
-        //flags = image.
         var ansi = PdfEncoders.WinAnsiEncoding; // System.Text.Encoding.Default;
         var bytes = new byte[256];
 

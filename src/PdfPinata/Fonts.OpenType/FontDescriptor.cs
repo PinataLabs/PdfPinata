@@ -46,32 +46,6 @@ internal class FontDescriptor
 
     readonly string _key;
 
-
-
-
-
-
-
-    ///// <summary>
-    /////
-    ///// </summary>
-    //public string FontFile
-    //{
-    //  get { return _fontFile; }
-    //  private set { _fontFile = value; }  // BUG: never set
-    //}
-    //string _fontFile;
-
-    ///// <summary>
-    /////
-    ///// </summary>
-    //public string FontType
-    //{
-    //  get { return _fontType; }
-    //  private set { _fontType = value; }  // BUG: never set
-    //}
-    //string _fontType;
-
     /// <summary>
     ///
     /// </summary>
@@ -81,26 +55,6 @@ internal class FontDescriptor
         protected set => _fontName = value;
     }
     string _fontName;
-
-    ///// <summary>
-    /////
-    ///// </summary>
-    //public string FullName
-    //{
-    //    get { return _fullName; }
-    //    private set { _fullName = value; }  // BUG: never set
-    //}
-    //string _fullName;
-
-    ///// <summary>
-    /////
-    ///// </summary>
-    //public string FamilyName
-    //{
-    //    get { return _familyName; }
-    //    private set { _familyName = value; }  // BUG: never set
-    //}
-    //string _familyName;
 
     /// <summary>
     ///
@@ -184,8 +138,6 @@ internal class FontDescriptor
     }
     bool _isFixedPitch;
 
-    //Rect FontBBox;
-
     /// <summary>
     ///
     /// </summary>
@@ -236,15 +188,6 @@ internal class FontDescriptor
         private set => _version = value; // BUG: never set
     }
     string _version;
-
-    ///// <summary>
-    /////
-    ///// </summary>
-    //public string Notice
-    //{
-    //  get { return Notice; }
-    //}
-    //protected string notice;
 
     /// <summary>
     ///
@@ -352,11 +295,6 @@ internal class FontDescriptor
     internal static string ComputeKey(XFont font)
     {
         return font.GlyphTypeface.Key;
-        //return ComputeKey(font.GlyphTypeface.Fontface.FullFaceName, font.Style);
-        //XGlyphTypeface glyphTypeface = font.GlyphTypeface;
-        //string key = glyphTypeface.Fontface.FullFaceName.ToLowerInvariant() +
-        //    (glyphTypeface.IsBold ? "/b" : "") + (glyphTypeface.IsItalic ? "/i" : "");
-        //return key;
     }
 
     internal static string ComputeKey(string name, XFontStyle style)
