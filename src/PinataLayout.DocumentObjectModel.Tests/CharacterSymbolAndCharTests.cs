@@ -118,14 +118,15 @@ public class CharacterSymbolAndCharTests
         var ddl = DdlWriter.WriteToString(document);
         var body = ddl[ddl.IndexOf("\\section", StringComparison.Ordinal)..];
 
-        // Captured from the single-field implementation, byte for byte.
-        body.Should().Be(
-            "\\section\r\n" +
-            "  {\r\n" +
-            "    \\symbol(Euro)\\space(1)\\space(3)\\space(Em)\\space(Em, 2)\\tab \\linebreak\r\n" +
-            "    \\symbol(Tab) \\chr(0x41) \\chr(0x41) \\chr(0x2200A) \\chr(0x0)\r\n" +
-            "  }\r\n" +
-            "}\r\n");
+        // Captured from the single-field implementation, byte for byte apart from the line ends,
+        // which are the platform's own: the capture was made on Windows and CI runs on Linux.
+        body.ReplaceLineEndings("\n").Should().Be(
+            "\\section\n" +
+            "  {\n" +
+            "    \\symbol(Euro)\\space(1)\\space(3)\\space(Em)\\space(Em, 2)\\tab \\linebreak\n" +
+            "    \\symbol(Tab) \\chr(0x41) \\chr(0x41) \\chr(0x2200A) \\chr(0x0)\n" +
+            "  }\n" +
+            "}\n");
     }
 
     [Fact]
