@@ -12,6 +12,20 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ### Added
 
+- **A content stream read with `ContentReader` and written back keeps its inline images.** The
+  parser used to step over everything between `BI` and `EI`, so `ToContent` wrote back a bare `BI`
+  and `EI` and the image was lost. An inline image is now read as one `CInlineImage`, a `COperator`
+  named `BI` carrying its dictionary entries as written and its raw data, and is written back as
+  `BI … ID … EI`. The end of the data is still found by looking for the bytes `EI`, so binary data
+  that contains them is still misread. Content that ends before an inline image's `ID` no longer
+  makes the reader loop for ever (#84).
+
+- **A stream predicted with the TIFF predictor is now decoded rather than refused.** A Flate or
+  LZW stream whose `/DecodeParms` named `/Predictor 2` threw `NotImplementedException`, so a
+  document using TIFF horizontal differencing could not be read past it. It is now undone for 1,
+  2, 4, 8 and 16 bits per component with any number of colours, sixteen-bit samples big-endian and
+  each row starting afresh, as ISO 32000-1 7.4.4.4 describes (#79).
+
 - **A font whose licence forbids embedding can be refused.** Set
   `PdfDocumentOptions.RespectFontEmbeddingRestrictions` and the document reads the embedding
   permissions each font declares in its OS/2 `fsType`. A face marked Restricted License is refused
@@ -108,6 +122,24 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ### Changed
 
+- **A malformed date no longer throws inside the parser.** A date string that will not parse, such
+  as a bad `/CreationDate`, still falls back to the default it always did. It now gets there
+  without throwing and catching an exception, and without failing an assertion in a Debug build.
+  Every well-formed date reads exactly as before (#83).
+
+- **BREAKING: looping over a page's annotations yields `PdfAnnotation`, not `PdfItem`.**
+  `PdfAnnotations.GetEnumerator` now returns `IEnumerator<PdfAnnotation>`, so
+  `foreach (var annotation in page.Annotations)` needs no cast. Each annotation has the class
+  its subtype names, the same as the indexer gives. As a `PdfArray`, through
+  `IEnumerable<PdfItem>` (and so LINQ), or as plain `IEnumerable`, the collection still yields
+  the annotations, not the references underneath. Code that stored the loop variable or the
+  enumerator as `PdfItem` still compiles (#81).
+
+- **A composite font's `/W` array writes each run of consecutive glyphs as one entry.** It
+  used one `c [w]` entry per glyph. It now uses `c [w1 w2 …]` for every run
+  (ISO 32000-1 9.7.4.3), so the array is much shorter for ordinary text. Each glyph's width is
+  unchanged (#81).
+
 - **A WinAnsi font with PostScript (CFF) outlines is no longer named as a subset.** It was always
   embedded whole but still carried a subset tag on its name; it now loses the tag, as the Type 0
   path already did (#78).
@@ -170,6 +202,53 @@ This file starts at the entry below. Changes before that point are recorded only
   Construct a value from its bytes with `new PdfCustomValue(byte[])`.
 
 ### Fixed
+
+- **A number sign in a content-stream name no longer stops the whole stream from being read.**
+  `/A#ZZ`, a single hex digit after `#`, or a `#` at the end of the content threw a
+  `FormatException`. A `#` now stands for a byte only when two hexadecimal digits follow it, and is
+  otherwise kept as a character of the name (#84).
+
+- **A UTF-16 literal string in a content stream has its escapes resolved on its bytes before it is
+  decoded.** A line continuation inside such a string used to shift every character after it by
+  one byte, and the string ran on past its closing parenthesis. Strings in both byte orders now
+  read as the document lexer reads them (#84).
+
+- **A `#` in a name that does not begin a two-digit escape is kept rather than refused.** The
+  document lexer read the two characters after every `#` in a name as hexadecimal digits, so
+  `/A#ZZ`, a `#` followed by a single digit, or a `#` at the end of a name ended the read with a
+  `FormatException`. Only `#` followed by two hexadecimal digits is an escape (ISO 32000-1 7.3.5);
+  any other `#` is now kept as written, as readers do (#83).
+
+- **Cross-reference stream offsets past 2 GiB are read whole.** Each object's offset in a
+  cross-reference stream was cast to an `int`, so an object further than 2 GiB into the file was
+  looked for at a wrapped, usually negative, position. An offset written in a five-byte field also
+  lost its top byte. Offsets are now read as wide as the stream's `/W` says (#83).
+
+- **PDFDocEncoding can be decoded as well as written, and both directions follow ISO 32000-1
+  Annex D.** The internal decoder threw `NotImplementedException`; it now reads codes 0x18 to 0x1F
+  as the spacing accents they are rather than as control characters, and the undefined codes 0x7F,
+  0x9F and 0xAD as U+FFFD. The encoder wrote ƒ as the ellipsis, ‰ as the single right guillemet and
+  š as the right single quotation mark, and wrote DEL, the soft hyphen and several control
+  characters as codes that stand for other characters; those now go to their own codes, or to the
+  currency sign WinAnsi already writes for what it cannot hold. What a document writes by default
+  is unchanged: a `PdfString`'s value is written as raw bytes, so the difference shows in
+  `PdfString.ToString()` on a string made as `PDFDocEncoding` and in text beyond ASCII written
+  through `PdfWriter.WriteDocString` (#82).
+
+- **An annotation colour written as an indirect object is read, not taken as black.**
+  `PdfAnnotation.Color` treated `/C` as an array without following an indirect reference. So a
+  file that stored the colour as its own object read back as black (#81).
+
+- **ASCIIHexDecode stops at its end-of-data marker wherever it comes, and refuses what is not a
+  hex digit.** `>` was recognised only as the last character, so data with the marker mid-stream
+  was decoded marker and all, and a character that was not a digit or white space came out as
+  whatever byte the digit arithmetic made of it. Nothing after the marker is read now, an odd digit
+  before it is read as though a 0 followed, and any other character throws `ArgumentException`, as
+  ISO 32000-1 7.4.2 requires. The decoder also no longer rewrites the caller's buffer (#79).
+
+- **ASCII85Decode refuses a `z` inside a group.** A `z` stands for a whole group of zeros and can
+  only begin one; inside a group it was read as a digit worth 89 and every group after it decoded
+  out of step, silently. It now throws `ArgumentException` (#79).
 
 - **The charting collections work as an `IList`.** `DocumentObjectCollection` (behind
   `SeriesCollection`, `SeriesElements`, `XValues` and `XSeriesElements`) declared the
