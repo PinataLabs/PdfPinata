@@ -647,9 +647,13 @@ internal class ParagraphRenderer : Renderer
     {
         currentLineWidth = 0;
         currentBlankCount = 0;
-        //Extra for auto tab after list symbol
 
-        //TODO: KLPO4KLPO: Check if this conditional statement is still required
+        // FormatTab is reached through FormatElement with the iterator still on the tab, and the
+        // loop below stops at the first tab it meets - so without this step it would measure
+        // nothing, a right or center aligned stop would set the text after it from the stop
+        // rather than up to it, and a left aligned one could never break the line. The one caller
+        // that is not on a tab is the automatic tab after a list symbol, which starts on the
+        // paragraph's first leaf and is left where it is unless that leaf is itself a tab.
         if (currentLeaf != null && IsTab(currentLeaf.Current))
             currentLeaf = currentLeaf.GetNextLeaf();
 
