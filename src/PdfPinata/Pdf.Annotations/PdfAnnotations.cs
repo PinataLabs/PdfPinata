@@ -172,23 +172,26 @@ public sealed class PdfAnnotations : PdfArray
     }
 
     /// <summary>
-    /// Returns an enumerator that iterates through a collection.
+    /// Returns an enumerator over the annotations in this collection, each given the class its
+    /// subtype names, exactly as <see cref="this[int]"/> gives it.
     /// </summary>
-    public override IEnumerator<PdfItem> GetEnumerator()
+    /// <remarks>
+    /// Hides <see cref="PdfArray.GetEnumerator"/> rather than overriding it, so that
+    /// <c>foreach (var annotation in page.Annotations)</c> is typed as <see cref="PdfAnnotation"/>.
+    /// Enumerated as a <see cref="PdfArray"/>, or through <see cref="IEnumerable{T}"/> of
+    /// <see cref="PdfItem"/> or plain <see cref="IEnumerable"/>, it yields the same annotations.
+    /// </remarks>
+    public new IEnumerator<PdfAnnotation> GetEnumerator()
     {
         return new AnnotationsIterator(this);
     }
-    // THHO4STLA: AnnotationsIterator: Implementation does not work http://forum.PdfPinata.net/viewtopic.php?p=3285#p3285
-    // Code using the enumerator like this will crash:
-    //foreach (var annotation in page.Annotations)
-    //{
-    //    annotation.GetType();
-    //}
 
-    //!!!new 2015-10-15: use PdfItem instead of PdfAnnotation.
-    // TODO Should we change this to "public new IEnumerator<PdfAnnotation> GetEnumerator()"?
+    private protected override IEnumerator<PdfItem> EnumerateItems()
+    {
+        return GetEnumerator();
+    }
 
-    class AnnotationsIterator : IEnumerator<PdfItem/*PdfAnnotation*/>
+    sealed class AnnotationsIterator : IEnumerator<PdfAnnotation>
     {
         public AnnotationsIterator(PdfAnnotations annotations)
         {
@@ -196,7 +199,7 @@ public sealed class PdfAnnotations : PdfArray
             _index = -1;
         }
 
-        public PdfItem/*PdfAnnotation*/ Current => _annotations[_index];
+        public PdfAnnotation Current => _annotations[_index];
 
         object IEnumerator.Current => Current;
 
@@ -212,7 +215,7 @@ public sealed class PdfAnnotations : PdfArray
 
         public void Dispose()
         {
-            //throw new NotImplementedException();
+            // Holds nothing to release.
         }
 
         readonly PdfAnnotations _annotations;
