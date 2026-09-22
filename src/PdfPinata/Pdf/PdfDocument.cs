@@ -788,11 +788,6 @@ public sealed class PdfDocument : PdfObject, IDisposable
         return true;
     }
 
-    internal bool HasVersion(string version)
-    {
-        return String.CompareOrdinal(Catalog.Version, version) >= 0;
-    }
-
     /// <summary>
     /// Gets the document options used for saving the document.
     /// </summary>

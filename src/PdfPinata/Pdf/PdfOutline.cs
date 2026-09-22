@@ -694,14 +694,17 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
                 else
                     Elements.Remove(Keys.Count);
 
-                if (_textColor != XColor.Empty && Owner.HasVersion("1.4"))
+                // Table 153: /C is new in PDF 1.4 and defaults to black. Taken away otherwise, so an
+                // entry read with a colour and saved into an older document does not keep a key that
+                // version has no such thing as.
+                if (_textColor != XColor.Empty && Owner.Version >= 14)
                     Elements[Keys.C] = new PdfLiteral("[{0}]", PdfEncoders.ToString(_textColor, PdfColorMode.Rgb));
+                else
+                    Elements.Remove(Keys.C);
 
                 // Table 153: /F is new in PDF 1.4 and defaults to 0, so a regular entry carries none
                 // and an older document has no such key. Taken away otherwise, so an entry read with
-                // a style and made regular since does not keep it. Owner.Version rather than
-                // HasVersion, which reads the catalog's version - always 1.4 for a new document and
-                // 1.3 for one read from a file, whatever either says it is.
+                // a style and made regular since does not keep it.
                 if (_style != PdfOutlineStyle.Regular && Owner.Version >= 14)
                     Elements.SetInteger(Keys.F, (int)_style);
                 else
