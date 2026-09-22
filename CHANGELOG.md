@@ -248,6 +248,27 @@ This file starts at the entry below. Changes before that point are recorded only
   is still accepted as before. A `Character` now keeps its symbol and its character in separate
   fields, and reads, the value model and MDDDL output are unchanged (#92).
 
+- **A stream given to a dictionary through `PdfDictionary.Stream` is written with its `/Length`.**
+  Only `CreateStream` used to write the entry, so a dictionary given another dictionary's stream, or
+  a stream from `PdfStream.Clone()`, was written with no `/Length` in a Release build. A shared
+  stream whose data changed left the second dictionary declaring the old length. Assigning `Value`
+  on a cloned stream threw a `NullReferenceException`. The length is now written when the stream is
+  assigned, and checked again when the dictionary is written (#93).
+
+- **An outline entry can be in one list only, and removing entries no longer breaks the file.** An
+  entry already in a collection, from another document, or being placed under itself or anything
+  below it is now refused with an `InvalidOperationException` or `ArgumentException` that says what
+  to do instead. These used to write an entry that pointed to itself, put one entry in two lists,
+  or overflow the stack on save. Removing entries from a document that had been saved or read left
+  links to them, and the file then failed to reopen. Just reading `document.Outlines` made the
+  catalog point to an outline that was never written. An entry replaced through the indexer, or
+  removed, can now be added again anywhere, including after a save (#93).
+
+- **A page removed and inserted again after a save is written with its content.** The save gave the
+  removed page's object number to another object, and the next save threw "An item with the same
+  key has already been added". The page, and everything it points to, now comes back under a
+  number of its own (#93).
+
 - **A number sign in a content-stream name no longer stops the whole stream from being read.**
   `/A#ZZ`, a single hex digit after `#`, or a `#` at the end of the content threw a
   `FormatException`. A `#` now stands for a byte only when two hexadecimal digits follow it, and is
