@@ -114,6 +114,19 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ### Changed
 
+- **BREAKING:** **Looping over a page's annotations yields `PdfAnnotation`, not `PdfItem`.**
+  `PdfAnnotations.GetEnumerator` now returns `IEnumerator<PdfAnnotation>`, so
+  `foreach (var annotation in page.Annotations)` needs no cast. Each annotation has the class
+  its subtype names, the same as the indexer gives. As a `PdfArray`, through
+  `IEnumerable<PdfItem>` (and so LINQ), or as plain `IEnumerable`, the collection still yields
+  the annotations, not the references underneath. Code that stored the loop variable or the
+  enumerator as `PdfItem` still compiles (#81).
+
+- **A composite font's `/W` array writes each run of consecutive glyphs as one entry.** It
+  used one `c [w]` entry per glyph. It now uses `c [w1 w2 …]` for every run
+  (ISO 32000-1 9.7.4.3), so the array is much shorter for ordinary text. Each glyph's width is
+  unchanged (#81).
+
 - **A WinAnsi font with PostScript (CFF) outlines is no longer named as a subset.** It was always
   embedded whole but still carried a subset tag on its name; it now loses the tag, as the Type 0
   path already did (#78).
@@ -176,6 +189,10 @@ This file starts at the entry below. Changes before that point are recorded only
   Construct a value from its bytes with `new PdfCustomValue(byte[])`.
 
 ### Fixed
+
+- **An annotation colour written as an indirect object is read, not taken as black.**
+  `PdfAnnotation.Color` treated `/C` as an array without following an indirect reference. So a
+  file that stored the colour as its own object read back as black (#81).
 
 - **ASCIIHexDecode stops at its end-of-data marker wherever it comes, and refuses what is not a
   hex digit.** `>` was recognised only as the last character, so data with the marker mid-stream
