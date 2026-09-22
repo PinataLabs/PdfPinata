@@ -27,11 +27,14 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
+using System;
+
 namespace PdfPinata.Pdf.Annotations;
 
 /// <summary>
 /// Specifies the annotation flags.
 /// </summary>
+[Flags]
 public enum PdfAnnotationFlags
 {
     /// <summary>
