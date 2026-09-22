@@ -1632,7 +1632,8 @@ internal sealed class Parser
     }
 
     /// <summary>
-    /// Parses a PDF date string.
+    /// Parses a PDF date string, or a date in the invariant culture's format. Answers false for one
+    /// that is malformed rather than throwing: a bad /CreationDate is no reason to refuse a document.
     /// </summary>
     /// <remarks>
     ///  Format is
@@ -1643,70 +1644,76 @@ internal sealed class Parser
     /// For example, December 23, 1998, at 7:52 PM, U.S.Pacific Standard Time, is represented by the string,
     /// D:19981223195200-08'00'
     /// </remarks>
-    internal static DateTime ParseDateTime(string date, DateTime errorValue) // TODO: TryParseDateTime
+    internal static bool TryParseDateTime(string date, out DateTime value)
     {
-        var datetime = errorValue;
-        try
-        {
-            if (date.StartsWith("D:"))
-            {
-                // D:YYYYMMDDHHmmSSOHH'mm'
-                //   ^2      ^10   ^16 ^20
-                var length = date.Length;
-                int year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0, hh = 0, mm = 0;
-                var o = 'Z';
-                if (length >= 10)
-                {
-                    year = int.Parse(date.Substring(2, 4));
-                    month = int.Parse(date.Substring(6, 2));
-                    day = int.Parse(date.Substring(8, 2));
-                    if (length >= 16)
-                    {
-                        hour = int.Parse(date.Substring(10, 2));
-                        minute = int.Parse(date.Substring(12, 2));
-                        second = int.Parse(date.Substring(14, 2));
-                        if (length >= 23)
-                        {
-                            if ((o = date[16]) != 'Z')
-                            {
-                                hh = int.Parse(date.Substring(17, 2));
-                                mm = int.Parse(date.Substring(20, 2));
-                            }
-                        }
-                    }
-                }
+        value = default;
+        if (date == null)
+            return false;
 
-                // There are miserable PDF tools around the world.
-                month = Math.Min(Math.Max(month, 1), 12);
-                datetime = new DateTime(year, month, day, hour, minute, second);
-                if (o != 'Z')
-                {
-                    var ts = new TimeSpan(hh, mm, 0);
-                    if (o == '-')
-                        datetime = datetime.Add(ts);
-                    else
-                        datetime = datetime.Subtract(ts);
-                }
-
-                // Now that we converted datetime to UTC, mark it as UTC.
-                datetime = DateTime.SpecifyKind(datetime, DateTimeKind.Utc);
-            }
-            else
-            {
-                // Some libraries use plain English format.
-                datetime = DateTime.Parse(date, CultureInfo.InvariantCulture);
-            }
-        }
-        catch (Exception ex) when (!Unrecoverable.Is(ex))
+        if (!date.StartsWith("D:", StringComparison.Ordinal))
         {
-            // A date that will not parse is left as the default rather than failing the read: a
-            // malformed /CreationDate is not a reason to refuse the document. The assertion gives
-            // a hint in a DEBUG build and costs nothing in a Release one.
-            Debug.Assert(false, ex.Message);
+            // Some libraries use plain English format.
+            return DateTime.TryParse(date, CultureInfo.InvariantCulture, DateTimeStyles.None, out value);
         }
 
-        return datetime;
+        // D:YYYYMMDDHHmmSSOHH'mm'
+        //   ^2      ^10   ^16 ^20
+        // A group too short to be all there is left at zero - and a date without its day is no
+        // date at all, since there is no year zero.
+        var length = date.Length;
+        int year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0, hh = 0, mm = 0;
+        var o = 'Z';
+        if (length >= 10)
+        {
+            if (!TryParseField(date, 2, 4, out year) ||
+                !TryParseField(date, 6, 2, out month) ||
+                !TryParseField(date, 8, 2, out day))
+                return false;
+
+            if (length >= 16)
+            {
+                if (!TryParseField(date, 10, 2, out hour) ||
+                    !TryParseField(date, 12, 2, out minute) ||
+                    !TryParseField(date, 14, 2, out second))
+                    return false;
+
+                if (length >= 23 && (o = date[16]) != 'Z')
+                {
+                    if (!TryParseField(date, 17, 2, out hh) ||
+                        !TryParseField(date, 20, 2, out mm))
+                        return false;
+                }
+            }
+        }
+
+        // There are miserable PDF tools around the world.
+        month = Math.Min(Math.Max(month, 1), 12);
+        if (year < 1 || year > 9999 || day < 1 || day > DateTime.DaysInMonth(year, month) ||
+            hour < 0 || hour > 23 || minute < 0 || minute > 59 || second < 0 || second > 59)
+            return false;
+
+        var datetime = new DateTime(year, month, day, hour, minute, second);
+        if (o != 'Z')
+        {
+            // West of UT is behind it, so the offset is added to reach UT; east of it, subtracted.
+            var offset = new TimeSpan(hh, mm, 0).Ticks;
+            var ticks = o == '-' ? datetime.Ticks + offset : datetime.Ticks - offset;
+            if (ticks < DateTime.MinValue.Ticks || ticks > DateTime.MaxValue.Ticks)
+                return false;
+            datetime = new DateTime(ticks);
+        }
+
+        // Now that we converted datetime to UTC, mark it as UTC.
+        value = DateTime.SpecifyKind(datetime, DateTimeKind.Utc);
+        return true;
     }
+
+    /// <summary>
+    /// Reads one group of digits of a PDF date the way <see cref="int.Parse(string)"/> does, which
+    /// is what read them before: white space around the digits and a sign are both accepted.
+    /// </summary>
+    static bool TryParseField(string date, int start, int length, out int value) =>
+        int.TryParse(date.Substring(start, length), NumberStyles.Integer, NumberFormatInfo.CurrentInfo, out value);
 
     /*
         /// <summary>
