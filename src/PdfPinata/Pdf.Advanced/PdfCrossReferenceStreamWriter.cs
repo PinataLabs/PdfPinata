@@ -278,14 +278,14 @@ internal static class PdfCrossReferenceStreamWriter
         foreach (var entry in entries)
         {
             at = WriteField(bytes, at, entry.Type, FieldWidths[0]);
-            at = WriteField(bytes, at, entry.Field2, FieldWidths[1]);
+            at = WriteField(bytes, at, (ulong)entry.Field2, FieldWidths[1]);
             at = WriteField(bytes, at, entry.Field3, FieldWidths[2]);
         }
 
         return bytes;
     }
 
-    static int WriteField(byte[] bytes, int at, uint value, int width)
+    static int WriteField(byte[] bytes, int at, ulong value, int width)
     {
         for (var shift = width - 1; shift >= 0; shift--)
             bytes[at++] = (byte)(value >> (shift * 8));

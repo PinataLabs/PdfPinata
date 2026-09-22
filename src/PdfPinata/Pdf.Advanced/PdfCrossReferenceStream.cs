@@ -61,7 +61,11 @@ internal sealed class PdfCrossReferenceStream : PdfTrailer  // Reference: 3.4.7 
 
         public uint Type;  // 0, 1, or 2.
 
-        public uint Field2;
+        /// <summary>
+        /// The byte offset of the object for a type 1 entry, and the number of the object stream
+        /// holding it for a type 2 one. An offset is as wide as the file, hence a long.
+        /// </summary>
+        public long Field2;
 
         public uint Field3;
 

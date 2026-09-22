@@ -111,7 +111,7 @@ internal sealed class Parser
     /// <summary>ISO 32000-1 Table C.1: at most 8,388,607 indirect objects, so /Size is at most one more.</summary>
     const int MaximumSize = 8_388_608;
 
-    public PdfObjectID ReadObjectNumber(int position)
+    public PdfObjectID ReadObjectNumber(long position)
     {
         _lexer.Position = position;
         var objectNumber = ReadInteger();
@@ -1406,7 +1406,6 @@ internal sealed class Parser
         else if (symbol == Symbol.Integer) // Is it an cross-reference stream?
         {
             // Reference: 3.4.7  Cross-Reference Streams / Page 93
-            // TODO: Handle PDF files larger than 2 GiB, see implementation note 21 in Appendix H.
 
             // The parsed integer is the object id of the cross-refernece stream.
             return ReadXRefStream(xrefTable, startOfSection);
@@ -1583,9 +1582,9 @@ internal sealed class Parser
                 var item =
                     new PdfCrossReferenceStream.CrossReferenceStreamEntry();
 
-                item.Type = StreamHelper.ReadBytes(bytes, index2 * wsum, wsize[0]);
-                item.Field2 = StreamHelper.ReadBytes(bytes, index2 * wsum + wsize[0], wsize[1]);
-                item.Field3 = StreamHelper.ReadBytes(bytes, index2 * wsum + wsize[0] + wsize[1], wsize[2]);
+                item.Type = (uint)StreamHelper.ReadBytes(bytes, index2 * wsum, wsize[0]);
+                item.Field2 = (long)StreamHelper.ReadBytes(bytes, index2 * wsum + wsize[0], wsize[1]);
+                item.Field3 = (uint)StreamHelper.ReadBytes(bytes, index2 * wsum + wsize[0] + wsize[1], wsize[2]);
                 item.ObjectNumber = subsections[ssc][0] + idx;
 
                 xrefStream.Entries.Add(item);
@@ -1600,7 +1599,9 @@ internal sealed class Parser
                         //// Even it is restricted, an object can exists in more than one subsection.
                         //// (PDF Reference Implementation Notes 15).
 
-                        var position = (int)item.Field2;
+                        // A byte offset, and so as wide as the file: a file past 2 GiB has
+                        // offsets an int cannot hold (implementation note 21 in Appendix H).
+                        var position = item.Field2;
                         objectID = ReadObjectNumber(position);
                         Debug.Assert(objectID.GenerationNumber == item.Field3);
 
@@ -2052,9 +2053,9 @@ internal static class StreamHelper
         return w[0] + w[1] + w[2];
     }
 
-    public static uint ReadBytes(byte[] bytes, int index, int byteCount)
+    public static ulong ReadBytes(byte[] bytes, int index, int byteCount)
     {
-        uint value = 0;
+        ulong value = 0;
         for (var idx = 0; idx < byteCount; idx++)
         {
             value *= 256;
