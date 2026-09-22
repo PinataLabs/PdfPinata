@@ -215,6 +215,23 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ### Fixed
 
+- **A colour number in MDDDL that does not fit an unsigned integer is reported as a reader error.**
+  A colour written as `99999999999`, as `-1`, or as a hex literal with a letter that is not a hex
+  digit, such as `0x1G`, went straight to `UInt32.Parse`. The result was an `OverflowException`
+  or `FormatException` rather than the parser error the reader reports and recovers from.
+  `\fontcolor` and a `Color` attribute caught it only by wrapping the raw exception. The same is
+  true inside `RGB(...)`. Such a value is now refused the way an oversized integer already was, with
+  "Valid range only within '0 - 4294967295'." or "Integer expected", and the rest of the document is
+  read as before (#94).
+
+- **A lone carriage return in MDDDL ends a line.** A CR with no LF after it, how a classic Mac OS
+  file ends its lines, was kept as an ordinary character. So a file written that way was one long
+  line to the reader. Its first `//` comment swallowed the rest of the document, and every error
+  was reported on line 1. A lone CR is now read as a line end, and a CRLF is still one. A comment
+  holding a lone CR or LF is now written as one `//` line per line rather than one line with a line
+  end in the middle, which the reader would end early. A `Text` holding a lone CR now reads back as
+  a space, as one holding an LF always has (#94).
+
 - **A name written with characters beyond Latin-1 is saved as its UTF-8 bytes rather than
   corrupted.** The writer escaped each character of a name as `#` and two hex digits, taking it to
   be a byte, so a name a caller built with `U+4E2D` in it was written as `#4E2D`, which a reader
