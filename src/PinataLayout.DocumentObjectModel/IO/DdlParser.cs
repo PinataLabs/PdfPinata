@@ -735,8 +735,17 @@ internal class DdlParser
 
         AssertSymbol(Symbol.ParenLeft);
         ReadCode();
-        //NYI: Check token for correct Unit format
-        formattedText.Font.Size = Token;
+        try
+        {
+            formattedText.Font.Size = Token;
+        }
+        catch (ArgumentException)
+        {
+            // Unit's string conversion refuses what it cannot read, and nothing above would catch
+            // it: it left the reader as it was, with the rest of the document unread and no line
+            // number. Reported here instead, and the text is still read, at the size it inherits.
+            ReportParserInfo(DdlErrorLevel.Error, DomMsgID.InvalidUnitValue, Token);
+        }
         ReadCode();
         AssertSymbol(Symbol.ParenRight);
         ReadCode();

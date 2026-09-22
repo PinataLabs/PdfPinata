@@ -235,6 +235,13 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ### Fixed
 
+- **A DDL `\fontsize` that is not a size is reported rather than ending the read.**
+  `\fontsize(abc){x}`, or a quoted size with a unit the reader does not know, threw an
+  `ArgumentException` out of `DdlReader`, so the rest of the document was not read and nothing
+  was added to the `DdlReaderErrors`. It is now an error in that list, "String 'abc' is not a valid
+  value for structure 'Unit'.", with its line and column. The text inside the braces is still
+  read, with no size of its own, and so is the rest of the document.
+
 - **A chart's text takes its colour, bold and italic from the chart's font.** An axis title, the
   tick labels, the legend and the data labels each have a font of their own. Where that font sets
   nothing, the name and the size came from the chart's font, but the colour did not: all four were

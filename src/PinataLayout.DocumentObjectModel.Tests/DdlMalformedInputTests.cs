@@ -191,6 +191,46 @@ public class DdlMalformedInputTests
         (await ComplaintsAboutParagraph(paragraphBody))[0].Should().Be(complaint);
     }
 
+    /// <summary>
+    ///   The size is handed to <c>Unit</c>'s string conversion, which throws an
+    ///   <c>ArgumentException</c> for anything it cannot read. Nothing caught it, so it left the
+    ///   reader as it was: the rest of the document went unread, the error list stayed empty, and
+    ///   the message said nothing about where in the source the size was.
+    /// </summary>
+    [Theory(Timeout = Patience)]
+    [InlineData("\\fontsize(abc){x}", "String 'abc' is not a valid value for structure 'Unit'.")]
+    [InlineData("\\fontsize(\"abc\"){x}", "String 'abc' is not a valid value for structure 'Unit'.")]
+    [InlineData("\\fontsize(\"\"){x}", "String '' is not a valid value for structure 'Unit'.")]
+    [InlineData("\\fontsize(\"12xy\"){x}", "String '12xy' is not a valid value for structure 'Unit'.")]
+    [InlineData("\\fontsize(Red){x}", "String 'Red' is not a valid value for structure 'Unit'.")]
+    public async Task AFontSizeThatIsNotAUnitIsAReaderErrorAndTheRestIsStillRead(string paragraphBody, string complaint)
+    {
+        var (document, errors) = await ReadDespite(
+            "\\document{\\section{\\paragraph{" + paragraphBody + "}\\paragraph{after}}}");
+
+        errors.Should().ContainSingle().Which.ErrorMessage.Should().Be(complaint);
+        TextOf((Paragraph)document.LastSection.Elements.LastObject).Should().Be("after");
+
+        // The text the size was for is kept, at the size it would have had without one.
+        var formatted = ((Paragraph)document.LastSection.Elements[0]).Elements.OfType<FormattedText>().Single();
+        formatted.Font.Size.IsEmpty.Should().BeTrue();
+        formatted.Elements.OfType<Text>().Single().Content.Should().Be("x");
+    }
+
+    [Theory(Timeout = Patience)]
+    [InlineData("\\fontsize(12){x}", 12)]
+    [InlineData("\\fontsize(12.5){x}", 12.5)]
+    [InlineData("\\fontsize(\"12pt\"){x}", 12)]
+    [InlineData("\\fontsize(\"1in\"){x}", 72)]
+    public async Task AFontSizeThatIsAUnitIsReadWithoutComplaint(string paragraphBody, double points)
+    {
+        var (document, errors) = await ReadDespite("\\document{\\section{\\paragraph{" + paragraphBody + "}}}");
+
+        errors.Should().BeEmpty();
+        ((Paragraph)document.LastSection.Elements[0]).Elements.OfType<FormattedText>().Single()
+            .Font.Size.Point.Should().BeApproximately(points, 1e-3);
+    }
+
     [Theory(Timeout = Patience)]
     [InlineData("\\fontcolor(\"Red\"){x}", "Invalid color: 'Red'.")]
     [InlineData("\\fontcolor(HSB){x}", "Invalid color: 'HSB'.")]
