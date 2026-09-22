@@ -36,13 +36,6 @@ using PdfPinata.Pdf.IO;
 
 namespace PdfPinata.Internal;
 
-enum NotImplementedBehaviour
-{
-    DoNothing,
-    Log,
-    Throw
-}
-
 internal static class ParserDiagnostics
 {
     public static void ThrowParserException(string message)

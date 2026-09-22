@@ -1,4 +1,5 @@
 #region Copyright
+
 //
 // Authors:
 //   Stefan Lange
@@ -25,6 +26,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
+
 #endregion
 
 using PdfPinata.Drawing;
@@ -39,12 +41,10 @@ internal class FontDescriptor
 {
     protected FontDescriptor(string key)
     {
-        _key = key;
+        Key = key;
     }
 
-    public string Key => _key;
-
-    readonly string _key;
+    public string Key { get; }
 
     /// <summary>
     ///
@@ -54,6 +54,7 @@ internal class FontDescriptor
         get => _fontName;
         protected set => _fontName = value;
     }
+
     string _fontName;
 
     /// <summary>
@@ -65,6 +66,7 @@ internal class FontDescriptor
         // ReSharper disable once UnusedMember.Local
         private set => _weight = value; // BUG: never set
     }
+
     string _weight;
 
     /// <summary>
@@ -80,6 +82,7 @@ internal class FontDescriptor
         get => _italicAngle;
         protected set => _italicAngle = value;
     }
+
     float _italicAngle;
 
     /// <summary>
@@ -95,6 +98,7 @@ internal class FontDescriptor
         get => _xMin;
         protected set => _xMin = value;
     }
+
     int _xMin;
 
     /// <summary>
@@ -105,6 +109,7 @@ internal class FontDescriptor
         get => _yMin;
         protected set => _yMin = value;
     }
+
     int _yMin;
 
     /// <summary>
@@ -115,6 +120,7 @@ internal class FontDescriptor
         get => _xMax;
         protected set => _xMax = value;
     }
+
     int _xMax;
 
     /// <summary>
@@ -125,6 +131,7 @@ internal class FontDescriptor
         get => _yMax;
         protected set => _yMax = value;
     }
+
     int _yMax;
 
     /// <summary>
@@ -136,6 +143,7 @@ internal class FontDescriptor
         // ReSharper disable once UnusedMember.Local
         private set => _isFixedPitch = value; // BUG: never set
     }
+
     bool _isFixedPitch;
 
     /// <summary>
@@ -146,6 +154,7 @@ internal class FontDescriptor
         get => _underlinePosition;
         protected set => _underlinePosition = value;
     }
+
     int _underlinePosition;
 
     /// <summary>
@@ -156,6 +165,7 @@ internal class FontDescriptor
         get => _underlineThickness;
         protected set => _underlineThickness = value;
     }
+
     int _underlineThickness;
 
     /// <summary>
@@ -166,6 +176,7 @@ internal class FontDescriptor
         get => _strikeoutPosition;
         protected set => _strikeoutPosition = value;
     }
+
     int _strikeoutPosition;
 
     /// <summary>
@@ -176,6 +187,7 @@ internal class FontDescriptor
         get => _strikeoutSize;
         protected set => _strikeoutSize = value;
     }
+
     int _strikeoutSize;
 
     /// <summary>
@@ -187,6 +199,7 @@ internal class FontDescriptor
         // ReSharper disable once UnusedMember.Local
         private set => _version = value; // BUG: never set
     }
+
     string _version;
 
     /// <summary>
@@ -198,6 +211,7 @@ internal class FontDescriptor
         // ReSharper disable once UnusedMember.Local
         private set => _encodingScheme = value; // BUG: never set
     }
+
     string _encodingScheme;
 
     /// <summary>
@@ -208,6 +222,7 @@ internal class FontDescriptor
         get => _unitsPerEm;
         protected set => _unitsPerEm = value;
     }
+
     int _unitsPerEm;
 
     /// <summary>
@@ -218,6 +233,7 @@ internal class FontDescriptor
         get => _capHeight;
         protected set => _capHeight = value;
     }
+
     int _capHeight;
 
     /// <summary>
@@ -228,6 +244,7 @@ internal class FontDescriptor
         get => _xHeight;
         protected set => _xHeight = value;
     }
+
     int _xHeight;
 
     /// <summary>
@@ -238,6 +255,7 @@ internal class FontDescriptor
         get => _ascender;
         protected set => _ascender = value;
     }
+
     int _ascender;
 
     /// <summary>
@@ -248,6 +266,7 @@ internal class FontDescriptor
         get => _descender;
         protected set => _descender = value;
     }
+
     int _descender;
 
     /// <summary>
@@ -258,6 +277,7 @@ internal class FontDescriptor
         get => _leading;
         protected set => _leading = value;
     }
+
     int _leading;
 
     /// <summary>
@@ -269,6 +289,7 @@ internal class FontDescriptor
         // ReSharper disable once UnusedMember.Local
         private set => _flags = value; // BUG: never set
     }
+
     int _flags;
 
     /// <summary>
@@ -279,6 +300,7 @@ internal class FontDescriptor
         get => _stemV;
         protected set => _stemV = value;
     }
+
     int _stemV;
 
     /// <summary>
@@ -289,6 +311,7 @@ internal class FontDescriptor
         get => _lineSpacing;
         protected set => _lineSpacing = value;
     }
+
     int _lineSpacing;
 
 
