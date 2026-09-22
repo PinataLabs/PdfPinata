@@ -101,7 +101,7 @@ internal class KeyInfoAttribute : Attribute
     public KeyInfoAttribute(string version, KeyType keyType, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)]
         Type objectType)
     {
-        //_version = version;
+        _version = version;
         KeyType = keyType;
         _objectType = objectType;
     }
