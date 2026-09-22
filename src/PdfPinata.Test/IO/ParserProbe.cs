@@ -62,9 +62,14 @@ static class ParserProbe
     /// <summary>
     ///   A parser reading the given bytes, owned by the given document.
     /// </summary>
-    internal static object Over(PdfDocument owner, byte[] pdf) =>
-        Activator.CreateInstance(ParserType, Any, null,
-            new object[] { owner, new MemoryStream(pdf) }, null);
+    internal static object Over(PdfDocument owner, byte[] pdf) => Over(owner, new MemoryStream(pdf));
+
+    /// <summary>
+    ///   The same, for input that is not in memory - or not all there, like a sparse stream
+    ///   standing in for a file too large to build.
+    /// </summary>
+    internal static object Over(PdfDocument owner, Stream pdf) =>
+        Activator.CreateInstance(ParserType, Any, null, new object[] { owner, pdf }, null);
 
     /// <summary>
     ///   The same, for input that is text. PDF syntax is bytes, one character to one byte, which
@@ -152,7 +157,7 @@ static class ParserProbe
     /// <summary>
     ///   The entries a cross-reference stream decoded, as the three fields of each.
     /// </summary>
-    internal static (uint Type, uint Field2, uint Field3)[] EntriesOf(object xrefStream)
+    internal static (uint Type, long Field2, uint Field3)[] EntriesOf(object xrefStream)
     {
         var entryType = XRefStreamType.GetNestedType("CrossReferenceStreamEntry", Any)
             ?? throw new MissingMemberException(XRefStreamType.FullName, "CrossReferenceStreamEntry");
@@ -164,7 +169,7 @@ static class ParserProbe
         // ReSharper disable PossibleNullReferenceException
         return ((IEnumerable)Field(XRefStreamType, "Entries").GetValue(xrefStream))
             .Cast<object>()
-            .Select(entry => ((uint)type.GetValue(entry), (uint)field2.GetValue(entry), (uint)field3.GetValue(entry)))
+            .Select(entry => ((uint)type.GetValue(entry), (long)field2.GetValue(entry), (uint)field3.GetValue(entry)))
             .ToArray();
         // ReSharper restore PossibleNullReferenceException
     }

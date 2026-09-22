@@ -44,7 +44,7 @@ public sealed class PdfDate : PdfItem
     /// </summary>
     public PdfDate(string value)
     {
-        _value = Parser.ParseDateTime(value, DateTime.MinValue);
+        _value = Parser.TryParseDateTime(value, out var parsed) ? parsed : DateTime.MinValue;
     }
 
     /// <summary>

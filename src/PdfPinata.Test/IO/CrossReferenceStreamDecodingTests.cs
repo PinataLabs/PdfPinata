@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AwesomeAssertions;
@@ -186,6 +188,85 @@ public class CrossReferenceStreamDecodingTests
         ParserProbe.ReferenceTo(table, StreamId).Value.Should().BeSameAs(stream);
     }
 
+    // ----- Offsets past 2 GiB ----------------------------------------------------------------------------------
+
+    [Theory(Timeout = 5000)]
+    [InlineData(4, 0x8000_0010L)]      // past what an int holds, inside what four bytes do
+    [InlineData(5, 0x1_0000_0010L)]    // past what four bytes hold: a field of five
+    public async Task AnOffsetPastWhatAnIntHoldsIsReadWhole(int width, long offset)
+    {
+        // Implementation note 21 in Appendix H: a file past 2 GiB has offsets an int cannot hold,
+        // and the entry's offset was cast to one - so the object was looked for somewhere else
+        // entirely, or at a negative position. The file here is sparse: the object is written at
+        // the offset and every byte before it, but for the stream at the start, is white space.
+        var w = new[] { 1, width, 1 };
+        var built = Build(w, index: new[] { 2, 1 }, size: 3, data: Encode(w, (1u, (ulong)offset, 0u)));
+        var body = built.Bytes.AsSpan(Placeholder.Length).ToArray();
+        var file = new SparseStream(offset + Placeholder.Length,
+            (0, body), (offset, ParserProbe.Bytes(Placeholder)));
+
+        var table = await Task.Run(() =>
+        {
+            var owner = new PdfDocument();
+            var parser = ParserProbe.Over(owner, file);
+            ParserProbe.Scan(parser).Should().Be(Symbol.Integer, "the object number is what is read first");
+            var xrefTable = ParserProbe.IrefTableOf(owner);
+            ParserProbe.ReadXRefStream(parser, xrefTable, 0);
+            return xrefTable;
+        });
+
+        ParserProbe.ReferenceTo(table, PlaceholderId).Position.Should().Be(offset);
+    }
+
+    /// <summary>
+    ///   A read-only stream as long as it is told to be, holding the given bytes at the given
+    ///   offsets and white space everywhere else - so that a file of several GiB costs nothing.
+    /// </summary>
+    sealed class SparseStream : Stream
+    {
+        readonly (long Offset, byte[] Bytes)[] _segments;
+
+        internal SparseStream(long length, params (long Offset, byte[] Bytes)[] segments)
+        {
+            Length = length;
+            _segments = segments;
+        }
+
+        public override bool CanRead => true;
+        public override bool CanSeek => true;
+        public override bool CanWrite => false;
+        public override long Length { get; }
+        public override long Position { get; set; }
+
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            var read = (int)Math.Max(0, Math.Min(count, Length - Position));
+            buffer.AsSpan(offset, read).Fill((byte)' ');
+            foreach (var (at, bytes) in _segments)
+            {
+                var from = Math.Max(at, Position);
+                var to = Math.Min(at + bytes.Length, Position + read);
+                for (var index = from; index < to; index++)
+                    buffer[offset + (int)(index - Position)] = bytes[index - at];
+            }
+
+            Position += read;
+            return read;
+        }
+
+        public override long Seek(long offset, SeekOrigin origin) =>
+            Position = origin switch
+            {
+                SeekOrigin.Begin => offset,
+                SeekOrigin.Current => Position + offset,
+                _ => Length + offset
+            };
+
+        public override void Flush() { }
+        public override void SetLength(long value) => throw new NotSupportedException();
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+    }
+
     // ----- Building one, and reading it back -----------------------------------------------------------------
 
     /// <summary>
@@ -217,7 +298,7 @@ public class CrossReferenceStreamDecodingTests
     ///   The entries of a cross-reference stream, packed the way a stream body packs them: three
     ///   big-endian numbers per entry, each as wide as /W says.
     /// </summary>
-    static byte[] Encode(int[] w, params (uint Type, uint Field2, uint Field3)[] entries)
+    static byte[] Encode(int[] w, params (uint Type, ulong Field2, uint Field3)[] entries)
     {
         var bytes = new List<byte>();
         foreach (var entry in entries)
@@ -230,7 +311,7 @@ public class CrossReferenceStreamDecodingTests
         return bytes.ToArray();
     }
 
-    static void Append(List<byte> bytes, uint value, int width)
+    static void Append(List<byte> bytes, ulong value, int width)
     {
         for (var shift = width - 1; shift >= 0; shift--)
             bytes.Add((byte)(value >> (8 * shift)));
@@ -247,7 +328,7 @@ public class CrossReferenceStreamDecodingTests
         return (ParserProbe.ReadXRefStream(parser, table, file.Position), table);
     }
 
-    static (uint Type, uint Field2, uint Field3)[] EntriesOf(BuiltFile file) =>
+    static (uint Type, long Field2, uint Field3)[] EntriesOf(BuiltFile file) =>
         ParserProbe.EntriesOf(Read(file).Stream);
 
     static object TableAfterReading(BuiltFile file, PdfDocument owner = null) => Read(file, owner).Table;

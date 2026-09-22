@@ -770,16 +770,8 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                     throw new InvalidCastException("GetName: Object is not a name.");
             }
 
-            if (strDate != "")
-            {
-                try
-                {
-                    defaultValue = Parser.ParseDateTime(strDate, defaultValue);
-                }
-                // ReSharper disable EmptyGeneralCatchClause
-                catch { }
-                // ReSharper restore EmptyGeneralCatchClause
-            }
+            if (strDate != "" && Parser.TryParseDateTime(strDate, out var parsed))
+                return parsed;
             return defaultValue;
         }
 

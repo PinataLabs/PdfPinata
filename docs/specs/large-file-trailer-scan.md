@@ -141,5 +141,12 @@ confined to the read path cannot move that gate.
   the trailer scan, but this change was not an audit of every other `int` in the parser. The
   reported document is 1 GiB and its body is 2 kiB of it; a file with 2 GiB of *objects* is a
   separate question, and `LargePDFReadWrite.CanCreatePdfOver2Gb` is where it would be asked.
+  One part of it has since been answered: an entry of a cross-reference stream carries its offset
+  as a `long` (`CrossReferenceStreamEntry.Field2`), where `ReadXRefStream` used to cast it to an
+  `int` and look for the object at a wrapped, often negative, position.
+  `CrossReferenceStreamDecodingTests.AnOffsetPastWhatAnIntHoldsIsReadWhole` pins it for fields
+  of four and five bytes, over a sparse stream rather than a real file. Still `int`: a trailer's
+  `/Prev` and `/XRefStm`, which are read with `GetInteger` and so refuse a `PdfLong` outright,
+  and the writer's four-byte offset field, which cannot say anything past 4 GiB.
 - **A `string` overload for the marker.** `FindLastMarker` takes one and converts it a character to
   a byte, the way the rest of the lexer reads bytes. Markers here are ASCII keywords.
