@@ -80,18 +80,6 @@ public sealed class XFontFamily
 
         // Create font family and save it in cache. Do not try to create platform objects.
         return new XFontFamily(fontFamilyInternal);
-
-        //// Custom font resolver face names must not clash with platform family names.
-        //if (FontFamilyCache.GetFamilyByName(name) != null)
-        //{
-        //    // User must rename its font face to resolve naming confilict.
-        //    throw new InvalidOperationException(String.Format("Font face name {0} clashs with existing family name.", name));
-        //}
-
-        //// Create font family and save it in cache. Do not try to create platform objects.
-        //FontFamilyInternal fontFamilyInternal = FontFamilyInternal.GetOrCreateFromName(name, false);
-        //fontFamilyInternal = FontFamilyCache.CacheFontFamily(fontFamilyInternal);
-        //return new XFontFamily(fontFamilyInternal);
     }
 
     /// <summary>
@@ -139,8 +127,6 @@ public sealed class XFontFamily
         var result = descriptor.LineSpacing;
         return result;
     }
-
-    //public string GetName(int language);
 
     /// <summary>
     /// Indicates whether the specified FontStyle enumeration is available.

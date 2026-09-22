@@ -369,7 +369,6 @@ internal sealed class PdfGraphicsState : ICloneable
             {
                 // Come here for a caller who asked to stroke the text, or for bold simulation,
                 // which fattens a face with no bold of its own by stroking it in its own colour.
-                //color = XColors.Green;
                 RealizePen(textPen ?? new XPen(solidBrush.Color, fontEmSize * Const.BoldEmphasis), colorMode);
             }
         }

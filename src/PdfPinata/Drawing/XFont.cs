@@ -126,10 +126,6 @@ public sealed class XFont
 
         var fm = Metrics;
 
-        // Already done in CreateDescriptorAndInitializeFontMetrics.
-        //if (_descriptor == null)
-        //    _descriptor = (OpenTypeDescriptor)FontDescriptorStock.Global.CreateDescriptor(this);  //(Name, (XGdiFontStyle)Font.Style);
-
         UnitsPerEm = _descriptor.UnitsPerEm;
         CellAscent = _descriptor.Ascender;
         CellDescent = _descriptor.Descender;
@@ -253,13 +249,6 @@ public sealed class XFont
     {
         get
         {
-            // Code moved to InitializeFontMetrics().
-            //if (_fontMetrics == null)
-            //{
-            //    FontDescriptor descriptor = FontDescriptorStock.Global.CreateDescriptor(this);
-            //    _fontMetrics = new XFontMetrics(descriptor.FontName, descriptor.UnitsPerEm, descriptor.Ascender, descriptor.Descender,
-            //        descriptor.Leading, descriptor.LineSpacing, descriptor.CapHeight, descriptor.XHeight, descriptor.StemV, 0, 0, 0);
-            //}
             Debug.Assert(_fontMetrics != null, "InitializeFontMetrics() not yet called.");
             return _fontMetrics;
         }

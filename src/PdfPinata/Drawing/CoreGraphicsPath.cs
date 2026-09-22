@@ -358,33 +358,18 @@ internal class CoreGraphicsPath
         MoveOrLineTo(points[0].X, points[0].Y);
         if (count == 2)
         {
-            //figure.Segments.Add(GeometryHelper.CreateCurveSegment(points[0], points[0], points[1], points[1], tension));
             ToCurveSegment(points[0], points[0], points[1], points[1], tension);
         }
         else
         {
-            //figure.Segments.Add(GeometryHelper.CreateCurveSegment(points[0], points[0], points[1], points[2], tension));
             ToCurveSegment(points[0], points[0], points[1], points[2], tension);
             for (var idx = 1; idx < count - 2; idx++)
             {
-                //figure.Segments.Add(GeometryHelper.CreateCurveSegment(points[idx - 1], points[idx], points[idx + 1], points[idx + 2], tension));
                 ToCurveSegment(points[idx - 1], points[idx], points[idx + 1], points[idx + 2], tension);
             }
-            //figure.Segments.Add(GeometryHelper.CreateCurveSegment(points[count - 3], points[count - 2], points[count - 1], points[count - 1], tension));
             ToCurveSegment(points[count - 3], points[count - 2], points[count - 1], points[count - 1], tension);
         }
     }
-
-    ///// <summary>
-    ///// Appends a Bézier curve for a cardinal spline through pt1 and pt2.
-    ///// </summary>
-    //void ToCurveSegment(double x0, double y0, double x1, double y1, double x2, double y2, double x3, double y3, double tension3, bool closeSubpath)
-    //{
-    //    BezierTo(
-    //        x1 + tension3 * (x2 - x0), y1 + tension3 * (y2 - y0),
-    //        x2 - tension3 * (x3 - x1), y2 - tension3 * (y3 - y1),
-    //        x2, y2, closeSubpath);
-    //}
 
     void ToCurveSegment(XPoint pt0, XPoint pt1, XPoint pt2, XPoint pt3, double tension3)
     {

@@ -264,9 +264,6 @@ public sealed class XPen
                 throw new ArgumentException(PSSR.CannotChangeImmutableObject("XPen"));
 
             var length = value.Length;
-            //if (length == 0)
-            //  throw new ArgumentException("Dash pattern array must not be empty.");
-
             for (var idx = 0; idx < length; idx++)
             {
                 if (value[idx] <= 0)

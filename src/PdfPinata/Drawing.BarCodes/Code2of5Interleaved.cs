@@ -88,7 +88,6 @@ public class Code2of5Interleaved : TwoWidthBarCode
         var info = new BarCodeRenderInfo(gfx, brush, font, position);
         InitRendering(info);
         info.CurrPosInString = 0;
-        //info.CurrPos = info.Center - Size / 2;
         info.CurrPos = position - CalcDistance(AnchorType.TopLeft, Anchor, Size);
 
         if (TurboBit)

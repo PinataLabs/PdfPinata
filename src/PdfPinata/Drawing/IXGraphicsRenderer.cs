@@ -163,8 +163,6 @@ public interface IXGraphicsRenderer
     /// <summary>
     /// Gets or sets the transformation matrix.
     /// </summary>
-    //XMatrix Transform {get; set;}
-
     void AddTransform(XMatrix transform, XMatrixOrder matrixOrder);
 
     #endregion

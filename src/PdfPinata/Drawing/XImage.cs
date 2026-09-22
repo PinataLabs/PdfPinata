@@ -53,14 +53,6 @@ public class XImage : IDisposable
     //   XBitmapSource               <-- BitmapSource
     //     XBitmapImage             <-- BitmapImage
 
-    // ???
-    //public bool Disposed
-    //{
-    //    get { return _disposed; }
-    //    set { _disposed = value; }
-    //}
-
-
     /// <summary>
     /// Initializes a new instance of the <see cref="XImage"/> class.
     /// </summary>

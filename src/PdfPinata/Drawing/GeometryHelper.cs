@@ -210,7 +210,6 @@ static class GeometryHelper
         sinβ = Math.Sin(β);
         cosβ = Math.Cos(β);
 
-        //XPoint pt1, pt2, pt3;
         if (!reflect)
         {
             // Calculation for quarter 0 and 1.

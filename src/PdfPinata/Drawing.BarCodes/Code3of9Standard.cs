@@ -217,7 +217,6 @@ public class Code3of9Standard : TwoWidthBarCode
         var info = new BarCodeRenderInfo(gfx, brush, font, position);
         InitRendering(info);
         info.CurrPosInString = 0;
-        //info.CurrPos = Center - Size / 2;
         info.CurrPos = position - CalcDistance(AnchorType.TopLeft, Anchor, Size);
 
         if (TurboBit)
