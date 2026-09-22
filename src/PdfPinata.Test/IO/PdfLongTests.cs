@@ -64,7 +64,21 @@ public class PdfLongTests
         Convert.ToSingle(wide).Should().Be(5e9f);
         Convert.ToDecimal(wide).Should().Be(5_000_000_000m);
         Convert.ToString(wide, CultureInfo.InvariantCulture).Should().Be("5000000000");
-        Convert.ToDateTime(wide).Ticks.Should().Be(WiderThanAnInt);
+    }
+
+    [Fact]
+    public void ConvertingToADateTimeIsRefusedAsItIsForTheLongItWraps()
+    {
+        // It used to read the number as ticks, so a number too wide for an int converted and one
+        // that fits, read as a PdfInteger, threw.
+        var value = new PdfLong(WiderThanAnInt);
+
+        var convert = () => value.ToDateTime(null);
+        var throughConvert = () => Convert.ToDateTime(value);
+
+        convert.Should().Throw<InvalidCastException>().WithMessage("*PdfLong*DateTime*");
+        throughConvert.Should().Throw<InvalidCastException>();
+        ((Func<DateTime>)(() => Convert.ToDateTime(WiderThanAnInt))).Should().Throw<InvalidCastException>();
     }
 
     [Fact]
