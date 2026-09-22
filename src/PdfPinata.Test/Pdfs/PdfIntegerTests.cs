@@ -15,11 +15,6 @@ namespace PdfPinata.Test.Pdfs;
 ///   <see cref="IConvertible"/> explicitly, so every conversion is reached the way a caller reaches
 ///   it: through <see cref="Convert"/> or a cast to the interface. Each conversion answers what the
 ///   same conversion of the <see cref="int"/> it wraps would answer, overflow included.
-///
-///   <para>
-///   One member is left out on purpose and reported rather than pinned: <c>ToSByte</c> throws for
-///   every value, including those that fit.
-///   </para>
 /// </summary>
 public class PdfIntegerTests
 {
@@ -105,6 +100,26 @@ public class PdfIntegerTests
         FluentActions.Invoking(() => Convert.ToUInt32(new PdfIntegerValue(-1))).Should().Throw<OverflowException>();
         FluentActions.Invoking(() => Convert.ToUInt64(new PdfIntegerValue(-1))).Should().Throw<OverflowException>();
         FluentActions.Invoking(() => Convert.ToChar(new PdfIntegerValue(-1))).Should().Throw<OverflowException>();
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(5)]
+    [InlineData(sbyte.MaxValue)]
+    [InlineData(sbyte.MinValue)]
+    public void ItConvertsToASignedByteWhenTheValueFits(int number)
+    {
+        // ToSByte used to throw InvalidCastException for every value, where every other narrowing
+        // conversion went through Convert.
+        Convert.ToSByte(new PdfIntegerValue(number)).Should().Be((sbyte)number);
+    }
+
+    [Theory]
+    [InlineData(sbyte.MaxValue + 1)]
+    [InlineData(sbyte.MinValue - 1)]
+    public void ASignedByteConversionOfAValueThatDoesNotFitOverflows(int number)
+    {
+        FluentActions.Invoking(() => Convert.ToSByte(new PdfIntegerValue(number))).Should().Throw<OverflowException>();
     }
 
     [Theory]

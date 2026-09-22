@@ -96,7 +96,7 @@ public sealed class PdfLong : PdfNumber, IConvertible
     /// </summary>
     public sbyte ToSByte(IFormatProvider provider)
     {
-        throw new InvalidCastException();
+        return Convert.ToSByte(_value);
     }
 
     /// <summary>

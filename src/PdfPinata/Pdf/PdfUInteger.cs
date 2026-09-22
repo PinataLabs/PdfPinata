@@ -97,7 +97,7 @@ public sealed class PdfUInteger : PdfNumber, IConvertible
     /// </summary>
     public sbyte ToSByte(IFormatProvider provider)
     {
-        throw new InvalidCastException();
+        return Convert.ToSByte(_value);
     }
 
     /// <summary>

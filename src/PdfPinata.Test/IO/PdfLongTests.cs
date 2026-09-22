@@ -57,6 +57,8 @@ public class PdfLongTests
         Convert.ToInt16(small).Should().Be(65);
         Convert.ToUInt16(small).Should().Be(65);
         Convert.ToByte(small).Should().Be(65);
+        Convert.ToSByte(small).Should().Be(65);
+        Convert.ToSByte(new PdfLong(-128)).Should().Be(-128);
         Convert.ToChar(small).Should().Be('A');
         Convert.ToBoolean(small).Should().BeTrue();
         Convert.ToBoolean(new PdfLong(0)).Should().BeFalse();
@@ -88,5 +90,6 @@ public class PdfLongTests
 
         ((Action)(() => _ = Convert.ToInt32(wide))).Should().Throw<OverflowException>();
         ((Action)(() => _ = Convert.ToUInt32(wide))).Should().Throw<OverflowException>();
+        ((Action)(() => _ = Convert.ToSByte(new PdfLong(128)))).Should().Throw<OverflowException>();
     }
 }
