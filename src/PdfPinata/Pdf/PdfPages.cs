@@ -533,8 +533,45 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         else if (annotationCopying == AnnotationCopyingType.DeepCopy)
             CloneElement(page, importPage, PdfPage.Keys.Annots, true);
 
+        // The page group says how the page is composited against its backdrop, so leaving it
+        // behind changes what a transparent page looks like. It goes through the imported-object
+        // table like the resources, because its /CS may be the very colour space the resources
+        // name, and imported twice it would be written twice. The page keeps the group it
+        // brings: WriteObject makes one for a page drawn on with transparency only when the
+        // page has none.
+        CloneElement(page, importPage, PdfPage.Keys.Group, false);
+        // A user unit scales default user space, so without it the page comes out a different
+        // physical size.
+        CloneElement(page, importPage, PdfPage.Keys.UserUnit, true);
+        // /UserUnit arrives in PDF 1.6 and /Tabs in PDF 1.5, so a page bringing either raises
+        // the document to that version. Raising never lowers, and a PDF/A-1 claim, which is held
+        // to PDF 1.4, refuses the raised version rather than writing a header it forbids.
+        if (page.Elements.ContainsKey(PdfPage.Keys.UserUnit))
+            PdfVersionRequirements.Require(_document, 16);
+
+        CloneElement(page, importPage, PdfPage.Keys.Tabs, true);
+        // Structure order, /S, orders the annotations by the structure tree, and the tree is not
+        // imported: no import path carries it or the annotations' /StructParent mappings over.
+        // So an /S could only point at a structure this document does not have. It is dropped,
+        // and the page falls back to the default order; if this document is tagged later, the
+        // structure builder writes an /S of its own. Row and column order stand on their own.
+        if (page.Elements.GetName(PdfPage.Keys.Tabs) == "/S")
+            page.Elements.Remove(PdfPage.Keys.Tabs);
+        if (page.Elements.ContainsKey(PdfPage.Keys.Tabs))
+            PdfVersionRequirements.Require(_document, 15);
+        // The presentation entries: a transition dictionary holds only names and numbers, and
+        // the display duration is a number.
+        CloneElement(page, importPage, PdfPage.Keys.Trans, true);
+        CloneElement(page, importPage, PdfPage.Keys.Dur, true);
+
+        // Deliberately not copied: /StructParents, /B, /AA, /Metadata, /PieceInfo,
+        // /SeparationInfo, /Thumb, /ID, /PZ, /PresSteps, /TemplateInstantiated and /VP. Most
+        // name a place in a structure that belongs to the other document - its structure tree's
+        // parent tree, its article threads, its Web Capture content sets, its navigation nodes -
+        // which importing a page does not bring along, so here the entry would point at nothing
+        // or at the wrong thing. The rest are actions, private data or advisory data written for
+        // the page as it stood in that document, not as it stands in this one.
         // ReSharper restore AccessToStaticMemberViaDerivedType
-        // TODO more elements?
         return page;
     }
 

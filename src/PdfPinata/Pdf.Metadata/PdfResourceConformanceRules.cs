@@ -28,9 +28,14 @@ internal static class PdfResourceConformanceRules
         return usage.Forms.Any(DeclaresTransparencyGroup);
     }
 
-    static bool DeclaresTransparencyGroup(PdfDictionary form)
+    /// <summary>
+    /// Whether a form or a page declares a transparency group. A page carries one of its own when
+    /// it is imported from a document that composited it as a group, and PDF/A-1 forbids that
+    /// just as it forbids a form's.
+    /// </summary>
+    internal static bool DeclaresTransparencyGroup(PdfDictionary formOrPage)
     {
-        var group = form.Elements.GetDictionary(PdfPage.Keys.Group);
+        var group = formOrPage.Elements.GetDictionary(PdfPage.Keys.Group);
         return group != null && group.Elements.GetName("/S") == "/Transparency";
     }
 

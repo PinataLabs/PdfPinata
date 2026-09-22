@@ -276,7 +276,17 @@ internal static class PdfConformanceWriter
 
         for (var index = 0; index < document.PageCount; index++)
         {
-            var usage = PdfPageResourceUsage.Walk(document.Pages[index]);
+            var page = document.Pages[index];
+
+            // The page's own group needs no walk of its content to be seen, so it is refused
+            // whether or not the content was understood.
+            if (IsPart1(conformance) && PdfResourceConformanceRules.DeclaresTransparencyGroup(page))
+                throw new InvalidOperationException(
+                    "PDF/A-1 forbids transparency, and page " + (index + 1) + " declares a "
+                    + "transparency group, as a page imported from another document can. Claim "
+                    + "PDF/A-2 or later, which permits it, or remove the page's /Group.");
+
+            var usage = PdfPageResourceUsage.Walk(page);
             if (!usage.Understood)
                 continue;
 
