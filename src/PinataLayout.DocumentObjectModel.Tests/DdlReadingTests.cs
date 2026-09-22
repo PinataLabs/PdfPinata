@@ -107,39 +107,22 @@ public class DdlReadingTests
     }
 
     /// <summary>
-    ///   A known defect, pinned so that fixing it is visible rather than silent.
+    ///   A hex escape is the character its one or two digits name, and the character after it is
+    ///   kept.
     /// </summary>
     /// <remarks>
-    ///   <para>
-    ///   The scanner recognises <c>\x</c> followed by hex digits and then does not convert it. The
-    ///   line that would is commented out and five literal question marks are appended in its
-    ///   place:
-    ///   <code>
-    ///   if (hexNrCount &lt;= 2)
-    ///     str += "?????"; //(char)AscULongFromHexString(hexString);
-    ///   </code>
-    ///   </para>
-    ///   <para>
-    ///   Three things follow. The escape produces <c>?????</c> rather than a character, so text
-    ///   comes back longer than it went in. The character after the digits is swallowed, because
-    ///   the loop that reads them has already stopped on it and the scanner advances again anyway.
-    ///   And the test is the wrong way round: one or two digits give the question marks, while
-    ///   three or more throw - so the escapes most likely to be written are the ones that fail
-    ///   quietly, and only an over-long one is refused.
-    ///   </para>
-    ///   <para>
-    ///   Nothing in the DOM writes <c>\x</c> - the serializer emits the character itself - so this
-    ///   only bites a file written by hand or by another tool.
-    ///   </para>
+    ///   This was pinned as a known defect: the escape came back as five literal question marks
+    ///   and the character after the digits was swallowed. Nothing in the DOM writes <c>\x</c> -
+    ///   the serializer emits the character itself - so it only ever bit a file written by hand or
+    ///   by another tool. <c>DdlHexEscapeTests</c> has the rest of the cases.
     /// </remarks>
     [Fact]
-    public void AHexEscapeIsNotConvertedAndEatsTheCharacterAfterIt()
+    public void AHexEscapeIsTheCharacterItNamesAndKeepsTheCharacterAfterIt()
     {
-        TitleOf("\"x\\x41y\"").Should().Be("x?????",
-            "the A is five question marks and the y is gone");
+        TitleOf("\"x\\x41y\"").Should().Be("xAy");
 
         var tooMany = () => TitleOf("\"x\\x0041y\"");
-        tooMany.Should().Throw<Exception>("three or more digits is the case that is refused");
+        tooMany.Should().Throw<Exception>("three or more digits is refused");
     }
 
     [Fact]
