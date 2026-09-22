@@ -155,7 +155,6 @@ internal static class PdfResourceDeduplicator
     sealed class CandidateGraph
     {
         public readonly List<PdfObject> Objects = [];
-        readonly List<List<int>> _children = [];
         readonly Dictionary<PdfObject, int> _index = new();
         readonly HashSet<PdfObject> _seen = [];
         readonly Queue<PdfObject> _pending = new();

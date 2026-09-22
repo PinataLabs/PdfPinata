@@ -49,25 +49,18 @@ internal class FontDescriptor
     /// <summary>
     ///
     /// </summary>
-    public string FontName
-    {
-        get => _fontName;
-        protected set => _fontName = value;
-    }
-
-    string _fontName;
+    public string FontName { get; protected set; }
 
     /// <summary>
     ///
     /// </summary>
     public string Weight
     {
-        get => _weight;
+        get;
         // ReSharper disable once UnusedMember.Local
-        private set => _weight = value; // BUG: never set
+        private set;
+        // BUG: never set
     }
-
-    string _weight;
 
     /// <summary>
     /// Gets a value indicating whether this instance belongs to a bold font.
@@ -77,13 +70,7 @@ internal class FontDescriptor
     /// <summary>
     ///
     /// </summary>
-    public float ItalicAngle
-    {
-        get => _italicAngle;
-        protected set => _italicAngle = value;
-    }
-
-    float _italicAngle;
+    public float ItalicAngle { get; protected set; }
 
     /// <summary>
     /// Gets a value indicating whether this instance belongs to an italic font.
@@ -93,226 +80,126 @@ internal class FontDescriptor
     /// <summary>
     ///
     /// </summary>
-    public int XMin
-    {
-        get => _xMin;
-        protected set => _xMin = value;
-    }
-
-    int _xMin;
+    public int XMin { get; protected set; }
 
     /// <summary>
     ///
     /// </summary>
-    public int YMin
-    {
-        get => _yMin;
-        protected set => _yMin = value;
-    }
-
-    int _yMin;
+    public int YMin { get; protected set; }
 
     /// <summary>
     ///
     /// </summary>
-    public int XMax
-    {
-        get => _xMax;
-        protected set => _xMax = value;
-    }
-
-    int _xMax;
+    public int XMax { get; protected set; }
 
     /// <summary>
     ///
     /// </summary>
-    public int YMax
-    {
-        get => _yMax;
-        protected set => _yMax = value;
-    }
-
-    int _yMax;
+    public int YMax { get; protected set; }
 
     /// <summary>
     ///
     /// </summary>
     public bool IsFixedPitch
     {
-        get => _isFixedPitch;
+        get;
         // ReSharper disable once UnusedMember.Local
-        private set => _isFixedPitch = value; // BUG: never set
+        private set;
+        // BUG: never set
     }
-
-    bool _isFixedPitch;
 
     /// <summary>
     ///
     /// </summary>
-    public int UnderlinePosition
-    {
-        get => _underlinePosition;
-        protected set => _underlinePosition = value;
-    }
-
-    int _underlinePosition;
+    public int UnderlinePosition { get; protected set; }
 
     /// <summary>
     ///
     /// </summary>
-    public int UnderlineThickness
-    {
-        get => _underlineThickness;
-        protected set => _underlineThickness = value;
-    }
-
-    int _underlineThickness;
+    public int UnderlineThickness { get; protected set; }
 
     /// <summary>
     ///
     /// </summary>
-    public int StrikeoutPosition
-    {
-        get => _strikeoutPosition;
-        protected set => _strikeoutPosition = value;
-    }
-
-    int _strikeoutPosition;
+    public int StrikeoutPosition { get; protected set; }
 
     /// <summary>
     ///
     /// </summary>
-    public int StrikeoutSize
-    {
-        get => _strikeoutSize;
-        protected set => _strikeoutSize = value;
-    }
-
-    int _strikeoutSize;
+    public int StrikeoutSize { get; protected set; }
 
     /// <summary>
     ///
     /// </summary>
     public string Version
     {
-        get => _version;
+        get;
         // ReSharper disable once UnusedMember.Local
-        private set => _version = value; // BUG: never set
+        private set;
+        // BUG: never set
     }
-
-    string _version;
 
     /// <summary>
     ///
     /// </summary>
     public string EncodingScheme
     {
-        get => _encodingScheme;
+        get;
         // ReSharper disable once UnusedMember.Local
-        private set => _encodingScheme = value; // BUG: never set
+        private set;
+        // BUG: never set
     }
-
-    string _encodingScheme;
 
     /// <summary>
     ///
     /// </summary>
-    public int UnitsPerEm
-    {
-        get => _unitsPerEm;
-        protected set => _unitsPerEm = value;
-    }
-
-    int _unitsPerEm;
+    public int UnitsPerEm { get; protected set; }
 
     /// <summary>
     ///
     /// </summary>
-    public int CapHeight
-    {
-        get => _capHeight;
-        protected set => _capHeight = value;
-    }
-
-    int _capHeight;
+    public int CapHeight { get; protected set; }
 
     /// <summary>
     ///
     /// </summary>
-    public int XHeight
-    {
-        get => _xHeight;
-        protected set => _xHeight = value;
-    }
-
-    int _xHeight;
+    public int XHeight { get; protected set; }
 
     /// <summary>
     ///
     /// </summary>
-    public int Ascender
-    {
-        get => _ascender;
-        protected set => _ascender = value;
-    }
-
-    int _ascender;
+    public int Ascender { get; protected set; }
 
     /// <summary>
     ///
     /// </summary>
-    public int Descender
-    {
-        get => _descender;
-        protected set => _descender = value;
-    }
-
-    int _descender;
+    public int Descender { get; protected set; }
 
     /// <summary>
     ///
     /// </summary>
-    public int Leading
-    {
-        get => _leading;
-        protected set => _leading = value;
-    }
-
-    int _leading;
+    public int Leading { get; protected set; }
 
     /// <summary>
     ///
     /// </summary>
     public int Flags
     {
-        get => _flags;
+        get;
         // ReSharper disable once UnusedMember.Local
-        private set => _flags = value; // BUG: never set
+        private set;
+        // BUG: never set
     }
-
-    int _flags;
 
     /// <summary>
     ///
     /// </summary>
-    public int StemV
-    {
-        get => _stemV;
-        protected set => _stemV = value;
-    }
-
-    int _stemV;
+    public int StemV { get; protected set; }
 
     /// <summary>
     ///
     /// </summary>
-    public int LineSpacing
-    {
-        get => _lineSpacing;
-        protected set => _lineSpacing = value;
-    }
-
-    int _lineSpacing;
+    public int LineSpacing { get; protected set; }
 
 
     internal static string ComputeKey(XFont font)

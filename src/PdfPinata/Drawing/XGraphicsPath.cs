@@ -564,7 +564,7 @@ public sealed class XGraphicsPath
     /// <summary>
     /// Grants access to internal objects of this class.
     /// </summary>
-    public XGraphicsPathInternals Internals => new(this);
+    public XGraphicsPathInternals Internals => new();
 
     /// <summary>
     /// Gets access to underlying Core graphics path.

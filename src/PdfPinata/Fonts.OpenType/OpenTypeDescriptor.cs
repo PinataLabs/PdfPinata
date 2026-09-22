@@ -1,4 +1,5 @@
 #region Copyright
+
 //
 // Authors:
 //   Stefan Lange
@@ -25,6 +26,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
+
 #endregion
 
 using System;
@@ -73,6 +75,7 @@ internal sealed class OpenTypeDescriptor : FontDescriptor
             if (FontFace.name.Style.Length != 0)
                 idName += "," + FontFace.name.Style;
         }
+
         FontName = idName;
         Initialize();
     }
@@ -105,7 +108,8 @@ internal sealed class OpenTypeDescriptor : FontDescriptor
         // Calculate Ascent, Descent, Leading and LineSpacing like in WPF Source Code (see FontDriver.ReadBasicMetrics)
 
         // OS/2 is an optional table, but we can't determine if it is existing in this font.
-        var os2SeemsToBeEmpty = FontFace.os2.sTypoAscender == 0 && FontFace.os2.sTypoDescender == 0 && FontFace.os2.sTypoLineGap == 0;
+        var os2SeemsToBeEmpty = FontFace.os2.sTypoAscender == 0 && FontFace.os2.sTypoDescender == 0 &&
+                                FontFace.os2.sTypoLineGap == 0;
 
         var dontUseWinLineMetrics = (FontFace.os2.fsSelection & 128) != 0;
         if (!os2SeemsToBeEmpty && dontUseWinLineMetrics)
@@ -202,12 +206,14 @@ internal sealed class OpenTypeDescriptor : FontDescriptor
             if (symbol)
             {
                 // Remap ch for symbol fonts.
-                ch = (char)(ch | (FontFace.os2.usFirstCharIndex & 0xFF00));  // @@@ refactor
+                ch = (char)(ch | (FontFace.os2.usFirstCharIndex & 0xFF00)); // @@@ refactor
             }
+
             var glyphIndex = CharCodeToGlyphIndex(ch);
             Widths[idx] = GlyphIndexToPdfWidth(glyphIndex);
         }
     }
+
     public int[] Widths;
 
     /// <summary>
@@ -241,6 +247,7 @@ internal sealed class OpenTypeDescriptor : FontDescriptor
             if (value <= cmap4.endCount[seg])
                 break;
         }
+
         Debug.Assert(seg < segCount);
 
         if (value < cmap4.startCount[seg])
@@ -299,7 +306,7 @@ internal sealed class OpenTypeDescriptor : FontDescriptor
         int numberOfHMetrics = FontFace.hhea.numberOfHMetrics;
         int unitsPerEm = FontFace.head.unitsPerEm;
 
-        // glyphIndex >= numberOfHMetrics means the font is mono-spaced and all glyphs have the same width
+        // glyphIndex >= numberOfHMetrics means the font is monospaced and all glyphs have the same width
         if (glyphIndex >= numberOfHMetrics)
             glyphIndex = numberOfHMetrics - 1;
 
@@ -326,7 +333,7 @@ internal sealed class OpenTypeDescriptor : FontDescriptor
         int numberOfHMetrics = FontFace.hhea.numberOfHMetrics;
         int unitsPerEm = FontFace.head.unitsPerEm;
 
-        // glyphIndex >= numberOfHMetrics means the font is mono-spaced and all glyphs have the same width
+        // glyphIndex >= numberOfHMetrics means the font is monospaced and all glyphs have the same width
         if (glyphIndex >= numberOfHMetrics)
             glyphIndex = numberOfHMetrics - 1;
 
@@ -342,7 +349,7 @@ internal sealed class OpenTypeDescriptor : FontDescriptor
     {
         int numberOfHMetrics = FontFace.hhea.numberOfHMetrics;
 
-        // glyphIndex >= numberOfHMetrics means the font is mono-spaced and all glyphs have the same width
+        // glyphIndex >= numberOfHMetrics means the font is monospaced and all glyphs have the same width
         if (glyphIndex >= numberOfHMetrics)
             glyphIndex = numberOfHMetrics - 1;
 

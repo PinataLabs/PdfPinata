@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -91,8 +91,8 @@ internal class OpenTypeFontTable : ICloneable
     {
         Debug.Assert((bytes.Length & 3) == 0);
         // Cannot use Buffer.BlockCopy because 32-bit values are Big-endian in fonts.
-        uint byte3, byte2, byte1, byte0;
-        byte3 = byte2 = byte1 = byte0 = 0;
+        uint byte2, byte1, byte0;
+        var byte3 = byte2 = byte1 = byte0 = 0;
         var length = bytes.Length;
         for (var idx = 0; idx < length;)
         {

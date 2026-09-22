@@ -81,8 +81,8 @@ public class InlineImageRoundTripTests
     {
         // true, false and null have no type among the content objects, and a stencil mask says
         // /IM true, so the dictionary is kept as the text it was written as.
-        RoundTripOf("BI /W 8 /H 1 /IM true /D [1 0] ID \x55 EI")
-            .Should().Be("BI\n/W 8 /H 1 /IM true /D [1 0]\nID \x55\nEI\n");
+        RoundTripOf("BI /W 8 /H 1 /IM true /D [1 0] ID \u0055 EI")
+            .Should().Be("BI\n/W 8 /H 1 /IM true /D [1 0]\nID \u0055\nEI\n");
     }
 
     [Fact]

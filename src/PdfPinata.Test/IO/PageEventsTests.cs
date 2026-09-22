@@ -58,7 +58,7 @@ public sealed class PageEventsTests : IDisposable
     {
         var document = new PdfDocument();
         var counts = new List<int>();
-        document.PageAdded += (sender, e) => counts.Add(((PdfDocument)sender).PageCount);
+        document.PageAdded += (sender, _) => counts.Add(((PdfDocument)sender).PageCount);
 
         _ = document.AddPage();
         _ = document.AddPage();

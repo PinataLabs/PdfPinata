@@ -1,6 +1,5 @@
 using System.IO;
 
-
 namespace PdfPinata.Internal;
 
 internal static class StreamHelper

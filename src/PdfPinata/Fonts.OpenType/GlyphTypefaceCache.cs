@@ -1,4 +1,5 @@
 #region Copyright
+
 //
 // Authors:
 //   Stefan Lange
@@ -25,6 +26,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
+
 #endregion
 
 using PdfPinata.Drawing;
@@ -40,7 +42,7 @@ namespace PdfPinata.Fonts.OpenType;
 /// </summary>
 internal class GlyphTypefaceCache
 {
-    GlyphTypefaceCache()
+    private GlyphTypefaceCache()
     {
         _glyphTypefacesByKey = new ConcurrentDictionary<string, XGlyphTypeface>();
     }
@@ -53,7 +55,10 @@ internal class GlyphTypefaceCache
             var result = Singleton._glyphTypefacesByKey.TryGetValue(key, out glyphTypeface);
             return result;
         }
-        finally { Lock.ExitFontFactory(); }
+        finally
+        {
+            Lock.ExitFontFactory();
+        }
     }
 
     public static void AddGlyphTypeface(XGlyphTypeface glyphTypeface)
@@ -64,13 +69,16 @@ internal class GlyphTypefaceCache
             var cache = Singleton;
             cache._glyphTypefacesByKey.TryAdd(glyphTypeface.Key, glyphTypeface);
         }
-        finally { Lock.ExitFontFactory(); }
+        finally
+        {
+            Lock.ExitFontFactory();
+        }
     }
 
     /// <summary>
     /// Gets the singleton.
     /// </summary>
-    static GlyphTypefaceCache Singleton
+    private static GlyphTypefaceCache Singleton
     {
         get
         {
@@ -83,12 +91,17 @@ internal class GlyphTypefaceCache
                     if (_singleton == null)
                         _singleton = new GlyphTypefaceCache();
                 }
-                finally { Lock.ExitFontFactory(); }
+                finally
+                {
+                    Lock.ExitFontFactory();
+                }
             }
+
             return _singleton;
         }
     }
-    static volatile GlyphTypefaceCache _singleton;
+
+    private static volatile GlyphTypefaceCache _singleton;
 
     internal static string GetCacheState()
     {
@@ -109,5 +122,5 @@ internal class GlyphTypefaceCache
     /// <summary>
     /// Maps typeface key to glyph typeface.
     /// </summary>
-    readonly ConcurrentDictionary<string, XGlyphTypeface> _glyphTypefacesByKey;
+    private readonly ConcurrentDictionary<string, XGlyphTypeface> _glyphTypefacesByKey;
 }

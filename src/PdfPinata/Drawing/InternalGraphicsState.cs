@@ -63,21 +63,18 @@ namespace PdfPinata.Drawing;
 /// </summary>
 internal class InternalGraphicsState
 {
-    public InternalGraphicsState(XGraphics gfx)
+    public InternalGraphicsState()
     {
-        _gfx = gfx;
     }
 
-    public InternalGraphicsState(XGraphics gfx, XGraphicsState state)
+    public InternalGraphicsState(XGraphicsState state)
     {
-        _gfx = gfx;
         State = state;
         State.InternalState = this;
     }
 
-    public InternalGraphicsState(XGraphics gfx, XGraphicsContainer container)
+    public InternalGraphicsState(XGraphicsContainer container)
     {
-        _gfx = gfx;
         container.InternalState = this;
     }
 
@@ -109,8 +106,6 @@ internal class InternalGraphicsState
     }
 
     public bool Invalid;
-
-    readonly XGraphics _gfx;
 
     internal XGraphicsState State;
 }

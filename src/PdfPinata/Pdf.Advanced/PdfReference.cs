@@ -105,14 +105,7 @@ public sealed class PdfReference : PdfItem
     public PdfObjectID ObjectID
     {
         get => _objectID;
-        set
-        {
-            // Ignore redundant invokations.
-            if (_objectID == value)
-                return;
-
-            _objectID = value;
-        }
+        set => _objectID = value;
     }
     PdfObjectID _objectID;
 

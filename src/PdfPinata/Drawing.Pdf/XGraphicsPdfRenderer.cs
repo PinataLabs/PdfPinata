@@ -1,5 +1,5 @@
 ﻿#region Copyright
-//
+
 // Authors:
 //   Stefan Lange
 //
@@ -25,6 +25,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
+
 #endregion
 
 using System;
@@ -104,7 +105,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
 
     // --------------------------------------------------------------------------------------------
 
-    #region  Drawing
+    #region Drawing
 
     // ----- DrawLine -----------------------------------------------------------------------------
 
@@ -141,7 +142,8 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
 
     // ----- DrawBezier ---------------------------------------------------------------------------
 
-    public void DrawBezier(XPen pen, double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4)
+    public void DrawBezier(XPen pen, double x1, double y1, double x2, double y2, double x3, double y3, double x4,
+        double y4)
     {
         DrawBeziers(pen, [new(x1, y1), new(x2, y2), new(x3, y3), new(x4, y4)]);
     }
@@ -158,14 +160,17 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
             return;
 
         if ((count - 1) % 3 != 0)
-            throw new ArgumentException("Invalid number of points for bezier curves. Number must fulfil 4+3n.", nameof(points));
+            throw new ArgumentException("Invalid number of points for bezier curves. Number must fulfil 4+3n.",
+                nameof(points));
 
         Realize(pen);
 
         const string format = Config.SignificantFigures4;
         AppendFormatPoint("{0:" + format + "} {1:" + format + "} m\n", points[0].X, points[0].Y);
         for (var idx = 1; idx < count; idx += 3)
-            AppendFormat3Points("{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format + "} {5:" + format + "} c\n",
+            AppendFormat3Points(
+                "{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format + "} {5:" +
+                format + "} c\n",
                 points[idx].X, points[idx].Y,
                 points[idx + 1].X, points[idx + 1].Y,
                 points[idx + 2].X, points[idx + 2].Y);
@@ -205,6 +210,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
                 AppendCurveSegment(points[idx - 1], points[idx], points[idx + 1], points[idx + 2], tension);
             AppendCurveSegment(points[count - 3], points[count - 2], points[count - 1], points[count - 1], tension);
         }
+
         AppendStrokeFill(pen, null, XFillMode.Alternate, false);
     }
 
@@ -230,7 +236,8 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         const string format = Config.SignificantFigures3;
 
         Realize(pen, brush);
-        AppendFormatRect("{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} re\n", x, y + height, width, height);
+        AppendFormatRect("{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} re\n", x,
+            y + height, width, height);
 
         if (pen != null && brush != null)
             _content.Append("B\n");
@@ -254,7 +261,8 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
 
     // ----- DrawRoundedRectangle -----------------------------------------------------------------
 
-    public void DrawRoundedRectangle(XPen pen, XBrush brush, double x, double y, double width, double height, double ellipseWidth, double ellipseHeight)
+    public void DrawRoundedRectangle(XPen pen, XBrush brush, double x, double y, double width, double height,
+        double ellipseWidth, double ellipseHeight)
     {
         var path = new XGraphicsPath();
         path.AddRoundedRectangle(x, y, width, height, ellipseWidth, ellipseHeight);
@@ -281,13 +289,21 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         // Approximate an ellipse by drawing four cubic splines.
         const string format = Config.SignificantFigures4;
         AppendFormatPoint("{0:" + format + "} {1:" + format + "} m\n", x0 + δx, y0);
-        AppendFormat3Points("{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format + "} {5:" + format + "} c\n",
+        AppendFormat3Points(
+            "{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format + "} {5:" +
+            format + "} c\n",
             x0 + δx, y0 + fy, x0 + fx, y0 + δy, x0, y0 + δy);
-        AppendFormat3Points("{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format + "} {5:" + format + "} c\n",
+        AppendFormat3Points(
+            "{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format + "} {5:" +
+            format + "} c\n",
             x0 - fx, y0 + δy, x0 - δx, y0 + fy, x0 - δx, y0);
-        AppendFormat3Points("{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format + "} {5:" + format + "} c\n",
+        AppendFormat3Points(
+            "{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format + "} {5:" +
+            format + "} c\n",
             x0 - δx, y0 - fy, x0 - fx, y0 - δy, x0, y0 - δy);
-        AppendFormat3Points("{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format + "} {5:" + format + "} c\n",
+        AppendFormat3Points(
+            "{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format + "} {5:" +
+            format + "} c\n",
             x0 + fx, y0 - δy, x0 + δx, y0 - fy, x0 + δx, y0);
         AppendStrokeFill(pen, brush, XFillMode.Winding, true);
     }
@@ -353,6 +369,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
             AppendCurveSegment(points[count - 3], points[count - 2], points[count - 1], points[0], tension);
             AppendCurveSegment(points[count - 2], points[count - 1], points[0], points[1], tension);
         }
+
         AppendStrokeFill(pen, brush, fillmode, true);
     }
 
@@ -397,10 +414,14 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         // for, which is where underlining lived before the format could carry it.
         var underline = format.Underline != XTextDecoration.None
             ? format.Underline
-            : (font.Style & XFontStyle.Underline) != 0 ? XTextDecoration.Single : XTextDecoration.None;
+            : (font.Style & XFontStyle.Underline) != 0
+                ? XTextDecoration.Single
+                : XTextDecoration.None;
         var strikeout = format.Strikeout != XTextDecoration.None
             ? format.Strikeout
-            : (font.Style & XFontStyle.Strikeout) != 0 ? XTextDecoration.Single : XTextDecoration.None;
+            : (font.Style & XFontStyle.Strikeout) != 0
+                ? XTextDecoration.Single
+                : XTextDecoration.None;
 
         // Shaped before the font is realized rather than after, because what the text state has to
         // be set up for depends on every face the string is drawn with and not only on the one that
@@ -446,12 +467,12 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
             // MeasureString measured. With no shaper registered this is the same cmap lookup per
             // character it has always been - except that a right-to-left run comes back in the
             // order it is drawn rather than the order it was written.
-            #pragma warning disable S2259 // shaped is set exactly when font.Unicode is true, which is the branch this is in.
+#pragma warning disable S2259 // shaped is set exactly when font.Unicode is true, which is the branch this is in.
             // ReSharper disable PossibleNullReferenceException
             if (shaped.IsAllOneFont(font))
-            #pragma warning restore S2259
+#pragma warning restore S2259
             {
-            // ReSharper restore PossibleNullReferenceException
+                // ReSharper restore PossibleNullReferenceException
                 // The glyphs the run really drew, rather than the ones the characters would have
                 // been looked up as. This is what decides both which glyphs are embedded and what
                 // /ToUnicode says they mean, and a shaper's choices have to reach it or the page
@@ -485,9 +506,9 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         // their tangents, so the two are one number from here on.
         var skew = SkewOf(italicSimulation, format.ObliqueAngle);
 
-        #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
+#pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
         if (skew == _gfxState.RealizedTextSkew)
-        #pragma warning restore S1244
+#pragma warning restore S1244
         {
             // The text matrix already leans the right amount, so moving to the next position is
             // all that is needed - and Td is shorter than Tm.
@@ -498,7 +519,9 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         {
             // Only Tm can set the lean, and it sets the position absolutely while it is there.
             var m = new XMatrix(1, 0, skew, 1, pos.X, pos.Y);
-            AppendFormatArgs("{0:" + format2 + "} {1:" + format2 + "} {2:" + format2 + "} {3:" + format2 + "} {4:" + format2 + "} {5:" + format2 + "} Tm\n{6}\n",
+            AppendFormatArgs(
+                "{0:" + format2 + "} {1:" + format2 + "} {2:" + format2 + "} {3:" + format2 + "} {4:" + format2 +
+                "} {5:" + format2 + "} Tm\n{6}\n",
                 m.M11, m.M12, m.M21, m.M22, m.OffsetX, m.OffsetY, text);
             _gfxState.RealizedTextSkew = skew;
             AdjustTdOffset(ref pos, verticalOffset, 0);
@@ -517,8 +540,10 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
 
         if (underline != XTextDecoration.None)
         {
-            var underlinePosition = lineSpace * realizedFont.FontDescriptor.Descriptor.UnderlinePosition / font.CellSpace;
-            var underlineThickness = lineSpace * realizedFont.FontDescriptor.Descriptor.UnderlineThickness / font.CellSpace;
+            var underlinePosition =
+                lineSpace * realizedFont.FontDescriptor.Descriptor.UnderlinePosition / font.CellSpace;
+            var underlineThickness =
+                lineSpace * realizedFont.FontDescriptor.Descriptor.UnderlineThickness / font.CellSpace;
             var underlineRectY = Gfx.PageDirection == XPageDirection.Downwards
                 ? y - underlinePosition
                 : y + underlinePosition - underlineThickness;
@@ -527,7 +552,8 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
 
         if (strikeout != XTextDecoration.None)
         {
-            var strikeoutPosition = lineSpace * realizedFont.FontDescriptor.Descriptor.StrikeoutPosition / font.CellSpace;
+            var strikeoutPosition =
+                lineSpace * realizedFont.FontDescriptor.Descriptor.StrikeoutPosition / font.CellSpace;
             var strikeoutSize = lineSpace * realizedFont.FontDescriptor.Descriptor.StrikeoutSize / font.CellSpace;
             var strikeoutRectY = Gfx.PageDirection == XPageDirection.Downwards
                 ? y - strikeoutPosition
@@ -672,12 +698,14 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         {
             if (_gfx.PageDirection == XPageDirection.Downwards)
             {
-                AppendFormatImage("q {2:" + format + "} 0 0 {3:" + format + "} {0:" + format + "} {1:" + format + "} cm {4} Do Q\n",
+                AppendFormatImage(
+                    "q {2:" + format + "} 0 0 {3:" + format + "} {0:" + format + "} {1:" + format + "} cm {4} Do Q\n",
                     x, y + height, width, height, name);
             }
             else
             {
-                AppendFormatImage("q {2:" + format + "} 0 0 {3:" + format + "} {0:" + format + "} {1:" + format + "} cm {4} Do Q\n",
+                AppendFormatImage(
+                    "q {2:" + format + "} 0 0 {3:" + format + "} {0:" + format + "} {1:" + format + "} cm {4} Do Q\n",
                     x, y, width, height, name);
             }
         }
@@ -707,13 +735,18 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
                         xDraw -= xForm.Page.MediaBox.X1;
                         yDraw += xForm.Page.MediaBox.Y1;
                     }
-                    AppendFormatImage("q {2:" + format + "} 0 0 {3:" + format + "} {0:" + format + "} {1:" + format + "} cm 100 Tz {4} Do Q\n",
+
+                    AppendFormatImage(
+                        "q {2:" + format + "} 0 0 {3:" + format + "} {0:" + format + "} {1:" + format +
+                        "} cm 100 Tz {4} Do Q\n",
                         xDraw, yDraw + height, cx, cy, name);
                 }
                 else
                 {
                     // No MediaBox offset here, unlike Downwards: Upwards is obsolete and was never finished.
-                    AppendFormatImage("q {2:" + format + "} 0 0 {3:" + format + "} {0:" + format + "} {1:" + format + "} cm {4} Do Q\n",
+                    AppendFormatImage(
+                        "q {2:" + format + "} 0 0 {3:" + format + "} {0:" + format + "} {1:" + format +
+                        "} cm {4} Do Q\n",
                         x, y, cx, cy, name);
                 }
             }
@@ -889,6 +922,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
                 else
                     ResetClip();
             }
+
             _clipLevel = _gfxState.Level;
         }
         else if (combineMode == XCombineMode.Intersect)
@@ -900,6 +934,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         {
             Debug.Assert(false, "Invalid XCombineMode in internal function.");
         }
+
         _gfxState.SetAndRealizeClipPath(path);
     }
 
@@ -977,7 +1012,8 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// <summary>
     /// Appends one or up to five Bézier curves that interpolate the arc.
     /// </summary>
-    void AppendPartialArc(double x, double y, double width, double height, double startAngle, double sweepAngle, PathStart pathStart, XMatrix matrix)
+    void AppendPartialArc(double x, double y, double width, double height, double startAngle, double sweepAngle,
+        PathStart pathStart, XMatrix matrix)
     {
         // Normalize the angles
         var α = startAngle;
@@ -995,10 +1031,10 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
 
         if (α == 0 && β < 0)
             α = 360;
-        #pragma warning disable S1244 // Exact on purpose: only the exact value takes the special case, and the general path is right for anything near it.
+#pragma warning disable S1244 // Exact on purpose: only the exact value takes the special case, and the general path is right for anything near it.
         else if (α == 360 && β > 0)
             α = 0;
-        #pragma warning restore S1244
+#pragma warning restore S1244
 
         // Is it possible that the arc is small starts and ends in same quadrant?
         var smallAngle = Math.Abs(β) <= 90;
@@ -1063,22 +1099,24 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
             φ = φ - Math.Floor(φ / 360) * 360;
 
         var quadrant = (int)(φ / 90);
-        #pragma warning disable S1244 // Exact on purpose: only the exact value takes the special case, and the general path is right for anything near it.
+#pragma warning disable S1244 // Exact on purpose: only the exact value takes the special case, and the general path is right for anything near it.
         if (quadrant * 90 == φ)
-        #pragma warning restore S1244
+#pragma warning restore S1244
         {
             if ((start && !clockwise) || (!start && clockwise))
                 quadrant = quadrant == 0 ? 3 : quadrant - 1;
         }
         else
             quadrant = clockwise ? ((int)Math.Floor(φ / 90)) % 4 : (int)Math.Floor(φ / 90);
+
         return quadrant;
     }
 
     /// <summary>
     /// Appends a Bézier curve for an arc within a quadrant.
     /// </summary>
-    void AppendPartialArcQuadrant(double x, double y, double width, double height, double α, double β, PathStart pathStart, XMatrix matrix)
+    void AppendPartialArcQuadrant(double x, double y, double width, double height, double α, double β,
+        PathStart pathStart, XMatrix matrix)
     {
         Debug.Assert(α >= 0 && α <= 360);
         Debug.Assert(β >= 0);
@@ -1112,9 +1150,9 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         }
 
         double sinα, sinβ;
-        #pragma warning disable S1244 // Exact on purpose: only the exact value takes the special case, and the general path is right for anything near it.
+#pragma warning disable S1244 // Exact on purpose: only the exact value takes the special case, and the general path is right for anything near it.
         if (width == height)
-        #pragma warning restore S1244
+#pragma warning restore S1244
         {
             // Circular arc needs no correction.
             α = α * Calc.Deg2Rad;
@@ -1159,10 +1197,13 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
                 case PathStart.Ignore1st:
                     break;
             }
+
             pt1 = matrix.Transform(new XPoint(x0 + δx * (cosα - κ * sinα), y0 + δy * (sinα + κ * cosα)));
             pt2 = matrix.Transform(new XPoint(x0 + δx * (cosβ + κ * sinβ), y0 + δy * (sinβ - κ * cosβ)));
             pt3 = matrix.Transform(new XPoint(x0 + δx * cosβ, y0 + δy * sinβ));
-            AppendFormat3Points("{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format + "} {5:" + format + "} c\n",
+            AppendFormat3Points(
+                "{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format + "} {5:" +
+                format + "} c\n",
                 pt1.X, pt1.Y, pt2.X, pt2.Y, pt3.X, pt3.Y);
         }
         else
@@ -1183,10 +1224,13 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
                 case PathStart.Ignore1st:
                     break;
             }
+
             pt1 = matrix.Transform(new XPoint(x0 - δx * (cosα - κ * sinα), y0 - δy * (sinα + κ * cosα)));
             pt2 = matrix.Transform(new XPoint(x0 - δx * (cosβ + κ * sinβ), y0 - δy * (sinβ - κ * cosβ)));
             pt3 = matrix.Transform(new XPoint(x0 - δx * cosβ, y0 - δy * sinβ));
-            AppendFormat3Points("{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format + "} {5:" + format + "} c\n",
+            AppendFormat3Points(
+                "{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format + "} {5:" +
+                format + "} c\n",
                 pt1.X, pt1.Y, pt2.X, pt2.Y, pt3.X, pt3.Y);
         }
     }
@@ -1197,7 +1241,9 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     void AppendCurveSegment(XPoint pt0, XPoint pt1, XPoint pt2, XPoint pt3, double tension3)
     {
         const string format = Config.SignificantFigures4;
-        AppendFormat3Points("{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format + "} {5:" + format + "} c\n",
+        AppendFormat3Points(
+            "{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format + "} {5:" +
+            format + "} c\n",
             pt1.X + tension3 * (pt2.X - pt0.X), pt1.Y + tension3 * (pt2.Y - pt0.Y),
             pt2.X - tension3 * (pt3.X - pt1.X), pt2.Y - tension3 * (pt3.Y - pt1.Y),
             pt2.X, pt2.Y);
@@ -1244,7 +1290,9 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
 
                 case PathPointTypeBezier:
                     Debug.Assert(idx + 2 < count);
-                    AppendFormat3Points("{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format + "} {5:" + format + "} c\n", points[idx].X, points[idx].Y,
+                    AppendFormat3Points(
+                        "{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format +
+                        "} {5:" + format + "} c\n", points[idx].X, points[idx].Y,
                         points[++idx].X, points[idx].Y, points[++idx].X, points[idx].Y);
                     if ((types[idx] & PathPointTypeCloseSubpath) != 0)
                         Append("h\n");
@@ -1325,7 +1373,8 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
                 point1.X, point1.Y, point2.X, point2.Y, point3.X, point3.Y);
         }
 
-        _content.AppendFormat(CultureInfo.InvariantCulture, format, point1.X, point1.Y, point2.X, point2.Y, point3.X, point3.Y);
+        _content.AppendFormat(CultureInfo.InvariantCulture, format, point1.X, point1.Y, point2.X, point2.Y, point3.X,
+            point3.Y);
     }
 
     internal void AppendFormat(string format, XPoint point)
@@ -1441,6 +1490,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
                 _content.Append("f*\n");
         }
     }
+
     #endregion
 
     // --------------------------------------------------------------------------------------------
@@ -1507,7 +1557,8 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
 
                 if (trimOffset != new XPoint())
                 {
-                    Debug.Assert(_gfx.PageUnit == XGraphicsUnit.Point, "With TrimMargins set the page units must be Point. Ohter cases nyi.");
+                    Debug.Assert(_gfx.PageUnit == XGraphicsUnit.Point,
+                        "With TrimMargins set the page units must be Point. Ohter cases nyi.");
                     DefaultViewMatrix.TranslatePrepend(trimOffset.X, -trimOffset.Y);
                 }
 
@@ -1525,7 +1576,9 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
                     Debug.Assert(_gfxState.RealizedCtm.IsIdentity);
                     const string format = Config.SignificantFigures7;
                     var cm = DefaultViewMatrix.GetElements();
-                    AppendFormatArgs("{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format + "} {5:" + format + "} cm ",
+                    AppendFormatArgs(
+                        "{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format +
+                        "} {5:" + format + "} cm ",
                         cm[0], cm[1], cm[2], cm[3], cm[4], cm[5]);
                 }
             }
@@ -1561,7 +1614,9 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
                 // Set page transformation.
                 const string format = Config.SignificantFigures7;
                 var cm = DefaultViewMatrix.GetElements();
-                AppendFormat3Points("{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format + "} {5:" + format + "} cm ",
+                AppendFormat3Points(
+                    "{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format +
+                    "} {5:" + format + "} cm ",
                     cm[0], cm[1], cm[2], cm[3], cm[4], cm[5]);
             }
         }
@@ -1582,7 +1637,9 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
 
         const string format = Config.SignificantFigures7;
         var cm = rotation.GetElements();
-        AppendFormatArgs("{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format + "} {5:" + format + "} cm ",
+        AppendFormatArgs(
+            "{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format + "} {5:" +
+            format + "} cm ",
             cm[0], cm[1], cm[2], cm[3], cm[4], cm[5]);
     }
 
@@ -1634,9 +1691,11 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
                 _noSoftMaskState = new PdfExtGState(Owner);
                 _noSoftMaskState.Elements.SetName(PdfExtGState.Keys.SMask, "/None");
             }
+
             return _noSoftMaskState;
         }
     }
+
     PdfExtGState _noSoftMaskState;
 
     /// <summary>
@@ -1734,6 +1793,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
             _content.Append(" /ActualText ")
                 .Append(PdfEncoders.ToStringLiteral(actualText, PdfStringEncoding.Unicode, null));
         }
+
         _content.Append(">> BDC\n");
     }
 
@@ -2007,9 +2067,9 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
                 mode = wantedMode;
             }
 
-            #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
+#pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
             if (wantedCharSpace != charSpace)
-            #pragma warning restore S1244
+#pragma warning restore S1244
             {
                 parts.AppendFormat(CultureInfo.InvariantCulture,
                     "{0:" + numberFormat + "} Tc\n", wantedCharSpace);
@@ -2032,9 +2092,9 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         if (mode != stateMode)
             parts.AppendFormat(CultureInfo.InvariantCulture, "{0} Tr\n", stateMode);
 
-        #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
+#pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
         if (charSpace != stateCharSpace)
-        #pragma warning restore S1244
+#pragma warning restore S1244
         {
             parts.AppendFormat(CultureInfo.InvariantCulture,
                 "{0:" + numberFormat + "} Tc\n", stateCharSpace);
@@ -2289,14 +2349,14 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         {
             var rise = Rise(shaped[start], run, fontSize, baseline);
             var end = start + 1;
-            #pragma warning disable S1244 // Exact on purpose: groups glyphs whose rise came out of the same arithmetic.
+#pragma warning disable S1244 // Exact on purpose: groups glyphs whose rise came out of the same arithmetic.
             while (end < to && Rise(shaped[end], run, fontSize, baseline) == rise)
                 end++;
-            #pragma warning restore S1244
+#pragma warning restore S1244
 
-            #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
+#pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
             if (rise != realized)
-            #pragma warning restore S1244
+#pragma warning restore S1244
             {
                 parts.AppendFormat(CultureInfo.InvariantCulture,
                     "{0:" + Config.SignificantFigures4 + "} Ts\n", rise);
@@ -2308,11 +2368,11 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
             start = end;
         }
 
-        #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
+#pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
         if (realized != baseline)
             parts.AppendFormat(CultureInfo.InvariantCulture,
                 "{0:" + Config.SignificantFigures4 + "} Ts", baseline);
-        #pragma warning restore S1244
+#pragma warning restore S1244
 
         return parts.ToString().TrimEnd('\n');
     }
@@ -2379,9 +2439,9 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
 
         Show(to);
 
-        #pragma warning disable S2583 // adjusted is set by the local function Move, which the analysis does not follow.
+#pragma warning disable S2583 // adjusted is set by the local function Move, which the analysis does not follow.
         if (!adjusted)
-        #pragma warning restore S2583
+#pragma warning restore S2583
         {
             // Nothing needed moving after all, so the array would only be a longer way of saying
             // the same thing.
@@ -2444,6 +2504,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
             // so that much has to come off the offset for the text to land where it was asked for.
             pos.X -= skew * pos.Y;
         }
+
         _gfxState.RealizedTextPosition = posSave;
     }
 
@@ -2494,6 +2555,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         var pt = _gfxState.WorldTransform.Transform(point);
         return _gfxState.InverseEffectiveCtm.Transform(new XPoint(pt.X, PageHeightPt / DefaultViewMatrix.M22 - pt.Y));
     }
+
     #endregion
 
     /// <summary>
@@ -2623,6 +2685,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
             Append("Q\n");
             top = Pop();
         }
+
         Append("Q\n");
         _gfxState = top;
 

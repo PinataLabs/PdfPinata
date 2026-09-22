@@ -1,4 +1,5 @@
 #region Copyright
+
 //
 // Authors:
 //   Stefan Lange
@@ -25,6 +26,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
+
 #endregion
 
 using System;
@@ -42,7 +44,7 @@ namespace PdfPinata.Fonts.OpenType;
 [DebuggerDisplay("{DebuggerDisplay}")]
 internal class OpenTypeFontfaceCache
 {
-    OpenTypeFontfaceCache()
+    private OpenTypeFontfaceCache()
     {
         _fontfaceCache = new Dictionary<string, OpenTypeFontface>(StringComparer.OrdinalIgnoreCase);
         _fontfacesByCheckSum = new Dictionary<ulong, OpenTypeFontface>();
@@ -59,7 +61,10 @@ internal class OpenTypeFontfaceCache
             var result = Singleton._fontfaceCache.TryGetValue(key, out fontface);
             return result;
         }
-        finally { Lock.ExitFontFactory(); }
+        finally
+        {
+            Lock.ExitFontFactory();
+        }
     }
 
     /// <summary>
@@ -73,7 +78,10 @@ internal class OpenTypeFontfaceCache
             var result = Singleton._fontfacesByCheckSum.TryGetValue(checkSum, out fontface);
             return result;
         }
-        finally { Lock.ExitFontFactory(); }
+        finally
+        {
+            Lock.ExitFontFactory();
+        }
     }
 
     public static OpenTypeFontface AddFontface(OpenTypeFontface fontface)
@@ -81,24 +89,27 @@ internal class OpenTypeFontfaceCache
         try
         {
             Lock.EnterFontFactory();
-            OpenTypeFontface fontfaceCheck;
-            if (TryGetFontface(fontface.FullFaceName, out fontfaceCheck))
+            if (TryGetFontface(fontface.FullFaceName, out var fontfaceCheck))
             {
                 if (fontfaceCheck.CheckSum != fontface.CheckSum)
                     throw new InvalidOperationException("OpenTypeFontface with same signature but different bytes.");
                 return fontfaceCheck;
             }
+
             Singleton._fontfaceCache.Add(fontface.FullFaceName, fontface);
             Singleton._fontfacesByCheckSum.Add(fontface.CheckSum, fontface);
             return fontface;
         }
-        finally { Lock.ExitFontFactory(); }
+        finally
+        {
+            Lock.ExitFontFactory();
+        }
     }
 
     /// <summary>
     /// Gets the singleton.
     /// </summary>
-    static OpenTypeFontfaceCache Singleton
+    private static OpenTypeFontfaceCache Singleton
     {
         get
         {
@@ -111,12 +122,17 @@ internal class OpenTypeFontfaceCache
                     if (_singleton == null)
                         _singleton = new OpenTypeFontfaceCache();
                 }
-                finally { Lock.ExitFontFactory(); }
+                finally
+                {
+                    Lock.ExitFontFactory();
+                }
             }
+
             return _singleton;
         }
     }
-    static volatile OpenTypeFontfaceCache _singleton;
+
+    private static volatile OpenTypeFontfaceCache _singleton;
 
     internal static string GetCacheState()
     {
@@ -137,16 +153,18 @@ internal class OpenTypeFontfaceCache
     /// <summary>
     /// Maps face name to OpenType fontface.
     /// </summary>
-    readonly Dictionary<string, OpenTypeFontface> _fontfaceCache;
+    private readonly Dictionary<string, OpenTypeFontface> _fontfaceCache;
 
     /// <summary>
     /// Maps font source key to OpenType fontface.
     /// </summary>
-    readonly Dictionary<ulong, OpenTypeFontface> _fontfacesByCheckSum;
+    private readonly Dictionary<ulong, OpenTypeFontface> _fontfacesByCheckSum;
 
     /// <summary>
     /// Gets the DebuggerDisplayAttribute text.
     /// </summary>
     // ReSharper disable UnusedMember.Local
-    string DebuggerDisplay => string.Format(CultureInfo.InvariantCulture, "Fontfaces: {0}", _fontfaceCache.Count); // ReSharper restore UnusedMember.Local
+    private string DebuggerDisplay =>
+        string.Format(CultureInfo.InvariantCulture, "Fontfaces: {0}",
+            _fontfaceCache.Count); // ReSharper restore UnusedMember.Local
 }

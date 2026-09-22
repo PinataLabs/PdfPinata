@@ -108,8 +108,8 @@ public class CLexerUnicodeStringTests
     ///   decoded afterwards.
     /// </summary>
     [Theory(Timeout = 5000)]
-    [InlineData(new byte[] { (byte)'\n' })]
-    [InlineData(new byte[] { (byte)'\r' })]
+    [InlineData(new[] { (byte)'\n' })]
+    [InlineData(new[] { (byte)'\r' })]
     public async Task AContinuationInsideAWideStringJoinsTheCharactersEitherSideOfIt(byte[] lineEnding)
     {
         var content = BigEndianString(Concat(Wide('a'), [(byte)'\\'], lineEnding, Wide('b')));
