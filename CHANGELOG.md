@@ -15,7 +15,9 @@ This file starts at the entry below. Changes before that point are recorded only
 - **An OMR code's mark distance can be given as one of the standard distances.**
   `CodeOmr.StandardMarkDistance` takes a `MarkDistance`: `Inch1_6` (12 pt), `Inch2_6` (24 pt) or
   `Inch2_8` (18 pt). It reads and writes `MakerDistance` rather than keeping a value of its own, and
-  reads null when `MakerDistance` is none of them. `CodeOmr.ToUnit` converts a `MarkDistance` to
+  reads null when `MakerDistance` is none of them. A distance given in another unit is recognised
+  despite rounding, so 25.4 / 6 mm, which is 12.000000000000002 points, reads as `Inch1_6`.
+  `CodeOmr.ToUnit` converts a `MarkDistance` to
   the length it stands for. The enum and the conversion were in the source as comments, so the
   enum's file compiled to nothing.
 
