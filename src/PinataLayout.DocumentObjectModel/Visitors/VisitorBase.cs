@@ -117,7 +117,6 @@ public abstract class VisitorBase : DocumentObjectVisitor
                 format.shading = refFormat.shading.Clone();
                 format.shading.parent = format;
             }
-            //        format.shading = refFormat.shading;
         }
         else if (refFormat.shading != null)
             FlattenShading(format.shading, refFormat.shading);
@@ -130,8 +129,6 @@ public abstract class VisitorBase : DocumentObjectVisitor
         else if (refFormat.borders != null)
             FlattenBorders(format.borders, refFormat.borders);
 
-        //      if (format.tabStops == null)
-        //        format.tabStops = refFormat.tabStops;
         if (refFormat.tabStops != null)
             FlattenTabStops(format.TabStops, refFormat.tabStops);
 

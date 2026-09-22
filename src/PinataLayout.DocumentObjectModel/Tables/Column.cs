@@ -109,9 +109,7 @@ public partial class Column : DocumentObject
   /// <summary>
   /// Gets a cell by its row index. The first cell has index 0.
   /// </summary>
-  public Cell this[int rowIndex] =>
-    //Check.ArgumentOutOfRange(index >= 0 && index < table.Rows.Count, "index");
-    Table.Rows[rowIndex][index ?? 0];
+  public Cell this[int rowIndex] => Table.Rows[rowIndex][index ?? 0];
 
   /// <summary>
   /// Sets or gets the default style name for all cells of the column.

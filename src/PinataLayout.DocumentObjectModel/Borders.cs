@@ -59,7 +59,6 @@ public partial class Borders : DocumentObject, IEnumerable
     public bool HasBorder(BorderType type)
     {
         if (!Enum.IsDefined(type))
-            //throw new InvalidEnumArgumentException("type");
             throw new ArgumentException($"'{type}' is not a defined value of {nameof(BorderType)}.", nameof(type));
 
         return !(IsNull(type.ToString()));

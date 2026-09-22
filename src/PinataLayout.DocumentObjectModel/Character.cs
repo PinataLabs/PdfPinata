@@ -64,7 +64,6 @@ public partial class Character : DocumentObject
   public static readonly Character Tab = new Character(SymbolName.Tab);
   /// <summary>A break within a paragraph.</summary>
   public static readonly Character LineBreak = new Character(SymbolName.LineBreak);
-  //public static readonly Character MarginBreak         = new Character(SymbolName.MarginBreak);
 
   // \symbol
   /// <summary>The euro sign, U+20AC.</summary>
@@ -207,8 +206,6 @@ public partial class Character : DocumentObject
         text = "\\linebreak\x0D\x0A";
       else if (name == SymbolName.ParaBreak)
         text = "\x0D\x0A\x0D\x0A";
-      //else if (symbolType == SymbolName.MarginBreak)
-      //  text = "\\marginbreak ";
 
       if (text != "")
       {
