@@ -158,10 +158,13 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
                     throw new InvalidOperationException(PSSR.PageAlreadyPlaced(idx, index));
             }
 
-            // TODO: check this case
-            // Because the owner of the inserted page is this document we assume that the page was former part of it
-            // and it is therefore well-defined.
-            Owner._irefTable.Add(page);
+            // The page was part of this document and was removed from its page tree, or was made
+            // with 'new PdfPage(document)' and never placed. Removing a page leaves it in the
+            // object table until a save drops it and numbers the rest from one again; Readmit puts
+            // it back under a number of its own either way, and the save that follows does the same
+            // for whatever the page reaches that was dropped with it. Its /Parent is written by
+            // PrepareForSave, which walks the page tree, so it is right however long it was away.
+            Owner._irefTable.Readmit(page);
             Debug.Assert(page.Owner == Owner);
 
             // Insert page in array.
