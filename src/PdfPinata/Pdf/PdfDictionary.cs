@@ -187,14 +187,15 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
     {
         writer.WriteBeginObject(this);
         //int count = Elements.Count;
-        var keys = Elements.KeyNames;
 
         // The stream's own length is the one the file has to declare, whatever the entry says by
         // now. A stream keeps /Length current only in the dictionary that owns it, so one shared
         // with this dictionary through the Stream setter can have changed since it was assigned.
         // The writer encrypts the data as it writes it, after this entry, which holds only because
-        // RC4 — the one cipher this library writes with — keeps the length.
+        // RC4 — the one cipher this library writes with — keeps the length. Before the keys are
+        // listed, or an entry this adds would not be among them.
         DeclareStreamLength();
+        var keys = Elements.KeyNames;
 
         foreach (var key in keys)
             WriteDictionaryElement(writer, key);

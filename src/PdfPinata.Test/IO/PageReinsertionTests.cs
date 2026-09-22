@@ -3,6 +3,7 @@ using System.Linq;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
+using PdfPinata.Pdf.Advanced;
 using PdfPinata.Pdf.IO;
 using Xunit;
 
@@ -68,6 +69,29 @@ public class PageReinsertionTests
         _ = document.Pages.Insert(2, page);
 
         Describe(Reopened(document)).Should().Be("p2,p3,p1");
+    }
+
+    [Fact]
+    public void ObjectsMadeAfterAPageIsPutBackAreNumberedPastIt()
+    {
+        // The last page's objects have the highest numbers. Removed and saved, the document is
+        // numbered from one again below them, so the page comes back to a number above every
+        // other - and the objects made after it were handed that number again, and silently not
+        // added under it.
+        var document = ADocumentOf(3);
+        var page = document.Pages[2];
+        document.Pages.Remove(page);
+        Saved(document);
+        _ = document.Pages.Insert(2, page);
+
+        for (var idx = 0; idx < 50; idx++)
+        {
+            var made = new PdfDictionary(document);
+            document.Internals.AddObject(made);
+            document.Internals.GetObject(PdfInternals.GetObjectID(made)).Should().BeSameAs(made,
+                "each new object is found by its own number");
+        }
+        document.Internals.GetObject(PdfInternals.GetObjectID(page)).Should().BeSameAs(page);
     }
 
     // ── Arranging ───────────────────────────────────────────────────────────────────────────────

@@ -124,6 +124,10 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
             iref.ObjectID = new PdfObjectID(GetNewObjectNumber());
         }
         ObjectTable.Add(iref.ObjectID, iref);
+
+        // A number kept can be above every number the save left, and the next new object must
+        // not be given it.
+        MaxObjectNumber = Math.Max(MaxObjectNumber, iref.ObjectNumber);
     }
 
     /// <summary>

@@ -151,6 +151,24 @@ public class StreamLengthTests
         ReopenedStreamValue(bytes, null).Should().Equal(replaced);
     }
 
+    [Fact]
+    public void AStreamWhoseLengthEntryWasRemovedIsWrittenWithOneAgain()
+    {
+        var data = Encoding.ASCII.GetBytes("its /Length taken away by hand");
+
+        var bytes = SavedWith(document =>
+        {
+            var target = new PdfDictionary(document);
+            document.Internals.AddObject(target);
+            target.CreateStream(data);
+            target.Elements.Remove(PdfDictionary.PdfStream.Keys.Length);
+            document.Internals.Catalog.Elements[TargetKey] = target.Reference;
+            return target;
+        }, out var number);
+
+        LengthsOf(bytes, number).Should().Be(((int?)data.Length, data.Length));
+    }
+
     [Theory]
     [InlineData(PdfDocumentSecurityLevel.Encrypted40Bit)]
     [InlineData(PdfDocumentSecurityLevel.Encrypted128Bit)]
