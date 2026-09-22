@@ -69,6 +69,7 @@ public class CLexer
         Again:
         ClearToken();
         var ch = MoveToNonWhiteSpace();
+        _tokenStart = CurrentCharIndex;
         switch (ch)
         {
             case '%':
@@ -142,27 +143,52 @@ public class CLexer
     }
 
     /// <summary>
-    /// Scans the bytes of an inline image.
-    /// NYI: Just scans over it.
+    /// Scans an inline image, from just after its <c>BI</c> to just after its <c>EI</c>, and keeps
+    /// what it holds in <see cref="InlineImageDictionary"/> and <see cref="InlineImageData"/>:
+    /// <code>
+    /// BI
+    /// … key-value pairs …
+    /// ID
+    /// … image data …
+    /// EI
+    /// </code>
     /// </summary>
+    /// <remarks>
+    /// Nothing says how long the image data is short of decoding it, so its end is found by looking
+    /// for the bytes <c>EI</c> - after the <c>~&gt;</c> that ends ASCII85 data, which may itself hold
+    /// them. Binary data can hold them too, and then the guess is wrong. A content stream that ends
+    /// before the image does leaves the image running to the end of the content.
+    /// </remarks>
     public CSymbol ScanInlineImage()
     {
-        // TODO: Implement inline images.
-        // Skip this:
-        // BI
-        // … Key-value pairs …
-        // ID
-        // … Image data …
-        // EI
-
+        var dictionaryStart = CurrentCharIndex;
+        var dictionaryEnd = ContLength;
+        var foundData = false;
         var ascii85 = false;
-        do
+        while (ScanNextToken() != CSymbol.Eof)
         {
-            ScanNextToken();
             // HACK: Is image ASCII85 decoded?
             if (!ascii85 && _symbol == CSymbol.Name && (Token == "/ASCII85Decode" || Token == "/A85"))
                 ascii85 = true;
-        } while (_symbol != CSymbol.Operator || Token != "ID");
+
+            if (_symbol == CSymbol.Operator && Token == "ID")
+            {
+                dictionaryEnd = _tokenStart;
+                foundData = true;
+                break;
+            }
+        }
+        InlineImageDictionary = RawText(dictionaryStart, dictionaryEnd).Trim(WhiteSpaceCharacters);
+
+        // ID is followed by a single white-space character, which separates it from the data
+        // rather than belonging to it.
+        var dataStart = ContLength;
+        if (foundData)
+        {
+            dataStart = dictionaryEnd + 2;
+            if (dataStart < ContLength && IsWhiteSpace((char)_content[dataStart]))
+                dataStart++;
+        }
 
         if (ascii85)
         {
@@ -177,9 +203,58 @@ public class CLexer
         while (_currChar != Chars.EOF && (_currChar != 'E' || _nextChar != 'I'))
             ScanNextChar();
 
-        // We currently do nothing with inline images.
+        var dataEnd = CurrentCharIndex;
+        InlineImageData = new byte[Math.Max(0, dataEnd - dataStart)];
+        if (InlineImageData.Length > 0)
+            Array.Copy(_content, dataStart, InlineImageData, 0, InlineImageData.Length);
+
+        // Step over the EI itself, so that it is not read again as an operator of its own.
+        if (_currChar != Chars.EOF)
+        {
+            ScanNextChar();
+            ScanNextChar();
+        }
+
         return CSymbol.None;
     }
+
+    /// <summary>
+    /// The entries of the inline image <see cref="ScanInlineImage"/> last read, as they were
+    /// written between its <c>BI</c> and <c>ID</c>, one character per byte and without the white
+    /// space around them.
+    /// </summary>
+    internal string InlineImageDictionary { get; private set; } = "";
+
+    /// <summary>
+    /// The bytes of the inline image <see cref="ScanInlineImage"/> last read, from after the white
+    /// space that follows its <c>ID</c> to just before its <c>EI</c>.
+    /// </summary>
+    internal byte[] InlineImageData { get; private set; } = [];
+
+    static readonly char[] WhiteSpaceCharacters = [Chars.NUL, Chars.HT, Chars.LF, Chars.FF, Chars.CR, Chars.SP];
+
+    /// <summary>The bytes of the content from one index up to another, one character per byte.</summary>
+    string RawText(int start, int end)
+    {
+        if (end <= start)
+            return "";
+
+        var text = new StringBuilder(end - start);
+        for (var idx = start; idx < end; idx++)
+            text.Append((char)_content[idx]);
+        return text.ToString();
+    }
+
+    /// <summary>
+    /// The index in the content of <see cref="_currChar"/>, or the length of the content once it is
+    /// exhausted. <see cref="_nextChar"/> is read one byte ahead, so the current character is two
+    /// behind <see cref="_charIndex"/> - except at the very end, where nothing is read to follow it.
+    /// A carriage return folded together with the line feed after it is at the line feed's index.
+    /// </summary>
+    int CurrentCharIndex =>
+        _currChar == Chars.EOF ? ContLength
+        : _nextChar == Chars.EOF ? ContLength - 1
+        : _charIndex - 2;
 
     /// <summary>
     /// Scans a name.
@@ -883,6 +958,8 @@ public class CLexer
     readonly Func<char> _scanNextCharFolding;
 
     readonly StringBuilder _token = new();
+    // Where in the content the token last scanned by ScanNextToken begins.
+    int _tokenStart;
     long _tokenAsLong;
     double _tokenAsReal;
     CSymbol _symbol = CSymbol.None;

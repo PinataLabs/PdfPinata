@@ -123,9 +123,11 @@ To build a new operator, call `OpCodes.OperatorFromName("re")` and add its opera
 
 - **Read the saved content.** The Inspect demo saves and reopens its document before it reads a page
   it has drawn in the same run. Reading a page from a file you opened needs no such step.
-- **Inline images are not read.** A small image can be written directly into the content, between
-  the `BI` and `EI` operators. The reader skips its data, so the `BI` operator appears without it.
-  Do not write back content that holds an inline image: the image would be lost.
+- **An inline image is one object.** A small image can be written directly into the content, between
+  the `BI` and `EI` operators. The reader gives it to you as a `CInlineImage`, a `COperator` named
+  `BI`. Its `ImageDictionary` holds the entries as written, and its `Data` holds the image bytes.
+  Content that you write back keeps the image. The reader finds the end of the data by looking for
+  the bytes `EI`, and binary data can contain these bytes. If it does, the reader stops too early.
 - **Content that does not parse throws `ContentReaderException`.**
 - **Reading a page's content can change how the page stores it.** `ReadContent(page)` gathers the
   page's content streams into an array on the page. The page draws the same, but in a document open

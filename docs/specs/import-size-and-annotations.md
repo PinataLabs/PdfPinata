@@ -109,8 +109,9 @@ corrupt. So any of the following leaves that page's `/Resources` **exactly as it
 
 - the content stream does not parse (`ContentReaderException`);
 - **an inline image (`BI`) appears anywhere in the content.** `CLexer.ScanInlineImage`
-  (`Pdf.Content/CLexer.cs:149`) is explicitly `NYI: Just scans over it`, and for non-ASCII85 data it
-  finds the end by scanning for the literal bytes `E`,`I`, which can match inside binary image data.
+  (`Pdf.Content/CLexer.cs`) was `NYI: Just scans over it` when this was written; it now reads the
+  image into a `CInlineImage`, but for non-ASCII85 data it still finds the end by scanning for the
+  literal bytes `E`,`I`, which can match inside binary image data.
   A false match desynchronises the parse, after which a real `/Name Do` can be missed entirely;
 - a stream the content draws cannot be read, or the depth cap trips.
 

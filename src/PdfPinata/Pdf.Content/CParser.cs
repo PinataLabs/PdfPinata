@@ -189,7 +189,10 @@ public sealed class CParser
     {
         if (op.OpCode.OpCodeName == OpCodeName.BI)
         {
+            // Everything up to and including the EI belongs to the image, and is read here as
+            // one object rather than left to be read as operators of its own.
             _lexer.ScanInlineImage();
+            op = new CInlineImage(_lexer.InlineImageDictionary, _lexer.InlineImageData);
         }
         if (op.OpCode.Operands != -1 && op.OpCode.Operands != _operands.Count)
         {
