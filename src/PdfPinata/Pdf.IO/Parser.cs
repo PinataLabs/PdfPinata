@@ -809,24 +809,6 @@ internal sealed class Parser
         }
     }
 
-    //protected Symbol ScanNextToken(out string token, bool testReference)
-    //{
-    //  Symbol symbol = lexer.ScanNextToken(testReference);
-    //  token = lexer.Token;
-    //  return symbol;
-    //}
-
-    //    internal object ReadObject(int position)
-    //    {
-    //      lexer.Position = position;
-    //      return ReadObject(false);
-    //    }
-    //
-    //    internal virtual object ReadObject(bool directObject)
-    //    {
-    //      throw new InvalidOperationException("PdfParser.ReadObject() base class called");
-    //    }
-
     /// <summary>
     /// Reads the object ID and the generation and sets it into the specified object.
     /// </summary>
@@ -957,47 +939,6 @@ internal sealed class Parser
         ParserDiagnostics.HandleUnexpectedToken(_lexer.Token);
         return 0;
     }
-
-    //    /// <summary>
-    //    /// Reads a real value directly or (optionally) indirectly from the PDF data stream.
-    //    /// </summary>
-    //    double ReadReal(bool canBeIndirect)
-    //    {
-    //      Symbol symbol = lexer.ScanNextToken(canBeIndirect);
-    //      if (symbol == Symbol.Real || symbol == Symbol.Integer)
-    //        return lexer.TokenToReal;
-    //      else if (symbol == Symbol.R)
-    //      {
-    //        int position = lexer.Position;
-    ////        MoveToObject(lexer.Token);
-    //        ReadObjectID(null);
-    //        double f = ReadReal();
-    //        ReadSymbol(Symbol.EndObj);
-    //        lexer.Position = position;
-    //        return f;
-    //      }
-    //      thr ow new PdfReaderException(PSSR.UnexpectedToken(lexer.Token));
-    //    }
-    //
-    //    double ReadReal()
-    //    {
-    //      return ReadReal(false);
-    //    }
-
-    //    /// <summary>
-    //    /// Reads an object from the PDF input stream. If the object has a specialized parser, it it used.
-    //    /// </summary>
-    //    public static PdfObject ReadObject(PdfObject pdfObject, PdfObjectID objectID)
-    //    {
-    //      if (pdfObject == null)
-    //        thr ow new ArgumentNullException("pdfObject");
-    //      if (pdfObject.Document == null)
-    //        th row new ArgumentException(PSSR.OwningDocumentRequired, "pdfObject");
-    //
-    //      Type type = pdfObject.GetType();
-    //      PdfParser parser = CreateParser(pdfObject.Document, type);
-    //      return parser.ReadObject(pdfObject, objectID, false);
-    //    }
 
     /// <summary>
     /// Reads an object from the PDF input stream using the default parser.

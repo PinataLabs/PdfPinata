@@ -67,36 +67,6 @@ public static class Filtering
             case "Fl":
                 return _flateDecode ?? (_flateDecode = new FlateDecode());
 
-            //case "RunLengthDecode":
-            //  if (RunLengthDecode == null)
-            //    RunLengthDecode = new RunLengthDecode();
-            //  return RunLengthDecode;
-            //
-            //case "CCITTFaxDecode":
-            //  if (CCITTFaxDecode == null)
-            //    CCITTFaxDecode = new CCITTFaxDecode();
-            //  return CCITTFaxDecode;
-            //
-            //case "JBIG2Decode":
-            //  if (JBIG2Decode == null)
-            //    JBIG2Decode = new JBIG2Decode();
-            //  return JBIG2Decode;
-            //
-            //case "DCTDecode":
-            //  if (DCTDecode == null)
-            //    DCTDecode = new DCTDecode();
-            //  return DCTDecode;
-            //
-            //case "JPXDecode":
-            //  if (JPXDecode == null)
-            //    JPXDecode = new JPXDecode();
-            //  return JPXDecode;
-            //
-            //case "Crypt":
-            //  if (Crypt == null)
-            //    Crypt = new Crypt();
-            //  return Crypt;
-
             case "RunLengthDecode":
             case "CCITTFaxDecode":
             case "JBIG2Decode":

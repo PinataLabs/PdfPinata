@@ -201,21 +201,6 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
     public void Translate(double offsetX, double offsetY)
     {
         throw new InvalidOperationException("Temporarily out of order.");
-        //if (_type == XMatrixTypes.Identity)
-        //{
-        //  SetMatrix(1.0, 0, 0, 1.0, offsetX, offsetY, XMatrixTypes.Translation);
-        //}
-        //else if (_type == XMatrixTypes.Unknown)
-        //{
-        //  _offsetX += offsetX;
-        //  _offsetY += offsetY;
-        //}
-        //else
-        //{
-        //  _offsetX += offsetX;
-        //  _offsetY += offsetY;
-        //  _type |= XMatrixTypes.Translation;
-        //}
     }
 
     /// <summary>

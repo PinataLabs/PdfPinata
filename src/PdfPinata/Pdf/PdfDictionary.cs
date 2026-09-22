@@ -1073,18 +1073,6 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             MarkOwnerAsChanged();
         }
 
-        ///// <summary>
-        ///// Returns the indirect object if the value of the specified key is a PdfReference.
-        ///// </summary>
-        //[Obsolete("Use GetObject, GetDictionary, GetArray, or GetReference")]
-        //public PdfObject GetIndirectObject(string key)
-        //{
-        //    PdfItem item = this[key];
-        //    if (item is PdfReference)
-        //        return ((PdfReference)item).Value;
-        //    return null;
-        //}
-
         /// <summary>
         /// Gets the PdfObject with the specified key, or null, if no such object exists. If the key refers to
         /// a reference, the referenced PdfObject is returned.
@@ -1259,15 +1247,6 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         {
             throw new NotImplementedException();
         }
-
-        ///// <summary>
-        ///// Determines whether the dictionary contains the specified name.
-        ///// </summary>
-        //[Obsolete("Use ContainsKey.")]
-        //public bool Contains(string key)
-        //{
-        //    return _elements.ContainsKey(key);
-        //}
 
         /// <summary>
         /// Determines whether the dictionary contains the specified name.
@@ -1694,20 +1673,6 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
 
             return stream;
         }
-
-        //internal void WriteObject_(Stream stream)
-        //{
-        //    if (_value != null)
-        //        stream.Write(_value, 0, value.Length);
-        //}
-
-        ///// <summary>
-        ///// Converts a raw encoded string into a byte array.
-        ///// </summary>
-        //public static byte[] RawEncode(string content)
-        //{
-        //    return PdfEncoders.RawEncoding.GetBytes(content);
-        //}
 
         /// <summary>
         /// Common keys for all streams.

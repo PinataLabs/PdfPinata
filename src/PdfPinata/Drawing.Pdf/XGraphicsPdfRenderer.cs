@@ -675,37 +675,6 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
 
     // ----- DrawImage ----------------------------------------------------------------------------
 
-    //public void DrawImage(Image image, Point point);
-    //public void DrawImage(Image image, PointF point);
-    //public void DrawImage(Image image, Point[] destPoints);
-    //public void DrawImage(Image image, PointF[] destPoints);
-    //public void DrawImage(Image image, Rectangle rect);
-    //public void DrawImage(Image image, RectangleF rect);
-    //public void DrawImage(Image image, int x, int y);
-    //public void DrawImage(Image image, float x, float y);
-    //public void DrawImage(Image image, Point[] destPoints, Rectangle srcRect, GraphicsUnit srcUnit);
-    //public void DrawImage(Image image, Rectangle destRect, Rectangle srcRect, GraphicsUnit srcUnit);
-    //public void DrawImage(Image image, RectangleF destRect, RectangleF srcRect, GraphicsUnit srcUnit);
-    //public void DrawImage(Image image, PointF[] destPoints, RectangleF srcRect, GraphicsUnit srcUnit);
-    //public void DrawImage(Image image, int x, int y, Rectangle srcRect, GraphicsUnit srcUnit);
-    //public void DrawImage(Image image, float x, float y, RectangleF srcRect, GraphicsUnit srcUnit);
-    //public void DrawImage(Image image, Point[] destPoints, Rectangle srcRect, GraphicsUnit srcUnit, ImageAttributes imageAttr);
-    //public void DrawImage(Image image, PointF[] destPoints, RectangleF srcRect, GraphicsUnit srcUnit, ImageAttributes imageAttr);
-    //public void DrawImage(Image image, int x, int y, int width, int height);
-    //public void DrawImage(Image image, float x, float y, float width, float height);
-    //public void DrawImage(Image image, Point[] destPoints, Rectangle srcRect, GraphicsUnit srcUnit, ImageAttributes imageAttr, DrawImageAbort callback);
-    //public void DrawImage(Image image, PointF[] destPoints, RectangleF srcRect, GraphicsUnit srcUnit, ImageAttributes imageAttr, DrawImageAbort callback);
-    //public void DrawImage(Image image, Rectangle destRect, int srcX, int srcY, int srcWidth, int srcHeight, GraphicsUnit srcUnit);
-    //public void DrawImage(Image image, Rectangle destRect, float srcX, float srcY, float srcWidth, float srcHeight, GraphicsUnit srcUnit);
-    //public void DrawImage(Image image, Point[] destPoints, Rectangle srcRect, GraphicsUnit srcUnit, ImageAttributes imageAttr, DrawImageAbort callback, int callbackData);
-    //public void DrawImage(Image image, PointF[] destPoints, RectangleF srcRect, GraphicsUnit srcUnit, ImageAttributes imageAttr, DrawImageAbort callback, int callbackData);
-    //public void DrawImage(Image image, Rectangle destRect, int srcX, int srcY, int srcWidth, int srcHeight, GraphicsUnit srcUnit, ImageAttributes imageAttr);
-    //public void DrawImage(Image image, Rectangle destRect, float srcX, float srcY, float srcWidth, float srcHeight, GraphicsUnit srcUnit, ImageAttributes imageAttrs);
-    //public void DrawImage(Image image, Rectangle destRect, int srcX, int srcY, int srcWidth, int srcHeight, GraphicsUnit srcUnit, ImageAttributes imageAttr, DrawImageAbort callback);
-    //public void DrawImage(Image image, Rectangle destRect, float srcX, float srcY, float srcWidth, float srcHeight, GraphicsUnit srcUnit, ImageAttributes imageAttrs, DrawImageAbort callback);
-    //public void DrawImage(Image image, Rectangle destRect, int srcX, int srcY, int srcWidth, int srcHeight, GraphicsUnit srcUnit, ImageAttributes imageAttrs, DrawImageAbort callback, IntPtr callbackData);
-    //public void DrawImage(Image image, Rectangle destRect, float srcX, float srcY, float srcWidth, float srcHeight, GraphicsUnit srcUnit, ImageAttributes
-
     public void DrawImage(XImage image, double x, double y, double width, double height)
     {
         const string format = Config.SignificantFigures4;
@@ -891,14 +860,6 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     // --------------------------------------------------------------------------------------------
 
     #region Transformation
-
-    //public void SetPageTransform(XPageDirection direction, XPoint origion, XGraphicsUnit unit)
-    //{
-    //  if (_gfxStateStack.Count > 0)
-    //    throw new InvalidOperationException("PageTransformation can be modified only when the graphics stack is empty.");
-
-    //  throw new NotImplementedException("SetPageTransform");
-    //}
 
     public XMatrix Transform
     {

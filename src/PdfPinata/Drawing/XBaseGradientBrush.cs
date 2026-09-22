@@ -149,21 +149,6 @@ public class XBaseGradientBrush : XBrush
         Matrix = new XMatrix();
     }
 
-    //public void SetBlendTriangularShape(double focus);
-    //public void SetBlendTriangularShape(double focus, double scale);
-    //public void SetSigmaBellShape(double focus);
-    //public void SetSigmaBellShape(double focus, double scale);
-
-
-
-    //public Blend Blend { get; set; }
-    //public bool GammaCorrection { get; set; }
-    //public ColorBlend InterpolationColors { get; set; }
-    //public XColor[] LinearColors { get; set; }
-    //public RectangleF Rectangle { get; }
-    //public WrapMode WrapMode { get; set; }
-    //private bool interpolationColorsWasSet;
-
     internal XColor Color1, Color2;
     internal XMatrix Matrix;
 

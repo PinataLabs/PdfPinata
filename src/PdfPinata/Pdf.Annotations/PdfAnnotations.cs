@@ -86,12 +86,6 @@ public sealed class PdfAnnotations : PdfArray
             Page.Annotations.Remove(_page.Annotations[idx]);
     }
 
-    //public void Insert(int index, PdfAnnotation annotation)
-    //{
-    //  annotation.Document = Document;
-    //  annotations.Insert(index, annotation);
-    //}
-
     /// <summary>
     /// Gets the number of annotations in this collection.
     /// </summary>
@@ -126,22 +120,6 @@ public sealed class PdfAnnotations : PdfArray
             return annotation;
         }
     }
-
-    //public PdfAnnotation this[int index]
-    //{
-    //  get
-    //  {
-    //      //DMH 6/7/06
-    //      //Broke this out to simplfy debugging
-    //      //Use a generic annotation to access the Meta data
-    //      //Assign this as the parent of the annotation
-    //      PdfReference r = Elements[index] as PdfReference;
-    //      PdfDictionary d = r.Value as PdfDictionary;
-    //      PdfGenericAnnotation a = new PdfGenericAnnotation(d);
-    //      a.Collection = this;
-    //      return a;
-    //  }
-    //}
 
     /// <summary>
     /// Gets the page the annotations belongs to.

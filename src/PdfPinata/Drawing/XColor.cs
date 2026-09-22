@@ -128,13 +128,6 @@ public struct XColor : IEquatable<XColor>
         return new XColor((byte)(argb >> 24), (byte)(argb >> 16), (byte)(argb >> 8), (byte)(argb));
     }
 
-    // from System.Drawing.Color
-    //public static XColor FromArgb(int alpha, Color baseColor);
-    //public static XColor FromArgb(int red, int green, int blue);
-    //public static XColor FromArgb(int alpha, int red, int green, int blue);
-    //public static XColor FromKnownColor(KnownColor color);
-    //public static XColor FromName(string name);
-
     /// <summary>
     /// Creates an XColor structure from the specified 8-bit color values (red, green, and blue).
     /// The alpha value is implicitly 255 (fully opaque).

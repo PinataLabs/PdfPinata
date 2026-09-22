@@ -44,36 +44,6 @@ public abstract class CodeBase
         _direction = direction;
     }
 
-    //public static CodeBase FromType(CodeType type, string text, XSize size, CodeDirection direction)
-    //{
-    //  switch (type)
-    //  {
-    //    case CodeType.Code2of5Interleaved:
-    //      return new Code2of5Interleaved(text, size, direction);
-
-    //    case CodeType.Code3of9Standard:
-    //      return new Code3of9Standard(text, size, direction);
-
-    //    default:
-    //      throw new InvalidEnumArgumentException("type", (int)type, typeof(CodeType));
-    //  }
-    //}
-
-    //public static CodeBase FromType(CodeType type, string text, XSize size)
-    //{
-    //  return FromType(type, text, size, CodeDirection.LeftToRight);
-    //}
-
-    //public static CodeBase FromType(CodeType type, string text)
-    //{
-    //  return FromType(type, text, XSize.Empty, CodeDirection.LeftToRight);
-    //}
-
-    //public static CodeBase FromType(CodeType type)
-    //{
-    //  return FromType(type, String.Empty, XSize.Empty, CodeDirection.LeftToRight);
-    //}
-
     /// <summary>
     /// Gets or sets the size.
     /// </summary>

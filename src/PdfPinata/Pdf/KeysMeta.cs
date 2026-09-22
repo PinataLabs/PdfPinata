@@ -199,18 +199,6 @@ internal class DictionaryMeta
 #else
         // Rewritten for WinRT.
         CollectKeyDescriptors(type);
-        //var fields = type.GetRuntimeFields();  // does not work
-        //fields2.GetType();
-        //foreach (FieldInfo field in fields)
-        //{
-        //    var attributes = field.GetCustomAttributes(typeof(KeyInfoAttribute), false);
-        //    foreach (var attribute in attributes)
-        //    {
-        //        KeyDescriptor descriptor = new KeyDescriptor((KeyInfoAttribute)attribute);
-        //        descriptor.KeyValue = (string)field.GetValue(null);
-        //        _keyDescriptors[descriptor.KeyValue] = descriptor;
-        //    }
-        //}
 #endif
     }
 

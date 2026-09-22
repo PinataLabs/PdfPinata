@@ -2090,15 +2090,6 @@ public sealed class XGraphics : IDisposable
             _renderer.SetClip(path, XCombineMode.Intersect);
     }
 
-    //public void SetClip(Graphics g);
-    //public void SetClip(Graphics g, CombineMode combineMode);
-    //public void SetClip(GraphicsPath path, CombineMode combineMode);
-    //public void SetClip(Rectangle rect, CombineMode combineMode);
-    //public void SetClip(GdiRectF rect, CombineMode combineMode);
-    //public void SetClip(Region region, CombineMode combineMode);
-    //public void IntersectClip(Region region);
-    //public void ExcludeClip(Region region);
-
     #endregion
 
     // --------------------------------------------------------------------------------------------

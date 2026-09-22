@@ -81,14 +81,6 @@ public class CLexer
             case '/':
                 return _symbol = ScanName();
 
-            //case 'R':
-            //  if (Lexer.IsWhiteSpace(nextChar))
-            //  {
-            //    ScanNextChar();
-            //    return Symbol.R;
-            //  }
-            //  break;
-
             case '+':
             case '-':
                 return _symbol = ScanNumber();
