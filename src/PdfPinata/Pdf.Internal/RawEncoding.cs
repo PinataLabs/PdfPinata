@@ -27,6 +27,7 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
+using System.Diagnostics;
 using System.Text;
 
 namespace PdfPinata.Pdf.Internal;
@@ -79,11 +80,8 @@ public sealed class RawEncoding : Encoding
     {
         for (var count = charCount; count > 0; charIndex++, byteIndex++, count--)
         {
-            //Debug.Assert((uint)chars[charIndex] < 256, "Raw string contains invalid character with a value > 255.");
+            Debug.Assert(chars[charIndex] < 256, "Raw string contains invalid character with a value > 255.");
             bytes[byteIndex] = (byte)chars[charIndex];
-            //#warning Here is a HACK that must not be ignored!
-            // HACK: 
-            // bytes[byteIndex] = (byte)chars[charIndex];
         }
         return charCount;
     }
