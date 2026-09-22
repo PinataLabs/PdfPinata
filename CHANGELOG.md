@@ -222,6 +222,30 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ### Fixed
 
+- **A chart's text takes its colour, bold and italic from the chart's font.** An axis title, the
+  tick labels, the legend and the data labels each have a font of their own. Where that font sets
+  nothing, the name and the size came from the chart's font, but the colour did not: all four were
+  drawn in black, whatever colour the chart's font had. Bold and italic were added to the chart's,
+  so a title set to not bold under a bold chart was still drawn bold. Each font now takes what it
+  leaves unset from the chart's font, and an explicit `false` is kept. A series' data label takes
+  it from the chart's data label first. **Charts whose font sets a colour now draw all their text in
+  that colour**, and a title, legend or label set to not bold or not italic is now drawn that way.
+  `Font.Bold`, `Font.Italic` and `Font.Color` still read only what was set on that font (#101).
+
+- **A series' data label takes what it does not set from the chart's data label.** A series with a
+  data label of its own used to replace the chart's outright. A series that set only a format lost
+  the chart's position, type and font, and its labels were drawn outside the end, in the default
+  font. Format, position, type and font are now taken from the chart's data label one by one. A
+  position that neither sets still defaults as before: inside the end when there is no data label
+  object at all, outside it when there is one (#101).
+
+- **An axis title's or tick labels' own font no longer overrides its style's bold, italic and
+  colour.** In PinataLayout, an axis title with both a `Style` and a `Font` was drawn with the
+  font mapped over the style. The font's unset bold and italic read as `false` and its unset colour
+  as none, so `Style = "Loud"` with `Font.Size = 14` gave a 14-point title that was neither bold nor
+  coloured. Flattening now fills the title's and the tick labels' font from the style they name,
+  or from the chart's font if they name none. The chart mapper copies only what a font sets (#101).
+
 - **A character added by number is drawn as itself.** `AddCharacter(char)` with anything outside
   ASCII drew U+FFFD: the renderer decoded the character's low byte on its own as UTF-8, so `'é'`,
   `'ß'`, `'Ω'` and `'€'` all came out as the replacement character. A code above U+FFFF, which can
