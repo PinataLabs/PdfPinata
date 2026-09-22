@@ -190,6 +190,17 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ### Fixed
 
+- **PDFDocEncoding can be decoded as well as written, and both directions follow ISO 32000-1
+  Annex D.** The internal decoder threw `NotImplementedException`; it now reads codes 0x18 to 0x1F
+  as the spacing accents they are rather than as control characters, and the undefined codes 0x7F,
+  0x9F and 0xAD as U+FFFD. The encoder wrote ƒ as the ellipsis, ‰ as the single right guillemet and
+  š as the right single quotation mark, and wrote DEL, the soft hyphen and several control
+  characters as codes that stand for other characters; those now go to their own codes, or to the
+  currency sign WinAnsi already writes for what it cannot hold. What a document writes by default
+  is unchanged: a `PdfString`'s value is written as raw bytes, so the difference shows in
+  `PdfString.ToString()` on a string made as `PDFDocEncoding` and in text beyond ASCII written
+  through `PdfWriter.WriteDocString` (#82).
+
 - **An annotation colour written as an indirect object is read, not taken as black.**
   `PdfAnnotation.Color` treated `/C` as an array without following an indirect reference. So a
   file that stored the colour as its own object read back as black (#81).
