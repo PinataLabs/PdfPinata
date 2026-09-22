@@ -118,6 +118,21 @@ static class PSSR
 
     public static string OutlineIndexOutOfRange => "The index of an outline is out of range.";
 
+    public static string OutlineAlreadyPlaced =>
+        "This outline is already in an outline collection, so it cannot be placed again. " +
+        "To move it, remove it from the collection it is in first. " +
+        "To show a second entry with the same title and destination, create a new PdfOutline.";
+
+    public static string OutlinePlacedUnderItself =>
+        "An outline cannot be placed under itself or under one of the outlines below it.";
+
+    public static string OutlineOfAnotherDocument =>
+        "This outline belongs to another document. Create a new PdfOutline for this document instead.";
+
+    public static string OutlineParentNotInDocument =>
+        "Outlines cannot be added under an outline that is not in a document yet. " +
+        "Add the parent outline to the document's outlines first, then add entries under it.";
+
     public static string SetValueMustNotBeNull => "The set value property must not be null.";
 
     public static string InvalidValue(int val, string name, int min, int max)
