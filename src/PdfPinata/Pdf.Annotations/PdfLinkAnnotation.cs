@@ -160,7 +160,6 @@ public sealed class PdfLinkAnnotation : PdfAnnotation
     {
         var link = new PdfLinkAnnotation();
         link._linkType = LinkType.File;
-        // TODO: Adjust bleed box here (if possible)
         link.Rectangle = rect;
         link._url = fileName;
         return link;

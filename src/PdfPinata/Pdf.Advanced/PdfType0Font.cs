@@ -28,6 +28,7 @@
 #endregion
 
 using System.Diagnostics;
+using System.Globalization;
 using System.Text;
 using PdfPinata.Fonts;
 using PdfPinata.Fonts.OpenType;
@@ -201,17 +202,24 @@ internal sealed class PdfType0Font : PdfFont
         var w = new StringBuilder("[");
         if (CmapInfo != null)
         {
+            // The indices come back sorted, so each run of consecutive CIDs is adjacent and can be
+            // written as one "c [w1 w2 ...]" entry (ISO 32000-1 9.7.4.3) rather than one per glyph.
             var glyphIndices = CmapInfo.GetGlyphIndices();
-            var count = glyphIndices.Length;
-            var glyphWidths = new int[count];
-
-            for (var idx = 0; idx < count; idx++)
-                glyphWidths[idx] = descriptor.GlyphIndexToPdfWidth(glyphIndices[idx]);
-
-            //TODO: optimize order of indices
-
-            for (var idx = 0; idx < count; idx++)
-                w.AppendFormat("{0}[{1}]", glyphIndices[idx], glyphWidths[idx]);
+            for (var idx = 0; idx < glyphIndices.Length; idx++)
+            {
+                var cid = glyphIndices[idx];
+                if (idx > 0 && cid == glyphIndices[idx - 1] + 1)
+                    w.Append(' ');
+                else
+                {
+                    if (idx > 0)
+                        w.Append(']');
+                    w.Append(cid.ToString(CultureInfo.InvariantCulture)).Append('[');
+                }
+                w.Append(descriptor.GlyphIndexToPdfWidth(cid).ToString(CultureInfo.InvariantCulture));
+            }
+            if (glyphIndices.Length > 0)
+                w.Append(']');
             w.Append(']');
             _descendantFont.Elements.SetValue(PdfCIDFont.Keys.W, new PdfLiteral(w.ToString()));
 

@@ -88,6 +88,20 @@ internal sealed class TrueTypeGlyphs
     }
 
     /// <summary>
+    ///   The glyph's advance width in thousandths of an em, as <c>/W</c> states it: the
+    ///   <c>hmtx</c> advance scaled from the font's own units and truncated. A glyph past the last
+    ///   long metric takes that last metric's advance, as the OpenType <c>hmtx</c> table says.
+    /// </summary>
+    public int AdvanceInThousandths(int glyph)
+    {
+        var unitsPerEm = U16(_tables["head"] + 18);
+        var numberOfHMetrics = U16(_tables["hhea"] + 34);
+        var metric = Math.Min(glyph, numberOfHMetrics - 1);
+        var advance = U16(_tables["hmtx"] + metric * 4);
+        return unitsPerEm == 1000 ? advance : advance * 1000 / unitsPerEm;
+    }
+
+    /// <summary>
     ///   The glyph a character is drawn with, through the Windows Unicode cmap subtable.
     /// </summary>
     public int GlyphIndexOf(char character)

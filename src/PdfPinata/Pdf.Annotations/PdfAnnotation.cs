@@ -248,32 +248,11 @@ public abstract class PdfAnnotation : PdfDictionary
     /// </summary>
     public XColor Color
     {
-        get
-        {
-            var item = Elements[Keys.C];
-            var array = item as PdfArray;
-            if (array != null)  // TODO: check for iref?
-            {
-                if (array.Elements.Count == 3)
-                {
-                    // TODO: an array.GetColor() function may be useful here
-                    // Rounded rather than truncated. A component is written as a fraction of 255
-                    // to the seven decimal places PdfWriter gives a real, so 127 goes out as
-                    // 0.4980392 and comes back as 126.999996 - and truncating that loses a value
-                    // the file all but said.
-                    return XColor.FromArgb(
-                        (int)Math.Round(array.Elements.GetReal(0) * 255),
-                        (int)Math.Round(array.Elements.GetReal(1) * 255),
-                        (int)Math.Round(array.Elements.GetReal(2) * 255));
-                }
-            }
-            return XColors.Black;
-        }
+        // GetArray follows an indirect reference, which a file is free to write /C as.
+        get => ColorFrom(Elements.GetArray(Keys.C), XColors.Black);
         set
         {
-            // TODO: an array.SetColor(clr) function may be useful here
-            var array = new PdfArray(Owner, new PdfItem[] { new PdfReal(value.R / 255.0), new PdfReal(value.G / 255.0), new PdfReal(value.B / 255.0) });
-            Elements[Keys.C] = array;
+            Elements[Keys.C] = RgbArray(value);
             Elements.SetDateTime(Keys.M, GlobalTimeSettings.Now);
             OnAppearanceInvalidated();
         }
@@ -536,15 +515,18 @@ public abstract class PdfAnnotation : PdfDictionary
     /// A direct array with no owner, so that it can be written before the annotation is on a page.
     /// </remarks>
     private protected static PdfArray ColorArray(XColor colour)
+        => colour == XColor.Empty ? new PdfArray() : RgbArray(colour);
+
+    /// <summary>
+    /// Writes a colour as a DeviceRGB array of three components, whatever it is -
+    /// <see cref="XColor.Empty"/> included, which has no special meaning here and goes out as black.
+    /// </summary>
+    static PdfArray RgbArray(XColor colour)
     {
         var array = new PdfArray();
-        if (colour != XColor.Empty)
-        {
-            array.Elements.Add(new PdfReal(colour.R / 255.0));
-            array.Elements.Add(new PdfReal(colour.G / 255.0));
-            array.Elements.Add(new PdfReal(colour.B / 255.0));
-        }
-
+        array.Elements.Add(new PdfReal(colour.R / 255.0));
+        array.Elements.Add(new PdfReal(colour.G / 255.0));
+        array.Elements.Add(new PdfReal(colour.B / 255.0));
         return array;
     }
 

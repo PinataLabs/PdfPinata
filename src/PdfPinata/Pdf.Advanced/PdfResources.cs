@@ -332,12 +332,9 @@ public sealed class PdfResources : PdfDictionary
     /// </summary>
     internal bool ExistsResourceNames(string name)
     {
-        // TODO: more precise: is this page imported and is PageOptions != Replace
-        // BUG:
-        //if (!Owner.IsImported)
-        //  return false;
-
-        // Collect all resource names of all imported resources.
+        // Collect every name already in this dictionary, whether the page was imported or built
+        // here: a name that is taken must not be handed out again, and skipping the collection
+        // for a page thought not to be imported could only ever make a clash possible.
         if (_importedResourceNames == null)
         {
             _importedResourceNames = new Dictionary<string, object>();

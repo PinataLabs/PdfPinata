@@ -125,6 +125,16 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
     /// </summary>
     public virtual IEnumerator<PdfItem> GetEnumerator()
     {
+        return EnumerateItems();
+    }
+
+    /// <summary>
+    /// What <see cref="GetEnumerator"/> answers. A separate member so that a derived collection can
+    /// hide <see cref="GetEnumerator"/> behind a better-typed one - which it cannot also override -
+    /// and still decide what it yields when it is enumerated as an array.
+    /// </summary>
+    private protected virtual IEnumerator<PdfItem> EnumerateItems()
+    {
         return Elements.GetEnumerator();
     }
 

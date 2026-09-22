@@ -94,19 +94,54 @@ public class AnnotationCollectionTests
     [Fact]
     public void TheCollectionEnumeratesTheAnnotationsInIt()
     {
-        var page = APageWith(ANote("one"), ANote("two"));
+        var one = ANote("one");
+        var two = ANote("two");
+        var page = APageWith(one, two);
 
-        var seen = new List<PdfItem>();
+        // Typed: the loop variable is a PdfAnnotation, with no cast.
+        var seen = new List<PdfAnnotation>();
         foreach (var annotation in page.Annotations)
             seen.Add(annotation);
 
-        seen.Should().HaveCount(2);
+        seen.Should().Equal(one, two);
 
         var untyped = new List<object>();
         foreach (var annotation in (IEnumerable)page.Annotations)
             untyped.Add(annotation);
 
-        untyped.Should().HaveCount(2);
+        untyped.Should().Equal(one, two);
+    }
+
+    [Fact]
+    public void EnumeratedAsAnArrayTheCollectionStillYieldsTheAnnotations()
+    {
+        // The typed enumerator hides PdfArray's rather than overriding it, and a caller holding the
+        // collection as an array - or as IEnumerable<PdfItem>, which is what LINQ sees - must not
+        // be handed the references underneath instead.
+        var one = ANote("one");
+        var two = ANote("two");
+        var page = APageWith(one, two);
+
+        var asArray = new List<PdfItem>();
+        foreach (var item in (PdfArray)page.Annotations)
+            asArray.Add(item);
+
+        asArray.Should().Equal(one, two);
+        ((IEnumerable<PdfItem>)page.Annotations).Should().Equal(one, two);
+    }
+
+    [Fact]
+    public void AnAnnotationReadFromAFileIsEnumeratedAsItsOwnClass()
+    {
+        var document = new PdfDocument();
+        document.AddPage().Annotations.Add(ANote());
+
+        var reopened = ReadBack(document);
+        var seen = new List<PdfAnnotation>();
+        foreach (var annotation in reopened.Pages[0].Annotations)
+            seen.Add(annotation);
+
+        seen.Should().ContainSingle().Which.Should().BeOfType<PdfTextAnnotation>();
     }
 
     // ----- annotations read back out of a file ---------------------------------------------------------
