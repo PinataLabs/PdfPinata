@@ -106,10 +106,17 @@ public class ShapedFontEmbeddingTests
         // ReSharper disable once PossibleNullReferenceException
         var widths = descendant.Elements["/W"].ToString();
 
-        // "[300[1000]301[1000]]" - a glyph identifier, then its width in a bracket of its own.
+        // "[300[1000 1000]305[500]]" - the first glyph identifier of a run of consecutive ones, then
+        // the widths of the whole run in a bracket of its own.
         // ReSharper disable once AssignNullToNotNullAttribute
-        return Regex.Matches(widths, @"(\d+)\s*\[")
-            .Select(match => int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture))
+        return Regex.Matches(widths, @"(\d+)\s*\[([^\]]*)\]")
+            .SelectMany(match =>
+            {
+                var first = int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture);
+                var count = match.Groups[2].Value
+                    .Split(new[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Length;
+                return Enumerable.Range(first, count);
+            })
             .ToList();
     }
 
