@@ -123,7 +123,7 @@ public sealed class PdfCheckBoxField : PdfButtonField
                 {
                     if (value)
                     {
-                        //Element 0 behandeln -> auf checked setzen
+                        // Element 0: set it to its on state.
                         var name1 = "";
                         var o =
                             ((PdfDictionary)(((PdfReference)(Fields.Elements.Items[0])).Value)).Elements["/AP"] as
@@ -152,7 +152,7 @@ public sealed class PdfCheckBoxField : PdfButtonField
                                 PdfAnnotation.Keys.AS, name1);
                         }
 
-                        //Element 1 behandeln -> auf unchecked setzen
+                        // Element 1: set it to /Off.
                         // Cleared first: name1 still holds the on state found for element 0, and
                         // if element 1 offers no /Off state the search below leaves it untouched -
                         // so without this the second element was set to the first one's on state
@@ -186,7 +186,7 @@ public sealed class PdfCheckBoxField : PdfButtonField
                     }
                     else
                     {
-                        //Element 0 behandeln -> auf unchecked setzen
+                        // Element 1: set it to its on state.
                         var name1 = "";
                         var o =
                             ((PdfDictionary)(((PdfReference)(Fields.Elements.Items[1])).Value)).Elements["/AP"] as
@@ -215,7 +215,7 @@ public sealed class PdfCheckBoxField : PdfButtonField
                                 PdfAnnotation.Keys.AS, name1);
                         }
 
-                        //Element 1 behandeln -> auf checked setzen
+                        // Element 0: set it to /Off.
                         // Cleared first, for the same reason as the branch above.
                         name1 = "";
                         o = ((PdfDictionary)(((PdfReference)(Fields.Elements.Items[0])).Value)).Elements["/AP"] as

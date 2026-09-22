@@ -737,17 +737,7 @@ internal sealed class Parser
                     _lexer.Position = _lexer.Position - _lexer.Token.Length;
                     return;
 
-                // Not expected here:
-                //case Symbol.None:
-                //case Symbol.Keyword:
-                //case Symbol.EndStream:
-                //case Symbol.EndArray:
-                //case Symbol.EndDictionary:
-                //case Symbol.Obj:
-                //case Symbol.XRef:
-                //case Symbol.Trailer:
-                //case Symbol.StartXRef:
-                //case Symbol.Eof:
+                // Anything else is not expected here.
                 default:
                     ParserDiagnostics.HandleUnexpectedToken(_lexer.Token);
                     SkipCharsUntil(stop);
@@ -1237,7 +1227,6 @@ internal sealed class Parser
                         if (token != "n")
                             continue;
 
-                        //!!!new 2018-03-14 begin
                         // Check if the object at the address has the correct ID and generation.
                         var idToUse = id;
                         int idChecked, generationChecked;

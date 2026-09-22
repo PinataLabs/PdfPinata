@@ -165,7 +165,6 @@ internal sealed class KeyDescriptor
 
                 case KeyType.ArrayOrNameOrString:
                     return null; // HACK: Make PdfOutline work
-                //throw new NotImplementedException("KeyType.ArrayOrNameOrString");
 
                 default:
                     Debug.Assert(false, "Invalid KeyType: " + _keyType);

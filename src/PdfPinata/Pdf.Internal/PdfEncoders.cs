@@ -236,7 +236,6 @@ internal static class PdfEncoders
                 break;
 
             case PdfStringEncoding.Unicode:
-                //bytes = UnicodeEncoding.GetBytes(text);
                 bytes = RawUnicodeEncoding.GetBytes(text);
                 break;
 
@@ -328,10 +327,7 @@ internal static class PdfEncoders
                                 pdf.Append("\\b");
                                 break;
 
-                            // Corrupts encrypted text.
-                            //case '\f':
-                            //  pdf.Append("\\f");
-                            //  break;
+                            // A form feed is deliberately not escaped as \f: escaping it corrupted encrypted text.
 
                             default:
                                 // Any other byte below 32 is written as it is, encrypted or not:
