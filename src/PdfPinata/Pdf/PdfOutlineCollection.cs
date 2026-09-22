@@ -49,6 +49,14 @@ public class PdfOutlineCollection : PdfObject, IList<PdfOutline>
     }
 
     /// <summary>
+    /// The document of the entry this collection belongs to. Asked of the entry rather than
+    /// recorded here, because a collection can be made before its entry is in a document - by
+    /// reading <see cref="PdfOutline.Outlines"/> of an entry not yet added anywhere - and it has
+    /// to follow the entry into the document it is added to.
+    /// </summary>
+    public override PdfDocument Owner => _parent.Owner;
+
+    /// <summary>
     /// Removes the first occurrence of a specific item from the collection.
     /// </summary>
     public bool Remove(PdfOutline item)
@@ -226,8 +234,15 @@ public class PdfOutlineCollection : PdfObject, IList<PdfOutline>
             if (value == null)
                 throw new ArgumentOutOfRangeException(nameof(value), null, PSSR.SetValueMustNotBeNull);
 
+            var replaced = _outlines[index];
+            if (ReferenceEquals(replaced, value))
+                return;
+
             AddToOutlinesTree(value);
             _outlines[index] = value;
+            // The entry replaced is out of the list as surely as a removed one, and has to be
+            // free to be added somewhere else.
+            RemoveFromOutlinesTree(replaced);
         }
     }
 
@@ -244,36 +259,66 @@ public class PdfOutlineCollection : PdfObject, IList<PdfOutline>
         return GetEnumerator();
     }
 
+    /// <summary>
+    /// Makes <paramref name="outline"/> an entry of this collection's parent, refusing everything
+    /// that would give the tree an entry it cannot write. Nothing is changed until every check has
+    /// passed.
+    /// </summary>
     void AddToOutlinesTree(PdfOutline outline)
     {
         ArgumentNullException.ThrowIfNull(outline);
+
+        // An entry is written as a numbered object of the document, and an entry nobody has added
+        // to a document has no document to be numbered in. This used to fail on a null reference.
+        if (Owner == null)
+            throw new InvalidOperationException(PSSR.OutlineParentNotInDocument);
 
         // DestinationPage is optional. PDFsharp does not yet support outlines with action ("/A") instead of destination page ("/DEST")
         if (outline.DestinationPage != null && !ReferenceEquals(Owner, outline.DestinationPage.Owner))
             throw new ArgumentException("Destination page must belong to this document.");
 
-        // TODO check the parent problems...
+        if (outline.Owner != null && !ReferenceEquals(outline.Owner, Owner))
+            throw new ArgumentException(PSSR.OutlineOfAnotherDocument, nameof(outline));
+
+        // An entry has one /Parent and one place among its siblings. Added a second time it used
+        // to end up in two lists - or twice in one, which wrote an entry whose /Next was itself -
+        // with /Parent naming whichever came last, as PdfPages refuses a page already placed.
+        if (outline.PlacedIn != null)
+            throw new InvalidOperationException(PSSR.OutlineAlreadyPlaced);
+
+        // Nor can an entry be put under itself or under anything below it: the tree would then be
+        // a loop that the save walked down until the stack ran out. The walk goes by PlacedIn,
+        // which only this class sets and which this check keeps free of loops.
+        for (var ancestor = _parent; ancestor != null; ancestor = ancestor.PlacedIn?._parent)
+        {
+            if (ReferenceEquals(ancestor, outline))
+                throw new InvalidOperationException(PSSR.OutlinePlacedUnderItself);
+        }
+
         outline.Document = Owner;
         outline.Parent = _parent;
+        outline.PlacedIn = this;
 
-        //_outlines.Add(outline);
-        if (!Owner._irefTable.Contains(outline.ObjectID))
-            Owner._irefTable.Add(outline);
-        // else
-        // {
-        //     outline.GetType();
-        // }
-
+        // An entry removed and added again may have been away across a save, which numbers the
+        // objects from one again and can have given its number to another object.
+        Owner._irefTable.Readmit(outline);
     }
 
+    /// <summary>
+    /// Takes <paramref name="outline"/> out of the tree, leaving it free to be added again here or
+    /// anywhere else in the document. The entries under it stay under it and are written again if
+    /// it is.
+    /// </summary>
     void RemoveFromOutlinesTree(PdfOutline outline)
     {
         ArgumentNullException.ThrowIfNull(outline);
 
-        // TODO check the parent problems...
-        //outline.Document = Owner;
         outline.Parent = null;
+        outline.PlacedIn = null;
 
+        // Its links to the entries beside it are rewritten when it is next saved in a list, and
+        // the entries beside it have theirs rewritten now it is gone - PdfOutline.PrepareForSave
+        // writes every one of them or removes it.
         Owner._irefTable.Remove(outline.Reference);
     }
 

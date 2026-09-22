@@ -6,7 +6,12 @@ using System.Text.RegularExpressions;
 using AwesomeAssertions;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf;
+using PdfPinata.Pdf.IO;
+using PdfPinata.Pdf.Security;
 using Xunit;
+
+// This namespace has a PdfReader of its own, so the one that opens documents needs saying in full.
+using Reader = PdfPinata.Pdf.IO.PdfReader;
 
 namespace PdfPinata.Test.IO;
 
@@ -83,6 +88,114 @@ public class StreamLengthTests
         }
     }
 
+    // ── A stream handed to a dictionary rather than created in it ──────────────────────────────
+
+    [Fact]
+    public void ADictionaryGivenAnotherDictionarysStreamDeclaresItsLength()
+    {
+        // CreateStream writes /Length; the Stream setter used to write nothing, so a dictionary
+        // given its stream that way reached the writer with no /Length at all. A Debug.Assert in
+        // the writer was the only thing saying so, and a Release build has none.
+        var data = Encoding.ASCII.GetBytes("a stream with no /Length of its own");
+
+        var bytes = SavedWith(document =>
+        {
+            var source = new PdfDictionary(document);
+            source.CreateStream(data);
+            return Given(document, source.Stream);
+        }, out var number);
+
+        LengthsOf(bytes, number).Should().Be(((int?)data.Length, data.Length));
+        ReopenedStreamValue(bytes, null).Should().Equal(data);
+    }
+
+    [Fact]
+    public void AStreamChangedThroughTheDictionaryItCameFromIsNotLeftWithAStaleLength()
+    {
+        // A stream keeps /Length current only in the dictionary that owns it. Shared with a second
+        // one and then given longer data, it left the second declaring the old length.
+        var before = Encoding.ASCII.GetBytes("short");
+        var after = Encoding.ASCII.GetBytes("considerably longer than it was when it was shared");
+
+        var bytes = SavedWith(document =>
+        {
+            var source = new PdfDictionary(document);
+            source.CreateStream(before);
+            var target = Given(document, source.Stream);
+            source.Stream.Value = after;
+            return target;
+        }, out var number);
+
+        LengthsOf(bytes, number).Should().Be(((int?)after.Length, after.Length));
+        ReopenedStreamValue(bytes, null).Should().Equal(after);
+    }
+
+    [Fact]
+    public void ACopiedStreamBelongsToTheDictionaryItIsGivenTo()
+    {
+        // PdfStream.Clone answers a stream belonging to no dictionary, and assigning its Value then
+        // threw a NullReferenceException looking for one to write /Length into.
+        var data = Encoding.ASCII.GetBytes("copied");
+        var replaced = Encoding.ASCII.GetBytes("copied, then replaced");
+
+        var bytes = SavedWith(document =>
+        {
+            var source = new PdfDictionary(document);
+            source.CreateStream(data);
+            var target = Given(document, source.Stream.Clone());
+            target.Stream.Value = replaced;
+            return target;
+        }, out var number);
+
+        LengthsOf(bytes, number).Should().Be(((int?)replaced.Length, replaced.Length));
+        ReopenedStreamValue(bytes, null).Should().Equal(replaced);
+    }
+
+    [Fact]
+    public void AStreamWhoseLengthEntryWasRemovedIsWrittenWithOneAgain()
+    {
+        var data = Encoding.ASCII.GetBytes("its /Length taken away by hand");
+
+        var bytes = SavedWith(document =>
+        {
+            var target = new PdfDictionary(document);
+            document.Internals.AddObject(target);
+            target.CreateStream(data);
+            target.Elements.Remove(PdfDictionary.PdfStream.Keys.Length);
+            document.Internals.Catalog.Elements[TargetKey] = target.Reference;
+            return target;
+        }, out var number);
+
+        LengthsOf(bytes, number).Should().Be(((int?)data.Length, data.Length));
+    }
+
+    [Theory]
+    [InlineData(PdfDocumentSecurityLevel.Encrypted40Bit)]
+    [InlineData(PdfDocumentSecurityLevel.Encrypted128Bit)]
+    public void AnEncryptedStreamDeclaresTheLengthOfTheBytesWritten(PdfDocumentSecurityLevel level)
+    {
+        // The writer encrypts a stream as it writes it, after /Length has been written. That is
+        // sound only while the cipher keeps the length, which RC4 — the only one this library
+        // writes with — does; this pins that the count and the bytes still agree.
+        const string password = "owner";
+        var data = Encoding.ASCII.GetBytes("encrypted on the way out, and not a byte longer for it");
+
+        var bytes = SavedWith(document =>
+        {
+            var settings = document.SecuritySettings;
+            settings.DocumentSecurityLevel = level;
+            settings.OwnerPassword = password;
+            settings.UserPassword = "";
+
+            var source = new PdfDictionary(document);
+            source.CreateStream(data);
+            return Given(document, source.Stream);
+        }, out var number);
+
+        LengthsOf(bytes, number).Should().Be(((int?)data.Length, data.Length));
+        ReopenedStreamValue(bytes, password).Should().Equal(data);
+    }
+
     // ── Arranging ───────────────────────────────────────────────────────────────────────────────
 
     static byte[] Drawn(Action<PdfDocument> arrange)
@@ -97,6 +210,61 @@ public class StreamLengthTests
         using var stream = new MemoryStream();
         document.Save(stream, false);
         return stream.ToArray();
+    }
+
+    /// <summary>
+    ///   Puts <paramref name="stream"/> in a new indirect dictionary through the public setter, and
+    ///   makes that dictionary reachable from the catalog.
+    /// </summary>
+    static PdfDictionary Given(PdfDocument document, PdfDictionary.PdfStream stream)
+    {
+        var target = new PdfDictionary(document);
+        document.Internals.AddObject(target);
+        target.Stream = stream;
+        document.Internals.Catalog.Elements[TargetKey] = target.Reference;
+        return target;
+    }
+
+    const string TargetKey = "/PinataTestStream";
+
+    static byte[] SavedWith(Func<PdfDocument, PdfDictionary> arrange, out int objectNumber)
+    {
+        var document = new PdfDocument();
+        document.AddPage();
+        var target = arrange(document);
+        objectNumber = target.Reference.ObjectNumber;
+
+        using var stream = new MemoryStream();
+        document.Save(stream, false);
+        return stream.ToArray();
+    }
+
+    /// <summary>
+    ///   The <c>/Length</c> object <paramref name="number"/> declares in the raw file, or null when it
+    ///   declares none, and the number of bytes actually written between <c>stream</c> and the
+    ///   end-of-line marker before <c>endstream</c>. Read out of the bytes, because the reader
+    ///   recovers a missing length by looking for <c>endstream</c> and so would not say.
+    /// </summary>
+    static (int? Declared, int Written) LengthsOf(byte[] bytes, int number)
+    {
+        var text = Encoding.Latin1.GetString(bytes);
+        var obj = Regex.Match(text, $@"(?<!\d){number} 0 obj((?:(?!endobj).)*?)stream\r?\n",
+            RegexOptions.Singleline);
+        obj.Success.Should().BeTrue($"object {number} is written as a stream");
+
+        var start = obj.Index + obj.Length;
+        var written = text.IndexOf("\nendstream", start, StringComparison.Ordinal) - start;
+
+        var length = Regex.Match(obj.Groups[1].Value, @"/Length (\d+)");
+        return (length.Success ? int.Parse(length.Groups[1].Value) : null, written);
+    }
+
+    static byte[] ReopenedStreamValue(byte[] bytes, string password)
+    {
+        using var saved = new MemoryStream(bytes);
+        var document = Reader.Open(saved, password, PdfDocumentOpenMode.Import);
+        var target = (PdfDictionary)document.Internals.Catalog.Elements.GetObject(TargetKey);
+        return target.Stream.Value;
     }
 
     /// <summary>

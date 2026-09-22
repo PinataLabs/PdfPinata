@@ -185,6 +185,13 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
     PdfOutline _parent;
 
     /// <summary>
+    /// The collection this entry is in, or null while it is in none. Set and cleared by
+    /// <see cref="PdfOutlineCollection"/> alone, which refuses an entry that already has one:
+    /// an entry has one /Parent, one /Prev and one /Next, so it can be in one list once.
+    /// </summary>
+    internal PdfOutlineCollection PlacedIn;
+
+    /// <summary>
     /// Gets or sets the title.
     /// </summary>
     public string Title
@@ -645,18 +652,30 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
                     Elements.Remove(Keys.A);
                 }
 
-                // Not the first element?
+                // Each link is written or taken away, never left as it was: an entry that was
+                // read in, or saved once already, carries the links it had then, and one that has
+                // since become the first or the last of its list, or lost its children, would
+                // otherwise still point at an entry that was removed - which the save then finds
+                // through that link and writes back into the file.
                 if (index > 0)
                     Elements[Keys.Prev] = _parent._outlines[index - 1].Reference;
+                else
+                    Elements.Remove(Keys.Prev);
 
-                // Not the last element?
                 if (index < count - 1)
                     Elements[Keys.Next] = _parent._outlines[index + 1].Reference;
+                else
+                    Elements.Remove(Keys.Next);
 
                 if (hasKids)
                 {
                     Elements[Keys.First] = _outlines[0].Reference;
                     Elements[Keys.Last] = _outlines[^1].Reference;
+                }
+                else
+                {
+                    Elements.Remove(Keys.First);
+                    Elements.Remove(Keys.Last);
                 }
 
                 // Table 153: an entry with descendants carries how many would become visible if it

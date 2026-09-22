@@ -98,6 +98,39 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
     }
 
     /// <summary>
+    /// Puts an object of this document back into the table after it was taken out - a page
+    /// removed and inserted again, an outline removed and added again.
+    /// </summary>
+    /// <remarks>
+    /// Taken out, the object keeps its number, but the number stops being its own: a save drops
+    /// everything the trailer does not reach and numbers what is left from one again, so by the
+    /// time the object comes back its number may well be another object's. <see cref="Add(PdfObject)"/>
+    /// then saw the number already present and did nothing, leaving the object outside the table
+    /// under another object's number. It is given a new one here instead.
+    /// </remarks>
+    internal void Readmit(PdfObject value)
+    {
+        var iref = value.Reference;
+        if (iref == null || iref.ObjectID.IsEmpty)
+        {
+            Add(value);
+            return;
+        }
+
+        if (ObjectTable.TryGetValue(iref.ObjectID, out var held))
+        {
+            if (ReferenceEquals(held, iref))
+                return;
+            iref.ObjectID = new PdfObjectID(GetNewObjectNumber());
+        }
+        ObjectTable.Add(iref.ObjectID, iref);
+
+        // A number kept can be above every number the save left, and the next new object must
+        // not be given it.
+        MaxObjectNumber = Math.Max(MaxObjectNumber, iref.ObjectNumber);
+    }
+
+    /// <summary>
     /// Gets a cross-reference entry from an object identifier.
     /// Returns null if no object with the specified ID exists in the object table.
     /// </summary>
@@ -197,17 +230,40 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
         var irefs = TransitiveClosure(_document._trailer);
 
         foreach (var iref in irefs)
-        {
-            Debug.Assert(ObjectTable.ContainsKey(iref.ObjectID));
             Debug.Assert(iref.Value != null);
+
+        // What the trailer reaches is not necessarily all in the table. An object a save dropped -
+        // the contents of a removed page, the entries under a removed outline - keeps the number it
+        // had, and once the objects left were numbered from one again that number can be another
+        // object's; putting the page or the outline back makes it reachable again. The objects
+        // still in the table keep their numbers and any other reference claiming one is given a
+        // new one, where adding them all as they came used to throw on the second of the two.
+        var inTable = new List<PdfReference>(irefs.Length);
+        var outside = new List<PdfReference>();
+        foreach (var iref in irefs)
+        {
+            if (ObjectTable.TryGetValue(iref.ObjectID, out var held) && ReferenceEquals(held, iref))
+                inTable.Add(iref);
+            else
+                outside.Add(iref);
         }
 
         MaxObjectNumber = 0;
         ObjectTable.Clear();
-        foreach (var iref in irefs)
+        foreach (var iref in inTable)
         {
             ObjectTable.Add(iref.ObjectID, iref);
             MaxObjectNumber = Math.Max(MaxObjectNumber, iref.ObjectNumber);
+        }
+        foreach (var iref in outside)
+        {
+            if (!iref.ObjectID.IsEmpty && ObjectTable.TryAdd(iref.ObjectID, iref))
+            {
+                MaxObjectNumber = Math.Max(MaxObjectNumber, iref.ObjectNumber);
+                continue;
+            }
+            iref.ObjectID = new PdfObjectID(GetNewObjectNumber());
+            ObjectTable.Add(iref.ObjectID, iref);
         }
 
         removed -= ObjectTable.Count;
