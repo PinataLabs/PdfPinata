@@ -68,7 +68,7 @@ public static class FieldEvaluator
     /// section number always are - the page a field is being evaluated on is the page it is on -
     /// so only the two counts and an unplaced bookmark can answer null.
     /// </summary>
-    static int? NumberFor(NumericFieldBase field, FieldEvaluationContext context)
+    private static int? NumberFor(NumericFieldBase field, FieldEvaluationContext context)
     {
         if (field is PageRefField pageRefField)
         {
@@ -98,7 +98,7 @@ public static class FieldEvaluator
     /// <see cref="InfoFieldType"/> the way <c>DocumentInfo</c> stores it, case ignored; a name that
     /// matches nothing reads as the empty string, which is what an unnamed field does too.
     /// </summary>
-    static string DocumentInformation(InfoField field)
+    private static string DocumentInformation(InfoField field)
     {
         var document = field.Document;
         if (document == null)

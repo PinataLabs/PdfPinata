@@ -110,7 +110,7 @@ public abstract partial class NumericFieldBase : DocumentObject
     {
         foreach (var name in validFormatStrings)
         {
-            if (name == this.Format)
+            if (name == Format)
                 return true;
         }
 

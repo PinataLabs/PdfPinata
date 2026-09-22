@@ -86,7 +86,7 @@ public class PdfOutlineCollection : PdfObject, IList<PdfOutline>
     {
         ArgumentNullException.ThrowIfNull(outline);
 
-        // DestinationPage is optional. PDFsharp does not yet support outlines with action ("/A") instead of destination page ("/DEST")
+        // DestinationPage is optional. Does not yet support outlines with action ("/A") instead of destination page ("/DEST")
         if (outline.DestinationPage != null && !ReferenceEquals(Owner, outline.DestinationPage.Owner))
             throw new ArgumentException("Destination page must belong to this document.");
 
@@ -273,7 +273,7 @@ public class PdfOutlineCollection : PdfObject, IList<PdfOutline>
         if (Owner == null)
             throw new InvalidOperationException(PSSR.OutlineParentNotInDocument);
 
-        // DestinationPage is optional. PDFsharp does not yet support outlines with action ("/A") instead of destination page ("/DEST")
+        // DestinationPage is optional. Does not yet support outlines with action ("/A") instead of destination page ("/DEST")
         if (outline.DestinationPage != null && !ReferenceEquals(Owner, outline.DestinationPage.Owner))
             throw new ArgumentException("Destination page must belong to this document.");
 

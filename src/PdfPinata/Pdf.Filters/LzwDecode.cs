@@ -44,7 +44,7 @@ public class LzwDecode : Filter
     /// </summary>
     public override byte[] Encode(byte[] data)
     {
-        throw new NotImplementedException("PDFsharp does not support LZW encoding.");
+        throw new NotImplementedException("PdfPinata does not support LZW encoding.");
     }
 
     /// <summary>

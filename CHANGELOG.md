@@ -213,6 +213,15 @@ This file starts at the entry below. Changes before that point are recorded only
   accuracy optional and `Strict` by default. Source that called either still compiles unchanged, but
   an assembly compiled against the old overloads has to be rebuilt.
 
+- **BREAKING: `PdfSharpException` is renamed `PdfPinataException`.** It is the base class of
+  `PdfReaderException` and `ContentReaderException`, so code that catches it by name has to be
+  changed. Code that catches either of those two exceptions still compiles unchanged.
+
+- **BREAKING: `DdlReaderError` is read-only.** Its `ErrorLevel`, `ErrorMessage`, `SourceFile`,
+  `SourceLine` and `SourceColumn` fields are now `readonly`, so an error can no longer be changed
+  after it is made. The `ErrorNumber` field is no longer public. The number still appears in the
+  error's `ToString()`, and the constructors still take it.
+
 ### Deprecated
 
 - **`XBitmapImage.CreateBitmap`.** It makes a bitmap with a size and no pixels, whose only use was

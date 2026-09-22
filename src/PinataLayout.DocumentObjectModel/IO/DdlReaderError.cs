@@ -26,11 +26,9 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
-
-using System;
 
 namespace PinataLayout.DocumentObjectModel.IO;
 
@@ -45,20 +43,20 @@ public class DdlReaderError
   public DdlReaderError(DdlErrorLevel errorLevel, string errorMessage, int errorNumber,
     string sourceFile, int sourceLine, int sourceColumn)
   {
-    this.ErrorLevel = errorLevel;
-    this.ErrorMessage = errorMessage;
-    this.ErrorNumber = errorNumber;
-    this.SourceFile = sourceFile;
-    this.SourceLine = sourceLine;
-    this.SourceColumn = sourceColumn;
+    ErrorLevel = errorLevel;
+    ErrorMessage = errorMessage;
+    _errorNumber = errorNumber;
+    SourceFile = sourceFile;
+    SourceLine = sourceLine;
+    SourceColumn = sourceColumn;
   }
 
   /// <summary>Initializes a new error that names no source position.</summary>
   public DdlReaderError(DdlErrorLevel errorLevel, string errorMessage, int errorNumber)
   {
-    this.ErrorLevel = errorLevel;
-    this.ErrorMessage = errorMessage;
-    this.ErrorNumber = errorNumber;
+    ErrorLevel = errorLevel;
+    ErrorMessage = errorMessage;
+    _errorNumber = errorNumber;
   }
 
   /// <summary>The number reported for an error that carries none.</summary>
@@ -69,40 +67,39 @@ public class DdlReaderError
   /// </summary>
   public override string ToString()
   {
-    return String.Format("[{0}({1},{2}):] {3} DDL{4}: {5}",
-      SourceFile, SourceLine, SourceColumn, "xxx", ErrorNumber, ErrorMessage);
+    return $"[{SourceFile}({SourceLine},{SourceColumn}):] xxx DDL{_errorNumber}: {ErrorMessage}";
   }
 
   /// <summary>
   /// Specifies the severity of this diagnostic.
   /// </summary>
-  public DdlErrorLevel ErrorLevel;
+  public readonly DdlErrorLevel ErrorLevel;
 
   /// <summary>
   /// Specifies the diagnostic message text.
   /// </summary>
-  public string ErrorMessage;
+  public readonly string ErrorMessage;
 
   /// <summary>
   /// Specifies the diagnostic number.
   /// </summary>
-  public int ErrorNumber;
+  private readonly int _errorNumber;
 
   /// <summary>
   /// Specifies the filename of the DDL text that caused the diagnostic,
   /// or an empty string ("").
   /// </summary>
-  public string SourceFile;
+  public readonly string SourceFile;
 
   /// <summary>
   /// Specifies the line of the DDL text that caused the diagnostic (1 based),
-  /// or 0 if there is no line information. 
+  /// or 0 if there is no line information.
   /// </summary>
-  public int SourceLine;
+  public readonly int SourceLine;
 
   /// <summary>
   /// Specifies the column of the source text that caused the diagnostic (1 based),
   /// or 0 if there is no column information.
   /// </summary>
-  public int SourceColumn;
+  public readonly int SourceColumn;
 }

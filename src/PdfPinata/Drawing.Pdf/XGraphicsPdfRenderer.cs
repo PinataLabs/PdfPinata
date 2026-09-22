@@ -1509,7 +1509,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
 
             // PDF uses a standard right-handed Cartesian coordinate system with the y axis directed up
             // and the rotation counterclockwise. Windows uses the opposite convertion with y axis
-            // directed down and rotation clockwise. When I started with PDFsharp I flipped pages horizontally
+            // directed down and rotation clockwise. When I started with PdfPinata I flipped pages horizontally
             // and then mirrored text to compensate the effect that the fipping turns text upside down.
             // I found this technique during analysis of PDF documents generated with PDFlib. Unfortunately
             // this technique leads to several problems with programms that compose or view PDF documents

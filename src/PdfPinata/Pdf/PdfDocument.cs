@@ -282,7 +282,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
 
         var message = "";
         if (!CanSave(ref message))
-            throw new PdfSharpException(message);
+            throw new PdfPinataException(message);
 
         // Saving back into the stream the document was read from is a common way to modify a
         // document in place. Reading has left the position near the end of the stream, so writing
@@ -336,7 +336,6 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// <summary>
     /// Saves the document to the specified stream.
     /// The stream is not closed by this function.
-    /// (Older versions of PDFsharp closes the stream. That was not very useful.)
     /// </summary>
     public void Save(Stream stream)
     {
@@ -702,21 +701,21 @@ public sealed class PdfDocument : PdfObject, IDisposable
     {
         var info = Info;
 
-        var pdfSharpProducer = VersionInfo.Producer;
+        var infoCreator = VersionInfo.Producer;
 
         // Set Creator if value is undefined.
         if (info.Elements[PdfDocumentInformation.Keys.Creator] == null)
-            info.Creator = pdfSharpProducer;
+            info.Creator = infoCreator;
 
         // Keep original producer if file was imported.
         var producer = info.Producer;
         if (producer.Length == 0)
-            producer = pdfSharpProducer;
+            producer = infoCreator;
         else
         {
             // Prevent endless concatenation if file is edited with PDFsharp more than once.
             if (!producer.StartsWith(VersionInfo.Title))
-                producer = pdfSharpProducer + " (Original: " + producer + ")";
+                producer = infoCreator + " (Original: " + producer + ")";
         }
 
         info.Elements.SetString(PdfDocumentInformation.Keys.Producer, producer);

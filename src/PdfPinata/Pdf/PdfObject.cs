@@ -51,7 +51,7 @@ public abstract class PdfObject : PdfItem
     protected PdfObject(PdfDocument document)
     {
         // Calling a virtual member in a constructor is dangerous.
-        // In PDFsharp Document is overridden in PdfPage and the code is checked to be save
+        // Document is overridden in PdfPage and the code is checked to be save
         // when called for a not completely initialized object.
         // ReSharper disable once VirtualMemberCallInConstructor
         Document = document;
@@ -434,7 +434,7 @@ public abstract class PdfObject : PdfItem
         else
         {
             // Case: The item is some other indirect object.
-            // Indirect integers, booleans, etc. are allowed, but PDFsharp do not create them.
+            // Indirect integers, booleans, etc. are allowed, but PdfPinata do not create them.
             // If such objects occur in imported PDF files from other producers, nothing more is to do.
             // The owner was already set, which is double checked by the assertions below.
             // An indirect null is one of them: a writer that puts /SMask 6 0 R in a graphics
@@ -457,7 +457,7 @@ public abstract class PdfObject : PdfItem
     {
         get => _iref;
 
-        // Setting the reference outside PDFsharp is not considered as a valid operation.
+        // Setting the reference outside PdfPinata is not considered as a valid operation.
         internal set => _iref = value;
     }
     PdfReference _iref;

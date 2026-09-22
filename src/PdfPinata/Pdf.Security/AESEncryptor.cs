@@ -150,16 +150,12 @@ internal class AESEncryptor : RC4Encryptor
             var hash = new byte[32];
             var iv = new byte[16];
             ValidateVersion6(password, salt, hashKey, hash);
-            using (var aes256 = Aes.Create())
-            {
-                aes256.KeySize = 256;
-                aes256.Mode = CipherMode.CBC;
-                aes256.Padding = PaddingMode.None;
-                using (var decryptor = aes256.CreateDecryptor(hash, iv))
-                {
-                    decryptor.TransformBlock(keyToDecrypt, 0, 32, encryptionKey, 0);
-                }
-            }
+            using var aes256 = Aes.Create();
+            aes256.KeySize = 256;
+            aes256.Mode = CipherMode.CBC;
+            aes256.Padding = PaddingMode.None;
+            using var decryptor = aes256.CreateDecryptor(hash, iv);
+            decryptor.TransformBlock(keyToDecrypt, 0, 32, encryptionKey, 0);
         }
     }
 
@@ -169,7 +165,6 @@ internal class AESEncryptor : RC4Encryptor
         var block = new byte[64];
         var blockSize = 32;
         var dataLen = 0;
-        int i, j, sum;
 
         using (var aes128 = Aes.Create())
         {
@@ -190,6 +185,8 @@ internal class AESEncryptor : RC4Encryptor
                 // ReSharper disable once AssignNullToNotNullAttribute
                 Array.Copy(sha256.Hash, block, sha256.HashSize / 8);
             }
+
+            int i;
             for (i = 0; i < 64 || i < data[dataLen * 64 - 1] + 32; i++)
             {
                 /* Step 2: repeat password and data block 64 times */
@@ -198,6 +195,7 @@ internal class AESEncryptor : RC4Encryptor
                 if (ownerKey != null)
                     Array.Copy(ownerKey, 0, data, pwdBytes.Length + blockSize, 48);
                 dataLen = pwdBytes.Length + blockSize + (ownerKey != null ? 48 : 0);
+                int j;
                 for (j = 1; j < 64; j++)
                     Array.Copy(data, 0, data, j * dataLen, dataLen);
 
@@ -208,29 +206,27 @@ internal class AESEncryptor : RC4Encryptor
                 Array.Copy(block, 16, iv, 0, 16);
                 Array.Copy(block, 0, aesKey, 0, 16);
                 #pragma warning disable S3329 // The IV is prescribed by ISO 32000-2 Algorithm 2.B; see above.
-                using (var aesEnc = aes128.CreateEncryptor(aesKey, iv))
-                #pragma warning restore S3329
+                using var aesEnc = aes128.CreateEncryptor(aesKey, iv);
+                aesEnc.TransformBlock(data, 0, dataLen * 64, data, 0);
+
+                /* Step 4: determine SHA-2 hash size for this round */
+                int sum;
+                for (j = 0, sum = 0; j < 16; j++)
+                    sum += data[j];
+
+                /* Step 5: calculate data block for next round */
+                blockSize = 32 + sum % 3 * 16;
+                // The sum is never negative, so the block size is always one of these three.
+                using HashAlgorithm hashAlg = blockSize switch
                 {
-                    aesEnc.TransformBlock(data, 0, dataLen * 64, data, 0);
-
-                    /* Step 4: determine SHA-2 hash size for this round */
-                    for (j = 0, sum = 0; j < 16; j++)
-                        sum += data[j];
-
-                    /* Step 5: calculate data block for next round */
-                    blockSize = 32 + sum % 3 * 16;
-                    // The sum is never negative, so the block size is always one of these three.
-                    using HashAlgorithm hashAlg = blockSize switch
-                    {
-                        32 => SHA256.Create(),
-                        48 => SHA384.Create(),
-                        _ => SHA512.Create()
-                    };
-                    hashAlg.TransformBlock(data, 0, dataLen * 64, data, 0);
-                    hashAlg.TransformFinalBlock(data, 0, 0);
-                    // ReSharper disable once AssignNullToNotNullAttribute
-                    Array.Copy(hashAlg.Hash, block, hashAlg.HashSize / 8);
-                }
+                    32 => SHA256.Create(),
+                    48 => SHA384.Create(),
+                    _ => SHA512.Create()
+                };
+                hashAlg.TransformBlock(data, 0, dataLen * 64, data, 0);
+                hashAlg.TransformFinalBlock(data, 0, 0);
+                // ReSharper disable once AssignNullToNotNullAttribute
+                Array.Copy(hashAlg.Hash, block, hashAlg.HashSize / 8);
             }
         }
         Array.Copy(block, hash, 32);
@@ -268,7 +264,7 @@ internal class AESEncryptor : RC4Encryptor
         objectId[2] = (byte)(id.ObjectNumber >> 16);
         objectId[3] = (byte)id.GenerationNumber;
         objectId[4] = (byte)(id.GenerationNumber >> 8);
-        var salt = new byte[] { 0x73, 0x41, 0x6C, 0x54 };
+        var salt = "sAlT"u8.ToArray();
         var k = new byte[encryptionKey.Length + 9];
         Array.Copy(encryptionKey, k, encryptionKey.Length);
         Array.Copy(objectId, 0, k, encryptionKey.Length, objectId.Length);

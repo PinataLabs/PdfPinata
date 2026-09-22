@@ -130,7 +130,7 @@ public class XForm : XImage, IContentStream
     /// This function should be called when drawing the content of this form is finished.
     /// The XGraphics object used for drawing the content is disposed by this function and
     /// cannot be used for any further drawing operations.
-    /// PDFsharp automatically calls this function when this form was used the first time
+    /// PdfPinata automatically calls this function when this form was used the first time
     /// in a DrawImage function.
     /// </summary>
     public void DrawingFinished()
@@ -150,7 +150,7 @@ public class XForm : XImage, IContentStream
     internal void AssociateGraphics(XGraphics gfx)
     {
         if (_formState == FormState.NotATemplate)
-            throw new NotImplementedException("The current version of PDFsharp cannot draw on an imported page.");
+            throw new NotImplementedException("The current version of PdfPinata cannot draw on an imported page.");
 
         if (_formState == FormState.UnderConstruction)
             throw new InvalidOperationException("An XGraphics object already exists for this form.");

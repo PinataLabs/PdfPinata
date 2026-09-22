@@ -84,8 +84,6 @@ public sealed class PdfReference : PdfItem
     /// </summary>
     internal void WriteXRefEnty(PdfWriter writer)
     {
-        // PDFsharp does not yet support PDF 1.5 object streams.
-
         // Each line must be exactly 20 bytes long, otherwise Acrobat repairs the file.
         var text = $"{_position:0000000000} {_objectID.GenerationNumber:00000} n\n"; // InUse ? 'n' : 'f');
         writer.WriteRaw(text);

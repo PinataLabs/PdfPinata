@@ -34,7 +34,7 @@ namespace PdfPinata.Pdf.Content;
 /// <summary>
 /// Exception thrown by ContentReader.
 /// </summary>
-public class ContentReaderException : PdfSharpException
+public class ContentReaderException : PdfPinataException
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="ContentReaderException"/> class.

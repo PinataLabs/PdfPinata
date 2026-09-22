@@ -34,7 +34,7 @@ namespace PdfPinata.Pdf.IO;
 /// <summary>
 /// Exception thrown by PdfReader.
 /// </summary>
-public class PdfReaderException : PdfSharpException
+public class PdfReaderException : PdfPinataException
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="PdfReaderException"/> class.

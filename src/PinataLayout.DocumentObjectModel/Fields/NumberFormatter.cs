@@ -69,7 +69,7 @@ public static class NumberFormatter
     }
 
 
-    static string AsRoman(int number, bool lowercase)
+    private static string AsRoman(int number, bool lowercase)
     {
         // Widened before the magnitude is taken, because int.MinValue has no positive counterpart
         // and Math.Abs throws on it - so the number furthest past this ceiling was the one number
@@ -90,9 +90,9 @@ public static class NumberFormatter
 
         string[] roman;
         if (lowercase)
-            roman = new[] { "m", "cm", "d", "cd", "c", "xc", "l", "xl", "x", "ix", "v", "iv", "i" };
+            roman = ["m", "cm", "d", "cd", "c", "xc", "l", "xl", "x", "ix", "v", "iv", "i"];
         else
-            roman = new[] { "M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I" };
+            roman = ["M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"];
 
         var numberValues = new[] { 1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1 };
 
@@ -107,7 +107,7 @@ public static class NumberFormatter
         return res;
     }
 
-    static string AsLetters(int number, bool lowercase)
+    private static string AsLetters(int number, bool lowercase)
     {
         // Widened for the same reason as in AsRoman above.
         if (Math.Abs((long)number) > 32768)

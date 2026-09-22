@@ -1,5 +1,5 @@
 #region Copyright
-//
+
 // Authors:
 //   Stefan Lange (mailto:Stefan.Lange@PdfPinata.com)
 //   Klaus Potzesny (mailto:Klaus.Potzesny@PdfPinata.com)
@@ -26,8 +26,9 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
+
 #endregion
 
 namespace PinataLayout.DocumentObjectModel.Fields;
@@ -37,43 +38,48 @@ namespace PinataLayout.DocumentObjectModel.Fields;
 /// </summary>
 public partial class NumPagesField : NumericFieldBase
 {
-  /// <summary>
-  /// Initializes a new instance of the NumPagesField class.
-  /// </summary>
-  public NumPagesField()
-  {
-  }
+    /// <summary>
+    /// Initializes a new instance of the NumPagesField class.
+    /// </summary>
+    public NumPagesField()
+    {
+    }
 
-  /// <summary>
-  /// Initializes a new instance of the NumPagesField class with the specified parent.
-  /// </summary>
-  internal NumPagesField(DocumentObject parent) : base(parent) { }
+    /// <summary>
+    /// Initializes a new instance of the NumPagesField class with the specified parent.
+    /// </summary>
+    internal NumPagesField(DocumentObject parent) : base(parent)
+    {
+    }
 
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new NumPagesField Clone()
-  {
-    return (NumPagesField)DeepCopy();
-  }
-  #endregion
+    #region Methods
 
-  #region Internal
-  /// <summary>
-  /// Converts NumPagesField into DDL.
-  /// </summary>
-  internal override void Serialize(Serializer serializer)
-  {
-    var str = "\\field(NumPages)";
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new NumPagesField Clone()
+    {
+        return (NumPagesField)DeepCopy();
+    }
 
-    if ((this.format ?? "") != "")
-      str += "[Format = \"" + this.Format + "\"]";
-    else
-      str += "[]"; // Has to be appended to avoid confusion with '[' in directly following text.
+    #endregion
 
-    serializer.Write(str);
-  }
+    #region Internal
 
-  #endregion
+    /// <summary>
+    /// Converts NumPagesField into DDL.
+    /// </summary>
+    internal override void Serialize(Serializer serializer)
+    {
+        var str = "\\field(NumPages)";
+
+        if ((format ?? "") != "")
+            str += "[Format = \"" + Format + "\"]";
+        else
+            str += "[]"; // Has to be appended to avoid confusion with '[' in directly following text.
+
+        serializer.Write(str);
+    }
+
+    #endregion
 }

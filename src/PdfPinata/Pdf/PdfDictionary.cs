@@ -901,21 +901,16 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                     if (true) // || _owner.Document.IsImported)
                     {
                         var type = GetValueType(key);
-                        Debug.Assert(type != null, "No value type specified in meta information. Please send this file to PDFsharp support.");
-
-                        // Rewritten WinRT style.
                         var typeInfo = type.GetTypeInfo();
                         // ReSharper disable once ConditionIsAlwaysTrueOrFalse
                         if (type != null && type != value.GetType())
                         {
                             if (typeof(PdfDictionary).GetTypeInfo().IsAssignableFrom(typeInfo))
                             {
-                                Debug.Assert(value is PdfDictionary, "Bug in PdfPinata. Please send this file to PDFsharp support.");
                                 value = CreateDictionary(type, (PdfDictionary)value);
                             }
                             else if (typeof(PdfArray).GetTypeInfo().IsAssignableFrom(typeInfo))
                             {
-                                Debug.Assert(value is PdfArray, "Bug in PdfPinata. Please send this file to PDFsharp support.");
                                 value = CreateArray(type, (PdfArray)value);
                             }
                             else
@@ -935,7 +930,6 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                         Debug.Assert(!dict.IsIndirect);
 
                         var type = GetValueType(key);
-                        Debug.Assert(type != null, "No value type specified in meta information. Please send this file to PDFsharp support.");
                         if (dict.GetType() != type)
                             dict = CreateDictionary(type, dict);
                         return dict;

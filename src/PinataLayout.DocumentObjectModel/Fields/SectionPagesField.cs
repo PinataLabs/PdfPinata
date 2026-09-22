@@ -1,4 +1,5 @@
 #region Copyright
+
 //
 // Authors:
 //   Stefan Lange (mailto:Stefan.Lange@PdfPinata.com)
@@ -26,8 +27,9 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
+
 #endregion
 
 namespace PinataLayout.DocumentObjectModel.Fields;
@@ -37,43 +39,48 @@ namespace PinataLayout.DocumentObjectModel.Fields;
 /// </summary>
 public partial class SectionPagesField : NumericFieldBase
 {
-  /// <summary>
-  /// Initializes a new instance of the SectionPagesField class.
-  /// </summary>
-  public SectionPagesField()
-  {
-  }
+    /// <summary>
+    /// Initializes a new instance of the SectionPagesField class.
+    /// </summary>
+    public SectionPagesField()
+    {
+    }
 
-  /// <summary>
-  /// Initializes a new instance of the SectionPagesField class with the specified parent.
-  /// </summary>
-  internal SectionPagesField(DocumentObject parent) : base(parent) { }
+    /// <summary>
+    /// Initializes a new instance of the SectionPagesField class with the specified parent.
+    /// </summary>
+    internal SectionPagesField(DocumentObject parent) : base(parent)
+    {
+    }
 
-  #region Methods
-  /// <summary>
-  /// Creates a deep copy of this object.
-  /// </summary>
-  public new SectionPagesField Clone()
-  {
-    return (SectionPagesField)DeepCopy();
-  }
-  #endregion
+    #region Methods
 
-  #region Internal
-  /// <summary>
-  /// Converts SectionPagesField into DDL.
-  /// </summary>
-  internal override void Serialize(Serializer serializer)
-  {
-    var str = "\\field(SectionPages)";
+    /// <summary>
+    /// Creates a deep copy of this object.
+    /// </summary>
+    public new SectionPagesField Clone()
+    {
+        return (SectionPagesField)DeepCopy();
+    }
 
-    if ((this.format ?? "") != "")
-      str += "[Format = \"" + this.Format + "\"]";
-    else
-      str += "[]"; //Has to be appended to avoid confusion with '[' in directly following text.
+    #endregion
 
-    serializer.Write(str);
-  }
+    #region Internal
 
-  #endregion
+    /// <summary>
+    /// Converts SectionPagesField into DDL.
+    /// </summary>
+    internal override void Serialize(Serializer serializer)
+    {
+        var str = "\\field(SectionPages)";
+
+        if ((format ?? "") != "")
+            str += "[Format = \"" + Format + "\"]";
+        else
+            str += "[]"; // Has to be appended to avoid confusion with '[' in directly following text.
+
+        serializer.Write(str);
+    }
+
+    #endregion
 }

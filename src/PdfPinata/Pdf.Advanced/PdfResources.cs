@@ -369,7 +369,7 @@ public sealed class PdfResources : PdfDictionary
     Dictionary<string, object> _importedResourceNames;
 
     /// <summary>
-    /// Maps all PDFsharp resources to their local resource names.
+    /// Maps all PDFPinata resources to their local resource names.
     /// </summary>
     readonly Dictionary<PdfObject, string> _resources = new();
 
