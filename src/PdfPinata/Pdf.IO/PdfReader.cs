@@ -264,7 +264,7 @@ public static class PdfReader
             document = Open(stream, password, openmode, provider, accuracy);
             if (document != null)
             {
-                document._fullPath = Path.GetFullPath(path);
+                document.FullPath = Path.GetFullPath(path);
             }
         }
         finally
@@ -376,7 +376,7 @@ public static class PdfReader
             document = new PdfDocument(lexer);
             document._state |= DocumentState.Imported;
             document._openMode = openmode;
-            document._fileSize = stream.Length;
+            document.FileSize = stream.Length;
 
             // Get file version.
             var header = new byte[1024];

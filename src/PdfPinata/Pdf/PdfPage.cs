@@ -729,10 +729,9 @@ public sealed class PdfPage : PdfDictionary, IContentStream
 
     /// <summary>
     /// Gets or sets the /Rotate entry of the PDF page. The value is the number of degrees by which the page
-    /// should be rotated clockwise when displayed or printed. The value must be a multiple of 90.
-    /// TODO: Next statement is not correct:
-    /// PDFsharp does not set this value, but for imported pages this value can be set and must be taken
-    /// into account when adding graphic to such a page.
+    /// should be rotated clockwise when displayed or printed. The value must be a multiple of 90, and 0
+    /// is answered when the page has no entry. A page read from a file carries the value it inherits
+    /// from the page tree when it has none of its own. Setting it writes /Rotate on the page itself.
     /// </summary>
     public int Rotate
     {
@@ -799,10 +798,6 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         _pageSize = size;
     }
 
-    // TODO: PdfAnnotations
-    // TODO: PdfActions
-    // TODO: PdfPageTransition
-
     /// <summary>
     /// The content stream currently used by an XGraphics object for rendering.
     /// </summary>
@@ -840,7 +835,6 @@ public sealed class PdfPage : PdfDictionary, IContentStream
                                 array = array.Clone();
                                 array.Document = Owner;
                             }
-                            // TODO 4STLA: Causes Exception "Object type transformation must not be done with direct objects" in "protected PdfObject(PdfObject obj)"
                             _contents = new PdfContents(array);
                         }
                         else

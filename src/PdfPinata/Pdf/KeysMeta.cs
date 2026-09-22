@@ -217,8 +217,6 @@ internal class DictionaryMeta
 #if !NET5_0_OR_GREATER
     // Background: The function GetRuntimeFields gets constant fields only for the specified type,
     // not for its base types. So we have to walk recursively through base classes.
-    // The docmentation says full trust for the immediate caller is required for property BaseClass.
-    // TODO: Rewrite this stuff for medium trust.
     void CollectKeyDescriptors(Type type)
     {
         // Get fields of the specified type only.

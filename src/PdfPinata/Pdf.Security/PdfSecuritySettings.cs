@@ -98,11 +98,15 @@ public sealed class PdfSecuritySettings
         return true;
     }
 
+    // The Permit* properties are the user access permission bits of the /P entry, ISO 32000-1
+    // Table 22. Bits 9 to 12 are honoured only by revision 3 or later of the standard security
+    // handler, which is what Encrypted128Bit writes; Encrypted40Bit writes revision 2, and there
+    // those four bits are always set, whatever their properties say.
     #region Permissions
-    //TODO: Use documentation from our English Acrobat 6.0 version.
 
     /// <summary>
-    /// Permits printing the document. Should be used in conjunction with PermitFullQualityPrint.
+    /// Permits printing the document (bit 3). With 128-bit encryption the quality it may be printed
+    /// at also depends on <see cref="PermitFullQualityPrint"/>.
     /// </summary>
     public bool PermitPrint
     {
@@ -119,7 +123,9 @@ public sealed class PdfSecuritySettings
     }
 
     /// <summary>
-    /// Permits modifying the document.
+    /// Permits modifying the contents of the document by operations other than those controlled
+    /// by <see cref="PermitAnnotations"/>, <see cref="PermitFormsFill"/> and
+    /// <see cref="PermitAssembleDocument"/> (bit 4).
     /// </summary>
     public bool PermitModifyDocument
     {
@@ -136,7 +142,9 @@ public sealed class PdfSecuritySettings
     }
 
     /// <summary>
-    /// Permits content copying or extraction.
+    /// Permits copying or otherwise extracting text and graphics from the document (bit 5). With
+    /// 40-bit encryption this includes extraction for accessibility; with 128-bit encryption that
+    /// is <see cref="PermitAccessibilityExtractContent"/> instead.
     /// </summary>
     public bool PermitExtractContent
     {
@@ -153,7 +161,9 @@ public sealed class PdfSecuritySettings
     }
 
     /// <summary>
-    /// Permits commenting the document.
+    /// Permits adding or modifying text annotations and filling in interactive form fields, and,
+    /// together with <see cref="PermitModifyDocument"/>, creating or modifying form fields,
+    /// signature fields included (bit 6).
     /// </summary>
     public bool PermitAnnotations
     {
@@ -170,7 +180,8 @@ public sealed class PdfSecuritySettings
     }
 
     /// <summary>
-    /// Permits filling of form fields.
+    /// Permits filling in existing interactive form fields, signature fields included, even when
+    /// <see cref="PermitAnnotations"/> is not set (bit 9; 128-bit encryption only).
     /// </summary>
     public bool PermitFormsFill
     {
@@ -187,7 +198,8 @@ public sealed class PdfSecuritySettings
     }
 
     /// <summary>
-    /// Permits content extraction for accessibility.
+    /// Permits extracting text and graphics in support of accessibility to users with disabilities
+    /// or for other purposes (bit 10; 128-bit encryption only).
     /// </summary>
     public bool PermitAccessibilityExtractContent
     {
@@ -204,8 +216,9 @@ public sealed class PdfSecuritySettings
     }
 
     /// <summary>
-    /// Permits to insert, rotate, or delete pages and create bookmarks or thumbnail images even if
-    /// PermitModifyDocument is not set.
+    /// Permits assembling the document - inserting, rotating or deleting pages and creating
+    /// bookmarks or thumbnail images - even when <see cref="PermitModifyDocument"/> is not set
+    /// (bit 11; 128-bit encryption only).
     /// </summary>
     public bool PermitAssembleDocument
     {
@@ -222,8 +235,9 @@ public sealed class PdfSecuritySettings
     }
 
     /// <summary>
-    /// Permits to print in high quality. insert, rotate, or delete pages and create bookmarks or thumbnail images
-    /// even if PermitModifyDocument is not set.
+    /// Permits printing the document faithfully from its digital representation (bit 12; 128-bit
+    /// encryption only). When it is not set but <see cref="PermitPrint"/> is, printing is limited
+    /// to a low-level, possibly degraded representation.
     /// </summary>
     public bool PermitFullQualityPrint
     {

@@ -513,7 +513,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         }
 
         /// <summary>
-        /// Tries to get the string. TODO: more TryGet...
+        /// Tries to get the string.
         /// </summary>
         public bool TryGetString(string key, out string value)
         {
@@ -941,7 +941,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// Returns the type of the object to be created as value of the specified key.
         /// </summary>
         [return:DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)]
-        Type GetValueType(string key)  // TODO: move to PdfObject
+        Type GetValueType(string key)
         {
             Type type = null;
             var meta = _ownerDictionary.Meta;

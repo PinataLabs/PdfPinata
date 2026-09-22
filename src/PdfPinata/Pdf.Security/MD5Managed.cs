@@ -54,7 +54,7 @@ namespace PdfPinata.Pdf.Security;
 /// </summary>
 #pragma warning disable S2257 // MD5 is fixed by the PDF standard security handler, and the framework's own MD5 is missing on some targets; see above.
 class MD5Managed
-    : System.Security.Cryptography.HashAlgorithm  // TODO: WinRT has not even a HashAlgorithm base class.
+    : System.Security.Cryptography.HashAlgorithm
 #pragma warning restore S2257
 {
     // Initial values as defined in RFC 1321.
