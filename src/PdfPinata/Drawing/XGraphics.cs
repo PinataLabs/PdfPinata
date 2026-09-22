@@ -80,7 +80,7 @@ public sealed class XGraphics : IDisposable
         // a page are told the same thing about the mode they chose.
         page.Owner.EnsureCanModify("drawing on a page");
 
-        _gsStack = new GraphicsStateStack(this);
+        _gsStack = new GraphicsStateStack();
         PdfContent content = null;
         switch (options)
         {
@@ -130,7 +130,7 @@ public sealed class XGraphics : IDisposable
     }
     XGraphics(XSize size, XGraphicsUnit pageUnit, XPageDirection pageDirection)
     {
-        _gsStack = new GraphicsStateStack(this);
+        _gsStack = new GraphicsStateStack();
         switch (pageUnit)
         {
             case XGraphicsUnit.Point:
@@ -165,7 +165,7 @@ public sealed class XGraphics : IDisposable
     XGraphics(IXGraphicsRenderer renderer, XSize size, XGraphicsUnit pageUnit, XPageDirection pageDirection)
     {
         _renderer = renderer ?? throw new ArgumentNullException(nameof(renderer));
-        _gsStack = new GraphicsStateStack(this);
+        _gsStack = new GraphicsStateStack();
         switch (pageUnit)
         {
             case XGraphicsUnit.Point:
@@ -207,7 +207,7 @@ public sealed class XGraphics : IDisposable
         _form = form;
         form.AssociateGraphics(this);
 
-        _gsStack = new GraphicsStateStack(this);
+        _gsStack = new GraphicsStateStack();
         _drawGraphics = false;
         if (form.Owner != null)
             _renderer = new XGraphicsPdfRenderer(form, this);
@@ -1710,7 +1710,7 @@ public sealed class XGraphics : IDisposable
     public XGraphicsState Save()
     {
         var xState = new XGraphicsState();
-        var iState = new InternalGraphicsState(this, xState);
+        var iState = new InternalGraphicsState(xState);
         iState.Transform = _transform;
         _gsStack.Push(iState);
 
@@ -1775,7 +1775,7 @@ public sealed class XGraphics : IDisposable
 
         var xContainer = new XGraphicsContainer();
 
-        var iState = new InternalGraphicsState(this, xContainer);
+        var iState = new InternalGraphicsState(xContainer);
         iState.Transform = _transform;
 
         _gsStack.Push(iState);

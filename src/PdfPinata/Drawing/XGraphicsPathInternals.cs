@@ -37,10 +37,7 @@ namespace PdfPinata.Drawing;
 /// </summary>
 public sealed class XGraphicsPathInternals
 {
-    internal XGraphicsPathInternals(XGraphicsPath path)
+    internal XGraphicsPathInternals()
     {
-        _path = path;
     }
-
-    XGraphicsPath _path;
 }

@@ -2242,7 +2242,7 @@ internal class ParagraphRenderer : Renderer
         SaveBeforeProbing(out var iter, out var blankCount, out var wordsWidth, out var xPosition, out var lineWidth, out var blankWidth);
         var wordWidth = savedWordWidth;
         var verticalInfo = currentVerticalInfo;
-        var result = FormatResult.Continue;
+        FormatResult result;
         probingJoinedRun = true;
         try
         {
