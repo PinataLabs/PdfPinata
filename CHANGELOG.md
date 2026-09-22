@@ -114,7 +114,7 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ### Changed
 
-- **BREAKING:** **Looping over a page's annotations yields `PdfAnnotation`, not `PdfItem`.**
+- **BREAKING: looping over a page's annotations yields `PdfAnnotation`, not `PdfItem`.**
   `PdfAnnotations.GetEnumerator` now returns `IEnumerator<PdfAnnotation>`, so
   `foreach (var annotation in page.Annotations)` needs no cast. Each annotation has the class
   its subtype names, the same as the indexer gives. As a `PdfArray`, through
