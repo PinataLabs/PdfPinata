@@ -94,20 +94,22 @@ public sealed class Font : DocumentObject
   /// </summary>
   public bool Bold
   {
-    get => this.bold;
+    get => this.bold ?? false;
     set => this.bold = value;
   }
-  internal bool bold;
+  // Null is unset, so that an explicit false can be told from a false nobody wrote and win over
+  // a bold the chart's font has.
+  internal bool? bold;
 
   /// <summary>
   /// Gets or sets the italic property.
   /// </summary>
   public bool Italic
   {
-    get => this.italic;
+    get => this.italic ?? false;
     set => this.italic = value;
   }
-  internal bool italic;
+  internal bool? italic;
     
   /// <summary>
   /// Gets or sets the underline property.
@@ -166,5 +168,65 @@ public sealed class Font : DocumentObject
     }
   }
   internal bool subscript;
+  #endregion
+
+  #region Inheritance
+  // What the renderers draw with. Each answers this font's own value where it has one and asks
+  // ParentFont otherwise, so a title, a tick label, a legend or a data label leaving something
+  // unset takes it from its chart. Only the five properties a renderer reads inherit; the public
+  // getters above answer what was set on this font alone, as they always have. An empty name, a
+  // zero size and an empty colour are how those three have always said "unset".
+
+  internal string ResolvedName => this.name.Length > 0 ? this.name : ParentFont?.ResolvedName ?? "";
+
+  internal double ResolvedSize => this.size.Point != 0 ? this.size.Point : ParentFont?.ResolvedSize ?? 0;
+
+  internal bool? ResolvedBold => this.bold ?? ParentFont?.ResolvedBold;
+
+  internal bool? ResolvedItalic => this.italic ?? ParentFont?.ResolvedItalic;
+
+  internal XColor ResolvedColor => !this.color.IsEmpty ? this.color : ParentFont?.ResolvedColor ?? XColor.Empty;
+
+  /// <summary>
+  /// The font this one inherits from: the nearest ancestor of its owner that has a font. A series'
+  /// data label is the exception, because the chart's data label it defaults to is not its
+  /// ancestor but a sibling of the series collection, so it is asked first.
+  /// </summary>
+  internal Font ParentFont
+  {
+    get
+    {
+      var owner = this.parent;
+      if (owner == null)
+        return null;
+
+      if (owner is DataLabel && owner.parent is Series)
+      {
+        for (var ancestor = owner.parent; ancestor != null; ancestor = ancestor.parent)
+        {
+          if (ancestor is Chart chart && chart.dataLabel?.font != null)
+            return chart.dataLabel.font;
+        }
+      }
+
+      for (var ancestor = owner.parent; ancestor != null; ancestor = ancestor.parent)
+      {
+        var font = FontOf(ancestor);
+        if (font != null)
+          return font;
+      }
+      return null;
+    }
+  }
+
+  static Font FontOf(DocumentObject owner) => owner switch
+  {
+    Chart chart => chart.font,
+    Legend legend => legend.font,
+    DataLabel dataLabel => dataLabel.font,
+    AxisTitle title => title.font,
+    TickLabels tickLabels => tickLabels.font,
+    _ => null,
+  };
   #endregion
 }

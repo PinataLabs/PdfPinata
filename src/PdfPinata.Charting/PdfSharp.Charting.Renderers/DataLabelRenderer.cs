@@ -58,39 +58,39 @@ internal abstract class DataLabelRenderer : Renderer
       {
         var dlri = new DataLabelRendererInfo();
 
-        var dl = sri.Series.dataLabel;
-        if (dl == null)
-          dl = cri.Chart.dataLabel;
-        if (dl == null)
-        {
-          dlri.Format = "0";
-          dlri.Font = cri.DefaultDataLabelFont;
-          dlri.FontColor = new XSolidBrush(XColors.Black);
-          dlri.Position = DataLabelPosition.InsideEnd;
-          if (cri.Chart.type == ChartType.Pie2D || cri.Chart.type == ChartType.PieExploded2D)
-            dlri.Type = DataLabelType.Percent;
-          else
-            dlri.Type = DataLabelType.Value;
-        }
+        // A series' data label answers what it sets and leaves the rest to the chart's, property by
+        // property, where it used to replace the chart's outright.
+        var own = sri.Series.dataLabel;
+        var shared = cri.Chart.dataLabel;
+
+        dlri.Format = !string.IsNullOrEmpty(own?.format) ? own.format
+          : !string.IsNullOrEmpty(shared?.format) ? shared.format
+          : "0";
+
+        // Two defaults, both from upstream and both kept so that no label moves unasked: inside
+        // the end when there is no data label object at all, outside it when there is one that
+        // does not say.
+        if (own != null && own.PositionInitialized)
+          dlri.Position = own.position;
+        else if (shared != null && shared.PositionInitialized)
+          dlri.Position = shared.position;
         else
-        {
-          dlri.Format = dl.Format.Length > 0 ? dl.Format : "0";
-          dlri.Font = Converter.ToXFont(dl.font, cri.DefaultDataLabelFont);
-          dlri.FontColor = Converter.ToXBrush(dl.font, XColors.Black);
-          if (dl.PositionInitialized)
-            dlri.Position = dl.position;
-          else
-            dlri.Position = DataLabelPosition.OutsideEnd;
-          if (dl.TypeInitialized)
-            dlri.Type = dl.type;
-          else
-          {
-            if (cri.Chart.type == ChartType.Pie2D || cri.Chart.type == ChartType.PieExploded2D)
-              dlri.Type = DataLabelType.Percent;
-            else
-              dlri.Type = DataLabelType.Value;
-          }
-        }
+          dlri.Position = own == null && shared == null ? DataLabelPosition.InsideEnd : DataLabelPosition.OutsideEnd;
+
+        if (own != null && own.TypeInitialized)
+          dlri.Type = own.type;
+        else if (shared != null && shared.TypeInitialized)
+          dlri.Type = shared.type;
+        else if (cri.Chart.type == ChartType.Pie2D || cri.Chart.type == ChartType.PieExploded2D)
+          dlri.Type = DataLabelType.Percent;
+        else
+          dlri.Type = DataLabelType.Value;
+
+        // The series' font inherits from the chart's data label font itself (Font.ParentFont), so
+        // it is only when the series has none that the chart's is looked at here.
+        var font = own?.font ?? shared?.font;
+        dlri.Font = Converter.ToXFont(font, cri.DefaultDataLabelFont);
+        dlri.FontColor = Converter.ToXBrush(font, cri.DefaultFontColor);
 
         sri.DataLabelRendererInfo = dlri;
       }

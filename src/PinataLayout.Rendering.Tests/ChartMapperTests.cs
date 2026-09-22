@@ -153,6 +153,31 @@ public class ChartMapperTests
     }
 
     /// <summary>
+    ///   A title's style is mapped first and its own font over it, so the font must carry across
+    ///   only what it sets. It used to carry everything, and a size set on its own answered false
+    ///   for the style's bold and an empty colour for the style's red.
+    /// </summary>
+    [Fact]
+    public void AnAxisTitlesOwnFontLeavesWhatItDoesNotSetToItsStyle()
+    {
+        var document = new Document();
+        var loud = document.Styles.AddStyle("Loud", "Normal");
+        loud.Font.Bold = true;
+        loud.Font.Color = Colors.Red;
+        var domChart = ChartIn(document);
+        domChart.YAxis.Title.Caption = "Revenue";
+        domChart.YAxis.Title.Style = "Loud";
+        domChart.YAxis.Title.Font.Size = 14;
+
+        var font = Mapped(domChart).YAxis.Title.Font;
+
+        font.Size.Point.Should().BeApproximately(14, 0.01);
+        font.Bold.Should().BeTrue();
+        font.Color.R.Should().Be(255);
+        font.Color.G.Should().Be(0);
+    }
+
+    /// <summary>
     ///   An axis the caller never touched still maps, and takes the drawn defaults rather than
     ///   whatever the last chart left behind. Every copy in the mapper is guarded by a test for
     ///   whether the value was set, and this is the path where none of them fire.
