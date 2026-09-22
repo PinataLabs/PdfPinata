@@ -222,6 +222,20 @@ This file starts at the entry below. Changes before that point are recorded only
 
 ### Fixed
 
+- **A character added by number is drawn as itself.** `AddCharacter(char)` with anything outside
+  ASCII drew U+FFFD: the renderer decoded the character's low byte on its own as UTF-8, so `'é'`,
+  `'ß'`, `'Ω'` and `'€'` all came out as the replacement character. A code above U+FFFF, which can
+  only be given through `SymbolName`, was cut to 16 bits and could draw nothing at all. The whole
+  code is now drawn, as a surrogate pair where it needs one.
+
+- **An outline entry's text colour is written for a document read from a file.** `/C` was written
+  only when the catalog's version string said PDF 1.4, and that string reads "1.3" for every
+  document opened from a file, whatever its header says. So a colour set on an outline entry of an
+  opened document was never saved. A new document saved as PDF 1.3 had the opposite problem: it
+  got a `/C` key its version does not define. The check now uses the version the document is saved
+  as, the same one the style entry `/F` beside it uses. `/C` is removed from an entry saved into a
+  version too old for it.
+
 - **A non-breakable blank is drawn as a space, and a line is not broken at it.**
   `Character.NonBreakableBlank` (and `HardBlank`, the same value) had no character. The renderer
   drew U+0000, which text normalization drops, so the blank took no room and the words either side
