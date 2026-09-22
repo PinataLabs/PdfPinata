@@ -1134,10 +1134,6 @@ internal sealed class Parser
     /// </summary>
     internal int[][] ReadObjectStreamHeader(int n, int first)
     {
-        // TODO: Concept for general error  handling.
-        // If the stream is corrupted a lot of things can go wrong here.
-        // Make it sense to do a more detailed error checking?
-
         // Create n pairs of integers with object number and offset.
         var header = new int[n][];
         for (var idx = 0; idx < n; idx++)
@@ -1711,32 +1707,6 @@ internal sealed class Parser
 
         return datetime;
     }
-
-    //    /// <summary>
-    //    /// Creates a parser for the specified PDF object type. A PDF object can define a specialized
-    //    /// parser in the optional PdfObjectInfoAttribute. If no parser is specified, the default
-    //    /// Parser object is returned.
-    //    /// </summary>
-    //    public static Parser CreateParser(PdfDocument document, Type pdfObjectType)
-    //    {
-    //      // TODO: ParserFactory
-    //      object[] attribs = null; //pdfObjectType.GetCustomAttributes(typeof(PdfObjectInfoAttribute), false);
-    //      if (attribs.Length == 1)
-    //      {
-    //        PdfObjectInfoAttribute attrib = null; //(PdfObjectInfoAttribute)attribs[0];
-    //        Type parserType = attrib.Parser;
-    //        if (parserType != null)
-    //        {
-    //          ConstructorInfo ctorInfo = parserType.GetConstructor(
-    //            BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null,
-    //            new Type[]{typeof(PdfDocument)}, null);
-    //          Parser parser = (Parser)ctorInfo.Invoke(new object[]{document});
-    //          Debug.Assert(parser != null, "Creation of parser failed.");
-    //          return parser;
-    //        }
-    //      }
-    //      return new Parser(document);
-    //    }
 
     /*
         /// <summary>
