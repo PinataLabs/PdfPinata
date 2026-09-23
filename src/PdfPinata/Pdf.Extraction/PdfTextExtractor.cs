@@ -158,84 +158,136 @@ public static class PdfTextExtractor
             }
         }
 
+        /// <remarks>
+        /// Each operator belongs to exactly one family, so at most one of these acts on it. An
+        /// operator no family knows is ignored — among them the <c>Dictionary</c> pseudo-operator:
+        /// the content parser has no dictionary grammar, so a BDC that declares its properties
+        /// inline is split in two, this pseudo-operator carrying the tag and the raw dictionary
+        /// text and the BDC that follows carrying neither. It is handled by looking back for it
+        /// from <see cref="BeginTag"/> rather than here, because by itself it opens nothing.
+        /// </remarks>
         private void Execute(CSequence content, int index, COperator op)
         {
-            switch (op.OpCode.OpCodeName)
+            var name = op.OpCode.OpCodeName;
+            _ = ExecuteGraphicsState(name, op)
+                || ExecuteTextPositioning(name, op)
+                || ExecuteTextState(name, op)
+                || ExecuteTextShowing(name, op)
+                || ExecuteMarkedContent(name, content, index, op);
+        }
+
+        /// <summary><c>q</c>, <c>Q</c> and <c>cm</c>: the part of the graphics state kept here.</summary>
+        private bool ExecuteGraphicsState(OpCodeName name, COperator op)
+        {
+            switch (name)
             {
                 case OpCodeName.q:
                     _graphicsStack.Push(_ctm);
-                    break;
+                    return true;
 
                 case OpCodeName.Q:
                     if (_graphicsStack.Count > 0)
                         _ctm = _graphicsStack.Pop();
-                    break;
+                    return true;
 
                 case OpCodeName.cm:
                     _ctm = Multiply(MatrixOf(op, 0), _ctm);
-                    break;
+                    return true;
 
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary><c>BT</c>, <c>Td</c>, <c>TD</c>, <c>Tm</c> and <c>T*</c>: where the text goes.</summary>
+        private bool ExecuteTextPositioning(OpCodeName name, COperator op)
+        {
+            switch (name)
+            {
                 case OpCodeName.BT:
                     _textMatrix = _lineMatrix = XMatrix.Identity;
-                    break;
-
-                case OpCodeName.Tf:
-                    SelectFont(op);
-                    break;
+                    return true;
 
                 case OpCodeName.Td:
                     Displace(Number(op, 0), Number(op, 1));
-                    break;
+                    return true;
 
                 case OpCodeName.TD:
                     _leading = -Number(op, 1);
                     Displace(Number(op, 0), Number(op, 1));
-                    break;
+                    return true;
 
                 case OpCodeName.Tm:
                     _textMatrix = _lineMatrix = MatrixOf(op, 0);
-                    break;
+                    return true;
 
                 case OpCodeName.Tx:   // T*, next line
                     Displace(0, -_leading);
-                    break;
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>
+        /// <c>Tf</c>, <c>TL</c>, <c>Tc</c>, <c>Tw</c>, <c>Tz</c>, <c>Ts</c> and <c>Tr</c>: how the
+        /// text is set.
+        /// </summary>
+        private bool ExecuteTextState(OpCodeName name, COperator op)
+        {
+            switch (name)
+            {
+                case OpCodeName.Tf:
+                    SelectFont(op);
+                    return true;
 
                 case OpCodeName.TL:
                     _leading = Number(op, 0);
-                    break;
+                    return true;
 
                 case OpCodeName.Tc:
                     _charSpacing = Number(op, 0);
-                    break;
+                    return true;
 
                 case OpCodeName.Tw:
                     _wordSpacing = Number(op, 0);
-                    break;
+                    return true;
 
                 case OpCodeName.Tz:
                     _horizontalScale = Number(op, 0) / 100.0;
-                    break;
+                    return true;
 
                 case OpCodeName.Ts:
                     _rise = Number(op, 0);
-                    break;
+                    return true;
 
                 case OpCodeName.Tr:
                     _renderMode = (int)Number(op, 0);
-                    break;
+                    return true;
 
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary><c>Tj</c>, <c>TJ</c>, <c>'</c> and <c>"</c>: the text itself.</summary>
+        private bool ExecuteTextShowing(OpCodeName name, COperator op)
+        {
+            switch (name)
+            {
                 case OpCodeName.Tj:
                     Show(op.Operands);
-                    break;
+                    return true;
 
                 case OpCodeName.TJ:
                     Show(op.Operands.Count > 0 && op.Operands[0] is CArray array ? array : op.Operands);
-                    break;
+                    return true;
 
                 case OpCodeName.QuoteSingle:
                     Displace(0, -_leading);
                     Show(op.Operands);
-                    break;
+                    return true;
 
                 case OpCodeName.QuoteDbl:
                     // " sets word and character spacing before showing, and moves to the next line.
@@ -246,35 +298,51 @@ public static class PdfTextExtractor
                     _charSpacing = Number(op, 1);
                     Displace(0, -_leading);
                     Show(op.Operands, 2);
-                    break;
+                    return true;
 
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary><c>BDC</c>, <c>BMC</c> and <c>EMC</c>: the marked-content sequences open.</summary>
+        private bool ExecuteMarkedContent(OpCodeName name, CSequence content, int index, COperator op)
+        {
+            switch (name)
+            {
                 case OpCodeName.BDC:
                     BeginTag(content, index, op);
-                    break;
+                    return true;
 
                 case OpCodeName.BMC:
                     // No properties are possible on this form, so no /MCID and no /ActualText —
                     // just the tag, straight off the operand the content parser gave it.
                     PushScope(new MarkedContentScope(NameOperand(op, 0), null, null));
-                    break;
+                    return true;
 
                 case OpCodeName.EMC:
-                    // A sequence opened past the depth cap was never pushed, so its end must not
-                    // pop one that was — that would take back a scope some run still inside it is
-                    // relying on. The uncapped count is what tells the two apart.
-                    if (_uncappedMarkedContentDepth > 0)
-                        _uncappedMarkedContentDepth--;
-                    else if (_markedContent.Count > 0)
-                        _markedContent.Pop();
-                    break;
+                    EndTag();
+                    return true;
 
-                // The content parser has no dictionary grammar, so a BDC that declares its
-                // properties inline is split in two: this pseudo-operator carries the tag and the
-                // raw dictionary text, and the BDC that follows carries neither. Handled by looking
-                // back for it from BeginTag rather than here, because by itself it opens nothing.
-                case OpCodeName.Dictionary:
-                    break;
+                default:
+                    return false;
             }
+        }
+
+        /// <summary>
+        /// Closes the innermost open marked-content sequence.
+        /// </summary>
+        /// <remarks>
+        /// A sequence opened past the depth cap was never pushed, so its end must not pop one that
+        /// was — that would take back a scope some run still inside it is relying on. The uncapped
+        /// count is what tells the two apart.
+        /// </remarks>
+        private void EndTag()
+        {
+            if (_uncappedMarkedContentDepth > 0)
+                _uncappedMarkedContentDepth--;
+            else if (_markedContent.Count > 0)
+                _markedContent.Pop();
         }
 
         /// <summary>

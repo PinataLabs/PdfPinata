@@ -28,6 +28,7 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using PdfPinata.Drawing;
 using PdfPinata.Pdf.Advanced;
 
@@ -88,30 +89,37 @@ public abstract class PdfAnnotation : PdfDictionary
         if (dict is PdfAnnotation annotation)
             return annotation;
 
-        return dict.Elements.GetName(Keys.Subtype) switch
-        {
-            "/Text" => new PdfTextAnnotation(dict),
-            "/Link" => new PdfLinkAnnotation(dict),
-            "/FreeText" => new PdfFreeTextAnnotation(dict),
-            "/Line" => new PdfLineAnnotation(dict),
-            "/Square" => new PdfSquareAnnotation(dict),
-            "/Circle" => new PdfCircleAnnotation(dict),
-            "/Highlight" => new PdfHighlightAnnotation(dict),
-            "/Underline" => new PdfUnderlineAnnotation(dict),
-            "/StrikeOut" => new PdfStrikeOutAnnotation(dict),
-            "/Squiggly" => new PdfSquigglyAnnotation(dict),
-            "/Stamp" => new PdfRubberStampAnnotation(dict),
-            "/FileAttachment" => new PdfFileAttachmentAnnotation(dict),
-            "/Widget" => new PdfWidgetAnnotation(dict),
-            "/Ink" => new PdfInkAnnotation(dict),
-            "/Polygon" => new PdfPolygonAnnotation(dict),
-            "/PolyLine" => new PdfPolyLineAnnotation(dict),
-            "/Popup" => new PdfPopupAnnotation(dict),
-            "/Caret" => new PdfCaretAnnotation(dict),
-            "/Redact" => new PdfRedactAnnotation(dict),
-            _ => new PdfGenericAnnotation(dict)
-        };
+        return WrappersBySubtype.TryGetValue(dict.Elements.GetName(Keys.Subtype), out var wrap)
+            ? wrap(dict)
+            : new PdfGenericAnnotation(dict);
     }
+
+    /// <summary>
+    /// The class that knows each subtype, as the constructor that wraps a dictionary read from a
+    /// document. A subtype missing from here is wrapped as <see cref="PdfGenericAnnotation"/>.
+    /// </summary>
+    private static readonly Dictionary<string, Func<PdfDictionary, PdfAnnotation>> WrappersBySubtype = new()
+    {
+        ["/Text"] = dict => new PdfTextAnnotation(dict),
+        ["/Link"] = dict => new PdfLinkAnnotation(dict),
+        ["/FreeText"] = dict => new PdfFreeTextAnnotation(dict),
+        ["/Line"] = dict => new PdfLineAnnotation(dict),
+        ["/Square"] = dict => new PdfSquareAnnotation(dict),
+        ["/Circle"] = dict => new PdfCircleAnnotation(dict),
+        ["/Highlight"] = dict => new PdfHighlightAnnotation(dict),
+        ["/Underline"] = dict => new PdfUnderlineAnnotation(dict),
+        ["/StrikeOut"] = dict => new PdfStrikeOutAnnotation(dict),
+        ["/Squiggly"] = dict => new PdfSquigglyAnnotation(dict),
+        ["/Stamp"] = dict => new PdfRubberStampAnnotation(dict),
+        ["/FileAttachment"] = dict => new PdfFileAttachmentAnnotation(dict),
+        ["/Widget"] = dict => new PdfWidgetAnnotation(dict),
+        ["/Ink"] = dict => new PdfInkAnnotation(dict),
+        ["/Polygon"] = dict => new PdfPolygonAnnotation(dict),
+        ["/PolyLine"] = dict => new PdfPolyLineAnnotation(dict),
+        ["/Popup"] = dict => new PdfPopupAnnotation(dict),
+        ["/Caret"] = dict => new PdfCaretAnnotation(dict),
+        ["/Redact"] = dict => new PdfRedactAnnotation(dict),
+    };
 
     private void Initialize()
     {
