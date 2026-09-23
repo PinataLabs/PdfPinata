@@ -93,8 +93,7 @@ public partial class Series : ChartObject
     {
         get
         {
-            if (seriesElements == null)
-                seriesElements = new SeriesElements(this);
+            seriesElements ??= new SeriesElements(this);
 
             return seriesElements;
         }
@@ -125,8 +124,7 @@ public partial class Series : ChartObject
     {
         get
         {
-            if (lineFormat == null)
-                lineFormat = new LineFormat(this);
+            lineFormat ??= new LineFormat(this);
 
             return lineFormat;
         }
@@ -146,8 +144,7 @@ public partial class Series : ChartObject
     {
         get
         {
-            if (fillFormat == null)
-                fillFormat = new FillFormat(this);
+            fillFormat ??= new FillFormat(this);
 
             return fillFormat;
         }
@@ -222,8 +219,7 @@ public partial class Series : ChartObject
     {
         get
         {
-            if (dataLabel == null)
-                dataLabel = new DataLabel(this);
+            dataLabel ??= new DataLabel(this);
 
             return dataLabel;
         }

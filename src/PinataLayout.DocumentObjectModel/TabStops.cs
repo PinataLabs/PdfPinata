@@ -114,7 +114,7 @@ public partial class TabStops : DocumentObjectCollection
       var count = Count;
       for (var index = 0; index < count; index++)
       {
-        if (tabStop.Position.Point < (this[index]).Position.Point)
+        if (tabStop.Position.Point < this[index].Position.Point)
         {
           InsertObject(index, tabStop);
           return tabStop;

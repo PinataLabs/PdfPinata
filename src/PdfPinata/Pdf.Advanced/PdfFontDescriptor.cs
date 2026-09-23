@@ -340,8 +340,7 @@ public sealed class PdfFontDescriptor : PdfDictionary
         {
             get
             {
-                if (_meta == null)
-                    _meta = CreateMeta(typeof(Keys));
+                _meta ??= CreateMeta(typeof(Keys));
                 return _meta;
             }
         }

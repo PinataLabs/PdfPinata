@@ -50,15 +50,14 @@ internal abstract class LegendRenderer : Renderer
   /// </summary>
   internal override void Format()
   {
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
     var lri = cri.LegendRendererInfo;
     if (lri == null)
       return;
 
-    var parms = new RendererParameters();
-    parms.Graphics = this.rendererParms.Graphics;
+    var parms = new RendererParameters { Graphics = rendererParms.Graphics };
 
-    var verticalLegend = (lri.Legend.docking == DockingType.Left || lri.Legend.docking == DockingType.Right);
+    var verticalLegend = lri.Legend.docking == DockingType.Left || lri.Legend.docking == DockingType.Right;
     var maxMarkerArea = new XSize();
     var ler = new LegendEntryRenderer(parms);
     foreach (var leri in lri.Entries)
@@ -91,7 +90,7 @@ internal abstract class LegendRenderer : Renderer
     // The room the entries have across the chart: its width, less the legend's padding either
     // side. An entry wider than that is word wrapped to fit, whichever side the legend is docked
     // to - a single entry longer than the chart used to push the legend off both sides of it.
-    var maxWidth = this.rendererParms.Box.Width
+    var maxWidth = rendererParms.Box.Width
       - (LegendRenderer.LeftPadding + LegendRenderer.RightPadding) * paddingFactor;
     if (maxWidth > 0)
     {
@@ -112,7 +111,9 @@ internal abstract class LegendRenderer : Renderer
       lri.Height += LegendRenderer.EntrySpacing * (lri.Entries.Length - 1);
     }
     else
+    {
       LayoutRows(lri, maxWidth);
+    }
 
     // Add padding to left, right, top and bottom
     lri.Width += (LegendRenderer.LeftPadding + LegendRenderer.RightPadding) * paddingFactor;
@@ -170,18 +171,17 @@ internal abstract class LegendRenderer : Renderer
   /// </summary>
   internal override void Draw()
   {
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
     var lri = cri.LegendRendererInfo;
     if (lri == null)
       return;
 
-    var gfx = this.rendererParms.Graphics;
-    var parms = new RendererParameters();
-    parms.Graphics = gfx;
+    var gfx = rendererParms.Graphics;
+    var parms = new RendererParameters { Graphics = gfx };
 
     var ler = new LegendEntryRenderer(parms);
 
-    var verticalLegend = (lri.Legend.docking == DockingType.Left || lri.Legend.docking == DockingType.Right);
+    var verticalLegend = lri.Legend.docking == DockingType.Left || lri.Legend.docking == DockingType.Right;
     var paddingFactor = 1;
     if (lri.BorderPen != null)
       paddingFactor = 2;

@@ -62,13 +62,15 @@ internal class TableRenderer : Renderer
   {
     get
     {
-      var layoutInfo = new LayoutInfo();
-      layoutInfo.KeepTogether = _table.KeepTogether;
-      layoutInfo.KeepWithNext = false;
-      layoutInfo.MarginBottom = 0;
-      layoutInfo.MarginLeft = 0;
-      layoutInfo.MarginTop = 0;
-      layoutInfo.MarginRight = 0;
+      var layoutInfo = new LayoutInfo
+      {
+        KeepTogether = _table.KeepTogether,
+        KeepWithNext = false,
+        MarginBottom = 0,
+        MarginLeft = 0,
+        MarginTop = 0,
+        MarginRight = 0
+      };
       return layoutInfo;
     }
   }
@@ -302,7 +304,9 @@ internal class TableRenderer : Renderer
       targetY /= 2;
     }
     else
+    {
       targetY = innerRect.Y + cell.Row.TopPadding;
+    }
 
     RenderByInfos(targetX, targetY, renderInfos);
   }
@@ -353,18 +357,18 @@ internal class TableRenderer : Renderer
       DescribeTable(element);
       RenderHeaderRows();
 
-      if (_startRow < _table.Rows.Count)
-      {
-        var cellIdx = _mergedCells.BinarySearch(_table[_startRow, 0], new CellComparer());
-        while (cellIdx < _mergedCells.Count)
-        {
-          var cell = _mergedCells[cellIdx];
-          if (cell.Row.Index > _endRow)
-            break;
+      if (_startRow >= _table.Rows.Count)
+        return;
 
-          RenderCell(cell);
-          ++cellIdx;
-        }
+      var cellIdx = _mergedCells.BinarySearch(_table[_startRow, 0], new CellComparer());
+      while (cellIdx < _mergedCells.Count)
+      {
+        var cell = _mergedCells[cellIdx];
+        if (cell.Row.Index > _endRow)
+          break;
+
+        RenderCell(cell);
+        ++cellIdx;
       }
     }
   }
@@ -577,16 +581,18 @@ internal class TableRenderer : Renderer
   {
     get
     {
-      if (field < 0)
+      if (field >= 0)
+        return field;
+
+      if (_table.Rows.Count > 0 && _table.Columns.Count > 0)
       {
-        if (_table.Rows.Count > 0 && _table.Columns.Count > 0)
-        {
-          var borders = _mergedCells.GetEffectiveBorders(_table[0, 0]);
-          var bordersRenderer = new BordersRenderer(borders, Gfx);
-          field = bordersRenderer.GetWidth(BorderType.Left);
-        }
-        else
-          field = 0;
+        var borders = _mergedCells.GetEffectiveBorders(_table[0, 0]);
+        var bordersRenderer = new BordersRenderer(borders, Gfx);
+        field = bordersRenderer.GetWidth(BorderType.Left);
+      }
+      else
+      {
+        field = 0;
       }
       return field;
     }
@@ -682,11 +688,11 @@ internal class TableRenderer : Renderer
     _connectedRowsMap = new SortedList<int, int>();
     foreach (var cell in _mergedCells)
     {
-      if (!_connectedRowsMap.ContainsKey(cell.Row.Index))
-      {
-        var lastConnectedRow = CalcLastConnectedRow(cell.Row.Index);
-        _connectedRowsMap[cell.Row.Index] = lastConnectedRow;
-      }
+      if (_connectedRowsMap.ContainsKey(cell.Row.Index))
+        continue;
+
+      var lastConnectedRow = CalcLastConnectedRow(cell.Row.Index);
+      _connectedRowsMap[cell.Row.Index] = lastConnectedRow;
     }
   }
 
@@ -695,18 +701,17 @@ internal class TableRenderer : Renderer
     _connectedColumnsMap = new SortedList<int, int>();
     foreach (var cell in _mergedCells)
     {
-      if (!_connectedColumnsMap.ContainsKey(cell.Column.Index))
-      {
-        var lastConnectedColumn = CalcLastConnectedColumn(cell.Column.Index);
-        _connectedColumnsMap[cell.Column.Index] = lastConnectedColumn;
-      }
+      if (_connectedColumnsMap.ContainsKey(cell.Column.Index))
+        continue;
+
+      var lastConnectedColumn = CalcLastConnectedColumn(cell.Column.Index);
+      _connectedColumnsMap[cell.Column.Index] = lastConnectedColumn;
     }
   }
 
   private void CreateBottomBorderMap()
   {
-    _bottomBorderMap = new SortedList<int, XUnit>();
-    _bottomBorderMap.Add(0, XUnit.FromPoint(0));
+    _bottomBorderMap = new SortedList<int, XUnit> { { 0, XUnit.FromPoint(0) } };
     while (!_bottomBorderMap.ContainsKey(_table.Rows.Count))
     {
       CreateNextBottomBorderPosition();
@@ -720,24 +725,24 @@ internal class TableRenderer : Renderer
   private XUnit CalcMaxTopBorderWidth(int row)
   {
     XUnit maxWidth = 0;
-    if (_table.Rows.Count > row)
-    {
-      var cellIdx = _mergedCells.BinarySearch(_table[row, 0], new CellComparer());
-      while (cellIdx < _mergedCells.Count)
-      {
-        var rowCell = _mergedCells[cellIdx];
-        if (rowCell.Row.Index > row)
-          break;
+    if (_table.Rows.Count <= row)
+      return maxWidth;
 
-        if (!rowCell.IsNull("Borders"))
-        {
-          var bordersRenderer = new BordersRenderer(rowCell.Borders, Gfx);
-          var width = bordersRenderer.GetWidth(BorderType.Top);
-          if (width > maxWidth)
-            maxWidth = width;
-        }
-        ++cellIdx;
+    var cellIdx = _mergedCells.BinarySearch(_table[row, 0], new CellComparer());
+    while (cellIdx < _mergedCells.Count)
+    {
+      var rowCell = _mergedCells[cellIdx];
+      if (rowCell.Row.Index > row)
+        break;
+
+      if (!rowCell.IsNull("Borders"))
+      {
+        var bordersRenderer = new BordersRenderer(rowCell.Borders, Gfx);
+        var width = bordersRenderer.GetWidth(BorderType.Top);
+        if (width > maxWidth)
+          maxWidth = width;
       }
+      ++cellIdx;
     }
     return maxWidth;
   }
@@ -763,15 +768,15 @@ internal class TableRenderer : Renderer
       if (rowIndex > mergedIndexPlusDown)
         break;
 
-      if (cell.MergedBottomRowIndex == mergedIndexPlusDown)
-      {
-        var formattedCell = _formattedCells[cell];
-        var topBorderPos = _bottomBorderMap[rowIndex];
-        XUnit bottomBorderPos = topBorderPos + formattedCell.InnerHeight;
-        bottomBorderPos += CalcBottomBorderWidth(cell);
-        if (bottomBorderPos > maxBottomBorderPosition)
-          maxBottomBorderPosition = bottomBorderPos;
-      }
+      if (cell.MergedBottomRowIndex != mergedIndexPlusDown)
+        continue;
+
+      var formattedCell = _formattedCells[cell];
+      var topBorderPos = _bottomBorderMap[rowIndex];
+      XUnit bottomBorderPos = topBorderPos + formattedCell.InnerHeight;
+      bottomBorderPos += CalcBottomBorderWidth(cell);
+      if (bottomBorderPos > maxBottomBorderPosition)
+        maxBottomBorderPosition = bottomBorderPos;
     }
     _bottomBorderMap.Add(mergedIndexPlusDown + 1, maxBottomBorderPosition);
   }
@@ -784,12 +789,11 @@ internal class TableRenderer : Renderer
   private XUnit CalcBottomBorderWidth(Cell cell)
   {
     var borders = _mergedCells.GetEffectiveBorders(cell);
-    if (borders != null)
-    {
-      var bordersRenderer = new BordersRenderer(borders, Gfx);
-      return bordersRenderer.GetWidth(BorderType.Bottom);
-    }
-    return 0;
+    if (borders == null)
+      return 0;
+
+    var bordersRenderer = new BordersRenderer(borders, Gfx);
+    return bordersRenderer.GetWidth(BorderType.Bottom);
   }
 
   /// <summary>
@@ -820,7 +824,9 @@ internal class TableRenderer : Renderer
         }
       }
       else if (rowIndex > row)
+      {
         break;
+      }
     }
     return minCell;
   }
@@ -846,12 +852,12 @@ internal class TableRenderer : Renderer
     foreach (var cell in _mergedCells)
     {
       var index = cell.Row.Index; // Note: Caching index here for speedup for large tables.
-      if (index <= lastConnectedRow)
-      {
-        var downConnection = Math.Min(Math.Max(cell.Row.KeepWith, cell.MergeDown), lastRow - index);
-        if (lastConnectedRow < index + downConnection)
-          lastConnectedRow = index + downConnection;
-      }
+      if (index > lastConnectedRow)
+        continue;
+
+      var downConnection = Math.Min(Math.Max(cell.Row.KeepWith, cell.MergeDown), lastRow - index);
+      if (lastConnectedRow < index + downConnection)
+        lastConnectedRow = index + downConnection;
     }
     return lastConnectedRow;
   }
@@ -872,12 +878,12 @@ internal class TableRenderer : Renderer
     foreach (var cell in _mergedCells)
     {
       var index = cell.Column.Index;
-      if (index <= lastConnectedColumn)
-      {
-        var rightConnection = Math.Min(Math.Max(cell.Column.KeepWith, cell.MergeRight), lastColumn - index);
-        if (lastConnectedColumn < index + rightConnection)
-          lastConnectedColumn = index + rightConnection;
-      }
+      if (index > lastConnectedColumn)
+        continue;
+
+      var rightConnection = Math.Min(Math.Max(cell.Column.KeepWith, cell.MergeRight), lastColumn - index);
+      if (lastConnectedColumn < index + rightConnection)
+        lastConnectedColumn = index + rightConnection;
     }
     return lastConnectedColumn;
   }

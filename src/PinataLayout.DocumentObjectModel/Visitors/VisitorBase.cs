@@ -108,7 +108,9 @@ public abstract class VisitorBase : DocumentObjectVisitor
             }
         }
         else if (refFormat.font != null)
+        {
             FlattenFont(format.font, refFormat.font);
+        }
 
         if (format.shading == null)
         {
@@ -119,7 +121,9 @@ public abstract class VisitorBase : DocumentObjectVisitor
             }
         }
         else if (refFormat.shading != null)
+        {
             FlattenShading(format.shading, refFormat.shading);
+        }
 
         // Copied rather than shared, as the font and the shading above are: a format is flattened
         // more than once, and the second pass would otherwise write what it inherits back into the
@@ -157,14 +161,11 @@ public abstract class VisitorBase : DocumentObjectVisitor
     /// </summary>
     protected Border FlattenedBorderFromBorders(Border border, Borders parentBorders)
     {
-        if (border == null)
-            border = new Border(parentBorders);
+        border ??= new Border(parentBorders);
 
-        if (border.visible == null)
-            border.visible = parentBorders.visible;
+        border.visible ??= parentBorders.visible;
 
-        if (border.style == null)
-            border.style = parentBorders.style;
+        border.style ??= parentBorders.style;
 
         if (border.width.IsNull)
             border.width = parentBorders.width;
@@ -229,11 +230,11 @@ public abstract class VisitorBase : DocumentObjectVisitor
             FlattenedBorderFromBorders(borders.top, borders);
         }
 
-        if (refBorders.bottom != null)
-        {
-            FlattenBorder(borders.Bottom, refBorders.bottom);
-            FlattenedBorderFromBorders(borders.bottom, borders);
-        }
+        if (refBorders.bottom == null)
+            return;
+
+        FlattenBorder(borders.Bottom, refBorders.bottom);
+        FlattenedBorderFromBorders(borders.bottom, borders);
     }
 
 #pragma warning disable CA1822 // Protected on an unsealed public visitor: making it static would change the public API.
@@ -279,7 +280,9 @@ public abstract class VisitorBase : DocumentObjectVisitor
                 pageSetup.pageFormat = refPageSetup.pageFormat;
             }
             else
+            {
                 PageSetup.GetPageSize(pageSetup.PageFormat, out pageSetup.pageWidth, out pageSetup.pageHeight);
+            }
         }
         else
         {
@@ -303,10 +306,8 @@ public abstract class VisitorBase : DocumentObjectVisitor
             }
         }
 
-        if (pageSetup.sectionStart == null)
-            pageSetup.sectionStart = refPageSetup.sectionStart;
-        if (pageSetup.orientation == null)
-            pageSetup.orientation = refPageSetup.orientation;
+        pageSetup.sectionStart ??= refPageSetup.sectionStart;
+        pageSetup.orientation ??= refPageSetup.orientation;
         if (pageSetup.topMargin.IsNull)
             pageSetup.topMargin = refPageSetup.topMargin;
         if (pageSetup.bottomMargin.IsNull)
@@ -319,14 +320,10 @@ public abstract class VisitorBase : DocumentObjectVisitor
             pageSetup.headerDistance = refPageSetup.headerDistance;
         if (pageSetup.footerDistance.IsNull)
             pageSetup.footerDistance = refPageSetup.footerDistance;
-        if (pageSetup.oddAndEvenPagesHeaderFooter == null)
-            pageSetup.oddAndEvenPagesHeaderFooter = refPageSetup.oddAndEvenPagesHeaderFooter;
-        if (pageSetup.differentFirstPageHeaderFooter == null)
-            pageSetup.differentFirstPageHeaderFooter = refPageSetup.differentFirstPageHeaderFooter;
-        if (pageSetup.mirrorMargins == null)
-            pageSetup.mirrorMargins = refPageSetup.mirrorMargins;
-        if (pageSetup.horizontalPageBreak == null)
-            pageSetup.horizontalPageBreak = refPageSetup.horizontalPageBreak;
+        pageSetup.oddAndEvenPagesHeaderFooter ??= refPageSetup.oddAndEvenPagesHeaderFooter;
+        pageSetup.differentFirstPageHeaderFooter ??= refPageSetup.differentFirstPageHeaderFooter;
+        pageSetup.mirrorMargins ??= refPageSetup.mirrorMargins;
+        pageSetup.horizontalPageBreak ??= refPageSetup.horizontalPageBreak;
     }
 
     /// <summary>
@@ -345,11 +342,11 @@ public abstract class VisitorBase : DocumentObjectVisitor
     /// <summary>Fills in the line width when it is unset and <paramref name="refLineFormat"/> has one.</summary>
     protected void FlattenLineFormat(LineFormat lineFormat, LineFormat refLineFormat)
     {
-        if (refLineFormat != null)
-        {
-            if (lineFormat.width.IsNull)
-                lineFormat.width = refLineFormat.width;
-        }
+        if (refLineFormat == null)
+            return;
+
+        if (lineFormat.width.IsNull)
+            lineFormat.width = refLineFormat.width;
     }
 #pragma warning restore CA1822
 
@@ -367,8 +364,7 @@ public abstract class VisitorBase : DocumentObjectVisitor
         if (axis == null)
             return;
 
-        var refLineFormat = new LineFormat();
-        refLineFormat.width = 0.15;
+        var refLineFormat = new LineFormat { width = 0.15 };
         if ((axis.hasMajorGridlines ?? false) && axis.majorGridlines != null)
             FlattenLineFormat(axis.majorGridlines.lineFormat, refLineFormat);
         if ((axis.hasMinorGridlines ?? false) && axis.minorGridlines != null)
@@ -418,16 +414,17 @@ public abstract class VisitorBase : DocumentObjectVisitor
     internal override void VisitChart(Chart chart)
     {
         var document = chart.Document;
-        if (chart.style == null)
-            chart.style = Style.DefaultParagraphName;
-        var style = document.Styles[(chart.style ?? "")];
+        chart.style ??= Style.DefaultParagraphName;
+        var style = document.Styles[chart.style ?? ""];
         if (chart.format == null)
         {
             chart.format = style.paragraphFormat.Clone();
             chart.format.parent = chart;
         }
         else
+        {
             FlattenParagraphFormat(chart.format, style.paragraphFormat);
+        }
 
 
         FlattenLineFormat(chart.lineFormat, null);
@@ -461,13 +458,13 @@ public abstract class VisitorBase : DocumentObjectVisitor
     internal override void VisitStyle(Style style)
     {
         var baseStyle = style.GetBaseStyle();
-        if (baseStyle is { paragraphFormat: not null })
-        {
-            if (style.paragraphFormat == null)
-                style.paragraphFormat = baseStyle.paragraphFormat;
-            else
-                FlattenParagraphFormat(style.paragraphFormat, baseStyle.paragraphFormat);
-        }
+        if (baseStyle is not { paragraphFormat: not null })
+            return;
+
+        if (style.paragraphFormat == null)
+            style.paragraphFormat = baseStyle.paragraphFormat;
+        else
+            FlattenParagraphFormat(style.paragraphFormat, baseStyle.paragraphFormat);
     }
 
     internal override void VisitStyles(Styles styles)
@@ -484,9 +481,11 @@ public abstract class VisitorBase : DocumentObjectVisitor
 
         ParagraphFormat format;
 
-        var style = document.styles[(footnote.style ?? "")];
+        var style = document.styles[footnote.style ?? ""];
         if (style != null)
+        {
             format = ParagraphFormatFromStyle(style);
+        }
         else
         {
             footnote.Style = "Footnote";
@@ -499,7 +498,9 @@ public abstract class VisitorBase : DocumentObjectVisitor
             footnote.format.parent = footnote;
         }
         else
+        {
             FlattenParagraphFormat(footnote.format, format);
+        }
     }
 
     internal override void VisitParagraph(Paragraph paragraph)
@@ -509,9 +510,11 @@ public abstract class VisitorBase : DocumentObjectVisitor
         ParagraphFormat format;
 
         var currentElementHolder = GetDocumentElementHolder(paragraph);
-        var style = document.styles[(paragraph.style ?? "")];
+        var style = document.styles[paragraph.style ?? ""];
         if (style != null)
+        {
             format = ParagraphFormatFromStyle(style);
+        }
 
         else if (currentElementHolder is Cell cell)
         {
@@ -559,7 +562,9 @@ public abstract class VisitorBase : DocumentObjectVisitor
             paragraph.format.parent = paragraph;
         }
         else
+        {
             FlattenParagraphFormat(paragraph.format, format);
+        }
     }
 
     #endregion
@@ -576,9 +581,11 @@ public abstract class VisitorBase : DocumentObjectVisitor
             styleString = "Footer";
 
         ParagraphFormat format;
-        var style = document.styles[(headerFooter.style ?? "")];
+        var style = document.styles[headerFooter.style ?? ""];
         if (style != null)
+        {
             format = ParagraphFormatFromStyle(style);
+        }
         else
         {
             format = document.styles[styleString].paragraphFormat;
@@ -591,7 +598,9 @@ public abstract class VisitorBase : DocumentObjectVisitor
             headerFooter.format.parent = headerFooter;
         }
         else
+        {
             FlattenParagraphFormat(headerFooter.format, format);
+        }
     }
 
     internal override void VisitHeadersFooters(HeadersFooters headersFooters)
@@ -697,7 +706,9 @@ public abstract class VisitorBase : DocumentObjectVisitor
             return format;
         }
         else
+        {
             return style.paragraphFormat;
+        }
     }
 
     internal override void VisitTable(Table table)

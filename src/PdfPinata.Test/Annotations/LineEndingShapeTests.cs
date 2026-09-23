@@ -141,8 +141,10 @@ public class LineEndingShapeTests
     public void AnEndpointOfALineWithNoProperLineArrayIsTheOrigin()
     {
         var document = new PdfDocument();
-        var line = new PdfLineAnnotation(document);
-        line.Elements["/L"] = new PdfArray(document, new PdfReal(1), new PdfReal(2));
+        var line = new PdfLineAnnotation(document)
+        {
+            Elements = { ["/L"] = new PdfArray(document, new PdfReal(1), new PdfReal(2)) }
+        };
 
         line.Start.Should().Be(new XPoint());
         line.End.Should().Be(new XPoint());

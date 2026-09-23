@@ -21,7 +21,7 @@ namespace PdfPinata.Test.Drawing;
 /// </remarks>
 public class BarCodeFactoryTests
 {
-    private static readonly XSize Size = new XSize(120, 40);
+    private static readonly XSize Size = new(120, 40);
 
     [Theory]
     [InlineData(CodeType.Code2of5Interleaved, typeof(Code2of5Interleaved))]

@@ -69,8 +69,8 @@ public partial class Barcode : Shape
   /// </summary>
   public TextOrientation Orientation
   {
-    get => this.orientation ?? default;
-    set => this.orientation = EnumGuard.Checked(value);
+    get => orientation ?? default;
+    set => orientation = EnumGuard.Checked(value);
   }
   [DV]
   internal TextOrientation? orientation;
@@ -80,8 +80,8 @@ public partial class Barcode : Shape
   /// </summary>
   public BarcodeType Type
   {
-    get => this.type ?? default;
-    set => this.type = EnumGuard.Checked(value);
+    get => type ?? default;
+    set => type = EnumGuard.Checked(value);
   }
   [DV]
   internal BarcodeType? type;
@@ -91,8 +91,8 @@ public partial class Barcode : Shape
   /// </summary>
   public bool BearerBars
   {
-    get => this.bearerBars ?? false;
-    set => this.bearerBars = value;
+    get => bearerBars ?? false;
+    set => bearerBars = value;
   }
   [DV]
   internal bool? bearerBars;
@@ -102,8 +102,8 @@ public partial class Barcode : Shape
   /// </summary>
   public bool Text
   {
-    get => this.text ?? false;
-    set => this.text = value;
+    get => text ?? false;
+    set => text = value;
   }
   [DV]
   internal bool? text;
@@ -113,8 +113,8 @@ public partial class Barcode : Shape
   /// </summary>
   public string Code
   {
-    get => this.code ?? "";
-    set => this.code = value;
+    get => code ?? "";
+    set => code = value;
   }
   [DV]
   internal string code;
@@ -124,8 +124,8 @@ public partial class Barcode : Shape
   /// </summary>
   public double LineRatio
   {
-    get => this.lineRatio ?? 0;
-    set => this.lineRatio = value;
+    get => lineRatio ?? 0;
+    set => lineRatio = value;
   }
   [DV]
   internal double? lineRatio;
@@ -135,8 +135,8 @@ public partial class Barcode : Shape
   /// </summary>
   public double LineHeight
   {
-    get => this.lineHeight ?? 0;
-    set => this.lineHeight = value;
+    get => lineHeight ?? 0;
+    set => lineHeight = value;
   }
   [DV]
   internal double? lineHeight;
@@ -146,8 +146,8 @@ public partial class Barcode : Shape
   /// </summary>
   public double NarrowLineWidth
   {
-    get => this.narrowLineWidth ?? 0;
-    set => this.narrowLineWidth = value;
+    get => narrowLineWidth ?? 0;
+    set => narrowLineWidth = value;
   }
   [DV]
   internal double? narrowLineWidth;
@@ -159,29 +159,29 @@ public partial class Barcode : Shape
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    if ((this.code ?? "") == "")
+    if ((code ?? "") == "")
       throw new InvalidOperationException(DomSR.MissingObligatoryProperty("Name", "BookmarkField"));
 
-    serializer.WriteLine("\\barcode(\"" + this.Code + "\")");
+    serializer.WriteLine("\\barcode(\"" + Code + "\")");
 
     var pos = serializer.BeginAttributes();
 
     base.Serialize(serializer);
 
-    if (this.orientation != null)
-      serializer.WriteSimpleAttribute("Orientation", this.Orientation);
-    if (this.bearerBars != null)
-      serializer.WriteSimpleAttribute("BearerBars", this.BearerBars);
-    if (this.text != null)
-      serializer.WriteSimpleAttribute("Text", this.Text);
-    if (this.type != null)
-      serializer.WriteSimpleAttribute("Type", this.Type);
-    if (this.lineRatio != null)
-      serializer.WriteSimpleAttribute("LineRatio", this.LineRatio);
-    if (this.lineHeight != null)
-      serializer.WriteSimpleAttribute("LineHeight", this.LineHeight);
-    if (this.narrowLineWidth != null)
-      serializer.WriteSimpleAttribute("NarrowLineWidth", this.NarrowLineWidth);
+    if (orientation != null)
+      serializer.WriteSimpleAttribute("Orientation", Orientation);
+    if (bearerBars != null)
+      serializer.WriteSimpleAttribute("BearerBars", BearerBars);
+    if (text != null)
+      serializer.WriteSimpleAttribute("Text", Text);
+    if (type != null)
+      serializer.WriteSimpleAttribute("Type", Type);
+    if (lineRatio != null)
+      serializer.WriteSimpleAttribute("LineRatio", LineRatio);
+    if (lineHeight != null)
+      serializer.WriteSimpleAttribute("LineHeight", LineHeight);
+    if (narrowLineWidth != null)
+      serializer.WriteSimpleAttribute("NarrowLineWidth", NarrowLineWidth);
 
     serializer.EndAttributes(pos);
   }

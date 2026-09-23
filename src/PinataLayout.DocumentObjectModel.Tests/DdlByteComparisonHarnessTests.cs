@@ -26,9 +26,11 @@ public class DdlByteComparisonHarnessTests
 
     private static Document NullableValuesSetAndUnset()
     {
-        var document = new Document();
-        document.Info.Title = "A title";
-        document.FootnoteStartingNumber = 7;
+        var document = new Document
+        {
+            Info = { Title = "A title" },
+            FootnoteStartingNumber = 7
+        };
 
         var section = document.AddSection();
         section.PageSetup.StartingNumber = 3;

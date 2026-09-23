@@ -52,10 +52,10 @@ public class AstralCharacterTests
     private static string Text(int codePoint) => char.ConvertFromUtf32(codePoint);
 
     /// <summary>The face with a format 12 subtable.</summary>
-    private static XFont WithFormat12() => new XFont(PinnedFontResolver.CffFamilyName, 20);
+    private static XFont WithFormat12() => new(PinnedFontResolver.CffFamilyName, 20);
 
     /// <summary>The face without one.</summary>
-    private static XFont WithoutFormat12() => new XFont("Arial", 20);
+    private static XFont WithoutFormat12() => new("Arial", 20);
 
     private sealed class Installed : IDisposable
     {
@@ -187,12 +187,12 @@ public class AstralCharacterTests
         using var reopened = Reader.Open(saved, PdfDocumentOpenMode.ReadOnly);
         foreach (var item in reopened.Internals.GetAllObjects())
         {
-            if (item is PdfDictionary { Stream: not null } dictionary)
-            {
-                var decoded = Encoding.ASCII.GetString(dictionary.Stream.UnfilteredValue);
-                if (decoded.Contains("begincmap"))
-                    return decoded;
-            }
+            if (item is not PdfDictionary { Stream: not null } dictionary)
+                continue;
+
+            var decoded = Encoding.ASCII.GetString(dictionary.Stream.UnfilteredValue);
+            if (decoded.Contains("begincmap"))
+                return decoded;
         }
 
         return null;

@@ -19,7 +19,7 @@ namespace PdfPinata.Test.Pdfs;
 [Collection(ClockCollection.Name)]
 public class GlobalTimeSettingsTests
 {
-    private static readonly DateTime AFixedTime = new DateTime(2019, 7, 16, 13, 45, 22);
+    private static readonly DateTime AFixedTime = new(2019, 7, 16, 13, 45, 22);
 
     [Fact]
     public void TheClockReadsTheSystemClockUntilOneIsSet()

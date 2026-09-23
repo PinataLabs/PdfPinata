@@ -125,7 +125,7 @@ public struct Unit : IFormattable, INullableValue, IEquatable<Unit>
     /// </summary>
     public double Value
     {
-        get => (IsNull ? 0 : value);
+        get => IsNull ? 0 : value;
         set
         {
             this.value = (float)value;
@@ -679,27 +679,27 @@ public struct Unit : IFormattable, INullableValue, IEquatable<Unit>
         {
             case UnitType.Centimeter:
                 value = (float)Centimeter;
-                this.type = UnitType.Centimeter;
+                type = UnitType.Centimeter;
                 break;
 
             case UnitType.Inch:
                 value = (float)Inch;
-                this.type = UnitType.Inch;
+                type = UnitType.Inch;
                 break;
 
             case UnitType.Millimeter:
                 value = (float)Millimeter;
-                this.type = UnitType.Millimeter;
+                type = UnitType.Millimeter;
                 break;
 
             case UnitType.Pica:
                 value = (float)Pica;
-                this.type = UnitType.Pica;
+                type = UnitType.Pica;
                 break;
 
             case UnitType.Point:
                 value = (float)Point;
-                this.type = UnitType.Point;
+                type = UnitType.Point;
                 break;
 
             default:
@@ -712,12 +712,12 @@ public struct Unit : IFormattable, INullableValue, IEquatable<Unit>
     /// <summary>
     /// Represents the uninitialized Unit object.
     /// </summary>
-    public static readonly Unit Empty = new Unit();
+    public static readonly Unit Empty = new();
 
     /// <summary>
     /// Represents an initialized Unit object with value 0 and unit type point.
     /// </summary>
-    public static readonly Unit Zero = new Unit(0);
+    public static readonly Unit Zero = new(0);
 
     /// <summary>
     /// Represents the uninitialized Unit object. Same as Unit.Empty.

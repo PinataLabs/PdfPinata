@@ -139,8 +139,7 @@ public partial class ParagraphFormat : DocumentObject
   {
     get
     {
-      if (borders == null)
-        borders = new Borders(this);
+      borders ??= new Borders(this);
 
       return borders;
     }
@@ -172,8 +171,7 @@ public partial class ParagraphFormat : DocumentObject
   {
     get
     {
-      if (font == null)
-        font = new Font(this);
+      font ??= new Font(this);
 
       return font;
     }
@@ -249,8 +247,7 @@ public partial class ParagraphFormat : DocumentObject
   {
     get
     {
-      if (listInfo == null)
-        listInfo = new ListInfo(this);
+      listInfo ??= new ListInfo(this);
 
       return listInfo;
     }
@@ -304,8 +301,7 @@ public partial class ParagraphFormat : DocumentObject
   {
     get
     {
-      if (shading == null)
-        shading = new Shading(this);
+      shading ??= new Shading(this);
 
       return shading;
     }
@@ -353,8 +349,7 @@ public partial class ParagraphFormat : DocumentObject
   {
     get
     {
-      if (tabStops == null)
-        tabStops = new TabStops(this);
+      tabStops ??= new TabStops(this);
 
       return tabStops;
     }
@@ -434,7 +429,7 @@ public partial class ParagraphFormat : DocumentObject
     if (alignment != null && (refFormat == null || alignment != refFormat.alignment))
       serializer.WriteSimpleAttribute("Alignment", Alignment);
 
-    if (!leftIndent.IsNull && (refFormat == null || (leftIndent != refFormat.leftIndent)))
+    if (!leftIndent.IsNull && (refFormat == null || leftIndent != refFormat.leftIndent))
       serializer.WriteSimpleAttribute("LeftIndent", LeftIndent);
 
     if (!firstLineIndent.IsNull && (refFormat == null || firstLineIndent != refFormat.firstLineIndent))

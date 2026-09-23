@@ -77,9 +77,7 @@ public class XPenAndBrushTests
     {
         // The two are alternatives rather than layers - a pen strokes with one or the other, so
         // setting either has to clear the other or the renderer would have to guess.
-        var pen = new XPen(new XSolidBrush(XColors.Blue));
-
-        pen.Color = XColors.Green;
+        var pen = new XPen(new XSolidBrush(XColors.Blue)) { Color = XColors.Green };
         pen.Brush.Should().BeNull();
 
         var brush = new XSolidBrush(XColors.Blue);
@@ -244,8 +242,7 @@ public class XPenAndBrushTests
     {
         var original = new XSolidBrush(XColors.Red);
 
-        var copy = new XSolidBrush(original);
-        copy.Color = XColors.Green;
+        var copy = new XSolidBrush(original) { Color = XColors.Green };
 
         copy.Color.Should().Be(XColors.Green);
         original.Color.Should().Be(XColors.Red);
@@ -264,9 +261,7 @@ public class XPenAndBrushTests
     [Fact]
     public void ACopyOfAPredefinedBrushCanBeRecoloured()
     {
-        var brush = new XSolidBrush(XBrushes.Black);
-
-        brush.Color = XColors.Red;
+        var brush = new XSolidBrush(XBrushes.Black) { Color = XColors.Red };
 
         brush.Color.Should().Be(XColors.Red);
         XBrushes.Black.Color.Should().Be(XColors.Black);

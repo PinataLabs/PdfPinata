@@ -224,11 +224,11 @@ static class PdfAnnotationTransformer
             ? new[] { bottom * alongY, left * alongX, top * alongY, right * alongX }
             : new[] { left * alongX, top * alongY, right * alongX, bottom * alongY };
 
-        if (Resolve(dictionary.Elements[key]) is PdfArray array && array.Elements.Count == 4)
-        {
-            for (var index = 0; index < 4; index++)
-                array.Elements[index] = new PdfReal(moved[index]);
-        }
+        if (Resolve(dictionary.Elements[key]) is not PdfArray array || array.Elements.Count != 4)
+            return;
+
+        for (var index = 0; index < 4; index++)
+            array.Elements[index] = new PdfReal(moved[index]);
     }
 
     /// <summary>

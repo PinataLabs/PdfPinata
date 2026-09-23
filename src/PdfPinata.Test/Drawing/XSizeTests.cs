@@ -85,10 +85,11 @@ public class XSizeTests
     [Fact]
     public void WidthAndHeightCanBeSetOnASizeThatIsNotEmpty()
     {
-        var size = new XSize(1, 1);
-
-        size.Width = 10;
-        size.Height = 20;
+        var size = new XSize(1, 1)
+        {
+            Width = 10,
+            Height = 20
+        };
 
         size.Should().Be(new XSize(10, 20));
     }

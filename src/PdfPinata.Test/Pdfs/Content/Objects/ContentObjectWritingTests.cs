@@ -387,10 +387,12 @@ public class ContentObjectWritingTests
     {
         // Built by hand, because the content parser refuses an array within an array - and each
         // inner one cast to CObject, because the CSequence overload of Add would spread it.
-        var array = new CArray();
-        array.Add((CObject)new CArray { new CInteger { Value = 1 }, new CInteger { Value = 2 } });
-        array.Add(new CInteger { Value = 3 });
-        array.Add((CObject)new CArray { new CInteger { Value = 4 } });
+        var array = new CArray
+        {
+            (CObject)new CArray { new CInteger { Value = 1 }, new CInteger { Value = 2 } },
+            new CInteger { Value = 3 },
+            (CObject)new CArray { new CInteger { Value = 4 } }
+        };
 
         array.ToString().Should().Be("[[1 2]3[4]]");
     }

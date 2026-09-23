@@ -50,19 +50,18 @@ internal class PieChartRenderer : ChartRenderer
   /// </summary>
   internal override RendererInfo Init()
   {
-    var cri = new ChartRendererInfo();
-    cri.Chart = (Chart)this.rendererParms.DrawingItem;
-    this.rendererParms.RendererInfo = cri;
+    var cri = new ChartRendererInfo { Chart = (Chart)rendererParms.DrawingItem };
+    rendererParms.RendererInfo = cri;
 
     InitSeries(cri);
 
-    var lr = new PieLegendRenderer(this.rendererParms);
+    var lr = new PieLegendRenderer(rendererParms);
     cri.LegendRendererInfo = (LegendRendererInfo)lr.Init();
 
     var renderer = GetPlotAreaRenderer();
     cri.PlotAreaRendererInfo = (PlotAreaRendererInfo)renderer.Init();
 
-    var dlr = new PieDataLabelRenderer(this.rendererParms);
+    var dlr = new PieDataLabelRenderer(rendererParms);
     dlr.Init();
 
     return cri;
@@ -73,9 +72,9 @@ internal class PieChartRenderer : ChartRenderer
   /// </summary>
   internal override void Format()
   {
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
 
-    var lr = new PieLegendRenderer(this.rendererParms);
+    var lr = new PieLegendRenderer(rendererParms);
     lr.Format();
 
     // Calculate rects and positions.
@@ -87,7 +86,7 @@ internal class PieChartRenderer : ChartRenderer
     cri.PlotAreaRendererInfo.Width = edge;
     cri.PlotAreaRendererInfo.Height = edge;
 
-    var dlr = new PieDataLabelRenderer(this.rendererParms);
+    var dlr = new PieDataLabelRenderer(rendererParms);
     dlr.Format();
 
     // Calculated remaining plot area, now it's safe to format.
@@ -102,19 +101,19 @@ internal class PieChartRenderer : ChartRenderer
   /// </summary>
   internal override void Draw()
   {
-    var lr = new PieLegendRenderer(this.rendererParms);
+    var lr = new PieLegendRenderer(rendererParms);
     lr.Draw();
 
-    var wr = new WallRenderer(this.rendererParms);
+    var wr = new WallRenderer(rendererParms);
     wr.Draw();
 
-    var pabr = new PlotAreaBorderRenderer(this.rendererParms);
+    var pabr = new PlotAreaBorderRenderer(rendererParms);
     pabr.Draw();
 
     var renderer = GetPlotAreaRenderer();
     renderer.Draw();
 
-    var dlr = new PieDataLabelRenderer(this.rendererParms);
+    var dlr = new PieDataLabelRenderer(rendererParms);
     dlr.Draw();
   }
 
@@ -123,14 +122,14 @@ internal class PieChartRenderer : ChartRenderer
   /// </summary>
   private PlotAreaRenderer GetPlotAreaRenderer()
   {
-    var chart = (Chart)this.rendererParms.DrawingItem;
+    var chart = (Chart)rendererParms.DrawingItem;
     switch (chart.type)
     {
       case ChartType.Pie2D:
-        return new PieClosedPlotAreaRenderer(this.rendererParms);
+        return new PieClosedPlotAreaRenderer(rendererParms);
 
       case ChartType.PieExploded2D:
-        return new PieExplodedPlotAreaRenderer(this.rendererParms);
+        return new PieExplodedPlotAreaRenderer(rendererParms);
     }
     return null;
   }

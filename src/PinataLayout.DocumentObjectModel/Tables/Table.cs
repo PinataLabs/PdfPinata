@@ -155,7 +155,7 @@ public partial class Table : DocumentObject, IVisitable
 
         for (var r = row; r <= maxRow; r++)
         {
-            var currentRow = this.rows[r];
+            var currentRow = rows[r];
             for (var c = clm; c <= maxClm; c++)
             {
                 var currentCell = currentRow[c];
@@ -175,7 +175,7 @@ public partial class Table : DocumentObject, IVisitable
                 if ((edge & Edge.Horizontal) == Edge.Horizontal && r < maxRow)
                 {
                     Apply(currentCell.Borders.Bottom);
-                    Apply(this.rows[r + 1][c].Borders.Top);
+                    Apply(rows[r + 1][c].Borders.Top);
                 }
 
                 if ((edge & Edge.Vertical) == Edge.Vertical && c < maxClm)
@@ -212,8 +212,7 @@ public partial class Table : DocumentObject, IVisitable
     {
         get
         {
-            if (columns == null)
-                columns = new Columns(this);
+            columns ??= new Columns(this);
 
             return columns;
         }
@@ -233,8 +232,7 @@ public partial class Table : DocumentObject, IVisitable
     {
         get
         {
-            if (rows == null)
-                rows = new Rows(this);
+            rows ??= new Rows(this);
 
             return rows;
         }
@@ -265,8 +263,7 @@ public partial class Table : DocumentObject, IVisitable
     {
         get
         {
-            if (format == null)
-                format = new ParagraphFormat(this);
+            format ??= new ParagraphFormat(this);
 
             return format;
         }
@@ -330,8 +327,7 @@ public partial class Table : DocumentObject, IVisitable
     {
         get
         {
-            if (borders == null)
-                borders = new Borders(this);
+            borders ??= new Borders(this);
 
             return borders;
         }
@@ -351,8 +347,7 @@ public partial class Table : DocumentObject, IVisitable
     {
         get
         {
-            if (shading == null)
-                shading = new Shading(this);
+            shading ??= new Shading(this);
 
             return shading;
         }
@@ -419,13 +414,13 @@ public partial class Table : DocumentObject, IVisitable
     /// </summary>
     internal override void Serialize(Serializer serializer)
     {
-        serializer.WriteComment((comment ?? ""));
+        serializer.WriteComment(comment ?? "");
 
         serializer.WriteLine("\\table");
 
         var pos = serializer.BeginAttributes();
 
-        if ((style ?? "") != String.Empty)
+        if ((style ?? "") != string.Empty)
             serializer.WriteSimpleAttribute("Style", Style);
 
         if (summary != null)

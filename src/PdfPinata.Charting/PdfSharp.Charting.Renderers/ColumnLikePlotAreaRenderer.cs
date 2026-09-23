@@ -50,7 +50,7 @@ internal abstract class ColumnLikePlotAreaRenderer : PlotAreaRenderer
   /// </summary>
   internal override void Format()
   {
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
 
     var xMin = cri.XAxisRendererInfo.MinimumScale;
     var xMax = cri.XAxisRendererInfo.MaximumScale;

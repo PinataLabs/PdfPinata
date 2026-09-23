@@ -126,7 +126,9 @@ public partial class TabStop : DocumentObject
       serializer.EndContent();
     }
     else
+    {
       serializer.WriteLine("TabStops -= \"" + Position.ToString() + "\"");
+    }
   }
 
   #endregion

@@ -125,7 +125,7 @@ public sealed class PdfCheckBoxField : PdfButtonField
                         // Element 0: set it to its on state.
                         var name1 = "";
                         var o =
-                            ((PdfDictionary)(((PdfReference)(Fields.Elements.Items[0])).Value)).Elements["/AP"] as
+                            ((PdfDictionary)((PdfReference)Fields.Elements.Items[0]).Value).Elements["/AP"] as
                             PdfDictionary;
                         if (o != null)
                         {
@@ -145,9 +145,9 @@ public sealed class PdfCheckBoxField : PdfButtonField
 
                         if (name1.Length != 0)
                         {
-                            ((PdfDictionary)(((PdfReference)(Fields.Elements.Items[0])).Value)).Elements.SetName(
+                            ((PdfDictionary)((PdfReference)Fields.Elements.Items[0]).Value).Elements.SetName(
                                 PdfAcroField.Keys.V, name1);
-                            ((PdfDictionary)(((PdfReference)(Fields.Elements.Items[0])).Value)).Elements.SetName(
+                            ((PdfDictionary)((PdfReference)Fields.Elements.Items[0]).Value).Elements.SetName(
                                 PdfAnnotation.Keys.AS, name1);
                         }
 
@@ -157,7 +157,7 @@ public sealed class PdfCheckBoxField : PdfButtonField
                         // so without this the second element was set to the first one's on state
                         // and both were ticked.
                         name1 = "";
-                        o = ((PdfDictionary)(((PdfReference)(Fields.Elements.Items[1])).Value)).Elements["/AP"] as
+                        o = ((PdfDictionary)((PdfReference)Fields.Elements.Items[1]).Value).Elements["/AP"] as
                             PdfDictionary;
                         if (o != null)
                         {
@@ -177,9 +177,9 @@ public sealed class PdfCheckBoxField : PdfButtonField
 
                         if (name1.Length != 0)
                         {
-                            ((PdfDictionary)(((PdfReference)(Fields.Elements.Items[1])).Value)).Elements.SetName(
+                            ((PdfDictionary)((PdfReference)Fields.Elements.Items[1]).Value).Elements.SetName(
                                 PdfAcroField.Keys.V, name1);
-                            ((PdfDictionary)(((PdfReference)(Fields.Elements.Items[1])).Value)).Elements.SetName(
+                            ((PdfDictionary)((PdfReference)Fields.Elements.Items[1]).Value).Elements.SetName(
                                 PdfAnnotation.Keys.AS, name1);
                         }
                     }
@@ -188,7 +188,7 @@ public sealed class PdfCheckBoxField : PdfButtonField
                         // Element 1: set it to its on state.
                         var name1 = "";
                         var o =
-                            ((PdfDictionary)(((PdfReference)(Fields.Elements.Items[1])).Value)).Elements["/AP"] as
+                            ((PdfDictionary)((PdfReference)Fields.Elements.Items[1]).Value).Elements["/AP"] as
                             PdfDictionary;
                         if (o != null)
                         {
@@ -208,16 +208,16 @@ public sealed class PdfCheckBoxField : PdfButtonField
 
                         if (name1.Length != 0)
                         {
-                            ((PdfDictionary)(((PdfReference)(Fields.Elements.Items[1])).Value)).Elements.SetName(
+                            ((PdfDictionary)((PdfReference)Fields.Elements.Items[1]).Value).Elements.SetName(
                                 PdfAcroField.Keys.V, name1);
-                            ((PdfDictionary)(((PdfReference)(Fields.Elements.Items[1])).Value)).Elements.SetName(
+                            ((PdfDictionary)((PdfReference)Fields.Elements.Items[1]).Value).Elements.SetName(
                                 PdfAnnotation.Keys.AS, name1);
                         }
 
                         // Element 0: set it to /Off.
                         // Cleared first, for the same reason as the branch above.
                         name1 = "";
-                        o = ((PdfDictionary)(((PdfReference)(Fields.Elements.Items[0])).Value)).Elements["/AP"] as
+                        o = ((PdfDictionary)((PdfReference)Fields.Elements.Items[0]).Value).Elements["/AP"] as
                             PdfDictionary;
                         if (o != null)
                         {
@@ -237,9 +237,9 @@ public sealed class PdfCheckBoxField : PdfButtonField
 
                         if (name1.Length != 0)
                         {
-                            ((PdfDictionary)(((PdfReference)(Fields.Elements.Items[0])).Value)).Elements.SetName(
+                            ((PdfDictionary)((PdfReference)Fields.Elements.Items[0]).Value).Elements.SetName(
                                 PdfAcroField.Keys.V, name1);
-                            ((PdfDictionary)(((PdfReference)(Fields.Elements.Items[0])).Value)).Elements.SetName(
+                            ((PdfDictionary)((PdfReference)Fields.Elements.Items[0]).Value).Elements.SetName(
                                 PdfAnnotation.Keys.AS, name1);
                         }
                     }

@@ -67,8 +67,7 @@ public abstract class PdfDictionaryWithContentStream : PdfDictionary, IContentSt
     {
         get
         {
-            if (_resources == null)
-                _resources = (PdfResources)Elements.GetValue(Keys.Resources, VCF.Create);
+            _resources ??= (PdfResources)Elements.GetValue(Keys.Resources, VCF.Create);
             return _resources;
         }
     }

@@ -314,7 +314,7 @@ public class XTextFormatter
     /// </remarks>
     public IList<IFlowObstacle> Obstacles => _obstacles;
 
-    private readonly List<IFlowObstacle> _obstacles = new List<IFlowObstacle>();
+    private readonly List<IFlowObstacle> _obstacles = new();
 
     /// <summary>
     /// The block and everything standing in it, worked out for the layout in hand.
@@ -922,14 +922,12 @@ public class XTextFormatter
         if (y <= rectHeight + FitTolerance)
             return true;
 
-        if (column + 1 < Columns)
-        {
-            column++;
-            y = 0;
-            return true;
-        }
+        if (column + 1 >= Columns)
+            return AllowVerticalOverflow;
 
-        return AllowVerticalOverflow;
+        column++;
+        y = 0;
+        return true;
     }
 
     /// <summary>

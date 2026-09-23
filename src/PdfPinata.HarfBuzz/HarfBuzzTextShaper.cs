@@ -39,7 +39,7 @@ public sealed class HarfBuzzTextShaper : ITextShaper, IDisposable
     // coming back unkerned every few hundred shapings. ExecutionAndPublication means the face is
     // built exactly once however many threads arrive together.
     private readonly ConcurrentDictionary<string, Lazy<ShapedFace>> _faces =
-        new ConcurrentDictionary<string, Lazy<ShapedFace>>();
+        new();
 
     // Volatile because Dispose and Shape run on different threads by design - the shaper is
     // registered for the whole application domain - and a plain write is not guaranteed to be seen
@@ -112,7 +112,7 @@ public sealed class HarfBuzzTextShaper : ITextShaper, IDisposable
     /// </summary>
     private sealed class ShapedFace : IDisposable
     {
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
         private readonly int _unitsPerEm;
         private readonly Blob _blob;
         private readonly Face _face;

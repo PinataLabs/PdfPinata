@@ -21,10 +21,11 @@ public class DdlRoundTripTests
     /// </summary>
     private static Document ADocumentWithSomeValuesSetAndSomeLeftUnset()
     {
-        var document = new Document();
-
-        document.Info.Title = "A title";        // NString set, Info.Author left unset
-        document.FootnoteStartingNumber = 7;    // NInt set
+        var document = new Document
+        {
+            Info = { Title = "A title" },       // NString set, Info.Author left unset
+            FootnoteStartingNumber = 7          // NInt set
+        };
 
         var section = document.AddSection();
         section.PageSetup.StartingNumber = 3;   // NInt set

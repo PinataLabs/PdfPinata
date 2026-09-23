@@ -153,7 +153,7 @@ public static class PdfSignatures
         return 0;
     }
 
-    private static string NullIfEmpty(string value) => String.IsNullOrEmpty(value) ? null : value;
+    private static string NullIfEmpty(string value) => string.IsNullOrEmpty(value) ? null : value;
 
     /// <summary>
     /// The document's own certification level, read from <c>/Perms/DocMDP</c> — the signature, if

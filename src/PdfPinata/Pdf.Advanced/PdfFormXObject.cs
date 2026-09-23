@@ -301,8 +301,7 @@ public sealed class PdfFormXObject : PdfXObject, IContentStream
     {
         get
         {
-            if (field == null)
-                field = (PdfResources)Elements.GetValue(Keys.Resources, VCF.Create);
+            field ??= (PdfResources)Elements.GetValue(Keys.Resources, VCF.Create);
             return field;
         }
     }

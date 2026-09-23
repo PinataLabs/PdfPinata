@@ -28,7 +28,7 @@ sealed class CffFontResolver : IFontResolver
 
     private const string Resource = "ConformanceCorpus.SourceCodePro-Regular.otf";
 
-    private readonly SkiaFontResolver _backend = new SkiaFontResolver();
+    private readonly SkiaFontResolver _backend = new();
 
     public string DefaultFontName => _backend.DefaultFontName;
 

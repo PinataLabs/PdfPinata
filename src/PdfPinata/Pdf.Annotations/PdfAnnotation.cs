@@ -307,8 +307,7 @@ public abstract class PdfAnnotation : PdfDictionary
     /// </remarks>
     public void SetAppearance(XForm form)
     {
-        var appearance = new PdfDictionary(RequireOwner());
-        appearance.Elements["/N"] = FinishedForm(form).Reference;
+        var appearance = new PdfDictionary(RequireOwner()) { Elements = { ["/N"] = FinishedForm(form).Reference } };
         Elements[Keys.AP] = appearance;
 
         // A single appearance is not one of a set, so any state left naming one of a set would

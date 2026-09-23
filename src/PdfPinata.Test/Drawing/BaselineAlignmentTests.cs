@@ -19,7 +19,7 @@ public class BaselineAlignmentTests
     private const double Top = 60;
     private const double Width = 300;
 
-    private static XFont Plain => new XFont("Arial", FontSize, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
+    private static XFont Plain => new("Arial", FontSize, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
 
     [Fact]
     public void ARectangleWithHeightNoLongerThrows()

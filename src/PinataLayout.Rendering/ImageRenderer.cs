@@ -47,9 +47,8 @@ internal class ImageRenderer : ShapeRenderer
         : base(gfx, image, fieldInfos)
     {
         this.image = image;
-        var imageRenderInfo = new ImageRenderInfo();
-        imageRenderInfo.shape = shape;
-        this.renderInfo = imageRenderInfo;
+        var imageRenderInfo = new ImageRenderInfo { shape = shape };
+        renderInfo = imageRenderInfo;
     }
 
     internal ImageRenderer(XGraphics gfx, RenderInfo renderInfo, FieldInfos fieldInfos)

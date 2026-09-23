@@ -69,13 +69,13 @@ public partial class Cells : DocumentObjectCollection
   {
     get
     {
-      if (this.table == null)
-      {
-        var rw = this.Parent as Row;
-        if (rw != null)
-          this.table = rw.Table;
-      }
-      return this.table;
+      if (table != null)
+        return table;
+
+      var rw = Parent as Row;
+      if (rw != null)
+        table = rw.Table;
+      return table;
     }
   }
   private Table table;
@@ -87,10 +87,9 @@ public partial class Cells : DocumentObjectCollection
   {
     get
     {
-      if (this.row == null)
-        this.row = this.Parent as Row;
+      row ??= Parent as Row;
 
-      return this.row;
+      return row;
     }
   }
   private Row row;
@@ -102,7 +101,7 @@ public partial class Cells : DocumentObjectCollection
   {
     get
     {
-      if (index < 0 || (this.Table != null && index >= this.Table.Columns.Count))
+      if (index < 0 || (Table != null && index >= Table.Columns.Count))
         throw new ArgumentOutOfRangeException(nameof(index));
 
       Resize(index);
@@ -116,7 +115,7 @@ public partial class Cells : DocumentObjectCollection
   /// </summary>
   private void Resize(int index)
   {
-    for (var currentIndex = this.Count; currentIndex <= index; currentIndex++)
+    for (var currentIndex = Count; currentIndex <= index; currentIndex++)
       Add(new Cell());
   }
 

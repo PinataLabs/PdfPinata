@@ -19,7 +19,7 @@ namespace PdfPinata.Test.Dom;
 public class FontApplyFontTests
 {
     /// <summary>A font with every property stated, so that any of them failing to copy shows.</summary>
-    private static Font FullyStated() => new Font("Courier New")
+    private static Font FullyStated() => new("Courier New")
     {
         Size = 14,
         Bold = true,
@@ -122,8 +122,7 @@ public class FontApplyFontTests
     [Fact]
     public void AFontStatesOneOfSubscriptAndSuperscriptRatherThanBoth()
     {
-        var source = new Font { Subscript = true };
-        source.Superscript = true;
+        var source = new Font { Subscript = true, Superscript = true };
 
         var target = new Font();
         target.ApplyFont(source);

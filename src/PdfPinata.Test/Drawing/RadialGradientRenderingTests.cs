@@ -25,7 +25,7 @@ public sealed class RadialGradientRenderingTests : IDisposable
 {
     private const string OutDir = "Out/RadialGradient";
 
-    private readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
+    private readonly List<MagickImageCollection> _rasterized = new();
 
     public void Dispose()
     {
@@ -40,8 +40,8 @@ public sealed class RadialGradientRenderingTests : IDisposable
         GhostscriptSetup.Configure();
     }
 
-    private static readonly XPoint Centre = new XPoint(300, 300);
-    private static readonly XRect Square = new XRect(200, 200, 200, 200);
+    private static readonly XPoint Centre = new(300, 300);
+    private static readonly XRect Square = new(200, 200, 200, 200);
 
     [GoldenImageFact]
     public void ARadialGradientIsDrawnInItsColoursFromTheCentreOut()
@@ -141,8 +141,10 @@ public sealed class RadialGradientRenderingTests : IDisposable
         var page = Rasterize("brush_transform", gfx =>
         {
             // A circle about the origin, stretched to twice its width and moved to the centre.
-            var brush = new XRadialGradientBrush(new XPoint(0, 0), 0, 50, XColors.Red, XColors.Blue);
-            brush.Transform = new XMatrix(2, 0, 0, 1, Centre.X, Centre.Y);
+            var brush = new XRadialGradientBrush(new XPoint(0, 0), 0, 50, XColors.Red, XColors.Blue)
+            {
+                Transform = new XMatrix(2, 0, 0, 1, Centre.X, Centre.Y)
+            };
             gfx.DrawRectangle(brush, new XRect(150, 200, 300, 200));
         });
 
@@ -163,8 +165,10 @@ public sealed class RadialGradientRenderingTests : IDisposable
         {
             // Left to right along the first hundred points of x, turned a quarter to run down
             // from the top of the band instead.
-            var brush = new XLinearGradientBrush(new XPoint(0, 0), new XPoint(100, 0), XColors.Red, XColors.Blue);
-            brush.Transform = new XMatrix(0, 1, -1, 0, 300, 200);
+            var brush = new XLinearGradientBrush(new XPoint(0, 0), new XPoint(100, 0), XColors.Red, XColors.Blue)
+            {
+                Transform = new XMatrix(0, 1, -1, 0, 300, 200)
+            };
             gfx.DrawRectangle(brush, band);
         });
 

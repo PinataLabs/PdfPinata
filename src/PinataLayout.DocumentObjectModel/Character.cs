@@ -49,43 +49,43 @@ public partial class Character : DocumentObject
 {
   // \space
   /// <summary>A normal space.</summary>
-  public static readonly Character Blank = new Character(SymbolName.Blank);
+  public static readonly Character Blank = new(SymbolName.Blank);
   /// <summary>A space one en wide, half an em.</summary>
-  public static readonly Character En = new Character(SymbolName.En);
+  public static readonly Character En = new(SymbolName.En);
   /// <summary>A space one em wide.</summary>
-  public static readonly Character Em = new Character(SymbolName.Em);
+  public static readonly Character Em = new(SymbolName.Em);
   /// <summary>A space a quarter of an em wide.</summary>
-  public static readonly Character EmQuarter = new Character(SymbolName.EmQuarter);
+  public static readonly Character EmQuarter = new(SymbolName.EmQuarter);
   /// <summary>A space a quarter of an em wide. Same as <see cref="EmQuarter"/>.</summary>
-  public static readonly Character Em4 = new Character(SymbolName.Em4);
+  public static readonly Character Em4 = new(SymbolName.Em4);
 
   // used to serialize as \tab, \linebreak
   /// <summary>A tab stop.</summary>
-  public static readonly Character Tab = new Character(SymbolName.Tab);
+  public static readonly Character Tab = new(SymbolName.Tab);
   /// <summary>A break within a paragraph.</summary>
-  public static readonly Character LineBreak = new Character(SymbolName.LineBreak);
+  public static readonly Character LineBreak = new(SymbolName.LineBreak);
 
   // \symbol
   /// <summary>The euro sign, U+20AC.</summary>
-  public static readonly Character Euro = new Character(SymbolName.Euro);
+  public static readonly Character Euro = new(SymbolName.Euro);
   /// <summary>The copyright sign, U+00A9.</summary>
-  public static readonly Character Copyright = new Character(SymbolName.Copyright);
+  public static readonly Character Copyright = new(SymbolName.Copyright);
   /// <summary>The trade mark sign, U+2122.</summary>
-  public static readonly Character Trademark = new Character(SymbolName.Trademark);
+  public static readonly Character Trademark = new(SymbolName.Trademark);
   /// <summary>The registered sign, U+00AE.</summary>
-  public static readonly Character RegisteredTrademark = new Character(SymbolName.RegisteredTrademark);
+  public static readonly Character RegisteredTrademark = new(SymbolName.RegisteredTrademark);
   /// <summary>A bullet, U+2022.</summary>
-  public static readonly Character Bullet = new Character(SymbolName.Bullet);
+  public static readonly Character Bullet = new(SymbolName.Bullet);
   /// <summary>The not sign, U+00AC.</summary>
-  public static readonly Character Not = new Character(SymbolName.Not);
+  public static readonly Character Not = new(SymbolName.Not);
   /// <summary>An em dash, U+2014.</summary>
-  public static readonly Character EmDash = new Character(SymbolName.EmDash);
+  public static readonly Character EmDash = new(SymbolName.EmDash);
   /// <summary>An en dash, U+2013.</summary>
-  public static readonly Character EnDash = new Character(SymbolName.EnDash);
+  public static readonly Character EnDash = new(SymbolName.EnDash);
   /// <summary>A space a line may not be broken at, U+00A0.</summary>
-  public static readonly Character NonBreakableBlank = new Character(SymbolName.NonBreakableBlank);
+  public static readonly Character NonBreakableBlank = new(SymbolName.NonBreakableBlank);
   /// <summary>A space a line may not be broken at. Same as <see cref="NonBreakableBlank"/>.</summary>
-  public static readonly Character HardBlank = new Character(SymbolName.HardBlank);
+  public static readonly Character HardBlank = new(SymbolName.HardBlank);
 
   /// <summary>
   /// Initializes a new instance of the Character class.
@@ -196,7 +196,7 @@ public partial class Character : DocumentObject
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    var text = String.Empty;
+    var text = string.Empty;
     // An unset name matches none of these, and a character is never held there.
     if (count == 1)
     {

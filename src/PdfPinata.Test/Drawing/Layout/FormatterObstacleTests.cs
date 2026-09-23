@@ -38,14 +38,14 @@ public class FormatterObstacleTests
         "business looks distinctly laboured and not at all the effortless bound the saying has " +
         "always promised its readers it would turn out to be on closer inspection.";
 
-    private static readonly XRect Block = new XRect(40, 40, 300, 300);
+    private static readonly XRect Block = new(40, 40, 300, 300);
 
     /// <summary>
     ///   Short enough that the text runs past the bottom of the first column and into the second.
     ///   The full-height block holds all of it in one column, which makes a test of the second
     ///   column pass by finding nothing there.
     /// </summary>
-    private static readonly XRect TwoColumnBlock = new XRect(40, 40, 300, 120);
+    private static readonly XRect TwoColumnBlock = new(40, 40, 300, 120);
 
     /// <summary>Two columns across 300 with the default 18 gutter: 141 each, the second 159 in.</summary>
     private const double SecondColumnLeft = 159;

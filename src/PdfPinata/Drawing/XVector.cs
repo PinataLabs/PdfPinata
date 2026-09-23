@@ -208,7 +208,7 @@ public struct XVector : IFormattable
     {
         var y = vector1._x * vector2._y - vector2._x * vector1._y;
         var x = vector1._x * vector2._x + vector1._y * vector2._y;
-        return (Math.Atan2(y, x) * 57.295779513082323);
+        return Math.Atan2(y, x) * 57.295779513082323;
     }
 
     /// <summary>

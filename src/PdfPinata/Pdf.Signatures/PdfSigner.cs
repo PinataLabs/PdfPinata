@@ -129,7 +129,7 @@ public static class PdfSigner
             throw new InvalidOperationException("The signer produced no signature.");
 
         if (produced.Length > reserved)
-            throw new InvalidOperationException(String.Format(CultureInfo.InvariantCulture,
+            throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture,
                 "The signature is {0} bytes but only {1} were reserved for it. The signer's "
                 + "EstimatedSignatureSize has to be at least as large as anything it will produce, "
                 + "and the room it asks for cannot be revised once the document has been written.",
@@ -179,13 +179,13 @@ public static class PdfSigner
 
         signature.Elements.SetDateTime("/M", options.SigningTime ?? GlobalTimeSettings.Now);
 
-        if (!String.IsNullOrEmpty(options.SignerName))
+        if (!string.IsNullOrEmpty(options.SignerName))
             signature.Elements.SetString("/Name", options.SignerName);
-        if (!String.IsNullOrEmpty(options.Reason))
+        if (!string.IsNullOrEmpty(options.Reason))
             signature.Elements.SetString("/Reason", options.Reason);
-        if (!String.IsNullOrEmpty(options.Location))
+        if (!string.IsNullOrEmpty(options.Location))
             signature.Elements.SetString("/Location", options.Location);
-        if (!String.IsNullOrEmpty(options.ContactInfo))
+        if (!string.IsNullOrEmpty(options.ContactInfo))
             signature.Elements.SetString("/ContactInfo", options.ContactInfo);
 
         return signature;
@@ -231,7 +231,7 @@ public static class PdfSigner
     {
         if (options.PageIndex < 0 || options.PageIndex >= document.PageCount)
             throw new ArgumentOutOfRangeException(nameof(options),
-                String.Format(CultureInfo.InvariantCulture,
+                string.Format(CultureInfo.InvariantCulture,
                     "The document has {0} page(s), so page index {1} does not name one.",
                     document.PageCount, options.PageIndex));
 
@@ -288,8 +288,7 @@ public static class PdfSigner
             options.DrawAppearance(gfx, new XRect(0, 0, visible.Width, visible.Height));
         form.DrawingFinished();
 
-        var appearance = new PdfDictionary(document);
-        appearance.Elements["/N"] = form.PdfForm.Reference;
+        var appearance = new PdfDictionary(document) { Elements = { ["/N"] = form.PdfForm.Reference } };
         return appearance;
     }
 
@@ -347,8 +346,7 @@ public static class PdfSigner
 
         // And the catalog has to point back at the signature, or a reader has no way of finding out
         // that the document is certified at all.
-        var permissions = new PdfDictionary(document);
-        permissions.Elements["/DocMDP"] = signature.Reference;
+        var permissions = new PdfDictionary(document) { Elements = { ["/DocMDP"] = signature.Reference } };
 
         var catalog = document.Catalog;
         catalog.Elements["/Perms"] = permissions;

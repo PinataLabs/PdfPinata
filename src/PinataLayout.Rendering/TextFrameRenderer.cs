@@ -47,7 +47,7 @@ internal class TextFrameRenderer : ShapeRenderer
     {
       shape = shape
     };
-    this.renderInfo = textFrameRenderInfo;
+    renderInfo = textFrameRenderInfo;
   }
 
   internal TextFrameRenderer(XGraphics gfx, RenderInfo renderInfo, FieldInfos fieldInfos)

@@ -210,7 +210,9 @@ internal sealed class StandardSecurity
                             bytes.Add((byte)value);
                         }
                         else
+                        {
                             bytes.Add((byte)escaped);
+                        }
                         break;
                 }
                 continue;

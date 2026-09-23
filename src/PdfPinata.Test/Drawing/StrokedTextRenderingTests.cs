@@ -20,7 +20,7 @@ public class StrokedTextRenderingTests
     private const double PageWidth = 300;
     private const double PageHeight = 100;
 
-    private static XFont Font => new XFont("Arial", FontSize, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
+    private static XFont Font => new("Arial", FontSize, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
 
     private static PdfDocument PageShowing(XPen pen, XBrush brush)
     {

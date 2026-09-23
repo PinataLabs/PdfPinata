@@ -158,8 +158,7 @@ public sealed partial class Document : DocumentObject, IVisitable
   {
     get
     {
-      if (info == null)
-        info = new DocumentInfo(this);
+      info ??= new DocumentInfo(this);
 
       return info;
     }
@@ -179,8 +178,7 @@ public sealed partial class Document : DocumentObject, IVisitable
   {
     get
     {
-      if (styles == null)
-        styles = new Styles(this);
+      styles ??= new Styles(this);
 
       return styles;
     }
@@ -284,8 +282,7 @@ public sealed partial class Document : DocumentObject, IVisitable
   {
     get
     {
-      if (sections == null)
-        sections = new Sections(this);
+      sections ??= new Sections(this);
       return sections;
     }
     set
@@ -348,13 +345,13 @@ public sealed partial class Document : DocumentObject, IVisitable
   void IVisitable.AcceptVisitor(DocumentObjectVisitor visitor, bool visitChildren)
   {
     visitor.VisitDocument(this);
-    if (visitChildren)
-    {
-      // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-      ((IVisitable)Styles).AcceptVisitor(visitor, visitChildren);
-      // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-      ((IVisitable)Sections).AcceptVisitor(visitor, visitChildren);
-    }
+    if (!visitChildren)
+      return;
+
+    // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+    ((IVisitable)Styles).AcceptVisitor(visitor, visitChildren);
+    // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+    ((IVisitable)Sections).AcceptVisitor(visitor, visitChildren);
   }
 
   #endregion

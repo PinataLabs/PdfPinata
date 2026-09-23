@@ -110,7 +110,7 @@ internal class IndexToLocationTable : OpenTypeFontTable
             {
                 var value = LocationTable[idx] / 2;
                 _bytes[byteIdx++] = (byte)(value >> 8);
-                _bytes[byteIdx++] = (byte)(value);
+                _bytes[byteIdx++] = (byte)value;
             }
         }
         else

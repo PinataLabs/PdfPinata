@@ -44,9 +44,9 @@ internal sealed class StructureTagger
     internal static readonly IDisposable Nothing = new NullScope();
 
     private readonly Dictionary<ElementKey, PdfStructureElement> _elements =
-        new Dictionary<ElementKey, PdfStructureElement>();
+        new();
 
-    private readonly Stack<PdfStructureElement> _parents = new Stack<PdfStructureElement>();
+    private readonly Stack<PdfStructureElement> _parents = new();
 
     private PdfDocument _document;
     private PdfStructureElement _root;
@@ -55,7 +55,7 @@ internal sealed class StructureTagger
     // deepest on top. See ListItem for how a level compared against the frame on top decides whether
     // an item continues the current list, starts a sibling of it, opens one nested inside the last
     // item, or closes one or more before landing.
-    private readonly Stack<ListFrame> _listFrames = new Stack<ListFrame>();
+    private readonly Stack<ListFrame> _listFrames = new();
 
     /// <summary>
     /// One level of a run of nested lists: the <c>/L</c> itself, what it hangs from, the type its
@@ -535,19 +535,19 @@ internal sealed class StructureTagger
             return existing;
 
         var note = Element(footnote, PdfTag.Note, parent, NoteSlot);
-        if (note != null)
-        {
-            // The caller's own identifier where they set one, because a note whose name has to mean
-            // something outside this document cannot be given a generated one. Otherwise numbered
-            // from one in the order the notes are cited, which is the order they are built in. The
-            // prefix keeps the generated names clear of a caller's; two elements under one name is
-            // refused when the identifier tree is written, whichever of them chose it.
-            //
-            // The counter advances either way, so that setting one note's identifier does not
-            // renumber the notes around it.
-            var generated = ++_notes;
-            note.Id = footnote.Identifier.Length > 0 ? footnote.Identifier : "note" + generated;
-        }
+        if (note == null)
+            return null;
+
+        // The caller's own identifier where they set one, because a note whose name has to mean
+        // something outside this document cannot be given a generated one. Otherwise numbered
+        // from one in the order the notes are cited, which is the order they are built in. The
+        // prefix keeps the generated names clear of a caller's; two elements under one name is
+        // refused when the identifier tree is written, whichever of them chose it.
+        //
+        // The counter advances either way, so that setting one note's identifier does not
+        // renumber the notes around it.
+        var generated = ++_notes;
+        note.Id = footnote.Identifier.Length > 0 ? footnote.Identifier : "note" + generated;
 
         return note;
     }

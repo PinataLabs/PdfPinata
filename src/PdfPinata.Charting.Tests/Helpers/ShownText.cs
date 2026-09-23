@@ -303,7 +303,7 @@ internal static class ShownText
     }
 
     private static readonly Regex BfRangeEntry =
-        new Regex("<([0-9A-Fa-f]{4})><([0-9A-Fa-f]{4})><([0-9A-Fa-f]{4})>", RegexOptions.Compiled);
+        new("<([0-9A-Fa-f]{4})><([0-9A-Fa-f]{4})><([0-9A-Fa-f]{4})>", RegexOptions.Compiled);
 
     /// <summary>The strings inside an operand list, whether given bare or inside a TJ array.</summary>
     private static IEnumerable<string> StringsIn(CSequence operands)

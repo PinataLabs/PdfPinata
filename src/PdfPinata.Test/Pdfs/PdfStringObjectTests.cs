@@ -63,9 +63,11 @@ public class PdfStringObjectTests
     [Fact]
     public void ChangingTheEncodingKeepsTheHexLiteralFlag()
     {
-        var text = new PdfStringObject("abc", PdfStringEncoding.RawEncoding) { HexLiteral = true };
-
-        text.Encoding = PdfStringEncoding.Unicode;
+        var text = new PdfStringObject("abc", PdfStringEncoding.RawEncoding)
+        {
+            HexLiteral = true,
+            Encoding = PdfStringEncoding.Unicode
+        };
 
         text.Encoding.Should().Be(PdfStringEncoding.Unicode);
         text.HexLiteral.Should().BeTrue();
@@ -79,9 +81,7 @@ public class PdfStringObjectTests
     [Fact]
     public void ChangingTheHexLiteralFlagKeepsTheEncoding()
     {
-        var text = new PdfStringObject("abc", PdfStringEncoding.WinAnsiEncoding);
-
-        text.HexLiteral = true;
+        var text = new PdfStringObject("abc", PdfStringEncoding.WinAnsiEncoding) { HexLiteral = true };
 
         text.HexLiteral.Should().BeTrue();
         text.Encoding.Should().Be(PdfStringEncoding.WinAnsiEncoding);
@@ -109,9 +109,7 @@ public class PdfStringObjectTests
     [Fact]
     public void AssigningNullLeavesAnEmptyValue()
     {
-        var text = new PdfStringObject("something", PdfStringEncoding.RawEncoding);
-
-        text.Value = null;
+        var text = new PdfStringObject("something", PdfStringEncoding.RawEncoding) { Value = null };
 
         text.Value.Should().BeEmpty();
         text.Length.Should().Be(0);

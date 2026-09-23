@@ -79,12 +79,17 @@ internal sealed class PdfSpotColorTable : PdfResourceTable
         domain.Elements.Add(new PdfInteger(0));
         domain.Elements.Add(new PdfInteger(1));
 
-        var function = new PdfDictionary();
-        function.Elements["/FunctionType"] = new PdfInteger(2);
-        function.Elements["/Domain"] = domain;
-        function.Elements["/C0"] = c0;
-        function.Elements["/C1"] = c1;
-        function.Elements["/N"] = new PdfInteger(1);
+        var function = new PdfDictionary
+        {
+            Elements =
+            {
+                ["/FunctionType"] = new PdfInteger(2),
+                ["/Domain"] = domain,
+                ["/C0"] = c0,
+                ["/C1"] = c1,
+                ["/N"] = new PdfInteger(1)
+            }
+        };
 
         return new PdfArray(Owner,
             new PdfName("/Separation"),

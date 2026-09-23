@@ -23,7 +23,7 @@ public sealed class PageEventsTests : IDisposable
 {
     private const string OutDir = "Out/PageEvents";
 
-    private readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
+    private readonly List<MagickImageCollection> _rasterized = new();
 
     static PageEventsTests()
     {
@@ -58,7 +58,7 @@ public sealed class PageEventsTests : IDisposable
     {
         var document = new PdfDocument();
         var counts = new List<int>();
-        document.PageAdded += (sender, _) => counts.Add((((PdfDocument)sender)!).PageCount);
+        document.PageAdded += (sender, _) => counts.Add(((PdfDocument)sender)!.PageCount);
 
         _ = document.AddPage();
         _ = document.AddPage();

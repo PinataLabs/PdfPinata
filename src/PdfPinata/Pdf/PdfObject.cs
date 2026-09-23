@@ -102,8 +102,7 @@ public abstract class PdfObject : PdfItem
     {
         var objectID = new PdfObjectID(objectNumber, generationNumber);
 
-        if (_iref == null)
-            _iref = _document._irefTable[objectID];
+        _iref ??= _document._irefTable[objectID];
         if (_iref == null)
         {
             // Called for its side effect: the constructor of PdfReference sets itself as this
@@ -128,14 +127,14 @@ public abstract class PdfObject : PdfItem
     {
         set
         {
-            if (!ReferenceEquals(_document, value))
-            {
-                if (_document != null)
-                    throw new InvalidOperationException("Cannot change document.");
-                _document = value;
-                if (_iref != null)
-                    _iref.Document = value;
-            }
+            if (ReferenceEquals(_document, value))
+                return;
+
+            if (_document != null)
+                throw new InvalidOperationException("Cannot change document.");
+            _document = value;
+            if (_iref != null)
+                _iref.Document = value;
         }
     }
     internal PdfDocument _document;
@@ -446,7 +445,9 @@ public abstract class PdfObject : PdfItem
                 Debug.Assert(value.Owner == owner);
             }
             else
+            {
                 Debug.Assert(false, "Should not come here. Object is neither a dictionary nor an array.");
+            }
         }
     }
 

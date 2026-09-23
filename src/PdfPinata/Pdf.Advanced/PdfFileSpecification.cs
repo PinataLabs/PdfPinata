@@ -268,8 +268,7 @@ public class PdfFileSpecification : PdfDictionary
         {
             get
             {
-                if (meta == null)
-                    meta = CreateMeta(typeof(Keys));
+                meta ??= CreateMeta(typeof(Keys));
                 return meta;
             }
         }

@@ -425,8 +425,7 @@ public partial class Hyperlink : DocumentObject, IVisitable
     {
         get
         {
-            if (font == null)
-                font = new Font(this);
+            font ??= new Font(this);
 
             return font;
         }
@@ -468,8 +467,7 @@ public partial class Hyperlink : DocumentObject, IVisitable
     {
         get
         {
-            if (elements == null)
-                elements = new ParagraphElements(this);
+            elements ??= new ParagraphElements(this);
 
             return elements;
         }
@@ -496,7 +494,9 @@ public partial class Hyperlink : DocumentObject, IVisitable
         if (type != null)
             str += " Type = " + Type;
         if (IsNull("Font"))
+        {
             serializer.Write(str + "]");
+        }
         else
         {
             // The same attribute block a paragraph writes its font in, inside the brackets:

@@ -114,8 +114,7 @@ internal sealed class PdfType0Font : PdfFont
         Debug.Assert(font.PdfOptions != null);
 
         CmapInfo = new CMapInfo(ttDescriptor);
-        _descendantFont = new PdfCIDFont(document, FontDescriptor, font);
-        _descendantFont.CMapInfo = CmapInfo;
+        _descendantFont = new PdfCIDFont(document, FontDescriptor, font) { CMapInfo = CmapInfo };
 
         // Create ToUnicode map
         ToUnicode = new PdfToUnicodeMap(document, CmapInfo);
@@ -151,8 +150,7 @@ internal sealed class PdfType0Font : PdfFont
         FontDescriptor = new PdfFontDescriptor(document, ttDescriptor);
 
         CmapInfo = new CMapInfo(ttDescriptor);
-        _descendantFont = new PdfCIDFont(document, FontDescriptor);
-        _descendantFont.CMapInfo = CmapInfo;
+        _descendantFont = new PdfCIDFont(document, FontDescriptor) { CMapInfo = CmapInfo };
 
         // Create ToUnicode map
         ToUnicode = new PdfToUnicodeMap(document, CmapInfo);
@@ -208,7 +206,9 @@ internal sealed class PdfType0Font : PdfFont
             {
                 var cid = glyphIndices[idx];
                 if (idx > 0 && cid == glyphIndices[idx - 1] + 1)
+                {
                     w.Append(' ');
+                }
                 else
                 {
                     if (idx > 0)
@@ -288,8 +288,7 @@ internal sealed class PdfType0Font : PdfFont
         {
             get
             {
-                if (_meta == null)
-                    _meta = CreateMeta(typeof(Keys));
+                _meta ??= CreateMeta(typeof(Keys));
                 return _meta;
             }
         }

@@ -96,15 +96,15 @@ public sealed class Meta
     if (value == null && flags == GV.GetNull)
       return null;
 
-    if (trail != null)
-    {
-      if (value == null || trail == "")
-        throw new ArgumentException(string.Format(AppResources.InvalidValueName, name));
-      var doc = value as DocumentObject;
-      if (doc == null)
-        throw new ArgumentException(string.Format(AppResources.InvalidValueName, name));
-      value = doc.GetValue(trail, flags);
-    }
+    if (trail == null)
+      return value;
+
+    if (value == null || trail == "")
+      throw new ArgumentException(string.Format(AppResources.InvalidValueName, name));
+    var doc = value as DocumentObject;
+    if (doc == null)
+      throw new ArgumentException(string.Format(AppResources.InvalidValueName, name));
+    value = doc.GetValue(trail, flags);
     return value;
   }
 
@@ -134,7 +134,9 @@ public sealed class Meta
       doc.SetValue(trail, val);
     }
     else
+    {
       vd.SetValue(dom, val);
+    }
   }
 
   /// <summary>

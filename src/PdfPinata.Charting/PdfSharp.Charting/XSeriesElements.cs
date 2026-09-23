@@ -74,7 +74,7 @@ public class XSeriesElements : DocumentObjectCollection
   public void Add(params string[] values)
   {
     foreach (var val in values)
-      this.Add(val);
+      Add(val);
   }
   #endregion
 }

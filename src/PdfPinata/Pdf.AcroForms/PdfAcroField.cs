@@ -356,7 +356,7 @@ public abstract class PdfAcroField : PdfDictionary
     /// </summary>
     protected virtual PdfAcroField GetValue(string name)
     {
-        if (String.IsNullOrEmpty(name))
+        if (string.IsNullOrEmpty(name))
             return this;
         return HasKids ? Fields.GetValue(name) : null;
     }
@@ -417,12 +417,12 @@ public abstract class PdfAcroField : PdfDictionary
                 var kids = Fields.Elements.Items;
                 foreach (var pdfItem in kids)
                 {
-                    if (pdfItem is PdfReference)
-                    {
-                        var xxx = ((PdfReference)pdfItem).Value as PdfDictionary;
-                        if (xxx != null)
-                            AppDict(xxx, names);
-                    }
+                    if (pdfItem is not PdfReference)
+                        continue;
+
+                    var xxx = ((PdfReference)pdfItem).Value as PdfDictionary;
+                    if (xxx != null)
+                        AppDict(xxx, names);
                 }
             }
         }
@@ -492,7 +492,7 @@ public abstract class PdfAcroField : PdfDictionary
         if (t.Length == 0)
             return;
 
-        var path = String.IsNullOrEmpty(partialName) ? t : partialName + "." + t;
+        var path = string.IsNullOrEmpty(partialName) ? t : partialName + "." + t;
 
         var before = names.Count;
         if (HasKids)
@@ -660,7 +660,7 @@ public abstract class PdfAcroField : PdfDictionary
 
         internal PdfAcroField GetValue(string name)
         {
-            if (String.IsNullOrEmpty(name))
+            if (string.IsNullOrEmpty(name))
                 return null;
 
             var dot = name.IndexOf('.');

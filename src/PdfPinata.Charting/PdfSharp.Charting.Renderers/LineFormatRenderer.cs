@@ -56,8 +56,7 @@ class LineFormatRenderer
 
     if (visible)
     {
-      this.pen = new XPen(lineFormat.Color, width);
-      this.pen.DashStyle = lineFormat.DashStyle;
+      pen = new XPen(lineFormat.Color, width) { DashStyle = lineFormat.DashStyle };
     }
   }
 
@@ -84,8 +83,8 @@ class LineFormatRenderer
   /// </summary>
   public void DrawLine(XPoint pt0, XPoint pt1)
   {
-    if (this.pen != null)
-      this.gfx.DrawLine(this.pen, pt0, pt1);
+    if (pen != null)
+      gfx.DrawLine(pen, pt0, pt1);
   }
 
   /// <summary>
@@ -93,8 +92,8 @@ class LineFormatRenderer
   /// </summary>
   public void DrawRectangle(XRect rect)
   {
-    if (this.pen != null)
-      this.gfx.DrawRectangle(this.pen, rect);
+    if (pen != null)
+      gfx.DrawRectangle(pen, rect);
   }
 
   /// <summary>
@@ -102,8 +101,8 @@ class LineFormatRenderer
   /// </summary>
   public void DrawPath(XGraphicsPath path)
   {
-    if (this.pen != null)
-      this.gfx.DrawPath(this.pen, path);
+    if (pen != null)
+      gfx.DrawPath(pen, path);
   }
 
   /// <summary>

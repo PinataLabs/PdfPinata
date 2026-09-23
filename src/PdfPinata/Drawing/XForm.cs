@@ -183,18 +183,18 @@ public class XForm : XImage, IContentStream
         Gfx?.Dispose();
         Gfx = null;
 
-        if (PdfRenderer != null)
-        {
-            PdfRenderer.Close();
+        if (PdfRenderer == null)
+            return;
 
-            if (_document.Options.CompressContentStreams)
-            {
-                _pdfForm.Stream.Value = Filtering.FlateDecode.Encode(_pdfForm.Stream.Value, _document.Options.FlateEncodeMode);
-                _pdfForm.Elements["/Filter"] = new PdfName("/FlateDecode");
-            }
-            var length = _pdfForm.Stream.Length;
-            _pdfForm.Elements.SetInteger("/Length", length);
+        PdfRenderer.Close();
+
+        if (_document.Options.CompressContentStreams)
+        {
+            _pdfForm.Stream.Value = Filtering.FlateDecode.Encode(_pdfForm.Stream.Value, _document.Options.FlateEncodeMode);
+            _pdfForm.Elements["/Filter"] = new PdfName("/FlateDecode");
         }
+        var length = _pdfForm.Stream.Length;
+        _pdfForm.Elements.SetInteger("/Length", length);
     }
 
     /// <summary>

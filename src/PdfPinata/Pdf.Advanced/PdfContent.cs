@@ -75,17 +75,17 @@ public sealed class PdfContent : PdfDictionary
     {
         set
         {
-            if (value)
-            {
-                var filter = Elements[PdfStream.Keys.Filter];
-                if (filter == null)
-                {
-                    var bytes = Filtering.FlateDecode.Encode(Stream.Value, _document.Options.FlateEncodeMode);
-                    Stream.Value = bytes;
-                    Elements.SetInteger(PdfStream.Keys.Length, Stream.Length);
-                    Elements.SetName(PdfStream.Keys.Filter, "/FlateDecode");
-                }
-            }
+            if (!value)
+                return;
+
+            var filter = Elements[PdfStream.Keys.Filter];
+            if (filter != null)
+                return;
+
+            var bytes = Filtering.FlateDecode.Encode(Stream.Value, _document.Options.FlateEncodeMode);
+            Stream.Value = bytes;
+            Elements.SetInteger(PdfStream.Keys.Length, Stream.Length);
+            Elements.SetName(PdfStream.Keys.Filter, "/FlateDecode");
         }
     }
 
@@ -94,22 +94,22 @@ public sealed class PdfContent : PdfDictionary
     /// </summary>
     private void Decode()
     {
-        if (Stream is { Value: not null })
-        {
-            var item = Elements[PdfStream.Keys.Filter];
-            if (item != null)
-            {
-                var decodeParms = Elements[PdfStream.Keys.DecodeParms];
-                var bytes = Filtering.Decode(Stream.Value, item, decodeParms);
-                if (bytes != null)
-                {
-                    Stream.Value = bytes;
-                    Elements.Remove(PdfStream.Keys.Filter);
-                    Elements.Remove(PdfStream.Keys.DecodeParms);
-                    Elements.SetInteger(PdfStream.Keys.Length, Stream.Length);
-                }
-            }
-        }
+        if (Stream is not { Value: not null })
+            return;
+
+        var item = Elements[PdfStream.Keys.Filter];
+        if (item == null)
+            return;
+
+        var decodeParms = Elements[PdfStream.Keys.DecodeParms];
+        var bytes = Filtering.Decode(Stream.Value, item, decodeParms);
+        if (bytes == null)
+            return;
+
+        Stream.Value = bytes;
+        Elements.Remove(PdfStream.Keys.Filter);
+        Elements.Remove(PdfStream.Keys.DecodeParms);
+        Elements.SetInteger(PdfStream.Keys.Length, Stream.Length);
     }
 
     /// <summary>
@@ -121,23 +121,23 @@ public sealed class PdfContent : PdfDictionary
         // prepended or appended. Some nasty PDF tools does not preserve the graphical state correctly.
         // Therefore we try to relieve the problem by surrounding the content stream with push/restore
         // graphic state operation.
-        if (Stream != null)
-        {
-            var value = Stream.Value;
-            var length = value.Length;
-            if (length != 0 && ((value[0] != (byte)'q' || value[1] != (byte)'\n')))
-            {
-                var newValue = new byte[length + 2 + 3];
-                newValue[0] = (byte)'q';
-                newValue[1] = (byte)'\n';
-                Array.Copy(value, 0, newValue, 2, length);
-                newValue[length + 2] = (byte)' ';
-                newValue[length + 3] = (byte)'Q';
-                newValue[length + 4] = (byte)'\n';
-                Stream.Value = newValue;
-                Elements.SetInteger("/Length", Stream.Length);
-            }
-        }
+        if (Stream == null)
+            return;
+
+        var value = Stream.Value;
+        var length = value.Length;
+        if (length == 0 || (value[0] == (byte)'q' && value[1] == (byte)'\n'))
+            return;
+
+        var newValue = new byte[length + 2 + 3];
+        newValue[0] = (byte)'q';
+        newValue[1] = (byte)'\n';
+        Array.Copy(value, 0, newValue, 2, length);
+        newValue[length + 2] = (byte)' ';
+        newValue[length + 3] = (byte)'Q';
+        newValue[length + 4] = (byte)'\n';
+        Stream.Value = newValue;
+        Elements.SetInteger("/Length", Stream.Length);
     }
 
     internal override void WriteObject(PdfWriter writer)

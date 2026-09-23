@@ -76,13 +76,14 @@ class MD5Managed
         _data = new byte[64];
         _dataSize = 0;
         _totalLength = 0;
-        _abcd = new MD5Core.ABCDStruct();
-
-        // Intitial values as defined in RFC 1321.
-        _abcd.A = A;
-        _abcd.B = B;
-        _abcd.C = C;
-        _abcd.D = D;
+        _abcd = new MD5Core.ABCDStruct
+        {
+            // Intitial values as defined in RFC 1321.
+            A = A,
+            B = B,
+            C = C,
+            D = D
+        };
     }
 
     // TransformBlock, TransformFinalBlock, ComputeHash and Hash are inherited. The base class
@@ -249,28 +250,28 @@ class MD5Managed
         {
             //                  (b + LSR((a + F(b, c, d) + x + t), s))
             // F(x, y, z)        ((x & y) | ((x ^ 0xFFFFFFFF) & z))
-            return unchecked(b + LSR((a + ((b & c) | ((b ^ 0xFFFFFFFF) & d)) + x + t), s));
+            return unchecked(b + LSR(a + ((b & c) | ((b ^ 0xFFFFFFFF) & d)) + x + t, s));
         }
 
         private static uint r2(uint a, uint b, uint c, uint d, uint x, int s, uint t)
         {
             //                   (b + LSR((a + G(b, c, d) + x + t), s))
             // G(x, y, z)        ((x & z) | (y & (z ^ 0xFFFFFFFF)))
-            return unchecked(b + LSR((a + ((b & d) | (c & (d ^ 0xFFFFFFFF))) + x + t), s));
+            return unchecked(b + LSR(a + ((b & d) | (c & (d ^ 0xFFFFFFFF))) + x + t, s));
         }
 
         private static uint r3(uint a, uint b, uint c, uint d, uint x, int s, uint t)
         {
             //                   (b + LSR((a + H(b, c, d) + k + i), s))
             // H(x, y, z)        (x ^ y ^ z)
-            return unchecked(b + LSR((a + (b ^ c ^ d) + x + t), s));
+            return unchecked(b + LSR(a + (b ^ c ^ d) + x + t, s));
         }
 
         private static uint r4(uint a, uint b, uint c, uint d, uint x, int s, uint t)
         {
             //                   (b + LSR((a + I(b, c, d) + k + i), s))
             // I(x, y, z)        (y ^ (x | (z ^ 0xFFFFFFFF)))
-            return unchecked(b + LSR((a + (c ^ (b | (d ^ 0xFFFFFFFF))) + x + t), s));
+            return unchecked(b + LSR(a + (c ^ (b | (d ^ 0xFFFFFFFF))) + x + t, s));
         }
 
         // Implementation of left rotate
@@ -295,7 +296,7 @@ class MD5Managed
                 result[idx] += (uint)input[ibStart + idx * 4 + 3] << 24;
 
                 Debug.Assert(result[idx] ==
-                             (input[ibStart + idx * 4]) +
+                             input[ibStart + idx * 4] +
                              ((uint)input[ibStart + idx * 4 + 1] << 8) +
                              ((uint)input[ibStart + idx * 4 + 2] << 16) +
                              ((uint)input[ibStart + idx * 4 + 3] << 24));

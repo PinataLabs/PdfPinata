@@ -103,18 +103,19 @@ public sealed class PdfAttachments : IEnumerable<PdfFileSpecification>
                 + "identifies an attachment to a reader and what it is listed under, so two cannot "
                 + "share one — attach the second under a name of its own.");
 
-        var embedded = new PdfEmbeddedFile(_document, bytes);
+        var embedded = new PdfEmbeddedFile(_document, bytes)
+        {
+            // Always said, and said as octet-stream when the caller had nothing to say. PDF/A-3 requires
+            // the media type of every attachment, and the standard names this value for "unknown" —
+            // so leaving the entry out to be honest about not knowing produces a file that conforms to
+            // nothing, where writing it says exactly as much and conforms.
+            MimeType = string.IsNullOrEmpty(mimeType) ? UnknownMediaType : mimeType,
 
-        // Always said, and said as octet-stream when the caller had nothing to say. PDF/A-3 requires
-        // the media type of every attachment, and the standard names this value for "unknown" —
-        // so leaving the entry out to be honest about not knowing produces a file that conforms to
-        // nothing, where writing it says exactly as much and conforms.
-        embedded.MimeType = string.IsNullOrEmpty(mimeType) ? UnknownMediaType : mimeType;
-
-        // Stamped rather than left out. PDF/A-3 requires it of an attachment, and an archive that
-        // cannot say how old the thing it is keeping is has lost half the point of keeping it — the
-        // file system the bytes came from is not there to be asked afterwards.
-        embedded.ModificationDate = GlobalTimeSettings.Now;
+            // Stamped rather than left out. PDF/A-3 requires it of an attachment, and an archive that
+            // cannot say how old the thing it is keeping is has lost half the point of keeping it — the
+            // file system the bytes came from is not there to be asked afterwards.
+            ModificationDate = GlobalTimeSettings.Now
+        };
 
         var specification = new PdfFileSpecification(_document, fileName, embedded)
         {
@@ -186,11 +187,11 @@ public sealed class PdfAttachments : IEnumerable<PdfFileSpecification>
         {
             for (var idx = associated.Elements.Count - 1; idx >= 0; idx--)
             {
-                if (ReferenceEquals(Resolve(associated.Elements[idx]), specification))
-                {
-                    associated.Elements.RemoveAt(idx);
-                    removed = true;
-                }
+                if (!ReferenceEquals(Resolve(associated.Elements[idx]), specification))
+                    continue;
+
+                associated.Elements.RemoveAt(idx);
+                removed = true;
             }
 
             if (associated.Elements.Count == 0)
@@ -204,12 +205,12 @@ public sealed class PdfAttachments : IEnumerable<PdfFileSpecification>
             // from the front would renumber every pair after it mid-walk.
             for (var idx = leaves.Elements.Count - 2; idx >= 0; idx -= 2)
             {
-                if (ReferenceEquals(Resolve(leaves.Elements[idx + 1]), specification))
-                {
-                    leaves.Elements.RemoveAt(idx + 1);
-                    leaves.Elements.RemoveAt(idx);
-                    removed = true;
-                }
+                if (!ReferenceEquals(Resolve(leaves.Elements[idx + 1]), specification))
+                    continue;
+
+                leaves.Elements.RemoveAt(idx + 1);
+                leaves.Elements.RemoveAt(idx);
+                removed = true;
             }
         }
 

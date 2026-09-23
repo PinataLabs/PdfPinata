@@ -88,8 +88,7 @@ internal class GlyphTypefaceCache
                 try
                 {
                     Lock.EnterFontFactory();
-                    if (_singleton == null)
-                        _singleton = new GlyphTypefaceCache();
+                    _singleton ??= new GlyphTypefaceCache();
                 }
                 finally
                 {

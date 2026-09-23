@@ -102,8 +102,7 @@ public partial class Chart : Shape, IVisitable
   {
     get
     {
-      if (format == null)
-        format = new ParagraphFormat(this);
+      format ??= new ParagraphFormat(this);
 
       return format;
     }
@@ -123,8 +122,7 @@ public partial class Chart : Shape, IVisitable
   {
     get
     {
-      if (xAxis == null)
-        xAxis = new Axis(this);
+      xAxis ??= new Axis(this);
 
       return xAxis;
     }
@@ -144,8 +142,7 @@ public partial class Chart : Shape, IVisitable
   {
     get
     {
-      if (yAxis == null)
-        yAxis = new Axis(this);
+      yAxis ??= new Axis(this);
 
       return yAxis;
     }
@@ -165,8 +162,7 @@ public partial class Chart : Shape, IVisitable
   {
     get
     {
-      if (zAxis == null)
-        zAxis = new Axis(this);
+      zAxis ??= new Axis(this);
 
       return zAxis;
     }
@@ -186,8 +182,7 @@ public partial class Chart : Shape, IVisitable
   {
     get
     {
-      if (seriesCollection == null)
-        seriesCollection = new SeriesCollection(this);
+      seriesCollection ??= new SeriesCollection(this);
 
       return seriesCollection;
     }
@@ -207,8 +202,7 @@ public partial class Chart : Shape, IVisitable
   {
     get
     {
-      if (xValues == null)
-        xValues = new XValues(this);
+      xValues ??= new XValues(this);
 
       return xValues;
     }
@@ -228,8 +222,7 @@ public partial class Chart : Shape, IVisitable
   {
     get
     {
-      if (headerArea == null)
-        headerArea = new TextArea(this);
+      headerArea ??= new TextArea(this);
 
       return headerArea;
     }
@@ -249,8 +242,7 @@ public partial class Chart : Shape, IVisitable
   {
     get
     {
-      if (bottomArea == null)
-        bottomArea = new TextArea(this);
+      bottomArea ??= new TextArea(this);
 
       return bottomArea;
     }
@@ -270,8 +262,7 @@ public partial class Chart : Shape, IVisitable
   {
     get
     {
-      if (topArea == null)
-        topArea = new TextArea(this);
+      topArea ??= new TextArea(this);
 
       return topArea;
     }
@@ -291,8 +282,7 @@ public partial class Chart : Shape, IVisitable
   {
     get
     {
-      if (footerArea == null)
-        footerArea = new TextArea(this);
+      footerArea ??= new TextArea(this);
 
       return footerArea;
     }
@@ -312,8 +302,7 @@ public partial class Chart : Shape, IVisitable
   {
     get
     {
-      if (leftArea == null)
-        leftArea = new TextArea(this);
+      leftArea ??= new TextArea(this);
 
       return leftArea;
     }
@@ -333,8 +322,7 @@ public partial class Chart : Shape, IVisitable
   {
     get
     {
-      if (rightArea == null)
-        rightArea = new TextArea(this);
+      rightArea ??= new TextArea(this);
 
       return rightArea;
     }
@@ -354,8 +342,7 @@ public partial class Chart : Shape, IVisitable
   {
     get
     {
-      if (plotArea == null)
-        plotArea = new PlotArea(this);
+      plotArea ??= new PlotArea(this);
 
       return plotArea;
     }
@@ -397,8 +384,7 @@ public partial class Chart : Shape, IVisitable
   {
     get
     {
-      if (dataLabel == null)
-        dataLabel = new DataLabel(this);
+      dataLabel ??= new DataLabel(this);
 
       return dataLabel;
     }
@@ -522,32 +508,32 @@ public partial class Chart : Shape, IVisitable
   void IVisitable.AcceptVisitor(DocumentObjectVisitor visitor, bool visitChildren)
   {
     visitor.VisitChart(this);
-    if (visitChildren)
-    {
-      if (bottomArea != null)
-        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-        ((IVisitable)bottomArea).AcceptVisitor(visitor, visitChildren);
+    if (!visitChildren)
+      return;
 
-      if (footerArea != null)
-        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-        ((IVisitable)footerArea).AcceptVisitor(visitor, visitChildren);
+    if (bottomArea != null)
+      // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+      ((IVisitable)bottomArea).AcceptVisitor(visitor, visitChildren);
 
-      if (headerArea != null)
-        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-        ((IVisitable)headerArea).AcceptVisitor(visitor, visitChildren);
+    if (footerArea != null)
+      // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+      ((IVisitable)footerArea).AcceptVisitor(visitor, visitChildren);
 
-      if (leftArea != null)
-        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-        ((IVisitable)leftArea).AcceptVisitor(visitor, visitChildren);
+    if (headerArea != null)
+      // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+      ((IVisitable)headerArea).AcceptVisitor(visitor, visitChildren);
 
-      if (rightArea != null)
-        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-        ((IVisitable)rightArea).AcceptVisitor(visitor, visitChildren);
+    if (leftArea != null)
+      // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+      ((IVisitable)leftArea).AcceptVisitor(visitor, visitChildren);
 
-      if (topArea != null)
-        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-        ((IVisitable)topArea).AcceptVisitor(visitor, visitChildren);
-    }
+    if (rightArea != null)
+      // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+      ((IVisitable)rightArea).AcceptVisitor(visitor, visitChildren);
+
+    if (topArea != null)
+      // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+      ((IVisitable)topArea).AcceptVisitor(visitor, visitChildren);
   }
 
   #endregion

@@ -67,8 +67,8 @@ public partial class SectionField : NumericFieldBase
   {
     var str = "\\field(Section)";
 
-    if ((this.format ?? "") != "")
-      str += "[Format = \"" + this.Format + "\"]";
+    if ((format ?? "") != "")
+      str += "[Format = \"" + Format + "\"]";
     else
       str += "[]"; //Has to be appended to avoid confusion with '[' in directly following text.
 

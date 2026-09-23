@@ -381,15 +381,15 @@ internal class CMapTable : OpenTypeFontTable
             // subtable is format 12. Checking the format itself rather than trusting the record is
             // what keeps a face that files something else under that encoding from being read as a
             // format 12 table and answering nonsense.
-            if (cmap12Offset >= 0)
-            {
-                _fontData.Position = tableOffset + cmap12Offset;
-                if (_fontData.ReadUShort() == 12)
-                {
-                    _fontData.Position = tableOffset + cmap12Offset;
-                    cmap12 = new CMap12(_fontData);
-                }
-            }
+            if (cmap12Offset < 0)
+                return;
+
+            _fontData.Position = tableOffset + cmap12Offset;
+            if (_fontData.ReadUShort() != 12)
+                return;
+
+            _fontData.Position = tableOffset + cmap12Offset;
+            cmap12 = new CMap12(_fontData);
         }
         catch (Exception ex) when (!Unrecoverable.Is(ex))
         {
@@ -406,13 +406,11 @@ internal class CMapTable : OpenTypeFontTable
         if (platformId == PlatformId.Win)
             return (WinEncodingId)encodingId == WinEncodingId.UnicodeUcs4;
 
-        if (platformId == PlatformId.Apple)
-        {
-            var apple = (AppleEncodingId)encodingId;
-            return apple == AppleEncodingId.Unicode20 || apple == AppleEncodingId.FullUnicode;
-        }
+        if (platformId != PlatformId.Apple)
+            return false;
 
-        return false;
+        var apple = (AppleEncodingId)encodingId;
+        return apple == AppleEncodingId.Unicode20 || apple == AppleEncodingId.FullUnicode;
     }
 }
 
@@ -595,25 +593,25 @@ internal class HorizontalMetricsTable : OpenTypeFontTable
         {
             var hhea = _fontData.hhea;
             var maxp = _fontData.maxp;
-            if (hhea != null && maxp != null)
-            {
-                int numMetrics = hhea.numberOfHMetrics; //->NumberOfHMetrics();
-                var numLsbs = maxp.numGlyphs - numMetrics;
+            if (hhea == null || maxp == null)
+                return;
 
-                Debug.Assert(numMetrics != 0);
-                Debug.Assert(numLsbs >= 0);
+            int numMetrics = hhea.numberOfHMetrics; //->NumberOfHMetrics();
+            var numLsbs = maxp.numGlyphs - numMetrics;
 
-                Metrics = new HorizontalMetrics[numMetrics];
-                for (var idx = 0; idx < numMetrics; idx++)
-                    Metrics[idx] = new HorizontalMetrics(_fontData);
+            Debug.Assert(numMetrics != 0);
+            Debug.Assert(numLsbs >= 0);
 
-                if (numLsbs > 0)
-                {
-                    LeftSideBearing = new FWord[numLsbs];
-                    for (var idx = 0; idx < numLsbs; idx++)
-                        LeftSideBearing[idx] = _fontData.ReadFWord();
-                }
-            }
+            Metrics = new HorizontalMetrics[numMetrics];
+            for (var idx = 0; idx < numMetrics; idx++)
+                Metrics[idx] = new HorizontalMetrics(_fontData);
+
+            if (numLsbs <= 0)
+                return;
+
+            LeftSideBearing = new FWord[numLsbs];
+            for (var idx = 0; idx < numLsbs; idx++)
+                LeftSideBearing[idx] = _fontData.ReadFWord();
         }
         catch (Exception ex) when (!Unrecoverable.Is(ex))
         {
@@ -740,25 +738,25 @@ internal class VerticalMetricsTable : OpenTypeFontTable
         {
             var hhea = _fontData.hhea;
             var maxp = _fontData.maxp;
-            if (hhea != null && maxp != null)
-            {
-                int numMetrics = hhea.numberOfHMetrics; //->NumberOfHMetrics();
-                var numLsbs = maxp.numGlyphs - numMetrics;
+            if (hhea == null || maxp == null)
+                return;
 
-                Debug.Assert(numMetrics != 0);
-                Debug.Assert(numLsbs >= 0);
+            int numMetrics = hhea.numberOfHMetrics; //->NumberOfHMetrics();
+            var numLsbs = maxp.numGlyphs - numMetrics;
 
-                metrics = new HorizontalMetrics[numMetrics];
-                for (var idx = 0; idx < numMetrics; idx++)
-                    metrics[idx] = new HorizontalMetrics(_fontData);
+            Debug.Assert(numMetrics != 0);
+            Debug.Assert(numLsbs >= 0);
 
-                if (numLsbs > 0)
-                {
-                    leftSideBearing = new FWord[numLsbs];
-                    for (var idx = 0; idx < numLsbs; idx++)
-                        leftSideBearing[idx] = _fontData.ReadFWord();
-                }
-            }
+            metrics = new HorizontalMetrics[numMetrics];
+            for (var idx = 0; idx < numMetrics; idx++)
+                metrics[idx] = new HorizontalMetrics(_fontData);
+
+            if (numLsbs <= 0)
+                return;
+
+            leftSideBearing = new FWord[numLsbs];
+            for (var idx = 0; idx < numLsbs; idx++)
+                leftSideBearing[idx] = _fontData.ReadFWord();
         }
         catch (Exception ex) when (!Unrecoverable.Is(ex))
         {
@@ -849,17 +847,17 @@ internal class NameTable : OpenTypeFontTable
     /// <summary>
     /// Get the font family name.
     /// </summary>
-    public string Name = String.Empty;
+    public string Name = string.Empty;
 
     /// <summary>
     /// Get the font subfamily name.
     /// </summary>
-    public string Style = String.Empty;
+    public string Style = string.Empty;
 
     /// <summary>
     /// Get the full font name.
     /// </summary>
-    public string FullFontName = String.Empty;
+    public string FullFontName = string.Empty;
 
     public ushort format;
     public ushort count;
@@ -898,58 +896,58 @@ internal class NameTable : OpenTypeFontTable
                 {
                     if (nrec.nameID == 1)
                     {
-                        if (String.IsNullOrEmpty(Name))
+                        if (string.IsNullOrEmpty(Name))
                             Name = Encoding.UTF8.GetString(value, 0, value.Length);
                     }
 
                     if (nrec.nameID == 2)
                     {
-                        if (String.IsNullOrEmpty(Style))
+                        if (string.IsNullOrEmpty(Style))
                             Style = Encoding.UTF8.GetString(value, 0, value.Length);
                     }
 
                     if (nrec.nameID == 4)
                     {
-                        if (String.IsNullOrEmpty(FullFontName))
+                        if (string.IsNullOrEmpty(FullFontName))
                             FullFontName = Encoding.UTF8.GetString(value, 0, value.Length);
                     }
                 }
 
                 // Read font name and style in US english.
-                if (nrec.platformID == 0 || nrec.platformID == 3)
+                if (nrec.platformID != 0 && nrec.platformID != 3)
+                    continue;
+
+                // Font Family name. Up to four fonts can share the Font Family name,
+                // forming a font style linking group (regular, italic, bold, bold italic -
+                // as defined by OS/2.fsSelection bit settings).
+                if (nrec.nameID == 1 && nrec.languageID == 0x0409)
                 {
-                    // Font Family name. Up to four fonts can share the Font Family name,
-                    // forming a font style linking group (regular, italic, bold, bold italic -
-                    // as defined by OS/2.fsSelection bit settings).
-                    if (nrec.nameID == 1 && nrec.languageID == 0x0409)
-                    {
-                        if (String.IsNullOrEmpty(Name))
-                            Name = Encoding.BigEndianUnicode.GetString(value, 0, value.Length);
-                    }
+                    if (string.IsNullOrEmpty(Name))
+                        Name = Encoding.BigEndianUnicode.GetString(value, 0, value.Length);
+                }
 
-                    // Font Subfamily name. The Font Subfamily name distiguishes the font in a
-                    // group with the same Font Family name (name ID 1). This is assumed to
-                    // address style (italic, oblique) and weight (light, bold, black, etc.).
-                    // A font with no particular differences in weight or style (e.g. medium weight,
-                    // not italic and fsSelection bit 6 set) should have the string “Regular” stored in
-                    // this position.
-                    if (nrec.nameID == 2 && nrec.languageID == 0x0409)
-                    {
-                        if (String.IsNullOrEmpty(Style))
-                            Style = Encoding.BigEndianUnicode.GetString(value, 0, value.Length);
-                    }
+                // Font Subfamily name. The Font Subfamily name distiguishes the font in a
+                // group with the same Font Family name (name ID 1). This is assumed to
+                // address style (italic, oblique) and weight (light, bold, black, etc.).
+                // A font with no particular differences in weight or style (e.g. medium weight,
+                // not italic and fsSelection bit 6 set) should have the string “Regular” stored in
+                // this position.
+                if (nrec.nameID == 2 && nrec.languageID == 0x0409)
+                {
+                    if (string.IsNullOrEmpty(Style))
+                        Style = Encoding.BigEndianUnicode.GetString(value, 0, value.Length);
+                }
 
-                    // Full font name; a combination of strings 1 and 2, or a similar human-readable
-                    // variant. If string 2 is "Regular", it is sometimes omitted from name ID 4.
-                    if (nrec.nameID == 4 && nrec.languageID == 0x0409)
-                    {
-                        if (String.IsNullOrEmpty(FullFontName))
-                            FullFontName = Encoding.BigEndianUnicode.GetString(value, 0, value.Length);
-                    }
+                // Full font name; a combination of strings 1 and 2, or a similar human-readable
+                // variant. If string 2 is "Regular", it is sometimes omitted from name ID 4.
+                if (nrec.nameID == 4 && nrec.languageID == 0x0409)
+                {
+                    if (string.IsNullOrEmpty(FullFontName))
+                        FullFontName = Encoding.BigEndianUnicode.GetString(value, 0, value.Length);
                 }
             }
 
-            Debug.Assert(!String.IsNullOrEmpty(Name));
+            Debug.Assert(!string.IsNullOrEmpty(Name));
         }
         catch (Exception ex) when (!Unrecoverable.Is(ex))
         {
@@ -1079,20 +1077,20 @@ internal class OS2Table : OpenTypeFontTable
             usWinAscent = _fontData.ReadUShort();
             usWinDescent = _fontData.ReadUShort();
 
-            if (version >= 1)
-            {
-                ulCodePageRange1 = _fontData.ReadULong();
-                ulCodePageRange2 = _fontData.ReadULong();
+            if (version < 1)
+                return;
 
-                if (version >= 2)
-                {
-                    sxHeight = _fontData.ReadShort();
-                    sCapHeight = _fontData.ReadShort();
-                    usDefaultChar = _fontData.ReadUShort();
-                    usBreakChar = _fontData.ReadUShort();
-                    usMaxContext = _fontData.ReadUShort();
-                }
-            }
+            ulCodePageRange1 = _fontData.ReadULong();
+            ulCodePageRange2 = _fontData.ReadULong();
+
+            if (version < 2)
+                return;
+
+            sxHeight = _fontData.ReadShort();
+            sCapHeight = _fontData.ReadShort();
+            usDefaultChar = _fontData.ReadUShort();
+            usBreakChar = _fontData.ReadUShort();
+            usMaxContext = _fontData.ReadUShort();
         }
         catch (Exception ex) when (!Unrecoverable.Is(ex))
         {

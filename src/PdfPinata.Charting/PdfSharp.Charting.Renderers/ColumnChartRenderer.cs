@@ -49,16 +49,15 @@ internal class ColumnChartRenderer : ColumnLikeChartRenderer
   /// </summary>
   internal override RendererInfo Init()
   {
-    var cri = new ChartRendererInfo();
-    cri.Chart = (Chart)this.rendererParms.DrawingItem;
-    this.rendererParms.RendererInfo = cri;
+    var cri = new ChartRendererInfo { Chart = (Chart)rendererParms.DrawingItem };
+    rendererParms.RendererInfo = cri;
 
     InitSeriesRendererInfo();
 
-    var lr = new ColumnLikeLegendRenderer(this.rendererParms);
+    var lr = new ColumnLikeLegendRenderer(rendererParms);
     cri.LegendRendererInfo = (LegendRendererInfo)lr.Init();
 
-    var xar = new HorizontalXAxisRenderer(this.rendererParms);
+    var xar = new HorizontalXAxisRenderer(rendererParms);
     cri.XAxisRendererInfo = (AxisRendererInfo)xar.Init();
 
     var yar = GetYAxisRenderer();
@@ -67,7 +66,7 @@ internal class ColumnChartRenderer : ColumnLikeChartRenderer
     var renderer = GetPlotAreaRenderer();
     cri.PlotAreaRendererInfo = (PlotAreaRendererInfo)renderer.Init();
 
-    var dlr = new ColumnDataLabelRenderer(this.rendererParms);
+    var dlr = new ColumnDataLabelRenderer(rendererParms);
     dlr.Init();
 
     return cri;
@@ -78,11 +77,11 @@ internal class ColumnChartRenderer : ColumnLikeChartRenderer
   /// </summary>
   internal override void Format()
   {
-    var lr = new ColumnLikeLegendRenderer(this.rendererParms);
+    var lr = new ColumnLikeLegendRenderer(rendererParms);
     lr.Format();
 
     // axes
-    var xar = new HorizontalXAxisRenderer(this.rendererParms);
+    var xar = new HorizontalXAxisRenderer(rendererParms);
     xar.Format();
 
     var yar = GetYAxisRenderer();
@@ -95,7 +94,7 @@ internal class ColumnChartRenderer : ColumnLikeChartRenderer
     var renderer = GetPlotAreaRenderer();
     renderer.Format();
 
-    var dlr = new ColumnDataLabelRenderer(this.rendererParms);
+    var dlr = new ColumnDataLabelRenderer(rendererParms);
     dlr.Format();
   }
 
@@ -104,29 +103,29 @@ internal class ColumnChartRenderer : ColumnLikeChartRenderer
   /// </summary>
   internal override void Draw()
   {
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
       
-    var lr = new ColumnLikeLegendRenderer(this.rendererParms);
+    var lr = new ColumnLikeLegendRenderer(rendererParms);
     lr.Draw();
 
-    var wr = new WallRenderer(this.rendererParms);
+    var wr = new WallRenderer(rendererParms);
     wr.Draw();
 
-    var glr = new ColumnLikeGridlinesRenderer(this.rendererParms);
+    var glr = new ColumnLikeGridlinesRenderer(rendererParms);
     glr.Draw();
 
-    var pabr = new PlotAreaBorderRenderer(this.rendererParms);
+    var pabr = new PlotAreaBorderRenderer(rendererParms);
     pabr.Draw();
 
     var renderer = GetPlotAreaRenderer();
     renderer.Draw();
 
-    var dlr = new ColumnDataLabelRenderer(this.rendererParms);
+    var dlr = new ColumnDataLabelRenderer(rendererParms);
     dlr.Draw();
 
     if (cri.XAxisRendererInfo.Axis != null)
     {
-      var xar = new HorizontalXAxisRenderer(this.rendererParms);
+      var xar = new HorizontalXAxisRenderer(rendererParms);
       xar.Draw();
     }
 
@@ -142,14 +141,14 @@ internal class ColumnChartRenderer : ColumnLikeChartRenderer
   /// </summary>
   private PlotAreaRenderer GetPlotAreaRenderer()
   {
-    var chart = (Chart)this.rendererParms.DrawingItem;
+    var chart = (Chart)rendererParms.DrawingItem;
     switch (chart.type)
     {
       case ChartType.Column2D:
-        return new ColumnClusteredPlotAreaRenderer(this.rendererParms);
+        return new ColumnClusteredPlotAreaRenderer(rendererParms);
 
       case ChartType.ColumnStacked2D:
-        return new ColumnStackedPlotAreaRenderer(this.rendererParms);
+        return new ColumnStackedPlotAreaRenderer(rendererParms);
     }
     return null;
   }
@@ -159,14 +158,14 @@ internal class ColumnChartRenderer : ColumnLikeChartRenderer
   /// </summary>
   private YAxisRenderer GetYAxisRenderer()
   {
-    var chart = (Chart)this.rendererParms.DrawingItem;
+    var chart = (Chart)rendererParms.DrawingItem;
     switch (chart.type)
     {
       case ChartType.Column2D:
-        return new VerticalYAxisRenderer(this.rendererParms);
+        return new VerticalYAxisRenderer(rendererParms);
 
       case ChartType.ColumnStacked2D:
-        return new VerticalStackedYAxisRenderer(this.rendererParms);
+        return new VerticalStackedYAxisRenderer(rendererParms);
     }
     return null;
   }
@@ -176,14 +175,13 @@ internal class ColumnChartRenderer : ColumnLikeChartRenderer
   /// </summary>
   private void InitSeriesRendererInfo()
   {
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
 
     var seriesColl = cri.Chart.SeriesCollection;
     cri.SeriesRendererInfos = new SeriesRendererInfo[seriesColl.Count];
     for (var idx = 0; idx < seriesColl.Count; ++idx)
     {
-      var sri = new SeriesRendererInfo();
-      sri.Series = seriesColl[idx];
+      var sri = new SeriesRendererInfo { Series = seriesColl[idx] };
       cri.SeriesRendererInfos[idx] = sri;
     }
 
@@ -195,7 +193,7 @@ internal class ColumnChartRenderer : ColumnLikeChartRenderer
   /// </summary>
   internal void InitSeries()
   {
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
 
     var seriesIndex = 0;
     foreach (var sri in cri.SeriesRendererInfos)

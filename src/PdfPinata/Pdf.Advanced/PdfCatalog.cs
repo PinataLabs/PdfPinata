@@ -127,8 +127,7 @@ public sealed class PdfCatalog : PdfDictionary
     {
         get
         {
-            if (_viewerPreferences == null)
-                _viewerPreferences = (PdfViewerPreferences)Elements.GetValue(Keys.ViewerPreferences, VCF.CreateIndirect);
+            _viewerPreferences ??= (PdfViewerPreferences)Elements.GetValue(Keys.ViewerPreferences, VCF.CreateIndirect);
             return _viewerPreferences;
         }
     }
@@ -141,15 +140,12 @@ public sealed class PdfCatalog : PdfDictionary
     {
         get
         {
-            if (_outline == null)
-            {
-                ////// Ensure that the page tree exists.
-                ////// ReSharper disable once UnusedVariable because we need dummy to call the getter.
-                ////PdfPages dummy = Pages;
+            ////// Ensure that the page tree exists.
+            ////// ReSharper disable once UnusedVariable because we need dummy to call the getter.
+            ////PdfPages dummy = Pages;
 
-                // Now create the outline item tree.
-                _outline = (PdfOutline)Elements.GetValue(Keys.Outlines, VCF.CreateIndirect);
-            }
+            // Now create the outline item tree.
+            _outline ??= (PdfOutline)Elements.GetValue(Keys.Outlines, VCF.CreateIndirect);
             return _outline.Outlines;
         }
     }
@@ -191,32 +187,32 @@ public sealed class PdfCatalog : PdfDictionary
         if (_pages != null)
             _pages.PrepareForSave();
 
-        if (_outline != null)
+        if (_outline == null)
+            return;
+
+        if (_outline.Outlines.Count > 0)
         {
-            if (_outline.Outlines.Count > 0)
-            {
-                if (Elements[Keys.PageMode] == null)
-                    PageMode = PdfPageMode.UseOutlines;
+            if (Elements[Keys.PageMode] == null)
+                PageMode = PdfPageMode.UseOutlines;
 
-                // Back in the table, and in the catalog, if an earlier save found the outline
-                // empty and took it out of both.
-                Owner._irefTable.Readmit(_outline);
-                if (!ReferenceEquals(Elements[Keys.Outlines], _outline.Reference))
-                    Elements[Keys.Outlines] = _outline.Reference;
+            // Back in the table, and in the catalog, if an earlier save found the outline
+            // empty and took it out of both.
+            Owner._irefTable.Readmit(_outline);
+            if (!ReferenceEquals(Elements[Keys.Outlines], _outline.Reference))
+                Elements[Keys.Outlines] = _outline.Reference;
 
-                _outline.PrepareForSave();
-            }
-            else
-            {
-                // An outline with no entries is not written - PdfOutline.WriteObject writes the
-                // root only when it has children - so the catalog must not name it. Asking
-                // document.Outlines anything was enough to create it, and the file then had an
-                // /Outlines reference to an object that was never written; removing every entry
-                // of a document read with outlines left the root still naming them in /First.
-                Elements.Remove(Keys.Outlines);
-                if (_outline.Reference != null)
-                    Owner._irefTable.Remove(_outline.Reference);
-            }
+            _outline.PrepareForSave();
+        }
+        else
+        {
+            // An outline with no entries is not written - PdfOutline.WriteObject writes the
+            // root only when it has children - so the catalog must not name it. Asking
+            // document.Outlines anything was enough to create it, and the file then had an
+            // /Outlines reference to an object that was never written; removing every entry
+            // of a document read with outlines left the root still naming them in /First.
+            Elements.Remove(Keys.Outlines);
+            if (_outline.Reference != null)
+                Owner._irefTable.Remove(_outline.Reference);
         }
     }
 

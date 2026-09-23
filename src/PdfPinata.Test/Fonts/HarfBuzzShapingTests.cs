@@ -326,7 +326,7 @@ public class HarfBuzzShapingTests
     private sealed class OnlyFor : ITextShaper, IDisposable
     {
         private readonly string _mine;
-        private readonly HarfBuzzTextShaper _shaper = new HarfBuzzTextShaper();
+        private readonly HarfBuzzTextShaper _shaper = new();
 
         internal OnlyFor(string mine) => _mine = mine;
 

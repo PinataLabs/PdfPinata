@@ -107,7 +107,7 @@ public sealed class PdfImage : PdfXObject
         var useFlateDecode = _document.Options.UseFlateDecoderForJpegImages == PdfUseFlateDecoderForJpegImages.Always;
 
         var fd = new FlateDecode();
-        var imageDataCompressed = (useFlateDecode || tryFlateDecode) ? fd.Encode(imageBits, _document.Options.FlateEncodeMode) : null;
+        var imageDataCompressed = useFlateDecode || tryFlateDecode ? fd.Encode(imageBits, _document.Options.FlateEncodeMode) : null;
         if (useFlateDecode || tryFlateDecode && imageDataCompressed.Length < imageBits.Length)
         {
             Stream = new PdfStream(imageDataCompressed, this);
@@ -152,112 +152,112 @@ public sealed class PdfImage : PdfXObject
         var pixels = _image.GetPixels();
 
         Debug.Assert(!pixels.IsEmpty, "Image decoding produced no pixels.");
-        if (!pixels.IsEmpty)
+        if (pixels.IsEmpty)
+            return;
+
+        var width = pixels.Width;
+        var height = pixels.Height;
+        var source = pixels.Pixels.Span;
+
+        var imageData = new byte[3 * width * height];
+
+        var hasMask = false;
+        var hasAlphaMask = false;
+        var alphaMask = new byte[width * height];
+        var mask = new MonochromeMask(width, height);
+
+        // Row r of the source is row r of the output: both are top-down and neither pads.
+        var read = 0;
+        var write = 0;
+        var writeAlpha = 0;
+        for (var y = 0; y < height; ++y)
         {
-            var width = pixels.Width;
-            var height = pixels.Height;
-            var source = pixels.Pixels.Span;
+            mask.StartLine(y);
 
-            var imageData = new byte[3 * width * height];
-
-            var hasMask = false;
-            var hasAlphaMask = false;
-            var alphaMask = new byte[width * height];
-            var mask = new MonochromeMask(width, height);
-
-            // Row r of the source is row r of the output: both are top-down and neither pads.
-            var read = 0;
-            var write = 0;
-            var writeAlpha = 0;
-            for (var y = 0; y < height; ++y)
+            for (var x = 0; x < width; ++x)
             {
-                mask.StartLine(y);
+                // BGRA in, RGB out.
+                imageData[write] = source[read + 2];
+                imageData[write + 1] = source[read + 1];
+                imageData[write + 2] = source[read];
 
-                for (var x = 0; x < width; ++x)
+                var alpha = source[read + 3];
+                mask.AddPel(alpha);
+                alphaMask[writeAlpha] = alpha;
+                if (alpha != 255)
                 {
-                    // BGRA in, RGB out.
-                    imageData[write] = source[read + 2];
-                    imageData[write + 1] = source[read + 1];
-                    imageData[write + 2] = source[read];
-
-                    var alpha = source[read + 3];
-                    mask.AddPel(alpha);
-                    alphaMask[writeAlpha] = alpha;
-                    if (alpha != 255)
-                    {
-                        hasMask = true;
-                        if (alpha != 0)
-                            hasAlphaMask = true;
-                    }
-
-                    ++writeAlpha;
-                    read += PixelBuffer.BytesPerPixel;
-                    write += 3;
+                    hasMask = true;
+                    if (alpha != 0)
+                        hasAlphaMask = true;
                 }
+
+                ++writeAlpha;
+                read += PixelBuffer.BytesPerPixel;
+                write += 3;
             }
-
-            var fd = new FlateDecode();
-
-            // The soft mask carries alpha exactly; the stencil rounds it to transparent or opaque
-            // at 128. Where the soft mask goes the stencil is therefore redundant at best, and it
-            // is worse than that: ISO 32000-1 Table 89 has /SMask override an image's /Mask, and
-            // pdf.js obeys that, but Ghostscript and macOS Quartz apply both - so a picture whose
-            // alpha lay wholly below 128, a watermark say, was embedded, referenced, and
-            // invisible. So the two are alternatives rather than a pair. That leaves the stencil
-            // the two cases where it is the whole answer: transparency that is already binary,
-            // where it loses nothing, and a document too old to be read a soft mask.
-            var hasSoftMask = hasMask && hasAlphaMask && pdfVersion >= 14;
-
-            if (hasMask && !hasSoftMask)
-            {
-                // Either binary transparency, which the stencil states exactly, or a pre-1.4
-                // document, where it is all a reader of that vintage could have been given.
-                var maskDataCompressed = fd.Encode(mask.MaskData, _document.Options.FlateEncodeMode);
-                var pdfMask = new PdfDictionary(_document);
-                pdfMask.Elements.SetName(Keys.Type, "/XObject");
-                pdfMask.Elements.SetName(Keys.Subtype, "/Image");
-
-                Owner._irefTable.Add(pdfMask);
-                pdfMask.Stream = new PdfStream(maskDataCompressed, pdfMask);
-                pdfMask.Elements[PdfStream.Keys.Length] = new PdfInteger(maskDataCompressed.Length);
-                pdfMask.Elements[PdfStream.Keys.Filter] = new PdfName("/FlateDecode");
-                pdfMask.Elements[Keys.Width] = new PdfInteger(width);
-                pdfMask.Elements[Keys.Height] = new PdfInteger(height);
-                pdfMask.Elements[Keys.BitsPerComponent] = new PdfInteger(1);
-                pdfMask.Elements[Keys.ImageMask] = new PdfBoolean(true);
-                Elements[Keys.Mask] = pdfMask.Reference;
-            }
-            if (hasSoftMask)
-            {
-                // The image provides an alpha mask (requires Arcrobat 5.0 or higher)
-                var alphaMaskCompressed = fd.Encode(alphaMask, _document.Options.FlateEncodeMode);
-                var smask = new PdfDictionary(_document);
-                smask.Elements.SetName(Keys.Type, "/XObject");
-                smask.Elements.SetName(Keys.Subtype, "/Image");
-
-                Owner._irefTable.Add(smask);
-                smask.Stream = new PdfStream(alphaMaskCompressed, smask);
-                smask.Elements[PdfStream.Keys.Length] = new PdfInteger(alphaMaskCompressed.Length);
-                smask.Elements[PdfStream.Keys.Filter] = new PdfName("/FlateDecode");
-                smask.Elements[Keys.Width] = new PdfInteger(width);
-                smask.Elements[Keys.Height] = new PdfInteger(height);
-                smask.Elements[Keys.BitsPerComponent] = new PdfInteger(8);
-                smask.Elements[Keys.ColorSpace] = new PdfName("/DeviceGray");
-                Elements[Keys.SMask] = smask.Reference;
-            }
-
-            var imageDataCompressed = fd.Encode(imageData, _document.Options.FlateEncodeMode);
-
-            Stream = new PdfStream(imageDataCompressed, this);
-            Elements[PdfStream.Keys.Length] = new PdfInteger(imageDataCompressed.Length);
-            Elements[PdfStream.Keys.Filter] = new PdfName("/FlateDecode");
-            Elements[Keys.Width] = new PdfInteger(width);
-            Elements[Keys.Height] = new PdfInteger(height);
-            Elements[Keys.BitsPerComponent] = new PdfInteger(8);
-            Elements[Keys.ColorSpace] = new PdfName("/DeviceRGB");
-            if (_image.Interpolate)
-                Elements[Keys.Interpolate] = PdfBoolean.True;
         }
+
+        var fd = new FlateDecode();
+
+        // The soft mask carries alpha exactly; the stencil rounds it to transparent or opaque
+        // at 128. Where the soft mask goes the stencil is therefore redundant at best, and it
+        // is worse than that: ISO 32000-1 Table 89 has /SMask override an image's /Mask, and
+        // pdf.js obeys that, but Ghostscript and macOS Quartz apply both - so a picture whose
+        // alpha lay wholly below 128, a watermark say, was embedded, referenced, and
+        // invisible. So the two are alternatives rather than a pair. That leaves the stencil
+        // the two cases where it is the whole answer: transparency that is already binary,
+        // where it loses nothing, and a document too old to be read a soft mask.
+        var hasSoftMask = hasMask && hasAlphaMask && pdfVersion >= 14;
+
+        if (hasMask && !hasSoftMask)
+        {
+            // Either binary transparency, which the stencil states exactly, or a pre-1.4
+            // document, where it is all a reader of that vintage could have been given.
+            var maskDataCompressed = fd.Encode(mask.MaskData, _document.Options.FlateEncodeMode);
+            var pdfMask = new PdfDictionary(_document);
+            pdfMask.Elements.SetName(Keys.Type, "/XObject");
+            pdfMask.Elements.SetName(Keys.Subtype, "/Image");
+
+            Owner._irefTable.Add(pdfMask);
+            pdfMask.Stream = new PdfStream(maskDataCompressed, pdfMask);
+            pdfMask.Elements[PdfStream.Keys.Length] = new PdfInteger(maskDataCompressed.Length);
+            pdfMask.Elements[PdfStream.Keys.Filter] = new PdfName("/FlateDecode");
+            pdfMask.Elements[Keys.Width] = new PdfInteger(width);
+            pdfMask.Elements[Keys.Height] = new PdfInteger(height);
+            pdfMask.Elements[Keys.BitsPerComponent] = new PdfInteger(1);
+            pdfMask.Elements[Keys.ImageMask] = new PdfBoolean(true);
+            Elements[Keys.Mask] = pdfMask.Reference;
+        }
+        if (hasSoftMask)
+        {
+            // The image provides an alpha mask (requires Arcrobat 5.0 or higher)
+            var alphaMaskCompressed = fd.Encode(alphaMask, _document.Options.FlateEncodeMode);
+            var smask = new PdfDictionary(_document);
+            smask.Elements.SetName(Keys.Type, "/XObject");
+            smask.Elements.SetName(Keys.Subtype, "/Image");
+
+            Owner._irefTable.Add(smask);
+            smask.Stream = new PdfStream(alphaMaskCompressed, smask);
+            smask.Elements[PdfStream.Keys.Length] = new PdfInteger(alphaMaskCompressed.Length);
+            smask.Elements[PdfStream.Keys.Filter] = new PdfName("/FlateDecode");
+            smask.Elements[Keys.Width] = new PdfInteger(width);
+            smask.Elements[Keys.Height] = new PdfInteger(height);
+            smask.Elements[Keys.BitsPerComponent] = new PdfInteger(8);
+            smask.Elements[Keys.ColorSpace] = new PdfName("/DeviceGray");
+            Elements[Keys.SMask] = smask.Reference;
+        }
+
+        var imageDataCompressed = fd.Encode(imageData, _document.Options.FlateEncodeMode);
+
+        Stream = new PdfStream(imageDataCompressed, this);
+        Elements[PdfStream.Keys.Length] = new PdfInteger(imageDataCompressed.Length);
+        Elements[PdfStream.Keys.Filter] = new PdfName("/FlateDecode");
+        Elements[Keys.Width] = new PdfInteger(width);
+        Elements[Keys.Height] = new PdfInteger(height);
+        Elements[Keys.BitsPerComponent] = new PdfInteger(8);
+        Elements[Keys.ColorSpace] = new PdfName("/DeviceRGB");
+        if (_image.Interpolate)
+            Elements[Keys.Interpolate] = PdfBoolean.True;
     }
 
     /// <summary>
@@ -466,7 +466,7 @@ class MonochromeMask
     public MonochromeMask(int sizeX, int sizeY)
     {
         _sizeX = sizeX;
-        var byteSize = ((sizeX + 7) / 8) * sizeY;
+        var byteSize = (sizeX + 7) / 8 * sizeY;
         _maskData = new byte[byteSize];
         StartLine(0);
     }
@@ -478,7 +478,7 @@ class MonochromeMask
     {
         _bitsWritten = 0;
         _byteBuffer = 0;
-        _writeOffset = ((_sizeX + 7) / 8) * newCurrentLine;
+        _writeOffset = (_sizeX + 7) / 8 * newCurrentLine;
     }
 
     /// <summary>
@@ -487,26 +487,26 @@ class MonochromeMask
     /// <param name="isTransparent"></param>
     public void AddPel(bool isTransparent)
     {
-        if (_bitsWritten < _sizeX)
+        if (_bitsWritten >= _sizeX)
+            return;
+
+        // Mask: 0: opaque, 1: transparent (default mapping)
+        if (isTransparent)
+            _byteBuffer = (_byteBuffer << 1) + 1;
+        else
+            _byteBuffer = _byteBuffer << 1;
+        ++_bitsWritten;
+        if ((_bitsWritten & 7) == 0)
         {
-            // Mask: 0: opaque, 1: transparent (default mapping)
-            if (isTransparent)
-                _byteBuffer = (_byteBuffer << 1) + 1;
-            else
-                _byteBuffer = _byteBuffer << 1;
-            ++_bitsWritten;
-            if ((_bitsWritten & 7) == 0)
-            {
-                _maskData[_writeOffset] = (byte)_byteBuffer;
-                ++_writeOffset;
-                _byteBuffer = 0;
-            }
-            else if (_bitsWritten == _sizeX)
-            {
-                var n = 8 - (_bitsWritten & 7);
-                _byteBuffer = _byteBuffer << n;
-                _maskData[_writeOffset] = (byte)_byteBuffer;
-            }
+            _maskData[_writeOffset] = (byte)_byteBuffer;
+            ++_writeOffset;
+            _byteBuffer = 0;
+        }
+        else if (_bitsWritten == _sizeX)
+        {
+            var n = 8 - (_bitsWritten & 7);
+            _byteBuffer = _byteBuffer << n;
+            _maskData[_writeOffset] = (byte)_byteBuffer;
         }
     }
 

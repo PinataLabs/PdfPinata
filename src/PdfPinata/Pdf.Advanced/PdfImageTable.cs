@@ -83,8 +83,7 @@ internal sealed class PdfImageTable : PdfResourceTable
         {
             // Images are matched by path here; identical content drawn from different sources is
             // merged at save time when PdfDocumentOptions.DeduplicateResources is set.
-            if (image.Path == null)
-                image.Path = "*" + Guid.NewGuid().ToString("B");
+            image.Path ??= "*" + Guid.NewGuid().ToString("B");
 
             _path = image.Path.ToLowerInvariant();
         }

@@ -40,7 +40,7 @@ public sealed class IntervalSet : IReadOnlyList<XInterval>
     }
 
     /// <summary>A set covering nothing.</summary>
-    public static IntervalSet Empty { get; } = new IntervalSet(_nothing);
+    public static IntervalSet Empty { get; } = new(_nothing);
 
     /// <summary>A set covering one run, from <paramref name="start"/> to <paramref name="end"/>.</summary>
     public static IntervalSet Of(double start, double end)

@@ -379,30 +379,30 @@ public sealed class XGraphics : IDisposable
 
     private void Dispose(bool disposing)
     {
-        if (!_disposed)
+        if (_disposed)
+            return;
+
+        _disposed = true;
+        if (disposing)
         {
-            _disposed = true;
-            if (disposing)
+            // Dispose managed resources.
+            if (_associatedImage != null)
             {
-                // Dispose managed resources.
-                if (_associatedImage != null)
-                {
-                    _associatedImage.DisassociateWithGraphics(this);
-                    _associatedImage = null;
-                }
-            }
-
-            if (_form != null)
-                _form.Finish();
-
-            _drawGraphics = false;
-
-            if (_renderer != null)
-            {
-                _renderer.Close();
-                _renderer = null;
+                _associatedImage.DisassociateWithGraphics(this);
+                _associatedImage = null;
             }
         }
+
+        if (_form != null)
+            _form.Finish();
+
+        _drawGraphics = false;
+
+        if (_renderer == null)
+            return;
+
+        _renderer.Close();
+        _renderer = null;
     }
 
     private bool _disposed;
@@ -748,13 +748,13 @@ public sealed class XGraphics : IDisposable
 
         var count = rectangles.Length;
 
-        if (_renderer != null)
+        if (_renderer == null)
+            return;
+
+        for (var idx = 0; idx < count; idx++)
         {
-            for (var idx = 0; idx < count; idx++)
-            {
-                var rect = rectangles[idx];
-                _renderer.DrawRectangle(pen, brush, rect.X, rect.Y, rect.Width, rect.Height);
-            }
+            var rect = rectangles[idx];
+            _renderer.DrawRectangle(pen, brush, rect.X, rect.Y, rect.Width, rect.Height);
         }
     }
 
@@ -1296,8 +1296,7 @@ public sealed class XGraphics : IDisposable
         if (text.Length == 0)
             return;
 
-        if (format == null)
-            format = XStringFormats.Default;
+        format ??= XStringFormats.Default;
 
         if (_renderer != null)
             _renderer.DrawString(text, font, pen, brush, layoutRectangle, format);
@@ -1392,23 +1391,23 @@ public sealed class XGraphics : IDisposable
     private void CheckXPdfFormConsistence(XImage image)
     {
         var xForm = image as XForm;
-        if (xForm != null)
-        {
-            // Force disposing of XGraphics that draws the content
-            xForm.Finish();
+        if (xForm == null)
+            return;
 
-            // ReSharper disable once MergeSequentialChecks
-            if (_renderer != null && (_renderer as XGraphicsPdfRenderer) != null)
-            {
-                if (xForm.Owner != null && xForm.Owner != ((XGraphicsPdfRenderer)_renderer).Owner)
-                    throw new InvalidOperationException(
-                        "A XPdfForm object is always bound to the document it was created for and cannot be drawn in the context of another document.");
+        // Force disposing of XGraphics that draws the content
+        xForm.Finish();
 
-                if (xForm == ((XGraphicsPdfRenderer)_renderer).Form)
-                    throw new InvalidOperationException(
-                        "A XPdfForm cannot be drawn on itself.");
-            }
-        }
+        // ReSharper disable once MergeSequentialChecks
+        if (_renderer == null || (_renderer as XGraphicsPdfRenderer) == null)
+            return;
+
+        if (xForm.Owner != null && xForm.Owner != ((XGraphicsPdfRenderer)_renderer).Owner)
+            throw new InvalidOperationException(
+                "A XPdfForm object is always bound to the document it was created for and cannot be drawn in the context of another document.");
+
+        if (xForm == ((XGraphicsPdfRenderer)_renderer).Form)
+            throw new InvalidOperationException(
+                "A XPdfForm cannot be drawn on itself.");
     }
 
     // ----- DrawBarCode --------------------------------------------------------------------------
@@ -1710,8 +1709,7 @@ public sealed class XGraphics : IDisposable
     public XGraphicsState Save()
     {
         var xState = new XGraphicsState();
-        var iState = new InternalGraphicsState(xState);
-        iState.Transform = _transform;
+        var iState = new InternalGraphicsState(xState) { Transform = _transform };
         _gsStack.Push(iState);
 
         if (_renderer != null)
@@ -1775,8 +1773,7 @@ public sealed class XGraphics : IDisposable
 
         var xContainer = new XGraphicsContainer();
 
-        var iState = new InternalGraphicsState(xContainer);
-        iState.Transform = _transform;
+        var iState = new InternalGraphicsState(xContainer) { Transform = _transform };
 
         _gsStack.Push(iState);
 

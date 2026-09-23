@@ -157,11 +157,11 @@ public class DdlReader : IDisposable
     /// <param name="disposing">True when called from <see cref="Dispose()"/> rather than a finalizer.</param>
     protected virtual void Dispose(bool disposing)
     {
-        if (_reader != null)
-        {
-            _reader.Dispose();
-            _reader = null;
-        }
+        if (_reader == null)
+            return;
+
+        _reader.Dispose();
+        _reader = null;
     }
 
     private TextReader _reader;

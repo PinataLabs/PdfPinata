@@ -50,7 +50,7 @@ internal class PieExplodedPlotAreaRenderer : PiePlotAreaRenderer
   /// </summary>
   protected override void CalcSectors()
   {
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
     if (cri.SeriesRendererInfos.Length == 0)
       return;
 

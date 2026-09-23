@@ -58,7 +58,9 @@ public class SeriesCollectionMapper
         series.ChartType = (ChartType)chart.Type;
       }
       else
+      {
         series.ChartType = (ChartType)domSeries.ChartType;
+      }
 
       if (!domSeries.IsNull("DataLabel"))
         DataLabelMapper.Map(series.DataLabel, domSeries.DataLabel);
@@ -95,7 +97,9 @@ public class SeriesCollectionMapper
           LineFormatMapper.Map(point.LineFormat, domPoint.LineFormat);
         }
         else
+        {
           series.Add(double.NaN);
+        }
       }
     }
   }

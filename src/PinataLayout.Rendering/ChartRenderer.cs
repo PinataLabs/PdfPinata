@@ -51,7 +51,7 @@ internal class ChartRenderer : ShapeRenderer
     {
       shape = shape
     };
-    this.renderInfo = chartRenderInfo;
+    renderInfo = chartRenderInfo;
   }
 
   internal ChartRenderer(XGraphics gfx, RenderInfo renderInfo, FieldInfos fieldInfos)

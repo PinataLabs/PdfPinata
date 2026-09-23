@@ -24,7 +24,7 @@ public class GlyphOutlineTests
     private const string Text = "Handles";
     private const string TrueTypeFamily = "Arial";
 
-    private static readonly XRect Box = new XRect(100, 200, 400, 60);
+    private static readonly XRect Box = new(100, 200, 400, 60);
 
     // ----- the seam ------------------------------------------------------------------------------
 

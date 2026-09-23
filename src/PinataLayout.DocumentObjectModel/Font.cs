@@ -316,7 +316,9 @@ public sealed partial class Font : DocumentObject
                 }
             }
             else
+            {
                 fontStyle = "(\"" + ((FormattedText)Parent).Style + "\")";
+            }
 
             serializer.Write("\\font" + fontStyle + "[");
 
@@ -355,8 +357,8 @@ public sealed partial class Font : DocumentObject
 
             // Don't write null values if font is null.
             // Do write null values if font is not null!
-            if ((name != null && Name != String.Empty && font == null) ||
-                (font != null && name != null && Name != String.Empty && Name != font.Name))
+            if ((name != null && Name != string.Empty && font == null) ||
+                (font != null && name != null && Name != string.Empty && Name != font.Name))
                 serializer.WriteSimpleAttribute("Name", Name);
 
             if (!size.IsNull &&
