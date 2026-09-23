@@ -166,10 +166,7 @@ internal static class OpenTypeFontMetadata
             bestScore = score;
         }
 
-        if (best == null)
-            throw new InvalidOperationException("Font contains no family name (name ID 1).");
-
-        return best;
+        return best ?? throw new InvalidOperationException("Font contains no family name (name ID 1).");
     }
 
 
@@ -184,10 +181,7 @@ internal static class OpenTypeFontMetadata
             return 3;
         if (platformId == PlatformWindows)
             return 2;
-        if (platformId == PlatformUnicode)
-            return 1;
-
-        return 0;
+        return platformId == PlatformUnicode ? 1 : 0;
     }
 
 
@@ -226,10 +220,7 @@ internal static class OpenTypeFontMetadata
             return XFontStyle.BoldItalic;
         if (bold)
             return XFontStyle.Bold;
-        if (italic)
-            return XFontStyle.Italic;
-
-        return XFontStyle.Regular;
+        return italic ? XFontStyle.Italic : XFontStyle.Regular;
     }
 
 

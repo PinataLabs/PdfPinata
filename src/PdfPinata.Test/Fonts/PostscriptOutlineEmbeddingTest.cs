@@ -216,7 +216,7 @@ public class PostscriptOutlineEmbeddingTest
         info.FaceName.Should().Be("SourceCodePro-Regular.otf");
 
         // 'OTTO' - the signature that says the outlines are PostScript rather than TrueType.
-        resolver.GetFont(info.FaceName).Take(4).Should().Equal((byte)'O', (byte)'T', (byte)'T', (byte)'O');
+        resolver.GetFont(info.FaceName).Take(4).Should().Equal("OTTO"u8.ToArray());
     }
 
     private sealed class Probe : SkiaFontResolver

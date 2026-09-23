@@ -466,7 +466,7 @@ internal static class PdfConformanceWriter
     {
         const int SpaceAt = 16;
 
-        if (profile != null && profile.Length >= SpaceAt + 4)
+        if (profile is { Length: >= SpaceAt + 4 })
         {
             var space = new string(new[]
             {

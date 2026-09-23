@@ -68,10 +68,7 @@ public sealed class HarfBuzzTextShaper : ITextShaper, IDisposable
         // A face this shaper could not parse is declined rather than drawn wrong: returning null
         // puts the caller back on the one-character-one-glyph path, which is what it would have
         // done had no shaper been registered at all.
-        if (face.Failed)
-            return null;
-
-        return face.Shape(text, direction, script, language);
+        return face.Failed ? null : face.Shape(text, direction, script, language);
     }
 
     /// <summary>

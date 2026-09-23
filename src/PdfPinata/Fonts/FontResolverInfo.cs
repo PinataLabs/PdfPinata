@@ -130,8 +130,8 @@ public class FontResolverInfo
     /// <summary>
     /// Gets the key for this object.
     /// </summary>
-    internal string Key => _key ?? (_key = KeyPrefix + _faceName.ToLowerInvariant()
-                                                     + '/' + (_mustSimulateBold ? "b+" : "b-") + (_mustSimulateItalic ? "i+" : "i-"));
+    internal string Key => _key ??= KeyPrefix + _faceName.ToLowerInvariant()
+                                              + '/' + (_mustSimulateBold ? "b+" : "b-") + (_mustSimulateItalic ? "i+" : "i-");
 
     private string _key;
 

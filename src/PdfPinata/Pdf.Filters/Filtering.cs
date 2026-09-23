@@ -53,23 +53,23 @@ public static class Filtering
         {
             case "ASCIIHexDecode":
             case "AHx":
-                return _asciiHexDecode ?? (_asciiHexDecode = new AsciiHexDecode());
+                return _asciiHexDecode ??= new AsciiHexDecode();
 
             case "ASCII85Decode":
             case "A85":
-                return _ascii85Decode ?? (_ascii85Decode = new Ascii85Decode());
+                return _ascii85Decode ??= new Ascii85Decode();
 
             case "LZWDecode":
             case "LZW":
-                return _lzwDecode ?? (_lzwDecode = new LzwDecode());
+                return _lzwDecode ??= new LzwDecode();
 
             case "FlateDecode":
             case "Fl":
-                return _flateDecode ?? (_flateDecode = new FlateDecode());
+                return _flateDecode ??= new FlateDecode();
 
             case "RunLengthDecode":
             case "RL":
-                return _runLengthDecode ?? (_runLengthDecode = new RunLengthDecode());
+                return _runLengthDecode ??= new RunLengthDecode();
 
             case "CCITTFaxDecode":
             case "JBIG2Decode":
@@ -86,35 +86,35 @@ public static class Filtering
     /// Gets the filter singleton.
     /// </summary>
     // ReSharper disable InconsistentNaming
-    public static AsciiHexDecode ASCIIHexDecode => _asciiHexDecode ?? (_asciiHexDecode = new AsciiHexDecode()); // ReSharper restore InconsistentNaming
+    public static AsciiHexDecode ASCIIHexDecode => _asciiHexDecode ??= new AsciiHexDecode(); // ReSharper restore InconsistentNaming
 
     private static AsciiHexDecode _asciiHexDecode;
 
     /// <summary>
     /// Gets the filter singleton.
     /// </summary>
-    public static Ascii85Decode ASCII85Decode => _ascii85Decode ?? (_ascii85Decode = new Ascii85Decode());
+    public static Ascii85Decode ASCII85Decode => _ascii85Decode ??= new Ascii85Decode();
 
     private static Ascii85Decode _ascii85Decode;
 
     /// <summary>
     /// Gets the filter singleton.
     /// </summary>
-    public static LzwDecode LzwDecode => _lzwDecode ?? (_lzwDecode = new LzwDecode());
+    public static LzwDecode LzwDecode => _lzwDecode ??= new LzwDecode();
 
     private static LzwDecode _lzwDecode;
 
     /// <summary>
     /// Gets the filter singleton.
     /// </summary>
-    public static FlateDecode FlateDecode => _flateDecode ?? (_flateDecode = new FlateDecode());
+    public static FlateDecode FlateDecode => _flateDecode ??= new FlateDecode();
 
     private static FlateDecode _flateDecode;
 
     /// <summary>
     /// Gets the filter singleton.
     /// </summary>
-    public static RunLengthDecode RunLengthDecode => _runLengthDecode ?? (_runLengthDecode = new RunLengthDecode());
+    public static RunLengthDecode RunLengthDecode => _runLengthDecode ??= new RunLengthDecode();
 
     private static RunLengthDecode _runLengthDecode;
 
@@ -124,9 +124,7 @@ public static class Filtering
     public static byte[] Encode(byte[] data, string filterName)
     {
         var filter = GetFilter(filterName);
-        if (filter != null)
-            return filter.Encode(data);
-        return null;
+        return filter?.Encode(data);
     }
 
     /// <summary>
@@ -135,9 +133,7 @@ public static class Filtering
     public static byte[] Encode(string rawString, string filterName)
     {
         var filter = GetFilter(filterName);
-        if (filter != null)
-            return filter.Encode(rawString);
-        return null;
+        return filter?.Encode(rawString);
     }
 
     /// <summary>
@@ -146,9 +142,7 @@ public static class Filtering
     public static byte[] Decode(byte[] data, string filterName, FilterParms parms)
     {
         var filter = GetFilter(filterName);
-        if (filter != null)
-            return filter.Decode(data, parms);
-        return null;
+        return filter?.Decode(data, parms);
     }
 
     /// <summary>
@@ -157,9 +151,7 @@ public static class Filtering
     public static byte[] Decode(byte[] data, string filterName)
     {
         var filter = GetFilter(filterName);
-        if (filter != null)
-            return filter.Decode(data, (PdfDictionary)null);
-        return null;
+        return filter?.Decode(data, (PdfDictionary)null);
     }
 
     /// <summary>
@@ -212,9 +204,7 @@ public static class Filtering
     public static string DecodeToString(byte[] data, string filterName, FilterParms parms)
     {
         var filter = GetFilter(filterName);
-        if (filter != null)
-            return filter.DecodeToString(data, parms);
-        return null;
+        return filter?.DecodeToString(data, parms);
     }
 
     /// <summary>
@@ -223,8 +213,6 @@ public static class Filtering
     public static string DecodeToString(byte[] data, string filterName)
     {
         var filter = GetFilter(filterName);
-        if (filter != null)
-            return filter.DecodeToString(data, null);
-        return null;
+        return filter?.DecodeToString(data, null);
     }
 }

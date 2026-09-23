@@ -316,7 +316,7 @@ internal abstract class YAxisRenderer : AxisRenderer
     }
     else
     {
-      if (yari.LineFormat != null && yari.LineFormat.Width > 0)
+      if (yari.LineFormat is { Width: > 0 })
       {
         points[0].X = yari.InnerRect.X + yari.InnerRect.Width;
         points[0].Y = yMin;

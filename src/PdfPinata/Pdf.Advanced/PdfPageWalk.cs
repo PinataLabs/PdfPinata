@@ -364,7 +364,7 @@ internal abstract class PdfPageWalk
                     foreach (var state in stream.Elements.KeyNames)
                     {
                         var perState = stream.Elements.GetDictionary(state.Value);
-                        if (perState != null && perState.Stream != null)
+                        if (perState is { Stream: not null })
                             ReadNested(perState, perState, PageResources, 0);
                     }
                 }

@@ -93,9 +93,7 @@ public struct XSize : IFormattable, IDeserializationCallback, IEquatable<XSize>
     /// </summary>
     public override bool Equals(object o)
     {
-        if (!(o is XSize))
-            return false;
-        return Equals(this, (XSize)o);
+        return o is XSize size && Equals(this, size);
     }
 
     /// <summary>
@@ -179,7 +177,7 @@ public struct XSize : IFormattable, IDeserializationCallback, IEquatable<XSize>
             return "Empty";
 
         var numericListSeparator = TokenizerHelper.GetNumericListSeparator(provider);
-        provider = provider ?? CultureInfo.InvariantCulture;
+        provider ??= CultureInfo.InvariantCulture;
         // ReSharper disable FormatStringProblem
         return string.Format(provider, "{1:" + format + "}{0}{2:" + format + "}", [numericListSeparator, _width, _height
         ]);

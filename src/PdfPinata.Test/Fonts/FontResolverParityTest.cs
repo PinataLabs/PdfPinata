@@ -79,9 +79,8 @@ public class FontResolverParityTest
             return System.IO.Directory.GetFiles(dir, "*.ttf", System.IO.SearchOption.AllDirectories);
         }
 
-        if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.OSX))
-            return System.IO.Directory.GetFiles("/Library/Fonts/", "*.ttf", System.IO.SearchOption.AllDirectories);
-
-        return LinuxSystemFontResolver.Resolve();
+        return System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.OSX)
+            ? System.IO.Directory.GetFiles("/Library/Fonts/", "*.ttf", System.IO.SearchOption.AllDirectories)
+            : LinuxSystemFontResolver.Resolve();
     }
 }

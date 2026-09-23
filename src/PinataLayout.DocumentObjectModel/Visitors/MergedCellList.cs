@@ -131,7 +131,7 @@ public class MergedCellList : List<Cell>
     if (cell.mergeRight > 0)
     {
       var rightBorderCell = cell.Table[cell.Row.Index, cell.MergedRightColumnIndex];
-      if (rightBorderCell.borders != null && rightBorderCell.borders.right != null)
+      if (rightBorderCell.borders is { right: not null })
         borders.Right = rightBorderCell.borders.right.Clone();
       else
         borders.right = null;
@@ -140,7 +140,7 @@ public class MergedCellList : List<Cell>
     if (cell.mergeDown > 0)
     {
       var bottomBorderCell = cell.Table[cell.MergedBottomRowIndex, cell.Column.Index];
-      if (bottomBorderCell.borders != null && bottomBorderCell.borders.bottom != null)
+      if (bottomBorderCell.borders is { bottom: not null })
         borders.Bottom = bottomBorderCell.borders.bottom.Clone();
       else
         borders.bottom = null;

@@ -56,7 +56,7 @@ static class GeometryHelper
             α = α + (1 + Math.Floor((Math.Abs(α) / 360))) * 360;
         else if (α > 360)
             α = α - Math.Floor(α / 360) * 360;
-        Debug.Assert(α >= 0 && α <= 360);
+        Debug.Assert(α is >= 0 and <= 360);
 
         var β = sweepAngle;
         if (β < -360)
@@ -151,7 +151,7 @@ static class GeometryHelper
     /// </summary>
     private static void AppendPartialArcQuadrant(List<XPoint> points, double x, double y, double width, double height, double α, double β, PathStart pathStart, XMatrix matrix)
     {
-        Debug.Assert(α >= 0 && α <= 360);
+        Debug.Assert(α is >= 0 and <= 360);
         Debug.Assert(β >= 0);
         if (β > 360)
             β = β - Math.Floor(β / 360) * 360;

@@ -169,10 +169,7 @@ public abstract class DocumentObjectCollection : DocumentObject, IList
   {
     get
     {
-      if (Count > 0)
-        return this[0];
-      else
-        return null;
+      return Count > 0 ? this[0] : null;
     }
   }
 

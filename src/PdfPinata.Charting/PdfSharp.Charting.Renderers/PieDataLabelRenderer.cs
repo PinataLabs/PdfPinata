@@ -139,7 +139,7 @@ internal class PieDataLabelRenderer : DataLabelRenderer
     if (cri.SeriesRendererInfos.Length > 0)
     {
       var sri = cri.SeriesRendererInfos[0];
-      if (sri != null && sri.DataLabelRendererInfo != null)
+      if (sri is { DataLabelRendererInfo: not null })
       {
         var sectorIndex = 0;
         foreach (var sector in sri.PointRendererInfos.Cast<SectorRendererInfo>())

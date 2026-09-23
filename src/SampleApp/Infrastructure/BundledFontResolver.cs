@@ -99,8 +99,6 @@ public sealed class BundledFontResolver : IFontResolver
             return "BoldItalic";
         if (isBold)
             return "Bold";
-        if (isItalic)
-            return "Italic";
-        return "Regular";
+        return isItalic ? "Italic" : "Regular";
     }
 }

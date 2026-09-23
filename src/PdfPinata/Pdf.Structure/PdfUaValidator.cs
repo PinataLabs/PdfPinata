@@ -290,7 +290,7 @@ public static class PdfUaValidator
         }
 
         var level = structureType[2] - '0';
-        return level >= 1 && level <= 6 ? level : 0;
+        return level is >= 1 and <= 6 ? level : 0;
     }
 
     /// <summary>

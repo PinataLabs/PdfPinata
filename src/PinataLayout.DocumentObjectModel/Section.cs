@@ -74,9 +74,7 @@ public partial class Section : DocumentObject, IVisitable
         var sections = Parent as Sections;
         // ReSharper disable once PossibleNullReferenceException
         var index = sections.IndexOf(this);
-        if (index > 0)
-            return sections[index - 1];
-        return null;
+        return index > 0 ? sections[index - 1] : null;
     }
 
     /// <summary>

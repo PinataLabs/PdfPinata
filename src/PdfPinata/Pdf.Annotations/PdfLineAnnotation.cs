@@ -301,7 +301,7 @@ public sealed class PdfLineAnnotation : PdfMarkupAnnotation
         [KeyInfo("1.4", KeyType.Array | KeyType.Optional)]
         public const string IC = "/IC";
 
-        public static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
+        public static DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
         private static DictionaryMeta _meta;
     }

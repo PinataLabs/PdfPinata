@@ -414,7 +414,7 @@ public class FootnoteTests
 
     /// <summary>The horizontal hairlines the page strokes, which is where a separator shows up.</summary>
     private static IReadOnlyList<StrokedLines.Line> Rules(PdfPage page) =>
-        StrokedLines.Of(page).Where(line => line.IsHorizontal && line.Width <= 1).ToList();
+        StrokedLines.Of(page).Where(line => line is { IsHorizontal: true, Width: <= 1 }).ToList();
 
     private static StrokedLines.Line? Separator(PdfPage page)
     {

@@ -96,7 +96,7 @@ public class StrokedTextRenderingTests
         var red = pixels.Count(pixel =>
         {
             var colour = pixel.ToColor();
-            return colour != null && colour.R > 150 && colour.G < 100 && colour.B < 100;
+            return colour is { R: > 150, G: < 100, B: < 100 };
         });
 
         // The pen carries its own colour rather than borrowing the brush's - which is just as

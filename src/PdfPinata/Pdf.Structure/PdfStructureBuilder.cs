@@ -246,7 +246,7 @@ public sealed class PdfStructureBuilder
         Root.Elements[PdfStructureTreeRoot.Keys.Namespaces] = namespaces;
 
         if (Root.Elements[PdfStructureTreeRoot.Keys.K] is PdfArray kids && kids.Elements.Count == 1
-            && Resolve(kids.Elements[0]) is PdfStructureElement document && document.Tag.Name == "/Document")
+            && Resolve(kids.Elements[0]) is PdfStructureElement { Tag.Name: "/Document" } document)
         {
             document.Elements[PdfStructureElement.Keys.NS] = ns.Reference;
         }

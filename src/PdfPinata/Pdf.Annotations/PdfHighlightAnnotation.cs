@@ -85,7 +85,7 @@ public sealed class PdfHighlightAnnotation : PdfTextMarkupAnnotation
     /// </summary>
     internal new class Keys : PdfTextMarkupAnnotation.Keys
     {
-        public static new DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
+        public static new DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
         private static DictionaryMeta _meta;
     }

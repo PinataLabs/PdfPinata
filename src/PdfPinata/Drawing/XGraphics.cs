@@ -331,10 +331,7 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public static XGraphics FromPdfForm(XPdfForm form)
     {
-        if (form.Gfx != null)
-            return form.Gfx;
-
-        return new XGraphics(form);
+        return form.Gfx ?? new XGraphics(form);
     }
 
     /// <summary>
@@ -342,10 +339,7 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public static XGraphics FromForm(XForm form)
     {
-        if (form.Gfx != null)
-            return form.Gfx;
-
-        return new XGraphics(form);
+        return form.Gfx ?? new XGraphics(form);
     }
 
     /// <summary>
@@ -2116,7 +2110,7 @@ public sealed class XGraphics : IDisposable
     /// <summary>
     /// (Under construction. May change in future versions.)
     /// </summary>
-    public SpaceTransformer Transformer => _transformer ?? (_transformer = new SpaceTransformer(this));
+    public SpaceTransformer Transformer => _transformer ??= new SpaceTransformer(this);
 
     private SpaceTransformer _transformer;
 
@@ -2244,10 +2238,7 @@ public sealed class XGraphics : IDisposable
 
     private PdfPage PageForAnnotation()
     {
-        var page = PdfPage;
-        if (page == null)
-            throw new InvalidOperationException("Annotations can only be added to an XGraphics that draws onto a PDF page.");
-        return page;
+        return PdfPage ?? throw new InvalidOperationException("Annotations can only be added to an XGraphics that draws onto a PDF page.");
     }
 
     private PdfRectangle PageRectangleOf(XRect worldRect)

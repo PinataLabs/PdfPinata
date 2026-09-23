@@ -187,9 +187,7 @@ public sealed class PdfReference : PdfItem
                     return l._objectID.CompareTo(r._objectID);
                 return -1;
             }
-            if (r != null)
-                return 1;
-            return 0;
+            return r != null ? 1 : 0;
         }
     }
 }

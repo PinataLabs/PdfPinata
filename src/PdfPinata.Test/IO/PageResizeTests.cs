@@ -375,7 +375,7 @@ public class PageResizeTests
             page.Elements["/Resources"] = shared.Reference;
 
             var content = new PdfContent(document);
-            content.CreateStream(System.Text.Encoding.ASCII.GetBytes("0 0 100 100 re f"));
+            content.CreateStream("0 0 100 100 re f"u8.ToArray());
             document.Internals.AddObject(content);
             page.Elements["/Contents"] = content.Reference;
         }

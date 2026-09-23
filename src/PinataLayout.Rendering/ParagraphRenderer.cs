@@ -1047,7 +1047,7 @@ internal class ParagraphRenderer : Renderer
         var leaf = lineInfo.startIter;
         while (leaf != null)
         {
-            if (!found && leaf.Current is Text text && text.Content != null)
+            if (!found && leaf.Current is Text { Content: not null } text)
             {
                 foreach (var ch in text.Content)
                 {
@@ -1675,7 +1675,7 @@ internal class ParagraphRenderer : Renderer
         var prevIter = currentLeaf.GetPreviousLeaf();
         // Can be null if currentLeaf is the first leaf
         var obj = prevIter != null ? prevIter.Current : null;
-        while (obj != null && obj is BookmarkField)
+        while (obj is BookmarkField)
         {
             prevIter = prevIter.GetPreviousLeaf();
             if (prevIter != null)
@@ -1878,10 +1878,7 @@ internal class ParagraphRenderer : Renderer
     {
         get
         {
-            if (currentLeaf != null)
-                return FontHandler.FontColorToXBrush(CurrentDomFont);
-
-            return null;
+            return currentLeaf != null ? FontHandler.FontColorToXBrush(CurrentDomFont) : null;
         }
     }
 
@@ -2194,14 +2191,11 @@ internal class ParagraphRenderer : Renderer
     /// <returns></returns>
     private FormatResult FormatElement(DocumentObject docObj)
     {
-        if (JoinedRunBreaksBeforeCurrentLeaf())
-            return FormatResult.NewLine;
-
-        return FormatLeaf(docObj);
+        return JoinedRunBreaksBeforeCurrentLeaf() ? FormatResult.NewLine : FormatLeaf(docObj);
     }
 
     private static bool IsNonBreakableBlank(DocumentObject docObj) =>
-        docObj is Character character && character.SymbolName == SymbolName.NonBreakableBlank;
+        docObj is Character { SymbolName: SymbolName.NonBreakableBlank };
 
     /// <summary>
     /// Whether no line may be broken between two adjacent leaves: one of them is a non-breakable
@@ -2457,11 +2451,7 @@ internal class ParagraphRenderer : Renderer
         if (FieldEvaluator.IsField(docObj))
             return true;
 
-        if (IsSymbol(docObj))
-            return true;
-
-
-        return false;
+        return IsSymbol(docObj);
     }
 
     private FormatResult FormatBookmarkField(BookmarkField bookmarkField)
@@ -2570,10 +2560,7 @@ internal class ParagraphRenderer : Renderer
     private FormatResult FormatInfoField(InfoField infoField)
     {
         var fieldValue = GetFieldValue(infoField);
-        if (fieldValue != "")
-            return FormatWord(fieldValue);
-
-        return FormatResult.Continue;
+        return fieldValue != "" ? FormatWord(fieldValue) : FormatResult.Continue;
     }
 
     private Rectangle GetShadingArea()
@@ -3073,10 +3060,7 @@ internal class ParagraphRenderer : Renderer
         get
         {
             // REM: Code is missing here for blanks, bookmarks etc. which might be invisible.
-            if (currentLeaf.IsLastLeaf)
-                return true;
-
-            return false;
+            return currentLeaf.IsLastLeaf;
         }
     }
     /// <summary>
@@ -3340,7 +3324,7 @@ internal class ParagraphRenderer : Renderer
     {
         get
         {
-            if (currentLeaf != null && currentLeaf.Current is Image)
+            if (currentLeaf is { Current: Image })
             {
                 var image = (Image)currentLeaf.Current;
                 if (imageRenderInfos != null && imageRenderInfos.ContainsKey(image))

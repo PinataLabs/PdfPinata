@@ -22,10 +22,8 @@ internal static class PdfResourceConformanceRules
         if (usage.Images.Any(PdfTransparencyDetector.ImagePaints))
             return true;
 
-        if (usage.GraphicsStates.Any(PdfTransparencyDetector.StatePaints))
-            return true;
-
-        return usage.Forms.Any(DeclaresTransparencyGroup);
+        return usage.GraphicsStates.Any(PdfTransparencyDetector.StatePaints)
+            || usage.Forms.Any(DeclaresTransparencyGroup);
     }
 
     /// <summary>
@@ -53,7 +51,7 @@ internal static class PdfResourceConformanceRules
         {
             foreach (var item in array.Elements)
             {
-                if (Resolve(item) is PdfName name && name.Value == "/JPXDecode")
+                if (Resolve(item) is PdfName { Value: "/JPXDecode" })
                     return true;
             }
         }

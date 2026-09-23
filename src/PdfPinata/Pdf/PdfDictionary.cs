@@ -1165,7 +1165,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             {
                 ArgumentNullException.ThrowIfNull(value);
 
-                if (value is PdfObject obj && obj.IsIndirect)
+                if (value is PdfObject { IsIndirect: true } obj)
                     value = obj.Reference;
                 _elements[key] = value;
                 PdfObject.Contain(value, _ownerDictionary);
@@ -1187,9 +1187,9 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                 // it has to be replaced before asking whether what is left can be one. Asking
                 // first rejected an indirect stream - a content stream, an image - that the
                 // this[string] overload beside this one stores without complaint.
-                if (value is PdfObject obj && obj.IsIndirect)
+                if (value is PdfObject { IsIndirect: true } obj)
                     value = obj.Reference;
-                else if (value is PdfDictionary dictionary && dictionary._stream != null)
+                else if (value is PdfDictionary { _stream: not null })
                     throw new ArgumentException("A dictionary with stream cannot be a direct value.");
 
                 _elements[key.Value] = value;
@@ -1270,7 +1270,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                 throw new ArgumentException("The key must start with a slash '/'.");
 
             // If object is indirect automatically convert value to reference.
-            if (value is PdfObject obj && obj.IsIndirect)
+            if (value is PdfObject { IsIndirect: true } obj)
                 value = obj.Reference;
 
             _elements.Add(key, value);

@@ -244,7 +244,7 @@ public abstract class PdfSquareCircleAnnotation : PdfMarkupAnnotation
         [KeyInfo("1.5", KeyType.Array | KeyType.Optional)]
         public const string RD = "/RD";
 
-        public static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
+        public static DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
         private static DictionaryMeta _meta;
     }

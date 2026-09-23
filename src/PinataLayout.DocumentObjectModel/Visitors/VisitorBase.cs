@@ -461,7 +461,7 @@ public abstract class VisitorBase : DocumentObjectVisitor
     internal override void VisitStyle(Style style)
     {
         var baseStyle = style.GetBaseStyle();
-        if (baseStyle != null && baseStyle.paragraphFormat != null)
+        if (baseStyle is { paragraphFormat: not null })
         {
             if (style.paragraphFormat == null)
                 style.paragraphFormat = baseStyle.paragraphFormat;

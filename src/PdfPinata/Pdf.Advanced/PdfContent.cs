@@ -94,7 +94,7 @@ public sealed class PdfContent : PdfDictionary
     /// </summary>
     private void Decode()
     {
-        if (Stream != null && Stream.Value != null)
+        if (Stream is { Value: not null })
         {
             var item = Elements[PdfStream.Keys.Filter];
             if (item != null)
@@ -181,7 +181,7 @@ public sealed class PdfContent : PdfDictionary
         /// <summary>
         /// Gets the KeysMeta for these keys.
         /// </summary>
-        public static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
+        public static DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
         private static DictionaryMeta _meta;
     }

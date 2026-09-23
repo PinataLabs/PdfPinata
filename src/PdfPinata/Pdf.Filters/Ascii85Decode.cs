@@ -146,7 +146,7 @@ public class Ascii85Decode : Filter
         for (idx = 0; idx < length; idx++)
         {
             var ch = (char)data[idx];
-            if (ch >= '!' && ch <= 'u')
+            if (ch is >= '!' and <= 'u')
             {
                 data[idxOut++] = (byte)ch;
                 groupLength = (groupLength + 1) % 5;

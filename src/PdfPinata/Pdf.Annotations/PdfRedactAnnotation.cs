@@ -254,7 +254,7 @@ public sealed class PdfRedactAnnotation : PdfMarkupAnnotation
         [KeyInfo(KeyType.String | KeyType.Optional)]
         public const string DA = "/DA";
 
-        public new static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
+        public new static DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
         private static DictionaryMeta _meta;
     }

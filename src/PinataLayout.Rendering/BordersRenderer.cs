@@ -58,7 +58,7 @@ internal class BordersRenderer
     var clr = Colors.Black;
 
     var border = GetBorder(type);
-    if (border != null && !border.Color.IsEmpty)
+    if (border is { Color.IsEmpty: false })
       clr = border.Color;
     else if (!borders.Color.IsEmpty)
       clr = borders.Color;

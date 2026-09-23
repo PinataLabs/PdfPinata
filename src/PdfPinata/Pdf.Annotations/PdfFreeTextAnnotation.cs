@@ -145,7 +145,7 @@ public sealed class PdfFreeTextAnnotation : PdfMarkupAnnotation
     /// </remarks>
     public XFont Font
     {
-        get => _font ?? (_font = new XFont(GlobalFontSettings.FontResolver.DefaultFontName, _readFontSize));
+        get => _font ??= new XFont(GlobalFontSettings.FontResolver.DefaultFontName, _readFontSize);
         set
         {
             _font = value ?? throw new ArgumentNullException(nameof(value));
@@ -380,7 +380,7 @@ public sealed class PdfFreeTextAnnotation : PdfMarkupAnnotation
         [KeyInfo("1.6", KeyType.Array | KeyType.Optional)]
         public const string CL = "/CL";
 
-        public static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
+        public static DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
         private static DictionaryMeta _meta;
     }

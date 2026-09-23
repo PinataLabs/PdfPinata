@@ -555,7 +555,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
         for (var index = at + marker.Length; index < text.Length; index++)
         {
             var ch = text[index];
-            if (ch >= '0' && ch <= '9')
+            if (ch is >= '0' and <= '9')
                 digits.Append(ch);
             else if (digits.Length > 0)
                 break;
@@ -1208,7 +1208,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </summary>
     public PdfPageLabels PageLabels
     {
-        get { return _pageLabels ?? (_pageLabels = new PdfPageLabels(this)); }
+        get { return _pageLabels ??= new PdfPageLabels(this); }
     }
 
     private PdfPageLabels _pageLabels;
@@ -1270,7 +1270,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </summary>
     public PdfSecuritySettings SecuritySettings
     {
-        get { return _securitySettings ?? (_securitySettings = new PdfSecuritySettings(this)); }
+        get { return _securitySettings ??= new PdfSecuritySettings(this); }
     }
 
     internal PdfSecuritySettings _securitySettings;
@@ -1280,7 +1280,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </summary>
     internal PdfFontTable FontTable
     {
-        get { return _fontTable ?? (_fontTable = new PdfFontTable(this)); }
+        get { return _fontTable ??= new PdfFontTable(this); }
     }
 
     private PdfFontTable _fontTable;
@@ -1305,7 +1305,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </summary>
     internal PdfFormXObjectTable FormTable
     {
-        get { return _formTable ?? (_formTable = new PdfFormXObjectTable(this)); }
+        get { return _formTable ??= new PdfFormXObjectTable(this); }
     }
 
     private PdfFormXObjectTable _formTable;
@@ -1315,7 +1315,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </summary>
     internal PdfExtGStateTable ExtGStateTable
     {
-        get { return _extGStateTable ?? (_extGStateTable = new PdfExtGStateTable(this)); }
+        get { return _extGStateTable ??= new PdfExtGStateTable(this); }
     }
 
     private PdfExtGStateTable _extGStateTable;
@@ -1332,7 +1332,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </summary>
     internal PdfCatalog Catalog
     {
-        get { return _catalog ?? (_catalog = _trailer.Root); }
+        get { return _catalog ??= _trailer.Root; }
     }
 
     private PdfCatalog _catalog; // never changes if once created
@@ -1343,7 +1343,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </summary>
     public PdfNamedDestinationTable NamedDestinations
     {
-        get { return _namedDestinations ?? (_namedDestinations = new PdfNamedDestinationTable(this)); }
+        get { return _namedDestinations ??= new PdfNamedDestinationTable(this); }
     }
 
     private PdfNamedDestinationTable _namedDestinations;
@@ -1354,7 +1354,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </summary>
     public new PdfInternals Internals
     {
-        get { return _internals ?? (_internals = new PdfInternals(this)); }
+        get { return _internals ??= new PdfInternals(this); }
     }
 
     private PdfInternals _internals;
@@ -1610,7 +1610,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </summary>
     internal static ThreadLocalStorage Tls
     {
-        get { return tls ?? (tls = new ThreadLocalStorage()); }
+        get { return tls ??= new ThreadLocalStorage(); }
     }
 
     [ThreadStatic] private static ThreadLocalStorage tls;

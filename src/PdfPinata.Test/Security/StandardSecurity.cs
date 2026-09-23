@@ -201,7 +201,7 @@ internal sealed class StandardSecurity
                     case 'b': bytes.Add(8); break;
                     case 'f': bytes.Add(12); break;
                     default:
-                        if (escaped >= '0' && escaped <= '7')
+                        if (escaped is >= '0' and <= '7')
                         {
                             var value = escaped - '0';
                             for (var digit = 0; digit < 2 && i + 1 < dictionary.Length

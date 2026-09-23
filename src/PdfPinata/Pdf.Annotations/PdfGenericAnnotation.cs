@@ -98,7 +98,7 @@ public sealed class PdfGenericAnnotation : PdfAnnotation
     /// </summary>
     internal new class Keys : PdfAnnotation.Keys
     {
-        public static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
+        public static DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
         private static DictionaryMeta _meta;
     }

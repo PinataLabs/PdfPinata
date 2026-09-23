@@ -90,8 +90,7 @@ public sealed class PdfSignatureInfo
     /// a five page document verifies perfectly.
     /// </remarks>
     public bool CoversWholeDocument(long fileLength) =>
-        ByteRange != null
-        && ByteRange.Length == 4
+        ByteRange is { Length: 4 }
         && ByteRange[0] == 0
         && ByteRange[2] >= ByteRange[0] + ByteRange[1]
         && ByteRange[2] + ByteRange[3] == fileLength;

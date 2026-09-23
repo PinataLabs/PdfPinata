@@ -214,7 +214,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
                 // and then left alone has an entry that holds no bytes.
                 PdfArray array => HoldsBytes(array),
                 // A single content stream holds nothing when it has no bytes.
-                PdfDictionary dictionary => dictionary.Stream != null && dictionary.Stream.Length > 0,
+                PdfDictionary dictionary => dictionary.Stream is { Length: > 0 },
                 _ => true
             };
         }
@@ -235,7 +235,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
 
             if (item is PdfDictionary dictionary)
             {
-                if (dictionary.Stream != null && dictionary.Stream.Length > 0)
+                if (dictionary.Stream is { Length: > 0 })
                     return true;
             }
             else if (item != null && item is not PdfNull)
@@ -1609,7 +1609,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         /// <summary>
         /// Gets the KeysMeta for these keys.
         /// </summary>
-        internal static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
+        internal static DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
         private static DictionaryMeta _meta;
     }

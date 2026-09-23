@@ -50,10 +50,7 @@ internal static class PdfObjectStreamWriter
         // A cross-reference stream and an object stream are both streams, so both are caught here
         // as well — but say it plainly, because it is not obvious that they are excluded by the
         // same rule that excludes a page's content.
-        if (iref.Value is PdfDictionary dictionary && dictionary.Stream != null)
-            return false;
-
-        return true;
+        return iref.Value is not PdfDictionary { Stream: not null };
     }
 
     /// <summary>

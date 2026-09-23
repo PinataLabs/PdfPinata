@@ -535,12 +535,12 @@ internal sealed class Parser
         // The reference may be a temporary one created while the xref table was under construction,
         // so look the object up in the table as well.
         var iref = _document != null ? _document._irefTable[reference.ObjectID] : null;
-        if (iref != null && iref.Value is PdfIntegerObject known)
+        if (iref is { Value: PdfIntegerObject known })
             return known;
 
         // Objects inside an object stream have no position in the file. When such an object has not
         // been read yet there is no way to reach it from here.
-        if (iref != null && iref.Position < 0)
+        if (iref is { Position: < 0 })
             return null;
 
         var state = SaveState();

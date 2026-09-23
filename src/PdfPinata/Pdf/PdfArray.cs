@@ -118,7 +118,7 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
     /// <summary>
     /// Gets the collection containing the elements of this object.
     /// </summary>
-    public ArrayElements Elements => _elements ?? (_elements = new ArrayElements(this));
+    public ArrayElements Elements => _elements ??= new ArrayElements(this);
 
     /// <summary>
     /// Returns an enumerator that iterates through a collection.

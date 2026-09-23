@@ -151,7 +151,7 @@ public abstract class PdfObject : PdfItem
     /// Gets the PdfInternals object of this document, that grants access to some internal structures
     /// which are not part of the public interface of PdfDocument.
     /// </summary>
-    public PdfObjectInternals Internals => _internals ?? (_internals = new PdfObjectInternals(this));
+    public PdfObjectInternals Internals => _internals ??= new PdfObjectInternals(this);
 
     private PdfObjectInternals _internals;
 
@@ -532,7 +532,7 @@ public abstract class PdfObject : PdfItem
     {
         // An indirect object stands on its own and is written on its own, so it has no container in
         // the sense that matters here.
-        if (value is PdfObject contained && contained.Reference == null && !ReferenceEquals(contained, container))
+        if (value is PdfObject { Reference: null } contained && !ReferenceEquals(contained, container))
             contained.Container = container;
     }
 }

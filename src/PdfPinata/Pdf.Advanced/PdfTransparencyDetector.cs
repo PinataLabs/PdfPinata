@@ -145,10 +145,8 @@ static class PdfTransparencyDetector
         if (AlphaOf(state, PdfExtGState.Keys.ca) < 1 || AlphaOf(state, PdfExtGState.Keys.CA) < 1)
             return true;
 
-        if (BlendsWithTheBackdrop(state.Elements[PdfExtGState.Keys.BM]))
-            return true;
-
-        return IsSomethingOtherThanNone(state.Elements[PdfExtGState.Keys.SMask]);
+        return BlendsWithTheBackdrop(state.Elements[PdfExtGState.Keys.BM])
+            || IsSomethingOtherThanNone(state.Elements[PdfExtGState.Keys.SMask]);
     }
 
     /// <summary>
@@ -204,7 +202,7 @@ static class PdfTransparencyDetector
         if (item == null || item is PdfNull || item is PdfNullObject)
             return false;
 
-        return !(item is PdfName name && name.Value == "/None");
+        return item is not PdfName { Value: "/None" };
     }
 
     /// <summary>

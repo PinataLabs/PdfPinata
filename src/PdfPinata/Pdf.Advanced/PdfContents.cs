@@ -58,7 +58,7 @@ public sealed class PdfContents : PdfArray
             // Convert the references from PdfDictionary to PdfContent
             var item = Elements[idx];
             var iref = item as PdfReference;
-            if (iref != null && iref.Value is PdfDictionary)
+            if (iref is { Value: PdfDictionary })
             {
                 // Called for its side effect: the constructor replaces the dictionary behind the
                 // reference with the PdfContent it builds.
@@ -170,7 +170,7 @@ public sealed class PdfContents : PdfArray
                 byte[] value;
                 int length;
                 var content = (PdfContent)((PdfReference)Elements[0]).Value;
-                if (content != null && content.Stream != null)
+                if (content is { Stream: not null })
                 {
                     length = content.Stream.Length;
                     value = new byte[length + 2];
@@ -181,7 +181,7 @@ public sealed class PdfContents : PdfArray
                     content.Elements.SetInteger("/Length", length + 2);
                 }
                 content = (PdfContent)((PdfReference)Elements[count - 1]).Value;
-                if (content != null && content.Stream != null)
+                if (content is { Stream: not null })
                 {
                     length = content.Stream.Length;
                     value = new byte[length + 3];

@@ -142,7 +142,7 @@ public sealed class PdfNumberTreeNode : PdfDictionary
     private static PdfItem Referenced(PdfItem value)
     {
         var obj = value as PdfObject;
-        if (obj != null && obj.Reference != null)
+        if (obj is { Reference: not null })
             return obj.Reference;
 
         return value;
@@ -346,7 +346,7 @@ public sealed class PdfNumberTreeNode : PdfDictionary
         /// <summary>
         /// Gets the KeysMeta for these keys.
         /// </summary>
-        public static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
+        public static DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
         private static DictionaryMeta _meta;
     }

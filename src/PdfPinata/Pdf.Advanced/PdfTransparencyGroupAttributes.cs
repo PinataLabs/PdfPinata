@@ -111,7 +111,7 @@ public sealed class PdfTransparencyGroupAttributes : PdfGroupAttributes
         /// <summary>
         /// Gets the KeysMeta for these keys.
         /// </summary>
-        internal static new DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
+        internal static new DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
         private static DictionaryMeta _meta;
     }

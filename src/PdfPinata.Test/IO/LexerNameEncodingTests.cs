@@ -1,6 +1,5 @@
 using System.IO;
 using System.Linq;
-using System.Text;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.Content;
@@ -71,7 +70,7 @@ public class LexerNameEncodingTests
     public void ScanName_stillDecodesHashEscapes()
     {
         // #xx is the spec's way of writing these bytes, and that path is unaffected.
-        var lexer = CreateLexer(Encoding.ASCII.GetBytes("/#93#FA#96#D1#8C#EA "));
+        var lexer = CreateLexer("/#93#FA#96#D1#8C#EA "u8.ToArray());
 
         lexer.ScanNextToken().Should().Be(Symbol.Name);
 

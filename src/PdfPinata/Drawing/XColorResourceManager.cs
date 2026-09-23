@@ -91,10 +91,7 @@ public class XColorResourceManager
         var colorInfo = GetColorInfo(knownColor);
 
         // Currently German only
-        if (_cultureInfo.TwoLetterISOLanguageName == "de")
-            return colorInfo.NameDE;
-
-        return colorInfo.Name;
+        return _cultureInfo.TwoLetterISOLanguageName == "de" ? colorInfo.NameDE : colorInfo.Name;
     }
 
     /// <summary>

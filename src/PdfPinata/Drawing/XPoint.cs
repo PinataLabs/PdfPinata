@@ -88,9 +88,7 @@ public struct XPoint : IFormattable, IEquatable<XPoint>
     /// </summary>
     public override bool Equals(object o)
     {
-        if (!(o is XPoint))
-            return false;
-        return Equals(this, (XPoint)o);
+        return o is XPoint point && Equals(this, point);
     }
 
     /// <summary>
@@ -188,7 +186,7 @@ public struct XPoint : IFormattable, IEquatable<XPoint>
     internal string ConvertToString(string format, IFormatProvider provider)
     {
         var numericListSeparator = TokenizerHelper.GetNumericListSeparator(provider);
-        provider = provider ?? CultureInfo.InvariantCulture;
+        provider ??= CultureInfo.InvariantCulture;
         return string.Format(provider, "{1:" + format + "}{0}{2:" + format + "}", [numericListSeparator, _x, _y]);
     }
 

@@ -46,7 +46,7 @@ internal static class StreamDecoder
         }
 
         // PNG predictors
-        if (predictor >= 10 && predictor <= 15)
+        if (predictor is >= 10 and <= 15)
         {
             if (bpc != 1 && bpc != 2 && bpc != 4 && bpc != 8 && bpc != 16)
                 throw new PdfReaderException("Invalid number of bits per component");

@@ -104,14 +104,14 @@ public class SaveIntoTheSourceStreamTests
         using var input = File.OpenRead(PathHelper.GetInstance().GetAssetPath("FamilyTree.pdf"));
         var document = Pdf.IO.PdfReader.Open(input, PdfDocumentOpenMode.Modify);
 
-        var preamble = Encoding.ASCII.GetBytes("preamble");
+        var preamble = "preamble"u8.ToArray();
         using var output = new MemoryStream();
         output.Write(preamble, 0, preamble.Length);
 
         document.Save(output);
 
         var written = output.ToArray();
-        var signature = Encoding.ASCII.GetBytes("%PDF-");
+        var signature = "%PDF-"u8.ToArray();
         written.Length.Should().BeGreaterThan(preamble.Length + signature.Length);
         written[..preamble.Length].Should().Equal(preamble);
         written[preamble.Length..(preamble.Length + signature.Length)].Should().Equal(signature);

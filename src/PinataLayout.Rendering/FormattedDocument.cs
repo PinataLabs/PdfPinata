@@ -291,9 +291,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
             }
         }
         var hfp = new HeaderFooterPosition(fieldInfos.section, pagePos);
-        if (formattedHeaders.TryGetValue(hfp, out var header))
-            return header;
-        return null;
+        return formattedHeaders.TryGetValue(hfp, out var header) ? header : null;
     }
 
     /// <summary>
@@ -322,9 +320,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
             }
         }
         var hfp = new HeaderFooterPosition(fieldInfos.section, pagePos);
-        if (formattedFooters.TryGetValue(hfp, out var footer))
-            return footer;
-        return null;
+        return formattedFooters.TryGetValue(hfp, out var footer) ? footer : null;
     }
 
     private static Rectangle GetHeaderArea(Section section, int page)

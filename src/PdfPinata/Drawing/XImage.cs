@@ -121,9 +121,7 @@ public class XImage : IDisposable
     /// <param name="path">The path to a BMP, PNG, GIF, JPEG, TIFF, or PDF file.</param>
     public static bool ExistsFile(string path)
     {
-        if (PdfReader.TestPdfFile(path) > 0)
-            return true;
-        return false;
+        return PdfReader.TestPdfFile(path) > 0;
     }
 
     private void Initialize()

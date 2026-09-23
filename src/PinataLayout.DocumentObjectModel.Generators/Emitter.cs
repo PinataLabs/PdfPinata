@@ -66,7 +66,7 @@ internal static class Emitter
         // too - and additionally allocated for the FieldInfo.GetValue call itself.
         source.Append("            getter: static o => ").Append(self).Append('.').Append(member.Name).AppendLine(",");
 
-        if (member.IsWritable && member.IsEnum)
+        if (member is { IsWritable: true, IsEnum: true })
         {
             // An enum member takes a boxed int as well as a boxed enum. NEnum stored the value as
             // an int and its setter took one, so SetValue("Style", (int)BorderStyle.Dot) worked

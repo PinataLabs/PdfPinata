@@ -1021,7 +1021,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
             α = α + (1 + Math.Floor((Math.Abs(α) / 360))) * 360;
         else if (α > 360)
             α = α - Math.Floor(α / 360) * 360;
-        Debug.Assert(α >= 0 && α <= 360);
+        Debug.Assert(α is >= 0 and <= 360);
 
         var β = sweepAngle;
         if (β < -360)
@@ -1118,7 +1118,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     private void AppendPartialArcQuadrant(double x, double y, double width, double height, double α, double β,
         PathStart pathStart, XMatrix matrix)
     {
-        Debug.Assert(α >= 0 && α <= 360);
+        Debug.Assert(α is >= 0 and <= 360);
         Debug.Assert(β >= 0);
         if (β > 360)
             β = β - Math.Floor(β / 360) * 360;
@@ -2145,10 +2145,9 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
 
         // Nothing swallowed anything, which is every run of every document written before there was
         // a shaper and nearly every run written since. Straight through, byte for byte as before.
-        if (ligature < 0)
-            return PlacedOperators(text, run, font, format, 0, run.Glyphs.Count);
-
-        return LigatureOperators(text, run, font, format, ligature);
+        return ligature < 0
+            ? PlacedOperators(text, run, font, format, 0, run.Glyphs.Count)
+            : LigatureOperators(text, run, font, format, ligature);
     }
 
     /// <summary>
@@ -2565,9 +2564,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     {
         get
         {
-            if (Page != null)
-                return Page.Owner;
-            return Form.Owner;
+            return Page != null ? Page.Owner : Form.Owner;
         }
     }
 
@@ -2580,9 +2577,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     {
         get
         {
-            if (Page != null)
-                return Page.Resources;
-            return Form.Resources;
+            return Page != null ? Page.Resources : Form.Resources;
         }
     }
 
@@ -2591,9 +2586,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// </summary>
     internal string GetFontName(XFont font, out PdfFont pdfFont)
     {
-        if (Page != null)
-            return Page.GetFontName(font, out pdfFont);
-        return Form.GetFontName(font, out pdfFont);
+        return Page != null ? Page.GetFontName(font, out pdfFont) : Form.GetFontName(font, out pdfFont);
     }
 
     /// <summary>
@@ -2601,9 +2594,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// </summary>
     internal string GetImageName(XImage image)
     {
-        if (Page != null)
-            return Page.GetImageName(image);
-        return Form.GetImageName(image);
+        return Page != null ? Page.GetImageName(image) : Form.GetImageName(image);
     }
 
     /// <summary>
@@ -2611,9 +2602,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// </summary>
     internal string GetFormName(XForm form)
     {
-        if (Page != null)
-            return Page.GetFormName(form);
-        return Form.GetFormName(form);
+        return Page != null ? Page.GetFormName(form) : Form.GetFormName(form);
     }
 
     internal PdfPage Page;
