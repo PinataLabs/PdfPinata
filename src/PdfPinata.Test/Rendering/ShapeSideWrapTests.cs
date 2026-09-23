@@ -344,7 +344,6 @@ public class ShapeSideWrapTests
 
             re.Success.Should().BeTrue("the frame draws its border, which is how it is found");
 
-            double Number(int group) => double.Parse(re.Groups[group].Value, CultureInfo.InvariantCulture);
             ShapeLeft = Number(1);
             ShapeBottom = Number(2);
             ShapeRight = ShapeLeft + Number(3);
@@ -356,6 +355,8 @@ public class ShapeSideWrapTests
                 .GroupBy(position => Math.Round(position.Y, 3))
                 .Select(line => (X: line.Min(position => position.X), Y: line.Key))
                 .OrderByDescending(line => line.Y)];
+
+            double Number(int group) => double.Parse(re.Groups[group].Value, CultureInfo.InvariantCulture);
         }
 
         internal double ShapeLeft { get; }

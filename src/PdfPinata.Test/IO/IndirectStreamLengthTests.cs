@@ -77,14 +77,6 @@ public class IndirectStreamLengthTests
         var pdf = new MemoryStream();
         var offsets = new Dictionary<int, long>();
 
-        void Write(string text) => pdf.Write(Encoding.Latin1.GetBytes(text));
-
-        void WriteObject(int number, string body)
-        {
-            offsets[number] = pdf.Position;
-            Write(number + " 0 obj\n" + body + "\nendobj\n");
-        }
-
         Write("%PDF-1.5\n");
         WriteObject(1, "<</Type/Catalog/Pages 2 0 R>>");
         WriteObject(2, "<</Type/Pages/Kids[3 0 R]/Count 1>>");
@@ -105,17 +97,6 @@ public class IndirectStreamLengthTests
         offsets[8] = startOfCrossReferenceStream;
         var xref = new MemoryStream();
 
-        void WriteEntry(int type, long field2, int field3)
-        {
-            xref.WriteByte((byte)type);
-            xref.WriteByte((byte)(field2 >> 24));
-            xref.WriteByte((byte)(field2 >> 16));
-            xref.WriteByte((byte)(field2 >> 8));
-            xref.WriteByte((byte)field2);
-            xref.WriteByte((byte)(field3 >> 8));
-            xref.WriteByte((byte)field3);
-        }
-
         WriteEntry(0, 0, 65535);
         for (var number = 1; number <= 5; number++)
             WriteEntry(1, offsets[number], 0);
@@ -130,5 +111,24 @@ public class IndirectStreamLengthTests
         Write("startxref\n" + startOfCrossReferenceStream + "\n%%EOF\n");
 
         return pdf.ToArray();
+
+        void Write(string text) => pdf.Write(Encoding.Latin1.GetBytes(text));
+
+        void WriteObject(int number, string body)
+        {
+            offsets[number] = pdf.Position;
+            Write(number + " 0 obj\n" + body + "\nendobj\n");
+        }
+
+        void WriteEntry(int type, long field2, int field3)
+        {
+            xref.WriteByte((byte)type);
+            xref.WriteByte((byte)(field2 >> 24));
+            xref.WriteByte((byte)(field2 >> 16));
+            xref.WriteByte((byte)(field2 >> 8));
+            xref.WriteByte((byte)field2);
+            xref.WriteByte((byte)(field3 >> 8));
+            xref.WriteByte((byte)field3);
+        }
     }
 }

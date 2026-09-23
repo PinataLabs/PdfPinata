@@ -218,15 +218,6 @@ public static class LinuxSystemFontResolver
     {
         var fontList = new List<string>();
 
-        void AddFontsToFontList(string path)
-        {
-            if (!Directory.Exists(path))
-                return;
-
-            foreach (var subDir in Directory.EnumerateDirectories(path, "*", SearchOption.AllDirectories))
-                fontList.AddRange(Directory.EnumerateFiles(subDir, "*", SearchOption.AllDirectories));
-        }
-
         var hs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var path in SearchPaths())
         {
@@ -237,6 +228,15 @@ public static class LinuxSystemFontResolver
         }
 
         return [..fontList];
+
+        void AddFontsToFontList(string path)
+        {
+            if (!Directory.Exists(path))
+                return;
+
+            foreach (var subDir in Directory.EnumerateDirectories(path, "*", SearchOption.AllDirectories))
+                fontList.AddRange(Directory.EnumerateFiles(subDir, "*", SearchOption.AllDirectories));
+        }
     }
 
     private static List<string> SearchPaths()

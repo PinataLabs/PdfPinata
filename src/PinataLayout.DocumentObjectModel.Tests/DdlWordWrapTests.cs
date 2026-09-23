@@ -68,8 +68,9 @@ public class DdlWordWrapTests
 
         var reread = DdlReader.DocumentFromString(DdlWriter.WriteToString(document));
 
-        Text TextOf(Document d) => ((Paragraph)d.LastSection.Elements[0]).Elements.OfType<Text>().First();
         TextOf(reread).Content.Should().Be(word);
+
+        Text TextOf(Document d) => ((Paragraph)d.LastSection.Elements[0]).Elements.OfType<Text>().First();
     }
 
     [Fact]

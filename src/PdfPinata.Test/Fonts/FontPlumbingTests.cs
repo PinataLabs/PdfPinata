@@ -120,17 +120,17 @@ public class FontPlumbingTests
         // The key is what the font cache is indexed by. Face names come from a resolver written by
         // a consumer, so the case they arrive in is not something PDFsharp controls - but a face
         // stroked for bold is a different face from the same file drawn plainly.
-        // ReSharper disable PossibleNullReferenceException
-        string KeyOf(FontResolverInfo info) => (string)typeof(FontResolverInfo)
-            .GetProperty("Key", BindingFlags.Instance | BindingFlags.NonPublic)
-            .GetValue(info);
-        // ReSharper restore PossibleNullReferenceException
-
         KeyOf(new FontResolverInfo("Face.ttf")).Should().Be(KeyOf(new FontResolverInfo("face.TTF")));
         KeyOf(new FontResolverInfo("face.ttf", true, false))
             .Should().NotBe(KeyOf(new FontResolverInfo("face.ttf", false, false)));
         KeyOf(new FontResolverInfo("face.ttf", false, true))
             .Should().NotBe(KeyOf(new FontResolverInfo("face.ttf", false, false)));
+
+        // ReSharper disable PossibleNullReferenceException
+        string KeyOf(FontResolverInfo info) => (string)typeof(FontResolverInfo)
+            .GetProperty("Key", BindingFlags.Instance | BindingFlags.NonPublic)
+            .GetValue(info);
+        // ReSharper restore PossibleNullReferenceException
     }
 
     [Fact]

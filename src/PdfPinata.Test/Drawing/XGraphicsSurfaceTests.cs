@@ -594,17 +594,17 @@ public class XGraphicsSurfaceTests
     [Fact]
     public void APathIsTheSameShapeStrokedOrFilledOrBoth()
     {
+        var stroked = ShapeOf(gfx => gfx.DrawPath(XPens.Black, Rectangle()));
+
+        ShapeOf(gfx => gfx.DrawPath(XBrushes.Black, Rectangle())).Should().Be(stroked);
+        ShapeOf(gfx => gfx.DrawPath(XPens.Black, XBrushes.Black, Rectangle())).Should().Be(stroked);
+
         static XGraphicsPath Rectangle()
         {
             var path = new XGraphicsPath();
             path.AddRectangle(100, 100, 200, 50);
             return path;
         }
-
-        var stroked = ShapeOf(gfx => gfx.DrawPath(XPens.Black, Rectangle()));
-
-        ShapeOf(gfx => gfx.DrawPath(XBrushes.Black, Rectangle())).Should().Be(stroked);
-        ShapeOf(gfx => gfx.DrawPath(XPens.Black, XBrushes.Black, Rectangle())).Should().Be(stroked);
     }
 
     [Fact]
@@ -665,6 +665,15 @@ public class XGraphicsSurfaceTests
     [Fact]
     public void EachKindOfTransformReachesThePageAsItsOwnMatrix()
     {
+        var plain = TransformsIn(_ => { });
+
+        TransformsIn(gfx => gfx.ScaleTransform(2)).Should().NotBe(plain);
+        TransformsIn(gfx => gfx.RotateTransform(30)).Should().NotBe(plain);
+        TransformsIn(gfx => gfx.ShearTransform(1, 0)).Should().NotBe(plain);
+        TransformsIn(gfx => gfx.MultiplyTransform(new XMatrix(2, 0, 0, 2, 5, 5))).Should().NotBe(plain);
+        TransformsIn(gfx => gfx.ScaleTransform(2, 2))
+            .Should().Be(TransformsIn(gfx => gfx.ScaleTransform(2)));
+
         static string TransformsIn(Action<XGraphics> apply)
         {
             var page = PageShowing(gfx =>
@@ -677,15 +686,6 @@ public class XGraphicsSurfaceTests
                 .Where(line => Regex.IsMatch(line, @"(^|\s)cm$"));
             return string.Join("\n", lines);
         }
-
-        var plain = TransformsIn(_ => { });
-
-        TransformsIn(gfx => gfx.ScaleTransform(2)).Should().NotBe(plain);
-        TransformsIn(gfx => gfx.RotateTransform(30)).Should().NotBe(plain);
-        TransformsIn(gfx => gfx.ShearTransform(1, 0)).Should().NotBe(plain);
-        TransformsIn(gfx => gfx.MultiplyTransform(new XMatrix(2, 0, 0, 2, 5, 5))).Should().NotBe(plain);
-        TransformsIn(gfx => gfx.ScaleTransform(2, 2))
-            .Should().Be(TransformsIn(gfx => gfx.ScaleTransform(2)));
     }
 
     [Fact]
@@ -693,13 +693,6 @@ public class XGraphicsSurfaceTests
     {
         // The overloads that take an order and the ones that do not are meant to agree when the
         // order asked for is the one the short form uses, which is Prepend throughout.
-        static XMatrix After(Action<XGraphics> apply)
-        {
-            using var gfx = OnAPage();
-            apply(gfx);
-            return gfx.Transform;
-        }
-
         After(gfx => gfx.TranslateTransform(10, 20))
             .Should().Be(After(gfx => gfx.TranslateTransform(10, 20, XMatrixOrder.Prepend)));
         After(gfx => gfx.ScaleTransform(2, 3))
@@ -720,6 +713,13 @@ public class XGraphicsSurfaceTests
             .Should().Be(After(gfx => gfx.ScaleAtTransform(2, 2, new XPoint(10, 10))));
         After(gfx => gfx.SkewAtTransform(10, 0, 10, 10))
             .Should().Be(After(gfx => gfx.SkewAtTransform(10, 0, new XPoint(10, 10))));
+
+        static XMatrix After(Action<XGraphics> apply)
+        {
+            using var gfx = OnAPage();
+            apply(gfx);
+            return gfx.Transform;
+        }
     }
 
     [Fact]
@@ -853,8 +853,6 @@ public class XGraphicsSurfaceTests
     [Fact]
     public void SavingAndRestoringWriteTheLiteralQAndQOperators()
     {
-        void Box(XGraphics gfx) => gfx.DrawRectangle(XPens.Black, 10, 10, 20, 20);
-
         // Two of them are the page's own: the renderer opens page space and then world space before
         // the first thing is drawn, and closes both when the page ends.
         StateOf(Box).Should().Be("qqQQ");
@@ -877,6 +875,8 @@ public class XGraphicsSurfaceTests
             gfx.EndContainer(container);
             Box(gfx);
         }).Should().Be("qqqQQQ");
+
+        void Box(XGraphics gfx) => gfx.DrawRectangle(XPens.Black, 10, 10, 20, 20);
     }
 
     [Fact]
@@ -895,6 +895,14 @@ public class XGraphicsSurfaceTests
     [Fact]
     public void RestoringAnOuterStateClosesEveryStateSavedInsideIt()
     {
+        // Handing back the inner state closes one level, and the last shape is drawn one deep.
+        DepthsOf(gfx => Nested(gfx, (g, _, inner) => g.Restore(inner)))
+            .Should().Equal(2, 3, 4, 3);
+
+        // Handing back the outer one closes both, so the last shape is drawn back at page level.
+        DepthsOf(gfx => Nested(gfx, (g, outer, _) => g.Restore(outer)))
+            .Should().Equal(2, 3, 4, 2);
+
         void Nested(XGraphics gfx, Action<XGraphics, XGraphicsState, XGraphicsState> restore)
         {
             gfx.DrawRectangle(XPens.Black, 10, 10, 20, 20);
@@ -905,14 +913,6 @@ public class XGraphicsSurfaceTests
             restore(gfx, outer, inner);
             gfx.DrawRectangle(XPens.Black, 10, 10, 20, 20);
         }
-
-        // Handing back the inner state closes one level, and the last shape is drawn one deep.
-        DepthsOf(gfx => Nested(gfx, (g, _, inner) => g.Restore(inner)))
-            .Should().Equal(2, 3, 4, 3);
-
-        // Handing back the outer one closes both, so the last shape is drawn back at page level.
-        DepthsOf(gfx => Nested(gfx, (g, outer, _) => g.Restore(outer)))
-            .Should().Equal(2, 3, 4, 2);
     }
 
     // ----- clipping ------------------------------------------------------------------------------

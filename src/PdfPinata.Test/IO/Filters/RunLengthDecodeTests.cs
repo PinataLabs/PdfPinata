@@ -169,8 +169,6 @@ public class RunLengthDecodeTests
         };
 
         using var file = new MemoryStream();
-        void Write(byte[] bytes) => file.Write(bytes, 0, bytes.Length);
-
         Write(Latin1("%PDF-1.4\n"));
         var offsets = new List<long>();
         for (var idx = 0; idx < objects.Count; idx++)
@@ -189,6 +187,8 @@ public class RunLengthDecodeTests
         Write(Latin1(table.ToString()));
 
         return file.ToArray();
+
+        void Write(byte[] bytes) => file.Write(bytes, 0, bytes.Length);
     }
 
     private static byte[] Latin1(string text) => [..text.Select(ch => (byte)ch)];
