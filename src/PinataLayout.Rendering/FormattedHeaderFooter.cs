@@ -107,7 +107,7 @@ internal class FormattedHeaderFooter : IAreaProvider
 
     bool IAreaProvider.PositionHorizontally(LayoutInfo layoutInfo)
     {
-        var formattedDoc = (IAreaProvider)_documentRenderer.FormattedDocument;
+        IAreaProvider formattedDoc = _documentRenderer.FormattedDocument;
         return formattedDoc.PositionHorizontally(layoutInfo);
     }
 
