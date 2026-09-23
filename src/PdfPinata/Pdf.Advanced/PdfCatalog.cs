@@ -439,7 +439,7 @@ public sealed class PdfCatalog : PdfDictionary
         /// <summary>
         /// Gets the KeysMeta for these keys.
         /// </summary>
-        public static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
+        public static DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
         private static DictionaryMeta _meta;
     }

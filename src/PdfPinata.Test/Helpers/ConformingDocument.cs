@@ -1,5 +1,4 @@
 using System;
-using System.Text;
 using PdfPinata.Pdf;
 
 namespace PdfPinata.Test.Helpers;
@@ -22,7 +21,7 @@ internal static class ConformingDocument
     ///   so a recognisable stand-in makes the assertions legible and says plainly that these tests
     ///   are not colour-management tests.
     /// </summary>
-    internal static readonly byte[] SomeProfile = Encoding.ASCII.GetBytes("NOT-AN-ICC-PROFILE");
+    internal static readonly byte[] SomeProfile = "NOT-AN-ICC-PROFILE"u8.ToArray();
 
     /// <summary>A document with a title and an output-intent profile, claiming no conformance yet.</summary>
     internal static PdfDocument Prepared()

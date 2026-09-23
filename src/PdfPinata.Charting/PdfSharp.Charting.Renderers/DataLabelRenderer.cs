@@ -70,16 +70,16 @@ internal abstract class DataLabelRenderer : Renderer
       // Two defaults, both from upstream and both kept so that no label moves unasked: inside
       // the end when there is no data label object at all, outside it when there is one that
       // does not say.
-      if (own != null && own.PositionInitialized)
+      if (own is { PositionInitialized: true })
         dlri.Position = own.position;
-      else if (shared != null && shared.PositionInitialized)
+      else if (shared is { PositionInitialized: true })
         dlri.Position = shared.position;
       else
         dlri.Position = own == null && shared == null ? DataLabelPosition.InsideEnd : DataLabelPosition.OutsideEnd;
 
-      if (own != null && own.TypeInitialized)
+      if (own is { TypeInitialized: true })
         dlri.Type = own.type;
-      else if (shared != null && shared.TypeInitialized)
+      else if (shared is { TypeInitialized: true })
         dlri.Type = shared.type;
       else if (cri.Chart.type == ChartType.Pie2D || cri.Chart.type == ChartType.PieExploded2D)
         dlri.Type = DataLabelType.Percent;

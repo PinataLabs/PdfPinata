@@ -364,10 +364,7 @@ public static class PdfTextExtractor
 
         private PdfDictionary PropertiesFor(string name)
         {
-            if (name == null)
-                return null;
-
-            return ResourceCategory("/Properties")?.Elements.GetDictionary(name);
+            return name == null ? null : ResourceCategory("/Properties")?.Elements.GetDictionary(name);
         }
 
         private static string NameOperand(COperator op, int index) =>

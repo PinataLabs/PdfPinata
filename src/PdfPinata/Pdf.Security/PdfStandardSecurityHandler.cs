@@ -274,7 +274,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
         // We can handle 40 and 128 bit standard encryption.
         var filter = Elements.GetName(PdfSecurityHandler.Keys.Filter);
         var v = Elements.GetInteger(PdfSecurityHandler.Keys.V);
-        if (filter != "/Standard" || !(v >= 1 && v <= 5))
+        if (filter != "/Standard" || v is not (>= 1 and <= 5))
             throw new PdfReaderException(PSSR.UnknownEncryption);
 
 
@@ -605,7 +605,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     /// The MD5 implementation the standard security handler is built on. It is created on
     /// first use, because a handler is also instantiated for documents that are not encrypted.
     /// </summary>
-    private MD5Managed _md5 => _md5Instance ?? (_md5Instance = new MD5Managed());
+    private MD5Managed _md5 => _md5Instance ??= new MD5Managed();
     private MD5Managed _md5Instance;
 
     /// <summary>
@@ -730,7 +730,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
         /// <summary>
         /// Gets the KeysMeta for these keys.
         /// </summary>
-        public static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
+        public static DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
         private static DictionaryMeta _meta;
     }

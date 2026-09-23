@@ -739,9 +739,7 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
     {
         get
         {
-            if (_type == XMatrixTypes.Identity)
-                return 1.0;
-            return _m11;
+            return _type == XMatrixTypes.Identity ? 1.0 : _m11;
         }
         set
         {
@@ -815,9 +813,7 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
     {
         get
         {
-            if (_type == XMatrixTypes.Identity)
-                return 1.0;
-            return _m22;
+            return _type == XMatrixTypes.Identity ? 1.0 : _m22;
         }
         set
         {
@@ -930,9 +926,7 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
     /// </summary>
     public override bool Equals(object o)
     {
-        if (!(o is XMatrix))
-            return false;
-        return Equals(this, (XMatrix)o);
+        return o is XMatrix matrix && Equals(this, matrix);
     }
 
     /// <summary>
@@ -1002,7 +996,7 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
             return "Identity";
 
         var numericListSeparator = TokenizerHelper.GetNumericListSeparator(provider);
-        provider = provider ?? CultureInfo.InvariantCulture;
+        provider ??= CultureInfo.InvariantCulture;
         // ReSharper disable FormatStringProblem
         return string.Format(provider, "{1:" + format + "}{0}{2:" + format + "}{0}{3:" + format + "}{0}{4:" + format + "}{0}{5:" + format + "}{0}{6:" + format + "}",
             new object[] { numericListSeparator, _m11, _m12, _m21, _m22, _offsetX, _offsetY });

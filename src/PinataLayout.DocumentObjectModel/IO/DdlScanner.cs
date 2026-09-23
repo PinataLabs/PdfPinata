@@ -964,7 +964,7 @@ internal class DdlScanner
   /// </summary>
   internal static bool IsHexDigit(char ch)
   {
-    return char.IsDigit(ch) || (ch >= 'A' && ch <= 'F') || (ch >= 'a' && ch <= 'f');
+    return char.IsDigit(ch) || ch is >= 'A' and <= 'F' or >= 'a' and <= 'f';
   }
 
   /// <summary>

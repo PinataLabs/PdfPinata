@@ -391,7 +391,7 @@ public class Lexer
         if (period)
             return Symbol.Real;
         var l = long.Parse(_token.ToString(), CultureInfo.InvariantCulture);
-        if (l >= int.MinValue && l <= int.MaxValue)
+        if (l is >= int.MinValue and <= int.MaxValue)
             return Symbol.Integer;
         // ReSharper disable ConditionIsAlwaysTrueOrFalse
         if (l >= long.MinValue && l <= long.MaxValue)

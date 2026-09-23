@@ -215,7 +215,7 @@ public abstract class PdfMarkupAnnotation : PdfAnnotation
 
         // ReSharper restore InconsistentNaming
 
-        internal static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
+        internal static DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
         private static DictionaryMeta _meta;
     }

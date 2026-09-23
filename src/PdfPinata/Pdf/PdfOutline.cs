@@ -333,12 +333,12 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
     /// <summary>
     /// Gets a value indicating whether this outline object has child items.
     /// </summary>
-    public bool HasChildren => _outlines != null && _outlines.Count > 0;
+    public bool HasChildren => _outlines is { Count: > 0 };
 
     /// <summary>
     /// Gets the outline collection of this node.
     /// </summary>
-    public PdfOutlineCollection Outlines => _outlines ?? (_outlines = new PdfOutlineCollection(Owner, this));
+    public PdfOutlineCollection Outlines => _outlines ??= new PdfOutlineCollection(Owner, this);
 
     private PdfOutlineCollection _outlines;
 
@@ -626,7 +626,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
         {
             // Case: This is the outline dictionary (the root).
             // Reference: TABLE 8.3  Entries in the outline dictionary / Page 585
-            Debug.Assert(_outlines != null && _outlines.Count > 0 && _outlines[0] != null);
+            Debug.Assert(_outlines is { Count: > 0 } && _outlines[0] != null);
             Elements[Keys.First] = _outlines[0].Reference;
             Elements[Keys.Last] = _outlines[^1].Reference;
 
@@ -906,7 +906,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
         /// <summary>
         /// Gets the KeysMeta for these keys.
         /// </summary>
-        public static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
+        public static DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
         private static DictionaryMeta _meta;
 

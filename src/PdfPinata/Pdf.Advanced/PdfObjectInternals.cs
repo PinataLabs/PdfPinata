@@ -66,9 +66,7 @@ public class PdfObjectInternals
         {
             if (_obj is PdfArray)
                 return "array";
-            if (_obj is PdfDictionary)
-                return "dictionary";
-            return _obj.GetType().Name;
+            return _obj is PdfDictionary ? "dictionary" : _obj.GetType().Name;
         }
     }
 }

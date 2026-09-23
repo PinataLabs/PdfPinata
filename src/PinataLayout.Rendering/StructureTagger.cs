@@ -116,7 +116,7 @@ internal sealed class StructureTagger
     /// Asked here rather than at each caller, because "no page has been begun" is one condition and
     /// not five.
     /// </remarks>
-    private bool CanTag(XGraphics gfx) => Enabled && gfx != null && gfx.PdfPage != null && _document != null;
+    private bool CanTag(XGraphics gfx) => Enabled && gfx is { PdfPage: not null } && _document != null;
 
     /// <summary>
     /// Whether content may be tagged here, which it may not once anything has declared itself

@@ -283,7 +283,7 @@ public class XmpMetadataTests
     {
         var profile = new byte[128];
         Encoding.ASCII.GetBytes(space).CopyTo(profile, 16);
-        Encoding.ASCII.GetBytes("acsp").CopyTo(profile, 36);
+        "acsp"u8.CopyTo(profile.AsSpan(36));
         return profile;
     }
 
@@ -296,8 +296,7 @@ public class XmpMetadataTests
         first[0] = 0xFF;
 
         PdfOutputIntents.SrgbProfile.Should().NotEqual(first);
-        PdfOutputIntents.SrgbProfile[36..40].Should().Equal(
-            (byte)'a', (byte)'c', (byte)'s', (byte)'p');
+        PdfOutputIntents.SrgbProfile[36..40].Should().Equal("acsp"u8.ToArray());
     }
 
     [Fact]
@@ -429,7 +428,7 @@ public class XmpMetadataTests
         document.Info.Title = Title;
 
         document.ClaimConformance(PdfAConformance.PdfA1B);
-        document.Attachments.Add("data.xml", Encoding.UTF8.GetBytes("<x/>"),
+        document.Attachments.Add("data.xml", "<x/>"u8.ToArray(),
             PdfAFRelationship.Data, "Data", "text/xml");
 
         var saving = () =>

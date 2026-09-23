@@ -211,9 +211,7 @@ public class XForm : XImage, IContentStream
     {
         get
         {
-            if (_document == null)
-                return PdfColorMode.Undefined;
-            return _document.Options.ColorMode;
+            return _document == null ? PdfColorMode.Undefined : _document.Options.ColorMode;
         }
     }
 

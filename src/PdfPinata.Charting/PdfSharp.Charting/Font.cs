@@ -204,7 +204,7 @@ public sealed class Font : DocumentObject
       {
         for (var ancestor = owner.parent; ancestor != null; ancestor = ancestor.parent)
         {
-          if (ancestor is Chart chart && chart.dataLabel?.font != null)
+          if (ancestor is Chart { dataLabel.font: not null } chart)
             return chart.dataLabel.font;
         }
       }

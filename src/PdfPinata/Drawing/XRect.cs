@@ -156,9 +156,7 @@ public struct XRect : IFormattable, IDeserializationCallback, IEquatable<XRect>
     /// </summary>
     public override bool Equals(object o)
     {
-        if (!(o is XRect))
-            return false;
-        return Equals(this, (XRect)o);
+        return o is XRect rect && Equals(this, rect);
     }
 
     /// <summary>
@@ -225,7 +223,7 @@ public struct XRect : IFormattable, IDeserializationCallback, IEquatable<XRect>
         if (IsEmpty)
             return "Empty";
         var numericListSeparator = TokenizerHelper.GetNumericListSeparator(provider);
-        provider = provider ?? CultureInfo.InvariantCulture;
+        provider ??= CultureInfo.InvariantCulture;
         // ReSharper disable FormatStringProblem
         return string.Format(provider, "{1:" + format + "}{0}{2:" + format + "}{0}{3:" + format + "}{0}{4:" + format + "}", new object[] { numericListSeparator, _x, _y, _width, _height });
         // ReSharper restore FormatStringProblem
@@ -276,9 +274,7 @@ public struct XRect : IFormattable, IDeserializationCallback, IEquatable<XRect>
     {
         get
         {
-            if (IsEmpty)
-                return XSize.Empty;
-            return new XSize(_width, _height);
+            return IsEmpty ? XSize.Empty : new XSize(_width, _height);
         }
         set
         {
@@ -439,9 +435,7 @@ public struct XRect : IFormattable, IDeserializationCallback, IEquatable<XRect>
     /// </summary>
     public bool Contains(double x, double y)
     {
-        if (IsEmpty)
-            return false;
-        return ContainsInternal(x, y);
+        return !IsEmpty && ContainsInternal(x, y);
     }
 
     /// <summary>

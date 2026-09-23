@@ -138,7 +138,7 @@ public sealed class PdfCaretAnnotation : PdfMarkupAnnotation
         [KeyInfo(KeyType.Name | KeyType.Optional)]
         public const string Sy = "/Sy";
 
-        public new static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
+        public new static DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
         private static DictionaryMeta _meta;
     }

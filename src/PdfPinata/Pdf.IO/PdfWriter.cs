@@ -493,9 +493,7 @@ internal class PdfWriter
     {
         if (Lexer.IsDelimiter(ch))
             return CharCat.Delimiter;
-        if (ch == Chars.LF)
-            return CharCat.NewLine;
-        return CharCat.Character;
+        return ch == Chars.LF ? CharCat.NewLine : CharCat.Character;
     }
 
     private enum CharCat

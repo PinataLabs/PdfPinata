@@ -852,7 +852,7 @@ internal class DdlParser
         if (TokenType == TokenType.IntegerLiteral)
         {
             var val = scanner.GetTokenValueAsInt();
-            if (val >= 1 && val < 256)
+            if (val is >= 1 and < 256)
                 ch = (char)val;
             else
                 ThrowParserException(DomMsgID.OutOfRange, "1 - 255");
@@ -2348,7 +2348,7 @@ internal class DdlParser
         AssertCondition(Symbol == Symbol.IntegerLiteral || Symbol == Symbol.RealLiteral,
             DomMsgID.NumberExpected, scanner.Token);
         v1 = scanner.GetTokenValueAsReal();
-        AssertCondition(v1 >= 0.0f && v1 <= 100.0f, DomMsgID.InvalidRange, "0.0 - 100.0");
+        AssertCondition(v1 is >= 0.0f and <= 100.0f, DomMsgID.InvalidRange, "0.0 - 100.0");
 
         ReadCode();  // read ','
         AssertSymbol(Symbol.Comma);
@@ -2357,7 +2357,7 @@ internal class DdlParser
         AssertCondition(Symbol == Symbol.IntegerLiteral || Symbol == Symbol.RealLiteral,
             DomMsgID.NumberExpected, scanner.Token);
         v2 = scanner.GetTokenValueAsReal();
-        AssertCondition(v2 >= 0.0f && v2 <= 100.0f, DomMsgID.InvalidRange, "0.0 - 100.0");
+        AssertCondition(v2 is >= 0.0f and <= 100.0f, DomMsgID.InvalidRange, "0.0 - 100.0");
 
         ReadCode();  // read ','
         AssertSymbol(Symbol.Comma);
@@ -2366,7 +2366,7 @@ internal class DdlParser
         AssertCondition(Symbol == Symbol.IntegerLiteral || Symbol == Symbol.RealLiteral,
             DomMsgID.NumberExpected, scanner.Token);
         v3 = scanner.GetTokenValueAsReal();
-        AssertCondition(v3 >= 0.0f && v3 <= 100.0f, DomMsgID.InvalidRange, "0.0 - 100.0");
+        AssertCondition(v3 is >= 0.0f and <= 100.0f, DomMsgID.InvalidRange, "0.0 - 100.0");
 
         ReadCode();  // read ','
         AssertSymbol(Symbol.Comma);
@@ -2375,7 +2375,7 @@ internal class DdlParser
         AssertCondition(Symbol == Symbol.IntegerLiteral || Symbol == Symbol.RealLiteral,
             DomMsgID.NumberExpected, scanner.Token);
         v4 = scanner.GetTokenValueAsReal();
-        AssertCondition(v4 >= 0.0f && v4 <= 100.0, DomMsgID.InvalidRange, "0.0 - 100.0");
+        AssertCondition(v4 is >= 0.0f and <= 100.0, DomMsgID.InvalidRange, "0.0 - 100.0");
 
         ReadCode();  // read ')' or ','
         var hasAlpha = false;
@@ -2386,7 +2386,7 @@ internal class DdlParser
             AssertCondition(Symbol == Symbol.IntegerLiteral || Symbol == Symbol.RealLiteral,
                 DomMsgID.NumberExpected, scanner.Token);
             v5 = scanner.GetTokenValueAsReal();
-            AssertCondition(v5 >= 0.0f && v5 <= 100.0, DomMsgID.InvalidRange, "0.0 - 100.0");
+            AssertCondition(v5 is >= 0.0f and <= 100.0, DomMsgID.InvalidRange, "0.0 - 100.0");
 
             ReadCode();  // read ')'
         }
@@ -2419,7 +2419,7 @@ internal class DdlParser
         AssertCondition(Symbol == Symbol.IntegerLiteral || Symbol == Symbol.HexIntegerLiteral,
             DomMsgID.IntegerExpected, scanner.Token);
         gray = scanner.GetTokenValueAsReal();
-        AssertCondition(gray >= 0.0f && gray <= 100.0f, DomMsgID.InvalidRange, "0.0 - 100.0");
+        AssertCondition(gray is >= 0.0f and <= 100.0f, DomMsgID.InvalidRange, "0.0 - 100.0");
 
         ReadCode();  // read ')'
         AssertSymbol(Symbol.ParenRight);

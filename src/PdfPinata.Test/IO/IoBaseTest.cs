@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using System.Text;
 using AwesomeAssertions;
 using PdfPinata.Pdf;
 using PdfPinata.Pdf.IO;
@@ -49,7 +48,7 @@ public abstract class IoBaseTest
     private static void ReadStreamAndVerifyPdfHeaderSignature(Stream stream)
     {
         var readBuffer = new byte[5];
-        var pdfSignature = Encoding.ASCII.GetBytes("%PDF-"); // PDF must start with %PDF-
+        var pdfSignature = "%PDF-"u8.ToArray(); // PDF must start with %PDF-
 
         var bytesRead = stream.Read(readBuffer, 0, readBuffer.Length);
 

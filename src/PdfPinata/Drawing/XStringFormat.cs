@@ -183,7 +183,7 @@ public class XStringFormat
             // At 90 degrees the skew is infinite and the glyphs collapse to a line. Asked the way
             // round that rejects NaN too, which would otherwise reach Math.Tan and put NaN into a
             // text matrix.
-            if (!(value > -90 && value < 90))
+            if (value is not (> -90 and < 90))
                 throw new ArgumentOutOfRangeException(nameof(value), value, "ObliqueAngle must be greater than -90 and less than 90 degrees.");
             _obliqueAngle = value;
         }

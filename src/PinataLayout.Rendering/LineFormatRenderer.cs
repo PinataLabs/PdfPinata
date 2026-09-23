@@ -49,7 +49,7 @@ internal class LineFormatRenderer
   {
     var clr = Colors.Black;
 
-    if (lineFormat != null && !lineFormat.Color.IsEmpty)
+    if (lineFormat is { Color.IsEmpty: false })
       clr = lineFormat.Color;
 
     return ColorHelper.ToXColor(clr, lineFormat?.Document?.UseCmykColor ?? false);

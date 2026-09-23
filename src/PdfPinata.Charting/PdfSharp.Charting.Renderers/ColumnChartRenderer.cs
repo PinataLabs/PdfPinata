@@ -213,7 +213,7 @@ internal class ColumnChartRenderer : ColumnLikeChartRenderer
           pri.FillFormat = sri.FillFormat;
           if (point.lineFormat != null)
             pri.LineFormat = Converter.ToXPen(point.lineFormat, sri.LineFormat);
-          if (point.fillFormat != null && !point.fillFormat.color.IsEmpty)
+          if (point.fillFormat is { color.IsEmpty: false })
             pri.FillFormat = new XSolidBrush(point.fillFormat.color);
         }
         sri.PointRendererInfos[pointIdx] = pri;

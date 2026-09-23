@@ -159,9 +159,9 @@ internal class PieChartRenderer : ChartRenderer
         if (point != null)
         {
           pri.LineFormat = sri.LineFormat;
-          if (point.lineFormat != null && !point.lineFormat.color.IsEmpty)
+          if (point.lineFormat is { color.IsEmpty: false })
             pri.LineFormat = new XPen(point.lineFormat.color);
-          if (point.fillFormat != null && !point.fillFormat.color.IsEmpty)
+          if (point.fillFormat is { color.IsEmpty: false })
             pri.FillFormat = new XSolidBrush(point.fillFormat.color);
           else
             pri.FillFormat = new XSolidBrush(PieColors.Item(pointIdx));

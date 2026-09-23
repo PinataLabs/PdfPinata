@@ -111,7 +111,7 @@ internal static class DataMatrixEncoder
 
     private static bool IsDigit(char ch)
     {
-        return ch >= '0' && ch <= '9';
+        return ch is >= '0' and <= '9';
     }
 
     /// <summary>

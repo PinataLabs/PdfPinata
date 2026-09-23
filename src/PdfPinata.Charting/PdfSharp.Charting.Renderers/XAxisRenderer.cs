@@ -123,7 +123,7 @@ internal abstract class XAxisRenderer : AxisRenderer
     // measuring the string here. Measuring it here took no account of the title's orientation,
     // so a caption turned on its side reserved the room it would have taken lying flat.
     var titleSize = new XSize(0, 0);
-    if (atri != null && atri.AxisTitleText != null && atri.AxisTitleText.Length > 0)
+    if (atri is { AxisTitleText.Length: > 0 })
     {
       var parms = new RendererParameters
       {
@@ -378,7 +378,7 @@ internal abstract class XAxisRenderer : AxisRenderer
     // the caption was centred on half the axis's right edge instead of on the middle of the axis,
     // which is the same thing only when the axis starts at zero.
     var atri = xari.AxisTitleRendererInfo;
-    if (atri == null || atri.AxisTitleText == null || atri.AxisTitleText.Length == 0)
+    if (atri is not { AxisTitleText.Length: > 0 })
       return;
 
     if (isHorizontal)
@@ -442,7 +442,7 @@ internal abstract class XAxisRenderer : AxisRenderer
   private static XSeries CategoryLabels(AxisRendererInfo rendererInfo)
   {
     var xValues = rendererInfo.XValues;
-    return xValues != null && xValues.Count > 0 ? xValues[0] : null;
+    return xValues is { Count: > 0 } ? xValues[0] : null;
   }
 
   /// <summary>

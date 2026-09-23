@@ -166,7 +166,7 @@ public sealed class PdfListBoxField : PdfChoiceField
     {
         // List boxes have no additional entries.
 
-        internal static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
+        internal static DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
         private static DictionaryMeta _meta;
     }

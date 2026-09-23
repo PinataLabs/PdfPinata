@@ -95,12 +95,9 @@ public sealed partial class Style : DocumentObject, IVisitable
         if (name == "")
             throw new ArgumentException(@"A name must not be empty.", nameof(name));
 
-        if (name.StartsWith("font", StringComparison.OrdinalIgnoreCase))
-        {
-            return ParagraphFormat.GetValue(name);
-        }
-
-        return base.GetValue(name, flags);
+        return name.StartsWith("font", StringComparison.OrdinalIgnoreCase)
+            ? ParagraphFormat.GetValue(name)
+            : base.GetValue(name, flags);
     }
 
     #region Properties

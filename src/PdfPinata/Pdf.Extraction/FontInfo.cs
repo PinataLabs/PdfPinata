@@ -58,10 +58,7 @@ sealed class FontInfo
         // that matters and is right far more often than a replacement character would be. A
         // two-byte code with no map is a glyph index and stands for nothing at all, so it is
         // dropped rather than turned into a character it never meant.
-        if (CodeLength == 1)
-            return ((char)code).ToString();
-
-        return "";
+        return CodeLength == 1 ? ((char)code).ToString() : "";
     }
 
     /// <summary>

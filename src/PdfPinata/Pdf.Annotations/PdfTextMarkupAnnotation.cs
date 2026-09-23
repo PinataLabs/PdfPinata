@@ -277,7 +277,7 @@ public abstract class PdfTextMarkupAnnotation : PdfMarkupAnnotation
         [KeyInfo(KeyType.Array | KeyType.Required)]
         public const string QuadPoints = "/QuadPoints";
 
-        public static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
+        public static DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
         private static DictionaryMeta _meta;
     }

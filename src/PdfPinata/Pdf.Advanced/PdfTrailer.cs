@@ -102,9 +102,7 @@ internal class PdfTrailer : PdfDictionary  // Reference: 3.4.4  File Trailer / P
         if (array == null || array.Elements.Count < 2)
             return "";
         var item = array.Elements[index];
-        if (item is PdfString)
-            return ((PdfString)item).Value;
-        return "";
+        return item is PdfString text ? text.Value : "";
     }
 
     /// <summary>
@@ -168,7 +166,7 @@ internal class PdfTrailer : PdfDictionary  // Reference: 3.4.4  File Trailer / P
     {
         // /Root
         var iref = _document._trailer.Elements[Keys.Root] as PdfReference;
-        if (iref != null && iref.Value == null)
+        if (iref is { Value: null })
         {
             iref = _document._irefTable[iref.ObjectID];
             Debug.Assert(iref.Value != null);
@@ -177,7 +175,7 @@ internal class PdfTrailer : PdfDictionary  // Reference: 3.4.4  File Trailer / P
 
         // /Info
         iref = _document._trailer.Elements[Keys.Info] as PdfReference;
-        if (iref != null && iref.Value == null)
+        if (iref is { Value: null })
         {
             iref = _document._irefTable[iref.ObjectID];
             Debug.Assert(iref.Value != null);
@@ -260,7 +258,7 @@ internal class PdfTrailer : PdfDictionary  // Reference: 3.4.4  File Trailer / P
         /// <summary>
         /// Gets the KeysMeta for these keys.
         /// </summary>
-        public static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
+        public static DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
         private static DictionaryMeta _meta;
     }

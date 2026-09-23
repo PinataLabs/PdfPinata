@@ -257,10 +257,7 @@ public class Series : ChartObject
   {
     get 
     {
-      if (SeriesElements != null)
-        return SeriesElements.Count;
-
-      return 0;
+      return SeriesElements != null ? SeriesElements.Count : 0;
     }
   }
   #endregion

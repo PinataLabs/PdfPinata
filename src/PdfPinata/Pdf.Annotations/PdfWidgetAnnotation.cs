@@ -109,7 +109,7 @@ public sealed class PdfWidgetAnnotation : PdfAnnotation
         [KeyInfo(KeyType.Dictionary | KeyType.Optional)]
         public const string MK = "/MK";
 
-        public static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
+        public static DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
         private static DictionaryMeta _meta;
     }

@@ -496,7 +496,7 @@ public class CLexer
 
         Debug.Assert(long.Parse(_token.ToString(), CultureInfo.InvariantCulture) == value);
 
-        if (value >= int.MinValue && value < int.MaxValue)
+        if (value is >= int.MinValue and < int.MaxValue)
             return CSymbol.Integer;
 
         // Out of range for CSymbol.Integer, which a content operand is expected to fit. The

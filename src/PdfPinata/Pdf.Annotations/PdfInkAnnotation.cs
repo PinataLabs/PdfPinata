@@ -199,7 +199,7 @@ public sealed class PdfInkAnnotation : PdfMarkupAnnotation
         [KeyInfo(KeyType.Array | KeyType.Required)]
         public const string InkList = "/InkList";
 
-        public new static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
+        public new static DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
         private static DictionaryMeta _meta;
     }

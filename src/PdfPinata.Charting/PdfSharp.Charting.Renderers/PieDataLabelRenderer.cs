@@ -142,7 +142,7 @@ internal class PieDataLabelRenderer : DataLabelRenderer
       return;
 
     var sri = cri.SeriesRendererInfos[0];
-    if (sri == null || sri.DataLabelRendererInfo == null)
+    if (sri is not { DataLabelRendererInfo: not null })
       return;
 
     var sectorIndex = 0;

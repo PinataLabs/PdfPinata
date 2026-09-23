@@ -114,7 +114,7 @@ public sealed class PdfRubberStampAnnotation : PdfMarkupAnnotation
         [KeyInfo(KeyType.Name | KeyType.Optional)]
         public const string Name = "/Name";
 
-        public static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
+        public static DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
         private static DictionaryMeta _meta;
     }

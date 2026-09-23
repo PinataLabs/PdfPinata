@@ -358,9 +358,7 @@ public abstract class PdfAcroField : PdfDictionary
     {
         if (string.IsNullOrEmpty(name))
             return this;
-        if (HasKids)
-            return Fields.GetValue(name);
-        return null;
+        return HasKids ? Fields.GetValue(name) : null;
     }
 
     /// <summary>

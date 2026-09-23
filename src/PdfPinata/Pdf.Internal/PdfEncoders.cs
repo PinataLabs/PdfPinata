@@ -44,14 +44,14 @@ internal static class PdfEncoders
     /// <summary>
     /// Gets the raw encoding.
     /// </summary>
-    public static Encoding RawEncoding => _rawEncoding ?? (_rawEncoding = new RawEncoding());
+    public static Encoding RawEncoding => _rawEncoding ??= new RawEncoding();
 
     private static Encoding _rawEncoding;
 
     /// <summary>
     /// Gets the raw Unicode encoding.
     /// </summary>
-    public static Encoding RawUnicodeEncoding => _rawUnicodeEncoding ?? (_rawUnicodeEncoding = new RawUnicodeEncoding());
+    public static Encoding RawUnicodeEncoding => _rawUnicodeEncoding ??= new RawUnicodeEncoding();
 
     private static Encoding _rawUnicodeEncoding;
 
@@ -78,7 +78,7 @@ internal static class PdfEncoders
     /// <summary>
     /// Gets the UNICODE little-endian encoding.
     /// </summary>
-    public static Encoding UnicodeEncoding => _unicodeEncoding ?? (_unicodeEncoding = Encoding.Unicode);
+    public static Encoding UnicodeEncoding => _unicodeEncoding ??= Encoding.Unicode;
 
     private static Encoding _unicodeEncoding;
 
@@ -420,11 +420,9 @@ internal static class PdfEncoders
 
             default:
             {
-                if (withAlpha)
-                    return string.Format(CultureInfo.InvariantCulture, "{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "}", color.R / 255.0, color.G / 255.0, color.B / 255.0, color.A);
-                else
-                    return string.Format(CultureInfo.InvariantCulture, "{0:" + format + "} {1:" + format + "} {2:" + format + "}", color.R / 255.0, color.G / 255.0, color.B / 255.0);
-
+                return withAlpha
+                    ? string.Format(CultureInfo.InvariantCulture, "{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "}", color.R / 255.0, color.G / 255.0, color.B / 255.0, color.A)
+                    : string.Format(CultureInfo.InvariantCulture, "{0:" + format + "} {1:" + format + "} {2:" + format + "}", color.R / 255.0, color.G / 255.0, color.B / 255.0);
             }
         }
     }
