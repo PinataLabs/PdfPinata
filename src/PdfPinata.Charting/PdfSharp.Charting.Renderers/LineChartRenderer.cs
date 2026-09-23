@@ -160,9 +160,9 @@ internal class LineChartRenderer : ColumnLikeChartRenderer
     foreach (var sri in cri.SeriesRendererInfos)
     {
       if (sri.Series.markerBackgroundColor.IsEmpty)
-        sri.LineFormat = Converter.ToXPen(sri.Series.lineFormat, LineColors.Item(seriesIndex), ChartRenderer.DefaultSeriesLineWidth);
+        sri.LineFormat = Converter.ToXPen(sri.Series.lineFormat, LineColors.Item(seriesIndex), DefaultSeriesLineWidth);
       else
-        sri.LineFormat = Converter.ToXPen(sri.Series.lineFormat, sri.Series.markerBackgroundColor, ChartRenderer.DefaultSeriesLineWidth);
+        sri.LineFormat = Converter.ToXPen(sri.Series.lineFormat, sri.Series.markerBackgroundColor, DefaultSeriesLineWidth);
       sri.LineFormat.LineJoin = XLineJoin.Bevel;
 
       var mri = new MarkerRendererInfo();

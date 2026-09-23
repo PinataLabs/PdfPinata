@@ -201,7 +201,7 @@ internal class LegendEntryRenderer : Renderer
       return;
 
     rect = leri.Rect;
-    rect.X += leri.MarkerArea.Width + LegendEntryRenderer.SpacingBetweenMarkerAndText;
+    rect.X += leri.MarkerArea.Width + SpacingBetweenMarkerAndText;
     var format = new XStringFormat { LineAlignment = XLineAlignment.Near };
     if (leri.Lines.Length > 1)
       rect.Height = leri.LineHeight;

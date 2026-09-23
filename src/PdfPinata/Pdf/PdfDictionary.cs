@@ -1060,7 +1060,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
 
             // HACK?
             _elements[key] = value;
-            PdfObject.Contain(value, _ownerDictionary);
+            Contain(value, _ownerDictionary);
             MarkOwnerAsChanged();
         }
 
@@ -1173,7 +1173,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                 if (value is PdfObject { IsIndirect: true } obj)
                     value = obj.Reference;
                 _elements[key] = value;
-                PdfObject.Contain(value, _ownerDictionary);
+                Contain(value, _ownerDictionary);
                 MarkOwnerAsChanged();
             }
         }
@@ -1198,7 +1198,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                     throw new ArgumentException("A dictionary with stream cannot be a direct value.");
 
                 _elements[key.Value] = value;
-                PdfObject.Contain(value, _ownerDictionary);
+                Contain(value, _ownerDictionary);
                 MarkOwnerAsChanged();
             }
         }
@@ -1279,7 +1279,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                 value = obj.Reference;
 
             _elements.Add(key, value);
-            PdfObject.Contain(value, _ownerDictionary);
+            Contain(value, _ownerDictionary);
             MarkOwnerAsChanged();
         }
 

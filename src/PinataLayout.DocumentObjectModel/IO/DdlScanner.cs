@@ -210,7 +210,7 @@ internal class DdlScanner
     while (length > 0)
     {
       var ch = m_strDocument[idx++];
-      if (DdlScanner.IsLetter(ch))
+      if (IsLetter(ch))
       {
         keyword += ch;
         length--;
@@ -354,12 +354,12 @@ internal class DdlScanner
     while (length > 0)
     {
       ch = m_strDocument[idx++];
-      if (!DdlScanner.IsWhiteSpace(ch))
+      if (!IsWhiteSpace(ch))
         break;
       length--;
     }
 
-    if (DdlScanner.IsLetter(ch))
+    if (IsLetter(ch))
       return Symbol.Text;
     if (ch == '\\')
       return PeekKeyword(idx);

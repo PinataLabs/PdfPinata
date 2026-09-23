@@ -147,7 +147,7 @@ internal class PieChartRenderer : ChartRenderer
       rendererInfo.SeriesRendererInfos[idx] = sri;
       sri.Series = seriesColl[idx];
 
-      sri.LineFormat = Converter.ToXPen(sri.Series.lineFormat, XColors.Black, ChartRenderer.DefaultSeriesLineWidth);
+      sri.LineFormat = Converter.ToXPen(sri.Series.lineFormat, XColors.Black, DefaultSeriesLineWidth);
       sri.FillFormat = Converter.ToXBrush(sri.Series.fillFormat, ColumnColors.Item(idx));
 
       sri.PointRendererInfos = new PointRendererInfo[sri.Series.Elements.Count];

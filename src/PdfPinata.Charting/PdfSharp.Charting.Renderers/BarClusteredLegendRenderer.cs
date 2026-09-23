@@ -64,11 +64,11 @@ internal class BarClusteredLegendRenderer : ColumnLikeLegendRenderer
     if (lri.BorderPen != null)
       paddingFactor = 2;
     var legendRect = lri.Rect;
-    legendRect.X += LegendRenderer.LeftPadding * paddingFactor;
+    legendRect.X += LeftPadding * paddingFactor;
     if (verticalLegend)
-      legendRect.Y = legendRect.Bottom - LegendRenderer.BottomPadding * paddingFactor;
+      legendRect.Y = legendRect.Bottom - BottomPadding * paddingFactor;
     else
-      legendRect.Y += LegendRenderer.TopPadding * paddingFactor;
+      legendRect.Y += TopPadding * paddingFactor;
 
     foreach (var leri in cri.LegendRendererInfo.Entries)
     {
@@ -89,17 +89,17 @@ internal class BarClusteredLegendRenderer : ColumnLikeLegendRenderer
       ler.Draw();
 
       if (verticalLegend)
-        legendRect.Y -= LegendRenderer.EntrySpacing;
+        legendRect.Y -= EntrySpacing;
     }
 
     // Draw border around legend
     if (lri.BorderPen != null)
     {
       var borderRect = lri.Rect;
-      borderRect.X += LegendRenderer.LeftPadding;
-      borderRect.Y += LegendRenderer.TopPadding;
-      borderRect.Width -= LegendRenderer.LeftPadding + LegendRenderer.RightPadding;
-      borderRect.Height -= LegendRenderer.TopPadding + LegendRenderer.BottomPadding;
+      borderRect.X += LeftPadding;
+      borderRect.Y += TopPadding;
+      borderRect.Width -= LeftPadding + RightPadding;
+      borderRect.Height -= TopPadding + BottomPadding;
       gfx.DrawRectangle(lri.BorderPen, borderRect);
     }
   }
