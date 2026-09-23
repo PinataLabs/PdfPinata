@@ -130,7 +130,7 @@ public class LexerHexStringTests
 
     private static Task<IReadOnlyList<Symbol>> ScanAll(string pdf)
     {
-        return Interruptibly.Run(() =>
+        return Interruptibly.Run<IReadOnlyList<Symbol>>(() =>
         {
             var lexer = new Lexer(new MemoryStream(Encoding.Latin1.GetBytes(pdf)));
             var symbols = new List<Symbol>();
@@ -142,7 +142,7 @@ public class LexerHexStringTests
             }
             while (symbol != Symbol.Eof && symbols.Count < 100);
 
-            return (IReadOnlyList<Symbol>)symbols;
+            return symbols;
         });
     }
 }
