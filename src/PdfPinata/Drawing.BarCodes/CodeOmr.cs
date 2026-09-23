@@ -86,7 +86,7 @@ public class CodeOmr : BarCode
                 var rect = new XRect(pt.X + idx * _makerDistance, pt.Y, _makerThickness, Size.Height);
                 gfx.DrawRectangle(brush, rect);
             }
-            value = value >> 1;
+            value >>= 1;
         }
         gfx.Restore(state);
     }

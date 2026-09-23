@@ -1017,9 +1017,9 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         // Normalize the angles
         var α = startAngle;
         if (α < 0)
-            α = α + (1 + Math.Floor(Math.Abs(α) / 360)) * 360;
+            α += (1 + Math.Floor(Math.Abs(α) / 360)) * 360;
         else if (α > 360)
-            α = α - Math.Floor(α / 360) * 360;
+            α -= Math.Floor(α / 360) * 360;
         Debug.Assert(α is >= 0 and <= 360);
 
         var β = sweepAngle;
@@ -1040,7 +1040,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
 
         β = α + β;
         if (β < 0)
-            β = β + (1 + Math.Floor(Math.Abs(β) / 360)) * 360;
+            β += (1 + Math.Floor(Math.Abs(β) / 360)) * 360;
 
         var clockwise = sweepAngle > 0;
         var startQuadrant = Quadrant(α, true, clockwise);
@@ -1097,7 +1097,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     {
         Debug.Assert(φ >= 0);
         if (φ > 360)
-            φ = φ - Math.Floor(φ / 360) * 360;
+            φ -= Math.Floor(φ / 360) * 360;
 
         var quadrant = (int)(φ / 90);
 #pragma warning disable S1244 // Exact on purpose: only the exact value takes the special case, and the general path is right for anything near it.
@@ -1124,7 +1124,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         Debug.Assert(α is >= 0 and <= 360);
         Debug.Assert(β >= 0);
         if (β > 360)
-            β = β - Math.Floor(β / 360) * 360;
+            β -= Math.Floor(β / 360) * 360;
         Debug.Assert(Math.Abs(α - β) <= 90);
 
         // Scanling factor
@@ -1158,17 +1158,17 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
 #pragma warning restore S1244
         {
             // Circular arc needs no correction.
-            α = α * Calc.Deg2Rad;
-            β = β * Calc.Deg2Rad;
+            α *= Calc.Deg2Rad;
+            β *= Calc.Deg2Rad;
         }
         else
         {
             // Elliptic arc needs the angles to be adjusted such that the scaling transformation is compensated.
-            α = α * Calc.Deg2Rad;
+            α *= Calc.Deg2Rad;
             sinα = Math.Sin(α);
             if (Math.Abs(sinα) > 1E-10)
                 α = Math.PI / 2 - Math.Atan(δy * Math.Cos(α) / (δx * sinα));
-            β = β * Calc.Deg2Rad;
+            β *= Calc.Deg2Rad;
             sinβ = Math.Sin(β);
             if (Math.Abs(sinβ) > 1E-10)
                 β = Math.PI / 2 - Math.Atan(δy * Math.Cos(β) / (δx * sinβ));
@@ -2499,7 +2499,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         // Reference: TABLE 5.5  Text-positioning operators / Page 406
         var posSave = pos;
         // Map from absolute to relative position.
-        pos = pos - new XVector(_gfxState.RealizedTextPosition.X, _gfxState.RealizedTextPosition.Y);
+        pos -= new XVector(_gfxState.RealizedTextPosition.X, _gfxState.RealizedTextPosition.Y);
         if (skew != 0)
         {
             // A leaning text matrix carries the Td offset sideways by the height it moves through,

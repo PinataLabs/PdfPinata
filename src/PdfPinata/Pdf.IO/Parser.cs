@@ -734,7 +734,7 @@ internal sealed class Parser
                     // XnView, for one, writes "12 0 obj << endobj". Take the end of the object
                     // as the end of what it holds, and put the keyword back so that the caller,
                     // which looks for it next, still finds it.
-                    _lexer.Position = _lexer.Position - _lexer.Token.Length;
+                    _lexer.Position -= _lexer.Token.Length;
                     return;
 
                 // Anything else is not expected here.

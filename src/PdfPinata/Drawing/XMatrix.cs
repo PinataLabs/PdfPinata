@@ -385,7 +385,7 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
     /// </summary>
     public void RotatePrepend(double angle)
     {
-        angle = angle % 360.0;
+        angle %= 360.0;
         this = CreateRotationRadians(angle * Calc.Deg2Rad) * this;
     }
 
@@ -397,7 +397,7 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
         if (_type == XMatrixTypes.Identity)
             this = CreateIdentity();
 
-        angle = angle * Calc.Deg2Rad;
+        angle *= Calc.Deg2Rad;
         var cos = Math.Cos(angle);
         var sin = Math.Sin(angle);
         if (order == XMatrixOrder.Append)
@@ -452,7 +452,7 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
     /// </summary>
     public void RotateAtPrepend(double angle, double centerX, double centerY)
     {
-        angle = angle % 360.0;
+        angle %= 360.0;
         this = CreateRotationRadians(angle * Calc.Deg2Rad, centerX, centerY) * this;
     }
 
@@ -488,12 +488,12 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
     {
         if (order == XMatrixOrder.Append)
         {
-            angle = angle % 360.0;
+            angle %= 360.0;
             this *= CreateRotationRadians(angle * Calc.Deg2Rad, point.X, point.Y);
         }
         else
         {
-            angle = angle % 360.0;
+            angle %= 360.0;
             this = CreateRotationRadians(angle * Calc.Deg2Rad, point.X, point.Y) * this;
         }
         DeriveMatrixType();
@@ -571,8 +571,8 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
     /// </summary>
     public void SkewAppend(double skewX, double skewY)
     {
-        skewX = skewX % 360.0;
-        skewY = skewY % 360.0;
+        skewX %= 360.0;
+        skewY %= 360.0;
         this *= CreateSkewRadians(skewX * Calc.Deg2Rad, skewY * Calc.Deg2Rad);
     }
 
@@ -581,8 +581,8 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
     /// </summary>
     public void SkewPrepend(double skewX, double skewY)
     {
-        skewX = skewX % 360.0;
-        skewY = skewY % 360.0;
+        skewX %= 360.0;
+        skewY %= 360.0;
         this = CreateSkewRadians(skewX * Calc.Deg2Rad, skewY * Calc.Deg2Rad) * this;
     }
 

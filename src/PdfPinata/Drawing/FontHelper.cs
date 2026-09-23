@@ -233,13 +233,13 @@ internal static class FontHelper
             while (--n >= 0)
             {
                 s1 += buffer[offset++];
-                s2 = s2 + s1;
+                s2 += s1;
             }
             s1 %= prime;
             s2 %= prime;
         }
         var ul1 = (ulong)s2 << 16;
-        ul1 = ul1 | s1;
+        ul1 |= s1;
         var ul2 = (ulong)buffer.Length;
         return (ul1 << 32) | ul2;
     }

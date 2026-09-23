@@ -189,8 +189,8 @@ public struct XVector : IFormattable
     /// </summary>
     public void Normalize()
     {
-        this = this / Math.Max(Math.Abs(_x), Math.Abs(_y));
-        this = this / Length;
+        this /= Math.Max(Math.Abs(_x), Math.Abs(_y));
+        this /= Length;
     }
 
     /// <summary>

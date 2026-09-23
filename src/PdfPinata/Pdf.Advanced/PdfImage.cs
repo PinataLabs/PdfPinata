@@ -494,7 +494,7 @@ internal class MonochromeMask
         if (isTransparent)
             _byteBuffer = (_byteBuffer << 1) + 1;
         else
-            _byteBuffer = _byteBuffer << 1;
+            _byteBuffer <<= 1;
         ++_bitsWritten;
         if ((_bitsWritten & 7) == 0)
         {
@@ -505,7 +505,7 @@ internal class MonochromeMask
         else if (_bitsWritten == _sizeX)
         {
             var n = 8 - (_bitsWritten & 7);
-            _byteBuffer = _byteBuffer << n;
+            _byteBuffer <<= n;
             _maskData[_writeOffset] = (byte)_byteBuffer;
         }
     }
