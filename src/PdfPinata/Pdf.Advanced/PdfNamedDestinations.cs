@@ -90,41 +90,71 @@ internal static class PdfNamedDestinations
         if (node == null || depth > MaxDepth || !seen.Add(node))
             return null;
 
-        // A node says which names lie below it, so one the name is outside can be passed over.
-        // Anything unreadable about the bounds leaves the node to be searched rather than
-        // skipped: searching one node too many costs time, skipping one loses the destination.
+        if (LiesOutsideLimits(node, name))
+            return null;
+
+        if (TryFindInLeaves(node, name, out var value))
+            return value;
+
+        return SearchKids(node, name, depth, seen);
+    }
+
+    /// <summary>
+    /// Whether the node's /Limits say the name cannot lie below it.
+    /// </summary>
+    /// <remarks>
+    /// A node says which names lie below it, so one the name is outside can be passed over.
+    /// Anything unreadable about the bounds leaves the node to be searched rather than
+    /// skipped: searching one node too many costs time, skipping one loses the destination.
+    /// </remarks>
+    private static bool LiesOutsideLimits(PdfDictionary node, string name)
+    {
         var limits = node.Elements.GetArray("/Limits");
-        if (limits != null && limits.Elements.Count == 2)
-        {
-            var low = TextOf(limits.Elements[0]);
-            var high = TextOf(limits.Elements[1]);
-            if (low != null && high != null &&
-                (string.CompareOrdinal(name, low) < 0 || string.CompareOrdinal(name, high) > 0))
-                return null;
-        }
+        if (limits == null || limits.Elements.Count != 2)
+            return false;
 
-        // A leaf holds the names themselves, alternating with what each one stands for.
+        var low = TextOf(limits.Elements[0]);
+        var high = TextOf(limits.Elements[1]);
+        return low != null && high != null &&
+               (string.CompareOrdinal(name, low) < 0 || string.CompareOrdinal(name, high) > 0);
+    }
+
+    /// <summary>
+    /// Looks for the name among the node's own /Names. A leaf holds the names themselves,
+    /// alternating with what each one stands for.
+    /// </summary>
+    private static bool TryFindInLeaves(PdfDictionary node, string name, out PdfItem value)
+    {
+        value = null;
         var leaves = node.Elements.GetArray("/Names");
-        if (leaves != null)
+        if (leaves == null)
+            return false;
+
+        var count = leaves.Elements.Count;
+        for (var idx = 0; idx + 1 < count; idx += 2)
         {
-            var count = leaves.Elements.Count;
-            for (var idx = 0; idx + 1 < count; idx += 2)
+            if (TextOf(leaves.Elements[idx]) == name)
             {
-                if (TextOf(leaves.Elements[idx]) == name)
-                    return leaves.Elements[idx + 1];
+                value = leaves.Elements[idx + 1];
+                return true;
             }
         }
 
+        return false;
+    }
+
+    private static PdfItem SearchKids(PdfDictionary node, string name, int depth, HashSet<PdfDictionary> seen)
+    {
         var kids = node.Elements.GetArray("/Kids");
-        if (kids != null)
+        if (kids == null)
+            return null;
+
+        var count = kids.Elements.Count;
+        for (var idx = 0; idx < count; idx++)
         {
-            var count = kids.Elements.Count;
-            for (var idx = 0; idx < count; idx++)
-            {
-                var found = Search(kids.Elements.GetDictionary(idx), name, depth + 1, seen);
-                if (found != null)
-                    return found;
-            }
+            var found = Search(kids.Elements.GetDictionary(idx), name, depth + 1, seen);
+            if (found != null)
+                return found;
         }
 
         return null;

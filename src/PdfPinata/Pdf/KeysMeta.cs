@@ -84,77 +84,49 @@ internal sealed class KeyDescriptor
                                    DynamicallyAccessedMemberTypes.NonPublicConstructors)]
     public Type GetValueType()
     {
-        var type = ObjectType;
-        if (type != null)
-            return type;
-
         // If we have no ObjectType specified, use the KeyType enumeration.
-        switch (KeyType & KeyType.TypeMask)
+        return ObjectType ?? TypeFromKeyType();
+    }
+
+    /// <summary>
+    /// The type the <see cref="KeyType"/> names, for a key given no <see cref="ObjectType"/>.
+    /// </summary>
+    [return:
+        DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors |
+                                   DynamicallyAccessedMemberTypes.NonPublicConstructors)]
+    private Type TypeFromKeyType()
+    {
+        return (KeyType & KeyType.TypeMask) switch
         {
-            case KeyType.Name:
-                type = typeof(PdfName);
-                break;
-
-            case KeyType.String:
-                type = typeof(PdfString);
-                break;
-
-            case KeyType.Boolean:
-                type = typeof(PdfBoolean);
-                break;
-
-            case KeyType.Integer:
-                type = typeof(PdfInteger);
-                break;
-
-            case KeyType.Real:
-                type = typeof(PdfReal);
-                break;
-
-            case KeyType.Date:
-                type = typeof(PdfDate);
-                break;
-
-            case KeyType.Rectangle:
-                type = typeof(PdfRectangle);
-                break;
-
-            case KeyType.Array:
-                type = typeof(PdfArray);
-                break;
-
-            case KeyType.Dictionary:
-                type = typeof(PdfDictionary);
-                break;
-
-            case KeyType.Stream:
-                type = typeof(PdfDictionary);
-                break;
-
-            case KeyType.NumberTree:
-                type = typeof(PdfNumberTreeNode);
-                break;
+            KeyType.Name => typeof(PdfName),
+            KeyType.String => typeof(PdfString),
+            KeyType.Boolean => typeof(PdfBoolean),
+            KeyType.Integer => typeof(PdfInteger),
+            KeyType.Real => typeof(PdfReal),
+            KeyType.Date => typeof(PdfDate),
+            KeyType.Rectangle => typeof(PdfRectangle),
+            KeyType.Array => typeof(PdfArray),
+            KeyType.Dictionary => typeof(PdfDictionary),
+            KeyType.Stream => typeof(PdfDictionary),
+            KeyType.NumberTree => typeof(PdfNumberTreeNode),
 
             // The following types are not yet used
+            KeyType.NameOrArray => throw new NotImplementedException("KeyType.NameOrArray"),
+            KeyType.ArrayOrDictionary => throw new NotImplementedException("KeyType.ArrayOrDictionary"),
+            KeyType.StreamOrArray => throw new NotImplementedException("KeyType.StreamOrArray"),
+            KeyType.ArrayOrNameOrString => null, // HACK: Make PdfOutline work
 
-            case KeyType.NameOrArray:
-                throw new NotImplementedException("KeyType.NameOrArray");
+            _ => InvalidKeyType()
+        };
+    }
 
-            case KeyType.ArrayOrDictionary:
-                throw new NotImplementedException("KeyType.ArrayOrDictionary");
-
-            case KeyType.StreamOrArray:
-                throw new NotImplementedException("KeyType.StreamOrArray");
-
-            case KeyType.ArrayOrNameOrString:
-                return null; // HACK: Make PdfOutline work
-
-            default:
-                Debug.Assert(false, "Invalid KeyType: " + KeyType);
-                break;
-        }
-
-        return type;
+    [return:
+        DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors |
+                                   DynamicallyAccessedMemberTypes.NonPublicConstructors)]
+    private Type InvalidKeyType()
+    {
+        Debug.Assert(false, "Invalid KeyType: " + KeyType);
+        return null;
     }
 }
 

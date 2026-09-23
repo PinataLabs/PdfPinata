@@ -355,7 +355,58 @@ public sealed class PdfDocument : PdfObject, IDisposable
     public void SaveIncremental(Stream stream)
     {
         ArgumentNullException.ThrowIfNull(stream);
+        EnsureCanSaveIncrementally(stream);
 
+        EnsureCanDeduplicate();
+        PrepareForSave();
+
+        stream.Write(_originalBytes, 0, _originalBytes.Length);
+
+        // Only a revision of a file that was read encrypted is written encrypted. The handler is not
+        // asked for otherwise: on a trailer with no /Encrypt its getter builds an empty handler with
+        // no key and hangs it on the trailer as /Encrypt, so anything that had merely touched
+        // SecuritySettings - the PDF/A check asks the security level - left the writer failing on
+        // it. Whether the file was encrypted is therefore settled by the reader, not by the trailer.
+        // The empty handler such a question made is an object in the table too, and is left out of
+        // the revision along with the entry that pointed at it.
+        var securityHandler = _readEncrypted ? _trailer.SecurityHandler : null;
+        var strayHandler = _readEncrypted ? null : _trailer._securityHandler;
+        if (!_readEncrypted)
+            _trailer.Elements.Remove(PdfTrailer.Keys.Encrypt);
+        var writer = new PdfWriter(stream, securityHandler);
+        try
+        {
+            var changed = ChangedReferences(strayHandler);
+            foreach (var iref in changed)
+            {
+                iref.Position = writer.Position;
+                iref.Value.WriteObject(writer);
+            }
+
+            // A revision is indexed the way the one before it was. The trailer of a file whose last
+            // revision is a cross-reference stream is that stream, read back in, and it cannot be
+            // written as a trailer dictionary - see WriteIncrementalSection.
+            if (_trailer is PdfCrossReferenceStream)
+            {
+                writer.WriteEof(
+                    PdfCrossReferenceStreamWriter.WriteIncrementalSection(this, writer, changed, _originalStartXref));
+                return;
+            }
+
+            WriteIncrementalTableAndTrailer(writer, changed);
+        }
+        finally
+        {
+            writer.Stream.Flush();
+        }
+    }
+
+    /// <summary>
+    /// Refuses an incremental save this document cannot make, or one into a stream that already
+    /// holds something.
+    /// </summary>
+    private void EnsureCanSaveIncrementally(Stream stream)
+    {
         if (_originalBytes == null)
             throw new InvalidOperationException(
                 (IsImported
@@ -377,75 +428,50 @@ public sealed class PdfDocument : PdfObject, IDisposable
                 + "to. In particular it cannot be given the stream the document was read from: that "
                 + "leaves the tail of the old file beyond the new revision, and a reader looking "
                 + "backwards for the last startxref finds the stale one.", nameof(stream));
+    }
 
-        EnsureCanDeduplicate();
-        PrepareForSave();
-
-        stream.Write(_originalBytes, 0, _originalBytes.Length);
-
-        // Only a revision of a file that was read encrypted is written encrypted. The handler is not
-        // asked for otherwise: on a trailer with no /Encrypt its getter builds an empty handler with
-        // no key and hangs it on the trailer as /Encrypt, so anything that had merely touched
-        // SecuritySettings - the PDF/A check asks the security level - left the writer failing on
-        // it. Whether the file was encrypted is therefore settled by the reader, not by the trailer.
-        // The empty handler such a question made is an object in the table too, and is left out of
-        // the revision along with the entry that pointed at it.
-        var securityHandler = _readEncrypted ? _trailer.SecurityHandler : null;
-        var strayHandler = _readEncrypted ? null : _trailer._securityHandler;
-        if (!_readEncrypted)
-            _trailer.Elements.Remove(PdfTrailer.Keys.Encrypt);
-        var writer = new PdfWriter(stream, securityHandler);
-        try
+    /// <summary>
+    /// The objects an appended revision has to write: every one changed since the document was
+    /// read, and every one added since.
+    /// </summary>
+    private List<PdfReference> ChangedReferences(PdfStandardSecurityHandler strayHandler)
+    {
+        var changed = new List<PdfReference>();
+        foreach (var iref in _irefTable.AllReferences)
         {
-            var changed = new List<PdfReference>();
-            foreach (var iref in _irefTable.AllReferences)
-            {
-                // A trailer that is a cross-reference stream is also an object in the table, and
-                // setting an entry on it - /Info, created on save for a file that had none - marks
-                // it changed. It is the previous revision's index and is never written again: the
-                // new revision gets an index of its own.
-                if (iref.Value == _trailer || (strayHandler != null && iref.Value == strayHandler))
-                    continue;
+            // A trailer that is a cross-reference stream is also an object in the table, and
+            // setting an entry on it - /Info, created on save for a file that had none - marks
+            // it changed. It is the previous revision's index and is never written again: the
+            // new revision gets an index of its own.
+            if (iref.Value == _trailer || (strayHandler != null && iref.Value == strayHandler))
+                continue;
 
-                if (iref.Value != null && (iref.Value.IsDirty || !_originalObjectNumbers.Contains(iref.ObjectNumber)))
-                    changed.Add(iref);
-            }
-
-            foreach (var iref in changed)
-            {
-                iref.Position = writer.Position;
-                iref.Value.WriteObject(writer);
-            }
-
-            // A revision is indexed the way the one before it was. The trailer of a file whose last
-            // revision is a cross-reference stream is that stream, read back in, and it cannot be
-            // written as a trailer dictionary - see WriteIncrementalSection.
-            if (_trailer is PdfCrossReferenceStream)
-            {
-                writer.WriteEof(
-                    PdfCrossReferenceStreamWriter.WriteIncrementalSection(this, writer, changed, _originalStartXref));
-                return;
-            }
-
-            var startxref = writer.Position;
-            WriteIncrementalCrossReferenceTable(writer, changed);
-
-            writer.WriteRaw("trailer\n");
-            _trailer.Elements.SetInteger("/Size", _irefTable.MaxObjectNumber + 1);
-
-            // Where the previous revision's cross-reference section begins. Without it a reader
-            // sees only the handful of objects in this revision and nothing else in the document.
-            // The cast is safe because CaptureOriginalBytes refuses a document larger than an array
-            // can hold, so this offset lies inside one; checked so that a future change to that
-            // refusal fails here rather than writing a negative /Prev.
-            _trailer.Elements.SetInteger(PdfTrailer.Keys.Prev, checked((int)_originalStartXref));
-            _trailer.WriteObject(writer);
-            writer.WriteEof(startxref);
+            if (iref.Value != null && (iref.Value.IsDirty || !_originalObjectNumbers.Contains(iref.ObjectNumber)))
+                changed.Add(iref);
         }
-        finally
-        {
-            writer.Stream.Flush();
-        }
+        return changed;
+    }
+
+    /// <summary>
+    /// Ends a revision indexed by a classic cross-reference table: the table, then a trailer that
+    /// points back at the revision before.
+    /// </summary>
+    private void WriteIncrementalTableAndTrailer(PdfWriter writer, List<PdfReference> changed)
+    {
+        var startxref = writer.Position;
+        WriteIncrementalCrossReferenceTable(writer, changed);
+
+        writer.WriteRaw("trailer\n");
+        _trailer.Elements.SetInteger("/Size", _irefTable.MaxObjectNumber + 1);
+
+        // Where the previous revision's cross-reference section begins. Without it a reader
+        // sees only the handful of objects in this revision and nothing else in the document.
+        // The cast is safe because CaptureOriginalBytes refuses a document larger than an array
+        // can hold, so this offset lies inside one; checked so that a future change to that
+        // refusal fails here rather than writing a negative /Prev.
+        _trailer.Elements.SetInteger(PdfTrailer.Keys.Prev, checked((int)_originalStartXref));
+        _trailer.WriteObject(writer);
+        writer.WriteEof(startxref);
     }
 
     /// <summary>

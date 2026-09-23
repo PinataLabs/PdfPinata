@@ -49,37 +49,32 @@ public static class Filtering
             filterName = filterName[1..];
 
         // Some tools use abbreviations
-        switch (filterName)
+        return filterName switch
         {
-            case "ASCIIHexDecode":
-            case "AHx":
-                return _asciiHexDecode ??= new AsciiHexDecode();
+            "ASCIIHexDecode" or "AHx" => ASCIIHexDecode,
+            "ASCII85Decode" or "A85" => ASCII85Decode,
+            "LZWDecode" or "LZW" => LzwDecode,
+            "FlateDecode" or "Fl" => FlateDecode,
+            "RunLengthDecode" or "RL" => RunLengthDecode,
+            _ when IsRecognisedButNotImplemented(filterName) => NotImplementedFilter(filterName),
+            _ => throw new NotImplementedException("Unknown filter: " + filterName)
+        };
+    }
 
-            case "ASCII85Decode":
-            case "A85":
-                return _ascii85Decode ??= new Ascii85Decode();
+    /// <summary>
+    /// Whether the name is one of the standard filters this library knows of but cannot apply.
+    /// </summary>
+    private static bool IsRecognisedButNotImplemented(string filterName) =>
+        filterName is "CCITTFaxDecode" or "JBIG2Decode" or "DCTDecode" or "JPXDecode" or "Crypt";
 
-            case "LZWDecode":
-            case "LZW":
-                return _lzwDecode ??= new LzwDecode();
-
-            case "FlateDecode":
-            case "Fl":
-                return _flateDecode ??= new FlateDecode();
-
-            case "RunLengthDecode":
-            case "RL":
-                return _runLengthDecode ??= new RunLengthDecode();
-
-            case "CCITTFaxDecode":
-            case "JBIG2Decode":
-            case "DCTDecode":
-            case "JPXDecode":
-            case "Crypt":
-                Debug.WriteLine("Filter not implemented: " + filterName);
-                return null;
-        }
-        throw new NotImplementedException("Unknown filter: " + filterName);
+    /// <summary>
+    /// What a recognised but unimplemented filter is looked up as: nothing, with a note in the
+    /// debug output.
+    /// </summary>
+    private static Filter NotImplementedFilter(string filterName)
+    {
+        Debug.WriteLine("Filter not implemented: " + filterName);
+        return null;
     }
 
     /// <summary>

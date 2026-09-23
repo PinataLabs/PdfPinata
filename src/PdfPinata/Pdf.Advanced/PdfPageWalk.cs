@@ -107,55 +107,80 @@ internal abstract class PdfPageWalk
                 continue;
 
             Observe(op, scope, depth);
-
-            switch (op.OpCode.OpCodeName)
-            {
-                case OpCodeName.BI:
-                    // The lexer finds the end of an inline image by looking for the bytes of EI,
-                    // which the image data itself may hold. A wrong guess carries the reading off
-                    // and the operators after it are lost, so nothing read after it can be trusted.
-                    _understood = false;
-                    return;
-
-                case OpCodeName.Do:
-                    Use("/XObject", NameAt(op, 0), scope, depth);
-                    break;
-
-                case OpCodeName.Tf:
-                    Use("/Font", NameAt(op, 0), scope, depth);
-                    break;
-
-                case OpCodeName.gs:
-                    Use("/ExtGState", NameAt(op, 0), scope, depth);
-                    break;
-
-                case OpCodeName.sh:
-                    Use("/Shading", NameAt(op, 0), scope, depth);
-                    break;
-
-                case OpCodeName.cs:
-                case OpCodeName.CS:
-                    var colorSpace = NameAt(op, 0);
-                    if (colorSpace != null && Array.IndexOf(DeviceColorSpaces, colorSpace) < 0)
-                        Use("/ColorSpace", colorSpace, scope, depth);
-                    break;
-
-                case OpCodeName.scn:
-                case OpCodeName.SCN:
-                    // A pattern is named last, after the components of the underlying colour.
-                    Use("/Pattern", NameAt(op, op.Operands.Count - 1), scope, depth);
-                    break;
-
-                case OpCodeName.BDC:
-                case OpCodeName.DP:
-                    // The property list is named second, after the tag, unless it is written out.
-                    Use("/Properties", NameAt(op, 1), scope, depth);
-                    break;
-            }
+            Follow(op, scope, depth);
 
             if (!_understood)
                 return;
         }
+    }
+
+    /// <summary>
+    /// Acts on one operator: follows the resource it names, if it names one, or gives the walk up
+    /// where it is an operator nothing after can be trusted past.
+    /// </summary>
+    private void Follow(COperator op, PdfDictionary scope, int depth)
+    {
+        if (op.OpCode.OpCodeName == OpCodeName.BI)
+        {
+            // The lexer finds the end of an inline image by looking for the bytes of EI,
+            // which the image data itself may hold. A wrong guess carries the reading off
+            // and the operators after it are lost, so nothing read after it can be trusted.
+            _understood = false;
+            return;
+        }
+
+        var (category, name) = NamedResourceOf(op);
+        if (category != null)
+            Use(category, name, scope, depth);
+    }
+
+    /// <summary>
+    /// The resource category an operator draws from and the name it gives there, or a null
+    /// category for an operator that names no resource. A null name is an operator that names
+    /// nothing this time, which <see cref="Use"/> passes over.
+    /// </summary>
+    private static (string Category, string Name) NamedResourceOf(COperator op)
+    {
+        switch (op.OpCode.OpCodeName)
+        {
+            case OpCodeName.Do:
+                return ("/XObject", NameAt(op, 0));
+
+            case OpCodeName.Tf:
+                return ("/Font", NameAt(op, 0));
+
+            case OpCodeName.gs:
+                return ("/ExtGState", NameAt(op, 0));
+
+            case OpCodeName.sh:
+                return ("/Shading", NameAt(op, 0));
+
+            case OpCodeName.cs:
+            case OpCodeName.CS:
+                return ("/ColorSpace", NonDeviceColorSpace(NameAt(op, 0)));
+
+            case OpCodeName.scn:
+            case OpCodeName.SCN:
+                // A pattern is named last, after the components of the underlying colour.
+                return ("/Pattern", NameAt(op, op.Operands.Count - 1));
+
+            case OpCodeName.BDC:
+            case OpCodeName.DP:
+                // The property list is named second, after the tag, unless it is written out.
+                return ("/Properties", NameAt(op, 1));
+
+            default:
+                return (null, null);
+        }
+    }
+
+    /// <summary>
+    /// The colour space name given, or null where it is a device space no resource dictionary
+    /// names.
+    /// </summary>
+    private static string NonDeviceColorSpace(string colorSpace)
+    {
+        return colorSpace != null && Array.IndexOf(DeviceColorSpaces, colorSpace) < 0 ? colorSpace : null;
     }
 
     /// <summary>

@@ -308,138 +308,140 @@ public abstract class PdfObject : PdfItem
     {
         Debug.Assert(ReferenceEquals(iot.Owner, owner));
 
-        PdfDictionary dict;
-        PdfArray array;
-        if ((dict = value as PdfDictionary) != null)
+        switch (value)
         {
-            // Case: The object is a dictionary.
-            // Set document for cloned direct objects.
-            if (dict.Owner == null)
-            {
-                // If the dictionary has not yet an owner set the owner to the importing document.
-                dict.Document = owner;
-            }
-            else
-            {
-                // If the dictionary already has an owner it must be the importing document.
-                Debug.Assert(dict.Owner == owner);
-            }
+            case PdfDictionary dict:
+                FixUpDictionary(iot, owner, dict);
+                break;
 
-            // Search for indirect references in all dictionary elements.
-            var names = dict.Elements.KeyNames;
-            foreach (var name in names)
-            {
-                var item = dict.Elements[name];
-                Debug.Assert(item != null, "A dictionary element cannot be null.");
+            case PdfArray array:
+                FixUpArray(iot, owner, array);
+                break;
 
-                // Is item an iref?
-                if (item is PdfReference iref)
-                {
-                    // Case: The item is a reference.
-                    // Does the iref already belongs to the new owner?
-                    if (iref.Document == owner)
-                    {
-                        // Yes: fine. Happens when an already cloned object is reused.
-                        continue;
-                    }
-
-                    // No: Replace with iref of cloned object.
-                    // iref.ObjectID is the object's number in the external document. Every indirect
-                    // object of the transitive closure has been cloned into the owner, either by
-                    // the first loop of DeepCopyClosure or ImportClosure or by an earlier import
-                    // through the same table, and iot maps its external ID to the clone's entry in
-                    // the owner's cross-reference table. The referenced object is part of that
-                    // closure, so the lookup always finds it, and the reference it answers belongs
-                    // to the owner, usually under a different number.
-                    var newXRef = iot[iref.ObjectID];
-                    Debug.Assert(newXRef != null);
-                    Debug.Assert(newXRef.Document == owner);
-                    dict.Elements[name] = newXRef;
-                }
-                else
-                {
-                    // Case: The item is not a reference.
-                    // If item is an object recursively fix its inner items.
-                    if (item is PdfObject pdfObject)
-                    {
-                        // Fix up inner objects, i.e. recursively walk down the object tree.
-                        FixUpObject(iot, owner, pdfObject);
-                    }
-                    // The item is something else, e.g. a name. Nothing to do.
-                }
-            }
+            default:
+                AssertIsIndirectScalar(owner, value);
+                break;
         }
-        else if ((array = value as PdfArray) != null)
+    }
+
+    private static void FixUpDictionary(PdfImportedObjectTable iot, PdfDocument owner, PdfDictionary dict)
+    {
+        // Case: The object is a dictionary.
+        AdoptDirectObject(owner, dict);
+
+        // Search for indirect references in all dictionary elements.
+        var names = dict.Elements.KeyNames;
+        foreach (var name in names)
         {
-            // Case: The object is an array.
-            // Set document for cloned direct objects.
-            if (array.Owner == null)
-            {
-                // If the array has not yet an owner set the owner to the importing document.
-                array.Document = owner;
-            }
-            else
-            {
-                // If the array already has an owner it must be the importing document.
-                Debug.Assert(array.Owner == owner);
-            }
+            var item = dict.Elements[name];
+            Debug.Assert(item != null, "A dictionary element cannot be null.");
 
-            // Search for indirect references in all array elements.
-            var count = array.Elements.Count;
-            for (var idx = 0; idx < count; idx++)
-            {
-                var item = array.Elements[idx];
-                Debug.Assert(item != null, "An array element cannot be null.");
+            var newXRef = FixUpItem(iot, owner, item);
+            if (newXRef != null)
+                dict.Elements[name] = newXRef;
+        }
+    }
 
-                // Is item an iref?
-                if (item is PdfReference iref)
-                {
-                    // Case: The item is a reference.
-                    // Does the iref already belongs to the owner?
-                    if (iref.Document == owner)
-                    {
-                        // Yes: fine. Happens when an already cloned object is reused.
-                        continue;
-                    }
+    private static void FixUpArray(PdfImportedObjectTable iot, PdfDocument owner, PdfArray array)
+    {
+        // Case: The object is an array.
+        AdoptDirectObject(owner, array);
 
-                    // No: replace with iref of cloned object.
-                    Debug.Assert(iref.Document == iot.ExternalDocument);
-                    var newXRef = iot[iref.ObjectID];
-                    Debug.Assert(newXRef != null);
-                    Debug.Assert(newXRef.Document == owner);
-                    array.Elements[idx] = newXRef;
-                }
-                else
-                {
-                    // Case: The item is not a reference.
-                    // If item is an object recursively fix its inner items.
-                    if (item is PdfObject pdfObject)
-                    {
-                        // Fix up inner objects, i.e. recursively walk down the object tree.
-                        FixUpObject(iot, owner, pdfObject);
-                    }
-                    // The item is something else, e.g. a name. Nothing to do.
-                }
-            }
+        // Search for indirect references in all array elements.
+        var count = array.Elements.Count;
+        for (var idx = 0; idx < count; idx++)
+        {
+            var item = array.Elements[idx];
+            Debug.Assert(item != null, "An array element cannot be null.");
+            Debug.Assert(item is not PdfReference reference || reference.Document == owner || reference.Document == iot.ExternalDocument);
+
+            var newXRef = FixUpItem(iot, owner, item);
+            if (newXRef != null)
+                array.Elements[idx] = newXRef;
+        }
+    }
+
+    /// <summary>
+    /// Sets the document of a cloned direct object, which has none yet. An object that already
+    /// has one must have the importing document.
+    /// </summary>
+    private static void AdoptDirectObject(PdfDocument owner, PdfObject obj)
+    {
+        if (obj.Owner == null)
+        {
+            // If the object has not yet an owner set the owner to the importing document.
+            obj.Document = owner;
         }
         else
         {
-            // Case: The item is some other indirect object.
-            // Indirect integers, booleans, etc. are allowed, but PdfPinata do not create them.
-            // If such objects occur in imported PDF files from other producers, nothing more is to do.
-            // The owner was already set, which is double checked by the assertions below.
-            // An indirect null is one of them: a writer that puts /SMask 6 0 R in a graphics
-            // state and null in object six has said the key holds nothing, in a roundabout but
-            // perfectly legal way, and there is nothing under it to fix up.
-            if (value is PdfNameObject or PdfStringObject or PdfBooleanObject or PdfIntegerObject or PdfNumberObject or PdfNullObject)
+            // If the object already has an owner it must be the importing document.
+            Debug.Assert(obj.Owner == owner);
+        }
+    }
+
+    /// <summary>
+    /// Fixes up one element of a dictionary or an array. Answers the reference to put in its place
+    /// when it is a reference into the external document, and null when it stays as it is.
+    /// </summary>
+    private static PdfReference FixUpItem(PdfImportedObjectTable iot, PdfDocument owner, PdfItem item)
+    {
+        if (item is PdfReference iref)
+        {
+            // Case: The item is a reference.
+            // Does the iref already belongs to the new owner?
+            if (iref.Document == owner)
             {
-                Debug.Assert(value.IsIndirect);
-                Debug.Assert(value.Owner == owner);
+                // Yes: fine. Happens when an already cloned object is reused.
+                return null;
             }
-            else
-            {
-                Debug.Assert(false, "Should not come here. Object is neither a dictionary nor an array.");
-            }
+
+            // No: Replace with iref of cloned object.
+            // iref.ObjectID is the object's number in the external document. Every indirect
+            // object of the transitive closure has been cloned into the owner, either by
+            // the first loop of DeepCopyClosure or ImportClosure or by an earlier import
+            // through the same table, and iot maps its external ID to the clone's entry in
+            // the owner's cross-reference table. The referenced object is part of that
+            // closure, so the lookup always finds it, and the reference it answers belongs
+            // to the owner, usually under a different number.
+            var newXRef = iot[iref.ObjectID];
+            Debug.Assert(newXRef != null);
+            Debug.Assert(newXRef.Document == owner);
+            return newXRef;
+        }
+
+        // Case: The item is not a reference.
+        // If item is an object recursively fix its inner items.
+        if (item is PdfObject pdfObject)
+        {
+            // Fix up inner objects, i.e. recursively walk down the object tree.
+            FixUpObject(iot, owner, pdfObject);
+        }
+        // The item is something else, e.g. a name. Nothing to do.
+        return null;
+    }
+
+    /// <summary>
+    /// Checks an object that is neither a dictionary nor an array.
+    /// </summary>
+    /// <remarks>
+    /// Indirect integers, booleans, etc. are allowed, but PdfPinata do not create them.
+    /// If such objects occur in imported PDF files from other producers, nothing more is to do.
+    /// The owner was already set, which is double checked by the assertions below.
+    /// An indirect null is one of them: a writer that puts /SMask 6 0 R in a graphics
+    /// state and null in object six has said the key holds nothing, in a roundabout but
+    /// perfectly legal way, and there is nothing under it to fix up.
+    /// </remarks>
+    [Conditional("DEBUG")]
+    private static void AssertIsIndirectScalar(PdfDocument owner, PdfObject value)
+    {
+        if (value is PdfNameObject or PdfStringObject or PdfBooleanObject or PdfIntegerObject or PdfNumberObject or PdfNullObject)
+        {
+            Debug.Assert(value.IsIndirect);
+            Debug.Assert(value.Owner == owner);
+        }
+        else
+        {
+            Debug.Assert(false, "Should not come here. Object is neither a dictionary nor an array.");
         }
     }
 
