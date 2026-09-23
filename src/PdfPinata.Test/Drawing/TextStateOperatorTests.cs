@@ -29,10 +29,10 @@ public class TextStateOperatorTests
     private const double StreamPrecision = 1e-4;
 
     /// <summary>Liberation Sans, encoded as WinAnsi - the default, and what Tw can speak for.</summary>
-    private static XFont WinAnsiFont => new XFont("Arial", FontSize, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
+    private static XFont WinAnsiFont => new("Arial", FontSize, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
 
     /// <summary>The same face embedded as Identity-H, whose two-byte codes Tw cannot reach.</summary>
-    private static XFont UnicodeFont => new XFont("Arial", FontSize, XFontStyle.Regular, XPdfFontOptions.UnicodeDefault);
+    private static XFont UnicodeFont => new("Arial", FontSize, XFontStyle.Regular, XPdfFontOptions.UnicodeDefault);
 
     /// <summary>
     ///   Source Code Pro ships only a regular face, so asking for bold gets bold simulation -
@@ -40,7 +40,7 @@ public class TextStateOperatorTests
     ///   compose with rather than replace.
     /// </summary>
     private static XFont BoldSimulatedFont =>
-        new XFont(PinnedFontResolver.CffFamilyName, FontSize, XFontStyle.Bold, XPdfFontOptions.WinAnsiDefault);
+        new(PinnedFontResolver.CffFamilyName, FontSize, XFontStyle.Bold, XPdfFontOptions.WinAnsiDefault);
 
     private static PdfPage PageShowing(Action<XGraphics> draw)
     {

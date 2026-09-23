@@ -81,16 +81,14 @@ internal class FormattedHeaderFooter : IAreaProvider
 
     internal RenderInfo[] GetRenderInfos()
     {
-        if (_renderInfos != null)
-        {
-            // Not ToArray(Type): it builds the array type at run time, which carries
-            // RequiresDynamicCode and an AOT compiler cannot always have code for.
-            var result = new RenderInfo[_renderInfos.Count];
-            _renderInfos.CopyTo(result);
-            return result;
-        }
+        if (_renderInfos == null)
+            return Array.Empty<RenderInfo>();
 
-        return Array.Empty<RenderInfo>();
+        // Not ToArray(Type): it builds the array type at run time, which carries
+        // RequiresDynamicCode and an AOT compiler cannot always have code for.
+        var result = new RenderInfo[_renderInfos.Count];
+        _renderInfos.CopyTo(result);
+        return result;
     }
 
     internal Rectangle ContentRect

@@ -208,7 +208,7 @@ public class LineSpansTests
         scan.Should().Throw<ArgumentOutOfRangeException>();
     }
 
-    public static TheoryData<double> NotRealNumbers => new TheoryData<double>
+    public static TheoryData<double> NotRealNumbers => new()
     {
         double.NaN,
         double.PositiveInfinity,

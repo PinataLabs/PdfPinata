@@ -69,12 +69,12 @@ public partial class Cells : DocumentObjectCollection
   {
     get
     {
-      if (table == null)
-      {
-        var rw = Parent as Row;
-        if (rw != null)
-          table = rw.Table;
-      }
+      if (table != null)
+        return table;
+
+      var rw = Parent as Row;
+      if (rw != null)
+        table = rw.Table;
       return table;
     }
   }

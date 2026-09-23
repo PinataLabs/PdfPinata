@@ -74,12 +74,12 @@ public partial class Row : DocumentObject, IVisitable
   {
     get
     {
-      if (table == null)
-      {
-        var rws = Parent as Rows;
-        if (rws != null)
-          table = rws.Table;
-      }
+      if (table != null)
+        return table;
+
+      var rws = Parent as Rows;
+      if (rws != null)
+        table = rws.Table;
       return table;
     }
   }
@@ -92,14 +92,14 @@ public partial class Row : DocumentObject, IVisitable
   {
     get
     {
-      if (!index.HasValue)
+      if (index.HasValue)
+        return index.Value;
+
+      var rws = (Rows)parent;
+      // One for all and all for one.
+      for (var i = 0; i < rws.Count; ++i)
       {
-        var rws = (Rows)parent;
-        // One for all and all for one.
-        for (var i = 0; i < rws.Count; ++i)
-        {
-          rws[i].index = i;
-        }
+        rws[i].index = i;
       }
       return index ?? 0;
     }
@@ -303,7 +303,7 @@ public partial class Row : DocumentObject, IVisitable
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    serializer.WriteComment((comment ?? ""));
+    serializer.WriteComment(comment ?? "");
     serializer.WriteLine("\\row");
 
     var pos = serializer.BeginAttributes();

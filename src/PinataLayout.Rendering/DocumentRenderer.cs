@@ -104,12 +104,12 @@ public class DocumentRenderer
     /// <param name="maximum"></param>
     internal virtual void OnPrepareDocumentProgress(int value, int maximum)
     {
-        if (PrepareDocumentProgress != null)
-        {
-            // Invokes the delegates.
-            var e = new PrepareDocumentProgressEventArgs(value, maximum);
-            PrepareDocumentProgress(this, e);
-        }
+        if (PrepareDocumentProgress == null)
+            return;
+
+        // Invokes the delegates.
+        var e = new PrepareDocumentProgressEventArgs(value, maximum);
+        PrepareDocumentProgress(this, e);
     }
 
     /// <summary>
@@ -210,19 +210,19 @@ public class DocumentRenderer
         if ((options & PageRenderOptions.RenderFooter) == PageRenderOptions.RenderFooter)
             RenderFooter(gfx, page);
 
-        if ((options & PageRenderOptions.RenderContent) == PageRenderOptions.RenderContent)
-        {
-            var renderInfos = formattedDocument.GetRenderInfos(page);
-            var count = renderInfos.Length;
-            for (var idx = 0; idx < count; idx++)
-            {
-                var renderInfo = renderInfos[idx];
-                var renderer = Renderer.Create(gfx, this, renderInfo, fieldInfos);
-                renderer.Render();
-            }
+        if ((options & PageRenderOptions.RenderContent) != PageRenderOptions.RenderContent)
+            return;
 
-            RenderFootnotes(gfx, page, fieldInfos);
+        var renderInfos = formattedDocument.GetRenderInfos(page);
+        var count = renderInfos.Length;
+        for (var idx = 0; idx < count; idx++)
+        {
+            var renderInfo = renderInfos[idx];
+            var renderer = Renderer.Create(gfx, this, renderInfo, fieldInfos);
+            renderer.Render();
         }
+
+        RenderFootnotes(gfx, page, fieldInfos);
     }
 
     /// <summary>

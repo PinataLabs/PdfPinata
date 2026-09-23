@@ -186,11 +186,11 @@ public sealed class PdfAttachments : IEnumerable<PdfFileSpecification>
         {
             for (var idx = associated.Elements.Count - 1; idx >= 0; idx--)
             {
-                if (ReferenceEquals(Resolve(associated.Elements[idx]), specification))
-                {
-                    associated.Elements.RemoveAt(idx);
-                    removed = true;
-                }
+                if (!ReferenceEquals(Resolve(associated.Elements[idx]), specification))
+                    continue;
+
+                associated.Elements.RemoveAt(idx);
+                removed = true;
             }
 
             if (associated.Elements.Count == 0)
@@ -204,12 +204,12 @@ public sealed class PdfAttachments : IEnumerable<PdfFileSpecification>
             // from the front would renumber every pair after it mid-walk.
             for (var idx = leaves.Elements.Count - 2; idx >= 0; idx -= 2)
             {
-                if (ReferenceEquals(Resolve(leaves.Elements[idx + 1]), specification))
-                {
-                    leaves.Elements.RemoveAt(idx + 1);
-                    leaves.Elements.RemoveAt(idx);
-                    removed = true;
-                }
+                if (!ReferenceEquals(Resolve(leaves.Elements[idx + 1]), specification))
+                    continue;
+
+                leaves.Elements.RemoveAt(idx + 1);
+                leaves.Elements.RemoveAt(idx);
+                removed = true;
             }
         }
 

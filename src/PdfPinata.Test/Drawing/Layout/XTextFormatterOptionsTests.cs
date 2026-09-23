@@ -32,10 +32,10 @@ public class XTextFormatterOptionsTests
     ///   is used changes nothing about the layout: the glyphs and their widths are the same either
     ///   way, and every test here but the ellipsis ones would pass with either.
     /// </summary>
-    private static XFont Font => new XFont("Arial", 12, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
+    private static XFont Font => new("Arial", 12, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
 
     /// <summary>A rectangle wide enough for two or three words of the text below.</summary>
-    private static XRect Narrow => new XRect(20, 20, 120, 400);
+    private static XRect Narrow => new(20, 20, 120, 400);
 
     private const string ThreeLinesish = "The quick brown fox jumps over the lazy dog";
 
@@ -195,7 +195,7 @@ public class XTextFormatterOptionsTests
     // ----- C5, the ellipsis ----------------------------------------------------------------------
 
     /// <summary>Two lines of room for text that needs more than two.</summary>
-    private static XRect TwoLinesDeep => new XRect(20, 20, 120, 2 * LineHeight);
+    private static XRect TwoLinesDeep => new(20, 20, 120, 2 * LineHeight);
 
     [Fact]
     public void TextThatDoesNotFitEndsWithTheEllipsis()
@@ -255,7 +255,7 @@ public class XTextFormatterOptionsTests
     // ----- C6, columns ---------------------------------------------------------------------------
 
     /// <summary>Wide enough for two columns, deep enough for two lines in each.</summary>
-    private static XRect TwoColumnsDeep => new XRect(20, 20, 260, 2 * LineHeight);
+    private static XRect TwoColumnsDeep => new(20, 20, 260, 2 * LineHeight);
 
     [Fact]
     public void TextFlowsDownOneColumnAndOnIntoTheNext()

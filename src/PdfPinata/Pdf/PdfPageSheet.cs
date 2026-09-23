@@ -126,7 +126,7 @@ internal sealed class PdfPageSheet
     /// origin - <c>XGraphics.Initialize</c> and <c>XGraphicsPdfRenderer.BeginPage</c> - so that
     /// the two cannot come to different answers.
     /// </remarks>
-    internal XPoint Offset => new XPoint(
+    internal XPoint Offset => new(
         _markMargins.Left.Point + _trimMargins.Left.Point,
         _markMargins.Top.Point + _trimMargins.Top.Point);
 

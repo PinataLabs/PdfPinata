@@ -170,7 +170,7 @@ static class FontHelper
                         // Handle line feed ( \n)
                         if (ch == 10)
                         {
-                            if (idx < (length - 1))
+                            if (idx < length - 1)
                             {
                                 maxWidth = Math.Max(maxWidth,
                                     MeasureLine(new ReadOnlySpan<char>(line, 0, lineLength), spaceCount));

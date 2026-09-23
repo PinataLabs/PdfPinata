@@ -51,8 +51,8 @@ public class AsciiHexDecode : Filter
         for (int i = 0, j = 0; i < count; i++)
         {
             var b = data[i];
-            bytes[j++] = (byte)((b >> 4) + ((b >> 4) < 10 ? (byte)'0' : ('A' - 10)));
-            bytes[j++] = (byte)((b & 0xF) + ((b & 0xF) < 10 ? (byte)'0' : ('A' - 10)));
+            bytes[j++] = (byte)((b >> 4) + (b >> 4 < 10 ? (byte)'0' : 'A' - 10));
+            bytes[j++] = (byte)((b & 0xF) + ((b & 0xF) < 10 ? (byte)'0' : 'A' - 10));
         }
         return bytes;
     }

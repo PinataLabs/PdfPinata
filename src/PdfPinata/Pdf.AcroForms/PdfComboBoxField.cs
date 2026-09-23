@@ -73,20 +73,20 @@ public sealed class PdfComboBoxField : PdfChoiceField
 
             // Minus one means nothing chosen. There is no option at that index to name in /V,
             // so the field keeps what it had rather than being emptied.
-            if (value != -1)
-            {
-                var key = ValueInOptArray(value);
-                Elements.SetString(PdfAcroField.Keys.V, key);
-                // /I is an array of the indices selected - one of them here, a combo box offering
-                // a single choice.
-                //
-                // The entry is kept rather than dropped, though the specification says it should
-                // not be used by a field that does not allow multiple selection, and the list box
-                // accordingly does not write one. It is here because a viewer was once found that
-                // would not follow /V without it, and that is a recommendation rather than a
-                // requirement, whereas the array shape is required.
-                WriteSelectedIndices(new[] { value });
-            }
+            if (value == -1)
+                return;
+
+            var key = ValueInOptArray(value);
+            Elements.SetString(PdfAcroField.Keys.V, key);
+            // /I is an array of the indices selected - one of them here, a combo box offering
+            // a single choice.
+            //
+            // The entry is kept rather than dropped, though the specification says it should
+            // not be used by a field that does not allow multiple selection, and the list box
+            // accordingly does not write one. It is here because a viewer was once found that
+            // would not follow /V without it, and that is a recommendation rather than a
+            // requirement, whereas the array shape is required.
+            WriteSelectedIndices(new[] { value });
         }
     }
 

@@ -408,7 +408,7 @@ public partial class Styles : DocumentObjectCollection, IVisitable
     /// </summary>
     internal override void Serialize(Serializer serializer)
     {
-        serializer.WriteComment((comment ?? ""));
+        serializer.WriteComment(comment ?? "");
         var pos = serializer.BeginContent("\\styles");
 
         // A style can only be added to Styles if its base style exists. Therefore the
@@ -495,17 +495,17 @@ public partial class Styles : DocumentObjectCollection, IVisitable
     /// </summary>
     private static void VisitStyle(Hashtable visitedStyles, Style style, DocumentObjectVisitor visitor, bool visitChildren)
     {
-        if (!visitedStyles.Contains(style))
-        {
-            var baseStyle = style.GetBaseStyle();
-            if (baseStyle != null && !visitedStyles.Contains(baseStyle)) //baseStyle != ""
-                VisitStyle(visitedStyles, baseStyle, visitor, visitChildren);
-            ((IVisitable)style).AcceptVisitor(visitor, visitChildren);
-            visitedStyles.Add(style, null);
-        }
+        if (visitedStyles.Contains(style))
+            return;
+
+        var baseStyle = style.GetBaseStyle();
+        if (baseStyle != null && !visitedStyles.Contains(baseStyle)) //baseStyle != ""
+            VisitStyle(visitedStyles, baseStyle, visitor, visitChildren);
+        ((IVisitable)style).AcceptVisitor(visitor, visitChildren);
+        visitedStyles.Add(style, null);
     }
 
-    internal static readonly Styles BuildInStyles = new Styles();
+    internal static readonly Styles BuildInStyles = new();
 
     #endregion
 }

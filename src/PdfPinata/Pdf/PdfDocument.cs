@@ -222,17 +222,17 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </remarks>
     public void Close()
     {
-        if (_outStream != null)
+        if (_outStream == null)
+            return;
+
+        var writer = new PdfWriter(_outStream, SecurityHandlerForWriting);
+        try
         {
-            var writer = new PdfWriter(_outStream, SecurityHandlerForWriting);
-            try
-            {
-                DoSave(writer);
-            }
-            finally
-            {
-                writer.Close();
-            }
+            DoSave(writer);
+        }
+        finally
+        {
+            writer.Close();
         }
     }
 

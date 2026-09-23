@@ -58,19 +58,19 @@ public readonly struct XGlyphSegment
 
     /// <summary>Begins a figure at a point.</summary>
     public static XGlyphSegment StartAt(XPoint point) =>
-        new XGlyphSegment(XGlyphSegmentKind.Start, point, point, point);
+        new(XGlyphSegmentKind.Start, point, point, point);
 
     /// <summary>Draws a straight line to a point.</summary>
     public static XGlyphSegment LineTo(XPoint point) =>
-        new XGlyphSegment(XGlyphSegmentKind.Line, point, point, point);
+        new(XGlyphSegmentKind.Line, point, point, point);
 
     /// <summary>Draws a cubic Bézier curve to a point through two control points.</summary>
     public static XGlyphSegment CurveTo(XPoint control1, XPoint control2, XPoint end) =>
-        new XGlyphSegment(XGlyphSegmentKind.Curve, control1, control2, end);
+        new(XGlyphSegmentKind.Curve, control1, control2, end);
 
     /// <summary>Closes the figure back to where it began.</summary>
     public static XGlyphSegment Close() =>
-        new XGlyphSegment(XGlyphSegmentKind.Close, new XPoint(), new XPoint(), new XPoint());
+        new(XGlyphSegmentKind.Close, new XPoint(), new XPoint(), new XPoint());
 }
 
 /// <summary>

@@ -38,7 +38,7 @@ public sealed class GenericAnnotationRenderingTests : IDisposable
     ///   Kept until the test is over: the pages are handed out for counting, and the bitmap
     ///   behind one is unmanaged, so leaving them to the collector exhausts the test host.
     /// </summary>
-    private readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
+    private readonly List<MagickImageCollection> _rasterized = new();
 
     public void Dispose()
     {
@@ -53,7 +53,7 @@ public sealed class GenericAnnotationRenderingTests : IDisposable
         GhostscriptSetup.Configure();
     }
 
-    private static readonly XRect Where = new XRect(40, 40, 120, 60);
+    private static readonly XRect Where = new(40, 40, 120, 60);
 
     [GoldenImageFact]
     public void ASquareWithAnAppearanceIsPainted()

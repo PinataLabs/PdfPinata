@@ -262,13 +262,13 @@ internal static class DataMatrixSymbol
 
             // The two modules of the bottom right corner go unused by some symbol sizes, and
             // carry a fixed pattern rather than nothing.
-            if (!_filled[_height * _width - 1])
-            {
-                _forcedDark[_height * _width - 1] = true;
-                _forcedDark[_height * _width - _width - 2] = true;
-                _filled[_height * _width - 1] = true;
-                _filled[_height * _width - _width - 2] = true;
-            }
+            if (_filled[_height * _width - 1])
+                return;
+
+            _forcedDark[_height * _width - 1] = true;
+            _forcedDark[_height * _width - _width - 2] = true;
+            _filled[_height * _width - 1] = true;
+            _filled[_height * _width - _width - 2] = true;
         }
 
         /// <summary>Places one bit, wrapping it round the symbol where it falls outside.</summary>
@@ -277,13 +277,13 @@ internal static class DataMatrixSymbol
             if (row < 0)
             {
                 row += _height;
-                column += 4 - ((_height + 4) % 8);
+                column += 4 - (_height + 4) % 8;
             }
 
             if (column < 0)
             {
                 column += _width;
-                row += 4 - ((_width + 4) % 8);
+                row += 4 - (_width + 4) % 8;
             }
 
             var at = row * _width + column;

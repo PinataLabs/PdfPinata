@@ -61,12 +61,11 @@ public class PdfOutlineCollection : PdfObject, IList<PdfOutline>
     /// </summary>
     public bool Remove(PdfOutline item)
     {
-        if (_outlines.Remove(item))
-        {
-            RemoveFromOutlinesTree(item);
-            return true;
-        }
-        return false;
+        if (!_outlines.Remove(item))
+            return false;
+
+        RemoveFromOutlinesTree(item);
+        return true;
     }
 
     /// <summary>
@@ -105,15 +104,15 @@ public class PdfOutlineCollection : PdfObject, IList<PdfOutline>
     /// </summary>
     public void Clear()
     {
-        if (Count > 0)
+        if (Count <= 0)
+            return;
+
+        var array = new PdfOutline[Count];
+        _outlines.CopyTo(array);
+        _outlines.Clear();
+        foreach (var item in array)
         {
-            var array = new PdfOutline[Count];
-            _outlines.CopyTo(array);
-            _outlines.Clear();
-            foreach (var item in array)
-            {
-                RemoveFromOutlinesTree(item);
-            }
+            RemoveFromOutlinesTree(item);
         }
     }
 

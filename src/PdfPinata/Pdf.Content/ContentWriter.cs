@@ -46,11 +46,11 @@ internal class ContentWriter
 
     public void Close(bool closeUnderlyingStream)
     {
-        if (_stream != null && closeUnderlyingStream)
-        {
-            _stream.Dispose();
-            _stream = null;
-        }
+        if (_stream == null || !closeUnderlyingStream)
+            return;
+
+        _stream.Dispose();
+        _stream = null;
     }
 
     public void Close()

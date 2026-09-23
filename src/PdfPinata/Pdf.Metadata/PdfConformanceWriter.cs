@@ -207,7 +207,7 @@ internal static class PdfConformanceWriter
         if (document._version > 14)
             throw new InvalidOperationException(
                 "PDF/A-1 is defined against PDF 1.4, and this document is written as PDF "
-                + (document._version / 10) + "." + (document._version % 10) + ". Either claim "
+                + document._version / 10 + "." + document._version % 10 + ". Either claim "
                 + "PDF/A-2 or later, or stop asking for the feature that raised the version.");
 
         // Checked directly against the setting that would raise it, rather than against the version
@@ -331,18 +331,18 @@ internal static class PdfConformanceWriter
                 mismatched.Add(family);
         }
 
-        if (mismatched.Count != 0)
-        {
-            mismatched.Sort();
-            throw new InvalidOperationException(
-                conformance + " requires the output intent to describe every device colour the "
-                + "document paints, and its profile describes a " + componentsOfIntent
-                + "-component space while a page paints with a " + string.Join(" and ",
-                    mismatched.ConvertAll(count => count + "-component"))
-                + " device colour. Set Options.ColorMode and Options.OutputIntentIccProfile to "
-                + "agree with what the pages actually paint, or stop mixing colour spaces the "
-                + "intent cannot describe together.");
-        }
+        if (mismatched.Count == 0)
+            return;
+
+        mismatched.Sort();
+        throw new InvalidOperationException(
+            conformance + " requires the output intent to describe every device colour the "
+            + "document paints, and its profile describes a " + componentsOfIntent
+            + "-component space while a page paints with a " + string.Join(" and ",
+                mismatched.ConvertAll(count => count + "-component"))
+            + " device colour. Set Options.ColorMode and Options.OutputIntentIccProfile to "
+            + "agree with what the pages actually paint, or stop mixing colour spaces the "
+            + "intent cannot describe together.");
     }
 
     /// <summary>

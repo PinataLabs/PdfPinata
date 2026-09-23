@@ -90,7 +90,7 @@ public partial class Text : DocumentObject
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    var text = DdlEncoder.StringToText((content ?? ""));
+    var text = DdlEncoder.StringToText(content ?? "");
     // To make DDL more readable write soft hypens as keywords.
     text = text.Replace(new string((char)173, 1), "\\-");
     serializer.Write(text);

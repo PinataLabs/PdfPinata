@@ -103,15 +103,14 @@ public class LzwDecode : Filter
             }
         }
 
-        if (outputStream.Length >= 0)
-        {
-            // No parameters at all is not an error: it is what DecodeToString passes, and it says
-            // the same thing as parameters with no predictor in them.
-            if (parms?.DecodeParms != null)
-                return StreamDecoder.Decode(outputStream.ToArray(), parms.DecodeParms);
-            return outputStream.ToArray();
-        }
-        return null;
+        if (outputStream.Length < 0)
+            return null;
+
+        // No parameters at all is not an error: it is what DecodeToString passes, and it says
+        // the same thing as parameters with no predictor in them.
+        if (parms?.DecodeParms != null)
+            return StreamDecoder.Decode(outputStream.ToArray(), parms.DecodeParms);
+        return outputStream.ToArray();
     }
 
     /// <summary>

@@ -89,14 +89,13 @@ public class MergedCellList : List<Cell>
     {
 
       var currentCell = this[index];
-      if (currentCell.Column.Index <= cell.Column.Index && currentCell.Column.Index + currentCell.MergeRight >= cell.Column.Index)
-      {
-        if (currentCell.Row.Index <= cell.Row.Index && currentCell.Row.Index + currentCell.MergeDown >= cell.Row.Index)
-          return true;
-        else if (currentCell.Row.Index + currentCell.MergeDown == cell.Row.Index - 1)
-          return false;
+      if (currentCell.Column.Index > cell.Column.Index || currentCell.Column.Index + currentCell.MergeRight < cell.Column.Index)
+        continue;
 
-      }
+      if (currentCell.Row.Index <= cell.Row.Index && currentCell.Row.Index + currentCell.MergeDown >= cell.Row.Index)
+        return true;
+      else if (currentCell.Row.Index + currentCell.MergeDown == cell.Row.Index - 1)
+        return false;
     }
     return false;
   }
@@ -170,12 +169,12 @@ public class MergedCellList : List<Cell>
       if (nbrBrdrs != null && GetEffectiveBorderWidth(nbrBrdrs, BorderType.Bottom) >= GetEffectiveBorderWidth(borders, BorderType.Top))
         borders.SetValue("Top", GetBorderFromBorders(nbrBrdrs, BorderType.Bottom));
     }
-    if (bottomNeighbor != null)
-    {
-      var nbrBrdrs = bottomNeighbor.GetValue("Borders", GV.ReadOnly) as Borders;
-      if (nbrBrdrs != null && GetEffectiveBorderWidth(nbrBrdrs, BorderType.Top) > GetEffectiveBorderWidth(borders, BorderType.Bottom))
-        borders.SetValue("Bottom", GetBorderFromBorders(nbrBrdrs, BorderType.Top));
-    }
+    if (bottomNeighbor == null)
+      return borders;
+
+    var bottomBrdrs = bottomNeighbor.GetValue("Borders", GV.ReadOnly) as Borders;
+    if (bottomBrdrs != null && GetEffectiveBorderWidth(bottomBrdrs, BorderType.Top) > GetEffectiveBorderWidth(borders, BorderType.Bottom))
+      borders.SetValue("Bottom", GetBorderFromBorders(bottomBrdrs, BorderType.Top));
     return borders;
   }
 
@@ -240,16 +239,15 @@ public class MergedCellList : List<Cell>
     var width = relevantDocObj.GetValue("width", GV.GetNull);
     var color = relevantDocObj.GetValue("color", GV.GetNull);
 
-    if (visible != null || style != null || width != null || color != null)
-    {
-      if (visible != null && !(bool)visible)
-        return 0;
-      if (width != null)
-        return (Unit)width;
+    if (visible == null && style == null && width == null && color == null)
+      return 0;
 
-      return 0.5;
-    }
-    return 0;
+    if (visible != null && !(bool)visible)
+      return 0;
+    if (width != null)
+      return (Unit)width;
+
+    return 0.5;
   }
 
   /// <summary>

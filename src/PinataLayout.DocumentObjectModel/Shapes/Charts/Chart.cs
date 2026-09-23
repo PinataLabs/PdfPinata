@@ -522,32 +522,32 @@ public partial class Chart : Shape, IVisitable
   void IVisitable.AcceptVisitor(DocumentObjectVisitor visitor, bool visitChildren)
   {
     visitor.VisitChart(this);
-    if (visitChildren)
-    {
-      if (bottomArea != null)
-        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-        ((IVisitable)bottomArea).AcceptVisitor(visitor, visitChildren);
+    if (!visitChildren)
+      return;
 
-      if (footerArea != null)
-        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-        ((IVisitable)footerArea).AcceptVisitor(visitor, visitChildren);
+    if (bottomArea != null)
+      // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+      ((IVisitable)bottomArea).AcceptVisitor(visitor, visitChildren);
 
-      if (headerArea != null)
-        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-        ((IVisitable)headerArea).AcceptVisitor(visitor, visitChildren);
+    if (footerArea != null)
+      // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+      ((IVisitable)footerArea).AcceptVisitor(visitor, visitChildren);
 
-      if (leftArea != null)
-        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-        ((IVisitable)leftArea).AcceptVisitor(visitor, visitChildren);
+    if (headerArea != null)
+      // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+      ((IVisitable)headerArea).AcceptVisitor(visitor, visitChildren);
 
-      if (rightArea != null)
-        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-        ((IVisitable)rightArea).AcceptVisitor(visitor, visitChildren);
+    if (leftArea != null)
+      // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+      ((IVisitable)leftArea).AcceptVisitor(visitor, visitChildren);
 
-      if (topArea != null)
-        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-        ((IVisitable)topArea).AcceptVisitor(visitor, visitChildren);
-    }
+    if (rightArea != null)
+      // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+      ((IVisitable)rightArea).AcceptVisitor(visitor, visitChildren);
+
+    if (topArea != null)
+      // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+      ((IVisitable)topArea).AcceptVisitor(visitor, visitChildren);
   }
 
   #endregion

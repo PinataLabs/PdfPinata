@@ -35,7 +35,7 @@ public sealed class TranslucentImageRenderingTests : IDisposable
     ///   Everything rasterized by one test, kept until the test is over - a page is tens of
     ///   megabytes of unmanaged bitmap the collector cannot see the size of.
     /// </summary>
-    private readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
+    private readonly List<MagickImageCollection> _rasterized = new();
 
     public void Dispose()
     {
@@ -111,7 +111,7 @@ public sealed class TranslucentImageRenderingTests : IDisposable
     // ----- arrangements ---------------------------------------------------------------------------
 
     /// <summary>Where the image is drawn, in the space the drawing uses.</summary>
-    private static readonly XRect Area = new XRect(50, 50, 240, 120);
+    private static readonly XRect Area = new(50, 50, 240, 120);
 
     /// <summary>Draws a black square at one alpha, filling <see cref="Area"/>.</summary>
     private static Action<XGraphics> Translucent(byte alpha)

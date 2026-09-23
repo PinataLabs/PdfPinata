@@ -379,7 +379,7 @@ internal static class PdfEncoders
                 // The mark is part of the bytes now, so count from the text that follows it
                 // and the lines break where they always did.
                 var positionInText = idx - byteOrderMarkLength;
-                if (positionInText != 0 && (positionInText % 48) == 0)
+                if (positionInText != 0 && positionInText % 48 == 0)
                     pdf.Append('\n');
             }
             pdf.Append('>');

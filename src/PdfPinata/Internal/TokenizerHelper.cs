@@ -165,7 +165,7 @@ internal class TokenizerHelper
                     }
                 }
             }
-            else if ((char.IsWhiteSpace(currentChar)) || (currentChar == separator))
+            else if (char.IsWhiteSpace(currentChar) || currentChar == separator)
             {
                 if (currentChar == separator)
                     _foundSeparator = true;
@@ -199,47 +199,47 @@ internal class TokenizerHelper
     private void ScanToNextToken(char separator)
     {
         // Do nothing if already at end of the string.
-        if (_charIndex < _strLen)
+        if (_charIndex >= _strLen)
+            return;
+
+        var currentChar = _str[_charIndex];
+
+        // Ensure that currentChar is a white space or separator.
+        if (currentChar != separator && !char.IsWhiteSpace(currentChar))
+            throw
+                new InvalidOperationException(
+                    "ExtraDataEncountered");
+
+        // Loop until a character that isn't the separator or white space.
+        var argSepCount = 0;
+        while (_charIndex < _strLen)
         {
-            var currentChar = _str[_charIndex];
-
-            // Ensure that currentChar is a white space or separator.
-            if (currentChar != separator && !char.IsWhiteSpace(currentChar))
-                throw
-                    new InvalidOperationException(
-                        "ExtraDataEncountered");
-
-            // Loop until a character that isn't the separator or white space.
-            var argSepCount = 0;
-            while (_charIndex < _strLen)
+            currentChar = _str[_charIndex];
+            if (currentChar == separator)
             {
-                currentChar = _str[_charIndex];
-                if (currentChar == separator)
-                {
-                    _foundSeparator = true;
-                    argSepCount++;
-                    _charIndex++;
+                _foundSeparator = true;
+                argSepCount++;
+                _charIndex++;
 
-                    if (argSepCount > 1)
-                        throw
-                            new InvalidOperationException("EmptyToken");
-                }
-                else if (char.IsWhiteSpace(currentChar))
-                {
-                    // Skip white space.
-                    ++_charIndex;
-                }
-                else
-                {
-                    break;
-                }
+                if (argSepCount > 1)
+                    throw
+                        new InvalidOperationException("EmptyToken");
             }
-
-            // If there was a separatorChar then we shouldn't be at the end of string or means there was a separator but there isn't an arg.
-            if (argSepCount > 0 && _charIndex >= _strLen)
-                throw
-                    new InvalidOperationException("EmptyToken");
+            else if (char.IsWhiteSpace(currentChar))
+            {
+                // Skip white space.
+                ++_charIndex;
+            }
+            else
+            {
+                break;
+            }
         }
+
+        // If there was a separatorChar then we shouldn't be at the end of string or means there was a separator but there isn't an arg.
+        if (argSepCount > 0 && _charIndex >= _strLen)
+            throw
+                new InvalidOperationException("EmptyToken");
     }
 
     public static char GetNumericListSeparator(IFormatProvider provider)

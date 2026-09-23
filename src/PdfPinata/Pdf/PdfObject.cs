@@ -128,14 +128,14 @@ public abstract class PdfObject : PdfItem
     {
         set
         {
-            if (!ReferenceEquals(_document, value))
-            {
-                if (_document != null)
-                    throw new InvalidOperationException("Cannot change document.");
-                _document = value;
-                if (_iref != null)
-                    _iref.Document = value;
-            }
+            if (ReferenceEquals(_document, value))
+                return;
+
+            if (_document != null)
+                throw new InvalidOperationException("Cannot change document.");
+            _document = value;
+            if (_iref != null)
+                _iref.Document = value;
         }
     }
     internal PdfDocument _document;

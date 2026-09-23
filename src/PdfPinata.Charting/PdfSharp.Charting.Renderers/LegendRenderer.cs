@@ -58,7 +58,7 @@ internal abstract class LegendRenderer : Renderer
     var parms = new RendererParameters();
     parms.Graphics = rendererParms.Graphics;
 
-    var verticalLegend = (lri.Legend.docking == DockingType.Left || lri.Legend.docking == DockingType.Right);
+    var verticalLegend = lri.Legend.docking == DockingType.Left || lri.Legend.docking == DockingType.Right;
     var maxMarkerArea = new XSize();
     var ler = new LegendEntryRenderer(parms);
     foreach (var leri in lri.Entries)
@@ -183,7 +183,7 @@ internal abstract class LegendRenderer : Renderer
 
     var ler = new LegendEntryRenderer(parms);
 
-    var verticalLegend = (lri.Legend.docking == DockingType.Left || lri.Legend.docking == DockingType.Right);
+    var verticalLegend = lri.Legend.docking == DockingType.Left || lri.Legend.docking == DockingType.Right;
     var paddingFactor = 1;
     if (lri.BorderPen != null)
       paddingFactor = 2;

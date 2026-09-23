@@ -19,7 +19,7 @@ namespace PdfPinata.Test.Helpers;
 /// </remarks>
 internal static class GhostscriptSetup
 {
-    private static readonly Lazy<bool> AvailableLazy = new Lazy<bool>(Probe);
+    private static readonly Lazy<bool> AvailableLazy = new(Probe);
 
     /// <summary>
     /// True when a PDF can actually be rasterized, whatever the source of Ghostscript.

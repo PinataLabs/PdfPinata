@@ -122,11 +122,11 @@ public class Chart : DocumentObject
   /// </summary>
   internal string CheckAxis (Axis axis)
   {
-    if ((xAxis != null) && (axis == xAxis))
+    if (xAxis != null && axis == xAxis)
       return "xaxis";
-    if ((yAxis != null) && (axis == yAxis))
+    if (yAxis != null && axis == yAxis)
       return "yaxis";
-    if ((zAxis != null) && (axis == zAxis))
+    if (zAxis != null && axis == zAxis)
       return "zaxis";
 
     return "";

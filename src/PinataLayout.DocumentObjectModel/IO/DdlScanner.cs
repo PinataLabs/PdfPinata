@@ -432,37 +432,36 @@ internal class DdlScanner
     }
 
     // Check for end of line.
-    if (currChar == Chars.LF)
+    if (currChar != Chars.LF)
+      return ReadPlainText(rootLevel);
+
+    // The line ends here. See if the paragraph continues in the next line.
+    if (MoveToNextParagraphContentLine(rootLevel))
     {
-      // The line ends here. See if the paragraph continues in the next line.
-      if (MoveToNextParagraphContentLine(rootLevel))
+      // Paragraph continues in next line. Simulate the read of a blank to separate words.
+      token = " ";
+      if (IgnoreLineBreak())
+        token = "";
+      this.symbol = Symbol.Text;
+      return Symbol.Text;
+    }
+    else
+    {
+      // Paragraph ends here. Return NewLine or BraceRight.
+      if (currChar != Chars.BraceRight)
       {
-        // Paragraph continues in next line. Simulate the read of a blank to separate words.
-        token = " ";
-        if (IgnoreLineBreak())
-          token = "";
-        symbol = Symbol.Text;
-        return Symbol.Text;
+        symbol = Symbol.EmptyLine;
+        tokenType = TokenType.None; //???
+        return Symbol.EmptyLine;
       }
       else
       {
-        // Paragraph ends here. Return NewLine or BraceRight.
-        if (currChar != Chars.BraceRight)
-        {
-          symbol = Symbol.EmptyLine;
-          tokenType = TokenType.None; //???
-          return Symbol.EmptyLine;
-        }
-        else
-        {
-          AppendAndScanNextChar();
-          symbol = Symbol.BraceRight;
-          tokenType = TokenType.OperatorOrPunctuator;
-          return Symbol.BraceRight;
-        }
+        AppendAndScanNextChar();
+        symbol = Symbol.BraceRight;
+        tokenType = TokenType.OperatorOrPunctuator;
+        return Symbol.BraceRight;
       }
     }
-    return ReadPlainText(rootLevel);
   }
 
   /// <summary>
@@ -817,7 +816,7 @@ internal class DdlScanner
   /// A DdlParserException carrying the given message and the position of the current token.
   /// </summary>
   private DdlParserException ParserException(DomMsgID errorCode, params object[] args) =>
-    new DdlParserException(new DdlReaderError(DdlErrorLevel.Error, DomSR.FormatMessage(errorCode, args),
+    new(new DdlReaderError(DdlErrorLevel.Error, DomSR.FormatMessage(errorCode, args),
       (int)errorCode, DocumentFileName, CurrentLine, CurrentLinePos));
 
   /// <summary>

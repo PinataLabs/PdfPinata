@@ -17,7 +17,7 @@ internal sealed class TrueTypeGlyphs
     private const int WeHaveATwoByTwo = 0x0080;
 
     private readonly byte[] _bytes;
-    private readonly Dictionary<string, int> _tables = new Dictionary<string, int>(StringComparer.Ordinal);
+    private readonly Dictionary<string, int> _tables = new(StringComparer.Ordinal);
     private readonly int[] _loca;
     private readonly int _glyf;
 

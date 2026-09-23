@@ -70,12 +70,11 @@ internal class ParagraphIterator
   {
     get
     {
-      if (!(_current is DocumentElements))
-      {
-        var prevIter = GetPreviousLeaf();
-        return prevIter == null;
-      }
-      return false;
+      if (_current is DocumentElements)
+        return false;
+
+      var prevIter = GetPreviousLeaf();
+      return prevIter == null;
     }
   }
 
@@ -86,12 +85,11 @@ internal class ParagraphIterator
   {
     get
     {
-      if (!(_current is DocumentElements))
-      {
-        var nextIter = GetNextLeaf();
-        return nextIter == null;
-      }
-      return false;
+      if (_current is DocumentElements)
+        return false;
+
+      var nextIter = GetNextLeaf();
+      return nextIter == null;
     }
   }
 

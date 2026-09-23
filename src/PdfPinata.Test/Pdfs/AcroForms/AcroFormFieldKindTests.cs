@@ -518,7 +518,7 @@ public class AcroFormFieldKindTests
     {
         var field = (PdfListBoxField)FormWith("/Ch", "county").AcroForm.Fields["county"];
 
-        var act = () => (field).SelectedIndices = new[] { 0 };
+        var act = () => field.SelectedIndices = new[] { 0 };
 
         act.Should().Throw<ArgumentOutOfRangeException>();
         field.Elements.ContainsKey("/V").Should().BeFalse("nothing was written");

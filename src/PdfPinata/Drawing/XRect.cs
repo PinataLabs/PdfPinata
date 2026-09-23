@@ -683,22 +683,22 @@ public struct XRect : IFormattable, IDeserializationCallback, IEquatable<XRect>
     /// </summary>
     public void Scale(double scaleX, double scaleY)
     {
-        if (!IsEmpty)
+        if (IsEmpty)
+            return;
+
+        _x *= scaleX;
+        _y *= scaleY;
+        _width *= scaleX;
+        _height *= scaleY;
+        if (scaleX < 0)
         {
-            _x *= scaleX;
-            _y *= scaleY;
-            _width *= scaleX;
-            _height *= scaleY;
-            if (scaleX < 0)
-            {
-                _x += _width;
-                _width *= -1.0;
-            }
-            if (scaleY < 0)
-            {
-                _y += _height;
-                _height *= -1.0;
-            }
+            _x += _width;
+            _width *= -1.0;
+        }
+        if (scaleY < 0)
+        {
+            _y += _height;
+            _height *= -1.0;
         }
     }
 

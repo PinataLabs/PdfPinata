@@ -137,15 +137,15 @@ public sealed class PdfAnnotations : PdfArray
     internal static void FixImportedAnnotation(PdfPage page)
     {
         var annots = page.Elements.GetArray(PdfPage.Keys.Annots);
-        if (annots != null)
+        if (annots == null)
+            return;
+
+        var count = annots.Elements.Count;
+        for (var idx = 0; idx < count; idx++)
         {
-            var count = annots.Elements.Count;
-            for (var idx = 0; idx < count; idx++)
-            {
-                var annot = annots.Elements.GetDictionary(idx);
-                if (annot != null && annot.Elements.ContainsKey("/P"))
-                    annot.Elements["/P"] = page.Reference;
-            }
+            var annot = annots.Elements.GetDictionary(idx);
+            if (annot != null && annot.Elements.ContainsKey("/P"))
+                annot.Elements["/P"] = page.Reference;
         }
     }
 

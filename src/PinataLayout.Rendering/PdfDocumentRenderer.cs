@@ -295,23 +295,23 @@ public class PdfDocumentRenderer
     /// </summary>
     public void WriteDocumentInformation()
     {
-        if (!_document.IsNull("Info"))
-        {
-            var docInfo = _document.Info;
-            var pdfInfo = _pdfDocument.Info;
+        if (_document.IsNull("Info"))
+            return;
 
-            if (!docInfo.IsNull("Author"))
-                pdfInfo.Author = docInfo.Author;
+        var docInfo = _document.Info;
+        var pdfInfo = _pdfDocument.Info;
 
-            if (!docInfo.IsNull("Keywords"))
-                pdfInfo.Keywords = docInfo.Keywords;
+        if (!docInfo.IsNull("Author"))
+            pdfInfo.Author = docInfo.Author;
 
-            if (!docInfo.IsNull("Subject"))
-                pdfInfo.Subject = docInfo.Subject;
+        if (!docInfo.IsNull("Keywords"))
+            pdfInfo.Keywords = docInfo.Keywords;
 
-            if (!docInfo.IsNull("Title"))
-                pdfInfo.Title = docInfo.Title;
-        }
+        if (!docInfo.IsNull("Subject"))
+            pdfInfo.Subject = docInfo.Subject;
+
+        if (!docInfo.IsNull("Title"))
+            pdfInfo.Title = docInfo.Title;
     }
 
     /// <summary>

@@ -236,5 +236,5 @@ public struct LeftPosition : INullableValue
   /// <summary>
   /// Returns the unitialized LeftPosition object.
   /// </summary>
-  internal static readonly LeftPosition NullValue = new LeftPosition();
+  internal static readonly LeftPosition NullValue = new();
 }

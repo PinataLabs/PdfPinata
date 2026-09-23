@@ -193,16 +193,16 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
             foreach (var replacement in decrypted)
                 dict.Elements[replacement.Key] = replacement.Value;
         }
-        if (dict.Stream != null)
-        {
-            var bytes = dict.Stream.Value;
-            if (bytes.Length != 0)
-            {
-                streamEncryptor.CreateHashKey(dict.ObjectID);
-                bytes = streamEncryptor.Encrypt(bytes);
-                dict.Stream.Value = bytes;
-            }
-        }
+        if (dict.Stream == null)
+            return;
+
+        var bytes = dict.Stream.Value;
+        if (bytes.Length == 0)
+            return;
+
+        streamEncryptor.CreateHashKey(dict.ObjectID);
+        bytes = streamEncryptor.Encrypt(bytes);
+        dict.Stream.Value = bytes;
     }
 
     /// <summary>

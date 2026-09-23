@@ -60,7 +60,7 @@ internal class BarClusteredLegendRenderer : ColumnLikeLegendRenderer
 
     var ler = new LegendEntryRenderer(parms);
 
-    var verticalLegend = (lri.Legend.docking == DockingType.Left || lri.Legend.docking == DockingType.Right);
+    var verticalLegend = lri.Legend.docking == DockingType.Left || lri.Legend.docking == DockingType.Right;
     var paddingFactor = 1;
     if (lri.BorderPen != null)
       paddingFactor = 2;
