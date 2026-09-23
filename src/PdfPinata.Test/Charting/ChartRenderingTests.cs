@@ -49,16 +49,14 @@ public class ChartRenderingTests
         page.Width = width + 40;
         page.Height = height + 40;
 
-        using (var gfx = XGraphics.FromPdfPage(page))
+        using var gfx = XGraphics.FromPdfPage(page);
+        var frame = new ChartFrame
         {
-            var frame = new ChartFrame
-            {
-                Location = new XPoint(20, 20),
-                Size = new XSize(width, height)
-            };
-            frame.Add(chart);
-            frame.DrawChart(gfx);
-        }
+            Location = new XPoint(20, 20),
+            Size = new XSize(width, height)
+        };
+        frame.Add(chart);
+        frame.DrawChart(gfx);
 
         return page;
     }

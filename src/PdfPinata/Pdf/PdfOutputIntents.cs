@@ -91,37 +91,35 @@ public static class PdfOutputIntents
     /// </summary>
     private static byte[] Read()
     {
-        using (var stream = typeof(PdfOutputIntents).GetTypeInfo().Assembly
-                   .GetManifestResourceStream(Resource))
+        using var stream = typeof(PdfOutputIntents).GetTypeInfo().Assembly
+            .GetManifestResourceStream(Resource);
+        if (stream == null)
+            throw new InvalidOperationException(
+                "The sRGB profile '" + Resource + "' is not embedded in this assembly, so no "
+                + "document can be given the output intent PDF/A requires of it. A build that "
+                + "strips embedded resources is the likely cause.");
+
+        using (var buffer = new MemoryStream())
         {
-            if (stream == null)
-                throw new InvalidOperationException(
-                    "The sRGB profile '" + Resource + "' is not embedded in this assembly, so no "
-                    + "document can be given the output intent PDF/A requires of it. A build that "
-                    + "strips embedded resources is the likely cause.");
+            stream.CopyTo(buffer);
+            var bytes = buffer.ToArray();
 
-            using (var buffer = new MemoryStream())
+            // Checked because the failure it catches is otherwise a mystery. A binary that has
+            // been through line-ending normalisation is still a file and still embeds, and what
+            // it produces is every PDF/A document at once failing validation on its output
+            // intent — which reads as a defect in the writer rather than as a mangled asset.
+            if (bytes.Length < SignatureAt + 4
+                || bytes[SignatureAt] != 'a' || bytes[SignatureAt + 1] != 'c'
+                || bytes[SignatureAt + 2] != 's' || bytes[SignatureAt + 3] != 'p')
             {
-                stream.CopyTo(buffer);
-                var bytes = buffer.ToArray();
-
-                // Checked because the failure it catches is otherwise a mystery. A binary that has
-                // been through line-ending normalisation is still a file and still embeds, and what
-                // it produces is every PDF/A document at once failing validation on its output
-                // intent — which reads as a defect in the writer rather than as a mangled asset.
-                if (bytes.Length < SignatureAt + 4
-                    || bytes[SignatureAt] != 'a' || bytes[SignatureAt + 1] != 'c'
-                    || bytes[SignatureAt + 2] != 's' || bytes[SignatureAt + 3] != 'p')
-                {
-                    throw new InvalidOperationException(
-                        "'" + Resource + "' is embedded but is not an ICC profile: the 'acsp' "
-                        + "signature every profile carries at byte " + SignatureAt + " is not there. "
-                        + "The likely cause is the file having been treated as text somewhere "
-                        + "between the repository and here.");
-                }
-
-                return bytes;
+                throw new InvalidOperationException(
+                    "'" + Resource + "' is embedded but is not an ICC profile: the 'acsp' "
+                    + "signature every profile carries at byte " + SignatureAt + " is not there. "
+                    + "The likely cause is the file having been treated as text somewhere "
+                    + "between the repository and here.");
             }
+
+            return bytes;
         }
     }
 }

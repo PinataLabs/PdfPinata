@@ -46,8 +46,8 @@ public class TextStateOperatorTests
     {
         var document = new PdfDocument();
         var page = document.AddPage();
-        using (var gfx = XGraphics.FromPdfPage(page))
-            draw(gfx);
+        using var gfx = XGraphics.FromPdfPage(page);
+        draw(gfx);
         return page;
     }
 

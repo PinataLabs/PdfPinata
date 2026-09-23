@@ -244,10 +244,8 @@ public sealed class PdfDocument : PdfObject, IDisposable
         EnsureCanModify("saving the document");
 
 
-        using (Stream stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None))
-        {
-            Save(stream);
-        }
+        using Stream stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
+        Save(stream);
     }
 
     /// <summary>

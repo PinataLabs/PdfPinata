@@ -35,8 +35,8 @@ public class XTextSegmentFormatterLineBreakTests
     {
         var document = new PdfDocument();
         var page = document.AddPage();
-        using (var gfx = XGraphics.FromPdfPage(page))
-            draw(new XTextSegmentFormatter(gfx));
+        using var gfx = XGraphics.FromPdfPage(page);
+        draw(new XTextSegmentFormatter(gfx));
         return page;
     }
 

@@ -29,8 +29,8 @@ public class StrokedTextRenderingTests
         page.Width = PageWidth;
         page.Height = PageHeight;
 
-        using (var gfx = XGraphics.FromPdfPage(page))
-            gfx.DrawString("OO", Font, pen, brush, 20, 75);
+        using var gfx = XGraphics.FromPdfPage(page);
+        gfx.DrawString("OO", Font, pen, brush, 20, 75);
 
         return document;
     }

@@ -68,21 +68,19 @@ public class ImageSharpImageSource<TPixel> : ImageSource where TPixel : unmanage
     /// <summary>Decodes an image from a stream opened on demand.</summary>
     protected override IImageSource FromStreamImpl(string name, Func<Stream> imageStream, int? quality = 75)
     {
-        using (var stream = imageStream.Invoke())
+        using var stream = imageStream.Invoke();
+        Image<TPixel> image;
+        bool isPng;
+        try
         {
-            Image<TPixel> image;
-            bool isPng;
-            try
-            {
-                image = LoadFromStream(stream, out isPng);
-            }
-            catch (Exception ex) when (ImageSharpVersion.IsBindingFailure(ex))
-            {
-                throw ImageSharpVersion.Incompatible(ex);
-            }
-            // ReSharper disable once PossibleInvalidOperationException
-            return new ImageSharpImageSourceImpl<TPixel>(name, image, (int)quality, isPng);
+            image = LoadFromStream(stream, out isPng);
         }
+        catch (Exception ex) when (ImageSharpVersion.IsBindingFailure(ex))
+        {
+            throw ImageSharpVersion.Incompatible(ex);
+        }
+        // ReSharper disable once PossibleInvalidOperationException
+        return new ImageSharpImageSourceImpl<TPixel>(name, image, (int)quality, isPng);
     }
 
     // The Load(..., out IImageFormat) overloads exist only in ImageSharp 2.x, so each call sits in

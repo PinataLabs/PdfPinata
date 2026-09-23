@@ -60,12 +60,10 @@ public class FormatterObstacleTests
     {
         var document = new PdfDocument();
         var page = document.AddPage();
-        using (var gfx = XGraphics.FromPdfPage(page))
-        {
-            var formatter = new XTextFormatter(gfx);
-            arrange?.Invoke(formatter);
-            formatter.DrawString(text, new XFont("Arial", 10), XBrushes.Black, area ?? Block);
-        }
+        using var gfx = XGraphics.FromPdfPage(page);
+        var formatter = new XTextFormatter(gfx);
+        arrange?.Invoke(formatter);
+        formatter.DrawString(text, new XFont("Arial", 10), XBrushes.Black, area ?? Block);
         return page;
     }
 

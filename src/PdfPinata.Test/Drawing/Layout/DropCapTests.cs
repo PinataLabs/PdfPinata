@@ -561,14 +561,12 @@ public class DropCapTests
     {
         var document = new PdfDocument();
         var page = document.AddPage();
-        using (var gfx = XGraphics.FromPdfPage(page))
-        {
-            var formatter = new XTextFormatter(gfx);
-            if (cap > 0)
-                formatter.DropCap = new XDropCap(new XFont(capFamily ?? body, 12), cap);
-            arrange?.Invoke(formatter);
-            formatter.DrawString(text, new XFont(body, BodySize), XBrushes.Black, area ?? Area);
-        }
+        using var gfx = XGraphics.FromPdfPage(page);
+        var formatter = new XTextFormatter(gfx);
+        if (cap > 0)
+            formatter.DropCap = new XDropCap(new XFont(capFamily ?? body, 12), cap);
+        arrange?.Invoke(formatter);
+        formatter.DrawString(text, new XFont(body, BodySize), XBrushes.Black, area ?? Area);
         return page;
     }
 

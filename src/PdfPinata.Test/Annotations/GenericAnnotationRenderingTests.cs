@@ -116,10 +116,8 @@ public sealed class GenericAnnotationRenderingTests : IDisposable
     private static XForm Filled(PdfDocument document, XColor colour)
     {
         var form = new XForm(document, Where.Size);
-        using (var gfx = XGraphics.FromForm(form))
-        {
-            gfx.DrawRectangle(new XSolidBrush(colour), 0, 0, Where.Width, Where.Height);
-        }
+        using var gfx = XGraphics.FromForm(form);
+        gfx.DrawRectangle(new XSolidBrush(colour), 0, 0, Where.Width, Where.Height);
 
         return form;
     }

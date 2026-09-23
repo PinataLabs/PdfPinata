@@ -126,8 +126,8 @@ public class BaselineAlignmentTests
     {
         var document = new PdfDocument();
         var page = document.AddPage();
-        using (var gfx = XGraphics.FromPdfPage(page))
-            gfx.DrawString(Text, Plain, XBrushes.Black, layoutRectangle, format);
+        using var gfx = XGraphics.FromPdfPage(page);
+        gfx.DrawString(Text, Plain, XBrushes.Black, layoutRectangle, format);
         return page;
     }
 }

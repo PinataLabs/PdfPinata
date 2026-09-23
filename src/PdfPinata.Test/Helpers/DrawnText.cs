@@ -20,9 +20,9 @@ internal static class DrawnText
     {
         var document = new PdfDocument();
         var page = document.AddPage();
-        using (var gfx = XGraphics.FromPdfPage(page))
-            gfx.DrawString(text, font, XBrushes.Black, new XPoint(20, 40),
-                format ?? XStringFormats.Default);
+        using var gfx = XGraphics.FromPdfPage(page);
+        gfx.DrawString(text, font, XBrushes.Black, new XPoint(20, 40),
+            format ?? XStringFormats.Default);
 
         return page;
     }

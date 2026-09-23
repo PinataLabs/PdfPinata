@@ -74,25 +74,23 @@ public static class TrueTypeCollection
     {
         faceCount = 1;
 
-        using (var stream = File.OpenRead(path))
+        using var stream = File.OpenRead(path);
+        var header = new byte[OffsetTableLength];
+
+        var read = 0;
+        while (read < header.Length)
         {
-            var header = new byte[OffsetTableLength];
-
-            var read = 0;
-            while (read < header.Length)
-            {
-                var count = stream.Read(header, read, header.Length - read);
-                if (count == 0)
-                    return false; // Too short to be a collection, and too short to be a font.
-                read += count;
-            }
-
-            if (U32(header, 0) != TagTtcf)
-                return false;
-
-            faceCount = ValidateFaceCount(U32(header, 8), stream.Length);
-            return true;
+            var count = stream.Read(header, read, header.Length - read);
+            if (count == 0)
+                return false; // Too short to be a collection, and too short to be a font.
+            read += count;
         }
+
+        if (U32(header, 0) != TagTtcf)
+            return false;
+
+        faceCount = ValidateFaceCount(U32(header, 8), stream.Length);
+        return true;
     }
 
 
