@@ -119,7 +119,7 @@ public class IndirectDecodeParmsTests
         // ISO 32000-1 Table 5: a filter with default parameters has null in its place.
         var data = Encoded();
         var hexed = string.Concat(data.Select(b => b.ToString("X2"))) + ">";
-        var file = File($"/Filter [/ASCIIHexDecode /FlateDecode] /DecodeParms [null 5 0 R]", Parms);
+        var file = File("/Filter [/ASCIIHexDecode /FlateDecode] /DecodeParms [null 5 0 R]", Parms);
 
         // Swap the stream data for its hex form, so the chain has two filters to walk.
         var text = new string(file.Select(b => (char)b).ToArray());
