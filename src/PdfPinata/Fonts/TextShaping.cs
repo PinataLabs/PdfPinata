@@ -138,7 +138,7 @@ static class TextShaping
 
     private static ShapedSegment Segment(string whole, int start, int length, XTextDirection direction,
         string script, XFont font, OpenTypeDescriptor descriptor, string language)
-        => new ShapedSegment(
+        => new(
             Shape(whole.AsSpan(start, length), font, descriptor, direction, script, language),
             font, start, length);
 

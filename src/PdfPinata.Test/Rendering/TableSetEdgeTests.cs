@@ -26,7 +26,7 @@ namespace PdfPinata.Test.Rendering;
 public class TableSetEdgeTests
 {
     private const int Size = 4;
-    private static readonly Color Green = new Color(0, 255, 0);
+    private static readonly Color Green = new(0, 255, 0);
 
     [Theory]
     [InlineData(false)]

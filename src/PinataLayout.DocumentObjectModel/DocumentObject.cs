@@ -91,12 +91,12 @@ public abstract partial class DocumentObject
       // beyond what the field it reads through already had cloned and reparented.
       if (vd.IsRefOnly || vd.IsSimpleValue || !vd.IsSettable)
         continue;
-      if (vd.GetValue(value, GV.ReadOnly) is DocumentObject child)
-      {
-        var clone = (DocumentObject)child.Clone();
-        clone.parent = value;
-        vd.SetValue(value, clone);
-      }
+      if (vd.GetValue(value, GV.ReadOnly) is not DocumentObject child)
+        continue;
+
+      var clone = (DocumentObject)child.Clone();
+      clone.parent = value;
+      vd.SetValue(value, clone);
     }
     return value;
   }
@@ -275,13 +275,13 @@ public abstract partial class DocumentObject
   /// </summary>
   protected void SetParent(DocumentObject val)
   {
-    if (val != null)
-    {
-      if (val.Parent != null)
-        throw new ArgumentException(DomSR.ParentAlreadySet(val, this));
+    if (val == null)
+      return;
 
-      val.parent = this;
-    }
+    if (val.Parent != null)
+      throw new ArgumentException(DomSR.ParentAlreadySet(val, this));
+
+    val.parent = this;
   }
 
   /// <summary>

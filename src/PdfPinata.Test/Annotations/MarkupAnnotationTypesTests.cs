@@ -328,7 +328,7 @@ public sealed class MarkupAnnotationTypesTests : IDisposable
         ((PdfMarkupAnnotation)annotations[0]).ReplyType.Should().Be(PdfReplyType.Reply);
     }
 
-    public static TheoryData<PdfAnnotation, bool> MarkupOrNot => new TheoryData<PdfAnnotation, bool>
+    public static TheoryData<PdfAnnotation, bool> MarkupOrNot => new()
     {
         { new PdfTextAnnotation(), true },
         { new PdfFreeTextAnnotation(), true },

@@ -65,9 +65,10 @@ public class ChartRenderingTests
 
     private static Chart Quarterly(ChartType type, params double[][] series)
     {
-        var chart = new Chart(type);
-        chart.Font.Name = Face;
-        chart.Font.Size = Size;
+        var chart = new Chart(type)
+        {
+            Font = { Name = Face, Size = Size }
+        };
         chart.XValues.AddXSeries().Add("Q1", "Q2", "Q3", "Q4");
 
         var names = new[] { "North", "South", "West" };
@@ -260,9 +261,10 @@ public class ChartRenderingTests
 
     private static Chart Pie(string format, params double[] values)
     {
-        var chart = new Chart(ChartType.Pie2D);
-        chart.Font.Name = Face;
-        chart.Font.Size = Size;
+        var chart = new Chart(ChartType.Pie2D)
+        {
+            Font = { Name = Face, Size = Size }
+        };
         chart.XValues.AddXSeries().Add([..values.Select((_, index) => $"S{index}")]);
         chart.SeriesCollection.AddSeries().Add(values);
         chart.HasDataLabel = true;

@@ -69,10 +69,11 @@ public class ChartModelTests
     [Fact]
     public void AChartHasThreeAxesAndTheyAreNotEachOther()
     {
-        var chart = new Chart(ChartType.Line);
-
-        chart.XAxis.MajorTick = 5;
-        chart.YAxis.MajorTick = 10;
+        var chart = new Chart(ChartType.Line)
+        {
+            XAxis = { MajorTick = 5 },
+            YAxis = { MajorTick = 10 }
+        };
 
         chart.XAxis.MajorTick.Should().Be(5);
         chart.YAxis.MajorTick.Should().Be(10, "the axes are separate objects");

@@ -53,7 +53,7 @@ public sealed class GenericAnnotationRenderingTests : IDisposable
         GhostscriptSetup.Configure();
     }
 
-    private static readonly XRect Where = new XRect(40, 40, 120, 60);
+    private static readonly XRect Where = new(40, 40, 120, 60);
 
     [GoldenImageFact]
     public void ASquareWithAnAppearanceIsPainted()

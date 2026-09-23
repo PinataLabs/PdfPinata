@@ -74,13 +74,13 @@ public partial class Row : DocumentObject, IVisitable
   {
     get
     {
-      if (this.table == null)
-      {
-        var rws = this.Parent as Rows;
-        if (rws != null)
-          this.table = rws.Table;
-      }
-      return this.table;
+      if (table != null)
+        return table;
+
+      var rws = Parent as Rows;
+      if (rws != null)
+        table = rws.Table;
+      return table;
     }
   }
   private Table table;
@@ -92,14 +92,14 @@ public partial class Row : DocumentObject, IVisitable
   {
     get
     {
-      if (!index.HasValue)
+      if (index.HasValue)
+        return index.Value;
+
+      var rws = (Rows)parent;
+      // One for all and all for one.
+      for (var i = 0; i < rws.Count; ++i)
       {
-        var rws = (Rows)parent;
-        // One for all and all for one.
-        for (var i = 0; i < rws.Count; ++i)
-        {
-          rws[i].index = i;
-        }
+        rws[i].index = i;
       }
       return index ?? 0;
     }
@@ -117,8 +117,8 @@ public partial class Row : DocumentObject, IVisitable
   /// </summary>
   public string Style
   {
-    get => this.style ?? "";
-    set => this.style = value;
+    get => style ?? "";
+    set => style = value;
   }
   [DV]
   internal string style;
@@ -130,15 +130,14 @@ public partial class Row : DocumentObject, IVisitable
   {
     get
     {
-      if (this.format == null)
-        this.format = new ParagraphFormat(this);
+      format ??= new ParagraphFormat(this);
 
-      return this.format;
+      return format;
     }
     set
     {
       SetParent(value);
-      this.format = value;
+      format = value;
     }
   }
   [DV]
@@ -149,8 +148,8 @@ public partial class Row : DocumentObject, IVisitable
   /// </summary>
   public VerticalAlignment VerticalAlignment
   {
-    get => this.verticalAlignment ?? default;
-    set => this.verticalAlignment = EnumGuard.Checked(value);
+    get => verticalAlignment ?? default;
+    set => verticalAlignment = EnumGuard.Checked(value);
   }
   [DV]
   internal VerticalAlignment? verticalAlignment;
@@ -160,8 +159,8 @@ public partial class Row : DocumentObject, IVisitable
   /// </summary>
   public Unit Height
   {
-    get => this.height;
-    set => this.height = value;
+    get => height;
+    set => height = value;
   }
   [DV]
   internal Unit height = Unit.NullValue;
@@ -171,8 +170,8 @@ public partial class Row : DocumentObject, IVisitable
   /// </summary>
   public RowHeightRule HeightRule
   {
-    get => this.heightRule ?? default;
-    set => this.heightRule = EnumGuard.Checked(value);
+    get => heightRule ?? default;
+    set => heightRule = EnumGuard.Checked(value);
   }
   [DV]
   internal RowHeightRule? heightRule;
@@ -182,8 +181,8 @@ public partial class Row : DocumentObject, IVisitable
   /// </summary>
   public Unit TopPadding
   {
-    get => this.topPadding;
-    set => this.topPadding = value;
+    get => topPadding;
+    set => topPadding = value;
   }
   [DV]
   internal Unit topPadding = Unit.NullValue;
@@ -193,8 +192,8 @@ public partial class Row : DocumentObject, IVisitable
   /// </summary>
   public Unit BottomPadding
   {
-    get => this.bottomPadding;
-    set => this.bottomPadding = value;
+    get => bottomPadding;
+    set => bottomPadding = value;
   }
   [DV]
   internal Unit bottomPadding = Unit.NullValue;
@@ -204,8 +203,8 @@ public partial class Row : DocumentObject, IVisitable
   /// </summary>
   public bool HeadingFormat
   {
-    get => this.headingFormat ?? false;
-    set => this.headingFormat = value;
+    get => headingFormat ?? false;
+    set => headingFormat = value;
   }
   [DV]
   internal bool? headingFormat;
@@ -217,15 +216,14 @@ public partial class Row : DocumentObject, IVisitable
   {
     get
     {
-      if (this.borders == null)
-        this.borders = new Borders(this);
+      borders ??= new Borders(this);
 
-      return this.borders;
+      return borders;
     }
     set
     {
       SetParent(value);
-      this.borders = value;
+      borders = value;
     }
   }
   [DV]
@@ -238,15 +236,14 @@ public partial class Row : DocumentObject, IVisitable
   {
     get
     {
-      if (this.shading == null)
-        this.shading = new Shading(this);
+      shading ??= new Shading(this);
 
-      return this.shading;
+      return shading;
     }
     set
     {
       SetParent(value);
-      this.shading = value;
+      shading = value;
     }
   }
   [DV]
@@ -258,8 +255,8 @@ public partial class Row : DocumentObject, IVisitable
   /// </summary>
   public int KeepWith
   {
-    get => this.keepWith ?? 0;
-    set => this.keepWith = value;
+    get => keepWith ?? 0;
+    set => keepWith = value;
   }
   [DV]
   internal int? keepWith;
@@ -271,15 +268,14 @@ public partial class Row : DocumentObject, IVisitable
   {
     get
     {
-      if (this.cells == null)
-        this.cells = new Cells(this);
+      cells ??= new Cells(this);
 
-      return this.cells;
+      return cells;
     }
     set
     {
       SetParent(value);
-      this.cells = value;
+      cells = value;
     }
   }
   [DV]
@@ -290,8 +286,8 @@ public partial class Row : DocumentObject, IVisitable
   /// </summary>
   public string Comment
   {
-    get => this.comment ?? "";
-    set => this.comment = value;
+    get => comment ?? "";
+    set => comment = value;
   }
   [DV]
   internal string comment;
@@ -303,50 +299,50 @@ public partial class Row : DocumentObject, IVisitable
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    serializer.WriteComment((this.comment ?? ""));
+    serializer.WriteComment(comment ?? "");
     serializer.WriteLine("\\row");
 
     var pos = serializer.BeginAttributes();
 
-    if ((this.style ?? "") != String.Empty)
-      serializer.WriteSimpleAttribute("Style", this.Style);
+    if ((style ?? "") != string.Empty)
+      serializer.WriteSimpleAttribute("Style", Style);
 
-    if (!this.IsNull("Format"))
-      this.format.Serialize(serializer, "Format", null);
+    if (!IsNull("Format"))
+      format.Serialize(serializer, "Format", null);
 
-    if (!this.height.IsNull)
-      serializer.WriteSimpleAttribute("Height", this.Height);
+    if (!height.IsNull)
+      serializer.WriteSimpleAttribute("Height", Height);
 
-    if (this.heightRule != null)
-      serializer.WriteSimpleAttribute("HeightRule", this.HeightRule);
+    if (heightRule != null)
+      serializer.WriteSimpleAttribute("HeightRule", HeightRule);
 
-    if (!this.topPadding.IsNull)
-      serializer.WriteSimpleAttribute("TopPadding", this.TopPadding);
+    if (!topPadding.IsNull)
+      serializer.WriteSimpleAttribute("TopPadding", TopPadding);
 
-    if (!this.bottomPadding.IsNull)
-      serializer.WriteSimpleAttribute("BottomPadding", this.BottomPadding);
+    if (!bottomPadding.IsNull)
+      serializer.WriteSimpleAttribute("BottomPadding", BottomPadding);
 
-    if (this.headingFormat != null)
-      serializer.WriteSimpleAttribute("HeadingFormat", this.HeadingFormat);
+    if (headingFormat != null)
+      serializer.WriteSimpleAttribute("HeadingFormat", HeadingFormat);
 
-    if (this.verticalAlignment != null)
-      serializer.WriteSimpleAttribute("VerticalAlignment", this.VerticalAlignment);
+    if (verticalAlignment != null)
+      serializer.WriteSimpleAttribute("VerticalAlignment", VerticalAlignment);
 
-    if (this.keepWith.HasValue)
-      serializer.WriteSimpleAttribute("KeepWith", this.KeepWith);
+    if (keepWith.HasValue)
+      serializer.WriteSimpleAttribute("KeepWith", KeepWith);
 
     //Borders & Shading
-    if (!this.IsNull("Borders"))
-      this.borders.Serialize(serializer, null);
+    if (!IsNull("Borders"))
+      borders.Serialize(serializer, null);
 
-    if (!this.IsNull("Shading"))
-      this.shading.Serialize(serializer);
+    if (!IsNull("Shading"))
+      shading.Serialize(serializer);
 
     serializer.EndAttributes(pos);
 
     serializer.BeginContent();
     if (!IsNull("Cells"))
-      this.cells.Serialize(serializer);
+      cells.Serialize(serializer);
     serializer.EndContent();
   }
 
@@ -357,7 +353,7 @@ public partial class Row : DocumentObject, IVisitable
   {
     visitor.VisitRow(this);
 
-    foreach (Cell cell in this.cells)
+    foreach (Cell cell in cells)
       ((IVisitable)cell).AcceptVisitor(visitor, visitChildren);
   }
 

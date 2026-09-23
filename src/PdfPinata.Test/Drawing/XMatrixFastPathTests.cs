@@ -75,9 +75,7 @@ public class XMatrixFastPathTests
     [Fact]
     public void SettingTheScaleOfATranslationMakesItAScaleAndATranslation()
     {
-        var matrix = new XMatrix(1, 0, 0, 1, 5, 0);
-
-        matrix.M11 = 2;
+        var matrix = new XMatrix(1, 0, 0, 1, 5, 0) { M11 = 2 };
 
         matrix.GetElements().Should().Equal(2, 0, 0, 1, 5, 0);
         matrix.Transform(new XPoint(1, 1)).Should().Be(new XPoint(7, 1));
@@ -86,9 +84,7 @@ public class XMatrixFastPathTests
     [Fact]
     public void SettingTheScaleOfAGeneralMatrixLeavesItGeneral()
     {
-        var matrix = new XMatrix(1, 2, 3, 4, 0, 0);
-
-        matrix.M11 = 5;
+        var matrix = new XMatrix(1, 2, 3, 4, 0, 0) { M11 = 5 };
 
         // x' = 5·1 + 3·1, y' = 2·1 + 4·1: the shear terms still count.
         matrix.Transform(new XPoint(1, 1)).Should().Be(new XPoint(8, 6));
@@ -97,9 +93,7 @@ public class XMatrixFastPathTests
     [Fact]
     public void SettingAShearTermOfTheIdentityMakesItAShear()
     {
-        var matrix = new XMatrix();
-
-        matrix.M21 = 1;
+        var matrix = new XMatrix { M21 = 1 };
 
         matrix.GetElements().Should().Equal(1, 0, 1, 1, 0, 0);
         matrix.Transform(new XPoint(0, 1)).Should().Be(new XPoint(1, 1));
@@ -109,9 +103,7 @@ public class XMatrixFastPathTests
     [Fact]
     public void SettingTheVerticalScaleOfTheIdentityAndThenOfTheScaleItBecame()
     {
-        var matrix = new XMatrix();
-
-        matrix.M22 = 3;
+        var matrix = new XMatrix { M22 = 3 };
         matrix.Transform(new XPoint(1, 1)).Should().Be(new XPoint(1, 3));
 
         matrix.M22 = 4;
@@ -122,13 +114,11 @@ public class XMatrixFastPathTests
     [Fact]
     public void SettingTheOffsetsOfTheIdentityOneAtATime()
     {
-        var horizontal = new XMatrix();
-        horizontal.OffsetX = 5;
+        var horizontal = new XMatrix { OffsetX = 5 };
         horizontal.GetElements().Should().Equal(1, 0, 0, 1, 5, 0);
         horizontal.Transform(new XPoint(1, 1)).Should().Be(new XPoint(6, 1));
 
-        var vertical = new XMatrix();
-        vertical.OffsetY = 5;
+        var vertical = new XMatrix { OffsetY = 5 };
         vertical.GetElements().Should().Equal(1, 0, 0, 1, 0, 5);
         vertical.Transform(new XPoint(1, 1)).Should().Be(new XPoint(1, 6));
     }
@@ -136,9 +126,7 @@ public class XMatrixFastPathTests
     [Fact]
     public void SettingTheOffsetsOfAScaleMakesItAScaleAndATranslation()
     {
-        var matrix = new XMatrix(2, 0, 0, 3, 0, 0);
-
-        matrix.OffsetX = 10;
+        var matrix = new XMatrix(2, 0, 0, 3, 0, 0) { OffsetX = 10 };
         matrix.Transform(new XPoint(1, 1)).Should().Be(new XPoint(12, 3));
 
         matrix.OffsetY = 20;

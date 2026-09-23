@@ -101,8 +101,7 @@ public abstract class PdfObject : PdfItem
     {
         var objectID = new PdfObjectID(objectNumber, generationNumber);
 
-        if (_iref == null)
-            _iref = _document._irefTable[objectID];
+        _iref ??= _document._irefTable[objectID];
         if (_iref == null)
         {
             // Called for its side effect: the constructor of PdfReference sets itself as this
@@ -127,13 +126,13 @@ public abstract class PdfObject : PdfItem
     {
         set
         {
-            if (!ReferenceEquals(_document, value))
-            {
-                if (_document != null)
-                    throw new InvalidOperationException("Cannot change document.");
-                _document = value;
-                _iref?.Document = value;
-            }
+            if (ReferenceEquals(_document, value))
+                return;
+
+            if (_document != null)
+                throw new InvalidOperationException("Cannot change document.");
+            _document = value;
+            _iref?.Document = value;
         }
     }
     internal PdfDocument _document;
@@ -149,7 +148,7 @@ public abstract class PdfObject : PdfItem
     /// Gets the PdfInternals object of this document, that grants access to some internal structures
     /// which are not part of the public interface of PdfDocument.
     /// </summary>
-    public PdfObjectInternals Internals => _internals ?? (_internals = new PdfObjectInternals(this));
+    public PdfObjectInternals Internals => _internals ??= new PdfObjectInternals(this);
 
     private PdfObjectInternals _internals;
 
@@ -444,7 +443,9 @@ public abstract class PdfObject : PdfItem
                 Debug.Assert(value.Owner == owner);
             }
             else
+            {
                 Debug.Assert(false, "Should not come here. Object is neither a dictionary nor an array.");
+            }
         }
     }
 
@@ -530,7 +531,7 @@ public abstract class PdfObject : PdfItem
     {
         // An indirect object stands on its own and is written on its own, so it has no container in
         // the sense that matters here.
-        if (value is PdfObject contained && contained.Reference == null && !ReferenceEquals(contained, container))
+        if (value is PdfObject { Reference: null } contained && !ReferenceEquals(contained, container))
             contained.Container = container;
     }
 }

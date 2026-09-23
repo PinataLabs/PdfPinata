@@ -59,7 +59,7 @@ public partial class BookmarkField : DocumentObject
   public BookmarkField(string name)
     : this()
   {
-    this.Name = name;
+    Name = name;
   }
 
   #region Methods
@@ -79,8 +79,8 @@ public partial class BookmarkField : DocumentObject
   /// </summary>
   public string Name
   {
-    get => this.name ?? "";
-    set => this.name = value;
+    get => name ?? "";
+    set => name = value;
   }
   [DV]
   internal string name;
@@ -92,10 +92,10 @@ public partial class BookmarkField : DocumentObject
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    if ((this.name ?? "") == string.Empty)
+    if ((name ?? "") == string.Empty)
       throw new InvalidOperationException(DomSR.MissingObligatoryProperty("Name", "BookmarkField"));
 
-    serializer.Write("\\field(Bookmark)[Name = \"" + this.Name.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"]");
+    serializer.Write("\\field(Bookmark)[Name = \"" + Name.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"]");
   }
 
   /// <summary>

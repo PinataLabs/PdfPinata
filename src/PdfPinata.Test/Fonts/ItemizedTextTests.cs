@@ -47,9 +47,9 @@ public class ItemizedTextTests
     // U+200D ZERO WIDTH JOINER, which asks the letters on either side of it to join.
     private const string Joiner = "\u200D";
 
-    private static XFont Latin() => new XFont("Arial", 20);
+    private static XFont Latin() => new("Arial", 20);
 
-    private static XFont Arabic() => new XFont(ArabicFamily, 20);
+    private static XFont Arabic() => new(ArabicFamily, 20);
 
     private static int[] Glyphs(string text, XFont font) => DrawnText.Glyphs(DrawnText.Page(text, font));
 

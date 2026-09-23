@@ -52,28 +52,28 @@ internal class CMapInfo
     /// </summary>
     public void AddChars(string text)
     {
-        if (text != null)
+        if (text == null)
+            return;
+
+        var symbol = Descriptor.FontFace.cmap.symbol;
+        var length = text.Length;
+        for (var idx = 0; idx < length; idx++)
         {
-            var symbol = Descriptor.FontFace.cmap.symbol;
-            var length = text.Length;
-            for (var idx = 0; idx < length; idx++)
+            var ch = text[idx];
+            if (CharacterToGlyphIndex.ContainsKey(ch))
+                continue;
+
+            var ch2 = ch;
+            if (symbol)
             {
-                var ch = text[idx];
-                if (!CharacterToGlyphIndex.ContainsKey(ch))
-                {
-                    var ch2 = ch;
-                    if (symbol)
-                    {
-                        // Remap ch for symbol fonts.
-                        ch2 = (char)(ch | (Descriptor.FontFace.os2.usFirstCharIndex & 0xFF00));  // @@@ refactor
-                    }
-                    var glyphIndex = Descriptor.CharCodeToGlyphIndex(ch2);
-                    CharacterToGlyphIndex.Add(ch, glyphIndex);
-                    GlyphIndices[glyphIndex] = null;
-                    MinChar = (char)Math.Min(MinChar, ch);
-                    MaxChar = (char)Math.Max(MaxChar, ch);
-                }
+                // Remap ch for symbol fonts.
+                ch2 = (char)(ch | (Descriptor.FontFace.os2.usFirstCharIndex & 0xFF00));  // @@@ refactor
             }
+            var glyphIndex = Descriptor.CharCodeToGlyphIndex(ch2);
+            CharacterToGlyphIndex.Add(ch, glyphIndex);
+            GlyphIndices[glyphIndex] = null;
+            MinChar = (char)Math.Min(MinChar, ch);
+            MaxChar = (char)Math.Max(MaxChar, ch);
         }
     }
 
@@ -125,14 +125,14 @@ internal class CMapInfo
     /// </summary>
     public void AddGlyphIndices(string glyphIndices)
     {
-        if (glyphIndices != null)
+        if (glyphIndices == null)
+            return;
+
+        var length = glyphIndices.Length;
+        for (var idx = 0; idx < length; idx++)
         {
-            var length = glyphIndices.Length;
-            for (var idx = 0; idx < length; idx++)
-            {
-                int glyphIndex = glyphIndices[idx];
-                GlyphIndices[glyphIndex] = null;
-            }
+            int glyphIndex = glyphIndices[idx];
+            GlyphIndices[glyphIndex] = null;
         }
     }
 

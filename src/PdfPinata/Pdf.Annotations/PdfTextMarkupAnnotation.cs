@@ -222,8 +222,7 @@ public abstract class PdfTextMarkupAnnotation : PdfMarkupAnnotation
             Owner.Internals.AddObject(form);
             _appearanceForm = form;
 
-            var appearance = new PdfDictionary(Owner);
-            appearance.Elements["/N"] = form.Reference;
+            var appearance = new PdfDictionary(Owner) { Elements = { ["/N"] = form.Reference } };
             Elements[PdfAnnotation.Keys.AP] = appearance;
         }
 
@@ -254,11 +253,9 @@ public abstract class PdfTextMarkupAnnotation : PdfMarkupAnnotation
         state.Elements.SetReal("/ca", Opacity);
         state.Elements.SetReal("/CA", Opacity);
 
-        var states = new PdfDictionary(Owner);
-        states.Elements["/GS0"] = state;
+        var states = new PdfDictionary(Owner) { Elements = { ["/GS0"] = state } };
 
-        var resources = new PdfDictionary(Owner);
-        resources.Elements["/ExtGState"] = states;
+        var resources = new PdfDictionary(Owner) { Elements = { ["/ExtGState"] = states } };
         return resources;
     }
 
@@ -280,7 +277,7 @@ public abstract class PdfTextMarkupAnnotation : PdfMarkupAnnotation
         [KeyInfo(KeyType.Array | KeyType.Required)]
         public const string QuadPoints = "/QuadPoints";
 
-        public static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
+        public static DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
         private static DictionaryMeta _meta;
     }

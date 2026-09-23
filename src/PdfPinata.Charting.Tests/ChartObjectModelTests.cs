@@ -132,8 +132,7 @@ public class ChartObjectModelTests
     [Fact]
     public void ACopiedTickLabelBlockKeepsItsOwnFont()
     {
-        var labels = new TickLabels { Format = "0.00" };
-        labels.Font.Name = "Palatino";
+        var labels = new TickLabels { Format = "0.00", Font = { Name = "Palatino" } };
 
         var copy = labels.Clone();
         labels.Font.Name = "Baskerville";
@@ -147,8 +146,7 @@ public class ChartObjectModelTests
     [Fact]
     public void ACopiedAxisTitleKeepsItsOwnFont()
     {
-        var title = new AxisTitle { Caption = "across" };
-        title.Font.Name = "Palatino";
+        var title = new AxisTitle { Caption = "across", Font = { Name = "Palatino" } };
 
         var copy = title.Clone();
         title.Font.Name = "Baskerville";
@@ -161,8 +159,7 @@ public class ChartObjectModelTests
     [Fact]
     public void ACopiedDataLabelKeepsItsOwnFont()
     {
-        var label = new DataLabel { Format = "0.0" };
-        label.Font.Name = "Palatino";
+        var label = new DataLabel { Format = "0.0", Font = { Name = "Palatino" } };
 
         var copy = label.Clone();
         label.Font.Name = "Baskerville";
@@ -175,8 +172,7 @@ public class ChartObjectModelTests
     [Fact]
     public void ACopiedGridlineBlockKeepsItsOwnLineFormat()
     {
-        var gridlines = new Gridlines();
-        gridlines.LineFormat.Width = 3;
+        var gridlines = new Gridlines { LineFormat = { Width = 3 } };
 
         var copy = gridlines.Clone();
         gridlines.LineFormat.Width = 1;
@@ -188,9 +184,11 @@ public class ChartObjectModelTests
     [Fact]
     public void ACopiedPointKeepsItsOwnLineAndFillFormats()
     {
-        var point = new Point(2.5);
-        point.LineFormat.Width = 3;
-        point.FillFormat.Color = XColors.Azure;
+        var point = new Point(2.5)
+        {
+            LineFormat = { Width = 3 },
+            FillFormat = { Color = XColors.Azure }
+        };
 
         var copy = point.Clone();
         point.LineFormat.Width = 1;

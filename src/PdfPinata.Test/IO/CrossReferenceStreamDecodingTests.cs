@@ -33,10 +33,10 @@ public class CrossReferenceStreamDecodingTests
     /// </summary>
     private const string Placeholder = "2 0 obj\n<< /Kind /Placeholder >>\nendobj\n";
 
-    private static readonly PdfObjectID PlaceholderId = new PdfObjectID(2, 0);
+    private static readonly PdfObjectID PlaceholderId = new(2, 0);
 
     /// <summary>The object number the cross-reference stream itself is written under.</summary>
-    private static readonly PdfObjectID StreamId = new PdfObjectID(4, 0);
+    private static readonly PdfObjectID StreamId = new(4, 0);
 
     // ----- The /W arithmetic --------------------------------------------------------------------------
 

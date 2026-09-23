@@ -112,11 +112,12 @@ public class AcroFormAuthoringTests
     public void TheNameTheToolTipAndTheFlagsAreWritable()
     {
         var document = new PdfDocument();
-        var field = new PdfTextField(document);
-
-        field.Name = "fullName";
-        field.ToolTip = "Your name as it appears on your passport";
-        field.Flags = PdfAcroFieldFlags.Required | PdfAcroFieldFlags.DoNotScroll;
+        var field = new PdfTextField(document)
+        {
+            Name = "fullName",
+            ToolTip = "Your name as it appears on your passport",
+            Flags = PdfAcroFieldFlags.Required | PdfAcroFieldFlags.DoNotScroll
+        };
 
         field.Elements.GetString("/T").Should().Be("fullName");
         field.Elements.GetString("/TU").Should().Be("Your name as it appears on your passport");
@@ -166,12 +167,13 @@ public class AcroFormAuthoringTests
     public void TheCombFlagIsBitTwentyFive()
     {
         var document = new PdfDocument();
-        var field = new PdfTextField(document);
-
         // The one field flag the enumeration was missing, so a caller wanting a postcode drawn in
         // equal cells wrote 1 << 24 by hand and lost the enumeration.
-        field.MaxLength = 6;
-        field.Flags = PdfAcroFieldFlags.Comb;
+        var field = new PdfTextField(document)
+        {
+            MaxLength = 6,
+            Flags = PdfAcroFieldFlags.Comb
+        };
 
         field.Elements.GetInteger("/Ff").Should().Be(1 << 24);
     }
@@ -275,9 +277,7 @@ public class AcroFormAuthoringTests
     public void AChoiceFieldsOptionsRoundTrip()
     {
         var document = new PdfDocument();
-        var field = new PdfComboBoxField(document);
-
-        field.Options = ["Australia", "Canada", "Ireland"];
+        var field = new PdfComboBoxField(document) { Options = ["Australia", "Canada", "Ireland"] };
 
         field.Options.Should().Equal("Australia", "Canada", "Ireland");
         field.Elements.GetArray("/Opt").Elements.Count.Should().Be(3);
@@ -398,10 +398,12 @@ public class AcroFormAuthoringTests
     public void ARadioGroupsExportValuesRoundTrip()
     {
         var document = new PdfDocument();
-        var delivery = new PdfRadioButtonField(document) { Name = "delivery" };
-
-        delivery.Options = ["Standard", "Express", "Collect"];
-        delivery.SelectedIndex = 1;
+        var delivery = new PdfRadioButtonField(document)
+        {
+            Name = "delivery",
+            Options = ["Standard", "Express", "Collect"],
+            SelectedIndex = 1
+        };
 
         delivery.Options.Should().Equal("Standard", "Express", "Collect");
         delivery.Elements.GetName("/V").Should().Be("/Express");
@@ -615,14 +617,12 @@ public class AcroFormAuthoringTests
 
         // The other direction: a check box is the /Btn that says neither Pushbutton nor Radio, so
         // a caller writing Radio onto one is describing a field the class is not.
-        var box = new PdfCheckBoxField(document);
-        box.Flags = PdfAcroFieldFlags.Radio | PdfAcroFieldFlags.Required;
+        var box = new PdfCheckBoxField(document) { Flags = PdfAcroFieldFlags.Radio | PdfAcroFieldFlags.Required };
 
         box.Flags.Should().Be(PdfAcroFieldFlags.Required);
 
         // And a list box is the /Ch that does not say Combo.
-        var list = new PdfListBoxField(document);
-        list.Flags = PdfAcroFieldFlags.Combo | PdfAcroFieldFlags.MultiSelect;
+        var list = new PdfListBoxField(document) { Flags = PdfAcroFieldFlags.Combo | PdfAcroFieldFlags.MultiSelect };
 
         list.Flags.Should().Be(PdfAcroFieldFlags.MultiSelect);
     }

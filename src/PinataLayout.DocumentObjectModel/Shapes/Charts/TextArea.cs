@@ -177,8 +177,7 @@ public partial class TextArea : ChartObject, IVisitable
   {
     get
     {
-      if (format == null)
-        format = new ParagraphFormat(this);
+      format ??= new ParagraphFormat(this);
 
       return format;
     }
@@ -198,8 +197,7 @@ public partial class TextArea : ChartObject, IVisitable
   {
     get
     {
-      if (lineFormat == null)
-        lineFormat = new LineFormat(this);
+      lineFormat ??= new LineFormat(this);
 
       return lineFormat;
     }
@@ -219,8 +217,7 @@ public partial class TextArea : ChartObject, IVisitable
   {
     get
     {
-      if (fillFormat == null)
-        fillFormat = new FillFormat(this);
+      fillFormat ??= new FillFormat(this);
 
       return fillFormat;
     }
@@ -295,8 +292,7 @@ public partial class TextArea : ChartObject, IVisitable
   {
     get
     {
-      if (elements == null)
-        elements = new DocumentElements(this);
+      elements ??= new DocumentElements(this);
 
       return elements;
     }

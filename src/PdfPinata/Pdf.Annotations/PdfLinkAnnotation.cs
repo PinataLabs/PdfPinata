@@ -107,11 +107,13 @@ public sealed class PdfLinkAnnotation : PdfAnnotation
         if (destinationPage < 1)
             throw new ArgumentException("Invalid destination page in call to CreateDocumentLink: page number is one-based and must be 1 or higher.", nameof(destinationPage));
 
-        var link = new PdfLinkAnnotation();
-        link._linkType = LinkType.Document;
-        link.Rectangle = rect;
-        link._destPage = destinationPage;
-        link._destTop = destinationTop;
+        var link = new PdfLinkAnnotation
+        {
+            _linkType = LinkType.Document,
+            Rectangle = rect,
+            _destPage = destinationPage,
+            _destTop = destinationTop
+        };
         return link;
     }
     private int _destPage;
@@ -124,10 +126,12 @@ public sealed class PdfLinkAnnotation : PdfAnnotation
     /// </summary>
     public static PdfLinkAnnotation CreateWebLink(PdfRectangle rect, string url)
     {
-        var link = new PdfLinkAnnotation();
-        link._linkType = LinkType.Web;
-        link.Rectangle = rect;
-        link._url = url;
+        var link = new PdfLinkAnnotation
+        {
+            _linkType = LinkType.Web,
+            Rectangle = rect,
+            _url = url
+        };
         return link;
     }
 
@@ -145,10 +149,12 @@ public sealed class PdfLinkAnnotation : PdfAnnotation
         if (string.IsNullOrEmpty(destinationName))
             throw new ArgumentException("A named link must name something.", nameof(destinationName));
 
-        var link = new PdfLinkAnnotation();
-        link._linkType = LinkType.Named;
-        link.Rectangle = rect;
-        link._destName = destinationName;
+        var link = new PdfLinkAnnotation
+        {
+            _linkType = LinkType.Named,
+            Rectangle = rect,
+            _destName = destinationName
+        };
         return link;
     }
     private string _destName;
@@ -158,10 +164,12 @@ public sealed class PdfLinkAnnotation : PdfAnnotation
     /// </summary>
     public static PdfLinkAnnotation CreateFileLink(PdfRectangle rect, string fileName)
     {
-        var link = new PdfLinkAnnotation();
-        link._linkType = LinkType.File;
-        link.Rectangle = rect;
-        link._url = fileName;
+        var link = new PdfLinkAnnotation
+        {
+            _linkType = LinkType.File,
+            Rectangle = rect,
+            _url = fileName
+        };
         return link;
     }
 
@@ -174,12 +182,10 @@ public sealed class PdfLinkAnnotation : PdfAnnotation
         // The following hack fixes this by specifying a 0 width border.
         if (!_readFromFile)
         {
-            if (Elements[PdfAnnotation.Keys.BS] == null)
-                Elements[PdfAnnotation.Keys.BS] = new PdfLiteral("<</Type/Border/W 0>>");
+            Elements[PdfAnnotation.Keys.BS] ??= new PdfLiteral("<</Type/Border/W 0>>");
 
             // May be superfluous. See comment above.
-            if (Elements[PdfAnnotation.Keys.Border] == null)
-                Elements[PdfAnnotation.Keys.Border] = new PdfLiteral("[0 0 0]");
+            Elements[PdfAnnotation.Keys.Border] ??= new PdfLiteral("[0 0 0]");
         }
 
         switch (_linkType)
@@ -267,7 +273,7 @@ public sealed class PdfLinkAnnotation : PdfAnnotation
         /// <summary>
         /// Gets the KeysMeta for these keys.
         /// </summary>
-        public static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
+        public static DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
         private static DictionaryMeta _meta;
     }

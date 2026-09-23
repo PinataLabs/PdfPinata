@@ -189,7 +189,7 @@ internal sealed class Parser
 
             case Symbol.Boolean:
                 pdfObject = new PdfBooleanObject(_document,
-                    String.Compare(_lexer.Token, Boolean.TrueString, StringComparison.OrdinalIgnoreCase) == 0);
+                    string.Compare(_lexer.Token, bool.TrueString, StringComparison.OrdinalIgnoreCase) == 0);
                 pdfObject.SetObjectID(objectNumber, generationNumber);
                 if (!fromObjecStream)
                     ReadEndObject();
@@ -535,12 +535,12 @@ internal sealed class Parser
         // The reference may be a temporary one created while the xref table was under construction,
         // so look the object up in the table as well.
         var iref = _document != null ? _document._irefTable[reference.ObjectID] : null;
-        if (iref != null && iref.Value is PdfIntegerObject known)
+        if (iref is { Value: PdfIntegerObject known })
             return known;
 
         // Objects inside an object stream have no position in the file. When such an object has not
         // been read yet there is no way to reach it from here.
-        if (iref != null && iref.Position < 0)
+        if (iref is { Position: < 0 })
             return null;
 
         var state = SaveState();
@@ -558,8 +558,7 @@ internal sealed class Parser
     {
         Debug.Assert(Symbol == Symbol.BeginArray);
 
-        if (array == null)
-            array = new PdfArray(_document);
+        array ??= new PdfArray(_document);
 
         var sp = _stack.SP;
         ParseObject(Symbol.EndArray);
@@ -581,8 +580,7 @@ internal sealed class Parser
     {
         Debug.Assert(Symbol == Symbol.BeginDictionary);
 
-        if (dict == null)
-            dict = new PdfDictionary(_document);
+        dict ??= new PdfDictionary(_document);
 
         var sp = _stack.SP;
         ParseObject(Symbol.EndDictionary);
@@ -709,7 +707,9 @@ internal sealed class Parser
                         _stack.Reduce(PdfNull.Value, 2);
                     }
                     else
+                    {
                         _stack.Reduce(iref, 2);
+                    }
 
                     break;
                 }
@@ -790,7 +790,9 @@ internal sealed class Parser
                 idx++;
             }
             else
+            {
                 idx = 0;
+            }
         }
     }
 
@@ -1062,8 +1064,7 @@ internal sealed class Parser
             var trailer = ReadXRefTableAndTrailer(_document._irefTable, accuracy);
 
             // 1st trailer seems to be the best.
-            if (firstTrailer == null)
-                firstTrailer = trailer;
+            firstTrailer ??= trailer;
 
             // Before /Prev, because the stream belongs to the revision just read rather than to the
             // one before it.
@@ -1257,7 +1258,9 @@ internal sealed class Parser
                     return trailer;
                 }
                 else
+                {
                     ParserDiagnostics.HandleUnexpectedToken(_lexer.Token);
+                }
             }
         }
         // ReSharper disable once RedundantIfElseBlock because of code readability.
@@ -1379,9 +1382,11 @@ internal sealed class Parser
         }
         else
         {
-            iref = new PdfReference(xrefStream);
-            iref.ObjectID = objectID;
-            iref.Value = xrefStream;
+            iref = new PdfReference(xrefStream)
+            {
+                ObjectID = objectID,
+                Value = xrefStream
+            };
             xrefTable.Add(iref);
         }
 
@@ -1436,12 +1441,13 @@ internal sealed class Parser
                 index2++;
 
                 var item =
-                    new PdfCrossReferenceStream.CrossReferenceStreamEntry();
-
-                item.Type = (uint)StreamHelper.ReadBytes(bytes, index2 * wsum, wsize[0]);
-                item.Field2 = (long)StreamHelper.ReadBytes(bytes, index2 * wsum + wsize[0], wsize[1]);
-                item.Field3 = (uint)StreamHelper.ReadBytes(bytes, index2 * wsum + wsize[0] + wsize[1], wsize[2]);
-                item.ObjectNumber = subsections[ssc][0] + idx;
+                    new PdfCrossReferenceStream.CrossReferenceStreamEntry
+                    {
+                        Type = (uint)StreamHelper.ReadBytes(bytes, index2 * wsum, wsize[0]),
+                        Field2 = (long)StreamHelper.ReadBytes(bytes, index2 * wsum + wsize[0], wsize[1]),
+                        Field3 = (uint)StreamHelper.ReadBytes(bytes, index2 * wsum + wsize[0] + wsize[1], wsize[2]),
+                        ObjectNumber = subsections[ssc][0] + idx
+                    };
 
                 xrefStream.Entries.Add(item);
 

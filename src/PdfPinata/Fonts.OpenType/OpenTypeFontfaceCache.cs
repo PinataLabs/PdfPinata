@@ -119,8 +119,7 @@ internal class OpenTypeFontfaceCache
                 try
                 {
                     Lock.EnterFontFactory();
-                    if (_singleton == null)
-                        _singleton = new OpenTypeFontfaceCache();
+                    _singleton ??= new OpenTypeFontfaceCache();
                 }
                 finally
                 {

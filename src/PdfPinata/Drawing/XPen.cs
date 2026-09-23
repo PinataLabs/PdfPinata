@@ -253,8 +253,7 @@ public sealed class XPen
     {
         get
         {
-            if (_dashPattern == null)
-                _dashPattern = [];
+            _dashPattern ??= [];
             return _dashPattern;
         }
         set

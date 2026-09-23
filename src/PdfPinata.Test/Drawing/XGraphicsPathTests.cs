@@ -795,7 +795,7 @@ public class XGraphicsPathTests
 
     private static readonly XPoint[] Diamond =
     [
-        new XPoint(200, 100), new XPoint(260, 175),
-        new XPoint(200, 250), new XPoint(140, 175)
+        new(200, 100), new(260, 175),
+        new(200, 250), new(140, 175)
     ];
 }

@@ -35,8 +35,7 @@ public class DdlHexEscapeTests
     /// </summary>
     private static string DocumentTitled(string literalBody)
     {
-        var document = new Document();
-        document.Info.Title = Placeholder;
+        var document = new Document { Info = { Title = Placeholder } };
         document.AddSection().AddParagraph().AddText("body");
         var ddl = DdlWriter.WriteToString(document);
         ddl.Should().Contain("\"" + Placeholder + "\"", "the title is written as a quoted literal");

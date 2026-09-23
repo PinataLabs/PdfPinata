@@ -255,8 +255,7 @@ public sealed class PdfAcroForm : PdfDictionary
         {
             get
             {
-                if (s_meta == null)
-                    s_meta = CreateMeta(typeof(Keys));
+                s_meta ??= CreateMeta(typeof(Keys));
                 return s_meta;
             }
         }

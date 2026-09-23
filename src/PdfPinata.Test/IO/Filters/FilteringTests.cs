@@ -77,7 +77,7 @@ public class FilteringTests
     [Fact]
     public void EncodingAndDecodingByNameAgreeWithTheFilterItself()
     {
-        var data = Encoding.ASCII.GetBytes("something to squeeze");
+        var data = "something to squeeze"u8.ToArray();
 
         var byName = Filtering.Encode(data, "FlateDecode");
 
@@ -106,13 +106,13 @@ public class FilteringTests
         Filtering.FlateDecode.DecodeToString(deflated).Should().Be(text);
         Filtering.DecodeToString(deflated, "FlateDecode").Should().Be(text);
         Filtering.LzwDecode.Decode(Packed(ClearTable, 'A', 'B', EndOfData), (FilterParms)null)
-            .Should().Equal(Encoding.ASCII.GetBytes("AB"));
+            .Should().Equal("AB"u8.ToArray());
     }
 
     [Fact]
     public void AStringIsEncodedByItsRawBytes()
     {
-        Filtering.Encode("abc", "ASCIIHexDecode").Should().Equal(Encoding.ASCII.GetBytes("616263"));
+        Filtering.Encode("abc", "ASCIIHexDecode").Should().Equal("616263"u8.ToArray());
     }
 
     // ----- a filter named by a dictionary entry --------------------------------------------------
@@ -120,7 +120,7 @@ public class FilteringTests
     [Fact]
     public void ASingleFilterCanBeNamedByAPdfName()
     {
-        var data = Encoding.ASCII.GetBytes("abc");
+        var data = "abc"u8.ToArray();
         var encoded = Filtering.ASCIIHexDecode.Encode(data);
 
         Filtering.Decode(encoded, new PdfName("/ASCIIHexDecode"), null).Should().Equal(data);
@@ -132,7 +132,7 @@ public class FilteringTests
         // /Filter [/ASCII85Decode /FlateDecode] means the data was deflated and then made
         // printable, so it is read back the same way round: un-ASCII85 first, then inflate.
         var document = new PdfDocument();
-        var data = Encoding.ASCII.GetBytes("a stream worth compressing, compressing, compressing");
+        var data = "a stream worth compressing, compressing, compressing"u8.ToArray();
         var encoded = Filtering.ASCII85Decode.Encode(Filtering.FlateDecode.Encode(data));
 
         var chain = new PdfArray(document, new PdfName("/ASCII85Decode"), new PdfName("/FlateDecode"));
@@ -146,7 +146,7 @@ public class FilteringTests
         // One set of decode parameters per filter, or the reader cannot tell which belongs to
         // which. Rather than guess, the data comes back untouched.
         var document = new PdfDocument();
-        var data = Encoding.ASCII.GetBytes("untouched");
+        var data = "untouched"u8.ToArray();
         var chain = new PdfArray(document, new PdfName("/ASCII85Decode"), new PdfName("/FlateDecode"));
         var parms = new PdfArray(document, PdfNull.Value);
 
@@ -157,7 +157,7 @@ public class FilteringTests
     public void AChainCanCarryOneSetOfParametersPerFilter()
     {
         var document = new PdfDocument();
-        var data = Encoding.ASCII.GetBytes("abc");
+        var data = "abc"u8.ToArray();
         var encoded = Filtering.ASCII85Decode.Encode(Filtering.ASCIIHexDecode.Encode(data));
         var chain = new PdfArray(document, new PdfName("/ASCII85Decode"), new PdfName("/ASCIIHexDecode"));
         var parms = new PdfArray(document, new PdfDictionary(document), new PdfDictionary(document));
@@ -168,7 +168,7 @@ public class FilteringTests
     [Fact]
     public void SomethingThatNamesNoFilterAtAllDecodesToNothing()
     {
-        var data = Encoding.ASCII.GetBytes("abc");
+        var data = "abc"u8.ToArray();
 
         // Fully qualified: this test assembly has a PdfInteger of its own.
         Filtering.Decode(data, new PdfPinata.Pdf.PdfInteger(7), null).Should().BeNull();
@@ -236,7 +236,7 @@ public class FilteringTests
         var decoded = Filtering.LzwDecode.Decode(
             Packed(ClearTable, 'A', 'B', 'C', EndOfData), new FilterParms(null));
 
-        decoded.Should().Equal(Encoding.ASCII.GetBytes("ABC"));
+        decoded.Should().Equal("ABC"u8.ToArray());
     }
 
     [Fact]
@@ -244,7 +244,7 @@ public class FilteringTests
     {
         var decoded = Filtering.LzwDecode.Decode(Packed('A', 'B', EndOfData), new FilterParms(null));
 
-        decoded.Should().Equal(Encoding.ASCII.GetBytes("AB"));
+        decoded.Should().Equal("AB"u8.ToArray());
     }
 
     [Fact]
@@ -260,7 +260,7 @@ public class FilteringTests
         var decoded = Filtering.LzwDecode.Decode(
             Packed(ClearTable, 'A', 'B', ClearTable, 'C', 'D', EndOfData), new FilterParms(null));
 
-        decoded.Should().Equal(Encoding.ASCII.GetBytes("ABCD"));
+        decoded.Should().Equal("ABCD"u8.ToArray());
     }
 
     /// <summary>
@@ -281,7 +281,7 @@ public class FilteringTests
         var decoded = Filtering.LzwDecode.Decode(
             Packed(ClearTable, 'A', FirstFreeCode, EndOfData), new FilterParms(null));
 
-        decoded.Should().Equal(Encoding.ASCII.GetBytes("AAA"));
+        decoded.Should().Equal("AAA"u8.ToArray());
     }
 
     [Fact]
@@ -293,7 +293,7 @@ public class FilteringTests
             Packed(ClearTable, 'A', 'B', FirstFreeCode, FirstFreeCode + 2, EndOfData),
             new FilterParms(null));
 
-        decoded.Should().Equal(Encoding.ASCII.GetBytes("ABABABA"));
+        decoded.Should().Equal("ABABABA"u8.ToArray());
     }
 
     [Fact]
@@ -303,7 +303,7 @@ public class FilteringTests
         // stream gives back what was read rather than throwing.
         var decoded = Filtering.LzwDecode.Decode(Packed(ClearTable, 'A', 'B'), new FilterParms(null));
 
-        decoded.Should().Equal(Encoding.ASCII.GetBytes("AB"));
+        decoded.Should().Equal("AB"u8.ToArray());
     }
 
     [Fact]

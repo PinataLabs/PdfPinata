@@ -62,46 +62,46 @@ public class OpenModeEnforcementTests
     private static readonly IReadOnlyDictionary<string, Mutation> Mutations = new Dictionary<string, Mutation>
     {
         ["PdfDocument.AddPage()"] =
-            new Mutation("adding a page", (document, _) => Discard(document.AddPage())),
+            new("adding a page", (document, _) => Discard(document.AddPage())),
         ["PdfDocument.AddPage(page)"] =
-            new Mutation("adding a page", (document, foreign) => _ = document.AddPage(foreign)),
+            new("adding a page", (document, foreign) => _ = document.AddPage(foreign)),
         ["PdfDocument.InsertPage(index)"] =
-            new Mutation("inserting a page", (document, _) => Discard(document.InsertPage(0))),
+            new("inserting a page", (document, _) => Discard(document.InsertPage(0))),
         ["PdfDocument.PlacePage"] =
-            new Mutation("placing a page", (document, _) => document.PlacePage(0, new PdfPage(document))),
+            new("placing a page", (document, _) => document.PlacePage(0, new PdfPage(document))),
         ["PdfDocument.ImportPage"] =
-            new Mutation("importing a page", (document, foreign) => _ = document.ImportPage(0, foreign)),
+            new("importing a page", (document, foreign) => _ = document.ImportPage(0, foreign)),
         ["PdfDocument.DuplicatePage"] =
-            new Mutation("duplicating a page", (document, _) => Discard(document.DuplicatePage(0, 1))),
+            new("duplicating a page", (document, _) => Discard(document.DuplicatePage(0, 1))),
         ["PdfDocument.MovePage"] =
-            new Mutation("moving a page", (document, _) => document.MovePage(0, 1)),
+            new("moving a page", (document, _) => document.MovePage(0, 1)),
         ["PdfDocument.Pages.Add()"] =
-            new Mutation("adding a page", (document, _) => Discard(document.Pages.Add())),
+            new("adding a page", (document, _) => Discard(document.Pages.Add())),
         ["PdfDocument.Pages.RemoveAt"] =
-            new Mutation("removing a page", (document, _) => document.Pages.RemoveAt(0)),
+            new("removing a page", (document, _) => document.Pages.RemoveAt(0)),
         ["PdfDocument.Pages.Remove"] =
-            new Mutation("removing a page", (document, _) => document.Pages.Remove(document.Pages[0])),
+            new("removing a page", (document, _) => document.Pages.Remove(document.Pages[0])),
         ["PdfDocument.Pages.InsertRange"] =
-            new Mutation("inserting a range of pages",
+            new("inserting a range of pages",
                 (document, foreign) => document.Pages.InsertRange(0, foreign.Owner, 0, 1)),
         ["XGraphics.FromPdfPage"] =
-            new Mutation("drawing on a page", (document, _) => XGraphics.FromPdfPage(document.Pages[0]).Dispose()),
+            new("drawing on a page", (document, _) => XGraphics.FromPdfPage(document.Pages[0]).Dispose()),
         ["PdfDocument.Save"] =
-            new Mutation("saving the document", (document, _) => document.Save(new MemoryStream(), false)),
+            new("saving the document", (document, _) => document.Save(new MemoryStream(), false)),
         ["PdfDocument.Version"] =
-            new Mutation("setting the PDF version", (document, _) => document.Version = 17),
+            new("setting the PDF version", (document, _) => document.Version = 17),
         ["PdfDocument.PageLayout"] =
-            new Mutation("setting the page layout",
+            new("setting the page layout",
                 (document, _) => document.PageLayout = PdfPageLayout.TwoColumnLeft),
         ["PdfDocument.PageMode"] =
-            new Mutation("setting the page mode",
+            new("setting the page mode",
                 (document, _) => document.PageMode = PdfPageMode.UseOutlines),
         ["PdfDocument.Language"] =
-            new Mutation("setting the document language", (document, _) => document.Language = "en-GB"),
+            new("setting the document language", (document, _) => document.Language = "en-GB"),
         ["PdfDocument.ResizePages"] =
-            new Mutation("resizing a page", (document, _) => document.ResizePages(PageSize.A5)),
+            new("resizing a page", (document, _) => document.ResizePages(PageSize.A5)),
         ["PdfDocument.GetOrCreateAcroForm"] =
-            new Mutation("creating an interactive form", (document, _) => document.GetOrCreateAcroForm())
+            new("creating an interactive form", (document, _) => document.GetOrCreateAcroForm())
     };
 
     /// <summary>The modes that let a document be changed.</summary>

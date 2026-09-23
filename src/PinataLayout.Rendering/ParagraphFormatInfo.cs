@@ -93,7 +93,7 @@ internal struct LineInfo
 /// </summary>
 internal class ParagraphFormatInfo : FormatInfo
 {
-  private ArrayList lineInfos = new ArrayList();
+  private ArrayList lineInfos = new();
 
   internal LineInfo GetLineInfo(int lineIdx)
   {
@@ -156,7 +156,7 @@ internal class ParagraphFormatInfo : FormatInfo
     get
     {
       if (widowControl)
-        return (IsComplete || (isStarting && lineInfos.Count >= 2));
+        return IsComplete || (isStarting && lineInfos.Count >= 2);
       return isStarting;
     }
   }
@@ -168,22 +168,22 @@ internal class ParagraphFormatInfo : FormatInfo
     get
     {
       if (widowControl)
-        return (IsComplete || (isEnding && lineInfos.Count >= 2));
+        return IsComplete || (isEnding && lineInfos.Count >= 2);
       return isEnding;
     }
   }
 
   internal void RemoveEnding()
   {
-    if (!IsEmpty)
-    {
-      if (widowControl && isEnding && LineCount >= 2)
-        lineInfos.RemoveAt(LineCount - 2);
-      if (LineCount > 0)
-        lineInfos.RemoveAt(LineCount - 1);
+    if (IsEmpty)
+      return;
 
-      isEnding = false;
-    }
+    if (widowControl && isEnding && LineCount >= 2)
+      lineInfos.RemoveAt(LineCount - 2);
+    if (LineCount > 0)
+      lineInfos.RemoveAt(LineCount - 1);
+
+    isEnding = false;
   }
 
   internal string listSymbol;

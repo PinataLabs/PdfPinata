@@ -141,8 +141,7 @@ public abstract class TwoWidthBarCode : BarCode
 
     internal void RenderText(BarCodeRenderInfo info)
     {
-        if (info.Font == null)
-            info.Font = new XFont(GlobalFontSettings.FontResolver.DefaultFontName, Size.Height / 6);
+        info.Font ??= new XFont(GlobalFontSettings.FontResolver.DefaultFontName, Size.Height / 6);
         var center = info.Position + CalcDistance(Anchor, AnchorType.TopLeft, Size);
 
         switch (TextLocation)

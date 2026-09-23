@@ -137,8 +137,7 @@ public partial class Footnote : DocumentObject, IVisitable
     {
         get
         {
-            if (elements == null)
-                elements = new DocumentElements(this);
+            elements ??= new DocumentElements(this);
             return elements;
         }
         set
@@ -204,8 +203,7 @@ public partial class Footnote : DocumentObject, IVisitable
     {
         get
         {
-            if (format == null)
-                format = new ParagraphFormat(this);
+            format ??= new ParagraphFormat(this);
 
             return format;
         }

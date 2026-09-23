@@ -90,8 +90,7 @@ public class TextMarkupAnnotationTests
     {
         var document = new PdfDocument();
         var page = document.AddPage();
-        var annotation = new PdfHighlightAnnotation();
-        annotation.Rectangle = new PdfRectangle(new XRect(30, 700, 100, 20));
+        var annotation = new PdfHighlightAnnotation { Rectangle = new PdfRectangle(new XRect(30, 700, 100, 20)) };
 
         page.Annotations.Add(annotation);
 

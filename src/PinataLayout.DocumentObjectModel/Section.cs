@@ -74,9 +74,7 @@ public partial class Section : DocumentObject, IVisitable
         var sections = Parent as Sections;
         // ReSharper disable once PossibleNullReferenceException
         var index = sections.IndexOf(this);
-        if (index > 0)
-            return sections[index - 1];
-        return null;
+        return index > 0 ? sections[index - 1] : null;
     }
 
     /// <summary>
@@ -200,8 +198,7 @@ public partial class Section : DocumentObject, IVisitable
     {
         get
         {
-            if (pageSetup == null)
-                pageSetup = new PageSetup(this);
+            pageSetup ??= new PageSetup(this);
 
             return pageSetup;
         }
@@ -221,8 +218,7 @@ public partial class Section : DocumentObject, IVisitable
     {
         get
         {
-            if (headers == null)
-                headers = new HeadersFooters(this);
+            headers ??= new HeadersFooters(this);
 
             return headers;
         }
@@ -242,8 +238,7 @@ public partial class Section : DocumentObject, IVisitable
     {
         get
         {
-            if (footers == null)
-                footers = new HeadersFooters(this);
+            footers ??= new HeadersFooters(this);
 
             return footers;
         }
@@ -263,8 +258,7 @@ public partial class Section : DocumentObject, IVisitable
     {
         get
         {
-            if (elements == null)
-                elements = new DocumentElements(this);
+            elements ??= new DocumentElements(this);
 
             return elements;
         }
@@ -333,7 +327,7 @@ public partial class Section : DocumentObject, IVisitable
     /// </summary>
     internal override void Serialize(Serializer serializer)
     {
-        serializer.WriteComment((comment ?? ""));
+        serializer.WriteComment(comment ?? "");
         serializer.WriteLine("\\section");
 
         var pos = serializer.BeginAttributes();

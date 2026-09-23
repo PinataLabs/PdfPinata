@@ -101,7 +101,7 @@ public class TextShapingSeamTests
         public void Dispose() => GlobalFontSettings.TextShaper = null;
     }
 
-    private static XFont Font() => new XFont("Arial", 20);
+    private static XFont Font() => new("Arial", 20);
 
     private static IReadOnlyList<int[]> GlyphRuns(PdfPage page) => DrawnText.GlyphRuns(page);
 

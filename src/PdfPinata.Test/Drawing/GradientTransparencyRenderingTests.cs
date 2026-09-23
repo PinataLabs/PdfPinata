@@ -39,7 +39,7 @@ public sealed class GradientTransparencyRenderingTests : IDisposable
     }
 
     /// <summary>The band the gradient is drawn across, in the space the drawing uses.</summary>
-    private static readonly XRect Band = new XRect(50, 50, 400, 200);
+    private static readonly XRect Band = new(50, 50, 400, 200);
 
     [GoldenImageFact]
     public void ATransparentToOpaqueGradientLetsTheFillBeneathItThrough()

@@ -50,7 +50,7 @@ internal class PieClosedPlotAreaRenderer : PiePlotAreaRenderer
   /// </summary>
   protected override void CalcSectors()
   {
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
     if (cri.SeriesRendererInfos.Length == 0)
       return;
 
@@ -61,7 +61,7 @@ internal class PieClosedPlotAreaRenderer : PiePlotAreaRenderer
       return;
 
     double textMeasure = 0;
-    if (sri.DataLabelRendererInfo != null && sri.DataLabelRendererInfo.Position == DataLabelPosition.OutsideEnd)
+    if (sri.DataLabelRendererInfo is { Position: DataLabelPosition.OutsideEnd })
     {
       foreach (var dleri in sri.DataLabelRendererInfo.Entries)
       {

@@ -122,12 +122,12 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             var names = dict._elements.KeyNames;
             foreach (var name in names)
             {
-                if (dict._elements[name] is PdfObject obj)
-                {
-                    obj = obj.Clone();
-                    // Recall that obj.Document is now null.
-                    dict._elements[name] = obj;
-                }
+                if (dict._elements[name] is not PdfObject obj)
+                    continue;
+
+                obj = obj.Clone();
+                // Recall that obj.Document is now null.
+                dict._elements[name] = obj;
             }
         }
         if (dict._stream != null)
@@ -610,7 +610,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             object obj = ValueOf(key);
             if (obj == null)
             {
-                return String.Empty;
+                return string.Empty;
             }
 
             if (obj is PdfReference reference)
@@ -666,7 +666,9 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                 this[key] = value;
             }
             else
+            {
                 value = (PdfRectangle)obj;
+            }
             return value;
         }
 
@@ -744,7 +746,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             var numbers = new double[6];
             for (var index = 0; index < 6; index++)
             {
-                if (!Double.TryParse(parts[index], NumberStyles.Float, CultureInfo.InvariantCulture, out numbers[index]))
+                if (!double.TryParse(parts[index], NumberStyles.Float, CultureInfo.InvariantCulture, out numbers[index]))
                     throw new InvalidCastException("Element is not an array with 6 values.");
             }
             return new XMatrix(numbers[0], numbers[1], numbers[2], numbers[3], numbers[4], numbers[5]);
@@ -788,7 +790,9 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
 
             string strDate;
             if (obj is PdfString pdfString)
+            {
                 strDate = pdfString.Value;
+            }
             else
             {
                 if (obj is PdfStringObject stringObject)
@@ -874,10 +878,14 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                             this[key] = obj.Reference;
                         }
                         else
+                        {
                             this[key] = obj;
+                        }
                     }
                     else
+                    {
                         throw new NotImplementedException("Cannot create value for key: " + key);
+                    }
                 }
             }
             else
@@ -1162,7 +1170,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             {
                 ArgumentNullException.ThrowIfNull(value);
 
-                if (value is PdfObject obj && obj.IsIndirect)
+                if (value is PdfObject { IsIndirect: true } obj)
                     value = obj.Reference;
                 _elements[key] = value;
                 PdfObject.Contain(value, _ownerDictionary);
@@ -1184,9 +1192,9 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                 // it has to be replaced before asking whether what is left can be one. Asking
                 // first rejected an indirect stream - a content stream, an image - that the
                 // this[string] overload beside this one stores without complaint.
-                if (value is PdfObject obj && obj.IsIndirect)
+                if (value is PdfObject { IsIndirect: true } obj)
                     value = obj.Reference;
-                else if (value is PdfDictionary dictionary && dictionary._stream != null)
+                else if (value is PdfDictionary { _stream: not null })
                     throw new ArgumentException("A dictionary with stream cannot be a direct value.");
 
                 _elements[key.Value] = value;
@@ -1260,14 +1268,14 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// </summary>
         public void Add(string key, PdfItem value)
         {
-            if (String.IsNullOrEmpty(key))
+            if (string.IsNullOrEmpty(key))
                 throw new ArgumentNullException(nameof(key));
 
             if (key[0] != '/')
                 throw new ArgumentException("The key must start with a slash '/'.");
 
             // If object is indirect automatically convert value to reference.
-            if (value is PdfObject obj && obj.IsIndirect)
+            if (value is PdfObject { IsIndirect: true } obj)
                 value = obj.Reference;
 
             _elements.Add(key, value);
@@ -1592,23 +1600,25 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// </summary>
         public bool TryUnfilter()
         {
-            if (_value != null)
+            if (_value == null)
+                return true;
+
+            var filter = _ownerDictionary.Elements[Keys.Filter];
+            if (filter == null)
+                return true;
+
+            var decodeParms = _ownerDictionary.Elements[Keys.DecodeParms];
+            // PDFsharp can only uncompress streams that are compressed with the ZIP or LZH algorithm.
+            var bytes = Filtering.Decode(_value, filter, decodeParms);
+            if (bytes != null)
             {
-                var filter = _ownerDictionary.Elements[Keys.Filter];
-                if (filter != null)
-                {
-                    var decodeParms = _ownerDictionary.Elements[Keys.DecodeParms];
-                    // PDFsharp can only uncompress streams that are compressed with the ZIP or LZH algorithm.
-                    var bytes = Filtering.Decode(_value, filter, decodeParms);
-                    if (bytes != null)
-                    {
-                        _ownerDictionary.Elements.Remove(Keys.Filter);
-                        _ownerDictionary.Elements.Remove(Keys.DecodeParms);
-                        Value = bytes;
-                    }
-                    else
-                        return false;
-                }
+                _ownerDictionary.Elements.Remove(Keys.Filter);
+                _ownerDictionary.Elements.Remove(Keys.DecodeParms);
+                Value = bytes;
+            }
+            else
+            {
+                return false;
             }
             return true;
         }
@@ -1622,12 +1632,12 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             if (_value == null)
                 return;
 
-            if (!_ownerDictionary.Elements.ContainsKey(Keys.Filter))
-            {
-                _value = Filtering.FlateDecode.Encode(_value, _ownerDictionary._document.Options.FlateEncodeMode);
-                _ownerDictionary.Elements[Keys.Filter] = new PdfName("/FlateDecode");
-                _ownerDictionary.Elements[Keys.Length] = new PdfInteger(_value.Length);
-            }
+            if (_ownerDictionary.Elements.ContainsKey(Keys.Filter))
+                return;
+
+            _value = Filtering.FlateDecode.Encode(_value, _ownerDictionary._document.Options.FlateEncodeMode);
+            _ownerDictionary.Elements[Keys.Filter] = new PdfName("/FlateDecode");
+            _ownerDictionary.Elements[Keys.Length] = new PdfInteger(_value.Length);
         }
 
         /// <summary>
@@ -1650,7 +1660,9 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                     throw new NotImplementedException("Unknown filter");
             }
             else
+            {
                 stream = PdfEncoders.RawEncoding.GetString(_value, 0, _value.Length);
+            }
 
             return stream;
         }
@@ -1735,7 +1747,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
     /// Gets the DebuggerDisplayAttribute text.
     /// </summary>
     // ReSharper disable UnusedMember.Local
-    private string DebuggerDisplay => String.Format(CultureInfo.InvariantCulture, "dictionary({0},[{1}])={2}",
+    private string DebuggerDisplay => string.Format(CultureInfo.InvariantCulture, "dictionary({0},[{1}])={2}",
         ObjectID.DebuggerDisplay,
         Elements.Count,
         _elements.DebuggerDisplay); // ReSharper restore UnusedMember.Local

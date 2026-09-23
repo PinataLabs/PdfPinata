@@ -301,8 +301,7 @@ public sealed class PdfFormXObject : PdfXObject, IContentStream
     {
         get
         {
-            if (field == null)
-                field = (PdfResources)Elements.GetValue(Keys.Resources, VCF.Create);
+            field ??= (PdfResources)Elements.GetValue(Keys.Resources, VCF.Create);
             return field;
         }
     }
@@ -482,7 +481,7 @@ public sealed class PdfFormXObject : PdfXObject, IContentStream
         /// <summary>
         /// Gets the KeysMeta for these keys.
         /// </summary>
-        internal static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
+        internal static DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
         private static DictionaryMeta _meta;
     }

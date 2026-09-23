@@ -232,7 +232,7 @@ internal static class Parser
         {
             foreach (var named in attribute.NamedArguments)
             {
-                if (named.Key == "RefOnly" && named.Value.Value is bool value)
+                if (named is { Key: "RefOnly", Value.Value: bool value })
                     return value;
             }
         }

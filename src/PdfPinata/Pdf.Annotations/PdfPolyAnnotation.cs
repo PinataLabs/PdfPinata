@@ -203,7 +203,7 @@ public abstract class PdfPolyAnnotation : PdfMarkupAnnotation
         [KeyInfo("1.5", KeyType.Dictionary | KeyType.Optional)]
         public const string BE = "/BE";
 
-        public new static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
+        public new static DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
         private static DictionaryMeta _meta;
     }

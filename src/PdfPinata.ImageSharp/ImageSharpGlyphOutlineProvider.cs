@@ -205,9 +205,9 @@ public sealed class ImageSharpGlyphOutlineProvider : IGlyphOutlineProvider
         ///   A laid-out point in the seam's space: measured from the baseline, and the right way
         ///   up. SixLabors measures y downwards from the top of the line, as a raster does.
         /// </summary>
-        private XPoint At(Vector2 point) => new XPoint(point.X, _baseline - point.Y);
+        private XPoint At(Vector2 point) => new(point.X, _baseline - point.Y);
 
         private static XPoint Lerp(XPoint from, XPoint to, double fraction) =>
-            new XPoint(from.X + fraction * (to.X - from.X), from.Y + fraction * (to.Y - from.Y));
+            new(from.X + fraction * (to.X - from.X), from.Y + fraction * (to.Y - from.Y));
     }
 }

@@ -51,13 +51,13 @@ internal class BarDataLabelRenderer : DataLabelRenderer
   /// </summary>
   internal override void Format()
   {
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
     foreach (var sri in cri.SeriesRendererInfos)
     {
       if (sri.DataLabelRendererInfo == null)
         continue;
 
-      var gfx = this.rendererParms.Graphics;
+      var gfx = rendererParms.Graphics;
 
       sri.DataLabelRendererInfo.Entries = new DataLabelEntryRendererInfo[sri.PointRendererInfos.Length];
       var index = 0;
@@ -89,14 +89,14 @@ internal class BarDataLabelRenderer : DataLabelRenderer
   /// </summary>
   internal override void Draw()
   {
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
 
     foreach (var sri in cri.SeriesRendererInfos)
     {
       if (sri.DataLabelRendererInfo == null)
         continue;
 
-      var gfx = this.rendererParms.Graphics;
+      var gfx = rendererParms.Graphics;
       var font = sri.DataLabelRendererInfo.Font;
       var fontColor = sri.DataLabelRendererInfo.FontColor;
       var format = XStringFormats.Center;
@@ -114,7 +114,7 @@ internal class BarDataLabelRenderer : DataLabelRenderer
   /// </summary>
   internal override void CalcPositions()
   {
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
 
     foreach (var sri in cri.SeriesRendererInfos)
     {

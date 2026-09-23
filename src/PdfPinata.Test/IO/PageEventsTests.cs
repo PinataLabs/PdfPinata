@@ -58,7 +58,7 @@ public sealed class PageEventsTests : IDisposable
     {
         var document = new PdfDocument();
         var counts = new List<int>();
-        document.PageAdded += (sender, _) => counts.Add((((PdfDocument)sender)!).PageCount);
+        document.PageAdded += (sender, _) => counts.Add(((PdfDocument)sender)!.PageCount);
 
         _ = document.AddPage();
         _ = document.AddPage();
@@ -322,7 +322,7 @@ public sealed class PageEventsTests : IDisposable
     private static bool IsBlue(IMagickColor<byte> c) => c.B > 150 && c.R < 120 && c.G < 150;
 
     private static bool IsGrey(IMagickColor<byte> c) =>
-        Math.Abs(c.R - c.G) < 10 && Math.Abs(c.G - c.B) < 10 && c.R > 90 && c.R < 200;
+        Math.Abs(c.R - c.G) < 10 && Math.Abs(c.G - c.B) < 10 && c.R is > 90 and < 200;
 
     private static int Count(IMagickImage<byte> image, Func<IMagickColor<byte>, bool> match)
     {

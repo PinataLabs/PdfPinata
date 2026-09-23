@@ -168,9 +168,9 @@ internal sealed class GradientsDemo : PdfDemo
             // middle of the panel. The gradient's rings become ellipses.
             var brush = new XRadialGradientBrush(new XPoint(0, 0), 0, 30, XColors.Yellow, XColors.Purple)
             {
-                ExtendRight = true
+                ExtendRight = true,
+                Transform = new XMatrix(2, 0, 0, 1, Middle(r).X, Middle(r).Y)
             };
-            brush.Transform = new XMatrix(2, 0, 0, 1, Middle(r).X, Middle(r).Y);
             gfx.DrawRectangle(brush, r);
         });
         // docs:end radial-transform

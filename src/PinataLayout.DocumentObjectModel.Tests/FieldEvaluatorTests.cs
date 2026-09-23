@@ -17,7 +17,7 @@ public class FieldEvaluatorTests
     ///   A document laid out and finished: three pages, the second section, both counts known and
     ///   one bookmark placed. Individual tests vary what they are about and leave the rest alone.
     /// </summary>
-    private static FieldEvaluationContext Paginated() => new FieldEvaluationContext
+    private static FieldEvaluationContext Paginated() => new()
     {
         DisplayPageNumber = 2,
         SectionNumber = 2,
@@ -84,8 +84,7 @@ public class FieldEvaluatorTests
     [Fact]
     public void AnInfoFieldReadsWhatTheDocumentRecordsUnderThatName()
     {
-        var document = new Document();
-        document.Info.Title = "The Annual Report";
+        var document = new Document { Info = { Title = "The Annual Report" } };
         var field = document.AddSection().AddParagraph().AddInfoField(InfoFieldType.Title);
 
         FieldEvaluator.Evaluate(field, Paginated()).Should().Be("The Annual Report");

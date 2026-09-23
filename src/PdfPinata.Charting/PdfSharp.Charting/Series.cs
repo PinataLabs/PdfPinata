@@ -88,7 +88,7 @@ public class Series : ChartObject
   /// </summary>
   public void AddBlank()
   {
-    this.Elements.AddBlank();
+    Elements.AddBlank();
   }
 
   /// <summary>
@@ -96,7 +96,7 @@ public class Series : ChartObject
   /// </summary>
   public Point Add(double value)
   {
-    return this.Elements.Add(value);
+    return Elements.Add(value);
   }
 
   /// <summary>
@@ -104,7 +104,7 @@ public class Series : ChartObject
   /// </summary>
   public void Add(params double[] values)
   {
-    this.Elements.Add(values);
+    Elements.Add(values);
   }
   #endregion
 
@@ -116,10 +116,9 @@ public class Series : ChartObject
   {
     get
     {
-      if (this.SeriesElements == null)
-        this.SeriesElements = new SeriesElements(this);
+      SeriesElements ??= new SeriesElements(this);
 
-      return this.SeriesElements;
+      return SeriesElements;
     }
   }
   internal SeriesElements SeriesElements;
@@ -129,10 +128,10 @@ public class Series : ChartObject
   /// </summary>
   public string Name
   {
-    get => this.name;
-    set => this.name = value;
+    get => name;
+    set => name = value;
   }
-  internal string name = String.Empty;
+  internal string name = string.Empty;
 
   /// <summary>
   /// Gets the line format of the border of each data.
@@ -141,10 +140,9 @@ public class Series : ChartObject
   {
     get
     {
-      if (this.lineFormat == null)
-        this.lineFormat = new LineFormat(this);
+      lineFormat ??= new LineFormat(this);
 
-      return this.lineFormat;
+      return lineFormat;
     }
   }
   internal LineFormat lineFormat;
@@ -156,10 +154,9 @@ public class Series : ChartObject
   {
     get
     {
-      if (this.fillFormat == null)
-        this.fillFormat = new FillFormat(this);
+      fillFormat ??= new FillFormat(this);
 
-      return this.fillFormat;
+      return fillFormat;
     }
   }
   internal FillFormat fillFormat;
@@ -169,8 +166,8 @@ public class Series : ChartObject
   /// </summary>
   public XUnit MarkerSize
   {
-    get => this.markerSize;
-    set => this.markerSize = value;
+    get => markerSize;
+    set => markerSize = value;
   }
   internal XUnit markerSize;
 
@@ -179,14 +176,14 @@ public class Series : ChartObject
   /// </summary>
   public MarkerStyle MarkerStyle
   {
-    get => this.markerStyle;
+    get => markerStyle;
     set
     {
       if (!Enum.IsDefined(value))
         throw new InvalidEnumArgumentException("value", (int)value, typeof(MarkerStyle));
 
-      this.markerStyle = value;
-      this.MarkerStyleInitialized = true;
+      markerStyle = value;
+      MarkerStyleInitialized = true;
     }
   }
   internal MarkerStyle markerStyle;
@@ -197,8 +194,8 @@ public class Series : ChartObject
   /// </summary>
   public XColor MarkerForegroundColor
   {
-    get => this.markerForegroundColor;
-    set => this.markerForegroundColor = value;
+    get => markerForegroundColor;
+    set => markerForegroundColor = value;
   }
   internal XColor markerForegroundColor = XColor.Empty;
 
@@ -207,8 +204,8 @@ public class Series : ChartObject
   /// </summary>
   public XColor MarkerBackgroundColor
   {
-    get => this.markerBackgroundColor;
-    set => this.markerBackgroundColor = value;
+    get => markerBackgroundColor;
+    set => markerBackgroundColor = value;
   }
   internal XColor markerBackgroundColor = XColor.Empty;
 
@@ -218,13 +215,13 @@ public class Series : ChartObject
   /// </summary>
   public ChartType ChartType
   {
-    get => this.chartType;
+    get => chartType;
     set
     {
       if (!Enum.IsDefined(value))
         throw new InvalidEnumArgumentException("value", (int)value, typeof(ChartType));
 
-      this.chartType = value;
+      chartType = value;
     }
   }
   internal ChartType chartType;
@@ -236,10 +233,9 @@ public class Series : ChartObject
   {
     get 
     {
-      if (this.dataLabel == null)
-        this.dataLabel = new DataLabel(this);
+      dataLabel ??= new DataLabel(this);
 
-      return this.dataLabel;
+      return dataLabel;
     }
   }
   internal DataLabel dataLabel;
@@ -249,8 +245,8 @@ public class Series : ChartObject
   /// </summary>
   public bool HasDataLabel
   {
-    get => this.hasDataLabel;
-    set => this.hasDataLabel = value;
+    get => hasDataLabel;
+    set => hasDataLabel = value;
   }
   internal bool hasDataLabel;
 
@@ -261,10 +257,7 @@ public class Series : ChartObject
   {
     get 
     {
-      if (this.SeriesElements != null)
-        return this.SeriesElements.Count;
-
-      return 0;
+      return SeriesElements != null ? SeriesElements.Count : 0;
     }
   }
   #endregion

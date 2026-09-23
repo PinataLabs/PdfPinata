@@ -48,7 +48,7 @@ public static class PdfOutputIntents
     /// and both check it — the same answer twice over, which is waste rather than a defect, but
     /// stating "once" is shorter than explaining why doing it twice is harmless.
     /// </summary>
-    private static readonly Lazy<byte[]> Loaded = new Lazy<byte[]>(Read);
+    private static readonly Lazy<byte[]> Loaded = new(Read);
 
     /// <summary>
     /// The bytes of an sRGB profile, ready to be assigned to

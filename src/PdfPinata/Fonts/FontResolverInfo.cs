@@ -96,7 +96,7 @@ public class FontResolverInfo
     /// </param>
     internal FontResolverInfo(string faceName, bool mustSimulateBold, bool mustSimulateItalic, int collectionNumber)
     {
-        if (String.IsNullOrEmpty(faceName))
+        if (string.IsNullOrEmpty(faceName))
             throw new ArgumentNullException(nameof(faceName));
         if (collectionNumber != 0)
             throw new NotImplementedException("collectionNumber is not yet implemented and must be 0.");
@@ -130,8 +130,8 @@ public class FontResolverInfo
     /// <summary>
     /// Gets the key for this object.
     /// </summary>
-    internal string Key => _key ?? (_key = KeyPrefix + _faceName.ToLowerInvariant()
-                                                     + '/' + (_mustSimulateBold ? "b+" : "b-") + (_mustSimulateItalic ? "i+" : "i-"));
+    internal string Key => _key ??= KeyPrefix + _faceName.ToLowerInvariant()
+                                              + '/' + (_mustSimulateBold ? "b+" : "b-") + (_mustSimulateItalic ? "i+" : "i-");
 
     private string _key;
 

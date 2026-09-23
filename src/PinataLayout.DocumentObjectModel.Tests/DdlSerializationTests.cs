@@ -304,9 +304,14 @@ public class DdlSerializationTests
     [Fact]
     public void ADocumentWithSomethingOfEveryKindInItSurvives()
     {
-        var document = new Document();
-        document.Info.Title = "Everything";
-        document.Info.Author = "Nobody";
+        var document = new Document
+        {
+            Info =
+            {
+                Title = "Everything",
+                Author = "Nobody"
+            }
+        };
         var section = document.AddSection();
         section.PageSetup.PageFormat = PageFormat.A5;
         section.PageSetup.LeftMargin = "2cm";

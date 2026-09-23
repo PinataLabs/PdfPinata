@@ -61,13 +61,13 @@ internal class FormattedTextArea : IAreaProvider
     set => innerWidth = value;
     get
     {
-      if (double.IsNaN(innerWidth))
-      {
-        if (!textArea.IsNull("Width"))
-          innerWidth = textArea.Width.Point;
-        else
-          innerWidth = CalcInherentWidth();
-      }
+      if (!double.IsNaN(innerWidth))
+        return innerWidth;
+
+      if (!textArea.IsNull("Width"))
+        innerWidth = textArea.Width.Point;
+      else
+        innerWidth = CalcInherentWidth();
       return innerWidth;
     }
   }
@@ -90,11 +90,11 @@ internal class FormattedTextArea : IAreaProvider
     foreach (DocumentObject obj in textArea.Elements)
     {
       var renderer = Renderer.Create(gfx, documentRenderer, obj, fieldInfos);
-      if (renderer != null)
-      {
-        renderer.Format(new Rectangle(0, 0, double.MaxValue, double.MaxValue), null);
-        inherentWidth = Math.Max(renderer.RenderInfo.LayoutInfo.MinWidth, inherentWidth);
-      }
+      if (renderer == null)
+        continue;
+
+      renderer.Format(new Rectangle(0, 0, double.MaxValue, double.MaxValue), null);
+      inherentWidth = Math.Max(renderer.RenderInfo.LayoutInfo.MinWidth, inherentWidth);
     }
     inherentWidth += textArea.LeftPadding;
     inherentWidth += textArea.RightPadding;
@@ -127,16 +127,14 @@ internal class FormattedTextArea : IAreaProvider
 
   internal RenderInfo[] GetRenderInfos()
   {
-    if (renderInfos != null)
-    {
-      // Not ToArray(Type): it builds the array type at run time, which carries
-      // RequiresDynamicCode and an AOT compiler cannot always have code for.
-      var result = new RenderInfo[renderInfos.Count];
-      renderInfos.CopyTo(result);
-      return result;
-    }
+    if (renderInfos == null)
+      return null;
 
-    return null;
+    // Not ToArray(Type): it builds the array type at run time, which carries
+    // RequiresDynamicCode and an AOT compiler cannot always have code for.
+    var result = new RenderInfo[renderInfos.Count];
+    renderInfos.CopyTo(result);
+    return result;
   }
 
   internal XUnit ContentHeight => RenderInfo.GetTotalHeight(GetRenderInfos());

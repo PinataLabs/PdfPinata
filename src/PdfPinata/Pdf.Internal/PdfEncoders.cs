@@ -44,14 +44,14 @@ internal static class PdfEncoders
     /// <summary>
     /// Gets the raw encoding.
     /// </summary>
-    public static Encoding RawEncoding => _rawEncoding ?? (_rawEncoding = new RawEncoding());
+    public static Encoding RawEncoding => _rawEncoding ??= new RawEncoding();
 
     private static Encoding _rawEncoding;
 
     /// <summary>
     /// Gets the raw Unicode encoding.
     /// </summary>
-    public static Encoding RawUnicodeEncoding => _rawUnicodeEncoding ?? (_rawUnicodeEncoding = new RawUnicodeEncoding());
+    public static Encoding RawUnicodeEncoding => _rawUnicodeEncoding ??= new RawUnicodeEncoding();
 
     private static Encoding _rawUnicodeEncoding;
 
@@ -62,10 +62,7 @@ internal static class PdfEncoders
     {
         get
         {
-            if (_winAnsiEncoding == null)
-            {
-                _winAnsiEncoding = new AnsiEncoding();
-            }
+            _winAnsiEncoding ??= new AnsiEncoding();
             return _winAnsiEncoding;
         }
     }
@@ -81,7 +78,7 @@ internal static class PdfEncoders
     /// <summary>
     /// Gets the UNICODE little-endian encoding.
     /// </summary>
-    public static Encoding UnicodeEncoding => _unicodeEncoding ?? (_unicodeEncoding = Encoding.Unicode);
+    public static Encoding UnicodeEncoding => _unicodeEncoding ??= Encoding.Unicode;
 
     private static Encoding _unicodeEncoding;
 
@@ -170,7 +167,7 @@ internal static class PdfEncoders
     /// </summary>
     public static string ToStringLiteral(string text, PdfStringEncoding encoding, PdfStandardSecurityHandler securityHandler)
     {
-        if (String.IsNullOrEmpty(text))
+        if (string.IsNullOrEmpty(text))
             return "()";
 
         byte[] bytes;
@@ -216,7 +213,7 @@ internal static class PdfEncoders
     /// </summary>
     public static string ToHexStringLiteral(string text, PdfStringEncoding encoding, PdfStandardSecurityHandler securityHandler)
     {
-        if (String.IsNullOrEmpty(text))
+        if (string.IsNullOrEmpty(text))
             return "<>";
 
         byte[] bytes;
@@ -379,7 +376,7 @@ internal static class PdfEncoders
                 // The mark is part of the bytes now, so count from the text that follows it
                 // and the lines break where they always did.
                 var positionInText = idx - byteOrderMarkLength;
-                if (positionInText != 0 && (positionInText % 48) == 0)
+                if (positionInText != 0 && positionInText % 48 == 0)
                     pdf.Append('\n');
             }
             pdf.Append('>');
@@ -393,7 +390,7 @@ internal static class PdfEncoders
     /// </summary>
     public static string Format(string format, params object[] args)
     {
-        return String.Format(CultureInfo.InvariantCulture, format, args);
+        return string.Format(CultureInfo.InvariantCulture, format, args);
     }
 
     /// <summary>
@@ -418,15 +415,14 @@ internal static class PdfEncoders
         switch (colorMode)
         {
             case PdfColorMode.Cmyk:
-                return String.Format(CultureInfo.InvariantCulture, "{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "}",
+                return string.Format(CultureInfo.InvariantCulture, "{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "}",
                     color.C, color.M, color.Y, color.K);
 
             default:
             {
-                if (withAlpha)
-                    return String.Format(CultureInfo.InvariantCulture, "{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "}", color.R / 255.0, color.G / 255.0, color.B / 255.0, color.A);
-                return String.Format(CultureInfo.InvariantCulture, "{0:" + format + "} {1:" + format + "} {2:" + format + "}", color.R / 255.0, color.G / 255.0, color.B / 255.0);
-
+                return withAlpha
+                    ? string.Format(CultureInfo.InvariantCulture, "{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "}", color.R / 255.0, color.G / 255.0, color.B / 255.0, color.A)
+                    : string.Format(CultureInfo.InvariantCulture, "{0:" + format + "} {1:" + format + "} {2:" + format + "}", color.R / 255.0, color.G / 255.0, color.B / 255.0);
             }
         }
     }
@@ -437,7 +433,7 @@ internal static class PdfEncoders
     public static string ToString(XMatrix matrix)
     {
         const string format = Config.SignificantFigures4;
-        return String.Format(CultureInfo.InvariantCulture,
+        return string.Format(CultureInfo.InvariantCulture,
             "{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format + "} {5:" + format + "}",
             matrix.M11, matrix.M12, matrix.M21, matrix.M22, matrix.OffsetX, matrix.OffsetY);
     }

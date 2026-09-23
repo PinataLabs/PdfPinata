@@ -202,14 +202,14 @@ public sealed class XFont
     /// <summary>
     /// Gets the PDF options of the font.
     /// </summary>
-    public XPdfFontOptions PdfOptions => _pdfOptions ?? (_pdfOptions = new XPdfFontOptions());
+    public XPdfFontOptions PdfOptions => _pdfOptions ??= new XPdfFontOptions();
 
     private XPdfFontOptions _pdfOptions;
 
     /// <summary>
     /// Indicates whether this XFont is encoded as Unicode.
     /// </summary>
-    internal bool Unicode => _pdfOptions != null && _pdfOptions.FontEncoding == PdfFontEncoding.Unicode;
+    internal bool Unicode => _pdfOptions is { FontEncoding: PdfFontEncoding.Unicode };
 
     /// <summary>
     /// Gets the cell space for the font. The CellSpace is the line spacing, the sum of CellAscent and CellDescent and optionally some extra space.
@@ -346,5 +346,5 @@ public sealed class XFont
     /// Gets the DebuggerDisplayAttribute text.
     /// </summary>
     // ReSharper disable UnusedMember.Local
-    private string DebuggerDisplay => String.Format(CultureInfo.InvariantCulture, "font=('{0}' {1:0.##})", Name, Size); // ReSharper restore UnusedMember.Local
+    private string DebuggerDisplay => string.Format(CultureInfo.InvariantCulture, "font=('{0}' {1:0.##})", Name, Size); // ReSharper restore UnusedMember.Local
 }

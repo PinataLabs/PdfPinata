@@ -73,7 +73,7 @@ public class DocumentObject
   /// <summary>
   /// Gets the parent object.
   /// </summary>
-  public DocumentObject Parent => this.parent;
+  public DocumentObject Parent => parent;
 
   /// <summary>
   /// 

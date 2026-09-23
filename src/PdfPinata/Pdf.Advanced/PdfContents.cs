@@ -58,7 +58,7 @@ public sealed class PdfContents : PdfArray
             // Convert the references from PdfDictionary to PdfContent
             var item = Elements[idx];
             var iref = item as PdfReference;
-            if (iref != null && iref.Value is PdfDictionary)
+            if (iref is { Value: PdfDictionary })
             {
                 // Called for its side effect: the constructor replaces the dictionary behind the
                 // reference with the PdfContent it builds.
@@ -154,44 +154,44 @@ public sealed class PdfContents : PdfArray
 
     private void SetModified()
     {
-        if (!_modified)
-        {
-            _modified = true;
-            var count = Elements.Count;
+        if (_modified)
+            return;
 
-            if (count == 1)
+        _modified = true;
+        var count = Elements.Count;
+
+        if (count == 1)
+        {
+            var content = (PdfContent)((PdfReference)Elements[0]).Value;
+            content.PreserveGraphicsState();
+        }
+        else if (count > 1)
+        {
+            // Surround content streams with q/Q operations
+            byte[] value;
+            int length;
+            var content = (PdfContent)((PdfReference)Elements[0]).Value;
+            if (content is { Stream: not null })
             {
-                var content = (PdfContent)((PdfReference)Elements[0]).Value;
-                content.PreserveGraphicsState();
+                length = content.Stream.Length;
+                value = new byte[length + 2];
+                value[0] = (byte)'q';
+                value[1] = (byte)'\n';
+                Array.Copy(content.Stream.Value, 0, value, 2, length);
+                content.Stream.Value = value;
+                content.Elements.SetInteger("/Length", length + 2);
             }
-            else if (count > 1)
+            content = (PdfContent)((PdfReference)Elements[count - 1]).Value;
+            if (content is { Stream: not null })
             {
-                // Surround content streams with q/Q operations
-                byte[] value;
-                int length;
-                var content = (PdfContent)((PdfReference)Elements[0]).Value;
-                if (content != null && content.Stream != null)
-                {
-                    length = content.Stream.Length;
-                    value = new byte[length + 2];
-                    value[0] = (byte)'q';
-                    value[1] = (byte)'\n';
-                    Array.Copy(content.Stream.Value, 0, value, 2, length);
-                    content.Stream.Value = value;
-                    content.Elements.SetInteger("/Length", length + 2);
-                }
-                content = (PdfContent)((PdfReference)Elements[count - 1]).Value;
-                if (content != null && content.Stream != null)
-                {
-                    length = content.Stream.Length;
-                    value = new byte[length + 3];
-                    Array.Copy(content.Stream.Value, 0, value, 0, length);
-                    value[length] = (byte)' ';
-                    value[length + 1] = (byte)'Q';
-                    value[length + 2] = (byte)'\n';
-                    content.Stream.Value = value;
-                    content.Elements.SetInteger("/Length", length + 3);
-                }
+                length = content.Stream.Length;
+                value = new byte[length + 3];
+                Array.Copy(content.Stream.Value, 0, value, 0, length);
+                value[length] = (byte)' ';
+                value[length + 1] = (byte)'Q';
+                value[length + 2] = (byte)'\n';
+                content.Stream.Value = value;
+                content.Elements.SetInteger("/Length", length + 3);
             }
         }
     }

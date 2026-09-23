@@ -104,14 +104,14 @@ internal static class DataMatrixEncoder
     /// </summary>
     private static byte Randomize253(byte codeword, int position)
     {
-        var pseudoRandom = ((149 * position) % 253) + 1;
+        var pseudoRandom = 149 * position % 253 + 1;
         var value = codeword + pseudoRandom;
         return (byte)(value <= 254 ? value : value - 254);
     }
 
     private static bool IsDigit(char ch)
     {
-        return ch >= '0' && ch <= '9';
+        return ch is >= '0' and <= '9';
     }
 
     /// <summary>

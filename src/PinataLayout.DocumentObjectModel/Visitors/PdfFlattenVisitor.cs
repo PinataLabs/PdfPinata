@@ -53,7 +53,10 @@ public class PdfFlattenVisitor : VisitorBase
     for (var idx = 0; idx < elements.Count; ++idx)
     {
       var paragraph = elements[idx] as Paragraph;
-      var paragraphs = paragraph?.SplitOnParaBreak();
+      if (paragraph == null)
+        continue;
+
+      var paragraphs = paragraph.SplitOnParaBreak();
       if (paragraphs != null)
         splitParaList.Add(idx, paragraphs);
     }
@@ -95,62 +98,62 @@ public class PdfFlattenVisitor : VisitorBase
       // ReSharper disable once PossibleNullReferenceException
       indices[idx] = (int)textIndices[idx];
     // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-    if (indices != null)
+    if (indices == null)
+      return;
+
+    var insertedObjects = 0;
+    foreach (var idx in indices)
     {
-      var insertedObjects = 0;
-      foreach (var idx in indices)
+      var text = (Text)elements[idx + insertedObjects];
+      var currentString = "";
+      foreach (var ch in text.Content)
       {
-        var text = (Text)elements[idx + insertedObjects];
-        var currentString = "";
-        foreach (var ch in text.Content)
+        switch (ch)
         {
-          switch (ch)
-          {
-            case ' ':
-            case '\r':
-            case '\n':
-            case '\t':
-              if (currentString != "")
-              {
-                elements.InsertObject(idx + insertedObjects, new Text(currentString));
-                ++insertedObjects;
-                currentString = "";
-              }
-              elements.InsertObject(idx + insertedObjects, new Text(" "));
-              ++insertedObjects;
-              break;
-
-            case Chars.ZeroWidthSpace:
-            case '-': //minus
-              elements.InsertObject(idx + insertedObjects, new Text(currentString + ch));
+          case ' ':
+          case '\r':
+          case '\n':
+          case '\t':
+            if (currentString != "")
+            {
+              elements.InsertObject(idx + insertedObjects, new Text(currentString));
               ++insertedObjects;
               currentString = "";
-              break;
+            }
+            elements.InsertObject(idx + insertedObjects, new Text(" "));
+            ++insertedObjects;
+            break;
 
-            case Chars.SoftHyphen: //soft hyphen
-              if (currentString != "")
-              {
-                elements.InsertObject(idx + insertedObjects, new Text(currentString));
-                ++insertedObjects;
-              }
-              elements.InsertObject(idx + insertedObjects, new Text(new string(Chars.SoftHyphen, 1)));
+          case Chars.ZeroWidthSpace:
+          case '-': //minus
+            elements.InsertObject(idx + insertedObjects, new Text(currentString + ch));
+            ++insertedObjects;
+            currentString = "";
+            break;
+
+          case Chars.SoftHyphen: //soft hyphen
+            if (currentString != "")
+            {
+              elements.InsertObject(idx + insertedObjects, new Text(currentString));
               ++insertedObjects;
-              currentString = "";
-              break;
+            }
+            elements.InsertObject(idx + insertedObjects, new Text(new string(Chars.SoftHyphen, 1)));
+            ++insertedObjects;
+            currentString = "";
+            break;
 
-            default:
-              currentString += ch;
-              break;
-          }
+          default:
+            currentString += ch;
+            break;
         }
-        if (currentString != "")
-        {
-          elements.InsertObject(idx + insertedObjects, new Text(currentString));
-          ++insertedObjects;
-        }
-        elements.RemoveObjectAt(idx + insertedObjects);
-        --insertedObjects;
       }
+      if (currentString != "")
+      {
+        elements.InsertObject(idx + insertedObjects, new Text(currentString));
+        ++insertedObjects;
+      }
+      elements.RemoveObjectAt(idx + insertedObjects);
+      --insertedObjects;
     }
   }
 
@@ -159,7 +162,7 @@ public class PdfFlattenVisitor : VisitorBase
     var document = formattedText.Document;
     ParagraphFormat format = null;
 
-    var style = document.styles[(formattedText.style ?? "")];
+    var style = document.styles[formattedText.style ?? ""];
     if (style != null)
       format = style.paragraphFormat;
     else if ((formattedText.style ?? "") != "")

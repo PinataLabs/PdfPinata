@@ -120,7 +120,9 @@ internal static class PdfResourceDeduplicator
                             dictionary.Elements[key] = replacement;
                     }
                     else if (value is PdfDictionary or PdfArray)
+                    {
                         Redirect(value, replacements, depth + 1);
+                    }
                 }
                 break;
 
@@ -134,7 +136,9 @@ internal static class PdfResourceDeduplicator
                             array.Elements[i] = replacement;
                     }
                     else if (value is PdfDictionary or PdfArray)
+                    {
                         Redirect(value, replacements, depth + 1);
+                    }
                 }
                 break;
         }
@@ -215,11 +219,11 @@ internal static class PdfResourceDeduplicator
 
             foreach (var category in ResourceCategories)
             {
-                if (Resolve(resources.Elements[category]) is PdfDictionary entries)
-                {
-                    foreach (var entry in entries.Elements.Values)
-                        AddItem(entry, 0);
-                }
+                if (Resolve(resources.Elements[category]) is not PdfDictionary entries)
+                    continue;
+
+                foreach (var entry in entries.Elements.Values)
+                    AddItem(entry, 0);
             }
         }
 

@@ -57,7 +57,7 @@ internal abstract class PiePlotAreaRenderer : PlotAreaRenderer
   /// </summary>
   internal override void Draw()
   {
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
     var plotAreaRect = cri.PlotAreaRendererInfo.Rect;
     if (HasNoRoom(plotAreaRect))
       return;
@@ -65,7 +65,7 @@ internal abstract class PiePlotAreaRenderer : PlotAreaRenderer
     if (cri.SeriesRendererInfos.Length == 0)
       return;
 
-    var gfx = this.rendererParms.Graphics;
+    var gfx = rendererParms.Graphics;
     var state = gfx.Save();
 
     // Draw sectors.

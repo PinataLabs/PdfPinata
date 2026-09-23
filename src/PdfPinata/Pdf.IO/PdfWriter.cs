@@ -420,7 +420,7 @@ internal class PdfWriter
 
     public void WriteRaw(string rawString)
     {
-        if (String.IsNullOrEmpty(rawString))
+        if (string.IsNullOrEmpty(rawString))
             return;
 
         var bytes = PdfEncoders.RawEncoding.GetBytes(rawString);
@@ -492,9 +492,7 @@ internal class PdfWriter
     {
         if (Lexer.IsDelimiter(ch))
             return CharCat.Delimiter;
-        if (ch == Chars.LF)
-            return CharCat.NewLine;
-        return CharCat.Character;
+        return ch == Chars.LF ? CharCat.NewLine : CharCat.Character;
     }
 
     private enum CharCat

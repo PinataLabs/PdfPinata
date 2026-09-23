@@ -334,7 +334,7 @@ public sealed class PdfString : PdfItem
 
     private static void CheckRawEncoding(string s)
     {
-        if (String.IsNullOrEmpty(s))
+        if (string.IsNullOrEmpty(s))
             return;
 
         var length = s.Length;

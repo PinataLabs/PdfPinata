@@ -64,8 +64,7 @@ internal class PageBreakRenderer : Renderer
 
   internal override void Format(Area area, FormatInfo previousFormatInfo)
   {
-    var pbRenderInfo = new PageBreakRenderInfo();
-    pbRenderInfo.pageBreakFormatInfo = new PageBreakFormatInfo();
+    var pbRenderInfo = new PageBreakRenderInfo { pageBreakFormatInfo = new PageBreakFormatInfo() };
     renderInfo = pbRenderInfo;
 
     pbRenderInfo.LayoutInfo.PageBreakBefore = true;
@@ -82,8 +81,7 @@ internal class PageBreakRenderer : Renderer
   {
     get
     {
-      var layoutInfo = new LayoutInfo();
-      layoutInfo.PageBreakBefore = true;
+      var layoutInfo = new LayoutInfo { PageBreakBefore = true };
       return layoutInfo;
     }
   }

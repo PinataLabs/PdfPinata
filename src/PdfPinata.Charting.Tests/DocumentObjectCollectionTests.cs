@@ -63,8 +63,7 @@ public class DocumentObjectCollectionTests
     [Fact]
     public void ABlankTakesItsPlaceAsANull()
     {
-        var elements = new XSeriesElements();
-        elements.Add("A");
+        var elements = new XSeriesElements { "A" };
         elements.AddBlank();
         var after = elements.Add("C");
 
@@ -91,8 +90,7 @@ public class DocumentObjectCollectionTests
     [Fact]
     public void IndexOfAnElementNotInTheCollectionIsMinusOne()
     {
-        var elements = new XSeriesElements();
-        elements.Add("A");
+        var elements = new XSeriesElements { "A" };
 
         elements.IndexOf(new XValue("A")).Should().Be(-1, "the search is by identity, not by value");
     }
@@ -113,8 +111,7 @@ public class DocumentObjectCollectionTests
     [Fact]
     public void ClearingEmptiesTheCollection()
     {
-        var elements = new XSeriesElements();
-        elements.Add("A", "B", "C");
+        var elements = new XSeriesElements { "A", "B", "C" };
 
         elements.Clear();
 
@@ -125,8 +122,7 @@ public class DocumentObjectCollectionTests
     [Fact]
     public void TheIndexerReplacesAnElementInPlace()
     {
-        var elements = new XSeriesElements();
-        elements.Add("A", "B");
+        var elements = new XSeriesElements { "A", "B" };
         var replacement = new XValue("Z");
 
         elements[1] = replacement;
@@ -188,8 +184,7 @@ public class DocumentObjectCollectionTests
     [Fact]
     public void TheIndexerMakesTheCollectionTheParentOfTheElementSet()
     {
-        var elements = new XSeriesElements();
-        elements.Add("A", "B");
+        var elements = new XSeriesElements { "A", "B" };
         var replacement = new XValue("Z");
 
         elements[1] = replacement;
@@ -200,8 +195,7 @@ public class DocumentObjectCollectionTests
     [Fact]
     public void TheIListIndexerMakesTheCollectionTheParentOfTheElementSet()
     {
-        var elements = new XSeriesElements();
-        elements.Add("A");
+        var elements = new XSeriesElements { "A" };
         IList list = elements;
         var replacement = new XValue("Z");
 
@@ -213,8 +207,7 @@ public class DocumentObjectCollectionTests
     [Fact]
     public void TheIndexerCanSetABlank()
     {
-        var elements = new XSeriesElements();
-        elements.Add("A", "B");
+        var elements = new XSeriesElements { "A", "B" };
 
         elements[0] = null;
 
@@ -225,8 +218,7 @@ public class DocumentObjectCollectionTests
     [Fact]
     public void InsertingMakesTheCollectionTheParentOfTheElement()
     {
-        var elements = new XSeriesElements();
-        elements.Add("A");
+        var elements = new XSeriesElements { "A" };
         var inserted = new XValue("B");
 
         elements.InsertObject(0, inserted);
@@ -239,8 +231,7 @@ public class DocumentObjectCollectionTests
     [Fact]
     public void IListAddAppendsTheElementAndAnswersItsIndex()
     {
-        var elements = new XSeriesElements();
-        elements.Add("A");
+        var elements = new XSeriesElements { "A" };
         IList list = elements;
         var added = new XValue("B");
 
@@ -310,8 +301,7 @@ public class DocumentObjectCollectionTests
     [Fact]
     public void IListSearchesAreByIdentity()
     {
-        var elements = new XSeriesElements();
-        elements.Add("A");
+        var elements = new XSeriesElements { "A" };
         var b = elements.Add("B");
         IList list = elements;
 
@@ -324,8 +314,7 @@ public class DocumentObjectCollectionTests
     [Fact]
     public void IListSearchesFindABlankAndNeverFindSomethingElse()
     {
-        var elements = new XSeriesElements();
-        elements.Add("A");
+        var elements = new XSeriesElements { "A" };
         elements.AddBlank();
         IList list = elements;
 
@@ -338,8 +327,7 @@ public class DocumentObjectCollectionTests
     [Fact]
     public void IListRefusesToStoreSomethingThatIsNotADocumentObject()
     {
-        var elements = new XSeriesElements();
-        elements.Add("A");
+        var elements = new XSeriesElements { "A" };
         IList list = elements;
 
         var add = () => list.Add("B");
@@ -499,8 +487,7 @@ public class DocumentObjectCollectionTests
     [Fact]
     public void ACloneIsTheParentOfEveryElementItCopied()
     {
-        var elements = new XSeriesElements();
-        elements.Add("A", "B");
+        var elements = new XSeriesElements { "A", "B" };
 
         var copy = elements.Clone();
 

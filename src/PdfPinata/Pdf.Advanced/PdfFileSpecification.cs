@@ -62,9 +62,7 @@ public class PdfFileSpecification : PdfDictionary
         // before it was set, and those written by other libraries, have only /F.
         get
         {
-            if (Elements.TryGetString(Keys.UF, out var unicodeName))
-                return unicodeName;
-            return Elements.GetString(Keys.F);
+            return Elements.TryGetString(Keys.UF, out var unicodeName) ? unicodeName : Elements.GetString(Keys.F);
         }
         // A file specification string is not a text string: it stays one byte per character,
         // and it is /UF that holds the name for readers that want more than ASCII.
@@ -270,8 +268,7 @@ public class PdfFileSpecification : PdfDictionary
         {
             get
             {
-                if (meta == null)
-                    meta = CreateMeta(typeof(Keys));
+                meta ??= CreateMeta(typeof(Keys));
                 return meta;
             }
         }

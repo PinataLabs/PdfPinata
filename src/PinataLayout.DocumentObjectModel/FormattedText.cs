@@ -436,8 +436,7 @@ public partial class FormattedText : DocumentObject, IVisitable
     {
         get
         {
-            if (font == null)
-                font = new Font(this);
+            font ??= new Font(this);
 
             return font;
         }
@@ -550,8 +549,7 @@ public partial class FormattedText : DocumentObject, IVisitable
     {
         get
         {
-            if (elements == null)
-                elements = new ParagraphElements(this);
+            elements ??= new ParagraphElements(this);
 
             return elements;
         }

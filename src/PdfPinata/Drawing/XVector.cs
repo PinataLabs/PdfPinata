@@ -81,10 +81,8 @@ public struct XVector : IFormattable
     public static bool Equals(XVector vector1, XVector vector2)
     {
         #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
-        if (vector1.X.Equals(vector2.X))
-            return vector1.Y.Equals(vector2.Y);
+        return vector1.X.Equals(vector2.X) && vector1.Y.Equals(vector2.Y);
         #pragma warning restore S1244
-        return false;
     }
 
     /// <summary>
@@ -92,9 +90,7 @@ public struct XVector : IFormattable
     /// </summary>
     public override bool Equals(object o)
     {
-        if (!(o is XVector))
-            return false;
-        return Equals(this, (XVector)o);
+        return o is XVector vector && Equals(this, vector);
     }
 
     /// <summary>
@@ -173,7 +169,7 @@ public struct XVector : IFormattable
     internal string ConvertToString(string format, IFormatProvider provider)
     {
         const char numericListSeparator = ',';
-        provider = provider ?? CultureInfo.InvariantCulture;
+        provider ??= CultureInfo.InvariantCulture;
         // ReSharper disable once FormatStringProblem
         return string.Format(provider, "{1:" + format + "}{0}{2:" + format + "}", numericListSeparator, _x, _y);
     }
@@ -212,7 +208,7 @@ public struct XVector : IFormattable
     {
         var y = vector1._x * vector2._y - vector2._x * vector1._y;
         var x = vector1._x * vector2._x + vector1._y * vector2._y;
-        return (Math.Atan2(y, x) * 57.295779513082323);
+        return Math.Atan2(y, x) * 57.295779513082323;
     }
 
     /// <summary>

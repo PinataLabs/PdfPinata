@@ -130,9 +130,13 @@ public sealed class PdfListBoxField : PdfChoiceField
                 texts[idx] = ValueInOptArray(indices[idx]);
 
             if (indices.Length == 0)
+            {
                 Elements.Remove(PdfAcroField.Keys.V);
+            }
             else if (indices.Length == 1)
+            {
                 Elements.SetString(PdfAcroField.Keys.V, texts[0]);
+            }
             else
             {
                 var values = new PdfArray(Owner);
@@ -162,7 +166,7 @@ public sealed class PdfListBoxField : PdfChoiceField
     {
         // List boxes have no additional entries.
 
-        internal static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
+        internal static DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
         private static DictionaryMeta _meta;
     }

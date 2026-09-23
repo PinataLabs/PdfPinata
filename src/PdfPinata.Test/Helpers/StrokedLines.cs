@@ -200,19 +200,17 @@ internal static class StrokedLines
         if (item is PdfReference reference)
             item = reference.Value;
 
-        if (item is PdfArray streams)
-        {
-            // The streams of a page are one stream broken up, and a token may span the break.
-            var joined = new List<byte>();
-            for (var idx = 0; idx < streams.Elements.Count; idx++)
-            {
-                joined.AddRange(streams.Elements.GetDictionary(idx).Stream.UnfilteredValue);
-                joined.Add((byte)'\n');
-            }
-            return [..joined];
-        }
+        if (item is not PdfArray streams)
+            return ((PdfDictionary)item).Stream.UnfilteredValue;
 
-        return ((PdfDictionary)item).Stream.UnfilteredValue;
+        // The streams of a page are one stream broken up, and a token may span the break.
+        var joined = new List<byte>();
+        for (var idx = 0; idx < streams.Elements.Count; idx++)
+        {
+            joined.AddRange(streams.Elements.GetDictionary(idx).Stream.UnfilteredValue);
+            joined.Add((byte)'\n');
+        }
+        return [..joined];
     }
 
     /// <summary>A colour as this reports one: the three components, comma separated.</summary>

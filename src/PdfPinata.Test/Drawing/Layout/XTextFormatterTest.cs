@@ -227,7 +227,7 @@ public class XTextFormatterTest
     }
 
     private static TextFormatAlignment Justified =>
-        new TextFormatAlignment { Horizontal = XParagraphAlignment.Justify, Vertical = XVerticalAlignment.Top };
+        new() { Horizontal = XParagraphAlignment.Justify, Vertical = XVerticalAlignment.Top };
 
     /// <summary>
     ///   Gets the distance between the first two shown lines. The Y axis of the PDF user space

@@ -51,7 +51,7 @@ public sealed class PdfGenericField : PdfAcroField
     /// </summary>
     public new class Keys : PdfAcroField.Keys
     {
-        internal static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
+        internal static DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
         private static DictionaryMeta _meta;
     }

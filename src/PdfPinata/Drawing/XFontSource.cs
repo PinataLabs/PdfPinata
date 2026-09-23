@@ -163,5 +163,5 @@ internal class XFontSource
     /// </summary>
     // ReSha rper disable UnusedMember.Local
     // The key is converted to a value a human can remember during debugging.
-    internal string DebuggerDisplay => String.Format(CultureInfo.InvariantCulture, "XFontSource: '{0}', keyhash={1}", FontName, Key % 99991 /* largest prime number less than 100000 */); // ReShar per restore UnusedMember.Local
+    internal string DebuggerDisplay => string.Format(CultureInfo.InvariantCulture, "XFontSource: '{0}', keyhash={1}", FontName, Key % 99991 /* largest prime number less than 100000 */); // ReShar per restore UnusedMember.Local
 }

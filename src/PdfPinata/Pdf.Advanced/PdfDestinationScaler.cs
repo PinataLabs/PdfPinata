@@ -106,7 +106,7 @@ static class PdfDestinationScaler
     private sealed class Sweep
     {
         private readonly Dictionary<PdfObjectID, XMatrix> _matrices;
-        private readonly HashSet<PdfArray> _done = new HashSet<PdfArray>(ByIdentity.Instance);
+        private readonly HashSet<PdfArray> _done = new(ByIdentity.Instance);
 
         internal Sweep(Dictionary<PdfObjectID, XMatrix> matrices)
         {
@@ -167,11 +167,11 @@ static class PdfDestinationScaler
             }
 
             var kids = node.Elements.GetArray("/Kids");
-            if (kids != null)
-            {
-                for (var index = 0; index < kids.Elements.Count; index++)
-                    VisitNameTree(kids.Elements.GetDictionary(index), depth + 1);
-            }
+            if (kids == null)
+                return;
+
+            for (var index = 0; index < kids.Elements.Count; index++)
+                VisitNameTree(kids.Elements.GetDictionary(index), depth + 1);
         }
 
         /// <summary>
@@ -416,7 +416,7 @@ static class PdfDestinationScaler
     /// </summary>
     private sealed class ByIdentity : IEqualityComparer<PdfArray>
     {
-        internal static readonly ByIdentity Instance = new ByIdentity();
+        internal static readonly ByIdentity Instance = new();
 
         public bool Equals(PdfArray x, PdfArray y)
         {

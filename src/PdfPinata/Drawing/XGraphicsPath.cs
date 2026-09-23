@@ -405,8 +405,7 @@ public sealed class XGraphicsPath
 
         ArgumentNullException.ThrowIfNull(family);
 
-        if (format == null)
-            format = XStringFormats.Default;
+        format ??= XStringFormats.Default;
 
         // A BaseLine line alignment puts the baseline on the rectangle's top edge and ignores the
         // height, exactly as XGraphics.DrawString does. The two guards were separate code saying

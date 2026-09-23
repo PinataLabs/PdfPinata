@@ -75,9 +75,7 @@ internal class GraphicsStateStack
     {
         get
         {
-            if (_stack.Count == 0)
-                return _current;
-            return _stack.Peek();
+            return _stack.Count == 0 ? _current : _stack.Peek();
         }
     }
 

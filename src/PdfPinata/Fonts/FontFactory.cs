@@ -270,7 +270,7 @@ internal static class FontFactory
         count = fontSourceKeys.Count;
         var ulKeys = new ulong[count];
         fontSourceKeys.CopyTo(ulKeys, 0);
-        Array.Sort(ulKeys, (x, y) => x == y ? 0 : (x > y ? 1 : -1));
+        Array.Sort(ulKeys, (x, y) => x == y ? 0 : x > y ? 1 : -1);
         foreach (var ul in ulKeys)
             state.AppendFormat("  {0}: {1}\n", ul, FontSourcesByKey[ul].DebuggerDisplay);
         var fontSourceNames = FontSourcesByName.Keys;

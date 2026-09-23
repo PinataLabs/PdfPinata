@@ -67,10 +67,10 @@ public class MD5ManagedTest
     {
         using var md5 = CreateMD5Managed();
 
-        md5.ComputeHash(Encoding.ASCII.GetBytes("message digest"));
+        md5.ComputeHash("message digest"u8.ToArray());
         md5.Initialize();
 
-        ToHex(md5.ComputeHash(Encoding.ASCII.GetBytes("abc"))).Should().Be("900150983cd24fb0d6963f7d28e17f72");
+        ToHex(md5.ComputeHash("abc"u8.ToArray())).Should().Be("900150983cd24fb0d6963f7d28e17f72");
     }
 
     private static string ToHex(byte[] hash)

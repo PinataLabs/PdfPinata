@@ -128,7 +128,7 @@ public static class DdlEncoder
   /// </summary>
   internal static bool IsDdeIdentifier(string name)
   {
-    if (name == null || name == String.Empty)
+    if (name == null || name == string.Empty)
       return false;
 
     var len = name.Length;
@@ -143,12 +143,12 @@ public static class DdlEncoder
 
       if (index == 0)
       {
-        if (!Char.IsLetter(ch) && ch != '_')
+        if (!char.IsLetter(ch) && ch != '_')
           return false;
       }
       else
       {
-        if (!Char.IsLetterOrDigit(ch) && ch != '_')
+        if (!char.IsLetterOrDigit(ch) && ch != '_')
           return false;
       }
     }

@@ -384,39 +384,39 @@ internal sealed class PdfGraphicsState : ICloneable
             if (renderingMode != 0)
                 throw new InvalidOperationException("Rendering modes other than 0 can only be used with solid color brushes.");
 
-            if (brush is XBaseGradientBrush gradientBrush)
+            if (brush is not XBaseGradientBrush gradientBrush)
+                return;
+
+            Debug.Assert(UnrealizedCtm.IsIdentity, "Must realize ctm first.");
+            var matrix = _renderer.DefaultViewMatrix;
+            matrix.Prepend(EffectiveCtm);
+            var pattern = new PdfShadingPattern(_renderer.Owner);
+            pattern.SetupFromBrush(gradientBrush, matrix, _renderer);
+            var name = _renderer.Resources.AddPattern(pattern);
+
+            // A shading carries colour and no alpha, so a gradient between translucent
+            // colours is painted under a mask built from the same geometry. A gradient whose
+            // colours are both opaque takes this branch and writes nothing.
+            RealizeGradientSoftMask(PdfGradientSoftMask.ForBrush(gradientBrush, matrix, _renderer));
+
+            if (isForPen)
             {
-                Debug.Assert(UnrealizedCtm.IsIdentity, "Must realize ctm first.");
-                var matrix = _renderer.DefaultViewMatrix;
-                matrix.Prepend(EffectiveCtm);
-                var pattern = new PdfShadingPattern(_renderer.Owner);
-                pattern.SetupFromBrush(gradientBrush, matrix, _renderer);
-                var name = _renderer.Resources.AddPattern(pattern);
-
-                // A shading carries colour and no alpha, so a gradient between translucent
-                // colours is painted under a mask built from the same geometry. A gradient whose
-                // colours are both opaque takes this branch and writes nothing.
-                RealizeGradientSoftMask(PdfGradientSoftMask.ForBrush(gradientBrush, matrix, _renderer));
-
-                if (isForPen)
-                {
-                    _renderer.AppendFormatString("/Pattern CS\n", name);
-                    _renderer.AppendFormatString("{0} SCN\n", name);
-                }
-                else
-                {
-                    _renderer.AppendFormatString("/Pattern cs\n", name);
-                    _renderer.AppendFormatString("{0} scn\n", name);
-                }
-                // Invalidate fill color.
-                _realizedFillColor = null;
-
-                // "SCN" replaced the *stroking* colour space, which the line above does not record
-                // - so the pen path says so separately. RealizePen reaches this method only for a
-                // pattern pen, and sets the flag back to false for every other kind.
-                if (isForPen)
-                    _realizedStrokePattern = true;
+                _renderer.AppendFormatString("/Pattern CS\n", name);
+                _renderer.AppendFormatString("{0} SCN\n", name);
             }
+            else
+            {
+                _renderer.AppendFormatString("/Pattern cs\n", name);
+                _renderer.AppendFormatString("{0} scn\n", name);
+            }
+            // Invalidate fill color.
+            _realizedFillColor = null;
+
+            // "SCN" replaced the *stroking* colour space, which the line above does not record
+            // - so the pen path says so separately. RealizePen reaches this method only for a
+            // pattern pen, and sets the flag back to false for every other kind.
+            if (isForPen)
+                _realizedStrokePattern = true;
         }
     }
 
@@ -551,7 +551,7 @@ internal sealed class PdfGraphicsState : ICloneable
     #region Text
 
     internal PdfFont RealizedFont;
-    private string _realizedFontName = String.Empty;
+    private string _realizedFontName = string.Empty;
     private double _realizedFontSize;
     private int _realizedRenderingMode;  // Reference: TABLE 5.2  Text state operators / Page 398
     private double _realizedCharSpace;  // Reference: TABLE 5.2  Text state operators / Page 398
@@ -676,13 +676,13 @@ internal sealed class PdfGraphicsState : ICloneable
         RealizedFont = null;
         var fontName = _renderer.GetFontName(font, out RealizedFont);
         #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
-        if (fontName != _realizedFontName || _realizedFontSize != font.Size)
+        if (fontName == _realizedFontName && _realizedFontSize == font.Size)
         #pragma warning restore S1244
-        {
-            _renderer.AppendFormatFont("{0} {1:" + numberFormat + "} Tf\n", fontName, font.Size);
-            _realizedFontName = fontName;
-            _realizedFontSize = font.Size;
-        }
+            return;
+
+        _renderer.AppendFormatFont("{0} {1:" + numberFormat + "} Tf\n", fontName, font.Size);
+        _realizedFontName = fontName;
+        _realizedFontSize = font.Size;
     }
 
     public XPoint RealizedTextPosition;
@@ -748,23 +748,23 @@ internal sealed class PdfGraphicsState : ICloneable
     /// </summary>
     public void RealizeCtm()
     {
-        if (!UnrealizedCtm.IsIdentity)
-        {
-            Debug.Assert(!UnrealizedCtm.IsIdentity, "mrCtm is unnecessarily set.");
+        if (UnrealizedCtm.IsIdentity)
+            return;
 
-            const string format = Config.SignificantFigures7;
+        Debug.Assert(!UnrealizedCtm.IsIdentity, "mrCtm is unnecessarily set.");
 
-            var matrix = UnrealizedCtm.GetElements();
-            // Use up to six decimal digits to prevent round up problems.
-            _renderer.AppendFormatArgs("{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format + "} {5:" + format + "} cm\n",
-                matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5]);
+        const string format = Config.SignificantFigures7;
 
-            RealizedCtm.Prepend(UnrealizedCtm);
-            UnrealizedCtm = new XMatrix();
-            EffectiveCtm = RealizedCtm;
-            InverseEffectiveCtm = EffectiveCtm;
-            InverseEffectiveCtm.Invert();
-        }
+        var matrix = UnrealizedCtm.GetElements();
+        // Use up to six decimal digits to prevent round up problems.
+        _renderer.AppendFormatArgs("{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format + "} {5:" + format + "} cm\n",
+            matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5]);
+
+        RealizedCtm.Prepend(UnrealizedCtm);
+        UnrealizedCtm = new XMatrix();
+        EffectiveCtm = RealizedCtm;
+        InverseEffectiveCtm = EffectiveCtm;
+        InverseEffectiveCtm.Invert();
     }
     #endregion
 

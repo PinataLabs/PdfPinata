@@ -98,7 +98,7 @@ public sealed class PdfPopupAnnotation : PdfAnnotation
         [KeyInfo(KeyType.Boolean | KeyType.Optional)]
         public const string Open = "/Open";
 
-        public static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
+        public static DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
         private static DictionaryMeta _meta;
     }

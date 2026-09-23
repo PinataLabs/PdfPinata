@@ -185,8 +185,7 @@ public class PageResizeAnnotationTests
         appearance.Elements.SetRectangle("/BBox", new PdfRectangle(new XPoint(0, 0), new XPoint(200, 200)));
         appearance.Elements.SetMatrix("/Matrix", XMatrix.Identity);
 
-        var normal = new PdfDictionary();
-        normal.Elements["/N"] = appearance;
+        var normal = new PdfDictionary { Elements = { ["/N"] = appearance } };
         annotation.Elements["/AP"] = normal;
 
         var document = DocumentWithAnAnnotation(annotation);

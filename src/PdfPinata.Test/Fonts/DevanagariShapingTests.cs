@@ -67,7 +67,7 @@ public class DevanagariShapingTests
         return shaper.Shape(text.AsSpan(), Face(), XTextDirection.LeftToRight, "deva", null);
     }
 
-    private static XFont Font() => new XFont(PinnedFontResolver.DevanagariFamilyName, 20);
+    private static XFont Font() => new(PinnedFontResolver.DevanagariFamilyName, 20);
 
     private sealed class Shaping : IDisposable
     {

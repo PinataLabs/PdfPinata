@@ -49,7 +49,7 @@ internal class LineFormatRenderer
   {
     var clr = Colors.Black;
 
-    if (lineFormat != null && !lineFormat.Color.IsEmpty)
+    if (lineFormat is { Color.IsEmpty: false })
       clr = lineFormat.Color;
 
     return ColorHelper.ToXColor(clr, lineFormat?.Document?.UseCmykColor ?? false);
@@ -74,11 +74,11 @@ internal class LineFormatRenderer
   internal void Render(XUnit xPosition, XUnit yPosition, XUnit width, XUnit height)
   {
     var lineWidth = GetWidth();
-    if (lineWidth > 0)
-    {
-      var pen = GetPen(lineWidth);
-      gfx.DrawRectangle(pen, xPosition, yPosition, width, height);
-    }
+    if (lineWidth <= 0)
+      return;
+
+    var pen = GetPen(lineWidth);
+    gfx.DrawRectangle(pen, xPosition, yPosition, width, height);
   }
 
   private XPen GetPen(XUnit width)

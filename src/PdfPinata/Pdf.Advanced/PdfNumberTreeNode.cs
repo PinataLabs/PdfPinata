@@ -141,7 +141,7 @@ public sealed class PdfNumberTreeNode : PdfDictionary
     private static PdfItem Referenced(PdfItem value)
     {
         var obj = value as PdfObject;
-        if (obj != null && obj.Reference != null)
+        if (obj is { Reference: not null })
             return obj.Reference;
 
         return value;
@@ -181,11 +181,11 @@ public sealed class PdfNumberTreeNode : PdfDictionary
         }
 
         var kids = node.Elements.GetArray(Keys.Kids);
-        if (kids != null)
-        {
-            for (var at = 0; at < kids.Elements.Count; at++)
-                Read(kids.Elements.GetDictionary(at), seen, depth + 1);
-        }
+        if (kids == null)
+            return;
+
+        for (var at = 0; at < kids.Elements.Count; at++)
+            Read(kids.Elements.GetDictionary(at), seen, depth + 1);
     }
 
     private static bool TryGetInteger(PdfItem item, out int value)
@@ -246,9 +246,14 @@ public sealed class PdfNumberTreeNode : PdfDictionary
         for (var at = 0; at < keys.Count; at += NodeCapacity)
         {
             var length = Math.Min(NodeCapacity, keys.Count - at);
-            var leaf = new PdfDictionary(Owner);
-            leaf.Elements[Keys.Nums] = Nums(keys, at, length);
-            leaf.Elements[Keys.Limits] = Limits(keys[at], keys[at + length - 1]);
+            var leaf = new PdfDictionary(Owner)
+            {
+                Elements =
+                {
+                    [Keys.Nums] = Nums(keys, at, length),
+                    [Keys.Limits] = Limits(keys[at], keys[at + length - 1])
+                }
+            };
             Owner._irefTable.Add(leaf);
             level.Add(leaf);
         }
@@ -260,9 +265,14 @@ public sealed class PdfNumberTreeNode : PdfDictionary
             for (var at = 0; at < level.Count; at += NodeCapacity)
             {
                 var length = Math.Min(NodeCapacity, level.Count - at);
-                var branch = new PdfDictionary(Owner);
-                branch.Elements[Keys.Kids] = Kids(level, at, length);
-                branch.Elements[Keys.Limits] = Limits(LeastOf(level[at]), GreatestOf(level[at + length - 1]));
+                var branch = new PdfDictionary(Owner)
+                {
+                    Elements =
+                    {
+                        [Keys.Kids] = Kids(level, at, length),
+                        [Keys.Limits] = Limits(LeastOf(level[at]), GreatestOf(level[at + length - 1]))
+                    }
+                };
                 Owner._irefTable.Add(branch);
                 above.Add(branch);
             }
@@ -344,7 +354,7 @@ public sealed class PdfNumberTreeNode : PdfDictionary
         /// <summary>
         /// Gets the KeysMeta for these keys.
         /// </summary>
-        public static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
+        public static DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
         private static DictionaryMeta _meta;
     }

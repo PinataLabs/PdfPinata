@@ -148,7 +148,7 @@ public class CLexerTests
     {
         // The shape every tagged page is full of. Whatever else changes about scanning a dictionary,
         // this one has to come back the same or every marked-content sequence stops being readable.
-        var tokens = await ScanAll(new CLexer(Encoding.ASCII.GetBytes("/P <</MCID 0>> BDC")));
+        var tokens = await ScanAll(new CLexer("/P <</MCID 0>> BDC"u8.ToArray()));
 
         TokensOf(tokens, CSymbol.Dictionary).Should().Equal("<</MCID 0>>");
         TokensOf(tokens, CSymbol.Name).Should().Equal("/P");
@@ -200,7 +200,7 @@ public class CLexerTests
     [Fact(Timeout = 5000)]
     public async Task ScanHexadecimalString_isRecognisedByItsByteOrderMark()
     {
-        var tokens = await ScanAll(new CLexer(Encoding.ASCII.GetBytes("<FEFF00480049>")));
+        var tokens = await ScanAll(new CLexer("<FEFF00480049>"u8.ToArray()));
 
         TokensOf(tokens, CSymbol.UnicodeHexString).Should().Equal("HI");
     }
@@ -238,7 +238,7 @@ public class CLexerTests
     {
         // A lone CR is a line feed, and the one that ends the content has nothing to pair
         // with. It ends the operator rather than being scanned as part of it.
-        var tokens = await ScanAll(new CLexer(Encoding.ASCII.GetBytes("BT\r")));
+        var tokens = await ScanAll(new CLexer("BT\r"u8.ToArray()));
 
         tokens.Last().Should().Be((CSymbol.Operator, "BT"));
     }
@@ -294,7 +294,7 @@ public class CLexerTests
     [Fact(Timeout = 5000)]
     public async Task ScanLiteralString_joinsTheLinesABackslashContinues()
     {
-        var tokens = await ScanAll(new CLexer(Encoding.ASCII.GetBytes("(a\\\nb)")));
+        var tokens = await ScanAll(new CLexer("(a\\\nb)"u8.ToArray()));
 
         TokensOf(tokens, CSymbol.String).Should().Equal("ab");
     }
@@ -479,7 +479,7 @@ public class CLexerTests
     [Fact(Timeout = 5000)]
     public async Task ScanLiteralString_keepsABareCarriageReturnRatherThanFoldingIt()
     {
-        var content = new byte[] { (byte)'(', (byte)'a', 0x0D, (byte)'b', (byte)')' };
+        var content = "(a\rb)"u8.ToArray();
 
         var tokens = await ScanAll(new CLexer(content));
 
@@ -555,7 +555,7 @@ public class CLexerTests
     {
         // The operator the two are told apart from. A digit only joins a 'd' when it follows it
         // with nothing in between, which is never how setdash and its next operand are written.
-        var tokens = await ScanAll(new CLexer(Encoding.ASCII.GetBytes("[3 3] 0 d 0 0 m")));
+        var tokens = await ScanAll(new CLexer("[3 3] 0 d 0 0 m"u8.ToArray()));
 
         TokensOf(tokens, CSymbol.Operator).Should().Equal("d", "m");
     }

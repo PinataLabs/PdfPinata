@@ -31,8 +31,10 @@ internal static class DataMatrixModules
         {
             // One point to a module, drawn from the top left corner, so that the rectangles
             // in the content stream fall on whole numbers and map straight back to modules.
-            var code = new CodeDataMatrix(text, encoding, rows, columns, 0, new XSize(columns, rows));
-            code.Anchor = AnchorType.TopLeft;
+            var code = new CodeDataMatrix(text, encoding, rows, columns, 0, new XSize(columns, rows))
+            {
+                Anchor = AnchorType.TopLeft
+            };
             gfx.DrawMatrixCode(code, new XPoint(0, 0));
         }
 

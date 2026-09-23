@@ -47,7 +47,7 @@ public class Ascii85Decode : Filter
 
         var length = data.Length;  // length == 0 is must not be treated as a special case.
         var words = length / 4;
-        var rest = length - (words * 4);
+        var rest = length - words * 4;
         var result = new byte[words * 5 + (rest == 0 ? 0 : rest + 1) + 2];
 
         int idxIn = 0, idxOut = 0;
@@ -146,7 +146,7 @@ public class Ascii85Decode : Filter
         for (idx = 0; idx < length; idx++)
         {
             var ch = (char)data[idx];
-            if (ch >= '!' && ch <= 'u')
+            if (ch is >= '!' and <= 'u')
             {
                 data[idxOut++] = (byte)ch;
                 groupLength = (groupLength + 1) % 5;
@@ -178,7 +178,7 @@ public class Ascii85Decode : Filter
 
         length = idxOut;
         var nonZero = length - zCount;
-        var byteCount = 4 * (zCount + (nonZero / 5)); // full 4 byte blocks
+        var byteCount = 4 * (zCount + nonZero / 5); // full 4 byte blocks
 
         var remainder = nonZero % 5;
         if (remainder == 1)
@@ -217,7 +217,7 @@ public class Ascii85Decode : Filter
                 (uint)(data[idx++] - '!') * 85 +
                 (uint)(data[idx++] - '!');
 
-            if (value > UInt32.MaxValue)
+            if (value > uint.MaxValue)
                 throw new InvalidOperationException("Value of group greater than 2 power 32 - 1.");
 
             output[idxOut++] = (byte)(value >> 24);

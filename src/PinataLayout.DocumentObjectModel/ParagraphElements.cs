@@ -269,8 +269,7 @@ public partial class ParagraphElements : DocumentObjectCollection
     /// </summary>
     public Hyperlink AddHyperlink(string name)
     {
-        var hyperlink = new Hyperlink();
-        hyperlink.Name = name;
+        var hyperlink = new Hyperlink { Name = name };
         Add(hyperlink);
         return hyperlink;
     }
@@ -280,9 +279,11 @@ public partial class ParagraphElements : DocumentObjectCollection
     /// </summary>
     public Hyperlink AddHyperlink(string name, HyperlinkType type)
     {
-        var hyperlink = new Hyperlink();
-        hyperlink.Name = name;
-        hyperlink.Type = type;
+        var hyperlink = new Hyperlink
+        {
+            Name = name,
+            Type = type
+        };
         Add(hyperlink);
         return hyperlink;
     }
@@ -292,8 +293,7 @@ public partial class ParagraphElements : DocumentObjectCollection
     /// </summary>
     public BookmarkField AddBookmark(string name)
     {
-        var fieldBookmark = new BookmarkField();
-        fieldBookmark.Name = name;
+        var fieldBookmark = new BookmarkField { Name = name };
         Add(fieldBookmark);
         return fieldBookmark;
     }
@@ -313,8 +313,7 @@ public partial class ParagraphElements : DocumentObjectCollection
     /// </summary>
     public PageRefField AddPageRefField(string name)
     {
-        var fieldPageRef = new PageRefField();
-        fieldPageRef.Name = name;
+        var fieldPageRef = new PageRefField { Name = name };
         Add(fieldPageRef);
         return fieldPageRef;
     }
@@ -365,8 +364,7 @@ public partial class ParagraphElements : DocumentObjectCollection
     /// </summary>
     public DateField AddDateField(string format)
     {
-        var fieldDate = new DateField();
-        fieldDate.Format = format;
+        var fieldDate = new DateField { Format = format };
         Add(fieldDate);
         return fieldDate;
     }
@@ -376,8 +374,7 @@ public partial class ParagraphElements : DocumentObjectCollection
     /// </summary>
     public InfoField AddInfoField(InfoFieldType iType)
     {
-        var fieldInfo = new InfoField();
-        fieldInfo.Name = iType.ToString();
+        var fieldInfo = new InfoField { Name = iType.ToString() };
         Add(fieldInfo);
         return fieldInfo;
     }

@@ -46,9 +46,9 @@ public struct LeftPosition : INullableValue
   /// </summary>
   private LeftPosition(Unit value)
   {
-    this.shapePosition = ShapePosition.Undefined;
-    this.position = value;
-    this.notNull = !value.IsNull;
+    shapePosition = ShapePosition.Undefined;
+    position = value;
+    notNull = !value.IsNull;
   }
 
   /// <summary>
@@ -73,7 +73,7 @@ public struct LeftPosition : INullableValue
       throw new ArgumentException(AppResources.InvalidEnumForLeftPosition);
 
     shapePosition = newShapePosition;
-    this.position = Unit.NullValue;
+    position = Unit.NullValue;
   }
 
   /// <summary>
@@ -81,8 +81,8 @@ public struct LeftPosition : INullableValue
   /// </summary>
   private void SetFromUnit(Unit unit)
   {
-    this.shapePosition = ShapePosition.Undefined;
-    this.position = unit;
+    shapePosition = ShapePosition.Undefined;
+    position = unit;
   }
 
   /// <summary>
@@ -101,7 +101,7 @@ public struct LeftPosition : INullableValue
     else
       SetFromUnit(value.ToString());
 
-    this.notNull = true;
+    notNull = true;
   }
 
   /// <summary>
@@ -109,10 +109,10 @@ public struct LeftPosition : INullableValue
   /// </summary>
   object INullableValue.GetValue()
   {
-    if (this.shapePosition == ShapePosition.Undefined)
-      return this.position;
+    if (shapePosition == ShapePosition.Undefined)
+      return position;
 
-    return this.shapePosition;
+    return shapePosition;
   }
 
   /// <summary>
@@ -126,17 +126,17 @@ public struct LeftPosition : INullableValue
   /// <summary>
   /// Determines whether this instance is null (not set).
   /// </summary>
-  bool INullableValue.IsNull => !this.notNull;
+  bool INullableValue.IsNull => !notNull;
 
   /// <summary>
   /// Gets the value of the position in unit.
   /// </summary>
-  public Unit Position => this.position;
+  public Unit Position => position;
 
   /// <summary>
   /// Gets the value of the position.
   /// </summary>
-  public ShapePosition ShapePosition => this.shapePosition;
+  public ShapePosition ShapePosition => shapePosition;
 
   internal ShapePosition shapePosition;
   internal Unit position;
@@ -214,7 +214,7 @@ public struct LeftPosition : INullableValue
       throw new ArgumentNullException(nameof(value));
 
     var ch = value[0];
-    if (ch == '+' || ch == '-' || Char.IsNumber(ch))
+    if (ch == '+' || ch == '-' || char.IsNumber(ch))
       return Unit.Parse(value);
     return Enum.Parse<ShapePosition>(value, true);
   }
@@ -225,15 +225,15 @@ public struct LeftPosition : INullableValue
   /// </summary>
   internal void Serialize(Serializer serializer)
   {
-    if (this.shapePosition == ShapePosition.Undefined)
-      serializer.WriteSimpleAttribute("Left", this.Position);
+    if (shapePosition == ShapePosition.Undefined)
+      serializer.WriteSimpleAttribute("Left", Position);
     else
-      serializer.WriteSimpleAttribute("Left", this.ShapePosition);
+      serializer.WriteSimpleAttribute("Left", ShapePosition);
   }
   #endregion
 
   /// <summary>
   /// Returns the unitialized LeftPosition object.
   /// </summary>
-  internal static readonly LeftPosition NullValue = new LeftPosition();
+  internal static readonly LeftPosition NullValue = new();
 }

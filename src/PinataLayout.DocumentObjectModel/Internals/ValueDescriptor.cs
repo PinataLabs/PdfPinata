@@ -157,7 +157,7 @@ public sealed class ValueDescriptor
       case ValueKind.NullableValue:
       {
         var value = getter(dom);
-        if (value is INullableValue nullable && nullable.IsNull && flags == GV.GetNull)
+        if (value is INullableValue { IsNull: true } && flags == GV.GetNull)
           return null;
         return value;
       }
@@ -239,7 +239,7 @@ public sealed class ValueDescriptor
         return getter(dom) == null;
 
       case ValueKind.NullableValue:
-        return getter(dom) is INullableValue nullable && nullable.IsNull;
+        return getter(dom) is INullableValue { IsNull: true };
 
       case ValueKind.PlainValue:
         return false;

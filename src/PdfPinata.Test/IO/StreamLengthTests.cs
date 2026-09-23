@@ -96,7 +96,7 @@ public class StreamLengthTests
         // CreateStream writes /Length; the Stream setter used to write nothing, so a dictionary
         // given its stream that way reached the writer with no /Length at all. A Debug.Assert in
         // the writer was the only thing saying so, and a Release build has none.
-        var data = Encoding.ASCII.GetBytes("a stream with no /Length of its own");
+        var data = "a stream with no /Length of its own"u8.ToArray();
 
         var bytes = SavedWith(document =>
         {
@@ -114,8 +114,8 @@ public class StreamLengthTests
     {
         // A stream keeps /Length current only in the dictionary that owns it. Shared with a second
         // one and then given longer data, it left the second declaring the old length.
-        var before = Encoding.ASCII.GetBytes("short");
-        var after = Encoding.ASCII.GetBytes("considerably longer than it was when it was shared");
+        var before = "short"u8.ToArray();
+        var after = "considerably longer than it was when it was shared"u8.ToArray();
 
         var bytes = SavedWith(document =>
         {
@@ -135,8 +135,8 @@ public class StreamLengthTests
     {
         // PdfStream.Clone answers a stream belonging to no dictionary, and assigning its Value then
         // threw a NullReferenceException looking for one to write /Length into.
-        var data = Encoding.ASCII.GetBytes("copied");
-        var replaced = Encoding.ASCII.GetBytes("copied, then replaced");
+        var data = "copied"u8.ToArray();
+        var replaced = "copied, then replaced"u8.ToArray();
 
         var bytes = SavedWith(document =>
         {
@@ -154,7 +154,7 @@ public class StreamLengthTests
     [Fact]
     public void AStreamWhoseLengthEntryWasRemovedIsWrittenWithOneAgain()
     {
-        var data = Encoding.ASCII.GetBytes("its /Length taken away by hand");
+        var data = "its /Length taken away by hand"u8.ToArray();
 
         var bytes = SavedWith(document =>
         {
@@ -178,7 +178,7 @@ public class StreamLengthTests
         // sound only while the cipher keeps the length, which RC4 — the only one this library
         // writes with — does; this pins that the count and the bytes still agree.
         const string password = "owner";
-        var data = Encoding.ASCII.GetBytes("encrypted on the way out, and not a byte longer for it");
+        var data = "encrypted on the way out, and not a byte longer for it"u8.ToArray();
 
         var bytes = SavedWith(document =>
         {

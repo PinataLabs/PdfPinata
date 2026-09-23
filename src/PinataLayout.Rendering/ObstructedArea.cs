@@ -37,13 +37,13 @@ internal class ObstructedArea : Area
         _bounds = bounds ?? throw new ArgumentNullException(nameof(bounds));
         _obstacles = [];
 
-        if (obstacles != null)
+        if (obstacles == null)
+            return;
+
+        foreach (var obstacle in obstacles)
         {
-            foreach (var obstacle in obstacles)
-            {
-                if (obstacle != null)
-                    _obstacles.Add(new Rectangle(obstacle));
-            }
+            if (obstacle != null)
+                _obstacles.Add(new Rectangle(obstacle));
         }
     }
 

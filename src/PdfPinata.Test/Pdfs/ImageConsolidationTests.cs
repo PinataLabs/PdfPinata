@@ -43,8 +43,7 @@ public class ImageConsolidationTests
         for (var i = 0; i < images.Length; i++)
             xObjects.Elements["/Im" + i] = images[i].Reference;
 
-        var resources = new PdfDictionary(document);
-        resources.Elements["/XObject"] = xObjects;
+        var resources = new PdfDictionary(document) { Elements = { ["/XObject"] = xObjects } };
         page.Elements["/Resources"] = resources;
         return page;
     }

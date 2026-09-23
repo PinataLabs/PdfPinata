@@ -102,7 +102,7 @@ public sealed class AnsiEncoding : Encoding
     /// </summary>
     public static bool IsAnsi1252Char(char ch)
     {
-        if (ch < '\u0080' || (ch >= '\u00A0' && ch <= '\u00FF'))
+        if (ch is < '\u0080' or (>= '\u00A0' and <= '\u00FF'))
             return true;
 
         switch (ch)
@@ -149,7 +149,7 @@ public sealed class AnsiEncoding : Encoding
     /// </summary>
     public static char UnicodeToAnsi(char ch)
     {
-        if (ch < '\u0080' || (ch >= '\u00A0' && ch <= '\u00FF'))
+        if (ch is < '\u0080' or (>= '\u00A0' and <= '\u00FF'))
             return ch;
 
         switch (ch)

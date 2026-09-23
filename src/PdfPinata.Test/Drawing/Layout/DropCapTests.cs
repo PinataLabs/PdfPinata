@@ -47,7 +47,7 @@ public class DropCapTests
         "business looks distinctly laboured and not at all the effortless bound the saying has " +
         "always promised its readers it would turn out to be on closer inspection.";
 
-    private static readonly XRect Area = new XRect(40, 40, 300, 300);
+    private static readonly XRect Area = new(40, 40, 300, 300);
 
     /// <summary>The glyph a space is in the face the tests are pinned to.</summary>
     private const int SpaceGlyph = 3;
@@ -311,7 +311,7 @@ public class DropCapTests
     ///   nothing holds its width to the measure, so a deep cap in a narrow column can leave the
     ///   lines beside it no room at all.
     /// </summary>
-    private static readonly XRect NarrowerThanTheCap = new XRect(40, 40, 30, 300);
+    private static readonly XRect NarrowerThanTheCap = new(40, 40, 30, 300);
 
     [Fact]
     public void TextIsKeptInsideAColumnTooNarrowToSetAnythingBesideTheCap()

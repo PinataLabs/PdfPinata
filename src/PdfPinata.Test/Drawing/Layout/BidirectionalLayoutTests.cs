@@ -36,7 +36,7 @@ public class BidirectionalLayoutTests
     private const string Second = "\u05D2\u05D3";
     private const string Third = "\u05D4\u05D5";
 
-    private static XFont Font() => new XFont("Arial", 12);
+    private static XFont Font() => new("Arial", 12);
 
     private static (PdfPage Page, XTextFormatter Formatter, XGraphics Graphics) Sheet()
     {

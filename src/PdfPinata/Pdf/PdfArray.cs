@@ -99,16 +99,16 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
     protected override object Copy()
     {
         var array = (PdfArray)base.Copy();
-        if (array._elements != null)
+        if (array._elements == null)
+            return array;
+
+        array._elements = array._elements.Clone();
+        var count = array._elements.Count;
+        for (var idx = 0; idx < count; idx++)
         {
-            array._elements = array._elements.Clone();
-            var count = array._elements.Count;
-            for (var idx = 0; idx < count; idx++)
-            {
-                var item = array._elements[idx];
-                if (item is PdfObject)
-                    array._elements[idx] = item.Clone();
-            }
+            var item = array._elements[idx];
+            if (item is PdfObject)
+                array._elements[idx] = item.Clone();
         }
 
         return array;
@@ -117,7 +117,7 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
     /// <summary>
     /// Gets the collection containing the elements of this object.
     /// </summary>
-    public ArrayElements Elements => _elements ?? (_elements = new ArrayElements(this));
+    public ArrayElements Elements => _elements ??= new ArrayElements(this);
 
     /// <summary>
     /// Returns an enumerator that iterates through a collection.
@@ -605,6 +605,6 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
     /// </summary>
     // ReSharper disable UnusedMember.Local
     private string DebuggerDisplay =>
-        String.Format(CultureInfo.InvariantCulture, "array({0},[{1}])", ObjectID.DebuggerDisplay,
+        string.Format(CultureInfo.InvariantCulture, "array({0},[{1}])", ObjectID.DebuggerDisplay,
             _elements?.Count ?? 0); // ReSharper restore UnusedMember.Local
 }

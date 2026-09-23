@@ -58,8 +58,7 @@ public class ChartChildObjectTests
     [Fact]
     public void ACopyOfAChartChildCarriesTheValuesAndNotTheObjects()
     {
-        var axis = new Axis { MajorTick = 5 };
-        axis.TickLabels.Format = "0.00";
+        var axis = new Axis { MajorTick = 5, TickLabels = { Format = "0.00" } };
 
         var copy = axis.Clone();
 

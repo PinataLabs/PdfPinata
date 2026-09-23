@@ -378,8 +378,7 @@ internal sealed class OpenTypeFontface
         var fontData = new OpenTypeFontface(this);
 
         // Create new loca and glyf table
-        var locaNew = new IndexToLocationTable();
-        locaNew.ShortIndex = loca.ShortIndex;
+        var locaNew = new IndexToLocationTable { ShortIndex = loca.ShortIndex };
         var glyfNew = new GlyphDataTable();
 
         // Add all required tables
@@ -426,17 +425,17 @@ internal sealed class OpenTypeFontface
         for (var idx = 0; idx < numGlyphs; idx++)
         {
             locaNew.LocationTable[idx] = glyphOffset;
-            if (glyphIndex < glyphCount && glyphArray[glyphIndex] == idx)
-            {
-                glyphIndex++;
-                var bytes = glyf.GetGlyphData(idx);
-                var length = bytes.Length;
-                if (length > 0)
-                {
-                    Buffer.BlockCopy(bytes, 0, glyfNew.GlyphTable, glyphOffset, length);
-                    glyphOffset += length;
-                }
-            }
+            if (glyphIndex >= glyphCount || glyphArray[glyphIndex] != idx)
+                continue;
+
+            glyphIndex++;
+            var bytes = glyf.GetGlyphData(idx);
+            var length = bytes.Length;
+            if (length <= 0)
+                continue;
+
+            Buffer.BlockCopy(bytes, 0, glyfNew.GlyphTable, glyphOffset, length);
+            glyphOffset += length;
         }
         locaNew.LocationTable[numGlyphs] = glyphOffset;
 
@@ -499,12 +498,11 @@ internal sealed class OpenTypeFontface
 
     public int Seek(string tag)
     {
-        if (TableDictionary.TryGetValue(tag, out var entry))
-        {
-            _pos = entry.Offset;
-            return _pos;
-        }
-        return -1;
+        if (!TableDictionary.TryGetValue(tag, out var entry))
+            return -1;
+
+        _pos = entry.Offset;
+        return _pos;
     }
 
     public int SeekOffset(int offset)
@@ -528,7 +526,7 @@ internal sealed class OpenTypeFontface
     {
         var pos = _pos;
         _pos += 2;
-        return (short)((_fontSource.Bytes[pos] << 8) | (_fontSource.Bytes[pos + 1]));
+        return (short)((_fontSource.Bytes[pos] << 8) | _fontSource.Bytes[pos + 1]);
     }
 
     /// <summary>
@@ -538,7 +536,7 @@ internal sealed class OpenTypeFontface
     {
         var pos = _pos;
         _pos += 2;
-        return (ushort)((_fontSource.Bytes[pos] << 8) | (_fontSource.Bytes[pos + 1]));
+        return (ushort)((_fontSource.Bytes[pos] << 8) | _fontSource.Bytes[pos + 1]);
     }
 
     /// <summary>
@@ -548,7 +546,7 @@ internal sealed class OpenTypeFontface
     {
         var pos = _pos;
         _pos += 4;
-        return (_fontSource.Bytes[pos] << 24) | (_fontSource.Bytes[pos + 1] << 16) | (_fontSource.Bytes[pos + 2] << 8) | (_fontSource.Bytes[pos + 3]);
+        return (_fontSource.Bytes[pos] << 24) | (_fontSource.Bytes[pos + 1] << 16) | (_fontSource.Bytes[pos + 2] << 8) | _fontSource.Bytes[pos + 3];
     }
 
     /// <summary>
@@ -558,7 +556,7 @@ internal sealed class OpenTypeFontface
     {
         var pos = _pos;
         _pos += 4;
-        return (uint)((_fontSource.Bytes[pos] << 24) | (_fontSource.Bytes[pos + 1] << 16) | (_fontSource.Bytes[pos + 2] << 8) | (_fontSource.Bytes[pos + 3]));
+        return (uint)((_fontSource.Bytes[pos] << 24) | (_fontSource.Bytes[pos + 1] << 16) | (_fontSource.Bytes[pos + 2] << 8) | _fontSource.Bytes[pos + 3]);
     }
 
     /// <summary>
@@ -568,7 +566,7 @@ internal sealed class OpenTypeFontface
     {
         var pos = _pos;
         _pos += 4;
-        return (_fontSource.Bytes[pos] << 24) | (_fontSource.Bytes[pos + 1] << 16) | (_fontSource.Bytes[pos + 2] << 8) | (_fontSource.Bytes[pos + 3]);
+        return (_fontSource.Bytes[pos] << 24) | (_fontSource.Bytes[pos + 1] << 16) | (_fontSource.Bytes[pos + 2] << 8) | _fontSource.Bytes[pos + 3];
     }
 
     /// <summary>
@@ -578,7 +576,7 @@ internal sealed class OpenTypeFontface
     {
         var pos = _pos;
         _pos += 2;
-        return (short)((_fontSource.Bytes[pos] << 8) | (_fontSource.Bytes[pos + 1]));
+        return (short)((_fontSource.Bytes[pos] << 8) | _fontSource.Bytes[pos + 1]);
     }
 
     /// <summary>
@@ -588,7 +586,7 @@ internal sealed class OpenTypeFontface
     {
         var pos = _pos;
         _pos += 2;
-        return (ushort)((_fontSource.Bytes[pos] << 8) | (_fontSource.Bytes[pos + 1]));
+        return (ushort)((_fontSource.Bytes[pos] << 8) | _fontSource.Bytes[pos + 1]);
     }
 
     /// <summary>
@@ -599,8 +597,8 @@ internal sealed class OpenTypeFontface
         var pos = _pos;
         _pos += 8;
         var bytes = _fontSource.Bytes;
-        return (((long)bytes[pos]) << 56) | (((long)bytes[pos + 1]) << 48) | (((long)bytes[pos + 2]) << 40) | (((long)bytes[pos + 3]) << 32) |
-               (((long)bytes[pos + 4]) << 24) | (((long)bytes[pos + 5]) << 16) | (((long)bytes[pos + 6]) << 8) | bytes[pos + 7];
+        return ((long)bytes[pos] << 56) | ((long)bytes[pos + 1] << 48) | ((long)bytes[pos + 2] << 40) | ((long)bytes[pos + 3] << 32) |
+               ((long)bytes[pos + 4] << 24) | ((long)bytes[pos + 5] << 16) | ((long)bytes[pos + 6] << 8) | bytes[pos + 7];
     }
 
     /// <summary>

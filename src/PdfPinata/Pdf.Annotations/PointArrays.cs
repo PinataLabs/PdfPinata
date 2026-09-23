@@ -70,5 +70,5 @@ internal static class PointArrays
     /// down, as every <see cref="XGraphics"/> surface is. That flip is the whole of the conversion.
     /// </summary>
     public static XPoint IntoForm(XPoint point, PdfRectangle box) =>
-        new XPoint(point.X - box.X1, box.Y2 - point.Y);
+        new(point.X - box.X1, box.Y2 - point.Y);
 }

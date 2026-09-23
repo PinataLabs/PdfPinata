@@ -20,7 +20,7 @@ public class StrokedTextRenderingTests
     private const double PageWidth = 300;
     private const double PageHeight = 100;
 
-    private static XFont Font => new XFont("Arial", FontSize, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
+    private static XFont Font => new("Arial", FontSize, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
 
     private static PdfDocument PageShowing(XPen pen, XBrush brush)
     {
@@ -96,7 +96,7 @@ public class StrokedTextRenderingTests
         var red = pixels.Count(pixel =>
         {
             var colour = pixel.ToColor();
-            return colour != null && colour.R > 150 && colour.G < 100 && colour.B < 100;
+            return colour is { R: > 150, G: < 100, B: < 100 };
         });
 
         // The pen carries its own colour rather than borrowing the brush's - which is just as

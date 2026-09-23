@@ -433,8 +433,7 @@ public class AttachmentTests
             kids.Elements.Add(dests.Reference);
             dests.Elements.SetObject("/Kids", kids);
 
-            var names = new PdfDictionary(document);
-            names.Elements["/Dests"] = dests.Reference;
+            var names = new PdfDictionary(document) { Elements = { ["/Dests"] = dests.Reference } };
             document.Internals.Catalog.Elements["/Names"] = names;
 
             // A link naming a destination the tree does not hold is what sends the search all the way
@@ -570,11 +569,12 @@ public class AttachmentTests
     /// </summary>
     private static PdfFileSpecification AttachToAnAnnotation(PdfDocument document)
     {
-        var embedded = new PdfEmbeddedFile(document, [.."attached"u8]);
-
-        // Set by hand, because building a specification by hand is what leaves it out — which is the
-        // whole reason PDF/A-3 is held to it here rather than trusted to have been thought about.
-        embedded.MimeType = "text/plain";
+        var embedded = new PdfEmbeddedFile(document, [.."attached"u8])
+        {
+            // Set by hand, because building a specification by hand is what leaves it out — which is the
+            // whole reason PDF/A-3 is held to it here rather than trusted to have been thought about.
+            MimeType = "text/plain"
+        };
 
         var specification = new PdfFileSpecification(document, "attached.txt", embedded);
 

@@ -147,22 +147,22 @@ internal sealed class UnicodeDemo : PdfDemo
                         var descendants = font.Elements.GetArray("/DescendantFonts");
                         if (descendants != null && descendants.Elements.Count > 0)
                         {
-                            descriptor = (descendants.Elements.GetDictionary(0))
+                            descriptor = descendants.Elements.GetDictionary(0)
                                 ?.Elements.GetDictionary("/FontDescriptor");
                         }
                     }
 
-                    if (descriptor != null)
+                    if (descriptor == null)
+                        continue;
+
+                    foreach (var file in new[] { "/FontFile", "/FontFile2", "/FontFile3" })
                     {
-                        foreach (var file in new[] { "/FontFile", "/FontFile2", "/FontFile3" })
-                        {
-                            var embedded = descriptor.Elements.GetDictionary(file);
-                            if (embedded != null)
-                            {
-                                fontFile = file;
-                                length = embedded.Stream?.Length ?? 0;
-                            }
-                        }
+                        var embedded = descriptor.Elements.GetDictionary(file);
+                        if (embedded == null)
+                            continue;
+
+                        fontFile = file;
+                        length = embedded.Stream?.Length ?? 0;
                     }
                 }
             }

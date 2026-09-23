@@ -71,15 +71,14 @@ public partial class Shape : DocumentObject
   {
     get
     {
-      if (this.wrapFormat == null)
-        this.wrapFormat = new WrapFormat(this);
+      wrapFormat ??= new WrapFormat(this);
 
-      return this.wrapFormat;
+      return wrapFormat;
     }
     set
     {
       SetParent(value);
-      this.wrapFormat = value;
+      wrapFormat = value;
     }
   }
   [DV]
@@ -90,8 +89,8 @@ public partial class Shape : DocumentObject
   /// </summary>
   public RelativeVertical RelativeVertical
   {
-    get => this.relativeVertical ?? default;
-    set => this.relativeVertical = EnumGuard.Checked(value);
+    get => relativeVertical ?? default;
+    set => relativeVertical = EnumGuard.Checked(value);
   }
   [DV]
   internal RelativeVertical? relativeVertical;
@@ -101,8 +100,8 @@ public partial class Shape : DocumentObject
   /// </summary>
   public RelativeHorizontal RelativeHorizontal
   {
-    get => this.relativeHorizontal ?? default;
-    set => this.relativeHorizontal = EnumGuard.Checked(value);
+    get => relativeHorizontal ?? default;
+    set => relativeHorizontal = EnumGuard.Checked(value);
   }
   [DV]
   internal RelativeHorizontal? relativeHorizontal;
@@ -112,8 +111,8 @@ public partial class Shape : DocumentObject
   /// </summary>
   public TopPosition Top
   {
-    get => this.top;
-    set => this.top = value;
+    get => top;
+    set => top = value;
   }
   [DV]
   internal TopPosition top = TopPosition.NullValue;
@@ -123,8 +122,8 @@ public partial class Shape : DocumentObject
   /// </summary>
   public LeftPosition Left
   {
-    get => this.left;
-    set => this.left = value;
+    get => left;
+    set => left = value;
   }
   [DV]
   internal LeftPosition left = LeftPosition.NullValue;
@@ -136,15 +135,14 @@ public partial class Shape : DocumentObject
   {
     get
     {
-      if (this.lineFormat == null)
-        this.lineFormat = new LineFormat(this);
+      lineFormat ??= new LineFormat(this);
 
-      return this.lineFormat;
+      return lineFormat;
     }
     set
     {
       SetParent(value);
-      this.lineFormat = value;
+      lineFormat = value;
     }
   }
   [DV]
@@ -157,15 +155,14 @@ public partial class Shape : DocumentObject
   {
     get
     {
-      if (this.fillFormat == null)
-        this.fillFormat = new FillFormat(this);
+      fillFormat ??= new FillFormat(this);
 
-      return this.fillFormat;
+      return fillFormat;
     }
     set
     {
       SetParent(value);
-      this.fillFormat = value;
+      fillFormat = value;
     }
   }
   [DV]
@@ -176,8 +173,8 @@ public partial class Shape : DocumentObject
   /// </summary>
   public Unit Height
   {
-    get => this.height;
-    set => this.height = value;
+    get => height;
+    set => height = value;
   }
   [DV]
   internal Unit height = Unit.NullValue;
@@ -187,8 +184,8 @@ public partial class Shape : DocumentObject
   /// </summary>
   public Unit Width
   {
-    get => this.width;
-    set => this.width = value;
+    get => width;
+    set => width = value;
   }
   [DV]
   internal Unit width = Unit.NullValue;
@@ -216,8 +213,8 @@ public partial class Shape : DocumentObject
   /// </remarks>
   public string AlternativeText
   {
-    get => this.alternativeText ?? "";
-    set => this.alternativeText = value;
+    get => alternativeText ?? "";
+    set => alternativeText = value;
   }
   [DV]
   internal string alternativeText;
@@ -229,26 +226,26 @@ public partial class Shape : DocumentObject
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    if (!this.height.IsNull)
-      serializer.WriteSimpleAttribute("Height", this.Height);
-    if (!this.width.IsNull)
-      serializer.WriteSimpleAttribute("Width", this.Width);
-    if (this.relativeHorizontal != null)
-      serializer.WriteSimpleAttribute("RelativeHorizontal", this.RelativeHorizontal);
-    if (this.relativeVertical != null)
-      serializer.WriteSimpleAttribute("RelativeVertical", this.RelativeVertical);
-    if (this.alternativeText != null)
-      serializer.WriteSimpleAttribute("AlternativeText", this.AlternativeText);
-    if (!this.IsNull("Left"))
-      this.left.Serialize(serializer);
-    if (!this.IsNull("Top"))
-      this.top.Serialize(serializer);
-    if (!this.IsNull("WrapFormat"))
-      this.wrapFormat.Serialize(serializer);
-    if (!this.IsNull("LineFormat"))
-      this.lineFormat.Serialize(serializer);
-    if (!this.IsNull("FillFormat"))
-      this.fillFormat.Serialize(serializer);
+    if (!height.IsNull)
+      serializer.WriteSimpleAttribute("Height", Height);
+    if (!width.IsNull)
+      serializer.WriteSimpleAttribute("Width", Width);
+    if (relativeHorizontal != null)
+      serializer.WriteSimpleAttribute("RelativeHorizontal", RelativeHorizontal);
+    if (relativeVertical != null)
+      serializer.WriteSimpleAttribute("RelativeVertical", RelativeVertical);
+    if (alternativeText != null)
+      serializer.WriteSimpleAttribute("AlternativeText", AlternativeText);
+    if (!IsNull("Left"))
+      left.Serialize(serializer);
+    if (!IsNull("Top"))
+      top.Serialize(serializer);
+    if (!IsNull("WrapFormat"))
+      wrapFormat.Serialize(serializer);
+    if (!IsNull("LineFormat"))
+      lineFormat.Serialize(serializer);
+    if (!IsNull("FillFormat"))
+      fillFormat.Serialize(serializer);
   }
 
   #endregion

@@ -9,7 +9,7 @@ internal abstract class EncryptorBase
     /// The MD5 implementation the standard security handler is built on. It is created on
     /// first use, because revision 5 and 6 encryption does not need it at all.
     /// </summary>
-    protected MD5Managed md5 => md5Instance ?? (md5Instance = new MD5Managed());
+    protected MD5Managed md5 => md5Instance ??= new MD5Managed();
     private MD5Managed md5Instance;
 
     /// <summary>
@@ -131,7 +131,9 @@ internal abstract class EncryptorBase
     {
         var padded = new byte[32];
         if (password == null)
+        {
             Array.Copy(passwordPadding, 0, padded, 0, 32);
+        }
         else
         {
             var length = password.Length;

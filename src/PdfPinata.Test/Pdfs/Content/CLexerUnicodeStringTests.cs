@@ -145,7 +145,7 @@ public class CLexerUnicodeStringTests
     {
         var content = Concat(
             BigEndianString(Concat(Wide('a'), Wide('\\'), [(byte)'\n'], Wide('b'))),
-            Encoding.ASCII.GetBytes(" Tj"));
+            " Tj"u8.ToArray());
 
         var tokens = await Interruptibly.Run(() =>
         {

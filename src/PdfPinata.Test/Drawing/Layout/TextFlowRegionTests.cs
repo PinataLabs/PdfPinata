@@ -19,8 +19,8 @@ public class TextFlowRegionTests
 {
     private const double Tolerance = 0.001;
 
-    private static readonly XRect Block = new XRect(0, 0, 100, 200);
-    private static readonly FlowBand Band = new FlowBand(100, 112);
+    private static readonly XRect Block = new(0, 0, 100, 200);
+    private static readonly FlowBand Band = new(100, 112);
 
     private static (double Start, double End)[] RoomIn(TextFlowRegion region, FlowBand? band = null)
     {

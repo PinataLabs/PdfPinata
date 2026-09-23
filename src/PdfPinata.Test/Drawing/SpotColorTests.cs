@@ -389,7 +389,7 @@ public class SpotColorTests
     private static byte[] CmykProfile()
     {
         var profile = new byte[128];
-        Encoding.ASCII.GetBytes("CMYK").CopyTo(profile, 16);
+        "CMYK"u8.CopyTo(profile.AsSpan(16));
         return profile;
     }
 

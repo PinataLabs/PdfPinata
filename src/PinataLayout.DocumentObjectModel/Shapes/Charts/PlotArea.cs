@@ -70,8 +70,7 @@ public partial class PlotArea : ChartObject
   {
     get
     {
-      if (lineFormat == null)
-        lineFormat = new LineFormat(this);
+      lineFormat ??= new LineFormat(this);
 
       return lineFormat;
     }
@@ -91,8 +90,7 @@ public partial class PlotArea : ChartObject
   {
     get
     {
-      if (fillFormat == null)
-        fillFormat = new FillFormat(this);
+      fillFormat ??= new FillFormat(this);
 
       return fillFormat;
     }

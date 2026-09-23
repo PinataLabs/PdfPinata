@@ -108,10 +108,7 @@ public static class PdfSignatures
     private static byte[] ContentsOf(PdfDictionary value)
     {
         var contents = value.Elements["/Contents"] as PdfString;
-        if (contents == null)
-            return [];
-
-        return PdfEncoders.RawEncoding.GetBytes(contents.Value);
+        return contents == null ? [] : PdfEncoders.RawEncoding.GetBytes(contents.Value);
     }
 
     private static DateTime? SigningTimeOf(PdfDictionary value)
@@ -153,7 +150,7 @@ public static class PdfSignatures
         return 0;
     }
 
-    private static string NullIfEmpty(string value) => String.IsNullOrEmpty(value) ? null : value;
+    private static string NullIfEmpty(string value) => string.IsNullOrEmpty(value) ? null : value;
 
     /// <summary>
     /// The document's own certification level, read from <c>/Perms/DocMDP</c> — the signature, if

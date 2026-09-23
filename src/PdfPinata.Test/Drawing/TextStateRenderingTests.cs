@@ -31,8 +31,8 @@ public class TextStateRenderingTests
     /// <summary>Rasterization is at 300 dpi, and PDF measures in 72nds of an inch.</summary>
     private const double PixelsPerPoint = 300.0 / 72.0;
 
-    private static XFont WinAnsiFont => new XFont("Arial", FontSize, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
-    private static XFont UnicodeFont => new XFont("Arial", FontSize, XFontStyle.Regular, XPdfFontOptions.UnicodeDefault);
+    private static XFont WinAnsiFont => new("Arial", FontSize, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
+    private static XFont UnicodeFont => new("Arial", FontSize, XFontStyle.Regular, XPdfFontOptions.UnicodeDefault);
 
     /// <summary>
     ///   Every inked pixel of the page, as (x, y) in pixels from the top left.

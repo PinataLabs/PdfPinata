@@ -98,14 +98,13 @@ public class FlateDecode : Filter
         while (cbRead > 0);
         iis.Close();
         msOutput.Flush();
-        if (msOutput.Length >= 0)
-        {
-            // No parameters at all is not an error: it is what DecodeToString passes, and it says
-            // the same thing as parameters with no predictor in them.
-            if (parms?.DecodeParms != null)
-                return StreamDecoder.Decode(msOutput.ToArray(), parms.DecodeParms);
-            return msOutput.ToArray();
-        }
-        return null;
+        if (msOutput.Length < 0)
+            return null;
+
+        // No parameters at all is not an error: it is what DecodeToString passes, and it says
+        // the same thing as parameters with no predictor in them.
+        return parms?.DecodeParms != null
+            ? StreamDecoder.Decode(msOutput.ToArray(), parms.DecodeParms)
+            : msOutput.ToArray();
     }
 }

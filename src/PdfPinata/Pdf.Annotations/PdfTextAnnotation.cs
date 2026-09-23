@@ -137,7 +137,7 @@ public sealed class PdfTextAnnotation : PdfMarkupAnnotation
         [KeyInfo(KeyType.TextString | KeyType.Optional)]
         public const string StateModel = "/StateModel";
 
-        public static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
+        public static DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
         private static DictionaryMeta _meta;
     }

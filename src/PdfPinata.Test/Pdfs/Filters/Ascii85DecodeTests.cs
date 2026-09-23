@@ -199,7 +199,7 @@ public class Ascii85DecodeTests
     [Fact]
     public void NothingButATildeIsRejected()
     {
-        Action decode = () => Decode(Encoding.ASCII.GetBytes("~"));
+        Action decode = () => Decode("~"u8.ToArray());
 
         decode.Should().Throw<ArgumentException>();
     }
@@ -211,7 +211,7 @@ public class Ascii85DecodeTests
     [Fact]
     public void AGroupOfOneCharacterIsRejected()
     {
-        Action decode = () => Decode(Encoding.ASCII.GetBytes("87cUR!~>"));
+        Action decode = () => Decode("87cUR!~>"u8.ToArray());
 
         decode.Should().Throw<InvalidOperationException>();
     }
@@ -223,7 +223,7 @@ public class Ascii85DecodeTests
     [Fact]
     public void AGroupTooLargeForFourBytesIsRejected()
     {
-        Action decode = () => Decode(Encoding.ASCII.GetBytes("uuuuu~>"));
+        Action decode = () => Decode("uuuuu~>"u8.ToArray());
 
         decode.Should().Throw<InvalidOperationException>();
     }

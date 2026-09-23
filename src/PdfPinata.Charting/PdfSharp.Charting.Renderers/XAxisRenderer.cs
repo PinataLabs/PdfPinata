@@ -47,7 +47,7 @@ internal abstract class XAxisRenderer : AxisRenderer
   internal XAxisRenderer(RendererParameters parms, AxisOrientation orientation)
     : base(parms)
   {
-    this.isHorizontal = orientation == AxisOrientation.Horizontal;
+    isHorizontal = orientation == AxisOrientation.Horizontal;
   }
 
   /// <summary>
@@ -69,10 +69,9 @@ internal abstract class XAxisRenderer : AxisRenderer
   /// </summary>
   internal override RendererInfo Init()
   {
-    var chart = (Chart)this.rendererParms.DrawingItem;
+    var chart = (Chart)rendererParms.DrawingItem;
 
-    var xari = new AxisRendererInfo();
-    xari.Axis = chart.xAxis;
+    var xari = new AxisRendererInfo { Axis = chart.xAxis };
 
     // Outside the test below, as the Y axis renderers calculate their scale outside theirs. The
     // scale is what the plot area divides its own width by, so a chart that was never asked for an
@@ -81,31 +80,31 @@ internal abstract class XAxisRenderer : AxisRenderer
     // labelling, not the scale.
     CalculateXAxisValues(chart, xari);
 
-    if (xari.Axis != null)
-    {
-      var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    if (xari.Axis == null)
+      return xari;
 
-      // The two orientations used to call these in different orders. The horizontal one needed
-      // its own order, because InitXValues formats the default category labels with
-      // TickLabelsFormat, which InitTickLabels sets; the vertical one formats them with the
-      // invariant culture instead and so never depended on the order it was called in. Each is
-      // kept exactly as it was rather than merged into one, since only the tick-mark pens are
-      // this merge's intended behaviour change - see docs/specs/axis-renderer-duplication.md.
-      if (isHorizontal)
-      {
-        InitTickLabels(xari, cri.DefaultFont, cri.DefaultFontColor);
-        InitXValues(xari);
-        InitAxisTitle(xari, cri.DefaultFont, cri.DefaultFontColor);
-      }
-      else
-      {
-        InitXValues(xari);
-        InitAxisTitle(xari, cri.DefaultFont, cri.DefaultFontColor);
-        InitTickLabels(xari, cri.DefaultFont, cri.DefaultFontColor);
-      }
-      InitAxisLineFormat(xari);
-      InitGridlines(xari);
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
+
+    // The two orientations used to call these in different orders. The horizontal one needed
+    // its own order, because InitXValues formats the default category labels with
+    // TickLabelsFormat, which InitTickLabels sets; the vertical one formats them with the
+    // invariant culture instead and so never depended on the order it was called in. Each is
+    // kept exactly as it was rather than merged into one, since only the tick-mark pens are
+    // this merge's intended behaviour change - see docs/specs/axis-renderer-duplication.md.
+    if (isHorizontal)
+    {
+      InitTickLabels(xari, cri.DefaultFont, cri.DefaultFontColor);
+      InitXValues(xari);
+      InitAxisTitle(xari, cri.DefaultFont, cri.DefaultFontColor);
     }
+    else
+    {
+      InitXValues(xari);
+      InitAxisTitle(xari, cri.DefaultFont, cri.DefaultFontColor);
+      InitTickLabels(xari, cri.DefaultFont, cri.DefaultFontColor);
+    }
+    InitAxisLineFormat(xari);
+    InitGridlines(xari);
     return xari;
   }
 
@@ -114,73 +113,75 @@ internal abstract class XAxisRenderer : AxisRenderer
   /// </summary>
   internal override void Format()
   {
-    var xari = ((ChartRendererInfo)this.rendererParms.RendererInfo).XAxisRendererInfo;
-    if (xari.Axis != null)
+    var xari = ((ChartRendererInfo)rendererParms.RendererInfo).XAxisRendererInfo;
+    if (xari.Axis == null)
+      return;
+
+    var atri = xari.AxisTitleRendererInfo;
+
+    // Calculate space used for axis title, through the renderer that draws it rather than by
+    // measuring the string here. Measuring it here took no account of the title's orientation,
+    // so a caption turned on its side reserved the room it would have taken lying flat.
+    var titleSize = new XSize(0, 0);
+    if (atri is { AxisTitleText.Length: > 0 })
     {
-      var atri = xari.AxisTitleRendererInfo;
-
-      // Calculate space used for axis title, through the renderer that draws it rather than by
-      // measuring the string here. Measuring it here took no account of the title's orientation,
-      // so a caption turned on its side reserved the room it would have taken lying flat.
-      var titleSize = new XSize(0, 0);
-      if (atri != null && atri.AxisTitleText != null && atri.AxisTitleText.Length > 0)
+      var parms = new RendererParameters
       {
-        var parms = new RendererParameters();
-        parms.Graphics = this.rendererParms.Graphics;
-        parms.RendererInfo = xari;
-        new AxisTitleRenderer(parms).Format();
-        titleSize = atri.AxisTitleSize;
-      }
+        Graphics = rendererParms.Graphics,
+        RendererInfo = xari
+      };
+      new AxisTitleRenderer(parms).Format();
+      titleSize = atri.AxisTitleSize;
+    }
 
-      // Calculate space used for tick labels, from the one category series the axis is labelled
-      // with - see CategoryLabels. The vertical axis used to measure every series it was given,
-      // though only the first was ever meant to be drawn.
-      var categories = CategoryLabels(xari);
-      var size = new XSize(0, 0);
-      if (isHorizontal)
+    // Calculate space used for tick labels, from the one category series the axis is labelled
+    // with - see CategoryLabels. The vertical axis used to measure every series it was given,
+    // though only the first was ever meant to be drawn.
+    var categories = CategoryLabels(xari);
+    var size = new XSize(0, 0);
+    if (isHorizontal)
+    {
+      if (categories != null)
       {
-        if (categories != null)
+        foreach (XValue xv in categories)
         {
-          foreach (XValue xv in categories)
-          {
-            if (xv != null)
-            {
-              var tickLabel = xv.Value;
-              var valueSize = this.rendererParms.Graphics.MeasureString(tickLabel, xari.TickLabelsFont);
-              size.Height = Math.Max(valueSize.Height, size.Height);
-              size.Width += valueSize.Width;
-            }
-          }
-        }
+          if (xv == null)
+            continue;
 
-        // Remember space for later drawing.
-        xari.TickLabelsHeight = size.Height;
-        xari.Height = titleSize.Height + size.Height + xari.MajorTickMarkWidth;
-        xari.Width = Math.Max(titleSize.Width, size.Width);
+          var tickLabel = xv.Value;
+          var valueSize = rendererParms.Graphics.MeasureString(tickLabel, xari.TickLabelsFont);
+          size.Height = Math.Max(valueSize.Height, size.Height);
+          size.Width += valueSize.Width;
+        }
       }
-      else
+
+      // Remember space for later drawing.
+      xari.TickLabelsHeight = size.Height;
+      xari.Height = titleSize.Height + size.Height + xari.MajorTickMarkWidth;
+      xari.Width = Math.Max(titleSize.Width, size.Width);
+    }
+    else
+    {
+      if (categories != null)
       {
-        if (categories != null)
+        foreach (XValue xv in categories)
         {
-          foreach (XValue xv in categories)
-          {
-            // A category added with XSeries.AddBlank is a null, as it is in Draw below and as
-            // the horizontal axis's own measuring already allows for.
-            if (xv != null)
-            {
-              var valueSize = this.rendererParms.Graphics.MeasureString(xv.Value, xari.TickLabelsFont);
-              size.Height += valueSize.Height;
-              size.Width = Math.Max(valueSize.Width, size.Width);
-            }
-          }
-        }
+          // A category added with XSeries.AddBlank is a null, as it is in Draw below and as
+          // the horizontal axis's own measuring already allows for.
+          if (xv == null)
+            continue;
 
-        // Remember space for later drawing.
-        atri?.AxisTitleSize = titleSize;
-        xari.TickLabelsHeight = size.Height;
-        xari.Height = size.Height;
-        xari.Width = titleSize.Width + size.Width + xari.MajorTickMarkWidth;
+          var valueSize = rendererParms.Graphics.MeasureString(xv.Value, xari.TickLabelsFont);
+          size.Height += valueSize.Height;
+          size.Width = Math.Max(valueSize.Width, size.Width);
+        }
       }
+
+      // Remember space for later drawing.
+      atri?.AxisTitleSize = titleSize;
+      xari.TickLabelsHeight = size.Height;
+      xari.Height = size.Height;
+      xari.Width = titleSize.Width + size.Width + xari.MajorTickMarkWidth;
     }
   }
 
@@ -189,8 +190,8 @@ internal abstract class XAxisRenderer : AxisRenderer
   /// </summary>
   internal override void Draw()
   {
-    var gfx = this.rendererParms.Graphics;
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var gfx = rendererParms.Graphics;
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
     var xari = cri.XAxisRendererInfo;
 
     var xMax = xari.MaximumScale;
@@ -374,28 +375,30 @@ internal abstract class XAxisRenderer : AxisRenderer
     // the caption was centred on half the axis's right edge instead of on the middle of the axis,
     // which is the same thing only when the axis starts at zero.
     var atri = xari.AxisTitleRendererInfo;
-    if (atri != null && atri.AxisTitleText != null && atri.AxisTitleText.Length > 0)
-    {
-      if (isHorizontal)
-      {
-        // The strip below the tick labels, the full width of the axis, so that an alignment has
-        // somewhere to move the caption to.
-        atri.Rect = new XRect(xari.Rect.Left, xari.Rect.Bottom - atri.AxisTitleSize.Height,
-          xari.Rect.Width, atri.AxisTitleSize.Height);
-      }
-      else
-      {
-        // The strip to the left of the tick labels, the full height of the axis, so that an
-        // alignment has somewhere to move the caption to.
-        atri.Rect = new XRect(xari.Rect.Left, xari.Rect.Top,
-          atri.AxisTitleSize.Width, xari.Rect.Height);
-      }
+    if (atri is not { AxisTitleText.Length: > 0 })
+      return;
 
-      var parms = new RendererParameters();
-      parms.Graphics = gfx;
-      parms.RendererInfo = xari;
-      new AxisTitleRenderer(parms).Draw();
+    if (isHorizontal)
+    {
+      // The strip below the tick labels, the full width of the axis, so that an alignment has
+      // somewhere to move the caption to.
+      atri.Rect = new XRect(xari.Rect.Left, xari.Rect.Bottom - atri.AxisTitleSize.Height,
+        xari.Rect.Width, atri.AxisTitleSize.Height);
     }
+    else
+    {
+      // The strip to the left of the tick labels, the full height of the axis, so that an
+      // alignment has somewhere to move the caption to.
+      atri.Rect = new XRect(xari.Rect.Left, xari.Rect.Top,
+        atri.AxisTitleSize.Width, xari.Rect.Height);
+    }
+
+    var parms = new RendererParameters
+    {
+      Graphics = gfx,
+      RendererInfo = xari
+    };
+    new AxisTitleRenderer(parms).Draw();
   }
 
   /// <summary>
@@ -436,7 +439,7 @@ internal abstract class XAxisRenderer : AxisRenderer
   private static XSeries CategoryLabels(AxisRendererInfo rendererInfo)
   {
     var xValues = rendererInfo.XValues;
-    return xValues != null && xValues.Count > 0 ? xValues[0] : null;
+    return xValues is { Count: > 0 } ? xValues[0] : null;
   }
 
   /// <summary>
@@ -446,20 +449,20 @@ internal abstract class XAxisRenderer : AxisRenderer
   private void InitXValues(AxisRendererInfo rendererInfo)
   {
     rendererInfo.XValues = ((Chart)rendererInfo.Axis.parent).xValues;
-    if (rendererInfo.XValues == null)
+    if (rendererInfo.XValues != null)
+      return;
+
+    rendererInfo.XValues = new XValues();
+    var xs = rendererInfo.XValues.AddXSeries();
+    if (isHorizontal)
     {
-      rendererInfo.XValues = new XValues();
-      var xs = rendererInfo.XValues.AddXSeries();
-      if (isHorizontal)
-      {
-        for (var i = rendererInfo.MinimumScale + 1; i <= rendererInfo.MaximumScale; ++i)
-          xs.Add(i.ToString(rendererInfo.TickLabelsFormat));
-      }
-      else
-      {
-        for (var i = rendererInfo.MinimumScale + 1; i <= rendererInfo.MaximumScale; ++i)
-          xs.Add(i.ToString(CultureInfo.InvariantCulture));
-      }
+      for (var i = rendererInfo.MinimumScale + 1; i <= rendererInfo.MaximumScale; ++i)
+        xs.Add(i.ToString(rendererInfo.TickLabelsFormat));
+    }
+    else
+    {
+      for (var i = rendererInfo.MinimumScale + 1; i <= rendererInfo.MaximumScale; ++i)
+        xs.Add(i.ToString(CultureInfo.InvariantCulture));
     }
   }
 

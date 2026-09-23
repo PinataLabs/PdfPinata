@@ -176,9 +176,13 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
                 decrypted.Add(new KeyValuePair<string, PdfString>(item.Key, EncryptString(value1)));
             }
             else if ((value2 = item.Value as PdfDictionary) != null)
+            {
                 EncryptDictionary(value2);
+            }
             else if ((value3 = item.Value as PdfArray) != null)
+            {
                 EncryptArray(value3);
+            }
         }
 
         if (decrypted != null)
@@ -189,16 +193,16 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
             foreach (var replacement in decrypted)
                 dict.Elements[replacement.Key] = replacement.Value;
         }
-        if (dict.Stream != null)
-        {
-            var bytes = dict.Stream.Value;
-            if (bytes.Length != 0)
-            {
-                streamEncryptor.CreateHashKey(dict.ObjectID);
-                bytes = streamEncryptor.Encrypt(bytes);
-                dict.Stream.Value = bytes;
-            }
-        }
+        if (dict.Stream == null)
+            return;
+
+        var bytes = dict.Stream.Value;
+        if (bytes.Length == 0)
+            return;
+
+        streamEncryptor.CreateHashKey(dict.ObjectID);
+        bytes = streamEncryptor.Encrypt(bytes);
+        dict.Stream.Value = bytes;
     }
 
     /// <summary>
@@ -219,9 +223,13 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
                 array.Elements[idx] = EncryptString(value1);
             }
             else if ((value2 = item as PdfDictionary) != null)
+            {
                 EncryptDictionary(value2);
+            }
             else if ((value3 = item as PdfArray) != null)
+            {
                 EncryptArray(value3);
+            }
         }
     }
 
@@ -266,12 +274,11 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
         // We can handle 40 and 128 bit standard encryption.
         var filter = Elements.GetName(PdfSecurityHandler.Keys.Filter);
         var v = Elements.GetInteger(PdfSecurityHandler.Keys.V);
-        if (filter != "/Standard" || !(v >= 1 && v <= 5))
+        if (filter != "/Standard" || v is not (>= 1 and <= 5))
             throw new PdfReaderException(PSSR.UnknownEncryption);
 
 
-        if (inputPassword == null)
-            inputPassword = "";
+        inputPassword ??= "";
 
         EncryptorFactory.Create(_document, this, out stringEncryptor, out streamEncryptor);
         stringEncryptor.InitEncryptionKey(inputPassword);
@@ -297,7 +304,9 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     {
         var padded = new byte[32];
         if (password == null)
+        {
             Array.Copy(PasswordPadding, 0, padded, 0, 32);
+        }
         else
         {
             var length = password.Length;
@@ -551,10 +560,10 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
             rValue = new PdfInteger(2);
         }
 
-        if (String.IsNullOrEmpty(_userPassword))
+        if (string.IsNullOrEmpty(_userPassword))
             _userPassword = "";
         // Use user password twice if no owner password provided.
-        if (String.IsNullOrEmpty(_ownerPassword))
+        if (string.IsNullOrEmpty(_ownerPassword))
             _ownerPassword = _userPassword;
 
         // Correct permission bits
@@ -596,7 +605,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     /// The MD5 implementation the standard security handler is built on. It is created on
     /// first use, because a handler is also instantiated for documents that are not encrypted.
     /// </summary>
-    private MD5Managed _md5 => _md5Instance ?? (_md5Instance = new MD5Managed());
+    private MD5Managed _md5 => _md5Instance ??= new MD5Managed();
     private MD5Managed _md5Instance;
 
     /// <summary>
@@ -721,7 +730,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
         /// <summary>
         /// Gets the KeysMeta for these keys.
         /// </summary>
-        public static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
+        public static DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
         private static DictionaryMeta _meta;
     }

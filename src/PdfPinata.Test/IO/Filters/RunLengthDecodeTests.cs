@@ -25,15 +25,15 @@ public class RunLengthDecodeTests
     [Fact]
     public void ALengthBelow128CopiesThatManyPlusOneBytes()
     {
-        Decode(2, (byte)'a', (byte)'b', (byte)'c', 128).Should().Equal(Encoding.ASCII.GetBytes("abc"));
-        Decode(0, (byte)'x', 128).Should().Equal(Encoding.ASCII.GetBytes("x"));
+        Decode(2, (byte)'a', (byte)'b', (byte)'c', 128).Should().Equal("abc"u8.ToArray());
+        Decode(0, (byte)'x', 128).Should().Equal("x"u8.ToArray());
     }
 
     [Fact]
     public void ALengthAbove128RepeatsTheNextByte257MinusThatManyTimes()
     {
-        Decode(254, (byte)'z', 128).Should().Equal(Encoding.ASCII.GetBytes("zzz"));
-        Decode(255, (byte)'z', 128).Should().Equal(Encoding.ASCII.GetBytes("zz"));
+        Decode(254, (byte)'z', 128).Should().Equal("zzz"u8.ToArray());
+        Decode(255, (byte)'z', 128).Should().Equal("zz"u8.ToArray());
         Decode(129, 7, 128).Should().Equal(Enumerable.Repeat((byte)7, 128));
     }
 
@@ -49,13 +49,13 @@ public class RunLengthDecodeTests
     public void RunsOfBothKindsFollowOneAnother()
     {
         Decode(1, (byte)'a', (byte)'b', 253, (byte)'-', 0, (byte)'c', 128)
-            .Should().Equal(Encoding.ASCII.GetBytes("ab----c"));
+            .Should().Equal("ab----c"u8.ToArray());
     }
 
     [Fact]
     public void NothingAfterTheEndOfDataMarkerIsRead()
     {
-        Decode(0, (byte)'a', 128, 0, (byte)'b').Should().Equal(Encoding.ASCII.GetBytes("a"));
+        Decode(0, (byte)'a', 128, 0, (byte)'b').Should().Equal("a"u8.ToArray());
         Decode(128).Should().BeEmpty();
         Decode().Should().BeEmpty();
     }
@@ -63,20 +63,20 @@ public class RunLengthDecodeTests
     [Fact]
     public void DataThatEndsWithoutTheMarkerGivesBackWhatItHeld()
     {
-        Decode(1, (byte)'a', (byte)'b').Should().Equal(Encoding.ASCII.GetBytes("ab"));
-        Decode(254, (byte)'z').Should().Equal(Encoding.ASCII.GetBytes("zzz"));
+        Decode(1, (byte)'a', (byte)'b').Should().Equal("ab"u8.ToArray());
+        Decode(254, (byte)'z').Should().Equal("zzz"u8.ToArray());
     }
 
     [Fact]
     public void ALiteralRunCutShortKeepsTheBytesThatAreThere()
     {
-        Decode(0, (byte)'a', 9, (byte)'b', (byte)'c').Should().Equal(Encoding.ASCII.GetBytes("abc"));
+        Decode(0, (byte)'a', 9, (byte)'b', (byte)'c').Should().Equal("abc"u8.ToArray());
     }
 
     [Fact]
     public void ARepeatMissingItsByteAddsNothing()
     {
-        Decode(0, (byte)'a', 200).Should().Equal(Encoding.ASCII.GetBytes("a"));
+        Decode(0, (byte)'a', 200).Should().Equal("a"u8.ToArray());
     }
 
     public static TheoryData<byte[]> Samples => [
@@ -84,7 +84,7 @@ public class RunLengthDecodeTests
         new byte[] { 42 },
         new byte[] { 1, 1 },
         new byte[] { 1, 2 },
-        Encoding.ASCII.GetBytes("aaaaabcdeeeeeeeeefgh"),
+        "aaaaabcdeeeeeeeeefgh"u8.ToArray(),
         Enumerable.Repeat((byte)'q', 1000).ToArray(),
         Enumerable.Range(0, 1000).Select(value => (byte)(value * 37 + 11)).ToArray(),
         Enumerable.Range(0, 1000).Select(value => (byte)(value / 3)).ToArray(),

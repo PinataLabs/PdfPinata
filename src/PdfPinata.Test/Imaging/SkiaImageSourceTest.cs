@@ -22,7 +22,7 @@ public class SkiaImageSourceTest
         => SkiaImageSource.FromSkiaBitmap(bitmap, transparent: true).GetPixels();
 
     private static SKBitmap CreateBitmap(int width, int height)
-        => new SKBitmap(new SKImageInfo(width, height, SKColorType.Bgra8888, SKAlphaType.Unpremul));
+        => new(new SKImageInfo(width, height, SKColorType.Bgra8888, SKAlphaType.Unpremul));
 
     [Fact]
     public void GetPixelsReportsTheSizeOfTheBitmap()

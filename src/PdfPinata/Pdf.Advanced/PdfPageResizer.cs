@@ -608,10 +608,7 @@ static class PdfPageResizer
         var fieldsItem = form.Elements["/Fields"];
         if (fieldsItem is PdfReference fieldsReference)
             fieldsItem = fieldsReference.Value;
-        if (fieldsItem is not PdfArray fields)
-            return false;
-
-        return HoldsSignatureField(fields, 0);
+        return fieldsItem is PdfArray fields && HoldsSignatureField(fields, 0);
     }
 
     /// <summary>

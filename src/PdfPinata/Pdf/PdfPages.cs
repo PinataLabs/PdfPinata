@@ -588,41 +588,41 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         Debug.Assert(importPage.Owner != _document);
 
         var item = importPage.Elements[key];
-        if (item != null)
+        if (item == null)
+            return;
+
+        PdfImportedObjectTable importedObjectTable = null;
+        if (!deepcopy)
+            importedObjectTable = Owner.FormTable.GetImportedObjectTable(importPage);
+
+        // The item can be indirect. If so, replace it by its value.
+        if (item is PdfReference)
+            item = ((PdfReference)item).Value;
+        if (item is PdfObject)
         {
-            PdfImportedObjectTable importedObjectTable = null;
-            if (!deepcopy)
-                importedObjectTable = Owner.FormTable.GetImportedObjectTable(importPage);
-
-            // The item can be indirect. If so, replace it by its value.
-            if (item is PdfReference)
-                item = ((PdfReference)item).Value;
-            if (item is PdfObject)
+            var root = (PdfObject)item;
+            if (deepcopy)
             {
-                var root = (PdfObject)item;
-                if (deepcopy)
-                {
-                    Debug.Assert(root.Owner != null, "See 'else' case for details");
-                    root = DeepCopyClosure(_document, root);
-                }
-                else
-                {
-                    // The owner can be null if the item is not a reference.
-                    if (root.Owner == null)
-                        root.Document = importPage.Owner;
-                    root = ImportClosure(importedObjectTable, page.Owner, root);
-                }
-
-                if (root.Reference == null)
-                    page.Elements[key] = root;
-                else
-                    page.Elements[key] = root.Reference;
+                Debug.Assert(root.Owner != null, "See 'else' case for details");
+                root = DeepCopyClosure(_document, root);
             }
             else
             {
-                // Simple items are just cloned.
-                page.Elements[key] = item.Clone();
+                // The owner can be null if the item is not a reference.
+                if (root.Owner == null)
+                    root.Document = importPage.Owner;
+                root = ImportClosure(importedObjectTable, page.Owner, root);
             }
+
+            if (root.Reference == null)
+                page.Elements[key] = root;
+            else
+                page.Elements[key] = root.Reference;
+        }
+        else
+        {
+            // Simple items are just cloned.
+            page.Elements[key] = item.Clone();
         }
     }
 
@@ -836,8 +836,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     {
         get
         {
-            if (_pagesArray == null)
-                _pagesArray = (PdfArray)Elements.GetValue(Keys.Kids, VCF.Create);
+            _pagesArray ??= (PdfArray)Elements.GetValue(Keys.Kids, VCF.Create);
             return _pagesArray;
         }
     }
@@ -1129,7 +1128,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         /// <summary>
         /// Gets the KeysMeta for these keys.
         /// </summary>
-        public static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
+        public static DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
         private static DictionaryMeta _meta;
     }

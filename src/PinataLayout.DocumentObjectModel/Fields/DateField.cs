@@ -67,8 +67,8 @@ public partial class DateField : DocumentObject
   /// </summary>
   public string Format
   {
-    get => this.format ?? "";
-    set => this.format = value;
+    get => format ?? "";
+    set => format = value;
   }
   [DV]
   internal string format;
@@ -81,8 +81,8 @@ public partial class DateField : DocumentObject
   internal override void Serialize(Serializer serializer)
   {
     var str = "\\field(Date)";
-    if ((this.format ?? "") != string.Empty)
-      str += "[Format = \"" + this.Format + "\"]";
+    if ((format ?? "") != string.Empty)
+      str += "[Format = \"" + Format + "\"]";
     else
       str += "[]"; //Has to be appended to avoid confusion with '[' in immediatly following text.
 

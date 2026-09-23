@@ -77,7 +77,7 @@ public class COperator : CObject
     /// Gets or sets the operands.
     /// </summary>
     /// <value>The operands.</value>
-    public CSequence Operands => _seqence ?? (_seqence = []);
+    public CSequence Operands => _seqence ??= [];
 
     private CSequence _seqence;
 
@@ -94,10 +94,7 @@ public class COperator : CObject
     /// </summary>
     public override string ToString()
     {
-        if (_opcode.OpCodeName == OpCodeName.Dictionary)
-            return " ";
-
-        return Name;
+        return _opcode.OpCodeName == OpCodeName.Dictionary ? " " : Name;
     }
 
     internal override void WriteObject(ContentWriter writer)

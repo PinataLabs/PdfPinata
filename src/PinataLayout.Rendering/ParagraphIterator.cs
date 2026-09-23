@@ -45,7 +45,7 @@ internal class ParagraphIterator
   /// <param name="rootNode">The root node for the paragraph iterator.</param>
   internal ParagraphIterator(ParagraphElements rootNode)
   {
-    this._rootNode = rootNode;
+    _rootNode = rootNode;
     _current = rootNode;
     _positionIndices = new ArrayList();
   }
@@ -58,9 +58,9 @@ internal class ParagraphIterator
   /// <param name="indices">The position of the paragraph iterator in terms of element indices.</param>
   private ParagraphIterator(ParagraphElements rootNode, DocumentObject current, ArrayList indices)
   {
-    this._rootNode = rootNode;
+    _rootNode = rootNode;
     _positionIndices = indices;
-    this._current = current;
+    _current = current;
   }
 
   /// <summary>
@@ -70,12 +70,11 @@ internal class ParagraphIterator
   {
     get
     {
-      if (!(_current is DocumentElements))
-      {
-        var prevIter = GetPreviousLeaf();
-        return prevIter == null;
-      }
-      return false;
+      if (_current is DocumentElements)
+        return false;
+
+      var prevIter = GetPreviousLeaf();
+      return prevIter == null;
     }
   }
 
@@ -86,12 +85,11 @@ internal class ParagraphIterator
   {
     get
     {
-      if (!(_current is DocumentElements))
-      {
-        var nextIter = GetNextLeaf();
-        return nextIter == null;
-      }
-      return false;
+      if (_current is DocumentElements)
+        return false;
+
+      var nextIter = GetNextLeaf();
+      return nextIter == null;
     }
   }
 

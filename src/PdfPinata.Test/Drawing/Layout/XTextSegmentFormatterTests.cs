@@ -24,8 +24,8 @@ namespace PdfPinata.Test.Drawing.Layout;
 /// </summary>
 public class XTextSegmentFormatterTests
 {
-    private static XFont Plain => new XFont("Arial", 12, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
-    private static XFont Bold => new XFont("Arial", 12, XFontStyle.Bold, XPdfFontOptions.WinAnsiDefault);
+    private static XFont Plain => new("Arial", 12, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
+    private static XFont Bold => new("Arial", 12, XFontStyle.Bold, XPdfFontOptions.WinAnsiDefault);
 
     private static PdfPage PageShowing(params TextSegment[] segments)
     {

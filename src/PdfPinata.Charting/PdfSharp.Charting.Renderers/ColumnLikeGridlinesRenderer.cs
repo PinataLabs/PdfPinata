@@ -51,7 +51,7 @@ internal class ColumnLikeGridlinesRenderer : GridlinesRenderer
   /// </summary>
   internal override void Draw()
   {
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
 
     var plotAreaRect = cri.PlotAreaRendererInfo.Rect;
     if (HasNoRoom(plotAreaRect))
@@ -72,7 +72,7 @@ internal class ColumnLikeGridlinesRenderer : GridlinesRenderer
     var matrix = cri.PlotAreaRendererInfo.Matrix;
 
     LineFormatRenderer lineFormatRenderer;
-    var gfx = this.rendererParms.Graphics;
+    var gfx = rendererParms.Graphics;
 
     var points = new XPoint[2];
     if (xari.MinorGridlinesLineFormat != null)

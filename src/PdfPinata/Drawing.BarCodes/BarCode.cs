@@ -110,7 +110,7 @@ public abstract class BarCode : CodeBase
     /// </summary>
     public static BarCode FromType(CodeType type)
     {
-        return FromType(type, String.Empty, XSize.Empty, CodeDirection.LeftToRight);
+        return FromType(type, string.Empty, XSize.Empty, CodeDirection.LeftToRight);
     }
 
     /// <summary>

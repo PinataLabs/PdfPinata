@@ -166,7 +166,7 @@ public class ImageSharpImageSource<TPixel> : ImageSource where TPixel : unmanage
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void EncodeJpeg(MemoryStream ms)
         {
-            Image.SaveAsJpeg(ms, new JpegEncoder() { Quality = this._quality });
+            Image.SaveAsJpeg(ms, new JpegEncoder() { Quality = _quality });
         }
 
         /// <summary>

@@ -90,7 +90,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
 
         // Set Orientation depending on /Rotate.
         var rotate = Elements.GetInteger(InheritablePageKeys.Rotate);
-        if (Math.Abs((rotate / 90)) % 2 == 1)
+        if (Math.Abs(rotate / 90) % 2 == 1)
             _orientation = PageOrientation.Landscape;
     }
 
@@ -144,14 +144,14 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     {
         set
         {
-            if (!ReferenceEquals(_document, value))
-            {
-                if (_document != null)
-                    throw new InvalidOperationException("Cannot change document.");
-                _document = value;
-                Reference?.Document = value;
-                Elements[Keys.Parent] = _document.Pages.Reference;
-            }
+            if (ReferenceEquals(_document, value))
+                return;
+
+            if (_document != null)
+                throw new InvalidOperationException("Cannot change document.");
+            _document = value;
+            Reference?.Document = value;
+            Elements[Keys.Parent] = _document.Pages.Reference;
         }
     }
 
@@ -213,7 +213,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
                 // and then left alone has an entry that holds no bytes.
                 PdfArray array => HoldsBytes(array),
                 // A single content stream holds nothing when it has no bytes.
-                PdfDictionary dictionary => dictionary.Stream != null && dictionary.Stream.Length > 0,
+                PdfDictionary dictionary => dictionary.Stream is { Length: > 0 },
                 _ => true
             };
         }
@@ -234,7 +234,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
 
             if (item is PdfDictionary dictionary)
             {
-                if (dictionary.Stream != null && dictionary.Stream.Length > 0)
+                if (dictionary.Stream is { Length: > 0 })
                     return true;
             }
             else if (item != null && item is not PdfNull)
@@ -964,8 +964,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     {
         get
         {
-            if (_customValues == null)
-                _customValues = PdfCustomValues.Get(Elements);
+            _customValues ??= PdfCustomValues.Get(Elements);
             return _customValues;
         }
         set
@@ -985,8 +984,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     {
         get
         {
-            if (_resources == null)
-                _resources = (PdfResources)Elements.GetValue(InheritablePageKeys.Resources, VCF.Create); //VCF.CreateIndirect
+            _resources ??= (PdfResources)Elements.GetValue(InheritablePageKeys.Resources, VCF.Create); //VCF.CreateIndirect
             return _resources;
         }
     }
@@ -1270,7 +1268,9 @@ public sealed class PdfPage : PdfDictionary, IContentStream
                 resources.Document = page.Owner;
             }
             else
+            {
                 resources = (PdfDictionary)res;
+            }
 
             if (resources == null)
             {
@@ -1282,13 +1282,13 @@ public sealed class PdfPage : PdfDictionary, IContentStream
             {
                 foreach (var name in values.Resources.Elements.KeyNames)
                 {
-                    if (!resources.Elements.ContainsKey(name.Value))
-                    {
-                        var item = values.Resources.Elements[name];
-                        if (item is PdfObject)
-                            item = item.Clone();
-                        resources.Elements.Add(name.ToString(), item);
-                    }
+                    if (resources.Elements.ContainsKey(name.Value))
+                        continue;
+
+                    var item = values.Resources.Elements[name];
+                    if (item is PdfObject)
+                        item = item.Clone();
+                    resources.Elements.Add(name.ToString(), item);
                 }
             }
         }
@@ -1315,7 +1315,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         {
             var reference = item as PdfReference;
             if (reference != null)
-                values.Resources = (PdfDictionary)(reference.Value);
+                values.Resources = (PdfDictionary)reference.Value;
             else
                 values.Resources = (PdfDictionary)item;
         }
@@ -1607,7 +1607,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         /// <summary>
         /// Gets the KeysMeta for these keys.
         /// </summary>
-        internal static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
+        internal static DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
         private static DictionaryMeta _meta;
     }

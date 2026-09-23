@@ -107,12 +107,12 @@ internal static class CharacterScanning
 
     /// <summary>Indicates whether the specified character is a hexadecimal digit.</summary>
     public static bool IsHexChar(char ch) =>
-        char.IsDigit(ch) || (ch >= 'A' && ch <= 'F') || (ch >= 'a' && ch <= 'f');
+        char.IsDigit(ch) || ch is >= 'A' and <= 'F' or >= 'a' and <= 'f';
 
     /// <summary>
     /// Indicates whether the specified character is an octal digit. A literal string escapes a
     /// character code in octal, so only '0' to '7' count - '8' and '9' end the code rather than
     /// extending it, and a backslash before either is dropped and the digit kept as text.
     /// </summary>
-    public static bool IsOctalDigit(char ch) => ch >= '0' && ch <= '7';
+    public static bool IsOctalDigit(char ch) => ch is >= '0' and <= '7';
 }

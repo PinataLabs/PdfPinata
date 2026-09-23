@@ -52,43 +52,46 @@ internal class PieLegendRenderer : LegendRenderer
   internal override RendererInfo Init()
   {
     LegendRendererInfo lri = null;
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    if (cri.Chart.legend != null)
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
+    if (cri.Chart.legend == null)
+      return null;
+
+    lri = new LegendRendererInfo { Legend = cri.Chart.legend };
+
+    lri.Font = Converter.ToXFont(lri.Legend.font, cri.DefaultFont);
+    lri.FontColor = Converter.ToXBrush(lri.Legend.font, cri.DefaultFontColor);
+
+    if (lri.Legend.lineFormat != null)
+      lri.BorderPen = Converter.ToXPen(lri.Legend.lineFormat, XColors.Black, DefaultLineWidth, XDashStyle.Solid);
+
+    XSeries xseries = null;
+    if (cri.Chart.xValues != null)
+      xseries = cri.Chart.xValues[0];
+
+    var index = 0;
+    var sri = cri.SeriesRendererInfos[0];
+    lri.Entries = new LegendEntryRendererInfo[sri.PointRendererInfos.Length];
+    foreach (var pri in sri.PointRendererInfos)
     {
-      lri = new LegendRendererInfo();
-      lri.Legend = cri.Chart.legend;
-
-      lri.Font = Converter.ToXFont(lri.Legend.font, cri.DefaultFont);
-      lri.FontColor = Converter.ToXBrush(lri.Legend.font, cri.DefaultFontColor);
-
-      if (lri.Legend.lineFormat != null)
-        lri.BorderPen = Converter.ToXPen(lri.Legend.lineFormat, XColors.Black, DefaultLineWidth, XDashStyle.Solid);
-
-      XSeries xseries = null;
-      if (cri.Chart.xValues != null)
-        xseries = cri.Chart.xValues[0];
-
-      var index = 0;
-      var sri = cri.SeriesRendererInfos[0];
-      lri.Entries = new LegendEntryRendererInfo[sri.PointRendererInfos.Length];
-      foreach (var pri in sri.PointRendererInfos)
+      var leri = new LegendEntryRendererInfo
       {
-        var leri = new LegendEntryRendererInfo();
-        leri.SeriesRendererInfo = sri;
-        leri.LegendRendererInfo = lri;
-        leri.EntryText = string.Empty;
-        if (xseries != null)
-        {
-          if (xseries.Count > index)
-            leri.EntryText = xseries[index].Value;
-        }
-        else
-          leri.EntryText = (index + 1).ToString(CultureInfo.InvariantCulture); // create default/dummy entry
-        leri.MarkerPen = pri.LineFormat;
-        leri.MarkerBrush = pri.FillFormat;
-
-        lri.Entries[index++] = leri;
+        SeriesRendererInfo = sri,
+        LegendRendererInfo = lri,
+        EntryText = string.Empty
+      };
+      if (xseries != null)
+      {
+        if (xseries.Count > index)
+          leri.EntryText = xseries[index].Value;
       }
+      else
+      {
+        leri.EntryText = (index + 1).ToString(CultureInfo.InvariantCulture); // create default/dummy entry
+      }
+      leri.MarkerPen = pri.LineFormat;
+      leri.MarkerBrush = pri.FillFormat;
+
+      lri.Entries[index++] = leri;
     }
     return lri;
   }

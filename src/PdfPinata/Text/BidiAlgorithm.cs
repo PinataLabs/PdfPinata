@@ -73,10 +73,7 @@ public static partial class BidiAlgorithm
         }
 
         var resolved = Resolve(codePoints, direction);
-        if (codePoints.Count == text.Length)
-            return resolved;
-
-        return Spread(resolved, unitsPer, text.Length);
+        return codePoints.Count == text.Length ? resolved : Spread(resolved, unitsPer, text.Length);
     }
 
     /// <summary>

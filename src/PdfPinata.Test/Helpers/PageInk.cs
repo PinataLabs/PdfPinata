@@ -20,7 +20,7 @@ internal static class PageInk
             .Where(pixel =>
             {
                 var colour = pixel.ToColor();
-                return colour != null && colour.R < 128 && colour.G < 128 && colour.B < 128;
+                return colour is { R: < 128, G: < 128, B: < 128 };
             })
             .Select(pixel => (pixel.X, pixel.Y))];
     }

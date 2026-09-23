@@ -222,17 +222,17 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </remarks>
     public void Close()
     {
-        if (_outStream != null)
+        if (_outStream == null)
+            return;
+
+        var writer = new PdfWriter(_outStream, SecurityHandlerForWriting);
+        try
         {
-            var writer = new PdfWriter(_outStream, SecurityHandlerForWriting);
-            try
-            {
-                DoSave(writer);
-            }
-            finally
-            {
-                writer.Close();
-            }
+            DoSave(writer);
+        }
+        finally
+        {
+            writer.Close();
         }
     }
 
@@ -554,7 +554,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
         for (var index = at + marker.Length; index < text.Length; index++)
         {
             var ch = text[index];
-            if (ch >= '0' && ch <= '9')
+            if (ch is >= '0' and <= '9')
                 digits.Append(ch);
             else if (digits.Length > 0)
                 break;
@@ -630,8 +630,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
             {
                 // HACK^2: Preserve the SecurityHandler.
                 var securityHandler = _securitySettings.SecurityHandler;
-                _trailer = new PdfTrailer((PdfCrossReferenceStream)_trailer);
-                _trailer._securityHandler = securityHandler;
+                _trailer = new PdfTrailer((PdfCrossReferenceStream)_trailer) { _securityHandler = securityHandler };
             }
 
             var encrypt = _securitySettings.DocumentSecurityLevel != PdfDocumentSecurityLevel.None;
@@ -645,7 +644,9 @@ public sealed class PdfDocument : PdfObject, IDisposable
                 _trailer.Elements[PdfTrailer.Keys.Encrypt] = _securitySettings.SecurityHandler.Reference;
             }
             else
+            {
                 _trailer.Elements.Remove(PdfTrailer.Keys.Encrypt);
+            }
 
             PrepareForSave();
 
@@ -707,7 +708,9 @@ public sealed class PdfDocument : PdfObject, IDisposable
         // Keep original producer if file was imported.
         var producer = info.Producer;
         if (producer.Length == 0)
+        {
             producer = infoCreator;
+        }
         else
         {
             // Prevent endless concatenation if file is edited with PDFsharp more than once.
@@ -800,8 +803,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     {
         get
         {
-            if (_options == null)
-                _options = new PdfDocumentOptions();
+            _options ??= new PdfDocumentOptions();
             return _options;
         }
     }
@@ -815,8 +817,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     {
         get
         {
-            if (_settings == null)
-                _settings = new PdfDocumentSettings();
+            _settings ??= new PdfDocumentSettings();
             return _settings;
         }
     }
@@ -1108,8 +1109,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     {
         get
         {
-            if (_info == null)
-                _info = _trailer.Info;
+            _info ??= _trailer.Info;
             return _info;
         }
     }
@@ -1123,8 +1123,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     {
         get
         {
-            if (_customValues == null)
-                _customValues = PdfCustomValues.Get(Catalog.Elements);
+            _customValues ??= PdfCustomValues.Get(Catalog.Elements);
             return _customValues;
         }
         set
@@ -1145,8 +1144,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     {
         get
         {
-            if (_pages == null)
-                _pages = Catalog.Pages;
+            _pages ??= Catalog.Pages;
             return _pages;
         }
     }
@@ -1202,7 +1200,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </summary>
     public PdfPageLabels PageLabels
     {
-        get { return _pageLabels ?? (_pageLabels = new PdfPageLabels(this)); }
+        get { return _pageLabels ??= new PdfPageLabels(this); }
     }
 
     private PdfPageLabels _pageLabels;
@@ -1264,7 +1262,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </summary>
     public PdfSecuritySettings SecuritySettings
     {
-        get { return _securitySettings ?? (_securitySettings = new PdfSecuritySettings(this)); }
+        get { return _securitySettings ??= new PdfSecuritySettings(this); }
     }
 
     internal PdfSecuritySettings _securitySettings;
@@ -1274,7 +1272,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </summary>
     internal PdfFontTable FontTable
     {
-        get { return _fontTable ?? (_fontTable = new PdfFontTable(this)); }
+        get { return _fontTable ??= new PdfFontTable(this); }
     }
 
     private PdfFontTable _fontTable;
@@ -1286,8 +1284,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     {
         get
         {
-            if (_imageTable == null)
-                _imageTable = new PdfImageTable(this);
+            _imageTable ??= new PdfImageTable(this);
             return _imageTable;
         }
     }
@@ -1299,7 +1296,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </summary>
     internal PdfFormXObjectTable FormTable
     {
-        get { return _formTable ?? (_formTable = new PdfFormXObjectTable(this)); }
+        get { return _formTable ??= new PdfFormXObjectTable(this); }
     }
 
     private PdfFormXObjectTable _formTable;
@@ -1309,7 +1306,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </summary>
     internal PdfExtGStateTable ExtGStateTable
     {
-        get { return _extGStateTable ?? (_extGStateTable = new PdfExtGStateTable(this)); }
+        get { return _extGStateTable ??= new PdfExtGStateTable(this); }
     }
 
     private PdfExtGStateTable _extGStateTable;
@@ -1326,7 +1323,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </summary>
     internal PdfCatalog Catalog
     {
-        get { return _catalog ?? (_catalog = _trailer.Root); }
+        get { return _catalog ??= _trailer.Root; }
     }
 
     private PdfCatalog _catalog; // never changes if once created
@@ -1337,7 +1334,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </summary>
     public PdfNamedDestinationTable NamedDestinations
     {
-        get { return _namedDestinations ?? (_namedDestinations = new PdfNamedDestinationTable(this)); }
+        get { return _namedDestinations ??= new PdfNamedDestinationTable(this); }
     }
 
     private PdfNamedDestinationTable _namedDestinations;
@@ -1348,7 +1345,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </summary>
     public new PdfInternals Internals
     {
-        get { return _internals ?? (_internals = new PdfInternals(this)); }
+        get { return _internals ??= new PdfInternals(this); }
     }
 
     private PdfInternals _internals;
@@ -1600,7 +1597,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </summary>
     internal static ThreadLocalStorage Tls
     {
-        get { return tls ?? (tls = new ThreadLocalStorage()); }
+        get { return tls ??= new ThreadLocalStorage(); }
     }
 
     [ThreadStatic] private static ThreadLocalStorage tls;

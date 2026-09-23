@@ -297,8 +297,7 @@ public class CertificationEnforcementTests
         signature.Elements["/Reference"] = references;
         opened.Internals.AddObject(signature);
 
-        var permissions = new PdfDictionary(opened);
-        permissions.Elements["/DocMDP"] = signature.Reference;
+        var permissions = new PdfDictionary(opened) { Elements = { ["/DocMDP"] = signature.Reference } };
         opened.Internals.Catalog.Elements["/Perms"] = permissions;
 
         using var output = new MemoryStream();

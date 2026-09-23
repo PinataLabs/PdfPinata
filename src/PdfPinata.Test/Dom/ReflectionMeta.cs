@@ -106,10 +106,9 @@ public static class ReflectionMeta
         if (IsAssignableToNamed(memberType, "DocumentObjectCollection"))
             return new Member(name, memberType, memberType, refOnly, "Collection");
 
-        if (typeof(DocumentObject).IsAssignableFrom(memberType))
-            return new Member(name, memberType, memberType, refOnly, "DocumentObject");
-
-        return new Member(name, memberType, memberType, refOnly, "UNSUPPORTED");
+        return typeof(DocumentObject).IsAssignableFrom(memberType)
+            ? new Member(name, memberType, memberType, refOnly, "DocumentObject")
+            : new Member(name, memberType, memberType, refOnly, "UNSUPPORTED");
     }
 
     private static bool IsAssignableToNamed(Type type, string baseName)

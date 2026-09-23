@@ -41,7 +41,7 @@ public sealed class FreeTextAnnotationTests : IDisposable
         GhostscriptSetup.Configure();
     }
 
-    private static readonly XRect Where = new XRect(60, 60, 220, 90);
+    private static readonly XRect Where = new(60, 60, 220, 90);
 
     [Fact]
     public void AFreeTextNamesItsSubtypeAndCarriesTheDefaultAppearanceItIsRequiredTo()
@@ -137,8 +137,7 @@ public sealed class FreeTextAnnotationTests : IDisposable
         var document = new PdfDocument();
         var page = document.AddPage();
 
-        var caption = new PdfFreeTextAnnotation();
-        caption.Contents = "Written before there was anywhere to draw it";
+        var caption = new PdfFreeTextAnnotation { Contents = "Written before there was anywhere to draw it" };
 
         // Everything above was set with no document to build a form in. Adding it to the page is
         // what gives it one, and the appearance has to appear then rather than be lost.

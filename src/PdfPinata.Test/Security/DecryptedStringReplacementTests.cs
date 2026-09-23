@@ -53,7 +53,7 @@ public class DecryptedStringReplacementTests
     [Fact]
     public void PlainBytesBecomeThePlainStringTheySpell()
     {
-        var decrypted = FromEncryptionValue(Encoding.ASCII.GetBytes("Original title"), "RawEncoding");
+        var decrypted = FromEncryptionValue("Original title"u8.ToArray(), "RawEncoding");
 
         decrypted.Value.Should().Be("Original title");
         decrypted.Encoding.Should().Be(PdfStringEncoding.RawEncoding);
@@ -90,7 +90,7 @@ public class DecryptedStringReplacementTests
     {
         // HexLiteral lives in the same field as the encoding, and the string has to go back out the
         // way it came in. Only the encoding bits are allowed to move.
-        var decrypted = FromEncryptionValue(Encoding.ASCII.GetBytes("(hex)"), "HexLiteral");
+        var decrypted = FromEncryptionValue("(hex)"u8.ToArray(), "HexLiteral");
 
         decrypted.HexLiteral.Should().BeTrue();
     }

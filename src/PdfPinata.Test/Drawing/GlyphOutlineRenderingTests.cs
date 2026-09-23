@@ -22,7 +22,7 @@ public sealed class GlyphOutlineRenderingTests : IDisposable
     private const double EmSize = 96;
     private const string Text = "PATH";
 
-    private static readonly XRect Box = new XRect(40, 60, 500, 120);
+    private static readonly XRect Box = new(40, 60, 500, 120);
 
     private readonly List<MagickImageCollection> _rasterized = [];
 

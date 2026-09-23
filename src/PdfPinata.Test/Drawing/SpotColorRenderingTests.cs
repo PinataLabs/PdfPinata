@@ -20,9 +20,9 @@ public sealed class SpotColorRenderingTests : IDisposable
 {
     private const string OutDir = "Out/SpotColor";
 
-    private static readonly XRect Solid = new XRect(50, 50, 200, 100);
-    private static readonly XRect Half = new XRect(50, 200, 200, 100);
-    private static readonly XRect Stroked = new XRect(300, 50, 200, 100);
+    private static readonly XRect Solid = new(50, 50, 200, 100);
+    private static readonly XRect Half = new(50, 200, 200, 100);
+    private static readonly XRect Stroked = new(300, 50, 200, 100);
 
     private readonly List<MagickImageCollection> _rasterized = [];
 

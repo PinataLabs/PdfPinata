@@ -43,7 +43,7 @@ public sealed class CircleAnnotationTests : IDisposable
     }
 
     /// <summary>A wide rectangle, so that "circle" is visibly an ellipse inscribed in it.</summary>
-    private static readonly XRect Where = new XRect(60, 60, 200, 100);
+    private static readonly XRect Where = new(60, 60, 200, 100);
 
     [Fact]
     public void ACircleNamesItsSubtype()

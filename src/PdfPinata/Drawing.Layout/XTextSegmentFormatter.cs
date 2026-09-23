@@ -213,11 +213,11 @@ public class XTextSegmentFormatter
         {
             currentBlockUnit.Add(block);
 
-            if (block.Stop || block.Type == BlockType.LineBreak)
-            {
-                blockUnits.Add(currentBlockUnit);
-                currentBlockUnit = [];
-            }
+            if (!block.Stop && block.Type != BlockType.LineBreak)
+                continue;
+
+            blockUnits.Add(currentBlockUnit);
+            currentBlockUnit = [];
         }
 
         if (!blocks.Last().Stop && blocks.Last().Type != BlockType.LineBreak)
@@ -352,9 +352,11 @@ public class XTextSegmentFormatter
             if (blockLength != 0)
             {
                 var token = textSegment.Text.Substring(startIndex, blockLength);
-                var block = new Block(token, BlockType.Text, _gfx.MeasureString(token, textSegment.Font).Width);
-                block.LineIndent = textSegment.LineIndent;
-                block.SkipParagraphAlignment = textSegment.SkipParagraphAlignment;
+                var block = new Block(token, BlockType.Text, _gfx.MeasureString(token, textSegment.Font).Width)
+                {
+                    LineIndent = textSegment.LineIndent,
+                    SkipParagraphAlignment = textSegment.SkipParagraphAlignment
+                };
                 SetFormatterEnvironment(block, textSegment);
                 blocks.Add(block);
             }
@@ -395,10 +397,10 @@ public class XTextSegmentFormatter
                     firstIndex = idx + 1;
                     x = 0;
 
-                    startLineSpace = (idx + 1) < count
+                    startLineSpace = idx + 1 < count
                         ? blockUnit[idx + 1].Environment.LineSpace
                         : block.Environment.LineSpace;
-                    startCyDescent = (idx + 1) < count
+                    startCyDescent = idx + 1 < count
                         ? blockUnit[idx + 1].Environment.CyDescent
                         : block.Environment.CyDescent;
 
@@ -568,7 +570,7 @@ public class XTextSegmentFormatter
                           (blockUnit[idx].NextBlockBelongsToMe ? 0 : blockUnit[idx].Environment.SpaceWidth);
             if (idx == lastIndex)
             {
-                totalWidth -= (blockUnit[idx].NextBlockBelongsToMe ? 0 : blockUnit[idx].Environment.SpaceWidth);
+                totalWidth -= blockUnit[idx].NextBlockBelongsToMe ? 0 : blockUnit[idx].Environment.SpaceWidth;
             }
 
             if (blockUnit[idx].NextBlockBelongsToMe)

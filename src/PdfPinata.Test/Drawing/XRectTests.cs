@@ -162,10 +162,11 @@ public class XRectTests
     [Fact]
     public void LocationAndSizeCanBeSetOnARectangleThatIsNotEmpty()
     {
-        var rect = new XRect(0, 0, 10, 10);
-
-        rect.Location = new XPoint(5, 6);
-        rect.Size = new XSize(20, 30);
+        var rect = new XRect(0, 0, 10, 10)
+        {
+            Location = new XPoint(5, 6),
+            Size = new XSize(20, 30)
+        };
 
         rect.Should().Be(new XRect(5, 6, 20, 30));
     }
@@ -173,9 +174,7 @@ public class XRectTests
     [Fact]
     public void GivingARectangleTheEmptySizeEmptiesTheRectangle()
     {
-        var rect = new XRect(0, 0, 10, 10);
-
-        rect.Size = XSize.Empty;
+        var rect = new XRect(0, 0, 10, 10) { Size = XSize.Empty };
 
         rect.Should().Be(XRect.Empty);
     }

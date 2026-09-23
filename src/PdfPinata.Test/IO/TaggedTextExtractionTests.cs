@@ -164,8 +164,7 @@ public class TaggedTextExtractionTests
         properties.Elements.SetInteger("/MCID", 3);
         properties.Elements.SetString("/ActualText", "conformance");
 
-        var category = new PdfDictionary(document);
-        category.Elements["/P1"] = properties;
+        var category = new PdfDictionary(document) { Elements = { ["/P1"] = properties } };
         page.Elements.GetDictionary("/Resources").Elements["/Properties"] = category;
 
         using var output = new MemoryStream();

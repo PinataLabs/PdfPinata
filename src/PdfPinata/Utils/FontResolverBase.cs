@@ -165,10 +165,7 @@ public abstract class FontResolverBase
         if (isOSX)
         {
             fontDir = "/Library/Fonts/";
-            if (!System.IO.Directory.Exists(fontDir))
-                return [];
-
-            return [..FontFileTypes.In(fontDir)];
+            return System.IO.Directory.Exists(fontDir) ? [..FontFileTypes.In(fontDir)] : [];
         }
 
         var isLinux = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Linux);
@@ -384,10 +381,7 @@ public abstract class FontResolverBase
         if (_installedFonts.TryGetValue(familyName.ToLower(), out var family))
             return Resolve(family, isBold, isItalic);
 
-        if (NullIfFontNotFound)
-            return null;
-
-        return new FontResolverInfo(_installedFonts.First().Value.FontFiles.First().Value);
+        return NullIfFontNotFound ? null : new FontResolverInfo(_installedFonts.First().Value.FontFiles.First().Value);
     }
 
 

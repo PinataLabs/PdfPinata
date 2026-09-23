@@ -52,8 +52,7 @@ public sealed class PdfExtGStateTable : PdfResourceTable
         var key = PdfExtGState.MakeKey(alpha, overprint);
         if (!_strokeAlphaValues.TryGetValue(key, out var extGState))
         {
-            extGState = new PdfExtGState(Owner);
-            extGState.StrokeAlpha = alpha;
+            extGState = new PdfExtGState(Owner) { StrokeAlpha = alpha };
             if (overprint)
             {
                 extGState.StrokeOverprint = true;
@@ -72,8 +71,7 @@ public sealed class PdfExtGStateTable : PdfResourceTable
         var key = PdfExtGState.MakeKey(alpha, overprint);
         if (!_nonStrokeStates.TryGetValue(key, out var extGState))
         {
-            extGState = new PdfExtGState(Owner);
-            extGState.NonStrokeAlpha = alpha;
+            extGState = new PdfExtGState(Owner) { NonStrokeAlpha = alpha };
             if (overprint)
             {
                 extGState.NonStrokeOverprint = true;

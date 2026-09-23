@@ -46,7 +46,7 @@ public class Point : ChartObject
   /// </summary>
   public Point(double value) : this()
   {
-    this.Value = value;
+    Value = value;
   }
 
   /// <summary>
@@ -95,10 +95,9 @@ public class Point : ChartObject
   {
     get
     {
-      if (this.lineFormat == null)
-        this.lineFormat = new LineFormat(this);
+      lineFormat ??= new LineFormat(this);
 
-      return this.lineFormat;
+      return lineFormat;
     }
   }
   internal LineFormat lineFormat;
@@ -110,10 +109,9 @@ public class Point : ChartObject
   {
     get
     {
-      if (this.fillFormat == null)
-        this.fillFormat = new FillFormat(this);
+      fillFormat ??= new FillFormat(this);
 
-      return this.fillFormat;
+      return fillFormat;
     }
   }
   internal FillFormat fillFormat;
@@ -123,7 +121,7 @@ public class Point : ChartObject
   /// </summary>
   public double Value
   {
-    get => this.value;
+    get => value;
     set => this.value = value;
   }
   internal double value;

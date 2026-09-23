@@ -106,14 +106,11 @@ internal static class PdfNameTree
             return WithoutSlash(name.Value);
 
         var nameObject = item as PdfNameObject;
-        if (nameObject != null)
-            return WithoutSlash(nameObject.Value);
-
-        return null;
+        return nameObject != null ? WithoutSlash(nameObject.Value) : null;
     }
 
     private static string WithoutSlash(string name)
     {
-        return name != null && name.Length > 0 && name[0] == '/' ? name[1..] : name;
+        return name is { Length: > 0 } && name[0] == '/' ? name[1..] : name;
     }
 }

@@ -745,10 +745,7 @@ public class XTextFormatter
 
         // The indent can eat what little room an obstacle left, and a line that starts at or past
         // its own limit is not a narrow line - it is no line.
-        if (start >= limit - MinimumRoom)
-            return BlockedAt(band, start, limit);
-
-        return new LineMeasure(start, limit);
+        return start >= limit - MinimumRoom ? BlockedAt(band, start, limit) : new LineMeasure(start, limit);
     }
 
     /// <summary>
@@ -925,14 +922,12 @@ public class XTextFormatter
         if (y <= rectHeight + FitTolerance)
             return true;
 
-        if (column + 1 < Columns)
-        {
-            column++;
-            y = 0;
-            return true;
-        }
+        if (column + 1 >= Columns)
+            return AllowVerticalOverflow;
 
-        return AllowVerticalOverflow;
+        column++;
+        y = 0;
+        return true;
     }
 
     /// <summary>

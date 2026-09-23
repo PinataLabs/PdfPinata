@@ -67,8 +67,8 @@ public partial class WrapFormat : DocumentObject
   /// </summary>
   public WrapStyle Style
   {
-    get => this.style ?? default;
-    set => this.style = EnumGuard.Checked(value);
+    get => style ?? default;
+    set => style = EnumGuard.Checked(value);
   }
   [DV]
   internal WrapStyle? style;
@@ -78,8 +78,8 @@ public partial class WrapFormat : DocumentObject
   /// </summary>
   public Unit DistanceTop
   {
-    get => this.distanceTop;
-    set => this.distanceTop = value;
+    get => distanceTop;
+    set => distanceTop = value;
   }
   /// <summary>Backing field for <see cref="DistanceTop"/>.</summary>
   [DV]
@@ -90,8 +90,8 @@ public partial class WrapFormat : DocumentObject
   /// </summary>
   public Unit DistanceBottom
   {
-    get => this.distanceBottom;
-    set => this.distanceBottom = value;
+    get => distanceBottom;
+    set => distanceBottom = value;
   }
   /// <summary>Backing field for <see cref="DistanceBottom"/>.</summary>
   [DV]
@@ -102,8 +102,8 @@ public partial class WrapFormat : DocumentObject
   /// </summary>
   public Unit DistanceLeft
   {
-    get => this.distanceLeft;
-    set => this.distanceLeft = value;
+    get => distanceLeft;
+    set => distanceLeft = value;
   }
   /// <summary>Backing field for <see cref="DistanceLeft"/>.</summary>
   [DV]
@@ -114,8 +114,8 @@ public partial class WrapFormat : DocumentObject
   /// </summary>
   public Unit DistanceRight
   {
-    get => this.distanceRight;
-    set => this.distanceRight = value;
+    get => distanceRight;
+    set => distanceRight = value;
   }
   /// <summary>Backing field for <see cref="DistanceRight"/>.</summary>
   [DV]
@@ -129,16 +129,16 @@ public partial class WrapFormat : DocumentObject
   internal override void Serialize(Serializer serializer)
   {
     serializer.BeginContent("WrapFormat");
-    if (this.style != null)
-      serializer.WriteSimpleAttribute("Style", this.Style);
-    if (!this.distanceTop.IsNull)
-      serializer.WriteSimpleAttribute("DistanceTop", this.DistanceTop);
-    if (!this.distanceLeft.IsNull)
-      serializer.WriteSimpleAttribute("DistanceLeft", this.DistanceLeft);
-    if (!this.distanceRight.IsNull)
-      serializer.WriteSimpleAttribute("DistanceRight", this.DistanceRight);
-    if (!this.distanceBottom.IsNull)
-      serializer.WriteSimpleAttribute("DistanceBottom", this.DistanceBottom);
+    if (style != null)
+      serializer.WriteSimpleAttribute("Style", Style);
+    if (!distanceTop.IsNull)
+      serializer.WriteSimpleAttribute("DistanceTop", DistanceTop);
+    if (!distanceLeft.IsNull)
+      serializer.WriteSimpleAttribute("DistanceLeft", DistanceLeft);
+    if (!distanceRight.IsNull)
+      serializer.WriteSimpleAttribute("DistanceRight", DistanceRight);
+    if (!distanceBottom.IsNull)
+      serializer.WriteSimpleAttribute("DistanceBottom", DistanceBottom);
     serializer.EndContent();
   }
 

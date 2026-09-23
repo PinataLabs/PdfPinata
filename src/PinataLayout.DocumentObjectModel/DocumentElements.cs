@@ -176,8 +176,7 @@ public partial class DocumentElements : DocumentObjectCollection, IVisitable
     /// </summary>
     public Chart AddChart()
     {
-        var chart = new Chart();
-        chart.Type = ChartType.Line;
+        var chart = new Chart { Type = ChartType.Line };
         Add(chart);
         return chart;
     }

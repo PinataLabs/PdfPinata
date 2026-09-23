@@ -74,8 +74,7 @@ public partial class Point : ChartObject
   {
     get
     {
-      if (lineFormat == null)
-        lineFormat = new LineFormat(this);
+      lineFormat ??= new LineFormat(this);
 
       return lineFormat;
     }
@@ -95,8 +94,7 @@ public partial class Point : ChartObject
   {
     get
     {
-      if (fillFormat == null)
-        fillFormat = new FillFormat(this);
+      fillFormat ??= new FillFormat(this);
 
       return fillFormat;
     }
@@ -144,7 +142,9 @@ public partial class Point : ChartObject
       serializer.EndContent();
     }
     else
+    {
       serializer.Write(Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
+    }
 
     serializer.Write(", ");
   }
