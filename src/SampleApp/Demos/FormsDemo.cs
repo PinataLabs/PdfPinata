@@ -163,8 +163,8 @@ internal sealed class FormsDemo : PdfDemo
         XForm Appearance(XRect box, Action<XGraphics> draw)
         {
             var appearance = new XForm(document, new XSize(box.Width, box.Height));
-            using (var into = XGraphics.FromForm(appearance))
-                draw(into);
+            using var into = XGraphics.FromForm(appearance);
+            draw(into);
             return appearance;
         }
 

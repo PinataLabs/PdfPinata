@@ -29,8 +29,8 @@ public class TextDecorationTests
     {
         var document = new PdfDocument();
         var page = document.AddPage();
-        using (var gfx = XGraphics.FromPdfPage(page))
-            gfx.DrawString(text, font, XBrushes.Black, 20, 60, format);
+        using var gfx = XGraphics.FromPdfPage(page);
+        gfx.DrawString(text, font, XBrushes.Black, 20, 60, format);
         return page;
     }
 

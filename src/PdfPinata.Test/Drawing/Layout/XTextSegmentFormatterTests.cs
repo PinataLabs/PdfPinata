@@ -31,8 +31,8 @@ public class XTextSegmentFormatterTests
     {
         var document = new PdfDocument();
         var page = document.AddPage();
-        using (var gfx = XGraphics.FromPdfPage(page))
-            new XTextSegmentFormatter(gfx).DrawString(segments, new XRect(20, 20, 220, 200));
+        using var gfx = XGraphics.FromPdfPage(page);
+        new XTextSegmentFormatter(gfx).DrawString(segments, new XRect(20, 20, 220, 200));
         return page;
     }
 
@@ -112,9 +112,9 @@ public class XTextSegmentFormatterTests
     {
         var document = new PdfDocument();
         var page = document.AddPage();
-        using (var gfx = XGraphics.FromPdfPage(page))
-            new XTextSegmentFormatter(gfx) { Alignment = alignment }
-                .DrawString(segments, new XRect(LayoutLeft, 20, LayoutWidth, 200));
+        using var gfx = XGraphics.FromPdfPage(page);
+        new XTextSegmentFormatter(gfx) { Alignment = alignment }
+            .DrawString(segments, new XRect(LayoutLeft, 20, LayoutWidth, 200));
         return page;
     }
 

@@ -258,8 +258,7 @@ internal static class ShownText
         var decodings = new Dictionary<string, Decoding>(StringComparer.Ordinal);
 
         var fonts = Resolve(page.Elements["/Resources"]) as PdfDictionary;
-        var dictionary = Resolve(fonts?.Elements["/Font"]) as PdfDictionary;
-        if (dictionary == null)
+        if (Resolve(fonts?.Elements["/Font"]) is not PdfDictionary dictionary)
             return decodings;
 
         foreach (var key in dictionary.Elements.KeyNames)

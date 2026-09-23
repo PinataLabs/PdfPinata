@@ -313,9 +313,9 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
             var array = new PdfItem[_overflow.Count];
             _overflow.Keys.CopyTo(array, 0);
             _overflow = new Dictionary<PdfItem, object>();
-            for (var idx = 0; idx < array.Length; idx++)
+            foreach (var item in array)
             {
-                var obj = (PdfObject)array[idx];
+                var obj = (PdfObject)item;
                 TransitiveClosureImplementation(objects, obj);
             }
 

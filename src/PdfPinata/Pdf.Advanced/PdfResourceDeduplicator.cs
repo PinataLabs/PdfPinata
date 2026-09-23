@@ -38,7 +38,7 @@ internal static class PdfResourceDeduplicator
         "/Catalog", "/Pages", "/Page", "/Annot", "/Border", "/OCG", "/OCMD", "/StructTreeRoot",
         "/StructElem", "/MCR", "/OBJR", "/Sig", "/DocTimeStamp", "/SigRef", "/TransformParams",
         "/Outlines", "/Action", "/Filespec", "/EmbeddedFile", "/Encrypt", "/Collection", "/Thread",
-        "/Bead", "/Template", "/NumberTree", "/Namespace",
+        "/Bead", "/Template", "/NumberTree", "/Namespace"
     };
 
     /// <summary>

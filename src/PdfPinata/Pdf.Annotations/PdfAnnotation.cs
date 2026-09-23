@@ -109,7 +109,7 @@ public abstract class PdfAnnotation : PdfDictionary
             "/Popup" => new PdfPopupAnnotation(dict),
             "/Caret" => new PdfCaretAnnotation(dict),
             "/Redact" => new PdfRedactAnnotation(dict),
-            _ => new PdfGenericAnnotation(dict),
+            _ => new PdfGenericAnnotation(dict)
         };
     }
 

@@ -145,14 +145,6 @@ public partial class Table : DocumentObject, IVisitable
         var maxRow = row + rowCount - 1;
         var maxClm = clm + clms - 1;
 
-        void Apply(Border border)
-        {
-            border.Style = borderStyle;
-            border.Width = width;
-            if (clr != Color.Empty)
-                border.Color = clr;
-        }
-
         for (var r = row; r <= maxRow; r++)
         {
             var currentRow = rows[r];
@@ -190,6 +182,14 @@ public partial class Table : DocumentObject, IVisitable
                 if ((edge & Edge.DiagonalUp) == Edge.DiagonalUp)
                     Apply(currentCell.Borders.DiagonalUp);
             }
+        }
+
+        void Apply(Border border)
+        {
+            border.Style = borderStyle;
+            border.Width = width;
+            if (clr != Color.Empty)
+                border.Color = clr;
         }
     }
 

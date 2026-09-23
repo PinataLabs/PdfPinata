@@ -46,12 +46,10 @@ public class XTextFormatterOptionsTests
     {
         var document = new PdfDocument();
         var page = document.AddPage();
-        using (var gfx = XGraphics.FromPdfPage(page))
-        {
-            var formatter = new XTextFormatter(gfx);
-            setUp?.Invoke(formatter);
-            formatter.DrawString(text, Font, XBrushes.Black, layout, XUnit.FromPoint(LineHeight));
-        }
+        using var gfx = XGraphics.FromPdfPage(page);
+        var formatter = new XTextFormatter(gfx);
+        setUp?.Invoke(formatter);
+        formatter.DrawString(text, Font, XBrushes.Black, layout, XUnit.FromPoint(LineHeight));
         return page;
     }
 

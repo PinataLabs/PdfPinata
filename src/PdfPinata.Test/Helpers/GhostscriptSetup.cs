@@ -79,8 +79,8 @@ internal static class GhostscriptSetup
             _ = document.AddPage();
 
             // A blank page keeps the probe independent of font resolution.
-            using (var rasterized = PdfHelper.Rasterize(document).ImageCollection)
-                return rasterized.Count > 0;
+            using var rasterized = PdfHelper.Rasterize(document).ImageCollection;
+            return rasterized.Count > 0;
         }
         catch
         {

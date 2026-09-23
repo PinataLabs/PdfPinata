@@ -52,9 +52,9 @@ internal class XKnownColorTable
 
     public static bool IsKnownColor(uint argb)
     {
-        for (var idx = 0; idx < ColorTable.Length; idx++)
+        foreach (var color in ColorTable)
         {
-            if (ColorTable[idx] == argb)
+            if (color == argb)
                 return true;
         }
         return false;

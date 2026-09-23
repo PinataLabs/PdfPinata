@@ -500,7 +500,7 @@ internal class PdfWriter
         NewLine,
         Character,
         Delimiter
-    };
+    }
     private CharCat _lastCat;
 
     /// <summary>

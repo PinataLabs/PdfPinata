@@ -263,8 +263,8 @@ public sealed class PdfStructureBuilder
 
         if (item is PdfArray array)
         {
-            for (var idx = 0; idx < array.Elements.Count; idx++)
-                RetagNotes(array.Elements[idx], pdf20Namespace, depth + 1);
+            foreach (var kid in array.Elements)
+                RetagNotes(kid, pdf20Namespace, depth + 1);
             return;
         }
 
@@ -332,8 +332,8 @@ public sealed class PdfStructureBuilder
 
         if (item is PdfArray array)
         {
-            for (var idx = 0; idx < array.Elements.Count; idx++)
-                Collect(array.Elements[idx], named, depth + 1);
+            foreach (var kid in array.Elements)
+                Collect(kid, named, depth + 1);
             return;
         }
 

@@ -42,7 +42,7 @@ public class FontEmbeddingRestrictionTests
         [BitmapEmbeddingOnly] = 'F',
         [NoSubsetting] = 'G',
         [RestrictedLicense | PreviewAndPrint] = 'H',
-        [Editable | BitmapEmbeddingOnly] = 'J',
+        [Editable | BitmapEmbeddingOnly] = 'J'
     };
 
     private static readonly Lazy<byte[]> Liberation = new(() => File.ReadAllBytes(

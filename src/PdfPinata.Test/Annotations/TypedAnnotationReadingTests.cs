@@ -68,7 +68,7 @@ public sealed class TypedAnnotationReadingTests : IDisposable
         { "/Popup", typeof(PdfPopupAnnotation) },
         { "/Caret", typeof(PdfCaretAnnotation) },
         { "/Redact", typeof(PdfRedactAnnotation) },
-        { "/Wibble", typeof(PdfGenericAnnotation) },
+        { "/Wibble", typeof(PdfGenericAnnotation) }
     };
 
     [Theory]

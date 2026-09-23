@@ -18,5 +18,5 @@ public enum PdfFieldLockAction
     /// <summary>
     /// Every field except those named in <see cref="PdfSignatureFieldLock.Fields"/>.
     /// </summary>
-    Exclude,
+    Exclude
 }

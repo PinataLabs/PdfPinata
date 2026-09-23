@@ -149,8 +149,7 @@ public partial class Styles : DocumentObjectCollection, IVisitable
     {
         ArgumentNullException.ThrowIfNull(value);
 
-        var style = value as Style;
-        if (style == null)
+        if (value is not Style style)
             throw new InvalidOperationException(AppResources.StyleExpected);
 
         var isRootStyle = style.IsRootStyle;

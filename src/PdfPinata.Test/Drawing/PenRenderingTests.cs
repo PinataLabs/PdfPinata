@@ -24,12 +24,10 @@ public class PenRenderingTests
         var document = new PdfDocument();
         var page = document.AddPage();
 
-        using (var gfx = XGraphics.FromPdfPage(page))
-        {
-            gfx.DrawLines(pen, [
-                new XPoint(100, 300), new XPoint(200, 100), new XPoint(300, 300)
-            ]);
-        }
+        using var gfx = XGraphics.FromPdfPage(page);
+        gfx.DrawLines(pen, [
+            new XPoint(100, 300), new XPoint(200, 100), new XPoint(300, 300)
+        ]);
 
         return page;
     }
@@ -201,8 +199,8 @@ public class PenRenderingTests
     {
         var document = new PdfDocument();
         var page = document.AddPage();
-        using (var gfx = XGraphics.FromPdfPage(page))
-            draw(gfx);
+        using var gfx = XGraphics.FromPdfPage(page);
+        draw(gfx);
         return page;
     }
 

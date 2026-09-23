@@ -158,8 +158,6 @@ public class TrailerTerminationTests
         var pdf = new MemoryStream();
         var offsets = new long[4];
 
-        void Write(string text) => pdf.Write(Encoding.Latin1.GetBytes(text));
-
         Write("%PDF-1.4\n");
         offsets[1] = pdf.Position;
         Write("1 0 obj\n<</Type/Catalog/Pages 2 0 R>>\nendobj\n");
@@ -204,5 +202,7 @@ public class TrailerTerminationTests
             Encoding.Latin1.GetBytes(second.ToString(placeholder)).CopyTo(bytes, placeholderAt);
 
         return bytes;
+
+        void Write(string text) => pdf.Write(Encoding.Latin1.GetBytes(text));
     }
 }

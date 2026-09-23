@@ -270,7 +270,7 @@ public sealed class MarkupAnnotationTypesTests : IDisposable
         var popup = new PdfPopupAnnotation
         {
             Rectangle = new PdfRectangle(new XPoint(40, 10), new XPoint(200, 100)),
-            Open = true,
+            Open = true
         };
         page.Annotations.Add(note);
         page.Annotations.Add(popup);
@@ -345,7 +345,7 @@ public sealed class MarkupAnnotationTypesTests : IDisposable
         { new PdfRedactAnnotation(), true },
         { new PdfLinkAnnotation(), false },
         { new PdfWidgetAnnotation(), false },
-        { new PdfPopupAnnotation(), false },
+        { new PdfPopupAnnotation(), false }
     };
 
     /// <summary>

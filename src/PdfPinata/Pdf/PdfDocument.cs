@@ -244,10 +244,8 @@ public sealed class PdfDocument : PdfObject, IDisposable
         EnsureCanModify("saving the document");
 
 
-        using (Stream stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None))
-        {
-            Save(stream);
-        }
+        using Stream stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
+        Save(stream);
     }
 
     /// <summary>
@@ -1616,10 +1614,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
 
         public override bool Equals(object obj)
         {
-            var handle = obj as DocumentHandle;
-            if (!ReferenceEquals(handle, null))
-                return Id == handle.Id;
-            return false;
+            return obj is DocumentHandle handle && Id == handle.Id;
         }
 
         public override int GetHashCode()

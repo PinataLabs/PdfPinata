@@ -98,8 +98,7 @@ internal class PdfTrailer : PdfDictionary  // Reference: 3.4.4  File Trailer / P
         if (index < 0 || index > 1)
             throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be 0 or 1.");
 
-        var array = Elements[Keys.ID] as PdfArray;
-        if (array == null || array.Elements.Count < 2)
+        if (Elements[Keys.ID] is not PdfArray array || array.Elements.Count < 2)
             return "";
         var item = array.Elements[index];
         return item is PdfString text ? text.Value : "";
@@ -193,7 +192,7 @@ internal class PdfTrailer : PdfDictionary  // Reference: 3.4.4  File Trailer / P
 
         Elements.Remove(Keys.Prev);
 
-        Debug.Assert(_document._irefTable.IsUnderConstruction == false);
+        Debug.Assert(!_document._irefTable.IsUnderConstruction);
         _document._irefTable.IsUnderConstruction = false;
     }
 

@@ -106,25 +106,6 @@ internal static class PaintedPaths
         double width = 1;
         var saved = new Stack<(string Fill, string Stroke, double Width)>();
 
-        void Paint(bool filled, bool stroked)
-        {
-            if (points.Count > 0)
-                painted.Add(new Path([..points], curves, filled, stroked, fill, stroke, width));
-            Discard();
-        }
-
-        void Discard()
-        {
-            points.Clear();
-            curves = 0;
-        }
-
-        void Add(double x, double y)
-        {
-            current = (x, y);
-            points.Add(current);
-        }
-
         foreach (var item in ContentReader.ReadContent(PageContent.Of(page)))
         {
             if (item is not COperator op)
@@ -235,6 +216,25 @@ internal static class PaintedPaths
         }
 
         return painted;
+
+        void Paint(bool filled, bool stroked)
+        {
+            if (points.Count > 0)
+                painted.Add(new Path([..points], curves, filled, stroked, fill, stroke, width));
+            Discard();
+        }
+
+        void Discard()
+        {
+            points.Clear();
+            curves = 0;
+        }
+
+        void Add(double x, double y)
+        {
+            current = (x, y);
+            points.Add(current);
+        }
     }
 
     /// <summary>The paths the page fills in the given colour, in the order it fills them.</summary>

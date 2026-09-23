@@ -232,11 +232,9 @@ public class PostscriptOutlineEmbeddingTest
         var document = new PdfDocument();
         var page = document.AddPage();
 
-        using (var gfx = XGraphics.FromPdfPage(page))
-        {
-            var font = new XFont(familyName, 12, XFontStyle.Regular, new XPdfFontOptions(encoding));
-            gfx.DrawString("Embedding check", font, XBrushes.Black, new XPoint(20, 40));
-        }
+        using var gfx = XGraphics.FromPdfPage(page);
+        var font = new XFont(familyName, 12, XFontStyle.Regular, new XPdfFontOptions(encoding));
+        gfx.DrawString("Embedding check", font, XBrushes.Black, new XPoint(20, 40));
 
         return document;
     }

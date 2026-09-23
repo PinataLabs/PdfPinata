@@ -33,34 +33,32 @@ internal static class GradientOutput
     {
         var document = new PdfDocument();
         var page = document.AddPage();
-        using (var gfx = XGraphics.FromPdfPage(page))
-        {
-            var first = new XRect(20, 20, 200, 100);
-            gfx.DrawRectangle(
-                new XLinearGradientBrush(first, XColors.Red, XColors.Blue, XLinearGradientMode.Horizontal),
-                first);
+        using var gfx = XGraphics.FromPdfPage(page);
+        var first = new XRect(20, 20, 200, 100);
+        gfx.DrawRectangle(
+            new XLinearGradientBrush(first, XColors.Red, XColors.Blue, XLinearGradientMode.Horizontal),
+            first);
 
-            var second = new XRect(20, 140, 200, 100);
-            gfx.DrawRectangle(
-                new XLinearGradientBrush(second, XColors.Green, XColors.Yellow, XLinearGradientMode.Vertical),
-                second);
+        var second = new XRect(20, 140, 200, 100);
+        gfx.DrawRectangle(
+            new XLinearGradientBrush(second, XColors.Green, XColors.Yellow, XLinearGradientMode.Vertical),
+            second);
 
-            var third = new XRect(20, 260, 200, 100);
-            gfx.DrawRectangle(
-                new XLinearGradientBrush(third, XColors.Black, XColors.White, XLinearGradientMode.ForwardDiagonal),
-                third);
+        var third = new XRect(20, 260, 200, 100);
+        gfx.DrawRectangle(
+            new XLinearGradientBrush(third, XColors.Black, XColors.White, XLinearGradientMode.ForwardDiagonal),
+            third);
 
-            var fourth = new XRect(20, 380, 200, 100);
-            gfx.DrawRectangle(
-                new XLinearGradientBrush(new XPoint(20, 380), new XPoint(220, 480), XColors.Cyan, XColors.Magenta),
-                fourth);
+        var fourth = new XRect(20, 380, 200, 100);
+        gfx.DrawRectangle(
+            new XLinearGradientBrush(new XPoint(20, 380), new XPoint(220, 480), XColors.Cyan, XColors.Magenta),
+            fourth);
 
-            var fifth = new XRect(20, 500, 200, 200);
-            gfx.DrawEllipse(
-                new XRadialGradientBrush(new XPoint(120, 600), new XPoint(120, 600), 0, 100,
-                    XColors.White, XColors.DarkBlue),
-                fifth);
-        }
+        var fifth = new XRect(20, 500, 200, 200);
+        gfx.DrawEllipse(
+            new XRadialGradientBrush(new XPoint(120, 600), new XPoint(120, 600), 0, 100,
+                XColors.White, XColors.DarkBlue),
+            fifth);
         return document;
     }
 

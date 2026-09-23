@@ -127,8 +127,8 @@ public class SignatureFieldLockTests
                 Issuers = [certificate],
                 PolicyOids = ["2.16.840.1.101.3.2.1.3.7"],
                 KeyUsages = ["1X"],
-                Url = "https://ca.example.invalid/",
-            },
+                Url = "https://ca.example.invalid/"
+            }
         };
 
         field.Elements.GetReference("/SV").Should().NotBeNull("ISO 32000-1 requires it indirect");
@@ -178,7 +178,7 @@ public class SignatureFieldLockTests
         var signed = Sign(TwoFieldForm(), new PdfSignatureOptions
         {
             LockAction = PdfFieldLockAction.Include,
-            LockFields = ["name"],
+            LockFields = ["name"]
         });
 
         var document = Reader.Open(new MemoryStream(signed), PdfDocumentOpenMode.Modify);
@@ -214,7 +214,7 @@ public class SignatureFieldLockTests
         {
             Certification = PdfCertificationLevel.FormFillingAllowed,
             LockAction = PdfFieldLockAction.Exclude,
-            LockFields = ["comment"],
+            LockFields = ["comment"]
         });
 
         var document = Reader.Open(new MemoryStream(signed), PdfDocumentOpenMode.ReadOnly);

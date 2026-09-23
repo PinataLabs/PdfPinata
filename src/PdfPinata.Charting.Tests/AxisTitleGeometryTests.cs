@@ -57,9 +57,6 @@ public class AxisTitleGeometryTests
     {
         var strip = new XRect(0, 0, Caption.Width, 100);
 
-        double AnchorY(VerticalAlignment alignment) => AxisTitleGeometry.RotatedCaption(
-            strip, Caption, 90, HorizontalAlignment.Center, alignment).Anchor.Y;
-
         var positions = new[]
         {
             AnchorY(VerticalAlignment.Top),
@@ -68,6 +65,9 @@ public class AxisTitleGeometryTests
         };
 
         positions.Should().OnlyHaveUniqueItems();
+
+        double AnchorY(VerticalAlignment alignment) => AxisTitleGeometry.RotatedCaption(
+            strip, Caption, 90, HorizontalAlignment.Center, alignment).Anchor.Y;
     }
 
     [Theory]

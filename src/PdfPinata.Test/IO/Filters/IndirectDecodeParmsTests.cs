@@ -46,13 +46,11 @@ public class IndirectDecodeParmsTests
             Latin1("<< /Type /Pages /Kids [3 0 R] /Count 1 >>"),
             Latin1("<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] /Contents 4 0 R >>"),
             Latin1($"<< /Length {data.Length} {streamEntries} >>\nstream\n")
-                .Concat(data).Concat(Latin1("\nendstream")).ToArray(),
+                .Concat(data).Concat(Latin1("\nendstream")).ToArray()
         };
         objects.AddRange(extraObjects.Select(Latin1));
 
         using var file = new MemoryStream();
-        void Write(byte[] bytes) => file.Write(bytes, 0, bytes.Length);
-
         Write(Latin1("%PDF-1.5\n"));
         var offsets = new List<long>();
         for (var idx = 0; idx < objects.Count; idx++)
@@ -71,6 +69,8 @@ public class IndirectDecodeParmsTests
         Write(Latin1(table.ToString()));
 
         return file.ToArray();
+
+        void Write(byte[] bytes) => file.Write(bytes, 0, bytes.Length);
     }
 
     private static byte[] Latin1(string text) => [..text.Select(ch => (byte)ch)];
@@ -119,7 +119,7 @@ public class IndirectDecodeParmsTests
         // ISO 32000-1 Table 5: a filter with default parameters has null in its place.
         var data = Encoded();
         var hexed = string.Concat(data.Select(b => b.ToString("X2"))) + ">";
-        var file = File($"/Filter [/ASCIIHexDecode /FlateDecode] /DecodeParms [null 5 0 R]", Parms);
+        var file = File("/Filter [/ASCIIHexDecode /FlateDecode] /DecodeParms [null 5 0 R]", Parms);
 
         // Swap the stream data for its hex form, so the chain has two filters to walk.
         var text = new string(file.Select(b => (char)b).ToArray());

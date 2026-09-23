@@ -320,9 +320,9 @@ public sealed class PdfString : PdfItem
         if (value == null)
             return PdfStringFlags.RawEncoding;
 
-        for (var idx = 0; idx < value.Length; idx++)
+        foreach (var ch in value)
         {
-            if (value[idx] > 0x7F)
+            if (ch > 0x7F)
                 return PdfStringFlags.Unicode;
         }
         return PdfStringFlags.RawEncoding;

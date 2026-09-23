@@ -213,6 +213,9 @@ public class BidirectionalParagraphTests
         // decimal tab is the one kind whose position a corrupted read would visibly move. If the
         // probing walk left the list's read position consumed, the real walk would read the wrong
         // tab's width - or none at all - and the point would not land on the stop any more.
+        WhereTheNumberStarts("1.5").Should().BeGreaterThan(WhereTheNumberStarts("1234.5"),
+            "however many digits come before the point, the point itself lands on the stop");
+
         double WhereTheNumberStarts(string number)
         {
             var document = new Document();
@@ -225,9 +228,6 @@ public class BidirectionalParagraphTests
             var runs = TextBaselines.PositionsOf(Rendered.FirstPageOf(document));
             return runs.Max(run => run.X);
         }
-
-        WhereTheNumberStarts("1.5").Should().BeGreaterThan(WhereTheNumberStarts("1234.5"),
-            "however many digits come before the point, the point itself lands on the stop");
     }
 
     [Fact]
@@ -240,6 +240,9 @@ public class BidirectionalParagraphTests
         // list left consumed rather than replayed would corrupt. The line above this one is probed
         // too, but every leaf's real position comes off the reordered array regardless of the tab's
         // own corrupted width; this is the line where nothing shields the bug.
+        WhereTheNumberStarts("1.5").Should().BeGreaterThan(WhereTheNumberStarts("1234.5"),
+            "a probed line that never actually reorders must still get the tab's width right");
+
         double WhereTheNumberStarts(string number)
         {
             var document = new Document();
@@ -253,9 +256,6 @@ public class BidirectionalParagraphTests
             var runs = TextBaselines.PositionsOf(Rendered.FirstPageOf(document));
             return runs.Max(run => run.X);
         }
-
-        WhereTheNumberStarts("1.5").Should().BeGreaterThan(WhereTheNumberStarts("1234.5"),
-            "a probed line that never actually reorders must still get the tab's width right");
     }
 
     [Fact]

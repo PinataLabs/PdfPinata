@@ -399,8 +399,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
         // file to launch, a page of another document - is left exactly as it stands: it has no
         // destination page to hand out, and an outline entry that opens a web page is a
         // perfectly ordinary thing for a document to hold.
-        var action = a as PdfDictionary;
-        if (action == null || action.Elements.GetName(PdfAction.Keys.S) != "/GoTo")
+        if (a is not PdfDictionary action || action.Elements.GetName(PdfAction.Keys.S) != "/GoTo")
             return;
 
         var destination = ResolveDestination(action.Elements[PdfGoToAction.Keys.D]);

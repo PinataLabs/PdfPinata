@@ -101,8 +101,7 @@ public sealed class Meta
 
     if (value == null || trail == "")
       throw new ArgumentException(string.Format(AppResources.InvalidValueName, name));
-    var doc = value as DocumentObject;
-    if (doc == null)
+    if (value is not DocumentObject doc)
       throw new ArgumentException(string.Format(AppResources.InvalidValueName, name));
     value = doc.GetValue(trail, flags);
     return value;

@@ -43,8 +43,8 @@ public class PageResizeTests
         page.Size = size;
         page.Orientation = orientation;
 
-        using (var gfx = XGraphics.FromPdfPage(page))
-            gfx.DrawRectangle(XBrushes.LightGray, new XRect(0, 0, page.Width, page.Height));
+        using var gfx = XGraphics.FromPdfPage(page);
+        gfx.DrawRectangle(XBrushes.LightGray, new XRect(0, 0, page.Width, page.Height));
 
         return document;
     }

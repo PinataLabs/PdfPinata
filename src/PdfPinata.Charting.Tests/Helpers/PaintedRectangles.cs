@@ -93,13 +93,6 @@ internal static class PaintedRectangles
         var stroke = Black;
         var saved = new Stack<(string Fill, string Stroke)>();
 
-        void Paint(bool filled, bool stroked)
-        {
-            foreach (var (x, y, width, height) in pending)
-                painted.Add(new Rectangle(x, y, width, height, filled ? fill : stroke, filled, stroked));
-            pending.Clear();
-        }
-
         foreach (var item in ContentReader.ReadContent(PageContent.Of(page)))
         {
             if (item is not COperator op)
@@ -199,6 +192,13 @@ internal static class PaintedRectangles
         }
 
         return painted;
+
+        void Paint(bool filled, bool stroked)
+        {
+            foreach (var (x, y, width, height) in pending)
+                painted.Add(new Rectangle(x, y, width, height, filled ? fill : stroke, filled, stroked));
+            pending.Clear();
+        }
     }
 
     /// <summary>

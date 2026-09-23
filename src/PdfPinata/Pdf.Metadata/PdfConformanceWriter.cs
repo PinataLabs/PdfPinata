@@ -523,9 +523,9 @@ internal static class PdfConformanceWriter
         if (associated == null)
             return false;
 
-        for (var idx = 0; idx < associated.Elements.Count; idx++)
+        foreach (var item in associated.Elements)
         {
-            if (ReferenceEquals(PdfAttachments.Resolve(associated.Elements[idx]), attachment))
+            if (ReferenceEquals(PdfAttachments.Resolve(item), attachment))
                 return true;
         }
 

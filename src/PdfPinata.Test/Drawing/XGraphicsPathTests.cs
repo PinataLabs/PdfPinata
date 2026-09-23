@@ -35,8 +35,8 @@ public class XGraphicsPathTests
     {
         var document = new PdfDocument();
         var page = document.AddPage();
-        using (var gfx = XGraphics.FromPdfPage(page))
-            gfx.DrawPath(XPens.Black, path);
+        using var gfx = XGraphics.FromPdfPage(page);
+        gfx.DrawPath(XPens.Black, path);
         return page;
     }
 

@@ -122,14 +122,6 @@ public class MissingEndObjectTests
         const string content = "BT ET";
         const int objects = 6;
 
-        void Write(string text) => pdf.Write(Encoding.Latin1.GetBytes(text));
-
-        void WriteObject(int number, string body, bool close)
-        {
-            offsets[number] = pdf.Position;
-            Write(number + " 0 obj\n" + body + "\n" + (close ? "endobj\n" : ""));
-        }
-
         Write("%PDF-1.4\n");
         WriteObject(1, "<</Type/Catalog/Pages 2 0 R>>", true);
         WriteObject(2, "<</Type/Pages/Kids[3 0 R]/Count 1>>", true);
@@ -146,5 +138,13 @@ public class MissingEndObjectTests
         Write("startxref\n" + startOfCrossReferenceTable + "\n%%EOF\n");
 
         return pdf.ToArray();
+
+        void Write(string text) => pdf.Write(Encoding.Latin1.GetBytes(text));
+
+        void WriteObject(int number, string body, bool close)
+        {
+            offsets[number] = pdf.Position;
+            Write(number + " 0 obj\n" + body + "\n" + (close ? "endobj\n" : ""));
+        }
     }
 }

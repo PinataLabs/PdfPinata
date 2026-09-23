@@ -163,23 +163,21 @@ public static class LinuxSystemFontResolver
     private static IEnumerable<string> ResolveFontConfig()
     {
         var config = fcConfig.Value;
-        using (var pattern = FcPatternCreate())
-        using (var os = FcObjectSetHandle.Create("family", "style", "file"))
-        using (var fs = FcFontList(config, pattern, os))
+        using var pattern = FcPatternCreate();
+        using var os = FcObjectSetHandle.Create("family", "style", "file");
+        using var fs = FcFontList(config, pattern, os);
+        var fset = fs.Read();
+        for (var index = 0; index < fset.nfont; index++)
         {
-            var fset = fs.Read();
-            for (var index = 0; index < fset.nfont; index++)
-            {
-                var font = Marshal.ReadIntPtr(fset.fonts, index * Marshal.SizeOf<IntPtr>());
-                var family = GetString(font, "family");
-                var style = GetString(font, "style");
-                var file = GetString(font, "file");
+            var font = Marshal.ReadIntPtr(fset.fonts, index * Marshal.SizeOf<IntPtr>());
+            var family = GetString(font, "family");
+            var style = GetString(font, "style");
+            var file = GetString(font, "file");
 
-                if (family is null || style is null || file is null)
-                    continue;
+            if (family is null || style is null || file is null)
+                continue;
 
-                yield return file;
-            }
+            yield return file;
         }
     }
 
@@ -218,15 +216,6 @@ public static class LinuxSystemFontResolver
     {
         var fontList = new List<string>();
 
-        void AddFontsToFontList(string path)
-        {
-            if (!Directory.Exists(path))
-                return;
-
-            foreach (var subDir in Directory.EnumerateDirectories(path, "*", SearchOption.AllDirectories))
-                fontList.AddRange(Directory.EnumerateFiles(subDir, "*", SearchOption.AllDirectories));
-        }
-
         var hs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var path in SearchPaths())
         {
@@ -237,6 +226,15 @@ public static class LinuxSystemFontResolver
         }
 
         return [..fontList];
+
+        void AddFontsToFontList(string path)
+        {
+            if (!Directory.Exists(path))
+                return;
+
+            foreach (var subDir in Directory.EnumerateDirectories(path, "*", SearchOption.AllDirectories))
+                fontList.AddRange(Directory.EnumerateFiles(subDir, "*", SearchOption.AllDirectories));
+        }
     }
 
     private static List<string> SearchPaths()
@@ -247,23 +245,21 @@ public static class LinuxSystemFontResolver
             #pragma warning disable SYSLIB1045 // netstandard2.1 has no GeneratedRegex, and this runs only when fontconfig cannot be loaded.
             var confRegex = new Regex("<dir>(?<dir>.*)</dir>", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
             #pragma warning restore SYSLIB1045
-            using (var reader = new StreamReader(File.OpenRead("/etc/fonts/fonts.conf")))
+            using var reader = new StreamReader(File.OpenRead("/etc/fonts/fonts.conf"));
+            string line;
+            while ((line = reader.ReadLine()) != null)
             {
-                string line;
-                while ((line = reader.ReadLine()) != null)
+                var match = confRegex.Match(line);
+                if (!match.Success)
+                    continue;
+
+                var path = match.Groups["dir"].Value.Trim();
+                if (path.StartsWith('~'))
                 {
-                    var match = confRegex.Match(line);
-                    if (!match.Success)
-                        continue;
-
-                    var path = match.Groups["dir"].Value.Trim();
-                    if (path.StartsWith('~'))
-                    {
-                        path = string.Concat(Environment.GetEnvironmentVariable("HOME"), path.AsSpan(1));
-                    }
-
-                    dirs.Add(path);
+                    path = string.Concat(Environment.GetEnvironmentVariable("HOME"), path.AsSpan(1));
                 }
+
+                dirs.Add(path);
             }
         }
         catch (Exception ex) when (!Unrecoverable.Is(ex))

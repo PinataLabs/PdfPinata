@@ -28,8 +28,8 @@ internal static class PngFilter
             switch (filterType)
             {
                 case 0:         // None
-                    for (var i = 0; i < row.Length; i++)
-                        outData[outIndex++] = row[i];
+                    foreach (var value in row)
+                        outData[outIndex++] = value;
                     break;
                 case 1:         // Sub
                     for (var i = 0; i < row.Length; i++)

@@ -271,15 +271,13 @@ internal sealed class ChartsDemo : PdfDemo
         // Saved and reopened rather than imported from the live document: a document being written
         // and a document being read are different things to PdfPinata, and Import is the mode that
         // permits taking pages out of one.
-        using (var buffer = new MemoryStream())
-        {
-            renderer.PdfDocument.Save(buffer, false);
-            buffer.Position = 0;
+        using var buffer = new MemoryStream();
+        renderer.PdfDocument.Save(buffer, false);
+        buffer.Position = 0;
 
-            using var laidOut = PdfReader.Open(buffer, PdfDocumentOpenMode.Import);
-            foreach (var rendered in laidOut.Pages)
-                _ = document.AddPage(rendered);
-        }
+        using var laidOut = PdfReader.Open(buffer, PdfDocumentOpenMode.Import);
+        foreach (var rendered in laidOut.Pages)
+            _ = document.AddPage(rendered);
         #endregion
 
         return document;

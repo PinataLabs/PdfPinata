@@ -48,8 +48,7 @@ public sealed class XImageFormat
     /// </summary>
     public override bool Equals(object obj)
     {
-        var format = obj as XImageFormat;
-        if (format == null)
+        if (obj is not XImageFormat format)
             return false;
         return _guid == format._guid;
     }

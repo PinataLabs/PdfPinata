@@ -80,7 +80,7 @@ public class InterruptiblyTests
         // Typed as Action rather than left to inference: these refuse before there is a task to
         // await, and a lambda inferred as returning one would be asserted on as if there were.
         Action withNothingToReturn = () => Interruptibly.Run(null);
-        Action withSomethingToReturn = () => Interruptibly.Run((Func<int>)null);
+        Action withSomethingToReturn = () => Interruptibly.Run<int>(null);
 
         withNothingToReturn.Should().Throw<ArgumentNullException>();
         withSomethingToReturn.Should().Throw<ArgumentNullException>();

@@ -129,8 +129,8 @@ public class ImageSourceRectangleTests
     private static PdfPage PageShowing(Action<XGraphics> draw)
     {
         var page = new PdfDocument().AddPage();
-        using (var gfx = XGraphics.FromPdfPage(page))
-            draw(gfx);
+        using var gfx = XGraphics.FromPdfPage(page);
+        draw(gfx);
         return page;
     }
 

@@ -117,11 +117,8 @@ public static class OpCodes
     static OpCodes()
     {
         StringToOpCode = new Dictionary<string, OpCode>();
-        for (var idx = 0; idx < ops.Length; idx++)
-        {
-            var op = ops[idx];
+        foreach (var op in ops)
             StringToOpCode.Add(op.Name, op);
-        }
     }
     private static readonly Dictionary<string, OpCode> StringToOpCode;
 

@@ -87,7 +87,7 @@ public class RunLengthDecodeTests
         "aaaaabcdeeeeeeeeefgh"u8.ToArray(),
         Enumerable.Repeat((byte)'q', 1000).ToArray(),
         Enumerable.Range(0, 1000).Select(value => (byte)(value * 37 + 11)).ToArray(),
-        Enumerable.Range(0, 1000).Select(value => (byte)(value / 3)).ToArray(),
+        Enumerable.Range(0, 1000).Select(value => (byte)(value / 3)).ToArray()
     ];
 
     [Theory]
@@ -165,12 +165,10 @@ public class RunLengthDecodeTests
             Latin1("<< /Type /Pages /Kids [3 0 R] /Count 1 >>"),
             Latin1("<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] /Contents 4 0 R >>"),
             Latin1($"<< /Length {data.Length} {streamEntries} >>\nstream\n")
-                .Concat(data).Concat(Latin1("\nendstream")).ToArray(),
+                .Concat(data).Concat(Latin1("\nendstream")).ToArray()
         };
 
         using var file = new MemoryStream();
-        void Write(byte[] bytes) => file.Write(bytes, 0, bytes.Length);
-
         Write(Latin1("%PDF-1.4\n"));
         var offsets = new List<long>();
         for (var idx = 0; idx < objects.Count; idx++)
@@ -189,6 +187,8 @@ public class RunLengthDecodeTests
         Write(Latin1(table.ToString()));
 
         return file.ToArray();
+
+        void Write(byte[] bytes) => file.Write(bytes, 0, bytes.Length);
     }
 
     private static byte[] Latin1(string text) => [..text.Select(ch => (byte)ch)];

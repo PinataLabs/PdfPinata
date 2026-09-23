@@ -107,8 +107,7 @@ public static class PdfSignatures
     /// </remarks>
     private static byte[] ContentsOf(PdfDictionary value)
     {
-        var contents = value.Elements["/Contents"] as PdfString;
-        return contents == null ? [] : PdfEncoders.RawEncoding.GetBytes(contents.Value);
+        return value.Elements["/Contents"] is PdfString contents ? PdfEncoders.RawEncoding.GetBytes(contents.Value) : [];
     }
 
     private static DateTime? SigningTimeOf(PdfDictionary value)

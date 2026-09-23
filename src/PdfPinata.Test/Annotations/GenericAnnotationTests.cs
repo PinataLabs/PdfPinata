@@ -233,10 +233,8 @@ public class GenericAnnotationTests
     private static XForm Filled(PdfDocument document, XSize size, XColor colour)
     {
         var form = new XForm(document, size);
-        using (var gfx = XGraphics.FromForm(form))
-        {
-            gfx.DrawRectangle(new XSolidBrush(colour), 0, 0, size.Width, size.Height);
-        }
+        using var gfx = XGraphics.FromForm(form);
+        gfx.DrawRectangle(new XSolidBrush(colour), 0, 0, size.Width, size.Height);
 
         return form;
     }
