@@ -117,26 +117,26 @@ public static class PdfTextExtractor
     /// <summary>
     /// Walks a content stream keeping the graphics and text state, and records what was shown.
     /// </summary>
-    sealed class Walker
+    private sealed class Walker
     {
-        readonly PdfPage _page;
-        readonly Dictionary<string, FontInfo> _fonts = new();
-        readonly Stack<XMatrix> _graphicsStack = new();
-        readonly Stack<MarkedContentScope> _markedContent = new();
+        private readonly PdfPage _page;
+        private readonly Dictionary<string, FontInfo> _fonts = new();
+        private readonly Stack<XMatrix> _graphicsStack = new();
+        private readonly Stack<MarkedContentScope> _markedContent = new();
 
-        XMatrix _ctm = XMatrix.Identity;
-        XMatrix _textMatrix = XMatrix.Identity;
-        XMatrix _lineMatrix = XMatrix.Identity;
+        private XMatrix _ctm = XMatrix.Identity;
+        private XMatrix _textMatrix = XMatrix.Identity;
+        private XMatrix _lineMatrix = XMatrix.Identity;
 
-        FontInfo _font;
-        string _fontName;
-        double _fontSize;
-        double _charSpacing;
-        double _wordSpacing;
-        double _horizontalScale = 1;
-        double _leading;
-        double _rise;
-        int _renderMode;
+        private FontInfo _font;
+        private string _fontName;
+        private double _fontSize;
+        private double _charSpacing;
+        private double _wordSpacing;
+        private double _horizontalScale = 1;
+        private double _leading;
+        private double _rise;
+        private int _renderMode;
 
         public Walker(PdfPage page) => _page = page;
 
@@ -158,7 +158,7 @@ public static class PdfTextExtractor
             }
         }
 
-        void Execute(CSequence content, int index, COperator op)
+        private void Execute(CSequence content, int index, COperator op)
         {
             switch (op.OpCode.OpCodeName)
             {
@@ -296,7 +296,7 @@ public static class PdfTextExtractor
         /// it.
         /// </para>
         /// </remarks>
-        void BeginTag(CSequence content, int index, COperator op)
+        private void BeginTag(CSequence content, int index, COperator op)
         {
             string tag;
             string actualText = null;
@@ -345,7 +345,7 @@ public static class PdfTextExtractor
         /// reported for the rest of the page. A run drawn inside an uncapped sequence still reports
         /// the deepest tracked one, which is the graceful degradation this cap exists for.
         /// </remarks>
-        void PushScope(MarkedContentScope scope)
+        private void PushScope(MarkedContentScope scope)
         {
             if (_markedContent.Count < MaximumMarkedContentDepth)
                 _markedContent.Push(scope);
@@ -353,16 +353,16 @@ public static class PdfTextExtractor
                 _uncappedMarkedContentDepth++;
         }
 
-        const int MaximumMarkedContentDepth = 1024;
+        private const int MaximumMarkedContentDepth = 1024;
 
         /// <summary>
         /// How many open sequences past <see cref="MaximumMarkedContentDepth"/> have not been
         /// closed yet — each one's own <c>EMC</c> to come, still owed before the stack's own
         /// entries may be popped again.
         /// </summary>
-        int _uncappedMarkedContentDepth;
+        private int _uncappedMarkedContentDepth;
 
-        PdfDictionary PropertiesFor(string name)
+        private PdfDictionary PropertiesFor(string name)
         {
             if (name == null)
                 return null;
@@ -370,17 +370,17 @@ public static class PdfTextExtractor
             return ResourceCategory("/Properties")?.Elements.GetDictionary(name);
         }
 
-        static string NameOperand(COperator op, int index) =>
+        private static string NameOperand(COperator op, int index) =>
             index < op.Operands.Count && op.Operands[index] is CName name ? name.Name : null;
 
-        void SelectFont(COperator op)
+        private void SelectFont(COperator op)
         {
             _fontSize = Number(op, 1);
             _fontName = op.Operands.Count > 0 && op.Operands[0] is CName name ? name.Name : null;
             _font = _fontName == null ? null : FontFor(_fontName);
         }
 
-        void Displace(double tx, double ty)
+        private void Displace(double tx, double ty)
         {
             _lineMatrix = Multiply(new XMatrix(1, 0, 0, 1, tx, ty), _lineMatrix);
             _textMatrix = _lineMatrix;
@@ -389,7 +389,7 @@ public static class PdfTextExtractor
         /// <summary>
         /// Shows a string, or the mixture of strings and kerning adjustments a <c>TJ</c> array is.
         /// </summary>
-        void Show(CSequence operands, int from = 0)
+        private void Show(CSequence operands, int from = 0)
         {
             // Text render mode 3 is invisible — the OCR layer under a scan is drawn that way, and a
             // caller asking what the page says usually does not want it twice. It is skipped rather
@@ -443,7 +443,7 @@ public static class PdfTextExtractor
         /// <summary>
         /// Decodes one shown string and answers how far it advances the pen.
         /// </summary>
-        double Append(StringBuilder text, string shown)
+        private double Append(StringBuilder text, string shown)
         {
             var advance = 0.0;
             var codeLength = _font.CodeLength;
@@ -469,7 +469,7 @@ public static class PdfTextExtractor
             return advance;
         }
 
-        XPoint OriginOfCurrentPoint() =>
+        private XPoint OriginOfCurrentPoint() =>
             Multiply(_textMatrix, _ctm).Transform(new XPoint(0, _rise));
 
         /// <summary>
@@ -478,7 +478,7 @@ public static class PdfTextExtractor
         /// substitute text still reports that text, and one drawn inside two such sequences reports
         /// the nearer one.
         /// </summary>
-        MarkedContentScope DeclaringScope()
+        private MarkedContentScope DeclaringScope()
         {
             foreach (var scope in _markedContent)
             {
@@ -495,7 +495,7 @@ public static class PdfTextExtractor
         /// nests a structural sequence inside one, but a document from another producer is free to,
         /// and glyphs drawn there are still furniture whatever the nearer tag claims to be.
         /// </summary>
-        bool IsInsideArtifact()
+        private bool IsInsideArtifact()
         {
             foreach (var scope in _markedContent)
             {
@@ -506,9 +506,9 @@ public static class PdfTextExtractor
             return false;
         }
 
-        const string ArtifactTagName = "/Artifact";
+        private const string ArtifactTagName = "/Artifact";
 
-        FontInfo FontFor(string name)
+        private FontInfo FontFor(string name)
         {
             if (_fonts.TryGetValue(name, out var known))
                 return known;
@@ -526,24 +526,24 @@ public static class PdfTextExtractor
         /// <c>/Resources</c> entry first, and through the object model's own copy when that entry
         /// is missing or was never linked back to the page it belongs to.
         /// </summary>
-        PdfDictionary ResourceCategory(string category) =>
+        private PdfDictionary ResourceCategory(string category) =>
             _page.Elements.GetDictionary("/Resources")?.Elements.GetDictionary(category)
             ?? _page.Resources?.Elements.GetDictionary(category);
 
-        static XMatrix Multiply(XMatrix first, XMatrix second) => XMatrix.Multiply(first, second);
+        private static XMatrix Multiply(XMatrix first, XMatrix second) => XMatrix.Multiply(first, second);
 
         /// <summary>
         /// How much a matrix scales along its own X axis, which is what turns a width in text space
         /// into one in user space.
         /// </summary>
-        static double ScaleOf(XMatrix matrix) =>
+        private static double ScaleOf(XMatrix matrix) =>
             Math.Sqrt(matrix.M11 * matrix.M11 + matrix.M12 * matrix.M12);
 
-        static XMatrix MatrixOf(COperator op, int from) => new(
+        private static XMatrix MatrixOf(COperator op, int from) => new(
             Number(op, from), Number(op, from + 1), Number(op, from + 2),
             Number(op, from + 3), Number(op, from + 4), Number(op, from + 5));
 
-        static double Number(COperator op, int index) =>
+        private static double Number(COperator op, int index) =>
             index < op.Operands.Count && op.Operands[index] is CNumber number
                 ? (number is CInteger integer ? integer.Value : ((CReal)number).Value)
                 : 0;
@@ -555,7 +555,7 @@ public static class PdfTextExtractor
     /// carries one. The identity of the instance is what <see cref="PdfTextRun.ActualTextScope"/>
     /// hands back — a run inside this sequence, not a copy of what it says.
     /// </summary>
-    sealed class MarkedContentScope
+    private sealed class MarkedContentScope
     {
         internal MarkedContentScope(string tag, string actualText, int? mcid)
         {

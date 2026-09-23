@@ -17,13 +17,13 @@ namespace PdfPinata.Test.Drawing;
 [Collection(RasterizingCollection.Name)]
 public sealed class GradientTransparencyRenderingTests : IDisposable
 {
-    const string OutDir = "Out/GradientTransparency";
+    private const string OutDir = "Out/GradientTransparency";
 
     /// <summary>
     ///   Everything rasterized by one test, kept until the test is over. A page at 300 dpi is
     ///   tens of megabytes of unmanaged bitmap that the collector cannot see the size of.
     /// </summary>
-    readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
+    private readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
 
     public void Dispose()
     {
@@ -39,7 +39,7 @@ public sealed class GradientTransparencyRenderingTests : IDisposable
     }
 
     /// <summary>The band the gradient is drawn across, in the space the drawing uses.</summary>
-    static readonly XRect Band = new XRect(50, 50, 400, 200);
+    private static readonly XRect Band = new XRect(50, 50, 400, 200);
 
     [GoldenImageFact]
     public void ATransparentToOpaqueGradientLetsTheFillBeneathItThrough()
@@ -146,7 +146,7 @@ public sealed class GradientTransparencyRenderingTests : IDisposable
 
     // ----- rasterizing and reading pixels ---------------------------------------------------------
 
-    IMagickImage<byte> Rasterize(string name, Action<XGraphics> draw)
+    private IMagickImage<byte> Rasterize(string name, Action<XGraphics> draw)
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -160,13 +160,13 @@ public sealed class GradientTransparencyRenderingTests : IDisposable
     }
 
     /// <summary>The colour a fraction of the way across and down the band under test.</summary>
-    static IMagickColor<byte> Sample(IMagickImage<byte> page, double across, double down)
+    private static IMagickColor<byte> Sample(IMagickImage<byte> page, double across, double down)
     {
         return SampleAt(page, across, Band, down);
     }
 
     /// <summary>The colour a fraction of the way across and down a rectangle of the drawing.</summary>
-    static IMagickColor<byte> SampleAt(IMagickImage<byte> page, double across, XRect area, double down = 0.5)
+    private static IMagickColor<byte> SampleAt(IMagickImage<byte> page, double across, XRect area, double down = 0.5)
     {
         // The drawing is in points from the top left, and so is the raster, so the only
         // conversion is the resolution the page was drawn at.
@@ -178,5 +178,5 @@ public sealed class GradientTransparencyRenderingTests : IDisposable
         return pixels.GetPixel(x, y).ToColor();
     }
 
-    static double Luminance(IMagickColor<byte> colour) => 0.299 * colour.R + 0.587 * colour.G + 0.114 * colour.B;
+    private static double Luminance(IMagickColor<byte> colour) => 0.299 * colour.R + 0.587 * colour.G + 0.114 * colour.B;
 }

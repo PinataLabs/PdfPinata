@@ -26,7 +26,7 @@ namespace PdfPinata.Test.Rendering;
 /// </remarks>
 public class FittingRectContractTests
 {
-    const string Prose =
+    private const string Prose =
         "The quick brown fox jumps over the lazy dog, and having jumped it lands and looks about " +
         "for somewhere else to be, which takes rather longer than the jump did.";
 
@@ -166,7 +166,7 @@ public class FittingRectContractTests
 
     // ----- rendering ------------------------------------------------------------------------------
 
-    static int Render(Action<Document> build)
+    private static int Render(Action<Document> build)
     {
         var document = new Document();
         build(document);

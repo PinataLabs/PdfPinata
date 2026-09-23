@@ -117,7 +117,7 @@ public class ImageFailureReportingTests
         reported.Should().BeEmpty();
     }
 
-    static IReadOnlyList<ImageFailedEventArgs> Render(IImageSource source)
+    private static IReadOnlyList<ImageFailedEventArgs> Render(IImageSource source)
     {
         var reported = new List<ImageFailedEventArgs>();
         var document = new Document();
@@ -131,7 +131,7 @@ public class ImageFailureReportingTests
         return reported;
     }
 
-    static PdfDocumentRenderer RenderTo(Document document, List<ImageFailedEventArgs> reported)
+    private static PdfDocumentRenderer RenderTo(Document document, List<ImageFailedEventArgs> reported)
     {
         var renderer = new PdfDocumentRenderer(true) { Document = document };
         renderer.DocumentRenderer.ImageFailed += (_, e) => reported.Add(e);
@@ -160,8 +160,8 @@ public class ImageFailureReportingTests
             Drawing
         }
 
-        readonly Stage _stage;
-        readonly Exception _exception;
+        private readonly Stage _stage;
+        private readonly Exception _exception;
 
         public FailingImageSource(Stage stage, Exception exception)
         {
@@ -192,7 +192,7 @@ public class ImageFailureReportingTests
             return default;
         }
 
-        bool FailAt(Stage stage)
+        private bool FailAt(Stage stage)
         {
             return _stage == stage;
         }

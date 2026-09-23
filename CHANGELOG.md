@@ -8,6 +8,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Pages & Documents
+
+#### Added
+
+- **`PdfDocument.CanSave()` returns a `PdfSaveCheck`.** Its `CanSave` says whether the document can be saved and its `Reason` says why not, or is null when it can. It replaces `CanSave(ref string message)`, which is now deprecated.
+
+### PinataLayout & DDL
+
+#### Breaking
+
+- **`Unit` implements `IEquatable<Unit>` (source).** Comparing units no longer boxes or uses reflection, and `GetHashCode` now hashes all three things `Equals` compares. Because `Unit` converts implicitly from `string`, `int` and `double`, `unit.Equals("3")` now parses the string and answers true for 3pt, as `==` always did. `unit.Equals(null)` now throws `ArgumentNullException`, as `unit == null` already did. Cast to `object` to keep the old answer, or test `IsEmpty`. `==` and `Equals` now always agree, so a unit holding NaN equals itself.
+
+### API & Packaging
+
+#### Deprecated
+
+- **`PdfDocument.CanSave(ref string message)`.** Use `CanSave()`, which returns a `PdfSaveCheck` carrying the reason as well as the answer. It behaves as before and will be removed.
+
+#### Removed
+
+- **`PdfDocument(string filename)`.** It built a document and then threw `NotImplementedException`, so no caller ever got one from it. Use `new PdfDocument()` and `Save(path)`.
+
 ## [0.3.0] - 2026-09-22
 
 ### PDF Reader & Writer

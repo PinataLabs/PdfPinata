@@ -21,7 +21,7 @@ namespace PinataLayout.Rendering.Tests;
 /// </summary>
 public class ChartAreaRenderingTests
 {
-    static Document ADocumentWithAChart(bool withAreas)
+    private static Document ADocumentWithAChart(bool withAreas)
     {
         var document = new Document();
         var section = document.AddSection();

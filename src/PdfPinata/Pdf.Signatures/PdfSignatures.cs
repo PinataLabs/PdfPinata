@@ -33,7 +33,7 @@ public static class PdfSignatures
         return found;
     }
 
-    const string PdfCatalogAcroFormKey = "/AcroForm";
+    private const string PdfCatalogAcroFormKey = "/AcroForm";
 
     /// <summary>
     /// Walks the field tree. Fields nest — a field may stand for a group and hold its members in
@@ -46,7 +46,7 @@ public static class PdfSignatures
     /// billion visits before it bites. This is read from files nobody here wrote, so the bound has
     /// to be exact.
     /// </remarks>
-    static void Collect(PdfArray fields, List<PdfSignatureInfo> found, HashSet<PdfDictionary> seen,
+    private static void Collect(PdfArray fields, List<PdfSignatureInfo> found, HashSet<PdfDictionary> seen,
         int depth)
     {
         // The visited set bounds the work; this bounds the stack, which a long chain of distinct
@@ -74,7 +74,7 @@ public static class PdfSignatures
         }
     }
 
-    static PdfSignatureInfo Read(PdfDictionary field, PdfDictionary value)
+    private static PdfSignatureInfo Read(PdfDictionary field, PdfDictionary value)
     {
         if (value == null)
             return null;
@@ -108,7 +108,7 @@ public static class PdfSignatures
     /// byte and the writer asserts it on the way out — so turning one back into bytes is the raw
     /// encoding and never a text decoding.
     /// </remarks>
-    static byte[] ContentsOf(PdfDictionary value)
+    private static byte[] ContentsOf(PdfDictionary value)
     {
         var contents = value.Elements["/Contents"] as PdfString;
         if (contents == null)
@@ -117,7 +117,7 @@ public static class PdfSignatures
         return PdfEncoders.RawEncoding.GetBytes(contents.Value);
     }
 
-    static DateTime? SigningTimeOf(PdfDictionary value)
+    private static DateTime? SigningTimeOf(PdfDictionary value)
     {
         if (!value.Elements.ContainsKey("/M"))
             return null;
@@ -129,7 +129,7 @@ public static class PdfSignatures
     /// <summary>
     /// The <c>/P</c> of a <c>/DocMDP</c> transform, which is what makes a signature a certifying one.
     /// </summary>
-    static int CertificationLevelOf(PdfDictionary value)
+    private static int CertificationLevelOf(PdfDictionary value)
     {
         var references = value.Elements.GetArray("/Reference");
         if (references == null)
@@ -156,7 +156,7 @@ public static class PdfSignatures
         return 0;
     }
 
-    static string NullIfEmpty(string value) => String.IsNullOrEmpty(value) ? null : value;
+    private static string NullIfEmpty(string value) => String.IsNullOrEmpty(value) ? null : value;
 
     /// <summary>
     /// The document's own certification level, read from <c>/Perms/DocMDP</c> — the signature, if

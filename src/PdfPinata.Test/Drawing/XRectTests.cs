@@ -113,7 +113,7 @@ public class XRectTests
     ///   refuse, because the empty rectangle is stored as a corner at positive infinity with a
     ///   negative extent, and half-assigning that leaves a rectangle nobody can reason about.
     /// </summary>
-    static readonly Action[] WaysOfChangingARectangle =
+    private static readonly Action[] WaysOfChangingARectangle =
     {
         () => { var rect = XRect.Empty; rect.X = 1; },
         () => { var rect = XRect.Empty; rect.Y = 1; },

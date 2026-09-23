@@ -71,7 +71,7 @@ public sealed class PdfFreeTextAnnotation : PdfMarkupAnnotation
     /// <c>g</c> or <c>k</c> operator and the last <c>Tf</c> - leaving the defaults where it says
     /// nothing that can be read.
     /// </summary>
-    void ReadDefaultAppearance(string appearance)
+    private void ReadDefaultAppearance(string appearance)
     {
         if (string.IsNullOrEmpty(appearance))
             return;
@@ -110,7 +110,7 @@ public sealed class PdfFreeTextAnnotation : PdfMarkupAnnotation
         static int Component(double value) => (int)Math.Round(Math.Clamp(value, 0, 1) * 255);
     }
 
-    void Initialize()
+    private void Initialize()
     {
         Elements.SetName(PdfAnnotation.Keys.Subtype, "/FreeText");
 
@@ -154,13 +154,13 @@ public sealed class PdfFreeTextAnnotation : PdfMarkupAnnotation
             OnAppearanceInvalidated();
         }
     }
-    XFont _font;
+    private XFont _font;
 
     /// <summary>
     /// The size the default face is drawn at - 10, or what <c>/DA</c> said of an annotation read
     /// from a file.
     /// </summary>
-    double _readFontSize = 10;
+    private double _readFontSize = 10;
 
     /// <summary>
     /// The colour the text and the border are drawn in. Black by default.
@@ -176,7 +176,7 @@ public sealed class PdfFreeTextAnnotation : PdfMarkupAnnotation
             OnAppearanceInvalidated();
         }
     }
-    XColor _textColor = XColors.Black;
+    private XColor _textColor = XColors.Black;
 
     /// <summary>
     /// The width of the box's border, in points. Zero draws no border, leaving the text and the
@@ -236,7 +236,7 @@ public sealed class PdfFreeTextAnnotation : PdfMarkupAnnotation
             OnAppearanceInvalidated();
         }
     }
-    bool _justified;
+    private bool _justified;
 
     internal override void OnAddedToPage()
     {
@@ -258,7 +258,7 @@ public sealed class PdfFreeTextAnnotation : PdfMarkupAnnotation
     /// form has no such dictionary to look in. The appearance built below carries the real face in
     /// its own resources, so what a reader draws from <c>/AP</c> is the face asked for either way.
     /// </remarks>
-    void WriteDefaultAppearance()
+    private void WriteDefaultAppearance()
     {
         // Size read off the font rather than stored, so that /DA and the drawing cannot disagree.
         var size = _font?.Size ?? _readFontSize;
@@ -270,7 +270,7 @@ public sealed class PdfFreeTextAnnotation : PdfMarkupAnnotation
         Elements.SetString(Keys.DA, appearance);
     }
 
-    void RebuildAppearance()
+    private void RebuildAppearance()
     {
         // Until it is on a page there is no document to make a form in. OnAddedToPage calls this
         // again once there is, so nothing set beforehand is lost.
@@ -382,7 +382,7 @@ public sealed class PdfFreeTextAnnotation : PdfMarkupAnnotation
 
         public static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

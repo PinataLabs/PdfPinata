@@ -25,7 +25,7 @@ public class ExternalFileStreamTests
     ///   The document of the report: a catalog whose /Metadata is a stream that says its data is
     ///   in a file beside the document, and the file specification it names.
     /// </summary>
-    static byte[] DocumentWhoseMetadataIsInAnotherFile(string streamEntries, string data = "") =>
+    private static byte[] DocumentWhoseMetadataIsInAnotherFile(string streamEntries, string data = "") =>
         RawPdf.Build(new[]
         {
             "<</Type/Catalog/Pages 2 0 R/Metadata 3 0 R>>",
@@ -35,7 +35,7 @@ public class ExternalFileStreamTests
             "<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]>>",
         });
 
-    static PdfDictionary MetadataOf(byte[] pdf, PdfDocumentOpenMode mode = PdfDocumentOpenMode.Modify) =>
+    private static PdfDictionary MetadataOf(byte[] pdf, PdfDocumentOpenMode mode = PdfDocumentOpenMode.Modify) =>
         (PdfDictionary)PdfPinata.Pdf.IO.PdfReader.Open(new MemoryStream(pdf), mode)
             .Internals.Catalog.Elements.GetObject("/Metadata");
 

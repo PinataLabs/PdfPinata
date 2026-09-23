@@ -21,10 +21,10 @@ namespace PdfPinata.Test.Drawing;
 public class XKnownColorTests
 {
     /// <summary>Every value of the enum, which is the list the other three are checked against.</summary>
-    static readonly XKnownColor[] AllKnownColors =
+    private static readonly XKnownColor[] AllKnownColors =
         Enum.GetValues<XKnownColor>();
 
-    static IEnumerable<PropertyInfo> PropertiesOf(Type type) =>
+    private static IEnumerable<PropertyInfo> PropertiesOf(Type type) =>
         type.GetProperties(BindingFlags.Public | BindingFlags.Static);
 
     [Fact]

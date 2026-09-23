@@ -25,7 +25,7 @@ namespace PinataLayout.Rendering.Tests;
 public class HeadingLevelTests
 {
     /// <summary>A document claiming PDF/UA-1 whose headings are the levels given, in order.</summary>
-    static PdfDocumentRenderer Claiming(params int[] headingLevels)
+    private static PdfDocumentRenderer Claiming(params int[] headingLevels)
     {
         var document = new Document();
         var section = document.AddSection();
@@ -48,7 +48,7 @@ public class HeadingLevelTests
         return renderer;
     }
 
-    static Action Saving(PdfDocumentRenderer renderer)
+    private static Action Saving(PdfDocumentRenderer renderer)
         => () => renderer.PdfDocument.Save(new MemoryStream(), false);
 
     // ----- what is refused ----------------------------------------------------------------------

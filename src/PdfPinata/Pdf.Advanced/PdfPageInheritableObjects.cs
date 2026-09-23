@@ -47,7 +47,7 @@ internal class PdfPageInheritableObjects : PdfDictionary
         set => _mediaBox = value;
     }
 
-    PdfRectangle _mediaBox;
+    private PdfRectangle _mediaBox;
 
     public PdfRectangle CropBox
     {
@@ -55,7 +55,7 @@ internal class PdfPageInheritableObjects : PdfDictionary
         set => _cropBox = value;
     }
 
-    PdfRectangle _cropBox;
+    private PdfRectangle _cropBox;
 
     public int Rotate
     {
@@ -63,7 +63,7 @@ internal class PdfPageInheritableObjects : PdfDictionary
         set
         {
             if (value % 90 != 0)
-                throw new ArgumentException("The value must be a multiple of 90.", nameof(value));
+                throw new ArgumentException(@"The value must be a multiple of 90.", nameof(value));
             field = value;
         }
     }

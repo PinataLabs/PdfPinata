@@ -20,7 +20,7 @@ namespace PdfPinata.Test.IO.Filters;
 /// </summary>
 public class RunLengthDecodeTests
 {
-    static byte[] Decode(params byte[] data) => Filtering.RunLengthDecode.Decode(data, (FilterParms)null);
+    private static byte[] Decode(params byte[] data) => Filtering.RunLengthDecode.Decode(data, (FilterParms)null);
 
     [Fact]
     public void ALengthBelow128CopiesThatManyPlusOneBytes()
@@ -121,14 +121,14 @@ public class RunLengthDecodeTests
 
     // ----- through a stream ----------------------------------------------------------------------
 
-    const string Content = "0 0 m 100 100 l S\n";
+    private const string Content = "0 0 m 100 100 l S\n";
 
     /// <summary>
     ///   <see cref="Content"/> encoded by hand rather than by the encoder, so that reading it does
     ///   not depend on the other half of what is being tested: "0 0 m 1" literally, the two zeros
     ///   of "100" as a repeat, " 1" literally, the zeros again, and " l S\n" literally.
     /// </summary>
-    static byte[] EncodedContent() => new byte[] { 6 }.Concat(Latin1("0 0 m 1"))
+    private static byte[] EncodedContent() => new byte[] { 6 }.Concat(Latin1("0 0 m 1"))
         .Concat(new byte[] { 255, (byte)'0', 1 }).Concat(Latin1(" 1"))
         .Concat(new byte[] { 255, (byte)'0', 4 }).Concat(Latin1(" l S\n"))
         .Append((byte)128)
@@ -159,7 +159,7 @@ public class RunLengthDecodeTests
     }
 
     /// <summary>A one-page file whose content stream, object 4, holds the data given.</summary>
-    static byte[] File(byte[] data, string streamEntries)
+    private static byte[] File(byte[] data, string streamEntries)
     {
         var objects = new List<byte[]>
         {
@@ -193,5 +193,5 @@ public class RunLengthDecodeTests
         return file.ToArray();
     }
 
-    static byte[] Latin1(string text) => text.Select(ch => (byte)ch).ToArray();
+    private static byte[] Latin1(string text) => text.Select(ch => (byte)ch).ToArray();
 }

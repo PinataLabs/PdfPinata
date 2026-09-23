@@ -51,7 +51,7 @@ public class HeaderLinkTests
         Saving(Claiming(linkInHeader: false, headerText: "Statement of account")).Should().NotThrow();
     }
 
-    static PdfDocumentRenderer Claiming(bool linkInHeader, string headerText = "Statement")
+    private static PdfDocumentRenderer Claiming(bool linkInHeader, string headerText = "Statement")
     {
         var document = new Document();
         var normal = document.Styles[StyleNames.Normal];
@@ -83,6 +83,6 @@ public class HeaderLinkTests
         return renderer;
     }
 
-    static Action Saving(PdfDocumentRenderer renderer)
+    private static Action Saving(PdfDocumentRenderer renderer)
         => () => renderer.PdfDocument.Save(new MemoryStream(), false);
 }

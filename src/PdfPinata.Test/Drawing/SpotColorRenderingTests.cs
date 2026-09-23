@@ -18,13 +18,13 @@ namespace PdfPinata.Test.Drawing;
 [Collection(RasterizingCollection.Name)]
 public sealed class SpotColorRenderingTests : IDisposable
 {
-    const string OutDir = "Out/SpotColor";
+    private const string OutDir = "Out/SpotColor";
 
-    static readonly XRect Solid = new XRect(50, 50, 200, 100);
-    static readonly XRect Half = new XRect(50, 200, 200, 100);
-    static readonly XRect Stroked = new XRect(300, 50, 200, 100);
+    private static readonly XRect Solid = new XRect(50, 50, 200, 100);
+    private static readonly XRect Half = new XRect(50, 200, 200, 100);
+    private static readonly XRect Stroked = new XRect(300, 50, 200, 100);
 
-    readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
+    private readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
 
     static SpotColorRenderingTests()
     {
@@ -95,7 +95,7 @@ public sealed class SpotColorRenderingTests : IDisposable
         ((double)painted).Should().BeInRange(expected * 0.9, expected * 1.1);
     }
 
-    IMagickImage<byte> Rasterize(string name, Action<XGraphics> draw)
+    private IMagickImage<byte> Rasterize(string name, Action<XGraphics> draw)
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -114,7 +114,7 @@ public sealed class SpotColorRenderingTests : IDisposable
         return raster;
     }
 
-    static IMagickColor<byte> Sample(IMagickImage<byte> page, double x, double y)
+    private static IMagickColor<byte> Sample(IMagickImage<byte> page, double x, double y)
     {
         var scale = page.Width / 595.0;
         using var pixels = page.GetPixels();

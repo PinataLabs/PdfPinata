@@ -27,7 +27,7 @@ namespace PdfPinata.Pdf.Advanced;
 internal sealed class PdfResourcePruner : PdfPageWalk
 {
     /// <summary>The categories of a resource dictionary whose entries content names.</summary>
-    static readonly string[] Categories =
+    private static readonly string[] Categories =
     [
         "/XObject", "/Font", "/ExtGState", "/Shading", "/Pattern", "/ColorSpace", "/Properties"
     ];
@@ -51,12 +51,12 @@ internal sealed class PdfResourcePruner : PdfPageWalk
         pruner.Rewrite(page, resources);
     }
 
-    PdfResourcePruner(PdfDictionary pageResources) : base(pageResources)
+    private PdfResourcePruner(PdfDictionary pageResources) : base(pageResources)
     {
     }
 
     /// <summary>The names the page draws with, by category.</summary>
-    readonly Dictionary<string, Dictionary<string, object>> _used = new();
+    private readonly Dictionary<string, Dictionary<string, object>> _used = new();
 
     protected override void RecordUse(string category, string name, PdfDictionary scope)
     {
@@ -64,7 +64,7 @@ internal sealed class PdfResourcePruner : PdfPageWalk
             Record(category, name);
     }
 
-    void Record(string category, string name)
+    private void Record(string category, string name)
     {
         Dictionary<string, object> names;
         if (!_used.TryGetValue(category, out names))
@@ -73,7 +73,7 @@ internal sealed class PdfResourcePruner : PdfPageWalk
         names[name] = null;
     }
 
-    bool IsUsed(string category, string name)
+    private bool IsUsed(string category, string name)
     {
         Dictionary<string, object> names;
         return _used.TryGetValue(category, out names) && names.ContainsKey(name);
@@ -85,7 +85,7 @@ internal sealed class PdfResourcePruner : PdfPageWalk
     /// Puts a resource dictionary on the page holding only what it draws with. The dictionary it
     /// had is left untouched, being in all likelihood the one the other pages carry as well.
     /// </summary>
-    void Rewrite(PdfPage page, PdfDictionary resources)
+    private void Rewrite(PdfPage page, PdfDictionary resources)
     {
         var pruned = new PdfResources(page.Owner);
         var anythingDropped = false;

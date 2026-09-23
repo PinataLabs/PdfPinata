@@ -258,7 +258,7 @@ public class SignatureFieldLockTests
 
     // ----- helpers ------------------------------------------------------------------------------------
 
-    static PdfDocument FormWithSignatureField(out PdfSignatureField field)
+    private static PdfDocument FormWithSignatureField(out PdfSignatureField field)
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -269,10 +269,10 @@ public class SignatureFieldLockTests
         return document;
     }
 
-    static PdfSignatureField SignatureField(PdfDocument document) =>
+    private static PdfSignatureField SignatureField(PdfDocument document) =>
         (PdfSignatureField)document.AcroForm.Fields["approval"];
 
-    static byte[] TwoFieldForm()
+    private static byte[] TwoFieldForm()
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -289,14 +289,14 @@ public class SignatureFieldLockTests
         return output.ToArray();
     }
 
-    static PdfDocument ReadBack(PdfDocument document)
+    private static PdfDocument ReadBack(PdfDocument document)
     {
         using var output = new MemoryStream();
         document.Save(output, false);
         return Reader.Open(new MemoryStream(output.ToArray()), PdfDocumentOpenMode.Modify);
     }
 
-    static byte[] Sign(byte[] document, PdfSignatureOptions options)
+    private static byte[] Sign(byte[] document, PdfSignatureOptions options)
     {
         using var input = new MemoryStream(document);
         using var output = new MemoryStream();

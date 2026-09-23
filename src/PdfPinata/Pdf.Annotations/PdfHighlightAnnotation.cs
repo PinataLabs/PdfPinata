@@ -64,7 +64,7 @@ public sealed class PdfHighlightAnnotation : PdfTextMarkupAnnotation
         : base(dict)
     { }
 
-    void Initialize()
+    private void Initialize()
     {
         Elements.SetName(PdfAnnotation.Keys.Subtype, "/Highlight");
         Color = XColors.Yellow;
@@ -87,7 +87,7 @@ public sealed class PdfHighlightAnnotation : PdfTextMarkupAnnotation
     {
         public static new DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

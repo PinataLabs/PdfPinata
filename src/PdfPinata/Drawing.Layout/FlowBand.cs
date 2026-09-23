@@ -80,9 +80,9 @@ public readonly struct FlowBand : IEquatable<FlowBand>
     /// <summary>Determines whether the given band has the same top and bottom as this one.</summary>
     public bool Equals(FlowBand other)
     {
-        #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
+#pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
         return Top.Equals(other.Top) && Bottom.Equals(other.Bottom);
-        #pragma warning restore S1244
+#pragma warning restore S1244
     }
 
     /// <summary>Determines whether the given object is a <see cref="FlowBand"/> equal to this one.</summary>

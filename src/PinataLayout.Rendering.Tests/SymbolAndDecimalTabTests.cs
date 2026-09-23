@@ -15,7 +15,7 @@ namespace PinataLayout.Rendering.Tests;
 /// </summary>
 public class SymbolAndDecimalTabTests
 {
-    static Document ADocumentShowing(params object[] pieces)
+    private static Document ADocumentShowing(params object[] pieces)
     {
         var document = new Document();
         var paragraph = document.AddSection().AddParagraph();
@@ -30,7 +30,7 @@ public class SymbolAndDecimalTabTests
     }
 
     /// <summary>The glyphs a paragraph showing the given text draws, for comparison.</summary>
-    static System.Collections.Generic.IReadOnlyList<int> GlyphsFor(string text) =>
+    private static System.Collections.Generic.IReadOnlyList<int> GlyphsFor(string text) =>
         Glyphs.On(Rendered.FirstPageOf(ADocumentShowing(text)));
 
     // ----- GetSymbol -------------------------------------------------------------------------
@@ -188,7 +188,7 @@ public class SymbolAndDecimalTabTests
     ///   A paragraph sixty points wide, which holds "aaaa bbbb" but not "aaaa bbbb cccc", with the
     ///   last two words joined by <paramref name="join"/>.
     /// </summary>
-    static PdfPinata.Pdf.PdfPage ThreeWordsJoinedBy(object join)
+    private static PdfPinata.Pdf.PdfPage ThreeWordsJoinedBy(object join)
     {
         var document = new Document();
         var section = document.AddSection();
@@ -250,7 +250,7 @@ public class SymbolAndDecimalTabTests
     ///   The renderer has to look ahead past the tab for the decimal separator, because where the
     ///   text starts depends on how much of it comes before the point.
     /// </summary>
-    static Document ANumberOnADecimalTab(string number)
+    private static Document ANumberOnADecimalTab(string number)
     {
         var document = new Document();
         var paragraph = document.AddSection().AddParagraph();
@@ -261,7 +261,7 @@ public class SymbolAndDecimalTabTests
         return document;
     }
 
-    static double WhereTheNumberStarts(string number)
+    private static double WhereTheNumberStarts(string number)
     {
         var runs = TextBaselines.PositionsOf(Rendered.FirstPageOf(ANumberOnADecimalTab(number)));
         return runs.Max(run => run.X);

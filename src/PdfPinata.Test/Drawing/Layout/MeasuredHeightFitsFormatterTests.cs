@@ -23,11 +23,11 @@ namespace PdfPinata.Test.Drawing.Layout;
 /// </remarks>
 public class MeasuredHeightFitsFormatterTests
 {
-    static readonly XGraphics Gfx = XGraphics.FromPdfPage(new PdfDocument().AddPage());
+    private static readonly XGraphics Gfx = XGraphics.FromPdfPage(new PdfDocument().AddPage());
 
-    static string Lines(int count) => string.Join("\n", Enumerable.Range(1, count).Select(i => "line " + i));
+    private static string Lines(int count) => string.Join("\n", Enumerable.Range(1, count).Select(i => "line " + i));
 
-    static int LinesLaidOut(XRect laidOut, XFont font) => (int)Math.Round(laidOut.Height / font.GetHeight());
+    private static int LinesLaidOut(XRect laidOut, XFont font) => (int)Math.Round(laidOut.Height / font.GetHeight());
 
     [Fact]
     public void ARectangleAsTallAsTheMeasuredTextHoldsEveryLineOfIt()

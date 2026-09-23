@@ -27,12 +27,12 @@ namespace PdfPinata.Signing;
 public sealed class Pkcs7Signer : IPdfSigner
 {
     /// <summary>id-aa-signatureTimeStampToken, RFC 3161 / RFC 5035.</summary>
-    const string SignatureTimeStampTokenOid = "1.2.840.113549.1.9.16.2.14";
+    private const string SignatureTimeStampTokenOid = "1.2.840.113549.1.9.16.2.14";
 
-    readonly X509Certificate2 _certificate;
-    readonly X509Certificate2Collection _chain;
-    readonly HashAlgorithmName _hashAlgorithm;
-    readonly ITimestampProvider _timestampProvider;
+    private readonly X509Certificate2 _certificate;
+    private readonly X509Certificate2Collection _chain;
+    private readonly HashAlgorithmName _hashAlgorithm;
+    private readonly ITimestampProvider _timestampProvider;
 
     /// <summary>
     /// Signs with the given certificate, which must have a usable private key.
@@ -60,13 +60,13 @@ public sealed class Pkcs7Signer : IPdfSigner
 
         if (!certificate.HasPrivateKey)
             throw new ArgumentException(
-                "The certificate has no private key, so it can identify a signer but cannot be one.",
+                @"The certificate has no private key, so it can identify a signer but cannot be one.",
                 nameof(certificate));
 
         _hashAlgorithm = hashAlgorithm ?? HashAlgorithmName.SHA256;
         if (_hashAlgorithm == HashAlgorithmName.MD5 || _hashAlgorithm == HashAlgorithmName.SHA1)
             throw new ArgumentException(
-                "SHA-1 and MD5 are broken for signatures and readers reject them. Use SHA-256 or better.",
+                @"SHA-1 and MD5 are broken for signatures and readers reject them. Use SHA-256 or better.",
                 nameof(hashAlgorithm));
 
         Format = format;
@@ -150,7 +150,7 @@ public sealed class Pkcs7Signer : IPdfSigner
     /// over the document — which is what lets a verifier believe the signature existed at the time
     /// the token was issued regardless of what happens to the certificate afterwards.
     /// </remarks>
-    void Timestamp(SignedCms signed)
+    private void Timestamp(SignedCms signed)
     {
         var signerInfo = signed.SignerInfos[0];
         var messageImprint = HashOf(signerInfo.GetSignature(), _hashAlgorithm);
@@ -162,14 +162,14 @@ public sealed class Pkcs7Signer : IPdfSigner
         signerInfo.AddUnsignedAttribute(new AsnEncodedData(new Oid(SignatureTimeStampTokenOid), token));
     }
 
-    static byte[] HashOf(byte[] data, HashAlgorithmName algorithm)
+    private static byte[] HashOf(byte[] data, HashAlgorithmName algorithm)
     {
         using var hasher = IncrementalHash.CreateHash(algorithm);
         hasher.AppendData(data);
         return hasher.GetHashAndReset();
     }
 
-    static byte[] ReadAll(Stream stream)
+    private static byte[] ReadAll(Stream stream)
     {
         if (stream is MemoryStream already)
             return already.ToArray();

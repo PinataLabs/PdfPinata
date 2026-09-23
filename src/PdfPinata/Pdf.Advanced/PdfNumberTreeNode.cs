@@ -22,13 +22,13 @@ public sealed class PdfNumberTreeNode : PdfDictionary
     /// is put in. The figure is not laid down anywhere; it is chosen so that the trees this
     /// writes look like the ones it reads.
     /// </summary>
-    const int NodeCapacity = 64;
+    private const int NodeCapacity = 64;
 
     /// <summary>
     /// How deep a tree is followed before reading gives up. Well past anything a real document
     /// holds, and there to stop a malformed one running away.
     /// </summary>
-    const int MaximumDepth = 32;
+    private const int MaximumDepth = 32;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PdfNumberTreeNode"/> class.
@@ -51,9 +51,9 @@ public sealed class PdfNumberTreeNode : PdfDictionary
     /// The entries of the tree, by key. Read from the tree the first time it is asked for and
     /// held after that, so that reading a tree of many nodes is done once.
     /// </summary>
-    SortedDictionary<int, PdfItem> _entries;
+    private SortedDictionary<int, PdfItem> _entries;
 
-    SortedDictionary<int, PdfItem> Entries
+    private SortedDictionary<int, PdfItem> Entries
     {
         get
         {
@@ -139,7 +139,7 @@ public sealed class PdfNumberTreeNode : PdfDictionary
     /// An indirect object is held in the tree as the reference to it, which is what the tree
     /// is written with.
     /// </summary>
-    static PdfItem Referenced(PdfItem value)
+    private static PdfItem Referenced(PdfItem value)
     {
         var obj = value as PdfObject;
         if (obj != null && obj.Reference != null)
@@ -155,7 +155,7 @@ public sealed class PdfNumberTreeNode : PdfDictionary
     /// both its entries and nodes below it, entries out of order, or a node reached twice are
     /// all things a document may hold, and none of them is worth refusing to read it over.
     /// </summary>
-    void Read(PdfDictionary node, Dictionary<string, object> seen, int depth)
+    private void Read(PdfDictionary node, Dictionary<string, object> seen, int depth)
     {
         if (node == null || depth > MaximumDepth)
             return;
@@ -190,7 +190,7 @@ public sealed class PdfNumberTreeNode : PdfDictionary
         }
     }
 
-    static bool TryGetInteger(PdfItem item, out int value)
+    private static bool TryGetInteger(PdfItem item, out int value)
     {
         var reference = item as PdfReference;
         if (reference != null)
@@ -226,7 +226,7 @@ public sealed class PdfNumberTreeNode : PdfDictionary
     /// Writes the entries back as a tree. One node while the entries are few, and a node of
     /// nodes once they are not.
     /// </summary>
-    void Write()
+    private void Write()
     {
         Elements.Remove(Keys.Kids);
         Elements.Remove(Keys.Nums);
@@ -274,7 +274,7 @@ public sealed class PdfNumberTreeNode : PdfDictionary
         Elements[Keys.Kids] = Kids(level, 0, level.Count);
     }
 
-    PdfArray Nums(List<int> keys, int from, int length)
+    private PdfArray Nums(List<int> keys, int from, int length)
     {
         var nums = new PdfArray(Owner);
         for (var at = from; at < from + length; at++)
@@ -285,7 +285,7 @@ public sealed class PdfNumberTreeNode : PdfDictionary
         return nums;
     }
 
-    PdfArray Kids(List<PdfDictionary> nodes, int from, int length)
+    private PdfArray Kids(List<PdfDictionary> nodes, int from, int length)
     {
         var kids = new PdfArray(Owner);
         for (var at = from; at < from + length; at++)
@@ -294,7 +294,7 @@ public sealed class PdfNumberTreeNode : PdfDictionary
         return kids;
     }
 
-    PdfArray Limits(int least, int greatest)
+    private PdfArray Limits(int least, int greatest)
     {
         var limits = new PdfArray(Owner);
         limits.Elements.Add(new PdfInteger(least));
@@ -302,12 +302,12 @@ public sealed class PdfNumberTreeNode : PdfDictionary
         return limits;
     }
 
-    static int LeastOf(PdfDictionary node)
+    private static int LeastOf(PdfDictionary node)
     {
         return node.Elements.GetArray(Keys.Limits).Elements.GetInteger(0);
     }
 
-    static int GreatestOf(PdfDictionary node)
+    private static int GreatestOf(PdfDictionary node)
     {
         return node.Elements.GetArray(Keys.Limits).Elements.GetInteger(1);
     }
@@ -348,7 +348,7 @@ public sealed class PdfNumberTreeNode : PdfDictionary
         /// </summary>
         public static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

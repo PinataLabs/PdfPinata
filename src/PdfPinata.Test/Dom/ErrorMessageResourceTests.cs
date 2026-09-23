@@ -116,34 +116,34 @@ public class ErrorMessageResourceTests
     }
 
     // ReSharper disable PossibleNullReferenceException
-    static string GetString(object id) => (string)DomSrType
+    private static string GetString(object id) => (string)DomSrType
         .GetMethod("GetString", BindingFlags.Static | BindingFlags.NonPublic)
         .Invoke(null, new[] { id });
     // ReSharper restore PossibleNullReferenceException
 
     // ReSharper disable PossibleNullReferenceException
-    static string FormatMessage(object id, params object[] args) => (string)DomSrType
+    private static string FormatMessage(object id, params object[] args) => (string)DomSrType
         .GetMethod("FormatMessage", BindingFlags.Static | BindingFlags.NonPublic)
         .Invoke(null, new[] { id, args });
     // ReSharper restore PossibleNullReferenceException
 
-    static object MsgId(string name) => Enum.Parse(MsgIdType, name);
+    private static object MsgId(string name) => Enum.Parse(MsgIdType, name);
 
     /// <summary>
     ///   Both are internal to the document object model, and this repository carries no
     ///   <c>InternalsVisibleTo</c>, so they are reached by name the way AppResources above is.
     /// </summary>
-    static readonly Type DomSrType = typeof(Document).Assembly.GetType(
+    private static readonly Type DomSrType = typeof(Document).Assembly.GetType(
         "PinataLayout.DocumentObjectModel.Resources.DomSR", true);
 
-    static readonly Type MsgIdType = typeof(Document).Assembly.GetType(
+    private static readonly Type MsgIdType = typeof(Document).Assembly.GetType(
         "PinataLayout.DocumentObjectModel.DomMsgID", true);
 
     /// <summary>
     ///   Every message the resource class holds, read the way the library reads them. The class
     ///   is internal to the document object model, so it is reached by name rather than by type.
     /// </summary>
-    static IReadOnlyList<KeyValuePair<string, string>> Messages()
+    private static IReadOnlyList<KeyValuePair<string, string>> Messages()
     {
         var resources = typeof(Document).Assembly.GetType(
             "PinataLayout.DocumentObjectModel.Resources.AppResources", true);
@@ -157,7 +157,7 @@ public class ErrorMessageResourceTests
         // ReSharper restore PossibleNullReferenceException
     }
 
-    static string Read(PropertyInfo property)
+    private static string Read(PropertyInfo property)
     {
         try
         {

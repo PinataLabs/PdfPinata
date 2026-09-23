@@ -18,13 +18,13 @@ namespace PdfPinata.Test.Drawing;
 [Collection(RasterizingCollection.Name)]
 public sealed class GlyphOutlineRenderingTests : IDisposable
 {
-    const string OutDir = "Out/GlyphOutlines";
-    const double EmSize = 96;
-    const string Text = "PATH";
+    private const string OutDir = "Out/GlyphOutlines";
+    private const double EmSize = 96;
+    private const string Text = "PATH";
 
-    static readonly XRect Box = new XRect(40, 60, 500, 120);
+    private static readonly XRect Box = new XRect(40, 60, 500, 120);
 
-    readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
+    private readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
 
     public void Dispose()
     {
@@ -93,7 +93,7 @@ public sealed class GlyphOutlineRenderingTests : IDisposable
         CountInk(page).Should().Be(0);
     }
 
-    static XGraphicsPath TextPath()
+    private static XGraphicsPath TextPath()
     {
         var path = new XGraphicsPath();
         path.AddString(Text, new XFontFamily("Arial"), XFontStyle.Bold, EmSize, Box,
@@ -103,7 +103,7 @@ public sealed class GlyphOutlineRenderingTests : IDisposable
 
     // ----- rasterizing and reading pixels ---------------------------------------------------------
 
-    IMagickImage<byte> Rasterize(string name, Action<XGraphics> draw)
+    private IMagickImage<byte> Rasterize(string name, Action<XGraphics> draw)
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -117,7 +117,7 @@ public sealed class GlyphOutlineRenderingTests : IDisposable
     }
 
     /// <summary>Every pixel of the page that is not the paper, with where it is.</summary>
-    static IReadOnlyList<(int X, IMagickColor<byte> Colour)> InkOf(IMagickImage<byte> page)
+    private static IReadOnlyList<(int X, IMagickColor<byte> Colour)> InkOf(IMagickImage<byte> page)
     {
         using var pixels = page.GetPixels();
         return pixels
@@ -126,7 +126,7 @@ public sealed class GlyphOutlineRenderingTests : IDisposable
             .ToList();
     }
 
-    static int CountInk(IMagickImage<byte> page)
+    private static int CountInk(IMagickImage<byte> page)
     {
         using var pixels = page.GetPixels();
         return pixels.Count(pixel =>
@@ -137,5 +137,5 @@ public sealed class GlyphOutlineRenderingTests : IDisposable
     }
 
     /// <summary>White, or near enough that an anti-aliased edge counts as paper.</summary>
-    static bool IsPaper(IMagickColor<byte> colour) => colour.R > 240 && colour.G > 240 && colour.B > 240;
+    private static bool IsPaper(IMagickColor<byte> colour) => colour.R > 240 && colour.G > 240 && colour.B > 240;
 }

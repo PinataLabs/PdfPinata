@@ -39,7 +39,7 @@ internal static class DataMatrixModules
         return ReadModules(document, rows, columns);
     }
 
-    static bool[,] ReadModules(PdfDocument document, int rows, int columns)
+    private static bool[,] ReadModules(PdfDocument document, int rows, int columns)
     {
         using var stream = new MemoryStream();
         document.Save(stream, false);
@@ -77,7 +77,7 @@ internal static class DataMatrixModules
         return modules;
     }
 
-    static double Number(Match match, int group)
+    private static double Number(Match match, int group)
     {
         return double.Parse(match.Groups[group].Value, CultureInfo.InvariantCulture);
     }

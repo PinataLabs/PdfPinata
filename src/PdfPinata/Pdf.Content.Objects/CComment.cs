@@ -63,7 +63,7 @@ public class CComment : CObject
         set => _text = value;
     }
 
-    string _text;
+    private string _text;
 
     /// <summary>
     /// Returns a string that represents the current comment.

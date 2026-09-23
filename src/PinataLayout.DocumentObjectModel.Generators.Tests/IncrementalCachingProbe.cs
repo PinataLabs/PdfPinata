@@ -57,7 +57,7 @@ static class IncrementalCachingProbe
         Describe(result.TrackedSteps.SelectMany(entry =>
             entry.Value.SelectMany(step => step.Outputs.Select(output => (entry.Key, output.Reason)))));
 
-    static string Describe(IEnumerable<(string Name, IncrementalStepRunReason Reason)> pairs) =>
+    private static string Describe(IEnumerable<(string Name, IncrementalStepRunReason Reason)> pairs) =>
         string.Join(", ", pairs
             .GroupBy(pair => pair.Name + "=" + pair.Reason)
             .OrderBy(group => group.Key)

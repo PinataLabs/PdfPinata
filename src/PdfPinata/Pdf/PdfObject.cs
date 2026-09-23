@@ -153,7 +153,7 @@ public abstract class PdfObject : PdfItem
     /// </summary>
     public PdfObjectInternals Internals => _internals ?? (_internals = new PdfObjectInternals(this));
 
-    PdfObjectInternals _internals;
+    private PdfObjectInternals _internals;
 
     /// <summary>
     /// When overridden in a derived class, prepares the object to get saved.
@@ -309,7 +309,7 @@ public abstract class PdfObject : PdfItem
     /// Replace all indirect references to external objects by their cloned counterparts
     /// owned by the importer document.
     /// </summary>
-    static void FixUpObject(PdfImportedObjectTable iot, PdfDocument owner, PdfObject value)
+    private static void FixUpObject(PdfImportedObjectTable iot, PdfDocument owner, PdfObject value)
     {
         Debug.Assert(ReferenceEquals(iot.Owner, owner));
 
@@ -460,7 +460,7 @@ public abstract class PdfObject : PdfItem
         // Setting the reference outside PdfPinata is not considered as a valid operation.
         internal set => _iref = value;
     }
-    PdfReference _iref;
+    private PdfReference _iref;
 
     /// <summary>
     /// Gets a value indicating that this object was read out of an object stream rather than

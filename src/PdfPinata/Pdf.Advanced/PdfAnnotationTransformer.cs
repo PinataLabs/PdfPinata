@@ -73,7 +73,7 @@ static class PdfAnnotationTransformer
         }
     }
 
-    static void TransformOne(PdfDictionary annotation, XMatrix matrix)
+    private static void TransformOne(PdfDictionary annotation, XMatrix matrix)
     {
         TransformRectangle(annotation, "/Rect", matrix);
 
@@ -118,7 +118,7 @@ static class PdfAnnotationTransformer
     /// Moves a rectangle, taking the four transformed corners rather than two: a quarter turn
     /// sends the bottom left corner somewhere other than the bottom left.
     /// </summary>
-    static void TransformRectangle(PdfDictionary dictionary, string key, XMatrix matrix)
+    private static void TransformRectangle(PdfDictionary dictionary, string key, XMatrix matrix)
     {
         var item = Resolve(dictionary.Elements[key]);
         var numbers = NumbersOf(item);
@@ -140,7 +140,7 @@ static class PdfAnnotationTransformer
     /// <summary>
     /// Moves a flat array of x y pairs - a line, a run of vertices, the corners of a highlight.
     /// </summary>
-    static void TransformPoints(PdfDictionary dictionary, string key, XMatrix matrix)
+    private static void TransformPoints(PdfDictionary dictionary, string key, XMatrix matrix)
     {
         var item = Resolve(dictionary.Elements[key]);
         if (item is not PdfArray array)
@@ -152,7 +152,7 @@ static class PdfAnnotationTransformer
     /// <summary>
     /// Moves an array of arrays of x y pairs, which is how an ink annotation keeps its strokes.
     /// </summary>
-    static void TransformPointsOfEach(PdfDictionary dictionary, string key, XMatrix matrix)
+    private static void TransformPointsOfEach(PdfDictionary dictionary, string key, XMatrix matrix)
     {
         var item = Resolve(dictionary.Elements[key]);
         if (item is not PdfArray outer)
@@ -165,7 +165,7 @@ static class PdfAnnotationTransformer
         }
     }
 
-    static void WritePoints(PdfArray array, XMatrix matrix)
+    private static void WritePoints(PdfArray array, XMatrix matrix)
     {
         var count = array.Elements.Count;
 
@@ -203,7 +203,7 @@ static class PdfAnnotationTransformer
     /// afterwards.
     /// </para>
     /// </summary>
-    static void TransformDifferences(PdfDictionary dictionary, string key, XMatrix matrix)
+    private static void TransformDifferences(PdfDictionary dictionary, string key, XMatrix matrix)
     {
         var item = Resolve(dictionary.Elements[key]);
         var numbers = NumbersOf(item);
@@ -235,12 +235,12 @@ static class PdfAnnotationTransformer
     /// Whether the transform turns the page a quarter, which it does exactly when it sends the
     /// x axis onto the y axis.
     /// </summary>
-    static bool IsTurned(XMatrix matrix)
+    private static bool IsTurned(XMatrix matrix)
     {
         return Math.Abs(matrix.M11) < 1e-9 && Math.Abs(matrix.M22) < 1e-9;
     }
 
-    static PdfItem Resolve(PdfItem item)
+    private static PdfItem Resolve(PdfItem item)
     {
         return item is PdfReference reference ? reference.Value : item;
     }
@@ -250,7 +250,7 @@ static class PdfAnnotationTransformer
     /// indirectly is followed; anything that is not a number at all makes the whole array
     /// unreadable rather than throwing, so the caller leaves it alone.
     /// </summary>
-    static double[] NumbersOf(PdfItem item)
+    private static double[] NumbersOf(PdfItem item)
     {
         if (item is PdfRectangle rectangle)
             return [rectangle.X1, rectangle.Y1, rectangle.X2, rectangle.Y2];

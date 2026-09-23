@@ -114,14 +114,14 @@ public class PruneCharProcsAndAppearancesTests
 
     // ----- helpers -----------------------------------------------------------------------------
 
-    static PdfDocument Open(byte[] document) =>
+    private static PdfDocument Open(byte[] document) =>
         Pdf.IO.PdfReader.Open(new MemoryStream(document), PdfDocumentOpenMode.Modify);
 
-    static IEnumerable<string> XObjectsOf(PdfPage page) => NamesOf(page, "/XObject");
+    private static IEnumerable<string> XObjectsOf(PdfPage page) => NamesOf(page, "/XObject");
 
-    static IEnumerable<string> FontsOf(PdfPage page) => NamesOf(page, "/Font");
+    private static IEnumerable<string> FontsOf(PdfPage page) => NamesOf(page, "/Font");
 
-    static IEnumerable<string> NamesOf(PdfPage page, string category)
+    private static IEnumerable<string> NamesOf(PdfPage page, string category)
     {
         var entries = page.Elements.GetDictionary("/Resources")?.Elements.GetDictionary(category);
         return entries == null

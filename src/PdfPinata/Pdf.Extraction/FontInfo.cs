@@ -8,11 +8,11 @@ namespace PdfPinata.Pdf.Extraction;
 /// </summary>
 sealed class FontInfo
 {
-    readonly ToUnicodeCMap _toUnicode;
-    readonly Dictionary<int, double> _widths = new();
-    readonly double _defaultWidth;
+    private readonly ToUnicodeCMap _toUnicode;
+    private readonly Dictionary<int, double> _widths = new();
+    private readonly double _defaultWidth;
 
-    FontInfo(ToUnicodeCMap toUnicode, int codeLength, double defaultWidth)
+    private FontInfo(ToUnicodeCMap toUnicode, int codeLength, double defaultWidth)
     {
         _toUnicode = toUnicode;
         CodeLength = codeLength;
@@ -70,7 +70,7 @@ sealed class FontInfo
     public double WidthOf(int code) =>
         _widths.TryGetValue(code, out var width) ? width : _defaultWidth;
 
-    static ToUnicodeCMap ReadToUnicode(PdfDictionary font)
+    private static ToUnicodeCMap ReadToUnicode(PdfDictionary font)
     {
         var map = font.Elements.GetDictionary("/ToUnicode");
         if (map?.Stream == null)
@@ -83,7 +83,7 @@ sealed class FontInfo
     /// <summary>
     /// A simple font lists one width per code from <c>/FirstChar</c> onwards.
     /// </summary>
-    void ReadSimpleWidths(PdfDictionary font)
+    private void ReadSimpleWidths(PdfDictionary font)
     {
         var widths = font.Elements.GetArray("/Widths");
         if (widths == null)
@@ -99,7 +99,7 @@ sealed class FontInfo
     /// once: <c>c [w1 w2 …]</c> for a run of codes with individual widths, and
     /// <c>cFirst cLast w</c> for a run that shares one.
     /// </summary>
-    void ReadCompositeWidths(PdfDictionary font)
+    private void ReadCompositeWidths(PdfDictionary font)
     {
         var descendants = font.Elements.GetArray("/DescendantFonts");
         var descendant = descendants?.Elements.GetDictionary(0);

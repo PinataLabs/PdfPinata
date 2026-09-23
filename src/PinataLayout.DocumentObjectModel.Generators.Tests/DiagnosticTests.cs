@@ -12,7 +12,7 @@ namespace PinataLayout.DocumentObjectModel.Generators.Tests;
 /// </summary>
 public class DiagnosticTests
 {
-    const string Ns = "using PinataLayout.DocumentObjectModel;\nusing PinataLayout.DocumentObjectModel.Internals;\nnamespace Probe;\n";
+    private const string Ns = "using PinataLayout.DocumentObjectModel;\nusing PinataLayout.DocumentObjectModel.Internals;\nnamespace Probe;\n";
 
     [Fact]
     public void AValidTypeProducesATableAndNoDiagnostics()
@@ -307,7 +307,7 @@ public class DiagnosticTests
         collision.Location.GetLineSpan().StartLinePosition.Line.Should().Be(expected);
     }
 
-    static int LineOf(string source, string needle) =>
+    private static int LineOf(string source, string needle) =>
         source.Replace("\r\n", "\n").Split('\n').ToList().FindIndex(line => line.Contains(needle));
 
     /// <summary>

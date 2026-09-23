@@ -38,11 +38,11 @@ namespace PdfPinata.Drawing;
 internal class CoreGraphicsPath
 {
     // Same values as GDI+ uses.
-    const byte PathPointTypeStart = 0;  // move
-    const byte PathPointTypeLine = 1;  // line
-    const byte PathPointTypeBezier = 3;  // default Bezier (= cubic Bezier)
-    const byte PathPointTypePathTypeMask = 0x07;  // type mask (lowest 3 bits).
-    const byte PathPointTypeCloseSubpath = 0x80;  // closed flag
+    private const byte PathPointTypeStart = 0;  // move
+    private const byte PathPointTypeLine = 1;  // line
+    private const byte PathPointTypeBezier = 3;  // default Bezier (= cubic Bezier)
+    private const byte PathPointTypePathTypeMask = 0x07;  // type mask (lowest 3 bits).
+    private const byte PathPointTypeCloseSubpath = 0x80;  // closed flag
 
     public CoreGraphicsPath()
     { }
@@ -83,7 +83,7 @@ internal class CoreGraphicsPath
     /// Whether the next point added may be joined to the current subpath: there is one, it is not
     /// closed, and no new figure has been asked for since it was begun.
     /// </summary>
-    bool CanContinueFigure =>
+    private bool CanContinueFigure =>
         !_startNewFigure && _types.Count > 0
                          && (_types[^1] & PathPointTypeCloseSubpath) != PathPointTypeCloseSubpath;
 
@@ -290,7 +290,7 @@ internal class CoreGraphicsPath
     {
         var count = points.Length;
         if (count < 2)
-            throw new ArgumentException("AddClosedCurve requires two or more points.", nameof(points));
+            throw new ArgumentException(@"AddClosedCurve requires two or more points.", nameof(points));
 
         tension /= 3;
 
@@ -352,7 +352,7 @@ internal class CoreGraphicsPath
     {
         var count = points.Length;
         if (count < 2)
-            throw new ArgumentException("AddCurve requires two or more points.", nameof(points));
+            throw new ArgumentException(@"AddCurve requires two or more points.", nameof(points));
 
         tension /= 3;
         MoveOrLineTo(points[0].X, points[0].Y);
@@ -371,7 +371,7 @@ internal class CoreGraphicsPath
         }
     }
 
-    void ToCurveSegment(XPoint pt0, XPoint pt1, XPoint pt2, XPoint pt3, double tension3)
+    private void ToCurveSegment(XPoint pt0, XPoint pt1, XPoint pt2, XPoint pt3, double tension3)
     {
         BezierTo(
             pt1.X + tension3 * (pt2.X - pt0.X), pt1.Y + tension3 * (pt2.Y - pt0.Y),
@@ -390,7 +390,7 @@ internal class CoreGraphicsPath
     /// </summary>
     public byte[] PathTypes => _types.ToArray();
 
-    readonly List<XPoint> _points = new();
-    readonly List<byte> _types = new();
-    bool _startNewFigure;
+    private readonly List<XPoint> _points = new();
+    private readonly List<byte> _types = new();
+    private bool _startNewFigure;
 }

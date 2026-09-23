@@ -56,7 +56,7 @@ public class PdfFont : PdfDictionary
         }
         set => _fontDescriptor = value;
     }
-    PdfFontDescriptor _fontDescriptor;
+    private PdfFontDescriptor _fontDescriptor;
 
     internal PdfFontEncoding FontEncoding;
 
@@ -112,7 +112,7 @@ public class PdfFont : PdfDictionary
     /// save: whether the program is a subset is settled then, by <see cref="EmbedsSubset"/>, and
     /// the option it reads may change between two saves of one document.
     /// </remarks>
-    string _untaggedBaseFont, _taggedBaseFont;
+    private string _untaggedBaseFont, _taggedBaseFont;
 
     /// <summary>
     /// Gives <paramref name="name"/> a subset tag, remembering both spellings.

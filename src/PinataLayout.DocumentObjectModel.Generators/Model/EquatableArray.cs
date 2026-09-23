@@ -18,7 +18,7 @@ namespace PinataLayout.DocumentObjectModel.Generators.Model;
 internal readonly struct EquatableArray<T> : IEquatable<EquatableArray<T>>, IEnumerable<T>
     where T : IEquatable<T>
 {
-    readonly T[]? array;
+    private readonly T[]? array;
 
     public EquatableArray(IEnumerable<T> items) => array = items.ToArray();
 

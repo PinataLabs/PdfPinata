@@ -21,7 +21,7 @@ namespace PdfPinata.Test.Annotations;
 /// </summary>
 public class NamedDestinationTests
 {
-    static PdfDocument TwoPageDocument()
+    private static PdfDocument TwoPageDocument()
     {
         var document = new PdfDocument();
         for (var i = 0; i < 2; i++)
@@ -34,7 +34,7 @@ public class NamedDestinationTests
     }
 
     /// <summary>Saves and reads back, which is the only way to see what was written.</summary>
-    static PdfDocument RoundTrip(PdfDocument document)
+    private static PdfDocument RoundTrip(PdfDocument document)
     {
         using var stream = new MemoryStream();
         document.Save(stream, false);
@@ -42,7 +42,7 @@ public class NamedDestinationTests
         return PdfIO.PdfReader.Open(stream, PdfIO.PdfDocumentOpenMode.Modify);
     }
 
-    static PdfArray LookupOn(PdfDocument document, string name)
+    private static PdfArray LookupOn(PdfDocument document, string name)
     {
         // The reader the library already had, pointed at what the writer just produced.
         return document.NamedDestinations.Resolve(name);

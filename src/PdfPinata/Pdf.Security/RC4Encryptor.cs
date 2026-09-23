@@ -8,7 +8,7 @@ class RC4Encryptor : EncryptorBase, IEncryptor
     /// <summary>
     /// Bytes used for RC4 encryption.
     /// </summary>
-    readonly byte[] state = new byte[256];
+    private readonly byte[] state = new byte[256];
 
     /// <summary>
     /// Creates the encryption Key.

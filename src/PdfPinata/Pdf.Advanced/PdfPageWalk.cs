@@ -28,10 +28,10 @@ internal abstract class PdfPageWalk
     /// How deep forms may be drawn within one another before the walk gives up. Well past anything
     /// a real document does, and there to stop a malformed one running away.
     /// </summary>
-    const int MaximumDepth = 32;
+    private const int MaximumDepth = 32;
 
     /// <summary>The colour spaces that are always available and never named by a resource dictionary.</summary>
-    static readonly string[] DeviceColorSpaces = ["/DeviceGray", "/DeviceRGB", "/DeviceCMYK", "/Pattern"];
+    private static readonly string[] DeviceColorSpaces = ["/DeviceGray", "/DeviceRGB", "/DeviceCMYK", "/Pattern"];
 
     protected PdfPageWalk(PdfDictionary pageResources)
     {
@@ -45,7 +45,7 @@ internal abstract class PdfPageWalk
     /// The streams already read, each paired with the scope it was read in, so that a form drawing
     /// itself does not go round forever.
     /// </summary>
-    readonly HashSet<StreamInScope> _read = [];
+    private readonly HashSet<StreamInScope> _read = [];
 
     /// <summary>Whether everything read so far was understood.</summary>
     protected bool _understood = true;
@@ -73,7 +73,7 @@ internal abstract class PdfPageWalk
         ReadAppearances(page);
     }
 
-    void Read(byte[] content, PdfDictionary scope, int depth)
+    private void Read(byte[] content, PdfDictionary scope, int depth)
     {
         if (!_understood)
             return;
@@ -99,7 +99,7 @@ internal abstract class PdfPageWalk
         ReadSequence(sequence, scope, depth);
     }
 
-    void ReadSequence(CSequence sequence, PdfDictionary scope, int depth)
+    private void ReadSequence(CSequence sequence, PdfDictionary scope, int depth)
     {
         foreach (var item in sequence)
         {
@@ -169,7 +169,7 @@ internal abstract class PdfPageWalk
     {
     }
 
-    static string NameAt(COperator op, int index)
+    private static string NameAt(COperator op, int index)
     {
         if (index < 0 || index >= op.Operands.Count)
             return null;
@@ -186,7 +186,7 @@ internal abstract class PdfPageWalk
     /// Records that the content in scope draws with the named resource, and reads whatever that
     /// resource draws in its turn.
     /// </summary>
-    void Use(string category, string name, PdfDictionary scope, int depth)
+    private void Use(string category, string name, PdfDictionary scope, int depth)
     {
         if (name == null)
             return;
@@ -251,7 +251,7 @@ internal abstract class PdfPageWalk
     /// without resources of its own paints with those of whatever set the state, so what the
     /// mask names has to be read as well.
     /// </summary>
-    void UseSoftMask(PdfDictionary extGState, PdfDictionary scope, int depth)
+    private void UseSoftMask(PdfDictionary extGState, PdfDictionary scope, int depth)
     {
         var item = extGState.Elements["/SMask"];
         if (item is PdfReference reference)
@@ -287,7 +287,7 @@ internal abstract class PdfPageWalk
     /// Reads a stream drawn by the content, in the scope of its own resources where it has them
     /// and in the scope it was drawn from where it has not.
     /// </summary>
-    void ReadNested(PdfDictionary stream, PdfDictionary owningResources, PdfDictionary scope, int depth)
+    private void ReadNested(PdfDictionary stream, PdfDictionary owningResources, PdfDictionary scope, int depth)
     {
         var nested = ScopeOf(owningResources, scope);
 
@@ -304,7 +304,7 @@ internal abstract class PdfPageWalk
         Read(content, nested, depth + 1);
     }
 
-    void ReadCharProcs(PdfDictionary font, PdfDictionary scope, int depth)
+    private void ReadCharProcs(PdfDictionary font, PdfDictionary scope, int depth)
     {
         var charProcs = font.Elements.GetDictionary("/CharProcs");
         if (charProcs == null)
@@ -332,7 +332,7 @@ internal abstract class PdfPageWalk
         }
     }
 
-    void ReadAppearances(PdfPage page)
+    private void ReadAppearances(PdfPage page)
     {
         var annotations = page.Elements.GetArray(PdfPage.Keys.Annots);
         if (annotations == null)
@@ -379,7 +379,7 @@ internal abstract class PdfPageWalk
     /// The scope names in a stream resolve against: its own resources where it has them, and
     /// those it was drawn from where it has not.
     /// </summary>
-    static PdfDictionary ScopeOf(PdfDictionary owner, PdfDictionary scope)
+    private static PdfDictionary ScopeOf(PdfDictionary owner, PdfDictionary scope)
     {
         return owner.Elements.GetDictionary(PdfPage.InheritablePageKeys.Resources) ?? scope;
     }
@@ -389,7 +389,7 @@ internal abstract class PdfPageWalk
     /// a colour space may resolve to an array or a bare name instead. A dangling reference or a PDF
     /// null resolves to null, exactly as the specification says leaving the entry out would.
     /// </summary>
-    static PdfItem ResolveRaw(string category, string name, PdfDictionary scope)
+    private static PdfItem ResolveRaw(string category, string name, PdfDictionary scope)
     {
         var entries = scope.Elements.GetDictionary(category);
         if (entries == null)
@@ -417,7 +417,7 @@ internal abstract class PdfPageWalk
     /// still answering <see cref="Understood"/>. The depth bound, not this, is what stops a form
     /// drawing itself from running away.
     /// </remarks>
-    bool MarkAsRead(PdfDictionary stream, PdfDictionary scope)
+    private bool MarkAsRead(PdfDictionary stream, PdfDictionary scope)
     {
         // A direct stream cannot be shared and so cannot be drawn within itself.
         if (!stream.IsIndirect)
@@ -437,10 +437,10 @@ internal abstract class PdfPageWalk
     /// comparing their contents would be both slow and wrong for a dictionary edited between
     /// readings.
     /// </summary>
-    readonly struct StreamInScope : IEquatable<StreamInScope>
+    private readonly struct StreamInScope : IEquatable<StreamInScope>
     {
-        readonly PdfObjectID _stream;
-        readonly PdfDictionary _scope;
+        private readonly PdfObjectID _stream;
+        private readonly PdfDictionary _scope;
 
         internal StreamInScope(PdfObjectID stream, PdfDictionary scope)
         {
@@ -461,7 +461,7 @@ internal abstract class PdfPageWalk
 
     #region Content of a stream
 
-    static bool TryGetContent(PdfDictionary stream, out byte[] content)
+    private static bool TryGetContent(PdfDictionary stream, out byte[] content)
     {
         return PdfContentStreams.TryGetContent(stream, out content);
     }

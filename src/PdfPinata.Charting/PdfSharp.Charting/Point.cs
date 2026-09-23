@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -33,7 +33,7 @@ namespace PdfPinata.Charting;
 /// Represents a formatted value on the data series.
 /// </summary>
 public class Point : ChartObject
-{    
+{
   /// <summary>
   /// Initializes a new instance of the Point class.
   /// </summary>
@@ -44,7 +44,7 @@ public class Point : ChartObject
   /// <summary>
   /// Initializes a new instance of the Point class with a real value.
   /// </summary>
-  public Point(double value) : this() 
+  public Point(double value) : this()
   {
     this.Value = value;
   }
@@ -52,10 +52,10 @@ public class Point : ChartObject
   /// <summary>
   /// Initializes a new instance of the Point class with a real value.
   /// </summary>
-  public Point(string value) : this() 
+  public Point(string value) : this()
   {
     // = "34.5 23.9"
-    this.Value = 0;
+    Value = 0;
   }
 
   #region Methods

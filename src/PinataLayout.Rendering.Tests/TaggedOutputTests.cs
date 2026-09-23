@@ -37,7 +37,7 @@ public class TaggedOutputTests
     /// A list item's own body — its direct child, not <c>Single("LBody")</c>, because a nested item
     /// has a body of its own too and the search that finds one in the whole subtree finds several.
     /// </summary>
-    static StructureNode Body(StructureNode listItem) => listItem.Children.First(child => child.Tag == "LBody");
+    private static StructureNode Body(StructureNode listItem) => listItem.Children.First(child => child.Tag == "LBody");
 
 
     [Fact]
@@ -556,7 +556,7 @@ public class TaggedOutputTests
         opened.Should().Be(Occurrences(content, "EMC"));
     }
 
-    static int Occurrences(string content, string token)
+    private static int Occurrences(string content, string token)
     {
         var found = 0;
         for (var at = content.IndexOf(token, StringComparison.Ordinal); at >= 0;
@@ -727,7 +727,7 @@ public class TaggedOutputTests
     ///   its own leaves the page A4 and the measure unchanged, so a document set up that way breaks
     ///   nothing and the test passes for the wrong reason.
     /// </remarks>
-    static Document Hyphenated()
+    private static Document Hyphenated()
     {
         var document = new Document();
         var paragraph = document.AddSection().AddParagraph("In demon­strate");
@@ -739,7 +739,7 @@ public class TaggedOutputTests
     }
 
     /// <summary>The same document rendered with tagging off.</summary>
-    static PdfDocument Untagged(Document document)
+    private static PdfDocument Untagged(Document document)
     {
         var renderer = new PdfDocumentRenderer(true) { Document = document, TagContent = false };
         renderer.RenderDocument();
@@ -754,6 +754,6 @@ public class TaggedOutputTests
     ///   An image the backend will really decode, because an image that fails to load is drawn as a
     ///   grey placeholder and would answer these tests without ever having been an image.
     /// </summary>
-    static ImageSource.IImageSource AnImage() =>
+    private static ImageSource.IImageSource AnImage() =>
         ImageSource.FromFile(Path.Combine(AppContext.BaseDirectory, "Assets", "lenna.png"));
 }

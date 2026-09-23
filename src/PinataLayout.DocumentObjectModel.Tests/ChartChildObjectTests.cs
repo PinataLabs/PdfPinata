@@ -23,9 +23,9 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 /// </summary>
 public class ChartChildObjectTests
 {
-    static Chart AChart() => new Document().AddSection().AddChart(ChartType.Column2D);
+    private static Chart AChart() => new Document().AddSection().AddChart(ChartType.Column2D);
 
-    static string DdlOf(DocumentObject documentObject) => DdlWriter.WriteToString(documentObject);
+    private static string DdlOf(DocumentObject documentObject) => DdlWriter.WriteToString(documentObject);
 
     // ----- built on their own -----------------------------------------------------------------
 

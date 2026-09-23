@@ -21,12 +21,12 @@ namespace PdfPinata.Test.Drawing;
 public class XGraphicsFactoryTests
 {
     /// <summary>The width of a default page in points, which every measure below restates.</summary>
-    static double APageWidthInPoints => new PdfDocument().AddPage().Width.Point;
+    private static double APageWidthInPoints => new PdfDocument().AddPage().Width.Point;
 
-    static PdfPage AnA4Page() => new PdfDocument().AddPage();
+    private static PdfPage AnA4Page() => new PdfDocument().AddPage();
 
     /// <summary>A renderer that records nothing and draws nothing, for the surface that has one.</summary>
-    sealed class SilentRenderer : IXGraphicsRenderer
+    private sealed class SilentRenderer : IXGraphicsRenderer
     {
         public readonly List<string> Calls = [];
 

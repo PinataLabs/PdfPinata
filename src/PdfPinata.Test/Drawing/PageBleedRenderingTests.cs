@@ -22,9 +22,9 @@ namespace PdfPinata.Test.Drawing;
 [Collection(RasterizingCollection.Name)]
 public sealed class PageBleedRenderingTests : IDisposable
 {
-    const string OutDir = "Out/PageBleed";
+    private const string OutDir = "Out/PageBleed";
 
-    readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
+    private readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
 
     public void Dispose()
     {
@@ -39,8 +39,8 @@ public sealed class PageBleedRenderingTests : IDisposable
         GhostscriptSetup.Configure();
     }
 
-    static readonly XUnit Bleed = XUnit.FromMillimeter(3);
-    static readonly XUnit Marks = XUnit.FromMillimeter(5);
+    private static readonly XUnit Bleed = XUnit.FromMillimeter(3);
+    private static readonly XUnit Marks = XUnit.FromMillimeter(5);
 
     [GoldenImageFact]
     public void ABandBledOffTheTopReachesTheOutermostRowOfTheBleed()
@@ -122,7 +122,7 @@ public sealed class PageBleedRenderingTests : IDisposable
 
     // ----- rasterizing and reading pixels ---------------------------------------------------------
 
-    IMagickImage<byte> Rasterize(string name, Action<XGraphics, PdfPage> draw, bool trimmed = true)
+    private IMagickImage<byte> Rasterize(string name, Action<XGraphics, PdfPage> draw, bool trimmed = true)
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -140,15 +140,15 @@ public sealed class PageBleedRenderingTests : IDisposable
     }
 
     /// <summary>What the sheet was drawn at, so points can be turned into pixels.</summary>
-    static double Dpi() => 300;
+    private static double Dpi() => 300;
 
-    static double ToPixels(double points) => points * 300 / 72.0;
+    private static double ToPixels(double points) => points * 300 / 72.0;
 
     /// <summary>
     ///   Whether the sheet is inked or blank a fraction of the way across it and a given number
     ///   of points down from its top edge.
     /// </summary>
-    static string InkAt(IMagickImage<byte> sheet, double across, double pointsDown)
+    private static string InkAt(IMagickImage<byte> sheet, double across, double pointsDown)
     {
         return Read(sheet, (int)Math.Round(across * (sheet.Width - 1)), (int)Math.Round(ToPixels(pointsDown)));
     }
@@ -157,12 +157,12 @@ public sealed class PageBleedRenderingTests : IDisposable
     ///   Whether the sheet is inked or blank a given number of points in from its left edge and a
     ///   fraction of the way down it.
     /// </summary>
-    static string InkDownAt(IMagickImage<byte> sheet, double pointsAcross, double down)
+    private static string InkDownAt(IMagickImage<byte> sheet, double pointsAcross, double down)
     {
         return Read(sheet, (int)Math.Round(ToPixels(pointsAcross)), (int)Math.Round(down * (sheet.Height - 1)));
     }
 
-    static string Read(IMagickImage<byte> sheet, int x, int y)
+    private static string Read(IMagickImage<byte> sheet, int x, int y)
     {
         using var pixels = sheet.GetPixels();
         var colour = pixels.GetPixel(Math.Clamp(x, 0, (int)sheet.Width - 1),
@@ -184,7 +184,7 @@ public sealed class PageBleedRenderingTests : IDisposable
     ///   grey rather than black once the rasterizer has antialiased it. So this asks whether the
     ///   paper is marked at all, not whether it is black.
     /// </remarks>
-    static bool AnyInkIn(IMagickImage<byte> sheet, XRect area)
+    private static bool AnyInkIn(IMagickImage<byte> sheet, XRect area)
     {
         var left = (int)Math.Round(ToPixels(area.X));
         var top = (int)Math.Round(ToPixels(area.Y));

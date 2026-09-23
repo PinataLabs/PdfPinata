@@ -199,39 +199,39 @@ public sealed class PdfResources : PdfDictionary
     /// </summary>
     internal PdfResourceMap Fonts => _fonts ??= (PdfResourceMap)Elements.GetValue(Keys.Font, VCF.Create);
 
-    PdfResourceMap _fonts;
+    private PdfResourceMap _fonts;
 
     /// <summary>
     /// Gets the external objects map.
     /// </summary>
     internal PdfResourceMap XObjects => _xObjects ??= (PdfResourceMap)Elements.GetValue(Keys.XObject, VCF.Create);
 
-    PdfResourceMap _xObjects;
+    private PdfResourceMap _xObjects;
 
     internal PdfResourceMap ExtGStates => _extGStates ??= (PdfResourceMap)Elements.GetValue(Keys.ExtGState, VCF.Create);
 
-    PdfResourceMap _extGStates;
+    private PdfResourceMap _extGStates;
 
     internal PdfResourceMap ColorSpaces => _colorSpaces ??= (PdfResourceMap)Elements.GetValue(Keys.ColorSpace, VCF.Create);
 
-    PdfResourceMap _colorSpaces;
+    private PdfResourceMap _colorSpaces;
 
     internal PdfResourceMap Patterns => _patterns ??= (PdfResourceMap) Elements.GetValue(Keys.Pattern, VCF.Create);
 
-    PdfResourceMap _patterns;
+    private PdfResourceMap _patterns;
 
     internal PdfResourceMap Shadings => _shadings ??= (PdfResourceMap) Elements.GetValue(Keys.Shading, VCF.Create);
 
-    PdfResourceMap _shadings;
+    private PdfResourceMap _shadings;
 
     internal PdfResourceMap Properties => _properties ??= (PdfResourceMap) Elements.GetValue(Keys.Properties, VCF.Create);
 
-    PdfResourceMap _properties;
+    private PdfResourceMap _properties;
 
     /// <summary>
     /// Gets a new local name for this resource.
     /// </summary>
-    string NextFontName
+    private string NextFontName
     {
         get
         {
@@ -240,12 +240,12 @@ public sealed class PdfResources : PdfDictionary
             return name;
         }
     }
-    int _fontNumber;
+    private int _fontNumber;
 
     /// <summary>
     /// Gets a new local name for this resource.
     /// </summary>
-    string NextImageName
+    private string NextImageName
     {
         get
         {
@@ -254,12 +254,12 @@ public sealed class PdfResources : PdfDictionary
             return name;
         }
     }
-    int _imageNumber;
+    private int _imageNumber;
 
     /// <summary>
     /// Gets a new local name for this resource.
     /// </summary>
-    string NextFormName
+    private string NextFormName
     {
         get
         {
@@ -268,12 +268,12 @@ public sealed class PdfResources : PdfDictionary
             return name;
         }
     }
-    int _formNumber;
+    private int _formNumber;
 
     /// <summary>
     /// Gets a new local name for this resource.
     /// </summary>
-    string NextExtGStateName
+    private string NextExtGStateName
     {
         get
         {
@@ -282,12 +282,12 @@ public sealed class PdfResources : PdfDictionary
             return name;
         }
     }
-    int _extGStateNumber;
+    private int _extGStateNumber;
 
     /// <summary>
     /// Gets a new local name for this resource.
     /// </summary>
-    string NextPatternName
+    private string NextPatternName
     {
         get
         {
@@ -296,12 +296,12 @@ public sealed class PdfResources : PdfDictionary
             return name;
         }
     }
-    int _patternNumber;
+    private int _patternNumber;
 
     /// <summary>
     /// Gets a new local name for this resource.
     /// </summary>
-    string NextShadingName
+    private string NextShadingName
     {
         get
         {
@@ -310,12 +310,12 @@ public sealed class PdfResources : PdfDictionary
             return name;
         }
     }
-    int _shadingNumber;
+    private int _shadingNumber;
 
     /// <summary>
     /// Gets a new local name for this resource.
     /// </summary>
-    string NextColorSpaceName
+    private string NextColorSpaceName
     {
         get
         {
@@ -324,7 +324,7 @@ public sealed class PdfResources : PdfDictionary
             return name;
         }
     }
-    int _colorSpaceNumber;
+    private int _colorSpaceNumber;
 
     /// <summary>
     /// Check whether a resource name is already used in the context of this resource dictionary.
@@ -366,12 +366,12 @@ public sealed class PdfResources : PdfDictionary
     /// <summary>
     /// All the names of imported resources.
     /// </summary>
-    Dictionary<string, object> _importedResourceNames;
+    private Dictionary<string, object> _importedResourceNames;
 
     /// <summary>
     /// Maps all PDFPinata resources to their local resource names.
     /// </summary>
-    readonly Dictionary<PdfObject, string> _resources = new();
+    private readonly Dictionary<PdfObject, string> _resources = new();
 
     /// <summary>
     /// Predefined keys of this dictionary.
@@ -435,7 +435,7 @@ public sealed class PdfResources : PdfDictionary
         /// </summary>
         internal static DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

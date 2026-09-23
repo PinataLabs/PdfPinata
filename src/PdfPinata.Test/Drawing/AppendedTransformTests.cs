@@ -102,7 +102,7 @@ public class AppendedTransformTests
         }
     }
 
-    static (PdfPage, XGraphics) OnAPage()
+    private static (PdfPage, XGraphics) OnAPage()
     {
         var page = new PdfDocument().AddPage();
         return (page, XGraphics.FromPdfPage(page));
@@ -112,7 +112,7 @@ public class AppendedTransformTests
     ///   Both ends of the one line drawn on the page, in default user space: the <c>m</c> and
     ///   <c>l</c> points carried through every <c>cm</c> in force where they were written.
     /// </summary>
-    static (XPoint Start, XPoint End) LineOn(PdfPage page)
+    private static (XPoint Start, XPoint End) LineOn(PdfPage page)
     {
         var ctm = new XMatrix();
         var saved = new Stack<XMatrix>();
@@ -148,7 +148,7 @@ public class AppendedTransformTests
         throw new InvalidOperationException("The page draws no line.");
     }
 
-    static double Number(CObject operand)
+    private static double Number(CObject operand)
     {
         return operand switch
         {

@@ -72,14 +72,14 @@ internal class PdfWriter
         get => _layout;
         set => _layout = value;
     }
-    PdfWriterLayout _layout;
+    private PdfWriterLayout _layout;
 
     public PdfWriterOptions Options
     {
         get => _options;
         set => _options = value;
     }
-    PdfWriterOptions _options;
+    private PdfWriterOptions _options;
 
     // -----------------------------------------------------------
 
@@ -375,7 +375,7 @@ internal class PdfWriter
         get => _omitIndirectFraming;
         set => _omitIndirectFraming = value;
     }
-    bool _omitIndirectFraming;
+    private bool _omitIndirectFraming;
 
     /// <summary>
     /// Writes the stream of the specified dictionary.
@@ -446,7 +446,7 @@ internal class PdfWriter
         _lastCat = GetCategory((char)bytes[^1]);
     }
 
-    void WriteObjectAddress(PdfObject value)
+    private void WriteObjectAddress(PdfObject value)
     {
         WriteRaw($"{value.ObjectID.ObjectNumber} {value.ObjectID.GenerationNumber} obj\n");
     }
@@ -467,7 +467,7 @@ internal class PdfWriter
         WriteRaw("\n%%EOF\n");
     }
 
-    void WriteSeparator()
+    private void WriteSeparator()
     {
         switch (_lastCat)
         {
@@ -489,7 +489,7 @@ internal class PdfWriter
             WriteRaw('\n');
     }
 
-    static CharCat GetCategory(char ch)
+    private static CharCat GetCategory(char ch)
     {
         if (Lexer.IsDelimiter(ch))
             return CharCat.Delimiter;
@@ -498,29 +498,29 @@ internal class PdfWriter
         return CharCat.Character;
     }
 
-    enum CharCat
+    private enum CharCat
     {
         NewLine,
         Character,
         Delimiter
     };
-    CharCat _lastCat;
+    private CharCat _lastCat;
 
     /// <summary>
     /// Gets the underlying stream.
     /// </summary>
     internal Stream Stream => _stream;
 
-    Stream _stream;
+    private Stream _stream;
 
     internal PdfStandardSecurityHandler SecurityHandler
     {
         get => _securityHandler;
         set => _securityHandler = value;
     }
-    PdfStandardSecurityHandler _securityHandler;
+    private PdfStandardSecurityHandler _securityHandler;
 
-    class StackItem
+    private class StackItem
     {
         public StackItem(PdfObject value)
         {
@@ -531,5 +531,5 @@ internal class PdfWriter
         public bool HasStream;
     }
 
-    readonly List<StackItem> _stack = new();
+    private readonly List<StackItem> _stack = new();
 }

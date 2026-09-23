@@ -230,7 +230,7 @@ public class GenericAnnotationTests
     ///   An appearance stream that fills itself with one colour, which is the smallest drawing
     ///   that proves a reader painted it.
     /// </summary>
-    static XForm Filled(PdfDocument document, XSize size, XColor colour)
+    private static XForm Filled(PdfDocument document, XSize size, XColor colour)
     {
         var form = new XForm(document, size);
         using (var gfx = XGraphics.FromForm(form))

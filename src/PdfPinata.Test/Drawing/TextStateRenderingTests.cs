@@ -24,20 +24,20 @@ namespace PdfPinata.Test.Drawing;
 [Collection(RasterizingCollection.Name)]
 public class TextStateRenderingTests
 {
-    const double FontSize = 24;
-    const double PageWidth = 400;
-    const double PageHeight = 80;
+    private const double FontSize = 24;
+    private const double PageWidth = 400;
+    private const double PageHeight = 80;
 
     /// <summary>Rasterization is at 300 dpi, and PDF measures in 72nds of an inch.</summary>
-    const double PixelsPerPoint = 300.0 / 72.0;
+    private const double PixelsPerPoint = 300.0 / 72.0;
 
-    static XFont WinAnsiFont => new XFont("Arial", FontSize, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
-    static XFont UnicodeFont => new XFont("Arial", FontSize, XFontStyle.Regular, XPdfFontOptions.UnicodeDefault);
+    private static XFont WinAnsiFont => new XFont("Arial", FontSize, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
+    private static XFont UnicodeFont => new XFont("Arial", FontSize, XFontStyle.Regular, XPdfFontOptions.UnicodeDefault);
 
     /// <summary>
     ///   Every inked pixel of the page, as (x, y) in pixels from the top left.
     /// </summary>
-    static List<(int X, int Y)> InkOf(string text, XFont font, XStringFormat format, double size = FontSize)
+    private static List<(int X, int Y)> InkOf(string text, XFont font, XStringFormat format, double size = FontSize)
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -62,7 +62,7 @@ public class TextStateRenderingTests
     ///   the trailing spacing after the last glyph moves the pen without marking the page, so this
     ///   is one gap short of what MeasureString answers, by design.
     /// </summary>
-    static double InkedWidthOf(string text, XFont font, XStringFormat format)
+    private static double InkedWidthOf(string text, XFont font, XStringFormat format)
     {
         var inked = InkOf(text, font, format);
         return (inked.Max(p => p.X) - inked.Min(p => p.X)) / PixelsPerPoint;
@@ -72,7 +72,7 @@ public class TextStateRenderingTests
     ///   How far up the page the highest ink sits, in points from the bottom of the page. Larger
     ///   is higher, whatever the image's own y direction happens to be.
     /// </summary>
-    static double InkedTopOf(string text, XFont font, XStringFormat format)
+    private static double InkedTopOf(string text, XFont font, XStringFormat format)
     {
         // Image y runs down from the top, so the smallest y is the highest ink.
         return PageHeight - InkOf(text, font, format).Min(p => p.Y) / PixelsPerPoint;
@@ -82,7 +82,7 @@ public class TextStateRenderingTests
     ///   How far the ink leans, in points: how much further right the top of the glyphs sits than
     ///   the bottom. Positive leans right, as an italic does.
     /// </summary>
-    static double LeanOf(string text, XFont font, XStringFormat format)
+    private static double LeanOf(string text, XFont font, XStringFormat format)
     {
         // A tall glyph at a large size, so that top and bottom are far enough apart to measure.
         var inked = InkOf(text, font, format, 48);

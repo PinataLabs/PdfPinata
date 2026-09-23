@@ -19,13 +19,13 @@ namespace PdfPinata.Test.Drawing;
 /// </summary>
 public class TextDecorationTests
 {
-    const double FontSize = 24;
+    private const double FontSize = 24;
 
-    static XFont Plain => new XFont("Arial", FontSize, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
-    static XFont Underlined => new XFont("Arial", FontSize, XFontStyle.Underline, XPdfFontOptions.WinAnsiDefault);
-    static XFont StruckOut => new XFont("Arial", FontSize, XFontStyle.Strikeout, XPdfFontOptions.WinAnsiDefault);
+    private static XFont Plain => new XFont("Arial", FontSize, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
+    private static XFont Underlined => new XFont("Arial", FontSize, XFontStyle.Underline, XPdfFontOptions.WinAnsiDefault);
+    private static XFont StruckOut => new XFont("Arial", FontSize, XFontStyle.Strikeout, XPdfFontOptions.WinAnsiDefault);
 
-    static PdfPage PageShowing(string text, XFont font, XStringFormat format)
+    private static PdfPage PageShowing(string text, XFont font, XStringFormat format)
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -35,10 +35,10 @@ public class TextDecorationTests
     }
 
     /// <summary>How many filled rectangles the page draws - one per solid rule.</summary>
-    static int RulesFilledOn(PdfPage page) => TextOperators.CountOf(page, OpCodeName.re);
+    private static int RulesFilledOn(PdfPage page) => TextOperators.CountOf(page, OpCodeName.re);
 
     /// <summary>How many strokes the page draws - one per broken rule.</summary>
-    static int RulesStrokedOn(PdfPage page) => TextOperators.CountOf(page, OpCodeName.S);
+    private static int RulesStrokedOn(PdfPage page) => TextOperators.CountOf(page, OpCodeName.S);
 
     // ----- D1, decoration without the font style -------------------------------------------------
 
@@ -237,11 +237,11 @@ public class TextDecorationTests
 
     // ----- D4, the baselines ---------------------------------------------------------------------
 
-    static double AscentOf(XFont font) => font.GetHeight() * font.CellAscent / font.CellSpace;
-    static double DescentOf(XFont font) => font.GetHeight() * font.CellDescent / font.CellSpace;
-    static double XHeightOf(XFont font) => font.GetHeight() * font.Metrics.XHeight / font.CellSpace;
+    private static double AscentOf(XFont font) => font.GetHeight() * font.CellAscent / font.CellSpace;
+    private static double DescentOf(XFont font) => font.GetHeight() * font.CellDescent / font.CellSpace;
+    private static double XHeightOf(XFont font) => font.GetHeight() * font.Metrics.XHeight / font.CellSpace;
 
-    static double BaselineFor(XLineAlignment alignment)
+    private static double BaselineFor(XLineAlignment alignment)
     {
         var format = XStringFormats.Default;
         format.LineAlignment = alignment;

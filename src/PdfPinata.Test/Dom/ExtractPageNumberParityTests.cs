@@ -30,13 +30,13 @@ public class ExtractPageNumberParityTests
     ///   The path each implementation returns and the page number it reports, as one string, so
     ///   that a single assertion covers both halves of the answer.
     /// </summary>
-    static string ByXPdfForm(string path)
+    private static string ByXPdfForm(string path)
     {
         var rest = XPdfForm.ExtractPageNumber(path, out var pageNumber);
         return rest + " | " + pageNumber;
     }
 
-    static string ByImageHelper(string path)
+    private static string ByImageHelper(string path)
     {
         var rest = ImageHelper.ExtractPageNumber(path, out var pageNumber);
         return rest + " | " + pageNumber;

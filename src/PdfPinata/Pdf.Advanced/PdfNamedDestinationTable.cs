@@ -28,17 +28,17 @@ public sealed class PdfNamedDestinationTable
     {
         _document = document;
     }
-    readonly PdfDocument _document;
+    private readonly PdfDocument _document;
 
-    readonly Dictionary<string, Destination> _destinations = new Dictionary<string, Destination>(StringComparer.Ordinal);
+    private readonly Dictionary<string, Destination> _destinations = new Dictionary<string, Destination>(StringComparer.Ordinal);
 
     /// <summary>
     /// Whether what the document already holds has been taken into this table. Until it has, this
     /// table knows only what it has been told, and writing it out would drop the rest.
     /// </summary>
-    bool _adopted;
+    private bool _adopted;
 
-    readonly struct Destination
+    private readonly struct Destination
     {
         internal Destination(PdfPage page, double top)
         {
@@ -76,7 +76,7 @@ public sealed class PdfNamedDestinationTable
     /// being read and written by something that never understood it.
     /// </para>
     /// </remarks>
-    void Adopt()
+    private void Adopt()
     {
         if (_adopted)
             return;
@@ -138,14 +138,14 @@ public sealed class PdfNamedDestinationTable
     public void Add(string name, PdfPage page, double top)
     {
         if (string.IsNullOrEmpty(name))
-            throw new ArgumentException("A destination must be named something.", nameof(name));
+            throw new ArgumentException(@"A destination must be named something.", nameof(name));
         ArgumentNullException.ThrowIfNull(page);
 
         // A page of another document has an object number in that document's table, and writing a
         // reference to it here would point at whatever this document happens to hold under that
         // number - or at nothing.
         if (page.Owner != _document)
-            throw new ArgumentException("The page belongs to another document.", nameof(page));
+            throw new ArgumentException(@"The page belongs to another document.", nameof(page));
 
         Adopt();
         _destinations[name] = new Destination(page, top);
@@ -239,7 +239,7 @@ public sealed class PdfNamedDestinationTable
     /// <summary>
     /// The destination array a name stands for: a page, and where on it to look.
     /// </summary>
-    PdfArray DestinationArrayFor(Destination destination)
+    private PdfArray DestinationArrayFor(Destination destination)
     {
         var array = new PdfArray(_document);
         array.Elements.Add(destination.Page.Reference);

@@ -81,7 +81,7 @@ internal class TextFrameRenderer : ShapeRenderer
       RenderLine();
   }
 
-  void RenderContent()
+  private void RenderContent()
   {
     var formattedTextFrame = ((TextFrameFormatInfo)renderInfo.FormatInfo).formattedTextFrame;
     var renderInfos = formattedTextFrame.GetRenderInfos();
@@ -93,7 +93,7 @@ internal class TextFrameRenderer : ShapeRenderer
     ResetTransform(state);
   }
 
-  XGraphicsState Transform()
+  private XGraphicsState Transform()
   {
     var frameContentArea = renderInfo.LayoutInfo.ContentArea;
     var state = Gfx.Save();
@@ -127,10 +127,10 @@ internal class TextFrameRenderer : ShapeRenderer
     return state;
   }
 
-  void ResetTransform(XGraphicsState state)
+  private void ResetTransform(XGraphicsState state)
   {
     if (state != null)
       Gfx.Restore(state);
   }
-  TextFrame textframe;
+  private TextFrame textframe;
 }

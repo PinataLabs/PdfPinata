@@ -273,14 +273,14 @@ public class MalformedPageTreeTests
         await Task.Run(() => opening.Should().Throw<PdfReaderException>().WithMessage("*over and over*"));
     }
 
-    const string Page = "<</Type/Page/Parent 2 0 R/MediaBox[0 0 200 100]>>";
+    private const string Page = "<</Type/Page/Parent 2 0 R/MediaBox[0 0 200 100]>>";
 
-    static PdfDocument Read(byte[] document) =>
+    private static PdfDocument Read(byte[] document) =>
         Pdf.IO.PdfReader.Open(new MemoryStream(document), PdfDocumentOpenMode.Modify);
 
     /// <summary>
     ///   Opening it and then reaching for the pages, because the tree is walked when the catalog is
     ///   first asked for them rather than while the file is being read.
     /// </summary>
-    static Action Opening(byte[] document) => () => _ = Read(document).Pages.Count;
+    private static Action Opening(byte[] document) => () => _ = Read(document).Pages.Count;
 }

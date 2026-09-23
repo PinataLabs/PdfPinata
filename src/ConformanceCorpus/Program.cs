@@ -53,7 +53,7 @@ public static class Program
     /// Where to write, from <c>--out &lt;dir&gt;</c> or a default beside the repository's other build
     /// output.
     /// </summary>
-    static string OutputDirectory(string[] args)
+    private static string OutputDirectory(string[] args)
     {
         for (var index = 0; index < args.Length - 1; index++)
         {

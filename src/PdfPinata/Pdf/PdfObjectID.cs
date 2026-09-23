@@ -67,14 +67,14 @@ public struct PdfObjectID : IComparable, IEquatable<PdfObjectID>
     /// </summary>
     public int ObjectNumber => _objectNumber;
 
-    readonly int _objectNumber;
+    private readonly int _objectNumber;
 
     /// <summary>
     /// Gets or sets the generation number.
     /// </summary>
     public int GenerationNumber => _generationNumber;
 
-    readonly ushort _generationNumber;
+    private readonly ushort _generationNumber;
 
     /// <summary>
     /// Indicates whether this object is an empty object identifier.

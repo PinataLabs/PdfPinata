@@ -17,11 +17,11 @@ namespace PdfPinata.Test.IO;
 /// </summary>
 public class PageResizeAnnotationTests
 {
-    const double A4Width = 595;
-    const double A4Height = 842;
-    const double Tolerance = 0.01;
+    private const double A4Width = 595;
+    private const double A4Height = 842;
+    private const double Tolerance = 0.01;
 
-    static PdfDocument DocumentWithAnAnnotation(PdfDictionary annotation)
+    private static PdfDocument DocumentWithAnAnnotation(PdfDictionary annotation)
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -39,14 +39,14 @@ public class PageResizeAnnotationTests
     }
 
     /// <summary>Halves the page in each direction, exactly.</summary>
-    static void HalveThePage(PdfPage page)
+    private static void HalveThePage(PdfPage page)
     {
         var options = PageResizeOptions.Default;
         options.Fit = PageFitMode.Stretch;
         page.Resize(new XSize(A4Width / 2, A4Height / 2), options);
     }
 
-    static PdfDictionary AnnotationOfSubtype(string subtype)
+    private static PdfDictionary AnnotationOfSubtype(string subtype)
     {
         var annotation = new PdfDictionary();
         annotation.Elements.SetName("/Type", "/Annot");
@@ -56,17 +56,17 @@ public class PageResizeAnnotationTests
         return annotation;
     }
 
-    static PdfArray NumbersOf(PdfDictionary annotation, string key)
+    private static PdfArray NumbersOf(PdfDictionary annotation, string key)
     {
         return annotation.Elements.GetArray(key);
     }
 
-    static double[] Values(PdfArray array)
+    private static double[] Values(PdfArray array)
     {
         return Enumerable.Range(0, array.Elements.Count).Select(array.Elements.GetReal).ToArray();
     }
 
-    static PdfDictionary TheAnnotationOf(PdfPage page)
+    private static PdfDictionary TheAnnotationOf(PdfPage page)
     {
         var annotations = page.Elements.GetArray("/Annots");
         return annotations.Elements.GetDictionary(0);

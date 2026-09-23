@@ -94,7 +94,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
             _orientation = PageOrientation.Landscape;
     }
 
-    void Initialize()
+    private void Initialize()
     {
 
         try
@@ -119,7 +119,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         get => _tag;
         set => _tag = value;
     }
-    object _tag;
+    private object _tag;
 
     /// <summary>
     /// Closes the page. A closes page cannot be modified anymore and it is not possible to
@@ -130,7 +130,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     {
         _closed = true;
     }
-    bool _closed;
+    private bool _closed;
 
     /// <summary>
     /// Gets a value indicating whether the page is closed.
@@ -166,7 +166,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         get => _orientation;
         set => _orientation = value;
     }
-    PageOrientation _orientation;
+    private PageOrientation _orientation;
 
     /// <summary>
     /// Gets or sets one of the predefined standard sizes like.
@@ -188,7 +188,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
             _pageSize = value;
         }
     }
-    PageSize _pageSize;
+    private PageSize _pageSize;
 
     /// <summary>
     /// Gets a value indicating whether the page holds any content, without disturbing it.
@@ -225,7 +225,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// to a stream dictionary is counted as content: it is not understood, and treating what is
     /// not understood as empty is the answer that loses a page.
     /// </summary>
-    static bool HoldsBytes(PdfArray array)
+    private static bool HoldsBytes(PdfArray array)
     {
         foreach (var element in array.Elements)
         {
@@ -251,7 +251,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// Throws when the page has content, because setting its size writes a new media box and
     /// nothing else, which crops the content rather than resizing it.
     /// </summary>
-    void RefuseToResizeByReboxing(string property)
+    private void RefuseToResizeByReboxing(string property)
     {
         if (!HasContent)
             return;
@@ -448,7 +448,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// imported page too - which is built from an existing dictionary and never runs
     /// <c>Initialize</c>.
     /// </remarks>
-    readonly PdfPageSheet _sheet;
+    private readonly PdfPageSheet _sheet;
 
     /// <summary>
     /// Gets or sets the media box directly: the whole sheet the page is printed on. XGrahics is
@@ -619,9 +619,9 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// entry whose value is null, directly or by reference, or is not an array of four numbers,
     /// is no box at all. Nothing is written to the page.
     /// </summary>
-    PdfRectangle StatedBox(string key) => PdfPageResizer.RectangleOf(this, key);
+    private PdfRectangle StatedBox(string key) => PdfPageResizer.RectangleOf(this, key);
 
-    PdfRectangle BoxOrEmpty(string key) => StatedBox(key) ?? new PdfRectangle();
+    private PdfRectangle BoxOrEmpty(string key) => StatedBox(key) ?? new PdfRectangle();
 
     /// <summary>
     /// The box under <paramref name="key"/> as a reader applies it, following ISO 32000-1
@@ -633,7 +633,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// box, because the standard says a box reaching beyond the media box is effectively reduced
     /// to that. <see cref="EffectiveCropBox"/> says what the caller sees.
     /// </remarks>
-    PdfRectangle EffectiveBox(string key)
+    private PdfRectangle EffectiveBox(string key)
     {
         var media = StatedBox(InheritablePageKeys.MediaBox);
         if (media != null)
@@ -657,14 +657,14 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         return x1 <= x2 && y1 <= y2 ? new PdfRectangle(x1, y1, x2, y2) : new PdfRectangle();
     }
 
-    static PdfRectangle LowerLeftFirst(PdfRectangle box) =>
+    private static PdfRectangle LowerLeftFirst(PdfRectangle box) =>
         new(Math.Min(box.X1, box.X2), Math.Min(box.Y1, box.Y2),
             Math.Max(box.X1, box.X2), Math.Max(box.Y1, box.Y2));
 
     /// <summary>
     /// The media box the way <see cref="WriteObject"/> turns it over for a landscape page.
     /// </summary>
-    static PdfRectangle TurnedOver(PdfRectangle mediaBox) =>
+    private static PdfRectangle TurnedOver(PdfRectangle mediaBox) =>
         new(mediaBox.X1, mediaBox.Y1, mediaBox.Y2, mediaBox.X2);
 
     /// <summary>
@@ -758,7 +758,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// Gets a value indicating whether the page the viewer shows is as wide as the media box
     /// held here is high, which is the case when either of the two turns applies to it.
     /// </summary>
-    bool VisibleSizeIsTurned => MediaBoxIsTurnedWhenWritten || IsTurnedByAQuarter;
+    private bool VisibleSizeIsTurned => MediaBoxIsTurnedWhenWritten || IsTurnedByAQuarter;
 
     /// <summary>
     /// Gets the size of the media box of this page as it is written to the file. It is the
@@ -848,7 +848,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
             return _contents;
         }
     }
-    PdfContents _contents;
+    private PdfContents _contents;
 
     #region Annotations
 
@@ -891,7 +891,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
             return _annotations;
         }
     }
-    PdfAnnotations _annotations;
+    private PdfAnnotations _annotations;
 
     /// <summary>
     /// Adds an intra document link.
@@ -978,7 +978,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
             _customValues = null;
         }
     }
-    PdfCustomValues _customValues;
+    private PdfCustomValues _customValues;
 
     /// <summary>
     /// Gets the PdfResources object of this page.
@@ -992,7 +992,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
             return _resources;
         }
     }
-    PdfResources _resources;
+    private PdfResources _resources;
 
     /// <summary>
     /// Gives the page a resource dictionary in place of the one it has. The page reads its
@@ -1091,7 +1091,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         if (idName == null)
             throw new ArgumentNullException(nameof(idName));
         if (idName.Length == 0)
-            throw new ArgumentException("The name of a font program must not be empty.", nameof(idName));
+            throw new ArgumentException(@"The name of a font program must not be empty.", nameof(idName));
         if (fontData == null)
             throw new ArgumentNullException(nameof(fontData));
 
@@ -1234,7 +1234,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// Nothing is examined once the page is known to need a group. The answer cannot turn back,
     /// and working it out means walking the resources of a form and of every form within it.
     /// </remarks>
-    void NoteTransparencyOf(PdfDictionary xObject)
+    private void NoteTransparencyOf(PdfDictionary xObject)
     {
         if (!TransparencyUsed && PdfTransparencyDetector.UsesTransparency(xObject))
             TransparencyUsed = true;
@@ -1249,7 +1249,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// null passes on nothing and leaves whatever a node above it stated in place, and a page
     /// that says null inherits as though it had said nothing.
     /// </remarks>
-    static PdfItem InheritableEntry(PdfDictionary dictionary, string key)
+    private static PdfItem InheritableEntry(PdfDictionary dictionary, string key)
     {
         var item = dictionary.Elements[key];
         var value = item is PdfReference reference ? reference.Value : item;
@@ -1389,7 +1389,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// page. A stream with nothing in it draws nothing either way, so there is no reason to keep
     /// one. The object itself is swept up by the unreachable-object pass that follows.
     /// </remarks>
-    void RemoveEmptyContentStreams()
+    private void RemoveEmptyContentStreams()
     {
         // Only a page whose contents have already been read. Reading them here would give a page
         // that has no /Contents at all an empty array it never had.
@@ -1611,7 +1611,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         /// </summary>
         internal static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

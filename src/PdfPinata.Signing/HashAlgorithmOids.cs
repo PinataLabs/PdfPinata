@@ -20,6 +20,6 @@ static class HashAlgorithmOids
             return "2.16.840.1.101.3.4.2.3";
 
         throw new ArgumentException(
-            "Only SHA-256, SHA-384 and SHA-512 are supported.", nameof(algorithm));
+            @"Only SHA-256, SHA-384 and SHA-512 are supported.", nameof(algorithm));
     }
 }

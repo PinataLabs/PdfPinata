@@ -100,7 +100,8 @@ public class CodeOmr : BarCode
         get => _synchronizeCode;
         set => _synchronizeCode = value;
     }
-    bool _synchronizeCode;
+
+    private bool _synchronizeCode;
 
     /// <summary>
     /// Gets or sets the distance of the markers.
@@ -110,7 +111,8 @@ public class CodeOmr : BarCode
         get => _makerDistance;
         set => _makerDistance = value;
     }
-    double _makerDistance = 12;  // 1/6"
+
+    private double _makerDistance = 12;  // 1/6"
 
     /// <summary>
     /// Gets or sets the thickness of the makers.
@@ -120,7 +122,8 @@ public class CodeOmr : BarCode
         get => _makerThickness;
         set => _makerThickness = value;
     }
-    double _makerThickness = 1;
+
+    private double _makerThickness = 1;
 
     /// <summary>
     /// Gets or sets the distance of the markers as one of the standard distances, or null when

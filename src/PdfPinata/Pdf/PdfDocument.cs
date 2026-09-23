@@ -72,23 +72,6 @@ public sealed class PdfDocument : PdfObject, IDisposable
     }
 
     /// <summary>
-    /// Creates a new PDF document with the specified file name. The file is immediately created and keeps
-    /// locked until the document is closed, at that time the document is saved automatically.
-    /// Do not call Save() for documents created with this constructor, just call Close().
-    /// To open an existing PDF file and import it, use the PdfReader class.
-    /// </summary>
-    public PdfDocument(string filename)
-    {
-        _creation = GlobalTimeSettings.Now;
-        _state = DocumentState.Created;
-        _version = 14;
-        Initialize();
-        Info.CreationDate = _creation;
-
-        throw new NotImplementedException();
-    }
-
-    /// <summary>
     /// Creates a new PDF document using the specified stream.
     /// The stream won't be used until the document is closed, at that time the document is saved automatically.
     /// Do not call Save() for documents created with this constructor, just call Close().
@@ -98,7 +81,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     {
         _creation = GlobalTimeSettings.Now;
         _state = DocumentState.Created;
-        // The version has to be set here as well as in the other two constructors. Without it the
+        // The version has to be set here as well as in the parameterless constructor. Without it the
         // field stayed 0 and the file header read "%PDF-0.0", which no reader will open - so every
         // document built on an output stream was written unreadable.
         _version = 14;
@@ -116,7 +99,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
         _lexer = lexer;
     }
 
-    void Initialize()
+    private void Initialize()
     {
         _fontTable = new PdfFontTable(this);
         _imageTable = new PdfImageTable(this);
@@ -135,7 +118,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
         Dispose(true);
     }
 
-    void Dispose(bool disposing)
+    private void Dispose(bool disposing)
     {
         if (_state != DocumentState.Disposed)
         {
@@ -158,29 +141,29 @@ public sealed class PdfDocument : PdfObject, IDisposable
         set { _tag = value; }
     }
 
-    object _tag;
+    private object _tag;
 
     /// <summary>
     /// Gets or sets a value used to distinguish PdfDocument objects.
     /// The name is not used by PdfPinata.
     /// </summary>
-    string Name
+    private string Name
     {
         get { return _name; }
         set { _name = value; }
     }
 
-    string _name = NewName();
+    private string _name = NewName();
 
     /// <summary>
     /// Get a new default name for a new document.
     /// </summary>
-    static string NewName()
+    private static string NewName()
     {
         return "Document " + _nameCount++;
     }
 
-    static int _nameCount;
+    private static int _nameCount;
 
     /// <summary>
     /// Whether this document may be changed. The same question <see cref="IsReadOnly"/> answers,
@@ -241,12 +224,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     {
         if (_outStream != null)
         {
-            // Get security handler if document gets encrypted
-            PdfStandardSecurityHandler securityHandler = null;
-            if (SecuritySettings.DocumentSecurityLevel != PdfDocumentSecurityLevel.None)
-                securityHandler = SecuritySettings.SecurityHandler;
-
-            var writer = new PdfWriter(_outStream, securityHandler);
+            var writer = new PdfWriter(_outStream, SecurityHandlerForWriting);
             try
             {
                 DoSave(writer);
@@ -280,57 +258,80 @@ public sealed class PdfDocument : PdfObject, IDisposable
         EnsureCanModify("saving the document");
         EnsureCanDeduplicate();
 
-        var message = "";
-        if (!CanSave(ref message))
-            throw new PdfPinataException(message);
+        var check = CanSave();
+        if (!check.CanSave)
+            throw new PdfPinataException(check.Reason);
 
-        // Saving back into the stream the document was read from is a common way to modify a
-        // document in place. Reading has left the position near the end of the stream, so writing
-        // would start there and keep the entire original file as a prefix. The result still opens,
-        // because readers locate the last startxref, but the file has roughly doubled in size for
-        // no reason. All objects were read into memory when the document was opened, so the stream
-        // is no longer needed and can be rewound and truncated.
-        // The new file is written into a buffer first, and the stream is not touched until that
-        // has succeeded. Truncating it up front would leave a save that fails part way through
-        // with neither the document it started from nor the one it was asked for.
-        MemoryStream buffer = null;
-        if (_lexer != null && ReferenceEquals(_lexer.PdfStream, stream) && stream.CanSeek && stream.CanWrite)
-            buffer = new MemoryStream();
-
-        // Get security handler if document gets encrypted.
-        PdfStandardSecurityHandler securityHandler = null;
-        if (SecuritySettings.DocumentSecurityLevel != PdfDocumentSecurityLevel.None)
-            securityHandler = SecuritySettings.SecurityHandler;
-
+        var buffer = BufferForSavingInPlace(stream);
         PdfWriter writer = null;
         try
         {
-            writer = new PdfWriter(buffer ?? stream, securityHandler);
+            writer = new PdfWriter(buffer ?? stream, SecurityHandlerForWriting);
             DoSave(writer);
 
             if (buffer != null)
-            {
-                stream.Position = 0;
-                stream.SetLength(0);
-                buffer.WriteTo(stream);
-                stream.Flush();
-            }
+                ReplaceContents(stream, buffer);
         }
         finally
         {
-            if (buffer != null)
-                buffer.Dispose();
-            if (stream != null)
-            {
-                if (closeStream)
-                    stream.Dispose();
-                else
-                    stream.Position = 0; // Reset the stream position if the stream is kept open.
-            }
-
-            if (writer != null)
-                writer.Close(closeStream);
+            buffer?.Dispose();
+            ReleaseAfterSave(stream, closeStream);
+            writer?.Close(closeStream);
         }
+    }
+
+    /// <summary>
+    /// The security handler to write with, or null when the document is not encrypted.
+    /// </summary>
+    private PdfStandardSecurityHandler SecurityHandlerForWriting =>
+        SecuritySettings.DocumentSecurityLevel != PdfDocumentSecurityLevel.None
+            ? SecuritySettings.SecurityHandler
+            : null;
+
+    /// <summary>
+    /// A buffer to write into when saving back into the stream the document was read from, or null
+    /// when the document can be written to the stream directly.
+    /// </summary>
+    /// <remarks>
+    /// Saving back into the stream the document was read from is a common way to modify a
+    /// document in place. Reading has left the position near the end of the stream, so writing
+    /// would start there and keep the entire original file as a prefix. The result still opens,
+    /// because readers locate the last startxref, but the file has roughly doubled in size for
+    /// no reason. All objects were read into memory when the document was opened, so the stream
+    /// is no longer needed and can be rewound and truncated.
+    /// The new file is written into a buffer first, and the stream is not touched until that
+    /// has succeeded. Truncating it up front would leave a save that fails part way through
+    /// with neither the document it started from nor the one it was asked for.
+    /// </remarks>
+    private MemoryStream BufferForSavingInPlace(Stream stream)
+    {
+        var inPlace = _lexer != null && ReferenceEquals(_lexer.PdfStream, stream) && stream.CanSeek && stream.CanWrite;
+        return inPlace ? new MemoryStream() : null;
+    }
+
+    /// <summary>
+    /// Replaces everything in <paramref name="stream"/> with what was written into <paramref name="buffer"/>.
+    /// </summary>
+    private static void ReplaceContents(Stream stream, MemoryStream buffer)
+    {
+        stream.Position = 0;
+        stream.SetLength(0);
+        buffer.WriteTo(stream);
+        stream.Flush();
+    }
+
+    /// <summary>
+    /// Closes the stream a save wrote to, or rewinds it when the caller is keeping it open.
+    /// </summary>
+    private static void ReleaseAfterSave(Stream stream, bool closeStream)
+    {
+        if (stream == null)
+            return;
+
+        if (closeStream)
+            stream.Dispose();
+        else
+            stream.Position = 0;
     }
 
     /// <summary>
@@ -471,7 +472,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// many as the changed numbers fall into runs, because the numbers in between belong to objects
     /// this revision has not touched and whose earlier entries must go on standing.
     /// </remarks>
-    static void WriteIncrementalCrossReferenceTable(PdfWriter writer, List<PdfReference> changed)
+    private static void WriteIncrementalCrossReferenceTable(PdfWriter writer, List<PdfReference> changed)
     {
         writer.WriteRaw("xref\n");
 
@@ -539,7 +540,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// The offset the last <c>startxref</c> of a file names, which is where a reader of the next
     /// revision has to be told to look for the one before it.
     /// </summary>
-    static long FindLastStartXref(byte[] bytes)
+    private static long FindLastStartXref(byte[] bytes)
     {
         var marker = "startxref";
         var text = PdfEncoders.RawEncoding.GetString(bytes, Math.Max(0, bytes.Length - 2048),
@@ -563,9 +564,9 @@ public sealed class PdfDocument : PdfObject, IDisposable
         return long.Parse(digits.ToString());
     }
 
-    byte[] _originalBytes;
-    long _originalStartXref;
-    HashSet<int> _originalObjectNumbers;
+    private byte[] _originalBytes;
+    private long _originalStartXref;
+    private HashSet<int> _originalObjectNumbers;
 
     /// <summary>
     /// Whether the file this document was read from was encrypted, recorded by the reader as it
@@ -593,7 +594,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// objects, never stop referring to one, so merging objects there would leave every copy in the
     /// file and add the changed dictionaries on top.
     /// </summary>
-    void EnsureCanDeduplicate()
+    private void EnsureCanDeduplicate()
     {
         if (Options.DeduplicateResources && _originalBytes != null)
             throw new InvalidOperationException(
@@ -607,7 +608,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// <summary>
     /// Implements saving a PDF file.
     /// </summary>
-    void DoSave(PdfWriter writer)
+    private void DoSave(PdfWriter writer)
     {
         EnsureCanDeduplicate();
 
@@ -617,7 +618,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
             {
                 // Give feedback if the wrong constructor was used.
                 throw new InvalidOperationException(
-                    "Cannot save a PDF document with no pages. Do not use \"public PdfDocument(string filename)\" or \"public PdfDocument(Stream outputStream)\" if you want to open an existing PDF document from a file or stream; use PdfReader.Open() for that purpose.");
+                    "Cannot save a PDF document with no pages. Do not use \"public PdfDocument(Stream outputStream)\" if you want to open an existing PDF document from a file or stream; use PdfReader.Open() for that purpose.");
             }
 
             throw new InvalidOperationException("Cannot save a PDF document with no pages.");
@@ -777,14 +778,25 @@ public sealed class PdfDocument : PdfObject, IDisposable
     }
 
     /// <summary>
+    /// Determines whether the document can be saved, and if not, why.
+    /// </summary>
+    public PdfSaveCheck CanSave()
+    {
+        return SecuritySettings.CanSave();
+    }
+
+    /// <summary>
     /// Determines whether the document can be saved.
     /// </summary>
+    /// <param name="message">Set to why the document cannot be saved; left as it was when it can.</param>
+    [Obsolete("Use CanSave(), which answers with the reason as well.")]
     public bool CanSave(ref string message)
     {
-        if (!SecuritySettings.CanSave(ref message))
-            return false;
+        var check = CanSave();
+        if (!check.CanSave)
+            message = check.Reason;
 
-        return true;
+        return check.CanSave;
     }
 
     /// <summary>
@@ -800,7 +812,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
         }
     }
 
-    PdfDocumentOptions _options;
+    private PdfDocumentOptions _options;
 
     /// <summary>
     /// Gets PDF specific document settings.
@@ -815,7 +827,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
         }
     }
 
-    PdfDocumentSettings _settings;
+    private PdfDocumentSettings _settings;
 
     /// <summary>
     /// NYI Indicates whether large objects are written immediately to the output stream to relieve
@@ -882,7 +894,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
             contributor(metadata);
     }
 
-    List<Action<Metadata.XmpMetadata>> _metadataContributors;
+    private List<Action<Metadata.XmpMetadata>> _metadataContributors;
 
     /// <summary>
     /// Raised after a page has been placed in the page tree - added, inserted, placed, imported,
@@ -983,7 +995,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </remarks>
     public Structure.PdfStructureBuilder Structure => _structure ??= new Structure.PdfStructureBuilder(this);
 
-    Structure.PdfStructureBuilder _structure;
+    private Structure.PdfStructureBuilder _structure;
 
     /// <summary>
     /// Gets the files this document carries, and the way to attach one.
@@ -997,7 +1009,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </remarks>
     public PdfAttachments Attachments => _attachments ??= new PdfAttachments(this);
 
-    PdfAttachments _attachments;
+    private PdfAttachments _attachments;
 
     /// <summary>
     /// Gets a value indicating whether anything has been tagged, without creating a structure tree
@@ -1057,7 +1069,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
         get { return _guid; }
     }
 
-    Guid _guid = Guid.NewGuid();
+    private Guid _guid = Guid.NewGuid();
 
     internal DocumentHandle Handle
     {
@@ -1108,7 +1120,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
         }
     }
 
-    PdfDocumentInformation _info; // never changes if once created
+    private PdfDocumentInformation _info; // never changes if once created
 
     /// <summary>
     /// This function is intended to be undocumented.
@@ -1130,7 +1142,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
         }
     }
 
-    PdfCustomValues _customValues;
+    private PdfCustomValues _customValues;
 
     /// <summary>
     /// Get the pages dictionary.
@@ -1145,7 +1157,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
         }
     }
 
-    PdfPages _pages; // never changes if once created
+    private PdfPages _pages; // never changes if once created
 
     /// <summary>
     /// Gets or sets a value specifying the page layout to be used when the document is opened.
@@ -1199,7 +1211,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
         get { return _pageLabels ?? (_pageLabels = new PdfPageLabels(this)); }
     }
 
-    PdfPageLabels _pageLabels;
+    private PdfPageLabels _pageLabels;
 
     /// <summary>
     /// Get the AcroForm dictionary.
@@ -1271,7 +1283,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
         get { return _fontTable ?? (_fontTable = new PdfFontTable(this)); }
     }
 
-    PdfFontTable _fontTable;
+    private PdfFontTable _fontTable;
 
     /// <summary>
     /// Gets the document image table that holds all images used in the current document.
@@ -1286,7 +1298,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
         }
     }
 
-    PdfImageTable _imageTable;
+    private PdfImageTable _imageTable;
 
     /// <summary>
     /// Gets the document form table that holds all form external objects used in the current document.
@@ -1296,7 +1308,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
         get { return _formTable ?? (_formTable = new PdfFormXObjectTable(this)); }
     }
 
-    PdfFormXObjectTable _formTable;
+    private PdfFormXObjectTable _formTable;
 
     /// <summary>
     /// Gets the document ExtGState table that holds all form state objects used in the current document.
@@ -1306,14 +1318,14 @@ public sealed class PdfDocument : PdfObject, IDisposable
         get { return _extGStateTable ?? (_extGStateTable = new PdfExtGStateTable(this)); }
     }
 
-    PdfExtGStateTable _extGStateTable;
+    private PdfExtGStateTable _extGStateTable;
 
     /// <summary>
     /// Gets the document table of the Separation colour spaces its spot colours are painted in.
     /// </summary>
     internal PdfSpotColorTable SpotColorTable => _spotColorTable ??= new PdfSpotColorTable(this);
 
-    PdfSpotColorTable _spotColorTable;
+    private PdfSpotColorTable _spotColorTable;
 
     /// <summary>
     /// Gets the PdfCatalog of the current document.
@@ -1323,7 +1335,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
         get { return _catalog ?? (_catalog = _trailer.Root); }
     }
 
-    PdfCatalog _catalog; // never changes if once created
+    private PdfCatalog _catalog; // never changes if once created
 
     /// <summary>
     /// Gets the named destinations of this document - places in it that can be linked to by name
@@ -1334,7 +1346,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
         get { return _namedDestinations ?? (_namedDestinations = new PdfNamedDestinationTable(this)); }
     }
 
-    PdfNamedDestinationTable _namedDestinations;
+    private PdfNamedDestinationTable _namedDestinations;
 
     /// <summary>
     /// Gets the PdfInternals object of this document, that grants access to some internal structures
@@ -1345,7 +1357,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
         get { return _internals ?? (_internals = new PdfInternals(this)); }
     }
 
-    PdfInternals _internals;
+    private PdfInternals _internals;
 
     /// <summary>
     /// Creates a new page, <b>appends it to this document</b>, and returns it.
@@ -1601,7 +1613,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
         get { return tls ?? (tls = new ThreadLocalStorage()); }
     }
 
-    [ThreadStatic] static ThreadLocalStorage tls;
+    [ThreadStatic] private static ThreadLocalStorage tls;
 
     /// <summary>
     /// A comparable, storable stand-in for "this document, weakly", so that the tables which
@@ -1631,9 +1643,9 @@ public sealed class PdfDocument : PdfObject, IDisposable
             get { return _weakRef.TryGetTarget(out var document) ? document : null; }
         }
 
-        readonly WeakReference<PdfDocument> _weakRef;
+        private readonly WeakReference<PdfDocument> _weakRef;
 
-        readonly Guid Id;
+        private readonly Guid Id;
 
         public override bool Equals(object obj)
         {

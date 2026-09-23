@@ -67,7 +67,7 @@ internal static class StreamDecoder
     /// predicted independently and each begins on a byte boundary; sixteen-bit samples are big-endian.
     /// A trailing part row is left as it was, since there is no telling where its pixels fall.
     /// </summary>
-    static byte[] UndoTiffPredictor(byte[] data, int colors, int bpc, int columns)
+    private static byte[] UndoTiffPredictor(byte[] data, int colors, int bpc, int columns)
     {
         var result = (byte[])data.Clone();
         var stride = (bpc * colors * columns + 7) / 8;
@@ -86,7 +86,7 @@ internal static class StreamDecoder
         return result;
     }
 
-    static int ReadSample(byte[] data, int row, int sample, int bpc)
+    private static int ReadSample(byte[] data, int row, int sample, int bpc)
     {
         switch (bpc)
         {
@@ -101,7 +101,7 @@ internal static class StreamDecoder
         }
     }
 
-    static void WriteSample(byte[] data, int row, int sample, int bpc, int value)
+    private static void WriteSample(byte[] data, int row, int sample, int bpc, int value)
     {
         switch (bpc)
         {

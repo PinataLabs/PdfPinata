@@ -17,10 +17,10 @@ namespace PdfPinata.Test.Drawing;
 /// </summary>
 public class XUnitConversionTests
 {
-    const double PointsPerInch = 72;
-    const double CentimetresPerInch = 2.54;
-    const double MillimetresPerInch = 25.4;
-    const double PresentationUnitsPerInch = 96;
+    private const double PointsPerInch = 72;
+    private const double CentimetresPerInch = 2.54;
+    private const double MillimetresPerInch = 25.4;
+    private const double PresentationUnitsPerInch = 96;
 
     [Fact]
     public void AnInchReadsTheSameLengthInEveryMeasure()

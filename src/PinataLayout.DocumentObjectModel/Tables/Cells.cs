@@ -78,7 +78,7 @@ public partial class Cells : DocumentObjectCollection
       return this.table;
     }
   }
-  Table table;
+  private Table table;
 
   /// <summary>
   /// Gets the row the cells collection belongs to.
@@ -93,7 +93,7 @@ public partial class Cells : DocumentObjectCollection
       return this.row;
     }
   }
-  Row row;
+  private Row row;
 
   /// <summary>
   /// Gets a cell by its index. The first cell has the index 0.

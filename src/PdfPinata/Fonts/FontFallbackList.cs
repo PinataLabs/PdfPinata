@@ -24,7 +24,7 @@ namespace PdfPinata.Fonts;
 /// </remarks>
 public sealed class FontFallbackList : IFontFallback
 {
-    readonly string[] _families;
+    private readonly string[] _families;
 
     /// <summary>
     /// Initializes a new <see cref="FontFallbackList"/> from the families to try, in order.
@@ -38,7 +38,7 @@ public sealed class FontFallbackList : IFontFallback
         foreach (var family in _families)
         {
             if (string.IsNullOrWhiteSpace(family))
-                throw new ArgumentException("A font family to fall back to needs a name.",
+                throw new ArgumentException(@"A font family to fall back to needs a name.",
                     nameof(familyNames));
         }
     }

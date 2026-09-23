@@ -22,9 +22,9 @@ namespace PinataLayout.Rendering.Tests;
 public class KeepWithNextTests
 {
     /// <summary>Enough single-line paragraphs to run well past the foot of the first page.</summary>
-    const int Plenty = 200;
+    private const int Plenty = 200;
 
-    static Document Filled(Action<Paragraph, int> arrange)
+    private static Document Filled(Action<Paragraph, int> arrange)
     {
         var document = new Document();
         var section = document.AddSection();
@@ -37,13 +37,13 @@ public class KeepWithNextTests
         return document;
     }
 
-    static int LinesOnTheFirstPage(Document document)
+    private static int LinesOnTheFirstPage(Document document)
     {
         return TextBaselines.LinesOf(Rendered.FirstPageOf(document)).Count;
     }
 
     /// <summary>How many of these paragraphs a page holds when none of them asks for anything.</summary>
-    static int PageCapacity => LinesOnTheFirstPage(Filled((_, _) => { }));
+    private static int PageCapacity => LinesOnTheFirstPage(Filled((_, _) => { }));
 
     /// <summary>
     ///   The paragraph that would have been last on the page asks to be kept with the next one,

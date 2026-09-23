@@ -198,7 +198,7 @@ public class StreamLengthTests
 
     // ── Arranging ───────────────────────────────────────────────────────────────────────────────
 
-    static byte[] Drawn(Action<PdfDocument> arrange)
+    private static byte[] Drawn(Action<PdfDocument> arrange)
     {
         var document = new PdfDocument();
         arrange(document);
@@ -216,7 +216,7 @@ public class StreamLengthTests
     ///   Puts <paramref name="stream"/> in a new indirect dictionary through the public setter, and
     ///   makes that dictionary reachable from the catalog.
     /// </summary>
-    static PdfDictionary Given(PdfDocument document, PdfDictionary.PdfStream stream)
+    private static PdfDictionary Given(PdfDocument document, PdfDictionary.PdfStream stream)
     {
         var target = new PdfDictionary(document);
         document.Internals.AddObject(target);
@@ -225,9 +225,9 @@ public class StreamLengthTests
         return target;
     }
 
-    const string TargetKey = "/PinataTestStream";
+    private const string TargetKey = "/PinataTestStream";
 
-    static byte[] SavedWith(Func<PdfDocument, PdfDictionary> arrange, out int objectNumber)
+    private static byte[] SavedWith(Func<PdfDocument, PdfDictionary> arrange, out int objectNumber)
     {
         var document = new PdfDocument();
         _ = document.AddPage();
@@ -245,7 +245,7 @@ public class StreamLengthTests
     ///   end-of-line marker before <c>endstream</c>. Read out of the bytes, because the reader
     ///   recovers a missing length by looking for <c>endstream</c> and so would not say.
     /// </summary>
-    static (int? Declared, int Written) LengthsOf(byte[] bytes, int number)
+    private static (int? Declared, int Written) LengthsOf(byte[] bytes, int number)
     {
         var text = Encoding.Latin1.GetString(bytes);
         var obj = Regex.Match(text, $@"(?<!\d){number} 0 obj((?:(?!endobj).)*?)stream\r?\n",
@@ -259,7 +259,7 @@ public class StreamLengthTests
         return (length.Success ? int.Parse(length.Groups[1].Value) : null, written);
     }
 
-    static byte[] ReopenedStreamValue(byte[] bytes, string password)
+    private static byte[] ReopenedStreamValue(byte[] bytes, string password)
     {
         using var saved = new MemoryStream(bytes);
         var document = Reader.Open(saved, password, PdfDocumentOpenMode.Import);
@@ -276,7 +276,7 @@ public class StreamLengthTests
     ///   believes <c>/Length</c> and hands back that many bytes, so it would agree with the file
     ///   whatever the file said — which is exactly how this went unnoticed.
     /// </remarks>
-    static List<(string Object, int Declared, int Actual)> StreamsIn(byte[] bytes)
+    private static List<(string Object, int Declared, int Actual)> StreamsIn(byte[] bytes)
     {
         var text = Encoding.Latin1.GetString(bytes);
         var found = new List<(string, int, int)>();

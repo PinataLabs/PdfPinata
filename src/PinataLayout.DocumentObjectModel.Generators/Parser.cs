@@ -12,12 +12,12 @@ namespace PinataLayout.DocumentObjectModel.Generators;
 internal static class Parser
 {
     public const string DvAttribute = "PinataLayout.DocumentObjectModel.Internals.DVAttribute";
-    const string SuppressSerializeCheckAttribute = "PinataLayout.DocumentObjectModel.Internals.SuppressSerializeCheckAttribute";
-    const string DocumentObject = "PinataLayout.DocumentObjectModel.DocumentObject";
-    const string DocumentObjectCollection = "PinataLayout.DocumentObjectModel.DocumentObjectCollection";
-    const string NullableValue = "PinataLayout.DocumentObjectModel.Internals.INullableValue";
+    private const string SuppressSerializeCheckAttribute = "PinataLayout.DocumentObjectModel.Internals.SuppressSerializeCheckAttribute";
+    private const string DocumentObject = "PinataLayout.DocumentObjectModel.DocumentObject";
+    private const string DocumentObjectCollection = "PinataLayout.DocumentObjectModel.DocumentObjectCollection";
+    private const string NullableValue = "PinataLayout.DocumentObjectModel.Internals.INullableValue";
 
-    static readonly SymbolDisplayFormat Fqn = SymbolDisplayFormat.FullyQualifiedFormat;
+    private static readonly SymbolDisplayFormat Fqn = SymbolDisplayFormat.FullyQualifiedFormat;
 
     /// <summary>
     /// A [DV] member, or null with a diagnostic if it is one the model cannot describe.
@@ -163,7 +163,7 @@ internal static class Parser
     /// one and Serialize in the other would misfire - MDG002-style, a real gap this scan cannot see
     /// rather than one that has happened.
     /// </remarks>
-    static EquatableArray<string>? SerializeMentions(ClassDeclarationSyntax classDecl)
+    private static EquatableArray<string>? SerializeMentions(ClassDeclarationSyntax classDecl)
     {
         var methods = classDecl.Members
             .OfType<MethodDeclarationSyntax>()
@@ -191,7 +191,7 @@ internal static class Parser
     /// branch split in two: a struct that implements INullableValue tracks its own null, a plain
     /// bool or enum does not.
     /// </summary>
-    static (MemberKind, ITypeSymbol)? Classify(ITypeSymbol type)
+    private static (MemberKind, ITypeSymbol)? Classify(ITypeSymbol type)
     {
         // Nullable<T> first - it is a struct, so the value-type test below would swallow it.
         if (type is INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Nullable_T } nullable)
@@ -221,12 +221,12 @@ internal static class Parser
     /// the type's default rather than with null unless GV.GetNull was asked for, and with "" rather
     /// than null for a string.
     /// </summary>
-    static string BoxedDefault(ITypeSymbol valueType) =>
+    private static string BoxedDefault(ITypeSymbol valueType) =>
         valueType.SpecialType == SpecialType.System_String
             ? "\"\""
             : $"default({valueType.ToDisplayString(Fqn)})";
 
-    static bool ReadRefOnly(System.Collections.Immutable.ImmutableArray<AttributeData> attributes)
+    private static bool ReadRefOnly(System.Collections.Immutable.ImmutableArray<AttributeData> attributes)
     {
         foreach (var attribute in attributes)
         {
@@ -244,7 +244,7 @@ internal static class Parser
     /// DocumentObject.parent is the case that matters: it is typed as the abstract base, so it has
     /// constructors but none that can be called.
     /// </summary>
-    static bool HasAccessibleParameterlessConstructor(ITypeSymbol type) =>
+    private static bool HasAccessibleParameterlessConstructor(ITypeSymbol type) =>
         type is INamedTypeSymbol { IsAbstract: false } named
         && named.InstanceConstructors.Any(c =>
             c.Parameters.Length == 0
@@ -252,7 +252,7 @@ internal static class Parser
                 or Accessibility.Internal
                 or Accessibility.ProtectedOrInternal);
 
-    static bool DerivesFrom(ITypeSymbol type, string baseFqn)
+    private static bool DerivesFrom(ITypeSymbol type, string baseFqn)
     {
         for (var t = type; t is not null; t = t.BaseType)
         {
@@ -262,7 +262,7 @@ internal static class Parser
         return false;
     }
 
-    static bool IsPartial(INamedTypeSymbol type) =>
+    private static bool IsPartial(INamedTypeSymbol type) =>
         type.DeclaringSyntaxReferences
             .Select(r => r.GetSyntax())
             .OfType<TypeDeclarationSyntax>()

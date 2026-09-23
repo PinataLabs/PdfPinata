@@ -34,7 +34,7 @@ namespace PinataLayout.Rendering.ChartMapper;
 
 internal static class DataLabelMapper
 {
-  static void MapObject(DataLabel dataLabel, DocumentObjectModel.Shapes.Charts.DataLabel domDataLabel)
+  private static void MapObject(DataLabel dataLabel, DocumentObjectModel.Shapes.Charts.DataLabel domDataLabel)
   {
     if (!domDataLabel.IsNull("Style"))
       FontMapper.Map(dataLabel.Font, domDataLabel.Document, domDataLabel.Style);

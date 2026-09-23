@@ -33,27 +33,27 @@ public class ItemizedTextTests
 {
     // Served by PinnedFontResolver itself. See the note on ArabicFamilyName: a family registered on
     // first use means whatever the first caller in the assembly made it mean.
-    const string ArabicFamily = PinnedFontResolver.ArabicFamilyName;
+    private const string ArabicFamily = PinnedFontResolver.ArabicFamilyName;
 
     // "salam", four letters, none of them carrying a mark - so with no shaper registered it is
     // four characters and four glyphs, and the only thing that can differ is their order.
     // Escapes rather than literals, so that a source file mixing right-to-left text with
     // left-to-right code cannot be misread.
-    const string Salam = "\u0633\u0644\u0627\u0645";
+    private const string Salam = "\u0633\u0644\u0627\u0645";
 
     // Greek, which is left to right like Latin and a different script from it.
-    const string Greek = "\u03B1\u03B2";
+    private const string Greek = "\u03B1\u03B2";
 
     // U+200D ZERO WIDTH JOINER, which asks the letters on either side of it to join.
-    const string Joiner = "\u200D";
+    private const string Joiner = "\u200D";
 
-    static XFont Latin() => new XFont("Arial", 20);
+    private static XFont Latin() => new XFont("Arial", 20);
 
-    static XFont Arabic() => new XFont(ArabicFamily, 20);
+    private static XFont Arabic() => new XFont(ArabicFamily, 20);
 
-    static int[] Glyphs(string text, XFont font) => DrawnText.Glyphs(DrawnText.Page(text, font));
+    private static int[] Glyphs(string text, XFont font) => DrawnText.Glyphs(DrawnText.Page(text, font));
 
-    static IReadOnlyList<int[]> Runs(string text, XFont font)
+    private static IReadOnlyList<int[]> Runs(string text, XFont font)
         => DrawnText.GlyphRuns(DrawnText.Page(text, font));
 
     // ----- the complaint this whole gap exists for -------------------------------------------------
@@ -186,9 +186,9 @@ public class ItemizedTextTests
     ///   it cannot disturb anything drawing beside it, which is what makes it safe to install while
     ///   the rest of the suite runs.
     /// </summary>
-    sealed class Recorder : ITextShaper
+    private sealed class Recorder : ITextShaper
     {
-        readonly List<(string Text, XTextDirection Direction, string Script)> _runs = new();
+        private readonly List<(string Text, XTextDirection Direction, string Script)> _runs = new();
 
         public ShapedRun Shape(ReadOnlySpan<char> text, ShapingFont font, XTextDirection direction,
             string script, string language)

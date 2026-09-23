@@ -60,7 +60,7 @@ public sealed class PdfLong : PdfNumber, IConvertible
     public long Value => _value;
     // This class must behave like a value type. Therefore it cannot be changed (like System.String).
 
-    readonly long _value;
+    private readonly long _value;
 
     /// <summary>
     /// Returns the long as string.

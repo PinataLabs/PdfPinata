@@ -1,4 +1,5 @@
 #region Copyright
+
 //
 // Authors:
 //   Stefan Lange
@@ -23,8 +24,9 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
+
 #endregion
 
 namespace PdfPinata.Drawing;
@@ -35,13 +37,13 @@ namespace PdfPinata.Drawing;
 public static class XStringFormats
 {
     /// <summary>
-    /// Gets a new XStringFormat object that aligns the text left on the base line.
+    /// Gets a new XStringFormat object that aligns the text left on the baseline.
     /// This is the same as BaseLineLeft.
     /// </summary>
     public static XStringFormat Default => BaseLineLeft;
 
     /// <summary>
-    /// Gets a new XStringFormat object that aligns the text left on the base line.
+    /// Gets a new XStringFormat object that aligns the text left on the baseline.
     /// This is the same as Default.
     /// </summary>
     public static XStringFormat BaseLineLeft
@@ -49,9 +51,11 @@ public static class XStringFormats
         get
         {
             // Create new format to allow changes.
-            var format = new XStringFormat();
-            format.Alignment = XStringAlignment.Near;
-            format.LineAlignment = XLineAlignment.BaseLine;
+            var format = new XStringFormat
+            {
+                Alignment = XStringAlignment.Near,
+                LineAlignment = XLineAlignment.BaseLine
+            };
             return format;
         }
     }
@@ -64,9 +68,11 @@ public static class XStringFormats
         get
         {
             // Create new format to allow changes.
-            var format = new XStringFormat();
-            format.Alignment = XStringAlignment.Near;
-            format.LineAlignment = XLineAlignment.Near;
+            var format = new XStringFormat
+            {
+                Alignment = XStringAlignment.Near,
+                LineAlignment = XLineAlignment.Near
+            };
             return format;
         }
     }
@@ -79,9 +85,11 @@ public static class XStringFormats
         get
         {
             // Create new format to allow changes.
-            var format = new XStringFormat();
-            format.Alignment = XStringAlignment.Near;
-            format.LineAlignment = XLineAlignment.Center;
+            var format = new XStringFormat
+            {
+                Alignment = XStringAlignment.Near,
+                LineAlignment = XLineAlignment.Center
+            };
             return format;
         }
     }
@@ -94,24 +102,28 @@ public static class XStringFormats
         get
         {
             // Create new format to allow changes.
-            var format = new XStringFormat();
-            format.Alignment = XStringAlignment.Near;
-            format.LineAlignment = XLineAlignment.Far;
+            var format = new XStringFormat
+            {
+                Alignment = XStringAlignment.Near,
+                LineAlignment = XLineAlignment.Far
+            };
             return format;
         }
     }
 
     /// <summary>
-    /// Gets a new XStringFormat object that centers the text in the middle of the base line.
+    /// Gets a new XStringFormat object that centers the text in the middle of the baseline.
     /// </summary>
     public static XStringFormat BaseLineCenter
     {
         get
         {
             // Create new format to allow changes.
-            var format = new XStringFormat();
-            format.Alignment = XStringAlignment.Center;
-            format.LineAlignment = XLineAlignment.BaseLine;
+            var format = new XStringFormat
+            {
+                Alignment = XStringAlignment.Center,
+                LineAlignment = XLineAlignment.BaseLine
+            };
             return format;
         }
     }
@@ -124,9 +136,11 @@ public static class XStringFormats
         get
         {
             // Create new format to allow changes.
-            var format = new XStringFormat();
-            format.Alignment = XStringAlignment.Center;
-            format.LineAlignment = XLineAlignment.Near;
+            var format = new XStringFormat
+            {
+                Alignment = XStringAlignment.Center,
+                LineAlignment = XLineAlignment.Near
+            };
             return format;
         }
     }
@@ -139,9 +153,11 @@ public static class XStringFormats
         get
         {
             // Create new format to allow changes.
-            var format = new XStringFormat();
-            format.Alignment = XStringAlignment.Center;
-            format.LineAlignment = XLineAlignment.Center;
+            var format = new XStringFormat
+            {
+                Alignment = XStringAlignment.Center,
+                LineAlignment = XLineAlignment.Center
+            };
             return format;
         }
     }
@@ -154,24 +170,28 @@ public static class XStringFormats
         get
         {
             // Create new format to allow changes.
-            var format = new XStringFormat();
-            format.Alignment = XStringAlignment.Center;
-            format.LineAlignment = XLineAlignment.Far;
+            var format = new XStringFormat
+            {
+                Alignment = XStringAlignment.Center,
+                LineAlignment = XLineAlignment.Far
+            };
             return format;
         }
     }
 
     /// <summary>
-    /// Gets a new XStringFormat object that aligns the text in right on the base line.
+    /// Gets a new XStringFormat object that aligns the text in right on the baseline.
     /// </summary>
     public static XStringFormat BaseLineRight
     {
         get
         {
             // Create new format to allow changes.
-            var format = new XStringFormat();
-            format.Alignment = XStringAlignment.Far;
-            format.LineAlignment = XLineAlignment.BaseLine;
+            var format = new XStringFormat
+            {
+                Alignment = XStringAlignment.Far,
+                LineAlignment = XLineAlignment.BaseLine
+            };
             return format;
         }
     }
@@ -184,9 +204,11 @@ public static class XStringFormats
         get
         {
             // Create new format to allow changes.
-            var format = new XStringFormat();
-            format.Alignment = XStringAlignment.Far;
-            format.LineAlignment = XLineAlignment.Near;
+            var format = new XStringFormat
+            {
+                Alignment = XStringAlignment.Far,
+                LineAlignment = XLineAlignment.Near
+            };
             return format;
         }
     }
@@ -199,9 +221,11 @@ public static class XStringFormats
         get
         {
             // Create new format to allow changes.
-            var format = new XStringFormat();
-            format.Alignment = XStringAlignment.Far;
-            format.LineAlignment = XLineAlignment.Center;
+            var format = new XStringFormat
+            {
+                Alignment = XStringAlignment.Far,
+                LineAlignment = XLineAlignment.Center
+            };
             return format;
         }
     }
@@ -214,9 +238,11 @@ public static class XStringFormats
         get
         {
             // Create new format to allow changes.
-            var format = new XStringFormat();
-            format.Alignment = XStringAlignment.Far;
-            format.LineAlignment = XLineAlignment.Far;
+            var format = new XStringFormat
+            {
+                Alignment = XStringAlignment.Far,
+                LineAlignment = XLineAlignment.Far
+            };
             return format;
         }
     }

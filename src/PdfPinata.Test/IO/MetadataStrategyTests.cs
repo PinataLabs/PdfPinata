@@ -169,7 +169,7 @@ public class MetadataStrategyTests
 
     // ----- helpers ------------------------------------------------------------------------------------
 
-    static byte[] WithPacket(string title)
+    private static byte[] WithPacket(string title)
     {
         var document = new PdfDocument();
         _ = document.AddPage();
@@ -178,19 +178,19 @@ public class MetadataStrategyTests
         return Save(document);
     }
 
-    static byte[] Save(PdfDocument document)
+    private static byte[] Save(PdfDocument document)
     {
         using var output = new MemoryStream();
         document.Save(output, false);
         return output.ToArray();
     }
 
-    static PdfDocument Reopen(byte[] bytes) =>
+    private static PdfDocument Reopen(byte[] bytes) =>
         PdfPinata.Pdf.IO.PdfReader.Open(new MemoryStream(bytes), PdfDocumentOpenMode.Modify);
 
-    static string Text(byte[] bytes) => Encoding.Latin1.GetString(bytes);
+    private static string Text(byte[] bytes) => Encoding.Latin1.GetString(bytes);
 
-    static int Packets(byte[] bytes)
+    private static int Packets(byte[] bytes)
     {
         var text = Text(bytes);
         var count = 0;

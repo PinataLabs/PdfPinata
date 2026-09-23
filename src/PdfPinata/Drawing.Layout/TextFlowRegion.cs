@@ -19,7 +19,7 @@ namespace PdfPinata.Drawing.Layout;
 /// </remarks>
 public sealed class TextFlowRegion
 {
-    readonly List<IFlowObstacle> _obstacles = new List<IFlowObstacle>();
+    private readonly List<IFlowObstacle> _obstacles = [];
 
     /// <summary>
     /// Initializes a region covering the given bounds with nothing standing in it.
@@ -66,10 +66,7 @@ public sealed class TextFlowRegion
 
         foreach (var obstacle in _obstacles)
         {
-            if (obstacle == null)
-                continue;
-
-            var taken = obstacle.GetExcludedIntervals(band);
+            var taken = obstacle?.GetExcludedIntervals(band);
             if (taken == null || taken.Count == 0)
                 continue;
 
@@ -101,10 +98,7 @@ public sealed class TextFlowRegion
 
         foreach (var obstacle in _obstacles)
         {
-            if (obstacle == null)
-                continue;
-
-            var taken = obstacle.GetExcludedIntervals(band);
+            var taken = obstacle?.GetExcludedIntervals(band);
             if (taken == null || taken.Count == 0)
                 continue;
 

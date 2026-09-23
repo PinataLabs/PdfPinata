@@ -51,7 +51,8 @@ public class XStringFormat
         get => _alignment;
         set => _alignment = value;
     }
-    XStringAlignment _alignment;
+
+    private XStringAlignment _alignment;
 
     /// <summary>
     /// Gets or sets the line alignment.
@@ -61,7 +62,8 @@ public class XStringFormat
         get => _lineAlignment;
         set => _lineAlignment = value;
     }
-    XLineAlignment _lineAlignment;
+
+    private XLineAlignment _lineAlignment;
 
     // ----- Text state ---------------------------------------------------------------------------
     //
@@ -83,7 +85,8 @@ public class XStringFormat
         get => _characterSpacing;
         set => _characterSpacing = value;
     }
-    double _characterSpacing;
+
+    private double _characterSpacing;
 
     /// <summary>
     /// Gets or sets the extra space added after each space character, in points.
@@ -96,7 +99,8 @@ public class XStringFormat
         get => _wordSpacing;
         set => _wordSpacing = value;
     }
-    double _wordSpacing;
+
+    private double _wordSpacing;
 
     /// <summary>
     /// Gets or sets the horizontal scaling of the text, as a percentage. The default is 100.
@@ -121,7 +125,8 @@ public class XStringFormat
             _horizontalScaling = value;
         }
     }
-    double _horizontalScaling = 100;
+
+    private double _horizontalScaling = 100;
 
     /// <summary>
     /// Gets or sets the distance the text is raised above its baseline, in points.
@@ -134,7 +139,8 @@ public class XStringFormat
         get => _textRise;
         set => _textRise = value;
     }
-    double _textRise;
+
+    private double _textRise;
 
     /// <summary>
     /// Gets or sets which way the text runs. The default is
@@ -159,7 +165,8 @@ public class XStringFormat
         get => _textDirection;
         set => _textDirection = value;
     }
-    Text.BidiParagraphDirection _textDirection;
+
+    private Text.BidiParagraphDirection _textDirection;
 
     /// <summary>
     /// Gets or sets the angle, in degrees, by which the text is slanted to the right.
@@ -181,7 +188,8 @@ public class XStringFormat
             _obliqueAngle = value;
         }
     }
-    double _obliqueAngle;
+
+    private double _obliqueAngle;
 
     // ----- decoration ---------------------------------------------------------------------------
     //
@@ -198,7 +206,8 @@ public class XStringFormat
         get => _underline;
         set => _underline = value;
     }
-    XTextDecoration _underline;
+
+    private XTextDecoration _underline;
 
     /// <summary>
     /// Gets or sets the rule drawn through the text. <see cref="XTextDecoration.None"/>, the
@@ -209,7 +218,8 @@ public class XStringFormat
         get => _strikeout;
         set => _strikeout = value;
     }
-    XTextDecoration _strikeout;
+
+    private XTextDecoration _strikeout;
 
     /// <summary>
     /// Gets or sets the colour of the underline and strikeout rules. Empty, the default, draws
@@ -225,7 +235,8 @@ public class XStringFormat
         get => _decorationColor;
         set => _decorationColor = value;
     }
-    XColor _decorationColor = XColor.Empty;
+
+    private XColor _decorationColor = XColor.Empty;
 
     /// <summary>
     /// Returns true if every text state property still holds its default, and the text can

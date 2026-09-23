@@ -1104,7 +1104,7 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
         return matrix;
     }
 
-    static XMatrix CreateIdentity()
+    private static XMatrix CreateIdentity()
     {
         var matrix = new XMatrix();
         matrix.SetMatrix(1, 0, 0, 1, 0, 0, XMatrixTypes.Identity);
@@ -1114,7 +1114,7 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
     /// <summary>
     /// Sets the matrix.
     /// </summary>
-    void SetMatrix(double m11, double m12, double m21, double m22, double offsetX, double offsetY, XMatrixTypes type)
+    private void SetMatrix(double m11, double m12, double m21, double m22, double offsetX, double offsetY, XMatrixTypes type)
     {
         _m11 = m11;
         _m12 = m12;
@@ -1125,7 +1125,7 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
         _type = type;
     }
 
-    void DeriveMatrixType()
+    private void DeriveMatrixType()
     {
         // ReSharper disable CompareOfFloatsByEqualityOperator
         _type = XMatrixTypes.Identity;
@@ -1149,18 +1149,18 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
         // ReSharper restore CompareOfFloatsByEqualityOperator
     }
 
-    bool IsDistinguishedIdentity => (_type == XMatrixTypes.Identity);
+    private bool IsDistinguishedIdentity => (_type == XMatrixTypes.Identity);
 
     // Keep the fields private and force using the properties.
     // This prevents using m11 and m22 by mistake when the matrix is identity.
-    double _m11;
-    double _m12;
-    double _m21;
-    double _m22;
-    double _offsetX;
-    double _offsetY;
-    XMatrixTypes _type;
-    static readonly XMatrix s_identity = CreateIdentity();
+    private double _m11;
+    private double _m12;
+    private double _m21;
+    private double _m22;
+    private double _offsetX;
+    private double _offsetY;
+    private XMatrixTypes _type;
+    private static readonly XMatrix s_identity = CreateIdentity();
 
     /// <summary>
     /// Internal matrix helper.
@@ -1313,7 +1313,7 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
     /// </summary>
     /// <value>The debugger display.</value>
     // ReSharper disable UnusedMember.Local
-    string DebuggerDisplay
+    private string DebuggerDisplay
         // ReSharper restore UnusedMember.Local
     {
         get

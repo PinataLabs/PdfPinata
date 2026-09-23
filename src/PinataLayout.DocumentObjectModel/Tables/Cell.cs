@@ -172,7 +172,7 @@ public partial class Cell : DocumentObject, IVisitable
             return table;
         }
     }
-    Table table;
+    private Table table;
 
     /// <summary>
     /// Gets the column the cell belongs to.
@@ -194,7 +194,7 @@ public partial class Cell : DocumentObject, IVisitable
             return clm;
         }
     }
-    Column clm;
+    private Column clm;
 
     /// <summary>
     /// Gets the row the cell belongs to.
@@ -212,7 +212,7 @@ public partial class Cell : DocumentObject, IVisitable
             return row;
         }
     }
-    Row row;
+    private Row row;
 
     /// <summary>
     /// Sets or gets the style name.

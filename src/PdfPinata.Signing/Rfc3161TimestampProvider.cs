@@ -17,9 +17,9 @@ namespace PdfPinata.Signing;
 /// </remarks>
 public sealed class Rfc3161TimestampProvider : ITimestampProvider, IDisposable
 {
-    readonly Uri _timestampAuthorityUri;
-    readonly HttpClient _httpClient;
-    readonly bool _ownsHttpClient;
+    private readonly Uri _timestampAuthorityUri;
+    private readonly HttpClient _httpClient;
+    private readonly bool _ownsHttpClient;
 
     /// <summary>
     /// Talks to the time-stamping authority at the given URI.
@@ -64,7 +64,7 @@ public sealed class Rfc3161TimestampProvider : ITimestampProvider, IDisposable
         }
     }
 
-    async Task<byte[]> GetTimestampAsync(Rfc3161TimestampRequest request)
+    private async Task<byte[]> GetTimestampAsync(Rfc3161TimestampRequest request)
     {
         using var content = new ByteArrayContent(request.Encode());
         content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/timestamp-query");

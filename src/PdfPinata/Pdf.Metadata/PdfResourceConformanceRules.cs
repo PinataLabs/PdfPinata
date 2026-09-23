@@ -42,7 +42,7 @@ internal static class PdfResourceConformanceRules
     /// <summary>Whether any image the page reaches is filtered with <c>/JPXDecode</c>.</summary>
     internal static bool UsesJpxImage(PdfPageResourceUsage usage) => usage.Images.Any(HasJpxFilter);
 
-    static bool HasJpxFilter(PdfDictionary image)
+    private static bool HasJpxFilter(PdfDictionary image)
     {
         var filter = Resolve(image.Elements["/Filter"]);
 
@@ -116,7 +116,7 @@ internal static class PdfResourceConformanceRules
     /// unrecognised name, or nesting deep enough that this has given up understanding it, which is
     /// the same defensive limit the walk itself uses.
     /// </summary>
-    static int? DeviceComponentsOf(PdfItem colorSpace, int depth)
+    private static int? DeviceComponentsOf(PdfItem colorSpace, int depth)
     {
         if (depth > 8)
             return null;
@@ -138,7 +138,7 @@ internal static class PdfResourceConformanceRules
         }
     }
 
-    static int? DeviceComponentsOfArray(PdfArray array, int depth)
+    private static int? DeviceComponentsOfArray(PdfArray array, int depth)
     {
         var head = Resolve(array.Elements[0]) as PdfName;
         switch (head?.Value)
@@ -173,7 +173,7 @@ internal static class PdfResourceConformanceRules
     /// only legal inside an inline image dictionary, which defeats the walk before this is ever
     /// asked — they are here because they mean the same three spaces, not because they are reached.
     /// </summary>
-    static int? DeviceFamilyOf(string name) => name switch
+    private static int? DeviceFamilyOf(string name) => name switch
     {
         "/DeviceGray" or "/G" => 1,
         "/DeviceRGB" or "/RGB" => 3,
@@ -181,5 +181,5 @@ internal static class PdfResourceConformanceRules
         _ => null
     };
 
-    static PdfItem Resolve(PdfItem item) => item is PdfReference reference ? reference.Value : item;
+    private static PdfItem Resolve(PdfItem item) => item is PdfReference reference ? reference.Value : item;
 }

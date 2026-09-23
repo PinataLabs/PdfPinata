@@ -19,7 +19,7 @@ namespace PdfPinata.Test.Drawing;
 /// </remarks>
 public class PenRenderingTests
 {
-    static PdfPage Drawn(XPen pen)
+    private static PdfPage Drawn(XPen pen)
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -35,7 +35,7 @@ public class PenRenderingTests
         return page;
     }
 
-    static string ContentOf(PdfPage page)
+    private static string ContentOf(PdfPage page)
     {
         var builder = new StringBuilder();
         for (var index = 0; index < page.Contents.Elements.Count; index++)
@@ -48,7 +48,7 @@ public class PenRenderingTests
     }
 
     /// <summary>The stroking alpha every graphics state the page applies asks for.</summary>
-    static IReadOnlyList<double> StrokeAlphasOn(PdfPage page)
+    private static IReadOnlyList<double> StrokeAlphasOn(PdfPage page)
     {
         var states = page.Elements.GetDictionary("/Resources")?.Elements.GetDictionary("/ExtGState");
         if (states == null)
@@ -63,7 +63,7 @@ public class PenRenderingTests
     }
 
     /// <summary>Every miter limit the page sets, in the order it sets them.</summary>
-    static IReadOnlyList<double> MiterLimitsOn(PdfPage page)
+    private static IReadOnlyList<double> MiterLimitsOn(PdfPage page)
     {
         return ContentOf(page).Split('\n')
             .Where(line => line.EndsWith(" M"))
@@ -197,10 +197,10 @@ public class PenRenderingTests
 
     // ----- the dash pattern -----
 
-    static readonly XPen Dotted = new(XColors.Black, 2) { DashPattern = new double[] { 1, 2 } };
-    static readonly XPen LongDashes = new(XColors.Black, 2) { DashPattern = new double[] { 6, 2 } };
+    private static readonly XPen Dotted = new(XColors.Black, 2) { DashPattern = new double[] { 1, 2 } };
+    private static readonly XPen LongDashes = new(XColors.Black, 2) { DashPattern = new double[] { 6, 2 } };
 
-    static PdfPage DrawnWith(Action<XGraphics> draw)
+    private static PdfPage DrawnWith(Action<XGraphics> draw)
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -209,21 +209,21 @@ public class PenRenderingTests
         return page;
     }
 
-    static void Stroke(XGraphics gfx, XPen pen) => gfx.DrawLine(pen, 100, 100, 300, 100);
+    private static void Stroke(XGraphics gfx, XPen pen) => gfx.DrawLine(pen, 100, 100, 300, 100);
 
     /// <summary>Every dash pattern the page sets, in the order it sets them.</summary>
-    static IReadOnlyList<string> DashPatternsOn(PdfPage page) =>
+    private static IReadOnlyList<string> DashPatternsOn(PdfPage page) =>
         ContentOf(page).Split('\n').Where(line => line.EndsWith(" d")).ToList();
 
     /// <summary>The dash pattern the pen writes when it is the only one drawn.</summary>
-    static string DashPatternOf(XPen pen) => DashPatternsOn(DrawnWith(gfx => Stroke(gfx, pen))).Single();
+    private static string DashPatternOf(XPen pen) => DashPatternsOn(DrawnWith(gfx => Stroke(gfx, pen))).Single();
 
     /// <summary>
     ///   The dash pattern in force at each stroke the page paints, following q and Q as a reader
     ///   does - so what is asserted is what the lines look like rather than which operators were
     ///   written.
     /// </summary>
-    static IReadOnlyList<string> DashPatternAtEachStroke(PdfPage page)
+    private static IReadOnlyList<string> DashPatternAtEachStroke(PdfPage page)
     {
         var saved = new Stack<string>();
         var current = "[]0 d";

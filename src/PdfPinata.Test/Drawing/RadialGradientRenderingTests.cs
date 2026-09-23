@@ -23,9 +23,9 @@ namespace PdfPinata.Test.Drawing;
 [Collection(RasterizingCollection.Name)]
 public sealed class RadialGradientRenderingTests : IDisposable
 {
-    const string OutDir = "Out/RadialGradient";
+    private const string OutDir = "Out/RadialGradient";
 
-    readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
+    private readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
 
     public void Dispose()
     {
@@ -40,8 +40,8 @@ public sealed class RadialGradientRenderingTests : IDisposable
         GhostscriptSetup.Configure();
     }
 
-    static readonly XPoint Centre = new XPoint(300, 300);
-    static readonly XRect Square = new XRect(200, 200, 200, 200);
+    private static readonly XPoint Centre = new XPoint(300, 300);
+    private static readonly XRect Square = new XRect(200, 200, 200, 200);
 
     [GoldenImageFact]
     public void ARadialGradientIsDrawnInItsColoursFromTheCentreOut()
@@ -226,7 +226,7 @@ public sealed class RadialGradientRenderingTests : IDisposable
 
     // ----- rasterizing and reading pixels ---------------------------------------------------------
 
-    IMagickImage<byte> Rasterize(string name, Action<XGraphics> draw)
+    private IMagickImage<byte> Rasterize(string name, Action<XGraphics> draw)
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -240,12 +240,12 @@ public sealed class RadialGradientRenderingTests : IDisposable
     }
 
     /// <summary>The colour at a point on the page, in points from the top left.</summary>
-    static IMagickColor<byte> At(IMagickImage<byte> page, double x, double y)
+    private static IMagickColor<byte> At(IMagickImage<byte> page, double x, double y)
     {
         var scale = page.Width / 595.0;
         using var pixels = page.GetPixels();
         return pixels.GetPixel((int)(x * scale), (int)(y * scale)).ToColor();
     }
 
-    static bool IsWhite(IMagickColor<byte> colour) => colour.R > 245 && colour.G > 245 && colour.B > 245;
+    private static bool IsWhite(IMagickColor<byte> colour) => colour.R > 245 && colour.G > 245 && colour.B > 245;
 }

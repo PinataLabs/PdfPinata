@@ -179,7 +179,7 @@ public class ParagraphRenderingTests
                 "the top is four, the left is seven, and the bottom and the right are both three");
     }
 
-    enum SeparatedBy
+    private enum SeparatedBy
     {
         ABlankElement,
         ASpaceInTheText
@@ -189,7 +189,7 @@ public class ParagraphRenderingTests
     ///   Eleven numbers with a gap before each of them, put there in one of the two ways a
     ///   paragraph can be given one.
     /// </summary>
-    static Document Numbered(SeparatedBy separator)
+    private static Document Numbered(SeparatedBy separator)
     {
         var document = new Document();
         var paragraph = document.AddSection().AddParagraph();
@@ -211,7 +211,7 @@ public class ParagraphRenderingTests
     }
 
     /// <summary>The formatted paragraph of the original harness, at the five sizes it named.</summary>
-    static Document Formatted()
+    private static Document Formatted()
     {
         var document = new Document();
         var paragraph = document.AddSection().AddParagraph();
@@ -226,7 +226,7 @@ public class ParagraphRenderingTests
         return document;
     }
 
-    static void Sized(Paragraph paragraph, double size, Strikethrough struck, TextFormat format = TextFormat.NotBold)
+    private static void Sized(Paragraph paragraph, double size, Strikethrough struck, TextFormat format = TextFormat.NotBold)
     {
         var text = paragraph.AddFormattedText(size.ToString(CultureInfo.InvariantCulture), format);
         text.Font.Size = size;
@@ -234,7 +234,7 @@ public class ParagraphRenderingTests
         text.AddText(" ");
     }
 
-    static Document StruckThenPlain()
+    private static Document StruckThenPlain()
     {
         var document = new Document();
         var paragraph = document.AddSection().AddParagraph();
@@ -245,7 +245,7 @@ public class ParagraphRenderingTests
         return document;
     }
 
-    static Document Hanging()
+    private static Document Hanging()
     {
         var document = new Document();
         var paragraph = document.AddSection().AddParagraph();
@@ -265,7 +265,7 @@ public class ParagraphRenderingTests
     ///   A line with a tab in it, set against a stop at the position given - right aligned unless
     ///   told otherwise - and where each of its two runs started.
     /// </summary>
-    static (double Stop, IReadOnlyList<double> Runs) Tabbed(Unit stop, TabAlignment alignment = TabAlignment.Right)
+    private static (double Stop, IReadOnlyList<double> Runs) Tabbed(Unit stop, TabAlignment alignment = TabAlignment.Right)
     {
         var document = new Document();
         var section = document.AddSection();
@@ -289,7 +289,7 @@ public class ParagraphRenderingTests
     ///   How wide the text given is when a paragraph sets it, read as where a second run placed
     ///   straight after it begins on a page with no left margin.
     /// </summary>
-    static double WidthOf(string text)
+    private static double WidthOf(string text)
     {
         var document = new Document();
         var section = document.AddSection();
@@ -303,7 +303,7 @@ public class ParagraphRenderingTests
     }
 
     /// <summary>The bordered paragraph of the original harness, distances and all.</summary>
-    static Document Bordered()
+    private static Document Bordered()
     {
         var document = new Document();
         var paragraph = document.AddSection().AddParagraph("bordered");
@@ -330,7 +330,7 @@ public class ParagraphRenderingTests
         return document;
     }
 
-    static double FirstRunOf(ParagraphAlignment alignment)
+    private static double FirstRunOf(ParagraphAlignment alignment)
     {
         var document = new Document();
         var paragraph = document.AddSection().AddParagraph("a short line");
@@ -340,7 +340,7 @@ public class ParagraphRenderingTests
     }
 
     /// <summary>Where each line of the page starts, from the top downwards.</summary>
-    static IReadOnlyList<double> FirstRunOfEachLine(PdfPage page)
+    private static IReadOnlyList<double> FirstRunOfEachLine(PdfPage page)
     {
         return TextBaselines.PositionsOf(page)
             .GroupBy(position => Math.Round(position.Y, 2))
@@ -353,7 +353,7 @@ public class ParagraphRenderingTests
     ///   The distance from each run on the page to the one after it, which is what the separators
     ///   between them are worth.
     /// </summary>
-    static IReadOnlyList<double> GapsBetweenRunsOn(PdfPage page)
+    private static IReadOnlyList<double> GapsBetweenRunsOn(PdfPage page)
     {
         var runs = TextBaselines.PositionsOf(page).Select(position => position.X).ToList();
 
@@ -361,7 +361,7 @@ public class ParagraphRenderingTests
     }
 
     /// <summary>The sizes the page sets its font to, which Tf carries as its second operand.</summary>
-    static IReadOnlyList<double> FontSizesOn(PdfPage page)
+    private static IReadOnlyList<double> FontSizesOn(PdfPage page)
     {
         return TextOperators.OperandsGivenTo(page, OpCodeName.Tf)
             .Where(operands => operands.Length == 2)

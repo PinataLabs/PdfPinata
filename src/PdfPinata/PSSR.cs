@@ -365,7 +365,7 @@ static class PSSR
             return _resmngr;
         }
     }
-    static ResourceManager _resmngr;
+    private static ResourceManager _resmngr;
 
     #endregion
 }

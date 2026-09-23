@@ -18,24 +18,24 @@ namespace PdfPinata.Test.IO;
 /// </summary>
 public class PageResizeTests
 {
-    const double A4Width = 595;
-    const double A4Height = 842;
-    const double A5Width = 420;
-    const double A5Height = 595;
+    private const double A4Width = 595;
+    private const double A4Height = 842;
+    private const double A5Width = 420;
+    private const double A5Height = 595;
 
-    const double Tolerance = 0.01;
+    private const double Tolerance = 0.01;
 
     /// <summary>
     ///   The private key PdfPinata marks a resize wrapper with. Spelled out rather than
     ///   referred to, because it is internal to the library and the test assembly cannot see it.
     /// </summary>
-    const string ResizeWrapperKey = "/PdfPinataResizeWrapper";
+    private const string ResizeWrapperKey = "/PdfPinataResizeWrapper";
 
     /// <summary>
     ///   A page of the size given with a rectangle drawn over the whole of it, so that where the
     ///   content went afterwards can be read off.
     /// </summary>
-    static PdfDocument DocumentWithAFilledPage(PageSize size = PageSize.A4,
+    private static PdfDocument DocumentWithAFilledPage(PageSize size = PageSize.A4,
         PageOrientation orientation = PageOrientation.Portrait)
     {
         var document = new PdfDocument();
@@ -53,7 +53,7 @@ public class PageResizeTests
     ///   Writes the document out and reads it back, so that the page arrives the way an imported
     ///   one does rather than as the object that was just built.
     /// </summary>
-    static PdfDocument RoundTripped(PdfDocument document)
+    private static PdfDocument RoundTripped(PdfDocument document)
     {
         using var stream = new MemoryStream();
         document.Save(stream, false);
@@ -61,7 +61,7 @@ public class PageResizeTests
         return PdfPinata.Pdf.IO.PdfReader.Open(stream, PdfDocumentOpenMode.Modify);
     }
 
-    static void ShouldBeAbout(XRect actual, double x, double y, double width, double height)
+    private static void ShouldBeAbout(XRect actual, double x, double y, double width, double height)
     {
         actual.X.Should().BeApproximately(x, Tolerance);
         actual.Y.Should().BeApproximately(y, Tolerance);
@@ -311,7 +311,7 @@ public class PageResizeTests
     /// <summary>
     ///   A page whose content stream is exactly the bytes given, however unbalanced.
     /// </summary>
-    static PdfDocument DocumentWithUnbalancedContent(string content)
+    private static PdfDocument DocumentWithUnbalancedContent(string content)
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -672,7 +672,7 @@ public class PageResizeTests
         ShouldBeAbout(ResizedContentProbe.DrawnBounds(page), 0, slack, A5Width, A4Height * scale);
     }
 
-    static PdfDictionary TheWrapperOf(PdfPage page)
+    private static PdfDictionary TheWrapperOf(PdfPage page)
     {
         var xObjects = page.Resources.Elements.GetDictionary("/XObject");
         xObjects.Should().NotBeNull();
@@ -687,7 +687,7 @@ public class PageResizeTests
         throw new InvalidOperationException("The page carries no resize wrapper.");
     }
 
-    static PdfDictionary TheSingleContentStreamOf(PdfPage page)
+    private static PdfDictionary TheSingleContentStreamOf(PdfPage page)
     {
         var item = page.Elements["/Contents"];
         if (item is PdfReference reference)

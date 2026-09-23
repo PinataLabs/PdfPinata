@@ -124,5 +124,5 @@ internal class ThreadLocalStorage // #???
     /// <summary>
     /// Maps path to document handle.
     /// </summary>
-    readonly Dictionary<string, PdfDocument.DocumentHandle> _importedDocuments;
+    private readonly Dictionary<string, PdfDocument.DocumentHandle> _importedDocuments;
 }

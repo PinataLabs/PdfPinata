@@ -318,7 +318,7 @@ internal sealed class ReviseDemo : PdfDemo
         document.SaveIncremental(output);
     }
 
-    static string Format(long value) => value.ToString("N0", CultureInfo.InvariantCulture);
+    private static string Format(long value) => value.ToString("N0", CultureInfo.InvariantCulture);
 
     /// <summary>
     ///   How many times a marker appears anywhere in the raw bytes, stream data included.
@@ -333,7 +333,7 @@ internal sealed class ReviseDemo : PdfDemo
     ///   and a scanner cannot tell them apart. The page saying so is the honest way to use this.
     ///   </para>
     /// </remarks>
-    static int Count(byte[] bytes, string marker)
+    private static int Count(byte[] bytes, string marker)
     {
         var text = Encoding.Latin1.GetString(bytes);
 
@@ -352,7 +352,7 @@ internal sealed class ReviseDemo : PdfDemo
     ///   How many times a marker begins a line, which is where a trailer puts <c>startxref</c> and
     ///   <c>%%EOF</c> and where compressed data almost never does.
     /// </summary>
-    static int CountAtLineStart(byte[] bytes, string marker)
+    private static int CountAtLineStart(byte[] bytes, string marker)
     {
         var text = Encoding.Latin1.GetString(bytes);
 

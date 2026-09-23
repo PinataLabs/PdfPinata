@@ -86,7 +86,7 @@ public sealed class PdfName : PdfItem
         // This class must behave like a value type. Therefore it cannot be changed (like System.String).
         _value;
 
-    readonly string _value;
+    private readonly string _value;
 
     /// <summary>
     /// Returns the name. The string always begins with a slash.

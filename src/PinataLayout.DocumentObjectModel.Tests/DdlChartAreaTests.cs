@@ -22,15 +22,15 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 /// </summary>
 public class DdlChartAreaTests
 {
-    static Chart ChartFrom(string chartBody) =>
+    private static Chart ChartFrom(string chartBody) =>
         DdlReader.DocumentFromString(
                 "\\document{\\section{\\chart(Line){" + chartBody + "}}}")
             .LastSection.Elements[0] as Chart;
 
-    static string TextOf(Paragraph paragraph) =>
+    private static string TextOf(Paragraph paragraph) =>
         string.Concat(paragraph.Elements.OfType<Text>().Select(text => text.Content));
 
-    static IReadOnlyList<string> ComplaintsAbout(string ddl) =>
+    private static IReadOnlyList<string> ComplaintsAbout(string ddl) =>
         ReaderDiagnostics.ComplaintsAbout(ddl);
 
     // ----- an area written as plain content ---------------------------------------------------
@@ -61,7 +61,7 @@ public class DdlChartAreaTests
         TextOf(area.Elements[0] as Paragraph).Should().Be("here");
     }
 
-    static TextArea AreaNamed(Chart chart, string areaKeyword) => areaKeyword switch
+    private static TextArea AreaNamed(Chart chart, string areaKeyword) => areaKeyword switch
     {
         "headerarea" => chart.HeaderArea,
         "footerarea" => chart.FooterArea,

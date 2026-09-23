@@ -35,7 +35,7 @@ public class AppResourcesTests
     ///   is internal and this repository carries no <c>InternalsVisibleTo</c>, so it is reached by
     ///   name rather than by type.
     /// </summary>
-    static IReadOnlyList<KeyValuePair<string, string>> Messages()
+    private static IReadOnlyList<KeyValuePair<string, string>> Messages()
     {
         var resources = typeof(PdfDocumentRenderer).Assembly.GetType(
             "PinataLayout.Rendering.Resources.AppResources", true);
@@ -48,7 +48,7 @@ public class AppResourcesTests
             .ToList();
     }
 
-    static string Read(PropertyInfo property)
+    private static string Read(PropertyInfo property)
     {
         try
         {

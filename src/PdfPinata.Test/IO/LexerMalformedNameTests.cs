@@ -72,9 +72,9 @@ public class LexerMalformedNameTests
         lexer.ScanNextToken().Should().Be(Symbol.Eof);
     }
 
-    record Scanned(Symbol Symbol, string Token);
+    private record Scanned(Symbol Symbol, string Token);
 
-    static Task<Scanned> ScanFirstToken(string pdf)
+    private static Task<Scanned> ScanFirstToken(string pdf)
     {
         return Interruptibly.Run(() =>
         {
@@ -84,5 +84,5 @@ public class LexerMalformedNameTests
         });
     }
 
-    static Lexer LexerOver(string pdf) => new(new MemoryStream(ParserProbe.Bytes(pdf)));
+    private static Lexer LexerOver(string pdf) => new(new MemoryStream(ParserProbe.Bytes(pdf)));
 }

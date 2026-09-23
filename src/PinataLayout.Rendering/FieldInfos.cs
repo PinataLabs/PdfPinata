@@ -124,7 +124,7 @@ internal class FieldInfos
         return -1;
     }
 
-    Dictionary<string, BookmarkInfo> bookmarks;
+    private Dictionary<string, BookmarkInfo> bookmarks;
     internal int displayPageNr;
     internal int pyhsicalPageNr;
 

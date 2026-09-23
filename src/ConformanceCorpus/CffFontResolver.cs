@@ -26,9 +26,9 @@ sealed class CffFontResolver : IFontResolver
 {
     internal const string Family = "Source Code Pro";
 
-    const string Resource = "ConformanceCorpus.SourceCodePro-Regular.otf";
+    private const string Resource = "ConformanceCorpus.SourceCodePro-Regular.otf";
 
-    readonly SkiaFontResolver _backend = new SkiaFontResolver();
+    private readonly SkiaFontResolver _backend = new SkiaFontResolver();
 
     public string DefaultFontName => _backend.DefaultFontName;
 
@@ -55,6 +55,6 @@ sealed class CffFontResolver : IFontResolver
         return bytes.ToArray();
     }
 
-    static bool IsMine(string name)
+    private static bool IsMine(string name)
         => string.Equals(name, Family, StringComparison.OrdinalIgnoreCase);
 }

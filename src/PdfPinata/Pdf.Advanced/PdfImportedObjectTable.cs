@@ -48,21 +48,21 @@ internal sealed class PdfImportedObjectTable
         _externalDocumentHandle = externalDocument.Handle;
         _xObjects = new PdfFormXObject[externalDocument.PageCount];
     }
-    readonly PdfFormXObject[] _xObjects;
+    private readonly PdfFormXObject[] _xObjects;
 
     /// <summary>
     /// Gets the document this table belongs to.
     /// </summary>
     public PdfDocument Owner => _owner;
 
-    readonly PdfDocument _owner;
+    private readonly PdfDocument _owner;
 
     /// <summary>
     /// Gets the external document, or null, if the external document is garbage collected.
     /// </summary>
     public PdfDocument ExternalDocument => _externalDocumentHandle.IsAlive ? _externalDocumentHandle.Target : null;
 
-    readonly PdfDocument.DocumentHandle _externalDocumentHandle;
+    private readonly PdfDocument.DocumentHandle _externalDocumentHandle;
 
     public PdfFormXObject GetXObject(int pageNumber)
     {
@@ -114,5 +114,5 @@ internal sealed class PdfImportedObjectTable
     /// Maps external object identifiers to cross-reference entries of the importing document
     /// {PdfObjectID -> PdfReference}.
     /// </summary>
-    readonly Dictionary<string, PdfReference> _externalIDs = new();
+    private readonly Dictionary<string, PdfReference> _externalIDs = new();
 }

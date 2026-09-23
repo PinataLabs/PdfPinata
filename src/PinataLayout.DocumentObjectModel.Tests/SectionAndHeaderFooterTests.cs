@@ -23,7 +23,7 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 /// </summary>
 public class SectionAndHeaderFooterTests
 {
-    static string DdlOf(DocumentObject documentObject) => DdlWriter.WriteToString(documentObject);
+    private static string DdlOf(DocumentObject documentObject) => DdlWriter.WriteToString(documentObject);
 
     // ----- content handed to a section --------------------------------------------------------
 
@@ -260,7 +260,7 @@ public class SectionAndHeaderFooterTests
     ///   description of one rather than about its pixels, and decoding is a backend's job - which
     ///   this project deliberately has none of.
     /// </summary>
-    sealed class NamedImage : ImageSource.IImageSource
+    private sealed class NamedImage : ImageSource.IImageSource
     {
         internal NamedImage(string name) => Name = name;
 

@@ -238,7 +238,7 @@ public sealed class PdfShading : PdfDictionary
     /// neither, which is the default, nothing is written, so a document that never sets either
     /// property is written exactly as it was before they had any effect.
     /// </summary>
-    void SetExtend(XBaseGradientBrush brush)
+    private void SetExtend(XBaseGradientBrush brush)
     {
         if (brush.ExtendLeft || brush.ExtendRight)
         {
@@ -255,7 +255,7 @@ public sealed class PdfShading : PdfDictionary
     /// <see cref="XGraphicsPdfRenderer.WorldToView"/> is affine, so where it takes three points
     /// is the whole of it.
     /// </remarks>
-    static XMatrix BrushToView(XBaseGradientBrush brush, XGraphicsPdfRenderer renderer)
+    private static XMatrix BrushToView(XBaseGradientBrush brush, XGraphicsPdfRenderer renderer)
     {
         var brushMatrix = brush.Matrix;
         var origin = renderer.WorldToView(brushMatrix.Transform(new XPoint(0, 0)));
@@ -269,7 +269,7 @@ public sealed class PdfShading : PdfDictionary
     /// Whether a matrix scales every direction by the same factor. It may turn or mirror, but it
     /// never squashes, so a circle is still a circle after it.
     /// </summary>
-    static bool ScalesAlike(XMatrix matrix, out double scale)
+    private static bool ScalesAlike(XMatrix matrix, out double scale)
     {
         double a = matrix.M11, b = matrix.M12, c = matrix.M21, d = matrix.M22;
         scale = Math.Sqrt(a * a + b * b);
@@ -283,7 +283,7 @@ public sealed class PdfShading : PdfDictionary
     /// <summary>
     /// The colour space a shading carrying the given channel is expressed in.
     /// </summary>
-    static string ColorSpaceOf(PdfColorMode colorMode, PdfShadingChannel channel)
+    private static string ColorSpaceOf(PdfColorMode colorMode, PdfShadingChannel channel)
     {
         // A luminosity mask is read as a single grey level, which is why the group it belongs to
         // is in DeviceGray as well.
@@ -303,7 +303,7 @@ public sealed class PdfShading : PdfDictionary
     /// alpha ramp that followed a different axis from the colour it masks would fade the gradient
     /// out in the wrong direction.
     /// </remarks>
-    static PdfDictionary RampFunction(XColor color1, XColor color2, PdfColorMode colorMode,
+    private static PdfDictionary RampFunction(XColor color1, XColor color2, PdfColorMode colorMode,
         PdfShadingChannel channel)
     {
         const string format = Config.SignificantFigures3;
@@ -438,7 +438,7 @@ public sealed class PdfShading : PdfDictionary
         /// </summary>
         internal static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

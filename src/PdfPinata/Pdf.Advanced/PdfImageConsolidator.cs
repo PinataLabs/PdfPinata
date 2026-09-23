@@ -54,16 +54,16 @@ internal sealed class PdfImageConsolidator
     /// One image XObject as it is named by one page: the dictionary that names it, the entry
     /// naming it, the XObject itself, and the hash of its bytes.
     /// </summary>
-    sealed class ImageInfo
+    private sealed class ImageInfo
     {
         public PdfDictionary XObjects { get; }
         public KeyValuePair<string, PdfItem> Item { get; }
         public PdfDictionary XObject { get; }
         public string XObjectMD5 { get; }
 
-        static readonly MD5Managed Hasher = new();
+        private static readonly MD5Managed Hasher = new();
 
-        ImageInfo(PdfDictionary xObjects, KeyValuePair<string, PdfItem> item, PdfDictionary xObject)
+        private ImageInfo(PdfDictionary xObjects, KeyValuePair<string, PdfItem> item, PdfDictionary xObject)
         {
             XObjects = xObjects;
             Item = item;
@@ -90,7 +90,7 @@ internal sealed class PdfImageConsolidator
         /// <summary>
         /// Compute and return the MD5 hash of the input data.
         /// </summary>
-        static string ComputeMD5(byte[] input)
+        private static string ComputeMD5(byte[] input)
         {
             byte[] hashBytes;
             lock (Hasher)

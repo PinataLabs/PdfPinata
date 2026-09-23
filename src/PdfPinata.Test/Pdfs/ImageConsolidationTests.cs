@@ -13,12 +13,12 @@ namespace PdfPinata.Test.Pdfs;
 /// </summary>
 public class ImageConsolidationTests
 {
-    static byte[] Bytes(string content) => Encoding.ASCII.GetBytes(content);
+    private static byte[] Bytes(string content) => Encoding.ASCII.GetBytes(content);
 
     /// <summary>
     ///   An image XObject of its own, indirect, holding the bytes given.
     /// </summary>
-    static PdfDictionary AnImage(PdfDocument document, byte[] content)
+    private static PdfDictionary AnImage(PdfDocument document, byte[] content)
     {
         var image = new PdfDictionary(document);
         image.Elements.SetName("/Type", "/XObject");
@@ -35,7 +35,7 @@ public class ImageConsolidationTests
     /// <summary>
     ///   A page whose resources name the images given, as /Im0, /Im1 and so on.
     /// </summary>
-    static PdfPage APageNaming(PdfDocument document, params PdfDictionary[] images)
+    private static PdfPage APageNaming(PdfDocument document, params PdfDictionary[] images)
     {
         var page = document.AddPage();
 
@@ -49,7 +49,7 @@ public class ImageConsolidationTests
         return page;
     }
 
-    static PdfObjectID ImageNamedBy(PdfPage page, string name) =>
+    private static PdfObjectID ImageNamedBy(PdfPage page, string name) =>
         ((PdfReference)page.Elements.GetDictionary("/Resources")
             .Elements.GetDictionary("/XObject")
             .Elements[name]).ObjectID;

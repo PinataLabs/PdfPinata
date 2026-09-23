@@ -54,17 +54,17 @@ public class SignatureTimestampTests
         signing.Should().Throw<InvalidOperationException>().WithMessage("*timed out*");
     }
 
-    static Pkcs7Signer Timestamped() =>
+    private static Pkcs7Signer Timestamped() =>
         new(SigningCertificates.Default, timestampProvider: new LocalTimestampAuthority(
             SigningCertificates.CreateTimestampAuthority("CN=PdfPinata Test TSA")));
 
-    sealed class FailingTimestampProvider : ITimestampProvider
+    private sealed class FailingTimestampProvider : ITimestampProvider
     {
         public byte[] GetTimestamp(byte[] messageImprint, System.Security.Cryptography.HashAlgorithmName hashAlgorithm) =>
             throw new InvalidOperationException("The time-stamping authority timed out.");
     }
 
-    static byte[] Unsigned()
+    private static byte[] Unsigned()
     {
         var document = new PdfDocument();
         using (var gfx = XGraphics.FromPdfPage(document.AddPage()))
@@ -75,7 +75,7 @@ public class SignatureTimestampTests
         return output.ToArray();
     }
 
-    static byte[] Sign(byte[] document, IPdfSigner signer = null)
+    private static byte[] Sign(byte[] document, IPdfSigner signer = null)
     {
         using var input = new MemoryStream(document);
         using var output = new MemoryStream();

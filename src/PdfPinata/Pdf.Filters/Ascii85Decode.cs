@@ -157,7 +157,7 @@ public class Ascii85Decode : Filter
                 // begin. Inside one it would be read as a digit worth 89, which no digit is, and
                 // every group after it would be read out of step.
                 if (groupLength != 0)
-                    throw new ArgumentException("Illegal character 'z' inside a group.", nameof(data));
+                    throw new ArgumentException(@"Illegal character 'z' inside a group.", nameof(data));
                 data[idxOut++] = (byte)ch;
                 zCount++;
             }
@@ -167,14 +167,14 @@ public class Ascii85Decode : Filter
                 // malformed as data that spells them wrongly. Reading the second one without
                 // checking there is one turns a truncated stream into an index out of range.
                 if (idx + 1 >= length || (char)data[idx + 1] != '>')
-                    throw new ArgumentException("Illegal character.", nameof(data));
+                    throw new ArgumentException(@"Illegal character.", nameof(data));
                 break;
             }
             // ignore unknown character
         }
         // Loop not ended with break?
         if (idx == length)
-            throw new ArgumentException("Illegal character.", nameof(data));
+            throw new ArgumentException(@"Illegal character.", nameof(data));
 
         length = idxOut;
         var nonZero = length - zCount;

@@ -62,7 +62,7 @@ public class ChartFrame
     get => this.location;
     set => this.location = value;
   }
-  XPoint location;
+  private XPoint location;
 
   /// <summary>
   /// Gets or sets the size of the ChartFrame.
@@ -72,7 +72,7 @@ public class ChartFrame
     get => this.size;
     set => this.size = value;
   }
-  XSize size;
+  private XSize size;
 
   /// <summary>
   /// Adds a chart to the ChartFrame.
@@ -205,5 +205,5 @@ public class ChartFrame
   /// <summary>
   /// Holds the charts which will be drawn inside the ChartFrame.
   /// </summary>
-  ArrayList chartList;
+  private ArrayList chartList;
 }

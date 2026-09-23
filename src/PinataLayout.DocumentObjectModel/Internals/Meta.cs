@@ -47,8 +47,8 @@ namespace PinataLayout.DocumentObjectModel.Internals;
 /// </remarks>
 public sealed class Meta
 {
-  readonly ValueDescriptor[] descriptors;
-  readonly Dictionary<string, ValueDescriptor> byName;
+  private readonly ValueDescriptor[] descriptors;
+  private readonly Dictionary<string, ValueDescriptor> byName;
 
   /// <summary>
   /// Initializes a Meta from its generated descriptor table.

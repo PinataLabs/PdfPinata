@@ -13,7 +13,7 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 /// </summary>
 public class BordersTests
 {
-    static Document RoundTrip(Document document) =>
+    private static Document RoundTrip(Document document) =>
         DdlReader.DocumentFromString(DdlWriter.WriteToString(document));
 
     [Fact]

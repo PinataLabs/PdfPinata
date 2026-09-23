@@ -59,7 +59,7 @@ public sealed class PdfBoolean : PdfItem
         // This class must behave like a value type. Therefore it cannot be changed (like System.String).
         _value;
 
-    readonly bool _value;
+    private readonly bool _value;
 
     /// <summary>
     /// A pre-defined value that represents <c>true</c>.

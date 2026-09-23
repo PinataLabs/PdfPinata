@@ -43,7 +43,7 @@ internal class IRefFontTable : OpenTypeFontTable
         _irefDirectoryEntry = fontTable.DirectoryEntry;
     }
 
-    readonly TableDirectoryEntry _irefDirectoryEntry;
+    private readonly TableDirectoryEntry _irefDirectoryEntry;
 
     /// <summary>
     /// Prepares the font table to be compiled into its binary representation.

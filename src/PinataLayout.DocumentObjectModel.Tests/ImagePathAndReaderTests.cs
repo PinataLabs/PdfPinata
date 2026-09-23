@@ -19,7 +19,7 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 /// </summary>
 public class ImagePathAndReaderTests : IDisposable
 {
-    readonly string _directory = Path.Combine(Path.GetTempPath(), "pinata-image-" + Guid.NewGuid().ToString("N"));
+    private readonly string _directory = Path.Combine(Path.GetTempPath(), "pinata-image-" + Guid.NewGuid().ToString("N"));
 
     public ImagePathAndReaderTests() => Directory.CreateDirectory(_directory);
 
@@ -36,7 +36,7 @@ public class ImagePathAndReaderTests : IDisposable
     }
 
     /// <summary>An image source that knows its name and nothing else, which is all a path needs.</summary>
-    sealed class NamedSource : ImageSource.IImageSource
+    private sealed class NamedSource : ImageSource.IImageSource
     {
         public NamedSource(string name) => Name = name;
 
@@ -48,7 +48,7 @@ public class ImagePathAndReaderTests : IDisposable
         public PixelBuffer GetPixels() => throw new NotSupportedException();
     }
 
-    static Image AnImageNamed(Document document, string name)
+    private static Image AnImageNamed(Document document, string name)
     {
         var image = document.AddSection().AddImage(new NamedSource(name));
         return image;
@@ -141,7 +141,7 @@ public class ImagePathAndReaderTests : IDisposable
 
     // ----- the ways a reader is given its DDL ---------------------------------------------------------
 
-    const string ADocument = "\\document{ \\section{ \\paragraph{ hello } } }";
+    private const string ADocument = "\\document{ \\section{ \\paragraph{ hello } } }";
 
     [Fact]
     public void ADocumentIsReadFromAFile()
@@ -195,5 +195,5 @@ public class ImagePathAndReaderTests : IDisposable
     }
 
     /// <summary>The DDL escape character, kept out of the string literals above.</summary>
-    const string Marker = "\\";
+    private const string Marker = "\\";
 }

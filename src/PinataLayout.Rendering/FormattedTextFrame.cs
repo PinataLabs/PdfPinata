@@ -90,7 +90,7 @@ internal class FormattedTextFrame : IAreaProvider
     return null;
   }
 
-  Rectangle CalcContentRect()
+  private Rectangle CalcContentRect()
   {
     var lfr = new LineFormatRenderer(textframe.LineFormat, gfx);
     var lineWidth = lfr.GetWidth();

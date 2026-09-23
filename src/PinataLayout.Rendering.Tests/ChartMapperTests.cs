@@ -23,12 +23,12 @@ public class ChartMapperTests
     ///   <c>domSeries.Document.UseCmykColor</c> for its marker colours, and asks
     ///   <c>DocumentRelations</c> for the parent chart when a series does not name its own type.
     /// </summary>
-    static DomChart ChartIn(Document document, ChartType type = ChartType.Line)
+    private static DomChart ChartIn(Document document, ChartType type = ChartType.Line)
     {
         return document.AddSection().AddChart(type);
     }
 
-    static Charting.Chart Mapped(DomChart domChart)
+    private static Charting.Chart Mapped(DomChart domChart)
     {
         return MappedChartProbe.In(ChartMapper.ChartMapper.Map(domChart));
     }

@@ -56,13 +56,13 @@ public class FormatterLayoutPinTests
         });
     }
 
-    static string BaselinePath =>
+    private static string BaselinePath =>
         Path.Combine(PathHelper.GetInstance().GetAssetPath("Layout"), "formatter-baseline.txt");
 
     /// <summary>
     ///   The content of each arrangement, keyed by the name the report gives it.
     /// </summary>
-    static System.Collections.Generic.Dictionary<string, string> SplitByArrangement(string report)
+    private static System.Collections.Generic.Dictionary<string, string> SplitByArrangement(string report)
     {
         var pages = new System.Collections.Generic.Dictionary<string, string>(StringComparer.Ordinal);
         string current = null;
@@ -93,5 +93,5 @@ public class FormatterLayoutPinTests
     ///   The same text with every line ending reduced to a line feed, so that what is compared is
     ///   the layout and not what the checkout did to the asset file.
     /// </summary>
-    static string Normalized(string text) => text.Replace("\r\n", "\n");
+    private static string Normalized(string text) => text.Replace("\r\n", "\n");
 }

@@ -16,7 +16,7 @@ namespace PdfPinata.Test.Annotations;
 /// </summary>
 public class AnnotationColorTests
 {
-    static readonly XColor Teal = XColor.FromArgb(0, 127, 128);
+    private static readonly XColor Teal = XColor.FromArgb(0, 127, 128);
 
     [Fact]
     public void AColourWrittenAsAnIndirectArrayIsReadThroughItsReference()
@@ -77,7 +77,7 @@ public class AnnotationColorTests
         note.Color.Should().Be(XColors.Black, "an empty /C means no colour, and black is the fallback");
     }
 
-    static PdfDocument Reopened(PdfDocument document)
+    private static PdfDocument Reopened(PdfDocument document)
     {
         using var stream = new MemoryStream();
         document.Save(stream, false);

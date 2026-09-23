@@ -41,7 +41,7 @@ public sealed class XSpotColor : IEquatable<XSpotColor>
         if (name == null)
             throw new ArgumentNullException(nameof(name));
         if (name.Length == 0)
-            throw new ArgumentException("A spot colour needs a name: it is the name a press separates by.", nameof(name));
+            throw new ArgumentException(@"A spot colour needs a name: it is the name a press separates by.", nameof(name));
 
         Name = name;
         alternate.A = 1;
@@ -58,7 +58,7 @@ public sealed class XSpotColor : IEquatable<XSpotColor>
     /// that alternate would paint white where black was asked for. Its RGB components are right
     /// either way, so a GS that disagrees with them is replaced by their luminance.
     /// </remarks>
-    static XColor ConsistentGray(XColor alternate)
+    private static XColor ConsistentGray(XColor alternate)
     {
         var fromRgb = alternate.R == alternate.G && alternate.G == alternate.B
             ? alternate.R / 255.0
@@ -95,7 +95,7 @@ public sealed class XSpotColor : IEquatable<XSpotColor>
         }
     }
 
-    static int TowardWhite(byte component, double tint) =>
+    private static int TowardWhite(byte component, double tint) =>
         (int)Math.Round(255 - tint * (255 - component), MidpointRounding.AwayFromZero);
 
     /// <summary>

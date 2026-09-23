@@ -33,7 +33,7 @@ internal static class PdfResourceDeduplicator
     /// <summary>
     /// Values of <c>/Type</c> naming an object that stands for itself rather than for its content.
     /// </summary>
-    static readonly HashSet<string> IdentityTypes = new(StringComparer.Ordinal)
+    private static readonly HashSet<string> IdentityTypes = new(StringComparer.Ordinal)
     {
         "/Catalog", "/Pages", "/Page", "/Annot", "/Border", "/OCG", "/OCMD", "/StructTreeRoot",
         "/StructElem", "/MCR", "/OBJR", "/Sig", "/DocTimeStamp", "/SigRef", "/TransformParams",
@@ -45,10 +45,10 @@ internal static class PdfResourceDeduplicator
     /// Keys whose presence says that a dictionary is a node of some tree, a field, an annotation or
     /// a structure element: something that is referred to for where it is rather than what it holds.
     /// </summary>
-    static readonly string[] IdentityKeys = ["/Parent", "/P", "/Kids", "/FT", "/Rect", "/Dest", "/Names", "/Nums"];
+    private static readonly string[] IdentityKeys = ["/Parent", "/P", "/Kids", "/FT", "/Rect", "/Dest", "/Names", "/Nums"];
 
     /// <summary>The categories of a resource dictionary, each a dictionary of names.</summary>
-    static readonly string[] ResourceCategories =
+    private static readonly string[] ResourceCategories =
         ["/Font", "/XObject", "/ExtGState", "/ColorSpace", "/Pattern", "/Shading"];
 
     /// <summary>
@@ -103,7 +103,7 @@ internal static class PdfResourceDeduplicator
     /// <summary>
     /// Replaces the references of a dictionary or array, and of the direct ones nested in it.
     /// </summary>
-    static void Redirect(PdfItem item, Dictionary<PdfReference, PdfReference> replacements, int depth)
+    private static void Redirect(PdfItem item, Dictionary<PdfReference, PdfReference> replacements, int depth)
     {
         if (depth > MaxDepth)
             return;
@@ -144,20 +144,20 @@ internal static class PdfResourceDeduplicator
     /// How deep direct dictionaries and arrays are followed inside one object. Real documents nest
     /// a handful of levels; the cap only stops a pathological one from exhausting the stack.
     /// </summary>
-    const int MaxDepth = 64;
+    private const int MaxDepth = 64;
 
-    static PdfItem Resolve(PdfItem item) => item is PdfReference reference ? reference.Value : item;
+    private static PdfItem Resolve(PdfItem item) => item is PdfReference reference ? reference.Value : item;
 
     /// <summary>
     /// The indirect objects that may be merged, the references between them, and what each says
     /// apart from those references.
     /// </summary>
-    sealed class CandidateGraph
+    private sealed class CandidateGraph
     {
         public readonly List<PdfObject> Objects = [];
-        readonly Dictionary<PdfObject, int> _index = new();
-        readonly HashSet<PdfObject> _seen = [];
-        readonly Queue<PdfObject> _pending = new();
+        private readonly Dictionary<PdfObject, int> _index = new();
+        private readonly HashSet<PdfObject> _seen = [];
+        private readonly Queue<PdfObject> _pending = new();
 
         public int Count => Objects.Count;
 
@@ -184,7 +184,7 @@ internal static class PdfResourceDeduplicator
         /// left alone: a field redraws its appearance when its value changes, and two widgets that
         /// had come to share one stream would then change together.
         /// </summary>
-        void AddAppearances(PdfDictionary appearances)
+        private void AddAppearances(PdfDictionary appearances)
         {
             foreach (var key in new[] { "/N", "/R", "/D" })
             {
@@ -208,7 +208,7 @@ internal static class PdfResourceDeduplicator
         /// The entries of a resource dictionary. The dictionary itself, and the dictionary of each
         /// category, belong to the page or form holding them and are only looked through.
         /// </summary>
-        void AddResources(PdfItem item)
+        private void AddResources(PdfItem item)
         {
             if (Resolve(item) is not PdfDictionary resources)
                 return;
@@ -226,7 +226,7 @@ internal static class PdfResourceDeduplicator
         /// <summary>
         /// Queues the objects a reference, or a direct dictionary or array, leads to.
         /// </summary>
-        void AddItem(PdfItem item, int depth)
+        private void AddItem(PdfItem item, int depth)
         {
             if (depth > MaxDepth)
                 return;
@@ -248,7 +248,7 @@ internal static class PdfResourceDeduplicator
             }
         }
 
-        void Drain()
+        private void Drain()
         {
             while (_pending.Count > 0)
             {
@@ -262,7 +262,7 @@ internal static class PdfResourceDeduplicator
             }
         }
 
-        static bool IsMergeable(PdfObject obj)
+        private static bool IsMergeable(PdfObject obj)
         {
             if (obj.Reference == null)
                 return false;
@@ -369,7 +369,7 @@ internal static class PdfResourceDeduplicator
         /// placeholder and its target added to <paramref name="targets"/> in order. Null when the
         /// object holds something this cannot compare.
         /// </summary>
-        string Describe(PdfObject obj, List<int> targets)
+        private string Describe(PdfObject obj, List<int> targets)
         {
             var text = new StringBuilder();
             if (!Describe(obj, text, targets, 0, true))
@@ -381,7 +381,7 @@ internal static class PdfResourceDeduplicator
             return text.ToString();
         }
 
-        bool Describe(PdfItem item, StringBuilder text, List<int> targets, int depth, bool top)
+        private bool Describe(PdfItem item, StringBuilder text, List<int> targets, int depth, bool top)
         {
             if (depth > MaxDepth)
                 return false;
@@ -473,13 +473,13 @@ internal static class PdfResourceDeduplicator
         /// A string with its length in front, so that no two sequences of strings run together
         /// into the same text.
         /// </summary>
-        static void AppendString(StringBuilder text, char tag, string value)
+        private static void AppendString(StringBuilder text, char tag, string value)
         {
             value ??= "";
             text.Append(tag).Append(value.Length).Append(':').Append(value);
         }
 
-        static ulong Fnv1a(byte[] bytes)
+        private static ulong Fnv1a(byte[] bytes)
         {
             var hash = 14695981039346656037UL;
             foreach (var b in bytes)

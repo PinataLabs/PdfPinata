@@ -133,7 +133,7 @@ public abstract class PdfTextMarkupAnnotation : PdfMarkupAnnotation
     /// The quadrilaterals actually marked up: those added, or the one the annotation rectangle
     /// describes when none have been.
     /// </summary>
-    IReadOnlyList<PdfRectangle> EffectiveQuads
+    private IReadOnlyList<PdfRectangle> EffectiveQuads
     {
         get
         {
@@ -152,7 +152,7 @@ public abstract class PdfTextMarkupAnnotation : PdfMarkupAnnotation
     /// Sets the annotation rectangle to the box enclosing the quadrilaterals, which is what
     /// the specification asks of it and what a viewer regenerating the appearance assumes.
     /// </summary>
-    void UpdateRectangle()
+    private void UpdateRectangle()
     {
         var enclosing = QuadPoints.Enclosing(Quads);
         if (enclosing != null)
@@ -239,14 +239,14 @@ public abstract class PdfTextMarkupAnnotation : PdfMarkupAnnotation
         else
             form.Stream.Value = bytes;
     }
-    PdfDictionary _appearanceForm;
+    private PdfDictionary _appearanceForm;
 
     /// <summary>
     /// The graphics state the appearance is drawn under. Multiply is what keeps a highlight from
     /// painting over the text it marks; the opacity of the annotation rides along here because
     /// /CA on the annotation itself no longer applies once there is an appearance to apply it to.
     /// </summary>
-    PdfDictionary BuildResources()
+    private PdfDictionary BuildResources()
     {
         var state = new PdfDictionary(Owner);
         state.Elements.SetName("/Type", "/ExtGState");
@@ -282,7 +282,7 @@ public abstract class PdfTextMarkupAnnotation : PdfMarkupAnnotation
 
         public static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

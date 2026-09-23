@@ -140,7 +140,7 @@ internal static class LineEndings
     /// <summary>
     /// One of the two back corners of an arrowhead whose tip is at <paramref name="at"/>.
     /// </summary>
-    static XPoint Barb(XPoint at, XVector outward, XVector across, double size, double half, int side)
+    private static XPoint Barb(XPoint at, XVector outward, XVector across, double size, double half, int side)
     {
         return new XPoint(
             at.X - outward.X * size + across.X * half * side,
@@ -151,7 +151,7 @@ internal static class LineEndings
     /// Fills a closed shape when there is an interior colour and outlines it either way, which is
     /// what an absent <c>/IC</c> means: the ending is drawn, and is not filled in.
     /// </summary>
-    static void DrawClosed(XGraphics gfx, XPen pen, XBrush brush, XPoint[] points)
+    private static void DrawClosed(XGraphics gfx, XPen pen, XBrush brush, XPoint[] points)
     {
         if (brush == null)
             gfx.DrawPolygon(pen, points);

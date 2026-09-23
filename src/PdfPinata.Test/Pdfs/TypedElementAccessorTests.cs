@@ -20,10 +20,10 @@ namespace PdfPinata.Test.Pdfs;
 /// </summary>
 public class TypedElementAccessorTests
 {
-    static PdfDocument ADocument() => new();
+    private static PdfDocument ADocument() => new();
 
     /// <summary>An indirect reference to a simple value, which is what makes the third case.</summary>
-    static PdfReference IndirectTo(PdfDocument document, PdfObject value)
+    private static PdfReference IndirectTo(PdfDocument document, PdfObject value)
     {
         document.Internals.AddObject(value);
         return value.Reference;
@@ -165,7 +165,7 @@ public class TypedElementAccessorTests
 
     // ----- PdfDictionary.DictionaryElements.GetMatrix ----------------------------------------------
 
-    static PdfArray SixNumbers(PdfDocument document, params double[] values)
+    private static PdfArray SixNumbers(PdfDocument document, params double[] values)
     {
         var array = new PdfArray(document);
         foreach (var value in values)

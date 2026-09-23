@@ -32,6 +32,7 @@ namespace PdfPinata.Drawing.BarCodes;
 /// <summary>
 /// String resources for the empira barcode renderer.
 /// </summary>
+// ReSharper disable once InconsistentNaming
 internal class BcgSR
 {
     internal static string Invalid2Of5Code(string code)

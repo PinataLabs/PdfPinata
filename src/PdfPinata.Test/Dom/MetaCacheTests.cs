@@ -20,7 +20,7 @@ namespace PdfPinata.Test.Dom;
 /// </summary>
 public class MetaCacheTests
 {
-    const int Threads = 64;
+    private const int Threads = 64;
 
     [Fact]
     public void EveryInstanceOfATypeSharesOneMeta()

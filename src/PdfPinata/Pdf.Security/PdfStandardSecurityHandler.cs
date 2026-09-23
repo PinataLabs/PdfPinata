@@ -149,7 +149,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     /// <summary>
     /// Encrypts a dictionary.
     /// </summary>
-    void EncryptDictionary(PdfDictionary dict)
+    private void EncryptDictionary(PdfDictionary dict)
     {
         // Pdf Reference 1.7, Chapter 7.5.8.2: The cross-reference stream shall not be encrypted
         // Pdf Reference 1.7, Chapter 7.6.1: Strings in the Encryption-Dictionary shall not be encrypted
@@ -204,7 +204,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     /// <summary>
     /// Encrypts an array.
     /// </summary>
-    void EncryptArray(PdfArray array)
+    private void EncryptArray(PdfArray array)
     {
         var count = array.Elements.Count;
         for (var idx = 0; idx < count; idx++)
@@ -233,7 +233,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     /// rather than writing back into the one it was given. The caller puts the answer where the
     /// old string was, through the owning collection's own indexer.
     /// </remarks>
-    PdfString EncryptString(PdfString value)
+    private PdfString EncryptString(PdfString value)
     {
         if (value.Length == 0)
             return value;
@@ -293,7 +293,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     /// <summary>
     /// Pads a password to a 32 byte array.
     /// </summary>
-    static byte[] PadPassword(string password)
+    private static byte[] PadPassword(string password)
     {
         var padded = new byte[32];
         if (password == null)
@@ -307,7 +307,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
         }
         return padded;
     }
-    static readonly byte[] PasswordPadding = // 32 bytes password padding defined by Adobe
+    private static readonly byte[] PasswordPadding = // 32 bytes password padding defined by Adobe
     [
         0x28, 0xBF, 0x4E, 0x5E, 0x4E, 0x75, 0x8A, 0x41, 0x64, 0x00, 0x4E, 0x56, 0xFF, 0xFA, 0x01, 0x08,
         0x2E, 0x2E, 0x00, 0xB6, 0xD0, 0x68, 0x3E, 0x80, 0x2F, 0x0C, 0xA9, 0xFE, 0x64, 0x53, 0x69, 0x7A
@@ -316,7 +316,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     /// <summary>
     /// Generates the user key based on the padded user password.
     /// </summary>
-    void InitWithUserPassword(byte[] documentID, string userPassword, byte[] ownerKey, int permissions, bool strongEncryption)
+    private void InitWithUserPassword(byte[] documentID, string userPassword, byte[] ownerKey, int permissions, bool strongEncryption)
     {
         InitEncryptionKey(documentID, PadPassword(userPassword), ownerKey, permissions, strongEncryption);
         SetupUserKey(documentID);
@@ -325,7 +325,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     /// <summary>
     /// Computes the padded user password from the padded owner password.
     /// </summary>
-    byte[] ComputeOwnerKey(byte[] userPad, byte[] ownerPad, bool strongEncryption)
+    private byte[] ComputeOwnerKey(byte[] userPad, byte[] ownerPad, bool strongEncryption)
     {
         var ownerKey = new byte[32];
         var digest = _md5.ComputeHash(ownerPad);
@@ -356,7 +356,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     /// <summary>
     /// Computes the encryption key.
     /// </summary>
-    void InitEncryptionKey(byte[] documentID, byte[] userPad, byte[] ownerKey, int permissions, bool strongEncryption)
+    private void InitEncryptionKey(byte[] documentID, byte[] userPad, byte[] ownerKey, int permissions, bool strongEncryption)
     {
         _ownerKey = ownerKey;
         _encryptionKey = new byte[strongEncryption ? 16 : 5];
@@ -392,7 +392,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     /// <summary>
     /// Computes the user key.
     /// </summary>
-    void SetupUserKey(byte[] documentID)
+    private void SetupUserKey(byte[] documentID)
     {
         if (_encryptionKey.Length == 16)
         {
@@ -422,7 +422,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     /// <summary>
     /// Prepare the encryption key.
     /// </summary>
-    void PrepareKey()
+    private void PrepareKey()
     {
         PrepareRC4Key(_key, 0, _keySize);
     }
@@ -430,7 +430,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     /// <summary>
     /// Prepare the encryption key.
     /// </summary>
-    void PrepareRC4Key(byte[] key)
+    private void PrepareRC4Key(byte[] key)
     {
         PrepareRC4Key(key, 0, key.Length);
     }
@@ -438,7 +438,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     /// <summary>
     /// Prepare the encryption key.
     /// </summary>
-    void PrepareRC4Key(byte[] key, int offset, int length)
+    private void PrepareRC4Key(byte[] key, int offset, int length)
     {
         var idx1 = 0;
         var idx2 = 0;
@@ -459,7 +459,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     /// Encrypts the data.
     /// </summary>
     // ReSharper disable InconsistentNaming
-    void EncryptRC4(byte[] data)
+    private void EncryptRC4(byte[] data)
         // ReSharper restore InconsistentNaming
     {
         EncryptRC4(data, 0, data.Length, data);
@@ -469,7 +469,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     /// Encrypts the data.
     /// </summary>
     // ReSharper disable once InconsistentNaming
-    void EncryptRC4(byte[] data, int offset, int length)
+    private void EncryptRC4(byte[] data, int offset, int length)
     {
         EncryptRC4(data, offset, length, data);
     }
@@ -478,7 +478,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     /// Encrypts the data.
     /// </summary>
     // ReSharper disable once InconsistentNaming
-    void EncryptRC4(byte[] inputData, byte[] outputData)
+    private void EncryptRC4(byte[] inputData, byte[] outputData)
     {
         EncryptRC4(inputData, 0, inputData.Length, outputData);
     }
@@ -487,7 +487,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     /// Encrypts the data.
     /// </summary>
     // ReSharper disable once InconsistentNaming
-    void EncryptRC4(byte[] inputData, int offset, int length, byte[] outputData)
+    private void EncryptRC4(byte[] inputData, int offset, int length, byte[] outputData)
     {
         length += offset;
         int x = 0, y = 0;
@@ -590,39 +590,39 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     /// <summary>
     /// The global encryption key.
     /// </summary>
-    byte[] _encryptionKey;
+    private byte[] _encryptionKey;
 
     /// <summary>
     /// The MD5 implementation the standard security handler is built on. It is created on
     /// first use, because a handler is also instantiated for documents that are not encrypted.
     /// </summary>
-    MD5Managed _md5 => _md5Instance ?? (_md5Instance = new MD5Managed());
-    MD5Managed _md5Instance;
+    private MD5Managed _md5 => _md5Instance ?? (_md5Instance = new MD5Managed());
+    private MD5Managed _md5Instance;
 
     /// <summary>
     /// Bytes used for RC4 encryption.
     /// </summary>
-    readonly byte[] _state = new byte[256];
+    private readonly byte[] _state = new byte[256];
 
     /// <summary>
     /// The encryption key for the owner.
     /// </summary>
-    byte[] _ownerKey = new byte[32];
+    private byte[] _ownerKey = new byte[32];
 
     /// <summary>
     /// The encryption key for the user.
     /// </summary>
-    readonly byte[] _userKey = new byte[32];
+    private readonly byte[] _userKey = new byte[32];
 
     /// <summary>
     /// The encryption key for a particular object/generation.
     /// </summary>
-    byte[] _key;
+    private byte[] _key;
 
     /// <summary>
     /// The encryption key length for a particular object/generation.
     /// </summary>
-    int _keySize;
+    private int _keySize;
 
     private IEncryptor stringEncryptor;
 
@@ -723,7 +723,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
         /// </summary>
         public static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

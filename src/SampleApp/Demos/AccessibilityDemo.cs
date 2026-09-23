@@ -297,7 +297,7 @@ internal sealed class AccessibilityDemo : PdfDemo
     ///   would go quietly stale the day one of them was reworded, and the whole claim of this page
     ///   is that the library says something useful at the moment the mistake is made.
     /// </remarks>
-    static IEnumerable<(string Broken, string Message)> Refusals()
+    private static IEnumerable<(string Broken, string Message)> Refusals()
     {
         yield return Refusal("Not tagged at all",
             renderer => renderer.TagContent = false, _ => { });
@@ -319,7 +319,7 @@ internal sealed class AccessibilityDemo : PdfDemo
             });
     }
 
-    static (string Broken, string Message) Refusal(string broken,
+    private static (string Broken, string Message) Refusal(string broken,
         Action<PdfDocumentRenderer> arrangeRenderer, Action<PdfDocument> arrangeDocument)
     {
         var probe = new Document();

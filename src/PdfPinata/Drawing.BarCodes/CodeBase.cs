@@ -1,5 +1,5 @@
 #region Copyright
-//
+
 // Authors:
 //   Klaus Potzesny
 //
@@ -25,6 +25,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
+
 #endregion
 
 namespace PdfPinata.Drawing.BarCodes;
@@ -37,22 +38,17 @@ public abstract class CodeBase
     /// <summary>
     /// Initializes a new instance of the <see cref="CodeBase"/> class.
     /// </summary>
-    public CodeBase(string text, XSize size, CodeDirection direction)
+    protected CodeBase(string text, XSize size, CodeDirection direction)
     {
         _text = text;
-        _size = size;
-        _direction = direction;
+        Size = size;
+        Direction = direction;
     }
 
     /// <summary>
     /// Gets or sets the size.
     /// </summary>
-    public XSize Size
-    {
-        get => _size;
-        set => _size = value;
-    }
-    XSize _size;
+    public XSize Size { get; set; }
 
     /// <summary>
     /// Gets or sets the text the bar code shall represent.
@@ -66,27 +62,18 @@ public abstract class CodeBase
             _text = value;
         }
     }
-    string _text;
+
+    private string _text;
 
     /// <summary>
     /// Always MiddleCenter.
     /// </summary>
-    public AnchorType Anchor
-    {
-        get => _anchor;
-        set => _anchor = value;
-    }
-    AnchorType _anchor;
+    public AnchorType Anchor { get; set; }
 
     /// <summary>
     /// Gets or sets the drawing direction.
     /// </summary>
-    public CodeDirection Direction
-    {
-        get => _direction;
-        set => _direction = value;
-    }
-    CodeDirection _direction;
+    public CodeDirection Direction { get; set; }
 
     /// <summary>
     /// When implemented in a derived class, determines whether the specified string can be used as Text
@@ -107,32 +94,36 @@ public abstract class CodeBase
         if (oldType == newType)
             return new XVector();
 
-        XVector result;
-        var delta = Deltas[(int)oldType, (int)newType];
-        result = new XVector(size.Width / 2 * delta.X, size.Height / 2 * delta.Y);
+        var delta = _deltas[(int)oldType, (int)newType];
+        var result = new XVector(size.Width / 2 * delta.X, size.Height / 2 * delta.Y);
         return result;
     }
 
-    struct Delta
+    private struct Delta
     {
         public Delta(int x, int y)
         {
             X = x;
             Y = y;
         }
+
         public readonly int X;
         public readonly int Y;
     }
-    static readonly Delta[,] Deltas = new Delta[,]
+
+    private static readonly Delta[,] _deltas = new Delta[,]
     {
-        { new(0, 0),   new(1, 0),   new(2, 0),  new(0, 1),   new(1, 1),   new(2, 1),  new(0, 2),  new(1, 2),  new(2, 2) },
-        { new(-1, 0),  new(0, 0),   new(1, 0),  new(-1, 1),  new(0, 1),   new(1, 1),  new(-1, 2), new(0, 2),  new(1, 2) },
-        { new(-2, 0),  new(-1, 0),  new(0, 0),  new(-2, 1),  new(-1, 1),  new(0, 1),  new(-2, 2), new(-1, 2), new(0, 2) },
-        { new(0, -1),  new(1, -1),  new(2, -1), new(0, 0),   new(1, 0),   new(2, 0),  new(0, 1),  new(1, 1),  new(2, 1) },
-        { new(-1, -1), new(0, -1),  new(1, -1), new(-1, 0),  new(0, 0),   new(1, 0),  new(-1, 1), new(0, 1),  new(1, 1) },
-        { new(-2, -1), new(-1, -1), new(0, -1), new(-2, 0),  new(-1, 0),  new(0, 0),  new(-2, 1), new(-1, 1), new(0, 1) },
-        { new(0, -2),  new(1, -2),  new(2, -2), new(0, -1),  new(1, -1),  new(2, -1), new(0, 0),  new(1, 0),  new(2, 0) },
-        { new(-1, -2), new(0, -2),  new(1, -2), new(-1, -1), new(0, -1),  new(1, -1), new(-1, 0), new(0, 0),  new(1, 0) },
-        { new(-2, -2), new(-1, -2), new(0, -2), new(-2, -1), new(-1, -1), new(0, -1), new(-2, 0), new(-1, 0), new(0, 0) }
+        { new(0, 0), new(1, 0), new(2, 0), new(0, 1), new(1, 1), new(2, 1), new(0, 2), new(1, 2), new(2, 2) },
+        { new(-1, 0), new(0, 0), new(1, 0), new(-1, 1), new(0, 1), new(1, 1), new(-1, 2), new(0, 2), new(1, 2) },
+        { new(-2, 0), new(-1, 0), new(0, 0), new(-2, 1), new(-1, 1), new(0, 1), new(-2, 2), new(-1, 2), new(0, 2) },
+        { new(0, -1), new(1, -1), new(2, -1), new(0, 0), new(1, 0), new(2, 0), new(0, 1), new(1, 1), new(2, 1) },
+        { new(-1, -1), new(0, -1), new(1, -1), new(-1, 0), new(0, 0), new(1, 0), new(-1, 1), new(0, 1), new(1, 1) },
+        { new(-2, -1), new(-1, -1), new(0, -1), new(-2, 0), new(-1, 0), new(0, 0), new(-2, 1), new(-1, 1), new(0, 1) },
+        { new(0, -2), new(1, -2), new(2, -2), new(0, -1), new(1, -1), new(2, -1), new(0, 0), new(1, 0), new(2, 0) },
+        { new(-1, -2), new(0, -2), new(1, -2), new(-1, -1), new(0, -1), new(1, -1), new(-1, 0), new(0, 0), new(1, 0) },
+        {
+            new(-2, -2), new(-1, -2), new(0, -2), new(-2, -1), new(-1, -1), new(0, -1), new(-2, 0), new(-1, 0),
+            new(0, 0)
+        }
     };
 }

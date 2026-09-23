@@ -29,17 +29,17 @@ namespace PinataLayout.Rendering.Tests;
 public class NestedMarkedContentTests
 {
     /// <summary>The content stream of the document's first page.</summary>
-    static string ContentOf(Document document)
+    private static string ContentOf(Document document)
         => Encoding.ASCII.GetString(PageContent.Of(Rendered.FirstPageOf(document)));
 
     /// <summary>Every marked-content operator on the page, in order.</summary>
-    static string[] Operators(Document document)
+    private static string[] Operators(Document document)
         => Regex.Matches(ContentOf(document), @"/\w+\s*(?:<<[^>]*>>\s*)?(BDC|BMC)|EMC")
             .Select(match => match.Value.Contains("EMC") ? "EMC" : "BEGIN")
             .ToArray();
 
     /// <summary>How deep the marked-content nesting ever gets.</summary>
-    static int DeepestNesting(Document document)
+    private static int DeepestNesting(Document document)
     {
         int depth = 0, deepest = 0;
         foreach (var op in Operators(document))
@@ -128,7 +128,7 @@ public class NestedMarkedContentTests
 
     // ── Arranging ───────────────────────────────────────────────────────────────────────────────
 
-    static Document Document(out Section section)
+    private static Document Document(out Section section)
     {
         var document = new Document();
         var normal = document.Styles[StyleNames.Normal];

@@ -36,28 +36,28 @@ namespace PdfPinata.Test.Fonts;
 public class PerFaceStyleSimulationTests
 {
     // U+1F512 LOCK: in Source Code Pro's format 12 subtable and in no Liberation Sans face.
-    const int Lock = 0x1F512;
+    private const int Lock = 0x1F512;
 
     // Two Arabic letters, which Liberation Sans has and Source Code Pro has not.
-    const string Arabic = "سل";
+    private const string Arabic = "سل";
 
     /// <summary>Bold here is simulated: the family ships a regular face alone.</summary>
-    static XFont SimulatedBold() => new XFont(PinnedFontResolver.CffFamilyName, 20, XFontStyle.Bold);
+    private static XFont SimulatedBold() => new XFont(PinnedFontResolver.CffFamilyName, 20, XFontStyle.Bold);
 
     /// <summary>Bold here is a real file.</summary>
-    static XFont RealBold() => new XFont("Arial", 20, XFontStyle.Bold);
+    private static XFont RealBold() => new XFont("Arial", 20, XFontStyle.Bold);
 
-    sealed class Installed : IDisposable
+    private sealed class Installed : IDisposable
     {
         internal Installed(IFontFallback fallback) => GlobalFontSettings.FontFallback = fallback;
 
         public void Dispose() => GlobalFontSettings.FontFallback = null;
     }
 
-    sealed class Only : IFontFallback
+    private sealed class Only : IFontFallback
     {
-        readonly HashSet<int> _mine;
-        readonly string[] _families;
+        private readonly HashSet<int> _mine;
+        private readonly string[] _families;
 
         internal Only(IEnumerable<int> codePoints, params string[] families)
         {
@@ -70,7 +70,7 @@ public class PerFaceStyleSimulationTests
     }
 
     /// <summary>The text rendering modes written, in order: 0 fills, 2 fills and strokes.</summary>
-    static int[] RenderingModes(string content)
+    private static int[] RenderingModes(string content)
         => Regex.Matches(content, @"(\d+) Tr")
             .Select(match => int.Parse(match.Groups[1].Value))
             .ToArray();

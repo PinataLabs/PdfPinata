@@ -20,10 +20,10 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 /// </summary>
 public class DdlLineEndTests
 {
-    const int Patience = 5000;
+    private const int Patience = 5000;
 
     /// <summary>A document with a comment line, written with LF line ends.</summary>
-    const string Commented =
+    private const string Commented =
         "\\document\n"
         + "{\n"
         + "  // The comment runs to the end of this line and no further.\n"
@@ -39,7 +39,7 @@ public class DdlLineEndTests
         + "}\n";
 
     /// <summary>A document whose fifth line holds a colour that is not one.</summary>
-    const string FaultyOnLineFive =
+    private const string FaultyOnLineFive =
         "\\document\n"
         + "{\n"
         + "  // A comment.\n"
@@ -48,9 +48,9 @@ public class DdlLineEndTests
         + "  }\n"
         + "}\n";
 
-    static string WithLineEnds(string ddl, string lineEnd) => ddl.Replace("\n", lineEnd);
+    private static string WithLineEnds(string ddl, string lineEnd) => ddl.Replace("\n", lineEnd);
 
-    static Task<string> RereadAndWritten(string ddl) =>
+    private static Task<string> RereadAndWritten(string ddl) =>
         Task.Run(() => DdlWriter.WriteToString(DdlReader.DocumentFromString(ddl)));
 
     [Theory(Timeout = Patience)]

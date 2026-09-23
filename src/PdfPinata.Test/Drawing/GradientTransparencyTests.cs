@@ -156,18 +156,18 @@ public class GradientTransparencyTests
 
     // ----- the page under test -------------------------------------------------------------------
 
-    static readonly XRect Box = new XRect(20, 20, 200, 100);
+    private static readonly XRect Box = new XRect(20, 20, 200, 100);
 
     /// <summary>Fully transparent black to fully opaque black, across the box.</summary>
-    static XLinearGradientBrush FadingBrush()
+    private static XLinearGradientBrush FadingBrush()
     {
         return new XLinearGradientBrush(Box, XColor.FromArgb(0, 0, 0, 0), XColors.Black,
             XLinearGradientMode.Horizontal);
     }
 
-    static PdfPage SavedPageWith(XBrush brush) => SavedPageWith(gfx => gfx.DrawRectangle(brush, Box));
+    private static PdfPage SavedPageWith(XBrush brush) => SavedPageWith(gfx => gfx.DrawRectangle(brush, Box));
 
-    static PdfPage SavedPageWith(Action<XGraphics> draw)
+    private static PdfPage SavedPageWith(Action<XGraphics> draw)
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -183,10 +183,10 @@ public class GradientTransparencyTests
 
     // ----- reading the structure back ------------------------------------------------------------
 
-    static string ContentOf(PdfPage page) => System.Text.Encoding.ASCII.GetString(PageContent.Of(page));
+    private static string ContentOf(PdfPage page) => System.Text.Encoding.ASCII.GetString(PageContent.Of(page));
 
     /// <summary>The two values of a shading's ramp, with the spacing a round trip adds removed.</summary>
-    static string RampEnd(PdfDictionary shading, string key)
+    private static string RampEnd(PdfDictionary shading, string key)
     {
         // ReSharper disable once PossibleNullReferenceException
         return shading.Elements.GetDictionary("/Function").Elements[key].ToString().Replace(" ", "");
@@ -197,7 +197,7 @@ public class GradientTransparencyTests
     ///   they are applied: "mask" for one that sets a mask, "none" for one that takes it off, and
     ///   nothing at all for one that has no opinion.
     /// </summary>
-    static System.Collections.Generic.IReadOnlyList<string> SoftMasksAppliedBy(PdfPage page)
+    private static System.Collections.Generic.IReadOnlyList<string> SoftMasksAppliedBy(PdfPage page)
     {
         var states = page.Elements.GetDictionary("/Resources").Elements.GetDictionary("/ExtGState");
 
@@ -211,7 +211,7 @@ public class GradientTransparencyTests
     }
 
     /// <summary>The soft mask the page's one masking graphics state names.</summary>
-    static PdfDictionary SoftMaskOf(PdfPage page)
+    private static PdfDictionary SoftMaskOf(PdfPage page)
     {
         var states = page.Elements.GetDictionary("/Resources").Elements.GetDictionary("/ExtGState");
         return states?.Elements.KeyNames
@@ -219,10 +219,10 @@ public class GradientTransparencyTests
             .FirstOrDefault(mask => mask != null);
     }
 
-    static PdfDictionary MaskFormOf(PdfPage page) => SoftMaskOf(page)?.Elements.GetDictionary("/G");
+    private static PdfDictionary MaskFormOf(PdfPage page) => SoftMaskOf(page)?.Elements.GetDictionary("/G");
 
     /// <summary>Every mask form the page reaches, one per masked gradient.</summary>
-    static System.Collections.Generic.IReadOnlyList<PdfDictionary> FormsIn(PdfPage page)
+    private static System.Collections.Generic.IReadOnlyList<PdfDictionary> FormsIn(PdfPage page)
     {
         var states = page.Elements.GetDictionary("/Resources").Elements.GetDictionary("/ExtGState");
         if (states == null)
@@ -236,14 +236,14 @@ public class GradientTransparencyTests
     }
 
     /// <summary>The colour shading pattern the page fills with.</summary>
-    static PdfDictionary ColourPatternOf(PdfPage page)
+    private static PdfDictionary ColourPatternOf(PdfPage page)
     {
         var patterns = page.Elements.GetDictionary("/Resources").Elements.GetDictionary("/Pattern");
         return patterns.Elements.GetDictionary(patterns.Elements.KeyNames[0].Value);
     }
 
     /// <summary>The one shading a pattern or a mask form paints with.</summary>
-    static PdfDictionary OnlyShadingIn(PdfDictionary patternOrForm)
+    private static PdfDictionary OnlyShadingIn(PdfDictionary patternOrForm)
     {
         var shading = patternOrForm.Elements.GetDictionary("/Shading");
         if (shading != null)

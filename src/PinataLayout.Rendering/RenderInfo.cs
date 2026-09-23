@@ -47,7 +47,7 @@ public abstract class RenderInfo
   /// <summary>Gets the layout information worked out for the object being rendered.</summary>
   public LayoutInfo LayoutInfo => layoutInfo;
 
-  LayoutInfo layoutInfo = new LayoutInfo();
+  private LayoutInfo layoutInfo = new LayoutInfo();
 
   /// <summary>Gets the document object this render information describes.</summary>
   public abstract DocumentObject DocumentObject

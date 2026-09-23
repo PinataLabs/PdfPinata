@@ -36,7 +36,7 @@ namespace PdfPinata.Drawing;
 /// </summary>
 public sealed class XImageFormat
 {
-    XImageFormat(Guid guid)
+    private XImageFormat(Guid guid)
     {
         _guid = guid;
     }
@@ -92,7 +92,7 @@ public sealed class XImageFormat
     /// </summary>
     public static XImageFormat Icon => _icon;
 
-    readonly Guid _guid;
+    private readonly Guid _guid;
 
     // #??? Why Guids?
     private static readonly XImageFormat _png = new(new Guid("{B96B3CAF-0728-11D3-9D7B-0000F81EF32E}"));

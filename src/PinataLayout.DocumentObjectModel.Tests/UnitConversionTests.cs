@@ -18,10 +18,10 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 public class UnitConversionTests
 {
     /// <summary>One inch, spelled five ways. Every conversion below is a way of saying this.</summary>
-    const double PointsPerInch = 72;
-    const double CentimetresPerInch = 2.54;
-    const double MillimetresPerInch = 25.4;
-    const double PicasPerInch = 6;
+    private const double PointsPerInch = 72;
+    private const double CentimetresPerInch = 2.54;
+    private const double MillimetresPerInch = 25.4;
+    private const double PicasPerInch = 6;
 
     [Fact]
     public void AnInchReadsTheSameLengthInEveryMeasure()

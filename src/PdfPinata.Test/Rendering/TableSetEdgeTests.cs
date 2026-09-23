@@ -25,8 +25,8 @@ namespace PdfPinata.Test.Rendering;
 /// </summary>
 public class TableSetEdgeTests
 {
-    const int Size = 4;
-    static readonly Color Green = new Color(0, 255, 0);
+    private const int Size = 4;
+    private static readonly Color Green = new Color(0, 255, 0);
 
     [Theory]
     [InlineData(false)]
@@ -121,7 +121,7 @@ public class TableSetEdgeTests
         BorderOf(table[Size - 1, Size - 1], "Bottom").Should().BeNull();
     }
 
-    static void ClearTheInterior(Table table)
+    private static void ClearTheInterior(Table table)
     {
         table.SetEdge(0, 0, table.Columns.Count, table.Rows.Count, Edge.Interior, BorderStyle.None, 0);
     }
@@ -130,33 +130,33 @@ public class TableSetEdgeTests
     ///   Addressed by index rather than by enumerating the rows, because a row holds only the
     ///   cells something has already asked it for and enumerating one reaches no further.
     /// </summary>
-    static void ColourEveryCell(Table table)
+    private static void ColourEveryCell(Table table)
     {
         for (var row = 0; row < table.Rows.Count; row++)
             for (var column = 0; column < table.Columns.Count; column++)
                 table[row, column].Borders.Color = Green;
     }
 
-    static Border BorderOf(Cell cell, string side)
+    private static Border BorderOf(Cell cell, string side)
     {
         return (cell.GetValue("Borders", GV.GetNull) as Borders)?.GetValue(side, GV.GetNull) as Border;
     }
 
     /// <summary>Halfway up the table, which for four rows is the foot of the second one.</summary>
-    static double MiddleOf(IReadOnlyList<StrokedLines.Line> lines)
+    private static double MiddleOf(IReadOnlyList<StrokedLines.Line> lines)
     {
         var horizontal = lines.Where(line => line.IsHorizontal).ToList();
         return (horizontal.Max(line => line.Y1) + horizontal.Min(line => line.Y1)) / 2;
     }
 
     /// <summary>The distinct positions, to the nearest hundredth of a point.</summary>
-    static IReadOnlyList<double> Distinct(
+    private static IReadOnlyList<double> Distinct(
         IEnumerable<StrokedLines.Line> lines, Func<StrokedLines.Line, double> position)
     {
         return lines.Select(line => Math.Round(position(line), 2)).Distinct().ToList();
     }
 
-    static Table Build()
+    private static Table Build()
     {
         var document = new Document();
         var table = document.AddSection().AddTable();
@@ -168,7 +168,7 @@ public class TableSetEdgeTests
         return table;
     }
 
-    static PdfPage Render(Action<Table> arrange)
+    private static PdfPage Render(Action<Table> arrange)
     {
         var table = Build();
         arrange(table);

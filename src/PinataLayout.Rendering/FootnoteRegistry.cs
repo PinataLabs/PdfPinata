@@ -88,7 +88,7 @@ internal class FootnoteRegistry
     /// zero, and a first footnote marked "0" would be a strange thing to ship. Anything below one
     /// therefore starts at one.
     /// </remarks>
-    int OrdinalOf(Footnote footnote, Entry entry)
+    private int OrdinalOf(Footnote footnote, Entry entry)
     {
         var start = _document.FootnoteStartingNumber;
         if (start < 1)
@@ -113,7 +113,7 @@ internal class FootnoteRegistry
         return start + before;
     }
 
-    bool CountsWith(Entry earlier, Entry entry)
+    private bool CountsWith(Entry earlier, Entry entry)
     {
         switch (_document.FootnoteNumberingRule)
         {
@@ -129,20 +129,20 @@ internal class FootnoteRegistry
         }
     }
 
-    class Entry
+    private class Entry
     {
         internal int Section;
         internal int Page;
         internal FormattedFootnote Formatted;
     }
 
-    readonly Document _document;
+    private readonly Document _document;
 
     // Reference equality, deliberately: two notes with identical content are two notes.
-    readonly Dictionary<Footnote, Entry> _entries =
+    private readonly Dictionary<Footnote, Entry> _entries =
         new Dictionary<Footnote, Entry>(ReferenceEqualityComparer.Instance);
 
-    readonly List<Footnote> _order = new List<Footnote>();
+    private readonly List<Footnote> _order = new List<Footnote>();
 }
 
 /// <summary>

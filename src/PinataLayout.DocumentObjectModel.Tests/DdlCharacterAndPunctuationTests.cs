@@ -21,13 +21,13 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 /// </summary>
 public class DdlCharacterAndPunctuationTests
 {
-    static Document Read(string ddl) => DdlReader.DocumentFromString(ddl);
+    private static Document Read(string ddl) => DdlReader.DocumentFromString(ddl);
 
-    static Paragraph FirstParagraphOf(string paragraphBody) =>
+    private static Paragraph FirstParagraphOf(string paragraphBody) =>
         Read("\\document{\\section{\\paragraph{" + paragraphBody + "}}}")
             .LastSection.Elements[0] as Paragraph;
 
-    static IReadOnlyList<string> ComplaintsAbout(string ddl) =>
+    private static IReadOnlyList<string> ComplaintsAbout(string ddl) =>
         ReaderDiagnostics.ComplaintsAbout(ddl);
 
     // ----- \chr ---------------------------------------------------------------------------------

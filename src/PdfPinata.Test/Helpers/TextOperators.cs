@@ -226,7 +226,7 @@ internal static class TextOperators
     /// <exception cref="InvalidOperationException">
     ///   The page uses a text operator whose effect on the pen this does not follow.
     /// </exception>
-    static List<(double X, double Y, int Written, string Text, bool Exact)> Placed(PdfPage page)
+    private static List<(double X, double Y, int Written, string Text, bool Exact)> Placed(PdfPage page)
     {
         var shown = new List<(double X, double Y, int Written, string Text, bool Exact)>();
         double x = 0, y = 0;
@@ -290,14 +290,14 @@ internal static class TextOperators
         return shown;
     }
 
-    static IEnumerable<CArray> TjArrays(PdfPage page)
+    private static IEnumerable<CArray> TjArrays(PdfPage page)
     {
         return Operators(page)
             .Where(op => op.OpCode.OpCodeName == OpCodeName.TJ)
             .SelectMany(op => ItemsOf(op.Operands).OfType<CArray>());
     }
 
-    static IEnumerable<COperator> Operators(PdfPage page)
+    private static IEnumerable<COperator> Operators(PdfPage page)
     {
         return ItemsOf(ContentReader.ReadContent(PageContent.Of(page))).OfType<COperator>();
     }
@@ -311,7 +311,7 @@ internal static class TextOperators
     ///   asks for exactly that one - cannot be pointed at a sequence directly. Its public
     ///   GetEnumerator, the one foreach binds to, works.
     /// </remarks>
-    static IReadOnlyList<CObject> ItemsOf(CSequence sequence)
+    private static IReadOnlyList<CObject> ItemsOf(CSequence sequence)
     {
         var items = new List<CObject>();
         foreach (var item in sequence)
@@ -319,7 +319,7 @@ internal static class TextOperators
         return items;
     }
 
-    static double Number(CObject operand)
+    private static double Number(CObject operand)
     {
         return operand switch
         {

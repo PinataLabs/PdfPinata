@@ -466,7 +466,7 @@ internal class DdlScanner
   /// <summary>
   /// Returns whether the linebreak should be ignored, because the previous symbol is already a whitespace.
   /// </summary>
-  bool IgnoreLineBreak()
+  private bool IgnoreLineBreak()
   {
     switch (this.prevSymbol)
     {
@@ -481,7 +481,7 @@ internal class DdlScanner
   /// <summary>
   /// Read text from current position until block ends or \keyword occurs.
   /// </summary>
-  Symbol ReadPlainText(bool rootLevel)
+  private Symbol ReadPlainText(bool rootLevel)
   {
     var foundSpace = false;
     var loop = true;
@@ -801,18 +801,18 @@ internal class DdlScanner
     throw ParserException(DomMsgID.IntegerExpected, token);
   }
 
-  DdlParserException IntegerOutOfRange() =>
+  private DdlParserException IntegerOutOfRange() =>
     ParserException(DomMsgID.OutOfRange,
       String.Format(CultureInfo.InvariantCulture, "{0} - {1}", Int32.MinValue, Int32.MaxValue));
 
-  DdlParserException UnsignedIntegerOutOfRange() =>
+  private DdlParserException UnsignedIntegerOutOfRange() =>
     ParserException(DomMsgID.OutOfRange,
       String.Format(CultureInfo.InvariantCulture, "{0} - {1}", UInt32.MinValue, UInt32.MaxValue));
 
   /// <summary>
   /// A DdlParserException carrying the given message and the position of the current token.
   /// </summary>
-  DdlParserException ParserException(DomMsgID errorCode, params object[] args) =>
+  private DdlParserException ParserException(DomMsgID errorCode, params object[] args) =>
     new DdlParserException(new DdlReaderError(DdlErrorLevel.Error, DomSR.FormatMessage(errorCode, args),
       (int)errorCode, DocumentFileName, CurrentLine, CurrentLinePos));
 
@@ -1088,7 +1088,7 @@ internal class DdlScanner
   /// <summary>
   /// Scans a DDL keyword that starts with a backslash.
   /// </summary>
-  Symbol ScanKeyword()
+  private Symbol ScanKeyword()
   {
     var ch = ScanNextChar();
 
@@ -1359,28 +1359,28 @@ internal class DdlScanner
   /// <summary>
   /// Save the current scanner location in the document for error handling.
   /// </summary>
-  void SaveCurDocumentPos()
+  private void SaveCurDocumentPos()
   {
     m_nCurDocumentLine = m_idxLine;
     m_nCurDocumentLinePos = m_idxLinePos;
   }
 
-  int m_nCurDocumentLine;
-  int m_nCurDocumentLinePos;
+  private int m_nCurDocumentLine;
+  private int m_nCurDocumentLinePos;
 
-  string m_DocumentFileName;
-  string m_DocumentPath;
-  string m_strDocument;
-  int ddlLength;
-  int m_idx;
-  int m_idxLine;
-  int m_idxLinePos;
+  private string m_DocumentFileName;
+  private string m_DocumentPath;
+  private string m_strDocument;
+  private int ddlLength;
+  private int m_idx;
+  private int m_idxLine;
+  private int m_idxLinePos;
 
-  char currChar;
-  char nextChar;
-  string token = "";
-  Symbol symbol = Symbol.None;
-  Symbol prevSymbol = Symbol.None;
-  TokenType tokenType = TokenType.None;
-  bool emptyLine;
+  private char currChar;
+  private char nextChar;
+  private string token = "";
+  private Symbol symbol = Symbol.None;
+  private Symbol prevSymbol = Symbol.None;
+  private TokenType tokenType = TokenType.None;
+  private bool emptyLine;
 }

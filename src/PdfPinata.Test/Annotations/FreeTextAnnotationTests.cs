@@ -24,9 +24,9 @@ namespace PdfPinata.Test.Annotations;
 [Collection(RasterizingCollection.Name)]
 public sealed class FreeTextAnnotationTests : IDisposable
 {
-    const string OutDir = "Out/FreeTextAnnotations";
+    private const string OutDir = "Out/FreeTextAnnotations";
 
-    readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
+    private readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
 
     public void Dispose()
     {
@@ -41,7 +41,7 @@ public sealed class FreeTextAnnotationTests : IDisposable
         GhostscriptSetup.Configure();
     }
 
-    static readonly XRect Where = new XRect(60, 60, 220, 90);
+    private static readonly XRect Where = new XRect(60, 60, 220, 90);
 
     [Fact]
     public void AFreeTextNamesItsSubtypeAndCarriesTheDefaultAppearanceItIsRequiredTo()
@@ -215,7 +215,7 @@ public sealed class FreeTextAnnotationTests : IDisposable
         Count(page, IsAnythingButWhite).Should().Be(0);
     }
 
-    IMagickImage<byte> Rasterize(string name, Action<PdfFreeTextAnnotation> arrange)
+    private IMagickImage<byte> Rasterize(string name, Action<PdfFreeTextAnnotation> arrange)
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -233,7 +233,7 @@ public sealed class FreeTextAnnotationTests : IDisposable
         return images[0];
     }
 
-    static PdfFreeTextAnnotation OnAPage()
+    private static PdfFreeTextAnnotation OnAPage()
     {
         var document = new PdfDocument();
         var caption = new PdfFreeTextAnnotation();
@@ -245,20 +245,20 @@ public sealed class FreeTextAnnotationTests : IDisposable
         return caption;
     }
 
-    static byte[] NormalStream(PdfFreeTextAnnotation caption)
+    private static byte[] NormalStream(PdfFreeTextAnnotation caption)
     {
         var form =
             (PdfDictionary)caption.Elements.GetDictionary("/AP").Elements.GetObject("/N");
         return form.Stream.Value;
     }
 
-    static bool IsRed(IMagickColor<byte> c) => c.R > 130 && c.G < 100 && c.B < 100;
+    private static bool IsRed(IMagickColor<byte> c) => c.R > 130 && c.G < 100 && c.B < 100;
 
-    static bool IsBlue(IMagickColor<byte> c) => c.B > 150 && c.R < 120 && c.G < 150;
+    private static bool IsBlue(IMagickColor<byte> c) => c.B > 150 && c.R < 120 && c.G < 150;
 
-    static bool IsAnythingButWhite(IMagickColor<byte> c) => c.R < 240 || c.G < 240 || c.B < 240;
+    private static bool IsAnythingButWhite(IMagickColor<byte> c) => c.R < 240 || c.G < 240 || c.B < 240;
 
-    static int Count(IMagickImage<byte> image, Func<IMagickColor<byte>, bool> match)
+    private static int Count(IMagickImage<byte> image, Func<IMagickColor<byte>, bool> match)
     {
         using var pixels = image.GetPixels();
         return pixels.Count(p =>

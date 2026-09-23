@@ -36,9 +36,9 @@ public static class PdfSigner
     /// offsets — which are not known until this array has been written — can be patched over it
     /// without changing its length and so moving what it points at.
     /// </summary>
-    const string ByteRangePlaceholder = "[0 0000000000 0000000000 0000000000]";
+    private const string ByteRangePlaceholder = "[0 0000000000 0000000000 0000000000]";
 
-    const int ByteRangeFieldWidth = 10;
+    private const int ByteRangeFieldWidth = 10;
 
     /// <summary>
     /// Signs a document that was opened for appending, and writes the signed file to a stream.
@@ -161,7 +161,7 @@ public static class PdfSigner
     /// The signature dictionary — the object the field's value points at, and the one that carries
     /// the two placeholders.
     /// </summary>
-    static PdfDictionary BuildSignatureDictionary(PdfDocument document, IPdfSigner signer,
+    private static PdfDictionary BuildSignatureDictionary(PdfDocument document, IPdfSigner signer,
         PdfSignatureOptions options, int reserved)
     {
         var signature = new PdfDictionary(document);
@@ -200,7 +200,7 @@ public static class PdfSigner
     /// <c>/FT /Sig</c> field in the AcroForm's <c>/Fields</c> and the <c>/Widget</c> annotation in
     /// the page's <c>/Annots</c>.
     /// </remarks>
-    static PdfSignatureField BuildSignatureField(PdfDocument document, PdfSignatureOptions options,
+    private static PdfSignatureField BuildSignatureField(PdfDocument document, PdfSignatureOptions options,
         PdfDictionary signature)
     {
         var field = new PdfSignatureField(document);
@@ -227,7 +227,7 @@ public static class PdfSigner
     /// Puts the field on its page, giving it a rectangle and — if the caller wants one — something
     /// to show inside it.
     /// </summary>
-    static void AttachToPage(PdfDocument document, PdfSignatureOptions options, PdfSignatureField field)
+    private static void AttachToPage(PdfDocument document, PdfSignatureOptions options, PdfSignatureField field)
     {
         if (options.PageIndex < 0 || options.PageIndex >= document.PageCount)
             throw new ArgumentOutOfRangeException(nameof(options),
@@ -281,7 +281,7 @@ public static class PdfSigner
     /// Draws the visible appearance into a form XObject and returns the appearance dictionary
     /// referring to it.
     /// </summary>
-    static PdfDictionary BuildAppearance(PdfDocument document, PdfSignatureOptions options, XRect visible)
+    private static PdfDictionary BuildAppearance(PdfDocument document, PdfSignatureOptions options, XRect visible)
     {
         var form = new XForm(document, new XSize(visible.Width, visible.Height));
         using (var gfx = XGraphics.FromForm(form))
@@ -297,7 +297,7 @@ public static class PdfSigner
     /// Registers the field with the document's interactive form, creating the form if the document
     /// has none.
     /// </summary>
-    static void AttachToAcroForm(PdfDocument document, PdfSignatureField field)
+    private static void AttachToAcroForm(PdfDocument document, PdfSignatureField field)
     {
         var catalog = document.Catalog;
         var form = catalog.AcroForm;
@@ -330,7 +330,7 @@ public static class PdfSigner
     /// Makes the signature a certifying one by declaring, through <c>/DocMDP</c>, what a later
     /// revision is still allowed to do.
     /// </summary>
-    static void Certify(PdfDocument document, PdfDictionary signature, PdfCertificationLevel level)
+    private static void Certify(PdfDocument document, PdfDictionary signature, PdfCertificationLevel level)
     {
         var parameters = new PdfDictionary(document);
         parameters.Elements.SetName("/Type", "/TransformParams");
@@ -359,7 +359,7 @@ public static class PdfSigner
     /// Appends a signature reference dictionary to the signature's <c>/Reference</c> array, which a
     /// certifying signature that also locks fields has two of.
     /// </summary>
-    static void AddReference(PdfDocument document, PdfDictionary signature, PdfDictionary reference)
+    private static void AddReference(PdfDocument document, PdfDictionary signature, PdfDictionary reference)
     {
         var references = signature.Elements.GetArray("/Reference");
         if (references == null)
@@ -375,7 +375,7 @@ public static class PdfSigner
     /// Locks the fields the options ask for: <c>/Lock</c> on the field, a <c>/FieldMDP</c>
     /// reference on the signature, and the read-only flag on every field covered.
     /// </summary>
-    static void Lock(PdfDocument document, PdfSignatureField field, PdfDictionary signature,
+    private static void Lock(PdfDocument document, PdfSignatureField field, PdfDictionary signature,
         PdfSignatureOptions options)
     {
         var action = options.LockAction!.Value;
@@ -423,7 +423,7 @@ public static class PdfSigner
     /// <summary>
     /// Writes the revision that will be signed, into memory, so that it can still be patched.
     /// </summary>
-    static byte[] WriteRevision(PdfDocument document)
+    private static byte[] WriteRevision(PdfDocument document)
     {
         using var buffer = new MemoryStream();
         document.SaveIncremental(buffer);
@@ -433,7 +433,7 @@ public static class PdfSigner
     /// <summary>
     /// Finds the run of zeros reserved for the signature, and proves it is the one we wrote.
     /// </summary>
-    static int FindContentsHole(byte[] buffer, int from, int reserved)
+    private static int FindContentsHole(byte[] buffer, int from, int reserved)
     {
         var placeholder = "<" + new string('0', reserved * 2) + ">";
         var at = IndexOf(buffer, PdfEncoders.RawEncoding.GetBytes(placeholder), from);
@@ -446,7 +446,7 @@ public static class PdfSigner
         return at;
     }
 
-    static int FindByteRangePlaceholder(byte[] buffer, int from)
+    private static int FindByteRangePlaceholder(byte[] buffer, int from)
     {
         var at = IndexOf(buffer, PdfEncoders.RawEncoding.GetBytes(ByteRangePlaceholder), from);
         if (at < 0)
@@ -459,7 +459,7 @@ public static class PdfSigner
     /// <summary>
     /// Writes the real byte range over its placeholder, in exactly the space the placeholder took.
     /// </summary>
-    static void PatchByteRange(byte[] buffer, int at, int holeStart, int holeEnd, int tailLength)
+    private static void PatchByteRange(byte[] buffer, int at, int holeStart, int holeEnd, int tailLength)
     {
         var patched = "[0 " + Field(holeStart) + " " + Field(holeEnd) + " " + Field(tailLength) + "]";
         if (patched.Length != ByteRangePlaceholder.Length)
@@ -476,14 +476,14 @@ public static class PdfSigner
     /// with leading zeros keeps the numbers readable and is what every other producer does; either
     /// is lawful, since a PDF array does not care how much white space separates its elements.
     /// </summary>
-    static string Field(int value) =>
+    private static string Field(int value) =>
         value.ToString(CultureInfo.InvariantCulture).PadLeft(ByteRangeFieldWidth);
 
     /// <summary>
     /// Writes the signature into the reserved hole as hexadecimal, leaving the unused remainder of
     /// the hole as the zeros it already held.
     /// </summary>
-    static void WriteHex(byte[] buffer, int at, byte[] signature, int reserved)
+    private static void WriteHex(byte[] buffer, int at, byte[] signature, int reserved)
     {
         const string digits = "0123456789ABCDEF";
 
@@ -499,7 +499,7 @@ public static class PdfSigner
             buffer[at + index] = (byte)'0';
     }
 
-    static int IndexOf(byte[] haystack, byte[] needle, int from)
+    private static int IndexOf(byte[] haystack, byte[] needle, int from)
     {
         for (var at = Math.Max(0, from); at <= haystack.Length - needle.Length; at++)
         {

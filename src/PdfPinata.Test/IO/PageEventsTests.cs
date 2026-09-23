@@ -21,9 +21,9 @@ namespace PdfPinata.Test.IO;
 [Collection(RasterizingCollection.Name)]
 public sealed class PageEventsTests : IDisposable
 {
-    const string OutDir = "Out/PageEvents";
+    private const string OutDir = "Out/PageEvents";
 
-    readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
+    private readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
 
     static PageEventsTests()
     {
@@ -58,7 +58,7 @@ public sealed class PageEventsTests : IDisposable
     {
         var document = new PdfDocument();
         var counts = new List<int>();
-        document.PageAdded += (sender, _) => counts.Add(((PdfDocument)sender).PageCount);
+        document.PageAdded += (sender, _) => counts.Add((((PdfDocument)sender)!).PageCount);
 
         _ = document.AddPage();
         _ = document.AddPage();
@@ -298,7 +298,7 @@ public sealed class PageEventsTests : IDisposable
 
     // ----- helpers ------------------------------------------------------------------------------------
 
-    static List<(string, PdfPage, int)> Record(PdfDocument document)
+    private static List<(string, PdfPage, int)> Record(PdfDocument document)
     {
         var seen = new List<(string, PdfPage, int)>();
         document.PageAdded += (_, e) => seen.Add(("added", e.Page, e.Index));
@@ -306,7 +306,7 @@ public sealed class PageEventsTests : IDisposable
         return seen;
     }
 
-    static byte[] TwoPages()
+    private static byte[] TwoPages()
     {
         var document = new PdfDocument();
         _ = document.AddPage();
@@ -316,15 +316,15 @@ public sealed class PageEventsTests : IDisposable
         return output.ToArray();
     }
 
-    static PdfDocument Reopen(byte[] bytes, PdfDocumentOpenMode mode) =>
+    private static PdfDocument Reopen(byte[] bytes, PdfDocumentOpenMode mode) =>
         PdfPinata.Pdf.IO.PdfReader.Open(new MemoryStream(bytes), mode);
 
-    static bool IsBlue(IMagickColor<byte> c) => c.B > 150 && c.R < 120 && c.G < 150;
+    private static bool IsBlue(IMagickColor<byte> c) => c.B > 150 && c.R < 120 && c.G < 150;
 
-    static bool IsGrey(IMagickColor<byte> c) =>
+    private static bool IsGrey(IMagickColor<byte> c) =>
         Math.Abs(c.R - c.G) < 10 && Math.Abs(c.G - c.B) < 10 && c.R > 90 && c.R < 200;
 
-    static int Count(IMagickImage<byte> image, Func<IMagickColor<byte>, bool> match)
+    private static int Count(IMagickImage<byte> image, Func<IMagickColor<byte>, bool> match)
     {
         using var pixels = image.GetPixels();
         return pixels.Count(p =>

@@ -165,7 +165,7 @@ internal class Rectangle : Area
         set => x = value;
     }
 
-    XUnit x;
+    private XUnit x;
 
     /// <summary>
     /// Gets or sets the top boundary of the rectangle.
@@ -176,7 +176,7 @@ internal class Rectangle : Area
         set => y = value;
     }
 
-    XUnit y;
+    private XUnit y;
 
     /// <summary>
     /// Gets or sets the top boundary of the rectangle.
@@ -187,7 +187,7 @@ internal class Rectangle : Area
         set => width = value;
     }
 
-    XUnit width;
+    private XUnit width;
 
     /// <summary>
     /// Gets or sets the height of the rectangle.
@@ -198,7 +198,7 @@ internal class Rectangle : Area
         set => height = value;
     }
 
-    XUnit height;
+    private XUnit height;
 
     /// <summary>
     /// Returns the union of the rectangle and the given area.

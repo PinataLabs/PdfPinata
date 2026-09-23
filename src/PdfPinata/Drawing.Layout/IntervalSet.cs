@@ -30,17 +30,17 @@ namespace PdfPinata.Drawing.Layout;
 /// </remarks>
 public sealed class IntervalSet : IReadOnlyList<XInterval>
 {
-    static readonly XInterval[] Nothing = Array.Empty<XInterval>();
+    private static readonly XInterval[] _nothing = [];
 
-    readonly XInterval[] _intervals;
+    private readonly XInterval[] _intervals;
 
-    IntervalSet(XInterval[] normalised)
+    private IntervalSet(XInterval[] normalised)
     {
         _intervals = normalised;
     }
 
     /// <summary>A set covering nothing.</summary>
-    public static IntervalSet Empty { get; } = new IntervalSet(Nothing);
+    public static IntervalSet Empty { get; } = new IntervalSet(_nothing);
 
     /// <summary>A set covering one run, from <paramref name="start"/> to <paramref name="end"/>.</summary>
     public static IntervalSet Of(double start, double end)
@@ -92,36 +92,42 @@ public sealed class IntervalSet : IReadOnlyList<XInterval>
             return this;
 
         var kept = new List<XInterval>();
-
         foreach (var free in _intervals)
-        {
-            var cursor = free.Start;
-
-            foreach (var cut in cuts)
-            {
-                // Wholly to the left of where we have got to, or wholly to the right of this run.
-                // The cuts are in order, so once one starts past the run's end so does every one
-                // after it.
-                if (cut.End <= cursor)
-                    continue;
-                if (cut.Start >= free.End)
-                    break;
-
-                if (cut.Start > cursor)
-                    kept.Add(new XInterval(cursor, Math.Min(cut.Start, free.End)));
-
-                cursor = Math.Max(cursor, cut.End);
-                if (cursor >= free.End)
-                    break;
-            }
-
-            if (cursor < free.End)
-                kept.Add(new XInterval(cursor, free.End));
-        }
+            AddWhatSurvives(free, cuts, kept);
 
         // Already in order and already disjoint: the pieces of one run are separated by the cuts
         // that made them, and the runs themselves were separated to begin with. Nothing to merge.
-        return kept.Count == 0 ? Empty : new IntervalSet(kept.ToArray());
+        return kept.Count == 0 ? Empty : new IntervalSet([.. kept]);
+    }
+
+    /// <summary>
+    /// Adds to <paramref name="kept"/> the pieces of one run that the cuts leave standing.
+    /// </summary>
+    private static void AddWhatSurvives(XInterval free, XInterval[] cuts, List<XInterval> kept)
+    {
+        var cursor = free.Start;
+
+        foreach (var cut in cuts)
+        {
+            // Wholly to the left of where we have got to, or wholly to the right of this run.
+            // The cuts are in order, so once one starts past the run's end so does every one
+            // after it.
+            if (cut.End <= cursor)
+                continue;
+            if (cut.Start >= free.End)
+                break;
+
+            // Past both tests above, the cut starts before the run ends and ends after the cursor,
+            // so neither needs clamping.
+            if (cut.Start > cursor)
+                kept.Add(new XInterval(cursor, cut.Start));
+
+            cursor = cut.End;
+            if (cursor >= free.End)
+                return;
+        }
+
+        kept.Add(new XInterval(cursor, free.End));
     }
 
     /// <summary>
@@ -219,7 +225,7 @@ public sealed class IntervalSet : IReadOnlyList<XInterval>
     /// <summary>
     /// Puts runs in order, drops the ones covering nothing, and merges any that overlap or meet.
     /// </summary>
-    static XInterval[] Normalise(IEnumerable<XInterval> intervals)
+    private static XInterval[] Normalise(IEnumerable<XInterval> intervals)
     {
         var ordered = new List<XInterval>();
         foreach (var interval in intervals)
@@ -229,7 +235,7 @@ public sealed class IntervalSet : IReadOnlyList<XInterval>
         }
 
         if (ordered.Count == 0)
-            return Nothing;
+            return _nothing;
 
         ordered.Sort((first, second) => first.Start.CompareTo(second.Start));
 
@@ -257,6 +263,6 @@ public sealed class IntervalSet : IReadOnlyList<XInterval>
         }
 
         merged.Add(new XInterval(start, end));
-        return merged.ToArray();
+        return [.. merged];
     }
 }

@@ -129,7 +129,7 @@ public sealed class PdfContents : PdfArray
     public PdfContent ReplaceContent(CSequence cseq)
     {
         if (cseq == null)
-            throw new ArgumentException("The content sequence must not be null.", nameof(cseq));
+            throw new ArgumentException(@"The content sequence must not be null.", nameof(cseq));
 
         return ReplaceContent(cseq.ToContent());
     }
@@ -137,7 +137,7 @@ public sealed class PdfContents : PdfArray
     /// <summary>
     /// Replaces the current content of the page with the specified bytes.
     /// </summary>
-    PdfContent ReplaceContent(byte[] contentBytes)
+    private PdfContent ReplaceContent(byte[] contentBytes)
     {
         Debug.Assert(Owner != null);
 
@@ -152,7 +152,7 @@ public sealed class PdfContents : PdfArray
         return content;
     }
 
-    void SetModified()
+    private void SetModified()
     {
         if (!_modified)
         {
@@ -195,7 +195,7 @@ public sealed class PdfContents : PdfArray
             }
         }
     }
-    bool _modified;
+    private bool _modified;
 
     internal override void WriteObject(PdfWriter writer)
     {
@@ -214,7 +214,7 @@ public sealed class PdfContents : PdfArray
         return new PdfPageContentEnumerator(this);
     }
 
-    class PdfPageContentEnumerator : IEnumerator<PdfContent>
+    private class PdfPageContentEnumerator : IEnumerator<PdfContent>
     {
         internal PdfPageContentEnumerator(PdfContents list)
         {
@@ -257,8 +257,8 @@ public sealed class PdfContents : PdfArray
             // Nothing to do.
         }
 
-        PdfContent _currentElement;
-        int _index;
-        readonly PdfContents _contents;
+        private PdfContent _currentElement;
+        private int _index;
+        private readonly PdfContents _contents;
     }
 }

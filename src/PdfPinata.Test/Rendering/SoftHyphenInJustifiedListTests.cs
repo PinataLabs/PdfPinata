@@ -23,15 +23,15 @@ namespace PdfPinata.Test.Rendering;
 public class SoftHyphenInJustifiedListTests
 {
     // The text from the issue, hyphenated with U+00AD.
-    const string HyphenatedText =
+    private const string HyphenatedText =
         "This is a long text that should demon­strate the is­sue of Mi­graDoc. "
         + "It con­tains words like demon­stra­tion, which should be "
         + "hy­phen­ated cor­rect­ly. The text should be jus­ti­fied "
         + "and the hy­phen­ation should work as ex­pect­ed.";
 
     // A4 with PinataLayout's default 2.5cm margins.
-    static readonly double LeftEdge = Unit.FromCentimeter(2.5).Point;
-    static readonly double RightEdge = Unit.FromMillimeter(210).Point - Unit.FromCentimeter(2.5).Point;
+    private static readonly double LeftEdge = Unit.FromCentimeter(2.5).Point;
+    private static readonly double RightEdge = Unit.FromMillimeter(210).Point - Unit.FromCentimeter(2.5).Point;
 
     [Fact(Timeout = 60000)]
     public async Task AListItemWhoseFirstLineHoldsASoftHyphenCanBeDrawn()
@@ -156,12 +156,12 @@ public class SoftHyphenInJustifiedListTests
     ///   The horizontal position of every run of text, grouped into the lines they sit on, from
     ///   the top of the page downwards.
     /// </summary>
-    static IReadOnlyList<IReadOnlyList<double>> LinesOf(PdfDocument document)
+    private static IReadOnlyList<IReadOnlyList<double>> LinesOf(PdfDocument document)
     {
         return LinesOf(document.Pages[0]);
     }
 
-    static IReadOnlyList<IReadOnlyList<double>> LinesOf(PdfPage page)
+    private static IReadOnlyList<IReadOnlyList<double>> LinesOf(PdfPage page)
     {
         var runs = TextBaselines.PositionsOf(page);
         return runs
@@ -171,7 +171,7 @@ public class SoftHyphenInJustifiedListTests
             .ToList();
     }
 
-    static async Task<PdfDocument> Render(int rightIndentMillimeters, bool asList = true,
+    private static async Task<PdfDocument> Render(int rightIndentMillimeters, bool asList = true,
         int bookmarkAfterWords = -1)
     {
         return await Interruptibly.Run(() =>

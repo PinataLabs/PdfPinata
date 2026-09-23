@@ -23,7 +23,7 @@ namespace PdfPinata.Test.Pdfs.Content;
 public class CLexerUnicodeStringTests
 {
     /// <summary>A big-endian UTF-16 literal string, with the bytes given written inside it.</summary>
-    static byte[] BigEndianString(params byte[] inside)
+    private static byte[] BigEndianString(params byte[] inside)
     {
         var bytes = new List<byte> { (byte)'(', 0xFE, 0xFF };
         bytes.AddRange(inside);
@@ -32,11 +32,11 @@ public class CLexerUnicodeStringTests
     }
 
     /// <summary>One character of a big-endian UTF-16 string.</summary>
-    static byte[] Wide(char ch) => [(byte)(ch >> 8), (byte)(ch & 0xFF)];
+    private static byte[] Wide(char ch) => [(byte)(ch >> 8), (byte)(ch & 0xFF)];
 
-    static byte[] Concat(params byte[][] parts) => parts.SelectMany(part => part).ToArray();
+    private static byte[] Concat(params byte[][] parts) => parts.SelectMany(part => part).ToArray();
 
-    static async Task<string> TheStringIn(byte[] content)
+    private static async Task<string> TheStringIn(byte[] content)
     {
         var tokens = await Interruptibly.Run(() =>
         {

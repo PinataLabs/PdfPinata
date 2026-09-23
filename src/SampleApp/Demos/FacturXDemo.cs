@@ -238,7 +238,7 @@ internal sealed class FacturXDemo : PdfDemo
         return document;
     }
 
-    static readonly CultureInfo Invariant = CultureInfo.InvariantCulture;
+    private static readonly CultureInfo Invariant = CultureInfo.InvariantCulture;
 
     /// <summary>
     ///   The invoice, stated once. The page below and the XML attached to it are both written from
@@ -246,24 +246,24 @@ internal sealed class FacturXDemo : PdfDemo
     ///   itself inside it, but one invoice rendered twice - once for a person and once for a
     ///   machine. Two literals that happened to agree would demonstrate the opposite.
     /// </summary>
-    static readonly (string Description, int Quantity, decimal UnitPrice)[] Items =
+    private static readonly (string Description, int Quantity, decimal UnitPrice)[] Items =
     {
         ("PdfPinata support, annual", 1, 1200.00m),
         ("Migration consultancy, per day", 2, 780.00m),
         ("Font licensing review", 1, 450.00m)
     };
 
-    const decimal VatRate = 19.00m;
+    private const decimal VatRate = 19.00m;
 
     // Worked out once, in declaration order, from the array above - so the page and the XML cannot
     // state different totals for the same invoice however either of them is edited later.
-    static readonly decimal Net = SumOfLines();
+    private static readonly decimal Net = SumOfLines();
 
-    static readonly decimal Tax = decimal.Round(Net * VatRate / 100m, 2);
+    private static readonly decimal Tax = decimal.Round(Net * VatRate / 100m, 2);
 
-    static readonly decimal Gross = Net + Tax;
+    private static readonly decimal Gross = Net + Tax;
 
-    static decimal SumOfLines()
+    private static decimal SumOfLines()
     {
         decimal net = 0;
         foreach (var item in Items)
@@ -271,10 +271,10 @@ internal sealed class FacturXDemo : PdfDemo
         return net;
     }
 
-    static string Money(decimal amount) => amount.ToString("N2", Invariant) + " EUR";
+    private static string Money(decimal amount) => amount.ToString("N2", Invariant) + " EUR";
 
     /// <summary>The plain decimal a CII amount is written as: no grouping, no currency, two places.</summary>
-    static string Amount(decimal amount) => amount.ToString("F2", Invariant);
+    private static string Amount(decimal amount) => amount.ToString("F2", Invariant);
 
     /// <summary>
     ///   The invoice as UN/CEFACT Cross Industry Invoice XML, which is what ZUGFeRD and Factur-X
@@ -300,7 +300,7 @@ internal sealed class FacturXDemo : PdfDemo
     ///   correctly. This is enough to show what shape they are and how they answer to the page.
     ///   </para>
     /// </remarks>
-    static string CrossIndustryInvoice()
+    private static string CrossIndustryInvoice()
     {
         var xml = new StringBuilder();
 
@@ -402,7 +402,7 @@ internal sealed class FacturXDemo : PdfDemo
     ///   one part of this document that comes from outside it, and so the one part that could
     ///   carry an ampersand and turn well-formed XML into an attachment nothing can parse.
     /// </summary>
-    static string Escaped(string text) => text
+    private static string Escaped(string text) => text
         .Replace("&", "&amp;")
         .Replace("<", "&lt;")
         .Replace(">", "&gt;");
@@ -417,7 +417,7 @@ internal sealed class FacturXDemo : PdfDemo
     ///   system runs over an arriving PDF, and it answers from a document nothing has told where the
     ///   invoice is. Germany has required the ability to receive one since January 2025.
     /// </remarks>
-    static IEnumerable<string> InvoiceMetadataOfAProbe()
+    private static IEnumerable<string> InvoiceMetadataOfAProbe()
     {
         using var probe = new PdfDocument();
         _ = probe.AddPage();

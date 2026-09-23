@@ -34,7 +34,7 @@ namespace PinataLayout.Rendering.ChartMapper;
 
 internal static class LegendMapper
 {
-  static void MapObject(Chart chart, DocumentObjectModel.Shapes.Charts.Chart domChart)
+  private static void MapObject(Chart chart, DocumentObjectModel.Shapes.Charts.Chart domChart)
   {
     DocumentObjectModel.Shapes.Charts.Legend domLegend = null;
     DocumentObjectModel.Shapes.Charts.TextArea textArea = null;

@@ -43,21 +43,21 @@ public class AstralCharacterTests
 {
     // Emoji that Source Code Pro really has, confirmed against its own cmap rather than assumed:
     // U+1F512 LOCK, U+1F916 ROBOT FACE, U+1F3B5 MUSICAL NOTE.
-    const int Lock = 0x1F512;
-    const int Robot = 0x1F916;
+    private const int Lock = 0x1F512;
+    private const int Robot = 0x1F916;
 
     // MATHEMATICAL BOLD CAPITAL A. In neither face, so it is the "nobody can draw it" case.
-    const int BoldA = 0x1D400;
+    private const int BoldA = 0x1D400;
 
-    static string Text(int codePoint) => char.ConvertFromUtf32(codePoint);
+    private static string Text(int codePoint) => char.ConvertFromUtf32(codePoint);
 
     /// <summary>The face with a format 12 subtable.</summary>
-    static XFont WithFormat12() => new XFont(PinnedFontResolver.CffFamilyName, 20);
+    private static XFont WithFormat12() => new XFont(PinnedFontResolver.CffFamilyName, 20);
 
     /// <summary>The face without one.</summary>
-    static XFont WithoutFormat12() => new XFont("Arial", 20);
+    private static XFont WithoutFormat12() => new XFont("Arial", 20);
 
-    sealed class Installed : IDisposable
+    private sealed class Installed : IDisposable
     {
         internal Installed(IFontFallback fallback) => GlobalFontSettings.FontFallback = fallback;
 
@@ -65,10 +65,10 @@ public class AstralCharacterTests
     }
 
     /// <summary>A fallback offering one family, and only for the code points named.</summary>
-    sealed class Only : IFontFallback
+    private sealed class Only : IFontFallback
     {
-        readonly HashSet<int> _mine;
-        readonly string[] _families;
+        private readonly HashSet<int> _mine;
+        private readonly string[] _families;
 
         internal Only(IEnumerable<int> codePoints, params string[] families)
         {
@@ -178,7 +178,7 @@ public class AstralCharacterTests
     ///   one-font documents, and <c>begincmap</c> identifies it without depending on the shape of
     ///   the font dictionary this test is not about.
     /// </remarks>
-    static string ToUnicodeCMapOf(PdfPage page)
+    private static string ToUnicodeCMapOf(PdfPage page)
     {
         using var saved = new MemoryStream();
         page.Owner.Save(saved, false);
@@ -278,7 +278,7 @@ public class AstralCharacterTests
             .And.Should().NotBeOfType<OutOfMemoryException>();
     }
 
-    static Action Reading(byte[] bytes, string why)
+    private static Action Reading(byte[] bytes, string why)
         => () => new XFont(RegisterCorrupt(bytes, why), 20).GetHeight();
 
     [Fact]
@@ -296,13 +296,13 @@ public class AstralCharacterTests
     }
 
     /// <summary>The Devanagari face with its format 12 group count overwritten.</summary>
-    static byte[] WithGroupCount(uint groups) => WithFormat12Field(12, groups);
+    private static byte[] WithGroupCount(uint groups) => WithFormat12Field(12, groups);
 
     /// <summary>Overwrites the group count of an already-corrupted copy, in place.</summary>
-    static void WriteFormat12GroupCount(byte[] bytes, uint groups) => SetFormat12Field(bytes, 12, groups);
+    private static void WriteFormat12GroupCount(byte[] bytes, uint groups) => SetFormat12Field(bytes, 12, groups);
 
     /// <summary>The Devanagari face with its format 12 declared length overwritten.</summary>
-    static byte[] WithDeclaredLength(uint length) => WithFormat12Field(4, length);
+    private static byte[] WithDeclaredLength(uint length) => WithFormat12Field(4, length);
 
     /// <summary>
     ///   A real face with one 32-bit field of its format 12 subtable overwritten, at the given
@@ -312,7 +312,7 @@ public class AstralCharacterTests
     ///   Built from a real font rather than from a hand-made one, so that everything the reader looks
     ///   at before it reaches this field is genuine and the test is about the field.
     /// </remarks>
-    static byte[] WithFormat12Field(int offset, uint value)
+    private static byte[] WithFormat12Field(int offset, uint value)
     {
         var bytes = File.ReadAllBytes(Path.Combine(
             AppContext.BaseDirectory, "Assets", "Fonts", "NotoSansDevanagari-Regular.ttf"));
@@ -321,7 +321,7 @@ public class AstralCharacterTests
         return bytes;
     }
 
-    static void SetFormat12Field(byte[] bytes, int offset, uint value)
+    private static void SetFormat12Field(byte[] bytes, int offset, uint value)
     {
         var cmap = TableOffset(bytes, "cmap");
         var subtables = (bytes[cmap + 2] << 8) | bytes[cmap + 3];
@@ -342,7 +342,7 @@ public class AstralCharacterTests
         throw new InvalidOperationException("The face has no format 12 subtable to corrupt.");
     }
 
-    static int TableOffset(byte[] bytes, string tag)
+    private static int TableOffset(byte[] bytes, string tag)
     {
         var count = (bytes[4] << 8) | bytes[5];
         for (var idx = 0; idx < count; idx++)
@@ -355,11 +355,11 @@ public class AstralCharacterTests
         throw new InvalidOperationException("No " + tag + " table.");
     }
 
-    static uint ReadUInt32(byte[] bytes, int at)
+    private static uint ReadUInt32(byte[] bytes, int at)
         => ((uint)bytes[at] << 24) | ((uint)bytes[at + 1] << 16)
            | ((uint)bytes[at + 2] << 8) | bytes[at + 3];
 
-    static void WriteUInt32(byte[] bytes, int at, uint value)
+    private static void WriteUInt32(byte[] bytes, int at, uint value)
     {
         bytes[at] = (byte)(value >> 24);
         bytes[at + 1] = (byte)(value >> 16);
@@ -368,7 +368,7 @@ public class AstralCharacterTests
     }
 
     /// <summary>Registers the given bytes under a family name of their own and returns it.</summary>
-    static string RegisterCorrupt(byte[] bytes, string why)
+    private static string RegisterCorrupt(byte[] bytes, string why)
     {
         var family = "Corrupt " + why;
         PinnedFontResolver.Register(family, bytes);

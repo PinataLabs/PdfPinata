@@ -136,7 +136,7 @@ public class NonFiniteCoordinateTests
         drawing.Should().NotThrow();
     }
 
-    static void Draw(Action<XGraphics> draw)
+    private static void Draw(Action<XGraphics> draw)
     {
         var document = new PdfDocument();
         var page = document.AddPage();

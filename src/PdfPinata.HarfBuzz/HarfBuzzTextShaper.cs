@@ -38,13 +38,13 @@ public sealed class HarfBuzzTextShaper : ITextShaper, IDisposable
     // while the survivor is in use. That is not a leak that stays quiet: it showed up as a run
     // coming back unkerned every few hundred shapings. ExecutionAndPublication means the face is
     // built exactly once however many threads arrive together.
-    readonly ConcurrentDictionary<string, Lazy<ShapedFace>> _faces =
+    private readonly ConcurrentDictionary<string, Lazy<ShapedFace>> _faces =
         new ConcurrentDictionary<string, Lazy<ShapedFace>>();
 
     // Volatile because Dispose and Shape run on different threads by design - the shaper is
     // registered for the whole application domain - and a plain write is not guaranteed to be seen
     // by a reader that is already spinning in a loop of its own.
-    volatile bool _disposed;
+    private volatile bool _disposed;
 
     /// <inheritdoc/>
     public ShapedRun Shape(ReadOnlySpan<char> text, ShapingFont font, XTextDirection direction,
@@ -113,13 +113,13 @@ public sealed class HarfBuzzTextShaper : ITextShaper, IDisposable
     /// One parsed face and the HarfBuzz font over it, with the gate that keeps two threads from
     /// shaping with it at once.
     /// </summary>
-    sealed class ShapedFace : IDisposable
+    private sealed class ShapedFace : IDisposable
     {
-        readonly object _gate = new object();
-        readonly int _unitsPerEm;
-        readonly Blob _blob;
-        readonly Face _face;
-        readonly Font _font;
+        private readonly object _gate = new object();
+        private readonly int _unitsPerEm;
+        private readonly Blob _blob;
+        private readonly Face _face;
+        private readonly Font _font;
 
         internal ShapedFace(ShapingFont font)
         {
@@ -162,7 +162,7 @@ public sealed class HarfBuzzTextShaper : ITextShaper, IDisposable
         /// in a few hundred, with the right glyphs, because the cmap had been read before the
         /// bytes went and GPOS after.
         /// </remarks>
-        static Blob BlobOf(ReadOnlyMemory<byte> bytes)
+        private static Blob BlobOf(ReadOnlyMemory<byte> bytes)
         {
             var array = MemoryMarshal.TryGetArray(bytes, out var segment) && segment.Array != null
                 ? segment
@@ -240,7 +240,7 @@ public sealed class HarfBuzzTextShaper : ITextShaper, IDisposable
         /// An ISO 15924 tag as HarfBuzz understands it. A tag is four characters; anything else is
         /// left for <c>GuessSegmentProperties</c> to work out from the text.
         /// </summary>
-        static bool TryParseScript(string script, out Script parsed)
+        private static bool TryParseScript(string script, out Script parsed)
         {
             parsed = default;
             if (string.IsNullOrEmpty(script) || script.Length != 4)
@@ -250,7 +250,7 @@ public sealed class HarfBuzzTextShaper : ITextShaper, IDisposable
             return true;
         }
 
-        bool _freed;
+        private bool _freed;
 
         public void Dispose()
         {

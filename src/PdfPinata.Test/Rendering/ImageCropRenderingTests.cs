@@ -47,7 +47,7 @@ public class ImageCropRenderingTests
         placed.IndexOf(clip).Should().BeLessThan(placed.FindIndex(op => op.Name == OpCodeName.Do));
     }
 
-    static XRect ImageBox(PdfPage page)
+    private static XRect ImageBox(PdfPage page)
     {
         var ctm = PlacedOperators.Of(page).Single(op => op.Name == OpCodeName.Do).Ctm;
         var corners = new[] { ctm.Transform(new XPoint(0, 0)), ctm.Transform(new XPoint(1, 1)) };
@@ -56,7 +56,7 @@ public class ImageCropRenderingTests
         return new XRect(left, bottom, corners.Max(p => p.X) - left, corners.Max(p => p.Y) - bottom);
     }
 
-    static PdfPage Rendered(double? cropLeftPoints)
+    private static PdfPage Rendered(double? cropLeftPoints)
     {
         var document = new Document();
         var section = document.AddSection();

@@ -44,5 +44,5 @@ internal class ImageRenderInfo : ShapeRenderInfo
       return formatInfo;
     }
   }
-  ImageFormatInfo formatInfo;
+  private ImageFormatInfo formatInfo;
 }

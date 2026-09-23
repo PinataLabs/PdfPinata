@@ -41,17 +41,17 @@ namespace PdfPinata.Test.Fonts;
 public class DevanagariShapingTests
 {
     // Noto Sans Devanagari's em, which is not Liberation's 2048.
-    const int UnitsPerEm = 1000;
+    private const int UnitsPerEm = 1000;
 
-    const string Ka = "क";        // DEVANAGARI LETTER KA
-    const string Virama = "्";    // DEVANAGARI SIGN VIRAMA, which joins the two around it
-    const string Ssa = "ष";       // DEVANAGARI LETTER SSA
-    const string VowelI = "ि";    // DEVANAGARI VOWEL SIGN I, drawn to the left of its consonant
+    private const string Ka = "क";        // DEVANAGARI LETTER KA
+    private const string Virama = "्";    // DEVANAGARI SIGN VIRAMA, which joins the two around it
+    private const string Ssa = "ष";       // DEVANAGARI LETTER SSA
+    private const string VowelI = "ि";    // DEVANAGARI VOWEL SIGN I, drawn to the left of its consonant
 
-    const string Conjunct = Ka + Virama + Ssa;   // three characters, one glyph
-    const string Namaste = "नमस्ते";
+    private const string Conjunct = Ka + Virama + Ssa;   // three characters, one glyph
+    private const string Namaste = "नमस्ते";
 
-    static ShapingFont Face(double emSize = 20)
+    private static ShapingFont Face(double emSize = 20)
     {
         var bytes = File.ReadAllBytes(Path.Combine(
             AppContext.BaseDirectory, "Assets", "Fonts", "NotoSansDevanagari-Regular.ttf"));
@@ -61,15 +61,15 @@ public class DevanagariShapingTests
             isBold: false, isItalic: false, emSize, UnitsPerEm, bytes);
     }
 
-    static ShapedRun Shape(string text)
+    private static ShapedRun Shape(string text)
     {
         using var shaper = new HarfBuzzTextShaper();
         return shaper.Shape(text.AsSpan(), Face(), XTextDirection.LeftToRight, "deva", null);
     }
 
-    static XFont Font() => new XFont(PinnedFontResolver.DevanagariFamilyName, 20);
+    private static XFont Font() => new XFont(PinnedFontResolver.DevanagariFamilyName, 20);
 
-    sealed class Shaping : IDisposable
+    private sealed class Shaping : IDisposable
     {
         internal Shaping() => GlobalFontSettings.TextShaper = new HarfBuzzTextShaper();
 

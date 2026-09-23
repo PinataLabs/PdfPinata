@@ -58,7 +58,7 @@ public static class FieldEvaluator
                 return DocumentInformation(infoField);
             default:
                 throw new ArgumentException(
-                    $"'{field.GetType().Name}' is not a field with a value. Ask IsField before Evaluate.",
+                    $@"'{field.GetType().Name}' is not a field with a value. Ask IsField before Evaluate.",
                     nameof(field));
         }
     }
@@ -89,7 +89,7 @@ public static class FieldEvaluator
             return context.PagesInSection;
 
         throw new ArgumentException(
-            $"'{field.GetType().Name}' is a numeric field this evaluator does not know a number for.",
+            $@"'{field.GetType().Name}' is a numeric field this evaluator does not know a number for.",
             nameof(field));
     }
 

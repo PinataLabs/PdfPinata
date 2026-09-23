@@ -402,9 +402,9 @@ public class SigningTests
     /// <summary>
     ///   Reserves far less room than a CMS signature needs, so that the failure can be seen.
     /// </summary>
-    sealed class CrampedSigner : IPdfSigner
+    private sealed class CrampedSigner : IPdfSigner
     {
-        readonly Pkcs7Signer _inner;
+        private readonly Pkcs7Signer _inner;
 
         public CrampedSigner(System.Security.Cryptography.X509Certificates.X509Certificate2 certificate) =>
             _inner = new Pkcs7Signer(certificate);
@@ -416,7 +416,7 @@ public class SigningTests
         public byte[] Sign(Stream content) => _inner.Sign(content);
     }
 
-    static byte[] Unsigned(Action<PdfDocument> customise = null)
+    private static byte[] Unsigned(Action<PdfDocument> customise = null)
     {
         var document = new PdfDocument();
         using (var gfx = XGraphics.FromPdfPage(document.AddPage()))
@@ -429,7 +429,7 @@ public class SigningTests
         return output.ToArray();
     }
 
-    static byte[] TwoPages()
+    private static byte[] TwoPages()
     {
         var document = new PdfDocument();
         _ = document.AddPage();
@@ -440,7 +440,7 @@ public class SigningTests
         return output.ToArray();
     }
 
-    static byte[] Sign(byte[] document, PdfSignatureOptions options = null, IPdfSigner signer = null)
+    private static byte[] Sign(byte[] document, PdfSignatureOptions options = null, IPdfSigner signer = null)
     {
         using var input = new MemoryStream(document);
         using var output = new MemoryStream();
@@ -452,7 +452,7 @@ public class SigningTests
     /// <summary>
     ///   The signature widgets on a page, which is where a signature field shows itself.
     /// </summary>
-    static PdfDictionary[] Widgets(PdfPage page)
+    private static PdfDictionary[] Widgets(PdfPage page)
     {
         var annotations = page.Elements.GetArray("/Annots");
         if (annotations == null)
@@ -468,7 +468,7 @@ public class SigningTests
     ///   Writes a different byte range over the one in a signed file, keeping the file the same
     ///   length by padding — which is what makes it a malformed document rather than a shifted one.
     /// </summary>
-    static byte[] WithByteRange(byte[] signed, string replacement)
+    private static byte[] WithByteRange(byte[] signed, string replacement)
     {
         // Found through /ByteRange rather than by looking for an array that starts with zero — a
         // document has plenty of those, and the first one is not this one.
@@ -489,7 +489,7 @@ public class SigningTests
         return corrupted;
     }
 
-    static int IndexOf(byte[] haystack, string needle)
+    private static int IndexOf(byte[] haystack, string needle)
     {
         for (var at = 0; at <= haystack.Length - needle.Length; at++)
         {

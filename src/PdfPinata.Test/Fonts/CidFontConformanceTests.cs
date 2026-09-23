@@ -80,7 +80,7 @@ public class CidFontConformanceTests
     // ── Arranging ───────────────────────────────────────────────────────────────────────────────
 
     /// <summary>Everything a document needs before it may claim PDF/A-1b.</summary>
-    static void Conforming(PdfDocument document)
+    private static void Conforming(PdfDocument document)
     {
         document.Options.Conformance = PdfAConformance.PdfA1B;
 
@@ -92,7 +92,7 @@ public class CidFontConformanceTests
         document.Info.Title = "CID font conformance";
     }
 
-    static PdfDocument Saved(Action<PdfDocument> arrange)
+    private static PdfDocument Saved(Action<PdfDocument> arrange)
     {
         var document = new PdfDocument();
         arrange(document);
@@ -114,7 +114,7 @@ public class CidFontConformanceTests
     }
 
     /// <summary>The one descendant CIDFont in a document that drew one string.</summary>
-    static PdfDictionary DescendantFontOf(PdfDocument document)
+    private static PdfDictionary DescendantFontOf(PdfDocument document)
     {
         var type0 = document.Internals.GetAllObjects()
             .OfType<PdfDictionary>()
@@ -126,6 +126,6 @@ public class CidFontConformanceTests
         return (PdfDictionary)((PdfReference)descendants.Elements[0]).Value;
     }
 
-    static PdfDictionary FontDescriptorOf(PdfDocument document)
+    private static PdfDictionary FontDescriptorOf(PdfDocument document)
         => DescendantFontOf(document).Elements.GetDictionary("/FontDescriptor");
 }

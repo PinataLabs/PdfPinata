@@ -17,12 +17,12 @@ namespace SampleApp.Infrastructure;
 /// </remarks>
 public static class CSharpHighlighter
 {
-    const string CommentStyle = "grey50";
-    const string StringStyle = "darkseagreen4";
-    const string KeywordStyle = "steelblue1";
-    const string NumberStyle = "wheat4";
+    private const string CommentStyle = "grey50";
+    private const string StringStyle = "darkseagreen4";
+    private const string KeywordStyle = "steelblue1";
+    private const string NumberStyle = "wheat4";
 
-    static readonly HashSet<string> Keywords = new(StringComparer.Ordinal)
+    private static readonly HashSet<string> Keywords = new(StringComparer.Ordinal)
     {
         "abstract", "as", "base", "bool", "break", "byte", "case", "catch", "char", "checked",
         "class", "const", "continue", "decimal", "default", "delegate", "do", "double", "else",
@@ -97,7 +97,7 @@ public static class CSharpHighlighter
         return markup.ToString();
     }
 
-    static void Append(StringBuilder markup, string text, string? style)
+    private static void Append(StringBuilder markup, string text, string? style)
     {
         var escaped = Markup.Escape(text);
         if (style is null)
@@ -106,7 +106,7 @@ public static class CSharpHighlighter
             markup.Append('[').Append(style).Append(']').Append(escaped).Append("[/]");
     }
 
-    static int EndOfString(string line, int start)
+    private static int EndOfString(string line, int start)
     {
         var verbatim = line[start] == '@';
         var index = start + (verbatim ? 2 : 1);
@@ -140,7 +140,7 @@ public static class CSharpHighlighter
         return line.Length;
     }
 
-    static int EndOfChar(string line, int start)
+    private static int EndOfChar(string line, int start)
     {
         var index = start + 1;
         while (index < line.Length)

@@ -107,7 +107,7 @@ internal static class PdfObjectStreamWriter
     /// contains them and must not be encrypted a second time; a document that does encrypt them
     /// twice opens, looks well, and yields mojibake for every string in it.
     /// </remarks>
-    static void WriteBody(PdfReference iref, MemoryStream destination)
+    private static void WriteBody(PdfReference iref, MemoryStream destination)
     {
         var writer = new PdfWriter(destination, null)
         {

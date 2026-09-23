@@ -15,7 +15,7 @@ namespace PdfPinata.Test.IO;
 /// </summary>
 public class PdfLongTests
 {
-    const long WiderThanAnInt = 5_000_000_000;
+    private const long WiderThanAnInt = 5_000_000_000;
 
     [Fact]
     public void AnIntegerWiderThan32BitsIsReadBackAsAPdfLong()

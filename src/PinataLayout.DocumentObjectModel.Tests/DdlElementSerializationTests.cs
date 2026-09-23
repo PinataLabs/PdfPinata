@@ -23,18 +23,18 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 /// </summary>
 public class DdlElementSerializationTests
 {
-    static string Write(Document document) => DdlWriter.WriteToString(document);
+    private static string Write(Document document) => DdlWriter.WriteToString(document);
 
-    static Document RoundTrip(Document document) => DdlReader.DocumentFromString(Write(document));
+    private static Document RoundTrip(Document document) => DdlReader.DocumentFromString(Write(document));
 
-    static Document DocumentWithAParagraph(out Paragraph paragraph)
+    private static Document DocumentWithAParagraph(out Paragraph paragraph)
     {
         var document = new Document();
         paragraph = document.AddSection().AddParagraph();
         return document;
     }
 
-    static Paragraph FirstParagraphOf(Document document) =>
+    private static Paragraph FirstParagraphOf(Document document) =>
         document.LastSection.Elements[0] as Paragraph;
 
     // ----- Character.Serialize ---------------------------------------------------------------------

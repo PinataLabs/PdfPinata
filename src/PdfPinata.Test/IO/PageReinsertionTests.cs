@@ -96,13 +96,13 @@ public class PageReinsertionTests
 
     // ── Arranging ───────────────────────────────────────────────────────────────────────────────
 
-    static readonly XColor[] Colours = [XColors.Red, XColors.Lime, XColors.Blue];
+    private static readonly XColor[] Colours = [XColors.Red, XColors.Lime, XColors.Blue];
 
     /// <summary>
     ///   Each page carries a tag naming it and is painted in a colour of its own, so both the page
     ///   dictionary and its content stream can be told apart after a round trip.
     /// </summary>
-    static PdfDocument ADocumentOf(int pages)
+    private static PdfDocument ADocumentOf(int pages)
     {
         var document = new PdfDocument();
         for (var idx = 0; idx < pages; idx++)
@@ -116,20 +116,20 @@ public class PageReinsertionTests
         return document;
     }
 
-    static byte[] Saved(PdfDocument document)
+    private static byte[] Saved(PdfDocument document)
     {
         using var stream = new MemoryStream();
         document.Save(stream, false);
         return stream.ToArray();
     }
 
-    static PdfDocument Reopened(PdfDocument document) =>
+    private static PdfDocument Reopened(PdfDocument document) =>
         Reader.Open(new MemoryStream(Saved(document)), PdfDocumentOpenMode.Modify);
 
     /// <summary>
     ///   The pages' tags in page order, each marked when its <c>/Parent</c> is not the page tree.
     /// </summary>
-    static string Describe(PdfDocument document)
+    private static string Describe(PdfDocument document)
     {
         var tree = document.Internals.Catalog.Elements.GetDictionary("/Pages");
         return string.Join(",", Enumerable.Range(0, document.PageCount).Select(idx =>
@@ -140,6 +140,6 @@ public class PageReinsertionTests
         }));
     }
 
-    static string ContentOf(PdfPage page) =>
+    private static string ContentOf(PdfPage page) =>
         System.Text.Encoding.Latin1.GetString(page.Contents.CreateSingleContent().Stream.UnfilteredValue);
 }

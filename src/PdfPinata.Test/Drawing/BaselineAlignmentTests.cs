@@ -14,12 +14,12 @@ namespace PdfPinata.Test.Drawing;
 /// </summary>
 public class BaselineAlignmentTests
 {
-    const double FontSize = 24;
-    const double Left = 20;
-    const double Top = 60;
-    const double Width = 300;
+    private const double FontSize = 24;
+    private const double Left = 20;
+    private const double Top = 60;
+    private const double Width = 300;
 
-    static XFont Plain => new XFont("Arial", FontSize, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
+    private static XFont Plain => new XFont("Arial", FontSize, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
 
     [Fact]
     public void ARectangleWithHeightNoLongerThrows()
@@ -111,18 +111,18 @@ public class BaselineAlignmentTests
         tall.Y.Should().BeApproximately(flat.Y, 0.001);
     }
 
-    static double MeasuredWidth()
+    private static double MeasuredWidth()
     {
         var document = new PdfDocument();
         using var gfx = XGraphics.FromPdfPage(document.AddPage());
         return gfx.MeasureString(Text, Plain, XStringFormats.Default).Width;
     }
 
-    const string Text = "Handles";
+    private const string Text = "Handles";
 
-    static (double X, double Y) BaselineOf(PdfPage page) => TextBaselines.PositionsOf(page)[0];
+    private static (double X, double Y) BaselineOf(PdfPage page) => TextBaselines.PositionsOf(page)[0];
 
-    static PdfPage PageShowing(XRect layoutRectangle, XStringFormat format)
+    private static PdfPage PageShowing(XRect layoutRectangle, XStringFormat format)
     {
         var document = new PdfDocument();
         var page = document.AddPage();

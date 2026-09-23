@@ -135,7 +135,8 @@ public struct XVector : IFormattable
         get => _x;
         set => _x = value;
     }
-    double _x;
+
+    private double _x;
 
     /// <summary>
     /// Gets or sets the y-component of this vector.
@@ -145,7 +146,8 @@ public struct XVector : IFormattable
         get => _y;
         set => _y = value;
     }
-    double _y;
+
+    private double _y;
 
     /// <summary>
     /// Returns a string that represents this vector, using the current culture.
@@ -387,7 +389,7 @@ public struct XVector : IFormattable
     /// </summary>
     /// <value>The debugger display.</value>
     // ReSharper disable UnusedMember.Local
-    string DebuggerDisplay
+    private string DebuggerDisplay
         // ReSharper restore UnusedMember.Local
     {
         get

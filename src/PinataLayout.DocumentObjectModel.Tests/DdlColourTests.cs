@@ -22,11 +22,11 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 /// </summary>
 public class DdlColourTests
 {
-    static string DocumentWith(string colourLiteral) =>
+    private static string DocumentWith(string colourLiteral) =>
         "\\document{\\section{\\paragraph{\\font[Color = " + colourLiteral + "]{x}}}}";
 
     /// <summary>The colour of a run of formatted text, which is the shortest route to one.</summary>
-    static Color ColourOf(string colourLiteral)
+    private static Color ColourOf(string colourLiteral)
     {
         var errors = new DdlReaderErrors();
         var document = (Document)DdlReader.ObjectFromString(DocumentWith(colourLiteral), errors);
@@ -40,7 +40,7 @@ public class DdlColourTests
     }
 
     /// <summary>What the reader had to say about a document, as text an assertion can match.</summary>
-    static IReadOnlyList<string> Complaints(DdlReaderErrors errors) =>
+    private static IReadOnlyList<string> Complaints(DdlReaderErrors errors) =>
         ReaderDiagnostics.Reported(errors);
 
     /// <summary>
@@ -48,7 +48,7 @@ public class DdlColourTests
     ///   fail in either of the two ways it can: quietly, with the error list the only sign, or
     ///   fatally once the token stream has lost its place.
     /// </summary>
-    static IReadOnlyList<string> ComplaintsAbout(string colourLiteral) =>
+    private static IReadOnlyList<string> ComplaintsAbout(string colourLiteral) =>
         ReaderDiagnostics.ComplaintsAbout(DocumentWith(colourLiteral));
 
     // ----- RGB ------------------------------------------------------------------------------------

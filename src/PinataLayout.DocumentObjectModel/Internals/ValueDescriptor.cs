@@ -51,11 +51,11 @@ namespace PinataLayout.DocumentObjectModel.Internals;
 /// </remarks>
 public sealed class ValueDescriptor
 {
-  readonly Func<DocumentObject, object> getter;
-  readonly Action<DocumentObject, object> setter;
-  readonly Func<DocumentObject> factory;
-  readonly object valueWhenNull;
-  readonly bool isField;
+  private readonly Func<DocumentObject, object> getter;
+  private readonly Action<DocumentObject, object> setter;
+  private readonly Func<DocumentObject> factory;
+  private readonly object valueWhenNull;
+  private readonly bool isField;
 
   internal ValueDescriptor(
     string valueName,
@@ -142,7 +142,7 @@ public sealed class ValueDescriptor
   public object GetValue(DocumentObject dom, GV flags)
   {
     if (!Enum.IsDefined(flags))
-      throw new ArgumentException($"'{flags}' is not a defined value of {nameof(GV)}.", nameof(flags));
+      throw new ArgumentException($@"'{flags}' is not a defined value of {nameof(GV)}.", nameof(flags));
 
     switch (Kind)
     {

@@ -67,14 +67,6 @@ public class DocumentAndPageSurfaceTests
     }
 
     [Fact]
-    public void ADocumentBuiltForAFileIsNotImplemented()
-    {
-        var building = () => new PdfDocument("nowhere.pdf");
-
-        building.Should().Throw<NotImplementedException>();
-    }
-
-    [Fact]
     public void ADocumentCarriesATagForItsCaller()
     {
         var document = new PdfDocument();
@@ -103,12 +95,49 @@ public class DocumentAndPageSurfaceTests
         _ = document.AddPage();
         document.SecuritySettings.DocumentSecurityLevel = PdfDocumentSecurityLevel.Encrypted128Bit;
 
-        var message = "";
-        document.CanSave(ref message).Should().BeFalse();
-        message.Should().NotBeEmpty();
+        var check = document.CanSave();
+        check.CanSave.Should().BeFalse();
+        check.Reason.Should().NotBeNullOrEmpty();
 
         var saving = () => document.Save(new MemoryStream(), false);
-        saving.Should().Throw<PdfPinataException>();
+        saving.Should().Throw<PdfPinataException>().Which.Message.Should().Be(check.Reason);
+    }
+
+    [Fact]
+    public void ADocumentWithNothingInItsWayCanBeSaved()
+    {
+        var document = new PdfDocument();
+        _ = document.AddPage();
+
+        var check = document.CanSave();
+
+        check.CanSave.Should().BeTrue();
+        check.Reason.Should().BeNull();
+    }
+
+    [Fact]
+    public void ADefaultCheckIsOneThatPassed()
+    {
+        // default is the only way a caller can make one, so it must not be a refusal without a reason.
+        default(PdfSaveCheck).CanSave.Should().BeTrue();
+    }
+
+    [Fact]
+    [Obsolete("Covers the obsolete CanSave(ref string) until it is removed.")]
+    public void TheObsoleteCheckStillSetsTheMessageOnlyWhenItRefuses()
+    {
+        var refused = new PdfDocument();
+        refused.SecuritySettings.DocumentSecurityLevel = PdfDocumentSecurityLevel.Encrypted128Bit;
+        var message = "untouched";
+
+        refused.CanSave(ref message).Should().BeFalse();
+        message.Should().Be(refused.CanSave().Reason);
+
+        var allowed = new PdfDocument();
+        message = "untouched";
+
+        allowed.CanSave(ref message).Should().BeTrue();
+        message.Should().Be("untouched");
     }
 
     [Fact]

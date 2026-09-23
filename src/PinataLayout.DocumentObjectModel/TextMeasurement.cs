@@ -58,7 +58,7 @@ public sealed class TextMeasurement
         ArgumentNullException.ThrowIfNull(text);
 
         if (!Enum.IsDefined(unitType))
-            throw new ArgumentException($"'{unitType}' is not a defined value of {nameof(UnitType)}.", nameof(unitType));
+            throw new ArgumentException($@"'{unitType}' is not a defined value of {nameof(UnitType)}.", nameof(unitType));
 
         var size = graphics.MeasureString(text, XFont);
         switch (unitType)
@@ -143,7 +143,7 @@ public sealed class TextMeasurement
         }
     }
 
-    Font font;
-    XFont xFont;
-    XGraphics graphics;
+    private Font font;
+    private XFont xFont;
+    private XGraphics graphics;
 }

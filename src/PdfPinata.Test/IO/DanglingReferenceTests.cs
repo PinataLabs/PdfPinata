@@ -102,9 +102,9 @@ public class DanglingReferenceTests
         page.Elements.GetInteger("/Rotate").Should().Be(90);
     }
 
-    static PdfPage FirstPageOf(byte[] document) => Read(document).Pages[0];
+    private static PdfPage FirstPageOf(byte[] document) => Read(document).Pages[0];
 
-    static PdfDocument Read(byte[] document)
+    private static PdfDocument Read(byte[] document)
     {
         return Pdf.IO.PdfReader.Open(new MemoryStream(document), PdfDocumentOpenMode.Modify);
     }
@@ -113,7 +113,7 @@ public class DanglingReferenceTests
     ///   A one page document carrying the given extra entry in its page dictionary. Object 9,
     ///   which the entries above refer to, is deliberately never written.
     /// </summary>
-    static byte[] DocumentWith(string pageEntry) => RawPdf.Build(new[]
+    private static byte[] DocumentWith(string pageEntry) => RawPdf.Build(new[]
     {
         "<</Type/Catalog/Pages 2 0 R>>",
         "<</Type/Pages/Kids[3 0 R]/Count 1>>",

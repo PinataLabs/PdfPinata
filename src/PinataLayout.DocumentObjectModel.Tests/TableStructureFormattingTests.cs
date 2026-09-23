@@ -18,7 +18,7 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 /// </summary>
 public class TableStructureFormattingTests
 {
-    static Table ATable(int columns = 2, int rows = 2)
+    private static Table ATable(int columns = 2, int rows = 2)
     {
         var table = new Document().AddSection().AddTable();
         for (var idx = 0; idx < columns; idx++)
@@ -28,7 +28,7 @@ public class TableStructureFormattingTests
         return table;
     }
 
-    static string DdlOf(DocumentObject documentObject) => DdlWriter.WriteToString(documentObject);
+    private static string DdlOf(DocumentObject documentObject) => DdlWriter.WriteToString(documentObject);
 
     // ----- reaching a cell from either side ---------------------------------------------------
 

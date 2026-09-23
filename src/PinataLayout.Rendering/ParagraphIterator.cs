@@ -231,7 +231,7 @@ internal class ParagraphIterator
   /// Gets the leftmost leaf within the hierarchy.
   /// </summary>
   /// <returns>The searched leaf.</returns>
-  ParagraphIterator SeekFirstLeaf()
+  private ParagraphIterator SeekFirstLeaf()
   {
     var obj = Current;
     if (obj is not ParagraphElements)

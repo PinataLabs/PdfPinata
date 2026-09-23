@@ -209,28 +209,28 @@ public sealed class PdfRectangle : PdfItem
     /// </summary>
     public double X1 => _x1;
 
-    readonly double _x1;
+    private readonly double _x1;
 
     /// <summary>
     /// Gets or sets the y-coordinate of the first corner of this PdfRectangle.
     /// </summary>
     public double Y1 => _y1;
 
-    readonly double _y1;
+    private readonly double _y1;
 
     /// <summary>
     /// Gets or sets the x-coordinate of the second corner of this PdfRectangle.
     /// </summary>
     public double X2 => _x2;
 
-    readonly double _x2;
+    private readonly double _x2;
 
     /// <summary>
     /// Gets or sets the y-coordinate of the second corner of this PdfRectangle.
     /// </summary>
     public double Y2 => _y2;
 
-    readonly double _y2;
+    private readonly double _y2;
 
     /// <summary>
     /// Gets X2 - X1.
@@ -316,7 +316,7 @@ public sealed class PdfRectangle : PdfItem
     /// Gets the DebuggerDisplayAttribute text.
     /// </summary>
     // ReSharper disable UnusedMember.Local
-    string DebuggerDisplay
+    private string DebuggerDisplay
         // ReSharper restore UnusedMember.Local
     {
         get

@@ -164,7 +164,7 @@ public class XPenAndBrushTests
     ///   Every setter on a pre-defined pen. Each of them has to refuse, because the pen is handed
     ///   out from a static property and changing one would change it for everybody.
     /// </summary>
-    static readonly Action[] WaysOfChangingAPredefinedPen =
+    private static readonly Action[] WaysOfChangingAPredefinedPen =
     {
         () => XPens.Black.Color = XColors.Red,
         () => XPens.Black.Brush = new XSolidBrush(XColors.Red),

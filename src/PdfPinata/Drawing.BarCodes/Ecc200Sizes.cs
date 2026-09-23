@@ -24,6 +24,7 @@ internal struct Ecc200Block
     public int DataBlock;
 
     /// <summary>The number of error correction codewords in one interleaved block.</summary>
+    // ReSharper disable once InconsistentNaming
     public int RSBlock;
 
     public Ecc200Block(int h, int w, int ch, int cw, int bytes, int datablock, int rsblock)

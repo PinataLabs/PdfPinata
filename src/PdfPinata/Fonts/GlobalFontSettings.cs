@@ -89,7 +89,7 @@ public static class GlobalFontSettings
             finally { Lock.ExitFontFactory(); }
         }
     }
-    static IFontResolver _fontResolver;
+    private static IFontResolver _fontResolver;
 
     /// <summary>
     /// Whether <see cref="FontResolver"/> has been set, so a caller can find out without catching
@@ -156,7 +156,7 @@ public static class GlobalFontSettings
             finally { Lock.ExitFontFactory(); }
         }
     }
-    static IGlyphOutlineProvider _glyphOutlineProvider;
+    private static IGlyphOutlineProvider _glyphOutlineProvider;
 
     /// <summary>
     /// Whether <see cref="GlyphOutlineProvider"/> has been set, so a caller can find out without
@@ -220,7 +220,7 @@ public static class GlobalFontSettings
             finally { Lock.ExitFontFactory(); }
         }
     }
-    static ITextShaper _textShaper;
+    private static ITextShaper _textShaper;
 
     /// <summary>
     /// Whether <see cref="TextShaper"/> has been set. Unlike <see cref="FontResolver"/> and
@@ -290,7 +290,7 @@ public static class GlobalFontSettings
             finally { Lock.ExitFontFactory(); }
         }
     }
-    static IFontFallback _fontFallback;
+    private static IFontFallback _fontFallback;
 
     /// <summary>
     /// Whether <see cref="FontFallback"/> answers anything other than null - either because a
@@ -352,8 +352,8 @@ public static class GlobalFontSettings
             finally { Lock.ExitFontFactory(); }
         }
     }
-    static PdfFontEncoding _fontEncoding;
-    static bool _fontEncodingInitialized;
+    private static PdfFontEncoding _fontEncoding;
+    private static bool _fontEncodingInitialized;
 
     /// <summary>
     /// Whether <see cref="DefaultFontEncoding"/> has been explicitly set. Reading it unset does not

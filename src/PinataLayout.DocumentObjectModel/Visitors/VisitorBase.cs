@@ -391,7 +391,7 @@ public abstract class VisitorBase : DocumentObjectVisitor
     /// as two fonts, and the second, mapped over the first, answered <c>false</c> for every bold
     /// and italic it had not set.
     /// </summary>
-    void FlattenChartFont(Font font, string styleName, Chart chart)
+    private void FlattenChartFont(Font font, string styleName, Chart chart)
     {
         var refFont = !string.IsNullOrEmpty(styleName) && font.Document?.Styles[styleName] is { } style
             ? style.Font
@@ -687,7 +687,7 @@ public abstract class VisitorBase : DocumentObjectVisitor
     /// Returns a paragraph format object initialized by the given style.
     /// It differs from style.ParagraphFormat if style is a character style.
     /// </summary>
-    ParagraphFormat ParagraphFormatFromStyle(Style style)
+    private ParagraphFormat ParagraphFormatFromStyle(Style style)
     {
         if (style.Type == StyleType.Character)
         {
@@ -709,165 +709,163 @@ public abstract class VisitorBase : DocumentObjectVisitor
         if (table.rightPadding.IsNull)
             table.rightPadding = Unit.FromMillimeter(1.2);
 
-        ParagraphFormat format;
-        var style = document.styles[(table.style ?? "")];
-        if (style != null)
-            format = ParagraphFormatFromStyle(style);
-        else
+        if (!TryStyledFormat(document, table.style, out var format))
         {
             table.Style = "Normal";
             format = document.styles.Normal.paragraphFormat;
         }
 
-        if (table.format == null)
-        {
-            table.format = format.Clone();
-            table.format.parent = table;
-        }
-        else
-            FlattenParagraphFormat(table.format, format);
+        table.format = OwnFormat(table.format, format, table, null);
+
+        var columns = table.Columns.Count;
+        for (var idxclm = 0; idxclm < columns; idxclm++)
+            FlattenColumn(table, table.Columns[idxclm]);
 
         var rows = table.Rows.Count;
-        var clms = table.Columns.Count;
-
-        for (var idxclm = 0; idxclm < clms; idxclm++)
-        {
-            var column = table.Columns[idxclm];
-            ParagraphFormat colFormat;
-            style = document.styles[(column.style ?? "")];
-            if (style != null)
-                colFormat = ParagraphFormatFromStyle(style);
-            else
-            {
-                column.style = table.style;
-                colFormat = table.Format;
-            }
-
-            if (column.format == null)
-            {
-                column.format = colFormat.Clone();
-                column.format.parent = column;
-                if (column.format.shading == null && table.format.shading != null)
-                    column.format.shading = table.format.shading;
-            }
-            else
-                FlattenParagraphFormat(column.format, colFormat);
-
-            if (column.leftPadding.IsNull)
-                column.leftPadding = table.leftPadding;
-            if (column.rightPadding.IsNull)
-                column.rightPadding = table.rightPadding;
-
-            if (column.shading == null)
-                column.shading = InheritedShading(table.shading, column);
-
-            else if (table.shading != null)
-                FlattenShading(column.shading, table.shading);
-
-            if (column.borders == null)
-                column.borders = InheritedBorders(table.borders, column);
-            else if (table.borders != null)
-                FlattenBorders(column.borders, table.borders);
-        }
-
         for (var idxrow = 0; idxrow < rows; idxrow++)
+            FlattenRow(table, table.Rows[idxrow]);
+    }
+
+    private void FlattenColumn(Table table, Column column)
+    {
+        if (!TryStyledFormat(table.Document, column.style, out var colFormat))
         {
-            var row = table.Rows[idxrow];
-
-            ParagraphFormat rowFormat;
-            style = document.styles[(row.style ?? "")];
-            if (style != null)
-            {
-                rowFormat = ParagraphFormatFromStyle(style);
-            }
-            else
-            {
-                row.style = table.style;
-                rowFormat = table.Format;
-            }
-
-            for (var idxclm = 0; idxclm < clms; idxclm++)
-            {
-                var column = table.Columns[idxclm];
-                var cell = row[idxclm];
-
-                ParagraphFormat cellFormat;
-                var cellStyle = document.styles[(cell.style ?? "")];
-                if (cellStyle != null)
-                {
-                    cellFormat = ParagraphFormatFromStyle(cellStyle);
-
-                    if (cell.format == null)
-                        cell.format = cellFormat;
-                    else
-                        FlattenParagraphFormat(cell.format, cellFormat);
-                }
-                else
-                {
-                    if (row.format != null)
-                        FlattenParagraphFormat(cell.Format, row.format);
-
-                    if (style != null)
-                    {
-                        cell.style = row.style;
-                        FlattenParagraphFormat(cell.Format, rowFormat);
-                    }
-                    else
-                    {
-                        cell.style = column.style;
-                        FlattenParagraphFormat(cell.Format, column.format);
-                    }
-                }
-
-                if (cell.format.shading == null && table.format.shading != null)
-                    cell.format.shading = table.format.shading;
-
-                // Each cell takes a copy of what it inherits rather than the row's or the column's own
-                // object: the column is flattened onto the cell straight after the row is, and writing
-                // that into the row's borders would give it to every other cell of the row as well.
-                if (cell.shading == null)
-                    cell.shading = InheritedShading(row.shading, cell);
-                else if (row.shading != null)
-                    FlattenShading(cell.shading, row.shading);
-                if (cell.shading == null)
-                    cell.shading = InheritedShading(column.shading, cell);
-                else if (column.shading != null)
-                    FlattenShading(cell.shading, column.shading);
-                if (cell.borders == null)
-                    cell.borders = InheritedBorders(row.borders, cell);
-                else if (row.borders != null)
-                    FlattenBorders(cell.borders, row.borders);
-                if (cell.borders == null)
-                    cell.borders = InheritedBorders(column.borders, cell);
-                else if (column.borders != null)
-                    FlattenBorders(cell.borders, column.borders);
-            }
-
-            if (row.format == null)
-            {
-                row.format = rowFormat.Clone();
-                row.format.parent = row;
-                if (row.format.shading == null && table.format.shading != null)
-                    row.format.shading = table.format.shading;
-            }
-            else
-                FlattenParagraphFormat(row.format, rowFormat);
-
-            if (row.topPadding.IsNull)
-                row.topPadding = table.topPadding;
-            if (row.bottomPadding.IsNull)
-                row.bottomPadding = table.bottomPadding;
-
-            if (row.shading == null)
-                row.shading = InheritedShading(table.shading, row);
-            else if (table.shading != null)
-                FlattenShading(row.shading, table.shading);
-
-            if (row.borders == null)
-                row.borders = InheritedBorders(table.borders, row);
-            else if (table.borders != null)
-                FlattenBorders(row.borders, table.borders);
+            column.style = table.style;
+            colFormat = table.Format;
         }
+
+        column.format = OwnFormat(column.format, colFormat, column, table.format.shading);
+
+        if (column.leftPadding.IsNull)
+            column.leftPadding = table.leftPadding;
+        if (column.rightPadding.IsNull)
+            column.rightPadding = table.rightPadding;
+
+        column.shading = MergedShading(column.shading, table.shading, column);
+        column.borders = MergedBorders(column.borders, table.borders, column);
+    }
+
+    private void FlattenRow(Table table, Row row)
+    {
+        var rowHasStyle = TryStyledFormat(table.Document, row.style, out var rowFormat);
+        if (!rowHasStyle)
+        {
+            row.style = table.style;
+            rowFormat = table.Format;
+        }
+
+        // The cells go first: they take the row's shading and borders as the row itself states them,
+        // before the row has inherited the table's.
+        var columns = table.Columns.Count;
+        for (var idxclm = 0; idxclm < columns; idxclm++)
+            FlattenCell(table, row, rowHasStyle, rowFormat, table.Columns[idxclm], row[idxclm]);
+
+        row.format = OwnFormat(row.format, rowFormat, row, table.format.shading);
+
+        if (row.topPadding.IsNull)
+            row.topPadding = table.topPadding;
+        if (row.bottomPadding.IsNull)
+            row.bottomPadding = table.bottomPadding;
+
+        row.shading = MergedShading(row.shading, table.shading, row);
+        row.borders = MergedBorders(row.borders, table.borders, row);
+    }
+
+    private void FlattenCell(Table table, Row row, bool rowHasStyle, ParagraphFormat rowFormat, Column column, Cell cell)
+    {
+        if (TryStyledFormat(table.Document, cell.style, out var cellFormat))
+        {
+            if (cell.format == null)
+                cell.format = cellFormat;
+            else
+                FlattenParagraphFormat(cell.format, cellFormat);
+        }
+        else
+        {
+            if (row.format != null)
+                FlattenParagraphFormat(cell.Format, row.format);
+
+            if (rowHasStyle)
+            {
+                cell.style = row.style;
+                FlattenParagraphFormat(cell.Format, rowFormat);
+            }
+            else
+            {
+                cell.style = column.style;
+                FlattenParagraphFormat(cell.Format, column.format);
+            }
+        }
+
+        cell.format.shading ??= table.format.shading;
+
+        // Each cell takes a copy of what it inherits rather than the row's or the column's own
+        // object: the column is flattened onto the cell straight after the row is, and writing
+        // that into the row's borders would give it to every other cell of the row as well.
+        cell.shading = MergedShading(cell.shading, row.shading, cell);
+        cell.shading = MergedShading(cell.shading, column.shading, cell);
+        cell.borders = MergedBorders(cell.borders, row.borders, cell);
+        cell.borders = MergedBorders(cell.borders, column.borders, cell);
+    }
+
+    /// <summary>
+    /// Gives the paragraph format of the named style, when there is a style of that name.
+    /// </summary>
+    /// <remarks>
+    /// Answers whether the style exists rather than whether the format does: a style's format is
+    /// made on first use, so a style that exists can still have none yet.
+    /// </remarks>
+    private bool TryStyledFormat(Document document, string styleName, out ParagraphFormat format)
+    {
+        var style = document.styles[styleName ?? ""];
+        format = style != null ? ParagraphFormatFromStyle(style) : null;
+        return style != null;
+    }
+
+    /// <summary>
+    /// An object's own paragraph format with every value left unset filled in from
+    /// <paramref name="inherited"/>, or a copy of that format when the object has none of its own.
+    /// A newly made copy with no shading takes <paramref name="fallbackShading"/> - the table's, for
+    /// its rows and columns.
+    /// </summary>
+    private ParagraphFormat OwnFormat(ParagraphFormat own, ParagraphFormat inherited, DocumentObject owner, Shading fallbackShading)
+    {
+        if (own != null)
+        {
+            FlattenParagraphFormat(own, inherited);
+            return own;
+        }
+
+        var format = inherited.Clone();
+        format.parent = owner;
+        format.shading ??= fallbackShading;
+        return format;
+    }
+
+    /// <summary>
+    /// An object's own shading filled in from what it inherits, or its own copy of that when it has none.
+    /// </summary>
+    private Shading MergedShading(Shading own, Shading inherited, DocumentObject owner)
+    {
+        if (own == null)
+            return InheritedShading(inherited, owner);
+
+        if (inherited != null)
+            FlattenShading(own, inherited);
+        return own;
+    }
+
+    /// <summary>
+    /// An object's own borders filled in from what it inherits, or its own copy of them when it has none.
+    /// </summary>
+    private Borders MergedBorders(Borders own, Borders inherited, DocumentObject owner)
+    {
+        if (own == null)
+            return InheritedBorders(inherited, owner);
+
+        if (inherited != null)
+            FlattenBorders(own, inherited);
+        return own;
     }
 
     #endregion

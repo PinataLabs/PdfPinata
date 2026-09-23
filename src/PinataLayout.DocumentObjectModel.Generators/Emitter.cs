@@ -9,7 +9,7 @@ namespace PinataLayout.DocumentObjectModel.Generators;
 /// </summary>
 internal static class Emitter
 {
-    const string Internals = "global::PinataLayout.DocumentObjectModel.Internals";
+    private const string Internals = "global::PinataLayout.DocumentObjectModel.Internals";
 
     public static string Emit(DomTypeModel type)
     {
@@ -51,7 +51,7 @@ internal static class Emitter
         return source.ToString();
     }
 
-    static void EmitDescriptor(StringBuilder source, DomTypeModel type, DomMemberModel member)
+    private static void EmitDescriptor(StringBuilder source, DomTypeModel type, DomMemberModel member)
     {
         var self = $"(({type.Name})o)";
 

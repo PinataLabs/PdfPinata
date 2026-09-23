@@ -84,7 +84,7 @@ public sealed partial class Document : DocumentObject, IVisitable
     }
     renderer = newRenderer;
   }
-  object renderer;
+  private object renderer;
 
   /// <summary>
   /// Indicates whether the document is bound to a renderer. A bound document must not be modified anymore.

@@ -128,7 +128,7 @@ public class TableKeepWithTests
     ///   How many rows of the table the page shows, counted from the rules between them: a table
     ///   of n rows is ruled n + 1 times across.
     /// </summary>
-    static int RowsOn(PdfPage page)
+    private static int RowsOn(PdfPage page)
     {
         var rules = StrokedLines.Of(page)
             .Where(line => line.IsHorizontal)
@@ -139,7 +139,7 @@ public class TableKeepWithTests
         return rules - 1;
     }
 
-    static IReadOnlyList<PdfPage> Render(Action<Table> build)
+    private static IReadOnlyList<PdfPage> Render(Action<Table> build)
     {
         var document = new Document();
         var table = document.AddSection().AddTable();

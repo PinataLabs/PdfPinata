@@ -98,7 +98,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     /// What the caller was trying to do, as a gerund phrase - "adding a page". It is read as the
     /// middle of a sentence naming the mode the document was opened with.
     /// </param>
-    void EnsureCanModify(string operation)
+    private void EnsureCanModify(string operation)
     {
         Owner.EnsureCanModify(operation);
     }
@@ -216,7 +216,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     /// deliberately excluded: an annotation carries a /P back-reference to the page that owns
     /// it, so sharing one between two pages would leave that reference pointing at the wrong page.
     /// </summary>
-    static readonly string[] DuplicatedPageKeys =
+    private static readonly string[] DuplicatedPageKeys =
     [
         PdfPage.InheritablePageKeys.Resources,
         PdfPage.Keys.Contents,
@@ -350,7 +350,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     /// so the two pages go on sharing the things that carry the bytes.
     /// </para>
     /// </summary>
-    PdfItem CloneResources(PdfItem resources)
+    private PdfItem CloneResources(PdfItem resources)
     {
         var dictionary = ResolveDictionary(resources);
         if (dictionary == null)
@@ -365,7 +365,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     /// Returns the dictionary an item holds, following an indirect reference, or null if the
     /// item is not a dictionary.
     /// </summary>
-    static PdfDictionary ResolveDictionary(PdfItem item)
+    private static PdfDictionary ResolveDictionary(PdfItem item)
     {
         var reference = item as PdfReference;
         if (reference != null)
@@ -513,7 +513,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     /// of their transitive closure. Any reuse of already imported objects is not intended because
     /// any modification of an imported page must not change another page.
     /// </summary>
-    PdfPage ImportExternalPage(PdfPage importPage, AnnotationCopyingType annotationCopying = AnnotationCopyingType.ShallowCopy)
+    private PdfPage ImportExternalPage(PdfPage importPage, AnnotationCopyingType annotationCopying = AnnotationCopyingType.ShallowCopy)
     {
         if (importPage.Owner._openMode != PdfDocumentOpenMode.Import)
             throw new InvalidOperationException("A PDF document must be opened with PdfDocumentOpenMode.Import to import pages from it.");
@@ -580,7 +580,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     /// <summary>
     /// Helper function for ImportExternalPage.
     /// </summary>
-    void CloneElement(PdfPage page, PdfPage importPage, string key, bool deepcopy)
+    private void CloneElement(PdfPage page, PdfPage importPage, string key, bool deepcopy)
     {
         Debug.Assert(page != null);
         Debug.Assert(page.Owner == _document);
@@ -633,7 +633,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     /// and with it everything the page reaches, up to and including the whole page tree. That is
     /// why splitting a document used to yield files as large as the document they came from.
     /// </summary>
-    void DetachImportedDestinations(PdfPage page, PdfPage importPage, PdfImportedObjectTable importedObjectTable)
+    private void DetachImportedDestinations(PdfPage page, PdfPage importPage, PdfImportedObjectTable importedObjectTable)
     {
         var importedAnnotations = page.Elements.GetArray(PdfPage.Keys.Annots);
         var externalAnnotations = importPage.Elements.GetArray(PdfPage.Keys.Annots);
@@ -685,7 +685,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     /// itself and needs no catalog to be understood.
     /// </para>
     /// </summary>
-    void DetachDestination(PdfDictionary annotation, PdfDictionary holder, PdfDictionary externalHolder,
+    private void DetachDestination(PdfDictionary annotation, PdfDictionary holder, PdfDictionary externalHolder,
         string key, PdfImportedObjectTable importedObjectTable, PdfDocument externalDocument)
     {
         var externalDestination = externalHolder.Elements.GetArray(key);
@@ -730,7 +730,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     /// which cannot be written faithfully is left alone rather than written wrongly.
     /// </para>
     /// </summary>
-    PdfArray ExplicitDestination(PdfArray externalDestination)
+    private PdfArray ExplicitDestination(PdfArray externalDestination)
     {
         var destination = new PdfArray(_document);
         destination.Elements.Add(PdfNull.Value);
@@ -755,7 +755,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     /// pages of an external document made it into this one is not known before it is saved, so a
     /// destination whose page was left behind can only be dropped here.
     /// </summary>
-    void ResolveImportedDestinations()
+    private void ResolveImportedDestinations()
     {
         if (_importedDestinations.Count == 0)
             return;
@@ -796,9 +796,9 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     /// The destinations of imported annotations, waiting for the page of the external document
     /// they name to be imported as well.
     /// </summary>
-    readonly List<ImportedDestination> _importedDestinations = [];
+    private readonly List<ImportedDestination> _importedDestinations = [];
 
-    sealed class ImportedDestination
+    private sealed class ImportedDestination
     {
         internal ImportedDestination(PdfDictionary annotation, PdfDictionary holder, string key,
             PdfArray destination, PdfImportedObjectTable importedObjectTable, PdfObjectID externalPageID)
@@ -841,7 +841,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
             return _pagesArray;
         }
     }
-    PdfArray _pagesArray;
+    private PdfArray _pagesArray;
 
     /// <summary>
     /// Replaces the page tree by a flat array of indirect references to the pages objects.
@@ -875,7 +875,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     /// <summary>
     /// Recursively converts the page tree into a flat array.
     /// </summary>
-    static PdfDictionary[] GetKids(PdfReference iref, PdfPage.InheritedValues values, int objectCount)
+    private static PdfDictionary[] GetKids(PdfReference iref, PdfPage.InheritedValues values, int objectCount)
     {
         // A tree enters each of its nodes once, so the walk of a file holding n objects enters at
         // most n nodes. A node two parents list is entered twice, which is read rather than refused -
@@ -896,13 +896,13 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     /// stack, which this walk overflowed at about 1,800 frames — and a stack overflow cannot be
     /// caught, so the process goes, and the file was only being opened.
     /// </remarks>
-    const int MaxPageTreeDepth = 256;
+    private const int MaxPageTreeDepth = 256;
 
     /// <summary>
     /// The same walk, carrying the nodes it is currently inside — which is both the loop detector
     /// and the depth, since a node appears on the path at most once.
     /// </summary>
-    static PdfDictionary[] GetKids(PdfReference iref, PdfPage.InheritedValues values,
+    private static PdfDictionary[] GetKids(PdfReference iref, PdfPage.InheritedValues values,
         HashSet<PdfObjectID> ancestors, ref int budget)
     {
         if (--budget < 0)
@@ -1012,7 +1012,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     /// <summary>
     /// What to call an object in a message about a page tree that does not hold what it should.
     /// </summary>
-    static string TypeNameOf(PdfItem item) => item == null ? "null" : item.GetType().Name;
+    private static string TypeNameOf(PdfItem item) => item == null ? "null" : item.GetType().Name;
 
     /// <summary>
     /// Prepares the document for saving.
@@ -1045,7 +1045,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         return new PdfPagesEnumerator(this);
     }
 
-    class PdfPagesEnumerator : IEnumerator<PdfPage>
+    private class PdfPagesEnumerator : IEnumerator<PdfPage>
     {
         internal PdfPagesEnumerator(PdfPages list)
         {
@@ -1088,9 +1088,9 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
             // Nothing to do.
         }
 
-        PdfPage _currentElement;
-        int _index;
-        readonly PdfPages _list;
+        private PdfPage _currentElement;
+        private int _index;
+        private readonly PdfPages _list;
     }
 
     /// <summary>
@@ -1131,7 +1131,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         /// </summary>
         public static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

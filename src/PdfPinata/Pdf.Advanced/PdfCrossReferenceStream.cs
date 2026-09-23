@@ -153,7 +153,7 @@ internal sealed class PdfCrossReferenceStream : PdfTrailer  // Reference: 3.4.7 
         /// </summary>
         public new static DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

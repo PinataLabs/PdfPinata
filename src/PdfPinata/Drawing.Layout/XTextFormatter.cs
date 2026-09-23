@@ -53,7 +53,8 @@ public class XTextFormatter
         ArgumentNullException.ThrowIfNull(gfx);
         _gfx = gfx;
     }
-    readonly XGraphics _gfx;
+
+    private readonly XGraphics _gfx;
 
     /// <summary>
     /// Gets or sets the text.
@@ -64,7 +65,8 @@ public class XTextFormatter
         get => _text;
         set => _text = value;
     }
-    string _text;
+
+    private string _text;
 
     /// <summary>
     /// Gets or sets the font.
@@ -87,13 +89,14 @@ public class XTextFormatter
             _spaceWidth -= _gfx.MeasureString("xx", value).Width;
         }
     }
-    XFont _font;
-    double _lineSpace;
-    double _cyAscent;
-    double _cyDescent;
-    double _cyCapHeight;
-    double _spaceWidth;
-    double _lineHeight;
+
+    private XFont _font;
+    private double _lineSpace;
+    private double _cyAscent;
+    private double _cyDescent;
+    private double _cyCapHeight;
+    private double _spaceWidth;
+    private double _lineHeight;
 
     /// <summary>
     /// How tall a capital letter stands above the baseline in <paramref name="font"/>, in points.
@@ -108,7 +111,7 @@ public class XTextFormatter
     /// code used before there was a better number to ask for.
     /// </para>
     /// </remarks>
-    static double CapHeightOf(XFont font)
+    private static double CapHeightOf(XFont font)
     {
         var lineSpace = font.GetHeight();
         var ascent = lineSpace * font.CellAscent / font.CellSpace;
@@ -125,7 +128,8 @@ public class XTextFormatter
         get => _layoutRectangle;
         set => _layoutRectangle = value;
     }
-    XRect _layoutRectangle;
+
+    private XRect _layoutRectangle;
 
     /// <summary>
     /// When true, ignore the height of text areas when rendering multiline strings
@@ -241,7 +245,8 @@ public class XTextFormatter
             _columns = value;
         }
     }
-    int _columns = 1;
+
+    private int _columns = 1;
 
     /// <summary>
     /// Gets or sets the space, in points, left between one column and the next.
@@ -264,7 +269,7 @@ public class XTextFormatter
     /// What a drop cap has been worked out to be for the text and layout in hand: the room it
     /// reserves, the font it is drawn in, and how far its ink sits from the pen.
     /// </summary>
-    sealed class DropCapMetrics
+    private sealed class DropCapMetrics
     {
         internal string Character;
         internal XFont Font;
@@ -282,7 +287,7 @@ public class XTextFormatter
         internal double Baseline;
     }
 
-    DropCapMetrics _dropCap;
+    private DropCapMetrics _dropCap;
 
     /// <summary>
     /// Things standing in the block that the text is laid out around.
@@ -309,17 +314,17 @@ public class XTextFormatter
     /// </remarks>
     public IList<IFlowObstacle> Obstacles => _obstacles;
 
-    readonly List<IFlowObstacle> _obstacles = new List<IFlowObstacle>();
+    private readonly List<IFlowObstacle> _obstacles = new List<IFlowObstacle>();
 
     /// <summary>
     /// The block and everything standing in it, worked out for the layout in hand.
     /// </summary>
-    TextFlowRegion _region;
+    private TextFlowRegion _region;
 
     /// <summary>
     /// How wide one column is, given the width of the whole layout rectangle.
     /// </summary>
-    double ColumnWidthWithin(double rectWidth)
+    private double ColumnWidthWithin(double rectWidth)
     {
         return (rectWidth - ColumnGap * (Columns - 1)) / Columns;
     }
@@ -327,7 +332,7 @@ public class XTextFormatter
     /// <summary>
     /// How far the left edge of a column sits from the left edge of the layout rectangle.
     /// </summary>
-    double ColumnLeft(int column, double columnWidth)
+    private double ColumnLeft(int column, double columnWidth)
     {
         return column * (columnWidth + ColumnGap);
     }
@@ -537,7 +542,7 @@ public class XTextFormatter
     /// the pen it looks indented by an amount that grows with the size of the cap, which is exactly
     /// the size at which the eye notices.
     /// </remarks>
-    void DrawDropCap(XBrush brush, double dx, double dy)
+    private void DrawDropCap(XBrush brush, double dx, double dy)
     {
         if (_dropCap == null)
             return;
@@ -563,7 +568,7 @@ public class XTextFormatter
         return blocks.TakeWhile(b => !b.Stop).Where(b => b.Type != BlockType.LineBreak);
     }
 
-    void CreateBlocks()
+    private void CreateBlocks()
     {
         _blocks.Clear();
         var length = _text.Length;
@@ -624,7 +629,7 @@ public class XTextFormatter
     /// <summary>
     /// How far the left edge of a line sits from the left edge of the layout rectangle.
     /// </summary>
-    double IndentOf(bool firstLineOfParagraph)
+    private double IndentOf(bool firstLineOfParagraph)
     {
         return IndentAllLines || firstLineOfParagraph ? Indent : 0;
     }
@@ -637,14 +642,14 @@ public class XTextFormatter
     /// full measure has <see cref="Start"/> equal to its indent and <see cref="Width"/> equal to
     /// the column's width.
     /// </remarks>
-    readonly struct LineMeasure
+    private readonly struct LineMeasure
     {
         internal LineMeasure(double start, double width)
             : this(start, width, blocked: false, clearsAt: 0)
         {
         }
 
-        LineMeasure(double start, double width, bool blocked, double clearsAt)
+        private LineMeasure(double start, double width, bool blocked, double clearsAt)
         {
             Start = start;
             Width = width;
@@ -695,7 +700,7 @@ public class XTextFormatter
     /// this: a word wider than its measure is placed anyway and always has been, and a threshold
     /// that turned "narrow" into "no room" would move text that is pinned where it is.
     /// </remarks>
-    const double MinimumRoom = 1e-6;
+    private const double MinimumRoom = 1e-6;
 
     /// <summary>
     /// The measure available to a line, given how far down its column the line's top sits.
@@ -712,7 +717,7 @@ public class XTextFormatter
     /// hope; <c>FormatterLayoutPinTests</c> is what checks it.
     /// </para>
     /// </remarks>
-    LineMeasure MeasureOfLineAt(double yTop, bool firstLineOfParagraph, double columnWidth, int column)
+    private LineMeasure MeasureOfLineAt(double yTop, bool firstLineOfParagraph, double columnWidth, int column)
     {
         var indent = IndentOf(firstLineOfParagraph);
         if (_region == null)
@@ -755,7 +760,7 @@ public class XTextFormatter
     /// itself. <c>MeasureLineWithRoom</c> puts a floor of one line under whatever it is told, so a
     /// clearance that does not move still ends up moving.
     /// </remarks>
-    LineMeasure BlockedAt(FlowBand band, double start, double limit)
+    private LineMeasure BlockedAt(FlowBand band, double start, double limit)
     {
         var clearsAt = _region.NextClearanceBelow(band) ?? band.Bottom;
         return LineMeasure.Blocked(start, limit, clearsAt);
@@ -770,7 +775,7 @@ public class XTextFormatter
     /// baseline of the last line it is set into, which is what makes it look set <i>into</i> the
     /// text rather than floating above it.
     /// </remarks>
-    DropCapMetrics MeasureDropCap(string text)
+    private DropCapMetrics MeasureDropCap(string text)
     {
         if (DropCap == null || string.IsNullOrEmpty(text))
             return null;
@@ -835,7 +840,7 @@ public class XTextFormatter
     /// outside the ink it draws.
     /// </para>
     /// </remarks>
-    XRect InkOf(string text, XFont font)
+    private XRect InkOf(string text, XFont font)
     {
         var provider = OutlineProviderOrNull();
         if (provider == null)
@@ -879,7 +884,7 @@ public class XTextFormatter
     /// throws when it is unset, which is right for a caller who asked for outlines and wrong here:
     /// a drop cap without a provider is drawn by advance rather than refused.
     /// </summary>
-    static IGlyphOutlineProvider OutlineProviderOrNull()
+    private static IGlyphOutlineProvider OutlineProviderOrNull()
     {
         try
         {
@@ -897,7 +902,7 @@ public class XTextFormatter
     /// a content stream writes a coordinate to, so a line it lets in is one no page could show to
     /// be out.
     /// </summary>
-    const double FitTolerance = 1e-6;
+    private const double FitTolerance = 1e-6;
 
     /// <summary>
     /// Moves to the top of the next column when the one being filled has run out of room.
@@ -915,7 +920,7 @@ public class XTextFormatter
     /// and the last line was refused whenever the rounding fell against it (empira/PDFsharp#198).
     /// </para>
     /// </remarks>
-    bool MoveToNextColumnIfFull(ref int column, ref double y, double rectHeight)
+    private bool MoveToNextColumnIfFull(ref int column, ref double y, double rectHeight)
     {
         if (y <= rectHeight + FitTolerance)
             return true;
@@ -946,7 +951,7 @@ public class XTextFormatter
     /// with the floor the worst case is the line-at-a-time advance this replaces.
     /// </para>
     /// </remarks>
-    bool MeasureLineWithRoom(bool firstLineOfParagraph, double columnWidth, double rectHeight,
+    private bool MeasureLineWithRoom(bool firstLineOfParagraph, double columnWidth, double rectHeight,
         out LineMeasure measure, ref int column, ref double y)
     {
         measure = MeasureOfLineAt(y, firstLineOfParagraph, columnWidth, column);
@@ -984,7 +989,7 @@ public class XTextFormatter
     /// costs nothing at all and lays out through the same code it always did.
     /// </para>
     /// </remarks>
-    TextFlowRegion RegionFor(double rectWidth, double rectHeight, double columnWidth)
+    private TextFlowRegion RegionFor(double rectWidth, double rectHeight, double columnWidth)
     {
         if (_obstacles.Count == 0 && _dropCap == null)
             return null;
@@ -1006,7 +1011,7 @@ public class XTextFormatter
         return region;
     }
 
-    void CreateLayout()
+    private void CreateLayout()
     {
         var rectWidth = _layoutRectangle.Width;
         var rectHeight = _layoutRectangle.Height - _cyAscent - _cyDescent;
@@ -1132,7 +1137,7 @@ public class XTextFormatter
     /// left on that line. Trimming rather than measuring once, because how much has to come off
     /// depends on how wide the characters that come off are.
     /// </remarks>
-    void ApplyEllipsis(double columnWidth)
+    private void ApplyEllipsis(double columnWidth)
     {
         if (string.IsNullOrEmpty(Ellipsis) || AllowVerticalOverflow)
             return;
@@ -1163,7 +1168,7 @@ public class XTextFormatter
     /// <summary>
     /// Align center, right, or justify.
     /// </summary>
-    void HorizontalAlignLine(int firstIndex, int lastIndex, double layoutWidth)
+    private void HorizontalAlignLine(int firstIndex, int lastIndex, double layoutWidth)
     {
         var blockAlignment = _blocks[firstIndex].Alignment;
         if (Alignment == XParagraphAlignment.Left || blockAlignment == XParagraphAlignment.Left)
@@ -1200,7 +1205,7 @@ public class XTextFormatter
         }
     }
 
-    readonly List<Block> _blocks = new();
+    private readonly List<Block> _blocks = new();
 
     private XStringFormat GetXStringFormat()
     {

@@ -37,7 +37,7 @@ internal static class FontMapper
   // Only what the DOM font sets: a property it leaves unset is left unset here too, so that the
   // chart's font can supply it. Mapping a style and then a font of its own over it used to answer
   // false for every bold and italic the second had not set, and an empty colour for its colour.
-  static void MapObject(Font font, DocumentObjectModel.Font domFont)
+  private static void MapObject(Font font, DocumentObjectModel.Font domFont)
   {
     if (!domFont.IsNull("Bold"))
       font.Bold = domFont.Bold;

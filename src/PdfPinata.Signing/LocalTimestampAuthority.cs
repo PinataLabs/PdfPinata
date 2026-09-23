@@ -21,9 +21,9 @@ namespace PdfPinata.Signing;
 public sealed class LocalTimestampAuthority : ITimestampProvider
 {
     /// <summary>id-ct-TSTInfo, RFC 3161.</summary>
-    const string TstInfoOid = "1.2.840.113549.1.9.16.1.4";
+    private const string TstInfoOid = "1.2.840.113549.1.9.16.1.4";
 
-    readonly X509Certificate2 _certificate;
+    private readonly X509Certificate2 _certificate;
 
     /// <summary>
     /// Mints tokens signed with the given certificate, which must have a usable private key.
@@ -34,7 +34,7 @@ public sealed class LocalTimestampAuthority : ITimestampProvider
 
         if (!certificate.HasPrivateKey)
             throw new ArgumentException(
-                "The certificate has no private key, so it cannot sign a timestamp token.",
+                @"The certificate has no private key, so it cannot sign a timestamp token.",
                 nameof(certificate));
     }
 
@@ -67,7 +67,7 @@ public sealed class LocalTimestampAuthority : ITimestampProvider
     /// <see cref="Rfc3161TimestampTokenInfo"/> rather than by hand, so its encoding is exactly what
     /// <see cref="Rfc3161TimestampToken.TryDecode"/> on the reading side already knows how to read.
     /// </summary>
-    static byte[] BuildTstInfo(byte[] messageImprint, HashAlgorithmName hashAlgorithm)
+    private static byte[] BuildTstInfo(byte[] messageImprint, HashAlgorithmName hashAlgorithm)
     {
         // An arbitrary private policy OID: nothing here claims conformance to a real one.
         var policyId = new Oid("1.2.3.4.5.6.7.8.9");

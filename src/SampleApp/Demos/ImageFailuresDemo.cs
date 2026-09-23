@@ -43,13 +43,13 @@ internal sealed class ImageFailuresDemo : PdfDemo
     ///   generated bitmap. Here it is the opposite: an image that is never going to work, so that
     ///   the failure path can be shown rather than described.
     /// </remarks>
-    sealed class FailingImage : IImageSource
+    private sealed class FailingImage : IImageSource
     {
-        readonly Func<int> _size;
-        readonly Func<bool> _transparent;
-        readonly Action _write;
+        private readonly Func<int> _size;
+        private readonly Func<bool> _transparent;
+        private readonly Action _write;
 
-        FailingImage(string name, Func<int> size, Func<bool> transparent, Action write)
+        private FailingImage(string name, Func<int> size, Func<bool> transparent, Action write)
         {
             Name = name;
             _size = size;
@@ -114,7 +114,7 @@ internal sealed class ImageFailuresDemo : PdfDemo
     }
 
     /// <summary>The four ways to fail, and where in the render each of them lands.</summary>
-    static (string What, Func<IImageSource> Source, string When)[] Cases() => new[]
+    private static (string What, Func<IImageSource> Source, string When)[] Cases() => new[]
     {
         ("A type nothing can decode", (Func<IImageSource>)FailingImage.OfAnUnsupportedType,
             "throws while XImage is built, before any measuring"),

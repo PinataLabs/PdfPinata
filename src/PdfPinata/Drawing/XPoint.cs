@@ -144,7 +144,8 @@ public struct XPoint : IFormattable, IEquatable<XPoint>
         get => _x;
         set => _x = value;
     }
-    double _x;
+
+    private double _x;
 
     /// <summary>
     /// Gets the x-coordinate of this XPoint.
@@ -154,7 +155,8 @@ public struct XPoint : IFormattable, IEquatable<XPoint>
         get => _y;
         set => _y = value;
     }
-    double _y;
+
+    private double _y;
 
     /// <summary>
     /// Converts this XPoint to a human readable string.
@@ -210,7 +212,7 @@ public struct XPoint : IFormattable, IEquatable<XPoint>
     /// <summary>
     /// Adds a point and a size.
     /// </summary>
-    [System.Obsolete("A size is not a displacement. Add an XVector instead: point + new XVector(size.Width, size.Height). It will be removed.")]
+    [Obsolete("A size is not a displacement. Add an XVector instead: point + new XVector(size.Width, size.Height). It will be removed.")]
     public static XPoint operator +(XPoint point, XSize size)
     {
         return new XPoint(point._x + size.Width, point._y + size.Height);
@@ -308,7 +310,7 @@ public struct XPoint : IFormattable, IEquatable<XPoint>
     /// Gets the DebuggerDisplayAttribute text.
     /// </summary>
     // ReSharper disable UnusedMember.Local
-    string DebuggerDisplay
+    private string DebuggerDisplay
         // ReSharper restore UnusedMember.Local
     {
         get

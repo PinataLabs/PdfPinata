@@ -24,7 +24,7 @@ public class PdfPagesTests
     ///   A document that can be imported from, which means one written out and read back: the
     ///   import path refuses a document that was not opened with <see cref="PdfDocumentOpenMode.Import"/>.
     /// </summary>
-    static PdfDocument AnImportableDocument(int pageCount = 3)
+    private static PdfDocument AnImportableDocument(int pageCount = 3)
     {
         var source = new PdfDocument();
         for (var i = 0; i < pageCount; i++)

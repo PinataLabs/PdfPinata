@@ -99,7 +99,7 @@ public class MissingEndObjectTests
         await read.Should().ThrowAsync<PdfReaderException>();
     }
 
-    static Task<PdfDocument> Read(byte[] document)
+    private static Task<PdfDocument> Read(byte[] document)
     {
         return Interruptibly.Run(() => Pdf.IO.PdfReader.Open(new MemoryStream(document), PdfDocumentOpenMode.Modify));
     }
@@ -111,7 +111,7 @@ public class MissingEndObjectTests
     ///   <paramref name="endobjOnTheSpare"/> says so, and object 6 ends the body and closes only
     ///   if <paramref name="endobjOnTheLastObject"/> says so.
     /// </summary>
-    static byte[] Document(
+    private static byte[] Document(
         bool endobj,
         string spare = "<</Spare true>>",
         bool endobjOnTheSpare = true,

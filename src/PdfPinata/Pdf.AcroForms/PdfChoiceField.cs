@@ -122,7 +122,7 @@ public abstract class PdfChoiceField : PdfAcroField
     /// option chosen rather than two. Passing over what earlier entries already accounted for gives
     /// the second occurrence the second option.
     /// </remarks>
-    int IndexInOptArray(string value, List<int> taken)
+    private int IndexInOptArray(string value, List<int> taken)
     {
         var opt = Elements.GetArray(Keys.Opt);
 
@@ -242,7 +242,7 @@ public abstract class PdfChoiceField : PdfAcroField
     /// <c>/V</c> about which values are chosen, and disbelieved where it does not, <c>/V</c> being
     /// the entry the specification gives precedence to.
     /// </remarks>
-    int[] SelectedIndicesFromIndexEntry(List<string> chosenTexts)
+    private int[] SelectedIndicesFromIndexEntry(List<string> chosenTexts)
     {
         var entry = Elements.GetArray(Keys.I);
         var opt = Elements.GetArray(Keys.Opt);
@@ -349,7 +349,7 @@ public abstract class PdfChoiceField : PdfAcroField
         /// </summary>
         internal static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
 
         // ReSharper restore InconsistentNaming
     }

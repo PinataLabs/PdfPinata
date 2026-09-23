@@ -61,7 +61,7 @@ public sealed class PdfReal : PdfNumber
         // This class must behave like a value type. Therefore it cannot be changed (like System.String).
         _value;
 
-    readonly double _value;
+    private readonly double _value;
 
     /// <summary>
     /// Returns the real number as string.

@@ -28,9 +28,9 @@ namespace PinataLayout.DocumentObjectModel.Generators.Tests;
 /// </remarks>
 public class IncrementalCachingTests
 {
-    const string Ns = "using PinataLayout.DocumentObjectModel;\nusing PinataLayout.DocumentObjectModel.Internals;\nnamespace Probe;\n";
+    private const string Ns = "using PinataLayout.DocumentObjectModel;\nusing PinataLayout.DocumentObjectModel.Internals;\nnamespace Probe;\n";
 
-    const string Widget = """
+    private const string Widget = """
         public partial class Widget : DocumentObject
         {
             [DV] internal bool? visible;
@@ -40,7 +40,7 @@ public class IncrementalCachingTests
         """;
 
     /// <summary>A DocumentObject that is not partial, which is MDG003.</summary>
-    static string NotPartial(string name) => $$"""
+    private static string NotPartial(string name) => $$"""
         public class {{name}} : DocumentObject
         {
             [DV] internal bool? visible;

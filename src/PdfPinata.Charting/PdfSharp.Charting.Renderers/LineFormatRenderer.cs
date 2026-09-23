@@ -109,10 +109,10 @@ class LineFormatRenderer
   /// <summary>
   /// Surface to draw the line.
   /// </summary>
-  XGraphics gfx;
+  private XGraphics gfx;
 
   /// <summary>
   /// Pen used to draw the line.
   /// </summary>
-  XPen pen;
+  private XPen pen;
 }

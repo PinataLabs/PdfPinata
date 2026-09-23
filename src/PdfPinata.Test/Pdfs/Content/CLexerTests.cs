@@ -386,7 +386,7 @@ public class CLexerTests
     /// Builds the token a run of bytes scans to, one char per byte, from a comma separated
     /// list of hexadecimal byte values.
     /// </summary>
-    static string BytesSpelling(string byteValues)
+    private static string BytesSpelling(string byteValues)
     {
         return new string(byteValues.Split(',')
             .Select(value => (char)Convert.ToInt32(value, 16))
@@ -640,7 +640,7 @@ public class CLexerTests
             .WithInnerException<ContentReaderException>();
     }
 
-    static IEnumerable<string> TokensOf(IEnumerable<(CSymbol Symbol, string Token)> tokens, CSymbol symbol)
+    private static IEnumerable<string> TokensOf(IEnumerable<(CSymbol Symbol, string Token)> tokens, CSymbol symbol)
     {
         return tokens.Where(token => token.Symbol == symbol).Select(token => token.Token);
     }
@@ -650,7 +650,7 @@ public class CLexerTests
     /// interrupt a scan that never ends. Each token is taken while it is still current,
     /// since the next scan clears it.
     /// </summary>
-    static Task<List<(CSymbol Symbol, string Token)>> ScanAll(CLexer lexer)
+    private static Task<List<(CSymbol Symbol, string Token)>> ScanAll(CLexer lexer)
     {
         return Interruptibly.Run(() =>
         {

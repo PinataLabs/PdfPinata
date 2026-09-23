@@ -27,9 +27,16 @@ public class PdfVersionTests
     [InlineData("%PDF-0.9\n")]
     [InlineData("%PDF-1.A\n")]
     [InlineData("%PDF\n")]
+    [InlineData("")]
     public void TestPdfFile_returnsZeroForANonPdfHeader(string header)
     {
         Pdf.IO.PdfReader.TestPdfFile(Encoding.ASCII.GetBytes(header)).Should().Be(0);
+    }
+
+    [Fact]
+    public void TestPdfFile_returnsZeroForNoBytesAtAll()
+    {
+        Pdf.IO.PdfReader.TestPdfFile((byte[])null).Should().Be(0);
     }
 
     [Fact]

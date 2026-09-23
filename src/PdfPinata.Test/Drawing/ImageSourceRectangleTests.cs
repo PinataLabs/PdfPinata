@@ -21,7 +21,7 @@ namespace PdfPinata.Test.Drawing;
 /// </summary>
 public class ImageSourceRectangleTests
 {
-    static XImage AnImage() => XImage.FromFile(PathHelper.GetInstance().GetAssetPath("frog-and-toad.jpg"));
+    private static XImage AnImage() => XImage.FromFile(PathHelper.GetInstance().GetAssetPath("frog-and-toad.jpg"));
 
     [Fact]
     public void TheRightHalfOfAnImageFillsTheDestination()
@@ -126,7 +126,7 @@ public class ImageSourceRectangleTests
         depths.Should().HaveCount(2).And.OnlyContain(d => d == depths[0]);
     }
 
-    static PdfPage PageShowing(Action<XGraphics> draw)
+    private static PdfPage PageShowing(Action<XGraphics> draw)
     {
         var page = new PdfDocument().AddPage();
         using (var gfx = XGraphics.FromPdfPage(page))
@@ -135,7 +135,7 @@ public class ImageSourceRectangleTests
     }
 
     /// <summary>The box in default user space a rectangle of the given space covers under a matrix.</summary>
-    static XRect Box(XMatrix ctm, double x0, double y0, double x1, double y1)
+    private static XRect Box(XMatrix ctm, double x0, double y0, double x1, double y1)
     {
         var corners = new[]
         {
@@ -146,7 +146,7 @@ public class ImageSourceRectangleTests
     }
 
     /// <summary>The box around the clipping path set last before the image, in default user space.</summary>
-    static XRect ClipBefore(List<PlacedOperators.Placed> placed)
+    private static XRect ClipBefore(List<PlacedOperators.Placed> placed)
     {
         var clip = placed.FindIndex(op => op.Name is OpCodeName.W or OpCodeName.Wx);
         clip.Should().BePositive("the part of the image drawn is clipped");
@@ -165,7 +165,7 @@ public class ImageSourceRectangleTests
         return BoxAround(points);
     }
 
-    static XRect BoxAround(IEnumerable<XPoint> points)
+    private static XRect BoxAround(IEnumerable<XPoint> points)
     {
         var all = points.ToList();
         var left = all.Min(p => p.X);
@@ -174,7 +174,7 @@ public class ImageSourceRectangleTests
     }
 
     /// <summary>Compares a box in default user space with one given in the downward world space drawn in.</summary>
-    static void ShouldBe(XRect actual, PdfPage page, XRect world)
+    private static void ShouldBe(XRect actual, PdfPage page, XRect world)
     {
         actual.X.Should().BeApproximately(world.X, 0.01);
         actual.Width.Should().BeApproximately(world.Width, 0.01);

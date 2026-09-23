@@ -136,12 +136,12 @@ public class PdfDocumentRenderer
 
     private DocumentRenderer _documentRenderer;
 
-    void PrepareDocumentRenderer()
+    private void PrepareDocumentRenderer()
     {
         PrepareDocumentRenderer(false);
     }
 
-    void PrepareDocumentRenderer(bool prepareCompletely)
+    private void PrepareDocumentRenderer(bool prepareCompletely)
     {
         if (_document == null)
             throw new InvalidOperationException(string.Format(AppResources.PropertyNotSetBefore, "DocumentRenderer", nameof(PrepareDocumentRenderer)));
@@ -317,7 +317,7 @@ public class PdfDocumentRenderer
     /// <summary>
     /// Creates a new PDF document.
     /// </summary>
-    PdfDocument CreatePdfDocument()
+    private PdfDocument CreatePdfDocument()
     {
         var pdfDocument = new PdfDocument();
         pdfDocument.Info.Creator = "PinataLayout " + typeof(PdfDocumentRenderer).GetTypeInfo().Assembly.GetName().Version;

@@ -118,10 +118,10 @@ public class SaveWorkingDirectoryTests
     ///   A file name no other test and no earlier run can have written, because two of these assert
     ///   that a file is <em>not</em> somewhere.
     /// </summary>
-    static string Unique() => "save-working-directory-" + Guid.NewGuid().ToString("N") + ".pdf";
+    private static string Unique() => "save-working-directory-" + Guid.NewGuid().ToString("N") + ".pdf";
 
     /// <summary>A one page document, rendered and ready to be written.</summary>
-    static PdfDocumentRenderer Rendered()
+    private static PdfDocumentRenderer Rendered()
     {
         var document = new Document();
         document.AddSection().AddParagraph("Where does this land?");
@@ -132,7 +132,7 @@ public class SaveWorkingDirectoryTests
     }
 
     /// <summary>A directory of its own for a test that writes a file, removed with the test.</summary>
-    sealed class TemporaryDirectory : IDisposable
+    private sealed class TemporaryDirectory : IDisposable
     {
         internal TemporaryDirectory()
         {

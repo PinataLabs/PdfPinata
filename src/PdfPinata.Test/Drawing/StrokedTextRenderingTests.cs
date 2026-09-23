@@ -16,13 +16,13 @@ namespace PdfPinata.Test.Drawing;
 [Collection(RasterizingCollection.Name)]
 public class StrokedTextRenderingTests
 {
-    const double FontSize = 60;
-    const double PageWidth = 300;
-    const double PageHeight = 100;
+    private const double FontSize = 60;
+    private const double PageWidth = 300;
+    private const double PageHeight = 100;
 
-    static XFont Font => new XFont("Arial", FontSize, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
+    private static XFont Font => new XFont("Arial", FontSize, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
 
-    static PdfDocument PageShowing(XPen pen, XBrush brush)
+    private static PdfDocument PageShowing(XPen pen, XBrush brush)
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -35,7 +35,7 @@ public class StrokedTextRenderingTests
         return document;
     }
 
-    static List<(int X, int Y)> InkOf(XPen pen, XBrush brush)
+    private static List<(int X, int Y)> InkOf(XPen pen, XBrush brush)
     {
         // Freed as soon as the pixels have been read out of it. A rasterized page holds unmanaged
         // memory, and these tests make more of them than anything else in the suite.
@@ -46,7 +46,7 @@ public class StrokedTextRenderingTests
         return inked;
     }
 
-    static (int Width, int Height) ExtentOf(List<(int X, int Y)> ink)
+    private static (int Width, int Height) ExtentOf(List<(int X, int Y)> ink)
     {
         return (ink.Max(p => p.X) - ink.Min(p => p.X), ink.Max(p => p.Y) - ink.Min(p => p.Y));
     }

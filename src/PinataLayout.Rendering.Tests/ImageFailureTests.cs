@@ -128,7 +128,7 @@ public class ImageFailureTests
 
     // ----- arrangements -----
 
-    static Document Document(IImageSource source)
+    private static Document Document(IImageSource source)
     {
         var document = new Document();
         var image = document.AddSection().AddImage(source);
@@ -137,10 +137,10 @@ public class ImageFailureTests
         return document;
     }
 
-    static IReadOnlyList<ImageFailedEventArgs> Render(IImageSource source) =>
+    private static IReadOnlyList<ImageFailedEventArgs> Render(IImageSource source) =>
         Collect(Document(source));
 
-    static IReadOnlyList<ImageFailedEventArgs> Collect(Document document)
+    private static IReadOnlyList<ImageFailedEventArgs> Collect(Document document)
     {
         var failures = new List<ImageFailedEventArgs>();
 
@@ -158,13 +158,13 @@ public class ImageFailureTests
     /// <summary>
     ///   An image source that fails at a point of the test's choosing, or not at all.
     /// </summary>
-    sealed class Failing : IImageSource
+    private sealed class Failing : IImageSource
     {
-        readonly Func<int> _size;
-        readonly Func<bool> _transparent;
-        readonly Action _write;
+        private readonly Func<int> _size;
+        private readonly Func<bool> _transparent;
+        private readonly Action _write;
 
-        Failing(string name, Func<int> size, Func<bool> transparent, Action write)
+        private Failing(string name, Func<int> size, Func<bool> transparent, Action write)
         {
             Name = name;
             _size = size;

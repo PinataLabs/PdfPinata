@@ -210,7 +210,7 @@ public class FilteringTests
     ///   bits is the whole story for these tests: the width only grows once the table passes 511
     ///   entries, which takes a stream far longer than any of them.
     /// </remarks>
-    static byte[] Packed(params int[] codes)
+    private static byte[] Packed(params int[] codes)
     {
         var bits = new List<bool>();
         foreach (var code in codes)
@@ -226,9 +226,9 @@ public class FilteringTests
         return bytes;
     }
 
-    const int ClearTable = 256;
-    const int EndOfData = 257;
-    const int FirstFreeCode = 258;
+    private const int ClearTable = 256;
+    private const int EndOfData = 257;
+    private const int FirstFreeCode = 258;
 
     [Fact]
     public void LzwReadsLiteralCodesAsThemselves()

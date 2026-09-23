@@ -48,7 +48,7 @@ public sealed class PdfDocumentOptions
         get => _colorMode;
         set => _colorMode = value;
     }
-    PdfColorMode _colorMode = PdfColorMode.Rgb;
+    private PdfColorMode _colorMode = PdfColorMode.Rgb;
 
     /// <summary>
     /// Gets or sets a value indicating whether to compress content streams of PDF pages.
@@ -68,7 +68,7 @@ public sealed class PdfDocumentOptions
         get => _compressContentStreams;
         set => _compressContentStreams = value;
     }
-    bool _compressContentStreams = true;
+    private bool _compressContentStreams = true;
 
     /// <summary>
     /// Gets or sets a value indicating that all objects are not compressed.
@@ -78,7 +78,7 @@ public sealed class PdfDocumentOptions
         get => _noCompression;
         set => _noCompression = value;
     }
-    bool _noCompression;
+    private bool _noCompression;
 
     /// <summary>
     /// Gets or sets the flate encode mode. Besides the balanced default mode you can set modes for best compression (slower) or best speed (larger files).
@@ -88,7 +88,7 @@ public sealed class PdfDocumentOptions
         get => _flateEncodeMode;
         set => _flateEncodeMode = value;
     }
-    PdfFlateEncodeMode _flateEncodeMode = PdfFlateEncodeMode.Default;
+    private PdfFlateEncodeMode _flateEncodeMode = PdfFlateEncodeMode.Default;
 
     /// <summary>
     /// Gets or sets a value indicating whether to compress JPEG images with the FlateDecode filter.
@@ -98,7 +98,7 @@ public sealed class PdfDocumentOptions
         get => _useFlateDecoderForJpegImages;
         set => _useFlateDecoderForJpegImages = value;
     }
-    PdfUseFlateDecoderForJpegImages _useFlateDecoderForJpegImages = PdfUseFlateDecoderForJpegImages.Never;
+    private PdfUseFlateDecoderForJpegImages _useFlateDecoderForJpegImages = PdfUseFlateDecoderForJpegImages.Never;
 
     /// <summary>
     /// Gets or sets how the objects of the document are indexed when it is saved. The default is
@@ -112,7 +112,7 @@ public sealed class PdfDocumentOptions
         get => _crossReferenceFormat;
         set => _crossReferenceFormat = value;
     }
-    PdfCrossReferenceFormat _crossReferenceFormat = PdfCrossReferenceFormat.Classic;
+    private PdfCrossReferenceFormat _crossReferenceFormat = PdfCrossReferenceFormat.Classic;
 
     /// <summary>
     /// Gets or sets the archival profile the document claims. The default is
@@ -128,7 +128,7 @@ public sealed class PdfDocumentOptions
         get => _conformance;
         set => _conformance = value;
     }
-    PdfAConformance _conformance = PdfAConformance.None;
+    private PdfAConformance _conformance = PdfAConformance.None;
 
     /// <summary>
     /// Gets or sets the accessibility profile the document claims. The default is
@@ -145,7 +145,7 @@ public sealed class PdfDocumentOptions
         get => _uaConformance;
         set => _uaConformance = value;
     }
-    PdfUAConformance _uaConformance = PdfUAConformance.None;
+    private PdfUAConformance _uaConformance = PdfUAConformance.None;
 
     /// <summary>
     /// Gets or sets a value indicating that an XMP metadata packet is written even when no
@@ -188,7 +188,7 @@ public sealed class PdfDocumentOptions
             _metadataStrategy = value;
         }
     }
-    Metadata.PdfMetadataStrategy _metadataStrategy;
+    private Metadata.PdfMetadataStrategy _metadataStrategy;
 
     /// <summary>
     /// Gets or sets the ICC profile embedded as the document's output intent, which every PDF/A
@@ -213,7 +213,7 @@ public sealed class PdfDocumentOptions
         get => _outputIntentIccProfile;
         set => _outputIntentIccProfile = value;
     }
-    byte[] _outputIntentIccProfile;
+    private byte[] _outputIntentIccProfile;
 
     /// <summary>
     /// Gets or sets the name of the output condition the profile describes, such as
@@ -224,7 +224,7 @@ public sealed class PdfDocumentOptions
         get => _outputIntentIdentifier;
         set => _outputIntentIdentifier = value;
     }
-    string _outputIntentIdentifier = DefaultOutputIntentIdentifier;
+    private string _outputIntentIdentifier = DefaultOutputIntentIdentifier;
 
     /// <summary>
     /// What <see cref="OutputIntentIdentifier"/> says when nobody has said anything: a placeholder
@@ -313,5 +313,5 @@ public sealed class PdfDocumentOptions
             _maxObjectsPerObjectStream = value;
         }
     }
-    int _maxObjectsPerObjectStream = 200;
+    private int _maxObjectsPerObjectStream = 200;
 }

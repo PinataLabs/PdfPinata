@@ -61,20 +61,20 @@ public class XImage : IDisposable
     }
 
     // Useful stuff here: http://stackoverflow.com/questions/350027/setting-wpf-image-source-in-code
-    XImage(string path)
+    private XImage(string path)
     {
         _source = ImageSource.FromFile(path);
         Initialize();
     }
 
-    XImage(IImageSource imageSource)
+    private XImage(IImageSource imageSource)
     {
         _source = imageSource;
         Path = _source.Name;
         Initialize();
     }
 
-    XImage(Func<Stream> stream)
+    private XImage(Func<Stream> stream)
     {
         // Create a dummy unique path.
         Path = "*" + Guid.NewGuid().ToString("B");
@@ -170,7 +170,7 @@ public class XImage : IDisposable
             _disposed = true;
     }
 
-    bool _disposed;
+    private bool _disposed;
 
     /// <summary>
     /// Gets the width of the image in point.
@@ -216,14 +216,14 @@ public class XImage : IDisposable
         set => _interpolate = value;
     }
 
-    bool _interpolate = true;
+    private bool _interpolate = true;
 
     /// <summary>
     /// Gets the format of the image.
     /// </summary>
     public XImageFormat Format => _format;
 
-    XImageFormat _format;
+    private XImageFormat _format;
 
     internal void DisassociateWithGraphics(XGraphics gfx)
     {
@@ -232,7 +232,7 @@ public class XImage : IDisposable
         _associatedGraphics = null;
     }
 
-    XGraphics _associatedGraphics;
+    private XGraphics _associatedGraphics;
 
     /// <summary>
     /// If path starts with '*' the image is created from a stream and the path is a GUID.

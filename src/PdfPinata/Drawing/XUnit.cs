@@ -63,7 +63,7 @@ public struct XUnit : IFormattable, IEquatable<XUnit>
     public XUnit(double value, XGraphicsUnit type)
     {
         if (!Enum.IsDefined(type))
-            throw new ArgumentException("The unit type is not a member of XGraphicsUnit.", nameof(type));
+            throw new ArgumentException(@"The unit type is not a member of XGraphicsUnit.", nameof(type));
         _value = value;
         _type = type;
     }
@@ -233,7 +233,7 @@ public struct XUnit : IFormattable, IEquatable<XUnit>
     /// <summary>
     /// Returns the unit of measure of the object as a string like 'pt', 'cm', or 'in'.
     /// </summary>
-    string GetSuffix()
+    private string GetSuffix()
     {
         return _type switch
         {

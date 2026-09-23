@@ -19,7 +19,7 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 public class ChartDomTests
 {
     /// <summary>A chart with every child object it can have brought into being.</summary>
-    static Chart AFullyPopulatedChart()
+    private static Chart AFullyPopulatedChart()
     {
         var chart = new Document().AddSection().AddChart(ChartType.Line);
 
@@ -137,7 +137,7 @@ public class ChartDomTests
         copy.Type.Should().Be(ChartType.Pie2D);
     }
 
-    static TextArea AreaOf(Chart chart, string areaName) => areaName switch
+    private static TextArea AreaOf(Chart chart, string areaName) => areaName switch
     {
         "HeaderArea" => chart.HeaderArea,
         "FooterArea" => chart.FooterArea,

@@ -21,7 +21,7 @@ namespace PdfPinata.Test.Rendering;
 /// </summary>
 public class ParagraphFormatInheritanceTests
 {
-    const int Columns = 3;
+    private const int Columns = 3;
 
     [Fact]
     public void AParagraphBorderSetOnOneColumnIsDrawnInThatColumnAlone()
@@ -66,7 +66,7 @@ public class ParagraphFormatInheritanceTests
     ///   A red rule down the right of the paragraphs of the first column, and a green band over
     ///   the paragraphs of every cell of the row.
     /// </summary>
-    static Table ARuleDownTheFirstColumnAndABandAcrossTheRow(Document document)
+    private static Table ARuleDownTheFirstColumnAndABandAcrossTheRow(Document document)
     {
         var table = document.AddSection().AddTable();
 
@@ -86,7 +86,7 @@ public class ParagraphFormatInheritanceTests
         return table;
     }
 
-    static IReadOnlyList<double> Distinct(IEnumerable<StrokedLines.Line> lines)
+    private static IReadOnlyList<double> Distinct(IEnumerable<StrokedLines.Line> lines)
     {
         return lines.Select(line => System.Math.Round(System.Math.Min(line.X1, line.X2), 2))
             .Distinct()
@@ -94,14 +94,14 @@ public class ParagraphFormatInheritanceTests
             .ToList();
     }
 
-    static PdfPage Render(System.Func<Document, Table> build)
+    private static PdfPage Render(System.Func<Document, Table> build)
     {
         var document = new Document();
         build(document);
         return Render(document);
     }
 
-    static PdfPage Render(Document document)
+    private static PdfPage Render(Document document)
     {
         var renderer = new PdfDocumentRenderer(true) { Document = document };
         renderer.RenderDocument();

@@ -39,7 +39,7 @@ namespace PdfPinata.Pdf.Annotations;
 public sealed class PdfLinkAnnotation : PdfAnnotation
 {
     // Just a hack to make PinataLayout work with this code.
-    enum LinkType
+    private enum LinkType
     {
         None, Document, Web, File, Named
     }
@@ -80,7 +80,7 @@ public sealed class PdfLinkAnnotation : PdfAnnotation
     /// whatever the file says - including nothing, which ISO 32000-1 reads as a one-point border -
     /// and the zero-width default below is not this class's to add.
     /// </summary>
-    readonly bool _readFromFile;
+    private readonly bool _readFromFile;
 
     /// <summary>
     /// Creates a link within the current document.
@@ -105,7 +105,7 @@ public sealed class PdfLinkAnnotation : PdfAnnotation
     public static PdfLinkAnnotation CreateDocumentLink(PdfRectangle rect, int destinationPage, double destinationTop)
     {
         if (destinationPage < 1)
-            throw new ArgumentException("Invalid destination page in call to CreateDocumentLink: page number is one-based and must be 1 or higher.", nameof(destinationPage));
+            throw new ArgumentException(@"Invalid destination page in call to CreateDocumentLink: page number is one-based and must be 1 or higher.", nameof(destinationPage));
 
         var link = new PdfLinkAnnotation();
         link._linkType = LinkType.Document;
@@ -114,10 +114,10 @@ public sealed class PdfLinkAnnotation : PdfAnnotation
         link._destTop = destinationTop;
         return link;
     }
-    int _destPage;
-    double _destTop = double.NaN;
-    LinkType _linkType;
-    string _url;
+    private int _destPage;
+    private double _destTop = double.NaN;
+    private LinkType _linkType;
+    private string _url;
 
     /// <summary>
     /// Creates a link to the web.
@@ -143,7 +143,7 @@ public sealed class PdfLinkAnnotation : PdfAnnotation
     public static PdfLinkAnnotation CreateNamedLink(PdfRectangle rect, string destinationName)
     {
         if (string.IsNullOrEmpty(destinationName))
-            throw new ArgumentException("A named link must name something.", nameof(destinationName));
+            throw new ArgumentException(@"A named link must name something.", nameof(destinationName));
 
         var link = new PdfLinkAnnotation();
         link._linkType = LinkType.Named;
@@ -151,7 +151,7 @@ public sealed class PdfLinkAnnotation : PdfAnnotation
         link._destName = destinationName;
         return link;
     }
-    string _destName;
+    private string _destName;
 
     /// <summary>
     /// Creates a link to a file.
@@ -269,7 +269,7 @@ public sealed class PdfLinkAnnotation : PdfAnnotation
         /// </summary>
         public static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

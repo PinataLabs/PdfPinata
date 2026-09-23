@@ -64,7 +64,7 @@ public sealed class PdfUnderlineAnnotation : PdfTextMarkupAnnotation
         : base(dict)
     { }
 
-    void Initialize()
+    private void Initialize()
     {
         Elements.SetName(PdfAnnotation.Keys.Subtype, "/Underline");
         Color = XColors.Black;
@@ -88,7 +88,7 @@ public sealed class PdfUnderlineAnnotation : PdfTextMarkupAnnotation
     {
         public static new DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

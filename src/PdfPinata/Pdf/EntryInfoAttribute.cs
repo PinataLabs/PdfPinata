@@ -111,14 +111,14 @@ internal class KeyInfoAttribute : Attribute
         get => _version;
         set => _version = value;
     }
-    string _version = "1.0";
+    private string _version = "1.0";
 
     public KeyType KeyType
     {
         get => _entryType;
         set => _entryType = value;
     }
-    KeyType _entryType;
+    private KeyType _entryType;
 
     [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)]
     public Type ObjectType
@@ -128,12 +128,12 @@ internal class KeyInfoAttribute : Attribute
     }
 
     [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)]
-    Type _objectType;
+    private Type _objectType;
 
     public string FixedValue
     {
         get => _fixedValue;
         set => _fixedValue = value;
     }
-    string _fixedValue;
+    private string _fixedValue;
 }

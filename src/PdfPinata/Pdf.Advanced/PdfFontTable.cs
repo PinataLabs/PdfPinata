@@ -148,12 +148,12 @@ internal sealed class PdfFontTable : PdfResourceTable
     /// keys <see cref="ComputeKey(XFont)"/> makes, so a program named after an installed face cannot
     /// be answered in place of the face.
     /// </summary>
-    static string ComputeKey(string idName) => "program:" + idName;
+    private static string ComputeKey(string idName) => "program:" + idName;
 
     /// <summary>
     /// Map from PdfFontSelector to PdfFont.
     /// </summary>
-    readonly Dictionary<string, PdfFont> _fonts = new();
+    private readonly Dictionary<string, PdfFont> _fonts = new();
 
     public void PrepareForSave()
     {

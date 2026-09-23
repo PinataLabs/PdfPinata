@@ -29,7 +29,7 @@ internal static class FormatterOutput
     /// <summary>
     ///   Enough prose to break over several lines in a column of any width worth testing.
     /// </summary>
-    const string Prose =
+    private const string Prose =
         "The quick brown fox jumps over the lazy dog, and having jumped it lands and looks about " +
         "for somewhere else to be.\n" +
         "A second paragraph, so that the paragraph gap and the first-line indent both have " +
@@ -75,7 +75,7 @@ internal static class FormatterOutput
     /// <summary>
     ///   Every arrangement, named so a failure says which one moved.
     /// </summary>
-    static IEnumerable<(string Name, Action<XTextFormatter> Arrange)> Arrangements()
+    private static IEnumerable<(string Name, Action<XTextFormatter> Arrange)> Arrangements()
     {
         yield return ("plain", _ => { });
         yield return ("justified", f => f.Alignment = XParagraphAlignment.Justify);

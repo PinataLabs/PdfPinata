@@ -38,11 +38,11 @@ namespace PdfPinata.Test.IO;
 /// </remarks>
 public class LexerUnicodeStringTests
 {
-    const byte Bom0 = 0xFE;
-    const byte Bom1 = 0xFF;
-    const byte Nul = 0x00;
-    const byte H = (byte)'H';
-    const byte I = (byte)'I';
+    private const byte Bom0 = 0xFE;
+    private const byte Bom1 = 0xFF;
+    private const byte Nul = 0x00;
+    private const byte H = (byte)'H';
+    private const byte I = (byte)'I';
 
     [Fact(Timeout = 5000)]
     public async Task AUnicodeStringIsRecognisedByItsByteOrderMark()
@@ -111,13 +111,13 @@ public class LexerUnicodeStringTests
     ///   comes back is unprintable, and a failure comparing two strings holding a U+0000 prints
     ///   two things that look identical.
     /// </summary>
-    record Scanned(Symbol Symbol, string Token)
+    private record Scanned(Symbol Symbol, string Token)
     {
         public IReadOnlyList<int> Codes => Token.Select(character => (int)character).ToList();
     }
 
     /// <summary>Scans those bytes wrapped in the parentheses that make them a literal string.</summary>
-    static Task<Scanned> ScanLiteralString(params byte[] contents)
+    private static Task<Scanned> ScanLiteralString(params byte[] contents)
     {
         var pdf = new List<byte> { (byte)'(' };
         pdf.AddRange(contents);

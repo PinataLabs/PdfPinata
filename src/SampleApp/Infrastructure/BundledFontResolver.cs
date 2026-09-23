@@ -49,11 +49,11 @@ public sealed class BundledFontResolver : IFontResolver
     /// </remarks>
     public const string ArabicFamily = "Noto Sans Arabic";
 
-    const string MonoFace = "SourceCodePro-Regular.otf";
+    private const string MonoFace = "SourceCodePro-Regular.otf";
 
-    const string ArabicFace = "NotoSansArabic-Regular.ttf";
+    private const string ArabicFace = "NotoSansArabic-Regular.ttf";
 
-    static readonly ConcurrentDictionary<string, byte[]> Loaded = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly ConcurrentDictionary<string, byte[]> Loaded = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
     ///   What a document gets when it names a family that is not carried here - including the
@@ -90,10 +90,10 @@ public sealed class BundledFontResolver : IFontResolver
     public byte[] GetFont(string faceName) =>
         Loaded.GetOrAdd(faceName, name => Assets.Bytes(Assets.FontPrefix + name));
 
-    static bool Matches(string familyName, string family) =>
+    private static bool Matches(string familyName, string family) =>
         string.Equals(familyName, family, StringComparison.OrdinalIgnoreCase);
 
-    static string FaceOf(bool isBold, bool isItalic)
+    private static string FaceOf(bool isBold, bool isItalic)
     {
         if (isBold && isItalic)
             return "BoldItalic";

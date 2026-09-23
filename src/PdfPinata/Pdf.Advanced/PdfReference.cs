@@ -105,7 +105,7 @@ public sealed class PdfReference : PdfItem
         get => _objectID;
         set => _objectID = value;
     }
-    PdfObjectID _objectID;
+    private PdfObjectID _objectID;
 
     /// <summary>
     /// Gets the object number of the object identifier.
@@ -125,7 +125,7 @@ public sealed class PdfReference : PdfItem
         get => _position;
         set => _position = value;
     }
-    long _position;
+    private long _position;
 
     /// <summary>
     /// Gets or sets the referenced PdfObject.
@@ -142,7 +142,7 @@ public sealed class PdfReference : PdfItem
             value.Reference = this;
         }
     }
-    PdfObject _value;
+    private PdfObject _value;
 
     /// <summary>
     /// Hack for dead objects.
@@ -160,7 +160,7 @@ public sealed class PdfReference : PdfItem
         get => _document;
         set => _document = value;
     }
-    PdfDocument _document;
+    private PdfDocument _document;
 
     /// <summary>
     /// Gets a string representing the object identifier.

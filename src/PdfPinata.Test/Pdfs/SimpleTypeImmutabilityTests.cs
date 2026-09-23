@@ -54,7 +54,7 @@ public class SimpleTypeImmutabilityTests
     ///   one-line diff that also fails <see cref="TheOnlyExcludedTypeIsPdfReference"/>.
     ///   </para>
     /// </summary>
-    static readonly Type[] Excluded = { typeof(PdfReference) };
+    private static readonly Type[] Excluded = { typeof(PdfReference) };
 
     public static TheoryData<Type> SimpleTypesUnderTheRule() =>
         new TheoryData<Type>(AllSimpleTypes().Where(t => !Excluded.Contains(t)));

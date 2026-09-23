@@ -21,7 +21,7 @@ namespace PdfPinata.Test.Pdfs;
 /// </summary>
 public class IndirectSimpleObjectTests
 {
-    static string Written(PdfDocument document, PdfObject value)
+    private static string Written(PdfDocument document, PdfObject value)
     {
         using var stream = new MemoryStream();
         document.Internals.WriteObject(stream, value);

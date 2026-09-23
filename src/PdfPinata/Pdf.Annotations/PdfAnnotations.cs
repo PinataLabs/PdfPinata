@@ -129,7 +129,7 @@ public sealed class PdfAnnotations : PdfArray
         get => _page;
         set => _page = value;
     }
-    PdfPage _page;
+    private PdfPage _page;
 
     /// <summary>
     /// Fixes the /P element in imported annotation.
@@ -169,7 +169,7 @@ public sealed class PdfAnnotations : PdfArray
         return GetEnumerator();
     }
 
-    sealed class AnnotationsIterator : IEnumerator<PdfAnnotation>
+    private sealed class AnnotationsIterator : IEnumerator<PdfAnnotation>
     {
         public AnnotationsIterator(PdfAnnotations annotations)
         {
@@ -196,7 +196,7 @@ public sealed class PdfAnnotations : PdfArray
             // Holds nothing to release.
         }
 
-        readonly PdfAnnotations _annotations;
-        int _index;
+        private readonly PdfAnnotations _annotations;
+        private int _index;
     }
 }

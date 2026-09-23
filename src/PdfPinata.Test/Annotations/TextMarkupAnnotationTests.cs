@@ -278,25 +278,25 @@ public class TextMarkupAnnotationTests
         dict.Elements.GetDictionary("/AP").Should().NotBeNull();
     }
 
-    static T OnAPage<T>(T annotation) where T : PdfTextMarkupAnnotation
+    private static T OnAPage<T>(T annotation) where T : PdfTextMarkupAnnotation
     {
         var document = new PdfDocument();
         document.AddPage().Annotations.Add(annotation);
         return annotation;
     }
 
-    static PdfDictionary Appearance(PdfAnnotation annotation)
+    private static PdfDictionary Appearance(PdfAnnotation annotation)
     {
         var ap = annotation.Elements.GetDictionary("/AP");
         return ap == null ? null : (PdfDictionary)ap.Elements.GetObject("/N");
     }
 
-    static string Content(PdfAnnotation annotation)
+    private static string Content(PdfAnnotation annotation)
     {
         return System.Text.Encoding.ASCII.GetString(Appearance(annotation).Stream.UnfilteredValue);
     }
 
-    static double[] Numbers(PdfDictionary dictionary, string key)
+    private static double[] Numbers(PdfDictionary dictionary, string key)
     {
         var item = dictionary.Elements[key];
         if (item is PdfRectangle rectangle)

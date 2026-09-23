@@ -20,7 +20,7 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 /// </summary>
 public class FlatteningTests
 {
-    static void Flattened(Document document)
+    private static void Flattened(Document document)
     {
         new PdfFlattenVisitor().Visit(document);
     }
@@ -83,7 +83,8 @@ public class FlatteningTests
 
     [Theory]
     [MemberData(nameof(FontMemberCases.All), MemberType = typeof(FontMemberCases))]
-    public void AStyleSettingAnyFontMemberPassesItDownToAParagraph(string member, Action<Font> set, Func<Font, object> read)
+    public void AStyleSettingAnyFontMemberPassesItDownToAParagraph(string member, Action<Font> set,
+        Func<Font, object> read)
     {
         // strikethrough was the one member FlattenFont forgot - docs/specs/dom-property-seams.md.
         // This runs the same check for all nine so a tenth member added later is the tenth case.
@@ -95,7 +96,8 @@ public class FlatteningTests
 
         Flattened(document);
 
-        read(paragraph.Format.Font).Should().Be(read(style.Font), $"{member} should have been inherited from the style");
+        read(paragraph.Format.Font).Should()
+            .Be(read(style.Font), $"{member} should have been inherited from the style");
     }
 
     [Fact]
@@ -177,7 +179,7 @@ public class FlatteningTests
 
     // ----- tables and the cells merged away ------------------------------------------------------------------
 
-    static Table ThreeByThree()
+    private static Table ThreeByThree()
     {
         var document = new Document();
         var table = document.AddSection().AddTable();
@@ -293,7 +295,8 @@ public class FlatteningTests
             var previous = merged[index - 1];
             var current = merged[index];
             var goesForward = current.Row.Index > previous.Row.Index
-                || (current.Row.Index == previous.Row.Index && current.Column.Index > previous.Column.Index);
+                              || (current.Row.Index == previous.Row.Index &&
+                                  current.Column.Index > previous.Column.Index);
             goesForward.Should().BeTrue($"cell {index} should come after cell {index - 1}");
         }
     }

@@ -102,7 +102,7 @@ internal static class DoubleUtil
     }
 
     [StructLayout(LayoutKind.Explicit)]
-    struct NanUnion
+    private struct NanUnion
     {
         [FieldOffset(0)] internal double DoubleValue;
         [FieldOffset(0)] internal readonly ulong UintValue;

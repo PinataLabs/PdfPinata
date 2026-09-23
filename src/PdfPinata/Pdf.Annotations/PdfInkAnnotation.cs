@@ -56,7 +56,7 @@ public sealed class PdfInkAnnotation : PdfMarkupAnnotation
         : base(dict)
     { }
 
-    void Initialize()
+    private void Initialize()
     {
         Elements.SetName(PdfAnnotation.Keys.Subtype, "/Ink");
 
@@ -98,7 +98,7 @@ public sealed class PdfInkAnnotation : PdfMarkupAnnotation
     {
         ArgumentNullException.ThrowIfNull(points);
         if (points.Length < 2)
-            throw new ArgumentException("A stroke needs at least two points.", nameof(points));
+            throw new ArgumentException(@"A stroke needs at least two points.", nameof(points));
 
         var list = Elements.GetArray(Keys.InkList);
         if (list == null)
@@ -143,13 +143,13 @@ public sealed class PdfInkAnnotation : PdfMarkupAnnotation
         RebuildAppearance();
     }
 
-    void Touch()
+    private void Touch()
     {
         Elements.SetDateTime(PdfAnnotation.Keys.M, GlobalTimeSettings.Now);
         RebuildAppearance();
     }
 
-    void RebuildAppearance()
+    private void RebuildAppearance()
     {
         // Until it is on a page there is no document to make a form in. OnAddedToPage calls this
         // again once there is, so nothing set beforehand is lost.
@@ -201,7 +201,7 @@ public sealed class PdfInkAnnotation : PdfMarkupAnnotation
 
         public new static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

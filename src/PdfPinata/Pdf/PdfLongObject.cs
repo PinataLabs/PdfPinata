@@ -68,7 +68,7 @@ public sealed class PdfLongObject : PdfNumberObject
     /// </summary>
     public long Value => _value;
 
-    readonly long _value;
+    private readonly long _value;
 
     /// <summary>
     /// Returns the long as string.

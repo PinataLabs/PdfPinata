@@ -115,7 +115,7 @@ public sealed class PdfFormXObject : PdfXObject, IContentStream
     /// the result is compressed again only if the document is set to compress content.
     /// </para>
     /// </summary>
-    void TakeContentOf(PdfPage page)
+    private void TakeContentOf(PdfPage page)
     {
         var item = page.Elements[PdfPage.Keys.Contents];
         if (item is PdfReference reference)
@@ -163,7 +163,7 @@ public sealed class PdfFormXObject : PdfXObject, IContentStream
     /// <summary>
     /// Runs the several content streams of a page together into this form's single stream.
     /// </summary>
-    void TakeRunTogetherContentOf(PdfPage page)
+    private void TakeRunTogetherContentOf(PdfPage page)
     {
         // CreateSingleContent decodes as it concatenates, so what comes back is unfiltered.
         var joined = page.Contents.CreateSingleContent();
@@ -184,14 +184,14 @@ public sealed class PdfFormXObject : PdfXObject, IContentStream
         get => _dpiX;
         set => _dpiX = value;
     }
-    double _dpiX = 72;
+    private double _dpiX = 72;
 
     internal double DpiY
     {
         get => _dpiY;
         set => _dpiY = value;
     }
-    double _dpiY = 72;
+    private double _dpiY = 72;
 
     internal PdfFormXObject(PdfDocument thisDocument, PdfImportedObjectTable importedObjectTable, XPdfForm form)
         : base(thisDocument)
@@ -484,7 +484,7 @@ public sealed class PdfFormXObject : PdfXObject, IContentStream
         /// </summary>
         internal static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

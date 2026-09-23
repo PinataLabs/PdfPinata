@@ -22,9 +22,9 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 /// </summary>
 public class DdlByteComparisonHarnessTests
 {
-    static string Ddl(Document document) => DdlWriter.WriteToString(document);
+    private static string Ddl(Document document) => DdlWriter.WriteToString(document);
 
-    static Document NullableValuesSetAndUnset()
+    private static Document NullableValuesSetAndUnset()
     {
         var document = new Document();
         document.Info.Title = "A title";
@@ -41,7 +41,7 @@ public class DdlByteComparisonHarnessTests
         return document;
     }
 
-    static Document FormattedTextFont()
+    private static Document FormattedTextFont()
     {
         var document = new Document();
         var formatted = document.AddSection().AddParagraph().AddFormattedText("text");
@@ -56,7 +56,7 @@ public class DdlByteComparisonHarnessTests
         return document;
     }
 
-    static Document ClearedBordersAndShading()
+    private static Document ClearedBordersAndShading()
     {
         var document = new Document();
         var format = document.AddSection().AddParagraph("Hello").Format;
@@ -66,7 +66,7 @@ public class DdlByteComparisonHarnessTests
         return document;
     }
 
-    static Document ATable()
+    private static Document ATable()
     {
         var document = new Document();
         var table = document.AddSection().AddTable();
@@ -81,7 +81,7 @@ public class DdlByteComparisonHarnessTests
         return document;
     }
 
-    static Document AChart()
+    private static Document AChart()
     {
         var document = new Document();
         var chart = document.AddSection().AddChart(ChartType.Line);
@@ -90,7 +90,7 @@ public class DdlByteComparisonHarnessTests
         return document;
     }
 
-    static Document AStyledParagraph()
+    private static Document AStyledParagraph()
     {
         var document = new Document();
         var style = document.Styles.AddStyle("Loud", "Normal");

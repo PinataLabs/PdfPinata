@@ -23,7 +23,7 @@ namespace PdfPinata.Test.Rendering;
 /// </summary>
 public class TableBorderInheritanceTests
 {
-    const int Columns = 3;
+    private const int Columns = 3;
 
     [Fact]
     public void TheLastCellOfAHeaderRowIsNotGivenTheBorderOfTheColumnsBeforeIt()
@@ -115,7 +115,7 @@ public class TableBorderInheritanceTests
     ///   The table from the report: a rule down the inside of the table, set on every column
     ///   but the last, and a band above and below the header row, set on the row itself.
     /// </summary>
-    static Table InnerColumnRulesWithABandedHeader(Document document)
+    private static Table InnerColumnRulesWithABandedHeader(Document document)
     {
         var table = document.AddSection().AddTable();
 
@@ -145,7 +145,7 @@ public class TableBorderInheritanceTests
         return table;
     }
 
-    static IEnumerable<Cell> AllCells(Table table)
+    private static IEnumerable<Cell> AllCells(Table table)
     {
         for (var row = 0; row < table.Rows.Count; row++)
         for (var column = 0; column < table.Columns.Count; column++)
@@ -153,12 +153,12 @@ public class TableBorderInheritanceTests
     }
 
     /// <summary>The distinct positions the page rules a vertical line at.</summary>
-    static IReadOnlyList<double> VerticalEdgesOf(PdfPage page)
+    private static IReadOnlyList<double> VerticalEdgesOf(PdfPage page)
     {
         return Distinct(StrokedLines.Of(page).Where(line => line.IsVertical));
     }
 
-    static IReadOnlyList<double> Distinct(IEnumerable<StrokedLines.Line> lines)
+    private static IReadOnlyList<double> Distinct(IEnumerable<StrokedLines.Line> lines)
     {
         return lines.Select(line => System.Math.Round(line.X1, 2)).Distinct().OrderBy(x => x).ToList();
     }
@@ -167,7 +167,7 @@ public class TableBorderInheritanceTests
     ///   Where the table begins and ends across the page, taken from the rules the header row
     ///   draws over its whole width rather than worked out from margins and column widths.
     /// </summary>
-    static (double Left, double Right) TableWidthOf(PdfPage page)
+    private static (double Left, double Right) TableWidthOf(PdfPage page)
     {
         var rules = StrokedLines.Of(page).Where(line => line.IsHorizontal).ToList();
         rules.Should().NotBeEmpty();
@@ -176,14 +176,14 @@ public class TableBorderInheritanceTests
             rules.Max(line => System.Math.Max(line.X1, line.X2)));
     }
 
-    static PdfPage Render(System.Func<Document, Table> build)
+    private static PdfPage Render(System.Func<Document, Table> build)
     {
         var document = new Document();
         build(document);
         return Render(document);
     }
 
-    static PdfPage Render(Document document)
+    private static PdfPage Render(Document document)
     {
         var renderer = new PdfDocumentRenderer(true) { Document = document };
         renderer.RenderDocument();

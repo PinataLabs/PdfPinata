@@ -23,7 +23,7 @@ namespace PdfPinata.Test.Pdfs.AcroForms;
 /// </summary>
 public class AcroFormFieldKindTests
 {
-    static PdfDocument FormWith(string fieldType, string name, Action<PdfDictionary> describe = null) =>
+    private static PdfDocument FormWith(string fieldType, string name, Action<PdfDictionary> describe = null) =>
         new AcroFormBuilder().With(fieldType, name, describe).Build();
 
     // ----- text ----------------------------------------------------------------------------------
@@ -768,7 +768,7 @@ public class AcroFormFieldKindTests
     ///   which is what both the specification and this field's own key metadata say, so reading it
     ///   as one is what says it was written as one.
     /// </summary>
-    static List<int> SelectedIndicesOf(PdfAcroField field)
+    private static List<int> SelectedIndicesOf(PdfAcroField field)
     {
         var indices = new List<int>();
         var entry = field.Elements.GetArray(PdfChoiceField.Keys.I);
@@ -782,7 +782,7 @@ public class AcroFormFieldKindTests
     ///   The option texts named by <c>/V</c>, which is a text string when one option is chosen and
     ///   an array of them when several are.
     /// </summary>
-    static List<string> OptionTextsOfValue(PdfAcroField field)
+    private static List<string> OptionTextsOfValue(PdfAcroField field)
     {
         var texts = new List<string>();
         var value = field.Elements["/V"];
@@ -794,7 +794,7 @@ public class AcroFormFieldKindTests
         return texts;
     }
 
-    static List<string> OptionsOf(PdfAcroField field)
+    private static List<string> OptionsOf(PdfAcroField field)
     {
         var options = new List<string>();
         var opt = field.Elements.GetArray("/Opt");

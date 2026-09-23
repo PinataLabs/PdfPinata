@@ -72,12 +72,12 @@ public class TextBaselineTests
         TextBaselines.Of(page).Should().Equal(700, 712);
     }
 
-    static PdfPage PageDrawing(string content)
+    private static PdfPage PageDrawing(string content)
     {
         return PageDrawingInParts(content);
     }
 
-    static PdfPage PageDrawingInParts(params string[] parts)
+    private static PdfPage PageDrawingInParts(params string[] parts)
     {
         var objects = new List<string>
         {

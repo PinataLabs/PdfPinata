@@ -71,7 +71,7 @@ internal class FootnoteRenderer
     /// the notes start, carrying nothing a reader needs read to them. Everything on a page is either
     /// content or furniture, and a line that is neither is the first thing a validator objects to.
     /// </remarks>
-    void DrawSeparator(XUnit left, XUnit top, XUnit width)
+    private void DrawSeparator(XUnit left, XUnit top, XUnit width)
     {
         using (Tagger.Artifact(_gfx))
         {
@@ -80,7 +80,7 @@ internal class FootnoteRenderer
         }
     }
 
-    StructureTagger Tagger => _documentRenderer.Tagger;
+    private StructureTagger Tagger => _documentRenderer.Tagger;
 
     /// <summary>
     /// The note's own mark, drawn into the indent its first paragraph was formatted with.
@@ -90,7 +90,7 @@ internal class FootnoteRenderer
     /// caller's and putting a generated number into it would change what a caller reads back out
     /// of their own document object model.
     /// </remarks>
-    void DrawMark(Footnote note, FormattedFootnote formatted, XUnit left, XUnit top,
+    private void DrawMark(Footnote note, FormattedFootnote formatted, XUnit left, XUnit top,
         PdfStructureElement element)
     {
         var mark = _documentRenderer.Footnotes.MarkFor(note);
@@ -113,7 +113,7 @@ internal class FootnoteRenderer
         }
     }
 
-    void RenderByInfos(XUnit xShift, XUnit yShift, RenderInfo[] renderInfos)
+    private void RenderByInfos(XUnit xShift, XUnit yShift, RenderInfo[] renderInfos)
     {
         if (renderInfos == null)
             return;
@@ -131,7 +131,7 @@ internal class FootnoteRenderer
         }
     }
 
-    readonly XGraphics _gfx;
-    readonly DocumentRenderer _documentRenderer;
-    readonly FieldInfos _fieldInfos;
+    private readonly XGraphics _gfx;
+    private readonly DocumentRenderer _documentRenderer;
+    private readonly FieldInfos _fieldInfos;
 }

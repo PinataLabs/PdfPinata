@@ -23,7 +23,7 @@ namespace PdfPinata.Test.Dom;
 /// </summary>
 public class FormattedTextFontRoundTripTests
 {
-    static FormattedText RoundTrip(params System.Action<Font>[] apply)
+    private static FormattedText RoundTrip(params System.Action<Font>[] apply)
     {
         var document = new Document();
         var formatted = document.AddSection().AddParagraph().AddFormattedText("text");

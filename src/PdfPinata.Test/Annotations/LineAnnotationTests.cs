@@ -26,9 +26,9 @@ namespace PdfPinata.Test.Annotations;
 [Collection(RasterizingCollection.Name)]
 public sealed class LineAnnotationTests : IDisposable
 {
-    const string OutDir = "Out/LineAnnotations";
+    private const string OutDir = "Out/LineAnnotations";
 
-    readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
+    private readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
 
     public void Dispose()
     {
@@ -43,8 +43,8 @@ public sealed class LineAnnotationTests : IDisposable
         GhostscriptSetup.Configure();
     }
 
-    static readonly XPoint From = new XPoint(100, 400);
-    static readonly XPoint To = new XPoint(300, 400);
+    private static readonly XPoint From = new XPoint(100, 400);
+    private static readonly XPoint To = new XPoint(300, 400);
 
     [Fact]
     public void ALineNamesItsSubtypeAndCarriesADefaultWidth()
@@ -359,7 +359,7 @@ public sealed class LineAnnotationTests : IDisposable
         Count(page, IsAnythingButWhite).Should().Be(0);
     }
 
-    IMagickImage<byte> Rasterize(string name, Action<PdfLineAnnotation> arrange)
+    private IMagickImage<byte> Rasterize(string name, Action<PdfLineAnnotation> arrange)
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -376,7 +376,7 @@ public sealed class LineAnnotationTests : IDisposable
         return images[0];
     }
 
-    static PdfLineAnnotation OnAPage()
+    private static PdfLineAnnotation OnAPage()
     {
         var document = new PdfDocument();
         var line = new PdfLineAnnotation();
@@ -386,14 +386,14 @@ public sealed class LineAnnotationTests : IDisposable
         return line;
     }
 
-    static byte[] NormalStream(PdfLineAnnotation line)
+    private static byte[] NormalStream(PdfLineAnnotation line)
     {
         var form =
             (PdfDictionary)line.Elements.GetDictionary("/AP").Elements.GetObject("/N");
         return form.Stream.Value;
     }
 
-    static PdfDocument SaveAndReopen(PdfDocument document)
+    private static PdfDocument SaveAndReopen(PdfDocument document)
     {
         using var stream = new MemoryStream();
         document.Save(stream, false);
@@ -402,11 +402,11 @@ public sealed class LineAnnotationTests : IDisposable
         return PdfPinata.Pdf.IO.PdfReader.Open(stream, PdfDocumentOpenMode.Modify);
     }
 
-    static bool IsRed(IMagickColor<byte> c) => c.R > 130 && c.G < 100 && c.B < 100;
+    private static bool IsRed(IMagickColor<byte> c) => c.R > 130 && c.G < 100 && c.B < 100;
 
-    static bool IsAnythingButWhite(IMagickColor<byte> c) => c.R < 240 || c.G < 240 || c.B < 240;
+    private static bool IsAnythingButWhite(IMagickColor<byte> c) => c.R < 240 || c.G < 240 || c.B < 240;
 
-    static int Count(IMagickImage<byte> image, Func<IMagickColor<byte>, bool> match)
+    private static int Count(IMagickImage<byte> image, Func<IMagickColor<byte>, bool> match)
     {
         using var pixels = image.GetPixels();
         return pixels.Count(p =>

@@ -14,8 +14,8 @@ namespace PdfPinata.Test.Drawing;
 /// </summary>
 public class XFontDescriptionTests
 {
-    const string Family = "Arial";
-    const double EmSize = 12;
+    private const string Family = "Arial";
+    private const double EmSize = 12;
 
     [Fact]
     public void AFontIsTheSizeAndStyleItWasAskedForAndTheFamilyItActuallyGot()

@@ -19,25 +19,25 @@ namespace PdfPinata.Test.IO.Filters;
 /// </summary>
 public class IndirectDecodeParmsTests
 {
-    const string Content = "0 0 m 100 100 l S\n";
+    private const string Content = "0 0 m 100 100 l S\n";
 
     /// <summary>
     ///   The content above run through PNG prediction (one row, filter type None) and deflated,
     ///   so that it decodes only when the /Predictor in its parameters is actually read.
     /// </summary>
-    static byte[] Encoded()
+    private static byte[] Encoded()
     {
         var predicted = new[] { (byte)0 }.Concat(Encoding.ASCII.GetBytes(Content)).ToArray();
         return Filtering.FlateDecode.Encode(predicted);
     }
 
-    static string Parms => $"<< /Predictor 12 /Columns {Content.Length} >>";
+    private static string Parms => $"<< /Predictor 12 /Columns {Content.Length} >>";
 
     /// <summary>
     ///   A one-page file whose content stream, object 4, carries the entries given, with the
     ///   extra objects given numbered from 5.
     /// </summary>
-    static byte[] File(string streamEntries, params string[] extraObjects)
+    private static byte[] File(string streamEntries, params string[] extraObjects)
     {
         var data = Encoded();
         var objects = new List<byte[]>
@@ -73,9 +73,9 @@ public class IndirectDecodeParmsTests
         return file.ToArray();
     }
 
-    static byte[] Latin1(string text) => text.Select(ch => (byte)ch).ToArray();
+    private static byte[] Latin1(string text) => text.Select(ch => (byte)ch).ToArray();
 
-    static string DecodedContent(byte[] file)
+    private static string DecodedContent(byte[] file)
     {
         using var stream = new MemoryStream(file);
         var page = PdfPinata.Pdf.IO.PdfReader.Open(stream, PdfDocumentOpenMode.Import).Pages[0];
@@ -133,7 +133,7 @@ public class IndirectDecodeParmsTests
     ///   Rewrites the cross-reference table of a file built by <see cref="File"/> after its body has
     ///   been edited, so that the offsets are true again.
     /// </summary>
-    static string Reindexed(string text)
+    private static string Reindexed(string text)
     {
         var body = text.Substring(0, text.IndexOf("xref\n", System.StringComparison.Ordinal));
         var offsets = new List<int>();

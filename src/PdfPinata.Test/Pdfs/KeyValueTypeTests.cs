@@ -21,7 +21,7 @@ namespace PdfPinata.Test.Pdfs;
 /// </summary>
 public class KeyValueTypeTests
 {
-    static PdfPage APage() => new PdfDocument().AddPage();
+    private static PdfPage APage() => new PdfDocument().AddPage();
 
     // The keys are written out rather than taken from PdfPage.Keys, which is internal to the
     // package. They are the names in the file, so a literal is what a reader of this test wants

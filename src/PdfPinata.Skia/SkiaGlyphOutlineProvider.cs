@@ -89,7 +89,7 @@ public sealed class SkiaGlyphOutlineProvider : IGlyphOutlineProvider
     /// <c>p2 + 2/3(q - p2)</c>, rather than being subdivided into something merely close.
     /// </para>
     /// </remarks>
-    static XGlyphOutline OutlineOf(SKPath path, double pen)
+    private static XGlyphOutline OutlineOf(SKPath path, double pen)
     {
         var segments = new List<XGlyphSegment>();
         if (path == null)
@@ -147,9 +147,9 @@ public sealed class SkiaGlyphOutlineProvider : IGlyphOutlineProvider
     }
 
     /// <summary>A Skia point in the seam's space: advanced along the run, and the right way up.</summary>
-    static XPoint At(SKPoint point, double pen) => new XPoint(pen + point.X, -point.Y);
+    private static XPoint At(SKPoint point, double pen) => new XPoint(pen + point.X, -point.Y);
 
     /// <summary>The point a fraction of the way from one point towards another.</summary>
-    static XPoint Lerp(XPoint from, XPoint to, double fraction) =>
+    private static XPoint Lerp(XPoint from, XPoint to, double fraction) =>
         new XPoint(from.X + fraction * (to.X - from.X), from.Y + fraction * (to.Y - from.Y));
 }

@@ -82,11 +82,9 @@ public class XForm : XImage, IContentStream
             throw new ArgumentNullException(nameof(viewBox), "The size of the XPdfForm is to small.");
         // I must tie the XPdfForm to a document immediately, because otherwise I would have no place where
         // to store the resources.
-        if (document == null)
-            throw new ArgumentNullException(nameof(document), "An XPdfForm template must be associated with a document at creation time.");
 
         _formState = FormState.Created;
-        _document = document;
+        _document = document ?? throw new ArgumentNullException(nameof(document), "An XPdfForm template must be associated with a document at creation time.");
         _pdfForm = new PdfFormXObject(document);
         _viewBox = viewBox;
         var rect = new PdfRectangle(viewBox);
@@ -204,7 +202,7 @@ public class XForm : XImage, IContentStream
     /// </summary>
     internal PdfDocument Owner => _document;
 
-    PdfDocument _document;
+    private readonly PdfDocument _document;
 
     /// <summary>
     /// Gets the color model used in the underlying PDF document.
@@ -256,7 +254,7 @@ public class XForm : XImage, IContentStream
     /// </summary>
     public XRect ViewBox => _viewBox;
 
-    XRect _viewBox;
+    private XRect _viewBox;
 
     /// <summary>
     /// Gets 72, the horizontal resolution by design of a form object.
@@ -271,12 +269,7 @@ public class XForm : XImage, IContentStream
     /// <summary>
     /// Gets or sets the bounding box.
     /// </summary>
-    public XRect BoundingBox
-    {
-        get => _boundingBox;
-        set => _boundingBox = value;
-    }
-    XRect _boundingBox;
+    public XRect BoundingBox { get; set; }
 
     /// <summary>
     /// Gets or sets the transformation matrix.

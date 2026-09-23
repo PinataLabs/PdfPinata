@@ -25,14 +25,14 @@ public class FontPlumbingTests
     ///   <c>InternalsVisibleTo</c>, so it is reached the way the other probes in this suite reach
     ///   what they need.
     /// </summary>
-    static object ResolvingOptions(params object[] arguments) =>
+    private static object ResolvingOptions(params object[] arguments) =>
         Activator.CreateInstance(
             // ReSharper disable once AssignNullToNotNullAttribute
             typeof(XPoint).Assembly.GetType("PdfPinata.Fonts.FontResolvingOptions", throwOnError: true),
             BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
             null, arguments, null);
 
-    static object MemberOf(object instance, string name)
+    private static object MemberOf(object instance, string name)
     {
         var type = instance.GetType();
         const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
@@ -227,7 +227,7 @@ public class FontPlumbingTests
     ///   where these questions can still be asked. See <c>ColdColourTableTests</c> for the same
     ///   technique applied to the colour table.
     /// </summary>
-    static object OnAColdCopyOfTheLibrary(Func<Assembly, object> work)
+    private static object OnAColdCopyOfTheLibrary(Func<Assembly, object> work)
     {
         var context = new AssemblyLoadContext("cold PdfPinata fonts", isCollectible: true);
         try
@@ -245,7 +245,7 @@ public class FontPlumbingTests
     }
 
     // ReSharper disable PossibleNullReferenceException
-    static object SettingsProperty(Assembly assembly, string name) =>
+    private static object SettingsProperty(Assembly assembly, string name) =>
         assembly.GetType("PdfPinata.Fonts.GlobalFontSettings", throwOnError: true)
             .GetProperty(name).GetValue(null);
     // ReSharper restore PossibleNullReferenceException

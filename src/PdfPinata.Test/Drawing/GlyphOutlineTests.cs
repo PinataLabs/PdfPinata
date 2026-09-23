@@ -20,11 +20,11 @@ namespace PdfPinata.Test.Drawing;
 [Collection(GlyphOutlineCollection.Name)]
 public class GlyphOutlineTests
 {
-    const double EmSize = 48;
-    const string Text = "Handles";
-    const string TrueTypeFamily = "Arial";
+    private const double EmSize = 48;
+    private const string Text = "Handles";
+    private const string TrueTypeFamily = "Arial";
 
-    static readonly XRect Box = new XRect(100, 200, 400, 60);
+    private static readonly XRect Box = new XRect(100, 200, 400, 60);
 
     // ----- the seam ------------------------------------------------------------------------------
 
@@ -286,7 +286,7 @@ public class GlyphOutlineTests
         }
     }
 
-    static XRect OutlineBoundsFrom(IGlyphOutlineProvider provider, string text)
+    private static XRect OutlineBoundsFrom(IGlyphOutlineProvider provider, string text)
     {
         var was = GlobalFontSettings.GlyphOutlineProvider;
         try
@@ -302,14 +302,14 @@ public class GlyphOutlineTests
 
     // ----- building the page ---------------------------------------------------------------------
 
-    static XSize Measure(string text, string family)
+    private static XSize Measure(string text, string family)
     {
         var document = new PdfDocument();
         using var gfx = XGraphics.FromPdfPage(document.AddPage());
         return gfx.MeasureString(text, new XFont(family, EmSize), XStringFormats.Default);
     }
 
-    static XGraphicsPath PathOf(string text, string family, XStringFormat format = null)
+    private static XGraphicsPath PathOf(string text, string family, XStringFormat format = null)
     {
         var path = new XGraphicsPath();
         path.AddString(text, new XFontFamily(family), XFontStyle.Regular, EmSize, Box,
@@ -318,11 +318,11 @@ public class GlyphOutlineTests
     }
 
     /// <summary>How many path points a page drawing this path holds - zero for an empty path.</summary>
-    static int PageDrawing(XGraphicsPath path) => PathGeometry.PointsOf(PageWithPath(path)).Count;
+    private static int PageDrawing(XGraphicsPath path) => PathGeometry.PointsOf(PageWithPath(path)).Count;
 
-    static PdfPage PageWithPath(XGraphicsPath path) => PageShowing(gfx => gfx.DrawPath(XBrushes.Black, path));
+    private static PdfPage PageWithPath(XGraphicsPath path) => PageShowing(gfx => gfx.DrawPath(XBrushes.Black, path));
 
-    static PdfPage PageShowing(Action<XGraphics> draw)
+    private static PdfPage PageShowing(Action<XGraphics> draw)
     {
         var document = new PdfDocument();
         var page = document.AddPage();

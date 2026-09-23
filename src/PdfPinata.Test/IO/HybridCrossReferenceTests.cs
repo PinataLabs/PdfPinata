@@ -188,16 +188,16 @@ public class HybridCrossReferenceTests
 
     // ----- the documents ------------------------------------------------------------------------
 
-    static PdfDocument Opened(byte[] pdf, PdfDocumentOpenMode mode = PdfDocumentOpenMode.Modify,
+    private static PdfDocument Opened(byte[] pdf, PdfDocumentOpenMode mode = PdfDocumentOpenMode.Modify,
         PdfReadAccuracy accuracy = PdfReadAccuracy.Strict)
     {
         return PdfPinata.Pdf.IO.PdfReader.Open(new MemoryStream(pdf), mode, accuracy);
     }
 
     /// <summary>The graphics state the page names, which is the object every test is about.</summary>
-    static PdfDictionary GraphicsStateOf(PdfDocument document) => GraphicsStateOf(document.Pages[0]);
+    private static PdfDictionary GraphicsStateOf(PdfDocument document) => GraphicsStateOf(document.Pages[0]);
 
-    static PdfDictionary GraphicsStateOf(PdfPage page)
+    private static PdfDictionary GraphicsStateOf(PdfPage page)
     {
         return page.Elements.GetDictionary("/Resources")?
             .Elements.GetDictionary("/ExtGState")?
@@ -212,7 +212,7 @@ public class HybridCrossReferenceTests
     /// <param name="listTheStream">Whether the classic table has an entry for the stream itself.</param>
     /// <param name="rootInTheStream">The /Root the stream carries in its own trailer dictionary.</param>
     /// <param name="nameTheCatalog">Whether /XRefStm names the catalog's dictionary instead.</param>
-    static byte[] Hybrid(int? namedPosition = null, bool listTheStream = true, string rootInTheStream = "1 0 R",
+    private static byte[] Hybrid(int? namedPosition = null, bool listTheStream = true, string rootInTheStream = "1 0 R",
         bool nameTheCatalog = false)
     {
         var pdf = new Builder();
@@ -245,7 +245,7 @@ public class HybridCrossReferenceTests
     ///   A hybrid file whose stream locates object 7 the ordinary way and then names, for object 8,
     ///   a position where no object starts.
     /// </summary>
-    static byte[] DamagedPartWay()
+    private static byte[] DamagedPartWay()
     {
         var pdf = new Builder();
 
@@ -273,7 +273,7 @@ public class HybridCrossReferenceTests
     ///   A hybrid file whose stream locates object 7 inside object stream 5 and then names, for
     ///   object 8, a position where no object starts.
     /// </summary>
-    static byte[] DamagedAfterACompressedEntry()
+    private static byte[] DamagedAfterACompressedEntry()
     {
         var pdf = new Builder();
 
@@ -300,7 +300,7 @@ public class HybridCrossReferenceTests
     ///   <see cref="Hybrid" /> with a classic incremental update after it that gives number 6 - the
     ///   cross-reference stream's - to a new object, and rewrites the catalog to name it.
     /// </summary>
-    static byte[] WithAnUpdateReusingTheStreamsNumber()
+    private static byte[] WithAnUpdateReusingTheStreamsNumber()
     {
         var original = Encoding.Latin1.GetString(Hybrid());
         var marker = original.LastIndexOf("startxref\n", StringComparison.Ordinal) + "startxref\n".Length;
@@ -322,10 +322,10 @@ public class HybridCrossReferenceTests
     }
 
     /// <summary>Where an object's body starts, past its <c>n 0 obj</c> line.</summary>
-    static int DictionaryOf(Builder pdf, int id) => pdf.PositionOf(id) + (id + " 0 obj\n").Length;
+    private static int DictionaryOf(Builder pdf, int id) => pdf.PositionOf(id) + (id + " 0 obj\n").Length;
 
     /// <summary>The same page with object 7 written the ordinary way, table entry and all.</summary>
-    static byte[] Plain()
+    private static byte[] Plain()
     {
         var pdf = new Builder();
 
@@ -345,18 +345,18 @@ public class HybridCrossReferenceTests
     ///   A replacement of the same length, so that every position written into the table still
     ///   holds and the only thing wrong with the file is the thing under test.
     /// </remarks>
-    static byte[] Damaged()
+    private static byte[] Damaged()
     {
         var pdf = Encoding.Latin1.GetString(Hybrid()).Replace("/W [1 2 1]", "/W [9 9 9]");
         return Encoding.Latin1.GetBytes(pdf);
     }
 
-    const string Page = "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] /Contents 4 0 R " +
+    private const string Page = "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] /Contents 4 0 R " +
                         "/Resources << /ExtGState << /GS1 7 0 R >> >> >>";
 
-    const string Content = "0 0 1 rg 20 20 100 100 re f";
+    private const string Content = "0 0 1 rg 20 20 100 100 re f";
 
-    const string GraphicsState = "<< /Type /ExtGState /CA 0.5 >>";
+    private const string GraphicsState = "<< /Type /ExtGState /CA 0.5 >>";
 
     /// <summary>
     ///   Writes the objects and a classic cross-reference table over them.
@@ -366,10 +366,10 @@ public class HybridCrossReferenceTests
     ///   marks every one of them in use, and a hybrid file is a file with a free entry in the
     ///   middle of it.
     /// </remarks>
-    sealed class Builder
+    private sealed class Builder
     {
-        readonly StringBuilder _pdf = new("%PDF-1.5\n");
-        readonly Dictionary<int, int> _positions = new();
+        private readonly StringBuilder _pdf = new("%PDF-1.5\n");
+        private readonly Dictionary<int, int> _positions = new();
 
         internal void Object(int id, string body)
         {

@@ -126,10 +126,10 @@ internal class ShiftStack
     /// <summary>
     /// The stack pointer index. Points to the next free item.
     /// </summary>
-    int _sp;
+    private int _sp;
 
     /// <summary>
     /// An array representing the stack.
     /// </summary>
-    readonly List<PdfItem> _items;
+    private readonly List<PdfItem> _items;
 }

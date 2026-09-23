@@ -12,7 +12,7 @@ internal static class DomSR
     /// non-public members: GetProperties() without flags looks for public instance members and
     /// finds none of them, which reported every message in the assembly as missing.
     /// </summary>
-    const BindingFlags ResourceProperties =
+    private const BindingFlags ResourceProperties =
         BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public;
 
     internal static string GetString(DomMsgID id)

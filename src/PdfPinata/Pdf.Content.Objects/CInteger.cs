@@ -64,7 +64,7 @@ public class CInteger : CNumber
         set => _value = value;
     }
 
-    int _value;
+    private int _value;
 
     /// <summary>
     /// Returns a string that represents the current value.

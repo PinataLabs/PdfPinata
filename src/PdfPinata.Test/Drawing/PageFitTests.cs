@@ -16,24 +16,24 @@ namespace PdfPinata.Test.Drawing;
 /// </summary>
 public class PageFitTests
 {
-    const double A4Width = 595;
-    const double A4Height = 842;
-    const double A5Width = 420;
-    const double A5Height = 595;
+    private const double A4Width = 595;
+    private const double A4Height = 842;
+    private const double A5Width = 420;
+    private const double A5Height = 595;
 
     /// <summary>
     ///   Where the four corners of a rectangle end up under a transform, as
     ///   (bottom left, top right). Corners say what a matrix does in terms anyone can check;
     ///   its six components do not.
     /// </summary>
-    static (XPoint BottomLeft, XPoint TopRight) CornersOf(XRect source, XMatrix matrix)
+    private static (XPoint BottomLeft, XPoint TopRight) CornersOf(XRect source, XMatrix matrix)
     {
         return (matrix.Transform(new XPoint(source.X, source.Y)),
             matrix.Transform(new XPoint(source.X + source.Width, source.Y + source.Height)));
     }
 
-    static XRect A4 => new(0, 0, A4Width, A4Height);
-    static XRect A5 => new(0, 0, A5Width, A5Height);
+    private static XRect A4 => new(0, 0, A4Width, A4Height);
+    private static XRect A5 => new(0, 0, A5Width, A5Height);
 
     [Fact]
     public void FitShrinksAnA4PageOntoA5WithoutLosingAnyOfIt()

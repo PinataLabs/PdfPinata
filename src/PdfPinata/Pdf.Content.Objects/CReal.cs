@@ -64,7 +64,7 @@ public class CReal : CNumber
         set => _value = value;
     }
 
-    double _value;
+    private double _value;
 
     /// <summary>
     /// Returns a string that represents the current value.

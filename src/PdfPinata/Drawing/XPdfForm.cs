@@ -63,7 +63,7 @@ public class XPdfForm : XForm
             throw new FileNotFoundException(PSSR.FileNotFound(path));
 
         if (PdfReader.TestPdfFile(path) == 0)
-            throw new ArgumentException("The specified file has no valid PDF file header.", nameof(path));
+            throw new ArgumentException(@"The specified file has no valid PDF file header.", nameof(path));
 
         Path = path;
         _pathReadAccuracy = accuracy;
@@ -82,7 +82,7 @@ public class XPdfForm : XForm
         Path = "*" + Guid.NewGuid().ToString("B");
 
         if (PdfReader.TestPdfFile(stream) == 0)
-            throw new ArgumentException("The specified stream has no valid PDF file header.", nameof(stream));
+            throw new ArgumentException(@"The specified stream has no valid PDF file header.", nameof(stream));
 
         _externalDocument = PdfReader.Open(stream, accuracy);
     }
@@ -99,7 +99,7 @@ public class XPdfForm : XForm
         Path = "*" + Guid.NewGuid().ToString("B");
 
         if (PdfReader.TestPdfFile(stream) == 0)
-            throw new ArgumentException("The specified stream has no valid PDF file header.", nameof(stream));
+            throw new ArgumentException(@"The specified stream has no valid PDF file header.", nameof(stream));
 
         _externalDocument = PdfReader.Open(stream, password, PdfDocumentOpenMode.ReadOnly, accuracy);
     }
@@ -185,7 +185,7 @@ public class XPdfForm : XForm
         }
     }
 
-    bool _disposed;
+    private bool _disposed;
 
     /// <summary>
     /// Gets or sets an image that is used for drawing if the current XGraphics object cannot handle
@@ -198,7 +198,7 @@ public class XPdfForm : XForm
         set => _placeHolder = value;
     }
 
-    XImage _placeHolder;
+    private XImage _placeHolder;
 
     /// <summary>
     /// Gets the underlying PdfPage (if one exists).
@@ -229,7 +229,7 @@ public class XPdfForm : XForm
         }
     }
 
-    int _pageCount = -1;
+    private int _pageCount = -1;
 
     /// <summary>
     /// Gets the width in point of the page identified by the property PageNumber.
@@ -315,7 +315,7 @@ public class XPdfForm : XForm
         }
     }
 
-    int _pageNumber = 1;
+    private int _pageNumber = 1;
 
     /// <summary>
     /// Gets or sets the page index in the external PDF document this object refers to. The page index

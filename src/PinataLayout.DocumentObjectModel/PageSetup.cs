@@ -165,7 +165,7 @@ public partial class PageSetup : DocumentObject
     pageHeight = 0;
   }
 
-  static void Millimeter(int width, int height, out Unit pageWidth, out Unit pageHeight)
+  private static void Millimeter(int width, int height, out Unit pageWidth, out Unit pageHeight)
   {
     pageWidth = Unit.FromMillimeter(width);
     pageHeight = Unit.FromMillimeter(height);
@@ -176,7 +176,7 @@ public partial class PageSetup : DocumentObject
   /// from and writes it out as a suffix, so building these with Unit.FromInch would turn the 612
   /// that a serialized Letter page has always carried into 8.5in.
   /// </summary>
-  static void Inch(double width, double height, out Unit pageWidth, out Unit pageHeight)
+  private static void Inch(double width, double height, out Unit pageWidth, out Unit pageHeight)
   {
     pageWidth = Unit.FromPoint(width * 72);
     pageHeight = Unit.FromPoint(height * 72);

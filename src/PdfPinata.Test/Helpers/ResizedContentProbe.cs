@@ -63,7 +63,7 @@ internal static class ResizedContentProbe
         return CountForms(ContentReader.ReadContent(page), resources, 0);
     }
 
-    static void Walk(CSequence content, PdfDictionary resources, XMatrix ctm, List<XRect> found, int depth)
+    private static void Walk(CSequence content, PdfDictionary resources, XMatrix ctm, List<XRect> found, int depth)
     {
         if (depth > 16)
             return;
@@ -99,7 +99,7 @@ internal static class ResizedContentProbe
         }
     }
 
-    static void WalkForm(COperator op, PdfDictionary resources, XMatrix ctm, List<XRect> found, int depth)
+    private static void WalkForm(COperator op, PdfDictionary resources, XMatrix ctm, List<XRect> found, int depth)
     {
         var form = FormNamedBy(op, resources);
         if (form?.Stream == null)
@@ -122,7 +122,7 @@ internal static class ResizedContentProbe
         Walk(ContentReader.ReadContent(form.Stream.UnfilteredValue), formResources, inner, found, depth + 1);
     }
 
-    static int CountForms(CSequence content, PdfDictionary resources, int depth)
+    private static int CountForms(CSequence content, PdfDictionary resources, int depth)
     {
         if (depth > 16)
             return 0;
@@ -145,7 +145,7 @@ internal static class ResizedContentProbe
         return count;
     }
 
-    static PdfDictionary FormNamedBy(COperator op, PdfDictionary resources)
+    private static PdfDictionary FormNamedBy(COperator op, PdfDictionary resources)
     {
         if (resources == null || op.Operands.Count == 0 || op.Operands[0] is not CName name)
             return null;
@@ -158,7 +158,7 @@ internal static class ResizedContentProbe
         return form?.Elements.GetName("/Subtype") == "/Form" ? form : null;
     }
 
-    static XRect TransformedRectangle(COperator op, XMatrix ctm)
+    private static XRect TransformedRectangle(COperator op, XMatrix ctm)
     {
         var x = Number(op.Operands[0]);
         var y = Number(op.Operands[1]);
@@ -181,24 +181,24 @@ internal static class ResizedContentProbe
         return new XRect(minX, minY, maxX - minX, maxY - minY);
     }
 
-    static XMatrix Matrix(COperator op)
+    private static XMatrix Matrix(COperator op)
     {
         return new XMatrix(
             Number(op.Operands[0]), Number(op.Operands[1]), Number(op.Operands[2]),
             Number(op.Operands[3]), Number(op.Operands[4]), Number(op.Operands[5]));
     }
 
-    static double Number(CObject operand)
+    private static double Number(CObject operand)
     {
         return operand is CReal real ? real.Value : ((CInteger)operand).Value;
     }
 
-    static PdfDictionary ResourcesOf(PdfItem item)
+    private static PdfDictionary ResourcesOf(PdfItem item)
     {
         return Resolve(item) as PdfDictionary;
     }
 
-    static PdfItem Resolve(PdfItem item)
+    private static PdfItem Resolve(PdfItem item)
     {
         return item is PdfReference reference ? reference.Value : item;
     }

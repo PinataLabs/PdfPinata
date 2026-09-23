@@ -82,7 +82,8 @@ public abstract class TwoWidthBarCode : BarCode
             _wideNarrowRatio = value;
         }
     }
-    double _wideNarrowRatio = 2.6;
+
+    private double _wideNarrowRatio = 2.6;
 
     /// <summary>
     /// Renders a wide or narrow line for the bar code.

@@ -109,7 +109,7 @@ internal sealed class Parser
     internal int LargestSize { get; private set; }
 
     /// <summary>ISO 32000-1 Table C.1: at most 8,388,607 indirect objects, so /Size is at most one more.</summary>
-    const int MaximumSize = 8_388_608;
+    private const int MaximumSize = 8_388_608;
 
     public PdfObjectID ReadObjectNumber(long position)
     {
@@ -1102,7 +1102,7 @@ internal sealed class Parser
     /// classic trailers are the chain of revisions and each of them names its own stream. Both
     /// pdf.js and pypdf read one in the same place and the same order.
     /// </remarks>
-    void ReadHybridCrossReferenceStream(PdfTrailer trailer, PdfReadAccuracy accuracy)
+    private void ReadHybridCrossReferenceStream(PdfTrailer trailer, PdfReadAccuracy accuracy)
     {
         var position = trailer?.Elements.GetInteger(PdfTrailer.Keys.XRefStm) ?? 0;
         if (position == 0)
@@ -1327,7 +1327,7 @@ internal sealed class Parser
     /// begins at <paramref name="startOfSection"/> and whose object number ends at
     /// <paramref name="endOfNumber"/>, rather than another object's under the same number.
     /// </summary>
-    static bool PointsAtStream(PdfReference iref, long startOfSection, long endOfNumber)
+    private static bool PointsAtStream(PdfReference iref, long startOfSection, long endOfNumber)
         => iref.Position >= startOfSection && iref.Position <= endOfNumber;
 
     /// <summary>
@@ -1580,7 +1580,7 @@ internal sealed class Parser
     /// Reads one group of digits of a PDF date the way <see cref="int.Parse(string)"/> does, which
     /// is what read them before: white space around the digits and a sign are both accepted.
     /// </summary>
-    static bool TryParseField(string date, int start, int length, out int value) =>
+    private static bool TryParseField(string date, int start, int length, out int value) =>
         int.TryParse(date.Substring(start, length), NumberStyles.Integer, NumberFormatInfo.CurrentInfo, out value);
 
     private ParserState SaveState()

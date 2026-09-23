@@ -39,7 +39,7 @@ namespace PdfPinata.Drawing;
 /// </summary>
 internal sealed class FontFamilyCache
 {
-    FontFamilyCache()
+    private FontFamilyCache()
     {
         _familiesByName = new Dictionary<string, FontFamilyInternal>(StringComparer.OrdinalIgnoreCase);
     }
@@ -79,7 +79,7 @@ internal sealed class FontFamilyCache
     /// <summary>
     /// Gets the singleton.
     /// </summary>
-    static FontFamilyCache Singleton
+    private static FontFamilyCache Singleton
     {
         get
         {
@@ -97,7 +97,8 @@ internal sealed class FontFamilyCache
             return _singleton;
         }
     }
-    static volatile FontFamilyCache _singleton;
+
+    private static volatile FontFamilyCache _singleton;
 
     internal static string GetCacheState()
     {
@@ -118,5 +119,5 @@ internal sealed class FontFamilyCache
     /// <summary>
     /// Maps family name to internal font family.
     /// </summary>
-    readonly Dictionary<string, FontFamilyInternal> _familiesByName;
+    private readonly Dictionary<string, FontFamilyInternal> _familiesByName;
 }

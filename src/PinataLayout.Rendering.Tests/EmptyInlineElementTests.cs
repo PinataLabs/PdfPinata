@@ -113,7 +113,7 @@ public class EmptyInlineElementTests
         HyperlinkWalkProbe.Around(detached.Elements).Should().BeSameAs(detached);
     }
 
-    static Document Paragraph(Action<Paragraph> build)
+    private static Document Paragraph(Action<Paragraph> build)
     {
         var document = new Document();
         build(document.AddSection().AddParagraph());

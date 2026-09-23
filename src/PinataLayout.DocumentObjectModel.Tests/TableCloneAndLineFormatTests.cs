@@ -21,7 +21,7 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 /// </remarks>
 public class TableCloneAndLineFormatTests
 {
-    static Table ATableWithEveryChildSet()
+    private static Table ATableWithEveryChildSet()
     {
         var table = new Table();
         table.AddColumn(Unit.FromCentimeter(3));
@@ -38,7 +38,7 @@ public class TableCloneAndLineFormatTests
         return table;
     }
 
-    static string TextOfCell(Table table, int row, int column) =>
+    private static string TextOfCell(Table table, int row, int column) =>
         // ReSharper disable once PossibleNullReferenceException
         (table[row, column].Elements[0] as Paragraph).Elements[0] is Text text ? text.Content : null;
 

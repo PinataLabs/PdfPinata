@@ -72,7 +72,7 @@ public abstract class PdfDictionaryWithContentStream : PdfDictionary, IContentSt
             return _resources;
         }
     }
-    PdfResources _resources;
+    private PdfResources _resources;
 
     /// <summary>
     /// Implements the interface because the primary function is internal.

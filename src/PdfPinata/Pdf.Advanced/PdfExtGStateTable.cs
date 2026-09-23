@@ -87,6 +87,6 @@ public sealed class PdfExtGStateTable : PdfResourceTable
         return extGState;
     }
 
-    readonly Dictionary<string, PdfExtGState> _strokeAlphaValues = new();
-    readonly Dictionary<string, PdfExtGState> _nonStrokeStates = new();
+    private readonly Dictionary<string, PdfExtGState> _strokeAlphaValues = new();
+    private readonly Dictionary<string, PdfExtGState> _nonStrokeStates = new();
 }

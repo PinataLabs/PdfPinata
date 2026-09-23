@@ -32,7 +32,7 @@ namespace PdfPinata.Test.IO;
 public class OpenModeEnforcementTests
 {
     /// <summary>An operation that changes a document, and the words its refusal has to use.</summary>
-    sealed class Mutation
+    private sealed class Mutation
     {
         internal Mutation(string operation, Action<PdfDocument, PdfPage> act)
         {
@@ -51,7 +51,7 @@ public class OpenModeEnforcementTests
     ///   A mutation that adds a page returns it, and the matrix looks only at whether the call was allowed. A lambda
     ///   whose own parameter is <c>_</c> cannot say <c>_ =</c>: that would assign to the parameter.
     /// </summary>
-    static void Discard(PdfPage _)
+    private static void Discard(PdfPage _)
     {
     }
 
@@ -59,7 +59,7 @@ public class OpenModeEnforcementTests
     ///   Everything that changes a document, keyed by the call a caller would write. Reached by name
     ///   rather than passed as a delegate so that each cell of the matrix is named in the test run.
     /// </summary>
-    static readonly IReadOnlyDictionary<string, Mutation> Mutations = new Dictionary<string, Mutation>
+    private static readonly IReadOnlyDictionary<string, Mutation> Mutations = new Dictionary<string, Mutation>
     {
         ["PdfDocument.AddPage()"] =
             new Mutation("adding a page", (document, _) => Discard(document.AddPage())),
@@ -105,14 +105,14 @@ public class OpenModeEnforcementTests
     };
 
     /// <summary>The modes that let a document be changed.</summary>
-    static readonly PdfDocumentOpenMode[] Modifiable =
+    private static readonly PdfDocumentOpenMode[] Modifiable =
     {
         PdfDocumentOpenMode.Modify,
         PdfDocumentOpenMode.Append
     };
 
     /// <summary>The modes that do not.</summary>
-    static readonly PdfDocumentOpenMode[] NotModifiable =
+    private static readonly PdfDocumentOpenMode[] NotModifiable =
     {
         PdfDocumentOpenMode.ReadOnly,
         PdfDocumentOpenMode.Import
@@ -122,7 +122,7 @@ public class OpenModeEnforcementTests
 
     public static TheoryData<PdfDocumentOpenMode, string> AllowedCells() => Cells(Modifiable);
 
-    static TheoryData<PdfDocumentOpenMode, string> Cells(PdfDocumentOpenMode[] modes)
+    private static TheoryData<PdfDocumentOpenMode, string> Cells(PdfDocumentOpenMode[] modes)
     {
         var cells = new TheoryData<PdfDocumentOpenMode, string>();
         foreach (var mode in modes)
@@ -285,18 +285,18 @@ public class OpenModeEnforcementTests
             .WithMessage("*PdfDocumentOpenMode.Import*");
     }
 
-    static PdfDocument OpenedWith(PdfDocumentOpenMode mode)
+    private static PdfDocument OpenedWith(PdfDocumentOpenMode mode)
     {
         return Reader.Open(new MemoryStream(TwoPageDocument()), mode);
     }
 
     /// <summary>A page of a separate document opened for import, for the operations that take one.</summary>
-    static PdfPage AForeignPage()
+    private static PdfPage AForeignPage()
     {
         return OpenedWith(PdfDocumentOpenMode.Import).Pages[0];
     }
 
-    static byte[] TwoPageDocument()
+    private static byte[] TwoPageDocument()
     {
         var document = new PdfDocument();
         document.Info.Title = "Two pages";

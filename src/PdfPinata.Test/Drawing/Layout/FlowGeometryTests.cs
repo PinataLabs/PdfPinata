@@ -17,9 +17,9 @@ namespace PdfPinata.Test.Drawing.Layout;
 /// </remarks>
 public class FlowGeometryTests
 {
-    const double Tolerance = 0.001;
+    private const double Tolerance = 0.001;
 
-    static (double Start, double End)[] Runs(IntervalSet set)
+    private static (double Start, double End)[] Runs(IntervalSet set)
     {
         return set.Select(run => (run.Start, run.End)).ToArray();
     }

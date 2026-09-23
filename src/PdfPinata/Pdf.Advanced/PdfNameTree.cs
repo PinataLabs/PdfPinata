@@ -112,7 +112,7 @@ internal static class PdfNameTree
         return null;
     }
 
-    static string WithoutSlash(string name)
+    private static string WithoutSlash(string name)
     {
         return name != null && name.Length > 0 && name[0] == '/' ? name[1..] : name;
     }

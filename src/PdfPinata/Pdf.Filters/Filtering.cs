@@ -88,35 +88,35 @@ public static class Filtering
     // ReSharper disable InconsistentNaming
     public static AsciiHexDecode ASCIIHexDecode => _asciiHexDecode ?? (_asciiHexDecode = new AsciiHexDecode()); // ReSharper restore InconsistentNaming
 
-    static AsciiHexDecode _asciiHexDecode;
+    private static AsciiHexDecode _asciiHexDecode;
 
     /// <summary>
     /// Gets the filter singleton.
     /// </summary>
     public static Ascii85Decode ASCII85Decode => _ascii85Decode ?? (_ascii85Decode = new Ascii85Decode());
 
-    static Ascii85Decode _ascii85Decode;
+    private static Ascii85Decode _ascii85Decode;
 
     /// <summary>
     /// Gets the filter singleton.
     /// </summary>
     public static LzwDecode LzwDecode => _lzwDecode ?? (_lzwDecode = new LzwDecode());
 
-    static LzwDecode _lzwDecode;
+    private static LzwDecode _lzwDecode;
 
     /// <summary>
     /// Gets the filter singleton.
     /// </summary>
     public static FlateDecode FlateDecode => _flateDecode ?? (_flateDecode = new FlateDecode());
 
-    static FlateDecode _flateDecode;
+    private static FlateDecode _flateDecode;
 
     /// <summary>
     /// Gets the filter singleton.
     /// </summary>
     public static RunLengthDecode RunLengthDecode => _runLengthDecode ?? (_runLengthDecode = new RunLengthDecode());
 
-    static RunLengthDecode _runLengthDecode;
+    private static RunLengthDecode _runLengthDecode;
 
     /// <summary>
     /// Encodes the data with the specified filter.
@@ -199,7 +199,7 @@ public static class Filtering
     /// <summary>
     /// The object a reference points at, or the item itself; and null for a PDF null.
     /// </summary>
-    static PdfItem Direct(PdfItem item)
+    private static PdfItem Direct(PdfItem item)
     {
         if (item is PdfReference reference)
             item = reference.Value;

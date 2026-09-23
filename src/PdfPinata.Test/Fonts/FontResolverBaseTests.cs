@@ -29,7 +29,7 @@ public class FontResolverBaseTests
     ///   the file, which is all the base class needs of it, and records what it was asked to read
     ///   so a test can see how many times a file was opened.
     /// </summary>
-    sealed class NameBasedResolver : FontResolverBase
+    private sealed class NameBasedResolver : FontResolverBase
     {
         public readonly List<string> Read = [];
         public string Unreadable { get; set; }
@@ -58,9 +58,9 @@ public class FontResolverBaseTests
         }
     }
 
-    static string Asset(string name) => PathHelper.GetInstance().GetAssetPath(Path.Combine("Fonts", name));
+    private static string Asset(string name) => PathHelper.GetInstance().GetAssetPath(Path.Combine("Fonts", name));
 
-    static string[] TheLiberationFamily() =>
+    private static string[] TheLiberationFamily() =>
     [
         Asset("LiberationSans-Regular.ttf"),
         Asset("LiberationSans-Bold.ttf"),
@@ -68,7 +68,7 @@ public class FontResolverBaseTests
         Asset("LiberationSans-BoldItalic.ttf")
     ];
 
-    static NameBasedResolver AResolverOver(params string[] files)
+    private static NameBasedResolver AResolverOver(params string[] files)
     {
         var resolver = new NameBasedResolver();
         resolver.SetupFontsFiles(files);
@@ -277,7 +277,7 @@ public class FontResolverBaseTests
     }
 
     /// <summary>Exposes the two protected metadata readers so a test can call them directly.</summary>
-    sealed class DescribesOneFaceAtATime : FontResolverBase
+    private sealed class DescribesOneFaceAtATime : FontResolverBase
     {
         protected override FontMetadata ReadFontMetadata(string fontFilePath)
         {

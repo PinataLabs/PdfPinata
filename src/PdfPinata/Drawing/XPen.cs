@@ -293,6 +293,6 @@ public sealed class XPen
     }
     internal bool _overprint;
 
-    bool _dirty = true;
-    readonly bool _immutable;
+    private bool _dirty = true;
+    private readonly bool _immutable;
 }

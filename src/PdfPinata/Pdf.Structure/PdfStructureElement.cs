@@ -204,7 +204,7 @@ public sealed class PdfStructureElement : PdfDictionary
         Kids().Elements.Add(objr.Reference);
     }
 
-    PdfArray Kids()
+    private PdfArray Kids()
     {
         if (Elements[Keys.K] is PdfArray kids)
             return kids;
@@ -278,13 +278,13 @@ public sealed class PdfStructureElement : PdfDictionary
         /// <summary>Gets the KeysMeta for these keys.</summary>
         internal static DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>
     /// The entries of an object reference, which is how an annotation joins the structure tree.
     /// </summary>
-    static class ObjectReferenceKeys
+    private static class ObjectReferenceKeys
     {
         public const string Obj = "/Obj";
         public const string Pg = "/Pg";
@@ -294,7 +294,7 @@ public sealed class PdfStructureElement : PdfDictionary
     /// The entries of a marked-content reference, which is how a mark on a page other than the
     /// element's own says which page it is on.
     /// </summary>
-    static class MarkedContentKeys
+    private static class MarkedContentKeys
     {
         public const string Pg = "/Pg";
         public const string MCID = "/MCID";

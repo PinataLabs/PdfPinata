@@ -31,12 +31,12 @@ public class CrossReferenceStreamDecodingTests
     ///   object 1 because a plain <c>new PdfDocument()</c> already owns object 1 - its document
     ///   information dictionary - and an entry for an object the table already holds is ignored.
     /// </summary>
-    const string Placeholder = "2 0 obj\n<< /Kind /Placeholder >>\nendobj\n";
+    private const string Placeholder = "2 0 obj\n<< /Kind /Placeholder >>\nendobj\n";
 
-    static readonly PdfObjectID PlaceholderId = new PdfObjectID(2, 0);
+    private static readonly PdfObjectID PlaceholderId = new PdfObjectID(2, 0);
 
     /// <summary>The object number the cross-reference stream itself is written under.</summary>
-    static readonly PdfObjectID StreamId = new PdfObjectID(4, 0);
+    private static readonly PdfObjectID StreamId = new PdfObjectID(4, 0);
 
     // ----- The /W arithmetic --------------------------------------------------------------------------
 
@@ -222,9 +222,9 @@ public class CrossReferenceStreamDecodingTests
     ///   A read-only stream as long as it is told to be, holding the given bytes at the given
     ///   offsets and white space everywhere else - so that a file of several GiB costs nothing.
     /// </summary>
-    sealed class SparseStream : Stream
+    private sealed class SparseStream : Stream
     {
-        readonly (long Offset, byte[] Bytes)[] _segments;
+        private readonly (long Offset, byte[] Bytes)[] _segments;
 
         internal SparseStream(long length, params (long Offset, byte[] Bytes)[] segments)
         {
@@ -273,13 +273,13 @@ public class CrossReferenceStreamDecodingTests
     ///   The bytes of a file holding one placeholder object and one cross-reference stream, and
     ///   where in them that stream begins.
     /// </summary>
-    sealed class BuiltFile
+    private sealed class BuiltFile
     {
         internal byte[] Bytes;
         internal long Position;
     }
 
-    static BuiltFile Build(int[] w, int[] index, int size, byte[] data)
+    private static BuiltFile Build(int[] w, int[] index, int size, byte[] data)
     {
         var indexEntry = index == null ? "" : $" /Index [{string.Join(" ", index)}]";
         var header = $"4 0 obj\n<< /Type /XRef /Size {size} /W [{string.Join(" ", w)}]{indexEntry}"
@@ -298,7 +298,7 @@ public class CrossReferenceStreamDecodingTests
     ///   The entries of a cross-reference stream, packed the way a stream body packs them: three
     ///   big-endian numbers per entry, each as wide as /W says.
     /// </summary>
-    static byte[] Encode(int[] w, params (uint Type, ulong Field2, uint Field3)[] entries)
+    private static byte[] Encode(int[] w, params (uint Type, ulong Field2, uint Field3)[] entries)
     {
         var bytes = new List<byte>();
         foreach (var entry in entries)
@@ -311,13 +311,13 @@ public class CrossReferenceStreamDecodingTests
         return bytes.ToArray();
     }
 
-    static void Append(List<byte> bytes, ulong value, int width)
+    private static void Append(List<byte> bytes, ulong value, int width)
     {
         for (var shift = width - 1; shift >= 0; shift--)
             bytes.Add((byte)(value >> (8 * shift)));
     }
 
-    static (object Stream, object Table) Read(BuiltFile file, PdfDocument owner = null)
+    private static (object Stream, object Table) Read(BuiltFile file, PdfDocument owner = null)
     {
         owner ??= new PdfDocument();
         var parser = ParserProbe.Over(owner, file.Bytes);
@@ -328,8 +328,8 @@ public class CrossReferenceStreamDecodingTests
         return (ParserProbe.ReadXRefStream(parser, table, file.Position), table);
     }
 
-    static (uint Type, long Field2, uint Field3)[] EntriesOf(BuiltFile file) =>
+    private static (uint Type, long Field2, uint Field3)[] EntriesOf(BuiltFile file) =>
         ParserProbe.EntriesOf(Read(file).Stream);
 
-    static object TableAfterReading(BuiltFile file, PdfDocument owner = null) => Read(file, owner).Table;
+    private static object TableAfterReading(BuiltFile file, PdfDocument owner = null) => Read(file, owner).Table;
 }

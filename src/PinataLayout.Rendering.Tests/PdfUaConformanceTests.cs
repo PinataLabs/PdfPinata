@@ -323,7 +323,7 @@ public class PdfUaConformanceTests
     /// <summary>
     ///   A rendered document claiming PDF/UA-1, ready to be saved.
     /// </summary>
-    static PdfDocumentRenderer Claiming(bool tagged = true, string language = "en-GB")
+    private static PdfDocumentRenderer Claiming(bool tagged = true, string language = "en-GB")
     {
         var renderer = Tagged(tagged, language);
         renderer.PdfDocument.Options.UAConformance = PdfUAConformance.PdfUA1;
@@ -334,7 +334,7 @@ public class PdfUaConformanceTests
     ///   A rendered document carrying a footnote and a bulleted list — the two corners of the
     ///   tagger PDF/UA-2's own rules touch that the plain <see cref="Tagged"/> shape does not reach.
     /// </summary>
-    static PdfDocumentRenderer TaggedWithAFootnoteAndAList()
+    private static PdfDocumentRenderer TaggedWithAFootnoteAndAList()
     {
         var document = new Document();
         var section = document.AddSection();
@@ -363,11 +363,11 @@ public class PdfUaConformanceTests
     ///   <c>PdfDocument.Structure</c> — which, on a document just reopened by <see cref="PdfReader"/>,
     ///   would build a fresh empty tree instead of reading the one the file already carries.
     /// </summary>
-    static PdfItem StructTreeRootKidsOf(PdfDocument saved) =>
+    private static PdfItem StructTreeRootKidsOf(PdfDocument saved) =>
         saved.Internals.Catalog.Elements.GetDictionary("/StructTreeRoot").Elements["/K"];
 
     /// <summary>Every <c>/S</c> value reachable from the structure tree root.</summary>
-    static System.Collections.Generic.List<string> StructureTypesOf(PdfDocument saved)
+    private static System.Collections.Generic.List<string> StructureTypesOf(PdfDocument saved)
     {
         var found = new System.Collections.Generic.List<string>();
         Collect(StructTreeRootKidsOf(saved));
@@ -394,7 +394,7 @@ public class PdfUaConformanceTests
     }
 
     /// <summary>The first structure element of the given type reachable from <paramref name="item"/>.</summary>
-    static PdfDictionary FindByType(PdfItem item, string type)
+    private static PdfDictionary FindByType(PdfItem item, string type)
     {
         while (true)
         {
@@ -423,7 +423,7 @@ public class PdfUaConformanceTests
     ///   checks, claiming nothing yet — what an accessibility claim and an A-level archival claim
     ///   alike are held to.
     /// </summary>
-    static PdfDocumentRenderer Tagged(bool tagged = true, string language = "en-GB")
+    private static PdfDocumentRenderer Tagged(bool tagged = true, string language = "en-GB")
     {
         var document = new Document();
         var section = document.AddSection();
@@ -442,7 +442,7 @@ public class PdfUaConformanceTests
         return renderer;
     }
 
-    static PdfDocument Save(PdfDocumentRenderer renderer)
+    private static PdfDocument Save(PdfDocumentRenderer renderer)
     {
         using var stream = new MemoryStream();
         renderer.PdfDocument.Save(stream, false);
@@ -450,13 +450,13 @@ public class PdfUaConformanceTests
         return PdfReader.Open(stream, PdfDocumentOpenMode.Modify);
     }
 
-    static Action Saving(PdfDocumentRenderer renderer) => () =>
+    private static Action Saving(PdfDocumentRenderer renderer) => () =>
     {
         using var stream = new MemoryStream();
         renderer.PdfDocument.Save(stream, false);
     };
 
-    static string MetadataOf(PdfDocument saved)
+    private static string MetadataOf(PdfDocument saved)
     {
         var metadata = saved.Internals.Catalog.Elements.GetDictionary("/Metadata");
         return Encoding.UTF8.GetString(metadata.Stream.UnfilteredValue);

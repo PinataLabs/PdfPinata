@@ -88,7 +88,7 @@ static class PdfGradientSoftMask
     /// rotated or scaled twice.
     /// </para>
     /// </remarks>
-    static PdfFormXObject MaskForm(PdfDocument document, PdfShadingPattern alphaPattern,
+    private static PdfFormXObject MaskForm(PdfDocument document, PdfShadingPattern alphaPattern,
         XMatrix patternMatrix, XGraphicsPdfRenderer renderer)
     {
         var box = renderer.StoredPageSize;

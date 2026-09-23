@@ -133,7 +133,7 @@ public class FontResolverInfo
     internal string Key => _key ?? (_key = KeyPrefix + _faceName.ToLowerInvariant()
                                                      + '/' + (_mustSimulateBold ? "b+" : "b-") + (_mustSimulateItalic ? "i+" : "i-"));
 
-    string _key;
+    private string _key;
 
     /// <summary>
     /// A name that uniquely identifies the font (not the family), e.g. the file name of the font. PdfPinata does not use this
@@ -141,21 +141,21 @@ public class FontResolverInfo
     /// </summary>
     public string FaceName => _faceName;
 
-    readonly string _faceName;
+    private readonly string _faceName;
 
     /// <summary>
     /// Indicates whether bold must be simulated, by stroking the glyphs as well as filling them.
     /// </summary>
     public bool MustSimulateBold => _mustSimulateBold;
 
-    readonly bool _mustSimulateBold;
+    private readonly bool _mustSimulateBold;
 
     /// <summary>
     /// Indicates whether italic must be simulated.
     /// </summary>
     public bool MustSimulateItalic => _mustSimulateItalic;
 
-    readonly bool _mustSimulateItalic;
+    private readonly bool _mustSimulateItalic;
 
     /// <summary>
     /// Gets the style simulation flags.

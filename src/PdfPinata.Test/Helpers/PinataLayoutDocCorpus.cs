@@ -25,7 +25,7 @@ namespace PdfPinata.Test.Helpers;
 /// </remarks>
 internal static class PinataLayoutDocCorpus
 {
-    const string Prose =
+    private const string Prose =
         "The quick brown fox jumps over the lazy dog, and having jumped it lands and looks about " +
         "for somewhere else to be, which takes rather longer than the jump did and is far less " +
         "impressive to watch from any distance at all.";
@@ -45,7 +45,7 @@ internal static class PinataLayoutDocCorpus
     /// <summary>
     ///   Every document in the corpus, named so a failure says which one moved.
     /// </summary>
-    static IEnumerable<(string Name, Action<Document> Build)> Documents()
+    private static IEnumerable<(string Name, Action<Document> Build)> Documents()
     {
         yield return ("flowed prose", document =>
         {

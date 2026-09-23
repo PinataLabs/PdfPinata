@@ -18,7 +18,7 @@ namespace PdfPinata.Test.Pdfs.Content;
 /// </summary>
 public class InlineImageRoundTripTests
 {
-    const string Gray4x4 = "BI /W 4 /H 4 /CS /G /BPC 8 ID xxxxxxxxxxxxxxxx EI";
+    private const string Gray4x4 = "BI /W 4 /H 4 /CS /G /BPC 8 ID xxxxxxxxxxxxxxxx EI";
 
     [Fact]
     public void AnInlineImageIsReadAsOneObjectHoldingItsDictionaryAndItsData()
@@ -140,7 +140,7 @@ public class InlineImageRoundTripTests
         Encoding.Latin1.GetString(image.Data).Should().Be(data);
     }
 
-    static CSequence Read(string content) => ContentReader.ReadContent(Encoding.Latin1.GetBytes(content));
+    private static CSequence Read(string content) => ContentReader.ReadContent(Encoding.Latin1.GetBytes(content));
 
-    static string RoundTripOf(string content) => Encoding.Latin1.GetString(Read(content).ToContent());
+    private static string RoundTripOf(string content) => Encoding.Latin1.GetString(Read(content).ToContent());
 }

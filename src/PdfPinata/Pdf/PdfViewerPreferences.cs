@@ -1,4 +1,5 @@
 ﻿#region Copyright
+
 //
 // Authors:
 //   Stefan Lange
@@ -25,6 +26,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
+
 #endregion
 
 namespace PdfPinata.Pdf;
@@ -36,14 +38,22 @@ public sealed class PdfViewerPreferences : PdfDictionary
 {
     internal PdfViewerPreferences(PdfDocument document)
         : base(document)
-    { }
+    {
+    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PdfViewerPreferences"/> class.
     /// </summary>
-    PdfViewerPreferences(PdfDictionary dict)
+    /// <remarks>
+    /// Nothing calls this directly, and it is not unused: <c>PdfDictionary.CreateDictionary</c> finds
+    /// it by reflection to give a <c>/ViewerPreferences</c> read from a file this type. Without it,
+    /// reading <see cref="PdfDocument.ViewerPreferences"/> of an opened document fails.
+    /// </remarks>
+    // ReSharper disable once UnusedMember.Local
+    private PdfViewerPreferences(PdfDictionary dict)
         : base(dict)
-    { }
+    {
+    }
 
     /// <summary>
     /// Gets or sets a value indicating whether to hide the viewer application’s tool
@@ -134,6 +144,7 @@ public sealed class PdfViewerPreferences : PdfDictionary
                 case "R2L":
                     return PdfReadingDirection.RightToLeft;
             }
+
             return null;
         }
         set
@@ -297,9 +308,9 @@ public sealed class PdfViewerPreferences : PdfDictionary
         /// <summary>
         /// Gets the KeysMeta for these keys.
         /// </summary>
-        public static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
+        public static DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

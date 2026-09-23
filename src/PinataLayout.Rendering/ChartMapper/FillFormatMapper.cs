@@ -35,7 +35,7 @@ namespace PinataLayout.Rendering.ChartMapper;
 
 internal static class FillFormatMapper
 {
-  static void MapObject(FillFormat fillFormat, DocumentObjectModel.Shapes.FillFormat domFillFormat)
+  private static void MapObject(FillFormat fillFormat, DocumentObjectModel.Shapes.FillFormat domFillFormat)
   {
     if (domFillFormat.Color.IsEmpty)
       fillFormat.Color = XColor.Empty;

@@ -117,7 +117,7 @@ public class LzwDecode : Filter
     /// <summary>
     /// Initialize the dictionary.
     /// </summary>
-    void InitializeDictionary()
+    private void InitializeDictionary()
     {
         _stringTable = new byte[8192][];
 
@@ -134,7 +134,7 @@ public class LzwDecode : Filter
     /// <summary>
     /// Add a new entry to the Dictionary and return it.
     /// </summary>
-    byte[] AddEntry(byte[] oldstring, byte newstring)
+    private byte[] AddEntry(byte[] oldstring, byte newstring)
     {
         var length = oldstring.Length;
         var str = new byte[length + 1];
@@ -156,7 +156,7 @@ public class LzwDecode : Filter
     /// <summary>
     /// Returns the next set of bits.
     /// </summary>
-    int NextCode
+    private int NextCode
     {
         get
         {
@@ -188,11 +188,11 @@ public class LzwDecode : Filter
         }
     }
 
-    readonly int[] _andTable = [511, 1023, 2047, 4095];
-    byte[][] _stringTable;
-    byte[] _data;
-    int _tableIndex, _bitsToGet = 9;
-    int _bytePointer;
-    int _nextData;
-    int _nextBits;
+    private readonly int[] _andTable = [511, 1023, 2047, 4095];
+    private byte[][] _stringTable;
+    private byte[] _data;
+    private int _tableIndex, _bitsToGet = 9;
+    private int _bytePointer;
+    private int _nextData;
+    private int _nextBits;
 }

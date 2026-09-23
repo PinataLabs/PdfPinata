@@ -23,14 +23,14 @@ namespace PdfPinata.Utils;
 /// </remarks>
 public static class LinuxSystemFontResolver
 {
-    const string libfontconfig = "libfontconfig.so.1";
+    private const string libfontconfig = "libfontconfig.so.1";
 
 
     #pragma warning disable SYSLIB1054 // netstandard2.1 has no LibraryImport, and one declaration serves all three target frameworks.
     [DllImport(libfontconfig)] private static extern IntPtr FcInitLoadConfigAndFonts();
     #pragma warning restore SYSLIB1054
 
-    static readonly Lazy<IntPtr> fcConfig = new(FcInitLoadConfigAndFonts);
+    private static readonly Lazy<IntPtr> fcConfig = new(FcInitLoadConfigAndFonts);
 
 
     #pragma warning disable CA1401 // Public API: these bindings shipped public, and hiding them would break any caller that uses them.
@@ -50,7 +50,7 @@ public static class LinuxSystemFontResolver
     public class FcPatternHandle : SafeHandle
     {
         #pragma warning disable CA1419 // A public constructor would widen the public API, and DllImport's marshaller reaches this private one by reflection.
-        FcPatternHandle() : base(IntPtr.Zero, true) { }
+        private FcPatternHandle() : base(IntPtr.Zero, true) { }
         #pragma warning restore CA1419
 
         /// <summary>Gets whether this handle holds nothing to release.</summary>
@@ -82,7 +82,7 @@ public static class LinuxSystemFontResolver
     public class FcObjectSetHandle : SafeHandle
     {
         #pragma warning disable CA1419 // A public constructor would widen the public API, and DllImport's marshaller reaches this private one by reflection.
-        FcObjectSetHandle() : base(IntPtr.Zero, true) { }
+        private FcObjectSetHandle() : base(IntPtr.Zero, true) { }
         #pragma warning restore CA1419
 
         /// <summary>Gets whether this handle holds nothing to release.</summary>
@@ -131,7 +131,7 @@ public static class LinuxSystemFontResolver
     public class FcFontSetHandle : SafeHandle
     {
         #pragma warning disable CA1419 // A public constructor would widen the public API, and DllImport's marshaller reaches this private one by reflection.
-        FcFontSetHandle() : base(IntPtr.Zero, true) { }
+        private FcFontSetHandle() : base(IntPtr.Zero, true) { }
         #pragma warning restore CA1419
 
         /// <summary>Gets whether this handle holds nothing to release.</summary>
@@ -152,7 +152,7 @@ public static class LinuxSystemFontResolver
     }
 
 
-    static string GetString(IntPtr handle, string obj)
+    private static string GetString(IntPtr handle, string obj)
     {
         var ptr = IntPtr.Zero;
         var result = FcPatternGetString(handle, obj, 0, ref ptr);
@@ -160,7 +160,7 @@ public static class LinuxSystemFontResolver
     }
 
 
-    static IEnumerable<string> ResolveFontConfig()
+    private static IEnumerable<string> ResolveFontConfig()
     {
         var config = fcConfig.Value;
         using (var pattern = FcPatternCreate())
@@ -214,7 +214,7 @@ public static class LinuxSystemFontResolver
     }
 
 
-    static string[] ResolveFallback()
+    private static string[] ResolveFallback()
     {
         var fontList = new List<string>();
 
@@ -239,7 +239,7 @@ public static class LinuxSystemFontResolver
         return fontList.ToArray();
     }
 
-    static List<string> SearchPaths()
+    private static List<string> SearchPaths()
     {
         var dirs = new List<string>();
         try

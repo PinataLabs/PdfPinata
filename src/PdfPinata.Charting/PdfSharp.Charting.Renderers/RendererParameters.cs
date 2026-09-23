@@ -71,7 +71,7 @@ internal class RendererParameters
     get => this.gfx;
     set => this.gfx = value;
   }
-  XGraphics gfx;
+  private XGraphics gfx;
 
   /// <summary>
   /// Gets or sets the item to draw.
@@ -81,7 +81,7 @@ internal class RendererParameters
     get => this.item;
     set => this.item = value;
   }
-  object item;
+  private object item;
 
   /// <summary>
   /// Gets or sets the rectangle for the drawing item.
@@ -91,7 +91,7 @@ internal class RendererParameters
     get => this.box;
     set => this.box = value;
   }
-  XRect box;
+  private XRect box;
 
   /// <summary>
   /// Gets or sets the RendererInfo.
@@ -101,5 +101,5 @@ internal class RendererParameters
     get => this.rendererInfo;
     set => this.rendererInfo = value;
   }
-  RendererInfo rendererInfo;
+  private RendererInfo rendererInfo;
 }

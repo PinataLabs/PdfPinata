@@ -22,9 +22,9 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 /// </summary>
 public class DdlReadingTests
 {
-    static Document Read(string ddl) => DdlReader.DocumentFromString(ddl);
+    private static Document Read(string ddl) => DdlReader.DocumentFromString(ddl);
 
-    static Paragraph FirstParagraphOf(string paragraphBody) =>
+    private static Paragraph FirstParagraphOf(string paragraphBody) =>
         Read("\\document{\\section{\\paragraph{" + paragraphBody + "}}}")
             .LastSection.Elements[0] as Paragraph;
 
@@ -33,10 +33,10 @@ public class DdlReadingTests
     ///   the info block is an attribute of the document rather than a keyword of its own. The
     ///   shortest path there is from a quoted string in a file to a string in the model.
     /// </summary>
-    static string TitleOf(string quotedLiteral) =>
+    private static string TitleOf(string quotedLiteral) =>
         Read("\\document[Info{Title = " + quotedLiteral + "}]{\\section{\\paragraph{t}}}").Info.Title;
 
-    static string TextOf(Paragraph paragraph) =>
+    private static string TextOf(Paragraph paragraph) =>
         string.Concat(paragraph.Elements.OfType<Text>().Select(text => text.Content));
 
     // ----- plain text, and what ends it -------------------------------------------------------------

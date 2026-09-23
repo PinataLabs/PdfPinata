@@ -299,7 +299,7 @@ internal sealed class ExtractDemo : PdfDemo
     ///   number as a fact about its own output. A demo that quietly quotes a default is a demo that
     ///   goes on claiming something after it has stopped being true.
     /// </remarks>
-    static double? SizeOfScaledRun(IReadOnlyList<PdfTextRun> runs)
+    private static double? SizeOfScaledRun(IReadOnlyList<PdfTextRun> runs)
     {
         foreach (var run in runs)
         {
@@ -310,9 +310,9 @@ internal sealed class ExtractDemo : PdfDemo
         return null;
     }
 
-    static string Number(double value) =>
+    private static string Number(double value) =>
         value.ToString("0.0", CultureInfo.InvariantCulture).PadLeft(6);
 
-    static string Shortened(string text) =>
+    private static string Shortened(string text) =>
         text.Length <= 44 ? text : string.Concat(text.AsSpan(0, 41), "...");
 }

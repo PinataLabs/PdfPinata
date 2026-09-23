@@ -98,7 +98,7 @@ internal class Serializer
   /// <summary>
   /// Increases indent of DDL code.
   /// </summary>
-  void IncreaseIndent()
+  private void IncreaseIndent()
   {
     writeIndent += indent;
   }
@@ -106,7 +106,7 @@ internal class Serializer
   /// <summary>
   /// Decreases indent of DDL code.
   /// </summary>
-  void DecreaseIndent()
+  private void DecreaseIndent()
   {
     writeIndent -= indent;
   }
@@ -159,7 +159,7 @@ internal class Serializer
   /// Returns the part of the string str that fits into the line (up to 80 chars).
   /// If Wordwrap is impossible it returns the input-string str itself.
   /// </summary>
-  string DoWordWrap(string str)
+  private string DoWordWrap(string str)
   {
     if (str.Length + writeIndent < lineBreakBeyond)
       return str;
@@ -277,7 +277,7 @@ internal class Serializer
   /// word-wrapped. A given text gets never word-wrapped to keep comments or string
   /// literals unbroken.
   /// </summary>
-  void WriteToStream(string text, bool fLineBreak, bool fAutoIndent)
+  private void WriteToStream(string text, bool fLineBreak, bool fAutoIndent)
   {
     // if string contains CR/LF, split up recursively
     var crlf = text.IndexOf("\x0D\x0A", StringComparison.Ordinal);
@@ -315,7 +315,7 @@ internal class Serializer
   /// <summary>
   /// Write the text into the stream without breaking it and adds an indentation to it.
   /// </summary>
-  void WriteToStream(string text)
+  private void WriteToStream(string text)
   {
     WriteToStream(text, false, true);
   }
@@ -323,7 +323,7 @@ internal class Serializer
   /// <summary>
   /// Write a line to the stream.
   /// </summary>
-  void WriteLineToStream(string text)
+  private void WriteLineToStream(string text)
   {
     WriteToStream(text, true, true);
   }
@@ -510,7 +510,7 @@ internal class Serializer
   /// <summary>
   /// Gets or sets the position within the underlying stream.
   /// </summary>
-  int Position
+  private int Position
   {
     get
     {
@@ -542,7 +542,7 @@ internal class Serializer
   /// <summary>
   /// Returns an indent string of blanks.
   /// </summary>
-  static string Ind(int indent)
+  private static string Ind(int indent)
   {
     return new String(' ', indent);
   }
@@ -550,7 +550,7 @@ internal class Serializer
   /// <summary>
   /// Gets an indent string of current indent.
   /// </summary>
-  string Indentation => Ind(writeIndent);
+  private string Indentation => Ind(writeIndent);
 
   /// <summary>
   /// Marks the current block as 'committed'. That means the block contains
@@ -563,8 +563,8 @@ internal class Serializer
   private int stackIdx;
   private bool[] commitTextStack = new bool[32];
 
-  int linePos;
-  int lineBreakBeyond = 200;
-  static readonly char[] LineEndChars = ['\r', '\n'];
-  bool fWriteStamp = false;
+  private int linePos;
+  private int lineBreakBeyond = 200;
+  private static readonly char[] LineEndChars = ['\r', '\n'];
+  private bool fWriteStamp = false;
 }

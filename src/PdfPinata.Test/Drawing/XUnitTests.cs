@@ -21,12 +21,12 @@ public class XUnitTests
     ///   One length, written five ways. Every conversion below is checked against this row, so
     ///   the arithmetic is stated once and the tests only say which way round they read it.
     /// </summary>
-    const double OneInchInPoint = 72;
-    const double OneInchInMillimeter = 25.4;
-    const double OneInchInCentimeter = 2.54;
-    const double OneInchInPresentation = 96;
+    private const double OneInchInPoint = 72;
+    private const double OneInchInMillimeter = 25.4;
+    private const double OneInchInCentimeter = 2.54;
+    private const double OneInchInPresentation = 96;
 
-    static readonly XUnit[] OneInchEachWay =
+    private static readonly XUnit[] OneInchEachWay =
     {
         XUnit.FromPoint(OneInchInPoint),
         XUnit.FromInch(1),

@@ -1,4 +1,5 @@
 #region Copyright
+
 //
 // Authors:
 //   David Stephensen
@@ -26,6 +27,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
+
 #endregion
 
 using System;
@@ -43,56 +45,64 @@ public class CodeDataMatrix : MatrixCode
     /// </summary>
     public CodeDataMatrix()
         : this("", "", 26, 26, 0, XSize.Empty)
-    {}
+    {
+    }
 
     /// <summary>
     /// Initializes a new instance of CodeDataMatrix.
     /// </summary>
     public CodeDataMatrix(string code, int length)
         : this(code, "", length, length, 0, XSize.Empty)
-    {}
+    {
+    }
 
     /// <summary>
     /// Initializes a new instance of CodeDataMatrix.
     /// </summary>
     public CodeDataMatrix(string code, int length, XSize size)
         : this(code, "", length, length, 0, size)
-    {}
+    {
+    }
 
     /// <summary>
     /// Initializes a new instance of CodeDataMatrix.
     /// </summary>
     public CodeDataMatrix(string code, DataMatrixEncoding dmEncoding, int length, XSize size)
         : this(code, CreateEncoding(dmEncoding, code.Length), length, length, 0, size)
-    {}
+    {
+    }
 
     /// <summary>
     /// Initializes a new instance of CodeDataMatrix.
     /// </summary>
     public CodeDataMatrix(string code, int rows, int columns)
         : this(code, "", rows, columns, 0, XSize.Empty)
-    {}
+    {
+    }
 
     /// <summary>
     /// Initializes a new instance of CodeDataMatrix.
     /// </summary>
     public CodeDataMatrix(string code, int rows, int columns, XSize size)
         : this(code, "", rows, columns, 0, size)
-    {}
+    {
+    }
 
     /// <summary>
     /// Initializes a new instance of CodeDataMatrix.
     /// </summary>
     public CodeDataMatrix(string code, DataMatrixEncoding dmEncoding, int rows, int columns, XSize size)
         : this(code, CreateEncoding(dmEncoding, code.Length), rows, columns, 0, size)
-    {}
+    {
+    }
 
     /// <summary>
     /// Initializes a new instance of CodeDataMatrix.
     /// </summary>
     public CodeDataMatrix(string code, int rows, int columns, int quietZone)
         : this(code, "", rows, columns, quietZone, XSize.Empty)
-    {}
+    {
+    }
 
     /// <summary>
     /// Initializes a new instance of CodeDataMatrix.
@@ -111,42 +121,25 @@ public class CodeDataMatrix : MatrixCode
         Encoding = CreateEncoding(dmEncoding, Text.Length);
     }
 
-    static string CreateEncoding(DataMatrixEncoding dmEncoding, int length)
+    private static string CreateEncoding(DataMatrixEncoding dmEncoding, int length)
     {
-        var tempencoding = "";
-        switch (dmEncoding)
+        var tempencoding = dmEncoding switch
         {
-            case DataMatrixEncoding.Ascii:
-                tempencoding = new string('a', length);
-                break;
-            case DataMatrixEncoding.C40:
-                tempencoding = new string('c', length);
-                break;
-            case DataMatrixEncoding.Text:
-                tempencoding = new string('t', length);
-                break;
-            case DataMatrixEncoding.X12:
-                tempencoding = new string('x', length);
-                break;
-            case DataMatrixEncoding.EDIFACT:
-                tempencoding = new string('e', length);
-                break;
-            case DataMatrixEncoding.Base256:
-                tempencoding = new string('b', length);
-                break;
-        }
+            DataMatrixEncoding.Ascii => new string('a', length),
+            DataMatrixEncoding.C40 => new string('c', length),
+            DataMatrixEncoding.Text => new string('t', length),
+            DataMatrixEncoding.X12 => new string('x', length),
+            DataMatrixEncoding.EDIFACT => new string('e', length),
+            DataMatrixEncoding.Base256 => new string('b', length),
+            _ => ""
+        };
         return tempencoding;
     }
 
     /// <summary>
-    /// Gets or sets the size of the Matrix' Quiet Zone.
+    /// Gets or sets the size of the Matrix Quiet Zone.
     /// </summary>
-    public int QuietZone
-    {
-        get => _quietZone;
-        set => _quietZone = value;
-    }
-    int _quietZone;
+    public int QuietZone { get; set; }
 
     /// <summary>
     /// Renders the matrix code.
@@ -223,11 +216,11 @@ public class CodeDataMatrix : MatrixCode
     /// time it is drawn, so a default here means something.
     /// </para>
     /// </remarks>
-    XSize DefaultSize(bool[,] modules) => new XSize(
-        (modules.GetLength(1) + 2 * QuietZone) * DefaultModuleSize,
-        (modules.GetLength(0) + 2 * QuietZone) * DefaultModuleSize);
+    private XSize DefaultSize(bool[,] modules) => new(
+        (modules.GetLength(1) + 2 * QuietZone) * _defaultModuleSize,
+        (modules.GetLength(0) + 2 * QuietZone) * _defaultModuleSize);
 
-    const double DefaultModuleSize = 2;
+    private const double _defaultModuleSize = 2;
 
     /// <summary>
     /// Draws the modules of the symbol, one filled square for each dark one. Drawn rather
@@ -235,7 +228,7 @@ public class CodeDataMatrix : MatrixCode
     /// resolution of its own to disagree with the paper about, and needs an imaging backend
     /// that a caller wanting nothing but a barcode would otherwise not have to install.
     /// </summary>
-    static void DrawModules(XGraphics gfx, XBrush brush, bool[,] modules, XPoint position, XSize size)
+    private static void DrawModules(XGraphics gfx, XBrush brush, bool[,] modules, XPoint position, XSize size)
     {
         var rows = modules.GetLength(0);
         var columns = modules.GetLength(1);

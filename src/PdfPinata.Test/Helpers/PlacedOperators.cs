@@ -50,7 +50,7 @@ internal static class PlacedOperators
         return placed;
     }
 
-    static double Number(CObject operand)
+    private static double Number(CObject operand)
     {
         return operand switch
         {

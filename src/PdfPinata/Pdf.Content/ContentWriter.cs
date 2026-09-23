@@ -112,12 +112,12 @@ internal class ContentWriter
             WriteRaw('\n');
     }
 
-    bool _wroteAnything;
+    private bool _wroteAnything;
 
     /// <summary>
     /// Gets the underlying stream.
     /// </summary>
     internal Stream Stream => _stream;
 
-    Stream _stream;
+    private Stream _stream;
 }

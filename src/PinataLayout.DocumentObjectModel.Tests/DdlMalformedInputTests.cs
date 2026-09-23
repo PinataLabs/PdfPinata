@@ -30,25 +30,25 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 /// </summary>
 public class DdlMalformedInputTests
 {
-    const int Patience = 5000;
+    private const int Patience = 5000;
 
-    static Task<IReadOnlyList<string>> ComplaintsAbout(string ddl) =>
+    private static Task<IReadOnlyList<string>> ComplaintsAbout(string ddl) =>
         Task.Run(() => ReaderDiagnostics.ComplaintsAbout(ddl));
 
-    static Task<IReadOnlyList<string>> ComplaintsAboutParagraph(string paragraphBody) =>
+    private static Task<IReadOnlyList<string>> ComplaintsAboutParagraph(string paragraphBody) =>
         ComplaintsAbout("\\document{\\section{\\paragraph{" + paragraphBody + "}}}");
 
-    static Task<IReadOnlyList<string>> ComplaintsAboutChart(string chartBody) =>
+    private static Task<IReadOnlyList<string>> ComplaintsAboutChart(string chartBody) =>
         ComplaintsAbout("\\document{\\section{\\chart(Line){" + chartBody + "}\\paragraph{after}}}");
 
-    static Task<IReadOnlyList<string>> ComplaintsAboutParagraphFormat(string formatBody) =>
+    private static Task<IReadOnlyList<string>> ComplaintsAboutParagraphFormat(string formatBody) =>
         ComplaintsAbout("\\document{\\section{\\paragraph[Format{" + formatBody + "}]{t}}}");
 
     /// <summary>
     ///   Reads a document the reader is expected to finish despite what is wrong with it, and
     ///   hands back what it read along with the errors - leaving out warnings - it reported.
     /// </summary>
-    static Task<(Document Document, IReadOnlyList<DdlReaderError> Errors)> ReadDespite(string ddl) =>
+    private static Task<(Document Document, IReadOnlyList<DdlReaderError> Errors)> ReadDespite(string ddl) =>
         Task.Run(() =>
         {
             var errors = new DdlReaderErrors();
@@ -56,7 +56,7 @@ public class DdlMalformedInputTests
             return (document, ReaderDiagnostics.ErrorsIn(errors));
         });
 
-    static string TextOf(Paragraph paragraph) =>
+    private static string TextOf(Paragraph paragraph) =>
         string.Concat(paragraph.Elements.OfType<Text>().Select(text => text.Content));
 
     // ----- styles -------------------------------------------------------------------------------------

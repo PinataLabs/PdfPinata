@@ -234,10 +234,10 @@ public class CertificationEnforcementTests
         act.Should().NotThrow();
     }
 
-    static PdfAcroField Field(PdfDocument document) =>
+    private static PdfAcroField Field(PdfDocument document) =>
         document.Internals.Catalog.AcroForm.Fields[0];
 
-    static byte[] UnsignedWithAField()
+    private static byte[] UnsignedWithAField()
     {
         var opened = new AcroFormBuilder().With("/Tx", "Field1").Build();
 
@@ -246,7 +246,7 @@ public class CertificationEnforcementTests
         return output.ToArray();
     }
 
-    static byte[] UnsignedWithOneOfEachFieldKind()
+    private static byte[] UnsignedWithOneOfEachFieldKind()
     {
         var opened = new AcroFormBuilder()
             .With("/Btn", "Check1")
@@ -268,10 +268,10 @@ public class CertificationEnforcementTests
         return output.ToArray();
     }
 
-    static byte[] Certified(byte[] document, PdfCertificationLevel level) =>
+    private static byte[] Certified(byte[] document, PdfCertificationLevel level) =>
         Sign(document, new PdfSignatureOptions { Certification = level });
 
-    static byte[] CertifiedWithNoExplicitP(byte[] document)
+    private static byte[] CertifiedWithNoExplicitP(byte[] document)
     {
         // Appended rather than fully saved: setting /Perms/DocMDP below makes the in-memory document
         // certified before a byte is written, and a full Save is itself a document-structure change
@@ -306,7 +306,7 @@ public class CertificationEnforcementTests
         return output.ToArray();
     }
 
-    static byte[] Sign(byte[] document, PdfSignatureOptions options)
+    private static byte[] Sign(byte[] document, PdfSignatureOptions options)
     {
         using var input = new MemoryStream(document);
         using var output = new MemoryStream();
@@ -315,6 +315,6 @@ public class CertificationEnforcementTests
         return output.ToArray();
     }
 
-    static PdfDocument OpenedForAppend(byte[] document) =>
+    private static PdfDocument OpenedForAppend(byte[] document) =>
         Reader.Open(new MemoryStream(document), PdfDocumentOpenMode.Append);
 }

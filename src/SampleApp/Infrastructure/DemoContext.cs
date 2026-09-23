@@ -18,7 +18,7 @@ public sealed class DemoContext
     public DemoContext(string outputDirectory)
     {
         if (string.IsNullOrWhiteSpace(outputDirectory))
-            throw new ArgumentException("An output directory is required.", nameof(outputDirectory));
+            throw new ArgumentException(@"An output directory is required.", nameof(outputDirectory));
 
         OutputDirectory = Path.GetFullPath(outputDirectory);
     }

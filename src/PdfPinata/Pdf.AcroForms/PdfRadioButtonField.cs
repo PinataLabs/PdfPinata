@@ -127,7 +127,7 @@ public sealed class PdfRadioButtonField : PdfButtonField
         }
     }
 
-    int IndexInOptStrings(string value)
+    private int IndexInOptStrings(string value)
     {
         var opt = Elements[Keys.Opt] as PdfArray;
         if (opt != null)
@@ -167,7 +167,7 @@ public sealed class PdfRadioButtonField : PdfButtonField
         /// </summary>
         internal static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

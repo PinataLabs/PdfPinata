@@ -20,7 +20,7 @@ namespace PdfPinata.Signing;
 static class SigningCertificateAttribute
 {
     /// <summary>id-aa-signingCertificateV2, RFC 5035.</summary>
-    const string SigningCertificateV2Oid = "1.2.840.113549.1.9.16.2.47";
+    private const string SigningCertificateV2Oid = "1.2.840.113549.1.9.16.2.47";
 
     public static AsnEncodedData Build(X509Certificate2 certificate, HashAlgorithmName hashAlgorithm)
     {

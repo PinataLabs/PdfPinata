@@ -43,7 +43,7 @@ namespace PinataLayout.Rendering;
 /// </summary>
 public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
 {
-    enum PagePosition
+    private enum PagePosition
     {
         First,
         Odd,
@@ -122,7 +122,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
         FillNumPagesInfo();
     }
 
-    PagePosition CurrentPagePosition
+    private PagePosition CurrentPagePosition
     {
         get
         {
@@ -135,7 +135,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
         }
     }
 
-    void FormatHeadersFooters()
+    private void FormatHeadersFooters()
     {
         var headers = (HeadersFooters)currentSection.GetValue("Headers", GV.ReadOnly);
         if (headers != null)
@@ -157,7 +157,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
     }
 
 
-    void FormatHeader(HeaderFooterPosition hfp, HeaderFooter header)
+    private void FormatHeader(HeaderFooterPosition hfp, HeaderFooter header)
     {
         if (header != null && !formattedHeaders.ContainsKey(hfp))
         {
@@ -171,7 +171,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
     }
 
 
-    void FormatFooter(HeaderFooterPosition hfp, HeaderFooter footer)
+    private void FormatFooter(HeaderFooterPosition hfp, HeaderFooter footer)
     {
         if (footer != null && !formattedFooters.ContainsKey(hfp))
         {
@@ -187,7 +187,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
     /// <summary>
     /// Fills the number pages information after formatting the document.
     /// </summary>
-    void FillNumPagesInfo()
+    private void FillNumPagesInfo()
     {
         for (var page = 1; page <= pageCount; ++page)
         {
@@ -202,7 +202,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
     /// <summary>
     /// Fills the section pages information after formatting a section.
     /// </summary>
-    void FillSectionPagesInfo()
+    private void FillSectionPagesInfo()
     {
         for (var page = currentPage; page > 0; --page)
         {
@@ -217,7 +217,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
         }
     }
 
-    Rectangle CalcContentRect(int page)
+    private Rectangle CalcContentRect(int page)
     {
         var pageSetup = currentSection.PageSetup;
         XUnit width;
@@ -411,7 +411,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
     /// </summary>
     public int PageCount => pageCount;
 
-    int pageCount;
+    private int pageCount;
 
 
     /// <summary>
@@ -465,9 +465,9 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
         pageContentRects[currentPage] = contentRect;
         return contentRect;
     }
-    int currentPage;
+    private int currentPage;
 
-    readonly Dictionary<int, Rectangle> pageContentRects = new Dictionary<int, Rectangle>();
+    private readonly Dictionary<int, Rectangle> pageContentRects = new Dictionary<int, Rectangle>();
 
     /// <summary>
     /// The rectangle the page's body text was laid out in - the page less its margins.
@@ -584,14 +584,14 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
     /// <summary>How far down the separator band the rule itself sits.</summary>
     internal static readonly XUnit FootnoteSeparatorOffset = XUnit.FromPoint(6);
 
-    XUnit reservedForFootnotes;
+    private XUnit reservedForFootnotes;
 
     Area IAreaProvider.ProbeNextArea()
     {
         return CalcContentRect(currentPage + 1);
     }
 
-    void InitFieldInfos()
+    private void InitFieldInfos()
     {
         currentFieldInfos = new FieldInfos(bookmarks);
         currentFieldInfos.pyhsicalPageNr = currentPage;
@@ -619,7 +619,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
         pageFieldInfos.Add(currentPage, currentFieldInfos);
     }
 
-    PageOrientation CalcPageOrientation()
+    private PageOrientation CalcPageOrientation()
     {
         var pageOrientation = PageOrientation.Portrait;
         if (currentSection.PageSetup.Orientation == Orientation.Landscape)
@@ -628,7 +628,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
         return pageOrientation;
     }
 
-    static XSize CalcPageSize(PageSetup pageSetup)
+    private static XSize CalcPageSize(PageSetup pageSetup)
     {
         return new XSize(pageSetup.PageWidth.Point, pageSetup.PageHeight.Point);
     }
@@ -673,7 +673,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
         return align;
     }
 
-    bool PositionHorizontallyToMargin(LayoutInfo layoutInfo)
+    private bool PositionHorizontallyToMargin(LayoutInfo layoutInfo)
     {
         var rect = CalcContentRect(currentPage);
         var align = GetCurrentAlignment(layoutInfo.HorizontalAlignment);
@@ -711,7 +711,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
         return false;
     }
 
-    bool PositionHorizontallyToPage(LayoutInfo layoutInfo)
+    private bool PositionHorizontallyToPage(LayoutInfo layoutInfo)
     {
         XUnit xPos;
         var align = GetCurrentAlignment(layoutInfo.HorizontalAlignment);
@@ -745,7 +745,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
         return true;
     }
 
-    bool PositionVerticallyToMargin(LayoutInfo layoutInfo)
+    private bool PositionVerticallyToMargin(LayoutInfo layoutInfo)
     {
         var rect = CalcContentRect(currentPage);
         XUnit yPos;
@@ -778,7 +778,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
         return true;
     }
 
-    bool NeedsEmptyPage()
+    private bool NeedsEmptyPage()
     {
         var nextPage = currentPage + 1;
         var pageSetup = currentSection.PageSetup;
@@ -793,7 +793,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
         return false;
     }
 
-    void InsertEmptyPage()
+    private void InsertEmptyPage()
     {
         ++currentPage;
         ++shownPageNumber;
@@ -805,7 +805,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
         pageInfos.Add(currentPage, pageInfo);
     }
 
-    bool PositionVerticallyToPage(LayoutInfo layoutInfo)
+    private bool PositionVerticallyToPage(LayoutInfo layoutInfo)
     {
         XUnit yPos;
         switch (layoutInfo.VerticalAlignment)
@@ -867,19 +867,19 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
     }
     #endregion
 
-    Dictionary<string, FieldInfos.BookmarkInfo> bookmarks;
-    int sectionPages;
-    int shownPageNumber;
-    int sectionNumber;
-    Section currentSection;
-    bool isNewSection;
-    FieldInfos currentFieldInfos;
-    Dictionary<int, FieldInfos> pageFieldInfos;
-    Dictionary<HeaderFooterPosition, FormattedHeaderFooter> formattedHeaders;
-    Dictionary<HeaderFooterPosition, FormattedHeaderFooter> formattedFooters;
-    DocumentRenderer documentRenderer;
-    XGraphics gfx;
-    Dictionary<int, PageInfo> pageInfos;
-    Dictionary<int, object> emptyPages = new Dictionary<int, object>();
-    Document document;
+    private Dictionary<string, FieldInfos.BookmarkInfo> bookmarks;
+    private int sectionPages;
+    private int shownPageNumber;
+    private int sectionNumber;
+    private Section currentSection;
+    private bool isNewSection;
+    private FieldInfos currentFieldInfos;
+    private Dictionary<int, FieldInfos> pageFieldInfos;
+    private Dictionary<HeaderFooterPosition, FormattedHeaderFooter> formattedHeaders;
+    private Dictionary<HeaderFooterPosition, FormattedHeaderFooter> formattedFooters;
+    private DocumentRenderer documentRenderer;
+    private XGraphics gfx;
+    private Dictionary<int, PageInfo> pageInfos;
+    private Dictionary<int, object> emptyPages = new Dictionary<int, object>();
+    private Document document;
 }

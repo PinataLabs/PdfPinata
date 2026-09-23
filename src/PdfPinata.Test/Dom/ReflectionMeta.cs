@@ -73,7 +73,7 @@ public static class ReflectionMeta
     ///   Meta requires exactly one too - it tests dvs.Count() == 1 - so more than one means the
     ///   member is not in the model at all.
     /// </summary>
-    static object FindDv(MemberInfo member)
+    private static object FindDv(MemberInfo member)
     {
         var found = member.GetCustomAttributes(false)
             .Where(a => a.GetType().Name == "DVAttribute")
@@ -81,7 +81,7 @@ public static class ReflectionMeta
         return found.Length == 1 ? found[0] : null;
     }
 
-    static Member Describe(string name, Type memberType, object dv)
+    private static Member Describe(string name, Type memberType, object dv)
     {
         // ReSharper disable once PossibleNullReferenceException
         var refOnly = (bool)dv.GetType().GetField("RefOnly").GetValue(dv);
@@ -112,7 +112,7 @@ public static class ReflectionMeta
         return new Member(name, memberType, memberType, refOnly, "UNSUPPORTED");
     }
 
-    static bool IsAssignableToNamed(Type type, string baseName)
+    private static bool IsAssignableToNamed(Type type, string baseName)
     {
         for (var t = type; t != null; t = t.BaseType)
             if (t.Name == baseName)

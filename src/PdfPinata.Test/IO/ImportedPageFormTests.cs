@@ -27,7 +27,7 @@ namespace PdfPinata.Test.IO;
 /// </summary>
 public class ImportedPageFormTests : IDisposable
 {
-    readonly string _directory =
+    private readonly string _directory =
         Path.Combine(Path.GetTempPath(), "PdfPinataImported" + Guid.NewGuid().ToString("N"));
 
     public ImportedPageFormTests() => Directory.CreateDirectory(_directory);
@@ -48,7 +48,7 @@ public class ImportedPageFormTests : IDisposable
     ///   A document of the given page sizes, written to a file of its own so that it can be
     ///   imported by path - which is the route the whole per-thread cache exists for.
     /// </summary>
-    string AFileOf(params XSize[] pages)
+    private string AFileOf(params XSize[] pages)
     {
         var document = new PdfDocument();
         foreach (var size in pages)
@@ -65,7 +65,7 @@ public class ImportedPageFormTests : IDisposable
         return path;
     }
 
-    static PdfDocument RoundTripped(PdfDocument document)
+    private static PdfDocument RoundTripped(PdfDocument document)
     {
         var stream = new MemoryStream();
         document.Save(stream, false);

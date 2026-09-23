@@ -238,7 +238,7 @@ public class TolerantParsingTests
     /// <summary>
     ///   Whether the first symbol of the given input is taken as the end of the object before it.
     /// </summary>
-    static bool EndsAnObject(string body)
+    private static bool EndsAnObject(string body)
     {
         var parser = ParserProbe.Over(new PdfDocument(), body);
         return ParserProbe.EndsAnObject(parser, ParserProbe.Scan(parser));
@@ -248,7 +248,7 @@ public class TolerantParsingTests
     ///   Reads a dictionary and the stream behind it the way the parser does when the dictionary
     ///   does not say how long its stream is: up to the keyword that ends it.
     /// </summary>
-    static PdfDictionary StreamOf(string body)
+    private static PdfDictionary StreamOf(string body)
     {
         var owner = new PdfDocument();
         var parser = ParserProbe.Over(owner, body);

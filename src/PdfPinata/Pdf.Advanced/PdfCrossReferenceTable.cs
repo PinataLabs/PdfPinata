@@ -46,7 +46,7 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
         _document = document;
     }
 
-    readonly PdfDocument _document;
+    private readonly PdfDocument _document;
 
     /// <summary>
     /// Represents the relation between PdfObjectID and PdfReference for a PdfDocument.
@@ -59,7 +59,7 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
         set => _isUnderConstruction = value;
     }
 
-    bool _isUnderConstruction;
+    private bool _isUnderConstruction;
 
     /// <summary>
     /// Adds a cross-reference entry to the table. Used when parsing the trailer.
@@ -329,10 +329,10 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
         return irefs;
     }
 
-    static int _nestingLevel;
-    Dictionary<PdfItem, object> _overflow = new();
+    private static int _nestingLevel;
+    private Dictionary<PdfItem, object> _overflow = new();
 
-    void TransitiveClosureImplementation(Dictionary<PdfItem, object> objects,
+    private void TransitiveClosureImplementation(Dictionary<PdfItem, object> objects,
         PdfObject pdfObject /*, ref int depth*/)
     {
         try
@@ -421,5 +421,5 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
         }
     }
 
-    PdfDictionary _deadObject;
+    private PdfDictionary _deadObject;
 }

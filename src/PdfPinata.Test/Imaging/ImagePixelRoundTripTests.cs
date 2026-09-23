@@ -26,20 +26,20 @@ namespace PdfPinata.Test.Imaging;
 /// </summary>
 public class ImagePixelRoundTripTests
 {
-    const int Width = 3;
-    const int Height = 2;
+    private const int Width = 3;
+    private const int Height = 2;
 
     /// <summary>
     ///   Red, green and blue all differ within every pixel and between every pair of pixels, so a
     ///   channel swap and any flip are each caught, and caught separately.
     /// </summary>
-    static (byte R, byte G, byte B) Colour(int index)
+    private static (byte R, byte G, byte B) Colour(int index)
         => ((byte)(10 + index * 10), (byte)(100 + index * 10), (byte)(200 + index * 10));
 
     /// <summary>
     ///   Alpha down one side of the 128 the monochrome mask splits at, and up the other.
     /// </summary>
-    static readonly byte[] Alphas = { 255, 200, 128, 127, 64, 0 };
+    private static readonly byte[] Alphas = { 255, 200, 128, 127, 64, 0 };
 
     [Fact]
     public void TheImageStreamHoldsTheSourcePixelsRowForRowAndChannelForChannel()
@@ -155,7 +155,7 @@ public class ImagePixelRoundTripTests
 
     // ----- arrangements -----
 
-    static byte[] ExpectedRgb()
+    private static byte[] ExpectedRgb()
     {
         var expected = new byte[Width * Height * 3];
         for (var i = 0; i < Width * Height; i++)
@@ -168,13 +168,13 @@ public class ImagePixelRoundTripTests
         return expected;
     }
 
-    static ImageSource.IImageSource Skia(bool opaque)
+    private static ImageSource.IImageSource Skia(bool opaque)
     {
         return Skia(opaque ? new byte[] { 255, 255, 255, 255, 255, 255 } : Alphas);
     }
 
     /// <summary>One alpha per pixel, in the order the pixels are written.</summary>
-    static ImageSource.IImageSource Skia(params byte[] alphas)
+    private static ImageSource.IImageSource Skia(params byte[] alphas)
     {
         var bitmap = new SKBitmap(
             new SKImageInfo(Width, Height, SKColorType.Bgra8888, SKAlphaType.Unpremul));
@@ -188,7 +188,7 @@ public class ImagePixelRoundTripTests
         return SkiaImageSource.FromSkiaBitmap(bitmap, transparent: true);
     }
 
-    static ImageSource.IImageSource ImageSharp()
+    private static ImageSource.IImageSource ImageSharp()
     {
         var image = new Image<Rgba32>(Width, Height);
         for (var i = 0; i < Width * Height; i++)
@@ -206,7 +206,7 @@ public class ImagePixelRoundTripTests
     ///   Draws the image on a page, saves, reopens, and hands back the one placement on it - so
     ///   what is asserted on is a PDF that has been through the writer and the reader.
     /// </summary>
-    static PdfImagePlacement Draw(ImageSource.IImageSource source)
+    private static PdfImagePlacement Draw(ImageSource.IImageSource source)
     {
         var image = XImage.FromImageSource(source);
 

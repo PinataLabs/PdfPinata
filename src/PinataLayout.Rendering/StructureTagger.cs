@@ -43,26 +43,26 @@ internal sealed class StructureTagger
     /// </summary>
     internal static readonly IDisposable Nothing = new NullScope();
 
-    readonly Dictionary<ElementKey, PdfStructureElement> _elements =
+    private readonly Dictionary<ElementKey, PdfStructureElement> _elements =
         new Dictionary<ElementKey, PdfStructureElement>();
 
-    readonly Stack<PdfStructureElement> _parents = new Stack<PdfStructureElement>();
+    private readonly Stack<PdfStructureElement> _parents = new Stack<PdfStructureElement>();
 
-    PdfDocument _document;
-    PdfStructureElement _root;
+    private PdfDocument _document;
+    private PdfStructureElement _root;
 
     // The list, or run of nested lists, currently being gathered - one frame per level of nesting,
     // deepest on top. See ListItem for how a level compared against the frame on top decides whether
     // an item continues the current list, starts a sibling of it, opens one nested inside the last
     // item, or closes one or more before landing.
-    readonly Stack<ListFrame> _listFrames = new Stack<ListFrame>();
+    private readonly Stack<ListFrame> _listFrames = new Stack<ListFrame>();
 
     /// <summary>
     /// One level of a run of nested lists: the <c>/L</c> itself, what it hangs from, the type its
     /// items share, and the last item added to it - a list one level deeper attaches to that item's
     /// body, per the standard putting a nested list inside its enclosing item's body.
     /// </summary>
-    sealed class ListFrame
+    private sealed class ListFrame
     {
         internal PdfStructureElement List;
         internal PdfStructureElement Parent;
@@ -116,7 +116,7 @@ internal sealed class StructureTagger
     /// Asked here rather than at each caller, because "no page has been begun" is one condition and
     /// not five.
     /// </remarks>
-    bool CanTag(XGraphics gfx) => Enabled && gfx != null && gfx.PdfPage != null && _document != null;
+    private bool CanTag(XGraphics gfx) => Enabled && gfx != null && gfx.PdfPage != null && _document != null;
 
     /// <summary>
     /// Whether content may be tagged here, which it may not once anything has declared itself
@@ -130,9 +130,9 @@ internal sealed class StructureTagger
     /// running head aloud on every page, which is the exact failure marking it as an artifact was
     /// meant to prevent.
     /// </remarks>
-    bool CanTagContent(XGraphics gfx) => CanTag(gfx) && _artifactDepth == 0;
+    private bool CanTagContent(XGraphics gfx) => CanTag(gfx) && _artifactDepth == 0;
 
-    int _artifactDepth;
+    private int _artifactDepth;
 
     /// <summary>
     /// Brings a page into the tree whether or not anything on it is tagged, and settles the
@@ -331,10 +331,10 @@ internal sealed class StructureTagger
     /// several DOM types override <c>Equals</c> to compare by value and two empty paragraphs of the
     /// same style are equal without being the same paragraph.
     /// </summary>
-    readonly struct ElementKey : IEquatable<ElementKey>
+    private readonly struct ElementKey : IEquatable<ElementKey>
     {
-        readonly object _owner;
-        readonly int _slot;
+        private readonly object _owner;
+        private readonly int _slot;
 
         internal ElementKey(object owner, int slot)
         {
@@ -436,7 +436,7 @@ internal sealed class StructureTagger
     /// <summary>
     /// Opens a new nested-list frame as the run's current, deepest level.
     /// </summary>
-    void OpenList(ListType type, int level, PdfStructureElement parent)
+    private void OpenList(ListType type, int level, PdfStructureElement parent)
     {
         var list = _document.Structure.CreateElement(PdfTag.L, parent);
 
@@ -458,7 +458,7 @@ internal sealed class StructureTagger
     /// bullet glyph by level, so every bulleted level reads the same; every numbered level reads as
     /// plain decimal, which is what PinataLayout actually renders.
     /// </summary>
-    static PdfListNumbering ListNumberingOf(ListType type) => type switch
+    private static PdfListNumbering ListNumberingOf(ListType type) => type switch
     {
         ListType.BulletList1 or ListType.BulletList2 or ListType.BulletList3 => PdfListNumbering.Disc,
         ListType.NumberList1 or ListType.NumberList2 or ListType.NumberList3 => PdfListNumbering.Decimal,
@@ -502,7 +502,7 @@ internal sealed class StructureTagger
             return Nothing;
 
         var parent = ParentFor(footnote);
-        var reference = Element(footnote, PdfTag.Reference, parent, ReferenceSlot);
+        var reference = Element(footnote, PdfTag.Reference, parent);
 
         // Built now rather than when the note is drawn, and built before the scope is entered so that
         // it hangs off the paragraph beside the reference rather than inside it.
@@ -528,7 +528,7 @@ internal sealed class StructureTagger
     /// The footnote's element, made on first ask and given the identifier ISO 14289-1 requires of a
     /// note. Handed back unchanged afterwards, however many times either renderer asks.
     /// </summary>
-    PdfStructureElement NoteFor(Footnote footnote, PdfStructureElement parent)
+    private PdfStructureElement NoteFor(Footnote footnote, PdfStructureElement parent)
     {
         var identity = new ElementKey(footnote, NoteSlot);
         if (_elements.TryGetValue(identity, out var existing))
@@ -569,16 +569,16 @@ internal sealed class StructureTagger
     }
 
     /// <summary>Which of a footnote's elements is which. See <see cref="Element"/> on slots.</summary>
-    const int ReferenceSlot = 0;
+    private const int ReferenceSlot = 0;
 
-    const int NoteSlot = 1;
+    private const int NoteSlot = 1;
 
-    const int LabelSlot = 2;
+    private const int LabelSlot = 2;
 
     /// <summary>
     /// How many notes have been given an identifier, which is what makes the next one unique.
     /// </summary>
-    int _notes;
+    private int _notes;
 
     /// <summary>
     /// Joins a link annotation to its element, so that the link is reachable by a reader walking the
@@ -596,7 +596,7 @@ internal sealed class StructureTagger
     /// What a new element for this object hangs off: whatever renderer is drawing it, or — for
     /// anything at the top of the flow — the section it came from.
     /// </summary>
-    PdfStructureElement ParentFor(object key)
+    private PdfStructureElement ParentFor(object key)
     {
         if (_parents.Count > 0)
             return _parents.Peek();
@@ -613,7 +613,7 @@ internal sealed class StructureTagger
     /// answer with the section the table is in, which is true and useless — but that paragraph never
     /// reaches here, because the cell it is in is already current.
     /// </remarks>
-    static Section SectionOf(DocumentObject documentObject)
+    private static Section SectionOf(DocumentObject documentObject)
     {
         var current = documentObject;
         while (current != null)
@@ -630,13 +630,13 @@ internal sealed class StructureTagger
     /// <summary>
     /// Closes a marked-content sequence and gives back the parent it displaced.
     /// </summary>
-    sealed class Scope : IDisposable
+    private sealed class Scope : IDisposable
     {
-        readonly StructureTagger _tagger;
-        readonly IDisposable _marks;
-        readonly bool _popsParent;
-        readonly bool _leavesArtifact;
-        bool _closed;
+        private readonly StructureTagger _tagger;
+        private readonly IDisposable _marks;
+        private readonly bool _popsParent;
+        private readonly bool _leavesArtifact;
+        private bool _closed;
 
         internal Scope(StructureTagger tagger, IDisposable marks, bool popsParent,
             bool leavesArtifact = false)
@@ -667,7 +667,7 @@ internal sealed class StructureTagger
         }
     }
 
-    sealed class NullScope : IDisposable
+    private sealed class NullScope : IDisposable
     {
         public void Dispose() { }
     }

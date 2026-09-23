@@ -28,12 +28,14 @@
 #endregion
 
 using System;
+using System.Linq;
 
 namespace PdfPinata.Drawing.BarCodes;
 
 /// <summary>
 /// Implementation of the Code 2 of 5 bar code.
 /// </summary>
+// ReSharper disable once InconsistentNaming
 public class Code2of5Interleaved : TwoWidthBarCode
 {
     /// <summary>
@@ -64,7 +66,7 @@ public class Code2of5Interleaved : TwoWidthBarCode
         : base(code, size, direction)
     {}
 
-    static bool[][] _lines =
+    private static readonly bool[][] _lines =
     [
         [false, false, true, true, false],
         [true, false, false, false, true],
@@ -168,7 +170,7 @@ public class Code2of5Interleaved : TwoWidthBarCode
     /// this symbology cannot carry was accepted here and failed later inside the renderer, as an
     /// <see cref="System.IndexOutOfRangeException"/> for an odd number of digits and a
     /// <see cref="System.FormatException"/> for anything that is not one. Neither names the code
-    /// or the rule it broke, and both arrive at drawing time rather than where the mistake was.
+    /// nor the rule it broke, and both arrive at drawing time rather than where the mistake was.
     /// </remarks>
     protected override void CheckCode(string text)
     {
@@ -180,10 +182,9 @@ public class Code2of5Interleaved : TwoWidthBarCode
         if (text.Length % 2 != 0)
             throw new ArgumentException(BcgSR.Invalid2Of5Code(text));
 
-        foreach (var ch in text)
+        if (text.Any(ch => ch is < '0' or > '9'))
         {
-            if (ch < '0' || ch > '9')
-                throw new ArgumentException(BcgSR.Invalid2Of5Code(text));
+            throw new ArgumentException(BcgSR.Invalid2Of5Code(text));
         }
     }
 }

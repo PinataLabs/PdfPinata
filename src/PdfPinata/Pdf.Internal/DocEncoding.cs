@@ -82,7 +82,7 @@ internal sealed class DocEncoding : Encoding
     /// controls WinAnsi passes through unchanged (U+0081, U+008D, U+008F, U+0090, U+009D) - the
     /// codes of all of those but the first two are printable characters here.
     /// </summary>
-    static readonly byte[] AnsiToDoc =
+    private static readonly byte[] AnsiToDoc =
     [
         //         x0    x1    x2    x3    x4    x5    x6    x7    x8    x9    xa    xb    xc    xd    xe    xf
         /* 00 */ 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
@@ -128,7 +128,7 @@ internal sealed class DocEncoding : Encoding
     /// as U+FFFD. The other codes below 0x20 are left as the control characters they are in
     /// Latin-1.
     /// </summary>
-    static readonly char[] PdfDocToUnicode =
+    private static readonly char[] PdfDocToUnicode =
     [
         //          x0        x1        x2        x3        x4        x5        x6        x7        x8        x9        xA        xB        xC        xD        xE        xF
         /* 00 */ '\u0000', '\u0001', '\u0002', '\u0003', '\u0004', '\u0005', '\u0006', '\u0007', '\u0008', '\u0009', '\u000A', '\u000B', '\u000C', '\u000D', '\u000E', '\u000F',

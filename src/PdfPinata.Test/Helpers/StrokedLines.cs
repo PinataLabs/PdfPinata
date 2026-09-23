@@ -17,7 +17,7 @@ internal static class StrokedLines
     /// <summary>The colour a page strokes in until it names another one.</summary>
     internal const string Black = "0,0,0";
 
-    static readonly System.Globalization.CultureInfo Invariant =
+    private static readonly System.Globalization.CultureInfo Invariant =
         System.Globalization.CultureInfo.InvariantCulture;
 
     internal readonly struct Line

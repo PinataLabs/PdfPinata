@@ -38,7 +38,7 @@ public sealed class PdfNull : PdfItem
 {
     // Reference: 3.2.8  Null Object / Page 63
 
-    PdfNull()
+    private PdfNull()
     { }
 
     /// <summary>

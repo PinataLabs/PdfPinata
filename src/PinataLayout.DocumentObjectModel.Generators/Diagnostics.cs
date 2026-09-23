@@ -8,7 +8,7 @@ namespace PinataLayout.DocumentObjectModel.Generators;
 /// </summary>
 internal static class Diagnostics
 {
-    const string Category = "DomValueModel";
+    private const string Category = "DomValueModel";
 
     /// <summary>The generated table is emitted into the declaring type, which must be partial.</summary>
     public static readonly DiagnosticDescriptor NotPartial = new(

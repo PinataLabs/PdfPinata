@@ -63,7 +63,7 @@ public static class ProductVersionInfo
     /// </summary>
     public static string Producer { get; } = Title + " " + InformationalVersion + " (" + Url + ")";
 
-    static string ReadInformationalVersion()
+    private static string ReadInformationalVersion()
     {
         var assembly = typeof(ProductVersionInfo).Assembly;
         var version = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;

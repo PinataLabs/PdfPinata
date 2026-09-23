@@ -67,7 +67,7 @@ public sealed partial class Style : DocumentObject, IVisitable
         // baseStyleName can be null or empty
         ArgumentNullException.ThrowIfNull(name);
         if (name == "")
-            throw new ArgumentException("A name must not be empty.", nameof(name));
+            throw new ArgumentException(@"A name must not be empty.", nameof(name));
 
         this.name = name;
         baseStyle = baseStyleName;
@@ -93,7 +93,7 @@ public sealed partial class Style : DocumentObject, IVisitable
     {
         ArgumentNullException.ThrowIfNull(name);
         if (name == "")
-            throw new ArgumentException("A name must not be empty.", nameof(name));
+            throw new ArgumentException(@"A name must not be empty.", nameof(name));
 
         if (name.StartsWith("font", StringComparison.OrdinalIgnoreCase))
         {

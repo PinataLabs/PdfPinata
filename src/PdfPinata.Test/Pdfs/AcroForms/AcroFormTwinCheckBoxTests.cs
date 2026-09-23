@@ -24,7 +24,7 @@ namespace PdfPinata.Test.Pdfs.AcroForms;
 public class AcroFormTwinCheckBoxTests
 {
     /// <summary>The tick box, with two children each offering the same on state and /Off.</summary>
-    static PdfCheckBoxField ATwinTickBox(string onState = "/Yes")
+    private static PdfCheckBoxField ATwinTickBox(string onState = "/Yes")
     {
         var document = new AcroFormBuilder()
             .WithTypedParent("/Btn", "agree",
@@ -36,7 +36,7 @@ public class AcroFormTwinCheckBoxTests
     }
 
     /// <summary>The value and appearance state of one of the field's children.</summary>
-    static (string Value, string Appearance) ChildState(PdfAcroField field, int index)
+    private static (string Value, string Appearance) ChildState(PdfAcroField field, int index)
     {
         var kid = (PdfDictionary)((PdfReference)field.Fields.Elements.Items[index]).Value;
         return (kid.Elements.GetName("/V"), kid.Elements.GetName("/AS"));
@@ -123,7 +123,7 @@ public class AcroFormTwinCheckBoxTests
     }
 
     /// <summary>A tick box with the given number of children, each offering /Yes and /Off.</summary>
-    static PdfCheckBoxField ATickBoxWith(int childCount)
+    private static PdfCheckBoxField ATickBoxWith(int childCount)
     {
         var describers = Enumerable.Range(0, childCount)
             .Select(_ => new System.Action<PdfDictionary>(

@@ -87,5 +87,5 @@ internal class PageBreakRenderer : Renderer
       return layoutInfo;
     }
   }
-  PageBreak pageBreak;
+  private PageBreak pageBreak;
 }

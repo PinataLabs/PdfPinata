@@ -32,13 +32,13 @@ public class BidirectionalLayoutTests
 {
     // Three Hebrew words of two letters each. Escapes rather than literals, so that a source file
     // mixing right-to-left text with left-to-right code cannot be misread.
-    const string First = "\u05D0\u05D1";
-    const string Second = "\u05D2\u05D3";
-    const string Third = "\u05D4\u05D5";
+    private const string First = "\u05D0\u05D1";
+    private const string Second = "\u05D2\u05D3";
+    private const string Third = "\u05D4\u05D5";
 
-    static XFont Font() => new XFont("Arial", 12);
+    private static XFont Font() => new XFont("Arial", 12);
 
-    static (PdfPage Page, XTextFormatter Formatter, XGraphics Graphics) Sheet()
+    private static (PdfPage Page, XTextFormatter Formatter, XGraphics Graphics) Sheet()
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -49,24 +49,24 @@ public class BidirectionalLayoutTests
     }
 
     /// <summary>The glyph a single character draws as, for reading an order back.</summary>
-    static int GlyphOf(char letter, XFont font)
+    private static int GlyphOf(char letter, XFont font)
         => DrawnText.Glyphs(DrawnText.Page(letter.ToString(), font)).Single();
 
-    static int[] GlyphsOf(string word, XFont font)
+    private static int[] GlyphsOf(string word, XFont font)
         => word.Select(letter => GlyphOf(letter, font)).ToArray();
 
     /// <summary>The same word with its letters in the order they are drawn.</summary>
-    static int[] Reversed(string word, XFont font)
+    private static int[] Reversed(string word, XFont font)
         => GlyphsOf(word, font).Reverse().ToArray();
 
     /// <summary>
     ///   The runs of glyphs shown on the page, written out so that a failure says which word
     ///   landed where rather than that two arrays are not the same array.
     /// </summary>
-    static string Placed(PdfPage page)
+    private static string Placed(PdfPage page)
         => Written(DrawnText.GlyphRuns(page).ToArray());
 
-    static string Written(params int[][] runs)
+    private static string Written(params int[][] runs)
         => string.Join(" | ", runs.Select(run => string.Join(",", run)));
 
     // ----- what the formatter gets for free ---------------------------------------------------------
@@ -109,7 +109,7 @@ public class BidirectionalLayoutTests
     ///   A rectangle wide enough for <paramref name="fits"/> and too narrow for one word more, so
     ///   that which words share the first line does not depend on how wide the face draws them.
     /// </summary>
-    static XRect Room(XGraphics graphics, XFont font, string fits, string andOneMore)
+    private static XRect Room(XGraphics graphics, XFont font, string fits, string andOneMore)
     {
         var enough = graphics.MeasureString(fits, font).Width;
         var tooMuch = graphics.MeasureString(andOneMore, font).Width;

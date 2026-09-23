@@ -28,9 +28,9 @@ namespace PdfPinata.Test.Annotations;
 [Collection(RasterizingCollection.Name)]
 public sealed class TypedAnnotationReadingTests : IDisposable
 {
-    const string OutDir = "Out/TypedAnnotationReading";
+    private const string OutDir = "Out/TypedAnnotationReading";
 
-    readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
+    private readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
 
     static TypedAnnotationReadingTests()
     {
@@ -45,7 +45,7 @@ public sealed class TypedAnnotationReadingTests : IDisposable
         _rasterized.Clear();
     }
 
-    static readonly PdfRectangle Somewhere = new PdfRectangle(new XPoint(100, 500), new XPoint(300, 600));
+    private static readonly PdfRectangle Somewhere = new PdfRectangle(new XPoint(100, 500), new XPoint(300, 600));
 
     public static TheoryData<string, Type> Subtypes => new TheoryData<string, Type>
     {
@@ -316,7 +316,7 @@ public sealed class TypedAnnotationReadingTests : IDisposable
     ///   its entries - a green cross - written through the generic class, so that nothing typed
     ///   has touched it before it is read.
     /// </summary>
-    static PdfDocument WithForeignAppearance(string subtype)
+    private static PdfDocument WithForeignAppearance(string subtype)
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -352,7 +352,7 @@ public sealed class TypedAnnotationReadingTests : IDisposable
         return document;
     }
 
-    static byte[] AppearanceBytes(PdfAnnotation annotation)
+    private static byte[] AppearanceBytes(PdfAnnotation annotation)
     {
         var appearance = annotation.Elements.GetDictionary("/AP");
         appearance.Should().NotBeNull();
@@ -363,18 +363,18 @@ public sealed class TypedAnnotationReadingTests : IDisposable
         return normal.Stream.UnfilteredValue;
     }
 
-    static PdfDocument ReadBack(PdfDocument document, PdfDocumentOpenMode mode = PdfDocumentOpenMode.Modify)
+    private static PdfDocument ReadBack(PdfDocument document, PdfDocumentOpenMode mode = PdfDocumentOpenMode.Modify)
     {
         using var output = new MemoryStream();
         document.Save(output, false);
         return PdfPinata.Pdf.IO.PdfReader.Open(new MemoryStream(output.ToArray()), mode);
     }
 
-    static bool IsGreen(IMagickColor<byte> c) => c.G > 180 && c.R < 100 && c.B < 100;
+    private static bool IsGreen(IMagickColor<byte> c) => c.G > 180 && c.R < 100 && c.B < 100;
 
-    static bool IsBlue(IMagickColor<byte> c) => c.B > 150 && c.R < 120 && c.G < 150;
+    private static bool IsBlue(IMagickColor<byte> c) => c.B > 150 && c.R < 120 && c.G < 150;
 
-    static int Count(IMagickImage<byte> image, Func<IMagickColor<byte>, bool> match)
+    private static int Count(IMagickImage<byte> image, Func<IMagickColor<byte>, bool> match)
     {
         using var pixels = image.GetPixels();
         return pixels.Count(p =>

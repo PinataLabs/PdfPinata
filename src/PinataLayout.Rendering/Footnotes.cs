@@ -49,7 +49,7 @@ internal static class Footnotes
         return (IReadOnlyList<Footnote>)found ?? Empty;
     }
 
-    static void Collect(ParagraphElements elements, ref List<Footnote> found)
+    private static void Collect(ParagraphElements elements, ref List<Footnote> found)
     {
         foreach (DocumentObject element in elements)
         {
@@ -71,5 +71,5 @@ internal static class Footnotes
         }
     }
 
-    static readonly IReadOnlyList<Footnote> Empty = Array.Empty<Footnote>();
+    private static readonly IReadOnlyList<Footnote> Empty = Array.Empty<Footnote>();
 }

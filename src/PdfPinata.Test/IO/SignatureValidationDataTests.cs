@@ -132,19 +132,19 @@ public class SignatureValidationDataTests
     ///   the spec's words. Nothing downstream checks OCSP semantics, only that whatever a provider
     ///   returns is what ends up stored, so a real response would test nothing this doesn't.
     /// </summary>
-    sealed class StubRevocationDataProvider : IRevocationDataProvider
+    private sealed class StubRevocationDataProvider : IRevocationDataProvider
     {
         public RevocationData GetRevocationData(X509Certificate2 certificate, X509Certificate2Collection chain) =>
             new(new[] { new byte[] { 0x30, 0x03, 0x0A, 0x01, 0x00 } }, Array.Empty<byte[]>());
     }
 
-    sealed class ThrowingRevocationDataProvider : IRevocationDataProvider
+    private sealed class ThrowingRevocationDataProvider : IRevocationDataProvider
     {
         public RevocationData GetRevocationData(X509Certificate2 certificate, X509Certificate2Collection chain) =>
             throw new InvalidOperationException("Should not be reached when output is null.");
     }
 
-    static byte[] Unsigned()
+    private static byte[] Unsigned()
     {
         var document = new PdfDocument();
         _ = document.AddPage();
@@ -154,7 +154,7 @@ public class SignatureValidationDataTests
         return output.ToArray();
     }
 
-    static byte[] Sign(byte[] document, PdfCertificationLevel certification = PdfCertificationLevel.NotCertified)
+    private static byte[] Sign(byte[] document, PdfCertificationLevel certification = PdfCertificationLevel.NotCertified)
     {
         using var input = new MemoryStream(document);
         using var output = new MemoryStream();
@@ -164,7 +164,7 @@ public class SignatureValidationDataTests
         return output.ToArray();
     }
 
-    static byte[] AddValidationData(byte[] document, IRevocationDataProvider provider)
+    private static byte[] AddValidationData(byte[] document, IRevocationDataProvider provider)
     {
         var opened = Reader.Open(new MemoryStream(document), PdfDocumentOpenMode.Append);
 

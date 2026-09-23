@@ -24,10 +24,10 @@ namespace PdfPinata.Test.Drawing.Layout;
 /// </summary>
 public class XTextSegmentFormatterTests
 {
-    static XFont Plain => new XFont("Arial", 12, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
-    static XFont Bold => new XFont("Arial", 12, XFontStyle.Bold, XPdfFontOptions.WinAnsiDefault);
+    private static XFont Plain => new XFont("Arial", 12, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
+    private static XFont Bold => new XFont("Arial", 12, XFontStyle.Bold, XPdfFontOptions.WinAnsiDefault);
 
-    static PdfPage PageShowing(params TextSegment[] segments)
+    private static PdfPage PageShowing(params TextSegment[] segments)
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -36,7 +36,7 @@ public class XTextSegmentFormatterTests
         return page;
     }
 
-    static TextSegment Segment(string text, XFont font, XBrush brush)
+    private static TextSegment Segment(string text, XFont font, XBrush brush)
     {
         return new TextSegment { Text = text, Font = font, Brush = brush };
     }
@@ -100,15 +100,15 @@ public class XTextSegmentFormatterTests
 
     // ----- alignment ------------------------------------------------------------------------------
 
-    const double LayoutLeft = 20;
-    const double LayoutWidth = 220;
+    private const double LayoutLeft = 20;
+    private const double LayoutWidth = 220;
 
     /// <summary>
     ///   The same text laid out under a given alignment, in a rectangle whose left edge is at
     ///   <see cref="LayoutLeft"/>. Alignment is a property of the formatter rather than an
     ///   argument, which is why this cannot go through <see cref="PageShowing(TextSegment[])"/>.
     /// </summary>
-    static PdfPage PageShowing(XParagraphAlignment alignment, params TextSegment[] segments)
+    private static PdfPage PageShowing(XParagraphAlignment alignment, params TextSegment[] segments)
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -119,7 +119,7 @@ public class XTextSegmentFormatterTests
     }
 
     /// <summary>Where each line of the page begins, topmost first.</summary>
-    static double[] LineStartsOf(PdfPage page)
+    private static double[] LineStartsOf(PdfPage page)
     {
         return TextBaselines.PositionsOf(page)
             .GroupBy(run => Math.Round(run.Y, 3))
@@ -129,7 +129,7 @@ public class XTextSegmentFormatterTests
     }
 
     /// <summary>Where the last run of each line begins, topmost first.</summary>
-    static double[] LineEndsOf(PdfPage page)
+    private static double[] LineEndsOf(PdfPage page)
     {
         return TextBaselines.PositionsOf(page)
             .GroupBy(run => Math.Round(run.Y, 3))
@@ -138,7 +138,7 @@ public class XTextSegmentFormatterTests
             .ToArray();
     }
 
-    const string TwoLinesOfWords =
+    private const string TwoLinesOfWords =
         "The quick brown fox jumps over the lazy dog and then it keeps on running";
 
     [Fact]
@@ -260,9 +260,9 @@ public class XTextSegmentFormatterTests
     // of unbounded height and reports what it filled. All four overloads had never been executed.
     // ---------------------------------------------------------------------------------------------
 
-    const string Sentence = "A sentence long enough that it has to wrap when the width is small.";
+    private const string Sentence = "A sentence long enough that it has to wrap when the width is small.";
 
-    static XSize Measured(Func<XTextSegmentFormatter, XSize> measure)
+    private static XSize Measured(Func<XTextSegmentFormatter, XSize> measure)
     {
         var document = new PdfDocument();
         using var gfx = XGraphics.FromPdfPage(document.AddPage());

@@ -29,9 +29,9 @@ namespace PinataLayout.Rendering.Tests;
 public class FootnoteTests
 {
     /// <summary>Set on every arrangement, so a test can assert against it.</summary>
-    static readonly Unit BottomMargin = Unit.FromCentimeter(2);
+    private static readonly Unit BottomMargin = Unit.FromCentimeter(2);
 
-    const string Prose =
+    private const string Prose =
         "Footnote layout reserves the room a note takes before the text carrying its mark is laid "
         + "out, or the page overflows. ";
 
@@ -352,7 +352,7 @@ public class FootnoteTests
 
     // ----- arrangements -----
 
-    static Document Document(out Section section)
+    private static Document Document(out Section section)
     {
         var document = new Document();
         var normal = document.Styles[StyleNames.Normal];
@@ -369,7 +369,7 @@ public class FootnoteTests
     }
 
     /// <summary>A page filled to the brim, with or without a note on it.</summary>
-    static Document Filled(bool note)
+    private static Document Filled(bool note)
     {
         var document = Document(out var section);
 
@@ -383,7 +383,7 @@ public class FootnoteTests
         return document;
     }
 
-    static Document ThreeNotesOnAPage(FootnoteNumberStyle style)
+    private static Document ThreeNotesOnAPage(FootnoteNumberStyle style)
     {
         var document = Document(out var section);
         document.FootnoteNumberStyle = style;
@@ -398,7 +398,7 @@ public class FootnoteTests
         return document;
     }
 
-    static Document TwoPagesOfNotes()
+    private static Document TwoPagesOfNotes()
     {
         var document = Document(out var section);
         section.AddParagraph("A claim").AddFootnote("First.");
@@ -413,17 +413,17 @@ public class FootnoteTests
     // ----- reading the page -----
 
     /// <summary>The horizontal hairlines the page strokes, which is where a separator shows up.</summary>
-    static IReadOnlyList<StrokedLines.Line> Rules(PdfPage page) =>
+    private static IReadOnlyList<StrokedLines.Line> Rules(PdfPage page) =>
         StrokedLines.Of(page).Where(line => line.IsHorizontal && line.Width <= 1).ToList();
 
-    static StrokedLines.Line? Separator(PdfPage page)
+    private static StrokedLines.Line? Separator(PdfPage page)
     {
         var rules = Rules(page);
         return rules.Count == 0 ? null : rules[0];
     }
 
     /// <summary>Roughly how much body text a page holds, counted in distinct baselines above the rule.</summary>
-    static int LinesOfBodyOn(PdfPage page)
+    private static int LinesOfBodyOn(PdfPage page)
     {
         var rule = Separator(page);
         var baselines = TextBaselines.Of(page).Select(y => Math.Round(y, 1)).Distinct();
@@ -433,7 +433,7 @@ public class FootnoteTests
     }
 
     /// <summary>The baselines of the runs whose glyphs match the given sequence.</summary>
-    static IReadOnlyList<double> BaselinesShowing(PdfPage page, IReadOnlyList<int> glyphs)
+    private static IReadOnlyList<double> BaselinesShowing(PdfPage page, IReadOnlyList<int> glyphs)
     {
         // The note's own words are drawn below the rule and nothing else on the page draws them,
         // so the lowest baselines on the page are the note's. Taking every baseline under the rule
@@ -466,7 +466,7 @@ public class FootnoteTests
     ///     have satisfied the assertion this feeds.
     ///   </para>
     /// </remarks>
-    static IReadOnlyList<string> MarksOn(PdfPage page, params string[] candidates)
+    private static IReadOnlyList<string> MarksOn(PdfPage page, params string[] candidates)
     {
         var runs = Glyphs.RunsOn(page);
 
@@ -491,7 +491,7 @@ public class FootnoteTests
     ///   finds the last one inside <c>III</c> and reports the first note as the last drawn. A mark
     ///   is shown as a run of its own, so equality against the run says where it really went.
     /// </remarks>
-    static int LastRunShowing(IReadOnlyList<IReadOnlyList<int>> runs, IReadOnlyList<int> wanted)
+    private static int LastRunShowing(IReadOnlyList<IReadOnlyList<int>> runs, IReadOnlyList<int> wanted)
     {
         for (var at = runs.Count - 1; at >= 0; at--)
         {
@@ -520,7 +520,7 @@ public class FootnoteTests
     ///   Compared as glyphs rather than as characters: PinataLayout embeds Identity-H, so a show-text
     ///   operator carries glyph identifiers. See <see cref="Glyphs"/>.
     /// </remarks>
-    static int CountOfMark(PdfPage page, string mark)
+    private static int CountOfMark(PdfPage page, string mark)
     {
         var wanted = Glyphs.For(mark);
         var shown = Glyphs.On(page);

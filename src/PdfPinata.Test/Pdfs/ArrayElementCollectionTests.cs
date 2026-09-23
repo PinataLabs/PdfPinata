@@ -15,9 +15,9 @@ namespace PdfPinata.Test.Pdfs;
 /// </summary>
 public class ArrayElementCollectionTests
 {
-    static PdfDocument ADocument() => new();
+    private static PdfDocument ADocument() => new();
 
-    static PdfArray AnArray(PdfDocument document, params PdfItem[] items)
+    private static PdfArray AnArray(PdfDocument document, params PdfItem[] items)
     {
         var array = new PdfArray(document);
         foreach (var item in items)

@@ -24,16 +24,16 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 /// </summary>
 public class DdlHexEscapeTests
 {
-    const int Patience = 5000;
+    private const int Patience = 5000;
 
-    const string Placeholder = "PLACEHOLDER";
+    private const string Placeholder = "PLACEHOLDER";
 
     /// <summary>
     ///   A whole document whose title is the given literal body, written between quotes exactly as
     ///   given - escapes and all - and followed by a paragraph, so that a string which fails to end
     ///   where it should shows up as a document that no longer reads.
     /// </summary>
-    static string DocumentTitled(string literalBody)
+    private static string DocumentTitled(string literalBody)
     {
         var document = new Document();
         document.Info.Title = Placeholder;
@@ -43,10 +43,10 @@ public class DdlHexEscapeTests
         return ddl.Replace("\"" + Placeholder + "\"", "\"" + literalBody + "\"");
     }
 
-    static Task<Document> Read(string literalBody) =>
+    private static Task<Document> Read(string literalBody) =>
         Task.Run(() => DdlReader.DocumentFromString(DocumentTitled(literalBody)));
 
-    static string TextOf(Document document) =>
+    private static string TextOf(Document document) =>
         string.Concat(((Paragraph)document.LastSection.Elements[0]).Elements.OfType<Text>().Select(text => text.Content));
 
     [Theory(Timeout = Patience)]

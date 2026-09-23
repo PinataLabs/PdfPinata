@@ -18,9 +18,9 @@ namespace PdfPinata.Test.Dom;
 /// </summary>
 public class SentinelCollisionTests
 {
-    static PageSetup APageSetup() => new Document().AddSection().PageSetup;
+    private static PageSetup APageSetup() => new Document().AddSection().PageSetup;
 
-    static Image AnImage() => new();
+    private static Image AnImage() => new();
 
     [Fact]
     public void AnIntegerSetToTheFormerSentinelIsKept()

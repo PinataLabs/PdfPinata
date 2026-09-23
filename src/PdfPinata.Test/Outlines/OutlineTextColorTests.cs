@@ -14,20 +14,20 @@ namespace PdfPinata.Test.Outlines;
 /// </summary>
 public class OutlineTextColorTests
 {
-    static PdfDocument OnePage(int version = 14)
+    private static PdfDocument OnePage(int version = 14)
     {
         var document = new PdfDocument { Version = version };
         _ = document.AddPage();
         return document;
     }
 
-    static PdfDocument SaveAndOpen(PdfDocument document)
+    private static PdfDocument SaveAndOpen(PdfDocument document)
     {
         using var stream = new MemoryStream();
         document.Save(stream, false);
         stream.Position = 0;
         // Fully qualified: PdfPinata.Test carries a PdfReader of its own, which wins here.
-        return PdfPinata.Pdf.IO.PdfReader.Open(stream, PdfPinata.Pdf.IO.PdfDocumentOpenMode.Modify);
+        return Pdf.IO.PdfReader.Open(stream, Pdf.IO.PdfDocumentOpenMode.Modify);
     }
 
     [Fact]

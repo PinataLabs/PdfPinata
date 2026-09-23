@@ -61,110 +61,110 @@ public sealed class XFontMetrics
     /// </summary>
     public string Name => _name;
 
-    readonly string _name;
+    private readonly string _name;
 
     /// <summary>
     /// Gets the ascent value.
     /// </summary>
     public int UnitsPerEm => _unitsPerEm;
 
-    readonly int _unitsPerEm;
+    private readonly int _unitsPerEm;
 
     /// <summary>
     /// Gets the ascent value.
     /// </summary>
     public int Ascent => _ascent;
 
-    readonly int _ascent;
+    private readonly int _ascent;
 
     /// <summary>
     /// Gets the descent value.
     /// </summary>
     public int Descent => _descent;
 
-    readonly int _descent;
+    private readonly int _descent;
 
     /// <summary>
     /// Gets the average width.
     /// </summary>
     public int AverageWidth => _averageWidth;
 
-    readonly int _averageWidth;
+    private readonly int _averageWidth;
 
     /// <summary>
     /// Gets the height of capital letters.
     /// </summary>
     public int CapHeight => _capHeight;
 
-    readonly int _capHeight;
+    private readonly int _capHeight;
 
     /// <summary>
     /// Gets the leading value.
     /// </summary>
     public int Leading => _leading;
 
-    readonly int _leading;
+    private readonly int _leading;
 
     /// <summary>
     /// Gets the line spacing value.
     /// </summary>
     public int LineSpacing => _lineSpacing;
 
-    readonly int _lineSpacing;
+    private readonly int _lineSpacing;
 
     /// <summary>
     /// Gets the maximum width of a character.
     /// </summary>
     public int MaxWidth => _maxWidth;
 
-    readonly int _maxWidth;
+    private readonly int _maxWidth;
 
     /// <summary>
     /// Gets an internal value.
     /// </summary>
     public int StemH => _stemH;
 
-    readonly int _stemH;
+    private readonly int _stemH;
 
     /// <summary>
     /// Gets an internal value.
     /// </summary>
     public int StemV => _stemV;
 
-    readonly int _stemV;
+    private readonly int _stemV;
 
     /// <summary>
     /// Gets the height of a lower-case character.
     /// </summary>
     public int XHeight => _xHeight;
 
-    readonly int _xHeight;
+    private readonly int _xHeight;
 
     /// <summary>
     /// Gets the underline position.
     /// </summary>
     public int UnderlinePosition => _underlinePosition;
 
-    readonly int _underlinePosition;
+    private readonly int _underlinePosition;
 
     /// <summary>
     /// Gets the underline thicksness.
     /// </summary>
     public int UnderlineThickness => _underlineThickness;
 
-    readonly int _underlineThickness;
+    private readonly int _underlineThickness;
 
     /// <summary>
     /// Gets the strikethrough position.
     /// </summary>
     public int StrikethroughPosition => _strikethroughPosition;
 
-    readonly int _strikethroughPosition;
+    private readonly int _strikethroughPosition;
 
     /// <summary>
     /// Gets the strikethrough thicksness.
     /// </summary>
     public int StrikethroughThickness => _strikethroughThickness;
 
-    readonly int _strikethroughThickness;
+    private readonly int _strikethroughThickness;
 }

@@ -58,7 +58,7 @@ public sealed class XLinearGradientBrush : XBaseGradientBrush
             throw new InvalidEnumArgumentException(nameof(linearGradientMode), (int)linearGradientMode, typeof(XLinearGradientMode));
 
         if (rect.Width == 0 || rect.Height == 0)
-            throw new ArgumentException("Invalid rectangle.", nameof(rect));
+            throw new ArgumentException(@"Invalid rectangle.", nameof(rect));
 
         UseRect = true;
         Rect = rect;

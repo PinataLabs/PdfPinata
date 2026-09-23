@@ -160,7 +160,7 @@ public class EmptyContentStreamTests
         saved.Length.Should().BeLessThan(2700);
     }
 
-    static byte[] Save(PdfDocument document)
+    private static byte[] Save(PdfDocument document)
     {
         using var output = new MemoryStream();
         document.Save(output, false);
@@ -170,7 +170,7 @@ public class EmptyContentStreamTests
     /// <summary>
     ///   The unfiltered content of every content stream of the first page, in order.
     /// </summary>
-    static IReadOnlyList<string> ContentStreamsOf(byte[] pdf)
+    private static IReadOnlyList<string> ContentStreamsOf(byte[] pdf)
     {
         var document = PdfPinata.Pdf.IO.PdfReader.Open(new MemoryStream(pdf), PdfDocumentOpenMode.Modify);
         var contents = document.Pages[0].Contents;
@@ -188,7 +188,7 @@ public class EmptyContentStreamTests
     ///   The indirect objects of the file as they were written, so that a test can see the filter
     ///   an object carries rather than the one reading it takes off again.
     /// </summary>
-    static IReadOnlyList<string> RawObjectsOf(byte[] pdf)
+    private static IReadOnlyList<string> RawObjectsOf(byte[] pdf)
     {
         var raw = new string(pdf.Select(b => (char)b).ToArray());
         var objects = new List<string>();
@@ -205,7 +205,7 @@ public class EmptyContentStreamTests
         }
     }
 
-    static int IndexOf(byte[] haystack, byte[] needle)
+    private static int IndexOf(byte[] haystack, byte[] needle)
     {
         for (var idx = 0; idx <= haystack.Length - needle.Length; idx++)
         {
@@ -218,7 +218,7 @@ public class EmptyContentStreamTests
         return -1;
     }
 
-    static byte[] Bytes(string text)
+    private static byte[] Bytes(string text)
     {
         return text.Select(ch => (byte)ch).ToArray();
     }
@@ -227,7 +227,7 @@ public class EmptyContentStreamTests
     ///   A single page whose /Contents is an array of three streams, the way "Microsoft Print to
     ///   PDF" writes one.
     /// </summary>
-    static byte[] BuildDocumentWithThreeContentStreams()
+    private static byte[] BuildDocumentWithThreeContentStreams()
     {
         return RawPdf.Build([
             "<</Type/Catalog/Pages 2 0 R>>",

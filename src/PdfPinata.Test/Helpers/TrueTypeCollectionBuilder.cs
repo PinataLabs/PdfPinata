@@ -24,7 +24,7 @@ internal static class TrueTypeCollectionBuilder
     public static byte[] Build(params byte[][] fonts)
     {
         if (fonts == null || fonts.Length == 0)
-            throw new ArgumentException("A collection needs at least one font.", nameof(fonts));
+            throw new ArgumentException(@"A collection needs at least one font.", nameof(fonts));
 
         var tableCounts = new int[fonts.Length];
         for (var i = 0; i < fonts.Length; i++)

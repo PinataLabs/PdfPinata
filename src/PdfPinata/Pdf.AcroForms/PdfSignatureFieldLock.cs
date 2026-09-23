@@ -115,7 +115,7 @@ public sealed class PdfSignatureFieldLock : PdfDictionary
         _ => true,
     };
 
-    static bool Names(string listed, string field) =>
+    private static bool Names(string listed, string field) =>
         !string.IsNullOrEmpty(listed) && field != null
         && (field == listed
             || (field.Length > listed.Length && field[listed.Length] == '.'
@@ -155,7 +155,7 @@ public sealed class PdfSignatureFieldLock : PdfDictionary
 
         internal static DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

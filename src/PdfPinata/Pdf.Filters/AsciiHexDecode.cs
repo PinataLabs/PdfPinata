@@ -90,7 +90,7 @@ public class AsciiHexDecode : Filter
             else if (IsWhiteSpace(ch))
                 continue;
             else
-                throw new ArgumentException($"Illegal character 0x{ch:X2} in ASCIIHexDecode data.", nameof(data));
+                throw new ArgumentException($@"Illegal character 0x{ch:X2} in ASCIIHexDecode data.", nameof(data));
 
             if (hi < 0)
                 hi = digit;
@@ -113,6 +113,6 @@ public class AsciiHexDecode : Filter
     }
 
     // The six characters ISO 32000-1 Table 1 calls white space.
-    static bool IsWhiteSpace(byte ch) =>
+    private static bool IsWhiteSpace(byte ch) =>
         ch is (byte)Chars.NUL or (byte)Chars.HT or (byte)Chars.LF or (byte)Chars.FF or (byte)Chars.CR or (byte)Chars.SP;
 }

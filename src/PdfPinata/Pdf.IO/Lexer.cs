@@ -701,7 +701,7 @@ public class Lexer
     internal static bool IsHexChar(char c) => CharacterScanning.IsHexChar(c);
 
     /// <summary>The value of a character <see cref="IsHexChar"/> accepts.</summary>
-    static int HexValue(char c) => c <= '9' ? c - '0' : (c | 0x20) - 'a' + 10;
+    private static int HexValue(char c) => c <= '9' ? c - '0' : (c | 0x20) - 'a' + 10;
 
     /// <summary>
     /// Move current position one character further in PDF stream.
@@ -725,7 +725,7 @@ public class Lexer
     /// A cached delegate rather than a method group conversion at each call site, since
     /// <see cref="CharacterScanning.Advance"/> is called once per character scanned.
     /// </summary>
-    char ReadNextRawByte()
+    private char ReadNextRawByte()
     {
         _idxChar++;
         return (char)_pdfSteam.ReadByte();
@@ -751,7 +751,7 @@ public class Lexer
     public char MoveToNonWhiteSpace() =>
         _currChar = CharacterScanning.SkipWhiteSpace(_currChar, _scanNextCharFolding);
 
-    char ScanNextCharFolding() => ScanNextChar(true);
+    private char ScanNextCharFolding() => ScanNextChar(true);
 
     /// <summary>
     /// Gets the current symbol.
@@ -829,16 +829,16 @@ public class Lexer
     /// <summary>
     /// How much of the file <see cref="FindLastMarker" /> holds at a time.
     /// </summary>
-    const int BackwardScanChunkSize = 64 * 1024;
+    private const int BackwardScanChunkSize = 64 * 1024;
 
-    readonly long _pdfLength;
-    long _idxChar;
-    char _currChar;
-    char _nextChar;
-    StringBuilder _token;
-    Symbol _symbol = Symbol.None;
+    private readonly long _pdfLength;
+    private long _idxChar;
+    private char _currChar;
+    private char _nextChar;
+    private StringBuilder _token;
+    private Symbol _symbol = Symbol.None;
 
-    readonly Stream _pdfSteam;
-    readonly Func<char> _readNextRawByte;
-    readonly Func<char> _scanNextCharFolding;
+    private readonly Stream _pdfSteam;
+    private readonly Func<char> _readNextRawByte;
+    private readonly Func<char> _scanNextCharFolding;
 }

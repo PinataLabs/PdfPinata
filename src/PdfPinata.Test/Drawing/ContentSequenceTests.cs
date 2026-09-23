@@ -20,7 +20,7 @@ namespace PdfPinata.Test.Drawing;
 /// </remarks>
 public class ContentSequenceTests
 {
-    static CSequence Three()
+    private static CSequence Three()
     {
         var sequence = new CSequence();
         sequence.Add(new CInteger { Value = 1 });

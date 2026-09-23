@@ -13,7 +13,7 @@ namespace PinataLayout.Rendering.Tests;
 /// </summary>
 public class RenderPagesTests
 {
-    static Document TwoPages()
+    private static Document TwoPages()
     {
         var document = new Document();
         var section = document.AddSection();

@@ -52,7 +52,7 @@ public class LinkAnnotationConformanceTests
     ///   (F &amp; Print) == Print &amp;&amp; (F &amp; Hidden) == 0 &amp;&amp; (F &amp; Invisible) == 0
     ///   &amp;&amp; (F &amp; NoView) == 0</c>.
     /// </summary>
-    static void AssertsPdfARequiresOf(PdfLinkAnnotation link)
+    private static void AssertsPdfARequiresOf(PdfLinkAnnotation link)
     {
         link.Flags.Should().HaveFlag(PdfAnnotationFlags.Print);
         link.Flags.Should().NotHaveFlag(PdfAnnotationFlags.Hidden);

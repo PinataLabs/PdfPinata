@@ -38,7 +38,7 @@ public class PdfFileSpecification : PdfDictionary
     /// and lose its embedded file the moment anybody asked for it.
     /// </para>
     /// </summary>
-    PdfDictionary EmbeddedFiles
+    private PdfDictionary EmbeddedFiles
     {
         get
         {
@@ -157,7 +157,7 @@ public class PdfFileSpecification : PdfDictionary
     /// dictionary a reader parsed. Transforming re-points the reference at the new instance, so
     /// asking twice does not build two.
     /// </summary>
-    static PdfEmbeddedFile EmbeddedFileOf(PdfItem item)
+    private static PdfEmbeddedFile EmbeddedFileOf(PdfItem item)
     {
         if (item is PdfReference reference)
             item = reference.Value;
@@ -174,7 +174,7 @@ public class PdfFileSpecification : PdfDictionary
     /// part of the standard than this enumeration covers, and refusing to read the rest of the
     /// attachment over it would help nobody.
     /// </summary>
-    static PdfAFRelationship RelationshipOf(string name)
+    private static PdfAFRelationship RelationshipOf(string name)
     {
         switch (name)
         {
@@ -186,7 +186,7 @@ public class PdfFileSpecification : PdfDictionary
         }
     }
 
-    static string NameOf(PdfAFRelationship relationship)
+    private static string NameOf(PdfAFRelationship relationship)
     {
         switch (relationship)
         {
@@ -276,7 +276,7 @@ public class PdfFileSpecification : PdfDictionary
                 return meta;
             }
         }
-        static DictionaryMeta meta;
+        private static DictionaryMeta meta;
     }
 
     /// <summary>

@@ -59,7 +59,7 @@ public partial class Borders : DocumentObject, IEnumerable
     public bool HasBorder(BorderType type)
     {
         if (!Enum.IsDefined(type))
-            throw new ArgumentException($"'{type}' is not a defined value of {nameof(BorderType)}.", nameof(type));
+            throw new ArgumentException($@"'{type}' is not a defined value of {nameof(BorderType)}.", nameof(type));
 
         return !(IsNull(type.ToString()));
     }
@@ -463,8 +463,8 @@ public partial class Borders : DocumentObject, IEnumerable
     /// </summary>
     public class BorderEnumerator : IEnumerator
     {
-        int index;
-        Hashtable ht;
+        private int index;
+        private Hashtable ht;
 
         /// <summary>
         /// Creates a new BorderEnumerator.

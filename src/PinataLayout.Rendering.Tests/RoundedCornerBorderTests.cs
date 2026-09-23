@@ -20,13 +20,13 @@ namespace PinataLayout.Rendering.Tests;
 /// </remarks>
 public class RoundedCornerBorderTests
 {
-    const double Heavy = 8;
+    private const double Heavy = 8;
 
     /// <summary>
     ///   A table of one cell, its corner rounded and one of the two edges that meet there
     ///   described.
     /// </summary>
-    static Cell CellRounded(RoundedCorner corner, BorderType described)
+    private static Cell CellRounded(RoundedCorner corner, BorderType described)
     {
         var document = new Document();
         var table = document.AddSection().AddTable();

@@ -28,16 +28,16 @@ namespace PdfPinata.Test.Drawing;
 /// </remarks>
 public class ShownPositionTests
 {
-    const double Left = 20;
-    const double Top = 40;
+    private const double Left = 20;
+    private const double Top = 40;
 
     /// <summary>
     ///   Identity-H, whose two-byte codes <c>Tw</c> cannot reach — so a word spacing has to be paid
     ///   out as an adjustment inside a <c>TJ</c> array, which is the shape this is about.
     /// </summary>
-    static XFont UnicodeFont => new XFont("Arial", 12, XFontStyle.Regular, XPdfFontOptions.UnicodeDefault);
+    private static XFont UnicodeFont => new XFont("Arial", 12, XFontStyle.Regular, XPdfFontOptions.UnicodeDefault);
 
-    static PdfPage PageShowing(Action<XGraphics> draw)
+    private static PdfPage PageShowing(Action<XGraphics> draw)
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -135,7 +135,7 @@ public class ShownPositionTests
     ///     arranging to be missing.
     ///   </para>
     /// </remarks>
-    static void Repeated(PdfPage page)
+    private static void Repeated(PdfPage page)
     {
         var content = page.Contents.Elements.GetDictionary(0);
         content.Should().NotBeNull();

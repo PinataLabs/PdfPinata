@@ -133,7 +133,7 @@ public class SignatureAnnotationFlagsTests
         signing.Should().NotThrow();
     }
 
-    static byte[] Unsigned()
+    private static byte[] Unsigned()
     {
         var document = new PdfDocument();
         using (var gfx = XGraphics.FromPdfPage(document.AddPage()))
@@ -144,7 +144,7 @@ public class SignatureAnnotationFlagsTests
         return output.ToArray();
     }
 
-    static byte[] Sign(byte[] document, PdfSignatureOptions options = null)
+    private static byte[] Sign(byte[] document, PdfSignatureOptions options = null)
     {
         using var input = new MemoryStream(document);
         using var output = new MemoryStream();
@@ -153,7 +153,7 @@ public class SignatureAnnotationFlagsTests
         return output.ToArray();
     }
 
-    static PdfDictionary Widget(byte[] signed)
+    private static PdfDictionary Widget(byte[] signed)
     {
         var page = Reader.Open(new MemoryStream(signed), PdfDocumentOpenMode.ReadOnly).Pages[0];
         var annotations = page.Elements.GetArray("/Annots");

@@ -60,7 +60,7 @@ public class OcspRevocationDataProviderTests
     ///   <see cref="OcspRevocationDataProvider"/> itself builds ASN.1 — so a test asserting how it is
     ///   read is not also trusting a different encoder to agree with it.
     /// </summary>
-    static byte[] AuthorityInfoAccess(string ocspUri)
+    private static byte[] AuthorityInfoAccess(string ocspUri)
     {
         var writer = new AsnWriter(AsnEncodingRules.DER);
         using (writer.PushSequence())      // AuthorityInfoAccessSyntax
@@ -74,7 +74,7 @@ public class OcspRevocationDataProviderTests
         return writer.Encode();
     }
 
-    static X509Certificate2 CertificateWithAuthorityInfoAccess(byte[] rawExtensionData)
+    private static X509Certificate2 CertificateWithAuthorityInfoAccess(byte[] rawExtensionData)
     {
         using var key = RSA.Create(2048);
         var request = new CertificateRequest("CN=PdfPinata Test Subject", key, HashAlgorithmName.SHA256,

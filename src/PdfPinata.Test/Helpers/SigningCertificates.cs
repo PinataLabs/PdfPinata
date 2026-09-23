@@ -15,7 +15,7 @@ namespace PdfPinata.Test.Helpers;
 /// </remarks>
 public static class SigningCertificates
 {
-    static readonly Lazy<X509Certificate2> Generated = new(() => Create("CN=PdfPinata Test Signer"));
+    private static readonly Lazy<X509Certificate2> Generated = new(() => Create("CN=PdfPinata Test Signer"));
 
     /// <summary>
     ///   The certificate the signing tests share. Generating an RSA key costs enough to be worth
@@ -35,7 +35,7 @@ public static class SigningCertificates
     /// </summary>
     public static X509Certificate2 CreateTimestampAuthority(string subject) => Create(subject, timestampAuthority: true);
 
-    static X509Certificate2 Create(string subject, bool timestampAuthority)
+    private static X509Certificate2 Create(string subject, bool timestampAuthority)
     {
         using var key = RSA.Create(2048);
 

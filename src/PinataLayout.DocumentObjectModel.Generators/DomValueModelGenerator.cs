@@ -50,6 +50,6 @@ public sealed class DomValueModelGenerator : IIncrementalGenerator
     /// pipeline happens to hand them over. Reflection's order was never specified either, but the
     /// generated model should at least be reproducible build to build.
     /// </summary>
-    static int Order(GeneratorAttributeSyntaxContext context) =>
+    private static int Order(GeneratorAttributeSyntaxContext context) =>
         context.TargetNode.GetLocation().SourceSpan.Start;
 }

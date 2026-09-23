@@ -24,9 +24,9 @@ namespace PdfPinata.Test.Annotations;
 [Collection(RasterizingCollection.Name)]
 public sealed class SquareAnnotationTests : IDisposable
 {
-    const string OutDir = "Out/SquareAnnotations";
+    private const string OutDir = "Out/SquareAnnotations";
 
-    readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
+    private readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
 
     public void Dispose()
     {
@@ -41,7 +41,7 @@ public sealed class SquareAnnotationTests : IDisposable
         GhostscriptSetup.Configure();
     }
 
-    static readonly XRect Where = new XRect(40, 40, 120, 80);
+    private static readonly XRect Where = new XRect(40, 40, 120, 80);
 
     [Fact]
     public void ASquareNamesItsSubtypeAndCarriesADefaultBorder()
@@ -203,7 +203,7 @@ public sealed class SquareAnnotationTests : IDisposable
         Count(page, IsAnythingButWhite).Should().Be(0);
     }
 
-    IMagickImage<byte> Rasterize(string name, Action<PdfSquareAnnotation> arrange)
+    private IMagickImage<byte> Rasterize(string name, Action<PdfSquareAnnotation> arrange)
     {
         GlobalFontSettings.FontResolver ??= new PinnedFontResolver();
 
@@ -223,7 +223,7 @@ public sealed class SquareAnnotationTests : IDisposable
         return images[0];
     }
 
-    static PdfSquareAnnotation OnAPage()
+    private static PdfSquareAnnotation OnAPage()
     {
         var document = new PdfDocument();
         var square = new PdfSquareAnnotation();
@@ -239,7 +239,7 @@ public sealed class SquareAnnotationTests : IDisposable
     ///   The pixel at the middle of the rectangle, which for an unfilled square is inside the
     ///   frame and nowhere near it.
     /// </summary>
-    static IMagickColor<byte> Centre(IMagickImage<byte> image, XRect box)
+    private static IMagickColor<byte> Centre(IMagickImage<byte> image, XRect box)
     {
         // The page is A4 and the rectangle is placed in world coordinates from the top left,
         // which is the space the image is in too, so this scales straight across.
@@ -251,13 +251,13 @@ public sealed class SquareAnnotationTests : IDisposable
         return pixels.GetPixel(x, y).ToColor();
     }
 
-    static bool IsBlue(IMagickColor<byte> c) => c.B > 150 && c.R < 120 && c.G < 150;
+    private static bool IsBlue(IMagickColor<byte> c) => c.B > 150 && c.R < 120 && c.G < 150;
 
-    static bool IsRed(IMagickColor<byte> c) => c.R > 130 && c.G < 100 && c.B < 100;
+    private static bool IsRed(IMagickColor<byte> c) => c.R > 130 && c.G < 100 && c.B < 100;
 
-    static bool IsAnythingButWhite(IMagickColor<byte> c) => c.R < 240 || c.G < 240 || c.B < 240;
+    private static bool IsAnythingButWhite(IMagickColor<byte> c) => c.R < 240 || c.G < 240 || c.B < 240;
 
-    static int Count(IMagickImage<byte> image, Func<IMagickColor<byte>, bool> match)
+    private static int Count(IMagickImage<byte> image, Func<IMagickColor<byte>, bool> match)
     {
         using var pixels = image.GetPixels();
         return pixels.Count(p =>

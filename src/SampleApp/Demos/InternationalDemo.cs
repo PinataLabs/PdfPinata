@@ -259,7 +259,7 @@ internal sealed class InternationalDemo : PdfDemo
     /// <summary>
     ///   A string from its code points, so that every character in this file stays ASCII.
     /// </summary>
-    static string From(params int[] codePoints)
+    private static string From(params int[] codePoints)
     {
         var built = new StringBuilder(codePoints.Length);
         foreach (var codePoint in codePoints)
@@ -276,7 +276,7 @@ internal sealed class InternationalDemo : PdfDemo
     ///   a demo reaching for a drawing helper somewhere else is one whose printed source no longer
     ///   tells the whole story.
     /// </remarks>
-    static void Note(XGraphics gfx, XFont label, XFont body, double x, double y,
+    private static void Note(XGraphics gfx, XFont label, XFont body, double x, double y,
         string? lead, params string[] lines)
     {
         var at = y;

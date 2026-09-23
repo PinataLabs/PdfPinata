@@ -235,7 +235,7 @@ public abstract class DocumentObjectCollection : DocumentObject, IList
     if (value == null || value is DocumentObject)
       return (DocumentObject)value;
     throw new ArgumentException(
-      $"A chart collection holds document objects, not {value.GetType().Name}.", nameof(value));
+      $@"A chart collection holds document objects, not {value.GetType().Name}.", nameof(value));
   }
   #endregion
 
@@ -258,5 +258,5 @@ public abstract class DocumentObjectCollection : DocumentObject, IList
     return this.elements.GetEnumerator();
   }
 
-  ArrayList elements;
+  private ArrayList elements;
 }
