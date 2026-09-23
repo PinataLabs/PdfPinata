@@ -69,7 +69,7 @@ public class VisualOrderTests
 
         var order = VisualOrder.Of(resolved, WordSpans(words));
 
-        order.Should().Equal(new[] { 0, 1, 2 });
+        order.Should().Equal(0, 1, 2);
     }
 
     [Fact]
@@ -103,7 +103,7 @@ public class VisualOrderTests
 
         var order = VisualOrder.Of(resolved, spans);
 
-        order.Should().Equal(new[] { 2, 1, 0 });
+        order.Should().Equal(2, 1, 0);
     }
 
     [Fact]

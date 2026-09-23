@@ -274,7 +274,7 @@ public class AcroFormFieldKindTests
             f.Elements["/V"] = chosen;
         }).AcroForm.Fields["county"];
 
-        field.SelectedIndices.Should().Equal(new[] { 0, 2 });
+        field.SelectedIndices.Should().Equal(0, 2);
         field.SelectedIndex.Should().Be(0, "the first of them, for a caller that wants only one");
     }
 
@@ -290,8 +290,8 @@ public class AcroFormFieldKindTests
         field.SelectedIndices = [2, 0];
 
         field.SelectedIndices.Should().Equal([0, 2], "ascending, as the specification asks");
-        SelectedIndicesOf(field).Should().Equal(new[] { 0, 2 });
-        OptionTextsOfValue(field).Should().Equal(new[] { "Kent", "Surrey" });
+        SelectedIndicesOf(field).Should().Equal(0, 2);
+        OptionTextsOfValue(field).Should().Equal("Kent", "Surrey");
     }
 
     /// <summary>
@@ -359,7 +359,7 @@ public class AcroFormFieldKindTests
         var act = () => field.SelectedIndices = [1, 7];
 
         act.Should().Throw<ArgumentOutOfRangeException>();
-        field.SelectedIndices.Should().Equal(new[] { 0 });
+        field.SelectedIndices.Should().Equal(0);
     }
 
     /// <summary>
@@ -470,7 +470,7 @@ public class AcroFormFieldKindTests
             f.Elements["/V"] = chosen;
         }).AcroForm.Fields["county"];
 
-        field.SelectedIndices.Should().Equal(new[] { 0, 1 });
+        field.SelectedIndices.Should().Equal(0, 1);
     }
 
     /// <summary>
@@ -490,7 +490,7 @@ public class AcroFormFieldKindTests
             f.Elements["/V"] = chosen;
         }).AcroForm.Fields["county"];
 
-        field.SelectedIndices.Should().Equal(new[] { 0 });
+        field.SelectedIndices.Should().Equal(0);
     }
 
     /// <summary>
@@ -543,8 +543,8 @@ public class AcroFormFieldKindTests
             written, Pdf.IO.PdfDocumentOpenMode.Modify);
 
         var field = (PdfListBoxField)reopened.AcroForm.Fields["county"];
-        field.SelectedIndices.Should().Equal(new[] { 0, 2 });
-        SelectedIndicesOf(field).Should().Equal(new[] { 0, 2 });
+        field.SelectedIndices.Should().Equal(0, 2);
+        SelectedIndicesOf(field).Should().Equal(0, 2);
         field.Elements.GetArray("/V").Should().NotBeNull("several chosen options make /V an array");
     }
 
@@ -580,7 +580,7 @@ public class AcroFormFieldKindTests
 
         field.Elements[PdfChoiceField.Keys.I].Should().BeOfType<PdfArray>()
             .Which.Elements.Count.Should().Be(1, "a combo box offers a single choice");
-        SelectedIndicesOf(field).Should().Equal(new[] { 2 });
+        SelectedIndicesOf(field).Should().Equal(2);
     }
 
     /// <summary>
@@ -606,7 +606,7 @@ public class AcroFormFieldKindTests
 
         var field = (PdfComboBoxField)reopened.AcroForm.Fields["county"];
         field.Elements[PdfChoiceField.Keys.I].Should().BeOfType<PdfArray>();
-        SelectedIndicesOf(field).Should().Equal(new[] { 2 });
+        SelectedIndicesOf(field).Should().Equal(2);
         field.SelectedIndex.Should().Be(2, "/V and /I still agree");
     }
 
@@ -626,7 +626,7 @@ public class AcroFormFieldKindTests
         field.SelectedIndex = 0;
         field.SelectedIndex = 2;
 
-        SelectedIndicesOf(field).Should().Equal(new[] { 2 });
+        SelectedIndicesOf(field).Should().Equal(2);
     }
 
     [Fact]
@@ -729,10 +729,10 @@ public class AcroFormFieldKindTests
 
         field.Value = new PdfName("/Middlesex");
 
-        OptionsOf(field).Should().Equal(new[] { "Kent", "Sussex", "Middlesex" });
+        OptionsOf(field).Should().Equal("Kent", "Sussex", "Middlesex");
         field.Value.Should().BeOfType<PdfString>().Which.Value.Should().Be("Middlesex");
         field.SelectedIndex.Should().Be(2);
-        SelectedIndicesOf(field).Should().Equal(new[] { 2 });
+        SelectedIndicesOf(field).Should().Equal(2);
     }
 
     [Fact]
@@ -902,7 +902,7 @@ public class AcroFormFieldKindTests
         }
 
         document.AcroForm.Fields.DescendantNames
-            .Should().BeEquivalentTo(new[] { "print", "signature", "mystery" });
+            .Should().BeEquivalentTo("print", "signature", "mystery");
     }
 
     // ----- a read-only field ---------------------------------------------------------------------

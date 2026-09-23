@@ -221,7 +221,7 @@ public class FootnoteTests
         var page = Rendered.FirstPageOf(document);
         var marks = MarksOn(page, first, second, third);
 
-        marks.Should().Equal(new[] { first, second, third });
+        marks.Should().Equal(first, second, third);
     }
 
     [Fact]
@@ -267,8 +267,8 @@ public class FootnoteTests
         var pages = Rendered.Of(document);
         pages.PageCount.Should().BeGreaterThan(1);
 
-        MarksOn(pages.Pages[0], "1", "2").Should().Equal(new[] { "1" });
-        MarksOn(pages.Pages[1], "1", "2").Should().Equal(new[] { "1" });
+        MarksOn(pages.Pages[0], "1", "2").Should().Equal("1");
+        MarksOn(pages.Pages[1], "1", "2").Should().Equal("1");
     }
 
     [Fact]
@@ -280,8 +280,8 @@ public class FootnoteTests
         var pages = Rendered.Of(document);
         pages.PageCount.Should().BeGreaterThan(1);
 
-        MarksOn(pages.Pages[0], "1", "2").Should().Equal(new[] { "1" });
-        MarksOn(pages.Pages[1], "1", "2").Should().Equal(new[] { "2" });
+        MarksOn(pages.Pages[0], "1", "2").Should().Equal("1");
+        MarksOn(pages.Pages[1], "1", "2").Should().Equal("2");
     }
 
     [Fact]
@@ -302,8 +302,8 @@ public class FootnoteTests
         var pages = Rendered.Of(document);
         pages.PageCount.Should().Be(3);
 
-        MarksOn(pages.Pages[0], "1", "2", "3").Should().Equal(new[] { "1" });
-        MarksOn(pages.Pages[1], "1", "2", "3").Should().Equal(new[] { "1" });
+        MarksOn(pages.Pages[0], "1", "2", "3").Should().Equal("1");
+        MarksOn(pages.Pages[1], "1", "2", "3").Should().Equal("1");
         MarksOn(pages.Pages[2], "1", "2", "3").Should().Equal(["2"],
             "the second section's notes count on from each other, not from the page");
     }
@@ -316,7 +316,7 @@ public class FootnoteTests
 
         var page = Rendered.FirstPageOf(document);
 
-        MarksOn(page, "7", "8", "9").Should().Equal(new[] { "7", "8", "9" });
+        MarksOn(page, "7", "8", "9").Should().Equal("7", "8", "9");
     }
 
     [Fact]

@@ -61,7 +61,7 @@ public class ChosenNoteIdentifierTests
         paragraph.AddFootnote("The third.");
 
         Structure.Of(document).OfTag("Note").Select(note => note.Id)
-            .Should().Equal(new[] { "note1", "chosen", "note3" });
+            .Should().Equal("note1", "chosen", "note3");
     }
 
     [Fact]

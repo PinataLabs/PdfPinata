@@ -58,10 +58,7 @@ public class ItemizationTests
     {
         var runs = ItemizeScripts("Hi" + Arabic);
 
-        runs.Select(run => run.Script).Should().Equal(new[]
-        {
-            UnicodeScript.Latin, UnicodeScript.Arabic
-        });
+        runs.Select(run => run.Script).Should().Equal(UnicodeScript.Latin, UnicodeScript.Arabic);
         runs[0].Length.Should().Be(2);
         runs[1].Length.Should().Be(4);
     }
@@ -213,7 +210,7 @@ public class ItemizationTests
         // BeEquivalentTo rather than Equal, because what order they come back in is the next
         // test's question and this one is only about there being two of them. That was once the
         // only assertion here, and it is why the order being wrong went unnoticed.
-        runs.Select(run => run.ScriptCode).Should().BeEquivalentTo(new[] { "hebr", "arab" });
+        runs.Select(run => run.ScriptCode).Should().BeEquivalentTo("hebr", "arab");
         runs.Should().OnlyContain(run => run.Direction == XTextDirection.RightToLeft);
     }
 
@@ -226,7 +223,7 @@ public class ItemizationTests
         // followed by Arabic came out with the Hebrew on the left.
         var runs = TextItemizer.Itemize(Hebrew + Arabic, BidiParagraphDirection.RightToLeft);
 
-        runs.Select(run => run.ScriptCode).Should().Equal(new[] { "arab", "hebr" });
+        runs.Select(run => run.ScriptCode).Should().Equal("arab", "hebr");
     }
 
     [Fact]
@@ -269,7 +266,7 @@ public class ItemizationTests
         var result = BidiAlgorithm.Resolve(Joined, BidiParagraphDirection.RightToLeft);
 
         result.Removed[1].Should().BeTrue();
-        result.VisualOrder.Should().Equal(new[] { 2, 0 });
+        result.VisualOrder.Should().Equal(2, 0);
     }
 
     [Fact]
@@ -282,7 +279,7 @@ public class ItemizationTests
         var runs = TextItemizer.Itemize("ab" + ByteOrderMark + "cd");
 
         runs.Should().HaveCount(2);
-        runs.Select(run => run.Length).Should().Equal(new[] { 2, 2 });
+        runs.Select(run => run.Length).Should().Equal(2, 2);
     }
 
     [Fact]
@@ -344,7 +341,7 @@ public class ItemizationTests
         // The documented complaint this whole gap exists for: "salam" drawn as "m a l s".
         var result = BidiAlgorithm.Resolve(Hebrew);
 
-        result.VisualOrder.Should().Equal(new[] { 1, 0 });
+        result.VisualOrder.Should().Equal(1, 0);
     }
 
     // ----- reaching the internal itemiser --------------------------------------------------------

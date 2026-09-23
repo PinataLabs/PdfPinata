@@ -155,7 +155,7 @@ public class ValueModelParityTests
     {
         Descriptors(MetaFor(typeof(Border)))
             .Select(d => d.ValueName)
-            .Should().BeEquivalentTo(new[] { "parent", "visible", "style", "width", "color" });
+            .Should().BeEquivalentTo("parent", "visible", "style", "width", "color");
 
         // fClear deliberately carries no [DV] - it is a serialization instruction, not a value.
         MetaFor(typeof(Border))["fClear"].Should().BeNull();

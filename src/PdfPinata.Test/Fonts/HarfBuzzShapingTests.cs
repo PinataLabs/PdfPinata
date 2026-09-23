@@ -100,7 +100,7 @@ public class HarfBuzzShapingTests
         var run = Shape("\U0001F600", script: null);
 
         run.Glyphs.Should().HaveCount(1);
-        Clusters(run).Should().Equal(new[] { 0 });
+        Clusters(run).Should().Equal(0);
     }
 
     // ----- order ---------------------------------------------------------------------------------
@@ -110,7 +110,7 @@ public class HarfBuzzShapingTests
     {
         var run = Shape("abc");
 
-        Clusters(run).Should().Equal(new[] { 0, 1, 2 });
+        Clusters(run).Should().Equal(0, 1, 2);
         run.Direction.Should().Be(XTextDirection.LeftToRight);
     }
 
@@ -251,7 +251,7 @@ public class HarfBuzzShapingTests
         var run = Shape("\u0633\u0644\u0627\u0645", XTextDirection.RightToLeft, "arab");
 
         run.Glyphs.Should().OnlyContain(glyph => glyph.GlyphId == 0);
-        Clusters(run).Should().Equal(new[] { 3, 2, 1, 0 });
+        Clusters(run).Should().Equal(3, 2, 1, 0);
     }
 
     [Fact]

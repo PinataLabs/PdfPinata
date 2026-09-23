@@ -117,14 +117,14 @@ public class AstralCharacterTests
         // Liberation Sans has no format 12 subtable. The answer is still .notdef - it always was -
         // but it is one .notdef for one character, where it used to be one per surrogate.
         DrawnText.Glyphs(DrawnText.Page(Text(Lock), WithoutFormat12()))
-            .Should().Equal(new[] { 0 });
+            .Should().Equal(0);
     }
 
     [Fact]
     public void ACharacterNoFaceHasIsStillOneNotdef()
     {
         DrawnText.Glyphs(DrawnText.Page(Text(BoldA), WithFormat12()))
-            .Should().Equal(new[] { 0 });
+            .Should().Equal(0);
     }
 
     // ----- measuring agrees with drawing -----------------------------------------------------------

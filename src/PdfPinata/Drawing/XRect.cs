@@ -225,7 +225,7 @@ public struct XRect : IFormattable, IDeserializationCallback, IEquatable<XRect>
         var numericListSeparator = TokenizerHelper.GetNumericListSeparator(provider);
         provider ??= CultureInfo.InvariantCulture;
         // ReSharper disable FormatStringProblem
-        return string.Format(provider, "{1:" + format + "}{0}{2:" + format + "}{0}{3:" + format + "}{0}{4:" + format + "}", new object[] { numericListSeparator, _x, _y, _width, _height });
+        return string.Format(provider, "{1:" + format + "}{0}{2:" + format + "}{0}{3:" + format + "}{0}{4:" + format + "}", numericListSeparator, _x, _y, _width, _height);
         // ReSharper restore FormatStringProblem
     }
 

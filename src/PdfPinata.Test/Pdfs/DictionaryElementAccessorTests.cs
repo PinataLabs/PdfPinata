@@ -691,7 +691,7 @@ public class DictionaryElementAccessorTests
         dictionary.Elements.SetInteger("/A", 1);
         dictionary.Elements.SetInteger("/B", 2);
 
-        dictionary.Elements.Keys.Should().BeEquivalentTo(["/A", "/B"]);
+        dictionary.Elements.Keys.Should().BeEquivalentTo("/A", "/B");
         dictionary.Elements.KeyNames.Should().HaveCount(2);
         dictionary.Elements.Values.Should().HaveCount(2);
         dictionary.Elements.ContainsKey("/A").Should().BeTrue();
@@ -744,8 +744,8 @@ public class DictionaryElementAccessorTests
         foreach (var entry in (IEnumerable)dictionary.Elements)
             throughTheOldInterface.Add(entry);
 
-        throughTheDictionary.Should().BeEquivalentTo(["/A", "/B"]);
-        throughTheElements.Should().BeEquivalentTo(["/A", "/B"]);
+        throughTheDictionary.Should().BeEquivalentTo("/A", "/B");
+        throughTheElements.Should().BeEquivalentTo("/A", "/B");
         throughTheOldInterface.Should().HaveCount(2);
         ((IEnumerable)dictionary).GetEnumerator().Should().NotBeNull();
     }

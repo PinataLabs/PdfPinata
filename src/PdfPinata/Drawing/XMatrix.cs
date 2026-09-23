@@ -999,7 +999,7 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
         provider ??= CultureInfo.InvariantCulture;
         // ReSharper disable FormatStringProblem
         return string.Format(provider, "{1:" + format + "}{0}{2:" + format + "}{0}{3:" + format + "}{0}{4:" + format + "}{0}{5:" + format + "}{0}{6:" + format + "}",
-            new object[] { numericListSeparator, _m11, _m12, _m21, _m22, _offsetX, _offsetY });
+            numericListSeparator, _m11, _m12, _m21, _m22, _offsetX, _offsetY);
         // ReSharper restore FormatStringProblem
     }
 

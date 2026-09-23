@@ -266,7 +266,7 @@ public class AsciiFilterTests
     public void AsciiHexReadsLowerCaseDigitsToo()
     {
         Filtering.ASCIIHexDecode.Decode("00afA5ff"u8.ToArray(), (FilterParms)null)
-            .Should().Equal(new byte[] { 0x00, 0xAF, 0xA5, 0xFF });
+            .Should().Equal(0x00, 0xAF, 0xA5, 0xFF);
     }
 
     [Fact]

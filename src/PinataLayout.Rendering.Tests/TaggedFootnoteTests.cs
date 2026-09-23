@@ -70,7 +70,7 @@ public class TaggedFootnoteTests
 
         // The citation and the note it cites, in that order, inside the paragraph that cited them -
         // and not after the second paragraph, which is where they are drawn.
-        paragraphs[0].ChildTags().Should().Equal(new[] { "Reference", "Note" });
+        paragraphs[0].ChildTags().Should().Equal("Reference", "Note");
     }
 
     [Fact]

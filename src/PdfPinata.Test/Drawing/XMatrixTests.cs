@@ -45,7 +45,7 @@ public class XMatrixTests
         matrix.IsIdentity.Should().BeTrue();
         matrix.Should().Be(XMatrix.Identity);
         matrix.Transform(new XPoint(3, 4)).Should().Be(new XPoint(3, 4));
-        matrix.GetElements().Should().Equal(new double[] { 1, 0, 0, 1, 0, 0 });
+        matrix.GetElements().Should().Equal(1, 0, 0, 1, 0, 0);
     }
 
     [Fact]
@@ -70,7 +70,7 @@ public class XMatrixTests
 
         matrix.IsIdentity.Should().BeTrue();
         matrix.Transform(new XPoint(1, 1)).Should().Be(new XPoint(1, 1));
-        matrix.GetElements().Should().Equal(new double[] { 1, 0, 0, 1, 0, 0 });
+        matrix.GetElements().Should().Equal(1, 0, 0, 1, 0, 0);
         matrix.M11.Should().Be(1);
         matrix.M22.Should().Be(1);
         matrix.OffsetX.Should().Be(0);
@@ -87,7 +87,7 @@ public class XMatrixTests
         matrix.M22.Should().Be(4);
         matrix.OffsetX.Should().Be(5);
         matrix.OffsetY.Should().Be(6);
-        matrix.GetElements().Should().Equal(new double[] { 1, 2, 3, 4, 5, 6 });
+        matrix.GetElements().Should().Equal(1, 2, 3, 4, 5, 6);
     }
 
     [Fact]
@@ -98,7 +98,7 @@ public class XMatrixTests
             M11 = 1, M12 = 2, M21 = 3, M22 = 4, OffsetX = 5, OffsetY = 6
         };
 
-        matrix.GetElements().Should().Equal(new double[] { 1, 2, 3, 4, 5, 6 });
+        matrix.GetElements().Should().Equal(1, 2, 3, 4, 5, 6);
     }
 
     [Fact]

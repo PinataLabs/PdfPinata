@@ -179,7 +179,7 @@ public class PageResizeDestinationTests
         {
             destination.Elements.GetReal(2), destination.Elements.GetReal(3),
             destination.Elements.GetReal(4), destination.Elements.GetReal(5)
-        }.Should().Equal(new double[] { 50, 100, 150, 200 });
+        }.Should().Equal(50, 100, 150, 200);
     }
 
     [Fact]

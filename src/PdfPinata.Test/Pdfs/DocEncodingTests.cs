@@ -117,7 +117,7 @@ public class DocEncodingTests
     [InlineData('š', 0x9D)]
     public void ACharacterTheEncoderUsedToMisplaceIsWrittenAsItsOwnCode(char ch, byte code)
     {
-        DocEncoding.GetBytes(ch.ToString()).Should().Equal(new[] { code });
+        DocEncoding.GetBytes(ch.ToString()).Should().Equal(code);
     }
 
     [Theory]
@@ -132,7 +132,7 @@ public class DocEncodingTests
     [InlineData('\u009D')]
     public void ACharacterPdfDocEncodingCannotHoldIsWrittenAsTheCurrencySign(char ch)
     {
-        DocEncoding.GetBytes(ch.ToString()).Should().Equal(new byte[] { 0xA4 });
+        DocEncoding.GetBytes(ch.ToString()).Should().Equal(0xA4);
     }
 
     [Fact]
