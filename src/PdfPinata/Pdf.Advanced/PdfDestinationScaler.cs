@@ -51,7 +51,7 @@ namespace PdfPinata.Pdf.Advanced;
 /// the reader arrives.
 /// </para>
 /// </summary>
-static class PdfDestinationScaler
+internal static class PdfDestinationScaler
 {
     /// <summary>
     /// Moves every destination of the document that points at one of the pages given.

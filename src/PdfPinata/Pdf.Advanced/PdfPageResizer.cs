@@ -47,7 +47,7 @@ namespace PdfPinata.Pdf.Advanced;
 /// and take the transform with it.
 /// </para>
 /// </summary>
-static class PdfPageResizer
+internal static class PdfPageResizer
 {
     /// <summary>
     /// Resizes one page, and fixes up the destinations that point at it unless told not to.

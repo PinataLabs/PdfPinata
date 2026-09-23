@@ -35,7 +35,7 @@ using PinataLayout.DocumentObjectModel;
 
 namespace PinataLayout.Rendering;
 
-static class ColorHelper
+internal static class ColorHelper
 {
     /// <summary>
     /// Converts Color to XColor.

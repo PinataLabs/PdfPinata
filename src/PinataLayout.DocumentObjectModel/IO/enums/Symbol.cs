@@ -35,7 +35,7 @@ namespace PinataLayout.DocumentObjectModel.IO;
 /// <summary>
 /// The symbols used by DdlScanner/DdlParser.
 /// </summary>
-enum Symbol
+internal enum Symbol
 {
   // TokenType.None
   None,

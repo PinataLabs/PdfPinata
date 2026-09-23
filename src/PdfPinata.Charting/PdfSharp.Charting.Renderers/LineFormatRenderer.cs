@@ -34,7 +34,7 @@ namespace PdfPinata.Charting.Renderers;
 /// <summary>
 /// Represents a renderer specialized to draw lines in various styles, colors and widths.
 /// </summary>
-class LineFormatRenderer
+internal class LineFormatRenderer
 {
   /// <summary>
   /// Initializes a new instance of the LineFormatRenderer class with the specified graphics, line format

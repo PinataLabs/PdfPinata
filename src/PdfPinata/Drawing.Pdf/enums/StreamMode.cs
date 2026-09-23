@@ -32,7 +32,7 @@ namespace PdfPinata.Drawing.Pdf;
 /// <summary>
 /// Indicates whether we are within a BT/ET block.
 /// </summary>
-enum StreamMode
+internal enum StreamMode
 {
     /// <summary>
     /// Graphic mode. This is default.

@@ -13,7 +13,7 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 ///   wants to know what was wrong with a document has to read the error list and the exception
 ///   together, and cannot tell in advance which of the two a given fault will arrive in.
 /// </summary>
-static class ReaderDiagnostics
+internal static class ReaderDiagnostics
 {
     /// <summary>
     ///   Every complaint reading the given DDL produced, whether the reader wrote it to the error

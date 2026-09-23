@@ -35,7 +35,7 @@ namespace PinataLayout.DocumentObjectModel;
 /// <summary>
 /// Internal color names.
 /// </summary>
-enum ColorName : uint
+internal enum ColorName : uint
 {
   AliceBlue = 0xFFF0F8FF,
   AntiqueWhite = 0xFFFAEBD7,

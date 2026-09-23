@@ -40,7 +40,7 @@ namespace PdfPinata.Drawing;
 /// <summary>
 /// Helper class for Geometry paths.
 /// </summary>
-static class GeometryHelper
+internal static class GeometryHelper
 {
     /// <summary>
     /// Creates between 1 and 5 Béziers curves from parameters specified like in GDI+.

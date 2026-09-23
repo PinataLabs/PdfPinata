@@ -16,7 +16,7 @@ namespace PdfPinata.Pdf.Advanced;
 /// and the cost of decoding everything is paid on every save.
 /// </para>
 /// </summary>
-static class PdfTransparencyDetector
+internal static class PdfTransparencyDetector
 {
     /// <summary>
     /// How deep forms may be drawn within one another before this stops looking. Well past

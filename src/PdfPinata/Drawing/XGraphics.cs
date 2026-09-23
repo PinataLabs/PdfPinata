@@ -49,7 +49,7 @@ namespace PdfPinata.Drawing; // #??? aufräumen
 /// Holds information about the current state of the XGraphics object.
 /// </summary>
 [Flags]
-enum InternalGraphicsMode
+internal enum InternalGraphicsMode
 {
     DrawingGdiGraphics,
     DrawingPdfContent,

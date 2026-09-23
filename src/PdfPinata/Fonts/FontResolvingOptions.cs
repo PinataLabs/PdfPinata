@@ -34,7 +34,7 @@ namespace PdfPinata.Fonts;
 /// <summary>
 /// Parameters that affect font selection.
 /// </summary>
-class FontResolvingOptions
+internal class FontResolvingOptions
 {
     public FontResolvingOptions(XFontStyle fontStyle)
     {

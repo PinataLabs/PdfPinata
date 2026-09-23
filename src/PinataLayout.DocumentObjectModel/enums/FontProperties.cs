@@ -39,7 +39,7 @@ namespace PinataLayout.DocumentObjectModel;
 /// FOR INTERNAL USE ONLY.
 /// </summary>
 [Flags]
-enum FontProperties
+internal enum FontProperties
 {
   None = 0x0000,
   Name = 0x0001,

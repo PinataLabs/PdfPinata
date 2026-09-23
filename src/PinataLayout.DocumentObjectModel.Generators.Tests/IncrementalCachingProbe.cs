@@ -18,7 +18,7 @@ namespace PinataLayout.DocumentObjectModel.Generators.Tests;
 /// a step as cached when it is handed an equivalent compilation - so that is what these tests
 /// assert, through the public <see cref="DomValueModelGenerator"/> and Roslyn's own step tracking.
 /// </remarks>
-static class IncrementalCachingProbe
+internal static class IncrementalCachingProbe
 {
     /// <summary>
     /// Runs <paramref name="source"/>, then runs the same generator again over a freshly parsed

@@ -46,7 +46,7 @@ namespace PdfPinata.Pdf.Advanced;
 /// would leave the annotation drawn away from the thing it annotates.
 /// </para>
 /// </summary>
-static class PdfAnnotationTransformer
+internal static class PdfAnnotationTransformer
 {
     /// <summary>
     /// Moves every annotation of the page under the transform the page's content moved under.

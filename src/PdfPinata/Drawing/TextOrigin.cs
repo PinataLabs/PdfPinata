@@ -8,7 +8,7 @@ namespace PdfPinata.Drawing;
 /// draws a string and by <see cref="XGraphicsPath"/> when it adds one to a path. Two copies would
 /// drift, and text added to a path would then land somewhere other than the same text drawn.
 /// </remarks>
-static class TextOrigin
+internal static class TextOrigin
 {
     /// <summary>
     /// The point the first glyph's baseline starts at.

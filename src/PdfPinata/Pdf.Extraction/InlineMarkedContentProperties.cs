@@ -10,7 +10,7 @@ namespace PdfPinata.Pdf.Extraction;
 /// <see cref="PdfDictionary"/> already, reached through the page's own resources, and does not come
 /// through here.
 /// </summary>
-static class InlineMarkedContentProperties
+internal static class InlineMarkedContentProperties
 {
     /// <summary>
     /// Reads <c>/ActualText</c> and <c>/MCID</c> out of the raw dictionary text. Anything else the

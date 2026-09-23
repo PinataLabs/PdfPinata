@@ -26,7 +26,7 @@ namespace PdfPinata.Fonts;
 /// to repeat for every letter of every word of every page.
 /// </para>
 /// </remarks>
-static class FontFallbackResolution
+internal static class FontFallbackResolution
 {
     // What draws a character: null for "nobody has an opinion", the empty string for "the face
     // that was asked for", and otherwise the family to use instead. Keyed on the face rather than

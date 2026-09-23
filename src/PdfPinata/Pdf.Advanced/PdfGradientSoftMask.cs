@@ -29,7 +29,7 @@ namespace PdfPinata.Pdf.Advanced;
 /// <see cref="PdfTransparencyGroupAttributes"/> and <see cref="PdfExtGState.SoftMask"/> were all
 /// present and unreached from the gradient path.
 /// </remarks>
-static class PdfGradientSoftMask
+internal static class PdfGradientSoftMask
 {
     /// <summary>
     /// The extended graphics state that masks a gradient by its own alpha, or null where both of

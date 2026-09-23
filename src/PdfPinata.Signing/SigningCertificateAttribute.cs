@@ -17,7 +17,7 @@ namespace PdfPinata.Signing;
 /// authority's response always does, and a token minted without it is not a token .NET's own reader
 /// recognises as one.
 /// </remarks>
-static class SigningCertificateAttribute
+internal static class SigningCertificateAttribute
 {
     /// <summary>id-aa-signingCertificateV2, RFC 5035.</summary>
     private const string SigningCertificateV2Oid = "1.2.840.113549.1.9.16.2.47";

@@ -35,7 +35,7 @@ namespace PinataLayout.DocumentObjectModel.IO;
 /// <summary>
 /// The tokens used by DdlScanner/DdlParser.
 /// </summary>
-enum TokenType
+internal enum TokenType
 {
   /// <summary>
   /// White space or comment.

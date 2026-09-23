@@ -6,7 +6,7 @@ namespace PdfPinata.Pdf.Extraction;
 /// What extraction needs to know about a font: how wide a code is, what it stands for, and how far
 /// it advances the pen.
 /// </summary>
-sealed class FontInfo
+internal sealed class FontInfo
 {
     private readonly ToUnicodeCMap _toUnicode;
     private readonly Dictionary<int, double> _widths = new();

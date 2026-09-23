@@ -38,7 +38,7 @@ namespace PdfPinata.Drawing;
 /// <summary>
 /// Bunch of functions that do not have a better place.
 /// </summary>
-static class FontHelper
+internal static class FontHelper
 {
     /// <summary>
     /// Whether this face is having its boldness simulated because the family had no bold file.

@@ -91,7 +91,7 @@ public enum PdfStringEncoding
 /// Internal wrapper for PdfStringEncoding.
 /// </summary>
 [Flags]
-enum PdfStringFlags
+internal enum PdfStringFlags
 {
     // ReSharper disable InconsistentNaming
     RawEncoding = 0x00,

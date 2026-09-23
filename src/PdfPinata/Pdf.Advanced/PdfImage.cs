@@ -451,7 +451,7 @@ public sealed class PdfImage : PdfXObject
 /// <summary>
 /// Helper class for creating bitmap masks (8 pels per byte).
 /// </summary>
-class MonochromeMask
+internal class MonochromeMask
 {
     /// <summary>
     /// Returns the bitmap mask that will be written to PDF.

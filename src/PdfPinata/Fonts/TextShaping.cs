@@ -11,7 +11,7 @@ namespace PdfPinata.Fonts;
 /// glyphs a string draws as - measuring, drawing, outlining - asks here, so that registering an
 /// <see cref="ITextShaper"/> changes all of them at once and none of them separately.
 /// </summary>
-static class TextShaping
+internal static class TextShaping
 {
     /// <summary>
     /// Shapes a whole string: cuts it into runs that are each one direction, one script and one

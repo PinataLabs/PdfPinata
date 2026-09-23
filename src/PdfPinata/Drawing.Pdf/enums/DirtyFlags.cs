@@ -32,7 +32,7 @@ using System;
 namespace PdfPinata.Drawing.Pdf;
 
 [Flags]
-enum DirtyFlags
+internal enum DirtyFlags
 {
     Ctm = 0x00000001,
     ClipPath = 0x00000002,

@@ -30,7 +30,7 @@ namespace PdfPinata.Fonts;
 /// units per em, so there is no one em for the whole to be measured in.
 /// </para>
 /// </remarks>
-sealed class ShapedText
+internal sealed class ShapedText
 {
     /// <summary>
     /// Initializes a new <see cref="ShapedText"/> from segments already in visual order.
@@ -99,7 +99,7 @@ sealed class ShapedText
 /// One shaped run of a string: its glyphs, the face they are drawn with, and where in the string
 /// the characters came from.
 /// </summary>
-readonly struct ShapedSegment
+internal readonly struct ShapedSegment
 {
     internal ShapedSegment(ShapedRun run, XFont font, int start, int length)
     {

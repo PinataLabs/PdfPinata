@@ -43,7 +43,7 @@ namespace PdfPinata;
 /// The Pdf-Sharp-String-Resources.
 /// </summary>
 // ReSharper disable once InconsistentNaming
-static class PSSR
+internal static class PSSR
 {
     // How to use:
     // Create a function or property for each message text, depending on how many parameters are
