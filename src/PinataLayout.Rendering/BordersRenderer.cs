@@ -244,6 +244,6 @@ internal class BordersRenderer
     return pen;
   }
 
-  private XGraphics gfx;
-  private Borders borders;
+  private readonly XGraphics gfx;
+  private readonly Borders borders;
 }

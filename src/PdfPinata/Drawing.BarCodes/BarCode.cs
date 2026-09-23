@@ -67,26 +67,17 @@ public abstract class BarCode : CodeBase
     /// </remarks>
     public static BarCode FromType(CodeType type, string text, XSize size, CodeDirection direction)
     {
-        switch (type)
+        return type switch
         {
-            case CodeType.Code2of5Interleaved:
-                return new Code2of5Interleaved(text, size, direction);
-
-            case CodeType.Code3of9Standard:
-                return new Code3of9Standard(text, size, direction);
-
-            case CodeType.Omr:
-                return new CodeOmr(text, size, direction);
-
-            case CodeType.DataMatrix:
-                throw new ArgumentException(
-                    "A data matrix is a MatrixCode rather than a BarCode and cannot be created here. "
-                    + "Construct 'new CodeDataMatrix(text, rows, columns, size)' and draw it with "
-                    + "XGraphics.DrawMatrixCode.", nameof(type));
-
-            default:
-                throw new InvalidEnumArgumentException(nameof(type), (int)type, typeof(CodeType));
-        }
+            CodeType.Code2of5Interleaved => new Code2of5Interleaved(text, size, direction),
+            CodeType.Code3of9Standard => new Code3of9Standard(text, size, direction),
+            CodeType.Omr => new CodeOmr(text, size, direction),
+            CodeType.DataMatrix => throw new ArgumentException(
+                "A data matrix is a MatrixCode rather than a BarCode and cannot be created here. "
+                + "Construct 'new CodeDataMatrix(text, rows, columns, size)' and draw it with "
+                + "XGraphics.DrawMatrixCode.", nameof(type)),
+            _ => throw new InvalidEnumArgumentException(nameof(type), (int)type, typeof(CodeType))
+        };
     }
 
     /// <summary>

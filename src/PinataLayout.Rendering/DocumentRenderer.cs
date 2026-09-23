@@ -92,7 +92,7 @@ public class DocumentRenderer
     /// </remarks>
     internal FootnoteRegistry Footnotes => footnotes;
 
-    private FootnoteRegistry footnotes;
+    private readonly FootnoteRegistry footnotes;
 
     /// <summary>
     /// Occurs while the document is being prepared (can be used to show a progress bar).
@@ -176,8 +176,7 @@ public class DocumentRenderer
     /// Builds the structure tree as the document is drawn. Shared by every renderer of this pass, so
     /// that a paragraph broken over two pages stays one paragraph.
     /// </summary>
-    internal StructureTagger Tagger => tagger ??= new StructureTagger();
-    private StructureTagger tagger;
+    internal StructureTagger Tagger => field ??= new StructureTagger();
 
     /// <summary>
     /// Renders a PinataLayout document to the specified graphics object.
@@ -464,7 +463,7 @@ public class DocumentRenderer
     }
     private ListInfo previousListInfo;
     private Hashtable previousListNumbers;
-    private Document document;
+    private readonly Document document;
     internal DateTime printDate = DateTime.MinValue;
 
     /// <summary>

@@ -51,21 +51,14 @@ public static class NumberFormatter
     /// </summary>
     public static string Format(int number, string format)
     {
-        switch (format)
+        return format switch
         {
-            case "ROMAN":
-                return AsRoman(number, false);
-
-            case "roman":
-                return AsRoman(number, true);
-
-            case "ALPHABETIC":
-                return AsLetters(number, false);
-
-            case "alphabetic":
-                return AsLetters(number, true);
-        }
-        return number.ToString();
+            "ROMAN" => AsRoman(number, false),
+            "roman" => AsRoman(number, true),
+            "ALPHABETIC" => AsLetters(number, false),
+            "alphabetic" => AsLetters(number, true),
+            _ => number.ToString()
+        };
     }
 
 

@@ -80,30 +80,26 @@ public sealed class PdfTextField : PdfAcroField
     /// </remarks>
     public XFont Font
     {
-        get => _font;
+        get;
         set
         {
-            _font = value;
+            field = value;
             RenderAppearance();
         }
-    }
-
-    private XFont _font = new(GlobalFontSettings.FontResolver.DefaultFontName, 10);
+    } = new(GlobalFontSettings.FontResolver.DefaultFontName, 10);
 
     /// <summary>
     /// Gets or sets the foreground color of the field.
     /// </summary>
     public XColor ForeColor
     {
-        get => _foreColor;
+        get;
         set
         {
-            _foreColor = value;
+            field = value;
             RenderAppearance();
         }
-    }
-
-    private XColor _foreColor = XColors.Black;
+    } = XColors.Black;
 
     /// <summary>
     /// Gets or sets the background color of the field.

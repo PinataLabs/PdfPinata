@@ -223,13 +223,11 @@ public class XPdfForm : XForm
         {
             if (IsTemplate)
                 return 1;
-            if (_pageCount == -1)
-                _pageCount = ExternalDocument.Pages.Count;
-            return _pageCount;
+            if (field == -1)
+                field = ExternalDocument.Pages.Count;
+            return field;
         }
-    }
-
-    private int _pageCount = -1;
+    } = -1;
 
     /// <summary>
     /// Gets the width in point of the page identified by the property PageNumber.
@@ -351,7 +349,7 @@ public class XPdfForm : XForm
 
     internal PdfDocument _externalDocument;
 
-    private PdfReadAccuracy _pathReadAccuracy;
+    private readonly PdfReadAccuracy _pathReadAccuracy;
 
     /// <summary>
     /// Extracts the page number if the path has the form 'MyFile.pdf#123' and returns

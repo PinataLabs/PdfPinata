@@ -9,8 +9,7 @@ internal abstract class EncryptorBase
     /// The MD5 implementation the standard security handler is built on. It is created on
     /// first use, because revision 5 and 6 encryption does not need it at all.
     /// </summary>
-    protected MD5Managed md5 => md5Instance ??= new MD5Managed();
-    private MD5Managed md5Instance;
+    protected MD5Managed md5 => field ??= new MD5Managed();
 
     /// <summary>
     /// The encryption key for the owner.

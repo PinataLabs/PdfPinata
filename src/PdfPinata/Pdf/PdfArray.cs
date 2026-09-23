@@ -448,7 +448,7 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
             {
                 ArgumentNullException.ThrowIfNull(value);
                 _elements[index] = value;
-                PdfObject.Contain(value, _ownerArray);
+                Contain(value, _ownerArray);
                 MarkOwnerAsChanged();
             }
         }

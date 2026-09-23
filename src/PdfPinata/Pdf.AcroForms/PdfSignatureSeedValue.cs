@@ -465,7 +465,7 @@ public sealed class PdfCertificateSeedValue : PdfDictionary
 /// <summary>
 /// The arrays of names, strings and byte strings both seed value dictionaries are mostly made of.
 /// </summary>
-static class SeedValues
+internal static class SeedValues
 {
     public static IReadOnlyList<T> Read<T>(PdfArray array, Func<PdfArray, int, T> item)
     {

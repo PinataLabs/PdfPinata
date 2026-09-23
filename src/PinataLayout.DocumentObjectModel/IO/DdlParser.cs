@@ -390,26 +390,26 @@ internal class DdlParser
             return true;
 
         var symbol = scanner.PeekKeyword();
-        switch (symbol)
+        return symbol switch
         {
-            case Symbol.Bold:
-            case Symbol.Italic:
-            case Symbol.Underline:
-            case Symbol.Field:
-            case Symbol.Font:
-            case Symbol.FontColor:
-            case Symbol.FontSize:
-            case Symbol.Footnote:
-            case Symbol.Hyperlink:
-            case Symbol.Symbol:
-            case Symbol.Chr:
-            case Symbol.Tab:
-            case Symbol.LineBreak:
-            case Symbol.Space:
-            case Symbol.SoftHyphen:
-                return true;
-        }
-        return false;
+            Symbol.Bold
+                or Symbol.Italic
+                or Symbol.Underline
+                or Symbol.Field
+                or Symbol.Font
+                or Symbol.FontColor
+                or Symbol.FontSize
+                or Symbol.Footnote
+                or Symbol.Hyperlink
+                or Symbol.Symbol
+                or Symbol.Chr
+                or Symbol.Tab
+                or Symbol.LineBreak
+                or Symbol.Space
+                or Symbol.SoftHyphen
+                => true,
+            _ => false
+        };
     }
 
     /// <summary>
@@ -532,10 +532,9 @@ internal class DdlParser
     private static void RemoveTrailingBlank(ParagraphElements elements)
     {
         var dom = elements.LastObject;
-        if (dom is not Text)
+        if (dom is not Text text)
             return;
 
-        var text = (Text)dom;
         if (text.Content.EndsWith(' '))
             text.Content = text.Content.Remove(text.Content.Length - 1, 1);
     }
@@ -893,41 +892,18 @@ internal class DdlParser
         ReadCode();  // read ')'
         AssertSymbol(Symbol.ParenRight);
 
-        DocumentObject field = null;
-        switch (fieldType)
+        DocumentObject field = fieldType switch
         {
-            case "date":
-                field = elements.AddDateField();
-                break;
-
-            case "page":
-                field = elements.AddPageField();
-                break;
-
-            case "numpages":
-                field = elements.AddNumPagesField();
-                break;
-
-            case "info":
-                field = elements.AddInfoField(0);
-                break;
-
-            case "sectionpages":
-                field = elements.AddSectionPagesField();
-                break;
-
-            case "section":
-                field = elements.AddSectionField();
-                break;
-
-            case "bookmark":
-                field = elements.AddBookmark("");
-                break;
-
-            case "pageref":
-                field = elements.AddPageRefField("");
-                break;
-        }
+            "date" => elements.AddDateField(),
+            "page" => elements.AddPageField(),
+            "numpages" => elements.AddNumPagesField(),
+            "info" => elements.AddInfoField(0),
+            "sectionpages" => elements.AddSectionPagesField(),
+            "section" => elements.AddSectionField(),
+            "bookmark" => elements.AddBookmark(""),
+            "pageref" => elements.AddPageRefField(""),
+            _ => null
+        };
         AssertCondition(field != null, DomMsgID.InvalidFieldType, Token);
 
         if (scanner.PeekSymbol() != Symbol.BracketLeft)
@@ -1972,8 +1948,8 @@ internal class DdlParser
                     val = doc.GetValue(valueName);
                     AssertCondition(val != null, DomMsgID.InvalidValueName, valueName);
 
-                    if (val is DocumentObject)
-                        ParseAttributeBlock((DocumentObject)val);
+                    if (val is DocumentObject documentObject)
+                        ParseAttributeBlock(documentObject);
                     else
                         ThrowParserException(DomMsgID.SymbolIsNotAnObject, valueName);
                     break;
@@ -2747,6 +2723,6 @@ internal class DdlParser
     /// </summary>
     private TokenType TokenType => scanner.TokenType;
 
-    private DdlScanner scanner;
-    private DdlReaderErrors errors;
+    private readonly DdlScanner scanner;
+    private readonly DdlReaderErrors errors;
 }

@@ -173,26 +173,26 @@ public class PdfFileSpecification : PdfDictionary
     /// </summary>
     private static PdfAFRelationship RelationshipOf(string name)
     {
-        switch (name)
+        return name switch
         {
-            case "/Source": return PdfAFRelationship.Source;
-            case "/Data": return PdfAFRelationship.Data;
-            case "/Alternative": return PdfAFRelationship.Alternative;
-            case "/Supplement": return PdfAFRelationship.Supplement;
-            default: return PdfAFRelationship.Unspecified;
-        }
+            "/Source" => PdfAFRelationship.Source,
+            "/Data" => PdfAFRelationship.Data,
+            "/Alternative" => PdfAFRelationship.Alternative,
+            "/Supplement" => PdfAFRelationship.Supplement,
+            _ => PdfAFRelationship.Unspecified
+        };
     }
 
     private static string NameOf(PdfAFRelationship relationship)
     {
-        switch (relationship)
+        return relationship switch
         {
-            case PdfAFRelationship.Source: return "/Source";
-            case PdfAFRelationship.Data: return "/Data";
-            case PdfAFRelationship.Alternative: return "/Alternative";
-            case PdfAFRelationship.Supplement: return "/Supplement";
-            default: return "/Unspecified";
-        }
+            PdfAFRelationship.Source => "/Source",
+            PdfAFRelationship.Data => "/Data",
+            PdfAFRelationship.Alternative => "/Alternative",
+            PdfAFRelationship.Supplement => "/Supplement",
+            _ => "/Unspecified"
+        };
     }
 
     /// <summary>
@@ -268,11 +268,10 @@ public class PdfFileSpecification : PdfDictionary
         {
             get
             {
-                meta ??= CreateMeta(typeof(Keys));
-                return meta;
+                field ??= CreateMeta(typeof(Keys));
+                return field;
             }
         }
-        private static DictionaryMeta meta;
     }
 
     /// <summary>

@@ -132,5 +132,5 @@ internal class TextFrameRenderer : ShapeRenderer
     if (state != null)
       Gfx.Restore(state);
   }
-  private TextFrame textframe;
+  private readonly TextFrame textframe;
 }

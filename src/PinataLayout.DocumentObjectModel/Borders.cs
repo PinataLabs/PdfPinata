@@ -460,7 +460,7 @@ public partial class Borders : DocumentObject, IEnumerable
     public class BorderEnumerator : IEnumerator
     {
         private int index;
-        private Hashtable ht;
+        private readonly Hashtable ht;
 
         /// <summary>
         /// Creates a new BorderEnumerator.

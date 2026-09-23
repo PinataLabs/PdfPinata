@@ -32,7 +32,7 @@ namespace PdfPinata;
 /// <summary>
 /// Floating point formatting.
 /// </summary>
-static class Config
+internal static class Config
 {
     public const string SignificantFigures2 = "0.##";
     public const string SignificantFigures3 = "0.###";
@@ -42,7 +42,7 @@ static class Config
     public const string SignificantFigures1Plus9 = "0.0#########";
 }
 
-static class Const
+internal static class Const
 {
     // The degree-to-radian factor lives on Internal.Calc, which is where the arc and Bezier code
     // has always taken it from. It was declared here as well, identically, and the two copies

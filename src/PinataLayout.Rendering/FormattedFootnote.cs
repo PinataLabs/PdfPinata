@@ -36,7 +36,7 @@ internal class FormattedFootnote : IAreaProvider
 
     internal void Format(XGraphics gfx)
     {
-        _indent = CalcIndent(gfx);
+        Indent = CalcIndent(gfx);
         _isFirstArea = true;
         _formatter = new TopDownFormatter(this, _documentRenderer, _footnote.Elements);
         _formatter.FormatOnAreas(gfx, false);
@@ -85,9 +85,7 @@ internal class FormattedFootnote : IAreaProvider
     private static readonly XUnit MarkGap = XUnit.FromPoint(2);
 
     /// <summary>The gutter the mark is drawn in, to the left of the note's own text.</summary>
-    internal XUnit Indent => _indent;
-
-    private XUnit _indent;
+    internal XUnit Indent { get; private set; }
 
     /// <summary>The note as laid out, top to bottom.</summary>
     internal RenderInfo[] GetRenderInfos()
@@ -116,7 +114,7 @@ internal class FormattedFootnote : IAreaProvider
         // inside that narrower column and shifted right when it is drawn, which is what makes the
         // indent a hanging one rather than an indent on the first line alone.
         _isFirstArea = false;
-        return new Rectangle(0, 0, _width - _indent, double.MaxValue);
+        return new Rectangle(0, 0, _width - Indent, double.MaxValue);
     }
 
     Area IAreaProvider.ProbeNextArea() => null;

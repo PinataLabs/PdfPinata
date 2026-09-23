@@ -59,16 +59,12 @@ public class FlateDecode : Filter
         // DeflateStream/GZipStream does not work immediately and I have not the leisure to work it out.
         // So I keep on using SharpZipLib even with .NET 2.0.
 
-        var level = Deflater.DEFAULT_COMPRESSION;
-        switch (mode)
+        var level = mode switch
         {
-            case PdfFlateEncodeMode.BestCompression:
-                level = Deflater.BEST_COMPRESSION;
-                break;
-            case PdfFlateEncodeMode.BestSpeed:
-                level = Deflater.BEST_SPEED;
-                break;
-        }
+            PdfFlateEncodeMode.BestCompression => Deflater.BEST_COMPRESSION,
+            PdfFlateEncodeMode.BestSpeed => Deflater.BEST_SPEED,
+            _ => Deflater.DEFAULT_COMPRESSION
+        };
         var zip = new DeflaterOutputStream(ms, new Deflater(level, false));
         zip.Write(data, 0, data.Length);
         zip.Finish();

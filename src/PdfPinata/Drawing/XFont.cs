@@ -295,12 +295,10 @@ public sealed class XFont
     /// Built once and kept, so that a shaper called for every word of a paragraph is handed the
     /// same instance each time and can cache its own face against it.
     /// </remarks>
-    internal ShapingFont ShapingFont => _shapingFont ??= new ShapingFont(
+    internal ShapingFont ShapingFont => field ??= new ShapingFont(
         _glyphTypeface.FamilyName, _glyphTypeface.FaceName, _glyphTypeface.Key,
         _glyphTypeface.IsBold, _glyphTypeface.IsItalic,
         _emSize, _unitsPerEm, _glyphTypeface.FontSource.Bytes);
-
-    private ShapingFont _shapingFont;
 
 
     internal OpenTypeDescriptor Descriptor => _descriptor;
@@ -310,7 +308,7 @@ public sealed class XFont
 
     internal string FamilyName => _familyName;
 
-    private string _familyName;
+    private readonly string _familyName;
 
 
     internal int UnitsPerEm

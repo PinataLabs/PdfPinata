@@ -158,7 +158,7 @@ internal class AreaChartRenderer : ColumnLikeChartRenderer
     var seriesIndex = 0;
     foreach (var sri in cri.SeriesRendererInfos)
     {
-      sri.LineFormat = Converter.ToXPen(sri.Series.lineFormat, XColors.Black, ChartRenderer.DefaultSeriesLineWidth);
+      sri.LineFormat = Converter.ToXPen(sri.Series.lineFormat, XColors.Black, DefaultSeriesLineWidth);
       sri.FillFormat = Converter.ToXBrush(sri.Series.fillFormat, ColumnColors.Item(seriesIndex++));
 
       sri.PointRendererInfos = new PointRendererInfo[sri.Series.Elements.Count];

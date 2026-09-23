@@ -385,7 +385,7 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
     /// </summary>
     public void RotatePrepend(double angle)
     {
-        angle = angle % 360.0;
+        angle %= 360.0;
         this = CreateRotationRadians(angle * Calc.Deg2Rad) * this;
     }
 
@@ -397,7 +397,7 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
         if (_type == XMatrixTypes.Identity)
             this = CreateIdentity();
 
-        angle = angle * Calc.Deg2Rad;
+        angle *= Calc.Deg2Rad;
         var cos = Math.Cos(angle);
         var sin = Math.Sin(angle);
         if (order == XMatrixOrder.Append)
@@ -452,7 +452,7 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
     /// </summary>
     public void RotateAtPrepend(double angle, double centerX, double centerY)
     {
-        angle = angle % 360.0;
+        angle %= 360.0;
         this = CreateRotationRadians(angle * Calc.Deg2Rad, centerX, centerY) * this;
     }
 
@@ -488,12 +488,12 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
     {
         if (order == XMatrixOrder.Append)
         {
-            angle = angle % 360.0;
+            angle %= 360.0;
             this *= CreateRotationRadians(angle * Calc.Deg2Rad, point.X, point.Y);
         }
         else
         {
-            angle = angle % 360.0;
+            angle %= 360.0;
             this = CreateRotationRadians(angle * Calc.Deg2Rad, point.X, point.Y) * this;
         }
         DeriveMatrixType();
@@ -571,8 +571,8 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
     /// </summary>
     public void SkewAppend(double skewX, double skewY)
     {
-        skewX = skewX % 360.0;
-        skewY = skewY % 360.0;
+        skewX %= 360.0;
+        skewY %= 360.0;
         this *= CreateSkewRadians(skewX * Calc.Deg2Rad, skewY * Calc.Deg2Rad);
     }
 
@@ -581,8 +581,8 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
     /// </summary>
     public void SkewPrepend(double skewX, double skewY)
     {
-        skewX = skewX % 360.0;
-        skewY = skewY % 360.0;
+        skewX %= 360.0;
+        skewY %= 360.0;
         this = CreateSkewRadians(skewX * Calc.Deg2Rad, skewY * Calc.Deg2Rad) * this;
     }
 
@@ -673,17 +673,12 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
     {
         get
         {
-            switch (_type)
+            return _type switch
             {
-                case XMatrixTypes.Identity:
-                case XMatrixTypes.Translation:
-                    return 1.0;
-
-                case XMatrixTypes.Scaling:
-                case XMatrixTypes.Scaling | XMatrixTypes.Translation:
-                    return _m11 * _m22;
-            }
-            return _m11 * _m22 - _m12 * _m21;
+                XMatrixTypes.Identity or XMatrixTypes.Translation => 1.0,
+                XMatrixTypes.Scaling or XMatrixTypes.Scaling | XMatrixTypes.Translation => _m11 * _m22,
+                _ => _m11 * _m22 - _m12 * _m21
+            };
         }
     }
 
@@ -999,7 +994,7 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
         provider ??= CultureInfo.InvariantCulture;
         // ReSharper disable FormatStringProblem
         return string.Format(provider, "{1:" + format + "}{0}{2:" + format + "}{0}{3:" + format + "}{0}{4:" + format + "}{0}{5:" + format + "}{0}{6:" + format + "}",
-            new object[] { numericListSeparator, _m11, _m12, _m21, _m22, _offsetX, _offsetY });
+            numericListSeparator, _m11, _m12, _m21, _m22, _offsetX, _offsetY);
         // ReSharper restore FormatStringProblem
     }
 

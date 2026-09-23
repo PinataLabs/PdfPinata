@@ -331,7 +331,7 @@ public static class GlobalFontSettings
         {
             if (!_fontEncodingInitialized)
                 DefaultFontEncoding = PdfFontEncoding.Unicode;
-            return _fontEncoding;
+            return field;
         }
         set
         {
@@ -341,18 +341,17 @@ public static class GlobalFontSettings
                 if (_fontEncodingInitialized)
                 {
                     // Ignore multiple setting e.g. in a web application.
-                    if (_fontEncoding == value)
+                    if (field == value)
                         return;
                     throw new InvalidOperationException("Must not change DefaultFontEncoding after is was set once.");
                 }
 
-                _fontEncoding = value;
+                field = value;
                 _fontEncodingInitialized = true;
             }
             finally { Lock.ExitFontFactory(); }
         }
     }
-    private static PdfFontEncoding _fontEncoding;
     private static bool _fontEncodingInitialized;
 
     /// <summary>

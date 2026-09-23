@@ -90,28 +90,19 @@ internal abstract class ShapeRenderer : Renderer
         shape.RelativeVertical != RelativeVertical.Paragraph)
         return Floating.None;
 
-    switch (shape.WrapFormat.Style)
+    return shape.WrapFormat.Style switch
     {
-      case WrapStyle.None:
-      case WrapStyle.Through:
-        return Floating.None;
-
+      WrapStyle.None or WrapStyle.Through => Floating.None,
       // The wrap style names the side the text runs down; Floating names the same side. Both
       // enumerations read the same way round, which is the point of saying so in each of them.
-      case WrapStyle.Left:
-        return Floating.Left;
-
-      case WrapStyle.Right:
-        return Floating.Right;
-
+      WrapStyle.Left => Floating.Left,
+      WrapStyle.Right => Floating.Right,
       // A line is given one span of the width available to it rather than every span, so asking
       // for the roomier side and asking for either side come to the same thing. See the remarks
       // on WrapStyle.Both.
-      case WrapStyle.Largest:
-      case WrapStyle.Both:
-        return Floating.BothSides;
-    }
-    return Floating.TopBottom;
+      WrapStyle.Largest or WrapStyle.Both => Floating.BothSides,
+      _ => Floating.TopBottom
+    };
   }
 
   /// <summary>
@@ -168,40 +159,32 @@ internal abstract class ShapeRenderer : Renderer
 
   private HorizontalReference GetHorizontalReference()
   {
-    switch (shape.RelativeHorizontal)
+    return shape.RelativeHorizontal switch
     {
-      case RelativeHorizontal.Margin:
-        return HorizontalReference.PageMargin;
-      case RelativeHorizontal.Page:
-        return HorizontalReference.Page;
-    }
-    return HorizontalReference.AreaBoundary;
+      RelativeHorizontal.Margin => HorizontalReference.PageMargin,
+      RelativeHorizontal.Page => HorizontalReference.Page,
+      _ => HorizontalReference.AreaBoundary
+    };
   }
 
   private VerticalReference GetVerticalReference()
   {
-    switch (shape.RelativeVertical)
+    return shape.RelativeVertical switch
     {
-      case RelativeVertical.Margin:
-        return VerticalReference.PageMargin;
-
-      case RelativeVertical.Page:
-        return VerticalReference.Page;
-    }
-    return VerticalReference.PreviousElement;
+      RelativeVertical.Margin => VerticalReference.PageMargin,
+      RelativeVertical.Page => VerticalReference.Page,
+      _ => VerticalReference.PreviousElement
+    };
   }
 
   private ElementAlignment GetVerticalAlignment()
   {
-    switch (shape.Top.ShapePosition)
+    return shape.Top.ShapePosition switch
     {
-      case ShapePosition.Center:
-        return ElementAlignment.Center;
-
-      case ShapePosition.Bottom:
-        return ElementAlignment.Far;
-    }
-    return ElementAlignment.Near;
+      ShapePosition.Center => ElementAlignment.Center,
+      ShapePosition.Bottom => ElementAlignment.Far,
+      _ => ElementAlignment.Near
+    };
   }
 
   protected void RenderFilling()
@@ -221,21 +204,14 @@ internal abstract class ShapeRenderer : Renderer
 
   private ElementAlignment GetHorizontalAlignment()
   {
-    switch (shape.Left.ShapePosition)
+    return shape.Left.ShapePosition switch
     {
-      case ShapePosition.Center:
-        return ElementAlignment.Center;
-
-      case ShapePosition.Right:
-        return ElementAlignment.Far;
-
-      case ShapePosition.Outside:
-        return ElementAlignment.Outside;
-
-      case ShapePosition.Inside:
-        return ElementAlignment.Inside;
-    }
-    return ElementAlignment.Near;
+      ShapePosition.Center => ElementAlignment.Center,
+      ShapePosition.Right => ElementAlignment.Far,
+      ShapePosition.Outside => ElementAlignment.Outside,
+      ShapePosition.Inside => ElementAlignment.Inside,
+      _ => ElementAlignment.Near
+    };
   }
   protected LineFormatRenderer lineFormatRenderer;
   protected FillFormatRenderer fillFormatRenderer;

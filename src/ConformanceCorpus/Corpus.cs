@@ -26,7 +26,7 @@ namespace ConformanceCorpus;
 /// output intent, transparency, an associated file, a structure tree.
 /// </para>
 /// </remarks>
-static class Corpus
+internal static class Corpus
 {
     internal static IEnumerable<(string Name, byte[] Bytes)> Documents()
     {

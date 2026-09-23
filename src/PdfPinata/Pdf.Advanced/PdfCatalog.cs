@@ -61,25 +61,13 @@ public sealed class PdfCatalog : PdfDictionary
         get => _version;
         set
         {
-            switch (value)
+            _version = value switch
             {
-                case "1.0":
-                case "1.1":
-                case "1.2":
-                    throw new InvalidOperationException("Unsupported PDF version.");
-
-                case "1.3":
-                case "1.4":
-                    _version = value;
-                    break;
-
-                case "1.5":
-                case "1.6":
-                    throw new InvalidOperationException("Unsupported PDF version.");
-
-                default:
-                    throw new ArgumentException("Invalid version.");
-            }
+                "1.0" or "1.1" or "1.2" => throw new InvalidOperationException("Unsupported PDF version."),
+                "1.3" or "1.4" => value,
+                "1.5" or "1.6" => throw new InvalidOperationException("Unsupported PDF version."),
+                _ => throw new ArgumentException("Invalid version.")
+            };
         }
     }
     private string _version = "1.3";
@@ -127,11 +115,10 @@ public sealed class PdfCatalog : PdfDictionary
     {
         get
         {
-            _viewerPreferences ??= (PdfViewerPreferences)Elements.GetValue(Keys.ViewerPreferences, VCF.CreateIndirect);
-            return _viewerPreferences;
+            field ??= (PdfViewerPreferences)Elements.GetValue(Keys.ViewerPreferences, VCF.CreateIndirect);
+            return field;
         }
     }
-    private PdfViewerPreferences _viewerPreferences;
 
     /// <summary>
     /// Implementation of PdfDocument.Outlines.

@@ -286,7 +286,7 @@ public class DataLabelTests
     {
         var labels = ValueLabelsOf(BarLabelsAt(DataLabelPosition.Center));
 
-        labels.Select(label => label.Text).Should().BeEquivalentTo(new[] { "10", "20", "30" });
+        labels.Select(label => label.Text).Should().BeEquivalentTo("10", "20", "30");
     }
 
     [Theory]

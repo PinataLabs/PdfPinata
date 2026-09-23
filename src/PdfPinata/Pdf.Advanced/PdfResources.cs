@@ -195,36 +195,22 @@ public sealed class PdfResources : PdfDictionary
     /// <summary>
     /// Gets the fonts map.
     /// </summary>
-    internal PdfResourceMap Fonts => _fonts ??= (PdfResourceMap)Elements.GetValue(Keys.Font, VCF.Create);
-
-    private PdfResourceMap _fonts;
+    internal PdfResourceMap Fonts => field ??= (PdfResourceMap)Elements.GetValue(Keys.Font, VCF.Create);
 
     /// <summary>
     /// Gets the external objects map.
     /// </summary>
-    internal PdfResourceMap XObjects => _xObjects ??= (PdfResourceMap)Elements.GetValue(Keys.XObject, VCF.Create);
+    internal PdfResourceMap XObjects => field ??= (PdfResourceMap)Elements.GetValue(Keys.XObject, VCF.Create);
 
-    private PdfResourceMap _xObjects;
+    internal PdfResourceMap ExtGStates => field ??= (PdfResourceMap)Elements.GetValue(Keys.ExtGState, VCF.Create);
 
-    internal PdfResourceMap ExtGStates => _extGStates ??= (PdfResourceMap)Elements.GetValue(Keys.ExtGState, VCF.Create);
+    internal PdfResourceMap ColorSpaces => field ??= (PdfResourceMap)Elements.GetValue(Keys.ColorSpace, VCF.Create);
 
-    private PdfResourceMap _extGStates;
+    internal PdfResourceMap Patterns => field ??= (PdfResourceMap) Elements.GetValue(Keys.Pattern, VCF.Create);
 
-    internal PdfResourceMap ColorSpaces => _colorSpaces ??= (PdfResourceMap)Elements.GetValue(Keys.ColorSpace, VCF.Create);
+    internal PdfResourceMap Shadings => field ??= (PdfResourceMap) Elements.GetValue(Keys.Shading, VCF.Create);
 
-    private PdfResourceMap _colorSpaces;
-
-    internal PdfResourceMap Patterns => _patterns ??= (PdfResourceMap) Elements.GetValue(Keys.Pattern, VCF.Create);
-
-    private PdfResourceMap _patterns;
-
-    internal PdfResourceMap Shadings => _shadings ??= (PdfResourceMap) Elements.GetValue(Keys.Shading, VCF.Create);
-
-    private PdfResourceMap _shadings;
-
-    internal PdfResourceMap Properties => _properties ??= (PdfResourceMap) Elements.GetValue(Keys.Properties, VCF.Create);
-
-    private PdfResourceMap _properties;
+    internal PdfResourceMap Properties => field ??= (PdfResourceMap) Elements.GetValue(Keys.Properties, VCF.Create);
 
     /// <summary>
     /// Gets a new local name for this resource.

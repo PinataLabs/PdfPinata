@@ -149,7 +149,7 @@ public class InternalHelperTests
         var read = (int)Call("StreamHelper", "ReadUpTo", stream, buffer, 0, 8);
 
         read.Should().Be(8);
-        buffer.Should().Equal(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 });
+        buffer.Should().Equal(1, 2, 3, 4, 5, 6, 7, 8);
     }
 
     [Fact]
@@ -173,7 +173,7 @@ public class InternalHelperTests
         var read = (int)Call("StreamHelper", "ReadUpTo", stream, buffer, 2, 2);
 
         read.Should().Be(2);
-        buffer.Should().Equal(new byte[] { 0, 0, 9, 9 });
+        buffer.Should().Equal(0, 0, 9, 9);
     }
 
     /// <summary>A stream that never hands over more than a few bytes at a time.</summary>

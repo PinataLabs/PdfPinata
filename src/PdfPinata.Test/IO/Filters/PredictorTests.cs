@@ -159,7 +159,7 @@ public class PredictorTests
         // which rounds up to one, so each row is one byte and a filter byte.
         var predicted = new byte[] { 0, 0xA0, 0, 0x50 };
 
-        Unpredict(predicted, Parms(12, 1, 1, 4)).Should().Equal(new byte[] { 0xA0, 0x50 });
+        Unpredict(predicted, Parms(12, 1, 1, 4)).Should().Equal(0xA0, 0x50);
     }
 
     // ----- the TIFF predictor --------------------------------------------------------------------

@@ -493,7 +493,7 @@ public class XmpMetadataTests
             .Select(element => element.Name.LocalName)
             .ToList();
 
-        declared.Should().BeEquivalentTo(new[] { "One", "Two" });
+        declared.Should().BeEquivalentTo("One", "Two");
         used.Should().BeEquivalentTo(declared);
     }
 
@@ -576,7 +576,7 @@ public class XmpMetadataTests
         packet.Descendants(first + "Note").Single().Value.Should().Be("one");
         packet.Descendants(second + "Note").Single().Value.Should().Be("two");
         packet.Descendants(PdfaSchema + "prefix").Select(prefix => prefix.Value)
-            .Should().BeEquivalentTo(new[] { "first", "second" });
+            .Should().BeEquivalentTo("first", "second");
     }
 
     [Fact]

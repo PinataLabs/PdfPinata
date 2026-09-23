@@ -52,8 +52,7 @@ public class PdfFlattenVisitor : VisitorBase
 
     for (var idx = 0; idx < elements.Count; ++idx)
     {
-      var paragraph = elements[idx] as Paragraph;
-      if (paragraph == null)
+      if (elements[idx] is not Paragraph paragraph)
         continue;
 
       var paragraphs = paragraph.SplitOnParaBreak();
@@ -202,9 +201,9 @@ public class PdfFlattenVisitor : VisitorBase
     var parentElements = DocumentRelations.GetParent(obj);
     var parentObject = DocumentRelations.GetParent(parentElements);
     Font parentFont;
-    if (parentObject is Paragraph)
+    if (parentObject is Paragraph paragraph)
     {
-      var format = ((Paragraph)parentObject).Format;
+      var format = paragraph.Format;
       parentFont = format.font;
     }
     else //Hyperlink or FormattedText

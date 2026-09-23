@@ -36,7 +36,7 @@ namespace PdfPinata.Pdf.Advanced;
 /// The PDF font descriptor flags.
 /// </summary>
 [Flags]
-enum PdfFontDescriptorFlags
+internal enum PdfFontDescriptorFlags
 {
     /// <summary>
     /// All glyphs have the same width (as opposed to proportional or variable-pitch
@@ -134,15 +134,13 @@ public sealed class PdfFontDescriptor : PdfDictionary
     /// <summary>
     /// Gets a value indicating whether this instance is symbol font.
     /// </summary>
-    public bool IsSymbolFont => _isSymbolFont;
-
-    private bool _isSymbolFont;
+    public bool IsSymbolFont { get; private set; }
 
     // HACK FlagsFromDescriptor(OpenTypeDescriptor descriptor)
     private PdfFontDescriptorFlags FlagsFromDescriptor(OpenTypeDescriptor descriptor)
     {
         PdfFontDescriptorFlags flags = 0;
-        _isSymbolFont = descriptor.FontFace.cmap.symbol;
+        IsSymbolFont = descriptor.FontFace.cmap.symbol;
         flags |= descriptor.FontFace.cmap.symbol ? PdfFontDescriptorFlags.Symbolic : PdfFontDescriptorFlags.Nonsymbolic;
         return flags;
     }
@@ -340,11 +338,10 @@ public sealed class PdfFontDescriptor : PdfDictionary
         {
             get
             {
-                _meta ??= CreateMeta(typeof(Keys));
-                return _meta;
+                field ??= CreateMeta(typeof(Keys));
+                return field;
             }
         }
-        private static DictionaryMeta _meta;
     }
 
     /// <summary>

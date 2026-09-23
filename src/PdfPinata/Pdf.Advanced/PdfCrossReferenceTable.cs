@@ -391,8 +391,7 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
                 }
                 else
                 {
-                    var pdfObject28 = item as PdfObject;
-                    if (pdfObject28 != null && (pdfObject28 is PdfDictionary || pdfObject28 is PdfArray))
+                    if (item is PdfObject pdfObject28 and (PdfDictionary or PdfArray))
                         TransitiveClosureImplementation(objects, pdfObject28 /*, ref depth*/);
                 }
             }

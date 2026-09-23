@@ -91,7 +91,7 @@ public class XPenAndBrushTests
         var pen = new XPen(XColors.Red) { DashPattern = [3, 1, 1, 1] };
 
         pen.DashStyle.Should().Be(XDashStyle.Custom);
-        pen.DashPattern.Should().Equal(new double[] { 3, 1, 1, 1 });
+        pen.DashPattern.Should().Equal(3, 1, 1, 1);
     }
 
     [Fact]
@@ -102,7 +102,7 @@ public class XPenAndBrushTests
 
         pattern[0] = 99;
 
-        pen.DashPattern.Should().Equal(new double[] { 3, 1 });
+        pen.DashPattern.Should().Equal(3, 1);
     }
 
     [Theory]
@@ -143,7 +143,7 @@ public class XPenAndBrushTests
         copy.LineCap.Should().Be(original.LineCap);
         copy.DashOffset.Should().Be(original.DashOffset);
         copy.DashStyle.Should().Be(original.DashStyle);
-        copy.DashPattern.Should().Equal(new double[] { 4, 2 });
+        copy.DashPattern.Should().Equal(4, 2);
         copy.DashPattern.Should().NotBeSameAs(original.DashPattern);
 
         copy.Width = 10;

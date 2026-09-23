@@ -139,12 +139,11 @@ internal class ChartRendererInfo : AreaRendererInfo
   {
     get
     {
-      defaultFont ??= Converter.ToXFont(Chart.font, new XFont("Arial", 12, XFontStyle.Regular));
+      field ??= Converter.ToXFont(Chart.font, new XFont("Arial", 12, XFontStyle.Regular));
 
-      return defaultFont;
+      return field;
     }
   }
-  private XFont defaultFont;
 
   /// <summary>
   /// Gets the chart's default font for rendering data labels.
@@ -153,12 +152,11 @@ internal class ChartRendererInfo : AreaRendererInfo
   {
     get
     {
-      defaultDataLabelFont ??= Converter.ToXFont(Chart.font, new XFont("Arial", 10, XFontStyle.Regular));
+      field ??= Converter.ToXFont(Chart.font, new XFont("Arial", 10, XFontStyle.Regular));
 
-      return defaultDataLabelFont;
+      return field;
     }
   }
-  private XFont defaultDataLabelFont;
 
   /// <summary>
   /// Gets the colour the chart's text is drawn in where nothing closer to it says one: the chart

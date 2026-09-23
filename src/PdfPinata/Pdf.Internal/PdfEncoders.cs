@@ -62,11 +62,10 @@ internal static class PdfEncoders
     {
         get
         {
-            _winAnsiEncoding ??= new AnsiEncoding();
-            return _winAnsiEncoding;
+            field ??= new AnsiEncoding();
+            return field;
         }
     }
-    private static Encoding _winAnsiEncoding;
 
     /// <summary>
     /// Gets the PDF DocEncoding encoding.
@@ -170,28 +169,14 @@ internal static class PdfEncoders
         if (string.IsNullOrEmpty(text))
             return "()";
 
-        byte[] bytes;
-        switch (encoding)
+        var bytes = encoding switch
         {
-            case PdfStringEncoding.RawEncoding:
-                bytes = RawEncoding.GetBytes(text);
-                break;
-
-            case PdfStringEncoding.WinAnsiEncoding:
-                bytes = WinAnsiEncoding.GetBytes(text);
-                break;
-
-            case PdfStringEncoding.PDFDocEncoding:
-                bytes = DocEncoding.GetBytes(text);
-                break;
-
-            case PdfStringEncoding.Unicode:
-                bytes = RawUnicodeEncoding.GetBytes(text);
-                break;
-
-            default:
-                throw new NotImplementedException(encoding.ToString());
-        }
+            PdfStringEncoding.RawEncoding => RawEncoding.GetBytes(text),
+            PdfStringEncoding.WinAnsiEncoding => WinAnsiEncoding.GetBytes(text),
+            PdfStringEncoding.PDFDocEncoding => DocEncoding.GetBytes(text),
+            PdfStringEncoding.Unicode => RawUnicodeEncoding.GetBytes(text),
+            _ => throw new NotImplementedException(encoding.ToString())
+        };
         var temp = FormatStringLiteral(bytes, encoding == PdfStringEncoding.Unicode, true, false, securityHandler);
         return RawEncoding.GetString(temp, 0, temp.Length);
     }
@@ -216,28 +201,14 @@ internal static class PdfEncoders
         if (string.IsNullOrEmpty(text))
             return "<>";
 
-        byte[] bytes;
-        switch (encoding)
+        var bytes = encoding switch
         {
-            case PdfStringEncoding.RawEncoding:
-                bytes = RawEncoding.GetBytes(text);
-                break;
-
-            case PdfStringEncoding.WinAnsiEncoding:
-                bytes = WinAnsiEncoding.GetBytes(text);
-                break;
-
-            case PdfStringEncoding.PDFDocEncoding:
-                bytes = DocEncoding.GetBytes(text);
-                break;
-
-            case PdfStringEncoding.Unicode:
-                bytes = RawUnicodeEncoding.GetBytes(text);
-                break;
-
-            default:
-                throw new NotImplementedException(encoding.ToString());
-        }
+            PdfStringEncoding.RawEncoding => RawEncoding.GetBytes(text),
+            PdfStringEncoding.WinAnsiEncoding => WinAnsiEncoding.GetBytes(text),
+            PdfStringEncoding.PDFDocEncoding => DocEncoding.GetBytes(text),
+            PdfStringEncoding.Unicode => RawUnicodeEncoding.GetBytes(text),
+            _ => throw new NotImplementedException(encoding.ToString())
+        };
 
         var agTemp = FormatStringLiteral(bytes, encoding == PdfStringEncoding.Unicode, true, true, securityHandler);
         return RawEncoding.GetString(agTemp, 0, agTemp.Length);

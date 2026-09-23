@@ -121,49 +121,38 @@ internal static class PdfResourceConformanceRules
 
         var item = Resolve(colorSpace);
 
-        switch (item)
+        return item switch
         {
-            case PdfName name:
-                return DeviceFamilyOf(name.Value);
-
-            case PdfArray array when array.Elements.Count > 0:
-                return DeviceComponentsOfArray(array, depth);
-
-            default:
-                // An ICC profile stream referenced directly rather than through the usual
-                // [/ICCBased ref] array included: device-independent either way.
-                return null;
-        }
+            PdfName name => DeviceFamilyOf(name.Value),
+            PdfArray array when array.Elements.Count > 0 => DeviceComponentsOfArray(array, depth),
+            // An ICC profile stream referenced directly rather than through the usual
+            // [/ICCBased ref] array included: device-independent either way.
+            _ => null
+        };
     }
 
     private static int? DeviceComponentsOfArray(PdfArray array, int depth)
     {
         var head = Resolve(array.Elements[0]) as PdfName;
-        switch (head?.Value)
+        return head?.Value switch
         {
-            case "/Indexed":
-                return array.Elements.Count > 1 ? DeviceComponentsOf(array.Elements[1], depth + 1) : null;
-
-            case "/Separation":
-            case "/DeviceN":
-                // [/Separation name alternateSpace tintTransform] and
-                // [/DeviceN names alternateSpace tintTransform ...] agree on where the space
-                // a reader without the separation ink actually paints in sits. A separation is not
-                // itself device colour, but its alternate may be, and a reader that has to fall
-                // back on the alternate paints those numbers for real — so it is held to the
-                // output intent exactly as painting them outright would be.
-                return array.Elements.Count > 2 ? DeviceComponentsOf(array.Elements[2], depth + 1) : null;
-
-            case "/Pattern":
-                // An uncoloured tiling pattern names the space its colour operands are given in;
-                // a coloured one and a shading pattern carry no colour of their own to ask about.
-                return array.Elements.Count > 1 ? DeviceComponentsOf(array.Elements[1], depth + 1) : null;
-
-            default:
-                // /ICCBased, /CalGray, /CalRGB and /Lab all reach here, and all say for themselves
-                // what their numbers mean. So does a name this does not know.
-                return null;
-        }
+            "/Indexed" => array.Elements.Count > 1 ? DeviceComponentsOf(array.Elements[1], depth + 1) : null,
+            // [/Separation name alternateSpace tintTransform] and
+            // [/DeviceN names alternateSpace tintTransform ...] agree on where the space
+            // a reader without the separation ink actually paints in sits. A separation is not
+            // itself device colour, but its alternate may be, and a reader that has to fall
+            // back on the alternate paints those numbers for real — so it is held to the
+            // output intent exactly as painting them outright would be.
+            "/Separation"
+                or "/DeviceN"
+                => array.Elements.Count > 2 ? DeviceComponentsOf(array.Elements[2], depth + 1) : null,
+            // An uncoloured tiling pattern names the space its colour operands are given in;
+            // a coloured one and a shading pattern carry no colour of their own to ask about.
+            "/Pattern" => array.Elements.Count > 1 ? DeviceComponentsOf(array.Elements[1], depth + 1) : null,
+            // /ICCBased, /CalGray, /CalRGB and /Lab all reach here, and all say for themselves
+            // what their numbers mean. So does a name this does not know.
+            _ => null
+        };
     }
 
     /// <summary>

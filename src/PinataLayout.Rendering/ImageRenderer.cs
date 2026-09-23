@@ -310,13 +310,13 @@ internal class ImageRenderer : ShapeRenderer
                     // With the ratio locked, a scale height wins over a scale width whenever both are set.
                     if (scaleHeightSet)
                     {
-                        resultHeight = resultHeight * scaleHeight;
-                        resultWidth = resultWidth * scaleHeight;
+                        resultHeight *= scaleHeight;
+                        resultWidth *= scaleHeight;
                     }
                     else if (scaleWidthSet)
                     {
-                        resultHeight = resultHeight * scaleWidth;
-                        resultWidth = resultWidth * scaleWidth;
+                        resultHeight *= scaleWidth;
+                        resultWidth *= scaleWidth;
                     }
                 }
                 else
@@ -328,9 +328,9 @@ internal class ImageRenderer : ShapeRenderer
                         resultWidth = inherentWidth;
 
                     if (scaleHeightSet)
-                        resultHeight = resultHeight * scaleHeight;
+                        resultHeight *= scaleHeight;
                     if (scaleWidthSet)
-                        resultWidth = resultWidth * scaleWidth;
+                        resultWidth *= scaleWidth;
                 }
 
                 formatInfo.CropWidth = (int)xPixels;
@@ -425,5 +425,5 @@ internal class ImageRenderer : ShapeRenderer
         }
     }
 
-    private Image image;
+    private readonly Image image;
 }

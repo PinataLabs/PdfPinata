@@ -120,7 +120,7 @@ public class EInvoiceTests
             .ToList();
 
         declared.Should().BeEquivalentTo(
-            new[] { "DocumentType", "DocumentFileName", "Version", "ConformanceLevel" });
+            "DocumentType", "DocumentFileName", "Version", "ConformanceLevel");
         used.Should().BeEquivalentTo(declared);
 
         packet.Descendants(PdfaSchema + "namespaceURI").Single().Value

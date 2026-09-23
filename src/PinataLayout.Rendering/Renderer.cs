@@ -156,18 +156,18 @@ internal abstract class Renderer
         FieldInfos fieldInfos)
     {
         Renderer renderer = null;
-        if (documentObject is Paragraph)
-            renderer = new ParagraphRenderer(gfx, (Paragraph)documentObject, fieldInfos);
-        else if (documentObject is Table)
-            renderer = new TableRenderer(gfx, (Table)documentObject, fieldInfos);
-        else if (documentObject is PageBreak)
-            renderer = new PageBreakRenderer(gfx, (PageBreak)documentObject, fieldInfos);
-        else if (documentObject is TextFrame)
-            renderer = new TextFrameRenderer(gfx, (TextFrame)documentObject, fieldInfos);
-        else if (documentObject is Chart)
-            renderer = new ChartRenderer(gfx, (Chart)documentObject, fieldInfos);
-        else if (documentObject is Image)
-            renderer = new ImageRenderer(gfx, (Image)documentObject, fieldInfos);
+        if (documentObject is Paragraph paragraph)
+            renderer = new ParagraphRenderer(gfx, paragraph, fieldInfos);
+        else if (documentObject is Table table)
+            renderer = new TableRenderer(gfx, table, fieldInfos);
+        else if (documentObject is PageBreak pageBreak)
+            renderer = new PageBreakRenderer(gfx, pageBreak, fieldInfos);
+        else if (documentObject is TextFrame textFrame)
+            renderer = new TextFrameRenderer(gfx, textFrame, fieldInfos);
+        else if (documentObject is Chart chart)
+            renderer = new ChartRenderer(gfx, chart, fieldInfos);
+        else if (documentObject is Image image)
+            renderer = new ImageRenderer(gfx, image, fieldInfos);
         else if (documentObject is Barcode)
             throw NoBarcodeRenderer();
 

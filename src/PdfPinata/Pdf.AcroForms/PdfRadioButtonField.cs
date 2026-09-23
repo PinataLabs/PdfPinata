@@ -129,8 +129,7 @@ public sealed class PdfRadioButtonField : PdfButtonField
 
     private int IndexInOptStrings(string value)
     {
-        var opt = Elements[Keys.Opt] as PdfArray;
-        if (opt != null)
+        if (Elements[Keys.Opt] is PdfArray opt)
         {
             var count = opt.Elements.Count;
             for (var idx = 0; idx < count; idx++)

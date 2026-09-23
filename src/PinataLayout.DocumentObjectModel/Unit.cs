@@ -87,8 +87,8 @@ public struct Unit : IFormattable, INullableValue, IEquatable<Unit>
     {
         ArgumentNullException.ThrowIfNull(newValue);
 
-        if (newValue is Unit)
-            this = (Unit)newValue;
+        if (newValue is Unit unit)
+            this = unit;
         else
             this = newValue.ToString()
                 ?? throw new ArgumentException($"A {newValue.GetType()} whose ToString() answers null cannot be read as a Unit.", nameof(newValue));
@@ -529,32 +529,15 @@ public struct Unit : IFormattable, INullableValue, IEquatable<Unit>
 
         var typeStr = value[valLen..].Trim().ToLower();
         unit.type = UnitType.Point;
-        switch (typeStr)
+        unit.type = typeStr switch
         {
-            case "cm":
-                unit.type = UnitType.Centimeter;
-                break;
-
-            case "in":
-                unit.type = UnitType.Inch;
-                break;
-
-            case "mm":
-                unit.type = UnitType.Millimeter;
-                break;
-
-            case "pc":
-                unit.type = UnitType.Pica;
-                break;
-
-            case "":
-            case "pt":
-                unit.type = UnitType.Point;
-                break;
-
-            default:
-                throw new ArgumentException(DomSR.InvalidUnitType(typeStr));
-        }
+            "cm" => UnitType.Centimeter,
+            "in" => UnitType.Inch,
+            "mm" => UnitType.Millimeter,
+            "pc" => UnitType.Pica,
+            "" or "pt" => UnitType.Point,
+            _ => throw new ArgumentException(DomSR.InvalidUnitType(typeStr))
+        };
 
         return unit;
     }

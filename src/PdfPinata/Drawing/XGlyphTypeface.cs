@@ -69,8 +69,8 @@ internal sealed class XGlyphTypeface
         var familyName = fontSource.Fontface.name.Name;
         FontFamily = new XFontFamily(familyName, false);
         _fontface = fontSource.Fontface;
-        _isBold = _fontface.os2.IsBold;
-        _isItalic = _fontface.os2.IsItalic;
+        IsBold = _fontface.os2.IsBold;
+        IsItalic = _fontface.os2.IsItalic;
         StyleSimulations = styleSimulations;
 
         Key = key;
@@ -140,68 +140,56 @@ internal sealed class XGlyphTypeface
 
     private void Initialize()
     {
-        _familyName = _fontface.name.Name;
-        if (string.IsNullOrEmpty(_faceName) || _faceName.StartsWith('?'))
-            _faceName = _familyName;
-        _styleName = _fontface.name.Style;
-        _displayName = _fontface.name.FullFontName;
-        if (string.IsNullOrEmpty(_displayName))
+        FamilyName = _fontface.name.Name;
+        if (string.IsNullOrEmpty(FaceName) || FaceName.StartsWith('?'))
+            FaceName = FamilyName;
+        StyleName = _fontface.name.Style;
+        DisplayName = _fontface.name.FullFontName;
+        if (string.IsNullOrEmpty(DisplayName))
         {
-            _displayName = _familyName;
-            if (string.IsNullOrEmpty(_styleName))
-                _displayName += " (" + _styleName + ")";
+            DisplayName = FamilyName;
+            if (string.IsNullOrEmpty(StyleName))
+                DisplayName += " (" + StyleName + ")";
         }
 
         // Bold, as defined in OS/2 table.
-        _isBold = _fontface.os2.IsBold;
+        IsBold = _fontface.os2.IsBold;
 
         // Italic, as defined in OS/2 table.
-        _isItalic = _fontface.os2.IsItalic;
+        IsItalic = _fontface.os2.IsItalic;
     }
 
     /// <summary>
     /// Gets the name of the font face. This can be a file name, a uri, or a GUID.
     /// </summary>
-    internal string FaceName => _faceName;
-
-    private string _faceName;
+    internal string FaceName { get; private set; }
 
     /// <summary>
     /// Gets the English family name of the font, for example "Arial".
     /// </summary>
-    public string FamilyName => _familyName;
-
-    private string _familyName;
+    public string FamilyName { get; private set; }
 
     /// <summary>
     /// Gets the English subfamily name of the font,
     /// for example "Bold".
     /// </summary>
-    public string StyleName => _styleName;
-
-    private string _styleName;
+    public string StyleName { get; private set; }
 
     /// <summary>
     /// Gets the English display name of the font,
     /// for example "Arial italic".
     /// </summary>
-    public string DisplayName => _displayName;
-
-    private string _displayName;
+    public string DisplayName { get; private set; }
 
     /// <summary>
     /// Gets a value indicating whether the font weight is bold.
     /// </summary>
-    public bool IsBold => _isBold;
-
-    private bool _isBold;
+    public bool IsBold { get; private set; }
 
     /// <summary>
     /// Gets a value indicating whether the font style is italic.
     /// </summary>
-    public bool IsItalic => _isItalic;
-
-    private bool _isItalic;
+    public bool IsItalic { get; private set; }
 
     public XStyleSimulations StyleSimulations { get; }
 

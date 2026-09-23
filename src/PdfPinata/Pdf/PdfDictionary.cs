@@ -209,11 +209,11 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
     {
         ArgumentNullException.ThrowIfNull(key);
         var item = Elements[key];
-        if (item is PdfObject && ((PdfObject)item).IsIndirect)
+        if (item is PdfObject { IsIndirect: true } indirect)
         {
             // Replace an indirect object by its Reference. The Elements setter does this on the way
             // in, so getting here means something else put the object there.
-            item = ((PdfObject)item).Reference;
+            item = indirect.Reference;
         }
         key.WriteObject(writer);
         item.WriteObject(writer);
@@ -1055,12 +1055,12 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// </summary>
         public void SetValue(string key, PdfItem value)
         {
-            Debug.Assert((value is PdfObject && ((PdfObject)value).Reference == null) || !(value is PdfObject),
+            Debug.Assert(value is not PdfObject { Reference: not null },
                 "You try to set an indirect object directly into a dictionary.");
 
             // HACK?
             _elements[key] = value;
-            PdfObject.Contain(value, _ownerDictionary);
+            Contain(value, _ownerDictionary);
             MarkOwnerAsChanged();
         }
 
@@ -1173,7 +1173,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                 if (value is PdfObject { IsIndirect: true } obj)
                     value = obj.Reference;
                 _elements[key] = value;
-                PdfObject.Contain(value, _ownerDictionary);
+                Contain(value, _ownerDictionary);
                 MarkOwnerAsChanged();
             }
         }
@@ -1198,7 +1198,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                     throw new ArgumentException("A dictionary with stream cannot be a direct value.");
 
                 _elements[key.Value] = value;
-                PdfObject.Contain(value, _ownerDictionary);
+                Contain(value, _ownerDictionary);
                 MarkOwnerAsChanged();
             }
         }
@@ -1279,7 +1279,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                 value = obj.Reference;
 
             _elements.Add(key, value);
-            PdfObject.Contain(value, _ownerDictionary);
+            Contain(value, _ownerDictionary);
             MarkOwnerAsChanged();
         }
 

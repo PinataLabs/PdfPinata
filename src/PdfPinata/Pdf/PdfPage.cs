@@ -128,14 +128,13 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// </summary>
     public void Close()
     {
-        _closed = true;
+        IsClosed = true;
     }
-    private bool _closed;
 
     /// <summary>
     /// Gets a value indicating whether the page is closed.
     /// </summary>
-    internal bool IsClosed => _closed;
+    internal bool IsClosed { get; private set; }
 
     /// <summary>
     /// Gets or sets the PdfDocument this page belongs to.
@@ -817,11 +816,10 @@ public sealed class PdfPage : PdfDictionary, IContentStream
                     }
                     else
                     {
-                        if (item is PdfReference)
-                            item = ((PdfReference)item).Value;
+                        if (item is PdfReference reference)
+                            item = reference.Value;
 
-                        var array = item as PdfArray;
-                        if (array != null)
+                        if (item is PdfArray array)
                         {
                             // It is already an array of content streams.
                             if (array.IsIndirect)
@@ -964,18 +962,17 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     {
         get
         {
-            _customValues ??= PdfCustomValues.Get(Elements);
-            return _customValues;
+            field ??= PdfCustomValues.Get(Elements);
+            return field;
         }
         set
         {
             if (value != null)
                 throw new ArgumentException("Only null is allowed to clear all custom values.");
             PdfCustomValues.Remove(Elements);
-            _customValues = null;
+            field = null;
         }
     }
-    private PdfCustomValues _customValues;
 
     /// <summary>
     /// Gets the PdfResources object of this page.
@@ -1259,9 +1256,9 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         {
             PdfDictionary resources;
             var res = InheritableEntry(page, InheritablePageKeys.Resources);
-            if (res is PdfReference)
+            if (res is PdfReference reference)
             {
-                resources = (PdfDictionary)((PdfReference)res).Value.Clone();
+                resources = (PdfDictionary)reference.Value.Clone();
                 resources.Document = page.Owner;
             }
             else
@@ -1310,8 +1307,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         var item = InheritableEntry(page, InheritablePageKeys.Resources);
         if (item != null)
         {
-            var reference = item as PdfReference;
-            if (reference != null)
+            if (item is PdfReference reference)
                 values.Resources = (PdfDictionary)reference.Value;
             else
                 values.Resources = (PdfDictionary)item;
@@ -1328,8 +1324,8 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         item = InheritableEntry(page, InheritablePageKeys.Rotate);
         if (item != null)
         {
-            if (item is PdfReference)
-                item = ((PdfReference)item).Value;
+            if (item is PdfReference reference)
+                item = reference.Value;
             values.Rotate = (PdfInteger)item;
         }
     }

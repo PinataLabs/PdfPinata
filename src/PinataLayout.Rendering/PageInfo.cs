@@ -51,7 +51,7 @@ public class PageInfo
   /// </summary>
   public XUnit Width => width;
 
-  private XUnit width;
+  private readonly XUnit width;
 
   /// <summary>
   /// Gets the height of the described page as specified in Document.PageSetup, i.e. the orientation
@@ -59,7 +59,7 @@ public class PageInfo
   /// </summary>
   public XUnit Height => height;
 
-  private XUnit height;
+  private readonly XUnit height;
 
   /// <summary>
   /// Gets the orientation of the described page as specified in Document.PageSetup.
@@ -68,5 +68,5 @@ public class PageInfo
   /// </summary>
   public PageOrientation Orientation => orientation;
 
-  private PageOrientation orientation;
+  private readonly PageOrientation orientation;
 }

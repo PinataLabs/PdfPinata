@@ -72,8 +72,8 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
         {
             return sectionNr.GetHashCode() ^ pagePosition.GetHashCode();
         }
-        internal int sectionNr;
-        internal PagePosition pagePosition;
+        internal readonly int sectionNr;
+        internal readonly PagePosition pagePosition;
     }
 
     internal FormattedDocument(Document document, DocumentRenderer documentRenderer)
@@ -96,7 +96,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
         gfx = graphics;
         currentPage = 0;
         sectionNumber = 0;
-        pageCount = 0;
+        PageCount = 0;
         shownPageNumber = 0;
         documentRenderer.ProgressCompleted = 0;
         documentRenderer.ProgressMaximum = 0;
@@ -118,7 +118,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
             FillSectionPagesInfo();
             documentRenderer.ProgressCompleted += section.Elements.Count;
         }
-        pageCount = currentPage;
+        PageCount = currentPage;
         FillNumPagesInfo();
     }
 
@@ -188,13 +188,13 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
     /// </summary>
     private void FillNumPagesInfo()
     {
-        for (var page = 1; page <= pageCount; ++page)
+        for (var page = 1; page <= PageCount; ++page)
         {
             if (IsEmptyPage(page))
                 continue;
 
             var fieldInfos = pageFieldInfos[page];
-            fieldInfos.numPages = pageCount;
+            fieldInfos.numPages = PageCount;
         }
     }
 
@@ -411,9 +411,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
     /// <summary>
     /// Gets the number of pages of the document.
     /// </summary>
-    public int PageCount => pageCount;
-
-    private int pageCount;
+    public int PageCount { get; private set; }
 
 
     /// <summary>
@@ -423,7 +421,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
     /// <returns>The page information.</returns>
     public PageInfo GetPageInfo(int page)
     {
-        if (page < 1 || page > pageCount)
+        if (page < 1 || page > PageCount)
             throw new ArgumentOutOfRangeException(nameof(page));
 
         return pageInfos[page];
@@ -639,16 +637,14 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
 
     bool IAreaProvider.PositionHorizontally(LayoutInfo layoutInfo)
     {
-        switch (layoutInfo.HorizontalReference)
+        return layoutInfo.HorizontalReference switch
         {
-            case HorizontalReference.PageMargin:
-            case HorizontalReference.AreaBoundary:
-                return PositionHorizontallyToMargin(layoutInfo);
-
-            case HorizontalReference.Page:
-                return PositionHorizontallyToPage(layoutInfo);
-        }
-        return false;
+            HorizontalReference.PageMargin
+                or HorizontalReference.AreaBoundary
+                => PositionHorizontallyToMargin(layoutInfo),
+            HorizontalReference.Page => PositionHorizontallyToPage(layoutInfo),
+            _ => false
+        };
     }
 
     /// <summary>
@@ -838,19 +834,13 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
 
     bool IAreaProvider.PositionVertically(LayoutInfo layoutInfo)
     {
-        switch (layoutInfo.VerticalReference)
+        return layoutInfo.VerticalReference switch
         {
-            case VerticalReference.PreviousElement:
-                return false;
-
-            case VerticalReference.AreaBoundary:
-            case VerticalReference.PageMargin:
-                return PositionVerticallyToMargin(layoutInfo);
-
-            case VerticalReference.Page:
-                return PositionVerticallyToPage(layoutInfo);
-        }
-        return false;
+            VerticalReference.PreviousElement => false,
+            VerticalReference.AreaBoundary or VerticalReference.PageMargin => PositionVerticallyToMargin(layoutInfo),
+            VerticalReference.Page => PositionVerticallyToPage(layoutInfo),
+            _ => false
+        };
     }
 
     internal FieldInfos GetFieldInfos(int page)
@@ -881,9 +871,9 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
     private Dictionary<int, FieldInfos> pageFieldInfos;
     private Dictionary<HeaderFooterPosition, FormattedHeaderFooter> formattedHeaders;
     private Dictionary<HeaderFooterPosition, FormattedHeaderFooter> formattedFooters;
-    private DocumentRenderer documentRenderer;
+    private readonly DocumentRenderer documentRenderer;
     private XGraphics gfx;
     private Dictionary<int, PageInfo> pageInfos;
-    private Dictionary<int, object> emptyPages = new();
-    private Document document;
+    private readonly Dictionary<int, object> emptyPages = new();
+    private readonly Document document;
 }

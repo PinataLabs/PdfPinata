@@ -130,10 +130,8 @@ public class FontResolverInfo
     /// <summary>
     /// Gets the key for this object.
     /// </summary>
-    internal string Key => _key ??= KeyPrefix + _faceName.ToLowerInvariant()
+    internal string Key => field ??= KeyPrefix + _faceName.ToLowerInvariant()
                                               + '/' + (_mustSimulateBold ? "b+" : "b-") + (_mustSimulateItalic ? "i+" : "i-");
-
-    private string _key;
 
     /// <summary>
     /// A name that uniquely identifies the font (not the family), e.g. the file name of the font. PdfPinata does not use this

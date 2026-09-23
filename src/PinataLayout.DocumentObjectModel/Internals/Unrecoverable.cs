@@ -10,7 +10,7 @@ namespace PinataLayout.DocumentObjectModel.Internals;
 /// A copy of <c>PdfPinata.Internal.Unrecoverable</c>. Both are <c>internal</c> and this
 /// repository carries no <c>InternalsVisibleTo</c>, so neither assembly can see the other's.
 /// </remarks>
-static class Unrecoverable
+internal static class Unrecoverable
 {
     /// <summary>
     ///   Whether an exception is one there is no carrying on from. A catch that means "this input

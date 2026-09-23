@@ -104,7 +104,7 @@ public class DevanagariShapingTests
     {
         // The cluster is the character-to-glyph map and the only place the association exists.
         // Devanagari is where it stops being an identity: three characters, one cluster.
-        Shape(Conjunct).Glyphs.Select(glyph => glyph.Cluster).Should().Equal(new[] { 0 });
+        Shape(Conjunct).Glyphs.Select(glyph => glyph.Cluster).Should().Equal(0);
     }
 
     // ----- a glyph drawn before the character it follows ---------------------------------------------
@@ -126,7 +126,7 @@ public class DevanagariShapingTests
     {
         // Both glyphs stand for the whole two characters, because neither can be attributed to one
         // of them: the pair was rearranged as a unit.
-        Shape(Ka + VowelI).Glyphs.Select(glyph => glyph.Cluster).Should().Equal(new[] { 0, 0 });
+        Shape(Ka + VowelI).Glyphs.Select(glyph => glyph.Cluster).Should().Equal(0, 0);
     }
 
     [Fact]

@@ -114,7 +114,7 @@ internal class ShadingRenderer
         }
     }
 
-    private Shading shading;
+    private readonly Shading shading;
     private XBrush brush;
-    private XGraphics gfx;
+    private readonly XGraphics gfx;
 }

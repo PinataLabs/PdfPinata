@@ -201,7 +201,7 @@ public class AcroFormFieldTests
 
         var names = document.AcroForm.Fields.DescendantNames;
 
-        names.Should().BeEquivalentTo(new[] { "surname", "address.town", "address.postcode" });
+        names.Should().BeEquivalentTo("surname", "address.town", "address.postcode");
     }
 
     [Fact]
@@ -212,7 +212,7 @@ public class AcroFormFieldTests
             .Build();
 
         document.AcroForm.Fields["address"].GetDescendantNames()
-            .Should().BeEquivalentTo(new[] { "town", "postcode" });
+            .Should().BeEquivalentTo("town", "postcode");
     }
 
     [Fact]
@@ -256,7 +256,7 @@ public class AcroFormFieldTests
             .Build();
 
         document.AcroForm.Fields["agree"].GetAppearanceNames()
-            .Should().BeEquivalentTo(new[] { "/Yes", "/Off" });
+            .Should().BeEquivalentTo("/Yes", "/Off");
     }
 
     [Fact]

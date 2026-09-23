@@ -121,7 +121,7 @@ internal class TokenizerHelper
     {
         // Reset index.
         _currentTokenIndex = -1;
-        _foundSeparator = false;
+        FoundSeparator = false;
 
         // Already at the end of the string?
         if (_charIndex >= _strLen)
@@ -168,7 +168,7 @@ internal class TokenizerHelper
             else if (char.IsWhiteSpace(currentChar) || currentChar == separator)
             {
                 if (currentChar == separator)
-                    _foundSeparator = true;
+                    FoundSeparator = true;
                 break;
             }
 
@@ -217,7 +217,7 @@ internal class TokenizerHelper
             currentChar = _str[_charIndex];
             if (currentChar == separator)
             {
-                _foundSeparator = true;
+                FoundSeparator = true;
                 argSepCount++;
                 _charIndex++;
 
@@ -252,9 +252,7 @@ internal class TokenizerHelper
         return numericSeparator;
     }
 
-    public bool FoundSeparator => _foundSeparator;
-
-    private bool _foundSeparator;
+    public bool FoundSeparator { get; private set; }
 
     private char _argSeparator;
     private int _charIndex;

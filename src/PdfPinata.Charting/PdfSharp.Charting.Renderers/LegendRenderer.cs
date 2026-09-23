@@ -91,7 +91,7 @@ internal abstract class LegendRenderer : Renderer
     // side. An entry wider than that is word wrapped to fit, whichever side the legend is docked
     // to - a single entry longer than the chart used to push the legend off both sides of it.
     var maxWidth = rendererParms.Box.Width
-      - (LegendRenderer.LeftPadding + LegendRenderer.RightPadding) * paddingFactor;
+      - (LeftPadding + RightPadding) * paddingFactor;
     if (maxWidth > 0)
     {
       foreach (var leri in lri.Entries)
@@ -108,7 +108,7 @@ internal abstract class LegendRenderer : Renderer
         lri.Width = Math.Max(lri.Width, leri.Width);
         lri.Height += leri.Height;
       }
-      lri.Height += LegendRenderer.EntrySpacing * (lri.Entries.Length - 1);
+      lri.Height += EntrySpacing * (lri.Entries.Length - 1);
     }
     else
     {
@@ -116,8 +116,8 @@ internal abstract class LegendRenderer : Renderer
     }
 
     // Add padding to left, right, top and bottom
-    lri.Width += (LegendRenderer.LeftPadding + LegendRenderer.RightPadding) * paddingFactor;
-    lri.Height += (LegendRenderer.TopPadding + LegendRenderer.BottomPadding) * paddingFactor;
+    lri.Width += (LeftPadding + RightPadding) * paddingFactor;
+    lri.Height += (TopPadding + BottomPadding) * paddingFactor;
   }
 
   /// <summary>
@@ -141,18 +141,18 @@ internal abstract class LegendRenderer : Renderer
       var leri = lri.Entries[idx];
       if (idx > first && maxWidth > 0 && x + leri.Width > maxWidth)
       {
-        rows.Add((first, idx, x - LegendRenderer.EntrySpacing));
-        y += rowHeight + LegendRenderer.EntrySpacing;
+        rows.Add((first, idx, x - EntrySpacing));
+        y += rowHeight + EntrySpacing;
         x = 0;
         rowHeight = 0;
         first = idx;
       }
 
       leri.Offset = new XPoint(x, y);
-      x += leri.Width + LegendRenderer.EntrySpacing;
+      x += leri.Width + EntrySpacing;
       rowHeight = Math.Max(rowHeight, leri.Height);
     }
-    rows.Add((first, lri.Entries.Length, x - LegendRenderer.EntrySpacing));
+    rows.Add((first, lri.Entries.Length, x - EntrySpacing));
 
     foreach (var row in rows)
       lri.Width = Math.Max(lri.Width, row.Width);
@@ -186,8 +186,8 @@ internal abstract class LegendRenderer : Renderer
     if (lri.BorderPen != null)
       paddingFactor = 2;
     var legendRect = lri.Rect;
-    legendRect.X += LegendRenderer.LeftPadding * paddingFactor;
-    legendRect.Y += LegendRenderer.TopPadding * paddingFactor;
+    legendRect.X += LeftPadding * paddingFactor;
+    legendRect.Y += TopPadding * paddingFactor;
     foreach (var leri in cri.LegendRendererInfo.Entries)
     {
       var entryRect = legendRect;
@@ -204,17 +204,17 @@ internal abstract class LegendRenderer : Renderer
       ler.Draw();
 
       if (verticalLegend)
-        legendRect.Y += entryRect.Height + LegendRenderer.EntrySpacing;
+        legendRect.Y += entryRect.Height + EntrySpacing;
     }
 
     // Draw border around legend
     if (lri.BorderPen != null)
     {
       var borderRect = lri.Rect;
-      borderRect.X += LegendRenderer.LeftPadding;
-      borderRect.Y += LegendRenderer.TopPadding;
-      borderRect.Width -= LegendRenderer.LeftPadding + LegendRenderer.RightPadding;
-      borderRect.Height -= LegendRenderer.TopPadding + LegendRenderer.BottomPadding;
+      borderRect.X += LeftPadding;
+      borderRect.Y += TopPadding;
+      borderRect.Width -= LeftPadding + RightPadding;
+      borderRect.Height -= TopPadding + BottomPadding;
       gfx.DrawRectangle(lri.BorderPen, borderRect);
     }
   }

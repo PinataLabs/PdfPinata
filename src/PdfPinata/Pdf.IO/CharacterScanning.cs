@@ -72,37 +72,27 @@ internal static class CharacterScanning
     /// <summary>Indicates whether the specified character is a PDF white-space character.</summary>
     public static bool IsWhiteSpace(char ch)
     {
-        switch (ch)
+        return ch switch
         {
-            case Chars.NUL:  // 0 Null
-            case Chars.HT:   // 9 Horizontal Tab
-            case Chars.LF:   // 10 Line Feed
-            case Chars.FF:   // 12 Form Feed
-            case Chars.CR:   // 13 Carriage Return
-            case Chars.SP:   // 32 Space
-                return true;
-        }
-        return false;
+            Chars.NUL        // 0 Null
+                or Chars.HT  // 9 Horizontal Tab
+                or Chars.LF  // 10 Line Feed
+                or Chars.FF  // 12 Form Feed
+                or Chars.CR  // 13 Carriage Return
+                or Chars.SP  // 32 Space
+                => true,
+            _ => false
+        };
     }
 
     /// <summary>Indicates whether the specified character is a PDF delimiter character.</summary>
     public static bool IsDelimiter(char ch)
     {
-        switch (ch)
+        return ch switch
         {
-            case '(':
-            case ')':
-            case '<':
-            case '>':
-            case '[':
-            case ']':
-            case '{':
-            case '}':
-            case '/':
-            case '%':
-                return true;
-        }
-        return false;
+            '(' or ')' or '<' or '>' or '[' or ']' or '{' or '}' or '/' or '%' => true,
+            _ => false
+        };
     }
 
     /// <summary>Indicates whether the specified character is a hexadecimal digit.</summary>

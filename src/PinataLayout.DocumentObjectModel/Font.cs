@@ -287,10 +287,10 @@ public sealed partial class Font : DocumentObject
     /// </summary>
     internal void Serialize(Serializer serializer, Font font)
     {
-        if (Parent is FormattedText)
+        if (Parent is FormattedText formattedText)
         {
             var fontStyle = "";
-            if (((FormattedText)Parent).style == null)
+            if (formattedText.style == null)
             {
                 // Check if we can use a DDL keyword.
                 var notNull = CheckWhatIsNotNull();
@@ -317,7 +317,7 @@ public sealed partial class Font : DocumentObject
             }
             else
             {
-                fontStyle = "(\"" + ((FormattedText)Parent).Style + "\")";
+                fontStyle = "(\"" + formattedText.Style + "\")";
             }
 
             serializer.Write("\\font" + fontStyle + "[");

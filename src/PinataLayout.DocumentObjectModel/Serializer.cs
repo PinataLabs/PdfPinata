@@ -383,8 +383,7 @@ internal class Serializer
   /// </summary>
   internal void WriteSimpleAttribute(string valueName, object value)
   {
-    var ival = value as INullableValue;
-    if (ival != null)
+    if (value is INullableValue ival)
       value = ival.GetValue();
 
     var type = value.GetType();
@@ -519,17 +518,17 @@ internal class Serializer
     get
     {
       textWriter.Flush();
-      if (textWriter is StreamWriter)
-        return (int)((StreamWriter)textWriter).BaseStream.Position;
-      if (textWriter is StringWriter)
-        return ((StringWriter)textWriter).GetStringBuilder().Length;
+      if (textWriter is StreamWriter streamWriter)
+        return (int)streamWriter.BaseStream.Position;
+      if (textWriter is StringWriter stringWriter)
+        return stringWriter.GetStringBuilder().Length;
       return 0;
     }
     set
     {
       textWriter.Flush();
-      if (textWriter is StreamWriter)
-        ((StreamWriter)textWriter).BaseStream.SetLength(value);
+      if (textWriter is StreamWriter streamWriter)
+        streamWriter.BaseStream.SetLength(value);
       else
         (textWriter as StringWriter)?.GetStringBuilder().Length = value;
     }
@@ -565,10 +564,10 @@ internal class Serializer
     commitTextStack[stackIdx] = true;
   }
   private int stackIdx;
-  private bool[] commitTextStack = new bool[32];
+  private readonly bool[] commitTextStack = new bool[32];
 
   private int linePos;
-  private int lineBreakBeyond = 200;
+  private readonly int lineBreakBeyond = 200;
   private static readonly char[] LineEndChars = ['\r', '\n'];
-  private bool fWriteStamp = false;
+  private readonly bool fWriteStamp = false;
 }

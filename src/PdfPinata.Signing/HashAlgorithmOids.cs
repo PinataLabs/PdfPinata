@@ -8,7 +8,7 @@ namespace PdfPinata.Signing;
 /// so <see cref="Pkcs7Signer"/>, <see cref="LocalTimestampAuthority"/> and anything else that has to
 /// name a digest in ASN.1 agree with each other.
 /// </summary>
-static class HashAlgorithmOids
+internal static class HashAlgorithmOids
 {
     public static string Of(HashAlgorithmName algorithm)
     {

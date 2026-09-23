@@ -113,12 +113,11 @@ internal sealed class OpenTypeFontface
     {
         get
         {
-            if (_checkSum == 0)
-                _checkSum = FontHelper.CalcChecksum(FontSource.Bytes);
-            return _checkSum;
+            if (field == 0)
+                field = FontHelper.CalcChecksum(FontSource.Bytes);
+            return field;
         }
     }
-    private ulong _checkSum;
 
     /// <summary>
     /// Gets the bytes that represents the font data.

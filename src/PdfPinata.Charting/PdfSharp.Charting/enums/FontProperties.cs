@@ -36,7 +36,7 @@ namespace PdfPinata.Charting;
 /// FOR INTERNAL USE ONLY.
 /// </summary>
 [Flags]
-enum FontProperties
+internal enum FontProperties
 {
   None = 0x0000,
   Name = 0x0001,

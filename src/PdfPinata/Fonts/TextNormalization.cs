@@ -32,7 +32,7 @@ namespace PdfPinata.Fonts;
 /// these two methods.
 /// </para>
 /// </remarks>
-static class TextNormalization
+internal static class TextNormalization
 {
     /// <summary>
     /// Says whether a character survives on its way to a glyph, and what it survives as.

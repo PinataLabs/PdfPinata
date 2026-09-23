@@ -53,27 +53,15 @@ public class LineFormatMapper
         {
             lineFormat.Color = ColorHelper.ToXColor(domLineFormat.Color, domLineFormat.Document.UseCmykColor);
         }
-        switch (domLineFormat.DashStyle)
+        lineFormat.DashStyle = domLineFormat.DashStyle switch
         {
-            case DocumentObjectModel.Shapes.DashStyle.Dash:
-                lineFormat.DashStyle = XDashStyle.Dash;
-                break;
-            case DocumentObjectModel.Shapes.DashStyle.DashDot:
-                lineFormat.DashStyle = XDashStyle.DashDot;
-                break;
-            case DocumentObjectModel.Shapes.DashStyle.DashDotDot:
-                lineFormat.DashStyle = XDashStyle.DashDotDot;
-                break;
-            case DocumentObjectModel.Shapes.DashStyle.Solid:
-                lineFormat.DashStyle = XDashStyle.Solid;
-                break;
-            case DocumentObjectModel.Shapes.DashStyle.SquareDot:
-                lineFormat.DashStyle = XDashStyle.Dot;
-                break;
-            default:
-                lineFormat.DashStyle = XDashStyle.Solid;
-                break;
-        }
+            DocumentObjectModel.Shapes.DashStyle.Dash => XDashStyle.Dash,
+            DocumentObjectModel.Shapes.DashStyle.DashDot => XDashStyle.DashDot,
+            DocumentObjectModel.Shapes.DashStyle.DashDotDot => XDashStyle.DashDotDot,
+            DocumentObjectModel.Shapes.DashStyle.Solid => XDashStyle.Solid,
+            DocumentObjectModel.Shapes.DashStyle.SquareDot => XDashStyle.Dot,
+            _ => XDashStyle.Solid
+        };
         switch (domLineFormat.Style)
         {
             case DocumentObjectModel.Shapes.LineStyle.Single:

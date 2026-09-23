@@ -213,26 +213,13 @@ public static class PageFit
     /// </summary>
     private static double HorizontalFactor(PageAlignment alignment)
     {
-        switch (alignment)
+        return alignment switch
         {
-            case PageAlignment.TopLeft:
-            case PageAlignment.MiddleLeft:
-            case PageAlignment.BottomLeft:
-                return 0;
-
-            case PageAlignment.TopCenter:
-            case PageAlignment.MiddleCenter:
-            case PageAlignment.BottomCenter:
-                return 0.5;
-
-            case PageAlignment.TopRight:
-            case PageAlignment.MiddleRight:
-            case PageAlignment.BottomRight:
-                return 1;
-
-            default:
-                throw new ArgumentOutOfRangeException(nameof(alignment), alignment, "Unknown page alignment.");
-        }
+            PageAlignment.TopLeft or PageAlignment.MiddleLeft or PageAlignment.BottomLeft => 0,
+            PageAlignment.TopCenter or PageAlignment.MiddleCenter or PageAlignment.BottomCenter => 0.5,
+            PageAlignment.TopRight or PageAlignment.MiddleRight or PageAlignment.BottomRight => 1,
+            _ => throw new ArgumentOutOfRangeException(nameof(alignment), alignment, "Unknown page alignment.")
+        };
     }
 
     /// <summary>
@@ -241,25 +228,12 @@ public static class PageFit
     /// </summary>
     private static double VerticalFactor(PageAlignment alignment)
     {
-        switch (alignment)
+        return alignment switch
         {
-            case PageAlignment.BottomLeft:
-            case PageAlignment.BottomCenter:
-            case PageAlignment.BottomRight:
-                return 0;
-
-            case PageAlignment.MiddleLeft:
-            case PageAlignment.MiddleCenter:
-            case PageAlignment.MiddleRight:
-                return 0.5;
-
-            case PageAlignment.TopLeft:
-            case PageAlignment.TopCenter:
-            case PageAlignment.TopRight:
-                return 1;
-
-            default:
-                throw new ArgumentOutOfRangeException(nameof(alignment), alignment, "Unknown page alignment.");
-        }
+            PageAlignment.BottomLeft or PageAlignment.BottomCenter or PageAlignment.BottomRight => 0,
+            PageAlignment.MiddleLeft or PageAlignment.MiddleCenter or PageAlignment.MiddleRight => 0.5,
+            PageAlignment.TopLeft or PageAlignment.TopCenter or PageAlignment.TopRight => 1,
+            _ => throw new ArgumentOutOfRangeException(nameof(alignment), alignment, "Unknown page alignment.")
+        };
     }
 }

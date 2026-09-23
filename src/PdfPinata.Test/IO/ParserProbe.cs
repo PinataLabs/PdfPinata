@@ -36,7 +36,7 @@ namespace PdfPinata.Test.IO;
 ///   <c>NullReferenceException</c> in the middle of a test.
 ///   </para>
 /// </remarks>
-static class ParserProbe
+internal static class ParserProbe
 {
     private const BindingFlags Any = BindingFlags.Public | BindingFlags.NonPublic
         | BindingFlags.Instance | BindingFlags.Static;

@@ -93,11 +93,11 @@ public struct LeftPosition : INullableValue
     // TopPosition.SetValue is a copy of this; a change here belongs there too.
     ArgumentNullException.ThrowIfNull(value);
 
-    if (value is ShapePosition)
-      SetFromEnum((ShapePosition)value);
+    if (value is ShapePosition position)
+      SetFromEnum(position);
 
-    else if (value is string && Enum.IsDefined(typeof(ShapePosition), value))
-      SetFromEnum((ShapePosition)Enum.Parse(typeof(ShapePosition), (string)value));
+    else if (value is string name && Enum.IsDefined(typeof(ShapePosition), name))
+      SetFromEnum((ShapePosition)Enum.Parse(typeof(ShapePosition), name));
     else
       SetFromUnit(value.ToString());
 

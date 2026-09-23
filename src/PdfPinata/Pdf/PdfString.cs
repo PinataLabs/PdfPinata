@@ -91,7 +91,7 @@ public enum PdfStringEncoding
 /// Internal wrapper for PdfStringEncoding.
 /// </summary>
 [Flags]
-enum PdfStringFlags
+internal enum PdfStringFlags
 {
     // ReSharper disable InconsistentNaming
     RawEncoding = 0x00,
@@ -230,25 +230,21 @@ public sealed class PdfString : PdfItem
         }
 
         var encoding = (PdfStringEncoding)(flags & PdfStringFlags.EncodingMask);
-        switch (encoding)
+        return encoding switch
         {
-            case PdfStringEncoding.Unicode:
-                return new PdfString(PdfEncoders.RawUnicodeEncoding.GetString(value), flags);
-            default:
-                return new PdfString(PdfEncoders.RawEncoding.GetString(value), flags);
-        }
+            PdfStringEncoding.Unicode => new PdfString(PdfEncoders.RawUnicodeEncoding.GetString(value), flags),
+            _ => new PdfString(PdfEncoders.RawEncoding.GetString(value), flags)
+        };
     }
 
     private byte[] GetBytesFromEncoding()
     {
         var encoding = (PdfStringEncoding)(_flags & PdfStringFlags.EncodingMask);
-        switch (encoding)
+        return encoding switch
         {
-            case PdfStringEncoding.Unicode:
-                return PdfEncoders.RawUnicodeEncoding.GetBytes(_value);
-            default:
-                return PdfEncoders.RawEncoding.GetBytes(_value);
-        }
+            PdfStringEncoding.Unicode => PdfEncoders.RawUnicodeEncoding.GetBytes(_value),
+            _ => PdfEncoders.RawEncoding.GetBytes(_value)
+        };
     }
 
     /// <summary>

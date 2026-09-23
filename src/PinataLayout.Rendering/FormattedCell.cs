@@ -72,7 +72,7 @@ internal class FormattedCell : IAreaProvider
     gfx = graphics;
     formatter = new TopDownFormatter(this, documentRenderer, cell.Elements);
     formatter.FormatOnAreas(graphics, false);
-    contentHeight = CalcContentHeight(documentRenderer);
+    ContentHeight = CalcContentHeight(documentRenderer);
   }
 
   private Rectangle CalcContentRect()
@@ -87,7 +87,7 @@ internal class FormattedCell : IAreaProvider
     return new Rectangle(xOffset, yOffset, width, height);
   }
 
-  internal XUnit ContentHeight => contentHeight;
+  internal XUnit ContentHeight { get; private set; } = 0;
 
   internal XUnit InnerHeight
   {
@@ -103,11 +103,11 @@ internal class FormattedCell : IAreaProvider
           return row.Height.Point;
 
         case RowHeightRule.Auto:
-          return verticalPadding + contentHeight;
+          return verticalPadding + ContentHeight;
 
         case RowHeightRule.AtLeast:
         default:
-          return Math.Max(row.Height, verticalPadding + contentHeight);
+          return Math.Max(row.Height, verticalPadding + ContentHeight);
       }
     }
   }
@@ -160,8 +160,6 @@ internal class FormattedCell : IAreaProvider
     return height;
   }
 
-  private XUnit contentHeight = 0;
-
   internal RenderInfo[] GetRenderInfos()
   {
     if (renderInfos == null)
@@ -174,13 +172,13 @@ internal class FormattedCell : IAreaProvider
     return result;
   }
 
-  private FieldInfos fieldInfos;
+  private readonly FieldInfos fieldInfos;
   private ArrayList renderInfos;
-  private XUnit xOffset;
-  private XUnit yOffset;
-  private Cell cell;
+  private readonly XUnit xOffset;
+  private readonly XUnit yOffset;
+  private readonly Cell cell;
   private TopDownFormatter formatter;
-  private BordersRenderer bordersRenderer;
+  private readonly BordersRenderer bordersRenderer;
   private XGraphics gfx;
-  private DocumentRenderer documentRenderer;
+  private readonly DocumentRenderer documentRenderer;
 }

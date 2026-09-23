@@ -170,7 +170,7 @@ public class PageBleedTests
 
         var boxes = Save(page);
 
-        boxes.Names.Should().BeEquivalentTo(new[] { "/MediaBox", "/CropBox", "/BleedBox", "/TrimBox", "/ArtBox" });
+        boxes.Names.Should().BeEquivalentTo("/MediaBox", "/CropBox", "/BleedBox", "/TrimBox", "/ArtBox");
     }
 
     [Fact]
@@ -258,7 +258,7 @@ public class PageBleedTests
         // A page with no bleed is a page going nowhere near a guillotine, so the mark allowance
         // that is set by default does nothing at all to it. The whole feature stays invisible to
         // every document that does not ask for it.
-        boxes.Names.Should().BeEquivalentTo(new[] { "/MediaBox" });
+        boxes.Names.Should().BeEquivalentTo("/MediaBox");
         boxes.MediaBox.Width.Should().Be(A5Width);
     }
 

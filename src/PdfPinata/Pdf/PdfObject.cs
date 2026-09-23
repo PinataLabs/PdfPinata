@@ -148,9 +148,7 @@ public abstract class PdfObject : PdfItem
     /// Gets the PdfInternals object of this document, that grants access to some internal structures
     /// which are not part of the public interface of PdfDocument.
     /// </summary>
-    public PdfObjectInternals Internals => _internals ??= new PdfObjectInternals(this);
-
-    private PdfObjectInternals _internals;
+    public PdfObjectInternals Internals => field ??= new PdfObjectInternals(this);
 
     /// <summary>
     /// When overridden in a derived class, prepares the object to get saved.
@@ -335,8 +333,7 @@ public abstract class PdfObject : PdfItem
                 Debug.Assert(item != null, "A dictionary element cannot be null.");
 
                 // Is item an iref?
-                var iref = item as PdfReference;
-                if (iref != null)
+                if (item is PdfReference iref)
                 {
                     // Case: The item is a reference.
                     // Does the iref already belongs to the new owner?
@@ -363,8 +360,7 @@ public abstract class PdfObject : PdfItem
                 {
                     // Case: The item is not a reference.
                     // If item is an object recursively fix its inner items.
-                    var pdfObject = item as PdfObject;
-                    if (pdfObject != null)
+                    if (item is PdfObject pdfObject)
                     {
                         // Fix up inner objects, i.e. recursively walk down the object tree.
                         FixUpObject(iot, owner, pdfObject);
@@ -396,8 +392,7 @@ public abstract class PdfObject : PdfItem
                 Debug.Assert(item != null, "An array element cannot be null.");
 
                 // Is item an iref?
-                var iref = item as PdfReference;
-                if (iref != null)
+                if (item is PdfReference iref)
                 {
                     // Case: The item is a reference.
                     // Does the iref already belongs to the owner?
@@ -418,8 +413,7 @@ public abstract class PdfObject : PdfItem
                 {
                     // Case: The item is not a reference.
                     // If item is an object recursively fix its inner items.
-                    var pdfObject = item as PdfObject;
-                    if (pdfObject != null)
+                    if (item is PdfObject pdfObject)
                     {
                         // Fix up inner objects, i.e. recursively walk down the object tree.
                         FixUpObject(iot, owner, pdfObject);

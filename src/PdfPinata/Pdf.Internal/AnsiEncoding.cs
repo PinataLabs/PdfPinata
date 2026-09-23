@@ -105,43 +105,43 @@ public sealed class AnsiEncoding : Encoding
         if (ch is < '\u0080' or (>= '\u00A0' and <= '\u00FF'))
             return true;
 
-        switch (ch)
+        return ch switch
         {
-            case '\u20AC':
-            case '\u0081':
-            case '\u201A':
-            case '\u0192':
-            case '\u201E':
-            case '\u2026':
-            case '\u2020':
-            case '\u2021':
-            case '\u02C6':
-            case '\u2030':
-            case '\u0160':
-            case '\u2039':
-            case '\u0152':
-            case '\u008D':
-            case '\u017D':
-            case '\u008F':
-            case '\u0090':
-            case '\u2018':
-            case '\u2019':
-            case '\u201C':
-            case '\u201D':
-            case '\u2022':
-            case '\u2013':
-            case '\u2014':
-            case '\u02DC':
-            case '\u2122':
-            case '\u0161':
-            case '\u203A':
-            case '\u0153':
-            case '\u009D':
-            case '\u017E':
-            case '\u0178':
-                return true;
-        }
-        return false;
+            '\u20AC'
+                or '\u0081'
+                or '\u201A'
+                or '\u0192'
+                or '\u201E'
+                or '\u2026'
+                or '\u2020'
+                or '\u2021'
+                or '\u02C6'
+                or '\u2030'
+                or '\u0160'
+                or '\u2039'
+                or '\u0152'
+                or '\u008D'
+                or '\u017D'
+                or '\u008F'
+                or '\u0090'
+                or '\u2018'
+                or '\u2019'
+                or '\u201C'
+                or '\u201D'
+                or '\u2022'
+                or '\u2013'
+                or '\u2014'
+                or '\u02DC'
+                or '\u2122'
+                or '\u0161'
+                or '\u203A'
+                or '\u0153'
+                or '\u009D'
+                or '\u017E'
+                or '\u0178'
+                => true,
+            _ => false
+        };
     }
 
     /// <summary>
@@ -152,74 +152,43 @@ public sealed class AnsiEncoding : Encoding
         if (ch is < '\u0080' or (>= '\u00A0' and <= '\u00FF'))
             return ch;
 
-        switch (ch)
+        return ch switch
         {
-            case '\u20AC':
-                return '\u0080';
-            case '\u0081':
-                return '\u0081';
-            case '\u201A':
-                return '\u0082';
-            case '\u0192':
-                return '\u0083';
-            case '\u201E':
-                return '\u0084';
-            case '\u2026':
-                return '\u0085';
-            case '\u2020':
-                return '\u0086';
-            case '\u2021':
-                return '\u0087';
-            case '\u02C6':
-                return '\u0088';
-            case '\u2030':
-                return '\u0089';
-            case '\u0160':
-                return '\u008A';
-            case '\u2039':
-                return '\u008B';
-            case '\u0152':
-                return '\u008C';
-            case '\u008D':
-                return '\u008D';
-            case '\u017D':
-                return '\u008E';
-            case '\u008F':
-                return '\u008F';
-            case '\u0090':
-                return '\u0090';
-            case '\u2018':
-                return '\u0091';
-            case '\u2019':
-                return '\u0092';
-            case '\u201C':
-                return '\u0093';
-            case '\u201D':
-                return '\u0094';
-            case '\u2022':
-                return '\u0095';
-            case '\u2013':
-                return '\u0096';
-            case '\u2014':
-                return '\u0097';
-            case '\u02DC':
-                return '\u0098';
-            case '\u2122':
-                return '\u0099';
-            case '\u0161':
-                return '\u009A';
-            case '\u203A':
-                return '\u009B';
-            case '\u0153':
-                return '\u009C';
-            case '\u009D':
-                return '\u009D';
-            case '\u017E':
-                return '\u009E';
-            case '\u0178':
-                return '\u009F';
-        }
-        return '\u00A4';  // Char 164 is ANSI value of '¤'.
+            '\u20AC' => '\u0080',
+            '\u0081' => '\u0081',
+            '\u201A' => '\u0082',
+            '\u0192' => '\u0083',
+            '\u201E' => '\u0084',
+            '\u2026' => '\u0085',
+            '\u2020' => '\u0086',
+            '\u2021' => '\u0087',
+            '\u02C6' => '\u0088',
+            '\u2030' => '\u0089',
+            '\u0160' => '\u008A',
+            '\u2039' => '\u008B',
+            '\u0152' => '\u008C',
+            '\u008D' => '\u008D',
+            '\u017D' => '\u008E',
+            '\u008F' => '\u008F',
+            '\u0090' => '\u0090',
+            '\u2018' => '\u0091',
+            '\u2019' => '\u0092',
+            '\u201C' => '\u0093',
+            '\u201D' => '\u0094',
+            '\u2022' => '\u0095',
+            '\u2013' => '\u0096',
+            '\u2014' => '\u0097',
+            '\u02DC' => '\u0098',
+            '\u2122' => '\u0099',
+            '\u0161' => '\u009A',
+            '\u203A' => '\u009B',
+            '\u0153' => '\u009C',
+            '\u009D' => '\u009D',
+            '\u017E' => '\u009E',
+            '\u0178' => '\u009F',
+            // Char 164 is ANSI value of '¤'.
+            _ => '\u00A4'
+        };
     }
 
     /// <summary>

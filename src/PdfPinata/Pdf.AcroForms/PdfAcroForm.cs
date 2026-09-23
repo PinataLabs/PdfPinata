@@ -180,15 +180,14 @@ public sealed class PdfAcroForm : PdfDictionary
     {
         get
         {
-            if (_fields == null)
+            if (field == null)
             {
                 object o = Elements.GetValue(Keys.Fields, VCF.CreateIndirect);
-                _fields = (PdfAcroField.PdfAcroFieldCollection)o;
+                field = (PdfAcroField.PdfAcroFieldCollection)o;
             }
-            return _fields;
+            return field;
         }
     }
-    private PdfAcroField.PdfAcroFieldCollection _fields;
 
     /// <summary>
     /// Predefined keys of this dictionary.
@@ -255,11 +254,10 @@ public sealed class PdfAcroForm : PdfDictionary
         {
             get
             {
-                s_meta ??= CreateMeta(typeof(Keys));
-                return s_meta;
+                field ??= CreateMeta(typeof(Keys));
+                return field;
             }
         }
-        private static DictionaryMeta s_meta;
 
         // ReSharper restore InconsistentNaming
     }

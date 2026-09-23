@@ -561,10 +561,9 @@ public partial class Paragraph : DocumentObject, IVisitable
         for (var idx = 0; idx < Elements.Count; ++idx)
         {
             var element = Elements[idx];
-            if (element is not Character)
+            if (element is not Character character)
                 continue;
 
-            var character = (Character)element;
             if (character.SymbolName != SymbolName.ParaBreak)
                 continue;
 

@@ -129,7 +129,7 @@ public class XImage : IDisposable
         if (_source != null)
         {
             //We always get a jpeg from an image source
-            _format = _source.Transparent ? XImageFormat.Png : XImageFormat.Jpeg;
+            Format = _source.Transparent ? XImageFormat.Png : XImageFormat.Jpeg;
         }
     }
 
@@ -219,9 +219,7 @@ public class XImage : IDisposable
     /// <summary>
     /// Gets the format of the image.
     /// </summary>
-    public XImageFormat Format => _format;
-
-    private XImageFormat _format;
+    public XImageFormat Format { get; private set; }
 
     internal void DisassociateWithGraphics(XGraphics gfx)
     {

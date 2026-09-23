@@ -123,15 +123,12 @@ internal class PieChartRenderer : ChartRenderer
   private PlotAreaRenderer GetPlotAreaRenderer()
   {
     var chart = (Chart)rendererParms.DrawingItem;
-    switch (chart.type)
+    return chart.type switch
     {
-      case ChartType.Pie2D:
-        return new PieClosedPlotAreaRenderer(rendererParms);
-
-      case ChartType.PieExploded2D:
-        return new PieExplodedPlotAreaRenderer(rendererParms);
-    }
-    return null;
+      ChartType.Pie2D => new PieClosedPlotAreaRenderer(rendererParms),
+      ChartType.PieExploded2D => new PieExplodedPlotAreaRenderer(rendererParms),
+      _ => null
+    };
   }
 
   /// <summary>
@@ -147,7 +144,7 @@ internal class PieChartRenderer : ChartRenderer
       rendererInfo.SeriesRendererInfos[idx] = sri;
       sri.Series = seriesColl[idx];
 
-      sri.LineFormat = Converter.ToXPen(sri.Series.lineFormat, XColors.Black, ChartRenderer.DefaultSeriesLineWidth);
+      sri.LineFormat = Converter.ToXPen(sri.Series.lineFormat, XColors.Black, DefaultSeriesLineWidth);
       sri.FillFormat = Converter.ToXBrush(sri.Series.fillFormat, ColumnColors.Item(idx));
 
       sri.PointRendererInfos = new PointRendererInfo[sri.Series.Elements.Count];

@@ -30,10 +30,10 @@ public class XTextFormatterTest
     /// </summary>
     private const double MaxDifference = 0.02;
 
-    private PdfDocument _document;
-    private PdfPage _page;
-    private XGraphics _renderer;
-    private XTextFormatter _textFormatter;
+    private readonly PdfDocument _document;
+    private readonly PdfPage _page;
+    private readonly XGraphics _renderer;
+    private readonly XTextFormatter _textFormatter;
 
     // Run before each test
     public XTextFormatterTest()
@@ -269,15 +269,12 @@ public class XTextFormatterTest
 
     private static double GetNumber(CObject operand)
     {
-        switch (operand)
+        return operand switch
         {
-            case CReal real:
-                return real.Value;
-            case CInteger integer:
-                return integer.Value;
-            default:
-                throw new InvalidOperationException($"Expected a number, got {operand.GetType().Name}.");
-        }
+            CReal real => real.Value,
+            CInteger integer => integer.Value,
+            _ => throw new InvalidOperationException($"Expected a number, got {operand.GetType().Name}.")
+        };
     }
 
     private static DiffOutput DiffPage(PdfDocument document, string filePrefix, int pageNum)

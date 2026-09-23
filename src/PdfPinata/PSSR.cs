@@ -43,7 +43,7 @@ namespace PdfPinata;
 /// The Pdf-Sharp-String-Resources.
 /// </summary>
 // ReSharper disable once InconsistentNaming
-static class PSSR
+internal static class PSSR
 {
     // How to use:
     // Create a function or property for each message text, depending on how many parameters are
@@ -284,41 +284,20 @@ static class PSSR
 
     public static string InappropriateColorSpace(PdfColorMode colorMode, XColorSpace colorSpace)
     {
-        string mode;
-        switch (colorMode)
+        var mode = colorMode switch
         {
-            case PdfColorMode.Rgb:
-                mode = "RGB";
-                break;
+            PdfColorMode.Rgb => "RGB",
+            PdfColorMode.Cmyk => "CMYK",
+            _ => "(undefined)"
+        };
 
-            case PdfColorMode.Cmyk:
-                mode = "CMYK";
-                break;
-
-            default:
-                mode = "(undefined)";
-                break;
-        }
-
-        string space;
-        switch (colorSpace)
+        var space = colorSpace switch
         {
-            case XColorSpace.Rgb:
-                space = "RGB";
-                break;
-
-            case XColorSpace.Cmyk:
-                space = "CMYK";
-                break;
-
-            case XColorSpace.GrayScale:
-                space = "grayscale";
-                break;
-
-            default:
-                space = "(undefined)";
-                break;
-        }
+            XColorSpace.Rgb => "RGB",
+            XColorSpace.Cmyk => "CMYK",
+            XColorSpace.GrayScale => "grayscale",
+            _ => "(undefined)"
+        };
         return $"The document requires color mode {mode}, but a color is defined using {space}. " +
                "Use only colors that match the color mode of the PDF document";
     }
@@ -349,20 +328,19 @@ static class PSSR
     {
         get
         {
-            if (_resmngr == null)
+            if (field == null)
             {
                 try
                 {
                     Lock.EnterFontFactory();
-                    _resmngr ??= new ResourceManager("PdfPinata.Resources.Messages",
+                    field ??= new ResourceManager("PdfPinata.Resources.Messages",
                         Assembly.GetExecutingAssembly());
                 }
                 finally { Lock.ExitFontFactory(); }
             }
-            return _resmngr;
+            return field;
         }
     }
-    private static ResourceManager _resmngr;
 
     #endregion
 }

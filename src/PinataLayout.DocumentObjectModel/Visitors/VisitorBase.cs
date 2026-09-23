@@ -540,10 +540,10 @@ public abstract class VisitorBase : DocumentObjectVisitor
             paragraph.Style = "Footnote";
             format = document.styles["Footnote"].paragraphFormat;
         }
-        else if (currentElementHolder is TextArea)
+        else if (currentElementHolder is TextArea textArea)
         {
-            paragraph.style = ((TextArea)currentElementHolder).style;
-            format = ((TextArea)currentElementHolder).format;
+            paragraph.style = textArea.style;
+            format = textArea.format;
         }
         else
         {

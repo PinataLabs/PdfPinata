@@ -367,8 +367,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     /// </summary>
     private static PdfDictionary ResolveDictionary(PdfItem item)
     {
-        var reference = item as PdfReference;
-        if (reference != null)
+        if (item is PdfReference reference)
             item = reference.Value;
         return item as PdfDictionary;
     }
@@ -596,11 +595,10 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
             importedObjectTable = Owner.FormTable.GetImportedObjectTable(importPage);
 
         // The item can be indirect. If so, replace it by its value.
-        if (item is PdfReference)
-            item = ((PdfReference)item).Value;
-        if (item is PdfObject)
+        if (item is PdfReference reference)
+            item = reference.Value;
+        if (item is PdfObject root)
         {
-            var root = (PdfObject)item;
             if (deepcopy)
             {
                 Debug.Assert(root.Owner != null, "See 'else' case for details");
@@ -763,8 +761,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         var ownPages = new Dictionary<PdfReference, object>();
         foreach (var item in PagesArray.Elements)
         {
-            var iref = item as PdfReference;
-            if (iref != null)
+            if (item is PdfReference iref)
                 ownPages[iref] = null;
         }
 

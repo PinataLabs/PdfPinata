@@ -292,13 +292,13 @@ public class TrueTypeCollectionTest
 
     private static FontStyle ToSixLabors(XFontStyle style)
     {
-        switch (style)
+        return style switch
         {
-            case XFontStyle.Bold: return FontStyle.Bold;
-            case XFontStyle.Italic: return FontStyle.Italic;
-            case XFontStyle.BoldItalic: return FontStyle.BoldItalic;
-            default: return FontStyle.Regular;
-        }
+            XFontStyle.Bold => FontStyle.Bold,
+            XFontStyle.Italic => FontStyle.Italic,
+            XFontStyle.BoldItalic => FontStyle.BoldItalic,
+            _ => FontStyle.Regular
+        };
     }
 
     private static string AssetPath(string fileName)

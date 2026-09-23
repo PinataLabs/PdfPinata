@@ -72,8 +72,8 @@ public sealed class TextMeasurement
                 break;
 
             case UnitType.Inch:
-                size.Width = size.Width / 72;
-                size.Height = size.Height / 72;
+                size.Width /= 72;
+                size.Height /= 72;
                 break;
 
             case UnitType.Millimeter:
@@ -82,8 +82,8 @@ public sealed class TextMeasurement
                 break;
 
             case UnitType.Pica:
-                size.Width = size.Width / 12;
-                size.Height = size.Height / 12;
+                size.Width /= 12;
+                size.Height /= 12;
                 break;
 
             default:
@@ -145,5 +145,5 @@ public sealed class TextMeasurement
 
     private Font font;
     private XFont xFont;
-    private XGraphics graphics;
+    private readonly XGraphics graphics;
 }

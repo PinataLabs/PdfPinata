@@ -3,7 +3,7 @@ using System;
 
 namespace PdfPinata.Pdf.Security;
 
-class RC4Encryptor : EncryptorBase, IEncryptor
+internal class RC4Encryptor : EncryptorBase, IEncryptor
 {
     /// <summary>
     /// Bytes used for RC4 encryption.

@@ -111,6 +111,6 @@ internal class LineFormatRenderer
     }
     return pen;
   }
-  private LineFormat lineFormat;
-  private XGraphics gfx;
+  private readonly LineFormat lineFormat;
+  private readonly XGraphics gfx;
 }

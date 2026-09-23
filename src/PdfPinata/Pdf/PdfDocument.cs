@@ -626,11 +626,11 @@ public sealed class PdfDocument : PdfObject, IDisposable
         try
         {
             // HACK: Remove XRefTrailer
-            if (_trailer is PdfCrossReferenceStream)
+            if (_trailer is PdfCrossReferenceStream crossReferenceStream)
             {
                 // HACK^2: Preserve the SecurityHandler.
                 var securityHandler = _securitySettings.SecurityHandler;
-                _trailer = new PdfTrailer((PdfCrossReferenceStream)_trailer) { _securityHandler = securityHandler };
+                _trailer = new PdfTrailer(crossReferenceStream) { _securityHandler = securityHandler };
             }
 
             var encrypt = _securitySettings.DocumentSecurityLevel != PdfDocumentSecurityLevel.None;
@@ -803,12 +803,10 @@ public sealed class PdfDocument : PdfObject, IDisposable
     {
         get
         {
-            _options ??= new PdfDocumentOptions();
-            return _options;
+            field ??= new PdfDocumentOptions();
+            return field;
         }
     }
-
-    private PdfDocumentOptions _options;
 
     /// <summary>
     /// Gets PDF specific document settings.
@@ -817,12 +815,10 @@ public sealed class PdfDocument : PdfObject, IDisposable
     {
         get
         {
-            _settings ??= new PdfDocumentSettings();
-            return _settings;
+            field ??= new PdfDocumentSettings();
+            return field;
         }
     }
-
-    private PdfDocumentSettings _settings;
 
     /// <summary>
     /// NYI Indicates whether large objects are written immediately to the output stream to relieve
@@ -1002,9 +998,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// <see cref="Advanced.PdfAttachments"/> for why both are needed, and note that only PDF/A-3
     /// among the archival profiles may carry one at all.
     /// </remarks>
-    public PdfAttachments Attachments => _attachments ??= new PdfAttachments(this);
-
-    private PdfAttachments _attachments;
+    public PdfAttachments Attachments => field ??= new PdfAttachments(this);
 
     /// <summary>
     /// Gets a value indicating whether anything has been tagged, without creating a structure tree
@@ -1064,7 +1058,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
         get { return _guid; }
     }
 
-    private Guid _guid = Guid.NewGuid();
+    private readonly Guid _guid = Guid.NewGuid();
 
     internal DocumentHandle Handle
     {
@@ -1109,12 +1103,10 @@ public sealed class PdfDocument : PdfObject, IDisposable
     {
         get
         {
-            _info ??= _trailer.Info;
-            return _info;
+            field ??= _trailer.Info;
+            return field;
         }
     }
-
-    private PdfDocumentInformation _info; // never changes if once created
 
     /// <summary>
     /// This function is intended to be undocumented.
@@ -1123,19 +1115,17 @@ public sealed class PdfDocument : PdfObject, IDisposable
     {
         get
         {
-            _customValues ??= PdfCustomValues.Get(Catalog.Elements);
-            return _customValues;
+            field ??= PdfCustomValues.Get(Catalog.Elements);
+            return field;
         }
         set
         {
             if (value != null)
                 throw new ArgumentException("Only null is allowed to clear all custom values.");
             PdfCustomValues.Remove(Catalog.Elements);
-            _customValues = null;
+            field = null;
         }
     }
-
-    private PdfCustomValues _customValues;
 
     /// <summary>
     /// Get the pages dictionary.
@@ -1200,10 +1190,8 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </summary>
     public PdfPageLabels PageLabels
     {
-        get { return _pageLabels ??= new PdfPageLabels(this); }
+        get { return field ??= new PdfPageLabels(this); }
     }
-
-    private PdfPageLabels _pageLabels;
 
     /// <summary>
     /// Get the AcroForm dictionary.
@@ -1306,27 +1294,21 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </summary>
     internal PdfExtGStateTable ExtGStateTable
     {
-        get { return _extGStateTable ??= new PdfExtGStateTable(this); }
+        get { return field ??= new PdfExtGStateTable(this); }
     }
-
-    private PdfExtGStateTable _extGStateTable;
 
     /// <summary>
     /// Gets the document table of the Separation colour spaces its spot colours are painted in.
     /// </summary>
-    internal PdfSpotColorTable SpotColorTable => _spotColorTable ??= new PdfSpotColorTable(this);
-
-    private PdfSpotColorTable _spotColorTable;
+    internal PdfSpotColorTable SpotColorTable => field ??= new PdfSpotColorTable(this);
 
     /// <summary>
     /// Gets the PdfCatalog of the current document.
     /// </summary>
     internal PdfCatalog Catalog
     {
-        get { return _catalog ??= _trailer.Root; }
+        get { return field ??= _trailer.Root; }
     }
-
-    private PdfCatalog _catalog; // never changes if once created
 
     /// <summary>
     /// Gets the named destinations of this document - places in it that can be linked to by name
@@ -1345,10 +1327,8 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </summary>
     public new PdfInternals Internals
     {
-        get { return _internals ??= new PdfInternals(this); }
+        get { return field ??= new PdfInternals(this); }
     }
-
-    private PdfInternals _internals;
 
     /// <summary>
     /// Creates a new page, <b>appends it to this document</b>, and returns it.

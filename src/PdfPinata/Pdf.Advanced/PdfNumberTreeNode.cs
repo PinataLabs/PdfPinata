@@ -98,8 +98,7 @@ public sealed class PdfNumberTreeNode : PdfDictionary
         if (!Entries.TryGetValue(key, out var value))
             return null;
 
-        var reference = value as PdfReference;
-        return reference != null ? reference.Value : value;
+        return value is PdfReference reference ? reference.Value : value;
     }
 
     /// <summary>
@@ -140,8 +139,7 @@ public sealed class PdfNumberTreeNode : PdfDictionary
     /// </summary>
     private static PdfItem Referenced(PdfItem value)
     {
-        var obj = value as PdfObject;
-        if (obj is { Reference: not null })
+        if (value is PdfObject { Reference: not null } obj)
             return obj.Reference;
 
         return value;
@@ -190,22 +188,19 @@ public sealed class PdfNumberTreeNode : PdfDictionary
 
     private static bool TryGetInteger(PdfItem item, out int value)
     {
-        var reference = item as PdfReference;
-        if (reference != null)
+        if (item is PdfReference reference)
             item = reference.Value;
 
-        var integer = item as PdfInteger;
-        if (integer != null)
+        if (item is PdfInteger integer)
         {
             value = integer.Value;
             return true;
         }
 
         // A key written as a real is not what the standard asks for, but it is unambiguous.
-        var real = item as PdfReal;
         #pragma warning disable S1244 // Exact on purpose: a real is an integer only when it is exactly one.
         // ReSharper disable once CompareOfFloatsByEqualityOperator
-        if (real != null && real.Value == Math.Floor(real.Value))
+        if (item is PdfReal real && real.Value == Math.Floor(real.Value))
         #pragma warning restore S1244
         {
             value = (int)real.Value;

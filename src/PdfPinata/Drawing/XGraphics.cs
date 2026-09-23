@@ -49,7 +49,7 @@ namespace PdfPinata.Drawing; // #??? aufräumen
 /// Holds information about the current state of the XGraphics object.
 /// </summary>
 [Flags]
-enum InternalGraphicsMode
+internal enum InternalGraphicsMode
 {
     DrawingGdiGraphics,
     DrawingPdfContent,
@@ -98,31 +98,15 @@ public sealed class XGraphics : IDisposable
         }
         page.RenderContent = content;
         _renderer = new XGraphicsPdfRenderer(page, this, options);
-        switch (pageUnit)
+        _pageSize = pageUnit switch
         {
-            case XGraphicsUnit.Point:
-                _pageSize = new XSize(page.Width, page.Height);
-                break;
-
-            case XGraphicsUnit.Inch:
-                _pageSize = new XSize(XUnit.FromPoint(page.Width).Inch, XUnit.FromPoint(page.Height).Inch);
-                break;
-
-            case XGraphicsUnit.Millimeter:
-                _pageSize = new XSize(XUnit.FromPoint(page.Width).Millimeter, XUnit.FromPoint(page.Height).Millimeter);
-                break;
-
-            case XGraphicsUnit.Centimeter:
-                _pageSize = new XSize(XUnit.FromPoint(page.Width).Centimeter, XUnit.FromPoint(page.Height).Centimeter);
-                break;
-
-            case XGraphicsUnit.Presentation:
-                _pageSize = new XSize(XUnit.FromPoint(page.Width).Presentation, XUnit.FromPoint(page.Height).Presentation);
-                break;
-
-            default:
-                throw new NotImplementedException("unit");
-        }
+            XGraphicsUnit.Point => new XSize(page.Width, page.Height),
+            XGraphicsUnit.Inch => new XSize(XUnit.FromPoint(page.Width).Inch, XUnit.FromPoint(page.Height).Inch),
+            XGraphicsUnit.Millimeter => new XSize(XUnit.FromPoint(page.Width).Millimeter, XUnit.FromPoint(page.Height).Millimeter),
+            XGraphicsUnit.Centimeter => new XSize(XUnit.FromPoint(page.Width).Centimeter, XUnit.FromPoint(page.Height).Centimeter),
+            XGraphicsUnit.Presentation => new XSize(XUnit.FromPoint(page.Width).Presentation, XUnit.FromPoint(page.Height).Presentation),
+            _ => throw new NotImplementedException("unit")
+        };
         _pageUnit = pageUnit;
         _pageDirection = pageDirection;
 
@@ -132,31 +116,15 @@ public sealed class XGraphics : IDisposable
     private XGraphics(XSize size, XGraphicsUnit pageUnit, XPageDirection pageDirection)
     {
         _gsStack = new GraphicsStateStack();
-        switch (pageUnit)
+        _pageSize = pageUnit switch
         {
-            case XGraphicsUnit.Point:
-                _pageSize = new XSize(size.Width, size.Height);
-                break;
-
-            case XGraphicsUnit.Inch:
-                _pageSize = new XSize(XUnit.FromPoint(size.Width).Inch, XUnit.FromPoint(size.Height).Inch);
-                break;
-
-            case XGraphicsUnit.Millimeter:
-                _pageSize = new XSize(XUnit.FromPoint(size.Width).Millimeter, XUnit.FromPoint(size.Height).Millimeter);
-                break;
-
-            case XGraphicsUnit.Centimeter:
-                _pageSize = new XSize(XUnit.FromPoint(size.Width).Centimeter, XUnit.FromPoint(size.Height).Centimeter);
-                break;
-
-            case XGraphicsUnit.Presentation:
-                _pageSize = new XSize(XUnit.FromPoint(size.Width).Presentation, XUnit.FromPoint(size.Height).Presentation);
-                break;
-
-            default:
-                throw new NotImplementedException("unit");
-        }
+            XGraphicsUnit.Point => new XSize(size.Width, size.Height),
+            XGraphicsUnit.Inch => new XSize(XUnit.FromPoint(size.Width).Inch, XUnit.FromPoint(size.Height).Inch),
+            XGraphicsUnit.Millimeter => new XSize(XUnit.FromPoint(size.Width).Millimeter, XUnit.FromPoint(size.Height).Millimeter),
+            XGraphicsUnit.Centimeter => new XSize(XUnit.FromPoint(size.Width).Centimeter, XUnit.FromPoint(size.Height).Centimeter),
+            XGraphicsUnit.Presentation => new XSize(XUnit.FromPoint(size.Width).Presentation, XUnit.FromPoint(size.Height).Presentation),
+            _ => throw new NotImplementedException("unit")
+        };
         _pageUnit = pageUnit;
         _pageDirection = pageDirection;
 
@@ -167,31 +135,15 @@ public sealed class XGraphics : IDisposable
     {
         _renderer = renderer ?? throw new ArgumentNullException(nameof(renderer));
         _gsStack = new GraphicsStateStack();
-        switch (pageUnit)
+        _pageSize = pageUnit switch
         {
-            case XGraphicsUnit.Point:
-                _pageSize = new XSize(size.Width, size.Height);
-                break;
-
-            case XGraphicsUnit.Inch:
-                _pageSize = new XSize(XUnit.FromPoint(size.Width).Inch, XUnit.FromPoint(size.Height).Inch);
-                break;
-
-            case XGraphicsUnit.Millimeter:
-                _pageSize = new XSize(XUnit.FromPoint(size.Width).Millimeter, XUnit.FromPoint(size.Height).Millimeter);
-                break;
-
-            case XGraphicsUnit.Centimeter:
-                _pageSize = new XSize(XUnit.FromPoint(size.Width).Centimeter, XUnit.FromPoint(size.Height).Centimeter);
-                break;
-
-            case XGraphicsUnit.Presentation:
-                _pageSize = new XSize(XUnit.FromPoint(size.Width).Presentation, XUnit.FromPoint(size.Height).Presentation);
-                break;
-
-            default:
-                throw new NotImplementedException($"{nameof(pageUnit)}: {pageUnit}");
-        }
+            XGraphicsUnit.Point => new XSize(size.Width, size.Height),
+            XGraphicsUnit.Inch => new XSize(XUnit.FromPoint(size.Width).Inch, XUnit.FromPoint(size.Height).Inch),
+            XGraphicsUnit.Millimeter => new XSize(XUnit.FromPoint(size.Width).Millimeter, XUnit.FromPoint(size.Height).Millimeter),
+            XGraphicsUnit.Centimeter => new XSize(XUnit.FromPoint(size.Width).Centimeter, XUnit.FromPoint(size.Height).Centimeter),
+            XGraphicsUnit.Presentation => new XSize(XUnit.FromPoint(size.Width).Presentation, XUnit.FromPoint(size.Height).Presentation),
+            _ => throw new NotImplementedException($"{nameof(pageUnit)}: {pageUnit}")
+        };
         _pageUnit = pageUnit;
         _pageDirection = pageDirection;
 
@@ -1390,8 +1342,7 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     private void CheckXPdfFormConsistence(XImage image)
     {
-        var xForm = image as XForm;
-        if (xForm == null)
+        if (image is not XForm xForm)
             return;
 
         // Force disposing of XGraphics that draws the content
@@ -2107,9 +2058,7 @@ public sealed class XGraphics : IDisposable
     /// <summary>
     /// (Under construction. May change in future versions.)
     /// </summary>
-    public SpaceTransformer Transformer => _transformer ??= new SpaceTransformer(this);
-
-    private SpaceTransformer _transformer;
+    public SpaceTransformer Transformer => field ??= new SpaceTransformer(this);
 
     #endregion
 
@@ -2176,8 +2125,7 @@ public sealed class XGraphics : IDisposable
     {
         get
         {
-            var renderer = _renderer as XGraphicsPdfRenderer;
-            return renderer != null ? renderer.Page : null;
+            return _renderer is XGraphicsPdfRenderer renderer ? renderer.Page : null;
         }
     }
 

@@ -140,11 +140,10 @@ public abstract class PdfChoiceField : PdfAcroField
                     if (TextOfOption(item) == value)
                         return idx;
                 }
-                else if (item is PdfArray)
+                else if (item is PdfArray array)
                 {
                     // An option may be an [exportValue displayText] pair, and it is the export
                     // value that /V is meant to match.
-                    var array = (PdfArray)item;
                     if (array.Elements.Count != 0)
                     {
                         if (TextOfOption(array.Elements[0]) == value)
@@ -172,9 +171,8 @@ public abstract class PdfChoiceField : PdfAcroField
             if (item is PdfString)
                 return TextOfOption(item);
 
-            if (item is PdfArray)
+            if (item is PdfArray array)
             {
-                var array = (PdfArray)item;
                 if (array.Elements.Count != 0)
                     return TextOfOption(array.Elements[0]);
             }

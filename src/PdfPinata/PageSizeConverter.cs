@@ -45,215 +45,79 @@ public static class PageSizeConverter
         // The international definitions are:
         //   1 inch == 25.4 mm
         //   1 inch == 72 point
-        switch (value)
+        return value switch
         {
             // Source http://www.din-formate.de/reihe-a-din-groessen-mm-pixel-dpi.html
-            case PageSize.A0:
-                return new XSize(2384, 3370);
-
-            case PageSize.A1:
-                return new XSize(1684, 2384);
-
-            case PageSize.A2:
-                return new XSize(1191, 1684);
-
-            case PageSize.A3:
-                return new XSize(842, 1191);
-
-            case PageSize.A4:
-                return new XSize(595, 842);
-
-            case PageSize.A5:
-                return new XSize(420, 595);
-
-            case PageSize.A6:
-                return new XSize(298, 420);
-
-            case PageSize.A7:
-                return new XSize(210, 298);
-
-            case PageSize.A8:
-                return new XSize(147, 210);
-
-            case PageSize.A9:
-                return new XSize(105, 147);
-
-            case PageSize.A10:
-                return new XSize(74, 105);
-
-            case PageSize.TwoA0:        // 2A0
-                return new XSize(3370, 4768);
-
-            case PageSize.FourA0:       // 4A0
-                return new XSize(4768, 6741);
-
-            case PageSize.RA0:
-                return new XSize(2438, 3458);
-
-            case PageSize.RA1:
-                return new XSize(1729, 2438);
-
-            case PageSize.RA2:
-                return new XSize(1219, 1729);
-
-            case PageSize.RA3:
-                return new XSize(865, 1219);
-
-            case PageSize.RA4:
-                return new XSize(609, 865);
-
-            case PageSize.RA5:
-                return new XSize(433, 609);
-
-            case PageSize.SRA0:
-                return new XSize(2551, 3628);
-
-            case PageSize.SRA1:
-                return new XSize(1814, 2551);
-
-            case PageSize.SRA2:
-                return new XSize(1276, 1814);
-
-            case PageSize.SRA3:
-                return new XSize(907, 1276);
-
-            case PageSize.SRA4:
-                return new XSize(638, 907);
-
-
-            case PageSize.B0:
-                return new XSize(2835, 4008);
-
-            case PageSize.B1:
-                return new XSize(2004, 2835);
-
-            case PageSize.B2:
-                return new XSize(1417, 2004);
-
-            case PageSize.B3:
-                return new XSize(1001, 1417);
-
-            case PageSize.B4:
-                return new XSize(709, 1001);
-
-            case PageSize.B5:
-                return new XSize(499, 709);
-
-            case PageSize.B6:
-                return new XSize(354, 499);
-
-            case PageSize.B7:
-                return new XSize(249, 354);
-
-            case PageSize.B8:
-                return new XSize(176, 249);
-
-            case PageSize.B9:
-                return new XSize(125, 176);
-
-            case PageSize.B10:
-                return new XSize(88, 125);
-
+            PageSize.A0 => new XSize(2384, 3370),
+            PageSize.A1 => new XSize(1684, 2384),
+            PageSize.A2 => new XSize(1191, 1684),
+            PageSize.A3 => new XSize(842, 1191),
+            PageSize.A4 => new XSize(595, 842),
+            PageSize.A5 => new XSize(420, 595),
+            PageSize.A6 => new XSize(298, 420),
+            PageSize.A7 => new XSize(210, 298),
+            PageSize.A8 => new XSize(147, 210),
+            PageSize.A9 => new XSize(105, 147),
+            PageSize.A10 => new XSize(74, 105),
+            PageSize.TwoA0 => new XSize(3370, 4768),  // 2A0
+            PageSize.FourA0 => new XSize(4768, 6741),  // 4A0
+            PageSize.RA0 => new XSize(2438, 3458),
+            PageSize.RA1 => new XSize(1729, 2438),
+            PageSize.RA2 => new XSize(1219, 1729),
+            PageSize.RA3 => new XSize(865, 1219),
+            PageSize.RA4 => new XSize(609, 865),
+            PageSize.RA5 => new XSize(433, 609),
+            PageSize.SRA0 => new XSize(2551, 3628),
+            PageSize.SRA1 => new XSize(1814, 2551),
+            PageSize.SRA2 => new XSize(1276, 1814),
+            PageSize.SRA3 => new XSize(907, 1276),
+            PageSize.SRA4 => new XSize(638, 907),
+            PageSize.B0 => new XSize(2835, 4008),
+            PageSize.B1 => new XSize(2004, 2835),
+            PageSize.B2 => new XSize(1417, 2004),
+            PageSize.B3 => new XSize(1001, 1417),
+            PageSize.B4 => new XSize(709, 1001),
+            PageSize.B5 => new XSize(499, 709),
+            PageSize.B6 => new XSize(354, 499),
+            PageSize.B7 => new XSize(249, 354),
+            PageSize.B8 => new XSize(176, 249),
+            PageSize.B9 => new XSize(125, 176),
+            PageSize.B10 => new XSize(88, 125),
             // The C series, for envelopes ...
-
-            case PageSize.C0:
-                return new XSize(2599, 3677);
-
-            case PageSize.C1:
-                return new XSize(1837, 2599);
-
-            case PageSize.C2:
-                return new XSize(1298, 1837);
-
-            case PageSize.C3:
-                return new XSize(918, 1298);
-
-            case PageSize.C4:
-                return new XSize(649, 918);
-
-            case PageSize.C5:
-                return new XSize(459, 649);
-
-            case PageSize.C6:
-                return new XSize(323, 459);
-
-            case PageSize.C7:
-                return new XSize(230, 323);
-
-            case PageSize.C8:
-                return new XSize(162, 230);
-
-            case PageSize.C9:
-                return new XSize(113, 162);
-
-            case PageSize.C10:
-                return new XSize(79, 113);
-
+            PageSize.C0 => new XSize(2599, 3677),
+            PageSize.C1 => new XSize(1837, 2599),
+            PageSize.C2 => new XSize(1298, 1837),
+            PageSize.C3 => new XSize(918, 1298),
+            PageSize.C4 => new XSize(649, 918),
+            PageSize.C5 => new XSize(459, 649),
+            PageSize.C6 => new XSize(323, 459),
+            PageSize.C7 => new XSize(230, 323),
+            PageSize.C8 => new XSize(162, 230),
+            PageSize.C9 => new XSize(113, 162),
+            PageSize.C10 => new XSize(79, 113),
             // The non-ISO sizes ...
-
-            case PageSize.Quarto:           // 8 x 10 inch²
-                return new XSize(576, 720);
-
-            case PageSize.Foolscap:         // 8 x 13 inch²
-                return new XSize(576, 936);
-
-            case PageSize.Executive:        // 7.25 x 10.5 inch²
-                return new XSize(522, 756);
-
-            case PageSize.GovernmentLetter: // 8 x 10.5 inch²
-                return new XSize(576, 756);
-
-            case PageSize.Letter:           // 8.5 x 11 inch²
-                return new XSize(612, 792);
-
-            case PageSize.Legal:            // 8.5 x 14 inch²
-                return new XSize(612, 1008);
-
-            case PageSize.Ledger:           // 17 x 11 inch²
-                return new XSize(1224, 792);
-
-            case PageSize.Tabloid:          // 11 x 17 inch²
-                return new XSize(792, 1224);
-
-            case PageSize.Post:             // 15.5 x 19.25 inch²
-                return new XSize(1126, 1386);
-
-            case PageSize.Crown:            // 20 x 15 inch²
-                return new XSize(1440, 1080);
-
-            case PageSize.LargePost:        // 16.5 x 21 inch²
-                return new XSize(1188, 1512);
-
-            case PageSize.Demy:             // 17.5 x 22 inch²
-                return new XSize(1260, 1584);
-
-            case PageSize.Medium:           // 18 x 23 inch²
-                return new XSize(1296, 1656);
-
-            case PageSize.Royal:            // 20 x 25 inch²
-                return new XSize(1440, 1800);
-
-            case PageSize.Elephant:         // 23 x 28 inch²
-                return new XSize(1565, 2016);
-
-            case PageSize.DoubleDemy:       // 23.5 x 35 inch²
-                return new XSize(1692, 2520);
-
-            case PageSize.QuadDemy:         // 35 x 45 inch²
-                return new XSize(2520, 3240);
-
-            case PageSize.STMT:             // 5.5 x 8.5 inch²
-                return new XSize(396, 612);
-
-            case PageSize.Folio:            // 8.5 x 13 inch²
-                return new XSize(612, 936);
-
-            case PageSize.Statement:        // 5.5 x 8.5 inch²
-                return new XSize(396, 612);
-
-            case PageSize.Size10x14:        // 10 x 14 inch²
-                return new XSize(720, 1008);
-        }
-        throw new ArgumentException("Invalid PageSize.", nameof(value));
+            PageSize.Quarto => new XSize(576, 720),  // 8 x 10 inch²
+            PageSize.Foolscap => new XSize(576, 936),  // 8 x 13 inch²
+            PageSize.Executive => new XSize(522, 756),  // 7.25 x 10.5 inch²
+            PageSize.GovernmentLetter => new XSize(576, 756),  // 8 x 10.5 inch²
+            PageSize.Letter => new XSize(612, 792),  // 8.5 x 11 inch²
+            PageSize.Legal => new XSize(612, 1008),  // 8.5 x 14 inch²
+            PageSize.Ledger => new XSize(1224, 792),  // 17 x 11 inch²
+            PageSize.Tabloid => new XSize(792, 1224),  // 11 x 17 inch²
+            PageSize.Post => new XSize(1126, 1386),  // 15.5 x 19.25 inch²
+            PageSize.Crown => new XSize(1440, 1080),  // 20 x 15 inch²
+            PageSize.LargePost => new XSize(1188, 1512),  // 16.5 x 21 inch²
+            PageSize.Demy => new XSize(1260, 1584),  // 17.5 x 22 inch²
+            PageSize.Medium => new XSize(1296, 1656),  // 18 x 23 inch²
+            PageSize.Royal => new XSize(1440, 1800),  // 20 x 25 inch²
+            PageSize.Elephant => new XSize(1565, 2016),  // 23 x 28 inch²
+            PageSize.DoubleDemy => new XSize(1692, 2520),  // 23.5 x 35 inch²
+            PageSize.QuadDemy => new XSize(2520, 3240),  // 35 x 45 inch²
+            PageSize.STMT => new XSize(396, 612),  // 5.5 x 8.5 inch²
+            PageSize.Folio => new XSize(612, 936),  // 8.5 x 13 inch²
+            PageSize.Statement => new XSize(396, 612),  // 5.5 x 8.5 inch²
+            PageSize.Size10x14 => new XSize(720, 1008),  // 10 x 14 inch²
+            _ => throw new ArgumentException("Invalid PageSize.", nameof(value))
+        };
     }
 }

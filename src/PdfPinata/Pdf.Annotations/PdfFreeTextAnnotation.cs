@@ -216,12 +216,12 @@ public sealed class PdfFreeTextAnnotation : PdfMarkupAnnotation
     {
         get
         {
-            switch (Elements.GetInteger(Keys.Q))
+            return Elements.GetInteger(Keys.Q) switch
             {
-                case 1: return XParagraphAlignment.Center;
-                case 2: return XParagraphAlignment.Right;
-                default: return _justified ? XParagraphAlignment.Justify : XParagraphAlignment.Left;
-            }
+                1 => XParagraphAlignment.Center,
+                2 => XParagraphAlignment.Right,
+                _ => _justified ? XParagraphAlignment.Justify : XParagraphAlignment.Left
+            };
         }
         set
         {

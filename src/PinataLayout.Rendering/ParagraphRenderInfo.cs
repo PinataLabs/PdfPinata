@@ -38,7 +38,7 @@ internal class ParagraphRenderInfo : RenderInfo
 {
   internal override FormatInfo FormatInfo => formatInfo;
 
-  private ParagraphFormatInfo formatInfo = new();
+  private readonly ParagraphFormatInfo formatInfo = new();
 
   public override DocumentObject DocumentObject => paragraph;
 

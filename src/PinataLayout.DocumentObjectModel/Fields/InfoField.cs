@@ -94,7 +94,7 @@ public partial class InfoField : DocumentObject
     }
     return false;
   }
-  private static string[] validNames = Enum.GetNames<InfoFieldType>();
+  private static readonly string[] validNames = Enum.GetNames<InfoFieldType>();
 
   /// <summary>
   /// Determines whether this instance is null (not set).

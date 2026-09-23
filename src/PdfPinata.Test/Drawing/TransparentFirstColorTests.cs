@@ -96,6 +96,6 @@ public class TransparentFirstColorTests
             gfx.DrawRectangle(XBrushes.Red, new XRect(10, 120, 100, 100));
         }
 
-        AlphasSelected(document, "/ca").Should().Equal([1.0]);
+        AlphasSelected(document, "/ca").Should().Equal(1.0);
     }
 }

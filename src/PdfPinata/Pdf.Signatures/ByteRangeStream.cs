@@ -12,7 +12,7 @@ namespace PdfPinata.Pdf.Signatures;
 /// lets <see cref="IPdfSigner.Sign"/> take a stream at all, and it means a signer that hashes
 /// incrementally never needs a second copy of a document that may be tens of megabytes.
 /// </remarks>
-sealed class ByteRangeStream : Stream
+internal sealed class ByteRangeStream : Stream
 {
     private readonly byte[] _buffer;
     private readonly int _firstOffset;

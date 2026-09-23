@@ -237,16 +237,14 @@ public class XTextFormatter
     /// <exception cref="ArgumentOutOfRangeException">The value is less than 1.</exception>
     public int Columns
     {
-        get => _columns;
+        get;
         set
         {
             if (value < 1)
                 throw new ArgumentOutOfRangeException(nameof(value), value, "Columns must be at least 1.");
-            _columns = value;
+            field = value;
         }
-    }
-
-    private int _columns = 1;
+    } = 1;
 
     /// <summary>
     /// Gets or sets the space, in points, left between one column and the next.

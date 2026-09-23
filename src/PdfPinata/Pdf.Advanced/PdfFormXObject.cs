@@ -220,8 +220,8 @@ public sealed class PdfFormXObject : PdfXObject, IContentStream
         {
             // Get root object
             PdfObject root;
-            if (res is PdfReference)
-                root = ((PdfReference)res).Value;
+            if (res is PdfReference resourcesReference)
+                root = resourcesReference.Value;
             else
                 root = (PdfDictionary)res;
 

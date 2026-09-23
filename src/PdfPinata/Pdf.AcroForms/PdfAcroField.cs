@@ -407,8 +407,7 @@ public abstract class PdfAcroField : PdfDictionary
     public string[] GetAppearanceNames()
     {
         var names = new Dictionary<string, object>();
-        var dict = Elements["/AP"] as PdfDictionary;
-        if (dict != null)
+        if (Elements["/AP"] is PdfDictionary dict)
         {
             AppDict(dict, names);
 
@@ -417,11 +416,10 @@ public abstract class PdfAcroField : PdfDictionary
                 var kids = Fields.Elements.Items;
                 foreach (var pdfItem in kids)
                 {
-                    if (pdfItem is not PdfReference)
+                    if (pdfItem is not PdfReference reference)
                         continue;
 
-                    var xxx = ((PdfReference)pdfItem).Value as PdfDictionary;
-                    if (xxx != null)
+                    if (reference.Value is PdfDictionary xxx)
                         AppDict(xxx, names);
                 }
             }
@@ -509,21 +507,20 @@ public abstract class PdfAcroField : PdfDictionary
     {
         get
         {
-            if (_fields == null)
+            if (field == null)
             {
                 object o = Elements.GetValue(Keys.Kids, VCF.CreateIndirect);
-                _fields = (PdfAcroFieldCollection)o;
+                field = (PdfAcroFieldCollection)o;
 
                 // Whose /Kids this is. The same class serves as a form's /Fields, where there is
                 // nobody to be under, so the collection cannot work it out for itself - and a
                 // field added to /Kids needs the /Parent back-reference that a root field must
                 // not have.
-                _fields.SetParentField(this);
+                field.SetParentField(this);
             }
-            return _fields;
+            return field;
         }
     }
-    private PdfAcroFieldCollection _fields;
 
     /// <summary>
     /// Holds a collection of interactive fields.

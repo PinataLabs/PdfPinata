@@ -6,7 +6,7 @@ namespace PdfPinata.Signing;
 /// <summary>
 /// The one piece of raw CMS byte-handling more than one class here needs.
 /// </summary>
-static class CmsEncoding
+internal static class CmsEncoding
 {
     /// <summary>
     /// The encoded signature without the zero padding reserved for it that follows it.

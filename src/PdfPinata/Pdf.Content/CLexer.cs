@@ -903,14 +903,14 @@ public class CLexer
     {
         if (char.IsLetter(ch))
             return true;
-        switch (ch)
+        return ch switch
         {
-            case Chars.Asterisk:    // *
-            case Chars.QuoteSingle: // '
-            case Chars.QuoteDbl:    // "
-                return true;
-        }
-        return false;
+            Chars.Asterisk           // *
+                or Chars.QuoteSingle // '
+                or Chars.QuoteDbl    // "
+                => true,
+            _ => false
+        };
     }
 
     /// <summary>

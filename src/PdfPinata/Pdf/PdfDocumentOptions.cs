@@ -306,14 +306,13 @@ public sealed class PdfDocumentOptions
     /// </summary>
     public int MaxObjectsPerObjectStream
     {
-        get => _maxObjectsPerObjectStream;
+        get;
         set
         {
             if (value < 1)
                 throw new System.ArgumentOutOfRangeException(nameof(value),
                     "An object stream has to hold at least one object.");
-            _maxObjectsPerObjectStream = value;
+            field = value;
         }
-    }
-    private int _maxObjectsPerObjectStream = 200;
+    } = 200;
 }

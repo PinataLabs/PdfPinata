@@ -22,7 +22,7 @@ namespace ConformanceCorpus;
 /// for no gain.
 /// </para>
 /// </remarks>
-sealed class CffFontResolver : IFontResolver
+internal sealed class CffFontResolver : IFontResolver
 {
     internal const string Family = "Source Code Pro";
 

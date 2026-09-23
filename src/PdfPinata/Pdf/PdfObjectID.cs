@@ -86,9 +86,8 @@ public struct PdfObjectID : IComparable, IEquatable<PdfObjectID>
     /// </summary>
     public override bool Equals(object obj)
     {
-        if (obj is PdfObjectID)
+        if (obj is PdfObjectID id)
         {
-            var id = (PdfObjectID)obj;
             if (_objectNumber == id._objectNumber)
                 return _generationNumber == id._generationNumber;
         }
@@ -145,10 +144,9 @@ public struct PdfObjectID : IComparable, IEquatable<PdfObjectID>
     /// </summary>
     public int CompareTo(object obj)
     {
-        if (obj is not PdfObjectID)
+        if (obj is not PdfObjectID id)
             return 1;
 
-        var id = (PdfObjectID)obj;
         if (_objectNumber == id._objectNumber)
             return _generationNumber - id._generationNumber;
         return _objectNumber - id._objectNumber;

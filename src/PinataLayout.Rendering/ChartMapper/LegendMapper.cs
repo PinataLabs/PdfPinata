@@ -41,61 +41,61 @@ internal static class LegendMapper
 
     foreach (DocumentObjectModel.DocumentObject domObj in domChart.BottomArea.Elements)
     {
-      if (domObj is not DocumentObjectModel.Shapes.Charts.Legend)
+      if (domObj is not DocumentObjectModel.Shapes.Charts.Legend legend)
         continue;
 
       chart.Legend.Docking = DockingType.Bottom;
-      domLegend = domObj as DocumentObjectModel.Shapes.Charts.Legend;
+      domLegend = legend;
       textArea = domChart.BottomArea;
     }
 
     foreach (DocumentObjectModel.DocumentObject domObj in domChart.RightArea.Elements)
     {
-      if (domObj is not DocumentObjectModel.Shapes.Charts.Legend)
+      if (domObj is not DocumentObjectModel.Shapes.Charts.Legend legend)
         continue;
 
       chart.Legend.Docking = DockingType.Right;
-      domLegend = domObj as DocumentObjectModel.Shapes.Charts.Legend;
+      domLegend = legend;
       textArea = domChart.RightArea;
     }
 
     foreach (DocumentObjectModel.DocumentObject domObj in domChart.LeftArea.Elements)
     {
-      if (domObj is not DocumentObjectModel.Shapes.Charts.Legend)
+      if (domObj is not DocumentObjectModel.Shapes.Charts.Legend legend)
         continue;
 
       chart.Legend.Docking = DockingType.Left;
-      domLegend = domObj as DocumentObjectModel.Shapes.Charts.Legend;
+      domLegend = legend;
       textArea = domChart.LeftArea;
     }
 
     foreach (DocumentObjectModel.DocumentObject domObj in domChart.TopArea.Elements)
     {
-      if (domObj is not DocumentObjectModel.Shapes.Charts.Legend)
+      if (domObj is not DocumentObjectModel.Shapes.Charts.Legend legend)
         continue;
 
       chart.Legend.Docking = DockingType.Top;
-      domLegend = domObj as DocumentObjectModel.Shapes.Charts.Legend;
+      domLegend = legend;
       textArea = domChart.TopArea;
     }
 
     foreach (DocumentObjectModel.DocumentObject domObj in domChart.HeaderArea.Elements)
     {
-      if (domObj is not DocumentObjectModel.Shapes.Charts.Legend)
+      if (domObj is not DocumentObjectModel.Shapes.Charts.Legend legend)
         continue;
 
       chart.Legend.Docking = DockingType.Top;
-      domLegend = domObj as DocumentObjectModel.Shapes.Charts.Legend;
+      domLegend = legend;
       textArea = domChart.HeaderArea;
     }
 
     foreach (DocumentObjectModel.DocumentObject domObj in domChart.FooterArea.Elements)
     {
-      if (domObj is not DocumentObjectModel.Shapes.Charts.Legend)
+      if (domObj is not DocumentObjectModel.Shapes.Charts.Legend legend)
         continue;
 
       chart.Legend.Docking = DockingType.Bottom;
-      domLegend = domObj as DocumentObjectModel.Shapes.Charts.Legend;
+      domLegend = legend;
       textArea = domChart.FooterArea;
     }
 

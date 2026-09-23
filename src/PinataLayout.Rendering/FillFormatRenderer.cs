@@ -68,6 +68,6 @@ internal class FillFormatRenderer
 
     return new XSolidBrush(ColorHelper.ToXColor(fillFormat.Color, fillFormat.Document.UseCmykColor));
   }
-  private XGraphics gfx;
-  private FillFormat fillFormat;
+  private readonly XGraphics gfx;
+  private readonly FillFormat fillFormat;
 }

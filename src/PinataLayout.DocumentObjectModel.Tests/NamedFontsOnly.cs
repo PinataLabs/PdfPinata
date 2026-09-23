@@ -18,7 +18,7 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 ///   face the exception below will say so rather than a layout quietly coming out wrong.
 ///   </para>
 /// </summary>
-sealed class NamedFontsOnly : IFontResolver
+internal sealed class NamedFontsOnly : IFontResolver
 {
     /// <summary>
     ///   The name the standard styles are built with. Any name will do - it is written into the

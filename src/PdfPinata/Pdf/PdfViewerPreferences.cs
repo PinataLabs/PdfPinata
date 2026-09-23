@@ -134,18 +134,12 @@ public sealed class PdfViewerPreferences : PdfDictionary
             // "R2L" matched nothing at all, and this property could be set and never read back,
             // neither in the document it was set on nor out of the file it was written to. Both
             // spellings are taken, because an element set as a name by hand need not have one.
-            switch (Elements.GetName(Keys.Direction))
+            return Elements.GetName(Keys.Direction) switch
             {
-                case "/L2R":
-                case "L2R":
-                    return PdfReadingDirection.LeftToRight;
-
-                case "/R2L":
-                case "R2L":
-                    return PdfReadingDirection.RightToLeft;
-            }
-
-            return null;
+                "/L2R" or "L2R" => PdfReadingDirection.LeftToRight,
+                "/R2L" or "R2L" => PdfReadingDirection.RightToLeft,
+                _ => null
+            };
         }
         set
         {
