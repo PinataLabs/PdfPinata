@@ -76,7 +76,7 @@ public sealed class PdfReference : PdfItem
     public PdfReference(PdfObjectID objectId, long position)
     {
         _objectID = objectId;
-        _position = position;
+        Position = position;
     }
 
     /// <summary>
@@ -85,7 +85,7 @@ public sealed class PdfReference : PdfItem
     internal void WriteXRefEnty(PdfWriter writer)
     {
         // Each line must be exactly 20 bytes long, otherwise Acrobat repairs the file.
-        var text = $"{_position:0000000000} {_objectID.GenerationNumber:00000} n\n"; // InUse ? 'n' : 'f');
+        var text = $"{Position:0000000000} {_objectID.GenerationNumber:00000} n\n"; // InUse ? 'n' : 'f');
         writer.WriteRaw(text);
     }
 
@@ -120,12 +120,7 @@ public sealed class PdfReference : PdfItem
     /// <summary>
     /// Gets or sets the file position of the related PdfObject.
     /// </summary>
-    public long Position
-    {
-        get => _position;
-        set => _position = value;
-    }
-    private long _position;
+    public long Position { get; set; }
 
     /// <summary>
     /// Gets or sets the referenced PdfObject.
@@ -155,12 +150,7 @@ public sealed class PdfReference : PdfItem
     /// <summary>
     /// Gets or sets the document this object belongs to.
     /// </summary>
-    public PdfDocument Document
-    {
-        get => _document;
-        set => _document = value;
-    }
-    private PdfDocument _document;
+    public PdfDocument Document { get; set; }
 
     /// <summary>
     /// Gets a string representing the object identifier.

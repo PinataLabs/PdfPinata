@@ -188,7 +188,7 @@ internal sealed class PdfFormXObjectTable : PdfResourceTable
         public Selector(XForm form)
         {
             // HACK: just use full path to identify
-            _path = form.Path.ToLowerInvariant();
+            Path = form.Path.ToLowerInvariant();
         }
 
         /// <summary>
@@ -197,34 +197,29 @@ internal sealed class PdfFormXObjectTable : PdfResourceTable
         public Selector(PdfPage page)
         {
             var owner = page.Owner;
-            _path = "*" + owner.Guid.ToString("B");
-            _path = _path.ToLowerInvariant();
+            Path = "*" + owner.Guid.ToString("B");
+            Path = Path.ToLowerInvariant();
         }
 
         public Selector(PdfDocument document)
         {
-            _path = "*" + document.Guid.ToString("B");
-            _path = _path.ToLowerInvariant();
+            Path = "*" + document.Guid.ToString("B");
+            Path = Path.ToLowerInvariant();
         }
 
-        public string Path
-        {
-            get => _path;
-            set => _path = value;
-        }
-        private string _path;
+        public string Path { get; set; }
 
         public override bool Equals(object obj)
         {
             if (obj is not Selector selector)
                 return false;
-            return _path == selector._path;
+            return Path == selector.Path;
         }
 
         public override int GetHashCode()
         {
             // ReSharper disable once NonReadonlyMemberInGetHashCode
-            return _path.GetHashCode();
+            return Path.GetHashCode();
         }
     }
 }

@@ -58,20 +58,14 @@ public class CInteger : CNumber
     /// <summary>
     /// Gets or sets the value.
     /// </summary>
-    public int Value
-    {
-        get => _value;
-        set => _value = value;
-    }
-
-    private int _value;
+    public int Value { get; set; }
 
     /// <summary>
     /// Returns a string that represents the current value.
     /// </summary>
     public override string ToString()
     {
-        return _value.ToString(CultureInfo.InvariantCulture);
+        return Value.ToString(CultureInfo.InvariantCulture);
     }
 
     internal override void WriteObject(ContentWriter writer)

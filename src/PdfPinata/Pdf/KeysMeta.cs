@@ -50,59 +50,31 @@ internal sealed class KeyDescriptor
     /// </summary>
     public KeyDescriptor(KeyInfoAttribute attribute)
     {
-        _version = attribute.Version;
-        _keyType = attribute.KeyType;
-        _fixedValue = attribute.FixedValue;
-        _objectType = attribute.ObjectType;
+        Version = attribute.Version;
+        KeyType = attribute.KeyType;
+        FixedValue = attribute.FixedValue;
+        ObjectType = attribute.ObjectType;
 
-        if (_version == "")
-            _version = "1.0";
+        if (Version == "")
+            Version = "1.0";
     }
 
     /// <summary>
     /// Gets or sets the PDF version starting with the availability of the described key.
     /// </summary>
-    public string Version
-    {
-        get => _version;
-        set => _version = value;
-    }
+    public string Version { get; set; }
 
-    private string _version;
+    public KeyType KeyType { get; set; }
 
-    public KeyType KeyType
-    {
-        get => _keyType;
-        set => _keyType = value;
-    }
+    public string KeyValue { get; set; }
 
-    private KeyType _keyType;
-
-    public string KeyValue
-    {
-        get => _keyValue;
-        set => _keyValue = value;
-    }
-
-    private string _keyValue;
-
-    public string FixedValue => _fixedValue;
-
-    private readonly string _fixedValue;
+    public string FixedValue { get; }
 
     [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors |
                                 DynamicallyAccessedMemberTypes.NonPublicConstructors)]
-    public Type ObjectType
-    {
-        get => _objectType;
-        set => _objectType = value;
-    }
+    public Type ObjectType { get; set; }
 
-    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors |
-                                DynamicallyAccessedMemberTypes.NonPublicConstructors)]
-    private Type _objectType;
-
-    public bool CanBeIndirect => (_keyType & KeyType.MustNotBeIndirect) == 0;
+    public bool CanBeIndirect => (KeyType & KeyType.MustNotBeIndirect) == 0;
 
     /// <summary>
     /// Returns the type of the object to be created as value for the described key.
@@ -112,12 +84,12 @@ internal sealed class KeyDescriptor
                                    DynamicallyAccessedMemberTypes.NonPublicConstructors)]
     public Type GetValueType()
     {
-        var type = _objectType;
+        var type = ObjectType;
         if (type != null)
             return type;
 
         // If we have no ObjectType specified, use the KeyType enumeration.
-        switch (_keyType & KeyType.TypeMask)
+        switch (KeyType & KeyType.TypeMask)
         {
             case KeyType.Name:
                 type = typeof(PdfName);
@@ -178,7 +150,7 @@ internal sealed class KeyDescriptor
                 return null; // HACK: Make PdfOutline work
 
             default:
-                Debug.Assert(false, "Invalid KeyType: " + _keyType);
+                Debug.Assert(false, "Invalid KeyType: " + KeyType);
                 break;
         }
 

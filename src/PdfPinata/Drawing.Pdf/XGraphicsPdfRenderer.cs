@@ -54,7 +54,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     {
         Page = page;
         ColorMode = page._document.Options.ColorMode;
-        _options = options;
+        PageOptions = options;
         _gfx = gfx;
         _content = new StringBuilder();
         page.RenderContent.PdfRenderer = this;
@@ -80,7 +80,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         return _content.ToString();
     }
 
-    public XGraphicsPdfPageOptions PageOptions => _options;
+    public XGraphicsPdfPageOptions PageOptions { get; }
 
     public void Close()
     {
@@ -2474,7 +2474,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// True for the characters a word spacing is paid out for. Kept in step with
     /// FontHelper.MeasureString, which maps a tab to a space before it counts one.
     /// </summary>
-    private static bool IsWordSpace(char ch) => ch == ' ' || ch == '\t';
+    private static bool IsWordSpace(char ch) => ch is ' ' or '\t';
 
     /// <summary>
     /// PDFsharp uses the Td operator to set the text position. Td just sets the offset of the text matrix
@@ -2603,7 +2603,6 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     internal PdfPage Page;
     internal XForm Form;
     internal PdfColorMode ColorMode;
-    private readonly XGraphicsPdfPageOptions _options;
     private XGraphics _gfx;
     private readonly StringBuilder _content;
 

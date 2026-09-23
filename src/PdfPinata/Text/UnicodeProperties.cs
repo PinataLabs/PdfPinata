@@ -80,7 +80,7 @@ public static class UnicodeProperties
     /// </para>
     /// </remarks>
     internal static bool IsJoiningControl(char character)
-        => character == ZeroWidthNonJoiner || character == ZeroWidthJoiner;
+        => character is ZeroWidthNonJoiner or ZeroWidthJoiner;
 
     // Written as code points rather than as characters. Both are invisible, and an invisible
     // character in a source file is one nobody can see is wrong.
@@ -93,7 +93,7 @@ public static class UnicodeProperties
     /// </summary>
     private static int IndexOf(int[] starts, int codePoint)
     {
-        if (codePoint < 0 || codePoint > 0x10FFFF)
+        if (codePoint is < 0 or > 0x10FFFF)
             throw new ArgumentOutOfRangeException(nameof(codePoint),
                 "A Unicode code point is between U+0000 and U+10FFFF.");
 

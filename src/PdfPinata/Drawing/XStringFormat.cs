@@ -46,24 +46,12 @@ public class XStringFormat
     /// <summary>
     /// Gets or sets horizontal text alignment information.
     /// </summary>
-    public XStringAlignment Alignment
-    {
-        get => _alignment;
-        set => _alignment = value;
-    }
-
-    private XStringAlignment _alignment;
+    public XStringAlignment Alignment { get; set; }
 
     /// <summary>
     /// Gets or sets the line alignment.
     /// </summary>
-    public XLineAlignment LineAlignment
-    {
-        get => _lineAlignment;
-        set => _lineAlignment = value;
-    }
-
-    private XLineAlignment _lineAlignment;
+    public XLineAlignment LineAlignment { get; set; }
 
     // ----- Text state ---------------------------------------------------------------------------
     //
@@ -80,13 +68,7 @@ public class XStringFormat
     /// Negative values tighten the text. The default is 0.
     /// This is the Tc operand of PDF 32000-1 section 9.3.2.
     /// </summary>
-    public double CharacterSpacing
-    {
-        get => _characterSpacing;
-        set => _characterSpacing = value;
-    }
-
-    private double _characterSpacing;
+    public double CharacterSpacing { get; set; }
 
     /// <summary>
     /// Gets or sets the extra space added after each space character, in points.
@@ -94,13 +76,7 @@ public class XStringFormat
     /// This is the Tw operand of PDF 32000-1 section 9.3.3, and applies on top of
     /// <see cref="CharacterSpacing"/>, which a space receives as well.
     /// </summary>
-    public double WordSpacing
-    {
-        get => _wordSpacing;
-        set => _wordSpacing = value;
-    }
-
-    private double _wordSpacing;
+    public double WordSpacing { get; set; }
 
     /// <summary>
     /// Gets or sets the horizontal scaling of the text, as a percentage. The default is 100.
@@ -134,13 +110,7 @@ public class XStringFormat
     /// This is the Ts operand of PDF 32000-1 section 9.3.5, and is how superscript and subscript
     /// are expressed. It moves the text without changing how wide it is.
     /// </summary>
-    public double TextRise
-    {
-        get => _textRise;
-        set => _textRise = value;
-    }
-
-    private double _textRise;
+    public double TextRise { get; set; }
 
     /// <summary>
     /// Gets or sets which way the text runs. The default is
@@ -160,13 +130,7 @@ public class XStringFormat
     /// other direction end up, which is exactly what the paragraph level decides.
     /// </para>
     /// </remarks>
-    public Text.BidiParagraphDirection TextDirection
-    {
-        get => _textDirection;
-        set => _textDirection = value;
-    }
-
-    private Text.BidiParagraphDirection _textDirection;
+    public Text.BidiParagraphDirection TextDirection { get; set; }
 
     /// <summary>
     /// Gets or sets the angle, in degrees, by which the text is slanted to the right.
@@ -201,25 +165,13 @@ public class XStringFormat
     /// Gets or sets the rule drawn under the text. <see cref="XTextDecoration.None"/>, the
     /// default, falls back to <see cref="XFontStyle.Underline"/> on the font.
     /// </summary>
-    public XTextDecoration Underline
-    {
-        get => _underline;
-        set => _underline = value;
-    }
-
-    private XTextDecoration _underline;
+    public XTextDecoration Underline { get; set; }
 
     /// <summary>
     /// Gets or sets the rule drawn through the text. <see cref="XTextDecoration.None"/>, the
     /// default, falls back to <see cref="XFontStyle.Strikeout"/> on the font.
     /// </summary>
-    public XTextDecoration Strikeout
-    {
-        get => _strikeout;
-        set => _strikeout = value;
-    }
-
-    private XTextDecoration _strikeout;
+    public XTextDecoration Strikeout { get; set; }
 
     /// <summary>
     /// Gets or sets the colour of the underline and strikeout rules. Empty, the default, draws
@@ -230,13 +182,7 @@ public class XStringFormat
     /// (<c>ParagraphRenderer</c>) - and neither does PDFKit. It is here because a rule that cannot
     /// be told apart from the text is the one thing a caller cannot achieve by other means.
     /// </remarks>
-    public XColor DecorationColor
-    {
-        get => _decorationColor;
-        set => _decorationColor = value;
-    }
-
-    private XColor _decorationColor = XColor.Empty;
+    public XColor DecorationColor { get; set; } = XColor.Empty;
 
     /// <summary>
     /// Returns true if every text state property still holds its default, and the text can
@@ -245,7 +191,7 @@ public class XStringFormat
     #pragma warning disable S1244 // Exact on purpose: only the exact value takes the special case, and the general path is right for anything near it.
     internal bool IsDefaultTextState =>
         // ReSharper disable once CompareOfFloatsByEqualityOperator
-        _characterSpacing == 0 && _wordSpacing == 0 && _horizontalScaling == 100 &&
-        _textRise == 0 && _obliqueAngle == 0;
+        CharacterSpacing == 0 && WordSpacing == 0 && _horizontalScaling == 100 &&
+        TextRise == 0 && _obliqueAngle == 0;
     #pragma warning restore S1244
 }

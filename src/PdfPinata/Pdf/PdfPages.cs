@@ -739,7 +739,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
 
             // Where on the page to go is written with names and numbers. Anything else is an
             // object of the other document, which cloning would not bring across.
-            if (item is PdfReference || item is PdfObject)
+            if (item is PdfReference or PdfObject)
                 return null;
 
             destination.Elements.Add(item.Clone());
@@ -944,7 +944,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         // page tree node by ISO 32000-1 Table 29, so this is already a file that does not say what it
         // should. A reference the file never defines is the null object by 7.3.9 and a null entry is
         // the same as no entry, which is how the rest of a page reads one - see DanglingReferenceTests.
-        if (entry == null || entry is PdfNull)
+        if (entry is null or PdfNull)
             return [];
 
         // Anything else - a number, a name, a dictionary - is a page tree this method cannot walk, and

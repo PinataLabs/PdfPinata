@@ -410,7 +410,7 @@ internal class CMapTable : OpenTypeFontTable
             return false;
 
         var apple = (AppleEncodingId)encodingId;
-        return apple == AppleEncodingId.Unicode20 || apple == AppleEncodingId.FullUnicode;
+        return apple is AppleEncodingId.Unicode20 or AppleEncodingId.FullUnicode;
     }
 }
 
@@ -433,8 +433,8 @@ internal class FontHeaderTable : OpenTypeFontTable
 
     public long created;
     public long modified;
-    public short xMin, yMin; // For all glyph bounding boxes.
-    public short xMax, yMax; // For all glyph bounding boxes.
+    public FWord xMin, yMin; // For all glyph bounding boxes.
+    public FWord xMax, yMax; // For all glyph bounding boxes.
     public ushort macStyle;
     public ushort lowestRecPPEM;
     public short fontDirectionHint;
@@ -546,8 +546,8 @@ internal class HorizontalMetrics : OpenTypeFontTable
 {
     public const string Tag = "----";
 
-    public ushort advanceWidth;
-    public short lsb;
+    public UFWord advanceWidth;
+    public FWord lsb;
 
     public HorizontalMetrics(OpenTypeFontface fontData)
         : base(fontData, Tag)
@@ -687,8 +687,8 @@ internal class VerticalMetrics : OpenTypeFontTable
     public const string Tag = "----";
 
     // code comes from HorizontalMetrics
-    public ushort advanceWidth;
-    public short lsb;
+    public UFWord advanceWidth;
+    public FWord lsb;
 
     public VerticalMetrics(OpenTypeFontface fontData)
         : base(fontData, Tag)
@@ -914,7 +914,7 @@ internal class NameTable : OpenTypeFontTable
                 }
 
                 // Read font name and style in US english.
-                if (nrec.platformID != 0 && nrec.platformID != 3)
+                if (nrec.platformID is not (0 or 3))
                     continue;
 
                 // Font Family name. Up to four fonts can share the Font Family name,
@@ -993,20 +993,20 @@ internal class OS2Table : OpenTypeFontTable
     }
 
     public ushort version;
-    public short xAvgCharWidth;
+    public FWord xAvgCharWidth;
     public ushort usWeightClass;
     public ushort usWidthClass;
     public ushort fsType;
-    public short ySubscriptXSize;
-    public short ySubscriptYSize;
-    public short ySubscriptXOffset;
-    public short ySubscriptYOffset;
-    public short ySuperscriptXSize;
-    public short ySuperscriptYSize;
-    public short ySuperscriptXOffset;
-    public short ySuperscriptYOffset;
-    public short yStrikeoutSize;
-    public short yStrikeoutPosition;
+    public FWord ySubscriptXSize;
+    public FWord ySubscriptYSize;
+    public FWord ySubscriptXOffset;
+    public FWord ySubscriptYOffset;
+    public FWord ySuperscriptXSize;
+    public FWord ySuperscriptYSize;
+    public FWord ySuperscriptXOffset;
+    public FWord ySuperscriptYOffset;
+    public FWord yStrikeoutSize;
+    public FWord yStrikeoutPosition;
     public short sFamilyClass;
     public byte[] panose; // = new byte[10];
     public uint ulUnicodeRange1; // Bits 0-31
@@ -1017,12 +1017,12 @@ internal class OS2Table : OpenTypeFontTable
     public ushort fsSelection;
     public ushort usFirstCharIndex;
     public ushort usLastCharIndex;
-    public short sTypoAscender;
-    public short sTypoDescender;
-    public short sTypoLineGap;
-    public ushort usWinAscent;
+    public FWord sTypoAscender;
+    public FWord sTypoDescender;
+    public FWord sTypoLineGap;
+    public UFWord usWinAscent;
 
-    public ushort usWinDescent;
+    public UFWord usWinDescent;
 
     // Version >= 1
     public uint ulCodePageRange1; // Bits 0-31
@@ -1030,8 +1030,8 @@ internal class OS2Table : OpenTypeFontTable
     public uint ulCodePageRange2; // Bits 32-63
 
     // Version >= 2
-    public short sxHeight;
-    public short sCapHeight;
+    public FWord sxHeight;
+    public FWord sCapHeight;
     public ushort usDefaultChar;
     public ushort usBreakChar;
     public ushort usMaxContext;

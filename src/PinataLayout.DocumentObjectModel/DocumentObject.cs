@@ -252,12 +252,7 @@ public abstract partial class DocumentObject
   /// <summary>
   /// Gets or sets a value that contains arbitrary information about this object.
   /// </summary>
-  public object Tag
-  {
-    get => tag;
-    set => tag = value;
-  }
-  private object tag;
+  public object Tag { get; set; }
 
   /// <summary>
   /// Returns the meta object of this instance.

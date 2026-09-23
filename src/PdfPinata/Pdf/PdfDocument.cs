@@ -135,25 +135,13 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// Gets or sets a user defined object that contains arbitrary information associated with this document.
     /// The tag is not used by PdfPinata.
     /// </summary>
-    public object Tag
-    {
-        get { return _tag; }
-        set { _tag = value; }
-    }
-
-    private object _tag;
+    public object Tag { get; set; }
 
     /// <summary>
     /// Gets or sets a value used to distinguish PdfDocument objects.
     /// The name is not used by PdfPinata.
     /// </summary>
-    private string Name
-    {
-        get { return _name; }
-        set { _name = value; }
-    }
-
-    private string _name = NewName();
+    private string Name { get; set; } = NewName();
 
     /// <summary>
     /// Get a new default name for a new document.
@@ -1051,12 +1039,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// <summary>
     /// Gets a Guid that uniquely identifies this instance of PdfDocument.
     /// </summary>
-    public Guid Guid
-    {
-        get { return _guid; }
-    }
-
-    private readonly Guid _guid = Guid.NewGuid();
+    public Guid Guid { get; } = Guid.NewGuid();
 
     internal DocumentHandle Handle
     {

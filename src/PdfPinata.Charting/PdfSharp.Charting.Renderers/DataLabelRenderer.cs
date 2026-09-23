@@ -81,7 +81,7 @@ internal abstract class DataLabelRenderer : Renderer
         dlri.Type = own.type;
       else if (shared is { TypeInitialized: true })
         dlri.Type = shared.type;
-      else if (cri.Chart.type == ChartType.Pie2D || cri.Chart.type == ChartType.PieExploded2D)
+      else if (cri.Chart.type is ChartType.Pie2D or ChartType.PieExploded2D)
         dlri.Type = DataLabelType.Percent;
       else
         dlri.Type = DataLabelType.Value;

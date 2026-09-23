@@ -54,178 +54,93 @@ public class LayoutInfo
   /// <summary>
   /// Gets or sets the height necessary to end the document object.
   /// </summary>
-  internal XUnit TrailingHeight
-  {
-    get => trailingHeight;
-    set => trailingHeight = value;
-  }
-  private XUnit trailingHeight;
+  internal XUnit TrailingHeight { get; set; }
 
   /// <summary>
   /// Indicates whether the document object shall be kept on one page
   /// with its successor.
   /// </summary>
-  internal bool KeepWithNext
-  {
-    get => keepWithNext;
-    set => keepWithNext = value;
-  }
-  private bool keepWithNext;
+  internal bool KeepWithNext { get; set; }
 
   /// <summary>
   /// Indicates whether the document object shall be kept together on one page.
   /// </summary>
-  internal bool KeepTogether
-  {
-    get => keepTogether;
-    set => keepTogether = value;
-  }
-  private bool keepTogether;
+  internal bool KeepTogether { get; set; }
 
   /// <summary>
   /// The space that shall be kept free above the element's content.
   /// </summary>
-  internal virtual XUnit MarginTop
-  {
-    get => marginTop;
-    set => marginTop = value;
-  }
-  private XUnit marginTop;
+  internal virtual XUnit MarginTop { get; set; }
 
   /// <summary>
   /// The space that shall be kept free right to the element's content.
   /// </summary>
-  internal XUnit MarginRight
-  {
-    get => marginRight;
-    set => marginRight = value;
-  }
-  private XUnit marginRight;
+  internal XUnit MarginRight { get; set; }
 
   /// <summary>
   /// The space that shall be kept free below the element's content.
   /// </summary>
-  internal XUnit MarginBottom
-  {
-    get => marginBottom;
-    set => marginBottom = value;
-  }
-  private XUnit marginBottom;
+  internal XUnit MarginBottom { get; set; }
 
   /// <summary>
   /// The space that shall be kept free left to the element's content.
   /// </summary>
-  internal XUnit MarginLeft
-  {
-    get => marginLeft;
-    set => marginLeft = value;
-  }
-  private XUnit marginLeft;
+  internal XUnit MarginLeft { get; set; }
 
   /// <summary>
   /// Gets or sets the Area needed by the content (including padding and borders for e.g. paragraphs).
   /// </summary>
-  public Area ContentArea
-  {
-    get => contentArea;
-    set => contentArea = value;
-  }
-  private Area contentArea;
+  public Area ContentArea { get; set; }
 
 
   /// <summary>
   /// Gets or sets the a value indicating whether the element shall appear on a new page.
   /// </summary>
-  internal bool PageBreakBefore
-  {
-    get => pageBreakBefore;
-    set => pageBreakBefore = value;
-  }
-  private bool pageBreakBefore;
+  internal bool PageBreakBefore { get; set; }
 
 
   /// <summary>
   /// Gets or sets the reference point for horizontal positioning.
   /// </summary>
   /// <remarks>Default value is AreaBoundary.</remarks>
-  internal HorizontalReference HorizontalReference
-  {
-    get => horizontalReference;
-    set => horizontalReference = value;
-  }
-  private HorizontalReference horizontalReference;
+  internal HorizontalReference HorizontalReference { get; set; }
 
   /// <summary>
   /// Gets or sets the reference point for vertical positioning.
   /// </summary>
   /// <remarks>Default value is PreviousElement.</remarks>
-  internal VerticalReference VerticalReference
-  {
-    get => verticalReference;
-    set => verticalReference = value;
-  }
-  private VerticalReference verticalReference;
+  internal VerticalReference VerticalReference { get; set; }
 
   /// <summary>
   /// Gets or sets the horizontal alignment of the element.
   /// </summary>
   /// <remarks>Default value is Near.</remarks>
-  internal ElementAlignment HorizontalAlignment
-  {
-    get => horizontalAlignment;
-    set => horizontalAlignment = value;
-  }
-  private ElementAlignment horizontalAlignment;
+  internal ElementAlignment HorizontalAlignment { get; set; }
 
   /// <summary>
   /// Gets or sets the vertical alignment of the element.
   /// </summary>
   /// <remarks>Default value is Near.</remarks>
-  internal ElementAlignment VerticalAlignment
-  {
-    get => verticalAlignment;
-    set => verticalAlignment = value;
-  }
-  private ElementAlignment verticalAlignment;
+  internal ElementAlignment VerticalAlignment { get; set; }
 
   /// <summary>
   /// Gets or sets the floating behavior of surrounding elements.
   /// </summary>
   /// <remarks>Default value is TopBottom.</remarks>
-  internal Floating Floating
-  {
-    get => floating;
-    set => floating = value;
-  }
-  private Floating floating;
+  internal Floating Floating { get; set; }
 
   /// <summary>
   /// Gets or sets the top position of the element.
   /// </summary>
-  internal XUnit Top
-  {
-    get => top;
-    set => top = value;
-  }
-  private XUnit top;
+  internal XUnit Top { get; set; }
 
   /// <summary>
   /// Gets or sets the left position of the element.
   /// </summary>
-  internal XUnit Left
-  {
-    get => left;
-    set => left = value;
-  }
-  private XUnit left;
+  internal XUnit Left { get; set; }
 
   /// <summary>
   /// Gets or sets the minimum width of the element.
   /// </summary>
-  internal XUnit MinWidth
-  {
-    get => minWidth;
-    set => minWidth = value;
-  }
-  private XUnit minWidth;
+  internal XUnit MinWidth { get; set; }
 }

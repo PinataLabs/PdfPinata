@@ -57,7 +57,7 @@ public class DocumentRenderer
     public DocumentRenderer(Document document)
     {
         this.document = document;
-        footnotes = new FootnoteRegistry(document);
+        Footnotes = new FootnoteRegistry(document);
     }
 
     /// <summary>
@@ -78,7 +78,7 @@ public class DocumentRenderer
         var gfx = XGraphics.CreateMeasureContext(new XSize(2000, 2000), XGraphicsUnit.Point, XPageDirection.Downwards);
 
         previousListInfo = null;
-        footnotes.Reset();
+        Footnotes.Reset();
         formattedDocument.Format(gfx);
     }
 
@@ -90,9 +90,7 @@ public class DocumentRenderer
     /// rather than off the formatted document: the numbering of a note depends on where every other
     /// note ended up, and only the renderer sees both passes.
     /// </remarks>
-    internal FootnoteRegistry Footnotes => footnotes;
-
-    private readonly FootnoteRegistry footnotes;
+    internal FootnoteRegistry Footnotes { get; private set; }
 
     /// <summary>
     /// Occurs while the document is being prepared (can be used to show a progress bar).
@@ -236,7 +234,7 @@ public class DocumentRenderer
     /// </remarks>
     private void RenderFootnotes(XGraphics gfx, int page, FieldInfos fieldInfos)
     {
-        var notes = footnotes.On(page);
+        var notes = Footnotes.On(page);
         if (notes.Count == 0)
             return;
 
@@ -314,12 +312,7 @@ public class DocumentRenderer
     /// <summary>
     /// Gets or sets the working directory for rendering.
     /// </summary>
-    public string WorkingDirectory
-    {
-        get => workingDirectory;
-        set => workingDirectory = value;
-    }
-    private string workingDirectory;
+    public string WorkingDirectory { get; set; }
 
     private void RenderHeader(XGraphics graphics, int page)
     {
@@ -436,9 +429,9 @@ public class DocumentRenderer
     internal int NextListNumber(ListInfo listInfo)
     {
         var listType = listInfo.ListType;
-        var isNumberList = listType == ListType.NumberList1 ||
-                           listType == ListType.NumberList2 ||
-                           listType == ListType.NumberList3;
+        var isNumberList = listType is ListType.NumberList1 or
+                           ListType.NumberList2 or
+                           ListType.NumberList3;
 
         var listNumber = int.MinValue;
         if (listInfo == previousListInfo)

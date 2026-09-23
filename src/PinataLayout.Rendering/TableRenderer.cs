@@ -195,14 +195,14 @@ internal class TableRenderer : Renderer
 
     BorderType primaryBorderType = BorderType.Top, secondaryBorderType = BorderType.Top;
 
-    if (roundedCorner == RoundedCorner.TopLeft || roundedCorner == RoundedCorner.BottomLeft)
+    if (roundedCorner is RoundedCorner.TopLeft or RoundedCorner.BottomLeft)
       primaryBorderType = BorderType.Left;
-    if (roundedCorner == RoundedCorner.TopRight || roundedCorner == RoundedCorner.BottomRight)
+    if (roundedCorner is RoundedCorner.TopRight or RoundedCorner.BottomRight)
       primaryBorderType = BorderType.Right;
 
-    if (roundedCorner == RoundedCorner.TopLeft || roundedCorner == RoundedCorner.TopRight)
+    if (roundedCorner is RoundedCorner.TopLeft or RoundedCorner.TopRight)
       secondaryBorderType = BorderType.Top;
-    if (roundedCorner == RoundedCorner.BottomLeft || roundedCorner == RoundedCorner.BottomRight)
+    if (roundedCorner is RoundedCorner.BottomLeft or RoundedCorner.BottomRight)
       secondaryBorderType = BorderType.Bottom;
 
     // If both borders don't exist, there's nothing to do and we should not create one by accessing it.

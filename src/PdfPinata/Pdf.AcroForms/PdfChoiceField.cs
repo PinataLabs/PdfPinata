@@ -197,7 +197,7 @@ public abstract class PdfChoiceField : PdfAcroField
         if (value is Advanced.PdfReference reference)
             value = reference.Value;
 
-        if (value == null || value is PdfNull)
+        if (value is null or PdfNull)
             return [];
 
         // The export values /V names, in the order it names them.

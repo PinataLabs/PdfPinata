@@ -40,33 +40,27 @@ public class PageInfo
 {
   internal PageInfo(XUnit width, XUnit height, PageOrientation orientation)
   {
-    this.width = width;
-    this.height = height;
-    this.orientation = orientation;
+    Width = width;
+    Height = height;
+    Orientation = orientation;
   }
 
   /// <summary>
   /// Gets the with of the described page as specified in Document.PageSetup, i.e. the orientation
   /// is not taken into account.
   /// </summary>
-  public XUnit Width => width;
-
-  private readonly XUnit width;
+  public XUnit Width { get; }
 
   /// <summary>
   /// Gets the height of the described page as specified in Document.PageSetup, i.e. the orientation
   /// is not taken into account.
   /// </summary>
-  public XUnit Height => height;
-
-  private readonly XUnit height;
+  public XUnit Height { get; }
 
   /// <summary>
   /// Gets the orientation of the described page as specified in Document.PageSetup.
   /// The value has no influence on the properties Width or Height, i.e. if the result is PageOrientation.Landscape
   /// you must exchange the values of Width or Height to get the real page size.
   /// </summary>
-  public PageOrientation Orientation => orientation;
-
-  private readonly PageOrientation orientation;
+  public PageOrientation Orientation { get; }
 }

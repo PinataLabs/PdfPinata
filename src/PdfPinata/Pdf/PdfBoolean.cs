@@ -49,17 +49,14 @@ public sealed class PdfBoolean : PdfItem
     /// </summary>
     public PdfBoolean(bool value)
     {
-        _value = value;
+        Value = value;
     }
 
     /// <summary>
     /// Gets the value of this instance as boolean value.
     /// </summary>
-    public bool Value =>
-        // This class must behave like a value type. Therefore it cannot be changed (like System.String).
-        _value;
-
-    private readonly bool _value;
+    // This class must behave like a value type. Therefore it cannot be changed (like System.String).
+    public bool Value { get; }
 
     /// <summary>
     /// A pre-defined value that represents <c>true</c>.
@@ -76,7 +73,7 @@ public sealed class PdfBoolean : PdfItem
     /// </summary>
     public override string ToString()
     {
-        return _value ? bool.TrueString : bool.FalseString;
+        return Value ? bool.TrueString : bool.FalseString;
     }
 
     /// <summary>

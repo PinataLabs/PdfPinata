@@ -43,15 +43,13 @@ public class XPdfFontOptions
     /// </summary>
     public XPdfFontOptions(PdfFontEncoding encoding)
     {
-        _fontEncoding = encoding;
+        FontEncoding = encoding;
     }
 
     /// <summary>
     /// Gets a value indicating how the font is encoded.
     /// </summary>
-    public PdfFontEncoding FontEncoding => _fontEncoding;
-
-    private readonly PdfFontEncoding _fontEncoding;
+    public PdfFontEncoding FontEncoding { get; }
 
     /// <summary>
     /// Gets the default options with WinAnsi encoding and always font embedding.

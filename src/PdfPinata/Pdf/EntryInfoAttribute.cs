@@ -87,7 +87,7 @@ internal class KeyInfoAttribute : Attribute
 
     public KeyInfoAttribute(string version, KeyType keyType)
     {
-        _version = version;
+        Version = version;
         KeyType = keyType;
     }
 
@@ -95,45 +95,23 @@ internal class KeyInfoAttribute : Attribute
         Type objectType)
     {
         KeyType = keyType;
-        _objectType = objectType;
+        ObjectType = objectType;
     }
 
     public KeyInfoAttribute(string version, KeyType keyType, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)]
         Type objectType)
     {
-        _version = version;
+        Version = version;
         KeyType = keyType;
-        _objectType = objectType;
+        ObjectType = objectType;
     }
 
-    public string Version
-    {
-        get => _version;
-        set => _version = value;
-    }
-    private string _version = "1.0";
+    public string Version { get; set; } = "1.0";
 
-    public KeyType KeyType
-    {
-        get => _entryType;
-        set => _entryType = value;
-    }
-    private KeyType _entryType;
+    public KeyType KeyType { get; set; }
 
     [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)]
-    public Type ObjectType
-    {
-        get => _objectType;
-        set => _objectType = value;
-    }
+    public Type ObjectType { get; set; }
 
-    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)]
-    private Type _objectType;
-
-    public string FixedValue
-    {
-        get => _fixedValue;
-        set => _fixedValue = value;
-    }
-    private string _fixedValue;
+    public string FixedValue { get; set; }
 }

@@ -61,24 +61,12 @@ public class CString : CObject
     /// <summary>
     /// Gets or sets the value.
     /// </summary>
-    public string Value
-    {
-        get => _value;
-        set => _value = value;
-    }
-
-    private string _value;
+    public string Value { get; set; }
 
     /// <summary>
     /// Gets or sets the type of the content string.
     /// </summary>
-    public CStringType CStringType
-    {
-        get => _cStringType;
-        set => _cStringType = value;
-    }
-
-    private CStringType _cStringType;
+    public CStringType CStringType { get; set; }
 
     /// <summary>
     /// Returns a string that represents the current value.
@@ -89,12 +77,12 @@ public class CString : CObject
         switch (CStringType)
         {
             case CStringType.String:
-                AppendLiteral(s, _value);
+                AppendLiteral(s, Value);
                 break;
 
             case CStringType.HexString:
                 s.Append('<');
-                foreach (var ch in _value)
+                foreach (var ch in Value)
                 {
                     // One char per byte. Anything wider has no two digits to say it with, and
                     // writing its low byte would write a different string.
@@ -107,18 +95,18 @@ public class CString : CObject
                 break;
 
             case CStringType.UnicodeString:
-                AppendLiteral(s, BigEndianUtf16Bytes(_value));
+                AppendLiteral(s, BigEndianUtf16Bytes(Value));
                 break;
 
             case CStringType.UnicodeHexString:
                 s.Append("<FEFF");
-                foreach (var ch in _value)
+                foreach (var ch in Value)
                     s.Append(((int)ch).ToString("X4", CultureInfo.InvariantCulture));
                 s.Append('>');
                 break;
 
             case CStringType.Dictionary:
-                s.Append(_value);
+                s.Append(Value);
                 break;
 
             default:

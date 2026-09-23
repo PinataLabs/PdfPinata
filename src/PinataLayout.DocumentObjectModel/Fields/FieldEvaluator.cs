@@ -27,8 +27,8 @@ public static class FieldEvaluator
     public static bool IsField(DocumentObject documentObject)
     {
         return documentObject is NumericFieldBase
-               || documentObject is DateField
-               || documentObject is InfoField;
+               or DateField
+               or InfoField;
     }
 
     /// <summary>

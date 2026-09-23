@@ -26,18 +26,17 @@ namespace PdfPinata.Test.Pdfs.AcroForms;
 /// </remarks>
 internal sealed class AcroFormBuilder
 {
-    private readonly PdfDocument _document = new();
     private readonly List<PdfDictionary> _fields = [];
     private readonly List<PdfDictionary> _widgets = [];
     private readonly PdfPage _page;
 
     internal AcroFormBuilder()
     {
-        _page = _document.AddPage();
+        _page = Document.AddPage();
     }
 
     /// <summary>The document being built, for tests that need to reach past the form.</summary>
-    internal PdfDocument Document => _document;
+    internal PdfDocument Document { get; } = new();
 
     /// <summary>
     ///   Adds a field. <paramref name="describe"/> receives the field's dictionary, already
@@ -46,7 +45,7 @@ internal sealed class AcroFormBuilder
     internal AcroFormBuilder With(string fieldType, string name,
         System.Action<PdfDictionary> describe = null)
     {
-        var field = new PdfDictionary(_document);
+        var field = new PdfDictionary(Document);
         field.Elements.SetName("/Type", "/Annot");
         field.Elements.SetName("/Subtype", "/Widget");
         field.Elements.SetName(PdfAcroField.Keys.FT, fieldType);
@@ -55,7 +54,7 @@ internal sealed class AcroFormBuilder
         field.Elements[PdfAcroField.Keys.Rect] = new PdfRectangle(new XRect(20, 20, 200, 20));
         describe?.Invoke(field);
 
-        _document.Internals.AddObject(field);
+        Document.Internals.AddObject(field);
         _fields.Add(field);
         return this;
     }
@@ -73,16 +72,16 @@ internal sealed class AcroFormBuilder
     /// </remarks>
     internal AcroFormBuilder WithParent(string name, params (string Type, string Name)[] kids)
     {
-        var parent = new PdfDictionary(_document);
+        var parent = new PdfDictionary(Document);
         parent.Elements.SetString(PdfAcroField.Keys.T, name);
         // Before the children, so that they have something to point at.
-        _document.Internals.AddObject(parent);
+        Document.Internals.AddObject(parent);
 
-        var children = new PdfArray(_document);
+        var children = new PdfArray(Document);
         for (var idx = 0; idx < kids.Length; idx++)
         {
             var (type, kidName) = kids[idx];
-            var kid = new PdfDictionary(_document);
+            var kid = new PdfDictionary(Document);
             kid.Elements.SetName("/Type", "/Annot");
             kid.Elements.SetName("/Subtype", "/Widget");
             kid.Elements.SetName(PdfAcroField.Keys.FT, type);
@@ -90,7 +89,7 @@ internal sealed class AcroFormBuilder
             kid.Elements[PdfAcroField.Keys.Parent] = parent.Reference;
             kid.Elements[PdfAcroField.Keys.Rect] =
                 new PdfRectangle(new XRect(20, 20 + 30 * idx, 200, 20));
-            _document.Internals.AddObject(kid);
+            Document.Internals.AddObject(kid);
             children.Elements.Add(kid.Reference);
             _widgets.Add(kid);
         }
@@ -103,8 +102,8 @@ internal sealed class AcroFormBuilder
     /// <summary>Writes the document out and reads it back, so the fields become field objects.</summary>
     internal PdfDocument Build()
     {
-        var annotations = new PdfArray(_document);
-        var fields = new PdfArray(_document);
+        var annotations = new PdfArray(Document);
+        var fields = new PdfArray(Document);
         foreach (var field in _fields)
         {
             // Only the top of the tree is a form field. A field that is its own widget is drawn on
@@ -117,13 +116,13 @@ internal sealed class AcroFormBuilder
             annotations.Elements.Add(widget.Reference);
         _page.Elements.SetObject("/Annots", annotations);
 
-        var form = new PdfDictionary(_document);
+        var form = new PdfDictionary(Document);
         form.Elements.SetObject(PdfAcroForm.Keys.Fields, fields);
-        _document.Internals.AddObject(form);
-        _document.Internals.Catalog.Elements["/AcroForm"] = form.Reference;
+        Document.Internals.AddObject(form);
+        Document.Internals.Catalog.Elements["/AcroForm"] = form.Reference;
 
         using var saved = new MemoryStream();
-        _document.Save(saved, false);
+        Document.Save(saved, false);
         saved.Position = 0;
         // Fully qualified: this test assembly has a PdfReader of its own.
         return PdfPinata.Pdf.IO.PdfReader.Open(saved, PdfDocumentOpenMode.Modify);
@@ -191,23 +190,23 @@ internal sealed class AcroFormBuilder
     internal AcroFormBuilder WithDescribedParent(string name,
         System.Action<PdfDictionary> describeParent, params System.Action<PdfDictionary>[] describeKids)
     {
-        var parent = new PdfDictionary(_document);
+        var parent = new PdfDictionary(Document);
         parent.Elements.SetString(PdfAcroField.Keys.T, name);
         describeParent?.Invoke(parent);
         // Before the children, so that they have something to point at.
-        _document.Internals.AddObject(parent);
+        Document.Internals.AddObject(parent);
 
-        var children = new PdfArray(_document);
+        var children = new PdfArray(Document);
         for (var idx = 0; idx < describeKids.Length; idx++)
         {
-            var kid = new PdfDictionary(_document);
+            var kid = new PdfDictionary(Document);
             kid.Elements.SetName("/Type", "/Annot");
             kid.Elements.SetName("/Subtype", "/Widget");
             kid.Elements[PdfAcroField.Keys.Parent] = parent.Reference;
             kid.Elements[PdfAcroField.Keys.Rect] =
                 new PdfRectangle(new XRect(20, 20 + 30 * idx, 200, 20));
             describeKids[idx]?.Invoke(kid);
-            _document.Internals.AddObject(kid);
+            Document.Internals.AddObject(kid);
             children.Elements.Add(kid.Reference);
             _widgets.Add(kid);
         }

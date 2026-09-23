@@ -208,13 +208,7 @@ public class XImage : IDisposable
     /// <summary>
     /// Gets or sets a flag indicating whether image interpolation is to be performed.
     /// </summary>
-    public virtual bool Interpolate
-    {
-        get => _interpolate;
-        set => _interpolate = value;
-    }
-
-    private bool _interpolate = true;
+    public virtual bool Interpolate { get; set; } = true;
 
     /// <summary>
     /// Gets the format of the image.

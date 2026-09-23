@@ -53,12 +53,7 @@ public sealed class PdfSecuritySettings
     /// Gets or sets the document security level. If you set the security level to anything but PdfDocumentSecurityLevel.None
     /// you must also set a user and/or an owner password. Otherwise saving the document will fail.
     /// </summary>
-    public PdfDocumentSecurityLevel DocumentSecurityLevel
-    {
-        get => _documentSecurityLevel;
-        set => _documentSecurityLevel = value;
-    }
-    private PdfDocumentSecurityLevel _documentSecurityLevel;
+    public PdfDocumentSecurityLevel DocumentSecurityLevel { get; set; }
 
     /// <summary>
     /// Sets the user password of the document. Setting a password automatically sets the
@@ -85,7 +80,7 @@ public sealed class PdfSecuritySettings
     /// </summary>
     internal PdfSaveCheck CanSave()
     {
-        if (_documentSecurityLevel != PdfDocumentSecurityLevel.None
+        if (DocumentSecurityLevel != PdfDocumentSecurityLevel.None
             && string.IsNullOrEmpty(SecurityHandler._userPassword)
             && string.IsNullOrEmpty(SecurityHandler._ownerPassword))
         {

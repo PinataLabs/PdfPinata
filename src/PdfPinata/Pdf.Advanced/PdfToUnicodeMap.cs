@@ -49,18 +49,13 @@ internal sealed class PdfToUnicodeMap : PdfDictionary
     public PdfToUnicodeMap(PdfDocument document, CMapInfo cmapInfo)
         : base(document)
     {
-        _cmapInfo = cmapInfo;
+        CMapInfo = cmapInfo;
     }
 
     /// <summary>
     /// Gets or sets the CMap info.
     /// </summary>
-    public CMapInfo CMapInfo
-    {
-        get => _cmapInfo;
-        set => _cmapInfo = value;
-    }
-    private CMapInfo _cmapInfo;
+    public CMapInfo CMapInfo { get; set; }
 
     /// <summary>
     /// Creates the ToUnicode map from the CMapInfo.
@@ -78,7 +73,7 @@ internal sealed class PdfToUnicodeMap : PdfDictionary
             "/CMapName /Adobe-Identity-UCS def /CMapType 2 def\n";
         var suffix = "endcmap CMapName currentdict /CMap defineresource pop end end";
 
-        var meanings = _cmapInfo.GlyphMeanings();
+        var meanings = CMapInfo.GlyphMeanings();
         int lowIndex = 65536, hiIndex = -1;
         foreach (var index in meanings.Keys)
         {

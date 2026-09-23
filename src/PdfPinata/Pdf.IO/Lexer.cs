@@ -53,8 +53,8 @@ public class Lexer
     /// </summary>
     public Lexer(Stream pdfInputStream)
     {
-        _pdfSteam = pdfInputStream;
-        _pdfLength = _pdfSteam.Length;
+        PdfStream = pdfInputStream;
+        PdfLength = PdfStream.Length;
         _idxChar = 0;
         _readNextRawByte = ReadNextRawByte;
         _scanNextCharFolding = ScanNextCharFolding;
@@ -64,7 +64,7 @@ public class Lexer
     /// <summary>
     /// Gets the stream the PDF file is read from.
     /// </summary>
-    internal Stream PdfStream => _pdfSteam;
+    internal Stream PdfStream { get; }
 
     /// <summary>
     /// Gets or sets the position within the PDF stream.
@@ -75,10 +75,10 @@ public class Lexer
         set
         {
             _idxChar = value;
-            _pdfSteam.Position = value;
+            PdfStream.Position = value;
             // ReadByte return -1 (eof) at the end of the stream.
-            _currChar = (char)_pdfSteam.ReadByte();
-            _nextChar = (char)_pdfSteam.ReadByte();
+            _currChar = (char)PdfStream.ReadByte();
+            _nextChar = (char)PdfStream.ReadByte();
             _token = new StringBuilder();
         }
     }
@@ -105,56 +105,56 @@ public class Lexer
                 goto Again;
 
             case '/':
-                return _symbol = ScanName();
+                return Symbol = ScanName();
 
             case '+':
             case '-':
-                return _symbol = ScanNumber();
+                return Symbol = ScanNumber();
 
             case '(':
-                return _symbol = ScanLiteralString();
+                return Symbol = ScanLiteralString();
 
             case '[':
                 ScanNextChar(true);
-                return _symbol = Symbol.BeginArray;
+                return Symbol = Symbol.BeginArray;
 
             case ']':
                 ScanNextChar(true);
-                return _symbol = Symbol.EndArray;
+                return Symbol = Symbol.EndArray;
 
             case '<':
                 if (_nextChar == '<')
                 {
                     ScanNextChar(true);
                     ScanNextChar(true);
-                    return _symbol = Symbol.BeginDictionary;
+                    return Symbol = Symbol.BeginDictionary;
                 }
-                return _symbol = ScanHexadecimalString();
+                return Symbol = ScanHexadecimalString();
 
             case '>':
                 if (_nextChar == '>')
                 {
                     ScanNextChar(true);
                     ScanNextChar(true);
-                    return _symbol = Symbol.EndDictionary;
+                    return Symbol = Symbol.EndDictionary;
                 }
                 ParserDiagnostics.HandleUnexpectedCharacter(_nextChar);
                 break;
 
             case '.':
-                return _symbol = ScanNumber();
+                return Symbol = ScanNumber();
         }
         if (char.IsDigit(ch))
-            return _symbol = ScanNumber();
+            return Symbol = ScanNumber();
 
         if (char.IsLetter(ch))
-            return _symbol = ScanKeyword();
+            return Symbol = ScanKeyword();
 
         if (ch == Chars.EOF)
-            return _symbol = Symbol.Eof;
+            return Symbol = Symbol.Eof;
 
         ParserDiagnostics.HandleUnexpectedCharacter(ch);
-        return _symbol = Symbol.None;
+        return Symbol = Symbol.None;
     }
 
     /// <summary>
@@ -163,13 +163,13 @@ public class Lexer
     public byte[] ReadStream(int length)
     {
         var pos = MoveToStartOfStream();
-        _pdfSteam.Position = pos;
+        PdfStream.Position = pos;
         var bytes = new byte[length];
         // A stream whose dictionary declares more bytes than the file holds is read as the bytes
         // that are there. What it is really as long as is then the caller's problem, which it
         // was going to be anyway.
         // Named in full: this namespace has a StreamHelper of its own, in Parser.cs.
-        var read = PdfPinata.Internal.StreamHelper.ReadUpTo(_pdfSteam, bytes, 0, length);
+        var read = PdfPinata.Internal.StreamHelper.ReadUpTo(PdfStream, bytes, 0, length);
         if (read < length)
             Array.Resize(ref bytes, read);
 
@@ -244,9 +244,9 @@ public class Lexer
     /// </summary>
     public string ReadRawString(long position, int length)
     {
-        _pdfSteam.Position = position;
+        PdfStream.Position = position;
         var bytes = new byte[length];
-        PdfPinata.Internal.StreamHelper.ReadUpTo(_pdfSteam, bytes, 0, length);
+        PdfPinata.Internal.StreamHelper.ReadUpTo(PdfStream, bytes, 0, length);
         return PdfEncoders.RawEncoding.GetString(bytes, 0, bytes.Length);
     }
 
@@ -273,15 +273,15 @@ public class Lexer
         // length of the marker less one byte into the chunk already searched.
         var overlap = pattern.Length - 1;
         var buffer = new byte[BackwardScanChunkSize + overlap];
-        var end = _pdfLength;
+        var end = PdfLength;
 
         while (end > 0)
         {
             var start = Math.Max(0, end - BackwardScanChunkSize);
-            var count = (int)(Math.Min(end + overlap, _pdfLength) - start);
+            var count = (int)(Math.Min(end + overlap, PdfLength) - start);
 
-            _pdfSteam.Position = start;
-            var read = PdfPinata.Internal.StreamHelper.ReadUpTo(_pdfSteam, buffer, 0, count);
+            PdfStream.Position = start;
+            var read = PdfPinata.Internal.StreamHelper.ReadUpTo(PdfStream, buffer, 0, count);
 
             var idx = buffer.AsSpan(0, read).LastIndexOf(pattern.AsSpan());
             if (idx >= 0)
@@ -304,7 +304,7 @@ public class Lexer
         while (true)
         {
             var ch = AppendAndScanNextChar();
-            if (ch == Chars.LF || ch == Chars.EOF)
+            if (ch is Chars.LF or Chars.EOF)
                 break;
         }
         // The end-of-file marker is reported as such to a caller scanning comments itself.
@@ -312,8 +312,8 @@ public class Lexer
         // updated incrementally carries one %%EOF per revision, so the body ends only where
         // the stream does.
         if (_token.ToString().StartsWith("%%EOF", StringComparison.Ordinal))
-            return _symbol = Symbol.Eof;
-        return _symbol = Symbol.Comment;
+            return Symbol = Symbol.Eof;
+        return Symbol = Symbol.Comment;
     }
 
     /// <summary>
@@ -328,7 +328,7 @@ public class Lexer
         {
             var ch = AppendAndScanNextChar();
             if (IsWhiteSpace(ch) || IsDelimiter(ch) || ch == Chars.EOF)
-                return _symbol = Symbol.Name;
+                return Symbol = Symbol.Name;
 
             // #hh is the byte hh (ISO 32000-1 7.3.5). A '#' followed by anything else - one hex
             // digit, none, or the end of the file - is not an escape, and is kept as the
@@ -362,7 +362,7 @@ public class Lexer
 
         _token = new StringBuilder();
         var ch = _currChar;
-        if (ch == '+' || ch == '-')
+        if (ch is '+' or '-')
         {
             _token.Append(ch);
             ch = ScanNextChar(true);
@@ -428,7 +428,7 @@ public class Lexer
         }
 
         // Check known tokens.
-        return _symbol = _token.ToString() switch
+        return Symbol = _token.ToString() switch
         {
             "obj" => Symbol.Obj,
             "endobj" => Symbol.EndObj,
@@ -586,7 +586,7 @@ public class Lexer
             {
                 _token.Append((char)(256 * temp[i] + temp[i + 1]));
             }
-            return _symbol = Symbol.UnicodeString;
+            return Symbol = Symbol.UnicodeString;
         }
         // Adobe Reader also supports UTF-16LE.
         if (_token.Length >= 2 && _token[0] == '\xFF' && _token[1] == '\xFE')
@@ -608,9 +608,9 @@ public class Lexer
             {
                 _token.Append((char)(256 * temp[i + 1] + temp[i]));
             }
-            return _symbol = Symbol.UnicodeString;
+            return Symbol = Symbol.UnicodeString;
         }
-        return _symbol = Symbol.String;
+        return Symbol = Symbol.String;
     }
 
     /// <summary>Scans a string written in angle brackets as pairs of hexadecimal digits.</summary>
@@ -664,7 +664,7 @@ public class Lexer
         var chars = _token.ToString();
         var count = chars.Length;
         if (count <= 2 || chars[0] != (char)0xFE || chars[1] != (char)0xFF)
-            return _symbol = Symbol.HexString;
+            return Symbol = Symbol.HexString;
 
         // The last character of the string may be short of its low byte, which is a zero
         // for the same reason the last byte is short of its low digit. Reading on for a
@@ -677,7 +677,7 @@ public class Lexer
         _token.Length = 0;
         for (var idx = 2; idx < count; idx += 2)
             _token.Append((char)(chars[idx] * 256 + chars[idx + 1]));
-        return _symbol = Symbol.UnicodeHexString;
+        return Symbol = Symbol.UnicodeHexString;
     }
 
     internal static bool IsHexChar(char c) => CharacterScanning.IsHexChar(c);
@@ -690,7 +690,7 @@ public class Lexer
     /// </summary>
     internal char ScanNextChar(bool handleCRLF)
     {
-        if (_pdfLength <= _idxChar)
+        if (PdfLength <= _idxChar)
         {
             _currChar = Chars.EOF;
             _nextChar = Chars.EOF;
@@ -710,7 +710,7 @@ public class Lexer
     private char ReadNextRawByte()
     {
         _idxChar++;
-        return (char)_pdfSteam.ReadByte();
+        return (char)PdfStream.ReadByte();
     }
 
     /// <summary>
@@ -738,11 +738,7 @@ public class Lexer
     /// <summary>
     /// Gets the current symbol.
     /// </summary>
-    public Symbol Symbol
-    {
-        get => _symbol;
-        set => _symbol = value;
-    }
+    public Symbol Symbol { get; set; } = Symbol.None;
 
     /// <summary>
     /// Gets the current token.
@@ -806,21 +802,18 @@ public class Lexer
     /// <summary>
     /// Gets the length of the PDF output.
     /// </summary>
-    public long PdfLength => _pdfLength;
+    public long PdfLength { get; }
 
     /// <summary>
     /// How much of the file <see cref="FindLastMarker" /> holds at a time.
     /// </summary>
     private const int BackwardScanChunkSize = 64 * 1024;
 
-    private readonly long _pdfLength;
     private long _idxChar;
     private char _currChar;
     private char _nextChar;
     private StringBuilder _token;
-    private Symbol _symbol = Symbol.None;
 
-    private readonly Stream _pdfSteam;
     private readonly Func<char> _readNextRawByte;
     private readonly Func<char> _scanNextCharFolding;
 }

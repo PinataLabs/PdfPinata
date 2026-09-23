@@ -29,7 +29,7 @@ internal class FormattedFootnote : IAreaProvider
         FieldInfos fieldInfos, XUnit width)
     {
         _documentRenderer = documentRenderer;
-        _footnote = footnote;
+        Footnote = footnote;
         _fieldInfos = fieldInfos;
         _width = width;
     }
@@ -38,7 +38,7 @@ internal class FormattedFootnote : IAreaProvider
     {
         Indent = CalcIndent(gfx);
         _isFirstArea = true;
-        _formatter = new TopDownFormatter(this, _documentRenderer, _footnote.Elements);
+        _formatter = new TopDownFormatter(this, _documentRenderer, Footnote.Elements);
         _formatter.FormatOnAreas(gfx, false);
     }
 
@@ -61,7 +61,7 @@ internal class FormattedFootnote : IAreaProvider
     /// </remarks>
     private XUnit CalcIndent(XGraphics gfx)
     {
-        var mark = _documentRenderer.Footnotes.MarkFor(_footnote);
+        var mark = _documentRenderer.Footnotes.MarkFor(Footnote);
         var font = FontHandler.ToSubSuperFont(NoteFont(gfx));
         XUnit width = mark.Length > 0 ? gfx.MeasureString(mark, font).Width : 0;
 
@@ -73,9 +73,9 @@ internal class FormattedFootnote : IAreaProvider
     /// <summary>The face the note is set in - its own style, or the predefined Footnote one.</summary>
     internal XFont NoteFont(XGraphics gfx)
     {
-        var document = _footnote.Document;
+        var document = Footnote.Document;
         var style = document.Styles[
-                        _footnote.Style.Length > 0 ? _footnote.Style : StyleNames.Footnote]
+                        Footnote.Style.Length > 0 ? Footnote.Style : StyleNames.Footnote]
                     ?? document.Styles[StyleNames.Normal];
 
         return FontHandler.FontToXFont(style.Font, _documentRenderer.PrivateFonts, gfx.MUH);
@@ -103,7 +103,7 @@ internal class FormattedFootnote : IAreaProvider
     /// <summary>How tall the note came out.</summary>
     internal XUnit ContentHeight => RenderInfo.GetTotalHeight(GetRenderInfos());
 
-    internal Footnote Footnote => _footnote;
+    internal Footnote Footnote { get; }
 
     Area IAreaProvider.GetNextArea()
     {
@@ -130,7 +130,6 @@ internal class FormattedFootnote : IAreaProvider
     bool IAreaProvider.PositionHorizontally(LayoutInfo layoutInfo) => false;
 
     private readonly DocumentRenderer _documentRenderer;
-    private readonly Footnote _footnote;
     private readonly FieldInfos _fieldInfos;
     private readonly XUnit _width;
 

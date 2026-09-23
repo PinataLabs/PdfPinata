@@ -59,10 +59,10 @@ public sealed class PdfRectangle : PdfItem
     /// </summary>
     internal PdfRectangle(double x1, double y1, double x2, double y2)
     {
-        _x1 = x1;
-        _y1 = y1;
-        _x2 = x2;
-        _y2 = y2;
+        X1 = x1;
+        Y1 = y1;
+        X2 = x2;
+        Y2 = y2;
     }
 
     /// <summary>
@@ -71,10 +71,10 @@ public sealed class PdfRectangle : PdfItem
     /// </summary>
     public PdfRectangle(XPoint pt1, XPoint pt2)
     {
-        _x1 = pt1.X;
-        _y1 = pt1.Y;
-        _x2 = pt2.X;
-        _y2 = pt2.Y;
+        X1 = pt1.X;
+        Y1 = pt1.Y;
+        X2 = pt2.X;
+        Y2 = pt2.Y;
     }
 
     /// <summary>
@@ -82,10 +82,10 @@ public sealed class PdfRectangle : PdfItem
     /// </summary>
     public PdfRectangle(XPoint pt, XSize size)
     {
-        _x1 = pt.X;
-        _y1 = pt.Y;
-        _x2 = pt.X + size.Width;
-        _y2 = pt.Y + size.Height;
+        X1 = pt.X;
+        Y1 = pt.Y;
+        X2 = pt.X + size.Width;
+        Y2 = pt.Y + size.Height;
     }
 
     /// <summary>
@@ -93,10 +93,10 @@ public sealed class PdfRectangle : PdfItem
     /// </summary>
     public PdfRectangle(XRect rect)
     {
-        _x1 = rect.X;
-        _y1 = rect.Y;
-        _x2 = rect.X + rect.Width;
-        _y2 = rect.Y + rect.Height;
+        X1 = rect.X;
+        Y1 = rect.Y;
+        X2 = rect.X + rect.Width;
+        Y2 = rect.Y + rect.Height;
     }
 
     /// <summary>
@@ -104,7 +104,7 @@ public sealed class PdfRectangle : PdfItem
     /// </summary>
     internal PdfRectangle(PdfItem item)
     {
-        if (item == null || item is PdfNull)
+        if (item is null or PdfNull)
             return;
 
         if (item is PdfReference reference)
@@ -113,10 +113,10 @@ public sealed class PdfRectangle : PdfItem
         if (item is not PdfArray array)
             throw new InvalidOperationException(PSSR.UnexpectedTokenInPdfFile);
 
-        _x1 = array.Elements.GetReal(0);
-        _y1 = array.Elements.GetReal(1);
-        _x2 = array.Elements.GetReal(2);
-        _y2 = array.Elements.GetReal(3);
+        X1 = array.Elements.GetReal(0);
+        Y1 = array.Elements.GetReal(1);
+        X2 = array.Elements.GetReal(2);
+        Y2 = array.Elements.GetReal(3);
     }
 
     /// <summary>
@@ -141,7 +141,7 @@ public sealed class PdfRectangle : PdfItem
     /// </summary>
     public bool IsEmpty =>
         // ReSharper disable CompareOfFloatsByEqualityOperator
-        _x1 == 0 && _y1 == 0 && _x2 == 0 && _y2 == 0;
+        X1 == 0 && Y1 == 0 && X2 == 0 && Y2 == 0;
     // ReSharper restore CompareOfFloatsByEqualityOperator
 
     /// <summary>
@@ -156,7 +156,7 @@ public sealed class PdfRectangle : PdfItem
 
         var rect = rectangle;
         #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
-        return rect._x1 == _x1 && rect._y1 == _y1 && rect._x2 == _x2 && rect._y2 == _y2;
+        return rect.X1 == X1 && rect.Y1 == Y1 && rect.X2 == X2 && rect.Y2 == Y2;
         #pragma warning restore S1244
         // ReSharper restore CompareOfFloatsByEqualityOperator
     }
@@ -167,10 +167,10 @@ public sealed class PdfRectangle : PdfItem
     public override int GetHashCode()
     {
         // This code is from System.Drawing...
-        return (int)((uint)_x1 ^ (((uint)_y1 << 13) |
-                                      ((uint)_y1 >> 0x13)) ^ (((uint)_x2 << 0x1a) |
-                                                                 ((uint)_x2 >> 6)) ^ (((uint)_y2 << 7) |
-            ((uint)_y2 >> 0x19)));
+        return (int)((uint)X1 ^ (((uint)Y1 << 13) |
+                                      ((uint)Y1 >> 0x13)) ^ (((uint)X2 << 0x1a) |
+                                                                 ((uint)X2 >> 6)) ^ (((uint)Y2 << 7) |
+            ((uint)Y2 >> 0x19)));
     }
 
     /// <summary>
@@ -185,7 +185,7 @@ public sealed class PdfRectangle : PdfItem
         {
             #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
             if ((object)right != null)
-                return left._x1 == right._x1 && left._y1 == right._y1 && left._x2 == right._x2 && left._y2 == right._y2;
+                return left.X1 == right.X1 && left.Y1 == right.Y1 && left.X2 == right.X2 && left.Y2 == right.Y2;
                 #pragma warning restore S1244
             return false;
         }
@@ -205,50 +205,42 @@ public sealed class PdfRectangle : PdfItem
     /// <summary>
     /// Gets or sets the x-coordinate of the first corner of this PdfRectangle.
     /// </summary>
-    public double X1 => _x1;
-
-    private readonly double _x1;
+    public double X1 { get; }
 
     /// <summary>
     /// Gets or sets the y-coordinate of the first corner of this PdfRectangle.
     /// </summary>
-    public double Y1 => _y1;
-
-    private readonly double _y1;
+    public double Y1 { get; }
 
     /// <summary>
     /// Gets or sets the x-coordinate of the second corner of this PdfRectangle.
     /// </summary>
-    public double X2 => _x2;
-
-    private readonly double _x2;
+    public double X2 { get; }
 
     /// <summary>
     /// Gets or sets the y-coordinate of the second corner of this PdfRectangle.
     /// </summary>
-    public double Y2 => _y2;
-
-    private readonly double _y2;
+    public double Y2 { get; }
 
     /// <summary>
     /// Gets X2 - X1.
     /// </summary>
-    public double Width => _x2 - _x1;
+    public double Width => X2 - X1;
 
     /// <summary>
     /// Gets Y2 - Y1.
     /// </summary>
-    public double Height => _y2 - _y1;
+    public double Height => Y2 - Y1;
 
     /// <summary>
     /// Gets or sets the coordinates of the first point of this PdfRectangle.
     /// </summary>
-    public XPoint Location => new(_x1, _y1);
+    public XPoint Location => new(X1, Y1);
 
     /// <summary>
     /// Gets or sets the size of this PdfRectangle.
     /// </summary>
-    public XSize Size => new(_x2 - _x1, _y2 - _y1);
+    public XSize Size => new(X2 - X1, Y2 - Y1);
 
     /// <summary>
     /// Determines if the specified point is contained within this PdfRectangle.
@@ -264,7 +256,7 @@ public sealed class PdfRectangle : PdfItem
     public bool Contains(double x, double y)
     {
         // Treat rectangle inclusive/inclusive.
-        return _x1 <= x && x <= _x2 && _y1 <= y && y <= _y2;
+        return X1 <= x && x <= X2 && Y1 <= y && y <= Y2;
     }
 
     /// <summary>
@@ -272,8 +264,8 @@ public sealed class PdfRectangle : PdfItem
     /// </summary>
     public bool Contains(XRect rect)
     {
-        return _x1 <= rect.X && rect.X + rect.Width <= _x2 &&
-               _y1 <= rect.Y && rect.Y + rect.Height <= _y2;
+        return X1 <= rect.X && rect.X + rect.Width <= X2 &&
+               Y1 <= rect.Y && rect.Y + rect.Height <= Y2;
     }
 
     /// <summary>
@@ -281,8 +273,8 @@ public sealed class PdfRectangle : PdfItem
     /// </summary>
     public bool Contains(PdfRectangle rect)
     {
-        return _x1 <= rect._x1 && rect._x2 <= _x2 &&
-               _y1 <= rect._y1 && rect._y2 <= _y2;
+        return X1 <= rect.X1 && rect.X2 <= X2 &&
+               Y1 <= rect.Y1 && rect.Y2 <= Y2;
     }
 
     /// <summary>
@@ -290,7 +282,7 @@ public sealed class PdfRectangle : PdfItem
     /// </summary>
     public XRect ToXRect()
     {
-        return new XRect(_x1, _y1, Width, Height);
+        return new XRect(X1, Y1, Width, Height);
     }
 
     /// <summary>
@@ -299,7 +291,7 @@ public sealed class PdfRectangle : PdfItem
     public override string ToString()
     {
         const string format = Config.SignificantFigures3;
-        return PdfEncoders.Format("[{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "}]", _x1, _y1, _x2, _y2);
+        return PdfEncoders.Format("[{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "}]", X1, Y1, X2, Y2);
     }
 
     /// <summary>
@@ -321,7 +313,7 @@ public sealed class PdfRectangle : PdfItem
         {
             const string format = Config.SignificantFigures10;
             return string.Format(CultureInfo.InvariantCulture,
-                "X1={0:" + format + "}, X2={1:" + format + "}, Y1={2:" + format + "}, Y2={3:" + format + "}", _x1, _y1, X2, _y2);
+                "X1={0:" + format + "}, X2={1:" + format + "}, Y1={2:" + format + "}, Y2={3:" + format + "}", X1, Y1, X2, Y2);
         }
     }
 

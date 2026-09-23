@@ -60,13 +60,7 @@ public class XTextFormatter
     /// Gets or sets the text.
     /// </summary>
     /// <value>The text.</value>
-    public string Text
-    {
-        get => _text;
-        set => _text = value;
-    }
-
-    private string _text;
+    public string Text { get; set; }
 
     /// <summary>
     /// Gets or sets the font.
@@ -410,7 +404,7 @@ public class XTextFormatter
         // what text there is to break and how wide the opening lines may be.
         _dropCap = MeasureDropCap(text);
         if (_dropCap != null)
-            _text = text[1..];
+            Text = text[1..];
 
         CreateBlocks();
 
@@ -569,17 +563,17 @@ public class XTextFormatter
     private void CreateBlocks()
     {
         _blocks.Clear();
-        var length = _text.Length;
+        var length = Text.Length;
         var inNonWhiteSpace = false;
         int startIndex = 0, blockLength = 0;
         for (var idx = 0; idx < length; idx++)
         {
-            var ch = _text[idx];
+            var ch = Text[idx];
 
             // Treat CR and CRLF as LF
             if (ch == Chars.CR)
             {
-                if (idx < length - 1 && _text[idx + 1] == Chars.LF)
+                if (idx < length - 1 && Text[idx + 1] == Chars.LF)
                     idx++;
                 ch = Chars.LF;
             }
@@ -587,7 +581,7 @@ public class XTextFormatter
             {
                 if (blockLength != 0)
                 {
-                    var token = _text.Substring(startIndex, blockLength);
+                    var token = Text.Substring(startIndex, blockLength);
                     _blocks.Add(new Block(token, BlockType.Text,
                         _gfx.MeasureString(token, _font).Width));
                 }
@@ -599,7 +593,7 @@ public class XTextFormatter
             {
                 if (inNonWhiteSpace)
                 {
-                    var token = _text.Substring(startIndex, blockLength);
+                    var token = Text.Substring(startIndex, blockLength);
                     _blocks.Add(new Block(token, BlockType.Text,
                         _gfx.MeasureString(token, _font).Width));
                     startIndex = idx + 1;
@@ -618,7 +612,7 @@ public class XTextFormatter
         }
         if (blockLength != 0)
         {
-            var token = _text.Substring(startIndex, blockLength);
+            var token = Text.Substring(startIndex, blockLength);
             _blocks.Add(new Block(token, BlockType.Text,
                 _gfx.MeasureString(token, _font).Width));
         }

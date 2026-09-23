@@ -37,7 +37,7 @@ public class ImageCropRenderingTests
 
         var placed = PlacedOperators.Of(cropped);
         var drawn = ImageBox(cropped);
-        var clip = placed.Single(op => op.Name == OpCodeName.W || op.Name == OpCodeName.Wx);
+        var clip = placed.Single(op => op.Name is OpCodeName.W or OpCodeName.Wx);
 
         // The image is as wide as it was uncropped, not squeezed into half the width, and it
         // starts half its width to the left of where the cropped image stands.

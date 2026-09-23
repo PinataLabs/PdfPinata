@@ -100,7 +100,7 @@ internal class BordersRenderer
         return !borders.IsNull("Width") ? borders.Width.Point : 0.5;
       }
     }
-    else if (!(type == BorderType.DiagonalDown || type == BorderType.DiagonalUp))
+    else if (!(type is BorderType.DiagonalDown or BorderType.DiagonalUp))
     {
       if (!borders.IsNull("Visible") && !borders.Visible)
         return 0;
@@ -174,9 +174,9 @@ internal class BordersRenderer
     // As source we use the vertical borders.
     // If not set originally, they have been set to the horizontal border values in TableRenderer.EqualizeRoundedCornerBorders().
     var borderType = BorderType.Top;
-    if (roundedCorner == RoundedCorner.TopLeft || roundedCorner == RoundedCorner.BottomLeft)
+    if (roundedCorner is RoundedCorner.TopLeft or RoundedCorner.BottomLeft)
       borderType = BorderType.Left;
-    if (roundedCorner == RoundedCorner.TopRight || roundedCorner == RoundedCorner.BottomRight)
+    if (roundedCorner is RoundedCorner.TopRight or RoundedCorner.BottomRight)
       borderType = BorderType.Right;
 
     var borderWidth = GetWidth(borderType);

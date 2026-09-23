@@ -96,8 +96,8 @@ internal class FormattedTextFrame : IAreaProvider
     XUnit xOffset = lineWidth / 2;
     XUnit yOffset = lineWidth / 2;
 
-    if (textframe.Orientation == TextOrientation.Horizontal ||
-        textframe.Orientation == TextOrientation.HorizontalRotatedFarEast)
+    if (textframe.Orientation is TextOrientation.Horizontal or
+        TextOrientation.HorizontalRotatedFarEast)
     {
       width = textframe.Width.Point;
       xOffset += textframe.MarginLeft;

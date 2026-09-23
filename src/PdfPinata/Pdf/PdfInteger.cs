@@ -52,24 +52,21 @@ public sealed class PdfInteger : PdfNumber, IConvertible, IFormattable
     /// <param name="value">The value.</param>
     public PdfInteger(int value)
     {
-        _value = value;
+        Value = value;
     }
 
     /// <summary>
     /// Gets the value as integer.
     /// </summary>
-    public int Value =>
-        // This class must behave like a value type. Therefore it cannot be changed (like System.String).
-        _value;
-
-    private readonly int _value;
+    // This class must behave like a value type. Therefore it cannot be changed (like System.String).
+    public int Value { get; }
 
     /// <summary>
     /// Returns the integer as string.
     /// </summary>
     public override string ToString()
     {
-        return _value.ToString(CultureInfo.InvariantCulture);
+        return Value.ToString(CultureInfo.InvariantCulture);
     }
 
     /// <summary>
@@ -85,17 +82,17 @@ public sealed class PdfInteger : PdfNumber, IConvertible, IFormattable
 
     sbyte IConvertible.ToSByte(IFormatProvider provider)
     {
-        return Convert.ToSByte(_value);
+        return Convert.ToSByte(Value);
     }
 
     ulong IConvertible.ToUInt64(IFormatProvider provider)
     {
-        return Convert.ToUInt64(_value);
+        return Convert.ToUInt64(Value);
     }
 
     double IConvertible.ToDouble(IFormatProvider provider)
     {
-        return _value;
+        return Value;
     }
 
     // An integer is not a point in time, and Int32 refuses the conversion the same way.
@@ -106,47 +103,47 @@ public sealed class PdfInteger : PdfNumber, IConvertible, IFormattable
 
     float IConvertible.ToSingle(IFormatProvider provider)
     {
-        return _value;
+        return Value;
     }
 
     bool IConvertible.ToBoolean(IFormatProvider provider)
     {
-        return Convert.ToBoolean(_value);
+        return Convert.ToBoolean(Value);
     }
 
     int IConvertible.ToInt32(IFormatProvider provider)
     {
-        return _value;
+        return Value;
     }
 
     ushort IConvertible.ToUInt16(IFormatProvider provider)
     {
-        return Convert.ToUInt16(_value);
+        return Convert.ToUInt16(Value);
     }
 
     short IConvertible.ToInt16(IFormatProvider provider)
     {
-        return Convert.ToInt16(_value);
+        return Convert.ToInt16(Value);
     }
 
     string IConvertible.ToString(IFormatProvider provider)
     {
-        return _value.ToString(provider);
+        return Value.ToString(provider);
     }
 
     byte IConvertible.ToByte(IFormatProvider provider)
     {
-        return Convert.ToByte(_value);
+        return Convert.ToByte(Value);
     }
 
     char IConvertible.ToChar(IFormatProvider provider)
     {
-        return Convert.ToChar(_value);
+        return Convert.ToChar(Value);
     }
 
     long IConvertible.ToInt64(IFormatProvider provider)
     {
-        return _value;
+        return Value;
     }
 
     /// <summary>
@@ -159,17 +156,17 @@ public sealed class PdfInteger : PdfNumber, IConvertible, IFormattable
 
     decimal IConvertible.ToDecimal(IFormatProvider provider)
     {
-        return _value;
+        return Value;
     }
 
     object IConvertible.ToType(Type conversionType, IFormatProvider provider)
     {
-        return ((IConvertible)_value).ToType(conversionType, provider);
+        return ((IConvertible)Value).ToType(conversionType, provider);
     }
 
     uint IConvertible.ToUInt32(IFormatProvider provider)
     {
-        return Convert.ToUInt32(_value);
+        return Convert.ToUInt32(Value);
     }
 
     #endregion
@@ -178,7 +175,7 @@ public sealed class PdfInteger : PdfNumber, IConvertible, IFormattable
 
     string IFormattable.ToString(string format, IFormatProvider provider)
     {
-        return _value.ToString(format, provider);
+        return Value.ToString(format, provider);
     }
 
     #endregion

@@ -147,11 +147,11 @@ public struct LeftPosition : INullableValue
   /// </summary>
   private static bool IsValid(ShapePosition shapePosition)
   {
-    return shapePosition == ShapePosition.Left ||
-           shapePosition == ShapePosition.Center ||
-           shapePosition == ShapePosition.Right ||
-           shapePosition == ShapePosition.Inside ||
-           shapePosition == ShapePosition.Outside;
+    return shapePosition is ShapePosition.Left or
+           ShapePosition.Center or
+           ShapePosition.Right or
+           ShapePosition.Inside or
+           ShapePosition.Outside;
   }
 
   /// <summary>

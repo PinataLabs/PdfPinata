@@ -56,7 +56,7 @@ internal class ShiftStack
     /// Gets the stack pointer index.
     /// </summary>
     // ReSharper disable InconsistentNaming
-    public int SP => _sp; // ReSharper restore InconsistentNaming
+    public int SP { get; private set; } // ReSharper restore InconsistentNaming
 
     /// <summary>
     /// Gets the value at the specified index. Valid index is in range 0 up to sp-1.
@@ -65,7 +65,7 @@ internal class ShiftStack
     {
         get
         {
-            if (index >= _sp)
+            if (index >= SP)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "Value greater than stack index.");
             return _items[index];
         }
@@ -76,9 +76,9 @@ internal class ShiftStack
     /// </summary>
     public PdfItem GetItem(int relativeIndex)
     {
-        if (relativeIndex >= 0 || -relativeIndex > _sp)
+        if (relativeIndex >= 0 || -relativeIndex > SP)
             throw new ArgumentOutOfRangeException(nameof(relativeIndex), relativeIndex, "Value out of stack range.");
-        return _items[_sp + relativeIndex];
+        return _items[SP + relativeIndex];
     }
 
     /// <summary>
@@ -86,9 +86,9 @@ internal class ShiftStack
     /// </summary>
     public int GetInteger(int relativeIndex)
     {
-        if (relativeIndex >= 0 || -relativeIndex > _sp)
+        if (relativeIndex >= 0 || -relativeIndex > SP)
             throw new ArgumentOutOfRangeException(nameof(relativeIndex), relativeIndex, "Value out of stack range.");
-        return ((PdfInteger)_items[_sp + relativeIndex]).Value;
+        return ((PdfInteger)_items[SP + relativeIndex]).Value;
     }
 
     /// <summary>
@@ -98,7 +98,7 @@ internal class ShiftStack
     {
         Debug.Assert(item != null);
         _items.Add(item);
-        _sp++;
+        SP++;
     }
 
     /// <summary>
@@ -106,10 +106,10 @@ internal class ShiftStack
     /// </summary>
     public void Reduce(int count)
     {
-        if (count > _sp)
+        if (count > SP)
             throw new ArgumentException("count causes stack underflow.");
-        _items.RemoveRange(_sp - count, count);
-        _sp -= count;
+        _items.RemoveRange(SP - count, count);
+        SP -= count;
     }
 
     /// <summary>
@@ -120,13 +120,12 @@ internal class ShiftStack
         Debug.Assert(item != null);
         Reduce(count);
         _items.Add(item);
-        _sp++;
+        SP++;
     }
 
     /// <summary>
     /// The stack pointer index. Points to the next free item.
     /// </summary>
-    private int _sp;
 
     /// <summary>
     /// An array representing the stack.

@@ -52,7 +52,7 @@ public sealed class PdfUIntegerObject : PdfNumberObject
     /// <param name="value">The value.</param>
     public PdfUIntegerObject(uint value)
     {
-        _value = value;
+        Value = value;
     }
 
     /// <summary>
@@ -63,22 +63,20 @@ public sealed class PdfUIntegerObject : PdfNumberObject
     public PdfUIntegerObject(PdfDocument document, uint value)
         : base(document)
     {
-        _value = value;
+        Value = value;
     }
 
     /// <summary>
     /// Gets the value as unsigned integer.
     /// </summary>
-    public uint Value => _value;
-
-    private readonly uint _value;
+    public uint Value { get; }
 
     /// <summary>
     /// Returns the integer as string.
     /// </summary>
     public override string ToString()
     {
-        return _value.ToString(CultureInfo.InvariantCulture);
+        return Value.ToString(CultureInfo.InvariantCulture);
     }
 
     /// <summary>
@@ -87,7 +85,7 @@ public sealed class PdfUIntegerObject : PdfNumberObject
     internal override void WriteObject(PdfWriter writer)
     {
         writer.WriteBeginObject(this);
-        writer.Write(_value);
+        writer.Write(Value);
         writer.WriteEndObject();
     }
 }

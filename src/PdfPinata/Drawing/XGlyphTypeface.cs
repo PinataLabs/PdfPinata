@@ -68,9 +68,9 @@ internal sealed class XGlyphTypeface
     {
         var familyName = fontSource.Fontface.name.Name;
         FontFamily = new XFontFamily(familyName, false);
-        _fontface = fontSource.Fontface;
-        IsBold = _fontface.os2.IsBold;
-        IsItalic = _fontface.os2.IsItalic;
+        Fontface = fontSource.Fontface;
+        IsBold = Fontface.os2.IsBold;
+        IsItalic = Fontface.os2.IsItalic;
         StyleSimulations = styleSimulations;
 
         Key = key;
@@ -87,7 +87,7 @@ internal sealed class XGlyphTypeface
         FontFamily = fontFamily;
         FontSource = fontSource;
         StyleSimulations = styleSimulations;
-        _fontface = OpenTypeFontface.CetOrCreateFrom(fontSource);
+        Fontface = OpenTypeFontface.CetOrCreateFrom(fontSource);
 
         Initialize();
     }
@@ -131,20 +131,18 @@ internal sealed class XGlyphTypeface
 
     public XFontFamily FontFamily { get; }
 
-    internal OpenTypeFontface Fontface => _fontface;
-
-    private readonly OpenTypeFontface _fontface;
+    internal OpenTypeFontface Fontface { get; }
 
     public XFontSource FontSource { get; }
 
 
     private void Initialize()
     {
-        FamilyName = _fontface.name.Name;
+        FamilyName = Fontface.name.Name;
         if (string.IsNullOrEmpty(FaceName) || FaceName.StartsWith('?'))
             FaceName = FamilyName;
-        StyleName = _fontface.name.Style;
-        DisplayName = _fontface.name.FullFontName;
+        StyleName = Fontface.name.Style;
+        DisplayName = Fontface.name.FullFontName;
         if (string.IsNullOrEmpty(DisplayName))
         {
             DisplayName = FamilyName;
@@ -153,10 +151,10 @@ internal sealed class XGlyphTypeface
         }
 
         // Bold, as defined in OS/2 table.
-        IsBold = _fontface.os2.IsBold;
+        IsBold = Fontface.os2.IsBold;
 
         // Italic, as defined in OS/2 table.
-        IsItalic = _fontface.os2.IsItalic;
+        IsItalic = Fontface.os2.IsItalic;
     }
 
     /// <summary>

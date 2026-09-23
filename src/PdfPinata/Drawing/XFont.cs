@@ -73,18 +73,18 @@ public sealed class XFont
     /// <param name="pdfOptions">Additional PDF options.</param>
     public XFont(string familyName, double emSize, XFontStyle style, XPdfFontOptions pdfOptions)
     {
-        _familyName = familyName;
-        _emSize = emSize;
-        _style = style;
+        FamilyName = familyName;
+        Size = emSize;
+        Style = style;
         _pdfOptions = pdfOptions;
         Initialize();
     }
 
     internal XFont(string familyName, double emSize, XFontStyle style, XPdfFontOptions pdfOptions, XStyleSimulations styleSimulations)
     {
-        _familyName = familyName;
-        _emSize = emSize;
-        _style = style;
+        FamilyName = familyName;
+        Size = emSize;
+        Style = style;
         _pdfOptions = pdfOptions;
         OverrideStyleSimulations = true;
         StyleSimulations = styleSimulations;
@@ -98,16 +98,16 @@ public sealed class XFont
     private void Initialize()
     {
         var fontResolvingOptions = OverrideStyleSimulations
-            ? new FontResolvingOptions(_style, StyleSimulations)
-            : new FontResolvingOptions(_style);
+            ? new FontResolvingOptions(Style, StyleSimulations)
+            : new FontResolvingOptions(Style);
 
         // HACK: 'PlatformDefault' is used in unit test code.
-        if (StringComparer.OrdinalIgnoreCase.Compare(_familyName, GlobalFontSettings.DefaultFontName) == 0)
+        if (StringComparer.OrdinalIgnoreCase.Compare(FamilyName, GlobalFontSettings.DefaultFontName) == 0)
         {
         }
 
         // In principle an XFont is an XGlyphTypeface plus an em-size.
-        _glyphTypeface = XGlyphTypeface.GetOrCreateFrom(_familyName, fontResolvingOptions);
+        _glyphTypeface = XGlyphTypeface.GetOrCreateFrom(FamilyName, fontResolvingOptions);
         CreateDescriptorAndInitializeFontMetrics();
     }
 
@@ -155,48 +155,38 @@ public sealed class XFont
     /// <summary>
     /// Gets the em-size of this font measured in the unit of this font object.
     /// </summary>
-    public double Size => _emSize;
-
-    private readonly double _emSize;
+    public double Size { get; }
 
     /// <summary>
     /// Gets style information for this Font object.
     /// </summary>
     [Browsable(false)]
-    public XFontStyle Style => _style;
-
-    private readonly XFontStyle _style;
+    public XFontStyle Style { get; }
 
     /// <summary>
     /// Indicates whether this XFont object is bold.
     /// </summary>
-    public bool Bold => (_style & XFontStyle.Bold) == XFontStyle.Bold;
+    public bool Bold => (Style & XFontStyle.Bold) == XFontStyle.Bold;
 
     /// <summary>
     /// Indicates whether this XFont object is italic.
     /// </summary>
-    public bool Italic => (_style & XFontStyle.Italic) == XFontStyle.Italic;
+    public bool Italic => (Style & XFontStyle.Italic) == XFontStyle.Italic;
 
     /// <summary>
     /// Indicates whether this XFont object is stroke out.
     /// </summary>
-    public bool Strikeout => (_style & XFontStyle.Strikeout) == XFontStyle.Strikeout;
+    public bool Strikeout => (Style & XFontStyle.Strikeout) == XFontStyle.Strikeout;
 
     /// <summary>
     /// Indicates whether this XFont object is underlined.
     /// </summary>
-    public bool Underline => (_style & XFontStyle.Underline) == XFontStyle.Underline;
+    public bool Underline => (Style & XFontStyle.Underline) == XFontStyle.Underline;
 
     /// <summary>
     /// Temporary HACK for XPS to PDF converter.
     /// </summary>
-    internal bool IsVertical
-    {
-        get => _isVertical;
-        set => _isVertical = value;
-    }
-
-    private bool _isVertical;
+    internal bool IsVertical { get; set; }
 
 
     /// <summary>
@@ -214,35 +204,17 @@ public sealed class XFont
     /// <summary>
     /// Gets the cell space for the font. The CellSpace is the line spacing, the sum of CellAscent and CellDescent and optionally some extra space.
     /// </summary>
-    public int CellSpace
-    {
-        get => _cellSpace;
-        internal set => _cellSpace = value;
-    }
-
-    private int _cellSpace;
+    public int CellSpace { get; internal set; }
 
     /// <summary>
     /// Gets the cell ascent, the area above the base line that is used by the font.
     /// </summary>
-    public int CellAscent
-    {
-        get => _cellAscent;
-        internal set => _cellAscent = value;
-    }
-
-    private int _cellAscent;
+    public int CellAscent { get; internal set; }
 
     /// <summary>
     /// Gets the cell descent, the area below the base line that is used by the font.
     /// </summary>
-    public int CellDescent
-    {
-        get => _cellDescent;
-        internal set => _cellDescent = value;
-    }
-
-    private int _cellDescent;
+    public int CellDescent { get; internal set; }
 
     /// <summary>
     /// Gets the font metrics.
@@ -266,7 +238,7 @@ public sealed class XFont
     /// </summary>
     public double GetHeight()
     {
-        var value = CellSpace * _emSize / UnitsPerEm;
+        var value = CellSpace * Size / UnitsPerEm;
         return value;
     }
 
@@ -298,7 +270,7 @@ public sealed class XFont
     internal ShapingFont ShapingFont => field ??= new ShapingFont(
         _glyphTypeface.FamilyName, _glyphTypeface.FaceName, _glyphTypeface.Key,
         _glyphTypeface.IsBold, _glyphTypeface.IsItalic,
-        _emSize, _unitsPerEm, _glyphTypeface.FontSource.Bytes);
+        Size, UnitsPerEm, _glyphTypeface.FontSource.Bytes);
 
 
     internal OpenTypeDescriptor Descriptor => _descriptor;
@@ -306,17 +278,10 @@ public sealed class XFont
     private OpenTypeDescriptor _descriptor;
 
 
-    internal string FamilyName => _familyName;
-
-    private readonly string _familyName;
+    internal string FamilyName { get; }
 
 
-    internal int UnitsPerEm
-    {
-        get => _unitsPerEm;
-        private set => _unitsPerEm = value;
-    }
-    internal int _unitsPerEm;
+    internal int UnitsPerEm { get; private set; }
 
     /// <summary>
     /// Override style simulations by using the value of StyleSimulations.
@@ -332,13 +297,7 @@ public sealed class XFont
     /// Cache PdfFontTable.FontSelector to speed up finding the right PdfFont
     /// if this font is used more than once.
     /// </summary>
-    internal string Selector
-    {
-        get => _selector;
-        set => _selector = value;
-    }
-
-    private string _selector;
+    internal string Selector { get; set; }
 
     /// <summary>
     /// Gets the DebuggerDisplayAttribute text.

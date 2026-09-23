@@ -157,7 +157,7 @@ public class XPdfForm : XForm
     /// </summary>
     internal override void Finish()
     {
-        if (_formState == FormState.NotATemplate || _formState == FormState.Finished)
+        if (_formState is FormState.NotATemplate or FormState.Finished)
             return;
 
         base.Finish();
@@ -192,13 +192,7 @@ public class XPdfForm : XForm
     /// PDF forms. A place holder is useful for showing a preview of a page on the display, because
     /// PDFsharp cannot render native PDF objects.
     /// </summary>
-    public XImage PlaceHolder
-    {
-        get => _placeHolder;
-        set => _placeHolder = value;
-    }
-
-    private XImage _placeHolder;
+    public XImage PlaceHolder { get; set; }
 
     /// <summary>
     /// Gets the underlying PdfPage (if one exists).

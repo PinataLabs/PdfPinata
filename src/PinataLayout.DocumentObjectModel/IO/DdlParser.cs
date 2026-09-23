@@ -165,7 +165,7 @@ internal class DdlParser
 
         ReadCode();  // read first style name
         // An empty \styles block is valid.
-        while (Symbol == Symbol.Identifier || Symbol == Symbol.StringLiteral)
+        while (Symbol is Symbol.Identifier or Symbol.StringLiteral)
             ParseStyleDefinition(styles);
 
         AssertSymbol(Symbol.BraceRight);
@@ -221,7 +221,7 @@ internal class DdlParser
             else
             {
                 // Style does not exist and no base style is given, choose InvalidStyleName by default.
-                if (baseStyleName == null || baseStyleName == "")
+                if (baseStyleName is null or "")
                 {
                     baseStyleName = "InvalidStyleName";
                     ReportParserInfo(DdlErrorLevel.Warning, DomMsgID.UseOfUndefinedStyle, styleName);
@@ -250,10 +250,10 @@ internal class DdlParser
     private bool IsHeaderFooter()
     {
         var sym = Symbol;
-        return sym == Symbol.Header || sym == Symbol.Footer ||
-                sym == Symbol.PrimaryHeader || sym == Symbol.PrimaryFooter ||
-                sym == Symbol.EvenPageHeader || sym == Symbol.EvenPageFooter ||
-                sym == Symbol.FirstPageHeader || sym == Symbol.FirstPageFooter;
+        return sym is Symbol.Header or Symbol.Footer or
+                Symbol.PrimaryHeader or Symbol.PrimaryFooter or
+                Symbol.EvenPageHeader or Symbol.EvenPageFooter or
+                Symbol.FirstPageHeader or Symbol.FirstPageFooter;
     }
 
     /// <summary>
@@ -316,10 +316,10 @@ internal class DdlParser
         try
         {
             var hdrFtrSym = Symbol;
-            var isHeader = hdrFtrSym == Symbol.Header ||
-                           hdrFtrSym == Symbol.PrimaryHeader ||
-                           hdrFtrSym == Symbol.FirstPageHeader ||
-                           hdrFtrSym == Symbol.EvenPageHeader;
+            var isHeader = hdrFtrSym is Symbol.Header or
+                           Symbol.PrimaryHeader or
+                           Symbol.FirstPageHeader or
+                           Symbol.EvenPageHeader;
 
             // Recall that the styles "Header" resp. "Footer" are used as default if
             // no other style was given. But this belongs to the rendering process,
@@ -344,7 +344,7 @@ internal class DdlParser
             ReadCode(); // parse beyond '{'
 
             var headersFooters = isHeader ? section.Headers : section.Footers;
-            if (hdrFtrSym == Symbol.Header || hdrFtrSym == Symbol.Footer)
+            if (hdrFtrSym is Symbol.Header or Symbol.Footer)
             {
                 headersFooters.Primary = headerFooter.Clone();
                 headersFooters.EvenPage = headerFooter.Clone();
@@ -1924,7 +1924,7 @@ internal class DdlParser
                         {
                             ParseAttributeBlock(tabStop);
                         }
-                        else if (Symbol == Symbol.StringLiteral || Symbol == Symbol.RealLiteral || Symbol == Symbol.IntegerLiteral)
+                        else if (Symbol is Symbol.StringLiteral or Symbol.RealLiteral or Symbol.IntegerLiteral)
                         {
                             // Special hack for tab stops...
                             Unit unit = Token;
@@ -2054,7 +2054,7 @@ internal class DdlParser
     /// </summary>
     private void ParseBoolAssignment(DocumentObject dom, ValueDescriptor vd)
     {
-        AssertCondition(Symbol == Symbol.True || Symbol == Symbol.False, DomMsgID.BoolExpected,
+        AssertCondition(Symbol is Symbol.True or Symbol.False, DomMsgID.BoolExpected,
             scanner.Token);
 
         dom.SetValue(vd.ValueName, Symbol == Symbol.True);
@@ -2066,7 +2066,7 @@ internal class DdlParser
     /// </summary>
     private void ParseIntegerAssignment(DocumentObject dom, ValueDescriptor vd)
     {
-        AssertCondition(Symbol == Symbol.IntegerLiteral || Symbol == Symbol.HexIntegerLiteral || Symbol == Symbol.StringLiteral,
+        AssertCondition(Symbol is Symbol.IntegerLiteral or Symbol.HexIntegerLiteral or Symbol.StringLiteral,
             DomMsgID.IntegerExpected, Token);
 
         var n = int.Parse(scanner.Token, CultureInfo.InvariantCulture);
@@ -2080,7 +2080,7 @@ internal class DdlParser
     /// </summary>
     private void ParseRealAssignment(DocumentObject dom, ValueDescriptor vd)
     {
-        AssertCondition(Symbol == Symbol.RealLiteral || Symbol == Symbol.IntegerLiteral || Symbol == Symbol.StringLiteral,
+        AssertCondition(Symbol is Symbol.RealLiteral or Symbol.IntegerLiteral or Symbol.StringLiteral,
             DomMsgID.RealExpected, scanner.Token);
 
         var r = double.Parse(scanner.Token, CultureInfo.InvariantCulture);
@@ -2094,7 +2094,7 @@ internal class DdlParser
     /// </summary>
     private void ParseUnitAssignment(DocumentObject dom, ValueDescriptor vd)
     {
-        AssertCondition(Symbol == Symbol.RealLiteral || Symbol == Symbol.IntegerLiteral || Symbol == Symbol.StringLiteral,
+        AssertCondition(Symbol is Symbol.RealLiteral or Symbol.IntegerLiteral or Symbol.StringLiteral,
             DomMsgID.RealExpected, scanner.Token);
 
         Unit unit = Token;
@@ -2254,7 +2254,7 @@ internal class DdlParser
                     break;
             }
         }
-        else if (Symbol == Symbol.IntegerLiteral || Symbol == Symbol.HexIntegerLiteral)
+        else if (Symbol is Symbol.IntegerLiteral or Symbol.HexIntegerLiteral)
         {
             color = new Color(scanner.GetTokenValueAsUInt());
             ReadCode(); // read beyond literal
@@ -2280,7 +2280,7 @@ internal class DdlParser
         AssertSymbol(Symbol.ParenLeft);
 
         ReadCode();  // read red value
-        AssertCondition(Symbol == Symbol.IntegerLiteral || Symbol == Symbol.HexIntegerLiteral,
+        AssertCondition(Symbol is Symbol.IntegerLiteral or Symbol.HexIntegerLiteral,
             DomMsgID.IntegerExpected, scanner.Token);
         r = scanner.GetTokenValueAsUInt();
         AssertCondition(r <= 255, DomMsgID.InvalidRange, "0 - 255");
@@ -2289,7 +2289,7 @@ internal class DdlParser
         AssertSymbol(Symbol.Comma);
 
         ReadCode();  // read green value
-        AssertCondition(Symbol == Symbol.IntegerLiteral || Symbol == Symbol.HexIntegerLiteral,
+        AssertCondition(Symbol is Symbol.IntegerLiteral or Symbol.HexIntegerLiteral,
             DomMsgID.IntegerExpected, scanner.Token);
         g = scanner.GetTokenValueAsUInt();
         AssertCondition(g <= 255, DomMsgID.InvalidRange, "0 - 255");
@@ -2298,7 +2298,7 @@ internal class DdlParser
         AssertSymbol(Symbol.Comma);
 
         ReadCode();  // read blue value
-        AssertCondition(Symbol == Symbol.IntegerLiteral || Symbol == Symbol.HexIntegerLiteral,
+        AssertCondition(Symbol is Symbol.IntegerLiteral or Symbol.HexIntegerLiteral,
             DomMsgID.IntegerExpected, scanner.Token);
         b = scanner.GetTokenValueAsUInt();
         AssertCondition(b <= 255, DomMsgID.InvalidRange, "0 - 255");
@@ -2321,7 +2321,7 @@ internal class DdlParser
         AssertSymbol(Symbol.ParenLeft);
 
         ReadCode();  // read v1 value
-        AssertCondition(Symbol == Symbol.IntegerLiteral || Symbol == Symbol.RealLiteral,
+        AssertCondition(Symbol is Symbol.IntegerLiteral or Symbol.RealLiteral,
             DomMsgID.NumberExpected, scanner.Token);
         v1 = scanner.GetTokenValueAsReal();
         AssertCondition(v1 is >= 0.0f and <= 100.0f, DomMsgID.InvalidRange, "0.0 - 100.0");
@@ -2330,7 +2330,7 @@ internal class DdlParser
         AssertSymbol(Symbol.Comma);
 
         ReadCode();  // read v2 value
-        AssertCondition(Symbol == Symbol.IntegerLiteral || Symbol == Symbol.RealLiteral,
+        AssertCondition(Symbol is Symbol.IntegerLiteral or Symbol.RealLiteral,
             DomMsgID.NumberExpected, scanner.Token);
         v2 = scanner.GetTokenValueAsReal();
         AssertCondition(v2 is >= 0.0f and <= 100.0f, DomMsgID.InvalidRange, "0.0 - 100.0");
@@ -2339,7 +2339,7 @@ internal class DdlParser
         AssertSymbol(Symbol.Comma);
 
         ReadCode();  // read v3 value
-        AssertCondition(Symbol == Symbol.IntegerLiteral || Symbol == Symbol.RealLiteral,
+        AssertCondition(Symbol is Symbol.IntegerLiteral or Symbol.RealLiteral,
             DomMsgID.NumberExpected, scanner.Token);
         v3 = scanner.GetTokenValueAsReal();
         AssertCondition(v3 is >= 0.0f and <= 100.0f, DomMsgID.InvalidRange, "0.0 - 100.0");
@@ -2348,7 +2348,7 @@ internal class DdlParser
         AssertSymbol(Symbol.Comma);
 
         ReadCode();  // read v4 value
-        AssertCondition(Symbol == Symbol.IntegerLiteral || Symbol == Symbol.RealLiteral,
+        AssertCondition(Symbol is Symbol.IntegerLiteral or Symbol.RealLiteral,
             DomMsgID.NumberExpected, scanner.Token);
         v4 = scanner.GetTokenValueAsReal();
         AssertCondition(v4 is >= 0.0f and <= 100.0, DomMsgID.InvalidRange, "0.0 - 100.0");
@@ -2359,7 +2359,7 @@ internal class DdlParser
         {
             hasAlpha = true;
             ReadCode();  // read v5 value
-            AssertCondition(Symbol == Symbol.IntegerLiteral || Symbol == Symbol.RealLiteral,
+            AssertCondition(Symbol is Symbol.IntegerLiteral or Symbol.RealLiteral,
                 DomMsgID.NumberExpected, scanner.Token);
             v5 = scanner.GetTokenValueAsReal();
             AssertCondition(v5 is >= 0.0f and <= 100.0, DomMsgID.InvalidRange, "0.0 - 100.0");
@@ -2392,7 +2392,7 @@ internal class DdlParser
         AssertSymbol(Symbol.ParenLeft);
 
         ReadCode();  // read gray value
-        AssertCondition(Symbol == Symbol.IntegerLiteral || Symbol == Symbol.HexIntegerLiteral,
+        AssertCondition(Symbol is Symbol.IntegerLiteral or Symbol.HexIntegerLiteral,
             DomMsgID.IntegerExpected, scanner.Token);
         gray = scanner.GetTokenValueAsReal();
         AssertCondition(gray is >= 0.0f and <= 100.0f, DomMsgID.InvalidRange, "0.0 - 100.0");
@@ -2606,7 +2606,7 @@ internal class DdlParser
     /// </summary>
     private void AdjustToNextBlock()
     {
-        var skipClosingBraceOrBracket = Symbol == Symbol.BraceLeft || Symbol == Symbol.BracketLeft;
+        var skipClosingBraceOrBracket = Symbol is Symbol.BraceLeft or Symbol.BracketLeft;
         ReadCode();
 
         var finish = false;

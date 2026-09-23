@@ -190,7 +190,7 @@ public static class PdfSignatures
             PdfCertificationLevel.NoChangesAllowed => false,
             PdfCertificationLevel.FormFillingAllowed => kind == PdfChangeKind.FormFieldValues,
             PdfCertificationLevel.FormFillingAndAnnotationsAllowed =>
-                kind == PdfChangeKind.FormFieldValues || kind == PdfChangeKind.Annotations,
+                kind is PdfChangeKind.FormFieldValues or PdfChangeKind.Annotations,
             _ => false
         };
     }

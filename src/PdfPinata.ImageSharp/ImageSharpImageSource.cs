@@ -210,7 +210,7 @@ internal static class ImageSharpVersion
 {
     public static bool IsBindingFailure(Exception ex)
     {
-        return ex is MissingMemberException || ex is TypeLoadException;
+        return ex is MissingMemberException or TypeLoadException;
     }
 
     public static InvalidOperationException Incompatible(Exception inner)

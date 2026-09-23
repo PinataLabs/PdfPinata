@@ -165,13 +165,13 @@ public static class Filtering
         decodeParms = Direct(decodeParms);
 
         byte[] result = null;
-        if (filterItem is PdfName && (decodeParms == null || decodeParms is PdfDictionary))
+        if (filterItem is PdfName && (decodeParms is null or PdfDictionary))
         {
             var filter = GetFilter(filterItem.ToString());
             if (filter != null)
                 result = filter.Decode(data, decodeParms as PdfDictionary);
         }
-        else if (filterItem is PdfArray itemArray && (decodeParms == null || decodeParms is PdfArray))
+        else if (filterItem is PdfArray itemArray && (decodeParms is null or PdfArray))
         {
             var decodeArray = decodeParms as PdfArray;
             // array length of filter and decode parms should match. if they dont, return data unmodified

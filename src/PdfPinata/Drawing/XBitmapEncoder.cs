@@ -53,13 +53,7 @@ public abstract class XBitmapEncoder
     /// <summary>
     /// Gets or sets the bitmap source to be encoded.
     /// </summary>
-    public XBitmapSource Source
-    {
-        get => _source;
-        set => _source = value;
-    }
-
-    private XBitmapSource _source;
+    public XBitmapSource Source { get; set; }
 
     /// <summary>
     /// When overridden in a derived class saves the image on the specified stream

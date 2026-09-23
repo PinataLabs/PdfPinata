@@ -52,7 +52,7 @@ internal class XFontSource
     private XFontSource(byte[] bytes, ulong key)
     {
         FontName = null;
-        _bytes = bytes;
+        Bytes = bytes;
         _key = key;
     }
 
@@ -137,9 +137,7 @@ internal class XFontSource
     /// <summary>
     /// Gets the bytes of the font.
     /// </summary>
-    public byte[] Bytes => _bytes;
-
-    private readonly byte[] _bytes;
+    public byte[] Bytes { get; }
 
     public override int GetHashCode()
     {

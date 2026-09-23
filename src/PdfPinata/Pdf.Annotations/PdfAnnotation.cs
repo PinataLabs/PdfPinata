@@ -136,12 +136,7 @@ public abstract class PdfAnnotation : PdfDictionary
     /// <summary>
     /// Gets or sets the PdfAnnotations object that this annotation belongs to.
     /// </summary>
-    public PdfAnnotations Parent
-    {
-        get => _parent;
-        set => _parent = value;
-    }
-    private PdfAnnotations _parent;
+    public PdfAnnotations Parent { get; set; }
 
     /// <summary>
     /// Called once the annotation has been added to a page, and so has an owning document.
@@ -274,7 +269,7 @@ public abstract class PdfAnnotation : PdfDictionary
         }
         set
         {
-            if (value < 0 || value > 1)
+            if (value is < 0 or > 1)
                 throw new ArgumentOutOfRangeException(nameof(value), value, "Opacity must be a value in the range from 0 to 1.");
             Elements.SetReal(Keys.CA, value);
             Elements.SetDateTime(Keys.M, GlobalTimeSettings.Now);

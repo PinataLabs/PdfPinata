@@ -280,13 +280,12 @@ public class ContentObjectCloningTests
     /// </summary>
     private sealed class NamedOperator : COperator
     {
-        private readonly string _name;
 
         public NamedOperator(string name)
         {
-            _name = name;
+            Name = name;
         }
 
-        public override string Name => _name;
+        public override string Name { get; }
     }
 }

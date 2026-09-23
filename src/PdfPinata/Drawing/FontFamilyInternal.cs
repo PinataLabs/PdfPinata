@@ -50,7 +50,7 @@ internal class FontFamilyInternal
 
     private FontFamilyInternal(string familyName)
     {
-        _sourceName = _name = familyName;
+        SourceName = Name = familyName;
     }
 
     internal static FontFamilyInternal GetOrCreateFromName(string familyName, bool createPlatformObject)
@@ -72,18 +72,13 @@ internal class FontFamilyInternal
     /// <summary>
     /// Gets the family name this family was originally created with.
     /// </summary>
-    public string SourceName => _sourceName;
-
-    private readonly string _sourceName;
+    public string SourceName { get; }
 
     /// <summary>
     /// Gets the name that uniquely identifies this font family.
     /// </summary>
-    public string Name =>
-        // In WPF this is the Win32FamilyName, not the WPF family name.
-        _name;
-
-    private readonly string _name;
+    // In WPF this is the Win32FamilyName, not the WPF family name.
+    public string Name { get; }
 
     /// <summary>
     /// Gets the DebuggerDisplayAttribute text.

@@ -91,7 +91,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         // Set Orientation depending on /Rotate.
         var rotate = Elements.GetInteger(InheritablePageKeys.Rotate);
         if (Math.Abs(rotate / 90) % 2 == 1)
-            _orientation = PageOrientation.Landscape;
+            Orientation = PageOrientation.Landscape;
     }
 
     private void Initialize()
@@ -114,12 +114,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// Gets or sets a user defined object that contains arbitrary information associated with this PDF page.
     /// The tag is not used by PdfPinata.
     /// </summary>
-    public object Tag
-    {
-        get => _tag;
-        set => _tag = value;
-    }
-    private object _tag;
+    public object Tag { get; set; }
 
     /// <summary>
     /// Closes the page. A closes page cannot be modified anymore and it is not possible to
@@ -159,12 +154,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// If an imported page has a /Rotate value that matches the formula 90 + n * 180 the
     /// orientation is set to PageOrientation.Landscape.
     /// </summary>
-    public PageOrientation Orientation
-    {
-        get => _orientation;
-        set => _orientation = value;
-    }
-    private PageOrientation _orientation;
+    public PageOrientation Orientation { get; set; }
 
     /// <summary>
     /// Gets or sets one of the predefined standard sizes like.
@@ -750,7 +740,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// always held in portrait, so a landscape page is turned on the way out - unless the
     /// /Rotate entry already turns it, which the viewer does on its own.
     /// </summary>
-    internal bool MediaBoxIsTurnedWhenWritten => _orientation == PageOrientation.Landscape && !IsTurnedByAQuarter;
+    internal bool MediaBoxIsTurnedWhenWritten => Orientation == PageOrientation.Landscape && !IsTurnedByAQuarter;
 
     /// <summary>
     /// Gets a value indicating whether the page the viewer shows is as wide as the media box
@@ -788,7 +778,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// </summary>
     internal void ApplyResizedBox(PdfRectangle box, PageSize size)
     {
-        _orientation = PageOrientation.Portrait;
+        Orientation = PageOrientation.Portrait;
         MediaBox = box;
         _pageSize = size;
     }

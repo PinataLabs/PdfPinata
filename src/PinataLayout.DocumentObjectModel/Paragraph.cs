@@ -508,19 +508,14 @@ public partial class Paragraph : DocumentObject, IVisitable
     /// <summary>
     /// For internal use only.
     /// </summary>
-    internal bool SerializeContentOnly
-    {
-        get => serializeContentOnly;
-        set => serializeContentOnly = value;
-    }
-    private bool serializeContentOnly;
+    internal bool SerializeContentOnly { get; set; }
 
     /// <summary>
     /// Converts Paragraph into DDL.
     /// </summary>
     internal override void Serialize(Serializer serializer)
     {
-        if (!serializeContentOnly)
+        if (!SerializeContentOnly)
         {
             serializer.WriteComment(comment ?? "");
             serializer.WriteLine("\\paragraph");

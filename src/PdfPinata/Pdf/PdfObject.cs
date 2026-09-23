@@ -65,7 +65,7 @@ public abstract class PdfObject : PdfItem
     {
         // If the object that was transformed to an instance of a derived class was an indirect object
         // set the value of the reference to this.
-        obj._iref?.Value = this;
+        obj.Reference?.Value = this;
 
         // The object being transformed may already have been changed since it was read, and this
         // is what an incremental save asks from now on - a change forgotten here would be silently
@@ -88,7 +88,7 @@ public abstract class PdfObject : PdfItem
     {
         var obj = (PdfObject)base.Copy();
         obj._document = null;
-        obj._iref = null;
+        obj.Reference = null;
         return obj;
     }
 
@@ -101,17 +101,17 @@ public abstract class PdfObject : PdfItem
     {
         var objectID = new PdfObjectID(objectNumber, generationNumber);
 
-        _iref ??= _document._irefTable[objectID];
-        if (_iref == null)
+        Reference ??= _document._irefTable[objectID];
+        if (Reference == null)
         {
             // Called for its side effect: the constructor of PdfReference sets itself as this
             // object's reference.
             _ = new PdfReference(this);
-            Debug.Assert(_iref != null);
-            _iref.ObjectID = objectID;
+            Debug.Assert(Reference != null);
+            Reference.ObjectID = objectID;
         }
-        _iref.Value = this;
-        _iref.Document = _document;
+        Reference.Value = this;
+        Reference.Document = _document;
     }
 
     /// <summary>
@@ -132,7 +132,7 @@ public abstract class PdfObject : PdfItem
             if (_document != null)
                 throw new InvalidOperationException("Cannot change document.");
             _document = value;
-            _iref?.Document = value;
+            Reference?.Document = value;
         }
     }
     internal PdfDocument _document;
@@ -142,7 +142,7 @@ public abstract class PdfObject : PdfItem
     /// </summary>
     public bool IsIndirect =>
         // An object is an indirect object if and only if is has an indirect reference value.
-        _iref != null;
+        Reference != null;
 
     /// <summary>
     /// Gets the PdfInternals object of this document, that grants access to some internal structures
@@ -168,7 +168,7 @@ public abstract class PdfObject : PdfItem
     /// Gets the object identifier. Returns PdfObjectID.Empty for direct objects,
     /// i.e. never returns null.
     /// </summary>
-    internal PdfObjectID ObjectID => _iref != null ? _iref.ObjectID : PdfObjectID.Empty;
+    internal PdfObjectID ObjectID => Reference != null ? Reference.ObjectID : PdfObjectID.Empty;
 
     /// <summary>
     /// Gets the object number.
@@ -431,7 +431,7 @@ public abstract class PdfObject : PdfItem
             // An indirect null is one of them: a writer that puts /SMask 6 0 R in a graphics
             // state and null in object six has said the key holds nothing, in a roundabout but
             // perfectly legal way, and there is nothing under it to fix up.
-            if (value is PdfNameObject || value is PdfStringObject || value is PdfBooleanObject || value is PdfIntegerObject || value is PdfNumberObject || value is PdfNullObject)
+            if (value is PdfNameObject or PdfStringObject or PdfBooleanObject or PdfIntegerObject or PdfNumberObject or PdfNullObject)
             {
                 Debug.Assert(value.IsIndirect);
                 Debug.Assert(value.Owner == owner);
@@ -446,14 +446,8 @@ public abstract class PdfObject : PdfItem
     /// <summary>
     /// Gets the indirect reference of this object. If the value is null, this object is a direct object.
     /// </summary>
-    public PdfReference Reference
-    {
-        get => _iref;
-
-        // Setting the reference outside PdfPinata is not considered as a valid operation.
-        internal set => _iref = value;
-    }
-    private PdfReference _iref;
+    // Setting the reference outside PdfPinata is not considered as a valid operation.
+    public PdfReference Reference { get; internal set; }
 
     /// <summary>
     /// Gets a value indicating that this object was read out of an object stream rather than

@@ -107,7 +107,7 @@ public sealed class XGraphics : IDisposable
             XGraphicsUnit.Presentation => new XSize(XUnit.FromPoint(page.Width).Presentation, XUnit.FromPoint(page.Height).Presentation),
             _ => throw new NotImplementedException("unit")
         };
-        _pageUnit = pageUnit;
+        PageUnit = pageUnit;
         _pageDirection = pageDirection;
 
         Initialize();
@@ -125,7 +125,7 @@ public sealed class XGraphics : IDisposable
             XGraphicsUnit.Presentation => new XSize(XUnit.FromPoint(size.Width).Presentation, XUnit.FromPoint(size.Height).Presentation),
             _ => throw new NotImplementedException("unit")
         };
-        _pageUnit = pageUnit;
+        PageUnit = pageUnit;
         _pageDirection = pageDirection;
 
         Initialize();
@@ -144,7 +144,7 @@ public sealed class XGraphics : IDisposable
             XGraphicsUnit.Presentation => new XSize(XUnit.FromPoint(size.Width).Presentation, XUnit.FromPoint(size.Height).Presentation),
             _ => throw new NotImplementedException($"{nameof(pageUnit)}: {pageUnit}")
         };
-        _pageUnit = pageUnit;
+        PageUnit = pageUnit;
         _pageDirection = pageDirection;
 
         Initialize();
@@ -338,10 +338,10 @@ public sealed class XGraphics : IDisposable
         if (disposing)
         {
             // Dispose managed resources.
-            if (_associatedImage != null)
+            if (AssociatedImage != null)
             {
-                _associatedImage.DisassociateWithGraphics(this);
-                _associatedImage = null;
+                AssociatedImage.DisassociateWithGraphics(this);
+                AssociatedImage = null;
             }
         }
 
@@ -377,9 +377,7 @@ public sealed class XGraphics : IDisposable
     /// Gets or sets the unit of measure used for page coordinates.
     /// CURRENTLY ONLY POINT IS IMPLEMENTED.
     /// </summary>
-    public XGraphicsUnit PageUnit => _pageUnit;
-
-    private readonly XGraphicsUnit _pageUnit;
+    public XGraphicsUnit PageUnit { get; }
 
     /// <summary>
     /// Gets or sets the value indicating in which direction y-value grow.
@@ -1776,13 +1774,7 @@ public sealed class XGraphics : IDisposable
     /// Gets or sets the smoothing mode.
     /// </summary>
     /// <value>The smoothing mode.</value>
-    public XSmoothingMode SmoothingMode
-    {
-        get => _smoothingMode;
-        set => _smoothingMode = value;
-    }
-
-    private XSmoothingMode _smoothingMode;
+    public XSmoothingMode SmoothingMode { get; set; }
 
     #endregion
 
@@ -2066,7 +2058,7 @@ public sealed class XGraphics : IDisposable
 
     internal void DisassociateImage()
     {
-        if (_associatedImage == null)
+        if (AssociatedImage == null)
             throw new InvalidOperationException("No image associated.");
 
         Dispose();
@@ -2080,13 +2072,7 @@ public sealed class XGraphics : IDisposable
 
     private InternalGraphicsMode _internalGraphicsMode;
 
-    internal XImage AssociatedImage
-    {
-        get => _associatedImage;
-        set => _associatedImage = value;
-    }
-
-    private XImage _associatedImage;
+    internal XImage AssociatedImage { get; set; }
 
     /// <summary>
     /// The transformation matrix from the XGraphics page space to the Graphics world space.

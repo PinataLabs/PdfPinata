@@ -199,7 +199,7 @@ internal static class PdfTransparencyDetector
 
         // A PDF null is how a writer says a key holds nothing, whether it is written into the
         // dictionary itself or reached through a reference, and it reads as an absent key does.
-        if (item == null || item is PdfNull || item is PdfNullObject)
+        if (item is null or PdfNull or PdfNullObject)
             return false;
 
         return item is not PdfName { Value: "/None" };

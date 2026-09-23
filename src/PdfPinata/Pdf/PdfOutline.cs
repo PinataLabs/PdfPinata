@@ -175,12 +175,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
     /// <summary>
     /// Gets the parent of this outline item. The root item has no parent and returns null.
     /// </summary>
-    public PdfOutline Parent
-    {
-        get => _parent;
-        internal set => _parent = value;
-    }
-    private PdfOutline _parent;
+    public PdfOutline Parent { get; internal set; }
 
     /// <summary>
     /// The collection this entry is in, or null while it is in none. Set and cleared by
@@ -221,66 +216,36 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
     /// Gets or sets the left postion of the page positioned at the left side of the window.
     /// Applies only if PageDestinationType is Xyz, FitV, FitR, or FitBV.
     /// </summary>
-    public double Left
-    {
-        get => _left;
-        set => _left = value;
-    }
-    private double _left = double.NaN;
+    public double Left { get; set; } = double.NaN;
 
     /// <summary>
     /// Gets or sets the top postion of the page positioned at the top side of the window.
     /// Applies only if PageDestinationType is Xyz, FitH, FitR, ob FitBH.
     /// </summary>
-    public double Top
-    {
-        get => _top;
-        set => _top = value;
-    }
-    private double _top = double.NaN;
+    public double Top { get; set; } = double.NaN;
 
     /// <summary>
     /// Gets or sets the right postion of the page positioned at the right side of the window.
     /// Applies only if PageDestinationType is FitR.
     /// </summary>
-    public double Right
-    {
-        get => _right;
-        set => _right = value;
-    }
-    private double _right = double.NaN;
+    public double Right { get; set; } = double.NaN;
 
     /// <summary>
     /// Gets or sets the bottom postion of the page positioned at the bottom side of the window.
     /// Applies only if PageDestinationType is FitR.
     /// </summary>
-    public double Bottom
-    {
-        get => _bottom;
-        set => _bottom = value;
-    }
-    private double _bottom = double.NaN;
+    public double Bottom { get; set; } = double.NaN;
 
     /// <summary>
     /// Gets or sets the zoom faction of the page.
     /// Applies only if PageDestinationType is Xyz.
     /// </summary>
-    public double Zoom
-    {
-        get => _zoom;
-        set => _zoom = value;
-    }
-    private double _zoom = double.NaN; // PDF teats 0 and null equally.
+    public double Zoom { get; set; } = double.NaN; // PDF teats 0 and null equally.
 
     /// <summary>
     /// Gets or sets whether the outline item is opened (or expanded).
     /// </summary>
-    public bool Opened
-    {
-        get => _opened;
-        set => _opened = value;
-    }
-    private bool _opened;
+    public bool Opened { get; set; }
 
     /// <summary>
     /// Gets or sets the style of the outline text.
@@ -290,12 +255,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
     /// <see cref="PdfOutlineStyle.Regular"/> in a document of PDF 1.4 or later: the entry is new in
     /// 1.4, and 0 is its default.
     /// </remarks>
-    public PdfOutlineStyle Style
-    {
-        get => _style;
-        set => _style = value;
-    }
-    private PdfOutlineStyle _style;
+    public PdfOutlineStyle Style { get; set; }
 
     /// <summary>
     /// Gets or sets the type of the page destination.
@@ -321,12 +281,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
     /// Gets or sets the color of the text.
     /// </summary>
     /// <value>The color of the text.</value>
-    public XColor TextColor
-    {
-        get => _textColor;
-        set => _textColor = value;
-    }
-    private XColor _textColor;
+    public XColor TextColor { get; set; }
 
     /// <summary>
     /// Gets a value indicating whether this outline object has child items.
@@ -355,7 +310,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
         // /Count is how an entry records whether it is expanded: positive when it is, negative
         // when it is not, absent when it has no descendants to expand. Reading it back is what
         // lets a document be opened, edited and saved without every branch in it closing.
-        _opened = Elements.GetInteger(Keys.Count) > 0;
+        Opened = Elements.GetInteger(Keys.Count) > 0;
 
         var colors = Elements.GetArray(Keys.C);
         if (colors != null && colors.Elements.Count == 3)
@@ -366,7 +321,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
             TextColor = XColor.FromArgb((int)(r * 255), (int)(g * 255), (int)(b * 255));
         }
 
-        _style = (PdfOutlineStyle)Elements.GetInteger(Keys.F);
+        Style = (PdfOutlineStyle)Elements.GetInteger(Keys.F);
 
         // An outline entry says where it goes either outright, in /Dest, or by performing an
         // action. A document holding both is malformed, and /Dest is what this reads, because
@@ -604,14 +559,14 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
         // The root is the only entry point - PdfCatalog.PrepareForSave calls it, and it walks
         // down from here - so this is where the tree gets measured, once, before anything below
         // reads a count.
-        if (_parent == null)
+        if (Parent == null)
             MeasureVisibleDescendants();
 
         // Is something to do at all?
-        if (_parent == null && !hasKids)
+        if (Parent == null && !hasKids)
             return;
 
-        if (_parent == null)
+        if (Parent == null)
         {
             // Case: This is the outline dictionary (the root).
             // Reference: TABLE 8.3  Entries in the outline dictionary / Page 585
@@ -628,10 +583,10 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
         {
             // Case: This is an outline item dictionary.
             // Reference: TABLE 8.4  Entries in the outline item dictionary / Page 585
-            Elements[Keys.Parent] = _parent.Reference;
+            Elements[Keys.Parent] = Parent.Reference;
 
-            var count = _parent._outlines.Count;
-            var index = _parent._outlines.IndexOf(this);
+            var count = Parent._outlines.Count;
+            var index = Parent._outlines.IndexOf(this);
             Debug.Assert(index != -1);
 
             // Has destination? Where an entry goes that this library cannot describe keeps
@@ -651,12 +606,12 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
             // otherwise still point at an entry that was removed - which the save then finds
             // through that link and writes back into the file.
             if (index > 0)
-                Elements[Keys.Prev] = _parent._outlines[index - 1].Reference;
+                Elements[Keys.Prev] = Parent._outlines[index - 1].Reference;
             else
                 Elements.Remove(Keys.Prev);
 
             if (index < count - 1)
-                Elements[Keys.Next] = _parent._outlines[index + 1].Reference;
+                Elements[Keys.Next] = Parent._outlines[index + 1].Reference;
             else
                 Elements.Remove(Keys.Next);
 
@@ -680,23 +635,23 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
             // to expand a branch from: every tree arrived collapsed however it was built, and
             // the flag read back exactly as it had been set.
             if (hasKids)
-                Elements[Keys.Count] = new PdfInteger(_opened ? _visibleDescendants : -_visibleDescendants);
+                Elements[Keys.Count] = new PdfInteger(Opened ? _visibleDescendants : -_visibleDescendants);
             else
                 Elements.Remove(Keys.Count);
 
             // Table 153: /C is new in PDF 1.4 and defaults to black. Taken away otherwise, so an
             // entry read with a colour and saved into an older document does not keep a key that
             // version has no such thing as.
-            if (_textColor != XColor.Empty && Owner.Version >= 14)
-                Elements[Keys.C] = new PdfLiteral("[{0}]", PdfEncoders.ToString(_textColor, PdfColorMode.Rgb));
+            if (TextColor != XColor.Empty && Owner.Version >= 14)
+                Elements[Keys.C] = new PdfLiteral("[{0}]", PdfEncoders.ToString(TextColor, PdfColorMode.Rgb));
             else
                 Elements.Remove(Keys.C);
 
             // Table 153: /F is new in PDF 1.4 and defaults to 0, so a regular entry carries none
             // and an older document has no such key. Taken away otherwise, so an entry read with
             // a style and made regular since does not keep it.
-            if (_style != PdfOutlineStyle.Regular && Owner.Version >= 14)
-                Elements.SetInteger(Keys.F, (int)_style);
+            if (Style != PdfOutlineStyle.Regular && Owner.Version >= 14)
+                Elements.SetInteger(Keys.F, (int)Style);
             else
                 Elements.Remove(Keys.F);
         }
@@ -754,7 +709,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
     {
         // PrepareForSave has already written /First, /Last, /Count, /Parent, /Prev and /Next.
         var hasKids = HasChildren;
-        if (_parent != null || hasKids)
+        if (Parent != null || hasKids)
         {
             base.WriteObject(writer);
         }

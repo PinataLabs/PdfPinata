@@ -214,7 +214,7 @@ public abstract class DocumentObjectCollection : DocumentObject, IList
 
   bool IList.Contains(object value) => ((IList)this).IndexOf(value) >= 0;
 
-  int IList.IndexOf(object value) => value == null || value is DocumentObject
+  int IList.IndexOf(object value) => value is null or DocumentObject
     ? IndexOf((DocumentObject)value)
     : -1;
 
@@ -226,7 +226,7 @@ public abstract class DocumentObjectCollection : DocumentObject, IList
 
   private static DocumentObject AsDocumentObject(object value)
   {
-    if (value == null || value is DocumentObject)
+    if (value is null or DocumentObject)
       return (DocumentObject)value;
     throw new ArgumentException(
       $"A chart collection holds document objects, not {value.GetType().Name}.", nameof(value));

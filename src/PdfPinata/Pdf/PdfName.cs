@@ -47,7 +47,7 @@ public sealed class PdfName : PdfItem
     /// </summary>
     public PdfName()
     {
-        _value = "/"; // Empty name.
+        Value = "/"; // Empty name.
     }
 
     /// <summary>
@@ -60,7 +60,7 @@ public sealed class PdfName : PdfItem
         if (value.Length == 0 || value[0] != '/')
             throw new ArgumentException(PSSR.NameMustStartWithSlash);
 
-        _value = value;
+        Value = value;
     }
 
     /// <summary>
@@ -68,7 +68,7 @@ public sealed class PdfName : PdfItem
     /// </summary>
     public override bool Equals(object obj)
     {
-        return _value.Equals(obj);
+        return Value.Equals(obj);
     }
 
     /// <summary>
@@ -76,24 +76,21 @@ public sealed class PdfName : PdfItem
     /// </summary>
     public override int GetHashCode()
     {
-        return _value.GetHashCode();
+        return Value.GetHashCode();
     }
 
     /// <summary>
     /// Gets the name as a string.
     /// </summary>
-    public string Value =>
-        // This class must behave like a value type. Therefore it cannot be changed (like System.String).
-        _value;
-
-    private readonly string _value;
+    // This class must behave like a value type. Therefore it cannot be changed (like System.String).
+    public string Value { get; }
 
     /// <summary>
     /// Returns the name. The string always begins with a slash.
     /// </summary>
     public override string ToString()
     {
-        return _value;
+        return Value;
     }
 
     /// <summary>
@@ -105,7 +102,7 @@ public sealed class PdfName : PdfItem
         if (ReferenceEquals(name, null))
             return str == null;
 
-        return name._value == str;
+        return name.Value == str;
     }
 #pragma warning restore S3875
 
@@ -117,7 +114,7 @@ public sealed class PdfName : PdfItem
         if (ReferenceEquals(name, null))
             return str != null;
 
-        return name._value != str;
+        return name.Value != str;
     }
 
     /// <summary>
@@ -152,7 +149,7 @@ public sealed class PdfName : PdfItem
         {
             if (l == null) return r != null ? 1 : 0;
             if (r != null)
-                return string.Compare(l._value, r._value, StringComparison.Ordinal);
+                return string.Compare(l.Value, r.Value, StringComparison.Ordinal);
             return -1;
         }
     }

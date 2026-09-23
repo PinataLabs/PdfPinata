@@ -85,27 +85,22 @@ internal sealed class PdfImageTable : PdfResourceTable
             // merged at save time when PdfDocumentOptions.DeduplicateResources is set.
             image.Path ??= "*" + Guid.NewGuid().ToString("B");
 
-            _path = image.Path.ToLowerInvariant();
+            Path = image.Path.ToLowerInvariant();
         }
 
-        public string Path
-        {
-            get => _path;
-            set => _path = value;
-        }
-        private string _path;
+        public string Path { get; set; }
 
         public override bool Equals(object obj)
         {
             if (obj is not ImageSelector selector)
                 return false;
-            return _path == selector._path;
+            return Path == selector.Path;
         }
 
         public override int GetHashCode()
         {
             // ReSharper disable once NonReadonlyMemberInGetHashCode
-            return _path.GetHashCode();
+            return Path.GetHashCode();
         }
     }
 }
