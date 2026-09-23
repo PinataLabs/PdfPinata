@@ -179,19 +179,19 @@ public class XTextSegmentFormatter
     private void ProcessTextSegments(IEnumerable<TextSegment> textSegments, XRect layoutRectangle, XStringFormat format,
         Action<Block, double, double> applyBlock, bool applyBlockIfLineBreak)
     {
-        textSegments = [..textSegments];
+        TextSegment[] segments = [..textSegments];
 
-        if (textSegments.All(ts => string.IsNullOrEmpty(ts.Text)))
+        if (segments.All(ts => string.IsNullOrEmpty(ts.Text)))
         {
             return;
         }
 
-        if (textSegments.Any(ts => ts.Font == default))
+        if (segments.Any(ts => ts.Font == default))
         {
             throw new ArgumentNullException(nameof(textSegments), "Every text segment needs a font.");
         }
 
-        if (textSegments.Any(ts => ts.Brush == default))
+        if (segments.Any(ts => ts.Brush == default))
         {
             throw new ArgumentNullException(nameof(textSegments), "Every text segment needs a brush.");
         }
@@ -201,12 +201,12 @@ public class XTextSegmentFormatter
             throw new ArgumentException("Only TopLeft alignment is currently implemented.");
         }
 
-        foreach (var segment in textSegments)
+        foreach (var segment in segments)
         {
             SetFontSpacings(segment);
         }
 
-        var blocks = CreateBlocks(textSegments);
+        var blocks = CreateBlocks(segments);
         var blockUnits = new List<List<Block>>();
         var currentBlockUnit = new List<Block>();
         foreach (var block in blocks)
