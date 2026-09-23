@@ -153,8 +153,7 @@ public class Chart : DocumentObject
   {
     get 
     {
-      if (font == null)
-        font = new Font(this);
+      font ??= new Font(this);
 
       return font;
     }
@@ -168,8 +167,7 @@ public class Chart : DocumentObject
   {
     get
     {
-      if (legend == null)
-        legend = new Legend(this);
+      legend ??= new Legend(this);
 
       return legend;
     }
@@ -183,8 +181,7 @@ public class Chart : DocumentObject
   {
     get
     {
-      if (xAxis == null)
-        xAxis = new Axis(this);
+      xAxis ??= new Axis(this);
 
       return xAxis;
     }
@@ -198,8 +195,7 @@ public class Chart : DocumentObject
   {
     get
     {
-      if (yAxis == null)
-        yAxis = new Axis(this);
+      yAxis ??= new Axis(this);
 
       return yAxis;
     }
@@ -213,8 +209,7 @@ public class Chart : DocumentObject
   {
     get
     {
-      if (zAxis == null)
-        zAxis = new Axis(this);
+      zAxis ??= new Axis(this);
 
       return zAxis;
     }
@@ -228,8 +223,7 @@ public class Chart : DocumentObject
   {
     get
     {
-      if (seriesCollection == null)
-        seriesCollection = new SeriesCollection(this);
+      seriesCollection ??= new SeriesCollection(this);
 
       return seriesCollection;
     }
@@ -243,8 +237,7 @@ public class Chart : DocumentObject
   {
     get
     {
-      if (xValues == null)
-        xValues = new XValues(this);
+      xValues ??= new XValues(this);
 
       return xValues;
     }
@@ -258,8 +251,7 @@ public class Chart : DocumentObject
   {
     get
     {
-      if (plotArea == null)
-        plotArea = new PlotArea(this);
+      plotArea ??= new PlotArea(this);
 
       return plotArea;
     }
@@ -283,8 +275,7 @@ public class Chart : DocumentObject
   {
     get 
     {
-      if (dataLabel == null)
-        dataLabel = new DataLabel(this);
+      dataLabel ??= new DataLabel(this);
 
       return dataLabel;
     }

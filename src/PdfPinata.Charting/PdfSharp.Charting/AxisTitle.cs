@@ -90,8 +90,7 @@ public class AxisTitle : ChartObject
   {
     get
     {
-      if (font == null)
-        font = new Font(this);
+      font ??= new Font(this);
 
       return font;
     }

@@ -62,13 +62,15 @@ internal class TableRenderer : Renderer
   {
     get
     {
-      var layoutInfo = new LayoutInfo();
-      layoutInfo.KeepTogether = _table.KeepTogether;
-      layoutInfo.KeepWithNext = false;
-      layoutInfo.MarginBottom = 0;
-      layoutInfo.MarginLeft = 0;
-      layoutInfo.MarginTop = 0;
-      layoutInfo.MarginRight = 0;
+      var layoutInfo = new LayoutInfo
+      {
+        KeepTogether = _table.KeepTogether,
+        KeepWithNext = false,
+        MarginBottom = 0,
+        MarginLeft = 0,
+        MarginTop = 0,
+        MarginRight = 0
+      };
       return layoutInfo;
     }
   }
@@ -709,8 +711,7 @@ internal class TableRenderer : Renderer
 
   private void CreateBottomBorderMap()
   {
-    _bottomBorderMap = new SortedList<int, XUnit>();
-    _bottomBorderMap.Add(0, XUnit.FromPoint(0));
+    _bottomBorderMap = new SortedList<int, XUnit> { { 0, XUnit.FromPoint(0) } };
     while (!_bottomBorderMap.ContainsKey(_table.Rows.Count))
     {
       CreateNextBottomBorderPosition();

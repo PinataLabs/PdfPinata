@@ -96,8 +96,7 @@ public partial class HeadersFooters : DocumentObject, IVisitable
   {
     get
     {
-      if (evenPage == null)
-        evenPage = new HeaderFooter(this);
+      evenPage ??= new HeaderFooter(this);
 
       return evenPage;
     }
@@ -117,8 +116,7 @@ public partial class HeadersFooters : DocumentObject, IVisitable
   {
     get
     {
-      if (firstPage == null)
-        firstPage = new HeaderFooter(this);
+      firstPage ??= new HeaderFooter(this);
 
       return firstPage;
     }
@@ -138,8 +136,7 @@ public partial class HeadersFooters : DocumentObject, IVisitable
   {
     get
     {
-      if (primary == null)
-        primary = new HeaderFooter(this);
+      primary ??= new HeaderFooter(this);
 
       return primary;
     }

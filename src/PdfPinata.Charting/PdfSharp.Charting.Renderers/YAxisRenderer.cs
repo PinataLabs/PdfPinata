@@ -62,8 +62,7 @@ internal abstract class YAxisRenderer : AxisRenderer
   {
     var chart = (Chart)rendererParms.DrawingItem;
 
-    var yari = new AxisRendererInfo();
-    yari.Axis = chart.yAxis;
+    var yari = new AxisRendererInfo { Axis = chart.yAxis };
     InitScale(yari);
     if (yari.Axis == null)
       return yari;
@@ -123,9 +122,11 @@ internal abstract class YAxisRenderer : AxisRenderer
     var titleSize = new XSize(0, 0);
     if (yari.AxisTitleRendererInfo != null)
     {
-      var parms = new RendererParameters();
-      parms.Graphics = gfx;
-      parms.RendererInfo = yari;
+      var parms = new RendererParameters
+      {
+        Graphics = gfx,
+        RendererInfo = yari
+      };
       var atr = new AxisTitleRenderer(parms);
       atr.Format();
       titleSize.Height = yari.AxisTitleRendererInfo.Height;
@@ -226,8 +227,7 @@ internal abstract class YAxisRenderer : AxisRenderer
 
     if (isHorizontal)
     {
-      var xsf = new XStringFormat();
-      xsf.LineAlignment = XLineAlignment.Near;
+      var xsf = new XStringFormat { LineAlignment = XLineAlignment.Near };
       var countTickLabels = (int)((yMax - yMin) / yMajorTick) + 1;
       for (var i = 0; i < countTickLabels; ++i)
       {
@@ -260,8 +260,7 @@ internal abstract class YAxisRenderer : AxisRenderer
       var cellSpace = yari.TickLabelsFont.FontFamily.GetLineSpacing(yari.TickLabelsFont.Style);
       double xHeight = yari.TickLabelsFont.Metrics.XHeight;
 
-      var labelSize = new XSize(0, 0);
-      labelSize.Height = lineSpace * xHeight / cellSpace;
+      var labelSize = new XSize(0, 0) { Height = lineSpace * xHeight / cellSpace };
 
       var countTickLabels = (int)((yMax - yMin) / yMajorTick) + 1;
       for (var i = 0; i < countTickLabels; ++i)
@@ -340,9 +339,11 @@ internal abstract class YAxisRenderer : AxisRenderer
     {
       if (yari.AxisTitleRendererInfo != null)
       {
-        var parms = new RendererParameters();
-        parms.Graphics = gfx;
-        parms.RendererInfo = yari;
+        var parms = new RendererParameters
+        {
+          Graphics = gfx,
+          RendererInfo = yari
+        };
         var rcTitle = yari.Rect;
         rcTitle.Height = yari.AxisTitleRendererInfo.Height;
         rcTitle.Y += yari.Rect.Height - rcTitle.Height;
@@ -355,9 +356,11 @@ internal abstract class YAxisRenderer : AxisRenderer
     {
       if (yari.AxisTitleRendererInfo != null && yari.AxisTitleRendererInfo.AxisTitleText != "")
       {
-        var parms = new RendererParameters();
-        parms.Graphics = gfx;
-        parms.RendererInfo = yari;
+        var parms = new RendererParameters
+        {
+          Graphics = gfx,
+          RendererInfo = yari
+        };
         var width = yari.AxisTitleRendererInfo.Width;
         yari.AxisTitleRendererInfo.Rect = yari.InnerRect;
         yari.AxisTitleRendererInfo.Width = width;

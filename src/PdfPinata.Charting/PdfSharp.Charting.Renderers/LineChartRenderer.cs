@@ -49,8 +49,7 @@ internal class LineChartRenderer : ColumnLikeChartRenderer
   /// </summary>
   internal override RendererInfo Init()
   {
-    var cri = new ChartRendererInfo();
-    cri.Chart = (Chart)rendererParms.DrawingItem;
+    var cri = new ChartRendererInfo { Chart = (Chart)rendererParms.DrawingItem };
     rendererParms.RendererInfo = cri;
 
     InitSeriesRendererInfo();
@@ -143,8 +142,7 @@ internal class LineChartRenderer : ColumnLikeChartRenderer
     cri.SeriesRendererInfos = new SeriesRendererInfo[seriesColl.Count];
     for (var idx = 0; idx < seriesColl.Count; ++idx)
     {
-      var sri = new SeriesRendererInfo();
-      sri.Series = seriesColl[idx];
+      var sri = new SeriesRendererInfo { Series = seriesColl[idx] };
       cri.SeriesRendererInfos[idx] = sri;
     }
 

@@ -274,9 +274,11 @@ public struct XSize : IFormattable, IDeserializationCallback, IEquatable<XSize>
 
     private static XSize CreateEmptySize()
     {
-        var size = new XSize();
-        size._width = double.NegativeInfinity;
-        size._height = double.NegativeInfinity;
+        var size = new XSize
+        {
+            _width = double.NegativeInfinity,
+            _height = double.NegativeInfinity
+        };
         return size;
     }
 

@@ -631,8 +631,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
             {
                 // HACK^2: Preserve the SecurityHandler.
                 var securityHandler = _securitySettings.SecurityHandler;
-                _trailer = new PdfTrailer((PdfCrossReferenceStream)_trailer);
-                _trailer._securityHandler = securityHandler;
+                _trailer = new PdfTrailer((PdfCrossReferenceStream)_trailer) { _securityHandler = securityHandler };
             }
 
             var encrypt = _securitySettings.DocumentSecurityLevel != PdfDocumentSecurityLevel.None;
@@ -810,8 +809,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     {
         get
         {
-            if (_options == null)
-                _options = new PdfDocumentOptions();
+            _options ??= new PdfDocumentOptions();
             return _options;
         }
     }
@@ -825,8 +823,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     {
         get
         {
-            if (_settings == null)
-                _settings = new PdfDocumentSettings();
+            _settings ??= new PdfDocumentSettings();
             return _settings;
         }
     }
@@ -1118,8 +1115,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     {
         get
         {
-            if (_info == null)
-                _info = _trailer.Info;
+            _info ??= _trailer.Info;
             return _info;
         }
     }
@@ -1133,8 +1129,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     {
         get
         {
-            if (_customValues == null)
-                _customValues = PdfCustomValues.Get(Catalog.Elements);
+            _customValues ??= PdfCustomValues.Get(Catalog.Elements);
             return _customValues;
         }
         set
@@ -1155,8 +1150,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     {
         get
         {
-            if (_pages == null)
-                _pages = Catalog.Pages;
+            _pages ??= Catalog.Pages;
             return _pages;
         }
     }
@@ -1296,8 +1290,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     {
         get
         {
-            if (_imageTable == null)
-                _imageTable = new PdfImageTable(this);
+            _imageTable ??= new PdfImageTable(this);
             return _imageTable;
         }
     }

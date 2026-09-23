@@ -78,13 +78,15 @@ public partial class Borders : DocumentObject, IEnumerable
     /// </summary>
     IEnumerator IEnumerable.GetEnumerator()
     {
-        var ht = new Hashtable();
-        ht.Add("Top", top);
-        ht.Add("Left", left);
-        ht.Add("Bottom", bottom);
-        ht.Add("Right", right);
-        ht.Add("DiagonalUp", diagonalUp);
-        ht.Add("DiagonalDown", diagonalDown);
+        var ht = new Hashtable
+        {
+            { "Top", top },
+            { "Left", left },
+            { "Bottom", bottom },
+            { "Right", right },
+            { "DiagonalUp", diagonalUp },
+            { "DiagonalDown", diagonalDown }
+        };
 
         return new BorderEnumerator(ht);
     }
@@ -107,8 +109,7 @@ public partial class Borders : DocumentObject, IEnumerable
     {
         get
         {
-            if (top == null)
-                top = new Border(this);
+            top ??= new Border(this);
 
             return top;
         }
@@ -128,8 +129,7 @@ public partial class Borders : DocumentObject, IEnumerable
     {
         get
         {
-            if (left == null)
-                left = new Border(this);
+            left ??= new Border(this);
 
             return left;
         }
@@ -149,8 +149,7 @@ public partial class Borders : DocumentObject, IEnumerable
     {
         get
         {
-            if (bottom == null)
-                bottom = new Border(this);
+            bottom ??= new Border(this);
 
             return bottom;
         }
@@ -170,8 +169,7 @@ public partial class Borders : DocumentObject, IEnumerable
     {
         get
         {
-            if (right == null)
-                right = new Border(this);
+            right ??= new Border(this);
 
             return right;
         }
@@ -191,8 +189,7 @@ public partial class Borders : DocumentObject, IEnumerable
     {
         get
         {
-            if (diagonalUp == null)
-                diagonalUp = new Border(this);
+            diagonalUp ??= new Border(this);
 
             return diagonalUp;
         }
@@ -212,8 +209,7 @@ public partial class Borders : DocumentObject, IEnumerable
     {
         get
         {
-            if (diagonalDown == null)
-                diagonalDown = new Border(this);
+            diagonalDown ??= new Border(this);
 
             return diagonalDown;
         }

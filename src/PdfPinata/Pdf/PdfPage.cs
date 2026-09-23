@@ -966,8 +966,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     {
         get
         {
-            if (_customValues == null)
-                _customValues = PdfCustomValues.Get(Elements);
+            _customValues ??= PdfCustomValues.Get(Elements);
             return _customValues;
         }
         set
@@ -987,8 +986,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     {
         get
         {
-            if (_resources == null)
-                _resources = (PdfResources)Elements.GetValue(InheritablePageKeys.Resources, VCF.Create); //VCF.CreateIndirect
+            _resources ??= (PdfResources)Elements.GetValue(InheritablePageKeys.Resources, VCF.Create); //VCF.CreateIndirect
             return _resources;
         }
     }

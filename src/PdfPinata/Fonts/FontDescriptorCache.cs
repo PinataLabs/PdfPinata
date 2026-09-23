@@ -127,8 +127,7 @@ internal sealed class FontDescriptorCache
                 try
                 {
                     Lock.EnterFontFactory();
-                    if (_singleton == null)
-                        _singleton = new FontDescriptorCache();
+                    _singleton ??= new FontDescriptorCache();
                 }
                 finally { Lock.ExitFontFactory(); }
             }

@@ -212,8 +212,7 @@ public partial class Table : DocumentObject, IVisitable
     {
         get
         {
-            if (columns == null)
-                columns = new Columns(this);
+            columns ??= new Columns(this);
 
             return columns;
         }
@@ -233,8 +232,7 @@ public partial class Table : DocumentObject, IVisitable
     {
         get
         {
-            if (rows == null)
-                rows = new Rows(this);
+            rows ??= new Rows(this);
 
             return rows;
         }
@@ -265,8 +263,7 @@ public partial class Table : DocumentObject, IVisitable
     {
         get
         {
-            if (format == null)
-                format = new ParagraphFormat(this);
+            format ??= new ParagraphFormat(this);
 
             return format;
         }
@@ -330,8 +327,7 @@ public partial class Table : DocumentObject, IVisitable
     {
         get
         {
-            if (borders == null)
-                borders = new Borders(this);
+            borders ??= new Borders(this);
 
             return borders;
         }
@@ -351,8 +347,7 @@ public partial class Table : DocumentObject, IVisitable
     {
         get
         {
-            if (shading == null)
-                shading = new Shading(this);
+            shading ??= new Shading(this);
 
             return shading;
         }

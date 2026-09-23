@@ -288,8 +288,7 @@ public static class PdfSigner
             options.DrawAppearance(gfx, new XRect(0, 0, visible.Width, visible.Height));
         form.DrawingFinished();
 
-        var appearance = new PdfDictionary(document);
-        appearance.Elements["/N"] = form.PdfForm.Reference;
+        var appearance = new PdfDictionary(document) { Elements = { ["/N"] = form.PdfForm.Reference } };
         return appearance;
     }
 
@@ -347,8 +346,7 @@ public static class PdfSigner
 
         // And the catalog has to point back at the signature, or a reader has no way of finding out
         // that the document is certified at all.
-        var permissions = new PdfDictionary(document);
-        permissions.Elements["/DocMDP"] = signature.Reference;
+        var permissions = new PdfDictionary(document) { Elements = { ["/DocMDP"] = signature.Reference } };
 
         var catalog = document.Catalog;
         catalog.Elements["/Perms"] = permissions;

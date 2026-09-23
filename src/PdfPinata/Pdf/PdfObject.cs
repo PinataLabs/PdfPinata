@@ -102,8 +102,7 @@ public abstract class PdfObject : PdfItem
     {
         var objectID = new PdfObjectID(objectNumber, generationNumber);
 
-        if (_iref == null)
-            _iref = _document._irefTable[objectID];
+        _iref ??= _document._irefTable[objectID];
         if (_iref == null)
         {
             // Called for its side effect: the constructor of PdfReference sets itself as this

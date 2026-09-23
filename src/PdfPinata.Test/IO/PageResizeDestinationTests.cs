@@ -280,11 +280,9 @@ public class PageResizeDestinationTests
         names.Elements.Add(new PdfString("chapter.1"));
         names.Elements.Add(destination);
 
-        var dests = new PdfDictionary(fixture.Document);
-        dests.Elements["/Names"] = names;
+        var dests = new PdfDictionary(fixture.Document) { Elements = { ["/Names"] = names } };
 
-        var namesDictionary = new PdfDictionary(fixture.Document);
-        namesDictionary.Elements["/Dests"] = dests;
+        var namesDictionary = new PdfDictionary(fixture.Document) { Elements = { ["/Dests"] = dests } };
         fixture.Document.Internals.Catalog.Elements["/Names"] = namesDictionary;
 
         // The link names where it goes; the tree holds what the name stands for.
@@ -302,8 +300,7 @@ public class PageResizeDestinationTests
         var destination = Destination(fixture.Target,
             new PdfName("/XYZ"), new PdfReal(100), new PdfReal(700), new PdfPinata.Pdf.PdfInteger(0));
 
-        var dests = new PdfDictionary(fixture.Document);
-        dests.Elements["/chapter1"] = destination;
+        var dests = new PdfDictionary(fixture.Document) { Elements = { ["/chapter1"] = destination } };
         fixture.Document.Internals.Catalog.Elements["/Dests"] = dests;
 
         HalveThePage(fixture.Target);

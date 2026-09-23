@@ -55,8 +55,7 @@ public static class Program
 
     private static Document BuildDocument()
     {
-        var document = new Document();
-        document.Info.Title = "AOT smoke test";
+        var document = new Document { Info = { Title = "AOT smoke test" } };
 
         var style = document.Styles.AddStyle("Highlight", "Normal");
         style.Font.Bold = true;

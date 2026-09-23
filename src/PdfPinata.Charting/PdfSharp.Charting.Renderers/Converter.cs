@@ -91,8 +91,7 @@ internal class Converter
     XPen pen;
     if (lineFormat == null)
     {
-      pen = new XPen(defaultColor, defaultWidth);
-      pen.DashStyle = defaultDashStyle;
+      pen = new XPen(defaultColor, defaultWidth) { DashStyle = defaultDashStyle };
     }
     else
     {
@@ -106,9 +105,11 @@ internal class Converter
       if (lineFormat.Visible && width == 0)
         width = defaultWidth;
 
-      pen = new XPen(color, width);
-      pen.DashStyle = lineFormat.dashStyle;
-      pen.DashOffset = 10 * width;
+      pen = new XPen(color, width)
+      {
+        DashStyle = lineFormat.dashStyle,
+        DashOffset = 10 * width
+      };
     }
     return pen;
   }

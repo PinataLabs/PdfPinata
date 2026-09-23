@@ -71,8 +71,7 @@ public class DocumentFieldsAndFootnoteTests
     public void ADocumentHandedItsOwnPartsUsesTheOnesItWasHanded()
     {
         var document = new Document();
-        var elsewhere = new Document();
-        elsewhere.Info.Title = "from elsewhere";
+        var elsewhere = new Document { Info = { Title = "from elsewhere" } };
         elsewhere.AddSection().AddParagraph("content");
 
         document.Info = elsewhere.Info.Clone();
@@ -104,13 +103,17 @@ public class DocumentFieldsAndFootnoteTests
     [Fact]
     public void TheDocumentInformationWritesEveryFieldItWasGiven()
     {
-        var document = new Document();
-
-        document.Info.Title = "A title";
-        document.Info.Author = "An author";
-        document.Info.Subject = "A subject";
-        document.Info.Keywords = "one, two";
-        document.Info.Comment = "a note";
+        var document = new Document
+        {
+            Info =
+            {
+                Title = "A title",
+                Author = "An author",
+                Subject = "A subject",
+                Keywords = "one, two",
+                Comment = "a note"
+            }
+        };
 
         document.Info.Subject.Should().Be("A subject");
         document.Info.Keywords.Should().Be("one, two");

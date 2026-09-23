@@ -122,8 +122,7 @@ public class FontApplyFontTests
     [Fact]
     public void AFontStatesOneOfSubscriptAndSuperscriptRatherThanBoth()
     {
-        var source = new Font { Subscript = true };
-        source.Superscript = true;
+        var source = new Font { Subscript = true, Superscript = true };
 
         var target = new Font();
         target.ApplyFont(source);

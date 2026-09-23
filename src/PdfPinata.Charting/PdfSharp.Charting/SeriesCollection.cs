@@ -65,9 +65,11 @@ public class SeriesCollection : DocumentObjectCollection
   /// </summary>
   public Series AddSeries()
   {
-    var series = new Series();
-    // Initialize chart type for each new series.
-    series.chartType = ((Chart)parent).type;
+    var series = new Series
+    {
+      // Initialize chart type for each new series.
+      chartType = ((Chart)parent).type
+    };
     Add(series);
     return series;
   }

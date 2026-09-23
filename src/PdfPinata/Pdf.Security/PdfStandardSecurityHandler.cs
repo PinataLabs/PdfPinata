@@ -278,8 +278,7 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
             throw new PdfReaderException(PSSR.UnknownEncryption);
 
 
-        if (inputPassword == null)
-            inputPassword = "";
+        inputPassword ??= "";
 
         EncryptorFactory.Create(_document, this, out stringEncryptor, out streamEncryptor);
         stringEncryptor.InitEncryptionKey(inputPassword);

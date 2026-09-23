@@ -79,8 +79,7 @@ public class ChartFrame
   /// </summary>
   public void Add(Chart chart)
   {
-    if (chartList == null)
-      chartList = new ArrayList();
+    chartList ??= new ArrayList();
     chartList.Add(chart);
   }
 
@@ -119,8 +118,7 @@ public class ChartFrame
     // draw each chart in list
     foreach (Chart chart in chartList)
     {
-      var parms = new RendererParameters(gfx, rect);
-      parms.DrawingItem = chart;
+      var parms = new RendererParameters(gfx, rect) { DrawingItem = chart };
 
       var renderer = GetChartRenderer(chart, parms);
       renderer.Init();
@@ -144,8 +142,7 @@ public class ChartFrame
     {
       var chartRect = new XRect(0, 0, size.Width, size.Height);
       var chart = (Chart)chartList[0];
-      var parms = new RendererParameters(gfx, chartRect);
-      parms.DrawingItem = chart;
+      var parms = new RendererParameters(gfx, chartRect) { DrawingItem = chart };
 
       var renderer = GetChartRenderer(chart, parms);
       renderer.Init();

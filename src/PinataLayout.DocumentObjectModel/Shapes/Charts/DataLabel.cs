@@ -81,8 +81,7 @@ public partial class DataLabel : DocumentObject
   {
     get
     {
-      if (font == null)
-        font = new Font(this);
+      font ??= new Font(this);
 
       return font;
     }

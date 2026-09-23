@@ -78,8 +78,7 @@ public class Gridlines : ChartObject
   {
     get
     {
-      if (lineFormat == null)
-        lineFormat = new LineFormat(this);
+      lineFormat ??= new LineFormat(this);
 
       return lineFormat;
     }

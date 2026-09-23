@@ -70,8 +70,7 @@ public partial class Axis : ChartObject
   {
     get
     {
-      if (title == null)
-        title = new AxisTitle(this);
+      title ??= new AxisTitle(this);
 
       return title;
     }
@@ -157,8 +156,7 @@ public partial class Axis : ChartObject
   {
     get
     {
-      if (tickLabels == null)
-        tickLabels = new TickLabels(this);
+      tickLabels ??= new TickLabels(this);
 
       return tickLabels;
     }
@@ -178,8 +176,7 @@ public partial class Axis : ChartObject
   {
     get
     {
-      if (lineFormat == null)
-        lineFormat = new LineFormat(this);
+      lineFormat ??= new LineFormat(this);
 
       return lineFormat;
     }
@@ -199,8 +196,7 @@ public partial class Axis : ChartObject
   {
     get
     {
-      if (majorGridlines == null)
-        majorGridlines = new Gridlines(this);
+      majorGridlines ??= new Gridlines(this);
 
       return majorGridlines;
     }
@@ -220,8 +216,7 @@ public partial class Axis : ChartObject
   {
     get
     {
-      if (minorGridlines == null)
-        minorGridlines = new Gridlines(this);
+      minorGridlines ??= new Gridlines(this);
 
       return minorGridlines;
     }

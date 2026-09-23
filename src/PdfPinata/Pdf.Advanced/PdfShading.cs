@@ -326,12 +326,17 @@ public sealed class PdfShading : PdfDictionary
             c1 = new PdfLiteral("[" + PdfEncoders.ToString(color2, colorMode) + "]");
         }
 
-        var function = new PdfDictionary();
-        function.Elements["/FunctionType"] = new PdfInteger(2);
-        function.Elements["/C0"] = c0;
-        function.Elements["/C1"] = c1;
-        function.Elements["/Domain"] = new PdfLiteral("[0 1]");
-        function.Elements["/N"] = new PdfInteger(1);
+        var function = new PdfDictionary
+        {
+            Elements =
+            {
+                ["/FunctionType"] = new PdfInteger(2),
+                ["/C0"] = c0,
+                ["/C1"] = c1,
+                ["/Domain"] = new PdfLiteral("[0 1]"),
+                ["/N"] = new PdfInteger(1)
+            }
+        };
         return function;
     }
 

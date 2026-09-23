@@ -1262,8 +1262,7 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
         {
             if (matrix._type == XMatrixTypes.Identity)
             {
-                matrix = new XMatrix(1, 0, 0, 1, offsetX, offsetY);
-                matrix._type = XMatrixTypes.Translation;
+                matrix = new XMatrix(1, 0, 0, 1, offsetX, offsetY) { _type = XMatrixTypes.Translation };
             }
             else
             {

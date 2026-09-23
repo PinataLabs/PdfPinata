@@ -63,18 +63,19 @@ internal abstract class ShapeRenderer : Renderer
   {
     get
     {
-      var layoutInfo = new LayoutInfo();
-
-      layoutInfo.MarginTop = shape.WrapFormat.DistanceTop.Point;
-      layoutInfo.MarginLeft = shape.WrapFormat.DistanceLeft.Point;
-      layoutInfo.MarginBottom = shape.WrapFormat.DistanceBottom.Point;
-      layoutInfo.MarginRight = shape.WrapFormat.DistanceRight.Point;
-      layoutInfo.KeepTogether = true;
-      layoutInfo.KeepWithNext = false;
-      layoutInfo.PageBreakBefore = false;
-      layoutInfo.VerticalReference = GetVerticalReference();
-      layoutInfo.HorizontalReference = GetHorizontalReference();
-      layoutInfo.Floating = GetFloating();
+      var layoutInfo = new LayoutInfo
+      {
+        MarginTop = shape.WrapFormat.DistanceTop.Point,
+        MarginLeft = shape.WrapFormat.DistanceLeft.Point,
+        MarginBottom = shape.WrapFormat.DistanceBottom.Point,
+        MarginRight = shape.WrapFormat.DistanceRight.Point,
+        KeepTogether = true,
+        KeepWithNext = false,
+        PageBreakBefore = false,
+        VerticalReference = GetVerticalReference(),
+        HorizontalReference = GetHorizontalReference(),
+        Floating = GetFloating()
+      };
       if (layoutInfo.Floating == Floating.TopBottom &&!shape.Top.Position.IsEmpty)
       {
         layoutInfo.MarginTop = Math.Max(layoutInfo.MarginTop, shape.Top.Position);

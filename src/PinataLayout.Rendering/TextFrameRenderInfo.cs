@@ -39,8 +39,7 @@ internal class TextFrameRenderInfo : ShapeRenderInfo
   {
     get
     {
-      if (formatInfo == null)
-        formatInfo = new TextFrameFormatInfo();
+      formatInfo ??= new TextFrameFormatInfo();
 
       return formatInfo;
     }

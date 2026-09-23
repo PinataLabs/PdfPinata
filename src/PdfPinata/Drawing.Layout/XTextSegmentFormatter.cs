@@ -352,9 +352,11 @@ public class XTextSegmentFormatter
             if (blockLength != 0)
             {
                 var token = textSegment.Text.Substring(startIndex, blockLength);
-                var block = new Block(token, BlockType.Text, _gfx.MeasureString(token, textSegment.Font).Width);
-                block.LineIndent = textSegment.LineIndent;
-                block.SkipParagraphAlignment = textSegment.SkipParagraphAlignment;
+                var block = new Block(token, BlockType.Text, _gfx.MeasureString(token, textSegment.Font).Width)
+                {
+                    LineIndent = textSegment.LineIndent,
+                    SkipParagraphAlignment = textSegment.SkipParagraphAlignment
+                };
                 SetFormatterEnvironment(block, textSegment);
                 blocks.Add(block);
             }

@@ -39,8 +39,7 @@ internal class ChartRenderInfo : ShapeRenderInfo
   {
     get
     {
-      if (formatInfo == null)
-        formatInfo = new ChartFormatInfo();
+      formatInfo ??= new ChartFormatInfo();
       return formatInfo;
     }
   }

@@ -177,8 +177,10 @@ public class TypedElementAccessorTests
     public void AMatrixIsReadFromTheSixNumbersThatMakeIt()
     {
         var document = ADocument();
-        var dictionary = new PdfDictionary(document);
-        dictionary.Elements["/M"] = SixNumbers(document, 1, 2, 3, 4, 5, 6);
+        var dictionary = new PdfDictionary(document)
+        {
+            Elements = { ["/M"] = SixNumbers(document, 1, 2, 3, 4, 5, 6) }
+        };
 
         var matrix = dictionary.Elements.GetMatrix("/M", false);
 
@@ -196,8 +198,7 @@ public class TypedElementAccessorTests
         var document = ADocument();
         var array = SixNumbers(document, 2, 0, 0, 2, 10, 20);
         document.Internals.AddObject(array);
-        var dictionary = new PdfDictionary(document);
-        dictionary.Elements["/M"] = array.Reference;
+        var dictionary = new PdfDictionary(document) { Elements = { ["/M"] = array.Reference } };
 
         var matrix = dictionary.Elements.GetMatrix("/M", false);
 
@@ -233,8 +234,7 @@ public class TypedElementAccessorTests
     public void AnArrayOfTheWrongLengthIsNotAMatrix()
     {
         var document = ADocument();
-        var dictionary = new PdfDictionary(document);
-        dictionary.Elements["/M"] = SixNumbers(document, 1, 2, 3);
+        var dictionary = new PdfDictionary(document) { Elements = { ["/M"] = SixNumbers(document, 1, 2, 3) } };
 
         var read = () => dictionary.Elements.GetMatrix("/M", false);
 
@@ -285,8 +285,7 @@ public class TypedElementAccessorTests
     [Fact]
     public void ALiteralThatIsNotSixNumbersIsNotAMatrix()
     {
-        var dictionary = new PdfDictionary(ADocument());
-        dictionary.Elements["/M"] = new PdfLiteral("[1 0 0 1]");
+        var dictionary = new PdfDictionary(ADocument()) { Elements = { ["/M"] = new PdfLiteral("[1 0 0 1]") } };
 
         var read = () => dictionary.Elements.GetMatrix("/M", false);
 

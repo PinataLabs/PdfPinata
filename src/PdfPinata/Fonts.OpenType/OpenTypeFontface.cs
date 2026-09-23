@@ -379,8 +379,7 @@ internal sealed class OpenTypeFontface
         var fontData = new OpenTypeFontface(this);
 
         // Create new loca and glyf table
-        var locaNew = new IndexToLocationTable();
-        locaNew.ShortIndex = loca.ShortIndex;
+        var locaNew = new IndexToLocationTable { ShortIndex = loca.ShortIndex };
         var glyfNew = new GlyphDataTable();
 
         // Add all required tables

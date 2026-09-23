@@ -139,8 +139,7 @@ public sealed partial class Style : DocumentObject, IVisitable
     {
         get
         {
-            if (paragraphFormat == null)
-                paragraphFormat = new ParagraphFormat(this);
+            paragraphFormat ??= new ParagraphFormat(this);
             if (!readOnly)
                 return paragraphFormat;
 

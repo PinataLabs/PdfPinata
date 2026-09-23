@@ -709,11 +709,13 @@ public struct XRect : IFormattable, IDeserializationCallback, IEquatable<XRect>
 
     private static XRect CreateEmptyRect()
     {
-        var rect = new XRect();
-        rect._x = double.PositiveInfinity;
-        rect._y = double.PositiveInfinity;
-        rect._width = double.NegativeInfinity;
-        rect._height = double.NegativeInfinity;
+        var rect = new XRect
+        {
+            _x = double.PositiveInfinity,
+            _y = double.PositiveInfinity,
+            _width = double.NegativeInfinity,
+            _height = double.NegativeInfinity
+        };
         return rect;
     }
 

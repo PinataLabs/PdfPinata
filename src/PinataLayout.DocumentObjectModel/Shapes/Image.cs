@@ -127,8 +127,7 @@ public partial class Image : Shape
     {
         get
         {
-            if (pictureFormat == null)
-                pictureFormat = new PictureFormat(this);
+            pictureFormat ??= new PictureFormat(this);
             return pictureFormat;
         }
         set

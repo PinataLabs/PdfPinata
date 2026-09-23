@@ -71,8 +71,7 @@ public partial class Shape : DocumentObject
   {
     get
     {
-      if (wrapFormat == null)
-        wrapFormat = new WrapFormat(this);
+      wrapFormat ??= new WrapFormat(this);
 
       return wrapFormat;
     }
@@ -136,8 +135,7 @@ public partial class Shape : DocumentObject
   {
     get
     {
-      if (lineFormat == null)
-        lineFormat = new LineFormat(this);
+      lineFormat ??= new LineFormat(this);
 
       return lineFormat;
     }
@@ -157,8 +155,7 @@ public partial class Shape : DocumentObject
   {
     get
     {
-      if (fillFormat == null)
-        fillFormat = new FillFormat(this);
+      fillFormat ??= new FillFormat(this);
 
       return fillFormat;
     }

@@ -50,8 +50,7 @@ internal class EncryptorFactory
                 }
             }
             // default to RC4 encryption
-            if (encryptor == null)
-                encryptor = new RC4Encryptor();
+            encryptor ??= new RC4Encryptor();
             encryptor.Initialize(doc, dict);
             if (keyName == "/StrF")
                 stringEncryptor = encryptor;

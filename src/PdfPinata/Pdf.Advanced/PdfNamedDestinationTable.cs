@@ -231,8 +231,7 @@ public sealed class PdfNamedDestinationTable
             return;
         }
 
-        var dests = new PdfDictionary(_document);
-        dests.Elements[PdfCatalog.Keys.Names] = leaves;
+        var dests = new PdfDictionary(_document) { Elements = { [PdfCatalog.Keys.Names] = leaves } };
         names.Elements[PdfCatalog.Keys.Dests] = dests;
     }
 

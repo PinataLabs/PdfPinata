@@ -130,8 +130,7 @@ public partial class Row : DocumentObject, IVisitable
   {
     get
     {
-      if (format == null)
-        format = new ParagraphFormat(this);
+      format ??= new ParagraphFormat(this);
 
       return format;
     }
@@ -217,8 +216,7 @@ public partial class Row : DocumentObject, IVisitable
   {
     get
     {
-      if (borders == null)
-        borders = new Borders(this);
+      borders ??= new Borders(this);
 
       return borders;
     }
@@ -238,8 +236,7 @@ public partial class Row : DocumentObject, IVisitable
   {
     get
     {
-      if (shading == null)
-        shading = new Shading(this);
+      shading ??= new Shading(this);
 
       return shading;
     }
@@ -271,8 +268,7 @@ public partial class Row : DocumentObject, IVisitable
   {
     get
     {
-      if (cells == null)
-        cells = new Cells(this);
+      cells ??= new Cells(this);
 
       return cells;
     }

@@ -71,8 +71,7 @@ internal abstract class XAxisRenderer : AxisRenderer
   {
     var chart = (Chart)rendererParms.DrawingItem;
 
-    var xari = new AxisRendererInfo();
-    xari.Axis = chart.xAxis;
+    var xari = new AxisRendererInfo { Axis = chart.xAxis };
 
     // Outside the test below, as the Y axis renderers calculate their scale outside theirs. The
     // scale is what the plot area divides its own width by, so a chart that was never asked for an
@@ -126,9 +125,11 @@ internal abstract class XAxisRenderer : AxisRenderer
     var titleSize = new XSize(0, 0);
     if (atri != null && atri.AxisTitleText != null && atri.AxisTitleText.Length > 0)
     {
-      var parms = new RendererParameters();
-      parms.Graphics = rendererParms.Graphics;
-      parms.RendererInfo = xari;
+      var parms = new RendererParameters
+      {
+        Graphics = rendererParms.Graphics,
+        RendererInfo = xari
+      };
       new AxisTitleRenderer(parms).Format();
       titleSize = atri.AxisTitleSize;
     }
@@ -395,9 +396,11 @@ internal abstract class XAxisRenderer : AxisRenderer
         atri.AxisTitleSize.Width, xari.Rect.Height);
     }
 
-    var parms = new RendererParameters();
-    parms.Graphics = gfx;
-    parms.RendererInfo = xari;
+    var parms = new RendererParameters
+    {
+      Graphics = gfx,
+      RendererInfo = xari
+    };
     new AxisTitleRenderer(parms).Draw();
   }
 

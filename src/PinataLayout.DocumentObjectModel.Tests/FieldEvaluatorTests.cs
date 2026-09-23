@@ -84,8 +84,7 @@ public class FieldEvaluatorTests
     [Fact]
     public void AnInfoFieldReadsWhatTheDocumentRecordsUnderThatName()
     {
-        var document = new Document();
-        document.Info.Title = "The Annual Report";
+        var document = new Document { Info = { Title = "The Annual Report" } };
         var field = document.AddSection().AddParagraph().AddInfoField(InfoFieldType.Title);
 
         FieldEvaluator.Evaluate(field, Paginated()).Should().Be("The Annual Report");

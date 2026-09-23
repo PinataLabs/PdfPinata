@@ -56,8 +56,7 @@ internal class PieLegendRenderer : LegendRenderer
     if (cri.Chart.legend == null)
       return null;
 
-    lri = new LegendRendererInfo();
-    lri.Legend = cri.Chart.legend;
+    lri = new LegendRendererInfo { Legend = cri.Chart.legend };
 
     lri.Font = Converter.ToXFont(lri.Legend.font, cri.DefaultFont);
     lri.FontColor = Converter.ToXBrush(lri.Legend.font, cri.DefaultFontColor);
@@ -74,10 +73,12 @@ internal class PieLegendRenderer : LegendRenderer
     lri.Entries = new LegendEntryRendererInfo[sri.PointRendererInfos.Length];
     foreach (var pri in sri.PointRendererInfos)
     {
-      var leri = new LegendEntryRendererInfo();
-      leri.SeriesRendererInfo = sri;
-      leri.LegendRendererInfo = lri;
-      leri.EntryText = string.Empty;
+      var leri = new LegendEntryRendererInfo
+      {
+        SeriesRendererInfo = sri,
+        LegendRendererInfo = lri,
+        EntryText = string.Empty
+      };
       if (xseries != null)
       {
         if (xseries.Count > index)

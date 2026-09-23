@@ -200,8 +200,7 @@ public partial class Section : DocumentObject, IVisitable
     {
         get
         {
-            if (pageSetup == null)
-                pageSetup = new PageSetup(this);
+            pageSetup ??= new PageSetup(this);
 
             return pageSetup;
         }
@@ -221,8 +220,7 @@ public partial class Section : DocumentObject, IVisitable
     {
         get
         {
-            if (headers == null)
-                headers = new HeadersFooters(this);
+            headers ??= new HeadersFooters(this);
 
             return headers;
         }
@@ -242,8 +240,7 @@ public partial class Section : DocumentObject, IVisitable
     {
         get
         {
-            if (footers == null)
-                footers = new HeadersFooters(this);
+            footers ??= new HeadersFooters(this);
 
             return footers;
         }
@@ -263,8 +260,7 @@ public partial class Section : DocumentObject, IVisitable
     {
         get
         {
-            if (elements == null)
-                elements = new DocumentElements(this);
+            elements ??= new DocumentElements(this);
 
             return elements;
         }

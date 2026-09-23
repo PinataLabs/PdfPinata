@@ -50,8 +50,7 @@ internal class CombinationChartRenderer : ChartRenderer
   /// </summary>
   internal override RendererInfo Init()
   {
-    var cri = new CombinationRendererInfo();
-    cri.Chart = (Chart)rendererParms.DrawingItem;
+    var cri = new CombinationRendererInfo { Chart = (Chart)rendererParms.DrawingItem };
     rendererParms.RendererInfo = cri;
 
     InitSeriesRendererInfo();
@@ -256,8 +255,7 @@ internal class CombinationChartRenderer : ChartRenderer
     cri.SeriesRendererInfos = new SeriesRendererInfo[seriesColl.Count];
     for (var idx = 0; idx < seriesColl.Count; ++idx)
     {
-      var sri = new SeriesRendererInfo();
-      sri.Series = seriesColl[idx];
+      var sri = new SeriesRendererInfo { Series = seriesColl[idx] };
       cri.SeriesRendererInfos[idx] = sri;
     }
   }

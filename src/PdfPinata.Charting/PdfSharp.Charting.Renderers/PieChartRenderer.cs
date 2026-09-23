@@ -50,8 +50,7 @@ internal class PieChartRenderer : ChartRenderer
   /// </summary>
   internal override RendererInfo Init()
   {
-    var cri = new ChartRendererInfo();
-    cri.Chart = (Chart)rendererParms.DrawingItem;
+    var cri = new ChartRendererInfo { Chart = (Chart)rendererParms.DrawingItem };
     rendererParms.RendererInfo = cri;
 
     InitSeries(cri);

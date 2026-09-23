@@ -215,8 +215,7 @@ public partial class HeaderFooter : DocumentObject, IVisitable
     {
         get
         {
-            if (format == null)
-                format = new ParagraphFormat(this);
+            format ??= new ParagraphFormat(this);
             return format;
         }
         set
@@ -235,8 +234,7 @@ public partial class HeaderFooter : DocumentObject, IVisitable
     {
         get
         {
-            if (elements == null)
-                elements = new DocumentElements(this);
+            elements ??= new DocumentElements(this);
             return elements;
         }
         set

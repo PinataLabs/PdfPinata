@@ -248,9 +248,14 @@ public sealed class PdfNumberTreeNode : PdfDictionary
         for (var at = 0; at < keys.Count; at += NodeCapacity)
         {
             var length = Math.Min(NodeCapacity, keys.Count - at);
-            var leaf = new PdfDictionary(Owner);
-            leaf.Elements[Keys.Nums] = Nums(keys, at, length);
-            leaf.Elements[Keys.Limits] = Limits(keys[at], keys[at + length - 1]);
+            var leaf = new PdfDictionary(Owner)
+            {
+                Elements =
+                {
+                    [Keys.Nums] = Nums(keys, at, length),
+                    [Keys.Limits] = Limits(keys[at], keys[at + length - 1])
+                }
+            };
             Owner._irefTable.Add(leaf);
             level.Add(leaf);
         }
@@ -262,9 +267,14 @@ public sealed class PdfNumberTreeNode : PdfDictionary
             for (var at = 0; at < level.Count; at += NodeCapacity)
             {
                 var length = Math.Min(NodeCapacity, level.Count - at);
-                var branch = new PdfDictionary(Owner);
-                branch.Elements[Keys.Kids] = Kids(level, at, length);
-                branch.Elements[Keys.Limits] = Limits(LeastOf(level[at]), GreatestOf(level[at + length - 1]));
+                var branch = new PdfDictionary(Owner)
+                {
+                    Elements =
+                    {
+                        [Keys.Kids] = Kids(level, at, length),
+                        [Keys.Limits] = Limits(LeastOf(level[at]), GreatestOf(level[at + length - 1]))
+                    }
+                };
                 Owner._irefTable.Add(branch);
                 above.Add(branch);
             }

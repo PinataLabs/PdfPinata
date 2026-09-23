@@ -135,12 +135,16 @@ internal sealed class AcroFormBuilder
     internal static void WithOnAndOffAppearances(PdfDictionary field, string onState = "/Yes")
     {
         var document = field.Owner;
-        var normal = new PdfDictionary(document);
-        normal.Elements[onState] = new PdfDictionary(document);
-        normal.Elements["/Off"] = new PdfDictionary(document);
+        var normal = new PdfDictionary(document)
+        {
+            Elements =
+            {
+                [onState] = new PdfDictionary(document),
+                ["/Off"] = new PdfDictionary(document)
+            }
+        };
 
-        var appearance = new PdfDictionary(document);
-        appearance.Elements["/N"] = normal;
+        var appearance = new PdfDictionary(document) { Elements = { ["/N"] = normal } };
         field.Elements["/AP"] = appearance;
     }
 
