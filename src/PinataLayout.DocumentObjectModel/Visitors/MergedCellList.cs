@@ -153,27 +153,23 @@ public class MergedCellList : List<Cell>
     var bottomNeighbor = GetNeighbor(cellIdx, NeighborPosition.Bottom);
     if (leftNeighbor != null)
     {
-      var nbrBrdrs = leftNeighbor.GetValue("Borders", GV.ReadOnly) as Borders;
-      if (nbrBrdrs != null && GetEffectiveBorderWidth(nbrBrdrs, BorderType.Right) >= GetEffectiveBorderWidth(borders, BorderType.Left))
+      if (leftNeighbor.GetValue("Borders", GV.ReadOnly) is Borders nbrBrdrs && GetEffectiveBorderWidth(nbrBrdrs, BorderType.Right) >= GetEffectiveBorderWidth(borders, BorderType.Left))
         borders.SetValue("Left", GetBorderFromBorders(nbrBrdrs, BorderType.Right));
     }
     if (rightNeighbor != null)
     {
-      var nbrBrdrs = rightNeighbor.GetValue("Borders", GV.ReadOnly) as Borders;
-      if (nbrBrdrs != null && GetEffectiveBorderWidth(nbrBrdrs, BorderType.Left) > GetEffectiveBorderWidth(borders, BorderType.Right))
+      if (rightNeighbor.GetValue("Borders", GV.ReadOnly) is Borders nbrBrdrs && GetEffectiveBorderWidth(nbrBrdrs, BorderType.Left) > GetEffectiveBorderWidth(borders, BorderType.Right))
         borders.SetValue("Right", GetBorderFromBorders(nbrBrdrs, BorderType.Left));
     }
     if (topNeighbor != null)
     {
-      var nbrBrdrs = topNeighbor.GetValue("Borders", GV.ReadOnly) as Borders;
-      if (nbrBrdrs != null && GetEffectiveBorderWidth(nbrBrdrs, BorderType.Bottom) >= GetEffectiveBorderWidth(borders, BorderType.Top))
+      if (topNeighbor.GetValue("Borders", GV.ReadOnly) is Borders nbrBrdrs && GetEffectiveBorderWidth(nbrBrdrs, BorderType.Bottom) >= GetEffectiveBorderWidth(borders, BorderType.Top))
         borders.SetValue("Top", GetBorderFromBorders(nbrBrdrs, BorderType.Bottom));
     }
     if (bottomNeighbor == null)
       return borders;
 
-    var bottomBrdrs = bottomNeighbor.GetValue("Borders", GV.ReadOnly) as Borders;
-    if (bottomBrdrs != null && GetEffectiveBorderWidth(bottomBrdrs, BorderType.Top) > GetEffectiveBorderWidth(borders, BorderType.Bottom))
+    if (bottomNeighbor.GetValue("Borders", GV.ReadOnly) is Borders bottomBrdrs && GetEffectiveBorderWidth(bottomBrdrs, BorderType.Top) > GetEffectiveBorderWidth(borders, BorderType.Bottom))
       borders.SetValue("Bottom", GetBorderFromBorders(bottomBrdrs, BorderType.Top));
     return borders;
   }

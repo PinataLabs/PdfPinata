@@ -57,8 +57,7 @@ public sealed class PdfContents : PdfArray
         {
             // Convert the references from PdfDictionary to PdfContent
             var item = Elements[idx];
-            var iref = item as PdfReference;
-            if (iref is { Value: PdfDictionary dictionary })
+            if (item is PdfReference { Value: PdfDictionary dictionary })
             {
                 // Called for its side effect: the constructor replaces the dictionary behind the
                 // reference with the PdfContent it builds.

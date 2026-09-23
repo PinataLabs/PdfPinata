@@ -367,8 +367,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
     /// </summary>
     private static PdfDictionary ResolveDictionary(PdfItem item)
     {
-        var reference = item as PdfReference;
-        if (reference != null)
+        if (item is PdfReference reference)
             item = reference.Value;
         return item as PdfDictionary;
     }
@@ -762,8 +761,7 @@ public sealed class PdfPages : PdfDictionary, IEnumerable<PdfPage>
         var ownPages = new Dictionary<PdfReference, object>();
         foreach (var item in PagesArray.Elements)
         {
-            var iref = item as PdfReference;
-            if (iref != null)
+            if (item is PdfReference iref)
                 ownPages[iref] = null;
         }
 

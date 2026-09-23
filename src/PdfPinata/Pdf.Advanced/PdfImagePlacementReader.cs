@@ -229,15 +229,13 @@ internal sealed class PdfImagePlacementReader
 
     private static bool TryGetNumber(CObject operand, out double value)
     {
-        var real = operand as CReal;
-        if (real != null)
+        if (operand is CReal real)
         {
             value = real.Value;
             return true;
         }
 
-        var integer = operand as CInteger;
-        if (integer != null)
+        if (operand is CInteger integer)
         {
             value = integer.Value;
             return true;
@@ -252,15 +250,13 @@ internal sealed class PdfImagePlacementReader
         if (item is PdfReference reference)
             item = reference.Value;
 
-        var real = item as PdfReal;
-        if (real != null)
+        if (item is PdfReal real)
         {
             value = real.Value;
             return true;
         }
 
-        var integer = item as PdfInteger;
-        if (integer != null)
+        if (item is PdfInteger integer)
         {
             value = integer.Value;
             return true;

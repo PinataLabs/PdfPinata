@@ -77,9 +77,7 @@ public abstract class PdfButtonField : PdfAcroField
         // Try to get the information from the appearance dictionaray.
         // Just return the first key that is not /Off.
         // I'm not sure what is the right solution to get this value.
-        var ap = Elements[PdfAnnotation.Keys.AP] as PdfDictionary;
-        var n = ap?.Elements["/N"] as PdfDictionary;
-        if (n != null)
+        if (Elements[PdfAnnotation.Keys.AP] is PdfDictionary ap && ap.Elements["/N"] is PdfDictionary n)
         {
             foreach (var name in n.Elements.Keys)
                 if (name != "/Off")

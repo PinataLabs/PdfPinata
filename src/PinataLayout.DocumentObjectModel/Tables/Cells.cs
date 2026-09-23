@@ -72,8 +72,7 @@ public partial class Cells : DocumentObjectCollection
       if (table != null)
         return table;
 
-      var rw = Parent as Row;
-      if (rw != null)
+      if (Parent is Row rw)
         table = rw.Table;
       return table;
     }

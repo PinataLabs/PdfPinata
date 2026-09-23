@@ -76,8 +76,7 @@ public partial class Column : DocumentObject
       if (table != null)
         return table;
 
-      var clms = Parent as Columns;
-      if (clms != null)
+      if (Parent is Columns clms)
         table = clms.Parent as Table;
       return table;
     }

@@ -1390,8 +1390,7 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     private void CheckXPdfFormConsistence(XImage image)
     {
-        var xForm = image as XForm;
-        if (xForm == null)
+        if (image is not XForm xForm)
             return;
 
         // Force disposing of XGraphics that draws the content
@@ -2176,8 +2175,7 @@ public sealed class XGraphics : IDisposable
     {
         get
         {
-            var renderer = _renderer as XGraphicsPdfRenderer;
-            return renderer != null ? renderer.Page : null;
+            return _renderer is XGraphicsPdfRenderer renderer ? renderer.Page : null;
         }
     }
 

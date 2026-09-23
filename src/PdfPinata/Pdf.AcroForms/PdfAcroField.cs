@@ -407,8 +407,7 @@ public abstract class PdfAcroField : PdfDictionary
     public string[] GetAppearanceNames()
     {
         var names = new Dictionary<string, object>();
-        var dict = Elements["/AP"] as PdfDictionary;
-        if (dict != null)
+        if (Elements["/AP"] is PdfDictionary dict)
         {
             AppDict(dict, names);
 
@@ -420,8 +419,7 @@ public abstract class PdfAcroField : PdfDictionary
                     if (pdfItem is not PdfReference reference)
                         continue;
 
-                    var xxx = reference.Value as PdfDictionary;
-                    if (xxx != null)
+                    if (reference.Value is PdfDictionary xxx)
                         AppDict(xxx, names);
                 }
             }

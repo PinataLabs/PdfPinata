@@ -77,8 +77,7 @@ public partial class Row : DocumentObject, IVisitable
       if (table != null)
         return table;
 
-      var rws = Parent as Rows;
-      if (rws != null)
+      if (Parent is Rows rws)
         table = rws.Table;
       return table;
     }

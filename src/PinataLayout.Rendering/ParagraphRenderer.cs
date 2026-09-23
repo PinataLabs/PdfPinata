@@ -429,8 +429,7 @@ internal class ParagraphRenderer : Renderer
 
     private static bool IsSoftHyphen(DocumentObject docObj)
     {
-        var text = docObj as Text;
-        if (text != null)
+        if (docObj is Text text)
             return text.Content == "­";
 
         return false;

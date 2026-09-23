@@ -52,8 +52,7 @@ public class PdfFlattenVisitor : VisitorBase
 
     for (var idx = 0; idx < elements.Count; ++idx)
     {
-      var paragraph = elements[idx] as Paragraph;
-      if (paragraph == null)
+      if (elements[idx] is not Paragraph paragraph)
         continue;
 
       var paragraphs = paragraph.SplitOnParaBreak();

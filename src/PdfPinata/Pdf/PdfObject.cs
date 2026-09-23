@@ -335,8 +335,7 @@ public abstract class PdfObject : PdfItem
                 Debug.Assert(item != null, "A dictionary element cannot be null.");
 
                 // Is item an iref?
-                var iref = item as PdfReference;
-                if (iref != null)
+                if (item is PdfReference iref)
                 {
                     // Case: The item is a reference.
                     // Does the iref already belongs to the new owner?
@@ -363,8 +362,7 @@ public abstract class PdfObject : PdfItem
                 {
                     // Case: The item is not a reference.
                     // If item is an object recursively fix its inner items.
-                    var pdfObject = item as PdfObject;
-                    if (pdfObject != null)
+                    if (item is PdfObject pdfObject)
                     {
                         // Fix up inner objects, i.e. recursively walk down the object tree.
                         FixUpObject(iot, owner, pdfObject);
@@ -396,8 +394,7 @@ public abstract class PdfObject : PdfItem
                 Debug.Assert(item != null, "An array element cannot be null.");
 
                 // Is item an iref?
-                var iref = item as PdfReference;
-                if (iref != null)
+                if (item is PdfReference iref)
                 {
                     // Case: The item is a reference.
                     // Does the iref already belongs to the owner?
@@ -418,8 +415,7 @@ public abstract class PdfObject : PdfItem
                 {
                     // Case: The item is not a reference.
                     // If item is an object recursively fix its inner items.
-                    var pdfObject = item as PdfObject;
-                    if (pdfObject != null)
+                    if (item is PdfObject pdfObject)
                     {
                         // Fix up inner objects, i.e. recursively walk down the object tree.
                         FixUpObject(iot, owner, pdfObject);

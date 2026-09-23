@@ -2521,8 +2521,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         // The transparency set for a brush also applies to images. Set opacity to 100% so image will be drawn without transparency.
         _gfxState.RealizeNonStrokeTransparency(1, ColorMode);
 
-        var form = image as XForm;
-        return form != null ? GetFormName(form) : GetImageName(image);
+        return image is XForm form ? GetFormName(form) : GetImageName(image);
     }
 
     /// <summary>

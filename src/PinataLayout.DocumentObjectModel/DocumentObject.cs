@@ -153,8 +153,7 @@ public abstract partial class DocumentObject
       var doc = Parent;
       while (doc != null)
       {
-        var document = doc as Document;
-        if (document != null)
+        if (doc is Document document)
           return document;
         doc = doc.parent;
       }
@@ -172,8 +171,7 @@ public abstract partial class DocumentObject
       var doc = Parent;
       while (doc != null)
       {
-        var section = doc as Section;
-        if (section != null)
+        if (doc is Section section)
           return section;
         doc = doc.parent;
       }

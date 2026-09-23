@@ -252,8 +252,7 @@ public sealed class ValueDescriptor
         // held. That was carried forward unchanged through the move to a generated model so the
         // parity harness gated a replacement rather than a behaviour change; this is the deliberate
         // change afterwards.
-        var value = getter(dom) as DocumentObject;
-        return value == null || value.IsNull();
+        return getter(dom) is not DocumentObject value || value.IsNull();
       }
     }
   }

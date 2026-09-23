@@ -166,8 +166,7 @@ public partial class Cell : DocumentObject, IVisitable
             if (table != null)
                 return table;
 
-            var cls = Parent as Cells;
-            if (cls != null)
+            if (Parent is Cells cls)
                 table = cls.Table;
             return table;
         }

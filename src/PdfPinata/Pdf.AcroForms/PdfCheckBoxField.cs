@@ -129,8 +129,7 @@ public sealed class PdfCheckBoxField : PdfButtonField
                             PdfDictionary;
                         if (o != null)
                         {
-                            var n = o.Elements["/N"] as PdfDictionary;
-                            if (n != null)
+                            if (o.Elements["/N"] is PdfDictionary n)
                             {
                                 foreach (var name in n.Elements.Keys)
                                 {
@@ -161,8 +160,7 @@ public sealed class PdfCheckBoxField : PdfButtonField
                             PdfDictionary;
                         if (o != null)
                         {
-                            var n = o.Elements["/N"] as PdfDictionary;
-                            if (n != null)
+                            if (o.Elements["/N"] is PdfDictionary n)
                             {
                                 foreach (var name in n.Elements.Keys)
                                 {
@@ -192,8 +190,7 @@ public sealed class PdfCheckBoxField : PdfButtonField
                             PdfDictionary;
                         if (o != null)
                         {
-                            var n = o.Elements["/N"] as PdfDictionary;
-                            if (n != null)
+                            if (o.Elements["/N"] is PdfDictionary n)
                             {
                                 foreach (var name in n.Elements.Keys)
                                 {
@@ -221,8 +218,7 @@ public sealed class PdfCheckBoxField : PdfButtonField
                             PdfDictionary;
                         if (o != null)
                         {
-                            var n = o.Elements["/N"] as PdfDictionary;
-                            if (n != null)
+                            if (o.Elements["/N"] is PdfDictionary n)
                             {
                                 foreach (var name in n.Elements.Keys)
                                 {

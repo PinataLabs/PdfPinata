@@ -351,8 +351,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
             Title = title;
 
         var parentRef = Elements.GetReference(Keys.Parent);
-        var parent = parentRef?.Value as PdfOutline;
-        if (parent != null)
+        if (parentRef?.Value is PdfOutline parent)
             Parent = parent;
 
         // /Count is how an entry records whether it is expanded: positive when it is, negative

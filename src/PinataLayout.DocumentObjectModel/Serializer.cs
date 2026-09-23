@@ -383,8 +383,7 @@ internal class Serializer
   /// </summary>
   internal void WriteSimpleAttribute(string valueName, object value)
   {
-    var ival = value as INullableValue;
-    if (ival != null)
+    if (value is INullableValue ival)
       value = ival.GetValue();
 
     var type = value.GetType();

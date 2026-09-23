@@ -820,8 +820,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
                         if (item is PdfReference reference)
                             item = reference.Value;
 
-                        var array = item as PdfArray;
-                        if (array != null)
+                        if (item is PdfArray array)
                         {
                             // It is already an array of content streams.
                             if (array.IsIndirect)
@@ -1310,8 +1309,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         var item = InheritableEntry(page, InheritablePageKeys.Resources);
         if (item != null)
         {
-            var reference = item as PdfReference;
-            if (reference != null)
+            if (item is PdfReference reference)
                 values.Resources = (PdfDictionary)reference.Value;
             else
                 values.Resources = (PdfDictionary)item;

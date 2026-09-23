@@ -112,8 +112,7 @@ internal class TopDownFormatter
                 // A bookmark draws nothing, so it has no renderer and would otherwise be skipped along
                 // with the legends -- silently, which is what made a bookmark put on a section rather
                 // than in a paragraph vanish without a word. Register it where it stands instead.
-                var bookmark = docObj as BookmarkField;
-                if (bookmark != null)
+                if (docObj is BookmarkField bookmark)
                     areaProvider.AreaFieldInfos.AddBookmark(bookmark.Name, area.Y);
 
                 ready = idx == elements.Count - 1;
