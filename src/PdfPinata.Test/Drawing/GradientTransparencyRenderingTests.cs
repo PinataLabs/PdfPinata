@@ -23,7 +23,7 @@ public sealed class GradientTransparencyRenderingTests : IDisposable
     ///   Everything rasterized by one test, kept until the test is over. A page at 300 dpi is
     ///   tens of megabytes of unmanaged bitmap that the collector cannot see the size of.
     /// </summary>
-    private readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
+    private readonly List<MagickImageCollection> _rasterized = new();
 
     public void Dispose()
     {
@@ -39,7 +39,7 @@ public sealed class GradientTransparencyRenderingTests : IDisposable
     }
 
     /// <summary>The band the gradient is drawn across, in the space the drawing uses.</summary>
-    private static readonly XRect Band = new XRect(50, 50, 400, 200);
+    private static readonly XRect Band = new(50, 50, 400, 200);
 
     [GoldenImageFact]
     public void ATransparentToOpaqueGradientLetsTheFillBeneathItThrough()

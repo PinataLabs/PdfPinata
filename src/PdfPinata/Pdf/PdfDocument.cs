@@ -222,17 +222,17 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </remarks>
     public void Close()
     {
-        if (_outStream != null)
+        if (_outStream == null)
+            return;
+
+        var writer = new PdfWriter(_outStream, SecurityHandlerForWriting);
+        try
         {
-            var writer = new PdfWriter(_outStream, SecurityHandlerForWriting);
-            try
-            {
-                DoSave(writer);
-            }
-            finally
-            {
-                writer.Close();
-            }
+            DoSave(writer);
+        }
+        finally
+        {
+            writer.Close();
         }
     }
 
@@ -645,7 +645,9 @@ public sealed class PdfDocument : PdfObject, IDisposable
                 _trailer.Elements[PdfTrailer.Keys.Encrypt] = _securitySettings.SecurityHandler.Reference;
             }
             else
+            {
                 _trailer.Elements.Remove(PdfTrailer.Keys.Encrypt);
+            }
 
             PrepareForSave();
 
@@ -710,7 +712,9 @@ public sealed class PdfDocument : PdfObject, IDisposable
         // Keep original producer if file was imported.
         var producer = info.Producer;
         if (producer.Length == 0)
+        {
             producer = infoCreator;
+        }
         else
         {
             // Prevent endless concatenation if file is edited with PDFsharp more than once.

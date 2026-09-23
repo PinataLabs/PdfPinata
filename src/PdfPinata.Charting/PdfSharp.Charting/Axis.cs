@@ -94,9 +94,9 @@ public class Axis : ChartObject
   {
     get
     {
-      this.title ??= new AxisTitle(this);
+      title ??= new AxisTitle(this);
 
-      return this.title;
+      return title;
     }
   }
   internal AxisTitle title;
@@ -106,8 +106,8 @@ public class Axis : ChartObject
   /// </summary>
   public double MinimumScale
   {
-    get => this.minimumScale;
-    set => this.minimumScale = value;
+    get => minimumScale;
+    set => minimumScale = value;
   }
   internal double minimumScale = double.NaN;
 
@@ -116,8 +116,8 @@ public class Axis : ChartObject
   /// </summary>
   public double MaximumScale
   {
-    get => this.maximumScale;
-    set => this.maximumScale = value;
+    get => maximumScale;
+    set => maximumScale = value;
   }
   internal double maximumScale = double.NaN;
 
@@ -126,8 +126,8 @@ public class Axis : ChartObject
   /// </summary>
   public double MajorTick
   {
-    get => this.majorTick;
-    set => this.majorTick = value;
+    get => majorTick;
+    set => majorTick = value;
   }
   internal double majorTick = double.NaN;
 
@@ -136,8 +136,8 @@ public class Axis : ChartObject
   /// </summary>
   public double MinorTick
   {
-    get => this.minorTick;
-    set => this.minorTick = value;
+    get => minorTick;
+    set => minorTick = value;
   }
   internal double minorTick = double.NaN;
 
@@ -146,13 +146,13 @@ public class Axis : ChartObject
   /// </summary>
   public TickMarkType MajorTickMark
   {
-    get => this.majorTickMark;
+    get => majorTickMark;
     set
     {
       if (!Enum.IsDefined(value))
         throw new InvalidEnumArgumentException("value", (int)value, typeof(TickMarkType));
-      this.majorTickMark = value;
-      this.MajorTickMarkInitialized = true;
+      majorTickMark = value;
+      MajorTickMarkInitialized = true;
     }
   }
   internal TickMarkType majorTickMark;
@@ -163,13 +163,13 @@ public class Axis : ChartObject
   /// </summary>
   public TickMarkType MinorTickMark
   {
-    get => this.minorTickMark;
+    get => minorTickMark;
     set
     {
       if (!Enum.IsDefined(value))
         throw new InvalidEnumArgumentException("value", (int)value, typeof(TickMarkType));
-      this.minorTickMark = value;
-      this.MinorTickMarkInitialized = true;
+      minorTickMark = value;
+      MinorTickMarkInitialized = true;
     }
   }
   internal TickMarkType minorTickMark;
@@ -182,9 +182,9 @@ public class Axis : ChartObject
   {
     get
     {
-      this.tickLabels ??= new TickLabels(this);
+      tickLabels ??= new TickLabels(this);
 
-      return this.tickLabels;
+      return tickLabels;
     }
   }
   internal TickLabels tickLabels;
@@ -196,9 +196,9 @@ public class Axis : ChartObject
   {
     get
     {
-      this.lineFormat ??= new LineFormat(this);
+      lineFormat ??= new LineFormat(this);
 
-      return this.lineFormat;
+      return lineFormat;
     }
   }
   internal LineFormat lineFormat;
@@ -210,9 +210,9 @@ public class Axis : ChartObject
   {
     get
     {
-      this.majorGridlines ??= new Gridlines(this);
+      majorGridlines ??= new Gridlines(this);
 
-      return this.majorGridlines;
+      return majorGridlines;
     }
   }
   internal Gridlines majorGridlines;
@@ -224,9 +224,9 @@ public class Axis : ChartObject
   {
     get
     {
-      this.minorGridlines ??= new Gridlines(this);
+      minorGridlines ??= new Gridlines(this);
 
-      return this.minorGridlines;
+      return minorGridlines;
     }
   }
   internal Gridlines minorGridlines;
@@ -236,8 +236,8 @@ public class Axis : ChartObject
   /// </summary>
   public bool HasMajorGridlines
   {
-    get => this.hasMajorGridlines;
-    set => this.hasMajorGridlines = value;
+    get => hasMajorGridlines;
+    set => hasMajorGridlines = value;
   }
   internal bool hasMajorGridlines;
 
@@ -246,8 +246,8 @@ public class Axis : ChartObject
   /// </summary>
   public bool HasMinorGridlines
   {
-    get => this.hasMinorGridlines;
-    set => this.hasMinorGridlines = value;
+    get => hasMinorGridlines;
+    set => hasMinorGridlines = value;
   }
   internal bool hasMinorGridlines;
   #endregion

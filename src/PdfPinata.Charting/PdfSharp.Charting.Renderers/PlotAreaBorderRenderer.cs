@@ -48,12 +48,12 @@ internal class PlotAreaBorderRenderer : Renderer
   /// </summary>
   internal override void Draw()
   {
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    if (cri.PlotAreaRendererInfo.LineFormat != null && cri.PlotAreaRendererInfo.LineFormat.Width > 0)
-    {
-      var gfx = this.rendererParms.Graphics;
-      var lineFormatRenderer = new LineFormatRenderer(gfx, cri.PlotAreaRendererInfo.LineFormat);
-      lineFormatRenderer.DrawRectangle(cri.PlotAreaRendererInfo.Rect);
-    }
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
+    if (cri.PlotAreaRendererInfo.LineFormat is not { Width: > 0 })
+      return;
+
+    var gfx = rendererParms.Graphics;
+    var lineFormatRenderer = new LineFormatRenderer(gfx, cri.PlotAreaRendererInfo.LineFormat);
+    lineFormatRenderer.DrawRectangle(cri.PlotAreaRendererInfo.Rect);
   }
 }

@@ -183,7 +183,9 @@ public class CodeDataMatrix : MatrixCode
             DrawModules(gfx, brush, modules, posWithZone, sizeWithZone);
         }
         else
+        {
             DrawModules(gfx, brush, modules, pos, size);
+        }
 
         gfx.Restore(state);
     }

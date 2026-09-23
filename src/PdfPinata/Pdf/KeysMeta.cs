@@ -113,73 +113,73 @@ internal sealed class KeyDescriptor
     public Type GetValueType()
     {
         var type = _objectType;
-        if (type == null)
+        if (type != null)
+            return type;
+
+        // If we have no ObjectType specified, use the KeyType enumeration.
+        switch (_keyType & KeyType.TypeMask)
         {
-            // If we have no ObjectType specified, use the KeyType enumeration.
-            switch (_keyType & KeyType.TypeMask)
-            {
-                case KeyType.Name:
-                    type = typeof(PdfName);
-                    break;
+            case KeyType.Name:
+                type = typeof(PdfName);
+                break;
 
-                case KeyType.String:
-                    type = typeof(PdfString);
-                    break;
+            case KeyType.String:
+                type = typeof(PdfString);
+                break;
 
-                case KeyType.Boolean:
-                    type = typeof(PdfBoolean);
-                    break;
+            case KeyType.Boolean:
+                type = typeof(PdfBoolean);
+                break;
 
-                case KeyType.Integer:
-                    type = typeof(PdfInteger);
-                    break;
+            case KeyType.Integer:
+                type = typeof(PdfInteger);
+                break;
 
-                case KeyType.Real:
-                    type = typeof(PdfReal);
-                    break;
+            case KeyType.Real:
+                type = typeof(PdfReal);
+                break;
 
-                case KeyType.Date:
-                    type = typeof(PdfDate);
-                    break;
+            case KeyType.Date:
+                type = typeof(PdfDate);
+                break;
 
-                case KeyType.Rectangle:
-                    type = typeof(PdfRectangle);
-                    break;
+            case KeyType.Rectangle:
+                type = typeof(PdfRectangle);
+                break;
 
-                case KeyType.Array:
-                    type = typeof(PdfArray);
-                    break;
+            case KeyType.Array:
+                type = typeof(PdfArray);
+                break;
 
-                case KeyType.Dictionary:
-                    type = typeof(PdfDictionary);
-                    break;
+            case KeyType.Dictionary:
+                type = typeof(PdfDictionary);
+                break;
 
-                case KeyType.Stream:
-                    type = typeof(PdfDictionary);
-                    break;
+            case KeyType.Stream:
+                type = typeof(PdfDictionary);
+                break;
 
-                case KeyType.NumberTree:
-                    type = typeof(PdfNumberTreeNode);
-                    break;
+            case KeyType.NumberTree:
+                type = typeof(PdfNumberTreeNode);
+                break;
 
-                // The following types are not yet used
+            // The following types are not yet used
 
-                case KeyType.NameOrArray:
-                    throw new NotImplementedException("KeyType.NameOrArray");
+            case KeyType.NameOrArray:
+                throw new NotImplementedException("KeyType.NameOrArray");
 
-                case KeyType.ArrayOrDictionary:
-                    throw new NotImplementedException("KeyType.ArrayOrDictionary");
+            case KeyType.ArrayOrDictionary:
+                throw new NotImplementedException("KeyType.ArrayOrDictionary");
 
-                case KeyType.StreamOrArray:
-                    throw new NotImplementedException("KeyType.StreamOrArray");
+            case KeyType.StreamOrArray:
+                throw new NotImplementedException("KeyType.StreamOrArray");
 
-                case KeyType.ArrayOrNameOrString:
-                    return null; // HACK: Make PdfOutline work
+            case KeyType.ArrayOrNameOrString:
+                return null; // HACK: Make PdfOutline work
 
-                default:
-                    Debug.Assert(false, "Invalid KeyType: " + _keyType);
-                    break;
-            }
+            default:
+                Debug.Assert(false, "Invalid KeyType: " + _keyType);
+                break;
         }
 
         return type;

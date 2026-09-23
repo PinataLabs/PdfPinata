@@ -176,9 +176,13 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
                 decrypted.Add(new KeyValuePair<string, PdfString>(item.Key, EncryptString(value1)));
             }
             else if ((value2 = item.Value as PdfDictionary) != null)
+            {
                 EncryptDictionary(value2);
+            }
             else if ((value3 = item.Value as PdfArray) != null)
+            {
                 EncryptArray(value3);
+            }
         }
 
         if (decrypted != null)
@@ -189,16 +193,16 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
             foreach (var replacement in decrypted)
                 dict.Elements[replacement.Key] = replacement.Value;
         }
-        if (dict.Stream != null)
-        {
-            var bytes = dict.Stream.Value;
-            if (bytes.Length != 0)
-            {
-                streamEncryptor.CreateHashKey(dict.ObjectID);
-                bytes = streamEncryptor.Encrypt(bytes);
-                dict.Stream.Value = bytes;
-            }
-        }
+        if (dict.Stream == null)
+            return;
+
+        var bytes = dict.Stream.Value;
+        if (bytes.Length == 0)
+            return;
+
+        streamEncryptor.CreateHashKey(dict.ObjectID);
+        bytes = streamEncryptor.Encrypt(bytes);
+        dict.Stream.Value = bytes;
     }
 
     /// <summary>
@@ -219,9 +223,13 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
                 array.Elements[idx] = EncryptString(value1);
             }
             else if ((value2 = item as PdfDictionary) != null)
+            {
                 EncryptDictionary(value2);
+            }
             else if ((value3 = item as PdfArray) != null)
+            {
                 EncryptArray(value3);
+            }
         }
     }
 
@@ -296,7 +304,9 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
     {
         var padded = new byte[32];
         if (password == null)
+        {
             Array.Copy(PasswordPadding, 0, padded, 0, 32);
+        }
         else
         {
             var length = password.Length;
@@ -550,10 +560,10 @@ public sealed class PdfStandardSecurityHandler : PdfSecurityHandler
             rValue = new PdfInteger(2);
         }
 
-        if (String.IsNullOrEmpty(_userPassword))
+        if (string.IsNullOrEmpty(_userPassword))
             _userPassword = "";
         // Use user password twice if no owner password provided.
-        if (String.IsNullOrEmpty(_ownerPassword))
+        if (string.IsNullOrEmpty(_ownerPassword))
             _ownerPassword = _userPassword;
 
         // Correct permission bits

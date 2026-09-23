@@ -77,11 +77,11 @@ public struct XColor : IEquatable<XColor>
     private XColor(double alpha, double cyan, double magenta, double yellow, double black)
     {
         _cs = XColorSpace.Cmyk;
-        _a = (float)(alpha > 1 ? 1 : (alpha < 0 ? 0 : alpha));
-        _c = (float)(cyan > 1 ? 1 : (cyan < 0 ? 0 : cyan));
-        _m = (float)(magenta > 1 ? 1 : (magenta < 0 ? 0 : magenta));
-        _y = (float)(yellow > 1 ? 1 : (yellow < 0 ? 0 : yellow));
-        _k = (float)(black > 1 ? 1 : (black < 0 ? 0 : black));
+        _a = (float)(alpha > 1 ? 1 : alpha < 0 ? 0 : alpha);
+        _c = (float)(cyan > 1 ? 1 : cyan < 0 ? 0 : cyan);
+        _m = (float)(magenta > 1 ? 1 : magenta < 0 ? 0 : magenta);
+        _y = (float)(yellow > 1 ? 1 : yellow < 0 ? 0 : yellow);
+        _k = (float)(black > 1 ? 1 : black < 0 ? 0 : black);
         _r = 0;
         _g = 0;
         _b = 0;
@@ -97,7 +97,7 @@ public struct XColor : IEquatable<XColor>
     private XColor(double gray)
     {
         _cs = XColorSpace.GrayScale;
-        _gs = (float)(gray > 1 ? 1 : (gray < 0 ? 0 : gray));
+        _gs = (float)(gray > 1 ? 1 : gray < 0 ? 0 : gray);
 
         _a = 1;
         _r = 0;
@@ -120,7 +120,7 @@ public struct XColor : IEquatable<XColor>
     /// </summary>
     public static XColor FromArgb(int argb)
     {
-        return new XColor((byte)(argb >> 24), (byte)(argb >> 16), (byte)(argb >> 8), (byte)(argb));
+        return new XColor((byte)(argb >> 24), (byte)(argb >> 16), (byte)(argb >> 8), (byte)argb);
     }
 
     /// <summary>
@@ -128,7 +128,7 @@ public struct XColor : IEquatable<XColor>
     /// </summary>
     public static XColor FromArgb(uint argb)
     {
-        return new XColor((byte)(argb >> 24), (byte)(argb >> 16), (byte)(argb >> 8), (byte)(argb));
+        return new XColor((byte)(argb >> 24), (byte)(argb >> 16), (byte)(argb >> 8), (byte)argb);
     }
 
     /// <summary>
@@ -160,7 +160,7 @@ public struct XColor : IEquatable<XColor>
     /// </summary>
     public static XColor FromArgb(int alpha, XColor color)
     {
-        color.A = ((byte)alpha) / 255.0;
+        color.A = (byte)alpha / 255.0;
         return color;
     }
 
@@ -219,7 +219,7 @@ public struct XColor : IEquatable<XColor>
         if (double.IsNaN(tint))
             throw new ArgumentOutOfRangeException(nameof(tint), "A tint has to be a number between 0 and 1.");
 
-        tint = tint > 1 ? 1 : (tint < 0 ? 0 : tint);
+        tint = tint > 1 ? 1 : tint < 0 ? 0 : tint;
         var color = spot.Tinted(tint);
         color.A = alpha;
         color._spot = spot;
@@ -310,7 +310,7 @@ public struct XColor : IEquatable<XColor>
     public override int GetHashCode()
     {
         // ReSharper disable NonReadonlyFieldInGetHashCode
-        return ((byte)(_a * 255)) ^ _r ^ _g ^ _b;
+        return (byte)(_a * 255) ^ _r ^ _g ^ _b;
         // ReSharper restore NonReadonlyFieldInGetHashCode
     }
 
@@ -353,7 +353,7 @@ public struct XColor : IEquatable<XColor>
     public double GetHue()
     {
         // ReSharper disable CompareOfFloatsByEqualityOperator
-        if ((_r == _g) && (_g == _b))
+        if (_r == _g && _g == _b)
             return 0;
 
         var value1 = _r / 255.0;
@@ -379,9 +379,9 @@ public struct XColor : IEquatable<XColor>
         if (value1 == value4)
             value7 = (value2 - value3) / value6;
         else if (value2 == value4)
-            value7 = 2f + ((value3 - value1) / value6);
+            value7 = 2f + (value3 - value1) / value6;
         else if (value3 == value4)
-            value7 = 4f + ((value1 - value2) / value6);
+            value7 = 4f + (value1 - value2) / value6;
 #pragma warning restore S1244
 
         value7 *= 60;
@@ -424,7 +424,7 @@ public struct XColor : IEquatable<XColor>
         var value6 = (value4 + value5) / 2;
         if (value6 <= 0.5)
             return (value4 - value5) / (value4 + value5);
-        return (value4 - value5) / ((2f - value4) - value5);
+        return (value4 - value5) / (2f - value4 - value5);
         // ReSharper restore CompareOfFloatsByEqualityOperator
     }
 
@@ -468,7 +468,9 @@ public struct XColor : IEquatable<XColor>
         var y = 255 - _b;
         var k = Math.Min(c, Math.Min(m, y));
         if (k == 255)
+        {
             _c = _m = _y = 0;
+        }
         else
         {
             var black = 255f - k;
@@ -688,7 +690,7 @@ public struct XColor : IEquatable<XColor>
     public string RgbCmykG
     {
         get =>
-            String.Format(CultureInfo.InvariantCulture,
+            string.Format(CultureInfo.InvariantCulture,
                 "{0};{1};{2};{3};{4};{5};{6};{7};{8}", _r, _g, _b, _c, _m, _y, _k, _gs, _a);
         set
         {

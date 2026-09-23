@@ -19,7 +19,7 @@ namespace PdfPinata.Test.Dom;
 public class FontApplyFontTests
 {
     /// <summary>A font with every property stated, so that any of them failing to copy shows.</summary>
-    private static Font FullyStated() => new Font("Courier New")
+    private static Font FullyStated() => new("Courier New")
     {
         Size = 14,
         Bold = true,

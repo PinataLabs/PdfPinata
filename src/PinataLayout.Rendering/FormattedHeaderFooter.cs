@@ -44,9 +44,9 @@ internal class FormattedHeaderFooter : IAreaProvider
 {
     internal FormattedHeaderFooter(HeaderFooter headerFooter, DocumentRenderer documentRenderer, FieldInfos fieldInfos)
     {
-        this._headerFooter = headerFooter;
-        this._fieldInfos = fieldInfos;
-        this._documentRenderer = documentRenderer;
+        _headerFooter = headerFooter;
+        _fieldInfos = fieldInfos;
+        _documentRenderer = documentRenderer;
     }
 
     internal void Format(XGraphics gfx)
@@ -70,7 +70,7 @@ internal class FormattedHeaderFooter : IAreaProvider
 
     void IAreaProvider.StoreRenderInfos(ArrayList renderInfos)
     {
-        this._renderInfos = renderInfos;
+        _renderInfos = renderInfos;
     }
 
     bool IAreaProvider.IsAreaBreakBefore(LayoutInfo layoutInfo)
@@ -81,16 +81,14 @@ internal class FormattedHeaderFooter : IAreaProvider
 
     internal RenderInfo[] GetRenderInfos()
     {
-        if (_renderInfos != null)
-        {
-            // Not ToArray(Type): it builds the array type at run time, which carries
-            // RequiresDynamicCode and an AOT compiler cannot always have code for.
-            var result = new RenderInfo[_renderInfos.Count];
-            _renderInfos.CopyTo(result);
-            return result;
-        }
+        if (_renderInfos == null)
+            return Array.Empty<RenderInfo>();
 
-        return Array.Empty<RenderInfo>();
+        // Not ToArray(Type): it builds the array type at run time, which carries
+        // RequiresDynamicCode and an AOT compiler cannot always have code for.
+        var result = new RenderInfo[_renderInfos.Count];
+        _renderInfos.CopyTo(result);
+        return result;
     }
 
     internal Rectangle ContentRect

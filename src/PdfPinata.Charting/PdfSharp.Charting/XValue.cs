@@ -50,7 +50,7 @@ public class XValue : ChartObject
   {
     ArgumentNullException.ThrowIfNull(value);
 
-    this.Value = value;
+    Value = value;
   }
 
   /// <summary>

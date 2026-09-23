@@ -550,16 +550,16 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
             DrawTextRule(underline, s, font, format, ruleBrush, x, underlineRectY + rise, width, underlineThickness);
         }
 
-        if (strikeout != XTextDecoration.None)
-        {
-            var strikeoutPosition =
-                lineSpace * realizedFont.FontDescriptor.Descriptor.StrikeoutPosition / font.CellSpace;
-            var strikeoutSize = lineSpace * realizedFont.FontDescriptor.Descriptor.StrikeoutSize / font.CellSpace;
-            var strikeoutRectY = Gfx.PageDirection == XPageDirection.Downwards
-                ? y - strikeoutPosition
-                : y + strikeoutPosition - strikeoutSize;
-            DrawTextRule(strikeout, s, font, format, ruleBrush, x, strikeoutRectY + rise, width, strikeoutSize);
-        }
+        if (strikeout == XTextDecoration.None)
+            return;
+
+        var strikeoutPosition =
+            lineSpace * realizedFont.FontDescriptor.Descriptor.StrikeoutPosition / font.CellSpace;
+        var strikeoutSize = lineSpace * realizedFont.FontDescriptor.Descriptor.StrikeoutSize / font.CellSpace;
+        var strikeoutRectY = Gfx.PageDirection == XPageDirection.Downwards
+            ? y - strikeoutPosition
+            : y + strikeoutPosition - strikeoutSize;
+        DrawTextRule(strikeout, s, font, format, ruleBrush, x, strikeoutRectY + rise, width, strikeoutSize);
     }
 
     /// <summary>
@@ -721,34 +721,34 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
             var cx = width / image.PointWidth;
             var cy = height / image.PointHeight;
 
-            if (cx != 0 && cy != 0)
-            {
-                var xForm = image as XPdfForm;
-                if (_gfx.PageDirection == XPageDirection.Downwards)
-                {
-                    // If we have an XPdfForm, then we take the MediaBox into account.
-                    var xDraw = x;
-                    var yDraw = y;
-                    if (xForm != null)
-                    {
-                        // Yes, it is an XPdfForm - adjust the position where the page will be drawn.
-                        xDraw -= xForm.Page.MediaBox.X1;
-                        yDraw += xForm.Page.MediaBox.Y1;
-                    }
+            if (cx == 0 || cy == 0)
+                return;
 
-                    AppendFormatImage(
-                        "q {2:" + format + "} 0 0 {3:" + format + "} {0:" + format + "} {1:" + format +
-                        "} cm 100 Tz {4} Do Q\n",
-                        xDraw, yDraw + height, cx, cy, name);
-                }
-                else
+            var xForm = image as XPdfForm;
+            if (_gfx.PageDirection == XPageDirection.Downwards)
+            {
+                // If we have an XPdfForm, then we take the MediaBox into account.
+                var xDraw = x;
+                var yDraw = y;
+                if (xForm != null)
                 {
-                    // No MediaBox offset here, unlike Downwards: Upwards is obsolete and was never finished.
-                    AppendFormatImage(
-                        "q {2:" + format + "} 0 0 {3:" + format + "} {0:" + format + "} {1:" + format +
-                        "} cm {4} Do Q\n",
-                        x, y, cx, cy, name);
+                    // Yes, it is an XPdfForm - adjust the position where the page will be drawn.
+                    xDraw -= xForm.Page.MediaBox.X1;
+                    yDraw += xForm.Page.MediaBox.Y1;
                 }
+
+                AppendFormatImage(
+                    "q {2:" + format + "} 0 0 {3:" + format + "} {0:" + format + "} {1:" + format +
+                    "} cm 100 Tz {4} Do Q\n",
+                    xDraw, yDraw + height, cx, cy, name);
+            }
+            else
+            {
+                // No MediaBox offset here, unlike Downwards: Upwards is obsolete and was never finished.
+                AppendFormatImage(
+                    "q {2:" + format + "} 0 0 {3:" + format + "} {0:" + format + "} {1:" + format +
+                    "} cm {4} Do Q\n",
+                    x, y, cx, cy, name);
             }
         }
     }
@@ -969,14 +969,14 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         // XGraphics.Transform says is no longer what the page has. Whatever the restored state lacks
         // becomes unrealized again, and the next drawing operation writes it back.
         var restoredInverse = _gfxState.RealizedCtm;
-        if (restoredInverse.HasInverse)
-        {
-            restoredInverse.Invert();
-            var unrealized = effectiveCtm;
-            unrealized.Append(restoredInverse);
-            _gfxState.UnrealizedCtm = unrealized;
-            _gfxState.WorldTransform = worldTransform;
-        }
+        if (!restoredInverse.HasInverse)
+            return;
+
+        restoredInverse.Invert();
+        var unrealized = effectiveCtm;
+        unrealized.Append(restoredInverse);
+        _gfxState.UnrealizedCtm = unrealized;
+        _gfxState.WorldTransform = worldTransform;
     }
 
     /// <summary>
@@ -1018,7 +1018,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         // Normalize the angles
         var α = startAngle;
         if (α < 0)
-            α = α + (1 + Math.Floor((Math.Abs(α) / 360))) * 360;
+            α = α + (1 + Math.Floor(Math.Abs(α) / 360)) * 360;
         else if (α > 360)
             α = α - Math.Floor(α / 360) * 360;
         Debug.Assert(α >= 0 && α <= 360);
@@ -1041,14 +1041,16 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
 
         β = α + β;
         if (β < 0)
-            β = β + (1 + Math.Floor((Math.Abs(β) / 360))) * 360;
+            β = β + (1 + Math.Floor(Math.Abs(β) / 360)) * 360;
 
         var clockwise = sweepAngle > 0;
         var startQuadrant = Quadrant(α, true, clockwise);
         var endQuadrant = Quadrant(β, false, clockwise);
 
         if (startQuadrant == endQuadrant && smallAngle)
+        {
             AppendPartialArcQuadrant(x, y, width, height, α, β, pathStart, matrix);
+        }
         else
         {
             var currentQuadrant = startQuadrant;
@@ -1107,7 +1109,9 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
                 quadrant = quadrant == 0 ? 3 : quadrant - 1;
         }
         else
-            quadrant = clockwise ? ((int)Math.Floor(φ / 90)) % 4 : (int)Math.Floor(φ / 90);
+        {
+            quadrant = clockwise ? (int)Math.Floor(φ / 90) % 4 : (int)Math.Floor(φ / 90);
+        }
 
         return quadrant;
     }
@@ -1458,7 +1462,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     }
 
     private static InvalidOperationException RefuseOperator(string operatorText) =>
-        new InvalidOperationException(
+        new(
             $"Cannot write \"{operatorText}\" into a content stream: an operand is not a finite "
             + "number. PDF cannot express NaN or infinity, and a viewer handed one stops drawing "
             + "rather than complaining, so the page arrives blank or half-finished with nothing to "
@@ -1503,122 +1507,122 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// </summary>
     private void BeginPage()
     {
-        if (_gfxState.Level == GraphicsStackLevelInitial)
+        if (_gfxState.Level != GraphicsStackLevelInitial)
+            return;
+
+        // Flip page horizontally and mirror text.
+
+        // PDF uses a standard right-handed Cartesian coordinate system with the y axis directed up
+        // and the rotation counterclockwise. Windows uses the opposite convertion with y axis
+        // directed down and rotation clockwise. When I started with PdfPinata I flipped pages horizontally
+        // and then mirrored text to compensate the effect that the fipping turns text upside down.
+        // I found this technique during analysis of PDF documents generated with PDFlib. Unfortunately
+        // this technique leads to several problems with programms that compose or view PDF documents
+        // generated with PdfPinata.
+        // In PDFsharp 1.4 I implement a revised technique that does not need text mirroring any more.
+
+        DefaultViewMatrix = new XMatrix();
+        if (_gfx.PageDirection == XPageDirection.Downwards)
         {
-            // Flip page horizontally and mirror text.
-
-            // PDF uses a standard right-handed Cartesian coordinate system with the y axis directed up
-            // and the rotation counterclockwise. Windows uses the opposite convertion with y axis
-            // directed down and rotation clockwise. When I started with PdfPinata I flipped pages horizontally
-            // and then mirrored text to compensate the effect that the fipping turns text upside down.
-            // I found this technique during analysis of PDF documents generated with PDFlib. Unfortunately
-            // this technique leads to several problems with programms that compose or view PDF documents
-            // generated with PdfPinata.
-            // In PDFsharp 1.4 I implement a revised technique that does not need text mirroring any more.
-
-            DefaultViewMatrix = new XMatrix();
-            if (_gfx.PageDirection == XPageDirection.Downwards)
+            // Take TrimBox into account.
+            PageHeightPt = VisiblePageSize.Height;
+            var trimOffset = new XPoint();
+            if (Page != null && Page.TrimMargins.AreSet)
             {
-                // Take TrimBox into account.
-                PageHeightPt = VisiblePageSize.Height;
-                var trimOffset = new XPoint();
-                if (Page != null && Page.TrimMargins.AreSet)
-                {
-                    // The sheet is the page plus the bleed plus the room for printer's marks, and
-                    // the origin is the corner of the page rather than of the sheet. Both come
-                    // from the page so that this and XGraphics.Initialize cannot disagree.
-                    PageHeightPt += Page.SheetExtraHeight;
-                    trimOffset = Page.SheetOffset;
-                }
-
-                // Scale with page units.
-                switch (_gfx.PageUnit)
-                {
-                    case XGraphicsUnit.Point:
-                        // Factor is 1.
-                        break;
-
-                    case XGraphicsUnit.Presentation:
-                        DefaultViewMatrix.ScalePrepend(XUnit.PresentationFactor);
-                        break;
-
-                    case XGraphicsUnit.Inch:
-                        DefaultViewMatrix.ScalePrepend(XUnit.InchFactor);
-                        break;
-
-                    case XGraphicsUnit.Millimeter:
-                        DefaultViewMatrix.ScalePrepend(XUnit.MillimeterFactor);
-                        break;
-
-                    case XGraphicsUnit.Centimeter:
-                        DefaultViewMatrix.ScalePrepend(XUnit.CentimeterFactor);
-                        break;
-                }
-
-                if (trimOffset != new XPoint())
-                {
-                    Debug.Assert(_gfx.PageUnit == XGraphicsUnit.Point,
-                        "With TrimMargins set the page units must be Point. Ohter cases nyi.");
-                    DefaultViewMatrix.TranslatePrepend(trimOffset.X, -trimOffset.Y);
-                }
-
-                // Save initial graphic state.
-                SaveState();
-
-                // Turn the page the way the viewer will show it, so that the origin is the
-                // corner the reader sees first. It has to be concatenated before the matrix
-                // below, because that one still works in the units of the caller.
-                AppendPageRotation();
-
-                // Set default page transformation, if any.
-                if (!DefaultViewMatrix.IsIdentity)
-                {
-                    Debug.Assert(_gfxState.RealizedCtm.IsIdentity);
-                    const string format = Config.SignificantFigures7;
-                    var cm = DefaultViewMatrix.GetElements();
-                    AppendFormatArgs(
-                        "{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format +
-                        "} {5:" + format + "} cm ",
-                        cm[0], cm[1], cm[2], cm[3], cm[4], cm[5]);
-                }
+                // The sheet is the page plus the bleed plus the room for printer's marks, and
+                // the origin is the corner of the page rather than of the sheet. Both come
+                // from the page so that this and XGraphics.Initialize cannot disagree.
+                PageHeightPt += Page.SheetExtraHeight;
+                trimOffset = Page.SheetOffset;
             }
-            else
+
+            // Scale with page units.
+            switch (_gfx.PageUnit)
             {
-                // Scale with page units.
-                switch (_gfx.PageUnit)
-                {
-                    case XGraphicsUnit.Point:
-                        // Factor is 1.
-                        break;
+                case XGraphicsUnit.Point:
+                    // Factor is 1.
+                    break;
 
-                    case XGraphicsUnit.Presentation:
-                        DefaultViewMatrix.ScalePrepend(XUnit.PresentationFactor);
-                        break;
+                case XGraphicsUnit.Presentation:
+                    DefaultViewMatrix.ScalePrepend(XUnit.PresentationFactor);
+                    break;
 
-                    case XGraphicsUnit.Inch:
-                        DefaultViewMatrix.ScalePrepend(XUnit.InchFactor);
-                        break;
+                case XGraphicsUnit.Inch:
+                    DefaultViewMatrix.ScalePrepend(XUnit.InchFactor);
+                    break;
 
-                    case XGraphicsUnit.Millimeter:
-                        DefaultViewMatrix.ScalePrepend(XUnit.MillimeterFactor);
-                        break;
+                case XGraphicsUnit.Millimeter:
+                    DefaultViewMatrix.ScalePrepend(XUnit.MillimeterFactor);
+                    break;
 
-                    case XGraphicsUnit.Centimeter:
-                        DefaultViewMatrix.ScalePrepend(XUnit.CentimeterFactor);
-                        break;
-                }
+                case XGraphicsUnit.Centimeter:
+                    DefaultViewMatrix.ScalePrepend(XUnit.CentimeterFactor);
+                    break;
+            }
 
-                // Save initial graphic state.
-                SaveState();
-                AppendPageRotation();
-                // Set page transformation.
+            if (trimOffset != new XPoint())
+            {
+                Debug.Assert(_gfx.PageUnit == XGraphicsUnit.Point,
+                    "With TrimMargins set the page units must be Point. Ohter cases nyi.");
+                DefaultViewMatrix.TranslatePrepend(trimOffset.X, -trimOffset.Y);
+            }
+
+            // Save initial graphic state.
+            SaveState();
+
+            // Turn the page the way the viewer will show it, so that the origin is the
+            // corner the reader sees first. It has to be concatenated before the matrix
+            // below, because that one still works in the units of the caller.
+            AppendPageRotation();
+
+            // Set default page transformation, if any.
+            if (!DefaultViewMatrix.IsIdentity)
+            {
+                Debug.Assert(_gfxState.RealizedCtm.IsIdentity);
                 const string format = Config.SignificantFigures7;
                 var cm = DefaultViewMatrix.GetElements();
-                AppendFormat3Points(
+                AppendFormatArgs(
                     "{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format +
                     "} {5:" + format + "} cm ",
                     cm[0], cm[1], cm[2], cm[3], cm[4], cm[5]);
             }
+        }
+        else
+        {
+            // Scale with page units.
+            switch (_gfx.PageUnit)
+            {
+                case XGraphicsUnit.Point:
+                    // Factor is 1.
+                    break;
+
+                case XGraphicsUnit.Presentation:
+                    DefaultViewMatrix.ScalePrepend(XUnit.PresentationFactor);
+                    break;
+
+                case XGraphicsUnit.Inch:
+                    DefaultViewMatrix.ScalePrepend(XUnit.InchFactor);
+                    break;
+
+                case XGraphicsUnit.Millimeter:
+                    DefaultViewMatrix.ScalePrepend(XUnit.MillimeterFactor);
+                    break;
+
+                case XGraphicsUnit.Centimeter:
+                    DefaultViewMatrix.ScalePrepend(XUnit.CentimeterFactor);
+                    break;
+            }
+
+            // Save initial graphic state.
+            SaveState();
+            AppendPageRotation();
+            // Set page transformation.
+            const string format = Config.SignificantFigures7;
+            var cm = DefaultViewMatrix.GetElements();
+            AppendFormat3Points(
+                "{0:" + format + "} {1:" + format + "} {2:" + format + "} {3:" + format + "} {4:" + format +
+                "} {5:" + format + "} cm ",
+                cm[0], cm[1], cm[2], cm[3], cm[4], cm[5]);
         }
     }
 
@@ -1801,7 +1805,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// Where in the content stream each open structural sequence began, or <see cref="NotRemovable"/>
     /// for one that is to be written whether or not anything is drawn inside it.
     /// </summary>
-    private readonly Stack<int> _markedContentStarts = new Stack<int>();
+    private readonly Stack<int> _markedContentStarts = new();
 
     private const int NotRemovable = -1;
 
@@ -1893,17 +1897,17 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// <summary>
     /// Where each open artifact sequence began in the content, so that an empty one can be undone.
     /// </summary>
-    private readonly Stack<int> _artifactStarts = new Stack<int>();
+    private readonly Stack<int> _artifactStarts = new();
 
     internal void BeginGraphicMode()
     {
-        if (_streamMode != StreamMode.Graphic)
-        {
-            if (_streamMode == StreamMode.Text)
-                _content.Append("ET\n");
+        if (_streamMode == StreamMode.Graphic)
+            return;
 
-            _streamMode = StreamMode.Graphic;
-        }
+        if (_streamMode == StreamMode.Text)
+            _content.Append("ET\n");
+
+        _streamMode = StreamMode.Graphic;
     }
 
     /// <summary>
@@ -1911,14 +1915,14 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// </summary>
     internal void BeginTextMode()
     {
-        if (_streamMode != StreamMode.Text)
-        {
-            _streamMode = StreamMode.Text;
-            _content.Append("BT\n");
-            // Text matrix is empty after BT
-            _gfxState.RealizedTextPosition = new XPoint();
-            _gfxState.RealizedTextSkew = 0;
-        }
+        if (_streamMode == StreamMode.Text)
+            return;
+
+        _streamMode = StreamMode.Text;
+        _content.Append("BT\n");
+        // Text matrix is empty after BT
+        _gfxState.RealizedTextPosition = new XPoint();
+        _gfxState.RealizedTextSkew = 0;
     }
 
     private StreamMode _streamMode;
@@ -2430,11 +2434,11 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
             if (wordAdjustment != 0 && IsLastGlyphOfWordSpace(text, shaped, idx))
                 after += wordAdjustment;
 
-            if (after != 0)
-            {
-                Show(idx + 1);
-                Move(after);
-            }
+            if (after == 0)
+                continue;
+
+            Show(idx + 1);
+            Move(after);
         }
 
         Show(to);
@@ -2537,11 +2541,11 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
             SaveState();
         }
 
-        if (!_gfxState.UnrealizedCtm.IsIdentity)
-        {
-            BeginGraphicMode();
-            _gfxState.RealizeCtm();
-        }
+        if (_gfxState.UnrealizedCtm.IsIdentity)
+            return;
+
+        BeginGraphicMode();
+        _gfxState.RealizeCtm();
     }
 
     /// <summary>

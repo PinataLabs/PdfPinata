@@ -79,10 +79,10 @@ public class DataLabel : DocumentObject
   /// </summary>
   public string Format
   {
-    get => this.format;
-    set => this.format = value;
+    get => format;
+    set => format = value;
   }
-  internal string format = String.Empty;
+  internal string format = string.Empty;
 
   /// <summary>
   /// Gets the Font for the DataLabel.
@@ -91,9 +91,9 @@ public class DataLabel : DocumentObject
   {
     get
     {
-      this.font ??= new Font(this);
+      font ??= new Font(this);
 
-      return this.font;
+      return font;
     }
   }    
   internal Font font;
@@ -103,14 +103,14 @@ public class DataLabel : DocumentObject
   /// </summary>
   public DataLabelPosition Position
   {
-    get => this.position;
+    get => position;
     set
     {
       if (!Enum.IsDefined(value))
         throw new InvalidEnumArgumentException("value", (int)value, typeof(DataLabelPosition));
 
-      this.position = value;
-      this.PositionInitialized = true;
+      position = value;
+      PositionInitialized = true;
     }
   }
   internal DataLabelPosition position;
@@ -121,14 +121,14 @@ public class DataLabel : DocumentObject
   /// </summary>
   public DataLabelType Type
   {
-    get => this.type;
+    get => type;
     set
     {
       if (!Enum.IsDefined(value))
         throw new InvalidEnumArgumentException("value", (int)value, typeof(DataLabelType));
 
-      this.type = value;
-      this.TypeInitialized = true;
+      type = value;
+      TypeInitialized = true;
     }
   }
   internal DataLabelType type;

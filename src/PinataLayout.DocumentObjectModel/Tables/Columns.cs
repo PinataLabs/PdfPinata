@@ -57,7 +57,7 @@ public partial class Columns : DocumentObjectCollection, IVisitable
     {
       var clm = new Column { Width = columnWidth };
       // ReSharper disable once VirtualMemberCallInConstructor
-      this.Add(clm);
+      Add(clm);
     }
   }
 
@@ -93,7 +93,7 @@ public partial class Columns : DocumentObjectCollection, IVisitable
   /// <summary>
   /// Gets the table the columns collection belongs to.
   /// </summary>
-  public Table Table => this.parent as Table;
+  public Table Table => parent as Table;
 
   /// <summary>
   /// Gets a column by its index.
@@ -105,8 +105,8 @@ public partial class Columns : DocumentObjectCollection, IVisitable
   /// </summary>
   public Unit Width
   {
-    get => this.width;
-    set => this.width = value;
+    get => width;
+    set => width = value;
   }
   [DV]
   internal Unit width = Unit.NullValue;
@@ -116,8 +116,8 @@ public partial class Columns : DocumentObjectCollection, IVisitable
   /// </summary>
   public string Comment
   {
-    get => this.comment ?? "";
-    set => this.comment = value;
+    get => comment ?? "";
+    set => comment = value;
   }
   [DV]
   internal string comment;

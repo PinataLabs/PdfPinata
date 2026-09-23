@@ -429,7 +429,7 @@ public partial class ParagraphFormat : DocumentObject
     if (alignment != null && (refFormat == null || alignment != refFormat.alignment))
       serializer.WriteSimpleAttribute("Alignment", Alignment);
 
-    if (!leftIndent.IsNull && (refFormat == null || (leftIndent != refFormat.leftIndent)))
+    if (!leftIndent.IsNull && (refFormat == null || leftIndent != refFormat.leftIndent))
       serializer.WriteSimpleAttribute("LeftIndent", LeftIndent);
 
     if (!firstLineIndent.IsNull && (refFormat == null || firstLineIndent != refFormat.firstLineIndent))

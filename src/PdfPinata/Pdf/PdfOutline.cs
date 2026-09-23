@@ -619,105 +619,105 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
             MeasureVisibleDescendants();
 
         // Is something to do at all?
-        if (_parent != null || hasKids)
+        if (_parent == null && !hasKids)
+            return;
+
+        if (_parent == null)
         {
-            if (_parent == null)
+            // Case: This is the outline dictionary (the root).
+            // Reference: TABLE 8.3  Entries in the outline dictionary / Page 585
+            Debug.Assert(_outlines != null && _outlines.Count > 0 && _outlines[0] != null);
+            Elements[Keys.First] = _outlines[0].Reference;
+            Elements[Keys.Last] = _outlines[^1].Reference;
+
+            // Table 152: the outline dictionary's /Count is the number of rows a reader shows
+            // with nothing expanded by hand - every top-level entry, plus what the open ones
+            // bring with them. Always non-negative; the root is not something that closes.
+            Elements[Keys.Count] = new PdfInteger(_visibleDescendants);
+        }
+        else
+        {
+            // Case: This is an outline item dictionary.
+            // Reference: TABLE 8.4  Entries in the outline item dictionary / Page 585
+            Elements[Keys.Parent] = _parent.Reference;
+
+            var count = _parent._outlines.Count;
+            var index = _parent._outlines.IndexOf(this);
+            Debug.Assert(index != -1);
+
+            // Has destination? Where an entry goes that this library cannot describe keeps
+            // what the document was read with, which still says it; describing it from the
+            // properties above would turn it into something else.
+            if (DestinationPage != null && !_keepDestinationAsFound)
             {
-                // Case: This is the outline dictionary (the root).
-                // Reference: TABLE 8.3  Entries in the outline dictionary / Page 585
-                Debug.Assert(_outlines != null && _outlines.Count > 0 && _outlines[0] != null);
+                Elements[Keys.Dest] = CreateDestArray();
+                // An entry given a destination goes there rather than wherever its action led,
+                // and the specification has one of the two entries, not both.
+                Elements.Remove(Keys.A);
+            }
+
+            // Each link is written or taken away, never left as it was: an entry that was
+            // read in, or saved once already, carries the links it had then, and one that has
+            // since become the first or the last of its list, or lost its children, would
+            // otherwise still point at an entry that was removed - which the save then finds
+            // through that link and writes back into the file.
+            if (index > 0)
+                Elements[Keys.Prev] = _parent._outlines[index - 1].Reference;
+            else
+                Elements.Remove(Keys.Prev);
+
+            if (index < count - 1)
+                Elements[Keys.Next] = _parent._outlines[index + 1].Reference;
+            else
+                Elements.Remove(Keys.Next);
+
+            if (hasKids)
+            {
                 Elements[Keys.First] = _outlines[0].Reference;
                 Elements[Keys.Last] = _outlines[^1].Reference;
-
-                // Table 152: the outline dictionary's /Count is the number of rows a reader shows
-                // with nothing expanded by hand - every top-level entry, plus what the open ones
-                // bring with them. Always non-negative; the root is not something that closes.
-                Elements[Keys.Count] = new PdfInteger(_visibleDescendants);
             }
             else
             {
-                // Case: This is an outline item dictionary.
-                // Reference: TABLE 8.4  Entries in the outline item dictionary / Page 585
-                Elements[Keys.Parent] = _parent.Reference;
-
-                var count = _parent._outlines.Count;
-                var index = _parent._outlines.IndexOf(this);
-                Debug.Assert(index != -1);
-
-                // Has destination? Where an entry goes that this library cannot describe keeps
-                // what the document was read with, which still says it; describing it from the
-                // properties above would turn it into something else.
-                if (DestinationPage != null && !_keepDestinationAsFound)
-                {
-                    Elements[Keys.Dest] = CreateDestArray();
-                    // An entry given a destination goes there rather than wherever its action led,
-                    // and the specification has one of the two entries, not both.
-                    Elements.Remove(Keys.A);
-                }
-
-                // Each link is written or taken away, never left as it was: an entry that was
-                // read in, or saved once already, carries the links it had then, and one that has
-                // since become the first or the last of its list, or lost its children, would
-                // otherwise still point at an entry that was removed - which the save then finds
-                // through that link and writes back into the file.
-                if (index > 0)
-                    Elements[Keys.Prev] = _parent._outlines[index - 1].Reference;
-                else
-                    Elements.Remove(Keys.Prev);
-
-                if (index < count - 1)
-                    Elements[Keys.Next] = _parent._outlines[index + 1].Reference;
-                else
-                    Elements.Remove(Keys.Next);
-
-                if (hasKids)
-                {
-                    Elements[Keys.First] = _outlines[0].Reference;
-                    Elements[Keys.Last] = _outlines[^1].Reference;
-                }
-                else
-                {
-                    Elements.Remove(Keys.First);
-                    Elements.Remove(Keys.Last);
-                }
-
-                // Table 153: an entry with descendants carries how many would become visible if it
-                // were expanded, signed by whether it already is. An entry with none carries no
-                // /Count at all - and must not keep one it was read in with, since its children
-                // may since have been removed.
-                //
-                // This is what Opened is written as, and until it was written a reader had nothing
-                // to expand a branch from: every tree arrived collapsed however it was built, and
-                // the flag read back exactly as it had been set.
-                if (hasKids)
-                    Elements[Keys.Count] = new PdfInteger(_opened ? _visibleDescendants : -_visibleDescendants);
-                else
-                    Elements.Remove(Keys.Count);
-
-                // Table 153: /C is new in PDF 1.4 and defaults to black. Taken away otherwise, so an
-                // entry read with a colour and saved into an older document does not keep a key that
-                // version has no such thing as.
-                if (_textColor != XColor.Empty && Owner.Version >= 14)
-                    Elements[Keys.C] = new PdfLiteral("[{0}]", PdfEncoders.ToString(_textColor, PdfColorMode.Rgb));
-                else
-                    Elements.Remove(Keys.C);
-
-                // Table 153: /F is new in PDF 1.4 and defaults to 0, so a regular entry carries none
-                // and an older document has no such key. Taken away otherwise, so an entry read with
-                // a style and made regular since does not keep it.
-                if (_style != PdfOutlineStyle.Regular && Owner.Version >= 14)
-                    Elements.SetInteger(Keys.F, (int)_style);
-                else
-                    Elements.Remove(Keys.F);
+                Elements.Remove(Keys.First);
+                Elements.Remove(Keys.Last);
             }
 
-            // Prepare child elements.
+            // Table 153: an entry with descendants carries how many would become visible if it
+            // were expanded, signed by whether it already is. An entry with none carries no
+            // /Count at all - and must not keep one it was read in with, since its children
+            // may since have been removed.
+            //
+            // This is what Opened is written as, and until it was written a reader had nothing
+            // to expand a branch from: every tree arrived collapsed however it was built, and
+            // the flag read back exactly as it had been set.
             if (hasKids)
-            {
-                foreach (var outline in _outlines)
-                    outline.PrepareForSave();
-            }
+                Elements[Keys.Count] = new PdfInteger(_opened ? _visibleDescendants : -_visibleDescendants);
+            else
+                Elements.Remove(Keys.Count);
+
+            // Table 153: /C is new in PDF 1.4 and defaults to black. Taken away otherwise, so an
+            // entry read with a colour and saved into an older document does not keep a key that
+            // version has no such thing as.
+            if (_textColor != XColor.Empty && Owner.Version >= 14)
+                Elements[Keys.C] = new PdfLiteral("[{0}]", PdfEncoders.ToString(_textColor, PdfColorMode.Rgb));
+            else
+                Elements.Remove(Keys.C);
+
+            // Table 153: /F is new in PDF 1.4 and defaults to 0, so a regular entry carries none
+            // and an older document has no such key. Taken away otherwise, so an entry read with
+            // a style and made regular since does not keep it.
+            if (_style != PdfOutlineStyle.Regular && Owner.Version >= 14)
+                Elements.SetInteger(Keys.F, (int)_style);
+            else
+                Elements.Remove(Keys.F);
         }
+
+        // Prepare child elements.
+        if (!hasKids)
+            return;
+
+        foreach (var outline in _outlines)
+            outline.PrepareForSave();
     }
 
     private PdfArray CreateDestArray()
@@ -784,7 +784,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
     /// </summary>
     private static string Fd(double value)
     {
-        return Double.IsNaN(value) ? "null" : value.ToString("#.##", CultureInfo.InvariantCulture);
+        return double.IsNaN(value) ? "null" : value.ToString("#.##", CultureInfo.InvariantCulture);
     }
 
     internal override void WriteObject(PdfWriter writer)

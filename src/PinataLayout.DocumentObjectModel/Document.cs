@@ -345,13 +345,13 @@ public sealed partial class Document : DocumentObject, IVisitable
   void IVisitable.AcceptVisitor(DocumentObjectVisitor visitor, bool visitChildren)
   {
     visitor.VisitDocument(this);
-    if (visitChildren)
-    {
-      // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-      ((IVisitable)Styles).AcceptVisitor(visitor, visitChildren);
-      // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-      ((IVisitable)Sections).AcceptVisitor(visitor, visitChildren);
-    }
+    if (!visitChildren)
+      return;
+
+    // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+    ((IVisitable)Styles).AcceptVisitor(visitor, visitChildren);
+    // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+    ((IVisitable)Sections).AcceptVisitor(visitor, visitChildren);
   }
 
   #endregion

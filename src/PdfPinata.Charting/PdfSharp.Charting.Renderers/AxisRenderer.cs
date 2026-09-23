@@ -50,19 +50,19 @@ internal abstract class AxisRenderer : Renderer
   /// </summary>
   protected static void InitAxisTitle(AxisRendererInfo rendererInfo, XFont defaultFont, XColor defaultColor)
   {
-    if (rendererInfo.Axis.title != null)
-    {
-      var atri = new AxisTitleRendererInfo();
-      rendererInfo.AxisTitleRendererInfo = atri;
+    if (rendererInfo.Axis.title == null)
+      return;
 
-      atri.AxisTitle = rendererInfo.Axis.title;
-      atri.AxisTitleText = rendererInfo.Axis.title.caption;
-      atri.AxisTitleAlignment = rendererInfo.Axis.title.alignment;
-      atri.AxisTitleVerticalAlignment = rendererInfo.Axis.title.verticalAlignment;
-      atri.AxisTitleFont = Converter.ToXFont(rendererInfo.Axis.title.font, defaultFont);
-      atri.AxisTitleBrush = Converter.ToXBrush(rendererInfo.Axis.title.font, defaultColor);
-      atri.AxisTitleOrientation = rendererInfo.Axis.title.orientation;
-    }
+    var atri = new AxisTitleRendererInfo();
+    rendererInfo.AxisTitleRendererInfo = atri;
+
+    atri.AxisTitle = rendererInfo.Axis.title;
+    atri.AxisTitleText = rendererInfo.Axis.title.caption;
+    atri.AxisTitleAlignment = rendererInfo.Axis.title.alignment;
+    atri.AxisTitleVerticalAlignment = rendererInfo.Axis.title.verticalAlignment;
+    atri.AxisTitleFont = Converter.ToXFont(rendererInfo.Axis.title.font, defaultFont);
+    atri.AxisTitleBrush = Converter.ToXBrush(rendererInfo.Axis.title.font, defaultColor);
+    atri.AxisTitleOrientation = rendererInfo.Axis.title.orientation;
   }
 
   /// <summary>

@@ -61,7 +61,7 @@ public partial class Borders : DocumentObject, IEnumerable
         if (!Enum.IsDefined(type))
             throw new ArgumentException($@"'{type}' is not a defined value of {nameof(BorderType)}.", nameof(type));
 
-        return !(IsNull(type.ToString()));
+        return !IsNull(type.ToString());
     }
 
     #region Methods
@@ -380,36 +380,36 @@ public partial class Borders : DocumentObject, IEnumerable
 
         var pos = serializer.BeginContent("Borders");
 
-        if (visible != null && (refBorders == null || refBorders.visible == null || (Visible != refBorders.Visible)))
+        if (visible != null && (refBorders == null || refBorders.visible == null || Visible != refBorders.Visible))
             serializer.WriteSimpleAttribute("Visible", Visible);
 
-        if (style != null && (refBorders == null || (Style != refBorders.Style)))
+        if (style != null && (refBorders == null || Style != refBorders.Style))
             serializer.WriteSimpleAttribute("Style", Style);
 
         #pragma warning disable S1244 // Exact on purpose: a value is written unless it is exactly the one it inherits.
         // ReSharper disable once CompareOfFloatsByEqualityOperator
-        if (!width.IsNull && (refBorders == null || (width.Value != refBorders.width.Value)))
+        if (!width.IsNull && (refBorders == null || width.Value != refBorders.width.Value))
             serializer.WriteSimpleAttribute("Width", Width);
         #pragma warning restore S1244
 
-        if (!color.IsNull && (refBorders == null || ((Color.Argb != refBorders.Color.Argb))))
+        if (!color.IsNull && (refBorders == null || Color.Argb != refBorders.Color.Argb))
             serializer.WriteSimpleAttribute("Color", Color);
 
         #pragma warning disable S1244 // Exact on purpose: a value is written unless it is exactly the one it inherits.
         // ReSharper disable once CompareOfFloatsByEqualityOperator
-        if (!distanceFromTop.IsNull && (refBorders == null || (DistanceFromTop.Point != refBorders.DistanceFromTop.Point)))
+        if (!distanceFromTop.IsNull && (refBorders == null || DistanceFromTop.Point != refBorders.DistanceFromTop.Point))
             serializer.WriteSimpleAttribute("DistanceFromTop", DistanceFromTop);
 
         // ReSharper disable once CompareOfFloatsByEqualityOperator
-        if (!distanceFromBottom.IsNull && (refBorders == null || (DistanceFromBottom.Point != refBorders.DistanceFromBottom.Point)))
+        if (!distanceFromBottom.IsNull && (refBorders == null || DistanceFromBottom.Point != refBorders.DistanceFromBottom.Point))
             serializer.WriteSimpleAttribute("DistanceFromBottom", DistanceFromBottom);
 
         // ReSharper disable once CompareOfFloatsByEqualityOperator
-        if (!distanceFromLeft.IsNull && (refBorders == null || (DistanceFromLeft.Point != refBorders.DistanceFromLeft.Point)))
+        if (!distanceFromLeft.IsNull && (refBorders == null || DistanceFromLeft.Point != refBorders.DistanceFromLeft.Point))
             serializer.WriteSimpleAttribute("DistanceFromLeft", DistanceFromLeft);
 
         // ReSharper disable once CompareOfFloatsByEqualityOperator
-        if (!distanceFromRight.IsNull && (refBorders == null || (DistanceFromRight.Point != refBorders.DistanceFromRight.Point)))
+        if (!distanceFromRight.IsNull && (refBorders == null || DistanceFromRight.Point != refBorders.DistanceFromRight.Point))
             serializer.WriteSimpleAttribute("DistanceFromRight", DistanceFromRight);
         #pragma warning restore S1244
 
@@ -507,7 +507,7 @@ public partial class Borders : DocumentObject, IEnumerable
         public bool MoveNext()
         {
             index++;
-            return (index < ht.Count);
+            return index < ht.Count;
         }
     }
 

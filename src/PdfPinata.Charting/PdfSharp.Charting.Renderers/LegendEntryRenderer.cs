@@ -51,8 +51,8 @@ internal class LegendEntryRenderer : Renderer
   /// </summary>
   internal override void Format()
   {
-    var gfx = this.rendererParms.Graphics;
-    var leri = (LegendEntryRendererInfo)this.rendererParms.RendererInfo;
+    var gfx = rendererParms.Graphics;
+    var leri = (LegendEntryRendererInfo)rendererParms.RendererInfo;
 
     // Initialize
     leri.MarkerArea.Width = MaxLegendMarkerWidth;
@@ -69,23 +69,23 @@ internal class LegendEntryRenderer : Renderer
     leri.LineHeight = leri.Height;
     leri.Lines = [];
 
-    if (leri.EntryText != "")
-    {
-      // A line break in the text starts a new line of the entry. DrawString draws one line and
-      // drops a line feed, so a name written over two lines used to be drawn as one run-on word.
-      leri.Lines = leri.EntryText.Split(LineBreaks, StringSplitOptions.None);
-      Measure(gfx, leri);
-      if (leri.SeriesRendererInfo.Series.chartType == ChartType.Line)
-      {
-        leri.MarkerSize.Width = leri.SeriesRendererInfo.MarkerRendererInfo.MarkerSize.Point;
-        leri.MarkerArea.Width = Math.Max(3 * leri.MarkerSize.Width, leri.MarkerArea.Width);
-      }
+    if (leri.EntryText == "")
+      return;
 
-      leri.MarkerArea.Height = Math.Min(leri.MarkerArea.Height, leri.LineHeight);
-      leri.MarkerSize.Height = Math.Min(leri.MarkerSize.Height, leri.LineHeight);
-      leri.Width = leri.TextSize.Width + leri.MarkerArea.Width + SpacingBetweenMarkerAndText;
-      leri.Height = leri.TextSize.Height;
+    // A line break in the text starts a new line of the entry. DrawString draws one line and
+    // drops a line feed, so a name written over two lines used to be drawn as one run-on word.
+    leri.Lines = leri.EntryText.Split(LineBreaks, StringSplitOptions.None);
+    Measure(gfx, leri);
+    if (leri.SeriesRendererInfo.Series.chartType == ChartType.Line)
+    {
+      leri.MarkerSize.Width = leri.SeriesRendererInfo.MarkerRendererInfo.MarkerSize.Point;
+      leri.MarkerArea.Width = Math.Max(3 * leri.MarkerSize.Width, leri.MarkerArea.Width);
     }
+
+    leri.MarkerArea.Height = Math.Min(leri.MarkerArea.Height, leri.LineHeight);
+    leri.MarkerSize.Height = Math.Min(leri.MarkerSize.Height, leri.LineHeight);
+    leri.Width = leri.TextSize.Width + leri.MarkerArea.Width + SpacingBetweenMarkerAndText;
+    leri.Height = leri.TextSize.Height;
   }
 
   /// <summary>
@@ -95,11 +95,11 @@ internal class LegendEntryRenderer : Renderer
   /// </summary>
   internal void FitToWidth(double maxWidth)
   {
-    var leri = (LegendEntryRendererInfo)this.rendererParms.RendererInfo;
+    var leri = (LegendEntryRendererInfo)rendererParms.RendererInfo;
     if (leri.Lines.Length == 0 || leri.Width <= maxWidth)
       return;
 
-    var gfx = this.rendererParms.Graphics;
+    var gfx = rendererParms.Graphics;
     var font = leri.LegendRendererInfo.Font;
     var textWidth = maxWidth - leri.MarkerArea.Width - SpacingBetweenMarkerAndText;
     var lines = new List<string>();
@@ -115,9 +115,13 @@ internal class LegendEntryRenderer : Renderer
       foreach (var word in paragraph.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
       {
         if (line == null)
+        {
           line = word;
+        }
         else if (gfx.MeasureString(line + " " + word, font).Width <= textWidth)
+        {
           line += " " + word;
+        }
         else
         {
           lines.Add(line);
@@ -159,8 +163,8 @@ internal class LegendEntryRenderer : Renderer
   /// </summary>
   internal override void Draw()
   {
-    var gfx = this.rendererParms.Graphics;
-    var leri = (LegendEntryRendererInfo)this.rendererParms.RendererInfo;
+    var gfx = rendererParms.Graphics;
+    var leri = (LegendEntryRendererInfo)rendererParms.RendererInfo;
 
     // The marker keys the first line of the entry. For an entry of one line that is the middle
     // of the entry, as it always was; for one of several it is not.
@@ -193,19 +197,19 @@ internal class LegendEntryRenderer : Renderer
     }
 
     // Draw text, one line under another.
-    if (leri.EntryText.Length > 0)
+    if (leri.EntryText.Length == 0)
+      return;
+
+    rect = leri.Rect;
+    rect.X += leri.MarkerArea.Width + LegendEntryRenderer.SpacingBetweenMarkerAndText;
+    var format = new XStringFormat { LineAlignment = XLineAlignment.Near };
+    if (leri.Lines.Length > 1)
+      rect.Height = leri.LineHeight;
+    foreach (var line in leri.Lines)
     {
-      rect = leri.Rect;
-      rect.X += leri.MarkerArea.Width + LegendEntryRenderer.SpacingBetweenMarkerAndText;
-      var format = new XStringFormat { LineAlignment = XLineAlignment.Near };
-      if (leri.Lines.Length > 1)
-        rect.Height = leri.LineHeight;
-      foreach (var line in leri.Lines)
-      {
-        if (line.Length > 0)
-          gfx.DrawString(line, leri.LegendRendererInfo.Font, leri.LegendRendererInfo.FontColor, rect, format);
-        rect.Y += leri.LineHeight;
-      }
+      if (line.Length > 0)
+        gfx.DrawString(line, leri.LegendRendererInfo.Font, leri.LegendRendererInfo.FontColor, rect, format);
+      rect.Y += leri.LineHeight;
     }
   }
 

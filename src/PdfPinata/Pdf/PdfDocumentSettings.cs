@@ -58,7 +58,9 @@ public sealed class PdfDocumentSettings
                 _trimMargins.Bottom = value.Bottom;
             }
             else
+            {
                 _trimMargins.All = 0;
+            }
         }
     }
     private TrimMargins _trimMargins = new();

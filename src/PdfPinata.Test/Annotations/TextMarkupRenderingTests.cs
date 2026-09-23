@@ -34,7 +34,7 @@ public sealed class TextMarkupRenderingTests : IDisposable
     ///   test having failed. xUnit builds a new instance of this class per test, so disposing
     ///   here frees them between tests.
     /// </remarks>
-    private readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
+    private readonly List<MagickImageCollection> _rasterized = new();
 
     public void Dispose()
     {
@@ -47,7 +47,7 @@ public sealed class TextMarkupRenderingTests : IDisposable
     /// <summary>
     ///   The line of text, and the band around it to mark up, in the space the drawing uses.
     /// </summary>
-    private static readonly XRect Line = new XRect(30, 30, 70, 16);
+    private static readonly XRect Line = new(30, 30, 70, 16);
     private const double Baseline = 42;
 
     static TextMarkupRenderingTests()

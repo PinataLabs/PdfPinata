@@ -145,14 +145,13 @@ public struct PdfObjectID : IComparable, IEquatable<PdfObjectID>
     /// </summary>
     public int CompareTo(object obj)
     {
-        if (obj is PdfObjectID)
-        {
-            var id = (PdfObjectID)obj;
-            if (_objectNumber == id._objectNumber)
-                return _generationNumber - id._generationNumber;
-            return _objectNumber - id._objectNumber;
-        }
-        return 1;
+        if (obj is not PdfObjectID)
+            return 1;
+
+        var id = (PdfObjectID)obj;
+        if (_objectNumber == id._objectNumber)
+            return _generationNumber - id._generationNumber;
+        return _objectNumber - id._objectNumber;
     }
 
     /// <summary>

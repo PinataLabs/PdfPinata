@@ -21,7 +21,7 @@ public class SplitTests
     ///   The destination of the link on the first page. It names the second page in all of them,
     ///   the difference being where in the annotation the destination sits.
     /// </summary>
-    public static TheoryData<string> Destinations => new TheoryData<string>
+    public static TheoryData<string> Destinations => new()
     {
         { "/Dest[4 0 R/Fit]" },                 // A destination on the annotation.
         { "/A<</S/GoTo/D[4 0 R/Fit]>>" },       // A go-to action.

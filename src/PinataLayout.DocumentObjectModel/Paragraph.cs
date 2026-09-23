@@ -522,7 +522,7 @@ public partial class Paragraph : DocumentObject, IVisitable
     {
         if (!serializeContentOnly)
         {
-            serializer.WriteComment((comment ?? ""));
+            serializer.WriteComment(comment ?? "");
             serializer.WriteLine("\\paragraph");
 
             var pos = serializer.BeginAttributes();
@@ -561,24 +561,26 @@ public partial class Paragraph : DocumentObject, IVisitable
         for (var idx = 0; idx < Elements.Count; ++idx)
         {
             var element = Elements[idx];
-            if (element is Character)
+            if (element is not Character)
+                continue;
+
+            var character = (Character)element;
+            if (character.SymbolName != SymbolName.ParaBreak)
+                continue;
+
+            var paragraph = new Paragraph
             {
-                var character = (Character)element;
-                if (character.SymbolName == SymbolName.ParaBreak)
-                {
-                    var paragraph = new Paragraph
-                    {
-                        Format = Format.Clone(),
-                        Style = Style,
-                        Elements = SubsetElements(startIdx, idx - 1)
-                    };
-                    startIdx = idx + 1;
-                    paragraphs.Add(paragraph);
-                }
-            }
+                Format = Format.Clone(),
+                Style = Style,
+                Elements = SubsetElements(startIdx, idx - 1)
+            };
+            startIdx = idx + 1;
+            paragraphs.Add(paragraph);
         }
         if (startIdx == 0) //No paragraph breaks given.
+        {
             return null;
+        }
         else
         {
             var paragraph = new Paragraph

@@ -298,7 +298,7 @@ public struct XSize : IFormattable, IDeserializationCallback, IEquatable<XSize>
         get
         {
             const string format = Config.SignificantFigures10;
-            return String.Format(CultureInfo.InvariantCulture,
+            return string.Format(CultureInfo.InvariantCulture,
                 "size=({2}{0:" + format + "}, {1:" + format + "})",
                 _width, _height, IsEmpty ? "Empty " : "");
         }

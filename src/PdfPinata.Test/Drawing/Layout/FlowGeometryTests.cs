@@ -302,7 +302,7 @@ public class FlowGeometryTests
     ///   untouched and does its damage later — which is why these are refused where they enter
     ///   rather than where they are noticed.
     /// </summary>
-    public static TheoryData<double> NotRealNumbers => new TheoryData<double>
+    public static TheoryData<double> NotRealNumbers => new()
     {
         double.NaN,
         double.PositiveInfinity,

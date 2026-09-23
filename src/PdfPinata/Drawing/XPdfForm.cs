@@ -170,18 +170,18 @@ public class XPdfForm : XForm
     /// </summary>
     protected override void Dispose(bool disposing)
     {
-        if (!_disposed)
+        if (_disposed)
+            return;
+
+        _disposed = true;
+        try
         {
-            _disposed = true;
-            try
-            {
-                if (_externalDocument != null)
-                    PdfDocument.Tls.DetachDocument(_externalDocument.Handle);
-            }
-            finally
-            {
-                base.Dispose(disposing);
-            }
+            if (_externalDocument != null)
+                PdfDocument.Tls.DetachDocument(_externalDocument.Handle);
+        }
+        finally
+        {
+            base.Dispose(disposing);
         }
     }
 
@@ -285,12 +285,12 @@ public class XPdfForm : XForm
         get => _transform;
         set
         {
-            if (_transform != value)
-            {
-                // discard PdfFromXObject when Transform changed
-                _pdfForm = null;
-                _transform = value;
-            }
+            if (_transform == value)
+                return;
+
+            // discard PdfFromXObject when Transform changed
+            _pdfForm = null;
+            _transform = value;
         }
     }
 
@@ -306,12 +306,12 @@ public class XPdfForm : XForm
             if (IsTemplate)
                 throw new InvalidOperationException("The page number of an XPdfForm template cannot be modified.");
 
-            if (_pageNumber != value)
-            {
-                _pageNumber = value;
-                // dispose PdfFromXObject when number has changed
-                _pdfForm = null;
-            }
+            if (_pageNumber == value)
+                return;
+
+            _pageNumber = value;
+            // dispose PdfFromXObject when number has changed
+            _pdfForm = null;
         }
     }
 
@@ -363,27 +363,27 @@ public class XPdfForm : XForm
 
         pageNumber = 0;
         var length = path.Length;
-        if (length != 0)
-        {
+        if (length == 0)
+            return path;
+
+        length--;
+        if (!char.IsDigit(path, length))
+            return path;
+
+        // Bound first: the old order asked whether path[-1] was a digit when every
+        // character was one, and char.IsDigit threw rather than the loop ending.
+        // Duplicated in PinataLayout's ImageHelper.
+        while (length >= 0 && char.IsDigit(path, length))
             length--;
-            if (char.IsDigit(path, length))
-            {
-                // Bound first: the old order asked whether path[-1] was a digit when every
-                // character was one, and char.IsDigit threw rather than the loop ending.
-                // Duplicated in PinataLayout's ImageHelper.
-                while (length >= 0 && char.IsDigit(path, length))
-                    length--;
-                if (length > 0 && path[length] == '#')
-                {
-                    // Must have at least one dot left of colon to distinguish from e.g. '#123'
-                    if (path.Contains('.'))
-                    {
-                        pageNumber = int.Parse(path[(length + 1)..]);
-                        path = path[..length];
-                    }
-                }
-            }
-        }
+        if (length <= 0 || path[length] != '#')
+            return path;
+
+        // Must have at least one dot left of colon to distinguish from e.g. '#123'
+        if (!path.Contains('.'))
+            return path;
+
+        pageNumber = int.Parse(path[(length + 1)..]);
+        path = path[..length];
 
         return path;
     }

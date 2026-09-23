@@ -27,7 +27,7 @@ public sealed class MarkupAnnotationTypesTests : IDisposable
 {
     private const string OutDir = "Out/MarkupAnnotationTypes";
 
-    private readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
+    private readonly List<MagickImageCollection> _rasterized = new();
 
     static MarkupAnnotationTypesTests()
     {
@@ -328,7 +328,7 @@ public sealed class MarkupAnnotationTypesTests : IDisposable
         ((PdfMarkupAnnotation)annotations[0]).ReplyType.Should().Be(PdfReplyType.Reply);
     }
 
-    public static TheoryData<PdfAnnotation, bool> MarkupOrNot => new TheoryData<PdfAnnotation, bool>
+    public static TheoryData<PdfAnnotation, bool> MarkupOrNot => new()
     {
         { new PdfTextAnnotation(), true },
         { new PdfFreeTextAnnotation(), true },

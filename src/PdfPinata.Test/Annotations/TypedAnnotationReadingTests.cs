@@ -30,7 +30,7 @@ public sealed class TypedAnnotationReadingTests : IDisposable
 {
     private const string OutDir = "Out/TypedAnnotationReading";
 
-    private readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
+    private readonly List<MagickImageCollection> _rasterized = new();
 
     static TypedAnnotationReadingTests()
     {
@@ -45,9 +45,9 @@ public sealed class TypedAnnotationReadingTests : IDisposable
         _rasterized.Clear();
     }
 
-    private static readonly PdfRectangle Somewhere = new PdfRectangle(new XPoint(100, 500), new XPoint(300, 600));
+    private static readonly PdfRectangle Somewhere = new(new XPoint(100, 500), new XPoint(300, 600));
 
-    public static TheoryData<string, Type> Subtypes => new TheoryData<string, Type>
+    public static TheoryData<string, Type> Subtypes => new()
     {
         { "/Text", typeof(PdfTextAnnotation) },
         { "/Link", typeof(PdfLinkAnnotation) },

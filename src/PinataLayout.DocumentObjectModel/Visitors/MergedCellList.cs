@@ -72,7 +72,7 @@ public class MergedCellList : List<Cell>
       {
         var cell = table[rwIdx, clmIdx];
         if (!IsAlreadyCovered(cell))
-          this.Add(cell);
+          Add(cell);
       }
     }
   }
@@ -85,18 +85,17 @@ public class MergedCellList : List<Cell>
   /// </remarks>
   private bool IsAlreadyCovered(Cell cell)
   {
-    for (var index = this.Count - 1; index >= 0; --index)
+    for (var index = Count - 1; index >= 0; --index)
     {
 
       var currentCell = this[index];
-      if (currentCell.Column.Index <= cell.Column.Index && currentCell.Column.Index + currentCell.MergeRight >= cell.Column.Index)
-      {
-        if (currentCell.Row.Index <= cell.Row.Index && currentCell.Row.Index + currentCell.MergeDown >= cell.Row.Index)
-          return true;
-        else if (currentCell.Row.Index + currentCell.MergeDown == cell.Row.Index - 1)
-          return false;
+      if (currentCell.Column.Index > cell.Column.Index || currentCell.Column.Index + currentCell.MergeRight < cell.Column.Index)
+        continue;
 
-      }
+      if (currentCell.Row.Index <= cell.Row.Index && currentCell.Row.Index + currentCell.MergeDown >= cell.Row.Index)
+        return true;
+      else if (currentCell.Row.Index + currentCell.MergeDown == cell.Row.Index - 1)
+        return false;
     }
     return false;
   }
@@ -122,10 +121,12 @@ public class MergedCellList : List<Cell>
       borders.parent = cell;
     }
     else
+    {
       borders = new Borders(cell.parent);
+    }
 
-    var cellIdx = this.BinarySearch(cell, new CellComparer());
-    if (!(cellIdx >= 0 && cellIdx < this.Count))
+    var cellIdx = BinarySearch(cell, new CellComparer());
+    if (!(cellIdx >= 0 && cellIdx < Count))
       throw new ArgumentException(@"cell is not a relevant cell", nameof(cell));
 
     if (cell.mergeRight > 0)
@@ -168,12 +169,12 @@ public class MergedCellList : List<Cell>
       if (nbrBrdrs != null && GetEffectiveBorderWidth(nbrBrdrs, BorderType.Bottom) >= GetEffectiveBorderWidth(borders, BorderType.Top))
         borders.SetValue("Top", GetBorderFromBorders(nbrBrdrs, BorderType.Bottom));
     }
-    if (bottomNeighbor != null)
-    {
-      var nbrBrdrs = bottomNeighbor.GetValue("Borders", GV.ReadOnly) as Borders;
-      if (nbrBrdrs != null && GetEffectiveBorderWidth(nbrBrdrs, BorderType.Top) > GetEffectiveBorderWidth(borders, BorderType.Bottom))
-        borders.SetValue("Bottom", GetBorderFromBorders(nbrBrdrs, BorderType.Top));
-    }
+    if (bottomNeighbor == null)
+      return borders;
+
+    var bottomBrdrs = bottomNeighbor.GetValue("Borders", GV.ReadOnly) as Borders;
+    if (bottomBrdrs != null && GetEffectiveBorderWidth(bottomBrdrs, BorderType.Top) > GetEffectiveBorderWidth(borders, BorderType.Bottom))
+      borders.SetValue("Bottom", GetBorderFromBorders(bottomBrdrs, BorderType.Top));
     return borders;
   }
 
@@ -182,8 +183,8 @@ public class MergedCellList : List<Cell>
   /// </summary>
   public Cell GetCoveringCell(Cell cell)
   {
-    var cellIdx = this.BinarySearch(cell, new CellComparer());
-    if (cellIdx >= 0 && cellIdx < this.Count)
+    var cellIdx = BinarySearch(cell, new CellComparer());
+    if (cellIdx >= 0 && cellIdx < Count)
       return this[cellIdx];
     else //Binary Search returns the complement of the next value, therefore, "~cellIdx - 1" is the previous cell.
       cellIdx = ~cellIdx - 1;
@@ -240,16 +241,15 @@ public class MergedCellList : List<Cell>
     var width = relevantDocObj.GetValue("width", GV.GetNull);
     var color = relevantDocObj.GetValue("color", GV.GetNull);
 
-    if (visible != null || style != null || width != null || color != null)
-    {
-      if (visible != null && !(bool)visible)
-        return 0;
-      if (width != null)
-        return (Unit)width;
+    if (visible == null && style == null && width == null && color == null)
+      return 0;
 
-      return 0.5;
-    }
-    return 0;
+    if (visible != null && !(bool)visible)
+      return 0;
+    if (width != null)
+      return (Unit)width;
+
+    return 0.5;
   }
 
   /// <summary>
@@ -277,7 +277,7 @@ public class MergedCellList : List<Cell>
         break;
 
       case NeighborPosition.Right:
-        if (cellIdx + 1 < this.Count)
+        if (cellIdx + 1 < Count)
         {
           var cell2 = this[cellIdx + 1];
           if (cell2.Row.Index == cell.Row.Index)
@@ -292,7 +292,7 @@ public class MergedCellList : List<Cell>
         break;
 
       case NeighborPosition.Bottom:
-        for (var index = cellIdx + 1; index < this.Count; ++index)
+        for (var index = cellIdx + 1; index < Count; ++index)
         {
           var currCell = this[index];
           if (IsNeighbor(cell, currCell, position))

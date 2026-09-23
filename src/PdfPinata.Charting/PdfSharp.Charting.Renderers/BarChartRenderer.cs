@@ -49,15 +49,15 @@ internal class BarChartRenderer : ChartRenderer
   /// </summary>
   internal override RendererInfo Init()
   {
-    var cri = new ChartRendererInfo { Chart = (Chart)this.rendererParms.DrawingItem };
-    this.rendererParms.RendererInfo = cri;
+    var cri = new ChartRendererInfo { Chart = (Chart)rendererParms.DrawingItem };
+    rendererParms.RendererInfo = cri;
 
     InitSeriesRendererInfo();
 
     var lr = GetLegendRenderer();
     cri.LegendRendererInfo = (LegendRendererInfo)lr.Init();
 
-    var xar = new VerticalXAxisRenderer(this.rendererParms);
+    var xar = new VerticalXAxisRenderer(rendererParms);
     cri.XAxisRendererInfo = (AxisRendererInfo)xar.Init();
 
     var yar = GetYAxisRenderer();
@@ -66,7 +66,7 @@ internal class BarChartRenderer : ChartRenderer
     var renderer = GetPlotAreaRenderer();
     cri.PlotAreaRendererInfo = (PlotAreaRendererInfo)renderer.Init();
 
-    var dlr = new BarDataLabelRenderer(this.rendererParms);
+    var dlr = new BarDataLabelRenderer(rendererParms);
     dlr.Init();
 
     return cri;
@@ -77,13 +77,13 @@ internal class BarChartRenderer : ChartRenderer
   /// </summary>
   internal override void Format()
   {
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
 
     var lr = GetLegendRenderer();
     lr.Format();
 
     // axes
-    var xar = new VerticalXAxisRenderer(this.rendererParms);
+    var xar = new VerticalXAxisRenderer(rendererParms);
     xar.Format();
 
     var yar = GetYAxisRenderer();
@@ -106,7 +106,7 @@ internal class BarChartRenderer : ChartRenderer
     var renderer = GetPlotAreaRenderer();
     renderer.Format();
 
-    var dlr = new BarDataLabelRenderer(this.rendererParms);
+    var dlr = new BarDataLabelRenderer(rendererParms);
     dlr.Format();
   }
 
@@ -115,29 +115,29 @@ internal class BarChartRenderer : ChartRenderer
   /// </summary>
   internal override void Draw()
   {
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
       
     var lr = GetLegendRenderer();
     lr.Draw();
 
-    var wr = new WallRenderer(this.rendererParms);
+    var wr = new WallRenderer(rendererParms);
     wr.Draw();
 
-    var glr = new BarGridlinesRenderer(this.rendererParms);
+    var glr = new BarGridlinesRenderer(rendererParms);
     glr.Draw();
 
-    var pabr = new PlotAreaBorderRenderer(this.rendererParms);
+    var pabr = new PlotAreaBorderRenderer(rendererParms);
     pabr.Draw();
 
     var renderer = GetPlotAreaRenderer();
     renderer.Draw();
 
-    var dlr = new BarDataLabelRenderer(this.rendererParms);
+    var dlr = new BarDataLabelRenderer(rendererParms);
     dlr.Draw();
 
     if (cri.XAxisRendererInfo.Axis != null)
     {
-      var xar = new VerticalXAxisRenderer(this.rendererParms);
+      var xar = new VerticalXAxisRenderer(rendererParms);
       xar.Draw();
     }
 
@@ -153,14 +153,14 @@ internal class BarChartRenderer : ChartRenderer
   /// </summary>
   private PlotAreaRenderer GetPlotAreaRenderer()
   {
-    var chart = (Chart)this.rendererParms.DrawingItem;
+    var chart = (Chart)rendererParms.DrawingItem;
     switch (chart.type)
     {
       case ChartType.Bar2D:
-        return new BarClusteredPlotAreaRenderer(this.rendererParms);
+        return new BarClusteredPlotAreaRenderer(rendererParms);
 
       case ChartType.BarStacked2D:
-        return new BarStackedPlotAreaRenderer(this.rendererParms);
+        return new BarStackedPlotAreaRenderer(rendererParms);
     }
     return null;
   }
@@ -170,14 +170,14 @@ internal class BarChartRenderer : ChartRenderer
   /// </summary>
   private LegendRenderer GetLegendRenderer()
   {
-    var chart = (Chart)this.rendererParms.DrawingItem;
+    var chart = (Chart)rendererParms.DrawingItem;
     switch (chart.type)
     {
       case ChartType.Bar2D:
-        return new BarClusteredLegendRenderer(this.rendererParms);
+        return new BarClusteredLegendRenderer(rendererParms);
 
       case ChartType.BarStacked2D:
-        return new ColumnLikeLegendRenderer(this.rendererParms);
+        return new ColumnLikeLegendRenderer(rendererParms);
     }
     return null;
   }
@@ -187,14 +187,14 @@ internal class BarChartRenderer : ChartRenderer
   /// </summary>
   private YAxisRenderer GetYAxisRenderer()
   {
-    var chart = (Chart)this.rendererParms.DrawingItem;
+    var chart = (Chart)rendererParms.DrawingItem;
     switch (chart.type)
     {
       case ChartType.Bar2D:
-        return new HorizontalYAxisRenderer(this.rendererParms);
+        return new HorizontalYAxisRenderer(rendererParms);
 
       case ChartType.BarStacked2D:
-        return new HorizontalStackedYAxisRenderer(this.rendererParms);
+        return new HorizontalStackedYAxisRenderer(rendererParms);
     }
     return null;
   }
@@ -204,7 +204,7 @@ internal class BarChartRenderer : ChartRenderer
   /// </summary>
   private void InitSeriesRendererInfo()
   {
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
 
     var seriesColl = cri.Chart.SeriesCollection;
     cri.SeriesRendererInfos = new SeriesRendererInfo[seriesColl.Count];
@@ -223,7 +223,7 @@ internal class BarChartRenderer : ChartRenderer
   /// </summary>
   internal void InitSeries()
   {
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
 
     var seriesIndex = 0;
     foreach (var sri in cri.SeriesRendererInfos)

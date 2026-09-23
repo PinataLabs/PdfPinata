@@ -49,7 +49,7 @@ internal abstract class ColumnLikeChartRenderer : ChartRenderer
   /// </summary>
   internal void CalcLayout()
   {
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
 
     // Calculate rects and positions.
     var chartRect = LayoutLegend();

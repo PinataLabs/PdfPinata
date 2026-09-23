@@ -329,7 +329,7 @@ public partial class Section : DocumentObject, IVisitable
     /// </summary>
     internal override void Serialize(Serializer serializer)
     {
-        serializer.WriteComment((comment ?? ""));
+        serializer.WriteComment(comment ?? "");
         serializer.WriteLine("\\section");
 
         var pos = serializer.BeginAttributes();

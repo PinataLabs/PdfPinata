@@ -32,7 +32,7 @@ public class FontEmbeddingRestrictionTests
     private const ushort NoSubsetting = 0x0100;
     private const ushort BitmapEmbeddingOnly = 0x0200;
 
-    private static readonly Dictionary<ushort, char> Letters = new Dictionary<ushort, char>
+    private static readonly Dictionary<ushort, char> Letters = new()
     {
         [Installable] = 'A',
         [PreviewAndPrint] = 'B',
@@ -45,7 +45,7 @@ public class FontEmbeddingRestrictionTests
         [Editable | BitmapEmbeddingOnly] = 'J',
     };
 
-    private static readonly Lazy<byte[]> Liberation = new Lazy<byte[]>(() => File.ReadAllBytes(
+    private static readonly Lazy<byte[]> Liberation = new(() => File.ReadAllBytes(
         PathHelper.GetInstance().GetAssetPath("Fonts", "LiberationSans-Regular.ttf")));
 
     [Fact]

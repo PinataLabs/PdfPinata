@@ -211,7 +211,9 @@ internal class KeyWords
         docsym = Symbol.None;
     }
     else
+    {
       docsym = (Symbol)obj;
+    }
     return docsym;
   }
 

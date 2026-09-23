@@ -156,7 +156,7 @@ internal class ParagraphRenderer : Renderer
             for (var idx = 0; idx < parFormatInfo.LineCount; ++idx)
             {
                 var lineInfo = parFormatInfo.GetLineInfo(idx);
-                isLastLine = (idx == parFormatInfo.LineCount - 1);
+                isLastLine = idx == parFormatInfo.LineCount - 1;
 
                 lastTabPosition = 0;
                 if (lineInfo.reMeasureLine)
@@ -383,47 +383,47 @@ internal class ParagraphRenderer : Renderer
                 currentXPosition = ProbeAfterDecimalAlignedTab(nextTabStop.Position.Point, out notFitting);
                 break;
         }
-        if (!notFitting)
-        {
-            // For correct right paragraph alignment with tabs
-            if (!IgnoreHorizontalGrowth)
-                currentLineWidth += currentXPosition - xPositionBeforeTab;
+        if (notFitting)
+            return FormatResult.NewLine;
 
-            tabOffsets.Add(new TabOffset(nextTabStop.Leader, currentXPosition - xPositionBeforeTab));
-            if (currentLeaf != null)
-                lastTab = currentLeaf.Current;
-        }
+        // For correct right paragraph alignment with tabs
+        if (!IgnoreHorizontalGrowth)
+            currentLineWidth += currentXPosition - xPositionBeforeTab;
 
-        return notFitting ? FormatResult.NewLine : FormatResult.Continue;
+        tabOffsets.Add(new TabOffset(nextTabStop.Leader, currentXPosition - xPositionBeforeTab));
+        if (currentLeaf != null)
+            lastTab = currentLeaf.Current;
+
+        return FormatResult.Continue;
     }
 
     private static bool IsLineBreak(DocumentObject docObj)
     {
-        if (docObj is Character)
-        {
-            if (((Character)docObj).SymbolName == SymbolName.LineBreak)
-                return true;
-        }
+        if (docObj is not Character)
+            return false;
+
+        if (((Character)docObj).SymbolName == SymbolName.LineBreak)
+            return true;
         return false;
     }
 
     private static bool IsBlank(DocumentObject docObj)
     {
-        if (docObj is Text)
-        {
-            if (((Text)docObj).Content == " ")
-                return true;
-        }
+        if (docObj is not Text)
+            return false;
+
+        if (((Text)docObj).Content == " ")
+            return true;
         return false;
     }
 
     private static bool IsTab(DocumentObject docObj)
     {
-        if (docObj is Character)
-        {
-            if (((Character)docObj).SymbolName == SymbolName.Tab)
-                return true;
-        }
+        if (docObj is not Character)
+            return false;
+
+        if (((Character)docObj).SymbolName == SymbolName.Tab)
+            return true;
         return false;
     }
 
@@ -914,13 +914,13 @@ internal class ParagraphRenderer : Renderer
         var segmentStart = 0;
         for (var idx = 0; idx <= isTab.Count; idx++)
         {
-            if (idx == isTab.Count || isTab[idx])
-            {
-                if (idx > segmentStart)
-                    anyReordered |= ReorderSegment(segmentStart, idx, text, widths, spans, placed);
+            if (idx != isTab.Count && !isTab[idx])
+                continue;
 
-                segmentStart = idx + 1;
-            }
+            if (idx > segmentStart)
+                anyReordered |= ReorderSegment(segmentStart, idx, text, widths, spans, placed);
+
+            segmentStart = idx + 1;
         }
 
         return anyReordered ? placed : null;
@@ -1100,16 +1100,16 @@ internal class ParagraphRenderer : Renderer
         }
 
         var word = BrokenWordOf(currentLeaf.Current);
-        if (!ReferenceEquals(word, scopedWord))
-        {
-            CloseSpanScope();
+        if (ReferenceEquals(word, scopedWord))
+            return;
 
-            if (word != null)
-            {
-                scopedWord = word;
-                spanScope = Tagger.Marks(Gfx, SpanElementOf(word));
-            }
-        }
+        CloseSpanScope();
+
+        if (word == null)
+            return;
+
+        scopedWord = word;
+        spanScope = Tagger.Marks(Gfx, SpanElementOf(word));
     }
 
     private void CloseInlineScopes()
@@ -1292,7 +1292,7 @@ internal class ParagraphRenderer : Renderer
     /// </summary>
     private sealed class ReferenceComparer : IEqualityComparer<DocumentObject>
     {
-        internal static readonly ReferenceComparer Instance = new ReferenceComparer();
+        internal static readonly ReferenceComparer Instance = new();
 
         public bool Equals(DocumentObject x, DocumentObject y) => ReferenceEquals(x, y);
 
@@ -1371,30 +1371,29 @@ internal class ParagraphRenderer : Renderer
     {
         get
         {
-            if (phase == Phase.Rendering &&
-                paragraph.Format.Alignment == ParagraphAlignment.Justify && lastTabPassed)
-            {
-                if (currentBlankCount >= 1 && !(isLastLine && renderInfo.FormatInfo.IsEnding))
-                {
-                    var contentArea = renderInfo.LayoutInfo.ContentArea;
-                    // Justification stretches blanks to fill the line's own measure. Reading the
-                    // content area's width here would stretch a line beside a shape to the full
-                    // measure, which is ragged rather than obviously broken.
-                    var width = (currentLineFittingRect
-                                 ?? FittingRectOrBounds(contentArea, currentYPosition, currentVerticalInfo.height)).Width;
-                    if (lastTabPosition > 0)
-                    {
-                        width -= (lastTabPosition -
-                                  contentArea.X);
-                    }
-                    else
-                        width -= LeftIndent;
+            if (phase != Phase.Rendering ||
+                paragraph.Format.Alignment != ParagraphAlignment.Justify || !lastTabPassed)
+                return MeasureString(" ");
 
-                    width -= RightIndent;
-                    return (width - currentWordsWidth) / (currentBlankCount);
-                }
+            if (currentBlankCount < 1 || (isLastLine && renderInfo.FormatInfo.IsEnding))
+                return MeasureString(" ");
+
+            var contentArea = renderInfo.LayoutInfo.ContentArea;
+            // Justification stretches blanks to fill the line's own measure. Reading the
+            // content area's width here would stretch a line beside a shape to the full
+            // measure, which is ragged rather than obviously broken.
+            var width = (currentLineFittingRect
+                         ?? FittingRectOrBounds(contentArea, currentYPosition, currentVerticalInfo.height)).Width;
+            if (lastTabPosition > 0)
+            {
+                width -= lastTabPosition -
+                          contentArea.X;
             }
-            return MeasureString(" ");
+            else
+                width -= LeftIndent;
+
+            width -= RightIndent;
+            return (width - currentWordsWidth) / currentBlankCount;
         }
     }
 
@@ -1694,12 +1693,11 @@ internal class ParagraphRenderer : Renderer
     {
         if (probing)
         {
-            if (!IgnoreBlank())
-            {
-                probedText.Append(' ');
-                currentXPosition += CurrentWordDistance;
-            }
+            if (IgnoreBlank())
+                return;
 
+            probedText.Append(' ');
+            currentXPosition += CurrentWordDistance;
             return;
         }
 
@@ -1763,32 +1761,32 @@ internal class ParagraphRenderer : Renderer
         hyperlinkRect.Width = right - hyperlinkRect.X;
         hyperlinkRect.Height = bottom - hyperlinkRect.Y;
         var page = Gfx.PdfPage;
-        if (page != null)
+        if (page == null)
+            return;
+
+        var rect = Gfx.Transformer.WorldToDefaultPage(hyperlinkRect);
+        PdfPinata.Pdf.Annotations.PdfLinkAnnotation annotation = null;
+
+        switch (hyperlink.Type)
         {
-            var rect = Gfx.Transformer.WorldToDefaultPage(hyperlinkRect);
-            PdfPinata.Pdf.Annotations.PdfLinkAnnotation annotation = null;
+            case HyperlinkType.Local:
+                var pageRef = fieldInfos.GetPhysicalPageNumber(hyperlink.Name);
+                if (pageRef > 0)
+                    annotation = page.AddDocumentLink(new PdfRectangle(rect), pageRef,
+                        fieldInfos.GetBookmarkTop(hyperlink.Name));
+                break;
 
-            switch (hyperlink.Type)
-            {
-                case HyperlinkType.Local:
-                    var pageRef = fieldInfos.GetPhysicalPageNumber(hyperlink.Name);
-                    if (pageRef > 0)
-                        annotation = page.AddDocumentLink(new PdfRectangle(rect), pageRef,
-                            fieldInfos.GetBookmarkTop(hyperlink.Name));
-                    break;
+            case HyperlinkType.Web:
+                annotation = page.AddWebLink(new PdfRectangle(rect), hyperlink.Name);
+                break;
 
-                case HyperlinkType.Web:
-                    annotation = page.AddWebLink(new PdfRectangle(rect), hyperlink.Name);
-                    break;
-
-                case HyperlinkType.File:
-                    annotation = page.AddFileLink(new PdfRectangle(rect), hyperlink.Name);
-                    break;
-            }
-
-            TagLink(hyperlink, annotation);
-            hyperlinkRect = new XRect();
+            case HyperlinkType.File:
+                annotation = page.AddFileLink(new PdfRectangle(rect), hyperlink.Name);
+                break;
         }
+
+        TagLink(hyperlink, annotation);
+        hyperlinkRect = new XRect();
     }
 
     /// <summary>
@@ -1839,13 +1837,13 @@ internal class ParagraphRenderer : Renderer
             currentHyperlink = hyperlink;
         }
 
-        if (reordering || currentLeaf.Current == endLeaf.Current)
-        {
-            if (currentHyperlink != null)
-                EndHyperlink(currentHyperlink, right, bottom);
+        if (!reordering && currentLeaf.Current != endLeaf.Current)
+            return;
 
-            currentHyperlink = null;
-        }
+        if (currentHyperlink != null)
+            EndHyperlink(currentHyperlink, right, bottom);
+
+        currentHyperlink = null;
     }
     private Hyperlink currentHyperlink;
     private XRect hyperlinkRect;
@@ -1869,7 +1867,9 @@ internal class ParagraphRenderer : Renderer
                 position += FontHandler.GetSubSuperScaling(CurrentFont) * (xFont.GetHeight() - FontHandler.GetDescent(xFont));
             }
             else
+            {
                 position += verticalInfo.inherentlineSpace - verticalInfo.descent;
+            }
 
             return position;
         }
@@ -1983,59 +1983,58 @@ internal class ParagraphRenderer : Renderer
         if (phase == Phase.Formatting)
         {
             var format = paragraph.Format;
-            if (!format.IsNull("ListInfo"))
+            if (format.IsNull("ListInfo"))
+                return false;
+
+            var listInfo = format.ListInfo;
+            double size = format.Font.Size;
+            var style = FontHandler.GetXStyle(format.Font);
+
+            switch (listInfo.ListType)
             {
-                var listInfo = format.ListInfo;
-                double size = format.Font.Size;
-                var style = FontHandler.GetXStyle(format.Font);
+                case ListType.BulletList1:
+                    symbol = "·";
+                    font = new XFont(GlobalFontSettings.FontResolver.DefaultFontName, size, style);
+                    break;
 
-                switch (listInfo.ListType)
-                {
-                    case ListType.BulletList1:
-                        symbol = "·";
-                        font = new XFont(GlobalFontSettings.FontResolver.DefaultFontName, size, style);
-                        break;
+                case ListType.BulletList2:
+                    symbol = "o";
+                    font = new XFont(GlobalFontSettings.FontResolver.DefaultFontName, size, style);
+                    break;
 
-                    case ListType.BulletList2:
-                        symbol = "o";
-                        font = new XFont(GlobalFontSettings.FontResolver.DefaultFontName, size, style);
-                        break;
+                case ListType.BulletList3:
+                    symbol = "§";
+                    font = new XFont(GlobalFontSettings.FontResolver.DefaultFontName, size, style);
+                    break;
 
-                    case ListType.BulletList3:
-                        symbol = "§";
-                        font = new XFont(GlobalFontSettings.FontResolver.DefaultFontName, size, style);
-                        break;
+                case ListType.NumberList1:
+                    symbol = DocumentRenderer.NextListNumber(listInfo) + ".";
+                    font = FontHandler.FontToXFont(format.Font, DocumentRenderer.PrivateFonts, Gfx.MUH);
+                    break;
 
-                    case ListType.NumberList1:
-                        symbol = DocumentRenderer.NextListNumber(listInfo) + ".";
-                        font = FontHandler.FontToXFont(format.Font, DocumentRenderer.PrivateFonts, Gfx.MUH);
-                        break;
+                case ListType.NumberList2:
+                    symbol = DocumentRenderer.NextListNumber(listInfo) + ")";
+                    font = FontHandler.FontToXFont(format.Font, DocumentRenderer.PrivateFonts, Gfx.MUH);
+                    break;
 
-                    case ListType.NumberList2:
-                        symbol = DocumentRenderer.NextListNumber(listInfo) + ")";
-                        font = FontHandler.FontToXFont(format.Font, DocumentRenderer.PrivateFonts, Gfx.MUH);
-                        break;
-
-                    case ListType.NumberList3:
-                        symbol = NumberFormatter.Format(DocumentRenderer.NextListNumber(listInfo), "alphabetic") + ")";
-                        font = FontHandler.FontToXFont(format.Font, DocumentRenderer.PrivateFonts, Gfx.MUH);
-                        break;
-                }
-                formatInfo.listFont = font;
-                formatInfo.listSymbol = symbol;
-                return true;
+                case ListType.NumberList3:
+                    symbol = NumberFormatter.Format(DocumentRenderer.NextListNumber(listInfo), "alphabetic") + ")";
+                    font = FontHandler.FontToXFont(format.Font, DocumentRenderer.PrivateFonts, Gfx.MUH);
+                    break;
             }
+            formatInfo.listFont = font;
+            formatInfo.listSymbol = symbol;
+            return true;
         }
         else
         {
-            if (formatInfo.listFont != null && formatInfo.listSymbol != null)
-            {
-                font = formatInfo.listFont;
-                symbol = formatInfo.listSymbol;
-                return true;
-            }
+            if (formatInfo.listFont == null || formatInfo.listSymbol == null)
+                return false;
+
+            font = formatInfo.listFont;
+            symbol = formatInfo.listSymbol;
+            return true;
         }
-        return false;
     }
 
     private XUnit LeftIndent
@@ -2056,7 +2055,9 @@ internal class ParagraphRenderer : Renderer
                 return leftIndent + paragraph.Format.FirstLineIndent.Point;
             }
             else
+            {
                 return leftIndent;
+            }
         }
     }
 
@@ -2069,7 +2070,7 @@ internal class ParagraphRenderer : Renderer
     /// <param name="previousFormatInfo">The format info that was obtained on formatting the same paragraph on a previous area.</param>
     internal override void Format(Area area, FormatInfo previousFormatInfo)
     {
-        var formatInfo = ((ParagraphFormatInfo)renderInfo.FormatInfo);
+        var formatInfo = (ParagraphFormatInfo)renderInfo.FormatInfo;
         if (!InitFormat(area, previousFormatInfo))
         {
             formatInfo.isStarting = false;
@@ -2157,21 +2158,21 @@ internal class ParagraphRenderer : Renderer
             layoutInfo.MarginBottom = 0;
             layoutInfo.KeepWithNext = false;
         }
-        if (parInfo.LineCount > 0)
-        {
-            var startingHeight = parInfo.GetFirstLineInfo().vertical.height;
-            if (parInfo.isStarting && paragraph.Format.WidowControl && parInfo.LineCount >= 2)
-                startingHeight += parInfo.GetLineInfo(1).vertical.height;
+        if (parInfo.LineCount <= 0)
+            return;
 
-            layoutInfo.StartingHeight = startingHeight;
+        var startingHeight = parInfo.GetFirstLineInfo().vertical.height;
+        if (parInfo.isStarting && paragraph.Format.WidowControl && parInfo.LineCount >= 2)
+            startingHeight += parInfo.GetLineInfo(1).vertical.height;
 
-            var trailingHeight = parInfo.GetLastLineInfo().vertical.height;
+        layoutInfo.StartingHeight = startingHeight;
 
-            if (parInfo.IsEnding && paragraph.Format.WidowControl && parInfo.LineCount >= 2)
-                trailingHeight += parInfo.GetLineInfo(parInfo.LineCount - 2).vertical.height;
+        var trailingHeight = parInfo.GetLastLineInfo().vertical.height;
 
-            layoutInfo.TrailingHeight = trailingHeight;
-        }
+        if (parInfo.IsEnding && paragraph.Format.WidowControl && parInfo.LineCount >= 2)
+            trailingHeight += parInfo.GetLineInfo(parInfo.LineCount - 2).vertical.height;
+
+        layoutInfo.TrailingHeight = trailingHeight;
     }
 
 
@@ -2436,16 +2437,16 @@ internal class ParagraphRenderer : Renderer
 
     private static bool IsSpaceCharacter(DocumentObject docObj)
     {
-        if (docObj is Character)
+        if (docObj is not Character)
+            return false;
+
+        switch (((Character)docObj).SymbolName)
         {
-            switch (((Character)docObj).SymbolName)
-            {
-                case SymbolName.Blank:
-                case SymbolName.Em:
-                case SymbolName.Em4:
-                case SymbolName.En:
-                    return true;
-            }
+            case SymbolName.Blank:
+            case SymbolName.Em:
+            case SymbolName.Em4:
+            case SymbolName.En:
+                return true;
         }
         return false;
     }
@@ -2591,19 +2592,19 @@ internal class ParagraphRenderer : Renderer
         XUnit right = contentArea.X + contentArea.Width;
         right -= format.RightIndent;
 
-        if (!paragraph.Format.IsNull("Borders"))
-        {
-            var borders = format.Borders;
-            var bordersRenderer = new BordersRenderer(borders, Gfx);
+        if (paragraph.Format.IsNull("Borders"))
+            return new Rectangle(left, top, right - left, bottom - top);
 
-            if (renderInfo.FormatInfo.IsStarting)
-                top += bordersRenderer.GetWidth(BorderType.Top);
-            if (renderInfo.FormatInfo.IsEnding)
-                bottom -= bordersRenderer.GetWidth(BorderType.Bottom);
+        var borders = format.Borders;
+        var bordersRenderer = new BordersRenderer(borders, Gfx);
 
-            left -= borders.DistanceFromLeft;
-            right += borders.DistanceFromRight;
-        }
+        if (renderInfo.FormatInfo.IsStarting)
+            top += bordersRenderer.GetWidth(BorderType.Top);
+        if (renderInfo.FormatInfo.IsEnding)
+            bottom -= bordersRenderer.GetWidth(BorderType.Bottom);
+
+        left -= borders.DistanceFromLeft;
+        right += borders.DistanceFromRight;
         return new Rectangle(left, top, right - left, bottom - top);
     }
 
@@ -2697,27 +2698,27 @@ internal class ParagraphRenderer : Renderer
     {
         string symbol;
         XFont font;
-        if (GetListSymbol(out symbol, out font))
-        {
-            var brush = FontHandler.FontColorToXBrush(paragraph.Format.Font);
-            Gfx.DrawString(symbol, font, brush, currentXPosition, CurrentBaselinePosition);
-            currentXPosition += Gfx.MeasureString(symbol, font, StringFormat).Width;
-            var tabOffset = NextTabOffset();
-            currentXPosition += tabOffset.offset;
-            lastTabPosition = currentXPosition;
-        }
+        if (!GetListSymbol(out symbol, out font))
+            return;
+
+        var brush = FontHandler.FontColorToXBrush(paragraph.Format.Font);
+        Gfx.DrawString(symbol, font, brush, currentXPosition, CurrentBaselinePosition);
+        currentXPosition += Gfx.MeasureString(symbol, font, StringFormat).Width;
+        var tabOffset = NextTabOffset();
+        currentXPosition += tabOffset.offset;
+        lastTabPosition = currentXPosition;
     }
 
     private void FormatListSymbol()
     {
         string symbol;
         XFont font;
-        if (GetListSymbol(out symbol, out font))
-        {
-            currentVerticalInfo = CalcVerticalInfo(font);
-            currentXPosition += Gfx.MeasureString(symbol, font, StringFormat).Width;
-            FormatTab();
-        }
+        if (!GetListSymbol(out symbol, out font))
+            return;
+
+        currentVerticalInfo = CalcVerticalInfo(font);
+        currentXPosition += Gfx.MeasureString(symbol, font, StringFormat).Width;
+        FormatTab();
     }
 
     private FormatResult FormatSpace(Character character)
@@ -2841,14 +2842,13 @@ internal class ParagraphRenderer : Renderer
         if (rect == null)
             return FormatResult.NewArea;
 
-        if (width + currentXPosition <= rect.X + rect.Width + Tolerance)
-        {
-            currentXPosition += width;
-            currentVerticalInfo = newVertInfo;
-            SaveBlankWidth(width);
-            return FormatResult.Continue;
-        }
-        return FormatResult.NewLine;
+        if (width + currentXPosition > rect.X + rect.Width + Tolerance)
+            return FormatResult.NewLine;
+
+        currentXPosition += width;
+        currentVerticalInfo = newVertInfo;
+        SaveBlankWidth(width);
+        return FormatResult.Continue;
     }
 
     private FormatResult FormatLineBreak()
@@ -2932,7 +2932,9 @@ internal class ParagraphRenderer : Renderer
         while (currentLeaf != null)
         {
             if (currentLeaf.Current is BookmarkField)
+            {
                 currentLeaf = currentLeaf.GetPreviousLeaf();
+            }
             else if (IsBlank(currentLeaf.Current))
             {
                 if (!IgnoreBlank())
@@ -2941,7 +2943,9 @@ internal class ParagraphRenderer : Renderer
                 break;
             }
             else
+            {
                 break;
+            }
         }
         currentLeaf = savedIter;
         return width;
@@ -2949,17 +2953,17 @@ internal class ParagraphRenderer : Renderer
 
     private void HandleNonFittingLine()
     {
-        if (currentLeaf != null)
+        if (currentLeaf == null)
+            return;
+
+        if (savedWordWidth > 0)
         {
-            if (savedWordWidth > 0)
-            {
-                currentWordsWidth = savedWordWidth;
-                currentLineWidth = savedWordWidth;
-            }
-            currentLeaf = currentLeaf.GetNextLeaf();
-            currentYPosition += currentVerticalInfo.height;
-            currentVerticalInfo = new VerticalLineInfo();
+            currentWordsWidth = savedWordWidth;
+            currentLineWidth = savedWordWidth;
         }
+        currentLeaf = currentLeaf.GetNextLeaf();
+        currentYPosition += currentVerticalInfo.height;
+        currentVerticalInfo = new VerticalLineInfo();
     }
 
     /// <summary>
@@ -3055,15 +3059,15 @@ internal class ParagraphRenderer : Renderer
         get
         {
             XUnit offset = 0;
-            if (isFirstLine && !paragraph.Format.IsNull("Borders"))
-            {
-                offset += paragraph.Format.Borders.DistanceFromTop;
-                if (!paragraph.Format.IsNull("Borders"))
-                {
-                    var bordersRenderer = new BordersRenderer(paragraph.Format.Borders, Gfx);
-                    offset += bordersRenderer.GetWidth(BorderType.Top);
-                }
-            }
+            if (!isFirstLine || paragraph.Format.IsNull("Borders"))
+                return offset;
+
+            offset += paragraph.Format.Borders.DistanceFromTop;
+            if (paragraph.Format.IsNull("Borders"))
+                return offset;
+
+            var bordersRenderer = new BordersRenderer(paragraph.Format.Borders, Gfx);
+            offset += bordersRenderer.GetWidth(BorderType.Top);
             return offset;
         }
     }
@@ -3088,16 +3092,16 @@ internal class ParagraphRenderer : Renderer
         {
             XUnit offset = 0;
             //while formatting, it is impossible to determine whether we are in the last line until the last visible leaf is reached.
-            if ((phase == Phase.Formatting && (currentLeaf == null || IsLastVisibleLeaf))
-                || (phase == Phase.Rendering && (isLastLine)))
-            {
-                if (!paragraph.Format.IsNull("Borders"))
-                {
-                    offset += paragraph.Format.Borders.DistanceFromBottom;
-                    var bordersRenderer = new BordersRenderer(paragraph.Format.Borders, Gfx);
-                    offset += bordersRenderer.GetWidth(BorderType.Bottom);
-                }
-            }
+            if (!((phase == Phase.Formatting && (currentLeaf == null || IsLastVisibleLeaf))
+                  || (phase == Phase.Rendering && isLastLine)))
+                return offset;
+
+            if (paragraph.Format.IsNull("Borders"))
+                return offset;
+
+            offset += paragraph.Format.Borders.DistanceFromBottom;
+            var bordersRenderer = new BordersRenderer(paragraph.Format.Borders, Gfx);
+            offset += bordersRenderer.GetWidth(BorderType.Bottom);
             return offset;
         }
     }
@@ -3165,15 +3169,15 @@ internal class ParagraphRenderer : Renderer
     {
         get
         {
-            if (currentLeaf != null)
-            {
-                var parent = DocumentRelations.GetParent(currentLeaf.Current);
-                parent = DocumentRelations.GetParent(parent);
-                if (parent is FormattedText)
-                    return ((FormattedText)parent).Font;
-                else if (parent is Hyperlink)
-                    return ((Hyperlink)parent).Font;
-            }
+            if (currentLeaf == null)
+                return paragraph.Format.Font;
+
+            var parent = DocumentRelations.GetParent(currentLeaf.Current);
+            parent = DocumentRelations.GetParent(parent);
+            if (parent is FormattedText)
+                return ((FormattedText)parent).Font;
+            else if (parent is Hyperlink)
+                return ((Hyperlink)parent).Font;
             return paragraph.Format.Font;
         }
     }
@@ -3227,13 +3231,13 @@ internal class ParagraphRenderer : Renderer
             currentUnderlinePen = pen;
         }
 
-        if (reordering || currentLeaf.Current == endLeaf.Current)
-        {
-            if (currentUnderlinePen != null)
-                EndUnderline(currentUnderlinePen, currentXPosition + width);
+        if (!reordering && currentLeaf.Current != endLeaf.Current)
+            return;
 
-            currentUnderlinePen = null;
-        }
+        if (currentUnderlinePen != null)
+            EndUnderline(currentUnderlinePen, currentXPosition + width);
+
+        currentUnderlinePen = null;
     }
 
     private void StartUnderline(XUnit xPosition)
@@ -3289,13 +3293,13 @@ internal class ParagraphRenderer : Renderer
             currentStrikethroughPen = pen;
         }
 
-        if (reordering || currentLeaf.Current == endLeaf.Current)
-        {
-            if (currentStrikethroughPen != null)
-                EndStrikethrough(currentStrikethroughPen, currentXPosition + width);
+        if (!reordering && currentLeaf.Current != endLeaf.Current)
+            return;
 
-            currentStrikethroughPen = null;
-        }
+        if (currentStrikethroughPen != null)
+            EndStrikethrough(currentStrikethroughPen, currentXPosition + width);
+
+        currentStrikethroughPen = null;
     }
 
     private void StartStrikethrough(XUnit xPosition)
@@ -3340,22 +3344,23 @@ internal class ParagraphRenderer : Renderer
     {
         get
         {
-            if (currentLeaf != null && currentLeaf.Current is Image)
+            if (currentLeaf == null || currentLeaf.Current is not Image)
+                return null;
+
+            var image = (Image)currentLeaf.Current;
+            if (imageRenderInfos != null && imageRenderInfos.ContainsKey(image))
             {
-                var image = (Image)currentLeaf.Current;
-                if (imageRenderInfos != null && imageRenderInfos.ContainsKey(image))
-                    return (RenderInfo)imageRenderInfos[image];
-
-                else
-                {
-                    imageRenderInfos ??= new Hashtable();
-
-                    var imageRenderInfo = CalcImageRenderInfo(image);
-                    imageRenderInfos.Add(image, imageRenderInfo);
-                    return imageRenderInfo;
-                }
+                return (RenderInfo)imageRenderInfos[image];
             }
-            return null;
+
+            else
+            {
+                imageRenderInfos ??= new Hashtable();
+
+                var imageRenderInfo = CalcImageRenderInfo(image);
+                imageRenderInfos.Add(image, imageRenderInfo);
+                return imageRenderInfo;
+            }
         }
     }
     private XPen GetUnderlinePen(bool isWord)

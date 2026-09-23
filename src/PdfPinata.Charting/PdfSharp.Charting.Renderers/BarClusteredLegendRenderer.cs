@@ -49,17 +49,17 @@ internal class BarClusteredLegendRenderer : ColumnLikeLegendRenderer
   /// </summary>
   internal override void Draw()
   {
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
     var lri = cri.LegendRendererInfo;
     if (lri == null)
       return;
 
-    var gfx = this.rendererParms.Graphics;
+    var gfx = rendererParms.Graphics;
     var parms = new RendererParameters { Graphics = gfx };
 
     var ler = new LegendEntryRenderer(parms);
 
-    var verticalLegend = (lri.Legend.docking == DockingType.Left || lri.Legend.docking == DockingType.Right);
+    var verticalLegend = lri.Legend.docking == DockingType.Left || lri.Legend.docking == DockingType.Right;
     var paddingFactor = 1;
     if (lri.BorderPen != null)
       paddingFactor = 2;

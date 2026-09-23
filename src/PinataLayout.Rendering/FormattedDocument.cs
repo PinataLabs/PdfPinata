@@ -147,41 +147,41 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
         }
 
         var footers = (HeadersFooters)currentSection.GetValue("Footers", GV.ReadOnly);
-        if (footers != null)
-        {
-            var pagePos = CurrentPagePosition;
-            var hfp = new HeaderFooterPosition(sectionNumber, pagePos);
-            if (!formattedFooters.ContainsKey(hfp))
-                FormatFooter(hfp, ChooseHeaderFooter(footers, pagePos));
-        }
+        if (footers == null)
+            return;
+
+        var footerPos = CurrentPagePosition;
+        var footerHfp = new HeaderFooterPosition(sectionNumber, footerPos);
+        if (!formattedFooters.ContainsKey(footerHfp))
+            FormatFooter(footerHfp, ChooseHeaderFooter(footers, footerPos));
     }
 
 
     private void FormatHeader(HeaderFooterPosition hfp, HeaderFooter header)
     {
-        if (header != null && !formattedHeaders.ContainsKey(hfp))
-        {
-            var formattedHeaderFooter = new FormattedHeaderFooter(header, documentRenderer, currentFieldInfos)
-                {
-                    ContentRect = GetHeaderArea(currentSection, currentPage)
-                };
-            formattedHeaderFooter.Format(gfx);
-            formattedHeaders.Add(hfp, formattedHeaderFooter);
-        }
+        if (header == null || formattedHeaders.ContainsKey(hfp))
+            return;
+
+        var formattedHeaderFooter = new FormattedHeaderFooter(header, documentRenderer, currentFieldInfos)
+            {
+                ContentRect = GetHeaderArea(currentSection, currentPage)
+            };
+        formattedHeaderFooter.Format(gfx);
+        formattedHeaders.Add(hfp, formattedHeaderFooter);
     }
 
 
     private void FormatFooter(HeaderFooterPosition hfp, HeaderFooter footer)
     {
-        if (footer != null && !formattedFooters.ContainsKey(hfp))
-        {
-            var formattedHeaderFooter = new FormattedHeaderFooter(footer, documentRenderer, currentFieldInfos)
-                {
-                    ContentRect = GetFooterArea(currentSection, currentPage)
-                };
-            formattedHeaderFooter.Format(gfx);
-            formattedFooters.Add(hfp, formattedHeaderFooter);
-        }
+        if (footer == null || formattedFooters.ContainsKey(hfp))
+            return;
+
+        var formattedHeaderFooter = new FormattedHeaderFooter(footer, documentRenderer, currentFieldInfos)
+            {
+                ContentRect = GetFooterArea(currentSection, currentPage)
+            };
+        formattedHeaderFooter.Format(gfx);
+        formattedFooters.Add(hfp, formattedHeaderFooter);
     }
 
     /// <summary>
@@ -254,15 +254,14 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
     /// <returns>Rendering information for the page content.</returns>
     internal RenderInfo[] GetRenderInfos(int page)
     {
-        if (pageRenderInfos.TryGetValue(page, out var infos))
-        {
-            // Not ToArray(Type): it builds the array type at run time, which carries
-            // RequiresDynamicCode and an AOT compiler cannot always have code for.
-            var result = new RenderInfo[infos.Count];
-            infos.CopyTo(result);
-            return result;
-        }
-        return null;
+        if (!pageRenderInfos.TryGetValue(page, out var infos))
+            return null;
+
+        // Not ToArray(Type): it builds the array type at run time, which carries
+        // RequiresDynamicCode and an AOT compiler cannot always have code for.
+        var result = new RenderInfo[infos.Count];
+        infos.CopyTo(result);
+        return result;
     }
     private Dictionary<int, ArrayList> pageRenderInfos;
 
@@ -278,11 +277,15 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
         var fieldInfos = pageFieldInfos[page];
 
         if (page == 1)
+        {
             pagePos = PagePosition.First;
+        }
         else //page > 1
         {
             if (IsEmptyPage(page - 1)) // these empty pages only occur between sections.
+            {
                 pagePos = PagePosition.First;
+            }
             else
             {
                 var prevFieldInfos = pageFieldInfos[page - 1];
@@ -308,12 +311,16 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
         var fieldInfos = pageFieldInfos[page];
 
         if (page == 1)
+        {
             pagePos = PagePosition.First;
+        }
 
         else //page > 1
         {
             if (IsEmptyPage(page - 1)) // these empty pages only occur between sections.
+            {
                 pagePos = PagePosition.First;
+            }
             else
             {
                 var prevFieldInfos = pageFieldInfos[page - 1];
@@ -467,7 +474,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
     }
     private int currentPage;
 
-    private readonly Dictionary<int, Rectangle> pageContentRects = new Dictionary<int, Rectangle>();
+    private readonly Dictionary<int, Rectangle> pageContentRects = new();
 
     /// <summary>
     /// The rectangle the page's body text was laid out in - the page less its margins.
@@ -882,6 +889,6 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
     private DocumentRenderer documentRenderer;
     private XGraphics gfx;
     private Dictionary<int, PageInfo> pageInfos;
-    private Dictionary<int, object> emptyPages = new Dictionary<int, object>();
+    private Dictionary<int, object> emptyPages = new();
     private Document document;
 }

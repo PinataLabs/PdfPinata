@@ -26,7 +26,7 @@ public sealed class FreeTextAnnotationTests : IDisposable
 {
     private const string OutDir = "Out/FreeTextAnnotations";
 
-    private readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
+    private readonly List<MagickImageCollection> _rasterized = new();
 
     public void Dispose()
     {
@@ -41,7 +41,7 @@ public sealed class FreeTextAnnotationTests : IDisposable
         GhostscriptSetup.Configure();
     }
 
-    private static readonly XRect Where = new XRect(60, 60, 220, 90);
+    private static readonly XRect Where = new(60, 60, 220, 90);
 
     [Fact]
     public void AFreeTextNamesItsSubtypeAndCarriesTheDefaultAppearanceItIsRequiredTo()

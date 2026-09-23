@@ -346,5 +346,5 @@ public sealed class XFont
     /// Gets the DebuggerDisplayAttribute text.
     /// </summary>
     // ReSharper disable UnusedMember.Local
-    private string DebuggerDisplay => String.Format(CultureInfo.InvariantCulture, "font=('{0}' {1:0.##})", Name, Size); // ReSharper restore UnusedMember.Local
+    private string DebuggerDisplay => string.Format(CultureInfo.InvariantCulture, "font=('{0}' {1:0.##})", Name, Size); // ReSharper restore UnusedMember.Local
 }

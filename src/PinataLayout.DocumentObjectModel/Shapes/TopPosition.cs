@@ -46,9 +46,9 @@ public struct TopPosition : INullableValue
   /// </summary>
   private TopPosition(Unit value)
   {
-    this.shapePosition = ShapePosition.Undefined;
-    this.position = value;
-    this._notNull = !value.IsNull;
+    shapePosition = ShapePosition.Undefined;
+    position = value;
+    _notNull = !value.IsNull;
   }
 
   /// <summary>
@@ -59,9 +59,9 @@ public struct TopPosition : INullableValue
     if (!(IsValid(value) || value == ShapePosition.Undefined))
       throw new ArgumentException(AppResources.InvalidEnumForTopPosition);
 
-    this.shapePosition = value;
-    this.position = Unit.NullValue;
-    this._notNull = (value != ShapePosition.Undefined);
+    shapePosition = value;
+    position = Unit.NullValue;
+    _notNull = value != ShapePosition.Undefined;
   }
 
   /// <summary>
@@ -129,7 +129,7 @@ public struct TopPosition : INullableValue
       throw new ArgumentException(AppResources.InvalidEnumForTopPosition);
 
     shapePosition = newShapePosition;
-    this.position = Unit.NullValue;
+    position = Unit.NullValue;
   }
 
   /// <summary>
@@ -137,8 +137,8 @@ public struct TopPosition : INullableValue
   /// </summary>
   private void SetFromUnit(Unit unit)
   {
-    this.shapePosition = ShapePosition.Undefined;
-    this.position = unit;
+    shapePosition = ShapePosition.Undefined;
+    position = unit;
   }
 
   /// <summary>
@@ -155,7 +155,7 @@ public struct TopPosition : INullableValue
     else
       SetFromUnit(value.ToString());
 
-    this._notNull = true;
+    _notNull = true;
   }
 
   /// <summary>
@@ -163,10 +163,10 @@ public struct TopPosition : INullableValue
   /// </summary>
   object INullableValue.GetValue()
   {
-    if (this.shapePosition == ShapePosition.Undefined)
-      return this.position;
+    if (shapePosition == ShapePosition.Undefined)
+      return position;
 
-    return this.shapePosition;
+    return shapePosition;
   }
 
   /// <summary>
@@ -180,12 +180,12 @@ public struct TopPosition : INullableValue
   /// <summary>
   /// Determines whether this instance is null (not set).
   /// </summary>
-  bool INullableValue.IsNull => !this._notNull;
+  bool INullableValue.IsNull => !_notNull;
 
   /// <summary>
   /// Gets the value of the position in unit.
   /// </summary>
-  public Unit Position => this.position;
+  public Unit Position => position;
 
   /// <summary>
   /// Gets the value of the position.
@@ -210,7 +210,7 @@ public struct TopPosition : INullableValue
       throw new ArgumentNullException(nameof(value));
 
     var ch = value[0];
-    if (ch == '+' || ch == '-' || Char.IsNumber(ch))
+    if (ch == '+' || ch == '-' || char.IsNumber(ch))
       return Unit.Parse(value);
     else
       return Enum.Parse<ShapePosition>(value, true);
@@ -222,15 +222,15 @@ public struct TopPosition : INullableValue
   /// </summary>
   internal void Serialize(Serializer serializer)
   {
-    if (this.shapePosition == ShapePosition.Undefined)
-      serializer.WriteSimpleAttribute("Top", this.Position);
+    if (shapePosition == ShapePosition.Undefined)
+      serializer.WriteSimpleAttribute("Top", Position);
     else
-      serializer.WriteSimpleAttribute("Top", this.ShapePosition);
+      serializer.WriteSimpleAttribute("Top", ShapePosition);
   }
   #endregion
 
   /// <summary>
   /// Represents the unitialized TopPosition object.
   /// </summary>
-  internal static readonly TopPosition NullValue = new TopPosition();
+  internal static readonly TopPosition NullValue = new();
 }

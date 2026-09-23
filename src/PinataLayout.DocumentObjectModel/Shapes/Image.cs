@@ -90,8 +90,8 @@ public partial class Image : Shape
     /// </summary>
     public double ScaleWidth
     {
-        get => this.scaleWidth ?? 0;
-        set => this.scaleWidth = value;
+        get => scaleWidth ?? 0;
+        set => scaleWidth = value;
     }
     [DV]
     internal double? scaleWidth;
@@ -102,8 +102,8 @@ public partial class Image : Shape
     /// </summary>
     public double ScaleHeight
     {
-        get => this.scaleHeight ?? 0;
-        set => this.scaleHeight = value;
+        get => scaleHeight ?? 0;
+        set => scaleHeight = value;
     }
     [DV]
     internal double? scaleHeight;
@@ -114,8 +114,8 @@ public partial class Image : Shape
     /// </summary>
     public bool LockAspectRatio
     {
-        get => this.lockAspectRatio ?? false;
-        set => this.lockAspectRatio = value;
+        get => lockAspectRatio ?? false;
+        set => lockAspectRatio = value;
     }
     [DV]
     internal bool? lockAspectRatio;
@@ -127,13 +127,13 @@ public partial class Image : Shape
     {
         get
         {
-            this.pictureFormat ??= new PictureFormat(this);
-            return this.pictureFormat;
+            pictureFormat ??= new PictureFormat(this);
+            return pictureFormat;
         }
         set
         {
             SetParent(value);
-            this.pictureFormat = value;
+            pictureFormat = value;
         }
     }
     [DV]
@@ -144,8 +144,8 @@ public partial class Image : Shape
     /// </summary>
     public double Resolution
     {
-        get => this.resolution ?? 0;
-        set => this.resolution = value;
+        get => resolution ?? 0;
+        set => resolution = value;
     }
     [DV]
     internal double? resolution;
@@ -160,22 +160,22 @@ public partial class Image : Shape
         // reflection layer, and neither of the two ways an image is actually made fills it in -
         // AddImage takes an IImageSource, and the parser puts \image("path") on Source as well.
         // Writing the field alone turned every image into \image("") and lost the path.
-        var path = !string.IsNullOrEmpty(this.name) ? this.name : (Source?.Name ?? "");
+        var path = !string.IsNullOrEmpty(name) ? name : Source?.Name ?? "";
         serializer.WriteLine("\\image(\"" + path.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\")");
 
         var pos = serializer.BeginAttributes();
 
         base.Serialize(serializer);
-        if (this.scaleWidth != null)
-            serializer.WriteSimpleAttribute("ScaleWidth", this.ScaleWidth);
-        if (this.scaleHeight != null)
-            serializer.WriteSimpleAttribute("ScaleHeight", this.ScaleHeight);
-        if (this.lockAspectRatio != null)
-            serializer.WriteSimpleAttribute("LockAspectRatio", this.LockAspectRatio);
-        if (this.resolution != null)
-            serializer.WriteSimpleAttribute("Resolution", this.Resolution);
-        if (!this.IsNull("PictureFormat"))
-            this.pictureFormat.Serialize(serializer);
+        if (scaleWidth != null)
+            serializer.WriteSimpleAttribute("ScaleWidth", ScaleWidth);
+        if (scaleHeight != null)
+            serializer.WriteSimpleAttribute("ScaleHeight", ScaleHeight);
+        if (lockAspectRatio != null)
+            serializer.WriteSimpleAttribute("LockAspectRatio", LockAspectRatio);
+        if (resolution != null)
+            serializer.WriteSimpleAttribute("Resolution", Resolution);
+        if (!IsNull("PictureFormat"))
+            pictureFormat.Serialize(serializer);
 
         serializer.EndAttributes(pos);
     }
@@ -190,7 +190,7 @@ public partial class Image : Shape
 
         try
         {
-            if (!String.IsNullOrEmpty(workingDir))
+            if (!string.IsNullOrEmpty(workingDir))
                 filePath = workingDir;
             else
                 filePath = Directory.GetCurrentDirectory() + "\\";
@@ -204,7 +204,9 @@ public partial class Image : Shape
                     filePath = Path.Combine(filePath, Source.Name);
             }
             else
+            {
                 filePath = Path.Combine(filePath, Source.Name);
+            }
         }
         catch (Exception ex) when (!Unrecoverable.Is(ex))
         {

@@ -67,7 +67,9 @@ internal class FontHandler
         style = XFontStyle.Bold;
     }
     else if (font.Italic)
+    {
       style = XFontStyle.Italic;
+    }
 
     return style;
   }

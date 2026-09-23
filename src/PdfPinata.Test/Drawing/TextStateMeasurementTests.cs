@@ -30,7 +30,7 @@ public class TextStateMeasurementTests
     ///   Liberation Sans, served by PinnedFontResolver, so the advance widths below are the same
     ///   on every machine.
     /// </summary>
-    private static XFont Font => new XFont("Arial", 12);
+    private static XFont Font => new("Arial", 12);
 
     private static XGraphics NewGraphics()
     {

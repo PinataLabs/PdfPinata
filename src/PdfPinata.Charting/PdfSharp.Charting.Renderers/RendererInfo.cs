@@ -51,8 +51,8 @@ internal abstract class AreaRendererInfo : RendererInfo
   /// </summary>
   internal virtual double X
   {
-    get => this.rect.X;
-    set => this.rect.X = value;
+    get => rect.X;
+    set => rect.X = value;
   }
 
   /// <summary>
@@ -60,8 +60,8 @@ internal abstract class AreaRendererInfo : RendererInfo
   /// </summary>
   internal virtual double Y
   {
-    get => this.rect.Y;
-    set => this.rect.Y = value;
+    get => rect.Y;
+    set => rect.Y = value;
   }
 
   /// <summary>
@@ -69,8 +69,8 @@ internal abstract class AreaRendererInfo : RendererInfo
   /// </summary>
   internal virtual double Width
   {
-    get => this.rect.Width;
-    set => this.rect.Width = NotBelowZero(value);
+    get => rect.Width;
+    set => rect.Width = NotBelowZero(value);
   }
 
   /// <summary>
@@ -78,8 +78,8 @@ internal abstract class AreaRendererInfo : RendererInfo
   /// </summary>
   internal virtual double Height
   {
-    get => this.rect.Height;
-    set => this.rect.Height = NotBelowZero(value);
+    get => rect.Height;
+    set => rect.Height = NotBelowZero(value);
   }
 
   /// <summary>
@@ -103,8 +103,8 @@ internal abstract class AreaRendererInfo : RendererInfo
   /// </summary>
   internal XSize Size
   {
-    get => this.rect.Size;
-    set => this.rect.Size = value;
+    get => rect.Size;
+    set => rect.Size = value;
   }
 
   /// <summary>
@@ -112,8 +112,8 @@ internal abstract class AreaRendererInfo : RendererInfo
   /// </summary>
   internal XRect Rect
   {
-    get => this.rect;
-    set => this.rect = value;
+    get => rect;
+    set => rect = value;
   }
   private XRect rect;
 }
@@ -139,7 +139,7 @@ internal class ChartRendererInfo : AreaRendererInfo
   {
     get
     {
-      defaultFont ??= Converter.ToXFont(this.Chart.font, new XFont("Arial", 12, XFontStyle.Regular));
+      defaultFont ??= Converter.ToXFont(Chart.font, new XFont("Arial", 12, XFontStyle.Regular));
 
       return defaultFont;
     }
@@ -153,7 +153,7 @@ internal class ChartRendererInfo : AreaRendererInfo
   {
     get
     {
-      defaultDataLabelFont ??= Converter.ToXFont(this.Chart.font, new XFont("Arial", 10, XFontStyle.Regular));
+      defaultDataLabelFont ??= Converter.ToXFont(Chart.font, new XFont("Arial", 10, XFontStyle.Regular));
 
       return defaultDataLabelFont;
     }
@@ -165,7 +165,7 @@ internal class ChartRendererInfo : AreaRendererInfo
   /// font's, or black.
   /// </summary>
   internal XColor DefaultFontColor =>
-    this.Chart.font == null || this.Chart.font.color.IsEmpty ? XColors.Black : this.Chart.font.color;
+    Chart.font == null || Chart.font.color.IsEmpty ? XColors.Black : Chart.font.color;
 }
 
 /// <summary>
@@ -205,7 +205,7 @@ internal class PointRendererInfo : RendererInfo
   /// false, so a blank falls out of a range test on its own, and the IsNaN tests already written
   /// against missing values now catch both kinds of missing.
   /// </remarks>
-  internal double Value => this.Point == null ? double.NaN : this.Point.value;
+  internal double Value => Point == null ? double.NaN : Point.value;
 
   internal XPen LineFormat;
   internal XBrush FillFormat;
@@ -275,7 +275,7 @@ internal class SeriesRendererInfo : RendererInfo
     get
     {
       double sum = 0;
-      foreach (var pri in this.PointRendererInfos)
+      foreach (var pri in PointRendererInfos)
       {
         if (!double.IsNaN(pri.Value))
           sum += Math.Abs(pri.Value);
@@ -341,7 +341,7 @@ internal class AxisRendererInfo : AreaRendererInfo
     set
     {
       base.X = value;
-      this.InnerRect.X = value;
+      InnerRect.X = value;
     }
   }
 
@@ -353,7 +353,7 @@ internal class AxisRendererInfo : AreaRendererInfo
     set
     {
       base.Y = value;
-      this.InnerRect.Y = value + this.LabelSize.Height / 2;
+      InnerRect.Y = value + LabelSize.Height / 2;
     }
   }
 
@@ -365,7 +365,7 @@ internal class AxisRendererInfo : AreaRendererInfo
     set
     {
       base.Height = value;
-      this.InnerRect.Height = NotBelowZero(value - (this.InnerRect.Y - this.Y));
+      InnerRect.Height = NotBelowZero(value - (InnerRect.Y - Y));
     }
   }
 
@@ -377,7 +377,7 @@ internal class AxisRendererInfo : AreaRendererInfo
     set
     {
       base.Width = value;
-      this.InnerRect.Width = NotBelowZero(value - this.LabelSize.Width / 2);
+      InnerRect.Width = NotBelowZero(value - LabelSize.Width / 2);
     }
   }
   internal XRect InnerRect;

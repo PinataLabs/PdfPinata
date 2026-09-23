@@ -21,9 +21,9 @@ public class XTextFormatterRotationTests
     private const double PixelsPerPoint = 300.0 / 72.0;
 
     /// <summary>The corner the text is turned about, well inside the page so it can turn any way.</summary>
-    private static XRect Layout => new XRect(100, 100, 90, 40);
+    private static XRect Layout => new(100, 100, 90, 40);
 
-    private static XFont Font => new XFont("Arial", 14, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
+    private static XFont Font => new("Arial", 14, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
 
     private static List<(int X, int Y)> InkOf(double rotation)
     {

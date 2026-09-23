@@ -273,12 +273,12 @@ public class CLexer
             // content - leaves the '#' as an ordinary character of the name, which is what it was
             // before PDF 1.2 gave it a meaning. int.Parse used to be handed whatever two characters
             // came next, and threw on /A#ZZ, taking the whole content stream down with it.
-            if (ch == '#' && IsHexChar(_nextChar) && IsHexChar(PeekAfterNextChar()))
-            {
-                var high = ScanNextChar();
-                var low = ScanNextChar();
-                _currChar = (char)(HexValue(high) * 16 + HexValue(low));
-            }
+            if (ch != '#' || !IsHexChar(_nextChar) || !IsHexChar(PeekAfterNextChar()))
+                continue;
+
+            var high = ScanNextChar();
+            var low = ScanNextChar();
+            _currChar = (char)(HexValue(high) * 16 + HexValue(low));
         }
     }
 
@@ -372,9 +372,13 @@ public class CLexer
                             _token.Append(ch);
                         }
                         else if (ch == '(')
+                        {
                             parentheses++;
+                        }
                         else if (ch == ')')
+                        {
                             parentheses--;
+                        }
                     }
                     break;
 
@@ -433,7 +437,7 @@ public class CLexer
                 _token.Append(ch);
                 if (decimalDigits < 10)
                 {
-                    if (!period && value > (Int64.MaxValue - 9) / 10)
+                    if (!period && value > (long.MaxValue - 9) / 10)
                         overflow = true;
                     else
                         value = 10 * value + ch - '0';
@@ -450,7 +454,9 @@ public class CLexer
                 _token.Append(ch);
             }
             else
+            {
                 break;
+            }
             ch = ScanNextChar();
         }
 
@@ -488,9 +494,9 @@ public class CLexer
         _tokenAsLong = value;
         _tokenAsReal = Convert.ToDouble(value);
 
-        Debug.Assert(Int64.Parse(_token.ToString(), CultureInfo.InvariantCulture) == value);
+        Debug.Assert(long.Parse(_token.ToString(), CultureInfo.InvariantCulture) == value);
 
-        if (value >= Int32.MinValue && value < Int32.MaxValue)
+        if (value >= int.MinValue && value < int.MaxValue)
             return CSymbol.Integer;
 
         // Out of range for CSymbol.Integer, which a content operand is expected to fit. The
@@ -744,24 +750,23 @@ public class CLexer
         }
         var chars = _token.ToString();
         var count = chars.Length;
-        if (count > 2 && chars[0] == (char)0xFE && chars[1] == (char)0xFF)
+        if (count <= 2 || chars[0] != (char)0xFE || chars[1] != (char)0xFF)
+            return _symbol = CSymbol.HexString;
+
+        // A Unicode hex string missing half of its last character is short of the low byte
+        // of that character, which is taken to be a zero - the same reading a hex string
+        // missing its final digit gets, just above. Debug.Assert(count % 2 == 0) stood here
+        // instead: it caught the odd count in a Debug build and did nothing in a Release
+        // build, where the loop below read one character past the end of the string.
+        if ((count & 1) == 1)
         {
-            // A Unicode hex string missing half of its last character is short of the low byte
-            // of that character, which is taken to be a zero - the same reading a hex string
-            // missing its final digit gets, just above. Debug.Assert(count % 2 == 0) stood here
-            // instead: it caught the odd count in a Debug build and did nothing in a Release
-            // build, where the loop below read one character past the end of the string.
-            if ((count & 1) == 1)
-            {
-                chars += '\0';
-                ++count;
-            }
-            _token.Length = 0;
-            for (var idx = 2; idx < count; idx += 2)
-                _token.Append((char)(chars[idx] * 256 + chars[idx + 1]));
-            return _symbol = CSymbol.UnicodeHexString;
+            chars += '\0';
+            ++count;
         }
-        return _symbol = CSymbol.HexString;
+        _token.Length = 0;
+        for (var idx = 2; idx < count; idx += 2)
+            _token.Append((char)(chars[idx] * 256 + chars[idx + 1]));
+        return _symbol = CSymbol.UnicodeHexString;
     }
 
     /// <summary>

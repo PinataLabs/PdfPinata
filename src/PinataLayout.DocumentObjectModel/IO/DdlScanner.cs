@@ -75,17 +75,17 @@ internal class DdlScanner
   /// </summary>
   internal bool Init(string document, string documentFileName)
   {
-    this.m_DocumentPath = documentFileName;
-    this.m_strDocument = document;
-    this.ddlLength = this.m_strDocument.Length;
-    this.m_idx = 0;
-    this.m_idxLine = 1;
-    this.m_idxLinePos = 0;
+    m_DocumentPath = documentFileName;
+    m_strDocument = document;
+    ddlLength = m_strDocument.Length;
+    m_idx = 0;
+    m_idxLine = 1;
+    m_idxLinePos = 0;
 
-    this.m_DocumentFileName = documentFileName;
+    m_DocumentFileName = documentFileName;
 
-    this.m_nCurDocumentLine = m_idxLine;
-    this.m_nCurDocumentLinePos = m_idxLinePos;
+    m_nCurDocumentLine = m_idxLine;
+    m_nCurDocumentLinePos = m_idxLinePos;
 
     ScanNextChar();
 
@@ -109,7 +109,7 @@ internal class DdlScanner
     MoveToNonWhiteSpace();
     SaveCurDocumentPos();
 
-    if (this.currChar == Chars.Null)
+    if (currChar == Chars.Null)
     {
       symbol = Symbol.Eof;
       return Symbol.Eof;
@@ -119,35 +119,35 @@ internal class DdlScanner
     {
       // Token is identifier.
       symbol = ScanIdentifier();
-      this.tokenType = TokenType.Identifier;
+      tokenType = TokenType.Identifier;
       // Some keywords do not start with a backslash: true, false, and null.
       var sym = KeyWords.SymbolFromName(token);
       if (sym != Symbol.None)
       {
-        this.symbol = sym;
-        this.tokenType = TokenType.KeyWord;
+        symbol = sym;
+        tokenType = TokenType.KeyWord;
       }
     }
     else if (currChar == '"')
     {
       // Token is string literal.
       token += ScanStringLiteral();
-      this.symbol = Symbol.StringLiteral;
-      this.tokenType = TokenType.StringLiteral;
+      symbol = Symbol.StringLiteral;
+      tokenType = TokenType.StringLiteral;
     }
     else if (IsDigit(currChar) ||
              currChar == '-' && IsDigit(nextChar) ||
              currChar == '+' && IsDigit(nextChar))
     {
       // Token is number literal.
-      this.symbol = ScanNumber(false);
-      this.tokenType = this.symbol == Symbol.RealLiteral ? TokenType.RealLiteral : TokenType.IntegerLiteral;
+      symbol = ScanNumber(false);
+      tokenType = symbol == Symbol.RealLiteral ? TokenType.RealLiteral : TokenType.IntegerLiteral;
     }
     else if (currChar == '.' && IsDigit(nextChar))
     {
       // Token is real literal.
-      this.symbol = ScanNumber(true);
-      this.tokenType = TokenType.RealLiteral;
+      symbol = ScanNumber(true);
+      tokenType = TokenType.RealLiteral;
     }
     else if (currChar == '\\')
     {
@@ -183,7 +183,7 @@ internal class DdlScanner
   /// </summary>
   internal Symbol PeekKeyword()
   {
-    Debug.Assert(this.currChar == Chars.BackSlash);
+    Debug.Assert(currChar == Chars.BackSlash);
 
     return PeekKeyword(m_idx);
   }
@@ -206,7 +206,7 @@ internal class DdlScanner
 
     var keyword = "\\";
     var idx = index;
-    var length = this.ddlLength - idx;
+    var length = ddlLength - idx;
     while (length > 0)
     {
       var ch = m_strDocument[idx++];
@@ -216,7 +216,9 @@ internal class DdlScanner
         length--;
       }
       else
+      {
         break;
+      }
     }
     return KeyWords.SymbolFromName(keyword);
   }
@@ -307,14 +309,14 @@ internal class DdlScanner
       // has the same two arms and gets this right because it looks at nextChar, which is null at
       // the end of the buffer rather than out of it.
       case '+':
-        if (this.ddlLength > index + 1 && m_strDocument[index + 1] == '=')
+        if (ddlLength > index + 1 && m_strDocument[index + 1] == '=')
           sym = Symbol.PlusAssign;
         else
           sym = Symbol.Plus;
         break;
 
       case '-':
-        if (this.ddlLength > index + 1 && m_strDocument[index + 1] == '=')
+        if (ddlLength > index + 1 && m_strDocument[index + 1] == '=')
           sym = Symbol.MinusAssign;
         else
           sym = Symbol.Minus;
@@ -344,8 +346,8 @@ internal class DdlScanner
   /// </summary>
   internal Symbol PeekSymbol()
   {
-    var idx = this.m_idx - 1;
-    var length = this.ddlLength - idx;
+    var idx = m_idx - 1;
+    var length = ddlLength - idx;
 
     // Move to first non whitespace
     var ch = char.MinValue;
@@ -390,16 +392,16 @@ internal class DdlScanner
     SaveCurDocumentPos();
 
     // Check for EOF.
-    if (this.currChar == Chars.Null)
+    if (currChar == Chars.Null)
     {
       symbol = Symbol.Eof;
       return Symbol.Eof;
     }
 
     // Check for keyword or escaped character.
-    if (this.currChar == '\\')
+    if (currChar == '\\')
     {
-      switch (this.nextChar)
+      switch (nextChar)
       {
         case '\\':
         case '{':
@@ -414,53 +416,52 @@ internal class DdlScanner
     }
 
     // Check for reserved terminal symbols in text.
-    switch (this.currChar)
+    switch (currChar)
     {
       case '{':
         AppendAndScanNextChar();
-        this.symbol = Symbol.BraceLeft;
-        this.tokenType = TokenType.OperatorOrPunctuator;
+        symbol = Symbol.BraceLeft;
+        tokenType = TokenType.OperatorOrPunctuator;
         return Symbol.BraceLeft;  // Syntax error in any case.
 
       case '}':
         AppendAndScanNextChar();
-        this.symbol = Symbol.BraceRight;
-        this.tokenType = TokenType.OperatorOrPunctuator;
+        symbol = Symbol.BraceRight;
+        tokenType = TokenType.OperatorOrPunctuator;
         return Symbol.BraceRight;
     }
 
     // Check for end of line.
-    if (this.currChar == Chars.LF)
+    if (currChar != Chars.LF)
+      return ReadPlainText(rootLevel);
+
+    // The line ends here. See if the paragraph continues in the next line.
+    if (MoveToNextParagraphContentLine(rootLevel))
     {
-      // The line ends here. See if the paragraph continues in the next line.
-      if (MoveToNextParagraphContentLine(rootLevel))
+      // Paragraph continues in next line. Simulate the read of a blank to separate words.
+      token = " ";
+      if (IgnoreLineBreak())
+        token = "";
+      this.symbol = Symbol.Text;
+      return Symbol.Text;
+    }
+    else
+    {
+      // Paragraph ends here. Return NewLine or BraceRight.
+      if (currChar != Chars.BraceRight)
       {
-        // Paragraph continues in next line. Simulate the read of a blank to separate words.
-        this.token = " ";
-        if (IgnoreLineBreak())
-          this.token = "";
-        this.symbol = Symbol.Text;
-        return Symbol.Text;
+        symbol = Symbol.EmptyLine;
+        tokenType = TokenType.None; //???
+        return Symbol.EmptyLine;
       }
       else
       {
-        // Paragraph ends here. Return NewLine or BraceRight.
-        if (this.currChar != Chars.BraceRight)
-        {
-          this.symbol = Symbol.EmptyLine;
-          this.tokenType = TokenType.None; //???
-          return Symbol.EmptyLine;
-        }
-        else
-        {
-          AppendAndScanNextChar();
-          this.symbol = Symbol.BraceRight;
-          this.tokenType = TokenType.OperatorOrPunctuator;
-          return Symbol.BraceRight;
-        }
+        AppendAndScanNextChar();
+        symbol = Symbol.BraceRight;
+        tokenType = TokenType.OperatorOrPunctuator;
+        return Symbol.BraceRight;
       }
     }
-    return ReadPlainText(rootLevel);
   }
 
   /// <summary>
@@ -468,7 +469,7 @@ internal class DdlScanner
   /// </summary>
   private bool IgnoreLineBreak()
   {
-    switch (this.prevSymbol)
+    switch (prevSymbol)
     {
       case Symbol.LineBreak:
       case Symbol.Space:
@@ -485,12 +486,12 @@ internal class DdlScanner
   {
     var foundSpace = false;
     var loop = true;
-    while (loop && this.currChar != Chars.Null)
+    while (loop && currChar != Chars.Null)
     {
       // Check for escaped character or keyword.
-      if (this.currChar == '\\')
+      if (currChar == '\\')
       {
-        switch (this.nextChar)
+        switch (nextChar)
         {
           case '\\':
           case '{':
@@ -504,7 +505,7 @@ internal class DdlScanner
             // Treat \- as soft hyphen.
             ScanNextChar();
             // Fake soft hyphen and go on as usual.
-            this.currChar = Chars.SoftHyphen;
+            currChar = Chars.SoftHyphen;
             break;
 
           // Keyword
@@ -516,7 +517,7 @@ internal class DdlScanner
       }
 
       // Check for reserved terminal symbols in text
-      switch (this.currChar)
+      switch (currChar)
       {
         case '{':
           // Syntax error any way
@@ -529,35 +530,35 @@ internal class DdlScanner
           continue;
 
         case '/':
-          if (this.nextChar != '/')
+          if (nextChar != '/')
             goto ValidCharacter;
           ScanToEol();
           break;
       }
 
       // Check for end of line.
-      if (this.currChar == Chars.LF)
+      if (currChar == Chars.LF)
       {
         // The line ends here. See if the paragraph continues in the next line.
         if (MoveToNextParagraphContentLine(rootLevel))
         {
           // Paragraph continues in next line. Add a blank to separate words.
-          if (!this.token.EndsWith(' '))
-            this.token += ' ';
+          if (!token.EndsWith(' '))
+            token += ' ';
           continue;
         }
         else
         {
           // Paragraph ends here. Remember that for next call except the reason
           // for end is '}'
-          emptyLine = this.currChar != Chars.BraceRight;
+          emptyLine = currChar != Chars.BraceRight;
           break;
         }
       }
 
       ValidCharacter:
       // Compress multiple blanks to one
-      if (this.currChar == ' ')
+      if (currChar == ' ')
       {
         if (foundSpace)
         {
@@ -567,13 +568,15 @@ internal class DdlScanner
         foundSpace = true;
       }
       else
+      {
         foundSpace = false;
+      }
 
       AppendAndScanNextChar();
     }
 
-    this.symbol = Symbol.Text;
-    this.tokenType = TokenType.Text;
+    symbol = Symbol.Text;
+    tokenType = TokenType.Text;
     return Symbol.Text;
   }
 
@@ -582,9 +585,9 @@ internal class DdlScanner
   /// </summary>
   internal Symbol MoveToCode()
   {
-    if (this.symbol == Symbol.None || this.symbol == Symbol.CR /*|| this.symbol == Symbol.comment*/)
+    if (symbol == Symbol.None || symbol == Symbol.CR /*|| this.symbol == Symbol.comment*/)
       ReadCode();
-    return this.symbol;
+    return symbol;
   }
 
   /// <summary>
@@ -596,12 +599,12 @@ internal class DdlScanner
   {
     Again:
     MoveToNonWhiteSpace();
-    if (this.currChar == Chars.Slash && this.nextChar == Chars.Slash)
+    if (currChar == Chars.Slash && nextChar == Chars.Slash)
     {
       MoveBeyondEol();
       goto Again;
     }
-    return this.currChar != Chars.BraceRight;
+    return currChar != Chars.BraceRight;
   }
 
   /// <summary>
@@ -613,14 +616,14 @@ internal class DdlScanner
   /// </summary>
   internal bool MoveToNextParagraphContentLine(bool rootLevel)
   {
-    Debug.Assert(this.currChar == Chars.LF);
+    Debug.Assert(currChar == Chars.LF);
     var loop = true;
     ScanNextChar();
     while (loop)
     {
       // Scan to next EOL and ignore any white space.
       MoveToNonWhiteSpaceOrEol();
-      switch (this.currChar)
+      switch (currChar)
       {
         case Chars.Null:
           loop = false;
@@ -650,7 +653,7 @@ internal class DdlScanner
           break;
 
         case Chars.Slash:
-          if (this.nextChar == Chars.Slash)
+          if (nextChar == Chars.Slash)
           {
             // A line with comment is not treated as empty.
             // Skip this line.
@@ -680,9 +683,9 @@ internal class DdlScanner
   /// </summary>
   internal char MoveToNonWhiteSpaceOrEol()
   {
-    while (this.currChar != Chars.Null)
+    while (currChar != Chars.Null)
     {
-      switch (this.currChar)
+      switch (currChar)
       {
         case Chars.Space:
         case Chars.HT:
@@ -704,9 +707,9 @@ internal class DdlScanner
   /// </summary>
   internal char MoveToNonWhiteSpace()
   {
-    while (this.currChar != Chars.Null)
+    while (currChar != Chars.Null)
     {
-      switch (this.currChar)
+      switch (currChar)
       {
         case Chars.Space:
         case Chars.HT:
@@ -779,7 +782,7 @@ internal class DdlScanner
     int value;
     if (symbol == Symbol.IntegerLiteral)
     {
-      if (Int32.TryParse(token, NumberStyles.Integer, CultureInfo.InvariantCulture, out value))
+      if (int.TryParse(token, NumberStyles.Integer, CultureInfo.InvariantCulture, out value))
         return value;
 
       // ScanNumber lets nothing but a sign and digits into a decimal literal, so one that does
@@ -789,7 +792,7 @@ internal class DdlScanner
     else if (symbol == Symbol.HexIntegerLiteral)
     {
       var number = token[2..];
-      if (Int32.TryParse(number, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out value))
+      if (int.TryParse(number, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out value))
         return value;
 
       // ReadHexNumber takes in any identifier character, so a hex literal can be malformed as
@@ -803,17 +806,17 @@ internal class DdlScanner
 
   private DdlParserException IntegerOutOfRange() =>
     ParserException(DomMsgID.OutOfRange,
-      String.Format(CultureInfo.InvariantCulture, "{0} - {1}", Int32.MinValue, Int32.MaxValue));
+      string.Format(CultureInfo.InvariantCulture, "{0} - {1}", int.MinValue, int.MaxValue));
 
   private DdlParserException UnsignedIntegerOutOfRange() =>
     ParserException(DomMsgID.OutOfRange,
-      String.Format(CultureInfo.InvariantCulture, "{0} - {1}", UInt32.MinValue, UInt32.MaxValue));
+      string.Format(CultureInfo.InvariantCulture, "{0} - {1}", uint.MinValue, uint.MaxValue));
 
   /// <summary>
   /// A DdlParserException carrying the given message and the position of the current token.
   /// </summary>
   private DdlParserException ParserException(DomMsgID errorCode, params object[] args) =>
-    new DdlParserException(new DdlReaderError(DdlErrorLevel.Error, DomSR.FormatMessage(errorCode, args),
+    new(new DdlReaderError(DdlErrorLevel.Error, DomSR.FormatMessage(errorCode, args),
       (int)errorCode, DocumentFileName, CurrentLine, CurrentLinePos));
 
   /// <summary>
@@ -828,7 +831,7 @@ internal class DdlScanner
     uint value;
     if (symbol == Symbol.IntegerLiteral)
     {
-      if (UInt32.TryParse(token, NumberStyles.Integer, CultureInfo.InvariantCulture, out value))
+      if (uint.TryParse(token, NumberStyles.Integer, CultureInfo.InvariantCulture, out value))
         return value;
 
       // A sign and digits only, as for GetTokenValueAsInt, so one that does not parse is too
@@ -838,7 +841,7 @@ internal class DdlScanner
     else if (symbol == Symbol.HexIntegerLiteral)
     {
       var number = token[2..];
-      if (UInt32.TryParse(number, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out value))
+      if (uint.TryParse(number, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out value))
         return value;
 
       // ReSharper disable once PossibleNullReferenceException
@@ -854,7 +857,7 @@ internal class DdlScanner
   /// <returns></returns>
   internal double GetTokenValueAsReal()
   {
-    return Double.Parse(token, CultureInfo.InvariantCulture);
+    return double.Parse(token, CultureInfo.InvariantCulture);
   }
 
   /// <summary>
@@ -865,14 +868,14 @@ internal class DdlScanner
   /// <summary>
   /// Gets the character after the current character or EOF.
   /// </summary>
-  internal char NextChar => this.nextChar;
+  internal char NextChar => nextChar;
 
   /// <summary>
   /// Move DDL cursor one character further.
   /// </summary>
   internal char ScanNextChar()
   {
-    if (this.ddlLength <= m_idx)
+    if (ddlLength <= m_idx)
     {
       currChar = Chars.Null;
       nextChar = Chars.Null;
@@ -881,7 +884,7 @@ internal class DdlScanner
     {
       SkipChar:
       currChar = m_strDocument[m_idx++];
-      if (this.ddlLength <= m_idx)
+      if (ddlLength <= m_idx)
         nextChar = Chars.Null;
       else
         nextChar = m_strDocument[m_idx];
@@ -903,13 +906,13 @@ internal class DdlScanner
             goto SkipChar;
           }
           currChar = Chars.LF;
-          this.m_idxLine++;
-          this.m_idxLinePos = 0;
+          m_idxLine++;
+          m_idxLinePos = 0;
           break;
 
         case Chars.LF:
-          this.m_idxLine++;
-          this.m_idxLinePos = 0;
+          m_idxLine++;
+          m_idxLinePos = 0;
           break;
       }
     }
@@ -961,7 +964,7 @@ internal class DdlScanner
   /// </summary>
   internal static bool IsHexDigit(char ch)
   {
-    return Char.IsDigit(ch) || (ch >= 'A' && ch <= 'F') || (ch >= 'a' && ch <= 'f');
+    return char.IsDigit(ch) || (ch >= 'A' && ch <= 'F') || (ch >= 'a' && ch <= 'f');
   }
 
   /// <summary>
@@ -969,7 +972,7 @@ internal class DdlScanner
   /// </summary>
   internal static bool IsOctDigit(char ch)
   {
-    return Char.IsDigit(ch) && ch < '8';
+    return char.IsDigit(ch) && ch < '8';
   }
 
   /// <summary>
@@ -977,7 +980,7 @@ internal class DdlScanner
   /// </summary>
   internal static bool IsLetter(char ch)
   {
-    return Char.IsLetter(ch);
+    return char.IsLetter(ch);
   }
 
   /// <summary>
@@ -985,7 +988,7 @@ internal class DdlScanner
   /// </summary>
   internal static bool IsWhiteSpace(char ch)
   {
-    return Char.IsWhiteSpace(ch);
+    return char.IsWhiteSpace(ch);
   }
 
   /// <summary>
@@ -995,9 +998,9 @@ internal class DdlScanner
   internal static bool IsIdentifierChar(char ch, bool firstChar) //IsId..Char
   {
     if (firstChar)
-      return Char.IsLetter(ch) || ch == '_';
+      return char.IsLetter(ch) || ch == '_';
     else
-      return Char.IsLetterOrDigit(ch) || ch == '_';
+      return char.IsLetterOrDigit(ch) || ch == '_';
   }
 
   /// <summary>
@@ -1095,7 +1098,7 @@ internal class DdlScanner
     // \- is a soft hyphen == char(173).
     if (ch == '-')
     {
-      this.token += "-";
+      token += "-";
       ScanNextChar();
       return Symbol.SoftHyphen;
     }
@@ -1103,16 +1106,16 @@ internal class DdlScanner
     // \( is a short cut for symbol.
     if (ch == '(')
     {
-      this.token += "(";
-      this.symbol = Symbol.Chr;
+      token += "(";
+      symbol = Symbol.Chr;
       return Symbol.Chr; // Short cut for \chr(
     }
 
     while (!IsEof(ch) && IsIdentifierChar(ch, false))
       ch = AppendAndScanNextChar();
 
-    this.symbol = KeyWords.SymbolFromName(token);
-    return this.symbol;
+    symbol = KeyWords.SymbolFromName(token);
+    return symbol;
   }
 
   /// <summary>
@@ -1203,7 +1206,9 @@ internal class DdlScanner
           sym = Symbol.PlusAssign;
         }
         else
+        {
           sym = Symbol.Plus;
+        }
         break;
 
       case '-':
@@ -1214,7 +1219,9 @@ internal class DdlScanner
           sym = Symbol.MinusAssign;
         }
         else
+        {
           sym = Symbol.Minus;
+        }
         break;
 
       case Chars.CR:
@@ -1345,10 +1352,14 @@ internal class DdlScanner
         }
       }
       else if (currChar == Chars.Null || currChar == Chars.CR || currChar == Chars.LF)
+      {
         throw new DdlParserException(DdlErrorLevel.Error,
           DomSR.GetString(DomMsgID.NewlineInString), DomMsgID.NewlineInString);
+      }
       else
+      {
         str += currChar;
+      }
 
       ScanNextChar();
     }

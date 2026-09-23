@@ -30,7 +30,7 @@ public sealed class PdfNamedDestinationTable
     }
     private readonly PdfDocument _document;
 
-    private readonly Dictionary<string, Destination> _destinations = new Dictionary<string, Destination>(StringComparer.Ordinal);
+    private readonly Dictionary<string, Destination> _destinations = new(StringComparer.Ordinal);
 
     /// <summary>
     /// Whether what the document already holds has been taken into this table. Until it has, this

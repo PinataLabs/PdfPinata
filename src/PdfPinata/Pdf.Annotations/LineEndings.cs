@@ -43,7 +43,7 @@ internal static class LineEndings
     /// reader likes.
     /// </summary>
     public static PdfArray Write(PdfDocument owner, PdfLineEnding start, PdfLineEnding end) =>
-        new PdfArray(owner, new PdfName("/" + start), new PdfName("/" + end));
+        new(owner, new PdfName("/" + start), new PdfName("/" + end));
 
     /// <summary>
     /// The unit vector from one point towards another, or the x axis when the two coincide.

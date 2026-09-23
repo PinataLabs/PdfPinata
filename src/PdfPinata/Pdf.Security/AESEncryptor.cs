@@ -144,19 +144,19 @@ internal class AESEncryptor : RC4Encryptor
             PasswordValid = true;
         }
 
-        if (keyToDecrypt != null)
-        {
-            encryptionKey = new byte[32];
-            var hash = new byte[32];
-            var iv = new byte[16];
-            ValidateVersion6(password, salt, hashKey, hash);
-            using var aes256 = Aes.Create();
-            aes256.KeySize = 256;
-            aes256.Mode = CipherMode.CBC;
-            aes256.Padding = PaddingMode.None;
-            using var decryptor = aes256.CreateDecryptor(hash, iv);
-            decryptor.TransformBlock(keyToDecrypt, 0, 32, encryptionKey, 0);
-        }
+        if (keyToDecrypt == null)
+            return;
+
+        encryptionKey = new byte[32];
+        var hash = new byte[32];
+        var iv = new byte[16];
+        ValidateVersion6(password, salt, hashKey, hash);
+        using var aes256 = Aes.Create();
+        aes256.KeySize = 256;
+        aes256.Mode = CipherMode.CBC;
+        aes256.Padding = PaddingMode.None;
+        using var decryptor = aes256.CreateDecryptor(hash, iv);
+        decryptor.TransformBlock(keyToDecrypt, 0, 32, encryptionKey, 0);
     }
 
     private static void ValidateVersion6(string password, byte[] salt, byte[] ownerKey, byte[] hash)

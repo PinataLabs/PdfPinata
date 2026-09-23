@@ -90,7 +90,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
 
         // Set Orientation depending on /Rotate.
         var rotate = Elements.GetInteger(InheritablePageKeys.Rotate);
-        if (Math.Abs((rotate / 90)) % 2 == 1)
+        if (Math.Abs(rotate / 90) % 2 == 1)
             _orientation = PageOrientation.Landscape;
     }
 
@@ -144,15 +144,15 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     {
         set
         {
-            if (!ReferenceEquals(_document, value))
-            {
-                if (_document != null)
-                    throw new InvalidOperationException("Cannot change document.");
-                _document = value;
-                if (Reference != null)
-                    Reference.Document = value;
-                Elements[Keys.Parent] = _document.Pages.Reference;
-            }
+            if (ReferenceEquals(_document, value))
+                return;
+
+            if (_document != null)
+                throw new InvalidOperationException("Cannot change document.");
+            _document = value;
+            if (Reference != null)
+                Reference.Document = value;
+            Elements[Keys.Parent] = _document.Pages.Reference;
         }
     }
 
@@ -1270,7 +1270,9 @@ public sealed class PdfPage : PdfDictionary, IContentStream
                 resources.Document = page.Owner;
             }
             else
+            {
                 resources = (PdfDictionary)res;
+            }
 
             if (resources == null)
             {
@@ -1282,13 +1284,13 @@ public sealed class PdfPage : PdfDictionary, IContentStream
             {
                 foreach (var name in values.Resources.Elements.KeyNames)
                 {
-                    if (!resources.Elements.ContainsKey(name.Value))
-                    {
-                        var item = values.Resources.Elements[name];
-                        if (item is PdfObject)
-                            item = item.Clone();
-                        resources.Elements.Add(name.ToString(), item);
-                    }
+                    if (resources.Elements.ContainsKey(name.Value))
+                        continue;
+
+                    var item = values.Resources.Elements[name];
+                    if (item is PdfObject)
+                        item = item.Clone();
+                    resources.Elements.Add(name.ToString(), item);
                 }
             }
         }
@@ -1315,7 +1317,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         {
             var reference = item as PdfReference;
             if (reference != null)
-                values.Resources = (PdfDictionary)(reference.Value);
+                values.Resources = (PdfDictionary)reference.Value;
             else
                 values.Resources = (PdfDictionary)item;
         }

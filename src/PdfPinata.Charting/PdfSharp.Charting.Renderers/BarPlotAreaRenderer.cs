@@ -50,7 +50,7 @@ internal abstract class BarPlotAreaRenderer : PlotAreaRenderer
   /// </summary>
   internal override void Format()
   {
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
 
     var xMin = cri.XAxisRendererInfo.MinimumScale;
     var xMax = cri.XAxisRendererInfo.MaximumScale;
@@ -80,13 +80,13 @@ internal abstract class BarPlotAreaRenderer : PlotAreaRenderer
   /// </summary>
   internal override void Draw()
   {
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
 
     var plotAreaBox = cri.PlotAreaRendererInfo.Rect;
     if (HasNoRoom(plotAreaBox))
       return;
 
-    var gfx = this.rendererParms.Graphics;
+    var gfx = rendererParms.Graphics;
 
     var xMin = cri.XAxisRendererInfo.MinimumScale;
     var xMax = cri.XAxisRendererInfo.MaximumScale;
@@ -138,11 +138,11 @@ internal abstract class BarPlotAreaRenderer : PlotAreaRenderer
       foreach (var column in sri.PointRendererInfos.Cast<ColumnRendererInfo>())
       {
         // Do not draw bar if value is outside yMin/yMax range. Clipping does not make sense.
-        if (IsDataInside(yMin, yMax, column.Value) && column.LineFormat.Width > 0)
-        {
-          lineFormatRenderer = new LineFormatRenderer(gfx, column.LineFormat);
-          lineFormatRenderer.DrawRectangle(column.Rect);
-        }
+        if (!IsDataInside(yMin, yMax, column.Value) || column.LineFormat.Width is not > 0)
+          continue;
+
+        lineFormatRenderer = new LineFormatRenderer(gfx, column.LineFormat);
+        lineFormatRenderer.DrawRectangle(column.Rect);
       }
     }
     gfx.Restore(state);

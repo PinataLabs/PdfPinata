@@ -86,9 +86,9 @@ public class Legend : ChartObject
   {
     get
     {
-      this.lineFormat ??= new LineFormat(this);
+      lineFormat ??= new LineFormat(this);
 
-      return this.lineFormat;
+      return lineFormat;
     }
   }
   internal LineFormat lineFormat;
@@ -100,9 +100,9 @@ public class Legend : ChartObject
   {
     get
     {
-      this.font ??= new Font(this);
+      font ??= new Font(this);
 
-      return this.font;
+      return font;
     }
   }
   internal Font font;
@@ -112,13 +112,13 @@ public class Legend : ChartObject
   /// </summary>
   public DockingType Docking
   {
-    get => this.docking;
+    get => docking;
     set
     {
       if (!Enum.IsDefined(value))
         throw new InvalidEnumArgumentException("value", (int)value, typeof(DockingType));
 
-      this.docking = value;
+      docking = value;
     }
   }
   internal DockingType docking;

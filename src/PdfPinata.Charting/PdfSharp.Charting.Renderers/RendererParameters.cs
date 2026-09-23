@@ -50,7 +50,7 @@ internal class RendererParameters
   public RendererParameters(XGraphics gfx, double x, double y, double width, double height)
   {
     this.gfx = gfx;
-    this.box = new XRect(x, y, width, height);
+    box = new XRect(x, y, width, height);
   }
 
   /// <summary>
@@ -60,7 +60,7 @@ internal class RendererParameters
   public RendererParameters(XGraphics gfx, XRect boundingBox)
   {
     this.gfx = gfx;
-    this.box = boundingBox;
+    box = boundingBox;
   }
 
   /// <summary>
@@ -68,8 +68,8 @@ internal class RendererParameters
   /// </summary>
   public XGraphics Graphics
   {
-    get => this.gfx;
-    set => this.gfx = value;
+    get => gfx;
+    set => gfx = value;
   }
   private XGraphics gfx;
 
@@ -78,8 +78,8 @@ internal class RendererParameters
   /// </summary>
   public object DrawingItem
   {
-    get => this.item;
-    set => this.item = value;
+    get => item;
+    set => item = value;
   }
   private object item;
 
@@ -88,8 +88,8 @@ internal class RendererParameters
   /// </summary>
   public XRect Box
   {
-    get => this.box;
-    set => this.box = value;
+    get => box;
+    set => box = value;
   }
   private XRect box;
 
@@ -98,8 +98,8 @@ internal class RendererParameters
   /// </summary>
   public RendererInfo RendererInfo
   {
-    get => this.rendererInfo;
-    set => this.rendererInfo = value;
+    get => rendererInfo;
+    set => rendererInfo = value;
   }
   private RendererInfo rendererInfo;
 }

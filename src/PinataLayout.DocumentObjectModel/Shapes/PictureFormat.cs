@@ -68,8 +68,8 @@ public partial class PictureFormat : DocumentObject
   /// </summary>
   public Unit CropLeft
   {
-    get => this.cropLeft;
-    set => this.cropLeft = value;
+    get => cropLeft;
+    set => cropLeft = value;
   }
   /// <summary>Backing field for <see cref="CropLeft"/>.</summary>
   [DV]
@@ -80,8 +80,8 @@ public partial class PictureFormat : DocumentObject
   /// </summary>
   public Unit CropRight
   {
-    get => this.cropRight;
-    set => this.cropRight = value;
+    get => cropRight;
+    set => cropRight = value;
   }
   /// <summary>Backing field for <see cref="CropRight"/>.</summary>
   [DV]
@@ -92,8 +92,8 @@ public partial class PictureFormat : DocumentObject
   /// </summary>
   public Unit CropTop
   {
-    get => this.cropTop;
-    set => this.cropTop = value;
+    get => cropTop;
+    set => cropTop = value;
   }
   /// <summary>Backing field for <see cref="CropTop"/>.</summary>
   [DV]
@@ -104,8 +104,8 @@ public partial class PictureFormat : DocumentObject
   /// </summary>
   public Unit CropBottom
   {
-    get => this.cropBottom;
-    set => this.cropBottom = value;
+    get => cropBottom;
+    set => cropBottom = value;
   }
   /// <summary>Backing field for <see cref="CropBottom"/>.</summary>
   [DV]
@@ -119,14 +119,14 @@ public partial class PictureFormat : DocumentObject
   internal override void Serialize(Serializer serializer)
   {
     serializer.BeginContent("PictureFormat");
-    if (!this.cropLeft.IsNull)
-      serializer.WriteSimpleAttribute("CropLeft", this.CropLeft);
-    if (!this.cropRight.IsNull)
-      serializer.WriteSimpleAttribute("CropRight", this.CropRight);
-    if (!this.cropTop.IsNull)
-      serializer.WriteSimpleAttribute("CropTop", this.CropTop);
-    if (!this.cropBottom.IsNull)
-      serializer.WriteSimpleAttribute("CropBottom", this.CropBottom);
+    if (!cropLeft.IsNull)
+      serializer.WriteSimpleAttribute("CropLeft", CropLeft);
+    if (!cropRight.IsNull)
+      serializer.WriteSimpleAttribute("CropRight", CropRight);
+    if (!cropTop.IsNull)
+      serializer.WriteSimpleAttribute("CropTop", CropTop);
+    if (!cropBottom.IsNull)
+      serializer.WriteSimpleAttribute("CropBottom", CropBottom);
     serializer.EndContent();
   }
 

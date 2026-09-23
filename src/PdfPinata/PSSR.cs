@@ -89,7 +89,7 @@ static class PSSR
         string message;
         try
         {
-            message = String.Format(format, args);
+            message = string.Format(format, args);
         }
         catch (Exception ex) when (!Unrecoverable.Is(ex))
         {
@@ -241,7 +241,7 @@ static class PSSR
 
     public static string ImportPageNumberOutOfRange(int pageNumber, int maxPage, string path)
     {
-        return String.Format("The page cannot be imported from document '{2}', because the page number is out of range. " +
+        return string.Format("The page cannot be imported from document '{2}', because the page number is out of range. " +
                              "The specified page number is {0}, but it must be in the range from 1 to {1}.", pageNumber, maxPage, path);
     }
 
@@ -255,7 +255,7 @@ static class PSSR
     /// <param name="requestedIndex">The index the caller asked to place it at.</param>
     public static string PageAlreadyPlaced(int currentIndex, int requestedIndex)
     {
-        return String.Format(
+        return string.Format(
             "This page is already at index {0} of this document, so it cannot be placed again. " +
             "To move it, use document.MovePage({0}, {1}). " +
             "To place a second, independent page showing the same content, use document.DuplicatePage({0}, {1}). " +

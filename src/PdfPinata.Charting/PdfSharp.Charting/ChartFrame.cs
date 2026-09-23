@@ -50,8 +50,8 @@ public class ChartFrame
   /// </summary>
   public ChartFrame(XRect rect)
   {
-    this.location = rect.Location;
-    this.size = rect.Size;
+    location = rect.Location;
+    size = rect.Size;
   }
 
   /// <summary>
@@ -59,8 +59,8 @@ public class ChartFrame
   /// </summary>
   public XPoint Location
   {
-    get => this.location;
-    set => this.location = value;
+    get => location;
+    set => location = value;
   }
   private XPoint location;
 
@@ -69,8 +69,8 @@ public class ChartFrame
   /// </summary>
   public XSize Size
   {
-    get => this.size;
-    set => this.size = value;
+    get => size;
+    set => size = value;
   }
   private XSize size;
 
@@ -79,8 +79,8 @@ public class ChartFrame
   /// </summary>
   public void Add(Chart chart)
   {
-    this.chartList ??= new ArrayList();
-    this.chartList.Add(chart);
+    chartList ??= new ArrayList();
+    chartList.Add(chart);
   }
 
   /// <summary>
@@ -92,31 +92,31 @@ public class ChartFrame
     var dx = 5;
     var dy = 5;
     gfx.DrawRoundedRectangle(XBrushes.Gainsboro,
-      this.location.X + dx, this.location.Y + dy,
-      this.size.Width, this.size.Height, 20, 20);
+      location.X + dx, location.Y + dy,
+      size.Width, size.Height, 20, 20);
 
-    var chartRect = new XRect(this.location.X, this.location.Y, this.size.Width, this.size.Height);
+    var chartRect = new XRect(location.X, location.Y, size.Width, size.Height);
     var brush = new XLinearGradientBrush(chartRect, XColor.FromArgb(0xFFD0DEEF), XColors.White,
       XLinearGradientMode.Vertical);
     var penBorder = new XPen(XColors.SteelBlue, 2.5);
     gfx.DrawRoundedRectangle(penBorder, brush,
-      this.location.X, this.location.Y, this.size.Width, this.size.Height,
+      location.X, location.Y, size.Width, size.Height,
       15, 15);
 
     var state = gfx.Save();
-    gfx.TranslateTransform(this.location.X, this.location.Y);
+    gfx.TranslateTransform(location.X, location.Y);
 
     // Calculate rectangle for all charts. Y-Position will be moved for each chart.
-    var charts = this.chartList.Count;
+    var charts = chartList.Count;
     uint dxChart = 20;
     uint dyChart = 20;
     uint dyBetweenCharts = 30;
     var rect = new XRect(dxChart, dyChart,
-      this.size.Width - 2 * dxChart,
-      (this.size.Height - (charts - 1) * dyBetweenCharts - 2 * dyChart) / charts);
+      size.Width - 2 * dxChart,
+      (size.Height - (charts - 1) * dyBetweenCharts - 2 * dyChart) / charts);
 
     // draw each chart in list
-    foreach (Chart chart in this.chartList)
+    foreach (Chart chart in chartList)
     {
       var parms = new RendererParameters(gfx, rect) { DrawingItem = chart };
 
@@ -136,12 +136,12 @@ public class ChartFrame
   public void DrawChart(XGraphics gfx)
   {
     var state = gfx.Save();
-    gfx.TranslateTransform(this.location.X, this.location.Y);
+    gfx.TranslateTransform(location.X, location.Y);
 
-    if (this.chartList.Count > 0)
+    if (chartList.Count > 0)
     {
-      var chartRect = new XRect(0, 0, this.size.Width, this.size.Height);
-      var chart = (Chart)this.chartList[0];
+      var chartRect = new XRect(0, 0, size.Width, size.Height);
+      var chart = (Chart)chartList[0];
       var parms = new RendererParameters(gfx, chartRect) { DrawingItem = chart };
 
       var renderer = GetChartRenderer(chart, parms);

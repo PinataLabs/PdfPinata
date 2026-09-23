@@ -133,7 +133,7 @@ public class PageFitTests
     ///   100 of vertical, so every alignment lands on a round number and the nine cases can be
     ///   read at a glance.
     /// </summary>
-    public static TheoryData<PageAlignment, double, double> Alignments => new TheoryData<PageAlignment, double, double>
+    public static TheoryData<PageAlignment, double, double> Alignments => new()
     {
         { PageAlignment.BottomLeft, 0d, 0d },
         { PageAlignment.BottomCenter, 100d, 0d },

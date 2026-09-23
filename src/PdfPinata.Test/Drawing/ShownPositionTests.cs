@@ -35,7 +35,7 @@ public class ShownPositionTests
     ///   Identity-H, whose two-byte codes <c>Tw</c> cannot reach — so a word spacing has to be paid
     ///   out as an adjustment inside a <c>TJ</c> array, which is the shape this is about.
     /// </summary>
-    private static XFont UnicodeFont => new XFont("Arial", 12, XFontStyle.Regular, XPdfFontOptions.UnicodeDefault);
+    private static XFont UnicodeFont => new("Arial", 12, XFontStyle.Regular, XPdfFontOptions.UnicodeDefault);
 
     private static PdfPage PageShowing(Action<XGraphics> draw)
     {

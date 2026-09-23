@@ -494,7 +494,9 @@ public partial class Hyperlink : DocumentObject, IVisitable
         if (type != null)
             str += " Type = " + Type;
         if (IsNull("Font"))
+        {
             serializer.Write(str + "]");
+        }
         else
         {
             // The same attribute block a paragraph writes its font in, inside the brackets:

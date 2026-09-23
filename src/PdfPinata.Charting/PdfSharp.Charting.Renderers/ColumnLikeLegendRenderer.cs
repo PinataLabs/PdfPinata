@@ -53,49 +53,49 @@ internal class ColumnLikeLegendRenderer : LegendRenderer
   internal override RendererInfo Init()
   {
     LegendRendererInfo lri = null;
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
-    if (cri.Chart.legend != null)
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
+    if (cri.Chart.legend == null)
+      return null;
+
+    lri = new LegendRendererInfo { Legend = cri.Chart.legend };
+
+    lri.Font = Converter.ToXFont(lri.Legend.font, cri.DefaultFont);
+    lri.FontColor = Converter.ToXBrush(lri.Legend.font, cri.DefaultFontColor);
+
+    if (lri.Legend.lineFormat != null)
+      lri.BorderPen = Converter.ToXPen(lri.Legend.lineFormat, XColors.Black, DefaultLineWidth, XDashStyle.Solid);
+
+    lri.Entries = new LegendEntryRendererInfo[cri.SeriesRendererInfos.Length];
+    var index = 0;
+    foreach (var sri in cri.SeriesRendererInfos)
     {
-      lri = new LegendRendererInfo { Legend = cri.Chart.legend };
-
-      lri.Font = Converter.ToXFont(lri.Legend.font, cri.DefaultFont);
-      lri.FontColor = Converter.ToXBrush(lri.Legend.font, cri.DefaultFontColor);
-
-      if (lri.Legend.lineFormat != null)
-        lri.BorderPen = Converter.ToXPen(lri.Legend.lineFormat, XColors.Black, DefaultLineWidth, XDashStyle.Solid);
-
-      lri.Entries = new LegendEntryRendererInfo[cri.SeriesRendererInfos.Length];
-      var index = 0;
-      foreach (var sri in cri.SeriesRendererInfos)
+      var leri = new LegendEntryRendererInfo
       {
-        var leri = new LegendEntryRendererInfo
-        {
-          SeriesRendererInfo = sri,
-          LegendRendererInfo = lri,
-          EntryText = sri.Series.name
-        };
-        if (sri.MarkerRendererInfo != null)
-        {
-          leri.MarkerSize.Width = leri.MarkerSize.Height = sri.MarkerRendererInfo.MarkerSize.Point;
-          leri.MarkerPen = new XPen(sri.MarkerRendererInfo.MarkerForegroundColor);
-          leri.MarkerBrush = new XSolidBrush(sri.MarkerRendererInfo.MarkerBackgroundColor);
-        }
-        else
-        {
-          leri.MarkerPen = sri.LineFormat;
-          leri.MarkerBrush = sri.FillFormat;
-        }
-
-        if (cri.Chart.type == ChartType.ColumnStacked2D)
-          // stacked columns are revers ordered
-          lri.Entries[cri.SeriesRendererInfos.Length - index++ - 1] = leri;
-        else
-          lri.Entries[index++] = leri;
+        SeriesRendererInfo = sri,
+        LegendRendererInfo = lri,
+        EntryText = sri.Series.name
+      };
+      if (sri.MarkerRendererInfo != null)
+      {
+        leri.MarkerSize.Width = leri.MarkerSize.Height = sri.MarkerRendererInfo.MarkerSize.Point;
+        leri.MarkerPen = new XPen(sri.MarkerRendererInfo.MarkerForegroundColor);
+        leri.MarkerBrush = new XSolidBrush(sri.MarkerRendererInfo.MarkerBackgroundColor);
+      }
+      else
+      {
+        leri.MarkerPen = sri.LineFormat;
+        leri.MarkerBrush = sri.FillFormat;
       }
 
-      if (cri is CombinationRendererInfo { ColumnsStacked: true })
-        ReverseStackedEntries(lri.Entries);
+      if (cri.Chart.type == ChartType.ColumnStacked2D)
+        // stacked columns are revers ordered
+        lri.Entries[cri.SeriesRendererInfos.Length - index++ - 1] = leri;
+      else
+        lri.Entries[index++] = leri;
     }
+
+    if (cri is CombinationRendererInfo { ColumnsStacked: true })
+      ReverseStackedEntries(lri.Entries);
     return lri;
   }
 

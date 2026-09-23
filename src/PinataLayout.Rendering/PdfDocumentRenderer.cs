@@ -58,7 +58,7 @@ public class PdfDocumentRenderer
     /// <param name="unicode">If true Unicode encoding is used for all text. If false, WinAnsi encoding is used.</param>
     public PdfDocumentRenderer(bool unicode)
     {
-        this._unicode = unicode;
+        _unicode = unicode;
     }
 
     /// <summary>
@@ -82,7 +82,7 @@ public class PdfDocumentRenderer
         set => _language = value;
     }
 
-    private string _language = String.Empty;
+    private string _language = string.Empty;
 
     /// <summary>
     /// Gets or sets whether the rendered PDF carries a structure tree describing it. The default is
@@ -294,23 +294,23 @@ public class PdfDocumentRenderer
     /// </summary>
     public void WriteDocumentInformation()
     {
-        if (!_document.IsNull("Info"))
-        {
-            var docInfo = _document.Info;
-            var pdfInfo = _pdfDocument.Info;
+        if (_document.IsNull("Info"))
+            return;
 
-            if (!docInfo.IsNull("Author"))
-                pdfInfo.Author = docInfo.Author;
+        var docInfo = _document.Info;
+        var pdfInfo = _pdfDocument.Info;
 
-            if (!docInfo.IsNull("Keywords"))
-                pdfInfo.Keywords = docInfo.Keywords;
+        if (!docInfo.IsNull("Author"))
+            pdfInfo.Author = docInfo.Author;
 
-            if (!docInfo.IsNull("Subject"))
-                pdfInfo.Subject = docInfo.Subject;
+        if (!docInfo.IsNull("Keywords"))
+            pdfInfo.Keywords = docInfo.Keywords;
 
-            if (!docInfo.IsNull("Title"))
-                pdfInfo.Title = docInfo.Title;
-        }
+        if (!docInfo.IsNull("Subject"))
+            pdfInfo.Subject = docInfo.Subject;
+
+        if (!docInfo.IsNull("Title"))
+            pdfInfo.Title = docInfo.Title;
     }
 
     /// <summary>

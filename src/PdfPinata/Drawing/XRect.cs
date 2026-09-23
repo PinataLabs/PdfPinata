@@ -80,7 +80,9 @@ public struct XRect : IFormattable, IDeserializationCallback, IEquatable<XRect>
     public XRect(XPoint location, XSize size)
     {
         if (size.IsEmpty)
+        {
             this = s_empty;
+        }
         else
         {
             _x = location.X;
@@ -96,7 +98,9 @@ public struct XRect : IFormattable, IDeserializationCallback, IEquatable<XRect>
     public XRect(XSize size)
     {
         if (size.IsEmpty)
+        {
             this = s_empty;
+        }
         else
         {
             _x = _y = 0;
@@ -279,7 +283,9 @@ public struct XRect : IFormattable, IDeserializationCallback, IEquatable<XRect>
         set
         {
             if (value.IsEmpty)
+            {
                 this = s_empty;
+            }
             else
             {
                 if (IsEmpty)
@@ -464,7 +470,9 @@ public struct XRect : IFormattable, IDeserializationCallback, IEquatable<XRect>
     public void Intersect(XRect rect)
     {
         if (!IntersectsWith(rect))
+        {
             this = Empty;
+        }
         else
         {
             var left = Math.Max(Left, rect.Left);
@@ -492,14 +500,18 @@ public struct XRect : IFormattable, IDeserializationCallback, IEquatable<XRect>
     {
         // ReSharper disable CompareOfFloatsByEqualityOperator
         if (IsEmpty)
+        {
             this = rect;
+        }
         else if (!rect.IsEmpty)
         {
             var left = Math.Min(Left, rect.Left);
             var top = Math.Min(Top, rect.Top);
             #pragma warning disable S1244 // Exact on purpose: compared with a sentinel the value is set to, never with the result of arithmetic.
-            if (rect.Width == Double.PositiveInfinity || Width == Double.PositiveInfinity)
-                _width = Double.PositiveInfinity;
+            if (rect.Width == double.PositiveInfinity || Width == double.PositiveInfinity)
+            {
+                _width = double.PositiveInfinity;
+            }
             #pragma warning restore S1244
             else
             {
@@ -508,8 +520,10 @@ public struct XRect : IFormattable, IDeserializationCallback, IEquatable<XRect>
             }
 
             #pragma warning disable S1244 // Exact on purpose: compared with a sentinel the value is set to, never with the result of arithmetic.
-            if (rect.Height == Double.PositiveInfinity || _height == Double.PositiveInfinity)
-                _height = Double.PositiveInfinity;
+            if (rect.Height == double.PositiveInfinity || _height == double.PositiveInfinity)
+            {
+                _height = double.PositiveInfinity;
+            }
             #pragma warning restore S1244
             else
             {
@@ -669,22 +683,22 @@ public struct XRect : IFormattable, IDeserializationCallback, IEquatable<XRect>
     /// </summary>
     public void Scale(double scaleX, double scaleY)
     {
-        if (!IsEmpty)
+        if (IsEmpty)
+            return;
+
+        _x *= scaleX;
+        _y *= scaleY;
+        _width *= scaleX;
+        _height *= scaleY;
+        if (scaleX < 0)
         {
-            _x *= scaleX;
-            _y *= scaleY;
-            _width *= scaleX;
-            _height *= scaleY;
-            if (scaleX < 0)
-            {
-                _x += _width;
-                _width *= -1.0;
-            }
-            if (scaleY < 0)
-            {
-                _y += _height;
-                _height *= -1.0;
-            }
+            _x += _width;
+            _width *= -1.0;
+        }
+        if (scaleY < 0)
+        {
+            _y += _height;
+            _height *= -1.0;
         }
     }
 
@@ -723,7 +737,7 @@ public struct XRect : IFormattable, IDeserializationCallback, IEquatable<XRect>
         get
         {
             const string format = Config.SignificantFigures10;
-            return String.Format(CultureInfo.InvariantCulture,
+            return string.Format(CultureInfo.InvariantCulture,
                 "rect=({0:" + format + "}, {1:" + format + "}, {2:" + format + "}, {3:" + format + "})",
                 _x, _y, _width, _height);
         }

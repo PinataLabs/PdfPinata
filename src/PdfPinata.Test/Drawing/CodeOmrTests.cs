@@ -26,9 +26,9 @@ namespace PdfPinata.Test.Drawing;
 /// </remarks>
 public class CodeOmrTests
 {
-    private static readonly XSize Size = new XSize(200, 20);
+    private static readonly XSize Size = new(200, 20);
 
-    private static CodeOmr Omr(string text = "1") => new CodeOmr(text, Size, CodeDirection.LeftToRight);
+    private static CodeOmr Omr(string text = "1") => new(text, Size, CodeDirection.LeftToRight);
 
     [Theory]
     [InlineData(MarkDistance.Inch1_6, 1.0 / 6.0)]

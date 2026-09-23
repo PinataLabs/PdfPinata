@@ -42,10 +42,10 @@ public class PerFaceStyleSimulationTests
     private const string Arabic = "سل";
 
     /// <summary>Bold here is simulated: the family ships a regular face alone.</summary>
-    private static XFont SimulatedBold() => new XFont(PinnedFontResolver.CffFamilyName, 20, XFontStyle.Bold);
+    private static XFont SimulatedBold() => new(PinnedFontResolver.CffFamilyName, 20, XFontStyle.Bold);
 
     /// <summary>Bold here is a real file.</summary>
-    private static XFont RealBold() => new XFont("Arial", 20, XFontStyle.Bold);
+    private static XFont RealBold() => new("Arial", 20, XFontStyle.Bold);
 
     private sealed class Installed : IDisposable
     {

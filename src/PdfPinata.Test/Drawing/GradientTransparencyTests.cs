@@ -156,7 +156,7 @@ public class GradientTransparencyTests
 
     // ----- the page under test -------------------------------------------------------------------
 
-    private static readonly XRect Box = new XRect(20, 20, 200, 100);
+    private static readonly XRect Box = new(20, 20, 200, 100);
 
     /// <summary>Fully transparent black to fully opaque black, across the box.</summary>
     private static XLinearGradientBrush FadingBrush()

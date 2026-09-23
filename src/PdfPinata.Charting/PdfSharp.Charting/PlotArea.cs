@@ -85,9 +85,9 @@ public class PlotArea : ChartObject
   {
     get
     {
-      this.lineFormat ??= new LineFormat(this);
+      lineFormat ??= new LineFormat(this);
 
-      return this.lineFormat;
+      return lineFormat;
     }
   }
   internal LineFormat lineFormat;
@@ -99,9 +99,9 @@ public class PlotArea : ChartObject
   {
     get
     {
-      this.fillFormat ??= new FillFormat(this);
+      fillFormat ??= new FillFormat(this);
 
-      return this.fillFormat;
+      return fillFormat;
     }
   }
   internal FillFormat fillFormat;
@@ -111,8 +111,8 @@ public class PlotArea : ChartObject
   /// </summary>
   public XUnit LeftPadding
   {
-    get => this.leftPadding;
-    set => this.leftPadding = value;
+    get => leftPadding;
+    set => leftPadding = value;
   }
   internal XUnit leftPadding;
 
@@ -121,8 +121,8 @@ public class PlotArea : ChartObject
   /// </summary>
   public XUnit RightPadding
   {
-    get => this.rightPadding;
-    set => this.rightPadding = value;
+    get => rightPadding;
+    set => rightPadding = value;
   }
   internal XUnit rightPadding;
 
@@ -131,8 +131,8 @@ public class PlotArea : ChartObject
   /// </summary>
   public XUnit TopPadding
   {
-    get => this.topPadding;
-    set => this.topPadding = value;
+    get => topPadding;
+    set => topPadding = value;
   }
   internal XUnit topPadding;
 
@@ -141,8 +141,8 @@ public class PlotArea : ChartObject
   /// </summary>
   public XUnit BottomPadding
   {
-    get => this.bottomPadding;
-    set => this.bottomPadding = value;
+    get => bottomPadding;
+    set => bottomPadding = value;
   }
   internal XUnit bottomPadding;
   #endregion

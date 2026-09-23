@@ -26,7 +26,7 @@ public sealed class SquareAnnotationTests : IDisposable
 {
     private const string OutDir = "Out/SquareAnnotations";
 
-    private readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
+    private readonly List<MagickImageCollection> _rasterized = new();
 
     public void Dispose()
     {
@@ -41,7 +41,7 @@ public sealed class SquareAnnotationTests : IDisposable
         GhostscriptSetup.Configure();
     }
 
-    private static readonly XRect Where = new XRect(40, 40, 120, 80);
+    private static readonly XRect Where = new(40, 40, 120, 80);
 
     [Fact]
     public void ASquareNamesItsSubtypeAndCarriesADefaultBorder()

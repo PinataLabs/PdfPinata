@@ -78,16 +78,14 @@ internal class FormattedTextFrame : IAreaProvider
 
   internal RenderInfo[] GetRenderInfos()
   {
-    if (renderInfos != null)
-    {
-      // Not ToArray(Type): it builds the array type at run time, which carries
-      // RequiresDynamicCode and an AOT compiler cannot always have code for.
-      var result = new RenderInfo[renderInfos.Count];
-      renderInfos.CopyTo(result);
-      return result;
-    }
+    if (renderInfos == null)
+      return null;
 
-    return null;
+    // Not ToArray(Type): it builds the array type at run time, which carries
+    // RequiresDynamicCode and an AOT compiler cannot always have code for.
+    var result = new RenderInfo[renderInfos.Count];
+    renderInfos.CopyTo(result);
+    return result;
   }
 
   private Rectangle CalcContentRect()
@@ -140,12 +138,11 @@ internal class FormattedTextFrame : IAreaProvider
     switch (layoutInfo.HorizontalAlignment)
     {
       case ElementAlignment.Near:
-        if (layoutInfo.Left != 0)
-        {
-          layoutInfo.ContentArea.X += layoutInfo.Left;
-          return true;
-        }
-        return false;
+        if (layoutInfo.Left == 0)
+          return false;
+
+        layoutInfo.ContentArea.X += layoutInfo.Left;
+        return true;
 
       case ElementAlignment.Far:
         XUnit xPos = rect.X + rect.Width;

@@ -24,7 +24,7 @@ public class AxisTitleGeometryTests
     ///   itself - that is how much room the axis took from the plot area for it - so this is the
     ///   shape every one of these tests hands to the geometry.
     /// </summary>
-    private static readonly XSize Caption = new XSize(90, 12);
+    private static readonly XSize Caption = new(90, 12);
 
     [Fact]
     public void ACentredCaptionSitsInTheMiddleOfItsStrip()

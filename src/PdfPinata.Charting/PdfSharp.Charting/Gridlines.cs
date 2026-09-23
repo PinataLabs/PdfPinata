@@ -78,9 +78,9 @@ public class Gridlines : ChartObject
   {
     get
     {
-      this.lineFormat ??= new LineFormat(this);
+      lineFormat ??= new LineFormat(this);
 
-      return this.lineFormat;
+      return lineFormat;
     }
   }
   internal LineFormat lineFormat;
