@@ -83,7 +83,7 @@ public partial class Row : DocumentObject, IVisitable
       return this.table;
     }
   }
-  Table table;
+  private Table table;
 
   /// <summary>
   /// Gets the index of the row. First row has index 0.

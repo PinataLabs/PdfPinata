@@ -21,7 +21,7 @@ namespace PdfPinata.Test.IO;
 public class LexerHexStringTests
 {
     /// <summary>The single byte 0x90, which is what the digit 9 alone spells.</summary>
-    static readonly string NinetyHex = ((char)0x90).ToString();
+    private static readonly string NinetyHex = ((char)0x90).ToString();
 
     [Theory(Timeout = 5000)]
     [InlineData("<48656C6C6F")]      // no closing '>' at all
@@ -114,9 +114,9 @@ public class LexerHexStringTests
         await open.Should().ThrowAsync<PdfReaderException>();
     }
 
-    record Scanned(Symbol Symbol, string Token);
+    private record Scanned(Symbol Symbol, string Token);
 
-    static Task<Scanned> ScanFirstToken(string pdf)
+    private static Task<Scanned> ScanFirstToken(string pdf)
     {
         // On a thread of its own, so that the Timeout on these tests can interrupt a scan that
         // does not end. xUnit honours it only on an async test.
@@ -128,7 +128,7 @@ public class LexerHexStringTests
         });
     }
 
-    static Task<IReadOnlyList<Symbol>> ScanAll(string pdf)
+    private static Task<IReadOnlyList<Symbol>> ScanAll(string pdf)
     {
         return Interruptibly.Run(() =>
         {

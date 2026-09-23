@@ -20,13 +20,13 @@ namespace PdfPinata.Test.Drawing;
 /// </summary>
 public class TransparentFirstColorTests
 {
-    static readonly XColor Invisible = XColor.FromArgb(0, 255, 0, 0);
+    private static readonly XColor Invisible = XColor.FromArgb(0, 255, 0, 0);
 
     /// <summary>
     ///   The value of <paramref name="key"/> in every ExtGState the page's content selects with gs
     ///   and that carries it, in the order the content selects them.
     /// </summary>
-    static List<double> AlphasSelected(PdfDocument document, string key)
+    private static List<double> AlphasSelected(PdfDocument document, string key)
     {
         using var stream = new MemoryStream();
         document.Save(stream, false);

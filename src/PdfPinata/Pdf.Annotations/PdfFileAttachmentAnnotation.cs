@@ -136,7 +136,7 @@ public class PdfFileAttachmentAnnotation : PdfMarkupAnnotation
                 return meta;
             }
         }
-        static DictionaryMeta meta;
+        private static DictionaryMeta meta;
     }
 
     /// <summary>

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using AwesomeAssertions;
 using Xunit;
@@ -21,8 +22,8 @@ public class UnitTests
 {
     // 72 points to the inch, 2.54 centimetres to the inch, 12 points to the pica. Everything below
     // follows from those three.
-    const double PointsPerInch = 72;
-    const double CentimetresPerInch = 2.54;
+    private const double PointsPerInch = 72;
+    private const double CentimetresPerInch = 2.54;
 
     // ----- what a unit is worth in every measure -------------------------------------------------
 
@@ -330,11 +331,55 @@ public class UnitTests
     }
 
     [Fact]
+    public void EqualLengthsAreEqualThroughEveryWayOfAsking()
+    {
+        IEquatable<Unit> inch = Unit.FromInch(1);
+
+        inch.Equals(Unit.FromInch(1)).Should().BeTrue();
+        inch.Equals(Unit.FromPoint(72)).Should().BeFalse();
+        Unit.FromInch(1).Equals((object)Unit.FromInch(1)).Should().BeTrue();
+    }
+
+    [Fact]
+    public void AnEmptyUnitIsNotEqualToZeroPoints()
+    {
+        Unit.Empty.Equals(Unit.FromPoint(0)).Should().BeFalse();
+        (Unit.Empty == Unit.FromPoint(0)).Should().BeFalse();
+    }
+
+    [Fact]
+    public void AUnitCanBeFoundAgainInAHashSet()
+    {
+        var units = new HashSet<Unit> { Unit.FromCentimeter(3), Unit.FromInch(1), Unit.Empty };
+
+        units.Should().Contain(Unit.FromCentimeter(3));
+        units.Should().Contain(Unit.Empty);
+        units.Should().NotContain(Unit.FromPoint(72));
+    }
+
+    [Fact]
     public void SomethingThatIsNotAUnitIsNotEqualToOne()
     {
+        // Cast to object, because a string or a null handed to Equals directly binds to Equals(Unit)
+        // through the implicit string conversion - the same as == has always done with one.
         // ReSharper disable once SuspiciousTypeConversion.Global
-        Unit.FromPoint(3).Equals("3").Should().BeFalse();
-        Unit.FromPoint(3).Equals(null).Should().BeFalse();
+        Unit.FromPoint(3).Equals((object)"3").Should().BeFalse();
+        Unit.FromPoint(3).Equals((object)null).Should().BeFalse();
+    }
+
+    [Fact]
+    public void AStringHandedToEqualsIsParsedAsAUnit()
+    {
+        Unit.FromPoint(3).Equals("3").Should().BeTrue();
+        Unit.FromPoint(3).Equals("3cm").Should().BeFalse();
+    }
+
+    [Fact]
+    public void ANullHandedToEqualsIsRefusedAsAUnitWouldBe()
+    {
+        var act = () => Unit.FromPoint(3).Equals(null);
+
+        act.Should().Throw<ArgumentNullException>();
     }
 
     [Theory]

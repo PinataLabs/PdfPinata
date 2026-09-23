@@ -17,15 +17,15 @@ namespace PdfPinata.Test.Helpers;
 /// </remarks>
 internal static class AreaProbe
 {
-    static readonly Assembly Rendering = typeof(Area).Assembly;
+    private static readonly Assembly Rendering = typeof(Area).Assembly;
 
-    static readonly Type RectangleType =
+    private static readonly Type RectangleType =
         Rendering.GetType("PinataLayout.Rendering.Rectangle", throwOnError: true);
 
-    static readonly Type ObstructedType =
+    private static readonly Type ObstructedType =
         Rendering.GetType("PinataLayout.Rendering.ObstructedArea", throwOnError: true);
 
-    const BindingFlags Internals = BindingFlags.NonPublic | BindingFlags.Instance;
+    private const BindingFlags Internals = BindingFlags.NonPublic | BindingFlags.Instance;
 
     /// <summary>A plain rectangular area, in points.</summary>
     internal static Area Rectangle(double x, double y, double width, double height)

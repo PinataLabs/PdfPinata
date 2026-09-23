@@ -2419,7 +2419,7 @@ internal class DdlParser
     {
         ArgumentNullException.ThrowIfNull(type);
         if (type == "")
-            throw new ArgumentException("A symbol name must not be empty.", nameof(type));
+            throw new ArgumentException(@"A symbol name must not be empty.", nameof(type));
 
         if (Enum.IsDefined(typeof(SymbolName), type))
         {
@@ -2444,7 +2444,7 @@ internal class DdlParser
     {
         ArgumentNullException.ThrowIfNull(type);
         if (type == "")
-            throw new ArgumentException("A symbol name must not be empty.", nameof(type));
+            throw new ArgumentException(@"A symbol name must not be empty.", nameof(type));
 
         if (Enum.IsDefined(typeof(SymbolName), type))
         {

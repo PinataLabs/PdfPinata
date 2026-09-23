@@ -260,7 +260,7 @@ public class TaggedFootnoteTests
 
     // ── Arranging ───────────────────────────────────────────────────────────────────────────────
 
-    static Document WithOneNote()
+    private static Document WithOneNote()
     {
         var document = Document(out var section);
         section.AddParagraph("A claim").AddFootnote("The support.");
@@ -271,7 +271,7 @@ public class TaggedFootnoteTests
     ///   The pinned face, because a tagged document is still a laid-out one and the note has to fit on
     ///   the page for any of this to be observable.
     /// </summary>
-    static Document Document(out Section section)
+    private static Document Document(out Section section)
     {
         var document = new Document();
         var normal = document.Styles[StyleNames.Normal];

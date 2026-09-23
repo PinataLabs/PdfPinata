@@ -219,7 +219,7 @@ public sealed class Font : DocumentObject
     }
   }
 
-  static Font FontOf(DocumentObject owner) => owner switch
+  private static Font FontOf(DocumentObject owner) => owner switch
   {
     Chart chart => chart.font,
     Legend legend => legend.font,

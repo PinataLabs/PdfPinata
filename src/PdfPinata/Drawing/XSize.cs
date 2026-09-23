@@ -191,7 +191,7 @@ public struct XSize : IFormattable, IDeserializationCallback, IEquatable<XSize>
     /// </summary>
     public static XSize Empty => s_empty;
 
-    static readonly XSize s_empty;
+    private static readonly XSize s_empty;
 
     /// <summary>
     /// Gets a value indicating whether this instance is empty.
@@ -235,7 +235,8 @@ public struct XSize : IFormattable, IDeserializationCallback, IEquatable<XSize>
             _width = value;
         }
     }
-    double _width;
+
+    private double _width;
 
     /// <summary>
     /// Gets or sets the height.
@@ -252,7 +253,8 @@ public struct XSize : IFormattable, IDeserializationCallback, IEquatable<XSize>
             _height = value;
         }
     }
-    double _height;
+
+    private double _height;
 
     /// <summary>
     /// Performs an explicit conversion from XSize to XVector.
@@ -288,7 +290,7 @@ public struct XSize : IFormattable, IDeserializationCallback, IEquatable<XSize>
     /// </summary>
     /// <value>The debugger display.</value>
     // ReSharper disable UnusedMember.Local
-    string DebuggerDisplay
+    private string DebuggerDisplay
         // ReSharper restore UnusedMember.Local
     {
         get

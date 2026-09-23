@@ -22,7 +22,7 @@ namespace PdfPinata.Test.Dom;
 /// </summary>
 public class StyleLookupTests
 {
-    static Document WithDerivedStyle(string baseStyleName)
+    private static Document WithDerivedStyle(string baseStyleName)
     {
         var document = new Document();
         var derived = document.Styles.AddStyle("Derived", baseStyleName);

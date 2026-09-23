@@ -16,7 +16,7 @@ namespace PdfPinata.Test.Dom;
 /// </summary>
 public class EnumValueTests
 {
-    static Borders ABordersObject() =>
+    private static Borders ABordersObject() =>
         new Document().AddSection().AddParagraph("Hello").Format.Borders;
 
     [Fact]

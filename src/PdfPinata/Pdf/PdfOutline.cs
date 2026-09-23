@@ -141,7 +141,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
     /// entry was constructed with, missed every later assignment to <see cref="Opened"/>, and was
     /// never undone by a removal.
     /// </remarks>
-    int _visibleDescendants;
+    private int _visibleDescendants;
 
     /// <summary>
     /// Measures this entry and everything under it, child first, storing each node's count as it
@@ -154,7 +154,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
     /// measured suffixes of length n-1, n-2 ... 1. A document with a chapter per page and a heading
     /// per section is exactly that shape.
     /// </remarks>
-    int MeasureVisibleDescendants()
+    private int MeasureVisibleDescendants()
     {
         var count = 0;
         if (_outlines != null)
@@ -180,7 +180,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
         get => _parent;
         internal set => _parent = value;
     }
-    PdfOutline _parent;
+    private PdfOutline _parent;
 
     /// <summary>
     /// The collection this entry is in, or null while it is in none. Set and cleared by
@@ -216,7 +216,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
             _keepDestinationAsFound = false;
         }
     }
-    PdfPage _destinationPage;
+    private PdfPage _destinationPage;
 
     /// <summary>
     /// Gets or sets the left postion of the page positioned at the left side of the window.
@@ -227,7 +227,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
         get => _left;
         set => _left = value;
     }
-    double _left = double.NaN;
+    private double _left = double.NaN;
 
     /// <summary>
     /// Gets or sets the top postion of the page positioned at the top side of the window.
@@ -238,7 +238,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
         get => _top;
         set => _top = value;
     }
-    double _top = double.NaN;
+    private double _top = double.NaN;
 
     /// <summary>
     /// Gets or sets the right postion of the page positioned at the right side of the window.
@@ -249,7 +249,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
         get => _right;
         set => _right = value;
     }
-    double _right = double.NaN;
+    private double _right = double.NaN;
 
     /// <summary>
     /// Gets or sets the bottom postion of the page positioned at the bottom side of the window.
@@ -260,7 +260,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
         get => _bottom;
         set => _bottom = value;
     }
-    double _bottom = double.NaN;
+    private double _bottom = double.NaN;
 
     /// <summary>
     /// Gets or sets the zoom faction of the page.
@@ -271,7 +271,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
         get => _zoom;
         set => _zoom = value;
     }
-    double _zoom = double.NaN; // PDF teats 0 and null equally.
+    private double _zoom = double.NaN; // PDF teats 0 and null equally.
 
     /// <summary>
     /// Gets or sets whether the outline item is opened (or expanded).
@@ -281,7 +281,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
         get => _opened;
         set => _opened = value;
     }
-    bool _opened;
+    private bool _opened;
 
     /// <summary>
     /// Gets or sets the style of the outline text.
@@ -296,7 +296,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
         get => _style;
         set => _style = value;
     }
-    PdfOutlineStyle _style;
+    private PdfOutlineStyle _style;
 
     /// <summary>
     /// Gets or sets the type of the page destination.
@@ -310,14 +310,14 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
             _keepDestinationAsFound = false;
         }
     }
-    PdfPageDestinationType _pageDestinationType = PdfPageDestinationType.Xyz;
+    private PdfPageDestinationType _pageDestinationType = PdfPageDestinationType.Xyz;
 
     /// <summary>
     /// Whether where this entry goes is something this library cannot describe - a destination of
     /// a type it does not know, or an action that leads on to another - and so must be written
     /// back out as it was found rather than from the properties above.
     /// </summary>
-    bool _keepDestinationAsFound;
+    private bool _keepDestinationAsFound;
 
     /// <summary>
     /// Gets or sets the color of the text.
@@ -328,7 +328,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
         get => _textColor;
         set => _textColor = value;
     }
-    XColor _textColor;
+    private XColor _textColor;
 
     /// <summary>
     /// Gets a value indicating whether this outline object has child items.
@@ -340,12 +340,12 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
     /// </summary>
     public PdfOutlineCollection Outlines => _outlines ?? (_outlines = new PdfOutlineCollection(Owner, this));
 
-    PdfOutlineCollection _outlines;
+    private PdfOutlineCollection _outlines;
 
     /// <summary>
     /// Initializes this instance from an exisiting PDF document.
     /// </summary>
-    void Initialize()
+    private void Initialize()
     {
         string title;
         if (Elements.TryGetString(Keys.Title, out title))
@@ -403,7 +403,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
     /// Takes the destination of this outline from the action it performs, for the entries that
     /// go somewhere by performing one.
     /// </summary>
-    void InitializeFromAction(PdfItem a)
+    private void InitializeFromAction(PdfItem a)
     {
         // Only a GoTo action leads somewhere inside this document. Every other kind - a URI, a
         // file to launch, a page of another document - is left exactly as it stands: it has no
@@ -444,7 +444,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
     /// not an error worth refusing to read the outline over: the entry simply goes nowhere,
     /// which is what a reader shows.
     /// </remarks>
-    PdfArray ResolveDestination(PdfItem dest)
+    private PdfArray ResolveDestination(PdfItem dest)
     {
         if (dest is PdfReference iref)
             dest = iref.Value;
@@ -452,7 +452,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
         return dest as PdfArray ?? PdfNamedDestinations.Lookup(Owner, dest);
     }
 
-    void SplitDestinationPage(PdfArray destination)  // Reference: 8.2 Destination syntax / Page 582
+    private void SplitDestinationPage(PdfArray destination)  // Reference: 8.2 Destination syntax / Page 582
     {
         // ReSharper disable HeuristicUnreachableCode
 #pragma warning disable 162
@@ -546,7 +546,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
     /// name the destination never gave, so a document saying it went one way was written back
     /// saying it went another.
     /// </remarks>
-    static bool TryParseDestinationType(string name, out PdfPageDestinationType type)
+    private static bool TryParseDestinationType(string name, out PdfPageDestinationType type)
     {
         type = default;
         return name.Length > 0 && !char.IsDigit(name[0]) && name[0] != '-' && name[0] != '+'
@@ -559,7 +559,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
     /// document holds. A destination written into the document itself refers to its page, and
     /// one that came from elsewhere - a remote destination - gives the number of a page instead.
     /// </summary>
-    static PdfDictionary DestinationPageOf(PdfArray destination)
+    private static PdfDictionary DestinationPageOf(PdfArray destination)
     {
         if (destination.Elements.Count == 0)
             return null;
@@ -586,12 +586,12 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
     /// is written back out as the null the specification gives for a parameter left to the
     /// reader.
     /// </summary>
-    static double RealAt(PdfArray destination, int index)
+    private static double RealAt(PdfArray destination, int index)
     {
         return index < destination.Elements.Count ? destination.Elements.GetReal(index) : double.NaN;
     }
 
-    void InitializeChildren()
+    private void InitializeChildren()
     {
         var firstRef = Elements.GetReference(Keys.First);
         var current = firstRef;
@@ -720,7 +720,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
         }
     }
 
-    PdfArray CreateDestArray()
+    private PdfArray CreateDestArray()
     {
         PdfArray dest;
         switch (PageDestinationType)
@@ -782,7 +782,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
     /// <summary>
     /// Format double.
     /// </summary>
-    static string Fd(double value)
+    private static string Fd(double value)
     {
         return Double.IsNaN(value) ? "null" : value.ToString("#.##", CultureInfo.InvariantCulture);
     }
@@ -908,7 +908,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
         /// </summary>
         public static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
 
         // ReSharper restore InconsistentNaming
     }

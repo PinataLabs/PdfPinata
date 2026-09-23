@@ -22,7 +22,7 @@ static class CmsEncoding
     public static byte[] Trimmed(byte[] contents)
     {
         if (contents == null || contents.Length == 0)
-            throw new ArgumentException("The signature is empty.", nameof(contents));
+            throw new ArgumentException(@"The signature is empty.", nameof(contents));
 
         var reader = new AsnReader(contents, AsnEncodingRules.BER);
         return reader.PeekEncodedValue().ToArray();

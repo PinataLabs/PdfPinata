@@ -53,7 +53,7 @@ public static class PdfUaValidator
         RequireHeadingsNotToSkipALevel(document);
     }
 
-    static void RequireStructureTree(PdfDocument document)
+    private static void RequireStructureTree(PdfDocument document)
     {
         if (!document.IsTagged)
             throw new InvalidOperationException(
@@ -62,7 +62,7 @@ public static class PdfUaValidator
                 + "PinataLayout do it — its renderer tags what it draws unless told not to.");
     }
 
-    static void RequireTitle(PdfDocument document)
+    private static void RequireTitle(PdfDocument document)
     {
         if (string.IsNullOrEmpty(document.Info.Title))
             throw new InvalidOperationException(
@@ -78,7 +78,7 @@ public static class PdfUaValidator
                 + "Set ViewerPreferences.DisplayDocTitle to true.");
     }
 
-    static void RequireLanguage(PdfDocument document)
+    private static void RequireLanguage(PdfDocument document)
     {
         var language = document.Catalog.Elements.GetString(PdfCatalog.Keys.Lang);
         if (string.IsNullOrEmpty(language))
@@ -87,7 +87,7 @@ public static class PdfUaValidator
                 + "voice to read it in. Set PdfDocument.Language to an RFC 3066 tag such as \"en-GB\".");
     }
 
-    static void RequirePagesInTheTree(PdfDocument document)
+    private static void RequirePagesInTheTree(PdfDocument document)
     {
         for (var index = 0; index < document.PageCount; index++)
         {
@@ -110,7 +110,7 @@ public static class PdfUaValidator
         }
     }
 
-    static void RequireAlternateTextOnFigures(PdfDocument document)
+    private static void RequireAlternateTextOnFigures(PdfDocument document)
     {
         foreach (var element in Elements(document))
         {
@@ -145,7 +145,7 @@ public static class PdfUaValidator
     /// footnote citation problem under either name.
     /// </para>
     /// </remarks>
-    static void RequireIdentifiedNotes(PdfDocument document)
+    private static void RequireIdentifiedNotes(PdfDocument document)
     {
         foreach (var element in Elements(document))
         {
@@ -173,7 +173,7 @@ public static class PdfUaValidator
     /// of their own alongside the generated <c>note1</c>, <c>note2</c> — the obvious names to reach
     /// for — collides easily.
     /// </remarks>
-    static void RequireDistinctIdentifiers(PdfDocument document)
+    private static void RequireDistinctIdentifiers(PdfDocument document)
     {
         var seen = new HashSet<string>(StringComparer.Ordinal);
         foreach (var element in Elements(document))
@@ -190,7 +190,7 @@ public static class PdfUaValidator
         }
     }
 
-    static void RequireDescribedLinks(PdfDocument document)
+    private static void RequireDescribedLinks(PdfDocument document)
     {
         for (var index = 0; index < document.PageCount; index++)
         {
@@ -244,7 +244,7 @@ public static class PdfUaValidator
     /// style sets — so the fix is nearly always to the styles rather than to any code that draws.
     /// </para>
     /// </remarks>
-    static void RequireHeadingsNotToSkipALevel(PdfDocument document)
+    private static void RequireHeadingsNotToSkipALevel(PdfDocument document)
     {
         var previous = 0;
 
@@ -281,7 +281,7 @@ public static class PdfUaValidator
     /// whatever depth the tree already is", so it cannot skip a level and there is nothing to check.
     /// This library never writes one.
     /// </remarks>
-    static int HeadingLevelOf(string structureType)
+    private static int HeadingLevelOf(string structureType)
     {
         if (string.IsNullOrEmpty(structureType) || structureType.Length != 3
             || structureType[0] != '/' || structureType[1] != 'H')
@@ -302,7 +302,7 @@ public static class PdfUaValidator
     /// backwards. That costs the other rules nothing, because none of them cares what came before,
     /// and it is exactly what a heading level cannot be read out of.
     /// </remarks>
-    static IEnumerable<PdfDictionary> ElementsInReadingOrder(PdfDocument document)
+    private static IEnumerable<PdfDictionary> ElementsInReadingOrder(PdfDocument document)
     {
         return Descend(document.Structure.Root.Elements[PdfStructureTreeRoot.Keys.K]);
 
@@ -319,7 +319,7 @@ public static class PdfUaValidator
     }
 
     /// <summary>The child elements of a kids entry, in the order they are written.</summary>
-    static IEnumerable<PdfDictionary> ChildrenOf(PdfItem kids)
+    private static IEnumerable<PdfDictionary> ChildrenOf(PdfItem kids)
     {
         switch (Resolve(kids))
         {
@@ -342,7 +342,7 @@ public static class PdfUaValidator
     /// bare marked-content identifiers and reference dictionaries — and only the first are elements,
     /// which is what the type check below is filtering for.
     /// </summary>
-    static IEnumerable<PdfDictionary> Elements(PdfDocument document)
+    private static IEnumerable<PdfDictionary> Elements(PdfDocument document)
     {
         var pending = new Stack<PdfDictionary>();
         Push(pending, document.Structure.Root.Elements[PdfStructureTreeRoot.Keys.K]);
@@ -355,7 +355,7 @@ public static class PdfUaValidator
         }
     }
 
-    static void Push(Stack<PdfDictionary> pending, PdfItem kids)
+    private static void Push(Stack<PdfDictionary> pending, PdfItem kids)
     {
         switch (Resolve(kids))
         {
@@ -373,8 +373,8 @@ public static class PdfUaValidator
         }
     }
 
-    static bool IsElement(PdfDictionary dictionary) =>
+    private static bool IsElement(PdfDictionary dictionary) =>
         dictionary.Elements.GetName(PdfStructureElement.Keys.Type) == "/StructElem";
 
-    static PdfItem Resolve(PdfItem item) => item is PdfReference reference ? reference.Value : item;
+    private static PdfItem Resolve(PdfItem item) => item is PdfReference reference ? reference.Value : item;
 }

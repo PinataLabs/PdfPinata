@@ -84,14 +84,14 @@ public static class UnicodeProperties
 
     // Written as code points rather than as characters. Both are invisible, and an invisible
     // character in a source file is one nobody can see is wrong.
-    const char ZeroWidthNonJoiner = (char)0x200C;
-    const char ZeroWidthJoiner = (char)0x200D;
+    private const char ZeroWidthNonJoiner = (char)0x200C;
+    private const char ZeroWidthJoiner = (char)0x200D;
 
     /// <summary>
     /// The index of the run <paramref name="codePoint"/> falls in. The table is a complete
     /// partition, so there is always one.
     /// </summary>
-    static int IndexOf(int[] starts, int codePoint)
+    private static int IndexOf(int[] starts, int codePoint)
     {
         if (codePoint < 0 || codePoint > 0x10FFFF)
             throw new ArgumentOutOfRangeException(nameof(codePoint),

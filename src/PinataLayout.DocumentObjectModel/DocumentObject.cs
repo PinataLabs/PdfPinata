@@ -260,7 +260,7 @@ public abstract partial class DocumentObject
     get => tag;
     set => tag = value;
   }
-  object tag;
+  private object tag;
 
   /// <summary>
   /// Returns the meta object of this instance.

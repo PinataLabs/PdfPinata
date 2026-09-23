@@ -93,7 +93,7 @@ public static class PdfValidationData
     /// Appends one stream per byte array to the array named <paramref name="key"/> in the store,
     /// creating the array if this is the first thing written under that key.
     /// </summary>
-    static void Extend(PdfDocument document, PdfDictionary dss, string key, IReadOnlyList<byte[]> items)
+    private static void Extend(PdfDocument document, PdfDictionary dss, string key, IReadOnlyList<byte[]> items)
     {
         if (items.Count == 0)
             return;

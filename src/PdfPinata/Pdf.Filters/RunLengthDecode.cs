@@ -13,10 +13,10 @@ namespace PdfPinata.Pdf.Filters;
 /// </summary>
 public class RunLengthDecode : Filter
 {
-    const int EndOfData = 128;
+    private const int EndOfData = 128;
 
     // The most either kind of run can carry: 127 + 1 literal bytes, or 257 - 129 repeats.
-    const int LongestRun = 128;
+    private const int LongestRun = 128;
 
     /// <summary>
     /// Encodes the specified data, ending it with the end-of-data marker.
@@ -58,7 +58,7 @@ public class RunLengthDecode : Filter
     }
 
     // How many times the byte at the index repeats from there, counting itself, up to one run's worth.
-    static int RepeatsAt(byte[] data, int index)
+    private static int RepeatsAt(byte[] data, int index)
     {
         var count = 1;
         while (index + count < data.Length && count < LongestRun && data[index + count] == data[index])

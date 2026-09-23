@@ -50,9 +50,9 @@ public sealed class PdfImagePlacement
         _transform = transform;
     }
 
-    readonly string _name;
-    readonly PdfDictionary _xObject;
-    readonly XMatrix _transform;
+    private readonly string _name;
+    private readonly PdfDictionary _xObject;
+    private readonly XMatrix _transform;
 
     /// <summary>
     /// The name the resources the drawing was made in give the image, such as "/Im0". The same

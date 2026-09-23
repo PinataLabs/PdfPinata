@@ -19,13 +19,13 @@ namespace PdfPinata.Test.Dom;
 public class NullableValueSemanticsTests
 {
     // A DOM object per underlying type, reached the way a caller would reach it.
-    static Font AFont() => new Document().AddSection().AddParagraph("x").Format.Font;
+    private static Font AFont() => new Document().AddSection().AddParagraph("x").Format.Font;
 
-    static PageSetup APageSetup() => new Document().AddSection().PageSetup;
+    private static PageSetup APageSetup() => new Document().AddSection().PageSetup;
 
-    static DocumentInfo ADocumentInfo() => new Document().Info;
+    private static DocumentInfo ADocumentInfo() => new Document().Info;
 
-    static Image AnImage() => new();
+    private static Image AnImage() => new();
 
     // ---------------------------------------------------------------- unset reads as a default
 

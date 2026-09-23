@@ -44,10 +44,10 @@ public class LigatureActualTextTests
     ///   the face draws one glyph for one character, there is no disagreement to report, and every
     ///   assertion below passes while testing nothing at all.
     /// </remarks>
-    static readonly string Composed = new string(new[] { (char)0x0065, (char)0x0301 });
+    private static readonly string Composed = new string(new[] { (char)0x0065, (char)0x0301 });
 
     /// <summary>Distinctive enough that nothing else in the suite draws it.</summary>
-    static readonly string Sentinel = "ActualText " + Composed + " here";
+    private static readonly string Sentinel = "ActualText " + Composed + " here";
 
     [Fact]
     public void AGlyphStandingForTwoCharactersSaysWhichTwo()
@@ -169,7 +169,7 @@ public class LigatureActualTextTests
     ///   Character 8 is the <c>m</c> and character 9 the <c>a</c>, which is the pair those two
     ///   fixtures merge into one cluster.
     /// </remarks>
-    const string Clustered = "cluster mark";
+    private const string Clustered = "cluster mark";
 
     /// <summary>
     ///   One glyph per character, each in a cluster of its own — a run in which nothing was shaped.
@@ -181,7 +181,7 @@ public class LigatureActualTextTests
     ///   does with one particular string: two glyphs against two characters is the case, and a
     ///   fixture states it exactly where a face only demonstrates it.
     /// </remarks>
-    static List<ShapedGlyph> OneGlyphEach(string text)
+    private static List<ShapedGlyph> OneGlyphEach(string text)
     {
         var glyphs = new List<ShapedGlyph>(text.Length);
         for (var idx = 0; idx < text.Length; idx++)
@@ -193,7 +193,7 @@ public class LigatureActualTextTests
     /// <summary>
     ///   <see cref="Clustered"/> drawn with exactly the glyphs given.
     /// </summary>
-    static PdfPage Fixed(IReadOnlyList<ShapedGlyph> glyphs)
+    private static PdfPage Fixed(IReadOnlyList<ShapedGlyph> glyphs)
     {
         var document = new PdfDocument();
         document.Options.CompressContentStreams = false;
@@ -213,7 +213,7 @@ public class LigatureActualTextTests
         return page;
     }
 
-    static byte[] Draw(string sentinel, string text = null)
+    private static byte[] Draw(string sentinel, string text = null)
     {
         var document = new PdfDocument();
 
@@ -239,7 +239,7 @@ public class LigatureActualTextTests
         return PageContent.Of(page);
     }
 
-    static PdfPage Page(string sentinel, string text = null)
+    private static PdfPage Page(string sentinel, string text = null)
     {
         var document = new PdfDocument();
         document.Options.CompressContentStreams = false;
@@ -269,7 +269,7 @@ public class LigatureActualTextTests
     ///   is the better shape for a content stream anyway: no byte in it needs escaping, so nothing
     ///   inside the string can be mistaken for the end of it.
     /// </remarks>
-    static string ActualTextIn(string content)
+    private static string ActualTextIn(string content)
     {
         var at = content.IndexOf("/ActualText", StringComparison.Ordinal);
         if (at < 0)
@@ -292,7 +292,7 @@ public class LigatureActualTextTests
             : Encoding.Latin1.GetString(bytes);
     }
 
-    static int Occurrences(string text, string what)
+    private static int Occurrences(string text, string what)
     {
         var count = 0;
         for (var at = text.IndexOf(what, StringComparison.Ordinal); at >= 0;
@@ -304,7 +304,7 @@ public class LigatureActualTextTests
         return count;
     }
 
-    static string Latin1(byte[] bytes) => Encoding.Latin1.GetString(bytes);
+    private static string Latin1(byte[] bytes) => Encoding.Latin1.GetString(bytes);
 
     /// <summary>
     ///   HarfBuzz, but only for one string, so that registering it cannot change what any other test
@@ -313,10 +313,10 @@ public class LigatureActualTextTests
     /// <summary>
     ///   A shaper that answers one string with glyphs it was handed, and declines everything else.
     /// </summary>
-    sealed class Handed : ITextShaper
+    private sealed class Handed : ITextShaper
     {
-        readonly string _mine;
-        readonly IReadOnlyList<ShapedGlyph> _glyphs;
+        private readonly string _mine;
+        private readonly IReadOnlyList<ShapedGlyph> _glyphs;
 
         internal Handed(string mine, IReadOnlyList<ShapedGlyph> glyphs)
         {
@@ -331,10 +331,10 @@ public class LigatureActualTextTests
                 : null;
     }
 
-    sealed class OnlyFor : ITextShaper, IDisposable
+    private sealed class OnlyFor : ITextShaper, IDisposable
     {
-        readonly string _mine;
-        readonly HarfBuzzTextShaper _shaper = new();
+        private readonly string _mine;
+        private readonly HarfBuzzTextShaper _shaper = new();
 
         internal OnlyFor(string mine) => _mine = mine;
 

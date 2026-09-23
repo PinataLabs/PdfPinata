@@ -58,10 +58,10 @@ class MD5Managed
 #pragma warning restore S2257
 {
     // Initial values as defined in RFC 1321.
-    const uint A = 0x67452301;
-    const uint B = 0xefcdab89;
-    const uint C = 0x98badcfe;
-    const uint D = 0x10325476;
+    private const uint A = 0x67452301;
+    private const uint B = 0xefcdab89;
+    private const uint C = 0x98badcfe;
+    private const uint D = 0x10325476;
 
     public override int HashSize { get; } = 128;
 
@@ -122,12 +122,12 @@ class MD5Managed
         return MD5Core.GetHashFinalBlock(_data, 0, _dataSize, _abcd, _totalLength * 8);
     }
 
-    byte[] _data;
-    MD5Core.ABCDStruct _abcd;
-    Int64 _totalLength;
-    int _dataSize;
+    private byte[] _data;
+    private MD5Core.ABCDStruct _abcd;
+    private Int64 _totalLength;
+    private int _dataSize;
 
-    static class MD5Core
+    private static class MD5Core
     {
         internal static byte[] GetHashFinalBlock(byte[] input, int ibStart, int cbSize, ABCDStruct abcd, Int64 len)
         {
@@ -282,7 +282,7 @@ class MD5Managed
         }
 
         // Convert input array into array of UInts.
-        static uint[] Converter(byte[] input, int ibStart)
+        private static uint[] Converter(byte[] input, int ibStart)
         {
             ArgumentNullException.ThrowIfNull(input);
 

@@ -16,7 +16,7 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 /// </summary>
 public class TableDefaultsAndEdgesTests
 {
-    static Table ATable(int columns = 2, int rows = 2)
+    private static Table ATable(int columns = 2, int rows = 2)
     {
         var table = new Document().AddSection().AddTable();
         for (var index = 0; index < columns; index++)
@@ -172,7 +172,7 @@ public class TableDefaultsAndEdgesTests
     [Fact]
     public void SettingTheInteriorEdgesDrawsBetweenTheCellsAndNotAround()
     {
-        var table = ATable(2, 2);
+        var table = ATable();
 
         table.SetEdge(0, 0, 2, 2, Edge.Interior, BorderStyle.Single, "1pt", Colors.Blue);
 

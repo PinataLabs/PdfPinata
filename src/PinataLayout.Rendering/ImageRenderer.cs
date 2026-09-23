@@ -147,7 +147,7 @@ internal class ImageRenderer : ShapeRenderer
     /// one would be writing something plausible into the single field a reader cannot check.
     /// </para>
     /// </remarks>
-    IDisposable BeginStructure()
+    private IDisposable BeginStructure()
     {
         if (image.IsNull("AlternativeText") || string.IsNullOrEmpty(image.AlternativeText))
             return Tagger.Artifact(Gfx);
@@ -168,13 +168,13 @@ internal class ImageRenderer : ShapeRenderer
     ///   being rendered in. Swallowing it turns a memory problem into a page of grey boxes and
     ///   leaves the process to fail somewhere else, with nothing in the log pointing back here.
     /// </summary>
-    static bool IsUnrecoverable(Exception ex)
+    private static bool IsUnrecoverable(Exception ex)
     {
         // InsufficientMemoryException derives from OutOfMemoryException, so it is covered too.
         return ex is OutOfMemoryException;
     }
 
-    void RenderFailureImage(XRect destRect)
+    private void RenderFailureImage(XRect destRect)
     {
         Gfx.DrawRectangle(XBrushes.LightGray, destRect);
         string failureString;
@@ -217,7 +217,7 @@ internal class ImageRenderer : ShapeRenderer
     /// through both sides and across whatever was beside it. A caller looking at that sees the
     /// library scribbling on their page, which is a poor way to be told an image would not load.
     /// </remarks>
-    XFont FitWithin(string text, double width)
+    private XFont FitWithin(string text, double width)
     {
         var family = GlobalFontSettings.FontResolver.DefaultFontName;
 
@@ -405,7 +405,7 @@ internal class ImageRenderer : ShapeRenderer
     /// The two are not the same for NaN, which is not greater than zero and not less than or equal
     /// to it either, and it is NaN that this exists to catch.
     /// </remarks>
-    static bool IsUsableSize(XUnit size)
+    private static bool IsUsableSize(XUnit size)
     {
         var points = size.Point;
         return points > 0 && !double.IsInfinity(points);
@@ -428,5 +428,5 @@ internal class ImageRenderer : ShapeRenderer
         }
     }
 
-    Image image;
+    private Image image;
 }

@@ -21,7 +21,7 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 public class ParagraphContentTests
 {
     /// <summary>An image nobody draws: <c>AddImage</c> keeps the source and never reads it.</summary>
-    sealed class UndrawnImage : IImageSource
+    private sealed class UndrawnImage : IImageSource
     {
         public int Width => 1;
         public int Height => 1;
@@ -31,10 +31,10 @@ public class ParagraphContentTests
         public PixelBuffer GetPixels() => throw new NotSupportedException();
     }
 
-    static Document RoundTrip(Document document) =>
+    private static Document RoundTrip(Document document) =>
         DdlReader.DocumentFromString(DdlWriter.WriteToString(document));
 
-    static SymbolName[] Symbols(ParagraphElements elements) =>
+    private static SymbolName[] Symbols(ParagraphElements elements) =>
         elements.OfType<Character>().Select(c => c.SymbolName).ToArray();
 
     // ----- The Add… methods that build an element ----------------------------------------------
@@ -195,7 +195,7 @@ public class ParagraphContentTests
 
     // A section or information field has no public constructor, so the one way to have one to
     // hand to Add is to clone one made by the other kind of Add.
-    static DocumentObject[] OneOfEach() =>
+    private static DocumentObject[] OneOfEach() =>
     [
         new BookmarkField("here"),
         new PageField(),

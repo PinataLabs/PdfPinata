@@ -23,12 +23,12 @@ namespace PdfPinata.Test.Internal;
 /// </summary>
 public class InternalHelperTests
 {
-    static readonly Assembly Library = typeof(XPoint).Assembly;
+    private static readonly Assembly Library = typeof(XPoint).Assembly;
 
-    static Type TypeNamed(string name) =>
+    private static Type TypeNamed(string name) =>
         Library.GetType("PdfPinata.Internal." + name, throwOnError: true);
 
-    static object Call(string typeName, string method, params object[] arguments)
+    private static object Call(string typeName, string method, params object[] arguments)
     {
         var type = TypeNamed(typeName);
         var candidates = type
@@ -52,7 +52,7 @@ public class InternalHelperTests
         }
     }
 
-    static bool Bool(string typeName, string method, params object[] arguments) =>
+    private static bool Bool(string typeName, string method, params object[] arguments) =>
         (bool)Call(typeName, method, arguments);
 
     // ----- DoubleUtil ----------------------------------------------------------------------------
@@ -177,11 +177,11 @@ public class InternalHelperTests
     }
 
     /// <summary>A stream that never hands over more than a few bytes at a time.</summary>
-    sealed class DribblingStream : Stream
+    private sealed class DribblingStream : Stream
     {
-        readonly byte[] _data;
-        readonly int _mostPerRead;
-        int _position;
+        private readonly byte[] _data;
+        private readonly int _mostPerRead;
+        private int _position;
 
         internal DribblingStream(byte[] data, int mostPerRead)
         {

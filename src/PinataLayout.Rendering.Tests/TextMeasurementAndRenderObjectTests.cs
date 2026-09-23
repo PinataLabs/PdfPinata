@@ -20,7 +20,7 @@ namespace PinataLayout.Rendering.Tests;
 /// </remarks>
 public class TextMeasurementAndRenderObjectTests
 {
-    static XGraphics OnAPage()
+    private static XGraphics OnAPage()
     {
         var document = new PdfDocument();
         return XGraphics.FromPdfPage(document.AddPage());
@@ -28,7 +28,7 @@ public class TextMeasurementAndRenderObjectTests
 
     // ----- TextMeasurement.MeasureString ------------------------------------------------------------
 
-    static XSize MeasuredIn(UnitType unit)
+    private static XSize MeasuredIn(UnitType unit)
     {
         using var gfx = OnAPage();
         return new TextMeasurement(gfx, new Font("Arial", 12)).MeasureString("Measure me", unit);
@@ -115,7 +115,7 @@ public class TextMeasurementAndRenderObjectTests
 
     // ----- DocumentRenderer.RenderObject ------------------------------------------------------------
 
-    static DocumentRenderer RendererFor(Document document)
+    private static DocumentRenderer RendererFor(Document document)
     {
         var renderer = new DocumentRenderer(document);
         renderer.PrepareDocument();
@@ -133,7 +133,7 @@ public class TextMeasurementAndRenderObjectTests
     ///   version of these tests did, and it reported "Framed" as {18034, 24941, 25956} - the
     ///   characters two at a time.
     /// </remarks>
-    static string ShownOn(PdfPage page) => string.Concat(TextOperators.ShownStrings(page));
+    private static string ShownOn(PdfPage page) => string.Concat(TextOperators.ShownStrings(page));
 
     [Fact]
     public void AParagraphCanBeDrawnOnItsOwnWithoutLayingTheDocumentOut()

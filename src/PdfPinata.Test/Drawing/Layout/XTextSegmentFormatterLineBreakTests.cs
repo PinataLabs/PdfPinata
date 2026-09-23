@@ -21,17 +21,17 @@ namespace PdfPinata.Test.Drawing.Layout;
 /// </summary>
 public class XTextSegmentFormatterLineBreakTests
 {
-    static XFont Plain => new("Arial", 12, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
-    static XFont Large => new("Arial", 24, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
+    private static XFont Plain => new("Arial", 12, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
+    private static XFont Large => new("Arial", 24, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
 
-    static readonly XRect Layout = new(20, 20, 300, 400);
+    private static readonly XRect Layout = new(20, 20, 300, 400);
 
-    static TextSegment Segment(string text, XFont font = null, XBrush brush = null)
+    private static TextSegment Segment(string text, XFont font = null, XBrush brush = null)
     {
         return new TextSegment { Text = text, Font = font ?? Plain, Brush = brush ?? XBrushes.Black };
     }
 
-    static PdfPage PageShowing(Action<XTextSegmentFormatter> draw)
+    private static PdfPage PageShowing(Action<XTextSegmentFormatter> draw)
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -41,7 +41,7 @@ public class XTextSegmentFormatterLineBreakTests
     }
 
     /// <summary>The baseline of each line of the page, topmost first.</summary>
-    static double[] BaselinesOf(PdfPage page)
+    private static double[] BaselinesOf(PdfPage page)
     {
         return TextBaselines.PositionsOf(page)
             .Select(run => Math.Round(run.Y, 3))

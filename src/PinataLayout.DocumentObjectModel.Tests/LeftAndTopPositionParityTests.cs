@@ -36,7 +36,7 @@ public class LeftAndTopPositionParityTests
     ///   What a parse produced, as one string, so that a single assertion covers the whole answer -
     ///   which of the two representations came back, and what was in it.
     /// </summary>
-    static string Describe(ShapePosition shape, Unit position)
+    private static string Describe(ShapePosition shape, Unit position)
     {
         if (shape != ShapePosition.Undefined)
             return "shape:" + shape;
@@ -51,7 +51,7 @@ public class LeftAndTopPositionParityTests
     ///   <c>ReaderDiagnostics.ComplaintsAbout</c>, which catches so that a test can collect
     ///   complaints and is therefore the wrong route for a test claiming nothing is thrown.
     /// </summary>
-    static string Outcome(Func<string> parse)
+    private static string Outcome(Func<string> parse)
     {
         try
         {
@@ -63,7 +63,7 @@ public class LeftAndTopPositionParityTests
         }
     }
 
-    static string ByLeft(string value)
+    private static string ByLeft(string value)
     {
         return Outcome(() =>
         {
@@ -72,7 +72,7 @@ public class LeftAndTopPositionParityTests
         });
     }
 
-    static string ByTop(string value)
+    private static string ByTop(string value)
     {
         return Outcome(() =>
         {

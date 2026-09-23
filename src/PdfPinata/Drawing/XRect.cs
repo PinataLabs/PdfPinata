@@ -303,7 +303,8 @@ public struct XRect : IFormattable, IDeserializationCallback, IEquatable<XRect>
             _x = value;
         }
     }
-    double _x;
+
+    private double _x;
 
     /// <summary>
     /// Gets or sets the Y value of the rectangle.
@@ -318,7 +319,8 @@ public struct XRect : IFormattable, IDeserializationCallback, IEquatable<XRect>
             _y = value;
         }
     }
-    double _y;
+
+    private double _y;
 
     /// <summary>
     /// Gets or sets the width of the rectangle.
@@ -336,7 +338,8 @@ public struct XRect : IFormattable, IDeserializationCallback, IEquatable<XRect>
             _width = value;
         }
     }
-    double _width;
+
+    private double _width;
 
     /// <summary>
     /// Gets or sets the height of the rectangle.
@@ -353,7 +356,8 @@ public struct XRect : IFormattable, IDeserializationCallback, IEquatable<XRect>
             _height = value;
         }
     }
-    double _height;
+
+    private double _height;
 
     /// <summary>
     /// Gets the x-axis value of the left side of the rectangle.
@@ -684,12 +688,12 @@ public struct XRect : IFormattable, IDeserializationCallback, IEquatable<XRect>
         }
     }
 
-    bool ContainsInternal(double x, double y)
+    private bool ContainsInternal(double x, double y)
     {
         return x >= _x && x - _width <= _x && y >= _y && y - _height <= _y;
     }
 
-    static XRect CreateEmptyRect()
+    private static XRect CreateEmptyRect()
     {
         var rect = new XRect();
         rect._x = double.PositiveInfinity;
@@ -711,7 +715,7 @@ public struct XRect : IFormattable, IDeserializationCallback, IEquatable<XRect>
     /// </summary>
     /// <value>The debugger display.</value>
     // ReSharper disable UnusedMember.Local
-    string DebuggerDisplay
+    private string DebuggerDisplay
         // ReSharper restore UnusedMember.Local
     {
         get

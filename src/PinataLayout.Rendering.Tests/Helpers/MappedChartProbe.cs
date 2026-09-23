@@ -18,7 +18,7 @@ namespace PinataLayout.Rendering.Tests.Helpers;
 /// </remarks>
 internal static class MappedChartProbe
 {
-    static readonly FieldInfo ChartList = typeof(ChartFrame)
+    private static readonly FieldInfo ChartList = typeof(ChartFrame)
         .GetField("chartList", BindingFlags.NonPublic | BindingFlags.Instance);
 
     /// <summary>The single chart the mapper put into the frame.</summary>

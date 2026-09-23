@@ -114,7 +114,7 @@ public class PdfSecurity
     /// Imports the pages of an existing encrypted asset into a new document and saves that,
     /// protected by <paramref name="userPassword"/>, to a stream positioned at its start.
     /// </summary>
-    static MemoryStream SaveWithUserPassword(string userPassword, out int pageCount)
+    private static MemoryStream SaveWithUserPassword(string userPassword, out int pageCount)
     {
         var file = PathHelper.GetInstance().GetAssetPath("AesEncrypted.pdf");
         var document = Pdf.IO.PdfReader.Open(file, PdfDocumentOpenMode.Import);

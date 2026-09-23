@@ -19,10 +19,10 @@ namespace PdfPinata.Charting.Tests;
 /// </remarks>
 public class ChartFontInheritanceTests
 {
-    static readonly string Blue = PaintedRectangles.ColourOf(XColors.Blue);
-    static readonly string Red = PaintedRectangles.ColourOf(XColors.Red);
+    private static readonly string Blue = PaintedRectangles.ColourOf(XColors.Blue);
+    private static readonly string Red = PaintedRectangles.ColourOf(XColors.Red);
 
-    static Chart ALabelledChart()
+    private static Chart ALabelledChart()
     {
         var chart = Charts.Of(ChartType.Column2D, 10, 20, 30);
         chart.SeriesCollection[0].Name = "Sales";

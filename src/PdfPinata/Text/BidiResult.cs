@@ -22,7 +22,7 @@ public sealed class BidiResult
 
     // Which of the removed characters are joining controls, and so belong inside the run they sit
     // in even though nothing is drawn for them. See UnicodeProperties.IsJoiningControl.
-    readonly bool[] _joining;
+    private readonly bool[] _joining;
 
     /// <summary>
     /// <see cref="_joining"/>, for the one caller that has to carry it from a result indexed by
@@ -114,7 +114,7 @@ public sealed class BidiResult
     /// The next index a run may reach to from <paramref name="from"/>: one step on, and on again
     /// over any joining control, because those are inside runs rather than between them.
     /// </summary>
-    int Next(int from, int step)
+    private int Next(int from, int step)
     {
         var at = from + step;
         while (at >= 0 && at < _joining.Length && _joining[at])

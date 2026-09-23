@@ -40,29 +40,29 @@ namespace PdfPinata.Test.Drawing.Layout;
 [Collection(GlyphOutlineCollection.Name)]
 public class DropCapTests
 {
-    const string Prose =
+    private const string Prose =
         "The quick brown fox jumps over the lazy dog, and having jumped it lands and looks about " +
         "for somewhere else to be, which takes rather longer than the jump did and is far less " +
         "impressive to watch from any distance at all, or indeed from close to, where the whole " +
         "business looks distinctly laboured and not at all the effortless bound the saying has " +
         "always promised its readers it would turn out to be on closer inspection.";
 
-    static readonly XRect Area = new XRect(40, 40, 300, 300);
+    private static readonly XRect Area = new XRect(40, 40, 300, 300);
 
     /// <summary>The glyph a space is in the face the tests are pinned to.</summary>
-    const int SpaceGlyph = 3;
+    private const int SpaceGlyph = 3;
 
     /// <summary>The face and size the body text is set in unless a test says otherwise.</summary>
-    const string BodyFamily = "Arial";
+    private const string BodyFamily = "Arial";
 
-    const double BodySize = 10;
+    private const double BodySize = 10;
 
     /// <summary>
     ///   How far a placement may be out before the eye would call it misaligned. Wide enough to
     ///   absorb the rounding the content stream writes numbers with, narrow enough that the two
     ///   points a cap hung from the ascent stands clear by would fail it many times over.
     /// </summary>
-    const double Tolerance = 0.1;
+    private const double Tolerance = 0.1;
 
     // ----- the room the cap reserves --------------------------------------------------------------
 
@@ -311,7 +311,7 @@ public class DropCapTests
     ///   nothing holds its width to the measure, so a deep cap in a narrow column can leave the
     ///   lines beside it no room at all.
     /// </summary>
-    static readonly XRect NarrowerThanTheCap = new XRect(40, 40, 30, 300);
+    private static readonly XRect NarrowerThanTheCap = new XRect(40, 40, 30, 300);
 
     [Fact]
     public void TextIsKeptInsideAColumnTooNarrowToSetAnythingBesideTheCap()
@@ -524,7 +524,7 @@ public class DropCapTests
             "with outlines, the pen moves left so that the ink lands on the margin");
     }
 
-    static void WithoutOutlineProvider(Action test)
+    private static void WithoutOutlineProvider(Action test)
     {
         var provider = GlobalFontSettings.GlyphOutlineProvider;
         try
@@ -543,7 +543,7 @@ public class DropCapTests
     /// <summary>
     ///   The bounds the formatter measures for the text, relative to the layout rectangle.
     /// </summary>
-    static XRect LayoutOf(string text, int cap, Action<XTextFormatter> arrange = null)
+    private static XRect LayoutOf(string text, int cap, Action<XTextFormatter> arrange = null)
     {
         var document = new PdfDocument();
         using var gfx = XGraphics.FromPdfPage(document.AddPage());
@@ -556,7 +556,7 @@ public class DropCapTests
         return formatter.GetLayout(text, new XFont("Arial", 10), XBrushes.Black, Area);
     }
 
-    static PdfPage Render(string text, int cap, XRect? area = null, Action<XTextFormatter> arrange = null,
+    private static PdfPage Render(string text, int cap, XRect? area = null, Action<XTextFormatter> arrange = null,
         string body = BodyFamily, string capFamily = null)
     {
         var document = new PdfDocument();
@@ -580,9 +580,9 @@ public class DropCapTests
     ///   different places carry different numbers of them. What must not differ is the letters.
     /// </remarks>
     /// <summary>How many glyphs a drawn run holds. Identity-H writes two bytes for each.</summary>
-    static int GlyphCountOf(string run) => run.Length / 2;
+    private static int GlyphCountOf(string run) => run.Length / 2;
 
-    static List<int> GlyphsOn(PdfPage page)
+    private static List<int> GlyphsOn(PdfPage page)
     {
         var glyphs = new List<int>();
 
@@ -603,7 +603,7 @@ public class DropCapTests
     }
 
     /// <summary>Each line of body text, top of the page first. The cap is not one of them.</summary>
-    static List<(double X, double Y, int Glyphs)> BodyLinesOf(string text, int cap,
+    private static List<(double X, double Y, int Glyphs)> BodyLinesOf(string text, int cap,
         Action<XTextFormatter> arrange = null)
     {
         var page = Render(text, cap, arrange: arrange);
@@ -618,7 +618,7 @@ public class DropCapTests
     }
 
     /// <summary>The size given to each <c>Tf</c>, in the order they were written.</summary>
-    static List<double> FontSizesOn(PdfPage page)
+    private static List<double> FontSizesOn(PdfPage page)
     {
         var content = Encoding.ASCII.GetString(PageContent.Of(page));
         return Regex.Matches(content, @"/F\d+ ([\d.]+) Tf")
@@ -629,13 +629,13 @@ public class DropCapTests
     // ----- reading the vertical placement off a rendered page --------------------------------------
 
     /// <summary>The prose, with its first letter swapped for the one the cap is to be set in.</summary>
-    static string ProseBeginningWith(string initial) => string.Concat(initial, Prose.AsSpan(1));
+    private static string ProseBeginningWith(string initial) => string.Concat(initial, Prose.AsSpan(1));
 
     /// <summary>
     ///   The four heights a cap's vertical placement is judged by, in points up from the foot of
     ///   the page as PDF measures them.
     /// </summary>
-    sealed class CapGeometry
+    private sealed class CapGeometry
     {
         /// <summary>The top of the cap glyph's ink.</summary>
         internal double InkTop;
@@ -660,7 +660,7 @@ public class DropCapTests
         internal double LastSpannedBaseline;
     }
 
-    static CapGeometry GeometryOf(string text, int depth, string initial = "T",
+    private static CapGeometry GeometryOf(string text, int depth, string initial = "T",
         string body = BodyFamily, string capFamily = null)
     {
         return GeometryOf(Render(text, depth, body: body, capFamily: capFamily), initial, depth,
@@ -677,7 +677,7 @@ public class DropCapTests
     ///   that places the cap, so that the two have to agree rather than being the same arithmetic
     ///   written twice.
     /// </remarks>
-    static CapGeometry GeometryOf(PdfPage page, string initial, int depth, XFont bodyFont, string capFamily)
+    private static CapGeometry GeometryOf(PdfPage page, string initial, int depth, XFont bodyFont, string capFamily)
     {
         var positions = TextBaselines.PositionsOf(page);
         var capFont = new XFont(capFamily, FontSizesOn(page)[0]);
@@ -703,7 +703,7 @@ public class DropCapTests
     ///   The box the glyph's ink fills, relative to the pen, with y measured down from the
     ///   baseline as the formatter measures it.
     /// </summary>
-    static XRect InkOf(string text, XFont font)
+    private static XRect InkOf(string text, XFont font)
     {
         double left = double.MaxValue, right = double.MinValue;
         double top = double.MinValue, bottom = double.MaxValue;
@@ -728,8 +728,8 @@ public class DropCapTests
     }
 
     /// <summary>How tall a capital stands above the baseline, in points.</summary>
-    static double CapHeightOf(XFont font) => font.GetHeight() * font.Metrics.CapHeight / font.CellSpace;
+    private static double CapHeightOf(XFont font) => font.GetHeight() * font.Metrics.CapHeight / font.CellSpace;
 
     /// <summary>How tall the line's box stands above the baseline, in points.</summary>
-    static double AscentOf(XFont font) => font.GetHeight() * font.CellAscent / font.CellSpace;
+    private static double AscentOf(XFont font) => font.GetHeight() * font.CellAscent / font.CellSpace;
 }

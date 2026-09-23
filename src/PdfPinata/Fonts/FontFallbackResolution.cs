@@ -33,12 +33,12 @@ static class FontFallbackResolution
     // on the family name asked for, because two families resolving to one file have one answer
     // between them. A miss is worth remembering as firmly as a hit - it is the answer that costs a
     // walk down the whole candidate list.
-    static ConcurrentDictionary<(string Face, int CodePoint, XFontStyle Style), string> _decided
+    private static ConcurrentDictionary<(string Face, int CodePoint, XFontStyle Style), string> _decided
         = new ConcurrentDictionary<(string, int, XFontStyle), string>();
 
     // Resolved fonts, so that the same fallback is the same object every time and a caller can
     // tell two adjacent characters want the same face by reference.
-    static ConcurrentDictionary<(string Family, double Size, XFontStyle Style, PdfFontEncoding Encoding), XFont> _fonts
+    private static ConcurrentDictionary<(string Family, double Size, XFontStyle Style, PdfFontEncoding Encoding), XFont> _fonts
         = new ConcurrentDictionary<(string, double, XFontStyle, PdfFontEncoding), XFont>();
 
     /// <summary>Whether anything is registered to fall back to.</summary>
@@ -101,7 +101,7 @@ static class FontFallbackResolution
         return Resolved(family, requested) ?? requested;
     }
 
-    static string Decide(IFontFallback fallback, int codePoint, XFont requested,
+    private static string Decide(IFontFallback fallback, int codePoint, XFont requested,
         OpenTypeDescriptor descriptor)
     {
         // Whitespace and joining controls are asked about as characters because that is what they
@@ -154,7 +154,7 @@ static class FontFallbackResolution
     /// right answer to a caller who named a font and meant it and the wrong answer to a list of
     /// things to try. Caught here and read as "not this one".
     /// </remarks>
-    static XFont Resolved(string family, XFont requested)
+    private static XFont Resolved(string family, XFont requested)
     {
         var key = (family, requested.Size, requested.Style, requested.PdfOptions.FontEncoding);
         if (_fonts.TryGetValue(key, out var known))
@@ -180,7 +180,7 @@ static class FontFallbackResolution
     /// face without one answers no - which is the honest answer and the one that sends the
     /// character on to the next candidate, where before there was no question that could be asked.
     /// </remarks>
-    static bool Covers(OpenTypeDescriptor descriptor, int codePoint)
+    private static bool Covers(OpenTypeDescriptor descriptor, int codePoint)
     {
         try
         {

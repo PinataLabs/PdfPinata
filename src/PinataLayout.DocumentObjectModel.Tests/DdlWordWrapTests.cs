@@ -25,7 +25,7 @@ public class DdlWordWrapTests
     ///   The limit less an indent nobody outside the serializer can see, so rather than compute the
     ///   one length that lands on it, every test here sweeps a range wide enough to contain it.
     /// </summary>
-    static readonly int[] LengthsAcrossTheLimit = Enumerable.Range(140, 141).ToArray();
+    private static readonly int[] LengthsAcrossTheLimit = Enumerable.Range(140, 141).ToArray();
 
     [Fact]
     public void TextOfEveryLengthAroundTheLimitIsWritten()
@@ -91,7 +91,7 @@ public class DdlWordWrapTests
     ///   An image source that is nothing but its name. <c>Image.Serialize</c> writes the name of
     ///   the source it was given, and that is the whole of what these tests are about.
     /// </summary>
-    sealed class NamedImageSource : IImageSource
+    private sealed class NamedImageSource : IImageSource
     {
         public NamedImageSource(string name) => Name = name;
 

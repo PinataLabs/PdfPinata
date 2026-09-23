@@ -68,7 +68,7 @@ public abstract class PdfSquareCircleAnnotation : PdfMarkupAnnotation
 
     // Takes the subtype rather than reading it from an abstract member, so that nothing virtual
     // is called while the derived constructor has yet to run.
-    void Initialize(string subtype)
+    private void Initialize(string subtype)
     {
         // Validated even though the two subclasses here pass constants: the constructors are
         // protected on a public class, so a subtype can come from outside this assembly.
@@ -132,7 +132,7 @@ public abstract class PdfSquareCircleAnnotation : PdfMarkupAnnotation
             OnAppearanceInvalidated();
         }
     }
-    void WriteInteriorColor(XColor interior)
+    private void WriteInteriorColor(XColor interior)
     {
         // An empty array is how the specification says "no interior colour", and is not the same
         // as the entry being absent - which means the same thing, but says nothing about intent.
@@ -157,7 +157,7 @@ public abstract class PdfSquareCircleAnnotation : PdfMarkupAnnotation
     /// <see cref="PdfAnnotation"/> do, because a modification date records a change somebody made
     /// rather than the redrawing that follows from it - and this runs from every one of them.
     /// </remarks>
-    void RebuildAppearance()
+    private void RebuildAppearance()
     {
         // Until it is on a page there is no document to make a form in. OnAddedToPage calls this
         // again once there is, so nothing set beforehand is lost.
@@ -246,7 +246,7 @@ public abstract class PdfSquareCircleAnnotation : PdfMarkupAnnotation
 
         public static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

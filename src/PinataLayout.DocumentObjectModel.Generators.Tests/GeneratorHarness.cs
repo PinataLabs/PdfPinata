@@ -93,7 +93,7 @@ internal static class GeneratorHarness
         }
         """;
 
-    static readonly ImmutableArray<MetadataReference> References =
+    private static readonly ImmutableArray<MetadataReference> References =
         ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!)
         .Split(Path.PathSeparator)
         .Where(path => path.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))

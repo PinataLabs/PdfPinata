@@ -36,17 +36,17 @@ namespace PdfPinata.Test.Drawing;
 public class PageBleedTests
 {
     /// <summary>A bleed of 3mm, which is what a printer asks for and what InDesign defaults to.</summary>
-    static readonly XUnit Bleed = XUnit.FromMillimeter(3);
+    private static readonly XUnit Bleed = XUnit.FromMillimeter(3);
 
     /// <summary>The room outside the bleed for printer's marks, which is 5mm unless it is changed.</summary>
-    static readonly XUnit Marks = XUnit.FromMillimeter(5);
+    private static readonly XUnit Marks = XUnit.FromMillimeter(5);
 
     /// <summary>From the corner of the sheet to the corner of the trimmed page.</summary>
-    static double Inset => Bleed.Point + Marks.Point;
+    private static double Inset => Bleed.Point + Marks.Point;
 
     /// <summary>A5 in points, which is the trimmed size every page here is cut down to.</summary>
-    const double A5Width = 420;
-    const double A5Height = 595;
+    private const double A5Width = 420;
+    private const double A5Height = 595;
 
     // ----- the origin ---------------------------------------------------------------------------
 
@@ -459,7 +459,7 @@ public class PageBleedTests
 
     // ----- making pages, and reading back what was saved -----------------------------------------
 
-    static PdfPage Plain()
+    private static PdfPage Plain()
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -467,34 +467,34 @@ public class PageBleedTests
         return page;
     }
 
-    static PdfPage Trimmed()
+    private static PdfPage Trimmed()
     {
         var page = Plain();
         page.TrimMargins.All = Bleed;
         return page;
     }
 
-    static void Draw(PdfPage page, Action<XGraphics> draw)
+    private static void Draw(PdfPage page, Action<XGraphics> draw)
     {
         using var gfx = XGraphics.FromPdfPage(page);
         draw(gfx);
     }
 
-    static SavedPage Save(PdfPage page)
+    private static SavedPage Save(PdfPage page)
     {
         using var stream = new MemoryStream();
         page.Owner.Save(stream, false);
         return Reread(stream);
     }
 
-    static SavedPage Reread(MemoryStream stream)
+    private static SavedPage Reread(MemoryStream stream)
     {
         stream.Position = 0;
         var reopened = PdfPinata.Pdf.IO.PdfReader.Open(stream, PdfDocumentOpenMode.Modify);
         return new SavedPage(reopened.Pages[0]);
     }
 
-    static bool Encloses(PdfRectangle outer, PdfRectangle inner)
+    private static bool Encloses(PdfRectangle outer, PdfRectangle inner)
     {
         const double slack = 0.001;
         return inner.X1 >= outer.X1 - slack && inner.Y1 >= outer.Y1 - slack &&
@@ -505,9 +505,9 @@ public class PageBleedTests
     ///   A page as a reader finds it: its boxes, its content, the crop marks drawn on it, and
     ///   where on the sheet the first rectangle of that content actually landed.
     /// </summary>
-    sealed class SavedPage
+    private sealed class SavedPage
     {
-        readonly PdfPage _page;
+        private readonly PdfPage _page;
 
         internal SavedPage(PdfPage page)
         {
@@ -535,7 +535,7 @@ public class PageBleedTests
         internal PdfRectangle TrimBox => Box("/TrimBox");
         internal PdfRectangle ArtBox => Box("/ArtBox");
 
-        PdfRectangle Box(string key) => _page.Elements.GetRectangle(key);
+        private PdfRectangle Box(string key) => _page.Elements.GetRectangle(key);
 
         /// <summary>
         ///   Every stroked line segment on the page, in the sheet's own coordinates. The marks
@@ -586,11 +586,11 @@ public class PageBleedTests
             }
         }
 
-        static double Number(string text) => double.Parse(text, CultureInfo.InvariantCulture);
+        private static double Number(string text) => double.Parse(text, CultureInfo.InvariantCulture);
     }
 
     /// <summary>A stroked line, in the sheet's coordinates.</summary>
-    readonly struct Segment
+    private readonly struct Segment
     {
         internal Segment(double x1, double y1, double x2, double y2)
         {
@@ -610,7 +610,7 @@ public class PageBleedTests
     }
 
     /// <summary>A rectangle on the sheet, measured in points down and across from its top-left corner.</summary>
-    readonly struct Landed
+    private readonly struct Landed
     {
         internal Landed(double left, double top, double right, double bottom)
         {

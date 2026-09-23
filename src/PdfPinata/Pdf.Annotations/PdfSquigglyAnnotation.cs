@@ -65,7 +65,7 @@ public sealed class PdfSquigglyAnnotation : PdfTextMarkupAnnotation
         : base(dict)
     { }
 
-    void Initialize()
+    private void Initialize()
     {
         Elements.SetName(PdfAnnotation.Keys.Subtype, "/Squiggly");
         Color = XColors.Green;
@@ -105,7 +105,7 @@ public sealed class PdfSquigglyAnnotation : PdfTextMarkupAnnotation
     {
         public static new DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

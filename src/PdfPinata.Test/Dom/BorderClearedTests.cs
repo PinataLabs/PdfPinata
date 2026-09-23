@@ -19,7 +19,7 @@ namespace PdfPinata.Test.Dom;
 /// </summary>
 public class BorderClearedTests
 {
-    static Borders ABordersObject() =>
+    private static Borders ABordersObject() =>
         new Document().AddSection().AddParagraph("Hello").Format.Borders;
 
     [Fact]

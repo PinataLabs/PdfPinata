@@ -65,12 +65,12 @@ public sealed class XGraphics : IDisposable
     /// <summary>
     /// Initializes a new instance of the XGraphics class for drawing on a PDF page.
     /// </summary>
-    XGraphics(PdfPage page, XGraphicsPdfPageOptions options, XGraphicsUnit pageUnit, XPageDirection pageDirection)
+    private XGraphics(PdfPage page, XGraphicsPdfPageOptions options, XGraphicsUnit pageUnit, XPageDirection pageDirection)
     {
         ArgumentNullException.ThrowIfNull(page);
 
         if (page.Owner == null)
-            throw new ArgumentException("You cannot draw on a page that is not owned by a PdfDocument object.", nameof(page));
+            throw new ArgumentException(@"You cannot draw on a page that is not owned by a PdfDocument object.", nameof(page));
 
         if (page.RenderContent != null)
             throw new InvalidOperationException("An XGraphics object already exists for this page and must be disposed before a new one can be created.");
@@ -128,7 +128,8 @@ public sealed class XGraphics : IDisposable
 
         Initialize();
     }
-    XGraphics(XSize size, XGraphicsUnit pageUnit, XPageDirection pageDirection)
+
+    private XGraphics(XSize size, XGraphicsUnit pageUnit, XPageDirection pageDirection)
     {
         _gsStack = new GraphicsStateStack();
         switch (pageUnit)
@@ -162,7 +163,7 @@ public sealed class XGraphics : IDisposable
         Initialize();
     }
 
-    XGraphics(IXGraphicsRenderer renderer, XSize size, XGraphicsUnit pageUnit, XPageDirection pageDirection)
+    private XGraphics(IXGraphicsRenderer renderer, XSize size, XGraphicsUnit pageUnit, XPageDirection pageDirection)
     {
         _renderer = renderer ?? throw new ArgumentNullException(nameof(renderer));
         _gsStack = new GraphicsStateStack();
@@ -200,7 +201,7 @@ public sealed class XGraphics : IDisposable
     /// <summary>
     /// Initializes a new instance of the XGraphics class used for drawing on a form.
     /// </summary>
-    XGraphics(XForm form)
+    private XGraphics(XForm form)
     {
         ArgumentNullException.ThrowIfNull(form);
 
@@ -245,7 +246,7 @@ public sealed class XGraphics : IDisposable
     /// undo is undone for it and the caller starts where it would have without the handler.
     /// </para>
     /// </remarks>
-    static XGraphics FromPdfPageCore(PdfPage page, XGraphicsPdfPageOptions options, XGraphicsUnit unit, XPageDirection pageDirection)
+    private static XGraphics FromPdfPageCore(PdfPage page, XGraphicsPdfPageOptions options, XGraphicsUnit unit, XPageDirection pageDirection)
     {
         var gfx = new XGraphics(page, options, unit, pageDirection);
 
@@ -350,7 +351,7 @@ public sealed class XGraphics : IDisposable
     /// <summary>
     /// Internal setup.
     /// </summary>
-    void Initialize()
+    private void Initialize()
     {
         _pageOrigin = new XPoint();
 
@@ -382,7 +383,7 @@ public sealed class XGraphics : IDisposable
         Dispose(true);
     }
 
-    void Dispose(bool disposing)
+    private void Dispose(bool disposing)
     {
         if (!_disposed)
         {
@@ -409,7 +410,8 @@ public sealed class XGraphics : IDisposable
             }
         }
     }
-    bool _disposed;
+
+    private bool _disposed;
 
     /// <summary>
     /// Internal hack for PinataLayout. Will be removed in further releases.
@@ -422,7 +424,8 @@ public sealed class XGraphics : IDisposable
         get => _muh;
         set => _muh = value;
     }
-    PdfFontEncoding _muh;
+
+    private PdfFontEncoding _muh;
 
     /// <summary>
     /// Gets or sets the unit of measure used for page coordinates.
@@ -430,7 +433,7 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public XGraphicsUnit PageUnit => _pageUnit;
 
-    readonly XGraphicsUnit _pageUnit;
+    private readonly XGraphicsUnit _pageUnit;
 
     /// <summary>
     /// Gets or sets the value indicating in which direction y-value grow.
@@ -447,7 +450,8 @@ public sealed class XGraphics : IDisposable
         }
         #pragma warning restore S4275
     }
-    readonly XPageDirection _pageDirection;
+
+    private readonly XPageDirection _pageDirection;
 
     /// <summary>
     /// Gets the current page origin. Setting the origin is not yet implemented.
@@ -464,13 +468,15 @@ public sealed class XGraphics : IDisposable
         }
         #pragma warning restore S4275
     }
-    XPoint _pageOrigin;
+
+    private XPoint _pageOrigin;
 
     /// <summary>
     /// Gets the current size of the page.
     /// </summary>
     public XSize PageSize => _pageSize;
-    XSize _pageSize;
+
+    private XSize _pageSize;
 
     #region Drawing
 
@@ -564,7 +570,7 @@ public sealed class XGraphics : IDisposable
             return;
 
         if ((count - 1) % 3 != 0)
-            throw new ArgumentException("Invalid number of points for bezier curves. Number must fulfil 4+3n.", nameof(points));
+            throw new ArgumentException(@"Invalid number of points for bezier curves. Number must fulfil 4+3n.", nameof(points));
 
         if (_renderer != null)
             _renderer.DrawBeziers(pen, points);
@@ -601,7 +607,7 @@ public sealed class XGraphics : IDisposable
 
         var count = points.Length;
         if (count < 2)
-            throw new ArgumentException("DrawCurve requires two or more points.", nameof(points));
+            throw new ArgumentException(@"DrawCurve requires two or more points.", nameof(points));
 
         if (_renderer != null)
             _renderer.DrawCurve(pen, points, tension);
@@ -1096,7 +1102,7 @@ public sealed class XGraphics : IDisposable
         if (count == 0)
             return;
         if (count < 2)
-            throw new ArgumentException("Not enough points.", nameof(points));
+            throw new ArgumentException(@"Not enough points.", nameof(points));
 
         if (_renderer != null)
             _renderer.DrawClosedCurve(pen, brush, points, tension, fillmode);
@@ -1389,7 +1395,7 @@ public sealed class XGraphics : IDisposable
     /// <summary>
     /// Checks whether drawing is allowed and disposes the XGraphics object, if necessary.
     /// </summary>
-    void CheckXPdfFormConsistence(XImage image)
+    private void CheckXPdfFormConsistence(XImage image)
     {
         var xForm = image as XForm;
         if (xForm != null)
@@ -1564,7 +1570,7 @@ public sealed class XGraphics : IDisposable
     /// both that and for never having been set at all, so the distinction has to be asked of
     /// <c>Elements</c> directly.
     /// </summary>
-    static string ActualTextOf(PdfStructure.PdfStructureElement element) =>
+    private static string ActualTextOf(PdfStructure.PdfStructureElement element) =>
         element.Elements.ContainsKey(PdfStructure.PdfStructureElement.Keys.ActualText)
             ? element.ActualText
             : null;
@@ -1584,7 +1590,7 @@ public sealed class XGraphics : IDisposable
     /// identity and is a field of this <see cref="XGraphics"/> instance, which draws exactly one
     /// page for its whole lifetime - so nothing further has to reset it at a page boundary.
     /// </remarks>
-    string ActualTextForThisSequence(PdfStructure.PdfStructureElement element)
+    private string ActualTextForThisSequence(PdfStructure.PdfStructureElement element)
     {
         var declared = ActualTextOf(element);
         if (declared == null)
@@ -1597,7 +1603,7 @@ public sealed class XGraphics : IDisposable
     /// Which elements have already had their own <c>/ActualText</c> written inline this page. See
     /// <see cref="ActualTextForThisSequence"/>.
     /// </summary>
-    readonly HashSet<PdfStructure.PdfStructureElement> _actualTextEmitted = [];
+    private readonly HashSet<PdfStructure.PdfStructureElement> _actualTextEmitted = [];
 
     /// <summary>
     /// Marks everything drawn until the returned scope is disposed as an artifact: on the page, but
@@ -1614,7 +1620,7 @@ public sealed class XGraphics : IDisposable
         return new MarkedContentScope(this, false);
     }
 
-    Drawing.Pdf.XGraphicsPdfRenderer PdfRenderer(string message) =>
+    private Drawing.Pdf.XGraphicsPdfRenderer PdfRenderer(string message) =>
         _renderer as Drawing.Pdf.XGraphicsPdfRenderer
         ?? throw new InvalidOperationException(message);
 
@@ -1622,7 +1628,7 @@ public sealed class XGraphics : IDisposable
     /// Closes a structural sequence, and gives its identifier back when the renderer found it empty
     /// and removed it - or the tree would name marks the content stream does not hold.
     /// </summary>
-    static void CloseMarkedContent(Drawing.Pdf.XGraphicsPdfRenderer renderer, PdfPage page,
+    private static void CloseMarkedContent(Drawing.Pdf.XGraphicsPdfRenderer renderer, PdfPage page,
         PdfStructure.PdfStructureElement element)
     {
         if (renderer.EndMarkedContent())
@@ -1635,7 +1641,7 @@ public sealed class XGraphics : IDisposable
     /// <summary>
     /// Opens another content item for an element whose sequence was suspended around a nested one.
     /// </summary>
-    void ResumeMarkedContent(PdfStructure.PdfStructureElement element)
+    private void ResumeMarkedContent(PdfStructure.PdfStructureElement element)
     {
         var renderer = PdfRenderer("Marked content can only be written to a PDF page.");
         var page = renderer.Page;
@@ -1647,18 +1653,18 @@ public sealed class XGraphics : IDisposable
             actualText: ActualTextForThisSequence(element));
     }
 
-    readonly Stack<PdfStructure.PdfStructureElement> _markedContent = new();
+    private readonly Stack<PdfStructure.PdfStructureElement> _markedContent = new();
 
     /// <summary>
     /// Closes a marked-content sequence when it is disposed, so that a scope cannot be left open by
     /// an early return or an exception.
     /// </summary>
-    sealed class MarkedContentScope : IDisposable
+    private sealed class MarkedContentScope : IDisposable
     {
-        readonly XGraphics _gfx;
-        readonly bool _isStructural;
-        readonly bool _resumesParent;
-        bool _closed;
+        private readonly XGraphics _gfx;
+        private readonly bool _isStructural;
+        private readonly bool _resumesParent;
+        private bool _closed;
 
         public MarkedContentScope(XGraphics gfx, bool isStructural, bool resumesParent = false)
         {
@@ -1764,7 +1770,7 @@ public sealed class XGraphics : IDisposable
     public XGraphicsContainer BeginContainer(XRect dstrect, XRect srcrect, XGraphicsUnit unit)
     {
         if (!Enum.IsDefined(unit))
-            throw new ArgumentException("The unit is not a member of XGraphicsUnit.", nameof(unit));
+            throw new ArgumentException(@"The unit is not a member of XGraphicsUnit.", nameof(unit));
 
         if (unit != XGraphicsUnit.Point)
         {
@@ -1833,7 +1839,8 @@ public sealed class XGraphics : IDisposable
         get => _smoothingMode;
         set => _smoothingMode = value;
     }
-    XSmoothingMode _smoothingMode;
+
+    private XSmoothingMode _smoothingMode;
 
     #endregion
 
@@ -2038,7 +2045,7 @@ public sealed class XGraphics : IDisposable
     /// <c>W · T · W⁻¹</c>, which is what makes <see cref="Transform"/> and the page agree. A
     /// prepend is passed on untouched, so no existing document changes by a byte.
     /// </remarks>
-    void AddTransform(XMatrix transform, XMatrixOrder order)
+    private void AddTransform(XMatrix transform, XMatrixOrder order)
     {
         var prepended = transform;
         if (order == XMatrixOrder.Append)
@@ -2111,7 +2118,7 @@ public sealed class XGraphics : IDisposable
     /// </summary>
     public SpaceTransformer Transformer => _transformer ?? (_transformer = new SpaceTransformer(this));
 
-    SpaceTransformer _transformer;
+    private SpaceTransformer _transformer;
 
     #endregion
 
@@ -2130,14 +2137,16 @@ public sealed class XGraphics : IDisposable
         get => _internalGraphicsMode;
         set => _internalGraphicsMode = value;
     }
-    InternalGraphicsMode _internalGraphicsMode;
+
+    private InternalGraphicsMode _internalGraphicsMode;
 
     internal XImage AssociatedImage
     {
         get => _associatedImage;
         set => _associatedImage = value;
     }
-    XImage _associatedImage;
+
+    private XImage _associatedImage;
 
     /// <summary>
     /// The transformation matrix from the XGraphics page space to the Graphics world space.
@@ -2149,24 +2158,24 @@ public sealed class XGraphics : IDisposable
     /// <summary>
     /// Indicates whether to send drawing operations to _gfx or _dc.
     /// </summary>
-    bool _drawGraphics;
+    private bool _drawGraphics;
 
-    readonly XForm _form;
+    private readonly XForm _form;
 
     /// <summary>
     /// Interface to an (optional) renderer. Currently it is the XGraphicsPdfRenderer, if defined.
     /// </summary>
-    IXGraphicsRenderer _renderer;
+    private IXGraphicsRenderer _renderer;
 
     /// <summary>
     /// The transformation matrix from XGraphics world space to page unit space.
     /// </summary>
-    XMatrix _transform;
+    private XMatrix _transform;
 
     /// <summary>
     /// The graphics state stack.
     /// </summary>
-    readonly GraphicsStateStack _gsStack;
+    private readonly GraphicsStateStack _gsStack;
 
     /// <summary>
     /// Gets the PDF page that serves as drawing surface if PDF is rendered,
@@ -2233,7 +2242,7 @@ public sealed class XGraphics : IDisposable
         page.Owner.NamedDestinations.Add(name, page, onPage.Y);
     }
 
-    PdfPage PageForAnnotation()
+    private PdfPage PageForAnnotation()
     {
         var page = PdfPage;
         if (page == null)
@@ -2241,7 +2250,7 @@ public sealed class XGraphics : IDisposable
         return page;
     }
 
-    PdfRectangle PageRectangleOf(XRect worldRect)
+    private PdfRectangle PageRectangleOf(XRect worldRect)
     {
         return new PdfRectangle(Transformer.WorldToDefaultPage(worldRect));
     }
@@ -2256,7 +2265,8 @@ public sealed class XGraphics : IDisposable
         {
             _gfx = gfx;
         }
-        readonly XGraphics _gfx;
+
+        private readonly XGraphics _gfx;
 
         /// <summary>
         /// Gets the point in default page space units that the specified point in world space

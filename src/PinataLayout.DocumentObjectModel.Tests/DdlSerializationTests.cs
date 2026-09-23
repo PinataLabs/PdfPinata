@@ -21,10 +21,10 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 /// </summary>
 public class DdlSerializationTests
 {
-    static Document RoundTrip(Document document) =>
+    private static Document RoundTrip(Document document) =>
         DdlReader.DocumentFromString(DdlWriter.WriteToString(document));
 
-    static Document DocumentWithAParagraph(out Paragraph paragraph)
+    private static Document DocumentWithAParagraph(out Paragraph paragraph)
     {
         var document = new Document();
         paragraph = document.AddSection().AddParagraph();
@@ -335,7 +335,7 @@ public class DdlSerializationTests
     // text only straight after a section's opening brace - so after a header or footer the section
     // has to write the keyword out, or it closes early and the body is read as trailing garbage.
 
-    static string TextOf(DocumentObject element) =>
+    private static string TextOf(DocumentObject element) =>
         string.Concat(((Paragraph)element).Elements.OfType<Text>().Select(t => t.Content));
 
     [Fact]

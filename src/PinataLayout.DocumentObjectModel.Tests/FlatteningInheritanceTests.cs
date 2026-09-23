@@ -19,7 +19,7 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 /// </summary>
 public class FlatteningInheritanceTests
 {
-    static void Flattened(Document document) => new PdfFlattenVisitor().Visit(document);
+    private static void Flattened(Document document) => new PdfFlattenVisitor().Visit(document);
 
     // ----- shading ----------------------------------------------------------------------------------
 

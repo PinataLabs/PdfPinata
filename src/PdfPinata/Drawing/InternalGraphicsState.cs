@@ -86,7 +86,8 @@ internal class InternalGraphicsState
         get => _transform;
         set => _transform = value;
     }
-    XMatrix _transform;
+
+    private XMatrix _transform;
 
     /// <summary>
     /// Called after this instanced was pushed on the internal graphics stack.

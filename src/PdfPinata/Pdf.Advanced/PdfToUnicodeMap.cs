@@ -60,7 +60,7 @@ internal sealed class PdfToUnicodeMap : PdfDictionary
         get => _cmapInfo;
         set => _cmapInfo = value;
     }
-    CMapInfo _cmapInfo;
+    private CMapInfo _cmapInfo;
 
     /// <summary>
     /// Creates the ToUnicode map from the CMapInfo.
@@ -152,7 +152,7 @@ internal sealed class PdfToUnicodeMap : PdfDictionary
     /// The entries in blocks of at most a hundred, which is as many as a bfrange or a bfchar is
     /// allowed to hold.
     /// </summary>
-    static IEnumerable<List<KeyValuePair<int, string>>> Blocks(List<KeyValuePair<int, string>> entries)
+    private static IEnumerable<List<KeyValuePair<int, string>>> Blocks(List<KeyValuePair<int, string>> entries)
     {
         const int most = 100;
         for (var start = 0; start < entries.Count; start += most)
@@ -166,7 +166,7 @@ internal sealed class PdfToUnicodeMap : PdfDictionary
     /// The characters go in as they stand, surrogate pairs included, because UTF-16BE is what a
     /// <c>/ToUnicode</c> destination is defined to be and a .NET string is UTF-16 already.
     /// </remarks>
-    static string Utf16BigEndian(string characters)
+    private static string Utf16BigEndian(string characters)
     {
         var hex = new StringBuilder(characters.Length * 4);
         foreach (var character in characters)

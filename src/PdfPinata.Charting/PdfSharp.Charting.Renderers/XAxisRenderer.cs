@@ -54,7 +54,7 @@ internal abstract class XAxisRenderer : AxisRenderer
   /// Whether this is the horizontal axis, cached once rather than compared for on every one of
   /// the several places <see cref="Draw"/> and <see cref="Format"/> branch on it.
   /// </summary>
-  readonly bool isHorizontal;
+  private readonly bool isHorizontal;
 
   /// <summary>
   /// Returns the default tick labels format string.

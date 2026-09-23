@@ -52,7 +52,7 @@ public sealed class PdfGoToAction : PdfAction
         Inititalize();
     }
 
-    void Inititalize()
+    private void Inititalize()
     {
         Elements.SetName(PdfAction.Keys.Type, "/Action");
         Elements.SetName(PdfAction.Keys.S, "/Goto");

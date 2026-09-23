@@ -74,7 +74,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// <summary>
     /// Gets the content created by this renderer.
     /// </summary>
-    string GetContent()
+    private string GetContent()
     {
         EndPage();
         return _content.ToString();
@@ -160,7 +160,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
             return;
 
         if ((count - 1) % 3 != 0)
-            throw new ArgumentException("Invalid number of points for bezier curves. Number must fulfil 4+3n.",
+            throw new ArgumentException(@"Invalid number of points for bezier curves. Number must fulfil 4+3n.",
                 nameof(points));
 
         Realize(pen);
@@ -189,7 +189,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         if (count == 0)
             return;
         if (count < 2)
-            throw new ArgumentException("Not enough points", nameof(points));
+            throw new ArgumentException(@"Not enough points", nameof(points));
 
         // See http://pubpages.unh.edu/~cs770/a5/cardinal.html  // Link is down...
         tension /= 3;
@@ -347,7 +347,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         if (count == 0)
             return;
         if (count < 2)
-            throw new ArgumentException("Not enough points.", nameof(points));
+            throw new ArgumentException(@"Not enough points.", nameof(points));
 
         // Simply tried out. Not proofed why it is correct.
         tension /= 3;
@@ -570,7 +570,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// filling it, or the pen outlining it when there is no brush - and a pen carrying a brush of
     /// its own leaves its Color empty, so that has to be looked at before the colour is.
     /// </remarks>
-    static XBrush RuleBrushFor(XBrush brush, XPen pen, XStringFormat format)
+    private static XBrush RuleBrushFor(XBrush brush, XPen pen, XStringFormat format)
     {
         if (!format.DecorationColor.IsEmpty)
             return new XSolidBrush(format.DecorationColor);
@@ -593,7 +593,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// <param name="top">Where the top of the rule sits, in world coordinates.</param>
     /// <param name="width">How wide the run is.</param>
     /// <param name="thickness">How thick the rule is, from the font's own metrics.</param>
-    void DrawTextRule(XTextDecoration decoration, string s, XFont font, XStringFormat format,
+    private void DrawTextRule(XTextDecoration decoration, string s, XFont font, XStringFormat format,
         XBrush brush, double x, double top, double width, double thickness)
     {
         if (decoration == XTextDecoration.Words)
@@ -622,7 +622,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         DrawLine(pen, x, middle, x + width, middle);
     }
 
-    static XDashStyle DashStyleOf(XTextDecoration decoration)
+    private static XDashStyle DashStyleOf(XTextDecoration decoration)
     {
         switch (decoration)
         {
@@ -645,7 +645,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// the widths of its parts. Measuring each word's prefix from the start of the string instead
     /// would answer the same and cost a measurement of the whole string per word.
     /// </remarks>
-    IEnumerable<(double X, double Width)> WordRunsOf(string s, XFont font, XStringFormat format, double x)
+    private IEnumerable<(double X, double Width)> WordRunsOf(string s, XFont font, XStringFormat format, double x)
     {
         var idx = 0;
         while (idx < s.Length)
@@ -679,7 +679,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// and what PDFKit's oblique produces. The two add because shearing by a and then by b is
     /// shearing by a + b.
     /// </remarks>
-    static double SkewOf(bool italicSimulation, double obliqueAngle)
+    private static double SkewOf(bool italicSimulation, double obliqueAngle)
     {
         var skew = italicSimulation ? Const.ItalicSkewAngleSinus : 0;
         if (obliqueAngle != 0)
@@ -767,7 +767,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     public void DrawImage(XImage image, XRect destRect, XRect srcRect, XGraphicsUnit srcUnit)
     {
         if (!Enum.IsDefined(srcUnit))
-            throw new ArgumentException("The unit is not a member of XGraphicsUnit.", nameof(srcUnit));
+            throw new ArgumentException(@"The unit is not a member of XGraphicsUnit.", nameof(srcUnit));
 
         var srcX = new XUnit(srcRect.X, srcUnit).Point;
         var srcY = new XUnit(srcRect.Y, srcUnit).Point;
@@ -983,7 +983,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// The nesting level of the PDF graphics state stack when the clip region was set to non empty.
     /// Because of the way PDF is made the clip region can only be reset at this level.
     /// </summary>
-    int _clipLevel;
+    private int _clipLevel;
 
     #endregion
 
@@ -1012,7 +1012,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// <summary>
     /// Appends one or up to five Bézier curves that interpolate the arc.
     /// </summary>
-    void AppendPartialArc(double x, double y, double width, double height, double startAngle, double sweepAngle,
+    private void AppendPartialArc(double x, double y, double width, double height, double startAngle, double sweepAngle,
         PathStart pathStart, XMatrix matrix)
     {
         // Normalize the angles
@@ -1092,7 +1092,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// Gets the quadrant (0 through 3) of the specified angle. If the angle lies on an edge
     /// (0, 90, 180, etc.) the result depends on the details how the angle is used.
     /// </summary>
-    static int Quadrant(double φ, bool start, bool clockwise)
+    private static int Quadrant(double φ, bool start, bool clockwise)
     {
         Debug.Assert(φ >= 0);
         if (φ > 360)
@@ -1115,7 +1115,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// <summary>
     /// Appends a Bézier curve for an arc within a quadrant.
     /// </summary>
-    void AppendPartialArcQuadrant(double x, double y, double width, double height, double α, double β,
+    private void AppendPartialArcQuadrant(double x, double y, double width, double height, double α, double β,
         PathStart pathStart, XMatrix matrix)
     {
         Debug.Assert(α >= 0 && α <= 360);
@@ -1238,7 +1238,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// <summary>
     /// Appends a Bézier curve for a cardinal spline through pt1 and pt2.
     /// </summary>
-    void AppendCurveSegment(XPoint pt0, XPoint pt1, XPoint pt2, XPoint pt3, double tension3)
+    private void AppendCurveSegment(XPoint pt0, XPoint pt1, XPoint pt2, XPoint pt3, double tension3)
     {
         const string format = Config.SignificantFigures4;
         AppendFormat3Points(
@@ -1257,7 +1257,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         AppendPath(path.PathPoints, path.PathTypes);
     }
 
-    void AppendPath(XPoint[] points, Byte[] types)
+    private void AppendPath(XPoint[] points, Byte[] types)
     {
         const string format = Config.SignificantFigures4;
         var count = points.Length;
@@ -1413,7 +1413,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// rest of the content stream rather than for the one operator. A page that arrives blank is
     /// the symptom, which is a very long way from the cause.
     /// </remarks>
-    static bool IsWritable(double value) => !double.IsNaN(value) && !double.IsInfinity(value);
+    private static bool IsWritable(double value) => !double.IsNaN(value) && !double.IsInfinity(value);
 
     /// <summary>
     /// Refuses a number on a path that assembles its operator as text rather than formatting it,
@@ -1433,7 +1433,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// names the operator, and the position of the NaN among the operands says which coordinate
     /// went wrong. This is only reached on the way to throwing, so it costs nothing to draw with.
     /// </remarks>
-    static InvalidOperationException NotAFiniteNumber(string format, params object[] args)
+    private static InvalidOperationException NotAFiniteNumber(string format, params object[] args)
     {
         string operatorText;
         try
@@ -1457,7 +1457,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         return RefuseOperator(operatorText);
     }
 
-    static InvalidOperationException RefuseOperator(string operatorText) =>
+    private static InvalidOperationException RefuseOperator(string operatorText) =>
         new InvalidOperationException(
             $"Cannot write \"{operatorText}\" into a content stream: an operand is not a finite "
             + "number. PDF cannot express NaN or infinity, and a viewer handed one stops drawing "
@@ -1466,7 +1466,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
             + "a transform made it one - a scale derived from a range of zero width divides by zero "
             + "and turns every point that goes through it into NaN.");
 
-    void AppendStrokeFill(XPen pen, XBrush brush, XFillMode fillMode, bool closePath)
+    private void AppendStrokeFill(XPen pen, XBrush brush, XFillMode fillMode, bool closePath)
     {
         if (closePath)
             _content.Append("h ");
@@ -1501,7 +1501,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// Initializes the default view transformation, i.e. the transformation from the user page
     /// space to the PDF page space.
     /// </summary>
-    void BeginPage()
+    private void BeginPage()
     {
         if (_gfxState.Level == GraphicsStackLevelInitial)
         {
@@ -1629,7 +1629,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// because such a page reports the width and the height the viewer shows, not the ones the
     /// media box holds.
     /// </summary>
-    void AppendPageRotation()
+    private void AppendPageRotation()
     {
         var rotation = PageRotationMatrix();
         if (rotation.IsIdentity)
@@ -1648,7 +1648,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// visible page are mapped onto the corners of the media box that the /Rotate entry sends
     /// them to.
     /// </summary>
-    XMatrix PageRotationMatrix()
+    private XMatrix PageRotationMatrix()
     {
         var mediaBox = StoredPageSize;
         switch (PageRotation)
@@ -1667,7 +1667,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// <summary>
     /// Gets the /Rotate entry of the page, normalized to 0, 90, 180 or 270.
     /// </summary>
-    int PageRotation
+    private int PageRotation
     {
         get
         {
@@ -1696,7 +1696,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         }
     }
 
-    PdfExtGState _noSoftMaskState;
+    private PdfExtGState _noSoftMaskState;
 
     /// <summary>
     /// Gets the size of this page or form as it is written to the file. It is the area drawing
@@ -1726,12 +1726,12 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// Gets the size of this page or form as the viewer shows it, which is the size the caller
     /// draws on. It differs from the stored size when the page is turned by a quarter.
     /// </summary>
-    XSize VisiblePageSize => Page != null ? new XSize(Page.Width, Page.Height) : Form.Size;
+    private XSize VisiblePageSize => Page != null ? new XSize(Page.Width, Page.Height) : Form.Size;
 
     /// <summary>
     /// Ends the content stream, i.e. ends the text mode and balances the graphic state stack.
     /// </summary>
-    void EndPage()
+    private void EndPage()
     {
         if (_streamMode == StreamMode.Text)
         {
@@ -1801,9 +1801,9 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// Where in the content stream each open structural sequence began, or <see cref="NotRemovable"/>
     /// for one that is to be written whether or not anything is drawn inside it.
     /// </summary>
-    readonly Stack<int> _markedContentStarts = new Stack<int>();
+    private readonly Stack<int> _markedContentStarts = new Stack<int>();
 
-    const int NotRemovable = -1;
+    private const int NotRemovable = -1;
 
     /// <summary>
     /// Opens an artifact sequence: content that is on the page but is not part of what the page
@@ -1888,12 +1888,12 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         _content.Append("EMC\n");
     }
 
-    const string ArtifactPrologue = "/Artifact BMC\n";
+    private const string ArtifactPrologue = "/Artifact BMC\n";
 
     /// <summary>
     /// Where each open artifact sequence began in the content, so that an empty one can be undone.
     /// </summary>
-    readonly Stack<int> _artifactStarts = new Stack<int>();
+    private readonly Stack<int> _artifactStarts = new Stack<int>();
 
     internal void BeginGraphicMode()
     {
@@ -1921,7 +1921,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         }
     }
 
-    StreamMode _streamMode;
+    private StreamMode _streamMode;
 
     /// <summary>
     /// Makes the specified pen and brush to the current graphics objects.
@@ -1945,7 +1945,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// <summary>
     /// Makes the specified pen to the current graphics object.
     /// </summary>
-    void Realize(XPen pen)
+    private void Realize(XPen pen)
     {
         Realize(pen, null);
     }
@@ -1953,7 +1953,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// <summary>
     /// Makes the specified font and brush to the current graphics objects.
     /// </summary>
-    void Realize(XFont font, XBrush brush, XPen pen, bool boldSimulation, XStringFormat format)
+    private void Realize(XFont font, XBrush brush, XPen pen, bool boldSimulation, XStringFormat format)
     {
         BeginPage();
         RealizeTransform();
@@ -1964,7 +1964,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// <summary>
     /// Encodes a run of glyph identifiers as the hexadecimal string a Tj or a TJ array takes.
     /// </summary>
-    static string GlyphRunToHexString(string glyphs)
+    private static string GlyphRunToHexString(string glyphs)
     {
         var bytes = PdfEncoders.RawUnicodeEncoding.GetBytes(glyphs);
         bytes = PdfEncoders.FormatStringLiteral(bytes, true, false, true, null);
@@ -1981,7 +1981,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// a string of one segment - which is nearly all of them - produces exactly the operator it
     /// produced before there were segments at all.
     /// </remarks>
-    static string ShowTextOperators(string text, ShapedText shaped, XFont font, XStringFormat format)
+    private static string ShowTextOperators(string text, ShapedText shaped, XFont font, XStringFormat format)
     {
         var segments = shaped.Segments;
         if (segments.Count == 1)
@@ -2034,7 +2034,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// reads too, so a line is drawn at the width it was laid out at.
     /// </para>
     /// </remarks>
-    string FallenBackTextOperators(string text, ShapedText shaped, XFont font, XBrush brush,
+    private string FallenBackTextOperators(string text, ShapedText shaped, XFont font, XBrush brush,
         XPen pen, XStringFormat format)
     {
         const string sizeFormat = Config.SignificantFigures3;
@@ -2139,7 +2139,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// altogether because the graphics state has been lied to.
     /// </para>
     /// </remarks>
-    static string SegmentOperators(string text, ShapedRun run, XFont font, XStringFormat format)
+    private static string SegmentOperators(string text, ShapedRun run, XFont font, XStringFormat format)
     {
         var ligature = FirstLigature(text, run, 0);
 
@@ -2177,7 +2177,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// rather than one per run — the price of saying anything at all about a glyph in the middle.
     /// </para>
     /// </remarks>
-    static string LigatureOperators(string text, ShapedRun run, XFont font, XStringFormat format, int first)
+    private static string LigatureOperators(string text, ShapedRun run, XFont font, XStringFormat format, int first)
     {
         var shaped = run.Glyphs;
         var parts = new StringBuilder();
@@ -2233,7 +2233,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// only true of all of them together.
     /// </para>
     /// </remarks>
-    static int FirstLigature(string text, ShapedRun run, int from)
+    private static int FirstLigature(string text, ShapedRun run, int from)
     {
         var shaped = run.Glyphs;
         for (var idx = from; idx < shaped.Count;)
@@ -2255,7 +2255,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// Equality rather than an ordering, so that it holds for a right-to-left run too: those glyphs
     /// come back in visual order and their clusters descend.
     /// </remarks>
-    static int ClusterEnd(ShapedRun run, int from)
+    private static int ClusterEnd(ShapedRun run, int from)
     {
         var shaped = run.Glyphs;
         var end = from + 1;
@@ -2284,7 +2284,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// before there was a shaper.
     /// </para>
     /// </remarks>
-    static string LigatureTextOf(ShapedRun run, int index, string text)
+    private static string LigatureTextOf(ShapedRun run, int index, string text)
     {
         var characters = TextShaping.CharactersOf(run, index, text);
 
@@ -2312,7 +2312,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// Glyphs <paramref name="from"/> up to <paramref name="to"/> of a run, with the room a word
     /// spacing asks for and the displacements the shaper asked for.
     /// </summary>
-    static string PlacedOperators(string text, ShapedRun run, XFont font, XStringFormat format,
+    private static string PlacedOperators(string text, ShapedRun run, XFont font, XStringFormat format,
         int from, int to)
     {
         var glyphs = TextShaping.GlyphIds(run);
@@ -2381,14 +2381,14 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// How far above the baseline a glyph is drawn, in points: the rise the text state is already
     /// at plus whatever the shaper asked for on top of it.
     /// </summary>
-    static double Rise(ShapedGlyph glyph, ShapedRun run, double fontSize, double baseline)
+    private static double Rise(ShapedGlyph glyph, ShapedRun run, double fontSize, double baseline)
         => baseline + glyph.OffsetY * fontSize / run.UnitsPerEm;
 
     /// <summary>
     /// Glyphs <paramref name="from"/> up to <paramref name="to"/>, as a Tj if nothing has to be
     /// displaced between them and as a TJ array if something does.
     /// </summary>
-    static string ShownGlyphs(string text, ShapedRun run, string glyphs, double fontSize,
+    private static string ShownGlyphs(string text, ShapedRun run, string glyphs, double fontSize,
         double wordSpacing, int from, int to)
     {
         var shaped = run.Glyphs;
@@ -2466,7 +2466,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// room inside the wrong word. Several glyphs may share the space's cluster, and the room goes
     /// after the last of them rather than inside the group.
     /// </remarks>
-    static bool IsLastGlyphOfWordSpace(string text, IReadOnlyList<ShapedGlyph> shaped, int index)
+    private static bool IsLastGlyphOfWordSpace(string text, IReadOnlyList<ShapedGlyph> shaped, int index)
     {
         var cluster = shaped[index].Cluster;
         if (cluster < 0 || cluster >= text.Length || !IsWordSpace(text[cluster]))
@@ -2479,7 +2479,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// True for the characters a word spacing is paid out for. Kept in step with
     /// FontHelper.MeasureString, which maps a tab to a space before it counts one.
     /// </summary>
-    static bool IsWordSpace(char ch) => ch == ' ' || ch == '\t';
+    private static bool IsWordSpace(char ch) => ch == ' ' || ch == '\t';
 
     /// <summary>
     /// PDFsharp uses the Td operator to set the text position. Td just sets the offset of the text matrix
@@ -2491,7 +2491,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// How far the text matrix currently leans, as the tangent of the angle, or 0 for upright
     /// text. Td's offset is taken through that lean, so it has to be corrected for it.
     /// </param>
-    void AdjustTdOffset(ref XPoint pos, double dy, double skew)
+    private void AdjustTdOffset(ref XPoint pos, double dy, double skew)
     {
         pos.Y += dy;
         // Reference: TABLE 5.5  Text-positioning operators / Page 406
@@ -2511,7 +2511,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// <summary>
     /// Makes the specified image to the current graphics object.
     /// </summary>
-    string Realize(XImage image)
+    private string Realize(XImage image)
     {
         BeginPage();
         BeginGraphicMode();
@@ -2527,7 +2527,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// <summary>
     /// Realizes the current transformation matrix, if necessary.
     /// </summary>
-    void RealizeTransform()
+    private void RealizeTransform()
     {
         BeginPage();
 
@@ -2619,31 +2619,31 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     internal PdfPage Page;
     internal XForm Form;
     internal PdfColorMode ColorMode;
-    XGraphicsPdfPageOptions _options;
-    XGraphics _gfx;
-    readonly StringBuilder _content;
+    private XGraphicsPdfPageOptions _options;
+    private XGraphics _gfx;
+    private readonly StringBuilder _content;
 
     /// <summary>
     /// The q/Q nesting level is 0.
     /// </summary>
-    const int GraphicsStackLevelInitial = 0;
+    private const int GraphicsStackLevelInitial = 0;
 
     /// <summary>
     /// The q/Q nesting level is 1.
     /// </summary>
-    const int GraphicsStackLevelPageSpace = 1;
+    private const int GraphicsStackLevelPageSpace = 1;
 
     /// <summary>
     /// The q/Q nesting level is 2.
     /// </summary>
-    const int GraphicsStackLevelWorldSpace = 2;
+    private const int GraphicsStackLevelWorldSpace = 2;
 
     #region PDF Graphics State
 
     /// <summary>
     /// Saves the current graphical state.
     /// </summary>
-    void SaveState()
+    private void SaveState()
     {
         Debug.Assert(_streamMode == StreamMode.Graphic, "Cannot save state in text mode.");
 
@@ -2656,7 +2656,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// <summary>
     /// Restores the previous graphical state.
     /// </summary>
-    void RestoreState()
+    private void RestoreState()
     {
         Debug.Assert(_streamMode == StreamMode.Graphic, "Cannot restore state in text mode.");
 
@@ -2677,7 +2677,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// and saying that is worth more than the bare "Stack empty." <see cref="Stack{T}"/> would throw
     /// from a frame naming nothing.
     /// </remarks>
-    void RestoreState(InternalGraphicsState state)
+    private void RestoreState(InternalGraphicsState state)
     {
         var top = Pop();
         while (top.InternalState != state)
@@ -2701,12 +2701,12 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// <summary>
     /// The current graphical state.
     /// </summary>
-    PdfGraphicsState _gfxState;
+    private PdfGraphicsState _gfxState;
 
     /// <summary>
     /// The graphical state stack.
     /// </summary>
-    readonly Stack<PdfGraphicsState> _gfxStateStack = new();
+    private readonly Stack<PdfGraphicsState> _gfxStateStack = new();
 
     #endregion
 

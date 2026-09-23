@@ -19,7 +19,7 @@ namespace PdfPinata.Test.Fonts;
 /// </remarks>
 public class TextNormalizationTests
 {
-    static readonly Type NormalizationType =
+    private static readonly Type NormalizationType =
         typeof(XFont).Assembly.GetType("PdfPinata.Fonts.TextNormalization", throwOnError: true);
 
     // ----- TryNormalize: one character at a time ------------------------------------------------
@@ -120,7 +120,7 @@ public class TextNormalizationTests
 
     // ----- reflection plumbing ------------------------------------------------------------------
 
-    static (bool Survives, char Normalized) TryNormalize(char ch)
+    private static (bool Survives, char Normalized) TryNormalize(char ch)
     {
         var method = NormalizationType.GetMethod("TryNormalize",
             BindingFlags.NonPublic | BindingFlags.Static);
@@ -130,7 +130,7 @@ public class TextNormalizationTests
         return (survives, (char)args[1]);
     }
 
-    static string NormalizeLine(string text)
+    private static string NormalizeLine(string text)
     {
         var method = NormalizationType.GetMethod("NormalizeLine",
             BindingFlags.NonPublic | BindingFlags.Static);

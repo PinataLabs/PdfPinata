@@ -49,7 +49,7 @@ public class PdfInternals
         _document = document;
     }
 
-    readonly PdfDocument _document;
+    private readonly PdfDocument _document;
 
     /// <summary>
     /// Gets or sets the first document identifier.
@@ -79,7 +79,7 @@ public class PdfInternals
     /// </summary>
     public Guid SecondDocumentGuid => GuidFromString(_document._trailer.GetDocumentID(0));
 
-    static Guid GuidFromString(string id)
+    private static Guid GuidFromString(string id)
     {
         if (id == null || id.Length != 16)
             return Guid.Empty;

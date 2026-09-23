@@ -30,6 +30,7 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
+#nullable enable
 using System;
 using System.Diagnostics;
 using PinataLayout.DocumentObjectModel.Internals;
@@ -38,10 +39,10 @@ using PinataLayout.DocumentObjectModel.Resources;
 namespace PinataLayout.DocumentObjectModel;
 
 /// <summary>
-/// An Unit consist of a numerical value and an UnitType like Centimeter, Millimeter or Inch.
+/// A Unit consist of a numerical value and an UnitType like Centimeter, Millimeter or Inch.
 /// Several conversion between different measures are supported.
 /// </summary>
-public struct Unit : IFormattable, INullableValue
+public struct Unit : IFormattable, INullableValue, IEquatable<Unit>
 {
     /// <summary>
     /// Initializes a new instance of the Unit class with type set to point.
@@ -60,7 +61,7 @@ public struct Unit : IFormattable, INullableValue
     public Unit(double value, UnitType type)
     {
         if (!Enum.IsDefined(type))
-            throw new ArgumentException($"'{type}' is not a defined value of {nameof(UnitType)}.", nameof(type));
+            throw new ArgumentException($@"'{type}' is not a defined value of {nameof(UnitType)}.", nameof(type));
         this.value = (float)value;
         this.type = type;
         initialized = true;
@@ -89,12 +90,13 @@ public struct Unit : IFormattable, INullableValue
         if (newValue is Unit)
             this = (Unit)newValue;
         else
-            this = newValue.ToString();
+            this = newValue.ToString()
+                ?? throw new ArgumentException($"A {newValue.GetType()} whose ToString() answers null cannot be read as a Unit.", nameof(newValue));
     }
 
     /// <summary>
     /// Resets this instance,
-    /// i.e. IsNull() will return true afterwards.
+    /// i.e. IsNull() will return true afterward.
     /// </summary>
     void INullableValue.SetNull()
     {
@@ -105,7 +107,7 @@ public struct Unit : IFormattable, INullableValue
 
     // Explicit interface implementations cannot contain access specifiers, i.e. they are accessible by a
     // cast operator only, e.g. ((IDomValue)obj).IsNull.
-    // Therefore the second IsNull-Property is used as a handy shortcut.
+    // Therefore, the second IsNull-Property is used as a handy shortcut.
     /// <summary>
     /// Determines whether this instance is null (not set).
     /// </summary>
@@ -361,8 +363,7 @@ public struct Unit : IFormattable, INullableValue
         if (IsNull)
             return 0.ToString(format); // A zero with no suffix, in the format asked for: "F2" gives "0.00".
 
-        string valuestring;
-        valuestring = value.ToString(format) + GetSuffix();
+        var valuestring = value.ToString(format) + GetSuffix();
         return valuestring;
     }
 
@@ -370,13 +371,12 @@ public struct Unit : IFormattable, INullableValue
     /// Returns the object as string using the specified format and format information.
     /// Measure will be added to the end of the string.
     /// </summary>
-    string IFormattable.ToString(string format, IFormatProvider formatProvider)
+    string IFormattable.ToString(string? format, IFormatProvider? formatProvider)
     {
         if (IsNull)
             return 0.ToString(format, formatProvider);
 
-        string valuestring;
-        valuestring = value.ToString(format, formatProvider) + GetSuffix();
+        var valuestring = value.ToString(format, formatProvider) + GetSuffix();
         return valuestring;
     }
 
@@ -388,15 +388,14 @@ public struct Unit : IFormattable, INullableValue
         if (IsNull)
             return 0.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
-        string valuestring;
-        valuestring = value.ToString(System.Globalization.CultureInfo.InvariantCulture) + GetSuffix();
+        var valuestring = value.ToString(System.Globalization.CultureInfo.InvariantCulture) + GetSuffix();
         return valuestring;
     }
 
     /// <summary>
     /// Returns the type of the object as a string like 'pc', 'cm', or 'in'. Empty string is equal to 'pt'.
     /// </summary>
-    string GetSuffix()
+    private string GetSuffix()
     {
         switch (type)
         {
@@ -423,7 +422,7 @@ public struct Unit : IFormattable, INullableValue
     }
 
     /// <summary>
-    /// Returns an Unit object. Sets type to centimeter.
+    /// Returns a Unit object. Sets type to centimeter.
     /// </summary>
     public static Unit FromCentimeter(double value)
     {
@@ -445,7 +444,7 @@ public struct Unit : IFormattable, INullableValue
     }
 
     /// <summary>
-    /// Returns an Unit object. Sets type to point.
+    /// Returns a Unit object. Sets type to point.
     /// </summary>
     public static Unit FromPoint(double value)
     {
@@ -456,7 +455,7 @@ public struct Unit : IFormattable, INullableValue
     }
 
     /// <summary>
-    /// Returns an Unit object. Sets type to inch.
+    /// Returns a Unit object. Sets type to inch.
     /// </summary>
     public static Unit FromInch(double value)
     {
@@ -467,7 +466,7 @@ public struct Unit : IFormattable, INullableValue
     }
 
     /// <summary>
-    /// Returns an Unit object. Sets type to pica.
+    /// Returns a Unit object. Sets type to pica.
     /// </summary>
     public static Unit FromPica(double value)
     {
@@ -479,7 +478,7 @@ public struct Unit : IFormattable, INullableValue
     #endregion
 
     /// <summary>
-    /// Converts a string to an Unit object.
+    /// Converts a string to a Unit object.
     /// If the string contains a suffix like 'cm' or 'in' the object will be converted
     /// to the appropriate type, otherwise point is assumed.
     /// </summary>
@@ -505,7 +504,6 @@ public struct Unit : IFormattable, INullableValue
         var unit = Zero;
         value = value.Trim();
 
-        // For Germans...
         value = value.Replace(',', '.');
 
         var count = value.Length;
@@ -513,7 +511,7 @@ public struct Unit : IFormattable, INullableValue
         for (; valLen < count;)
         {
             var ch = value[valLen];
-            if (ch == '.' || ch == '-' || ch == '+' || Char.IsNumber(ch))
+            if (ch == '.' || ch == '-' || ch == '+' || char.IsNumber(ch))
                 valLen++;
             else
                 break;
@@ -616,10 +614,7 @@ public struct Unit : IFormattable, INullableValue
     /// </summary>
     public static bool operator ==(Unit l, Unit r)
     {
-        #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
-        // ReSharper disable once CompareOfFloatsByEqualityOperator
-        return (l.initialized == r.initialized && l.type == r.type && l.value == r.value);
-        #pragma warning restore S1244
+        return l.Equals(r);
     }
 
     /// <summary>
@@ -632,22 +627,32 @@ public struct Unit : IFormattable, INullableValue
     }
 
     /// <summary>
-    /// Calls base class Equals.
+    /// Memberwise comparison: the same number in the same measure, both set or both empty.
     /// </summary>
-    public override bool Equals(Object obj)
+    /// <remarks>
+    /// Exact on purpose, because equality has to be transitive and agree with GetHashCode.
+    /// The number is compared with <see cref="float.Equals(float)"/> rather than <c>==</c>, so a NaN
+    /// equals itself and a Unit can be found again in a dictionary it was put in.
+    /// </remarks>
+    public bool Equals(Unit other)
     {
-        // ReSharper disable once RedundantOverriddenMember
-        return base.Equals(obj);
+        return initialized == other.initialized && type == other.type && value.Equals(other.value);
     }
 
     /// <summary>
-    /// Calls base class GetHashCode.
+    /// Memberwise comparison, false for anything that is not a Unit.
+    /// </summary>
+    public override bool Equals(object? obj)
+    {
+        return obj is Unit other && Equals(other);
+    }
+
+    /// <summary>
+    /// A hash of the same three members <see cref="Equals(Unit)"/> compares.
     /// </summary>
     public override int GetHashCode()
     {
-        // ReSharper disable once RedundantOverriddenMember
-        // ReSharper disable once BaseObjectGetHashCodeCallInGetHashCode
-        return base.GetHashCode();
+        return HashCode.Combine(initialized, value, type);
     }
 
     /// <summary>
@@ -719,7 +724,7 @@ public struct Unit : IFormattable, INullableValue
     /// </summary>
     internal static readonly Unit NullValue = Empty;
 
-    bool initialized;
-    float value;
-    UnitType type;
+    private bool initialized;
+    private float value;
+    private UnitType type;
 }

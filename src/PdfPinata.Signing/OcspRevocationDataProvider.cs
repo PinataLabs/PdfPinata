@@ -29,10 +29,10 @@ namespace PdfPinata.Signing;
 public sealed class OcspRevocationDataProvider : IRevocationDataProvider, IDisposable
 {
     /// <summary>id-pkix-ocsp, RFC 6960.</summary>
-    const string OcspAccessMethodOid = "1.3.6.1.5.5.7.48.1";
+    private const string OcspAccessMethodOid = "1.3.6.1.5.5.7.48.1";
 
     /// <summary>id-pe-authorityInfoAccess, RFC 5280.</summary>
-    const string AuthorityInfoAccessOid = "1.3.6.1.5.5.7.1.1";
+    private const string AuthorityInfoAccessOid = "1.3.6.1.5.5.7.1.1";
 
     /// <summary>
     /// A generous cap on how large an OCSP response this will read into memory. A real response is a
@@ -40,10 +40,10 @@ public sealed class OcspRevocationDataProvider : IRevocationDataProvider, IDispo
     /// misbehaving responder — named by the certificate being checked, not chosen by the caller — cannot
     /// turn evidence-gathering into unbounded memory use.
     /// </summary>
-    const int MaxOcspResponseBytes = 1024 * 1024;
+    private const int MaxOcspResponseBytes = 1024 * 1024;
 
-    readonly HttpClient _httpClient;
-    readonly bool _ownsHttpClient;
+    private readonly HttpClient _httpClient;
+    private readonly bool _ownsHttpClient;
 
     /// <param name="httpClient">
     /// Reused rather than created per call, if given. Left unset, this makes and owns one for its own
@@ -111,7 +111,7 @@ public sealed class OcspRevocationDataProvider : IRevocationDataProvider, IDispo
     /// Reads <paramref name="content"/> into memory, or answers null once it has read more than
     /// <paramref name="maxBytes"/> without ever buffering the excess.
     /// </summary>
-    static byte[] ReadBounded(HttpContent content, int maxBytes)
+    private static byte[] ReadBounded(HttpContent content, int maxBytes)
     {
         using var stream = content.ReadAsStreamAsync().GetAwaiter().GetResult();
         using var buffer = new MemoryStream();
@@ -133,7 +133,7 @@ public sealed class OcspRevocationDataProvider : IRevocationDataProvider, IDispo
     /// by subject/issuer name rather than by verifying a signature — this is evidence-gathering, not
     /// trust, and the same certificate the OCSP request names its issuer by is what a responder needs.
     /// </summary>
-    static X509Certificate2 IssuerOf(X509Certificate2 certificate, X509Certificate2Collection chain)
+    private static X509Certificate2 IssuerOf(X509Certificate2 certificate, X509Certificate2Collection chain)
     {
         if (chain == null)
             return null;
@@ -148,7 +148,7 @@ public sealed class OcspRevocationDataProvider : IRevocationDataProvider, IDispo
         return null;
     }
 
-    static Uri OcspResponderOf(X509Certificate2 certificate)
+    private static Uri OcspResponderOf(X509Certificate2 certificate)
     {
         var extension = certificate.Extensions[AuthorityInfoAccessOid];
         if (extension == null)
@@ -195,7 +195,7 @@ public sealed class OcspRevocationDataProvider : IRevocationDataProvider, IDispo
     /// A minimal, unsigned <c>OCSPRequest</c> asking about one certificate: no requestor name, no
     /// extensions, nothing a responder would need a nonce or a signature to answer.
     /// </summary>
-    static byte[] BuildRequest(X509Certificate2 certificate, X509Certificate2 issuer)
+    private static byte[] BuildRequest(X509Certificate2 certificate, X509Certificate2 issuer)
     {
         // SHA-1 identifies the certificate here; it protects nothing. RFC 6960's CertID names the
         // issuer by hash, and SHA-1 is the one algorithm every responder is required to accept

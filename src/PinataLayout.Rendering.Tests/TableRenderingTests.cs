@@ -24,7 +24,7 @@ namespace PinataLayout.Rendering.Tests;
 public class TableRenderingTests
 {
     /// <summary>The width a table gives a border it was not told the width of.</summary>
-    const double DefaultBorderWidth = 0.5;
+    private const double DefaultBorderWidth = 0.5;
 
     [Fact]
     public void ACellBorderIsDrawnAtTheWidthTheCellAsksForRatherThanTheTables()
@@ -94,7 +94,7 @@ public class TableRenderingTests
     ///   The arrangement of the original harness: a table whose first cell overrides three of the
     ///   borders it inherits, with a paragraph either side of it.
     /// </summary>
-    static Document Bordered()
+    private static Document Bordered()
     {
         var document = new Document();
         var section = document.AddSection();
@@ -122,7 +122,7 @@ public class TableRenderingTests
         return document;
     }
 
-    static Document OneRowOf(double height)
+    private static Document OneRowOf(double height)
     {
         var document = new Document();
         var table = document.AddSection().AddTable();
@@ -134,7 +134,7 @@ public class TableRenderingTests
         return document;
     }
 
-    static Document Aligned(VerticalAlignment alignment)
+    private static Document Aligned(VerticalAlignment alignment)
     {
         var document = new Document();
         var table = document.AddSection().AddTable();
@@ -178,7 +178,7 @@ public class TableRenderingTests
     ///   A table whose first cell covers every column and more than one row, with an ordinary row
     ///   under it.
     /// </summary>
-    static Document SpanningEveryColumn(int columns, int mergeDown)
+    private static Document SpanningEveryColumn(int columns, int mergeDown)
     {
         var document = new Document();
         var table = document.AddSection().AddTable();
@@ -249,7 +249,7 @@ public class TableRenderingTests
     ///   A three by three table, every cell with a word in it, whose first cell is merged as far
     ///   as the caller says - which may be further than the table goes.
     /// </summary>
-    static Document Overmerged(int right, int down)
+    private static Document Overmerged(int right, int down)
     {
         var document = new Document();
         var table = document.AddSection().AddTable();
@@ -270,11 +270,11 @@ public class TableRenderingTests
     }
 
     /// <summary>The content stream of the first page, as the bytes it was written as.</summary>
-    static string PageDrawnBy(Document document) =>
+    private static string PageDrawnBy(Document document) =>
         Encoding.Latin1.GetString(PageContent.Of(Rendered.FirstPageOf(document)));
 
     /// <summary>A two by two table, with whatever the caller wants merged in it merged.</summary>
-    static Document Merged(Action<(Cell TopLeft, Cell TopRight)> merge)
+    private static Document Merged(Action<(Cell TopLeft, Cell TopRight)> merge)
     {
         var document = new Document();
         var table = document.AddSection().AddTable();
@@ -297,7 +297,7 @@ public class TableRenderingTests
     ///   The vertical segments standing on the column edge between the two cells of the first row,
     ///   which is the edge a merge to the right does away with.
     /// </summary>
-    static IReadOnlyList<StrokedLines.Line> SegmentsDownTheMiddleOfTheFirstRow(Document document)
+    private static IReadOnlyList<StrokedLines.Line> SegmentsDownTheMiddleOfTheFirstRow(Document document)
     {
         var page = Rendered.FirstPageOf(document);
         var lines = StrokedLines.Of(page);
@@ -314,7 +314,7 @@ public class TableRenderingTests
     ///   The horizontal segments lying on the row edge between the two cells of the second column,
     ///   which is the edge a merge downwards does away with.
     /// </summary>
-    static IReadOnlyList<StrokedLines.Line> SegmentsAcrossTheMiddleOfTheSecondColumn(Document document)
+    private static IReadOnlyList<StrokedLines.Line> SegmentsAcrossTheMiddleOfTheSecondColumn(Document document)
     {
         var page = Rendered.FirstPageOf(document);
         var lines = StrokedLines.Of(page);
@@ -329,7 +329,7 @@ public class TableRenderingTests
     }
 
     /// <summary>The distinct heights the page rules at, from the top of the page downwards.</summary>
-    static IReadOnlyList<double> HorizontalRules(PdfPinata.Pdf.PdfPage page)
+    private static IReadOnlyList<double> HorizontalRules(PdfPinata.Pdf.PdfPage page)
     {
         return StrokedLines.Of(page)
             .Where(line => line.IsHorizontal)
@@ -339,16 +339,16 @@ public class TableRenderingTests
             .ToList();
     }
 
-    static double TextBaselineOf(Document document)
+    private static double TextBaselineOf(Document document)
     {
         return TextBaselines.LinesOf(Rendered.FirstPageOf(document)).Single();
     }
 
     /// <summary>The middle one of three evenly spaced positions, to the nearest hundredth.</summary>
-    static double Middle(IEnumerable<double> positions)
+    private static double Middle(IEnumerable<double> positions)
     {
         return positions.Select(position => Math.Round(position, 2)).Distinct().OrderBy(p => p).ElementAt(1);
     }
 
-    static bool Near(double one, double other) => Math.Abs(one - other) < 0.01;
+    private static bool Near(double one, double other) => Math.Abs(one - other) < 0.01;
 }

@@ -99,7 +99,7 @@ internal static class GradientOutput
         return report.ToString();
     }
 
-    static IEnumerable<(string Name, PdfDictionary Dictionary)> EntriesOf(PdfDictionary resources, string kind)
+    private static IEnumerable<(string Name, PdfDictionary Dictionary)> EntriesOf(PdfDictionary resources, string kind)
     {
         var map = resources?.Elements.GetDictionary(kind);
         if (map == null)
@@ -109,5 +109,5 @@ internal static class GradientOutput
             yield return (name, map.Elements.GetDictionary(name));
     }
 
-    static string Text(byte[] bytes) => Encoding.ASCII.GetString(bytes);
+    private static string Text(byte[] bytes) => Encoding.ASCII.GetString(bytes);
 }

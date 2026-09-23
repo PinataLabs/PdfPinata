@@ -23,7 +23,7 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 // THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
@@ -41,7 +41,7 @@ internal class XKnownColorTable
     /// anything had asked for a color by name, threw a NullReferenceException out of a property
     /// getter. A static readonly field cannot be observed unfilled, and cannot be emptied again.
     /// </remarks>
-    internal static readonly uint[] ColorTable = CreateColorTable();
+    private static readonly uint[] ColorTable = CreateColorTable();
 
     public static uint KnownColorToArgb(XKnownColor color)
     {

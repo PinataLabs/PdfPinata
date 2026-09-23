@@ -31,14 +31,14 @@ public class ItemizationTests
 {
     // "arabi", four Arabic letters. Escapes rather than literals throughout, so that a source file
     // mixing right-to-left text with left-to-right code cannot be misread.
-    const string Arabic = "\u0639\u0631\u0628\u064A";
-    const string Hebrew = "\u05D0\u05D1";
+    private const string Arabic = "\u0639\u0631\u0628\u064A";
+    private const string Hebrew = "\u05D0\u05D1";
 
     // Two Arabic letters with a ZERO WIDTH JOINER between them, and a ZERO WIDTH NO-BREAK SPACE.
     // Both are removed by rule X9 and neither is visible in a source file, which is why they are
     // written out here rather than inline.
-    const string Joined = "\u0639\u200D\u0631";
-    const string ByteOrderMark = "\uFEFF";
+    private const string Joined = "\u0639\u200D\u0631";
+    private const string ByteOrderMark = "\uFEFF";
 
     // ----- script itemisation ----------------------------------------------------------------------
 
@@ -349,22 +349,22 @@ public class ItemizationTests
 
     // ----- reaching the internal itemiser --------------------------------------------------------
 
-    static readonly Type ItemizerType = typeof(TextItemizer).Assembly
+    private static readonly Type ItemizerType = typeof(TextItemizer).Assembly
         .GetType("PdfPinata.Text.ScriptItemizer", throwOnError: true);
 
     /// <summary>
     ///   One ScriptRun read off the internal struct, so that an assertion can be written about it
     ///   without naming a type this assembly cannot see.
     /// </summary>
-    sealed record ScriptRunView(int Start, int Length, UnicodeScript Script, string ScriptCode);
+    private sealed record ScriptRunView(int Start, int Length, UnicodeScript Script, string ScriptCode);
 
-    static IReadOnlyList<ScriptRunView> ItemizeScripts(string text)
+    private static IReadOnlyList<ScriptRunView> ItemizeScripts(string text)
         => Read(Invoke(new[] { typeof(string) }, text));
 
-    static IReadOnlyList<ScriptRunView> ItemizeScripts(string text, int start, int length)
+    private static IReadOnlyList<ScriptRunView> ItemizeScripts(string text, int start, int length)
         => Read(Invoke(new[] { typeof(string), typeof(int), typeof(int) }, text, start, length));
 
-    static object Invoke(Type[] signature, params object[] args)
+    private static object Invoke(Type[] signature, params object[] args)
     {
         var method = ItemizerType.GetMethod(
             "Itemize", BindingFlags.Public | BindingFlags.Static, binder: null,
@@ -374,7 +374,7 @@ public class ItemizationTests
         return method.Invoke(null, args);
     }
 
-    static IReadOnlyList<ScriptRunView> Read(object runs)
+    private static IReadOnlyList<ScriptRunView> Read(object runs)
     {
         var read = new List<ScriptRunView>();
         foreach (var run in (IEnumerable)runs)

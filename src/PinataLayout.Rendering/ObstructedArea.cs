@@ -47,8 +47,8 @@ internal class ObstructedArea : Area
         }
     }
 
-    readonly Rectangle _bounds;
-    readonly List<Rectangle> _obstacles;
+    private readonly Rectangle _bounds;
+    private readonly List<Rectangle> _obstacles;
 
     /// <summary>What stands in this area.</summary>
     internal IReadOnlyList<Rectangle> Obstacles => _obstacles;
@@ -102,7 +102,7 @@ internal class ObstructedArea : Area
     /// Overlap is by the band's box rather than by a line within it: a line whose top is inside an
     /// obstacle's depth but whose baseline falls below it still has ascenders that would collide.
     /// </remarks>
-    List<(double Start, double End)> BlockedSpansIn(XUnit yPosition, XUnit height)
+    private List<(double Start, double End)> BlockedSpansIn(XUnit yPosition, XUnit height)
     {
         var blocked = new List<(double Start, double End)>();
         double top = yPosition;

@@ -72,7 +72,7 @@ public sealed class PdfRealObject : PdfNumberObject
         get => _value;
         set => _value = value;
     }
-    double _value;
+    private double _value;
 
     /// <summary>
     /// Returns the real as a culture invariant string.

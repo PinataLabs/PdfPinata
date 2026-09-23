@@ -30,7 +30,7 @@ public sealed class ImageSharpGlyphOutlineProvider : IGlyphOutlineProvider
     /// Points per inch, so that a font size in points comes out as a size in points and the
     /// outlines need no scaling afterwards.
     /// </summary>
-    const float PointsPerInch = 72f;
+    private const float PointsPerInch = 72f;
 
     /// <inheritdoc />
     public IEnumerable<XGlyphOutline> GetOutlines(string text, string familyName, bool isBold, bool isItalic,
@@ -79,7 +79,7 @@ public sealed class ImageSharpGlyphOutlineProvider : IGlyphOutlineProvider
     /// capital carrying an accent.</item>
     /// </list>
     /// </remarks>
-    static double BaselineOf(Font font, string text)
+    private static double BaselineOf(Font font, string text)
     {
         var metrics = font.FontMetrics;
         var header = metrics.HorizontalMetrics;
@@ -93,7 +93,7 @@ public sealed class ImageSharpGlyphOutlineProvider : IGlyphOutlineProvider
     /// <summary>
     /// How far the tallest glyph of the text rises above the font's ascender, in design units.
     /// </summary>
-    static double OvershootOf(FontMetrics metrics, string text)
+    private static double OvershootOf(FontMetrics metrics, string text)
     {
         double overshoot = 0;
 
@@ -124,12 +124,12 @@ public sealed class ImageSharpGlyphOutlineProvider : IGlyphOutlineProvider
     /// <summary>
     /// Collects what SixLabors.Fonts draws into one <see cref="XGlyphOutline"/> per glyph.
     /// </summary>
-    sealed class OutlineCollector : IGlyphRenderer
+    private sealed class OutlineCollector : IGlyphRenderer
     {
-        readonly double _baseline;
-        readonly List<XGlyphOutline> _outlines = new List<XGlyphOutline>();
-        List<XGlyphSegment> _segments = new List<XGlyphSegment>();
-        XPoint _current;
+        private readonly double _baseline;
+        private readonly List<XGlyphOutline> _outlines = new List<XGlyphOutline>();
+        private List<XGlyphSegment> _segments = new List<XGlyphSegment>();
+        private XPoint _current;
 
         internal OutlineCollector(double baseline)
         {
@@ -205,9 +205,9 @@ public sealed class ImageSharpGlyphOutlineProvider : IGlyphOutlineProvider
         ///   A laid-out point in the seam's space: measured from the baseline, and the right way
         ///   up. SixLabors measures y downwards from the top of the line, as a raster does.
         /// </summary>
-        XPoint At(Vector2 point) => new XPoint(point.X, _baseline - point.Y);
+        private XPoint At(Vector2 point) => new XPoint(point.X, _baseline - point.Y);
 
-        static XPoint Lerp(XPoint from, XPoint to, double fraction) =>
+        private static XPoint Lerp(XPoint from, XPoint to, double fraction) =>
             new XPoint(from.X + fraction * (to.X - from.X), from.Y + fraction * (to.Y - from.Y));
     }
 }

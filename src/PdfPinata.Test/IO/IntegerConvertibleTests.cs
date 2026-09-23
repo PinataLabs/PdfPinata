@@ -24,7 +24,7 @@ public class IntegerConvertibleTests
         { nameof(PdfLong), TypeCode.Int64 }
     };
 
-    static IConvertible Number(string wrapper) => wrapper switch
+    private static IConvertible Number(string wrapper) => wrapper switch
     {
         nameof(Pdf.PdfInteger) => new Pdf.PdfInteger(-7),
         nameof(PdfUInteger) => new PdfUInteger(3_000_000_000),

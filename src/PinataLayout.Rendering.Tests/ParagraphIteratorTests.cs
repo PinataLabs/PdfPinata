@@ -93,7 +93,7 @@ public class ParagraphIteratorTests
     ///   A paragraph with a nested run in the middle of it, so that the walk has to descend into
     ///   a container and climb back out again in both directions.
     /// </summary>
-    static Paragraph Build()
+    private static Paragraph Build()
     {
         var paragraph = new Document().AddSection().AddParagraph();
         paragraph.AddText("once");
@@ -107,7 +107,7 @@ public class ParagraphIteratorTests
         return paragraph;
     }
 
-    static string[] Described(System.Collections.Generic.IReadOnlyList<DocumentObject> leaves)
+    private static string[] Described(System.Collections.Generic.IReadOnlyList<DocumentObject> leaves)
     {
         return leaves.Select(ParagraphIteratorProbe.Describe).ToArray();
     }

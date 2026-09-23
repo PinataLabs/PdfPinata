@@ -100,10 +100,10 @@ static class PdfPageResizer
     /// destinations are not here, because they are held all over the document and are swept once
     /// however many pages are being resized.
     /// </summary>
-    static XMatrix ResizeOnePage(PdfPage page, XSize visibleTarget, PageSize size, PageResizeOptions options)
+    private static XMatrix ResizeOnePage(PdfPage page, XSize visibleTarget, PageSize size, PageResizeOptions options)
     {
         if (visibleTarget.Width <= 0 || visibleTarget.Height <= 0)
-            throw new ArgumentException("A page cannot be resized to nothing.", nameof(visibleTarget));
+            throw new ArgumentException(@"A page cannot be resized to nothing.", nameof(visibleTarget));
 
         if (page.RenderContent != null)
         {
@@ -209,7 +209,7 @@ static class PdfPageResizer
     /// The rectangle as an XRect whose X and Y are the corner where both coordinates are least,
     /// however the two corners were written down. A rectangle is allowed either way round.
     /// </summary>
-    static XRect Normalized(PdfRectangle rect)
+    private static XRect Normalized(PdfRectangle rect)
     {
         var x = Math.Min(rect.X1, rect.X2);
         var y = Math.Min(rect.Y1, rect.Y2);
@@ -220,7 +220,7 @@ static class PdfPageResizer
     /// Puts the content of the page behind a transform, by moving it into a form XObject and
     /// giving the page a content stream that draws that form.
     /// </summary>
-    static void WrapContent(PdfPage page, XRect source, XMatrix matrix)
+    private static void WrapContent(PdfPage page, XRect source, XMatrix matrix)
     {
         var form = new PdfFormXObject(page.Owner, page,
             new PdfRectangle(source.X, source.Y, source.X + source.Width, source.Y + source.Height));
@@ -239,7 +239,7 @@ static class PdfPageResizer
     /// <summary>
     /// A content stream that draws the named form under the transform given.
     /// </summary>
-    static PdfContent ContentDrawing(PdfDocument document, string name, XMatrix matrix)
+    private static PdfContent ContentDrawing(PdfDocument document, string name, XMatrix matrix)
     {
         var builder = new StringBuilder();
         builder.Append("q ");
@@ -261,7 +261,7 @@ static class PdfPageResizer
     /// Writes a number the way a content stream wants it: no exponent, no thousands separator and
     /// a full stop for the decimal point whatever the machine is set to.
     /// </summary>
-    static void AppendNumber(StringBuilder builder, double value)
+    private static void AppendNumber(StringBuilder builder, double value)
     {
         builder.Append(value.ToString("0.########", CultureInfo.InvariantCulture)).Append(' ');
     }
@@ -277,7 +277,7 @@ static class PdfPageResizer
     /// rewriting the transform of something that is not one loses the page.
     /// </para>
     /// </summary>
-    static bool TryFindWrapper(PdfPage page, out string name, out XRect wrapped, out XMatrix already)
+    private static bool TryFindWrapper(PdfPage page, out string name, out XRect wrapped, out XMatrix already)
     {
         name = null;
         wrapped = default;
@@ -374,12 +374,12 @@ static class PdfPageResizer
     /// content is wrapped a second time, which is wasteful and correct.
     /// </para>
     /// </summary>
-    const int LongestWrapper = 1024;
+    private const int LongestWrapper = 1024;
 
     /// <summary>
     /// The one content stream of the page, or null where it has none or has more than one.
     /// </summary>
-    static PdfDictionary SingleContentStreamOf(PdfPage page)
+    private static PdfDictionary SingleContentStreamOf(PdfPage page)
     {
         var item = page.Elements[PdfPage.Keys.Contents];
         if (item is PdfReference reference)
@@ -405,9 +405,9 @@ static class PdfPageResizer
     /// <summary>
     /// The white space a wrapper's tokens are separated by.
     /// </summary>
-    static readonly char[] WrapperSeparators = [' ', '\t', '\r', '\n', '\f', '\0'];
+    private static readonly char[] WrapperSeparators = [' ', '\t', '\r', '\n', '\f', '\0'];
 
-    static bool TryReadWrapperName(byte[] content, out string name, out XMatrix matrix)
+    private static bool TryReadWrapperName(byte[] content, out string name, out XMatrix matrix)
     {
         name = null;
         matrix = XMatrix.Identity;
@@ -443,7 +443,7 @@ static class PdfPageResizer
     /// <summary>
     /// Gives the page its new media box and moves the other four boxes with the content.
     /// </summary>
-    static void SetBoxes(PdfPage page, XRect target, XMatrix matrix, PageSize size)
+    private static void SetBoxes(PdfPage page, XRect target, XMatrix matrix, PageSize size)
     {
         // The crop box and the rest describe parts of the content, so they go where it goes.
         // Read the elements rather than the properties, so that a box the page does not state is
@@ -550,7 +550,7 @@ static class PdfPageResizer
     /// <summary>
     /// Throws rather than resize a document where resizing would do damage that does not show.
     /// </summary>
-    static void RefuseWhatCannotBeResized(PdfDocument document)
+    private static void RefuseWhatCannotBeResized(PdfDocument document)
     {
         document.EnsureCanModify("resizing a page");
 
@@ -594,7 +594,7 @@ static class PdfPageResizer
     /// Whether the document carries a digital signature, which is to say whether its interactive
     /// form holds a field of type /Sig.
     /// </summary>
-    static bool HasSignature(PdfDocument document)
+    private static bool HasSignature(PdfDocument document)
     {
         var formItem = document.Catalog.Elements[PdfCatalog.Keys.AcroForm];
         if (formItem is PdfReference formReference)
@@ -619,7 +619,7 @@ static class PdfPageResizer
     /// this has to go down as well as along - with a cap on how far, against a file that points
     /// a field at itself.
     /// </summary>
-    static bool HoldsSignatureField(PdfArray fields, int depth)
+    private static bool HoldsSignatureField(PdfArray fields, int depth)
     {
         if (depth > 16)
             return false;

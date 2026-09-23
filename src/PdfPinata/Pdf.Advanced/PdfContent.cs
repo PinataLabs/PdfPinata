@@ -92,7 +92,7 @@ public sealed class PdfContent : PdfDictionary
     /// <summary>
     /// Unfilters the stream.
     /// </summary>
-    void Decode()
+    private void Decode()
     {
         if (Stream != null && Stream.Value != null)
         {
@@ -183,7 +183,7 @@ public sealed class PdfContent : PdfDictionary
         /// </summary>
         public static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

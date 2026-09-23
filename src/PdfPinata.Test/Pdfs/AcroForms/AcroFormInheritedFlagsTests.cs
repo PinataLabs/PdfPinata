@@ -18,7 +18,7 @@ public class AcroFormInheritedFlagsTests
     ///   A text-field parent, <c>name</c>, carrying the type and the given flags, with two named
     ///   children that carry neither unless <paramref name="describeLast"/> gives <c>last</c> some.
     /// </summary>
-    static PdfDocument ANameGroup(PdfAcroFieldFlags flags,
+    private static PdfDocument ANameGroup(PdfAcroFieldFlags flags,
         System.Action<PdfDictionary> describeLast = null) =>
         new AcroFormBuilder()
             .WithDescribedParent("name",

@@ -26,7 +26,7 @@ internal static class PdfCrossReferenceStreamWriter
     /// a few bytes per object and cost the clarity of a fixed layout — the entries are compressed
     /// afterwards anyway, and repeated leading zeroes are exactly what a compressor is good at.
     /// </remarks>
-    static readonly int[] FieldWidths = [1, 4, 2];
+    private static readonly int[] FieldWidths = [1, 4, 2];
 
     /// <summary>
     /// Writes the body of the document, then the cross-reference stream that indexes it, and
@@ -236,7 +236,7 @@ internal static class PdfCrossReferenceStreamWriter
         return startxref;
     }
 
-    static PdfCrossReferenceStream.CrossReferenceStreamEntry InUse(PdfReference iref) =>
+    private static PdfCrossReferenceStream.CrossReferenceStreamEntry InUse(PdfReference iref) =>
         new()
         {
             Type = 1,
@@ -248,7 +248,7 @@ internal static class PdfCrossReferenceStreamWriter
     /// Moves the entries that were the trailer dictionary onto the cross-reference stream, which is
     /// where they live when a file has no trailer to put them in.
     /// </summary>
-    static void CopyTrailerElements(PdfTrailer trailer, PdfCrossReferenceStream xrefStream)
+    private static void CopyTrailerElements(PdfTrailer trailer, PdfCrossReferenceStream xrefStream)
     {
         string[] carried =
         [
@@ -269,7 +269,7 @@ internal static class PdfCrossReferenceStreamWriter
     /// <summary>
     /// Lays the entries out as the fixed-width big-endian rows the stream is made of.
     /// </summary>
-    static byte[] Encode(PdfCrossReferenceStream.CrossReferenceStreamEntry[] entries)
+    private static byte[] Encode(PdfCrossReferenceStream.CrossReferenceStreamEntry[] entries)
     {
         var rowLength = FieldWidths[0] + FieldWidths[1] + FieldWidths[2];
         var bytes = new byte[entries.Length * rowLength];
@@ -285,7 +285,7 @@ internal static class PdfCrossReferenceStreamWriter
         return bytes;
     }
 
-    static int WriteField(byte[] bytes, int at, ulong value, int width)
+    private static int WriteField(byte[] bytes, int at, ulong value, int width)
     {
         for (var shift = width - 1; shift >= 0; shift--)
             bytes[at++] = (byte)(value >> (shift * 8));

@@ -18,12 +18,12 @@ namespace PdfPinata.Test.Dom;
 /// </summary>
 public class TableSetShadingTests
 {
-    const int Columns = 4;
-    const int Rows = 3;
+    private const int Columns = 4;
+    private const int Rows = 3;
 
-    static Table ATable() => ATableOf(Columns, Rows);
+    private static Table ATable() => ATableOf(Columns, Rows);
 
-    static Table ATableOf(int columns, int rows)
+    private static Table ATableOf(int columns, int rows)
     {
         var table = new Document().AddSection().AddTable();
         for (var column = 0; column < columns; column++)
@@ -38,7 +38,7 @@ public class TableSetShadingTests
     ///   asked for and '.' where it is not. Reading a whole table at once is the only way an
     ///   assertion can say the block stopped where it was meant to.
     /// </summary>
-    static string Shaded(Table table, Color colour)
+    private static string Shaded(Table table, Color colour)
     {
         var picture = new System.Text.StringBuilder();
         for (var row = 0; row < table.Rows.Count; row++)

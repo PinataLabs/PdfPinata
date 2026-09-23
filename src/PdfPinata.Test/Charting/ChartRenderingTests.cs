@@ -38,11 +38,11 @@ namespace PdfPinata.Test.Charting;
 /// </remarks>
 public class ChartRenderingTests
 {
-    const string Face = "Liberation Sans";
-    const double Size = 8;
+    private const string Face = "Liberation Sans";
+    private const double Size = 8;
 
     /// <summary>Draws one chart into a page of a known size and hands the page back.</summary>
-    static PdfPage Drawn(Chart chart, double width = 400, double height = 260)
+    private static PdfPage Drawn(Chart chart, double width = 400, double height = 260)
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -63,7 +63,7 @@ public class ChartRenderingTests
         return page;
     }
 
-    static Chart Quarterly(ChartType type, params double[][] series)
+    private static Chart Quarterly(ChartType type, params double[][] series)
     {
         var chart = new Chart(type);
         chart.Font.Name = Face;
@@ -85,7 +85,7 @@ public class ChartRenderingTests
     // ----- reading glyphs back -----
 
     /// <summary>Two bytes per glyph, one list per run of text, in the order they were drawn.</summary>
-    static IReadOnlyList<IReadOnlyList<int>> RunsOn(PdfPage page)
+    private static IReadOnlyList<IReadOnlyList<int>> RunsOn(PdfPage page)
     {
         return TextOperators.ShownStrings(page)
             .Select(run => (IReadOnlyList<int>)Enumerable
@@ -96,7 +96,7 @@ public class ChartRenderingTests
     }
 
     /// <summary>The glyphs the given text draws in the font the charts above are set in.</summary>
-    static IReadOnlyList<int> GlyphsFor(string text)
+    private static IReadOnlyList<int> GlyphsFor(string text)
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -107,14 +107,14 @@ public class ChartRenderingTests
         return RunsOn(page).SelectMany(run => run).ToList();
     }
 
-    static bool Shows(PdfPage page, string text)
+    private static bool Shows(PdfPage page, string text)
     {
         var wanted = GlyphsFor(text);
         return RunsOn(page).Any(run => run.SequenceEqual(wanted));
     }
 
     /// <summary>Where the run reading as the given text starts, in points from the page's left.</summary>
-    static double XOf(PdfPage page, string text)
+    private static double XOf(PdfPage page, string text)
     {
         var wanted = GlyphsFor(text);
         var runs = RunsOn(page);
@@ -130,7 +130,7 @@ public class ChartRenderingTests
     }
 
     /// <summary>The page's content stream, as written, before anything tries to parse it.</summary>
-    static string ContentOf(PdfPage page)
+    private static string ContentOf(PdfPage page)
     {
         var builder = new StringBuilder();
         for (var index = 0; index < page.Contents.Elements.Count; index++)
@@ -250,7 +250,7 @@ public class ChartRenderingTests
     ///   that has already been drawn on appends another content stream to it, and what the
     ///   assertions then read back is no longer the page the chart wrote.
     /// </remarks>
-    static double WidthOf(string text)
+    private static double WidthOf(string text)
     {
         var document = new PdfDocument();
         using var gfx = XGraphics.FromPdfPage(document.AddPage());
@@ -259,7 +259,7 @@ public class ChartRenderingTests
 
     // ----- the percentage labels of a pie -----
 
-    static Chart Pie(string format, params double[] values)
+    private static Chart Pie(string format, params double[] values)
     {
         var chart = new Chart(ChartType.Pie2D);
         chart.Font.Name = Face;

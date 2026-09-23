@@ -251,10 +251,10 @@ public class PageBoxTests
         SaveAndReopen(document).Pages[0].HasMediaBox.Should().BeFalse();
     }
 
-    static PdfRectangle Box(double x1, double y1, double x2, double y2) =>
+    private static PdfRectangle Box(double x1, double y1, double x2, double y2) =>
         new(new XPoint(x1, y1), new XPoint(x2, y2));
 
-    static PdfRectangle Read(PdfPage page, string key) => key switch
+    private static PdfRectangle Read(PdfPage page, string key) => key switch
     {
         "/CropBox" => page.CropBox,
         "/BleedBox" => page.BleedBox,
@@ -264,7 +264,7 @@ public class PageBoxTests
         _ => throw new ArgumentOutOfRangeException(nameof(key))
     };
 
-    static PdfDocument OpenOnePage(string pageEntries)
+    private static PdfDocument OpenOnePage(string pageEntries)
     {
         var objects = new List<string>
         {
@@ -275,7 +275,7 @@ public class PageBoxTests
         return Pdf.IO.PdfReader.Open(new MemoryStream(RawPdf.Build(objects)), PdfDocumentOpenMode.Modify);
     }
 
-    static PdfDocument SaveAndReopen(PdfDocument document)
+    private static PdfDocument SaveAndReopen(PdfDocument document)
     {
         using var output = new MemoryStream();
         document.Save(output, false);

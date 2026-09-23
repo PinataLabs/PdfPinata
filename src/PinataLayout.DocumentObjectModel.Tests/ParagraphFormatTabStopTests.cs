@@ -16,7 +16,7 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 /// </summary>
 public class ParagraphFormatTabStopTests
 {
-    static ParagraphFormat AFormat() => new Document().AddSection().AddParagraph("x").Format;
+    private static ParagraphFormat AFormat() => new Document().AddSection().AddParagraph("x").Format;
 
     [Fact]
     public void AFormatHasNoTabStopsUntilOneIsAskedFor()

@@ -71,7 +71,7 @@ internal class FormattedTextArea : IAreaProvider
       return innerWidth;
     }
   }
-  XUnit innerWidth = double.NaN;
+  private XUnit innerWidth = double.NaN;
 
   internal XUnit InnerHeight
   {
@@ -84,7 +84,7 @@ internal class FormattedTextArea : IAreaProvider
   }
 
 
-  XUnit CalcInherentWidth()
+  private XUnit CalcInherentWidth()
   {
     XUnit inherentWidth = 0;
     foreach (DocumentObject obj in textArea.Elements)
@@ -141,7 +141,7 @@ internal class FormattedTextArea : IAreaProvider
 
   internal XUnit ContentHeight => RenderInfo.GetTotalHeight(GetRenderInfos());
 
-  Rectangle CalcContentRect()
+  private Rectangle CalcContentRect()
   {
     XUnit width = InnerWidth - textArea.LeftPadding - textArea.RightPadding;
     XUnit height = double.MaxValue;
@@ -164,5 +164,5 @@ internal class FormattedTextArea : IAreaProvider
   private ArrayList renderInfos;
   private XGraphics gfx;
   private bool isFirstArea;
-  DocumentRenderer documentRenderer;
+  private DocumentRenderer documentRenderer;
 }

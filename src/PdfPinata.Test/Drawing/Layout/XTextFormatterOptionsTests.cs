@@ -22,7 +22,7 @@ namespace PdfPinata.Test.Drawing.Layout;
 /// </summary>
 public class XTextFormatterOptionsTests
 {
-    const double LineHeight = 20;
+    private const double LineHeight = 20;
 
     /// <summary>
     ///   Asked for as WinAnsi so that the strings drawn can be read back out of the content.
@@ -32,17 +32,17 @@ public class XTextFormatterOptionsTests
     ///   is used changes nothing about the layout: the glyphs and their widths are the same either
     ///   way, and every test here but the ellipsis ones would pass with either.
     /// </summary>
-    static XFont Font => new XFont("Arial", 12, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
+    private static XFont Font => new XFont("Arial", 12, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
 
     /// <summary>A rectangle wide enough for two or three words of the text below.</summary>
-    static XRect Narrow => new XRect(20, 20, 120, 400);
+    private static XRect Narrow => new XRect(20, 20, 120, 400);
 
-    const string ThreeLinesish = "The quick brown fox jumps over the lazy dog";
+    private const string ThreeLinesish = "The quick brown fox jumps over the lazy dog";
 
     /// <summary>
     ///   Lays the text out and hands back the page, with the formatter set up by the caller.
     /// </summary>
-    static PdfPage PageShowing(string text, XRect layout, Action<XTextFormatter> setUp = null)
+    private static PdfPage PageShowing(string text, XRect layout, Action<XTextFormatter> setUp = null)
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -56,10 +56,10 @@ public class XTextFormatterOptionsTests
     }
 
     /// <summary>Where each drawn run starts, in the order it was drawn.</summary>
-    static IReadOnlyList<(double X, double Y)> RunsOf(PdfPage page) => TextBaselines.PositionsOf(page);
+    private static IReadOnlyList<(double X, double Y)> RunsOf(PdfPage page) => TextBaselines.PositionsOf(page);
 
     /// <summary>The distinct baselines used, from the top of the page down.</summary>
-    static IReadOnlyList<double> LinesOf(PdfPage page) => TextBaselines.LinesOf(page);
+    private static IReadOnlyList<double> LinesOf(PdfPage page) => TextBaselines.LinesOf(page);
 
     // ----- C1, line breaking ---------------------------------------------------------------------
 
@@ -195,7 +195,7 @@ public class XTextFormatterOptionsTests
     // ----- C5, the ellipsis ----------------------------------------------------------------------
 
     /// <summary>Two lines of room for text that needs more than two.</summary>
-    static XRect TwoLinesDeep => new XRect(20, 20, 120, 2 * LineHeight);
+    private static XRect TwoLinesDeep => new XRect(20, 20, 120, 2 * LineHeight);
 
     [Fact]
     public void TextThatDoesNotFitEndsWithTheEllipsis()
@@ -255,7 +255,7 @@ public class XTextFormatterOptionsTests
     // ----- C6, columns ---------------------------------------------------------------------------
 
     /// <summary>Wide enough for two columns, deep enough for two lines in each.</summary>
-    static XRect TwoColumnsDeep => new XRect(20, 20, 260, 2 * LineHeight);
+    private static XRect TwoColumnsDeep => new XRect(20, 20, 260, 2 * LineHeight);
 
     [Fact]
     public void TextFlowsDownOneColumnAndOnIntoTheNext()

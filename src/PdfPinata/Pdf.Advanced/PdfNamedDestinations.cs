@@ -85,7 +85,7 @@ internal static class PdfNamedDestinations
     /// tiny malformed document cost billions of visits. A name tree is a tree, so a node reached twice
     /// holds nothing the first visit did not already look at. See <see cref="PdfNameTree.MaxDepth"/>.
     /// </remarks>
-    static PdfItem Search(PdfDictionary node, string name, int depth, HashSet<PdfDictionary> seen)
+    private static PdfItem Search(PdfDictionary node, string name, int depth, HashSet<PdfDictionary> seen)
     {
         if (node == null || depth > MaxDepth || !seen.Add(node))
             return null;
@@ -144,7 +144,7 @@ internal static class PdfNamedDestinations
     /// The destination an entry of the catalog stands for. It is either the array itself or a
     /// dictionary holding it under /D, and either of them can be held indirectly.
     /// </summary>
-    static PdfArray DestinationOf(PdfItem item)
+    private static PdfArray DestinationOf(PdfItem item)
     {
         if (item is PdfReference iref)
             item = iref.Value;
@@ -159,11 +159,11 @@ internal static class PdfNamedDestinations
     /// The text of a name written either as a string or as a name, without the slash a name
     /// carries, or null if the item is neither.
     /// </summary>
-    static string TextOf(PdfItem item) => PdfNameTree.TextOf(item);
+    private static string TextOf(PdfItem item) => PdfNameTree.TextOf(item);
 
     /// <summary>
     /// How far down a name tree to go before giving up on it. The same cap the shared walk uses,
     /// and for the same reason.
     /// </summary>
-    const int MaxDepth = PdfNameTree.MaxDepth;
+    private const int MaxDepth = PdfNameTree.MaxDepth;
 }

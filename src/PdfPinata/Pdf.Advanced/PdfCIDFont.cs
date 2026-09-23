@@ -147,7 +147,7 @@ internal class PdfCIDFont : PdfFont
     /// program holds rather than what the page used.
     /// </para>
     /// </remarks>
-    void EmbedCidSet()
+    private void EmbedCidSet()
     {
         var cids = CMapInfo.GetGlyphIndices();
         var highest = 0;
@@ -264,7 +264,7 @@ internal class PdfCIDFont : PdfFont
         /// </summary>
         internal static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

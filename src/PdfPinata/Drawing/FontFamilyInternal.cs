@@ -48,7 +48,7 @@ internal class FontFamilyInternal
     //    is not possible to use two different fonts that have the same
     //    family name.
 
-    FontFamilyInternal(string familyName)
+    private FontFamilyInternal(string familyName)
     {
         _sourceName = _name = familyName;
     }
@@ -74,7 +74,7 @@ internal class FontFamilyInternal
     /// </summary>
     public string SourceName => _sourceName;
 
-    readonly string _sourceName;
+    private readonly string _sourceName;
 
     /// <summary>
     /// Gets the name that uniquely identifies this font family.
@@ -83,7 +83,7 @@ internal class FontFamilyInternal
         // In WPF this is the Win32FamilyName, not the WPF family name.
         _name;
 
-    readonly string _name;
+    private readonly string _name;
 
     /// <summary>
     /// Gets the DebuggerDisplayAttribute text.

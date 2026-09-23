@@ -74,13 +74,13 @@ public sealed class PdfPageLabels
         _document = document;
     }
 
-    readonly PdfDocument _document;
+    private readonly PdfDocument _document;
 
     /// <summary>
     /// The tree the labels are held in, or null where the document has none and none is being
     /// added. Reading a document that has no labels does not give it any.
     /// </summary>
-    PdfNumberTreeNode Tree(bool create)
+    private PdfNumberTreeNode Tree(bool create)
     {
         PdfDictionary catalog = _document.Internals.Catalog;
         var value = catalog.Elements.GetValue(PdfCatalog.Keys.PageLabels,
@@ -128,7 +128,7 @@ public sealed class PdfPageLabels
         LabelPageZero();
     }
 
-    void Write(int startPageIndex, PdfPageLabelStyle style, string prefix, int start)
+    private void Write(int startPageIndex, PdfPageLabelStyle style, string prefix, int start)
     {
         var label = new PdfDictionary(_document);
         label.Elements.SetName(PdfPageLabelKeys.Type, "/PageLabel");
@@ -159,7 +159,7 @@ public sealed class PdfPageLabels
     /// page zero later takes its place.
     /// </para>
     /// </summary>
-    void LabelPageZero()
+    private void LabelPageZero()
     {
         var tree = Tree(false);
         if (tree == null || tree.Count == 0 || tree.Contains(0))
@@ -282,11 +282,11 @@ public sealed class PdfPageLabels
         }
     }
 
-    static readonly int[] RomanValues = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1];
-    static readonly string[] RomanNumerals =
+    private static readonly int[] RomanValues = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1];
+    private static readonly string[] RomanNumerals =
         ["M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"];
 
-    static string Roman(int number)
+    private static string Roman(int number)
     {
         if (number < 1)
             return "";
@@ -307,7 +307,7 @@ public sealed class PdfPageLabels
     /// A to Z for the first twenty-six, then AA to ZZ, then AAA to ZZZ. The letter repeats
     /// rather than counting up as a number in base twenty-six would.
     /// </summary>
-    static string Letters(int number, char first)
+    private static string Letters(int number, char first)
     {
         if (number < 1)
             return "";
@@ -319,7 +319,7 @@ public sealed class PdfPageLabels
 
     #endregion
 
-    static string NameOf(PdfPageLabelStyle style)
+    private static string NameOf(PdfPageLabelStyle style)
     {
         switch (style)
         {
@@ -332,7 +332,7 @@ public sealed class PdfPageLabels
         }
     }
 
-    static PdfPageLabelStyle StyleOf(string name)
+    private static PdfPageLabelStyle StyleOf(string name)
     {
         switch (name)
         {
@@ -348,7 +348,7 @@ public sealed class PdfPageLabels
     /// <summary>
     /// The keys of a page label dictionary.
     /// </summary>
-    static class PdfPageLabelKeys
+    private static class PdfPageLabelKeys
     {
         internal const string Type = "/Type";
         internal const string Style = "/S";

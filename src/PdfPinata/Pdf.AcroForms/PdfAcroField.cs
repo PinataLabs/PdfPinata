@@ -198,7 +198,7 @@ public abstract class PdfAcroField : PdfDictionary
     /// The field flags a field dictionary has in effect: its own <c>/Ff</c>, or the nearest
     /// ancestor's when it has none.
     /// </summary>
-    static PdfAcroFieldFlags InheritedFlags(PdfDictionary field)
+    private static PdfAcroFieldFlags InheritedFlags(PdfDictionary field)
         => (PdfAcroFieldFlags)(InheritedFrom(field, Keys.Ff)?.Elements.GetInteger(Keys.Ff) ?? 0);
 
     /// <summary>
@@ -209,7 +209,7 @@ public abstract class PdfAcroField : PdfDictionary
     /// A <c>/Parent</c> chain that comes back on itself is malformed but possible in a file read
     /// from disk, and is treated as ending where it first repeats rather than walked for ever.
     /// </remarks>
-    static PdfDictionary InheritedFrom(PdfDictionary field, string key)
+    private static PdfDictionary InheritedFrom(PdfDictionary field, string key)
     {
         HashSet<PdfDictionary> visited = null;
         for (var dict = field; dict != null; dict = dict.Elements.GetDictionary(Keys.Parent))
@@ -433,7 +433,7 @@ public abstract class PdfAcroField : PdfDictionary
         return array;
     }
 
-    static void AppDict(PdfDictionary dict, Dictionary<string, object> names)
+    private static void AppDict(PdfDictionary dict, Dictionary<string, object> names)
     {
         PdfDictionary sub;
         if ((sub = dict.Elements["/D"] as PdfDictionary) != null)
@@ -442,7 +442,7 @@ public abstract class PdfAcroField : PdfDictionary
             AppDict2(sub, names);
     }
 
-    static void AppDict2(PdfDictionary dict, Dictionary<string, object> names)
+    private static void AppDict2(PdfDictionary dict, Dictionary<string, object> names)
     {
         foreach (var key in dict.Elements.Keys)
         {
@@ -525,7 +525,7 @@ public abstract class PdfAcroField : PdfDictionary
             return _fields;
         }
     }
-    PdfAcroFieldCollection _fields;
+    private PdfAcroFieldCollection _fields;
 
     /// <summary>
     /// Holds a collection of interactive fields.
@@ -545,7 +545,7 @@ public abstract class PdfAcroField : PdfDictionary
         /// The field this collection is the <c>/Kids</c> of, or null when it is a form's
         /// <c>/Fields</c> and the fields in it are therefore root fields.
         /// </summary>
-        PdfAcroField _parent;
+        private PdfAcroField _parent;
 
         internal void SetParentField(PdfAcroField parent)
         {
@@ -684,7 +684,7 @@ public abstract class PdfAcroField : PdfDictionary
         /// If the actual cannot be guessed by PDFsharp the function returns an instance
         /// of PdfGenericField.
         /// </summary>
-        static PdfAcroField CreateAcroField(PdfDictionary dict)
+        private static PdfAcroField CreateAcroField(PdfDictionary dict)
         {
             // Both entries are inheritable, and a terminal field read from a file often carries
             // neither itself: a group of radio buttons, say, whose parent says /Btn and Radio once

@@ -102,7 +102,7 @@ public partial class Character : DocumentObject
   /// <summary>
   /// Initializes a new instance of the Character class with the specified SymbolName.
   /// </summary>
-  Character(SymbolName name)
+  private Character(SymbolName name)
     : this()
   {
     this.name = name;
@@ -154,16 +154,16 @@ public partial class Character : DocumentObject
   /// <summary>
   /// The symbol, when this is one. Never holds a value with the top nibble clear.
   /// </summary>
-  SymbolName? name;
+  private SymbolName? name;
 
   /// <summary>
   /// The character, when this is one. Held as the whole code rather than as a char: a value above
   /// U+FFFF assigned through <see cref="SymbolName"/> has always been kept and written out whole,
   /// while <see cref="Char"/> reads back its low 16 bits.
   /// </summary>
-  uint? code;
+  private uint? code;
 
-  static bool IsCharacter(SymbolName value) => ((uint)value & 0xF0000000) == 0;
+  private static bool IsCharacter(SymbolName value) => ((uint)value & 0xF0000000) == 0;
 
   /// <summary>
   /// Gets or sets the character. Returns 0 if the type is defined via an enum.

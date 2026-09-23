@@ -45,7 +45,7 @@ public class SeriesCollectionMapper
   {
   }
 
-  static void MapObject(SeriesCollection seriesCollection, DocumentObjectModel.Shapes.Charts.SeriesCollection domSeriesCollection)
+  private static void MapObject(SeriesCollection seriesCollection, DocumentObjectModel.Shapes.Charts.SeriesCollection domSeriesCollection)
   {
     foreach (DocumentObjectModel.Shapes.Charts.Series domSeries in domSeriesCollection)
     {

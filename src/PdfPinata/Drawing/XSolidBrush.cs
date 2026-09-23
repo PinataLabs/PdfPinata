@@ -93,5 +93,5 @@ public sealed class XSolidBrush : XBrush
         }
     }
     internal bool _overprint;
-    readonly bool _immutable;
+    private readonly bool _immutable;
 }

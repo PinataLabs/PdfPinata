@@ -215,7 +215,7 @@ public class MatrixCodeTests
         drawing.Should().NotThrow();
     }
 
-    static int Dark(bool[,] modules)
+    private static int Dark(bool[,] modules)
     {
         var count = 0;
         foreach (var module in modules)
@@ -226,7 +226,7 @@ public class MatrixCodeTests
         return count;
     }
 
-    static void Draw(Action<XGraphics> draw)
+    private static void Draw(Action<XGraphics> draw)
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -238,7 +238,7 @@ public class MatrixCodeTests
     ///   The operators the drawing actually wrote, so that a test can judge what a viewer gets
     ///   rather than only that nothing was thrown on the way.
     /// </summary>
-    static string ContentOf(Action<XGraphics> draw)
+    private static string ContentOf(Action<XGraphics> draw)
     {
         var document = new PdfDocument();
         document.Options.CompressContentStreams = false;

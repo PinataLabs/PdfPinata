@@ -9,10 +9,10 @@ namespace PdfPinata.Drawing.BarCodes;
 internal static class DataMatrixReedSolomon
 {
     /// <summary>The polynomial the field is built on, 0x12D.</summary>
-    const int Modulus = 0x12D;
+    private const int Modulus = 0x12D;
 
-    static readonly byte[] Exponentials = new byte[255];
-    static readonly byte[] Logarithms = new byte[256];
+    private static readonly byte[] Exponentials = new byte[255];
+    private static readonly byte[] Logarithms = new byte[256];
 
     static DataMatrixReedSolomon()
     {
@@ -58,7 +58,7 @@ internal static class DataMatrixReedSolomon
     /// The generator polynomial of the given degree, which is the product of (x - 2^i) for i
     /// from 1 up to the degree. The leading coefficient is 1 and is not held.
     /// </summary>
-    static byte[] Generator(int degree)
+    private static byte[] Generator(int degree)
     {
         var polynomial = new byte[degree + 1];
         polynomial[0] = 1;
@@ -81,7 +81,7 @@ internal static class DataMatrixReedSolomon
         return coefficients;
     }
 
-    static byte Multiply(byte left, byte right)
+    private static byte Multiply(byte left, byte right)
     {
         if (left == 0 || right == 0)
             return 0;

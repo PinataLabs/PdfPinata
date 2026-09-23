@@ -44,7 +44,7 @@ public class AxisMapper
   {
   }
 
-  static void MapObject(Axis axis, DocumentObjectModel.Shapes.Charts.Axis domAxis)
+  private static void MapObject(Axis axis, DocumentObjectModel.Shapes.Charts.Axis domAxis)
   {
     if (!domAxis.IsNull("TickLabels.Format"))
       axis.TickLabels.Format = domAxis.TickLabels.Format;

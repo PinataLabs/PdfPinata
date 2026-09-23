@@ -45,7 +45,7 @@ public class LineFormatMapper
     {
     }
 
-    static void MapObject(LineFormat lineFormat, DocumentObjectModel.Shapes.LineFormat domLineFormat)
+    private static void MapObject(LineFormat lineFormat, DocumentObjectModel.Shapes.LineFormat domLineFormat)
     {
         if (domLineFormat.Color.IsEmpty)
             lineFormat.Color = XColor.Empty;

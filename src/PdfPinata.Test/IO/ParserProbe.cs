@@ -38,23 +38,23 @@ namespace PdfPinata.Test.IO;
 /// </remarks>
 static class ParserProbe
 {
-    const BindingFlags Any = BindingFlags.Public | BindingFlags.NonPublic
+    private const BindingFlags Any = BindingFlags.Public | BindingFlags.NonPublic
         | BindingFlags.Instance | BindingFlags.Static;
 
     // Named through PdfDocument rather than through PdfReader: this namespace has a test class of
     // its own by that name, which is what typeof would find here.
-    static readonly Assembly Library = typeof(PdfDocument).Assembly;
+    private static readonly Assembly Library = typeof(PdfDocument).Assembly;
 
-    static readonly Type ParserType = Library.GetType("PdfPinata.Pdf.IO.Parser", throwOnError: true);
+    private static readonly Type ParserType = Library.GetType("PdfPinata.Pdf.IO.Parser", throwOnError: true);
 
-    static readonly Type LexerType = Library.GetType("PdfPinata.Pdf.IO.Lexer", throwOnError: true);
+    private static readonly Type LexerType = Library.GetType("PdfPinata.Pdf.IO.Lexer", throwOnError: true);
 
-    static readonly Type ShiftStackType = Library.GetType("PdfPinata.Pdf.IO.ShiftStack", throwOnError: true);
+    private static readonly Type ShiftStackType = Library.GetType("PdfPinata.Pdf.IO.ShiftStack", throwOnError: true);
 
-    static readonly Type TableType =
+    private static readonly Type TableType =
         Library.GetType("PdfPinata.Pdf.Advanced.PdfCrossReferenceTable", throwOnError: true);
 
-    static readonly Type XRefStreamType =
+    private static readonly Type XRefStreamType =
         Library.GetType("PdfPinata.Pdf.Advanced.PdfCrossReferenceStream", throwOnError: true);
 
     // ----- Standing a parser up ------------------------------------------------------------------
@@ -205,27 +205,27 @@ static class ParserProbe
 
     // ----- Reflection, kept in one place -------------------------------------------------------------
 
-    static object Lexer(object parser) => Field(ParserType, "_lexer").GetValue(parser);
+    private static object Lexer(object parser) => Field(ParserType, "_lexer").GetValue(parser);
 
-    static PropertyInfo LexerMember(string name) => Member(LexerType, name);
+    private static PropertyInfo LexerMember(string name) => Member(LexerType, name);
 
-    static MethodInfo Method(string name, Type[] parameters) => Method(ParserType, name, parameters);
+    private static MethodInfo Method(string name, Type[] parameters) => Method(ParserType, name, parameters);
 
-    static MethodInfo Method(Type type, string name, Type[] parameters) =>
+    private static MethodInfo Method(Type type, string name, Type[] parameters) =>
         type.GetMethod(name, Any, null, parameters, null)
         ?? throw new MissingMethodException(type.FullName, name);
 
-    static FieldInfo Field(Type type, string name) =>
+    private static FieldInfo Field(Type type, string name) =>
         type.GetField(name, Any) ?? throw new MissingFieldException(type.FullName, name);
 
-    static PropertyInfo Member(Type type, string name) =>
+    private static PropertyInfo Member(Type type, string name) =>
         type.GetProperty(name, Any) ?? throw new MissingMemberException(type.FullName, name);
 
     /// <summary>
     ///   Invokes and lets what the member itself threw out, rather than the reflection wrapper
     ///   around it, so that a test asserting on an exception sees the one the parser threw.
     /// </summary>
-    static object Invoke(MethodBase member, object instance, params object[] arguments)
+    private static object Invoke(MethodBase member, object instance, params object[] arguments)
     {
         try
         {

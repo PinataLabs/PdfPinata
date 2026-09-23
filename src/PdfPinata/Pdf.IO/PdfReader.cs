@@ -152,7 +152,7 @@ public static class PdfReader
     /// Implements scanning the PDF file version.
     /// </summary>
     ///
-    internal static int GetPdfFileVersion(byte[] bytes)
+    private static int GetPdfFileVersion(byte[] bytes)
     {
         var version = ScanFileVersion(PdfEncoders.RawEncoding, bytes);
 
@@ -167,32 +167,45 @@ public static class PdfReader
     /// Scans the file header for «%PDF-x.y» using the specified encoding and returns the version
     /// as an integer (e.g. 14 for PDF 1.4, 20 for PDF 2.0), or 0 if no version was found.
     /// </summary>
-    static int ScanFileVersion(System.Text.Encoding encoding, byte[] bytes)
+    private static int ScanFileVersion(System.Text.Encoding encoding, byte[] bytes)
     {
+        string header;
         try
         {
-            // Acrobat accepts headers like «%!PS-Adobe-N.n PDF-M.m»...
-            var header = encoding.GetString(bytes, 0, bytes.Length);
-            if (header.Length == 0)
-                return 0;
-            if (header[0] == '%' || header.Contains("%PDF", StringComparison.Ordinal))
-            {
-                var ich = header.IndexOf("PDF-", StringComparison.Ordinal);
-                if (ich > 0 && ich + 6 < header.Length && header[ich + 5] == '.')
-                {
-                    var major = header[ich + 4];
-                    var minor = header[ich + 6];
-                    // PDF 1.0 to 1.7 and PDF 2.0 are the versions defined so far.
-                    if (major >= '1' && major <= '2' && minor >= '0' && minor <= '9')
-                        return (major - '0') * 10 + (minor - '0');
-                }
-            }
+            header = encoding.GetString(bytes, 0, bytes.Length);
         }
-        // ReSharper disable once EmptyGeneralCatchClause
+        // Only the decoding can throw - a null array reaches here from the public TestPdfFile - and
+        // bytes that cannot be decoded have no version to find.
         catch
-        { }
+        {
+            return 0;
+        }
 
-        return 0;
+        return VersionIn(header);
+    }
+
+    /// <summary>
+    /// Finds «PDF-x.y» in a decoded header and returns it as an integer, or 0 if there is none.
+    /// </summary>
+    private static int VersionIn(string header)
+    {
+        // Acrobat accepts headers like «%!PS-Adobe-N.n PDF-M.m»...
+        var looksLikePdf = (header.Length > 0 && header[0] == '%') || header.Contains("%PDF", StringComparison.Ordinal);
+        if (!looksLikePdf)
+            return 0;
+
+        var ich = header.IndexOf("PDF-", StringComparison.Ordinal);
+        if (ich <= 0 || ich + 6 >= header.Length || header[ich + 5] != '.')
+            return 0;
+
+        var major = header[ich + 4];
+        var minor = header[ich + 6];
+
+        // PDF 1.0 to 1.7 and PDF 2.0 are the versions defined so far.
+        if (major is < '1' or > '2' || minor is < '0' or > '9')
+            return 0;
+
+        return (major - '0') * 10 + (minor - '0');
     }
 
     /// <summary>
@@ -369,83 +382,110 @@ public static class PdfReader
     /// </summary>
     public static PdfDocument Open(Stream stream, string password, PdfDocumentOpenMode openmode, PdfPasswordProvider passwordProvider, PdfReadAccuracy accuracy)
     {
-        PdfDocument document;
-        try
+        var lexer = new Lexer(stream);
+        var document = new PdfDocument(lexer);
+        document._state |= DocumentState.Imported;
+        document._openMode = openmode;
+        document.FileSize = stream.Length;
+
+        document._version = ReadHeaderVersion(stream);
+        if (document._version == 0)
+            throw new InvalidOperationException(PSSR.InvalidPdf);
+
+        var parser = new Parser(document);
+        ReadTrailers(document, parser, accuracy);
+
+        // A password given for a document that is not encrypted is ignored.
+        var xrefEncrypt = document._trailer.Elements[PdfTrailer.Keys.Encrypt] as PdfReference;
+        if (xrefEncrypt != null)
         {
-            var lexer = new Lexer(stream);
-            document = new PdfDocument(lexer);
-            document._state |= DocumentState.Imported;
-            document._openMode = openmode;
-            document.FileSize = stream.Length;
+            ReadEncryptDictionary(document, parser, xrefEncrypt);
+            if (!TryUnlock(document, password, openmode, passwordProvider))
+                return null;
+        }
 
-            // Get file version.
-            var header = new byte[1024];
-            stream.Position = 0;
-            // A file shorter than the buffer is normal here; the remainder stays zero.
-            PdfPinata.Internal.StreamHelper.ReadUpTo(stream, header, 0, 1024);
-            document._version = GetPdfFileVersion(header);
-            if (document._version == 0)
-                throw new InvalidOperationException(PSSR.InvalidPdf);
+        ReadObjectStreamReferences(parser);
+        ReadCompressedObjects(document, parser);
+        ReadIndirectObjects(document, parser, accuracy);
 
-            document._irefTable.IsUnderConstruction = true;
-            var parser = new Parser(document);
+        // Encrypt all objects.
+        if (xrefEncrypt != null)
+            document.SecurityHandler.EncryptDocument();
 
-            // Read all trailers or cross-reference streams, but no objects.
-            document._trailer = parser.ReadTrailer(accuracy);
+        // Fix references of trailer values and then objects and irefs are consistent.
+        document._trailer.Finish();
 
-            if (document._trailer == null)
-                ParserDiagnostics.ThrowParserException("Invalid PDF file: no trailer found.");
+        if (openmode == PdfDocumentOpenMode.Modify || openmode == PdfDocumentOpenMode.Append)
+        {
+            RenewRevisionId(document);
 
-            Debug.Assert(document._irefTable.IsUnderConstruction);
-            document._irefTable.IsUnderConstruction = false;
+            // The modification date is not stamped here. It is stamped when the document is
+            // written, in PdfDocument.PrepareForSave, so that opening a document to read its
+            // dates does not change the date it is read for.
 
-            // Is document encrypted?
-            // ReSharper disable once PossibleNullReferenceException
-            var xrefEncrypt = document._trailer.Elements[PdfTrailer.Keys.Encrypt] as PdfReference;
-            if (xrefEncrypt != null)
+            if (openmode == PdfDocumentOpenMode.Append)
+                PrepareForAppending(document, parser, stream);
+            else
+                CompactAndRenumber(document);
+        }
+
+        return document;
+    }
+
+    /// <summary>
+    /// Reads the version from the first kilobyte of the stream, or 0 when it has none.
+    /// </summary>
+    private static int ReadHeaderVersion(Stream stream)
+    {
+        var header = new byte[1024];
+        stream.Position = 0;
+        // A file shorter than the buffer is normal here; the remainder stays zero.
+        PdfPinata.Internal.StreamHelper.ReadUpTo(stream, header, 0, 1024);
+        return GetPdfFileVersion(header);
+    }
+
+    /// <summary>
+    /// Reads all trailers or cross-reference streams, but no objects.
+    /// </summary>
+    private static void ReadTrailers(PdfDocument document, Parser parser, PdfReadAccuracy accuracy)
+    {
+        document._irefTable.IsUnderConstruction = true;
+
+        document._trailer = parser.ReadTrailer(accuracy);
+        if (document._trailer == null)
+            ParserDiagnostics.ThrowParserException("Invalid PDF file: no trailer found.");
+
+        Debug.Assert(document._irefTable.IsUnderConstruction);
+        document._irefTable.IsUnderConstruction = false;
+    }
+
+    /// <summary>
+    /// Reads the encryption dictionary the trailer refers to, which the security handler is built on.
+    /// </summary>
+    private static void ReadEncryptDictionary(PdfDocument document, Parser parser, PdfReference xrefEncrypt)
+    {
+        document._readEncrypted = true;
+        var encrypt = parser.ReadObject(null, xrefEncrypt.ObjectID, false, false);
+
+        encrypt.Reference = xrefEncrypt;
+        xrefEncrypt.Value = encrypt;
+    }
+
+    /// <summary>
+    /// Validates the password, asking the provider for another for as long as the one given is not
+    /// enough for the open mode.
+    /// </summary>
+    /// <returns>False when the provider aborts, in which case no document is opened.</returns>
+    /// <exception cref="PdfReaderException">The password is not enough and there is no provider to ask.</exception>
+    private static bool TryUnlock(PdfDocument document, string password, PdfDocumentOpenMode openmode, PdfPasswordProvider passwordProvider)
+    {
+        var securityHandler = document.SecurityHandler;
+        while (true)
+        {
+            var validity = securityHandler.ValidatePassword(password);
+            var refusal = RefusalFor(validity, password, openmode);
+            if (refusal == null)
             {
-                document._readEncrypted = true;
-                var encrypt = parser.ReadObject(null, xrefEncrypt.ObjectID, false, false);
-
-                encrypt.Reference = xrefEncrypt;
-                xrefEncrypt.Value = encrypt;
-                var securityHandler = document.SecurityHandler;
-                TryAgain:
-                var validity = securityHandler.ValidatePassword(password);
-                if (validity == PasswordValidity.Invalid)
-                {
-                    if (passwordProvider != null)
-                    {
-                        var args = new PdfPasswordProviderArgs();
-                        passwordProvider(args);
-                        if (args.Abort)
-                            return null;
-                        password = args.Password;
-                        goto TryAgain;
-                    }
-                    else
-                    {
-                        if (password == null)
-                            throw new PdfReaderException(PSSR.PasswordRequired);
-                        else
-                            throw new PdfReaderException(PSSR.InvalidPassword);
-                    }
-                }
-                else if (validity == PasswordValidity.UserPassword && openmode == PdfDocumentOpenMode.Modify)
-                {
-                    if (passwordProvider != null)
-                    {
-                        var args = new PdfPasswordProviderArgs();
-                        passwordProvider(args);
-                        if (args.Abort)
-                            return null;
-                        password = args.Password;
-                        goto TryAgain;
-                    }
-                    else
-                        throw new PdfReaderException(PSSR.OwnerPasswordRequired);
-                }
-
                 // Which of the two passwords got us in. PdfSecuritySettings.HasOwnerPermissions
                 // exists to answer exactly that question and was never written to: the field was
                 // initialized to true and assigned nowhere, so the property answered "yes, owner"
@@ -456,190 +496,196 @@ public static class PdfReader
                 // never recorded it.
                 document.SecuritySettings._hasOwnerPermissions =
                     validity == PasswordValidity.OwnerPassword;
-            }
-            else
-            {
-                if (password != null)
-                {
-                    // Password specified but document is not encrypted.
-                    // ignore
-                }
+                return true;
             }
 
-            // The cross-reference streams are taken from the parser rather than looked for in the
-            // table: one whose number a later revision gave to another object is not in the table,
-            // and the objects its revision compressed are still to be read.
-            var xrefStreams = parser.CrossReferenceStreams;
+            if (passwordProvider == null)
+                throw new PdfReaderException(refusal);
 
-            // 3rd: Create iRefs for all compressed objects.
-            var objectStreams = new Dictionary<int, object>();
-            foreach (var xrefStream in xrefStreams)
+            var args = new PdfPasswordProviderArgs();
+            passwordProvider(args);
+            if (args.Abort)
+                return false;
+            password = args.Password;
+        }
+    }
+
+    /// <summary>
+    /// Why the password does not open the document in the given mode, or null when it does.
+    /// </summary>
+    private static string RefusalFor(PasswordValidity validity, string password, PdfDocumentOpenMode openmode)
+    {
+        if (validity == PasswordValidity.Invalid)
+            return password == null ? PSSR.PasswordRequired : PSSR.InvalidPassword;
+
+        if (validity == PasswordValidity.UserPassword && openmode == PdfDocumentOpenMode.Modify)
+            return PSSR.OwnerPasswordRequired;
+
+        return null;
+    }
+
+    /// <summary>
+    /// Creates iRefs for all compressed objects, reading each object stream's index once.
+    /// </summary>
+    private static void ReadObjectStreamReferences(Parser parser)
+    {
+        // The cross-reference streams are taken from the parser rather than looked for in the
+        // table: one whose number a later revision gave to another object is not in the table,
+        // and the objects its revision compressed are still to be read.
+        var objectStreams = new HashSet<int>();
+        foreach (var xrefStream in parser.CrossReferenceStreams)
+        {
+            foreach (var item in xrefStream.Entries)
             {
-                for (var idx2 = 0; idx2 < xrefStream.Entries.Count; idx2++)
-                {
-                    var item = xrefStream.Entries[idx2];
-                    // Is type xref to compressed object?
-                    if (item.Type == 2)
-                    {
-                        var objectNumber = (int)item.Field2;
-                        if (!objectStreams.ContainsKey(objectNumber))
-                        {
-                            objectStreams.Add(objectNumber, null);
-                            var objectID = new PdfObjectID((int)item.Field2);
-                            parser.ReadIRefsFromCompressedObject(objectID);
-                        }
-                    }
-                }
-            }
+                // Is type xref to compressed object?
+                if (item.Type != 2)
+                    continue;
 
-            // 4th: Read compressed objects.
-            foreach (var xrefStream in xrefStreams)
-            {
-                for (var idx2 = 0; idx2 < xrefStream.Entries.Count; idx2++)
-                {
-                    var item = xrefStream.Entries[idx2];
-                    // Is type xref to compressed object?
-                    if (item.Type == 2)
-                    {
-                        // Only the newest revision's word on an object counts. Reading an older
-                        // revision's compressed copy puts it in the table over whatever the newer
-                        // one says - a catalog a signing tool wrote out uncompressed, with the
-                        // /AcroForm it added, lost to the compressed catalog it replaced. The
-                        // streams are newest first, so the first to read an object is the newest.
-                        if (item.ObjectNumber >= 1)
-                        {
-                            var entry = document._irefTable[new PdfObjectID(item.ObjectNumber)];
-                            if (entry is not { Position: < 0, Value: null })
-                                continue;
-                        }
-
-                        parser.ReadCompressedObject(new PdfObjectID((int)item.Field2),
-                            (int)item.Field3);
-                    }
-                }
-            }
-
-
-            var irefs = document._irefTable.AllReferences;
-            var count = irefs.Length;
-
-            // Read all indirect objects.
-            for (var idx = 0; idx < count; idx++)
-            {
-                var iref = irefs[idx];
-                if (iref.Value == null)
-                {
-                    try
-                    {
-                        Debug.Assert(document._irefTable.Contains(iref.ObjectID));
-                        var pdfObject = parser.ReadObject(null, iref.ObjectID, false, false);
-                        Debug.Assert(pdfObject.Reference == iref);
-                        pdfObject.Reference = iref;
-                        Debug.Assert(pdfObject.Reference.Value != null, "Something went wrong.");
-                    }
-                    catch (PositionNotFoundException ex)
-                    {
-                        Debug.WriteLine(ex.Message);
-
-                        if (accuracy == PdfReadAccuracy.Strict)
-                            throw;
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine(ex.Message);
-                        // 4STLA rethrow exception to notify caller.
-                        throw;
-                    }
-                }
-                else
-                {
-                    Debug.Assert(document._irefTable.Contains(iref.ObjectID));
-                }
-                // Set maximum object number.
-                document._irefTable.MaxObjectNumber = Math.Max(document._irefTable.MaxObjectNumber,
-                    iref.ObjectNumber);
-            }
-
-            // Encrypt all objects.
-            if (xrefEncrypt != null)
-            {
-                document.SecurityHandler.EncryptDocument();
-            }
-
-            // Fix references of trailer values and then objects and irefs are consistent.
-            document._trailer.Finish();
-
-            if (openmode == PdfDocumentOpenMode.Modify || openmode == PdfDocumentOpenMode.Append)
-            {
-                // Create new or change existing document IDs. /ID[0] identifies the document across
-                // its whole life and /ID[1] identifies this revision of it, so only the second is
-                // replaced when there already is a pair — which is exactly what an appended
-                // revision needs as well.
-                if (document.Internals.SecondDocumentID == "")
-                    document._trailer.CreateNewDocumentIDs();
-                else
-                {
-                    var agTemp = Guid.NewGuid().ToByteArray();
-                    document.Internals.SecondDocumentID = PdfEncoders.RawEncoding.GetString(agTemp, 0, agTemp.Length);
-                }
-
-                // The modification date is not stamped here. It is stamped when the document is
-                // written, in PdfDocument.PrepareForSave, so that opening a document to read its
-                // dates does not change the date it is read for.
-
-                if (openmode == PdfDocumentOpenMode.Append)
-                {
-                    // Neither compacted nor renumbered, and both matter. An incremental update
-                    // shadows an object by writing a new definition under the same number, so
-                    // renumbering would make every appended object overwrite the wrong one. And an
-                    // object unreachable from the catalog is still in the file we are appending to,
-                    // so removing it from the table would not remove it from the document — it
-                    // would only lose track of a number that is already taken.
-                    // Flatten the page tree first and capture afterwards. Flattening mutates the
-                    // page tree, and capturing is what decides which objects count as untouched —
-                    // do it the other way round and every page is reported changed by the act of
-                    // reading it, so an incremental save rewrites the lot.
-                    //
-                    // Assigned to a local first, and that is the whole point: Debug.Assert is
-                    // [Conditional("DEBUG")], so the compiler removes the call *and its argument* in
-                    // a release build. Written as an assertion on document.Pages, the flattening
-                    // this depends on simply would not happen where it matters most.
-                    //
-                    // Before anything can be given a number: every number below a revision's /Size
-                    // is one the file already accounts for, in use or freed, so the next new object
-                    // starts from the largest of them rather than one past the highest object in
-                    // use. A section that ends in free entries has a /Size above that, and numbering
-                    // from the live objects shrank the appended /Size and reused a freed number,
-                    // both of which ISO 32000-1 7.5.5 forbids an update to do.
-                    document._irefTable.MaxObjectNumber = Math.Max(document._irefTable.MaxObjectNumber,
-                        parser.LargestSize - 1);
-
-                    var pages = document.Pages;
-                    Debug.Assert(pages != null);
-
-                    document.CaptureOriginalBytes(stream);
-                }
-                else
-                {
-                    // Remove all unreachable objects
-                    var removed = document._irefTable.Compact();
-                    if (removed != 0)
-                        Debug.WriteLine("Number of deleted unreachable objects: " + removed);
-
-                    // Force flattening of page tree
-                    var pages = document.Pages;
-                    Debug.Assert(pages != null);
-
-                    document._irefTable.Renumber();
-                }
+                var objectNumber = (int)item.Field2;
+                if (objectStreams.Add(objectNumber))
+                    parser.ReadIRefsFromCompressedObject(new PdfObjectID(objectNumber));
             }
         }
-        catch (Exception ex)
+    }
+
+    /// <summary>
+    /// Reads every compressed object that no newer revision defines.
+    /// </summary>
+    private static void ReadCompressedObjects(PdfDocument document, Parser parser)
+    {
+        foreach (var xrefStream in parser.CrossReferenceStreams)
+        {
+            foreach (var item in xrefStream.Entries)
+            {
+                // Is type xref to compressed object?
+                if (item.Type != 2)
+                    continue;
+
+                // Only the newest revision's word on an object counts. Reading an older
+                // revision's compressed copy puts it in the table over whatever the newer
+                // one says - a catalog a signing tool wrote out uncompressed, with the
+                // /AcroForm it added, lost to the compressed catalog it replaced. The
+                // streams are newest first, so the first to read an object is the newest.
+                if (item.ObjectNumber >= 1)
+                {
+                    var entry = document._irefTable[new PdfObjectID(item.ObjectNumber)];
+                    if (entry is not { Position: < 0, Value: null })
+                        continue;
+                }
+
+                parser.ReadCompressedObject(new PdfObjectID((int)item.Field2), (int)item.Field3);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Reads every indirect object not read yet, and records the largest object number.
+    /// </summary>
+    private static void ReadIndirectObjects(PdfDocument document, Parser parser, PdfReadAccuracy accuracy)
+    {
+        foreach (var iref in document._irefTable.AllReferences)
+        {
+            Debug.Assert(document._irefTable.Contains(iref.ObjectID));
+            if (iref.Value == null)
+                ReadIndirectObject(parser, iref, accuracy);
+
+            document._irefTable.MaxObjectNumber = Math.Max(document._irefTable.MaxObjectNumber,
+                iref.ObjectNumber);
+        }
+    }
+
+    /// <summary>
+    /// Reads one indirect object. An object whose position cannot be found is skipped unless the
+    /// accuracy is strict.
+    /// </summary>
+    private static void ReadIndirectObject(Parser parser, PdfReference iref, PdfReadAccuracy accuracy)
+    {
+        try
+        {
+            var pdfObject = parser.ReadObject(null, iref.ObjectID, false, false);
+            Debug.Assert(pdfObject.Reference == iref);
+            pdfObject.Reference = iref;
+            Debug.Assert(pdfObject.Reference.Value != null, "Something went wrong.");
+        }
+        catch (PositionNotFoundException ex)
         {
             Debug.WriteLine(ex.Message);
-            throw;
+
+            if (accuracy == PdfReadAccuracy.Strict)
+                throw;
         }
-        return document;
+    }
+
+    /// <summary>
+    /// Creates new or changes existing document IDs.
+    /// </summary>
+    /// <remarks>
+    /// /ID[0] identifies the document across its whole life and /ID[1] identifies this revision of
+    /// it, so only the second is replaced when there already is a pair — which is exactly what an
+    /// appended revision needs as well.
+    /// </remarks>
+    private static void RenewRevisionId(PdfDocument document)
+    {
+        if (document.Internals.SecondDocumentID == "")
+        {
+            document._trailer.CreateNewDocumentIDs();
+            return;
+        }
+
+        var agTemp = Guid.NewGuid().ToByteArray();
+        document.Internals.SecondDocumentID = PdfEncoders.RawEncoding.GetString(agTemp, 0, agTemp.Length);
+    }
+
+    /// <summary>
+    /// Prepares a document opened to have a revision appended, keeping its numbers and its bytes.
+    /// </summary>
+    private static void PrepareForAppending(PdfDocument document, Parser parser, Stream stream)
+    {
+        // Neither compacted nor renumbered, and both matter. An incremental update
+        // shadows an object by writing a new definition under the same number, so
+        // renumbering would make every appended object overwrite the wrong one. And an
+        // object unreachable from the catalog is still in the file we are appending to,
+        // so removing it from the table would not remove it from the document — it
+        // would only lose track of a number that is already taken.
+        // Flatten the page tree first and capture afterwards. Flattening mutates the
+        // page tree, and capturing is what decides which objects count as untouched —
+        // do it the other way round and every page is reported changed by the act of
+        // reading it, so an incremental save rewrites the lot.
+        //
+        // Assigned to a local first, and that is the whole point: Debug.Assert is
+        // [Conditional("DEBUG")], so the compiler removes the call *and its argument* in
+        // a release build. Written as an assertion on document.Pages, the flattening
+        // this depends on simply would not happen where it matters most.
+        //
+        // Before anything can be given a number: every number below a revision's /Size
+        // is one the file already accounts for, in use or freed, so the next new object
+        // starts from the largest of them rather than one past the highest object in
+        // use. A section that ends in free entries has a /Size above that, and numbering
+        // from the live objects shrank the appended /Size and reused a freed number,
+        // both of which ISO 32000-1 7.5.5 forbids an update to do.
+        document._irefTable.MaxObjectNumber = Math.Max(document._irefTable.MaxObjectNumber,
+            parser.LargestSize - 1);
+
+        var pages = document.Pages;
+        Debug.Assert(pages != null);
+
+        document.CaptureOriginalBytes(stream);
+    }
+
+    /// <summary>
+    /// Removes the objects nothing reaches and numbers the rest afresh.
+    /// </summary>
+    private static void CompactAndRenumber(PdfDocument document)
+    {
+        var removed = document._irefTable.Compact();
+        if (removed != 0)
+            Debug.WriteLine("Number of deleted unreachable objects: " + removed);
+
+        // Force flattening of page tree
+        var pages = document.Pages;
+        Debug.Assert(pages != null);
+
+        document._irefTable.Renumber();
     }
 
     /// <summary>

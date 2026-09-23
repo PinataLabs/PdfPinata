@@ -19,7 +19,7 @@ public class DdlRoundTripTests
     ///   A document touching all four nullable value types, each with one value set and a
     ///   neighbouring value of the same type deliberately left alone.
     /// </summary>
-    static Document ADocumentWithSomeValuesSetAndSomeLeftUnset()
+    private static Document ADocumentWithSomeValuesSetAndSomeLeftUnset()
     {
         var document = new Document();
 
@@ -37,7 +37,7 @@ public class DdlRoundTripTests
         return document;
     }
 
-    static string Ddl(Document document) => DdlWriter.WriteToString(document);
+    private static string Ddl(Document document) => DdlWriter.WriteToString(document);
 
     [Fact]
     public void ADocumentSurvivesAWriteAndAReadUnchanged()

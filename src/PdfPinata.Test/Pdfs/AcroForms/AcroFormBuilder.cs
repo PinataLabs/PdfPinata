@@ -26,10 +26,10 @@ namespace PdfPinata.Test.Pdfs.AcroForms;
 /// </remarks>
 internal sealed class AcroFormBuilder
 {
-    readonly PdfDocument _document = new();
-    readonly List<PdfDictionary> _fields = new();
-    readonly List<PdfDictionary> _widgets = new();
-    readonly PdfPage _page;
+    private readonly PdfDocument _document = new();
+    private readonly List<PdfDictionary> _fields = new();
+    private readonly List<PdfDictionary> _widgets = new();
+    private readonly PdfPage _page;
 
     internal AcroFormBuilder()
     {

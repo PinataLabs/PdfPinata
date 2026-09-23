@@ -51,7 +51,7 @@ internal sealed class PdfGraphicsState : ICloneable
     {
         _renderer = renderer;
     }
-    readonly XGraphicsPdfRenderer _renderer;
+    private readonly XGraphicsPdfRenderer _renderer;
 
     public PdfGraphicsState Clone()
     {
@@ -79,14 +79,14 @@ internal sealed class PdfGraphicsState : ICloneable
 
     #region Stroke
 
-    double _realizedLineWith = -1;
-    int _realizedLineCap = -1;
-    int _realizedLineJoin = -1;
-    double _realizedMiterLimit = -1;
+    private double _realizedLineWith = -1;
+    private int _realizedLineCap = -1;
+    private int _realizedLineJoin = -1;
+    private double _realizedMiterLimit = -1;
     /// <summary>
     /// The dash operator last written, or null when none has been written at this level yet.
     /// </summary>
-    string _realizedDashPattern;
+    private string _realizedDashPattern;
     /// <summary>
     /// The stroke colour last written, or null when none has been written at this level yet.
     /// </summary>
@@ -97,8 +97,8 @@ internal sealed class PdfGraphicsState : ICloneable
     /// the default stroke colour, so a first black stroke writes no "RG" - see
     /// <see cref="_realizedStrokePattern"/>.
     /// </remarks>
-    XColor? _realizedStrokeColor;
-    bool _realizedStrokeOverPrint;
+    private XColor? _realizedStrokeColor;
+    private bool _realizedStrokeOverPrint;
 
     public void RealizePen(XPen pen, PdfColorMode colorMode)
     {
@@ -231,7 +231,7 @@ internal sealed class PdfGraphicsState : ICloneable
     /// <summary>
     /// The dash operator the pen strokes with, written out as it goes into the content stream.
     /// </summary>
-    static string DashPatternOf(XPen pen)
+    private static string DashPatternOf(XPen pen)
     {
         const string frmt2 = Config.SignificantFigures2;
         const string format = Config.SignificantFigures3;
@@ -309,7 +309,7 @@ internal sealed class PdfGraphicsState : ICloneable
     /// Without it, a pattern pen followed by <c>XPens.Black</c> wrote no "RG" - the remembered
     /// colour matched - and the black line was stroked with the pattern still in the state.
     /// </remarks>
-    bool _realizedStrokePattern;
+    private bool _realizedStrokePattern;
 
     #endregion
 
@@ -323,8 +323,8 @@ internal sealed class PdfGraphicsState : ICloneable
     /// <see cref="_realizedStrokeColor"/>: Empty's alpha is 0, so a fully transparent fill matched
     /// it and was painted opaque. Null writes both the colour and the alpha.
     /// </remarks>
-    XColor? _realizedFillColor;
-    bool _realizedNonStrokeOverPrint;
+    private XColor? _realizedFillColor;
+    private bool _realizedNonStrokeOverPrint;
 
     /// <summary>
     /// Realizes the colours text or a path is painted with.
@@ -428,7 +428,7 @@ internal sealed class PdfGraphicsState : ICloneable
     /// not only to the gradient it was built for. It is cloned with the rest of this state, so a
     /// q/Q pair takes it off on its own; within one level it has to be taken off by hand.
     /// </remarks>
-    bool _realizedSoftMask;
+    private bool _realizedSoftMask;
 
     /// <summary>
     /// Puts a gradient's soft mask into force, or takes the one in force off.
@@ -436,7 +436,7 @@ internal sealed class PdfGraphicsState : ICloneable
     /// <param name="extGState">
     /// The state carrying the mask, or null for painting that needs no mask.
     /// </param>
-    void RealizeGradientSoftMask(PdfExtGState extGState)
+    private void RealizeGradientSoftMask(PdfExtGState extGState)
     {
         if (extGState == null)
         {
@@ -520,7 +520,7 @@ internal sealed class PdfGraphicsState : ICloneable
     /// space's initial tint of 1, so a change of tint alone is "scn" and no more. The caller says
     /// whether a pattern replaced the space since, by passing null for <paramref name="realized"/>.
     /// </remarks>
-    void RealizeSpotColor(XColor color, XColor? realized, bool stroke)
+    private void RealizeSpotColor(XColor color, XColor? realized, bool stroke)
     {
         var sameSpace = realized is { Spot: { } realizedSpot } && realizedSpot.Equals(color.Spot);
 
@@ -552,10 +552,10 @@ internal sealed class PdfGraphicsState : ICloneable
     #region Text
 
     internal PdfFont RealizedFont;
-    string _realizedFontName = String.Empty;
-    double _realizedFontSize;
-    int _realizedRenderingMode;  // Reference: TABLE 5.2  Text state operators / Page 398
-    double _realizedCharSpace;  // Reference: TABLE 5.2  Text state operators / Page 398
+    private string _realizedFontName = String.Empty;
+    private double _realizedFontSize;
+    private int _realizedRenderingMode;  // Reference: TABLE 5.2  Text state operators / Page 398
+    private double _realizedCharSpace;  // Reference: TABLE 5.2  Text state operators / Page 398
 
     /// <summary>
     /// The text rendering mode the content stream has been told about.
@@ -571,12 +571,12 @@ internal sealed class PdfGraphicsState : ICloneable
     /// <summary>The character spacing the content stream has been told about.</summary>
     /// <inheritdoc cref="RealizedRenderingMode" path="/remarks"/>
     internal double RealizedCharSpace => _realizedCharSpace;
-    double _realizedWordSpace;  // Reference: TABLE 5.2  Text state operators / Page 398
-    double _realizedTextRise;  // Reference: TABLE 5.2  Text state operators / Page 398
+    private double _realizedWordSpace;  // Reference: TABLE 5.2  Text state operators / Page 398
+    private double _realizedTextRise;  // Reference: TABLE 5.2  Text state operators / Page 398
 
     // Not 0: a content stream starts with a horizontal scaling of 100 percent, and a state that
     // thought otherwise would write a redundant Tz in front of the first string on every page.
-    double _realizedHorizontalScaling = 100;  // Reference: TABLE 5.2  Text state operators / Page 398
+    private double _realizedHorizontalScaling = 100;  // Reference: TABLE 5.2  Text state operators / Page 398
 
     /// <summary>
     /// Returns true if the word spacing asked for has to be drawn by spacing the words out
@@ -783,7 +783,7 @@ internal sealed class PdfGraphicsState : ICloneable
         RealizeClipPath(clipPath);
     }
 
-    void RealizeClipPath(XGraphicsPath clipPath)
+    private void RealizeClipPath(XGraphicsPath clipPath)
     {
         _renderer.BeginGraphicMode();
         RealizeCtm();

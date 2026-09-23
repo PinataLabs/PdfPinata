@@ -48,7 +48,7 @@ public sealed class PdfPopupAnnotation : PdfAnnotation
         : base(dict)
     { }
 
-    void Initialize()
+    private void Initialize()
     {
         Elements.SetName(PdfAnnotation.Keys.Subtype, "/Popup");
     }
@@ -100,7 +100,7 @@ public sealed class PdfPopupAnnotation : PdfAnnotation
 
         public static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

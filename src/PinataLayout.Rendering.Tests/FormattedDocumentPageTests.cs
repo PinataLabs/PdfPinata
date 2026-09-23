@@ -21,14 +21,14 @@ namespace PinataLayout.Rendering.Tests;
 /// </summary>
 public class FormattedDocumentPageTests
 {
-    static FormattedDocument LaidOut(Document document)
+    private static FormattedDocument LaidOut(Document document)
     {
         var renderer = new DocumentRenderer(document);
         renderer.PrepareDocument();
         return renderer.FormattedDocument;
     }
 
-    static Section ASectionOfSeveralPages(Document document, int paragraphs = 120)
+    private static Section ASectionOfSeveralPages(Document document, int paragraphs = 120)
     {
         var section = document.AddSection();
         for (var index = 0; index < paragraphs; index++)

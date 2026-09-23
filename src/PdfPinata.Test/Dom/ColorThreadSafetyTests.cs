@@ -24,9 +24,9 @@ namespace PdfPinata.Test.Dom;
 /// </summary>
 public class ColorThreadSafetyTests
 {
-    const int Threads = 64;
+    private const int Threads = 64;
 
-    static string[] InParallel(Func<string> work)
+    private static string[] InParallel(Func<string> work)
     {
         var results = new ConcurrentBag<string>();
         Parallel.For(0, Threads, _ =>

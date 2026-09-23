@@ -114,7 +114,7 @@ public sealed class PdfExtGState : PdfDictionary
             UpdateKey();
         }
     }
-    double _strokeAlpha;
+    private double _strokeAlpha;
 
     /// <summary>
     /// Sets the alpha value for nonstroking operations.
@@ -128,7 +128,7 @@ public sealed class PdfExtGState : PdfDictionary
             UpdateKey();
         }
     }
-    double _nonStrokeAlpha;
+    private double _nonStrokeAlpha;
 
     /// <summary>
     /// Sets the overprint value for stroking operations.
@@ -142,7 +142,7 @@ public sealed class PdfExtGState : PdfDictionary
             UpdateKey();
         }
     }
-    bool _strokeOverprint;
+    private bool _strokeOverprint;
 
     /// <summary>
     /// Sets the overprint value for nonstroking operations.
@@ -156,7 +156,7 @@ public sealed class PdfExtGState : PdfDictionary
             UpdateKey();
         }
     }
-    bool _nonStrokeOverprint;
+    private bool _nonStrokeOverprint;
 
     /// <summary>
     /// Sets a soft mask object.
@@ -168,13 +168,13 @@ public sealed class PdfExtGState : PdfDictionary
 
     internal string Key => _key;
 
-    void UpdateKey()
+    private void UpdateKey()
     {
         _key = ((int)(1000 * _strokeAlpha)).ToString(CultureInfo.InvariantCulture) +
                ((int)(1000 * _nonStrokeAlpha)).ToString(CultureInfo.InvariantCulture) +
                (_strokeOverprint ? "S" : "s") + (_nonStrokeOverprint ? "N" : "n");
     }
-    string _key;
+    private string _key;
 
     internal static string MakeKey(double alpha, bool overPaint)
     {
@@ -390,7 +390,7 @@ public sealed class PdfExtGState : PdfDictionary
         /// </summary>
         internal static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

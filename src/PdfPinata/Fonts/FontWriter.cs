@@ -161,5 +161,5 @@ internal class FontWriter
     /// </summary>
     internal Stream Stream => _stream;
 
-    Stream _stream;
+    private Stream _stream;
 }

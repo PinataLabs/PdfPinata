@@ -55,7 +55,7 @@ internal static class EnumGuard
     // threw ArgumentException and no caller should be able to tell that NEnum is gone. It names
     // value, which is also what the property setter calling this names its argument.
     if (!Enum.IsDefined(value))
-      throw new ArgumentException($"'{value}' is not a defined value of {typeof(T).Name}.", nameof(value));
+      throw new ArgumentException($@"'{value}' is not a defined value of {typeof(T).Name}.", nameof(value));
     return value;
   }
 }

@@ -20,7 +20,7 @@ namespace PdfPinata.Test.Rendering;
 /// </remarks>
 public class ObstructedAreaTests
 {
-    static Area Bounds => AreaProbe.Rectangle(0, 0, 100, 100);
+    private static Area Bounds => AreaProbe.Rectangle(0, 0, 100, 100);
 
     // ----- one obstacle, from each direction ------------------------------------------------------
 

@@ -27,7 +27,7 @@ namespace PinataLayout.AotSmokeTest;
 /// </remarks>
 public static class Program
 {
-    static int failures;
+    private static int failures;
 
     public static int Main()
     {
@@ -53,7 +53,7 @@ public static class Program
         return 0;
     }
 
-    static Document BuildDocument()
+    private static Document BuildDocument()
     {
         var document = new Document();
         document.Info.Title = "AOT smoke test";
@@ -90,7 +90,7 @@ public static class Program
     /// <summary>
     /// The generated value model, reached the way the DDL parser reaches it: by name.
     /// </summary>
-    static void CheckValueModel(Document document)
+    private static void CheckValueModel(Document document)
     {
         var section = document.LastSection;
         var paragraph = (Paragraph)section.Elements[0];
@@ -136,7 +136,7 @@ public static class Program
     /// <summary>
     /// DDL is the value model's real client: it resolves every name through Meta.
     /// </summary>
-    static void CheckDdlRoundTrip(Document document)
+    private static void CheckDdlRoundTrip(Document document)
     {
         var ddl = DdlWriter.WriteToString(document);
         Check("DDL is written", ddl.Length > 200 && ddl.Contains("\\document"));
@@ -157,7 +157,7 @@ public static class Program
         Check("DDL is stable", DdlWriter.WriteToString(reread) == ddl);
     }
 
-    static void CheckRendersToPdf(Document document)
+    private static void CheckRendersToPdf(Document document)
     {
         var renderer = new PdfDocumentRenderer(true) { Document = document };
         renderer.RenderDocument();
@@ -174,7 +174,7 @@ public static class Program
         Check("PDF header", header is [0x25, 0x50, 0x44, 0x46, 0x2D]);   // %PDF-
     }
 
-    static void Check(string what, bool ok)
+    private static void Check(string what, bool ok)
     {
         Console.WriteLine($"  [{(ok ? "ok" : "FAIL")}] {what}");
         if (!ok)

@@ -27,7 +27,7 @@ internal sealed class PdfSpotColorTable : PdfResourceTable
         : base(document)
     { }
 
-    readonly Dictionary<string, (XSpotColor Spot, PdfArray ColorSpace)> _colorSpaces = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, (XSpotColor Spot, PdfArray ColorSpace)> _colorSpaces = new(StringComparer.Ordinal);
 
     /// <summary>
     /// The colour space the spot colour is painted in, built the first time the colorant is used.
@@ -57,7 +57,7 @@ internal sealed class PdfSpotColorTable : PdfResourceTable
     /// transform a Type 2 function running from the alternate's white at tint 0 to the alternate
     /// itself at tint 1.
     /// </summary>
-    PdfArray Build(XSpotColor spot)
+    private PdfArray Build(XSpotColor spot)
     {
         var alternate = spot.AlternateComponents;
         var (space, white) = spot.Alternate.ColorSpace switch
@@ -98,7 +98,7 @@ internal sealed class PdfSpotColorTable : PdfResourceTable
     /// is how every name in this library is held and how the writer expects to find it. ASCII, which
     /// is what nearly every colorant is called, comes through unchanged.
     /// </summary>
-    static string ColorantName(string name)
+    private static string ColorantName(string name)
     {
         var bytes = Encoding.UTF8.GetBytes(name);
         var chars = new char[bytes.Length];

@@ -53,7 +53,7 @@ internal abstract class YAxisRenderer : AxisRenderer
   /// Whether this is the horizontal axis, cached once rather than compared for on every one of
   /// the several places <see cref="Draw"/> and <see cref="Format"/> branch on it.
   /// </summary>
-  readonly bool isHorizontal;
+  private readonly bool isHorizontal;
 
   /// <summary>
   /// Returns a initialized rendererInfo based on the Y axis.

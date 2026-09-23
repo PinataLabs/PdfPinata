@@ -18,7 +18,7 @@ internal static class Golden
     ///   names no other base for them - which is all six documents in the corpus but one, since
     ///   StyledParagraph adds a tenth style after this block rather than replacing it.
     /// </summary>
-    static readonly string BuiltInStyles = string.Join(System.Environment.NewLine, new[]
+    private static readonly string BuiltInStyles = string.Join(System.Environment.NewLine, new[]
     {
         "  \\styles",
         "  {",

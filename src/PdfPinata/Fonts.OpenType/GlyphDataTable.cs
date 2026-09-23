@@ -121,7 +121,7 @@ internal class GlyphDataTable : OpenTypeFontTable
     /// If the specified glyph is a composite glyph add the glyphs it is made of to the glyph table.
     /// </summary>
     [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.Synchronized)]
-    void AddCompositeGlyphs(Dictionary<int, object> glyphs, Queue<int> pending, int glyph)
+    private void AddCompositeGlyphs(Dictionary<int, object> glyphs, Queue<int> pending, int glyph)
     {
         //int start = fontData.loca.GetOffset(glyph);
         var start = GetOffset(glyph);
@@ -178,10 +178,10 @@ internal class GlyphDataTable : OpenTypeFontTable
 
     // ReSharper disable InconsistentNaming
     // Constants from OpenType spec.
-    const int ARG_1_AND_2_ARE_WORDS = 1;
-    const int WE_HAVE_A_SCALE = 8;
-    const int MORE_COMPONENTS = 32;
-    const int WE_HAVE_AN_X_AND_Y_SCALE = 64;
-    const int WE_HAVE_A_TWO_BY_TWO = 128;
+    private const int ARG_1_AND_2_ARE_WORDS = 1;
+    private const int WE_HAVE_A_SCALE = 8;
+    private const int MORE_COMPONENTS = 32;
+    private const int WE_HAVE_AN_X_AND_Y_SCALE = 64;
+    private const int WE_HAVE_A_TWO_BY_TWO = 128;
     // ReSharper restore InconsistentNaming
 }

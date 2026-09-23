@@ -51,7 +51,7 @@ public class XPdfFontOptions
     /// </summary>
     public PdfFontEncoding FontEncoding => _fontEncoding;
 
-    readonly PdfFontEncoding _fontEncoding;
+    private readonly PdfFontEncoding _fontEncoding;
 
     /// <summary>
     /// Gets the default options with WinAnsi encoding and always font embedding.

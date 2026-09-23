@@ -22,11 +22,11 @@ namespace PdfPinata.Test.Drawing.Layout;
 /// </remarks>
 public class LineSpansTests
 {
-    const double Left = 0;
-    const double Right = 100;
-    const double Tolerance = 0.001;
+    private const double Left = 0;
+    private const double Right = 100;
+    private const double Tolerance = 0.001;
 
-    static (bool Found, double Start, double Width) WidestFree(params (double Start, double End)[] blocked)
+    private static (bool Found, double Start, double Width) WidestFree(params (double Start, double End)[] blocked)
     {
         var found = LineSpans.TryWidestFree(Left, Right, blocked.ToList(), Tolerance,
             out var start, out var width);

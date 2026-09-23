@@ -60,9 +60,9 @@ internal sealed class SigningDemo : PdfDemo
     ///     disposed one.
     ///   </para>
     /// </remarks>
-    X509Certificate2? _certificate;
+    private X509Certificate2? _certificate;
 
-    X509Certificate2 Certificate() => _certificate ??= SelfSigned();
+    private X509Certificate2 Certificate() => _certificate ??= SelfSigned();
 
     protected override PdfDocument Build(DemoContext context)
     {
@@ -291,13 +291,13 @@ internal sealed class SigningDemo : PdfDemo
     }
 
     /// <summary>Where the visible signature goes, in the coordinates XGraphics draws in.</summary>
-    static XRect SignatureBox => new(50, 640, 230, 70);
+    private static XRect SignatureBox => new(50, 640, 230, 70);
 
     /// <summary>
     ///   Signs a small document with the same signer and options, and reads the result back, so that
     ///   the pages above can print numbers rather than descriptions of numbers.
     /// </summary>
-    Rehearsal Rehearse()
+    private Rehearsal Rehearse()
     {
         using var probe = new PdfDocument();
         probe.Info.Title = "A rehearsal";
@@ -357,9 +357,9 @@ internal sealed class SigningDemo : PdfDemo
             });
     }
 
-    Pkcs7Signer Signer() => new(Certificate());
+    private Pkcs7Signer Signer() => new(Certificate());
 
-    static PdfSignatureOptions OptionsFor(bool drawAppearance)
+    private static PdfSignatureOptions OptionsFor(bool drawAppearance)
     {
         var options = new PdfSignatureOptions
         {
@@ -393,10 +393,10 @@ internal sealed class SigningDemo : PdfDemo
         return options;
     }
 
-    static string Format(long value) => value.ToString("N0", CultureInfo.InvariantCulture);
+    private static string Format(long value) => value.ToString("N0", CultureInfo.InvariantCulture);
 
     /// <summary>A self-signed certificate with a usable private key.</summary>
-    static X509Certificate2 SelfSigned()
+    private static X509Certificate2 SelfSigned()
     {
         using var key = RSA.Create(2048);
 
@@ -425,7 +425,7 @@ internal sealed class SigningDemo : PdfDemo
     }
 
     /// <summary>What the rehearsal found, ready to be printed as two tables.</summary>
-    sealed class Rehearsal
+    private sealed class Rehearsal
     {
         public Rehearsal((string Field, string Value)[] said, (string Field, string Value)[] verified)
         {

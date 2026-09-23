@@ -28,7 +28,7 @@ public class ColdColourTableTests
     ///   Runs <paramref name="work"/> against a copy of PdfPinata whose static state is
     ///   untouched, and hands back whatever it returns.
     /// </summary>
-    static object OnAColdCopyOfTheLibrary(Func<Assembly, object> work)
+    private static object OnAColdCopyOfTheLibrary(Func<Assembly, object> work)
     {
         var context = new AssemblyLoadContext("cold PdfPinata", isCollectible: true);
         try
@@ -41,7 +41,7 @@ public class ColdColourTableTests
         }
     }
 
-    static object InvokeThrough(Func<Assembly, object> work)
+    private static object InvokeThrough(Func<Assembly, object> work)
     {
         try
         {

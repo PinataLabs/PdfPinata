@@ -23,10 +23,10 @@ public class ValueModelParityTests
     ///   Most DOM types have internal or parameterised constructors, and some do real work in them.
     ///   Meta only ever depends on the type, so an uninitialised instance is enough to reach it.
     /// </summary>
-    static Meta MetaFor(Type type) =>
+    private static Meta MetaFor(Type type) =>
         Meta.GetMeta((DocumentObject)RuntimeHelpers.GetUninitializedObject(type));
 
-    static List<ValueDescriptor> Descriptors(Meta meta) => meta.ValueDescriptors.ToList();
+    private static List<ValueDescriptor> Descriptors(Meta meta) => meta.ValueDescriptors.ToList();
 
     public static TheoryData<Type> DomTypes()
     {

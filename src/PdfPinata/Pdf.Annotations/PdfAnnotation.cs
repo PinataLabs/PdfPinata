@@ -113,7 +113,7 @@ public abstract class PdfAnnotation : PdfDictionary
         };
     }
 
-    void Initialize()
+    private void Initialize()
     {
         Elements.SetName(Keys.Type, "/Annot");
         Elements.SetString(Keys.NM, Guid.NewGuid().ToString("D"));
@@ -141,7 +141,7 @@ public abstract class PdfAnnotation : PdfDictionary
         get => _parent;
         set => _parent = value;
     }
-    PdfAnnotations _parent;
+    private PdfAnnotations _parent;
 
     /// <summary>
     /// Called once the annotation has been added to a page, and so has an owning document.
@@ -333,7 +333,7 @@ public abstract class PdfAnnotation : PdfDictionary
     public void SetAppearance(string state, XForm form)
     {
         if (string.IsNullOrEmpty(state))
-            throw new ArgumentException("An appearance state must be named.", nameof(state));
+            throw new ArgumentException(@"An appearance state must be named.", nameof(state));
 
         var name = state[0] == '/' ? state : "/" + state;
         var owner = RequireOwner();
@@ -390,7 +390,7 @@ public abstract class PdfAnnotation : PdfDictionary
             // reason: /AS names a state, and the empty name names none. Checked here rather than
             // left to SetName, which would happily write a solidus and nothing after it.
             if (value.Length == 0)
-                throw new ArgumentException("An appearance state must be named.", nameof(value));
+                throw new ArgumentException(@"An appearance state must be named.", nameof(value));
 
             // SetName adds the solidus itself.
             Elements.SetName(Keys.AS, value);
@@ -401,7 +401,7 @@ public abstract class PdfAnnotation : PdfDictionary
     /// Finishes the form and hands back the object a reference can be taken to, having checked it
     /// belongs to the same document as this annotation.
     /// </summary>
-    PdfFormXObject FinishedForm(XForm form)
+    private PdfFormXObject FinishedForm(XForm form)
     {
         ArgumentNullException.ThrowIfNull(form);
 
@@ -421,7 +421,7 @@ public abstract class PdfAnnotation : PdfDictionary
         return form.PdfForm;
     }
 
-    PdfDocument RequireOwner()
+    private PdfDocument RequireOwner()
     {
         if (Owner == null)
         {
@@ -445,7 +445,7 @@ public abstract class PdfAnnotation : PdfDictionary
     private protected static string SubtypeName(string subtype)
     {
         if (string.IsNullOrWhiteSpace(subtype))
-            throw new ArgumentException("An annotation must name its subtype.", nameof(subtype));
+            throw new ArgumentException(@"An annotation must name its subtype.", nameof(subtype));
 
         return subtype[0] == '/' ? subtype : "/" + subtype;
     }
@@ -521,7 +521,7 @@ public abstract class PdfAnnotation : PdfDictionary
     /// Writes a colour as a DeviceRGB array of three components, whatever it is -
     /// <see cref="XColor.Empty"/> included, which has no special meaning here and goes out as black.
     /// </summary>
-    static PdfArray RgbArray(XColor colour)
+    private static PdfArray RgbArray(XColor colour)
     {
         var array = new PdfArray();
         array.Elements.Add(new PdfReal(colour.R / 255.0));

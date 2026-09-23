@@ -43,7 +43,7 @@ namespace PdfPinata.Test.Pdfs;
 public class CrossReferenceConsistencyTests
 {
     /// <summary>Every object number defined in the file, in the order the writer wrote them.</summary>
-    static IReadOnlyList<int> ObjectNumbersIn(byte[] pdf)
+    private static IReadOnlyList<int> ObjectNumbersIn(byte[] pdf)
     {
         var text = Encoding.Latin1.GetString(pdf);
         return Regex.Matches(text, @"(?m)^(\d+) (\d+) obj\b")
@@ -53,7 +53,7 @@ public class CrossReferenceConsistencyTests
 
     /// <summary>One line of the xref section: where the object is, which generation, and whether
     /// the entry is in use.</summary>
-    readonly record struct XrefEntry(int Offset, int Generation, char Kind);
+    private readonly record struct XrefEntry(int Offset, int Generation, char Kind);
 
     /// <summary>
     ///   The entries of the xref section, entry zero first. The section declares itself as
@@ -63,7 +63,7 @@ public class CrossReferenceConsistencyTests
     ///   restates it, so a writer that numbered objects with a gap would produce a table pointing
     ///   at the wrong objects and no line of it would look wrong on its own.
     /// </summary>
-    static IReadOnlyList<XrefEntry> XrefEntriesIn(byte[] pdf)
+    private static IReadOnlyList<XrefEntry> XrefEntriesIn(byte[] pdf)
     {
         var text = Encoding.Latin1.GetString(pdf);
         var section = Regex.Match(text, @"(?m)^xref\r?\n0 (\d+)\r?\n");
@@ -89,14 +89,14 @@ public class CrossReferenceConsistencyTests
         return entries;
     }
 
-    static byte[] Save(PdfDocument document)
+    private static byte[] Save(PdfDocument document)
     {
         using var output = new MemoryStream();
         document.Save(output, false);
         return output.ToArray();
     }
 
-    static byte[] ADocumentOf(int pages)
+    private static byte[] ADocumentOf(int pages)
     {
         var document = new PdfDocument();
         for (var page = 0; page < pages; page++)
@@ -104,7 +104,7 @@ public class CrossReferenceConsistencyTests
         return Save(document);
     }
 
-    static void ShouldBeConsistent(byte[] pdf)
+    private static void ShouldBeConsistent(byte[] pdf)
     {
         var text = Encoding.Latin1.GetString(pdf);
         var numbers = ObjectNumbersIn(pdf);

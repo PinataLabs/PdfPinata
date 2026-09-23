@@ -12,7 +12,7 @@ namespace PdfPinata.Drawing.Layout;
 /// PinataLayout's <c>ObstructedArea</c> asks it once per line to place a paragraph beside a floating
 /// shape; <see cref="XTextFormatter"/> asks it once per line to place text beside a reserved
 /// region. Everything else about the two is different - PinataLayout's obstacles are page-absolute and
-/// the formatter's are relative to the block, and that difference is real rather than incidental,
+/// the formatters are relative to the block, and that difference is real rather than incidental,
 /// so gathering the obstacles and deciding which of them stand in a band stays with each engine.
 /// </para>
 /// <para>
@@ -35,7 +35,7 @@ namespace PdfPinata.Drawing.Layout;
 /// <para>
 /// It allocates where the hand-rolled scan did not: a list of intervals and a set or two, once per
 /// line. Deliberate, and cheap against what a page of glyphs costs. If it ever stops being cheap,
-/// the specialisation can come back - with a test that it and <see cref="IntervalSet"/> agree,
+/// the specialization can come back - with a test that it and <see cref="IntervalSet"/> agree,
 /// which is what would have made keeping both defensible in the first place.
 /// </para>
 /// </remarks>

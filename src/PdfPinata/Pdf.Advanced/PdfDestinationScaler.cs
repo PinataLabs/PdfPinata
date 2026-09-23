@@ -103,10 +103,10 @@ static class PdfDestinationScaler
         sweep.VisitDestinationHolder(catalog, PdfCatalog.Keys.OpenAction);
     }
 
-    sealed class Sweep
+    private sealed class Sweep
     {
-        readonly Dictionary<PdfObjectID, XMatrix> _matrices;
-        readonly HashSet<PdfArray> _done = new HashSet<PdfArray>(ByIdentity.Instance);
+        private readonly Dictionary<PdfObjectID, XMatrix> _matrices;
+        private readonly HashSet<PdfArray> _done = new HashSet<PdfArray>(ByIdentity.Instance);
 
         internal Sweep(Dictionary<PdfObjectID, XMatrix> matrices)
         {
@@ -208,7 +208,7 @@ static class PdfDestinationScaler
         /// hold what the names stand for are swept in their own right, so following the name too
         /// would find the same array a second time.
         /// </summary>
-        void VisitDestination(PdfItem item)
+        private void VisitDestination(PdfItem item)
         {
             item = Resolve(item);
 
@@ -232,7 +232,7 @@ static class PdfDestinationScaler
             Move(destination, matrix);
         }
 
-        static void Move(PdfArray destination, XMatrix matrix)
+        private static void Move(PdfArray destination, XMatrix matrix)
         {
             switch (destination.Elements.GetName(1))
             {
@@ -264,7 +264,7 @@ static class PdfDestinationScaler
         /// [page /XYZ left top zoom]: a corner to put at the top left of the window, and a
         /// magnification. The corner moves; the magnification does not.
         /// </summary>
-        static void MoveXyz(PdfArray destination, XMatrix matrix)
+        private static void MoveXyz(PdfArray destination, XMatrix matrix)
         {
             if (destination.Elements.Count < 4)
                 return;
@@ -293,7 +293,7 @@ static class PdfDestinationScaler
         /// <summary>
         /// [page /FitR left bottom right top]: a rectangle to fit the window to.
         /// </summary>
-        static void MoveRectangle(PdfArray destination, XMatrix matrix)
+        private static void MoveRectangle(PdfArray destination, XMatrix matrix)
         {
             if (destination.Elements.Count < 6)
                 return;
@@ -325,7 +325,7 @@ static class PdfDestinationScaler
         /// [page /FitH top]: a horizontal line to bring to the top of the window. A quarter turn
         /// makes it a vertical line, and the destination has to change form to say so.
         /// </summary>
-        static void MoveHorizontalLine(PdfArray destination, XMatrix matrix)
+        private static void MoveHorizontalLine(PdfArray destination, XMatrix matrix)
         {
             if (destination.Elements.Count < 3 ||
                 !PdfPageResizer.TryNumber(destination.Elements[2], out var value))
@@ -346,7 +346,7 @@ static class PdfDestinationScaler
         /// <summary>
         /// [page /FitV left]: a vertical line to bring to the left of the window.
         /// </summary>
-        static void MoveVerticalLine(PdfArray destination, XMatrix matrix)
+        private static void MoveVerticalLine(PdfArray destination, XMatrix matrix)
         {
             if (destination.Elements.Count < 3 ||
                 !PdfPageResizer.TryNumber(destination.Elements[2], out var value))
@@ -365,7 +365,7 @@ static class PdfDestinationScaler
         /// <summary>
         /// The destination form that means the same thing about the other axis.
         /// </summary>
-        static string Turned(string form)
+        private static string Turned(string form)
         {
             switch (form)
             {
@@ -381,40 +381,40 @@ static class PdfDestinationScaler
         /// Whether the transform leaves the axes where they were, so that an x depends only on
         /// an x and a y only on a y. True of every resize but a turned one.
         /// </summary>
-        static bool IsAxisAligned(XMatrix matrix)
+        private static bool IsAxisAligned(XMatrix matrix)
         {
             return Math.Abs(matrix.M12) < 1e-9 && Math.Abs(matrix.M21) < 1e-9;
         }
 
-        static double TransformX(double x, XMatrix matrix)
+        private static double TransformX(double x, XMatrix matrix)
         {
             return x * matrix.M11 + matrix.OffsetX;
         }
 
-        static double TransformY(double y, XMatrix matrix)
+        private static double TransformY(double y, XMatrix matrix)
         {
             return y * matrix.M22 + matrix.OffsetY;
         }
 
-        static PdfItem Resolve(PdfItem item)
+        private static PdfItem Resolve(PdfItem item)
         {
             return item is PdfReference reference ? reference.Value : item;
         }
 
-        const int MaxDepth = 32;
+        private const int MaxDepth = 32;
 
         /// <summary>
         /// How many outline entries to follow along one level before giving up, against a file
         /// whose /Next entries lead round in a circle.
         /// </summary>
-        const int MaxSiblings = 100000;
+        private const int MaxSiblings = 100000;
     }
 
     /// <summary>
     /// Tells two destination arrays apart by which object they are rather than by what they hold,
     /// so that two links going to the same place are not mistaken for the same array.
     /// </summary>
-    sealed class ByIdentity : IEqualityComparer<PdfArray>
+    private sealed class ByIdentity : IEqualityComparer<PdfArray>
     {
         internal static readonly ByIdentity Instance = new ByIdentity();
 

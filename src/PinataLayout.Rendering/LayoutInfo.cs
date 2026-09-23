@@ -153,7 +153,7 @@ public class LayoutInfo
     get => horizontalReference;
     set => horizontalReference = value;
   }
-  HorizontalReference horizontalReference;
+  private HorizontalReference horizontalReference;
 
   /// <summary>
   /// Gets or sets the reference point for vertical positioning.
@@ -164,7 +164,7 @@ public class LayoutInfo
     get => verticalReference;
     set => verticalReference = value;
   }
-  VerticalReference verticalReference;
+  private VerticalReference verticalReference;
 
   /// <summary>
   /// Gets or sets the horizontal alignment of the element.
@@ -175,7 +175,7 @@ public class LayoutInfo
     get => horizontalAlignment;
     set => horizontalAlignment = value;
   }
-  ElementAlignment horizontalAlignment;
+  private ElementAlignment horizontalAlignment;
 
   /// <summary>
   /// Gets or sets the vertical alignment of the element.
@@ -186,7 +186,7 @@ public class LayoutInfo
     get => verticalAlignment;
     set => verticalAlignment = value;
   }
-  ElementAlignment verticalAlignment;
+  private ElementAlignment verticalAlignment;
 
   /// <summary>
   /// Gets or sets the floating behavior of surrounding elements.
@@ -197,7 +197,7 @@ public class LayoutInfo
     get => floating;
     set => floating = value;
   }
-  Floating floating;
+  private Floating floating;
 
   /// <summary>
   /// Gets or sets the top position of the element.
@@ -207,7 +207,7 @@ public class LayoutInfo
     get => top;
     set => top = value;
   }
-  XUnit top;
+  private XUnit top;
 
   /// <summary>
   /// Gets or sets the left position of the element.
@@ -217,7 +217,7 @@ public class LayoutInfo
     get => left;
     set => left = value;
   }
-  XUnit left;
+  private XUnit left;
 
   /// <summary>
   /// Gets or sets the minimum width of the element.
@@ -227,5 +227,5 @@ public class LayoutInfo
     get => minWidth;
     set => minWidth = value;
   }
-  XUnit minWidth;
+  private XUnit minWidth;
 }

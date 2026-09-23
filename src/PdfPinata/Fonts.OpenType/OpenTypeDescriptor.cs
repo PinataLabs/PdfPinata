@@ -82,7 +82,7 @@ internal sealed class OpenTypeDescriptor : FontDescriptor
 
     internal OpenTypeFontface FontFace;
 
-    void Initialize()
+    private void Initialize()
     {
         ItalicAngle = FontFace.post.italicAngle;
 

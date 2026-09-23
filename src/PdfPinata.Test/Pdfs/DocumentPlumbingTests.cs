@@ -18,7 +18,7 @@ public class DocumentPlumbingTests
 {
     // ----- PdfCatalog.Version ---------------------------------------------------------------------
 
-    static PdfCatalog ACatalog() => new PdfDocument().Internals.Catalog;
+    private static PdfCatalog ACatalog() => new PdfDocument().Internals.Catalog;
 
     /// <summary>
     ///   The field is declared as "1.3" and the constructor immediately raises it to "1.4", under
@@ -105,12 +105,12 @@ public class DocumentPlumbingTests
     ///   finalized, and a test cannot ask for that to happen. This repository carries no
     ///   <c>InternalsVisibleTo</c>, so reflection it is.
     /// </summary>
-    static class FormTableProbe
+    private static class FormTableProbe
     {
-        static readonly Type TableType = typeof(PdfDocument).Assembly
+        private static readonly Type TableType = typeof(PdfDocument).Assembly
             .GetType("PdfPinata.Pdf.Advanced.PdfFormXObjectTable", throwOnError: true);
 
-        const BindingFlags Any = BindingFlags.Public | BindingFlags.NonPublic
+        private const BindingFlags Any = BindingFlags.Public | BindingFlags.NonPublic
             | BindingFlags.Instance | BindingFlags.Static;
 
         internal static object For(PdfDocument owner) =>
@@ -134,7 +134,7 @@ public class DocumentPlumbingTests
         // ReSharper restore PossibleNullReferenceException
 
         // ReSharper disable PossibleNullReferenceException
-        static object HandleOf(PdfDocument document) =>
+        private static object HandleOf(PdfDocument document) =>
             typeof(PdfDocument).GetProperty("Handle", Any).GetValue(document);
         // ReSharper restore PossibleNullReferenceException
     }

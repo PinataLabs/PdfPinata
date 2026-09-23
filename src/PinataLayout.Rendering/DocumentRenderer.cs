@@ -90,7 +90,7 @@ public class DocumentRenderer
     /// </remarks>
     internal FootnoteRegistry Footnotes => footnotes;
 
-    FootnoteRegistry footnotes;
+    private FootnoteRegistry footnotes;
 
     /// <summary>
     /// Occurs while the document is being prepared (can be used to show a progress bar).
@@ -175,7 +175,7 @@ public class DocumentRenderer
     /// that a paragraph broken over two pages stays one paragraph.
     /// </summary>
     internal StructureTagger Tagger => tagger ??= new StructureTagger();
-    StructureTagger tagger;
+    private StructureTagger tagger;
 
     /// <summary>
     /// Renders a PinataLayout document to the specified graphics object.
@@ -233,7 +233,7 @@ public class DocumentRenderer
     /// Part of the content rather than of the footer, and deliberately: a footer is formatted once
     /// per position and repeated, where this belongs to one page and to no other.
     /// </remarks>
-    void RenderFootnotes(XGraphics gfx, int page, FieldInfos fieldInfos)
+    private void RenderFootnotes(XGraphics gfx, int page, FieldInfos fieldInfos)
     {
         var notes = footnotes.On(page);
         if (notes.Count == 0)
@@ -318,7 +318,7 @@ public class DocumentRenderer
         get => workingDirectory;
         set => workingDirectory = value;
     }
-    string workingDirectory;
+    private string workingDirectory;
 
     private void RenderHeader(XGraphics graphics, int page)
     {
@@ -458,8 +458,8 @@ public class DocumentRenderer
         previousListInfo = listInfo;
         return listNumber;
     }
-    ListInfo previousListInfo;
-    Hashtable previousListNumbers;
+    private ListInfo previousListInfo;
+    private Hashtable previousListNumbers;
     private Document document;
     internal DateTime printDate = DateTime.MinValue;
 

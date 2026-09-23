@@ -57,7 +57,7 @@ internal sealed class PdfPageSheet
 {
     internal PdfPageSheet(PdfPage page) => _page = page;
 
-    readonly PdfPage _page;
+    private readonly PdfPage _page;
 
     /// <summary>
     /// The bleed: how much sheet there is outside the page. See
@@ -88,7 +88,7 @@ internal sealed class PdfPageSheet
                 _trimMargins.All = 0;
         }
     }
-    TrimMargins _trimMargins = new();
+    private TrimMargins _trimMargins = new();
 
     /// <summary>
     /// The room outside the bleed for printer's marks. See <see cref="PdfPage.MarkMargins"/>,
@@ -111,7 +111,7 @@ internal sealed class PdfPageSheet
                 _markMargins.All = 0;
         }
     }
-    readonly TrimMargins _markMargins = new() { All = XUnit.FromMillimeter(5) };
+    private readonly TrimMargins _markMargins = new() { All = XUnit.FromMillimeter(5) };
 
     /// <summary>
     /// The distance from the corner of the sheet to the corner of the trimmed page: the bleed,
@@ -179,7 +179,7 @@ internal sealed class PdfPageSheet
     /// have them. No page with an even margin could show the difference.
     /// </para>
     /// </remarks>
-    void WriteSheetBoxes()
+    private void WriteSheetBoxes()
     {
         // Remembered before the media box is overwritten, because Width reads the media box and
         // there would otherwise be nothing left to derive the sheet from - a second save would
@@ -210,7 +210,7 @@ internal sealed class PdfPageSheet
             DrawCropMarks();
     }
 
-    void SetBox(string key, PdfRectangle box) => _page.Elements.SetRectangle(key, box);
+    private void SetBox(string key, PdfRectangle box) => _page.Elements.SetRectangle(key, box);
 
     /// <summary>
     /// Draws the eight standard crop marks in the room <see cref="MarkMargins"/> leaves outside
@@ -281,9 +281,9 @@ internal sealed class PdfPageSheet
         content.CreateStream(PdfEncoders.RawEncoding.GetBytes(marks.ToString()));
     }
 
-    bool _cropMarksDrawn;
+    private bool _cropMarksDrawn;
 
-    static void Mark(StringBuilder marks, double x1, double y1, double x2, double y2)
+    private static void Mark(StringBuilder marks, double x1, double y1, double x2, double y2)
     {
         marks.AppendFormat(CultureInfo.InvariantCulture, "{0:0.###} {1:0.###} m {2:0.###} {3:0.###} l S\n",
             x1, y1, x2, y2);

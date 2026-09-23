@@ -169,7 +169,7 @@ public abstract class PdfMarkupAnnotation : PdfAnnotation
         }
     }
 
-    static void RequireReference(PdfAnnotation annotation, string what)
+    private static void RequireReference(PdfAnnotation annotation, string what)
     {
         if (annotation.Reference == null)
         {
@@ -217,7 +217,7 @@ public abstract class PdfMarkupAnnotation : PdfAnnotation
 
         internal static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

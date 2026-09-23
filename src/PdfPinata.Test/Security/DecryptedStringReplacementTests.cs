@@ -36,11 +36,11 @@ namespace PdfPinata.Test.Security;
 /// </summary>
 public class DecryptedStringReplacementTests
 {
-    static readonly Assembly Library = typeof(PdfString).Assembly;
-    static readonly Type Flags = Library.GetType("PdfPinata.Pdf.PdfStringFlags", throwOnError: true);
+    private static readonly Assembly Library = typeof(PdfString).Assembly;
+    private static readonly Type Flags = Library.GetType("PdfPinata.Pdf.PdfStringFlags", throwOnError: true);
 
     /// <summary>Calls the internal PdfString.FromEncryptionValue with flags named as the enum spells them.</summary>
-    static PdfString FromEncryptionValue(byte[] bytes, string flagName)
+    private static PdfString FromEncryptionValue(byte[] bytes, string flagName)
     {
         var factory = typeof(PdfString).GetMethod("FromEncryptionValue",
             BindingFlags.Static | BindingFlags.NonPublic);
@@ -176,11 +176,11 @@ public class DecryptedStringReplacementTests
         reopened.Info.Author.Should().Be(Author);
     }
 
-    const string Title = "Tîtlé wíth àccents";
-    const string Author = "Ångström";
-    const string OwnerPassword = "12343";
+    private const string Title = "Tîtlé wíth àccents";
+    private const string Author = "Ångström";
+    private const string OwnerPassword = "12343";
 
-    static byte[] EncryptedDocument()
+    private static byte[] EncryptedDocument()
     {
         var document = new PdfDocument();
         _ = document.AddPage();

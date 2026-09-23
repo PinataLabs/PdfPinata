@@ -252,13 +252,13 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             DeclareStreamLength();
         }
     }
-    PdfStream _stream;
+    private PdfStream _stream;
 
     /// <summary>
     /// Writes the stream's length into <c>/Length</c>, unless the entry already says it — so that
     /// a dictionary read from a file, whose entry is right, is not marked as changed.
     /// </summary>
-    void DeclareStreamLength()
+    private void DeclareStreamLength()
     {
         if (_stream == null)
             return;
@@ -351,7 +351,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         ///   The item itself is returned rather than what it refers to, because every caller
         ///   resolves the reference the way it needs to.
         /// </remarks>
-        PdfItem ValueOf(string key)
+        private PdfItem ValueOf(string key)
         {
             var item = this[key];
             var value = item is PdfReference reference ? reference.Value : item;
@@ -728,12 +728,12 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// <summary>
         /// The white space the numbers of a matrix literal are separated by.
         /// </summary>
-        static readonly char[] MatrixLiteralSeparators = [' ', '\t', '\r', '\n'];
+        private static readonly char[] MatrixLiteralSeparators = [' ', '\t', '\r', '\n'];
 
         /// <summary>
         /// Reads the six numbers of a matrix written as the literal "[a b c d e f]".
         /// </summary>
-        static XMatrix MatrixFromLiteral(PdfLiteral literal)
+        private static XMatrix MatrixFromLiteral(PdfLiteral literal)
         {
             var text = (literal.Value ?? "").Trim();
             if (text.StartsWith('[') && text.EndsWith(']'))
@@ -816,7 +816,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         internal int GetEnumFromName(string key, object defaultValue, bool create)
         {
             if (defaultValue is not Enum)
-                throw new ArgumentException("The default value must be an enumeration value.", nameof(defaultValue));
+                throw new ArgumentException(@"The default value must be an enumeration value.", nameof(defaultValue));
 
             var obj = ValueOf(key);
             if (obj == null)
@@ -839,7 +839,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         internal void SetEnumAsName(string key, object value)
         {
             if (!(value is Enum))
-                throw new ArgumentException("The value must be an enumeration value.", nameof(value));
+                throw new ArgumentException(@"The value must be an enumeration value.", nameof(value));
             _elements[key] = new PdfName("/" + value);
             MarkOwnerAsChanged();
         }
@@ -857,7 +857,6 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                     var type = GetValueType(key);
                     if (type != null)
                     {
-                        // Rewritten WinRT style.
                         var typeInfo = type.GetTypeInfo();
                         Debug.Assert(typeof(PdfItem).GetTypeInfo().IsAssignableFrom(typeInfo), "Type not allowed.");
                         PdfObject obj;
@@ -963,7 +962,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// Returns the type of the object to be created as value of the specified key.
         /// </summary>
         [return:DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)]
-        Type GetValueType(string key)
+        private Type GetValueType(string key)
         {
             Type type = null;
             var meta = _ownerDictionary.Meta;
@@ -973,9 +972,8 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             return type;
         }
 
-        PdfArray CreateArray([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)]Type type, PdfArray oldArray)
+        private PdfArray CreateArray([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)]Type type, PdfArray oldArray)
         {
-            // Rewritten WinRT style.
             PdfArray array = null;
             if (oldArray == null)
             {
@@ -1010,10 +1008,9 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             return array;
         }
 
-        PdfDictionary CreateDictionary([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)]
+        private PdfDictionary CreateDictionary([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)]
             Type type, PdfDictionary oldDictionary)
         {
-            // Rewritten WinRT style.
             PdfDictionary dict = null;
             if (oldDictionary == null)
             {
@@ -1028,7 +1025,6 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                         break;
                     }
                 }
-                Debug.Assert(dict != null, "No appropriate constructor found for type: " + type.Name);
             }
             else
             {
@@ -1042,8 +1038,9 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                         break;
                     }
                 }
-                Debug.Assert(dict != null, "No appropriate constructor found for type: " + type.Name);
             }
+
+            Debug.Assert(dict != null, "No appropriate constructor found for type: " + type.Name);
             return dict;
         }
 
@@ -1107,7 +1104,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         public void SetObject(string key, PdfObject obj)
         {
             if (obj.Reference != null)
-                throw new ArgumentException("PdfObject must not be an indirect object.", nameof(obj));
+                throw new ArgumentException(@"PdfObject must not be an indirect object.", nameof(obj));
             this[key] = obj;
         }
 
@@ -1118,7 +1115,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         public void SetReference(string key, PdfObject obj)
         {
             if (obj.Reference == null)
-                throw new ArgumentException("PdfObject must be an indirect object.", nameof(obj));
+                throw new ArgumentException(@"PdfObject must be an indirect object.", nameof(obj));
             this[key] = obj.Reference;
         }
 
@@ -1226,7 +1223,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// change lost with no error. Page boxes go through <c>SetRectangle</c> and <c>/ModDate</c>
         /// through <c>SetDateTime</c>, so it was reachable from ordinary edits.
         /// </remarks>
-        void MarkOwnerAsChanged() => _ownerDictionary?.MarkAsChanged();
+        private void MarkOwnerAsChanged() => _ownerDictionary?.MarkAsChanged();
 
         /// <summary>
         /// Removes the value with the specified key.
@@ -1415,12 +1412,12 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// The elements of the dictionary with a string as key.
         /// Because the string is a name it starts always with a '/'.
         /// </summary>
-        Dictionary<string, PdfItem> _elements;
+        private Dictionary<string, PdfItem> _elements;
 
         /// <summary>
         /// The dictionary this objects belongs to.
         /// </summary>
-        PdfDictionary _ownerDictionary;
+        private PdfDictionary _ownerDictionary;
     }
 
     /// <summary>
@@ -1487,7 +1484,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// <summary>
         /// The dictionary the stream belongs to.
         /// </summary>
-        PdfDictionary _ownerDictionary;
+        private PdfDictionary _ownerDictionary;
 
         /// <summary>
         /// Gets the length of the stream, i.e. the actual number of bytes in the stream.
@@ -1508,7 +1505,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                 _ownerDictionary.Elements.SetInteger(Keys.Length, value.Length);
             }
         }
-        byte[] _value;
+        private byte[] _value;
 
         /// <summary>
         /// Gets the value of the stream unfiltered. The stream content is not modified by this operation.
@@ -1741,7 +1738,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
     /// Gets the DebuggerDisplayAttribute text.
     /// </summary>
     // ReSharper disable UnusedMember.Local
-    string DebuggerDisplay => String.Format(CultureInfo.InvariantCulture, "dictionary({0},[{1}])={2}",
+    private string DebuggerDisplay => String.Format(CultureInfo.InvariantCulture, "dictionary({0},[{1}])={2}",
         ObjectID.DebuggerDisplay,
         Elements.Count,
         _elements.DebuggerDisplay); // ReSharper restore UnusedMember.Local

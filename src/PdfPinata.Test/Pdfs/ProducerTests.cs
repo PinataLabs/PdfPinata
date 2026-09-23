@@ -16,7 +16,7 @@ namespace PdfPinata.Test.Pdfs;
 /// </summary>
 public class ProducerTests
 {
-    static readonly string ExpectedProducer =
+    private static readonly string ExpectedProducer =
         "PdfPinata " + BuiltVersion() + " (https://github.com/PinataLabs/PdfPinata)";
 
     [Fact]
@@ -59,7 +59,7 @@ public class ProducerTests
 
     // ----- helpers ------------------------------------------------------------------------------------
 
-    static string BuiltVersion()
+    private static string BuiltVersion()
     {
         var version = typeof(PdfDocument).Assembly
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion;
@@ -67,20 +67,20 @@ public class ProducerTests
         return metadata < 0 ? version : version[..metadata];
     }
 
-    static PdfDocument NewDocument()
+    private static PdfDocument NewDocument()
     {
         var document = new PdfDocument();
         _ = document.AddPage();
         return document;
     }
 
-    static byte[] Save(PdfDocument document)
+    private static byte[] Save(PdfDocument document)
     {
         using var output = new MemoryStream();
         document.Save(output, false);
         return output.ToArray();
     }
 
-    static PdfDocument Reopen(byte[] bytes) =>
-        PdfPinata.Pdf.IO.PdfReader.Open(new MemoryStream(bytes), PdfPinata.Pdf.IO.PdfDocumentOpenMode.Import);
+    private static PdfDocument Reopen(byte[] bytes) =>
+        Pdf.IO.PdfReader.Open(new MemoryStream(bytes), Pdf.IO.PdfDocumentOpenMode.Import);
 }

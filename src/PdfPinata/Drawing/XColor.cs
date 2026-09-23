@@ -1,5 +1,5 @@
 #region Copyright
-//
+
 // Authors:
 //   Stefan Lange
 //
@@ -25,24 +25,26 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
+
 #endregion
 
 using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.ComponentModel;
+
 // ReSharper disable RedundantNameQualifier
 
 namespace PdfPinata.Drawing;
 
 ///<summary>
-/// Represents a RGB, CMYK, or gray scale color, or a spot colour at a tint (see
+/// Represents an RGB, CMYK, or gray scale color, or a spot color at a tint (see
 /// <see cref="FromSpot(XSpotColor, double)"/>).
 /// </summary>
 [DebuggerDisplay("clr=(A={A}, R={R}, G={G}, B={B} C={C}, M={M}, Y={Y}, K={K})")]
 public struct XColor : IEquatable<XColor>
 {
-    XColor(uint argb)
+    private XColor(uint argb)
     {
         _cs = XColorSpace.Rgb;
         _a = (byte)((argb >> 24) & 0xff) / 255f;
@@ -57,7 +59,7 @@ public struct XColor : IEquatable<XColor>
         RgbChanged();
     }
 
-    XColor(byte alpha, byte red, byte green, byte blue)
+    private XColor(byte alpha, byte red, byte green, byte blue)
     {
         _cs = XColorSpace.Rgb;
         _a = alpha / 255f;
@@ -72,7 +74,7 @@ public struct XColor : IEquatable<XColor>
         RgbChanged();
     }
 
-    XColor(double alpha, double cyan, double magenta, double yellow, double black)
+    private XColor(double alpha, double cyan, double magenta, double yellow, double black)
     {
         _cs = XColorSpace.Cmyk;
         _a = (float)(alpha > 1 ? 1 : (alpha < 0 ? 0 : alpha));
@@ -87,11 +89,12 @@ public struct XColor : IEquatable<XColor>
         CmykChanged();
     }
 
-    XColor(double cyan, double magenta, double yellow, double black)
+    private XColor(double cyan, double magenta, double yellow, double black)
         : this(1.0, cyan, magenta, yellow, black)
-    { }
+    {
+    }
 
-    XColor(double gray)
+    private XColor(double gray)
     {
         _cs = XColorSpace.GrayScale;
         _gs = (float)(gray > 1 ? 1 : (gray < 0 ? 0 : gray));
@@ -106,9 +109,11 @@ public struct XColor : IEquatable<XColor>
         _k = 0;
         GrayChanged();
     }
+
     internal XColor(XKnownColor knownColor)
         : this(XKnownColorTable.KnownColorToArgb(knownColor))
-    { }
+    {
+    }
 
     /// <summary>
     /// Creates an XColor structure from a 32-bit ARGB value.
@@ -184,18 +189,18 @@ public struct XColor : IEquatable<XColor>
     }
 
     /// <summary>
-    /// Creates an XColor that paints with a spot colour at the given tint, opaque.
+    /// Creates an XColor that paints with a spot color at the given tint, opaque.
     /// </summary>
     /// <param name="spot">The colorant to paint with.</param>
     /// <param name="tint">
     /// How much of the ink, from 0 (none - the paper shows) to 1 (solid). Clamped to that range.
     /// </param>
     /// <remarks>
-    /// Drawn through <see cref="XGraphics"/> - filled, stroked or as text - the colour is written as
-    /// a <c>/Separation</c> colour space and a tint, so a press puts it on the colorant's own plate.
-    /// Its RGB, CMYK and grey components are the alternate at this tint, which is what anything that
-    /// does not know about spot colours - a gradient, for one - paints instead. Setting any of those
-    /// components makes it an ordinary process colour again; setting <see cref="A"/> does not.
+    /// Drawn through <see cref="XGraphics"/> - filled, stroked or as text - the color is written as
+    /// a <c>/Separation</c> color space and a tint, so a press puts it on the colorant's own plate.
+    /// Its RGB, CMYK and gray components are the alternate at this tint, which is what anything that
+    /// does not know about spot colors - a gradient, for one - paints instead. Setting any of those
+    /// components makes it an ordinary process color again; setting <see cref="A"/> does not.
     /// </remarks>
     public static XColor FromSpot(XSpotColor spot, double tint = 1)
     {
@@ -203,7 +208,7 @@ public struct XColor : IEquatable<XColor>
     }
 
     /// <summary>
-    /// Creates an XColor that paints with a spot colour at the given tint and alpha.
+    /// Creates an XColor that paints with a spot color at the given tint and alpha.
     /// </summary>
     /// <param name="alpha">The opacity, from 0 (transparent) to 1 (opaque).</param>
     /// <param name="spot">The colorant to paint with.</param>
@@ -223,13 +228,13 @@ public struct XColor : IEquatable<XColor>
     }
 
     /// <summary>
-    /// The spot colour this colour paints with, or null for a process colour.
+    /// The spot color this color paints with, or null for a process color.
     /// </summary>
     public XSpotColor Spot => _spot;
 
     /// <summary>
-    /// How much of <see cref="Spot"/>'s ink this colour paints with, from 0 to 1. Zero for a
-    /// process colour.
+    /// How much of <see cref="Spot"/>'s ink this color paints with, from 0 to 1. Zero for a
+    /// process color.
     /// </summary>
     public double Tint => _tint;
 
@@ -275,18 +280,18 @@ public struct XColor : IEquatable<XColor>
     public override bool Equals(object obj)
     {
         // ReSharper disable CompareOfFloatsByEqualityOperator
-        if (obj is XColor)
+        if (obj is XColor color)
         {
-            var color = (XColor)obj;
-            #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
+#pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
             if (_r == color._r && _g == color._g && _b == color._b &&
                 _c == color._c && _m == color._m && _y == color._y && _k == color._k &&
                 _gs == color._gs && _tint == color._tint && Equals(_spot, color._spot))
             {
                 return _a == color._a;
-                #pragma warning restore S1244
+#pragma warning restore S1244
             }
         }
+
         return false;
         // ReSharper restore CompareOfFloatsByEqualityOperator
     }
@@ -315,14 +320,15 @@ public struct XColor : IEquatable<XColor>
     public static bool operator ==(XColor left, XColor right)
     {
         // ReSharper disable CompareOfFloatsByEqualityOperator
-        #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
+#pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
         if (left._r == right._r && left._g == right._g && left._b == right._b &&
             left._c == right._c && left._m == right._m && left._y == right._y && left._k == right._k &&
             left._gs == right._gs && left._tint == right._tint && Equals(left._spot, right._spot))
         {
             return left._a == right._a;
-            #pragma warning restore S1244
+#pragma warning restore S1244
         }
+
         return false;
         // ReSharper restore CompareOfFloatsByEqualityOperator
     }
@@ -369,14 +375,14 @@ public struct XColor : IEquatable<XColor>
             value5 = value3;
 
         var value6 = value4 - value5;
-        #pragma warning disable S1244 // Exact on purpose: compared with a maximum or minimum taken from these same values.
+#pragma warning disable S1244 // Exact on purpose: compared with a maximum or minimum taken from these same values.
         if (value1 == value4)
             value7 = (value2 - value3) / value6;
         else if (value2 == value4)
             value7 = 2f + ((value3 - value1) / value6);
         else if (value3 == value4)
             value7 = 4f + ((value1 - value2) / value6);
-        #pragma warning restore S1244
+#pragma warning restore S1244
 
         value7 *= 60;
         if (value7 < 0)
@@ -410,10 +416,10 @@ public struct XColor : IEquatable<XColor>
         if (value3 < value5)
             value5 = value3;
 
-        #pragma warning disable S1244 // Exact on purpose: compared with a maximum or minimum taken from these same values.
+#pragma warning disable S1244 // Exact on purpose: compared with a maximum or minimum taken from these same values.
         if (value4 == value5)
             return value7;
-        #pragma warning restore S1244
+#pragma warning restore S1244
 
         var value6 = (value4 + value5) / 2;
         if (value6 <= 0.5)
@@ -451,7 +457,7 @@ public struct XColor : IEquatable<XColor>
     ///<summary>
     /// One of the RGB values changed; recalculate other color representations.
     /// </summary>
-    void RgbChanged()
+    private void RgbChanged()
     {
         _spot = null;
         _tint = 0;
@@ -470,6 +476,7 @@ public struct XColor : IEquatable<XColor>
             _m = (m - k) / black;
             _y = (y - k) / black;
         }
+
         _k = _gs = k / 255f;
         // ReSharper restore LocalVariableHidesMember
     }
@@ -477,7 +484,7 @@ public struct XColor : IEquatable<XColor>
     ///<summary>
     /// One of the CMYK values changed; recalculate other color representations.
     /// </summary>
-    void CmykChanged()
+    private void CmykChanged()
     {
         _spot = null;
         _tint = 0;
@@ -493,7 +500,7 @@ public struct XColor : IEquatable<XColor>
     ///<summary>
     /// The gray scale value changed; recalculate other color representations.
     /// </summary>
-    void GrayChanged()
+    private void GrayChanged()
     {
         _spot = null;
         _tint = 0;
@@ -533,7 +540,11 @@ public struct XColor : IEquatable<XColor>
     public byte R
     {
         get => _r;
-        set { _r = value; RgbChanged(); }
+        set
+        {
+            _r = value;
+            RgbChanged();
+        }
     }
 
     /// <summary>
@@ -542,7 +553,11 @@ public struct XColor : IEquatable<XColor>
     public byte G
     {
         get => _g;
-        set { _g = value; RgbChanged(); }
+        set
+        {
+            _g = value;
+            RgbChanged();
+        }
     }
 
     /// <summary>
@@ -551,7 +566,11 @@ public struct XColor : IEquatable<XColor>
     public byte B
     {
         get => _b;
-        set { _b = value; RgbChanged(); }
+        set
+        {
+            _b = value;
+            RgbChanged();
+        }
     }
 
     /// <summary>
@@ -659,9 +678,9 @@ public struct XColor : IEquatable<XColor>
     /// <summary>
     /// Represents the null color.
     /// </summary>
-    #pragma warning disable CA2211 // Public API: making the field readonly or a property would break any caller that assigns it or takes it by reference.
+#pragma warning disable CA2211 // Public API: making the field readonly or a property would break any caller that assigns it or takes it by reference.
     public static XColor Empty;
-    #pragma warning restore CA2211
+#pragma warning restore CA2211
 
     ///<summary>
     /// Special property for XmlSerializer only.
@@ -685,35 +704,35 @@ public struct XColor : IEquatable<XColor>
             _a = float.Parse(values[8], CultureInfo.InvariantCulture);
 
             // The string carries the process components alone, so what it describes is a process
-            // colour - the alternate a spot colour stood for, not the ink.
+            // color - the alternate a spot color stood for, not the ink.
             _spot = null;
             _tint = 0;
         }
     }
 
-    static void CheckByte(int val, string name)
+    private static void CheckByte(int val, string name)
     {
         if (val < 0 || val > 0xFF)
             throw new ArgumentException(PSSR.InvalidValue(val, name, 0, 255));
     }
 
-    XColorSpace _cs;
+    private XColorSpace _cs;
 
-    float _a;  // alpha
+    private float _a; // alpha
 
-    byte _r;   // \
-    byte _g;   // |--- RGB
-    byte _b;   // /
+    private byte _r; // \
+    private byte _g; // |--- RGB
+    private byte _b; // /
 
-    float _c;  // \
-    float _m;  // |--- CMYK
-    float _y;  // |
-    float _k;  // /
+    private float _c; // \
+    private float _m; // |--- CMYK
+    private float _y; // |
+    private float _k; // /
 
-    float _gs; // >--- gray scale
+    private float _gs; // >--- gray scale
 
-    // A colour naming a colorant: the fields above hold the alternate at this tint. Reset by
-    // every change to them, because a colour whose components were set is no longer the ink.
-    XSpotColor _spot;
-    float _tint;
+    // A color naming a colorant: the fields above hold the alternate at this tint. Reset by
+    // every change to them, because a color whose components were set is no longer the ink.
+    private XSpotColor _spot;
+    private float _tint;
 }

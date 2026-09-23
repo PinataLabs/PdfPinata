@@ -68,7 +68,7 @@ public static class CommandLineApp
         return root;
     }
 
-    static IReadOnlyList<PdfDemo> Select(string[]? names)
+    private static IReadOnlyList<PdfDemo> Select(string[]? names)
     {
         if (names is null || names.Length == 0)
             return DemoRegistry.All;

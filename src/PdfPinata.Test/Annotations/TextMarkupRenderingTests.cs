@@ -157,7 +157,7 @@ public sealed class TextMarkupRenderingTests : IDisposable
         Count(faint, IsYellow).Should().Be(0);
     }
 
-    IMagickImage<byte> Rasterize(PdfTextMarkupAnnotation annotation, string name)
+    private IMagickImage<byte> Rasterize(PdfTextMarkupAnnotation annotation, string name)
     {
         return Rasterize(annotation, name, (markup, page) => markup.AddQuad(page(Line)));
     }
@@ -167,7 +167,7 @@ public sealed class TextMarkupRenderingTests : IDisposable
     ///   converter into the space annotations are placed in, which is measured from the bottom
     ///   left of the page rather than from the top left the drawing uses.
     /// </summary>
-    IMagickImage<byte> Rasterize(PdfTextMarkupAnnotation annotation, string name,
+    private IMagickImage<byte> Rasterize(PdfTextMarkupAnnotation annotation, string name,
         Action<PdfTextMarkupAnnotation, Func<XRect, XRect>> arrange)
     {
         GlobalFontSettings.FontResolver ??= new PinnedFontResolver();
@@ -190,12 +190,12 @@ public sealed class TextMarkupRenderingTests : IDisposable
         return images[0];
     }
 
-    static bool IsYellow(IMagickColor<byte> c) => c.R > 200 && c.G > 200 && c.B < 120;
-    static bool IsRed(IMagickColor<byte> c) => c.R > 150 && c.G < 100 && c.B < 100;
-    static bool IsGreen(IMagickColor<byte> c) => c.G > 100 && c.R < 100 && c.B < 100;
-    static bool IsDark(IMagickColor<byte> c) => c.R < 100 && c.G < 100 && c.B < 100;
+    private static bool IsYellow(IMagickColor<byte> c) => c.R > 200 && c.G > 200 && c.B < 120;
+    private static bool IsRed(IMagickColor<byte> c) => c.R > 150 && c.G < 100 && c.B < 100;
+    private static bool IsGreen(IMagickColor<byte> c) => c.G > 100 && c.R < 100 && c.B < 100;
+    private static bool IsDark(IMagickColor<byte> c) => c.R < 100 && c.G < 100 && c.B < 100;
 
-    static int Count(IMagickImage<byte> image, Func<IMagickColor<byte>, bool> match)
+    private static int Count(IMagickImage<byte> image, Func<IMagickColor<byte>, bool> match)
     {
         using var pixels = image.GetPixels();
         return pixels.Count(p => { var c = p.ToColor(); return c != null && match(c); });

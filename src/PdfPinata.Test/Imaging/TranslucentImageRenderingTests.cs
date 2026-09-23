@@ -29,13 +29,13 @@ namespace PdfPinata.Test.Imaging;
 [Collection(RasterizingCollection.Name)]
 public sealed class TranslucentImageRenderingTests : IDisposable
 {
-    const string OutDir = "Out/TranslucentImage";
+    private const string OutDir = "Out/TranslucentImage";
 
     /// <summary>
     ///   Everything rasterized by one test, kept until the test is over - a page is tens of
     ///   megabytes of unmanaged bitmap the collector cannot see the size of.
     /// </summary>
-    readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
+    private readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
 
     public void Dispose()
     {
@@ -111,10 +111,10 @@ public sealed class TranslucentImageRenderingTests : IDisposable
     // ----- arrangements ---------------------------------------------------------------------------
 
     /// <summary>Where the image is drawn, in the space the drawing uses.</summary>
-    static readonly XRect Area = new XRect(50, 50, 240, 120);
+    private static readonly XRect Area = new XRect(50, 50, 240, 120);
 
     /// <summary>Draws a black square at one alpha, filling <see cref="Area"/>.</summary>
-    static Action<XGraphics> Translucent(byte alpha)
+    private static Action<XGraphics> Translucent(byte alpha)
     {
         return gfx =>
         {
@@ -130,7 +130,7 @@ public sealed class TranslucentImageRenderingTests : IDisposable
 
     // ----- rasterizing and reading pixels ---------------------------------------------------------
 
-    IMagickImage<byte> Rasterize(string name, Action<XGraphics> draw)
+    private IMagickImage<byte> Rasterize(string name, Action<XGraphics> draw)
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -144,7 +144,7 @@ public sealed class TranslucentImageRenderingTests : IDisposable
     }
 
     /// <summary>The colour at the middle of <see cref="Area"/>.</summary>
-    static IMagickColor<byte> Sample(IMagickImage<byte> page)
+    private static IMagickColor<byte> Sample(IMagickImage<byte> page)
     {
         // The drawing is in points from the top left, and so is the raster, so the only
         // conversion is the resolution the page was drawn at.
@@ -156,5 +156,5 @@ public sealed class TranslucentImageRenderingTests : IDisposable
         return pixels.GetPixel(x, y).ToColor();
     }
 
-    static double Luminance(IMagickColor<byte> colour) => 0.299 * colour.R + 0.587 * colour.G + 0.114 * colour.B;
+    private static double Luminance(IMagickColor<byte> colour) => 0.299 * colour.R + 0.587 * colour.G + 0.114 * colour.B;
 }

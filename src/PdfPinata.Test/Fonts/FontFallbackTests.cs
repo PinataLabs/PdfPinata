@@ -38,26 +38,26 @@ public class FontFallbackTests
     // anything else in the assembly drawing this family beforehand got Liberation Sans, which has no
     // Arabic at all, and the library cached that answer for the rest of the run. These tests then
     // drew four .notdef boxes and blamed the shaper.
-    const string ArabicFamily = PinnedFontResolver.ArabicFamilyName;
+    private const string ArabicFamily = PinnedFontResolver.ArabicFamilyName;
 
     // "arabi" - four Arabic letters, none of which Liberation Sans has any glyph for.
-    const string Arabic = "\u0639\u0631\u0628\u064A";
+    private const string Arabic = "\u0639\u0631\u0628\u064A";
 
     // U+200D ZERO WIDTH JOINER, written as a code point because it is invisible in a source file.
-    const string Joiner = "\u200D";
+    private const string Joiner = "\u200D";
 
-    static XFont Latin() => new XFont("Arial", 20);
+    private static XFont Latin() => new XFont("Arial", 20);
 
-    static XFont ArabicFont() => new XFont(ArabicFamily, 20);
+    private static XFont ArabicFont() => new XFont(ArabicFamily, 20);
 
     /// <summary>
     ///   A fallback that answers only for the characters given to it, so that installing it cannot
     ///   change what any other test draws.
     /// </summary>
-    sealed class Only : IFontFallback
+    private sealed class Only : IFontFallback
     {
-        readonly HashSet<int> _mine;
-        readonly string[] _families;
+        private readonly HashSet<int> _mine;
+        private readonly string[] _families;
 
         /// <param name="characters">
         ///   The characters to answer for, written as a string. Taken by code point rather than by
@@ -89,7 +89,7 @@ public class FontFallbackTests
             => _mine.Contains(codePoint) ? _families : Enumerable.Empty<string>();
     }
 
-    sealed class Installed : IDisposable
+    private sealed class Installed : IDisposable
     {
         internal Installed(IFontFallback fallback) => GlobalFontSettings.FontFallback = fallback;
 
@@ -231,10 +231,10 @@ public class FontFallbackTests
     // ----- and with a shaper on top of it -----------------------------------------------------------
 
     /// <summary>A real shaper, wired up for one string only. See ShapedFontEmbeddingTests.</summary>
-    sealed class ShapesOnly : ITextShaper, IDisposable
+    private sealed class ShapesOnly : ITextShaper, IDisposable
     {
-        readonly string _mine;
-        readonly HarfBuzzTextShaper _shaper = new HarfBuzzTextShaper();
+        private readonly string _mine;
+        private readonly HarfBuzzTextShaper _shaper = new HarfBuzzTextShaper();
 
         internal ShapesOnly(string mine) => _mine = mine;
 

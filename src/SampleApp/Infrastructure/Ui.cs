@@ -111,7 +111,7 @@ public static class Ui
             : $"[red]{failed} demo{(failed == 1 ? "" : "s")} failed.[/] [grey]{wrote}[/]");
     }
 
-    static IEnumerable<string> Bulleted(IReadOnlyList<string> items)
+    private static IEnumerable<string> Bulleted(IReadOnlyList<string> items)
     {
         return items.Select(item => "[grey]·[/] " + Markup.Escape(item));
     }

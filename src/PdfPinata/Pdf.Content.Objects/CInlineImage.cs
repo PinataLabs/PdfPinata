@@ -76,7 +76,7 @@ public class CInlineImage : COperator
         set => _imageDictionary = value ?? throw new ArgumentNullException(nameof(value));
     }
 
-    string _imageDictionary;
+    private string _imageDictionary;
 
     /// <summary>
     /// Gets or sets the image data, as it is written between <c>ID</c> and <c>EI</c>: from after the
@@ -94,7 +94,7 @@ public class CInlineImage : COperator
         set => _data = value ?? throw new ArgumentNullException(nameof(value));
     }
 
-    byte[] _data;
+    private byte[] _data;
 
     /// <summary>
     /// Returns the inline image as it is written in a content stream, its data one character per

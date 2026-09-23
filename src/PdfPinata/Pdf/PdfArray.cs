@@ -512,7 +512,7 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
         /// table, so marking only the array would tell an incremental save nothing: adding an
         /// annotation to a page's <c>/Annots</c> has to make the <em>page</em> get written again.
         /// </remarks>
-        void MarkOwnerAsChanged() => _ownerArray?.MarkAsChanged();
+        private void MarkOwnerAsChanged() => _ownerArray?.MarkAsChanged();
 
         /// <summary>
         /// Gets the index of the specified item.
@@ -591,21 +591,21 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
         /// <summary>
         /// The elements of the array.
         /// </summary>
-        List<PdfItem> _elements;
+        private List<PdfItem> _elements;
 
         /// <summary>
         /// The array this objects belongs to.
         /// </summary>
-        PdfArray _ownerArray;
+        private PdfArray _ownerArray;
     }
 
-    ArrayElements _elements;
+    private ArrayElements _elements;
 
     /// <summary>
     /// Gets the DebuggerDisplayAttribute text.
     /// </summary>
     // ReSharper disable UnusedMember.Local
-    string DebuggerDisplay =>
+    private string DebuggerDisplay =>
         String.Format(CultureInfo.InvariantCulture, "array({0},[{1}])", ObjectID.DebuggerDisplay,
             _elements?.Count ?? 0); // ReSharper restore UnusedMember.Local
 }

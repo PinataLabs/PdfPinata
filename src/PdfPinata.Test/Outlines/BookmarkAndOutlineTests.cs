@@ -154,9 +154,9 @@ public class BookmarkAndOutlineTests
             .Elements.GetDictionary(0)).Top.Should().BeApproximately(456.5, 0.01);
     }
 
-    enum BookmarkPlacement { OnTheParagraph, OnTheSection, ThroughAddBookmark }
+    private enum BookmarkPlacement { OnTheParagraph, OnTheSection, ThroughAddBookmark }
 
-    static Action<Document> TableOfContentsThenBookmark(BookmarkPlacement placement)
+    private static Action<Document> TableOfContentsThenBookmark(BookmarkPlacement placement)
     {
         return document =>
         {
@@ -186,14 +186,14 @@ public class BookmarkAndOutlineTests
         };
     }
 
-    static void Heading(Section section, string style, string text)
+    private static void Heading(Section section, string style, string text)
     {
         var paragraph = section.AddParagraph();
         paragraph.Style = style;
         paragraph.AddText(text);
     }
 
-    static PdfDocument Render(Action<Document> build)
+    private static PdfDocument Render(Action<Document> build)
     {
         var document = new Document();
         build(document);
@@ -203,7 +203,7 @@ public class BookmarkAndOutlineTests
         return ReRead(renderer.PdfDocument);
     }
 
-    static PdfDocument ReRead(PdfDocument document)
+    private static PdfDocument ReRead(PdfDocument document)
     {
         using var stream = new MemoryStream();
         document.Save(stream, false);
@@ -212,21 +212,21 @@ public class BookmarkAndOutlineTests
         return Pdf.IO.PdfReader.Open(stream, PdfDocumentOpenMode.ReadOnly);
     }
 
-    static PdfDictionary FirstOutline(PdfDocument pdf)
+    private static PdfDictionary FirstOutline(PdfDocument pdf)
     {
         var root = pdf.Internals.Catalog.Elements.GetDictionary("/Outlines");
         root.Should().NotBeNull("the document should have an outline");
         return root.Elements.GetDictionary("/First");
     }
 
-    static PdfDictionary OnlyLink(PdfDocument pdf)
+    private static PdfDictionary OnlyLink(PdfDocument pdf)
     {
         var links = Links(pdf);
         links.Should().HaveCount(1);
         return links[0];
     }
 
-    static List<PdfDictionary> Links(PdfDocument pdf)
+    private static List<PdfDictionary> Links(PdfDocument pdf)
     {
         var links = new List<PdfDictionary>();
         foreach (var page in pdf.Pages)
@@ -248,7 +248,7 @@ public class BookmarkAndOutlineTests
     ///   Reads a /Dest of the form [page /XYZ left top zoom], answering the one-based page
     ///   number and how far up it the destination sits.
     /// </summary>
-    static (int Page, double Top) Destination(PdfDictionary annotationOrOutline)
+    private static (int Page, double Top) Destination(PdfDictionary annotationOrOutline)
     {
         var dest = annotationOrOutline.Elements.GetArray("/Dest");
         dest.Should().NotBeNull("the entry should carry an explicit destination");

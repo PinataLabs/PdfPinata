@@ -25,17 +25,17 @@ namespace PdfPinata.Test.Drawing;
 /// </summary>
 public class XGraphicsSurfaceTests
 {
-    static readonly XPoint[] ThreePoints =
+    private static readonly XPoint[] ThreePoints =
     {
         new(100, 100), new(200, 150), new(300, 100)
     };
 
-    static readonly XPoint[] FourBezierPoints =
+    private static readonly XPoint[] FourBezierPoints =
     {
         new(100, 100), new(150, 50), new(250, 50), new(300, 100)
     };
 
-    static PdfPage PageShowing(Action<XGraphics> draw)
+    private static PdfPage PageShowing(Action<XGraphics> draw)
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -54,7 +54,7 @@ public class XGraphicsSurfaceTests
     ///   Read out of the content stream rather than through <see cref="PathGeometry"/>, because a
     ///   rectangle is written as a single <c>re</c> operator and never becomes path points at all.
     /// </remarks>
-    static string ShapeOf(Action<XGraphics> draw)
+    private static string ShapeOf(Action<XGraphics> draw)
     {
         var lines = ContentOf(PageShowing(draw)).Split('\n')
             .Select(line => line.Trim())
@@ -62,7 +62,7 @@ public class XGraphicsSurfaceTests
         return string.Join("\n", lines);
     }
 
-    static int CountOf(string shape, string @operator) =>
+    private static int CountOf(string shape, string @operator) =>
         Regex.Count(shape, @"(^|\s)" + @operator + "$", RegexOptions.Multiline);
 
     /// <summary>
@@ -74,7 +74,7 @@ public class XGraphicsSurfaceTests
     ///   Read as bytes rather than through <see cref="XGraphics.GraphicsStateLevel"/>, because that
     ///   counter lives above the renderer and would say the same thing whatever the renderer wrote.
     /// </remarks>
-    static string StateOf(Action<XGraphics> draw) =>
+    private static string StateOf(Action<XGraphics> draw) =>
         string.Concat(ContentOf(PageShowing(draw)).Split('\n')
             .Select(line => line.Trim())
             .Where(line => line is "q" or "Q"));
@@ -83,7 +83,7 @@ public class XGraphicsSurfaceTests
     ///   The graphics state nesting depth each shape is drawn at, one number per <c>re</c> operator,
     ///   in the order they are drawn: how many <c>q</c> operators stand open above that shape.
     /// </summary>
-    static int[] DepthsOf(Action<XGraphics> draw)
+    private static int[] DepthsOf(Action<XGraphics> draw)
     {
         var depths = new List<int>();
         var depth = 0;
@@ -99,13 +99,13 @@ public class XGraphicsSurfaceTests
         return depths.ToArray();
     }
 
-    static int PointCount(Action<XGraphics> draw) => PathGeometry.PointsOf(PageShowing(draw)).Count;
+    private static int PointCount(Action<XGraphics> draw) => PathGeometry.PointsOf(PageShowing(draw)).Count;
 
-    static XRect Bounds(Action<XGraphics> draw) => PathGeometry.BoundsOf(PageShowing(draw));
+    private static XRect Bounds(Action<XGraphics> draw) => PathGeometry.BoundsOf(PageShowing(draw));
 
-    static string ContentOf(PdfPage page) => Encoding.ASCII.GetString(PageContent.Of(page));
+    private static string ContentOf(PdfPage page) => Encoding.ASCII.GetString(PageContent.Of(page));
 
-    static XGraphics OnAPage() => XGraphics.FromPdfPage(new PdfDocument().AddPage());
+    private static XGraphics OnAPage() => XGraphics.FromPdfPage(new PdfDocument().AddPage());
 
     // ----- the surface itself --------------------------------------------------------------------
 

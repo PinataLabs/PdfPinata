@@ -59,7 +59,7 @@ internal class FormattedFootnote : IAreaProvider
     /// practice they line up with each other as well.
     /// </para>
     /// </remarks>
-    XUnit CalcIndent(XGraphics gfx)
+    private XUnit CalcIndent(XGraphics gfx)
     {
         var mark = _documentRenderer.Footnotes.MarkFor(_footnote);
         var font = FontHandler.ToSubSuperFont(NoteFont(gfx));
@@ -82,12 +82,12 @@ internal class FormattedFootnote : IAreaProvider
     }
 
     /// <summary>How far the mark sits from the text it belongs to.</summary>
-    static readonly XUnit MarkGap = XUnit.FromPoint(2);
+    private static readonly XUnit MarkGap = XUnit.FromPoint(2);
 
     /// <summary>The gutter the mark is drawn in, to the left of the note's own text.</summary>
     internal XUnit Indent => _indent;
 
-    XUnit _indent;
+    private XUnit _indent;
 
     /// <summary>The note as laid out, top to bottom.</summary>
     internal RenderInfo[] GetRenderInfos()
@@ -131,12 +131,12 @@ internal class FormattedFootnote : IAreaProvider
 
     bool IAreaProvider.PositionHorizontally(LayoutInfo layoutInfo) => false;
 
-    readonly DocumentRenderer _documentRenderer;
-    readonly Footnote _footnote;
-    readonly FieldInfos _fieldInfos;
-    readonly XUnit _width;
+    private readonly DocumentRenderer _documentRenderer;
+    private readonly Footnote _footnote;
+    private readonly FieldInfos _fieldInfos;
+    private readonly XUnit _width;
 
-    TopDownFormatter _formatter;
-    ArrayList _renderInfos;
-    bool _isFirstArea;
+    private TopDownFormatter _formatter;
+    private ArrayList _renderInfos;
+    private bool _isFirstArea;
 }

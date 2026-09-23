@@ -227,37 +227,37 @@ public class NumberTreeTests
         nums.Elements.GetInteger(0).Should().Be(3);
     }
 
-    static PdfNumberTreeNode NewPageLabels(PdfDocument document)
+    private static PdfNumberTreeNode NewPageLabels(PdfDocument document)
     {
         return (PdfNumberTreeNode)document.Internals.Catalog.Elements
             .GetValue("/PageLabels", VCF.CreateIndirect);
     }
 
-    static PdfNumberTreeNode PageLabelsOf(PdfDocument document)
+    private static PdfNumberTreeNode PageLabelsOf(PdfDocument document)
     {
         return (PdfNumberTreeNode)document.Internals.Catalog.Elements.GetValue("/PageLabels");
     }
 
-    static PdfNumberTreeNode PageLabelsOf(byte[] document)
+    private static PdfNumberTreeNode PageLabelsOf(byte[] document)
     {
         return PageLabelsOf(Open(document));
     }
 
-    static PdfDictionary Label(PdfDocument document, string style)
+    private static PdfDictionary Label(PdfDocument document, string style)
     {
         var label = new PdfDictionary(document);
         label.Elements.SetName("/S", style);
         return label;
     }
 
-    static PdfDictionary Started(PdfDocument document, int start)
+    private static PdfDictionary Started(PdfDocument document, int start)
     {
         var label = Label(document, "/D");
         label.Elements.SetInteger("/St", start);
         return label;
     }
 
-    static PdfDocument SaveAndOpen(PdfDocument document)
+    private static PdfDocument SaveAndOpen(PdfDocument document)
     {
         using var stream = new MemoryStream();
         document.Save(stream, false);
@@ -265,7 +265,7 @@ public class NumberTreeTests
         return Pdf.IO.PdfReader.Open(stream, PdfDocumentOpenMode.Modify);
     }
 
-    static PdfDocument Open(byte[] document)
+    private static PdfDocument Open(byte[] document)
     {
         return Pdf.IO.PdfReader.Open(new MemoryStream(document), PdfDocumentOpenMode.Modify);
     }
@@ -274,7 +274,7 @@ public class NumberTreeTests
     ///   A one page document whose catalog names object 4 as its page labels. Object 4 is the
     ///   first of the objects given; the two page label dictionaries are objects 5 and 6.
     /// </summary>
-    static byte[] DocumentWithPageLabels(params string[] treeObjects)
+    private static byte[] DocumentWithPageLabels(params string[] treeObjects)
     {
         var objects = new List<string>
         {

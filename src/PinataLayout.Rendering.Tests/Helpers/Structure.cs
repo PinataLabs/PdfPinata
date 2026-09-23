@@ -33,7 +33,7 @@ internal static class Structure
         return children.Count == 1 ? children[0] : new StructureNode("StructTreeRoot", children);
     }
 
-    static List<StructureNode> ChildrenOf(PdfDictionary element)
+    private static List<StructureNode> ChildrenOf(PdfDictionary element)
     {
         var children = new List<StructureNode>();
         Collect(element.Elements["/K"], children);
@@ -49,7 +49,7 @@ internal static class Structure
     ///   mark on some other page, <c>/OBJR</c> for an annotation. Counted rather than described,
     ///   because what a test wants to know is that an element has content, not which identifier.
     /// </remarks>
-    static void Collect(PdfItem kids, List<StructureNode> into)
+    private static void Collect(PdfItem kids, List<StructureNode> into)
     {
         switch (Resolve(kids))
         {
@@ -64,7 +64,7 @@ internal static class Structure
         }
     }
 
-    static StructureNode NodeOf(PdfDictionary element)
+    private static StructureNode NodeOf(PdfDictionary element)
     {
         var attributes = element.Elements.GetDictionary("/A");
 
@@ -82,7 +82,7 @@ internal static class Structure
         };
     }
 
-    static int MarksOf(PdfDictionary element)
+    private static int MarksOf(PdfDictionary element)
     {
         var marks = 0;
         foreach (var item in Items(element))
@@ -97,7 +97,7 @@ internal static class Structure
         return marks;
     }
 
-    static int ReferencesOf(PdfDictionary element, string type)
+    private static int ReferencesOf(PdfDictionary element, string type)
     {
         var found = 0;
         foreach (var item in Items(element))
@@ -109,7 +109,7 @@ internal static class Structure
         return found;
     }
 
-    static IEnumerable<PdfItem> Items(PdfDictionary element)
+    private static IEnumerable<PdfItem> Items(PdfDictionary element)
     {
         var kids = Resolve(element.Elements["/K"]);
         if (kids is PdfArray array)
@@ -118,9 +118,9 @@ internal static class Structure
         return kids == null ? Enumerable.Empty<PdfItem>() : new[] { kids };
     }
 
-    static PdfItem Resolve(PdfItem item) => item is PdfReference reference ? reference.Value : item;
+    private static PdfItem Resolve(PdfItem item) => item is PdfReference reference ? reference.Value : item;
 
-    static string Bare(string name) =>
+    private static string Bare(string name) =>
         string.IsNullOrEmpty(name) ? name : name.TrimStart('/');
 }
 
@@ -187,7 +187,7 @@ internal sealed class StructureNode
         return text.ToString();
     }
 
-    void Write(StringBuilder text, int depth)
+    private void Write(StringBuilder text, int depth)
     {
         text.Append(new string(' ', depth * 2)).Append(Tag);
 

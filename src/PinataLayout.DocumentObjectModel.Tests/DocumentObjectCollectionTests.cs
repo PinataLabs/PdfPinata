@@ -14,9 +14,9 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 /// </summary>
 public class DocumentObjectCollectionTests
 {
-    static DocumentElements AnEmptyCollection() => new Document().AddSection().Elements;
+    private static DocumentElements AnEmptyCollection() => new Document().AddSection().Elements;
 
-    static DocumentElements ACollectionOf(params string[] paragraphs)
+    private static DocumentElements ACollectionOf(params string[] paragraphs)
     {
         var section = new Document().AddSection();
         foreach (var text in paragraphs)

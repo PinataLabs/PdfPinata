@@ -19,30 +19,30 @@ namespace PdfPinata.Test.Drawing;
 /// </summary>
 public class TextStateOperatorTests
 {
-    const double FontSize = 12;
+    private const double FontSize = 12;
 
     /// <summary>
     ///   How close a number read back out of the content stream can be to the one that went in.
     ///   Text matrices are written to four decimal places, so tan(20°) comes back as 0.3639 and
     ///   nothing finer than this can be asserted about it.
     /// </summary>
-    const double StreamPrecision = 1e-4;
+    private const double StreamPrecision = 1e-4;
 
     /// <summary>Liberation Sans, encoded as WinAnsi - the default, and what Tw can speak for.</summary>
-    static XFont WinAnsiFont => new XFont("Arial", FontSize, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
+    private static XFont WinAnsiFont => new XFont("Arial", FontSize, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
 
     /// <summary>The same face embedded as Identity-H, whose two-byte codes Tw cannot reach.</summary>
-    static XFont UnicodeFont => new XFont("Arial", FontSize, XFontStyle.Regular, XPdfFontOptions.UnicodeDefault);
+    private static XFont UnicodeFont => new XFont("Arial", FontSize, XFontStyle.Regular, XPdfFontOptions.UnicodeDefault);
 
     /// <summary>
     ///   Source Code Pro ships only a regular face, so asking for bold gets bold simulation -
     ///   which draws its own character spacing, and is the thing a caller's spacing has to
     ///   compose with rather than replace.
     /// </summary>
-    static XFont BoldSimulatedFont =>
+    private static XFont BoldSimulatedFont =>
         new XFont(PinnedFontResolver.CffFamilyName, FontSize, XFontStyle.Bold, XPdfFontOptions.WinAnsiDefault);
 
-    static PdfPage PageShowing(Action<XGraphics> draw)
+    private static PdfPage PageShowing(Action<XGraphics> draw)
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -51,7 +51,7 @@ public class TextStateOperatorTests
         return page;
     }
 
-    static PdfPage PageShowing(string text, XFont font, XStringFormat format)
+    private static PdfPage PageShowing(string text, XFont font, XStringFormat format)
     {
         return PageShowing(gfx => gfx.DrawString(text, font, XBrushes.Black, 20, 40, format));
     }

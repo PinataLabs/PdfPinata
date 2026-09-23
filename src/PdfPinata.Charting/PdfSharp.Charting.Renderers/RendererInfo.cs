@@ -115,7 +115,7 @@ internal abstract class AreaRendererInfo : RendererInfo
     get => this.rect;
     set => this.rect = value;
   }
-  XRect rect;
+  private XRect rect;
 }
 
 /// <summary>
@@ -145,7 +145,7 @@ internal class ChartRendererInfo : AreaRendererInfo
       return defaultFont;
     }
   }
-  XFont defaultFont;
+  private XFont defaultFont;
 
   /// <summary>
   /// Gets the chart's default font for rendering data labels.
@@ -160,7 +160,7 @@ internal class ChartRendererInfo : AreaRendererInfo
       return defaultDataLabelFont;
     }
   }
-  XFont defaultDataLabelFont;
+  private XFont defaultDataLabelFont;
 
   /// <summary>
   /// Gets the colour the chart's text is drawn in where nothing closer to it says one: the chart

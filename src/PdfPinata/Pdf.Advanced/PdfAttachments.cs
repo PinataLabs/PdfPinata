@@ -34,14 +34,14 @@ public sealed class PdfAttachments : IEnumerable<PdfFileSpecification>
     /// <summary>
     /// The kind of name tree an attachment is listed in, under the catalog's <c>/Names</c>.
     /// </summary>
-    const string EmbeddedFiles = "/EmbeddedFiles";
+    private const string EmbeddedFiles = "/EmbeddedFiles";
 
     /// <summary>
     /// What ISO 19005-3 says to write as an attachment's media type when the real one is not known.
     /// </summary>
-    const string UnknownMediaType = "application/octet-stream";
+    private const string UnknownMediaType = "application/octet-stream";
 
-    readonly PdfDocument _document;
+    private readonly PdfDocument _document;
 
     internal PdfAttachments(PdfDocument document)
     {
@@ -228,7 +228,7 @@ public sealed class PdfAttachments : IEnumerable<PdfFileSpecification>
     /// tree, without repeating one that is in both — which, for anything this library wrote, is
     /// all of them.
     /// </summary>
-    List<PdfFileSpecification> Specifications() => Reachable(includeAnnotations: false);
+    private List<PdfFileSpecification> Specifications() => Reachable(includeAnnotations: false);
 
     /// <summary>
     /// Every file specification the document can be reached through: the catalog's <c>/AF</c> array
@@ -286,7 +286,7 @@ public sealed class PdfAttachments : IEnumerable<PdfFileSpecification>
         return found;
     }
 
-    static void AddOnce(List<PdfFileSpecification> found, PdfItem item)
+    private static void AddOnce(List<PdfFileSpecification> found, PdfItem item)
     {
         var specification = Resolve(item);
         if (specification == null)
@@ -325,7 +325,7 @@ public sealed class PdfAttachments : IEnumerable<PdfFileSpecification>
     /// The dictionary an annotation entry stands for, whether the array holds it directly or holds
     /// a reference to it.
     /// </summary>
-    static PdfDictionary Dictionary(PdfItem item)
+    private static PdfDictionary Dictionary(PdfItem item)
     {
         if (item is PdfReference reference)
             item = reference.Value;
@@ -335,7 +335,7 @@ public sealed class PdfAttachments : IEnumerable<PdfFileSpecification>
     /// <summary>
     /// The catalog's association array, made on first use.
     /// </summary>
-    PdfArray AssociatedFiles()
+    private PdfArray AssociatedFiles()
     {
         var associated = _document.Catalog.Elements.GetArray(PdfCatalog.Keys.AF);
         if (associated == null)
@@ -349,7 +349,7 @@ public sealed class PdfAttachments : IEnumerable<PdfFileSpecification>
     /// <summary>
     /// The one leaf of the <c>/EmbeddedFiles</c> name tree, or null if the document has no tree yet.
     /// </summary>
-    PdfArray Leaves()
+    private PdfArray Leaves()
     {
         return PdfNameTree.Root(_document, EmbeddedFiles)?.Elements.GetArray("/Names");
     }
@@ -357,7 +357,7 @@ public sealed class PdfAttachments : IEnumerable<PdfFileSpecification>
     /// <summary>
     /// Whether the document already carries a file under this name, wherever it is listed.
     /// </summary>
-    bool IsTaken(string fileName)
+    private bool IsTaken(string fileName)
     {
         foreach (var specification in Specifications())
         {
@@ -385,7 +385,7 @@ public sealed class PdfAttachments : IEnumerable<PdfFileSpecification>
     /// attachments, of which a document has a handful. Sorted it must be regardless, because a
     /// reader is entitled to binary-search even one node.
     /// </remarks>
-    void Register(string fileName, PdfFileSpecification specification)
+    private void Register(string fileName, PdfFileSpecification specification)
     {
         var names = _document.Catalog.Elements.GetDictionary(PdfCatalog.Keys.Names);
         if (names == null)

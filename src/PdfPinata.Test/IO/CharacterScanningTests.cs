@@ -16,9 +16,9 @@ namespace PdfPinata.Test.IO;
 /// </summary>
 public class CharacterScanningTests
 {
-    const char Eof = (char)65535;
+    private const char Eof = (char)65535;
 
-    static readonly Type ScannerType =
+    private static readonly Type ScannerType =
         typeof(Lexer).Assembly.GetType("PdfPinata.Pdf.IO.CharacterScanning", throwOnError: true);
 
     // ----- Advance: the current-and-next character pair, with the CR/LF fold --------------------
@@ -179,7 +179,7 @@ public class CharacterScanningTests
     // ----- reflection plumbing --------------------------------------------------------------------
 
     /// <summary>Invokes Advance once, seeding nextChar and reading the rest of the queue from it.</summary>
-    static (char curr, char next) InvokeAdvance(char initialNextChar, bool handleCrlf, string queue)
+    private static (char curr, char next) InvokeAdvance(char initialNextChar, bool handleCrlf, string queue)
     {
         var index = 0;
         var readNextByte = () => index < queue.Length ? queue[index++] : Eof;
@@ -191,14 +191,14 @@ public class CharacterScanningTests
         return ((char)args[0], (char)args[1]);
     }
 
-    static char InvokeSkipWhiteSpace(char currChar, Func<char> scanNextChar)
+    private static char InvokeSkipWhiteSpace(char currChar, Func<char> scanNextChar)
     {
         var method = ScannerType.GetMethod("SkipWhiteSpace", BindingFlags.Public | BindingFlags.Static);
         // ReSharper disable once PossibleNullReferenceException
         return (char)method.Invoke(null, new object[] { currChar, scanNextChar });
     }
 
-    static T InvokeStatic<T>(string methodName, params object[] args)
+    private static T InvokeStatic<T>(string methodName, params object[] args)
     {
         var method = ScannerType.GetMethod(methodName, BindingFlags.Public | BindingFlags.Static);
         // ReSharper disable once PossibleNullReferenceException

@@ -61,7 +61,7 @@ public sealed class PdfTextAnnotation : PdfMarkupAnnotation
         : base(dict)
     { }
 
-    void Initialize()
+    private void Initialize()
     {
         Elements.SetName(PdfAnnotation.Keys.Subtype, "/Text");
         // By default make a yellow comment.
@@ -139,7 +139,7 @@ public sealed class PdfTextAnnotation : PdfMarkupAnnotation
 
         public static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

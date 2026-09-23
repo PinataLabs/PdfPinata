@@ -297,15 +297,15 @@ internal static class FontFactory
     /// <summary>
     /// Maps font typeface key to font resolver info.
     /// </summary>
-    static readonly Dictionary<string, FontResolverInfo> FontResolverInfosByName = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly Dictionary<string, FontResolverInfo> FontResolverInfosByName = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
     /// Maps typeface key or font name to font source.
     /// </summary>
-    static readonly Dictionary<string, XFontSource> FontSourcesByName = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly Dictionary<string, XFontSource> FontSourcesByName = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
     /// Maps font source key to font source.
     /// </summary>
-    static readonly Dictionary<ulong, XFontSource> FontSourcesByKey = new();
+    private static readonly Dictionary<ulong, XFontSource> FontSourcesByKey = new();
 }

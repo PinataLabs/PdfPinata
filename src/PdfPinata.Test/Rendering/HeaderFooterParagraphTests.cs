@@ -109,19 +109,19 @@ public class HeaderFooterParagraphTests
     }
 
     /// <summary>The lines of the footer, which is everything drawn near the foot of the page.</summary>
-    static System.Collections.Generic.IReadOnlyList<double> FooterLinesOf(PdfPage page)
+    private static System.Collections.Generic.IReadOnlyList<double> FooterLinesOf(PdfPage page)
     {
         return TextBaselines.LinesOf(page).Where(IsFooter).ToList();
     }
 
-    static bool IsFooter(double baseline)
+    private static bool IsFooter(double baseline)
     {
         // A4 is 842 points tall with a 2.5cm bottom margin, so nothing but the footer is drawn
         // this near the foot of the page.
         return baseline < 72;
     }
 
-    static PdfPage Render(System.Action<Document> build)
+    private static PdfPage Render(System.Action<Document> build)
     {
         var document = new Document();
         build(document);

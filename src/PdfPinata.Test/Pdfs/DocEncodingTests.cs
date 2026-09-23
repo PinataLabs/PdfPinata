@@ -22,7 +22,7 @@ namespace PdfPinata.Test.Pdfs;
 /// </remarks>
 public class DocEncodingTests
 {
-    static readonly Encoding DocEncoding = (Encoding)typeof(PdfDocument).Assembly
+    private static readonly Encoding DocEncoding = (Encoding)typeof(PdfDocument).Assembly
         .GetType("PdfPinata.Pdf.Internal.PdfEncoders", throwOnError: true)!
         .GetProperty("DocEncoding", BindingFlags.Public | BindingFlags.Static)!
         .GetValue(null)!;
@@ -31,7 +31,7 @@ public class DocEncodingTests
     ///   Every code Annex D defines at or above 0x18, with the character it stands for, written
     ///   out from the standard rather than from the table under test.
     /// </summary>
-    static Dictionary<byte, char> Defined()
+    private static Dictionary<byte, char> Defined()
     {
         var map = new Dictionary<byte, char>();
         var accents = "˘ˇˆ˙˝˛˚˜"; // breve … tilde

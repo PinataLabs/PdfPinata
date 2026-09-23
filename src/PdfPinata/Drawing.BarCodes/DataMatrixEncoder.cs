@@ -19,7 +19,7 @@ internal static class DataMatrixEncoder
     internal const byte Pad = 129;
 
     /// <summary>The codeword that says the next one stands for a character 128 higher.</summary>
-    const byte UpperShift = 235;
+    private const byte UpperShift = 235;
 
     /// <summary>
     /// The data codewords for the text, padded out to the capacity given.
@@ -43,7 +43,7 @@ internal static class DataMatrixEncoder
         return EncodeAscii(text, encoding).Count;
     }
 
-    static List<byte> EncodeAscii(string text, string encoding)
+    private static List<byte> EncodeAscii(string text, string encoding)
     {
         RejectUnwrittenEncodations(encoding);
 
@@ -89,7 +89,7 @@ internal static class DataMatrixEncoder
     /// ended; the rest are scrambled by position, so that a symbol mostly of padding does not
     /// come out as a block of one pattern.
     /// </summary>
-    static void Pad_(List<byte> codewords, int capacity)
+    private static void Pad_(List<byte> codewords, int capacity)
     {
         if (codewords.Count >= capacity)
             return;
@@ -102,14 +102,14 @@ internal static class DataMatrixEncoder
     /// <summary>
     /// The 253-state randomizing that pad codewords after the first are scrambled by.
     /// </summary>
-    static byte Randomize253(byte codeword, int position)
+    private static byte Randomize253(byte codeword, int position)
     {
         var pseudoRandom = ((149 * position) % 253) + 1;
         var value = codeword + pseudoRandom;
         return (byte)(value <= 254 ? value : value - 254);
     }
 
-    static bool IsDigit(char ch)
+    private static bool IsDigit(char ch)
     {
         return ch >= '0' && ch <= '9';
     }
@@ -118,7 +118,7 @@ internal static class DataMatrixEncoder
     /// The encoding string names an encodation per character. Anything but ASCII is turned
     /// down rather than written as ASCII behind the caller's back.
     /// </summary>
-    static void RejectUnwrittenEncodations(string encoding)
+    private static void RejectUnwrittenEncodations(string encoding)
     {
         if (string.IsNullOrEmpty(encoding))
             return;

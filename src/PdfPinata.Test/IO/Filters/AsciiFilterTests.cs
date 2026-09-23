@@ -27,7 +27,7 @@ public class AsciiFilterTests
     ///   Bytes that are the same on every run and every machine, and that avoid being accidentally
     ///   well-behaved: they span the whole byte range and are not periodic in four.
     /// </summary>
-    static byte[] Bytes(int count)
+    private static byte[] Bytes(int count)
     {
         var data = new byte[count];
         for (var idx = 0; idx < count; idx++)

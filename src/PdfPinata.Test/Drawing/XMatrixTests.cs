@@ -21,7 +21,7 @@ namespace PdfPinata.Test.Drawing;
 /// </summary>
 public class XMatrixTests
 {
-    static XMatrix TranslateThenScale()
+    private static XMatrix TranslateThenScale()
     {
         var matrix = new XMatrix();
         matrix.TranslateAppend(10, 0);
@@ -29,7 +29,7 @@ public class XMatrixTests
         return matrix;
     }
 
-    static XMatrix ScaleThenTranslate()
+    private static XMatrix ScaleThenTranslate()
     {
         var matrix = new XMatrix();
         matrix.TranslateAppend(10, 0);
@@ -472,7 +472,7 @@ public class XMatrixTests
     ///   translation, a pure scale, a scale with a translation, and one that fits none of those
     ///   and has to go through the general formula.
     /// </summary>
-    static readonly XMatrix[] InvertibleMatrices =
+    private static readonly XMatrix[] InvertibleMatrices =
     {
         XMatrix.Identity,
         new(1, 0, 0, 1, 10, 20),

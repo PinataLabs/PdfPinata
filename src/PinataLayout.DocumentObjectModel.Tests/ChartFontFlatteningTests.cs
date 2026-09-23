@@ -13,7 +13,7 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 /// </summary>
 public class ChartFontFlatteningTests
 {
-    static Chart AChart(out Document document)
+    private static Chart AChart(out Document document)
     {
         document = new Document();
         var loud = document.Styles.AddStyle("Loud", "Normal");
@@ -23,7 +23,7 @@ public class ChartFontFlatteningTests
         return document.AddSection().AddChart(ChartType.Column2D);
     }
 
-    static void Flattened(Document document) => new PdfFlattenVisitor().Visit(document);
+    private static void Flattened(Document document) => new PdfFlattenVisitor().Visit(document);
 
     [Fact]
     public void AnAxisTitleWithAStyleAndAFontOfItsOwnKeepsBoth()

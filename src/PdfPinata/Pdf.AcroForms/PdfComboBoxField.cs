@@ -135,7 +135,7 @@ public sealed class PdfComboBoxField : PdfChoiceField
     /// own text so the two agree. Leaves both alone when <c>/V</c> names no option on offer,
     /// because there is no index to point at.
     /// </summary>
-    void SyncSelectedIndex()
+    private void SyncSelectedIndex()
     {
         var index = SelectedIndex;
         if (index != -1)
@@ -145,7 +145,7 @@ public sealed class PdfComboBoxField : PdfChoiceField
     /// <summary>
     /// The text a name stands for, without the solidus that makes it a name.
     /// </summary>
-    static string TextOfName(PdfName name)
+    private static string TextOfName(PdfName name)
     {
         var value = name.Value ?? "";
         return value.Length != 0 && value[0] == '/' ? value[1..] : value;
@@ -168,7 +168,7 @@ public sealed class PdfComboBoxField : PdfChoiceField
                 return _meta;
             }
         }
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

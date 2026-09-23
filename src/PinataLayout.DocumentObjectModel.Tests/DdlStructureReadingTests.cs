@@ -22,21 +22,21 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 /// </summary>
 public class DdlStructureReadingTests
 {
-    static Document Read(string ddl) => DdlReader.DocumentFromString(ddl);
+    private static Document Read(string ddl) => DdlReader.DocumentFromString(ddl);
 
-    static Section SectionOf(string sectionBody) =>
+    private static Section SectionOf(string sectionBody) =>
         Read("\\document{\\section{" + sectionBody + "}}").LastSection;
 
-    static Paragraph FirstParagraphOf(string paragraphBody) =>
+    private static Paragraph FirstParagraphOf(string paragraphBody) =>
         SectionOf("\\paragraph{" + paragraphBody + "}").Elements[0] as Paragraph;
 
-    static Chart ChartFrom(string chartBody) =>
+    private static Chart ChartFrom(string chartBody) =>
         SectionOf("\\chart(Line){" + chartBody + "}").Elements[0] as Chart;
 
-    static string TextOf(Paragraph paragraph) =>
+    private static string TextOf(Paragraph paragraph) =>
         string.Concat(paragraph.Elements.OfType<Text>().Select(text => text.Content));
 
-    static DocumentObject ReadOnItsOwn(string ddl)
+    private static DocumentObject ReadOnItsOwn(string ddl)
     {
         var errors = new DdlReaderErrors();
         var read = DdlReader.ObjectFromString(ddl, errors);

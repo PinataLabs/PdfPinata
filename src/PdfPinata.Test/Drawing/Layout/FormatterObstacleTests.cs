@@ -31,31 +31,31 @@ namespace PdfPinata.Test.Drawing.Layout;
 [Collection(GlyphOutlineCollection.Name)]
 public class FormatterObstacleTests
 {
-    const string Prose =
+    private const string Prose =
         "The quick brown fox jumps over the lazy dog, and having jumped it lands and looks about " +
         "for somewhere else to be, which takes rather longer than the jump did and is far less " +
         "impressive to watch from any distance at all, or indeed from close to, where the whole " +
         "business looks distinctly laboured and not at all the effortless bound the saying has " +
         "always promised its readers it would turn out to be on closer inspection.";
 
-    static readonly XRect Block = new XRect(40, 40, 300, 300);
+    private static readonly XRect Block = new XRect(40, 40, 300, 300);
 
     /// <summary>
     ///   Short enough that the text runs past the bottom of the first column and into the second.
     ///   The full-height block holds all of it in one column, which makes a test of the second
     ///   column pass by finding nothing there.
     /// </summary>
-    static readonly XRect TwoColumnBlock = new XRect(40, 40, 300, 120);
+    private static readonly XRect TwoColumnBlock = new XRect(40, 40, 300, 120);
 
     /// <summary>Two columns across 300 with the default 18 gutter: 141 each, the second 159 in.</summary>
-    const double SecondColumnLeft = 159;
+    private const double SecondColumnLeft = 159;
 
-    static List<(double X, double Y)> SecondColumnOf(IEnumerable<(double X, double Y)> lines)
+    private static List<(double X, double Y)> SecondColumnOf(IEnumerable<(double X, double Y)> lines)
     {
         return lines.Where(line => line.X > Block.X + SecondColumnLeft - 1).ToList();
     }
 
-    static PdfPage Render(string text = Prose, XRect? area = null,
+    private static PdfPage Render(string text = Prose, XRect? area = null,
         Action<XTextFormatter> arrange = null)
     {
         var document = new PdfDocument();
@@ -70,7 +70,7 @@ public class FormatterObstacleTests
     }
 
     /// <summary>Where each line begins and how far down it sits, top of the page first.</summary>
-    static List<(double X, double Y)> LinesOf(PdfPage page, int skip = 0)
+    private static List<(double X, double Y)> LinesOf(PdfPage page, int skip = 0)
     {
         return TextBaselines.PositionsOf(page)
             .Skip(skip)
@@ -80,7 +80,7 @@ public class FormatterObstacleTests
     }
 
     /// <summary>The glyph a space is in the face the tests are pinned to.</summary>
-    const int SpaceGlyph = 3;
+    private const int SpaceGlyph = 3;
 
     /// <summary>
     ///   Every glyph the page shows, in order, with the spaces taken out.
@@ -90,7 +90,7 @@ public class FormatterObstacleTests
     ///   space it broke at. Two different breakings of one text therefore hold different numbers of
     ///   spaces, and comparing the words is the only way to ask whether the same text was set.
     /// </remarks>
-    static List<int> GlyphsOn(PdfPage page)
+    private static List<int> GlyphsOn(PdfPage page)
     {
         var glyphs = new List<int>();
         foreach (var run in TextOperators.ShownStrings(page))
@@ -109,14 +109,14 @@ public class FormatterObstacleTests
     ///   How many glyphs the given run carries. The formatter draws a line at a time, so run 0 of a
     ///   page with a drop cap is the cap and run 1 is the first line of body text.
     /// </summary>
-    static int GlyphsOnLine(PdfPage page, int index)
+    private static int GlyphsOnLine(PdfPage page, int index)
     {
         // Two bytes per glyph: the fonts are embedded as Identity-H.
         return TextOperators.ShownStrings(page)[index].Length / 2;
     }
 
     /// <summary>An obstacle standing in the top of the block, in the block's own coordinates.</summary>
-    static RectangleObstacle Standing(double x, double width, double padding = 0)
+    private static RectangleObstacle Standing(double x, double width, double padding = 0)
     {
         return new RectangleObstacle(new XRect(x, 0, width, 60), padding);
     }

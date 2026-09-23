@@ -127,7 +127,7 @@ static class GeometryHelper
     /// Calculates the quadrant (0 through 3) of the specified angle. If the angle lies on an edge
     /// (0, 90, 180, etc.) the result depends on the details how the angle is used.
     /// </summary>
-    static int Quadrant(double φ, bool start, bool clockwise)
+    private static int Quadrant(double φ, bool start, bool clockwise)
     {
         Debug.Assert(φ >= 0);
         if (φ > 360)
@@ -149,7 +149,7 @@ static class GeometryHelper
     /// <summary>
     /// Appends a Bézier curve for an arc within a full quadrant.
     /// </summary>
-    static void AppendPartialArcQuadrant(List<XPoint> points, double x, double y, double width, double height, double α, double β, PathStart pathStart, XMatrix matrix)
+    private static void AppendPartialArcQuadrant(List<XPoint> points, double x, double y, double width, double height, double α, double β, PathStart pathStart, XMatrix matrix)
     {
         Debug.Assert(α >= 0 && α <= 360);
         Debug.Assert(β >= 0);

@@ -259,7 +259,7 @@ public abstract class DocumentObjectCollection : DocumentObject, IList, IVisitab
         return elements.GetEnumerator();
     }
 
-    ArrayList elements;
+    private ArrayList elements;
 
     #region IList Members
 

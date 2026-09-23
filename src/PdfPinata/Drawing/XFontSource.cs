@@ -49,7 +49,7 @@ internal class XFontSource
     // * A font collection never reaches here: PdfPinata.Utils.TrueTypeCollection extracts
     //   the requested face in the font resolver, so what arrives is always a single font.
 
-    XFontSource(byte[] bytes, ulong key)
+    private XFontSource(byte[] bytes, ulong key)
     {
         _fontName = null;
         _bytes = bytes;
@@ -108,7 +108,8 @@ internal class XFontSource
             _fontName = value.name.FullFontName;
         }
     }
-    OpenTypeFontface _fontface;
+
+    private OpenTypeFontface _fontface;
 
     /// <summary>
     /// Gets the key that uniquely identifies this font source.
@@ -122,7 +123,8 @@ internal class XFontSource
             return _key;
         }
     }
-    ulong _key;
+
+    private ulong _key;
 
     public void IncrementKey()
     {
@@ -136,14 +138,14 @@ internal class XFontSource
     /// </summary>
     public string FontName => _fontName;
 
-    string _fontName;
+    private string _fontName;
 
     /// <summary>
     /// Gets the bytes of the font.
     /// </summary>
     public byte[] Bytes => _bytes;
 
-    readonly byte[] _bytes;
+    private readonly byte[] _bytes;
 
     public override int GetHashCode()
     {

@@ -32,7 +32,7 @@ public static class GlobalTimeSettings
         get => _clock;
         set => _clock = value ?? DefaultClock;
     }
-    static Func<DateTime> _clock = DefaultClock;
+    private static Func<DateTime> _clock = DefaultClock;
 
     /// <summary>
     /// Gets the current time, as <see cref="Clock"/> reports it. Reads the same as
@@ -40,5 +40,5 @@ public static class GlobalTimeSettings
     /// </summary>
     public static DateTime Now => _clock();
 
-    static DateTime DefaultClock() => DateTime.Now;
+    private static DateTime DefaultClock() => DateTime.Now;
 }

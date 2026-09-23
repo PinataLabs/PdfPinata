@@ -25,9 +25,9 @@ namespace PdfPinata.Test.Annotations;
 [Collection(RasterizingCollection.Name)]
 public sealed class CircleAnnotationTests : IDisposable
 {
-    const string OutDir = "Out/CircleAnnotations";
+    private const string OutDir = "Out/CircleAnnotations";
 
-    readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
+    private readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
 
     public void Dispose()
     {
@@ -43,7 +43,7 @@ public sealed class CircleAnnotationTests : IDisposable
     }
 
     /// <summary>A wide rectangle, so that "circle" is visibly an ellipse inscribed in it.</summary>
-    static readonly XRect Where = new XRect(60, 60, 200, 100);
+    private static readonly XRect Where = new XRect(60, 60, 200, 100);
 
     [Fact]
     public void ACircleNamesItsSubtype()
@@ -109,7 +109,7 @@ public sealed class CircleAnnotationTests : IDisposable
     }
 
     /// <summary>A shape that names no subtype, which is the thing the base has to refuse.</summary>
-    sealed class Nameless : PdfSquareCircleAnnotation
+    private sealed class Nameless : PdfSquareCircleAnnotation
     {
         public Nameless(string subtype)
             : base(subtype)
@@ -160,7 +160,7 @@ public sealed class CircleAnnotationTests : IDisposable
         IsWhite(At(page, Where.X + Where.Width / 2, Where.Y + Where.Height / 2)).Should().BeTrue();
     }
 
-    IMagickImage<byte> Rasterize(string name, Action<PdfCircleAnnotation> arrange)
+    private IMagickImage<byte> Rasterize(string name, Action<PdfCircleAnnotation> arrange)
     {
         GlobalFontSettings.FontResolver ??= new PinnedFontResolver();
 
@@ -183,7 +183,7 @@ public sealed class CircleAnnotationTests : IDisposable
     /// <summary>
     ///   The pixel at a place on the page, given in the same world coordinates the drawing uses.
     /// </summary>
-    static IMagickColor<byte> At(IMagickImage<byte> image, double x, double y)
+    private static IMagickColor<byte> At(IMagickImage<byte> image, double x, double y)
     {
         var scale = image.Width / PageSizeConverter.ToSize(PageSize.A4).Width;
 
@@ -191,11 +191,11 @@ public sealed class CircleAnnotationTests : IDisposable
         return pixels.GetPixel((int)(x * scale), (int)(y * scale)).ToColor();
     }
 
-    static bool IsGreen(IMagickColor<byte> c) => c.G > 90 && c.R < 120 && c.B < 140;
+    private static bool IsGreen(IMagickColor<byte> c) => c.G > 90 && c.R < 120 && c.B < 140;
 
-    static bool IsWhite(IMagickColor<byte> c) => c.R > 240 && c.G > 240 && c.B > 240;
+    private static bool IsWhite(IMagickColor<byte> c) => c.R > 240 && c.G > 240 && c.B > 240;
 
-    static int Count(IMagickImage<byte> image, Func<IMagickColor<byte>, bool> match)
+    private static int Count(IMagickImage<byte> image, Func<IMagickColor<byte>, bool> match)
     {
         using var pixels = image.GetPixels();
         return pixels.Count(p =>

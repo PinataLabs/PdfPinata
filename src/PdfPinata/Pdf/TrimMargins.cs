@@ -60,7 +60,7 @@ public sealed class TrimMargins
         get => _left;
         set => _left = value;
     }
-    XUnit _left;
+    private XUnit _left;
 
     /// <summary>
     /// Gets or sets the right crop margin.
@@ -70,7 +70,7 @@ public sealed class TrimMargins
         get => _right;
         set => _right = value;
     }
-    XUnit _right;
+    private XUnit _right;
 
     /// <summary>
     /// Gets or sets the top crop margin.
@@ -80,7 +80,7 @@ public sealed class TrimMargins
         get => _top;
         set => _top = value;
     }
-    XUnit _top;
+    private XUnit _top;
 
     /// <summary>
     /// Gets or sets the bottom crop margin.
@@ -90,7 +90,7 @@ public sealed class TrimMargins
         get => _bottom;
         set => _bottom = value;
     }
-    XUnit _bottom;
+    private XUnit _bottom;
 
     /// <summary>
     /// Gets a value indicating whether this instance has at least one margin with a value other than zero.

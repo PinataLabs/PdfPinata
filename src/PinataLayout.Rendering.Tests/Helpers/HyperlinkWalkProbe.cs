@@ -21,13 +21,13 @@ namespace PinataLayout.Rendering.Tests.Helpers;
 /// </remarks>
 internal static class HyperlinkWalkProbe
 {
-    static readonly Assembly Rendering = typeof(PdfDocumentRenderer).Assembly;
+    private static readonly Assembly Rendering = typeof(PdfDocumentRenderer).Assembly;
 
-    static readonly Type RendererType = Rendering.GetType("PinataLayout.Rendering.ParagraphRenderer", throwOnError: true);
+    private static readonly Type RendererType = Rendering.GetType("PinataLayout.Rendering.ParagraphRenderer", throwOnError: true);
 
-    static readonly Type IteratorType = Rendering.GetType("PinataLayout.Rendering.ParagraphIterator", throwOnError: true);
+    private static readonly Type IteratorType = Rendering.GetType("PinataLayout.Rendering.ParagraphIterator", throwOnError: true);
 
-    const BindingFlags Internals = BindingFlags.NonPublic | BindingFlags.Instance;
+    private const BindingFlags Internals = BindingFlags.NonPublic | BindingFlags.Instance;
 
     /// <summary>
     ///   The hyperlink the renderer finds around the first leaf of the given elements, or null

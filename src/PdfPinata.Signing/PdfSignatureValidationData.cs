@@ -66,7 +66,7 @@ public static class PdfSignatureValidationData
     /// everything above it. Decoded without checking the signature itself: gathering evidence about a
     /// certificate needs to know which certificate it is, not whether it signed anything correctly.
     /// </summary>
-    static X509Certificate2Collection CertificatesOf(PdfSignatureInfo signature)
+    private static X509Certificate2Collection CertificatesOf(PdfSignatureInfo signature)
     {
         var encoded = CmsEncoding.Trimmed(signature.Contents);
 

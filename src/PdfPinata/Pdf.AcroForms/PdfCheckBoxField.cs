@@ -252,7 +252,7 @@ public sealed class PdfCheckBoxField : PdfButtonField
     /// Gets the child field at the given position, or null when there is no such child or it is
     /// not a dictionary.
     /// </summary>
-    PdfDictionary ChildAt(int index)
+    private PdfDictionary ChildAt(int index)
     {
         var kids = Fields.Elements.Items;
         if (index < 0 || index >= kids.Length)
@@ -268,14 +268,14 @@ public sealed class PdfCheckBoxField : PdfButtonField
     /// The name of the first appearance state of the child that is not "/Off", or "" when it
     /// names none - which is how a child with no appearances at all is left as it was.
     /// </summary>
-    static string OnStateOf(PdfDictionary child) => StateOf(child, wanted: false);
+    private static string OnStateOf(PdfDictionary child) => StateOf(child, wanted: false);
 
     /// <summary>
     /// The name of the child's "/Off" appearance state, or "" when it has not got one.
     /// </summary>
-    static string OffStateOf(PdfDictionary child) => StateOf(child, wanted: true);
+    private static string OffStateOf(PdfDictionary child) => StateOf(child, wanted: true);
 
-    static string StateOf(PdfDictionary child, bool wanted)
+    private static string StateOf(PdfDictionary child, bool wanted)
     {
         var appearances = child?.Elements["/AP"] as PdfDictionary;
         var normal = appearances?.Elements["/N"] as PdfDictionary;
@@ -300,7 +300,7 @@ public sealed class PdfCheckBoxField : PdfButtonField
         set => _checkedName = value;
     }
 
-    string _checkedName = "/Yes";
+    private string _checkedName = "/Yes";
 
     /// <summary>
     /// Gets or sets the name of the dictionary that represents the Unchecked state.
@@ -312,7 +312,7 @@ public sealed class PdfCheckBoxField : PdfButtonField
         set => _uncheckedName = value;
     }
 
-    string _uncheckedName = "/Off";
+    private string _uncheckedName = "/Off";
 
     /// <summary>
     /// Predefined keys of this dictionary.
@@ -332,7 +332,7 @@ public sealed class PdfCheckBoxField : PdfButtonField
         /// </summary>
         internal static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

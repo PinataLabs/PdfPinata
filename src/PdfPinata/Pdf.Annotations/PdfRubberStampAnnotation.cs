@@ -63,7 +63,7 @@ public sealed class PdfRubberStampAnnotation : PdfMarkupAnnotation
         : base(dict)
     { }
 
-    void Initialize()
+    private void Initialize()
     {
         Elements.SetName(PdfAnnotation.Keys.Subtype, "/Stamp");
         Color = XColors.Yellow;
@@ -116,7 +116,7 @@ public sealed class PdfRubberStampAnnotation : PdfMarkupAnnotation
 
         public static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

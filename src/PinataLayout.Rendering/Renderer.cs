@@ -216,7 +216,7 @@ internal abstract class Renderer
     /// was set. Null is a legitimate answer for two element kinds, a legend and a bookmark, which is
     /// why the callers cannot simply refuse it and why the refusal belongs here instead.
     /// </remarks>
-    static NotSupportedException NoBarcodeRenderer() =>
+    private static NotSupportedException NoBarcodeRenderer() =>
         new("PinataLayout has no renderer for the Barcode shape, so one added to a document would be dropped "
             + "from the page without a word. Draw bar codes on the PdfPinata surface instead: build a "
             + "PdfPinata.Drawing.BarCodes.BarCode and pass it to XGraphics.DrawBarCode, or a "

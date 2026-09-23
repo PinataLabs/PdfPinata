@@ -34,13 +34,13 @@ public static class PdfOutputIntents
     /// <summary>
     /// The name the profile is embedded in this assembly under.
     /// </summary>
-    const string Resource = "PdfPinata.sRGB-v2-micro.icc";
+    private const string Resource = "PdfPinata.sRGB-v2-micro.icc";
 
     /// <summary>
     /// Where an ICC profile's own file signature sits, and what it says. Every profile carries
     /// <c>acsp</c> there and nothing else does.
     /// </summary>
-    const int SignatureAt = 36;
+    private const int SignatureAt = 36;
 
     /// <summary>
     /// The profile, read and checked once. <see cref="Lazy{T}"/> rather than a field and a null
@@ -48,7 +48,7 @@ public static class PdfOutputIntents
     /// and both check it — the same answer twice over, which is waste rather than a defect, but
     /// stating "once" is shorter than explaining why doing it twice is harmless.
     /// </summary>
-    static readonly Lazy<byte[]> Loaded = new Lazy<byte[]>(Read);
+    private static readonly Lazy<byte[]> Loaded = new Lazy<byte[]>(Read);
 
     /// <summary>
     /// The bytes of an sRGB profile, ready to be assigned to
@@ -89,7 +89,7 @@ public static class PdfOutputIntents
     /// <summary>
     /// The embedded bytes. Never handed out directly — see <see cref="SrgbProfile"/>.
     /// </summary>
-    static byte[] Read()
+    private static byte[] Read()
     {
         using (var stream = typeof(PdfOutputIntents).GetTypeInfo().Assembly
                    .GetManifestResourceStream(Resource))

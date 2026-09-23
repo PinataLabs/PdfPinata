@@ -40,7 +40,7 @@ namespace PdfPinata.Test.Text;
 /// </remarks>
 public class BidiConformanceTests
 {
-    readonly ITestOutputHelper _out;
+    private readonly ITestOutputHelper _out;
 
     public BidiConformanceTests(ITestOutputHelper output) => _out = output;
 
@@ -53,7 +53,7 @@ public class BidiConformanceTests
     ///   rule N0, which would resolve the case differently from every other ON. An exclamation
     ///   mark is ON and is not a bracket.
     /// </remarks>
-    static readonly Dictionary<string, int> Representative = new()
+    private static readonly Dictionary<string, int> Representative = new()
     {
         ["L"] = 0x0041,     // A
         ["R"] = 0x05D0,     // Hebrew alef
@@ -92,7 +92,7 @@ public class BidiConformanceTests
         }
     }
 
-    static IEnumerable<string> ReadLines(string name)
+    private static IEnumerable<string> ReadLines(string name)
     {
         var path = Path.Combine(AppContext.BaseDirectory, "Assets", "Unicode", name);
         using var file = File.OpenRead(path);
@@ -219,7 +219,7 @@ public class BidiConformanceTests
 
     // ----- comparing ----------------------------------------------------------------------------
 
-    static string[] Fields(string text)
+    private static string[] Fields(string text)
         => text.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
 
     /// <summary>
@@ -227,7 +227,7 @@ public class BidiConformanceTests
     ///   algorithm removed with an "x" and leave it out of the expected order, so both have to be
     ///   compared over the characters that survived rule X9 rather than over all of them.
     /// </summary>
-    static string Compare(BidiResult result, byte[] expectedLevels, bool[] levelIgnored, int[] expectedOrder)
+    private static string Compare(BidiResult result, byte[] expectedLevels, bool[] levelIgnored, int[] expectedOrder)
     {
         if (result.Levels.Count != expectedLevels.Length)
             return $"{result.Levels.Count} levels, expected {expectedLevels.Length}";
@@ -264,7 +264,7 @@ public class BidiConformanceTests
         return null;
     }
 
-    void Report(int cases, List<string> failures, string suite)
+    private void Report(int cases, List<string> failures, string suite)
     {
         _out.WriteLine($"{suite}: {cases - failures.Count} of {cases} cases passed.");
         foreach (var failure in failures.Take(20))

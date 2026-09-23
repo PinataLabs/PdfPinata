@@ -1,4 +1,5 @@
 #region Copyright
+
 //
 // Authors:
 //   Stefan Lange
@@ -25,6 +26,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
+
 #endregion
 
 using System;
@@ -65,41 +67,49 @@ internal sealed class KeyDescriptor
         get => _version;
         set => _version = value;
     }
-    string _version;
+
+    private string _version;
 
     public KeyType KeyType
     {
         get => _keyType;
         set => _keyType = value;
     }
-    KeyType _keyType;
+
+    private KeyType _keyType;
 
     public string KeyValue
     {
         get => _keyValue;
         set => _keyValue = value;
     }
-    string _keyValue;
+
+    private string _keyValue;
 
     public string FixedValue => _fixedValue;
 
-    readonly string _fixedValue;
+    private readonly string _fixedValue;
 
-    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)]
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors |
+                                DynamicallyAccessedMemberTypes.NonPublicConstructors)]
     public Type ObjectType
     {
         get => _objectType;
         set => _objectType = value;
     }
-    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)]
-    Type _objectType;
+
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors |
+                                DynamicallyAccessedMemberTypes.NonPublicConstructors)]
+    private Type _objectType;
 
     public bool CanBeIndirect => (_keyType & KeyType.MustNotBeIndirect) == 0;
 
     /// <summary>
     /// Returns the type of the object to be created as value for the described key.
     /// </summary>
-    [return: DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)]
+    [return:
+        DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors |
+                                   DynamicallyAccessedMemberTypes.NonPublicConstructors)]
     public Type GetValueType()
     {
         var type = _objectType;
@@ -171,6 +181,7 @@ internal sealed class KeyDescriptor
                     break;
             }
         }
+
         return type;
     }
 }
@@ -182,47 +193,19 @@ internal class DictionaryMeta
 {
     public DictionaryMeta([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] Type type)
     {
-#if NET5_0_OR_GREATER
-            var fields = type.GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
-            foreach (var field in fields)
-            {
-                var attributes = field.GetCustomAttributes<KeyInfoAttribute>(false);
-                foreach (var attribute in attributes)
-                {
-                    var descriptor = new KeyDescriptor(attribute);
-                    descriptor.KeyValue = (string)field.GetValue(null);
-                    // ReSharper disable once AssignNullToNotNullAttribute
-                    _keyDescriptors[descriptor.KeyValue] = descriptor;
-                }
-            }
-#else
-        // Rewritten for WinRT.
-        CollectKeyDescriptors(type);
-#endif
-    }
-
-#if !NET5_0_OR_GREATER
-    // Background: The function GetRuntimeFields gets constant fields only for the specified type,
-    // not for its base types. So we have to walk recursively through base classes.
-    void CollectKeyDescriptors(Type type)
-    {
-        // Get fields of the specified type only.
-        var fields = type.GetTypeInfo().DeclaredFields;
+        var fields = type.GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
         foreach (var field in fields)
         {
-            var attributes = field.GetCustomAttributes(typeof(KeyInfoAttribute), false);
+            var attributes = field.GetCustomAttributes<KeyInfoAttribute>(false);
             foreach (var attribute in attributes)
             {
-                var descriptor = new KeyDescriptor((KeyInfoAttribute)attribute);
+                var descriptor = new KeyDescriptor(attribute);
                 descriptor.KeyValue = (string)field.GetValue(null);
+                // ReSharper disable once AssignNullToNotNullAttribute
                 _keyDescriptors[descriptor.KeyValue] = descriptor;
             }
         }
-        type = type.GetTypeInfo().BaseType;
-        if (type != typeof(object) && type != typeof(PdfObject))
-            CollectKeyDescriptors(type);
     }
-#endif
 
     /// <summary>
     /// Gets the KeyDescriptor of the specified key, or null if no such descriptor exits.
@@ -231,11 +214,10 @@ internal class DictionaryMeta
     {
         get
         {
-            KeyDescriptor keyDescriptor;
-            _keyDescriptors.TryGetValue(key, out keyDescriptor);
+            _keyDescriptors.TryGetValue(key, out var keyDescriptor);
             return keyDescriptor;
         }
     }
 
-    readonly Dictionary<string, KeyDescriptor> _keyDescriptors = new();
+    private readonly Dictionary<string, KeyDescriptor> _keyDescriptors = new();
 }

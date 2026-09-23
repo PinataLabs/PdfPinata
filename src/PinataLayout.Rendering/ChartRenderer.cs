@@ -60,7 +60,7 @@ internal class ChartRenderer : ShapeRenderer
     chart = (Chart)renderInfo.DocumentObject;
   }
 
-  FormattedTextArea GetFormattedTextArea(TextArea area, XUnit width)
+  private FormattedTextArea GetFormattedTextArea(TextArea area, XUnit width)
   {
     if (area == null)
       return null;
@@ -74,12 +74,12 @@ internal class ChartRenderer : ShapeRenderer
     return formattedTextArea;
   }
 
-  FormattedTextArea GetFormattedTextArea(TextArea area)
+  private FormattedTextArea GetFormattedTextArea(TextArea area)
   {
     return GetFormattedTextArea(area, double.NaN);
   }
 
-  void GetLeftRightVerticalPosition(out XUnit top, out XUnit bottom)
+  private void GetLeftRightVerticalPosition(out XUnit top, out XUnit bottom)
   {
     //REM: Line width is still ignored while layouting charts.
     var contentArea = renderInfo.LayoutInfo.ContentArea;
@@ -94,7 +94,7 @@ internal class ChartRenderer : ShapeRenderer
       bottom -= formatInfo.formattedFooter.InnerHeight;
   }
 
-  Rectangle GetLeftRect()
+  private Rectangle GetLeftRect()
   {
     var contentArea = renderInfo.LayoutInfo.ContentArea;
     var formatInfo = (ChartFormatInfo)renderInfo.FormatInfo;
@@ -108,7 +108,7 @@ internal class ChartRenderer : ShapeRenderer
     return new Rectangle(left, top, width, bottom - top);
   }
 
-  Rectangle GetRightRect()
+  private Rectangle GetRightRect()
   {
     var contentArea = renderInfo.LayoutInfo.ContentArea;
     var formatInfo = (ChartFormatInfo)renderInfo.FormatInfo;
@@ -122,7 +122,7 @@ internal class ChartRenderer : ShapeRenderer
     return new Rectangle(left, top, width, bottom - top);
   }
 
-  Rectangle GetHeaderRect()
+  private Rectangle GetHeaderRect()
   {
     var contentArea = renderInfo.LayoutInfo.ContentArea;
     var formatInfo = (ChartFormatInfo)renderInfo.FormatInfo;
@@ -135,7 +135,7 @@ internal class ChartRenderer : ShapeRenderer
     return new Rectangle(left, top, width, height);
   }
 
-  Rectangle GetFooterRect()
+  private Rectangle GetFooterRect()
   {
     var contentArea = renderInfo.LayoutInfo.ContentArea;
     var formatInfo = (ChartFormatInfo)renderInfo.FormatInfo;
@@ -148,7 +148,7 @@ internal class ChartRenderer : ShapeRenderer
     return new Rectangle(left, top, width, height);
   }
 
-  Rectangle GetTopRect()
+  private Rectangle GetTopRect()
   {
     var contentArea = renderInfo.LayoutInfo.ContentArea;
     var formatInfo = (ChartFormatInfo)renderInfo.FormatInfo;
@@ -166,7 +166,7 @@ internal class ChartRenderer : ShapeRenderer
     return new Rectangle(left, top, right - left, height);
   }
 
-  Rectangle GetBottomRect()
+  private Rectangle GetBottomRect()
   {
     var contentArea = renderInfo.LayoutInfo.ContentArea;
     var formatInfo = (ChartFormatInfo)renderInfo.FormatInfo;
@@ -183,7 +183,7 @@ internal class ChartRenderer : ShapeRenderer
     return new Rectangle(left, top, right - left, height);
   }
 
-  Rectangle GetPlotRect()
+  private Rectangle GetPlotRect()
   {
     var contentArea = renderInfo.LayoutInfo.ContentArea;
     var formatInfo = (ChartFormatInfo)renderInfo.FormatInfo;
@@ -239,7 +239,7 @@ internal class ChartRenderer : ShapeRenderer
   }
 
 
-  static XUnit AlignVertically(VerticalAlignment vAlign, XUnit top, XUnit bottom, XUnit height)
+  private static XUnit AlignVertically(VerticalAlignment vAlign, XUnit top, XUnit bottom, XUnit height)
   {
     switch (vAlign)
     {
@@ -287,7 +287,7 @@ internal class ChartRenderer : ShapeRenderer
       left += formatInfo.formattedLeft.InnerWidth;
   }
 
-  void RenderArea(FormattedTextArea area, Rectangle rect)
+  private void RenderArea(FormattedTextArea area, Rectangle rect)
   {
     if (area == null)
       return;
@@ -360,7 +360,7 @@ internal class ChartRenderer : ShapeRenderer
   /// Opens the scope the chart is drawn in: a figure when it has been described, an artifact when it
   /// has not.
   /// </summary>
-  IDisposable BeginStructure()
+  private IDisposable BeginStructure()
   {
     if (chart.IsNull("AlternativeText") || string.IsNullOrEmpty(chart.AlternativeText))
       return Tagger.Artifact(Gfx);
@@ -372,7 +372,7 @@ internal class ChartRenderer : ShapeRenderer
     return scope;
   }
 
-  void RenderPlotArea(PlotArea area, Rectangle rect)
+  private void RenderPlotArea(PlotArea area, Rectangle rect)
   {
     var chartFrame = ((ChartFormatInfo)renderInfo.FormatInfo).chartFrame;
 
@@ -392,5 +392,5 @@ internal class ChartRenderer : ShapeRenderer
     chartFrame.Size = new XSize(right - left, bottom - top);
     chartFrame.DrawChart(Gfx);
   }
-  Chart chart;
+  private Chart chart;
 }

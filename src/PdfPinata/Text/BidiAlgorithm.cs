@@ -26,7 +26,7 @@ public static partial class BidiAlgorithm
     /// The deepest an embedding may nest, per BD2. Beyond it the algorithm counts overflows rather
     /// than pushing, and the extra controls have no effect at all.
     /// </summary>
-    const int MaxDepth = 125;
+    private const int MaxDepth = 125;
 
     /// <summary>
     /// Resolves one paragraph of text given as code points.
@@ -83,7 +83,7 @@ public static partial class BidiAlgorithm
     /// The same answer indexed by UTF-16 code unit rather than by code point, with a surrogate
     /// pair's two units carrying what its one character resolved to.
     /// </summary>
-    static BidiResult Spread(BidiResult resolved, List<int> unitsPer, int length)
+    private static BidiResult Spread(BidiResult resolved, List<int> unitsPer, int length)
     {
         var levels = new byte[length];
         var removed = new bool[length];
@@ -118,11 +118,11 @@ public static partial class BidiAlgorithm
         => type == BidiClass.RLE || type == BidiClass.LRE || type == BidiClass.RLO
         || type == BidiClass.LRO || type == BidiClass.PDF || type == BidiClass.BN;
 
-    static bool IsIsolateInitiator(BidiClass type)
+    private static bool IsIsolateInitiator(BidiClass type)
         => type == BidiClass.LRI || type == BidiClass.RLI || type == BidiClass.FSI;
 
     /// <summary>A "neutral or isolate formatting character", as the N rules call them.</summary>
-    static bool IsNeutralOrIsolate(BidiClass type)
+    private static bool IsNeutralOrIsolate(BidiClass type)
         => type == BidiClass.B || type == BidiClass.S || type == BidiClass.WS
         || type == BidiClass.ON || type == BidiClass.FSI || type == BidiClass.LRI
         || type == BidiClass.RLI || type == BidiClass.PDI;
@@ -132,19 +132,19 @@ public static partial class BidiAlgorithm
     /// read and write the same half-dozen arrays throughout, and threading them through twenty
     /// methods would obscure what each rule actually does.
     /// </summary>
-    sealed class Paragraph
+    private sealed class Paragraph
     {
-        readonly IReadOnlyList<int> _codePoints;
-        readonly BidiParagraphDirection _direction;
-        readonly int _length;
+        private readonly IReadOnlyList<int> _codePoints;
+        private readonly BidiParagraphDirection _direction;
+        private readonly int _length;
 
-        readonly BidiClass[] _initial;   // as the database gives them, never modified
-        readonly BidiClass[] _types;     // as the W, N and X rules leave them
-        readonly byte[] _levels;
-        readonly int[] _matchingPdi;     // for an isolate initiator, where its PDI is (or _length)
-        readonly int[] _matchingInitiator; // for a PDI, where its initiator is (or -1)
+        private readonly BidiClass[] _initial;   // as the database gives them, never modified
+        private readonly BidiClass[] _types;     // as the W, N and X rules leave them
+        private readonly byte[] _levels;
+        private readonly int[] _matchingPdi;     // for an isolate initiator, where its PDI is (or _length)
+        private readonly int[] _matchingInitiator; // for a PDI, where its initiator is (or -1)
 
-        byte _paragraphLevel;
+        private byte _paragraphLevel;
 
         internal Paragraph(IReadOnlyList<int> codePoints, BidiParagraphDirection direction)
         {
@@ -195,7 +195,7 @@ public static partial class BidiAlgorithm
 
         // ----- BD9: which PDI closes which isolate initiator --------------------------------------
 
-        void DetermineMatchingIsolates()
+        private void DetermineMatchingIsolates()
         {
             for (var idx = 0; idx < _length; idx++)
             {
@@ -234,7 +234,7 @@ public static partial class BidiAlgorithm
 
         // ----- P2, P3: the level of a paragraph, or of the inside of an FSI -----------------------
 
-        byte ParagraphLevelOf(int start, int end)
+        private byte ParagraphLevelOf(int start, int end)
         {
             for (var idx = start; idx < end; idx++)
             {
@@ -262,7 +262,7 @@ public static partial class BidiAlgorithm
 
         // ----- X1 to X8: explicit embeddings, overrides and isolates ------------------------------
 
-        void ResolveExplicitLevels()
+        private void ResolveExplicitLevels()
         {
             var stack = new Stack<Status>();
             stack.Push(new Status(_paragraphLevel, BidiClass.ON, false));
@@ -385,16 +385,16 @@ public static partial class BidiAlgorithm
             }
         }
 
-        void Override(int index, BidiClass over)
+        private void Override(int index, BidiClass over)
         {
             if (over != BidiClass.ON)
                 _types[index] = over;
         }
 
-        static int NextLevel(byte level, bool rightToLeft)
+        private static int NextLevel(byte level, bool rightToLeft)
             => rightToLeft ? (level + 1) | 1 : (level + 2) & ~1;
 
-        readonly struct Status
+        private readonly struct Status
         {
             internal Status(byte level, BidiClass over, bool isolate)
             {
@@ -413,7 +413,7 @@ public static partial class BidiAlgorithm
         /// <summary>
         /// The level runs of the paragraph, over the characters X9 did not remove.
         /// </summary>
-        List<List<int>> LevelRuns()
+        private List<List<int>> LevelRuns()
         {
             var runs = new List<List<int>>();
             List<int> current = null;
@@ -437,7 +437,7 @@ public static partial class BidiAlgorithm
             return runs;
         }
 
-        List<Sequence> IsolatingRunSequences()
+        private List<Sequence> IsolatingRunSequences()
         {
             var runs = LevelRuns();
             var runOfCharacter = new Dictionary<int, int>();
@@ -493,7 +493,7 @@ public static partial class BidiAlgorithm
             return sequences;
         }
 
-        Sequence BuildSequence(List<int> indices)
+        private Sequence BuildSequence(List<int> indices)
         {
             var level = _levels[indices[0]];
 
@@ -530,11 +530,11 @@ public static partial class BidiAlgorithm
                 DirectionOf(Math.Max(lastLevel, after)));
         }
 
-        static BidiClass DirectionOf(int level) => (level & 1) == 0 ? BidiClass.L : BidiClass.R;
+        private static BidiClass DirectionOf(int level) => (level & 1) == 0 ? BidiClass.L : BidiClass.R;
 
         // ----- L1: put the separators and the trailing whitespace back ----------------------------
 
-        void ResetWhitespaceLevels()
+        private void ResetWhitespaceLevels()
         {
             // Read from the *original* types, not the resolved ones: by now a space may have been
             // turned into something strong, and L1 is not interested in that.
@@ -561,7 +561,7 @@ public static partial class BidiAlgorithm
 
         // ----- L2: draw the highest levels backwards ----------------------------------------------
 
-        int[] Reorder(bool[] removed)
+        private int[] Reorder(bool[] removed)
         {
             var order = new List<int>(_length);
             for (var idx = 0; idx < _length; idx++)

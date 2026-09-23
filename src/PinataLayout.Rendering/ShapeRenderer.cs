@@ -83,7 +83,7 @@ internal abstract class ShapeRenderer : Renderer
     }
   }
 
-  Floating GetFloating()
+  private Floating GetFloating()
   {
     if (shape.RelativeVertical != RelativeVertical.Line &&
         shape.RelativeVertical != RelativeVertical.Paragraph)
@@ -137,7 +137,7 @@ internal abstract class ShapeRenderer : Renderer
   }
 
 
-  void FinishLayoutInfo(Area area)
+  private void FinishLayoutInfo(Area area)
   {
     var layoutInfo = renderInfo.LayoutInfo;
     Area contentArea = new Rectangle(area.X, area.Y, ShapeWidth, ShapeHeight);
@@ -165,7 +165,7 @@ internal abstract class ShapeRenderer : Renderer
     layoutInfo.Floating = GetFloating();
   }
 
-  HorizontalReference GetHorizontalReference()
+  private HorizontalReference GetHorizontalReference()
   {
     switch (shape.RelativeHorizontal)
     {
@@ -177,7 +177,7 @@ internal abstract class ShapeRenderer : Renderer
     return HorizontalReference.AreaBoundary;
   }
 
-  VerticalReference GetVerticalReference()
+  private VerticalReference GetVerticalReference()
   {
     switch (shape.RelativeVertical)
     {
@@ -190,7 +190,7 @@ internal abstract class ShapeRenderer : Renderer
     return VerticalReference.PreviousElement;
   }
 
-  ElementAlignment GetVerticalAlignment()
+  private ElementAlignment GetVerticalAlignment()
   {
     switch (shape.Top.ShapePosition)
     {
@@ -218,7 +218,7 @@ internal abstract class ShapeRenderer : Renderer
     lineFormatRenderer.Render(contentArea.X, contentArea.Y, width, height);
   }
 
-  ElementAlignment GetHorizontalAlignment()
+  private ElementAlignment GetHorizontalAlignment()
   {
     switch (shape.Left.ShapePosition)
     {

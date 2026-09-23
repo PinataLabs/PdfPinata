@@ -18,7 +18,7 @@ namespace PdfPinata.Test.Drawing;
 /// </summary>
 public class XMatrixFastPathTests
 {
-    const double Tolerance = 1e-12;
+    private const double Tolerance = 1e-12;
 
     [Fact]
     public void AppendingATranslationToAGeneralMatrixMovesWhatItAlreadyDid()
@@ -301,7 +301,7 @@ public class XMatrixFastPathTests
         ((XMatrix)boxed).Transform(new XPoint(1, 1)).Should().Be(new XPoint(12, 2));
     }
 
-    static MethodInfo ObsoleteMember(string signature)
+    private static MethodInfo ObsoleteMember(string signature)
     {
         var method = typeof(XMatrix).GetMethods(BindingFlags.Public | BindingFlags.Instance)
             .Single(m => $"{m.Name}({string.Join(",", m.GetParameters().Select(p => p.ParameterType.Name))})" == signature);
@@ -311,7 +311,7 @@ public class XMatrixFastPathTests
         return method;
     }
 
-    static object[] Arguments(MethodInfo method)
+    private static object[] Arguments(MethodInfo method)
     {
         return method.GetParameters()
             .Select(p => p.ParameterType == typeof(XPoint) ? (object)new XPoint(1, 1) : 1.0)

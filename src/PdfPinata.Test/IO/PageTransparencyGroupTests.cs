@@ -20,13 +20,13 @@ public class PageTransparencyGroupTests
     /// <summary>
     ///   Spelled out rather than referred to: PdfPage.Keys is not visible outside the library.
     /// </summary>
-    const string GroupKey = "/Group";
+    private const string GroupKey = "/Group";
 
     /// <summary>
     ///   Writes the document out and reads it back, so that what is asserted on is what was
     ///   written rather than the objects that were built to write it.
     /// </summary>
-    static PdfDocument RoundTripped(PdfDocument document)
+    private static PdfDocument RoundTripped(PdfDocument document)
     {
         using var stream = new MemoryStream();
         document.Save(stream, false);
@@ -34,7 +34,7 @@ public class PageTransparencyGroupTests
         return PdfPinata.Pdf.IO.PdfReader.Open(stream, PdfDocumentOpenMode.Modify);
     }
 
-    static PdfDictionary GroupOf(PdfPage page)
+    private static PdfDictionary GroupOf(PdfPage page)
     {
         return page.Elements.GetDictionary(GroupKey);
     }
@@ -43,7 +43,7 @@ public class PageTransparencyGroupTests
     ///   A PNG of one colour at the alpha given, which is what puts an /SMask on the image
     ///   PdfPinata writes for it.
     /// </summary>
-    static XImage SquareWithAlpha(byte alpha)
+    private static XImage SquareWithAlpha(byte alpha)
     {
         using var bitmap = new SKBitmap(new SKImageInfo(8, 8, SKColorType.Bgra8888, SKAlphaType.Unpremul));
         bitmap.Erase(new SKColor(0, 128, 255, alpha));
@@ -254,7 +254,7 @@ public class PageTransparencyGroupTests
     ///   it is drawn on has to work out from that whether it needs a group.
     /// </para>
     /// </summary>
-    static PdfPage PageDrawnOnWith(byte[] source)
+    private static PdfPage PageDrawnOnWith(byte[] source)
     {
         // Not disposed until the drawing is done: the form reads the document out of the stream.
         var stream = new MemoryStream(source);
@@ -273,7 +273,7 @@ public class PageTransparencyGroupTests
     ///   Whether drawing a page of the hand written document given leaves the page it was drawn
     ///   on with a transparency group.
     /// </summary>
-    static bool PlacingIsTransparent(byte[] source)
+    private static bool PlacingIsTransparent(byte[] source)
     {
         return GroupOf(PageDrawnOnWith(source)) != null;
     }
@@ -282,7 +282,7 @@ public class PageTransparencyGroupTests
     ///   A one page document whose page carries the entries given beside its media box and draws
     ///   a filled square. Objects after the content stream are numbered from five.
     /// </summary>
-    static byte[] PageWithEntries(string entries, params string[] rest)
+    private static byte[] PageWithEntries(string entries, params string[] rest)
     {
         var objects = new List<string>
         {
@@ -300,7 +300,7 @@ public class PageTransparencyGroupTests
     ///   A one page document whose page names the resources given and draws nothing in
     ///   particular. Objects after the content stream are numbered from five.
     /// </summary>
-    static byte[] PageWithResources(string resources, params string[] rest)
+    private static byte[] PageWithResources(string resources, params string[] rest)
     {
         var objects = new List<string>
         {
@@ -319,7 +319,7 @@ public class PageTransparencyGroupTests
     ///   A one page document whose only graphics state is the one given, which its content sets.
     ///   The state is object five, so anything the state points at starts at six.
     /// </summary>
-    static byte[] PageWithGraphicsState(string state, params string[] rest)
+    private static byte[] PageWithGraphicsState(string state, params string[] rest)
     {
         var objects = new List<string> { "<</Type/ExtGState" + state + ">>" };
         objects.AddRange(rest);
@@ -483,7 +483,7 @@ public class PageTransparencyGroupTests
     }
 
     /// <summary>The single XObject named by the page's resources.</summary>
-    static PdfDictionary FormOn(PdfPage page)
+    private static PdfDictionary FormOn(PdfPage page)
     {
         var xObjects = page.Elements.GetDictionary("/Resources")
             .Elements.GetDictionary("/XObject");
@@ -491,7 +491,7 @@ public class PageTransparencyGroupTests
         return xObjects.Elements.GetDictionary(xObjects.Elements.KeyNames[0].Value);
     }
 
-    static string Image(string entries)
+    private static string Image(string entries)
     {
         return RawPdf.Stream("/Type/XObject/Subtype/Image/Width 4/Height 4" + entries,
             new string('A', 16));

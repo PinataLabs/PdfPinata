@@ -16,7 +16,7 @@ namespace PdfPinata.Test.Rendering;
 /// </summary>
 public class StrokedLinesTests
 {
-    const string Triangle = "10 10 m 50 10 l 50 50 l ";
+    private const string Triangle = "10 10 m 50 10 l 50 50 l ";
 
     [Fact]
     public void APathThatIsStrokedIsReported()
@@ -152,7 +152,7 @@ public class StrokedLinesTests
     }
 
     /// <summary>A page whose content stream is exactly the given operators.</summary>
-    static PdfPage PageShowing(string content)
+    private static PdfPage PageShowing(string content)
     {
         var document = new PdfDocument();
         var page = document.AddPage();

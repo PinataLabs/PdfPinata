@@ -44,5 +44,5 @@ internal class ChartRenderInfo : ShapeRenderInfo
       return formatInfo;
     }
   }
-  ChartFormatInfo formatInfo;
+  private ChartFormatInfo formatInfo;
 }

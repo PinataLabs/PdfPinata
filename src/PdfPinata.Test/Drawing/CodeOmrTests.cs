@@ -26,9 +26,9 @@ namespace PdfPinata.Test.Drawing;
 /// </remarks>
 public class CodeOmrTests
 {
-    static readonly XSize Size = new XSize(200, 20);
+    private static readonly XSize Size = new XSize(200, 20);
 
-    static CodeOmr Omr(string text = "1") => new CodeOmr(text, Size, CodeDirection.LeftToRight);
+    private static CodeOmr Omr(string text = "1") => new CodeOmr(text, Size, CodeDirection.LeftToRight);
 
     [Theory]
     [InlineData(MarkDistance.Inch1_6, 1.0 / 6.0)]
@@ -140,7 +140,7 @@ public class CodeOmrTests
     /// <summary>
     ///   The left edge of every rectangle the drawing painted, in the order they were drawn.
     /// </summary>
-    static double[] MarkLeftEdges(Action<XGraphics> draw)
+    private static double[] MarkLeftEdges(Action<XGraphics> draw)
     {
         var document = new PdfDocument();
         document.Options.CompressContentStreams = false;

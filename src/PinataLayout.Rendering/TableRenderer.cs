@@ -74,7 +74,7 @@ internal class TableRenderer : Renderer
   }
 
 
-  void InitRendering()
+  private void InitRendering()
   {
     var formatInfo = (TableFormatInfo)renderInfo.FormatInfo;
     _bottomBorderMap = formatInfo.bottomBorderMap;
@@ -94,7 +94,7 @@ internal class TableRenderer : Renderer
   /// <summary>
   ///
   /// </summary>
-  void RenderHeaderRows()
+  private void RenderHeaderRows()
   {
     if (_lastHeaderRow < 0)
       return;
@@ -106,7 +106,7 @@ internal class TableRenderer : Renderer
     }
   }
 
-  void RenderCell(Cell cell)
+  private void RenderCell(Cell cell)
   {
     var innerRect = GetInnerRect(CalcStartingHeight(), cell);
 
@@ -134,7 +134,7 @@ internal class TableRenderer : Renderer
   /// The same test the renderer uses to decide which rows to repeat at the top of a continuation
   /// page, so the two cannot disagree: a row repeated as a heading is tagged as one.
   /// </remarks>
-  bool IsHeaderCell(Cell cell) => cell.Row.Index <= _lastHeaderRow;
+  private bool IsHeaderCell(Cell cell) => cell.Row.Index <= _lastHeaderRow;
 
   /// <summary>
   /// Writes what a reader needs in order to place a cell: which way its heading reaches, and how far
@@ -151,7 +151,7 @@ internal class TableRenderer : Renderer
   /// for instance. Passed in rather than read from the tagger, because a refused scope leaves the
   /// enclosing element current and these entries would then describe that.
   /// </param>
-  void DescribeCell(Cell cell, PdfStructureElement element)
+  private void DescribeCell(Cell cell, PdfStructureElement element)
   {
     if (element == null)
       return;
@@ -223,13 +223,13 @@ internal class TableRenderer : Renderer
     target.Color = source.Color;
   }
 
-  void RenderShading(Cell cell, Rectangle innerRect)
+  private void RenderShading(Cell cell, Rectangle innerRect)
   {
     var shadeRenderer = new ShadingRenderer(Gfx, cell.Shading);
     shadeRenderer.Render(innerRect.X, innerRect.Y, innerRect.Width, innerRect.Height, cell.RoundedCorner);
   }
 
-  void RenderBorders(Cell cell, Rectangle innerRect)
+  private void RenderBorders(Cell cell, Rectangle innerRect)
   {
     var leftPos = innerRect.X;
     XUnit rightPos = leftPos + innerRect.Width;
@@ -268,14 +268,14 @@ internal class TableRenderer : Renderer
     RenderDiagonalBorders(mergedBorders, innerRect);
   }
 
-  void RenderDiagonalBorders(Borders mergedBorders, Rectangle innerRect)
+  private void RenderDiagonalBorders(Borders mergedBorders, Rectangle innerRect)
   {
     var bordersRenderer = new BordersRenderer(mergedBorders, Gfx);
     bordersRenderer.RenderDiagonally(BorderType.DiagonalDown, innerRect.X, innerRect.Y, innerRect.Width, innerRect.Height);
     bordersRenderer.RenderDiagonally(BorderType.DiagonalUp, innerRect.X, innerRect.Y, innerRect.Width, innerRect.Height);
   }
 
-  void RenderContent(Cell cell, Rectangle innerRect)
+  private void RenderContent(Cell cell, Rectangle innerRect)
   {
     var formattedCell = _formattedCells[cell];
     var renderInfos = formattedCell.GetRenderInfos();
@@ -309,7 +309,7 @@ internal class TableRenderer : Renderer
 
 
 
-  Rectangle GetInnerRect(XUnit startingHeight, Cell cell)
+  private Rectangle GetInnerRect(XUnit startingHeight, Cell cell)
   {
     var bordersRenderer = new BordersRenderer(_mergedCells.GetEffectiveBorders(cell), Gfx);
     var formattedCell = _formattedCells[cell];
@@ -381,7 +381,7 @@ internal class TableRenderer : Renderer
   /// The element opened for the table, which is null when it was not tagged. Passed in for the same
   /// reason as in <see cref="DescribeCell"/>.
   /// </param>
-  void DescribeTable(PdfStructureElement element)
+  private void DescribeTable(PdfStructureElement element)
   {
     if (element == null || _table.IsNull("Summary"))
       return;
@@ -399,10 +399,10 @@ internal class TableRenderer : Renderer
   /// a table over a page boundary: the heading rows are drawn again at the top of every page the
   /// table continues onto, and they have to stay the same rows.
   /// </remarks>
-  PdfStructureElement RowElementOf(Cell cell) =>
+  private PdfStructureElement RowElementOf(Cell cell) =>
     Tagger.Element(cell.Row, PdfTag.TR, Tagger.Parent);
 
-  void InitFormat(FormatInfo previousFormatInfo)
+  private void InitFormat(FormatInfo previousFormatInfo)
   {
     var prevTableFormatInfo = (TableFormatInfo)previousFormatInfo;
     var tblRenderInfo = new TableRenderInfo
@@ -448,7 +448,7 @@ internal class TableRenderer : Renderer
     ((TableFormatInfo)tblRenderInfo.FormatInfo).lastHeaderRow = _lastHeaderRow;
   }
 
-  void FormatCells()
+  private void FormatCells()
   {
     _formattedCells = new SortedList<Cell, FormattedCell>(new CellComparer());
     foreach (var cell in _mergedCells)
@@ -526,7 +526,7 @@ internal class TableRenderer : Renderer
     FinishLayoutInfo(area, currentHeight, startingHeight);
   }
 
-  void FinishLayoutInfo(Area area, XUnit currentHeight, XUnit startingHeight)
+  private void FinishLayoutInfo(Area area, XUnit currentHeight, XUnit startingHeight)
   {
     var layoutInfo = renderInfo.LayoutInfo;
     layoutInfo.StartingHeight = startingHeight;
@@ -573,7 +573,7 @@ internal class TableRenderer : Renderer
     }
   }
 
-  XUnit LeftBorderOffset
+  private XUnit LeftBorderOffset
   {
     get
     {
@@ -596,7 +596,7 @@ internal class TableRenderer : Renderer
   /// Calcs either the height of the header rows or the height of the uppermost top border.
   /// </summary>
   /// <returns></returns>
-  XUnit CalcStartingHeight()
+  private XUnit CalcStartingHeight()
   {
     XUnit height = 0;
     if (_lastHeaderRow >= 0)
@@ -614,7 +614,7 @@ internal class TableRenderer : Renderer
   }
 
 
-  void CalcLastHeaderColumn()
+  private void CalcLastHeaderColumn()
   {
     _lastHeaderColumn = -1;
     foreach (Column clm in _table.Columns)
@@ -632,7 +632,7 @@ internal class TableRenderer : Renderer
 
   }
 
-  void CalcLastHeaderRow()
+  private void CalcLastHeaderRow()
   {
     _lastHeaderRow = -1;
     foreach (Row row in _table.Rows)
@@ -662,7 +662,7 @@ internal class TableRenderer : Renderer
   /// Called before the whole-table heading is discarded, so a table that is entirely heading -
   /// which repeats nothing, having nothing to head - is not refused for it.
   /// </remarks>
-  void CheckHeadingRowsFormAnUnbrokenRun()
+  private void CheckHeadingRowsFormAnUnbrokenRun()
   {
     for (var index = _lastHeaderRow + 1; index < _table.Rows.Count; ++index)
     {
@@ -677,7 +677,7 @@ internal class TableRenderer : Renderer
     }
   }
 
-  void CreateConnectedRows()
+  private void CreateConnectedRows()
   {
     _connectedRowsMap = new SortedList<int, int>();
     foreach (var cell in _mergedCells)
@@ -690,7 +690,7 @@ internal class TableRenderer : Renderer
     }
   }
 
-  void CreateConnectedColumns()
+  private void CreateConnectedColumns()
   {
     _connectedColumnsMap = new SortedList<int, int>();
     foreach (var cell in _mergedCells)
@@ -703,7 +703,7 @@ internal class TableRenderer : Renderer
     }
   }
 
-  void CreateBottomBorderMap()
+  private void CreateBottomBorderMap()
   {
     _bottomBorderMap = new SortedList<int, XUnit>();
     _bottomBorderMap.Add(0, XUnit.FromPoint(0));
@@ -717,7 +717,7 @@ internal class TableRenderer : Renderer
   /// Calculates the top border width for the first row that is rendered or formatted.
   /// </summary>
   /// <param name="row">The row index.</param>
-  XUnit CalcMaxTopBorderWidth(int row)
+  private XUnit CalcMaxTopBorderWidth(int row)
   {
     XUnit maxWidth = 0;
     if (_table.Rows.Count > row)
@@ -745,7 +745,7 @@ internal class TableRenderer : Renderer
   /// <summary>
   /// Creates the next bottom border position.
   /// </summary>
-  void CreateNextBottomBorderPosition()
+  private void CreateNextBottomBorderPosition()
   {
     var lastIdx = _bottomBorderMap.Count - 1;
     var lastBorderRow = _bottomBorderMap.Keys[lastIdx];
@@ -781,7 +781,7 @@ internal class TableRenderer : Renderer
   /// </summary>
   /// <param name="cell">The cell the bottom border of the row that is probed.</param>
   /// <returns>The calculated border width.</returns>
-  XUnit CalcBottomBorderWidth(Cell cell)
+  private XUnit CalcBottomBorderWidth(Cell cell)
   {
     var borders = _mergedCells.GetEffectiveBorders(cell);
     if (borders != null)
@@ -797,7 +797,7 @@ internal class TableRenderer : Renderer
   /// </summary>
   /// <param name="row">The row to prope.</param>
   /// <returns>The first cell with minimal vertical merge.</returns>
-  Cell GetMinMergedCell(int row)
+  private Cell GetMinMergedCell(int row)
   {
     var minMerge = _table.Rows.Count;
     Cell minCell = null;
@@ -839,7 +839,7 @@ internal class TableRenderer : Renderer
   ///   be kept with <see cref="int.MaxValue"/> more is read as asking for all of them rather than
   ///   wrapping round to none.
   /// </remarks>
-  int CalcLastConnectedRow(int row)
+  private int CalcLastConnectedRow(int row)
   {
     var lastConnectedRow = row;
     var lastRow = _table.Rows.Count - 1;
@@ -865,7 +865,7 @@ internal class TableRenderer : Renderer
   ///   As with <see cref="CalcLastConnectedRow"/>, a column can ask to be kept with more columns
   ///   than stand to the right of it, and there is nothing beyond the last one to keep it with.
   /// </remarks>
-  int CalcLastConnectedColumn(int column)
+  private int CalcLastConnectedColumn(int column)
   {
     var lastConnectedColumn = column;
     var lastColumn = _table.Columns.Count - 1;

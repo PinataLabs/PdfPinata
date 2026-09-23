@@ -25,16 +25,16 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 /// </summary>
 public class DdlEncoderTests
 {
-    static Document RoundTrip(Document document) =>
+    private static Document RoundTrip(Document document) =>
         DdlReader.DocumentFromString(DdlWriter.WriteToString(document));
 
     // ReSharper disable PossibleNullReferenceException
-    static string TextOf(Document document) =>
+    private static string TextOf(Document document) =>
         string.Concat((document.LastSection.Elements[0] as Paragraph)
             .Elements.OfType<Text>().Select(text => text.Content));
     // ReSharper restore PossibleNullReferenceException
 
-    static Document DocumentSaying(string text)
+    private static Document DocumentSaying(string text)
     {
         var document = new Document();
         document.AddSection().AddParagraph().AddText(text);

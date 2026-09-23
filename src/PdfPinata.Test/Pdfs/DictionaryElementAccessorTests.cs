@@ -23,12 +23,12 @@ namespace PdfPinata.Test.Pdfs;
 /// </summary>
 public class DictionaryElementAccessorTests
 {
-    static PdfDocument ADocument() => new();
+    private static PdfDocument ADocument() => new();
 
-    static PdfDictionary ADictionary(PdfDocument document) => new(document);
+    private static PdfDictionary ADictionary(PdfDocument document) => new(document);
 
     /// <summary>An indirect reference to a simple value, which is the third case throughout.</summary>
-    static PdfReference IndirectTo(PdfDocument document, PdfObject value)
+    private static PdfReference IndirectTo(PdfDocument document, PdfObject value)
     {
         document.Internals.AddObject(value);
         return value.Reference;

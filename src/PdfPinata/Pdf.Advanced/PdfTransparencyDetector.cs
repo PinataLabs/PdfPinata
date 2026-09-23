@@ -22,7 +22,7 @@ static class PdfTransparencyDetector
     /// How deep forms may be drawn within one another before this stops looking. Well past
     /// anything a real document does, and there to stop a malformed one running away.
     /// </summary>
-    const int MaximumDepth = 32;
+    private const int MaximumDepth = 32;
 
     /// <summary>
     /// Whether the XObject paints with transparency.
@@ -32,7 +32,7 @@ static class PdfTransparencyDetector
         return xObject != null && Paints(xObject, new Dictionary<string, object>(), 0);
     }
 
-    static bool Paints(PdfDictionary xObject, Dictionary<string, object> seen, int depth)
+    private static bool Paints(PdfDictionary xObject, Dictionary<string, object> seen, int depth)
     {
         // Deeper than this is a document that is either malformed or beyond understanding, and
         // the safe answer to "does this use transparency" is yes: a group that was not needed
@@ -81,7 +81,7 @@ static class PdfTransparencyDetector
         return image.Elements.GetInteger("/SMaskInData") != 0;
     }
 
-    static bool ResourcesPaint(PdfDictionary resources, Dictionary<string, object> seen, int depth)
+    private static bool ResourcesPaint(PdfDictionary resources, Dictionary<string, object> seen, int depth)
     {
         if (depth > MaximumDepth)
             return true;
@@ -155,7 +155,7 @@ static class PdfTransparencyDetector
     /// The alpha a graphics state sets, or 1 where it sets none - a state that says nothing about
     /// alpha leaves it as it was, and what it was is opaque until something says otherwise.
     /// </summary>
-    static double AlphaOf(PdfDictionary state, string key)
+    private static double AlphaOf(PdfDictionary state, string key)
     {
         // Not GetReal: it answers 0 for a key that is absent, which would read every graphics
         // state in the document as fully transparent. TryNumber also follows a reference, which
@@ -167,7 +167,7 @@ static class PdfTransparencyDetector
     /// Whether the blend mode composites with what is already on the page. Normal and its PDF 1.3
     /// spelling Compatible paint over it, which needs no group; everything else reads it.
     /// </summary>
-    static bool BlendsWithTheBackdrop(PdfItem item)
+    private static bool BlendsWithTheBackdrop(PdfItem item)
     {
         if (item is PdfReference reference)
             item = reference.Value;
@@ -194,7 +194,7 @@ static class PdfTransparencyDetector
     /// the same way: absent leaves the mask as it was, <c>/None</c> turns it off, and anything
     /// else is a mask.
     /// </summary>
-    static bool IsSomethingOtherThanNone(PdfItem item)
+    private static bool IsSomethingOtherThanNone(PdfItem item)
     {
         if (item is PdfReference reference)
             item = reference.Value;
@@ -211,7 +211,7 @@ static class PdfTransparencyDetector
     /// Notes that the XObject has been looked at, and says whether it had not been looked at
     /// already.
     /// </summary>
-    static bool MarkAsSeen(PdfDictionary xObject, Dictionary<string, object> seen)
+    private static bool MarkAsSeen(PdfDictionary xObject, Dictionary<string, object> seen)
     {
         // A direct object cannot be shared and so cannot be drawn within itself.
         if (!xObject.IsIndirect)

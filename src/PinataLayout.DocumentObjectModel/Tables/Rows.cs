@@ -104,7 +104,7 @@ public partial class Rows : DocumentObjectCollection, IVisitable
   ///   be added to a table that already has rows, so the count cannot change afterwards.
   ///   Asking for the last cell makes the ones before it.
   /// </remarks>
-  void GiveItACellPerColumn(Row row)
+  private void GiveItACellPerColumn(Row row)
   {
     var columns = Table?.Columns.Count ?? 0;
     if (row != null && columns > 0)

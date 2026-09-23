@@ -18,10 +18,10 @@ namespace PdfPinata.Test.Annotations;
 /// </summary>
 public class LineEndingShapeTests
 {
-    static readonly XPoint From = new(100, 400);
-    static readonly XPoint To = new(300, 400);
+    private static readonly XPoint From = new(100, 400);
+    private static readonly XPoint To = new(300, 400);
 
-    static PdfLineAnnotation ALineEndedWith(PdfLineEnding start, PdfLineEnding end)
+    private static PdfLineAnnotation ALineEndedWith(PdfLineEnding start, PdfLineEnding end)
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -38,7 +38,7 @@ public class LineEndingShapeTests
     }
 
     /// <summary>The operators of the annotation's appearance stream.</summary>
-    static string AppearanceOf(PdfLineAnnotation line)
+    private static string AppearanceOf(PdfLineAnnotation line)
     {
         var normal = line.Elements.GetDictionary("/AP")?.Elements.GetDictionary("/N");
         return normal == null ? "" : normal.Stream.ToString();

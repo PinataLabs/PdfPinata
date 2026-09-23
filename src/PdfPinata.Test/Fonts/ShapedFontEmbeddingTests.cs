@@ -38,10 +38,10 @@ public class ShapedFontEmbeddingTests
 {
     // ----- installing a shaper for one string only -----------------------------------------------
 
-    sealed class SelectiveShaper : ITextShaper
+    private sealed class SelectiveShaper : ITextShaper
     {
-        readonly string _mine;
-        readonly Func<ShapingFont, IReadOnlyList<ShapedGlyph>> _glyphs;
+        private readonly string _mine;
+        private readonly Func<ShapingFont, IReadOnlyList<ShapedGlyph>> _glyphs;
 
         internal SelectiveShaper(string mine, Func<ShapingFont, IReadOnlyList<ShapedGlyph>> glyphs)
         {
@@ -56,7 +56,7 @@ public class ShapedFontEmbeddingTests
                 : null;
     }
 
-    sealed class Installed : IDisposable
+    private sealed class Installed : IDisposable
     {
         internal Installed(ITextShaper shaper) => GlobalFontSettings.TextShaper = shaper;
 
@@ -66,7 +66,7 @@ public class ShapedFontEmbeddingTests
     // ----- drawing and reading back --------------------------------------------------------------
 
     /// <summary>Draws one string, saves, and reopens - so that everything written at save time is.</summary>
-    static PdfDocument Written(string text, string familyName = "Arial")
+    private static PdfDocument Written(string text, string familyName = "Arial")
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -79,12 +79,12 @@ public class ShapedFontEmbeddingTests
         return PdfPinata.Pdf.IO.PdfReader.Open(stream, PdfDocumentOpenMode.ReadOnly);
     }
 
-    static string ContentOf(PdfDocument document) =>
+    private static string ContentOf(PdfDocument document) =>
         Encoding.ASCII.GetString(PageContent.Of(document.Pages[0]));
 
-    static PdfItem Resolve(PdfItem item) => item is PdfReference reference ? reference.Value : item;
+    private static PdfItem Resolve(PdfItem item) => item is PdfReference reference ? reference.Value : item;
 
-    static PdfDictionary CompositeFontOf(PdfDocument document)
+    private static PdfDictionary CompositeFontOf(PdfDocument document)
     {
         var resources = Resolve(document.Pages[0].Elements["/Resources"]) as PdfDictionary;
         var fonts = Resolve(resources?.Elements["/Font"]) as PdfDictionary;
@@ -97,7 +97,7 @@ public class ShapedFontEmbeddingTests
     }
 
     /// <summary>The glyph identifiers the descendant font's /W array gives a width for.</summary>
-    static IReadOnlyCollection<int> GlyphsGivenAWidth(PdfDocument document)
+    private static IReadOnlyCollection<int> GlyphsGivenAWidth(PdfDocument document)
     {
         var font = CompositeFontOf(document);
         var descendants = Resolve(font.Elements["/DescendantFonts"]) as PdfArray;
@@ -125,7 +125,7 @@ public class ShapedFontEmbeddingTests
     ///   the bfrange entries a one-to-one mapping is written as and the bfchar entries a glyph
     ///   standing for more than one character needs.
     /// </summary>
-    static IReadOnlyDictionary<int, string> Meanings(PdfDocument document)
+    private static IReadOnlyDictionary<int, string> Meanings(PdfDocument document)
     {
         var meanings = new Dictionary<int, string>();
         var map = Resolve(CompositeFontOf(document).Elements["/ToUnicode"]) as PdfDictionary;
@@ -166,12 +166,12 @@ public class ShapedFontEmbeddingTests
         return meanings;
     }
 
-    static MatchCollection Blocks(string cmap, string kind) =>
+    private static MatchCollection Blocks(string cmap, string kind) =>
         Regex.Matches(cmap, $"begin{kind}(.*?)end{kind}", RegexOptions.Singleline);
 
     // ----- the glyphs a shaper chose have to be in the file ---------------------------------------
 
-    const string WidthSentinel = "ShapedWidthProbe";
+    private const string WidthSentinel = "ShapedWidthProbe";
 
     [Fact]
     public void AGlyphOnlyTheShaperKnowsAboutIsStillGivenAWidth()
@@ -201,7 +201,7 @@ public class ShapedFontEmbeddingTests
 
     // ----- and /ToUnicode has to say what they mean -----------------------------------------------
 
-    const string MeaningSentinel = "ShapedProbeAB";
+    private const string MeaningSentinel = "ShapedProbeAB";
 
     [Fact]
     public void AGlyphThatStandsForSeveralCharactersSaysAllOfThemInToUnicode()
@@ -234,10 +234,10 @@ public class ShapedFontEmbeddingTests
 
     // ----- the same thing, with a real shaper -----------------------------------------------------
 
-    sealed class OnlyFor : ITextShaper, IDisposable
+    private sealed class OnlyFor : ITextShaper, IDisposable
     {
-        readonly string _mine;
-        readonly HarfBuzzTextShaper _shaper = new HarfBuzzTextShaper();
+        private readonly string _mine;
+        private readonly HarfBuzzTextShaper _shaper = new HarfBuzzTextShaper();
 
         internal OnlyFor(string mine) => _mine = mine;
 
@@ -251,7 +251,7 @@ public class ShapedFontEmbeddingTests
     }
 
     // "e" and a combining acute accent, which the face composes into its precomposed e-acute.
-    const string ComposedSentinel = "\u0065\u0301";
+    private const string ComposedSentinel = "\u0065\u0301";
 
     [Fact]
     public void HarfBuzzComposesAnAccentAndTheDocumentSaysWhatTheGlyphMeant()
@@ -273,12 +273,12 @@ public class ShapedFontEmbeddingTests
 
     // Served by PinnedFontResolver itself. See the note on ArabicFamilyName: a family registered on
     // first use means whatever the first caller in the assembly made it mean.
-    const string ArabicFamily = PinnedFontResolver.ArabicFamilyName;
+    private const string ArabicFamily = PinnedFontResolver.ArabicFamilyName;
 
     // The word "arabi", whose letters join and two of whose dots are marks the font places against
     // the letter they belong to. Escapes rather than literals, so that a source file mixing
     // right-to-left text with left-to-right code cannot be misread.
-    const string ArabicSentinel = "\u0639\u0631\u0628\u064A";
+    private const string ArabicSentinel = "\u0639\u0631\u0628\u064A";
 
     [Fact]
     public void ArabicIsWrittenWithItsMarksPlacedAndItsLettersStillReadable()
@@ -311,7 +311,7 @@ public class ShapedFontEmbeddingTests
     // "salam", the word this library has drawn backwards for as long as anyone has complained
     // about it. None of its four letters carries a mark, so every glyph stands for exactly one
     // character and the order they are drawn in is readable straight off the document.
-    const string Salam = "\u0633\u0644\u0627\u0645";
+    private const string Salam = "\u0633\u0644\u0627\u0645";
 
     [Fact]
     public void ShapedRightToLeftTextIsDrawnJoinedUpAndInTheOrderItIsRead()

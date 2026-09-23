@@ -269,7 +269,7 @@ public class DataLabelTests
     ///   rather than through <c>point.value</c>, which throws - the shape
     ///   <c>charting-renderer-findings.md</c> records as C7 on the pie.
     /// </remarks>
-    static IReadOnlyList<ShownText.Run> BarLabelsAt(DataLabelPosition position)
+    private static IReadOnlyList<ShownText.Run> BarLabelsAt(DataLabelPosition position)
     {
         var chart = Charts.Of(ChartType.Bar2D, 10.0, 20.0, 30.0);
         chart.HasDataLabel = true;
@@ -278,7 +278,7 @@ public class DataLabelTests
         return ShownText.RunsOn(Drawn.Page(chart));
     }
 
-    static IReadOnlyList<ShownText.Run> ValueLabelsOf(IReadOnlyList<ShownText.Run> runs) =>
+    private static IReadOnlyList<ShownText.Run> ValueLabelsOf(IReadOnlyList<ShownText.Run> runs) =>
         runs.Where(run => run.Text is "10" or "20" or "30").ToList();
 
     [Fact]

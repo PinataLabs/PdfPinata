@@ -136,10 +136,10 @@ public sealed class PdfFontDescriptor : PdfDictionary
     /// </summary>
     public bool IsSymbolFont => _isSymbolFont;
 
-    bool _isSymbolFont;
+    private bool _isSymbolFont;
 
     // HACK FlagsFromDescriptor(OpenTypeDescriptor descriptor)
-    PdfFontDescriptorFlags FlagsFromDescriptor(OpenTypeDescriptor descriptor)
+    private PdfFontDescriptorFlags FlagsFromDescriptor(OpenTypeDescriptor descriptor)
     {
         PdfFontDescriptorFlags flags = 0;
         _isSymbolFont = descriptor.FontFace.cmap.symbol;
@@ -345,7 +345,7 @@ public sealed class PdfFontDescriptor : PdfDictionary
                 return _meta;
             }
         }
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

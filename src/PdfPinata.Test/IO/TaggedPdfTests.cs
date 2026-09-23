@@ -357,7 +357,7 @@ public class TaggedPdfTests
     }
 
     /// <summary>How deep the marked-content nesting in a content stream ever gets.</summary>
-    static int DeepestNesting(string content)
+    private static int DeepestNesting(string content)
     {
         int depth = 0, deepest = 0;
         foreach (Match match in Regex.Matches(content, @"\b(BDC|BMC|EMC)\b"))

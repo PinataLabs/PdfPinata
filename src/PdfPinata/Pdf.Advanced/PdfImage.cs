@@ -81,7 +81,7 @@ public sealed class PdfImage : PdfXObject
     /// </summary>
     public XImage Image => _image;
 
-    readonly XImage _image;
+    private readonly XImage _image;
 
     /// <summary>
     /// Returns 'Image'.
@@ -94,7 +94,7 @@ public sealed class PdfImage : PdfXObject
     /// <summary>
     /// Creates the keys for a JPEG image.
     /// </summary>
-    void InitializeJpeg()
+    private void InitializeJpeg()
     {
         byte[] imageBits;
 
@@ -146,7 +146,7 @@ public sealed class PdfImage : PdfXObject
     /// actually existing rather than on a parameter written in advance of one.
     /// </para>
     /// </remarks>
-    void InitializeNonJpeg()
+    private void InitializeNonJpeg()
     {
         var pdfVersion = Owner.Version;
         var pixels = _image.GetPixels();

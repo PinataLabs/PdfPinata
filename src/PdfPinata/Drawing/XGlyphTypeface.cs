@@ -1,4 +1,5 @@
 #region Copyright
+
 //
 // Authors:
 //   Stefan Lange
@@ -25,6 +26,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
+
 #endregion
 
 using System;
@@ -42,7 +44,7 @@ namespace PdfPinata.Drawing;
 internal sealed class XGlyphTypeface
 {
     // Implementation Notes
-    // XGlyphTypeface is the centerpiece for font management. There is a one to one relationship
+    // XGlyphTypeface is the centerpiece for font management. There is a one-to-one relationship
     // between XFont an XGlyphTypeface.
     //
     // * Each XGlyphTypeface can belong to one or more XFont objects.
@@ -51,7 +53,7 @@ internal sealed class XGlyphTypeface
     // *
     //
 
-    const string KeyPrefix = "tk:";  // "typeface key"
+    private const string _keyPrefix = "tk:"; // "typeface key"
 
     /// <summary>
     /// Initializes a typeface for a face already read from a font file.
@@ -65,25 +67,26 @@ internal sealed class XGlyphTypeface
     public XGlyphTypeface(string key, XFontSource fontSource, XStyleSimulations styleSimulations)
     {
         var familyName = fontSource.Fontface.name.Name;
-        _fontFamily = new XFontFamily(familyName, false);
+        FontFamily = new XFontFamily(familyName, false);
         _fontface = fontSource.Fontface;
         _isBold = _fontface.os2.IsBold;
         _isItalic = _fontface.os2.IsItalic;
-        _styleSimulations = styleSimulations;
+        StyleSimulations = styleSimulations;
 
-        _key = key;
-        _fontSource = fontSource;
+        Key = key;
+        FontSource = fontSource;
 
         Initialize();
     }
 
     // ReSharper disable once UnusedMember.Global
-    public XGlyphTypeface(string key, XFontFamily fontFamily, XFontSource fontSource, XStyleSimulations styleSimulations)
+    public XGlyphTypeface(string key, XFontFamily fontFamily, XFontSource fontSource,
+        XStyleSimulations styleSimulations)
     {
-        _key = key;
-        _fontFamily = fontFamily;
-        _fontSource = fontSource;
-        _styleSimulations = styleSimulations;
+        Key = key;
+        FontFamily = fontFamily;
+        FontSource = fontSource;
+        StyleSimulations = styleSimulations;
         _fontface = OpenTypeFontface.CetOrCreateFrom(fontSource);
 
         Initialize();
@@ -106,6 +109,7 @@ internal sealed class XGlyphTypeface
             // No fallback - just stop.
             throw new InvalidOperationException("No appropriate font found.");
         }
+
         // Create new and exclusively used font family for custom font resolver retrieved font
         // source. The result is dropped on purpose: the typeface builds its own family below,
         // from the name inside the font file. This call is here for what it leaves behind in
@@ -113,7 +117,6 @@ internal sealed class XGlyphTypeface
         XFontFamily.CreateSolitary(fontResolverInfo.FaceName);
 
         // We have a valid font resolver info. That means we also have an XFontSource object loaded in the cache.
-        ////XFontSource fontSource = FontFactory.GetFontSourceByTypefaceKey(fontResolverInfo.FaceName);
         var fontSource = FontFactory.GetFontSourceByFontName(fontResolverInfo.FaceName);
         Debug.Assert(fontSource != null);
 
@@ -125,40 +128,17 @@ internal sealed class XGlyphTypeface
 
         return glyphTypeface;
     }
-    public XFontFamily FontFamily => _fontFamily;
 
-    readonly XFontFamily _fontFamily;
+    public XFontFamily FontFamily { get; }
 
     internal OpenTypeFontface Fontface => _fontface;
 
-    readonly OpenTypeFontface _fontface;
+    private readonly OpenTypeFontface _fontface;
 
-    public XFontSource FontSource => _fontSource;
-
-    readonly XFontSource _fontSource;
+    public XFontSource FontSource { get; }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    void Initialize()
+    private void Initialize()
     {
         _familyName = _fontface.name.Name;
         if (string.IsNullOrEmpty(_faceName) || _faceName.StartsWith('?'))
@@ -180,18 +160,18 @@ internal sealed class XGlyphTypeface
     }
 
     /// <summary>
-    /// Gets the name of the font face. This can be a file name, an uri, or a GUID.
+    /// Gets the name of the font face. This can be a file name, a uri, or a GUID.
     /// </summary>
     internal string FaceName => _faceName;
 
-    string _faceName;
+    private string _faceName;
 
     /// <summary>
     /// Gets the English family name of the font, for example "Arial".
     /// </summary>
     public string FamilyName => _familyName;
 
-    string _familyName;
+    private string _familyName;
 
     /// <summary>
     /// Gets the English subfamily name of the font,
@@ -199,7 +179,7 @@ internal sealed class XGlyphTypeface
     /// </summary>
     public string StyleName => _styleName;
 
-    string _styleName;
+    private string _styleName;
 
     /// <summary>
     /// Gets the English display name of the font,
@@ -207,31 +187,29 @@ internal sealed class XGlyphTypeface
     /// </summary>
     public string DisplayName => _displayName;
 
-    string _displayName;
+    private string _displayName;
 
     /// <summary>
     /// Gets a value indicating whether the font weight is bold.
     /// </summary>
     public bool IsBold => _isBold;
 
-    bool _isBold;
+    private bool _isBold;
 
     /// <summary>
     /// Gets a value indicating whether the font style is italic.
     /// </summary>
     public bool IsItalic => _isItalic;
 
-    bool _isItalic;
+    private bool _isItalic;
 
-    public XStyleSimulations StyleSimulations => _styleSimulations;
-
-    XStyleSimulations _styleSimulations;
+    public XStyleSimulations StyleSimulations { get; }
 
     /// <summary>
     /// Gets the suffix of the face name in a PDF font and font descriptor.
     /// The name based on the effective value of bold and italic from the OS/2 table.
     /// </summary>
-    string GetFaceNameSuffix()
+    private string GetFaceNameSuffix()
     {
         // Use naming of Microsoft Word.
         if (IsBold)
@@ -258,7 +236,7 @@ internal sealed class XGlyphTypeface
     /// </summary>
     internal static string ComputeKey(string familyName, FontResolvingOptions fontResolvingOptions)
     {
-        // Compute a human readable key.
+        // Compute a human-readable key.
         var simulationSuffix = "";
         if (fontResolvingOptions.OverrideStyleSimulations)
         {
@@ -271,10 +249,11 @@ internal sealed class XGlyphTypeface
                 default: throw new ArgumentOutOfRangeException(nameof(fontResolvingOptions));
             }
         }
-        var key = KeyPrefix + familyName.ToLowerInvariant()
-                            + (fontResolvingOptions.IsItalic ? "/i" : "/n") // normal / oblique / italic
-                            + (fontResolvingOptions.IsBold ? "/700" : "/400") + "/5" // Stretch.Normal
-                            + simulationSuffix;
+
+        var key = _keyPrefix + familyName.ToLowerInvariant()
+                             + (fontResolvingOptions.IsItalic ? "/i" : "/n") // normal / oblique / italic
+                             + (fontResolvingOptions.IsBold ? "/700" : "/400") + "/5" // Stretch.Normal
+                             + simulationSuffix;
         return key;
     }
 
@@ -285,13 +264,14 @@ internal sealed class XGlyphTypeface
     {
         return ComputeKey(familyName, new FontResolvingOptions(FontHelper.CreateStyle(isBold, isItalic)));
     }
-    public string Key => _key;
 
-    readonly string _key;
+    public string Key { get; }
 
     /// <summary>
     /// Gets the DebuggerDisplayAttribute text.
     /// </summary>
     // ReSharper disable UnusedMember.Local
-    internal string DebuggerDisplay => string.Format(CultureInfo.InvariantCulture, "{0} - {1} ({2})", FamilyName, StyleName, FaceName); // ReSharper restore UnusedMember.Local
+    internal string DebuggerDisplay =>
+        string.Format(CultureInfo.InvariantCulture, "{0} - {1} ({2})", FamilyName, StyleName,
+            FaceName); // ReSharper restore UnusedMember.Local
 }

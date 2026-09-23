@@ -85,5 +85,5 @@ internal class DdlParserException : Exception
   /// </summary>
   public DdlReaderError Error => this.error;
 
-  DdlReaderError error;
+  private DdlReaderError error;
 }

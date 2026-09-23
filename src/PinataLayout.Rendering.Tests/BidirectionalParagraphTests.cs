@@ -30,10 +30,10 @@ public class BidirectionalParagraphTests
 {
     // Three Hebrew words of two letters each. Escapes rather than literals, so that a source file
     // mixing right-to-left text with left-to-right code cannot be misread.
-    const string First = "\u05D0\u05D1";
-    const string Second = "\u05D2\u05D3";
+    private const string First = "\u05D0\u05D1";
+    private const string Second = "\u05D2\u05D3";
 
-    static Document Paragraph(string text,
+    private static Document Paragraph(string text,
         BidiParagraphDirection direction = BidiParagraphDirection.Automatic)
     {
         var document = new Document();
@@ -45,17 +45,17 @@ public class BidirectionalParagraphTests
     }
 
     /// <summary>The glyph one character draws as, for reading an order back.</summary>
-    static int GlyphOf(char letter) => Glyphs.For(letter.ToString()).Single();
+    private static int GlyphOf(char letter) => Glyphs.For(letter.ToString()).Single();
 
     /// <summary>
     ///   The glyphs the given letters draw as, in the order given. Nothing separates the words:
     ///   PinataLayout puts the space between two words in the positioning rather than drawing one, so
     ///   no whitespace glyph is ever shown.
     /// </summary>
-    static IReadOnlyList<int> Drawn(string letters) => letters.Select(GlyphOf).ToList();
+    private static IReadOnlyList<int> Drawn(string letters) => letters.Select(GlyphOf).ToList();
 
     /// <summary>Several glyph sequences, concatenated - for a line with more than one segment.</summary>
-    static IReadOnlyList<int> Joined(params IReadOnlyList<int>[] parts) => parts.SelectMany(part => part).ToList();
+    private static IReadOnlyList<int> Joined(params IReadOnlyList<int>[] parts) => parts.SelectMany(part => part).ToList();
 
     // ----- the defect ------------------------------------------------------------------------------
 

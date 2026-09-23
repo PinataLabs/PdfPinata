@@ -32,13 +32,13 @@ namespace PdfPinata.Test.Annotations;
 [Collection(RasterizingCollection.Name)]
 public sealed class GenericAnnotationRenderingTests : IDisposable
 {
-    const string OutDir = "Out/GenericAnnotations";
+    private const string OutDir = "Out/GenericAnnotations";
 
     /// <summary>
     ///   Kept until the test is over: the pages are handed out for counting, and the bitmap
     ///   behind one is unmanaged, so leaving them to the collector exhausts the test host.
     /// </summary>
-    readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
+    private readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
 
     public void Dispose()
     {
@@ -53,7 +53,7 @@ public sealed class GenericAnnotationRenderingTests : IDisposable
         GhostscriptSetup.Configure();
     }
 
-    static readonly XRect Where = new XRect(40, 40, 120, 60);
+    private static readonly XRect Where = new XRect(40, 40, 120, 60);
 
     [GoldenImageFact]
     public void ASquareWithAnAppearanceIsPainted()
@@ -92,7 +92,7 @@ public sealed class GenericAnnotationRenderingTests : IDisposable
         Count(page, IsAnythingButWhite).Should().Be(0);
     }
 
-    IMagickImage<byte> Rasterize(string name, Action<PdfGenericAnnotation> arrange)
+    private IMagickImage<byte> Rasterize(string name, Action<PdfGenericAnnotation> arrange)
     {
         GlobalFontSettings.FontResolver ??= new PinnedFontResolver();
 
@@ -113,7 +113,7 @@ public sealed class GenericAnnotationRenderingTests : IDisposable
         return images[0];
     }
 
-    static XForm Filled(PdfDocument document, XColor colour)
+    private static XForm Filled(PdfDocument document, XColor colour)
     {
         var form = new XForm(document, Where.Size);
         using (var gfx = XGraphics.FromForm(form))
@@ -124,11 +124,11 @@ public sealed class GenericAnnotationRenderingTests : IDisposable
         return form;
     }
 
-    static bool IsBlue(IMagickColor<byte> c) => c.B > 150 && c.R < 120 && c.G < 150;
+    private static bool IsBlue(IMagickColor<byte> c) => c.B > 150 && c.R < 120 && c.G < 150;
 
-    static bool IsAnythingButWhite(IMagickColor<byte> c) => c.R < 240 || c.G < 240 || c.B < 240;
+    private static bool IsAnythingButWhite(IMagickColor<byte> c) => c.R < 240 || c.G < 240 || c.B < 240;
 
-    static int Count(IMagickImage<byte> image, Func<IMagickColor<byte>, bool> match)
+    private static int Count(IMagickImage<byte> image, Func<IMagickColor<byte>, bool> match)
     {
         using var pixels = image.GetPixels();
         return pixels.Count(p =>

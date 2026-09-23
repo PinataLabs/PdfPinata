@@ -4,7 +4,6 @@ using AwesomeAssertions;
 using PinataLayout.DocumentObjectModel;
 using PinataLayout.DocumentObjectModel.Shapes;
 using PinataLayout.Rendering.Tests.Helpers;
-using PdfPinata.Test.Helpers;
 using Xunit;
 
 namespace PinataLayout.Rendering.Tests;

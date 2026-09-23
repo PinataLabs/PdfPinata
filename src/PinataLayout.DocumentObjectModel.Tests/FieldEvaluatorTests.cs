@@ -17,7 +17,7 @@ public class FieldEvaluatorTests
     ///   A document laid out and finished: three pages, the second section, both counts known and
     ///   one bookmark placed. Individual tests vary what they are about and leave the rest alone.
     /// </summary>
-    static FieldEvaluationContext Paginated() => new FieldEvaluationContext
+    private static FieldEvaluationContext Paginated() => new FieldEvaluationContext
     {
         DisplayPageNumber = 2,
         SectionNumber = 2,
@@ -27,7 +27,7 @@ public class FieldEvaluatorTests
         ResolveBookmarkPage = name => name == "Chapter" ? 3 : null
     };
 
-    static Paragraph AParagraph() => new Document().AddSection().AddParagraph();
+    private static Paragraph AParagraph() => new Document().AddSection().AddParagraph();
 
     [Fact]
     public void APageFieldReadsAsThePageItIsOn()

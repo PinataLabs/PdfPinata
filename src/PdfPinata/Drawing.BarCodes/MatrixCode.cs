@@ -73,7 +73,8 @@ public abstract class MatrixCode : CodeBase
             _matrixImage = null;
         }
     }
-    string _encoding;
+
+    private string _encoding;
 
     /// <summary>
     /// docDaSt
@@ -87,7 +88,8 @@ public abstract class MatrixCode : CodeBase
             _matrixImage = null;
         }
     }
-    int _columns;
+
+    private int _columns;
 
     /// <summary>
     /// docDaSt
@@ -101,7 +103,8 @@ public abstract class MatrixCode : CodeBase
             _matrixImage = null;
         }
     }
-    int _rows;
+
+    private int _rows;
 
     /// <summary>
     /// docDaSt
@@ -121,7 +124,8 @@ public abstract class MatrixCode : CodeBase
         get => _matrixImage;
         set => _matrixImage = value;
     }
-    XImage _matrixImage;
+
+    private XImage _matrixImage;
 
     /// <summary>
     /// When implemented in a derived class renders the 2D code.

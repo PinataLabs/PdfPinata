@@ -22,7 +22,7 @@ public class ReadOnlyStyleTests
 {
     // By index, not by name: Styles[Style.DefaultParagraphFontName] returns null for this one,
     // which is its own oddity and not what these tests are about.
-    static Style DefaultParagraphFont() => (Style)new Document().Styles[0];
+    private static Style DefaultParagraphFont() => (Style)new Document().Styles[0];
 
     [Fact]
     public void TheBuiltInCharacterStyleIsReadOnly()

@@ -83,7 +83,7 @@ public sealed class CParser
     /// <summary>
     /// Parses whatever comes until the specified stop symbol is reached.
     /// </summary>
-    void ParseObject(CSequence sequence, CSymbol stop)
+    private void ParseObject(CSequence sequence, CSymbol stop)
     {
         CSymbol symbol;
         while ((symbol = ScanNextToken()) != CSymbol.Eof)
@@ -179,21 +179,21 @@ public sealed class CParser
         }
     }
 
-    COperator CreateOperator()
+    private COperator CreateOperator()
     {
         var name = _lexer.Token;
         var op = OpCodes.OperatorFromName(name);
         return CreateOperator(op);
     }
 
-    COperator CreateOperator(OpCodeName nameop)
+    private COperator CreateOperator(OpCodeName nameop)
     {
         var name = nameop.ToString();
         var op = OpCodes.OperatorFromName(name);
         return CreateOperator(op);
     }
 
-    COperator CreateOperator(COperator op)
+    private COperator CreateOperator(COperator op)
     {
         if (op.OpCode.OpCodeName == OpCodeName.BI)
         {
@@ -221,11 +221,11 @@ public sealed class CParser
         return op;
     }
 
-    CSymbol ScanNextToken()
+    private CSymbol ScanNextToken()
     {
         return _lexer.ScanNextToken();
     }
 
-    readonly CSequence _operands = new();
-    readonly CLexer _lexer;
+    private readonly CSequence _operands = new();
+    private readonly CLexer _lexer;
 }

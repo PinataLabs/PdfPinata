@@ -46,9 +46,9 @@ namespace PinataLayout.Rendering.Tests;
 /// </remarks>
 public class ConcurrentRenderingTests
 {
-    const int Renders = 120;
+    private const int Renders = 120;
 
-    const int Conversions = 60_000;
+    private const int Conversions = 60_000;
 
     [Fact(Timeout = 300000)]
     public async Task TheSameDocumentLaidOutAgainAndAgainDrawsTheSamePage()
@@ -102,17 +102,17 @@ public class ConcurrentRenderingTests
     ///   <c>FontHandler</c> is internal to the rendering assembly, and this repository carries no
     ///   <c>InternalsVisibleTo</c>, so it is reached the way the other probes here reach one.
     /// </summary>
-    static XFont FontToXFont(Font font)
+    private static XFont FontToXFont(Font font)
     {
         return (XFont)Conversion.Invoke(null, new object[] { font, null, PdfFontEncoding.Unicode })!;
     }
 
-    static readonly MethodInfo Conversion =
+    private static readonly MethodInfo Conversion =
         typeof(PdfDocumentRenderer).Assembly.GetType("PinataLayout.Rendering.FontHandler", throwOnError: true)!
             .GetMethod("FontToXFont", BindingFlags.Static | BindingFlags.NonPublic)!;
 
     /// <summary>The page as it was drawn, which is where a font of the wrong size shows up.</summary>
-    static string PageOf(Document document)
+    private static string PageOf(Document document)
     {
         return Encoding.Latin1.GetString(PageContent.Of(Rendered.FirstPageOf(document)));
     }
@@ -125,7 +125,7 @@ public class ConcurrentRenderingTests
     ///   report: the sizes are the two it names, and the captured divergences were a word's advance
     ///   moving by 0.2778 pt and a footer line wrapping differently.
     /// </remarks>
-    static Document Built()
+    private static Document Built()
     {
         var document = new Document();
         var section = document.AddSection();

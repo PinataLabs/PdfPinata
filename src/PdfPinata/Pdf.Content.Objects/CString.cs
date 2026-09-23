@@ -67,7 +67,7 @@ public class CString : CObject
         set => _value = value;
     }
 
-    string _value;
+    private string _value;
 
     /// <summary>
     /// Gets or sets the type of the content string.
@@ -78,7 +78,7 @@ public class CString : CObject
         set => _cStringType = value;
     }
 
-    CStringType _cStringType;
+    private CStringType _cStringType;
 
     /// <summary>
     /// Returns a string that represents the current value.
@@ -134,7 +134,7 @@ public class CString : CObject
     /// The text as the bytes of a string that says it is text: the big-endian byte order mark
     /// FE FF, then each UTF-16 code unit high byte first - one char per byte.
     /// </summary>
-    static string BigEndianUtf16Bytes(string text)
+    private static string BigEndianUtf16Bytes(string text)
     {
         var bytes = new StringBuilder(2 + 2 * text.Length);
         bytes.Append('\xFE').Append('\xFF');
@@ -147,7 +147,7 @@ public class CString : CObject
     /// Appends the bytes as a literal string, escaping what a literal string cannot hold as it
     /// stands.
     /// </summary>
-    static void AppendLiteral(StringBuilder s, string bytes)
+    private static void AppendLiteral(StringBuilder s, string bytes)
     {
         s.Append('(');
         foreach (var ch in bytes)

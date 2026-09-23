@@ -88,7 +88,7 @@ public sealed class PdfTextField : PdfAcroField
         }
     }
 
-    XFont _font = new(GlobalFontSettings.FontResolver.DefaultFontName, 10);
+    private XFont _font = new(GlobalFontSettings.FontResolver.DefaultFontName, 10);
 
     /// <summary>
     /// Gets or sets the foreground color of the field.
@@ -103,7 +103,7 @@ public sealed class PdfTextField : PdfAcroField
         }
     }
 
-    XColor _foreColor = XColors.Black;
+    private XColor _foreColor = XColors.Black;
 
     /// <summary>
     /// Gets or sets the background color of the field.
@@ -118,7 +118,7 @@ public sealed class PdfTextField : PdfAcroField
         }
     }
 
-    XColor _backColor = XColor.Empty;
+    private XColor _backColor = XColor.Empty;
 
     /// <summary>
     /// Gets or sets the colour of the one-point border drawn around the field.
@@ -140,7 +140,7 @@ public sealed class PdfTextField : PdfAcroField
         }
     }
 
-    XColor _borderColor = XColor.Empty;
+    private XColor _borderColor = XColor.Empty;
 
     /// <summary>
     /// Gets or sets the maximum length of the field.
@@ -194,7 +194,7 @@ public sealed class PdfTextField : PdfAcroField
     /// <see cref="PdfAcroField.AddWidget"/> builds, and plenty that other software writes - drew
     /// its value into a form of no size at all and hung it on the field, where no reader looks.
     /// </remarks>
-    void RenderAppearance()
+    private void RenderAppearance()
     {
         if (Elements.ContainsKey(PdfAnnotation.Keys.Rect))
         {
@@ -221,7 +221,7 @@ public sealed class PdfTextField : PdfAcroField
         RenderAppearance();
     }
 
-    void RenderAppearanceOn(PdfDictionary annotation)
+    private void RenderAppearanceOn(PdfDictionary annotation)
     {
         var rect = annotation.Elements.GetRectangle(PdfAnnotation.Keys.Rect);
 
@@ -305,7 +305,7 @@ public sealed class PdfTextField : PdfAcroField
         /// </summary>
         internal static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

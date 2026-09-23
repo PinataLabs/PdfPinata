@@ -110,7 +110,7 @@ public sealed class PdfStringObject : PdfObject
         get => (_flags & PdfStringFlags.HexLiteral) != 0;
         set => _flags = value ? _flags | PdfStringFlags.HexLiteral : _flags & ~PdfStringFlags.HexLiteral;
     }
-    PdfStringFlags _flags;
+    private PdfStringFlags _flags;
 
     /// <summary>
     /// Gets or sets the value as string
@@ -120,7 +120,7 @@ public sealed class PdfStringObject : PdfObject
         get => _value ?? "";
         set => _value = value ?? "";
     }
-    string _value;
+    private string _value;
 
     /// <summary>
     /// Gets or sets the string value for encryption purposes.

@@ -17,7 +17,7 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 /// </summary>
 public class CellTests
 {
-    sealed class UndrawnImage : IImageSource
+    private sealed class UndrawnImage : IImageSource
     {
         public int Width => 1;
         public int Height => 1;
@@ -27,7 +27,7 @@ public class CellTests
         public PixelBuffer GetPixels() => throw new NotSupportedException();
     }
 
-    static Table TwoByTwo(Section section)
+    private static Table TwoByTwo(Section section)
     {
         var table = section.AddTable();
         table.AddColumn();
@@ -215,7 +215,7 @@ public class CellTests
         table[0, 0].MergeDown.Should().Be(5);
     }
 
-    static Table ThreeByThree(Section section)
+    private static Table ThreeByThree(Section section)
     {
         var table = section.AddTable();
         for (var column = 0; column < 3; column++)

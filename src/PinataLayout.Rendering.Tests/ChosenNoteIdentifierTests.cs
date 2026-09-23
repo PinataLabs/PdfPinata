@@ -127,7 +127,7 @@ public class ChosenNoteIdentifierTests
 
     // ── Arranging ───────────────────────────────────────────────────────────────────────────────
 
-    static Document Document(out Section section)
+    private static Document Document(out Section section)
     {
         var document = new Document();
         var normal = document.Styles[StyleNames.Normal];

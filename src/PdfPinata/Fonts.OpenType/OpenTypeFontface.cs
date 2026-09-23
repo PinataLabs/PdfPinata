@@ -60,7 +60,7 @@ internal sealed class OpenTypeFontface
     /// <summary>
     /// Shallow copy for font subset.
     /// </summary>
-    OpenTypeFontface(OpenTypeFontface fontface)
+    private OpenTypeFontface(OpenTypeFontface fontface)
     {
         _offsetTable = fontface._offsetTable;
         _fullFaceName = fontface._fullFaceName;
@@ -108,7 +108,7 @@ internal sealed class OpenTypeFontface
     /// </summary>
     public string FullFaceName => _fullFaceName;
 
-    readonly string _fullFaceName;
+    private readonly string _fullFaceName;
 
     public ulong CheckSum
     {
@@ -119,7 +119,7 @@ internal sealed class OpenTypeFontface
             return _checkSum;
         }
     }
-    ulong _checkSum;
+    private ulong _checkSum;
 
     /// <summary>
     /// Gets the bytes that represents the font data.
@@ -135,7 +135,7 @@ internal sealed class OpenTypeFontface
             _fontSource = value;
         }
     }
-    XFontSource _fontSource;
+    private XFontSource _fontSource;
 
     internal FontTechnology FontTechnology;
 
@@ -450,7 +450,7 @@ internal sealed class OpenTypeFontface
     /// <summary>
     /// Compiles the font to its binary representation.
     /// </summary>
-    void Compile()
+    private void Compile()
     {
         var stream = new MemoryStream();
         var writer = new OpenTypeFontWriter(stream);
@@ -488,7 +488,7 @@ internal sealed class OpenTypeFontface
         FontSource = XFontSource.CreateCompiledFont(stream.ToArray());
     }
     // 2^entrySelector[n] <= n
-    static readonly int[] _entrySelectors = [0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4
+    private static readonly int[] _entrySelectors = [0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4
     ];
 
     public int Position
@@ -496,7 +496,7 @@ internal sealed class OpenTypeFontface
         get => _pos;
         set => _pos = value;
     }
-    int _pos;
+    private int _pos;
 
     public int Seek(string tag)
     {

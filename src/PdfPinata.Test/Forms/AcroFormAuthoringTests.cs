@@ -654,7 +654,7 @@ public class AcroFormAuthoringTests
         page.Annotations[1].Elements.ContainsKey("/AP").Should().BeTrue();
     }
 
-    static PdfDocument SaveAndReopen(PdfDocument document)
+    private static PdfDocument SaveAndReopen(PdfDocument document)
     {
         using var stream = new MemoryStream();
         document.Save(stream, false);

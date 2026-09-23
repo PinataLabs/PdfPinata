@@ -25,7 +25,7 @@ public readonly struct PdfTag : IEquatable<PdfTag>
     public PdfTag(string name)
     {
         if (string.IsNullOrEmpty(name))
-            throw new ArgumentException("A structure type has to have a name.", nameof(name));
+            throw new ArgumentException(@"A structure type has to have a name.", nameof(name));
 
         Name = name[0] == '/' ? name : "/" + name;
     }

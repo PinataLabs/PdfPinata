@@ -126,7 +126,7 @@ public class MergedCellList : List<Cell>
 
     var cellIdx = this.BinarySearch(cell, new CellComparer());
     if (!(cellIdx >= 0 && cellIdx < this.Count))
-      throw new ArgumentException("cell is not a relevant cell", nameof(cell));
+      throw new ArgumentException(@"cell is not a relevant cell", nameof(cell));
 
     if (cell.mergeRight > 0)
     {

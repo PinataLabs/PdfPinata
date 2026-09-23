@@ -46,14 +46,14 @@ internal static class PdfEncoders
     /// </summary>
     public static Encoding RawEncoding => _rawEncoding ?? (_rawEncoding = new RawEncoding());
 
-    static Encoding _rawEncoding;
+    private static Encoding _rawEncoding;
 
     /// <summary>
     /// Gets the raw Unicode encoding.
     /// </summary>
     public static Encoding RawUnicodeEncoding => _rawUnicodeEncoding ?? (_rawUnicodeEncoding = new RawUnicodeEncoding());
 
-    static Encoding _rawUnicodeEncoding;
+    private static Encoding _rawUnicodeEncoding;
 
     /// <summary>
     /// Gets the Windows 1252 (ANSI) encoding.
@@ -64,27 +64,26 @@ internal static class PdfEncoders
         {
             if (_winAnsiEncoding == null)
             {
-                // Use own implementation in Silverlight and WinRT
                 _winAnsiEncoding = new AnsiEncoding();
             }
             return _winAnsiEncoding;
         }
     }
-    static Encoding _winAnsiEncoding;
+    private static Encoding _winAnsiEncoding;
 
     /// <summary>
     /// Gets the PDF DocEncoding encoding.
     /// </summary>
     public static Encoding DocEncoding => _docEncoding ??= new DocEncoding();
 
-    static Encoding _docEncoding;
+    private static Encoding _docEncoding;
 
     /// <summary>
     /// Gets the UNICODE little-endian encoding.
     /// </summary>
     public static Encoding UnicodeEncoding => _unicodeEncoding ?? (_unicodeEncoding = Encoding.Unicode);
 
-    static Encoding _unicodeEncoding;
+    private static Encoding _unicodeEncoding;
 
     /// <summary>
     /// Converts a name, leading slash included, into the form it is written in: the slash, then
@@ -133,7 +132,7 @@ internal static class PdfEncoders
         return pdf.ToString();
     }
 
-    static void EnsureNoLoneSurrogate(string name)
+    private static void EnsureNoLoneSurrogate(string name)
     {
         for (var idx = 1; idx < name.Length; idx++)
         {
@@ -151,7 +150,7 @@ internal static class PdfEncoders
         }
     }
 
-    static void AppendNameByte(StringBuilder pdf, byte b)
+    private static void AppendNameByte(StringBuilder pdf, byte b)
     {
         switch ((char)b)
         {

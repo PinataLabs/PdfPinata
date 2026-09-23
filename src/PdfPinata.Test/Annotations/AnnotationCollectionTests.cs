@@ -18,9 +18,9 @@ namespace PdfPinata.Test.Annotations;
 /// </summary>
 public class AnnotationCollectionTests
 {
-    static PdfRectangle ARectangle(double x = 10, double y = 10) => new(new XRect(x, y, 100, 20));
+    private static PdfRectangle ARectangle(double x = 10, double y = 10) => new(new XRect(x, y, 100, 20));
 
-    static PdfPage APageWith(params PdfAnnotation[] annotations)
+    private static PdfPage APageWith(params PdfAnnotation[] annotations)
     {
         var page = new PdfDocument().AddPage();
         foreach (var annotation in annotations)
@@ -28,7 +28,7 @@ public class AnnotationCollectionTests
         return page;
     }
 
-    static PdfTextAnnotation ANote(string text = "a note")
+    private static PdfTextAnnotation ANote(string text = "a note")
     {
         return new PdfTextAnnotation { Rectangle = ARectangle(), Contents = text };
     }
@@ -230,7 +230,7 @@ public class AnnotationCollectionTests
         annotation.Elements.GetReference("/P").Should().BeSameAs(placed.Reference);
     }
 
-    static PdfDocument ReadBack(PdfDocument document,
+    private static PdfDocument ReadBack(PdfDocument document,
         PdfDocumentOpenMode mode = PdfDocumentOpenMode.Modify)
     {
         var output = new System.IO.MemoryStream();

@@ -87,7 +87,7 @@ internal static class Glyphs
     ///   One show-text operand read as glyph identifiers. Two bytes each - reading it a byte at a
     ///   time shifts everything by half a glyph and produces a sequence that differs everywhere.
     /// </summary>
-    static IReadOnlyList<int> GlyphsOf(string run)
+    private static IReadOnlyList<int> GlyphsOf(string run)
     {
         var glyphs = new List<int>();
         for (var idx = 0; idx + 1 < run.Length; idx += 2)

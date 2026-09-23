@@ -139,7 +139,7 @@ public sealed class PdfTilingPattern : PdfDictionaryWithContentStream
         /// </summary>
         internal static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

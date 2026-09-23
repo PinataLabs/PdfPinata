@@ -69,7 +69,7 @@ internal sealed class PdfImageTable : PdfResourceTable
     /// <summary>
     /// Map from ImageSelector to PdfImage.
     /// </summary>
-    readonly Dictionary<ImageSelector, PdfImage> _images = new();
+    private readonly Dictionary<ImageSelector, PdfImage> _images = new();
 
     /// <summary>
     /// A collection of information that uniquely identifies a particular PdfImage.
@@ -94,7 +94,7 @@ internal sealed class PdfImageTable : PdfResourceTable
             get => _path;
             set => _path = value;
         }
-        string _path;
+        private string _path;
 
         public override bool Equals(object obj)
         {

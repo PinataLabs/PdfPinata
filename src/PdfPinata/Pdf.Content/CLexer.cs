@@ -227,10 +227,10 @@ public class CLexer
     /// </summary>
     internal byte[] InlineImageData { get; private set; } = [];
 
-    static readonly char[] WhiteSpaceCharacters = [Chars.NUL, Chars.HT, Chars.LF, Chars.FF, Chars.CR, Chars.SP];
+    private static readonly char[] WhiteSpaceCharacters = [Chars.NUL, Chars.HT, Chars.LF, Chars.FF, Chars.CR, Chars.SP];
 
     /// <summary>The bytes of the content from one index up to another, one character per byte.</summary>
-    string RawText(int start, int end)
+    private string RawText(int start, int end)
     {
         if (end <= start)
             return "";
@@ -247,7 +247,7 @@ public class CLexer
     /// behind <see cref="_charIndex"/> - except at the very end, where nothing is read to follow it.
     /// A carriage return folded together with the line feed after it is at the line feed's index.
     /// </summary>
-    int CurrentCharIndex =>
+    private int CurrentCharIndex =>
         _currChar == Chars.EOF ? ContLength
         : _nextChar == Chars.EOF ? ContLength - 1
         : _charIndex - 2;
@@ -659,7 +659,7 @@ public class CLexer
     /// the content cut off lost the rest of that character, and the half of it is dropped rather
     /// than turned into a character nobody wrote.
     /// </param>
-    CSymbol DecodeLiteralString(bool terminated)
+    private CSymbol DecodeLiteralString(bool terminated)
     {
         // The reference only names the big-endian byte order mark, but Adobe Reader also accepts
         // the little-endian one - the document lexer does too, and a byte-swapped string here
@@ -798,23 +798,23 @@ public class CLexer
     /// returns <see cref="Chars.EOF"/> once the content is exhausted. Cached as
     /// <see cref="_readNextRawByte"/> rather than a method group conversion at each call site.
     /// </summary>
-    char ReadNextRawByte() => ContLength <= _charIndex ? Chars.EOF : (char)_content[_charIndex++];
+    private char ReadNextRawByte() => ContLength <= _charIndex ? Chars.EOF : (char)_content[_charIndex++];
 
-    char ScanNextCharFolding() => ScanNextChar();
+    private char ScanNextCharFolding() => ScanNextChar();
 
     /// <summary>
     /// The character after <see cref="_nextChar"/>, without reading it: the byte
     /// <see cref="_charIndex"/> already points at, or <see cref="Chars.EOF"/> past the end.
     /// </summary>
-    char PeekAfterNextChar() => ContLength <= _charIndex ? Chars.EOF : (char)_content[_charIndex];
+    private char PeekAfterNextChar() => ContLength <= _charIndex ? Chars.EOF : (char)_content[_charIndex];
 
     /// <summary>The value of a character <see cref="IsHexChar"/> accepts.</summary>
-    static int HexValue(char ch) => ch <= '9' ? ch - '0' : (ch | 0x20) - 'a' + 10;
+    private static int HexValue(char ch) => ch <= '9' ? ch - '0' : (ch | 0x20) - 'a' + 10;
 
     /// <summary>
     /// Resets the current token to the empty string.
     /// </summary>
-    void ClearToken()
+    private void ClearToken()
     {
         _token.Length = 0;
         _tokenAsLong = 0;
@@ -943,20 +943,20 @@ public class CLexer
         }
     }
 
-    readonly byte[] _content;
-    int _charIndex;
-    char _currChar;
-    char _nextChar;
+    private readonly byte[] _content;
+    private int _charIndex;
+    private char _currChar;
+    private char _nextChar;
 
     // Cached rather than a method group conversion at each call site, since
     // CharacterScanning.Advance and .SkipWhiteSpace are called once per character scanned.
-    readonly Func<char> _readNextRawByte;
-    readonly Func<char> _scanNextCharFolding;
+    private readonly Func<char> _readNextRawByte;
+    private readonly Func<char> _scanNextCharFolding;
 
-    readonly StringBuilder _token = new();
+    private readonly StringBuilder _token = new();
     // Where in the content the token last scanned by ScanNextToken begins.
-    int _tokenStart;
-    long _tokenAsLong;
-    double _tokenAsReal;
-    CSymbol _symbol = CSymbol.None;
+    private int _tokenStart;
+    private long _tokenAsLong;
+    private double _tokenAsReal;
+    private CSymbol _symbol = CSymbol.None;
 }

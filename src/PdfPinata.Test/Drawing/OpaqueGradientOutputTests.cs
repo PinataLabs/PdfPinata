@@ -35,7 +35,7 @@ public class OpaqueGradientOutputTests
     ///   therefore passed on Linux and failed on the first line of a fresh Windows checkout,
     ///   which says nothing whatever about gradients.
     /// </remarks>
-    static string WithoutCarriageReturns(string text) => text.Replace("\r\n", "\n");
+    private static string WithoutCarriageReturns(string text) => text.Replace("\r\n", "\n");
 
     [Fact]
     public void AnRgbRampCarriesOneValuePerColourComponent()
@@ -58,7 +58,7 @@ public class OpaqueGradientOutputTests
         written.Should().NotContain(" gs\n");
     }
 
-    const string Expected =
+    private const string Expected =
         """
         --- content ---
         q

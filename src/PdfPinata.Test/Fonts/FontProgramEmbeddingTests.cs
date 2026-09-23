@@ -174,17 +174,17 @@ public class FontProgramEmbeddingTests
     ///   reflection because the table is internal and this repository carries no
     ///   <c>InternalsVisibleTo</c>, the same way the probes in <c>FontPlumbingTests</c> do.
     /// </summary>
-    static string KeyOfFace(XFont font) => (string)typeof(XPoint).Assembly
-        .GetType("PdfPinata.Pdf.Advanced.PdfFontTable", throwOnError: true)
-        .GetMethod("ComputeKey", BindingFlags.Static | BindingFlags.NonPublic, null, [typeof(XFont)], null)
+    private static string KeyOfFace(XFont font) => (string)typeof(XPoint).Assembly
+        .GetType("PdfPinata.Pdf.Advanced.PdfFontTable", throwOnError: true)!
+        .GetMethod("ComputeKey", BindingFlags.Static | BindingFlags.NonPublic, null, [typeof(XFont)], null)!
         .Invoke(null, [font]);
 
     /// <summary>A font program, as a caller who read one off disk would hand it over.</summary>
-    static byte[] Program(string file = "LiberationSans-Regular.ttf") =>
+    private static byte[] Program(string file = "LiberationSans-Regular.ttf") =>
         File.ReadAllBytes(Path.Combine(AppContext.BaseDirectory, "Assets", "Fonts", file));
 
     /// <summary>The fonts a page's resource dictionary names.</summary>
-    static PdfDictionary[] FontResourcesOf(PdfPage page)
+    private static PdfDictionary[] FontResourcesOf(PdfPage page)
     {
         var fonts = page.Resources.Elements.GetDictionary("/Font");
         if (fonts == null)
@@ -196,10 +196,10 @@ public class FontProgramEmbeddingTests
             .ToArray();
     }
 
-    static PdfDictionary DescendantOf(PdfDictionary type0) =>
+    private static PdfDictionary DescendantOf(PdfDictionary type0) =>
         (PdfDictionary)((PdfReference)type0.Elements.GetArray("/DescendantFonts").Elements[0]).Value;
 
-    static PdfDocument SavedAndReopened(PdfDocument document)
+    private static PdfDocument SavedAndReopened(PdfDocument document)
     {
         using var stream = new MemoryStream();
         document.Save(stream, false);

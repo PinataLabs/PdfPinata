@@ -24,7 +24,7 @@ public class ImportedPageEntriesTests
     ///   was imported once or twice shows in the output. <paramref name="entries" /> is the rest
     ///   of the page dictionary, the group and the resources aside.
     /// </summary>
-    static byte[] SourceDocument(string entries = AllEntries)
+    private static byte[] SourceDocument(string entries = AllEntries)
     {
         return RawPdf.Build(
         [
@@ -39,12 +39,12 @@ public class ImportedPageEntriesTests
         ]);
     }
 
-    const string AllEntries =
+    private const string AllEntries =
         "/UserUnit 2.5/Tabs/R/Trans<</Type/Trans/S/Dissolve/D 1.5>>/Dur 3/StructParents 0";
 
     public static TheoryData<string> ImportPaths => ["Add", "Insert", "InsertRange"];
 
-    static PdfDocument Imported(string path, Action<PdfPage> drawOn = null, string entries = AllEntries)
+    private static PdfDocument Imported(string path, Action<PdfPage> drawOn = null, string entries = AllEntries)
     {
         using var input = new MemoryStream(SourceDocument(entries));
         var source = Pdf.IO.PdfReader.Open(input, PdfDocumentOpenMode.Import);

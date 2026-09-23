@@ -81,7 +81,7 @@ public sealed class PdfSignatureField : PdfAcroField
         set => SetIndirect(Keys.SV, value);
     }
 
-    void SetIndirect(string key, PdfDictionary value)
+    private void SetIndirect(string key, PdfDictionary value)
     {
         if (value == null)
         {
@@ -90,7 +90,7 @@ public sealed class PdfSignatureField : PdfAcroField
         }
 
         if (Owner == null || value.Owner != Owner)
-            throw new ArgumentException("The dictionary and the field must belong to the same document.", nameof(value));
+            throw new ArgumentException(@"The dictionary and the field must belong to the same document.", nameof(value));
 
         if (value.Reference == null)
             Owner.Internals.AddObject(value);
@@ -185,7 +185,7 @@ public sealed class PdfSignatureField : PdfAcroField
         /// </summary>
         internal static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

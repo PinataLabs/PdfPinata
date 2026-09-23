@@ -102,7 +102,7 @@ public struct Color : INullableValue, IEquatable<Color>
         : this(100, cyan, magenta, yellow, black)
     { }
 
-    void InitCmykFromRgb()
+    private void InitCmykFromRgb()
     {
         // Similar formula as in PDFsharp
         isCmyk = false;
@@ -123,7 +123,7 @@ public struct Color : INullableValue, IEquatable<Color>
         a = A / 2.55f;
     }
 
-    void InitRgbFromCmyk()
+    private void InitRgbFromCmyk()
     {
         // Similar formula as in PDFsharp
         isCmyk = true;
@@ -285,7 +285,7 @@ public struct Color : INullableValue, IEquatable<Color>
     {
         ArgumentNullException.ThrowIfNull(color);
         if (color == "")
-            throw new ArgumentException("A colour must not be empty.", nameof(color));
+            throw new ArgumentException(@"A colour must not be empty.", nameof(color));
 
         try
         {
@@ -439,9 +439,9 @@ public struct Color : INullableValue, IEquatable<Color>
     /// colour from several threads at once returned the name, "RGB(r,g,b)", an empty string or an
     /// ArgumentException, depending on the timing.
     /// </remarks>
-    static readonly Dictionary<uint, string> StdColors = BuildStdColors();
+    private static readonly Dictionary<uint, string> StdColors = BuildStdColors();
 
-    static Dictionary<uint, string> BuildStdColors()
+    private static Dictionary<uint, string> BuildStdColors()
     {
         var names = Enum.GetNames<ColorName>();
         var values = Enum.GetValues<ColorName>();
@@ -491,8 +491,8 @@ public struct Color : INullableValue, IEquatable<Color>
         return new Color(alpha, color.C, color.M, color.Y, color.K);
     }
 
-    uint argb; // ARGB
-    bool isCmyk;
+    private uint argb; // ARGB
+    private bool isCmyk;
     private float a; // \
     private float c; // |
     private float m; // |--- alpha + CMYK

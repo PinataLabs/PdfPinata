@@ -50,11 +50,11 @@ public class TextShapingSeamTests
     ///   A shaper that answers for one string and declines every other, so that installing it
     ///   cannot disturb anything else running at the same time.
     /// </summary>
-    sealed class SelectiveShaper : ITextShaper
+    private sealed class SelectiveShaper : ITextShaper
     {
-        readonly string _mine;
-        readonly Func<ShapingFont, IReadOnlyList<ShapedGlyph>> _glyphs;
-        readonly XTextDirection _direction;
+        private readonly string _mine;
+        private readonly Func<ShapingFont, IReadOnlyList<ShapedGlyph>> _glyphs;
+        private readonly XTextDirection _direction;
 
         internal SelectiveShaper(string mine, Func<ShapingFont, IReadOnlyList<ShapedGlyph>> glyphs,
             XTextDirection direction = XTextDirection.LeftToRight)
@@ -90,20 +90,20 @@ public class TextShapingSeamTests
         }
     }
 
-    static IDisposable Installed(ITextShaper shaper)
+    private static IDisposable Installed(ITextShaper shaper)
     {
         GlobalFontSettings.TextShaper = shaper;
         return new Uninstall();
     }
 
-    sealed class Uninstall : IDisposable
+    private sealed class Uninstall : IDisposable
     {
         public void Dispose() => GlobalFontSettings.TextShaper = null;
     }
 
-    static XFont Font() => new XFont("Arial", 20);
+    private static XFont Font() => new XFont("Arial", 20);
 
-    static IReadOnlyList<int[]> GlyphRuns(PdfPage page) => DrawnText.GlyphRuns(page);
+    private static IReadOnlyList<int[]> GlyphRuns(PdfPage page) => DrawnText.GlyphRuns(page);
 
     /// <summary>
     ///   Every glyph the page shows, whichever show-text operators they were written in.
@@ -115,12 +115,12 @@ public class TextShapingSeamTests
     ///   the fixtures here hand back fewer glyphs than there are characters, so most of them contain
     ///   such a glyph by construction. Flattening keeps those tests about the one thing they name.
     /// </remarks>
-    static int[] AllGlyphs(PdfPage page) => GlyphRuns(page).SelectMany(run => run).ToArray();
+    private static int[] AllGlyphs(PdfPage page) => GlyphRuns(page).SelectMany(run => run).ToArray();
 
-    static PdfPage Drawn(string text, XStringFormat format = null)
+    private static PdfPage Drawn(string text, XStringFormat format = null)
         => DrawnText.Page(text, Font(), format);
 
-    static double MeasuredWidth(string text) => DrawnText.MeasuredWidth(text, Font());
+    private static double MeasuredWidth(string text) => DrawnText.MeasuredWidth(text, Font());
 
     // ----- the unset seam ------------------------------------------------------------------------
 
@@ -355,7 +355,7 @@ public class TextShapingSeamTests
     // ----- displacing a glyph off the pen position -----------------------------------------------
 
     /// <summary>The whole content stream of a page, as the renderer wrote it.</summary>
-    static string Content(PdfPage page) => DrawnText.ContentOf(page);
+    private static string Content(PdfPage page) => DrawnText.ContentOf(page);
 
     [Fact]
     public void AGlyphAShaperWantsMovedSidewaysIsMovedAndPutBack()

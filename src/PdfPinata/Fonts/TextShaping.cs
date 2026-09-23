@@ -75,7 +75,7 @@ static class TextShaping
     /// Shapes one itemised run, cutting it again wherever the face has to change, and adds the
     /// pieces to <paramref name="into"/> in the order they are drawn.
     /// </summary>
-    static void AddRun(List<ShapedSegment> into, string whole, int start, int length,
+    private static void AddRun(List<ShapedSegment> into, string whole, int start, int length,
         XTextDirection direction, string script, XFont font, OpenTypeDescriptor descriptor,
         string language)
     {
@@ -136,7 +136,7 @@ static class TextShaping
             into.Reverse(first, into.Count - first);
     }
 
-    static ShapedSegment Segment(string whole, int start, int length, XTextDirection direction,
+    private static ShapedSegment Segment(string whole, int start, int length, XTextDirection direction,
         string script, XFont font, OpenTypeDescriptor descriptor, string language)
         => new ShapedSegment(
             Shape(whole.AsSpan(start, length), font, descriptor, direction, script, language),
@@ -152,7 +152,7 @@ static class TextShaping
     /// there is exactly one script. The first character at or above that bound is where the cheap
     /// answer stops being the true one; combining marks and every non-Latin script are above it.
     /// </remarks>
-    static bool NeedsItemizing(ReadOnlySpan<char> text)
+    private static bool NeedsItemizing(ReadOnlySpan<char> text)
     {
         for (var idx = 0; idx < text.Length; idx++)
         {
@@ -194,7 +194,7 @@ static class TextShaping
             ?? Unshaped(text, descriptor, direction);
     }
 
-    static OpenTypeDescriptor DescriptorFor(XFont font)
+    private static OpenTypeDescriptor DescriptorFor(XFont font)
     {
         ArgumentNullException.ThrowIfNull(font);
 
@@ -317,7 +317,7 @@ static class TextShaping
     /// counts the glyphs and the other fills them in, so a disagreement is an array of the wrong
     /// size or a hole left in the middle of it.
     /// </remarks>
-    static int CharacterLengthAt(ReadOnlySpan<char> text, int index)
+    private static int CharacterLengthAt(ReadOnlySpan<char> text, int index)
         => char.IsHighSurrogate(text[index])
            && index + 1 < text.Length
            && char.IsLowSurrogate(text[index + 1])

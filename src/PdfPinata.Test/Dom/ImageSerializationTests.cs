@@ -17,18 +17,18 @@ namespace PdfPinata.Test.Dom;
 /// </summary>
 public class ImageSerializationTests
 {
-    static string AnImagePath() => PathHelper.GetInstance().GetAssetPath("frog-and-toad.jpg");
+    private static string AnImagePath() => PathHelper.GetInstance().GetAssetPath("frog-and-toad.jpg");
 
-    static Document ADocumentWithAnImage(out Image image)
+    private static Document ADocumentWithAnImage(out Image image)
     {
         var document = new Document();
         image = document.AddSection().AddImage(FromFile(AnImagePath()));
         return document;
     }
 
-    static string Write(Document document) => DdlWriter.WriteToString(document);
+    private static string Write(Document document) => DdlWriter.WriteToString(document);
 
-    static Image RoundTrip(Document document) =>
+    private static Image RoundTrip(Document document) =>
         DdlReader.DocumentFromString(Write(document))
             .LastSection.Elements.OfType<Image>().Single();
 

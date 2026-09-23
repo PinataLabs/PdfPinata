@@ -14,7 +14,7 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 /// </summary>
 public sealed class DdlWriterTests : IDisposable
 {
-    readonly string _file = Path.Combine(Path.GetTempPath(), "ddlwriter-" + Guid.NewGuid().ToString("N") + ".mdddl");
+    private readonly string _file = Path.Combine(Path.GetTempPath(), "ddlwriter-" + Guid.NewGuid().ToString("N") + ".mdddl");
 
     public void Dispose()
     {
@@ -22,14 +22,14 @@ public sealed class DdlWriterTests : IDisposable
             File.Delete(_file);
     }
 
-    static Document ADocument()
+    private static Document ADocument()
     {
         var document = new Document();
         document.AddSection().AddParagraph("hello");
         return document;
     }
 
-    static DocumentElements SomeElements()
+    private static DocumentElements SomeElements()
     {
         var elements = new Section().Elements;
         elements.AddParagraph("first");

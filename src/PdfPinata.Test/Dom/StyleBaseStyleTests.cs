@@ -19,7 +19,7 @@ namespace PdfPinata.Test.Dom;
 public class StyleBaseStyleTests
 {
     /// <summary>A document with Derived : Normal, and Grandchild : Derived below it.</summary>
-    static Document WithAChain()
+    private static Document WithAChain()
     {
         var document = new Document();
         document.Styles.AddStyle("Derived", Style.DefaultParagraphName);

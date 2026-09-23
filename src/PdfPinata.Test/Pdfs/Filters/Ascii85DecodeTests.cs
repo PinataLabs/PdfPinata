@@ -17,9 +17,9 @@ namespace PdfPinata.Test.Pdfs.Filters;
 /// </summary>
 public class Ascii85DecodeTests
 {
-    static readonly Ascii85Decode Filter = new();
+    private static readonly Ascii85Decode Filter = new();
 
-    static byte[] Decode(byte[] encoded)
+    private static byte[] Decode(byte[] encoded)
     {
         return Filter.Decode(encoded, (FilterParms)null);
     }
@@ -121,13 +121,13 @@ public class Ascii85DecodeTests
     /// has to be stepped over rather than decoded. The decoder ignores it silently — there is no
     /// validity check beyond the end marker.
     /// </summary>
-    const string Text = "Hello, World!";
+    private const string Text = "Hello, World!";
 
     /// <summary>
     /// The encoding of <see cref="Text"/>, taken from the encoder rather than written out here,
     /// so that these tests say what the decoder tolerates rather than restating the digits.
     /// </summary>
-    static string Encoded()
+    private static string Encoded()
     {
         return Encoding.ASCII.GetString(Filter.Encode(Encoding.ASCII.GetBytes(Text)));
     }

@@ -17,7 +17,7 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 /// </summary>
 public class ChartTextAreaTests
 {
-    sealed class UndrawnImage : IImageSource
+    private sealed class UndrawnImage : IImageSource
     {
         public int Width => 1;
         public int Height => 1;
@@ -27,9 +27,9 @@ public class ChartTextAreaTests
         public PixelBuffer GetPixels() => throw new NotSupportedException();
     }
 
-    static Chart ChartIn(Document document) => document.AddSection().AddChart(ChartType.Line);
+    private static Chart ChartIn(Document document) => document.AddSection().AddChart(ChartType.Line);
 
-    static Chart RoundTrip(Document document) =>
+    private static Chart RoundTrip(Document document) =>
         (Chart)DdlReader.DocumentFromString(DdlWriter.WriteToString(document)).LastSection.Elements[0];
 
     [Fact]

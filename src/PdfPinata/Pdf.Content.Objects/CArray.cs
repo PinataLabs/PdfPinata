@@ -81,7 +81,7 @@ public class CArray : CSequence
         return s.ToString();
     }
 
-    static bool DelimitsItself(CObject item)
+    private static bool DelimitsItself(CObject item)
     {
         return item is CString or CArray;
     }

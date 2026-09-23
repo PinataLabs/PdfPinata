@@ -1,4 +1,5 @@
 ﻿#region Copyright
+
 //
 // Authors:
 //   Stefan Lange
@@ -25,6 +26,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
+
 #endregion
 
 using System;
@@ -43,7 +45,8 @@ public class XColorResourceManager
     /// </summary>
     public XColorResourceManager()
         : this(CultureInfo.CurrentUICulture)
-    { }
+    {
+    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="XColorResourceManager"/> class.
@@ -54,7 +57,7 @@ public class XColorResourceManager
         _cultureInfo = cultureInfo;
     }
 
-    readonly CultureInfo _cultureInfo;
+    private readonly CultureInfo _cultureInfo;
 
     /// <summary>
     /// Gets a known color from an ARGB value. Throws an ArgumentException if the value is not a known color.
@@ -63,7 +66,7 @@ public class XColorResourceManager
     {
         var knownColor = XKnownColorTable.GetKnownColor(argb);
         if ((int)knownColor == -1)
-            throw new ArgumentException("The argument is not a known color", nameof(argb));
+            throw new ArgumentException(@"The argument is not a known color", nameof(argb));
         return knownColor;
     }
 
@@ -73,10 +76,10 @@ public class XColorResourceManager
     /// <param name="includeTransparent">Indicates whether to include the color Transparent.</param>
     public static XKnownColor[] GetKnownColors(bool includeTransparent)
     {
-        var count = colorInfos.Length;
+        var count = ColorInfos.Length;
         var knownColor = new XKnownColor[count - (includeTransparent ? 0 : 1)];
         for (int idxIn = includeTransparent ? 0 : 1, idxOut = 0; idxIn < count; idxIn++, idxOut++)
-            knownColor[idxOut] = colorInfos[idxIn].KnownColor;
+            knownColor[idxOut] = ColorInfos[idxIn].KnownColor;
         return knownColor;
     }
 
@@ -99,22 +102,20 @@ public class XColorResourceManager
     /// </summary>
     public string ToColorName(XColor color)
     {
-        string name;
-        if (color.IsKnownColor)
-            name = ToColorName(XKnownColorTable.GetKnownColor(color.Argb));
-        else
-            name = $"{(int)(255 * color.A)}, {color.R}, {color.G}, {color.B}";
+        var name = color.IsKnownColor
+            ? ToColorName(XKnownColorTable.GetKnownColor(color.Argb))
+            : $"{(int)(255 * color.A)}, {color.R}, {color.G}, {color.B}";
         return name;
     }
 
-    static ColorResourceInfo GetColorInfo(XKnownColor knownColor)
+    private static ColorResourceInfo GetColorInfo(XKnownColor knownColor)
     {
-        for (var idx = 0; idx < colorInfos.Length; idx++)
+        foreach (var colorInfo in ColorInfos)
         {
-            var colorInfo = colorInfos[idx];
             if (colorInfo.KnownColor == knownColor)
                 return colorInfo;
         }
+
         throw new InvalidEnumArgumentException("Enum is not an XKnownColor.");
     }
 
@@ -123,7 +124,7 @@ public class XColorResourceManager
     // http://blog.patrickkempf.de/archives/2004/04/10/html-farben/
     // http://www.grafikwunder.de/Grafikecke/Farbtabelle/farbtabelle-006.php
     // Silke changed some German translations (women know more colors than men :-)
-    internal static ColorResourceInfo[] colorInfos =
+    internal static ColorResourceInfo[] ColorInfos =
     [
         new(XKnownColor.Transparent, XColors.Transparent, 0x00FFFFFF, "Transparent", "Transparent"),
         new(XKnownColor.Black, XColors.Black, 0xFF000000, "Black", "Schwarz"),
@@ -150,7 +151,8 @@ public class XColorResourceManager
         new(XKnownColor.PapayaWhip, XColors.PapayaWhip, 0xFFFFEFD5, "Papayawhip", "Papayacreme"),
         new(XKnownColor.Beige, XColors.Beige, 0xFFF5F5DC, "Beige", "Beige"),
         new(XKnownColor.Cornsilk, XColors.Cornsilk, 0xFFFFF8DC, "Cornsilk", "Mais"),
-        new(XKnownColor.LightGoldenrodYellow, XColors.LightGoldenrodYellow, 0xFFFAFAD2, "Lightgoldenrodyellow", "Helles Goldgelb"),
+        new(XKnownColor.LightGoldenrodYellow, XColors.LightGoldenrodYellow, 0xFFFAFAD2, "Lightgoldenrodyellow",
+            "Helles Goldgelb"),
         new(XKnownColor.LightYellow, XColors.LightYellow, 0xFFFFFFE0, "Lightyellow", "Hellgelb"),
         new(XKnownColor.LemonChiffon, XColors.LemonChiffon, 0xFFFFFACD, "Lemonchiffon", "Pastellgelb"),
         new(XKnownColor.PaleGoldenrod, XColors.PaleGoldenrod, 0xFFEEE8AA, "Palegoldenrod", "Blasses Goldgelb"),
@@ -198,7 +200,8 @@ public class XColorResourceManager
         ////new ColorResourceInfo(XKnownColor.Fuchsia, XColors.Fuchsia, 0xFFFF00FF, "Fuchsia", "Fuchsie"),
         new(XKnownColor.Magenta, XColors.Magenta, 0xFFFF00FF, "Magenta", "Magentarot"),
         new(XKnownColor.DeepPink, XColors.DeepPink, 0xFFFF1493, "Deeppink", "Tiefrosa"),
-        new(XKnownColor.MediumVioletRed, XColors.MediumVioletRed, 0xFFC71585, "Mediumvioletred", "Mittleres Violettrot"),
+        new(XKnownColor.MediumVioletRed, XColors.MediumVioletRed, 0xFFC71585, "Mediumvioletred",
+            "Mittleres Violettrot"),
         new(XKnownColor.PaleVioletRed, XColors.PaleVioletRed, 0xFFDB7093, "Palevioletred", "Blasses Violettrot"),
         new(XKnownColor.Plum, XColors.Plum, 0xFFDDA0DD, "Plum", "Pflaume"),
         new(XKnownColor.Thistle, XColors.Thistle, 0xFFD8BFD8, "Thistle", "Distel"),
@@ -213,7 +216,8 @@ public class XColorResourceManager
         new(XKnownColor.DarkOrchid, XColors.DarkOrchid, 0xFF9932CC, "Darkorchid", "Dunkle Orchidee"),
         new(XKnownColor.MediumPurple, XColors.MediumPurple, 0xFF9370DB, "Mediumpurple", "Mittleres Violett"),
         new(XKnownColor.MediumOrchid, XColors.MediumOrchid, 0xFFBA55D3, "Mediumorchid", "Mittlere Orchidee"),
-        new(XKnownColor.MediumSlateBlue, XColors.MediumSlateBlue, 0xFF7B68EE, "Mediumslateblue", "Mittleres Schieferblau"),
+        new(XKnownColor.MediumSlateBlue, XColors.MediumSlateBlue, 0xFF7B68EE, "Mediumslateblue",
+            "Mittleres Schieferblau"),
         new(XKnownColor.SlateBlue, XColors.SlateBlue, 0xFF6A5ACD, "Slateblue", "Schieferblau"),
         new(XKnownColor.DarkSlateBlue, XColors.DarkSlateBlue, 0xFF483D8B, "Darkslateblue", "Dunkles Schiefergrau"),
         new(XKnownColor.MidnightBlue, XColors.MidnightBlue, 0xFF191970, "Midnightblue", "Mitternachtsblau"),
@@ -243,7 +247,8 @@ public class XColorResourceManager
         new(XKnownColor.Turquoise, XColors.Turquoise, 0xFF40E0D0, "Turquoise", "Türkis"),
         new(XKnownColor.MediumTurquoise, XColors.MediumTurquoise, 0xFF48D1CC, "Mediumturqoise", "Mittleres Türkis"),
         new(XKnownColor.DarkTurquoise, XColors.DarkTurquoise, 0xFF00CED1, "Darkturquoise", "Dunkles Türkis"),
-        new(XKnownColor.MediumAquamarine, XColors.MediumAquamarine, 0xFF66CDAA, "Mediumaquamarine", "Mittleres Aquamarinblau"),
+        new(XKnownColor.MediumAquamarine, XColors.MediumAquamarine, 0xFF66CDAA, "Mediumaquamarine",
+            "Mittleres Aquamarinblau"),
         new(XKnownColor.LightSeaGreen, XColors.LightSeaGreen, 0xFF20B2AA, "Lightseagreen", "Helles Seegrün"),
         new(XKnownColor.DarkCyan, XColors.DarkCyan, 0xFF008B8B, "Darkcyan", "Dunkles Zyanblau"),
         new(XKnownColor.Teal, XColors.Teal, 0xFF008080, "Teal", "Entenblau"),
@@ -252,7 +257,8 @@ public class XColorResourceManager
         new(XKnownColor.DarkSeaGreen, XColors.DarkSeaGreen, 0xFF8FBC8F, "Darkseagreen", "Dunkles Seegrün"),
         new(XKnownColor.LightGreen, XColors.LightGreen, 0xFF90EE90, "Lightgreen", "Hellgrün"),
         new(XKnownColor.PaleGreen, XColors.PaleGreen, 0xFF98FB98, "Palegreen", "Blassgrün"),
-        new(XKnownColor.MediumSpringGreen, XColors.MediumSpringGreen, 0xFF00FA9A, "Mediumspringgreen", "Mittleres Frühlingsgrün"),
+        new(XKnownColor.MediumSpringGreen, XColors.MediumSpringGreen, 0xFF00FA9A, "Mediumspringgreen",
+            "Mittleres Frühlingsgrün"),
         new(XKnownColor.SpringGreen, XColors.SpringGreen, 0xFF00FF7F, "Springgreen", "Frühlingsgrün"),
         new(XKnownColor.Lime, XColors.Lime, 0xFF00FF00, "Lime", "Zitronengrün"),
         new(XKnownColor.LimeGreen, XColors.LimeGreen, 0xFF32CD32, "Limegreen", "Gelbgrün"),
@@ -280,10 +286,12 @@ public class XColorResourceManager
             Name = name;
             NameDE = nameDe;
         }
+
         public XKnownColor KnownColor;
         public XColor Color;
         public uint Argb;
         public string Name;
+
         // ReSharper disable once InconsistentNaming
         public string NameDE;
     }

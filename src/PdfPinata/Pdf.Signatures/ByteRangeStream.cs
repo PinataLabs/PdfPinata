@@ -14,12 +14,12 @@ namespace PdfPinata.Pdf.Signatures;
 /// </remarks>
 sealed class ByteRangeStream : Stream
 {
-    readonly byte[] _buffer;
-    readonly int _firstOffset;
-    readonly int _firstLength;
-    readonly int _secondOffset;
-    readonly int _secondLength;
-    long _position;
+    private readonly byte[] _buffer;
+    private readonly int _firstOffset;
+    private readonly int _firstLength;
+    private readonly int _secondOffset;
+    private readonly int _secondLength;
+    private long _position;
 
     public ByteRangeStream(byte[] buffer, int firstOffset, int firstLength, int secondOffset, int secondLength)
     {

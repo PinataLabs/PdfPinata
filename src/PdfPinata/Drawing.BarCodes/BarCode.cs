@@ -1,4 +1,5 @@
 #region Copyright
+
 //
 // Authors:
 //   Klaus Potzesny
@@ -25,6 +26,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
+
 #endregion
 
 using System;
@@ -117,61 +119,36 @@ public abstract class BarCode : CodeBase
     public virtual double WideNarrowRatio
     {
         get => 0;
-        #pragma warning disable S3237 // Public API: the base class has no ratio to store, and a derived class that has one overrides this setter.
+#pragma warning disable S3237 // Public API: the base class has no ratio to store, and a derived class that has one overrides this setter.
         set { }
-        #pragma warning restore S3237
+#pragma warning restore S3237
     }
 
     /// <summary>
     /// Gets or sets the location of the text next to the bar code.
     /// </summary>
-    public TextLocation TextLocation
-    {
-        get => _textLocation;
-        set => _textLocation = value;
-    }
-    TextLocation _textLocation;
+    public TextLocation TextLocation { get; set; }
 
     /// <summary>
     /// Gets or sets the length of the data that defines the bar code.
     /// </summary>
-    public int DataLength
-    {
-        get => _dataLength;
-        set => _dataLength = value;
-    }
-    int _dataLength;
+    public int DataLength { get; set; }
 
     /// <summary>
     /// Gets or sets the optional start character.
     /// </summary>
-    public char StartChar
-    {
-        get => _startChar;
-        set => _startChar = value;
-    }
-    char _startChar;
+    public char StartChar { get; set; }
 
     /// <summary>
     /// Gets or sets the optional end character.
     /// </summary>
-    public char EndChar
-    {
-        get => _endChar;
-        set => _endChar = value;
-    }
-    char _endChar;
+    public char EndChar { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether the turbo bit is to be drawn.
     /// (A turbo bit is something special to Kern (computer output processing) company (as far as I know))
     /// </summary>
-    public virtual bool TurboBit
-    {
-        get => _turboBit;
-        set => _turboBit = value;
-    }
-    bool _turboBit;
+    public virtual bool TurboBit { get; set; }
 
     internal virtual void InitRendering(BarCodeRenderInfo info)
     {

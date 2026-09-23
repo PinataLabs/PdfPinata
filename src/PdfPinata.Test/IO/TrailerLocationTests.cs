@@ -89,7 +89,7 @@ public class TrailerLocationTests
     ///   end of the file, behind a comment of that length - the shape of the document reported as
     ///   empira/PDFsharp#390.
     /// </summary>
-    static class SyntheticPdf
+    private static class SyntheticPdf
     {
         internal static SplicedStream WithTrailingComment(long commentLength)
         {
@@ -129,13 +129,13 @@ public class TrailerLocationTests
     ///   A read-only, seekable stream over a head, a run of one repeated byte and a tail, so that
     ///   a document of several gigabytes costs a few hundred bytes to hold.
     /// </summary>
-    sealed class SplicedStream : Stream
+    private sealed class SplicedStream : Stream
     {
-        readonly byte[] _head;
-        readonly byte[] _tail;
-        readonly long _fillerLength;
-        readonly byte _filler;
-        long _position;
+        private readonly byte[] _head;
+        private readonly byte[] _tail;
+        private readonly long _fillerLength;
+        private readonly byte _filler;
+        private long _position;
 
         internal SplicedStream(byte[] head, long fillerLength, byte filler, byte[] tail)
         {
@@ -207,9 +207,9 @@ public class TrailerLocationTests
     ///   Passes every read through and remembers the largest one, which is what says whether the
     ///   file was read a buffer at a time or all at once.
     /// </summary>
-    sealed class RecordingStream : Stream
+    private sealed class RecordingStream : Stream
     {
-        readonly Stream _inner;
+        private readonly Stream _inner;
 
         internal RecordingStream(Stream inner) => _inner = inner;
 

@@ -37,9 +37,9 @@ namespace PdfPinata.Test.Fonts;
 [Collection(TextShapingCollection.Name)]
 public class HarfBuzzShapingTests
 {
-    const int LiberationUnitsPerEm = 2048;
+    private const int LiberationUnitsPerEm = 2048;
 
-    static ShapingFont Liberation(double emSize = 20)
+    private static ShapingFont Liberation(double emSize = 20)
     {
         var bytes = File.ReadAllBytes(Path.Combine(
             AppContext.BaseDirectory, "Assets", "Fonts", "LiberationSans-Regular.ttf"));
@@ -49,14 +49,14 @@ public class HarfBuzzShapingTests
             isBold: false, isItalic: false, emSize, LiberationUnitsPerEm, bytes);
     }
 
-    static ShapedRun Shape(string text, XTextDirection direction = XTextDirection.LeftToRight,
+    private static ShapedRun Shape(string text, XTextDirection direction = XTextDirection.LeftToRight,
         string script = "latn")
     {
         using var shaper = new HarfBuzzTextShaper();
         return shaper.Shape(text.AsSpan(), Liberation(), direction, script, null);
     }
 
-    static IEnumerable<int> Clusters(ShapedRun run) => run.Glyphs.Select(glyph => glyph.Cluster);
+    private static IEnumerable<int> Clusters(ShapedRun run) => run.Glyphs.Select(glyph => glyph.Cluster);
 
     // ----- GPOS really ran -----------------------------------------------------------------------
 
@@ -146,9 +146,9 @@ public class HarfBuzzShapingTests
 
     // ----- Arabic, which is what the whole gap exists for -----------------------------------------
 
-    const int NotoUnitsPerEm = 1000;
+    private const int NotoUnitsPerEm = 1000;
 
-    static ShapingFont Noto(double emSize = 20)
+    private static ShapingFont Noto(double emSize = 20)
     {
         var bytes = File.ReadAllBytes(Path.Combine(
             AppContext.BaseDirectory, "Assets", "Fonts", "NotoSansArabic-Regular.ttf"));
@@ -158,7 +158,7 @@ public class HarfBuzzShapingTests
             isBold: false, isItalic: false, emSize, NotoUnitsPerEm, bytes);
     }
 
-    static ShapedRun Arabic(string text)
+    private static ShapedRun Arabic(string text)
     {
         using var shaper = new HarfBuzzTextShaper();
         return shaper.Shape(text.AsSpan(), Noto(), XTextDirection.RightToLeft, "arab", null);
@@ -166,7 +166,7 @@ public class HarfBuzzShapingTests
 
     // One letter, meem. Written as an escape rather than a literal so that a source file mixing
     // right-to-left text with left-to-right code cannot be misread.
-    const string Meem = "\u0645";
+    private const string Meem = "\u0645";
 
     [Fact]
     public void OneLetterHasFourFormsAndTheShaperPicksBetweenThem()
@@ -323,10 +323,10 @@ public class HarfBuzzShapingTests
     ///   HarfBuzz, but only for one string, so that registering it cannot change what any other
     ///   test running beside it measures or draws. See the remarks on this class.
     /// </summary>
-    sealed class OnlyFor : ITextShaper, IDisposable
+    private sealed class OnlyFor : ITextShaper, IDisposable
     {
-        readonly string _mine;
-        readonly HarfBuzzTextShaper _shaper = new HarfBuzzTextShaper();
+        private readonly string _mine;
+        private readonly HarfBuzzTextShaper _shaper = new HarfBuzzTextShaper();
 
         internal OnlyFor(string mine) => _mine = mine;
 
@@ -341,7 +341,7 @@ public class HarfBuzzShapingTests
 
     // Distinctive enough that nothing else in the suite draws it, and it holds the AV and To pairs
     // the face kerns.
-    const string Sentinel = "HarfBuzz AVails To kern this";
+    private const string Sentinel = "HarfBuzz AVails To kern this";
 
     [Fact]
     public void RegisteringTheShaperNarrowsTextTheFaceKerns()

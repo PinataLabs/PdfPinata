@@ -113,7 +113,7 @@ public sealed class PdfTransparencyGroupAttributes : PdfGroupAttributes
         /// </summary>
         internal static new DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

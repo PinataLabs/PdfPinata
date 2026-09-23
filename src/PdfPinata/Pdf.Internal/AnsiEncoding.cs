@@ -225,7 +225,7 @@ public sealed class AnsiEncoding : Encoding
     /// <summary>
     /// Maps WinAnsi to Unicode characters.
     /// </summary>
-    static readonly char[] AnsiToUnicode = // new char[/*256*/]
+    private static readonly char[] AnsiToUnicode = // new char[/*256*/]
     [
         //          00        01        02        03        04        05        06        07        08        09        0A        0B        0C        0D        0E        0F
         /* 00 */ '\u0000', '\u0001', '\u0002', '\u0003', '\u0004', '\u0005', '\u0006', '\u0007', '\u0008', '\u0009', '\u000A', '\u000B', '\u000C', '\u000D', '\u000E', '\u000F',

@@ -61,7 +61,7 @@ static class Corpus
     /// the same page is drawn with and without, and a validator that disagrees with us about which
     /// part allows what says so on exactly one of them.
     /// </remarks>
-    static byte[] Drawn(PdfAConformance conformance, bool transparency)
+    private static byte[] Drawn(PdfAConformance conformance, bool transparency)
     {
         var document = new PdfDocument();
         document.Info.Title = "Conformance corpus: " + conformance;
@@ -117,7 +117,7 @@ static class Corpus
     /// alone, and a CFF font cannot appear in a PDF/A-1 document from this library at all.
     /// </para>
     /// </remarks>
-    static byte[] Cff()
+    private static byte[] Cff()
     {
         var document = new PdfDocument();
         document.Info.Title = "Conformance corpus: PostScript outlines";
@@ -164,7 +164,7 @@ static class Corpus
     /// and it is the only side veraPDF reads.
     /// </para>
     /// </remarks>
-    static byte[] Invoice()
+    private static byte[] Invoice()
     {
         var document = new PdfDocument();
         document.Info.Title = "Conformance corpus: invoice with an associated file";
@@ -215,7 +215,7 @@ static class Corpus
     /// <paramref name="claim"/> rather than copied out per claim.
     /// </para>
     /// </remarks>
-    static byte[] Tagged(Action<PdfDocument> claim)
+    private static byte[] Tagged(Action<PdfDocument> claim)
     {
         var document = new Document();
         var section = document.AddSection();
@@ -265,7 +265,7 @@ static class Corpus
         return Bytes(renderer.PdfDocument);
     }
 
-    static byte[] Bytes(PdfDocument document)
+    private static byte[] Bytes(PdfDocument document)
     {
         using var stream = new System.IO.MemoryStream();
         document.Save(stream, false);

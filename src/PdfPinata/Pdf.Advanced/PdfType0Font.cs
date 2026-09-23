@@ -70,7 +70,7 @@ internal sealed class PdfType0Font : PdfFont
     /// <see cref="PdfFont.RestoreWholeFontName"/> takes back the tag this gave.
     /// </para>
     /// </remarks>
-    static bool IsSubsetted(OpenTypeDescriptor descriptor)
+    private static bool IsSubsetted(OpenTypeDescriptor descriptor)
         => !descriptor.FontFace.IsPostscriptOutlines;
 
     /// <summary>
@@ -84,7 +84,7 @@ internal sealed class PdfType0Font : PdfFont
     /// for an already-subsetted font and leaves a real subset untagged. That is the same defect as
     /// tagging a whole font, pointing the other way.
     /// </remarks>
-    static bool HasSubsetPrefix(string baseFont)
+    private static bool HasSubsetPrefix(string baseFont)
     {
         // The getter answers a PDF name, which carries its solidus; a name being assembled here may
         // not have one yet.
@@ -184,7 +184,7 @@ internal sealed class PdfType0Font : PdfFont
 
     internal PdfCIDFont DescendantFont => _descendantFont;
 
-    readonly PdfCIDFont _descendantFont;
+    private readonly PdfCIDFont _descendantFont;
 
     internal override void PrepareForSave()
     {
@@ -293,7 +293,7 @@ internal sealed class PdfType0Font : PdfFont
                 return _meta;
             }
         }
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

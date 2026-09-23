@@ -72,9 +72,10 @@ public class Code3of9Standard : TwoWidthBarCode
     /// <param name="ch">The character to represent.</param>
     private static bool[] WideNarrowLines(char ch)
     {
-        return Lines["0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%*".IndexOf(ch)];
+        return _lines["0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%*".IndexOf(ch)];
     }
-    static readonly bool[][] Lines =
+
+    private static readonly bool[][] _lines =
     [
         // '0'
         [false, false, false, true, true, false, true, false, false],
@@ -190,7 +191,7 @@ public class Code3of9Standard : TwoWidthBarCode
     }
 
     /// <summary>
-    /// Checks the code to be convertible into an standard 3 of 9 bar code.
+    /// Checks the code to be convertible into a standard 3 of 9 bar code.
     /// </summary>
     /// <param name="text">The code to be checked.</param>
     protected override void CheckCode(string text)

@@ -75,7 +75,7 @@ internal static class PdfConformanceWriter
         AttachMetadata(document);
     }
 
-    static string ClaimName(PdfDocumentOptions options) =>
+    private static string ClaimName(PdfDocumentOptions options) =>
         options.Conformance != PdfAConformance.None ? options.Conformance.ToString() : options.UAConformance.ToString();
 
     /// <summary>
@@ -86,18 +86,18 @@ internal static class PdfConformanceWriter
         PdfAConformance.PdfA1A or PdfAConformance.PdfA2A or PdfAConformance.PdfA3A;
 
     /// <summary>Whether the claimed profile is part 1 of ISO 19005, whichever level.</summary>
-    static bool IsPart1(PdfAConformance conformance) =>
+    private static bool IsPart1(PdfAConformance conformance) =>
         conformance is PdfAConformance.PdfA1B or PdfAConformance.PdfA1A;
 
     /// <summary>Whether the claimed profile is part 3 of ISO 19005, whichever level.</summary>
-    static bool IsPart3(PdfAConformance conformance) =>
+    private static bool IsPart3(PdfAConformance conformance) =>
         conformance is PdfAConformance.PdfA3B or PdfAConformance.PdfA3A;
 
     /// <summary>
     /// Settles the two things a PDF/UA claim implies rather than asks for, and then holds the
     /// document to the rest.
     /// </summary>
-    static void EnforceAccessibility(PdfDocument document)
+    private static void EnforceAccessibility(PdfDocument document)
     {
         // Set rather than demanded. Both are mechanical consequences of the claim — nobody asks for
         // PDF/UA and wants a reader to announce the file name — and refusing to save over something
@@ -223,7 +223,7 @@ internal static class PdfConformanceWriter
     /// <summary>
     /// The rules of the claimed profile that can be settled by looking at the document.
     /// </summary>
-    static void Enforce(PdfDocument document)
+    private static void Enforce(PdfDocument document)
     {
         var options = document.Options;
 
@@ -267,7 +267,7 @@ internal static class PdfConformanceWriter
     /// unpruned there, rather than refused on a guess: what is checked is checked properly, and a
     /// document this library itself writes never reaches that path.
     /// </remarks>
-    static void CheckResourceRules(PdfDocument document, PdfAConformance conformance)
+    private static void CheckResourceRules(PdfDocument document, PdfAConformance conformance)
     {
         if (conformance == PdfAConformance.None)
             return;
@@ -403,7 +403,7 @@ internal static class PdfConformanceWriter
     /// thing it does not know. <see cref="PdfAttachments"/> settles all three at the point the caller
     /// does know, which is why a document built through it never reaches these throws.
     /// </remarks>
-    static void EnforceAssociation(PdfDocument document, List<PdfFileSpecification> attachments)
+    private static void EnforceAssociation(PdfDocument document, List<PdfFileSpecification> attachments)
     {
         var associated = document.Catalog.Elements.GetArray(PdfCatalog.Keys.AF);
 
@@ -462,7 +462,7 @@ internal static class PdfConformanceWriter
     /// this method describes has to be one of them or the other.
     /// </para>
     /// </remarks>
-    static int ComponentsOf(byte[] profile, PdfColorMode mode)
+    private static int ComponentsOf(byte[] profile, PdfColorMode mode)
     {
         const int SpaceAt = 16;
 
@@ -507,18 +507,18 @@ internal static class PdfConformanceWriter
     }
 
     /// <summary>Whether the caller supplied a profile of their own.</summary>
-    static bool HasProfile(PdfDocumentOptions options) =>
+    private static bool HasProfile(PdfDocumentOptions options) =>
         options.OutputIntentIccProfile != null && options.OutputIntentIccProfile.Length != 0;
 
     /// <summary>
     /// Whether the output condition identifier is still the placeholder nobody chose, which is what
     /// makes it safe to replace with the condition the built-in profile describes.
     /// </summary>
-    static bool IsDefaultIdentifier(string identifier) =>
+    private static bool IsDefaultIdentifier(string identifier) =>
         string.IsNullOrEmpty(identifier)
         || identifier == PdfDocumentOptions.DefaultOutputIntentIdentifier;
 
-    static bool IsListedIn(PdfArray associated, PdfFileSpecification attachment)
+    private static bool IsListedIn(PdfArray associated, PdfFileSpecification attachment)
     {
         if (associated == null)
             return false;
@@ -548,7 +548,7 @@ internal static class PdfConformanceWriter
     /// reachability: a specification with no <c>/EF</c> is not counted, because it names a file
     /// somewhere else, and PDF/A objects to carrying bytes rather than to mentioning a filename.
     /// </remarks>
-    static List<PdfFileSpecification> EmbeddedFiles(PdfDocument document)
+    private static List<PdfFileSpecification> EmbeddedFiles(PdfDocument document)
     {
         var found = new List<PdfFileSpecification>();
 
@@ -564,7 +564,7 @@ internal static class PdfConformanceWriter
     /// <summary>
     /// Builds the XMP packet from the information dictionary and hangs it off the catalog.
     /// </summary>
-    static void AttachMetadata(PdfDocument document)
+    private static void AttachMetadata(PdfDocument document)
     {
         var metadata = XmpMetadata.FromDocument(document);
 
@@ -594,7 +594,7 @@ internal static class PdfConformanceWriter
     /// <summary>
     /// Embeds the ICC profile and points the catalog's output intent at it.
     /// </summary>
-    static void AttachOutputIntent(PdfDocument document)
+    private static void AttachOutputIntent(PdfDocument document)
     {
         var options = document.Options;
 
@@ -635,7 +635,7 @@ internal static class PdfConformanceWriter
     /// <summary>
     /// The entries of an output intent dictionary.
     /// </summary>
-    static class Keys
+    private static class Keys
     {
         public const string Type = "/Type";
         public const string S = "/S";

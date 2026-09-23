@@ -70,7 +70,7 @@ internal sealed class PdfPageResourceUsage : PdfPageWalk
         return usage;
     }
 
-    PdfPageResourceUsage(PdfDictionary resources) : base(resources)
+    private PdfPageResourceUsage(PdfDictionary resources) : base(resources)
     {
     }
 
@@ -116,7 +116,7 @@ internal sealed class PdfPageResourceUsage : PdfPageWalk
         }
     }
 
-    static string NameOfFirstOperand(COperator op) =>
+    private static string NameOfFirstOperand(COperator op) =>
         op.Operands.Count > 0 && op.Operands[0] is CName name ? name.Name : null;
 
     protected override void RecordResolved(string category, string name, PdfItem resolved)

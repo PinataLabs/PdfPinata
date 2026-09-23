@@ -401,7 +401,7 @@ internal class CMapTable : OpenTypeFontTable
     /// Whether a subtable record claims to cover the whole of Unicode rather than the basic
     /// multilingual plane alone.
     /// </summary>
-    static bool IsFullUnicode(PlatformId platformId, int encodingId)
+    private static bool IsFullUnicode(PlatformId platformId, int encodingId)
     {
         if (platformId == PlatformId.Win)
             return (WinEncodingId)encodingId == WinEncodingId.UnicodeUcs4;
@@ -865,7 +865,7 @@ internal class NameTable : OpenTypeFontTable
     public ushort count;
     public ushort stringOffset;
 
-    byte[] bytes;
+    private byte[] bytes;
 
     public NameTable(OpenTypeFontface fontData)
         : base(fontData, Tag)
@@ -957,7 +957,7 @@ internal class NameTable : OpenTypeFontTable
         }
     }
 
-    NameRecord ReadNameRecord()
+    private NameRecord ReadNameRecord()
     {
         var nrec = new NameRecord();
         nrec.platformID = _fontData.ReadUShort();
@@ -1160,7 +1160,7 @@ internal class ControlValueTable : OpenTypeFontTable
     public const string Tag = TableTagNames.Cvt;
 
     // ReSharper disable once CollectionNeverQueried.Local
-    FWord[]
+    private FWord[]
         array; // List of n values referenceable by instructions. n is the number of FWORD items that fit in the size of the table.
 
     public ControlValueTable(OpenTypeFontface fontData)
@@ -1197,7 +1197,7 @@ internal class FontProgram : OpenTypeFontTable
     public const string Tag = TableTagNames.Fpgm;
 
     // ReSharper disable once CollectionNeverQueried.Local
-    byte[] bytes; // Instructions. n is the number of BYTE items that fit in the size of the table.
+    private byte[] bytes; // Instructions. n is the number of BYTE items that fit in the size of the table.
 
     public FontProgram(OpenTypeFontface fontData)
         : base(fontData, Tag)
@@ -1234,7 +1234,7 @@ internal class ControlValueProgram : OpenTypeFontTable
     public const string Tag = TableTagNames.Prep;
 
     // ReSharper disable once CollectionNeverQueried.Local
-    byte[]
+    private byte[]
         bytes; // Set of instructions executed whenever point size or font or transformation change. n is the number of BYTE items that fit in the size of the table.
 
     public ControlValueProgram(OpenTypeFontface fontData)

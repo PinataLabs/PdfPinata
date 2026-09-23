@@ -129,7 +129,7 @@ public class TrailerTerminationTests
         document.PageCount.Should().Be(1);
     }
 
-    static Task<PdfDocument> Read(byte[] document, PdfReadAccuracy accuracy = PdfReadAccuracy.Strict) =>
+    private static Task<PdfDocument> Read(byte[] document, PdfReadAccuracy accuracy = PdfReadAccuracy.Strict) =>
         Interruptibly.Run(() =>
             Pdf.IO.PdfReader.Open(new MemoryStream(document), PdfDocumentOpenMode.Modify, accuracy));
 
@@ -149,7 +149,7 @@ public class TrailerTerminationTests
     ///   Whether an empty second section follows, naming the first as /Prev, with the first naming
     ///   nothing: an ordinary incremental update that changed nothing.
     /// </param>
-    static byte[] Document(
+    private static byte[] Document(
         string startxref = null,
         bool prevToSelf = false,
         bool prevCycleOfTwo = false,

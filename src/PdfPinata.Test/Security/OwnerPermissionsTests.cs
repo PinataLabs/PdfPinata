@@ -24,10 +24,10 @@ namespace PdfPinata.Test.Security;
 /// </remarks>
 public class OwnerPermissionsTests
 {
-    const string User = "open-me";
-    const string Owner = "owner-only";
+    private const string User = "open-me";
+    private const string Owner = "owner-only";
 
-    static MemoryStream Protected(string user = User, string owner = Owner)
+    private static MemoryStream Protected(string user = User, string owner = Owner)
     {
         var document = new PdfDocument();
         _ = document.AddPage();

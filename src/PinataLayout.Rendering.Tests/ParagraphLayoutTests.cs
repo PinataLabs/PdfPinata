@@ -76,7 +76,7 @@ public class ParagraphLayoutTests
         asMany.Should().Be(asOne);
     }
 
-    static double GapBetweenTwoParagraphs(double after, double before)
+    private static double GapBetweenTwoParagraphs(double after, double before)
     {
         var document = new Document();
         var section = document.AddSection();
@@ -97,7 +97,7 @@ public class ParagraphLayoutTests
     ///   How many lines of text the first page ends up carrying, for text broken into that many
     ///   paragraphs of that many lines each.
     /// </summary>
-    static int LinesOnTheFirstPage(int paragraphs, int linesEach)
+    private static int LinesOnTheFirstPage(int paragraphs, int linesEach)
     {
         var document = new Document();
         var section = document.AddSection();

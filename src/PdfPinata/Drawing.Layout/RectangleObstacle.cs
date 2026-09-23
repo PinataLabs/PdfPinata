@@ -18,11 +18,10 @@ namespace PdfPinata.Drawing.Layout;
 /// </remarks>
 public sealed class RectangleObstacle : IFlowObstacle
 {
-    static readonly IReadOnlyList<XInterval> None = [];
+    private static readonly IReadOnlyList<XInterval> _none = [];
 
-    readonly XInterval[] _taken;
-    readonly double _top;
-    readonly double _bottom;
+    private readonly XInterval[] _taken;
+    private readonly double _top;
 
     /// <summary>
     /// Initializes an obstacle standing in the given rectangle, with text allowed right up to it.
@@ -73,7 +72,7 @@ public sealed class RectangleObstacle : IFlowObstacle
             bounds.Width + 2 * padding, bounds.Height + 2 * padding);
 
         _top = Reserved.Y;
-        _bottom = Reserved.Y + Reserved.Height;
+        Bottom = Reserved.Y + Reserved.Height;
         _taken = Reserved.Width <= 0
             ? []
             : [new XInterval(Reserved.X, Reserved.X + Reserved.Width)];
@@ -93,7 +92,7 @@ public sealed class RectangleObstacle : IFlowObstacle
 
     /// <inheritdoc />
     /// <remarks>The foot of <see cref="Reserved"/>, so a line moved here is clear of the padding too.</remarks>
-    public double Bottom => _bottom;
+    public double Bottom { get; }
 
     /// <inheritdoc />
     public IReadOnlyList<XInterval> GetExcludedIntervals(FlowBand band)
@@ -102,6 +101,6 @@ public sealed class RectangleObstacle : IFlowObstacle
         // as horizontally: a line whose box would otherwise clear the obstacle by a hair is pushed
         // past it instead. PinataLayout's DistanceTop and DistanceBottom do the same, and for the same
         // reason - a line that just barely clears an image looks like a mistake.
-        return band.Overlaps(_top, _bottom) ? _taken : None;
+        return band.Overlaps(_top, Bottom) ? _taken : _none;
     }
 }

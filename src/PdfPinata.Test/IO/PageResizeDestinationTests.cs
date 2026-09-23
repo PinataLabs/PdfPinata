@@ -16,11 +16,11 @@ namespace PdfPinata.Test.IO;
 /// </summary>
 public class PageResizeDestinationTests
 {
-    const double A4Width = 595;
-    const double A4Height = 842;
-    const double Tolerance = 0.01;
+    private const double A4Width = 595;
+    private const double A4Height = 842;
+    private const double Tolerance = 0.01;
 
-    sealed class Fixture
+    private sealed class Fixture
     {
         internal PdfDocument Document;
         internal PdfPage Source;
@@ -28,7 +28,7 @@ public class PageResizeDestinationTests
     }
 
     /// <summary>Two A4 pages, both drawn on; links are hung off the first, pointing at the second.</summary>
-    static Fixture TwoPages()
+    private static Fixture TwoPages()
     {
         var document = new PdfDocument();
         var first = document.AddPage();
@@ -44,14 +44,14 @@ public class PageResizeDestinationTests
         return new Fixture { Document = document, Source = first, Target = second };
     }
 
-    static void HalveThePage(PdfPage page)
+    private static void HalveThePage(PdfPage page)
     {
         var options = PageResizeOptions.Default;
         options.Fit = PageFitMode.Stretch;
         page.Resize(new XSize(A4Width / 2, A4Height / 2), options);
     }
 
-    static PdfArray Destination(PdfPage target, params PdfItem[] rest)
+    private static PdfArray Destination(PdfPage target, params PdfItem[] rest)
     {
         var destination = new PdfArray(target.Owner);
         destination.Elements.Add(target.Reference);
@@ -61,7 +61,7 @@ public class PageResizeDestinationTests
     }
 
     /// <summary>Hangs a link annotation carrying the destination off the page.</summary>
-    static void LinkOn(PdfPage page, string key, PdfItem destination)
+    private static void LinkOn(PdfPage page, string key, PdfItem destination)
     {
         var link = new PdfDictionary(page.Owner);
         link.Elements.SetName("/Type", "/Annot");

@@ -22,7 +22,7 @@ namespace SampleApp.Infrastructure;
 /// </remarks>
 public static class Assets
 {
-    static readonly Assembly Self = typeof(Assets).Assembly;
+    private static readonly Assembly Self = typeof(Assets).Assembly;
 
     public const string FontPrefix = "Fonts/";
     public const string ImagePrefix = "Images/";

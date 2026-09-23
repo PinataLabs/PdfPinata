@@ -23,7 +23,7 @@ internal sealed class PdfImagePlacementReader
     /// How deep forms may be drawn within one another before reading stops. Well past anything
     /// a real document does, and there to stop a malformed one running away.
     /// </summary>
-    const int MaximumDepth = 32;
+    private const int MaximumDepth = 32;
 
     /// <summary>
     /// The images the page draws, in the order the content draws them.
@@ -44,12 +44,12 @@ internal sealed class PdfImagePlacementReader
         return reader._placements;
     }
 
-    readonly List<PdfImagePlacement> _placements = new();
+    private readonly List<PdfImagePlacement> _placements = new();
 
     /// <summary>The forms being drawn through, so that one drawing itself does not go round forever.</summary>
-    readonly Dictionary<string, object> _open = new();
+    private readonly Dictionary<string, object> _open = new();
 
-    void Read(byte[] content, PdfDictionary scope, XMatrix ctm, int depth)
+    private void Read(byte[] content, PdfDictionary scope, XMatrix ctm, int depth)
     {
         if (depth > MaximumDepth)
             return;
@@ -68,7 +68,7 @@ internal sealed class PdfImagePlacementReader
         ReadSequence(sequence, scope, ctm, depth);
     }
 
-    void ReadSequence(CSequence sequence, PdfDictionary scope, XMatrix ctm, int depth)
+    private void ReadSequence(CSequence sequence, PdfDictionary scope, XMatrix ctm, int depth)
     {
         // The state a stream saves and restores is its own: a form leaving the stack unbalanced
         // cannot reach past its own content into the state of the page that drew it.
@@ -116,7 +116,7 @@ internal sealed class PdfImagePlacementReader
     /// Applies the matrix of a cm operator to the transform in force, which is what the content
     /// asks for: the matrix maps into the space the transform already describes.
     /// </summary>
-    static XMatrix Concatenate(COperator op, XMatrix ctm)
+    private static XMatrix Concatenate(COperator op, XMatrix ctm)
     {
         if (op.Operands.Count < 6)
             return ctm;
@@ -133,7 +133,7 @@ internal sealed class PdfImagePlacementReader
         return matrix;
     }
 
-    void Draw(string name, PdfDictionary scope, XMatrix ctm, int depth)
+    private void Draw(string name, PdfDictionary scope, XMatrix ctm, int depth)
     {
         if (name == null || scope == null)
             return;
@@ -158,7 +158,7 @@ internal sealed class PdfImagePlacementReader
         }
     }
 
-    void DrawForm(PdfDictionary form, PdfDictionary scope, XMatrix ctm, int depth)
+    private void DrawForm(PdfDictionary form, PdfDictionary scope, XMatrix ctm, int depth)
     {
         var id = Identify(form);
         if (id != null)
@@ -195,7 +195,7 @@ internal sealed class PdfImagePlacementReader
     /// <summary>
     /// The /Matrix of a form, which is the identity where it has none.
     /// </summary>
-    static XMatrix MatrixOf(PdfDictionary form)
+    private static XMatrix MatrixOf(PdfDictionary form)
     {
         var matrix = form.Elements.GetArray("/Matrix");
         if (matrix == null || matrix.Elements.Count < 6)
@@ -215,12 +215,12 @@ internal sealed class PdfImagePlacementReader
     /// What tells one form from another while it is being drawn. A form written out in place
     /// cannot be shared and so cannot be drawn within itself.
     /// </summary>
-    static string Identify(PdfDictionary form)
+    private static string Identify(PdfDictionary form)
     {
         return form.IsIndirect ? form.ObjectID.ToString() : null;
     }
 
-    static string NameAt(COperator op, int index)
+    private static string NameAt(COperator op, int index)
     {
         if (index < 0 || index >= op.Operands.Count)
             return null;
@@ -229,7 +229,7 @@ internal sealed class PdfImagePlacementReader
         return name == null ? null : name.Name;
     }
 
-    static bool TryGetNumber(CObject operand, out double value)
+    private static bool TryGetNumber(CObject operand, out double value)
     {
         var real = operand as CReal;
         if (real != null)
@@ -249,7 +249,7 @@ internal sealed class PdfImagePlacementReader
         return false;
     }
 
-    static bool TryGetNumber(PdfItem item, out double value)
+    private static bool TryGetNumber(PdfItem item, out double value)
     {
         if (item is PdfReference)
             item = ((PdfReference)item).Value;

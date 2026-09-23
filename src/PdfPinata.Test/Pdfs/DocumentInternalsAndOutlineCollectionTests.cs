@@ -24,7 +24,7 @@ namespace PdfPinata.Test.Pdfs;
 /// </summary>
 public class DocumentInternalsAndOutlineCollectionTests
 {
-    static PdfDocument ADocumentOf(int pages = 2)
+    private static PdfDocument ADocumentOf(int pages = 2)
     {
         var document = new PdfDocument();
         for (var idx = 0; idx < pages; idx++)
@@ -206,7 +206,7 @@ public class DocumentInternalsAndOutlineCollectionTests
     [Fact]
     public void AnOutlineCanBePutAtAGivenPlaceTakenOutOrReplaced()
     {
-        var document = ADocumentOf(2);
+        var document = ADocumentOf();
         var outlines = document.Outlines;
         outlines.Add("first", document.Pages[0]);
         outlines.Add("second", document.Pages[1]);
@@ -333,7 +333,7 @@ public class DocumentInternalsAndOutlineCollectionTests
         RoundTripped(document).ViewerPreferences.Direction.Should().BeNull();
     }
 
-    static PdfDocument RoundTripped(PdfDocument document)
+    private static PdfDocument RoundTripped(PdfDocument document)
     {
         var stream = new MemoryStream();
         document.Save(stream, false);

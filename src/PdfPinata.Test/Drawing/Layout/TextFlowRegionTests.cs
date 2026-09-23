@@ -17,19 +17,19 @@ namespace PdfPinata.Test.Drawing.Layout;
 /// </remarks>
 public class TextFlowRegionTests
 {
-    const double Tolerance = 0.001;
+    private const double Tolerance = 0.001;
 
-    static readonly XRect Block = new XRect(0, 0, 100, 200);
-    static readonly FlowBand Band = new FlowBand(100, 112);
+    private static readonly XRect Block = new XRect(0, 0, 100, 200);
+    private static readonly FlowBand Band = new FlowBand(100, 112);
 
-    static (double Start, double End)[] RoomIn(TextFlowRegion region, FlowBand? band = null)
+    private static (double Start, double End)[] RoomIn(TextFlowRegion region, FlowBand? band = null)
     {
         return region.GetAvailableIntervals(band ?? Band)
             .Select(run => (run.Start, run.End))
             .ToArray();
     }
 
-    static TextFlowRegion BlockWith(params IFlowObstacle[] obstacles)
+    private static TextFlowRegion BlockWith(params IFlowObstacle[] obstacles)
     {
         var region = new TextFlowRegion(Block);
         foreach (var obstacle in obstacles)
@@ -38,7 +38,7 @@ public class TextFlowRegionTests
     }
 
     /// <summary>A rectangle standing across the band the tests ask about.</summary>
-    static RectangleObstacle Standing(double x, double width, double padding = 0)
+    private static RectangleObstacle Standing(double x, double width, double padding = 0)
     {
         return new RectangleObstacle(new XRect(x, 90, width, 40), padding);
     }

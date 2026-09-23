@@ -52,7 +52,7 @@ public abstract class PdfPolyAnnotation : PdfMarkupAnnotation
         : base(dict)
     { }
 
-    void Initialize(string subtype)
+    private void Initialize(string subtype)
     {
         Elements.SetName(PdfAnnotation.Keys.Subtype, subtype);
 
@@ -132,7 +132,7 @@ public abstract class PdfPolyAnnotation : PdfMarkupAnnotation
         RebuildAppearance();
     }
 
-    void RebuildAppearance()
+    private void RebuildAppearance()
     {
         // Until it is on a page there is no document to make a form in. OnAddedToPage calls this
         // again once there is, so nothing set beforehand is lost.
@@ -205,7 +205,7 @@ public abstract class PdfPolyAnnotation : PdfMarkupAnnotation
 
         public new static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

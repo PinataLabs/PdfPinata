@@ -24,14 +24,14 @@ public class XGraphicsPathTests
 {
     // ----- building the page ---------------------------------------------------------------------
 
-    static PdfPage PageWith(Action<XGraphicsPath> build)
+    private static PdfPage PageWith(Action<XGraphicsPath> build)
     {
         var path = new XGraphicsPath();
         build(path);
         return PageWith(path);
     }
 
-    static PdfPage PageWith(XGraphicsPath path)
+    private static PdfPage PageWith(XGraphicsPath path)
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -40,11 +40,11 @@ public class XGraphicsPathTests
         return page;
     }
 
-    static int PointCount(Action<XGraphicsPath> build) => PathGeometry.PointsOf(PageWith(build)).Count;
+    private static int PointCount(Action<XGraphicsPath> build) => PathGeometry.PointsOf(PageWith(build)).Count;
 
-    static int FigureCount(Action<XGraphicsPath> build) => PathGeometry.FigureCountOf(PageWith(build));
+    private static int FigureCount(Action<XGraphicsPath> build) => PathGeometry.FigureCountOf(PageWith(build));
 
-    static XRect Bounds(Action<XGraphicsPath> build) => PathGeometry.BoundsOf(PageWith(build));
+    private static XRect Bounds(Action<XGraphicsPath> build) => PathGeometry.BoundsOf(PageWith(build));
 
     // ----- lines ---------------------------------------------------------------------------------
 
@@ -793,7 +793,7 @@ public class XGraphicsPathTests
         act.Should().Throw<ArgumentNullException>();
     }
 
-    static readonly XPoint[] Diamond =
+    private static readonly XPoint[] Diamond =
     {
         new XPoint(200, 100), new XPoint(260, 175),
         new XPoint(200, 250), new XPoint(140, 175)

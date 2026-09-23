@@ -145,7 +145,7 @@ public class AnnotationIconTests
         attachment.Elements.GetName("/Name").Should().Be("/Paperclip");
     }
 
-    static TheoryData<T> Icons<T>() where T : struct, Enum
+    private static TheoryData<T> Icons<T>() where T : struct, Enum
     {
         var data = new TheoryData<T>();
 
@@ -160,7 +160,7 @@ public class AnnotationIconTests
         return data;
     }
 
-    static T OnAPage<T>(T annotation) where T : PdfAnnotation
+    private static T OnAPage<T>(T annotation) where T : PdfAnnotation
     {
         var document = new PdfDocument();
         document.AddPage().Annotations.Add(annotation);

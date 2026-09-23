@@ -82,7 +82,7 @@ public sealed class PdfCatalog : PdfDictionary
             }
         }
     }
-    string _version = "1.3";
+    private string _version = "1.3";
 
     /// <summary>
     /// Gets the pages collection of this document.
@@ -100,7 +100,7 @@ public sealed class PdfCatalog : PdfDictionary
             return _pages;
         }
     }
-    PdfPages _pages;
+    private PdfPages _pages;
 
     /// <summary>
     /// Implementation of PdfDocument.PageLayout.
@@ -132,7 +132,7 @@ public sealed class PdfCatalog : PdfDictionary
             return _viewerPreferences;
         }
     }
-    PdfViewerPreferences _viewerPreferences;
+    private PdfViewerPreferences _viewerPreferences;
 
     /// <summary>
     /// Implementation of PdfDocument.Outlines.
@@ -153,7 +153,7 @@ public sealed class PdfCatalog : PdfDictionary
             return _outline.Outlines;
         }
     }
-    PdfOutline _outline;
+    private PdfOutline _outline;
 
     /// <summary>
     /// Gets the AcroForm dictionary of this document.
@@ -445,7 +445,7 @@ public sealed class PdfCatalog : PdfDictionary
         /// </summary>
         public static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

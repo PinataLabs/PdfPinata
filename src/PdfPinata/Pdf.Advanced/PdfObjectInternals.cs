@@ -39,7 +39,7 @@ public class PdfObjectInternals
     {
         _obj = obj;
     }
-    readonly PdfObject _obj;
+    private readonly PdfObject _obj;
 
     /// <summary>
     /// Gets the object identifier. Returns PdfObjectID.Empty for direct objects.

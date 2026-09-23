@@ -79,14 +79,14 @@ public class COperator : CObject
     /// <value>The operands.</value>
     public CSequence Operands => _seqence ?? (_seqence = new CSequence());
 
-    CSequence _seqence;
+    private CSequence _seqence;
 
     /// <summary>
     /// Gets the operator description for this instance.
     /// </summary>
     public OpCode OpCode => _opcode;
 
-    readonly OpCode _opcode;
+    private readonly OpCode _opcode;
 
 
     /// <summary>

@@ -101,9 +101,9 @@ public sealed class PdfStructureTreeRoot : PdfDictionary
         Elements[Keys.RoleMap] = map;
     }
 
-    static string Name(string value) => value.Length > 0 && value[0] == '/' ? value : "/" + value;
+    private static string Name(string value) => value.Length > 0 && value[0] == '/' ? value : "/" + value;
 
-    PdfArray Kids()
+    private PdfArray Kids()
     {
         if (Elements[Keys.K] is PdfArray kids)
             return kids;
@@ -156,7 +156,7 @@ public sealed class PdfStructureTreeRoot : PdfDictionary
         /// <summary>Gets the KeysMeta for these keys.</summary>
         internal static DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     internal override DictionaryMeta Meta => Keys.Meta;

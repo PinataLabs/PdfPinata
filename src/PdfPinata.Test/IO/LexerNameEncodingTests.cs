@@ -18,15 +18,15 @@ namespace PdfPinata.Test.IO;
 public class LexerNameEncodingTests
 {
     // Shift-JIS TE (U+30C6).
-    static readonly byte[] ShiftJisTe = { 0x83, 0x65 };
+    private static readonly byte[] ShiftJisTe = { 0x83, 0x65 };
 
     // Shift-JIS NIHONGO (U+65E5 U+672C U+8A9E).
-    static readonly byte[] ShiftJisNihongo = { 0x93, 0xFA, 0x96, 0xD1, 0x8C, 0xEA };
+    private static readonly byte[] ShiftJisNihongo = { 0x93, 0xFA, 0x96, 0xD1, 0x8C, 0xEA };
 
     // The same three characters in UTF-8.
-    static readonly byte[] Utf8Nihongo = { 0xE6, 0x97, 0xA5, 0xE6, 0x9C, 0xAC, 0xE8, 0xAA, 0x9E };
+    private static readonly byte[] Utf8Nihongo = { 0xE6, 0x97, 0xA5, 0xE6, 0x9C, 0xAC, 0xE8, 0xAA, 0x9E };
 
-    const char ReplacementCharacter = (char)0xFFFD;
+    private const char ReplacementCharacter = (char)0xFFFD;
 
     [Fact]
     public void ScanName_keepsAShiftJisLeadByteInTheRange0x80To0xBF()
@@ -110,7 +110,7 @@ public class LexerNameEncodingTests
         RawBytesOf(lexer.Token).Skip(1).Should().Equal(ShiftJisNihongo);
     }
 
-    static Lexer CreateLexer(byte[] bytes)
+    private static Lexer CreateLexer(byte[] bytes)
     {
         return new Lexer(new MemoryStream(bytes));
     }
@@ -118,7 +118,7 @@ public class LexerNameEncodingTests
     /// <summary>
     /// Wraps the given bytes in a name token: a leading slash and a trailing delimiter.
     /// </summary>
-    static byte[] Name(byte[] bytes)
+    private static byte[] Name(byte[] bytes)
     {
         var name = new byte[bytes.Length + 2];
         name[0] = (byte)'/';
@@ -130,7 +130,7 @@ public class LexerNameEncodingTests
     /// <summary>
     /// Undoes the lexer's one-byte-per-char scanning, the way PdfEncoders.RawEncoding does.
     /// </summary>
-    static byte[] RawBytesOf(string token)
+    private static byte[] RawBytesOf(string token)
     {
         return token.Select(ch => (byte)ch).ToArray();
     }
@@ -139,7 +139,7 @@ public class LexerNameEncodingTests
     /// The inverse of <see cref="RawBytesOf"/>, so that a saved document can be searched
     /// for a byte sequence without decoding it.
     /// </summary>
-    static string RawStringOf(byte[] bytes)
+    private static string RawStringOf(byte[] bytes)
     {
         return new string(bytes.Select(b => (char)b).ToArray());
     }

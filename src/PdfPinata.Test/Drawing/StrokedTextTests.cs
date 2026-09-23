@@ -21,17 +21,17 @@ namespace PdfPinata.Test.Drawing;
 /// </summary>
 public class StrokedTextTests
 {
-    const double FontSize = 24;
+    private const double FontSize = 24;
 
-    static XFont PlainFont => new XFont("Arial", FontSize, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
+    private static XFont PlainFont => new XFont("Arial", FontSize, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
 
     /// <summary>
     ///   Source Code Pro ships a regular face only, so asking for bold gets bold simulation.
     /// </summary>
-    static XFont BoldSimulatedFont =>
+    private static XFont BoldSimulatedFont =>
         new XFont(PinnedFontResolver.CffFamilyName, FontSize, XFontStyle.Bold, XPdfFontOptions.WinAnsiDefault);
 
-    static PdfPage PageShowing(Action<XGraphics> draw)
+    private static PdfPage PageShowing(Action<XGraphics> draw)
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -40,7 +40,7 @@ public class StrokedTextTests
         return page;
     }
 
-    static PdfPage PageShowing(XFont font, XPen pen, XBrush brush)
+    private static PdfPage PageShowing(XFont font, XPen pen, XBrush brush)
     {
         return PageShowing(gfx => gfx.DrawString("Hello", font, pen, brush, 20, 40));
     }

@@ -23,11 +23,11 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 /// </summary>
 public class ShapePlacementTests
 {
-    static TextFrame AFrame() => new Document().AddSection().AddTextFrame();
+    private static TextFrame AFrame() => new Document().AddSection().AddTextFrame();
 
-    static string DdlOf(DocumentObject documentObject) => DdlWriter.WriteToString(documentObject);
+    private static string DdlOf(DocumentObject documentObject) => DdlWriter.WriteToString(documentObject);
 
-    static TextFrame FrameFrom(string attributes) =>
+    private static TextFrame FrameFrom(string attributes) =>
         (TextFrame)DdlReader
             .DocumentFromString("\\document{\\section{\\textframe[" + attributes + "]{framed}}}")
             .LastSection.Elements[0];
@@ -249,7 +249,7 @@ public class ShapePlacementTests
     ///   An image source that knows nothing but its name; see
     ///   <see cref="SectionAndHeaderFooterTests"/> for why a DOM test needs no more than that.
     /// </summary>
-    sealed class NamedImage : ImageSource.IImageSource
+    private sealed class NamedImage : ImageSource.IImageSource
     {
         internal NamedImage(string name) => Name = name;
 

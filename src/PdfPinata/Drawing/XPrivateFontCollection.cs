@@ -40,7 +40,7 @@ public sealed class XPrivateFontCollection
     /// <summary>
     /// Initializes a new instance of the <see cref="XPrivateFontCollection"/> class.
     /// </summary>
-    XPrivateFontCollection()
+    private XPrivateFontCollection()
     {
         // HACK: Use one global PrivateFontCollection in GDI+
     }

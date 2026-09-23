@@ -18,10 +18,10 @@ namespace PinataLayout.Rendering.Tests.Helpers;
 /// </remarks>
 internal static class ParagraphIteratorProbe
 {
-    static readonly Type IteratorType = typeof(PdfDocumentRenderer).Assembly
+    private static readonly Type IteratorType = typeof(PdfDocumentRenderer).Assembly
         .GetType("PinataLayout.Rendering.ParagraphIterator", throwOnError: true);
 
-    const BindingFlags Internals = BindingFlags.NonPublic | BindingFlags.Instance;
+    private const BindingFlags Internals = BindingFlags.NonPublic | BindingFlags.Instance;
 
     /// <summary>
     ///   The leaves of the paragraph from the first to the last, as the renderer walks them when
@@ -72,7 +72,7 @@ internal static class ParagraphIteratorProbe
             : leaf.GetType().Name;
     }
 
-    static IReadOnlyList<DocumentObject> Walk(Paragraph paragraph, string seek, string step)
+    private static IReadOnlyList<DocumentObject> Walk(Paragraph paragraph, string seek, string step)
     {
         var leaves = new List<DocumentObject>();
 
@@ -86,13 +86,13 @@ internal static class ParagraphIteratorProbe
         return leaves;
     }
 
-    static object New(Paragraph paragraph)
+    private static object New(Paragraph paragraph)
     {
         return Activator.CreateInstance(IteratorType, Internals, null,
             new object[] { paragraph.Elements }, null);
     }
 
-    static object Call(object iterator, string methodName)
+    private static object Call(object iterator, string methodName)
     {
         return iterator == null
             ? null
@@ -100,7 +100,7 @@ internal static class ParagraphIteratorProbe
             : IteratorType.GetMethod(methodName, Internals).Invoke(iterator, null);
     }
 
-    static object Read(object iterator, string propertyName)
+    private static object Read(object iterator, string propertyName)
     {
         // ReSharper disable once PossibleNullReferenceException
         return IteratorType.GetProperty(propertyName, Internals).GetValue(iterator);

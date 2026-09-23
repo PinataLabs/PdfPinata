@@ -67,7 +67,7 @@ internal class TopDownFormatter
         this.elements = elements;
     }
 
-    IAreaProvider areaProvider;
+    private IAreaProvider areaProvider;
 
     private DocumentElements elements;
 
@@ -268,7 +268,7 @@ internal class TopDownFormatter
     /// own one. Rather than drop the note - which is what this assembly did for twenty years -
     /// that case says so.
     /// </remarks>
-    XUnit ReserveFootnotes(DocumentObject docObj, Area area)
+    private XUnit ReserveFootnotes(DocumentObject docObj, Area area)
     {
         if (areaProvider is IFootnoteAreaProvider provider)
             return provider.ReserveFootnotes(docObj, area.Width, gfx);
@@ -292,7 +292,7 @@ internal class TopDownFormatter
     /// <returns>
     /// The RenderInfo to set as previous RenderInfo.
     /// </returns>
-    RenderInfo FinishPage(RenderInfo lastRenderInfo, bool pagebreakBefore, ref ArrayList renderInfos)
+    private RenderInfo FinishPage(RenderInfo lastRenderInfo, bool pagebreakBefore, ref ArrayList renderInfos)
     {
         RenderInfo prevRenderInfo;
         if (lastRenderInfo.FormatInfo.IsEmpty || pagebreakBefore)
@@ -333,7 +333,7 @@ internal class TopDownFormatter
     /// the text goes where it can.
     /// </para>
     /// </remarks>
-    static ObstructedArea AreaBesideShape(Area area, LayoutInfo layoutInfo)
+    private static ObstructedArea AreaBesideShape(Area area, LayoutInfo layoutInfo)
     {
         if (layoutInfo.Floating != Floating.Left && layoutInfo.Floating != Floating.Right &&
             layoutInfo.Floating != Floating.BothSides)
@@ -389,7 +389,7 @@ internal class TopDownFormatter
     /// <param name="idx">Index of the document element.</param>
     /// <param name="renderer">A formatted renderer for the document element.</param>
     /// <param name="remainingArea">The remaining area.</param>
-    bool IsForcedAreaBreak(int idx, Renderer renderer, Area remainingArea)
+    private bool IsForcedAreaBreak(int idx, Renderer renderer, Area remainingArea)
     {
         var formatInfo = renderer.RenderInfo.FormatInfo;
         var layoutInfo = renderer.RenderInfo.LayoutInfo;
@@ -414,7 +414,7 @@ internal class TopDownFormatter
     /// </summary>
     /// <param name="prevRenderInfo">The prev render info.</param>
     /// <param name="succedingRenderInfo">The succeding render info.</param>
-    bool PreviousRendererNeedsRemoveEnding([NotNullWhen(true)] RenderInfo prevRenderInfo, RenderInfo succedingRenderInfo)
+    private bool PreviousRendererNeedsRemoveEnding([NotNullWhen(true)] RenderInfo prevRenderInfo, RenderInfo succedingRenderInfo)
     {
         if (prevRenderInfo == null)
             return false;
@@ -436,7 +436,7 @@ internal class TopDownFormatter
     /// </summary>
     private static readonly int MaxCombineElements = 10;
 
-    bool NextElementsDontFit(int idx, Area remainingArea, XUnit previousMarginBottom)
+    private bool NextElementsDontFit(int idx, Area remainingArea, XUnit previousMarginBottom)
     {
         var elementDistance = previousMarginBottom;
         var area = remainingArea;
@@ -480,7 +480,7 @@ internal class TopDownFormatter
         return false;
     }
 
-    bool NeedsEndingOnNextArea(int idx, Renderer renderer, Area remainingArea, bool isFirstOnPage)
+    private bool NeedsEndingOnNextArea(int idx, Renderer renderer, Area remainingArea, bool isFirstOnPage)
     {
         var layoutInfo = renderer.RenderInfo.LayoutInfo;
         if (isFirstOnPage && layoutInfo.KeepTogether)
@@ -499,6 +499,6 @@ internal class TopDownFormatter
         return false;
     }
 
-    DocumentRenderer documentRenderer;
-    XGraphics gfx;
+    private DocumentRenderer documentRenderer;
+    private XGraphics gfx;
 }

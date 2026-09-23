@@ -18,7 +18,7 @@ namespace PdfPinata.Test.Fonts;
 /// </summary>
 public class CidWidthArrayTests
 {
-    const string Alphabet = "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 .,;:!?";
+    private const string Alphabet = "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 .,;:!?";
 
     [Fact]
     public void EachRunOfConsecutiveCidsIsOneEntry()
@@ -62,13 +62,13 @@ public class CidWidthArrayTests
 
     // ── Arranging and reading ───────────────────────────────────────────────────────────────────
 
-    sealed record Entry(int First, IReadOnlyList<int> Widths);
+    private sealed record Entry(int First, IReadOnlyList<int> Widths);
 
     /// <summary>
     ///   The entries of a <c>/W</c> array, every one of which this library writes in the
     ///   <c>c [w1 w2 …]</c> form; the <c>cFirst cLast w</c> form would fail the cast, as it should.
     /// </summary>
-    static List<Entry> Entries(PdfArray w)
+    private static List<Entry> Entries(PdfArray w)
     {
         var entries = new List<Entry>();
         for (var at = 0; at < w.Elements.Count; at += 2)
@@ -81,7 +81,7 @@ public class CidWidthArrayTests
         return entries;
     }
 
-    static PdfDocument Saved(string text)
+    private static PdfDocument Saved(string text)
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -98,7 +98,7 @@ public class CidWidthArrayTests
         return Reader.Open(stream, PdfDocumentOpenMode.Modify);
     }
 
-    static PdfArray WidthArrayOf(PdfDocument document)
+    private static PdfArray WidthArrayOf(PdfDocument document)
     {
         var type0 = document.Internals.GetAllObjects()
             .OfType<PdfDictionary>()

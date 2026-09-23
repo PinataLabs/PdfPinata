@@ -151,7 +151,7 @@ public class TableHeadingRowTests
     }
 
     /// <summary>How many rows the whole document shows, headings counted once per page drawn.</summary>
-    static int RowsDrawnOn(IReadOnlyList<PdfPage> pages)
+    private static int RowsDrawnOn(IReadOnlyList<PdfPage> pages)
     {
         return pages.Sum(RowsOn);
     }
@@ -160,7 +160,7 @@ public class TableHeadingRowTests
     ///   How many rows of the table the page shows, counted from the rules between them: a table
     ///   of n rows is ruled n + 1 times across.
     /// </summary>
-    static int RowsOn(PdfPage page)
+    private static int RowsOn(PdfPage page)
     {
         var rules = StrokedLines.Of(page)
             .Where(line => line.IsHorizontal)
@@ -172,7 +172,7 @@ public class TableHeadingRowTests
     }
 
     /// <summary>Rows tall enough that a dozen of them cannot fit on one page.</summary>
-    static void AddRows(Table table, int count)
+    private static void AddRows(Table table, int count)
     {
         for (var index = 0; index < count; index++)
         {
@@ -183,7 +183,7 @@ public class TableHeadingRowTests
         }
     }
 
-    static Table NewTable(Document document)
+    private static Table NewTable(Document document)
     {
         var table = document.AddSection().AddTable();
         table.Borders.Visible = true;
@@ -192,7 +192,7 @@ public class TableHeadingRowTests
         return table;
     }
 
-    static IReadOnlyList<PdfPage> Render(Action<Table> build)
+    private static IReadOnlyList<PdfPage> Render(Action<Table> build)
     {
         var document = new Document();
         build(NewTable(document));

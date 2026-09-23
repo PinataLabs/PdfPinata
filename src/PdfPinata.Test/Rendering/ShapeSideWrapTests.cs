@@ -33,7 +33,7 @@ namespace PdfPinata.Test.Rendering;
 /// </remarks>
 public class ShapeSideWrapTests
 {
-    const string Prose =
+    private const string Prose =
         "The quick brown fox jumps over the lazy dog, and having jumped it lands and looks about " +
         "for somewhere else to be, which takes rather longer than the jump did and is far less " +
         "impressive to watch from any distance at all, or indeed from close to, where the whole " +
@@ -269,12 +269,12 @@ public class ShapeSideWrapTests
 
     // ----- building the page and reading it back ---------------------------------------------------
 
-    static double Centimetres(double value) => value * 72 / 2.54;
+    private static double Centimetres(double value) => value * 72 / 2.54;
 
     /// <summary>The text area's left edge, which is the page's left margin.</summary>
-    const double LeftMargin = 2.5 * 72 / 2.54;
+    private const double LeftMargin = 2.5 * 72 / 2.54;
 
-    static Document Build(WrapStyle style, ShapePosition position, string width, string height,
+    private static Document Build(WrapStyle style, ShapePosition position, string width, string height,
         int paragraphs, Action<WrapFormat> arrange, bool justify = false)
     {
         var document = new Document();
@@ -308,7 +308,7 @@ public class ShapeSideWrapTests
         return document;
     }
 
-    static PdfDocument RenderDocument(WrapStyle style, ShapePosition shapePosition,
+    private static PdfDocument RenderDocument(WrapStyle style, ShapePosition shapePosition,
         string shapeWidth, string shapeHeight, int paragraphs, Action<WrapFormat> arrange,
         bool justify = false)
     {
@@ -319,7 +319,7 @@ public class ShapeSideWrapTests
         return renderer.PdfDocument;
     }
 
-    static PdfPage Render(WrapStyle style, ShapePosition shapePosition = ShapePosition.Left,
+    private static PdfPage Render(WrapStyle style, ShapePosition shapePosition = ShapePosition.Left,
         string shapeWidth = "4cm", string shapeHeight = "4cm", int paragraphs = 12,
         Action<WrapFormat> arrange = null)
     {
@@ -335,7 +335,7 @@ public class ShapeSideWrapTests
     /// <summary>
     ///   A rendered page, the shape's box on it, and where each line of text begins.
     /// </summary>
-    sealed class Laid
+    private sealed class Laid
     {
         internal Laid(PdfPage page)
         {
@@ -370,7 +370,7 @@ public class ShapeSideWrapTests
             Lines.Where(line => line.Y > ShapeBottom && line.Y < ShapeTop).ToList();
     }
 
-    static List<int> GlyphsAcross(PdfDocument document)
+    private static List<int> GlyphsAcross(PdfDocument document)
     {
         var glyphs = new List<int>();
         for (var idx = 0; idx < document.PageCount; idx++)
@@ -378,7 +378,7 @@ public class ShapeSideWrapTests
         return glyphs;
     }
 
-    static List<int> GlyphsOn(PdfPage page)
+    private static List<int> GlyphsOn(PdfPage page)
     {
         var glyphs = new List<int>();
 

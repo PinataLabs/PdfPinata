@@ -18,7 +18,7 @@ namespace PdfPinata.Test.Dom;
 /// </summary>
 public class TableRowCellsTests
 {
-    const int Columns = 4;
+    private const int Columns = 4;
 
     [Fact]
     public void ARowHasACellForEveryColumnOfItsTable()
@@ -135,7 +135,7 @@ public class TableRowCellsTests
         table.Rows[0].Cells.Count.Should().Be(Columns);
     }
 
-    static IReadOnlyList<int> ColumnIndicesOf(Row row)
+    private static IReadOnlyList<int> ColumnIndicesOf(Row row)
     {
         var indices = new List<int>();
         foreach (Cell cell in row.Cells)
@@ -147,7 +147,7 @@ public class TableRowCellsTests
     ///   Read without creating what is not there: a cell the loop never reached has no borders,
     ///   and asking for them the ordinary way would make some and hide that.
     /// </summary>
-    static Color ColourOf(Cell cell)
+    private static Color ColourOf(Cell cell)
     {
         var borders = (Borders)cell.GetValue("Borders", GV.GetNull);
         borders.Should().NotBeNull(
@@ -155,7 +155,7 @@ public class TableRowCellsTests
         return borders.Color;
     }
 
-    static Table ATableOf(int columns, int rows)
+    private static Table ATableOf(int columns, int rows)
     {
         var table = new Document().AddSection().AddTable();
         for (var column = 0; column < columns; column++)

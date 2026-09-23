@@ -40,7 +40,7 @@ namespace PdfPinata.Fonts;
 /// </summary>
 internal sealed class FontDescriptorCache
 {
-    FontDescriptorCache()
+    private FontDescriptorCache()
     {
         _cache = new Dictionary<string, FontDescriptor>();
     }
@@ -110,7 +110,7 @@ internal sealed class FontDescriptorCache
         finally { Lock.ExitFontFactory(); }
     }
 
-    static OpenTypeDescriptor GetOrCreateOpenTypeDescriptor(string fontDescriptorKey, string idName, byte[] fontData)
+    private static OpenTypeDescriptor GetOrCreateOpenTypeDescriptor(string fontDescriptorKey, string idName, byte[] fontData)
     {
         return new OpenTypeDescriptor(fontDescriptorKey, idName, fontData);
     }
@@ -118,7 +118,7 @@ internal sealed class FontDescriptorCache
     /// <summary>
     /// Gets the singleton.
     /// </summary>
-    static FontDescriptorCache Singleton
+    private static FontDescriptorCache Singleton
     {
         get
         {
@@ -135,10 +135,10 @@ internal sealed class FontDescriptorCache
             return _singleton;
         }
     }
-    static volatile FontDescriptorCache _singleton;
+    private static volatile FontDescriptorCache _singleton;
 
     /// <summary>
     /// Maps font font descriptor key to font descriptor.
     /// </summary>
-    readonly Dictionary<string, FontDescriptor> _cache;
+    private readonly Dictionary<string, FontDescriptor> _cache;
 }

@@ -25,9 +25,9 @@ namespace PdfPinata.Test.Annotations;
 [Collection(RasterizingCollection.Name)]
 public sealed class MarkupAnnotationTypesTests : IDisposable
 {
-    const string OutDir = "Out/MarkupAnnotationTypes";
+    private const string OutDir = "Out/MarkupAnnotationTypes";
 
-    readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
+    private readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
 
     static MarkupAnnotationTypesTests()
     {
@@ -361,13 +361,13 @@ public sealed class MarkupAnnotationTypesTests : IDisposable
 
     // ----- helpers ------------------------------------------------------------------------------------
 
-    static T OnAPage<T>(T annotation) where T : PdfAnnotation
+    private static T OnAPage<T>(T annotation) where T : PdfAnnotation
     {
         new PdfDocument().AddPage().Annotations.Add(annotation);
         return annotation;
     }
 
-    IMagickImage<byte> Rasterize(string name, Action<PdfDocument> arrange)
+    private IMagickImage<byte> Rasterize(string name, Action<PdfDocument> arrange)
     {
         var document = new PdfDocument();
         _ = document.AddPage();
@@ -379,18 +379,18 @@ public sealed class MarkupAnnotationTypesTests : IDisposable
         return images[0];
     }
 
-    static PdfDocument ReadBack(PdfDocument document)
+    private static PdfDocument ReadBack(PdfDocument document)
     {
         using var output = new MemoryStream();
         document.Save(output, false);
-        return PdfPinata.Pdf.IO.PdfReader.Open(new MemoryStream(output.ToArray()), PdfPinata.Pdf.IO.PdfDocumentOpenMode.Modify);
+        return Pdf.IO.PdfReader.Open(new MemoryStream(output.ToArray()), Pdf.IO.PdfDocumentOpenMode.Modify);
     }
 
-    static bool IsRed(IMagickColor<byte> c) => c.R > 130 && c.G < 100 && c.B < 100;
+    private static bool IsRed(IMagickColor<byte> c) => c.R > 130 && c.G < 100 && c.B < 100;
 
-    static bool IsBlue(IMagickColor<byte> c) => c.B > 150 && c.R < 120 && c.G < 150;
+    private static bool IsBlue(IMagickColor<byte> c) => c.B > 150 && c.R < 120 && c.G < 150;
 
-    static int Count(IMagickImage<byte> image, Func<IMagickColor<byte>, bool> match)
+    private static int Count(IMagickImage<byte> image, Func<IMagickColor<byte>, bool> match)
     {
         using var pixels = image.GetPixels();
         return pixels.Count(p =>

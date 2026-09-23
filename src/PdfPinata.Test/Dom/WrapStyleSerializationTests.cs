@@ -126,19 +126,19 @@ public class WrapStyleSerializationTests
 
     // ----- writing and reading ---------------------------------------------------------------------
 
-    static string Written(Action<Document> build)
+    private static string Written(Action<Document> build)
     {
         var document = new Document();
         build(document);
         return DdlWriter.WriteToString(document);
     }
 
-    static Document RoundTrip(Action<Document> build)
+    private static Document RoundTrip(Action<Document> build)
     {
         return DdlReader.DocumentFromString(Written(build));
     }
 
-    static TextFrame FrameIn(Document document)
+    private static TextFrame FrameIn(Document document)
     {
         var section = document.Sections[0];
         return section.Elements

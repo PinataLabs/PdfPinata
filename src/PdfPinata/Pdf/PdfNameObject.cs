@@ -96,7 +96,7 @@ public sealed class PdfNameObject : PdfObject
         get => _value;
         set => _value = value;
     }
-    string _value;
+    private string _value;
 
     /// <summary>
     /// Returns the name. The string always begins with a slash.

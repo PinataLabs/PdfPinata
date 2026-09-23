@@ -64,7 +64,7 @@ public sealed class PdfStrikeOutAnnotation : PdfTextMarkupAnnotation
         : base(dict)
     { }
 
-    void Initialize()
+    private void Initialize()
     {
         Elements.SetName(PdfAnnotation.Keys.Subtype, "/StrikeOut");
         Color = XColors.Red;
@@ -89,7 +89,7 @@ public sealed class PdfStrikeOutAnnotation : PdfTextMarkupAnnotation
     {
         public static new DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

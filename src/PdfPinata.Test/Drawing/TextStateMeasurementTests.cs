@@ -30,17 +30,17 @@ public class TextStateMeasurementTests
     ///   Liberation Sans, served by PinnedFontResolver, so the advance widths below are the same
     ///   on every machine.
     /// </summary>
-    static XFont Font => new XFont("Arial", 12);
+    private static XFont Font => new XFont("Arial", 12);
 
-    static XGraphics NewGraphics()
+    private static XGraphics NewGraphics()
     {
         var document = new PdfDocument();
         return XGraphics.FromPdfPage(document.AddPage());
     }
 
-    static XStringFormat Format() => XStringFormats.Default;
+    private static XStringFormat Format() => XStringFormats.Default;
 
-    const double Tolerance = 1e-9;
+    private const double Tolerance = 1e-9;
 
     [Fact]
     public void ADefaultFormatMeasuresTheSameAsNoFormatAtAll()

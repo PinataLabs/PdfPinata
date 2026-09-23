@@ -51,7 +51,7 @@ internal class FormattedCell : IAreaProvider
     this.documentRenderer = documentRenderer;
   }
 
-  bool isFirstArea = true;
+  private bool isFirstArea = true;
   Area IAreaProvider.GetNextArea()
   {
     if (isFirstArea)
@@ -161,7 +161,7 @@ internal class FormattedCell : IAreaProvider
     return height;
   }
 
-  XUnit contentHeight = 0;
+  private XUnit contentHeight = 0;
 
   internal RenderInfo[] GetRenderInfos()
   {
@@ -183,7 +183,7 @@ internal class FormattedCell : IAreaProvider
   private XUnit yOffset;
   private Cell cell;
   private TopDownFormatter formatter;
-  BordersRenderer bordersRenderer;
-  XGraphics gfx;
-  DocumentRenderer documentRenderer;
+  private BordersRenderer bordersRenderer;
+  private XGraphics gfx;
+  private DocumentRenderer documentRenderer;
 }

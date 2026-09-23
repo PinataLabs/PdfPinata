@@ -77,7 +77,7 @@ public class PinataLayoutLayoutPinTests
     ///   <c>BDC</c> measures from the origin rather than from the previous line — so including it
     ///   would fail this test for the one difference it exists to permit.
     /// </remarks>
-    static List<string> GlyphRuns(string content)
+    private static List<string> GlyphRuns(string content)
     {
         var runs = new List<string>();
 
@@ -118,10 +118,10 @@ public class PinataLayoutLayoutPinTests
         });
     }
 
-    static string BaselinePath =>
+    private static string BaselinePath =>
         Path.Combine(PathHelper.GetInstance().GetAssetPath("Layout"), "PinataLayout-baseline.txt");
 
-    static Dictionary<string, string> SplitByDocument(string report)
+    private static Dictionary<string, string> SplitByDocument(string report)
     {
         var documents = new Dictionary<string, string>(StringComparer.Ordinal);
         string current = null;
@@ -152,5 +152,5 @@ public class PinataLayoutLayoutPinTests
     ///   The same text with every line ending reduced to a line feed, so that what is compared is
     ///   the layout and not what the checkout did to the asset file.
     /// </summary>
-    static string Normalized(string text) => text.Replace("\r\n", "\n");
+    private static string Normalized(string text) => text.Replace("\r\n", "\n");
 }

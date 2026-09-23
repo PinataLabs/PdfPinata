@@ -75,7 +75,7 @@ public sealed class PdfWidgetAnnotation : PdfAnnotation
         : base(dict)
     { }
 
-    void Initialize()
+    private void Initialize()
     {
         Elements.SetName(PdfAnnotation.Keys.Subtype, "/Widget");
     }
@@ -111,7 +111,7 @@ public sealed class PdfWidgetAnnotation : PdfAnnotation
 
         public static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

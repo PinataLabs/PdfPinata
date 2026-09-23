@@ -134,7 +134,7 @@ public class ChartModelTests
 
     // The elements of a series are DocumentObjects, because a blank is one of the things a series
     // can hold and a blank is no point at all.
-    static Point PointAt(Series series, int index) => (Point)series.Elements[index];
+    private static Point PointAt(Series series, int index) => (Point)series.Elements[index];
 
     [Fact]
     public void AddingOneNumberHandsBackThePointItBecame()

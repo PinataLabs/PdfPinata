@@ -50,5 +50,5 @@ public class PdfResourceTable
     /// </summary>
     protected PdfDocument Owner => _owner;
 
-    readonly PdfDocument _owner;
+    private readonly PdfDocument _owner;
 }

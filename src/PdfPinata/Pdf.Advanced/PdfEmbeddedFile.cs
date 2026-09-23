@@ -41,7 +41,7 @@ public class PdfEmbeddedFile : PdfDictionary
     /// all, and answer every question about itself by throwing.
     /// </para>
     /// </summary>
-    PdfDictionary Parameters
+    private PdfDictionary Parameters
     {
         get
         {
@@ -184,7 +184,7 @@ public class PdfEmbeddedFile : PdfDictionary
                 return meta;
             }
         }
-        static DictionaryMeta meta;
+        private static DictionaryMeta meta;
     }
 
     /// <summary>

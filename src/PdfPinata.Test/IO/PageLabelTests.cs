@@ -313,7 +313,7 @@ public class PageLabelTests
         written.Should().NotContain("/St 1");
     }
 
-    static PdfDocument WithPages(int count)
+    private static PdfDocument WithPages(int count)
     {
         var document = new PdfDocument();
         for (var at = 0; at < count; at++)
@@ -322,7 +322,7 @@ public class PageLabelTests
         return document;
     }
 
-    static PdfDocument SaveAndOpen(PdfDocument document)
+    private static PdfDocument SaveAndOpen(PdfDocument document)
     {
         using var stream = new MemoryStream();
         document.Save(stream, false);

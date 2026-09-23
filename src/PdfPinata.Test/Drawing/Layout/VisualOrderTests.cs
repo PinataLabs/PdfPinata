@@ -17,10 +17,10 @@ public class VisualOrderTests
 {
     // Three Hebrew words of two letters each, and an English word - escapes rather than literals,
     // so that a source file mixing right-to-left text with left-to-right code cannot be misread.
-    const string First = "אב";
-    const string Second = "גד";
+    private const string First = "אב";
+    private const string Second = "גד";
 
-    static (int Start, int Length)[] WordSpans(params string[] words)
+    private static (int Start, int Length)[] WordSpans(params string[] words)
     {
         var spans = new (int Start, int Length)[words.Length];
         var at = 0;
@@ -33,7 +33,7 @@ public class VisualOrderTests
         return spans;
     }
 
-    static string Joined(params string[] words) => string.Join(" ", words);
+    private static string Joined(params string[] words) => string.Join(" ", words);
 
     [Fact]
     public void ARightToLeftLineOfTwoWordsReversesTheWordsToo()

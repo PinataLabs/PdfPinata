@@ -36,7 +36,7 @@ public enum XGlyphSegmentKind
 /// </remarks>
 public readonly struct XGlyphSegment
 {
-    XGlyphSegment(XGlyphSegmentKind kind, XPoint control1, XPoint control2, XPoint end)
+    private XGlyphSegment(XGlyphSegmentKind kind, XPoint control1, XPoint control2, XPoint end)
     {
         Kind = kind;
         Control1 = control1;

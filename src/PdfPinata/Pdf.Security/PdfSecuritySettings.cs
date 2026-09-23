@@ -27,8 +27,6 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
-using System;
-
 namespace PdfPinata.Pdf.Security;
 
 /// <summary>
@@ -40,7 +38,7 @@ public sealed class PdfSecuritySettings
     {
         _document = document;
     }
-    readonly PdfDocument _document;
+    private readonly PdfDocument _document;
 
     /// <summary>
     /// Indicates whether the granted access to the document is 'owner permission'. Returns true if the document
@@ -60,7 +58,7 @@ public sealed class PdfSecuritySettings
         get => _documentSecurityLevel;
         set => _documentSecurityLevel = value;
     }
-    PdfDocumentSecurityLevel _documentSecurityLevel;
+    private PdfDocumentSecurityLevel _documentSecurityLevel;
 
     /// <summary>
     /// Sets the user password of the document. Setting a password automatically sets the
@@ -85,17 +83,16 @@ public sealed class PdfSecuritySettings
     /// <summary>
     /// Determines whether the document can be saved.
     /// </summary>
-    internal bool CanSave(ref string message)
+    internal PdfSaveCheck CanSave()
     {
-        if (_documentSecurityLevel != PdfDocumentSecurityLevel.None)
+        if (_documentSecurityLevel != PdfDocumentSecurityLevel.None
+            && string.IsNullOrEmpty(SecurityHandler._userPassword)
+            && string.IsNullOrEmpty(SecurityHandler._ownerPassword))
         {
-            if (String.IsNullOrEmpty(SecurityHandler._userPassword) && String.IsNullOrEmpty(SecurityHandler._ownerPassword))
-            {
-                message = PSSR.UserOrOwnerPasswordRequired;
-                return false;
-            }
+            return PdfSaveCheck.Refused(PSSR.UserOrOwnerPasswordRequired);
         }
-        return true;
+
+        return PdfSaveCheck.Allowed;
     }
 
     // The Permit* properties are the user access permission bits of the /P entry, ISO 32000-1

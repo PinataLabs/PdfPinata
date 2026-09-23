@@ -16,15 +16,15 @@ namespace PdfPinata.Test.Drawing;
 /// </summary>
 public class XFormResourceTests
 {
-    static XFont AFont() => new("Arial", 12, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
+    private static XFont AFont() => new("Arial", 12, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
 
-    static XImage AnImage() => XImage.FromFile(PathHelper.GetInstance().GetAssetPath("frog-and-toad.jpg"));
+    private static XImage AnImage() => XImage.FromFile(PathHelper.GetInstance().GetAssetPath("frog-and-toad.jpg"));
 
     /// <summary>
     ///   The resource dictionary of the one form drawn on a page, reached the way a reader reaches
     ///   it: down the page's own XObject table to the form, and then into the form's resources.
     /// </summary>
-    static PdfDictionary ResourcesOfTheOnlyFormOn(PdfPage page)
+    private static PdfDictionary ResourcesOfTheOnlyFormOn(PdfPage page)
     {
         var xObjects = page.Resources.Elements.GetDictionary("/XObject");
         foreach (var key in xObjects!.Elements.KeyNames)

@@ -199,13 +199,13 @@ public class OutlineOpenStateTests
     ///   entries of the original are what get asserted against, because <c>PrepareForSave</c>
     ///   writes into the live dictionaries - so nothing has to be reopened to read them back.
     /// </summary>
-    static void Save(PdfDocument document)
+    private static void Save(PdfDocument document)
     {
         using var stream = new MemoryStream();
         document.Save(stream, false);
     }
 
-    static PdfDocument SaveAndOpen(PdfDocument document)
+    private static PdfDocument SaveAndOpen(PdfDocument document)
     {
         using var stream = new MemoryStream();
         document.Save(stream, false);
@@ -214,12 +214,12 @@ public class OutlineOpenStateTests
         return PdfPinata.Pdf.IO.PdfReader.Open(stream, PdfDocumentOpenMode.Modify);
     }
 
-    static int CountOf(PdfOutline outline)
+    private static int CountOf(PdfOutline outline)
     {
         return outline.Elements.GetInteger("/Count");
     }
 
-    static PdfDocument ThreePages()
+    private static PdfDocument ThreePages()
     {
         var document = new PdfDocument();
         var font = new XFont("Liberation Sans", 12);

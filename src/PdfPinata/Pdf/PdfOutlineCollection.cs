@@ -264,7 +264,7 @@ public class PdfOutlineCollection : PdfObject, IList<PdfOutline>
     /// that would give the tree an entry it cannot write. Nothing is changed until every check has
     /// passed.
     /// </summary>
-    void AddToOutlinesTree(PdfOutline outline)
+    private void AddToOutlinesTree(PdfOutline outline)
     {
         ArgumentNullException.ThrowIfNull(outline);
 
@@ -309,7 +309,7 @@ public class PdfOutlineCollection : PdfObject, IList<PdfOutline>
     /// anywhere else in the document. The entries under it stay under it and are written again if
     /// it is.
     /// </summary>
-    void RemoveFromOutlinesTree(PdfOutline outline)
+    private void RemoveFromOutlinesTree(PdfOutline outline)
     {
         ArgumentNullException.ThrowIfNull(outline);
 
@@ -325,7 +325,7 @@ public class PdfOutlineCollection : PdfObject, IList<PdfOutline>
     /// <summary>
     /// The parent outline of this collection.
     /// </summary>
-    readonly PdfOutline _parent;
+    private readonly PdfOutline _parent;
 
-    readonly List<PdfOutline> _outlines = new();
+    private readonly List<PdfOutline> _outlines = new();
 }

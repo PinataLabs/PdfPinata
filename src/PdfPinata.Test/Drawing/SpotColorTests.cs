@@ -20,8 +20,8 @@ namespace PdfPinata.Test.Drawing;
 /// </summary>
 public class SpotColorTests
 {
-    static readonly XSpotColor Pantone185 = new("PANTONE 185 C", XColor.FromCmyk(0, 0.93, 0.79, 0));
-    static readonly XSpotColor WhiteInk = new("White", XColor.FromArgb(240, 240, 240));
+    private static readonly XSpotColor Pantone185 = new("PANTONE 185 C", XColor.FromCmyk(0, 0.93, 0.79, 0));
+    private static readonly XSpotColor WhiteInk = new("White", XColor.FromArgb(240, 240, 240));
 
     // ----- what is written -----------------------------------------------------------------------
 
@@ -203,7 +203,7 @@ public class SpotColorTests
     {
         var page = Reopened(gfx =>
         {
-            gfx.DrawRectangle(new XSolidBrush(XColor.FromSpot(Pantone185, 1)), 10, 10, 100, 100);
+            gfx.DrawRectangle(new XSolidBrush(XColor.FromSpot(Pantone185)), 10, 10, 100, 100);
             gfx.DrawRectangle(new XSolidBrush(XColor.FromSpot(Pantone185, 0.4)), 10, 120, 100, 100);
             gfx.DrawRectangle(new XSolidBrush(XColor.FromSpot(Pantone185, 0.4)), 10, 230, 100, 100);
         })[0];
@@ -363,7 +363,7 @@ public class SpotColorTests
 
     // ----- helpers --------------------------------------------------------------------------------
 
-    static Action SavingArchival(PdfColorMode mode, byte[] profile, XSpotColor ink) => () =>
+    private static Action SavingArchival(PdfColorMode mode, byte[] profile, XSpotColor ink) => () =>
     {
         var document = new PdfDocument();
         document.Info.Title = "Spot colour";
@@ -386,14 +386,14 @@ public class SpotColorTests
     ///   Not a usable profile: only the colour-space signature at offset 16 is read, which is what
     ///   says the output intent is four-component.
     /// </summary>
-    static byte[] CmykProfile()
+    private static byte[] CmykProfile()
     {
         var profile = new byte[128];
         Encoding.ASCII.GetBytes("CMYK").CopyTo(profile, 16);
         return profile;
     }
 
-    static PdfPages Reopened(Action<XGraphics> draw)
+    private static PdfPages Reopened(Action<XGraphics> draw)
     {
         var document = new PdfDocument();
         using (var gfx = XGraphics.FromPdfPage(document.AddPage()))
@@ -401,7 +401,7 @@ public class SpotColorTests
         return Reopen(document);
     }
 
-    static PdfPages Reopen(PdfDocument document)
+    private static PdfPages Reopen(PdfDocument document)
     {
         var stream = new MemoryStream();
         document.Save(stream, false);
@@ -409,20 +409,20 @@ public class SpotColorTests
         return PdfPinata.Pdf.IO.PdfReader.Open(stream, PdfDocumentOpenMode.Import).Pages;
     }
 
-    static string Content(PdfPage page) => Encoding.ASCII.GetString(PageContent.Of(page));
+    private static string Content(PdfPage page) => Encoding.ASCII.GetString(PageContent.Of(page));
 
-    static PdfArray ColorSpace(PdfPage page, string name) => (PdfArray)Resolve(SpaceReference(page, name));
+    private static PdfArray ColorSpace(PdfPage page, string name) => (PdfArray)Resolve(SpaceReference(page, name));
 
-    static PdfReference SpaceReference(PdfPage page, string name)
+    private static PdfReference SpaceReference(PdfPage page, string name)
     {
         var spaces = page.Elements.GetDictionary("/Resources")!.Elements.GetDictionary("/ColorSpace");
         spaces.Should().NotBeNull("a page painting a spot colour names its colour space");
         return (PdfReference)spaces!.Elements[name];
     }
 
-    static PdfItem Resolve(PdfItem item) => item is PdfReference reference ? reference.Value : item;
+    private static PdfItem Resolve(PdfItem item) => item is PdfReference reference ? reference.Value : item;
 
-    static double[] Numbers(PdfArray array)
+    private static double[] Numbers(PdfArray array)
     {
         var numbers = new double[array.Elements.Count];
         for (var idx = 0; idx < numbers.Length; idx++)

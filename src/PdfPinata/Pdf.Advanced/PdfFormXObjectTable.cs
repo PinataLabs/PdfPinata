@@ -177,7 +177,7 @@ internal sealed class PdfFormXObjectTable : PdfResourceTable
     /// <summary>
     /// Map from Selector to PdfImportedObjectTable.
     /// </summary>
-    readonly Dictionary<Selector, PdfImportedObjectTable> _forms = new();
+    private readonly Dictionary<Selector, PdfImportedObjectTable> _forms = new();
 
     /// <summary>
     /// A collection of information that uniquely identifies a particular ImportedObjectTable.
@@ -214,7 +214,7 @@ internal sealed class PdfFormXObjectTable : PdfResourceTable
             get => _path;
             set => _path = value;
         }
-        string _path;
+        private string _path;
 
         public override bool Equals(object obj)
         {

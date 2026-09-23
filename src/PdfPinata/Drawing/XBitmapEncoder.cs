@@ -58,7 +58,8 @@ public abstract class XBitmapEncoder
         get => _source;
         set => _source = value;
     }
-    XBitmapSource _source;
+
+    private XBitmapSource _source;
 
     /// <summary>
     /// When overridden in a derived class saves the image on the specified stream

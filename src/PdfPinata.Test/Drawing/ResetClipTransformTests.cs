@@ -70,7 +70,7 @@ public class ResetClipTransformTests
         last.Y.Should().BeApproximately(page.Height.Point - expected.Y, 0.01);
     }
 
-    static IXGraphicsRenderer RendererOf(XGraphics gfx)
+    private static IXGraphicsRenderer RendererOf(XGraphics gfx)
     {
         var field = typeof(XGraphics).GetField("_renderer", BindingFlags.NonPublic | BindingFlags.Instance)!;
         return (IXGraphicsRenderer)field.GetValue(gfx)!;

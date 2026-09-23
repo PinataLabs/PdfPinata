@@ -95,7 +95,7 @@ public sealed class XFont
     /// Initializes this instance by computing the glyph typeface, font family, font source and TrueType fontface.
     /// (PdfPinata currently only deals with TrueType fonts.)
     /// </summary>
-    void Initialize()
+    private void Initialize()
     {
         var fontResolvingOptions = OverrideStyleSimulations
             ? new FontResolvingOptions(_style, StyleSimulations)
@@ -116,7 +116,7 @@ public sealed class XFont
     /// (Setup properties in their getters caused side effects during debugging because Visual Studio calls a getter
     /// to early to show its value in a debugger window.)
     /// </summary>
-    void CreateDescriptorAndInitializeFontMetrics()
+    private void CreateDescriptorAndInitializeFontMetrics()
     {
         Debug.Assert(_fontMetrics == null, "InitializeFontMetrics() was already called.");
         _descriptor = (OpenTypeDescriptor)FontDescriptorCache.GetOrCreateDescriptorFor(this);
@@ -157,7 +157,7 @@ public sealed class XFont
     /// </summary>
     public double Size => _emSize;
 
-    readonly double _emSize;
+    private readonly double _emSize;
 
     /// <summary>
     /// Gets style information for this Font object.
@@ -165,7 +165,7 @@ public sealed class XFont
     [Browsable(false)]
     public XFontStyle Style => _style;
 
-    readonly XFontStyle _style;
+    private readonly XFontStyle _style;
 
     /// <summary>
     /// Indicates whether this XFont object is bold.
@@ -195,7 +195,8 @@ public sealed class XFont
         get => _isVertical;
         set => _isVertical = value;
     }
-    bool _isVertical;
+
+    private bool _isVertical;
 
 
     /// <summary>
@@ -203,7 +204,7 @@ public sealed class XFont
     /// </summary>
     public XPdfFontOptions PdfOptions => _pdfOptions ?? (_pdfOptions = new XPdfFontOptions());
 
-    XPdfFontOptions _pdfOptions;
+    private XPdfFontOptions _pdfOptions;
 
     /// <summary>
     /// Indicates whether this XFont is encoded as Unicode.
@@ -218,7 +219,8 @@ public sealed class XFont
         get => _cellSpace;
         internal set => _cellSpace = value;
     }
-    int _cellSpace;
+
+    private int _cellSpace;
 
     /// <summary>
     /// Gets the cell ascent, the area above the base line that is used by the font.
@@ -228,7 +230,8 @@ public sealed class XFont
         get => _cellAscent;
         internal set => _cellAscent = value;
     }
-    int _cellAscent;
+
+    private int _cellAscent;
 
     /// <summary>
     /// Gets the cell descent, the area below the base line that is used by the font.
@@ -238,7 +241,8 @@ public sealed class XFont
         get => _cellDescent;
         internal set => _cellDescent = value;
     }
-    int _cellDescent;
+
+    private int _cellDescent;
 
     /// <summary>
     /// Gets the font metrics.
@@ -252,7 +256,8 @@ public sealed class XFont
             return _fontMetrics;
         }
     }
-    XFontMetrics _fontMetrics;
+
+    private XFontMetrics _fontMetrics;
 
     /// <summary>
     /// Returns the line spacing, in pixels, of this font. The line spacing is the vertical distance
@@ -277,7 +282,7 @@ public sealed class XFont
 
     internal XGlyphTypeface GlyphTypeface => _glyphTypeface;
 
-    XGlyphTypeface _glyphTypeface;
+    private XGlyphTypeface _glyphTypeface;
 
     /// <summary>
     /// This font as a <see cref="T:PdfPinata.Fonts.ITextShaper"/> is shown it: the resolved
@@ -295,16 +300,17 @@ public sealed class XFont
         _glyphTypeface.IsBold, _glyphTypeface.IsItalic,
         _emSize, _unitsPerEm, _glyphTypeface.FontSource.Bytes);
 
-    ShapingFont _shapingFont;
+    private ShapingFont _shapingFont;
 
 
     internal OpenTypeDescriptor Descriptor => _descriptor;
-    OpenTypeDescriptor _descriptor;
+
+    private OpenTypeDescriptor _descriptor;
 
 
     internal string FamilyName => _familyName;
 
-    string _familyName;
+    private string _familyName;
 
 
     internal int UnitsPerEm
@@ -333,11 +339,12 @@ public sealed class XFont
         get => _selector;
         set => _selector = value;
     }
-    string _selector;
+
+    private string _selector;
 
     /// <summary>
     /// Gets the DebuggerDisplayAttribute text.
     /// </summary>
     // ReSharper disable UnusedMember.Local
-    string DebuggerDisplay => String.Format(CultureInfo.InvariantCulture, "font=('{0}' {1:0.##})", Name, Size); // ReSharper restore UnusedMember.Local
+    private string DebuggerDisplay => String.Format(CultureInfo.InvariantCulture, "font=('{0}' {1:0.##})", Name, Size); // ReSharper restore UnusedMember.Local
 }

@@ -193,7 +193,7 @@ public sealed class PdfString : PdfItem
 
     internal PdfStringFlags Flags => _flags;
 
-    readonly PdfStringFlags _flags;
+    private readonly PdfStringFlags _flags;
 
     /// <summary>
     /// Gets the string value.
@@ -202,7 +202,7 @@ public sealed class PdfString : PdfItem
         // This class must behave like a value type. Therefore it cannot be changed (like System.String).
         _value ?? "";
 
-    readonly string _value;
+    private readonly string _value;
 
     /// <summary>
     /// Gets the string value as the bytes encryption works on.
@@ -287,7 +287,7 @@ public sealed class PdfString : PdfItem
             sb.Append(bytes[idx]);
         return sb.ToString();
     }
-    static readonly char[] Encode =
+    private static readonly char[] Encode =
     [
         '\x00', '\x01', '\x02', '\x03', '\x04', '\x05', '\x06', '\x07', '\x08', '\x09', '\x0A', '\x0B', '\x0C', '\x0D', '\x0E', '\x0F',
         '\x10', '\x11', '\x12', '\x13', '\x14', '\x15', '\x16', '\x17', '\x18', '\x19', '\x1A', '\x1B', '\x1C', '\x1D', '\x1E', '\x1F',
@@ -332,7 +332,7 @@ public sealed class PdfString : PdfItem
         return PdfStringFlags.RawEncoding;
     }
 
-    static void CheckRawEncoding(string s)
+    private static void CheckRawEncoding(string s)
     {
         if (String.IsNullOrEmpty(s))
             return;

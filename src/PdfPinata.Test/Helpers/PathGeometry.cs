@@ -68,12 +68,12 @@ internal static class PathGeometry
         return Operators(page).Count(op => op.OpCode.OpCodeName == OpCodeName.m);
     }
 
-    static IEnumerable<COperator> Operators(PdfPage page)
+    private static IEnumerable<COperator> Operators(PdfPage page)
     {
         return ItemsOf(ContentReader.ReadContent(PageContent.Of(page))).OfType<COperator>();
     }
 
-    static IReadOnlyList<CObject> ItemsOf(CSequence sequence)
+    private static IReadOnlyList<CObject> ItemsOf(CSequence sequence)
     {
         var items = new List<CObject>();
         foreach (var item in sequence)
@@ -81,7 +81,7 @@ internal static class PathGeometry
         return items;
     }
 
-    static double Number(CObject operand)
+    private static double Number(CObject operand)
     {
         return operand switch
         {

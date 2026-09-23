@@ -71,7 +71,7 @@ public sealed class PdfUIntegerObject : PdfNumberObject
     /// </summary>
     public uint Value => _value;
 
-    readonly uint _value;
+    private readonly uint _value;
 
     /// <summary>
     /// Returns the integer as string.

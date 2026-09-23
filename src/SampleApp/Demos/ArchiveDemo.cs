@@ -343,7 +343,7 @@ internal sealed class ArchiveDemo : PdfDemo
     ///   Builds a probe claiming the same profile, saves it, reopens it and hands back the metadata
     ///   packet it carries, split into lines that fit the page.
     /// </summary>
-    static IEnumerable<string> PacketOfAProbe(byte[] profile)
+    private static IEnumerable<string> PacketOfAProbe(byte[] profile)
     {
         using var probe = new PdfDocument();
         _ = probe.AddPage();
@@ -385,7 +385,7 @@ internal sealed class ArchiveDemo : PdfDemo
     /// <summary>
     ///   One document per rule, each built to break exactly that rule, and what the writer said.
     /// </summary>
-    static IEnumerable<(string Broken, string Message)> Refusals(byte[] profile)
+    private static IEnumerable<(string Broken, string Message)> Refusals(byte[] profile)
     {
         yield return Refusal("No title", profile, document => document.Info.Title = "");
 
@@ -415,7 +415,7 @@ internal sealed class ArchiveDemo : PdfDemo
         });
     }
 
-    static (string Broken, string Message) Refusal(string broken, byte[] profile,
+    private static (string Broken, string Message) Refusal(string broken, byte[] profile,
         Action<PdfDocument> breakARule)
     {
         using var probe = new PdfDocument();

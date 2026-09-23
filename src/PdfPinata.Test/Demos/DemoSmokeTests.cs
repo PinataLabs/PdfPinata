@@ -187,6 +187,6 @@ public class DemoSmokeTests
     ///   A directory of its own per demo, under the test assembly's output, which the existing
     ///   tests already use and which sits under bin and is therefore ignored.
     /// </summary>
-    static string OutputDirectoryFor(string name) =>
+    private static string OutputDirectoryFor(string name) =>
         Path.Combine(PathHelper.GetInstance().RootDir, "Out", "Demos", name);
 }

@@ -62,7 +62,7 @@ public sealed class PdfDate : PdfItem
         // This class must behave like a value type. Therefore it cannot be changed (like System.String).
         _value;
 
-    readonly DateTime _value;
+    private readonly DateTime _value;
 
     /// <summary>
     /// Returns the value in the PDF date format.

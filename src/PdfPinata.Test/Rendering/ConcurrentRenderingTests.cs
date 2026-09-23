@@ -16,10 +16,10 @@ namespace PdfPinata.Test.Rendering;
 public class ConcurrentRenderingTests
 {
     // A4 is 21cm by 29.7cm, which is this many points.
-    const double A4Width = 595.276;
-    const double A4Height = 841.89;
+    private const double A4Width = 595.276;
+    private const double A4Height = 841.89;
 
-    const int Renderers = 32;
+    private const int Renderers = 32;
 
     [Fact]
     public void SeveralThreadsRenderingAtOnceAllGetTheSamePageSize()

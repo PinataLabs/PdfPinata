@@ -24,7 +24,7 @@ namespace PdfPinata.Pdf.Extraction;
 /// </remarks>
 internal sealed class ToUnicodeCMap
 {
-    readonly Dictionary<int, string> _map = new();
+    private readonly Dictionary<int, string> _map = new();
 
     /// <summary>
     /// How many bytes make one code. Two for Identity-H and anything else with a two-byte
@@ -59,7 +59,7 @@ internal sealed class ToUnicodeCMap
     /// The codespace range says how wide a code is. A two-byte codespace is written
     /// <c>&lt;0000&gt;&lt;FFFF&gt;</c>, so the count of hexadecimal digits gives the width.
     /// </summary>
-    void ReadCodespace(string text)
+    private void ReadCodespace(string text)
     {
         var at = text.IndexOf("begincodespacerange", StringComparison.Ordinal);
         if (at < 0)
@@ -73,7 +73,7 @@ internal sealed class ToUnicodeCMap
     /// <summary>
     /// <c>&lt;src&gt; &lt;dst&gt;</c> pairs between <c>beginbfchar</c> and <c>endbfchar</c>.
     /// </summary>
-    void ReadCharMappings(string text)
+    private void ReadCharMappings(string text)
     {
         var at = 0;
         while ((at = text.IndexOf("beginbfchar", at, StringComparison.Ordinal)) >= 0)
@@ -112,7 +112,7 @@ internal sealed class ToUnicodeCMap
     /// applies to the last code unit, as the specification says.
     /// </para>
     /// </remarks>
-    void ReadRangeMappings(string text)
+    private void ReadRangeMappings(string text)
     {
         var at = 0;
         while ((at = text.IndexOf("beginbfrange", at, StringComparison.Ordinal)) >= 0)
@@ -126,7 +126,7 @@ internal sealed class ToUnicodeCMap
         }
     }
 
-    void ReadRangeBlock(List<string> tokens)
+    private void ReadRangeBlock(List<string> tokens)
     {
         var index = 0;
         while (index + 2 < tokens.Count)
@@ -156,7 +156,7 @@ internal sealed class ToUnicodeCMap
     /// <summary>
     /// One destination per code, up to the closing bracket. Answers where to carry on reading.
     /// </summary>
-    int ReadDestinationArray(List<string> tokens, int index, int low, int high)
+    private int ReadDestinationArray(List<string> tokens, int index, int low, int high)
     {
         for (var code = low; index < tokens.Count && tokens[index] != "]"; index++, code++)
         {
@@ -170,7 +170,7 @@ internal sealed class ToUnicodeCMap
     /// <summary>
     /// Every code from low to high, the destination advancing by its last code unit each time.
     /// </summary>
-    void MapRange(int low, int high, string destination)
+    private void MapRange(int low, int high, string destination)
     {
         // A range covering the whole codespace is a producer saying "identity", and expanding it
         // would be 65536 entries of nothing.
@@ -199,7 +199,7 @@ internal sealed class ToUnicodeCMap
     /// The hexadecimal strings between two positions, each without its angle brackets, and the
     /// square brackets that group them.
     /// </summary>
-    static List<string> Tokens(string text, int from, int to)
+    private static List<string> Tokens(string text, int from, int to)
     {
         var tokens = new List<string>();
         if (to < 0 || to > text.Length)
@@ -231,14 +231,14 @@ internal sealed class ToUnicodeCMap
     /// <summary>
     /// The hexadecimal strings between two positions, for the blocks that have no arrays in them.
     /// </summary>
-    static List<string> HexTokens(string text, int from, int to)
+    private static List<string> HexTokens(string text, int from, int to)
     {
         var tokens = Tokens(text, from, to);
         tokens.RemoveAll(IsBracket);
         return tokens;
     }
 
-    static bool IsBracket(string token) => token == "[" || token == "]";
+    private static bool IsBracket(string token) => token == "[" || token == "]";
 
     /// <summary>
     /// A source code, which is a scalar however many bytes it was written in.
@@ -247,7 +247,7 @@ internal sealed class ToUnicodeCMap
     /// Parsed rather than assumed: these come out of a file this library did not write, so a token
     /// that is not hexadecimal at all answers zero instead of throwing out of the enclosing page.
     /// </remarks>
-    static int ToCode(string hex)
+    private static int ToCode(string hex)
     {
         if (hex.Length == 0)
             return 0;
@@ -260,7 +260,7 @@ internal sealed class ToUnicodeCMap
     /// A destination is a run of UTF-16BE code units, so a single mapping may be more than one
     /// character — which is how a ligature says it stands for the letters it joined.
     /// </summary>
-    static string ToText(string hex)
+    private static string ToText(string hex)
     {
         var text = new StringBuilder();
         for (var at = 0; at < hex.Length; at += 4)

@@ -21,7 +21,7 @@ namespace PdfPinata.Test.IO.Filters;
 /// </summary>
 public class PredictorTests
 {
-    static PdfDictionary Parms(int predictor, int colors, int bitsPerComponent, int columns)
+    private static PdfDictionary Parms(int predictor, int colors, int bitsPerComponent, int columns)
     {
         var parms = new PdfDictionary(new PdfDocument());
         if (predictor != 0) parms.Elements.SetInteger("/Predictor", predictor);
@@ -35,14 +35,14 @@ public class PredictorTests
     ///   Applies one PNG filter type to every row of <paramref name="rows"/>, producing the shape a
     ///   predicted stream has: each row preceded by the byte that says how it was filtered.
     /// </summary>
-    static byte[] Predict(byte filterType, int bpp, params byte[][] rows) =>
+    private static byte[] Predict(byte filterType, int bpp, params byte[][] rows) =>
         Predict(_ => filterType, bpp, rows);
 
     /// <summary>
     ///   The same, with the filter type chosen per row - which is what a real encoder does, and
     ///   the reason each row carries its own filter byte.
     /// </summary>
-    static byte[] Predict(Func<int, byte> filterTypeOfRow, int bpp, params byte[][] rows)
+    private static byte[] Predict(Func<int, byte> filterTypeOfRow, int bpp, params byte[][] rows)
     {
         var stride = rows[0].Length;
         var output = new byte[rows.Length * (stride + 1)];
@@ -75,7 +75,7 @@ public class PredictorTests
         return output;
     }
 
-    static int Paeth(int a, int b, int c)
+    private static int Paeth(int a, int b, int c)
     {
         var p = a + b - c;
         var pa = Math.Abs(p - a);
@@ -86,7 +86,7 @@ public class PredictorTests
         return pb <= pc ? b : c;
     }
 
-    static readonly byte[][] Rows =
+    private static readonly byte[][] Rows =
     {
         new byte[] { 10, 20, 30, 40, 50, 60 },
         new byte[] { 12, 24, 36, 48, 60, 72 },
@@ -94,13 +94,13 @@ public class PredictorTests
         new byte[] { 0, 255, 0, 255, 0, 255 }
     };
 
-    static byte[] Flat => Rows.SelectMany(row => row).ToArray();
+    private static byte[] Flat => Rows.SelectMany(row => row).ToArray();
 
     /// <summary>
     ///   Runs data that has been predicted back through the decoder the way a stream's filter
     ///   would, and hands back what came out.
     /// </summary>
-    static byte[] Unpredict(byte[] predicted, PdfDictionary parms)
+    private static byte[] Unpredict(byte[] predicted, PdfDictionary parms)
     {
         // Through the flate filter, because that is the only way in from outside the library:
         // StreamDecoder is internal, and the predictor is applied to a filter's output.

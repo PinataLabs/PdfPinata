@@ -17,15 +17,15 @@ namespace PdfPinata.Test.Drawing.Layout;
 [Collection(RasterizingCollection.Name)]
 public class XTextFormatterRotationTests
 {
-    const double PageSide = 200;
-    const double PixelsPerPoint = 300.0 / 72.0;
+    private const double PageSide = 200;
+    private const double PixelsPerPoint = 300.0 / 72.0;
 
     /// <summary>The corner the text is turned about, well inside the page so it can turn any way.</summary>
-    static XRect Layout => new XRect(100, 100, 90, 40);
+    private static XRect Layout => new XRect(100, 100, 90, 40);
 
-    static XFont Font => new XFont("Arial", 14, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
+    private static XFont Font => new XFont("Arial", 14, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
 
-    static List<(int X, int Y)> InkOf(double rotation)
+    private static List<(int X, int Y)> InkOf(double rotation)
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -45,10 +45,10 @@ public class XTextFormatterRotationTests
     }
 
     /// <summary>The pixel row of the corner the text turns about.</summary>
-    static double OriginRow => Layout.Y * PixelsPerPoint;
+    private static double OriginRow => Layout.Y * PixelsPerPoint;
 
     /// <summary>The pixel column of the corner the text turns about.</summary>
-    static double OriginColumn => Layout.X * PixelsPerPoint;
+    private static double OriginColumn => Layout.X * PixelsPerPoint;
 
     [GoldenImageFact]
     public void TextThatIsNotTurnedRunsAcrossThePage()

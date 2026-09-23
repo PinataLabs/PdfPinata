@@ -52,7 +52,7 @@ internal static class DataMatrixSymbol
         throw new InvalidOperationException(BcgSR.DataMatrixTooBig);
     }
 
-    static Ecc200Block SizeOf(int rows, int columns)
+    private static Ecc200Block SizeOf(int rows, int columns)
     {
         foreach (var candidate in Ecc200Sizes.All)
         {
@@ -70,7 +70,7 @@ internal static class DataMatrixSymbol
     /// symbol is divided into, so that damage to one part of it is spread thinly over all of
     /// them rather than falling wholly on one.
     /// </summary>
-    static byte[] AddErrorCorrection(byte[] data, Ecc200Block size)
+    private static byte[] AddErrorCorrection(byte[] data, Ecc200Block size)
     {
         var blocks = (data.Length + size.DataBlock - 1) / size.DataBlock;
         var codewords = new byte[data.Length + blocks * size.RSBlock];
@@ -106,7 +106,7 @@ internal static class DataMatrixSymbol
     /// Walks the bits of the codewords into the symbol and gives each data region its finder
     /// pattern.
     /// </summary>
-    static bool[,] Assemble(byte[] codewords, Ecc200Block size)
+    private static bool[,] Assemble(byte[] codewords, Ecc200Block size)
     {
         var regionsDown = size.Height / size.CellHeight;
         var regionsAcross = size.Width / size.CellWidth;
@@ -145,7 +145,7 @@ internal static class DataMatrixSymbol
     /// region is and which way round, and two of alternating modules that tell it how wide
     /// a module is.
     /// </summary>
-    static void DrawFinderPatterns(bool[,] modules, Ecc200Block size, int regionsDown, int regionsAcross)
+    private static void DrawFinderPatterns(bool[,] modules, Ecc200Block size, int regionsDown, int regionsAcross)
     {
         for (var regionRow = 0; regionRow < regionsDown; regionRow++)
         {
@@ -177,7 +177,7 @@ internal static class DataMatrixSymbol
     /// up and to the right, then down and to the left, wrapping at the edges, with four
     /// corner cases where the shape will not fit.
     /// </summary>
-    sealed class Placement
+    private sealed class Placement
     {
         internal Placement(int height, int width)
         {
@@ -189,12 +189,12 @@ internal static class DataMatrixSymbol
             _filled = new bool[height * width];
         }
 
-        readonly int _height;
-        readonly int _width;
-        readonly int[] _codeword;
-        readonly int[] _bit;
-        readonly bool[] _forcedDark;
-        readonly bool[] _filled;
+        private readonly int _height;
+        private readonly int _width;
+        private readonly int[] _codeword;
+        private readonly int[] _bit;
+        private readonly bool[] _forcedDark;
+        private readonly bool[] _filled;
 
         internal bool IsDark(int row, int column, byte[] codewords)
         {
@@ -272,7 +272,7 @@ internal static class DataMatrixSymbol
         }
 
         /// <summary>Places one bit, wrapping it round the symbol where it falls outside.</summary>
-        void Place(int row, int column, int codeword, int bit)
+        private void Place(int row, int column, int codeword, int bit)
         {
             if (row < 0)
             {
@@ -293,7 +293,7 @@ internal static class DataMatrixSymbol
         }
 
         /// <summary>The eight modules of a codeword, in the shape they are usually written in.</summary>
-        void Shape(int row, int column, int codeword)
+        private void Shape(int row, int column, int codeword)
         {
             Place(row - 2, column - 2, codeword, 1);
             Place(row - 2, column - 1, codeword, 2);
@@ -305,7 +305,7 @@ internal static class DataMatrixSymbol
             Place(row, column, codeword, 8);
         }
 
-        void Corner1(int codeword)
+        private void Corner1(int codeword)
         {
             Place(_height - 1, 0, codeword, 1);
             Place(_height - 1, 1, codeword, 2);
@@ -317,7 +317,7 @@ internal static class DataMatrixSymbol
             Place(3, _width - 1, codeword, 8);
         }
 
-        void Corner2(int codeword)
+        private void Corner2(int codeword)
         {
             Place(_height - 3, 0, codeword, 1);
             Place(_height - 2, 0, codeword, 2);
@@ -329,7 +329,7 @@ internal static class DataMatrixSymbol
             Place(1, _width - 1, codeword, 8);
         }
 
-        void Corner3(int codeword)
+        private void Corner3(int codeword)
         {
             Place(_height - 3, 0, codeword, 1);
             Place(_height - 2, 0, codeword, 2);
@@ -341,7 +341,7 @@ internal static class DataMatrixSymbol
             Place(3, _width - 1, codeword, 8);
         }
 
-        void Corner4(int codeword)
+        private void Corner4(int codeword)
         {
             Place(_height - 1, 0, codeword, 1);
             Place(_height - 1, _width - 1, codeword, 2);

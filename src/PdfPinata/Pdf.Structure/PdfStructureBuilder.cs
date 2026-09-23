@@ -21,9 +21,9 @@ namespace PdfPinata.Pdf.Structure;
 /// </remarks>
 public sealed class PdfStructureBuilder
 {
-    readonly PdfDocument _document;
-    readonly Dictionary<PdfPage, PageMarks> _pages = new();
-    readonly List<KeyValuePair<int, PdfStructureElement>> _annotations = new();
+    private readonly PdfDocument _document;
+    private readonly Dictionary<PdfPage, PageMarks> _pages = new();
+    private readonly List<KeyValuePair<int, PdfStructureElement>> _annotations = new();
 
     /// <summary>
     /// The next key to hand out in the parent tree.
@@ -35,7 +35,7 @@ public sealed class PdfStructureBuilder
     /// which is what deriving keys from the page count did — points a reader at an array where it
     /// expects an element, so the annotation's place in the structure cannot be found at all.
     /// </remarks>
-    int _nextParentKey;
+    private int _nextParentKey;
 
     internal PdfStructureBuilder(PdfDocument document)
     {
@@ -145,7 +145,7 @@ public sealed class PdfStructureBuilder
         _annotations.Add(new KeyValuePair<int, PdfStructureElement>(key, element));
     }
 
-    PageMarks MarksOf(PdfPage page)
+    private PageMarks MarksOf(PdfPage page)
     {
         if (_pages.TryGetValue(page, out var marks))
             return marks;
@@ -227,7 +227,7 @@ public sealed class PdfStructureBuilder
     /// PDF/UA-1.
     /// </para>
     /// </remarks>
-    void ApplyPdf20Namespace()
+    private void ApplyPdf20Namespace()
     {
         var ns = new PdfDictionary(_document);
         ns.Elements.SetName("/Type", "/Namespace");
@@ -254,7 +254,7 @@ public sealed class PdfStructureBuilder
         RetagNotes(Root.Elements[PdfStructureTreeRoot.Keys.K], ns, 0);
     }
 
-    static void RetagNotes(PdfItem item, PdfDictionary pdf20Namespace, int depth)
+    private static void RetagNotes(PdfItem item, PdfDictionary pdf20Namespace, int depth)
     {
         if (item == null || depth > MaxTreeDepth)
             return;
@@ -280,7 +280,7 @@ public sealed class PdfStructureBuilder
         RetagNotes(element.Elements[PdfStructureElement.Keys.K], pdf20Namespace, depth + 1);
     }
 
-    static PdfItem Resolve(PdfItem item) => item is PdfReference reference ? reference.Value : item;
+    private static PdfItem Resolve(PdfItem item) => item is PdfReference reference ? reference.Value : item;
 
     /// <summary>
     /// Every element that carries an <see cref="PdfStructureElement.Id"/>, sorted by it, ready to be
@@ -292,7 +292,7 @@ public sealed class PdfStructureBuilder
     /// alternative — a registration call beside the property — is a call somebody will forget, and
     /// forgetting it writes an element nothing can look up.
     /// </remarks>
-    List<KeyValuePair<string, PdfStructureElement>> NamedElements()
+    private List<KeyValuePair<string, PdfStructureElement>> NamedElements()
     {
         var named = new List<KeyValuePair<string, PdfStructureElement>>();
         Collect(Root.Elements[PdfStructureTreeRoot.Keys.K], named, 0);
@@ -320,7 +320,7 @@ public sealed class PdfStructureBuilder
     /// Walks the kids of an element, collecting the named ones. Kids hold three different things, and
     /// only a structure element can carry an identifier or have kids of its own.
     /// </summary>
-    static void Collect(PdfItem item, List<KeyValuePair<string, PdfStructureElement>> named, int depth)
+    private static void Collect(PdfItem item, List<KeyValuePair<string, PdfStructureElement>> named, int depth)
     {
         // The same guard the readers of a name tree carry, for the same reason: an element made its
         // own ancestor would otherwise be walked forever.
@@ -350,13 +350,13 @@ public sealed class PdfStructureBuilder
     /// <summary>
     /// How deep into the structure tree to go before giving up on it.
     /// </summary>
-    const int MaxTreeDepth = 256;
+    private const int MaxTreeDepth = 256;
 
     /// <summary>
     /// What one page contributes to the parent tree: the key it is filed under, and the elements
     /// its marks belong to, in identifier order.
     /// </summary>
-    sealed class PageMarks
+    private sealed class PageMarks
     {
         public PageMarks(int structParents) => StructParents = structParents;
 

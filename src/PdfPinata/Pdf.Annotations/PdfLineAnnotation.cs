@@ -54,7 +54,7 @@ public sealed class PdfLineAnnotation : PdfMarkupAnnotation
         : base(dict)
     { }
 
-    void Initialize()
+    private void Initialize()
     {
         Elements.SetName(PdfAnnotation.Keys.Subtype, "/Line");
 
@@ -165,7 +165,7 @@ public sealed class PdfLineAnnotation : PdfMarkupAnnotation
         RebuildAppearance();
     }
 
-    XPoint EndpointAt(int first)
+    private XPoint EndpointAt(int first)
     {
         var line = Elements.GetArray(Keys.L);
         if (line == null || line.Elements.Count < 4)
@@ -174,7 +174,7 @@ public sealed class PdfLineAnnotation : PdfMarkupAnnotation
         return new XPoint(line.Elements.GetReal(first), line.Elements.GetReal(first + 1));
     }
 
-    void WriteLine(XPoint start, XPoint end)
+    private void WriteLine(XPoint start, XPoint end)
     {
         Elements[Keys.L] = new PdfArray(Owner,
             new PdfReal(start.X), new PdfReal(start.Y), new PdfReal(end.X), new PdfReal(end.Y));
@@ -182,9 +182,9 @@ public sealed class PdfLineAnnotation : PdfMarkupAnnotation
         Touch();
     }
 
-    PdfLineEnding EndingAt(int index) => LineEndings.Read(Elements.GetArray(Keys.LE), index);
+    private PdfLineEnding EndingAt(int index) => LineEndings.Read(Elements.GetArray(Keys.LE), index);
 
-    void WriteEndings(PdfLineEnding start, PdfLineEnding end)
+    private void WriteEndings(PdfLineEnding start, PdfLineEnding end)
     {
         Elements[Keys.LE] = LineEndings.Write(Owner, start, end);
 
@@ -194,13 +194,13 @@ public sealed class PdfLineAnnotation : PdfMarkupAnnotation
     /// <summary>
     /// Records a change somebody made and redraws what follows from it.
     /// </summary>
-    void Touch()
+    private void Touch()
     {
         Elements.SetDateTime(PdfAnnotation.Keys.M, GlobalTimeSettings.Now);
         RebuildAppearance();
     }
 
-    void RebuildAppearance()
+    private void RebuildAppearance()
     {
         // Until it is on a page there is no document to make a form in. OnAddedToPage calls this
         // again once there is, so nothing set beforehand is lost.
@@ -303,7 +303,7 @@ public sealed class PdfLineAnnotation : PdfMarkupAnnotation
 
         public static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

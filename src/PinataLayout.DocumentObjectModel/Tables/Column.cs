@@ -82,7 +82,7 @@ public partial class Column : DocumentObject
       return this.table;
     }
   }
-  Table table;
+  private Table table;
 
   /// <summary>
   /// Gets the index of the column. First column has index 0.

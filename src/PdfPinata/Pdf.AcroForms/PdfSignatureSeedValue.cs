@@ -200,7 +200,7 @@ public sealed class PdfSignatureSeedValue : PdfDictionary
 
     // ----- shared with the certificate dictionary ---------------------------------------------------
 
-    void SetOrRemove(string key, int value)
+    private void SetOrRemove(string key, int value)
     {
         if (value == 0)
             Elements.Remove(key);
@@ -208,13 +208,13 @@ public sealed class PdfSignatureSeedValue : PdfDictionary
             Elements.SetInteger(key, value);
     }
 
-    string NameOrNull(string key)
+    private string NameOrNull(string key)
     {
         var name = Elements.GetName(key);
         return name.Length == 0 ? null : name;
     }
 
-    void SetNameOrRemove(string key, string value)
+    private void SetNameOrRemove(string key, string value)
     {
         if (string.IsNullOrEmpty(value))
             Elements.Remove(key);
@@ -222,9 +222,9 @@ public sealed class PdfSignatureSeedValue : PdfDictionary
             Elements.SetName(key, value);
     }
 
-    IReadOnlyList<string> Names(string key) => SeedValues.Read(Elements.GetArray(key), (a, i) => a.Elements.GetName(i));
+    private IReadOnlyList<string> Names(string key) => SeedValues.Read(Elements.GetArray(key), (a, i) => a.Elements.GetName(i));
 
-    void SetNames(string key, IReadOnlyList<string> value) =>
+    private void SetNames(string key, IReadOnlyList<string> value) =>
         SeedValues.Write(Elements, key, value, name =>
         {
             if (string.IsNullOrEmpty(name) || name == "/")
@@ -233,9 +233,9 @@ public sealed class PdfSignatureSeedValue : PdfDictionary
             return new PdfName(name[0] == '/' ? name : "/" + name);
         });
 
-    IReadOnlyList<string> Strings(string key) => SeedValues.Read(Elements.GetArray(key), (a, i) => a.Elements.GetString(i));
+    private IReadOnlyList<string> Strings(string key) => SeedValues.Read(Elements.GetArray(key), (a, i) => a.Elements.GetString(i));
 
-    void SetStrings(string key, IReadOnlyList<string> value) =>
+    private void SetStrings(string key, IReadOnlyList<string> value) =>
         SeedValues.Write(Elements, key, value, text =>
             new PdfString(text ?? throw new ArgumentException("A string in " + key + " cannot be null.", nameof(value))));
 
@@ -298,7 +298,7 @@ public sealed class PdfSignatureSeedValue : PdfDictionary
 
         internal static DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>
@@ -400,10 +400,10 @@ public sealed class PdfCertificateSeedValue : PdfDictionary
         }
     }
 
-    static byte[] BytesAt(PdfArray array, int index) =>
+    private static byte[] BytesAt(PdfArray array, int index) =>
         array.Elements[index] is PdfString text ? PdfEncoders.RawEncoding.GetBytes(text.Value) : Array.Empty<byte>();
 
-    static PdfItem ByteString(byte[] bytes) =>
+    private static PdfItem ByteString(byte[] bytes) =>
         new PdfString(PdfEncoders.RawEncoding.GetString(bytes, 0, bytes.Length), PdfStringEncoding.RawEncoding);
 
     /// <summary>
@@ -453,7 +453,7 @@ public sealed class PdfCertificateSeedValue : PdfDictionary
 
         internal static DictionaryMeta Meta => _meta ??= CreateMeta(typeof(Keys));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

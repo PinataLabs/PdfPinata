@@ -54,7 +54,7 @@ public sealed class XFontFamily
     /// <summary>
     /// Initializes a new instance of the <see cref="XFontFamily"/> class from FontFamilyInternal.
     /// </summary>
-    XFontFamily(FontFamilyInternal fontFamilyInternal)
+    private XFontFamily(FontFamilyInternal fontFamilyInternal)
     {
         FamilyInternal = fontFamilyInternal;
     }

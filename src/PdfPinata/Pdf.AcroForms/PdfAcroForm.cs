@@ -146,9 +146,9 @@ public sealed class PdfAcroForm : PdfDictionary
     public void AddStandardFont(string resourceName, string baseFont)
     {
         if (string.IsNullOrWhiteSpace(resourceName))
-            throw new ArgumentException("A font in the default resources has to be named.", nameof(resourceName));
+            throw new ArgumentException(@"A font in the default resources has to be named.", nameof(resourceName));
         if (string.IsNullOrWhiteSpace(baseFont))
-            throw new ArgumentException("A standard font has to be named.", nameof(baseFont));
+            throw new ArgumentException(@"A standard font has to be named.", nameof(baseFont));
 
         var key = resourceName[0] == '/' ? resourceName : "/" + resourceName;
         var face = baseFont[0] == '/' ? baseFont : "/" + baseFont;
@@ -188,7 +188,7 @@ public sealed class PdfAcroForm : PdfDictionary
             return _fields;
         }
     }
-    PdfAcroField.PdfAcroFieldCollection _fields;
+    private PdfAcroField.PdfAcroFieldCollection _fields;
 
     /// <summary>
     /// Predefined keys of this dictionary.
@@ -260,7 +260,7 @@ public sealed class PdfAcroForm : PdfDictionary
                 return s_meta;
             }
         }
-        static DictionaryMeta s_meta;
+        private static DictionaryMeta s_meta;
 
         // ReSharper restore InconsistentNaming
     }

@@ -28,14 +28,14 @@ namespace PdfPinata.Test.Rendering;
 /// </remarks>
 public class TrimmedPageRenderingTests
 {
-    static readonly XUnit Bleed = XUnit.FromMillimeter(3);
-    static readonly XUnit Marks = XUnit.FromMillimeter(5);
+    private static readonly XUnit Bleed = XUnit.FromMillimeter(3);
+    private static readonly XUnit Marks = XUnit.FromMillimeter(5);
 
     /// <summary>From the corner of the sheet to the corner of the trimmed page.</summary>
-    static double Inset => Bleed.Point + Marks.Point;
+    private static double Inset => Bleed.Point + Marks.Point;
 
-    const double A5Width = 420;
-    const double A5Height = 595;
+    private const double A5Width = 420;
+    private const double A5Height = 595;
 
     [Fact]
     public void ADocumentIsLaidOutToTheTrimmedPageRatherThanToTheSheet()
@@ -92,7 +92,7 @@ public class TrimmedPageRenderingTests
 
     // ----- rendering, and reading back what was drawn --------------------------------------------
 
-    static Document ADocument()
+    private static Document ADocument()
     {
         var document = new Document();
         var section = document.AddSection();
@@ -108,7 +108,7 @@ public class TrimmedPageRenderingTests
         return document;
     }
 
-    static PdfPage Render(bool trimmed, Action<XGraphics> alongside = null)
+    private static PdfPage Render(bool trimmed, Action<XGraphics> alongside = null)
     {
         var pdf = new PdfDocument();
         var page = pdf.AddPage();
@@ -141,7 +141,7 @@ public class TrimmedPageRenderingTests
     ///   landed. Applying the translation is what turns it into a position a reader would agree
     ///   with, and it is the only part of the matrix a page like this has.
     /// </remarks>
-    static IReadOnlyList<double> BaselinesOnTheSheet(bool trimmed)
+    private static IReadOnlyList<double> BaselinesOnTheSheet(bool trimmed)
     {
         var page = Render(trimmed);
         var content = Encoding.ASCII.GetString(PageContent.Of(page));

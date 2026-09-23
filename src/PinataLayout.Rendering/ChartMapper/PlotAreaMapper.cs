@@ -44,7 +44,7 @@ public class PlotAreaMapper
   {
   }
 
-  static void MapObject(PlotArea plotArea, DocumentObjectModel.Shapes.Charts.PlotArea domPlotArea)
+  private static void MapObject(PlotArea plotArea, DocumentObjectModel.Shapes.Charts.PlotArea domPlotArea)
   {
     plotArea.BottomPadding = domPlotArea.BottomPadding.Point;
     plotArea.RightPadding = domPlotArea.RightPadding.Point;

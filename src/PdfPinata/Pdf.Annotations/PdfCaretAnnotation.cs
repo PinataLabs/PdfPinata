@@ -47,7 +47,7 @@ public sealed class PdfCaretAnnotation : PdfMarkupAnnotation
         : base(dict)
     { }
 
-    void Initialize()
+    private void Initialize()
     {
         Elements.SetName(PdfAnnotation.Keys.Subtype, "/Caret");
 
@@ -83,7 +83,7 @@ public sealed class PdfCaretAnnotation : PdfMarkupAnnotation
         RebuildAppearance();
     }
 
-    void RebuildAppearance()
+    private void RebuildAppearance()
     {
         // Until it is on a page there is no document to make a form in. OnAddedToPage calls this
         // again once there is, so nothing set beforehand is lost.
@@ -140,7 +140,7 @@ public sealed class PdfCaretAnnotation : PdfMarkupAnnotation
 
         public new static DictionaryMeta Meta => _meta ?? (_meta = CreateMeta(typeof(Keys)));
 
-        static DictionaryMeta _meta;
+        private static DictionaryMeta _meta;
     }
 
     /// <summary>

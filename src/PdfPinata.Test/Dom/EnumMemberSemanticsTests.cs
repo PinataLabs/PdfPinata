@@ -18,9 +18,9 @@ namespace PdfPinata.Test.Dom;
 /// </summary>
 public class EnumMemberSemanticsTests
 {
-    static Border ABorder() => new Document().AddSection().AddParagraph().Format.Borders.Top;
+    private static Border ABorder() => new Document().AddSection().AddParagraph().Format.Borders.Top;
 
-    static ParagraphFormat AFormat() => new Document().AddSection().AddParagraph().Format;
+    private static ParagraphFormat AFormat() => new Document().AddSection().AddParagraph().Format;
 
     [Fact]
     public void AnUnsetEnumReadsBackAsTheZeroValue()

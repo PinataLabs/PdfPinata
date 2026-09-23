@@ -98,7 +98,7 @@ internal class Block
 	public int Column { get; set; }
 
 	/// <summary>
-	/// Skips block for alignment justify calculation, when its the first block in line
+	/// Skips block for alignment justify calculation, when it's the first block in line
 	/// </summary>
 	public bool SkipParagraphAlignment { get; set; }
 

@@ -61,7 +61,7 @@ public sealed class PdfUInteger : PdfNumber, IConvertible
         // This class must behave like a value type. Therefore it cannot be changed (like System.String).
         _value;
 
-    readonly uint _value;
+    private readonly uint _value;
 
     /// <summary>
     /// Returns the unsigned integer as string.

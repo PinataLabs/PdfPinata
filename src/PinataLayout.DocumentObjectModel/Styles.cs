@@ -436,7 +436,7 @@ public partial class Styles : DocumentObjectCollection, IVisitable
     /// <summary>
     /// Serialize a style, but serialize its base style first (if that was not yet done).
     /// </summary>
-    void SerializeStyle(Serializer serializer, int index, ref bool[] fSerialized, ref bool[] fSerializePending,
+    private void SerializeStyle(Serializer serializer, int index, ref bool[] fSerialized, ref bool[] fSerializePending,
         ref bool newLine)
     {
         var style = this[index];
@@ -491,7 +491,7 @@ public partial class Styles : DocumentObjectCollection, IVisitable
     /// <summary>
     /// Ensures that base styles are visited first.
     /// </summary>
-    static void VisitStyle(Hashtable visitedStyles, Style style, DocumentObjectVisitor visitor, bool visitChildren)
+    private static void VisitStyle(Hashtable visitedStyles, Style style, DocumentObjectVisitor visitor, bool visitChildren)
     {
         if (!visitedStyles.Contains(style))
         {

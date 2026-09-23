@@ -11,13 +11,13 @@ public static partial class BidiAlgorithm
     /// PDI starts are one sequence with everything between them left out - which is the whole
     /// reason the rules are defined over sequences rather than over the paragraph.
     /// </summary>
-    sealed class Sequence
+    private sealed class Sequence
     {
-        readonly Paragraph _paragraph;
-        readonly List<int> _indices;
-        readonly byte _level;
-        readonly BidiClass _sos;
-        readonly BidiClass _eos;
+        private readonly Paragraph _paragraph;
+        private readonly List<int> _indices;
+        private readonly byte _level;
+        private readonly BidiClass _sos;
+        private readonly BidiClass _eos;
 
         internal Sequence(Paragraph paragraph, List<int> indices, byte level,
             BidiClass sos, BidiClass eos)
@@ -29,13 +29,13 @@ public static partial class BidiAlgorithm
             _eos = eos;
         }
 
-        int Count => _indices.Count;
+        private int Count => _indices.Count;
 
-        BidiClass TypeAt(int index) => _paragraph.Types[_indices[index]];
+        private BidiClass TypeAt(int index) => _paragraph.Types[_indices[index]];
 
-        void SetType(int index, BidiClass type) => _paragraph.Types[_indices[index]] = type;
+        private void SetType(int index, BidiClass type) => _paragraph.Types[_indices[index]] = type;
 
-        BidiClass InitialAt(int index) => _paragraph.Initial[_indices[index]];
+        private BidiClass InitialAt(int index) => _paragraph.Initial[_indices[index]];
 
         internal void Resolve()
         {
@@ -47,7 +47,7 @@ public static partial class BidiAlgorithm
 
         // ----- W1 to W7 ---------------------------------------------------------------------------
 
-        void ResolveWeakTypes()
+        private void ResolveWeakTypes()
         {
             // W1. A non-spacing mark takes the type of what it is attached to, and ON when what it
             // is attached to is an isolate initiator or a PDI - because those are about to become
@@ -154,15 +154,15 @@ public static partial class BidiAlgorithm
         /// <summary>
         /// The direction the sequence is embedded in - what a neutral falls back to.
         /// </summary>
-        BidiClass Embedding => (_level & 1) == 0 ? BidiClass.L : BidiClass.R;
+        private BidiClass Embedding => (_level & 1) == 0 ? BidiClass.L : BidiClass.R;
 
-        BidiClass Opposite => (_level & 1) == 0 ? BidiClass.R : BidiClass.L;
+        private BidiClass Opposite => (_level & 1) == 0 ? BidiClass.R : BidiClass.L;
 
         /// <summary>
         /// A strong direction for the purposes of the N rules, where a number counts as
         /// right-to-left however it was written.
         /// </summary>
-        static BidiClass StrongDirectionOf(BidiClass type)
+        private static BidiClass StrongDirectionOf(BidiClass type)
         {
             if (type == BidiClass.L)
                 return BidiClass.L;
@@ -173,7 +173,7 @@ public static partial class BidiAlgorithm
             return BidiClass.ON;
         }
 
-        void ResolveBracketPairs()
+        private void ResolveBracketPairs()
         {
             var pairs = BracketPairs();
             foreach (var (open, close) in pairs)
@@ -224,7 +224,7 @@ public static partial class BidiAlgorithm
         /// clause, without which an accent on a bracket is resolved as though the bracket had not
         /// been.
         /// </summary>
-        void SetBracket(int open, int close, BidiClass type)
+        private void SetBracket(int open, int close, BidiClass type)
         {
             SetType(open, type);
             SetType(close, type);
@@ -244,7 +244,7 @@ public static partial class BidiAlgorithm
         /// <summary>
         /// BD16: the bracket pairs of the sequence, by opening position.
         /// </summary>
-        List<(int Open, int Close)> BracketPairs()
+        private List<(int Open, int Close)> BracketPairs()
         {
             // "If an opening paired bracket is found and there is no room in the stack, stop
             // processing BD16 for the remainder of the isolating run sequence." Sixty-three is the
@@ -296,25 +296,25 @@ public static partial class BidiAlgorithm
         /// The two angle brackets that are canonically equivalent to two others, folded together -
         /// without which "〈a〉" written with one pair and closed with the other would not pair up.
         /// </summary>
-        static int Canonical(int codePoint) => codePoint switch
+        private static int Canonical(int codePoint) => codePoint switch
         {
             0x3008 => 0x2329,
             0x3009 => 0x232A,
             _ => codePoint
         };
 
-        static int ClosingBracketOf(int codePoint)
+        private static int ClosingBracketOf(int codePoint)
         {
             var index = Array.BinarySearch(UnicodeTables.BracketOpen, codePoint);
             return index >= 0 ? UnicodeTables.BracketClose[index] : -1;
         }
 
-        static bool IsClosingBracket(int codePoint)
+        private static bool IsClosingBracket(int codePoint)
             => Array.IndexOf(UnicodeTables.BracketClose, codePoint) >= 0;
 
         // ----- N1 and N2: the neutrals ---------------------------------------------------------------
 
-        void ResolveNeutralTypes()
+        private void ResolveNeutralTypes()
         {
             for (var idx = 0; idx < Count; idx++)
             {
@@ -339,7 +339,7 @@ public static partial class BidiAlgorithm
 
         // ----- I1 and I2: from types back to levels ---------------------------------------------------
 
-        void ResolveImplicitLevels()
+        private void ResolveImplicitLevels()
         {
             var even = (_level & 1) == 0;
             for (var idx = 0; idx < Count; idx++)

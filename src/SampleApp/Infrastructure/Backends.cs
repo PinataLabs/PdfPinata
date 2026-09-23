@@ -30,7 +30,7 @@ namespace SampleApp.Infrastructure;
 /// </remarks>
 public static class Backends
 {
-    static int _registered;
+    private static int _registered;
 
     /// <summary>
     ///   Installs the backends, once, and leaves alone any that a host has already chosen.
@@ -69,7 +69,7 @@ public static class Backends
     ///   alternative: assigning over a host's resolver, which the setter would refuse anyway the
     ///   moment any font had been made.
     /// </summary>
-    static bool FontResolverIsSet()
+    private static bool FontResolverIsSet()
     {
         try
         {
@@ -87,7 +87,7 @@ public static class Backends
     ///   reason: the getter reports its absence by throwing, so that a caller who never set one
     ///   is told which property to set rather than handed an empty path.
     /// </summary>
-    static bool GlyphOutlineProviderIsSet()
+    private static bool GlyphOutlineProviderIsSet()
     {
         try
         {

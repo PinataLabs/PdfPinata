@@ -81,7 +81,7 @@ internal class LineFormatRenderer
     }
   }
 
-  XPen GetPen(XUnit width)
+  private XPen GetPen(XUnit width)
   {
     if (width == 0)
       return null;
@@ -111,6 +111,6 @@ internal class LineFormatRenderer
     }
     return pen;
   }
-  LineFormat lineFormat;
-  XGraphics gfx;
+  private LineFormat lineFormat;
+  private XGraphics gfx;
 }

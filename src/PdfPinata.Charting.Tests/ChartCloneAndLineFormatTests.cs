@@ -24,7 +24,7 @@ public class ChartCloneAndLineFormatTests
 {
     // ----- Chart.DeepCopy ------------------------------------------------------------------------
 
-    static Chart AFullyPopulatedChart()
+    private static Chart AFullyPopulatedChart()
     {
         var chart = Charts.OfSeries(ChartType.Line, new[] { 1.0, 2.0 }, new[] { 3.0, 4.0 });
         chart.XAxis.Title.Caption = "across";
@@ -144,7 +144,7 @@ public class ChartCloneAndLineFormatTests
     ///   call site in the package builds a <c>LineFormatRenderer</c> out of one of the four
     ///   gridline formats.
     /// </summary>
-    static Chart AChartWithGridlines(double width, bool visible = true)
+    private static Chart AChartWithGridlines(double width, bool visible = true)
     {
         var chart = Charts.Of(ChartType.Column2D, 1.0, 2.0, 3.0);
         chart.YAxis.HasMajorGridlines = true;
@@ -153,7 +153,7 @@ public class ChartCloneAndLineFormatTests
         return chart;
     }
 
-    static double[] StrokeWidthsOf(Chart chart) =>
+    private static double[] StrokeWidthsOf(Chart chart) =>
         StrokedLines.Of(Drawn.Page(chart)).Select(line => line.Width).ToArray();
 
     [Fact]

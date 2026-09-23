@@ -242,7 +242,7 @@ public class OutlineTreeMembershipTests
 
     // ── Arranging ───────────────────────────────────────────────────────────────────────────────
 
-    static PdfDocument ADocumentOf(int pages)
+    private static PdfDocument ADocumentOf(int pages)
     {
         var document = new PdfDocument();
         for (var idx = 0; idx < pages; idx++)
@@ -254,14 +254,14 @@ public class OutlineTreeMembershipTests
         return document;
     }
 
-    static byte[] Saved(PdfDocument document)
+    private static byte[] Saved(PdfDocument document)
     {
         using var stream = new MemoryStream();
         document.Save(stream, false);
         return stream.ToArray();
     }
 
-    static PdfDocument RoundTripped(PdfDocument document) =>
+    private static PdfDocument RoundTripped(PdfDocument document) =>
         Pdf.IO.PdfReader.Open(new MemoryStream(Saved(document)), PdfDocumentOpenMode.Modify);
 
     /// <summary>
@@ -271,7 +271,7 @@ public class OutlineTreeMembershipTests
     ///   <c>/Prev</c> is not the one it was reached through is marked, as is a list whose
     ///   <c>/Last</c> is not where the <c>/Next</c> chain ended.
     /// </summary>
-    static string Tree(PdfDocument document)
+    private static string Tree(PdfDocument document)
     {
         var root = document.Internals.Catalog.Elements.GetDictionary("/Outlines");
         if (root == null || root.Elements.GetDictionary("/First") == null)
@@ -279,7 +279,7 @@ public class OutlineTreeMembershipTests
         return Entries(root);
     }
 
-    static string Entries(PdfDictionary parent)
+    private static string Entries(PdfDictionary parent)
     {
         var text = new StringBuilder();
         PdfDictionary previous = null;

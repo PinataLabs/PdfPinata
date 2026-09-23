@@ -64,19 +64,19 @@ internal class DdlVisibleAttribute : Attribute
     get => visible;
     set => visible = value;
   }
-  bool visible;
+  private bool visible;
 
   public bool CanAddValue
   {
     get => canAddValue;
     set => canAddValue = value;
   }
-  bool canAddValue;
+  private bool canAddValue;
 
   public bool CanRemoveValue
   {
     get => canRemoveValue;
     set => canRemoveValue = value;
   }
-  bool canRemoveValue;
+  private bool canRemoveValue;
 }

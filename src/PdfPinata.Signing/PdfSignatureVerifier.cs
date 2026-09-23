@@ -28,7 +28,7 @@ namespace PdfPinata.Signing;
 public static class PdfSignatureVerifier
 {
     /// <summary>id-aa-signatureTimeStampToken, RFC 3161 / RFC 5035.</summary>
-    const string SignatureTimeStampTokenOid = "1.2.840.113549.1.9.16.2.14";
+    private const string SignatureTimeStampTokenOid = "1.2.840.113549.1.9.16.2.14";
 
 
     /// <summary>
@@ -60,7 +60,7 @@ public static class PdfSignatureVerifier
         return Verify(buffer.ToArray());
     }
 
-    static PdfSignatureVerification Check(PdfSignatureInfo signature, byte[] document)
+    private static PdfSignatureVerification Check(PdfSignatureInfo signature, byte[] document)
     {
         var covers = signature.CoversWholeDocument(document.Length);
 
@@ -102,7 +102,7 @@ public static class PdfSignatureVerifier
     /// <summary>
     /// The two spans of the file the byte range names, joined.
     /// </summary>
-    static byte[] BytesCovered(int[] byteRange, byte[] document)
+    private static byte[] BytesCovered(int[] byteRange, byte[] document)
     {
         var first = Span(byteRange[0], byteRange[1], document.LongLength);
         var second = Span(byteRange[2], byteRange[3], document.LongLength);
@@ -121,7 +121,7 @@ public static class PdfSignatureVerifier
     /// <c>Verify</c>, taking every other signature in the document with it. A malformed byte range
     /// has to be one signature's problem and no one else's.
     /// </remarks>
-    static int Span(long offset, long length, long total)
+    private static int Span(long offset, long length, long total)
     {
         if (offset < 0 || length < 0 || offset > total || offset + length > total)
             throw new ArgumentException(
@@ -140,7 +140,7 @@ public static class PdfSignatureVerifier
     /// as a failure of the whole verification — one signature's malformed attribute is that
     /// signature's problem, exactly as a malformed byte range is.
     /// </remarks>
-    static DateTimeOffset? TimestampOf(SignerInfo signerInfo)
+    private static DateTimeOffset? TimestampOf(SignerInfo signerInfo)
     {
         foreach (var attribute in signerInfo.UnsignedAttributes)
         {

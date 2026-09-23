@@ -15,10 +15,10 @@ namespace PinataLayout.DocumentObjectModel.Tests;
 public class FlatteningTabStopsAndTablesTests
 {
     /// <summary>The positions of a tab stop collection in centimetres, in order.</summary>
-    static double[] PositionsOf(TabStops tabStops) =>
+    private static double[] PositionsOf(TabStops tabStops) =>
         tabStops.Cast<TabStop>().Select(stop => stop.Position.Centimeter).ToArray();
 
-    static Document Flattened(Document document)
+    private static Document Flattened(Document document)
     {
         new PdfFlattenVisitor().Visit(document);
         return document;
@@ -26,7 +26,7 @@ public class FlatteningTabStopsAndTablesTests
 
     // ----- tab stops ------------------------------------------------------------------------------
 
-    static Document ADocumentWithStyledTabStops(out Paragraph paragraph)
+    private static Document ADocumentWithStyledTabStops(out Paragraph paragraph)
     {
         var document = new Document();
         var style = document.Styles.AddStyle("Tabbed", "Normal");
@@ -127,7 +127,7 @@ public class FlatteningTabStopsAndTablesTests
 
     // ----- tables ---------------------------------------------------------------------------------
 
-    static Table ATable(Document document, int columns = 2, int rows = 2)
+    private static Table ATable(Document document, int columns = 2, int rows = 2)
     {
         var table = document.LastSection.AddTable();
         for (var idx = 0; idx < columns; idx++)
@@ -233,13 +233,13 @@ public class FlatteningTabStopsAndTablesTests
 
     // ----- the RTF visitor ------------------------------------------------------------------------
 
-    static Paragraph RtfFlattened(Document document)
+    private static Paragraph RtfFlattened(Document document)
     {
         new RtfFlattenVisitor().Visit(document);
         return document.LastSection.Elements[0] as Paragraph;
     }
 
-    static FormattedText FormattedTextOf(Paragraph paragraph) =>
+    private static FormattedText FormattedTextOf(Paragraph paragraph) =>
         paragraph.Elements.OfType<FormattedText>().Single();
 
     [Fact]

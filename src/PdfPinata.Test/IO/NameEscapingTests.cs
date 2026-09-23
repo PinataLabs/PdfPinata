@@ -17,10 +17,10 @@ namespace PdfPinata.Test.IO;
 /// </summary>
 public class NameEscapingTests
 {
-    const string Key = "/PdfPinataTestName";
-    const string Follower = "/PdfPinataFollower";
+    private const string Key = "/PdfPinataTestName";
+    private const string Follower = "/PdfPinataFollower";
 
-    static string RoundTripped(string name)
+    private static string RoundTripped(string name)
     {
         var document = new PdfDocument();
         var page = document.AddPage();
@@ -37,7 +37,7 @@ public class NameEscapingTests
         return reread.Elements.GetName(Key);
     }
 
-    static string Saved(string name)
+    private static string Saved(string name)
     {
         var document = new PdfDocument();
         document.AddPage().Elements.SetName(Key, name);
