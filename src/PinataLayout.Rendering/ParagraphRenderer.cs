@@ -1192,48 +1192,70 @@ internal class ParagraphRenderer : Renderer
         if (hyphen == null || !IsSoftHyphen(hyphen.Current))
             return;
 
-        if (brokenWords != null && brokenWords.ContainsKey(hyphen.Current))
+        var alreadyRecorded = brokenWords != null && brokenWords.ContainsKey(hyphen.Current);
+        if (alreadyRecorded)
             return;
 
         // The same guard FormatSoftHyphen uses. A hyphen with nothing on one side of it did not
         // break a word, so there is no word to put back together.
         var previous = hyphen.GetPreviousLeaf();
         var next = hyphen.GetNextLeaf();
-        if (previous == null || next == null)
-            return;
-        if (!IsPlainText(previous.Current) || !IsPlainText(next.Current))
+        if (!IsTextOnBothSides(previous, next))
             return;
 
-        var leaves = new List<DocumentObject>();
-        var text = new StringBuilder();
-
-        // Backwards to the front of the word, then forwards to the end of it. The walk stops at
-        // anything that is not plain text or another soft hyphen — a blank, a tab, a field, a symbol
-        // — which is what makes the run a word. It also stops the replacement from claiming more
-        // than the scope covers: whatever the walk collects is exactly what the scope will wrap and
-        // exactly what the replacement will spell.
-        var head = new List<DocumentObject>();
-        for (var iter = previous; iter != null && IsWordFragment(iter.Current); iter = iter.GetPreviousLeaf())
-            head.Add(iter.Current);
-        head.Reverse();
-
-        leaves.AddRange(head);
-        leaves.Add(hyphen.Current);
-        for (var iter = next; iter != null && IsWordFragment(iter.Current); iter = iter.GetNextLeaf())
-            leaves.Add(iter.Current);
-
-        foreach (var leaf in leaves)
-        {
-            // The hyphens are what is being taken out. A word may carry several and break at one of
-            // them; the others draw nothing and must not spell anything either.
-            if (!IsSoftHyphen(leaf))
-                text.Append(((Text)leaf).Content);
-        }
-
-        var word = new BrokenWord(hyphen.Current, text.ToString());
+        var leaves = WordLeaves(previous, hyphen.Current, next);
+        var word = new BrokenWord(hyphen.Current, Spell(leaves));
         brokenWords ??= new Dictionary<DocumentObject, BrokenWord>(ReferenceComparer.Instance);
         foreach (var leaf in leaves)
             brokenWords[leaf] = word;
+    }
+
+    /// <summary>
+    /// Whether there is plain text immediately before a soft hyphen and immediately after it.
+    /// </summary>
+    private static bool IsTextOnBothSides(ParagraphIterator previous, ParagraphIterator next) =>
+        previous != null && next != null && IsPlainText(previous.Current) && IsPlainText(next.Current);
+
+    /// <summary>
+    /// The leaves of the word broken at a soft hyphen, in reading order, the hyphen among them.
+    /// </summary>
+    /// <remarks>
+    /// Backwards to the front of the word, then forwards to the end of it. The walk stops at
+    /// anything that is not plain text or another soft hyphen — a blank, a tab, a field, a symbol
+    /// — which is what makes the run a word. It also stops the replacement from claiming more
+    /// than the scope covers: whatever the walk collects is exactly what the scope will wrap and
+    /// exactly what the replacement will spell.
+    /// </remarks>
+    private static List<DocumentObject> WordLeaves(ParagraphIterator previous, DocumentObject hyphen, ParagraphIterator next)
+    {
+        var leaves = new List<DocumentObject>();
+        for (var iter = previous; iter != null && IsWordFragment(iter.Current); iter = iter.GetPreviousLeaf())
+            leaves.Add(iter.Current);
+        leaves.Reverse();
+
+        leaves.Add(hyphen);
+        for (var iter = next; iter != null && IsWordFragment(iter.Current); iter = iter.GetNextLeaf())
+            leaves.Add(iter.Current);
+
+        return leaves;
+    }
+
+    /// <summary>
+    /// The word a run of leaves spells, without its soft hyphens.
+    /// </summary>
+    /// <remarks>
+    /// The hyphens are what is being taken out. A word may carry several and break at one of
+    /// them; the others draw nothing and must not spell anything either.
+    /// </remarks>
+    private static string Spell(List<DocumentObject> leaves)
+    {
+        var text = new StringBuilder();
+        foreach (var leaf in leaves)
+        {
+            if (!IsSoftHyphen(leaf))
+                text.Append(((Text)leaf).Content);
+        }
+        return text.ToString();
     }
 
     /// <summary>

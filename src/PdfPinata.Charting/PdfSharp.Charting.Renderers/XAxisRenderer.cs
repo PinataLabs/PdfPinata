@@ -194,56 +194,11 @@ internal abstract class XAxisRenderer : AxisRenderer
     var cri = (ChartRendererInfo)rendererParms.RendererInfo;
     var xari = cri.XAxisRendererInfo;
 
-    var xMax = xari.MaximumScale;
-    var xMajorTick = xari.MajorTick;
-    var xMinorTick = xari.MinorTick;
-
-    // Draw tick labels. Each tick label will be aligned centered.
-    var countTickLabels = (int)xMax;
-    var categories = CategoryLabels(xari);
-    XPoint startPos;
-
+    // Each tick label will be aligned centered.
     if (isHorizontal)
-    {
-      var tickLabelStep = xari.Width;
-      if (countTickLabels != 0)
-        tickLabelStep = xari.Width / countTickLabels;
-
-      startPos = new XPoint(xari.X + tickLabelStep / 2, xari.Y + xari.TickLabelsHeight);
-      if (xari.MajorTickMark != TickMarkType.None)
-        startPos.Y += xari.MajorTickMarkWidth;
-      for (var idx = 0; categories != null && idx < countTickLabels && idx < categories.Count; ++idx)
-      {
-        var xv = categories[idx];
-        if (xv != null)
-        {
-          var tickLabel = xv.Value;
-          var size = gfx.MeasureString(tickLabel, xari.TickLabelsFont);
-          gfx.DrawString(tickLabel, xari.TickLabelsFont, xari.TickLabelsBrush, startPos.X - size.Width / 2, startPos.Y);
-        }
-        startPos.X += tickLabelStep;
-      }
-    }
+      DrawHorizontalTickLabels(gfx, xari);
     else
-    {
-      var tickLabelStep = xari.Height / countTickLabels;
-      startPos = new XPoint(xari.X + xari.Width - xari.MajorTickMarkWidth, xari.Y + tickLabelStep / 2);
-      for (var idx = countTickLabels - 1; categories != null && idx >= 0; --idx)
-      {
-        // Both conditions carried across from the horizontal orientation, which this branch
-        // is otherwise a copy of. The count comes from the longest series rather than from the
-        // category list, so there need not be a category at every index; and a category added
-        // with XSeries.AddBlank is a null. Neither is unusual enough to throw over.
-        var xv = idx < categories.Count ? categories[idx] : null;
-        if (xv != null)
-        {
-          var tickLabel = xv.Value;
-          var size = gfx.MeasureString(tickLabel, xari.TickLabelsFont);
-          gfx.DrawString(tickLabel, xari.TickLabelsFont, xari.TickLabelsBrush, startPos.X - size.Width, startPos.Y + size.Height / 2);
-        }
-        startPos.Y += tickLabelStep;
-      }
-    }
+      DrawVerticalTickLabels(gfx, xari);
 
     // Draw axis.
     // First draw tick marks, second draw axis.
@@ -256,124 +211,158 @@ internal abstract class XAxisRenderer : AxisRenderer
     var lineFormatRenderer = new LineFormatRenderer(gfx, xari.LineFormat);
     var minorTickMarkLineFormat = new LineFormatRenderer(gfx, xari.MinorTickMarkLineFormat);
     var majorTickMarkLineFormat = new LineFormatRenderer(gfx, xari.MajorTickMarkLineFormat);
-    var points = new XPoint[2];
 
     // Minor ticks.
     if (xari.MinorTickMark != TickMarkType.None)
     {
-      var countMinorTickMarks = (int)(xMax / xMinorTick);
-      if (isHorizontal)
-      {
-        // The same guard the major ticks take just below: a chart with nothing plotted scales to
-        // a maximum of zero, and dividing the axis length by zero minor ticks turned every tick
-        // position into NaN. Only reachable when a caller sets Axis.MinorTickMark explicitly -
-        // it defaults to None, which the block above already skips - but reachable all the same.
-        var minorTickMarkStep = xari.Width;
-        if (countMinorTickMarks != 0)
-          minorTickMarkStep = xari.Width / countMinorTickMarks;
-        startPos.X = xari.X;
-        for (var x = 0; x <= countMinorTickMarks; x++)
-        {
-          points[0].X = startPos.X + minorTickMarkStep * x;
-          points[0].Y = minorTickMarkStart;
-          points[1].X = points[0].X;
-          points[1].Y = minorTickMarkEnd;
-          minorTickMarkLineFormat.DrawLine(points[0], points[1]);
-        }
-      }
-      else
-      {
-        var minorTickMarkStep = xari.Height;
-        if (countMinorTickMarks != 0)
-          minorTickMarkStep = xari.Height / countMinorTickMarks;
-        startPos.Y = xari.Y;
-        for (var x = 0; x <= countMinorTickMarks; x++)
-        {
-          points[0].X = minorTickMarkStart;
-          points[0].Y = startPos.Y + minorTickMarkStep * x;
-          points[1].X = minorTickMarkEnd;
-          points[1].Y = points[0].Y;
-          minorTickMarkLineFormat.DrawLine(points[0], points[1]);
-        }
-      }
+      var countMinorTickMarks = (int)(xari.MaximumScale / xari.MinorTick);
+      DrawTickMarks(minorTickMarkLineFormat, xari, countMinorTickMarks, minorTickMarkStart, minorTickMarkEnd);
     }
 
     // Major ticks.
     if (xari.MajorTickMark != TickMarkType.None)
     {
-      var countMajorTickMarks = (int)(xMax / xMajorTick);
-      if (isHorizontal)
-      {
-        var majorTickMarkStep = xari.Width;
-        if (countMajorTickMarks != 0)
-          majorTickMarkStep = xari.Width / countMajorTickMarks;
-        startPos.X = xari.X;
-        for (var x = 0; x <= countMajorTickMarks; x++)
-        {
-          points[0].X = startPos.X + majorTickMarkStep * x;
-          points[0].Y = majorTickMarkStart;
-          points[1].X = points[0].X;
-          points[1].Y = majorTickMarkEnd;
-          majorTickMarkLineFormat.DrawLine(points[0], points[1]);
-        }
-      }
-      else
-      {
-        // The same guard the horizontal orientation already has: a chart with nothing plotted
-        // scales to a maximum of zero, and dividing the axis length by zero major ticks turned
-        // every tick position into NaN. It was unreachable before this merge, because this
-        // orientation's ticks drew with a pen that was null until a caller set one; the tick-mark
-        // pens fix made it reachable, and a chart with no series at all now has to survive it.
-        var majorTickMarkStep = xari.Height;
-        if (countMajorTickMarks != 0)
-          majorTickMarkStep = xari.Height / countMajorTickMarks;
-        startPos.Y = xari.Y;
-        for (var x = 0; x <= countMajorTickMarks; x++)
-        {
-          points[0].X = majorTickMarkStart;
-          points[0].Y = startPos.Y + majorTickMarkStep * x;
-          points[1].X = majorTickMarkEnd;
-          points[1].Y = points[0].Y;
-          majorTickMarkLineFormat.DrawLine(points[0], points[1]);
-        }
-      }
+      var countMajorTickMarks = (int)(xari.MaximumScale / xari.MajorTick);
+      DrawTickMarks(majorTickMarkLineFormat, xari, countMajorTickMarks, majorTickMarkStart, majorTickMarkEnd);
     }
 
     // Axis.
     if (xari.LineFormat != null)
-    {
-      if (isHorizontal)
-      {
-        points[0].X = xari.X;
-        points[0].Y = xari.Y;
-        points[1].X = xari.X + xari.Width;
-        points[1].Y = xari.Y;
-        if (xari.MajorTickMark != TickMarkType.None)
-        {
-          points[0].X -= xari.LineFormat.Width / 2;
-          points[1].X += xari.LineFormat.Width / 2;
-        }
-      }
-      else
-      {
-        points[0].X = xari.X + xari.Width;
-        points[0].Y = xari.Y;
-        points[1].X = xari.X + xari.Width;
-        points[1].Y = xari.Y + xari.Height;
-        if (xari.MajorTickMark != TickMarkType.None)
-        {
-          points[0].Y -= xari.LineFormat.Width / 2;
-          points[1].Y += xari.LineFormat.Width / 2;
-        }
-      }
-      lineFormatRenderer.DrawLine(points[0], points[1]);
-    }
+      DrawAxisLine(lineFormatRenderer, xari);
 
-    // Draw axis title, through the renderer that draws it rather than by hand. Drawing it here
-    // meant an axis title on this axis honoured neither its alignment nor its orientation, both
-    // of which are settable and both of which the value axis has always honoured. It also meant
-    // the caption was centred on half the axis's right edge instead of on the middle of the axis,
-    // which is the same thing only when the axis starts at zero.
+    DrawAxisTitle(gfx, xari);
+  }
+
+  /// <summary>
+  /// Draws the tick labels of a horizontal axis from left to right, each centred on its slot and
+  /// below the tick marks.
+  /// </summary>
+  private static void DrawHorizontalTickLabels(XGraphics gfx, AxisRendererInfo xari)
+  {
+    var countTickLabels = (int)xari.MaximumScale;
+    var categories = CategoryLabels(xari);
+
+    var tickLabelStep = xari.Width;
+    if (countTickLabels != 0)
+      tickLabelStep = xari.Width / countTickLabels;
+
+    var startPos = new XPoint(xari.X + tickLabelStep / 2, xari.Y + xari.TickLabelsHeight);
+    if (xari.MajorTickMark != TickMarkType.None)
+      startPos.Y += xari.MajorTickMarkWidth;
+    for (var idx = 0; categories != null && idx < countTickLabels && idx < categories.Count; ++idx)
+    {
+      var xv = categories[idx];
+      if (xv != null)
+      {
+        var tickLabel = xv.Value;
+        var size = gfx.MeasureString(tickLabel, xari.TickLabelsFont);
+        gfx.DrawString(tickLabel, xari.TickLabelsFont, xari.TickLabelsBrush, startPos.X - size.Width / 2, startPos.Y);
+      }
+      startPos.X += tickLabelStep;
+    }
+  }
+
+  /// <summary>
+  /// Draws the tick labels of a vertical axis from top to bottom - the last category first - each
+  /// centred on its slot and to the left of the tick marks.
+  /// </summary>
+  private static void DrawVerticalTickLabels(XGraphics gfx, AxisRendererInfo xari)
+  {
+    var countTickLabels = (int)xari.MaximumScale;
+    var categories = CategoryLabels(xari);
+
+    var tickLabelStep = xari.Height / countTickLabels;
+    var startPos = new XPoint(xari.X + xari.Width - xari.MajorTickMarkWidth, xari.Y + tickLabelStep / 2);
+    for (var idx = countTickLabels - 1; categories != null && idx >= 0; --idx)
+    {
+      // Both conditions carried across from the horizontal orientation, which this is otherwise
+      // a copy of. The count comes from the longest series rather than from the category list,
+      // so there need not be a category at every index; and a category added with
+      // XSeries.AddBlank is a null. Neither is unusual enough to throw over.
+      var xv = idx < categories.Count ? categories[idx] : null;
+      if (xv != null)
+      {
+        var tickLabel = xv.Value;
+        var size = gfx.MeasureString(tickLabel, xari.TickLabelsFont);
+        gfx.DrawString(tickLabel, xari.TickLabelsFont, xari.TickLabelsBrush, startPos.X - size.Width, startPos.Y + size.Height / 2);
+      }
+      startPos.Y += tickLabelStep;
+    }
+  }
+
+  /// <summary>
+  /// Draws <paramref name="count"/> + 1 tick marks spaced evenly along the axis, each running
+  /// across it from <paramref name="start"/> to <paramref name="end"/>.
+  /// </summary>
+  /// <remarks>
+  /// The step is guarded against a count of zero, for both kinds of tick and both orientations: a
+  /// chart with nothing plotted scales to a maximum of zero, and dividing the axis length by zero
+  /// ticks turned every tick position into NaN. For the minor ticks that is reachable only when a
+  /// caller sets Axis.MinorTickMark explicitly - it defaults to None - but reachable all the same.
+  /// For the vertical orientation's major ticks it was unreachable until the tick-mark pens fix,
+  /// because they drew with a pen that was null until a caller set one; that fix made it
+  /// reachable, and a chart with no series at all now has to survive it.
+  /// </remarks>
+  private void DrawTickMarks(LineFormatRenderer lineFormatRenderer, AxisRendererInfo xari, int count, double start, double end)
+  {
+    var length = isHorizontal ? xari.Width : xari.Height;
+    var origin = isHorizontal ? xari.X : xari.Y;
+
+    var step = length;
+    if (count != 0)
+      step = length / count;
+
+    for (var x = 0; x <= count; x++)
+    {
+      var along = origin + step * x;
+      if (isHorizontal)
+        lineFormatRenderer.DrawLine(new XPoint(along, start), new XPoint(along, end));
+      else
+        lineFormatRenderer.DrawLine(new XPoint(start, along), new XPoint(end, along));
+    }
+  }
+
+  /// <summary>
+  /// Draws the axis line along the edge that faces the plot area, lengthened at each end by half
+  /// its own width when there are major tick marks, so that it covers the outermost of them.
+  /// </summary>
+  private void DrawAxisLine(LineFormatRenderer lineFormatRenderer, AxisRendererInfo xari)
+  {
+    XPoint from, to;
+    if (isHorizontal)
+    {
+      from = new XPoint(xari.X, xari.Y);
+      to = new XPoint(xari.X + xari.Width, xari.Y);
+      if (xari.MajorTickMark != TickMarkType.None)
+      {
+        from.X -= xari.LineFormat.Width / 2;
+        to.X += xari.LineFormat.Width / 2;
+      }
+    }
+    else
+    {
+      from = new XPoint(xari.X + xari.Width, xari.Y);
+      to = new XPoint(xari.X + xari.Width, xari.Y + xari.Height);
+      if (xari.MajorTickMark != TickMarkType.None)
+      {
+        from.Y -= xari.LineFormat.Width / 2;
+        to.Y += xari.LineFormat.Width / 2;
+      }
+    }
+    lineFormatRenderer.DrawLine(from, to);
+  }
+
+  /// <summary>
+  /// Draws the axis title, through the renderer that draws it rather than by hand.
+  /// </summary>
+  /// <remarks>
+  /// Drawing it by hand meant an axis title on this axis honoured neither its alignment nor its
+  /// orientation, both of which are settable and both of which the value axis has always
+  /// honoured. It also meant the caption was centred on half the axis's right edge instead of on
+  /// the middle of the axis, which is the same thing only when the axis starts at zero.
+  /// </remarks>
+  private void DrawAxisTitle(XGraphics gfx, AxisRendererInfo xari)
+  {
     var atri = xari.AxisTitleRendererInfo;
     if (atri is not { AxisTitleText.Length: > 0 })
       return;

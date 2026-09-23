@@ -39,65 +39,14 @@ internal static class LegendMapper
     DocumentObjectModel.Shapes.Charts.Legend domLegend = null;
     DocumentObjectModel.Shapes.Charts.TextArea textArea = null;
 
-    foreach (DocumentObjectModel.DocumentObject domObj in domChart.BottomArea.Elements)
-    {
-      if (domObj is not DocumentObjectModel.Shapes.Charts.Legend legend)
-        continue;
-
-      chart.Legend.Docking = DockingType.Bottom;
-      domLegend = legend;
-      textArea = domChart.BottomArea;
-    }
-
-    foreach (DocumentObjectModel.DocumentObject domObj in domChart.RightArea.Elements)
-    {
-      if (domObj is not DocumentObjectModel.Shapes.Charts.Legend legend)
-        continue;
-
-      chart.Legend.Docking = DockingType.Right;
-      domLegend = legend;
-      textArea = domChart.RightArea;
-    }
-
-    foreach (DocumentObjectModel.DocumentObject domObj in domChart.LeftArea.Elements)
-    {
-      if (domObj is not DocumentObjectModel.Shapes.Charts.Legend legend)
-        continue;
-
-      chart.Legend.Docking = DockingType.Left;
-      domLegend = legend;
-      textArea = domChart.LeftArea;
-    }
-
-    foreach (DocumentObjectModel.DocumentObject domObj in domChart.TopArea.Elements)
-    {
-      if (domObj is not DocumentObjectModel.Shapes.Charts.Legend legend)
-        continue;
-
-      chart.Legend.Docking = DockingType.Top;
-      domLegend = legend;
-      textArea = domChart.TopArea;
-    }
-
-    foreach (DocumentObjectModel.DocumentObject domObj in domChart.HeaderArea.Elements)
-    {
-      if (domObj is not DocumentObjectModel.Shapes.Charts.Legend legend)
-        continue;
-
-      chart.Legend.Docking = DockingType.Top;
-      domLegend = legend;
-      textArea = domChart.HeaderArea;
-    }
-
-    foreach (DocumentObjectModel.DocumentObject domObj in domChart.FooterArea.Elements)
-    {
-      if (domObj is not DocumentObjectModel.Shapes.Charts.Legend legend)
-        continue;
-
-      chart.Legend.Docking = DockingType.Bottom;
-      domLegend = legend;
-      textArea = domChart.FooterArea;
-    }
+    // Every area is walked, in this order, and the last legend found is the one mapped - so where
+    // a chart has legends in two areas, the later area decides where the legend docks.
+    FindLegend(chart, domChart.BottomArea, DockingType.Bottom, ref domLegend, ref textArea);
+    FindLegend(chart, domChart.RightArea, DockingType.Right, ref domLegend, ref textArea);
+    FindLegend(chart, domChart.LeftArea, DockingType.Left, ref domLegend, ref textArea);
+    FindLegend(chart, domChart.TopArea, DockingType.Top, ref domLegend, ref textArea);
+    FindLegend(chart, domChart.HeaderArea, DockingType.Top, ref domLegend, ref textArea);
+    FindLegend(chart, domChart.FooterArea, DockingType.Bottom, ref domLegend, ref textArea);
 
     if (domLegend == null)
       return;
@@ -108,6 +57,24 @@ internal static class LegendMapper
       FontMapper.Map(chart.Legend.Font, textArea.Document, textArea.Style);
     if (!domLegend.IsNull("Format.Font"))
       FontMapper.Map(chart.Legend.Font, domLegend.Format.Font);
+  }
+
+  /// <summary>
+  /// Takes the last legend in an area, if it has one, as the legend to map, and docks the chart's
+  /// legend on the side that area stands for.
+  /// </summary>
+  private static void FindLegend(Chart chart, DocumentObjectModel.Shapes.Charts.TextArea area, DockingType docking,
+    ref DocumentObjectModel.Shapes.Charts.Legend domLegend, ref DocumentObjectModel.Shapes.Charts.TextArea textArea)
+  {
+    foreach (DocumentObjectModel.DocumentObject domObj in area.Elements)
+    {
+      if (domObj is not DocumentObjectModel.Shapes.Charts.Legend legend)
+        continue;
+
+      chart.Legend.Docking = docking;
+      domLegend = legend;
+      textArea = area;
+    }
   }
 
   internal static void Map(Chart chart, DocumentObjectModel.Shapes.Charts.Chart domChart)

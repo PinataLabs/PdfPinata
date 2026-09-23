@@ -78,185 +78,253 @@ internal class TopDownFormatter
     public void FormatOnAreas(XGraphics graphics, bool topLevel)
     {
         gfx = graphics;
-        XUnit prevBottomMargin = 0;
-        RenderInfo prevRenderInfo = null;
-        FormatInfo prevFormatInfo = null;
-        var renderInfos = new ArrayList();
-        var ready = elements.Count == 0;
-        var isFirstOnPage = true;
-        var area = areaProvider.GetNextArea();
-        var maxHeight = area.Height;
-        if (ready)
+        var state = new FormattingState { Ready = elements.Count == 0 };
+        state.Area = areaProvider.GetNextArea();
+        state.MaxHeight = state.Area.Height;
+        if (state.Ready)
         {
-            areaProvider.StoreRenderInfos(renderInfos);
+            areaProvider.StoreRenderInfos(state.RenderInfos);
             return;
         }
 
-        var idx = 0;
-        while (!ready && area != null)
+        while (!state.Ready && state.Area != null)
         {
-            var docObj = elements[idx];
-            var renderer = Renderer.Create(gfx, documentRenderer, docObj, areaProvider.AreaFieldInfos);
-            renderer?.MaxElementHeight = maxHeight; // "Slightly hacked" for legends: see below
+            FormatNextElement(state, topLevel);
 
-            if (topLevel && documentRenderer.HasPrepareDocumentProgress)
-            {
-                documentRenderer.OnPrepareDocumentProgress(documentRenderer.ProgressCompleted + idx + 1,
-                    documentRenderer.ProgressMaximum);
-            }
-
-            // "Slightly hacked" for legends: they are rendered as part of the chart.
-            // So they are skipped here.
-            if (renderer == null)
-            {
-                // A bookmark draws nothing, so it has no renderer and would otherwise be skipped along
-                // with the legends -- silently, which is what made a bookmark put on a section rather
-                // than in a paragraph vanish without a word. Register it where it stands instead.
-                if (docObj is BookmarkField bookmark)
-                    areaProvider.AreaFieldInfos.AddBookmark(bookmark.Name, area.Y);
-
-                ready = idx == elements.Count - 1;
-                if (ready)
-                    areaProvider.StoreRenderInfos(renderInfos);
-                ++idx;
+            var allFormatted = state.Index == elements.Count && !state.Ready;
+            if (!allFormatted)
                 continue;
-            }
 
-            if (prevFormatInfo == null)
+            areaProvider.StoreRenderInfos(state.RenderInfos);
+            state.Ready = true;
+        }
+    }
+
+    /// <summary>
+    /// Where a run of <see cref="FormatOnAreas"/> has got to: the area being filled, the element
+    /// being formatted, and what is carried over from the element before it.
+    /// </summary>
+    private sealed class FormattingState
+    {
+        internal Area Area;
+        internal XUnit MaxHeight;
+        internal int Index;
+        internal bool Ready;
+        internal bool IsFirstOnPage = true;
+        internal XUnit PrevBottomMargin;
+        internal RenderInfo PrevRenderInfo;
+        internal FormatInfo PrevFormatInfo;
+        internal ArrayList RenderInfos = new();
+    }
+
+    /// <summary>
+    /// Formats the element the state has got to, on the area it has got to, and moves the state on:
+    /// to the next element when this one is placed, or to the next area when it breaks.
+    /// </summary>
+    private void FormatNextElement(FormattingState state, bool topLevel)
+    {
+        var docObj = elements[state.Index];
+        var renderer = Renderer.Create(gfx, documentRenderer, docObj, areaProvider.AreaFieldInfos);
+        renderer?.MaxElementHeight = state.MaxHeight; // "Slightly hacked" for legends: see below
+
+        if (topLevel && documentRenderer.HasPrepareDocumentProgress)
+        {
+            documentRenderer.OnPrepareDocumentProgress(documentRenderer.ProgressCompleted + state.Index + 1,
+                documentRenderer.ProgressMaximum);
+        }
+
+        // "Slightly hacked" for legends: they are rendered as part of the chart.
+        // So they are skipped here.
+        if (renderer == null)
+        {
+            SkipElementWithoutRenderer(state, docObj);
+            return;
+        }
+
+        if (state.PrevFormatInfo == null)
+            state.Area = state.Area.Lower(DistanceBefore(renderer.InitialLayoutInfo, state.PrevBottomMargin));
+
+        // Room for whatever footnotes this element carries, taken off the bottom of the area
+        // before the element is laid out in it - so the element sees the space that is really
+        // left and breaks the page where it should. Nothing already placed above moves: the
+        // notes go at the foot, and what is above the foot fits either way.
+        //
+        // Nothing here has to be undone when an element does not fit. The shrunken area is
+        // discarded with the page, the element is formatted again on the next one, and the
+        // notes are registered again against that page - which is what makes a single pass
+        // enough for what would otherwise be a fixed point.
+        state.Area = state.Area.Shorten(ReserveFootnotes(docObj, state.Area));
+
+        renderer.Format(state.Area, state.PrevFormatInfo);
+        areaProvider.PositionHorizontally(renderer.RenderInfo.LayoutInfo);
+        var pagebreakBefore = areaProvider.IsAreaBreakBefore(renderer.RenderInfo.LayoutInfo) && !state.IsFirstOnPage;
+        pagebreakBefore = pagebreakBefore || !state.IsFirstOnPage && IsForcedAreaBreak(state.Index, renderer, state.Area);
+
+        if (!pagebreakBefore && renderer.RenderInfo.FormatInfo.IsEnding)
+            PlaceEndingElement(state, renderer, docObj);
+        else
+            BreakArea(state, renderer, docObj, pagebreakBefore);
+    }
+
+    /// <summary>
+    /// Passes over an element that has no renderer, registering it first if it is a bookmark.
+    /// </summary>
+    private void SkipElementWithoutRenderer(FormattingState state, DocumentObject docObj)
+    {
+        // A bookmark draws nothing, so it has no renderer and would otherwise be skipped along
+        // with the legends -- silently, which is what made a bookmark put on a section rather
+        // than in a paragraph vanish without a word. Register it where it stands instead.
+        if (docObj is BookmarkField bookmark)
+            areaProvider.AreaFieldInfos.AddBookmark(bookmark.Name, state.Area.Y);
+
+        state.Ready = state.Index == elements.Count - 1;
+        if (state.Ready)
+            areaProvider.StoreRenderInfos(state.RenderInfos);
+        ++state.Index;
+    }
+
+    /// <summary>
+    /// The space to leave above an element that starts afresh on the area: the previous
+    /// element's bottom margin, or this one's top margin where it is larger and the element is
+    /// placed after the previous one.
+    /// </summary>
+    private static XUnit DistanceBefore(LayoutInfo initialLayoutInfo, XUnit prevBottomMargin)
+    {
+        var distance = prevBottomMargin;
+        if (IsPlacedAfterPreviousElement(initialLayoutInfo))
+            distance = MarginMax(initialLayoutInfo.MarginTop, distance);
+
+        return distance;
+    }
+
+    /// <summary>
+    /// Whether an element is placed in the flow after the one before it, rather than positioned
+    /// on the page independently of it.
+    /// </summary>
+    private static bool IsPlacedAfterPreviousElement(LayoutInfo layoutInfo) =>
+        layoutInfo.VerticalReference == VerticalReference.PreviousElement &&
+        layoutInfo.Floating != Floating.None; //Added KlPo 12.07.07
+
+    /// <summary>
+    /// Deals with an element whose ending fits on this area: shortens the previous element to make
+    /// room for it, moves it whole to the next area to keep it with what follows, or places it.
+    /// </summary>
+    private void PlaceEndingElement(FormattingState state, Renderer renderer, DocumentObject docObj)
+    {
+        if (PreviousRendererNeedsRemoveEnding(state.PrevRenderInfo, renderer.RenderInfo))
+        {
+            state.PrevRenderInfo.RemoveEnding();
+            renderer = Renderer.Create(gfx, documentRenderer, docObj, areaProvider.AreaFieldInfos);
+            renderer.MaxElementHeight = state.MaxHeight;
+            renderer.Format(state.Area, state.PrevRenderInfo.FormatInfo);
+        }
+        else if (NeedsEndingOnNextArea(state.Index, renderer, state.Area, state.IsFirstOnPage))
+        {
+            renderer.RenderInfo.RemoveEnding();
+            // No break was forced before this element, or it would not have been placed at all.
+            FinishArea(state, renderer.RenderInfo, pagebreakBefore: false);
+            if (state.PrevRenderInfo == null)
+                state.IsFirstOnPage = true;
+
+            StartNextArea(state);
+        }
+        else
+        {
+            PlaceElement(state, renderer.RenderInfo);
+        }
+    }
+
+    /// <summary>
+    /// Places a formatted element on the area and moves on to the next element, below it or -
+    /// for a shape the text runs beside - beside it.
+    /// </summary>
+    private void PlaceElement(FormattingState state, RenderInfo renderInfo)
+    {
+        state.RenderInfos.Add(renderInfo);
+        state.IsFirstOnPage = false;
+        areaProvider.PositionVertically(renderInfo.LayoutInfo);
+
+        state.PrevBottomMargin = 0;
+        if (IsPlacedAfterPreviousElement(renderInfo.LayoutInfo))
+        {
+            // A shape the text runs beside does not push what follows it down the page;
+            // it stands in the area the following elements are laid out in. That is the
+            // whole difference between wrapping around a shape and being placed after
+            // one, and it is the only place the two part company.
+            Area beside = AreaBesideShape(state.Area, renderInfo.LayoutInfo);
+            if (beside != null)
             {
-                var initialLayoutInfo = renderer.InitialLayoutInfo;
-                var distance = prevBottomMargin;
-                if (initialLayoutInfo.VerticalReference == VerticalReference.PreviousElement &&
-                    initialLayoutInfo.Floating != Floating.None) //Added KlPo 12.07.07
-                    distance = MarginMax(initialLayoutInfo.MarginTop, distance);
-
-                area = area.Lower(distance);
-            }
-
-            // Room for whatever footnotes this element carries, taken off the bottom of the area
-            // before the element is laid out in it - so the element sees the space that is really
-            // left and breaks the page where it should. Nothing already placed above moves: the
-            // notes go at the foot, and what is above the foot fits either way.
-            //
-            // Nothing here has to be undone when an element does not fit. The shrunken area is
-            // discarded with the page, the element is formatted again on the next one, and the
-            // notes are registered again against that page - which is what makes a single pass
-            // enough for what would otherwise be a fixed point.
-            area = area.Shorten(ReserveFootnotes(docObj, area));
-
-            renderer.Format(area, prevFormatInfo);
-            areaProvider.PositionHorizontally(renderer.RenderInfo.LayoutInfo);
-            var pagebreakBefore = areaProvider.IsAreaBreakBefore(renderer.RenderInfo.LayoutInfo) && !isFirstOnPage;
-            pagebreakBefore = pagebreakBefore || !isFirstOnPage && IsForcedAreaBreak(idx, renderer, area);
-
-            if (!pagebreakBefore && renderer.RenderInfo.FormatInfo.IsEnding)
-            {
-                if (PreviousRendererNeedsRemoveEnding(prevRenderInfo, renderer.RenderInfo))
-                {
-                    prevRenderInfo.RemoveEnding();
-                    renderer = Renderer.Create(gfx, documentRenderer, docObj, areaProvider.AreaFieldInfos);
-                    renderer.MaxElementHeight = maxHeight;
-                    renderer.Format(area, prevRenderInfo.FormatInfo);
-                }
-                else if (NeedsEndingOnNextArea(idx, renderer, area, isFirstOnPage))
-                {
-                    renderer.RenderInfo.RemoveEnding();
-                    prevRenderInfo = FinishPage(renderer.RenderInfo, pagebreakBefore, ref renderInfos);
-                    if (prevRenderInfo != null)
-                    {
-                        prevFormatInfo = prevRenderInfo.FormatInfo;
-                    }
-                    else
-                    {
-                        prevFormatInfo = null;
-                        isFirstOnPage = true;
-                    }
-
-                    prevBottomMargin = 0;
-                    area = areaProvider.GetNextArea();
-                    maxHeight = area.Height;
-                }
-                else
-                {
-                    renderInfos.Add(renderer.RenderInfo);
-                    isFirstOnPage = false;
-                    areaProvider.PositionVertically(renderer.RenderInfo.LayoutInfo);
-                    if (renderer.RenderInfo.LayoutInfo.VerticalReference == VerticalReference.PreviousElement
-                        && renderer.RenderInfo.LayoutInfo.Floating != Floating.None) //Added KlPo 12.07.07
-                    {
-                        // A shape the text runs beside does not push what follows it down the page;
-                        // it stands in the area the following elements are laid out in. That is the
-                        // whole difference between wrapping around a shape and being placed after
-                        // one, and it is the only place the two part company.
-                        Area beside = AreaBesideShape(area, renderer.RenderInfo.LayoutInfo);
-                        if (beside != null)
-                        {
-                            area = beside;
-
-                            // No bottom margin to carry: the next element is not placed after this
-                            // shape, so there is nothing for a margin between them to separate.
-                            // DistanceBottom has already grown the obstacle, and charging it again
-                            // here would push the following text down the page as well as holding
-                            // it off the shape - the same gap counted twice.
-                            prevBottomMargin = 0;
-                        }
-                        else
-                        {
-                            prevBottomMargin = renderer.RenderInfo.LayoutInfo.MarginBottom;
-                            area = area.Lower(renderer.RenderInfo.LayoutInfo.ContentArea.Height);
-                        }
-                    }
-                    else
-                    {
-                        prevBottomMargin = 0;
-                    }
-
-                    prevFormatInfo = null;
-                    prevRenderInfo = null;
-
-                    ++idx;
-                }
+                // No bottom margin to carry: the next element is not placed after this
+                // shape, so there is nothing for a margin between them to separate.
+                // DistanceBottom has already grown the obstacle, and charging it again
+                // here would push the following text down the page as well as holding
+                // it off the shape - the same gap counted twice.
+                state.Area = beside;
             }
             else
             {
-                if (renderer.RenderInfo.FormatInfo.IsEmpty && isFirstOnPage)
-                {
-                    area = area.Unite(new Rectangle(area.X, area.Y, area.Width, double.MaxValue));
-
-                    renderer = Renderer.Create(gfx, documentRenderer, docObj, areaProvider.AreaFieldInfos);
-                    renderer.MaxElementHeight = maxHeight;
-                    renderer.Format(area, prevFormatInfo);
-
-                    areaProvider.PositionHorizontally(renderer.RenderInfo.LayoutInfo);
-                    areaProvider.PositionVertically(renderer.RenderInfo.LayoutInfo);
-                    ready = idx == elements.Count - 1;
-
-                    ++idx;
-                }
-
-                prevRenderInfo = FinishPage(renderer.RenderInfo, pagebreakBefore, ref renderInfos);
-                if (prevRenderInfo != null)
-                    prevFormatInfo = prevRenderInfo.FormatInfo;
-                else
-                {
-                    prevFormatInfo = null;
-                }
-
-                isFirstOnPage = true;
-                prevBottomMargin = 0;
-                if (!ready) //!!!newTHHO 19.01.2007: korrekt? oder GetNextArea immer ausf�hren???
-                {
-                    area = areaProvider.GetNextArea();
-                    maxHeight = area.Height;
-                }
+                state.PrevBottomMargin = renderInfo.LayoutInfo.MarginBottom;
+                state.Area = state.Area.Lower(renderInfo.LayoutInfo.ContentArea.Height);
             }
-
-            if (idx != elements.Count || ready)
-                continue;
-
-            areaProvider.StoreRenderInfos(renderInfos);
-            ready = true;
         }
+
+        state.PrevFormatInfo = null;
+        state.PrevRenderInfo = null;
+
+        ++state.Index;
+    }
+
+    /// <summary>
+    /// Ends the area at this element, which either breaks across it or does not fit on it at all,
+    /// and moves on to the next area. An element that does not fit even on an area of its own is
+    /// placed regardless, on an area of unlimited height.
+    /// </summary>
+    private void BreakArea(FormattingState state, Renderer renderer, DocumentObject docObj, bool pagebreakBefore)
+    {
+        if (renderer.RenderInfo.FormatInfo.IsEmpty && state.IsFirstOnPage)
+            renderer = FormatOnUnboundedArea(state, docObj);
+
+        FinishArea(state, renderer.RenderInfo, pagebreakBefore);
+        state.IsFirstOnPage = true;
+        if (!state.Ready) //!!!newTHHO 19.01.2007: korrekt? oder GetNextArea immer ausf�hren???
+            StartNextArea(state);
+    }
+
+    /// <summary>
+    /// Formats an element that fits nowhere on an area as tall as it needs, places it there and
+    /// moves on to the next element.
+    /// </summary>
+    private Renderer FormatOnUnboundedArea(FormattingState state, DocumentObject docObj)
+    {
+        state.Area = state.Area.Unite(new Rectangle(state.Area.X, state.Area.Y, state.Area.Width, double.MaxValue));
+
+        var renderer = Renderer.Create(gfx, documentRenderer, docObj, areaProvider.AreaFieldInfos);
+        renderer.MaxElementHeight = state.MaxHeight;
+        renderer.Format(state.Area, state.PrevFormatInfo);
+
+        areaProvider.PositionHorizontally(renderer.RenderInfo.LayoutInfo);
+        areaProvider.PositionVertically(renderer.RenderInfo.LayoutInfo);
+        state.Ready = state.Index == elements.Count - 1;
+
+        ++state.Index;
+        return renderer;
+    }
+
+    /// <summary>
+    /// Hands the area's render infos to the area provider, and carries over to the next area what
+    /// is left to format of the element it ended at, if anything.
+    /// </summary>
+    private void FinishArea(FormattingState state, RenderInfo lastRenderInfo, bool pagebreakBefore)
+    {
+        state.PrevRenderInfo = FinishPage(lastRenderInfo, pagebreakBefore, ref state.RenderInfos);
+        state.PrevFormatInfo = state.PrevRenderInfo?.FormatInfo;
+        state.PrevBottomMargin = 0;
+    }
+
+    private void StartNextArea(FormattingState state)
+    {
+        state.Area = areaProvider.GetNextArea();
+        state.MaxHeight = state.Area.Height;
     }
 
     /// <summary>

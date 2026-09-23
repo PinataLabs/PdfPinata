@@ -231,165 +231,199 @@ internal class ImageRenderer : ShapeRenderer
     {
         var formatInfo = (ImageFormatInfo)renderInfo.FormatInfo;
 
-        if (formatInfo.Failure == ImageFailure.None)
-        {
-            XImage xImage;
-            try
-            {
-                xImage = XImage.FromImageSource(formatInfo.ImageSource);
-            }
-            catch (InvalidOperationException ex)
-            {
-                Debug.WriteLine(string.Format(AppResources.InvalidImageType, ex.Message));
-                formatInfo.Failure = ImageFailure.InvalidType;
-                formatInfo.FailureException = ex;
-                // Measuring an image there is none of would throw on the very first line below,
-                // and the NotRead that came of that used to bury the reason worked out here.
-                SetFallbackDimensions(formatInfo);
-                return;
-            }
+        // Measuring an image there is none of would throw on the very first line of the
+        // measuring, and the NotRead that came of that used to bury the reason a failed load
+        // works out - so an image that cannot be loaded is not measured at all.
+        if (formatInfo.Failure == ImageFailure.None && TryLoadImage(formatInfo, out var xImage))
+            MeasureImage(formatInfo, xImage);
 
-            try
-            {
-                XUnit usrWidth = image.Width.Point;
-                XUnit usrHeight = image.Height.Point;
-                var usrWidthSet = !image.IsNull("Width");
-                var usrHeightSet = !image.IsNull("Height");
-
-                var resultWidth = usrWidth;
-                var resultHeight = usrHeight;
-
-                double xPixels = xImage.PixelWidth;
-                var usrResolutionSet = !image.IsNull("Resolution");
-
-                var horzRes = usrResolutionSet ? image.Resolution : xImage.HorizontalResolution;
-                var inherentWidth = XUnit.FromInch(xPixels / horzRes);
-                double yPixels = xImage.PixelHeight;
-                var vertRes = usrResolutionSet ? image.Resolution : xImage.VerticalResolution;
-                var inherentHeight = XUnit.FromInch(yPixels / vertRes);
-
-                var lockRatio = image.IsNull("LockAspectRatio") ? true : image.LockAspectRatio;
-
-                var scaleHeight = image.ScaleHeight;
-                var scaleWidth = image.ScaleWidth;
-                var scaleHeightSet = !image.IsNull("ScaleHeight");
-                var scaleWidthSet = !image.IsNull("ScaleWidth");
-
-                if (lockRatio)
-                {
-                    if (usrWidthSet && usrHeightSet)
-                    {
-                        if (inherentHeight / usrHeight > inherentWidth / usrWidth)
-                        {
-                            usrWidthSet = false;
-                        }
-                        else
-                        {
-                            usrHeightSet = false;
-                        }
-                    }
-                    // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-                    if (usrWidthSet && !usrHeightSet)
-                    {
-                        resultHeight = inherentHeight / inherentWidth * usrWidth;
-                    }
-                    // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-                    else if (usrHeightSet && !usrWidthSet)
-                    {
-                        resultWidth = inherentWidth / inherentHeight * usrHeight;
-                    }
-                    // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-                    else if (!usrHeightSet && !usrWidthSet)
-                    {
-                        resultHeight = inherentHeight;
-                        resultWidth = inherentWidth;
-                    }
-
-                    // With the ratio locked, a scale height wins over a scale width whenever both are set.
-                    if (scaleHeightSet)
-                    {
-                        resultHeight *= scaleHeight;
-                        resultWidth *= scaleHeight;
-                    }
-                    else if (scaleWidthSet)
-                    {
-                        resultHeight *= scaleWidth;
-                        resultWidth *= scaleWidth;
-                    }
-                }
-                else
-                {
-                    if (!usrHeightSet)
-                        resultHeight = inherentHeight;
-
-                    if (!usrWidthSet)
-                        resultWidth = inherentWidth;
-
-                    if (scaleHeightSet)
-                        resultHeight *= scaleHeight;
-                    if (scaleWidthSet)
-                        resultWidth *= scaleWidth;
-                }
-
-                formatInfo.CropWidth = (int)xPixels;
-                formatInfo.CropHeight = (int)yPixels;
-                if (!image.IsNull("PictureFormat"))
-                {
-                    var picFormat = image.PictureFormat;
-                    //Cropping in pixels.
-                    XUnit cropLeft = picFormat.CropLeft.Point;
-                    XUnit cropRight = picFormat.CropRight.Point;
-                    XUnit cropTop = picFormat.CropTop.Point;
-                    XUnit cropBottom = picFormat.CropBottom.Point;
-                    formatInfo.CropX = (int)(horzRes * cropLeft.Inch);
-                    formatInfo.CropY = (int)(vertRes * cropTop.Inch);
-                    formatInfo.CropWidth -= (int)(horzRes * ((XUnit)(cropLeft + cropRight)).Inch);
-                    formatInfo.CropHeight -= (int)(vertRes * ((XUnit)(cropTop + cropBottom)).Inch);
-
-                    //Scaled cropping of the height and width.
-                    var xScale = resultWidth / inherentWidth;
-                    var yScale = resultHeight / inherentHeight;
-
-                    cropLeft = xScale * cropLeft;
-                    cropRight = xScale * cropRight;
-                    cropTop = yScale * cropTop;
-                    cropBottom = yScale * cropBottom;
-
-                    resultHeight = resultHeight - cropTop - cropBottom;
-                    resultWidth = resultWidth - cropLeft - cropRight;
-                }
-                // Not "<= 0", which lets a NaN through: every comparison against NaN is false, so
-                // a size that is not a number counted as a good one. An image reporting no pixels
-                // divides zero by zero in the aspect-ratio arithmetic above and arrives here as
-                // NaN, and what followed was an element of no known height - the page broke around
-                // it, the next one came out blank, no placeholder was drawn and no failure was
-                // reported, because this branch was never taken.
-                if (!IsUsableSize(resultHeight) || !IsUsableSize(resultWidth))
-                {
-                    Debug.WriteLine(AppResources.EmptyImageSize);
-                    // The field this used to be assigned to had already been copied into the
-                    // format info by Format, so the placeholder this asks for was never drawn.
-                    formatInfo.Failure = ImageFailure.EmptySize;
-                }
-                else
-                {
-                    formatInfo.Width = resultWidth;
-                    formatInfo.Height = resultHeight;
-                }
-            }
-            catch (Exception ex) when (!IsUnrecoverable(ex))
-            {
-                Debug.WriteLine(AppResources.ImageNotReadable, image.Source, ex.Message);
-                formatInfo.Failure = ImageFailure.NotRead;
-                formatInfo.FailureException = ex;
-            }
-            finally
-            {
-                xImage?.Dispose();
-            }
-        }
         if (formatInfo.Failure != ImageFailure.None)
             SetFallbackDimensions(formatInfo);
+    }
+
+    /// <summary>
+    /// Loads the image to measure it, recording an image of a type there is no decoder for as a
+    /// failure of its own.
+    /// </summary>
+    private static bool TryLoadImage(ImageFormatInfo formatInfo, out XImage xImage)
+    {
+        try
+        {
+            xImage = XImage.FromImageSource(formatInfo.ImageSource);
+            return true;
+        }
+        catch (InvalidOperationException ex)
+        {
+            Debug.WriteLine(string.Format(AppResources.InvalidImageType, ex.Message));
+            formatInfo.Failure = ImageFailure.InvalidType;
+            formatInfo.FailureException = ex;
+            xImage = null;
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Works out the size the image is laid out at and the part of it that is drawn, recording an
+    /// image that cannot be read, or that comes out with no usable size, as a failure.
+    /// </summary>
+    private void MeasureImage(ImageFormatInfo formatInfo, XImage xImage)
+    {
+        try
+        {
+            double xPixels = xImage.PixelWidth;
+            var usrResolutionSet = !image.IsNull("Resolution");
+
+            var horzRes = usrResolutionSet ? image.Resolution : xImage.HorizontalResolution;
+            var inherentWidth = XUnit.FromInch(xPixels / horzRes);
+            double yPixels = xImage.PixelHeight;
+            var vertRes = usrResolutionSet ? image.Resolution : xImage.VerticalResolution;
+            var inherentHeight = XUnit.FromInch(yPixels / vertRes);
+
+            var lockRatio = image.IsNull("LockAspectRatio") ? true : image.LockAspectRatio;
+            var (resultWidth, resultHeight) = lockRatio
+                ? SizeWithRatioLocked(inherentWidth, inherentHeight)
+                : SizeWithRatioUnlocked(inherentWidth, inherentHeight);
+
+            formatInfo.CropWidth = (int)xPixels;
+            formatInfo.CropHeight = (int)yPixels;
+            if (!image.IsNull("PictureFormat"))
+                ApplyCrop(formatInfo, horzRes, vertRes, inherentWidth, inherentHeight, ref resultWidth, ref resultHeight);
+
+            // Not "<= 0", which lets a NaN through: every comparison against NaN is false, so
+            // a size that is not a number counted as a good one. An image reporting no pixels
+            // divides zero by zero in the aspect-ratio arithmetic above and arrives here as
+            // NaN, and what followed was an element of no known height - the page broke around
+            // it, the next one came out blank, no placeholder was drawn and no failure was
+            // reported, because this branch was never taken.
+            if (!IsUsableSize(resultHeight) || !IsUsableSize(resultWidth))
+            {
+                Debug.WriteLine(AppResources.EmptyImageSize);
+                // The field this used to be assigned to had already been copied into the
+                // format info by Format, so the placeholder this asks for was never drawn.
+                formatInfo.Failure = ImageFailure.EmptySize;
+            }
+            else
+            {
+                formatInfo.Width = resultWidth;
+                formatInfo.Height = resultHeight;
+            }
+        }
+        catch (Exception ex) when (!IsUnrecoverable(ex))
+        {
+            Debug.WriteLine(AppResources.ImageNotReadable, image.Source, ex.Message);
+            formatInfo.Failure = ImageFailure.NotRead;
+            formatInfo.FailureException = ex;
+        }
+        finally
+        {
+            xImage?.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// The size of an image whose aspect ratio is kept: one extent from the document and the other
+    /// following it, or the image's own size where the document gives neither, then scaled.
+    /// </summary>
+    /// <remarks>
+    /// Given both a width and a height, it keeps the one that makes the image smaller and lets the
+    /// other follow. With the ratio locked, a scale height wins over a scale width whenever both
+    /// are set.
+    /// </remarks>
+    private (XUnit Width, XUnit Height) SizeWithRatioLocked(XUnit inherentWidth, XUnit inherentHeight)
+    {
+        XUnit usrWidth = image.Width.Point;
+        XUnit usrHeight = image.Height.Point;
+        var usrWidthSet = !image.IsNull("Width");
+        var usrHeightSet = !image.IsNull("Height");
+
+        var resultWidth = usrWidth;
+        var resultHeight = usrHeight;
+
+        if (usrWidthSet && usrHeightSet)
+        {
+            var heightIsTheTighterFit = inherentHeight / usrHeight > inherentWidth / usrWidth;
+            if (heightIsTheTighterFit)
+                usrWidthSet = false;
+            else
+                usrHeightSet = false;
+        }
+
+        if (usrWidthSet)
+        {
+            resultHeight = inherentHeight / inherentWidth * usrWidth;
+        }
+        else if (usrHeightSet)
+        {
+            resultWidth = inherentWidth / inherentHeight * usrHeight;
+        }
+        else
+        {
+            resultHeight = inherentHeight;
+            resultWidth = inherentWidth;
+        }
+
+        if (!image.IsNull("ScaleHeight"))
+        {
+            var scaleHeight = image.ScaleHeight;
+            resultHeight *= scaleHeight;
+            resultWidth *= scaleHeight;
+        }
+        else if (!image.IsNull("ScaleWidth"))
+        {
+            var scaleWidth = image.ScaleWidth;
+            resultHeight *= scaleWidth;
+            resultWidth *= scaleWidth;
+        }
+
+        return (resultWidth, resultHeight);
+    }
+
+    /// <summary>
+    /// The size of an image whose aspect ratio is not kept: each extent from the document, or from
+    /// the image where the document does not give it, and each scaled on its own.
+    /// </summary>
+    private (XUnit Width, XUnit Height) SizeWithRatioUnlocked(XUnit inherentWidth, XUnit inherentHeight)
+    {
+        XUnit resultWidth = image.IsNull("Width") ? inherentWidth : image.Width.Point;
+        XUnit resultHeight = image.IsNull("Height") ? inherentHeight : image.Height.Point;
+
+        if (!image.IsNull("ScaleHeight"))
+            resultHeight *= image.ScaleHeight;
+        if (!image.IsNull("ScaleWidth"))
+            resultWidth *= image.ScaleWidth;
+
+        return (resultWidth, resultHeight);
+    }
+
+    /// <summary>
+    /// Takes the crop off the part of the image drawn, counted in pixels, and off the size it is
+    /// laid out at, scaled as the image itself was.
+    /// </summary>
+    private void ApplyCrop(ImageFormatInfo formatInfo, double horzRes, double vertRes,
+        XUnit inherentWidth, XUnit inherentHeight, ref XUnit resultWidth, ref XUnit resultHeight)
+    {
+        var picFormat = image.PictureFormat;
+        //Cropping in pixels.
+        XUnit cropLeft = picFormat.CropLeft.Point;
+        XUnit cropRight = picFormat.CropRight.Point;
+        XUnit cropTop = picFormat.CropTop.Point;
+        XUnit cropBottom = picFormat.CropBottom.Point;
+        formatInfo.CropX = (int)(horzRes * cropLeft.Inch);
+        formatInfo.CropY = (int)(vertRes * cropTop.Inch);
+        formatInfo.CropWidth -= (int)(horzRes * ((XUnit)(cropLeft + cropRight)).Inch);
+        formatInfo.CropHeight -= (int)(vertRes * ((XUnit)(cropTop + cropBottom)).Inch);
+
+        //Scaled cropping of the height and width.
+        var xScale = resultWidth / inherentWidth;
+        var yScale = resultHeight / inherentHeight;
+
+        cropLeft = xScale * cropLeft;
+        cropRight = xScale * cropRight;
+        cropTop = yScale * cropTop;
+        cropBottom = yScale * cropBottom;
+
+        resultHeight = resultHeight - cropTop - cropBottom;
+        resultWidth = resultWidth - cropLeft - cropRight;
     }
 
     /// <summary>
