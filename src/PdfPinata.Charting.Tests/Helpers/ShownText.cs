@@ -98,94 +98,138 @@ internal static class ShownText
     /// </remarks>
     internal static IReadOnlyList<Run> RunsOn(PdfPage page)
     {
-        var fonts = FontsOf(page);
-        var shown = new List<Run>();
-        Decoding current = null;
-        string face = null;
-        double size = 0;
-        var fill = PaintedRectangles.Grey(0);
+        var reader = new RunReader(FontsOf(page));
+        foreach (var item in ContentReader.ReadContent(PageContent.Of(page)))
+        {
+            if (item is COperator op)
+                reader.Read(op);
+        }
+
+        return reader.Shown;
+    }
+
+    /// <summary>Follows one page's text, one operator at a time.</summary>
+    private sealed class RunReader
+    {
+        private readonly Dictionary<string, Decoding> _fonts;
+
+        // The font the text is shown in, which is also where its face is named, and its size.
+        private Decoding _current;
+        private double _size;
+        private string _fill = PaintedRectangles.Grey(0);
+
         // The text state is part of the graphics state (ISO 32000-1 Table 52), so q and Q save and
         // restore the font and its size together with the fill.
-        var saved = new Stack<(string Fill, Decoding Current, string Face, double Size)>();
+        private readonly Stack<(string Fill, Decoding Current, double Size)> _saved = new();
 
         // Where the current line starts, and where the next glyph goes. A chart draws one run per
         // line, so the two only differ if one ever writes two runs without moving between them.
-        double lineX = 0, lineY = 0;
+        private double _lineX, _lineY;
 
-        foreach (var item in ContentReader.ReadContent(PageContent.Of(page)))
+        internal RunReader(Dictionary<string, Decoding> fonts) => _fonts = fonts;
+
+        internal List<Run> Shown { get; } = [];
+
+        internal void Read(COperator op)
         {
-            if (item is not COperator op)
-                continue;
+            var name = op.OpCode.OpCodeName;
+            if (FollowGraphicsState(name, op.Operands) || FollowTextPosition(name, op.Operands))
+                return;
 
-            switch (op.OpCode.OpCodeName)
+            switch (name)
             {
-                case OpCodeName.q:
-                    saved.Push((fill, current, face, size));
-                    break;
-
-                case OpCodeName.Q:
-                    if (saved.Count > 0)
-                        (fill, current, face, size) = saved.Pop();
-                    break;
-
-                case OpCodeName.rg:
-                    if (op.Operands.Count >= 3)
-                        fill = PaintedRectangles.Rgb(Number(op.Operands[0]), Number(op.Operands[1]), Number(op.Operands[2]));
-                    break;
-
-                case OpCodeName.g:
-                    if (op.Operands.Count >= 1)
-                        fill = PaintedRectangles.Grey(Number(op.Operands[0]));
-                    break;
-
-                case OpCodeName.k:
-                    if (op.Operands.Count >= 4)
-                        fill = PaintedRectangles.Cmyk(Number(op.Operands[0]), Number(op.Operands[1]),
-                            Number(op.Operands[2]), Number(op.Operands[3]));
-                    break;
-
-                case OpCodeName.BT:
-                    lineX = lineY = 0;
-                    break;
-
-                case OpCodeName.Td:
-                case OpCodeName.TD:
-                    if (op.Operands.Count >= 2)
-                    {
-                        lineX += Number(op.Operands[0]);
-                        lineY += Number(op.Operands[1]);
-                    }
-                    break;
-
-                case OpCodeName.Tm:
-                    // The last two operands of a text matrix are its translation.
-                    if (op.Operands.Count >= 6)
-                    {
-                        lineX = Number(op.Operands[4]);
-                        lineY = Number(op.Operands[5]);
-                    }
-                    break;
-
                 case OpCodeName.Tf:
-                    // "/F0 10 Tf" - the resource name is the first operand.
-                    if (op.Operands.Count >= 1 && op.Operands[0] is CName name)
-                    {
-                        fonts.TryGetValue(name.Name, out current);
-                        face = current?.Face;
-                    }
-                    if (op.Operands.Count >= 2)
-                        size = Number(op.Operands[1]);
+                    SelectFont(op.Operands);
                     break;
 
                 case OpCodeName.Tj:
                 case OpCodeName.TJ:
-                    foreach (var text in StringsIn(op.Operands))
-                        shown.Add(new Run(Decode(text, current), lineX, lineY, fill, size, face));
+                    Show(op.Operands);
                     break;
             }
         }
 
-        return shown;
+        private bool FollowGraphicsState(OpCodeName name, CSequence operands)
+        {
+            switch (name)
+            {
+                case OpCodeName.q:
+                    _saved.Push((_fill, _current, _size));
+                    return true;
+
+                case OpCodeName.Q:
+                    if (_saved.Count > 0)
+                        (_fill, _current, _size) = _saved.Pop();
+                    return true;
+
+                // The fill colour, in whichever of the three device spaces it is named.
+                case OpCodeName.rg:
+                    if (operands.Count >= 3)
+                        _fill = PaintedRectangles.Rgb(Number(operands[0]), Number(operands[1]), Number(operands[2]));
+                    return true;
+
+                case OpCodeName.g:
+                    if (operands.Count >= 1)
+                        _fill = PaintedRectangles.Grey(Number(operands[0]));
+                    return true;
+
+                case OpCodeName.k:
+                    if (operands.Count >= 4)
+                        _fill = PaintedRectangles.Cmyk(Number(operands[0]), Number(operands[1]),
+                            Number(operands[2]), Number(operands[3]));
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
+        private bool FollowTextPosition(OpCodeName name, CSequence operands)
+        {
+            switch (name)
+            {
+                case OpCodeName.BT:
+                    _lineX = _lineY = 0;
+                    return true;
+
+                case OpCodeName.Td:
+                case OpCodeName.TD:
+                    if (operands.Count >= 2)
+                    {
+                        _lineX += Number(operands[0]);
+                        _lineY += Number(operands[1]);
+                    }
+                    return true;
+
+                case OpCodeName.Tm:
+                    // The last two operands of a text matrix are its translation.
+                    if (operands.Count >= 6)
+                    {
+                        _lineX = Number(operands[4]);
+                        _lineY = Number(operands[5]);
+                    }
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
+        private void SelectFont(CSequence operands)
+        {
+            // "/F0 10 Tf" - the resource name is the first operand. A name the page does not
+            // define leaves no decoding at all, so its bytes are reported as they stand.
+            if (operands.Count >= 1 && operands[0] is CName name)
+                _fonts.TryGetValue(name.Name, out _current);
+            if (operands.Count >= 2)
+                _size = Number(operands[1]);
+        }
+
+        private void Show(CSequence operands)
+        {
+            foreach (var text in StringsIn(operands))
+                Shown.Add(new Run(Decode(text, _current), _lineX, _lineY, _fill, _size, _current?.Face));
+        }
     }
 
     private static double Number(CObject operand) => operand switch

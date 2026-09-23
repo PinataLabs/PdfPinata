@@ -83,121 +83,132 @@ internal static class PaintedRectangles
     /// <summary>Every rectangle the page paints, in the order it draws them.</summary>
     internal static IReadOnlyList<Rectangle> On(PdfPage page)
     {
-        var painted = new List<Rectangle>();
-
-        // Rectangles named but not yet painted. A path is not painted until its operator says
-        // how, and DrawRectangle writes one re per call, so in practice this holds one.
-        var pending = new List<(double X, double Y, double Width, double Height)>();
-
-        var fill = Black;
-        var stroke = Black;
-        var saved = new Stack<(string Fill, string Stroke)>();
-
+        var reader = new RectangleReader();
         foreach (var item in ContentReader.ReadContent(PageContent.Of(page)))
         {
-            if (item is not COperator op)
-                continue;
+            if (item is COperator op)
+                reader.Read(op);
+        }
 
-            switch (op.OpCode.OpCodeName)
+        return reader.Painted;
+    }
+
+    /// <summary>
+    ///   What each path-painting operator does with the path: whether it fills it, strokes it, or
+    ///   both. <c>n</c>, which paints nothing and is how a clipping path ends, is not here.
+    /// </summary>
+    internal static readonly IReadOnlyDictionary<OpCodeName, (bool Filled, bool Stroked)> Painting =
+        new Dictionary<OpCodeName, (bool Filled, bool Stroked)>
+        {
+            [OpCodeName.f] = (true, false),
+            [OpCodeName.F] = (true, false),
+            [OpCodeName.fx] = (true, false),
+            [OpCodeName.S] = (false, true),
+            [OpCodeName.s] = (false, true),
+            [OpCodeName.B] = (true, true),
+            [OpCodeName.Bx] = (true, true),
+            [OpCodeName.b] = (true, true),
+            [OpCodeName.bx] = (true, true)
+        };
+
+    /// <summary>Follows one page's content, one operator at a time.</summary>
+    private sealed class RectangleReader
+    {
+        // Rectangles named but not yet painted. A path is not painted until its operator says
+        // how, and DrawRectangle writes one re per call, so in practice this holds one.
+        private readonly List<(double X, double Y, double Width, double Height)> _pending = [];
+
+        private readonly Stack<(string Fill, string Stroke)> _saved = new();
+        private string _fill = Black;
+        private string _stroke = Black;
+
+        internal List<Rectangle> Painted { get; } = [];
+
+        internal void Read(COperator op)
+        {
+            var name = op.OpCode.OpCodeName;
+            if (FollowGraphicsState(name) || SetColour(name, op.Operands))
+                return;
+
+            if (name == OpCodeName.re)
+                NameRectangle(op.Operands);
+            else
+                PaintPath(name);
+        }
+
+        private bool FollowGraphicsState(OpCodeName name)
+        {
+            switch (name)
             {
                 case OpCodeName.q:
-                    saved.Push((fill, stroke));
-                    break;
+                    _saved.Push((_fill, _stroke));
+                    return true;
 
                 case OpCodeName.Q:
                     // A Q with nothing put away is malformed content; read on rather than throw.
-                    if (saved.Count > 0)
-                        (fill, stroke) = saved.Pop();
-                    break;
+                    if (_saved.Count > 0)
+                        (_fill, _stroke) = _saved.Pop();
+                    return true;
 
-                case OpCodeName.rg:
-                    if (op.Operands.Count >= 3)
-                        fill = Rgb(Number(op.Operands[0]), Number(op.Operands[1]), Number(op.Operands[2]));
-                    break;
-
-                case OpCodeName.g:
-                    if (op.Operands.Count >= 1)
-                        fill = Grey(Number(op.Operands[0]));
-                    break;
-
-                case OpCodeName.k:
-                    if (op.Operands.Count >= 4)
-                        fill = Cmyk(Number(op.Operands[0]), Number(op.Operands[1]),
-                            Number(op.Operands[2]), Number(op.Operands[3]));
-                    break;
-
-                case OpCodeName.RG:
-                    if (op.Operands.Count >= 3)
-                        stroke = Rgb(Number(op.Operands[0]), Number(op.Operands[1]), Number(op.Operands[2]));
-                    break;
-
-                case OpCodeName.G:
-                    if (op.Operands.Count >= 1)
-                        stroke = Grey(Number(op.Operands[0]));
-                    break;
-
-                case OpCodeName.K:
-                    if (op.Operands.Count >= 4)
-                        stroke = Cmyk(Number(op.Operands[0]), Number(op.Operands[1]),
-                            Number(op.Operands[2]), Number(op.Operands[3]));
-                    break;
-
-                case OpCodeName.re:
-                    if (op.Operands.Count >= 4)
-                    {
-                        var width = Number(op.Operands[2]);
-                        var height = Number(op.Operands[3]);
-                        var x = Number(op.Operands[0]);
-                        var y = Number(op.Operands[1]);
-
-                        // A negative extent names the same rectangle from the far corner.
-                        if (width < 0)
-                        {
-                            x += width;
-                            width = -width;
-                        }
-                        if (height < 0)
-                        {
-                            y += height;
-                            height = -height;
-                        }
-
-                        pending.Add((x, y, width, height));
-                    }
-                    break;
-
-                case OpCodeName.f:
-                case OpCodeName.F:
-                case OpCodeName.fx:
-                    Paint(filled: true, stroked: false);
-                    break;
-
-                case OpCodeName.S:
-                case OpCodeName.s:
-                    Paint(filled: false, stroked: true);
-                    break;
-
-                case OpCodeName.B:
-                case OpCodeName.Bx:
-                case OpCodeName.b:
-                case OpCodeName.bx:
-                    Paint(filled: true, stroked: true);
-                    break;
-
-                // Painted with nothing, which a clipping path is.
-                case OpCodeName.n:
-                    pending.Clear();
-                    break;
+                default:
+                    return false;
             }
         }
 
-        return painted;
-
-        void Paint(bool filled, bool stroked)
+        /// <summary>The fill and stroking colours, in whichever of the three device spaces they are named.</summary>
+        private bool SetColour(OpCodeName name, CSequence operands)
         {
-            foreach (var (x, y, width, height) in pending)
-                painted.Add(new Rectangle(x, y, width, height, filled ? fill : stroke, filled, stroked));
-            pending.Clear();
+            switch (name)
+            {
+                case OpCodeName.rg: SetFill(RgbIn(operands)); return true;
+                case OpCodeName.g: SetFill(GreyIn(operands)); return true;
+                case OpCodeName.k: SetFill(CmykIn(operands)); return true;
+                case OpCodeName.RG: SetStroke(RgbIn(operands)); return true;
+                case OpCodeName.G: SetStroke(GreyIn(operands)); return true;
+                case OpCodeName.K: SetStroke(CmykIn(operands)); return true;
+                default: return false;
+            }
+        }
+
+        // A colour operator with too few operands is malformed and changes nothing.
+        private void SetFill(string colour) => _fill = colour ?? _fill;
+        private void SetStroke(string colour) => _stroke = colour ?? _stroke;
+
+        private void NameRectangle(CSequence operands)
+        {
+            if (operands.Count < 4)
+                return;
+
+            var width = Number(operands[2]);
+            var height = Number(operands[3]);
+            var x = Number(operands[0]);
+            var y = Number(operands[1]);
+
+            // A negative extent names the same rectangle from the far corner.
+            (x, width) = FromNearCorner(x, width);
+            (y, height) = FromNearCorner(y, height);
+
+            _pending.Add((x, y, width, height));
+        }
+
+        private void PaintPath(OpCodeName name)
+        {
+            // Painted with nothing, which a clipping path is.
+            if (name == OpCodeName.n)
+            {
+                _pending.Clear();
+                return;
+            }
+
+            if (!Painting.TryGetValue(name, out var paint))
+                return;
+
+            foreach (var (x, y, width, height) in _pending)
+            {
+                var colour = paint.Filled ? _fill : _stroke;
+                Painted.Add(new Rectangle(x, y, width, height, colour, paint.Filled, paint.Stroked));
+            }
+            _pending.Clear();
         }
     }
 
@@ -231,6 +242,20 @@ internal static class PaintedRectangles
 
     internal static string Cmyk(double c, double m, double y, double k) =>
         Rgb((1 - c) * (1 - k), (1 - m) * (1 - k), (1 - y) * (1 - k));
+
+    private static string RgbIn(CSequence operands) =>
+        operands.Count >= 3 ? Rgb(Number(operands[0]), Number(operands[1]), Number(operands[2])) : null;
+
+    private static string GreyIn(CSequence operands) =>
+        operands.Count >= 1 ? Grey(Number(operands[0])) : null;
+
+    private static string CmykIn(CSequence operands) =>
+        operands.Count >= 4
+            ? Cmyk(Number(operands[0]), Number(operands[1]), Number(operands[2]), Number(operands[3]))
+            : null;
+
+    private static (double Start, double Extent) FromNearCorner(double start, double extent) =>
+        extent < 0 ? (start + extent, -extent) : (start, extent);
 
     private static double Number(CObject operand) => operand switch
     {

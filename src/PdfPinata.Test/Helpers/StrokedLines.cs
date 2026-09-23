@@ -68,129 +68,190 @@ internal static class StrokedLines
     /// </summary>
     internal static IReadOnlyList<Line> Of(PdfPage page)
     {
-        var lines = new List<Line>();
+        var reader = new LineReader();
+        foreach (var item in ContentReader.ReadContent(ContentOf(page)))
+        {
+            if (item is COperator op)
+                reader.Read(op);
+        }
 
+        return reader.Lines;
+    }
+
+    /// <summary>
+    ///   What each path-painting operator does with the path: whether it closes the subpath
+    ///   first, and whether it strokes it. Filling is not recorded, because a filled path leaves
+    ///   no line; <c>n</c> paints nothing at all.
+    /// </summary>
+    private static readonly Dictionary<OpCodeName, (bool Closes, bool Strokes)> Painting = new()
+    {
+        // Close the path and then stroke it.
+        [OpCodeName.s] = (true, true),
+        [OpCodeName.b] = (true, true),
+        [OpCodeName.bx] = (true, true),
+
+        // Stroke the path, filling it first or not.
+        [OpCodeName.S] = (false, true),
+        [OpCodeName.B] = (false, true),
+        [OpCodeName.Bx] = (false, true),
+
+        // Fill the path, or paint nothing at all: either way nothing is stroked.
+        [OpCodeName.f] = (false, false),
+        [OpCodeName.F] = (false, false),
+        [OpCodeName.fx] = (false, false),
+        [OpCodeName.n] = (false, false)
+    };
+
+    /// <summary>Follows one page's content, one operator at a time.</summary>
+    private sealed class LineReader
+    {
         // The segments of the path being built. A path is not painted until its operator says
         // how, so they are held here and kept only if that operator strokes.
-        var path = new List<Line>();
+        private readonly List<Line> _path = [];
 
         // The current point and the point the subpath began at.
-        double x = 0, y = 0, startX = 0, startY = 0;
-        var inSubpath = false;
+        private double _x, _y, _startX, _startY;
+        private bool _inSubpath;
 
         // The graphics state a stroked segment is drawn under. A q puts a copy of it away and the
         // matching Q brings that copy back, so anything named inside the pair stops applying at
         // the end of it. Reading a page without following that reports the colour and the width of
         // an inner scope for every segment drawn after it.
-        double width = 1;
-        var colour = Black;
-        var saved = new Stack<(double Width, string Colour)>();
+        private double _width = 1;
+        private string _colour = Black;
+        private readonly Stack<(double Width, string Colour)> _saved = new();
 
-        foreach (var item in ContentReader.ReadContent(ContentOf(page)))
+        internal List<Line> Lines { get; } = [];
+
+        internal void Read(COperator op)
         {
-            if (item is not COperator op)
-                continue;
+            var name = op.OpCode.OpCodeName;
+            if (FollowGraphicsState(name, op.Operands) || SetColour(name, op.Operands) || BuildPath(name, op.Operands))
+                return;
 
-            switch (op.OpCode.OpCodeName)
+            PaintPath(name);
+        }
+
+        private bool FollowGraphicsState(OpCodeName name, CSequence operands)
+        {
+            switch (name)
             {
                 case OpCodeName.w:
-                    if (op.Operands.Count >= 1)
-                        width = Number(op.Operands[0]);
-                    break;
+                    if (operands.Count >= 1)
+                        _width = Number(operands[0]);
+                    return true;
 
                 case OpCodeName.q:
-                    saved.Push((width, colour));
-                    break;
+                    _saved.Push((_width, _colour));
+                    return true;
 
                 case OpCodeName.Q:
                     // A Q with nothing put away is malformed content; read on rather than throw.
-                    if (saved.Count > 0)
-                        (width, colour) = saved.Pop();
-                    break;
+                    if (_saved.Count > 0)
+                        (_width, _colour) = _saved.Pop();
+                    return true;
 
-                // The stroking colour, in whichever of the three device spaces it is named.
-                case OpCodeName.RG:
-                    if (op.Operands.Count >= 3)
-                        colour = Rgb(Number(op.Operands[0]), Number(op.Operands[1]), Number(op.Operands[2]));
-                    break;
-
-                case OpCodeName.G:
-                    if (op.Operands.Count >= 1)
-                    {
-                        var grey = Number(op.Operands[0]);
-                        colour = Rgb(grey, grey, grey);
-                    }
-                    break;
-
-                case OpCodeName.K:
-                    if (op.Operands.Count >= 4)
-                        colour = Cmyk(Number(op.Operands[0]), Number(op.Operands[1]),
-                            Number(op.Operands[2]), Number(op.Operands[3]));
-                    break;
-
-                case OpCodeName.m:
-                    if (op.Operands.Count >= 2)
-                    {
-                        x = startX = Number(op.Operands[0]);
-                        y = startY = Number(op.Operands[1]);
-                        inSubpath = true;
-                    }
-                    break;
-
-                case OpCodeName.l:
-                    if (inSubpath && op.Operands.Count >= 2)
-                    {
-                        var toX = Number(op.Operands[0]);
-                        var toY = Number(op.Operands[1]);
-                        path.Add(new Line(x, y, toX, toY, width, colour));
-                        x = toX;
-                        y = toY;
-                    }
-                    break;
-
-                case OpCodeName.h:
-                    CloseSubpath();
-                    break;
-
-                // Close the path and then stroke it.
-                case OpCodeName.s:
-                case OpCodeName.b:
-                case OpCodeName.bx:
-                    CloseSubpath();
-                    goto case OpCodeName.S;
-
-                // Stroke the path, filling it first or not.
-                case OpCodeName.S:
-                case OpCodeName.B:
-                case OpCodeName.Bx:
-                    lines.AddRange(path);
-                    path.Clear();
-                    inSubpath = false;
-                    break;
-
-                // Fill the path, or paint nothing at all: either way nothing is stroked.
-                case OpCodeName.f:
-                case OpCodeName.F:
-                case OpCodeName.fx:
-                case OpCodeName.n:
-                    path.Clear();
-                    inSubpath = false;
-                    break;
+                default:
+                    return false;
             }
         }
 
-        return lines;
+        /// <summary>The stroking colour, in whichever of the three device spaces it is named.</summary>
+        private bool SetColour(OpCodeName name, CSequence operands)
+        {
+            switch (name)
+            {
+                case OpCodeName.RG:
+                    if (operands.Count >= 3)
+                        _colour = Rgb(Number(operands[0]), Number(operands[1]), Number(operands[2]));
+                    return true;
+
+                case OpCodeName.G:
+                    if (operands.Count >= 1)
+                    {
+                        var grey = Number(operands[0]);
+                        _colour = Rgb(grey, grey, grey);
+                    }
+                    return true;
+
+                case OpCodeName.K:
+                    if (operands.Count >= 4)
+                        _colour = Cmyk(Number(operands[0]), Number(operands[1]),
+                            Number(operands[2]), Number(operands[3]));
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
+        private bool BuildPath(OpCodeName name, CSequence operands)
+        {
+            switch (name)
+            {
+                case OpCodeName.m:
+                    MoveTo(operands);
+                    return true;
+
+                case OpCodeName.l:
+                    LineTo(operands);
+                    return true;
+
+                case OpCodeName.h:
+                    CloseSubpath();
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
+        private void MoveTo(CSequence operands)
+        {
+            if (operands.Count < 2)
+                return;
+
+            _x = _startX = Number(operands[0]);
+            _y = _startY = Number(operands[1]);
+            _inSubpath = true;
+        }
+
+        private void LineTo(CSequence operands)
+        {
+            if (!_inSubpath || operands.Count < 2)
+                return;
+
+            var toX = Number(operands[0]);
+            var toY = Number(operands[1]);
+            _path.Add(new Line(_x, _y, toX, toY, _width, _colour));
+            _x = toX;
+            _y = toY;
+        }
 
         // Closing a subpath draws the segment back to where it began.
-        void CloseSubpath()
+        private void CloseSubpath()
         {
             // ReSharper disable CompareOfFloatsByEqualityOperator
-            if (inSubpath && (x != startX || y != startY))
-                path.Add(new Line(x, y, startX, startY, width, colour));
+            if (_inSubpath && (_x != _startX || _y != _startY))
+                _path.Add(new Line(_x, _y, _startX, _startY, _width, _colour));
             // ReSharper restore CompareOfFloatsByEqualityOperator
 
-            x = startX;
-            y = startY;
+            _x = _startX;
+            _y = _startY;
+        }
+
+        private void PaintPath(OpCodeName name)
+        {
+            if (!Painting.TryGetValue(name, out var paint))
+                return;
+
+            if (paint.Closes)
+                CloseSubpath();
+            if (paint.Strokes)
+                Lines.AddRange(_path);
+
+            _path.Clear();
+            _inSubpath = false;
         }
     }
 
