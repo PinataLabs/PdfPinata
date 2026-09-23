@@ -193,7 +193,7 @@ internal class PdfTrailer : PdfDictionary  // Reference: 3.4.4  File Trailer / P
 
         Elements.Remove(Keys.Prev);
 
-        Debug.Assert(_document._irefTable.IsUnderConstruction == false);
+        Debug.Assert(!_document._irefTable.IsUnderConstruction);
         _document._irefTable.IsUnderConstruction = false;
     }
 
