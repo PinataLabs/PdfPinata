@@ -52,8 +52,7 @@ internal abstract class DataLabelRenderer : Renderer
     var cri = (ChartRendererInfo)rendererParms.RendererInfo;
     foreach (var sri in cri.SeriesRendererInfos)
     {
-      if (!cri.Chart.hasDataLabel && cri.Chart.dataLabel == null &&
-          !sri.Series.hasDataLabel && sri.Series.dataLabel == null)
+      if (!cri.Chart.hasDataLabel && cri.Chart.dataLabel == null && !sri.Series.hasDataLabel && sri.Series.dataLabel == null)
         continue;
 
       var dlri = new DataLabelRendererInfo();
