@@ -27,6 +27,7 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
+using System.Collections.Generic;
 using System.Text;
 
 namespace PdfPinata.Pdf.Internal;
@@ -100,96 +101,32 @@ public sealed class AnsiEncoding : Encoding
     /// <summary>
     /// Indicates whether the specified Unicode character is available in the ANSI code page 1252.
     /// </summary>
-    public static bool IsAnsi1252Char(char ch)
-    {
-        if (ch is < '\u0080' or (>= '\u00A0' and <= '\u00FF'))
-            return true;
-
-        return ch switch
-        {
-            '\u20AC'
-                or '\u0081'
-                or '\u201A'
-                or '\u0192'
-                or '\u201E'
-                or '\u2026'
-                or '\u2020'
-                or '\u2021'
-                or '\u02C6'
-                or '\u2030'
-                or '\u0160'
-                or '\u2039'
-                or '\u0152'
-                or '\u008D'
-                or '\u017D'
-                or '\u008F'
-                or '\u0090'
-                or '\u2018'
-                or '\u2019'
-                or '\u201C'
-                or '\u201D'
-                or '\u2022'
-                or '\u2013'
-                or '\u2014'
-                or '\u02DC'
-                or '\u2122'
-                or '\u0161'
-                or '\u203A'
-                or '\u0153'
-                or '\u009D'
-                or '\u017E'
-                or '\u0178'
-                => true,
-            _ => false
-        };
-    }
+    public static bool IsAnsi1252Char(char ch) =>
+        IsIdentityMapped(ch) || UnicodeToAnsiWindow.ContainsKey(ch);
 
     /// <summary>
     /// Maps Unicode to ANSI code page 1252.
     /// </summary>
     public static char UnicodeToAnsi(char ch)
     {
-        if (ch is < '\u0080' or (>= '\u00A0' and <= '\u00FF'))
+        if (IsIdentityMapped(ch))
             return ch;
 
-        return ch switch
-        {
-            '\u20AC' => '\u0080',
-            '\u0081' => '\u0081',
-            '\u201A' => '\u0082',
-            '\u0192' => '\u0083',
-            '\u201E' => '\u0084',
-            '\u2026' => '\u0085',
-            '\u2020' => '\u0086',
-            '\u2021' => '\u0087',
-            '\u02C6' => '\u0088',
-            '\u2030' => '\u0089',
-            '\u0160' => '\u008A',
-            '\u2039' => '\u008B',
-            '\u0152' => '\u008C',
-            '\u008D' => '\u008D',
-            '\u017D' => '\u008E',
-            '\u008F' => '\u008F',
-            '\u0090' => '\u0090',
-            '\u2018' => '\u0091',
-            '\u2019' => '\u0092',
-            '\u201C' => '\u0093',
-            '\u201D' => '\u0094',
-            '\u2022' => '\u0095',
-            '\u2013' => '\u0096',
-            '\u2014' => '\u0097',
-            '\u02DC' => '\u0098',
-            '\u2122' => '\u0099',
-            '\u0161' => '\u009A',
-            '\u203A' => '\u009B',
-            '\u0153' => '\u009C',
-            '\u009D' => '\u009D',
-            '\u017E' => '\u009E',
-            '\u0178' => '\u009F',
-            // Char 164 is ANSI value of '¤'.
-            _ => '\u00A4'
-        };
+        return UnicodeToAnsiWindow.TryGetValue(ch, out var ansi) ? ansi : SubstituteChar;
     }
+
+    /// <summary>
+    /// Indicates whether the character lies in one of the two ranges the code page shares with
+    /// Unicode - ASCII below the window at 0x80 to 0x9F, and Latin-1 above it - where every
+    /// character stands for itself.
+    /// </summary>
+    private static bool IsIdentityMapped(char ch) => ch is < '\u0080' or (>= ' ' and <= 'ÿ');
+
+    /// <summary>
+    /// What a character the code page has no room for becomes: 164, the ANSI value of the currency
+    /// sign. The code page carries that character too, so a substitute cannot be told from it.
+    /// </summary>
+    private const char SubstituteChar = '¤';
 
     /// <summary>
     /// Maps WinAnsi to Unicode characters.
@@ -214,4 +151,20 @@ public sealed class AnsiEncoding : Encoding
         /* E0 */ '\u00E0', '\u00E1', '\u00E2', '\u00E3', '\u00E4', '\u00E5', '\u00E6', '\u00E7', '\u00E8', '\u00E9', '\u00EA', '\u00EB', '\u00EC', '\u00ED', '\u00EE', '\u00EF',
         /* F0 */ '\u00F0', '\u00F1', '\u00F2', '\u00F3', '\u00F4', '\u00F5', '\u00F6', '\u00F7', '\u00F8', '\u00F9', '\u00FA', '\u00FB', '\u00FC', '\u00FD', '\u00FE', '\u00FF'
     ];
+
+    /// <summary>
+    /// The window at 0x80 to 0x9F read the other way round: each of its 32 Unicode characters to
+    /// the byte that stands for it. Built from <see cref="AnsiToUnicode"/> rather than written out
+    /// a second time, so the two directions cannot drift apart. Declared after that table, whose
+    /// initializer has to have run first.
+    /// </summary>
+    private static readonly Dictionary<char, char> UnicodeToAnsiWindow = ReverseOfTheWindow();
+
+    private static Dictionary<char, char> ReverseOfTheWindow()
+    {
+        var window = new Dictionary<char, char>(32);
+        for (var ansi = '\u0080'; ansi <= '\u009F'; ansi++)
+            window.Add(AnsiToUnicode[ansi], ansi);
+        return window;
+    }
 }

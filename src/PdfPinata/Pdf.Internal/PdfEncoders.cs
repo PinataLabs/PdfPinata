@@ -250,11 +250,7 @@ internal static class PdfEncoders
         var byteOrderMarkLength = 0;
         if (unicode && prefix)
         {
-            var withByteOrderMark = new byte[bytes.Length + 2];
-            withByteOrderMark[0] = 0xFE;
-            withByteOrderMark[1] = 0xFF;
-            Array.Copy(bytes, 0, withByteOrderMark, 2, bytes.Length);
-            bytes = withByteOrderMark;
+            bytes = WithByteOrderMark(bytes);
             byteOrderMarkLength = 2;
         }
 
@@ -264,95 +260,105 @@ internal static class PdfEncoders
             bytes = securityHandler.EncryptBytes(bytes);
         }
 
-        var count = bytes.Length;
         var pdf = new StringBuilder();
-        if (!unicode)
-        {
-            if (!hex)
-            {
-                pdf.Append('(');
-                for (var idx = 0; idx < count; idx++)
-                {
-                    var ch = (char)bytes[idx];
-                    if (ch < 32)
-                    {
-                        switch (ch)
-                        {
-                            case '\n':
-                                pdf.Append("\\n");
-                                break;
-
-                            case '\r':
-                                pdf.Append("\\r");
-                                break;
-
-                            case '\t':
-                                pdf.Append("\\t");
-                                break;
-
-                            case '\b':
-                                pdf.Append("\\b");
-                                break;
-
-                            // A form feed is deliberately not escaped as \f: escaping it corrupted encrypted text.
-
-                            default:
-                                // Any other byte below 32 is written as it is, encrypted or not:
-                                // a literal string may hold any byte but the ones escaped here.
-                                pdf.Append(ch);
-                                break;
-                        }
-                    }
-                    else
-                    {
-                        switch (ch)
-                        {
-                            case '(':
-                                pdf.Append("\\(");
-                                break;
-
-                            case ')':
-                                pdf.Append("\\)");
-                                break;
-
-                            case '\\':
-                                pdf.Append("\\\\");
-                                break;
-
-                            default:
-                                pdf.Append(ch);
-                                break;
-                        }
-                    }
-                }
-                pdf.Append(')');
-            }
-            else
-            {
-                pdf.Append('<');
-                for (var idx = 0; idx < count; idx++)
-                    pdf.AppendFormat("{0:X2}", bytes[idx]);
-                pdf.Append('>');
-            }
-        }
-        else
+        if (unicode)
         {
             // Unicode is always written in hex, whatever was asked for. A byte order mark that was
             // asked for is already the first two bytes, put there above so that it is encrypted
             // with the rest.
-            pdf.Append('<');
-            for (var idx = 0; idx < count; idx += 2)
-            {
-                pdf.AppendFormat("{0:X2}{1:X2}", bytes[idx], bytes[idx + 1]);
-                // The mark is part of the bytes now, so count from the text that follows it
-                // and the lines break where they always did.
-                var positionInText = idx - byteOrderMarkLength;
-                if (positionInText != 0 && positionInText % 48 == 0)
-                    pdf.Append('\n');
-            }
-            pdf.Append('>');
+            AppendUnicodeHexLiteral(pdf, bytes, byteOrderMarkLength);
+        }
+        else if (hex)
+        {
+            AppendHexLiteral(pdf, bytes);
+        }
+        else
+        {
+            AppendLiteral(pdf, bytes);
         }
         return RawEncoding.GetBytes(pdf.ToString());
+    }
+
+    /// <summary>
+    /// The bytes of a UTF-16 string behind the big-endian byte order mark that says they are one.
+    /// </summary>
+    private static byte[] WithByteOrderMark(byte[] bytes)
+    {
+        var withByteOrderMark = new byte[bytes.Length + 2];
+        withByteOrderMark[0] = 0xFE;
+        withByteOrderMark[1] = 0xFF;
+        Array.Copy(bytes, 0, withByteOrderMark, 2, bytes.Length);
+        return withByteOrderMark;
+    }
+
+    /// <summary>
+    /// Writes the bytes as a literal string in parentheses, a character to a byte, escaping what
+    /// <see cref="LiteralEscapeFor"/> says has to be.
+    /// </summary>
+    private static void AppendLiteral(StringBuilder pdf, byte[] bytes)
+    {
+        pdf.Append('(');
+        for (var idx = 0; idx < bytes.Length; idx++)
+        {
+            var ch = (char)bytes[idx];
+            var escape = LiteralEscapeFor(ch);
+            if (escape != null)
+                pdf.Append(escape);
+            else
+                pdf.Append(ch);
+        }
+        pdf.Append(')');
+    }
+
+    /// <summary>
+    /// The escape sequence a byte is written as inside a literal string, or null for a byte that is
+    /// written as it is.
+    /// </summary>
+    /// <remarks>
+    /// A form feed is deliberately not escaped as \f: escaping it corrupted encrypted text. Any
+    /// other byte below 32 is written as it is, encrypted or not: a literal string may hold any byte
+    /// but the ones escaped here.
+    /// </remarks>
+    private static string LiteralEscapeFor(char ch) => ch switch
+    {
+        '\n' => "\\n",
+        '\r' => "\\r",
+        '\t' => "\\t",
+        '\b' => "\\b",
+        '(' => "\\(",
+        ')' => "\\)",
+        '\\' => "\\\\",
+        _ => null
+    };
+
+    /// <summary>
+    /// Writes the bytes as a hexadecimal string in angle brackets, two digits to a byte.
+    /// </summary>
+    private static void AppendHexLiteral(StringBuilder pdf, byte[] bytes)
+    {
+        pdf.Append('<');
+        for (var idx = 0; idx < bytes.Length; idx++)
+            pdf.AppendFormat("{0:X2}", bytes[idx]);
+        pdf.Append('>');
+    }
+
+    /// <summary>
+    /// Writes the bytes of a UTF-16 string as a hexadecimal string in angle brackets, four digits to
+    /// a character, breaking the line after every 24 characters of text.
+    /// </summary>
+    private static void AppendUnicodeHexLiteral(StringBuilder pdf, byte[] bytes, int byteOrderMarkLength)
+    {
+        pdf.Append('<');
+        for (var idx = 0; idx < bytes.Length; idx += 2)
+        {
+            pdf.AppendFormat("{0:X2}{1:X2}", bytes[idx], bytes[idx + 1]);
+            // The mark is part of the bytes now, so count from the text that follows it
+            // and the lines break where they always did.
+            var positionInText = idx - byteOrderMarkLength;
+            if (positionInText != 0 && positionInText % 48 == 0)
+                pdf.Append('\n');
+        }
+        pdf.Append('>');
     }
 
     /// <summary>

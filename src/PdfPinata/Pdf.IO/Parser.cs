@@ -150,102 +150,30 @@ internal sealed class Parser
         if (!fromObjecStream)
             ReadSymbol(Symbol.Obj);
 
-        var checkForStream = false;
         var symbol = ScanNextToken();
+        var simpleObject = SimpleObjectFor(symbol);
+        if (simpleObject != null)
+        {
+            simpleObject.SetObjectID(objectNumber, generationNumber);
+            if (!fromObjecStream)
+                ReadEndObject();
+            return simpleObject;
+        }
+
+        var checkForStream = false;
         switch (symbol)
         {
             case Symbol.BeginArray:
-                PdfArray array;
-                if (pdfObject == null)
-                    array = new PdfArray(_document);
-                else
-                    array = (PdfArray)pdfObject;
+                var array = pdfObject == null ? new PdfArray(_document) : (PdfArray)pdfObject;
                 pdfObject = ReadArray(array, includeReferences);
                 pdfObject.SetObjectID(objectNumber, generationNumber);
                 break;
 
             case Symbol.BeginDictionary:
-                PdfDictionary dict;
-                if (pdfObject == null)
-                    dict = new PdfDictionary(_document);
-                else
-                    dict = (PdfDictionary)pdfObject;
+                var dict = pdfObject == null ? new PdfDictionary(_document) : (PdfDictionary)pdfObject;
                 checkForStream = true;
                 pdfObject = ReadDictionary(dict, includeReferences);
                 pdfObject.SetObjectID(objectNumber, generationNumber);
-                break;
-
-            // Acrobat 6 Professional proudly presents: The Null object!
-            // Even with a one-digit object number an indirect reference «x 0 R» to this object is
-            // one character larger than the direct use of «null». Probable this is the reason why
-            // it is true that Acrobat Web Capture 6.0 creates this object, but obviously never
-            // creates a reference to it!
-            case Symbol.Null:
-                pdfObject = new PdfNullObject(_document);
-                pdfObject.SetObjectID(objectNumber, generationNumber);
-                if (!fromObjecStream)
-                    ReadEndObject();
-                return pdfObject;
-
-            case Symbol.Boolean:
-                pdfObject = new PdfBooleanObject(_document,
-                    string.Compare(_lexer.Token, bool.TrueString, StringComparison.OrdinalIgnoreCase) == 0);
-                pdfObject.SetObjectID(objectNumber, generationNumber);
-                if (!fromObjecStream)
-                    ReadEndObject();
-                return pdfObject;
-
-            case Symbol.Integer:
-                pdfObject = new PdfIntegerObject(_document, _lexer.TokenToInteger);
-                pdfObject.SetObjectID(objectNumber, generationNumber);
-                if (!fromObjecStream)
-                    ReadEndObject();
-                return pdfObject;
-
-            case Symbol.UInteger:
-                pdfObject = new PdfUIntegerObject(_document, _lexer.TokenToUInteger);
-                pdfObject.SetObjectID(objectNumber, generationNumber);
-                if (!fromObjecStream)
-                    ReadEndObject();
-                return pdfObject;
-
-            case Symbol.Long:
-                pdfObject = new PdfLongObject(_document, _lexer.TokenToLong);
-                pdfObject.SetObjectID(objectNumber, generationNumber);
-                if (!fromObjecStream)
-                    ReadEndObject();
-                return pdfObject;
-
-            case Symbol.Real:
-                pdfObject = new PdfRealObject(_document, _lexer.TokenToReal);
-                pdfObject.SetObjectID(objectNumber, generationNumber);
-                if (!fromObjecStream)
-                    ReadEndObject();
-                return pdfObject;
-
-            case Symbol.String:
-            case Symbol.UnicodeString:
-            case Symbol.HexString:
-            case Symbol.UnicodeHexString:
-                // The same flags a direct string is given. The lexer has already combined the
-                // bytes of a UTF-16 string into characters, so taking it as raw would write each
-                // character back out as its low byte alone.
-                pdfObject = new PdfStringObject(_document, _lexer.Token, StringFlagsFor(symbol));
-                pdfObject.SetObjectID(objectNumber, generationNumber);
-                if (!fromObjecStream)
-                    ReadEndObject();
-                return pdfObject;
-
-            case Symbol.Name:
-                pdfObject = new PdfNameObject(_document, _lexer.Token);
-                pdfObject.SetObjectID(objectNumber, generationNumber);
-                if (!fromObjecStream)
-                    ReadEndObject();
-                return pdfObject;
-
-            case Symbol.Keyword:
-                // Should not come here anymore.
-                ParserDiagnostics.HandleUnexpectedToken(_lexer.Token);
                 break;
 
             case Symbol.EndObj:
@@ -262,45 +190,102 @@ internal sealed class Parser
         var endOfObject = _lexer.Position;
         symbol = ScanNextToken();
         if (symbol == Symbol.BeginStream)
-        {
-            var dict = (PdfDictionary)pdfObject;
-            Debug.Assert(checkForStream, "Unexpected stream...");
-            var startOfStream = _lexer.Position;
-            var bytes = TheStreamTheDictionaryDescribes(dict, startOfStream);
-
-            if (bytes == null)
-            {
-                // The dictionary does not say how long its stream is, or says something the
-                // file cannot hold.
-                if (!TryReadStreamUpToEndOfStream(dict, startOfStream))
-                    throw new InvalidOperationException("Cannot retrieve stream length.");
-            }
-            else
-            {
-                dict.Stream = new PdfDictionary.PdfStream(bytes, dict);
-                try
-                {
-                    ReadSymbol(Symbol.EndStream);
-                }
-                catch (PdfReaderException)
-                {
-                    // The stream length is incorrect, look for the end of the stream instead.
-                    if (!TryReadStreamUpToEndOfStream(dict, startOfStream))
-                        throw;
-                }
-            }
-
-            endOfObject = _lexer.Position;
-            symbol = ScanNextToken();
-            if (symbol == Symbol.Eof)
-            {
-                symbol = Symbol.EndObj;
-            }
-        }
+            symbol = ReadStreamOfObject((PdfDictionary)pdfObject, checkForStream, out endOfObject);
 
         if (!fromObjecStream && symbol != Symbol.EndObj)
             EndObject(symbol, endOfObject);
         return pdfObject;
+    }
+
+    /// <summary>
+    ///   The indirect object a simple value read as the symbol given stands for, which is the whole
+    ///   of the object, or null when the symbol does not begin one.
+    /// </summary>
+    private PdfObject SimpleObjectFor(Symbol symbol)
+    {
+        switch (symbol)
+        {
+            // Acrobat 6 Professional proudly presents: The Null object!
+            // Even with a one-digit object number an indirect reference «x 0 R» to this object is
+            // one character larger than the direct use of «null». Probable this is the reason why
+            // it is true that Acrobat Web Capture 6.0 creates this object, but obviously never
+            // creates a reference to it!
+            case Symbol.Null:
+                return new PdfNullObject(_document);
+
+            case Symbol.Boolean:
+                return new PdfBooleanObject(_document,
+                    string.Compare(_lexer.Token, bool.TrueString, StringComparison.OrdinalIgnoreCase) == 0);
+
+            case Symbol.Integer:
+                return new PdfIntegerObject(_document, _lexer.TokenToInteger);
+
+            case Symbol.UInteger:
+                return new PdfUIntegerObject(_document, _lexer.TokenToUInteger);
+
+            case Symbol.Long:
+                return new PdfLongObject(_document, _lexer.TokenToLong);
+
+            case Symbol.Real:
+                return new PdfRealObject(_document, _lexer.TokenToReal);
+
+            case Symbol.String:
+            case Symbol.UnicodeString:
+            case Symbol.HexString:
+            case Symbol.UnicodeHexString:
+                // The same flags a direct string is given. The lexer has already combined the
+                // bytes of a UTF-16 string into characters, so taking it as raw would write each
+                // character back out as its low byte alone.
+                return new PdfStringObject(_document, _lexer.Token, StringFlagsFor(symbol));
+
+            case Symbol.Name:
+                return new PdfNameObject(_document, _lexer.Token);
+
+            default:
+                return null;
+        }
+    }
+
+    /// <summary>
+    ///   Reads the stream of an indirect object, the "stream" keyword just read, and what follows it.
+    /// </summary>
+    /// <param name="dict">The dictionary the stream belongs to.</param>
+    /// <param name="checkForStream">Whether a stream was to be expected, which only a dictionary can have.</param>
+    /// <param name="endOfObject">Receives where the object ends, which is where the symbol returned was read from.</param>
+    /// <returns>
+    ///   The symbol after "endstream", with the end of the file taken for "endobj".
+    /// </returns>
+    private Symbol ReadStreamOfObject(PdfDictionary dict, bool checkForStream, out long endOfObject)
+    {
+        Debug.Assert(checkForStream, "Unexpected stream...");
+        var startOfStream = _lexer.Position;
+        var bytes = TheStreamTheDictionaryDescribes(dict, startOfStream);
+
+        if (bytes == null)
+        {
+            // The dictionary does not say how long its stream is, or says something the
+            // file cannot hold.
+            if (!TryReadStreamUpToEndOfStream(dict, startOfStream))
+                throw new InvalidOperationException("Cannot retrieve stream length.");
+        }
+        else
+        {
+            dict.Stream = new PdfDictionary.PdfStream(bytes, dict);
+            try
+            {
+                ReadSymbol(Symbol.EndStream);
+            }
+            catch (PdfReaderException)
+            {
+                // The stream length is incorrect, look for the end of the stream instead.
+                if (!TryReadStreamUpToEndOfStream(dict, startOfStream))
+                    throw;
+            }
+        }
+
+        endOfObject = _lexer.Position;
+        var symbol = ScanNextToken();
+        return symbol == Symbol.Eof ? Symbol.EndObj : symbol;
     }
 
     /// <summary>
@@ -637,72 +622,9 @@ internal sealed class Parser
                     // ignore comments
                     break;
 
-                case Symbol.Null:
-                    _stack.Shift(PdfNull.Value);
-                    break;
-
-                case Symbol.Boolean:
-                    _stack.Shift(new PdfBoolean(_lexer.TokenToBoolean));
-                    break;
-
-                case Symbol.Integer:
-                    _stack.Shift(new PdfInteger(_lexer.TokenToInteger));
-                    break;
-
-                case Symbol.UInteger:
-                    _stack.Shift(new PdfUInteger(_lexer.TokenToUInteger));
-                    break;
-
-                case Symbol.Long:
-                    _stack.Shift(new PdfLong(_lexer.TokenToLong));
-                    break;
-
-                case Symbol.Real:
-                    _stack.Shift(new PdfReal(_lexer.TokenToReal));
-                    break;
-
-                case Symbol.String:
-                case Symbol.UnicodeString:
-                case Symbol.HexString:
-                case Symbol.UnicodeHexString:
-                    _stack.Shift(new PdfString(_lexer.Token, StringFlagsFor(symbol)));
-                    break;
-
-                case Symbol.Name:
-                    _stack.Shift(new PdfName(_lexer.Token));
-                    break;
-
                 case Symbol.R:
-                {
-                    Debug.Assert(_stack.GetItem(-1) is PdfInteger && _stack.GetItem(-2) is PdfInteger);
-                    var objectID = new PdfObjectID(_stack.GetInteger(-2), _stack.GetInteger(-1));
-
-                    var iref = _document._irefTable[objectID];
-                    if (iref == null)
-                    {
-                        // If a document has more than one PdfXRefTable it is possible that the first trailer has
-                        // indirect references to objects whos iref entry is not yet read in.
-                        if (_document._irefTable.IsUnderConstruction)
-                        {
-                            // XRefTable not complete when trailer is read. Create temporary irefs that are
-                            // removed later in PdfTrailer.FixXRefs.
-                            iref = new PdfReference(objectID, 0);
-                            _stack.Reduce(iref, 2);
-                            break;
-                        }
-
-                        // PDF Reference section 3.2.9:
-                        // An indirect reference to an undefined object is not an error;
-                        // it is simply treated as a reference to the null object.
-                        _stack.Reduce(PdfNull.Value, 2);
-                    }
-                    else
-                    {
-                        _stack.Reduce(iref, 2);
-                    }
-
+                    ReduceReference();
                     break;
-                }
 
                 case Symbol.BeginArray:
                     var array = new PdfArray(_document);
@@ -727,15 +649,97 @@ internal sealed class Parser
                     _lexer.Position -= _lexer.Token.Length;
                     return;
 
-                // Anything else is not expected here.
                 default:
-                    ParserDiagnostics.HandleUnexpectedToken(_lexer.Token);
-                    SkipCharsUntil(stop);
-                    return;
+                    var value = DirectValueFor(symbol);
+                    if (value == null)
+                    {
+                        // Anything else is not expected here.
+                        ParserDiagnostics.HandleUnexpectedToken(_lexer.Token);
+                        SkipCharsUntil(stop);
+                        return;
+                    }
+                    _stack.Shift(value);
+                    break;
             }
         }
 
         ParserDiagnostics.ThrowParserException("Unexpected end of file.");
+    }
+
+    /// <summary>
+    /// The direct object a simple value read as the symbol given stands for, or null when the
+    /// symbol is not one.
+    /// </summary>
+    private PdfItem DirectValueFor(Symbol symbol)
+    {
+        switch (symbol)
+        {
+            case Symbol.Null:
+                return PdfNull.Value;
+
+            case Symbol.Boolean:
+                return new PdfBoolean(_lexer.TokenToBoolean);
+
+            case Symbol.Integer:
+                return new PdfInteger(_lexer.TokenToInteger);
+
+            case Symbol.UInteger:
+                return new PdfUInteger(_lexer.TokenToUInteger);
+
+            case Symbol.Long:
+                return new PdfLong(_lexer.TokenToLong);
+
+            case Symbol.Real:
+                return new PdfReal(_lexer.TokenToReal);
+
+            case Symbol.String:
+            case Symbol.UnicodeString:
+            case Symbol.HexString:
+            case Symbol.UnicodeHexString:
+                return new PdfString(_lexer.Token, StringFlagsFor(symbol));
+
+            case Symbol.Name:
+                return new PdfName(_lexer.Token);
+
+            default:
+                return null;
+        }
+    }
+
+    /// <summary>
+    /// Replaces the object number and generation on top of the stack, the 'R' after them just read,
+    /// with the reference they make.
+    /// </summary>
+    private void ReduceReference()
+    {
+        Debug.Assert(_stack.GetItem(-1) is PdfInteger && _stack.GetItem(-2) is PdfInteger);
+        var objectID = new PdfObjectID(_stack.GetInteger(-2), _stack.GetInteger(-1));
+        _stack.Reduce(ReferenceTo(objectID), 2);
+    }
+
+    /// <summary>
+    /// What a reference to the object given reads as: the entry the cross-reference table has for
+    /// it, a temporary one while that table is still being read, or else null.
+    /// </summary>
+    private PdfItem ReferenceTo(PdfObjectID objectID)
+    {
+        var iref = _document._irefTable[objectID];
+        if (iref != null)
+            return iref;
+
+        // If a document has more than one PdfXRefTable it is possible that the first trailer has
+        // indirect references to objects whos iref entry is not yet read in.
+        if (_document._irefTable.IsUnderConstruction)
+        {
+            // XRefTable not complete when trailer is read. Create temporary irefs that are
+            // removed later in PdfTrailer.FixXRefs.
+            return new PdfReference(objectID, 0);
+        }
+
+        // PDF Reference section 3.2.9:
+        // An indirect reference to an undefined object is not an error;
+        // it is simply treated as a reference to the null object.
+        return PdfNull.Value;
     }
 
     private Symbol ScanNextToken()
@@ -1110,16 +1114,39 @@ internal sealed class Parser
         // Read into a table of its own and merged only once the whole stream has been read, so that
         // a stream damaged halfway through is dropped whole rather than left half in effect.
         var section = new PdfCrossReferenceTable(_document);
+        if (!TryReadHybridSection(position, section, accuracy, out var read))
+            return;
+
+        // A classic table, or nothing recognisable, is not what /XRefStm promises.
+        if (read is not PdfCrossReferenceStream xrefStream)
+        {
+            if (accuracy == PdfReadAccuracy.Strict)
+                ParserDiagnostics.ThrowParserException(
+                    "The trailer's /XRefStm names position " + position + ", where there is no cross-reference stream.");
+
+            return;
+        }
+
+        MergeHybridSection(section, xrefStream);
+    }
+
+    /// <summary>
+    /// Reads the cross-reference section at the position a trailer's /XRefStm names into the table
+    /// given, and says whether it could be read. Under Strict one that cannot be is reported.
+    /// </summary>
+    private bool TryReadHybridSection(int position, PdfCrossReferenceTable section, PdfReadAccuracy accuracy,
+        out PdfTrailer read)
+    {
         // ReadXRefStream keeps every stream it reads for PdfReader to resolve compressed objects
         // from, and it does so before it has decoded a single entry - so a stream dropped here has
         // to be taken back out of that list too, or PdfReader reads the objects its entries name
         // regardless, and a stream damaged halfway through is half in effect after all.
         var streamsBefore = CrossReferenceStreams.Count;
-        PdfTrailer read;
         try
         {
             _lexer.Position = position;
             read = ReadXRefTableAndTrailer(section, accuracy);
+            return true;
         }
         catch (Exception ex) when (!Unrecoverable.Is(ex))
         {
@@ -1133,47 +1160,53 @@ internal sealed class Parser
 
             Debug.WriteLine(ex.Message);
             CrossReferenceStreams.RemoveRange(streamsBefore, CrossReferenceStreams.Count - streamsBefore);
-            return;
+            read = null;
+            return false;
         }
+    }
 
-        // A classic table, or nothing recognisable, is not what /XRefStm promises.
-        if (read is not PdfCrossReferenceStream xrefStream)
-        {
-            if (accuracy == PdfReadAccuracy.Strict)
-                ParserDiagnostics.ThrowParserException(
-                    "The trailer's /XRefStm names position " + position + ", where there is no cross-reference stream.");
-
-            return;
-        }
-
+    /// <summary>
+    /// Adds the entries of a hybrid file's cross-reference stream to the document's table, where
+    /// the entries already in it win.
+    /// </summary>
+    private void MergeHybridSection(PdfCrossReferenceTable section, PdfCrossReferenceStream xrefStream)
+    {
         foreach (var iref in section.AllReferences)
         {
-            // The stream's own entry. When the table already has one, ReadXRefStream would have
-            // filled in its value rather than added a second, so the merge does the same - and on
-            // the same condition, that the entry points at this stream. A newer revision may have
-            // given the stream's number to another object (empira/PDFsharp#353), and hanging the
-            // stream on that object's entry makes the object read as a cross-reference stream.
-            // Left out of the table, the stream is still in CrossReferenceStreams, which is what
-            // its compressed objects are read through.
-            if (ReferenceEquals(iref.Value, xrefStream))
-            {
-                var existing = _document._irefTable[iref.ObjectID];
-                if (existing != null)
-                {
-                    if (existing.Value == null &&
-                        PointsAtStream(existing, xrefStream.StartOfSection, xrefStream.EndOfNumber))
-                    {
-                        xrefStream.Reference = null;
-                        existing.Value = xrefStream;
-                    }
-
-                    continue;
-                }
-            }
+            if (ReferenceEquals(iref.Value, xrefStream) && TryMergeTheStreamsOwnEntry(iref, xrefStream))
+                continue;
 
             // Entries already in the table win; Add leaves one it already has alone.
             _document._irefTable.Add(iref);
         }
+    }
+
+    /// <summary>
+    /// Merges the stream's own entry into an entry the table already has for its number, and says
+    /// whether there was one.
+    /// </summary>
+    /// <remarks>
+    /// When the table already has one, ReadXRefStream would have filled in its value rather than
+    /// added a second, so the merge does the same - and on the same condition, that the entry points
+    /// at this stream. A newer revision may have given the stream's number to another object
+    /// (empira/PDFsharp#353), and hanging the stream on that object's entry makes the object read as
+    /// a cross-reference stream. Left out of the table, the stream is still in
+    /// CrossReferenceStreams, which is what its compressed objects are read through.
+    /// </remarks>
+    private bool TryMergeTheStreamsOwnEntry(PdfReference iref, PdfCrossReferenceStream xrefStream)
+    {
+        var existing = _document._irefTable[iref.ObjectID];
+        if (existing == null)
+            return false;
+
+        if (existing.Value == null &&
+            PointsAtStream(existing, xrefStream.StartOfSection, xrefStream.EndOfNumber))
+        {
+            xrefStream.Reference = null;
+            existing.Value = xrefStream;
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -1516,57 +1549,102 @@ internal sealed class Parser
         //   ^2      ^10   ^16 ^20
         // A group too short to be all there is left at zero - and a date without its day is no
         // date at all, since there is no year zero.
-        var length = date.Length;
-        int year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0, hh = 0, mm = 0;
-        var o = 'Z';
-        if (length >= 10)
-        {
-            if (!TryParseField(date, 2, 4, out year) ||
-                !TryParseField(date, 6, 2, out month) ||
-                !TryParseField(date, 8, 2, out day))
-                return false;
-
-            if (length >= 16)
-            {
-                if (!TryParseField(date, 10, 2, out hour) ||
-                    !TryParseField(date, 12, 2, out minute) ||
-                    !TryParseField(date, 14, 2, out second))
-                    return false;
-
-                if (length >= 23 && (o = date[16]) != 'Z')
-                {
-                    // Anything but +, - or Z is no designator, and without the apostrophes the
-                    // digits either side of them are not an offset's hours and minutes.
-                    if ((o != '+' && o != '-') || date[19] != '\'' || date[22] != '\'')
-                        return false;
-                    if (!TryParseField(date, 17, 2, out hh) ||
-                        !TryParseField(date, 20, 2, out mm))
-                        return false;
-                    if (hh < 0 || hh > 23 || mm < 0 || mm > 59)
-                        return false;
-                }
-            }
-        }
+        if (!TryReadCalendarDate(date, out var year, out var month, out var day) ||
+            !TryReadTimeOfDay(date, out var hour, out var minute, out var second) ||
+            !TryReadOffsetFromUT(date, out var o, out var hh, out var mm))
+            return false;
 
         // There are miserable PDF tools around the world.
         month = Math.Min(Math.Max(month, 1), 12);
-        if (year < 1 || year > 9999 || day < 1 || day > DateTime.DaysInMonth(year, month) ||
-            hour < 0 || hour > 23 || minute < 0 || minute > 59 || second < 0 || second > 59)
+        if (IsOutOfRange(year, month, day, hour, minute, second))
             return false;
 
-        var datetime = new DateTime(year, month, day, hour, minute, second);
-        if (o != 'Z')
-        {
-            // West of UT is behind it, so the offset is added to reach UT; east of it, subtracted.
-            var offset = new TimeSpan(hh, mm, 0).Ticks;
-            var ticks = o == '-' ? datetime.Ticks + offset : datetime.Ticks - offset;
-            if (ticks < DateTime.MinValue.Ticks || ticks > DateTime.MaxValue.Ticks)
-                return false;
-            datetime = new DateTime(ticks);
-        }
+        var local = new DateTime(year, month, day, hour, minute, second);
+        if (!TryConvertToUniversalTime(local, o, hh, mm, out var datetime))
+            return false;
 
         // Now that we converted datetime to UTC, mark it as UTC.
         value = DateTime.SpecifyKind(datetime, DateTimeKind.Utc);
+        return true;
+    }
+
+    /// <summary>
+    /// Reads the year, month and day of a PDF date, D:YYYYMMDD, all left at zero when the date is too
+    /// short to hold them.
+    /// </summary>
+    private static bool TryReadCalendarDate(string date, out int year, out int month, out int day)
+    {
+        year = month = day = 0;
+        if (date.Length < 10)
+            return true;
+
+        return TryParseField(date, 2, 4, out year) &&
+               TryParseField(date, 6, 2, out month) &&
+               TryParseField(date, 8, 2, out day);
+    }
+
+    /// <summary>
+    /// Reads the hour, minute and second of a PDF date, which follow the day as HHmmSS, all left at
+    /// zero when the date is too short to hold them.
+    /// </summary>
+    private static bool TryReadTimeOfDay(string date, out int hour, out int minute, out int second)
+    {
+        hour = minute = second = 0;
+        if (date.Length < 16)
+            return true;
+
+        return TryParseField(date, 10, 2, out hour) &&
+               TryParseField(date, 12, 2, out minute) &&
+               TryParseField(date, 14, 2, out second);
+    }
+
+    /// <summary>
+    /// Reads the relationship of a PDF date's time to UT, OHH'mm', which is 'Z' when the date says
+    /// so or is too short to say anything.
+    /// </summary>
+    private static bool TryReadOffsetFromUT(string date, out char o, out int hh, out int mm)
+    {
+        o = 'Z';
+        hh = mm = 0;
+        if (date.Length < 23)
+            return true;
+
+        o = date[16];
+        if (o == 'Z')
+            return true;
+
+        // Anything but +, - or Z is no designator, and without the apostrophes the
+        // digits either side of them are not an offset's hours and minutes.
+        if ((o != '+' && o != '-') || date[19] != '\'' || date[22] != '\'')
+            return false;
+        if (!TryParseField(date, 17, 2, out hh) ||
+            !TryParseField(date, 20, 2, out mm))
+            return false;
+
+        return hh is >= 0 and <= 23 && mm is >= 0 and <= 59;
+    }
+
+    private static bool IsOutOfRange(int year, int month, int day, int hour, int minute, int second) =>
+        year < 1 || year > 9999 || day < 1 || day > DateTime.DaysInMonth(year, month) ||
+        hour < 0 || hour > 23 || minute < 0 || minute > 59 || second < 0 || second > 59;
+
+    /// <summary>
+    /// Takes a date and time the offset given away from UT to UT, failing when that would carry it
+    /// out of the range a <see cref="DateTime"/> holds.
+    /// </summary>
+    private static bool TryConvertToUniversalTime(DateTime local, char o, int hh, int mm, out DateTime universal)
+    {
+        universal = local;
+        if (o == 'Z')
+            return true;
+
+        // West of UT is behind it, so the offset is added to reach UT; east of it, subtracted.
+        var offset = new TimeSpan(hh, mm, 0).Ticks;
+        var ticks = o == '-' ? local.Ticks + offset : local.Ticks - offset;
+        if (ticks < DateTime.MinValue.Ticks || ticks > DateTime.MaxValue.Ticks)
+            return false;
+
+        universal = new DateTime(ticks);
         return true;
     }
 

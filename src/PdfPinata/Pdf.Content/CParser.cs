@@ -91,92 +91,103 @@ public sealed class CParser
             if (symbol == stop)
                 return;
 
-            CString s;
-            COperator op;
             switch (symbol)
             {
-                case CSymbol.Comment:
-                    // ignore comments
-                    break;
-
-                case CSymbol.Integer:
-                    var n = new CInteger
-                    {
-                        Value = _lexer.TokenToInteger
-                    };
-                    _operands.Add(n);
-                    break;
-
-                case CSymbol.Real:
-                    var r = new CReal
-                    {
-                        Value = _lexer.TokenToReal
-                    };
-                    _operands.Add(r);
-                    break;
-
-                case CSymbol.String:
-                case CSymbol.HexString:
-                case CSymbol.UnicodeString:
-                case CSymbol.UnicodeHexString:
-                    // The kind is kept, so the string is written back in the form it was read in.
-                    // A Unicode string's value is its decoded text, and written back as a plain
-                    // one it went out as the low byte of every character.
-                    s = new CString
-                    {
-                        Value = _lexer.Token,
-                        CStringType = symbol switch
-                        {
-                            CSymbol.HexString => CStringType.HexString,
-                            CSymbol.UnicodeString => CStringType.UnicodeString,
-                            CSymbol.UnicodeHexString => CStringType.UnicodeHexString,
-                            _ => CStringType.String
-                        }
-                    };
-                    _operands.Add(s);
-                    break;
-
                 case CSymbol.Dictionary:
-                    s = new CString
+                    _operands.Add(new CString
                     {
                         Value = _lexer.Token,
                         CStringType = CStringType.Dictionary
-                    };
-                    _operands.Add(s);
-                    op = CreateOperator(OpCodeName.Dictionary);
-                    sequence.Add(op);
-
-                    break;
-
-                case CSymbol.Name:
-                    var name = new CName
-                    {
-                        Name = _lexer.Token
-                    };
-                    _operands.Add(name);
+                    });
+                    sequence.Add(CreateOperator(OpCodeName.Dictionary));
                     break;
 
                 case CSymbol.Operator:
-                    op = CreateOperator();
-                    sequence.Add(op);
+                    sequence.Add(CreateOperator());
                     break;
 
                 case CSymbol.BeginArray:
-                    var array = new CArray();
-                    if (_operands.Count != 0)
-                        ContentReaderDiagnostics.ThrowContentReaderException("Array within array...");
-
-                    ParseObject(array, CSymbol.EndArray);
-                    array.Add(_operands);
-                    _operands.Clear();
-                    _operands.Add((CObject)array);
+                    ParseArray();
                     break;
 
                 case CSymbol.EndArray:
                     ContentReaderDiagnostics.HandleUnexpectedCharacter(']');
                     break;
+
+                default:
+                    // An operand, or a comment or anything else not expected here, which is ignored.
+                    var operand = OperandFor(symbol);
+                    if (operand != null)
+                        _operands.Add(operand);
+                    break;
             }
         }
+    }
+
+    /// <summary>
+    /// The operand the lexer has just read as the symbol given, or null when the symbol is not one.
+    /// </summary>
+    private CObject OperandFor(CSymbol symbol)
+    {
+        switch (symbol)
+        {
+            case CSymbol.Integer:
+                return new CInteger
+                {
+                    Value = _lexer.TokenToInteger
+                };
+
+            case CSymbol.Real:
+                return new CReal
+                {
+                    Value = _lexer.TokenToReal
+                };
+
+            case CSymbol.String:
+            case CSymbol.HexString:
+            case CSymbol.UnicodeString:
+            case CSymbol.UnicodeHexString:
+                // The kind is kept, so the string is written back in the form it was read in.
+                // A Unicode string's value is its decoded text, and written back as a plain
+                // one it went out as the low byte of every character.
+                return new CString
+                {
+                    Value = _lexer.Token,
+                    CStringType = StringTypeFor(symbol)
+                };
+
+            case CSymbol.Name:
+                return new CName
+                {
+                    Name = _lexer.Token
+                };
+
+            default:
+                return null;
+        }
+    }
+
+    private static CStringType StringTypeFor(CSymbol symbol) => symbol switch
+    {
+        CSymbol.HexString => CStringType.HexString,
+        CSymbol.UnicodeString => CStringType.UnicodeString,
+        CSymbol.UnicodeHexString => CStringType.UnicodeHexString,
+        _ => CStringType.String
+    };
+
+    /// <summary>
+    /// Parses an array, its '[' just read, and makes it the one operand gathered so far.
+    /// </summary>
+    private void ParseArray()
+    {
+        var array = new CArray();
+        if (_operands.Count != 0)
+            ContentReaderDiagnostics.ThrowContentReaderException("Array within array...");
+
+        ParseObject(array, CSymbol.EndArray);
+        array.Add(_operands);
+        _operands.Clear();
+        _operands.Add((CObject)array);
     }
 
     private COperator CreateOperator()
