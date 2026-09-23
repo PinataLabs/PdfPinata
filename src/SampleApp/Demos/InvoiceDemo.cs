@@ -197,9 +197,8 @@ internal sealed class InvoiceDemo : PdfDemo
             head.Cells[column].AddParagraph(headings[column]);
 
         decimal net = 0;
-        for (var index = 0; index < items.Length; index++)
+        foreach (var (code, description, quantity, unitPrice) in items)
         {
-            (var code, var description, var quantity, var unitPrice) = items[index];
             var amount = quantity * unitPrice;
             net += amount;
 

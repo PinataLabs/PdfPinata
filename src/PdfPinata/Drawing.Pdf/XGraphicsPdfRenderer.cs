@@ -2291,9 +2291,9 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         var characters = TextShaping.CharactersOf(run, index, text);
 
         var controls = 0;
-        for (var idx = 0; idx < characters.Length; idx++)
+        foreach (var character in characters)
         {
-            if (Text.UnicodeProperties.IsJoiningControl(characters[idx]))
+            if (Text.UnicodeProperties.IsJoiningControl(character))
                 controls++;
         }
 
@@ -2301,10 +2301,10 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
             return characters;
 
         var kept = new StringBuilder(characters.Length - controls);
-        for (var idx = 0; idx < characters.Length; idx++)
+        foreach (var character in characters)
         {
-            if (!Text.UnicodeProperties.IsJoiningControl(characters[idx]))
-                kept.Append(characters[idx]);
+            if (!Text.UnicodeProperties.IsJoiningControl(character))
+                kept.Append(character);
         }
 
         return kept.ToString();

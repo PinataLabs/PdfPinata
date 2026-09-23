@@ -75,9 +75,9 @@ public class PdfObjectStream : PdfDictionary
     {
         ////// Create parser for stream.
         ////Parser parser = new Parser(_document, new MemoryStream(Stream.Value));
-        for (var idx = 0; idx < _header.Length; idx++)
+        foreach (var entry in _header)
         {
-            var objectNumber = _header[idx][0];
+            var objectNumber = entry[0];
 
             var objectId = new PdfObjectID(objectNumber);
 

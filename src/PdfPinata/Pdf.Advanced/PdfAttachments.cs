@@ -161,9 +161,9 @@ public sealed class PdfAttachments : IEnumerable<PdfFileSpecification>
             _document._irefTable.Add(specification);
 
         var associated = AssociatedFiles();
-        for (var idx = 0; idx < associated.Elements.Count; idx++)
+        foreach (var item in associated.Elements)
         {
-            if (ReferenceEquals(Resolve(associated.Elements[idx]), specification))
+            if (ReferenceEquals(Resolve(item), specification))
                 return false;
         }
 
@@ -260,8 +260,8 @@ public sealed class PdfAttachments : IEnumerable<PdfFileSpecification>
         var associated = _document.Catalog.Elements.GetArray(PdfCatalog.Keys.AF);
         if (associated != null)
         {
-            for (var idx = 0; idx < associated.Elements.Count; idx++)
-                AddOnce(found, associated.Elements[idx]);
+            foreach (var item in associated.Elements)
+                AddOnce(found, item);
         }
 
         foreach (var entry in PdfNameTree.Enumerate(_document, EmbeddedFiles))
@@ -275,9 +275,9 @@ public sealed class PdfAttachments : IEnumerable<PdfFileSpecification>
                 if (annotations == null)
                     continue;
 
-                for (var idx = 0; idx < annotations.Elements.Count; idx++)
+                foreach (var item in annotations.Elements)
                 {
-                    var annotation = Dictionary(annotations.Elements[idx]);
+                    var annotation = Dictionary(item);
                     if (annotation != null)
                         AddOnce(found, annotation.Elements["/FS"]);
                 }
@@ -296,9 +296,9 @@ public sealed class PdfAttachments : IEnumerable<PdfFileSpecification>
         // By instance rather than by name. Resolving transforms the dictionary in place and points
         // the reference at the result, so the same file reached from both places is the same object
         // the second time — while two files that happen to share a name stay two.
-        for (var idx = 0; idx < found.Count; idx++)
+        foreach (var existing in found)
         {
-            if (ReferenceEquals(found[idx], specification))
+            if (ReferenceEquals(existing, specification))
                 return;
         }
 

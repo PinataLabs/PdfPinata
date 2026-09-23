@@ -227,8 +227,8 @@ public class CSequence : CObject, IList<CObject> // , ICollection<CObject>, IEnu
     {
         var s = new StringBuilder();
 
-        for (var idx = 0; idx < _items.Count; idx++)
-            s.Append(_items[idx]);
+        foreach (var item in _items)
+            s.Append(item);
 
         return s.ToString();
     }
@@ -240,8 +240,8 @@ public class CSequence : CObject, IList<CObject> // , ICollection<CObject>, IEnu
 
     internal override void WriteObject(ContentWriter writer)
     {
-        for (var idx = 0; idx < _items.Count; idx++)
-            _items[idx].WriteObject(writer);
+        foreach (var item in _items)
+            item.WriteObject(writer);
     }
 
     /// <summary>

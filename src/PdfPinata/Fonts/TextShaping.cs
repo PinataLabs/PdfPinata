@@ -154,9 +154,9 @@ static class TextShaping
     /// </remarks>
     private static bool NeedsItemizing(ReadOnlySpan<char> text)
     {
-        for (var idx = 0; idx < text.Length; idx++)
+        foreach (var ch in text)
         {
-            if (text[idx] >= '\u02B0')
+            if (ch >= '\u02B0')
                 return true;
         }
 
