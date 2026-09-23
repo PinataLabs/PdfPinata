@@ -114,21 +114,47 @@ public class MergedCellList : List<Cell>
   /// </exception>
   public Borders GetEffectiveBorders(Cell cell)
   {
-    var borders = cell.GetValue("Borders", GV.ReadOnly) as Borders;
-    if (borders != null)
-    {
-      borders = borders.Clone();
-      borders.parent = cell;
-    }
-    else
-    {
-      borders = new Borders(cell.parent);
-    }
+    var borders = OwnBordersCopy(cell);
 
     var cellIdx = BinarySearch(cell, new CellComparer());
     if (!(cellIdx >= 0 && cellIdx < Count))
       throw new ArgumentException(@"cell is not a relevant cell", nameof(cell));
 
+    TakeOuterBordersOfMergedCells(cell, borders);
+
+    var leftNeighbor = GetNeighbor(cellIdx, NeighborPosition.Left);
+    var rightNeighbor = GetNeighbor(cellIdx, NeighborPosition.Right);
+    var topNeighbor = GetNeighbor(cellIdx, NeighborPosition.Top);
+    var bottomNeighbor = GetNeighbor(cellIdx, NeighborPosition.Bottom);
+
+    // The heavier of two facing borders wins. On a tie the neighbour to the left or above wins,
+    // and the one to the right or below does not.
+    TakeNeighborBorderIfHeavier(borders, BorderType.Left, leftNeighbor, BorderType.Right, neighborWinsTie: true);
+    TakeNeighborBorderIfHeavier(borders, BorderType.Right, rightNeighbor, BorderType.Left, neighborWinsTie: false);
+    TakeNeighborBorderIfHeavier(borders, BorderType.Top, topNeighbor, BorderType.Bottom, neighborWinsTie: true);
+    TakeNeighborBorderIfHeavier(borders, BorderType.Bottom, bottomNeighbor, BorderType.Top, neighborWinsTie: false);
+    return borders;
+  }
+
+  /// <summary>
+  /// A copy of the cell's own borders that the caller may change, or new borders when it has none.
+  /// </summary>
+  private static Borders OwnBordersCopy(Cell cell)
+  {
+    if (cell.GetValue("Borders", GV.ReadOnly) is not Borders borders)
+      return new Borders(cell.parent);
+
+    borders = borders.Clone();
+    borders.parent = cell;
+    return borders;
+  }
+
+  /// <summary>
+  /// A cell merged right or down is drawn to the far side of the last cell it covers, so that
+  /// cell's right or bottom border is the one it takes - or none, where that cell has none.
+  /// </summary>
+  private static void TakeOuterBordersOfMergedCells(Cell cell, Borders borders)
+  {
     if (cell.mergeRight > 0)
     {
       var rightBorderCell = cell.Table[cell.Row.Index, cell.MergedRightColumnIndex];
@@ -146,32 +172,23 @@ public class MergedCellList : List<Cell>
       else
         borders.bottom = null;
     }
+  }
 
-    var leftNeighbor = GetNeighbor(cellIdx, NeighborPosition.Left);
-    var rightNeighbor = GetNeighbor(cellIdx, NeighborPosition.Right);
-    var topNeighbor = GetNeighbor(cellIdx, NeighborPosition.Top);
-    var bottomNeighbor = GetNeighbor(cellIdx, NeighborPosition.Bottom);
-    if (leftNeighbor != null)
-    {
-      if (leftNeighbor.GetValue("Borders", GV.ReadOnly) is Borders nbrBrdrs && GetEffectiveBorderWidth(nbrBrdrs, BorderType.Right) >= GetEffectiveBorderWidth(borders, BorderType.Left))
-        borders.SetValue("Left", GetBorderFromBorders(nbrBrdrs, BorderType.Right));
-    }
-    if (rightNeighbor != null)
-    {
-      if (rightNeighbor.GetValue("Borders", GV.ReadOnly) is Borders nbrBrdrs && GetEffectiveBorderWidth(nbrBrdrs, BorderType.Left) > GetEffectiveBorderWidth(borders, BorderType.Right))
-        borders.SetValue("Right", GetBorderFromBorders(nbrBrdrs, BorderType.Left));
-    }
-    if (topNeighbor != null)
-    {
-      if (topNeighbor.GetValue("Borders", GV.ReadOnly) is Borders nbrBrdrs && GetEffectiveBorderWidth(nbrBrdrs, BorderType.Bottom) >= GetEffectiveBorderWidth(borders, BorderType.Top))
-        borders.SetValue("Top", GetBorderFromBorders(nbrBrdrs, BorderType.Bottom));
-    }
-    if (bottomNeighbor == null)
-      return borders;
+  /// <summary>
+  /// Replaces the border on one side of <paramref name="borders"/> with the facing border of
+  /// <paramref name="neighbor"/>, when the neighbour has borders and its facing one is the heavier -
+  /// or as heavy, where <paramref name="neighborWinsTie"/> says so.
+  /// </summary>
+  private static void TakeNeighborBorderIfHeavier(Borders borders, BorderType side, Cell neighbor, BorderType facingSide, bool neighborWinsTie)
+  {
+    if (neighbor?.GetValue("Borders", GV.ReadOnly) is not Borders neighborBorders)
+      return;
 
-    if (bottomNeighbor.GetValue("Borders", GV.ReadOnly) is Borders bottomBrdrs && GetEffectiveBorderWidth(bottomBrdrs, BorderType.Top) > GetEffectiveBorderWidth(borders, BorderType.Bottom))
-      borders.SetValue("Bottom", GetBorderFromBorders(bottomBrdrs, BorderType.Top));
-    return borders;
+    var neighborWidth = GetEffectiveBorderWidth(neighborBorders, facingSide);
+    var ownWidth = GetEffectiveBorderWidth(borders, side);
+    var isHeavier = neighborWinsTie ? neighborWidth >= ownWidth : neighborWidth > ownWidth;
+    if (isHeavier)
+      borders.SetValue(side.ToString(), GetBorderFromBorders(neighborBorders, facingSide));
   }
 
   /// <summary>
@@ -254,47 +271,74 @@ public class MergedCellList : List<Cell>
   private Cell GetNeighbor(int cellIdx, NeighborPosition position)
   {
     var cell = this[cellIdx];
-    if (cell.Column.Index == 0 && position == NeighborPosition.Left ||
-        cell.Row.Index == 0 && position == NeighborPosition.Top ||
-        cell.MergedBottomRowIndex == cell.Table.Rows.Count - 1 && position == NeighborPosition.Bottom ||
-        cell.MergedRightColumnIndex == cell.Table.Columns.Count - 1 && position == NeighborPosition.Right)
-        return null;
+    if (IsOnTableEdge(cell, position))
+      return null;
 
-    switch (position)
+    return position switch
     {
-      case NeighborPosition.Top:
-      case NeighborPosition.Left:
-        for (var index = cellIdx - 1; index >= 0; --index)
-        {
-          var currCell = this[index];
-          if (IsNeighbor(cell, currCell, position))
-            return currCell;
-        }
-        break;
+      NeighborPosition.Top or NeighborPosition.Left => FindNeighborBefore(cell, cellIdx, position),
+      // The next cell in the list is the one to the right, if it is on the same row. Otherwise
+      // the neighbour is a cell merged down from a row above.
+      NeighborPosition.Right => NextCellInSameRow(cell, cellIdx) ?? FindNeighborBefore(cell, cellIdx, position),
+      NeighborPosition.Bottom => FindNeighborAfter(cell, cellIdx, position),
+      _ => null
+    };
+  }
 
-      case NeighborPosition.Right:
-        if (cellIdx + 1 < Count)
-        {
-          var cell2 = this[cellIdx + 1];
-          if (cell2.Row.Index == cell.Row.Index)
-            return cell2;
-        }
-        for (var index = cellIdx - 1; index >= 0; --index)
-        {
-          var currCell = this[index];
-          if (IsNeighbor(cell, currCell, position))
-            return currCell;
-        }
-        break;
+  /// <summary>
+  /// Returns whether the cell has no neighbour at the specified position because it lies along
+  /// that edge of the table.
+  /// </summary>
+  private static bool IsOnTableEdge(Cell cell, NeighborPosition position)
+  {
+    return position switch
+    {
+      NeighborPosition.Left => cell.Column.Index == 0,
+      NeighborPosition.Top => cell.Row.Index == 0,
+      NeighborPosition.Bottom => cell.MergedBottomRowIndex == cell.Table.Rows.Count - 1,
+      NeighborPosition.Right => cell.MergedRightColumnIndex == cell.Table.Columns.Count - 1,
+      _ => false
+    };
+  }
 
-      case NeighborPosition.Bottom:
-        for (var index = cellIdx + 1; index < Count; ++index)
-        {
-          var currCell = this[index];
-          if (IsNeighbor(cell, currCell, position))
-            return currCell;
-        }
-        break;
+  /// <summary>
+  /// Returns the cell after the given one in this list, if it is on the same row.
+  /// </summary>
+  private Cell NextCellInSameRow(Cell cell, int cellIdx)
+  {
+    if (cellIdx + 1 >= Count)
+      return null;
+
+    var next = this[cellIdx + 1];
+    return next.Row.Index == cell.Row.Index ? next : null;
+  }
+
+  /// <summary>
+  /// Searches the cells before the given one in this list, nearest first, for its neighbour at the
+  /// specified position.
+  /// </summary>
+  private Cell FindNeighborBefore(Cell cell, int cellIdx, NeighborPosition position)
+  {
+    for (var index = cellIdx - 1; index >= 0; --index)
+    {
+      var currCell = this[index];
+      if (IsNeighbor(cell, currCell, position))
+        return currCell;
+    }
+    return null;
+  }
+
+  /// <summary>
+  /// Searches the cells after the given one in this list, nearest first, for its neighbour at the
+  /// specified position.
+  /// </summary>
+  private Cell FindNeighborAfter(Cell cell, int cellIdx, NeighborPosition position)
+  {
+    for (var index = cellIdx + 1; index < Count; ++index)
+    {
+      var currCell = this[index];
+      if (IsNeighbor(cell, currCell, position))
+        return currCell;
     }
     return null;
   }

@@ -142,54 +142,113 @@ public partial class Table : DocumentObject, IVisitable
     public void SetEdge(int clm, int row, int clms, int rowCount,
         Edge edge, BorderStyle borderStyle, Unit width, Color clr)
     {
-        var maxRow = row + rowCount - 1;
-        var maxClm = clm + clms - 1;
+        var request = new EdgeRequest(row, clm, row + rowCount - 1, clm + clms - 1, edge, borderStyle, width, clr);
 
-        for (var r = row; r <= maxRow; r++)
+        for (var r = row; r <= request.LastRow; r++)
         {
             var currentRow = rows[r];
-            for (var c = clm; c <= maxClm; c++)
+            for (var c = clm; c <= request.LastColumn; c++)
             {
                 var currentCell = currentRow[c];
-                if ((edge & Edge.Top) == Edge.Top && r == row)
-                    Apply(currentCell.Borders.Top);
-
-                if ((edge & Edge.Left) == Edge.Left && c == clm)
-                    Apply(currentCell.Borders.Left);
-
-                if ((edge & Edge.Bottom) == Edge.Bottom && r == maxRow)
-                    Apply(currentCell.Borders.Bottom);
-
-                if ((edge & Edge.Right) == Edge.Right && c == maxClm)
-                    Apply(currentCell.Borders.Right);
-
-                // The row below is inside the range because this edge is an interior one.
-                if ((edge & Edge.Horizontal) == Edge.Horizontal && r < maxRow)
-                {
-                    Apply(currentCell.Borders.Bottom);
-                    Apply(rows[r + 1][c].Borders.Top);
-                }
-
-                if ((edge & Edge.Vertical) == Edge.Vertical && c < maxClm)
-                {
-                    Apply(currentCell.Borders.Right);
-                    Apply(currentRow[c + 1].Borders.Left);
-                }
-
-                if ((edge & Edge.DiagonalDown) == Edge.DiagonalDown)
-                    Apply(currentCell.Borders.DiagonalDown);
-
-                if ((edge & Edge.DiagonalUp) == Edge.DiagonalUp)
-                    Apply(currentCell.Borders.DiagonalUp);
+                SetOuterEdges(currentCell, r, c, request);
+                SetInteriorEdges(currentRow, currentCell, r, c, request);
+                SetDiagonals(currentCell, request);
             }
         }
+    }
 
-        void Apply(Border border)
+    /// <summary>
+    /// Sets the borders of a cell that lie on the outline of the range.
+    /// </summary>
+    private static void SetOuterEdges(Cell cell, int r, int c, EdgeRequest request)
+    {
+        if (request.Includes(Edge.Top) && r == request.FirstRow)
+            request.Apply(cell.Borders.Top);
+
+        if (request.Includes(Edge.Left) && c == request.FirstColumn)
+            request.Apply(cell.Borders.Left);
+
+        if (request.Includes(Edge.Bottom) && r == request.LastRow)
+            request.Apply(cell.Borders.Bottom);
+
+        if (request.Includes(Edge.Right) && c == request.LastColumn)
+            request.Apply(cell.Borders.Right);
+    }
+
+    /// <summary>
+    /// Sets the borders a cell shares with the cell below it and the cell to its right, where that
+    /// cell is inside the range too - both sides of each, so that the edge is drawn as asked.
+    /// </summary>
+    private void SetInteriorEdges(Row currentRow, Cell cell, int r, int c, EdgeRequest request)
+    {
+        // The row below is inside the range because this edge is an interior one.
+        if (request.Includes(Edge.Horizontal) && r < request.LastRow)
+        {
+            request.Apply(cell.Borders.Bottom);
+            request.Apply(rows[r + 1][c].Borders.Top);
+        }
+
+        if (request.Includes(Edge.Vertical) && c < request.LastColumn)
+        {
+            request.Apply(cell.Borders.Right);
+            request.Apply(currentRow[c + 1].Borders.Left);
+        }
+    }
+
+    /// <summary>
+    /// Sets the diagonals of a cell, which every cell in the range has its own of.
+    /// </summary>
+    private static void SetDiagonals(Cell cell, EdgeRequest request)
+    {
+        if (request.Includes(Edge.DiagonalDown))
+            request.Apply(cell.Borders.DiagonalDown);
+
+        if (request.Includes(Edge.DiagonalUp))
+            request.Apply(cell.Borders.DiagonalUp);
+    }
+
+    /// <summary>
+    /// What a SetEdge call asks for: the range of cells, the edges within it, and the border to draw them with.
+    /// </summary>
+    private readonly struct EdgeRequest
+    {
+        private readonly Edge edge;
+        private readonly BorderStyle borderStyle;
+        private readonly Unit width;
+        private readonly Color color;
+
+        public EdgeRequest(int firstRow, int firstColumn, int lastRow, int lastColumn,
+            Edge edge, BorderStyle borderStyle, Unit width, Color color)
+        {
+            FirstRow = firstRow;
+            FirstColumn = firstColumn;
+            LastRow = lastRow;
+            LastColumn = lastColumn;
+            this.edge = edge;
+            this.borderStyle = borderStyle;
+            this.width = width;
+            this.color = color;
+        }
+
+        public int FirstRow { get; }
+
+        public int FirstColumn { get; }
+
+        public int LastRow { get; }
+
+        public int LastColumn { get; }
+
+        public bool Includes(Edge flag) => (edge & flag) == flag;
+
+        /// <summary>
+        /// Gives a border the requested style and width, and the colour too unless none was given.
+        /// </summary>
+        public void Apply(Border border)
         {
             border.Style = borderStyle;
             border.Width = width;
-            if (clr != Color.Empty)
-                border.Color = clr;
+            if (color != Color.Empty)
+                border.Color = color;
         }
     }
 

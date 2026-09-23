@@ -314,77 +314,84 @@ public sealed partial class Style : DocumentObject, IVisitable
         // are serialized.
         // For user-defined styles all non-null properties are serialized.
         var buildInStyles = Styles.BuildInStyles;
-        Style refStyle;
-        ParagraphFormat refFormat;
 
         serializer.WriteComment(comment ?? "");
-        if (buildIn ?? false)
-        {
-            // BaseStyle is never null, but empty only for "Normal" and "DefaultParagraphFont"
-            if (BaseStyle == "")
-            {
-                // case: style is "Normal"
-                if (string.Compare(name ?? "", DefaultParagraphName, StringComparison.OrdinalIgnoreCase) != 0)
-                    throw new ArgumentException("Internal Error: BaseStyle not set.");
-
-                refStyle = buildInStyles[buildInStyles.GetIndex(Name)];
-                refFormat = refStyle.ParagraphFormat;
-                var quotedName = DdlEncoder.QuoteIfNameContainsBlanks(Name);
-                serializer.WriteLineNoCommit(quotedName);
-            }
-            else
-            {
-                // case: any build-in style except "Normal"
-                refStyle = buildInStyles[buildInStyles.GetIndex(Name)];
-                if (string.Compare(BaseStyle, refStyle.BaseStyle, StringComparison.OrdinalIgnoreCase) == 0)
-                {
-                    // case: build-in style with unmodified base style name
-                    var quotedName = DdlEncoder.QuoteIfNameContainsBlanks(Name);
-                    serializer.WriteLineNoCommit(quotedName);
-                    // It's fine if we have the predefined base style, but ...
-                    // ... the base style may have been modified or may even have a modified base style.
-                    // Methinks it's wrong to compare with the built-in style, so let's compare with the
-                    // real base style:
-                    refStyle = Document.Styles[Document.Styles.GetIndex(baseStyle ?? "")];
-                    refFormat = refStyle.ParagraphFormat;
-                    // Note: we must write "Underline = none" if the base style has "Underline = single" - we cannot
-                    // detect this if we compare with the built-in style that has no underline.
-                    // Known problem: Default values like "OutlineLevel = Level1" will now be serialized
-                }
-                else
-                {
-                    // case: build-in style with modified base style name
-                    var quotedName = DdlEncoder.QuoteIfNameContainsBlanks(Name);
-                    var baseName = DdlEncoder.QuoteIfNameContainsBlanks(BaseStyle);
-                    serializer.WriteLine(quotedName + " : " + baseName);
-                    refStyle = Document.Styles[Document.Styles.GetIndex(baseStyle ?? "")];
-                    refFormat = refStyle.ParagraphFormat;
-                }
-            }
-        }
-        else
-        {
-            // case: user-defined style; base style always exists
-
-            var quotedName = DdlEncoder.QuoteIfNameContainsBlanks(Name);
-            var baseName = DdlEncoder.QuoteIfNameContainsBlanks(BaseStyle);
-            serializer.WriteLine(quotedName + " : " + baseName);
-            refStyle = Document.Styles[baseStyle ?? ""];
-            refFormat = refStyle != null ? refStyle.ParagraphFormat : null;
-        }
+        var quotedName = DdlEncoder.QuoteIfNameContainsBlanks(Name);
+        var quotedBaseName = DdlEncoder.QuoteIfNameContainsBlanks(BaseStyle);
+        var refFormat = (buildIn ?? false)
+            ? WriteBuildInHeader(serializer, buildInStyles, quotedName, quotedBaseName)
+            : WriteUserDefinedHeader(serializer, quotedName, quotedBaseName);
 
         serializer.BeginContent();
 
         if (!IsNull("ParagraphFormat"))
         {
             if (!ParagraphFormat.IsNull("Font"))
-                Font.Serialize(serializer, refFormat != null ? refFormat.Font : null);
+                Font.Serialize(serializer, refFormat?.Font);
 
             if (Type == StyleType.Paragraph)
                 ParagraphFormat.Serialize(serializer, "ParagraphFormat", refFormat);
         }
 
         serializer.EndContent();
+    }
+
+    /// <summary>
+    /// Writes the name line of a build-in style and answers the paragraph format its values are
+    /// compared with, so that only what differs from it is written.
+    /// </summary>
+    private ParagraphFormat WriteBuildInHeader(Serializer serializer, Styles buildInStyles, string quotedName, string quotedBaseName)
+    {
+        // BaseStyle is never null, but empty only for "Normal" and "DefaultParagraphFont"
+        if (BaseStyle == "")
+            return WriteNormalHeader(serializer, buildInStyles, quotedName);
+
+        // case: any build-in style except "Normal"
+        var builtIn = buildInStyles[buildInStyles.GetIndex(Name)];
+        if (string.Compare(BaseStyle, builtIn.BaseStyle, StringComparison.OrdinalIgnoreCase) == 0)
+        {
+            // case: build-in style with unmodified base style name
+            serializer.WriteLineNoCommit(quotedName);
+            // It's fine if we have the predefined base style, but ...
+            // ... the base style may have been modified or may even have a modified base style.
+            // Methinks it's wrong to compare with the built-in style, so let's compare with the
+            // real base style.
+            // Note: we must write "Underline = none" if the base style has "Underline = single" - we cannot
+            // detect this if we compare with the built-in style that has no underline.
+            // Known problem: Default values like "OutlineLevel = Level1" will now be serialized
+        }
+        else
+        {
+            // case: build-in style with modified base style name
+            serializer.WriteLine(quotedName + " : " + quotedBaseName);
+        }
+
+        return Document.Styles[Document.Styles.GetIndex(baseStyle ?? "")].ParagraphFormat;
+    }
+
+    /// <summary>
+    /// Writes the name line of "Normal", the one build-in paragraph style with no base, and answers
+    /// the format it has before anybody changes it.
+    /// </summary>
+    private ParagraphFormat WriteNormalHeader(Serializer serializer, Styles buildInStyles, string quotedName)
+    {
+        if (string.Compare(name ?? "", DefaultParagraphName, StringComparison.OrdinalIgnoreCase) != 0)
+            throw new ArgumentException("Internal Error: BaseStyle not set.");
+
+        var refFormat = buildInStyles[buildInStyles.GetIndex(Name)].ParagraphFormat;
+        serializer.WriteLineNoCommit(quotedName);
+        return refFormat;
+    }
+
+    /// <summary>
+    /// Writes the name line of a user-defined style, with its base, and answers the base style's
+    /// paragraph format, or null when there is no such style.
+    /// </summary>
+    private ParagraphFormat WriteUserDefinedHeader(Serializer serializer, string quotedName, string quotedBaseName)
+    {
+        // case: user-defined style; base style always exists
+        serializer.WriteLine(quotedName + " : " + quotedBaseName);
+        return Document.Styles[baseStyle ?? ""]?.ParagraphFormat;
     }
 
     /// <summary>

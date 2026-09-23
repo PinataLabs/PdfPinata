@@ -107,4 +107,108 @@ public class PageSizeConverterTests
 
         convert.Should().Throw<ArgumentException>();
     }
+
+    /// <summary>
+    /// The whole points each size has always converted to, exactly: the published dimensions above
+    /// allow a point of slack, and a size moved by less than that is still a different page.
+    /// </summary>
+    [Theory]
+    [InlineData(PageSize.A0, 2384, 3370)]
+    [InlineData(PageSize.A1, 1684, 2384)]
+    [InlineData(PageSize.A2, 1191, 1684)]
+    [InlineData(PageSize.A3, 842, 1191)]
+    [InlineData(PageSize.A4, 595, 842)]
+    [InlineData(PageSize.A5, 420, 595)]
+    [InlineData(PageSize.A6, 298, 420)]
+    [InlineData(PageSize.A7, 210, 298)]
+    [InlineData(PageSize.A8, 147, 210)]
+    [InlineData(PageSize.A9, 105, 147)]
+    [InlineData(PageSize.A10, 74, 105)]
+    [InlineData(PageSize.TwoA0, 3370, 4768)]
+    [InlineData(PageSize.FourA0, 4768, 6741)]
+    [InlineData(PageSize.RA0, 2438, 3458)]
+    [InlineData(PageSize.RA1, 1729, 2438)]
+    [InlineData(PageSize.RA2, 1219, 1729)]
+    [InlineData(PageSize.RA3, 865, 1219)]
+    [InlineData(PageSize.RA4, 609, 865)]
+    [InlineData(PageSize.RA5, 433, 609)]
+    [InlineData(PageSize.SRA0, 2551, 3628)]
+    [InlineData(PageSize.SRA1, 1814, 2551)]
+    [InlineData(PageSize.SRA2, 1276, 1814)]
+    [InlineData(PageSize.SRA3, 907, 1276)]
+    [InlineData(PageSize.SRA4, 638, 907)]
+    [InlineData(PageSize.B0, 2835, 4008)]
+    [InlineData(PageSize.B1, 2004, 2835)]
+    [InlineData(PageSize.B2, 1417, 2004)]
+    [InlineData(PageSize.B3, 1001, 1417)]
+    [InlineData(PageSize.B4, 709, 1001)]
+    [InlineData(PageSize.B5, 499, 709)]
+    [InlineData(PageSize.B6, 354, 499)]
+    [InlineData(PageSize.B7, 249, 354)]
+    [InlineData(PageSize.B8, 176, 249)]
+    [InlineData(PageSize.B9, 125, 176)]
+    [InlineData(PageSize.B10, 88, 125)]
+    [InlineData(PageSize.C0, 2599, 3677)]
+    [InlineData(PageSize.C1, 1837, 2599)]
+    [InlineData(PageSize.C2, 1298, 1837)]
+    [InlineData(PageSize.C3, 918, 1298)]
+    [InlineData(PageSize.C4, 649, 918)]
+    [InlineData(PageSize.C5, 459, 649)]
+    [InlineData(PageSize.C6, 323, 459)]
+    [InlineData(PageSize.C7, 230, 323)]
+    [InlineData(PageSize.C8, 162, 230)]
+    [InlineData(PageSize.C9, 113, 162)]
+    [InlineData(PageSize.C10, 79, 113)]
+    [InlineData(PageSize.Quarto, 576, 720)]
+    [InlineData(PageSize.Foolscap, 576, 936)]
+    [InlineData(PageSize.Executive, 522, 756)]
+    [InlineData(PageSize.GovernmentLetter, 576, 756)]
+    [InlineData(PageSize.Letter, 612, 792)]
+    [InlineData(PageSize.Legal, 612, 1008)]
+    [InlineData(PageSize.Ledger, 1224, 792)]
+    [InlineData(PageSize.Tabloid, 792, 1224)]
+    [InlineData(PageSize.Post, 1126, 1386)]
+    [InlineData(PageSize.Crown, 1440, 1080)]
+    [InlineData(PageSize.LargePost, 1188, 1512)]
+    [InlineData(PageSize.Demy, 1260, 1584)]
+    [InlineData(PageSize.Medium, 1296, 1656)]
+    [InlineData(PageSize.Royal, 1440, 1800)]
+    [InlineData(PageSize.Elephant, 1565, 2016)]
+    [InlineData(PageSize.DoubleDemy, 1692, 2520)]
+    [InlineData(PageSize.QuadDemy, 2520, 3240)]
+    [InlineData(PageSize.STMT, 396, 612)]
+    [InlineData(PageSize.Folio, 612, 936)]
+    [InlineData(PageSize.Statement, 396, 612)]
+    [InlineData(PageSize.Size10x14, 720, 1008)]
+    public void EveryNamedSizeIsExactlyTheWholePointsItHasAlwaysBeen(PageSize size, double width, double height)
+    {
+        var actual = PageSizeConverter.ToSize(size);
+
+        actual.Width.Should().Be(width);
+        actual.Height.Should().Be(height);
+    }
+
+    [Fact]
+    public void TheExactTableNamesEveryDefinedSize()
+    {
+        var method = typeof(PageSizeConverterTests).GetMethod(nameof(EveryNamedSizeIsExactlyTheWholePointsItHasAlwaysBeen))!;
+        var pinned = method.GetCustomAttributes(typeof(InlineDataAttribute), false)
+            .Cast<InlineDataAttribute>()
+            .Select(data => (PageSize)data.GetData(method).Single()[0]);
+
+        pinned.Should().BeEquivalentTo(Enum.GetValues<PageSize>().Where(size => size != PageSize.Undefined));
+    }
+
+    /// <summary>
+    /// A value the enumeration does not name is refused the same way as Undefined, naming the
+    /// argument it came in through.
+    /// </summary>
+    [Fact]
+    public void AValueThatNamesNoSizeIsRefusedByName()
+    {
+        Action convert = () => PageSizeConverter.ToSize((PageSize)9999);
+
+        convert.Should().Throw<ArgumentException>()
+            .Which.Should().Match<ArgumentException>(e => e.ParamName == "value" && e.Message.StartsWith("Invalid PageSize."));
+    }
 }

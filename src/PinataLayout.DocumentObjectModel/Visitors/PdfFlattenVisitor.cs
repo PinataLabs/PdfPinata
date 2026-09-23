@@ -31,6 +31,7 @@
 #endregion
 
 using System.Collections;
+using System.Collections.Generic;
 
 namespace PinataLayout.DocumentObjectModel.Visitors;
 
@@ -78,81 +79,86 @@ public class PdfFlattenVisitor : VisitorBase
 
   internal override void VisitDocumentObjectCollection(DocumentObjectCollection elements)
   {
-    var textIndices = new ArrayList();
-    if (elements is ParagraphElements)
+    // Found before any is split, so each position is moved on by what the texts before it grew by.
+    var insertedObjects = 0;
+    foreach (var idx in TextIndices(elements))
+      insertedObjects += SplitIntoWords(elements, idx + insertedObjects);
+  }
+
+  /// <summary>
+  /// The positions of the texts among a paragraph's elements; none for any other collection.
+  /// </summary>
+  private static List<int> TextIndices(DocumentObjectCollection elements)
+  {
+    var indices = new List<int>();
+    if (elements is not ParagraphElements)
+      return indices;
+
+    for (var idx = 0; idx < elements.Count; ++idx)
     {
-      for (var idx = 0; idx < elements.Count; ++idx)
+      if (elements[idx] is Text)
+        indices.Add(idx);
+    }
+    return indices;
+  }
+
+  /// <summary>
+  /// Replaces the text at <paramref name="position"/> with one text per word: every whitespace
+  /// character becomes a space of its own, a word ends after a hyphen or a zero-width space, and a
+  /// soft hyphen stands alone. Answers how many elements the collection grew by.
+  /// </summary>
+  private static int SplitIntoWords(DocumentObjectCollection elements, int position)
+  {
+    var text = (Text)elements[position];
+    var inserted = 0;
+    var currentString = "";
+
+    foreach (var ch in text.Content)
+    {
+      switch (ch)
       {
-        if (elements[idx] is Text)
-          textIndices.Add(idx);
+        case ' ':
+        case '\r':
+        case '\n':
+        case '\t':
+          InsertWordSoFar();
+          Insert(" ");
+          break;
+
+        case Chars.ZeroWidthSpace:
+        case '-': //minus
+          Insert(currentString + ch);
+          currentString = "";
+          break;
+
+        case Chars.SoftHyphen: //soft hyphen
+          InsertWordSoFar();
+          Insert(new string(Chars.SoftHyphen, 1));
+          break;
+
+        default:
+          currentString += ch;
+          break;
       }
     }
+    InsertWordSoFar();
 
-    // Not ToArray(Type): it builds the array type at run time, which carries RequiresDynamicCode
-    // and an AOT compiler cannot always have code for. Unboxed one at a time rather than by
-    // CopyTo, so the conversion out of the ArrayList's object[] is written down rather than left
-    // to Array.Copy's unboxing rules.
-    var indices = new int[textIndices.Count];
-    for (var idx = 0; idx < indices.Length; ++idx)
-      // ReSharper disable once PossibleNullReferenceException
-      indices[idx] = (int)textIndices[idx];
-    // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-    if (indices == null)
-      return;
+    elements.RemoveObjectAt(position + inserted);
+    return inserted - 1;
 
-    var insertedObjects = 0;
-    foreach (var idx in indices)
+    void Insert(string content)
     {
-      var text = (Text)elements[idx + insertedObjects];
-      var currentString = "";
-      foreach (var ch in text.Content)
-      {
-        switch (ch)
-        {
-          case ' ':
-          case '\r':
-          case '\n':
-          case '\t':
-            if (currentString != "")
-            {
-              elements.InsertObject(idx + insertedObjects, new Text(currentString));
-              ++insertedObjects;
-              currentString = "";
-            }
-            elements.InsertObject(idx + insertedObjects, new Text(" "));
-            ++insertedObjects;
-            break;
+      elements.InsertObject(position + inserted, new Text(content));
+      ++inserted;
+    }
 
-          case Chars.ZeroWidthSpace:
-          case '-': //minus
-            elements.InsertObject(idx + insertedObjects, new Text(currentString + ch));
-            ++insertedObjects;
-            currentString = "";
-            break;
+    void InsertWordSoFar()
+    {
+      if (currentString == "")
+        return;
 
-          case Chars.SoftHyphen: //soft hyphen
-            if (currentString != "")
-            {
-              elements.InsertObject(idx + insertedObjects, new Text(currentString));
-              ++insertedObjects;
-            }
-            elements.InsertObject(idx + insertedObjects, new Text(new string(Chars.SoftHyphen, 1)));
-            ++insertedObjects;
-            currentString = "";
-            break;
-
-          default:
-            currentString += ch;
-            break;
-        }
-      }
-      if (currentString != "")
-      {
-        elements.InsertObject(idx + insertedObjects, new Text(currentString));
-        ++insertedObjects;
-      }
-      elements.RemoveObjectAt(idx + insertedObjects);
-      --insertedObjects;
+      Insert(currentString);
+      currentString = "";
     }
   }
 

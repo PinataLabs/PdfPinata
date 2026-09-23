@@ -30,6 +30,7 @@
 // DEALINGS IN THE SOFTWARE.
 #endregion
 
+using System.Collections.Generic;
 using System.Diagnostics;
 using PinataLayout.DocumentObjectModel.Internals;
 
@@ -72,90 +73,11 @@ public partial class PageSetup : DocumentObject
   /// </remarks>
   public static void GetPageSize(PageFormat pageFormat, out Unit pageWidth, out Unit pageHeight)
   {
-    switch (pageFormat)
+    if (PageSizes.ByFormat.TryGetValue(pageFormat, out var sheet))
     {
-      // ISO 216 A series.
-      case PageFormat.A0: Millimeter(841, 1189, out pageWidth, out pageHeight); return;
-      case PageFormat.A1: Millimeter(594, 841, out pageWidth, out pageHeight); return;
-      case PageFormat.A2: Millimeter(420, 594, out pageWidth, out pageHeight); return;
-      case PageFormat.A3: Millimeter(297, 420, out pageWidth, out pageHeight); return;
-      case PageFormat.A4: Millimeter(210, 297, out pageWidth, out pageHeight); return;
-      case PageFormat.A5: Millimeter(148, 210, out pageWidth, out pageHeight); return;
-      case PageFormat.A6: Millimeter(105, 148, out pageWidth, out pageHeight); return;
-      case PageFormat.A7: Millimeter(74, 105, out pageWidth, out pageHeight); return;
-      case PageFormat.A8: Millimeter(52, 74, out pageWidth, out pageHeight); return;
-      case PageFormat.A9: Millimeter(37, 52, out pageWidth, out pageHeight); return;
-      case PageFormat.A10: Millimeter(26, 37, out pageWidth, out pageHeight); return;
-
-      // DIN 476 oversizes.
-      case PageFormat.TwoA0: Millimeter(1189, 1682, out pageWidth, out pageHeight); return;
-      case PageFormat.FourA0: Millimeter(1682, 2378, out pageWidth, out pageHeight); return;
-
-      // ISO 216 B series.
-      case PageFormat.B0: Millimeter(1000, 1414, out pageWidth, out pageHeight); return;
-      case PageFormat.B1: Millimeter(707, 1000, out pageWidth, out pageHeight); return;
-      case PageFormat.B2: Millimeter(500, 707, out pageWidth, out pageHeight); return;
-      case PageFormat.B3: Millimeter(353, 500, out pageWidth, out pageHeight); return;
-      case PageFormat.B4: Millimeter(250, 353, out pageWidth, out pageHeight); return;
-      case PageFormat.B5: Millimeter(176, 250, out pageWidth, out pageHeight); return;
-      case PageFormat.B6: Millimeter(125, 176, out pageWidth, out pageHeight); return;
-      case PageFormat.B7: Millimeter(88, 125, out pageWidth, out pageHeight); return;
-      case PageFormat.B8: Millimeter(62, 88, out pageWidth, out pageHeight); return;
-      case PageFormat.B9: Millimeter(44, 62, out pageWidth, out pageHeight); return;
-      case PageFormat.B10: Millimeter(31, 44, out pageWidth, out pageHeight); return;
-      case PageFormat.JISB5: Millimeter(182, 257, out pageWidth, out pageHeight); return;
-
-      // ISO 269 C series, the envelopes.
-      case PageFormat.C0: Millimeter(917, 1297, out pageWidth, out pageHeight); return;
-      case PageFormat.C1: Millimeter(648, 917, out pageWidth, out pageHeight); return;
-      case PageFormat.C2: Millimeter(458, 648, out pageWidth, out pageHeight); return;
-      case PageFormat.C3: Millimeter(324, 458, out pageWidth, out pageHeight); return;
-      case PageFormat.C4: Millimeter(229, 324, out pageWidth, out pageHeight); return;
-      case PageFormat.C5: Millimeter(162, 229, out pageWidth, out pageHeight); return;
-      case PageFormat.C6: Millimeter(114, 162, out pageWidth, out pageHeight); return;
-      case PageFormat.C7: Millimeter(81, 114, out pageWidth, out pageHeight); return;
-      case PageFormat.C8: Millimeter(57, 81, out pageWidth, out pageHeight); return;
-      case PageFormat.C9: Millimeter(40, 57, out pageWidth, out pageHeight); return;
-      case PageFormat.C10: Millimeter(28, 40, out pageWidth, out pageHeight); return;
-
-      // ISO 217 untrimmed stock.
-      case PageFormat.RA0: Millimeter(860, 1220, out pageWidth, out pageHeight); return;
-      case PageFormat.RA1: Millimeter(610, 860, out pageWidth, out pageHeight); return;
-      case PageFormat.RA2: Millimeter(430, 610, out pageWidth, out pageHeight); return;
-      case PageFormat.RA3: Millimeter(305, 430, out pageWidth, out pageHeight); return;
-      case PageFormat.RA4: Millimeter(215, 305, out pageWidth, out pageHeight); return;
-      case PageFormat.RA5: Millimeter(153, 215, out pageWidth, out pageHeight); return;
-      case PageFormat.SRA0: Millimeter(900, 1280, out pageWidth, out pageHeight); return;
-      case PageFormat.SRA1: Millimeter(640, 900, out pageWidth, out pageHeight); return;
-      case PageFormat.SRA2: Millimeter(450, 640, out pageWidth, out pageHeight); return;
-      case PageFormat.SRA3: Millimeter(320, 450, out pageWidth, out pageHeight); return;
-      case PageFormat.SRA4: Millimeter(225, 320, out pageWidth, out pageHeight); return;
-
-      // North American sizes.
-      case PageFormat.Letter: Inch(8.5, 11, out pageWidth, out pageHeight); return;
-      case PageFormat.Legal: Inch(8.5, 14, out pageWidth, out pageHeight); return;
-      case PageFormat.Ledger: Inch(17, 11, out pageWidth, out pageHeight); return;
-      case PageFormat.Tabloid:
-      case PageFormat.P11x17: Inch(11, 17, out pageWidth, out pageHeight); return;
-      case PageFormat.Executive: Inch(7.25, 10.5, out pageWidth, out pageHeight); return;
-      case PageFormat.GovernmentLetter: Inch(8, 10.5, out pageWidth, out pageHeight); return;
-      case PageFormat.Statement:
-      case PageFormat.STMT: Inch(5.5, 8.5, out pageWidth, out pageHeight); return;
-      case PageFormat.Folio: Inch(8.5, 13, out pageWidth, out pageHeight); return;
-      case PageFormat.Size10x14: Inch(10, 14, out pageWidth, out pageHeight); return;
-
-      // Traditional British sizes.
-      case PageFormat.Quarto: Inch(8, 10, out pageWidth, out pageHeight); return;
-      case PageFormat.Foolscap: Inch(8, 13, out pageWidth, out pageHeight); return;
-      case PageFormat.Post: Inch(15.5, 19.25, out pageWidth, out pageHeight); return;
-      case PageFormat.Crown: Inch(20, 15, out pageWidth, out pageHeight); return;
-      case PageFormat.LargePost: Inch(16.5, 21, out pageWidth, out pageHeight); return;
-      case PageFormat.Demy: Inch(17.5, 22, out pageWidth, out pageHeight); return;
-      case PageFormat.Medium: Inch(18, 23, out pageWidth, out pageHeight); return;
-      case PageFormat.Royal: Inch(20, 25, out pageWidth, out pageHeight); return;
-      case PageFormat.Elephant: Inch(23, 28, out pageWidth, out pageHeight); return;
-      case PageFormat.DoubleDemy: Inch(23.5, 35, out pageWidth, out pageHeight); return;
-      case PageFormat.QuadDemy: Inch(35, 45, out pageWidth, out pageHeight); return;
+      pageWidth = sheet.Width;
+      pageHeight = sheet.Height;
+      return;
     }
 
     // A value that names no format has no size. PageSetup.PageFormat refuses one, so this is
@@ -165,21 +87,129 @@ public partial class PageSetup : DocumentObject
     pageHeight = 0;
   }
 
-  private static void Millimeter(int width, int height, out Unit pageWidth, out Unit pageHeight)
+  /// <summary>
+  /// The size of every named format. A class of its own so that the table is built by its own type
+  /// initializer, on first use, whatever order PageSetup's own static fields are initialized in.
+  /// </summary>
+  private static class PageSizes
   {
-    pageWidth = Unit.FromMillimeter(width);
-    pageHeight = Unit.FromMillimeter(height);
+    internal static readonly Dictionary<PageFormat, Sheet> ByFormat = new()
+    {
+      // ISO 216 A series.
+      [PageFormat.A0] = Sheet.Millimeter(841, 1189),
+      [PageFormat.A1] = Sheet.Millimeter(594, 841),
+      [PageFormat.A2] = Sheet.Millimeter(420, 594),
+      [PageFormat.A3] = Sheet.Millimeter(297, 420),
+      [PageFormat.A4] = Sheet.Millimeter(210, 297),
+      [PageFormat.A5] = Sheet.Millimeter(148, 210),
+      [PageFormat.A6] = Sheet.Millimeter(105, 148),
+      [PageFormat.A7] = Sheet.Millimeter(74, 105),
+      [PageFormat.A8] = Sheet.Millimeter(52, 74),
+      [PageFormat.A9] = Sheet.Millimeter(37, 52),
+      [PageFormat.A10] = Sheet.Millimeter(26, 37),
+
+      // DIN 476 oversizes.
+      [PageFormat.TwoA0] = Sheet.Millimeter(1189, 1682),
+      [PageFormat.FourA0] = Sheet.Millimeter(1682, 2378),
+
+      // ISO 216 B series.
+      [PageFormat.B0] = Sheet.Millimeter(1000, 1414),
+      [PageFormat.B1] = Sheet.Millimeter(707, 1000),
+      [PageFormat.B2] = Sheet.Millimeter(500, 707),
+      [PageFormat.B3] = Sheet.Millimeter(353, 500),
+      [PageFormat.B4] = Sheet.Millimeter(250, 353),
+      [PageFormat.B5] = Sheet.Millimeter(176, 250),
+      [PageFormat.B6] = Sheet.Millimeter(125, 176),
+      [PageFormat.B7] = Sheet.Millimeter(88, 125),
+      [PageFormat.B8] = Sheet.Millimeter(62, 88),
+      [PageFormat.B9] = Sheet.Millimeter(44, 62),
+      [PageFormat.B10] = Sheet.Millimeter(31, 44),
+      [PageFormat.JISB5] = Sheet.Millimeter(182, 257),
+
+      // ISO 269 C series, the envelopes.
+      [PageFormat.C0] = Sheet.Millimeter(917, 1297),
+      [PageFormat.C1] = Sheet.Millimeter(648, 917),
+      [PageFormat.C2] = Sheet.Millimeter(458, 648),
+      [PageFormat.C3] = Sheet.Millimeter(324, 458),
+      [PageFormat.C4] = Sheet.Millimeter(229, 324),
+      [PageFormat.C5] = Sheet.Millimeter(162, 229),
+      [PageFormat.C6] = Sheet.Millimeter(114, 162),
+      [PageFormat.C7] = Sheet.Millimeter(81, 114),
+      [PageFormat.C8] = Sheet.Millimeter(57, 81),
+      [PageFormat.C9] = Sheet.Millimeter(40, 57),
+      [PageFormat.C10] = Sheet.Millimeter(28, 40),
+
+      // ISO 217 untrimmed stock.
+      [PageFormat.RA0] = Sheet.Millimeter(860, 1220),
+      [PageFormat.RA1] = Sheet.Millimeter(610, 860),
+      [PageFormat.RA2] = Sheet.Millimeter(430, 610),
+      [PageFormat.RA3] = Sheet.Millimeter(305, 430),
+      [PageFormat.RA4] = Sheet.Millimeter(215, 305),
+      [PageFormat.RA5] = Sheet.Millimeter(153, 215),
+      [PageFormat.SRA0] = Sheet.Millimeter(900, 1280),
+      [PageFormat.SRA1] = Sheet.Millimeter(640, 900),
+      [PageFormat.SRA2] = Sheet.Millimeter(450, 640),
+      [PageFormat.SRA3] = Sheet.Millimeter(320, 450),
+      [PageFormat.SRA4] = Sheet.Millimeter(225, 320),
+
+      // North American sizes.
+      [PageFormat.Letter] = Sheet.Inch(8.5, 11),
+      [PageFormat.Legal] = Sheet.Inch(8.5, 14),
+      [PageFormat.Ledger] = Sheet.Inch(17, 11),
+      [PageFormat.Tabloid] = Sheet.Inch(11, 17),
+      [PageFormat.P11x17] = Sheet.Inch(11, 17),
+      [PageFormat.Executive] = Sheet.Inch(7.25, 10.5),
+      [PageFormat.GovernmentLetter] = Sheet.Inch(8, 10.5),
+      [PageFormat.Statement] = Sheet.Inch(5.5, 8.5),
+      [PageFormat.STMT] = Sheet.Inch(5.5, 8.5),
+      [PageFormat.Folio] = Sheet.Inch(8.5, 13),
+      [PageFormat.Size10x14] = Sheet.Inch(10, 14),
+
+      // Traditional British sizes.
+      [PageFormat.Quarto] = Sheet.Inch(8, 10),
+      [PageFormat.Foolscap] = Sheet.Inch(8, 13),
+      [PageFormat.Post] = Sheet.Inch(15.5, 19.25),
+      [PageFormat.Crown] = Sheet.Inch(20, 15),
+      [PageFormat.LargePost] = Sheet.Inch(16.5, 21),
+      [PageFormat.Demy] = Sheet.Inch(17.5, 22),
+      [PageFormat.Medium] = Sheet.Inch(18, 23),
+      [PageFormat.Royal] = Sheet.Inch(20, 25),
+      [PageFormat.Elephant] = Sheet.Inch(23, 28),
+      [PageFormat.DoubleDemy] = Sheet.Inch(23.5, 35),
+      [PageFormat.QuadDemy] = Sheet.Inch(35, 45),
+    };
   }
 
   /// <summary>
-  /// Takes inches and returns points, at 72 to the inch. A Unit remembers the unit it was made
-  /// from and writes it out as a suffix, so building these with Unit.FromInch would turn the 612
-  /// that a serialized Letter page has always carried into 8.5in.
+  /// A sheet's two sides in the unit that defines it.
   /// </summary>
-  private static void Inch(double width, double height, out Unit pageWidth, out Unit pageHeight)
+  private readonly struct Sheet
   {
-    pageWidth = Unit.FromPoint(width * 72);
-    pageHeight = Unit.FromPoint(height * 72);
+    private readonly double width;
+    private readonly double height;
+    private readonly bool inInches;
+
+    private Sheet(double width, double height, bool inInches)
+    {
+      this.width = width;
+      this.height = height;
+      this.inInches = inInches;
+    }
+
+    public static Sheet Millimeter(double width, double height) => new(width, height, false);
+
+    public static Sheet Inch(double width, double height) => new(width, height, true);
+
+    public Unit Width => ToUnit(width);
+
+    public Unit Height => ToUnit(height);
+
+    /// <summary>
+    /// Takes inches and returns points, at 72 to the inch. A Unit remembers the unit it was made
+    /// from and writes it out as a suffix, so building these with Unit.FromInch would turn the 612
+    /// that a serialized Letter page has always carried into 8.5in.
+    /// </summary>
+    private Unit ToUnit(double length) => inInches ? Unit.FromPoint(length * 72) : Unit.FromMillimeter(length);
   }
   #endregion
 
@@ -479,55 +509,42 @@ public partial class PageSetup : DocumentObject
     serializer.WriteComment(comment ?? "");
     var pos = serializer.BeginContent("PageSetup");
 
-    if (!pageHeight.IsNull)
-      serializer.WriteSimpleAttribute("PageHeight", PageHeight);
-
-    if (!pageWidth.IsNull)
-      serializer.WriteSimpleAttribute("PageWidth", PageWidth);
-
-    if (orientation != null)
-      serializer.WriteSimpleAttribute("Orientation", Orientation);
-
-    if (!leftMargin.IsNull)
-      serializer.WriteSimpleAttribute("LeftMargin", LeftMargin);
-
-    if (!rightMargin.IsNull)
-      serializer.WriteSimpleAttribute("RightMargin", RightMargin);
-
-    if (!topMargin.IsNull)
-      serializer.WriteSimpleAttribute("TopMargin", TopMargin);
-
-    if (!bottomMargin.IsNull)
-      serializer.WriteSimpleAttribute("BottomMargin", BottomMargin);
-
-    if (!footerDistance.IsNull)
-      serializer.WriteSimpleAttribute("FooterDistance", FooterDistance);
-
-    if (!headerDistance.IsNull)
-      serializer.WriteSimpleAttribute("HeaderDistance", HeaderDistance);
-
-    if (oddAndEvenPagesHeaderFooter != null)
-      serializer.WriteSimpleAttribute("OddAndEvenPagesHeaderFooter", OddAndEvenPagesHeaderFooter);
-
-    if (differentFirstPageHeaderFooter != null)
-      serializer.WriteSimpleAttribute("DifferentFirstPageHeaderFooter", DifferentFirstPageHeaderFooter);
-
-    if (sectionStart != null)
-      serializer.WriteSimpleAttribute("SectionStart", SectionStart);
-
-    if (pageFormat != null)
-      serializer.WriteSimpleAttribute("PageFormat", PageFormat);
-
-    if (mirrorMargins != null)
-      serializer.WriteSimpleAttribute("MirrorMargins", MirrorMargins);
-
-    if (horizontalPageBreak != null)
-      serializer.WriteSimpleAttribute("HorizontalPageBreak", HorizontalPageBreak);
-
-    if (startingNumber != null)
-      serializer.WriteSimpleAttribute("StartingNumber", StartingNumber);
+    WriteIfSet(serializer, "PageHeight", pageHeight);
+    WriteIfSet(serializer, "PageWidth", pageWidth);
+    WriteIfSet(serializer, "Orientation", orientation);
+    WriteIfSet(serializer, "LeftMargin", leftMargin);
+    WriteIfSet(serializer, "RightMargin", rightMargin);
+    WriteIfSet(serializer, "TopMargin", topMargin);
+    WriteIfSet(serializer, "BottomMargin", bottomMargin);
+    WriteIfSet(serializer, "FooterDistance", footerDistance);
+    WriteIfSet(serializer, "HeaderDistance", headerDistance);
+    WriteIfSet(serializer, "OddAndEvenPagesHeaderFooter", oddAndEvenPagesHeaderFooter);
+    WriteIfSet(serializer, "DifferentFirstPageHeaderFooter", differentFirstPageHeaderFooter);
+    WriteIfSet(serializer, "SectionStart", sectionStart);
+    WriteIfSet(serializer, "PageFormat", pageFormat);
+    WriteIfSet(serializer, "MirrorMargins", mirrorMargins);
+    WriteIfSet(serializer, "HorizontalPageBreak", horizontalPageBreak);
+    WriteIfSet(serializer, "StartingNumber", startingNumber);
 
     serializer.EndContent(pos);
+  }
+
+  /// <summary>
+  /// Writes a length unless it was left unset.
+  /// </summary>
+  private static void WriteIfSet(Serializer serializer, string valueName, Unit value)
+  {
+    if (!value.IsNull)
+      serializer.WriteSimpleAttribute(valueName, value);
+  }
+
+  /// <summary>
+  /// Writes a value unless it was left unset.
+  /// </summary>
+  private static void WriteIfSet<T>(Serializer serializer, string valueName, T? value) where T : struct
+  {
+    if (value != null)
+      serializer.WriteSimpleAttribute(valueName, value.Value);
   }
 
   #endregion
