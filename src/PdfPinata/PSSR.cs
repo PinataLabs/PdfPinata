@@ -284,41 +284,20 @@ internal static class PSSR
 
     public static string InappropriateColorSpace(PdfColorMode colorMode, XColorSpace colorSpace)
     {
-        string mode;
-        switch (colorMode)
+        var mode = colorMode switch
         {
-            case PdfColorMode.Rgb:
-                mode = "RGB";
-                break;
+            PdfColorMode.Rgb => "RGB",
+            PdfColorMode.Cmyk => "CMYK",
+            _ => "(undefined)"
+        };
 
-            case PdfColorMode.Cmyk:
-                mode = "CMYK";
-                break;
-
-            default:
-                mode = "(undefined)";
-                break;
-        }
-
-        string space;
-        switch (colorSpace)
+        var space = colorSpace switch
         {
-            case XColorSpace.Rgb:
-                space = "RGB";
-                break;
-
-            case XColorSpace.Cmyk:
-                space = "CMYK";
-                break;
-
-            case XColorSpace.GrayScale:
-                space = "grayscale";
-                break;
-
-            default:
-                space = "(undefined)";
-                break;
-        }
+            XColorSpace.Rgb => "RGB",
+            XColorSpace.Cmyk => "CMYK",
+            XColorSpace.GrayScale => "grayscale",
+            _ => "(undefined)"
+        };
         return $"The document requires color mode {mode}, but a color is defined using {space}. " +
                "Use only colors that match the color mode of the PDF document";
     }

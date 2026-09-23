@@ -154,15 +154,12 @@ internal class BarChartRenderer : ChartRenderer
   private PlotAreaRenderer GetPlotAreaRenderer()
   {
     var chart = (Chart)rendererParms.DrawingItem;
-    switch (chart.type)
+    return chart.type switch
     {
-      case ChartType.Bar2D:
-        return new BarClusteredPlotAreaRenderer(rendererParms);
-
-      case ChartType.BarStacked2D:
-        return new BarStackedPlotAreaRenderer(rendererParms);
-    }
-    return null;
+      ChartType.Bar2D => new BarClusteredPlotAreaRenderer(rendererParms),
+      ChartType.BarStacked2D => new BarStackedPlotAreaRenderer(rendererParms),
+      _ => null
+    };
   }
 
   /// <summary>
@@ -171,15 +168,12 @@ internal class BarChartRenderer : ChartRenderer
   private LegendRenderer GetLegendRenderer()
   {
     var chart = (Chart)rendererParms.DrawingItem;
-    switch (chart.type)
+    return chart.type switch
     {
-      case ChartType.Bar2D:
-        return new BarClusteredLegendRenderer(rendererParms);
-
-      case ChartType.BarStacked2D:
-        return new ColumnLikeLegendRenderer(rendererParms);
-    }
-    return null;
+      ChartType.Bar2D => new BarClusteredLegendRenderer(rendererParms),
+      ChartType.BarStacked2D => new ColumnLikeLegendRenderer(rendererParms),
+      _ => null
+    };
   }
 
   /// <summary>
@@ -188,15 +182,12 @@ internal class BarChartRenderer : ChartRenderer
   private YAxisRenderer GetYAxisRenderer()
   {
     var chart = (Chart)rendererParms.DrawingItem;
-    switch (chart.type)
+    return chart.type switch
     {
-      case ChartType.Bar2D:
-        return new HorizontalYAxisRenderer(rendererParms);
-
-      case ChartType.BarStacked2D:
-        return new HorizontalStackedYAxisRenderer(rendererParms);
-    }
-    return null;
+      ChartType.Bar2D => new HorizontalYAxisRenderer(rendererParms),
+      ChartType.BarStacked2D => new HorizontalStackedYAxisRenderer(rendererParms),
+      _ => null
+    };
   }
 
   /// <summary>

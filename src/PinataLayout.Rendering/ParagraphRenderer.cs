@@ -241,19 +241,16 @@ internal class ParagraphRenderer : Renderer
     /// </remarks>
     private PdfTag TagOfParagraph()
     {
-        switch ((int)paragraph.Format.OutlineLevel)
+        return (int)paragraph.Format.OutlineLevel switch
         {
-            case 1: return PdfTag.H1;
-            case 2: return PdfTag.H2;
-            case 3: return PdfTag.H3;
-            case 4: return PdfTag.H4;
-            case 5: return PdfTag.H5;
-            case 6:
-            case 7:
-            case 8:
-            case 9: return PdfTag.H6;
-            default: return PdfTag.P;
-        }
+            1 => PdfTag.H1,
+            2 => PdfTag.H2,
+            3 => PdfTag.H3,
+            4 => PdfTag.H4,
+            5 => PdfTag.H5,
+            6 or 7 or 8 or 9 => PdfTag.H6,
+            _ => PdfTag.P
+        };
     }
 
     /// <summary>
@@ -2629,22 +2626,14 @@ internal class ParagraphRenderer : Renderer
 
     private XUnit GetSpaceWidth(Character character)
     {
-        XUnit width = 0;
-        switch (character.SymbolName)
+        XUnit width = character.SymbolName switch
         {
-            case SymbolName.Blank:
-                width = MeasureString(" ");
-                break;
-            case SymbolName.Em:
-                width = MeasureString("m");
-                break;
-            case SymbolName.Em4:
-                width = 0.25 * MeasureString("m");
-                break;
-            case SymbolName.En:
-                width = MeasureString("n");
-                break;
-        }
+            SymbolName.Blank => MeasureString(" "),
+            SymbolName.Em => MeasureString("m"),
+            SymbolName.Em4 => 0.25 * MeasureString("m"),
+            SymbolName.En => MeasureString("n"),
+            _ => 0
+        };
         return width * character.Count;
     }
 
@@ -2679,51 +2668,21 @@ internal class ParagraphRenderer : Renderer
 
     private static string GetSymbol(Character character)
     {
-        string ch;
-        switch (character.SymbolName)
+        var ch = character.SymbolName switch
         {
-            case SymbolName.Euro:
-                ch = "€";
-                break;
-
-            case SymbolName.Copyright:
-                ch = "©";
-                break;
-
-            case SymbolName.Trademark:
-                ch = "™";
-                break;
-
-            case SymbolName.RegisteredTrademark:
-                ch = "®";
-                break;
-
-            case SymbolName.Bullet:
-                ch = "•";
-                break;
-
-            case SymbolName.Not:
-                ch = "¬";
-                break;
-
+            SymbolName.Euro => "€",
+            SymbolName.Copyright => "©",
+            SymbolName.Trademark => "™",
+            SymbolName.RegisteredTrademark => "®",
+            SymbolName.Bullet => "•",
+            SymbolName.Not => "¬",
             // HardBlank is the same value. That no line breaks at it is FormatElement's business.
-            case SymbolName.NonBreakableBlank:
-                ch = "\u00A0";
-                break;
-
-            case SymbolName.EmDash:
-                ch = "—";
-                break;
-
-            case SymbolName.EnDash:
-                ch = "–";
-                break;
-
+            SymbolName.NonBreakableBlank => "\u00A0",
+            SymbolName.EmDash => "—",
+            SymbolName.EnDash => "–",
             // A character is its own code. SymbolName rather than Char, which keeps 16 bits of it.
-            default:
-                ch = CharacterText((uint)character.SymbolName);
-                break;
-        }
+            _ => CharacterText((uint)character.SymbolName)
+        };
         var returnString = ch;
         var count = character.Count;
         while (--count > 0)
@@ -2757,23 +2716,13 @@ internal class ParagraphRenderer : Renderer
     /// <returns>True if the character should start at a new line.</returns>
     private FormatResult FormatCharacter(Character character)
     {
-        switch (character.SymbolName)
+        return character.SymbolName switch
         {
-            case SymbolName.Blank:
-            case SymbolName.Em:
-            case SymbolName.Em4:
-            case SymbolName.En:
-                return FormatSpace(character);
-
-            case SymbolName.LineBreak:
-                return FormatLineBreak();
-
-            case SymbolName.Tab:
-                return FormatTab();
-
-            default:
-                return FormatSymbol(character);
-        }
+            SymbolName.Blank or SymbolName.Em or SymbolName.Em4 or SymbolName.En => FormatSpace(character),
+            SymbolName.LineBreak => FormatLineBreak(),
+            SymbolName.Tab => FormatTab(),
+            _ => FormatSymbol(character)
+        };
     }
 
     /// <summary>
@@ -3388,15 +3337,12 @@ internal class ParagraphRenderer : Renderer
 
     private static XStringFormat FormatFor(BidiParagraphDirection direction)
     {
-        switch (direction)
+        return direction switch
         {
-            case BidiParagraphDirection.LeftToRight:
-                return leftToRightFormat;
-            case BidiParagraphDirection.RightToLeft:
-                return rightToLeftFormat;
-            default:
-                return automaticFormat;
-        }
+            BidiParagraphDirection.LeftToRight => leftToRightFormat,
+            BidiParagraphDirection.RightToLeft => rightToLeftFormat,
+            _ => automaticFormat
+        };
     }
 
     private static XStringFormat Built(BidiParagraphDirection direction)

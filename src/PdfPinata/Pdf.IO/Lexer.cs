@@ -428,42 +428,21 @@ public class Lexer
         }
 
         // Check known tokens.
-        switch (_token.ToString())
+        return _symbol = _token.ToString() switch
         {
-            case "obj":
-                return _symbol = Symbol.Obj;
-
-            case "endobj":
-                return _symbol = Symbol.EndObj;
-
-            case "null":
-                return _symbol = Symbol.Null;
-
-            case "true":
-            case "false":
-                return _symbol = Symbol.Boolean;
-
-            case "R":
-                return _symbol = Symbol.R;
-
-            case "stream":
-                return _symbol = Symbol.BeginStream;
-
-            case "endstream":
-                return _symbol = Symbol.EndStream;
-
-            case "xref":
-                return _symbol = Symbol.XRef;
-
-            case "trailer":
-                return _symbol = Symbol.Trailer;
-
-            case "startxref":
-                return _symbol = Symbol.StartXRef;
-        }
-
-        // Anything else is treated as a keyword. Samples are f or n in iref.
-        return _symbol = Symbol.Keyword;
+            "obj" => Symbol.Obj,
+            "endobj" => Symbol.EndObj,
+            "null" => Symbol.Null,
+            "true" or "false" => Symbol.Boolean,
+            "R" => Symbol.R,
+            "stream" => Symbol.BeginStream,
+            "endstream" => Symbol.EndStream,
+            "xref" => Symbol.XRef,
+            "trailer" => Symbol.Trailer,
+            "startxref" => Symbol.StartXRef,
+            // Anything else is treated as a keyword. Samples are f or n in iref.
+            _ => Symbol.Keyword
+        };
     }
 
     /// <summary>

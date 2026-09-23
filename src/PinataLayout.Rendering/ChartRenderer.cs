@@ -233,15 +233,12 @@ internal class ChartRenderer : ShapeRenderer
 
   private static XUnit AlignVertically(VerticalAlignment vAlign, XUnit top, XUnit bottom, XUnit height)
   {
-    switch (vAlign)
+    return vAlign switch
     {
-      case VerticalAlignment.Bottom:
-        return bottom - height;
-      case VerticalAlignment.Center:
-        return (top + bottom - height) / 2;
-      default:
-        return top;
-    }
+      VerticalAlignment.Bottom => bottom - height,
+      VerticalAlignment.Center => (top + bottom - height) / 2,
+      _ => top
+    };
   }
 
   /// <summary>

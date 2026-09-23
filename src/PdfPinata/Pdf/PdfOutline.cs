@@ -712,60 +712,34 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
 
     private PdfArray CreateDestArray()
     {
-        PdfArray dest;
-        switch (PageDestinationType)
+        var dest = PageDestinationType switch
         {
             // [page /XYZ left top zoom]
-            case PdfPageDestinationType.Xyz:
-                dest = new PdfArray(Owner,
-                    DestinationPage.Reference, new PdfLiteral($"/XYZ {Fd(Left)} {Fd(Top)} {Fd(Zoom)}"));
-                break;
-
+            PdfPageDestinationType.Xyz => new PdfArray(Owner,
+                DestinationPage.Reference, new PdfLiteral($"/XYZ {Fd(Left)} {Fd(Top)} {Fd(Zoom)}")),
             // [page /Fit]
-            case PdfPageDestinationType.Fit:
-                dest = new PdfArray(Owner,
-                    DestinationPage.Reference, new PdfLiteral("/Fit"));
-                break;
-
+            PdfPageDestinationType.Fit => new PdfArray(Owner,
+                DestinationPage.Reference, new PdfLiteral("/Fit")),
             // [page /FitH top]
-            case PdfPageDestinationType.FitH:
-                dest = new PdfArray(Owner,
-                    DestinationPage.Reference, new PdfLiteral($"/FitH {Fd(Top)}"));
-                break;
-
+            PdfPageDestinationType.FitH => new PdfArray(Owner,
+                DestinationPage.Reference, new PdfLiteral($"/FitH {Fd(Top)}")),
             // [page /FitV left]
-            case PdfPageDestinationType.FitV:
-                dest = new PdfArray(Owner,
-                    DestinationPage.Reference, new PdfLiteral($"/FitV {Fd(Left)}"));
-                break;
-
+            PdfPageDestinationType.FitV => new PdfArray(Owner,
+                DestinationPage.Reference, new PdfLiteral($"/FitV {Fd(Left)}")),
             // [page /FitR left bottom right top]
-            case PdfPageDestinationType.FitR:
-                dest = new PdfArray(Owner,
-                    DestinationPage.Reference, new PdfLiteral($"/FitR {Fd(Left)} {Fd(Bottom)} {Fd(Right)} {Fd(Top)}"));
-                break;
-
+            PdfPageDestinationType.FitR => new PdfArray(Owner,
+                DestinationPage.Reference, new PdfLiteral($"/FitR {Fd(Left)} {Fd(Bottom)} {Fd(Right)} {Fd(Top)}")),
             // [page /FitB]
-            case PdfPageDestinationType.FitB:
-                dest = new PdfArray(Owner,
-                    DestinationPage.Reference, new PdfLiteral("/FitB"));
-                break;
-
+            PdfPageDestinationType.FitB => new PdfArray(Owner,
+                DestinationPage.Reference, new PdfLiteral("/FitB")),
             // [page /FitBH top]
-            case PdfPageDestinationType.FitBH:
-                dest = new PdfArray(Owner,
-                    DestinationPage.Reference, new PdfLiteral($"/FitBH {Fd(Top)}"));
-                break;
-
+            PdfPageDestinationType.FitBH => new PdfArray(Owner,
+                DestinationPage.Reference, new PdfLiteral($"/FitBH {Fd(Top)}")),
             // [page /FitBV left]
-            case PdfPageDestinationType.FitBV:
-                dest = new PdfArray(Owner,
-                    DestinationPage.Reference, new PdfLiteral($"/FitBV {Fd(Left)}"));
-                break;
-
-            default:
-                throw new ArgumentOutOfRangeException();
-        }
+            PdfPageDestinationType.FitBV => new PdfArray(Owner,
+                DestinationPage.Reference, new PdfLiteral($"/FitBV {Fd(Left)}")),
+            _ => throw new ArgumentOutOfRangeException()
+        };
         return dest;
     }
 

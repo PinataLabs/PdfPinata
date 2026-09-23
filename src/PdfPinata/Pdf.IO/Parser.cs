@@ -345,25 +345,15 @@ internal sealed class Parser
     /// </summary>
     private bool EndsAnObject(Symbol symbol)
     {
-        switch (symbol)
+        return symbol switch
         {
             // The object number of the object that follows — but only if it really is one, so
             // that a stray number left after an object is still reported.
-            case Symbol.Integer:
-            case Symbol.UInteger:
-            case Symbol.Long:
-                return BeginsAnIndirectObject();
-
+            Symbol.Integer or Symbol.UInteger or Symbol.Long => BeginsAnIndirectObject(),
             // Or the end of the body of the file.
-            case Symbol.XRef:
-            case Symbol.Trailer:
-            case Symbol.StartXRef:
-            case Symbol.Eof:
-                return true;
-
-            default:
-                return false;
-        }
+            Symbol.XRef or Symbol.Trailer or Symbol.StartXRef or Symbol.Eof => true,
+            _ => false
+        };
     }
 
     /// <summary>

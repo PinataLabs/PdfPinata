@@ -624,14 +624,14 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
 
     private static XDashStyle DashStyleOf(XTextDecoration decoration)
     {
-        switch (decoration)
+        return decoration switch
         {
-            case XTextDecoration.Dotted: return XDashStyle.Dot;
-            case XTextDecoration.Dash: return XDashStyle.Dash;
-            case XTextDecoration.DotDash: return XDashStyle.DashDot;
-            case XTextDecoration.DotDotDash: return XDashStyle.DashDotDot;
-            default: return XDashStyle.Solid;
-        }
+            XTextDecoration.Dotted => XDashStyle.Dot,
+            XTextDecoration.Dash => XDashStyle.Dash,
+            XTextDecoration.DotDash => XDashStyle.DashDot,
+            XTextDecoration.DotDotDash => XDashStyle.DashDotDot,
+            _ => XDashStyle.Solid
+        };
     }
 
     /// <summary>
@@ -1653,17 +1653,13 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     private XMatrix PageRotationMatrix()
     {
         var mediaBox = StoredPageSize;
-        switch (PageRotation)
+        return PageRotation switch
         {
-            case 90:
-                return new XMatrix(0, 1, -1, 0, mediaBox.Width, 0);
-            case 180:
-                return new XMatrix(-1, 0, 0, -1, mediaBox.Width, mediaBox.Height);
-            case 270:
-                return new XMatrix(0, -1, 1, 0, 0, mediaBox.Height);
-            default:
-                return new XMatrix();
-        }
+            90 => new XMatrix(0, 1, -1, 0, mediaBox.Width, 0),
+            180 => new XMatrix(-1, 0, 0, -1, mediaBox.Width, mediaBox.Height),
+            270 => new XMatrix(0, -1, 1, 0, 0, mediaBox.Height),
+            _ => new XMatrix()
+        };
     }
 
     /// <summary>

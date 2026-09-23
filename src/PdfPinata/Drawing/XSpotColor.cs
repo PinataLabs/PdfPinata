@@ -81,17 +81,12 @@ public sealed class XSpotColor : IEquatable<XSpotColor>
     /// </summary>
     internal XColor Tinted(double tint)
     {
-        switch (Alternate.ColorSpace)
+        return Alternate.ColorSpace switch
         {
-            case XColorSpace.Cmyk:
-                return XColor.FromCmyk(Alternate.C * tint, Alternate.M * tint, Alternate.Y * tint, Alternate.K * tint);
-
-            case XColorSpace.GrayScale:
-                return XColor.FromGrayScale(1 - tint * (1 - Alternate.GS));
-
-            default:
-                return XColor.FromArgb(TowardWhite(Alternate.R, tint), TowardWhite(Alternate.G, tint), TowardWhite(Alternate.B, tint));
-        }
+            XColorSpace.Cmyk => XColor.FromCmyk(Alternate.C * tint, Alternate.M * tint, Alternate.Y * tint, Alternate.K * tint),
+            XColorSpace.GrayScale => XColor.FromGrayScale(1 - tint * (1 - Alternate.GS)),
+            _ => XColor.FromArgb(TowardWhite(Alternate.R, tint), TowardWhite(Alternate.G, tint), TowardWhite(Alternate.B, tint))
+        };
     }
 
     private static int TowardWhite(byte component, double tint) =>

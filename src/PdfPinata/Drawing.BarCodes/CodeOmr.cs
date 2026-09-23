@@ -167,17 +167,13 @@ public class CodeOmr : BarCode
         // In points rather than as fractions of an inch, so that each is exact. A distance
         // assigned through MakerDistance need not be: 25.4 / 6 mm is 12.000000000000002 points,
         // which is why StandardMarkDistance compares within a tolerance rather than exactly.
-        switch (markDistance)
+        return markDistance switch
         {
-            case MarkDistance.Inch1_6:
-                return XUnit.FromPoint(12);
-            case MarkDistance.Inch2_6:
-                return XUnit.FromPoint(24);
-            case MarkDistance.Inch2_8:
-                return XUnit.FromPoint(18);
-            default:
-                throw new InvalidEnumArgumentException(nameof(markDistance), (int)markDistance, typeof(MarkDistance));
-        }
+            MarkDistance.Inch1_6 => XUnit.FromPoint(12),
+            MarkDistance.Inch2_6 => XUnit.FromPoint(24),
+            MarkDistance.Inch2_8 => XUnit.FromPoint(18),
+            _ => throw new InvalidEnumArgumentException(nameof(markDistance), (int)markDistance, typeof(MarkDistance))
+        };
     }
 
     /// <summary>

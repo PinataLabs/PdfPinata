@@ -142,15 +142,12 @@ internal class ColumnChartRenderer : ColumnLikeChartRenderer
   private PlotAreaRenderer GetPlotAreaRenderer()
   {
     var chart = (Chart)rendererParms.DrawingItem;
-    switch (chart.type)
+    return chart.type switch
     {
-      case ChartType.Column2D:
-        return new ColumnClusteredPlotAreaRenderer(rendererParms);
-
-      case ChartType.ColumnStacked2D:
-        return new ColumnStackedPlotAreaRenderer(rendererParms);
-    }
-    return null;
+      ChartType.Column2D => new ColumnClusteredPlotAreaRenderer(rendererParms),
+      ChartType.ColumnStacked2D => new ColumnStackedPlotAreaRenderer(rendererParms),
+      _ => null
+    };
   }
 
   /// <summary>
@@ -159,15 +156,12 @@ internal class ColumnChartRenderer : ColumnLikeChartRenderer
   private YAxisRenderer GetYAxisRenderer()
   {
     var chart = (Chart)rendererParms.DrawingItem;
-    switch (chart.type)
+    return chart.type switch
     {
-      case ChartType.Column2D:
-        return new VerticalYAxisRenderer(rendererParms);
-
-      case ChartType.ColumnStacked2D:
-        return new VerticalStackedYAxisRenderer(rendererParms);
-    }
-    return null;
+      ChartType.Column2D => new VerticalYAxisRenderer(rendererParms),
+      ChartType.ColumnStacked2D => new VerticalStackedYAxisRenderer(rendererParms),
+      _ => null
+    };
   }
 
   /// <summary>

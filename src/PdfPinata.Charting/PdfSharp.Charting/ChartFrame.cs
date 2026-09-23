@@ -175,28 +175,15 @@ public class ChartFrame
     if (useCombinationRenderer)
       return new CombinationChartRenderer(parms);
 
-    switch (chartType)
+    return chartType switch
     {
-      case ChartType.Line:
-        return new LineChartRenderer(parms);
-
-      case ChartType.Column2D:
-      case ChartType.ColumnStacked2D:
-        return new ColumnChartRenderer(parms);
-
-      case ChartType.Bar2D:
-      case ChartType.BarStacked2D:
-        return new BarChartRenderer(parms);
-
-      case ChartType.Area2D:
-        return new AreaChartRenderer(parms);
-
-      case ChartType.Pie2D:
-      case ChartType.PieExploded2D:
-        return new PieChartRenderer(parms);
-    }
-
-    return null;
+      ChartType.Line => new LineChartRenderer(parms),
+      ChartType.Column2D or ChartType.ColumnStacked2D => new ColumnChartRenderer(parms),
+      ChartType.Bar2D or ChartType.BarStacked2D => new BarChartRenderer(parms),
+      ChartType.Area2D => new AreaChartRenderer(parms),
+      ChartType.Pie2D or ChartType.PieExploded2D => new PieChartRenderer(parms),
+      _ => null
+    };
   }
 
   /// <summary>

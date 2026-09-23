@@ -673,17 +673,12 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
     {
         get
         {
-            switch (_type)
+            return _type switch
             {
-                case XMatrixTypes.Identity:
-                case XMatrixTypes.Translation:
-                    return 1.0;
-
-                case XMatrixTypes.Scaling:
-                case XMatrixTypes.Scaling | XMatrixTypes.Translation:
-                    return _m11 * _m22;
-            }
-            return _m11 * _m22 - _m12 * _m21;
+                XMatrixTypes.Identity or XMatrixTypes.Translation => 1.0,
+                XMatrixTypes.Scaling or XMatrixTypes.Scaling | XMatrixTypes.Translation => _m11 * _m22,
+                _ => _m11 * _m22 - _m12 * _m21
+            };
         }
     }
 

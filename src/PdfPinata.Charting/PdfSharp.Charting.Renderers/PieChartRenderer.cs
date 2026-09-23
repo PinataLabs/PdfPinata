@@ -123,15 +123,12 @@ internal class PieChartRenderer : ChartRenderer
   private PlotAreaRenderer GetPlotAreaRenderer()
   {
     var chart = (Chart)rendererParms.DrawingItem;
-    switch (chart.type)
+    return chart.type switch
     {
-      case ChartType.Pie2D:
-        return new PieClosedPlotAreaRenderer(rendererParms);
-
-      case ChartType.PieExploded2D:
-        return new PieExplodedPlotAreaRenderer(rendererParms);
-    }
-    return null;
+      ChartType.Pie2D => new PieClosedPlotAreaRenderer(rendererParms),
+      ChartType.PieExploded2D => new PieExplodedPlotAreaRenderer(rendererParms),
+      _ => null
+    };
   }
 
   /// <summary>

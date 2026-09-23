@@ -259,27 +259,16 @@ public sealed class PdfPageLabels
 
     internal static string Numeral(int number, PdfPageLabelStyle style)
     {
-        switch (style)
+        return style switch
         {
-            case PdfPageLabelStyle.Decimal:
-                return number.ToString(CultureInfo.InvariantCulture);
-
-            case PdfPageLabelStyle.UppercaseRoman:
-                return Roman(number);
-
-            case PdfPageLabelStyle.LowercaseRoman:
-                return Roman(number).ToLowerInvariant();
-
-            case PdfPageLabelStyle.UppercaseLetters:
-                return Letters(number, 'A');
-
-            case PdfPageLabelStyle.LowercaseLetters:
-                return Letters(number, 'a');
-
-            default:
-                // No numeric part at all: the label is the prefix alone.
-                return "";
-        }
+            PdfPageLabelStyle.Decimal => number.ToString(CultureInfo.InvariantCulture),
+            PdfPageLabelStyle.UppercaseRoman => Roman(number),
+            PdfPageLabelStyle.LowercaseRoman => Roman(number).ToLowerInvariant(),
+            PdfPageLabelStyle.UppercaseLetters => Letters(number, 'A'),
+            PdfPageLabelStyle.LowercaseLetters => Letters(number, 'a'),
+            // No numeric part at all: the label is the prefix alone.
+            _ => ""
+        };
     }
 
     private static readonly int[] RomanValues = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1];
@@ -321,28 +310,28 @@ public sealed class PdfPageLabels
 
     private static string NameOf(PdfPageLabelStyle style)
     {
-        switch (style)
+        return style switch
         {
-            case PdfPageLabelStyle.Decimal: return "/D";
-            case PdfPageLabelStyle.UppercaseRoman: return "/R";
-            case PdfPageLabelStyle.LowercaseRoman: return "/r";
-            case PdfPageLabelStyle.UppercaseLetters: return "/A";
-            case PdfPageLabelStyle.LowercaseLetters: return "/a";
-            default: return null;
-        }
+            PdfPageLabelStyle.Decimal => "/D",
+            PdfPageLabelStyle.UppercaseRoman => "/R",
+            PdfPageLabelStyle.LowercaseRoman => "/r",
+            PdfPageLabelStyle.UppercaseLetters => "/A",
+            PdfPageLabelStyle.LowercaseLetters => "/a",
+            _ => null
+        };
     }
 
     private static PdfPageLabelStyle StyleOf(string name)
     {
-        switch (name)
+        return name switch
         {
-            case "/D": return PdfPageLabelStyle.Decimal;
-            case "/R": return PdfPageLabelStyle.UppercaseRoman;
-            case "/r": return PdfPageLabelStyle.LowercaseRoman;
-            case "/A": return PdfPageLabelStyle.UppercaseLetters;
-            case "/a": return PdfPageLabelStyle.LowercaseLetters;
-            default: return PdfPageLabelStyle.None;
-        }
+            "/D" => PdfPageLabelStyle.Decimal,
+            "/R" => PdfPageLabelStyle.UppercaseRoman,
+            "/r" => PdfPageLabelStyle.LowercaseRoman,
+            "/A" => PdfPageLabelStyle.UppercaseLetters,
+            "/a" => PdfPageLabelStyle.LowercaseLetters,
+            _ => PdfPageLabelStyle.None
+        };
     }
 
     /// <summary>

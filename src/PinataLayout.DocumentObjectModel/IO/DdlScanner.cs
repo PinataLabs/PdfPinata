@@ -464,14 +464,11 @@ internal class DdlScanner
   /// </summary>
   private bool IgnoreLineBreak()
   {
-    switch (prevSymbol)
+    return prevSymbol switch
     {
-      case Symbol.LineBreak:
-      case Symbol.Space:
-      case Symbol.Tab:
-        return true;
-    }
-    return false;
+      Symbol.LineBreak or Symbol.Space or Symbol.Tab => true,
+      _ => false
+    };
   }
 
   /// <summary>

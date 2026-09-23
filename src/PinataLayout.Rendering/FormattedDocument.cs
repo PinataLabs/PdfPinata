@@ -637,16 +637,14 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
 
     bool IAreaProvider.PositionHorizontally(LayoutInfo layoutInfo)
     {
-        switch (layoutInfo.HorizontalReference)
+        return layoutInfo.HorizontalReference switch
         {
-            case HorizontalReference.PageMargin:
-            case HorizontalReference.AreaBoundary:
-                return PositionHorizontallyToMargin(layoutInfo);
-
-            case HorizontalReference.Page:
-                return PositionHorizontallyToPage(layoutInfo);
-        }
-        return false;
+            HorizontalReference.PageMargin
+                or HorizontalReference.AreaBoundary
+                => PositionHorizontallyToMargin(layoutInfo),
+            HorizontalReference.Page => PositionHorizontallyToPage(layoutInfo),
+            _ => false
+        };
     }
 
     /// <summary>
@@ -836,19 +834,13 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
 
     bool IAreaProvider.PositionVertically(LayoutInfo layoutInfo)
     {
-        switch (layoutInfo.VerticalReference)
+        return layoutInfo.VerticalReference switch
         {
-            case VerticalReference.PreviousElement:
-                return false;
-
-            case VerticalReference.AreaBoundary:
-            case VerticalReference.PageMargin:
-                return PositionVerticallyToMargin(layoutInfo);
-
-            case VerticalReference.Page:
-                return PositionVerticallyToPage(layoutInfo);
-        }
-        return false;
+            VerticalReference.PreviousElement => false,
+            VerticalReference.AreaBoundary or VerticalReference.PageMargin => PositionVerticallyToMargin(layoutInfo),
+            VerticalReference.Page => PositionVerticallyToPage(layoutInfo),
+            _ => false
+        };
     }
 
     internal FieldInfos GetFieldInfos(int page)

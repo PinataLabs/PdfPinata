@@ -266,19 +266,18 @@ public sealed class FacturXInvoice
     /// </summary>
     internal static string ConformanceLevelOf(EInvoiceProfile profile)
     {
-        switch (profile)
+        return profile switch
         {
-            case EInvoiceProfile.Minimum: return "MINIMUM";
-            case EInvoiceProfile.BasicWithoutLines: return "BASIC WL";
-            case EInvoiceProfile.Basic: return "BASIC";
-            case EInvoiceProfile.En16931: return "EN 16931";
-            case EInvoiceProfile.Extended: return "EXTENDED";
-            case EInvoiceProfile.XRechnung: return "XRECHNUNG";
-            default:
-                throw new ArgumentOutOfRangeException(nameof(profile), profile,
-                    "There is no conformance level for this profile, so there is nothing true to "
-                    + "write for it.");
-        }
+            EInvoiceProfile.Minimum => "MINIMUM",
+            EInvoiceProfile.BasicWithoutLines => "BASIC WL",
+            EInvoiceProfile.Basic => "BASIC",
+            EInvoiceProfile.En16931 => "EN 16931",
+            EInvoiceProfile.Extended => "EXTENDED",
+            EInvoiceProfile.XRechnung => "XRECHNUNG",
+            _ => throw new ArgumentOutOfRangeException(nameof(profile), profile,
+                "There is no conformance level for this profile, so there is nothing true to "
+                + "write for it.")
+        };
     }
 
     /// <summary>

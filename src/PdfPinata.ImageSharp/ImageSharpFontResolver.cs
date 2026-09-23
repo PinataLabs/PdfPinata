@@ -56,22 +56,13 @@ public class ImageSharpFontResolver
 
     private static FontMetadata ToMetadata(FontDescription fontDescription)
     {
-        XFontStyle style;
-        switch (fontDescription.Style)
+        var style = fontDescription.Style switch
         {
-            case FontStyle.Bold:
-                style = XFontStyle.Bold;
-                break;
-            case FontStyle.Italic:
-                style = XFontStyle.Italic;
-                break;
-            case FontStyle.BoldItalic:
-                style = XFontStyle.BoldItalic;
-                break;
-            default:
-                style = XFontStyle.Regular;
-                break;
-        }
+            FontStyle.Bold => XFontStyle.Bold,
+            FontStyle.Italic => XFontStyle.Italic,
+            FontStyle.BoldItalic => XFontStyle.BoldItalic,
+            _ => XFontStyle.Regular
+        };
 
         return new FontMetadata(fontDescription.FontFamilyInvariantCulture, style);
     }

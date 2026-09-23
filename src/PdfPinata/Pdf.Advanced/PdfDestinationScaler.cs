@@ -367,14 +367,14 @@ internal static class PdfDestinationScaler
         /// </summary>
         private static string Turned(string form)
         {
-            switch (form)
+            return form switch
             {
-                case "/FitH": return "/FitV";
-                case "/FitV": return "/FitH";
-                case "/FitBH": return "/FitBV";
-                case "/FitBV": return "/FitBH";
-                default: return form;
-            }
+                "/FitH" => "/FitV",
+                "/FitV" => "/FitH",
+                "/FitBH" => "/FitBV",
+                "/FitBV" => "/FitBH",
+                _ => form
+            };
         }
 
         /// <summary>
