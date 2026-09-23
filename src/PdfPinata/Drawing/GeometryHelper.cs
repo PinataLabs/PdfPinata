@@ -49,105 +49,198 @@ internal static class GeometryHelper
         PathStart pathStart, ref XMatrix matrix)
     {
         var points = new List<XPoint>();
-
-        // Normalize the angles.
-        var α = startAngle;
-        if (α < 0)
-            α += (1 + Math.Floor(Math.Abs(α) / 360)) * 360;
-        else if (α > 360)
-            α -= Math.Floor(α / 360) * 360;
-        Debug.Assert(α is >= 0 and <= 360);
-
-        var β = sweepAngle;
-        if (β < -360)
-            β = -360;
-        else if (β > 360)
-            β = 360;
-
-        if (α == 0 && β < 0)
-            α = 360;
-        #pragma warning disable S1244 // Exact on purpose: only the exact value takes the special case, and the general path is right for anything near it.
-        else if (α == 360 && β > 0)
-            α = 0;
-        #pragma warning restore S1244
-
-        // Is it possible that the arc is small starts and ends in same quadrant?
-        var smallAngle = Math.Abs(β) <= 90;
-
-        β = α + β;
-        if (β < 0)
-            β += (1 + Math.Floor(Math.Abs(β) / 360)) * 360;
-
-        var clockwise = sweepAngle > 0;
-        var startQuadrant = Quadrant(α, true, clockwise);
-        var endQuadrant = Quadrant(β, false, clockwise);
-
-        if (startQuadrant == endQuadrant && smallAngle)
-        {
-            AppendPartialArcQuadrant(points, x, y, width, height, α, β, pathStart, matrix);
-        }
-        else
-        {
-            var currentQuadrant = startQuadrant;
-            var firstLoop = true;
-            do
-            {
-                if (currentQuadrant == startQuadrant && firstLoop)
-                {
-                    double ξ = currentQuadrant * 90 + (clockwise ? 90 : 0);
-                    AppendPartialArcQuadrant(points, x, y, width, height, α, ξ, pathStart, matrix);
-                }
-                else if (currentQuadrant == endQuadrant)
-                {
-                    double ξ = currentQuadrant * 90 + (clockwise ? 0 : 90);
-                    AppendPartialArcQuadrant(points, x, y, width, height, ξ, β, PathStart.Ignore1st, matrix);
-                }
-                else
-                {
-                    double ξ1 = currentQuadrant * 90 + (clockwise ? 0 : 90);
-                    double ξ2 = currentQuadrant * 90 + (clockwise ? 90 : 0);
-                    AppendPartialArcQuadrant(points, x, y, width, height, ξ1, ξ2, PathStart.Ignore1st, matrix);
-                }
-
-                // Don't stop immediately if arc is greater than 270 degrees.
-                if (currentQuadrant == endQuadrant && smallAngle)
-                    break;
-                smallAngle = true;
-
-                if (clockwise)
-                    currentQuadrant = currentQuadrant == 3 ? 0 : currentQuadrant + 1;
-                else
-                    currentQuadrant = currentQuadrant == 0 ? 3 : currentQuadrant - 1;
-
-                firstLoop = false;
-            } while (true);
-        }
+        foreach (var segment in new ArcSegments(startAngle, sweepAngle, pathStart))
+            AppendPartialArcQuadrant(points, x, y, width, height, segment.From, segment.To, segment.PathStart, matrix);
         return points;
     }
 
     /// <summary>
-    /// Calculates the quadrant (0 through 3) of the specified angle. If the angle lies on an edge
-    /// (0, 90, 180, etc.) the result depends on the details how the angle is used.
+    /// One piece of an arc, lying within a single quadrant, with its angles in degrees.
     /// </summary>
-    private static int Quadrant(double φ, bool start, bool clockwise)
+    internal readonly struct ArcSegment
     {
-        Debug.Assert(φ >= 0);
-        if (φ > 360)
-            φ -= Math.Floor(φ / 360) * 360;
+        public ArcSegment(double from, double to, PathStart pathStart)
+        {
+            From = from;
+            To = to;
+            PathStart = pathStart;
+        }
 
-        var quadrant = (int)(φ / 90);
-        #pragma warning disable S1244 // Exact on purpose: only the exact value takes the special case, and the general path is right for anything near it.
-        if (quadrant * 90 == φ)
-        #pragma warning restore S1244
+        /// <summary>The angle the piece starts at.</summary>
+        public double From { get; }
+
+        /// <summary>The angle the piece ends at.</summary>
+        public double To { get; }
+
+        /// <summary>
+        /// How the piece joins what came before it: the first piece as the caller asked, every later
+        /// one continuing from where the previous one ended.
+        /// </summary>
+        public PathStart PathStart { get; }
+    }
+
+    /// <summary>
+    /// Cuts an arc specified like in GDI+ into the between 1 and 5 pieces a Bézier curve is drawn
+    /// for, one per quadrant the arc passes through. The same walk serves both the path geometry and
+    /// the renderer's content stream, so the two cannot cut an arc differently.
+    /// </summary>
+    /// <remarks>
+    /// A struct enumerator, so a <c>foreach</c> over it allocates nothing. It hands out one
+    /// <see cref="ArcSegment"/> per step, in drawing order.
+    /// </remarks>
+    internal struct ArcSegments
+    {
+        public ArcSegments(double startAngle, double sweepAngle, PathStart pathStart)
         {
-            if ((start && !clockwise) || (!start && clockwise))
-                quadrant = quadrant == 0 ? 3 : quadrant - 1;
+            var sweep = ClampSweep(sweepAngle);
+            _start = NormalizeStartAngle(startAngle, sweep);
+
+            // Is it possible that the arc is small starts and ends in same quadrant?
+            _smallAngle = Math.Abs(sweep) <= 90;
+
+            _end = _start + sweep;
+            if (_end < 0)
+                _end += (1 + Math.Floor(Math.Abs(_end) / 360)) * 360;
+
+            _clockwise = sweepAngle > 0;
+            var startQuadrant = Quadrant(_start, true, _clockwise);
+            _endQuadrant = Quadrant(_end, false, _clockwise);
+            _withinOneQuadrant = startQuadrant == _endQuadrant && _smallAngle;
+            _pathStart = pathStart;
+
+            _quadrant = startQuadrant;
+            _first = true;
+            _finished = false;
+            Current = default;
         }
-        else
+
+        private readonly double _start;
+        private readonly double _end;
+        private readonly bool _clockwise;
+        private readonly int _endQuadrant;
+        private readonly bool _withinOneQuadrant;
+        private readonly PathStart _pathStart;
+        private int _quadrant;
+        private bool _first;
+        private bool _smallAngle;
+        private bool _finished;
+
+        public readonly ArcSegments GetEnumerator() => this;
+
+        public ArcSegment Current { get; private set; }
+
+        public bool MoveNext()
         {
-            quadrant = clockwise ? (int)Math.Floor(φ / 90) % 4 : (int)Math.Floor(φ / 90);
+            if (_finished)
+                return false;
+
+            if (_withinOneQuadrant)
+            {
+                Current = new ArcSegment(_start, _end, _pathStart);
+                _finished = true;
+                return true;
+            }
+
+            Current = SegmentIn(_quadrant);
+
+            // Don't stop immediately if arc is greater than 270 degrees.
+            if (_quadrant == _endQuadrant && _smallAngle)
+            {
+                _finished = true;
+                return true;
+            }
+
+            _smallAngle = true;
+            _quadrant = NextQuadrant(_quadrant);
+            _first = false;
+            return true;
         }
-        return quadrant;
+
+        /// <summary>
+        /// The piece of the arc lying in the quadrant: from where the arc starts to the quadrant's
+        /// far edge in the first, from its near edge to where the arc ends in the last, and the
+        /// whole quadrant in between.
+        /// </summary>
+        private readonly ArcSegment SegmentIn(int quadrant)
+        {
+            if (_first)
+                return new ArcSegment(_start, FarEdge(quadrant), _pathStart);
+
+            if (quadrant == _endQuadrant)
+                return new ArcSegment(NearEdge(quadrant), _end, PathStart.Ignore1st);
+
+            return new ArcSegment(NearEdge(quadrant), FarEdge(quadrant), PathStart.Ignore1st);
+        }
+
+        /// <summary>The edge of the quadrant the arc enters it by.</summary>
+        private readonly double NearEdge(int quadrant) => quadrant * 90 + (_clockwise ? 0 : 90);
+
+        /// <summary>The edge of the quadrant the arc leaves it by.</summary>
+        private readonly double FarEdge(int quadrant) => quadrant * 90 + (_clockwise ? 90 : 0);
+
+        private readonly int NextQuadrant(int quadrant)
+        {
+            if (_clockwise)
+                return quadrant == 3 ? 0 : quadrant + 1;
+            return quadrant == 0 ? 3 : quadrant - 1;
+        }
+
+        /// <summary>
+        /// The start angle brought into the range 0 through 360. Of the two ends of that range,
+        /// an arc turning backwards starts from 360 and one turning forwards from 0.
+        /// </summary>
+        private static double NormalizeStartAngle(double startAngle, double sweep)
+        {
+            var α = startAngle;
+            if (α < 0)
+                α += (1 + Math.Floor(Math.Abs(α) / 360)) * 360;
+            else if (α > 360)
+                α -= Math.Floor(α / 360) * 360;
+            Debug.Assert(α is >= 0 and <= 360);
+
+            if (α == 0 && sweep < 0)
+                return 360;
+            #pragma warning disable S1244 // Exact on purpose: only the exact value takes the special case, and the general path is right for anything near it.
+            if (α == 360 && sweep > 0)
+                return 0;
+            #pragma warning restore S1244
+            return α;
+        }
+
+        /// <summary>The sweep angle, no further than one whole turn either way.</summary>
+        private static double ClampSweep(double sweepAngle)
+        {
+            if (sweepAngle < -360)
+                return -360;
+            if (sweepAngle > 360)
+                return 360;
+            return sweepAngle;
+        }
+
+        /// <summary>
+        /// Calculates the quadrant (0 through 3) of the specified angle. If the angle lies on an edge
+        /// (0, 90, 180, etc.) the result depends on the details how the angle is used.
+        /// </summary>
+        private static int Quadrant(double φ, bool start, bool clockwise)
+        {
+            Debug.Assert(φ >= 0);
+            if (φ > 360)
+                φ -= Math.Floor(φ / 360) * 360;
+
+            var quadrant = (int)(φ / 90);
+            #pragma warning disable S1244 // Exact on purpose: only the exact value takes the special case, and the general path is right for anything near it.
+            if (quadrant * 90 == φ)
+            #pragma warning restore S1244
+            {
+                if ((start && !clockwise) || (!start && clockwise))
+                    quadrant = quadrant == 0 ? 3 : quadrant - 1;
+            }
+            else
+            {
+                quadrant = clockwise ? (int)Math.Floor(φ / 90) % 4 : (int)Math.Floor(φ / 90);
+            }
+            return quadrant;
+        }
     }
 
     /// <summary>
