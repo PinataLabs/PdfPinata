@@ -106,7 +106,7 @@ static class PdfDestinationScaler
     private sealed class Sweep
     {
         private readonly Dictionary<PdfObjectID, XMatrix> _matrices;
-        private readonly HashSet<PdfArray> _done = new HashSet<PdfArray>(ByIdentity.Instance);
+        private readonly HashSet<PdfArray> _done = new(ByIdentity.Instance);
 
         internal Sweep(Dictionary<PdfObjectID, XMatrix> matrices)
         {
@@ -416,7 +416,7 @@ static class PdfDestinationScaler
     /// </summary>
     private sealed class ByIdentity : IEqualityComparer<PdfArray>
     {
-        internal static readonly ByIdentity Instance = new ByIdentity();
+        internal static readonly ByIdentity Instance = new();
 
         public bool Equals(PdfArray x, PdfArray y)
         {

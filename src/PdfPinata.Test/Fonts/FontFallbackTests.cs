@@ -46,9 +46,9 @@ public class FontFallbackTests
     // U+200D ZERO WIDTH JOINER, written as a code point because it is invisible in a source file.
     private const string Joiner = "\u200D";
 
-    private static XFont Latin() => new XFont("Arial", 20);
+    private static XFont Latin() => new("Arial", 20);
 
-    private static XFont ArabicFont() => new XFont(ArabicFamily, 20);
+    private static XFont ArabicFont() => new(ArabicFamily, 20);
 
     /// <summary>
     ///   A fallback that answers only for the characters given to it, so that installing it cannot
@@ -234,7 +234,7 @@ public class FontFallbackTests
     private sealed class ShapesOnly : ITextShaper, IDisposable
     {
         private readonly string _mine;
-        private readonly HarfBuzzTextShaper _shaper = new HarfBuzzTextShaper();
+        private readonly HarfBuzzTextShaper _shaper = new();
 
         internal ShapesOnly(string mine) => _mine = mine;
 

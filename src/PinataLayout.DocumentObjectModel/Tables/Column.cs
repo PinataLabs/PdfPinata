@@ -259,7 +259,7 @@ public partial class Column : DocumentObject
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    serializer.WriteComment((this.comment ?? ""));
+    serializer.WriteComment(this.comment ?? "");
     serializer.WriteLine("\\column");
 
     var pos = serializer.BeginAttributes();

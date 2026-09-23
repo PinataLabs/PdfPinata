@@ -251,10 +251,10 @@ internal class DdlParser
     private bool IsHeaderFooter()
     {
         var sym = Symbol;
-        return (sym == Symbol.Header || sym == Symbol.Footer ||
+        return sym == Symbol.Header || sym == Symbol.Footer ||
                 sym == Symbol.PrimaryHeader || sym == Symbol.PrimaryFooter ||
                 sym == Symbol.EvenPageHeader || sym == Symbol.EvenPageFooter ||
-                sym == Symbol.FirstPageHeader || sym == Symbol.FirstPageFooter);
+                sym == Symbol.FirstPageHeader || sym == Symbol.FirstPageFooter;
     }
 
     /// <summary>
@@ -2306,7 +2306,7 @@ internal class DdlParser
 
         ReadCode();  // read next token
 
-        return new Color((0xFF000000 | (r << 16) | (g << 8) | b));
+        return new Color(0xFF000000 | (r << 16) | (g << 8) | b);
     }
 
     /// <summary>
@@ -2604,7 +2604,7 @@ internal class DdlParser
     /// </summary>
     private void AdjustToNextBlock()
     {
-        var skipClosingBraceOrBracket = (Symbol == Symbol.BraceLeft || Symbol == Symbol.BracketLeft);
+        var skipClosingBraceOrBracket = Symbol == Symbol.BraceLeft || Symbol == Symbol.BracketLeft;
         ReadCode();
 
         var finish = false;

@@ -107,7 +107,7 @@ public sealed class PdfImage : PdfXObject
         var useFlateDecode = _document.Options.UseFlateDecoderForJpegImages == PdfUseFlateDecoderForJpegImages.Always;
 
         var fd = new FlateDecode();
-        var imageDataCompressed = (useFlateDecode || tryFlateDecode) ? fd.Encode(imageBits, _document.Options.FlateEncodeMode) : null;
+        var imageDataCompressed = useFlateDecode || tryFlateDecode ? fd.Encode(imageBits, _document.Options.FlateEncodeMode) : null;
         if (useFlateDecode || tryFlateDecode && imageDataCompressed.Length < imageBits.Length)
         {
             Stream = new PdfStream(imageDataCompressed, this);
@@ -466,7 +466,7 @@ class MonochromeMask
     public MonochromeMask(int sizeX, int sizeY)
     {
         _sizeX = sizeX;
-        var byteSize = ((sizeX + 7) / 8) * sizeY;
+        var byteSize = (sizeX + 7) / 8 * sizeY;
         _maskData = new byte[byteSize];
         StartLine(0);
     }
@@ -478,7 +478,7 @@ class MonochromeMask
     {
         _bitsWritten = 0;
         _byteBuffer = 0;
-        _writeOffset = ((_sizeX + 7) / 8) * newCurrentLine;
+        _writeOffset = (_sizeX + 7) / 8 * newCurrentLine;
     }
 
     /// <summary>

@@ -72,7 +72,7 @@ internal class ColumnClusteredPlotAreaRenderer : ColumnPlotAreaRenderer
       var x = xMin + groupWidth / 2;
         
       // Offset for columns of a particular series from the start of a clustered cloumn.
-      var dx = (columnWidth * seriesIdx) - (columnWidth / 2 * cri.SeriesRendererInfos.Length);
+      var dx = columnWidth * seriesIdx - columnWidth / 2 * cri.SeriesRendererInfos.Length;
 
       foreach (var column in sri.PointRendererInfos.Cast<ColumnRendererInfo>())
       {

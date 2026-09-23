@@ -529,7 +529,7 @@ internal sealed class OpenTypeFontface
     {
         var pos = _pos;
         _pos += 2;
-        return (short)((_fontSource.Bytes[pos] << 8) | (_fontSource.Bytes[pos + 1]));
+        return (short)((_fontSource.Bytes[pos] << 8) | _fontSource.Bytes[pos + 1]);
     }
 
     /// <summary>
@@ -539,7 +539,7 @@ internal sealed class OpenTypeFontface
     {
         var pos = _pos;
         _pos += 2;
-        return (ushort)((_fontSource.Bytes[pos] << 8) | (_fontSource.Bytes[pos + 1]));
+        return (ushort)((_fontSource.Bytes[pos] << 8) | _fontSource.Bytes[pos + 1]);
     }
 
     /// <summary>
@@ -549,7 +549,7 @@ internal sealed class OpenTypeFontface
     {
         var pos = _pos;
         _pos += 4;
-        return (_fontSource.Bytes[pos] << 24) | (_fontSource.Bytes[pos + 1] << 16) | (_fontSource.Bytes[pos + 2] << 8) | (_fontSource.Bytes[pos + 3]);
+        return (_fontSource.Bytes[pos] << 24) | (_fontSource.Bytes[pos + 1] << 16) | (_fontSource.Bytes[pos + 2] << 8) | _fontSource.Bytes[pos + 3];
     }
 
     /// <summary>
@@ -559,7 +559,7 @@ internal sealed class OpenTypeFontface
     {
         var pos = _pos;
         _pos += 4;
-        return (uint)((_fontSource.Bytes[pos] << 24) | (_fontSource.Bytes[pos + 1] << 16) | (_fontSource.Bytes[pos + 2] << 8) | (_fontSource.Bytes[pos + 3]));
+        return (uint)((_fontSource.Bytes[pos] << 24) | (_fontSource.Bytes[pos + 1] << 16) | (_fontSource.Bytes[pos + 2] << 8) | _fontSource.Bytes[pos + 3]);
     }
 
     /// <summary>
@@ -569,7 +569,7 @@ internal sealed class OpenTypeFontface
     {
         var pos = _pos;
         _pos += 4;
-        return (_fontSource.Bytes[pos] << 24) | (_fontSource.Bytes[pos + 1] << 16) | (_fontSource.Bytes[pos + 2] << 8) | (_fontSource.Bytes[pos + 3]);
+        return (_fontSource.Bytes[pos] << 24) | (_fontSource.Bytes[pos + 1] << 16) | (_fontSource.Bytes[pos + 2] << 8) | _fontSource.Bytes[pos + 3];
     }
 
     /// <summary>
@@ -579,7 +579,7 @@ internal sealed class OpenTypeFontface
     {
         var pos = _pos;
         _pos += 2;
-        return (short)((_fontSource.Bytes[pos] << 8) | (_fontSource.Bytes[pos + 1]));
+        return (short)((_fontSource.Bytes[pos] << 8) | _fontSource.Bytes[pos + 1]);
     }
 
     /// <summary>
@@ -589,7 +589,7 @@ internal sealed class OpenTypeFontface
     {
         var pos = _pos;
         _pos += 2;
-        return (ushort)((_fontSource.Bytes[pos] << 8) | (_fontSource.Bytes[pos + 1]));
+        return (ushort)((_fontSource.Bytes[pos] << 8) | _fontSource.Bytes[pos + 1]);
     }
 
     /// <summary>
@@ -600,8 +600,8 @@ internal sealed class OpenTypeFontface
         var pos = _pos;
         _pos += 8;
         var bytes = _fontSource.Bytes;
-        return (((long)bytes[pos]) << 56) | (((long)bytes[pos + 1]) << 48) | (((long)bytes[pos + 2]) << 40) | (((long)bytes[pos + 3]) << 32) |
-               (((long)bytes[pos + 4]) << 24) | (((long)bytes[pos + 5]) << 16) | (((long)bytes[pos + 6]) << 8) | bytes[pos + 7];
+        return ((long)bytes[pos] << 56) | ((long)bytes[pos + 1] << 48) | ((long)bytes[pos + 2] << 40) | ((long)bytes[pos + 3] << 32) |
+               ((long)bytes[pos + 4] << 24) | ((long)bytes[pos + 5] << 16) | ((long)bytes[pos + 6] << 8) | bytes[pos + 7];
     }
 
     /// <summary>

@@ -207,7 +207,7 @@ internal static class PdfConformanceWriter
         if (document._version > 14)
             throw new InvalidOperationException(
                 "PDF/A-1 is defined against PDF 1.4, and this document is written as PDF "
-                + (document._version / 10) + "." + (document._version % 10) + ". Either claim "
+                + document._version / 10 + "." + document._version % 10 + ". Either claim "
                 + "PDF/A-2 or later, or stop asking for the feature that raised the version.");
 
         // Checked directly against the setting that would raise it, rather than against the version

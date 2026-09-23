@@ -303,7 +303,7 @@ public partial class Row : DocumentObject, IVisitable
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    serializer.WriteComment((this.comment ?? ""));
+    serializer.WriteComment(this.comment ?? "");
     serializer.WriteLine("\\row");
 
     var pos = serializer.BeginAttributes();

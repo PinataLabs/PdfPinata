@@ -420,7 +420,7 @@ public abstract class VisitorBase : DocumentObjectVisitor
         var document = chart.Document;
         if (chart.style == null)
             chart.style = Style.DefaultParagraphName;
-        var style = document.Styles[(chart.style ?? "")];
+        var style = document.Styles[chart.style ?? ""];
         if (chart.format == null)
         {
             chart.format = style.paragraphFormat.Clone();
@@ -484,7 +484,7 @@ public abstract class VisitorBase : DocumentObjectVisitor
 
         ParagraphFormat format;
 
-        var style = document.styles[(footnote.style ?? "")];
+        var style = document.styles[footnote.style ?? ""];
         if (style != null)
             format = ParagraphFormatFromStyle(style);
         else
@@ -509,7 +509,7 @@ public abstract class VisitorBase : DocumentObjectVisitor
         ParagraphFormat format;
 
         var currentElementHolder = GetDocumentElementHolder(paragraph);
-        var style = document.styles[(paragraph.style ?? "")];
+        var style = document.styles[paragraph.style ?? ""];
         if (style != null)
             format = ParagraphFormatFromStyle(style);
 
@@ -576,7 +576,7 @@ public abstract class VisitorBase : DocumentObjectVisitor
             styleString = "Footer";
 
         ParagraphFormat format;
-        var style = document.styles[(headerFooter.style ?? "")];
+        var style = document.styles[headerFooter.style ?? ""];
         if (style != null)
             format = ParagraphFormatFromStyle(style);
         else

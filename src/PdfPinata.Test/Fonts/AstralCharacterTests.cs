@@ -52,10 +52,10 @@ public class AstralCharacterTests
     private static string Text(int codePoint) => char.ConvertFromUtf32(codePoint);
 
     /// <summary>The face with a format 12 subtable.</summary>
-    private static XFont WithFormat12() => new XFont(PinnedFontResolver.CffFamilyName, 20);
+    private static XFont WithFormat12() => new(PinnedFontResolver.CffFamilyName, 20);
 
     /// <summary>The face without one.</summary>
-    private static XFont WithoutFormat12() => new XFont("Arial", 20);
+    private static XFont WithoutFormat12() => new("Arial", 20);
 
     private sealed class Installed : IDisposable
     {

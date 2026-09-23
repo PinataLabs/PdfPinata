@@ -93,7 +93,7 @@ internal struct LineInfo
 /// </summary>
 internal class ParagraphFormatInfo : FormatInfo
 {
-  private ArrayList lineInfos = new ArrayList();
+  private ArrayList lineInfos = new();
 
   internal LineInfo GetLineInfo(int lineIdx)
   {
@@ -156,7 +156,7 @@ internal class ParagraphFormatInfo : FormatInfo
     get
     {
       if (widowControl)
-        return (IsComplete || (isStarting && lineInfos.Count >= 2));
+        return IsComplete || (isStarting && lineInfos.Count >= 2);
       else
         return isStarting;
     }
@@ -169,7 +169,7 @@ internal class ParagraphFormatInfo : FormatInfo
     get
     {
       if (widowControl)
-        return (IsComplete || (isEnding && lineInfos.Count >= 2));
+        return IsComplete || (isEnding && lineInfos.Count >= 2);
       else
         return isEnding;
     }

@@ -524,7 +524,7 @@ public partial class Paragraph : DocumentObject, IVisitable
     {
         if (!serializeContentOnly)
         {
-            serializer.WriteComment((comment ?? ""));
+            serializer.WriteComment(comment ?? "");
             serializer.WriteLine("\\paragraph");
 
             var pos = serializer.BeginAttributes();

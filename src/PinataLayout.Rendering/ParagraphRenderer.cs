@@ -157,7 +157,7 @@ internal class ParagraphRenderer : Renderer
             for (var idx = 0; idx < parFormatInfo.LineCount; ++idx)
             {
                 var lineInfo = parFormatInfo.GetLineInfo(idx);
-                isLastLine = (idx == parFormatInfo.LineCount - 1);
+                isLastLine = idx == parFormatInfo.LineCount - 1;
 
                 lastTabPosition = 0;
                 if (lineInfo.reMeasureLine)
@@ -1291,7 +1291,7 @@ internal class ParagraphRenderer : Renderer
     /// </summary>
     private sealed class ReferenceComparer : IEqualityComparer<DocumentObject>
     {
-        internal static readonly ReferenceComparer Instance = new ReferenceComparer();
+        internal static readonly ReferenceComparer Instance = new();
 
         public bool Equals(DocumentObject x, DocumentObject y) => ReferenceEquals(x, y);
 
@@ -1383,14 +1383,14 @@ internal class ParagraphRenderer : Renderer
                                  ?? FittingRectOrBounds(contentArea, currentYPosition, currentVerticalInfo.height)).Width;
                     if (lastTabPosition > 0)
                     {
-                        width -= (lastTabPosition -
-                                  contentArea.X);
+                        width -= lastTabPosition -
+                                  contentArea.X;
                     }
                     else
                         width -= LeftIndent;
 
                     width -= RightIndent;
-                    return (width - currentWordsWidth) / (currentBlankCount);
+                    return (width - currentWordsWidth) / currentBlankCount;
                 }
             }
             return MeasureString(" ");
@@ -2068,7 +2068,7 @@ internal class ParagraphRenderer : Renderer
     /// <param name="previousFormatInfo">The format info that was obtained on formatting the same paragraph on a previous area.</param>
     internal override void Format(Area area, FormatInfo previousFormatInfo)
     {
-        var formatInfo = ((ParagraphFormatInfo)renderInfo.FormatInfo);
+        var formatInfo = (ParagraphFormatInfo)renderInfo.FormatInfo;
         if (!InitFormat(area, previousFormatInfo))
         {
             formatInfo.isStarting = false;
@@ -3089,7 +3089,7 @@ internal class ParagraphRenderer : Renderer
             XUnit offset = 0;
             //while formatting, it is impossible to determine whether we are in the last line until the last visible leaf is reached.
             if ((phase == Phase.Formatting && (currentLeaf == null || IsLastVisibleLeaf))
-                || (phase == Phase.Rendering && (isLastLine)))
+                || (phase == Phase.Rendering && isLastLine))
             {
                 if (!paragraph.Format.IsNull("Borders"))
                 {

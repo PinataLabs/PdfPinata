@@ -467,7 +467,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
     }
     private int currentPage;
 
-    private readonly Dictionary<int, Rectangle> pageContentRects = new Dictionary<int, Rectangle>();
+    private readonly Dictionary<int, Rectangle> pageContentRects = new();
 
     /// <summary>
     /// The rectangle the page's body text was laid out in - the page less its margins.
@@ -880,6 +880,6 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
     private DocumentRenderer documentRenderer;
     private XGraphics gfx;
     private Dictionary<int, PageInfo> pageInfos;
-    private Dictionary<int, object> emptyPages = new Dictionary<int, object>();
+    private Dictionary<int, object> emptyPages = new();
     private Document document;
 }

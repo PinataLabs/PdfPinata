@@ -165,7 +165,7 @@ internal class TokenizerHelper
                     }
                 }
             }
-            else if ((char.IsWhiteSpace(currentChar)) || (currentChar == separator))
+            else if (char.IsWhiteSpace(currentChar) || currentChar == separator)
             {
                 if (currentChar == separator)
                     _foundSeparator = true;

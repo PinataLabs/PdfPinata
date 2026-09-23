@@ -314,7 +314,7 @@ public class XTextFormatter
     /// </remarks>
     public IList<IFlowObstacle> Obstacles => _obstacles;
 
-    private readonly List<IFlowObstacle> _obstacles = new List<IFlowObstacle>();
+    private readonly List<IFlowObstacle> _obstacles = new();
 
     /// <summary>
     /// The block and everything standing in it, worked out for the layout in hand.

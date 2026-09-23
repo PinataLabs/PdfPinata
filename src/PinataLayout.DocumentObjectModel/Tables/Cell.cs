@@ -393,7 +393,7 @@ public partial class Cell : DocumentObject, IVisitable
     /// </summary>
     internal override void Serialize(Serializer serializer)
     {
-        serializer.WriteComment((comment ?? ""));
+        serializer.WriteComment(comment ?? "");
         serializer.WriteLine("\\cell");
 
         var pos = serializer.BeginAttributes();

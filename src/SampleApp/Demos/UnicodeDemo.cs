@@ -148,7 +148,7 @@ internal sealed class UnicodeDemo : PdfDemo
                         var descendants = font.Elements.GetArray("/DescendantFonts");
                         if (descendants != null && descendants.Elements.Count > 0)
                         {
-                            descriptor = (descendants.Elements.GetDictionary(0))
+                            descriptor = descendants.Elements.GetDictionary(0)
                                 ?.Elements.GetDictionary("/FontDescriptor");
                         }
                     }

@@ -553,16 +553,16 @@ internal abstract class YAxisRenderer : AxisRenderer
     var roundFactor = stepWidth * 0.5;
     if (yari.Axis == null || double.IsNaN(yari.Axis.minimumScale))
     {
-      var signumMin = (yMin != 0) ? yMin / Math.Abs(yMin) : 0;
-      yari.MinimumScale = (int)(Math.Abs((yMin - roundFactor) / stepWidth) - (1 * signumMin)) * stepWidth * signumMin;
+      var signumMin = yMin != 0 ? yMin / Math.Abs(yMin) : 0;
+      yari.MinimumScale = (int)(Math.Abs((yMin - roundFactor) / stepWidth) - 1 * signumMin) * stepWidth * signumMin;
     }
     else
       yari.MinimumScale = yari.Axis.minimumScale;
 
     if (yari.Axis == null || double.IsNaN(yari.Axis.maximumScale))
     {
-      var signumMax = (yMax != 0) ? yMax / Math.Abs(yMax) : 0;
-      yari.MaximumScale = (int)(Math.Abs((yMax + roundFactor) / stepWidth) + (1 * signumMax)) * stepWidth * signumMax;
+      var signumMax = yMax != 0 ? yMax / Math.Abs(yMax) : 0;
+      yari.MaximumScale = (int)(Math.Abs((yMax + roundFactor) / stepWidth) + 1 * signumMax) * stepWidth * signumMax;
     }
     else
       yari.MaximumScale = yari.Axis.maximumScale;

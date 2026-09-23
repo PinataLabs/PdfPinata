@@ -182,8 +182,8 @@ public sealed partial class Style : DocumentObject, IVisitable
                 return;
             }
 
-            if (String.Compare((name ?? ""), DefaultParagraphName, StringComparison.OrdinalIgnoreCase) == 0 ||
-                String.Compare((name ?? ""), DefaultParagraphFontName, StringComparison.OrdinalIgnoreCase) == 0)
+            if (String.Compare(name ?? "", DefaultParagraphName, StringComparison.OrdinalIgnoreCase) == 0 ||
+                String.Compare(name ?? "", DefaultParagraphFontName, StringComparison.OrdinalIgnoreCase) == 0)
             {
                 var msg = $"Style '{name}' has no base style and that cannot be altered.";
                 throw new ArgumentException(msg);
@@ -230,7 +230,7 @@ public sealed partial class Style : DocumentObject, IVisitable
         {
             if (styleType == null)
             {
-                if (String.Compare((this.baseStyle ?? ""), DefaultParagraphFontName, StringComparison.OrdinalIgnoreCase) == 0)
+                if (String.Compare(this.baseStyle ?? "", DefaultParagraphFontName, StringComparison.OrdinalIgnoreCase) == 0)
                     styleType = StyleType.Character;
                 else
                 {
@@ -272,7 +272,7 @@ public sealed partial class Style : DocumentObject, IVisitable
         // REVIEW KlPo4StLa Special handling for DefaultParagraphFont is clumsy
         // (DefaultParagraphFont is not returned when accessed via styles["name"]).
         // You're right about that -> see IsReadOnly
-        return (baseStyle ?? "") == DefaultParagraphFontName ? styles[0] : styles[(baseStyle ?? "")];
+        return (baseStyle ?? "") == DefaultParagraphFontName ? styles[0] : styles[baseStyle ?? ""];
     }
 
     /// <summary>
@@ -322,14 +322,14 @@ public sealed partial class Style : DocumentObject, IVisitable
         Style refStyle;
         ParagraphFormat refFormat;
 
-        serializer.WriteComment((comment ?? ""));
-        if ((buildIn ?? false))
+        serializer.WriteComment(comment ?? "");
+        if (buildIn ?? false)
         {
             // BaseStyle is never null, but empty only for "Normal" and "DefaultParagraphFont"
             if (BaseStyle == "")
             {
                 // case: style is "Normal"
-                if (String.Compare((this.name ?? ""), DefaultParagraphName, StringComparison.OrdinalIgnoreCase) != 0)
+                if (String.Compare(this.name ?? "", DefaultParagraphName, StringComparison.OrdinalIgnoreCase) != 0)
                     throw new ArgumentException("Internal Error: BaseStyle not set.");
 
                 refStyle = buildInStyles[buildInStyles.GetIndex(Name)];
@@ -350,7 +350,7 @@ public sealed partial class Style : DocumentObject, IVisitable
                     // ... the base style may have been modified or may even have a modified base style.
                     // Methinks it's wrong to compare with the built-in style, so let's compare with the
                     // real base style:
-                    refStyle = Document.Styles[Document.Styles.GetIndex((baseStyle ?? ""))];
+                    refStyle = Document.Styles[Document.Styles.GetIndex(baseStyle ?? "")];
                     refFormat = refStyle.ParagraphFormat;
                     // Note: we must write "Underline = none" if the base style has "Underline = single" - we cannot
                     // detect this if we compare with the built-in style that has no underline.
@@ -362,7 +362,7 @@ public sealed partial class Style : DocumentObject, IVisitable
                     var quotedName = DdlEncoder.QuoteIfNameContainsBlanks(Name);
                     var baseName = DdlEncoder.QuoteIfNameContainsBlanks(BaseStyle);
                     serializer.WriteLine(quotedName + " : " + baseName);
-                    refStyle = Document.Styles[Document.Styles.GetIndex((baseStyle ?? ""))];
+                    refStyle = Document.Styles[Document.Styles.GetIndex(baseStyle ?? "")];
                     refFormat = refStyle.ParagraphFormat;
                 }
             }
@@ -374,7 +374,7 @@ public sealed partial class Style : DocumentObject, IVisitable
             var quotedName = DdlEncoder.QuoteIfNameContainsBlanks(Name);
             var baseName = DdlEncoder.QuoteIfNameContainsBlanks(BaseStyle);
             serializer.WriteLine(quotedName + " : " + baseName);
-            refStyle = Document.Styles[(baseStyle ?? "")];
+            refStyle = Document.Styles[baseStyle ?? ""];
             refFormat = refStyle != null ? refStyle.ParagraphFormat : null;
         }
 

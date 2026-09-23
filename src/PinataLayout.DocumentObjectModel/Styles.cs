@@ -406,7 +406,7 @@ public partial class Styles : DocumentObjectCollection, IVisitable
     /// </summary>
     internal override void Serialize(Serializer serializer)
     {
-        serializer.WriteComment((comment ?? ""));
+        serializer.WriteComment(comment ?? "");
         var pos = serializer.BeginContent("\\styles");
 
         // A style can only be added to Styles if its base style exists. Therefore the
@@ -503,7 +503,7 @@ public partial class Styles : DocumentObjectCollection, IVisitable
         }
     }
 
-    internal static readonly Styles BuildInStyles = new Styles();
+    internal static readonly Styles BuildInStyles = new();
 
     #endregion
 }

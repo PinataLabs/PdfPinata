@@ -474,7 +474,7 @@ public partial class PageSetup : DocumentObject
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    serializer.WriteComment((comment ?? ""));
+    serializer.WriteComment(comment ?? "");
     var pos = serializer.BeginContent("PageSetup");
 
     if (!pageHeight.IsNull)

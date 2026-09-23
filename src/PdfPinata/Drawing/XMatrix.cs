@@ -683,7 +683,7 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
                 case XMatrixTypes.Scaling | XMatrixTypes.Translation:
                     return _m11 * _m22;
             }
-            return (_m11 * _m22) - (_m12 * _m21);
+            return _m11 * _m22 - _m12 * _m21;
         }
     }
 
@@ -881,7 +881,7 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
     {
         // ReSharper disable CompareOfFloatsByEqualityOperator
         if (matrix1.IsDistinguishedIdentity || matrix2.IsDistinguishedIdentity)
-            return (matrix1.IsIdentity == matrix2.IsIdentity);
+            return matrix1.IsIdentity == matrix2.IsIdentity;
 
         #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
         return matrix1.M11 == matrix2.M11 && matrix1.M12 == matrix2.M12 && matrix1.M21 == matrix2.M21 && matrix1.M22 == matrix2.M22 &&
@@ -1036,15 +1036,15 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
                 y *= _m22;
                 return;
 
-            case (XMatrixTypes.Scaling | XMatrixTypes.Translation):
+            case XMatrixTypes.Scaling | XMatrixTypes.Translation:
                 x *= _m11;
                 x += _offsetX;
                 y *= _m22;
                 y += _offsetY;
                 return;
         }
-        var d1 = (y * _m21) + _offsetX;
-        var d2 = (x * _m12) + _offsetY;
+        var d1 = y * _m21 + _offsetX;
+        var d2 = x * _m12 + _offsetY;
         x *= _m11;
         x += d1;
         y *= _m22;
@@ -1068,8 +1068,8 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
         var matrix = new XMatrix();
         var sin = Math.Sin(angle);
         var cos = Math.Cos(angle);
-        var offsetX = (centerX * (1.0 - cos)) + (centerY * sin);
-        var offsetY = (centerY * (1.0 - cos)) - (centerX * sin);
+        var offsetX = centerX * (1.0 - cos) + centerY * sin;
+        var offsetY = centerY * (1.0 - cos) - centerX * sin;
         matrix.SetMatrix(cos, sin, -sin, cos, offsetX, offsetY, XMatrixTypes.Unknown);
         return matrix;
     }
@@ -1149,7 +1149,7 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
         // ReSharper restore CompareOfFloatsByEqualityOperator
     }
 
-    private bool IsDistinguishedIdentity => (_type == XMatrixTypes.Identity);
+    private bool IsDistinguishedIdentity => _type == XMatrixTypes.Identity;
 
     // Keep the fields private and force using the properties.
     // This prevents using m11 and m22 by mistake when the matrix is identity.
@@ -1197,7 +1197,7 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
                 }
                 else
                 {
-                    switch ((((int)type1) << 4) | (int)type2)
+                    switch (((int)type1 << 4) | (int)type2)
                     {
                         case 0x22:
                             matrix1._m11 *= matrix2._m11;
@@ -1253,8 +1253,8 @@ public struct XMatrix : IFormattable, IEquatable<XMatrix>
             }
             else
             {
-                matrix._offsetX += (matrix._m11 * offsetX) + (matrix._m21 * offsetY);
-                matrix._offsetY += (matrix._m12 * offsetX) + (matrix._m22 * offsetY);
+                matrix._offsetX += matrix._m11 * offsetX + matrix._m21 * offsetY;
+                matrix._offsetY += matrix._m12 * offsetX + matrix._m22 * offsetY;
                 if (matrix._type != XMatrixTypes.Unknown)
                     matrix._type |= XMatrixTypes.Translation;
             }

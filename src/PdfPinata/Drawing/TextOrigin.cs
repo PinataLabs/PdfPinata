@@ -60,7 +60,7 @@ static class TextOrigin
                 case XLineAlignment.Center:
                     // Three quarters of the ascent stands in for the cap height, as it does in PDFlib.
                     // Deliberately: the font's own CapHeight would move every vertically centred string.
-                    y += (cyAscent * 3 / 4) / 2 + rect.Height / 2;
+                    y += cyAscent * 3 / 4 / 2 + rect.Height / 2;
                     break;
 
                 case XLineAlignment.Far:

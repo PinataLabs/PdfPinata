@@ -277,13 +277,13 @@ internal static class DataMatrixSymbol
             if (row < 0)
             {
                 row += _height;
-                column += 4 - ((_height + 4) % 8);
+                column += 4 - (_height + 4) % 8;
             }
 
             if (column < 0)
             {
                 column += _width;
-                row += 4 - ((_width + 4) % 8);
+                row += 4 - (_width + 4) % 8;
             }
 
             var at = row * _width + column;

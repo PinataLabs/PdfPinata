@@ -44,9 +44,9 @@ internal sealed class StructureTagger
     internal static readonly IDisposable Nothing = new NullScope();
 
     private readonly Dictionary<ElementKey, PdfStructureElement> _elements =
-        new Dictionary<ElementKey, PdfStructureElement>();
+        new();
 
-    private readonly Stack<PdfStructureElement> _parents = new Stack<PdfStructureElement>();
+    private readonly Stack<PdfStructureElement> _parents = new();
 
     private PdfDocument _document;
     private PdfStructureElement _root;
@@ -55,7 +55,7 @@ internal sealed class StructureTagger
     // deepest on top. See ListItem for how a level compared against the frame on top decides whether
     // an item continues the current list, starts a sibling of it, opens one nested inside the last
     // item, or closes one or more before landing.
-    private readonly Stack<ListFrame> _listFrames = new Stack<ListFrame>();
+    private readonly Stack<ListFrame> _listFrames = new();
 
     /// <summary>
     /// One level of a run of nested lists: the <c>/L</c> itself, what it hangs from, the type its

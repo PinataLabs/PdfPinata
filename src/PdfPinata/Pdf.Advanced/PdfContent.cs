@@ -125,7 +125,7 @@ public sealed class PdfContent : PdfDictionary
         {
             var value = Stream.Value;
             var length = value.Length;
-            if (length != 0 && ((value[0] != (byte)'q' || value[1] != (byte)'\n')))
+            if (length != 0 && (value[0] != (byte)'q' || value[1] != (byte)'\n'))
             {
                 var newValue = new byte[length + 2 + 3];
                 newValue[0] = (byte)'q';

@@ -813,7 +813,7 @@ internal class DdlScanner
   /// A DdlParserException carrying the given message and the position of the current token.
   /// </summary>
   private DdlParserException ParserException(DomMsgID errorCode, params object[] args) =>
-    new DdlParserException(new DdlReaderError(DdlErrorLevel.Error, DomSR.FormatMessage(errorCode, args),
+    new(new DdlReaderError(DdlErrorLevel.Error, DomSR.FormatMessage(errorCode, args),
       (int)errorCode, DocumentFileName, CurrentLine, CurrentLinePos));
 
   /// <summary>

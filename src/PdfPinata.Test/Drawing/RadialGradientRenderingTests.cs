@@ -25,7 +25,7 @@ public sealed class RadialGradientRenderingTests : IDisposable
 {
     private const string OutDir = "Out/RadialGradient";
 
-    private readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
+    private readonly List<MagickImageCollection> _rasterized = new();
 
     public void Dispose()
     {
@@ -40,8 +40,8 @@ public sealed class RadialGradientRenderingTests : IDisposable
         GhostscriptSetup.Configure();
     }
 
-    private static readonly XPoint Centre = new XPoint(300, 300);
-    private static readonly XRect Square = new XRect(200, 200, 200, 200);
+    private static readonly XPoint Centre = new(300, 300);
+    private static readonly XRect Square = new(200, 200, 200, 200);
 
     [GoldenImageFact]
     public void ARadialGradientIsDrawnInItsColoursFromTheCentreOut()

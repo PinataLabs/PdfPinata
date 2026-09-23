@@ -162,7 +162,7 @@ public class PdfFlattenVisitor : VisitorBase
     var document = formattedText.Document;
     ParagraphFormat format = null;
 
-    var style = document.styles[(formattedText.style ?? "")];
+    var style = document.styles[formattedText.style ?? ""];
     if (style != null)
       format = style.paragraphFormat;
     else if ((formattedText.style ?? "") != "")

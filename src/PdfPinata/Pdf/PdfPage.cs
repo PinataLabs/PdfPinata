@@ -90,7 +90,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
 
         // Set Orientation depending on /Rotate.
         var rotate = Elements.GetInteger(InheritablePageKeys.Rotate);
-        if (Math.Abs((rotate / 90)) % 2 == 1)
+        if (Math.Abs(rotate / 90) % 2 == 1)
             _orientation = PageOrientation.Landscape;
     }
 
@@ -1317,7 +1317,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         {
             var reference = item as PdfReference;
             if (reference != null)
-                values.Resources = (PdfDictionary)(reference.Value);
+                values.Resources = (PdfDictionary)reference.Value;
             else
                 values.Resources = (PdfDictionary)item;
         }

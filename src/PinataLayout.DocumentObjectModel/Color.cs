@@ -502,5 +502,5 @@ public struct Color : INullableValue, IEquatable<Color>
     /// <summary>
     /// Represents a null color.
     /// </summary>
-    public static readonly Color Empty = new Color(0);
+    public static readonly Color Empty = new(0);
 }

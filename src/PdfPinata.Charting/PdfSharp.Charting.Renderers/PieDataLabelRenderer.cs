@@ -166,8 +166,8 @@ internal class PieDataLabelRenderer : DataLabelRenderer
             case DataLabelPosition.OutsideEnd:
               // Just beyond the outer border of the circle.
               var beyond = radius + inset;
-              dleri.X = origin.X + (beyond * Math.Cos(radMidAngle));
-              dleri.Y = origin.Y + (beyond * Math.Sin(radMidAngle));
+              dleri.X = origin.X + beyond * Math.Cos(radMidAngle);
+              dleri.Y = origin.Y + beyond * Math.Sin(radMidAngle);
               if (dleri.X < origin.X)
                 dleri.X -= dleri.Width;
               if (dleri.Y < origin.Y)
@@ -178,8 +178,8 @@ internal class PieDataLabelRenderer : DataLabelRenderer
               // Just within the outer border of the circle. Never past the middle, however tall
               // the label: a pie small enough for that is one whose labels have nowhere to go.
               var within = Math.Max(radius - inset, halfradius);
-              dleri.X = origin.X + (within * Math.Cos(radMidAngle));
-              dleri.Y = origin.Y + (within * Math.Sin(radMidAngle));
+              dleri.X = origin.X + within * Math.Cos(radMidAngle);
+              dleri.Y = origin.Y + within * Math.Sin(radMidAngle);
               if (dleri.X > origin.X)
                 dleri.X -= dleri.Width;
               if (dleri.Y > origin.Y)
@@ -188,8 +188,8 @@ internal class PieDataLabelRenderer : DataLabelRenderer
 
             case DataLabelPosition.Center:
               // Centered
-              dleri.X = origin.X + (halfradius * Math.Cos(radMidAngle));
-              dleri.Y = origin.Y + (halfradius * Math.Sin(radMidAngle));
+              dleri.X = origin.X + halfradius * Math.Cos(radMidAngle);
+              dleri.Y = origin.Y + halfradius * Math.Sin(radMidAngle);
               dleri.X -= dleri.Width / 2;
               dleri.Y -= dleri.Height / 2;
               break;

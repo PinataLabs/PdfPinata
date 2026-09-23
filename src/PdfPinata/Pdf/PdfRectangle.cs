@@ -169,10 +169,10 @@ public sealed class PdfRectangle : PdfItem
     public override int GetHashCode()
     {
         // This code is from System.Drawing...
-        return (int)(((((uint)_x1) ^ ((((uint)_y1) << 13) |
-                                      (((uint)_y1) >> 0x13))) ^ ((((uint)_x2) << 0x1a) |
-                                                                 (((uint)_x2) >> 6))) ^ ((((uint)_y2) << 7) |
-            (((uint)_y2) >> 0x19)));
+        return (int)((uint)_x1 ^ (((uint)_y1 << 13) |
+                                      ((uint)_y1 >> 0x13)) ^ (((uint)_x2 << 0x1a) |
+                                                                 ((uint)_x2 >> 6)) ^ (((uint)_y2 << 7) |
+            ((uint)_y2 >> 0x19)));
     }
 
     /// <summary>
@@ -274,8 +274,8 @@ public sealed class PdfRectangle : PdfItem
     /// </summary>
     public bool Contains(XRect rect)
     {
-        return _x1 <= rect.X && (rect.X + rect.Width) <= _x2 &&
-               _y1 <= rect.Y && (rect.Y + rect.Height) <= _y2;
+        return _x1 <= rect.X && rect.X + rect.Width <= _x2 &&
+               _y1 <= rect.Y && rect.Y + rect.Height <= _y2;
     }
 
     /// <summary>

@@ -1018,7 +1018,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         // Normalize the angles
         var α = startAngle;
         if (α < 0)
-            α = α + (1 + Math.Floor((Math.Abs(α) / 360))) * 360;
+            α = α + (1 + Math.Floor(Math.Abs(α) / 360)) * 360;
         else if (α > 360)
             α = α - Math.Floor(α / 360) * 360;
         Debug.Assert(α >= 0 && α <= 360);
@@ -1041,7 +1041,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
 
         β = α + β;
         if (β < 0)
-            β = β + (1 + Math.Floor((Math.Abs(β) / 360))) * 360;
+            β = β + (1 + Math.Floor(Math.Abs(β) / 360)) * 360;
 
         var clockwise = sweepAngle > 0;
         var startQuadrant = Quadrant(α, true, clockwise);
@@ -1107,7 +1107,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
                 quadrant = quadrant == 0 ? 3 : quadrant - 1;
         }
         else
-            quadrant = clockwise ? ((int)Math.Floor(φ / 90)) % 4 : (int)Math.Floor(φ / 90);
+            quadrant = clockwise ? (int)Math.Floor(φ / 90) % 4 : (int)Math.Floor(φ / 90);
 
         return quadrant;
     }
@@ -1458,7 +1458,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     }
 
     private static InvalidOperationException RefuseOperator(string operatorText) =>
-        new InvalidOperationException(
+        new(
             $"Cannot write \"{operatorText}\" into a content stream: an operand is not a finite "
             + "number. PDF cannot express NaN or infinity, and a viewer handed one stops drawing "
             + "rather than complaining, so the page arrives blank or half-finished with nothing to "
@@ -1801,7 +1801,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// Where in the content stream each open structural sequence began, or <see cref="NotRemovable"/>
     /// for one that is to be written whether or not anything is drawn inside it.
     /// </summary>
-    private readonly Stack<int> _markedContentStarts = new Stack<int>();
+    private readonly Stack<int> _markedContentStarts = new();
 
     private const int NotRemovable = -1;
 
@@ -1893,7 +1893,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// <summary>
     /// Where each open artifact sequence began in the content, so that an empty one can be undone.
     /// </summary>
-    private readonly Stack<int> _artifactStarts = new Stack<int>();
+    private readonly Stack<int> _artifactStarts = new();
 
     internal void BeginGraphicMode()
     {
