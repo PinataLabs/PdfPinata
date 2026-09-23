@@ -45,15 +45,11 @@ internal class FontHandler
   internal static XFont FontToXFont(Font font, XPrivateFontCollection pfc, 
     PdfFontEncoding encoding)
   {
-    XFont xFont = null;
-
     // #PFC
     var options = new XPdfFontOptions(encoding);
     var style = GetXStyle(font);
 
-    // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-    xFont ??= new XFont(font.Name, font.Size, style, options);
-    return xFont;
+    return new XFont(font.Name, font.Size, style, options);
   }
 
   internal static XFontStyle GetXStyle(Font font)
