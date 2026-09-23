@@ -51,7 +51,7 @@ internal class XFontSource
 
     private XFontSource(byte[] bytes, ulong key)
     {
-        _fontName = null;
+        FontName = null;
         _bytes = bytes;
         _key = key;
     }
@@ -103,7 +103,7 @@ internal class XFontSource
         set
         {
             _fontface = value;
-            _fontName = value.name.FullFontName;
+            FontName = value.name.FullFontName;
         }
     }
 
@@ -134,9 +134,7 @@ internal class XFontSource
     /// <summary>
     /// Gets the name of the font's name table.
     /// </summary>
-    public string FontName => _fontName;
-
-    private string _fontName;
+    public string FontName { get; private set; }
 
     /// <summary>
     /// Gets the bytes of the font.

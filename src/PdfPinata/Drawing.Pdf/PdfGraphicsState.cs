@@ -553,8 +553,6 @@ internal sealed class PdfGraphicsState : ICloneable
     internal PdfFont RealizedFont;
     private string _realizedFontName = string.Empty;
     private double _realizedFontSize;
-    private int _realizedRenderingMode;  // Reference: TABLE 5.2  Text state operators / Page 398
-    private double _realizedCharSpace;  // Reference: TABLE 5.2  Text state operators / Page 398
 
     /// <summary>
     /// The text rendering mode the content stream has been told about.
@@ -565,11 +563,12 @@ internal sealed class PdfGraphicsState : ICloneable
     /// this state believes at the end. Telling this state what happened instead would be one more
     /// thing to keep in step, and it would have to be undone again for the next string.
     /// </remarks>
-    internal int RealizedRenderingMode => _realizedRenderingMode;
+    internal int RealizedRenderingMode { get; private set; }  // Reference: TABLE 5.2  Text state operators / Page 398
 
     /// <summary>The character spacing the content stream has been told about.</summary>
     /// <inheritdoc cref="RealizedRenderingMode" path="/remarks"/>
-    internal double RealizedCharSpace => _realizedCharSpace;
+    internal double RealizedCharSpace { get; private set; }  // Reference: TABLE 5.2  Text state operators / Page 398
+
     private double _realizedWordSpace;  // Reference: TABLE 5.2  Text state operators / Page 398
     private double _realizedTextRise;  // Reference: TABLE 5.2  Text state operators / Page 398
 
@@ -619,10 +618,10 @@ internal sealed class PdfGraphicsState : ICloneable
         RealizeBrush(brush, _renderer.ColorMode, renderingMode, font.Size, false, pen); // _renderer.page.document.Options.ColorMode);
 
         // Realize rendering mode.
-        if (_realizedRenderingMode != renderingMode)
+        if (RealizedRenderingMode != renderingMode)
         {
             _renderer.AppendFormatInt("{0} Tr\n", renderingMode);
-            _realizedRenderingMode = renderingMode;
+            RealizedRenderingMode = renderingMode;
         }
 
         // Realize character spacing. Bold simulation widens every glyph with a spacing of its own,
@@ -636,11 +635,11 @@ internal sealed class PdfGraphicsState : ICloneable
             charSpace += font.Size * Const.BoldEmphasis;
 
         #pragma warning disable S1244 // Exact on purpose: compared with the value last written, so any change at all is a change.
-        if (_realizedCharSpace != charSpace)
+        if (RealizedCharSpace != charSpace)
         #pragma warning restore S1244
         {
             _renderer.AppendFormatDouble("{0:" + numberFormat + "} Tc\n", charSpace);
-            _realizedCharSpace = charSpace;
+            RealizedCharSpace = charSpace;
         }
 
         // Realize word spacing. Held at zero for the fonts Tw cannot speak for, rather than

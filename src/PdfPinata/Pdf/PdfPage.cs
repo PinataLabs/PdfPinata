@@ -128,14 +128,13 @@ public sealed class PdfPage : PdfDictionary, IContentStream
     /// </summary>
     public void Close()
     {
-        _closed = true;
+        IsClosed = true;
     }
-    private bool _closed;
 
     /// <summary>
     /// Gets a value indicating whether the page is closed.
     /// </summary>
-    internal bool IsClosed => _closed;
+    internal bool IsClosed { get; private set; }
 
     /// <summary>
     /// Gets or sets the PdfDocument this page belongs to.

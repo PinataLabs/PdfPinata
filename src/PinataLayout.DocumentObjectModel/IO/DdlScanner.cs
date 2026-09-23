@@ -75,17 +75,17 @@ internal class DdlScanner
   /// </summary>
   internal bool Init(string document, string documentFileName)
   {
-    m_DocumentPath = documentFileName;
+    DocumentPath = documentFileName;
     m_strDocument = document;
     ddlLength = m_strDocument.Length;
     m_idx = 0;
     m_idxLine = 1;
     m_idxLinePos = 0;
 
-    m_DocumentFileName = documentFileName;
+    DocumentFileName = documentFileName;
 
-    m_nCurDocumentLine = m_idxLine;
-    m_nCurDocumentLinePos = m_idxLinePos;
+    CurrentLine = m_idxLine;
+    CurrentLinePos = m_idxLinePos;
 
     ScanNextChar();
 
@@ -1004,22 +1004,22 @@ internal class DdlScanner
   /// <summary>
   /// Gets the current filename of the document.
   /// </summary>
-  internal string DocumentFileName => m_DocumentFileName;
+  internal string DocumentFileName { get; private set; }
 
   /// <summary>
   /// Gets the current path of the document.
   /// </summary>
-  internal string DocumentPath => m_DocumentPath;
+  internal string DocumentPath { get; private set; }
 
   /// <summary>
   /// Gets the current scanner line in the document.
   /// </summary>
-  internal int CurrentLine => m_nCurDocumentLine;
+  internal int CurrentLine { get; private set; }
 
   /// <summary>
   /// Gets the current scanner column in the document.
   /// </summary>
-  internal int CurrentLinePos => m_nCurDocumentLinePos;
+  internal int CurrentLinePos { get; private set; }
 
   /// <summary>
   /// Scans an identifier.
@@ -1362,15 +1362,10 @@ internal class DdlScanner
   /// </summary>
   private void SaveCurDocumentPos()
   {
-    m_nCurDocumentLine = m_idxLine;
-    m_nCurDocumentLinePos = m_idxLinePos;
+    CurrentLine = m_idxLine;
+    CurrentLinePos = m_idxLinePos;
   }
 
-  private int m_nCurDocumentLine;
-  private int m_nCurDocumentLinePos;
-
-  private string m_DocumentFileName;
-  private string m_DocumentPath;
   private string m_strDocument;
   private int ddlLength;
   private int m_idx;

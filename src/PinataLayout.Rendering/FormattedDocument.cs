@@ -96,7 +96,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
         gfx = graphics;
         currentPage = 0;
         sectionNumber = 0;
-        pageCount = 0;
+        PageCount = 0;
         shownPageNumber = 0;
         documentRenderer.ProgressCompleted = 0;
         documentRenderer.ProgressMaximum = 0;
@@ -118,7 +118,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
             FillSectionPagesInfo();
             documentRenderer.ProgressCompleted += section.Elements.Count;
         }
-        pageCount = currentPage;
+        PageCount = currentPage;
         FillNumPagesInfo();
     }
 
@@ -188,13 +188,13 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
     /// </summary>
     private void FillNumPagesInfo()
     {
-        for (var page = 1; page <= pageCount; ++page)
+        for (var page = 1; page <= PageCount; ++page)
         {
             if (IsEmptyPage(page))
                 continue;
 
             var fieldInfos = pageFieldInfos[page];
-            fieldInfos.numPages = pageCount;
+            fieldInfos.numPages = PageCount;
         }
     }
 
@@ -411,9 +411,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
     /// <summary>
     /// Gets the number of pages of the document.
     /// </summary>
-    public int PageCount => pageCount;
-
-    private int pageCount;
+    public int PageCount { get; private set; }
 
 
     /// <summary>
@@ -423,7 +421,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
     /// <returns>The page information.</returns>
     public PageInfo GetPageInfo(int page)
     {
-        if (page < 1 || page > pageCount)
+        if (page < 1 || page > PageCount)
             throw new ArgumentOutOfRangeException(nameof(page));
 
         return pageInfos[page];

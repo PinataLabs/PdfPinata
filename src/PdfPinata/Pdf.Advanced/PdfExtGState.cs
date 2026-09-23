@@ -166,15 +166,14 @@ public sealed class PdfExtGState : PdfDictionary
         set => Elements.SetReference(Keys.SMask, value);
     }
 
-    internal string Key => _key;
+    internal string Key { get; private set; }
 
     private void UpdateKey()
     {
-        _key = ((int)(1000 * _strokeAlpha)).ToString(CultureInfo.InvariantCulture) +
+        Key = ((int)(1000 * _strokeAlpha)).ToString(CultureInfo.InvariantCulture) +
                ((int)(1000 * _nonStrokeAlpha)).ToString(CultureInfo.InvariantCulture) +
                (_strokeOverprint ? "S" : "s") + (_nonStrokeOverprint ? "N" : "n");
     }
-    private string _key;
 
     internal static string MakeKey(double alpha, bool overPaint)
     {
