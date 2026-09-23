@@ -353,7 +353,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         {
             var item = this[key];
             var value = item is PdfReference reference ? reference.Value : item;
-            return value is PdfNull || value is PdfNullObject ? null : item;
+            return value is PdfNull or PdfNullObject ? null : item;
         }
 
         /// <summary>

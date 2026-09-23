@@ -347,8 +347,8 @@ internal sealed class PdfGraphicsState : ICloneable
         // Mode 0 fills, 1 strokes, 2 does both. Mode 3 paints nothing and is not produced here -
         // PDFKit does not produce it either, and nothing asks for invisible text.
         // Reference: TABLE 5.3  Text rendering modes / Page 402
-        var fills = renderingMode == 0 || renderingMode == 2;
-        var strokes = renderingMode == 1 || renderingMode == 2;
+        var fills = renderingMode is 0 or 2;
+        var strokes = renderingMode is 1 or 2;
 
         var solidBrush = brush as XSolidBrush;
 

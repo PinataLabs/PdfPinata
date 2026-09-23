@@ -77,7 +77,7 @@ public abstract class TwoWidthBarCode : BarCode
         get => _wideNarrowRatio;
         set
         {
-            if (value > 3 || value < 2)
+            if (value is > 3 or < 2)
                 throw new ArgumentOutOfRangeException(nameof(value), BcgSR.InvalidWideNarrowRatio);
             _wideNarrowRatio = value;
         }

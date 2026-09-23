@@ -128,7 +128,7 @@ public static class DdlEncoder
   /// </summary>
   internal static bool IsDdeIdentifier(string name)
   {
-    if (name == null || name == string.Empty)
+    if (name is null or "")
       return false;
 
     var len = name.Length;

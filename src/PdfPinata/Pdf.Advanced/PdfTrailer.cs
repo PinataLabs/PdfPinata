@@ -95,7 +95,7 @@ internal class PdfTrailer : PdfDictionary  // Reference: 3.4.4  File Trailer / P
     /// </summary>
     public string GetDocumentID(int index)
     {
-        if (index < 0 || index > 1)
+        if (index is < 0 or > 1)
             throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be 0 or 1.");
 
         if (Elements[Keys.ID] is not PdfArray array || array.Elements.Count < 2)
@@ -109,7 +109,7 @@ internal class PdfTrailer : PdfDictionary  // Reference: 3.4.4  File Trailer / P
     /// </summary>
     public void SetDocumentID(int index, string value)
     {
-        if (index < 0 || index > 1)
+        if (index is < 0 or > 1)
             throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be 0 or 1.");
 
         var array = Elements[Keys.ID] as PdfArray;

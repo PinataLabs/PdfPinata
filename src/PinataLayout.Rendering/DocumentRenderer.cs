@@ -429,9 +429,9 @@ public class DocumentRenderer
     internal int NextListNumber(ListInfo listInfo)
     {
         var listType = listInfo.ListType;
-        var isNumberList = listType == ListType.NumberList1 ||
-                           listType == ListType.NumberList2 ||
-                           listType == ListType.NumberList3;
+        var isNumberList = listType is ListType.NumberList1 or
+                           ListType.NumberList2 or
+                           ListType.NumberList3;
 
         var listNumber = int.MinValue;
         if (listInfo == previousListInfo)

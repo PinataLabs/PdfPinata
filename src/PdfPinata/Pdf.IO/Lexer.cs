@@ -304,7 +304,7 @@ public class Lexer
         while (true)
         {
             var ch = AppendAndScanNextChar();
-            if (ch == Chars.LF || ch == Chars.EOF)
+            if (ch is Chars.LF or Chars.EOF)
                 break;
         }
         // The end-of-file marker is reported as such to a caller scanning comments itself.
@@ -362,7 +362,7 @@ public class Lexer
 
         _token = new StringBuilder();
         var ch = _currChar;
-        if (ch == '+' || ch == '-')
+        if (ch is '+' or '-')
         {
             _token.Append(ch);
             ch = ScanNextChar(true);

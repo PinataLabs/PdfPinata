@@ -81,7 +81,7 @@ internal static class DoubleUtil
         var exp = t.UintValue & 0xfff0000000000000;
         var man = t.UintValue & 0x000fffffffffffff;
 
-        return (exp == 0x7ff0000000000000 || exp == 0xfff0000000000000) && man != 0;
+        return (exp is 0x7ff0000000000000 or 0xfff0000000000000) && man != 0;
     }
 
     /// <summary>

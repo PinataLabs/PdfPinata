@@ -89,7 +89,7 @@ internal static class ScriptItemizer
             var codePoint = width == 2 ? char.ConvertToUtf32(text[idx], text[idx + 1]) : text[idx];
             var here = UnicodeProperties.ScriptOf(codePoint);
 
-            if (here == UnicodeScript.Inherited || here == UnicodeScript.Common)
+            if (here is UnicodeScript.Inherited or UnicodeScript.Common)
             {
                 // Carried by whatever it is next to. If the run has no script yet, this character
                 // does not give it one either - it waits for the first character that does, which

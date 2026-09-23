@@ -159,7 +159,7 @@ public class CLexer
         while (ScanNextToken() != CSymbol.Eof)
         {
             // HACK: Is image ASCII85 decoded?
-            if (!ascii85 && Symbol == CSymbol.Name && (Token == "/ASCII85Decode" || Token == "/A85"))
+            if (!ascii85 && Symbol == CSymbol.Name && (Token is "/ASCII85Decode" or "/A85"))
                 ascii85 = true;
 
             if (Symbol == CSymbol.Operator && Token == "ID")
@@ -423,7 +423,7 @@ public class CLexer
 
         ClearToken();
         var ch = _currChar;
-        if (ch == '+' || ch == '-')
+        if (ch is '+' or '-')
         {
             if (ch == '-')
                 negative = true;
@@ -523,7 +523,7 @@ public class CLexer
         // so the pair is spelled out here. Without this, "1000 0 0 0 200 200 d1 /Im1 Do" read as
         // the setdash operator with six operands followed by Do with two, and every operator
         // after the glyph's first was handed one operand too many.
-        if (_token.Length == 1 && _token[0] == 'd' && (ch == '0' || ch == '1'))
+        if (_token.Length == 1 && _token[0] == 'd' && (ch is '0' or '1'))
             AppendAndScanNextChar();
 
         return Symbol = CSymbol.Operator;

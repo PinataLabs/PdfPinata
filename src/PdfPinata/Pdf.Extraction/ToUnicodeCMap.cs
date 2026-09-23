@@ -208,7 +208,7 @@ internal sealed class ToUnicodeCMap
         for (var at = from; at < to; at++)
         {
             var ch = text[at];
-            if (ch == '[' || ch == ']')
+            if (ch is '[' or ']')
             {
                 tokens.Add(ch == '[' ? "[" : "]");
                 continue;
@@ -238,7 +238,7 @@ internal sealed class ToUnicodeCMap
         return tokens;
     }
 
-    private static bool IsBracket(string token) => token == "[" || token == "]";
+    private static bool IsBracket(string token) => token is "[" or "]";
 
     /// <summary>
     /// A source code, which is a scalar however many bytes it was written in.

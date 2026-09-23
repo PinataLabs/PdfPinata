@@ -719,8 +719,8 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
         {
             case ElementAlignment.Near:
                 // Allow negative offsets (supporting "Anschnitt" for images)
-                if (layoutInfo.HorizontalReference == HorizontalReference.Page ||
-                    layoutInfo.HorizontalReference == HorizontalReference.PageMargin)
+                if (layoutInfo.HorizontalReference is HorizontalReference.Page or
+                    HorizontalReference.PageMargin)
                     xPos = layoutInfo.MarginLeft; // Ignore layoutInfo.Left if absolute position is specified
                 else
                     xPos = Math.Max(layoutInfo.MarginLeft, layoutInfo.Left);

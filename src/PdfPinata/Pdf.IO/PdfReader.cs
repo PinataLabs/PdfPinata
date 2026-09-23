@@ -408,7 +408,7 @@ public static class PdfReader
         // Fix references of trailer values and then objects and irefs are consistent.
         document._trailer.Finish();
 
-        if (openmode == PdfDocumentOpenMode.Modify || openmode == PdfDocumentOpenMode.Append)
+        if (openmode is PdfDocumentOpenMode.Modify or PdfDocumentOpenMode.Append)
         {
             RenewRevisionId(document);
 

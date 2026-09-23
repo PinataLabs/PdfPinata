@@ -112,17 +112,17 @@ public static partial class BidiAlgorithm
 
     /// <summary>Whether rule X9 takes this class out before anything is resolved.</summary>
     internal static bool IsRemovedByX9(BidiClass type)
-        => type == BidiClass.RLE || type == BidiClass.LRE || type == BidiClass.RLO
-        || type == BidiClass.LRO || type == BidiClass.PDF || type == BidiClass.BN;
+        => type is BidiClass.RLE or BidiClass.LRE or BidiClass.RLO
+        or BidiClass.LRO or BidiClass.PDF or BidiClass.BN;
 
     private static bool IsIsolateInitiator(BidiClass type)
-        => type == BidiClass.LRI || type == BidiClass.RLI || type == BidiClass.FSI;
+        => type is BidiClass.LRI or BidiClass.RLI or BidiClass.FSI;
 
     /// <summary>A "neutral or isolate formatting character", as the N rules call them.</summary>
     private static bool IsNeutralOrIsolate(BidiClass type)
-        => type == BidiClass.B || type == BidiClass.S || type == BidiClass.WS
-        || type == BidiClass.ON || type == BidiClass.FSI || type == BidiClass.LRI
-        || type == BidiClass.RLI || type == BidiClass.PDI;
+        => type is BidiClass.B or BidiClass.S or BidiClass.WS
+        or BidiClass.ON or BidiClass.FSI or BidiClass.LRI
+        or BidiClass.RLI or BidiClass.PDI;
 
     /// <summary>
     /// One paragraph being resolved. A class rather than a pile of parameters because the rules
@@ -250,7 +250,7 @@ public static partial class BidiAlgorithm
                 if (type == BidiClass.L)
                     return 0;
 
-                if (type == BidiClass.R || type == BidiClass.AL)
+                if (type is BidiClass.R or BidiClass.AL)
                     return 1;
             }
 
@@ -279,7 +279,7 @@ public static partial class BidiAlgorithm
                     {
                         _levels[idx] = stack.Peek().Level;
 
-                        var rightToLeft = type == BidiClass.RLE || type == BidiClass.RLO;
+                        var rightToLeft = type is BidiClass.RLE or BidiClass.RLO;
                         var next = NextLevel(stack.Peek().Level, rightToLeft);
                         var over = type == BidiClass.RLO ? BidiClass.R
                             : type == BidiClass.LRO ? BidiClass.L
@@ -539,7 +539,7 @@ public static partial class BidiAlgorithm
             for (var idx = _length - 1; idx >= 0; idx--)
             {
                 var type = _initial[idx];
-                if (type == BidiClass.B || type == BidiClass.S)
+                if (type is BidiClass.B or BidiClass.S)
                 {
                     _levels[idx] = _paragraphLevel;
                     trailing = true;

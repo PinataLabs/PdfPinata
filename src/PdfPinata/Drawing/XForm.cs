@@ -167,10 +167,10 @@ public class XForm : XImage, IContentStream
     /// </summary>
     internal virtual void Finish()
     {
-        if (_formState == FormState.NotATemplate || _formState == FormState.Finished)
+        if (_formState is FormState.NotATemplate or FormState.Finished)
             return;
 
-        if (!(_formState == FormState.Created || _formState == FormState.UnderConstruction))
+        if (!(_formState is FormState.Created or FormState.UnderConstruction))
         {
             throw new InvalidOperationException("Expected the form to be Created or UnderConstruction");
         }

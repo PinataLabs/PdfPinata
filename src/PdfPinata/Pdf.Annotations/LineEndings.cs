@@ -72,7 +72,7 @@ internal static class LineEndings
 
         // Reversed arrowheads are the same triangle turned round, which is the only thing the
         // R-prefixed members of Table 176 change.
-        if (ending == PdfLineEnding.ROpenArrow || ending == PdfLineEnding.RClosedArrow)
+        if (ending is PdfLineEnding.ROpenArrow or PdfLineEnding.RClosedArrow)
             outward = new XVector(-outward.X, -outward.Y);
 
         var across = new XVector(-outward.Y, outward.X);

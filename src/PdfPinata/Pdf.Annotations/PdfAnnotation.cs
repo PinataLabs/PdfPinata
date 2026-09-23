@@ -269,7 +269,7 @@ public abstract class PdfAnnotation : PdfDictionary
         }
         set
         {
-            if (value < 0 || value > 1)
+            if (value is < 0 or > 1)
                 throw new ArgumentOutOfRangeException(nameof(value), value, "Opacity must be a value in the range from 0 to 1.");
             Elements.SetReal(Keys.CA, value);
             Elements.SetDateTime(Keys.M, GlobalTimeSettings.Now);

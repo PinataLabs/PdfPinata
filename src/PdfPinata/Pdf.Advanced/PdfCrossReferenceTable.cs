@@ -378,7 +378,7 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
 
                             Debug.Assert(ReferenceEquals(iref.Document, _document));
                             objects.Add(iref, null);
-                            if (value is PdfArray || value is PdfDictionary)
+                            if (value is PdfArray or PdfDictionary)
                                 TransitiveClosureImplementation(objects, value /*, ref depth*/);
                         }
                     }

@@ -221,7 +221,7 @@ internal class Serializer
   /// </summary>
   internal void WriteComment(string comment)
   {
-    if (comment == null || comment == string.Empty)
+    if (comment is null or "")
       return;
 
     // If the comment holds a line end, split it up recursively, one "//" line per line. A CR or

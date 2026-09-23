@@ -69,9 +69,9 @@ public struct TopPosition : INullableValue
   /// </summary>
   private static bool IsValid(ShapePosition shapePosition)
   {
-    return shapePosition == ShapePosition.Bottom ||
-           shapePosition == ShapePosition.Top ||
-           shapePosition == ShapePosition.Center;
+    return shapePosition is ShapePosition.Bottom or
+           ShapePosition.Top or
+           ShapePosition.Center;
   }
 
   /// <summary>

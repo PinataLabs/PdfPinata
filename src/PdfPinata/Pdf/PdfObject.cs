@@ -431,7 +431,7 @@ public abstract class PdfObject : PdfItem
             // An indirect null is one of them: a writer that puts /SMask 6 0 R in a graphics
             // state and null in object six has said the key holds nothing, in a roundabout but
             // perfectly legal way, and there is nothing under it to fix up.
-            if (value is PdfNameObject || value is PdfStringObject || value is PdfBooleanObject || value is PdfIntegerObject || value is PdfNumberObject || value is PdfNullObject)
+            if (value is PdfNameObject or PdfStringObject or PdfBooleanObject or PdfIntegerObject or PdfNumberObject or PdfNullObject)
             {
                 Debug.Assert(value.IsIndirect);
                 Debug.Assert(value.Owner == owner);

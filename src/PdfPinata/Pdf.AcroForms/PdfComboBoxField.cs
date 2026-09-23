@@ -101,7 +101,7 @@ public sealed class PdfComboBoxField : PdfChoiceField
         {
             EnsureCanBeFilled();
 
-            if (!(value is PdfString || value is PdfName))
+            if (!(value is PdfString or PdfName))
                 throw new NotImplementedException("Values other than string cannot be set.");
 
             // A choice field's value is a text string, and so is every entry of its /Opt array. A

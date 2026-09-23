@@ -410,7 +410,7 @@ internal class CMapTable : OpenTypeFontTable
             return false;
 
         var apple = (AppleEncodingId)encodingId;
-        return apple == AppleEncodingId.Unicode20 || apple == AppleEncodingId.FullUnicode;
+        return apple is AppleEncodingId.Unicode20 or AppleEncodingId.FullUnicode;
     }
 }
 
@@ -914,7 +914,7 @@ internal class NameTable : OpenTypeFontTable
                 }
 
                 // Read font name and style in US english.
-                if (nrec.platformID != 0 && nrec.platformID != 3)
+                if (nrec.platformID is not (0 or 3))
                     continue;
 
                 // Font Family name. Up to four fonts can share the Font Family name,

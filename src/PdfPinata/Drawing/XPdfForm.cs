@@ -157,7 +157,7 @@ public class XPdfForm : XForm
     /// </summary>
     internal override void Finish()
     {
-        if (_formState == FormState.NotATemplate || _formState == FormState.Finished)
+        if (_formState is FormState.NotATemplate or FormState.Finished)
             return;
 
         base.Finish();

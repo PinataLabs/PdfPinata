@@ -2474,7 +2474,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     /// True for the characters a word spacing is paid out for. Kept in step with
     /// FontHelper.MeasureString, which maps a tab to a space before it counts one.
     /// </summary>
-    private static bool IsWordSpace(char ch) => ch == ' ' || ch == '\t';
+    private static bool IsWordSpace(char ch) => ch is ' ' or '\t';
 
     /// <summary>
     /// PDFsharp uses the Td operator to set the text position. Td just sets the offset of the text matrix

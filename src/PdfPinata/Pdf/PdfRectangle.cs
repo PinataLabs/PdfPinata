@@ -104,7 +104,7 @@ public sealed class PdfRectangle : PdfItem
     /// </summary>
     internal PdfRectangle(PdfItem item)
     {
-        if (item == null || item is PdfNull)
+        if (item is null or PdfNull)
             return;
 
         if (item is PdfReference reference)

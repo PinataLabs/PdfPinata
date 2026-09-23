@@ -397,7 +397,7 @@ internal abstract class PdfPageWalk
         if (item is PdfReference reference)
             item = reference.Value;
 
-        return item is PdfNull || item is PdfNullObject ? null : item;
+        return item is PdfNull or PdfNullObject ? null : item;
     }
 
     /// <summary>

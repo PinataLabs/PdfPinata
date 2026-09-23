@@ -303,7 +303,7 @@ public abstract class PdfAcroField : PdfDictionary
         {
             EnsureCanBeFilled();
 
-            if (value is PdfString || value is PdfName)
+            if (value is PdfString or PdfName)
                 Elements[Keys.V] = value;
             else
                 throw new NotImplementedException("Values other than string cannot be set.");

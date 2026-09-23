@@ -714,7 +714,7 @@ public struct XColor : IEquatable<XColor>
 
     private static void CheckByte(int val, string name)
     {
-        if (val < 0 || val > 0xFF)
+        if (val is < 0 or > 0xFF)
             throw new ArgumentException(PSSR.InvalidValue(val, name, 0, 255));
     }
 

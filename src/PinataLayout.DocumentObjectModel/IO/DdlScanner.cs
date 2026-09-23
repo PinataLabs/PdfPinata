@@ -575,7 +575,7 @@ internal class DdlScanner
   /// </summary>
   internal Symbol MoveToCode()
   {
-    if (symbol == Symbol.None || symbol == Symbol.CR /*|| this.symbol == Symbol.comment*/)
+    if (symbol is Symbol.None or Symbol.CR /*|| this.symbol == Symbol.comment*/)
       ReadCode();
     return symbol;
   }
@@ -1039,7 +1039,7 @@ internal class DdlScanner
     token += currChar;
 
     ScanNextChar();
-    if (!mantissa && ch == '0' && (currChar == 'x' || currChar == 'X'))
+    if (!mantissa && ch == '0' && (currChar is 'x' or 'X'))
       return ReadHexNumber();
 
     while (currChar != Chars.Null)
@@ -1338,7 +1338,7 @@ internal class DdlScanner
               DomSR.GetString(DomMsgID.EscapeSequenceNotAllowed), DomMsgID.EscapeSequenceNotAllowed);
         }
       }
-      else if (currChar == Chars.Null || currChar == Chars.CR || currChar == Chars.LF)
+      else if (currChar is Chars.Null or Chars.CR or Chars.LF)
       {
         throw new DdlParserException(DdlErrorLevel.Error,
           DomSR.GetString(DomMsgID.NewlineInString), DomMsgID.NewlineInString);

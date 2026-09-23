@@ -117,7 +117,7 @@ public sealed class ValueDescriptor
   /// threw InvalidCastException on every string until the third name was added by hand.
   /// </remarks>
   public bool IsSimpleValue =>
-    Kind == ValueKind.Leaf || Kind == ValueKind.NullableValue || Kind == ValueKind.PlainValue;
+    Kind is ValueKind.Leaf or ValueKind.NullableValue or ValueKind.PlainValue;
 
   /// <summary>
   /// Whether <see cref="SetValue"/> can be called at all. A DocumentObject or Collection member is

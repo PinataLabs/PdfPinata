@@ -77,7 +77,7 @@ public static partial class BidiAlgorithm
             for (var idx = 0; idx < Count; idx++)
             {
                 var type = TypeAt(idx);
-                if (type == BidiClass.L || type == BidiClass.R || type == BidiClass.AL)
+                if (type is BidiClass.L or BidiClass.R or BidiClass.AL)
                     strong = type;
                 else if (type == BidiClass.EN && strong == BidiClass.AL)
                     SetType(idx, BidiClass.AN);
@@ -133,7 +133,7 @@ public static partial class BidiAlgorithm
             for (var idx = 0; idx < Count; idx++)
             {
                 var type = TypeAt(idx);
-                if (type == BidiClass.ET || type == BidiClass.ES || type == BidiClass.CS)
+                if (type is BidiClass.ET or BidiClass.ES or BidiClass.CS)
                     SetType(idx, BidiClass.ON);
             }
 
@@ -142,7 +142,7 @@ public static partial class BidiAlgorithm
             for (var idx = 0; idx < Count; idx++)
             {
                 var type = TypeAt(idx);
-                if (type == BidiClass.L || type == BidiClass.R)
+                if (type is BidiClass.L or BidiClass.R)
                     strong = type;
                 else if (type == BidiClass.EN && strong == BidiClass.L)
                     SetType(idx, BidiClass.L);
@@ -167,7 +167,7 @@ public static partial class BidiAlgorithm
             if (type == BidiClass.L)
                 return BidiClass.L;
 
-            if (type == BidiClass.R || type == BidiClass.EN || type == BidiClass.AN)
+            if (type is BidiClass.R or BidiClass.EN or BidiClass.AN)
                 return BidiClass.R;
 
             return BidiClass.ON;
@@ -352,14 +352,14 @@ public static partial class BidiAlgorithm
                     // I1. In an even run, right-to-left text goes one deeper and a number two, so
                     // that the number sits inside the right-to-left text around it.
                     bump = type == BidiClass.R ? 1
-                        : type == BidiClass.AN || type == BidiClass.EN ? 2
+                        : type is BidiClass.AN or BidiClass.EN ? 2
                         : 0;
                 }
                 else
                 {
                     // I2. In an odd run, anything left-to-right - a number included - goes one
                     // deeper.
-                    bump = type == BidiClass.L || type == BidiClass.EN || type == BidiClass.AN
+                    bump = type is BidiClass.L or BidiClass.EN or BidiClass.AN
                         ? 1
                         : 0;
                 }
