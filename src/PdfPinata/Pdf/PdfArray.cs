@@ -81,8 +81,7 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
     protected PdfArray(PdfArray array)
         : base(array)
     {
-        if (array._elements != null)
-            array._elements.ChangeOwner(this);
+        array._elements?.ChangeOwner(this);
     }
 
     /// <summary>
@@ -177,14 +176,14 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
     {
         internal ArrayElements(PdfArray array)
         {
-            _elements = new List<PdfItem>();
+            _elements = [];
             _ownerArray = array;
         }
 
         object ICloneable.Clone()
         {
             var elements = (ArrayElements)MemberwiseClone();
-            elements._elements = new List<PdfItem>(elements._elements);
+            elements._elements = [..elements._elements];
             elements._ownerArray = null;
             return elements;
         }
@@ -429,7 +428,7 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
         /// <summary>
         /// Gets all items of this array.
         /// </summary>
-        public PdfItem[] Items => _elements.ToArray();
+        public PdfItem[] Items => [.._elements];
 
         #region IList Members
 

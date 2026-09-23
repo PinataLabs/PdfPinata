@@ -16,13 +16,12 @@ internal sealed class TextDemo : PdfDemo
 
     public override string Summary => "Placement, spacing, painting and links.";
 
-    public override IReadOnlyList<string> Shows => new[]
-    {
+    public override IReadOnlyList<string> Shows => [
         "The nine XStringFormats presets, each in the box it was given",
         "Character and word spacing, horizontal scaling, text rise and slant",
         "Fill, stroke, and fill with stroke - the PDF text rendering modes",
         "Colour from RGB, CMYK and grey, and a link over a word"
-    };
+    ];
 
     public override int PageCount => 3;
 
@@ -71,7 +70,7 @@ internal sealed class TextDemo : PdfDemo
         // the same rectangle so it is the format alone that moves the words.
         // docs:begin presets
         (string Name, XStringFormat Format)[] presets =
-        {
+        [
             ("TopLeft", XStringFormats.TopLeft),
             ("TopCenter", XStringFormats.TopCenter),
             ("TopRight", XStringFormats.TopRight),
@@ -81,7 +80,7 @@ internal sealed class TextDemo : PdfDemo
             ("BottomLeft", XStringFormats.BottomLeft),
             ("BottomCenter", XStringFormats.BottomCenter),
             ("BottomRight", XStringFormats.BottomRight)
-        };
+        ];
 
         for (var index = 0; index < presets.Length; index++)
         {
@@ -229,12 +228,12 @@ internal sealed class TextDemo : PdfDemo
         Heading("Colour", 260);
 
         (string Label, XColor Colour)[] colours =
-        {
+        [
             ("XColor.FromArgb(220, 60, 60)", XColor.FromArgb(220, 60, 60)),
             ("XColor.FromArgb(90, 0, 0, 255) - alpha", XColor.FromArgb(90, 0, 0, 255)),
             ("XColor.FromCmyk(0.8, 0, 0.4, 0.1)", XColor.FromCmyk(0.8, 0, 0.4, 0.1)),
             ("XColor.FromGrayScale(0.45)", XColor.FromGrayScale(0.45))
-        };
+        ];
 
         y = 288;
         foreach ((var label, var colour) in colours)

@@ -18,8 +18,7 @@ internal sealed class FootnotesDemo : PdfDemo
 
     public override string Summary => "Notes at the foot of the page, and the four settings that shape them.";
 
-    public override IReadOnlyList<string> Shows => new[]
-    {
+    public override IReadOnlyList<string> Shows => [
         "Paragraph.AddFootnote, and that the note's content is block content rather than a string",
         "That the room a note needs comes off the page before the text carrying its mark is laid out",
         "Document.FootnoteNumberStyle - all five, on the same three notes",
@@ -27,7 +26,7 @@ internal sealed class FootnotesDemo : PdfDemo
         "Document.FootnoteLocation - what BeneathText would change, on a page with room to spare",
         "Footnote.Reference, a mark of the caller's own, which does not advance the numbering",
         "StyleNames.Footnote, the predefined style the notes are set in"
-    };
+    ];
 
     public override int PageCount => 5;
 

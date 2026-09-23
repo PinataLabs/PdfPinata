@@ -51,7 +51,7 @@ public class BarPlotAreaTests
         var oneSeries = PaintedRectangles.FilledOn(Drawn.Page(Charts.Of(ChartType.Bar2D, 1.0, 5.0)));
 
         var page = Drawn.Page(Charts.OfSeries(ChartType.Bar2D,
-            new[] { 1.0, 5.0 }, new[] { 2.0, 4.0 }));
+            [1.0, 5.0], [2.0, 4.0]));
         var clustered = PaintedRectangles.FilledOn(page);
 
         clustered.Should().HaveCount(4);
@@ -64,7 +64,7 @@ public class BarPlotAreaTests
     public void StackedBarsContinueFromOneAnother()
     {
         var page = Drawn.Page(Charts.OfSeries(ChartType.BarStacked2D,
-            new[] { 1.0, 2.0 }, new[] { 3.0, 1.0 }));
+            [1.0, 2.0], [3.0, 1.0]));
 
         var bars = PaintedRectangles.FilledOn(page);
 

@@ -32,15 +32,14 @@ internal sealed class OutlineDemo : PdfDemo
 
     public override string Summary => "A tree of bookmarks, each landing on its own heading.";
 
-    public override IReadOnlyList<string> Shows => new[]
-    {
+    public override IReadOnlyList<string> Shows => [
         "A three-level outline built with PdfDocument.Outlines and PdfOutline.Outlines",
         "Entries that land on a heading part-way down a page, not merely on the page",
         "The bold, italic and coloured entry styles",
         "Branches that arrive expanded, and chapter 2 which arrives collapsed",
         "The destination types: Xyz with a zoom, Fit, FitH and FitR",
         "A drawn table of contents where every line links to the place its bookmark points at"
-    };
+    ];
 
     public override int PageCount => 5;
 
@@ -120,7 +119,7 @@ internal sealed class OutlineDemo : PdfDemo
             body, XBrushes.DimGray, new XPoint(56, 126));
 
         string[] explanation =
-        {
+        [
             "PdfDocument.Outlines is the root collection. Each PdfOutline it returns has an",
             "Outlines collection of its own, and that is the whole of the hierarchy - there is no",
             "depth limit and no separate node type.",
@@ -138,7 +137,7 @@ internal sealed class OutlineDemo : PdfDemo
             "Opened decides whether a branch arrives expanded, and is written as /Count: the number",
             "of rows the branch would add, negated when it is shut. Chapters 1 and 3 are open",
             "below and chapter 2 is not, so the panel should show its sections only after a click."
-        };
+        ];
 
         double y = 164;
         foreach (var line in explanation)
@@ -183,14 +182,14 @@ internal sealed class OutlineDemo : PdfDemo
 
         // ---- Pages two to four: three chapters ---------------------------------------
         (string Chapter, bool Opened, XColor Colour, PdfOutlineStyle Style, string[] Sections)[] book =
-        {
+        [
             ("1. Setting out", true, XColors.Black, PdfOutlineStyle.Bold,
-                new[] { "1.1 What a bookmark is", "1.2 Where it points", "1.3 What it costs" }),
+                ["1.1 What a bookmark is", "1.2 Where it points", "1.3 What it costs"]),
             ("2. In the middle", false, XColors.Black, PdfOutlineStyle.Regular,
-                new[] { "2.1 Nesting", "2.2 Opened and collapsed" }),
+                ["2.1 Nesting", "2.2 Opened and collapsed"]),
             ("3. Coming back", true, XColors.Firebrick, PdfOutlineStyle.BoldItalic,
-                new[] { "3.1 Styles", "3.2 Colours" })
-        };
+                ["3.1 Styles", "3.2 Colours"])
+        ];
 
         foreach (var part in book)
         {
@@ -271,7 +270,7 @@ internal sealed class OutlineDemo : PdfDemo
         ContentsLine("Appendix. Destination types", subFont, XBrushes.Black, 56, 15, "5");
 
         (string Label, string Reads, PdfPageDestinationType Type)[] destinations =
-        {
+        [
             ("Xyz - a corner and a zoom", "Left, Top, Zoom", PdfPageDestinationType.Xyz),
             ("Fit - the whole page in the window", "nothing", PdfPageDestinationType.Fit),
             ("FitH - the width, at a height", "Top", PdfPageDestinationType.FitH),
@@ -280,7 +279,7 @@ internal sealed class OutlineDemo : PdfDemo
             ("FitB - the ink, not the page", "nothing", PdfPageDestinationType.FitB),
             ("FitBH - the ink's width, at a height", "Top", PdfPageDestinationType.FitBH),
             ("FitBV - the ink's height, at a left edge", "Left", PdfPageDestinationType.FitBV)
-        };
+        ];
 
         double rowY = 170;
         appendixGfx.DrawString("type", noteFont, XBrushes.SteelBlue, new XPoint(56, rowY));

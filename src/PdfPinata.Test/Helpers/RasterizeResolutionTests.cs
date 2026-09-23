@@ -102,7 +102,7 @@ public class RasterizeResolutionTests
         // be, and Rasterize holds all of them at once - which is how test.pdf, four pages of 9.7
         // megapixels, came to ask for 38.7 and took the test host with it.
         var a4 = (595.276, 841.89);
-        var document = DocumentOf(Enumerable.Repeat(a4, 12).ToArray());
+        var document = DocumentOf([..Enumerable.Repeat(a4, 12)]);
 
         var resolution = PdfHelper.ResolutionFor(document);
 
@@ -119,7 +119,7 @@ public class RasterizeResolutionTests
         // which is why it is refused out loud rather than floored at 1 dpi and drawn over the
         // limit anyway.
         var biggest = (14400.0, 14400.0);
-        var document = DocumentOf(Enumerable.Repeat(biggest, 401).ToArray());
+        var document = DocumentOf([..Enumerable.Repeat(biggest, 401)]);
 
         var resolve = () => PdfHelper.ResolutionFor(document);
 

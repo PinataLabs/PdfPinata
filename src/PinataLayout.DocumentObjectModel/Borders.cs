@@ -441,15 +441,15 @@ public partial class Borders : DocumentObject, IEnumerable
     {
         if (border == top)
             return "Top";
-        else if (border == bottom)
+        if (border == bottom)
             return "Bottom";
-        else if (border == left)
+        if (border == left)
             return "Left";
-        else if (border == right)
+        if (border == right)
             return "Right";
-        else if (border == diagonalUp)
+        if (border == diagonalUp)
             return "DiagonalUp";
-        else if (border == diagonalDown)
+        if (border == diagonalDown)
             return "DiagonalDown";
         return null;
     }

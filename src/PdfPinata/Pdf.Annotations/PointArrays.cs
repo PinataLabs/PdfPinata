@@ -17,7 +17,7 @@ internal static class PointArrays
     public static XPoint[] Read(PdfArray array)
     {
         if (array == null)
-            return Array.Empty<XPoint>();
+            return [];
 
         var points = new XPoint[array.Elements.Count / 2];
         for (var index = 0; index < points.Length; index++)

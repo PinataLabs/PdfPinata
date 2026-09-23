@@ -204,12 +204,12 @@ public static class LinuxSystemFontResolver
     {
         try
         {
-            return ResolveFontConfig().Where(FontFileTypes.IsFontFile).ToArray();
+            return [..ResolveFontConfig().Where(FontFileTypes.IsFontFile)];
         }
         catch (Exception ex) when (!Unrecoverable.Is(ex))
         {
             LogError(ex.ToString());
-            return ResolveFallback().Where(FontFileTypes.IsFontFile).ToArray();
+            return [..ResolveFallback().Where(FontFileTypes.IsFontFile)];
         }
     }
 
@@ -236,7 +236,7 @@ public static class LinuxSystemFontResolver
             AddFontsToFontList(path);
         }
 
-        return fontList.ToArray();
+        return [..fontList];
     }
 
     private static List<string> SearchPaths()

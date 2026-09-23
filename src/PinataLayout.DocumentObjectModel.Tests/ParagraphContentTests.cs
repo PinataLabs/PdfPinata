@@ -35,7 +35,7 @@ public class ParagraphContentTests
         DdlReader.DocumentFromString(DdlWriter.WriteToString(document));
 
     private static SymbolName[] Symbols(ParagraphElements elements) =>
-        elements.OfType<Character>().Select(c => c.SymbolName).ToArray();
+        [..elements.OfType<Character>().Select(c => c.SymbolName)];
 
     // ----- The Add… methods that build an element ----------------------------------------------
 

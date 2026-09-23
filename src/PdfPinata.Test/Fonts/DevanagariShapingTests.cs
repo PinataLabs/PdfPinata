@@ -163,7 +163,7 @@ public class DevanagariShapingTests
         using var _ = new Shaping();
 
         DrawnText.Glyphs(DrawnText.Page(Conjunct, Font()))
-            .Should().Equal(new[] { (int)Shape(Conjunct).Glyphs.Single().GlyphId },
+            .Should().Equal([(int)Shape(Conjunct).Glyphs.Single().GlyphId],
                 "what the renderer writes is what the shaper chose, not a per-character lookup");
     }
 

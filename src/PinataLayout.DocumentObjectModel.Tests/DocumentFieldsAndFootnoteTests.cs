@@ -299,7 +299,7 @@ public class DocumentFieldsAndFootnoteTests
         try
         {
             var file = Path.Combine(subfolder, "picture.png");
-            File.WriteAllBytes(file, new byte[] { 0 });
+            File.WriteAllBytes(file, [0]);
 
             var found = ImageHelper.GetImageName(root, "picture.png", "nowhere;pictures");
 

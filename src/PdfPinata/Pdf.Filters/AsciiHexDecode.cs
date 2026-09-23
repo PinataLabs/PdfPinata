@@ -90,7 +90,7 @@ public class AsciiHexDecode : Filter
             else if (IsWhiteSpace(ch))
                 continue;
             else
-                throw new ArgumentException($@"Illegal character 0x{ch:X2} in ASCIIHexDecode data.", nameof(data));
+                throw new ArgumentException($"Illegal character 0x{ch:X2} in ASCIIHexDecode data.", nameof(data));
 
             if (hi < 0)
             {

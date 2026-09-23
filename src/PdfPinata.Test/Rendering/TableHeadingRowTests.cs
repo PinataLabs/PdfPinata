@@ -205,6 +205,6 @@ public class TableHeadingRowTests
         stream.Position = 0;
 
         var rendered = Pdf.IO.PdfReader.Open(stream, PdfDocumentOpenMode.Modify);
-        return Enumerable.Range(0, rendered.PageCount).Select(index => rendered.Pages[index]).ToList();
+        return [..Enumerable.Range(0, rendered.PageCount).Select(index => rendered.Pages[index])];
     }
 }

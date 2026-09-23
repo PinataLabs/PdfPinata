@@ -63,7 +63,7 @@ internal static class PdfNamedDestinations
 
         var names = catalog.Elements.GetDictionary("/Names");
         if (names != null)
-            found = Search(names.Elements.GetDictionary("/Dests"), text, 0, new HashSet<PdfDictionary>());
+            found = Search(names.Elements.GetDictionary("/Dests"), text, 0, []);
 
         if (found == null)
         {

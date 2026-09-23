@@ -27,7 +27,7 @@ public class HiddenSeriesLineTests
 
     private static Chart WithARedLine(ChartType type, bool visible)
     {
-        var chart = Charts.OfSeries(type, new[] { 1.0, 3.0, 2.0 }, new[] { 2.0, 1.0, 3.0 });
+        var chart = Charts.OfSeries(type, [1.0, 3.0, 2.0], [2.0, 1.0, 3.0]);
         var series = chart.SeriesCollection[0];
         series.LineFormat.Color = XColors.Red;
         series.LineFormat.Width = 2;

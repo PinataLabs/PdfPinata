@@ -114,7 +114,7 @@ public class XRectTests
     ///   negative extent, and half-assigning that leaves a rectangle nobody can reason about.
     /// </summary>
     private static readonly Action[] WaysOfChangingARectangle =
-    {
+    [
         () => { var rect = XRect.Empty; rect.X = 1; },
         () => { var rect = XRect.Empty; rect.Y = 1; },
         () => { var rect = XRect.Empty; rect.Width = 1; },
@@ -124,7 +124,7 @@ public class XRectTests
         () => { var rect = XRect.Empty; rect.Offset(1, 1); },
         () => { var rect = XRect.Empty; rect.Offset(new XVector(1, 1)); },
         () => { var rect = XRect.Empty; rect.Inflate(1, 1); }
-    };
+    ];
 
     public static TheoryData<int> EachWayOfChangingARectangle()
     {

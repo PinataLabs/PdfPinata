@@ -46,8 +46,8 @@ internal static class PdfNameTree
     {
         var root = Root(document, kind);
         return root == null
-            ? Enumerable.Empty<KeyValuePair<string, PdfItem>>()
-            : Walk(root, 0, new HashSet<PdfDictionary>());
+            ? []
+            : Walk(root, 0, []);
     }
 
     /// <summary>

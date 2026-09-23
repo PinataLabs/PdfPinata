@@ -92,10 +92,7 @@ public static class PdfReader
         {
             try
             {
-                if (stream != null)
-                {
-                    stream.Dispose();
-                }
+                stream?.Dispose();
             }
             // ReSharper disable once EmptyGeneralCatchClause
             catch
@@ -275,15 +272,11 @@ public static class PdfReader
         {
             stream = new FileStream(path, FileMode.Open, FileAccess.Read);
             document = Open(stream, password, openmode, provider, accuracy);
-            if (document != null)
-            {
-                document.FullPath = Path.GetFullPath(path);
-            }
+            document?.FullPath = Path.GetFullPath(path);
         }
         finally
         {
-            if (stream != null)
-                stream.Dispose();
+            stream?.Dispose();
 
         }
         return document;

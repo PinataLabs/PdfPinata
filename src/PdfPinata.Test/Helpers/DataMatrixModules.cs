@@ -123,7 +123,7 @@ internal static class DataMatrixModules
         {
             Options = new ZXing.Common.DecodingOptions
             {
-                PossibleFormats = new[] { BarcodeFormat.DATA_MATRIX },
+                PossibleFormats = [BarcodeFormat.DATA_MATRIX],
                 TryHarder = true
             }
         };

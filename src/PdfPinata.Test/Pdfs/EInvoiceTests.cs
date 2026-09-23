@@ -96,7 +96,7 @@ public class EInvoiceTests
     public void AnInvoiceNeedsSomeXmlToBe()
     {
         var withNothing = () => new FacturXInvoice(null);
-        var withEmptiness = () => new FacturXInvoice(Array.Empty<byte>());
+        var withEmptiness = () => new FacturXInvoice([]);
 
         withNothing.Should().Throw<ArgumentNullException>();
         withEmptiness.Should().Throw<ArgumentException>();

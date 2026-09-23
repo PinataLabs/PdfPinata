@@ -90,8 +90,7 @@ internal sealed class OpenTypeFontface
 
     public static OpenTypeFontface CetOrCreateFrom(XFontSource fontSource)
     {
-        OpenTypeFontface fontface;
-        if (OpenTypeFontfaceCache.TryGetFontface(fontSource.Key, out fontface))
+        if (OpenTypeFontfaceCache.TryGetFontface(fontSource.Key, out var fontface))
         {
             return fontface;
         }

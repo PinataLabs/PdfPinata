@@ -47,7 +47,7 @@ public class DecryptedStringReplacementTests
         factory.Should().NotBeNull("the setter was replaced by a factory, not deleted outright");
 
         // ReSharper disable once PossibleNullReferenceException
-        return (PdfString)factory.Invoke(null, new[] { bytes, Enum.Parse(Flags, flagName) });
+        return (PdfString)factory.Invoke(null, [bytes, Enum.Parse(Flags, flagName)]);
     }
 
     [Fact]
@@ -106,10 +106,10 @@ public class DecryptedStringReplacementTests
 
         // ReSharper disable PossibleNullReferenceException
         var decrypted = (PdfString)factory.Invoke(null,
-            new[] { original.GetType()
-                        .GetProperty("EncryptionValue", BindingFlags.Instance | BindingFlags.NonPublic)
-                        .GetValue(original),
-                    Enum.Parse(Flags, "RawEncoding") });
+            [original.GetType()
+                 .GetProperty("EncryptionValue", BindingFlags.Instance | BindingFlags.NonPublic)
+                 .GetValue(original),
+             Enum.Parse(Flags, "RawEncoding")]);
         // ReSharper restore PossibleNullReferenceException
 
         decrypted.Should().NotBeSameAs(original);

@@ -184,8 +184,7 @@ public sealed class PdfCatalog : PdfDictionary
     /// </summary>
     internal override void PrepareForSave()
     {
-        if (_pages != null)
-            _pages.PrepareForSave();
+        _pages?.PrepareForSave();
 
         if (_outline == null)
             return;

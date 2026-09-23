@@ -98,7 +98,7 @@ public sealed class PdfInkAnnotation : PdfMarkupAnnotation
     {
         ArgumentNullException.ThrowIfNull(points);
         if (points.Length < 2)
-            throw new ArgumentException(@"A stroke needs at least two points.", nameof(points));
+            throw new ArgumentException("A stroke needs at least two points.", nameof(points));
 
         var list = Elements.GetArray(Keys.InkList);
         if (list == null)
@@ -181,7 +181,7 @@ public sealed class PdfInkAnnotation : PdfMarkupAnnotation
         using (var gfx = XGraphics.FromForm(form))
         {
             foreach (var stroke in strokes)
-                gfx.DrawLines(pen, stroke.Select(point => PointArrays.IntoForm(point, box)).ToArray());
+                gfx.DrawLines(pen, [..stroke.Select(point => PointArrays.IntoForm(point, box))]);
         }
 
         SetAppearance(form);

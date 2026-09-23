@@ -94,11 +94,10 @@ internal static class GeneratorHarness
         """;
 
     private static readonly ImmutableArray<MetadataReference> References =
-        ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!)
+        [..((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!)
         .Split(Path.PathSeparator)
         .Where(path => path.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
-        .Select(path => (MetadataReference)MetadataReference.CreateFromFile(path))
-        .ToImmutableArray();
+        .Select(path => (MetadataReference)MetadataReference.CreateFromFile(path))];
 
     /// <param name="Diagnostics">
     /// What the generator itself reported. A `#pragma warning disable` in the snippet has no effect
@@ -128,11 +127,10 @@ internal static class GeneratorHarness
     public static CSharpCompilation CreateCompilation(string source) =>
         CSharpCompilation.Create(
             "GeneratorTests",
-            new[]
-            {
+            [
                 CSharpSyntaxTree.ParseText(Preamble, path: "Preamble.cs"),
                 CSharpSyntaxTree.ParseText(source, path: SnippetPath)
-            },
+            ],
             References,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
@@ -147,7 +145,7 @@ internal static class GeneratorHarness
 
         return new Result(
             run.Diagnostics,
-            run.Results.SelectMany(r => r.GeneratedSources).Select(s => s.SourceText.ToString()).ToList(),
-            output.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).ToImmutableArray());
+            [..run.Results.SelectMany(r => r.GeneratedSources).Select(s => s.SourceText.ToString())],
+            [..output.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error)]);
     }
 }

@@ -212,8 +212,7 @@ public struct TopPosition : INullableValue
     var ch = value[0];
     if (ch == '+' || ch == '-' || char.IsNumber(ch))
       return Unit.Parse(value);
-    else
-      return Enum.Parse<ShapePosition>(value, true);
+    return Enum.Parse<ShapePosition>(value, true);
   }
 
   #region Internal

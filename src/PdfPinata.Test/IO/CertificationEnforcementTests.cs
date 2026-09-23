@@ -82,7 +82,7 @@ public class CertificationEnforcementTests
             .Should().Throw<InvalidOperationException>().WithMessage("*NoChangesAllowed*");
         ((Action)(() => combo.Value = new PdfString("A")))
             .Should().Throw<InvalidOperationException>().WithMessage("*NoChangesAllowed*");
-        ((Action)(() => list.SelectedIndices = new[] { 0 }))
+        ((Action)(() => list.SelectedIndices = [0]))
             .Should().Throw<InvalidOperationException>().WithMessage("*NoChangesAllowed*");
     }
 

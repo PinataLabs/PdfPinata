@@ -54,10 +54,10 @@ public class SimpleTypeImmutabilityTests
     ///   one-line diff that also fails <see cref="TheOnlyExcludedTypeIsPdfReference"/>.
     ///   </para>
     /// </summary>
-    private static readonly Type[] Excluded = { typeof(PdfReference) };
+    private static readonly Type[] Excluded = [typeof(PdfReference)];
 
     public static TheoryData<Type> SimpleTypesUnderTheRule() =>
-        new(AllSimpleTypes().Where(t => !Excluded.Contains(t)));
+        [..AllSimpleTypes().Where(t => !Excluded.Contains(t))];
 
     [Theory]
     [MemberData(nameof(SimpleTypesUnderTheRule))]
@@ -92,7 +92,7 @@ public class SimpleTypeImmutabilityTests
     [Fact]
     public void TheOnlyExcludedTypeIsPdfReference()
     {
-        Excluded.Should().Equal(new[] { typeof(PdfReference) },
+        Excluded.Should().Equal([typeof(PdfReference)],
             "an exclusion has to be argued for in this test rather than added to a filter");
     }
 
@@ -112,13 +112,12 @@ public class SimpleTypeImmutabilityTests
     public void TheSweepFindsTheTypesTheRuleWasWrittenAbout()
     {
         // A sweep that found nothing would pass every assertion above. This is what says it looked.
-        AllSimpleTypes().Should().Contain(new[]
-        {
+        AllSimpleTypes().Should().Contain([
             // PdfInteger names a test class of this assembly as well, hence the full name.
             typeof(PdfBoolean), typeof(PdfDate), typeof(PdfPinata.Pdf.PdfInteger),
             typeof(PdfLiteral), typeof(PdfLong), typeof(PdfName), typeof(PdfNull),
             typeof(PdfRectangle), typeof(PdfReal), typeof(PdfReference), typeof(PdfString),
             typeof(PdfUInteger)
-        });
+        ]);
     }
 }

@@ -324,7 +324,7 @@ public class PageTransparencyGroupTests
         var objects = new List<string> { "<</Type/ExtGState" + state + ">>" };
         objects.AddRange(rest);
 
-        return PageWithResources("/ExtGState<</GS0 5 0 R>>", objects.ToArray());
+        return PageWithResources("/ExtGState<</GS0 5 0 R>>", [..objects]);
     }
 
     [Theory]

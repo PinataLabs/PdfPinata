@@ -69,7 +69,7 @@ static class ParserProbe
     ///   standing in for a file too large to build.
     /// </summary>
     internal static object Over(PdfDocument owner, Stream pdf) =>
-        Activator.CreateInstance(ParserType, Any, null, new object[] { owner, pdf }, null);
+        Activator.CreateInstance(ParserType, Any, null, [owner, pdf], null);
 
     /// <summary>
     ///   The same, for input that is text. PDF syntax is bytes, one character to one byte, which
@@ -80,7 +80,7 @@ static class ParserProbe
     /// <summary>
     ///   The bytes of a string, one character to one byte, the way the document lexer reads them.
     /// </summary>
-    internal static byte[] Bytes(string text) => text.Select(ch => (byte)ch).ToArray();
+    internal static byte[] Bytes(string text) => [..text.Select(ch => (byte)ch)];
 
     // ----- Driving the lexer behind it ------------------------------------------------------------
 
@@ -102,7 +102,7 @@ static class ParserProbe
     // ----- The tolerant parsing an object's end is read with ---------------------------------------
 
     internal static bool EndsAnObject(object parser, Symbol symbol) =>
-        (bool)Invoke(Method("EndsAnObject", new[] { typeof(Symbol) }), parser, symbol);
+        (bool)Invoke(Method("EndsAnObject", [typeof(Symbol)]), parser, symbol);
 
     internal static bool BeginsAnIndirectObject(object parser) =>
         (bool)Invoke(Method("BeginsAnIndirectObject", Type.EmptyTypes), parser);
@@ -111,7 +111,7 @@ static class ParserProbe
 
     internal static PdfDictionary ReadDictionary(object parser, PdfDictionary dict,
         bool includeReferences = false) =>
-        (PdfDictionary)Invoke(Method("ReadDictionary", new[] { typeof(PdfDictionary), typeof(bool) }),
+        (PdfDictionary)Invoke(Method("ReadDictionary", [typeof(PdfDictionary), typeof(bool)]),
             parser, dict, includeReferences);
 
     /// <summary>
@@ -126,22 +126,22 @@ static class ParserProbe
         // ReSharper disable once PossibleNullReferenceException
         var before = (int)pointer.GetValue(stack);
 
-        Invoke(Method("ParseObject", new[] { typeof(Symbol) }), parser, stop);
+        Invoke(Method("ParseObject", [typeof(Symbol)]), parser, stop);
 
         // ReSharper disable once PossibleNullReferenceException
         var count = (int)pointer.GetValue(stack) - before;
         return (PdfItem[])Invoke(
-            Method(ShiftStackType, "ToArray", new[] { typeof(int), typeof(int) }), stack, before, count);
+            Method(ShiftStackType, "ToArray", [typeof(int), typeof(int)]), stack, before, count);
     }
 
     // ----- The /Length fallback --------------------------------------------------------------------
 
     internal static bool TryReadStreamUpToEndOfStream(object parser, PdfDictionary dict, long startOfStream) =>
-        (bool)Invoke(Method("TryReadStreamUpToEndOfStream", new[] { typeof(PdfDictionary), typeof(long) }),
+        (bool)Invoke(Method("TryReadStreamUpToEndOfStream", [typeof(PdfDictionary), typeof(long)]),
             parser, dict, startOfStream);
 
     internal static byte[] WithoutTheEndOfLineBeforeTheKeyword(byte[] bytes) =>
-        (byte[])Invoke(Method("WithoutTheEndOfLineBeforeTheKeyword", new[] { typeof(byte[]) }), null, bytes);
+        (byte[])Invoke(Method("WithoutTheEndOfLineBeforeTheKeyword", [typeof(byte[])]), null, bytes);
 
     // ----- Cross-reference streams ------------------------------------------------------------------
 
@@ -152,7 +152,7 @@ static class ParserProbe
     ///   table for the stream's number is taken to be the stream only if it points there.
     /// </summary>
     internal static object ReadXRefStream(object parser, object xrefTable, long startOfSection) =>
-        Invoke(Method("ReadXRefStream", new[] { TableType, typeof(long) }), parser, xrefTable, startOfSection);
+        Invoke(Method("ReadXRefStream", [TableType, typeof(long)]), parser, xrefTable, startOfSection);
 
     /// <summary>
     ///   The entries a cross-reference stream decoded, as the three fields of each.
@@ -167,10 +167,9 @@ static class ParserProbe
 
         // ReSharper disable once AssignNullToNotNullAttribute
         // ReSharper disable PossibleNullReferenceException
-        return ((IEnumerable)Field(XRefStreamType, "Entries").GetValue(xrefStream))
+        return [..((IEnumerable)Field(XRefStreamType, "Entries").GetValue(xrefStream))
             .Cast<object>()
-            .Select(entry => ((uint)type.GetValue(entry), (long)field2.GetValue(entry), (uint)field3.GetValue(entry)))
-            .ToArray();
+            .Select(entry => ((uint)type.GetValue(entry), (long)field2.GetValue(entry), (uint)field3.GetValue(entry)))];
         // ReSharper restore PossibleNullReferenceException
     }
 
@@ -184,7 +183,7 @@ static class ParserProbe
     ///   object to be known before the parser is asked to read it.
     /// </summary>
     internal static void AddReference(PdfDocument owner, PdfObjectID id, long position) =>
-        Invoke(Method(TableType, "Add", new[] { typeof(PdfReference) }),
+        Invoke(Method(TableType, "Add", [typeof(PdfReference)]),
             IrefTableOf(owner), new PdfReference(id, position));
 
     internal static PdfObjectID[] ObjectIdsIn(object xrefTable) =>

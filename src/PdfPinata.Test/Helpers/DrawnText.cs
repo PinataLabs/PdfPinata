@@ -33,15 +33,14 @@ internal static class DrawnText
     ///   bytes each, most significant first, and the reader hands them back a byte at a time.
     /// </summary>
     internal static IReadOnlyList<int[]> GlyphRuns(PdfPage page) =>
-        TextOperators.ShownStrings(page)
+        [..TextOperators.ShownStrings(page)
             .Select(run => Enumerable.Range(0, run.Length / 2)
                 .Select(idx => (run[idx * 2] << 8) | run[idx * 2 + 1])
-                .ToArray())
-            .ToList();
+                .ToArray())];
 
     /// <summary>Every glyph shown on the page, in the order they are drawn.</summary>
     internal static int[] Glyphs(PdfPage page) =>
-        GlyphRuns(page).SelectMany(run => run).ToArray();
+        [..GlyphRuns(page).SelectMany(run => run)];
 
     /// <summary>The whole content stream of a page, as the renderer wrote it.</summary>
     internal static string ContentOf(PdfPage page) =>

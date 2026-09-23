@@ -86,7 +86,7 @@ public sealed class PdfComboBoxField : PdfChoiceField
             // accordingly does not write one. It is here because a viewer was once found that
             // would not follow /V without it, and that is a recommendation rather than a
             // requirement, whereas the array shape is required.
-            WriteSelectedIndices(new[] { value });
+            WriteSelectedIndices([value]);
         }
     }
 

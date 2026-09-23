@@ -314,7 +314,7 @@ public class XTextFormatter
     /// </remarks>
     public IList<IFlowObstacle> Obstacles => _obstacles;
 
-    private readonly List<IFlowObstacle> _obstacles = new();
+    private readonly List<IFlowObstacle> _obstacles = [];
 
     /// <summary>
     /// The block and everything standing in it, worked out for the layout in hand.
@@ -475,7 +475,7 @@ public class XTextFormatter
 
             foreach (var line in lines)
             {
-                var lineBlocks = line as Block[] ?? line.ToArray();
+                var lineBlocks = line as Block[] ?? [..line];
                 var lineY = dy + lineBlocks.First().Location.Y;
                 var indent = lineBlocks.First().LineIndent;
 
@@ -1200,7 +1200,7 @@ public class XTextFormatter
         }
     }
 
-    private readonly List<Block> _blocks = new();
+    private readonly List<Block> _blocks = [];
 
     private XStringFormat GetXStringFormat()
     {
@@ -1264,16 +1264,15 @@ public class XTextFormatter
         }
 
         var resolved = BidiAlgorithm.Resolve(line.ToString(), TextDirection);
-        if (!resolved.Runs().Any(run => run.Direction == XTextDirection.RightToLeft))
+        if (resolved.Runs().All(run => run.Direction != XTextDirection.RightToLeft))
             return lineBlocks;
 
         var spans = new (int Start, int Length)[lineBlocks.Length];
         for (var idx = 0; idx < lineBlocks.Length; idx++)
             spans[idx] = (starts[idx], lineBlocks[idx].Text.Length);
 
-        return VisualOrder.Of(resolved, spans)
-            .Select(idx => lineBlocks[idx])
-            .ToArray();
+        return [..VisualOrder.Of(resolved, spans)
+            .Select(idx => lineBlocks[idx])];
     }
 }
 

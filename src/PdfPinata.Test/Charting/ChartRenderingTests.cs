@@ -88,12 +88,11 @@ public class ChartRenderingTests
     /// <summary>Two bytes per glyph, one list per run of text, in the order they were drawn.</summary>
     private static IReadOnlyList<IReadOnlyList<int>> RunsOn(PdfPage page)
     {
-        return TextOperators.ShownStrings(page)
+        return [..TextOperators.ShownStrings(page)
             .Select(run => (IReadOnlyList<int>)Enumerable
                 .Range(0, run.Length / 2)
                 .Select(index => (run[index * 2] << 8) | run[index * 2 + 1])
-                .ToList())
-            .ToList();
+                .ToList())];
     }
 
     /// <summary>The glyphs the given text draws in the font the charts above are set in.</summary>
@@ -105,7 +104,7 @@ public class ChartRenderingTests
         using (var gfx = XGraphics.FromPdfPage(page))
             gfx.DrawString(text, new XFont(Face, Size), XBrushes.Black, new XPoint(20, 20));
 
-        return RunsOn(page).SelectMany(run => run).ToList();
+        return [..RunsOn(page).SelectMany(run => run)];
     }
 
     private static bool Shows(PdfPage page, string text)
@@ -163,7 +162,7 @@ public class ChartRenderingTests
         // operand it cannot parse abandons the path and paints nothing. Recorded as C1 of
         // docs/specs/charting-renderer-findings.md, which fixed it by calculating the scale outside
         // the check rather than by creating an axis nobody asked for - see the test below.
-        var chart = Quarterly(type, new[] { 42.0, 58, 51, 73 }, new[] { 31.0, 29, 44, 38 });
+        var chart = Quarterly(type, [42.0, 58, 51, 73], [31.0, 29, 44, 38]);
 
         ContentOf(Drawn(chart)).Should().NotContain("NaN",
             "a coordinate that is not a number is not a coordinate");
@@ -183,9 +182,9 @@ public class ChartRenderingTests
         // axis, and an axis that exists is labelled. What must not differ is whether the data was
         // plotted at all. So the untouched chart draws the same picture with less writing on it -
         // more content in the touched one, and no NaN in either.
-        var untouched = Quarterly(type, new[] { 42.0, 58, 51, 73 }, new[] { 31.0, 29, 44, 38 });
+        var untouched = Quarterly(type, [42.0, 58, 51, 73], [31.0, 29, 44, 38]);
 
-        var touched = Quarterly(type, new[] { 42.0, 58, 51, 73 }, new[] { 31.0, 29, 44, 38 });
+        var touched = Quarterly(type, [42.0, 58, 51, 73], [31.0, 29, 44, 38]);
         _ = touched.XAxis;
         _ = touched.YAxis;
 
@@ -212,11 +211,11 @@ public class ChartRenderingTests
         // on the text before it - which makes a chart of nothing but lines the right thing to
         // compare against, and needs no marker width written down here to compare with.
         var combination = Quarterly(ChartType.Column2D,
-            new[] { 42.0, 58, 51, 73 }, new[] { 31.0, 29, 44, 38 }, new[] { 18.0, 26, 33, 47 });
+            [42.0, 58, 51, 73], [31.0, 29, 44, 38], [18.0, 26, 33, 47]);
         combination.SeriesCollection[2].ChartType = ChartType.Line;
 
         var allLines = Quarterly(ChartType.Line,
-            new[] { 42.0, 58, 51, 73 }, new[] { 31.0, 29, 44, 38 }, new[] { 18.0, 26, 33, 47 });
+            [42.0, 58, 51, 73], [31.0, 29, 44, 38], [18.0, 26, 33, 47]);
 
         var mixed = Drawn(combination);
         var lines = Drawn(allLines);
@@ -234,7 +233,7 @@ public class ChartRenderingTests
         // The same defect stated without a second chart to compare against: whatever the markers
         // are, a label cannot begin to the left of where the previous label's text ends.
         var chart = Quarterly(ChartType.Column2D,
-            new[] { 42.0, 58, 51, 73 }, new[] { 31.0, 29, 44, 38 }, new[] { 18.0, 26, 33, 47 });
+            [42.0, 58, 51, 73], [31.0, 29, 44, 38], [18.0, 26, 33, 47]);
         chart.SeriesCollection[1].ChartType = ChartType.Line;
 
         var page = Drawn(chart);
@@ -266,7 +265,7 @@ public class ChartRenderingTests
         {
             Font = { Name = Face, Size = Size }
         };
-        chart.XValues.AddXSeries().Add(values.Select((_, index) => $"S{index}").ToArray());
+        chart.XValues.AddXSeries().Add([..values.Select((_, index) => $"S{index}")]);
         chart.SeriesCollection.AddSeries().Add(values);
         chart.HasDataLabel = true;
         chart.DataLabel.Type = DataLabelType.Percent;

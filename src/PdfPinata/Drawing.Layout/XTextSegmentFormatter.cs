@@ -179,7 +179,7 @@ public class XTextSegmentFormatter
     private void ProcessTextSegments(IEnumerable<TextSegment> textSegments, XRect layoutRectangle, XStringFormat format,
         Action<Block, double, double> applyBlock, bool applyBlockIfLineBreak)
     {
-        textSegments = textSegments.ToList();
+        textSegments = [..textSegments];
 
         if (textSegments.All(ts => string.IsNullOrEmpty(ts.Text)))
         {
@@ -217,7 +217,7 @@ public class XTextSegmentFormatter
                 continue;
 
             blockUnits.Add(currentBlockUnit);
-            currentBlockUnit = new List<Block>();
+            currentBlockUnit = [];
         }
 
         if (!blocks.Last().Stop && blocks.Last().Type != BlockType.LineBreak)
@@ -556,12 +556,10 @@ public class XTextSegmentFormatter
 
                     break;
                 }
-                else
-                {
-                    count--;
-                    layoutWidth -= blockUnit[idx].Width +
-                                   (blockUnit[idx].NextBlockBelongsToMe ? 0 : blockUnit[idx].Environment.SpaceWidth);
-                }
+
+                count--;
+                layoutWidth -= blockUnit[idx].Width +
+                               (blockUnit[idx].NextBlockBelongsToMe ? 0 : blockUnit[idx].Environment.SpaceWidth);
             }
         }
 

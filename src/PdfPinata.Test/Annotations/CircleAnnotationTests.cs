@@ -27,7 +27,7 @@ public sealed class CircleAnnotationTests : IDisposable
 {
     private const string OutDir = "Out/CircleAnnotations";
 
-    private readonly List<MagickImageCollection> _rasterized = new();
+    private readonly List<MagickImageCollection> _rasterized = [];
 
     public void Dispose()
     {

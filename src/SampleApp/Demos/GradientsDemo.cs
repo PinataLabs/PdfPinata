@@ -18,14 +18,13 @@ internal sealed class GradientsDemo : PdfDemo
 
     public override string Summary => "Radial and linear gradients, extended past their ends and transformed.";
 
-    public override IReadOnlyList<string> Shows => new[]
-    {
+    public override IReadOnlyList<string> Shows => [
         "XRadialGradientBrush with one centre, and with two for an off-centre highlight",
         "ExtendRight carrying the outer colour to the corners, ExtendLeft filling the inner circle",
         "The same ExtendLeft and ExtendRight on an XLinearGradientBrush",
         "A brush's own Transform: a radial gradient stretched to an ellipse, a linear one turned",
         "A radial gradient that fades to transparent over the drawing beneath it"
-    };
+    ];
 
     public override int PageCount => 1;
 

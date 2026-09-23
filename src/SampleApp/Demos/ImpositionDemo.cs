@@ -21,15 +21,14 @@ internal sealed class ImpositionDemo : PdfDemo
 
     public override string Summary => "XForm and XPdfForm - stamps, watermarks, two-up and a booklet sheet.";
 
-    public override IReadOnlyList<string> Shows => new[]
-    {
+    public override IReadOnlyList<string> Shows => [
         "XForm - a device drawn once into a form XObject and placed twenty times, at one copy's cost",
         "The same form scaled, rotated and stretched, all from the one definition",
         "XPdfForm - a page of another PDF treated as something drawable",
         "A watermark under the content and one over it, and why the order matters",
         "Two pages imposed on one sheet, landscape, with a fold line",
         "A four-page booklet sheet: pages 4 and 1 on the front, 2 and 3 on the back"
-    };
+    ];
 
     public override int PageCount => 5;
 
@@ -154,10 +153,10 @@ internal sealed class ImpositionDemo : PdfDemo
         {
             var source = new PdfDocument();
             XColor[] colours =
-            {
+            [
                 XColor.FromArgb(70, 130, 180), XColor.FromArgb(178, 34, 34),
                 XColor.FromArgb(46, 139, 87), XColor.FromArgb(218, 165, 32)
-            };
+            ];
 
             for (var index = 0; index < 4; index++)
             {
@@ -287,10 +286,10 @@ internal sealed class ImpositionDemo : PdfDemo
         // an API: for n pages, sheet i holds n-i on the left and i+1 on the right.
         // docs:begin booklet-sheets
         (int Left, int Right, string Caption)[] sheets =
-        {
+        [
             (4, 1, "Front of the sheet: page 4 on the left, page 1 on the right"),
             (2, 3, "Back of the sheet: page 2 on the left, page 3 on the right")
-        };
+        ];
         // docs:end booklet-sheets
 
         foreach (var sheet in sheets)

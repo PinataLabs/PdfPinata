@@ -124,15 +124,15 @@ public class BidiConformanceTests
             if (line.StartsWith("@Levels:", StringComparison.Ordinal))
             {
                 var fields = Fields(line["@Levels:".Length..]);
-                expectedLevels = fields.Select(f => f == "x" ? (byte)0 : byte.Parse(f, CultureInfo.InvariantCulture)).ToArray();
-                levelIgnored = fields.Select(f => f == "x").ToArray();
+                expectedLevels = [..fields.Select(f => f == "x" ? (byte)0 : byte.Parse(f, CultureInfo.InvariantCulture))];
+                levelIgnored = [..fields.Select(f => f == "x")];
                 continue;
             }
 
             if (line.StartsWith("@Reorder:", StringComparison.Ordinal))
             {
-                expectedOrder = Fields(line["@Reorder:".Length..])
-                    .Select(f => int.Parse(f, CultureInfo.InvariantCulture)).ToArray();
+                expectedOrder = [..Fields(line["@Reorder:".Length..])
+                    .Select(f => int.Parse(f, CultureInfo.InvariantCulture))];
                 continue;
             }
 
@@ -220,7 +220,7 @@ public class BidiConformanceTests
     // ----- comparing ----------------------------------------------------------------------------
 
     private static string[] Fields(string text)
-        => text.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+        => text.Split([' ', '\t'], StringSplitOptions.RemoveEmptyEntries);
 
     /// <summary>
     ///   What is wrong with a result, or null if nothing is. The suites mark a character the

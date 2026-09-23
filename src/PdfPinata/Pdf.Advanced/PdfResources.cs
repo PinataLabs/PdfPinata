@@ -79,8 +79,7 @@ public sealed class PdfResources : PdfDictionary
     /// </summary>
     public string AddImage(PdfImage image)
     {
-        string name;
-        if (!_resources.TryGetValue(image, out name))
+        if (!_resources.TryGetValue(image, out var name))
         {
             name = NextImageName;
             _resources[image] = name;
@@ -131,8 +130,7 @@ public sealed class PdfResources : PdfDictionary
     /// </summary>
     public string AddPattern(PdfShadingPattern pattern)
     {
-        string name;
-        if (!_resources.TryGetValue(pattern, out name))
+        if (!_resources.TryGetValue(pattern, out var name))
         {
             name = NextPatternName;
             _resources[pattern] = name;

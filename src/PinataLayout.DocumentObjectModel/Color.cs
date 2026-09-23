@@ -232,8 +232,7 @@ public struct Color : INullableValue, IEquatable<Color>
             return a == color.a && c == color.c && m == color.m && y == color.y && k == color.k;
             // ReSharper restore CompareOfFloatsByEqualityOperator
             #pragma warning restore S1244
-        else
-            return argb == color.argb;
+        return argb == color.argb;
     }
 
     /// <summary>
@@ -265,8 +264,7 @@ public struct Color : INullableValue, IEquatable<Color>
             return color1.a == color2.a && color1.c == color2.c && color1.m == color2.m && color1.y == color2.y && color1.k == color2.k;
             // ReSharper restore CompareOfFloatsByEqualityOperator
             #pragma warning restore S1244
-        else
-            return color1.argb == color2.argb;
+        return color1.argb == color2.argb;
     }
 
     /// <summary>
@@ -411,23 +409,15 @@ public struct Color : INullableValue, IEquatable<Color>
                 s = string.Format(CultureInfo.InvariantCulture, "CMYK({0:0.##},{1:0.##},{2:0.##},{3:0.##},{4:0.##})", Alpha, C, M, Y, K);
             return s;
         }
-        else
-        {
-            if (StdColors.TryGetValue(argb, out var name))
-            {
-                return name;
-            }
-            else
-            {
-                if ((argb & 0xFF000000) == 0xFF000000)
-                    return "RGB(" +
-                           ((argb & 0xFF0000) >> 16).ToString(CultureInfo.InvariantCulture) + "," +
-                           ((argb & 0x00FF00) >> 8).ToString(CultureInfo.InvariantCulture) + "," +
-                           (argb & 0x0000FF).ToString(CultureInfo.InvariantCulture) + ")";
-                else
-                    return "0x" + argb.ToString("X");
-            }
-        }
+
+        if (StdColors.TryGetValue(argb, out var name))
+            return name;
+        if ((argb & 0xFF000000) == 0xFF000000)
+            return "RGB(" +
+                   ((argb & 0xFF0000) >> 16).ToString(CultureInfo.InvariantCulture) + "," +
+                   ((argb & 0x00FF00) >> 8).ToString(CultureInfo.InvariantCulture) + "," +
+                   (argb & 0x0000FF).ToString(CultureInfo.InvariantCulture) + ")";
+        return "0x" + argb.ToString("X");
     }
 
     /// <summary>

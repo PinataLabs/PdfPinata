@@ -23,7 +23,7 @@ internal static class PdfContentStreams
         if (item == null)
         {
             // A page that draws nothing draws nothing anywhere.
-            content = Array.Empty<byte>();
+            content = [];
             return true;
         }
 
@@ -37,8 +37,7 @@ internal static class PdfContentStreams
         var length = 0;
         for (var idx = 0; idx < streams.Elements.Count; idx++)
         {
-            byte[] part;
-            if (!TryGetContent(streams.Elements.GetDictionary(idx), out part))
+            if (!TryGetContent(streams.Elements.GetDictionary(idx), out var part))
                 return false;
 
             parts.Add(part);

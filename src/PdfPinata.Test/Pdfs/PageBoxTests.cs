@@ -25,7 +25,7 @@ namespace PdfPinata.Test.Pdfs;
 /// </summary>
 public class PageBoxTests
 {
-    public static TheoryData<string> OptionalBoxes => new() { "/CropBox", "/BleedBox", "/TrimBox", "/ArtBox" };
+    public static TheoryData<string> OptionalBoxes => ["/CropBox", "/BleedBox", "/TrimBox", "/ArtBox"];
 
     [Theory]
     [MemberData(nameof(OptionalBoxes))]

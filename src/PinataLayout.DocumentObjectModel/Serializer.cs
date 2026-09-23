@@ -521,7 +521,7 @@ internal class Serializer
       textWriter.Flush();
       if (textWriter is StreamWriter)
         return (int)((StreamWriter)textWriter).BaseStream.Position;
-      else if (textWriter is StringWriter)
+      if (textWriter is StringWriter)
         return ((StringWriter)textWriter).GetStringBuilder().Length;
       return 0;
     }
@@ -530,8 +530,8 @@ internal class Serializer
       textWriter.Flush();
       if (textWriter is StreamWriter)
         ((StreamWriter)textWriter).BaseStream.SetLength(value);
-      else if (textWriter is StringWriter)
-        ((StringWriter)textWriter).GetStringBuilder().Length = value;
+      else
+        (textWriter as StringWriter)?.GetStringBuilder().Length = value;
     }
   }
 

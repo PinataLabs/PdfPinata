@@ -267,7 +267,7 @@ internal static class PdfEncoders
     public static byte[] FormatStringLiteral(byte[] bytes, bool unicode, bool prefix, bool hex, PdfStandardSecurityHandler securityHandler)
     {
         if (bytes == null || bytes.Length == 0)
-            return hex ? "<>"u8.ToArray() : "()"u8.ToArray();
+            return hex ? [.."<>"u8] : [.."()"u8];
 
         Debug.Assert(!unicode || bytes.Length % 2 == 0, "Odd number of bytes in Unicode string.");
 

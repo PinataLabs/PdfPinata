@@ -326,5 +326,5 @@ public class PdfOutlineCollection : PdfObject, IList<PdfOutline>
     /// </summary>
     private readonly PdfOutline _parent;
 
-    private readonly List<PdfOutline> _outlines = new();
+    private readonly List<PdfOutline> _outlines = [];
 }

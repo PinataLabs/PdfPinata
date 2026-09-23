@@ -114,7 +114,7 @@ internal sealed class TablesDemo : PdfDemo
         header.VerticalAlignment = VerticalAlignment.Center;
         header.Height = Unit.FromPoint(20);
 
-        string[] headings = { "Region", "Quarter", "Units", "Revenue", "Margin" };
+        string[] headings = ["Region", "Quarter", "Units", "Revenue", "Margin"];
         for (var column = 0; column < headings.Length; column++)
             header.Cells[column].AddParagraph(headings[column]).Style = "TableHeading";
         // docs:end heading-rows
@@ -123,12 +123,12 @@ internal sealed class TablesDemo : PdfDemo
         // than an A4 page holds. That is the point: a table that fits on one page has
         // nothing to say about what happens to the heading when it does not.
         string[] regions =
-        {
+        [
             "North", "South", "East", "West", "Central", "Highlands", "Islands",
             "Coastal", "Riverside", "Uplands", "Lowlands", "Borders", "Midlands",
             "Fenland", "Weald", "Downs", "Moors", "Dales", "Marches", "Cinque Ports"
-        };
-        string[] quarters = { "Q1", "Q2", "Q3", "Q4" };
+        ];
+        string[] quarters = ["Q1", "Q2", "Q3", "Q4"];
 
         // Accumulated as the rows are built rather than worked out again afterwards, so the
         // totals row cannot disagree with the column above it. A reader who adds the column
@@ -206,13 +206,13 @@ internal sealed class TablesDemo : PdfDemo
         section.AddParagraph("Notes").Format.Font.Bold = true;
 
         string[] notes =
-        {
+        [
             "Margin is gross and excludes carriage.",
             "The heading row above repeats on every page this table reaches, which is what "
                 + "HeadingFormat is for.",
             "This list is a PinataLayout ListInfo - the marker, the indent and the hanging "
                 + "alignment all come from the style rather than being drawn."
-        };
+        ];
 
         // docs:begin bullet-list
         foreach (var note in notes)

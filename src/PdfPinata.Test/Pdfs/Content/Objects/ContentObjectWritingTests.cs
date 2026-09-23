@@ -28,7 +28,7 @@ public class ContentObjectWritingTests
 
         // A comment runs to the end of the line, so whatever follows it has to start a new one or
         // it would be commented out too.
-        Written(new CSequence { comment, OpCodes.OperatorFromName("q") })
+        Written([comment, OpCodes.OperatorFromName("q")])
             .Should().Be("% drawn by hand\nq\n");
     }
 
@@ -44,7 +44,7 @@ public class ContentObjectWritingTests
 
         integer.Value.Should().Be(value);
         integer.ToString().Should().Be(digits);
-        Written(new CSequence { integer }).Should().Be(digits + " ");
+        Written([integer]).Should().Be(digits + " ");
     }
 
     [Theory]
@@ -61,7 +61,7 @@ public class ContentObjectWritingTests
 
         real.Value.Should().Be(value);
         real.ToString().Should().Be(text);
-        Written(new CSequence { real }).Should().Be(text + " ");
+        Written([real]).Should().Be(text + " ");
     }
 
     [Fact]
@@ -73,7 +73,7 @@ public class ContentObjectWritingTests
         CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("de-DE");
         try
         {
-            Written(new CSequence { new CReal { Value = 1.5 } }).Should().Be("1.5 ");
+            Written([new CReal { Value = 1.5 }]).Should().Be("1.5 ");
         }
         finally
         {
@@ -99,7 +99,7 @@ public class ContentObjectWritingTests
         text.ToString().Should().Be(written);
 
         // No blank after it: the closing parenthesis is a delimiter, so nothing is needed.
-        Written(new CSequence { text }).Should().Be(written);
+        Written([text]).Should().Be(written);
     }
 
     [Fact]
@@ -125,7 +125,7 @@ public class ContentObjectWritingTests
         var dictionary = new CString { Value = value, CStringType = CStringType.Dictionary };
 
         dictionary.ToString().Should().Be(value);
-        Written(new CSequence { dictionary }).Should().Be(value);
+        Written([dictionary]).Should().Be(value);
     }
 
     [Theory]
@@ -138,7 +138,7 @@ public class ContentObjectWritingTests
         var text = new CString { Value = value, CStringType = CStringType.HexString };
 
         text.ToString().Should().Be(written);
-        Written(new CSequence { text }).Should().Be(written);
+        Written([text]).Should().Be(written);
     }
 
     [Fact]
@@ -173,7 +173,7 @@ public class ContentObjectWritingTests
         var text = new CString { Value = value, CStringType = CStringType.UnicodeString };
 
         text.ToString().Should().Be(written);
-        Written(new CSequence { text }).Should().Be(written);
+        Written([text]).Should().Be(written);
     }
 
     [Theory]
@@ -232,7 +232,7 @@ public class ContentObjectWritingTests
 
         name.Name.Should().Be("/F1");
         name.ToString().Should().Be("/F1");
-        Written(new CSequence { name, new CInteger { Value = 12 } }).Should().Be("/F1 12 ");
+        Written([name, new CInteger { Value = 12 }]).Should().Be("/F1 12 ");
     }
 
     [Fact]
@@ -252,7 +252,7 @@ public class ContentObjectWritingTests
     {
         // As in the document body: a char past 0xFF means a caller wrote Unicode, which has no
         // byte of its own, so the name goes out as UTF-8 - U+4E2D is E4 B8 AD.
-        Written(new CSequence { new CName("/Zh\u4E2D") }).Should().Be("/Zh#E4#B8#AD ");
+        Written([new CName("/Zh\u4E2D")]).Should().Be("/Zh#E4#B8#AD ");
     }
 
     [Fact]
@@ -260,7 +260,7 @@ public class ContentObjectWritingTests
     {
         // As in the document body: it has no UTF-8 encoding, and writing U+FFFD in its place
         // would write a different name.
-        var write = () => Written(new CSequence { new CName("/Zh\uD800") });
+        var write = () => Written([new CName("/Zh\uD800")]);
 
         write.Should().Throw<ArgumentException>().WithMessage("*unpaired surrogate*");
     }
@@ -298,7 +298,7 @@ public class ContentObjectWritingTests
         show.Operands.Add((CObject)array);
 
         array.ToString().Should().Be("[(A)-250(B)]");
-        Written(new CSequence { show }).Should().Be("[(A)-250(B)]TJ\n");
+        Written([show]).Should().Be("[(A)-250(B)]TJ\n");
     }
 
     [Fact]
@@ -317,7 +317,7 @@ public class ContentObjectWritingTests
         show.Operands.Add(array);
 
         show.Operands.Count.Should().Be(1);
-        Written(new CSequence { show }).Should().Be("[(A)-250(B)]TJ\n");
+        Written([show]).Should().Be("[(A)-250(B)]TJ\n");
     }
 
     [Fact]
@@ -338,7 +338,7 @@ public class ContentObjectWritingTests
         move.Operands.Add(operands);
 
         move.Operands.Count.Should().Be(2);
-        Written(new CSequence { move }).Should().Be("10 20 m\n");
+        Written([move]).Should().Be("10 20 m\n");
     }
 
     [Theory]
@@ -406,7 +406,7 @@ public class ContentObjectWritingTests
 
         move.Name.Should().Be("Td");
         move.ToString().Should().Be("Td");
-        Written(new CSequence { move, OpCodes.OperatorFromName("Q") }).Should().Be("10 20.5 Td\nQ\n");
+        Written([move, OpCodes.OperatorFromName("Q")]).Should().Be("10 20.5 Td\nQ\n");
     }
 
     [Fact]

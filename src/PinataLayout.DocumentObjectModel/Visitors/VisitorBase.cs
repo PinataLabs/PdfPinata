@@ -64,9 +64,7 @@ public abstract class VisitorBase : DocumentObjectVisitor
     /// </summary>
     public override void Visit(DocumentObject documentObject)
     {
-        var visitable = documentObject as IVisitable;
-        if (visitable != null)
-            visitable.AcceptVisitor(this, true);
+        (documentObject as IVisitable)?.AcceptVisitor(this, true);
     }
 
     /// <summary>
@@ -705,10 +703,7 @@ public abstract class VisitorBase : DocumentObjectVisitor
             FlattenParagraphFormat(format, doc.Styles.Normal.ParagraphFormat);
             return format;
         }
-        else
-        {
-            return style.paragraphFormat;
-        }
+        return style.paragraphFormat;
     }
 
     internal override void VisitTable(Table table)

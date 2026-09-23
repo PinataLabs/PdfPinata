@@ -138,7 +138,7 @@ public class XGraphicsPathTests
     [Fact]
     public void ASeriesOfNoLinesAddsNothingAndASeriesOfNoneAtAllIsRefused()
     {
-        PointCount(path => path.AddLines(Array.Empty<XPoint>())).Should().Be(0);
+        PointCount(path => path.AddLines([])).Should().Be(0);
 
         var act = () => new XGraphicsPath().AddLines(null);
         act.Should().Throw<ArgumentNullException>();
@@ -246,7 +246,7 @@ public class XGraphicsPathTests
     [Fact]
     public void ASplineThroughFewerThanTwoPointsIsRefused()
     {
-        var act = () => new XGraphicsPath().AddCurve(new[] { new XPoint(1, 1) });
+        var act = () => new XGraphicsPath().AddCurve([new XPoint(1, 1)]);
 
         act.Should().Throw<ArgumentException>();
     }
@@ -440,7 +440,7 @@ public class XGraphicsPathTests
     [Fact]
     public void APolygonOfNoCornersAddsNothing()
     {
-        PointCount(path => path.AddPolygon(Array.Empty<XPoint>())).Should().Be(0);
+        PointCount(path => path.AddPolygon([])).Should().Be(0);
     }
 
     [Fact]
@@ -480,12 +480,12 @@ public class XGraphicsPathTests
 
         // The guards in front of it are unchanged: no points is nothing to draw rather than an
         // error, one point is not a curve, and no array at all is a caller's mistake.
-        PointCount(path => path.AddClosedCurve(Array.Empty<XPoint>())).Should().Be(0);
+        PointCount(path => path.AddClosedCurve([])).Should().Be(0);
 
         var act = () => new XGraphicsPath().AddClosedCurve(null);
         act.Should().Throw<ArgumentNullException>();
 
-        var tooFew = () => new XGraphicsPath().AddClosedCurve(new[] { new XPoint(1, 1) });
+        var tooFew = () => new XGraphicsPath().AddClosedCurve([new XPoint(1, 1)]);
         tooFew.Should().Throw<ArgumentException>();
     }
 
@@ -794,8 +794,8 @@ public class XGraphicsPathTests
     }
 
     private static readonly XPoint[] Diamond =
-    {
+    [
         new(200, 100), new(260, 175),
         new(200, 250), new(140, 175)
-    };
+    ];
 }

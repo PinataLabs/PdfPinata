@@ -27,7 +27,7 @@ public sealed class MarkupAnnotationTypesTests : IDisposable
 {
     private const string OutDir = "Out/MarkupAnnotationTypes";
 
-    private readonly List<MagickImageCollection> _rasterized = new();
+    private readonly List<MagickImageCollection> _rasterized = [];
 
     static MarkupAnnotationTypesTests()
     {

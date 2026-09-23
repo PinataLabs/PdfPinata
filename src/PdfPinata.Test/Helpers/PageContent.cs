@@ -29,6 +29,6 @@ internal static class PageContent
             joined.AddRange(part);
             joined.Add((byte)'\n');
         }
-        return joined.ToArray();
+        return [..joined];
     }
 }

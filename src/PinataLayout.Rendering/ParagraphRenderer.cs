@@ -445,13 +445,7 @@ internal class ParagraphRenderer : Renderer
     private XUnit ProbeAfterLeftAlignedTab(XUnit tabStopPosition, out bool notFitting)
     {
         //--- Save ---------------------------------
-        ParagraphIterator iter;
-        int blankCount;
-        XUnit xPosition;
-        XUnit lineWidth;
-        XUnit wordsWidth;
-        XUnit blankWidth;
-        SaveBeforeProbing(out iter, out blankCount, out wordsWidth, out xPosition, out lineWidth, out blankWidth);
+        SaveBeforeProbing(out var iter, out var blankCount, out var wordsWidth, out var xPosition, out var lineWidth, out var blankWidth);
         //------------------------------------------
 
         var xPositionAfterTab = xPosition;
@@ -476,13 +470,7 @@ internal class ParagraphRenderer : Renderer
     private XUnit ProbeAfterRightAlignedTab(XUnit tabStopPosition, out bool notFitting)
     {
         //--- Save ---------------------------------
-        ParagraphIterator iter;
-        int blankCount;
-        XUnit xPosition;
-        XUnit lineWidth;
-        XUnit wordsWidth;
-        XUnit blankWidth;
-        SaveBeforeProbing(out iter, out blankCount, out wordsWidth, out xPosition, out lineWidth, out blankWidth);
+        SaveBeforeProbing(out var iter, out var blankCount, out var wordsWidth, out var xPosition, out var lineWidth, out var blankWidth);
         //------------------------------------------
 
         var xPositionAfterTab = xPosition;
@@ -530,13 +518,7 @@ internal class ParagraphRenderer : Renderer
     private XUnit ProbeAfterCenterAlignedTab(XUnit tabStopPosition, out bool notFitting)
     {
         //--- Save ---------------------------------
-        ParagraphIterator iter;
-        int blankCount;
-        XUnit xPosition;
-        XUnit lineWidth;
-        XUnit wordsWidth;
-        XUnit blankWidth;
-        SaveBeforeProbing(out iter, out blankCount, out wordsWidth, out xPosition, out lineWidth, out blankWidth);
+        SaveBeforeProbing(out var iter, out var blankCount, out var wordsWidth, out var xPosition, out var lineWidth, out var blankWidth);
         //------------------------------------------
 
         var xPositionAfterTab = xPosition;
@@ -569,7 +551,7 @@ internal class ParagraphRenderer : Renderer
     /// <summary>
     /// The characters a decimal aligned tab stop lines a number up on.
     /// </summary>
-    private static readonly char[] DecimalSeparators = { ',', '.' };
+    private static readonly char[] DecimalSeparators = [',', '.'];
 
     /// <summary>
     /// Probes the paragraph elements after a right aligned tab stop and returns the vertical text position to start at.
@@ -612,8 +594,7 @@ internal class ParagraphRenderer : Renderer
             if (!notFitting)
                 return formattingArea.X + tabStopPosition - wordLength;
 
-            else
-                return currentXPosition;
+            return currentXPosition;
         }
         currentLeaf = savedLeaf;
         return ProbeAfterRightAlignedTab(tabStopPosition, out notFitting);
@@ -1276,8 +1257,7 @@ internal class ParagraphRenderer : Renderer
     private PdfStructureElement SpanElementOf(BrokenWord word)
     {
         var element = Tagger.Element(word.Hyphen, PdfTag.Span, Tagger.Parent);
-        if (element != null)
-            element.ActualText = word.Text;
+        element?.ActualText = word.Text;
 
         return element;
     }
@@ -1303,13 +1283,7 @@ internal class ParagraphRenderer : Renderer
     private void ReMeasureLine(ref LineInfo lineInfo)
     {
         //--- Save ---------------------------------
-        ParagraphIterator iter;
-        int blankCount;
-        XUnit xPosition;
-        XUnit lineWidth;
-        XUnit wordsWidth;
-        XUnit blankWidth;
-        SaveBeforeProbing(out iter, out blankCount, out wordsWidth, out xPosition, out lineWidth, out blankWidth);
+        SaveBeforeProbing(out var iter, out var blankCount, out var wordsWidth, out var xPosition, out var lineWidth, out var blankWidth);
         var origLastTabPassed = lastTabPassed;
         //------------------------------------------
         currentLeaf = lineInfo.startIter;
@@ -1473,7 +1447,7 @@ internal class ParagraphRenderer : Renderer
             return;
         }
 
-        RenderByInfos(currentXPosition, top, new[] { imageRenderInfo });
+        RenderByInfos(currentXPosition, top, [imageRenderInfo]);
 
         RenderUnderline(contentArea.Width, true);
         RenderStrikethrough(contentArea.Width, true);
@@ -2046,15 +2020,12 @@ internal class ParagraphRenderer : Renderer
                 {
                     if (!format.ListInfo.IsNull("NumberPosition"))
                         return format.ListInfo.NumberPosition.Point;
-                    else if (format.IsNull("FirstLineIndent"))
+                    if (format.IsNull("FirstLineIndent"))
                         return 0;
                 }
                 return leftIndent + paragraph.Format.FirstLineIndent.Point;
             }
-            else
-            {
-                return leftIndent;
-            }
+            return leftIndent;
         }
     }
 
@@ -2271,10 +2242,9 @@ internal class ParagraphRenderer : Renderer
             case "Text":
                 if (IsBlank(docObj))
                     return FormatBlank();
-                else if (IsSoftHyphen(docObj))
+                if (IsSoftHyphen(docObj))
                     return FormatSoftHyphen();
-                else
-                    return FormatText((Text)docObj);
+                return FormatText((Text)docObj);
 
             case "Character":
                 return FormatCharacter((Character)docObj);
@@ -2545,11 +2515,9 @@ internal class ParagraphRenderer : Renderer
             minWidth = Math.Max(minWidth, width);
             return FormatResult.Continue;
         }
-        else
-        {
-            savedWordWidth = width;
-            return FormatResult.NewLine;
-        }
+
+        savedWordWidth = width;
+        return FormatResult.NewLine;
     }
 
     private FormatResult FormatDateField(DateField dateField)
@@ -2683,9 +2651,7 @@ internal class ParagraphRenderer : Renderer
 
     private void RenderListSymbol()
     {
-        string symbol;
-        XFont font;
-        if (!GetListSymbol(out symbol, out font))
+        if (!GetListSymbol(out var symbol, out var font))
             return;
 
         var brush = FontHandler.FontColorToXBrush(paragraph.Format.Font);
@@ -2698,9 +2664,7 @@ internal class ParagraphRenderer : Renderer
 
     private void FormatListSymbol()
     {
-        string symbol;
-        XFont font;
-        if (!GetListSymbol(out symbol, out font))
+        if (!GetListSymbol(out var symbol, out var font))
             return;
 
         currentVerticalInfo = CalcVerticalInfo(font);
@@ -2867,13 +2831,7 @@ internal class ParagraphRenderer : Renderer
             return FormatResult.Continue;
 
         //--- Save ---------------------------------
-        ParagraphIterator iter;
-        int blankCount;
-        XUnit xPosition;
-        XUnit lineWidth;
-        XUnit wordsWidth;
-        XUnit blankWidth;
-        SaveBeforeProbing(out iter, out blankCount, out wordsWidth, out xPosition, out lineWidth, out blankWidth);
+        SaveBeforeProbing(out var iter, out var blankCount, out var wordsWidth, out var xPosition, out var lineWidth, out var blankWidth);
         //------------------------------------------
         currentLeaf = nextIter;
         var result = FormatElement(nextIter.Current);
@@ -2901,14 +2859,12 @@ internal class ParagraphRenderer : Renderer
             currentLeaf = nextIter;
             return FormatResult.NewLine;
         }
-        else
-        {
-            currentWordsWidth -= savedWordWidth;
-            currentLineWidth -= savedWordWidth;
-            currentLineWidth -= GetPreviousBlankWidth(prevIter);
-            currentLeaf = prevIter;
-            return FormatResult.NewLine;
-        }
+
+        currentWordsWidth -= savedWordWidth;
+        currentLineWidth -= savedWordWidth;
+        currentLineWidth -= GetPreviousBlankWidth(prevIter);
+        currentLeaf = prevIter;
+        return FormatResult.NewLine;
     }
 
     private XUnit GetPreviousBlankWidth(ParagraphIterator beforeIter)
@@ -3160,7 +3116,7 @@ internal class ParagraphRenderer : Renderer
             parent = DocumentRelations.GetParent(parent);
             if (parent is FormattedText)
                 return ((FormattedText)parent).Font;
-            else if (parent is Hyperlink)
+            if (parent is Hyperlink)
                 return ((Hyperlink)parent).Font;
             return paragraph.Format.Font;
         }
@@ -3337,14 +3293,11 @@ internal class ParagraphRenderer : Renderer
                 return (RenderInfo)imageRenderInfos[image];
             }
 
-            else
-            {
-                imageRenderInfos ??= new Hashtable();
+            imageRenderInfos ??= new Hashtable();
 
-                var imageRenderInfo = CalcImageRenderInfo(image);
-                imageRenderInfos.Add(image, imageRenderInfo);
-                return imageRenderInfo;
-            }
+            var imageRenderInfo = CalcImageRenderInfo(image);
+            imageRenderInfos.Add(image, imageRenderInfo);
+            return imageRenderInfo;
         }
     }
     private XPen GetUnderlinePen(bool isWord)

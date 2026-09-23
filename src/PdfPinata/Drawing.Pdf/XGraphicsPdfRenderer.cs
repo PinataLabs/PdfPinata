@@ -160,7 +160,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
             return;
 
         if ((count - 1) % 3 != 0)
-            throw new ArgumentException(@"Invalid number of points for bezier curves. Number must fulfil 4+3n.",
+            throw new ArgumentException("Invalid number of points for bezier curves. Number must fulfil 4+3n.",
                 nameof(points));
 
         Realize(pen);
@@ -189,7 +189,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         if (count == 0)
             return;
         if (count < 2)
-            throw new ArgumentException(@"Not enough points", nameof(points));
+            throw new ArgumentException("Not enough points", nameof(points));
 
         // See http://pubpages.unh.edu/~cs770/a5/cardinal.html  // Link is down...
         tension /= 3;
@@ -347,7 +347,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
         if (count == 0)
             return;
         if (count < 2)
-            throw new ArgumentException(@"Not enough points.", nameof(points));
+            throw new ArgumentException("Not enough points.", nameof(points));
 
         // Simply tried out. Not proofed why it is correct.
         tension /= 3;
@@ -767,7 +767,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     public void DrawImage(XImage image, XRect destRect, XRect srcRect, XGraphicsUnit srcUnit)
     {
         if (!Enum.IsDefined(srcUnit))
-            throw new ArgumentException(@"The unit is not a member of XGraphicsUnit.", nameof(srcUnit));
+            throw new ArgumentException("The unit is not a member of XGraphicsUnit.", nameof(srcUnit));
 
         var srcX = new XUnit(srcRect.X, srcUnit).Point;
         var srcY = new XUnit(srcRect.Y, srcUnit).Point;
@@ -919,8 +919,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
             {
                 if (_clipLevel != _gfxState.Level)
                     throw new NotImplementedException("Cannot set new clip region in an inner graphic state level.");
-                else
-                    ResetClip();
+                ResetClip();
             }
 
             _clipLevel = _gfxState.Level;

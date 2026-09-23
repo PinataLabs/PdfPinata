@@ -34,20 +34,19 @@ static class ReaderDiagnostics
         }
         catch (Exception fatal)
         {
-            return Reported(errors).Append(fatal.Message).ToList();
+            return [..Reported(errors).Append(fatal.Message)];
         }
         return Reported(errors);
     }
 
     /// <summary>The messages the reader wrote to the error list, in the order it wrote them.</summary>
     public static IReadOnlyList<string> Reported(DdlReaderErrors errors) =>
-        errors.Cast<DdlReaderError>().Select(error => error.ErrorMessage).ToList();
+        [..errors.Cast<DdlReaderError>().Select(error => error.ErrorMessage)];
 
     /// <summary>The errors proper, leaving out anything reported only as a warning or a note.</summary>
     public static IReadOnlyList<DdlReaderError> ErrorsIn(DdlReaderErrors errors) =>
-        errors.Cast<DdlReaderError>()
-            .Where(error => error.ErrorLevel == DdlErrorLevel.Error)
-            .ToList();
+        [..errors.Cast<DdlReaderError>()
+            .Where(error => error.ErrorLevel == DdlErrorLevel.Error)];
 
     /// <summary>
     ///   Reads the DDL on a thread of its own. The task finishes when the reader does - with the

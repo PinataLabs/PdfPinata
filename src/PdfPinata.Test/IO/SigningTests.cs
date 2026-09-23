@@ -456,12 +456,11 @@ public class SigningTests
     {
         var annotations = page.Elements.GetArray("/Annots");
         if (annotations == null)
-            return Array.Empty<PdfDictionary>();
+            return [];
 
-        return Enumerable.Range(0, annotations.Elements.Count)
+        return [..Enumerable.Range(0, annotations.Elements.Count)
             .Select(index => annotations.Elements.GetDictionary(index))
-            .Where(annotation => annotation != null && annotation.Elements.GetName("/FT") == "/Sig")
-            .ToArray();
+            .Where(annotation => annotation != null && annotation.Elements.GetName("/FT") == "/Sig")];
     }
 
     /// <summary>

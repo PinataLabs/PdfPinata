@@ -53,18 +53,18 @@ public class BidirectionalLayoutTests
         => DrawnText.Glyphs(DrawnText.Page(letter.ToString(), font)).Single();
 
     private static int[] GlyphsOf(string word, XFont font)
-        => word.Select(letter => GlyphOf(letter, font)).ToArray();
+        => [..word.Select(letter => GlyphOf(letter, font))];
 
     /// <summary>The same word with its letters in the order they are drawn.</summary>
     private static int[] Reversed(string word, XFont font)
-        => GlyphsOf(word, font).Reverse().ToArray();
+        => [..GlyphsOf(word, font).Reverse()];
 
     /// <summary>
     ///   The runs of glyphs shown on the page, written out so that a failure says which word
     ///   landed where rather than that two arrays are not the same array.
     /// </summary>
     private static string Placed(PdfPage page)
-        => Written(DrawnText.GlyphRuns(page).ToArray());
+        => Written([..DrawnText.GlyphRuns(page)]);
 
     private static string Written(params int[][] runs)
         => string.Join(" | ", runs.Select(run => string.Join(",", run)));
@@ -191,7 +191,7 @@ public class BidirectionalLayoutTests
 
         DrawnText.Glyphs(page).Should().Equal(
             Reversed(First, font)
-                .Concat(new[] { GlyphOf(' ', font) })
+                .Concat([GlyphOf(' ', font)])
                 .Concat(GlyphsOf("one", font)),
             "the Hebrew is drawn leftmost although it was written last");
     }

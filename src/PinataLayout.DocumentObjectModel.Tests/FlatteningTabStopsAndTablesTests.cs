@@ -16,7 +16,7 @@ public class FlatteningTabStopsAndTablesTests
 {
     /// <summary>The positions of a tab stop collection in centimetres, in order.</summary>
     private static double[] PositionsOf(TabStops tabStops) =>
-        tabStops.Cast<TabStop>().Select(stop => stop.Position.Centimeter).ToArray();
+        [..tabStops.Cast<TabStop>().Select(stop => stop.Position.Centimeter)];
 
     private static Document Flattened(Document document)
     {
@@ -70,7 +70,7 @@ public class FlatteningTabStopsAndTablesTests
 
         Flattened(document);
 
-        PositionsOf(paragraph.Format.TabStops).Should().Equal(new[] { 4.0 }, "the cancelled one is gone, not merely marked");
+        PositionsOf(paragraph.Format.TabStops).Should().Equal([4.0], "the cancelled one is gone, not merely marked");
     }
 
     [Fact]

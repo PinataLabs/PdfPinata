@@ -18,7 +18,7 @@ public class Merge
         var pdf1Path =  PathHelper.GetInstance().GetAssetPath("FamilyTree.pdf");
         var pdf2Path = PathHelper.GetInstance().GetAssetPath("test.pdf");
 
-        var outputDocument = MergeDocuments(new[] { pdf1Path, pdf2Path });
+        var outputDocument = MergeDocuments([pdf1Path, pdf2Path]);
 
         var outFilePath = CreateOutFilePath("merge.pdf");
         outputDocument.Save(outFilePath);

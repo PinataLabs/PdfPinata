@@ -23,12 +23,11 @@ internal sealed class PageResizeDemo : PdfDemo
 
     public override string Summary => "Shrinking a finished document, links and destinations with it.";
 
-    public override IReadOnlyList<string> Shows => new[]
-    {
+    public override IReadOnlyList<string> Shows => [
         "Two A4 pages resized to A5 in one call",
         "Content scaled rather than cropped",
         "A link and the destination it points at moving with the words"
-    };
+    ];
 
     public override int PageCount => 2;
 

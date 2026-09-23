@@ -118,13 +118,13 @@ public class ErrorMessageResourceTests
     // ReSharper disable PossibleNullReferenceException
     private static string GetString(object id) => (string)DomSrType
         .GetMethod("GetString", BindingFlags.Static | BindingFlags.NonPublic)
-        .Invoke(null, new[] { id });
+        .Invoke(null, [id]);
     // ReSharper restore PossibleNullReferenceException
 
     // ReSharper disable PossibleNullReferenceException
     private static string FormatMessage(object id, params object[] args) => (string)DomSrType
         .GetMethod("FormatMessage", BindingFlags.Static | BindingFlags.NonPublic)
-        .Invoke(null, new[] { id, args });
+        .Invoke(null, [id, args]);
     // ReSharper restore PossibleNullReferenceException
 
     private static object MsgId(string name) => Enum.Parse(MsgIdType, name);
@@ -149,11 +149,10 @@ public class ErrorMessageResourceTests
             "PinataLayout.DocumentObjectModel.Resources.AppResources", true);
 
         // ReSharper disable PossibleNullReferenceException
-        return resources
+        return [..resources
             .GetProperties(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public)
             .Where(property => property.PropertyType == typeof(string))
-            .Select(property => new KeyValuePair<string, string>(property.Name, Read(property)))
-            .ToList();
+            .Select(property => new KeyValuePair<string, string>(property.Name, Read(property)))];
         // ReSharper restore PossibleNullReferenceException
     }
 

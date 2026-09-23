@@ -56,7 +56,7 @@ internal static class Footnotes
             switch (element)
             {
                 case Footnote footnote:
-                    found ??= new List<Footnote>();
+                    found ??= [];
                     found.Add(footnote);
                     break;
 
@@ -71,5 +71,5 @@ internal static class Footnotes
         }
     }
 
-    private static readonly IReadOnlyList<Footnote> Empty = Array.Empty<Footnote>();
+    private static readonly IReadOnlyList<Footnote> Empty = [];
 }

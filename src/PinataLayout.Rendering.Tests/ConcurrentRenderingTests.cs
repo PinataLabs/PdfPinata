@@ -104,7 +104,7 @@ public class ConcurrentRenderingTests
     /// </summary>
     private static XFont FontToXFont(Font font)
     {
-        return (XFont)Conversion.Invoke(null, new object[] { font, null, PdfFontEncoding.Unicode })!;
+        return (XFont)Conversion.Invoke(null, [font, null, PdfFontEncoding.Unicode])!;
     }
 
     private static readonly MethodInfo Conversion =

@@ -29,7 +29,7 @@ public static class PdfSignatures
         if (fields == null)
             return found;
 
-        Collect(fields, found, new HashSet<PdfDictionary>(), 0);
+        Collect(fields, found, [], 0);
         return found;
     }
 
@@ -76,10 +76,7 @@ public static class PdfSignatures
 
     private static PdfSignatureInfo Read(PdfDictionary field, PdfDictionary value)
     {
-        if (value == null)
-            return null;
-
-        var range = value.Elements.GetArray("/ByteRange");
+        var range = value?.Elements.GetArray("/ByteRange");
         if (range == null)
             return null;
 
@@ -111,7 +108,7 @@ public static class PdfSignatures
     private static byte[] ContentsOf(PdfDictionary value)
     {
         var contents = value.Elements["/Contents"] as PdfString;
-        return contents == null ? Array.Empty<byte>() : PdfEncoders.RawEncoding.GetBytes(contents.Value);
+        return contents == null ? [] : PdfEncoders.RawEncoding.GetBytes(contents.Value);
     }
 
     private static DateTime? SigningTimeOf(PdfDictionary value)

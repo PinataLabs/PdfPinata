@@ -20,9 +20,9 @@ public sealed class PdfValidationDataEntry
     public PdfValidationDataEntry(IReadOnlyList<byte[]> certificates, IReadOnlyList<byte[]> ocspResponses,
         IReadOnlyList<byte[]> crls)
     {
-        Certificates = certificates ?? Array.Empty<byte[]>();
-        OcspResponses = ocspResponses ?? Array.Empty<byte[]>();
-        Crls = crls ?? Array.Empty<byte[]>();
+        Certificates = certificates ?? [];
+        OcspResponses = ocspResponses ?? [];
+        Crls = crls ?? [];
     }
 
     /// <summary>DER-encoded certificates: the chain a signature's own embedded certificates name.</summary>

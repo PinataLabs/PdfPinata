@@ -15,7 +15,7 @@ public class PathHelper
     {
         var segments = new List<string> { RootDir, "Assets" };
         segments.AddRange(names);
-        return Path.Combine(segments.ToArray());
+        return Path.Combine([..segments]);
     }
 
     public string RootDir { get; }

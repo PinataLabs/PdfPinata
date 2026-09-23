@@ -79,8 +79,7 @@ public static class VisualOrder
             keys[idx] = leftmost == int.MaxValue && idx > 0 ? keys[idx - 1] : leftmost;
         }
 
-        return Enumerable.Range(0, spans.Count)
-            .OrderBy(idx => keys[idx])
-            .ToArray();
+        return [..Enumerable.Range(0, spans.Count)
+            .OrderBy(idx => keys[idx])];
     }
 }

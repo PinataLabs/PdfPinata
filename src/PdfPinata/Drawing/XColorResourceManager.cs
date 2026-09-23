@@ -66,7 +66,7 @@ public class XColorResourceManager
     {
         var knownColor = XKnownColorTable.GetKnownColor(argb);
         if ((int)knownColor == -1)
-            throw new ArgumentException(@"The argument is not a known color", nameof(argb));
+            throw new ArgumentException("The argument is not a known color", nameof(argb));
         return knownColor;
     }
 

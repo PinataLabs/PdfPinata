@@ -21,15 +21,14 @@ internal sealed class ImageFailuresDemo : PdfDemo
 
     public override string Summary => "An image that cannot be read, and the event that says why.";
 
-    public override IReadOnlyList<string> Shows => new[]
-    {
+    public override IReadOnlyList<string> Shows => [
         "IImageSource implemented by hand - six members, and nothing else needed to supply an image",
         "DocumentRenderer.ImageFailed, which carries the Image, the ImageFailure and the Exception",
         "Each ImageFailure kind provoked deliberately, by failing at a different point",
         "That the document still renders - a placeholder is drawn and the report goes on",
         "Where in the pipeline each failure is detected: measuring the image, or drawing it",
         "Why this is an event rather than a throw"
-    };
+    ];
 
     public override int PageCount => 2;
 
@@ -114,8 +113,7 @@ internal sealed class ImageFailuresDemo : PdfDemo
     }
 
     /// <summary>The four ways to fail, and where in the render each of them lands.</summary>
-    private static (string What, Func<IImageSource> Source, string When)[] Cases() => new[]
-    {
+    private static (string What, Func<IImageSource> Source, string When)[] Cases() => [
         ("A type nothing can decode", (Func<IImageSource>)FailingImage.OfAnUnsupportedType,
             "throws while XImage is built, before any measuring"),
         ("An image of no extent", FailingImage.OfNoSize,
@@ -124,7 +122,7 @@ internal sealed class ImageFailuresDemo : PdfDemo
             "throws while being measured"),
         ("A stream that dies on the way out", FailingImage.ThatCannotBeWritten,
             "measures fine, throws while being drawn")
-    };
+    ];
 
     protected override PdfDocument Build(DemoContext context)
     {
@@ -133,7 +131,7 @@ internal sealed class ImageFailuresDemo : PdfDemo
         // A document of its own, because a PinataLayout Document binds to the first renderer it is
         // given and refuses a second - so the report below cannot be rendered once to find out
         // what happens and again to say so. The probe is thrown away; only its findings are kept.
-        List<(string Name, string Failure, string Exception, string Message)> failures = new();
+        List<(string Name, string Failure, string Exception, string Message)> failures = [];
 
         // docs:begin report-failures
         var probe = new Document();

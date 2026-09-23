@@ -23,7 +23,7 @@ public sealed class PageEventsTests : IDisposable
 {
     private const string OutDir = "Out/PageEvents";
 
-    private readonly List<MagickImageCollection> _rasterized = new();
+    private readonly List<MagickImageCollection> _rasterized = [];
 
     static PageEventsTests()
     {

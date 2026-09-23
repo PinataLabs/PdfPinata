@@ -140,10 +140,10 @@ public class FontPlumbingTests
         // names each face separately, so nothing downstream ever needs an index.
         var constructor = typeof(FontResolverInfo).GetConstructor(
             BindingFlags.Instance | BindingFlags.NonPublic, null,
-            new[] { typeof(string), typeof(bool), typeof(bool), typeof(int) }, null);
+            [typeof(string), typeof(bool), typeof(bool), typeof(int)], null);
 
         // ReSharper disable once PossibleNullReferenceException
-        var act = () => constructor.Invoke(new object[] { "face.ttf", false, false, 1 });
+        var act = () => constructor.Invoke(["face.ttf", false, false, 1]);
 
         act.Should().Throw<TargetInvocationException>()
             .WithInnerException<NotImplementedException>();
@@ -207,7 +207,7 @@ public class FontPlumbingTests
     {
         // A space, or a character the font draws with a bitmap. Empty rather than null, so that
         // AddString can walk it without asking.
-        new XGlyphOutline(Array.Empty<XGlyphSegment>()).Segments.Should().BeEmpty();
+        new XGlyphOutline([]).Segments.Should().BeEmpty();
     }
 
     [Fact]

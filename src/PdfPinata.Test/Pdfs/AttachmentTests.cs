@@ -35,7 +35,7 @@ public class AttachmentTests
     ///   Not a real ICC profile — nothing here parses one, and saying so plainly keeps this from
     ///   reading as a colour-management test.
     /// </summary>
-    private static readonly byte[] SomeProfile = "NOT-AN-ICC-PROFILE"u8.ToArray();
+    private static readonly byte[] SomeProfile = [.."NOT-AN-ICC-PROFILE"u8];
 
     // ── What a document says when nothing is attached ───────────────────────────────────────────
 
@@ -369,7 +369,7 @@ public class AttachmentTests
         // caller an empty document that plainly has a file in it.
         var reread = SaveAndReopen(document =>
         {
-            document.Attachments.Add("legacy.txt", "older"u8.ToArray());
+            document.Attachments.Add("legacy.txt", [.."older"u8]);
             document.Internals.Catalog.Elements.Remove("/AF");
         });
 
@@ -569,7 +569,7 @@ public class AttachmentTests
     /// </summary>
     private static PdfFileSpecification AttachToAnAnnotation(PdfDocument document)
     {
-        var embedded = new PdfEmbeddedFile(document, "attached"u8.ToArray())
+        var embedded = new PdfEmbeddedFile(document, [.."attached"u8])
         {
             // Set by hand, because building a specification by hand is what leaves it out — which is the
             // whole reason PDF/A-3 is held to it here rather than trusted to have been thought about.

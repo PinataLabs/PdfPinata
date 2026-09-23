@@ -40,7 +40,7 @@ public class ColorThreadSafetyTests
                 results.Add("THREW " + ex.GetType().Name + ": " + ex.Message);
             }
         });
-        return results.ToArray();
+        return [..results];
     }
 
     [Fact]

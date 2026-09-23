@@ -17,8 +17,7 @@ internal sealed class VectorsDemo : PdfDemo
 
     public override string Summary => "Every shape XGraphics draws, and the pens, brushes and transforms behind them.";
 
-    public override IReadOnlyList<string> Shows => new[]
-    {
+    public override IReadOnlyList<string> Shows => [
         "Closed shapes: ellipse, rounded rectangle, polygon, pie, closed curve, and rectangles in one call",
         "The two fill modes on the same self-intersecting star - Alternate hollows the middle, Winding fills it",
         "Open paths: lines, arcs with their start and sweep angles drawn, Beziers with their control points marked",
@@ -27,7 +26,7 @@ internal sealed class VectorsDemo : PdfDemo
         "Brushes: solid, linear gradient, radial gradient, and a gradient that fades to transparent",
         "Transforms: translate, scale, rotate and a matrix multiplied on; Save/Restore against BeginContainer/EndContainer",
         "IntersectClip, scoped by the graphics state it was set in"
-    };
+    ];
 
     public override int PageCount => 4;
 
@@ -82,12 +81,11 @@ internal sealed class VectorsDemo : PdfDemo
             // One call, one path, one fill. Three DrawRectangle calls would be three paths, and
             // three times the operators in the content stream.
             var w = r.Width / 4;
-            gfx.DrawRectangles(outline, fill, new[]
-            {
+            gfx.DrawRectangles(outline, fill, [
                 new XRect(r.X, r.Y, w, r.Height),
                 new XRect(r.X + w * 1.5, r.Y, w, r.Height * 0.6),
                 new XRect(r.X + w * 3, r.Y, w, r.Height * 0.3)
-            });
+            ]);
         });
 
         // A five-pointed star drawn as one self-intersecting outline, which is the shape that
@@ -246,8 +244,7 @@ internal sealed class VectorsDemo : PdfDemo
         {
             // Every curve after the first reuses the previous end point, so the array is
             // 1 + 3n long rather than 4n. Getting that wrong is the usual reason this throws.
-            gfx.DrawBeziers(new XPen(XColors.MidnightBlue, 1.5), new[]
-            {
+            gfx.DrawBeziers(new XPen(XColors.MidnightBlue, 1.5), [
                 new XPoint(r.X, r.Bottom),
                 new XPoint(r.X + r.Width * 0.15, r.Y),
                 new XPoint(r.X + r.Width * 0.35, r.Y),
@@ -255,7 +252,7 @@ internal sealed class VectorsDemo : PdfDemo
                 new XPoint(r.X + r.Width * 0.65, r.Bottom),
                 new XPoint(r.X + r.Width * 0.85, r.Bottom),
                 new XPoint(r.Right, r.Y + r.Height / 2)
-            });
+            ]);
         });
 
         // docs:begin arc
@@ -393,12 +390,11 @@ internal sealed class VectorsDemo : PdfDemo
             var y = r.Y + 6;
             foreach (var join in new[] { XLineJoin.Miter, XLineJoin.Round, XLineJoin.Bevel })
             {
-                gfx.DrawLines(new XPen(XColors.MidnightBlue, 7) { LineJoin = join }, new[]
-                {
+                gfx.DrawLines(new XPen(XColors.MidnightBlue, 7) { LineJoin = join }, [
                     new XPoint(r.X + 5, y + 14),
                     new XPoint(r.X + r.Width / 2, y),
                     new XPoint(r.Right - 5, y + 14)
-                });
+                ]);
                 y += r.Height / 3;
             }
         });
@@ -418,12 +414,11 @@ internal sealed class VectorsDemo : PdfDemo
                 {
                     LineJoin = XLineJoin.Miter,
                     MiterLimit = limit
-                }, new[]
-                {
+                }, [
                     new XPoint(r.X + r.Width / 2 - 8, y + 40),
                     new XPoint(r.X + r.Width / 2, y),
                     new XPoint(r.X + r.Width / 2 + 8, y + 40)
-                });
+                ]);
 
                 gfx.DrawString($"MiterLimit = {limit:0}", note, XBrushes.Gray,
                     new XPoint(r.X, y + 38));
@@ -458,7 +453,7 @@ internal sealed class VectorsDemo : PdfDemo
                 // docs:begin dash-pattern
                 gfx.DrawLine(new XPen(XColors.MidnightBlue, 2)
                 {
-                    DashPattern = new[] { 4.0, 2.0, 1.0, 2.0 },
+                    DashPattern = [4.0, 2.0, 1.0, 2.0],
                     DashOffset = offset
                 }, r.X, y, r.Right, y);
                 // docs:end dash-pattern
@@ -542,11 +537,10 @@ internal sealed class VectorsDemo : PdfDemo
         void Arrow(XGraphics gfx)
         {
             var path = new XGraphicsPath();
-            path.AddPolygon(new[]
-            {
+            path.AddPolygon([
                 new XPoint(0, 8), new XPoint(30, 8), new XPoint(30, 0),
                 new XPoint(45, 15), new XPoint(30, 30), new XPoint(30, 22), new XPoint(0, 22)
-            });
+            ]);
             gfx.DrawPath(new XPen(XColors.MidnightBlue, 1), new XSolidBrush(
                 XColor.FromArgb(120, 100, 149, 237)), path);
         }

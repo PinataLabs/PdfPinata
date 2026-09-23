@@ -42,7 +42,7 @@ public sealed class ShapedRun
     /// An empty run against the given face. Shaping nothing yields this rather than null.
     /// </summary>
     public static ShapedRun Empty(int unitsPerEm, XTextDirection direction = XTextDirection.LeftToRight)
-        => new(Array.Empty<ShapedGlyph>(), unitsPerEm, direction);
+        => new([], unitsPerEm, direction);
 
     /// <summary>
     /// The glyphs, in the order they are drawn.

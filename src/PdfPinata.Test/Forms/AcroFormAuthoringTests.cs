@@ -277,7 +277,7 @@ public class AcroFormAuthoringTests
     public void AChoiceFieldsOptionsRoundTrip()
     {
         var document = new PdfDocument();
-        var field = new PdfComboBoxField(document) { Options = new[] { "Australia", "Canada", "Ireland" } };
+        var field = new PdfComboBoxField(document) { Options = ["Australia", "Canada", "Ireland"] };
 
         field.Options.Should().Equal("Australia", "Canada", "Ireland");
         field.Elements.GetArray("/Opt").Elements.Count.Should().Be(3);
@@ -401,7 +401,7 @@ public class AcroFormAuthoringTests
         var delivery = new PdfRadioButtonField(document)
         {
             Name = "delivery",
-            Options = new[] { "Standard", "Express", "Collect" },
+            Options = ["Standard", "Express", "Collect"],
             SelectedIndex = 1
         };
 
@@ -470,7 +470,7 @@ public class AcroFormAuthoringTests
         var country = new PdfComboBoxField(document) { Name = "country" };
         form.Fields.Add(country);
         country.AddWidget(page, new PdfRectangle(new XRect(60, 660, 200, 20)));
-        country.Options = new[] { "Ireland", "United Kingdom" };
+        country.Options = ["Ireland", "United Kingdom"];
         country.SelectedIndex = 1;
 
         var delivery = new PdfRadioButtonField(document) { Name = "delivery" };

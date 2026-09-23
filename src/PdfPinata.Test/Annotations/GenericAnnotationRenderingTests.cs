@@ -38,7 +38,7 @@ public sealed class GenericAnnotationRenderingTests : IDisposable
     ///   Kept until the test is over: the pages are handed out for counting, and the bitmap
     ///   behind one is unmanaged, so leaving them to the collector exhausts the test host.
     /// </summary>
-    private readonly List<MagickImageCollection> _rasterized = new();
+    private readonly List<MagickImageCollection> _rasterized = [];
 
     public void Dispose()
     {

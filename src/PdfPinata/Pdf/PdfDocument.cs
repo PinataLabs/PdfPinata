@@ -523,7 +523,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
 
         _originalStartXref = FindLastStartXref(_originalBytes);
 
-        _originalObjectNumbers = new HashSet<int>();
+        _originalObjectNumbers = [];
         foreach (var iref in _irefTable.AllReferences)
         {
             _originalObjectNumbers.Add(iref.ObjectNumber);
@@ -531,8 +531,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
             // Reading a document mutates plenty of it — the trailer's own IDs, the page tree as it
             // is flattened — so whatever is dirty at this point is dirty from being read rather
             // than from being changed, and none of it needs writing again.
-            if (iref.Value != null)
-                iref.Value.IsDirty = false;
+            iref.Value?.IsDirty = false;
         }
     }
 
@@ -688,11 +687,8 @@ public sealed class PdfDocument : PdfObject, IDisposable
         }
         finally
         {
-            if (writer != null)
-            {
-                writer.Stream.Flush();
-                // DO NOT CLOSE WRITER HERE
-            }
+            writer?.Stream.Flush();
+            // DO NOT CLOSE WRITER HERE
         }
     }
 
@@ -738,13 +734,11 @@ public sealed class PdfDocument : PdfObject, IDisposable
         // whether the profile claimed wants a /CIDSet, rather than reading Options.Conformance
         // itself — so this may run before or after the conformance writer below without either one
         // caring, both reading the same caller-set property rather than anything the other computes.
-        if (_fontTable != null)
-            _fontTable.PrepareForSave();
+        _fontTable?.PrepareForSave();
 
         // Written now rather than as they were named, because a destination points at a page and
         // a page has no object number to point at until the document is being saved.
-        if (_namedDestinations != null)
-            _namedDestinations.PrepareForSave();
+        _namedDestinations?.PrepareForSave();
 
         // Let catalog do the rest.
         Catalog.PrepareForSave();
@@ -877,7 +871,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
     {
         ArgumentNullException.ThrowIfNull(contributor);
 
-        (_metadataContributors ??= new List<Action<Metadata.XmpMetadata>>()).Add(contributor);
+        (_metadataContributors ??= []).Add(contributor);
     }
 
     /// <summary>
@@ -1592,13 +1586,9 @@ public sealed class PdfDocument : PdfObject, IDisposable
     /// </summary>
     internal void OnExternalDocumentFinalized(DocumentHandle handle)
     {
-        if (tls != null)
-        {
-            tls.DetachDocument(handle);
-        }
+        tls?.DetachDocument(handle);
 
-        if (_formTable != null)
-            _formTable.DetachDocument(handle);
+        _formTable?.DetachDocument(handle);
     }
 
     /// <summary>

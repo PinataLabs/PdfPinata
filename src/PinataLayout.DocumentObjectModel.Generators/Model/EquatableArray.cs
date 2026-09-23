@@ -20,7 +20,7 @@ internal readonly struct EquatableArray<T> : IEquatable<EquatableArray<T>>, IEnu
 {
     private readonly T[]? array;
 
-    public EquatableArray(IEnumerable<T> items) => array = items.ToArray();
+    public EquatableArray(IEnumerable<T> items) => array = [..items];
 
     public int Count => array?.Length ?? 0;
 
@@ -53,7 +53,7 @@ internal readonly struct EquatableArray<T> : IEquatable<EquatableArray<T>>, IEnu
     }
 
     public IEnumerator<T> GetEnumerator() =>
-        ((IEnumerable<T>)(array ?? Array.Empty<T>())).GetEnumerator();
+        ((IEnumerable<T>)(array ?? [])).GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

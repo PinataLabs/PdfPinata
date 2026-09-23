@@ -281,7 +281,7 @@ public class XMatrixFastPathTests
         var method = ObsoleteMember("Scale(Double,Double)");
         object boxed = new XMatrix(1, 0, 0, 1, 10, 0);
 
-        method.Invoke(boxed, new object[] { 2.0, 2.0 });
+        method.Invoke(boxed, [2.0, 2.0]);
 
         var prepended = new XMatrix(1, 0, 0, 1, 10, 0);
         prepended.ScalePrepend(2, 2);
@@ -301,8 +301,7 @@ public class XMatrixFastPathTests
 
     private static object[] Arguments(MethodInfo method)
     {
-        return method.GetParameters()
-            .Select(p => p.ParameterType == typeof(XPoint) ? (object)new XPoint(1, 1) : 1.0)
-            .ToArray();
+        return [..method.GetParameters()
+            .Select(p => p.ParameterType == typeof(XPoint) ? (object)new XPoint(1, 1) : 1.0)];
     }
 }

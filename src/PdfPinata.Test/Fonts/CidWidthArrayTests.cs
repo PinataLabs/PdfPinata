@@ -76,7 +76,7 @@ public class CidWidthArrayTests
             var first = w.Elements.GetInteger(at);
             var widths = (PdfArray)w.Elements[at + 1];
             entries.Add(new Entry(first,
-                Enumerable.Range(0, widths.Elements.Count).Select(widths.Elements.GetInteger).ToList()));
+                [..Enumerable.Range(0, widths.Elements.Count).Select(widths.Elements.GetInteger)]));
         }
         return entries;
     }

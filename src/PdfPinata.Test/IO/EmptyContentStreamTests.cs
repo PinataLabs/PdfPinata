@@ -62,7 +62,7 @@ public class EmptyContentStreamTests
         // What the deflater writes for no input at all: a header, an empty final block and a
         // checksum of nothing. That is the stream Acrobat objects to, and the file must not
         // hold it anywhere.
-        var deflatedNothing = Filtering.FlateDecode.Encode(Array.Empty<byte>(), document.Options.FlateEncodeMode);
+        var deflatedNothing = Filtering.FlateDecode.Encode([], document.Options.FlateEncodeMode);
         deflatedNothing.Length.Should().BeGreaterThan(0, "the point of the test is that deflating nothing gives something");
         IndexOf(saved, deflatedNothing).Should().Be(-1);
     }
@@ -178,7 +178,7 @@ public class EmptyContentStreamTests
         var streams = new List<string>();
         for (var idx = 0; idx < contents.Elements.Count; idx++)
         {
-            var bytes = contents.Elements.GetDictionary(idx).Stream?.UnfilteredValue ?? Array.Empty<byte>();
+            var bytes = contents.Elements.GetDictionary(idx).Stream?.UnfilteredValue ?? [];
             streams.Add(new string(bytes.Select(b => (char)b).ToArray()));
         }
         return streams;
@@ -220,7 +220,7 @@ public class EmptyContentStreamTests
 
     private static byte[] Bytes(string text)
     {
-        return text.Select(ch => (byte)ch).ToArray();
+        return [..text.Select(ch => (byte)ch)];
     }
 
     /// <summary>

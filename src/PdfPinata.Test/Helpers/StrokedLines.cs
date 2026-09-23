@@ -210,7 +210,7 @@ internal static class StrokedLines
             joined.AddRange(streams.Elements.GetDictionary(idx).Stream.UnfilteredValue);
             joined.Add((byte)'\n');
         }
-        return joined.ToArray();
+        return [..joined];
     }
 
     /// <summary>A colour as this reports one: the three components, comma separated.</summary>

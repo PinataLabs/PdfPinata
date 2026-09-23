@@ -237,7 +237,7 @@ public class HybridCrossReferenceTests
 
         return pdf.Finish(
             inUse: listTheStream ? 6 : 5,
-            free: new[] { 7 },
+            free: [7],
             trailerExtras: " /XRefStm " + named);
     }
 
@@ -264,7 +264,7 @@ public class HybridCrossReferenceTests
         pdf.Object(6, "<< /Type /XRef /Size 9 /W [1 2 1] /Index [7 2] /Root 1 0 R /Length " + entries.Length +
                       " >>stream\n" + entries + "\nendstream");
 
-        return pdf.Finish(inUse: 6, free: new[] { 7 }, trailerExtras: " /XRefStm " + pdf.PositionOf(6));
+        return pdf.Finish(inUse: 6, free: [7], trailerExtras: " /XRefStm " + pdf.PositionOf(6));
 
         static string Entry(int position) => "\u0001" + (char)(position >> 8) + (char)(position & 0xFF) + "\u0000";
     }
@@ -293,7 +293,7 @@ public class HybridCrossReferenceTests
         pdf.Object(6, "<< /Type /XRef /Size 9 /W [1 2 1] /Index [7 2] /Root 1 0 R /Length " + entries.Length +
                       " >>stream\n" + entries + "\nendstream");
 
-        return pdf.Finish(inUse: 6, free: new[] { 7 }, trailerExtras: " /XRefStm " + pdf.PositionOf(6));
+        return pdf.Finish(inUse: 6, free: [7], trailerExtras: " /XRefStm " + pdf.PositionOf(6));
     }
 
     /// <summary>
@@ -337,7 +337,7 @@ public class HybridCrossReferenceTests
         pdf.Object(6, "<< /Kind /Placeholder >>");
         pdf.Object(7, GraphicsState);
 
-        return pdf.Finish(inUse: 7, free: Array.Empty<int>(), trailerExtras: "");
+        return pdf.Finish(inUse: 7, free: [], trailerExtras: "");
     }
 
     /// <summary>The same file with the entries in its stream made unreadable, and nothing else.</summary>

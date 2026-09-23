@@ -186,9 +186,7 @@ internal abstract class YAxisRenderer : AxisRenderer
 
     // Draw axis.
     // First draw tick marks, second draw axis.
-    double majorTickMarkStart, majorTickMarkEnd,
-      minorTickMarkStart, minorTickMarkEnd;
-    GetTickMarkPos(yari, out majorTickMarkStart, out majorTickMarkEnd, out minorTickMarkStart, out minorTickMarkEnd);
+    GetTickMarkPos(yari, out var majorTickMarkStart, out var majorTickMarkEnd, out var minorTickMarkStart, out var minorTickMarkEnd);
 
     var gfx = rendererParms.Graphics;
     var lineFormatRenderer = new LineFormatRenderer(gfx, yari.LineFormat);
@@ -376,8 +374,7 @@ internal abstract class YAxisRenderer : AxisRenderer
   /// </summary>
   private void InitScale(AxisRendererInfo rendererInfo)
   {
-    double yMin, yMax;
-    CalcYAxis(out yMin, out yMax);
+    CalcYAxis(out var yMin, out var yMax);
     FineTuneYAxis(rendererInfo, yMin, yMax);
 
     rendererInfo.MajorTickMarkWidth = DefaultMajorTickMarkWidth;

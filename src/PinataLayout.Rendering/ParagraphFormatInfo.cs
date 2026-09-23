@@ -157,8 +157,7 @@ internal class ParagraphFormatInfo : FormatInfo
     {
       if (widowControl)
         return IsComplete || (isStarting && lineInfos.Count >= 2);
-      else
-        return isStarting;
+      return isStarting;
     }
   }
 
@@ -170,8 +169,7 @@ internal class ParagraphFormatInfo : FormatInfo
     {
       if (widowControl)
         return IsComplete || (isEnding && lineInfos.Count >= 2);
-      else
-        return isEnding;
+      return isEnding;
     }
   }
 

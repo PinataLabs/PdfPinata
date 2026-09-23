@@ -38,15 +38,14 @@ internal sealed class MagazineDemo : PdfDemo
 
     public override string Summary => "A feature opener with a drop cap and a pull quote.";
 
-    public override IReadOnlyList<string> Shows => new[]
-    {
+    public override IReadOnlyList<string> Shows => [
         "A photograph bled off three edges, clipped to its band",
         "A scrim that fades out as well as down, from a gradient with alpha in its colours",
         "A drop cap from XTextFormatter.DropCap - one property, three lines deep, set by its ink",
         "A title turned into a path by AddString and filled with a gradient",
         "A pull quote slanted with ObliqueAngle, straddling the gutter",
         "Copy flowing down both sides of it from one DrawString, via XTextFormatter.Obstacles"
-    };
+    ];
 
     public override int PageCount => 2;
 
@@ -246,12 +245,12 @@ internal sealed class MagazineDemo : PdfDemo
         // narrower than either, so the lines are broken to suit it.
         var quoteFont = new XFont(Serif, 14);
         string[] quoteLines =
-        {
+        [
             "“Nothing decides",
             "that break except a",
             "loop that adds one",
             "word at a time.”"
-        };
+        ];
 
         for (var line = 0; line < quoteLines.Length; line++)
         {

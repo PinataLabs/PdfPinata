@@ -63,7 +63,7 @@ public class ColumnPlotAreaTests
             Drawn.Page(Charts.Of(ChartType.Column2D, 1.0, 5.0, 3.0)));
 
         var page = Drawn.Page(Charts.OfSeries(ChartType.Column2D,
-            new[] { 1.0, 5.0, 3.0 }, new[] { 2.0, 4.0, 1.0 }));
+            [1.0, 5.0, 3.0], [2.0, 4.0, 1.0]));
         var clustered = PaintedRectangles.FilledOn(page);
 
         clustered.Should().HaveCount(6);
@@ -78,7 +78,7 @@ public class ColumnPlotAreaTests
     public void EachSeriesTakesTheNextColourFromThePalette()
     {
         var page = Drawn.Page(Charts.OfSeries(ChartType.Column2D,
-            new[] { 1.0, 5.0 }, new[] { 2.0, 4.0 }, new[] { 3.0, 3.0 }));
+            [1.0, 5.0], [2.0, 4.0], [3.0, 3.0]));
 
         var columns = PaintedRectangles.FilledOn(page);
 
@@ -164,7 +164,7 @@ public class ColumnPlotAreaTests
     public void StackedColumnsSitOnTopOfOneAnother()
     {
         var page = Drawn.Page(Charts.OfSeries(ChartType.ColumnStacked2D,
-            new[] { 1.0, 2.0 }, new[] { 3.0, 1.0 }));
+            [1.0, 2.0], [3.0, 1.0]));
 
         var columns = PaintedRectangles.FilledOn(page);
 

@@ -24,14 +24,13 @@ internal sealed class InspectDemo : PdfDemo
 
     public override string Summary => "Reading a page's own content stream back with ContentReader.";
 
-    public override IReadOnlyList<string> Shows => new[]
-    {
+    public override IReadOnlyList<string> Shows => [
         "ContentReader.ReadContent, over a page this demo drew a moment earlier",
         "The CObject model - COperator, CInteger, CReal, CString, CName, CArray",
         "The operators a few ordinary drawing calls actually produce, listed in order",
         "A count by operator, which is the fastest way to see what a page is made of",
         "Why the text reads as numbers: a font embedded as Identity-H shows glyph ids, not letters"
-    };
+    ];
 
     public override int PageCount => 3;
 
@@ -66,10 +65,9 @@ internal sealed class InspectDemo : PdfDemo
             gfx.DrawEllipse(new XPen(XColors.SeaGreen, 1.5), null, 50, 280, 200, 100);
 
             var path = new XGraphicsPath();
-            path.AddPolygon(new[]
-            {
+            path.AddPolygon([
                 new XPoint(320, 290), new XPoint(420, 290), new XPoint(370, 370)
-            });
+            ]);
             gfx.DrawPath(new XPen(XColors.DarkOrange, 1.5), path);
 
             gfx.DrawString("Six calls, and the operators overleaf", body, XBrushes.Firebrick,
@@ -172,7 +170,7 @@ internal sealed class InspectDemo : PdfDemo
             // docs:end tally
 
             (string Code, string Means)[] glossary =
-            {
+            [
                 ("q", "save the graphics state"), ("Q", "restore it"),
                 ("cm", "concatenate a matrix"), ("re", "add a rectangle to the path"),
                 ("m", "move to"), ("l", "line to"), ("c", "curve to"), ("h", "close the figure"),
@@ -185,7 +183,7 @@ internal sealed class InspectDemo : PdfDemo
                 ("w", "set the line width"), ("gs", "apply an extended graphics state"),
                 ("J", "set the line cap"), ("j", "set the line join"), ("d", "set the dash"),
                 ("Do", "paint an XObject"), ("M", "set the miter limit")
-            };
+            ];
 
             double y = 140;
             foreach (var entry in counted)

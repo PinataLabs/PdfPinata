@@ -35,7 +35,7 @@ internal class ObstructedArea : Area
     internal ObstructedArea(Rectangle bounds, IEnumerable<Rectangle> obstacles)
     {
         _bounds = bounds ?? throw new ArgumentNullException(nameof(bounds));
-        _obstacles = new List<Rectangle>();
+        _obstacles = [];
 
         if (obstacles == null)
             return;

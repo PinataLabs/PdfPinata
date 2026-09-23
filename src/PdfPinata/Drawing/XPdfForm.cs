@@ -63,7 +63,7 @@ public class XPdfForm : XForm
             throw new FileNotFoundException(PSSR.FileNotFound(path));
 
         if (PdfReader.TestPdfFile(path) == 0)
-            throw new ArgumentException(@"The specified file has no valid PDF file header.", nameof(path));
+            throw new ArgumentException("The specified file has no valid PDF file header.", nameof(path));
 
         Path = path;
         _pathReadAccuracy = accuracy;
@@ -82,7 +82,7 @@ public class XPdfForm : XForm
         Path = "*" + Guid.NewGuid().ToString("B");
 
         if (PdfReader.TestPdfFile(stream) == 0)
-            throw new ArgumentException(@"The specified stream has no valid PDF file header.", nameof(stream));
+            throw new ArgumentException("The specified stream has no valid PDF file header.", nameof(stream));
 
         _externalDocument = PdfReader.Open(stream, accuracy);
     }
@@ -99,7 +99,7 @@ public class XPdfForm : XForm
         Path = "*" + Guid.NewGuid().ToString("B");
 
         if (PdfReader.TestPdfFile(stream) == 0)
-            throw new ArgumentException(@"The specified stream has no valid PDF file header.", nameof(stream));
+            throw new ArgumentException("The specified stream has no valid PDF file header.", nameof(stream));
 
         _externalDocument = PdfReader.Open(stream, password, PdfDocumentOpenMode.ReadOnly, accuracy);
     }

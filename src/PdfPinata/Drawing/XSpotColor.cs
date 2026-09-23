@@ -41,7 +41,7 @@ public sealed class XSpotColor : IEquatable<XSpotColor>
         if (name == null)
             throw new ArgumentNullException(nameof(name));
         if (name.Length == 0)
-            throw new ArgumentException(@"A spot colour needs a name: it is the name a press separates by.", nameof(name));
+            throw new ArgumentException("A spot colour needs a name: it is the name a press separates by.", nameof(name));
 
         Name = name;
         alternate.A = 1;

@@ -146,7 +146,7 @@ public class ChartFontInheritanceTests
         chart.DataLabel.Type = DataLabelType.Value;
         chart.SeriesCollection[0].DataLabel.Format = "0.00";
 
-        ShownText.On(Drawn.Page(chart)).Should().Contain(new[] { "1.00", "3.00" });
+        ShownText.On(Drawn.Page(chart)).Should().Contain(["1.00", "3.00"]);
     }
 
     [Fact]

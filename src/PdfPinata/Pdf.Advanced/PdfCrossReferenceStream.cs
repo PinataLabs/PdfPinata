@@ -45,7 +45,7 @@ internal sealed class PdfCrossReferenceStream : PdfTrailer  // Reference: 3.4.7 
     {
     }
 
-    public readonly List<CrossReferenceStreamEntry> Entries = new();
+    public readonly List<CrossReferenceStreamEntry> Entries = [];
 
     /// <summary>
     /// Where the section this stream is begins, and where its object number ends: an entry for the

@@ -27,13 +27,13 @@ public class XUnitTests
     private const double OneInchInPresentation = 96;
 
     private static readonly XUnit[] OneInchEachWay =
-    {
+    [
         XUnit.FromPoint(OneInchInPoint),
         XUnit.FromInch(1),
         XUnit.FromMillimeter(OneInchInMillimeter),
         XUnit.FromCentimeter(OneInchInCentimeter),
         XUnit.FromPresentation(OneInchInPresentation)
-    };
+    ];
 
     public static TheoryData<int> EachWayOfWritingOneInch()
     {

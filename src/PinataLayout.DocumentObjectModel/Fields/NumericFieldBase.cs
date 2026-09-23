@@ -47,13 +47,13 @@ public abstract partial class NumericFieldBase : DocumentObject
     /// <summary>The numbering formats a numeric field accepts, empty meaning ordinary digits.</summary>
 #pragma warning disable CA2211 // Protected on a type public code can subclass through PageField: making it readonly or a property would change the public API.
     protected static string[] validFormatStrings =
-    {
+    [
         "",
         "ROMAN",
         "roman",
         "ALPHABETIC",
         "alphabetic"
-    };
+    ];
 #pragma warning restore CA2211
 
     /// <summary>

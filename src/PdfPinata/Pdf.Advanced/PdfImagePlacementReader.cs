@@ -34,8 +34,7 @@ internal sealed class PdfImagePlacementReader
 
         var reader = new PdfImagePlacementReader();
 
-        byte[] content;
-        if (!PdfContentStreams.TryGetPageContent(page, out content))
+        if (!PdfContentStreams.TryGetPageContent(page, out var content))
             return reader._placements;
 
         reader.Read(content, page.Elements.GetDictionary(PdfPage.InheritablePageKeys.Resources),
@@ -44,7 +43,7 @@ internal sealed class PdfImagePlacementReader
         return reader._placements;
     }
 
-    private readonly List<PdfImagePlacement> _placements = new();
+    private readonly List<PdfImagePlacement> _placements = [];
 
     /// <summary>The forms being drawn through, so that one drawing itself does not go round forever.</summary>
     private readonly Dictionary<string, object> _open = new();
@@ -171,8 +170,7 @@ internal sealed class PdfImagePlacementReader
 
         try
         {
-            byte[] content;
-            if (!PdfContentStreams.TryGetContent(form, out content))
+            if (!PdfContentStreams.TryGetContent(form, out var content))
                 return;
 
             // A form draws in a space of its own, which its matrix maps into the space it is

@@ -96,7 +96,7 @@ public sealed class OcspRevocationDataProvider : IRevocationDataProvider, IDispo
             response.EnsureSuccessStatusCode();
 
             var responseBytes = ReadBounded(response.Content, MaxOcspResponseBytes);
-            return responseBytes == null ? RevocationData.None : new RevocationData(new[] { responseBytes }, null);
+            return responseBytes == null ? RevocationData.None : new RevocationData([responseBytes], null);
         }
         catch (Exception problem) when (problem is HttpRequestException or TaskCanceledException)
         {

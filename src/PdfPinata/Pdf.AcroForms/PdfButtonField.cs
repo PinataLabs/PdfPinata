@@ -78,15 +78,12 @@ public abstract class PdfButtonField : PdfAcroField
         // Just return the first key that is not /Off.
         // I'm not sure what is the right solution to get this value.
         var ap = Elements[PdfAnnotation.Keys.AP] as PdfDictionary;
-        if (ap != null)
+        var n = ap?.Elements["/N"] as PdfDictionary;
+        if (n != null)
         {
-            var n = ap.Elements["/N"] as PdfDictionary;
-            if (n != null)
-            {
-                foreach (var name in n.Elements.Keys)
-                    if (name != "/Off")
-                        return name;
-            }
+            foreach (var name in n.Elements.Keys)
+                if (name != "/Off")
+                    return name;
         }
         // A field built by hand, or one whose appearances have been stripped, names no state at
         // all. /Yes is what the reference uses throughout for the on state of a check box, and

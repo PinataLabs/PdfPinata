@@ -62,8 +62,7 @@ public abstract class DocumentObjectCollection : DocumentObject, IList
     get => elements[index] as DocumentObject;
     set
     {
-      if (value != null)
-        value.parent = this;
+      value?.parent = this;
       elements[index] = value;
     }
   }
@@ -124,8 +123,7 @@ public abstract class DocumentObjectCollection : DocumentObject, IList
   /// </summary>
   public virtual void InsertObject(int index, DocumentObject val)
   {
-    if (val != null)
-      val.parent = this;
+    val?.parent = this;
     elements.Insert(index, val);
   }
 
@@ -150,8 +148,7 @@ public abstract class DocumentObjectCollection : DocumentObject, IList
   /// </summary>
   public virtual void Add(DocumentObject value)
   {
-    if (value != null)
-      value.parent = this;
+    value?.parent = this;
     elements.Add(value);
   }
   #endregion
@@ -232,7 +229,7 @@ public abstract class DocumentObjectCollection : DocumentObject, IList
     if (value == null || value is DocumentObject)
       return (DocumentObject)value;
     throw new ArgumentException(
-      $@"A chart collection holds document objects, not {value.GetType().Name}.", nameof(value));
+      $"A chart collection holds document objects, not {value.GetType().Name}.", nameof(value));
   }
   #endregion
 

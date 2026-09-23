@@ -39,15 +39,14 @@ internal sealed class SideWrapDemo : PdfDemo
 
     public override string Summary => "Text flowing beside a shape, on each of the four wrap styles.";
 
-    public override IReadOnlyList<string> Shows => new[]
-    {
+    public override IReadOnlyList<string> Shows => [
         "WrapStyle.Right - the frame at the left margin, the text down the right of it",
         "WrapStyle.Left - the mirror of it, and the page that proves the names are not backwards",
         "WrapStyle.Largest - the frame standing clear of both margins, the text taking the roomier side",
         "WrapStyle.Both - the same arrangement, asking for either side rather than the roomier one",
         "The four WrapFormat distances holding the text off all four edges of the frame",
         "Lines above and below the frame running the full measure, with no line drawn across it"
-    };
+    ];
 
     public override int PageCount => 4;
 
@@ -87,7 +86,7 @@ internal sealed class SideWrapDemo : PdfDemo
         // room on its right is nearly four times the room on its left, so a page that puts the
         // text down the left is visibly wrong rather than merely different.
         (WrapStyle Style, ShapePosition? Where, string Title, string Note)[] pages =
-        {
+        [
             (WrapStyle.Right, ShapePosition.Left, "WrapStyle.Right",
                 "The frame is at the left margin and the text runs down its right - the style names "
                 + "the side the text occupies, not the side the shape sits on."),
@@ -103,7 +102,7 @@ internal sealed class SideWrapDemo : PdfDemo
                 + "given one span rather than every span, so this lays out as Largest does today; "
                 + "the two are kept apart because they say different things and would part company "
                 + "if that changed.")
-        };
+        ];
 
         foreach ((var style, var where, var title, var note) in pages)
         {

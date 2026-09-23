@@ -28,15 +28,14 @@ internal sealed class ReviseDemo : PdfDemo
 
     public override string Summary => "Incremental update: three revisions in one file, none of them overwritten.";
 
-    public override IReadOnlyList<string> Shows => new[]
-    {
+    public override IReadOnlyList<string> Shows => [
         "PdfDocument.SaveIncremental, against Save, and what each one does to the bytes",
         "PdfDocumentOpenMode.Append - the only mode that keeps the bytes and the object numbers",
         "The /Prev chain, which is how a reader walks backwards through the revisions",
         "That an object number means the same thing in every revision, so a later one shadows",
         "PdfObject.MarkAsChanged, and why a direct array inside a page needs it",
         "The trap: appending into the file it was read from, which silently loses the revision"
-    };
+    ];
 
     public override int PageCount => 4;
 
@@ -170,7 +169,7 @@ internal sealed class ReviseDemo : PdfDemo
                 body, XBrushes.Black, new XRect(50, 104, 495, 62));
 
             (string What, string Value)[] facts =
-            {
+            [
                 ("Revision one", Format(sizeOfOne) + " bytes"),
                 // Counted after the page above was added, so this is both revisions' objects and
                 // not revision one's. Named for what it counts rather than for the row above it.
@@ -178,7 +177,7 @@ internal sealed class ReviseDemo : PdfDemo
                     .ToString(CultureInfo.InvariantCulture) + " across both revisions"),
                 ("Pages before this one", "2"),
                 ("Changed as well as added", "/Info /Subject, which revision one had left empty")
-            };
+            ];
 
             double y = 190;
             foreach (var fact in facts)
@@ -226,7 +225,7 @@ internal sealed class ReviseDemo : PdfDemo
                 body, XBrushes.Black, new XRect(50, 80, 495, 44));
 
             (string What, string Value)[] found =
-            {
+            [
                 ("Revision one", Format(sizeOfOne) + " bytes"),
                 ("After revision two", Format(afterTwo.Length) + " bytes"),
                 ("Appended by revision two", Format(afterTwo.Length - sizeOfOne) + " bytes"),
@@ -237,7 +236,7 @@ internal sealed class ReviseDemo : PdfDemo
                 ("/Prev, anywhere in the bytes", Count(afterTwo, "/Prev")
                     .ToString(CultureInfo.InvariantCulture) + " - one fewer, and rightly so"),
                 ("This file", "one revision deeper again")
-            };
+            ];
 
             double y = 145;
             foreach (var fact in found)

@@ -52,10 +52,10 @@ public class BidirectionalParagraphTests
     ///   PinataLayout puts the space between two words in the positioning rather than drawing one, so
     ///   no whitespace glyph is ever shown.
     /// </summary>
-    private static IReadOnlyList<int> Drawn(string letters) => letters.Select(GlyphOf).ToList();
+    private static IReadOnlyList<int> Drawn(string letters) => [..letters.Select(GlyphOf)];
 
     /// <summary>Several glyph sequences, concatenated - for a line with more than one segment.</summary>
-    private static IReadOnlyList<int> Joined(params IReadOnlyList<int>[] parts) => parts.SelectMany(part => part).ToList();
+    private static IReadOnlyList<int> Joined(params IReadOnlyList<int>[] parts) => [..parts.SelectMany(part => part)];
 
     // ----- the defect ------------------------------------------------------------------------------
 

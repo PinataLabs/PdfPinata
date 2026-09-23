@@ -205,10 +205,9 @@ public class PostscriptOutlineEmbeddingTest
     public void AnOtfIsDiscoveredAndResolvedByTheShippedResolver()
     {
         var resolver = new Probe();
-        resolver.SetupFontsFiles(new[]
-        {
+        resolver.SetupFontsFiles([
             PathHelper.GetInstance().GetAssetPath("Fonts", "SourceCodePro-Regular.otf")
-        });
+        ]);
 
         var info = resolver.ResolveTypeface("Source Code Pro", false, false);
 
@@ -279,11 +278,10 @@ public class PostscriptOutlineEmbeddingTest
 
     private static PdfDictionary[] DescendantFontsOf(PdfDocument document)
     {
-        return document.Internals.GetAllObjects()
+        return [..document.Internals.GetAllObjects()
             .OfType<PdfDictionary>()
             .Where(d => d.Elements.GetName("/Type") == "/Font")
-            .Where(d => d.Elements.ContainsKey("/CIDSystemInfo"))
-            .ToArray();
+            .Where(d => d.Elements.ContainsKey("/CIDSystemInfo"))];
     }
 
     private static PdfDictionary Resolve(PdfItem item)

@@ -98,9 +98,7 @@ internal class ChartRenderer : ShapeRenderer
   {
     var contentArea = renderInfo.LayoutInfo.ContentArea;
     var formatInfo = (ChartFormatInfo)renderInfo.FormatInfo;
-    XUnit top;
-    XUnit bottom;
-    GetLeftRightVerticalPosition(out top, out bottom);
+    GetLeftRightVerticalPosition(out var top, out var bottom);
 
     var left = contentArea.X;
     var width = formatInfo.formattedLeft.InnerWidth;
@@ -112,9 +110,7 @@ internal class ChartRenderer : ShapeRenderer
   {
     var contentArea = renderInfo.LayoutInfo.ContentArea;
     var formatInfo = (ChartFormatInfo)renderInfo.FormatInfo;
-    XUnit top;
-    XUnit bottom;
-    GetLeftRightVerticalPosition(out top, out bottom);
+    GetLeftRightVerticalPosition(out var top, out var bottom);
 
     XUnit left = contentArea.X + contentArea.Width - formatInfo.formattedRight.InnerWidth;
     var width = formatInfo.formattedRight.InnerWidth;
@@ -153,9 +149,7 @@ internal class ChartRenderer : ShapeRenderer
     var contentArea = renderInfo.LayoutInfo.ContentArea;
     var formatInfo = (ChartFormatInfo)renderInfo.FormatInfo;
 
-    XUnit left;
-    XUnit right;
-    GetTopBottomHorizontalPosition(out left, out right);
+    GetTopBottomHorizontalPosition(out var left, out var right);
 
     var top = contentArea.Y;
     if (formatInfo.formattedHeader != null)
@@ -171,9 +165,7 @@ internal class ChartRenderer : ShapeRenderer
     var contentArea = renderInfo.LayoutInfo.ContentArea;
     var formatInfo = (ChartFormatInfo)renderInfo.FormatInfo;
 
-    XUnit left;
-    XUnit right;
-    GetTopBottomHorizontalPosition(out left, out right);
+    GetTopBottomHorizontalPosition(out var left, out var right);
 
     XUnit top = contentArea.Y + contentArea.Height - formatInfo.formattedBottom.InnerHeight;
     if (formatInfo.formattedFooter != null)
@@ -366,8 +358,7 @@ internal class ChartRenderer : ShapeRenderer
       return Tagger.Artifact(Gfx);
 
     var scope = Tagger.Block(Gfx, chart, PdfTag.Figure, out var element);
-    if (element != null)
-      element.AlternateText = chart.AlternativeText;
+    element?.AlternateText = chart.AlternativeText;
 
     return scope;
   }

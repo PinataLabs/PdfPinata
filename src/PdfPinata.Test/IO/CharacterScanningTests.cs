@@ -185,7 +185,7 @@ public class CharacterScanningTests
         var readNextByte = () => index < queue.Length ? queue[index++] : Eof;
 
         var method = ScannerType.GetMethod("Advance", BindingFlags.Public | BindingFlags.Static);
-        object[] args = { '\0', initialNextChar, handleCrlf, readNextByte };
+        object[] args = ['\0', initialNextChar, handleCrlf, readNextByte];
         // ReSharper disable once PossibleNullReferenceException
         method.Invoke(null, args);
         return ((char)args[0], (char)args[1]);
@@ -195,7 +195,7 @@ public class CharacterScanningTests
     {
         var method = ScannerType.GetMethod("SkipWhiteSpace", BindingFlags.Public | BindingFlags.Static);
         // ReSharper disable once PossibleNullReferenceException
-        return (char)method.Invoke(null, new object[] { currChar, scanNextChar });
+        return (char)method.Invoke(null, [currChar, scanNextChar]);
     }
 
     private static T InvokeStatic<T>(string methodName, params object[] args)

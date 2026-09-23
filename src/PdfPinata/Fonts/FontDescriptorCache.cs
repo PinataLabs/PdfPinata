@@ -57,8 +57,7 @@ internal sealed class FontDescriptorCache
         try
         {
             Lock.EnterFontFactory();
-            FontDescriptor descriptor;
-            if (!Singleton._cache.TryGetValue(fontDescriptorKey, out descriptor))
+            if (!Singleton._cache.TryGetValue(fontDescriptorKey, out var descriptor))
             {
                 descriptor = new OpenTypeDescriptor(fontDescriptorKey, font);
                 Singleton._cache.Add(fontDescriptorKey, descriptor);
@@ -81,8 +80,7 @@ internal sealed class FontDescriptorCache
         try
         {
             Lock.EnterFontFactory();
-            FontDescriptor descriptor;
-            if (!Singleton._cache.TryGetValue(fontDescriptorKey, out descriptor))
+            if (!Singleton._cache.TryGetValue(fontDescriptorKey, out var descriptor))
             {
                 var font = new XFont(fontFamilyName, 10, style);
                 descriptor = GetOrCreateDescriptorFor(font);
@@ -99,8 +97,7 @@ internal sealed class FontDescriptorCache
         try
         {
             Lock.EnterFontFactory();
-            FontDescriptor descriptor;
-            if (!Singleton._cache.TryGetValue(fontDescriptorKey, out descriptor))
+            if (!Singleton._cache.TryGetValue(fontDescriptorKey, out var descriptor))
             {
                 descriptor = GetOrCreateOpenTypeDescriptor(fontDescriptorKey, idName, fontData);
                 Singleton._cache.Add(fontDescriptorKey, descriptor);

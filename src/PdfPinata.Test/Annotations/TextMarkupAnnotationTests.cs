@@ -62,11 +62,10 @@ public class TextMarkupAnnotationTests
         annotation.AddQuad(new XRect(120, 660, 40, 12));
 
         annotation.Quads.Select(q => new[] { q.X1, q.Y1, q.X2, q.Y2 })
-            .Should().BeEquivalentTo(new[]
-            {
+            .Should().BeEquivalentTo([
                 new[] { 30d, 700d, 100d, 716d },
                 new[] { 120d, 660d, 160d, 672d }
-            });
+            ]);
     }
 
     [Fact]
@@ -299,9 +298,9 @@ public class TextMarkupAnnotationTests
     {
         var item = dictionary.Elements[key];
         if (item is PdfRectangle rectangle)
-            return new[] { rectangle.X1, rectangle.Y1, rectangle.X2, rectangle.Y2 };
+            return [rectangle.X1, rectangle.Y1, rectangle.X2, rectangle.Y2];
 
         var array = dictionary.Elements.GetArray(key);
-        return Enumerable.Range(0, array.Elements.Count).Select(array.Elements.GetReal).ToArray();
+        return [..Enumerable.Range(0, array.Elements.Count).Select(array.Elements.GetReal)];
     }
 }

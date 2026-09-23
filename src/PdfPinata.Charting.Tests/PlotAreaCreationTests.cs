@@ -50,7 +50,7 @@ public class PlotAreaCreationTests
     [Fact]
     public void ACombinationChartWhosePlotAreaWasNeverAskedForIsStillDrawn()
     {
-        var chart = Charts.OfSeries(ChartType.Column2D, new[] { 1.0, 5.0, 3.0 }, new[] { 2.0, 4.0, 1.0 });
+        var chart = Charts.OfSeries(ChartType.Column2D, [1.0, 5.0, 3.0], [2.0, 4.0, 1.0]);
         chart.SeriesCollection[1].ChartType = ChartType.Line;
 
         var draw = () => Drawn.Page(chart);

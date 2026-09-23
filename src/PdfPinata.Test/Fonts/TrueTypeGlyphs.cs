@@ -64,7 +64,7 @@ internal sealed class TrueTypeGlyphs
     public int[] ComponentsOf(int glyph)
     {
         if (!IsComposite(glyph))
-            return Array.Empty<int>();
+            return [];
 
         var components = new List<int>();
         var position = _glyf + _loca[glyph] + 10;
@@ -83,7 +83,7 @@ internal sealed class TrueTypeGlyphs
                 position += 8;
 
             if ((flags & MoreComponents) == 0)
-                return components.ToArray();
+                return [..components];
         }
     }
 

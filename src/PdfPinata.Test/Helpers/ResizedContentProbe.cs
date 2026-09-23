@@ -166,12 +166,12 @@ internal static class ResizedContentProbe
         var height = Number(op.Operands[3]);
 
         XPoint[] corners =
-        {
+        [
             ctm.Transform(new XPoint(x, y)),
             ctm.Transform(new XPoint(x + width, y)),
             ctm.Transform(new XPoint(x + width, y + height)),
             ctm.Transform(new XPoint(x, y + height))
-        };
+        ];
 
         var minX = corners.Min(point => point.X);
         var minY = corners.Min(point => point.Y);

@@ -377,7 +377,7 @@ public static class PdfSigner
         PdfSignatureOptions options)
     {
         var action = options.LockAction!.Value;
-        var fields = action == PdfFieldLockAction.All ? null : (options.LockFields ?? Array.Empty<string>()).ToArray();
+        var fields = action == PdfFieldLockAction.All ? null : (options.LockFields ?? []).ToArray();
 
         // A fresh dictionary per signing, rather than one the options hold, so that one options
         // object can sign any number of documents.

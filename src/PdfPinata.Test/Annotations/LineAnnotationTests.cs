@@ -28,7 +28,7 @@ public sealed class LineAnnotationTests : IDisposable
 {
     private const string OutDir = "Out/LineAnnotations";
 
-    private readonly List<MagickImageCollection> _rasterized = new();
+    private readonly List<MagickImageCollection> _rasterized = [];
 
     public void Dispose()
     {

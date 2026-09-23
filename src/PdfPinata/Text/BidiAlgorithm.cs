@@ -107,7 +107,7 @@ public static partial class BidiAlgorithm
                 order.Add(firstUnit[idx] + repeat);
         }
 
-        return new BidiResult(resolved.ParagraphLevel, levels, removed, order.ToArray(), joining);
+        return new BidiResult(resolved.ParagraphLevel, levels, removed, [..order], joining);
     }
 
     /// <summary>Whether rule X9 takes this class out before anything is resolved.</summary>
@@ -423,7 +423,7 @@ public static partial class BidiAlgorithm
 
                 if (current == null || _levels[idx] != level)
                 {
-                    current = new List<int>();
+                    current = [];
                     runs.Add(current);
                     level = _levels[idx];
                 }
@@ -484,7 +484,7 @@ public static partial class BidiAlgorithm
             for (var idx = 0; idx < runs.Count; idx++)
             {
                 if (!used[idx])
-                    sequences.Add(BuildSequence(new List<int>(runs[idx])));
+                    sequences.Add(BuildSequence([..runs[idx]]));
             }
 
             return sequences;
@@ -568,7 +568,7 @@ public static partial class BidiAlgorithm
             }
 
             if (order.Count == 0)
-                return Array.Empty<int>();
+                return [];
 
             byte highest = 0;
             byte lowestOdd = MaxDepth + 1;

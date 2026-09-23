@@ -25,7 +25,7 @@ public sealed class RadialGradientRenderingTests : IDisposable
 {
     private const string OutDir = "Out/RadialGradient";
 
-    private readonly List<MagickImageCollection> _rasterized = new();
+    private readonly List<MagickImageCollection> _rasterized = [];
 
     public void Dispose()
     {

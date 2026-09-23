@@ -164,11 +164,10 @@ public class SoftHyphenInJustifiedListTests
     private static IReadOnlyList<IReadOnlyList<double>> LinesOf(PdfPage page)
     {
         var runs = TextBaselines.PositionsOf(page);
-        return runs
+        return [..runs
             .GroupBy(run => Math.Round(run.Y, 3))
             .OrderByDescending(line => line.Key)
-            .Select(line => (IReadOnlyList<double>)line.Select(run => run.X).ToList())
-            .ToList();
+            .Select(line => (IReadOnlyList<double>)line.Select(run => run.X).ToList())];
     }
 
     private static async Task<PdfDocument> Render(int rightIndentMillimeters, bool asList = true,

@@ -52,7 +52,7 @@ public class FormatterObstacleTests
 
     private static List<(double X, double Y)> SecondColumnOf(IEnumerable<(double X, double Y)> lines)
     {
-        return lines.Where(line => line.X > Block.X + SecondColumnLeft - 1).ToList();
+        return [..lines.Where(line => line.X > Block.X + SecondColumnLeft - 1)];
     }
 
     private static PdfPage Render(string text = Prose, XRect? area = null,
@@ -72,11 +72,10 @@ public class FormatterObstacleTests
     /// <summary>Where each line begins and how far down it sits, top of the page first.</summary>
     private static List<(double X, double Y)> LinesOf(PdfPage page, int skip = 0)
     {
-        return TextBaselines.PositionsOf(page)
+        return [..TextBaselines.PositionsOf(page)
             .Skip(skip)
             .Select(point => (point.X, point.Y))
-            .OrderByDescending(line => line.Y)
-            .ToList();
+            .OrderByDescending(line => line.Y)];
     }
 
     /// <summary>The glyph a space is in the face the tests are pinned to.</summary>

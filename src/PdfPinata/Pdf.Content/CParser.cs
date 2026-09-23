@@ -226,6 +226,6 @@ public sealed class CParser
         return _lexer.ScanNextToken();
     }
 
-    private readonly CSequence _operands = new();
+    private readonly CSequence _operands = [];
     private readonly CLexer _lexer;
 }

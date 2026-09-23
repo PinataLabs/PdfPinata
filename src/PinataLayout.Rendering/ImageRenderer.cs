@@ -154,8 +154,7 @@ internal class ImageRenderer : ShapeRenderer
         Tagger.EndList();
 
         var scope = Tagger.Block(Gfx, image, PdfTag.Figure, out var element);
-        if (element != null)
-            element.AlternateText = image.AlternativeText;
+        element?.AlternateText = image.AlternativeText;
 
         return scope;
     }
@@ -388,8 +387,7 @@ internal class ImageRenderer : ShapeRenderer
             }
             finally
             {
-                if (xImage != null)
-                    xImage.Dispose();
+                xImage?.Dispose();
             }
         }
         if (formatInfo.Failure != ImageFailure.None)

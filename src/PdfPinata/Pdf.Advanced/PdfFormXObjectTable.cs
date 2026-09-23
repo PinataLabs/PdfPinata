@@ -75,8 +75,7 @@ internal sealed class PdfFormXObjectTable : PdfResourceTable
         {
             // Is the external PDF file from which is imported already known for the current document?
             var selector = new Selector(form);
-            PdfImportedObjectTable importedObjectTable;
-            if (!_forms.TryGetValue(selector, out importedObjectTable))
+            if (!_forms.TryGetValue(selector, out var importedObjectTable))
             {
                 // No: Get the external document from the form and create ImportedObjectTable.
                 var doc = pdfForm.ExternalDocument;
@@ -104,8 +103,7 @@ internal sealed class PdfFormXObjectTable : PdfResourceTable
     {
         // Is the external PDF file from which is imported already known for the current document?
         var selector = new Selector(page);
-        PdfImportedObjectTable importedObjectTable;
-        if (!_forms.TryGetValue(selector, out importedObjectTable))
+        if (!_forms.TryGetValue(selector, out var importedObjectTable))
         {
             importedObjectTable = new PdfImportedObjectTable(Owner, page.Owner);
             _forms[selector] = importedObjectTable;

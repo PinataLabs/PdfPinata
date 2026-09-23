@@ -28,15 +28,14 @@ internal sealed class AnnotationsDemo : PdfDemo
 
     public override string Summary => "Notes, links, text markup, stamps and attachments.";
 
-    public override IReadOnlyList<string> Shows => new[]
-    {
+    public override IReadOnlyList<string> Shows => [
         "The four text markup annotations - highlight, underline, strike out, squiggly",
         "A markup that follows text across a line break, as two quadrilaterals in one annotation",
         "Note annotations: the seven icons, an open popup, colour and opacity",
         "Links: to the web, to a page, and to a named destination - PDFKit's link and goTo",
         "A file attachment carrying its bytes, and a rubber stamp",
         "Which of PDFKit's annotation methods have no counterpart here"
-    };
+    ];
 
     public override int PageCount => 3;
 
@@ -113,7 +112,7 @@ internal sealed class AnnotationsDemo : PdfDemo
         Heading(gfx, "Text markup", 124);
 
         (string Line, string Run, Func<PdfTextMarkupAnnotation> Make, string Caption)[] markups =
-        {
+        [
             ("Highlight marks a run of text with a wash of colour.", "a wash of colour",
                 () => new PdfHighlightAnnotation(), "PdfHighlightAnnotation - PDFKit's highlight()"),
             ("Underline draws a line along the foot of the run.", "along the foot",
@@ -122,7 +121,7 @@ internal sealed class AnnotationsDemo : PdfDemo
                 () => new PdfStrikeOutAnnotation(), "PdfStrikeOutAnnotation - PDFKit's strike()"),
             ("Squiggly draws the wavy line a spell checker uses.", "the wavy line",
                 () => new PdfSquigglyAnnotation(), "PdfSquigglyAnnotation - PDFKit has no squiggly()")
-        };
+        ];
 
         double y = 154;
         foreach (var each
@@ -178,7 +177,7 @@ internal sealed class AnnotationsDemo : PdfDemo
                   + "size it likes.", 444);
 
         PdfTextAnnotationIcon[] icons =
-        {
+        [
             PdfTextAnnotationIcon.Comment,
             PdfTextAnnotationIcon.Note,
             PdfTextAnnotationIcon.Help,
@@ -186,7 +185,7 @@ internal sealed class AnnotationsDemo : PdfDemo
             PdfTextAnnotationIcon.Insert,
             PdfTextAnnotationIcon.NewParagraph,
             PdfTextAnnotationIcon.Paragraph
-        };
+        ];
 
         for (var index = 0; index < icons.Length; index++)
         {
@@ -320,12 +319,12 @@ internal sealed class AnnotationsDemo : PdfDemo
         Heading(secondGfx, "Rubber stamp - PDFKit has no equivalent", 430);
 
         PdfRubberStampAnnotationIcon[] stamps =
-        {
+        [
             PdfRubberStampAnnotationIcon.Draft,
             PdfRubberStampAnnotationIcon.Confidential,
             PdfRubberStampAnnotationIcon.ForComment,
             PdfRubberStampAnnotationIcon.Final
-        };
+        ];
 
         // docs:begin stamp
         for (var index = 0; index < stamps.Length; index++)

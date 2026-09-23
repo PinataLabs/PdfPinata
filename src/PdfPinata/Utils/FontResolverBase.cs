@@ -165,7 +165,7 @@ public abstract class FontResolverBase
         if (isOSX)
         {
             fontDir = "/Library/Fonts/";
-            return System.IO.Directory.Exists(fontDir) ? FontFileTypes.In(fontDir).ToArray() : System.Array.Empty<string>();
+            return System.IO.Directory.Exists(fontDir) ? [..FontFileTypes.In(fontDir)] : [];
         }
 
         var isLinux = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Linux);
@@ -186,7 +186,7 @@ public abstract class FontResolverBase
             if (System.IO.Directory.Exists(appdataFontDir))
                 fontPaths.AddRange(FontFileTypes.In(appdataFontDir));
 
-            return fontPaths.ToArray();
+            return [..fontPaths];
         }
 
         throw new System.NotImplementedException("FontResolver not implemented for this platform (PdfPinata.Utils.FontResolverBase.cs).");

@@ -398,7 +398,7 @@ public abstract class PdfAcroField : PdfDictionary
         var temp = new List<string>();
         foreach (var name in names)
             temp.Add(name);
-        return temp.ToArray();
+        return [..temp];
     }
 
     /// <summary>
@@ -613,7 +613,7 @@ public abstract class PdfAcroField : PdfDictionary
             {
                 var names = new List<string>();
                 GetDescendantNames(ref names, null);
-                return names.ToArray();
+                return [..names];
             }
         }
 
@@ -623,8 +623,7 @@ public abstract class PdfAcroField : PdfDictionary
             for (var idx = 0; idx < count; idx++)
             {
                 var field = this[idx];
-                if (field != null)
-                    field.GetDescendantNames(ref names, partialName);
+                field?.GetDescendantNames(ref names, partialName);
             }
         }
 
@@ -706,8 +705,7 @@ public abstract class PdfAcroField : PdfDictionary
                 case "/Ch":
                     if ((flags & PdfAcroFieldFlags.Combo) != 0)
                         return new PdfComboBoxField(dict);
-                    else
-                        return new PdfListBoxField(dict);
+                    return new PdfListBoxField(dict);
 
                 case "/Sig":
                     return new PdfSignatureField(dict);

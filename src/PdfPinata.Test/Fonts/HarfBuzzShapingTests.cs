@@ -86,7 +86,7 @@ public class HarfBuzzShapingTests
         var run = Shape("\u0065\u0301");
 
         run.Glyphs.Should().HaveCount(1, "two characters, one glyph");
-        Clusters(run).Should().Equal(new[] { 0 },
+        Clusters(run).Should().Equal([0],
             "and the glyph belongs to the cluster that starts at the first of them, which is what "
             + "/ToUnicode and /ActualText read to say the glyph stands for both");
     }
@@ -120,7 +120,7 @@ public class HarfBuzzShapingTests
         var ltr = Shape("abc");
         var rtl = Shape("abc", XTextDirection.RightToLeft);
 
-        Clusters(rtl).Should().Equal(new[] { 2, 1, 0 },
+        Clusters(rtl).Should().Equal([2, 1, 0],
             "the glyphs are in visual order, leftmost first, so a renderer draws every run the "
             + "same way and only the clusters record which way it was written");
         rtl.Glyphs.Select(glyph => glyph.GlyphId)
@@ -269,7 +269,7 @@ public class HarfBuzzShapingTests
     public void RubbishWhereAFontShouldBeIsNotAllowedToBringAPageDown()
     {
         var rubbish = new ShapingFont("Nonsense", "Nonsense", "HarfBuzzShapingTests/nonsense",
-            false, false, 12, 1000, new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 });
+            false, false, 12, 1000, [1, 2, 3, 4, 5, 6, 7, 8]);
 
         using var shaper = new HarfBuzzTextShaper();
         // ReSharper disable once AccessToDisposedClosure

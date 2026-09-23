@@ -88,23 +88,23 @@ public static class PageFit
         // there is still something to say.
         if (!IsFinite(source.X) || !IsFinite(source.Y) || !IsFinite(source.Width) ||
             !IsFinite(source.Height) || source.Width <= 0 || source.Height <= 0)
-            throw new ArgumentException(@"The source rectangle has no area to scale from.", nameof(source));
+            throw new ArgumentException("The source rectangle has no area to scale from.", nameof(source));
 
         if (!IsFinite(target.X) || !IsFinite(target.Y) || !IsFinite(target.Width) ||
             !IsFinite(target.Height) || target.Width <= 0 || target.Height <= 0)
-            throw new ArgumentException(@"The target rectangle has no area to scale into.", nameof(target));
+            throw new ArgumentException("The target rectangle has no area to scale into.", nameof(target));
 
         // Take the margin off the target first: everything below fits into what is left of it.
         var margin = options.Margin.Point;
         if (!IsFinite(margin) || margin < 0)
-            throw new ArgumentException(@"The margin is not a length.", nameof(options));
+            throw new ArgumentException("The margin is not a length.", nameof(options));
 
         var boxWidth = target.Width - 2 * margin;
         var boxHeight = target.Height - 2 * margin;
         if (boxWidth <= 0 || boxHeight <= 0)
         {
             throw new ArgumentException(
-                @"The margin leaves no room in the target rectangle for the content to go.", nameof(options));
+                "The margin leaves no room in the target rectangle for the content to go.", nameof(options));
         }
 
         var boxX = target.X + margin;

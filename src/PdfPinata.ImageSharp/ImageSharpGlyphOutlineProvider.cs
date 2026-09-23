@@ -37,7 +37,7 @@ public sealed class ImageSharpGlyphOutlineProvider : IGlyphOutlineProvider
         double emSize)
     {
         if (string.IsNullOrEmpty(text))
-            return Array.Empty<XGlyphOutline>();
+            return [];
 
         // Through the registered resolver, never around it: a provider that picked its own face
         // would one day disagree with the text that was drawn.
@@ -127,8 +127,8 @@ public sealed class ImageSharpGlyphOutlineProvider : IGlyphOutlineProvider
     private sealed class OutlineCollector : IGlyphRenderer
     {
         private readonly double _baseline;
-        private readonly List<XGlyphOutline> _outlines = new();
-        private List<XGlyphSegment> _segments = new();
+        private readonly List<XGlyphOutline> _outlines = [];
+        private List<XGlyphSegment> _segments = [];
         private XPoint _current;
 
         internal OutlineCollector(double baseline)
@@ -140,7 +140,7 @@ public sealed class ImageSharpGlyphOutlineProvider : IGlyphOutlineProvider
 
         public bool BeginGlyph(in FontRectangle bounds, in GlyphRendererParameters parameters)
         {
-            _segments = new List<XGlyphSegment>();
+            _segments = [];
             return true;
         }
 

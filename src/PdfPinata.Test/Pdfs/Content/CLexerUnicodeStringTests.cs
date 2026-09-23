@@ -28,13 +28,13 @@ public class CLexerUnicodeStringTests
         var bytes = new List<byte> { (byte)'(', 0xFE, 0xFF };
         bytes.AddRange(inside);
         bytes.Add((byte)')');
-        return bytes.ToArray();
+        return [..bytes];
     }
 
     /// <summary>One character of a big-endian UTF-16 string.</summary>
     private static byte[] Wide(char ch) => [(byte)(ch >> 8), (byte)(ch & 0xFF)];
 
-    private static byte[] Concat(params byte[][] parts) => parts.SelectMany(part => part).ToArray();
+    private static byte[] Concat(params byte[][] parts) => [..parts.SelectMany(part => part)];
 
     private static async Task<string> TheStringIn(byte[] content)
     {
@@ -128,7 +128,7 @@ public class CLexerUnicodeStringTests
         content.AddRange([(byte)'b', 0x00]);
         content.Add((byte)')');
 
-        var scanned = await TheStringIn(content.ToArray());
+        var scanned = await TheStringIn([..content]);
 
         scanned.Should().Be("ab");
     }
@@ -202,7 +202,7 @@ public class CLexerUnicodeStringTests
         content.AddRange([(byte)'b', 0x00]);
         content.Add((byte)')');
 
-        var scanned = await TheStringIn(content.ToArray());
+        var scanned = await TheStringIn([..content]);
 
         scanned.Should().Be("a\nb");
     }

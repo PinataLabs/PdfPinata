@@ -106,17 +106,17 @@ public class OpenModeEnforcementTests
 
     /// <summary>The modes that let a document be changed.</summary>
     private static readonly PdfDocumentOpenMode[] Modifiable =
-    {
+    [
         PdfDocumentOpenMode.Modify,
         PdfDocumentOpenMode.Append
-    };
+    ];
 
     /// <summary>The modes that do not.</summary>
     private static readonly PdfDocumentOpenMode[] NotModifiable =
-    {
+    [
         PdfDocumentOpenMode.ReadOnly,
         PdfDocumentOpenMode.Import
-    };
+    ];
 
     public static TheoryData<PdfDocumentOpenMode, string> RefusedCells() => Cells(NotModifiable);
 

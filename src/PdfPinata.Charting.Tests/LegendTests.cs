@@ -243,7 +243,7 @@ public class LegendTests
     public void ACombinationLegendListsItsStackedColumnsInStackOrder()
     {
         var chart = Charts.OfSeries(ChartType.Line,
-            new[] { 20.0, 40.0, 30.0 }, new[] { 25.0, 35.0, 45.0 }, new[] { 10.0, 10.0, 10.0 });
+            [20.0, 40.0, 30.0], [25.0, 35.0, 45.0], [10.0, 10.0, 10.0]);
         chart.SeriesCollection[0].Name = "North";
         chart.SeriesCollection[0].ChartType = ChartType.ColumnStacked2D;
         chart.SeriesCollection[1].Name = "South";
@@ -568,7 +568,7 @@ public class LegendTests
 
     // ----- helpers -----
 
-    private static readonly string[] TwelveRegions = Enumerable.Range(1, 12).Select(n => $"Region {n}").ToArray();
+    private static readonly string[] TwelveRegions = [..Enumerable.Range(1, 12).Select(n => $"Region {n}")];
 
     /// <summary>
     ///   A chart whose legend has one entry per name: the categories of a pie, the series of
@@ -609,7 +609,7 @@ public class LegendTests
     /// </summary>
     private static Chart TwoNamedSeries(ChartType type)
     {
-        var chart = Charts.OfSeries(type, new[] { 20.0, 40.0, 30.0 }, new[] { 25.0, 35.0, 45.0 });
+        var chart = Charts.OfSeries(type, [20.0, 40.0, 30.0], [25.0, 35.0, 45.0]);
         chart.SeriesCollection[0].Name = "North";
         chart.SeriesCollection[0].FillFormat.Color = NorthColour;
         chart.SeriesCollection[1].Name = "South";
@@ -640,11 +640,11 @@ public class LegendTests
 
     /// <summary>The columns themselves: filled, and far taller than any swatch.</summary>
     private static IReadOnlyList<PaintedRectangles.Rectangle> Columns(PdfPage page) =>
-        PaintedRectangles.FilledOn(page).Where(r => r.Height > 3 * Swatch).ToList();
+        [..PaintedRectangles.FilledOn(page).Where(r => r.Height > 3 * Swatch)];
 
     /// <summary>The legend's swatches: filled, and no bigger than the marker area can make them.</summary>
     private static IReadOnlyList<PaintedRectangles.Rectangle> Swatches(PdfPage page, double maxWidth = Swatch + 0.01) =>
-        PaintedRectangles.FilledOn(page).Where(r => r.Width <= maxWidth && r.Height <= Swatch + 0.01).ToList();
+        [..PaintedRectangles.FilledOn(page).Where(r => r.Width <= maxWidth && r.Height <= Swatch + 0.01)];
 
     private static IEnumerable<ShownText.Run> TickLabels(PdfPage page) =>
         ShownText.RunsOn(page).Where(run => IsNumber(run.Text));

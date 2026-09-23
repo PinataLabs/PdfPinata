@@ -34,9 +34,8 @@ public class NestedMarkedContentTests
 
     /// <summary>Every marked-content operator on the page, in order.</summary>
     private static string[] Operators(Document document)
-        => Regex.Matches(ContentOf(document), @"/\w+\s*(?:<<[^>]*>>\s*)?(BDC|BMC)|EMC")
-            .Select(match => match.Value.Contains("EMC") ? "EMC" : "BEGIN")
-            .ToArray();
+        => [..Regex.Matches(ContentOf(document), @"/\w+\s*(?:<<[^>]*>>\s*)?(BDC|BMC)|EMC")
+            .Select(match => match.Value.Contains("EMC") ? "EMC" : "BEGIN")];
 
     /// <summary>How deep the marked-content nesting ever gets.</summary>
     private static int DeepestNesting(Document document)

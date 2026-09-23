@@ -49,8 +49,7 @@ internal sealed class FontFamilyCache
         try
         {
             Lock.EnterFontFactory();
-            FontFamilyInternal family;
-            Singleton._familiesByName.TryGetValue(familyName, out family);
+            Singleton._familiesByName.TryGetValue(familyName, out var family);
             return family;
         }
         finally { Lock.ExitFontFactory(); }
@@ -65,8 +64,7 @@ internal sealed class FontFamilyCache
         {
             Lock.EnterFontFactory();
             // Recall that a font family is uniquely identified by its case insensitive name.
-            FontFamilyInternal existingFontFamily;
-            if (Singleton._familiesByName.TryGetValue(fontFamily.Name, out existingFontFamily))
+            if (Singleton._familiesByName.TryGetValue(fontFamily.Name, out var existingFontFamily))
             {
                 return existingFontFamily;
             }

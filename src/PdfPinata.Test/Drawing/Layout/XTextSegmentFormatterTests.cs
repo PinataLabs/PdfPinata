@@ -121,21 +121,19 @@ public class XTextSegmentFormatterTests
     /// <summary>Where each line of the page begins, topmost first.</summary>
     private static double[] LineStartsOf(PdfPage page)
     {
-        return TextBaselines.PositionsOf(page)
+        return [..TextBaselines.PositionsOf(page)
             .GroupBy(run => Math.Round(run.Y, 3))
             .OrderByDescending(line => line.Key)
-            .Select(line => line.Min(run => run.X))
-            .ToArray();
+            .Select(line => line.Min(run => run.X))];
     }
 
     /// <summary>Where the last run of each line begins, topmost first.</summary>
     private static double[] LineEndsOf(PdfPage page)
     {
-        return TextBaselines.PositionsOf(page)
+        return [..TextBaselines.PositionsOf(page)
             .GroupBy(run => Math.Round(run.Y, 3))
             .OrderByDescending(line => line.Key)
-            .Select(line => line.Max(run => run.X))
-            .ToArray();
+            .Select(line => line.Max(run => run.X))];
     }
 
     private const string TwoLinesOfWords =
@@ -309,7 +307,7 @@ public class XTextSegmentFormatterTests
         // the other has not.
         var asString = Measured(f => f.CalculateTextSize(Sentence, Plain, XBrushes.Black, 200));
         var asSegment = Measured(f =>
-            f.CalculateTextSize(new[] { Segment(Sentence, Plain, XBrushes.Black) }, 200));
+            f.CalculateTextSize([Segment(Sentence, Plain, XBrushes.Black)], 200));
 
         asSegment.Width.Should().BeApproximately(asString.Width, 0.01);
         asSegment.Height.Should().BeApproximately(asString.Height, 0.01);
@@ -331,9 +329,9 @@ public class XTextSegmentFormatterTests
     public void MoreTextMeasuresTaller()
     {
         var one = Measured(f => f.CalculateTextSize(
-            new[] { Segment(Sentence, Plain, XBrushes.Black) }, 200));
+            [Segment(Sentence, Plain, XBrushes.Black)], 200));
         var two = Measured(f => f.CalculateTextSize(
-            new[] { Segment(Sentence, Plain, XBrushes.Black), Segment(Sentence, Bold, XBrushes.Red) }, 200));
+            [Segment(Sentence, Plain, XBrushes.Black), Segment(Sentence, Bold, XBrushes.Red)], 200));
 
         two.Height.Should().BeGreaterThan(one.Height);
     }

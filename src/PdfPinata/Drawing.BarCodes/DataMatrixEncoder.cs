@@ -32,7 +32,7 @@ internal static class DataMatrixEncoder
             throw new InvalidOperationException(BcgSR.DataMatrixTooBig);
 
         Pad_(codewords, capacity);
-        return codewords.ToArray();
+        return [..codewords];
     }
 
     /// <summary>

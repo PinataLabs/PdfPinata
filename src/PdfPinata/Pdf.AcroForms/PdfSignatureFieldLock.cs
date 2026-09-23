@@ -40,7 +40,7 @@ public sealed class PdfSignatureFieldLock : PdfDictionary
         Elements.SetName(Keys.Type, "/SigFieldLock");
         Action = action;
         if (action != PdfFieldLockAction.All)
-            Fields = fields ?? Array.Empty<string>();
+            Fields = fields ?? [];
     }
 
     internal PdfSignatureFieldLock(PdfDictionary dict)
@@ -78,7 +78,7 @@ public sealed class PdfSignatureFieldLock : PdfDictionary
         {
             var array = Elements.GetArray(Keys.Fields);
             if (array == null)
-                return Array.Empty<string>();
+                return [];
 
             var names = new string[array.Elements.Count];
             for (var index = 0; index < names.Length; index++)

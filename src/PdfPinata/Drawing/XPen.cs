@@ -97,8 +97,7 @@ public sealed class XPen
         _dashStyle = pen._dashStyle;
         _dashOffset = pen._dashOffset;
         _dashPattern = pen._dashPattern;
-        if (_dashPattern != null)
-            _dashPattern = (double[])_dashPattern.Clone();
+        _dashPattern = (double[])_dashPattern?.Clone();
     }
 
     /// <summary>
@@ -254,7 +253,7 @@ public sealed class XPen
     {
         get
         {
-            _dashPattern ??= Array.Empty<double>();
+            _dashPattern ??= [];
             return _dashPattern;
         }
         set

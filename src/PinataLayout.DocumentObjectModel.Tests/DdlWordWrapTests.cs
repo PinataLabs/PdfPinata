@@ -25,7 +25,7 @@ public class DdlWordWrapTests
     ///   The limit less an indent nobody outside the serializer can see, so rather than compute the
     ///   one length that lands on it, every test here sweeps a range wide enough to contain it.
     /// </summary>
-    private static readonly int[] LengthsAcrossTheLimit = Enumerable.Range(140, 141).ToArray();
+    private static readonly int[] LengthsAcrossTheLimit = [..Enumerable.Range(140, 141)];
 
     [Fact]
     public void TextOfEveryLengthAroundTheLimitIsWritten()

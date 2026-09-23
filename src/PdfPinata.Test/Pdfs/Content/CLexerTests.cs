@@ -408,7 +408,7 @@ public class CLexerTests
     {
         var tokens = await ScanAll(new CLexer(Encoding.Latin1.GetBytes(content)));
 
-        TokensOf(tokens, CSymbol.String).Should().Equal(new[] { expected }, because);
+        TokensOf(tokens, CSymbol.String).Should().Equal([expected], because);
     }
 
     [Theory(Timeout = 5000)]
@@ -435,7 +435,7 @@ public class CLexerTests
     {
         var tokens = await ScanAll(new CLexer(Encoding.Latin1.GetBytes(content)));
 
-        TokensOf(tokens, CSymbol.String).Should().Equal(new[] { expected }, because);
+        TokensOf(tokens, CSymbol.String).Should().Equal([expected], because);
     }
 
     [Theory(Timeout = 5000)]
@@ -629,7 +629,7 @@ public class CLexerTests
     [Fact]
     public void AppendAndScanNextChar_refusesToAppendTheEndOfContentMarker()
     {
-        var lexer = new CLexer(Array.Empty<byte>());
+        var lexer = new CLexer([]);
         const BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
         typeof(CLexer).GetField("_currChar", flags)!.SetValue(lexer, (char)0xFFFF);
         var method = typeof(CLexer).GetMethod("AppendAndScanNextChar", flags)!;

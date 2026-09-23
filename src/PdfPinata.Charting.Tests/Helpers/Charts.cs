@@ -66,5 +66,5 @@ internal static class Charts
     ///   One-character category names, so that a tick label measures the same width whichever
     ///   category it belongs to and a test comparing two of them is comparing their positions.
     /// </summary>
-    private static readonly string[] CategoryNames = { "A", "B", "C", "D", "E", "F", "G", "H" };
+    private static readonly string[] CategoryNames = ["A", "B", "C", "D", "E", "F", "G", "H"];
 }

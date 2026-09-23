@@ -88,7 +88,7 @@ public class XPenAndBrushTests
     [Fact]
     public void GivingAPenADashPatternMakesItACustomDashedPen()
     {
-        var pen = new XPen(XColors.Red) { DashPattern = new double[] { 3, 1, 1, 1 } };
+        var pen = new XPen(XColors.Red) { DashPattern = [3, 1, 1, 1] };
 
         pen.DashStyle.Should().Be(XDashStyle.Custom);
         pen.DashPattern.Should().Equal(new double[] { 3, 1, 1, 1 });
@@ -110,7 +110,7 @@ public class XPenAndBrushTests
     [InlineData(-1)]
     public void ADashOfNoLengthIsRefused(double dash)
     {
-        var act = () => new XPen(XColors.Red) { DashPattern = new[] { 3, dash } };
+        var act = () => new XPen(XColors.Red) { DashPattern = [3, dash] };
 
         act.Should().Throw<ArgumentException>();
     }
@@ -118,7 +118,7 @@ public class XPenAndBrushTests
     [Fact]
     public void AnEmptyDashPatternIsAllowedAndStillSwitchesTheStyleToCustom()
     {
-        var pen = new XPen(XColors.Red) { DashPattern = Array.Empty<double>() };
+        var pen = new XPen(XColors.Red) { DashPattern = [] };
 
         pen.DashStyle.Should().Be(XDashStyle.Custom);
         pen.DashPattern.Should().BeEmpty();
@@ -132,7 +132,7 @@ public class XPenAndBrushTests
             LineJoin = XLineJoin.Bevel,
             LineCap = XLineCap.Square,
             DashOffset = 1.5,
-            DashPattern = new double[] { 4, 2 }
+            DashPattern = [4, 2]
         };
 
         var copy = original.Clone();
@@ -163,7 +163,7 @@ public class XPenAndBrushTests
     ///   out from a static property and changing one would change it for everybody.
     /// </summary>
     private static readonly Action[] WaysOfChangingAPredefinedPen =
-    {
+    [
         () => XPens.Black.Color = XColors.Red,
         () => XPens.Black.Brush = new XSolidBrush(XColors.Red),
         () => XPens.Black.Width = 5,
@@ -172,9 +172,9 @@ public class XPenAndBrushTests
         () => XPens.Black.MiterLimit = 5,
         () => XPens.Black.DashStyle = XDashStyle.Dot,
         () => XPens.Black.DashOffset = 1,
-        () => XPens.Black.DashPattern = new double[] { 1, 1 },
+        () => XPens.Black.DashPattern = [1, 1],
         () => XPens.Black.Overprint = true
-    };
+    ];
 
     public static TheoryData<int> EachWayOfChangingAPredefinedPen()
     {

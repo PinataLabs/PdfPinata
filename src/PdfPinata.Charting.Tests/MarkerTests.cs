@@ -245,7 +245,7 @@ public class MarkerTests
     public void SeriesThatNameNoStyleTakeTheStylesInTurn()
     {
         var colours = new[] { XColors.Blue, XColors.Green, XColors.Purple };
-        var chart = Charts.OfSeries(ChartType.Line, new[] { 1.0, 2.0 }, new[] { 2.0, 3.0 }, new[] { 3.0, 1.0 });
+        var chart = Charts.OfSeries(ChartType.Line, [1.0, 2.0], [2.0, 3.0], [3.0, 1.0]);
         for (var idx = 0; idx < colours.Length; idx++)
         {
             chart.SeriesCollection[idx].MarkerBackgroundColor = colours[idx];
@@ -287,7 +287,7 @@ public class MarkerTests
     ///   anything else on the chart, which is what tells it from the axes and the outlines.
     /// </summary>
     private static IReadOnlyList<StrokedLines.Line> SeriesLines(PdfPage page) =>
-        StrokedLines.Of(page).Where(line => line.Width < 0.2).ToList();
+        [..StrokedLines.Of(page).Where(line => line.Width < 0.2)];
 
     /// <summary>The points the series' line passes through, in order, read off the line itself.</summary>
     private static IReadOnlyList<(double X, double Y)> DataPoints(PdfPage page, string colour)

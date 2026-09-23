@@ -42,7 +42,7 @@ public class RunLengthDecodeTests
     {
         var literal = Enumerable.Range(0, 128).Select(value => (byte)value).ToArray();
 
-        Decode(new byte[] { 127 }.Concat(literal).Append((byte)128).ToArray()).Should().Equal(literal);
+        Decode([..new byte[] { 127 }.Concat(literal).Append((byte)128)]).Should().Equal(literal);
     }
 
     [Fact]
@@ -79,8 +79,7 @@ public class RunLengthDecodeTests
         Decode(0, (byte)'a', 200).Should().Equal("a"u8.ToArray());
     }
 
-    public static TheoryData<byte[]> Samples => new()
-    {
+    public static TheoryData<byte[]> Samples => [
         Array.Empty<byte>(),
         new byte[] { 42 },
         new byte[] { 1, 1 },
@@ -89,7 +88,7 @@ public class RunLengthDecodeTests
         Enumerable.Repeat((byte)'q', 1000).ToArray(),
         Enumerable.Range(0, 1000).Select(value => (byte)(value * 37 + 11)).ToArray(),
         Enumerable.Range(0, 1000).Select(value => (byte)(value / 3)).ToArray(),
-    };
+    ];
 
     [Theory]
     [MemberData(nameof(Samples))]
@@ -105,7 +104,7 @@ public class RunLengthDecodeTests
     public void ALongRunOfOneByteIsEncodedAsRepeats()
     {
         // Seven repeats of 128 and one of 104, two bytes each, and the marker.
-        Filtering.RunLengthDecode.Encode(Enumerable.Repeat((byte)'q', 1000).ToArray())
+        Filtering.RunLengthDecode.Encode([..Enumerable.Repeat((byte)'q', 1000)])
             .Length.Should().Be(17);
     }
 
@@ -128,11 +127,10 @@ public class RunLengthDecodeTests
     ///   not depend on the other half of what is being tested: "0 0 m 1" literally, the two zeros
     ///   of "100" as a repeat, " 1" literally, the zeros again, and " l S\n" literally.
     /// </summary>
-    private static byte[] EncodedContent() => new byte[] { 6 }.Concat(Latin1("0 0 m 1"))
+    private static byte[] EncodedContent() => [..new byte[] { 6 }.Concat(Latin1("0 0 m 1"))
         .Concat(new byte[] { 255, (byte)'0', 1 }).Concat(Latin1(" 1"))
         .Concat(new byte[] { 255, (byte)'0', 4 }).Concat(Latin1(" l S\n"))
-        .Append((byte)128)
-        .ToArray();
+        .Append((byte)128)];
 
     [Fact]
     public void AStreamFilteredWithItDecodesThroughTheStreamItself()
@@ -193,5 +191,5 @@ public class RunLengthDecodeTests
         return file.ToArray();
     }
 
-    private static byte[] Latin1(string text) => text.Select(ch => (byte)ch).ToArray();
+    private static byte[] Latin1(string text) => [..text.Select(ch => (byte)ch)];
 }

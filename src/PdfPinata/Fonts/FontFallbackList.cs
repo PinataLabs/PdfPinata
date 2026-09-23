@@ -38,7 +38,7 @@ public sealed class FontFallbackList : IFontFallback
         foreach (var family in _families)
         {
             if (string.IsNullOrWhiteSpace(family))
-                throw new ArgumentException(@"A font family to fall back to needs a name.",
+                throw new ArgumentException("A font family to fall back to needs a name.",
                     nameof(familyNames));
         }
     }

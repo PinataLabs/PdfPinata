@@ -43,7 +43,7 @@ public class VisualOrderTests
 
         var order = VisualOrder.Of(resolved, WordSpans(words));
 
-        order.Should().Equal(new[] { 1, 0 },
+        order.Should().Equal([1, 0],
             "the word written first ends up rightmost, so it is placed last");
     }
 
@@ -57,7 +57,7 @@ public class VisualOrderTests
 
         var order = VisualOrder.Of(resolved, WordSpans(words));
 
-        order.Should().Equal(new[] { 3, 1, 2, 0 },
+        order.Should().Equal([3, 1, 2, 0],
             "Second is placed first (rightmost), then one and two in their own order, then First");
     }
 
@@ -85,7 +85,7 @@ public class VisualOrderTests
 
         var order = VisualOrder.Of(resolved, spans);
 
-        order.Should().Equal(new[] { 2, 0, 1 },
+        order.Should().Equal([2, 0, 1],
             "the empty unit takes the same key as the word at index 0 that it followed, and a "
             + "stable sort keeps it right after that word rather than before it");
     }
@@ -118,7 +118,7 @@ public class VisualOrderTests
 
         var order = VisualOrder.Of(resolved, WordSpans(words));
 
-        order.Should().Equal(new[] { 1, 0 },
+        order.Should().Equal([1, 0],
             "Second is wholly right of the mixed unit's leftmost character");
     }
 }

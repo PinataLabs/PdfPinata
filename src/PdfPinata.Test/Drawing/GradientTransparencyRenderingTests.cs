@@ -23,7 +23,7 @@ public sealed class GradientTransparencyRenderingTests : IDisposable
     ///   Everything rasterized by one test, kept until the test is over. A page at 300 dpi is
     ///   tens of megabytes of unmanaged bitmap that the collector cannot see the size of.
     /// </summary>
-    private readonly List<MagickImageCollection> _rasterized = new();
+    private readonly List<MagickImageCollection> _rasterized = [];
 
     public void Dispose()
     {

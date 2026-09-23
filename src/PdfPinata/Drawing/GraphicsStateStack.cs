@@ -53,9 +53,9 @@ internal class GraphicsStateStack
     public int Restore(InternalGraphicsState state)
     {
         if (!_stack.Contains(state))
-            throw new ArgumentException(@"State not on stack.", nameof(state));
+            throw new ArgumentException("State not on stack.", nameof(state));
         if (state.Invalid)
-            throw new ArgumentException(@"State already restored.", nameof(state));
+            throw new ArgumentException("State already restored.", nameof(state));
 
         var count = 1;
         var top = _stack.Pop();

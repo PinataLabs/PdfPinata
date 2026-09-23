@@ -186,8 +186,8 @@ public class MergedCellList : List<Cell>
     var cellIdx = BinarySearch(cell, new CellComparer());
     if (cellIdx >= 0 && cellIdx < Count)
       return this[cellIdx];
-    else //Binary Search returns the complement of the next value, therefore, "~cellIdx - 1" is the previous cell.
-      cellIdx = ~cellIdx - 1;
+    //Binary Search returns the complement of the next value, therefore, "~cellIdx - 1" is the previous cell.
+    cellIdx = ~cellIdx - 1;
     for (var index = cellIdx; index >= 0; --index)
     {
       var currCell = this[index];

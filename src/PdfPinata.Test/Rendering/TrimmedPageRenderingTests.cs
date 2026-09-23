@@ -153,8 +153,7 @@ public class TrimmedPageRenderingTests
 
         var sheetTop = page.Elements.GetRectangle("/MediaBox").Y2;
 
-        return TextBaselines.LinesOf(page)
-            .Select(baseline => sheetTop - (baseline + offsetY))
-            .ToList();
+        return [..TextBaselines.LinesOf(page)
+            .Select(baseline => sheetTop - (baseline + offsetY))];
     }
 }

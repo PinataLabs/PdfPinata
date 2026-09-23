@@ -26,14 +26,13 @@ public class ExternalFileStreamTests
     ///   in a file beside the document, and the file specification it names.
     /// </summary>
     private static byte[] DocumentWhoseMetadataIsInAnotherFile(string streamEntries, string data = "") =>
-        RawPdf.Build(new[]
-        {
+        RawPdf.Build([
             "<</Type/Catalog/Pages 2 0 R/Metadata 3 0 R>>",
             "<</Type/Pages/Kids[5 0 R]/Count 1>>",
             "<<" + streamEntries + ">>stream\n" + data + "\nendstream",
             "<</Type/Filespec/F(manifest.c2pa)/UF(manifest.c2pa)>>",
             "<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]>>",
-        });
+        ]);
 
     private static PdfDictionary MetadataOf(byte[] pdf, PdfDocumentOpenMode mode = PdfDocumentOpenMode.Modify) =>
         (PdfDictionary)PdfPinata.Pdf.IO.PdfReader.Open(new MemoryStream(pdf), mode)

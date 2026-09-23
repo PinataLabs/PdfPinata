@@ -29,7 +29,7 @@ public sealed class SkiaGlyphOutlineProvider : IGlyphOutlineProvider
         double emSize)
     {
         if (string.IsNullOrEmpty(text))
-            return Array.Empty<XGlyphOutline>();
+            return [];
 
         // Through the registered resolver, never around it: a provider that picked its own face
         // would one day disagree with the text that was drawn.

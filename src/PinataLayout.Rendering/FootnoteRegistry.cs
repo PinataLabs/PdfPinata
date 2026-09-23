@@ -73,7 +73,7 @@ internal class FootnoteRegistry
 
     /// <summary>The notes whose marks landed on this page, in reading order.</summary>
     internal IReadOnlyList<Footnote> On(int page) =>
-        _order.Where(note => _entries[note].Page == page).ToList();
+        [.._order.Where(note => _entries[note].Page == page)];
 
     /// <summary>The note as it was laid out, or null if it never was.</summary>
     internal FormattedFootnote FormattedOf(Footnote footnote) =>
@@ -142,7 +142,7 @@ internal class FootnoteRegistry
     private readonly Dictionary<Footnote, Entry> _entries =
         new(ReferenceEqualityComparer.Instance);
 
-    private readonly List<Footnote> _order = new();
+    private readonly List<Footnote> _order = [];
 }
 
 /// <summary>

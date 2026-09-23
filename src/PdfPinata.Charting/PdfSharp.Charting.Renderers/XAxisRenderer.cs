@@ -178,8 +178,7 @@ internal abstract class XAxisRenderer : AxisRenderer
       }
 
       // Remember space for later drawing.
-      if (atri != null)
-        atri.AxisTitleSize = titleSize;
+      atri?.AxisTitleSize = titleSize;
       xari.TickLabelsHeight = size.Height;
       xari.Height = size.Height;
       xari.Width = titleSize.Width + size.Width + xari.MajorTickMarkWidth;
@@ -248,9 +247,7 @@ internal abstract class XAxisRenderer : AxisRenderer
 
     // Draw axis.
     // First draw tick marks, second draw axis.
-    double majorTickMarkStart, majorTickMarkEnd,
-      minorTickMarkStart, minorTickMarkEnd;
-    GetTickMarkPos(xari, out majorTickMarkStart, out majorTickMarkEnd, out minorTickMarkStart, out minorTickMarkEnd);
+    GetTickMarkPos(xari, out var majorTickMarkStart, out var majorTickMarkEnd, out var minorTickMarkStart, out var minorTickMarkEnd);
 
     // The axis line itself is still stroked from LineFormat, but the tick marks now read the
     // pens the base class already computes for every axis - the fix this merge exists to make.

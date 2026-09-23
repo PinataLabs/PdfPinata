@@ -134,7 +134,7 @@ public class UnicodeTextStringTests
         _ = document.AddPage();
         var checksum = new string(new[] { '\x00', '\xE4', '\xFF', '\x7F' });
 
-        var embedded = new PdfEmbeddedFile(document, new byte[] { 1, 2, 3 }, checksum);
+        var embedded = new PdfEmbeddedFile(document, [1, 2, 3], checksum);
 
         var checksumString = (PdfString)((PdfDictionary)embedded.Elements
             .GetObject("/Params")).Elements["/CheckSum"];
@@ -187,7 +187,7 @@ public class UnicodeTextStringTests
     {
         var document = new PdfDocument();
         _ = document.AddPage();
-        var embedded = new PdfEmbeddedFile(document, new byte[] { 1, 2, 3 });
+        var embedded = new PdfEmbeddedFile(document, [1, 2, 3]);
 
         return new PdfFileSpecification(document, fileName, embedded);
     }

@@ -25,13 +25,12 @@ internal sealed class NewspaperDemo : PdfDemo
 
     public override string Summary => "A broadsheet front page in five columns.";
 
-    public override IReadOnlyList<string> Shows => new[]
-    {
+    public override IReadOnlyList<string> Shows => [
         "Five justified columns with rules drawn down the gutters",
         "Text run round a photograph by flowing it twice, above and below",
         "A masthead letterspaced with CharacterSpacing",
         "A sidebar clipped with IntersectClip inside Save and Restore"
-    };
+    ];
 
     public override int PageCount => 1;
 

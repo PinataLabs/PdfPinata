@@ -141,7 +141,7 @@ public class AsciiFilterTests
     [Fact]
     public void Ascii85WritesNothingAsTheEndMarkerAlone()
     {
-        Encoding.ASCII.GetString(Filtering.ASCII85Decode.Encode(Array.Empty<byte>())).Should().Be("~>");
+        Encoding.ASCII.GetString(Filtering.ASCII85Decode.Encode([])).Should().Be("~>");
         Filtering.ASCII85Decode.Decode("~>"u8.ToArray(), (FilterParms)null).Should().BeEmpty();
     }
 
@@ -258,7 +258,7 @@ public class AsciiFilterTests
     [Fact]
     public void AsciiHexWritesTheDigitsInUpperCase()
     {
-        Encoding.ASCII.GetString(Filtering.ASCIIHexDecode.Encode(new byte[] { 0x00, 0x0F, 0xA5, 0xFF }))
+        Encoding.ASCII.GetString(Filtering.ASCIIHexDecode.Encode([0x00, 0x0F, 0xA5, 0xFF]))
             .Should().Be("000FA5FF");
     }
 
@@ -290,7 +290,7 @@ public class AsciiFilterTests
     [Fact]
     public void AsciiHexDecodesNothingFromNothing()
     {
-        Filtering.ASCIIHexDecode.Decode(Array.Empty<byte>(), (FilterParms)null).Should().BeEmpty();
+        Filtering.ASCIIHexDecode.Decode([], (FilterParms)null).Should().BeEmpty();
         Filtering.ASCIIHexDecode.Decode(">"u8.ToArray(), (FilterParms)null).Should().BeEmpty();
     }
 

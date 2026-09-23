@@ -113,10 +113,9 @@ public class DanglingReferenceTests
     ///   A one page document carrying the given extra entry in its page dictionary. Object 9,
     ///   which the entries above refer to, is deliberately never written.
     /// </summary>
-    private static byte[] DocumentWith(string pageEntry) => RawPdf.Build(new[]
-    {
+    private static byte[] DocumentWith(string pageEntry) => RawPdf.Build([
         "<</Type/Catalog/Pages 2 0 R>>",
         "<</Type/Pages/Kids[3 0 R]/Count 1>>",
         "<</Type/Page/Parent 2 0 R/MediaBox[0 0 200 100]" + pageEntry + ">>"
-    });
+    ]);
 }

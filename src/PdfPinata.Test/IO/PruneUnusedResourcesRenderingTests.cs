@@ -65,6 +65,6 @@ public class PruneUnusedResourcesRenderingTests
     private static string[] Render(PdfDocument document, string prefix)
     {
         using var rasterized = PdfHelper.Rasterize(document);
-        return PdfHelper.WriteImageCollection(rasterized.ImageCollection, OutDir, prefix).ToArray();
+        return [..PdfHelper.WriteImageCollection(rasterized.ImageCollection, OutDir, prefix)];
     }
 }

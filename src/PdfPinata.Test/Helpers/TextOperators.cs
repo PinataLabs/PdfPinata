@@ -25,10 +25,9 @@ internal static class TextOperators
     /// </summary>
     internal static IReadOnlyList<double> NumbersGivenTo(PdfPage page, OpCodeName opCode)
     {
-        return Operators(page)
+        return [..Operators(page)
             .Where(op => op.OpCode.OpCodeName == opCode && op.Operands.Count == 1)
-            .Select(op => Number(op.Operands[0]))
-            .ToList();
+            .Select(op => Number(op.Operands[0]))];
     }
 
     /// <summary>
@@ -41,13 +40,12 @@ internal static class TextOperators
     /// </remarks>
     internal static IReadOnlyList<string> ShownStrings(PdfPage page)
     {
-        return Operators(page)
+        return [..Operators(page)
             .Where(op => op.OpCode.OpCodeName is OpCodeName.Tj or OpCodeName.TJ)
             .SelectMany(op => ItemsOf(op.Operands)
-                .SelectMany(operand => operand is CArray array ? ItemsOf(array) : new[] { operand })
+                .SelectMany(operand => operand is CArray array ? ItemsOf(array) : [operand])
                 .OfType<CString>())
-            .Select(text => text.Value)
-            .ToList();
+            .Select(text => text.Value)];
     }
 
     /// <summary>
@@ -55,10 +53,9 @@ internal static class TextOperators
     /// </summary>
     internal static IReadOnlyList<double[]> OperandsGivenTo(PdfPage page, OpCodeName opCode)
     {
-        return Operators(page)
+        return [..Operators(page)
             .Where(op => op.OpCode.OpCodeName == opCode)
-            .Select(op => ItemsOf(op.Operands).Select(Number).ToArray())
-            .ToList();
+            .Select(op => ItemsOf(op.Operands).Select(Number).ToArray())];
     }
 
     /// <summary>
@@ -67,10 +64,9 @@ internal static class TextOperators
     /// </summary>
     internal static IReadOnlyList<double> TextMatrixSkews(PdfPage page)
     {
-        return Operators(page)
+        return [..Operators(page)
             .Where(op => op.OpCode.OpCodeName == OpCodeName.Tm && op.Operands.Count == 6)
-            .Select(op => Number(op.Operands[2]))
-            .ToList();
+            .Select(op => Number(op.Operands[2]))];
     }
 
     /// <summary>
@@ -78,10 +74,9 @@ internal static class TextOperators
     /// </summary>
     internal static IReadOnlyList<(double X, double Y)> TdOffsets(PdfPage page)
     {
-        return Operators(page)
+        return [..Operators(page)
             .Where(op => op.OpCode.OpCodeName == OpCodeName.Td && op.Operands.Count == 2)
-            .Select(op => (Number(op.Operands[0]), Number(op.Operands[1])))
-            .ToList();
+            .Select(op => (Number(op.Operands[0]), Number(op.Operands[1])))];
     }
 
     /// <summary>
@@ -98,10 +93,9 @@ internal static class TextOperators
     /// </summary>
     internal static IReadOnlyList<OpCodeName> ShowTextOperators(PdfPage page)
     {
-        return Operators(page)
+        return [..Operators(page)
             .Select(op => op.OpCode.OpCodeName)
-            .Where(name => name is OpCodeName.Tj or OpCodeName.TJ)
-            .ToList();
+            .Where(name => name is OpCodeName.Tj or OpCodeName.TJ)];
     }
 
     /// <summary>
@@ -110,10 +104,9 @@ internal static class TextOperators
     /// </summary>
     internal static IReadOnlyList<double> TjAdjustments(PdfPage page)
     {
-        return TjArrays(page)
+        return [..TjArrays(page)
             .SelectMany(array => ItemsOf(array).OfType<CNumber>())
-            .Select(Number)
-            .ToList();
+            .Select(Number)];
     }
 
     /// <summary>
@@ -121,9 +114,8 @@ internal static class TextOperators
     /// </summary>
     internal static IReadOnlyList<int> TjRunCounts(PdfPage page)
     {
-        return TjArrays(page)
-            .Select(array => ItemsOf(array).OfType<CString>().Count())
-            .ToList();
+        return [..TjArrays(page)
+            .Select(array => ItemsOf(array).OfType<CString>().Count())];
     }
 
     /// <summary>
@@ -144,12 +136,11 @@ internal static class TextOperators
     /// </remarks>
     internal static IReadOnlyList<string> ShownAcrossThePage(PdfPage page)
     {
-        return Placed(page)
+        return [..Placed(page)
             .OrderByDescending(run => run.Y)
             .ThenBy(run => run.X)
             .ThenBy(run => run.Written)
-            .Select(run => run.Text)
-            .ToList();
+            .Select(run => run.Text)];
     }
 
     /// <summary>
@@ -194,7 +185,7 @@ internal static class TextOperators
                 + "ShownStrings or ShownAcrossThePage, which need no position, or measure the run.");
         }
 
-        return placed.Select(run => (run.X, run.Y, run.Text)).ToList();
+        return [..placed.Select(run => (run.X, run.Y, run.Text))];
     }
 
     /// <summary>
@@ -263,7 +254,7 @@ internal static class TextOperators
                     // array's strings move the glyphs within the run rather than placing pieces of
                     // it separately, and the run began at the pen.
                     shown.Add((x, y, shown.Count, string.Concat(operands
-                        .SelectMany(o => o is CArray array ? ItemsOf(array) : new[] { o })
+                        .SelectMany(o => o is CArray array ? ItemsOf(array) : [o])
                         .OfType<CString>()
                         .Select(text => text.Value)), exact));
 

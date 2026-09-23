@@ -46,9 +46,8 @@ public class CrossReferenceConsistencyTests
     private static IReadOnlyList<int> ObjectNumbersIn(byte[] pdf)
     {
         var text = Encoding.Latin1.GetString(pdf);
-        return Regex.Matches(text, @"(?m)^(\d+) (\d+) obj\b")
-            .Select(match => int.Parse(match.Groups[1].Value))
-            .ToList();
+        return [..Regex.Matches(text, @"(?m)^(\d+) (\d+) obj\b")
+            .Select(match => int.Parse(match.Groups[1].Value))];
     }
 
     /// <summary>One line of the xref section: where the object is, which generation, and whether

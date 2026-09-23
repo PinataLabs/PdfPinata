@@ -34,7 +34,7 @@ public sealed class TextMarkupRenderingTests : IDisposable
     ///   test having failed. xUnit builds a new instance of this class per test, so disposing
     ///   here frees them between tests.
     /// </remarks>
-    private readonly List<MagickImageCollection> _rasterized = new();
+    private readonly List<MagickImageCollection> _rasterized = [];
 
     public void Dispose()
     {

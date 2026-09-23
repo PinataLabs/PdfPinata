@@ -94,10 +94,8 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
     protected PdfDictionary(PdfDictionary dict)
         : base(dict)
     {
-        if (dict._elements != null)
-            dict._elements.ChangeOwner(this);
-        if (dict._stream != null)
-            dict._stream.ChangeOwner(this);
+        dict._elements?.ChangeOwner(this);
+        dict._stream?.ChangeOwner(this);
     }
 
     /// <summary>
@@ -820,7 +818,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         internal int GetEnumFromName(string key, object defaultValue, bool create)
         {
             if (defaultValue is not Enum)
-                throw new ArgumentException(@"The default value must be an enumeration value.", nameof(defaultValue));
+                throw new ArgumentException("The default value must be an enumeration value.", nameof(defaultValue));
 
             var obj = ValueOf(key);
             if (obj == null)
@@ -843,7 +841,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         internal void SetEnumAsName(string key, object value)
         {
             if (!(value is Enum))
-                throw new ArgumentException(@"The value must be an enumeration value.", nameof(value));
+                throw new ArgumentException("The value must be an enumeration value.", nameof(value));
             _elements[key] = new PdfName("/" + value);
             MarkOwnerAsChanged();
         }
@@ -1112,7 +1110,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         public void SetObject(string key, PdfObject obj)
         {
             if (obj.Reference != null)
-                throw new ArgumentException(@"PdfObject must not be an indirect object.", nameof(obj));
+                throw new ArgumentException("PdfObject must not be an indirect object.", nameof(obj));
             this[key] = obj;
         }
 
@@ -1123,7 +1121,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         public void SetReference(string key, PdfObject obj)
         {
             if (obj.Reference == null)
-                throw new ArgumentException(@"PdfObject must be an indirect object.", nameof(obj));
+                throw new ArgumentException("PdfObject must be an indirect object.", nameof(obj));
             this[key] = obj.Reference;
         }
 
@@ -1165,8 +1163,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         {
             get
             {
-                PdfItem item;
-                _elements.TryGetValue(key, out item);
+                _elements.TryGetValue(key, out var item);
                 return item;
             }
             set

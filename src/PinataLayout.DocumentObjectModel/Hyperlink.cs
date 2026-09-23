@@ -506,8 +506,7 @@ public partial class Hyperlink : DocumentObject, IVisitable
             serializer.Write("]");
         }
         serializer.Write("{");
-        if (elements != null)
-            elements.Serialize(serializer);
+        elements?.Serialize(serializer);
         serializer.Write("}");
     }
 

@@ -149,8 +149,7 @@ public class CodeOmrTests
             draw(gfx);
 
         var content = Encoding.Latin1.GetString(PageContent.Of(page));
-        return Regex.Matches(content, @"(-?[\d.]+) -?[\d.]+ -?[\d.]+ -?[\d.]+ re")
-            .Select(match => double.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture))
-            .ToArray();
+        return [..Regex.Matches(content, @"(-?[\d.]+) -?[\d.]+ -?[\d.]+ -?[\d.]+ re")
+            .Select(match => double.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture))];
     }
 }

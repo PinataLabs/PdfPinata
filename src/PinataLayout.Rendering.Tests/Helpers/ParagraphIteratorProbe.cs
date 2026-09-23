@@ -89,7 +89,7 @@ internal static class ParagraphIteratorProbe
     private static object New(Paragraph paragraph)
     {
         return Activator.CreateInstance(IteratorType, Internals, null,
-            new object[] { paragraph.Elements }, null);
+            [paragraph.Elements], null);
     }
 
     private static object Call(object iterator, string methodName)

@@ -18,13 +18,12 @@ internal sealed class OrientationDemo : PdfDemo
 
     public override string Summary => "Page sizes, portrait and landscape, and /Rotate.";
 
-    public override IReadOnlyList<string> Shows => new[]
-    {
+    public override IReadOnlyList<string> Shows => [
         "Six page sizes from the ISO and North American sets",
         "PageOrientation.Landscape swapping the sides",
         "XUnit converting one size into points, millimetres and inches",
         "page.Rotate turning what a reader shows without moving the drawing"
-    };
+    ];
 
     public override int PageCount => 6;
 
@@ -38,14 +37,14 @@ internal sealed class OrientationDemo : PdfDemo
         var small = new XFont("Liberation Sans", 8);
 
         (PageSize Size, PageOrientation Orientation, string Note)[] pages =
-        {
+        [
             (PageSize.A4, PageOrientation.Portrait, "the ISO default"),
             (PageSize.A4, PageOrientation.Landscape, "the same page, turned"),
             (PageSize.A3, PageOrientation.Portrait, "twice A4"),
             (PageSize.A6, PageOrientation.Portrait, "an eighth of A3"),
             (PageSize.Letter, PageOrientation.Portrait, "North American"),
             (PageSize.Legal, PageOrientation.Landscape, "North American, turned")
-        };
+        ];
 
         foreach ((var size, var orientation, var note) in pages)
         {
@@ -88,12 +87,12 @@ internal sealed class OrientationDemo : PdfDemo
             var pageHeight = page.Height;
 
             string[] lines =
-            {
+            [
                 $"{pageWidth.Point:0.#} x {pageHeight.Point:0.#} points",
                 $"{pageWidth.Millimeter:0.#} x {pageHeight.Millimeter:0.#} mm",
                 $"{pageWidth.Inch:0.00} x {pageHeight.Inch:0.00} inches",
                 $"PageSizeConverter.ToSize({size}) = {PageSizeConverter.ToSize(size)}"
-            };
+            ];
             // docs:end units
 
             double y = 148;

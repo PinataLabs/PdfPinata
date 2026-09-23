@@ -95,8 +95,7 @@ public sealed class PdfNumberTreeNode : PdfDictionary
     /// </summary>
     public PdfItem GetValue(int key)
     {
-        PdfItem value;
-        if (!Entries.TryGetValue(key, out value))
+        if (!Entries.TryGetValue(key, out var value))
             return null;
 
         var reference = value as PdfReference;
@@ -176,8 +175,7 @@ public sealed class PdfNumberTreeNode : PdfDictionary
             // left where it is.
             for (var at = 0; at + 1 < nums.Elements.Count; at += 2)
             {
-                int key;
-                if (TryGetInteger(nums.Elements[at], out key))
+                if (TryGetInteger(nums.Elements[at], out var key))
                     _entries[key] = nums.Elements[at + 1];
             }
         }

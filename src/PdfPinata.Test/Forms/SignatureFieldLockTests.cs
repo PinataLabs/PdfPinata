@@ -66,7 +66,7 @@ public class SignatureFieldLockTests
     {
         var seed = new PdfSignatureSeedValue(new PdfDocument());
 
-        Action act = () => seed.SubFilters = new[] { "/adbe.pkcs7.detached", "" };
+        Action act = () => seed.SubFilters = ["/adbe.pkcs7.detached", ""];
 
         act.Should().Throw<ArgumentException>();
         seed.SubFilters.Should().BeEmpty("nothing is written when a value is refused");
@@ -108,15 +108,15 @@ public class SignatureFieldLockTests
     public void ASeedValueSurvivesTheFile()
     {
         var document = FormWithSignatureField(out var field);
-        byte[] certificate = { 0x30, 0x82, 0x00, 0xFF, 0x0A };
+        byte[] certificate = [0x30, 0x82, 0x00, 0xFF, 0x0A];
         field.SeedValue = new PdfSignatureSeedValue(document)
         {
             Flags = PdfSeedValueFlags.SubFilter | PdfSeedValueFlags.DigestMethod,
             Filter = "/Adobe.PPKLite",
-            SubFilters = new[] { "/ETSI.CAdES.detached", "adbe.pkcs7.detached" },
-            DigestMethods = new[] { "/SHA256" },
-            Reasons = new[] { "I approve", "I have reviewed" },
-            LegalAttestations = new[] { "No JavaScript" },
+            SubFilters = ["/ETSI.CAdES.detached", "adbe.pkcs7.detached"],
+            DigestMethods = ["/SHA256"],
+            Reasons = ["I approve", "I have reviewed"],
+            LegalAttestations = ["No JavaScript"],
             Version = 2,
             AddRevocationInfo = true,
             CertificationLevel = PdfCertificationLevel.FormFillingAllowed,
@@ -124,9 +124,9 @@ public class SignatureFieldLockTests
             Certificate = new PdfCertificateSeedValue
             {
                 Flags = PdfCertificateSeedValueFlags.Issuer | PdfCertificateSeedValueFlags.Oid,
-                Issuers = new[] { certificate },
-                PolicyOids = new[] { "2.16.840.1.101.3.2.1.3.7" },
-                KeyUsages = new[] { "1X" },
+                Issuers = [certificate],
+                PolicyOids = ["2.16.840.1.101.3.2.1.3.7"],
+                KeyUsages = ["1X"],
                 Url = "https://ca.example.invalid/",
             },
         };
@@ -178,7 +178,7 @@ public class SignatureFieldLockTests
         var signed = Sign(TwoFieldForm(), new PdfSignatureOptions
         {
             LockAction = PdfFieldLockAction.Include,
-            LockFields = new[] { "name" },
+            LockFields = ["name"],
         });
 
         var document = Reader.Open(new MemoryStream(signed), PdfDocumentOpenMode.Modify);
@@ -214,7 +214,7 @@ public class SignatureFieldLockTests
         {
             Certification = PdfCertificationLevel.FormFillingAllowed,
             LockAction = PdfFieldLockAction.Exclude,
-            LockFields = new[] { "comment" },
+            LockFields = ["comment"],
         });
 
         var document = Reader.Open(new MemoryStream(signed), PdfDocumentOpenMode.ReadOnly);

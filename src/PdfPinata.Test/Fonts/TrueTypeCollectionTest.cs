@@ -26,12 +26,12 @@ namespace PdfPinata.Test.Fonts;
 public class TrueTypeCollectionTest
 {
     private static readonly string[] FaceFiles =
-    {
+    [
         "LiberationSans-Regular.ttf",
         "LiberationSans-Bold.ttf",
         "LiberationSans-Italic.ttf",
         "LiberationSans-BoldItalic.ttf"
-    };
+    ];
 
     private sealed class SkiaProbe : SkiaFontResolver
     {
@@ -176,7 +176,7 @@ public class TrueTypeCollectionTest
         WithCollectionFile(path =>
         {
             var resolver = new SkiaProbe();
-            resolver.SetupFontsFiles(new[] { path });
+            resolver.SetupFontsFiles([path]);
 
             var fileName = Path.GetFileName(path);
 
@@ -221,10 +221,9 @@ public class TrueTypeCollectionTest
                 .ToArray();
 
             styles.Should().OnlyContain(m => m.FamilyName == "Liberation Sans");
-            styles.Select(m => m.Style).Should().BeEquivalentTo(new[]
-            {
+            styles.Select(m => m.Style).Should().BeEquivalentTo([
                 XFontStyle.Regular, XFontStyle.Bold, XFontStyle.Italic, XFontStyle.BoldItalic
-            });
+            ]);
         });
     }
 
@@ -282,7 +281,7 @@ public class TrueTypeCollectionTest
     private static byte[] BuildCollection()
     {
         return TrueTypeCollectionBuilder.Build(
-            FaceFiles.Select(name => File.ReadAllBytes(AssetPath(name))).ToArray());
+            [..FaceFiles.Select(name => File.ReadAllBytes(AssetPath(name)))]);
     }
 
     private static FontDescription Describe(byte[] font)

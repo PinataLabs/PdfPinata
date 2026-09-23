@@ -32,8 +32,7 @@ internal sealed class FacturXDemo : PdfDemo
 
     public override string Summary => "A ZUGFeRD / Factur-X invoice: PDF/A-3 with its own XML inside it.";
 
-    public override IReadOnlyList<string> Shows => new[]
-    {
+    public override IReadOnlyList<string> Shows => [
         "FacturXInvoice.AttachTo - the file name, the /Data relationship and the media type",
         "That attaching the invoice is what claims PDF/A-3, the only profile that may carry one",
         "The XMP extension schema, which declares the fx: properties the packet then writes",
@@ -41,7 +40,7 @@ internal sealed class FacturXDemo : PdfDemo
         "FacturXInvoice.FindIn and ReadFrom - the receiving half of the mandate",
         "That the XML carries the line items the page draws, from the same array, and reconciles",
         "That an RGB document claiming PDF/A is given an sRGB output intent it never asked for"
-    };
+    ];
 
     public override int PageCount => 2;
 
@@ -115,11 +114,11 @@ internal sealed class FacturXDemo : PdfDemo
             y += 20;
 
             (string Caption, decimal Amount)[] totals =
-            {
+            [
                 ("Net", Net),
                 ("VAT 19%", Tax),
                 ("Total due", Gross)
-            };
+            ];
 
             foreach (var total in totals)
             {
@@ -181,7 +180,7 @@ internal sealed class FacturXDemo : PdfDemo
                 body, XBrushes.Black, new XRect(50, 80, 495, 62));
 
             (string Field, string Value)[] facts =
-            {
+            [
                 ("File name", attached.FileName),
                 ("/AFRelationship", "/" + attached.Relationship),
                 ("Media type", attached.EmbeddedFile.MimeType),
@@ -191,7 +190,7 @@ internal sealed class FacturXDemo : PdfDemo
                 ("Output intent", PdfOutputIntents.SrgbIdentifier + ", "
                     + PdfOutputIntents.SrgbProfile.Length.ToString("N0", Invariant)
                     + " bytes, supplied by the writer")
-            };
+            ];
 
             double y = 155;
             foreach (var fact in facts)
@@ -247,11 +246,11 @@ internal sealed class FacturXDemo : PdfDemo
     ///   machine. Two literals that happened to agree would demonstrate the opposite.
     /// </summary>
     private static readonly (string Description, int Quantity, decimal UnitPrice)[] Items =
-    {
+    [
         ("PdfPinata support, annual", 1, 1200.00m),
         ("Migration consultancy, per day", 2, 780.00m),
         ("Font licensing review", 1, 450.00m)
-    };
+    ];
 
     private const decimal VatRate = 19.00m;
 

@@ -259,5 +259,5 @@ public class CSequence : CObject, IList<CObject> // , ICollection<CObject>, IEnu
     /// </remarks>
     public bool IsReadOnly => false;
 
-    private List<CObject> _items = new();
+    private List<CObject> _items = [];
 }

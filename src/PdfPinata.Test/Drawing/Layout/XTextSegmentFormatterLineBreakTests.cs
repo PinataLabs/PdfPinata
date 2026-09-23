@@ -43,11 +43,10 @@ public class XTextSegmentFormatterLineBreakTests
     /// <summary>The baseline of each line of the page, topmost first.</summary>
     private static double[] BaselinesOf(PdfPage page)
     {
-        return TextBaselines.PositionsOf(page)
+        return [..TextBaselines.PositionsOf(page)
             .Select(run => Math.Round(run.Y, 3))
             .Distinct()
-            .OrderByDescending(y => y)
-            .ToArray();
+            .OrderByDescending(y => y)];
     }
 
     // ----- the single-string overloads ------------------------------------------------------------

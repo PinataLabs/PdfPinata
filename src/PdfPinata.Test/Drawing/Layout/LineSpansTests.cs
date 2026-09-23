@@ -28,7 +28,7 @@ public class LineSpansTests
 
     private static (bool Found, double Start, double Width) WidestFree(params (double Start, double End)[] blocked)
     {
-        var found = LineSpans.TryWidestFree(Left, Right, blocked.ToList(), Tolerance,
+        var found = LineSpans.TryWidestFree(Left, Right, [..blocked], Tolerance,
             out var start, out var width);
         return (found, start, width);
     }
@@ -145,7 +145,7 @@ public class LineSpansTests
     [Fact]
     public void ALineOfNoWidthHasNoRoom()
     {
-        LineSpans.TryWidestFree(50, 50, new List<(double, double)> { (0, 10) }, Tolerance,
+        LineSpans.TryWidestFree(50, 50, [(0, 10)], Tolerance,
                 out _, out _)
             .Should().BeFalse();
     }
@@ -200,7 +200,7 @@ public class LineSpansTests
     [Fact]
     public void ALineEndingLeftOfWhereItStartsIsRefused()
     {
-        var scan = () => LineSpans.TryWidestFree(Right, Left, new List<(double, double)>(),
+        var scan = () => LineSpans.TryWidestFree(Right, Left, [],
             Tolerance, out _, out _);
 
         // A line of no width is allowed and answers "no room" - see ALineOfNoWidthHasNoRoom - but
@@ -208,12 +208,11 @@ public class LineSpansTests
         scan.Should().Throw<ArgumentOutOfRangeException>();
     }
 
-    public static TheoryData<double> NotRealNumbers => new()
-    {
+    public static TheoryData<double> NotRealNumbers => [
         double.NaN,
         double.PositiveInfinity,
         double.NegativeInfinity
-    };
+    ];
 
     [Theory]
     [MemberData(nameof(NotRealNumbers))]
@@ -222,9 +221,9 @@ public class LineSpansTests
         // Named here rather than left to the interval the line becomes, so the message points at
         // the argument the caller passed. NaN reaches this at all because it passes the ordering
         // test above: every comparison against NaN is false.
-        var fromLeft = () => LineSpans.TryWidestFree(value, Right, new List<(double, double)>(),
+        var fromLeft = () => LineSpans.TryWidestFree(value, Right, [],
             Tolerance, out _, out _);
-        var fromRight = () => LineSpans.TryWidestFree(Left, value, new List<(double, double)>(),
+        var fromRight = () => LineSpans.TryWidestFree(Left, value, [],
             Tolerance, out _, out _);
 
         fromLeft.Should().Throw<ArgumentOutOfRangeException>();
@@ -235,7 +234,7 @@ public class LineSpansTests
     [MemberData(nameof(NotRealNumbers))]
     public void AToleranceThatIsNotARealWidthIsRefused(double value)
     {
-        var scan = () => LineSpans.TryWidestFree(Left, Right, new List<(double, double)>(),
+        var scan = () => LineSpans.TryWidestFree(Left, Right, [],
             value, out _, out _);
 
         scan.Should().Throw<ArgumentOutOfRangeException>();
@@ -244,7 +243,7 @@ public class LineSpansTests
     [Fact]
     public void ANegativeToleranceIsRefused()
     {
-        var scan = () => LineSpans.TryWidestFree(Left, Right, new List<(double, double)>(),
+        var scan = () => LineSpans.TryWidestFree(Left, Right, [],
             -1, out _, out _);
 
         // The test at the end is "wider than the tolerance", so a negative one would let a run of
@@ -255,7 +254,7 @@ public class LineSpansTests
     [Fact]
     public void AToleranceOfNothingAllowsAnyWidthAtAll()
     {
-        var found = LineSpans.TryWidestFree(Left, Right, new List<(double, double)>(),
+        var found = LineSpans.TryWidestFree(Left, Right, [],
             0, out _, out var width);
 
         found.Should().BeTrue();

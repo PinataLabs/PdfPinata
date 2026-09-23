@@ -264,13 +264,12 @@ public class PdfRectangleTests
     public void ANullBoxPartWayDownTheTreeLeavesTheBoxFromFurtherUpInPlace()
     {
         // The inner node's null says nothing, so the box its own parent states still reaches the page.
-        var document = Open(new List<string>
-        {
+        var document = Open([
             "<</Type/Catalog/Pages 2 0 R>>",
             "<</Type/Pages/Kids[3 0 R]/Count 1/MediaBox[0 0 300 400]/CropBox[5 5 295 395]>>",
             "<</Type/Pages/Parent 2 0 R/Kids[4 0 R]/Count 1/CropBox null>>",
             "<</Type/Page/Parent 3 0 R>>"
-        });
+        ]);
 
         document.Pages[0].CropBox.Should().Be(new PdfRectangle(new XPoint(5, 5), new XPoint(295, 395)));
     }
@@ -278,12 +277,11 @@ public class PdfRectangleTests
     [Fact]
     public void APageWhoseOwnBoxIsNullInheritsTheBoxItsParentStates()
     {
-        var document = Open(new List<string>
-        {
+        var document = Open([
             "<</Type/Catalog/Pages 2 0 R>>",
             "<</Type/Pages/Kids[3 0 R]/Count 1/MediaBox[0 0 300 400]/CropBox[5 5 295 395]>>",
             "<</Type/Page/Parent 2 0 R/CropBox null>>"
-        });
+        ]);
 
         document.Pages[0].CropBox.Should().Be(new PdfRectangle(new XPoint(5, 5), new XPoint(295, 395)));
     }

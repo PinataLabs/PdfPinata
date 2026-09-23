@@ -16,13 +16,12 @@ internal static class PageInk
     internal static List<(int X, int Y)> DarkPixelsOf(IMagickImage<byte> image)
     {
         using var pixels = image.GetPixels();
-        return pixels
+        return [..pixels
             .Where(pixel =>
             {
                 var colour = pixel.ToColor();
                 return colour is { R: < 128, G: < 128, B: < 128 };
             })
-            .Select(pixel => (pixel.X, pixel.Y))
-            .ToList();
+            .Select(pixel => (pixel.X, pixel.Y))];
     }
 }

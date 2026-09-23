@@ -31,10 +31,9 @@ internal static class AreaProbe
     internal static Area Rectangle(double x, double y, double width, double height)
     {
         return (Area)Activator.CreateInstance(RectangleType, Internals, null,
-            new object[]
-            {
+            [
                 XUnit.FromPoint(x), XUnit.FromPoint(y), XUnit.FromPoint(width), XUnit.FromPoint(height)
-            },
+            ],
             null);
     }
 
@@ -48,7 +47,7 @@ internal static class AreaProbe
             typed.SetValue(obstacles[idx], idx);
 
         return (Area)Activator.CreateInstance(ObstructedType, Internals, null,
-            new object[] { bounds, typed }, null);
+            [bounds, typed], null);
     }
 
     /// <summary>
@@ -59,7 +58,7 @@ internal static class AreaProbe
     {
         var method = typeof(Area).GetMethod("GetFittingRect", Internals);
         // ReSharper disable once PossibleNullReferenceException
-        return (Area)method.Invoke(area, new object[] { XUnit.FromPoint(yPosition), XUnit.FromPoint(height) });
+        return (Area)method.Invoke(area, [XUnit.FromPoint(yPosition), XUnit.FromPoint(height)]);
     }
 
     /// <summary>The union of two areas, which is always a plain rectangle.</summary>
@@ -67,7 +66,7 @@ internal static class AreaProbe
     {
         var method = typeof(Area).GetMethod("Unite", Internals);
         // ReSharper disable once PossibleNullReferenceException
-        return (Area)method.Invoke(area, new object[] { other });
+        return (Area)method.Invoke(area, [other]);
     }
 
     /// <summary>The same area, lowered and made shorter by that much.</summary>
@@ -75,7 +74,7 @@ internal static class AreaProbe
     {
         var method = typeof(Area).GetMethod("Lower", Internals);
         // ReSharper disable once PossibleNullReferenceException
-        return (Area)method.Invoke(area, new object[] { XUnit.FromPoint(verticalOffset) });
+        return (Area)method.Invoke(area, [XUnit.FromPoint(verticalOffset)]);
     }
 
     /// <summary>Whether the area is one that carries obstacles.</summary>

@@ -106,7 +106,7 @@ public class SignatureValidationDataTests
         _ = document.AddPage();
 
         var adding = () => PdfValidationData.Add(document, new MemoryStream(),
-            new PdfValidationDataEntry(Array.Empty<byte[]>(), Array.Empty<byte[]>(), Array.Empty<byte[]>()));
+            new PdfValidationDataEntry([], [], []));
 
         adding.Should().Throw<InvalidOperationException>().WithMessage("*Append*");
     }
@@ -135,7 +135,7 @@ public class SignatureValidationDataTests
     private sealed class StubRevocationDataProvider : IRevocationDataProvider
     {
         public RevocationData GetRevocationData(X509Certificate2 certificate, X509Certificate2Collection chain) =>
-            new(new[] { new byte[] { 0x30, 0x03, 0x0A, 0x01, 0x00 } }, Array.Empty<byte[]>());
+            new([new byte[] { 0x30, 0x03, 0x0A, 0x01, 0x00 }], []);
     }
 
     private sealed class ThrowingRevocationDataProvider : IRevocationDataProvider

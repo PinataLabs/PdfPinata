@@ -35,7 +35,7 @@ public class DataLabelTests
     [Fact]
     public void AskingTheChartForDataLabelsLabelsEverySeries()
     {
-        var chart = Charts.OfSeries(ChartType.Column2D, new[] { 1.0, 2.0 }, new[] { 3.0, 4.0 });
+        var chart = Charts.OfSeries(ChartType.Column2D, [1.0, 2.0], [3.0, 4.0]);
         chart.HasDataLabel = true;
 
         var page = Drawn.Page(chart);
@@ -69,7 +69,7 @@ public class DataLabelTests
     [Fact]
     public void AskingOneSeriesForLabelsLeavesTheOthersUnlabelled()
     {
-        var chart = Charts.OfSeries(ChartType.Column2D, new[] { 1.0, 2.0 }, new[] { 3.0, 4.0 });
+        var chart = Charts.OfSeries(ChartType.Column2D, [1.0, 2.0], [3.0, 4.0]);
         chart.SeriesCollection[1].HasDataLabel = true;
 
         var shown = ShownText.On(Drawn.Page(chart));
@@ -81,7 +81,7 @@ public class DataLabelTests
     [Fact]
     public void ASeriesWithItsOwnFormatUsesItRatherThanTheCharts()
     {
-        var chart = Charts.OfSeries(ChartType.Column2D, new[] { 1.0, 2.0 }, new[] { 3.0, 4.0 });
+        var chart = Charts.OfSeries(ChartType.Column2D, [1.0, 2.0], [3.0, 4.0]);
         chart.DataLabel.Format = "0.0";
         chart.SeriesCollection[1].DataLabel.Format = "0.000";
 
@@ -279,7 +279,7 @@ public class DataLabelTests
     }
 
     private static IReadOnlyList<ShownText.Run> ValueLabelsOf(IReadOnlyList<ShownText.Run> runs) =>
-        runs.Where(run => run.Text is "10" or "20" or "30").ToList();
+        [..runs.Where(run => run.Text is "10" or "20" or "30")];
 
     [Fact]
     public void EveryBarIsLabelledWithItsValue()
@@ -341,7 +341,7 @@ public class DataLabelTests
         // of the blank are still labelled: a renderer that gave up at the blank would also not
         // throw, and would leave the chart with fewer labels than it has values.
         var labels = draw.Should().NotThrow().Subject;
-        labels.Select(run => run.Text).Should().Contain(new[] { "10", "20", "30" },
+        labels.Select(run => run.Text).Should().Contain(["10", "20", "30"],
             "the blank is skipped, not the points around it");
     }
 }

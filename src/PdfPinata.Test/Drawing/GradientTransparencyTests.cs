@@ -201,13 +201,12 @@ public class GradientTransparencyTests
     {
         var states = page.Elements.GetDictionary("/Resources").Elements.GetDictionary("/ExtGState");
 
-        return ContentOf(page).Split('\n')
+        return [..ContentOf(page).Split('\n')
             .Where(line => line.EndsWith(" gs"))
             .Select(line => states.Elements.GetDictionary(line[..^3]))
             .Select(state => state.Elements.GetDictionary("/SMask") != null ? "mask"
                 : state.Elements.GetName("/SMask") == "/None" ? "none"
-                : "quiet")
-            .ToList();
+                : "quiet")];
     }
 
     /// <summary>The soft mask the page's one masking graphics state names.</summary>
@@ -226,13 +225,12 @@ public class GradientTransparencyTests
     {
         var states = page.Elements.GetDictionary("/Resources").Elements.GetDictionary("/ExtGState");
         if (states == null)
-            return Array.Empty<PdfDictionary>();
+            return [];
 
-        return states.Elements.KeyNames
+        return [..states.Elements.KeyNames
             .Select(key => states.Elements.GetDictionary(key.Value).Elements.GetDictionary("/SMask"))
             .Where(mask => mask != null)
-            .Select(mask => mask.Elements.GetDictionary("/G"))
-            .ToList();
+            .Select(mask => mask.Elements.GetDictionary("/G"))];
     }
 
     /// <summary>The colour shading pattern the page fills with.</summary>

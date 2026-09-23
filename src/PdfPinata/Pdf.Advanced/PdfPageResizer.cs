@@ -103,7 +103,7 @@ static class PdfPageResizer
     private static XMatrix ResizeOnePage(PdfPage page, XSize visibleTarget, PageSize size, PageResizeOptions options)
     {
         if (visibleTarget.Width <= 0 || visibleTarget.Height <= 0)
-            throw new ArgumentException(@"A page cannot be resized to nothing.", nameof(visibleTarget));
+            throw new ArgumentException("A page cannot be resized to nothing.", nameof(visibleTarget));
 
         if (page.RenderContent != null)
         {
