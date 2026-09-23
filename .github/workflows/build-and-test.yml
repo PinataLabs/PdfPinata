@@ -81,8 +81,14 @@ jobs:
       # The Ghostscript.NativeAssets package covers Windows, where ImageMagick loads the
       # Ghostscript DLL in process. On Linux it shells out to the system "gs" delegate instead,
       # so the visual comparison tests still need Ghostscript installed here.
+      #
+      # The runner image ships a package index from when the image was built. Once Ubuntu publishes
+      # a newer security update, the archive drops the version that index names, and installing
+      # from it fails with 404s. Refreshing the index first also covers the AOT step's install below.
       - name: Install Ghostscript
-        run: sudo apt-get install -y ghostscript
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ghostscript
       # SonarCloud analyses what is compiled between "begin" and "end", so exactly one build sits
       # between them: the Debug build the tests run against. The Release build above stays outside,
       # or every project would be analysed twice. The coverage the tests write is the same OpenCover
