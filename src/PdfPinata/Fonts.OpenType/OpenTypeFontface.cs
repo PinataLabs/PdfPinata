@@ -192,18 +192,35 @@ internal sealed class OpenTypeFontface
 
         ArgumentNullException.ThrowIfNull(fontTable);
 
+        fontTable = AdoptOrReference(fontTable);
+
+        TableDictionary[fontTable.DirectoryEntry.Tag] = fontTable.DirectoryEntry;
+        AssignTableField(fontTable);
+    }
+
+    /// <summary>
+    /// A table belonging to no face is made this one's; a table read from another face is
+    /// referenced rather than taken over.
+    /// </summary>
+    private OpenTypeFontTable AdoptOrReference(OpenTypeFontTable fontTable)
+    {
         if (fontTable._fontData == null)
         {
             fontTable._fontData = this;
-        }
-        else
-        {
-            Debug.Assert(fontTable._fontData.CanRead);
-            // Create a reference to this font table
-            fontTable = new IRefFontTable(this, fontTable);
+            return fontTable;
         }
 
-        TableDictionary[fontTable.DirectoryEntry.Tag] = fontTable.DirectoryEntry;
+        Debug.Assert(fontTable._fontData.CanRead);
+        // Create a reference to this font table
+        return new IRefFontTable(this, fontTable);
+    }
+
+    /// <summary>
+    /// Puts a table in the field its tag names. A reference to another face's table is not of
+    /// the table's own type, so the field it names is set to null.
+    /// </summary>
+    private void AssignTableField(OpenTypeFontTable fontTable)
+    {
         switch (fontTable.DirectoryEntry.Tag)
         {
             case TableTagNames.CMap:
@@ -269,6 +286,17 @@ internal sealed class OpenTypeFontface
     /// </summary>
     internal void Read()
     {
+        ReadOffsetTable();
+        ReadTableDirectory();
+        ReadRequiredTables();
+    }
+
+    /// <summary>
+    /// Reads the offset table, and with it which outlines the face has. A TrueType collection is
+    /// refused here, before anything else is read.
+    /// </summary>
+    private void ReadOffsetTable()
+    {
         // Determine font technology
         // ReSharper disable InconsistentNaming
         const uint OTTO = 0x4f54544f;  // Adobe OpenType CFF data, tag: 'OTTO'
@@ -292,11 +320,13 @@ internal sealed class OpenTypeFontface
         // Move to table dictionary at position 12
         Debug.Assert(Position == 12);
 
-        if (_offsetTable.Version == OTTO)
-            FontTechnology = FontTechnology.PostscriptOutlines;
-        else
-            FontTechnology = FontTechnology.TrueTypeOutlines;
+        FontTechnology = _offsetTable.Version == OTTO
+            ? FontTechnology.PostscriptOutlines
+            : FontTechnology.TrueTypeOutlines;
+    }
 
+    private void ReadTableDirectory()
+    {
         for (var idx = 0; idx < _offsetTable.TableCount; idx++)
         {
             var entry = TableDirectoryEntry.ReadFrom(this);
@@ -306,50 +336,36 @@ internal sealed class OpenTypeFontface
         // PDFlib checks this, but it is not part of the OpenType spec anymore
         if (TableDictionary.ContainsKey("bhed"))
             throw new NotSupportedException("Bitmap fonts are not supported by PdfPinata.");
-
-        // Read required tables
-        if (Seek(CMapTable.Tag) != -1)
-            cmap = new CMapTable(this);
-
-        if (Seek(ControlValueTable.Tag) != -1)
-            cvt = new ControlValueTable(this);
-
-        if (Seek(FontProgram.Tag) != -1)
-            fpgm = new FontProgram(this);
-
-        if (Seek(MaximumProfileTable.Tag) != -1)
-            maxp = new MaximumProfileTable(this);
-
-        if (Seek(NameTable.Tag) != -1)
-            name = new NameTable(this);
-
-        if (Seek(FontHeaderTable.Tag) != -1)
-            head = new FontHeaderTable(this);
-
-        if (Seek(HorizontalHeaderTable.Tag) != -1)
-            hhea = new HorizontalHeaderTable(this);
-
-        if (Seek(HorizontalMetricsTable.Tag) != -1)
-            hmtx = new HorizontalMetricsTable(this);
-
-        if (Seek(OS2Table.Tag) != -1)
-            os2 = new OS2Table(this);
-
-        if (Seek(PostScriptTable.Tag) != -1)
-            post = new PostScriptTable(this);
-
-        if (Seek(GlyphDataTable.Tag) != -1)
-            glyf = new GlyphDataTable(this);
-
-        if (Seek(IndexToLocationTable.Tag) != -1)
-            loca = new IndexToLocationTable(this);
-
-        if (Seek(GlyphSubstitutionTable.Tag) != -1)
-            gsub = new GlyphSubstitutionTable(this);
-
-        if (Seek(ControlValueProgram.Tag) != -1)
-            prep = new ControlValueProgram(this);
     }
+
+    /// <summary>
+    /// Reads every table this library uses that the face has. The order is the one they have
+    /// always been read in, because a table's constructor may read one read before it.
+    /// </summary>
+    private void ReadRequiredTables()
+    {
+        cmap = ReadTableIfPresent(CMapTable.Tag, static face => new CMapTable(face));
+        cvt = ReadTableIfPresent(ControlValueTable.Tag, static face => new ControlValueTable(face));
+        fpgm = ReadTableIfPresent(FontProgram.Tag, static face => new FontProgram(face));
+        maxp = ReadTableIfPresent(MaximumProfileTable.Tag, static face => new MaximumProfileTable(face));
+        name = ReadTableIfPresent(NameTable.Tag, static face => new NameTable(face));
+        head = ReadTableIfPresent(FontHeaderTable.Tag, static face => new FontHeaderTable(face));
+        hhea = ReadTableIfPresent(HorizontalHeaderTable.Tag, static face => new HorizontalHeaderTable(face));
+        hmtx = ReadTableIfPresent(HorizontalMetricsTable.Tag, static face => new HorizontalMetricsTable(face));
+        os2 = ReadTableIfPresent(OS2Table.Tag, static face => new OS2Table(face));
+        post = ReadTableIfPresent(PostScriptTable.Tag, static face => new PostScriptTable(face));
+        glyf = ReadTableIfPresent(GlyphDataTable.Tag, static face => new GlyphDataTable(face));
+        loca = ReadTableIfPresent(IndexToLocationTable.Tag, static face => new IndexToLocationTable(face));
+        gsub = ReadTableIfPresent(GlyphSubstitutionTable.Tag, static face => new GlyphSubstitutionTable(face));
+        prep = ReadTableIfPresent(ControlValueProgram.Tag, static face => new ControlValueProgram(face));
+    }
+
+    /// <summary>
+    /// Seeks to a table and reads it, or answers null - leaving the cursor where it was - when the
+    /// face has no table with that tag.
+    /// </summary>
+    private T ReadTableIfPresent<T>(string tag, Func<OpenTypeFontface, T> read) where T : OpenTypeFontTable
+        => Seek(tag) != -1 ? read(this) : null;
 
     /// <summary>
     /// Creates a new font image that is a subset of this font image containing only the specified glyphs.

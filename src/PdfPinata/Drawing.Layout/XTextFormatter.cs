@@ -1004,6 +1004,23 @@ public class XTextFormatter
         var rectHeight = _layoutRectangle.Height - _cyAscent - _cyDescent;
         var columnWidth = ColumnWidthWithin(rectWidth);
         _region = RegionFor(rectWidth, rectHeight, columnWidth);
+
+        var (placeable, firstIndex, measure) = PlaceBlocks(columnWidth, rectHeight);
+        if (firstIndex < placeable && Alignment != XParagraphAlignment.Justify)
+            HorizontalAlignLine(firstIndex, placeable - 1, measure.Width);
+
+        ApplyEllipsis(columnWidth);
+
+        FitLayoutRectangleToLaidOutBlocks();
+    }
+
+    /// <summary>
+    /// Breaks the blocks into lines and gives each one its place, stopping at the first that does
+    /// not fit. Answers how many blocks there were room to try, where the last line starts, and
+    /// the measure of that line - which the caller still has to align.
+    /// </summary>
+    private (int Placeable, int FirstIndex, LineMeasure Measure) PlaceBlocks(double columnWidth, double rectHeight)
+    {
         var firstIndex = 0;
         var column = 0;
 
@@ -1030,69 +1047,101 @@ public class XTextFormatter
             var block = _blocks[idx];
             if (block.Type == BlockType.LineBreak)
             {
-                if (idx > firstIndex)
-                    _blocks[idx - 1].EndsParagraph = true;
-                if (Alignment == XParagraphAlignment.Justify)
-                    _blocks[firstIndex].Alignment = XParagraphAlignment.Left;
-                HorizontalAlignLine(firstIndex, idx - 1, measure.Width);
+                EndParagraph(firstIndex, idx, measure.Width);
                 firstIndex = idx + 1;
                 // A written line break ends a paragraph, so the next line is indented again and
                 // the gap between paragraphs falls here.
                 y += _lineHeight + LineGap + ParagraphGap;
-                // After the column move, not before: a line carried to the top of the next column
-                // is a line somewhere else, and its measure is whatever is free there.
-                if (!MoveToNextColumnIfFull(ref column, ref y, rectHeight)
-                    || !MeasureLineWithRoom(true, columnWidth, rectHeight, out measure, ref column, ref y))
+                if (!StartNextLine(true, columnWidth, rectHeight, ref measure, ref column, ref y))
                 {
                     block.Stop = true;
                     break;
                 }
                 lineStart = measure.Start;
                 x = lineStart;
+                continue;
             }
-            else
+
+            var width = block.Width;
+            if (FitsOnLine(x, width, lineStart, measure))
             {
-                var width = block.Width;
-                // A block that starts a line is placed whether it fits or not, since moving it to
-                // a line of its own would not make it any narrower.
-                #pragma warning disable S1244 // Exact on purpose: x is lineStart until something has been placed on the line.
-                // ReSharper disable once CompareOfFloatsByEqualityOperator
-                if (!LineBreak || x + width <= measure.Width || x == lineStart)
-                #pragma warning restore S1244
-                {
-                    block.Location = new XPoint(ColumnLeft(column, columnWidth) + x, y);
-                    block.LineIndent = lineStart;
-                    block.LineWidth = measure.Width;
-                    block.Column = column;
-                    x += width + _spaceWidth;
-                }
-                else
-                {
-                    HorizontalAlignLine(firstIndex, idx - 1, measure.Width);
-
-                    // Begin implicit line break
-                    firstIndex = idx;
-                    y += _lineHeight + LineGap;
-                    if (!MoveToNextColumnIfFull(ref column, ref y, rectHeight)
-                        || !MeasureLineWithRoom(false, columnWidth, rectHeight, out measure, ref column, ref y))
-                    {
-                        block.Stop = true;
-                        break;
-                    }
-                    lineStart = measure.Start;
-                    block.Location = new XPoint(ColumnLeft(column, columnWidth) + lineStart, y);
-                    block.LineIndent = lineStart;
-                    block.LineWidth = measure.Width;
-                    block.Column = column;
-                    x = lineStart + width + _spaceWidth;
-                }
+                Place(block, x, y, column, columnWidth, lineStart, measure);
+                x += width + _spaceWidth;
+                continue;
             }
+
+            HorizontalAlignLine(firstIndex, idx - 1, measure.Width);
+
+            // Begin implicit line break
+            firstIndex = idx;
+            y += _lineHeight + LineGap;
+            if (!StartNextLine(false, columnWidth, rectHeight, ref measure, ref column, ref y))
+            {
+                block.Stop = true;
+                break;
+            }
+            lineStart = measure.Start;
+            Place(block, lineStart, y, column, columnWidth, lineStart, measure);
+            x = lineStart + width + _spaceWidth;
         }
-        if (firstIndex < placeable && Alignment != XParagraphAlignment.Justify)
-            HorizontalAlignLine(firstIndex, placeable - 1, measure.Width);
 
-        ApplyEllipsis(columnWidth);
+        return (placeable, firstIndex, measure);
+    }
 
+    /// <summary>
+    /// Closes the paragraph a written line break ends: marks its last block as the end of it, and
+    /// aligns its last line - which a justified paragraph leaves ragged.
+    /// </summary>
+    private void EndParagraph(int firstIndex, int lineBreakIndex, double lineWidth)
+    {
+        if (lineBreakIndex > firstIndex)
+            _blocks[lineBreakIndex - 1].EndsParagraph = true;
+        if (Alignment == XParagraphAlignment.Justify)
+            _blocks[firstIndex].Alignment = XParagraphAlignment.Left;
+        HorizontalAlignLine(firstIndex, lineBreakIndex - 1, lineWidth);
+    }
+
+    /// <summary>
+    /// Moves on to the next line, in the next column when this one is full, and measures it.
+    /// Answers false when there is no line left to move to. The measure is left as it was when
+    /// there is no column to move to, and is the new line's when that line was measured and found
+    /// to have no room.
+    /// </summary>
+    private bool StartNextLine(bool firstLineOfParagraph, double columnWidth, double rectHeight,
+        ref LineMeasure measure, ref int column, ref double y)
+        // After the column move, not before: a line carried to the top of the next column
+        // is a line somewhere else, and its measure is whatever is free there.
+        => MoveToNextColumnIfFull(ref column, ref y, rectHeight)
+           && MeasureLineWithRoom(firstLineOfParagraph, columnWidth, rectHeight, out measure, ref column, ref y);
+
+    /// <summary>
+    /// Whether a block of this width goes on the current line. A block that starts a line is
+    /// placed whether it fits or not, since moving it to a line of its own would not make it any
+    /// narrower.
+    /// </summary>
+    private bool FitsOnLine(double x, double width, double lineStart, LineMeasure measure)
+    {
+        #pragma warning disable S1244 // Exact on purpose: x is lineStart until something has been placed on the line.
+        // ReSharper disable once CompareOfFloatsByEqualityOperator
+        return !LineBreak || x + width <= measure.Width || x == lineStart;
+        #pragma warning restore S1244
+    }
+
+    private void Place(Block block, double x, double y, int column, double columnWidth, double lineStart,
+        LineMeasure measure)
+    {
+        block.Location = new XPoint(ColumnLeft(column, columnWidth) + x, y);
+        block.LineIndent = lineStart;
+        block.LineWidth = measure.Width;
+        block.Column = column;
+    }
+
+    /// <summary>
+    /// Shrinks the layout rectangle to the blocks that were laid out, and marks the last of them
+    /// as ending a paragraph. With none laid out, the rectangle is empty.
+    /// </summary>
+    private void FitLayoutRectangleToLaidOutBlocks()
+    {
         var laidOutBlocks = GetLaidOutBlocks(_blocks).ToArray();
         if (laidOutBlocks.Length == 0)
         {
