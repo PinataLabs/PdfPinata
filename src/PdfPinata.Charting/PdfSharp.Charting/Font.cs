@@ -74,18 +74,18 @@ public sealed class Font : DocumentObject
   /// </summary>
   public string Name 
   {
-    get => this.name;
-    set => this.name = value;
+    get => name;
+    set => name = value;
   }
-  internal string name = String.Empty;
+  internal string name = string.Empty;
 
   /// <summary>
   /// Gets or sets the size of the font.
   /// </summary>
   public XUnit Size
   {
-    get => this.size;
-    set => this.size = value;
+    get => size;
+    set => size = value;
   }
   internal XUnit size;
 
@@ -94,8 +94,8 @@ public sealed class Font : DocumentObject
   /// </summary>
   public bool Bold
   {
-    get => this.bold ?? false;
-    set => this.bold = value;
+    get => bold ?? false;
+    set => bold = value;
   }
   // Null is unset, so that an explicit false can be told from a false nobody wrote and win over
   // a bold the chart's font has.
@@ -106,8 +106,8 @@ public sealed class Font : DocumentObject
   /// </summary>
   public bool Italic
   {
-    get => this.italic ?? false;
-    set => this.italic = value;
+    get => italic ?? false;
+    set => italic = value;
   }
   internal bool? italic;
     
@@ -116,8 +116,8 @@ public sealed class Font : DocumentObject
   /// </summary>
   public Underline Underline
   {
-    get => this.underline;
-    set => this.underline = value;
+    get => underline;
+    set => underline = value;
   }
   internal Underline underline;
 
@@ -126,8 +126,8 @@ public sealed class Font : DocumentObject
   /// </summary>
   public Strikethrough Strikethrough
   {
-    get => this.strikethrough;
-    set => this.strikethrough = value;
+    get => strikethrough;
+    set => strikethrough = value;
   }
   internal Strikethrough strikethrough;
 
@@ -136,8 +136,8 @@ public sealed class Font : DocumentObject
   /// </summary>
   public XColor Color
   {
-    get => this.color;
-    set => this.color = value;
+    get => color;
+    set => color = value;
   }
   internal XColor color = XColor.Empty;
 
@@ -146,11 +146,11 @@ public sealed class Font : DocumentObject
   /// </summary>
   public bool Superscript
   {
-    get => this.superscript;
+    get => superscript;
     set 
     {
-      this.superscript = value;
-      this.subscript = false;
+      superscript = value;
+      subscript = false;
     }    
   }
   internal bool superscript;
@@ -160,11 +160,11 @@ public sealed class Font : DocumentObject
   /// </summary>
   public bool Subscript
   {
-    get => this.subscript;
+    get => subscript;
     set 
     {
-      this.subscript = value;
-      this.superscript = false;
+      subscript = value;
+      superscript = false;
     }
   }
   internal bool subscript;
@@ -177,15 +177,15 @@ public sealed class Font : DocumentObject
   // getters above answer what was set on this font alone, as they always have. An empty name, a
   // zero size and an empty colour are how those three have always said "unset".
 
-  internal string ResolvedName => this.name.Length > 0 ? this.name : ParentFont?.ResolvedName ?? "";
+  internal string ResolvedName => name.Length > 0 ? name : ParentFont?.ResolvedName ?? "";
 
-  internal double ResolvedSize => this.size.Point != 0 ? this.size.Point : ParentFont?.ResolvedSize ?? 0;
+  internal double ResolvedSize => size.Point != 0 ? size.Point : ParentFont?.ResolvedSize ?? 0;
 
-  internal bool? ResolvedBold => this.bold ?? ParentFont?.ResolvedBold;
+  internal bool? ResolvedBold => bold ?? ParentFont?.ResolvedBold;
 
-  internal bool? ResolvedItalic => this.italic ?? ParentFont?.ResolvedItalic;
+  internal bool? ResolvedItalic => italic ?? ParentFont?.ResolvedItalic;
 
-  internal XColor ResolvedColor => !this.color.IsEmpty ? this.color : ParentFont?.ResolvedColor ?? XColor.Empty;
+  internal XColor ResolvedColor => !color.IsEmpty ? color : ParentFont?.ResolvedColor ?? XColor.Empty;
 
   /// <summary>
   /// The font this one inherits from: the nearest ancestor of its owner that has a font. A series'
@@ -196,7 +196,7 @@ public sealed class Font : DocumentObject
   {
     get
     {
-      var owner = this.parent;
+      var owner = parent;
       if (owner == null)
         return null;
 

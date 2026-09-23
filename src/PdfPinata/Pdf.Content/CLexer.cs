@@ -372,9 +372,13 @@ public class CLexer
                             _token.Append(ch);
                         }
                         else if (ch == '(')
+                        {
                             parentheses++;
+                        }
                         else if (ch == ')')
+                        {
                             parentheses--;
+                        }
                     }
                     break;
 
@@ -433,7 +437,7 @@ public class CLexer
                 _token.Append(ch);
                 if (decimalDigits < 10)
                 {
-                    if (!period && value > (Int64.MaxValue - 9) / 10)
+                    if (!period && value > (long.MaxValue - 9) / 10)
                         overflow = true;
                     else
                         value = 10 * value + ch - '0';
@@ -450,7 +454,9 @@ public class CLexer
                 _token.Append(ch);
             }
             else
+            {
                 break;
+            }
             ch = ScanNextChar();
         }
 
@@ -488,9 +494,9 @@ public class CLexer
         _tokenAsLong = value;
         _tokenAsReal = Convert.ToDouble(value);
 
-        Debug.Assert(Int64.Parse(_token.ToString(), CultureInfo.InvariantCulture) == value);
+        Debug.Assert(long.Parse(_token.ToString(), CultureInfo.InvariantCulture) == value);
 
-        if (value >= Int32.MinValue && value < Int32.MaxValue)
+        if (value >= int.MinValue && value < int.MaxValue)
             return CSymbol.Integer;
 
         // Out of range for CSymbol.Integer, which a content operand is expected to fit. The

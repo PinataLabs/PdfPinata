@@ -120,7 +120,7 @@ internal class Serializer
       return;
 
     WriteComment("Created by PinataLayout Document Object Model");
-    WriteComment(String.Format("generated file created {0:d} at {0:t}", GlobalTimeSettings.Now));
+    WriteComment(string.Format("generated file created {0:d} at {0:t}", GlobalTimeSettings.Now));
   }
 
   /// <summary>
@@ -135,7 +135,9 @@ internal class Serializer
       Write(str[wrappedStr.Length..]);
     }
     else
+    {
       WriteToStream(str);
+    }
     CommitText();
   }
 
@@ -151,7 +153,9 @@ internal class Serializer
       WriteLine(str[wrappedStr.Length..]);
     }
     else
+    {
       WriteLineToStream(wrappedStr);
+    }
     CommitText();
   }
 
@@ -193,7 +197,7 @@ internal class Serializer
   /// </summary>
   internal void WriteLine()
   {
-    WriteLine(String.Empty);
+    WriteLine(string.Empty);
   }
 
   /// <summary>
@@ -209,7 +213,7 @@ internal class Serializer
   /// </summary>
   internal void WriteLineNoCommit()
   {
-    WriteLineNoCommit(String.Empty);
+    WriteLineNoCommit(string.Empty);
   }
 
   /// <summary>
@@ -217,7 +221,7 @@ internal class Serializer
   /// </summary>
   internal void WriteComment(string comment)
   {
-    if (comment == null || comment == String.Empty)
+    if (comment == null || comment == string.Empty)
       return;
 
     // If the comment holds a line end, split it up recursively, one "//" line per line. A CR or
@@ -240,7 +244,7 @@ internal class Serializer
       if (len <= chopBeyond)
       {
         wrt = "// " + comment;
-        comment = String.Empty;
+        comment = string.Empty;
       }
       else
       {
@@ -249,7 +253,7 @@ internal class Serializer
             (idxChop = comment.IndexOf(' ', chopBeyond)) == -1)
         {
           wrt = "// " + comment;
-          comment = String.Empty;
+          comment = string.Empty;
         }
         else
         {
@@ -308,7 +312,7 @@ internal class Serializer
     if (!fLineBreak)
       return;
 
-    textWriter.WriteLine(String.Empty);  // what a line break is may depend on encoding
+    textWriter.WriteLine(string.Empty);  // what a line break is may depend on encoding
     linePos = 0;
   }
 

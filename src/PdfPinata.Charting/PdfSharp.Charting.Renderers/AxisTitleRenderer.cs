@@ -50,9 +50,9 @@ internal class AxisTitleRenderer : Renderer
   /// </summary>
   internal override void Format()
   {
-    var gfx = this.rendererParms.Graphics;
+    var gfx = rendererParms.Graphics;
 
-    var atri = ((AxisRendererInfo)this.rendererParms.RendererInfo).AxisTitleRendererInfo;
+    var atri = ((AxisRendererInfo)rendererParms.RendererInfo).AxisTitleRendererInfo;
     if (atri.AxisTitleText == "")
       return;
 
@@ -90,12 +90,12 @@ internal class AxisTitleRenderer : Renderer
   /// </summary>
   internal override void Draw()
   {
-    var ari = (AxisRendererInfo)this.rendererParms.RendererInfo;
+    var ari = (AxisRendererInfo)rendererParms.RendererInfo;
     var atri = ari.AxisTitleRendererInfo;
     if (atri.AxisTitleText == "")
       return;
 
-    var gfx = this.rendererParms.Graphics;
+    var gfx = rendererParms.Graphics;
     if (atri.AxisTitleOrientation != 0)
     {
       // The box the caption occupies, centred on the origin: the surface is moved and turned

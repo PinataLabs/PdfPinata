@@ -679,27 +679,27 @@ public struct Unit : IFormattable, INullableValue, IEquatable<Unit>
         {
             case UnitType.Centimeter:
                 value = (float)Centimeter;
-                this.type = UnitType.Centimeter;
+                type = UnitType.Centimeter;
                 break;
 
             case UnitType.Inch:
                 value = (float)Inch;
-                this.type = UnitType.Inch;
+                type = UnitType.Inch;
                 break;
 
             case UnitType.Millimeter:
                 value = (float)Millimeter;
-                this.type = UnitType.Millimeter;
+                type = UnitType.Millimeter;
                 break;
 
             case UnitType.Pica:
                 value = (float)Pica;
-                this.type = UnitType.Pica;
+                type = UnitType.Pica;
                 break;
 
             case UnitType.Point:
                 value = (float)Point;
-                this.type = UnitType.Point;
+                type = UnitType.Point;
                 break;
 
             default:

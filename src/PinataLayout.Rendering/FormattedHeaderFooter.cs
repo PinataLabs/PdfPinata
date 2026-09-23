@@ -44,9 +44,9 @@ internal class FormattedHeaderFooter : IAreaProvider
 {
     internal FormattedHeaderFooter(HeaderFooter headerFooter, DocumentRenderer documentRenderer, FieldInfos fieldInfos)
     {
-        this._headerFooter = headerFooter;
-        this._fieldInfos = fieldInfos;
-        this._documentRenderer = documentRenderer;
+        _headerFooter = headerFooter;
+        _fieldInfos = fieldInfos;
+        _documentRenderer = documentRenderer;
     }
 
     internal void Format(XGraphics gfx)
@@ -70,7 +70,7 @@ internal class FormattedHeaderFooter : IAreaProvider
 
     void IAreaProvider.StoreRenderInfos(ArrayList renderInfos)
     {
-        this._renderInfos = renderInfos;
+        _renderInfos = renderInfos;
     }
 
     bool IAreaProvider.IsAreaBreakBefore(LayoutInfo layoutInfo)

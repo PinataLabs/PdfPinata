@@ -231,7 +231,9 @@ internal class TokenizerHelper
                 ++_charIndex;
             }
             else
+            {
                 break;
+            }
         }
 
         // If there was a separatorChar then we shouldn't be at the end of string or means there was a separator but there isn't an arg.

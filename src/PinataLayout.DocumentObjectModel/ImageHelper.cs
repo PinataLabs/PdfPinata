@@ -118,7 +118,7 @@ public class ImageHelper
     if (!path.Contains('.'))
       return path;
 
-    pageNumber = Int32.Parse(path[(length + 1)..]);
+    pageNumber = int.Parse(path[(length + 1)..]);
     path = path[..length];
     return path;
   }

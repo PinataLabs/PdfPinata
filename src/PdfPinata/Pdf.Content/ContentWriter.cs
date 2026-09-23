@@ -64,7 +64,7 @@ internal class ContentWriter
 
     public void WriteRaw(string rawString)
     {
-        if (String.IsNullOrEmpty(rawString))
+        if (string.IsNullOrEmpty(rawString))
             return;
         var bytes = PdfEncoders.RawEncoding.GetBytes(rawString);
         _stream.Write(bytes, 0, bytes.Length);
@@ -73,7 +73,7 @@ internal class ContentWriter
 
     public void WriteLineRaw(string rawString)
     {
-        if (String.IsNullOrEmpty(rawString))
+        if (string.IsNullOrEmpty(rawString))
             return;
         var bytes = PdfEncoders.RawEncoding.GetBytes(rawString);
         _stream.Write(bytes, 0, bytes.Length);

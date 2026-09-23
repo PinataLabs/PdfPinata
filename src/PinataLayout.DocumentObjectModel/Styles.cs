@@ -85,7 +85,7 @@ public partial class Styles : DocumentObjectCollection, IVisitable
             for (var index = 0; index < count; ++index)
             {
                 var style = this[index];
-                if (String.Compare(style.Name, styleName, StringComparison.OrdinalIgnoreCase) == 0)
+                if (string.Compare(style.Name, styleName, StringComparison.OrdinalIgnoreCase) == 0)
                     return style;
             }
             return null;
@@ -110,7 +110,7 @@ public partial class Styles : DocumentObjectCollection, IVisitable
         for (var index = 0; index < count; ++index)
         {
             var style = this[index];
-            if (String.Compare(style.Name, styleName, StringComparison.OrdinalIgnoreCase) == 0)
+            if (string.Compare(style.Name, styleName, StringComparison.OrdinalIgnoreCase) == 0)
                 return index;
         }
         return -1;
@@ -178,7 +178,9 @@ public partial class Styles : DocumentObjectCollection, IVisitable
             ((IList)this)[index] = style;
         }
         else
+        {
             base.Add(value);
+        }
     }
     #endregion
 

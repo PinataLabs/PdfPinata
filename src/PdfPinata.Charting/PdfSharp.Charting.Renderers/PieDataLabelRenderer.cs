@@ -51,7 +51,7 @@ internal class PieDataLabelRenderer : DataLabelRenderer
   /// </summary>
   internal override void Format()
   {
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
     if (cri.SeriesRendererInfos.Length == 0)
       return;
 
@@ -60,7 +60,7 @@ internal class PieDataLabelRenderer : DataLabelRenderer
       return;
 
     var sumValues = sri.SumOfPoints;
-    var gfx = this.rendererParms.Graphics;
+    var gfx = rendererParms.Graphics;
 
     sri.DataLabelRendererInfo.Entries = new DataLabelEntryRendererInfo[sri.PointRendererInfos.Length];
     var index = 0;
@@ -90,7 +90,9 @@ internal class PieDataLabelRenderer : DataLabelRenderer
             : (share * 100).ToString(format) + "%";
         }
         else if (sri.DataLabelRendererInfo.Type == DataLabelType.Value)
+        {
           dleri.Text = sector.Value.ToString(sri.DataLabelRendererInfo.Format);
+        }
 
         if (dleri.Text.Length > 0)
           dleri.Size = gfx.MeasureString(dleri.Text, sri.DataLabelRendererInfo.Font);
@@ -105,7 +107,7 @@ internal class PieDataLabelRenderer : DataLabelRenderer
   /// </summary>
   internal override void Draw()
   {
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
     if (cri.SeriesRendererInfos.Length == 0)
       return;
 
@@ -117,7 +119,7 @@ internal class PieDataLabelRenderer : DataLabelRenderer
     if (sri == null)
       return;
 
-    var gfx = this.rendererParms.Graphics;
+    var gfx = rendererParms.Graphics;
     var font = sri.DataLabelRendererInfo.Font;
     var fontColor = sri.DataLabelRendererInfo.FontColor;
     var format = XStringFormats.Center;
@@ -134,7 +136,7 @@ internal class PieDataLabelRenderer : DataLabelRenderer
   /// </summary>
   internal override void CalcPositions()
   {
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
 
     if (cri.SeriesRendererInfos.Length == 0)
       return;

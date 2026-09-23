@@ -69,11 +69,11 @@ public partial class InfoField : DocumentObject
   /// </summary>
   public string Name
   {
-    get => this.name ?? "";
+    get => name ?? "";
     set
     {
       if (IsValidName(value))
-        this.name = value;
+        name = value;
       else
         throw new ArgumentException(DomSR.InvalidInfoFieldName(value));
     }
@@ -89,7 +89,7 @@ public partial class InfoField : DocumentObject
   {
     foreach (var validName in validNames)
     {
-      if (String.Compare(validName, name, StringComparison.OrdinalIgnoreCase) == 0)
+      if (string.Compare(validName, name, StringComparison.OrdinalIgnoreCase) == 0)
         return true;
     }
     return false;
@@ -110,9 +110,9 @@ public partial class InfoField : DocumentObject
   internal override void Serialize(Serializer serializer)
   {
     var str = "\\field(Info)";
-    if (this.Name == "")
+    if (Name == "")
       throw new InvalidOperationException(DomSR.MissingObligatoryProperty("Name", "InfoField"));
-    str += "[Name = \"" + this.Name + "\"]";
+    str += "[Name = \"" + Name + "\"]";
 
     serializer.Write(str);
   }

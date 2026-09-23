@@ -302,7 +302,9 @@ internal class TableRenderer : Renderer
       targetY /= 2;
     }
     else
+    {
       targetY = innerRect.Y + cell.Row.TopPadding;
+    }
 
     RenderByInfos(targetX, targetY, renderInfos);
   }
@@ -587,7 +589,9 @@ internal class TableRenderer : Renderer
         field = bordersRenderer.GetWidth(BorderType.Left);
       }
       else
+      {
         field = 0;
+      }
       return field;
     }
   } = -1;
@@ -819,7 +823,9 @@ internal class TableRenderer : Renderer
         }
       }
       else if (rowIndex > row)
+      {
         break;
+      }
     }
     return minCell;
   }

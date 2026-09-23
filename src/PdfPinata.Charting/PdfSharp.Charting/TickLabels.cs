@@ -78,10 +78,10 @@ public class TickLabels : ChartObject
   /// </summary>
   public string Format
   {
-    get => this.format;
-    set => this.format = value;
+    get => format;
+    set => format = value;
   }
-  internal string format = String.Empty;
+  internal string format = string.Empty;
 
   /// <summary>
   /// Gets the font of the label.
@@ -90,10 +90,10 @@ public class TickLabels : ChartObject
   {
     get
     {
-      if (this.font == null)
-        this.font = new Font(this);
+      if (font == null)
+        font = new Font(this);
 
-      return this.font;
+      return font;
     }
   }
   internal Font font;

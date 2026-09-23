@@ -208,7 +208,9 @@ internal sealed class PdfType0Font : PdfFont
             {
                 var cid = glyphIndices[idx];
                 if (idx > 0 && cid == glyphIndices[idx - 1] + 1)
+                {
                     w.Append(' ');
+                }
                 else
                 {
                     if (idx > 0)

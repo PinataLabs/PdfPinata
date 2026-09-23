@@ -468,7 +468,9 @@ public struct XColor : IEquatable<XColor>
         var y = 255 - _b;
         var k = Math.Min(c, Math.Min(m, y));
         if (k == 255)
+        {
             _c = _m = _y = 0;
+        }
         else
         {
             var black = 255f - k;
@@ -688,7 +690,7 @@ public struct XColor : IEquatable<XColor>
     public string RgbCmykG
     {
         get =>
-            String.Format(CultureInfo.InvariantCulture,
+            string.Format(CultureInfo.InvariantCulture,
                 "{0};{1};{2};{3};{4};{5};{6};{7};{8}", _r, _g, _b, _c, _m, _y, _k, _gs, _a);
         set
         {

@@ -578,7 +578,9 @@ public partial class Paragraph : DocumentObject, IVisitable
             paragraphs.Add(paragraph);
         }
         if (startIdx == 0) //No paragraph breaks given.
+        {
             return null;
+        }
         else
         {
             var paragraph = new Paragraph();

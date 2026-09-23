@@ -194,7 +194,9 @@ public class SoftHyphenInJustifiedListTests
             paragraph.Format.Alignment = ParagraphAlignment.Justify;
 
             if (bookmarkAfterWords < 0)
+            {
                 paragraph.AddText(HyphenatedText);
+            }
             else
             {
                 // Split the text so that a bookmark sits in the middle of the first line.

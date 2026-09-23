@@ -174,14 +174,14 @@ public sealed partial class Style : DocumentObject, IVisitable
                 throw new ArgumentException(AppResources.EmptyBaseStyle);
 
             // Self assignment is allowed
-            if (String.Compare(baseStyle ?? "", value, StringComparison.OrdinalIgnoreCase) == 0)
+            if (string.Compare(baseStyle ?? "", value, StringComparison.OrdinalIgnoreCase) == 0)
             {
                 baseStyle = value; // character case may change...
                 return;
             }
 
-            if (String.Compare(name ?? "", DefaultParagraphName, StringComparison.OrdinalIgnoreCase) == 0 ||
-                String.Compare(name ?? "", DefaultParagraphFontName, StringComparison.OrdinalIgnoreCase) == 0)
+            if (string.Compare(name ?? "", DefaultParagraphName, StringComparison.OrdinalIgnoreCase) == 0 ||
+                string.Compare(name ?? "", DefaultParagraphFontName, StringComparison.OrdinalIgnoreCase) == 0)
             {
                 var msg = $"Style '{name}' has no base style and that cannot be altered.";
                 throw new ArgumentException(msg);
@@ -229,8 +229,10 @@ public sealed partial class Style : DocumentObject, IVisitable
             if (styleType != null)
                 return styleType.Value;
 
-            if (String.Compare(this.baseStyle ?? "", DefaultParagraphFontName, StringComparison.OrdinalIgnoreCase) == 0)
+            if (string.Compare(baseStyle ?? "", DefaultParagraphFontName, StringComparison.OrdinalIgnoreCase) == 0)
+            {
                 styleType = StyleType.Character;
+            }
             else
             {
                 var baseStyleObj = GetBaseStyle();
@@ -249,8 +251,8 @@ public sealed partial class Style : DocumentObject, IVisitable
     /// <summary>
     /// Determines whether the style is the style Normal or DefaultParagraphFont.
     /// </summary>
-    internal bool IsRootStyle => String.Compare(Name, DefaultParagraphFontName, StringComparison.OrdinalIgnoreCase) == 0 ||
-                                 String.Compare(Name, DefaultParagraphName, StringComparison.OrdinalIgnoreCase) == 0;
+    internal bool IsRootStyle => string.Compare(Name, DefaultParagraphFontName, StringComparison.OrdinalIgnoreCase) == 0 ||
+                                 string.Compare(Name, DefaultParagraphName, StringComparison.OrdinalIgnoreCase) == 0;
 
     /// <summary>
     /// Get the BaseStyle of the current style.
@@ -327,7 +329,7 @@ public sealed partial class Style : DocumentObject, IVisitable
             if (BaseStyle == "")
             {
                 // case: style is "Normal"
-                if (String.Compare(this.name ?? "", DefaultParagraphName, StringComparison.OrdinalIgnoreCase) != 0)
+                if (string.Compare(name ?? "", DefaultParagraphName, StringComparison.OrdinalIgnoreCase) != 0)
                     throw new ArgumentException("Internal Error: BaseStyle not set.");
 
                 refStyle = buildInStyles[buildInStyles.GetIndex(Name)];
@@ -339,7 +341,7 @@ public sealed partial class Style : DocumentObject, IVisitable
             {
                 // case: any build-in style except "Normal"
                 refStyle = buildInStyles[buildInStyles.GetIndex(Name)];
-                if (String.Compare(BaseStyle, refStyle.BaseStyle, StringComparison.OrdinalIgnoreCase) == 0)
+                if (string.Compare(BaseStyle, refStyle.BaseStyle, StringComparison.OrdinalIgnoreCase) == 0)
                 {
                     // case: build-in style with unmodified base style name
                     var quotedName = DdlEncoder.QuoteIfNameContainsBlanks(Name);

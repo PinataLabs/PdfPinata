@@ -104,7 +104,7 @@ public abstract class PdfButtonField : PdfAcroField
         if (t.Length <= 0)
             return;
 
-        if (!String.IsNullOrEmpty(partialName))
+        if (!string.IsNullOrEmpty(partialName))
             names.Add(partialName + "." + t);
         else
             names.Add(t);

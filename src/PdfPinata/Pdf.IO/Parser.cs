@@ -189,7 +189,7 @@ internal sealed class Parser
 
             case Symbol.Boolean:
                 pdfObject = new PdfBooleanObject(_document,
-                    String.Compare(_lexer.Token, Boolean.TrueString, StringComparison.OrdinalIgnoreCase) == 0);
+                    string.Compare(_lexer.Token, bool.TrueString, StringComparison.OrdinalIgnoreCase) == 0);
                 pdfObject.SetObjectID(objectNumber, generationNumber);
                 if (!fromObjecStream)
                     ReadEndObject();
@@ -709,7 +709,9 @@ internal sealed class Parser
                         _stack.Reduce(PdfNull.Value, 2);
                     }
                     else
+                    {
                         _stack.Reduce(iref, 2);
+                    }
 
                     break;
                 }
@@ -790,7 +792,9 @@ internal sealed class Parser
                 idx++;
             }
             else
+            {
                 idx = 0;
+            }
         }
     }
 
@@ -1259,7 +1263,9 @@ internal sealed class Parser
                     return trailer;
                 }
                 else
+                {
                     ParserDiagnostics.HandleUnexpectedToken(_lexer.Token);
+                }
             }
         }
         // ReSharper disable once RedundantIfElseBlock because of code readability.

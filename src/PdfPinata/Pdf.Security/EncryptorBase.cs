@@ -131,7 +131,9 @@ internal abstract class EncryptorBase
     {
         var padded = new byte[32];
         if (password == null)
+        {
             Array.Copy(passwordPadding, 0, padded, 0, 32);
+        }
         else
         {
             var length = password.Length;

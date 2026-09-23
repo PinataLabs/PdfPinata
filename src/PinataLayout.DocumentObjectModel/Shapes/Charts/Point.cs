@@ -144,7 +144,9 @@ public partial class Point : ChartObject
       serializer.EndContent();
     }
     else
+    {
       serializer.Write(Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
+    }
 
     serializer.Write(", ");
   }

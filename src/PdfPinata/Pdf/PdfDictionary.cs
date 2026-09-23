@@ -612,7 +612,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             object obj = ValueOf(key);
             if (obj == null)
             {
-                return String.Empty;
+                return string.Empty;
             }
 
             if (obj is PdfReference reference)
@@ -668,7 +668,9 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                 this[key] = value;
             }
             else
+            {
                 value = (PdfRectangle)obj;
+            }
             return value;
         }
 
@@ -746,7 +748,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
             var numbers = new double[6];
             for (var index = 0; index < 6; index++)
             {
-                if (!Double.TryParse(parts[index], NumberStyles.Float, CultureInfo.InvariantCulture, out numbers[index]))
+                if (!double.TryParse(parts[index], NumberStyles.Float, CultureInfo.InvariantCulture, out numbers[index]))
                     throw new InvalidCastException("Element is not an array with 6 values.");
             }
             return new XMatrix(numbers[0], numbers[1], numbers[2], numbers[3], numbers[4], numbers[5]);
@@ -790,7 +792,9 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
 
             string strDate;
             if (obj is PdfString pdfString)
+            {
                 strDate = pdfString.Value;
+            }
             else
             {
                 if (obj is PdfStringObject stringObject)
@@ -876,10 +880,14 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                             this[key] = obj.Reference;
                         }
                         else
+                        {
                             this[key] = obj;
+                        }
                     }
                     else
+                    {
                         throw new NotImplementedException("Cannot create value for key: " + key);
+                    }
                 }
             }
             else
@@ -1263,7 +1271,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
         /// </summary>
         public void Add(string key, PdfItem value)
         {
-            if (String.IsNullOrEmpty(key))
+            if (string.IsNullOrEmpty(key))
                 throw new ArgumentNullException(nameof(key));
 
             if (key[0] != '/')
@@ -1612,7 +1620,9 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                 Value = bytes;
             }
             else
+            {
                 return false;
+            }
             return true;
         }
 
@@ -1653,7 +1663,9 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
                     throw new NotImplementedException("Unknown filter");
             }
             else
+            {
                 stream = PdfEncoders.RawEncoding.GetString(_value, 0, _value.Length);
+            }
 
             return stream;
         }
@@ -1738,7 +1750,7 @@ public class PdfDictionary : PdfObject, IEnumerable<KeyValuePair<string, PdfItem
     /// Gets the DebuggerDisplayAttribute text.
     /// </summary>
     // ReSharper disable UnusedMember.Local
-    private string DebuggerDisplay => String.Format(CultureInfo.InvariantCulture, "dictionary({0},[{1}])={2}",
+    private string DebuggerDisplay => string.Format(CultureInfo.InvariantCulture, "dictionary({0},[{1}])={2}",
         ObjectID.DebuggerDisplay,
         Elements.Count,
         _elements.DebuggerDisplay); // ReSharper restore UnusedMember.Local

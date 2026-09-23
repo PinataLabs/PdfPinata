@@ -73,13 +73,13 @@ public partial class Column : DocumentObject
   {
     get
     {
-      if (this.table != null)
-        return this.table;
+      if (table != null)
+        return table;
 
-      var clms = this.Parent as Columns;
+      var clms = Parent as Columns;
       if (clms != null)
-        this.table = clms.Parent as Table;
-      return this.table;
+        table = clms.Parent as Table;
+      return table;
     }
   }
   private Table table;
@@ -116,8 +116,8 @@ public partial class Column : DocumentObject
   /// </summary>
   public string Style
   {
-    get => this.style ?? "";
-    set => this.style = value;
+    get => style ?? "";
+    set => style = value;
   }
   [DV]
   internal string style;
@@ -129,15 +129,15 @@ public partial class Column : DocumentObject
   {
     get
     {
-      if (this.format == null)
-        this.format = new ParagraphFormat(this);
+      if (format == null)
+        format = new ParagraphFormat(this);
 
-      return this.format;
+      return format;
     }
     set
     {
       SetParent(value);
-      this.format = value;
+      format = value;
     }
   }
   [DV]
@@ -148,8 +148,8 @@ public partial class Column : DocumentObject
   /// </summary>
   public Unit Width
   {
-    get => this.width;
-    set => this.width = value;
+    get => width;
+    set => width = value;
   }
   [DV]
   internal Unit width = Unit.NullValue;
@@ -159,8 +159,8 @@ public partial class Column : DocumentObject
   /// </summary>
   public Unit LeftPadding
   {
-    get => this.leftPadding;
-    set => this.leftPadding = value;
+    get => leftPadding;
+    set => leftPadding = value;
   }
   [DV]
   internal Unit leftPadding = Unit.NullValue;
@@ -170,8 +170,8 @@ public partial class Column : DocumentObject
   /// </summary>
   public Unit RightPadding
   {
-    get => this.rightPadding;
-    set => this.rightPadding = value;
+    get => rightPadding;
+    set => rightPadding = value;
   }
   [DV]
   internal Unit rightPadding = Unit.NullValue;
@@ -183,15 +183,15 @@ public partial class Column : DocumentObject
   {
     get
     {
-      if (this.borders == null)
-        this.borders = new Borders(this);
+      if (borders == null)
+        borders = new Borders(this);
 
-      return this.borders;
+      return borders;
     }
     set
     {
       SetParent(value);
-      this.borders = value;
+      borders = value;
     }
   }
   [DV]
@@ -203,8 +203,8 @@ public partial class Column : DocumentObject
   /// </summary>
   public int KeepWith
   {
-    get => this.keepWith ?? 0;
-    set => this.keepWith = value;
+    get => keepWith ?? 0;
+    set => keepWith = value;
   }
   [DV]
   internal int? keepWith;
@@ -214,8 +214,8 @@ public partial class Column : DocumentObject
   /// </summary>
   public bool HeadingFormat
   {
-    get => this.headingFormat ?? false;
-    set => this.headingFormat = value;
+    get => headingFormat ?? false;
+    set => headingFormat = value;
   }
   [DV]
   internal bool? headingFormat;
@@ -227,15 +227,15 @@ public partial class Column : DocumentObject
   {
     get
     {
-      if (this.shading == null)
-        this.shading = new Shading(this);
+      if (shading == null)
+        shading = new Shading(this);
 
-      return this.shading;
+      return shading;
     }
     set
     {
       SetParent(value);
-      this.shading = value;
+      shading = value;
     }
   }
   [DV]
@@ -246,8 +246,8 @@ public partial class Column : DocumentObject
   /// </summary>
   public string Comment
   {
-    get => this.comment ?? "";
-    set => this.comment = value;
+    get => comment ?? "";
+    set => comment = value;
   }
   [DV]
   internal string comment;
@@ -259,37 +259,37 @@ public partial class Column : DocumentObject
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    serializer.WriteComment(this.comment ?? "");
+    serializer.WriteComment(comment ?? "");
     serializer.WriteLine("\\column");
 
     var pos = serializer.BeginAttributes();
 
-    if ((this.style ?? "") != String.Empty)
-      serializer.WriteSimpleAttribute("Style", this.Style);
+    if ((style ?? "") != string.Empty)
+      serializer.WriteSimpleAttribute("Style", Style);
 
-    if (!this.IsNull("Format"))
-      this.format.Serialize(serializer, "Format", null);
+    if (!IsNull("Format"))
+      format.Serialize(serializer, "Format", null);
 
-    if (this.headingFormat != null)
+    if (headingFormat != null)
       serializer.WriteSimpleAttribute("HeadingFormat", HeadingFormat);
 
-    if (!this.leftPadding.IsNull)
+    if (!leftPadding.IsNull)
       serializer.WriteSimpleAttribute("LeftPadding", LeftPadding);
 
-    if (!this.rightPadding.IsNull)
+    if (!rightPadding.IsNull)
       serializer.WriteSimpleAttribute("RightPadding", RightPadding);
 
-    if (!this.width.IsNull)
-      serializer.WriteSimpleAttribute("Width", this.Width);
+    if (!width.IsNull)
+      serializer.WriteSimpleAttribute("Width", Width);
 
-    if (this.keepWith.HasValue)
-      serializer.WriteSimpleAttribute("KeepWith", this.KeepWith);
+    if (keepWith.HasValue)
+      serializer.WriteSimpleAttribute("KeepWith", KeepWith);
 
-    if (!this.IsNull("Borders"))
-      this.borders.Serialize(serializer, null);
+    if (!IsNull("Borders"))
+      borders.Serialize(serializer, null);
 
-    if (!this.IsNull("Shading"))
-      this.shading.Serialize(serializer);
+    if (!IsNull("Shading"))
+      shading.Serialize(serializer);
 
     serializer.EndAttributes(pos);
 

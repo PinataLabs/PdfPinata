@@ -85,7 +85,9 @@ internal sealed class PdfPageSheet
                 _trimMargins.Bottom = value.Bottom;
             }
             else
+            {
                 _trimMargins.All = 0;
+            }
         }
     }
     private TrimMargins _trimMargins = new();
@@ -108,7 +110,9 @@ internal sealed class PdfPageSheet
                 _markMargins.Bottom = value.Bottom;
             }
             else
+            {
                 _markMargins.All = 0;
+            }
         }
     }
     private readonly TrimMargins _markMargins = new() { All = XUnit.FromMillimeter(5) };

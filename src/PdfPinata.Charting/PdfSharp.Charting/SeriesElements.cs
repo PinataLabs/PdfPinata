@@ -84,7 +84,7 @@ public class SeriesElements : DocumentObjectCollection
   public void Add(params double[] values)
   {
     foreach (var val in values)
-      this.Add(val);
+      Add(val);
   }
   #endregion
 }

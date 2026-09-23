@@ -78,10 +78,10 @@ public class Gridlines : ChartObject
   {
     get
     {
-      if (this.lineFormat == null)
-        this.lineFormat = new LineFormat(this);
+      if (lineFormat == null)
+        lineFormat = new LineFormat(this);
 
-      return this.lineFormat;
+      return lineFormat;
     }
   }
   internal LineFormat lineFormat;

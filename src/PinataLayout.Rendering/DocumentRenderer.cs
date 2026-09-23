@@ -424,7 +424,9 @@ public class DocumentRenderer
                 outlines = outline.Outlines;
             }
             else
+            {
                 outlines = outlines[count - 1].Outlines;
+            }
         }
         var added = outlines.Add(title, destinationPage, true);
         added.Top = destinationTop;

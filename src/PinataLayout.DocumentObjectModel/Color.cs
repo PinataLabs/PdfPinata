@@ -111,15 +111,17 @@ public struct Color : INullableValue, IEquatable<Color>
         var yellow = 255 - (int)B;
         var key = Math.Min(cyan, Math.Min(magenta, yellow));
         if (key == 255)
-            this.c = this.m = this.y = 0;
+        {
+            c = m = y = 0;
+        }
         else
         {
             var black = 255f - key;
-            this.c = 100f * (cyan - key) / black;
-            this.m = 100f * (magenta - key) / black;
-            this.y = 100f * (yellow - key) / black;
+            c = 100f * (cyan - key) / black;
+            m = 100f * (magenta - key) / black;
+            y = 100f * (yellow - key) / black;
         }
-        this.k = 100f * key / 255f;
+        k = 100f * key / 255f;
         a = A / 2.55f;
     }
 
@@ -129,7 +131,7 @@ public struct Color : INullableValue, IEquatable<Color>
         isCmyk = true;
         var black = k * 2.55f + 0.5f;
         var factor = (255f - black) / 100f;
-        var alpha = (byte)(this.a * 2.55 + 0.5);
+        var alpha = (byte)(a * 2.55 + 0.5);
         var r = (byte)(255 - Math.Min(255f, c * factor + black));
         var g = (byte)(255 - Math.Min(255f, m * factor + black));
         var b = (byte)(255 - Math.Min(255f, y * factor + black));
@@ -403,16 +405,18 @@ public struct Color : INullableValue, IEquatable<Color>
             #pragma warning disable S1244 // Exact on purpose: only the exact value takes the special case, and the general path is right for anything near it.
             // ReSharper disable once CompareOfFloatsByEqualityOperator
             if (Alpha == 100.0)
-                s = String.Format(CultureInfo.InvariantCulture, "CMYK({0:0.##},{1:0.##},{2:0.##},{3:0.##})", C, M, Y, K);
+                s = string.Format(CultureInfo.InvariantCulture, "CMYK({0:0.##},{1:0.##},{2:0.##},{3:0.##})", C, M, Y, K);
             #pragma warning restore S1244
             else
-                s = String.Format(CultureInfo.InvariantCulture, "CMYK({0:0.##},{1:0.##},{2:0.##},{3:0.##},{4:0.##})", Alpha, C, M, Y, K);
+                s = string.Format(CultureInfo.InvariantCulture, "CMYK({0:0.##},{1:0.##},{2:0.##},{3:0.##},{4:0.##})", Alpha, C, M, Y, K);
             return s;
         }
         else
         {
             if (StdColors.TryGetValue(argb, out var name))
+            {
                 return name;
+            }
             else
             {
                 if ((argb & 0xFF000000) == 0xFF000000)

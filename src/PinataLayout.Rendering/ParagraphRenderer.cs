@@ -1866,7 +1866,9 @@ internal class ParagraphRenderer : Renderer
                 position += FontHandler.GetSubSuperScaling(CurrentFont) * (xFont.GetHeight() - FontHandler.GetDescent(xFont));
             }
             else
+            {
                 position += verticalInfo.inherentlineSpace - verticalInfo.descent;
+            }
 
             return position;
         }
@@ -2052,7 +2054,9 @@ internal class ParagraphRenderer : Renderer
                 return leftIndent + paragraph.Format.FirstLineIndent.Point;
             }
             else
+            {
                 return leftIndent;
+            }
         }
     }
 
@@ -2927,7 +2931,9 @@ internal class ParagraphRenderer : Renderer
         while (currentLeaf != null)
         {
             if (currentLeaf.Current is BookmarkField)
+            {
                 currentLeaf = currentLeaf.GetPreviousLeaf();
+            }
             else if (IsBlank(currentLeaf.Current))
             {
                 if (!IgnoreBlank())
@@ -2936,7 +2942,9 @@ internal class ParagraphRenderer : Renderer
                 break;
             }
             else
+            {
                 break;
+            }
         }
         currentLeaf = savedIter;
         return width;
@@ -3341,7 +3349,9 @@ internal class ParagraphRenderer : Renderer
 
             var image = (Image)currentLeaf.Current;
             if (imageRenderInfos != null && imageRenderInfos.ContainsKey(image))
+            {
                 return (RenderInfo)imageRenderInfos[image];
+            }
 
             else
             {

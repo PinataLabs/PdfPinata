@@ -42,7 +42,7 @@ public abstract class DocumentObjectCollection : DocumentObject, IList
   /// </summary>
   internal DocumentObjectCollection()
   {
-    this.elements = new ArrayList();
+    elements = new ArrayList();
   }
 
   /// <summary>
@@ -50,7 +50,7 @@ public abstract class DocumentObjectCollection : DocumentObject, IList
   /// </summary>
   internal DocumentObjectCollection(DocumentObject parent) : base(parent)
   {
-    this.elements = new ArrayList();
+    elements = new ArrayList();
   }
 
   /// <summary>
@@ -59,12 +59,12 @@ public abstract class DocumentObjectCollection : DocumentObject, IList
   /// </summary>
   public virtual DocumentObject this[int index]
   {
-    get => this.elements[index] as DocumentObject;
+    get => elements[index] as DocumentObject;
     set
     {
       if (value != null)
         value.parent = this;
-      this.elements[index] = value;
+      elements[index] = value;
     }
   }
 
@@ -107,7 +107,7 @@ public abstract class DocumentObjectCollection : DocumentObject, IList
   /// </summary>
   public void CopyTo(Array array, int index)
   {
-    this.elements.CopyTo(array, index);
+    elements.CopyTo(array, index);
   }
 
   /// <summary>
@@ -115,7 +115,7 @@ public abstract class DocumentObjectCollection : DocumentObject, IList
   /// </summary>
   public void Clear()
   {
-    this.elements.Clear();
+    elements.Clear();
   }
 
   /// <summary>
@@ -126,7 +126,7 @@ public abstract class DocumentObjectCollection : DocumentObject, IList
   {
     if (val != null)
       val.parent = this;
-    this.elements.Insert(index, val);
+    elements.Insert(index, val);
   }
 
   /// <summary>
@@ -134,7 +134,7 @@ public abstract class DocumentObjectCollection : DocumentObject, IList
   /// </summary>
   public int IndexOf(DocumentObject val)
   {
-    return this.elements.IndexOf(val);
+    return elements.IndexOf(val);
   }
 
   /// <summary>
@@ -152,7 +152,7 @@ public abstract class DocumentObjectCollection : DocumentObject, IList
   {
     if (value != null)
       value.parent = this;
-    this.elements.Add(value);
+    elements.Add(value);
   }
   #endregion
 
@@ -160,7 +160,7 @@ public abstract class DocumentObjectCollection : DocumentObject, IList
   /// <summary>
   /// Gets the number of elements actually contained in the collection.
   /// </summary>
-  public int Count => this.elements.Count;
+  public int Count => elements.Count;
 
   /// <summary>
   /// Gets the first value in the collection, if there is any, otherwise null.
@@ -183,9 +183,9 @@ public abstract class DocumentObjectCollection : DocumentObject, IList
   {
     get
     {
-      var count = this.elements.Count;
+      var count = elements.Count;
       if (count > 0)
-        return (DocumentObject)this.elements[count - 1];
+        return (DocumentObject)elements[count - 1];
       return null;
     }
   }
@@ -203,7 +203,7 @@ public abstract class DocumentObjectCollection : DocumentObject, IList
 
   object IList.this[int index]
   {
-    get => this.elements[index];
+    get => elements[index];
     set => this[index] = AsDocumentObject(value);
   }
 
@@ -255,7 +255,7 @@ public abstract class DocumentObjectCollection : DocumentObject, IList
   /// </returns>
   public IEnumerator GetEnumerator()
   {
-    return this.elements.GetEnumerator();
+    return elements.GetEnumerator();
   }
 
   private ArrayList elements;

@@ -52,7 +52,7 @@ internal class PieLegendRenderer : LegendRenderer
   internal override RendererInfo Init()
   {
     LegendRendererInfo lri = null;
-    var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
+    var cri = (ChartRendererInfo)rendererParms.RendererInfo;
     if (cri.Chart.legend == null)
       return null;
 
@@ -84,7 +84,9 @@ internal class PieLegendRenderer : LegendRenderer
           leri.EntryText = xseries[index].Value;
       }
       else
+      {
         leri.EntryText = (index + 1).ToString(CultureInfo.InvariantCulture); // create default/dummy entry
+      }
       leri.MarkerPen = pri.LineFormat;
       leri.MarkerBrush = pri.FillFormat;
 

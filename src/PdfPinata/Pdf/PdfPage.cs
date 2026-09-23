@@ -1272,7 +1272,9 @@ public sealed class PdfPage : PdfDictionary, IContentStream
                 resources.Document = page.Owner;
             }
             else
+            {
                 resources = (PdfDictionary)res;
+            }
 
             if (resources == null)
             {

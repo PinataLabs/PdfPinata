@@ -51,7 +51,7 @@ public class Chart : DocumentObject
   /// </summary>
   public Chart(ChartType type) : this()
   {
-    this.Type = type;
+    Type = type;
   }
 
   #region Methods
@@ -122,11 +122,11 @@ public class Chart : DocumentObject
   /// </summary>
   internal string CheckAxis (Axis axis)
   {
-    if (this.xAxis != null && axis == this.xAxis)
+    if (xAxis != null && axis == xAxis)
       return "xaxis";
-    if (this.yAxis != null && axis == this.yAxis)
+    if (yAxis != null && axis == yAxis)
       return "yaxis";
-    if (this.zAxis != null && axis == this.zAxis)
+    if (zAxis != null && axis == zAxis)
       return "zaxis";
 
     return "";
@@ -140,8 +140,8 @@ public class Chart : DocumentObject
   /// </summary>
   public ChartType Type
   {
-    get => this.type;
-    set => this.type = value;
+    get => type;
+    set => type = value;
   }
   internal ChartType type;
 
@@ -153,10 +153,10 @@ public class Chart : DocumentObject
   {
     get 
     {
-      if (this.font == null)
-        this.font = new Font(this);
+      if (font == null)
+        font = new Font(this);
 
-      return this.font;
+      return font;
     }
   }
   internal Font font;
@@ -168,10 +168,10 @@ public class Chart : DocumentObject
   {
     get
     {
-      if (this.legend == null)
-        this.legend = new Legend(this);
+      if (legend == null)
+        legend = new Legend(this);
 
-      return this.legend;
+      return legend;
     }
   }
   internal Legend legend;
@@ -183,10 +183,10 @@ public class Chart : DocumentObject
   {
     get
     {
-      if (this.xAxis == null)
-        this.xAxis = new Axis(this);
+      if (xAxis == null)
+        xAxis = new Axis(this);
 
-      return this.xAxis;
+      return xAxis;
     }
   }
   internal Axis xAxis;
@@ -198,10 +198,10 @@ public class Chart : DocumentObject
   {
     get
     {
-      if (this.yAxis == null)
-        this.yAxis = new Axis(this);
+      if (yAxis == null)
+        yAxis = new Axis(this);
 
-      return this.yAxis;
+      return yAxis;
     }
   }
   internal Axis yAxis;
@@ -213,10 +213,10 @@ public class Chart : DocumentObject
   {
     get
     {
-      if (this.zAxis == null)
-        this.zAxis = new Axis(this);
+      if (zAxis == null)
+        zAxis = new Axis(this);
 
-      return this.zAxis;
+      return zAxis;
     }
   }
   internal Axis zAxis;
@@ -228,10 +228,10 @@ public class Chart : DocumentObject
   {
     get
     {
-      if (this.seriesCollection == null)
-        this.seriesCollection = new SeriesCollection(this);
+      if (seriesCollection == null)
+        seriesCollection = new SeriesCollection(this);
 
-      return this.seriesCollection;
+      return seriesCollection;
     }
   }
   internal SeriesCollection seriesCollection;
@@ -243,10 +243,10 @@ public class Chart : DocumentObject
   {
     get
     {
-      if (this.xValues == null)
-        this.xValues = new XValues(this);
+      if (xValues == null)
+        xValues = new XValues(this);
 
-      return this.xValues;
+      return xValues;
     }
   }
   internal XValues xValues;
@@ -258,10 +258,10 @@ public class Chart : DocumentObject
   {
     get
     {
-      if (this.plotArea == null)
-        this.plotArea = new PlotArea(this);
+      if (plotArea == null)
+        plotArea = new PlotArea(this);
 
-      return this.plotArea;
+      return plotArea;
     }
   }
   internal PlotArea plotArea;
@@ -271,8 +271,8 @@ public class Chart : DocumentObject
   /// </summary>
   public BlankType DisplayBlanksAs
   {
-    get => this.displayBlanksAs;
-    set => this.displayBlanksAs = value;
+    get => displayBlanksAs;
+    set => displayBlanksAs = value;
   }
   internal BlankType displayBlanksAs;
 
@@ -283,10 +283,10 @@ public class Chart : DocumentObject
   {
     get 
     {
-      if (this.dataLabel == null)
-        this.dataLabel = new DataLabel(this);
+      if (dataLabel == null)
+        dataLabel = new DataLabel(this);
 
-      return this.dataLabel;
+      return dataLabel;
     }
   }
   internal DataLabel dataLabel;
@@ -296,8 +296,8 @@ public class Chart : DocumentObject
   /// </summary>
   public bool HasDataLabel
   {
-    get => this.hasDataLabel;
-    set => this.hasDataLabel = value;
+    get => hasDataLabel;
+    set => hasDataLabel = value;
   }
   internal bool hasDataLabel;
   #endregion
