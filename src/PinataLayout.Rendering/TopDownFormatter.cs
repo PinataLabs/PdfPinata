@@ -250,11 +250,11 @@ internal class TopDownFormatter
                 }
             }
 
-            if (idx == elements.Count && !ready)
-            {
-                areaProvider.StoreRenderInfos(renderInfos);
-                ready = true;
-            }
+            if (idx != elements.Count || ready)
+                continue;
+
+            areaProvider.StoreRenderInfos(renderInfos);
+            ready = true;
         }
     }
 
@@ -373,14 +373,12 @@ internal class TopDownFormatter
         var obstacle = new Rectangle(left, top, right - left, bottom - top);
         var bounds = new Rectangle(area.X, area.Y, area.Width, area.Height);
 
-        if (area is ObstructedArea standing)
-        {
-            // A second shape beside the first, rather than one replacing the other.
-            var all = new List<Rectangle>(standing.Obstacles) { obstacle };
-            return new ObstructedArea(bounds, all);
-        }
+        if (area is not ObstructedArea standing)
+            return new ObstructedArea(bounds, new[] { obstacle });
 
-        return new ObstructedArea(bounds, new[] { obstacle });
+        // A second shape beside the first, rather than one replacing the other.
+        var all = new List<Rectangle>(standing.Obstacles) { obstacle };
+        return new ObstructedArea(bounds, all);
     }
 
     /// <summary>
@@ -400,13 +398,11 @@ internal class TopDownFormatter
         if (layoutInfo.KeepTogether && !formatInfo.IsComplete)
             return true;
 
-        if (layoutInfo.KeepTogether && layoutInfo.KeepWithNext)
-        {
-            var area = remainingArea.Lower(layoutInfo.ContentArea.Height);
-            return NextElementsDontFit(idx, area, layoutInfo.MarginBottom);
-        }
+        if (!layoutInfo.KeepTogether || !layoutInfo.KeepWithNext)
+            return false;
 
-        return false;
+        var area = remainingArea.Lower(layoutInfo.ContentArea.Height);
+        return NextElementsDontFit(idx, area, layoutInfo.MarginBottom);
     }
 
     /// <summary>
@@ -421,12 +417,12 @@ internal class TopDownFormatter
         var layoutInfo = succedingRenderInfo.LayoutInfo;
         var formatInfo = succedingRenderInfo.FormatInfo;
         var prevLayoutInfo = prevRenderInfo.LayoutInfo;
-        if (formatInfo.IsEnding && !formatInfo.EndingIsComplete)
-        {
-            var area = areaProvider.ProbeNextArea();
-            if (area.Height > prevLayoutInfo.TrailingHeight + layoutInfo.TrailingHeight + Renderer.Tolerance)
-                return true;
-        }
+        if (!formatInfo.IsEnding || formatInfo.EndingIsComplete)
+            return false;
+
+        var area = areaProvider.ProbeNextArea();
+        if (area.Height > prevLayoutInfo.TrailingHeight + layoutInfo.TrailingHeight + Renderer.Tolerance)
+            return true;
 
         return false;
     }
@@ -490,13 +486,11 @@ internal class TopDownFormatter
         if (!formatInfo.EndingIsComplete)
             return false;
 
-        if (layoutInfo.KeepWithNext)
-        {
-            remainingArea = remainingArea.Lower(layoutInfo.ContentArea.Height);
-            return NextElementsDontFit(idx, remainingArea, layoutInfo.MarginBottom);
-        }
+        if (!layoutInfo.KeepWithNext)
+            return false;
 
-        return false;
+        remainingArea = remainingArea.Lower(layoutInfo.ContentArea.Height);
+        return NextElementsDontFit(idx, remainingArea, layoutInfo.MarginBottom);
     }
 
     private DocumentRenderer documentRenderer;

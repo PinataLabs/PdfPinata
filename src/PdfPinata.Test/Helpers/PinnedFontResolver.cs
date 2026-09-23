@@ -30,7 +30,7 @@ namespace PdfPinata.Test.Helpers;
 internal sealed class PinnedFontResolver : IFontResolver
 {
     private static readonly ConcurrentDictionary<string, byte[]> Fonts =
-        new ConcurrentDictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
+        new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
     ///   The one family here that is not Liberation. Its outlines are PostScript (CFF) rather
@@ -74,7 +74,7 @@ internal sealed class PinnedFontResolver : IFontResolver
     ///   replacing the resolver under every other test running beside it.
     /// </summary>
     private static readonly ConcurrentDictionary<string, string> Registered =
-        new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
     ///   Serves <paramref name="fontBytes"/> to anything asking for <paramref name="familyName"/>.

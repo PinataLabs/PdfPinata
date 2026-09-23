@@ -72,7 +72,7 @@ internal class BarClusteredPlotAreaRenderer : BarPlotAreaRenderer
       var x = xMax - groupWidth / 2;
         
       // Offset for bars of a particular series from the start of a clustered bar.
-      var dx = (columnWidth * seriesIdx) - (columnWidth / 2 * cri.SeriesRendererInfos.Length);
+      var dx = columnWidth * seriesIdx - columnWidth / 2 * cri.SeriesRendererInfos.Length;
       var y0 = yMin;
 
       foreach (var column in sri.PointRendererInfos.Cast<ColumnRendererInfo>())

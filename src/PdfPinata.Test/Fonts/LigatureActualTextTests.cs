@@ -44,7 +44,7 @@ public class LigatureActualTextTests
     ///   the face draws one glyph for one character, there is no disagreement to report, and every
     ///   assertion below passes while testing nothing at all.
     /// </remarks>
-    private static readonly string Composed = new string(new[] { (char)0x0065, (char)0x0301 });
+    private static readonly string Composed = new(new[] { (char)0x0065, (char)0x0301 });
 
     /// <summary>Distinctive enough that nothing else in the suite draws it.</summary>
     private static readonly string Sentinel = "ActualText " + Composed + " here";

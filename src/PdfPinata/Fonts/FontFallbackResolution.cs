@@ -34,12 +34,12 @@ static class FontFallbackResolution
     // between them. A miss is worth remembering as firmly as a hit - it is the answer that costs a
     // walk down the whole candidate list.
     private static ConcurrentDictionary<(string Face, int CodePoint, XFontStyle Style), string> _decided
-        = new ConcurrentDictionary<(string, int, XFontStyle), string>();
+        = new();
 
     // Resolved fonts, so that the same fallback is the same object every time and a caller can
     // tell two adjacent characters want the same face by reference.
     private static ConcurrentDictionary<(string Family, double Size, XFontStyle Style, PdfFontEncoding Encoding), XFont> _fonts
-        = new ConcurrentDictionary<(string, double, XFontStyle, PdfFontEncoding), XFont>();
+        = new();
 
     /// <summary>Whether anything is registered to fall back to.</summary>
     internal static bool Enabled => GlobalFontSettings.FontFallback != null;

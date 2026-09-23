@@ -17,7 +17,7 @@ namespace PdfPinata.Test.IO;
 /// </summary>
 public class ModificationDateTests
 {
-    private static readonly DateTime ADateInTheFile = new DateTime(2001, 2, 3, 4, 5, 6);
+    private static readonly DateTime ADateInTheFile = new(2001, 2, 3, 4, 5, 6);
 
     [Fact]
     public void OpeningADocumentForModificationReportsTheDateTheFileCarries()

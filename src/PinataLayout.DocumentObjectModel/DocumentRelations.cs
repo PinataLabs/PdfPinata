@@ -81,14 +81,11 @@ public class DocumentRelations
 
             ArgumentNullException.ThrowIfNull(type);
 
-            if (documentObject.parent != null)
-            {
-                if (documentObject.parent.GetType() == type) return documentObject.parent;
-                documentObject = documentObject.parent;
-                continue;
-            }
+            if (documentObject.parent == null)
+                return null;
 
-            return null;
+            if (documentObject.parent.GetType() == type) return documentObject.parent;
+            documentObject = documentObject.parent;
         }
     }
 }

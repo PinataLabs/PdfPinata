@@ -116,11 +116,11 @@ internal class Serializer
   /// </summary>
   internal void WriteStamp()
   {
-    if (fWriteStamp)
-    {
-      WriteComment("Created by PinataLayout Document Object Model");
-      WriteComment(String.Format("generated file created {0:d} at {0:t}", GlobalTimeSettings.Now));
-    }
+    if (!fWriteStamp)
+      return;
+
+    WriteComment("Created by PinataLayout Document Object Model");
+    WriteComment(String.Format("generated file created {0:d} at {0:t}", GlobalTimeSettings.Now));
   }
 
   /// <summary>
@@ -305,11 +305,11 @@ internal class Serializer
       }
     }
 
-    if (fLineBreak)
-    {
-      textWriter.WriteLine(String.Empty);  // what a line break is may depend on encoding
-      linePos = 0;
-    }
+    if (!fLineBreak)
+      return;
+
+    textWriter.WriteLine(String.Empty);  // what a line break is may depend on encoding
+    linePos = 0;
   }
 
   /// <summary>

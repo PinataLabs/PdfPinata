@@ -23,13 +23,13 @@ public class StrokedTextTests
 {
     private const double FontSize = 24;
 
-    private static XFont PlainFont => new XFont("Arial", FontSize, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
+    private static XFont PlainFont => new("Arial", FontSize, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
 
     /// <summary>
     ///   Source Code Pro ships a regular face only, so asking for bold gets bold simulation.
     /// </summary>
     private static XFont BoldSimulatedFont =>
-        new XFont(PinnedFontResolver.CffFamilyName, FontSize, XFontStyle.Bold, XPdfFontOptions.WinAnsiDefault);
+        new(PinnedFontResolver.CffFamilyName, FontSize, XFontStyle.Bold, XPdfFontOptions.WinAnsiDefault);
 
     private static PdfPage PageShowing(Action<XGraphics> draw)
     {

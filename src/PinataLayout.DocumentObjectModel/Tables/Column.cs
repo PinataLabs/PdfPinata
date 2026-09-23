@@ -73,12 +73,12 @@ public partial class Column : DocumentObject
   {
     get
     {
-      if (this.table == null)
-      {
-        var clms = this.Parent as Columns;
-        if (clms != null)
-          this.table = clms.Parent as Table;
-      }
+      if (this.table != null)
+        return this.table;
+
+      var clms = this.Parent as Columns;
+      if (clms != null)
+        this.table = clms.Parent as Table;
       return this.table;
     }
   }
@@ -91,14 +91,14 @@ public partial class Column : DocumentObject
   {
     get
     {
-      if (!index.HasValue)
+      if (index.HasValue)
+        return index.Value;
+
+      var clms = (Columns)Parent;
+      // One for all and all for one.
+      for (var i = 0; i < clms.Count; ++i)
       {
-        var clms = (Columns)Parent;
-        // One for all and all for one.
-        for (var i = 0; i < clms.Count; ++i)
-        {
-          clms[i].index = i;
-        }
+        clms[i].index = i;
       }
       return index ?? 0;
     }
@@ -259,7 +259,7 @@ public partial class Column : DocumentObject
   /// </summary>
   internal override void Serialize(Serializer serializer)
   {
-    serializer.WriteComment((this.comment ?? ""));
+    serializer.WriteComment(this.comment ?? "");
     serializer.WriteLine("\\column");
 
     var pos = serializer.BeginAttributes();

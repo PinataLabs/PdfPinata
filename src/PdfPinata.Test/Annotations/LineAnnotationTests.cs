@@ -28,7 +28,7 @@ public sealed class LineAnnotationTests : IDisposable
 {
     private const string OutDir = "Out/LineAnnotations";
 
-    private readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
+    private readonly List<MagickImageCollection> _rasterized = new();
 
     public void Dispose()
     {
@@ -43,8 +43,8 @@ public sealed class LineAnnotationTests : IDisposable
         GhostscriptSetup.Configure();
     }
 
-    private static readonly XPoint From = new XPoint(100, 400);
-    private static readonly XPoint To = new XPoint(300, 400);
+    private static readonly XPoint From = new(100, 400);
+    private static readonly XPoint To = new(300, 400);
 
     [Fact]
     public void ALineNamesItsSubtypeAndCarriesADefaultWidth()

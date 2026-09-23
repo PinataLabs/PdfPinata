@@ -140,9 +140,9 @@ internal class FootnoteRegistry
 
     // Reference equality, deliberately: two notes with identical content are two notes.
     private readonly Dictionary<Footnote, Entry> _entries =
-        new Dictionary<Footnote, Entry>(ReferenceEqualityComparer.Instance);
+        new(ReferenceEqualityComparer.Instance);
 
-    private readonly List<Footnote> _order = new List<Footnote>();
+    private readonly List<Footnote> _order = new();
 }
 
 /// <summary>
@@ -151,7 +151,7 @@ internal class FootnoteRegistry
 /// </summary>
 internal sealed class ReferenceEqualityComparer : IEqualityComparer<Footnote>
 {
-    internal static readonly ReferenceEqualityComparer Instance = new ReferenceEqualityComparer();
+    internal static readonly ReferenceEqualityComparer Instance = new();
 
     public bool Equals(Footnote x, Footnote y) => ReferenceEquals(x, y);
 

@@ -130,7 +130,7 @@ public static class NumberFormatter
         else
             cr = (char)('A' + (number - 1) % 26);
 
-        for (var n = 0; n <= ((number - 1) / 26); ++n)
+        for (var n = 0; n <= (number - 1) / 26; ++n)
             str += cr;
 
         return str;

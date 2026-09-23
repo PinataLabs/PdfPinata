@@ -52,7 +52,7 @@ internal static class DoubleUtil
         // This computes (|value1-value2| / (|value1| + |value2| + 10.0)) < Epsilon
         var eps = (Math.Abs(value1) + Math.Abs(value2) + 10.0) * Epsilon;
         var delta = value1 - value2;
-        return (-eps < delta) && (eps > delta);
+        return -eps < delta && eps > delta;
     }
 
     /// <summary>
@@ -82,7 +82,7 @@ internal static class DoubleUtil
         var exp = t.UintValue & 0xfff0000000000000;
         var man = t.UintValue & 0x000fffffffffffff;
 
-        return (exp == 0x7ff0000000000000 || exp == 0xfff0000000000000) && (man != 0);
+        return (exp == 0x7ff0000000000000 || exp == 0xfff0000000000000) && man != 0;
     }
 
     /// <summary>

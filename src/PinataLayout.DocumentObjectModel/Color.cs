@@ -218,21 +218,20 @@ public struct Color : INullableValue, IEquatable<Color>
     /// </summary>
     public override bool Equals(Object obj)
     {
-        if (obj is Color)
-        {
-            var color = (Color)obj;
-            if (isCmyk ^ color.isCmyk)
-                return false;
-            #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
-            if (isCmyk)
-                // ReSharper disable CompareOfFloatsByEqualityOperator
-                return a == color.a && c == color.c && m == color.m && y == color.y && k == color.k;
-                // ReSharper restore CompareOfFloatsByEqualityOperator
-                #pragma warning restore S1244
-            else
-                return argb == color.argb;
-        }
-        return false;
+        if (obj is not Color)
+            return false;
+
+        var color = (Color)obj;
+        if (isCmyk ^ color.isCmyk)
+            return false;
+        #pragma warning disable S1244 // Exact on purpose: equality has to be transitive and agree with GetHashCode.
+        if (isCmyk)
+            // ReSharper disable CompareOfFloatsByEqualityOperator
+            return a == color.a && c == color.c && m == color.m && y == color.y && k == color.k;
+            // ReSharper restore CompareOfFloatsByEqualityOperator
+            #pragma warning restore S1244
+        else
+            return argb == color.argb;
     }
 
     /// <summary>
@@ -502,5 +501,5 @@ public struct Color : INullableValue, IEquatable<Color>
     /// <summary>
     /// Represents a null color.
     /// </summary>
-    public static readonly Color Empty = new Color(0);
+    public static readonly Color Empty = new(0);
 }

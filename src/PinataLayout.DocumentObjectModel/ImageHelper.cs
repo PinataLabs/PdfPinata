@@ -80,11 +80,11 @@ public class ImageHelper
     {
       var fullname = System.IO.Path.Combine(System.IO.Path.Combine(root, subfolder), filename);
       var realFile = ExtractPageNumber(fullname, out _);
-      if (System.IO.File.Exists(realFile))
-      {
-        if (fullname == referenceFilename)
-          return true;
-      }
+      if (!System.IO.File.Exists(realFile))
+        continue;
+
+      if (fullname == referenceFilename)
+        return true;
     }
     return false;
   }
@@ -100,26 +100,26 @@ public class ImageHelper
 
     pageNumber = 0;
     var length = path.Length;
-    if (length != 0)
-    {
+    if (length == 0)
+      return path;
+
+    length--;
+    if (!Char.IsDigit(path, length))
+      return path;
+
+    // Bound first: the old order asked whether path[-1] was a digit when every character
+    // was one, and Char.IsDigit threw rather than the loop ending. Duplicated in XPdfForm.
+    while (length >= 0 && Char.IsDigit(path, length))
       length--;
-      if (Char.IsDigit(path, length))
-      {
-        // Bound first: the old order asked whether path[-1] was a digit when every character
-        // was one, and Char.IsDigit threw rather than the loop ending. Duplicated in XPdfForm.
-        while (length >= 0 && Char.IsDigit(path, length))
-          length--;
-        if (length > 0 && path[length] == '#')
-        {
-          // must have at least one dot left of colon to distinguish from e.g. '#123'
-          if (path.Contains('.'))
-          {
-            pageNumber = Int32.Parse(path[(length + 1)..]);
-            path = path[..length];
-          }
-        }
-      }
-    }
+    if (length <= 0 || path[length] != '#')
+      return path;
+
+    // must have at least one dot left of colon to distinguish from e.g. '#123'
+    if (!path.Contains('.'))
+      return path;
+
+    pageNumber = Int32.Parse(path[(length + 1)..]);
+    path = path[..length];
     return path;
   }
 

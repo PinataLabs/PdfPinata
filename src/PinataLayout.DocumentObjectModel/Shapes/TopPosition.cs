@@ -61,7 +61,7 @@ public struct TopPosition : INullableValue
 
     this.shapePosition = value;
     this.position = Unit.NullValue;
-    this._notNull = (value != ShapePosition.Undefined);
+    this._notNull = value != ShapePosition.Undefined;
   }
 
   /// <summary>
@@ -232,5 +232,5 @@ public struct TopPosition : INullableValue
   /// <summary>
   /// Represents the unitialized TopPosition object.
   /// </summary>
-  internal static readonly TopPosition NullValue = new TopPosition();
+  internal static readonly TopPosition NullValue = new();
 }

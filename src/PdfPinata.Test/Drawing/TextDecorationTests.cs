@@ -21,9 +21,9 @@ public class TextDecorationTests
 {
     private const double FontSize = 24;
 
-    private static XFont Plain => new XFont("Arial", FontSize, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
-    private static XFont Underlined => new XFont("Arial", FontSize, XFontStyle.Underline, XPdfFontOptions.WinAnsiDefault);
-    private static XFont StruckOut => new XFont("Arial", FontSize, XFontStyle.Strikeout, XPdfFontOptions.WinAnsiDefault);
+    private static XFont Plain => new("Arial", FontSize, XFontStyle.Regular, XPdfFontOptions.WinAnsiDefault);
+    private static XFont Underlined => new("Arial", FontSize, XFontStyle.Underline, XPdfFontOptions.WinAnsiDefault);
+    private static XFont StruckOut => new("Arial", FontSize, XFontStyle.Strikeout, XPdfFontOptions.WinAnsiDefault);
 
     private static PdfPage PageShowing(string text, XFont font, XStringFormat format)
     {

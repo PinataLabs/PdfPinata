@@ -355,45 +355,45 @@ internal sealed class PdfCrossReferenceTable // Must not be derive from PdfObjec
             else
                 Debug.Assert(false, "Should not come here.");
 
-            if (enumerable != null)
+            if (enumerable == null)
+                return;
+
+            foreach (PdfItem item in enumerable)
             {
-                foreach (PdfItem item in enumerable)
+                if (item is PdfReference iref)
                 {
-                    if (item is PdfReference iref)
+                    if (!ReferenceEquals(iref.Document, _document))
+                        Debug.WriteLine($"Bad iref: {iref.ObjectID.ToString()}");
+
+                    Debug.Assert(ReferenceEquals(iref.Document, _document) || iref.Document == null,
+                        "External object detected!");
+                    if (!objects.ContainsKey(iref))
                     {
-                        if (!ReferenceEquals(iref.Document, _document))
-                            Debug.WriteLine($"Bad iref: {iref.ObjectID.ToString()}");
+                        var value = iref.Value;
 
-                        Debug.Assert(ReferenceEquals(iref.Document, _document) || iref.Document == null,
-                            "External object detected!");
-                        if (!objects.ContainsKey(iref))
+                        // Ignore unreachable objets.
+                        if (iref.Document != null)
                         {
-                            var value = iref.Value;
-
-                            // Ignore unreachable objets.
-                            if (iref.Document != null)
+                            // ... from trailer hack
+                            if (value == null)
                             {
-                                // ... from trailer hack
-                                if (value == null)
-                                {
-                                    iref = ObjectTable[iref.ObjectID];
-                                    Debug.Assert(iref.Value != null);
-                                    value = iref.Value;
-                                }
-
-                                Debug.Assert(ReferenceEquals(iref.Document, _document));
-                                objects.Add(iref, null);
-                                if (value is PdfArray || value is PdfDictionary)
-                                    TransitiveClosureImplementation(objects, value /*, ref depth*/);
+                                iref = ObjectTable[iref.ObjectID];
+                                Debug.Assert(iref.Value != null);
+                                value = iref.Value;
                             }
+
+                            Debug.Assert(ReferenceEquals(iref.Document, _document));
+                            objects.Add(iref, null);
+                            if (value is PdfArray || value is PdfDictionary)
+                                TransitiveClosureImplementation(objects, value /*, ref depth*/);
                         }
                     }
-                    else
-                    {
-                        var pdfObject28 = item as PdfObject;
-                        if (pdfObject28 != null && (pdfObject28 is PdfDictionary || pdfObject28 is PdfArray))
-                            TransitiveClosureImplementation(objects, pdfObject28 /*, ref depth*/);
-                    }
+                }
+                else
+                {
+                    var pdfObject28 = item as PdfObject;
+                    if (pdfObject28 != null && (pdfObject28 is PdfDictionary || pdfObject28 is PdfArray))
+                        TransitiveClosureImplementation(objects, pdfObject28 /*, ref depth*/);
                 }
             }
         }

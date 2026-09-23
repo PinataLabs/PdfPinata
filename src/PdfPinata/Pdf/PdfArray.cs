@@ -100,16 +100,16 @@ public class PdfArray : PdfObject, IEnumerable<PdfItem>
     protected override object Copy()
     {
         var array = (PdfArray)base.Copy();
-        if (array._elements != null)
+        if (array._elements == null)
+            return array;
+
+        array._elements = array._elements.Clone();
+        var count = array._elements.Count;
+        for (var idx = 0; idx < count; idx++)
         {
-            array._elements = array._elements.Clone();
-            var count = array._elements.Count;
-            for (var idx = 0; idx < count; idx++)
-            {
-                var item = array._elements[idx];
-                if (item is PdfObject)
-                    array._elements[idx] = item.Clone();
-            }
+            var item = array._elements[idx];
+            if (item is PdfObject)
+                array._elements[idx] = item.Clone();
         }
 
         return array;

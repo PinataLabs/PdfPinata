@@ -52,47 +52,47 @@ internal abstract class DataLabelRenderer : Renderer
     var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
     foreach (var sri in cri.SeriesRendererInfos)
     {
-      if (cri.Chart.hasDataLabel || cri.Chart.dataLabel != null ||
-          sri.Series.hasDataLabel || sri.Series.dataLabel != null)
-      {
-        var dlri = new DataLabelRendererInfo();
+      if (!cri.Chart.hasDataLabel && cri.Chart.dataLabel == null &&
+          !sri.Series.hasDataLabel && sri.Series.dataLabel == null)
+        continue;
 
-        // A series' data label answers what it sets and leaves the rest to the chart's, property by
-        // property, where it used to replace the chart's outright.
-        var own = sri.Series.dataLabel;
-        var shared = cri.Chart.dataLabel;
+      var dlri = new DataLabelRendererInfo();
 
-        dlri.Format = !string.IsNullOrEmpty(own?.format) ? own.format
-          : !string.IsNullOrEmpty(shared?.format) ? shared.format
-          : "0";
+      // A series' data label answers what it sets and leaves the rest to the chart's, property by
+      // property, where it used to replace the chart's outright.
+      var own = sri.Series.dataLabel;
+      var shared = cri.Chart.dataLabel;
 
-        // Two defaults, both from upstream and both kept so that no label moves unasked: inside
-        // the end when there is no data label object at all, outside it when there is one that
-        // does not say.
-        if (own != null && own.PositionInitialized)
-          dlri.Position = own.position;
-        else if (shared != null && shared.PositionInitialized)
-          dlri.Position = shared.position;
-        else
-          dlri.Position = own == null && shared == null ? DataLabelPosition.InsideEnd : DataLabelPosition.OutsideEnd;
+      dlri.Format = !string.IsNullOrEmpty(own?.format) ? own.format
+        : !string.IsNullOrEmpty(shared?.format) ? shared.format
+        : "0";
 
-        if (own != null && own.TypeInitialized)
-          dlri.Type = own.type;
-        else if (shared != null && shared.TypeInitialized)
-          dlri.Type = shared.type;
-        else if (cri.Chart.type == ChartType.Pie2D || cri.Chart.type == ChartType.PieExploded2D)
-          dlri.Type = DataLabelType.Percent;
-        else
-          dlri.Type = DataLabelType.Value;
+      // Two defaults, both from upstream and both kept so that no label moves unasked: inside
+      // the end when there is no data label object at all, outside it when there is one that
+      // does not say.
+      if (own != null && own.PositionInitialized)
+        dlri.Position = own.position;
+      else if (shared != null && shared.PositionInitialized)
+        dlri.Position = shared.position;
+      else
+        dlri.Position = own == null && shared == null ? DataLabelPosition.InsideEnd : DataLabelPosition.OutsideEnd;
 
-        // The series' font inherits from the chart's data label font itself (Font.ParentFont), so
-        // it is only when the series has none that the chart's is looked at here.
-        var font = own?.font ?? shared?.font;
-        dlri.Font = Converter.ToXFont(font, cri.DefaultDataLabelFont);
-        dlri.FontColor = Converter.ToXBrush(font, cri.DefaultFontColor);
+      if (own != null && own.TypeInitialized)
+        dlri.Type = own.type;
+      else if (shared != null && shared.TypeInitialized)
+        dlri.Type = shared.type;
+      else if (cri.Chart.type == ChartType.Pie2D || cri.Chart.type == ChartType.PieExploded2D)
+        dlri.Type = DataLabelType.Percent;
+      else
+        dlri.Type = DataLabelType.Value;
 
-        sri.DataLabelRendererInfo = dlri;
-      }
+      // The series' font inherits from the chart's data label font itself (Font.ParentFont), so
+      // it is only when the series has none that the chart's is looked at here.
+      var font = own?.font ?? shared?.font;
+      dlri.Font = Converter.ToXFont(font, cri.DefaultDataLabelFont);
+      dlri.FontColor = Converter.ToXBrush(font, cri.DefaultFontColor);
+
+      sri.DataLabelRendererInfo = dlri;
     }
 
     return null;

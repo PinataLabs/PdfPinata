@@ -53,7 +53,7 @@ static class GeometryHelper
         // Normalize the angles.
         var α = startAngle;
         if (α < 0)
-            α = α + (1 + Math.Floor((Math.Abs(α) / 360))) * 360;
+            α = α + (1 + Math.Floor(Math.Abs(α) / 360)) * 360;
         else if (α > 360)
             α = α - Math.Floor(α / 360) * 360;
         Debug.Assert(α >= 0 && α <= 360);
@@ -76,7 +76,7 @@ static class GeometryHelper
 
         β = α + β;
         if (β < 0)
-            β = β + (1 + Math.Floor((Math.Abs(β) / 360))) * 360;
+            β = β + (1 + Math.Floor(Math.Abs(β) / 360)) * 360;
 
         var clockwise = sweepAngle > 0;
         var startQuadrant = Quadrant(α, true, clockwise);
@@ -142,7 +142,7 @@ static class GeometryHelper
                 quadrant = quadrant == 0 ? 3 : quadrant - 1;
         }
         else
-            quadrant = clockwise ? ((int)Math.Floor(φ / 90)) % 4 : (int)Math.Floor(φ / 90);
+            quadrant = clockwise ? (int)Math.Floor(φ / 90) % 4 : (int)Math.Floor(φ / 90);
         return quadrant;
     }
 

@@ -229,11 +229,11 @@ public abstract class VisitorBase : DocumentObjectVisitor
             FlattenedBorderFromBorders(borders.top, borders);
         }
 
-        if (refBorders.bottom != null)
-        {
-            FlattenBorder(borders.Bottom, refBorders.bottom);
-            FlattenedBorderFromBorders(borders.bottom, borders);
-        }
+        if (refBorders.bottom == null)
+            return;
+
+        FlattenBorder(borders.Bottom, refBorders.bottom);
+        FlattenedBorderFromBorders(borders.bottom, borders);
     }
 
 #pragma warning disable CA1822 // Protected on an unsealed public visitor: making it static would change the public API.
@@ -345,11 +345,11 @@ public abstract class VisitorBase : DocumentObjectVisitor
     /// <summary>Fills in the line width when it is unset and <paramref name="refLineFormat"/> has one.</summary>
     protected void FlattenLineFormat(LineFormat lineFormat, LineFormat refLineFormat)
     {
-        if (refLineFormat != null)
-        {
-            if (lineFormat.width.IsNull)
-                lineFormat.width = refLineFormat.width;
-        }
+        if (refLineFormat == null)
+            return;
+
+        if (lineFormat.width.IsNull)
+            lineFormat.width = refLineFormat.width;
     }
 #pragma warning restore CA1822
 
@@ -420,7 +420,7 @@ public abstract class VisitorBase : DocumentObjectVisitor
         var document = chart.Document;
         if (chart.style == null)
             chart.style = Style.DefaultParagraphName;
-        var style = document.Styles[(chart.style ?? "")];
+        var style = document.Styles[chart.style ?? ""];
         if (chart.format == null)
         {
             chart.format = style.paragraphFormat.Clone();
@@ -461,13 +461,13 @@ public abstract class VisitorBase : DocumentObjectVisitor
     internal override void VisitStyle(Style style)
     {
         var baseStyle = style.GetBaseStyle();
-        if (baseStyle != null && baseStyle.paragraphFormat != null)
-        {
-            if (style.paragraphFormat == null)
-                style.paragraphFormat = baseStyle.paragraphFormat;
-            else
-                FlattenParagraphFormat(style.paragraphFormat, baseStyle.paragraphFormat);
-        }
+        if (baseStyle == null || baseStyle.paragraphFormat == null)
+            return;
+
+        if (style.paragraphFormat == null)
+            style.paragraphFormat = baseStyle.paragraphFormat;
+        else
+            FlattenParagraphFormat(style.paragraphFormat, baseStyle.paragraphFormat);
     }
 
     internal override void VisitStyles(Styles styles)
@@ -484,7 +484,7 @@ public abstract class VisitorBase : DocumentObjectVisitor
 
         ParagraphFormat format;
 
-        var style = document.styles[(footnote.style ?? "")];
+        var style = document.styles[footnote.style ?? ""];
         if (style != null)
             format = ParagraphFormatFromStyle(style);
         else
@@ -509,7 +509,7 @@ public abstract class VisitorBase : DocumentObjectVisitor
         ParagraphFormat format;
 
         var currentElementHolder = GetDocumentElementHolder(paragraph);
-        var style = document.styles[(paragraph.style ?? "")];
+        var style = document.styles[paragraph.style ?? ""];
         if (style != null)
             format = ParagraphFormatFromStyle(style);
 
@@ -576,7 +576,7 @@ public abstract class VisitorBase : DocumentObjectVisitor
             styleString = "Footer";
 
         ParagraphFormat format;
-        var style = document.styles[(headerFooter.style ?? "")];
+        var style = document.styles[headerFooter.style ?? ""];
         if (style != null)
             format = ParagraphFormatFromStyle(style);
         else

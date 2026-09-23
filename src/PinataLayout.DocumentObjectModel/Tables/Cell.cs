@@ -163,12 +163,12 @@ public partial class Cell : DocumentObject, IVisitable
     {
         get
         {
-            if (table == null)
-            {
-                var cls = Parent as Cells;
-                if (cls != null)
-                    table = cls.Table;
-            }
+            if (table != null)
+                return table;
+
+            var cls = Parent as Cells;
+            if (cls != null)
+                table = cls.Table;
             return table;
         }
     }
@@ -181,15 +181,15 @@ public partial class Cell : DocumentObject, IVisitable
     {
         get
         {
-            if (clm == null)
+            if (clm != null)
+                return clm;
+
+            var cells = Parent as Cells;
+            // ReSharper disable once PossibleNullReferenceException
+            for (var index = 0; index < cells.Count; ++index)
             {
-                var cells = Parent as Cells;
-                // ReSharper disable once PossibleNullReferenceException
-                for (var index = 0; index < cells.Count; ++index)
-                {
-                    if (cells[index] == this)
-                        clm = Table.Columns[index];
-                }
+                if (cells[index] == this)
+                    clm = Table.Columns[index];
             }
             return clm;
         }
@@ -203,12 +203,12 @@ public partial class Cell : DocumentObject, IVisitable
     {
         get
         {
-            if (row == null)
-            {
-                var cells = Parent as Cells;
-                // ReSharper disable once PossibleNullReferenceException
-                row = cells.Row;
-            }
+            if (row != null)
+                return row;
+
+            var cells = Parent as Cells;
+            // ReSharper disable once PossibleNullReferenceException
+            row = cells.Row;
             return row;
         }
     }
@@ -393,7 +393,7 @@ public partial class Cell : DocumentObject, IVisitable
     /// </summary>
     internal override void Serialize(Serializer serializer)
     {
-        serializer.WriteComment((comment ?? ""));
+        serializer.WriteComment(comment ?? "");
         serializer.WriteLine("\\cell");
 
         var pos = serializer.BeginAttributes();

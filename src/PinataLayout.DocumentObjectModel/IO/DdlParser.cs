@@ -251,10 +251,10 @@ internal class DdlParser
     private bool IsHeaderFooter()
     {
         var sym = Symbol;
-        return (sym == Symbol.Header || sym == Symbol.Footer ||
+        return sym == Symbol.Header || sym == Symbol.Footer ||
                 sym == Symbol.PrimaryHeader || sym == Symbol.PrimaryFooter ||
                 sym == Symbol.EvenPageHeader || sym == Symbol.EvenPageFooter ||
-                sym == Symbol.FirstPageHeader || sym == Symbol.FirstPageFooter);
+                sym == Symbol.FirstPageHeader || sym == Symbol.FirstPageFooter;
     }
 
     /// <summary>
@@ -384,33 +384,31 @@ internal class DdlParser
     /// </summary>
     private bool IsParagraphContent()
     {
-        if (MoveToParagraphContent())
-        {
-            if (scanner.Char == Chars.BackSlash)
-            {
-                var symbol = scanner.PeekKeyword();
-                switch (symbol)
-                {
-                    case Symbol.Bold:
-                    case Symbol.Italic:
-                    case Symbol.Underline:
-                    case Symbol.Field:
-                    case Symbol.Font:
-                    case Symbol.FontColor:
-                    case Symbol.FontSize:
-                    case Symbol.Footnote:
-                    case Symbol.Hyperlink:
-                    case Symbol.Symbol:
-                    case Symbol.Chr:
-                    case Symbol.Tab:
-                    case Symbol.LineBreak:
-                    case Symbol.Space:
-                    case Symbol.SoftHyphen:
-                        return true;
-                }
-                return false;
-            }
+        if (!MoveToParagraphContent())
+            return false;
+
+        if (scanner.Char != Chars.BackSlash)
             return true;
+
+        var symbol = scanner.PeekKeyword();
+        switch (symbol)
+        {
+            case Symbol.Bold:
+            case Symbol.Italic:
+            case Symbol.Underline:
+            case Symbol.Field:
+            case Symbol.Font:
+            case Symbol.FontColor:
+            case Symbol.FontSize:
+            case Symbol.Footnote:
+            case Symbol.Hyperlink:
+            case Symbol.Symbol:
+            case Symbol.Chr:
+            case Symbol.Tab:
+            case Symbol.LineBreak:
+            case Symbol.Space:
+            case Symbol.SoftHyphen:
+                return true;
         }
         return false;
     }
@@ -492,12 +490,12 @@ internal class DdlParser
                 ParseAttributes(paragraph);
 
             // Empty paragraphs without braces are valid.
-            if (Symbol == Symbol.BraceLeft)
-            {
-                ParseParagraphContent(elements, paragraph);
-                AssertSymbol(Symbol.BraceRight);
-                ReadCode(); // read beyond '}'
-            }
+            if (Symbol != Symbol.BraceLeft)
+                return;
+
+            ParseParagraphContent(elements, paragraph);
+            AssertSymbol(Symbol.BraceRight);
+            ReadCode(); // read beyond '}'
         }
         catch (DdlParserException ex)
         {
@@ -535,12 +533,12 @@ internal class DdlParser
     private static void RemoveTrailingBlank(ParagraphElements elements)
     {
         var dom = elements.LastObject;
-        if (dom is Text)
-        {
-            var text = (Text)dom;
-            if (text.Content.EndsWith(' '))
-                text.Content = text.Content.Remove(text.Content.Length - 1, 1);
-        }
+        if (dom is not Text)
+            return;
+
+        var text = (Text)dom;
+        if (text.Content.EndsWith(' '))
+            text.Content = text.Content.Remove(text.Content.Length - 1, 1);
     }
 
     /// <summary>
@@ -933,11 +931,11 @@ internal class DdlParser
         }
         AssertCondition(field != null, DomMsgID.InvalidFieldType, Token);
 
-        if (scanner.PeekSymbol() == Symbol.BracketLeft)
-        {
-            ReadCode();  // read '['
-            ParseAttributes(field, false);
-        }
+        if (scanner.PeekSymbol() != Symbol.BracketLeft)
+            return;
+
+        ReadCode();  // read '['
+        ParseAttributes(field, false);
     }
 
     /// <summary>
@@ -1014,36 +1012,36 @@ internal class DdlParser
         var space = elements.AddSpace(1);
 
         // «\space» can stand alone
-        if (scanner.PeekSymbol() == Symbol.ParenLeft)
+        if (scanner.PeekSymbol() != Symbol.ParenLeft)
+            return;
+
+        ReadCode(); // read '('
+        AssertSymbol(Symbol.ParenLeft);
+
+        ReadCode(); // read beyond '('
+        if (Symbol == Symbol.Identifier)
         {
-            ReadCode(); // read '('
-            AssertSymbol(Symbol.ParenLeft);
+            var type = Token;
+            if (!IsSpaceType(type))
+                ThrowParserException(DomMsgID.InvalidEnum, type, GetSymbolText(Symbol.Space));
 
-            ReadCode(); // read beyond '('
-            if (Symbol == Symbol.Identifier)
+            space.SymbolName = Enum.Parse<SymbolName>(type, true);
+
+            ReadCode(); // read ',' or ')'
+            if (Symbol == Symbol.Comma)
             {
-                var type = Token;
-                if (!IsSpaceType(type))
-                    ThrowParserException(DomMsgID.InvalidEnum, type, GetSymbolText(Symbol.Space));
-
-                space.SymbolName = Enum.Parse<SymbolName>(type, true);
-
-                ReadCode(); // read ',' or ')'
-                if (Symbol == Symbol.Comma)
-                {
-                    ReadCode();  // read integer
-                    AssertSymbol(Symbol.IntegerLiteral);
-                    space.Count = scanner.GetTokenValueAsInt();
-                    ReadCode(); // read ')'
-                }
-            }
-            else if (Symbol == Symbol.IntegerLiteral)
-            {
+                ReadCode();  // read integer
+                AssertSymbol(Symbol.IntegerLiteral);
                 space.Count = scanner.GetTokenValueAsInt();
-                ReadCode();
+                ReadCode(); // read ')'
             }
-            AssertSymbol(Symbol.ParenRight);
         }
+        else if (Symbol == Symbol.IntegerLiteral)
+        {
+            space.Count = scanner.GetTokenValueAsInt();
+            ReadCode();
+        }
+        AssertSymbol(Symbol.ParenRight);
     }
 
     /// <summary>
@@ -1148,12 +1146,12 @@ internal class DdlParser
             ParseAttributes(column);
 
         // Read empty content
-        if (Symbol == Symbol.BraceLeft)
-        {
-            ReadCode();
-            AssertSymbol(Symbol.BraceRight);
-            ReadCode();
-        }
+        if (Symbol != Symbol.BraceLeft)
+            return;
+
+        ReadCode();
+        AssertSymbol(Symbol.BraceRight);
+        ReadCode();
     }
 
     /// <summary>
@@ -1208,34 +1206,34 @@ internal class DdlParser
         if (Symbol == Symbol.BracketLeft)
             ParseAttributes(row);
 
-        if (Symbol == Symbol.BraceLeft)
+        if (Symbol != Symbol.BraceLeft)
+            return;
+
+        ReadCode();
+
+        var loop = true;
+        var idx = 0;
+        while (loop)
         {
-            ReadCode();
-
-            var loop = true;
-            var idx = 0;
-            while (loop)
+            switch (Symbol)
             {
-                switch (Symbol)
-                {
-                    case Symbol.Eof:
-                        ThrowParserException(DomMsgID.UnexpectedEndOfFile);
-                        break;
+                case Symbol.Eof:
+                    ThrowParserException(DomMsgID.UnexpectedEndOfFile);
+                    break;
 
-                    case Symbol.BraceRight:
-                        loop = false;
-                        ReadCode();
-                        break;
+                case Symbol.BraceRight:
+                    loop = false;
+                    ReadCode();
+                    break;
 
-                    case Symbol.Cell:
-                        ParseCell(row[idx]);
-                        idx++;
-                        break;
+                case Symbol.Cell:
+                    ParseCell(row[idx]);
+                    idx++;
+                    break;
 
-                    default:
-                        ThrowParserException(DomMsgID.UnexpectedSymbol, Token);
-                        break;
-                }
+                default:
+                    ThrowParserException(DomMsgID.UnexpectedSymbol, Token);
+                    break;
             }
         }
     }
@@ -1253,21 +1251,21 @@ internal class DdlParser
             ParseAttributes(cell);
 
         // Empty cells without braces are valid.
-        if (Symbol == Symbol.BraceLeft)
+        if (Symbol != Symbol.BraceLeft)
+            return;
+
+        if (IsParagraphContent())
         {
-            if (IsParagraphContent())
-            {
-                ParseParagraphContent(cell.Elements, null);
-            }
-            else
-            {
-                ReadCode();
-                if (Symbol != Symbol.BraceRight)
-                    ParseDocumentElements(cell.Elements);
-            }
-            AssertSymbol(Symbol.BraceRight);
-            ReadCode(); // read '}'
+            ParseParagraphContent(cell.Elements, null);
         }
+        else
+        {
+            ReadCode();
+            if (Symbol != Symbol.BraceRight)
+                ParseDocumentElements(cell.Elements);
+        }
+        AssertSymbol(Symbol.BraceRight);
+        ReadCode(); // read '}'
     }
 
     /// <summary>
@@ -2306,7 +2304,7 @@ internal class DdlParser
 
         ReadCode();  // read next token
 
-        return new Color((0xFF000000 | (r << 16) | (g << 8) | b));
+        return new Color(0xFF000000 | (r << 16) | (g << 8) | b);
     }
 
     /// <summary>
@@ -2421,17 +2419,17 @@ internal class DdlParser
         if (type == "")
             throw new ArgumentException(@"A symbol name must not be empty.", nameof(type));
 
-        if (Enum.IsDefined(typeof(SymbolName), type))
+        if (!Enum.IsDefined(typeof(SymbolName), type))
+            return false;
+
+        var symbolName = Enum.Parse<SymbolName>(type); // symbols are case sensitive
+        switch (symbolName)
         {
-            var symbolName = Enum.Parse<SymbolName>(type); // symbols are case sensitive
-            switch (symbolName)
-            {
-                case SymbolName.Blank:
-                case SymbolName.Em:
-                case SymbolName.EmQuarter:
-                case SymbolName.En:
-                    return true;
-            }
+            case SymbolName.Blank:
+            case SymbolName.Em:
+            case SymbolName.EmQuarter:
+            case SymbolName.En:
+                return true;
         }
 
         return false;
@@ -2446,22 +2444,22 @@ internal class DdlParser
         if (type == "")
             throw new ArgumentException(@"A symbol name must not be empty.", nameof(type));
 
-        if (Enum.IsDefined(typeof(SymbolName), type))
+        if (!Enum.IsDefined(typeof(SymbolName), type))
+            return false;
+
+        var symbolName = Enum.Parse<SymbolName>(type); // symbols are case sensitive
+        switch (symbolName)
         {
-            var symbolName = Enum.Parse<SymbolName>(type); // symbols are case sensitive
-            switch (symbolName)
-            {
-                case SymbolName.Euro:
-                case SymbolName.Copyright:
-                case SymbolName.Trademark:
-                case SymbolName.RegisteredTrademark:
-                case SymbolName.Bullet:
-                case SymbolName.Not:
-                case SymbolName.EmDash:
-                case SymbolName.EnDash:
-                case SymbolName.NonBreakableBlank:
-                    return true;
-            }
+            case SymbolName.Euro:
+            case SymbolName.Copyright:
+            case SymbolName.Trademark:
+            case SymbolName.RegisteredTrademark:
+            case SymbolName.Bullet:
+            case SymbolName.Not:
+            case SymbolName.EmDash:
+            case SymbolName.EnDash:
+            case SymbolName.NonBreakableBlank:
+                return true;
         }
 
         return false;
@@ -2604,7 +2602,7 @@ internal class DdlParser
     /// </summary>
     private void AdjustToNextBlock()
     {
-        var skipClosingBraceOrBracket = (Symbol == Symbol.BraceLeft || Symbol == Symbol.BracketLeft);
+        var skipClosingBraceOrBracket = Symbol == Symbol.BraceLeft || Symbol == Symbol.BracketLeft;
         ReadCode();
 
         var finish = false;

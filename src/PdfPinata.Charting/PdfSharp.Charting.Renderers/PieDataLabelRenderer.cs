@@ -114,18 +114,18 @@ internal class PieDataLabelRenderer : DataLabelRenderer
       return;
 
     // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-    if (sri != null)
+    if (sri == null)
+      return;
+
+    var gfx = this.rendererParms.Graphics;
+    var font = sri.DataLabelRendererInfo.Font;
+    var fontColor = sri.DataLabelRendererInfo.FontColor;
+    var format = XStringFormats.Center;
+    format.LineAlignment = XLineAlignment.Center;
+    foreach (var dataLabel in sri.DataLabelRendererInfo.Entries)
     {
-      var gfx = this.rendererParms.Graphics;
-      var font = sri.DataLabelRendererInfo.Font;
-      var fontColor = sri.DataLabelRendererInfo.FontColor;
-      var format = XStringFormats.Center;
-      format.LineAlignment = XLineAlignment.Center;
-      foreach (var dataLabel in sri.DataLabelRendererInfo.Entries)
-      {
-        if (dataLabel.Text != null)
-          gfx.DrawString(dataLabel.Text, font, fontColor, dataLabel.Rect, format);
-      }
+      if (dataLabel.Text != null)
+        gfx.DrawString(dataLabel.Text, font, fontColor, dataLabel.Rect, format);
     }
   }
 
@@ -136,82 +136,82 @@ internal class PieDataLabelRenderer : DataLabelRenderer
   {
     var cri = (ChartRendererInfo)this.rendererParms.RendererInfo;
 
-    if (cri.SeriesRendererInfos.Length > 0)
+    if (cri.SeriesRendererInfos.Length == 0)
+      return;
+
+    var sri = cri.SeriesRendererInfos[0];
+    if (sri == null || sri.DataLabelRendererInfo == null)
+      return;
+
+    var sectorIndex = 0;
+    foreach (var sector in sri.PointRendererInfos.Cast<SectorRendererInfo>())
     {
-      var sri = cri.SeriesRendererInfos[0];
-      if (sri != null && sri.DataLabelRendererInfo != null)
+      // Determine output rectangle
+      var midAngle = sector.StartAngle + sector.SweepAngle / 2;
+      var radMidAngle = midAngle / 180 * Math.PI;
+      var origin = new XPoint(sector.Rect.X + sector.Rect.Width / 2,
+        sector.Rect.Y + sector.Rect.Height / 2);
+      var radius = sector.Rect.Width / 2;
+      var halfradius = radius / 2;
+
+      var dleri = sri.DataLabelRendererInfo.Entries[sectorIndex++];
+
+      // The two "end" positions put a corner of the label exactly on the arc, which draws the
+      // text hard against the edge of the wedge - and, on the outside, hard against whatever is
+      // beyond it. Both are moved off the arc along their own radius by a third of the label's
+      // own height, so the gap is in proportion to the text rather than to the chart, and a
+      // large pie and a small one look alike.
+      var inset = dleri.Height / 3;
+
+      switch (sri.DataLabelRendererInfo.Position)
       {
-        var sectorIndex = 0;
-        foreach (var sector in sri.PointRendererInfos.Cast<SectorRendererInfo>())
-        {
-          // Determine output rectangle
-          var midAngle = sector.StartAngle + sector.SweepAngle / 2;
-          var radMidAngle = midAngle / 180 * Math.PI;
-          var origin = new XPoint(sector.Rect.X + sector.Rect.Width / 2,
-            sector.Rect.Y + sector.Rect.Height / 2);
-          var radius = sector.Rect.Width / 2;
-          var halfradius = radius / 2;
+        case DataLabelPosition.OutsideEnd:
+          // Just beyond the outer border of the circle.
+          var beyond = radius + inset;
+          dleri.X = origin.X + beyond * Math.Cos(radMidAngle);
+          dleri.Y = origin.Y + beyond * Math.Sin(radMidAngle);
+          if (dleri.X < origin.X)
+            dleri.X -= dleri.Width;
+          if (dleri.Y < origin.Y)
+            dleri.Y -= dleri.Height;
+          break;
 
-          var dleri = sri.DataLabelRendererInfo.Entries[sectorIndex++];
+        case DataLabelPosition.InsideEnd:
+          // Just within the outer border of the circle. Never past the middle, however tall
+          // the label: a pie small enough for that is one whose labels have nowhere to go.
+          var within = Math.Max(radius - inset, halfradius);
+          dleri.X = origin.X + within * Math.Cos(radMidAngle);
+          dleri.Y = origin.Y + within * Math.Sin(radMidAngle);
+          if (dleri.X > origin.X)
+            dleri.X -= dleri.Width;
+          if (dleri.Y > origin.Y)
+            dleri.Y -= dleri.Height;
+          break;
 
-          // The two "end" positions put a corner of the label exactly on the arc, which draws the
-          // text hard against the edge of the wedge - and, on the outside, hard against whatever is
-          // beyond it. Both are moved off the arc along their own radius by a third of the label's
-          // own height, so the gap is in proportion to the text rather than to the chart, and a
-          // large pie and a small one look alike.
-          var inset = dleri.Height / 3;
+        case DataLabelPosition.Center:
+          // Centered
+          dleri.X = origin.X + halfradius * Math.Cos(radMidAngle);
+          dleri.Y = origin.Y + halfradius * Math.Sin(radMidAngle);
+          dleri.X -= dleri.Width / 2;
+          dleri.Y -= dleri.Height / 2;
+          break;
 
-          switch (sri.DataLabelRendererInfo.Position)
-          {
-            case DataLabelPosition.OutsideEnd:
-              // Just beyond the outer border of the circle.
-              var beyond = radius + inset;
-              dleri.X = origin.X + (beyond * Math.Cos(radMidAngle));
-              dleri.Y = origin.Y + (beyond * Math.Sin(radMidAngle));
-              if (dleri.X < origin.X)
-                dleri.X -= dleri.Width;
-              if (dleri.Y < origin.Y)
-                dleri.Y -= dleri.Height;
-              break;
-
-            case DataLabelPosition.InsideEnd:
-              // Just within the outer border of the circle. Never past the middle, however tall
-              // the label: a pie small enough for that is one whose labels have nowhere to go.
-              var within = Math.Max(radius - inset, halfradius);
-              dleri.X = origin.X + (within * Math.Cos(radMidAngle));
-              dleri.Y = origin.Y + (within * Math.Sin(radMidAngle));
-              if (dleri.X > origin.X)
-                dleri.X -= dleri.Width;
-              if (dleri.Y > origin.Y)
-                dleri.Y -= dleri.Height;
-              break;
-
-            case DataLabelPosition.Center:
-              // Centered
-              dleri.X = origin.X + (halfradius * Math.Cos(radMidAngle));
-              dleri.Y = origin.Y + (halfradius * Math.Sin(radMidAngle));
-              dleri.X -= dleri.Width / 2;
-              dleri.Y -= dleri.Height / 2;
-              break;
-
-            case DataLabelPosition.InsideBase:
-              // Aligned at the base of the sector, which for a pie is the centre of the circle.
-              // The label is laid out away from that point along its own sector, so that the
-              // corner of it nearest the centre is the one that sits there.
-              //
-              // The two tests are on the direction the sector runs in. They used to be on the
-              // label's own position, which had just been set to the centre and so could not be
-              // to the left of it or above it - meaning neither adjustment ever ran, and every
-              // label of every sector was drawn at one point on top of the others.
-              dleri.X = origin.X;
-              dleri.Y = origin.Y;
-              if (Math.Cos(radMidAngle) < 0)
-                dleri.X -= dleri.Width;
-              if (Math.Sin(radMidAngle) < 0)
-                dleri.Y -= dleri.Height;
-              break;
-          }
-        }
+        case DataLabelPosition.InsideBase:
+          // Aligned at the base of the sector, which for a pie is the centre of the circle.
+          // The label is laid out away from that point along its own sector, so that the
+          // corner of it nearest the centre is the one that sits there.
+          //
+          // The two tests are on the direction the sector runs in. They used to be on the
+          // label's own position, which had just been set to the centre and so could not be
+          // to the left of it or above it - meaning neither adjustment ever ran, and every
+          // label of every sector was drawn at one point on top of the others.
+          dleri.X = origin.X;
+          dleri.Y = origin.Y;
+          if (Math.Cos(radMidAngle) < 0)
+            dleri.X -= dleri.Width;
+          if (Math.Sin(radMidAngle) < 0)
+            dleri.Y -= dleri.Height;
+          break;
       }
     }
   }
