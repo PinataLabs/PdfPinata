@@ -185,7 +185,7 @@ public sealed class PdfDocumentOptions
         set
         {
             if (!Enum.IsDefined(value))
-                throw new System.ArgumentOutOfRangeException(nameof(value), value, "Not a metadata strategy.");
+                throw new ArgumentOutOfRangeException(nameof(value), value, "Not a metadata strategy.");
 
             _metadataStrategy = value;
         }
@@ -310,7 +310,7 @@ public sealed class PdfDocumentOptions
         set
         {
             if (value < 1)
-                throw new System.ArgumentOutOfRangeException(nameof(value),
+                throw new ArgumentOutOfRangeException(nameof(value),
                     "An object stream has to hold at least one object.");
             field = value;
         }
