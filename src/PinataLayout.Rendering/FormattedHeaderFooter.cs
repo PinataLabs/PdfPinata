@@ -30,7 +30,6 @@
 
 #endregion
 
-using System;
 using System.Collections;
 using PinataLayout.DocumentObjectModel;
 using PdfPinata.Drawing;
