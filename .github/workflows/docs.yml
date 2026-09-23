@@ -56,9 +56,13 @@ jobs:
             8.0.x
             10.0.x
 
-      # Draws the first page of each demo PDF as the gallery's thumbnail.
+      # Draws the first page of each demo PDF as the gallery's thumbnail. The index is refreshed
+      # first because the runner image's own goes stale: once Ubuntu publishes a newer security
+      # update, the archive drops the version it names and the install fails with 404s.
       - name: Install Ghostscript
-        run: sudo apt-get install -y ghostscript
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ghostscript
 
       # Must precede setup-node: `cache: pnpm` needs the pnpm binary on PATH to
       # resolve the store path. The version comes from packageManager in package.json.
