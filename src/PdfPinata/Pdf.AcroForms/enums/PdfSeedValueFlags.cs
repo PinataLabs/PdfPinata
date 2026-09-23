@@ -32,7 +32,7 @@ public enum PdfSeedValueFlags
     AddRevInfo = 1 << 5,
 
     /// <summary>One of <c>/DigestMethod</c> is required.</summary>
-    DigestMethod = 1 << 6,
+    DigestMethod = 1 << 6
 }
 
 /// <summary>
@@ -61,5 +61,5 @@ public enum PdfCertificateSeedValueFlags
     KeyUsage = 1 << 5,
 
     /// <summary><c>/URL</c> is required.</summary>
-    Url = 1 << 6,
+    Url = 1 << 6
 }

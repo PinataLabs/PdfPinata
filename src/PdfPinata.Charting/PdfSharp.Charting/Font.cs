@@ -226,7 +226,7 @@ public sealed class Font : DocumentObject
     DataLabel dataLabel => dataLabel.font,
     AxisTitle title => title.font,
     TickLabels tickLabels => tickLabels.font,
-    _ => null,
+    _ => null
   };
   #endregion
 }

@@ -44,5 +44,5 @@ public enum PdfMetadataStrategy
     /// Write no packet, and remove one a read document already has. Refused together with a
     /// conformance claim.
     /// </summary>
-    NoMetadata = 2,
+    NoMetadata = 2
 }

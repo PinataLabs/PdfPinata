@@ -129,7 +129,7 @@ public class NameEscapingTests
             ("/Lone\uDC00", 5),
             ("/Lone\uD800x", 5),
             ("/Swap\uDC00\uD800", 5),
-            ("/Pair\uD83D\uDE00\uD83D", 7),
+            ("/Pair\uD83D\uDE00\uD83D", 7)
         ];
 
         foreach (var (name, index) in cases)

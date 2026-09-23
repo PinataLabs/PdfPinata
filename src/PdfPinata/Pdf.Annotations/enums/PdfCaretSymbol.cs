@@ -13,5 +13,5 @@ public enum PdfCaretSymbol
     /// <summary>
     /// A new paragraph - <c>/P</c>, which a reader may show as a pilcrow.
     /// </summary>
-    Paragraph,
+    Paragraph
 }

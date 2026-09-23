@@ -56,7 +56,7 @@ public sealed class PdfSignatureFieldLock : PdfDictionary
         {
             "/Include" => PdfFieldLockAction.Include,
             "/Exclude" => PdfFieldLockAction.Exclude,
-            _ => PdfFieldLockAction.All,
+            _ => PdfFieldLockAction.All
         };
         set
         {
@@ -112,7 +112,7 @@ public sealed class PdfSignatureFieldLock : PdfDictionary
     {
         PdfFieldLockAction.Include => Fields.Any(listed => Names(listed, fullyQualifiedName)),
         PdfFieldLockAction.Exclude => !Fields.Any(listed => Names(listed, fullyQualifiedName)),
-        _ => true,
+        _ => true
     };
 
     private static bool Names(string listed, string field) =>

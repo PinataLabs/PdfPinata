@@ -13,5 +13,5 @@ public enum PdfReplyType
     /// <summary>
     /// Grouped with the other annotation, which a reader shows and treats as one.
     /// </summary>
-    Group,
+    Group
 }

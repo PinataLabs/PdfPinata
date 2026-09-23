@@ -58,7 +58,7 @@ public class SignatureAnnotationFlagsTests
         {
             Rectangle = new XRect(40, 200, 160, 50),
             DrawAppearance = (gfx, rect) => gfx.DrawRectangle(XPens.Black, rect),
-            AnnotationFlags = flags,
+            AnnotationFlags = flags
         });
 
         Widget(signed).Elements.GetInteger("/F").Should().Be((int)flags);

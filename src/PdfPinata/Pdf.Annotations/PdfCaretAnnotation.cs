@@ -108,7 +108,7 @@ public sealed class PdfCaretAnnotation : PdfMarkupAnnotation
             new XPoint(0, height),
             new XPoint(width / 2, 0),
             new XPoint(width, height),
-            new XPoint(width / 2, height * 0.55),
+            new XPoint(width / 2, height * 0.55)
         };
 
         var form = new XForm(Owner, new XSize(width, height));

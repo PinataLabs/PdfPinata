@@ -31,7 +31,7 @@ public class ExternalFileStreamTests
             "<</Type/Pages/Kids[5 0 R]/Count 1>>",
             "<<" + streamEntries + ">>stream\n" + data + "\nendstream",
             "<</Type/Filespec/F(manifest.c2pa)/UF(manifest.c2pa)>>",
-            "<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]>>",
+            "<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]>>"
         ]);
 
     private static PdfDictionary MetadataOf(byte[] pdf, PdfDocumentOpenMode mode = PdfDocumentOpenMode.Modify) =>

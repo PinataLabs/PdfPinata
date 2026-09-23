@@ -46,7 +46,7 @@ public class IndirectDecodeParmsTests
             Latin1("<< /Type /Pages /Kids [3 0 R] /Count 1 >>"),
             Latin1("<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] /Contents 4 0 R >>"),
             Latin1($"<< /Length {data.Length} {streamEntries} >>\nstream\n")
-                .Concat(data).Concat(Latin1("\nendstream")).ToArray(),
+                .Concat(data).Concat(Latin1("\nendstream")).ToArray()
         };
         objects.AddRange(extraObjects.Select(Latin1));
 
