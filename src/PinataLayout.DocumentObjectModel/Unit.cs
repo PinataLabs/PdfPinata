@@ -636,7 +636,9 @@ public struct Unit : IFormattable, INullableValue, IEquatable<Unit>
     /// </remarks>
     public bool Equals(Unit other)
     {
+        #pragma warning disable S1244 // Deliberate: exact equality, for the reasons the remarks give.
         return initialized == other.initialized && type == other.type && value.Equals(other.value);
+        #pragma warning restore S1244
     }
 
     /// <summary>
