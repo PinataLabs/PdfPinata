@@ -564,10 +564,10 @@ internal class Serializer
     commitTextStack[stackIdx] = true;
   }
   private int stackIdx;
-  private bool[] commitTextStack = new bool[32];
+  private readonly bool[] commitTextStack = new bool[32];
 
   private int linePos;
-  private int lineBreakBeyond = 200;
+  private readonly int lineBreakBeyond = 200;
   private static readonly char[] LineEndChars = ['\r', '\n'];
-  private bool fWriteStamp = false;
+  private readonly bool fWriteStamp = false;
 }

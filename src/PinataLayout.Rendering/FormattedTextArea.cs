@@ -157,10 +157,10 @@ internal class FormattedTextArea : IAreaProvider
   }
 
   internal TextArea textArea;
-  private FieldInfos fieldInfos;
+  private readonly FieldInfos fieldInfos;
   private TopDownFormatter formatter;
   private ArrayList renderInfos;
   private XGraphics gfx;
   private bool isFirstArea;
-  private DocumentRenderer documentRenderer;
+  private readonly DocumentRenderer documentRenderer;
 }

@@ -66,9 +66,9 @@ internal class TopDownFormatter
         this.elements = elements;
     }
 
-    private IAreaProvider areaProvider;
+    private readonly IAreaProvider areaProvider;
 
-    private DocumentElements elements;
+    private readonly DocumentElements elements;
 
     /// <summary>
     /// Formats the elements on the areas provided by the area provider.
@@ -494,6 +494,6 @@ internal class TopDownFormatter
         return NextElementsDontFit(idx, remainingArea, layoutInfo.MarginBottom);
     }
 
-    private DocumentRenderer documentRenderer;
+    private readonly DocumentRenderer documentRenderer;
     private XGraphics gfx;
 }

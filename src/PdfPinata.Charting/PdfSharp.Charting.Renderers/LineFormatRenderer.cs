@@ -108,10 +108,10 @@ internal class LineFormatRenderer
   /// <summary>
   /// Surface to draw the line.
   /// </summary>
-  private XGraphics gfx;
+  private readonly XGraphics gfx;
 
   /// <summary>
   /// Pen used to draw the line.
   /// </summary>
-  private XPen pen;
+  private readonly XPen pen;
 }

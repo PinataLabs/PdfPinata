@@ -3413,7 +3413,7 @@ internal class ParagraphRenderer : Renderer
     /// <summary>
     /// The paragraph to format or render.
     /// </summary>
-    private Paragraph paragraph;
+    private readonly Paragraph paragraph;
     /// <summary>
     /// The rect a line of this height would occupy at this position, or the area's own bounds
     /// where the area has no room for one.

@@ -47,7 +47,7 @@ internal sealed class ColumnColors
   /// <summary>
   /// Colors for column/bar charts taken from Excel.
   /// </summary>
-  private static uint[] _seriesColors = [
+  private static readonly uint[] _seriesColors = [
     0xFF9999FF, 0xFF993366, 0xFFFFFFCC, 0xFFCCFFFF, 0xFF660066, 0xFFFF8080,
     0xFF0066CC, 0xFFCCCCFF, 0xFF000080, 0xFFFF00FF, 0xFFFFFF00, 0xFF00FFFF,
     0xFF800080, 0xFF800000, 0xFF008080, 0xFF0000FF, 0xFF00CCFF, 0xFFCCFFFF,
@@ -77,7 +77,7 @@ internal sealed class LineColors
   /// <summary>
   /// Colors for line charts taken from Excel.
   /// </summary>
-  private static uint[] _lineColors = [
+  private static readonly uint[] _lineColors = [
     0xFF000080, 0xFFFF00FF, 0xFFFFFF00, 0xFF00FFFF, 0xFF800080, 0xFF800000,
     0xFF008080, 0xFF0000FF, 0xFF00CCFF, 0xFFCCFFFF, 0xFFCCFFCC, 0xFFFFFF99,
     0xFF99CCFF, 0xFFFF99CC, 0xFFCC99FF, 0xFFFFCC99, 0xFF3366FF, 0xFF33CCCC,
@@ -107,7 +107,7 @@ internal sealed class PieColors
   /// <summary>
   /// Colors for pie charts taken from Excel.
   /// </summary>
-  private static uint[] _sectorColors = [
+  private static readonly uint[] _sectorColors = [
     0xFF9999FF, 0xFF993366, 0xFFFFFFCC, 0xFFCCFFFF, 0xFF660066, 0xFFFF8080,
     0xFF0066CC, 0xFFCCCCFF, 0xFF000080, 0xFFFF00FF, 0xFFFFFF00, 0xFF00FFFF,
     0xFF800080, 0xFF800000, 0xFF008080, 0xFF0000FF, 0xFF00CCFF, 0xFFCCFFFF,

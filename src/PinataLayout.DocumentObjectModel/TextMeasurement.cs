@@ -145,5 +145,5 @@ public sealed class TextMeasurement
 
     private Font font;
     private XFont xFont;
-    private XGraphics graphics;
+    private readonly XGraphics graphics;
 }

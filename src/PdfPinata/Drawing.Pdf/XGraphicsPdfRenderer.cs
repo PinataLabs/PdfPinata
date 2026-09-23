@@ -2609,7 +2609,7 @@ internal class XGraphicsPdfRenderer : IXGraphicsRenderer
     internal PdfPage Page;
     internal XForm Form;
     internal PdfColorMode ColorMode;
-    private XGraphicsPdfPageOptions _options;
+    private readonly XGraphicsPdfPageOptions _options;
     private XGraphics _gfx;
     private readonly StringBuilder _content;
 

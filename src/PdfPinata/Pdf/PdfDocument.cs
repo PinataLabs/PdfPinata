@@ -1064,7 +1064,7 @@ public sealed class PdfDocument : PdfObject, IDisposable
         get { return _guid; }
     }
 
-    private Guid _guid = Guid.NewGuid();
+    private readonly Guid _guid = Guid.NewGuid();
 
     internal DocumentHandle Handle
     {

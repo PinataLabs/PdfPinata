@@ -351,7 +351,7 @@ public class XPdfForm : XForm
 
     internal PdfDocument _externalDocument;
 
-    private PdfReadAccuracy _pathReadAccuracy;
+    private readonly PdfReadAccuracy _pathReadAccuracy;
 
     /// <summary>
     /// Extracts the page number if the path has the form 'MyFile.pdf#123' and returns

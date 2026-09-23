@@ -310,7 +310,7 @@ public sealed class XFont
 
     internal string FamilyName => _familyName;
 
-    private string _familyName;
+    private readonly string _familyName;
 
 
     internal int UnitsPerEm

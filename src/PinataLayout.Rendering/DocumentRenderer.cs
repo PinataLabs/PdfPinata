@@ -92,7 +92,7 @@ public class DocumentRenderer
     /// </remarks>
     internal FootnoteRegistry Footnotes => footnotes;
 
-    private FootnoteRegistry footnotes;
+    private readonly FootnoteRegistry footnotes;
 
     /// <summary>
     /// Occurs while the document is being prepared (can be used to show a progress bar).
@@ -464,7 +464,7 @@ public class DocumentRenderer
     }
     private ListInfo previousListInfo;
     private Hashtable previousListNumbers;
-    private Document document;
+    private readonly Document document;
     internal DateTime printDate = DateTime.MinValue;
 
     /// <summary>

@@ -383,5 +383,5 @@ internal class ChartRenderer : ShapeRenderer
     chartFrame.Size = new XSize(right - left, bottom - top);
     chartFrame.DrawChart(Gfx);
   }
-  private Chart chart;
+  private readonly Chart chart;
 }

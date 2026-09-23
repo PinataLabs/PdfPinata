@@ -425,5 +425,5 @@ internal class ImageRenderer : ShapeRenderer
         }
     }
 
-    private Image image;
+    private readonly Image image;
 }

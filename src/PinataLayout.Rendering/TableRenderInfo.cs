@@ -40,7 +40,7 @@ internal class TableRenderInfo : RenderInfo
 {
   internal override FormatInfo FormatInfo => formatInfo;
 
-  private TableFormatInfo formatInfo = new();
+  private readonly TableFormatInfo formatInfo = new();
 
   public override DocumentObject DocumentObject => table;
 

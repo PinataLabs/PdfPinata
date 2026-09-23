@@ -2746,6 +2746,6 @@ internal class DdlParser
     /// </summary>
     private TokenType TokenType => scanner.TokenType;
 
-    private DdlScanner scanner;
-    private DdlReaderErrors errors;
+    private readonly DdlScanner scanner;
+    private readonly DdlReaderErrors errors;
 }

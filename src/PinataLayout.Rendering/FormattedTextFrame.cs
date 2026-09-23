@@ -161,11 +161,11 @@ internal class FormattedTextFrame : IAreaProvider
     return false;
   }
 
-  private TextFrame textframe;
-  private FieldInfos fieldInfos;
+  private readonly TextFrame textframe;
+  private readonly FieldInfos fieldInfos;
   private TopDownFormatter formatter;
   private ArrayList renderInfos;
   private XGraphics gfx;
   private bool isFirstArea;
-  private DocumentRenderer documentRenderer;
+  private readonly DocumentRenderer documentRenderer;
 }

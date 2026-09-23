@@ -72,8 +72,8 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
         {
             return sectionNr.GetHashCode() ^ pagePosition.GetHashCode();
         }
-        internal int sectionNr;
-        internal PagePosition pagePosition;
+        internal readonly int sectionNr;
+        internal readonly PagePosition pagePosition;
     }
 
     internal FormattedDocument(Document document, DocumentRenderer documentRenderer)
@@ -881,9 +881,9 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
     private Dictionary<int, FieldInfos> pageFieldInfos;
     private Dictionary<HeaderFooterPosition, FormattedHeaderFooter> formattedHeaders;
     private Dictionary<HeaderFooterPosition, FormattedHeaderFooter> formattedFooters;
-    private DocumentRenderer documentRenderer;
+    private readonly DocumentRenderer documentRenderer;
     private XGraphics gfx;
     private Dictionary<int, PageInfo> pageInfos;
-    private Dictionary<int, object> emptyPages = new();
-    private Document document;
+    private readonly Dictionary<int, object> emptyPages = new();
+    private readonly Document document;
 }

@@ -93,7 +93,7 @@ internal struct LineInfo
 /// </summary>
 internal class ParagraphFormatInfo : FormatInfo
 {
-  private ArrayList lineInfos = new();
+  private readonly ArrayList lineInfos = new();
 
   internal LineInfo GetLineInfo(int lineIdx)
   {

@@ -30,10 +30,10 @@ public class XTextFormatterTest
     /// </summary>
     private const double MaxDifference = 0.02;
 
-    private PdfDocument _document;
-    private PdfPage _page;
-    private XGraphics _renderer;
-    private XTextFormatter _textFormatter;
+    private readonly PdfDocument _document;
+    private readonly PdfPage _page;
+    private readonly XGraphics _renderer;
+    private readonly XTextFormatter _textFormatter;
 
     // Run before each test
     public XTextFormatterTest()

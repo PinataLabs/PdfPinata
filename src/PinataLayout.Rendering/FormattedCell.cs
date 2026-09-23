@@ -174,13 +174,13 @@ internal class FormattedCell : IAreaProvider
     return result;
   }
 
-  private FieldInfos fieldInfos;
+  private readonly FieldInfos fieldInfos;
   private ArrayList renderInfos;
-  private XUnit xOffset;
-  private XUnit yOffset;
-  private Cell cell;
+  private readonly XUnit xOffset;
+  private readonly XUnit yOffset;
+  private readonly Cell cell;
   private TopDownFormatter formatter;
-  private BordersRenderer bordersRenderer;
+  private readonly BordersRenderer bordersRenderer;
   private XGraphics gfx;
-  private DocumentRenderer documentRenderer;
+  private readonly DocumentRenderer documentRenderer;
 }
