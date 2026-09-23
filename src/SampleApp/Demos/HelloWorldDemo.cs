@@ -17,12 +17,11 @@ internal sealed class HelloWorldDemo : PdfDemo
 
     public override string Summary => "One page, one string, and the document's metadata.";
 
-    public override IReadOnlyList<string> Shows => new[]
-    {
+    public override IReadOnlyList<string> Shows => [
         "The four calls a document needs: new, AddPage, FromPdfPage, Save",
         "Every writable field of PdfDocument.Info",
         "A string centred in a rectangle with XStringFormats.Center"
-    };
+    ];
 
     public override int PageCount => 1;
 
@@ -65,14 +64,14 @@ internal sealed class HelloWorldDemo : PdfDemo
         var value = new XFont("Liberation Sans", 10);
 
         (string Label, string Value)[] rows =
-        {
+        [
             ("Title", document.Info.Title),
             ("Author", document.Info.Author),
             ("Subject", document.Info.Subject),
             ("Keywords", document.Info.Keywords),
             ("Creator", document.Info.Creator),
             ("CreationDate", document.Info.CreationDate.ToString("u"))
-        };
+        ];
 
         var y = height * 0.45;
         foreach (var row in rows)

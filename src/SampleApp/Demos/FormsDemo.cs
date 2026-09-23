@@ -34,14 +34,13 @@ internal sealed class FormsDemo : PdfDemo
 
     public override string Summary => "An interactive AcroForm: text, choice and button fields.";
 
-    public override IReadOnlyList<string> Shows => new[]
-    {
+    public override IReadOnlyList<string> Shows => [
         "Text fields - single line, required, multiline, and a password",
         "A check box and a radio group, each with the appearance streams a viewer toggles between",
         "A combo box and a list box, both from an /Opt array, one of them editable",
         "A push button carrying a URI action",
         "That every field here is made through the typed API rather than assembled by hand"
-    };
+    ];
 
     public override int PageCount => 2;
 
@@ -263,7 +262,7 @@ internal sealed class FormsDemo : PdfDemo
         {
             into.DrawRectangle(boxOutline, XBrushes.White, inside);
             into.DrawLines(new XPen(XColors.Black, 2),
-                new[] { new XPoint(3.5, 8), new XPoint(6.5, 11.5), new XPoint(12.5, 4.5) });
+                [new XPoint(3.5, 8), new XPoint(6.5, 11.5), new XPoint(12.5, 4.5)]);
         }));
         tick.SetAppearance("/Off", Appearance(tickBox, into =>
             into.DrawRectangle(boxOutline, XBrushes.White, inside)));
@@ -290,7 +289,7 @@ internal sealed class FormsDemo : PdfDemo
         };
         form.Fields.Add(delivery);
 
-        string[] choices = { "Standard", "Express", "Collect" };
+        string[] choices = ["Standard", "Express", "Collect"];
         delivery.Options = choices;
         // docs:end radio-field
 
@@ -337,10 +336,9 @@ internal sealed class FormsDemo : PdfDemo
             Name = "country",
             ToolTip = "Pick one, or type your own",
             Flags = PdfAcroFieldFlags.Combo | PdfAcroFieldFlags.Edit | PdfAcroFieldFlags.Sort,
-            Options = new[]
-            {
+            Options = [
                 "Australia", "Canada", "Ireland", "New Zealand", "United Kingdom"
-            }
+            ]
         };
         form.Fields.Add(country);
         country.DefaultAppearance = "/Helv 9 Tf 0 g";
@@ -357,15 +355,14 @@ internal sealed class FormsDemo : PdfDemo
             Name = "interests",
             ToolTip = "Choose as many as you like",
             Flags = PdfAcroFieldFlags.MultiSelect,
-            Options = new[]
-            {
+            Options = [
                 "Typography", "Colour management", "Page imposition", "Tagged PDF"
-            }
+            ]
         };
         form.Fields.Add(interests);
         interests.DefaultAppearance = "/Helv 9 Tf 0 g";
         Decorate(Place(interests, interestsBox), 0.96);
-        interests.SelectedIndices = new[] { 0, 3 };
+        interests.SelectedIndices = [0, 3];
         // docs:end list-box
         EndRow(interestsBox,
             "A list box is a choice field without the Combo flag. /I carries the selected rows.");
@@ -421,7 +418,7 @@ internal sealed class FormsDemo : PdfDemo
         var mono = new XFont("Source Code Pro", 8.5);
 
         string[] paragraphs =
-        {
+        [
             "Every field on page one is a PdfTextField, PdfCheckBoxField, PdfRadioButtonField,",
             "PdfComboBoxField, PdfListBoxField or PdfPushButtonField, made with new, named, given",
             "flags, added to the form and put on the page. None of it is assembled by hand.",
@@ -430,7 +427,7 @@ internal sealed class FormsDemo : PdfDemo
             "PdfAcroFieldCollection had no Add, PdfWidgetAnnotation was internal and there was no",
             "way to make a form at all - so the only route was to write the dictionaries of",
             "ISO 32000-1 section 12.7 yourself and hang them off the catalogue's /AcroForm."
-        };
+        ];
 
         double lineY = 104;
         foreach (var paragraph in paragraphs)
@@ -440,7 +437,7 @@ internal sealed class FormsDemo : PdfDemo
         }
 
         (string Capability, string State)[] table =
-        {
+        [
             ("Make a form", "PdfDocument.GetOrCreateAcroForm()"),
             ("Create a field of any type", "new PdfTextField(document), and so on"),
             ("Add a field to a form or a field", "PdfAcroFieldCollection.Add"),
@@ -452,7 +449,7 @@ internal sealed class FormsDemo : PdfDemo
             ("Make every field read-only", "PdfDocument.MakeAcroFormsReadOnly()"),
             ("Sign a document", "PdfPinata.Signing - see the Signing demo"),
             ("Flatten a form into page content", "not offered")
-        };
+        ];
 
         lineY += 16;
         notesGfx.DrawString("One capability to a line, and where it lives", labelFont,
@@ -470,7 +467,7 @@ internal sealed class FormsDemo : PdfDemo
 
         lineY += 14;
         string[] closing =
-        {
+        [
             "Two entries above are still written by name, because nothing wraps them: /MK, which a",
             "viewer paints a field's box from when it builds the appearance itself, and the push",
             "button's /A action. Everything else on page one goes through a property or a method.",
@@ -478,7 +475,7 @@ internal sealed class FormsDemo : PdfDemo
             "One rule to know. A partial field name may not contain a period, because a period is",
             "what joins nested names into the path a field is found by - so Name = \"name.full\" is",
             "refused at the call rather than left to produce a field nobody can look up."
-        };
+        ];
 
         foreach (var line in closing)
         {

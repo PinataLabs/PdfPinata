@@ -152,7 +152,7 @@ public sealed class IntervalSet : IReadOnlyList<XInterval>
         }
 
         // Already in order and already disjoint: clipping cannot reorder runs or make two meet.
-        return kept.Count == 0 ? Empty : new IntervalSet(kept.ToArray());
+        return kept.Count == 0 ? Empty : new IntervalSet([..kept]);
     }
 
     /// <summary>

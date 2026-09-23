@@ -61,7 +61,7 @@ public class PerFaceStyleSimulationTests
 
         internal Only(IEnumerable<int> codePoints, params string[] families)
         {
-            _mine = new HashSet<int>(codePoints);
+            _mine = [..codePoints];
             _families = families;
         }
 
@@ -71,9 +71,8 @@ public class PerFaceStyleSimulationTests
 
     /// <summary>The text rendering modes written, in order: 0 fills, 2 fills and strokes.</summary>
     private static int[] RenderingModes(string content)
-        => Regex.Matches(content, @"(\d+) Tr")
-            .Select(match => int.Parse(match.Groups[1].Value))
-            .ToArray();
+        => [..Regex.Matches(content, @"(\d+) Tr")
+            .Select(match => int.Parse(match.Groups[1].Value))];
 
     // ----- the case the gap was written for -----------------------------------------------------
 
@@ -88,7 +87,7 @@ public class PerFaceStyleSimulationTests
 
         var content = DrawnText.ContentOf(DrawnText.Page("A" + Arabic, SimulatedBold()));
 
-        RenderingModes(content).Should().Equal(new[] { 2, 0, 2 },
+        RenderingModes(content).Should().Equal([2, 0, 2],
             "the simulated primary strokes, the fallback does not, and the state is put back");
     }
 
@@ -103,7 +102,7 @@ public class PerFaceStyleSimulationTests
         var content = DrawnText.ContentOf(DrawnText.Page("A" + Arabic, SimulatedBold()));
 
         Regex.Matches(content, @"([\d.]+) Tc").Select(match => match.Groups[1].Value)
-            .Should().Equal(new[] { "0.4", "0", "0.4" },
+            .Should().Equal(["0.4", "0", "0.4"],
                 "0.4 is 20pt at the bold-emphasis factor; the fallback owes none of it");
     }
 
@@ -116,12 +115,12 @@ public class PerFaceStyleSimulationTests
         // whose bold is simulated, so that segment alone is stroked - which needs the stroking
         // colour and width to have been set up even though the face that was asked for did not
         // want them.
-        using var _ = new Installed(new Only(new[] { Lock }, PinnedFontResolver.CffFamilyName));
+        using var _ = new Installed(new Only([Lock], PinnedFontResolver.CffFamilyName));
 
         var content = DrawnText.ContentOf(
             DrawnText.Page("A" + char.ConvertFromUtf32(Lock) + "B", RealBold()));
 
-        RenderingModes(content).Should().Equal(new[] { 2, 0, 2, 0, 2 },
+        RenderingModes(content).Should().Equal([2, 0, 2, 0, 2],
             "realized for the face that needs stroking, off for the Latin, on for the emoji, "
             + "off for the Latin after it, and back to what the graphics state believes");
     }
@@ -131,7 +130,7 @@ public class PerFaceStyleSimulationTests
     {
         // Without this the emoji above would be stroked with whatever line width happened to be
         // current, because nothing would have realized a pen for a primary face that needed none.
-        using var _ = new Installed(new Only(new[] { Lock }, PinnedFontResolver.CffFamilyName));
+        using var _ = new Installed(new Only([Lock], PinnedFontResolver.CffFamilyName));
 
         var content = DrawnText.ContentOf(
             DrawnText.Page("A" + char.ConvertFromUtf32(Lock), RealBold()));
@@ -147,7 +146,7 @@ public class PerFaceStyleSimulationTests
     {
         // The assertion that ties the two paths together. If measuring still applied the primary
         // face's simulation to every glyph, the mixed string would measure wider than its parts.
-        using var _ = new Installed(new Only(new[] { Lock }, PinnedFontResolver.CffFamilyName));
+        using var _ = new Installed(new Only([Lock], PinnedFontResolver.CffFamilyName));
 
         var emoji = char.ConvertFromUtf32(Lock);
 
@@ -168,7 +167,7 @@ public class PerFaceStyleSimulationTests
         // assertion that says the common case did not pay for any of the above.
         var content = DrawnText.ContentOf(DrawnText.Page("Hello", SimulatedBold()));
 
-        RenderingModes(content).Should().Equal(new[] { 2 },
+        RenderingModes(content).Should().Equal([2],
             "one rendering mode, written once, exactly as before");
     }
 

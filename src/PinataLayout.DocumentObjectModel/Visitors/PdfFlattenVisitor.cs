@@ -53,12 +53,9 @@ public class PdfFlattenVisitor : VisitorBase
     for (var idx = 0; idx < elements.Count; ++idx)
     {
       var paragraph = elements[idx] as Paragraph;
-      if (paragraph != null)
-      {
-        var paragraphs = paragraph.SplitOnParaBreak();
-        if (paragraphs != null)
-          splitParaList.Add(idx, paragraphs);
-      }
+      var paragraphs = paragraph?.SplitOnParaBreak();
+      if (paragraphs != null)
+        splitParaList.Add(idx, paragraphs);
     }
 
     var insertedObjects = 0;

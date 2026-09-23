@@ -63,7 +63,7 @@ internal class PdfPageInheritableObjects : PdfDictionary
         set
         {
             if (value % 90 != 0)
-                throw new ArgumentException(@"The value must be a multiple of 90.", nameof(value));
+                throw new ArgumentException("The value must be a multiple of 90.", nameof(value));
             field = value;
         }
     }

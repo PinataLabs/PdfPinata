@@ -105,7 +105,7 @@ public sealed class PdfLinkAnnotation : PdfAnnotation
     public static PdfLinkAnnotation CreateDocumentLink(PdfRectangle rect, int destinationPage, double destinationTop)
     {
         if (destinationPage < 1)
-            throw new ArgumentException(@"Invalid destination page in call to CreateDocumentLink: page number is one-based and must be 1 or higher.", nameof(destinationPage));
+            throw new ArgumentException("Invalid destination page in call to CreateDocumentLink: page number is one-based and must be 1 or higher.", nameof(destinationPage));
 
         var link = new PdfLinkAnnotation();
         link._linkType = LinkType.Document;
@@ -143,7 +143,7 @@ public sealed class PdfLinkAnnotation : PdfAnnotation
     public static PdfLinkAnnotation CreateNamedLink(PdfRectangle rect, string destinationName)
     {
         if (string.IsNullOrEmpty(destinationName))
-            throw new ArgumentException(@"A named link must name something.", nameof(destinationName));
+            throw new ArgumentException("A named link must name something.", nameof(destinationName));
 
         var link = new PdfLinkAnnotation();
         link._linkType = LinkType.Named;

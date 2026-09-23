@@ -246,8 +246,7 @@ public partial class DocumentElements : DocumentObjectCollection, IVisitable
 
         foreach (DocumentObject docObject in this)
         {
-            if (docObject is IVisitable)
-                ((IVisitable)docObject).AcceptVisitor(visitor, visitChildren);
+            (docObject as IVisitable)?.AcceptVisitor(visitor, visitChildren);
         }
     }
 

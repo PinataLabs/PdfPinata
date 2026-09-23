@@ -258,8 +258,7 @@ public partial class TextFrame : Shape, IVisitable
         serializer.EndAttributes(pos);
 
         serializer.BeginContent();
-        if (this.elements != null)
-            this.elements.Serialize(serializer);
+        this.elements?.Serialize(serializer);
         serializer.EndContent();
     }
 

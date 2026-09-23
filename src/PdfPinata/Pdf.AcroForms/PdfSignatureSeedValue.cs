@@ -401,7 +401,7 @@ public sealed class PdfCertificateSeedValue : PdfDictionary
     }
 
     private static byte[] BytesAt(PdfArray array, int index) =>
-        array.Elements[index] is PdfString text ? PdfEncoders.RawEncoding.GetBytes(text.Value) : Array.Empty<byte>();
+        array.Elements[index] is PdfString text ? PdfEncoders.RawEncoding.GetBytes(text.Value) : [];
 
     private static PdfItem ByteString(byte[] bytes) =>
         new PdfString(PdfEncoders.RawEncoding.GetString(bytes, 0, bytes.Length), PdfStringEncoding.RawEncoding);
@@ -470,7 +470,7 @@ static class SeedValues
     public static IReadOnlyList<T> Read<T>(PdfArray array, Func<PdfArray, int, T> item)
     {
         if (array == null)
-            return Array.Empty<T>();
+            return [];
 
         var values = new T[array.Elements.Count];
         for (var index = 0; index < values.Length; index++)

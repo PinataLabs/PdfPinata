@@ -103,10 +103,7 @@ sealed class FontInfo
     {
         var descendants = font.Elements.GetArray("/DescendantFonts");
         var descendant = descendants?.Elements.GetDictionary(0);
-        if (descendant == null)
-            return;
-
-        var w = descendant.Elements.GetArray("/W");
+        var w = descendant?.Elements.GetArray("/W");
         if (w == null)
             return;
 

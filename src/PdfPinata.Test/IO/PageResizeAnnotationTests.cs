@@ -63,7 +63,7 @@ public class PageResizeAnnotationTests
 
     private static double[] Values(PdfArray array)
     {
-        return Enumerable.Range(0, array.Elements.Count).Select(array.Elements.GetReal).ToArray();
+        return [..Enumerable.Range(0, array.Elements.Count).Select(array.Elements.GetReal)];
     }
 
     private static PdfDictionary TheAnnotationOf(PdfPage page)
@@ -226,7 +226,7 @@ public class PageResizeAnnotationTests
 
         moved.Elements.GetRectangle("/Rect").X1.Should().BeApproximately(50, Tolerance);
         moved.Elements.GetString("/Contents").Should().Be("a note");
-        Values(NumbersOf(moved, "/SomeGeometry")).Should().Equal(new double[] { 1, 2, 3, 4 },
+        Values(NumbersOf(moved, "/SomeGeometry")).Should().Equal([1, 2, 3, 4],
             "an entry nobody models is left alone rather than guessed at");
     }
 

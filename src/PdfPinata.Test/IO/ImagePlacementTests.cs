@@ -229,6 +229,6 @@ public class ImagePlacementTests
     private static PdfImagePlacement[] PlacementsOf(byte[] document)
     {
         var opened = Pdf.IO.PdfReader.Open(new MemoryStream(document), PdfDocumentOpenMode.Modify);
-        return opened.Pages[0].GetImagePlacements().ToArray();
+        return [..opened.Pages[0].GetImagePlacements()];
     }
 }

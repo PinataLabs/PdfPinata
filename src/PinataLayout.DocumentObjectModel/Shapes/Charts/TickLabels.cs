@@ -118,8 +118,7 @@ public partial class TickLabels : ChartObject
     if (style != null)
       serializer.WriteSimpleAttribute("Style", Style);
 
-    if (font != null)
-      font.Serialize(serializer);
+    font?.Serialize(serializer);
 
     if (format != null)
       serializer.WriteSimpleAttribute("Format", Format);

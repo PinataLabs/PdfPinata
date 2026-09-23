@@ -23,8 +23,7 @@ internal sealed class ArchiveDemo : PdfDemo
 
     public override string Summary => "PDF/A conformance, the XMP packet, and the refusals that enforce the claim.";
 
-    public override IReadOnlyList<string> Shows => new[]
-    {
+    public override IReadOnlyList<string> Shows => [
         "PdfDocumentOptions.Conformance - PdfA1B, PdfA2B and PdfA3B, and what separates them",
         "That the claim is enforced at save time rather than stamped on the file",
         "The XMP packet the document actually carries, printed from its own bytes",
@@ -32,7 +31,7 @@ internal sealed class ArchiveDemo : PdfDemo
         "CustomizeMetadata and XmpMetadata.DeclareSchema, the seam the FacturX demo uses",
         "That a namespace PDF/A has not heard of has to be declared in an extension schema first",
         "Five refusal messages, caught from documents built to break one rule each"
-    };
+    ];
 
     public override int PageCount => 4;
 
@@ -86,13 +85,12 @@ internal sealed class ArchiveDemo : PdfDemo
                 "PdfPinata sample app",
                 "http://example.invalid/sample/1.0/",
                 "sample",
-                new[]
-                {
+                [
                     // "internal" says the value is derived from the document's own content, which a
                     // note about which demo wrote the file is.
                     new XmpSchemaProperty("demo", "The demo that wrote this document",
                         XmpPropertyCategory.Internal, "Archive")
-                }));
+                ]));
         };
         // docs:end extension-schema
 
@@ -116,7 +114,7 @@ internal sealed class ArchiveDemo : PdfDemo
             gfx.DrawString("The three profiles", label, XBrushes.Black, 50, 165);
 
             (string Name, string Says)[] profiles =
-            {
+            [
                 ("PdfA1B (ISO 19005-1)",
                     "The strictest. PDF 1.4 constructs only, so no transparency, no JPXDecode, no "
                     + "cross-reference stream, and no embedded files at all."),
@@ -126,7 +124,7 @@ internal sealed class ArchiveDemo : PdfDemo
                 ("PdfA3B (ISO 19005-3)",
                     "As PDF/A-2b, and the only profile that may carry an attachment of any kind - "
                     + "which is what hybrid e-invoices such as ZUGFeRD and Factur-X are built on.")
-            };
+            ];
 
             double y = 185;
             foreach (var each in profiles)
@@ -299,7 +297,7 @@ internal sealed class ArchiveDemo : PdfDemo
                 body, XBrushes.Black, new XRect(50, 344, 495, 76));
 
             (string Field, string Value)[] facts =
-            {
+            [
                 ("Profile size", profile.Length.ToString("N0") + " bytes"),
                 ("Device class", "mntr (display), ICC version 2.1"),
                 ("Colour space", "RGB, PCS XYZ"),
@@ -307,7 +305,7 @@ internal sealed class ArchiveDemo : PdfDemo
                 ("Licence", "CC0 1.0, public domain - the cprt tag says so itself"),
                 ("/OutputConditionIdentifier", document.Options.OutputIntentIdentifier),
                 ("/S", "/GTS_PDFA1, for every part of PDF/A and not only the first")
-            };
+            ];
 
             double y = 432;
             foreach (var fact in facts)

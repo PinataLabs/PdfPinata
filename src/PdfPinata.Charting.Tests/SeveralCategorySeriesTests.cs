@@ -28,12 +28,12 @@ public class SeveralCategorySeriesTests
     [InlineData(ChartType.BarStacked2D)]
     public void OnlyTheFirstCategorySeriesLabelsTheAxis(ChartType type)
     {
-        var page = Drawn.Page(WithCategorySeries(type, new[] { "A", "B", "C" }, new[] { "X", "Y", "Z" }));
+        var page = Drawn.Page(WithCategorySeries(type, ["A", "B", "C"], ["X", "Y", "Z"]));
 
         var shown = ShownText.On(page);
 
-        shown.Should().Contain(new[] { "A", "B", "C" });
-        shown.Should().NotContain(new[] { "X", "Y", "Z" },
+        shown.Should().Contain(["A", "B", "C"]);
+        shown.Should().NotContain(["X", "Y", "Z"],
             "the axis has one slot per category, and the first series has filled them");
     }
 
@@ -46,9 +46,9 @@ public class SeveralCategorySeriesTests
     [InlineData(ChartType.BarStacked2D)]
     public void ASecondCategorySeriesLeavesTheChartAsTheFirstAloneDrewIt(ChartType type)
     {
-        var alone = ShownText.RunsOn(Drawn.Page(WithCategorySeries(type, new[] { "A", "B", "C" })));
+        var alone = ShownText.RunsOn(Drawn.Page(WithCategorySeries(type, ["A", "B", "C"])));
         var withSecond = ShownText.RunsOn(Drawn.Page(WithCategorySeries(type,
-            new[] { "A", "B", "C" }, new[] { "A much longer name", "Another", "And a third" })));
+            ["A", "B", "C"], ["A much longer name", "Another", "And a third"])));
 
         // Compared run for run, positions included, and with the second series' labels far wider
         // than the first's: the vertical axis used to measure every series when reserving its

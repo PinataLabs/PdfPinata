@@ -54,12 +54,12 @@ public sealed class FacturXInvoice
     /// the German profile the third; the fourth is the order sibling of the format.
     /// </summary>
     private static readonly string[] KnownFileNames =
-    {
+    [
         "factur-x.xml",
         "zugferd-invoice.xml",
         "xrechnung.xml",
         "order-x.xml"
-    };
+    ];
 
     /// <summary>
     /// Describes an invoice to be attached, from the bytes of its XML.

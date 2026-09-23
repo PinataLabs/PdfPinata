@@ -113,7 +113,7 @@ public class LexerUnicodeStringTests
     /// </summary>
     private record Scanned(Symbol Symbol, string Token)
     {
-        public IReadOnlyList<int> Codes => Token.Select(character => (int)character).ToList();
+        public IReadOnlyList<int> Codes => [..Token.Select(character => (int)character)];
     }
 
     /// <summary>Scans those bytes wrapped in the parentheses that make them a literal string.</summary>
@@ -127,7 +127,7 @@ public class LexerUnicodeStringTests
         // does not end. xUnit honours it only on an async test.
         return Interruptibly.Run(() =>
         {
-            var lexer = new Lexer(new MemoryStream(pdf.ToArray()));
+            var lexer = new Lexer(new MemoryStream([..pdf]));
             var symbol = lexer.ScanNextToken();
             return new Scanned(symbol, lexer.Token);
         });

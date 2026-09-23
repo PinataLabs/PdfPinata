@@ -234,10 +234,10 @@ public class IncrementalUpdateTests
         // an assertion of its own.
         var document = new PdfDocument();
         var dictionary = new PdfDictionary(document);
-        dictionary.CreateStream(new byte[] { 1, 2, 3 });
+        dictionary.CreateStream([1, 2, 3]);
         document.Internals.AddObject(dictionary);
 
-        dictionary.Stream.Value = new byte[] { 4, 5, 6, 7 };
+        dictionary.Stream.Value = [4, 5, 6, 7];
 
         dictionary.IsDirty.Should().BeTrue();
     }

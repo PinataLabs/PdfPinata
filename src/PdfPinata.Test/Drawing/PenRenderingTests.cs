@@ -26,10 +26,9 @@ public class PenRenderingTests
 
         using (var gfx = XGraphics.FromPdfPage(page))
         {
-            gfx.DrawLines(pen, new[]
-            {
+            gfx.DrawLines(pen, [
                 new XPoint(100, 300), new XPoint(200, 100), new XPoint(300, 300)
-            });
+            ]);
         }
 
         return page;
@@ -52,24 +51,22 @@ public class PenRenderingTests
     {
         var states = page.Elements.GetDictionary("/Resources")?.Elements.GetDictionary("/ExtGState");
         if (states == null)
-            return Array.Empty<double>();
+            return [];
 
-        return ContentOf(page).Split('\n')
+        return [..ContentOf(page).Split('\n')
             .Where(line => line.EndsWith(" gs"))
             .Select(line => states.Elements.GetDictionary(line[..^3]))
             .Where(state => state != null && state.Elements.ContainsKey("/CA"))
-            .Select(state => state.Elements.GetReal("/CA"))
-            .ToList();
+            .Select(state => state.Elements.GetReal("/CA"))];
     }
 
     /// <summary>Every miter limit the page sets, in the order it sets them.</summary>
     private static IReadOnlyList<double> MiterLimitsOn(PdfPage page)
     {
-        return ContentOf(page).Split('\n')
+        return [..ContentOf(page).Split('\n')
             .Where(line => line.EndsWith(" M"))
             .Select(line => double.Parse(line.AsSpan(0, line.Length - 2),
-                System.Globalization.CultureInfo.InvariantCulture))
-            .ToList();
+                System.Globalization.CultureInfo.InvariantCulture))];
     }
 
     // ----- a pen built from a brush -----
@@ -197,8 +194,8 @@ public class PenRenderingTests
 
     // ----- the dash pattern -----
 
-    private static readonly XPen Dotted = new(XColors.Black, 2) { DashPattern = new double[] { 1, 2 } };
-    private static readonly XPen LongDashes = new(XColors.Black, 2) { DashPattern = new double[] { 6, 2 } };
+    private static readonly XPen Dotted = new(XColors.Black, 2) { DashPattern = [1, 2] };
+    private static readonly XPen LongDashes = new(XColors.Black, 2) { DashPattern = [6, 2] };
 
     private static PdfPage DrawnWith(Action<XGraphics> draw)
     {
@@ -213,7 +210,7 @@ public class PenRenderingTests
 
     /// <summary>Every dash pattern the page sets, in the order it sets them.</summary>
     private static IReadOnlyList<string> DashPatternsOn(PdfPage page) =>
-        ContentOf(page).Split('\n').Where(line => line.EndsWith(" d")).ToList();
+        [..ContentOf(page).Split('\n').Where(line => line.EndsWith(" d"))];
 
     /// <summary>The dash pattern the pen writes when it is the only one drawn.</summary>
     private static string DashPatternOf(XPen pen) => DashPatternsOn(DrawnWith(gfx => Stroke(gfx, pen))).Single();

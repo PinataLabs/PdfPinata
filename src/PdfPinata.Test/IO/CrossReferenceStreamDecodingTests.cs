@@ -50,7 +50,7 @@ public class CrossReferenceStreamDecodingTests
     {
         var w = new[] { type, field2, field3 };
         var entries = await Task.Run(() => EntriesOf(
-            Build(w, index: new[] { 10, 1 }, size: 11,
+            Build(w, index: [10, 1], size: 11,
                 data: Encode(w, (expectedType, expectedField2, expectedField3)))));
 
         entries.Should().Equal((expectedType, expectedField2, expectedField3));
@@ -75,7 +75,7 @@ public class CrossReferenceStreamDecodingTests
         var w = new[] { 1, 2, 1 };
         var entries = await Task.Run(() => EntriesOf(
             // One entry for object 1, then two for objects 5 and 6.
-            Build(w, index: new[] { 1, 1, 5, 2 }, size: 7,
+            Build(w, index: [1, 1, 5, 2], size: 7,
                 data: Encode(w, (2u, 11u, 0u), (2u, 55u, 0u), (2u, 66u, 1u)))));
 
         entries.Select(entry => entry.Field2).Should().Equal(11u, 55u, 66u);
@@ -88,7 +88,7 @@ public class CrossReferenceStreamDecodingTests
     {
         var w = new[] { 1, 2, 1 };
         var table = await Task.Run(() => TableAfterReading(
-            Build(w, index: new[] { 2, 1 }, size: 3, data: Encode(w, (1u, 0u, 0u)))));
+            Build(w, index: [2, 1], size: 3, data: Encode(w, (1u, 0u, 0u)))));
 
         ParserProbe.ReferenceTo(table, PlaceholderId).Position.Should()
             .Be(0, "the entry says the object is written at the start of the file");
@@ -104,7 +104,7 @@ public class CrossReferenceStreamDecodingTests
             var owner = new PdfDocument();
             ParserProbe.AddReference(owner, PlaceholderId, 4711);
             return TableAfterReading(
-                Build(w, index: new[] { 2, 1 }, size: 3, data: Encode(w, (1u, 0u, 0u))), owner);
+                Build(w, index: [2, 1], size: 3, data: Encode(w, (1u, 0u, 0u))), owner);
         });
 
         ParserProbe.ReferenceTo(table, PlaceholderId).Position.Should().Be(4711);
@@ -115,7 +115,7 @@ public class CrossReferenceStreamDecodingTests
     {
         var w = new[] { 1, 2, 1 };
         var table = await Task.Run(() => TableAfterReading(
-            Build(w, index: new[] { 2, 1 }, size: 3, data: Encode(w, (0u, 0u, 0u)))));
+            Build(w, index: [2, 1], size: 3, data: Encode(w, (0u, 0u, 0u)))));
 
         ParserProbe.ObjectIdsIn(table).Should()
             .NotContain(PlaceholderId, "a free entry names no object at all")
@@ -130,7 +130,7 @@ public class CrossReferenceStreamDecodingTests
         // read newest first and an older revision's entry for the same number must not take it.
         var w = new[] { 1, 2, 1 };
         var table = await Task.Run(() => TableAfterReading(
-            Build(w, index: new[] { 3, 1 }, size: 4, data: Encode(w, (2u, 9u, 0u)))));
+            Build(w, index: [3, 1], size: 4, data: Encode(w, (2u, 9u, 0u)))));
 
         ParserProbe.ReferenceTo(table, new PdfObjectID(3, 0)).Position.Should()
             .Be(-1, "the object is somewhere inside object 9, which no offset in the file describes");
@@ -148,7 +148,7 @@ public class CrossReferenceStreamDecodingTests
             var owner = new PdfDocument();
             ParserProbe.AddReference(owner, StreamId, 4711);
             return TableAfterReading(
-                Build(w, index: new[] { 2, 1 }, size: 3, data: Encode(w, (1u, 0u, 0u))), owner);
+                Build(w, index: [2, 1], size: 3, data: Encode(w, (1u, 0u, 0u))), owner);
         });
 
         var entry = ParserProbe.ReferenceTo(table, StreamId);
@@ -164,7 +164,7 @@ public class CrossReferenceStreamDecodingTests
         var (stream, table) = await Task.Run(() =>
         {
             var owner = new PdfDocument();
-            var built = Build(w, index: new[] { 2, 1 }, size: 3, data: Encode(w, (1u, 0u, 0u)));
+            var built = Build(w, index: [2, 1], size: 3, data: Encode(w, (1u, 0u, 0u)));
             ParserProbe.AddReference(owner, StreamId, built.Position);
             return Read(built, owner);
         });
@@ -181,7 +181,7 @@ public class CrossReferenceStreamDecodingTests
         var (stream, table) = await Task.Run(() =>
         {
             var owner = new PdfDocument();
-            var built = Build(w, index: new[] { 4, 1 }, size: 5, data: Encode(w, (1u, 0u, 0u)));
+            var built = Build(w, index: [4, 1], size: 5, data: Encode(w, (1u, 0u, 0u)));
             return Read(built, owner);
         });
 
@@ -200,7 +200,7 @@ public class CrossReferenceStreamDecodingTests
         // entirely, or at a negative position. The file here is sparse: the object is written at
         // the offset and every byte before it, but for the stream at the start, is white space.
         var w = new[] { 1, width, 1 };
-        var built = Build(w, index: new[] { 2, 1 }, size: 3, data: Encode(w, (1u, (ulong)offset, 0u)));
+        var built = Build(w, index: [2, 1], size: 3, data: Encode(w, (1u, (ulong)offset, 0u)));
         var body = built.Bytes.AsSpan(Placeholder.Length).ToArray();
         var file = new SparseStream(offset + Placeholder.Length,
             (0, body), (offset, ParserProbe.Bytes(Placeholder)));
@@ -291,7 +291,7 @@ public class CrossReferenceStreamDecodingTests
         bytes.AddRange(data);
         bytes.AddRange(ParserProbe.Bytes("\nendstream\nendobj\n"));
 
-        return new BuiltFile { Bytes = bytes.ToArray(), Position = Placeholder.Length };
+        return new BuiltFile { Bytes = [..bytes], Position = Placeholder.Length };
     }
 
     /// <summary>
@@ -308,7 +308,7 @@ public class CrossReferenceStreamDecodingTests
             Append(bytes, entry.Field3, w[2]);
         }
 
-        return bytes.ToArray();
+        return [..bytes];
     }
 
     private static void Append(List<byte> bytes, ulong value, int width)

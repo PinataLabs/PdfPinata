@@ -33,7 +33,7 @@ internal class AESEncryptor : RC4Encryptor
     {
         var pwdBytes = Encoding.UTF8.GetBytes(password);
         if (pwdBytes.Length > 127)
-            pwdBytes = pwdBytes.Take(127).ToArray();
+            pwdBytes = [..pwdBytes.Take(127)];
         // split O and U into their components
         var oHash = new byte[32];
         var oValidation = new byte[8];
@@ -314,6 +314,6 @@ internal class AESEncryptor : RC4Encryptor
                 return bytes;
             }
         }
-        return output.Take(dataLength).ToArray();
+        return [..output.Take(dataLength)];
     }
 }

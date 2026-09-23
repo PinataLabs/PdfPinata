@@ -18,8 +18,7 @@ internal sealed class BarcodesDemo : PdfDemo
 
     public override string Summary => "Code 3 of 9, interleaved 2 of 5, OMR marks and an ECC200 data matrix.";
 
-    public override IReadOnlyList<string> Shows => new[]
-    {
+    public override IReadOnlyList<string> Shows => [
         "Code 3 of 9 and interleaved 2 of 5, drawn through XGraphics.DrawBarCode",
         "The wide-to-narrow ratio, whose default is 2.6 rather than the 2 or 3 the standard names",
         "The five text locations, including the two that sit the text inside the bars",
@@ -28,7 +27,7 @@ internal sealed class BarcodesDemo : PdfDemo
         "OMR marks, whose 'code' is the bits of a number rather than characters",
         "An ECC200 data matrix through DrawMatrixCode, square and rectangular, with quiet zones",
         "What each code will and will not accept, and what it says when it will not"
-    };
+    ];
 
     public override int PageCount => 3;
 
@@ -150,12 +149,12 @@ internal sealed class BarcodesDemo : PdfDemo
         gfx1.DrawString("What each code accepts", label, XBrushes.Black, new XPoint(50, 590));
 
         (string Code, string Accepts)[] rules =
-        {
+        [
             ("Code 3 of 9", "0-9, A-Z and - . $ / + % * space. Anything else throws ArgumentException."),
             ("Interleaved 2 of 5", "Digits, evenly many. Anything else throws ArgumentException."),
             ("OMR", "A number. Text that will not parse becomes zero, and the low bit is forced on."),
             ("Data matrix", "Any text, in ASCII encodation, within the symbol size asked for.")
-        };
+        ];
 
         double y = 610;
         foreach (var rule in rules)
@@ -181,12 +180,12 @@ internal sealed class BarcodesDemo : PdfDemo
         // The label goes on the side of the point the code does not occupy, which differs per
         // direction - that being the whole of what this panel is about.
         (CodeDirection Direction, double X, double Y, double LabelY)[] directions =
-        {
+        [
             (CodeDirection.LeftToRight, 90, 150, -8),
             (CodeDirection.RightToLeft, 400, 150, 14),
             (CodeDirection.TopToBottom, 150, 250, -8),
             (CodeDirection.BottomToTop, 420, 400, 14)
-        };
+        ];
 
         foreach (var each in directions)
         {
@@ -205,11 +204,11 @@ internal sealed class BarcodesDemo : PdfDemo
             "Which part of the code lands on the point given. The default is TopLeft.");
 
         AnchorType[] anchors =
-        {
+        [
             AnchorType.TopLeft, AnchorType.TopCenter, AnchorType.TopRight,
             AnchorType.MiddleLeft, AnchorType.MiddleCenter, AnchorType.MiddleRight,
             AnchorType.BottomLeft, AnchorType.BottomCenter, AnchorType.BottomRight
-        };
+        ];
 
         for (var index = 0; index < anchors.Length; index++)
         {
@@ -251,11 +250,11 @@ internal sealed class BarcodesDemo : PdfDemo
         // plus its error correction. ECC200 fixes the legal sizes; one that is not on the list, or
         // one too small for the text, is refused rather than silently truncated.
         (string Code, int Size, string Note)[] matrices =
-        {
+        [
             ("PDFPINATA", 16, "16 x 16 modules"),
             ("PDFPINATA-2026-08-16", 22, "22 x 22, the same plus a date"),
             ("https://github.com/PinataLabs/PdfPinata", 32, "32 x 32, a whole URL")
-        };
+        ];
 
         left = 50;
         foreach (var matrix in matrices)
@@ -272,11 +271,11 @@ internal sealed class BarcodesDemo : PdfDemo
         // A symbol does not have to be square. ECC200 defines rectangular sizes too, which suit a
         // label with width to spare and no height - a cable marker, a shelf edge.
         (int Rows, int Columns, string Note)[] shapes =
-        {
+        [
             (18, 18, "18 x 18, square"),
             (8, 32, "8 x 32, rectangular"),
             (12, 36, "12 x 36, rectangular")
-        };
+        ];
 
         left = 50;
         foreach (var shape in shapes)

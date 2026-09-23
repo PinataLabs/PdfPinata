@@ -94,8 +94,7 @@ public class PdfDocumentRenderer
         set
         {
             _tagContent = value;
-            if (_documentRenderer != null)
-                _documentRenderer.TagContent = value;
+            _documentRenderer?.TagContent = value;
         }
     }
 

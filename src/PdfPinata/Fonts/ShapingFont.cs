@@ -62,7 +62,7 @@ public sealed class ShapingFont
         IsItalic = isItalic;
         EmSize = emSize;
         UnitsPerEm = unitsPerEm;
-        Bytes = bytes ?? Array.Empty<byte>();
+        Bytes = bytes ?? [];
     }
 
     /// <summary>

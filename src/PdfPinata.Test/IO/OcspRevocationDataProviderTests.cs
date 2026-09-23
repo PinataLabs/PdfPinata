@@ -25,7 +25,7 @@ public class OcspRevocationDataProviderTests
         var certificate = CertificateWithAuthorityInfoAccess(null);
         var provider = new OcspRevocationDataProvider();
 
-        var result = provider.GetRevocationData(certificate, new X509Certificate2Collection());
+        var result = provider.GetRevocationData(certificate, []);
 
         result.Should().BeSameAs(RevocationData.None);
     }
@@ -33,11 +33,11 @@ public class OcspRevocationDataProviderTests
     [Fact]
     public void AMalformedAuthorityInfoAccessExtensionAnswersNoEvidenceRatherThanThrow()
     {
-        var certificate = CertificateWithAuthorityInfoAccess(new byte[] { 0x01, 0x02, 0x03 });
+        var certificate = CertificateWithAuthorityInfoAccess([0x01, 0x02, 0x03]);
         var provider = new OcspRevocationDataProvider();
 
         var gathering = () =>
-            provider.GetRevocationData(certificate, new X509Certificate2Collection());
+            provider.GetRevocationData(certificate, []);
 
         gathering.Should().NotThrow();
         gathering().Should().BeSameAs(RevocationData.None);
@@ -50,7 +50,7 @@ public class OcspRevocationDataProviderTests
             AuthorityInfoAccess("ftp://example.invalid/ocsp"));
         var provider = new OcspRevocationDataProvider();
 
-        var result = provider.GetRevocationData(certificate, new X509Certificate2Collection());
+        var result = provider.GetRevocationData(certificate, []);
 
         result.Should().BeSameAs(RevocationData.None);
     }

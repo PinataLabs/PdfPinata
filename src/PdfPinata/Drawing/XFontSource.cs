@@ -63,8 +63,7 @@ internal class XFontSource
     public static XFontSource GetOrCreateFrom(byte[] bytes)
     {
         var key = FontHelper.CalcChecksum(bytes);
-        XFontSource fontSource;
-        if (!FontFactory.TryGetFontSourceByKey(key, out fontSource))
+        if (!FontFactory.TryGetFontSourceByKey(key, out var fontSource))
         {
             fontSource = new XFontSource(bytes, key);
             // Theoretically the font source could be created by a differend thread in the meantime.
@@ -74,9 +73,8 @@ internal class XFontSource
     }
     public static XFontSource GetOrCreateFrom(string typefaceKey, byte[] fontBytes)
     {
-        XFontSource fontSource;
         var key = FontHelper.CalcChecksum(fontBytes);
-        if (FontFactory.TryGetFontSourceByKey(key, out fontSource))
+        if (FontFactory.TryGetFontSourceByKey(key, out var fontSource))
         {
             // The font source already exists, but is not yet cached under the specified typeface key.
             FontFactory.CacheExistingFontSourceWithNewTypefaceKey(typefaceKey, fontSource);

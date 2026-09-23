@@ -26,7 +26,7 @@ public class ValueModelParityTests
     private static Meta MetaFor(Type type) =>
         Meta.GetMeta((DocumentObject)RuntimeHelpers.GetUninitializedObject(type));
 
-    private static List<ValueDescriptor> Descriptors(Meta meta) => meta.ValueDescriptors.ToList();
+    private static List<ValueDescriptor> Descriptors(Meta meta) => [..meta.ValueDescriptors];
 
     public static TheoryData<Type> DomTypes()
     {
@@ -142,7 +142,7 @@ public class ValueModelParityTests
         foreach (var type in ReflectionMeta.AllDocumentObjectTypes())
         {
             var refOnly = Descriptors(MetaFor(type)).Where(d => d.IsRefOnly).Select(d => d.ValueName);
-            refOnly.Should().Equal(new[] { "parent" }, $"{type.Name}");
+            refOnly.Should().Equal(["parent"], $"{type.Name}");
         }
     }
 

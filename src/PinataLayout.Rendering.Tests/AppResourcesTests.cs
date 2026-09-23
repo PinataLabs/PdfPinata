@@ -41,11 +41,10 @@ public class AppResourcesTests
             "PinataLayout.Rendering.Resources.AppResources", true);
 
         // ReSharper disable once PossibleNullReferenceException
-        return resources
+        return [..resources
             .GetProperties(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public)
             .Where(property => property.PropertyType == typeof(string))
-            .Select(property => new KeyValuePair<string, string>(property.Name, Read(property)))
-            .ToList();
+            .Select(property => new KeyValuePair<string, string>(property.Name, Read(property)))];
     }
 
     private static string Read(PropertyInfo property)

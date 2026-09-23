@@ -113,6 +113,6 @@ public class PageResizeRenderingTests
         // Disposed as soon as the pages are on disk: the bitmaps are unmanaged and the collector
         // has no idea how big they are, so holding them is what kills the test host.
         using var rasterized = PdfHelper.Rasterize(document);
-        return PdfHelper.WriteImageCollection(rasterized.ImageCollection, OutDir, prefix).ToArray();
+        return [..PdfHelper.WriteImageCollection(rasterized.ImageCollection, OutDir, prefix)];
     }
 }

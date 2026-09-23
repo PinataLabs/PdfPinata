@@ -67,7 +67,7 @@ public class ParagraphRenderingTests
         // A run whose size never reaches a Tf is drawn at whatever size was last set, which is a
         // failure that looks like a layout wobble rather than like a lost setting. The default of
         // ten is on the page as well, from the run that closes the paragraph.
-        FontSizesOn(page).Should().Contain(new[] { 6.0, 8.0, 14.0, 16.0, 20.0 });
+        FontSizesOn(page).Should().Contain([6.0, 8.0, 14.0, 16.0, 20.0]);
     }
 
     [Fact]
@@ -175,7 +175,7 @@ public class ParagraphRenderingTests
         (right.X1 - textStart).Should().BeGreaterThan(Unit.FromCentimeter(2).Point);
 
         lines.Select(line => Math.Round(line.Width, 2)).Distinct()
-            .Should().BeEquivalentTo(new[] { 3.0, 4.0, 7.0 },
+            .Should().BeEquivalentTo([3.0, 4.0, 7.0],
                 "the top is four, the left is seven, and the bottom and the right are both three");
     }
 
@@ -342,11 +342,10 @@ public class ParagraphRenderingTests
     /// <summary>Where each line of the page starts, from the top downwards.</summary>
     private static IReadOnlyList<double> FirstRunOfEachLine(PdfPage page)
     {
-        return TextBaselines.PositionsOf(page)
+        return [..TextBaselines.PositionsOf(page)
             .GroupBy(position => Math.Round(position.Y, 2))
             .OrderByDescending(line => line.Key)
-            .Select(line => line.First().X)
-            .ToList();
+            .Select(line => line.First().X)];
     }
 
     /// <summary>
@@ -357,16 +356,15 @@ public class ParagraphRenderingTests
     {
         var runs = TextBaselines.PositionsOf(page).Select(position => position.X).ToList();
 
-        return runs.Zip(runs.Skip(1), (one, next) => Math.Round(next - one, 4)).ToList();
+        return [..runs.Zip(runs.Skip(1), (one, next) => Math.Round(next - one, 4))];
     }
 
     /// <summary>The sizes the page sets its font to, which Tf carries as its second operand.</summary>
     private static IReadOnlyList<double> FontSizesOn(PdfPage page)
     {
-        return TextOperators.OperandsGivenTo(page, OpCodeName.Tf)
+        return [..TextOperators.OperandsGivenTo(page, OpCodeName.Tf)
             .Where(operands => operands.Length == 2)
             .Select(operands => operands[1])
-            .Distinct()
-            .ToList();
+            .Distinct()];
     }
 }

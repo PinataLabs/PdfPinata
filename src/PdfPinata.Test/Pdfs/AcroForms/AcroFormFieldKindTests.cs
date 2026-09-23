@@ -241,7 +241,7 @@ public class AcroFormFieldKindTests
         field.SelectedIndex = 1;
 
         field.SelectedIndex.Should().Be(1);
-        SelectedIndicesOf(field).Should().Equal(new[] { 1 },
+        SelectedIndicesOf(field).Should().Equal([1],
             "a viewer reads /I rather than searching /Opt");
     }
 
@@ -287,9 +287,9 @@ public class AcroFormFieldKindTests
             AcroFormBuilder.WithOptions(f, "Kent", "Sussex", "Surrey");
         }).AcroForm.Fields["county"];
 
-        field.SelectedIndices = new[] { 2, 0 };
+        field.SelectedIndices = [2, 0];
 
-        field.SelectedIndices.Should().Equal(new[] { 0, 2 }, "ascending, as the specification asks");
+        field.SelectedIndices.Should().Equal([0, 2], "ascending, as the specification asks");
         SelectedIndicesOf(field).Should().Equal(new[] { 0, 2 });
         OptionTextsOfValue(field).Should().Equal(new[] { "Kent", "Surrey" });
     }
@@ -318,7 +318,7 @@ public class AcroFormFieldKindTests
         var field = (PdfListBoxField)FormWith("/Ch", "county",
             f => AcroFormBuilder.WithOptions(f, "Kent", "Sussex")).AcroForm.Fields["county"];
 
-        var act = () => field.SelectedIndices = new[] { 0, 1 };
+        var act = () => field.SelectedIndices = [0, 1];
 
         act.Should().Throw<InvalidOperationException>()
             .WithMessage("*MultiSelect*", "the flag is what the caller has to set");
@@ -333,9 +333,9 @@ public class AcroFormFieldKindTests
             AcroFormBuilder.WithFlags(f, PdfAcroFieldFlags.MultiSelect);
             AcroFormBuilder.WithOptions(f, "Kent", "Sussex");
         }).AcroForm.Fields["county"];
-        field.SelectedIndices = new[] { 0, 1 };
+        field.SelectedIndices = [0, 1];
 
-        field.SelectedIndices = Array.Empty<int>();
+        field.SelectedIndices = [];
 
         field.SelectedIndices.Should().BeEmpty();
         field.Elements.ContainsKey("/V").Should().BeFalse();
@@ -356,7 +356,7 @@ public class AcroFormFieldKindTests
         }).AcroForm.Fields["county"];
         field.SelectedIndex = 0;
 
-        var act = () => field.SelectedIndices = new[] { 1, 7 };
+        var act = () => field.SelectedIndices = [1, 7];
 
         act.Should().Throw<ArgumentOutOfRangeException>();
         field.SelectedIndices.Should().Equal(new[] { 0 });
@@ -377,9 +377,9 @@ public class AcroFormFieldKindTests
             AcroFormBuilder.WithOptions(f, "Kent", "Kent", "Surrey");
         }).AcroForm.Fields["county"];
 
-        field.SelectedIndices = new[] { 0, 1 };
+        field.SelectedIndices = [0, 1];
 
-        field.SelectedIndices.Should().Equal(new[] { 0, 1 },
+        field.SelectedIndices.Should().Equal([0, 1],
             "/I says which two, where /V says only that both are Kent");
     }
 
@@ -392,9 +392,9 @@ public class AcroFormFieldKindTests
             AcroFormBuilder.WithOptions(f, "Kent", "Kent", "Surrey");
         }).AcroForm.Fields["county"];
 
-        field.SelectedIndices = new[] { 1 };
+        field.SelectedIndices = [1];
 
-        field.SelectedIndices.Should().Equal(new[] { 1 }, "the second Kent, not the first");
+        field.SelectedIndices.Should().Equal([1], "the second Kent, not the first");
     }
 
     /// <summary>
@@ -510,7 +510,7 @@ public class AcroFormFieldKindTests
             f.Elements["/I"] = stale;
         }).AcroForm.Fields["county"];
 
-        field.SelectedIndices.Should().Equal(new[] { 2 }, "/V names Surrey, whatever /I says");
+        field.SelectedIndices.Should().Equal([2], "/V names Surrey, whatever /I says");
     }
 
     [Fact]
@@ -518,7 +518,7 @@ public class AcroFormFieldKindTests
     {
         var field = (PdfListBoxField)FormWith("/Ch", "county").AcroForm.Fields["county"];
 
-        var act = () => (field).SelectedIndices = new[] { 0 };
+        var act = () => (field).SelectedIndices = [0];
 
         act.Should().Throw<ArgumentOutOfRangeException>();
         field.Elements.ContainsKey("/V").Should().BeFalse("nothing was written");
@@ -533,7 +533,7 @@ public class AcroFormFieldKindTests
             AcroFormBuilder.WithFlags(f, PdfAcroFieldFlags.MultiSelect);
             AcroFormBuilder.WithOptions(f, "Kent", "Sussex", "Surrey");
         });
-        ((PdfListBoxField)document.AcroForm.Fields["county"]).SelectedIndices = new[] { 0, 2 };
+        ((PdfListBoxField)document.AcroForm.Fields["county"]).SelectedIndices = [0, 2];
 
         using var written = new MemoryStream();
         document.Save(written, false);
@@ -674,7 +674,7 @@ public class AcroFormFieldKindTests
 
         OptionsOf(field).Should().Equal("Kent", "Sussex", "Middlesex");
         field.SelectedIndex.Should().Be(2);
-        SelectedIndicesOf(field).Should().Equal(new[] { 2 },
+        SelectedIndicesOf(field).Should().Equal([2],
             "a viewer reads /I rather than searching /Opt");
     }
 
@@ -689,7 +689,7 @@ public class AcroFormFieldKindTests
 
         field.Value = new PdfString("Sussex");
 
-        OptionsOf(field).Should().Equal(new[] { "Kent", "Sussex" },
+        OptionsOf(field).Should().Equal(["Kent", "Sussex"],
             "the option was already on offer, so nothing needed adding");
         field.SelectedIndex.Should().Be(1);
     }
@@ -746,7 +746,7 @@ public class AcroFormFieldKindTests
 
         field.Value = new PdfName("/Sussex");
 
-        OptionsOf(field).Should().Equal(new[] { "Kent", "Sussex" },
+        OptionsOf(field).Should().Equal(["Kent", "Sussex"],
             "the option was already on offer, so nothing needed adding");
         field.SelectedIndex.Should().Be(1);
     }
@@ -983,7 +983,7 @@ public class AcroFormFieldKindTests
         }).AcroForm.Fields["county"];
 
         var one = () => field.SelectedIndex = 1;
-        var many = () => field.SelectedIndices = new[] { 0, 2 };
+        var many = () => field.SelectedIndices = [0, 2];
 
         one.Should().Throw<InvalidOperationException>().WithMessage("*read only*");
         many.Should().Throw<InvalidOperationException>().WithMessage("*read only*");

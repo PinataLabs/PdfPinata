@@ -188,7 +188,7 @@ public class ItemizedTextTests
     /// </summary>
     private sealed class Recorder : ITextShaper
     {
-        private readonly List<(string Text, XTextDirection Direction, string Script)> _runs = new();
+        private readonly List<(string Text, XTextDirection Direction, string Script)> _runs = [];
 
         public ShapedRun Shape(ReadOnlySpan<char> text, ShapingFont font, XTextDirection direction,
             string script, string language)
@@ -214,9 +214,8 @@ public class ItemizedTextTests
             params string[] texts)
         {
             lock (_runs)
-                return _runs.Where(run => texts.Contains(run.Text, StringComparer.Ordinal))
-                    .Distinct()
-                    .ToList();
+                return [.._runs.Where(run => texts.Contains(run.Text, StringComparer.Ordinal))
+                    .Distinct()];
         }
     }
 
@@ -240,11 +239,10 @@ public class ItemizedTextTests
             GlobalFontSettings.TextShaper = null;
         }
 
-        recorder.Of(latin, Salam).Should().BeEquivalentTo(new[]
-        {
+        recorder.Of(latin, Salam).Should().BeEquivalentTo([
             (latin, XTextDirection.LeftToRight, "latn"),
             (Salam, XTextDirection.RightToLeft, "arab")
-        }, "a shaper is told what it is shaping, because a face applies one script's rules at a "
+        ], "a shaper is told what it is shaping, because a face applies one script's rules at a "
            + "time and cannot work out from the characters alone which way the run reads");
     }
 }

@@ -99,7 +99,7 @@ public class Ascii85DecodeTests
     [Fact]
     public void ZeroGroupsMixedWithDataComeBackInTheRightPlaces()
     {
-        byte[] original = { 1, 2, 3, 4, 0, 0, 0, 0, 5, 6, 7, 8 };
+        byte[] original = [1, 2, 3, 4, 0, 0, 0, 0, 5, 6, 7, 8];
 
         var encoded = Filter.Encode(original);
 
@@ -110,7 +110,7 @@ public class Ascii85DecodeTests
     [Fact]
     public void NothingEncodesToTheEndMarkerAloneAndDecodesBackToNothing()
     {
-        var encoded = Filter.Encode(Array.Empty<byte>());
+        var encoded = Filter.Encode([]);
 
         Encoding.ASCII.GetString(encoded).Should().Be("~>");
         Decode(encoded).Should().BeEmpty();
@@ -234,7 +234,7 @@ public class Ascii85DecodeTests
     [Fact]
     public void TheLargestGroupThatFitsIsAccepted()
     {
-        byte[] original = { 0xFF, 0xFF, 0xFF, 0xFF };
+        byte[] original = [0xFF, 0xFF, 0xFF, 0xFF];
 
         var encoded = Filter.Encode(original);
 

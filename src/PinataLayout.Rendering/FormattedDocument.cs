@@ -128,10 +128,9 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
         {
             if (isNewSection)
                 return PagePosition.First;
-            else if (currentPage % 2 == 0)
+            if (currentPage % 2 == 0)
                 return PagePosition.Even;
-            else
-                return PagePosition.Odd;
+            return PagePosition.Odd;
         }
     }
 
@@ -687,7 +686,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
                     layoutInfo.ContentArea.X += layoutInfo.Left;
                     return true;
                 }
-                else if (layoutInfo.MarginLeft != 0)
+                if (layoutInfo.MarginLeft != 0)
                 {
                     layoutInfo.ContentArea.X += layoutInfo.MarginLeft;
                     return true;
@@ -787,7 +786,7 @@ public class FormattedDocument : IAreaProvider, IFootnoteAreaProvider
 
         if (startOnOddPage)
             return nextPage % 2 == 0;
-        else if (startOnEvenPage)
+        if (startOnEvenPage)
             return nextPage % 2 == 1;
 
         return false;

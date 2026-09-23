@@ -26,7 +26,7 @@ public class ChartCloneAndLineFormatTests
 
     private static Chart AFullyPopulatedChart()
     {
-        var chart = Charts.OfSeries(ChartType.Line, new[] { 1.0, 2.0 }, new[] { 3.0, 4.0 });
+        var chart = Charts.OfSeries(ChartType.Line, [1.0, 2.0], [3.0, 4.0]);
         chart.XAxis.Title.Caption = "across";
         chart.YAxis.Title.Caption = "up";
         chart.ZAxis.Title.Caption = "through";
@@ -154,7 +154,7 @@ public class ChartCloneAndLineFormatTests
     }
 
     private static double[] StrokeWidthsOf(Chart chart) =>
-        StrokedLines.Of(Drawn.Page(chart)).Select(line => line.Width).ToArray();
+        [..StrokedLines.Of(Drawn.Page(chart)).Select(line => line.Width)];
 
     [Fact]
     public void AGridlineIsStrokedAtTheWidthItsFormatStates()

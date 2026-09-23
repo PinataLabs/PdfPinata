@@ -86,13 +86,12 @@ public class UnterminatedObjectTests
     private static byte[] BuildDocumentWhoseFifthObjectIs(string body)
     {
         const string content = "0 0 1 RG 10 10 100 100 re S";
-        return RawPdf.Build(new[]
-        {
+        return RawPdf.Build([
             "<</Type/Catalog/Pages 2 0 R/Extra 5 0 R>>",
             "<</Type/Pages/Kids[3 0 R]/Count 1>>",
             "<</Type/Page/Parent 2 0 R/MediaBox[0 0 200 200]/Contents 4 0 R>>",
             RawPdf.Stream("", content),
             body
-        });
+        ]);
     }
 }

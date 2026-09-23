@@ -50,7 +50,7 @@ public class ResourceDeduplicationRenderingTests(ITestOutputHelper output)
     public void AMergedDocumentDrawsTheSameDeduplicated()
     {
         var single = ADocumentWithTextAndAnImage();
-        DrawsTheSame(Enumerable.Repeat(single, 3).ToList(), "generated");
+        DrawsTheSame([..Enumerable.Repeat(single, 3)], "generated");
     }
 
     [GoldenImageFact]
@@ -128,6 +128,6 @@ public class ResourceDeduplicationRenderingTests(ITestOutputHelper output)
     private static string[] Render(PdfDocument document, string prefix)
     {
         using var rasterized = PdfHelper.Rasterize(document);
-        return PdfHelper.WriteImageCollection(rasterized.ImageCollection, OutDir, prefix).ToArray();
+        return [..PdfHelper.WriteImageCollection(rasterized.ImageCollection, OutDir, prefix)];
     }
 }

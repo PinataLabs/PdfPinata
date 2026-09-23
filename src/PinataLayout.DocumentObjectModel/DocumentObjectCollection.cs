@@ -245,9 +245,7 @@ public abstract class DocumentObjectCollection : DocumentObject, IList, IVisitab
 
         foreach (DocumentObject docobj in this)
         {
-            var visitable = docobj as IVisitable;
-            if (visitable != null)
-                visitable.AcceptVisitor(visitor, visitChildren);
+            (docobj as IVisitable)?.AcceptVisitor(visitor, visitChildren);
         }
     }
 

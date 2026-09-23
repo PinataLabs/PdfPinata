@@ -39,7 +39,7 @@ public class ImagePixelRoundTripTests
     /// <summary>
     ///   Alpha down one side of the 128 the monochrome mask splits at, and up the other.
     /// </summary>
-    private static readonly byte[] Alphas = { 255, 200, 128, 127, 64, 0 };
+    private static readonly byte[] Alphas = [255, 200, 128, 127, 64, 0];
 
     [Fact]
     public void TheImageStreamHoldsTheSourcePixelsRowForRowAndChannelForChannel()
@@ -170,7 +170,7 @@ public class ImagePixelRoundTripTests
 
     private static ImageSource.IImageSource Skia(bool opaque)
     {
-        return Skia(opaque ? new byte[] { 255, 255, 255, 255, 255, 255 } : Alphas);
+        return Skia(opaque ? [255, 255, 255, 255, 255, 255] : Alphas);
     }
 
     /// <summary>One alpha per pixel, in the order the pixels are written.</summary>

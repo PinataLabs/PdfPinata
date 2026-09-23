@@ -222,9 +222,7 @@ public sealed class ValueDescriptor
 
       default:
       {
-        var value = getter(dom) as DocumentObject;
-        if (value != null)
-          value.SetNull();
+        (getter(dom) as DocumentObject)?.SetNull();
         break;
       }
     }

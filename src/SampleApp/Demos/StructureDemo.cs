@@ -18,8 +18,7 @@ internal sealed class StructureDemo : PdfDemo
 
     public override string Summary => "PinataLayout's TOC, automatic bookmarks, sections, lists and cross-references.";
 
-    public override IReadOnlyList<string> Shows => new[]
-    {
+    public override IReadOnlyList<string> Shows => [
         "A table of contents built from PageRefField, BookmarkField and a dotted tab leader",
         "ParagraphFormat.OutlineLevel, which turns headings into PDF bookmarks with no Outlines call",
         "Three sections with different page setups, and a title page with no header of its own",
@@ -28,7 +27,7 @@ internal sealed class StructureDemo : PdfDemo
         "Hyperlink in its bookmark, web and local forms",
         "PageBreak, which is what gives the contents three different page numbers to resolve to",
         "The predefined styles in StyleNames, and how a style inherits from the one it is based on"
-    };
+    ];
 
     public override int PageCount => 5;
 
@@ -154,11 +153,11 @@ internal sealed class StructureDemo : PdfDemo
         // be written by hand without being wrong the moment anything moves.
         // docs:begin contents
         (string Bookmark, string Text)[] entries =
-        {
+        [
             ("chapter-one", "1  Sections and headers"),
             ("lists", "2  Lists"),
             ("references", "3  Cross-references and hyperlinks")
-        };
+        ];
 
         foreach (var item in entries)
         {

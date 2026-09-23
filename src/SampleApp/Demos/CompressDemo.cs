@@ -20,8 +20,7 @@ internal sealed class CompressDemo : PdfDemo
 
     public override string Summary => "Every PdfDocumentOptions setting, measured in bytes.";
 
-    public override IReadOnlyList<string> Shows => new[]
-    {
+    public override IReadOnlyList<string> Shows => [
         "CompressContentStreams and NoCompression, against the same page of content",
         "That every measurement sets its options explicitly rather than measuring a default",
         "FlateEncodeMode - the trade between how long a save takes and how small it comes out",
@@ -29,7 +28,7 @@ internal sealed class CompressDemo : PdfDemo
         "ColorMode RGB against CMYK, and what changes in the file when it is switched",
         "CrossReferenceFormat - Classic against Stream, measured where it helps and where it does not",
         "A page whose whole subject is the byte counts, because nothing else here is visible"
-    };
+    ];
 
     public override int PageCount => 3;
 
@@ -206,7 +205,7 @@ internal sealed class CompressDemo : PdfDemo
                 body, XBrushes.Black, new XRect(50, 80, 495, 50));
 
             (string Setting, long Bytes, string Note)[] rows =
-            {
+            [
                 ("CompressContentStreams = true", compressed, "The baseline every other row is measured against"),
                 ("CompressContentStreams = false", uncompressed, "Operators written as readable text"),
                 ("NoCompression = true", noCompression, "Nothing in the file is compressed at all"),
@@ -216,7 +215,7 @@ internal sealed class CompressDemo : PdfDemo
                 ("UseFlateDecoderForJpegImages.Automatic", jpegAuto, "The same, kept only if it turned out smaller"),
                 ("ColorMode.Cmyk", cmyk, "Four components per colour instead of three"),
                 ("CrossReferenceFormat.Stream", xrefStream, "Barely moves a page that is mostly one content stream")
-            };
+            ];
 
             double y = 145;
             gfx.DrawString("setting", label, XBrushes.Black, new XPoint(50, y));

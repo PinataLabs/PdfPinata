@@ -61,7 +61,7 @@ public class ImageSharpVersionTest
         source.SaveAsJpeg(jpeg);
 
         var bytes = jpeg.ToArray();
-        bytes.Should().StartWith(new byte[] { 0xFF, 0xD8 }, "every JPEG opens with the SOI marker");
+        bytes.Should().StartWith([0xFF, 0xD8], "every JPEG opens with the SOI marker");
 
         using var reloaded = Image.Load<Rgba32>(bytes);
         reloaded.Width.Should().Be(Size);

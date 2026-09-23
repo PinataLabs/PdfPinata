@@ -352,11 +352,10 @@ public class ShapeSideWrapTests
 
             // PinataLayout draws one run per word, so a line is every run sharing a baseline and its
             // left edge is the leftmost of them.
-            Lines = TextBaselines.PositionsOf(page)
+            Lines = [..TextBaselines.PositionsOf(page)
                 .GroupBy(position => Math.Round(position.Y, 3))
                 .Select(line => (X: line.Min(position => position.X), Y: line.Key))
-                .OrderByDescending(line => line.Y)
-                .ToList();
+                .OrderByDescending(line => line.Y)];
         }
 
         internal double ShapeLeft { get; }
@@ -367,7 +366,7 @@ public class ShapeSideWrapTests
 
         /// <summary>The lines whose baseline falls within the shape's own depth.</summary>
         internal List<(double X, double Y)> LevelWithTheShape =>
-            Lines.Where(line => line.Y > ShapeBottom && line.Y < ShapeTop).ToList();
+            [..Lines.Where(line => line.Y > ShapeBottom && line.Y < ShapeTop)];
     }
 
     private static List<int> GlyphsAcross(PdfDocument document)

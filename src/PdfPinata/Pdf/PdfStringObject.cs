@@ -137,7 +137,7 @@ public sealed class PdfStringObject : PdfObject
         get
         {
             if (_value == null)
-                return Array.Empty<byte>();
+                return [];
             return Encoding == PdfStringEncoding.Unicode
                 ? PdfEncoders.RawUnicodeEncoding.GetBytes(_value)
                 : PdfEncoders.RawEncoding.GetBytes(_value);

@@ -110,7 +110,7 @@ internal class LegendEntryRenderer : Renderer
       }
 
       string line = null;
-      foreach (var word in paragraph.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
+      foreach (var word in paragraph.Split([' '], StringSplitOptions.RemoveEmptyEntries))
       {
         if (line == null)
           line = word;
@@ -125,7 +125,7 @@ internal class LegendEntryRenderer : Renderer
       lines.Add(line ?? "");
     }
 
-    leri.Lines = lines.ToArray();
+    leri.Lines = [..lines];
     Measure(gfx, leri);
     leri.Width = leri.TextSize.Width + leri.MarkerArea.Width + SpacingBetweenMarkerAndText;
     leri.Height = Math.Max(leri.Height, leri.TextSize.Height);

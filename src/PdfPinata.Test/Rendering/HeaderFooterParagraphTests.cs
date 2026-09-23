@@ -111,7 +111,7 @@ public class HeaderFooterParagraphTests
     /// <summary>The lines of the footer, which is everything drawn near the foot of the page.</summary>
     private static System.Collections.Generic.IReadOnlyList<double> FooterLinesOf(PdfPage page)
     {
-        return TextBaselines.LinesOf(page).Where(IsFooter).ToList();
+        return [..TextBaselines.LinesOf(page).Where(IsFooter)];
     }
 
     private static bool IsFooter(double baseline)

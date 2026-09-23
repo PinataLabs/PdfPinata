@@ -35,7 +35,7 @@ public sealed class TranslucentImageRenderingTests : IDisposable
     ///   Everything rasterized by one test, kept until the test is over - a page is tens of
     ///   megabytes of unmanaged bitmap the collector cannot see the size of.
     /// </summary>
-    private readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
+    private readonly List<MagickImageCollection> _rasterized = [];
 
     public void Dispose()
     {

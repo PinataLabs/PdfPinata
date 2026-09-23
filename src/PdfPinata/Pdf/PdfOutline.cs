@@ -347,17 +347,13 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
     /// </summary>
     private void Initialize()
     {
-        string title;
-        if (Elements.TryGetString(Keys.Title, out title))
+        if (Elements.TryGetString(Keys.Title, out var title))
             Title = title;
 
         var parentRef = Elements.GetReference(Keys.Parent);
-        if (parentRef != null)
-        {
-            var parent = parentRef.Value as PdfOutline;
-            if (parent != null)
-                Parent = parent;
-        }
+        var parent = parentRef?.Value as PdfOutline;
+        if (parent != null)
+            Parent = parent;
 
         // /Count is how an entry records whether it is expanded: positive when it is, negative
         // when it is not, absent when it has no descendants to expand. Reading it back is what
@@ -391,10 +387,7 @@ public sealed class PdfOutline : PdfDictionary  // Reference: 8.2.2 Document Out
         {
             InitializeFromAction(a);
         }
-        else
-        {
-            // Neither destination page nor GoTo action.
-        }
+        // Otherwise neither destination page nor GoTo action.
 
         InitializeChildren();
     }

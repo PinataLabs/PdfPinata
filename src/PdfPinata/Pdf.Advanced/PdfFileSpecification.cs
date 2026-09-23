@@ -62,8 +62,7 @@ public class PdfFileSpecification : PdfDictionary
         // before it was set, and those written by other libraries, have only /F.
         get
         {
-            string unicodeName;
-            if (Elements.TryGetString(Keys.UF, out unicodeName))
+            if (Elements.TryGetString(Keys.UF, out var unicodeName))
                 return unicodeName;
             return Elements.GetString(Keys.F);
         }

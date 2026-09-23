@@ -35,8 +35,7 @@ internal sealed class ProtectDemo : PdfDemo
 
     public override string OpenPassword => ReaderPassword;
 
-    public override IReadOnlyList<string> Shows => new[]
-    {
+    public override IReadOnlyList<string> Shows => [
         $"A genuinely encrypted PDF - it opens with the password '{ReaderPassword}'",
         "The two passwords and what each is for: one opens the file, the other lifts its limits",
         "All eight permission flags, set to a deliberately mixed set a reader's dialog will show",
@@ -44,7 +43,7 @@ internal sealed class ProtectDemo : PdfDemo
         "Reading a protected document back, and which open modes each password permits",
         "PdfPasswordProvider, for when the password is not known before the file is opened",
         "HasOwnerPermissions, which says which of the two passwords a document was opened with"
-    };
+    ];
 
     public override int PageCount => 2;
 
@@ -83,7 +82,7 @@ internal sealed class ProtectDemo : PdfDemo
         // The eight flags, deliberately mixed rather than all on or all off, so that a reader's
         // security dialog has something to disagree about.
         (string Name, bool Allowed, string What)[] permissions =
-        {
+        [
             ("PermitPrint", true, "Print the document at all"),
             ("PermitFullQualityPrint", false, "Print it at full resolution rather than a draft"),
             ("PermitExtractContent", false, "Copy text and graphics out of it"),
@@ -92,7 +91,7 @@ internal sealed class ProtectDemo : PdfDemo
             ("PermitAssembleDocument", true, "Insert, rotate or delete pages without changing them"),
             ("PermitAnnotations", true, "Add notes and markup"),
             ("PermitFormsFill", true, "Fill in form fields")
-        };
+        ];
 
         gfx1.DrawString("Permissions", label, XBrushes.Black, new XPoint(50, 215));
 

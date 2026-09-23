@@ -234,7 +234,7 @@ public class Lexer
             result.AddRange(marker.Take(markerIndex));
         }
 
-        return result.ToArray();
+        return [..result];
     }
 
     /// <summary>

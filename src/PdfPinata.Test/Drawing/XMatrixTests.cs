@@ -473,13 +473,13 @@ public class XMatrixTests
     ///   and has to go through the general formula.
     /// </summary>
     private static readonly XMatrix[] InvertibleMatrices =
-    {
+    [
         XMatrix.Identity,
         new(1, 0, 0, 1, 10, 20),
         new(2, 0, 0, 4, 0, 0),
         new(2, 0, 0, 4, 10, 20),
         new(1, 2, 3, 4, 5, 6)
-    };
+    ];
 
     public static TheoryData<int> EachInvertibleMatrix()
     {

@@ -72,8 +72,7 @@ internal sealed class PdfFontTable : PdfResourceTable
             selector = ComputeKey(font); //new FontSelector(font);
             font.Selector = selector;
         }
-        PdfFont pdfFont;
-        if (!_fonts.TryGetValue(selector, out pdfFont))
+        if (!_fonts.TryGetValue(selector, out var pdfFont))
         {
             // Refused before anything is added to the document, so that a font the document will
             // not carry leaves nothing of itself behind, and the exception comes from the call that
@@ -102,8 +101,7 @@ internal sealed class PdfFontTable : PdfResourceTable
             throw new ArgumentNullException(nameof(fontData));
 
         var selector = ComputeKey(idName);
-        PdfFont pdfFont;
-        if (!_fonts.TryGetValue(selector, out pdfFont))
+        if (!_fonts.TryGetValue(selector, out var pdfFont))
         {
             if (Owner.Options.RespectFontEmbeddingRestrictions)
             {
@@ -127,8 +125,7 @@ internal sealed class PdfFontTable : PdfResourceTable
         if (idName == null)
             throw new ArgumentNullException(nameof(idName));
 
-        PdfFont pdfFont;
-        _fonts.TryGetValue(ComputeKey(idName), out pdfFont);
+        _fonts.TryGetValue(ComputeKey(idName), out var pdfFont);
         return pdfFont;
     }
 

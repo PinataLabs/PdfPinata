@@ -22,7 +22,7 @@ public class CombinationChartTests
     [Fact]
     public void StackedColumnsInACombinationSitOnTopOfOneAnother()
     {
-        var chart = StackedColumnsWithALine(new[] { 1.0, 2.0 }, new[] { 3.0, 1.0 }, new[] { 0.5, 0.5 });
+        var chart = StackedColumnsWithALine([1.0, 2.0], [3.0, 1.0], [0.5, 0.5]);
 
         var columns = PaintedRectangles.FilledOn(Drawn.Page(chart));
 
@@ -40,7 +40,7 @@ public class CombinationChartTests
     public void TheValueAxisOfACombinationReachesTheTallestStack()
     {
         // No single value passes 3, but the first category stacks to 4.
-        var chart = StackedColumnsWithALine(new[] { 1.0, 2.0 }, new[] { 3.0, 1.0 }, new[] { 0.5, 0.5 });
+        var chart = StackedColumnsWithALine([1.0, 2.0], [3.0, 1.0], [0.5, 0.5]);
 
         var top = AxisMaximum(chart);
 
@@ -50,7 +50,7 @@ public class CombinationChartTests
     [Fact]
     public void TheValueAxisOfACombinationStillReachesALineAboveTheStacks()
     {
-        var chart = StackedColumnsWithALine(new[] { 1.0, 2.0 }, new[] { 3.0, 1.0 }, new[] { 1.0, 9.0 });
+        var chart = StackedColumnsWithALine([1.0, 2.0], [3.0, 1.0], [1.0, 9.0]);
 
         AxisMaximum(chart).Should().BeGreaterThanOrEqualTo(9);
     }
@@ -58,7 +58,7 @@ public class CombinationChartTests
     [Fact]
     public void TheValueAxisOfACombinationReachesTheLowestNegativeStack()
     {
-        var chart = StackedColumnsWithALine(new[] { -1.0, 2.0 }, new[] { -3.0, 1.0 }, new[] { 0.5, 0.5 });
+        var chart = StackedColumnsWithALine([-1.0, 2.0], [-3.0, 1.0], [0.5, 0.5]);
 
         var labels = ShownText.NumericOn(Drawn.Page(chart))
             .Select(label => double.Parse(label, CultureInfo.InvariantCulture));
@@ -69,7 +69,7 @@ public class CombinationChartTests
     [Fact]
     public void ClusteredColumnsInACombinationAreStillSideBySide()
     {
-        var chart = Charts.OfSeries(ChartType.Line, new[] { 1.0, 2.0 }, new[] { 3.0, 1.0 }, new[] { 0.5, 0.5 });
+        var chart = Charts.OfSeries(ChartType.Line, [1.0, 2.0], [3.0, 1.0], [0.5, 0.5]);
         chart.SeriesCollection[0].ChartType = ChartType.Column2D;
         chart.SeriesCollection[1].ChartType = ChartType.Column2D;
 
@@ -83,7 +83,7 @@ public class CombinationChartTests
     [Fact]
     public void MixingClusteredAndStackedColumnsIsRefused()
     {
-        var chart = Charts.OfSeries(ChartType.Line, new[] { 1.0, 2.0 }, new[] { 3.0, 1.0 }, new[] { 0.5, 0.5 });
+        var chart = Charts.OfSeries(ChartType.Line, [1.0, 2.0], [3.0, 1.0], [0.5, 0.5]);
         chart.SeriesCollection[0].ChartType = ChartType.Column2D;
         chart.SeriesCollection[1].ChartType = ChartType.ColumnStacked2D;
 
@@ -96,7 +96,7 @@ public class CombinationChartTests
     [Fact]
     public void ASeriesTheCombinationCannotDrawIsStillRefused()
     {
-        var chart = Charts.OfSeries(ChartType.Line, new[] { 1.0, 2.0 }, new[] { 3.0, 1.0 });
+        var chart = Charts.OfSeries(ChartType.Line, [1.0, 2.0], [3.0, 1.0]);
         chart.SeriesCollection[0].ChartType = ChartType.BarStacked2D;
 
         var draw = () => Drawn.Page(chart);

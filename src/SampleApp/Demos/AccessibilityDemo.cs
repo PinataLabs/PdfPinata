@@ -21,15 +21,14 @@ internal sealed class AccessibilityDemo : PdfDemo
 
     public override string Summary => "Tagged output, and a PDF/UA-1 claim that is enforced rather than stamped on.";
 
-    public override IReadOnlyList<string> Shows => new[]
-    {
+    public override IReadOnlyList<string> Shows => [
         "PdfDocumentRenderer.TagContent - true by default, so this document is tagged already",
         "Headings becoming /H1../H6 from the same OutlineLevel that makes them bookmarks",
         "A table whose heading row is /TH with /Scope /Column, and Table.Summary as /Summary",
         "Image.AlternativeText, which decides between a described /Figure and an artifact",
         "PdfUAConformance.PdfUA1 - the claim, and the six rules the writer holds it to",
         "The refusal messages themselves, caught from documents deliberately built wrong"
-    };
+    ];
 
     public override int PageCount => 2;
 
@@ -150,11 +149,11 @@ internal sealed class AccessibilityDemo : PdfDemo
         // docs:end table
 
         (string Region, string Revenue, string People)[] figures =
-        {
+        [
             ("North", "1,240", "38"),
             ("Midlands", "980", "31"),
             ("South West", "1,505", "44")
-        };
+        ];
 
         foreach (var each in figures)
         {

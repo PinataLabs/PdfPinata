@@ -74,7 +74,7 @@ internal static class PngFilter
         var pc = Math.Abs(p - c);
         if (pa <= pb && pa <= pc)
             return a;
-        else if (pb <= pc)
+        if (pb <= pc)
             return b;
         return c;
     }

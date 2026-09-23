@@ -39,10 +39,10 @@ internal static class HyperlinkWalkProbe
         using var gfx = XGraphics.FromPdfPage(document.AddPage());
 
         var renderer = Activator.CreateInstance(RendererType, Internals, null,
-            new object[] { gfx, new Document().AddSection().AddParagraph(), null }, null);
+            [gfx, new Document().AddSection().AddParagraph(), null], null);
 
         var iterator = Activator.CreateInstance(IteratorType, Internals, null,
-            new object[] { elements }, null);
+            [elements], null);
 
         // ReSharper disable once PossibleNullReferenceException
         var leaf = IteratorType.GetMethod("GetFirstLeaf", Internals).Invoke(iterator, null);

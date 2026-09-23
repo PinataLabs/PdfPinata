@@ -19,8 +19,7 @@ namespace SampleApp.Infrastructure;
 /// </remarks>
 public static class DemoRegistry
 {
-    public static IReadOnlyList<PdfDemo> All { get; } = new PdfDemo[]
-    {
+    public static IReadOnlyList<PdfDemo> All { get; } = [
         new HelloWorldDemo(),
         new FontsDemo(),
         new UnicodeDemo(),
@@ -59,9 +58,9 @@ public static class DemoRegistry
         new NewspaperDemo(),
         new MagazineDemo(),
         new SideWrapDemo()
-    };
+    ];
 
-    public static IReadOnlyList<string> Names { get; } = All.Select(demo => demo.Name).ToArray();
+    public static IReadOnlyList<string> Names { get; } = [..All.Select(demo => demo.Name)];
 
     /// <summary>Finds a demo by name, ignoring case, so <c>-e fonts</c> finds <c>Fonts</c>.</summary>
     public static bool TryGet(string name, [NotNullWhen(true)] out PdfDemo? demo)

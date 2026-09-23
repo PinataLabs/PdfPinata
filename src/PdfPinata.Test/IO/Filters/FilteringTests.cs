@@ -58,11 +58,11 @@ public class FilteringTests
         // JPEG stream comes back as null rather than as its own bytes.
         Filtering.GetFilter(name).Should().BeNull();
 
-        Filtering.Decode(new byte[] { 1, 2, 3 }, name).Should().BeNull();
-        Filtering.Decode(new byte[] { 1, 2, 3 }, name, null).Should().BeNull();
-        Filtering.DecodeToString(new byte[] { 1, 2, 3 }, name).Should().BeNull();
-        Filtering.DecodeToString(new byte[] { 1, 2, 3 }, name, null).Should().BeNull();
-        Filtering.Encode(new byte[] { 1, 2, 3 }, name).Should().BeNull();
+        Filtering.Decode([1, 2, 3], name).Should().BeNull();
+        Filtering.Decode([1, 2, 3], name, null).Should().BeNull();
+        Filtering.DecodeToString([1, 2, 3], name).Should().BeNull();
+        Filtering.DecodeToString([1, 2, 3], name, null).Should().BeNull();
+        Filtering.Encode([1, 2, 3], name).Should().BeNull();
         Filtering.Encode("abc", name).Should().BeNull();
     }
 
@@ -194,7 +194,7 @@ public class FilteringTests
     [Fact]
     public void InflatingNothingGivesNothingBack()
     {
-        Filtering.FlateDecode.Decode(Array.Empty<byte>(), (FilterParms)null).Should().BeEmpty();
+        Filtering.FlateDecode.Decode([], (FilterParms)null).Should().BeEmpty();
     }
 
     // ----- LZW -----------------------------------------------------------------------------------
@@ -309,7 +309,7 @@ public class FilteringTests
     [Fact]
     public void LzwRefusesTheFlavourItCannotRead()
     {
-        var act = () => Filtering.LzwDecode.Decode(new byte[] { 0x00, 0x01, 0x02 }, new FilterParms(null));
+        var act = () => Filtering.LzwDecode.Decode([0x00, 0x01, 0x02], new FilterParms(null));
 
         act.Should().Throw<Exception>().WithMessage("*flavour*");
     }
@@ -317,7 +317,7 @@ public class FilteringTests
     [Fact]
     public void LzwEncodingIsNotSupportedAndSaysSo()
     {
-        var act = () => Filtering.LzwDecode.Encode(new byte[] { 1, 2, 3 });
+        var act = () => Filtering.LzwDecode.Encode([1, 2, 3]);
 
         act.Should().Throw<NotImplementedException>().WithMessage("*LZW*");
     }

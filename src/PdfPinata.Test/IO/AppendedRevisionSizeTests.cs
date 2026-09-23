@@ -182,8 +182,8 @@ public class AppendedRevisionSizeTests
             void Row(int type, int field2, int field3)
             {
                 rows.Add((byte)type);
-                rows.AddRange(new[] { (byte)(field2 >> 24), (byte)(field2 >> 16), (byte)(field2 >> 8), (byte)field2 });
-                rows.AddRange(new[] { (byte)(field3 >> 8), (byte)field3 });
+                rows.AddRange([(byte)(field2 >> 24), (byte)(field2 >> 16), (byte)(field2 >> 8), (byte)field2]);
+                rows.AddRange([(byte)(field3 >> 8), (byte)field3]);
             }
             Row(0, 0, 65535);
             foreach (var offset in offsets)
@@ -234,5 +234,5 @@ public class AppendedRevisionSizeTests
 
     /// <summary>The numbers of the objects the appended revision defines, its own index among them.</summary>
     private static List<int> ObjectNumbersIn(string appended) =>
-        Regex.Matches(appended, @"(?m)^(\d+) \d+ obj\b").Select(match => int.Parse(match.Groups[1].Value)).ToList();
+        [..Regex.Matches(appended, @"(?m)^(\d+) \d+ obj\b").Select(match => int.Parse(match.Groups[1].Value))];
 }

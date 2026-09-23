@@ -129,7 +129,7 @@ public sealed class PdfContents : PdfArray
     public PdfContent ReplaceContent(CSequence cseq)
     {
         if (cseq == null)
-            throw new ArgumentException(@"The content sequence must not be null.", nameof(cseq));
+            throw new ArgumentException("The content sequence must not be null.", nameof(cseq));
 
         return ReplaceContent(cseq.ToContent());
     }

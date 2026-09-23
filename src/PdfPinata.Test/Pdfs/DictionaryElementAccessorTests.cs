@@ -851,7 +851,7 @@ public class DictionaryElementAccessorTests
         var document = ADocument();
         var dictionary = ADictionary(document);
         document.Internals.AddObject(dictionary);
-        dictionary.CreateStream("BT ET"u8.ToArray());
+        dictionary.CreateStream([.."BT ET"u8]);
 
         dictionary.Stream.ToString().Should().Be("BT ET");
 

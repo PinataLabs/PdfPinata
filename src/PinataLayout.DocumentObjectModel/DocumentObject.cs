@@ -208,8 +208,7 @@ public abstract partial class DocumentObject
   public virtual void SetValue(string name, object val)
   {
     Meta.SetValue(this, name, val);
-    if (val is DocumentObject)
-      ((DocumentObject)val).parent = this;
+    (val as DocumentObject)?.parent = this;
   }
 
   /// <summary>

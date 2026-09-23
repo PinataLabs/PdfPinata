@@ -359,10 +359,9 @@ internal class DdlScanner
 
     if (DdlScanner.IsLetter(ch))
       return Symbol.Text;
-    else if (ch == '\\')
+    if (ch == '\\')
       return PeekKeyword(idx);
-    else
-      return PeekPunctuator(idx - 1);
+    return PeekPunctuator(idx - 1);
   }
 
   /// <summary>
@@ -442,23 +441,19 @@ internal class DdlScanner
         this.symbol = Symbol.Text;
         return Symbol.Text;
       }
-      else
+
+      // Paragraph ends here. Return NewLine or BraceRight.
+      if (this.currChar != Chars.BraceRight)
       {
-        // Paragraph ends here. Return NewLine or BraceRight.
-        if (this.currChar != Chars.BraceRight)
-        {
-          this.symbol = Symbol.EmptyLine;
-          this.tokenType = TokenType.None; //???
-          return Symbol.EmptyLine;
-        }
-        else
-        {
-          AppendAndScanNextChar();
-          this.symbol = Symbol.BraceRight;
-          this.tokenType = TokenType.OperatorOrPunctuator;
-          return Symbol.BraceRight;
-        }
+        this.symbol = Symbol.EmptyLine;
+        this.tokenType = TokenType.None; //???
+        return Symbol.EmptyLine;
       }
+
+      AppendAndScanNextChar();
+      this.symbol = Symbol.BraceRight;
+      this.tokenType = TokenType.OperatorOrPunctuator;
+      return Symbol.BraceRight;
     }
     return ReadPlainText(rootLevel);
   }
@@ -546,13 +541,11 @@ internal class DdlScanner
             this.token += ' ';
           continue;
         }
-        else
-        {
-          // Paragraph ends here. Remember that for next call except the reason
-          // for end is '}'
-          emptyLine = this.currChar != Chars.BraceRight;
-          break;
-        }
+
+        // Paragraph ends here. Remember that for next call except the reason
+        // for end is '}'
+        emptyLine = this.currChar != Chars.BraceRight;
+        break;
       }
 
       ValidCharacter:
@@ -635,18 +628,16 @@ internal class DdlScanner
             MoveToParagraphContent();
             return false;
           }
-          else
-          {
-            // Skip new lines at the end of the paragraph.
-            if (PeekSymbol() == Symbol.BraceRight)
-            {
-              MoveToNonWhiteSpace();
-              return false;
-            }
 
-            // An empty line inside nested content is skipped, and scanning goes on with the
-            // line after it.
+          // Skip new lines at the end of the paragraph.
+          if (PeekSymbol() == Symbol.BraceRight)
+          {
+            MoveToNonWhiteSpace();
+            return false;
           }
+
+          // An empty line inside nested content is skipped, and scanning goes on with the
+          // line after it.
           break;
 
         case Chars.Slash:
@@ -786,7 +777,7 @@ internal class DdlScanner
       // not parse is too large rather than malformed.
       throw IntegerOutOfRange();
     }
-    else if (symbol == Symbol.HexIntegerLiteral)
+    if (symbol == Symbol.HexIntegerLiteral)
     {
       var number = token[2..];
       if (Int32.TryParse(number, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out value))
@@ -835,7 +826,7 @@ internal class DdlScanner
       // large or negative rather than malformed.
       throw UnsignedIntegerOutOfRange();
     }
-    else if (symbol == Symbol.HexIntegerLiteral)
+    if (symbol == Symbol.HexIntegerLiteral)
     {
       var number = token[2..];
       if (UInt32.TryParse(number, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out value))
@@ -996,8 +987,7 @@ internal class DdlScanner
   {
     if (firstChar)
       return Char.IsLetter(ch) || ch == '_';
-    else
-      return Char.IsLetterOrDigit(ch) || ch == '_';
+    return Char.IsLetterOrDigit(ch) || ch == '_';
   }
 
   /// <summary>

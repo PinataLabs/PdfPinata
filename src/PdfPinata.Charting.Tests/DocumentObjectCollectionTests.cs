@@ -403,7 +403,7 @@ public class DocumentObjectCollectionTests
     [Fact]
     public void ACloneOfASeriesCollectionCopiesTheSeriesInIt()
     {
-        var chart = Charts.OfSeries(ChartType.Column2D, new[] { 1.0, 2.0 }, new[] { 3.0, 4.0 });
+        var chart = Charts.OfSeries(ChartType.Column2D, [1.0, 2.0], [3.0, 4.0]);
         var original = chart.SeriesCollection;
 
         var copy = original.Clone();

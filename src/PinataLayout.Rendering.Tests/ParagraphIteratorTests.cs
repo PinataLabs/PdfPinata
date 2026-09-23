@@ -42,7 +42,7 @@ public class ParagraphIteratorTests
         // the container would see one leaf there and lay the whole of it out as a single
         // unbreakable run.
         Described(ParagraphIteratorProbe.Leaves(paragraph))
-            .Should().Contain(new[] { "Text:upon", "Text:a" });
+            .Should().Contain(["Text:upon", "Text:a"]);
     }
 
     [Fact]
@@ -109,6 +109,6 @@ public class ParagraphIteratorTests
 
     private static string[] Described(System.Collections.Generic.IReadOnlyList<DocumentObject> leaves)
     {
-        return leaves.Select(ParagraphIteratorProbe.Describe).ToArray();
+        return [..leaves.Select(ParagraphIteratorProbe.Describe)];
     }
 }

@@ -70,7 +70,7 @@ public sealed class XGraphics : IDisposable
         ArgumentNullException.ThrowIfNull(page);
 
         if (page.Owner == null)
-            throw new ArgumentException(@"You cannot draw on a page that is not owned by a PdfDocument object.", nameof(page));
+            throw new ArgumentException("You cannot draw on a page that is not owned by a PdfDocument object.", nameof(page));
 
         if (page.RenderContent != null)
             throw new InvalidOperationException("An XGraphics object already exists for this page and must be disposed before a new one can be created.");
@@ -570,7 +570,7 @@ public sealed class XGraphics : IDisposable
             return;
 
         if ((count - 1) % 3 != 0)
-            throw new ArgumentException(@"Invalid number of points for bezier curves. Number must fulfil 4+3n.", nameof(points));
+            throw new ArgumentException("Invalid number of points for bezier curves. Number must fulfil 4+3n.", nameof(points));
 
         if (_renderer != null)
             _renderer.DrawBeziers(pen, points);
@@ -607,7 +607,7 @@ public sealed class XGraphics : IDisposable
 
         var count = points.Length;
         if (count < 2)
-            throw new ArgumentException(@"DrawCurve requires two or more points.", nameof(points));
+            throw new ArgumentException("DrawCurve requires two or more points.", nameof(points));
 
         if (_renderer != null)
             _renderer.DrawCurve(pen, points, tension);
@@ -1102,7 +1102,7 @@ public sealed class XGraphics : IDisposable
         if (count == 0)
             return;
         if (count < 2)
-            throw new ArgumentException(@"Not enough points.", nameof(points));
+            throw new ArgumentException("Not enough points.", nameof(points));
 
         if (_renderer != null)
             _renderer.DrawClosedCurve(pen, brush, points, tension, fillmode);
@@ -1770,7 +1770,7 @@ public sealed class XGraphics : IDisposable
     public XGraphicsContainer BeginContainer(XRect dstrect, XRect srcrect, XGraphicsUnit unit)
     {
         if (!Enum.IsDefined(unit))
-            throw new ArgumentException(@"The unit is not a member of XGraphicsUnit.", nameof(unit));
+            throw new ArgumentException("The unit is not a member of XGraphicsUnit.", nameof(unit));
 
         if (unit != XGraphicsUnit.Point)
         {

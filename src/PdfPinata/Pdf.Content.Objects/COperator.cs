@@ -77,7 +77,7 @@ public class COperator : CObject
     /// Gets or sets the operands.
     /// </summary>
     /// <value>The operands.</value>
-    public CSequence Operands => _seqence ?? (_seqence = new CSequence());
+    public CSequence Operands => _seqence ?? (_seqence = []);
 
     private CSequence _seqence;
 

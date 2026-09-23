@@ -454,8 +454,7 @@ internal sealed class PdfGraphicsState : ICloneable
         _realizedSoftMask = true;
 
         // A page carrying a soft mask needs the transparency group that says how to composite it.
-        if (_renderer.Page != null)
-            _renderer.Page.TransparencyUsed = true;
+        _renderer.Page?.TransparencyUsed = true;
     }
 
     private void RealizeFillColor(XColor color, bool overPrint, PdfColorMode colorMode)

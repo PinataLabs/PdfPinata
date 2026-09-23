@@ -73,7 +73,7 @@ public class IndirectDecodeParmsTests
         return file.ToArray();
     }
 
-    private static byte[] Latin1(string text) => text.Select(ch => (byte)ch).ToArray();
+    private static byte[] Latin1(string text) => [..text.Select(ch => (byte)ch)];
 
     private static string DecodedContent(byte[] file)
     {

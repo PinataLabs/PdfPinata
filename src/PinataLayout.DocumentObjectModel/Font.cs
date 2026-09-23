@@ -299,17 +299,17 @@ public sealed partial class Font : DocumentObject
                     serializer.Write("\\fontsize(" + size.ToString() + ")");
                     return;
                 }
-                else if (notNull == FontProperties.Bold && (bold ?? false))
+                if (notNull == FontProperties.Bold && (bold ?? false))
                 {
                     serializer.Write("\\bold");
                     return;
                 }
-                else if (notNull == FontProperties.Italic && (italic ?? false))
+                if (notNull == FontProperties.Italic && (italic ?? false))
                 {
                     serializer.Write("\\italic");
                     return;
                 }
-                else if (notNull == FontProperties.Color)
+                if (notNull == FontProperties.Color)
                 {
                     serializer.Write("\\fontcolor(" + color.ToString() + ")");
                     return;

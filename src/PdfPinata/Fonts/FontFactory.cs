@@ -62,8 +62,7 @@ internal static class FontFactory
         {
             Lock.EnterFontFactory();
             // Was this typeface requested before?
-            FontResolverInfo fontResolverInfo;
-            if (FontResolverInfosByName.TryGetValue(typefaceKey, out fontResolverInfo))
+            if (FontResolverInfosByName.TryGetValue(typefaceKey, out var fontResolverInfo))
                 return fontResolverInfo;
 
             // Case: This typeface was not resolved before.
@@ -77,8 +76,7 @@ internal static class FontFactory
             if (fontResolverInfo != null)
             {
                 var resolverInfoKey = fontResolverInfo.Key;
-                FontResolverInfo existingFontResolverInfo;
-                if (FontResolverInfosByName.TryGetValue(resolverInfoKey, out existingFontResolverInfo))
+                if (FontResolverInfosByName.TryGetValue(resolverInfoKey, out var existingFontResolverInfo))
                 {
                     // Case: A new typeface was resolved with the same info as a previous one.
                     // Discard new object an reuse previous one.
@@ -128,8 +126,7 @@ internal static class FontFactory
     /// </summary>
     public static XFontSource GetFontSourceByFontName(string fontName)
     {
-        XFontSource fontSource;
-        if (FontSourcesByName.TryGetValue(fontName, out fontSource))
+        if (FontSourcesByName.TryGetValue(fontName, out var fontSource))
             return fontSource;
 
         Debug.Assert(false, $"An XFontSource with the name '{fontName}' does not exists.");

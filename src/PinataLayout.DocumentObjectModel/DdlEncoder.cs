@@ -162,8 +162,7 @@ public static class DdlEncoder
   {
     if (IsDdeIdentifier(name))
       return name;
-    else
-      return "\"" + name + "\"";
+    return "\"" + name + "\"";
   }
 
 }

@@ -813,7 +813,7 @@ internal class TableRenderer : Renderer
           minCell = cell;
           break;
         }
-        else if (lastRowIndex - row < minMerge)
+        if (lastRowIndex - row < minMerge)
         {
           minMerge = lastRowIndex - row;
           minCell = cell;

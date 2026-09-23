@@ -481,11 +481,10 @@ public class XmpMetadataTests
         var metadata = new XmpMetadata();
         metadata.DeclareSchema(new XmpExtensionSchema(
             "Sample schema", sample.NamespaceName, "sample",
-            new[]
-            {
+            [
                 new XmpSchemaProperty("One", "The first property", XmpPropertyCategory.Internal, "1"),
                 new XmpSchemaProperty("Two", "The second property", XmpPropertyCategory.External, "2")
-            }));
+            ]));
 
         var packet = ParsePacket(metadata.Build());
 
@@ -509,7 +508,7 @@ public class XmpMetadataTests
         var metadata = new XmpMetadata();
         metadata.DeclareSchema(new XmpExtensionSchema(
             "Odd schema", odd, "odd",
-            new[] { new XmpSchemaProperty("Note", "A note", XmpPropertyCategory.Internal, "value") }));
+            [new XmpSchemaProperty("Note", "A note", XmpPropertyCategory.Internal, "value")]));
 
         var packet = ParsePacket(metadata.Build());
         XNamespace oddNamespace = odd;
@@ -525,7 +524,7 @@ public class XmpMetadataTests
         // namespace declaration, and neither is a place a character can be written as an entity.
         Action declaring = () => _ = new XmpExtensionSchema(
             "Sample schema", "http://example.invalid/sample/1.0/", "not a name",
-            new[] { new XmpSchemaProperty("Note", "A note", XmpPropertyCategory.Internal, "value") });
+            [new XmpSchemaProperty("Note", "A note", XmpPropertyCategory.Internal, "value")]);
 
         declaring.Should().Throw<InvalidOperationException>()
             .WithMessage("*Prefix*").WithMessage("*not a name*");
@@ -542,7 +541,7 @@ public class XmpMetadataTests
         // and 'rdf' is already bound to the namespace rdf:Description and rdf:about are written in.
         Action declaring = () => _ = new XmpExtensionSchema(
             "Sample schema", "http://example.invalid/sample/1.0/", prefix,
-            new[] { new XmpSchemaProperty("Note", "A note", XmpPropertyCategory.Internal, "value") });
+            [new XmpSchemaProperty("Note", "A note", XmpPropertyCategory.Internal, "value")]);
 
         declaring.Should().Throw<InvalidOperationException>()
             .WithMessage("*Prefix*").WithMessage("*reserved*");
@@ -568,10 +567,10 @@ public class XmpMetadataTests
         var metadata = new XmpMetadata();
         metadata.DeclareSchema(new XmpExtensionSchema(
             "First schema", first.NamespaceName, "first",
-            new[] { new XmpSchemaProperty("Note", "A note", XmpPropertyCategory.Internal, "one") }));
+            [new XmpSchemaProperty("Note", "A note", XmpPropertyCategory.Internal, "one")]));
         metadata.DeclareSchema(new XmpExtensionSchema(
             "Second schema", second.NamespaceName, "second",
-            new[] { new XmpSchemaProperty("Note", "A note", XmpPropertyCategory.External, "two") }));
+            [new XmpSchemaProperty("Note", "A note", XmpPropertyCategory.External, "two")]));
 
         var packet = ParsePacket(metadata.Build());
 
@@ -586,7 +585,7 @@ public class XmpMetadataTests
     {
         Action declaring = () => _ = new XmpExtensionSchema(
             "Empty schema", "http://example.invalid/empty/1.0/", "empty",
-            Array.Empty<XmpSchemaProperty>());
+            []);
 
         declaring.Should().Throw<InvalidOperationException>().WithMessage("*no properties*");
     }
@@ -597,11 +596,11 @@ public class XmpMetadataTests
         var metadata = new XmpMetadata();
         metadata.DeclareSchema(new XmpExtensionSchema(
             "First schema", "http://example.invalid/first/1.0/", "dup",
-            new[] { new XmpSchemaProperty("Note", "A note", XmpPropertyCategory.Internal, "one") }));
+            [new XmpSchemaProperty("Note", "A note", XmpPropertyCategory.Internal, "one")]));
 
         var declaringAgain = () => metadata.DeclareSchema(new XmpExtensionSchema(
             "Second schema", "http://example.invalid/second/1.0/", "dup",
-            new[] { new XmpSchemaProperty("Note", "A note", XmpPropertyCategory.External, "two") }));
+            [new XmpSchemaProperty("Note", "A note", XmpPropertyCategory.External, "two")]));
 
         declaringAgain.Should().Throw<InvalidOperationException>().WithMessage("*dup*");
     }

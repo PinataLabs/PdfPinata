@@ -171,8 +171,7 @@ internal abstract class Renderer
         else if (documentObject is Barcode)
             throw NoBarcodeRenderer();
 
-        if (renderer != null)
-            renderer.DocumentRenderer = documentRenderer;
+        renderer?.DocumentRenderer = documentRenderer;
 
         return renderer;
     }
@@ -200,8 +199,7 @@ internal abstract class Renderer
             _ => null
         };
 
-        if (renderer != null)
-            renderer.DocumentRenderer = documentRenderer;
+        renderer?.DocumentRenderer = documentRenderer;
 
         return renderer;
     }

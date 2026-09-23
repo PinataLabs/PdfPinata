@@ -50,7 +50,7 @@ public class StyleSimulationTest
         string[] shipped, bool isBold, bool isItalic, string expectedFace, XStyleSimulations expected)
     {
         var resolver = new Probe();
-        resolver.SetupFontsFiles(shipped.Select(Face).ToArray());
+        resolver.SetupFontsFiles([..shipped.Select(Face)]);
 
         var info = resolver.ResolveTypeface(Family, isBold, isItalic);
 
@@ -67,7 +67,7 @@ public class StyleSimulationTest
     public void ASingleFaceIsFiledUnderTheStyleItActuallyIs()
     {
         var resolver = new Probe();
-        resolver.SetupFontsFiles(new[] { Bold });
+        resolver.SetupFontsFiles([Bold]);
 
         var info = resolver.ResolveTypeface(Family, true, false);
 
@@ -123,10 +123,9 @@ public class StyleSimulationTest
     /// </summary>
     private static int[] RenderModesOf(XFontStyle style)
     {
-        return OperatorsOf(style)
+        return [..OperatorsOf(style)
             .Where(op => op.OpCode.OpCodeName == OpCodeName.Tr)
-            .Select(op => ((CInteger)op.Operands[0]).Value)
-            .ToArray();
+            .Select(op => ((CInteger)op.Operands[0]).Value)];
     }
 
     /// <summary>
@@ -134,10 +133,9 @@ public class StyleSimulationTest
     /// </summary>
     private static double[] ShearsOf(XFontStyle style)
     {
-        return OperatorsOf(style)
+        return [..OperatorsOf(style)
             .Where(op => op.OpCode.OpCodeName == OpCodeName.Tm)
-            .Select(op => op.Operands[2] is CReal real ? real.Value : ((CInteger)op.Operands[2]).Value)
-            .ToArray();
+            .Select(op => op.Operands[2] is CReal real ? real.Value : ((CInteger)op.Operands[2]).Value)];
     }
 
     /// <summary>
@@ -161,7 +159,7 @@ public class StyleSimulationTest
 
         var reread = Pdf.IO.PdfReader.Open(stream, PdfDocumentOpenMode.Modify).Pages[0];
 
-        return ContentReader.ReadContent(ContentOf(reread)).OfType<COperator>().ToArray();
+        return [..ContentReader.ReadContent(ContentOf(reread)).OfType<COperator>()];
     }
 
     private static byte[] ContentOf(PdfPage page)

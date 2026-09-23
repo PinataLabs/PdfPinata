@@ -115,7 +115,7 @@ internal static class Structure
         if (kids is PdfArray array)
             return array.Elements;
 
-        return kids == null ? Enumerable.Empty<PdfItem>() : new[] { kids };
+        return kids == null ? Enumerable.Empty<PdfItem>() : [kids];
     }
 
     private static PdfItem Resolve(PdfItem item) => item is PdfReference reference ? reference.Value : item;
@@ -175,7 +175,7 @@ internal sealed class StructureNode
     internal StructureNode Single(string tag) => OfTag(tag).Single();
 
     /// <summary>The tags of this element's children, in order.</summary>
-    internal string[] ChildTags() => Children.Select(child => child.Tag).ToArray();
+    internal string[] ChildTags() => [..Children.Select(child => child.Tag)];
 
     /// <summary>
     ///   The subtree as an indented outline, which is what a failure should print.

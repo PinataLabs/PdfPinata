@@ -28,13 +28,12 @@ internal sealed class InvoiceDemo : PdfDemo
 
     public override string Summary => "Letterhead, line items, totals and terms.";
 
-    public override IReadOnlyList<string> Shows => new[]
-    {
+    public override IReadOnlyList<string> Shows => [
         "A header and footer that repeat, with page fields resolved at render time",
         "An address block positioned as a text frame, in a window envelope's place",
         "Tab stops aligning a reference block without a table",
         "A borderless item table, merged total rows, and a shaded terms box"
-    };
+    ];
 
     public override int PageCount => 1;
 
@@ -44,7 +43,7 @@ internal sealed class InvoiceDemo : PdfDemo
         // The line items. A record rather than an XML file or a database, so that the data
         // is visible in the same source as the layout that renders it.
         (string Code, string Description, int Quantity, decimal UnitPrice)[] items =
-        {
+        [
             ("PS-1001", "PdfPinata support, annual", 1, 1200.00m),
             ("PS-1002", "Migration consultancy, per day", 6, 780.00m),
             ("PS-2010", "Font licensing review", 1, 450.00m),
@@ -63,7 +62,7 @@ internal sealed class InvoiceDemo : PdfDemo
             ("PS-8001", "Optical character recognition pass", 34, 8.20m),
             ("PS-9000", "Signature and encryption review", 1, 1150.00m),
             ("PS-9001", "Long term validation setup", 1, 640.00m)
-        };
+        ];
 
         // docs:begin document-and-styles
         var document = new Document
@@ -151,12 +150,12 @@ internal sealed class InvoiceDemo : PdfDemo
         invoiceTitle.Format.SpaceAfter = Unit.FromPoint(10);
 
         (string Label, string Value)[] references =
-        {
+        [
             ("Invoice number", "2026-0417"),
             ("Invoice date", "12 August 2026"),
             ("Payment due", "11 September 2026"),
             ("Purchase order", "MF-PO-88213")
-        };
+        ];
 
         // docs:begin tab-stops
         foreach ((var label, var value) in references)
@@ -193,7 +192,7 @@ internal sealed class InvoiceDemo : PdfDemo
         head.TopPadding = Unit.FromPoint(2);
         head.BottomPadding = Unit.FromPoint(4);
 
-        string[] headings = { "Code", "Description", "Qty", "Unit price", "Amount" };
+        string[] headings = ["Code", "Description", "Qty", "Unit price", "Amount"];
         for (var column = 0; column < headings.Length; column++)
             head.Cells[column].AddParagraph(headings[column]);
 

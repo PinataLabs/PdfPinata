@@ -304,7 +304,7 @@ public class FootnoteTests
 
         MarksOn(pages.Pages[0], "1", "2", "3").Should().Equal(new[] { "1" });
         MarksOn(pages.Pages[1], "1", "2", "3").Should().Equal(new[] { "1" });
-        MarksOn(pages.Pages[2], "1", "2", "3").Should().Equal(new[] { "2" },
+        MarksOn(pages.Pages[2], "1", "2", "3").Should().Equal(["2"],
             "the second section's notes count on from each other, not from the page");
     }
 
@@ -414,7 +414,7 @@ public class FootnoteTests
 
     /// <summary>The horizontal hairlines the page strokes, which is where a separator shows up.</summary>
     private static IReadOnlyList<StrokedLines.Line> Rules(PdfPage page) =>
-        StrokedLines.Of(page).Where(line => line.IsHorizontal && line.Width <= 1).ToList();
+        [..StrokedLines.Of(page).Where(line => line.IsHorizontal && line.Width <= 1)];
 
     private static StrokedLines.Line? Separator(PdfPage page)
     {
@@ -441,12 +441,12 @@ public class FootnoteTests
         // into runs.
         var rule = Separator(page);
         if (rule is null)
-            return Array.Empty<double>();
+            return [];
 
         glyphs.Should().NotBeEmpty();
         Glyphs.On(page).Should().ContainInOrder(glyphs);
 
-        return TextBaselines.Of(page).Where(y => y < rule.Value.Y1).ToList();
+        return [..TextBaselines.Of(page).Where(y => y < rule.Value.Y1)];
     }
 
     /// <summary>
@@ -479,7 +479,7 @@ public class FootnoteTests
         }
 
         found.Sort((left, right) => left.At.CompareTo(right.At));
-        return found.Select(entry => entry.Mark).ToList();
+        return [..found.Select(entry => entry.Mark)];
     }
 
     /// <summary>

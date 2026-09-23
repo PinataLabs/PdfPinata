@@ -106,7 +106,7 @@ public class DocEncodingTests
 
             var bytes = DocEncoding.GetBytes(ch.ToString());
 
-            bytes.Should().Equal(new[] { code }, $"{ch} is 0x{code:X2}");
+            bytes.Should().Equal([code], $"{ch} is 0x{code:X2}");
             DocEncoding.GetString(bytes).Should().Be(ch.ToString());
         }
     }

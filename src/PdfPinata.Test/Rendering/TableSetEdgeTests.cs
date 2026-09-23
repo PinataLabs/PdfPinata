@@ -153,7 +153,7 @@ public class TableSetEdgeTests
     private static IReadOnlyList<double> Distinct(
         IEnumerable<StrokedLines.Line> lines, Func<StrokedLines.Line, double> position)
     {
-        return lines.Select(line => Math.Round(position(line), 2)).Distinct().ToList();
+        return [..lines.Select(line => Math.Round(position(line), 2)).Distinct()];
     }
 
     private static Table Build()

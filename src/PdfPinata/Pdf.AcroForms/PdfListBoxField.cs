@@ -78,7 +78,7 @@ public sealed class PdfListBoxField : PdfChoiceField
             var indices = SelectedIndicesFromValue();
             return indices.Length == 0 ? -1 : indices[0];
         }
-        set => SelectedIndices = new[] { value };
+        set => SelectedIndices = [value];
     }
 
     /// <summary>
@@ -150,7 +150,7 @@ public sealed class PdfListBoxField : PdfChoiceField
                 indices.Length == 1 && IndexInOptArray(texts[0]) != indices[0];
 
             WriteSelectedIndices(
-                AllowsMultipleSelection || tellsApartWhatTheValueCannot ? indices : Array.Empty<int>());
+                AllowsMultipleSelection || tellsApartWhatTheValueCannot ? indices : []);
         }
     }
 

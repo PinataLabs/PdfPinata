@@ -148,7 +148,7 @@ public class ImportedPageFormTests : IDisposable
     [Fact]
     public void AFormOverAStreamThatIsNotAPdfSaysSoTheSameWay()
     {
-        using var stream = new MemoryStream(new byte[] { 1, 2, 3, 4, 5 });
+        using var stream = new MemoryStream([1, 2, 3, 4, 5]);
 
         var opening = () => XPdfForm.FromStream(stream, null);
 

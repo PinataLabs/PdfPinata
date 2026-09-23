@@ -49,8 +49,8 @@ internal class CoreGraphicsPath
 
     public CoreGraphicsPath(CoreGraphicsPath path)
     {
-        _points = new List<XPoint>(path._points);
-        _types = new List<byte>(path._types);
+        _points = [..path._points];
+        _types = [..path._types];
         _startNewFigure = path._startNewFigure;
     }
 
@@ -290,7 +290,7 @@ internal class CoreGraphicsPath
     {
         var count = points.Length;
         if (count < 2)
-            throw new ArgumentException(@"AddClosedCurve requires two or more points.", nameof(points));
+            throw new ArgumentException("AddClosedCurve requires two or more points.", nameof(points));
 
         tension /= 3;
 
@@ -352,7 +352,7 @@ internal class CoreGraphicsPath
     {
         var count = points.Length;
         if (count < 2)
-            throw new ArgumentException(@"AddCurve requires two or more points.", nameof(points));
+            throw new ArgumentException("AddCurve requires two or more points.", nameof(points));
 
         tension /= 3;
         MoveOrLineTo(points[0].X, points[0].Y);
@@ -383,14 +383,14 @@ internal class CoreGraphicsPath
     /// <summary>
     /// Gets the path points in GDI+ style.
     /// </summary>
-    public XPoint[] PathPoints => _points.ToArray();
+    public XPoint[] PathPoints => [.._points];
 
     /// <summary>
     /// Gets the path types in GDI+ style.
     /// </summary>
-    public byte[] PathTypes => _types.ToArray();
+    public byte[] PathTypes => [.._types];
 
-    private readonly List<XPoint> _points = new();
-    private readonly List<byte> _types = new();
+    private readonly List<XPoint> _points = [];
+    private readonly List<byte> _types = [];
     private bool _startNewFigure;
 }

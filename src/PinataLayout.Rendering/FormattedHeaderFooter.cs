@@ -90,7 +90,7 @@ internal class FormattedHeaderFooter : IAreaProvider
             return result;
         }
 
-        return Array.Empty<RenderInfo>();
+        return [];
     }
 
     internal Rectangle ContentRect

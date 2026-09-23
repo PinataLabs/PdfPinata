@@ -109,7 +109,7 @@ internal static class PaintedPaths
         void Paint(bool filled, bool stroked)
         {
             if (points.Count > 0)
-                painted.Add(new Path(points.ToArray(), curves, filled, stroked, fill, stroke, width));
+                painted.Add(new Path([..points], curves, filled, stroked, fill, stroke, width));
             Discard();
         }
 
@@ -239,11 +239,11 @@ internal static class PaintedPaths
 
     /// <summary>The paths the page fills in the given colour, in the order it fills them.</summary>
     internal static IReadOnlyList<Path> FilledIn(PdfPage page, string colour) =>
-        On(page).Where(path => path.Filled && path.FillColour == colour).ToList();
+        [..On(page).Where(path => path.Filled && path.FillColour == colour)];
 
     /// <summary>The paths the page strokes in the given colour, in the order it strokes them.</summary>
     internal static IReadOnlyList<Path> StrokedIn(PdfPage page, string colour) =>
-        On(page).Where(path => path.Stroked && path.StrokeColour == colour).ToList();
+        [..On(page).Where(path => path.Stroked && path.StrokeColour == colour)];
 
     // Written exactly as PaintedRectangles writes a colour, so that its ColourOf names one here too.
     private static string Rgb(double r, double g, double b) =>

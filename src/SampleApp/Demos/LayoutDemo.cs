@@ -19,14 +19,13 @@ internal sealed class LayoutDemo : PdfDemo
 
     public override string Summary => "Wrapping, alignment, columns, lists and truncation.";
 
-    public override IReadOnlyList<string> Shows => new[]
-    {
+    public override IReadOnlyList<string> Shows => [
         "The four paragraph alignments, justified among them",
         "Columns and the gutter between them",
         "Ellipsis truncation when the text will not fit the box",
         "Lists built by hand, because there is no list API on this side",
         "GetLayout measuring the box the text will need"
-    };
+    ];
 
     public override int PageCount => 3;
 
@@ -65,12 +64,12 @@ internal sealed class LayoutDemo : PdfDemo
 
         // docs:begin alignments
         (XParagraphAlignment Alignment, string Label)[] alignments =
-        {
+        [
             (XParagraphAlignment.Left, "Left - ragged on the right"),
             (XParagraphAlignment.Center, "Center - ragged on both"),
             (XParagraphAlignment.Right, "Right - ragged on the left"),
             (XParagraphAlignment.Justify, "Justify - flush both sides, last line left")
-        };
+        ];
 
         double y = 78;
         foreach ((var alignment, var label) in alignments)
@@ -173,13 +172,13 @@ internal sealed class LayoutDemo : PdfDemo
         // the whole of what a hanging indent is.
         // docs:begin lists
         string[] items =
-        {
+        [
             "A marker drawn at the left of the line",
             "The text flowed into a rectangle that starts after it, so the second and "
                 + "later lines of a long item line up under the first rather than under "
                 + "the marker",
             "Which is all a hanging indent is"
-        };
+        ];
 
         y = 506;
         for (var index = 0; index < items.Length; index++)
@@ -251,7 +250,7 @@ internal sealed class LayoutDemo : PdfDemo
         // angle. So the text of a box turned 90 degrees runs upwards from that corner and
         // out of the rectangle entirely - the corner is the anchor, not the box.
         // docs:begin rotation
-        double[] rotations = { 0.0, 15.0, 45.0, 90.0 };
+        double[] rotations = [0.0, 15.0, 45.0, 90.0];
         for (var index = 0; index < rotations.Length; index++)
         {
             double left = 90 + index * 130;

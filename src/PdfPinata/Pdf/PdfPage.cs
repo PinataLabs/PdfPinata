@@ -149,8 +149,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
                 if (_document != null)
                     throw new InvalidOperationException("Cannot change document.");
                 _document = value;
-                if (Reference != null)
-                    Reference.Document = value;
+                Reference?.Document = value;
                 Elements[Keys.Parent] = _document.Pages.Reference;
             }
         }
@@ -868,8 +867,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
             {
                 // Get annotations array if exists.
                 _annotations = Elements.GetValue(Keys.Annots) as PdfAnnotations;
-                if (_annotations != null)
-                    _annotations.Page = this;
+                _annotations?.Page = this;
             }
             return _annotations != null;
         }
@@ -1091,7 +1089,7 @@ public sealed class PdfPage : PdfDictionary, IContentStream
         if (idName == null)
             throw new ArgumentNullException(nameof(idName));
         if (idName.Length == 0)
-            throw new ArgumentException(@"The name of a font program must not be empty.", nameof(idName));
+            throw new ArgumentException("The name of a font program must not be empty.", nameof(idName));
         if (fontData == null)
             throw new ArgumentNullException(nameof(fontData));
 

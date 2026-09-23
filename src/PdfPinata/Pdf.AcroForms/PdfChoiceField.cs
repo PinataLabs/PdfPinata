@@ -82,7 +82,7 @@ public abstract class PdfChoiceField : PdfAcroField
         {
             var options = Elements.GetArray(Keys.Opt);
             if (options == null)
-                return Array.Empty<string>();
+                return [];
 
             var count = options.Elements.Count;
             var text = new string[count];
@@ -200,7 +200,7 @@ public abstract class PdfChoiceField : PdfAcroField
             value = reference.Value;
 
         if (value == null || value is PdfNull)
-            return Array.Empty<int>();
+            return [];
 
         // The export values /V names, in the order it names them.
         var chosenTexts = new List<string>();
@@ -228,7 +228,7 @@ public abstract class PdfChoiceField : PdfAcroField
         }
 
         indices.Sort();
-        return indices.ToArray();
+        return [..indices];
     }
 
     /// <summary>
@@ -270,7 +270,7 @@ public abstract class PdfChoiceField : PdfAcroField
         }
 
         indices.Sort();
-        return indices.ToArray();
+        return [..indices];
     }
 
     /// <summary>
@@ -301,11 +301,11 @@ public abstract class PdfChoiceField : PdfAcroField
     internal static int[] Ordered(int[] indices)
     {
         var ordered = new List<int>();
-        foreach (var index in indices ?? Array.Empty<int>())
+        foreach (var index in indices ?? [])
             if (!ordered.Contains(index))
                 ordered.Add(index);
         ordered.Sort();
-        return ordered.ToArray();
+        return [..ordered];
     }
 
     /// <summary>

@@ -190,10 +190,9 @@ public class FontProgramEmbeddingTests
         if (fonts == null)
             return [];
 
-        return fonts.Elements.Values
+        return [..fonts.Elements.Values
             .Select(item => item is PdfReference reference ? reference.Value : item)
-            .Cast<PdfDictionary>()
-            .ToArray();
+            .Cast<PdfDictionary>()];
     }
 
     private static PdfDictionary DescendantOf(PdfDictionary type0) =>

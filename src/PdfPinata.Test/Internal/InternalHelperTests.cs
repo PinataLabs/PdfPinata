@@ -143,7 +143,7 @@ public class InternalHelperTests
     {
         // A single Read is allowed to return fewer bytes than asked for, and buffered, compressed
         // and crypto streams routinely do. Reading in a loop is the only way to fill a buffer.
-        var stream = new DribblingStream(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }, mostPerRead: 3);
+        var stream = new DribblingStream([1, 2, 3, 4, 5, 6, 7, 8], mostPerRead: 3);
         var buffer = new byte[8];
 
         var read = (int)Call("StreamHelper", "ReadUpTo", stream, buffer, 0, 8);
@@ -155,19 +155,19 @@ public class InternalHelperTests
     [Fact]
     public void AStreamThatEndsEarlyGivesBackWhatThereWasAndSaysHowMuch()
     {
-        var stream = new DribblingStream(new byte[] { 1, 2, 3 }, mostPerRead: 2);
+        var stream = new DribblingStream([1, 2, 3], mostPerRead: 2);
         var buffer = new byte[8];
 
         var read = (int)Call("StreamHelper", "ReadUpTo", stream, buffer, 0, 8);
 
         read.Should().Be(3);
-        buffer.Should().Equal(new byte[] { 1, 2, 3, 0, 0, 0, 0, 0 }, "the rest of the buffer is left alone");
+        buffer.Should().Equal([1, 2, 3, 0, 0, 0, 0, 0], "the rest of the buffer is left alone");
     }
 
     [Fact]
     public void ABufferCanBeFilledFromPartWayAlong()
     {
-        var stream = new DribblingStream(new byte[] { 9, 9 }, mostPerRead: 1);
+        var stream = new DribblingStream([9, 9], mostPerRead: 1);
         var buffer = new byte[4];
 
         var read = (int)Call("StreamHelper", "ReadUpTo", stream, buffer, 2, 2);

@@ -28,15 +28,14 @@ internal sealed class ExtractDemo : PdfDemo
 
     public override string Summary => "PdfTextExtractor: the text of a page, and where on the page it is.";
 
-    public override IReadOnlyList<string> Shows => new[]
-    {
+    public override IReadOnlyList<string> Shows => [
         "PdfTextExtractor.ExtractText, and PdfTextExtractor.ExtractRuns for the positions too",
         "That a run is one show-text operator, not one box per glyph - and why",
         "Text decoded through the font's own /ToUnicode map, so a subset font still reads back",
         "A run under a scaled transformation reporting its width and size in user space",
         "That runs come back in drawing order, which on a two-column page is not reading order",
         "That white-on-white text extracts perfectly, because invisible is not absent"
-    };
+    ];
 
     public override int PageCount => 4;
 
@@ -87,22 +86,22 @@ internal sealed class ExtractDemo : PdfDemo
             gfx.DrawString("Two columns, drawn line by line:", label, XBrushes.Black, 50, 330);
 
             string[] left =
-            {
+            [
                 "A page is a bag of glyphs at",
                 "positions. Nothing in the file",
                 "says which of them belong",
                 "together, or in what order a",
                 "person would read them."
-            };
+            ];
 
             string[] right =
-            {
+            [
                 "So an extractor reports what",
                 "it can prove: one run per",
                 "show-text operator, with the",
                 "origin and the total width it",
                 "advanced by."
-            };
+            ];
 
             // Drawn a line at a time across both columns, which is the order a typesetter would
             // never use and a naive loop always does. The point of the exercise is on page three.

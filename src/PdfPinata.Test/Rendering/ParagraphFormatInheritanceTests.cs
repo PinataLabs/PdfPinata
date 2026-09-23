@@ -88,10 +88,9 @@ public class ParagraphFormatInheritanceTests
 
     private static IReadOnlyList<double> Distinct(IEnumerable<StrokedLines.Line> lines)
     {
-        return lines.Select(line => System.Math.Round(System.Math.Min(line.X1, line.X2), 2))
+        return [..lines.Select(line => System.Math.Round(System.Math.Min(line.X1, line.X2), 2))
             .Distinct()
-            .OrderBy(x => x)
-            .ToList();
+            .OrderBy(x => x)];
     }
 
     private static PdfPage Render(System.Func<Document, Table> build)

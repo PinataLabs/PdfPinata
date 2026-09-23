@@ -50,10 +50,9 @@ public class FormatterLayoutPinTests
         // broke. Taken from the arrangements themselves rather than written out again here, so
         // that adding one without re-capturing the baseline fails instead of going uncovered.
         pinned.Keys.Should().BeEquivalentTo(FormatterOutput.ArrangementNames);
-        pinned.Keys.Should().Contain(new[]
-        {
+        pinned.Keys.Should().Contain([
             "plain", "justified", "centred", "right", "ellipsis", "two columns", "rotated"
-        });
+        ]);
     }
 
     private static string BaselinePath =>

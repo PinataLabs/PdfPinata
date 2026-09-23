@@ -254,6 +254,6 @@ public static class PageSizeConverter
             case PageSize.Size10x14:        // 10 x 14 inch²
                 return new XSize(720, 1008);
         }
-        throw new ArgumentException(@"Invalid PageSize.", nameof(value));
+        throw new ArgumentException("Invalid PageSize.", nameof(value));
     }
 }

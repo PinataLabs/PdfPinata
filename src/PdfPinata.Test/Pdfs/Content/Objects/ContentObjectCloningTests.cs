@@ -122,7 +122,7 @@ public class ContentObjectCloningTests
         clone.Should().NotBeSameAs(original);
         clone.OpCode.Should().BeSameAs(original.OpCode, "an op code is a shared description, not state");
         clone.Name.Should().Be("cm");
-        Written(new CSequence { clone }).Should().Be("1 0 0 1 20 30 cm\n");
+        Written([clone]).Should().Be("1 0 0 1 20 30 cm\n");
     }
 
     [Fact]
@@ -143,8 +143,8 @@ public class ContentObjectCloningTests
         ((CInteger)clone.Operands[4]).Value = 99;
 
         original.Operands.Should().HaveCount(6);
-        Written(new CSequence { original }).Should().Be("1 0 0 1 20 30 cm\n");
-        Written(new CSequence { clone }).Should().Be("1 0 0 1 99 30 7 cm\n");
+        Written([original]).Should().Be("1 0 0 1 20 30 cm\n");
+        Written([clone]).Should().Be("1 0 0 1 99 30 7 cm\n");
     }
 
     [Fact]
@@ -156,7 +156,7 @@ public class ContentObjectCloningTests
         clone.Operands.Add(new CInteger { Value = 1 });
 
         original.Operands.Should().BeEmpty();
-        Written(new CSequence { original }).Should().Be("q\n");
+        Written([original]).Should().Be("q\n");
     }
 
     [Fact]

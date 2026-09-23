@@ -72,7 +72,7 @@ public class AstralCharacterTests
 
         internal Only(IEnumerable<int> codePoints, params string[] families)
         {
-            _mine = new HashSet<int>(codePoints);
+            _mine = [..codePoints];
             _families = families;
         }
 
@@ -206,7 +206,7 @@ public class AstralCharacterTests
         // The third failure, and the one that could not even be attempted before: Liberation Sans
         // cannot draw the lock, Source Code Pro can, and until coverage could answer for an astral
         // character there was no way to find that out.
-        using var _ = new Installed(new Only(new[] { Lock }, PinnedFontResolver.CffFamilyName));
+        using var _ = new Installed(new Only([Lock], PinnedFontResolver.CffFamilyName));
 
         var glyphs = DrawnText.Glyphs(DrawnText.Page(Text(Lock), WithoutFormat12()));
 
@@ -220,7 +220,7 @@ public class AstralCharacterTests
     {
         // Not merely a non-zero glyph: a second font resource, selected with its own Tf. A glyph
         // number alone could come from the original face by accident.
-        using var _ = new Installed(new Only(new[] { Lock }, PinnedFontResolver.CffFamilyName));
+        using var _ = new Installed(new Only([Lock], PinnedFontResolver.CffFamilyName));
 
         var content = DrawnText.ContentOf(
             DrawnText.Page("A" + Text(Lock) + "B", WithoutFormat12()));
@@ -235,7 +235,7 @@ public class AstralCharacterTests
     {
         // Coverage answering "yes" for an astral character has to stop the fallback, or a face
         // that was perfectly able to draw the character would be replaced anyway.
-        using var _ = new Installed(new Only(new[] { Lock }, "Arial"));
+        using var _ = new Installed(new Only([Lock], "Arial"));
 
         var content = DrawnText.ContentOf(DrawnText.Page(Text(Lock), WithFormat12()));
 

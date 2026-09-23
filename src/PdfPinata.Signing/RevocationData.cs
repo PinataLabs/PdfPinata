@@ -19,8 +19,8 @@ public sealed class RevocationData
     /// <summary>Bundles what was found for one certificate.</summary>
     public RevocationData(IReadOnlyList<byte[]> ocspResponses, IReadOnlyList<byte[]> crls)
     {
-        OcspResponses = ocspResponses ?? Array.Empty<byte[]>();
-        Crls = crls ?? Array.Empty<byte[]>();
+        OcspResponses = ocspResponses ?? [];
+        Crls = crls ?? [];
     }
 
     /// <summary>DER-encoded <c>OCSPResponse</c> structures (RFC 6960) vouching for this certificate.</summary>

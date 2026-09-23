@@ -34,7 +34,7 @@ public sealed class LocalTimestampAuthority : ITimestampProvider
 
         if (!certificate.HasPrivateKey)
             throw new ArgumentException(
-                @"The certificate has no private key, so it cannot sign a timestamp token.",
+                "The certificate has no private key, so it cannot sign a timestamp token.",
                 nameof(certificate));
     }
 

@@ -359,10 +359,10 @@ public class ItemizationTests
     private sealed record ScriptRunView(int Start, int Length, UnicodeScript Script, string ScriptCode);
 
     private static IReadOnlyList<ScriptRunView> ItemizeScripts(string text)
-        => Read(Invoke(new[] { typeof(string) }, text));
+        => Read(Invoke([typeof(string)], text));
 
     private static IReadOnlyList<ScriptRunView> ItemizeScripts(string text, int start, int length)
-        => Read(Invoke(new[] { typeof(string), typeof(int), typeof(int) }, text, start, length));
+        => Read(Invoke([typeof(string), typeof(int), typeof(int)], text, start, length));
 
     private static object Invoke(Type[] signature, params object[] args)
     {

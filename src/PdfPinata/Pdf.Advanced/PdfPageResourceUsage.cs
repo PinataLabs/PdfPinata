@@ -19,20 +19,20 @@ namespace PdfPinata.Pdf.Advanced;
 internal sealed class PdfPageResourceUsage : PdfPageWalk
 {
     /// <summary>Every image XObject the page reaches.</summary>
-    internal List<PdfDictionary> Images { get; } = new();
+    internal List<PdfDictionary> Images { get; } = [];
 
     /// <summary>Every form XObject the page reaches.</summary>
-    internal List<PdfDictionary> Forms { get; } = new();
+    internal List<PdfDictionary> Forms { get; } = [];
 
     /// <summary>Every graphics state the page sets.</summary>
-    internal List<PdfDictionary> GraphicsStates { get; } = new();
+    internal List<PdfDictionary> GraphicsStates { get; } = [];
 
     /// <summary>
     /// Every colour space the page names through a resource dictionary — a stream (an ICCBased
     /// profile), an array (<c>Indexed</c>, <c>Separation</c>, <c>DeviceN</c>, <c>CalRGB</c> and
     /// their kin) or a bare name, whatever the resource dictionary held.
     /// </summary>
-    internal List<PdfItem> NamedColorSpaces { get; } = new();
+    internal List<PdfItem> NamedColorSpaces { get; } = [];
 
     /// <summary>
     /// Whether the page's content sets grey directly — with <c>g</c> or <c>G</c>, or by selecting

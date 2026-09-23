@@ -216,7 +216,7 @@ internal sealed class NavigationDemo : PdfDemo
             using var copy = new PdfDocument();
             _ = copy.AddPage();
             copy.Language = "en-GB";
-            copy.CustomValues["/Pipeline"] = new PdfCustomValue("kept"u8.ToArray());
+            copy.CustomValues["/Pipeline"] = new PdfCustomValue([.."kept"u8]);
             copy.PageLabels.Add(0, PdfPageLabelStyle.LowercaseRoman);
             copy.Save(buffer, false);
             buffer.Position = 0;

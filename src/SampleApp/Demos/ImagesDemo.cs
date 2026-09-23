@@ -17,8 +17,7 @@ internal sealed class ImagesDemo : PdfDemo
 
     public override string Summary => "Sizing, stretching, fitting, cropping and rotating one image.";
 
-    public override IReadOnlyList<string> Shows => new[]
-    {
+    public override IReadOnlyList<string> Shows => [
         "Natural size, and what PointWidth means next to PixelWidth",
         "Fit and fill worked out by hand - the library has no helper",
         "Cropping through the source-rectangle overload of DrawImage",
@@ -26,7 +25,7 @@ internal sealed class ImagesDemo : PdfDemo
         "A PNG with an alpha channel, over a chequer and over a colour",
         "XImage.Interpolate - whether an upscaled image is smoothed or blocky",
         "Palette-with-alpha beside truecolour-with-alpha, which are two different PNGs"
-    };
+    ];
 
     public override int PageCount => 3;
 
@@ -146,7 +145,7 @@ internal sealed class ImagesDemo : PdfDemo
         // is no ResetTransform, so a Save that is not Restored leaks into everything drawn
         // afterwards.
         // docs:begin rotate
-        double[] angles = { 0, 15, 30, 45 };
+        double[] angles = [0, 15, 30, 45];
         double x = 110;
         foreach (var angle in angles)
         {

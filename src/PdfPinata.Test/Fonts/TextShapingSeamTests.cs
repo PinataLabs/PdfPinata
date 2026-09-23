@@ -115,7 +115,7 @@ public class TextShapingSeamTests
     ///   the fixtures here hand back fewer glyphs than there are characters, so most of them contain
     ///   such a glyph by construction. Flattening keeps those tests about the one thing they name.
     /// </remarks>
-    private static int[] AllGlyphs(PdfPage page) => GlyphRuns(page).SelectMany(run => run).ToArray();
+    private static int[] AllGlyphs(PdfPage page) => [..GlyphRuns(page).SelectMany(run => run)];
 
     private static PdfPage Drawn(string text, XStringFormat format = null)
         => DrawnText.Page(text, Font(), format);
@@ -135,7 +135,7 @@ public class TextShapingSeamTests
     [Fact]
     public void AShaperCanBeTakenAwayAgain()
     {
-        var shaper = new SelectiveShaper("seam-away", _ => Array.Empty<ShapedGlyph>());
+        var shaper = new SelectiveShaper("seam-away", _ => []);
 
         using (Installed(shaper))
             GlobalFontSettings.TextShaper.Should().BeSameAs(shaper);
@@ -148,7 +148,7 @@ public class TextShapingSeamTests
     [Fact]
     public void IsTextShaperSetAnswersWhetherOneIsInstalledRightNow()
     {
-        var shaper = new SelectiveShaper("seam-is-set", _ => Array.Empty<ShapedGlyph>());
+        var shaper = new SelectiveShaper("seam-is-set", _ => []);
 
         GlobalFontSettings.IsTextShaperSet.Should().BeFalse(
             "nothing is installed before this test installs one");
@@ -174,15 +174,14 @@ public class TextShapingSeamTests
         const string text = "seam-glyphs";
         var unshaped = AllGlyphs(Drawn(text));
 
-        using var _ = Installed(new SelectiveShaper(text, _ => new[]
-        {
+        using var _ = Installed(new SelectiveShaper(text, _ => [
             new ShapedGlyph(41, 0, 500),
             new ShapedGlyph(42, 1, 500)
-        }));
+        ]));
 
         var shaped = AllGlyphs(Drawn(text));
 
-        shaped.Should().Equal(new[] { 41, 42 }, "the seam says what glyphs a string draws as");
+        shaped.Should().Equal([41, 42], "the seam says what glyphs a string draws as");
         shaped.Should().NotEqual(unshaped, "and it said something different from the cmap");
     }
 
@@ -194,7 +193,7 @@ public class TextShapingSeamTests
 
         // A run one em wide, whatever the characters would have measured on their own.
         using var _ = Installed(new SelectiveShaper(text,
-            f => new[] { new ShapedGlyph(1, 0, f.UnitsPerEm) }));
+            f => [new ShapedGlyph(1, 0, f.UnitsPerEm)]));
 
         MeasuredWidth(text).Should().BeApproximately(font.Size, 1e-9,
             "the width is the sum of the shaped advances, scaled to the em size");
@@ -206,13 +205,12 @@ public class TextShapingSeamTests
         const string text = "seam-agree";
 
         // Two glyphs for six characters, and each of them half an em wide.
-        using var _ = Installed(new SelectiveShaper(text, f => new[]
-        {
+        using var _ = Installed(new SelectiveShaper(text, f => [
             // ReSharper disable once PossibleLossOfFraction
             new ShapedGlyph(7, 0, f.UnitsPerEm / 2),
             // ReSharper disable once PossibleLossOfFraction
             new ShapedGlyph(8, 3, f.UnitsPerEm / 2)
-        }));
+        ]));
 
         AllGlyphs(Drawn(text)).Should().HaveCount(2);
         MeasuredWidth(text).Should().BeApproximately(Font().Size, 1e-9);
@@ -224,9 +222,9 @@ public class TextShapingSeamTests
         const string text = "seam-fi";
 
         using var _ = Installed(new SelectiveShaper(text,
-            _ => new[] { new ShapedGlyph(300, 0, 900) }));
+            _ => [new ShapedGlyph(300, 0, 900)]));
 
-        GlyphRuns(Drawn(text)).Single().Should().Equal(new[] { 300 },
+        GlyphRuns(Drawn(text)).Single().Should().Equal([300],
             "a whole string became one glyph, and nothing in the write path assumes otherwise");
     }
 
@@ -239,7 +237,7 @@ public class TextShapingSeamTests
 
         // Registered, but this is not its string.
         using var _ = Installed(new SelectiveShaper("seam-something else",
-            _ => new[] { new ShapedGlyph(1, 0, 1) }));
+            _ => [new ShapedGlyph(1, 0, 1)]));
 
         GlyphRuns(Drawn(text)).Single().Should().Equal(before);
         MeasuredWidth(text).Should().Be(width);
@@ -249,7 +247,7 @@ public class TextShapingSeamTests
     public void TheShaperIsHandedTheFontWhoseBytesItMustReadFrom()
     {
         const string text = "seam-bytes";
-        var shaper = new SelectiveShaper(text, _ => new[] { new ShapedGlyph(1, 0, 100) });
+        var shaper = new SelectiveShaper(text, _ => [new ShapedGlyph(1, 0, 100)]);
 
         using var _ = Installed(shaper);
         Drawn(text);
@@ -270,7 +268,7 @@ public class TextShapingSeamTests
     public void TheSameFontIsTheSameFaceEveryTimeTheShaperSeesIt()
     {
         const string text = "stable";
-        var shaper = new SelectiveShaper(text, _ => new[] { new ShapedGlyph(1, 0, 100) });
+        var shaper = new SelectiveShaper(text, _ => [new ShapedGlyph(1, 0, 100)]);
 
         using var _ = Installed(shaper);
         Drawn(text);
@@ -285,7 +283,7 @@ public class TextShapingSeamTests
     public void ARunWithNothingSaidAboutItIsLeftToTheShaperToDecide()
     {
         const string text = "seam-defaults";
-        var shaper = new SelectiveShaper(text, _ => new[] { new ShapedGlyph(1, 0, 100) });
+        var shaper = new SelectiveShaper(text, _ => [new ShapedGlyph(1, 0, 100)]);
 
         using var _ = Installed(shaper);
         Drawn(text);
@@ -310,13 +308,12 @@ public class TextShapingSeamTests
         const string text = "ab cd";
         var format = new XStringFormat { WordSpacing = 4 };
 
-        using var _ = Installed(new SelectiveShaper(text, _ => new[]
-        {
+        using var _ = Installed(new SelectiveShaper(text, _ => [
             new ShapedGlyph(70, 0, 500),   // the ab ligature
             new ShapedGlyph(3, 2, 250),    // the space
             new ShapedGlyph(70, 3, 500),
             new ShapedGlyph(71, 4, 500)
-        }));
+        ]));
 
         var runs = GlyphRuns(Drawn(text, format));
 
@@ -325,9 +322,9 @@ public class TextShapingSeamTests
         // intact - the room still falls after the space rather than inside "cd", which is the whole
         // point, and it is the boundary between the last two runs that says so.
         runs.Should().HaveCount(3);
-        runs[0].Should().Equal(new[] { 70 }, "the ligature, wrapped in what says it spells ab");
-        runs[1].Should().Equal(new[] { 3 }, "up to and including the space");
-        runs[2].Should().Equal(new[] { 70, 71 }, "and the rest after the room the space paid for");
+        runs[0].Should().Equal([70], "the ligature, wrapped in what says it spells ab");
+        runs[1].Should().Equal([3], "up to and including the space");
+        runs[2].Should().Equal([70, 71], "and the rest after the room the space paid for");
     }
 
     [Fact]
@@ -337,13 +334,12 @@ public class TextShapingSeamTests
         var format = new XStringFormat { WordSpacing = 4 };
 
         // A space that shaped into two glyphs - odd, but the split must not land between them.
-        using var _ = Installed(new SelectiveShaper(text, _ => new[]
-        {
+        using var _ = Installed(new SelectiveShaper(text, _ => [
             new ShapedGlyph(10, 0, 500),
             new ShapedGlyph(11, 1, 125),
             new ShapedGlyph(12, 1, 125),
             new ShapedGlyph(13, 2, 500)
-        }));
+        ]));
 
         var runs = GlyphRuns(Drawn(text, format));
 
@@ -365,12 +361,11 @@ public class TextShapingSeamTests
         // The second glyph is drawn a quarter of an em to the right of where the pen is, without
         // the run growing by it - which is how an attached mark is placed. A quarter rather than
         // some other fraction so that it comes to a round 250 thousandths of an em.
-        using var _ = Installed(new SelectiveShaper(text, f => new[]
-        {
+        using var _ = Installed(new SelectiveShaper(text, f => [
             // ReSharper disable once PossibleLossOfFraction
             new ShapedGlyph(10, 0, f.UnitsPerEm / 2),
             new ShapedGlyph(11, 1, f.UnitsPerEm / 2.0, offsetX: f.UnitsPerEm / 4.0)
-        }));
+        ]));
 
         var content = Content(Drawn(text));
 
@@ -388,12 +383,11 @@ public class TextShapingSeamTests
     {
         const string text = "raised";
 
-        using var _ = Installed(new SelectiveShaper(text, f => new[]
-        {
+        using var _ = Installed(new SelectiveShaper(text, f => [
             // ReSharper disable once PossibleLossOfFraction
             new ShapedGlyph(10, 0, f.UnitsPerEm / 2),
             new ShapedGlyph(11, 1, f.UnitsPerEm / 2.0, offsetY: f.UnitsPerEm / 4.0)
-        }));
+        ]));
 
         var content = Content(Drawn(text));
 
@@ -414,12 +408,11 @@ public class TextShapingSeamTests
         // has already written the caller's rise and believes it is still there, so a glyph raised
         // from zero would be drawn low and the state would be left saying something untrue about
         // every string after it.
-        using var _ = Installed(new SelectiveShaper(text, f => new[]
-        {
+        using var _ = Installed(new SelectiveShaper(text, f => [
             // ReSharper disable once PossibleLossOfFraction
             new ShapedGlyph(10, 0, f.UnitsPerEm / 2),
             new ShapedGlyph(11, 1, f.UnitsPerEm / 2.0, offsetY: f.UnitsPerEm / 4.0)
-        }));
+        ]));
 
         var content = Content(Drawn(text, new XStringFormat { TextRise = 3 }));
 
@@ -435,11 +428,10 @@ public class TextShapingSeamTests
     {
         const string text = "plain";
 
-        using var _ = Installed(new SelectiveShaper(text, _ => new[]
-        {
+        using var _ = Installed(new SelectiveShaper(text, _ => [
             new ShapedGlyph(10, 0, 500),
             new ShapedGlyph(11, 1, 500)
-        }));
+        ]));
 
         var content = Content(Drawn(text));
 
@@ -454,11 +446,10 @@ public class TextShapingSeamTests
     [Fact]
     public void ARunIsAsWideAsItsAdvancesAddUpTo()
     {
-        var run = new ShapedRun(new[]
-        {
+        var run = new ShapedRun([
             new ShapedGlyph(1, 0, 500),
             new ShapedGlyph(2, 1, 250)
-        }, unitsPerEm: 1000);
+        ], unitsPerEm: 1000);
 
         run.Width.Should().Be(750);
         run.WidthAt(12).Should().BeApproximately(9, 1e-9, "750/1000 of a 12 point em");
@@ -489,7 +480,7 @@ public class TextShapingSeamTests
     public void ARunMustSayWhatItsAdvancesAreMeasuredAgainst(int unitsPerEm)
     {
         // Advances are in design units, so a face of no em has no scale to read them at.
-        var act = () => new ShapedRun(Array.Empty<ShapedGlyph>(), unitsPerEm);
+        var act = () => new ShapedRun([], unitsPerEm);
 
         act.Should().Throw<ArgumentOutOfRangeException>();
     }
@@ -505,11 +496,11 @@ public class TextShapingSeamTests
     [Fact]
     public void ARunRemembersWhichWayItWasWritten()
     {
-        var run = new ShapedRun(new[] { new ShapedGlyph(1, 1, 500), new ShapedGlyph(2, 0, 500) },
+        var run = new ShapedRun([new ShapedGlyph(1, 1, 500), new ShapedGlyph(2, 0, 500)],
             1000, XTextDirection.RightToLeft);
 
         run.Direction.Should().Be(XTextDirection.RightToLeft);
-        run.Glyphs.Select(glyph => glyph.Cluster).Should().Equal(new[] { 1, 0 },
+        run.Glyphs.Select(glyph => glyph.Cluster).Should().Equal([1, 0],
             "a right-to-left run is handed over already reversed, so its clusters descend");
     }
 
@@ -526,7 +517,7 @@ public class TextShapingSeamTests
         // the page would have drawn whatever that other face happened to have at those numbers -
         // wrong, silently, and only where the second font was used.
         var act = () => new ShapingFont("Family", "Face", key,
-            isBold: false, isItalic: false, emSize: 12, unitsPerEm: 1000, bytes: Array.Empty<byte>());
+            isBold: false, isItalic: false, emSize: 12, unitsPerEm: 1000, bytes: []);
 
         act.Should().Throw<ArgumentException>().WithParameterName(nameof(key));
     }

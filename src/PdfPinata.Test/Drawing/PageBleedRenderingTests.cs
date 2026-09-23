@@ -24,7 +24,7 @@ public sealed class PageBleedRenderingTests : IDisposable
 {
     private const string OutDir = "Out/PageBleed";
 
-    private readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
+    private readonly List<MagickImageCollection> _rasterized = [];
 
     public void Dispose()
     {

@@ -19,14 +19,13 @@ internal sealed class BleedDemo : PdfDemo
 
     public override string Summary => "A photograph bled off three edges of a page that will be trimmed.";
 
-    public override IReadOnlyList<string> Shows => new[]
-    {
+    public override IReadOnlyList<string> Shows => [
         "PdfPage.TrimMargins: a sheet larger than the page, with the origin still on the page",
         "Drawing at negative coordinates to reach past the trim and onto the bleed",
         "PdfPage.MarkMargins: the room outside the bleed, and the eight crop marks drawn in it",
         "Width and Height reporting the trimmed size, before the save and after it",
         "The five page boxes a trimmed page is saved with, listed on the page itself"
-    };
+    ];
 
     public override int PageCount => 1;
 
@@ -104,14 +103,14 @@ internal sealed class BleedDemo : PdfDemo
         gfx.DrawString("Bleed", title, XBrushes.Black, new XPoint(40, textTop));
 
         string[] paragraph =
-        {
+        [
             "The photograph above runs off the top, left and right of this page. It was drawn",
             "from (-3mm, -3mm) onto a sheet larger than the page on every edge, and the",
             "guillotine cuts along the dashed rule below - through the middle of the ink, so",
             "that a cut a fraction off the mark still lands on the picture rather than on white",
             "paper. The crop marks at the corners of the sheet are where the trimmer lines the",
             "cut up, and the library drew them without being asked."
-        };
+        ];
 
         var y = textTop + 26;
         foreach (var line in paragraph)
@@ -143,13 +142,13 @@ internal sealed class BleedDemo : PdfDemo
         var sheetHeight = height + 2 * inset;
 
         (string Box, string Value)[] boxes =
-        {
+        [
             ("MediaBox", $"[0 0 {sheetWidth:0.###} {sheetHeight:0.###}]  the sheet"),
             ("CropBox",  $"[0 0 {sheetWidth:0.###} {sheetHeight:0.###}]  what a reader shows"),
             ("BleedBox", $"[{room:0.###} {room:0.###} {sheetWidth - room:0.###} {sheetHeight - room:0.###}]  how far the ink may run"),
             ("TrimBox",  $"[{inset:0.###} {inset:0.###} {sheetWidth - inset:0.###} {sheetHeight - inset:0.###}]  where it is cut"),
             ("ArtBox",   $"[{inset:0.###} {inset:0.###} {sheetWidth - inset:0.###} {sheetHeight - inset:0.###}]  the meaningful content")
-        };
+        ];
 
         y += 18;
         foreach (var row in boxes)

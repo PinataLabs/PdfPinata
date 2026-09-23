@@ -89,7 +89,7 @@ public sealed class XmpMetadata
     /// </remarks>
     public IList<string> AdditionalDescriptions { get; } = new List<string>();
 
-    private readonly List<XmpExtensionSchema> _extensionSchemas = new();
+    private readonly List<XmpExtensionSchema> _extensionSchemas = [];
 
     /// <summary>
     /// The extension schemas declared so far, in declaration order. Populated by

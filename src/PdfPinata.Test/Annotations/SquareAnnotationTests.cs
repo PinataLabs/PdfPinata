@@ -26,7 +26,7 @@ public sealed class SquareAnnotationTests : IDisposable
 {
     private const string OutDir = "Out/SquareAnnotations";
 
-    private readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
+    private readonly List<MagickImageCollection> _rasterized = [];
 
     public void Dispose()
     {

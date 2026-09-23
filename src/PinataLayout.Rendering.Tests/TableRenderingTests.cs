@@ -35,7 +35,7 @@ public class TableRenderingTests
         // three of them individually. All four widths have to reach the page, or a cell asking
         // for a heavier rule than the table's silently gets the table's.
         StrokedLines.Of(page).Select(line => Math.Round(line.Width, 2)).Distinct()
-            .Should().BeEquivalentTo(new[] { DefaultBorderWidth, 2.0, 8.0, 15.0 });
+            .Should().BeEquivalentTo([DefaultBorderWidth, 2.0, 8.0, 15.0]);
     }
 
     [Theory]
@@ -305,9 +305,8 @@ public class TableRenderingTests
         var middle = Middle(lines.Where(line => line.IsVertical).Select(line => line.X1));
         var firstRowFoot = HorizontalRules(page)[1];
 
-        return lines
-            .Where(line => line.IsVertical && Near(line.X1, middle) && line.Bottom > firstRowFoot - 0.5)
-            .ToList();
+        return [..lines
+            .Where(line => line.IsVertical && Near(line.X1, middle) && line.Bottom > firstRowFoot - 0.5)];
     }
 
     /// <summary>
@@ -322,21 +321,19 @@ public class TableRenderingTests
         var middle = Middle(lines.Where(line => line.IsHorizontal).Select(line => line.Y1));
         var secondColumnLeft = Middle(lines.Where(line => line.IsVertical).Select(line => line.X1));
 
-        return lines
+        return [..lines
             .Where(line => line.IsHorizontal && Near(line.Y1, middle)
-                           && Math.Max(line.X1, line.X2) > secondColumnLeft + 0.5)
-            .ToList();
+                           && Math.Max(line.X1, line.X2) > secondColumnLeft + 0.5)];
     }
 
     /// <summary>The distinct heights the page rules at, from the top of the page downwards.</summary>
     private static IReadOnlyList<double> HorizontalRules(PdfPinata.Pdf.PdfPage page)
     {
-        return StrokedLines.Of(page)
+        return [..StrokedLines.Of(page)
             .Where(line => line.IsHorizontal)
             .Select(line => Math.Round(line.Y1, 2))
             .Distinct()
-            .OrderByDescending(y => y)
-            .ToList();
+            .OrderByDescending(y => y)];
     }
 
     private static double TextBaselineOf(Document document)

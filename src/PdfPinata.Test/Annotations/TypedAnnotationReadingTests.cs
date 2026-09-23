@@ -30,7 +30,7 @@ public sealed class TypedAnnotationReadingTests : IDisposable
 {
     private const string OutDir = "Out/TypedAnnotationReading";
 
-    private readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
+    private readonly List<MagickImageCollection> _rasterized = [];
 
     static TypedAnnotationReadingTests()
     {

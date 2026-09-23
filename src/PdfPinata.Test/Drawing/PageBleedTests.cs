@@ -379,9 +379,9 @@ public class PageBleedTests
         vertical.Should().HaveCount(4);
 
         horizontal.Select(mark => Math.Round(mark.Y1, 2)).Distinct().Should()
-            .BeEquivalentTo(new[] { Math.Round(trim.Y1, 2), Math.Round(trim.Y2, 2) });
+            .BeEquivalentTo([Math.Round(trim.Y1, 2), Math.Round(trim.Y2, 2)]);
         vertical.Select(mark => Math.Round(mark.X1, 2)).Distinct().Should()
-            .BeEquivalentTo(new[] { Math.Round(trim.X1, 2), Math.Round(trim.X2, 2) });
+            .BeEquivalentTo([Math.Round(trim.X1, 2), Math.Round(trim.X2, 2)]);
     }
 
     [Fact]
@@ -525,7 +525,7 @@ public class PageBleedTests
                 foreach (var key in new[] { "/MediaBox", "/CropBox", "/BleedBox", "/TrimBox", "/ArtBox" })
                     if (_page.Elements[key] != null)
                         present.Add(key);
-                return present.ToArray();
+                return [..present];
             }
         }
 
@@ -544,11 +544,10 @@ public class PageBleedTests
         /// </summary>
         // ReSharper disable once MemberHidesStaticFromOuterClass
         internal IReadOnlyList<Segment> Marks =>
-            Regex.Matches(Content, @"(-?[\d.]+) (-?[\d.]+) m (-?[\d.]+) (-?[\d.]+) l S")
+            [..Regex.Matches(Content, @"(-?[\d.]+) (-?[\d.]+) m (-?[\d.]+) (-?[\d.]+) l S")
                 .Select(match => new Segment(
                     Number(match.Groups[1].Value), Number(match.Groups[2].Value),
-                    Number(match.Groups[3].Value), Number(match.Groups[4].Value)))
-                .ToList();
+                    Number(match.Groups[3].Value), Number(match.Groups[4].Value)))];
 
         /// <summary>
         ///   Where the first rectangle in the content stream sits on the sheet, in points from

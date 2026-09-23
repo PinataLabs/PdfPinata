@@ -99,7 +99,7 @@ public sealed class OcspRevocationDataProvider : IRevocationDataProvider, IDispo
             if (responseBytes == null)
                 return RevocationData.None;
 
-            return new RevocationData(new[] { responseBytes }, null);
+            return new RevocationData([responseBytes], null);
         }
         catch (Exception problem) when (problem is HttpRequestException or TaskCanceledException)
         {

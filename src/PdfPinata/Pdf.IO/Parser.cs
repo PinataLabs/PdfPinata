@@ -802,8 +802,7 @@ internal sealed class Parser
         var objectNubmer = ReadInteger();
         var generationNumber = ReadInteger();
         ReadSymbol(Symbol.Obj);
-        if (obj != null)
-            obj.SetObjectID(objectNubmer, generationNumber);
+        obj?.SetObjectID(objectNubmer, generationNumber);
     }
 
     private PdfItem ReadReference()
@@ -1225,8 +1224,7 @@ internal sealed class Parser
 
                         // Check if the object at the address has the correct ID and generation.
                         var idToUse = id;
-                        int idChecked, generationChecked;
-                        if (!CheckXRefTableEntry(position, id, generation, out idChecked, out generationChecked))
+                        if (!CheckXRefTableEntry(position, id, generation, out var idChecked, out var generationChecked))
                         {
                             // Found the keyword "obj", but ID or generation did not match.
                             // There is a tool where ID is off by one. In this case we use the ID from the object, not the ID from the XRef table.

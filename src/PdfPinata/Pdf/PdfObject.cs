@@ -65,8 +65,7 @@ public abstract class PdfObject : PdfItem
     {
         // If the object that was transformed to an instance of a derived class was an indirect object
         // set the value of the reference to this.
-        if (obj._iref != null)
-            obj._iref.Value = this;
+        obj._iref?.Value = this;
 
         // The object being transformed may already have been changed since it was read, and this
         // is what an incremental save asks from now on - a change forgotten here would be silently
@@ -133,8 +132,7 @@ public abstract class PdfObject : PdfItem
                 if (_document != null)
                     throw new InvalidOperationException("Cannot change document.");
                 _document = value;
-                if (_iref != null)
-                    _iref.Document = value;
+                _iref?.Document = value;
             }
         }
     }

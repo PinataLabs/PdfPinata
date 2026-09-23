@@ -124,9 +124,7 @@ public static class Filtering
     public static byte[] Encode(byte[] data, string filterName)
     {
         var filter = GetFilter(filterName);
-        if (filter != null)
-            return filter.Encode(data);
-        return null;
+        return filter?.Encode(data);
     }
 
     /// <summary>
@@ -135,9 +133,7 @@ public static class Filtering
     public static byte[] Encode(string rawString, string filterName)
     {
         var filter = GetFilter(filterName);
-        if (filter != null)
-            return filter.Encode(rawString);
-        return null;
+        return filter?.Encode(rawString);
     }
 
     /// <summary>
@@ -146,9 +142,7 @@ public static class Filtering
     public static byte[] Decode(byte[] data, string filterName, FilterParms parms)
     {
         var filter = GetFilter(filterName);
-        if (filter != null)
-            return filter.Decode(data, parms);
-        return null;
+        return filter?.Decode(data, parms);
     }
 
     /// <summary>
@@ -157,9 +151,7 @@ public static class Filtering
     public static byte[] Decode(byte[] data, string filterName)
     {
         var filter = GetFilter(filterName);
-        if (filter != null)
-            return filter.Decode(data, (PdfDictionary)null);
-        return null;
+        return filter?.Decode(data, (PdfDictionary)null);
     }
 
     /// <summary>
@@ -212,9 +204,7 @@ public static class Filtering
     public static string DecodeToString(byte[] data, string filterName, FilterParms parms)
     {
         var filter = GetFilter(filterName);
-        if (filter != null)
-            return filter.DecodeToString(data, parms);
-        return null;
+        return filter?.DecodeToString(data, parms);
     }
 
     /// <summary>
@@ -223,8 +213,6 @@ public static class Filtering
     public static string DecodeToString(byte[] data, string filterName)
     {
         var filter = GetFilter(filterName);
-        if (filter != null)
-            return filter.DecodeToString(data, null);
-        return null;
+        return filter?.DecodeToString(data, null);
     }
 }

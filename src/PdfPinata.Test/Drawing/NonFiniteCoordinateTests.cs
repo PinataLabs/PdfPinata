@@ -110,7 +110,7 @@ public class NonFiniteCoordinateTests
     {
         // The custom dash pattern is assembled as text a piece at a time rather than formatted in
         // one go, so it reaches the content stream by a route of its own and needs its own check.
-        var pen = new XPen(XColors.Black, 2) { DashPattern = new[] { 3.0, double.NaN } };
+        var pen = new XPen(XColors.Black, 2) { DashPattern = [3.0, double.NaN] };
 
         var drawing = () => Draw(gfx => gfx.DrawLine(pen, 10, 10, 100, 10));
 

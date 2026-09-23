@@ -140,7 +140,7 @@ public static class PdfTextExtractor
 
         public Walker(PdfPage page) => _page = page;
 
-        public List<PdfTextRun> Runs { get; } = new();
+        public List<PdfTextRun> Runs { get; } = [];
 
         /// <remarks>
         /// Indexed rather than iterated. <see cref="CSequence"/> implements

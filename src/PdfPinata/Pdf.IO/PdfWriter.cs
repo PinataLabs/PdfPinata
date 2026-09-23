@@ -275,8 +275,7 @@ internal class PdfWriter
         if (indirect && !_omitIndirectFraming)
         {
             WriteObjectAddress(obj);
-            if (_securityHandler != null)
-                _securityHandler.SetHashKey(obj.ObjectID);
+            _securityHandler?.SetHashKey(obj.ObjectID);
         }
         _stack.Add(new StackItem(obj));
         if (indirect)
@@ -531,5 +530,5 @@ internal class PdfWriter
         public bool HasStream;
     }
 
-    private readonly List<StackItem> _stack = new();
+    private readonly List<StackItem> _stack = [];
 }

@@ -21,7 +21,7 @@ public class FlowGeometryTests
 
     private static (double Start, double End)[] Runs(IntervalSet set)
     {
-        return set.Select(run => (run.Start, run.End)).ToArray();
+        return [..set.Select(run => (run.Start, run.End))];
     }
 
     // ----- a run ----------------------------------------------------------------------------------
@@ -172,7 +172,7 @@ public class FlowGeometryTests
     {
         // The property the whole abstraction exists for: the geometry answers honestly that there
         // are two, and what to do about that is the layout loop's business.
-        var left = IntervalSet.Of(0, 100).Subtract(new[] { new XInterval(40, 60) });
+        var left = IntervalSet.Of(0, 100).Subtract([new XInterval(40, 60)]);
 
         Runs(left).Should().Equal((0d, 40d), (60d, 100d));
     }
@@ -180,37 +180,37 @@ public class FlowGeometryTests
     [Fact]
     public void TakingSomethingFromTheLeftLeavesTheRest()
     {
-        Runs(IntervalSet.Of(0, 100).Subtract(new[] { new XInterval(0, 30) }))
+        Runs(IntervalSet.Of(0, 100).Subtract([new XInterval(0, 30)]))
             .Should().Equal((30d, 100d));
     }
 
     [Fact]
     public void TakingSomethingFromTheRightLeavesTheRest()
     {
-        Runs(IntervalSet.Of(0, 100).Subtract(new[] { new XInterval(70, 100) }))
+        Runs(IntervalSet.Of(0, 100).Subtract([new XInterval(70, 100)]))
             .Should().Equal((0d, 70d));
     }
 
     [Fact]
     public void TakingTheWholeThingLeavesNothing()
     {
-        IntervalSet.Of(0, 100).Subtract(new[] { new XInterval(0, 100) }).IsEmpty.Should().BeTrue();
+        IntervalSet.Of(0, 100).Subtract([new XInterval(0, 100)]).IsEmpty.Should().BeTrue();
     }
 
     [Fact]
     public void TakingSomethingThatHangsOffTheEndTakesOnlyWhatOverlaps()
     {
-        Runs(IntervalSet.Of(0, 100).Subtract(new[] { new XInterval(-40, 25) }))
+        Runs(IntervalSet.Of(0, 100).Subtract([new XInterval(-40, 25)]))
             .Should().Equal((25d, 100d));
 
-        Runs(IntervalSet.Of(0, 100).Subtract(new[] { new XInterval(80, 250) }))
+        Runs(IntervalSet.Of(0, 100).Subtract([new XInterval(80, 250)]))
             .Should().Equal((0d, 80d));
     }
 
     [Fact]
     public void TakingSomethingEntirelyOutsideTakesNothing()
     {
-        Runs(IntervalSet.Of(0, 100).Subtract(new[] { new XInterval(150, 200) }))
+        Runs(IntervalSet.Of(0, 100).Subtract([new XInterval(150, 200)]))
             .Should().Equal((0d, 100d));
     }
 
@@ -218,7 +218,7 @@ public class FlowGeometryTests
     public void ThingsTakenOutMayArriveInAnyOrderAndMayOverlapEachOther()
     {
         var jumbled = IntervalSet.Of(0, 100)
-            .Subtract(new[] { new XInterval(70, 90), new XInterval(20, 40), new XInterval(30, 50) });
+            .Subtract([new XInterval(70, 90), new XInterval(20, 40), new XInterval(30, 50)]);
 
         Runs(jumbled).Should().Equal((0d, 20d), (50d, 70d), (90d, 100d));
     }
@@ -228,7 +228,7 @@ public class FlowGeometryTests
     {
         var set = IntervalSet.Of(new XInterval(0, 40), new XInterval(60, 100));
 
-        Runs(set.Subtract(new[] { new XInterval(20, 80) }))
+        Runs(set.Subtract([new XInterval(20, 80)]))
             .Should().Equal((0d, 20d), (80d, 100d));
     }
 
@@ -237,7 +237,7 @@ public class FlowGeometryTests
     {
         var set = IntervalSet.Of(0, 100);
 
-        set.Subtract(Array.Empty<XInterval>()).Should().BeSameAs(set);
+        set.Subtract([]).Should().BeSameAs(set);
     }
 
     [Fact]
@@ -246,7 +246,7 @@ public class FlowGeometryTests
         // Immutable: a line's room is worked out once and read by several things after that.
         var set = IntervalSet.Of(0, 100);
 
-        set.Subtract(new[] { new XInterval(40, 60) });
+        set.Subtract([new XInterval(40, 60)]);
 
         Runs(set).Should().Equal((0d, 100d));
     }
@@ -256,7 +256,7 @@ public class FlowGeometryTests
     [Fact]
     public void TheWidestRunIsTheOneOffered()
     {
-        var left = IntervalSet.Of(0, 100).Subtract(new[] { new XInterval(30, 60) });
+        var left = IntervalSet.Of(0, 100).Subtract([new XInterval(30, 60)]);
 
         left.TryWidest(Tolerance, out var widest).Should().BeTrue();
         widest.Should().Be(new XInterval(60, 100));
@@ -265,7 +265,7 @@ public class FlowGeometryTests
     [Fact]
     public void ATieGoesToTheRunFurthestLeft()
     {
-        var left = IntervalSet.Of(0, 100).Subtract(new[] { new XInterval(40, 60) });
+        var left = IntervalSet.Of(0, 100).Subtract([new XInterval(40, 60)]);
 
         left.TryWidest(Tolerance, out var widest).Should().BeTrue();
         widest.Should().Be(new XInterval(0, 40));
@@ -281,7 +281,7 @@ public class FlowGeometryTests
     public void ARunNarrowerThanTheToleranceIsNoRoomAtAll()
     {
         var slivers = IntervalSet.Of(0, 100)
-            .Subtract(new[] { new XInterval(0, 50), new XInterval(50.0005, 100) });
+            .Subtract([new XInterval(0, 50), new XInterval(50.0005, 100)]);
 
         slivers.IsEmpty.Should().BeFalse("the run is there");
         slivers.TryWidest(Tolerance, out _).Should().BeFalse("but it is not room");
@@ -302,12 +302,11 @@ public class FlowGeometryTests
     ///   untouched and does its damage later — which is why these are refused where they enter
     ///   rather than where they are noticed.
     /// </summary>
-    public static TheoryData<double> NotRealNumbers => new TheoryData<double>
-    {
+    public static TheoryData<double> NotRealNumbers => [
         double.NaN,
         double.PositiveInfinity,
         double.NegativeInfinity
-    };
+    ];
 
     [Theory]
     [MemberData(nameof(NotRealNumbers))]

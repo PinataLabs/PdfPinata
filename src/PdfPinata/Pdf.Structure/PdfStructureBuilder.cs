@@ -23,7 +23,7 @@ public sealed class PdfStructureBuilder
 {
     private readonly PdfDocument _document;
     private readonly Dictionary<PdfPage, PageMarks> _pages = new();
-    private readonly List<KeyValuePair<int, PdfStructureElement>> _annotations = new();
+    private readonly List<KeyValuePair<int, PdfStructureElement>> _annotations = [];
 
     /// <summary>
     /// The next key to hand out in the parent tree.
@@ -362,6 +362,6 @@ public sealed class PdfStructureBuilder
 
         public int StructParents { get; }
 
-        public List<PdfStructureElement> Elements { get; } = new();
+        public List<PdfStructureElement> Elements { get; } = [];
     }
 }

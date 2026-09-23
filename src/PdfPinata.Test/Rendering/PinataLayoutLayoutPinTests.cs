@@ -112,10 +112,9 @@ public class PinataLayoutLayoutPinTests
         // Taken from the corpus rather than written out again here, so that adding a document
         // without re-capturing fails instead of going uncovered.
         pinned.Keys.Should().BeEquivalentTo(PinataLayoutDocCorpus.Names);
-        pinned.Keys.Should().Contain(new[]
-        {
+        pinned.Keys.Should().Contain([
             "table across a page break", "text frame beside prose", "image between paragraphs"
-        });
+        ]);
     }
 
     private static string BaselinePath =>

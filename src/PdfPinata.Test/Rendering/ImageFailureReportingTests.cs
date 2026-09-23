@@ -99,7 +99,7 @@ public class ImageFailureReportingTests
             FailingImageSource.Stage.Measuring, new InvalidDataException("boom")));
         section.AddParagraph("Below the image");
 
-        var renderer = RenderTo(document, new List<ImageFailedEventArgs>());
+        var renderer = RenderTo(document, []);
 
         renderer.PdfDocument.PageCount.Should().Be(1);
     }

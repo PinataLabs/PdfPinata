@@ -93,7 +93,7 @@ public class MergedCellList : List<Cell>
       {
         if (currentCell.Row.Index <= cell.Row.Index && currentCell.Row.Index + currentCell.MergeDown >= cell.Row.Index)
           return true;
-        else if (currentCell.Row.Index + currentCell.MergeDown == cell.Row.Index - 1)
+        if (currentCell.Row.Index + currentCell.MergeDown == cell.Row.Index - 1)
           return false;
 
       }
@@ -185,8 +185,8 @@ public class MergedCellList : List<Cell>
     var cellIdx = this.BinarySearch(cell, new CellComparer());
     if (cellIdx >= 0 && cellIdx < this.Count)
       return this[cellIdx];
-    else //Binary Search returns the complement of the next value, therefore, "~cellIdx - 1" is the previous cell.
-      cellIdx = ~cellIdx - 1;
+    //Binary Search returns the complement of the next value, therefore, "~cellIdx - 1" is the previous cell.
+    cellIdx = ~cellIdx - 1;
     for (var index = cellIdx; index >= 0; --index)
     {
       var currCell = this[index];

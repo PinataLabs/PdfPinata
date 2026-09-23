@@ -64,9 +64,9 @@ public class ColdColourTableTests
         {
             var colorType = assembly.GetType("PdfPinata.Drawing.XColor", throwOnError: true);
             // ReSharper disable once PossibleNullReferenceException
-            var fromArgb = colorType.GetMethod("FromArgb", new[] { typeof(int), typeof(int), typeof(int) });
+            var fromArgb = colorType.GetMethod("FromArgb", [typeof(int), typeof(int), typeof(int)]);
             // ReSharper disable once PossibleNullReferenceException
-            var color = fromArgb.Invoke(null, new object[] { 1, 2, 3 });
+            var color = fromArgb.Invoke(null, [1, 2, 3]);
             // ReSharper disable once PossibleNullReferenceException
             return colorType.GetProperty("IsKnownColor").GetValue(color);
         });
@@ -81,9 +81,9 @@ public class ColdColourTableTests
         {
             var managerType = assembly.GetType("PdfPinata.Drawing.XColorResourceManager", throwOnError: true);
             // ReSharper disable once PossibleNullReferenceException
-            var getKnownColor = managerType.GetMethod("GetKnownColor", new[] { typeof(uint) });
+            var getKnownColor = managerType.GetMethod("GetKnownColor", [typeof(uint)]);
             // ReSharper disable PossibleNullReferenceException
-            return getKnownColor.Invoke(null, new object[] { 0xFFFF0000u }).ToString();
+            return getKnownColor.Invoke(null, [0xFFFF0000u]).ToString();
             // ReSharper restore PossibleNullReferenceException
         });
 

@@ -109,15 +109,14 @@ public class ShapedFontEmbeddingTests
         // "[300[1000 1000]305[500]]" - the first glyph identifier of a run of consecutive ones, then
         // the widths of the whole run in a bracket of its own.
         // ReSharper disable once AssignNullToNotNullAttribute
-        return Regex.Matches(widths, @"(\d+)\s*\[([^\]]*)\]")
+        return [..Regex.Matches(widths, @"(\d+)\s*\[([^\]]*)\]")
             .SelectMany(match =>
             {
                 var first = int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture);
                 var count = match.Groups[2].Value
-                    .Split(new[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Length;
+                    .Split([' ', '\t', '\r', '\n'],StringSplitOptions.RemoveEmptyEntries).Length;
                 return Enumerable.Range(first, count);
-            })
-            .ToList();
+            })];
     }
 
     /// <summary>
@@ -179,7 +178,7 @@ public class ShapedFontEmbeddingTests
         // Glyph 300 is a real glyph of the face and one the cmap would never return for any of
         // these characters - which is exactly the position a ligature is in.
         using var _ = new Installed(new SelectiveShaper(WidthSentinel,
-            _ => new[] { new ShapedGlyph(300, 0, 1000) }));
+            _ => [new ShapedGlyph(300, 0, 1000)]));
 
         GlyphsGivenAWidth(Written(WidthSentinel)).Should().Contain(300,
             "a glyph drawn without a width in /W falls back to the default width, and a glyph "
@@ -190,11 +189,11 @@ public class ShapedFontEmbeddingTests
     public void TheGlyphsAShaperDidNotChooseAreNotCarriedAlongForNothing()
     {
         using var _ = new Installed(new SelectiveShaper(WidthSentinel,
-            _ => new[] { new ShapedGlyph(300, 0, 1000) }));
+            _ => [new ShapedGlyph(300, 0, 1000)]));
 
         var widths = GlyphsGivenAWidth(Written(WidthSentinel));
 
-        widths.Should().Equal(new[] { 300 },
+        widths.Should().Equal([300],
             "the run is one glyph, so the subset is one glyph - the characters that were never "
             + "looked up in the cmap have no business being embedded");
     }
@@ -208,11 +207,10 @@ public class ShapedFontEmbeddingTests
     {
         // Two glyphs for thirteen characters: the first cluster runs from 0 up to the second
         // cluster at 11, so glyph 300 means "ShapedProbe" and glyph 301 means "AB".
-        using var _ = new Installed(new SelectiveShaper(MeaningSentinel, _ => new[]
-        {
+        using var _ = new Installed(new SelectiveShaper(MeaningSentinel, _ => [
             new ShapedGlyph(300, 0, 1000),
             new ShapedGlyph(301, 11, 1000)
-        }));
+        ]));
 
         var meanings = Meanings(Written(MeaningSentinel));
 

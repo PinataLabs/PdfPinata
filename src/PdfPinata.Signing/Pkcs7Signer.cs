@@ -60,13 +60,13 @@ public sealed class Pkcs7Signer : IPdfSigner
 
         if (!certificate.HasPrivateKey)
             throw new ArgumentException(
-                @"The certificate has no private key, so it can identify a signer but cannot be one.",
+                "The certificate has no private key, so it can identify a signer but cannot be one.",
                 nameof(certificate));
 
         _hashAlgorithm = hashAlgorithm ?? HashAlgorithmName.SHA256;
         if (_hashAlgorithm == HashAlgorithmName.MD5 || _hashAlgorithm == HashAlgorithmName.SHA1)
             throw new ArgumentException(
-                @"SHA-1 and MD5 are broken for signatures and readers reject them. Use SHA-256 or better.",
+                "SHA-1 and MD5 are broken for signatures and readers reject them. Use SHA-256 or better.",
                 nameof(hashAlgorithm));
 
         Format = format;

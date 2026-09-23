@@ -30,15 +30,14 @@ internal sealed class SigningDemo : PdfDemo
 
     public override string Summary => "A signed PDF, the hole its signature lives in, and what verifying it proves.";
 
-    public override IReadOnlyList<string> Shows => new[]
-    {
+    public override IReadOnlyList<string> Shows => [
         "PdfSigner.Sign - the placeholder, the byte range, and the patch that fills the hole",
         "Pkcs7Signer from PdfPinata.Signing, with PAdES and PKCS#7 as separate formats",
         "PdfSignatureOptions - a visible appearance drawn by the caller, and a reason and location",
         "That the revision is appended rather than rewritten, because rewriting invalidates",
         "PdfSignatures.InDocument, which reads a signature without believing any of it",
         "PdfSignatureVerifier - IsIntact and CoversWholeDocument, and why both are needed"
-    };
+    ];
 
     public override int PageCount => 3;
 
@@ -327,8 +326,7 @@ internal sealed class SigningDemo : PdfDemo
         var holeEnd = said.ByteRange[2];
 
         return new Rehearsal(
-            new[]
-            {
+            [
                 ("Field name", said.FieldName),
                 ("/SubFilter", said.SubFilter),
                 ("Signer name", said.SignerName ?? "(not recorded)"),
@@ -343,9 +341,8 @@ internal sealed class SigningDemo : PdfDemo
                     + " - " + Format(holeEnd - holeStart) + " bytes reserved"),
                 ("Signature written", Format(said.Contents.Length) + " bytes, padded with zeros"),
                 ("File signed", Format(signed.Length) + " bytes")
-            },
-            new[]
-            {
+            ],
+            [
                 ("IsIntact", checkedSignature.IsIntact ? "true" : "false"),
                 ("CoversWholeDocument", checkedSignature.CoversWholeDocument ? "true" : "false"),
                 ("IsValid", checkedSignature.IsValid ? "true - both of the above" : "false"),
@@ -354,7 +351,7 @@ internal sealed class SigningDemo : PdfDemo
                 ("Certificate expires", checkedSignature.SignerCertificate?.NotAfter
                     .ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) ?? "-"),
                 ("Digest", "SHA-256; SHA-1 and MD5 are refused by the signer")
-            });
+            ]);
     }
 
     private Pkcs7Signer Signer() => new(Certificate());

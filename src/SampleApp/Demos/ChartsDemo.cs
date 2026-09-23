@@ -23,15 +23,14 @@ internal sealed class ChartsDemo : PdfDemo
     public override string Summary =>
         "All eight chart types, combination series, and the two routes into the engine.";
 
-    public override IReadOnlyList<string> Shows => new[]
-    {
+    public override IReadOnlyList<string> Shows => [
         "Column2D, ColumnStacked2D, Bar2D and BarStacked2D, sharing one set of figures",
         "Line and Area2D, with markers, gridlines and a fixed axis scale",
         "A combination chart: one series drawn as a line on a chart of columns",
         "Pie2D and PieExploded2D, with percentage data labels and the legend docked four ways",
         "ChartFrame.DrawChart against ChartFrame.Draw - the second brings its own frame",
         "The same figures again through PinataLayout, laid out in the flow between paragraphs"
-    };
+    ];
 
     public override int PageCount => 4;
 
@@ -43,10 +42,10 @@ internal sealed class ChartsDemo : PdfDemo
 
         // One set of figures for the whole demo, so that what changes from chart to chart is the
         // chart type rather than the data.
-        string[] quarters = { "Q1", "Q2", "Q3", "Q4" };
-        double[] north = { 42, 58, 51, 73 };
-        double[] south = { 31, 29, 44, 38 };
-        double[] west = { 18, 26, 33, 47 };
+        string[] quarters = ["Q1", "Q2", "Q3", "Q4"];
+        double[] north = [42, 58, 51, 73];
+        double[] south = [31, 29, 44, 38];
+        double[] west = [18, 26, 33, 47];
 
         var heading = new XFont("Liberation Sans", 16, XFontStyle.Bold);
         var caption = new XFont("Liberation Sans", 8);

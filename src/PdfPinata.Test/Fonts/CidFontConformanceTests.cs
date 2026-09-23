@@ -87,7 +87,7 @@ public class CidFontConformanceTests
         // Not a real profile. Nothing in this library parses one, and these tests are about a font
         // dictionary rather than about colour - the conformance corpus builds a real profile,
         // because a validator does parse it.
-        document.Options.OutputIntentIccProfile = new byte[] { 0x00, 0x01, 0x02, 0x03 };
+        document.Options.OutputIntentIccProfile = [0x00, 0x01, 0x02, 0x03];
         document.Options.OutputIntentIdentifier = "sRGB IEC61966-2.1";
         document.Info.Title = "CID font conformance";
     }

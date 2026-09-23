@@ -90,7 +90,7 @@ public sealed class PdfSignatureField : PdfAcroField
         }
 
         if (Owner == null || value.Owner != Owner)
-            throw new ArgumentException(@"The dictionary and the field must belong to the same document.", nameof(value));
+            throw new ArgumentException("The dictionary and the field must belong to the same document.", nameof(value));
 
         if (value.Reference == null)
             Owner.Internals.AddObject(value);

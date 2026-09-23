@@ -114,18 +114,18 @@ public class DocumentPlumbingTests
             | BindingFlags.Instance | BindingFlags.Static;
 
         internal static object For(PdfDocument owner) =>
-            Activator.CreateInstance(TableType, Any, null, new object[] { owner }, null);
+            Activator.CreateInstance(TableType, Any, null, [owner], null);
 
         // ReSharper disable PossibleNullReferenceException
         internal static void Remember(object table, PdfDocument external) =>
             TableType.GetMethod("GetImportedObjectTable", Any, null,
-                new[] { typeof(PdfDocument) }, null).Invoke(table, new object[] { external });
+                [typeof(PdfDocument)], null).Invoke(table, [external]);
         // ReSharper restore PossibleNullReferenceException
 
         // ReSharper disable PossibleNullReferenceException
         internal static void Detach(object table, PdfDocument external) =>
             TableType.GetMethod("DetachDocument", Any)
-                .Invoke(table, new[] { HandleOf(external) });
+                .Invoke(table, [HandleOf(external)]);
         // ReSharper restore PossibleNullReferenceException
 
         // ReSharper disable PossibleNullReferenceException

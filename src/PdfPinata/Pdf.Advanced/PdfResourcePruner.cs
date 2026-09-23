@@ -66,8 +66,7 @@ internal sealed class PdfResourcePruner : PdfPageWalk
 
     private void Record(string category, string name)
     {
-        Dictionary<string, object> names;
-        if (!_used.TryGetValue(category, out names))
+        if (!_used.TryGetValue(category, out var names))
             _used[category] = names = new Dictionary<string, object>();
 
         names[name] = null;
@@ -75,8 +74,7 @@ internal sealed class PdfResourcePruner : PdfPageWalk
 
     private bool IsUsed(string category, string name)
     {
-        Dictionary<string, object> names;
-        return _used.TryGetValue(category, out names) && names.ContainsKey(name);
+        return _used.TryGetValue(category, out var names) && names.ContainsKey(name);
     }
 
     #region Rewriting

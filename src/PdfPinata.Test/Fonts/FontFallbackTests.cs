@@ -67,7 +67,7 @@ public class FontFallbackTests
         /// <param name="families">The families this fallback answers with, in the order given.</param>
         internal Only(string characters, params string[] families)
         {
-            _mine = new HashSet<int>();
+            _mine = [];
             for (var idx = 0; idx < characters.Length; idx++)
             {
                 if (char.IsHighSurrogate(characters[idx]) && idx + 1 < characters.Length
@@ -350,7 +350,7 @@ public class FontFallbackTests
 
         runs.Should().ContainSingle(run => run.Length == 1,
             "the pair is one character and gets one glyph, not one for each half")
-            .Which.Should().Equal(new[] { 0 },
+            .Which.Should().Equal([0],
                 "Liberation Sans has no format 12 subtable, so it cannot draw it - once");
 
         runs.Where(run => run.Length != 1).Should().OnlyContain(run => run.Length == Arabic.Length,

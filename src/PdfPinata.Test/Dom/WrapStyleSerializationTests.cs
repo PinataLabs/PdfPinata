@@ -101,11 +101,10 @@ public class WrapStyleSerializationTests
         var values = Enum.GetValues<WrapStyle>().ToList();
 
         values.Should().OnlyHaveUniqueItems();
-        values.Should().Contain(new[]
-        {
+        values.Should().Contain([
             WrapStyle.TopBottom, WrapStyle.None, WrapStyle.Through,
             WrapStyle.Left, WrapStyle.Right, WrapStyle.Largest, WrapStyle.Both
-        });
+        ]);
     }
 
     [Fact]

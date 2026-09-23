@@ -22,15 +22,14 @@ internal sealed class InternationalDemo : PdfDemo
 
     public override string Summary => "Right-to-left order, complex-script shaping, and font fallback.";
 
-    public override IReadOnlyList<string> Shows => new[]
-    {
+    public override IReadOnlyList<string> Shows => [
         "Hebrew and Arabic drawn in the order they are read, with no shaper needed for it",
         "An English word inside a right-to-left sentence, keeping its own order",
         "XStringFormat.TextDirection - saying what the text is instead of leaving it to be guessed",
         "Arabic letters joined by the face's own GSUB rules, through PdfPinata.HarfBuzz",
         "GlobalFontSettings.FontFallback - Arabic in a document that asked for a Latin face",
         "XTextFormatter.TextDirection, for a paragraph laid out into a rectangle"
-    };
+    ];
 
     public override int PageCount => 3;
 

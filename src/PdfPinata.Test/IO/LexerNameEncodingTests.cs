@@ -18,13 +18,13 @@ namespace PdfPinata.Test.IO;
 public class LexerNameEncodingTests
 {
     // Shift-JIS TE (U+30C6).
-    private static readonly byte[] ShiftJisTe = { 0x83, 0x65 };
+    private static readonly byte[] ShiftJisTe = [0x83, 0x65];
 
     // Shift-JIS NIHONGO (U+65E5 U+672C U+8A9E).
-    private static readonly byte[] ShiftJisNihongo = { 0x93, 0xFA, 0x96, 0xD1, 0x8C, 0xEA };
+    private static readonly byte[] ShiftJisNihongo = [0x93, 0xFA, 0x96, 0xD1, 0x8C, 0xEA];
 
     // The same three characters in UTF-8.
-    private static readonly byte[] Utf8Nihongo = { 0xE6, 0x97, 0xA5, 0xE6, 0x9C, 0xAC, 0xE8, 0xAA, 0x9E };
+    private static readonly byte[] Utf8Nihongo = [0xE6, 0x97, 0xA5, 0xE6, 0x9C, 0xAC, 0xE8, 0xAA, 0x9E];
 
     private const char ReplacementCharacter = (char)0xFFFD;
 
@@ -132,7 +132,7 @@ public class LexerNameEncodingTests
     /// </summary>
     private static byte[] RawBytesOf(string token)
     {
-        return token.Select(ch => (byte)ch).ToArray();
+        return [..token.Select(ch => (byte)ch)];
     }
 
     /// <summary>

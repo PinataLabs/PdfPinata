@@ -125,10 +125,10 @@ public sealed class XGraphicsPath
 
         var count = points.Length;
         if (count < 4)
-            throw new ArgumentException(@"At least four points required for bezier curve.", nameof(points));
+            throw new ArgumentException("At least four points required for bezier curve.", nameof(points));
 
         if ((count - 1) % 3 != 0)
-            throw new ArgumentException(@"Invalid number of points for bezier curve. Number must fulfil 4+3n.",
+            throw new ArgumentException("Invalid number of points for bezier curve. Number must fulfil 4+3n.",
                 nameof(points));
 
         CorePath.MoveOrLineTo(points[0].X, points[0].Y);
@@ -156,7 +156,7 @@ public sealed class XGraphicsPath
     {
         var count = points.Length;
         if (count < 2)
-            throw new ArgumentException(@"AddCurve requires two or more points.", nameof(points));
+            throw new ArgumentException("AddCurve requires two or more points.", nameof(points));
         CorePath.AddCurve(points, tension);
     }
 
@@ -339,7 +339,7 @@ public sealed class XGraphicsPath
         if (count == 0)
             return;
         if (count < 2)
-            throw new ArgumentException(@"Not enough points.", nameof(points));
+            throw new ArgumentException("Not enough points.", nameof(points));
         CorePath.AddClosedCurve(points, tension);
     }
 

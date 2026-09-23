@@ -55,8 +55,7 @@ internal class TopDownFormatter
     {
         if (prevBottomMargin >= 0 && nextTopMargin >= 0)
             return Math.Max(prevBottomMargin, nextTopMargin);
-        else
-            return prevBottomMargin + nextTopMargin;
+        return prevBottomMargin + nextTopMargin;
     }
 
     internal TopDownFormatter(IAreaProvider areaProvider, DocumentRenderer documentRenderer,
@@ -98,8 +97,7 @@ internal class TopDownFormatter
         {
             var docObj = elements[idx];
             var renderer = Renderer.Create(gfx, documentRenderer, docObj, areaProvider.AreaFieldInfos);
-            if (renderer != null) // "Slightly hacked" for legends: see below
-                renderer.MaxElementHeight = maxHeight;
+            renderer?.MaxElementHeight = maxHeight; // "Slightly hacked" for legends: see below
 
             if (topLevel && documentRenderer.HasPrepareDocumentProgress)
             {
@@ -380,7 +378,7 @@ internal class TopDownFormatter
             return new ObstructedArea(bounds, all);
         }
 
-        return new ObstructedArea(bounds, new[] { obstacle });
+        return new ObstructedArea(bounds, [obstacle]);
     }
 
     /// <summary>

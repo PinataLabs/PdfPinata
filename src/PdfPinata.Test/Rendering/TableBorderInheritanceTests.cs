@@ -160,7 +160,7 @@ public class TableBorderInheritanceTests
 
     private static IReadOnlyList<double> Distinct(IEnumerable<StrokedLines.Line> lines)
     {
-        return lines.Select(line => System.Math.Round(line.X1, 2)).Distinct().OrderBy(x => x).ToList();
+        return [..lines.Select(line => System.Math.Round(line.X1, 2)).Distinct().OrderBy(x => x)];
     }
 
     /// <summary>

@@ -333,7 +333,7 @@ public abstract class PdfAnnotation : PdfDictionary
     public void SetAppearance(string state, XForm form)
     {
         if (string.IsNullOrEmpty(state))
-            throw new ArgumentException(@"An appearance state must be named.", nameof(state));
+            throw new ArgumentException("An appearance state must be named.", nameof(state));
 
         var name = state[0] == '/' ? state : "/" + state;
         var owner = RequireOwner();
@@ -390,7 +390,7 @@ public abstract class PdfAnnotation : PdfDictionary
             // reason: /AS names a state, and the empty name names none. Checked here rather than
             // left to SetName, which would happily write a solidus and nothing after it.
             if (value.Length == 0)
-                throw new ArgumentException(@"An appearance state must be named.", nameof(value));
+                throw new ArgumentException("An appearance state must be named.", nameof(value));
 
             // SetName adds the solidus itself.
             Elements.SetName(Keys.AS, value);
@@ -445,7 +445,7 @@ public abstract class PdfAnnotation : PdfDictionary
     private protected static string SubtypeName(string subtype)
     {
         if (string.IsNullOrWhiteSpace(subtype))
-            throw new ArgumentException(@"An annotation must name its subtype.", nameof(subtype));
+            throw new ArgumentException("An annotation must name its subtype.", nameof(subtype));
 
         return subtype[0] == '/' ? subtype : "/" + subtype;
     }

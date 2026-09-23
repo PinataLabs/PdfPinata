@@ -209,7 +209,7 @@ internal static class StrokedLines
                 joined.AddRange(streams.Elements.GetDictionary(idx).Stream.UnfilteredValue);
                 joined.Add((byte)'\n');
             }
-            return joined.ToArray();
+            return [..joined];
         }
 
         return ((PdfDictionary)item).Stream.UnfilteredValue;

@@ -26,14 +26,14 @@ namespace PdfPinata.Test.Drawing;
 public class XGraphicsSurfaceTests
 {
     private static readonly XPoint[] ThreePoints =
-    {
+    [
         new(100, 100), new(200, 150), new(300, 100)
-    };
+    ];
 
     private static readonly XPoint[] FourBezierPoints =
-    {
+    [
         new(100, 100), new(150, 50), new(250, 50), new(300, 100)
-    };
+    ];
 
     private static PdfPage PageShowing(Action<XGraphics> draw)
     {
@@ -96,7 +96,7 @@ public class XGraphicsSurfaceTests
             else if (Regex.IsMatch(line, @"(^|\s)re$"))
                 depths.Add(depth);
         }
-        return depths.ToArray();
+        return [..depths];
     }
 
     private static int PointCount(Action<XGraphics> draw) => PathGeometry.PointsOf(PageShowing(draw)).Count;
@@ -259,7 +259,7 @@ public class XGraphicsSurfaceTests
         // ReSharper disable once AccessToDisposedClosure
         var noPoints = () => gfx.DrawLines(XPens.Black, null);
         // ReSharper disable once AccessToDisposedClosure
-        var onePoint = () => gfx.DrawLines(XPens.Black, new[] { new XPoint(1, 1) });
+        var onePoint = () => gfx.DrawLines(XPens.Black, [new XPoint(1, 1)]);
         // ReSharper disable once AccessToDisposedClosure
         var noNumbers = () => gfx.DrawLines(XPens.Black, 1, 1, null);
 
@@ -290,7 +290,7 @@ public class XGraphicsSurfaceTests
     {
         using var gfx = OnAPage();
 
-        PointCount(g => g.DrawBeziers(XPens.Black, Array.Empty<XPoint>())).Should().Be(0);
+        PointCount(g => g.DrawBeziers(XPens.Black, [])).Should().Be(0);
 
         // ReSharper disable once AccessToDisposedClosure
         var noPen = () => gfx.DrawBeziers(null, FourBezierPoints);
@@ -331,7 +331,7 @@ public class XGraphicsSurfaceTests
         // ReSharper disable once AccessToDisposedClosure
         var noPoints = () => gfx.DrawCurve(XPens.Black, null, 0.5);
         // ReSharper disable once AccessToDisposedClosure
-        var onePoint = () => gfx.DrawCurve(XPens.Black, new[] { new XPoint(1, 1) });
+        var onePoint = () => gfx.DrawCurve(XPens.Black, [new XPoint(1, 1)]);
 
         noPen.Should().Throw<ArgumentNullException>();
         noPoints.Should().Throw<ArgumentNullException>();
@@ -514,7 +514,7 @@ public class XGraphicsSurfaceTests
         // ReSharper disable once AccessToDisposedClosure
         var noPoints = () => gfx.DrawPolygon(XPens.Black, null);
         // ReSharper disable once AccessToDisposedClosure
-        var onePoint = () => gfx.DrawPolygon(XPens.Black, new[] { new XPoint(1, 1) });
+        var onePoint = () => gfx.DrawPolygon(XPens.Black, [new XPoint(1, 1)]);
 
         noPen.Should().Throw<ArgumentNullException>();
         noBrush.Should().Throw<ArgumentNullException>();
@@ -578,10 +578,10 @@ public class XGraphicsSurfaceTests
     {
         using var gfx = OnAPage();
 
-        PointCount(g => g.DrawClosedCurve(XPens.Black, Array.Empty<XPoint>())).Should().Be(0);
+        PointCount(g => g.DrawClosedCurve(XPens.Black, [])).Should().Be(0);
 
         // ReSharper disable once AccessToDisposedClosure
-        var onePoint = () => gfx.DrawClosedCurve(XPens.Black, new[] { new XPoint(1, 1) });
+        var onePoint = () => gfx.DrawClosedCurve(XPens.Black, [new XPoint(1, 1)]);
         // ReSharper disable once AccessToDisposedClosure
         var neither = () => gfx.DrawClosedCurve(null, null, ThreePoints, XFillMode.Alternate, 0.5);
 

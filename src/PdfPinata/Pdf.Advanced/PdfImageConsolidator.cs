@@ -75,7 +75,7 @@ internal sealed class PdfImageConsolidator
         /// Get info for each image named by the resources of any of the pages.
         /// </summary>
         internal static List<ImageInfo> FindAll(IEnumerable<PdfPage> pages) =>
-            pages
+            [..pages
                 .Select(page => page.Elements.GetDictionary("/Resources"))
                 .Select(resources => resources?.Elements?.GetDictionary("/XObject"))
                 .Where(xObjects => xObjects?.Elements != null)
@@ -84,8 +84,7 @@ internal sealed class PdfImageConsolidator
                     let xObject = (item.Value as PdfReference)?.Value as PdfDictionary
                     where xObject?.Elements?.GetString("/Subtype") == "/Image"
                     select new ImageInfo(xObjects, item, xObject)
-                )
-                .ToList();
+                )];
 
         /// <summary>
         /// Compute and return the MD5 hash of the input data.

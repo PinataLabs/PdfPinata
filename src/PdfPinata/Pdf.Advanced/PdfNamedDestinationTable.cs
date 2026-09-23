@@ -113,7 +113,7 @@ public sealed class PdfNamedDestinationTable
         get
         {
             Adopt();
-            return _destinations.Keys.OrderBy(name => name, StringComparer.Ordinal).ToList();
+            return [.._destinations.Keys.OrderBy(name => name, StringComparer.Ordinal)];
         }
     }
 
@@ -138,14 +138,14 @@ public sealed class PdfNamedDestinationTable
     public void Add(string name, PdfPage page, double top)
     {
         if (string.IsNullOrEmpty(name))
-            throw new ArgumentException(@"A destination must be named something.", nameof(name));
+            throw new ArgumentException("A destination must be named something.", nameof(name));
         ArgumentNullException.ThrowIfNull(page);
 
         // A page of another document has an object number in that document's table, and writing a
         // reference to it here would point at whatever this document happens to hold under that
         // number - or at nothing.
         if (page.Owner != _document)
-            throw new ArgumentException(@"The page belongs to another document.", nameof(page));
+            throw new ArgumentException("The page belongs to another document.", nameof(page));
 
         Adopt();
         _destinations[name] = new Destination(page, top);

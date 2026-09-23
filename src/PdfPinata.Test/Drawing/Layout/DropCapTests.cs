@@ -614,16 +614,15 @@ public class DropCapTests
         for (var idx = cap > 0 ? 1 : 0; idx < positions.Count && idx < runs.Count; idx++)
             lines.Add((positions[idx].X, positions[idx].Y, runs[idx].Length));
 
-        return lines.OrderByDescending(line => line.Y).ToList();
+        return [..lines.OrderByDescending(line => line.Y)];
     }
 
     /// <summary>The size given to each <c>Tf</c>, in the order they were written.</summary>
     private static List<double> FontSizesOn(PdfPage page)
     {
         var content = Encoding.ASCII.GetString(PageContent.Of(page));
-        return Regex.Matches(content, @"/F\d+ ([\d.]+) Tf")
-            .Select(match => double.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture))
-            .ToList();
+        return [..Regex.Matches(content, @"/F\d+ ([\d.]+) Tf")
+            .Select(match => double.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture))];
     }
 
     // ----- reading the vertical placement off a rendered page --------------------------------------

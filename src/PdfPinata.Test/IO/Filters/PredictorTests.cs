@@ -87,14 +87,14 @@ public class PredictorTests
     }
 
     private static readonly byte[][] Rows =
-    {
-        new byte[] { 10, 20, 30, 40, 50, 60 },
-        new byte[] { 12, 24, 36, 48, 60, 72 },
-        new byte[] { 200, 190, 180, 170, 160, 150 },
-        new byte[] { 0, 255, 0, 255, 0, 255 }
-    };
+    [
+        [10, 20, 30, 40, 50, 60],
+        [12, 24, 36, 48, 60, 72],
+        [200, 190, 180, 170, 160, 150],
+        [0, 255, 0, 255, 0, 255]
+    ];
 
-    private static byte[] Flat => Rows.SelectMany(row => row).ToArray();
+    private static byte[] Flat => [..Rows.SelectMany(row => row)];
 
     /// <summary>
     ///   Runs data that has been predicted back through the decoder the way a stream's filter
@@ -149,7 +149,7 @@ public class PredictorTests
         var predicted = Predict(1, 3, rows);
 
         Unpredict(predicted, Parms(12, 3, 8, 3))
-            .Should().Equal(rows.SelectMany(row => row).ToArray());
+            .Should().Equal([..rows.SelectMany(row => row)]);
     }
 
     [Fact]
@@ -232,7 +232,7 @@ public class PredictorTests
     [InlineData(32)]
     public void TheTiffPredictorRefusesAComponentSizeThatIsNotAPowerOfTwoBits(int bitsPerComponent)
     {
-        var act = () => Unpredict(new byte[] { 1, 2, 3, 4 }, Parms(2, 1, bitsPerComponent, 4));
+        var act = () => Unpredict([1, 2, 3, 4], Parms(2, 1, bitsPerComponent, 4));
 
         act.Should().Throw<PdfReaderException>().WithMessage("*bits per component*");
     }
@@ -273,7 +273,7 @@ public class PredictorTests
     [InlineData(100)]
     public void APredictorThatIsNeitherOneNorTiffNorPngIsRefused(int predictor)
     {
-        var act = () => Unpredict(new byte[] { 1, 2, 3, 4 }, Parms(predictor, 1, 8, 4));
+        var act = () => Unpredict([1, 2, 3, 4], Parms(predictor, 1, 8, 4));
 
         act.Should().Throw<PdfReaderException>().WithMessage("*predictor*");
     }
@@ -286,7 +286,7 @@ public class PredictorTests
     public void AComponentSizeThatIsNotAPowerOfTwoBitsIsRefused(int bitsPerComponent)
     {
         // One, two, four, eight and sixteen are the only sizes the reference allows.
-        var act = () => Unpredict(new byte[] { 1, 2, 3, 4 }, Parms(12, 1, bitsPerComponent, 4));
+        var act = () => Unpredict([1, 2, 3, 4], Parms(12, 1, bitsPerComponent, 4));
 
         act.Should().Throw<PdfReaderException>().WithMessage("*bits per component*");
     }

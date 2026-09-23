@@ -20,15 +20,14 @@ internal sealed class UnicodeDemo : PdfDemo
 
     public override string Summary => "WinAnsi against Unicode encoding, and how each face is embedded.";
 
-    public override IReadOnlyList<string> Shows => new[]
-    {
+    public override IReadOnlyList<string> Shows => [
         "XPdfFontOptions.WinAnsiDefault against UnicodeDefault, on the same strings",
         "What WinAnsi cannot carry, drawn beside what it can",
         "The difference in the file: a simple font with a readable literal, or a CID font with glyph ids",
         "PdfDocumentRenderer(unicode: true) - the same switch, under a name that hides it",
         "TrueType embedded as a subset in /FontFile2, CFF embedded whole in /FontFile3",
         "Why CJK is not on this page"
-    };
+    ];
 
     public override int PageCount => 2;
 
@@ -54,14 +53,14 @@ internal sealed class UnicodeDemo : PdfDemo
         // docs:end encodings
 
         (string Text, string What)[] samples =
-        {
+        [
             ("The quick brown fox", "Plain ASCII - both encodings carry it"),
             ("Café, naïve, Straße, £42", "Latin-1 - inside WinAnsi's 256 places"),
             ("Ελληνικά", "Greek - outside WinAnsi"),
             ("Кириллица", "Cyrillic - outside WinAnsi"),
             ("Ćwiczenia, Łódź", "Latin Extended - outside WinAnsi"),
             ("→ ← ↑ ↓ ∑ ∞", "Arrows and mathematics - outside WinAnsi")
-        };
+        ];
 
         // ----- page 1: what each encoding can carry -----
 
@@ -181,11 +180,11 @@ internal sealed class UnicodeDemo : PdfDemo
         };
 
         string[] descriptions =
-        {
+        [
             "Liberation Sans, WinAnsi", "Liberation Sans, Unicode",
             "Liberation Sans, Unicode, Cyrillic", "Source Code Pro, WinAnsi",
             "Source Code Pro, Unicode"
-        };
+        ];
 
         var page2 = document.AddPage();
         var gfx2 = XGraphics.FromPdfPage(page2);

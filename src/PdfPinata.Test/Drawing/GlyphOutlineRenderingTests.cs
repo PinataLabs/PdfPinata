@@ -24,7 +24,7 @@ public sealed class GlyphOutlineRenderingTests : IDisposable
 
     private static readonly XRect Box = new XRect(40, 60, 500, 120);
 
-    private readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
+    private readonly List<MagickImageCollection> _rasterized = [];
 
     public void Dispose()
     {
@@ -120,10 +120,9 @@ public sealed class GlyphOutlineRenderingTests : IDisposable
     private static IReadOnlyList<(int X, IMagickColor<byte> Colour)> InkOf(IMagickImage<byte> page)
     {
         using var pixels = page.GetPixels();
-        return pixels
+        return [..pixels
             .Select(pixel => (pixel.X, Colour: pixel.ToColor()))
-            .Where(pixel => pixel.Colour != null && !IsPaper(pixel.Colour))
-            .ToList();
+            .Where(pixel => pixel.Colour != null && !IsPaper(pixel.Colour))];
     }
 
     private static int CountInk(IMagickImage<byte> page)

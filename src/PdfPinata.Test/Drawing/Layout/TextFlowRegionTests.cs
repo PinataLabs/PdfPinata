@@ -24,9 +24,8 @@ public class TextFlowRegionTests
 
     private static (double Start, double End)[] RoomIn(TextFlowRegion region, FlowBand? band = null)
     {
-        return region.GetAvailableIntervals(band ?? Band)
-            .Select(run => (run.Start, run.End))
-            .ToArray();
+        return [..region.GetAvailableIntervals(band ?? Band)
+            .Select(run => (run.Start, run.End))];
     }
 
     private static TextFlowRegion BlockWith(params IFlowObstacle[] obstacles)

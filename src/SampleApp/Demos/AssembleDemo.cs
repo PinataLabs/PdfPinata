@@ -19,15 +19,14 @@ internal sealed class AssembleDemo : PdfDemo
 
     public override string Summary => "Merge, import, reorder, duplicate, split, prune and consolidate.";
 
-    public override IReadOnlyList<string> Shows => new[]
-    {
+    public override IReadOnlyList<string> Shows => [
         "Two documents built in memory and merged into this one with ImportPage",
         "AnnotationCopyingType - a link that survives the import, and the setting that drops it",
         "MovePage and DuplicatePage, with the result visible in the pages that follow",
         "Splitting the merged document back into one file per page, in memory",
         "PruneUnusedResources and ConsolidateImages, reported as the bytes they save",
         "Why a document this library wrote has little to prune, and what does"
-    };
+    ];
 
     public override int PageCount => 7;
 
@@ -201,7 +200,7 @@ internal sealed class AssembleDemo : PdfDemo
             gfx.DrawString("What was done", label, XBrushes.Black, new XPoint(50, 155));
 
             (string Step, string Detail)[] steps =
-            {
+            [
                 ("Document A", $"3 pages, a photograph on each, and a link from A1 to A3. {bytesA:N0} bytes."),
                 ("Document B", $"2 pages, the same photograph on each. {bytesB:N0} bytes."),
                 ("AddPage x 5", $"Every page of both, copied in. {bytesMerged:N0} bytes."),
@@ -210,7 +209,7 @@ internal sealed class AssembleDemo : PdfDemo
                 ("DuplicatePage(1, 6)", "A copy of the first imported page, placed at the end."),
                 ("MovePage(5, 1)", "B2 moved from the end of the run to the front of it."),
                 ("Split", $"{splitCount} single-page documents, {splitTotal:N0} bytes between them.")
-            };
+            ];
 
             double y = 175;
             foreach (var step in steps)

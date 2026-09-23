@@ -26,7 +26,7 @@ public sealed class FreeTextAnnotationTests : IDisposable
 {
     private const string OutDir = "Out/FreeTextAnnotations";
 
-    private readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
+    private readonly List<MagickImageCollection> _rasterized = [];
 
     public void Dispose()
     {

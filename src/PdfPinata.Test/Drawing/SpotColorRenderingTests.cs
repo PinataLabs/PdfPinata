@@ -24,7 +24,7 @@ public sealed class SpotColorRenderingTests : IDisposable
     private static readonly XRect Half = new XRect(50, 200, 200, 100);
     private static readonly XRect Stroked = new XRect(300, 50, 200, 100);
 
-    private readonly List<MagickImageCollection> _rasterized = new List<MagickImageCollection>();
+    private readonly List<MagickImageCollection> _rasterized = [];
 
     static SpotColorRenderingTests()
     {
