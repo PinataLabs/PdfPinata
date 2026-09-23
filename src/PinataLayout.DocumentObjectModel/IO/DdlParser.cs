@@ -312,19 +312,14 @@ internal class DdlParser
     {
         ArgumentNullException.ThrowIfNull(section);
 
-        HeaderFooter headerFooter;
         try
         {
             var hdrFtrSym = Symbol;
-            var isHeader = hdrFtrSym is Symbol.Header or
-                           Symbol.PrimaryHeader or
-                           Symbol.FirstPageHeader or
-                           Symbol.EvenPageHeader;
 
             // Recall that the styles "Header" resp. "Footer" are used as default if
             // no other style was given. But this belongs to the rendering process,
             // not to the DDL parser. Therefore no code here belongs to that.
-            headerFooter = new HeaderFooter();
+            var headerFooter = new HeaderFooter();
             ReadCode(); // read '[' or '{'
             if (Symbol == Symbol.BracketLeft)
                 ParseAttributes(headerFooter);
@@ -343,38 +338,54 @@ internal class DdlParser
             AssertSymbol(Symbol.BraceRight);
             ReadCode(); // parse beyond '{'
 
-            var headersFooters = isHeader ? section.Headers : section.Footers;
-            if (hdrFtrSym is Symbol.Header or Symbol.Footer)
-            {
-                headersFooters.Primary = headerFooter.Clone();
-                headersFooters.EvenPage = headerFooter.Clone();
-                headersFooters.FirstPage = headerFooter.Clone();
-            }
-            else
-            {
-                switch (hdrFtrSym)
-                {
-                    case Symbol.PrimaryHeader:
-                    case Symbol.PrimaryFooter:
-                        headersFooters.Primary = headerFooter;
-                        break;
-
-                    case Symbol.EvenPageHeader:
-                    case Symbol.EvenPageFooter:
-                        headersFooters.EvenPage = headerFooter;
-                        break;
-
-                    case Symbol.FirstPageHeader:
-                    case Symbol.FirstPageFooter:
-                        headersFooters.FirstPage = headerFooter;
-                        break;
-                }
-            }
+            var headersFooters = IsHeaderSymbol(hdrFtrSym) ? section.Headers : section.Footers;
+            AssignHeaderFooter(headersFooters, hdrFtrSym, headerFooter);
         }
         catch (DdlParserException ex)
         {
             ReportParserException(ex);
             AdjustToNextBlock();
+        }
+    }
+
+    /// <summary>
+    /// Whether a header or footer keyword names a header.
+    /// </summary>
+    private static bool IsHeaderSymbol(Symbol hdrFtrSym) =>
+        hdrFtrSym is Symbol.Header or
+            Symbol.PrimaryHeader or
+            Symbol.FirstPageHeader or
+            Symbol.EvenPageHeader;
+
+    /// <summary>
+    /// Puts a parsed header or footer in the place its keyword names. «\header» and «\footer»
+    /// name every place, and each gets a clone of its own.
+    /// </summary>
+    private static void AssignHeaderFooter(HeadersFooters headersFooters, Symbol hdrFtrSym, HeaderFooter headerFooter)
+    {
+        switch (hdrFtrSym)
+        {
+            case Symbol.Header:
+            case Symbol.Footer:
+                headersFooters.Primary = headerFooter.Clone();
+                headersFooters.EvenPage = headerFooter.Clone();
+                headersFooters.FirstPage = headerFooter.Clone();
+                break;
+
+            case Symbol.PrimaryHeader:
+            case Symbol.PrimaryFooter:
+                headersFooters.Primary = headerFooter;
+                break;
+
+            case Symbol.EvenPageHeader:
+            case Symbol.EvenPageFooter:
+                headersFooters.EvenPage = headerFooter;
+                break;
+
+            case Symbol.FirstPageHeader:
+            case Symbol.FirstPageFooter:
+                headersFooters.FirstPage = headerFooter;
+                break;
         }
     }
 
@@ -389,28 +400,29 @@ internal class DdlParser
         if (scanner.Char != Chars.BackSlash)
             return true;
 
-        var symbol = scanner.PeekKeyword();
-        return symbol switch
-        {
-            Symbol.Bold
-                or Symbol.Italic
-                or Symbol.Underline
-                or Symbol.Field
-                or Symbol.Font
-                or Symbol.FontColor
-                or Symbol.FontSize
-                or Symbol.Footnote
-                or Symbol.Hyperlink
-                or Symbol.Symbol
-                or Symbol.Chr
-                or Symbol.Tab
-                or Symbol.LineBreak
-                or Symbol.Space
-                or Symbol.SoftHyphen
-                => true,
-            _ => false
-        };
+        return IsParagraphContentKeyword(scanner.PeekKeyword());
     }
+
+    /// <summary>
+    /// Whether a keyword is one that can only stand inside a paragraph, so that a block starting
+    /// with it is paragraph content with the keyword «\paragraph» omitted.
+    /// </summary>
+    private static bool IsParagraphContentKeyword(Symbol symbol) =>
+        symbol is Symbol.Bold
+            or Symbol.Italic
+            or Symbol.Underline
+            or Symbol.Field
+            or Symbol.Font
+            or Symbol.FontColor
+            or Symbol.FontSize
+            or Symbol.Footnote
+            or Symbol.Hyperlink
+            or Symbol.Symbol
+            or Symbol.Chr
+            or Symbol.Tab
+            or Symbol.LineBreak
+            or Symbol.Space
+            or Symbol.SoftHyphen;
 
     /// <summary>
     /// Parses the document elements of a «\paragraph», «\cell» or comparable.
@@ -547,121 +559,148 @@ internal class DdlParser
     {
         MoveToParagraphContent();
 
-        var loop = true;
         var rootLevel = nestingLevel == 0;
         ReadText(rootLevel);
-        while (loop)
+        while (Symbol != Symbol.BraceRight)
         {
-            switch (Symbol)
-            {
-                case Symbol.Eof:
-                    ThrowParserException(DomMsgID.UnexpectedEndOfFile);
-                    break;
+            ParseFormattedTextElement(elements, nestingLevel);
+            ReadText(rootLevel);
+        }
+    }
 
-                case Symbol.EmptyLine:
-                    elements.AddCharacter(SymbolName.ParaBreak);
-                    ReadText(rootLevel);
-                    break;
+    /// <summary>
+    /// Parses the paragraph content the current symbol starts, which is not the closing '}'.
+    /// Leaves the scanner where the next piece of content is to be read from.
+    /// </summary>
+    private void ParseFormattedTextElement(ParagraphElements elements, int nestingLevel)
+    {
+        switch (Symbol)
+        {
+            case Symbol.Eof:
+                ThrowParserException(DomMsgID.UnexpectedEndOfFile);
+                break;
 
-                case Symbol.BraceRight:
-                    loop = false;
-                    break;
+            case Symbol.EmptyLine:
+                elements.AddCharacter(SymbolName.ParaBreak);
+                break;
 
-                case Symbol.Comment:
-                    // Ignore comments.
-                    ReadText(rootLevel);
-                    break;
+            case Symbol.Comment:
+                // Ignore comments.
+                break;
 
-                case Symbol.Text:
-                    elements.AddText(Token);
-                    ReadText(rootLevel);
-                    break;
+            case Symbol.Text:
+                elements.AddText(Token);
+                break;
 
-                case Symbol.Tab:
-                    RemoveTrailingBlank(elements);
-                    elements.AddTab();
-                    scanner.MoveToNonWhiteSpaceOrEol();
-                    ReadText(rootLevel);
-                    break;
+            case Symbol.Tab:
+            case Symbol.LineBreak:
+            case Symbol.Space:
+                ParseWhiteSpaceElement(elements);
+                break;
 
-                case Symbol.LineBreak:
-                    RemoveTrailingBlank(elements);
-                    elements.AddLineBreak();
-                    scanner.MoveToNonWhiteSpaceOrEol();
-                    ReadText(rootLevel);
-                    break;
+            default:
+                if (!TryParseFormattedElement(elements, nestingLevel + 1))
+                    ParseInlineElement(elements);
+                break;
+        }
+    }
 
-                case Symbol.Bold:
-                    ParseBoldItalicEtc(elements.AddFormattedText(TextFormat.Bold), nestingLevel + 1);
-                    ReadText(rootLevel);
-                    break;
+    /// <summary>
+    /// Parses «\tab», «\linebreak» or «\space», each of which replaces a blank before it and
+    /// swallows the white space after it.
+    /// </summary>
+    private void ParseWhiteSpaceElement(ParagraphElements elements)
+    {
+        RemoveTrailingBlank(elements);
+        switch (Symbol)
+        {
+            case Symbol.Tab:
+                elements.AddTab();
+                break;
 
-                case Symbol.Italic:
-                    ParseBoldItalicEtc(elements.AddFormattedText(TextFormat.Italic), nestingLevel + 1);
-                    ReadText(rootLevel);
-                    break;
+            case Symbol.LineBreak:
+                elements.AddLineBreak();
+                break;
 
-                case Symbol.Underline:
-                    ParseBoldItalicEtc(elements.AddFormattedText(TextFormat.Underline), nestingLevel + 1);
-                    ReadText(rootLevel);
-                    break;
+            case Symbol.Space:
+                ParseSpace(elements);
+                break;
+        }
+        scanner.MoveToNonWhiteSpaceOrEol();
+    }
 
-                case Symbol.Font:
-                    ParseFont(elements.AddFormattedText(), nestingLevel + 1);
-                    ReadText(rootLevel);
-                    break;
+    /// <summary>
+    /// Parses a keyword that formats the text nested inside it, at the given nesting level.
+    /// Returns false, having parsed nothing, if the current symbol is not one.
+    /// </summary>
+    private bool TryParseFormattedElement(ParagraphElements elements, int nestingLevel)
+    {
+        switch (Symbol)
+        {
+            case Symbol.Bold:
+                ParseBoldItalicEtc(elements.AddFormattedText(TextFormat.Bold), nestingLevel);
+                return true;
 
-                case Symbol.FontSize:
-                    ParseFontSize(elements.AddFormattedText(), nestingLevel + 1);
-                    ReadText(rootLevel);
-                    break;
+            case Symbol.Italic:
+                ParseBoldItalicEtc(elements.AddFormattedText(TextFormat.Italic), nestingLevel);
+                return true;
 
-                case Symbol.FontColor:
-                    ParseFontColor(elements.AddFormattedText(), nestingLevel + 1);
-                    ReadText(rootLevel);
-                    break;
+            case Symbol.Underline:
+                ParseBoldItalicEtc(elements.AddFormattedText(TextFormat.Underline), nestingLevel);
+                return true;
 
-                case Symbol.Image:
-                    ParseImage(elements.AddImage(null), true);
-                    ReadText(rootLevel);
-                    break;
+            case Symbol.Font:
+                ParseFont(elements.AddFormattedText(), nestingLevel);
+                return true;
 
-                case Symbol.Field:
-                    ParseField(elements);
-                    ReadText(rootLevel);
-                    break;
+            case Symbol.FontSize:
+                ParseFontSize(elements.AddFormattedText(), nestingLevel);
+                return true;
 
-                case Symbol.Footnote:
-                    ParseFootnote(elements);
-                    ReadText(rootLevel);
-                    break;
+            case Symbol.FontColor:
+                ParseFontColor(elements.AddFormattedText(), nestingLevel);
+                return true;
 
-                case Symbol.Hyperlink:
-                    ParseHyperlink(elements, nestingLevel + 1);
-                    ReadText(rootLevel);
-                    break;
+            case Symbol.Hyperlink:
+                ParseHyperlink(elements, nestingLevel);
+                return true;
 
-                case Symbol.Space:
-                    RemoveTrailingBlank(elements);
-                    ParseSpace(elements);
-                    scanner.MoveToNonWhiteSpaceOrEol();
-                    ReadText(rootLevel);
-                    break;
+            default:
+                return false;
+        }
+    }
 
-                case Symbol.Symbol:
-                    ParseSymbol(elements);
-                    ReadText(rootLevel);
-                    break;
+    /// <summary>
+    /// Parses an image, field, footnote, symbol or character inside a paragraph, and throws for
+    /// any other symbol.
+    /// </summary>
+    private void ParseInlineElement(ParagraphElements elements)
+    {
+        switch (Symbol)
+        {
+            case Symbol.Image:
+                ParseImage(elements.AddImage(null), true);
+                break;
 
-                case Symbol.Chr:
-                    ParseChr(elements);
-                    ReadText(rootLevel);
-                    break;
+            case Symbol.Field:
+                ParseField(elements);
+                break;
 
-                default:
-                    ThrowParserException(DomMsgID.UnexpectedSymbol, Token);
-                    break;
-            }
+            case Symbol.Footnote:
+                ParseFootnote(elements);
+                break;
+
+            case Symbol.Symbol:
+                ParseSymbol(elements);
+                break;
+
+            case Symbol.Chr:
+                ParseChr(elements);
+                break;
+
+            default:
+                ThrowParserException(DomMsgID.UnexpectedSymbol, Token);
+                break;
         }
     }
 
@@ -1365,30 +1404,9 @@ internal class DdlParser
         //
         // Usage of header-, bottom-, footer-, left- and rightarea are similar.
 
-        ChartType chartType = 0;
-        Chart chart;
         try
         {
-            ReadCode(); // read '('
-            AssertSymbol(Symbol.ParenLeft, DomMsgID.MissingParenLeft, GetSymbolText(Symbol.Chart));
-
-            ReadCode(); // ChartType name
-            AssertSymbol(Symbol.Identifier, DomMsgID.IdentifierExpected, Token);
-            var chartTypeName = Token;
-
-            ReadCode(); // read ')'
-            AssertSymbol(Symbol.ParenRight, DomMsgID.MissingParenRight, GetSymbolText(Symbol.Chart));
-
-            try
-            {
-                chartType = Enum.Parse<ChartType>(chartTypeName, true);
-            }
-            catch (Exception ex) when (!Unrecoverable.Is(ex))
-            {
-                ThrowParserException(ex, DomMsgID.UnknownChartType, chartTypeName);
-            }
-
-            chart = elements.AddChart(chartType);
+            var chart = elements.AddChart(ParseChartType());
 
             ReadCode();
             if (Symbol == Symbol.BracketLeft)
@@ -1398,72 +1416,9 @@ internal class DdlParser
 
             ReadCode(); // read beyond '{'
 
-            var fContinue = true;
-            while (fContinue)
-            {
-                switch (Symbol)
-                {
-                    case Symbol.Eof:
-                        ThrowParserException(DomMsgID.UnexpectedEndOfFile);
-                        break;
+            while (Symbol != Symbol.BraceRight)
+                ParseChartElement(chart);
 
-                    case Symbol.BraceRight:
-                        fContinue = false;
-                        break;
-
-                    case Symbol.PlotArea:
-                        ParseArea(chart.PlotArea);
-                        break;
-
-                    case Symbol.HeaderArea:
-                        ParseArea(chart.HeaderArea);
-                        break;
-
-                    case Symbol.FooterArea:
-                        ParseArea(chart.FooterArea);
-                        break;
-
-                    case Symbol.TopArea:
-                        ParseArea(chart.TopArea);
-                        break;
-
-                    case Symbol.BottomArea:
-                        ParseArea(chart.BottomArea);
-                        break;
-
-                    case Symbol.LeftArea:
-                        ParseArea(chart.LeftArea);
-                        break;
-
-                    case Symbol.RightArea:
-                        ParseArea(chart.RightArea);
-                        break;
-
-                    case Symbol.XAxis:
-                        ParseAxes(chart.XAxis, Symbol);
-                        break;
-
-                    case Symbol.YAxis:
-                        ParseAxes(chart.YAxis, Symbol);
-                        break;
-
-                    case Symbol.ZAxis:
-                        ParseAxes(chart.ZAxis, Symbol);
-                        break;
-
-                    case Symbol.Series:
-                        ParseSeries(chart.SeriesCollection.AddSeries());
-                        break;
-
-                    case Symbol.XValues:
-                        ParseSeries(chart.XValues.AddXSeries());
-                        break;
-
-                    default:
-                        ThrowParserException(DomMsgID.UnexpectedSymbol, Token);
-                        break;
-                }
-            }
             ReadCode(); // read beyond '}'
         }
         catch (DdlParserException pe)
@@ -1472,6 +1427,94 @@ internal class DdlParser
             AdjustToNextBlock();
         }
     }
+
+    /// <summary>
+    /// Parses the «(Type)» after the keyword «\chart».
+    /// </summary>
+    private ChartType ParseChartType()
+    {
+        ReadCode(); // read '('
+        AssertSymbol(Symbol.ParenLeft, DomMsgID.MissingParenLeft, GetSymbolText(Symbol.Chart));
+
+        ReadCode(); // ChartType name
+        AssertSymbol(Symbol.Identifier, DomMsgID.IdentifierExpected, Token);
+        var chartTypeName = Token;
+
+        ReadCode(); // read ')'
+        AssertSymbol(Symbol.ParenRight, DomMsgID.MissingParenRight, GetSymbolText(Symbol.Chart));
+
+        ChartType chartType = 0;
+        try
+        {
+            chartType = Enum.Parse<ChartType>(chartTypeName, true);
+        }
+        catch (Exception ex) when (!Unrecoverable.Is(ex))
+        {
+            ThrowParserException(ex, DomMsgID.UnknownChartType, chartTypeName);
+        }
+        return chartType;
+    }
+
+    /// <summary>
+    /// Parses the area, axis or series inside a chart the current symbol starts, which is not
+    /// the closing '}'.
+    /// </summary>
+    private void ParseChartElement(Chart chart)
+    {
+        switch (Symbol)
+        {
+            case Symbol.Eof:
+                ThrowParserException(DomMsgID.UnexpectedEndOfFile);
+                break;
+
+            case Symbol.PlotArea:
+                ParseArea(chart.PlotArea);
+                break;
+
+            case Symbol.XAxis:
+                ParseAxes(chart.XAxis, Symbol);
+                break;
+
+            case Symbol.YAxis:
+                ParseAxes(chart.YAxis, Symbol);
+                break;
+
+            case Symbol.ZAxis:
+                ParseAxes(chart.ZAxis, Symbol);
+                break;
+
+            case Symbol.Series:
+                ParseSeries(chart.SeriesCollection.AddSeries());
+                break;
+
+            case Symbol.XValues:
+                ParseSeries(chart.XValues.AddXSeries());
+                break;
+
+            default:
+                var textArea = ChartTextArea(chart, Symbol);
+                if (textArea == null)
+                    ThrowParserException(DomMsgID.UnexpectedSymbol, Token);
+                ParseArea(textArea);
+                break;
+        }
+    }
+
+    /// <summary>
+    /// The text area of the chart a keyword names, or null if the keyword names none. Only the
+    /// area named is asked for, since asking a chart for an area creates it.
+    /// </summary>
+    private static TextArea ChartTextArea(Chart chart, Symbol symbol) =>
+        symbol switch
+        {
+            Symbol.HeaderArea => chart.HeaderArea,
+            Symbol.FooterArea => chart.FooterArea,
+            Symbol.TopArea => chart.TopArea,
+            Symbol.BottomArea => chart.BottomArea,
+            Symbol.LeftArea => chart.LeftArea,
+            Symbol.RightArea => chart.RightArea,
+            _ => null
+        };
 
     /// <summary>
     /// Parses the keyword «\plotarea» inside a chart.
@@ -1862,36 +1905,15 @@ internal class DdlParser
         //
         // Parser of rhs depends on the type of the l-value.
 
-        object val;
         var valueName = "";
         try
         {
             valueName = scanner.Token;
-
-            var doc = dom;
             ReadCode();
 
-            // Resolve path, if it exists.
-            while (Symbol == Symbol.Dot)
-            {
-                val = doc.GetValue(valueName);
-                if (val == null)
-                {
-                    var documentObject = doc;
-                    val = documentObject.CreateValue(valueName);
-                    doc.SetValue(valueName, val);
-                }
-                AssertCondition(val != null, DomMsgID.InvalidValueName, valueName);
-                doc = val as DocumentObject;
-                AssertCondition(doc != null, DomMsgID.SymbolIsNotAnObject, valueName);
-
-                ReadCode();
-                AssertCondition(Symbol == Symbol.Identifier, DomMsgID.InvalidValueName, scanner.Token);
-                valueName = scanner.Token;
-                AssertCondition(valueName[0] != '_', DomMsgID.NoAccess, scanner.Token);
-
-                ReadCode();
-            }
+            // valueName is passed by reference so that a failure part way along the path is
+            // reported against the name reached so far, as the catch below reads it.
+            var doc = ResolveAttributePath(dom, ref valueName);
 
             switch (Symbol)
             {
@@ -1904,54 +1926,11 @@ internal class DdlParser
 
                 case Symbol.PlusAssign:
                 case Symbol.MinusAssign:
-                    // Hard-coded for TabStops only...
-                    if (!(doc is ParagraphFormat))
-                        ThrowParserException(DomMsgID.SymbolNotAllowed, scanner.Token);
-                    if (string.Compare(valueName, "TabStops", StringComparison.OrdinalIgnoreCase) != 0)
-                        ThrowParserException(DomMsgID.InvalidValueForOperation, valueName, scanner.Token);
-
-                    var paragraphFormat = (ParagraphFormat)doc;
-                    var tabStops = paragraphFormat.TabStops;
-
-                    if (true) // HACK in ParseAttributeStatement
-                    {
-                        var fAddItem = Symbol == Symbol.PlusAssign;
-                        var tabStop = new TabStop();
-
-                        ReadCode();
-
-                        if (Symbol == Symbol.BraceLeft)
-                        {
-                            ParseAttributeBlock(tabStop);
-                        }
-                        else if (Symbol is Symbol.StringLiteral or Symbol.RealLiteral or Symbol.IntegerLiteral)
-                        {
-                            // Special hack for tab stops...
-                            Unit unit = Token;
-                            tabStop.SetValue("Position", unit);
-
-                            ReadCode();
-                        }
-                        else
-                        {
-                            ThrowParserException(DomMsgID.UnexpectedSymbol, Token);
-                        }
-
-                        if (fAddItem)
-                            tabStops.AddTabStop(tabStop);
-                        else
-                            tabStops.RemoveTabStop(tabStop.Position);
-                    }
+                    ParseTabStopsOperation(doc, valueName);
                     break;
 
                 case Symbol.BraceLeft:
-                    val = doc.GetValue(valueName);
-                    AssertCondition(val != null, DomMsgID.InvalidValueName, valueName);
-
-                    if (val is DocumentObject documentObject)
-                        ParseAttributeBlock(documentObject);
-                    else
-                        ThrowParserException(DomMsgID.SymbolIsNotAnObject, valueName);
+                    ParseValueAttributeBlock(doc, valueName);
                     break;
 
                 default:
@@ -1968,6 +1947,109 @@ internal class DdlParser
         {
             ReportParserException(e, DomMsgID.InvalidAssignment, valueName);
         }
+    }
+
+    /// <summary>
+    /// Follows a path of value names «xxx.yyy.zzz» from the given object, creating each object on
+    /// the way that is not there yet. Returns the object the last name is a value of, and leaves
+    /// that name in valueName.
+    /// </summary>
+    private DocumentObject ResolveAttributePath(DocumentObject doc, ref string valueName)
+    {
+        while (Symbol == Symbol.Dot)
+        {
+            doc = GetOrCreateObjectValue(doc, valueName);
+
+            ReadCode();
+            AssertCondition(Symbol == Symbol.Identifier, DomMsgID.InvalidValueName, scanner.Token);
+            valueName = scanner.Token;
+            AssertCondition(valueName[0] != '_', DomMsgID.NoAccess, scanner.Token);
+
+            ReadCode();
+        }
+        return doc;
+    }
+
+    /// <summary>
+    /// The value of the given name, created if it is not there yet, which must be a DocumentObject.
+    /// </summary>
+    private DocumentObject GetOrCreateObjectValue(DocumentObject doc, string valueName)
+    {
+        var val = doc.GetValue(valueName);
+        if (val == null)
+        {
+            val = doc.CreateValue(valueName);
+            doc.SetValue(valueName, val);
+        }
+        AssertCondition(val != null, DomMsgID.InvalidValueName, valueName);
+        var documentObject = val as DocumentObject;
+        AssertCondition(documentObject != null, DomMsgID.SymbolIsNotAnObject, valueName);
+        return documentObject;
+    }
+
+    /// <summary>
+    /// Parses «TabStops += …» or «TabStops -= …», the only value «+=» and «-=» apply to.
+    /// </summary>
+    private void ParseTabStopsOperation(DocumentObject doc, string valueName)
+    {
+        // Hard-coded for TabStops only...
+        if (!(doc is ParagraphFormat))
+            ThrowParserException(DomMsgID.SymbolNotAllowed, scanner.Token);
+        if (string.Compare(valueName, "TabStops", StringComparison.OrdinalIgnoreCase) != 0)
+            ThrowParserException(DomMsgID.InvalidValueForOperation, valueName, scanner.Token);
+
+        var paragraphFormat = (ParagraphFormat)doc;
+        var tabStops = paragraphFormat.TabStops;
+
+        var fAddItem = Symbol == Symbol.PlusAssign;
+        var tabStop = ParseTabStopOperand();
+
+        if (fAddItem)
+            tabStops.AddTabStop(tabStop);
+        else
+            tabStops.RemoveTabStop(tabStop.Position);
+    }
+
+    /// <summary>
+    /// Parses what follows «+=» or «-=»: a tab stop's attribute block, or its position alone.
+    /// </summary>
+    private TabStop ParseTabStopOperand()
+    {
+        var tabStop = new TabStop();
+
+        ReadCode();
+
+        if (Symbol == Symbol.BraceLeft)
+        {
+            ParseAttributeBlock(tabStop);
+        }
+        else if (Symbol is Symbol.StringLiteral or Symbol.RealLiteral or Symbol.IntegerLiteral)
+        {
+            // Special hack for tab stops...
+            Unit unit = Token;
+            tabStop.SetValue("Position", unit);
+
+            ReadCode();
+        }
+        else
+        {
+            ThrowParserException(DomMsgID.UnexpectedSymbol, Token);
+        }
+        return tabStop;
+    }
+
+    /// <summary>
+    /// Parses the attribute block «{…}» of the named value, which must be a DocumentObject.
+    /// </summary>
+    private void ParseValueAttributeBlock(DocumentObject doc, string valueName)
+    {
+        var val = doc.GetValue(valueName);
+        AssertCondition(val != null, DomMsgID.InvalidValueName, valueName);
+
+        if (val is DocumentObject documentObject)
+            ParseAttributeBlock(documentObject);
+        else
+            ThrowParserException(DomMsgID.SymbolIsNotAnObject, valueName);
     }
 
     /// <summary>
